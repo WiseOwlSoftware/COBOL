@@ -75,7 +75,7 @@ scoping fixed (the DEVLOG-738 latent bug: a half's own env shadowed the class en
 CURRENCY-through-shadow). The class definition is a source element of its own (§10.5), and so are its factory and
 instance definitions, the source units it contains: `OoDriver.BindClassData` binds the class's environment division
 ONCE, in the class's own binder, declaring its REPOSITORY and SPECIAL-NAMES words and the CLASS-ID in the class's
-§8.3.2.2 census alone, and each half binder inherits that configuration (`DataBinder.InheritConfiguration`, §12.3.4
+§8.3.2.2 census alone, and each half binder inherits that configuration (`ConfigurationStep`, §12.3.4
 GR1, the contained-program model) before it binds its own environment and data divisions (`OoDriver.OoReparent`).
 A factory or object data item spelled like a class the REPOSITORY names, an alphabet the class's SPECIAL-NAMES
 declares, or the CLASS-ID is therefore legal (§8.4.6.1), until that half itself references the class-name

@@ -26,19 +26,19 @@ internal static class ObjectComputerEmit
     /// <summary>The per-type members: the collating carriers and, for a program type, the <c>__CLASSIFY</c> field.</summary>
     public static void EmitMembers(DataBinder data, CodeWriter w, bool classificationField)
     {
-        if (data.Collating is { } collate)
+        if (data.State.Configuration.Collating is { } collate)
             // The NON-native alphanumeric program collating sequence (ISO §12.3.6) as the type's ONE CobolCollation
             // carrier (kb/Work PB101): an AlphanumericCollation for a literal phrase (positions + the §15.15.4 r2
             // representative array + NextFree + the GR8/GR9 extremes — PB59) or a LocaleCollation for the LOCALE
             // phrase; every comparison consumer, MAX/MIN, CHAR/ORD take the object.
             w.Line($"private static readonly CobolCollation __COLLATE = {CollationEmit.New(collate)};");
-        if (classificationField && data.Classification is not null)
+        if (classificationField && data.State.Configuration.Classification is not null)
             // The OBJECT-COMPUTER CHARACTER CLASSIFICATION in effect for this runtime module (ISO §12.3.6.4 GR5–GR8;
             // kb/Work PB64 T5): resolved at EVERY activation (GR8; §14.6.6 r2), in __Activate's prologue, so the word
             // LOCALE binds the locale current when the program is entered. Read by UPPER-CASE / LOWER-CASE without a
             // LOCALE phrase and by the ALPHABETIC class tests.
             w.Line("private CharacterClassification __CLASSIFY = CharacterClassification.None;   // CHARACTER CLASSIFICATION (ISO §12.3.6) — resolved at activation");
-        if (data.NationalCollating is { } nat)
+        if (data.State.Configuration.NationalCollating is { } nat)
             // The NON-native NATIONAL program collating sequence (ISO §12.3.6 GR9/GR11): a SPARSE NationalCollation
             // for an ALPHABET … FOR NATIONAL literal phrase (the runtime computes every unspecified character's
             // §12.3.7.4 GR7 1.3 position arithmetically) or a LocaleCollation.

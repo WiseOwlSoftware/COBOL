@@ -221,8 +221,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// a site with crossings to land states the EMPTY array (the runtime still lands its BY VALUE arguments, GR10, and its computed BY CONTENT ones, kb/Work PB3969) and one
     /// with none states nothing. A site that states nothing (null) has no argument for the runtime to land: it held the
     /// signature and landed every argument at compile time, or it passes every argument BY REFERENCE.</summary>
-    private string ProgramSpecifiersText(bool landsAtRunTime) => ctx.Data.ProgramSpecifiers.Count > 0
-        ? $", programSpecifiers: new string[] {{ {string.Join(", ", ctx.Data.ProgramSpecifiers.Values.Select(s => CsLiteral(s.ExternalizedName)))} }}"
+    private string ProgramSpecifiersText(bool landsAtRunTime) => ctx.Data.State.Configuration.ProgramSpecifiers.Count > 0
+        ? $", programSpecifiers: new string[] {{ {string.Join(", ", ctx.Data.State.Configuration.ProgramSpecifiers.Values.Select(s => CsLiteral(s.ExternalizedName)))} }}"
         : landsAtRunTime ? ", programSpecifiers: global::System.Array.Empty<string>()" : "";
 
     /// <summary>The <c>CobolArg[]</c> expression of one bound call's arguments — the ONE argument-array text of
@@ -1213,8 +1213,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // §8.3.3.6.4 GR2's repetition is the ONE runtime rule EmitText.RepeatToWidth folds (kb/Work PB297).
             BoundAllLiteral all => CsLiteral(width is { } w ? RepeatToWidth(all.Literal, w) : all.Literal),
             BoundFigurative fig =>
-                $"new string({FigurativeConstants.Fill(fig.Kind, data.Collating,
-                    IntrinsicArgumentRules.CharacterContext(formal is null ? null : IntrinsicArgumentRules.ClassOfItem(formal)), data.NationalCollating)}, {width ?? 1})",
+                $"new string({FigurativeConstants.Fill(fig.Kind, data.State.Configuration.Collating,
+                    IntrinsicArgumentRules.CharacterContext(formal is null ? null : IntrinsicArgumentRules.ClassOfItem(formal)), data.State.Configuration.NationalCollating)}, {width ?? 1})",
             _ => throw new ArgumentException(
                 $"{fill.GetType().Name} is not a figurative constant or ALL literal", nameof(fill)),
         };

@@ -247,7 +247,7 @@ public sealed partial class ReferenceResolver
         // property-name-1, and literal-4 — when written — is the property as the declared classes know it (§12.3.8.3
         // SR16 a)), so the accessors are looked up under THAT name. Without a specifier the reference is still
         // reported below (SR1), under the name as written.
-        string known = data.OoRepositoryProperties.TryGetValue(name, out var specified) ? specified : name;
+        string known = data.State.Configuration.OoRepositoryProperties.TryGetValue(name, out var specified) ? specified : name;
         var get = Accessor(receiver, NamingConvention.GetAccessorName(known));
         var set = Accessor(receiver, NamingConvention.SetAccessorName(known));
         if (get is null && set is null)
@@ -272,7 +272,7 @@ public sealed partial class ReferenceResolver
         // "invokes any method" for ISO §7.3.14.4 GR4 b, though the text is a qualified data reference.
         data.State.ActivationSites.Add(dref);
 
-        if (!data.OoRepositoryProperties.ContainsKey(name))
+        if (!data.State.Configuration.OoRepositoryProperties.ContainsKey(name))
             data.Edition.Error("COBOL0843",
                 $"the object-property reference '{name}' OF '{objWritten}' requires a PROPERTY specifier in the "
                 + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");

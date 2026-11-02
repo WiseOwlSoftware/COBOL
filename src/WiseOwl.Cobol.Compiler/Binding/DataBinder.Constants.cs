@@ -215,13 +215,13 @@ public sealed partial class DataBinder
     /// item. b) … 1. The item in source element A if the name is declared in source element A"), so it leaves the
     /// table before any procedure reference can substitute it (kb/Work PB1009; the nearer-container half kb/Work
     /// PB1047 — an outer program's constant used to beat the middle program's global data-name).
-    /// <para>The INHERITED SYMBOLIC CHARACTERS figurative constants (§12.3.7.4 GR11 a; <see cref="InheritConfiguration"/>)
+    /// <para>The INHERITED SYMBOLIC CHARACTERS figurative constants (§12.3.7.4 GR11 a; <see cref="ConfigurationStep"/>)
     /// obey the same rule: §8.4.6.1 "a source element's reference to such a name, even when it is a different type of
     /// user-defined word, is to the item which that source element describes", so a contained program's or an OO
     /// half's data item spelled like its container's symbolic-character is the referenced item (kb/Work PB3154 review
     /// R1-1: <c>MOVE S1 TO Y</c> moved the container's figurative instead of the local <c>01 S1</c>, with no
     /// diagnostic). A shadowed symbolic is HIDDEN (<see cref="_shadowedSymbolics"/>), never removed: a contained unit
-    /// inherits the whole table from this one (<see cref="InheritConfiguration"/> copies one level), and this unit's
+    /// inherits the whole table from this one (<see cref="ConfigurationStep"/> copies one level), and this unit's
     /// local data-name hides nothing from it.</para>
     /// <para>Every tier a name can be declared at is asked by <see cref="DeclaredNearerThan"/>; a METHOD's own names
     /// are the one tier nearer still, asked at reference time (<see cref="ActiveMethodDeclares"/>).</para></summary>
@@ -233,7 +233,7 @@ public sealed partial class DataBinder
                 _constants.Bound.Remove(name);
                 _inheritedConstants.Remove(name);
             }
-        foreach (var (name, depth) in SymbolicCharacters.InheritedDepths)
+        foreach (var (name, depth) in State.Configuration.SymbolicCharacters.InheritedDepths)
             if (DeclaredNearerThan(name, depth)) _shadowedSymbolics.Add(name);
     }
 
@@ -661,7 +661,7 @@ public sealed partial class DataBinder
         string spec = "FROM " + word;
         if (value.Category == CtCategory.Numeric)
         {
-            string text = DecimalPointIsComma ? value.Text.Replace('.', ',') : value.Text;
+            string text = State.Configuration.DecimalPointIsComma ? value.Text.Replace('.', ',') : value.Text;
             string? integer = NumericLiteral.IsIntegerLiteralForm(value.Text) ? CtNumeric.ToIntegerText(value.Number) : null;
             return new ConstantDef(name, PicCategory.Numeric, text, integer, isGlobal, text, spec, WrittenLiteral: null);
         }
@@ -750,7 +750,7 @@ public sealed partial class DataBinder
             diag: new ConstantEvaluatorDiagnostics(this),
             vocab: new CtOperandVocabulary(
                 "numeric constant-names substituting them", "ISO §13.10.3 SR6, SR7 / §7.3.6.2 SR1b"),
-            decimalPointIsComma: DecimalPointIsComma);
+            decimalPointIsComma: State.Configuration.DecimalPointIsComma);
         if (evaluator.EvaluateArithmeticOperand(expr, where) is not { } n) return null;
         // The constant carries the literal AS WRITTEN (§13.10.4 GR1 — kb/Work PB1230), never a normalized form; its
         // value, where an integer position needs one, is the evaluator's — derived once, from the ONE literal parser.
@@ -775,7 +775,7 @@ public sealed partial class DataBinder
         // ExpandPicConstants "(1)" recovery precedent; kb/Work PB1231).
         if (ClosesConstantCycle(word)) return FailedConstantOperand;
         if (FindConstant(word) is { Category: PicCategory.Numeric } d
-            && NumericLiteral.Normalize(d.Text, DecimalPointIsComma, out _) is var canonical
+            && NumericLiteral.Normalize(d.Text, State.Configuration.DecimalPointIsComma, out _) is var canonical
             && !NumericLiteral.IsFloatingPointForm(canonical)
             && CtNumeric.TryParseLiteral(canonical, out var v))
             return CtValue.Numeric(v, d.Text);

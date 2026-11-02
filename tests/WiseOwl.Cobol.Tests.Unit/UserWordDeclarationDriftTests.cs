@@ -169,7 +169,7 @@ public sealed class UserWordDeclarationDriftTests
 
         var sources = CompilerSources();
         var tabled = sources.SelectMany(s => Regex.Matches(s.Text,
-                @"ConfigurationNames<[^>]+>\s+\w+\s*=>\s*field\s*\?\?=\s*new\(UserWordKind\.(\w+),\s*RecordConfigurationNameUse\)")
+                @"ConfigurationNames<[^>]+>\s+\w+\s*=>\s*field\s*\?\?=\s*new\(UserWordKind\.(\w+),\s*recordUse\)")
             .Select(m => Enum.Parse<UserWordKind>(m.Groups[1].Value)));
         string registry = sources.Single(s => s.Name == "MnemonicRegistry.cs").Text;
         Assert.Contains("data.RecordConfigurationNameUse(at, name, UserWordKind.MnemonicName)", registry);

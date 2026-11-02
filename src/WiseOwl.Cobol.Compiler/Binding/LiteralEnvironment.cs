@@ -56,7 +56,7 @@ internal sealed class LiteralEnvironment
     /// environment-division clauses bound after SPECIAL-NAMES): the program collating sequences and the program's
     /// constant-name and symbolic-character tables.</summary>
     public static LiteralEnvironment Program(DataBinder data) =>
-        new(data, data.Collating, data.NationalCollating, false, false);
+        new(data, data.State.Configuration.Collating, data.State.Configuration.NationalCollating, false, false);
 
     /// <summary>A literal written INSIDE the SPECIAL-NAMES paragraph (§12.3.7.4 GR10's native extremes — see
     /// <see cref="_inSpecialNames"/>); <paramref name="refusesSymbolicCharacters"/>

@@ -27,63 +27,24 @@ public sealed partial class DataBinder
     // to keep a second, switch-only map built by a second walk of the same entries — the walk in which an Option-2
     // entry (status phrases, no mnemonic) entered the switch-NAME itself as a mnemonic.
 
-    /// <summary>Switch-status condition-names (case-insensitive) → (implementor switch-name, posited-ON) (ISO
-    /// §12.3.7 GR2; §8.4.4.2 Format 1 SR1 — the condition-name shall be associated with a switch-name in
-    /// SPECIAL-NAMES). Consulted by the condition binder AFTER level-88 resolution: a switch name declared in the
-    /// same source element as a level-88 of the spelling counts as one more candidate of an unqualified reference, and a
-    /// nearer 88 hides it (<see cref="SwitchConditionCompetes"/>, §8.4.2.2.1, §8.4.6.1; kb/Work PB3347).</summary>
-    internal ConfigurationNames<(string ImplementorName, bool IsOn)> SwitchConditions =>
-        field ??= new(UserWordKind.ConditionName, RecordConfigurationNameUse);
-
-    /// <summary>User-defined CLASS names (case-insensitive) → the EXPANDED member-character set (ISO §12.3.7
-    /// class-name clause: each literal lists its characters; a THRU pair contributes every character between the
-    /// two ordinals in the NATIVE collating sequence, in either order). Consulted by the class-condition binder
-    /// (§8.8.4.4 — true when the operand consists entirely of members).
-    /// <para>Each entry carries the CLASS of its characters (kb/Work PB976): a <c>FOR NATIONAL</c> class is a set of
-    /// national characters, and "the relevant native character set" of §12.3.7.4 GR12 is the national one. Both
-    /// native sets are the same UTF-16 repertoire today (implementor item 188), so the members coincide — the flag
-    /// is recorded so that a native alphanumeric set that is ever NOT that repertoire cannot silently resolve a
-    /// national class's ordinals in the wrong set.</para></summary>
-    internal ConfigurationNames<UserClassDef> UserClasses =>
-        field ??= new(UserWordKind.ClassName, RecordConfigurationNameUse);
-
-    /// <summary>ALPHANUMERIC alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7): the
-    /// built collating table of a literal phrase, the LOCALE arm of an <c>IS LOCALE</c> phrase, the identity
-    /// (<see cref="AlphabetDef.Native"/>) for NATIVE/STANDARD-1/STANDARD-2 (ISO/IEC 646 order IS the Latin-1 native
-    /// order — no table), or an implementor code-name's row (§12.3.7.3 SR15 / §12.3.7.4 GR7 i —
-    /// <see cref="ImplementorCodeNames"/>: ASCII, identity like STANDARD-1; EBCDIC, whose 256-entry table the row
-    /// carries). An <c>ALPHABET … FOR NATIONAL</c> clause registers in <see cref="NationalAlphabets"/>
-    /// instead — the two classes are disjoint reference domains (§12.3.6 SR1/SR2, §14.9.40 GR5).</summary>
-    internal ConfigurationNames<AlphabetDef> Alphabets =>
-        field ??= new(UserWordKind.AlphabetName, RecordConfigurationNameUse);
-
-    /// <summary>NATIONAL alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7 b/d2/f/g/h/k
-    /// + Table 6): a null-table identity for NATIVE and the coded-set names (UCS-4 collates in ISO 10646 order,
-    /// which on the D-N1 one-code-unit-per-position substrate IS the native code-unit order — see
-    /// <see cref="NationalAlphabetDef"/> for the §8.5.1.4 derivation; UTF-8/UTF-16 name coded character sets ONLY),
-    /// or the sparse <see cref="CollatingTable"/> of a literal phrase (the SAME record the alphanumeric arm
-    /// builds - one §12.3.7.4 GR7 k model for both classes).</summary>
-    internal ConfigurationNames<NationalAlphabetDef> NationalAlphabets =>
-        field ??= new(UserWordKind.AlphabetName, RecordConfigurationNameUse);
-
     /// <summary>Is <paramref name="name"/> an alphabet-name of EITHER class (ISO §12.3.7 ALPHABET clause)? The
     /// question a trailing <c>IN word</c> after a THROUGH range's identifier asks (kb/Work PB843): §8.3.2.2 makes an
     /// alphabet-name a different type of user-defined word from every name a qualifier can be, so a declared
     /// alphabet-name there is §14.9.13.2's <c>IN alphabet-name-1</c> phrase and never a qualifier. A predicate, so
     /// it records no §8.3.2.2 use: the caller that takes the word as an alphabet-name resolves it through
     /// <see cref="ConfigurationNames{T}.TryUse"/> (kb/Work PB3153).</summary>
-    public bool IsAlphabetName(string name) => Alphabets.Declares(name) || NationalAlphabets.Declares(name);
+    public bool IsAlphabetName(string name) => State.Configuration.Alphabets.Declares(name) || State.Configuration.NationalAlphabets.Declares(name);
 
     /// <summary>Take <paramref name="name"/>, written at <paramref name="site"/>, as a REFERENCE to an alphabet-name of
     /// either class, recording the §8.3.2.2 use (kb/Work PB3153) — the site that names an alphabet whose definition a
     /// later screen or resolver reads (a COLLATING SEQUENCE phrase). False when no alphabet is named so.</summary>
     internal bool UseAlphabetName(Antlr4.Runtime.RuleContext site, string name) =>
-        Alphabets.TryUse(site, name, out _) || NationalAlphabets.TryUse(site, name, out _);
+        State.Configuration.Alphabets.TryUse(site, name, out _) || State.Configuration.NationalAlphabets.TryUse(site, name, out _);
 
     /// <summary>Is <paramref name="name"/> one of the class condition's user-defined-word alternatives — a
     /// class-name-1 or an alphabet-name-1 (ISO §8.8.4.4.2)? The symbol test that separates a bare EVALUATE object
     /// naming a class from identifier-2 (kb/Work PB843).</summary>
-    public bool IsClassConditionWord(string name) => UserClasses.Declares(name) || IsAlphabetName(name);
+    public bool IsClassConditionWord(string name) => State.Configuration.UserClasses.Declares(name) || IsAlphabetName(name);
 
     /// <summary>⛔ THE per-TYPE runtime carriers a THROUGH range's <c>IN alphabet-name-1</c> phrase needs (ISO
     /// §14.7.8 rule 2 — "the collating sequence used for range evaluation is the collating sequence defined by that
@@ -108,11 +69,11 @@ public sealed partial class DataBinder
     /// and silently reinstates the very default the phrase overrides — measured, while these two cases returned
     /// early instead of recording themselves.</para>
     public void RegisterRangeCollation(string name, AlphabetDef def)
-        => Register(name, ReferenceEquals(def, Collating) ? "__COLLATE" : null, def.Table, def.Locale, National: false);
+        => Register(name, ReferenceEquals(def, State.Configuration.Collating) ? "__COLLATE" : null, def.Table, def.Locale, National: false);
 
     /// <inheritdoc cref="RegisterRangeCollation(string,AlphabetDef)"/>
     public void RegisterRangeCollation(string name, NationalAlphabetDef def)
-        => Register(name, ReferenceEquals(def, NationalCollating) ? "__COLLATE_NAT" : null,
+        => Register(name, ReferenceEquals(def, State.Configuration.NationalCollating) ? "__COLLATE_NAT" : null,
             def.Table, def.Locale, National: true);
 
     /// <summary>⛔ THE ONE resolution of a THROUGH range's <c>IN alphabet-name-1</c> phrase, for EVERY clause that
@@ -172,7 +133,7 @@ public sealed partial class DataBinder
         bool national = rangeClass is CollatingClass.National;
         if (national)
         {
-            if (NationalAlphabets.TryUse(site, alphabetName, out var nd))
+            if (State.Configuration.NationalAlphabets.TryUse(site, alphabetName, out var nd))
             {
                 // §12.3.7.4 Table 6 — UTF-8 / UTF-16 name a coded character set only; their collating-sequence
                 // column is empty, so they define no sequence this phrase could use.
@@ -187,7 +148,7 @@ public sealed partial class DataBinder
                 return true;
             }
         }
-        else if (Alphabets.TryUse(site, alphabetName, out var ad))
+        else if (State.Configuration.Alphabets.TryUse(site, alphabetName, out var ad))
         {
             RegisterRangeCollation(alphabetName, ad);
             return true;
@@ -225,8 +186,8 @@ public sealed partial class DataBinder
     /// when they bind, kb/Work PB110). An undeclared name is not a locale alphabet — its own diagnostic is elsewhere.
     /// A predicate, recording no §8.3.2.2 use (kb/Work PB3153): a true answer is a refusal at every asker.</summary>
     public bool IsLocaleAlphabet(string alphabetName)
-        => (Alphabets.TryPeek(alphabetName, out var a) && a.Locale is not null)
-        || (NationalAlphabets.TryPeek(alphabetName, out var n) && n.Locale is not null);
+        => (State.Configuration.Alphabets.TryPeek(alphabetName, out var a) && a.Locale is not null)
+        || (State.Configuration.NationalAlphabets.TryPeek(alphabetName, out var n) && n.Locale is not null);
 
     /// <summary>⛔ THE ONE resolver of an alphabet-name referenced where a CODED CHARACTER SET is required (ISO
     /// §12.3.7.4 GR7 Table 6; kb/Work PB110 — the class condition's alphabet-name-1, SYMBOLIC CHARACTERS … IN,
@@ -237,8 +198,8 @@ public sealed partial class DataBinder
     internal CodedCharacterSet? CodedCharacterSetOf(Antlr4.Runtime.RuleContext at, string alphabetName, string site,
         string rule)
     {
-        AlphabetDef? a = Alphabets.TryUse(at, alphabetName, out var av) ? av : null;
-        NationalAlphabetDef? n = a is null && NationalAlphabets.TryUse(at, alphabetName, out var nv) ? nv : null;
+        AlphabetDef? a = State.Configuration.Alphabets.TryUse(at, alphabetName, out var av) ? av : null;
+        NationalAlphabetDef? n = a is null && State.Configuration.NationalAlphabets.TryUse(at, alphabetName, out var nv) ? nv : null;
         if (a is null && n is null)
         {
             Edition.Error("COBOL0898", $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
@@ -256,14 +217,6 @@ public sealed partial class DataBinder
         return set;
     }
 
-    /// <summary>SYMBOLIC CHARACTERS figurative constants (ISO §12.3.7.4 GR11 a — "Symbolic-character-1 defines a
-    /// figurative constant"; kb/Work PB110): name → the ONE-character value (GR11 b/c — the character at ordinal
-    /// integer-1 of the native or IN-alphabet coded character set) and its class. Substituted wherever a figurative
-    /// constant may stand — the reference seams consult <see cref="SymbolicOf"/> exactly as they consult the
-    /// §13.10 constant table, and the value fills like every figurative (§8.3.3.6.4 GR2 / GR10).</summary>
-    internal ConfigurationNames<(string Value, bool National)> SymbolicCharacters =>
-        field ??= new(UserWordKind.SymbolicCharacter, RecordConfigurationNameUse);
-
     /// <summary>The symbolic character a BARE (unqualified, unsubscripted) data reference names, or null — the
     /// twin of <c>ConstantOf</c> (one shape for "a word that stands for a literal"). A resolution: the word is
     /// recorded as used as a symbolic-character (§8.3.2.2; kb/Work PB3153).</summary>
@@ -278,7 +231,7 @@ public sealed partial class DataBinder
     /// <summary>Does the bare word <paramref name="word"/> name a symbolic character visible here (one
     /// <see cref="HidesSymbolic"/> does not hide)? The predicate twin of
     /// <see cref="SymbolicOf(Antlr4.Runtime.RuleContext, string)"/>, recording no use.</summary>
-    internal bool NamesSymbolic(string word) => SymbolicCharacters.Declares(word) && !HidesSymbolic(word);
+    internal bool NamesSymbolic(string word) => State.Configuration.SymbolicCharacters.Declares(word) && !HidesSymbolic(word);
 
     /// <summary>The symbolic character the word <paramref name="word"/> written at <paramref name="site"/> names, or
     /// null (the FigurativeOperand ALL-form lookup, a concatenation operand). A resolution, recorded as a use
@@ -286,7 +239,7 @@ public sealed partial class DataBinder
     /// spelling hides (<see cref="HidesSymbolic"/>) is not what the word references, so it is neither resolved nor
     /// recorded.</summary>
     internal (string Value, bool National)? SymbolicOf(Antlr4.Runtime.RuleContext site, string word) =>
-        !HidesSymbolic(word) && SymbolicCharacters.TryUse(site, word, out var def) ? def : null;
+        !HidesSymbolic(word) && State.Configuration.SymbolicCharacters.TryUse(site, word, out var def) ? def : null;
 
     /// <summary>Whether a nearer declaration of <paramref name="word"/> hides the symbolic-character of that spelling
     /// (§8.4.6.1, §8.4.6.2.1 3); kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
@@ -300,123 +253,6 @@ public sealed partial class DataBinder
     /// unit inherits the whole table from this one, and this unit's local name hides nothing from it.</summary>
     private readonly HashSet<string> _shadowedSymbolics = new(CobolNames.Comparer);
 
-    /// <summary>SPECIAL-NAMES <c>ORDER TABLE</c> ordering-names (case-insensitive) → the DECODED literal-9 that
-    /// identifies the cultural ordering table (ISO §12.3.7.2's last clause; §12.3.7.4 GR17 — "When ORDER TABLE is
-    /// specified, ordering-name-1 shall reference a cultural ordering table that is identified by literal-9 and
-    /// constructed in accordance with ISO/IEC 14651:2020, Annex A. The implementor specifies the allowable content
-    /// of literal-9"). Read by exactly one consumer, §12.3.7.3 SR9's only legal reference site —
-    /// <c>IntrinsicBinder.BindStandardCompare</c> (§15.85.3 r5 / §15.3 argument type 12), which copies the literal
-    /// onto the bound call so the backend never has to ask the SPECIAL-NAMES model anything.
-    /// <para>⚠ The literal is stored DECODED, not as source text: §12.3.7.3 SR10 admits a national literal
-    /// (<c>N"…"</c>) as well as an alphanumeric one, and the runtime resolver matches ordering-table NAMES, not
-    /// COBOL literal spellings.</para></summary>
-    internal ConfigurationNames<string> OrderTables =>
-        field ??= new(UserWordKind.OrderingName, RecordConfigurationNameUse);
-
-    /// <summary>SPECIAL-NAMES <c>DYNAMIC LENGTH STRUCTURE</c> declarations (case-insensitive
-    /// dynamic-length-structure-name → its layout; ISO §12.3.7.2; kb/Work PB829), read by the DYNAMIC LENGTH clause's
-    /// dynamic-length-structure-name-1 (§13.18.19.3 SR2 / SR4). Configuration-section names reach contained source
-    /// elements (§8.4.6.1), so the dictionary inherits with its siblings.</summary>
-    internal ConfigurationNames<DynamicLengthStructure> DynamicLengthStructures =>
-        field ??= new(UserWordKind.DynamicLengthStructureName, RecordConfigurationNameUse);
-
-    /// <summary>SPECIAL-NAMES <c>LOCALE locale-name-1 IS {external-locale-name-1 | literal-4}</c> declarations
-    /// (case-insensitive locale-name → the symbol; ISO §12.3.7.2; DESIGN-locale-facility seam S1, T1): the locale-name
-    /// is a user-defined word (§8.3.2.2) referenced by <c>ALPHABET … IS LOCALE locale-name-2</c> (§12.3.7.3 SR24), SET
-    /// LOCALE (§14.9.39.3 SR26), and — in later increments — the LOCALE phrases of PICTURE format 2, LOCALE-COMPARE /
-    /// -DATE / -TIME, UPPER-CASE / LOWER-CASE and CHARACTER CLASSIFICATION. The symbol holds the EXTERNAL IDENTIFICATION
-    /// only (§8.1.5 — the locale is "determined at runtime"); it inherits into contained units (§12.3.7.4 GR1).</summary>
-    internal ConfigurationNames<LocaleSymbol> Locales =>
-        field ??= new(UserWordKind.LocaleName, RecordConfigurationNameUse);
-
-    /// <summary>The OBJECT-COMPUTER <c>CHARACTER CLASSIFICATION</c> clause (ISO §12.3.6.2; §12.3.6.4 GR5–GR8; kb/Work PB64
-    /// T5), or null when none is specified and no containing unit specifies one (GR6 — the coded character set's
-    /// classification). Inherited per §12.3.6.4 GR1; consumed by the emitter (resolved at each activation —
-    /// <c>__CLASSIFY</c>), by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§15.97.4 r3 / §15.57.4 r3) and by the
-    /// ALPHABETIC class tests (§8.8.4.4.4 GR3).</summary>
-    public ClassificationSpec? Classification { get; private set; }
-
-    /// <summary>The resolved ALPHANUMERIC PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9–GR11) — a literal-phrase table
-    /// or a LOCALE sequence — or null when none is specified / the named alphabet is the native order. Drives
-    /// relation, condition-name and SORT/MERGE-key comparisons (GR11/GR13), MAX/MIN, ORD/CHAR, and the HIGH-/LOW-VALUE
-    /// characters (§8.3.3.6 GR6/GR7). The emitter renders it ONCE as the program's <c>__COLLATE</c> carrier.</summary>
-    public AlphabetDef? Collating { get; private set; }
-
-    /// <summary>The resolved NATIONAL PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9 — alphabet-name-2 / the FOR
-    /// NATIONAL form), or null when none is specified / the named alphabet is an identity sequence (NATIVE, UCS-4 —
-    /// the native UTF-16 code-unit order, D-N3). Drives NATIONAL relation and condition-name comparisons (GR11 /
-    /// §8.8.4.2.9), CHAR-NATIONAL/ORD-over-national (§15.16.4 / §15.70.4 r2), and the national HIGH-/LOW-VALUE
-    /// characters (§12.3.7 GR8/GR9). National SORT/MERGE keys (GR13 / §14.9.40 GR5b) cannot yet EXIST — D-N2
-    /// refuses national leaves in FD/SD records and the table-sort national key is staged loud — so no key
-    /// consumer reads this yet.</summary>
-    public NationalAlphabetDef? NationalCollating { get; private set; }
-
-    /// <summary>DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14 — the decimal and grouping separator characters EXCHANGE
-    /// functionality in numeric literals [GR14a] and PICTURE character-strings / edited insertion [GR14b]).
-    /// Version-invariant 85→2023 (no VERSION_CHANGE_REFERENCE row). Set BEFORE any literal or PICTURE binds —
-    /// SPECIAL-NAMES is walked at the top of <see cref="Bind"/>.</summary>
-    public bool DecimalPointIsComma { get; private set; }
-
-    /// <summary>The character a numeric literal of this program writes its decimal separator with (ISO §12.3.7.4 GR14 a):
-    /// ',' under DECIMAL-POINT IS COMMA, else '.'. A contained program inherits the container's
-    /// (<see cref="InheritConfiguration"/>, §12.3.4 GR1).</summary>
-    public char DecimalSeparator => DecimalPointIsComma ? ',' : '.';
-
-    /// <summary>
-    /// The unit's CURRENCY SIGN SET (ISO §12.3.7): every currency PICTURE SYMBOL (uppercase-keyed — §12.3.7.3
-    /// r20 / §8.1.3 GR3 make the letter cases equivalent) → the currency STRING it stands for (GR13) AND the CLASS
-    /// of the literal-7 that gave it (<see cref="CurrencyDefinition"/>; §12.3.7.3 SR28 confines an alphanumeric
-    /// literal-7's symbol to usage-display numeric-edited items and a national one's to usage-national ones, and a set
-    /// of symbol → string alone cannot ask it — kb/Work PB1089). A bare
-    /// <c>CURRENCY SIGN IS literal-7</c> makes literal-7 both string and symbol (r22, one character); the 2002+
-    /// <c>WITH PICTURE SYMBOL literal-8</c> form names the one-character symbol (r26/r27) for a string "of any
-    /// length" (r23). r25 IMPLIES <c>CURRENCY SIGN '$' PICTURE SYMBOL '$'</c> unless a clause specifies '$' as
-    /// literal-7 or literal-8 — so <c>PIC $$9</c> stays legal beside a declared '#', and the set is never empty.
-    /// r21: two clauses may not bind equivalent symbols to different strings. Completed by
-    /// <see cref="FinalizeCurrencySigns"/> at the end of the SPECIAL-NAMES walk; a contained program inherits the
-    /// container's set whole (<see cref="InheritConfiguration"/>, §12.3.4 GR1).
-    /// ⛔ THIS REPLACED A SCALAR PAIR (kb/Work PB60 / AR-15.68.3-3): <c>CurrencyPicSymbol</c>/<c>CurrencyString</c>
-    /// held ONE symbol and ONE string per unit — a second clause silently overwrote the first, the implied '$'
-    /// died the moment any clause bound another symbol (a legal <c>PIC $$,$$9.99</c> under <c>CURRENCY SIGN "#"</c>
-    /// was COBOL0808), and a multi-character string was refused outright (COBOL0896, "not yet supported" —
-    /// deferral debt). Every PICTURE consumer now asks this set which symbol a mask uses (<c>PictureAnalyzer</c>
-    /// records it on <c>PicInfo.CurrencyString</c> after canonicalizing the mask's symbol to '$'), and NUMVAL-C's
-    /// §15.68.3 r3 default is <see cref="SoleCurrencyString"/>.
-    /// </summary>
-    public IReadOnlyDictionary<char, CurrencyDefinition> CurrencySigns => _currencySigns;
-
-    private readonly Dictionary<char, CurrencyDefinition> _currencySigns = new();
-
-    /// <summary>The DISTINCT currency strings the unit's EXPLICIT CURRENCY SIGN clauses specify (r3 of §15.68.3
-    /// counts these: "there shall be only one currency string for the compilation unit, either the default
-    /// currency sign or a currency string specified in the SPECIAL-NAMES paragraph" — the implied '$' clause of
-    /// r25 is the picture-symbol default, not a competing string).</summary>
-    private readonly HashSet<string> _explicitCurrencyStrings = new(StringComparer.Ordinal);
-
-    /// <summary>True once a clause named '$' as literal-7 or literal-8 (r25 — the implied clause is then NOT added).</summary>
-    private bool _dollarSpecified;
-
-    /// <summary>The ONE currency string NUMVAL-C / TEST-NUMVAL-C use when argument-2 (and LOCALE) is absent
-    /// (§15.68.3 r3): the single explicitly specified string, or the default "$" when the unit has no CURRENCY
-    /// SIGN clause; NULL when the unit specifies two or more distinct strings — r3's "there shall be only one" is
-    /// then violated and the reference is diagnosed at bind (COBOL1644).</summary>
-    public string? SoleCurrencyString => _explicitCurrencyStrings.Count switch
-    {
-        0 => "$",
-        1 => _explicitCurrencyStrings.First(),
-        _ => null,
-    };
-
-    /// <summary>The number of distinct explicitly specified currency strings (for the r3 diagnostic's text).</summary>
-    public int ExplicitCurrencyStringCount => _explicitCurrencyStrings.Count;
-
-    /// <summary>r25's implied clause: after the SPECIAL-NAMES walk, '$' → "$" joins the set unless a clause
-    /// specified '$' as literal-7 or literal-8. Idempotent (a re-walk cannot double it).</summary>
-    private void FinalizeCurrencySigns()
-    {
-        if (!_dollarSpecified) _currencySigns.TryAdd('$', CurrencyDefinition.ImpliedDollar);
-    }
-
     /// <summary>Normalize a NUMERIC literal's source text to the canonical dot-decimal form the whole emit-side
     /// decode pipeline consumes (ISO §12.3.7.4 GR14 a): under DECIMAL-POINT IS COMMA "the character written in
     /// numeric literals to represent the decimal separator shall be the comma" — and §8.3.3.3.2 admits ONLY the
@@ -429,7 +265,7 @@ public sealed partial class DataBinder
         // The normalization ALGORITHM is the ONE shared WiseOwl.Cobol.Common.NumericLiteral.Normalize (Frontend), so the
         // compile-time expression evaluator applies the identical §12.3.7.4 GR14 a) rule; the binder retains ownership
         // of the COBOL0895 diagnostic (its own channel/descriptor), routing the returned issue to it verbatim.
-        string norm = Common.NumericLiteral.Normalize(text, DecimalPointIsComma, out var issue);
+        string norm = Common.NumericLiteral.Normalize(text, State.Configuration.DecimalPointIsComma, out var issue);
         switch (issue)
         {
             case Common.NumericSeparatorIssue.DecimalPointUnderCommaMode:
@@ -472,86 +308,12 @@ public sealed partial class DataBinder
         return anyDigit ? NormalizeNumericLiteral(text) : text;
     }
 
-    /// <summary>The OPTIONS baseline a contained program starts from — its container's model (ISO §11.9.4 GR1:
-    /// "The clauses in the OPTIONS paragraph apply to the source element in which they are specified and to all
-    /// source elements contained in that source element unless overridden by a clause in an OPTIONS paragraph in
-    /// a contained source element"). Null for an outermost unit (the all-defaults model).</summary>
-    private OptionsModel? _inheritedOptions;
-
-    /// <summary>
-    /// ⛔ ISO §12.3.4 GR1 — "The entries explicitly or implicitly specified in the configuration section of a
-    /// source unit that contains other source units apply to each directly or indirectly contained source unit"
-    /// — and §12.3.3 SR1 forbids the containee a configuration section of its own, so a contained program CANNOT
-    /// restate DECIMAL-POINT IS COMMA, CURRENCY SIGN, a CLASS, an ALPHABET, the PROGRAM COLLATING SEQUENCE or a
-    /// switch and is entitled to inherit every one of them. Called by <c>BinderDriver.BindUnitData</c> for every
-    /// contained unit BEFORE <see cref="Bind"/> (the SPECIAL-NAMES state must be in place before the containee's
-    /// first literal or PICTURE binds); the container itself inherited from ITS container first (units bind
-    /// container-first), so one level carries the whole ancestry. A class definition's factory and instance
-    /// definitions inherit the class definition's configuration by the same call (<c>OoDriver.BindClassData</c>;
-    /// kb/Work PB3154): they are contained source units (§3.165), so the class's names are INHERITED, never declared
-    /// in their own §8.3.2.2 census. ONE method, the WHOLE configuration-derived
-    /// state (feedback_model_the_rule_shape_not_one_case): before this landed only the REPOSITORY sets were
-    /// inherited, and inside a contained program of a DECIMAL-POINT IS COMMA unit NUMVAL("123,45") valued 0
-    /// while NUMVAL("123.45") valued 123.45 — the exact inversion of §15.67.3 r5, with no diagnostic
-    /// (kb/Work PB60 / AR-15.67.3-5). The SYMBOLIC CHARACTERS figurative constants were the one SPECIAL-NAMES
-    /// table still missing: a contained program's <c>MOVE SYM-A TO Y</c> naming its container's symbolic-character
-    /// was COBOL1639 "not defined" (kb/Work PB3154's sweep; §8.4.6.1 lists symbolic-character among the names a
-    /// configuration section declares for "any source element contained within that source element"). Each one
-    /// carries its containment distance (<see cref="ConfigurationNames{T}.InheritedDepths"/>), so a nearer declaration of the spelling
-    /// hides it (<see cref="DropShadowedConstants"/>; kb/Work PB3154 review R1-1).
-    /// §11.9.4 GR1's OPTIONS inheritance rides the same call.
-    /// <para>⚠ One sibling still lives elsewhere: EVERY SPECIAL-NAMES mnemonic-name — the switch mnemonics SET reads
-    /// as much as the device and feature mnemonics DISPLAY UPON / ACCEPT FROM / WRITE ADVANCING read (kb/Work
-    /// PB454 moved the switch ones there rather than keep a second copy here) — inherits through
-    /// <c>MnemonicRegistry.Of</c>'s enclosing-unit PARSE-TREE walk: correct, but a second mechanism for the same
-    /// rule; fold it in here when the environment division gets a bound model.</para>
-    /// </summary>
-    internal void InheritConfiguration(DataBinder container)
-    {
-        // SPECIAL-NAMES (§12.3.7)
-        DecimalPointIsComma = container.DecimalPointIsComma;
-        foreach (var (k, v) in container._currencySigns) _currencySigns.TryAdd(k, v);
-        _explicitCurrencyStrings.UnionWith(container._explicitCurrencyStrings);
-        _dollarSpecified = container._dollarSpecified;
-        // The names it declares (§8.4.6.1's configuration-section list), each a ConfigurationNames table whose every
-        // resolution records a §8.3.2.2 use in the referring element's census (kb/Work PB3153).
-        SwitchConditions.InheritFrom(container.SwitchConditions);
-        UserClasses.InheritFrom(container.UserClasses);
-        Alphabets.InheritFrom(container.Alphabets);
-        NationalAlphabets.InheritFrom(container.NationalAlphabets);
-        SymbolicCharacters.InheritFrom(container.SymbolicCharacters);   // §8.4.6.1 (kb/Work PB3154), each with its tier
-        OrderTables.InheritFrom(container.OrderTables);
-        DynamicLengthStructures.InheritFrom(container.DynamicLengthStructures);
-        Locales.InheritFrom(container.Locales);   // §12.3.7.4 GR1 — locale-names reach contained units
-        // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§12.3.6 GR9–GR11) and CHARACTER CLASSIFICATION (GR1 — every
-        // OBJECT-COMPUTER clause applies to the contained units)
-        Collating = container.Collating;
-        Classification = container.Classification;
-        NationalCollating = container.NationalCollating;
-        // SOURCE-COMPUTER … WITH DEBUGGING MODE (the '85 compile-time switch)
-        DebuggingModeDeclared = container.DebuggingModeDeclared;
-        // REPOSITORY (§12.3.8) — the M2-UDF-1/-4 inheritance, now here with its siblings
-        UserFunctionNames.UnionWith(container.UserFunctionNames);
-        // §12.3.8.2's program-specifiers reach contained units on the same rule as their siblings (kb/Work PB237):
-        // §12.3.8.4 GR10 scopes program-prototype-name-1 "throughout the scope of the containing environment
-        // division", and a contained program with no CONFIGURATION SECTION of its own is inside that scope. The
-        // containee's OWN specifier wins on a name clash — TryAdd, the sibling posture, and the one §12.3.8.3 SR15
-        // shape that matters here (the containee may re-specify a name the container also declares).
-        foreach (var (k, v) in container.ProgramSpecifiers) ProgramSpecifiers.TryAdd(k, v);
-        RepositoryIntrinsics.UnionWith(container.RepositoryIntrinsics);
-        if (container.RepositoryAllIntrinsic) RepositoryAllIntrinsic = true;
-        foreach (var (k, v) in container.OoRepositoryProperties) OoRepositoryProperties.TryAdd(k, v);
-        foreach (var (k, v) in container.FunctionSpecifiers) FunctionSpecifiers.TryAdd(k, v);
-        // OPTIONS (§11.9.4 GR1) — the containee's own OPTIONS paragraph overrides clause by clause at Bind.
-        _inheritedOptions = container.Options;
-    }
-
     /// <summary>Bind <c>DECIMAL-POINT IS COMMA</c> (ISO §12.3.7 — the only word the format admits after IS is
     /// COMMA; the grammar carries it as a generic IDENTIFIER).</summary>
     private void SwitchBindDecimalPoint(Core.DecimalPointClauseContext dp)
     {
         if (dp.IDENTIFIER()?.GetText() is { } word && CobolNames.Same(word, "COMMA"))
-            DecimalPointIsComma = true;
+            State.Configuration.DecimalPointIsComma = true;
         else
             Edition.Error("COBOL0894", $"DECIMAL-POINT IS {dp.IDENTIFIER()?.GetText()}: the only form is "
                 + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
@@ -747,11 +509,11 @@ public sealed partial class DataBinder
         // characters are equivalent exactly when they have the same invariant-culture upper-case mapping. A COBOL character
         // folds by §8.1.3.2 GR3 b), which the same mapping gives (kb/Work PB1092). Change the key and that row together.
         char key = char.ToUpperInvariant(symbol);
-        if (key == '$') _dollarSpecified = true;   // r25 — a clause named '$' as literal-8: no implied clause
-        bool isBound = _currencySigns.TryGetValue(key, out var bound);
+        if (key == '$') State.Configuration.DollarSpecified = true;   // r25 — a clause named '$' as literal-8: no implied clause
+        bool isBound = State.Configuration.DeclaredCurrencySigns.TryGetValue(key, out var bound);
         if (definition is not { } defined)
         {
-            if (!isBound) _currencySigns[key] = CurrencyDefinition.OfRefusedClause(symbol);
+            if (!isBound) State.Configuration.DeclaredCurrencySigns[key] = CurrencyDefinition.OfRefusedClause(symbol);
             return;
         }
         // §12.3.7.3 SR28's input: the CLASS of literal-7 — alphanumeric (a plain or X"…" literal) or national (N"…" /
@@ -767,9 +529,9 @@ public sealed partial class DataBinder
                 + $"(ISO §12.3.7.3 r21; SR28)");
             return;
         }
-        _currencySigns[key] = defined;
-        _explicitCurrencyStrings.Add(defined.Text);
-        if (defined.Text == "$") _dollarSpecified = true;   // r25 — a clause named '$' as literal-7
+        State.Configuration.DeclaredCurrencySigns[key] = defined;
+        State.Configuration.ExplicitCurrencyStrings.Add(defined.Text);
+        if (defined.Text == "$") State.Configuration.DollarSpecified = true;   // r25 — a clause named '$' as literal-7
     }
 
     /// <summary>The ISO §12.3.7.3 SR22/SR27 forbidden currency-symbol set: digits; A B C D E N P R S V X Z (either
@@ -804,7 +566,7 @@ public sealed partial class DataBinder
         // A rejected literal-3 registers NO prototype (the PB237 posture — a CALL through it then draws the
         // undeclared-prototype diagnostic rather than silently activating the declared word).
         if (BindSpecifierExternalizedName(re, "PROGRAM", name, "literal-3") is { } externalized)
-            ProgramSpecifiers.TryAdd(name, new ProgramSpecifier(name, externalized));
+            State.Configuration.ProgramSpecifiers.TryAdd(name, new ProgramSpecifier(name, externalized));
     }
 
     /// <summary>⛔ THE ONE SCREEN OF A REPOSITORY SPECIFIER'S <c>[ AS literal-n ]</c> — class (literal-1), interface
@@ -994,7 +756,7 @@ public sealed partial class DataBinder
             using var _ = Edition.At(cur);
             SwitchBindCurrency(cur);
         }
-        FinalizeCurrencySigns();   // §12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
+        State.Configuration.FinalizeCurrencySigns();   // §12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
     }
 
     /// <summary>One switch-name / feature-name / device-name entry (ISO §12.3.7.2). §12.3.7.3 SR8 — "<i>The implementor
@@ -1026,10 +788,13 @@ public sealed partial class DataBinder
             Edition.Error(DiagnosticCatalog.UnavailableImplementorName, why);
             return;
         }
+        // The mnemonic-name's row, for the one procedure-side reader (ConfigurationSlice.Mnemonics): the first declaration
+        // of a spelling wins, and a container's entries come after this unit's own (ConfigurationStep).
+        if (e.Mnemonic is { } mnemonicName) State.Configuration.DeclareMnemonic(mnemonicName, e.Row!);
         if (e.Row!.Kind != SystemNameKind.Switch) return;
         string switchName = e.Row.Name;
-        if (e.OnCondition is { } on) SwitchConditions.TryAdd(on, (switchName, true));
-        if (e.OffCondition is { } off) SwitchConditions.TryAdd(off, (switchName, false));
+        if (e.OnCondition is { } on) State.Configuration.SwitchConditions.TryAdd(on, (switchName, true));
+        if (e.OffCondition is { } off) State.Configuration.SwitchConditions.TryAdd(off, (switchName, false));
     }
 
     /// <summary>Resolve the PROGRAM COLLATING SEQUENCE clause (ISO §12.3.6): the IS form's alphabet-name-1
@@ -1055,15 +820,15 @@ public sealed partial class DataBinder
             if (CollatingAlphabetFault(alnumName, national: false) is { } fault)
                 Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
                     national: false, fault, "ISO §12.3.6.3 SR1"));
-            else if (Alphabets.TryUse(pcs, alnumName, out var def)) Collating = def.IsIdentity ? null : def;
+            else if (State.Configuration.Alphabets.TryUse(pcs, alnumName, out var def)) State.Configuration.Collating = def.IsIdentity ? null : def;
         }
         if (natName is not null)
         {
             if (CollatingAlphabetFault(natName, national: true) is { } fault)
                 Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
                     natName, national: true, fault, "ISO §12.3.6.3 SR2"));
-            else if (NationalAlphabets.TryUse(pcs, natName, out var def))
-                NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
+            else if (State.Configuration.NationalAlphabets.TryUse(pcs, natName, out var def))
+                State.Configuration.NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
         }
     }
 
@@ -1099,7 +864,7 @@ public sealed partial class DataBinder
                 if (national is null) return;
             }
         }
-        Classification = new ClassificationSpec(alphanumeric, national);
+        State.Configuration.Classification = new ClassificationSpec(alphanumeric, national);
     }
 
     private LocalePhrase? ClassificationPhrase(Antlr4.Runtime.RuleContext at, string word, bool national)
@@ -1166,7 +931,7 @@ public sealed partial class DataBinder
         else external = words[1].GetText();
         // A second LOCALE of one name was refused by the declaration funnel (DeclareUserWord, ISO §8.4.2.1; kb/Work
         // PB3216); the first stands, as every registry keeps it.
-        Locales.TryAdd(name, new LocaleSymbol(name, external, fromLiteral));
+        State.Configuration.Locales.TryAdd(name, new LocaleSymbol(name, external, fromLiteral));
     }
 
     /// <summary>Resolve a locale-name reference (ISO §12.3.7.3 SR24 for the ALPHABET clause; §14.9.39.3 SR26 for SET
@@ -1175,9 +940,9 @@ public sealed partial class DataBinder
     /// <param name="at">The reference, whose source element's §8.3.2.2 census records the use (kb/Work PB3153).</param>
     internal LocaleSymbol? ResolveLocaleName(Antlr4.Runtime.RuleContext at, string name, string site, string rule)
     {
-        if (Locales.TryUse(at, name, out var sym)) return sym;
+        if (State.Configuration.Locales.TryUse(at, name, out var sym)) return sym;
         Edition.Error("COBOL1664", $"{site}: '{name}' is not a locale-name declared by a SPECIAL-NAMES LOCALE clause ({rule})"
-            + (Locales.Count == 0 ? "; no LOCALE clause is in scope" : $"; declared: {string.Join(", ", Locales.Names)}"));
+            + (State.Configuration.Locales.Count == 0 ? "; no LOCALE clause is in scope" : $"; declared: {string.Join(", ", State.Configuration.Locales.Names)}"));
         return null;
     }
 
@@ -1308,7 +1073,7 @@ public sealed partial class DataBinder
         // PB3216): the first stands, so a repeat sets nothing — and an INHERITED same-named structure is still replaced
         // by this element's first (§8.4.6.1), since the census counts this element's own declarations alone.
         if (WordCensus.UnqualifiedDeclarations(name, UserWordKind.DynamicLengthStructureName) > 1) return;
-        DynamicLengthStructures.Set(name, declared);   // replaces an INHERITED same-named structure (§8.4.6.1)
+        State.Configuration.DynamicLengthStructures.Set(name, declared);   // replaces an INHERITED same-named structure (§8.4.6.1)
     }
 
     private void OrderTableBind(Core.OrderTableClauseContext ot)
@@ -1329,14 +1094,14 @@ public sealed partial class DataBinder
         // ellipsis, where the repeatable clauses beside it (CLASS, CURRENCY, LOCALE, the switch entry, SYMBOLIC
         // CHARACTERS) each print one. A second clause is therefore a form violation, and so — as a consequence
         // rather than as a second rule — is a second ordering-name.
-        if (OrderTables.Count > 0)
+        if (State.Configuration.OrderTables.Count > 0)
         {
             Edition.Error("COBOL0898", $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
                 + "in a SPECIAL-NAMES paragraph — its general format brackets it without an ellipsis, unlike the "
-                + $"repeatable clauses (ISO §12.3.7.2); '{OrderTables.Names.First()}' is already declared");
+                + $"repeatable clauses (ISO §12.3.7.2); '{State.Configuration.OrderTables.Names.First()}' is already declared");
             return;
         }
-        OrderTables.Set(name, text);
+        State.Configuration.OrderTables.Set(name, text);
         // GR17's implementor half, checked against the ONE resolver the runtime uses (§15.85.4 r2 owns the outcome).
         // A site collation file that cannot be used is that resolver's typed failure, named here with its file, never
         // a crash of the compile (kb/Work PB2773).
@@ -1398,8 +1163,8 @@ public sealed partial class DataBinder
                     "ISO §12.3.7.3 SR24 — locale-name-2 shall be a locale-name defined by the LOCALE clause");
                 if (sym is not null) locale = new LocaleCollatingSpec(new LocaleRef(sym));
             }
-            if (national) NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, locale, HasCollatingSequence: true, "LOCALE"));
-            else Alphabets.TryAdd(name, new AlphabetDef(null, locale, "LOCALE"));
+            if (national) State.Configuration.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, locale, HasCollatingSequence: true, "LOCALE"));
+            else State.Configuration.Alphabets.TryAdd(name, new AlphabetDef(null, locale, "LOCALE"));
             return;
         }
         if (national)
@@ -1423,7 +1188,7 @@ public sealed partial class DataBinder
             // One identity COLLATING SEQUENCE, three distinct CODED CHARACTER SETS (Table 6 + GR7 c/d: STANDARD-1/2
             // are the 128 ISO/IEC 646 IRV characters; NATIVE is the whole native set) — the Phrase carries which
             // (kb/Work PB110); IsIdentity stays true, so no runtime carrier is emitted either way.
-            Alphabets.TryAdd(name, def.NATIVE() is not null ? AlphabetDef.Native
+            State.Configuration.Alphabets.TryAdd(name, def.NATIVE() is not null ? AlphabetDef.Native
                 : new AlphabetDef(null, null, def.STANDARD_1() is not null ? "STANDARD-1" : "STANDARD-2"));
             return;
         }
@@ -1437,12 +1202,12 @@ public sealed partial class DataBinder
         {
             case CodeNameOutcome.Refused: return;
             case CodeNameOutcome.Bound:
-                Alphabets.TryAdd(name, new AlphabetDef(codeName!.Table, null, codeName.Name, codeName));
+                State.Configuration.Alphabets.TryAdd(name, new AlphabetDef(codeName!.Table, null, codeName.Name, codeName));
                 return;
         }
 
         if (AlphabetLiteralPhrase(name, def, national: false) is { } table)
-            Alphabets.TryAdd(name, new AlphabetDef(table, null, "literal-phrase"));
+            State.Configuration.Alphabets.TryAdd(name, new AlphabetDef(table, null, "literal-phrase"));
     }
 
     /// <summary>What a bare-word alphabet definition turned out to be once <see cref="AlphabetCodeName"/> asked
@@ -1635,7 +1400,7 @@ public sealed partial class DataBinder
     {
         if (def.NATIVE() is not null)
         {
-            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
+            State.Configuration.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
             return;
         }
         if (def.STANDARD_1() is not null || def.STANDARD_2() is not null)
@@ -1650,7 +1415,7 @@ public sealed partial class DataBinder
             // UCS-4 references BOTH a coded set and a collating sequence; UTF-8/UTF-16 a coded set ONLY
             // (§12.3.7 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the
             // difference is only WHERE the name may legally be referenced.
-            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
+            State.Configuration.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
             return;
         }
         // A single non-figurative bare word that is not a coded-set name is code-name-2 (§12.3.7.3 SR15 —
@@ -1662,12 +1427,12 @@ public sealed partial class DataBinder
         {
             case CodeNameOutcome.Refused: return;
             case CodeNameOutcome.Bound:
-                NationalAlphabets.TryAdd(name, new NationalAlphabetDef(codeName!.Table, null,
+                State.Configuration.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(codeName!.Table, null,
                     HasCollatingSequence: true, codeName.Name, codeName));
                 return;
         }
         if (AlphabetLiteralPhrase(name, def, national: true) is { } table)
-            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(table, HasCollatingSequence: true, "literal-phrase"));
+            State.Configuration.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(table, HasCollatingSequence: true, "literal-phrase"));
     }
 
     /// <summary>The ALPHABET clause's view of <see cref="LiteralPhraseOperand"/>: the operands of one alphabet
@@ -2042,7 +1807,7 @@ public sealed partial class DataBinder
     /// SYMBOLIC CHARACTERS clause, read syntactically because the clauses are order-free (kb/Work PB226), or already
     /// bound. The ONE recognition §12.3.7.3 SR11 asks, of a bare operand and of a concatenation operand alike.</summary>
     internal bool IsSymbolicCharacterName(string word) =>
-        _paragraphSymbolicNames.Contains(word) || SymbolicCharacters.Declares(word);
+        _paragraphSymbolicNames.Contains(word) || State.Configuration.SymbolicCharacters.Declares(word);
 
     /// <summary>The literal environment of a position OUTSIDE the SPECIAL-NAMES paragraph (kb/Work PB1406).</summary>
     internal LiteralEnvironment LiteralEnv => LiteralEnvironment.Program(this);
@@ -2182,7 +1947,7 @@ public sealed partial class DataBinder
                     + $"{distinct} characters are specified — more than the {inSet.OrdinalCount} characters of the "
                     + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO §12.3.7.3 {rules.Rule('5')})");
         }
-        UserClasses.TryAdd(name, new UserClassDef(set, national));
+        State.Configuration.UserClasses.TryAdd(name, new UserClassDef(set, national));
     }
 
     /// <summary>⛔ THE ONE READING OF A SPECIAL-NAMES FOR PHRASE, for all three clauses that print it (ALPHABET,
@@ -2297,7 +2062,7 @@ public sealed partial class DataBinder
             foreach (var name in names)
             {
                 DeclareUserWord(name.GetText(), UserWordKind.SymbolicCharacter);
-                SymbolicCharacters.TryAdd(name.GetText(), ("\0", national));
+                State.Configuration.SymbolicCharacters.TryAdd(name.GetText(), ("\0", national));
             }
             return;
         }
@@ -2331,10 +2096,10 @@ public sealed partial class DataBinder
                 // not defined") for a name the program did write. The placeholder value is never observed — the
                 // clause already failed, so the compilation produces no program (the posture LiteralPhraseOperand's
                 // class-rule recovery takes for an operand of the wrong class). kb/Work PB1091.
-                SymbolicCharacters.TryAdd(symName, ("\0", national));
+                State.Configuration.SymbolicCharacters.TryAdd(symName, ("\0", national));
                 continue;
             }
-            if (!SymbolicCharacters.TryAdd(symName, (value, national)))
+            if (!State.Configuration.SymbolicCharacters.TryAdd(symName, (value, national)))
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: '{symName}' is "
                     + "already defined — a given symbolic-character-1 may be specified only once within the SYMBOLIC "
                     + "CHARACTER clauses of this SPECIAL-NAMES paragraph (ISO §12.3.7.3 SR16 a)");

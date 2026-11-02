@@ -3001,7 +3001,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             // (DataBinder.IsRepositoryIntrinsic — >>COBOL-WORDS and the edition window included; kb/Work PB1083).
             // An IDENTIFIER keeps its WRITTEN word (the lexer retypes only keyword-token words), so the directive is
             // applied to it once, here.
-            if (data.UserFunctionNames.Contains(w)
+            if (data.State.Configuration.UserFunctionNames.Contains(w)
                 || data.IsRepositoryIntrinsic(FunctionWord.OfWrittenWord(w, data.CobolWords)))
                 return Activation(tokens[i]);
         }

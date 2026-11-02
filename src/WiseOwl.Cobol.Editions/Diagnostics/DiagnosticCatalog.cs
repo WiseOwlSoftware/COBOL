@@ -2450,7 +2450,7 @@ public static class DiagnosticCatalog
     // as partial-words explicitly. Emitted by CopyProcessor.ApplyReplaceStatements via the same
     // NoteNonPseudoText hook the COPY gate rides — one detector, two rules, each cited at its own site.
     // §12.3.3 SR1 — a contained program has NO configuration section of its own: the container's applies to it
-    // (§12.3.4 GR1), which is why DataBinder.InheritConfiguration copies the whole configuration-derived state
+    // (§12.3.4 GR1), which is why ConfigurationStep.Produce copies the whole configuration-derived state
     // into every containee before it binds (kb/Work PB60 / AR-15.67.3-5 — a contained program under
     // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0 and NUMVAL("123.45") as 123.45).
     // §15.68.3 r3 — NUMVAL-C / TEST-NUMVAL-C without argument-2 in a unit whose SPECIAL-NAMES paragraph specifies

@@ -928,7 +928,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return Refused($"class condition '{word}'");
         }
         // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
-        if (ctx.Data.UserClasses.TryUse(at, word, out var userClass))
+        if (ctx.Data.State.Configuration.UserClasses.TryUse(at, word, out var userClass))
         {
             var opnd = operand();
             CheckClassConditionOperand(opnd, ClassConditionModel.ClassName);   // SR3 + SR4 name class-name-1
@@ -937,8 +937,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
         // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the
         // loud staged BoundConditionError.
-        if ((ctx.Data.Alphabets.TryUse(at, word, out var aDef) && aDef.CodedSet is { } aSet
-                ? aSet : ctx.Data.NationalAlphabets.TryUse(at, word, out var nDef) ? nDef.CodedSet : null) is { } set)
+        if ((ctx.Data.State.Configuration.Alphabets.TryUse(at, word, out var aDef) && aDef.CodedSet is { } aSet
+                ? aSet : ctx.Data.State.Configuration.NationalAlphabets.TryUse(at, word, out var nDef) ? nDef.CodedSet : null) is { } set)
         {
             var opnd = operand();
             // ⛔ ITS OWN KIND, NOT THE CLASS-NAME'S. SR3 names alphabet-name-1 beside class-name-1, but SR4 —
@@ -1146,7 +1146,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 : $"class-name '{classWord}', which forms a class condition only after the identifier it tests — "
                   + "\"identifier-1 IS [NOT] class-name-1\" (ISO §8.8.4.4.2)";
         else if (dref is { } d && d.dataReferenceSuffix().Length == 0 && d.cobolWord()?.GetText() is { } word
-                 && ctx.Mnemonics.TryPeek(d, word, out var mnemonicRow) && mnemonicRow.Kind == SystemNameKind.Switch)
+                 && ctx.Mnemonics.TryPeek(word, out var mnemonicRow) && mnemonicRow.Kind == SystemNameKind.Switch)
             what = $"the mnemonic-name '{word}' of a switch; a switch-status condition is written with a condition-name "
                 + "the SPECIAL-NAMES paragraph associates with the switch's ON or OFF status (ISO §8.8.4.6.1; the §8.8.4.6.2 format is condition-name-1)";
         else if (dref is { } dd && ctx.Refs.Probe(dd) is { } probe)

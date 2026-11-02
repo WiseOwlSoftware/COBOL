@@ -426,7 +426,7 @@ public sealed partial class DataBinder
             // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
             // its constant-names, or one of its object's (§13.10.3 SR2, §8.4.6.2.2; kb/Work PB780).
             if (m.Ctx.optionsParagraph() is { } mo)
-                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, FindConstant);
+                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, State.Configuration.Options, FindConstant);
             if (dd is not null)
             {
                 // The sections a method definition may not carry — FILE, WORKING-STORAGE, REPORT, SCREEN (§13.4.3,

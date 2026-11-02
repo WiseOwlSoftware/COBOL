@@ -253,13 +253,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// literals to represent the decimal separator", so `DISPLAY 1,5` under DECIMAL-POINT IS COMMA shows `1,5`
     /// (DOC-A.1-56; kb/Work PB1643 — it showed `1.5`, because one text field was both the value and the image).</summary>
     public BoundNumericLiteral NumericLiteralOperand(string asWritten) =>
-        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.DecimalSeparator };
+        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.State.Configuration.DecimalSeparator };
 
     /// <summary>The arithmetic-expression-tier twin of <see cref="NumericLiteralOperand"/>: the same literal, the same
     /// separator, as a <see cref="BoundNumLiteral"/> (it reaches a character image through
     /// <c>IntrinsicBinder.OperandOf</c>, e.g. a numeric literal argument of a function).</summary>
     private BoundNumLiteral NumericLiteralExpr(string asWritten) =>
-        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.DecimalSeparator };
+        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.State.Configuration.DecimalSeparator };
 
     /// <summary>⛔ THE ONE PRODUCER OF <see cref="BoundPredefinedNull"/> — the operand slot of a §8.4.3.10.3 SR1
     /// context, which the predefined NULL may occupy: "it may be used only as a sending operand in an INITIALIZE or

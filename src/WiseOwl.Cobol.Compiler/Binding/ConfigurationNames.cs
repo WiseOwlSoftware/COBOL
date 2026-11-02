@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding;
 /// locale-name, mnemonic-name, ordering-name, symbolic-character) "<i>may be referenced only by statements and
 /// entries either in that source element that contains a configuration section or in any source element contained
 /// within that source element</i>", so a contained program, and a method of a class, resolves names that no
-/// declaration of its own announced (§12.3.4 GR1 hands them down; <see cref="DataBinder.InheritConfiguration"/>).
+/// declaration of its own announced (§12.3.4 GR1 hands them down; <see cref="ConfigurationStep"/>).
 /// §8.3.2.2 says "<i>Within a source element, a given user-defined word may be used as only one type of
 /// user-defined word</i>": the element that writes <c>IF X IS DIGS</c> over an inherited class DIGS uses DIGS as a
 /// class-name, and a paragraph DIGS of its own is then a second type in that element (refused COBOL2692 like the

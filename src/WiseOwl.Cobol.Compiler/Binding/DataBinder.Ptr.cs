@@ -181,7 +181,7 @@ public sealed partial class DataBinder
         // CALL ones (the INVOKE arm of the same rule, kb/Work PB2087).
         // §8.4.6.6: a REPOSITORY function-prototype-name or the containing FUNCTION definition's own name — a program's
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
-        bool IsUserFunction(string fn) => UserFunctionNames.Contains(fn) || UnitIsFunction && ContainingDefinitionNames.Contains(fn);
+        bool IsUserFunction(string fn) => State.Configuration.UserFunctionNames.Contains(fn) || UnitIsFunction && ContainingDefinitionNames.Contains(fn);
         var own = OoIsClassUnit
             ? OoBoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
                 .SelectMany(m => ClaimScans.ByReferenceOperands(m.Ctx!.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))

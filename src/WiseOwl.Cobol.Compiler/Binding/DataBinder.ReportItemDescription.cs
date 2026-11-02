@@ -165,9 +165,9 @@ public sealed partial class DataBinder
         string itemWhere = $"RD '{reportName}' printable item '{entryName ?? "FILLER"}'";
         Usage itemUsage = PictureAnalyzer.ParseUsage(d.UsageText ?? d.InheritedUsage, Edition, itemWhere);
         var pic = d.PicText is not null
-            ? PictureAnalyzer.Analyze(d.PicText, itemUsage, Edition, itemWhere, d.OwnSign, currencies: CurrencySigns,
+            ? PictureAnalyzer.Analyze(d.PicText, itemUsage, Edition, itemWhere, d.OwnSign, currencies: State.Configuration.CurrencySigns,
                 blankWhenZero: d.BlankWhenZero, editing: d.Editing, localeFormat2: d.Locale,
-                decimalPointIsComma: DecimalPointIsComma)
+                decimalPointIsComma: State.Configuration.DecimalPointIsComma)
             // ⛔ ISO §13.15.3 SR14 — THE REPORT GROUP ENTRY'S OWN VALUE-IMPLIED PICTURE, word for word the §13.16.3 SR9
             // rule this compiler synthesizes for a data description entry: "The PICTURE clause may be omitted for an
             // elementary item when an alphanumeric, boolean or national literal that is not a zero-length literal is

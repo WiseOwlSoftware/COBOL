@@ -2865,8 +2865,8 @@ public sealed partial class DataBinder
                 return PictureAnalyzer.Analyze(
                     UnitHasConstants ? ExpandPicConstants(pic.GetText(), "", diagnose: false) : pic.GetText(),
                     Usage.Display, Edition,
-                    $"RD '{model.Name}' repeating entry", null, currencies: CurrencySigns,
-                    decimalPointIsComma: DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;
+                    $"RD '{model.Name}' repeating entry", null, currencies: State.Configuration.CurrencySigns,
+                    decimalPointIsComma: State.Configuration.DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;
         return null;
     }
 
@@ -3825,8 +3825,8 @@ public sealed partial class DataBinder
         // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
         string sumWhere = $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'";
         var pic = picText is not null
-            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: CurrencySigns,
-                decimalPointIsComma: DecimalPointIsComma)
+            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: State.Configuration.CurrencySigns,
+                decimalPointIsComma: State.Configuration.DecimalPointIsComma)
             : null;
         ScreenReportEntryPicture(ge, pic, picText, sumWhere, summed: true);   // §13.18.40.3 SR14, §13.18.54.3 SR2
         // ⛔ THE COUNTER'S SCALE IS THE ENTRY PICTURE'S RECEIVER SCALE, NOT `pic.Scale` (kb/Work PB1685). §13.18.54.4 GR1
@@ -3985,8 +3985,8 @@ public sealed partial class DataBinder
     {
         if (picText is null) return null;
         var usage = PictureAnalyzer.ParseUsage(usageText, Edition, where);
-        var pic = PictureAnalyzer.Analyze(picText, usage, Edition, where, ownSign, currencies: CurrencySigns,
-            editing: editing, localeFormat2: locale, decimalPointIsComma: DecimalPointIsComma);
+        var pic = PictureAnalyzer.Analyze(picText, usage, Edition, where, ownSign, currencies: State.Configuration.CurrencySigns,
+            editing: editing, localeFormat2: locale, decimalPointIsComma: State.Configuration.DecimalPointIsComma);
         ScreenReportEntryPicture(ge, pic, picText, where, summed: false);
         return pic?.Category;
     }
