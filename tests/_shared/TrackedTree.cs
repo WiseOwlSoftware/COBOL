@@ -63,8 +63,7 @@ internal static class TrackedTree
 /// with named arguments. <c>scripts/spec/drift_rules.py</c> mirrors <see cref="Holds"/> (its <c>in_scope</c>), and
 /// <c>TrackedTreeScopeDriftTests</c> holds every declaration the index reads equal to the value the compiler builds, and
 /// every <see cref="TrackedTree.Files"/> call to a declared field. A scope may hold more than its sweep reads (a sweep
-/// that narrows further by a list it reads at run time, as <c>SelfTestDiscoveryDriftTests</c> narrows to the live
-/// tools' roots): the index then names the sweep for a file it skips, and never misses a file it reads.
+/// that narrows further by a list it reads at run time, the live tools' roots for one): the index then names the sweep for a file it skips, and never misses a file it reads.
 /// </para>
 /// </summary>
 internal sealed record TreeScope(IReadOnlyList<string> Under, IReadOnlyList<string>? Except = null, IReadOnlyList<string>? Kinds = null)

@@ -30,8 +30,10 @@ from groups import Group  # noqa: E402
 def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, Any]],
                     terminal: Callable[[str], bool], lane: str | None = None) -> list[dict[str, Any]]:
     """THE writer of the dispatch ledger (kb/Work PB3186): UPSERT one wave's groups, keyed on (wave, letter), each
-    `{"letter", "notes": [ids], "files": [repo-relative paths], "members"?: {path: [member names]}, "slug"?}` (a file
-    with no `members` entry is claimed whole, kb/Work PB3670), and return the entries written. A group
+    `{"letter", "notes": [ids], "files": [repo-relative paths], "members"?: {path: [member names]}, "slug"?,
+    "continues"?: [branches], "overflow"?: [ids]}` (a file with no `members` entry is claimed whole, kb/Work PB3670;
+    `continues` and `overflow` are the chain's records, kb/Work PB4396: the branches the group continues and the
+    notes a later link takes onto its branch), and return the entries written. A group
     recorded again (a re-rendered spec) replaces its notes, files and slug but KEEPS its `at`, the time of its FIRST
     recording (kb/Work PB3392): `at` is the dispatch order the landing check reads (the later of two overlapping
     branches re-plans) and the time `answers` bounds a report by, and a re-render is not a new dispatch (the Mythos
@@ -72,7 +74,10 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
 
     new = [{"wave": str(wave), "letter": str(g["letter"]), "slug": g.get("slug") or f"w{wave}{str(g['letter']).lower()}",
             "notes": list(g["notes"]), "files": sorted(claim.files), "members": claim.member_lists(), "at": stamp(k, g),
-            **({"lane": lg} if (lg := lane_of(g)) else {})}
+            **({"lane": lg} if (lg := lane_of(g)) else {}),
+            # the chain's records (kb/Work PB4396), read by the branch survey (prune_worktrees.chain_links)
+            **({"continues": list(g["continues"])} if g.get("continues") else {}),
+            **({"overflow": list(g["overflow"])} if g.get("overflow") else {})}
            for k, g in enumerate(groups) for claim in [Claim.of(g["files"], g.get("members"))]]
     coord.write_json(path, {"groups": keep + new})
     return new

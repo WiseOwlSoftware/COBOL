@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install-tool.sh — ⛔ THE ONE WAY THIS REPOSITORY INSTALLS A TOOL FROM ITS PUBLISHER (kb/Work PB3308, PB4007;
-# DotnetSdkInstallDriftTests, ToolchainManifestDriftTests; DESIGN-test-build-ci.md §1.4).
+# scripts/toolchain_audit.py; DESIGN-test-build-ci.md §1.4).
 #
 # Usage: install-tool.sh --version <tool>             print the version toolchain.env names for <tool>
 #        install-tool.sh <tool> <install-dir>         install that version there (a no-op once it is installed there)

@@ -28,7 +28,7 @@ entries than one page), when the queue reads empty, or when the read does not ho
 taken before GitHub recorded this group, or this run is itself superseded): each says why, as a warning annotation on
 the run. A cancel GitHub refuses (the run finished in between: HTTP 409) is reported and the sweep goes on. Every
 outcome exits 0: housekeeping never decides a verdict, and every step of the job is `continue-on-error` as
-well, the checkout included (LandingPipelineDriftTests, kb/Work PB3820); 2 is a usage error.
+well, the checkout included (scripts/orchestrator/landing_rules.py holds it, kb/Work PB3820); 2 is a usage error.
 """
 from __future__ import annotations
 
