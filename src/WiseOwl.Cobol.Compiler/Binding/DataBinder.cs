@@ -3852,7 +3852,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// unit's DATA has bound), so this is the prototype twin of <see cref="ResolveRestrictedTypes"/> run at the point
     /// those tables are built — <c>BinderDriver.ResolvePointerRestrictions</c>, over every forest that declares pointers
     /// (a method's LINKAGE roots are on its class's). A name the table does not hold resolves to nothing, and the pointer
-    /// keeps its own name as its identity (<see cref="PrototypeSignatures.RestrictionIdentity"/>). The first of two
+    /// keeps its own name as its identity (<see cref="PrototypeSignatures.SignatureRestriction"/>). The first of two
     /// passes: <see cref="PrototypeSignatureClasses.Classify"/> runs only once EVERY forest has been through this one, because
     /// classifying a prototype follows its formals' restrictions into other forests. Both passes walk
     /// <see cref="ClauseResolutionForest"/>, the TYPEDEF templates too: a data-pointer restricted to a type is compared

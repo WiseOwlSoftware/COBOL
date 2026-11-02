@@ -5,8 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB2464 - the TYPE of a restricted PROGRAM-POINTER is its
-      *> prototype's SIGNATURE, not its prototype's name.
+      *> kb/Work PB2464 - what a restricted PROGRAM-POINTER may CONTAIN
+      *> is fixed by its prototype's SIGNATURE, and the SET relation asks
+      *> that signature, not the prototype's name.
       *> 13.18.60.4 GR25 (cite.py --check 13.18.60.4 -> OK 13.18.60.4 25)):
       *> "A restricted program-pointer shall contain only the predefined
       *> address NULL or the address of a program with the same signature
@@ -15,19 +16,21 @@
       *> P1 and P2 have the same signature, and 14.9.39.3 SR22 (OK
       *> 14.9.39.3 22)) admits a SET between them: "the program-
       *> prototypes associated with identifier-7 and identifier-8 shall
-      *> have the same signature". 14.8.2.3.2 (OK 14.8.2.3.2 4)): "If
-      *> either is a restricted pointer, both shall be restricted and of
-      *> the same type".
+      *> have the same signature". The identity rules do not: 14.8.3.3
+      *> (OK 14.8.3.3 2)) asks "the same ... USAGE clauses" of two
+      *> returning items, and TO P1 and TO P2 are two USAGE clauses
+      *> (kb/Work PB4107; the typed INVOKE of the pair is the negative
+      *> pb4107-invoke-returning-same-signature).
       *> DERIVATION (P1: USING 9(4); P2: USING 9(4), another data-name,
       *> the same signature; P3: USING X(4), a different one):
-      *>   TYPED   INVOKE OC "RP1" RETURNING R2 - 14.8.3.3 (OK 14.8.3.3 2))
-      *>           asks the same USAGE clause of the returning pair, and
-      *>           the type is the signature: legal, r2 = NULL.
       *>   UNIVERSAL  INVOKE U "RP1" RETURNING R1 (TO P1)   9.3.6 rule 6:
-      *>           SET valid (SR22, the same prototype): r1 ok
+      *>           SET valid (SR22, the same prototype), and 14.8.3.3
+      *>           holds (one USAGE clause): r1 ok
       *>   UNIVERSAL  ... RETURNING R2 (TO P2, same signature): SR22
-      *>           holds, so rule 6 MATCHES (OK 9.3.6 6)); 14.8.3.3 holds
-      *>           (one type): no exception, r2 ok
+      *>           holds, so rule 6 MATCHES (OK 9.3.6 6)) and binds RP1;
+      *>           14.8.3.3 then fails (TO P1 is not TO P2), so
+      *>           14.9.23.4 GR7 c) (OK 14.9.23.4 7)) sets
+      *>           EC-OO-UNIVERSAL: HANDLED=EC-OO-UNIVERSAL, r2 ok
       *>   UNIVERSAL  ... RETURNING R3 (TO P3, another signature): SR22
       *>           refuses the SET, so no match, the INHERITS chain ends,
       *>           "otherwise, the EC-OO-METHOD exception condition is
@@ -69,7 +72,6 @@
        01 PT2 IS TYPEDEF USAGE PROGRAM-POINTER TO P2.
        01 PT3 IS TYPEDEF USAGE PROGRAM-POINTER TO P3.
        01 U USAGE OBJECT REFERENCE.
-       01 OC USAGE OBJECT REFERENCE C2464.
        01 R1 TYPE PT1.
        01 R2 TYPE PT2.
        01 R3 TYPE PT3.
@@ -83,10 +85,6 @@
        END DECLARATIVES.
        MAIN SECTION.
        MAIN-P.
-           INVOKE C2464 "NEW" RETURNING OC
-           INVOKE OC "RP1" RETURNING R2
-           IF R2 = NULL DISPLAY "typed r2 null"
-           ELSE DISPLAY "typed r2 WRONG" END-IF
            INVOKE C2464 "NEW" RETURNING U
            INVOKE U "RP1" RETURNING R1
            DISPLAY "r1 ok"

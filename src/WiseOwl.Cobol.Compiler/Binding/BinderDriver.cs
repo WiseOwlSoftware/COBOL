@@ -893,8 +893,8 @@ internal sealed class BinderDriver
         return new RepositoryResolver(new GroupRepositoryProvider(units));
     }
 
-    /// <summary>⛔ Give every restricted program- or function-pointer in the group the TYPE its prototype's signature
-    /// gives it (kb/Work PB2464; ISO §13.18.60.4 GR25 / GR26 — <see cref="DataBinder.ResolveRestrictedPrototypes"/>), once
+    /// <summary>⛔ Give every restricted program- or function-pointer in the group the signature class its prototype's
+    /// signature bounds its contents by (kb/Work PB2464; ISO §13.18.60.4 GR25 / GR26 — <see cref="DataBinder.ResolveRestrictedPrototypes"/>), once
     /// the REPOSITORY tables exist and BEFORE any signature is compared, any body binds or any description is built
     /// (the §10.6.2 SR2 / SR3 prototype pairs and the §9.3.8.2.3 method conformance checks run after it, kb/Work PB2495).
     /// It covers EVERY forest that declares one — each program unit's, each class's OBJECT and FACTORY forests and each
@@ -903,7 +903,7 @@ internal sealed class BinderDriver
     /// would make an item and its twin disagree when their prototype is not its own signature class's founder).
     /// <para>TWO passes over the forests (kb/Work PB2495): the first attaches each pointer's resolved prototype, the
     /// second classifies it. Classifying a prototype compares its formals, and a formal that is itself a restricted
-    /// pointer is compared by the prototype IT names (<see cref="PrototypeSignatures.SameType"/>) — which may be declared
+    /// pointer is compared by the prototype IT names (<see cref="PrototypeSignatures.SameSignatureRestriction"/>) — which may be declared
     /// in a forest later in the group, so every forest is resolved before any is classified.</para></summary>
     private static void ResolvePointerRestrictions(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes,
         IReadOnlyList<KeyValuePair<OoInterfaceSymbol, DataBinder>> interfaces, BindSession session)

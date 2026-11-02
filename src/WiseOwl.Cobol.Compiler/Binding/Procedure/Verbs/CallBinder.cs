@@ -865,7 +865,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     internal static BoundCallArg Described(StatementBinder host, BoundCallArg arg) => arg with
     {
         Description = ActivationDescriptions.OfCallArgument(arg,
-            arg.ProgramAddress?.Prototype is { } addressed ? host.ProgramRestrictionIdentityOf(addressed) : null, host.OoClasses),
+            arg.ProgramAddress?.Prototype is { } addressed ? host.ProgramRestrictionOf(addressed) : null, host.OoClasses),
     };
 
     /// <summary>Bind ONE address-identifier argument (ISO §8.4.3.1.2 identifier Format 9; §14.9.4.3 SR3/SR4 —

@@ -811,7 +811,7 @@
       "WiseOwl.Cobol.Tests.Unit.PlaceStorageCellDriftTests": 0.0,
       "WiseOwl.Cobol.Tests.Unit.PlaceStorageFormSwitchDriftTests": 6.2,
       "WiseOwl.Cobol.Tests.Unit.PointerImageTests": 0.0,
-      "WiseOwl.Cobol.Tests.Unit.PointerRestrictionLanesAgreeTests": 0.0,
+      "WiseOwl.Cobol.Tests.Unit.PointerRestrictionRelationsTests": 0.0,
       "WiseOwl.Cobol.Tests.Unit.PointerUsageOperandDriftTests": 1.7,
       "WiseOwl.Cobol.Tests.Unit.PositionCarrierDriftTests": 0.5,
       "WiseOwl.Cobol.Tests.Unit.PositionCarrierOverloadDriftTests": 0.0,

@@ -7,16 +7,15 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// ⛔ THE TYPE OF A RESTRICTED PROGRAM- OR FUNCTION-POINTER, as ONE identity per signature (kb/Work PB2464).
+/// ⛔ WHAT A RESTRICTED PROGRAM- OR FUNCTION-POINTER MAY CONTAIN, as ONE identity per signature (kb/Work PB2464).
 /// ISO §13.18.60.4 GR25 — "A restricted program-pointer shall contain only the predefined address NULL or the
 /// address of a program with the same signature as that identified by the specified program-prototype-name" — and GR26,
-/// its function-pointer twin, type a restricted pointer by the SIGNATURE of the prototype it names, never by the
-/// prototype's name: two pointers restricted to two differently named prototypes of one signature hold the same set of
-/// values. §14.9.39.3 SR20 / SR22 therefore admit a SET between them
-/// (<see cref="PrototypeSignatures.Same"/>), and §14.8.2.3.2's "If either is a restricted pointer, both shall be
-/// restricted and of the same type" is the same question asked at an argument. Before this type every relation that
-/// had no host to resolve a prototype name through (the §9.3.6 match of a UNIVERSAL INVOKE, whose two descriptions
-/// travel to run time; the typed conformance comparator) compared the NAMES.
+/// its function-pointer twin, bound a restricted pointer's contents by the SIGNATURE of the prototype it names, never by
+/// the prototype's name: two pointers restricted to two differently named prototypes of one signature hold the same set
+/// of values. §14.9.39.3 SR20 / SR22 therefore admit a SET between them (<see cref="PrototypeSignatures.Same"/>), and so
+/// do the rules that send to SET (§14.8.2.3.3; §9.3.6 4 c), 5 c), 6). The identity rules — §14.8.2.3.2's "of the same
+/// type", §9.3.6 3 e), §14.8.3.3 — do not ask this class: they compare the TO phrase by the prototype it names
+/// (<see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>; kb/Work PB4107).
 /// <para><b>The class.</b> The prototypes are partitioned into classes by the ONE same-signature test
 /// (<see cref="PrototypeSignatures.Same"/>), as the coarsest stable partition (<see cref="Classify"/>: refined until a
 /// round splits nothing, so the classes do not depend on the order prototypes are presented in). A prototype that took

@@ -1639,7 +1639,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 if (host.Ptr.BindAddressIdentifier(addrCtx, "INVOKE USING") is not { } ao)
                     return BoundRejected.Reported(ctx.Edition);
                 args.Add(new BoundUniversalArg(null,
-                    ActivationDescriptions.OfAddress(ao, ao.Program?.Prototype is { } prototype ? host.ProgramRestrictionIdentityOf(prototype) : null))
+                    ActivationDescriptions.OfAddress(ao, ao.Program?.Prototype is { } prototype ? host.ProgramRestrictionOf(prototype) : null))
                 { Address = ao });
                 continue;
             }

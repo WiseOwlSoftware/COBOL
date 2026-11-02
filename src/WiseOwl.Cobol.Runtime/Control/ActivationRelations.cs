@@ -174,7 +174,9 @@ public static class ActivationRelations
     /// §14.8.1) — one relation read at two times (kb/Work PB2077). Null when the pair conforms, else the reason. The
     /// elementary and object-reference identities of §14.8.2.3.2 rules 1-3 are what match rule 3 d)/e) already
     /// proved (rule 4, an ACTIVE-CLASS formal, depends on the invocation and is <see cref="ActiveClassFormalViolation"/>'s);
-    /// what remains is the group rules of §14.8.2.2. GR7 c)'s own ANY LENGTH ban is not a relation of a pair:
+    /// what remains is the group rules of §14.8.2.2 and the class-pointer paragraph's "of the same type", which 3 e)'s
+    /// clause identity does not prove — two pointers restricted alike under two type-names have the same USAGE clause
+    /// (<see cref="RestrictedPointerTypeViolation"/>, kb/Work PB4107). GR7 c)'s own ANY LENGTH ban is not a relation of a pair:
     /// it bans the bound METHOD's description whatever its arguments (an OMITTED one included, which §9.3.6 3 b) exempts
     /// from further checking), and only for a universal receiver, so the universal switch raises it unconditionally for
     /// such a method (<c>OoEmitter.EmitCobolInvokeCase</c>) and the typed lane, which it does not govern, never meets it.</summary>
@@ -185,6 +187,9 @@ public static class ActivationRelations
         // category) and the same class of every other pair, so what §14.8.2.2 still asks is the type's §8.5.3.1
         // equivalence, the §8.5.1.12 compatibility and rule 1's sizes — the ONE group arm the CALL lane asks too.
         if (ReferenceGroupViolation(argument, formal) is { } groupWhy) return groupWhy;
+        // §14.8.2.3.2's class-pointer paragraph: the match proved the category and the USAGE clause, not the type.
+        if (IsPointerClass(argument) && IsPointerClass(formal)
+            && RestrictedPointerTypeViolation(argument, formal) is { } pointerWhy) return pointerWhy;
         // §14.8.2.3.2 "Additionally" b) / c): a bit / national group matches the same number of positions.
         return formal.Shape is ActivationShape.AsIfElementaryGroup && formal.Positions != argument.Positions
             ? $"the formal parameter ({formal}) and the argument ({argument}) have different numbers of positions "
@@ -278,7 +283,14 @@ public static class ActivationRelations
                 : $"{Both()}: a group carries none of the ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, "
                   + "PICTURE, SIGN and USAGE clauses an elementary item is described with, so the two are not described "
                   + "the same (ISO §9.3.8.2.3 rules 3 / 6)";
-        return first.AnyLength == second.AnyLength && SameElementaryClauses(first, second)
+        // Two class pointers are compared by what each may CONTAIN (ContentRestriction: a prototype pointer's signature
+        // class), the reading PrototypeSignatures.Same's signature graph is built on (kb/Work PB2464,
+        // DESIGN-external-repository §6.4), not by the TO phrase's name the activation rules' clause identity compares
+        // (kb/Work PB4107).
+        return (IsPointerClass(first) && IsPointerClass(second)
+                ? string.Equals(first.Category, second.Category, StringComparison.Ordinal)
+                  && string.Equals(first.ContentRestriction, second.ContentRestriction, StringComparison.Ordinal)
+                : first.AnyLength == second.AnyLength && SameElementaryClauses(first, second))
             ? null
             : $"{Both()} are not described with the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, "
               + "PICTURE, SIGN and USAGE clauses (ISO §9.3.8.2.3 rules 3 / 6)"
@@ -392,15 +404,13 @@ public static class ActivationRelations
                   + "description (ISO §14.8.2.3.2 rules 1-3)";
         // "If either the argument or the formal parameter is of class pointer, the corresponding formal parameter or
         // argument shall be of class pointer and the corresponding items shall be of the same category. If either is a
-        // restricted pointer, both shall be restricted and of the same type" — the restriction is the USAGE clause's TO
-        // phrase, which Clauses carries (Unrestricted for none).
+        // restricted pointer, both shall be restricted and of the same type" — RestrictedPointerTypeViolation.
         if (IsPointerClass(formal) || IsPointerClass(argument))
-            return IsPointerClass(formal) && IsPointerClass(argument)
-                   && string.Equals(formal.Category, argument.Category, StringComparison.Ordinal)
-                   && SamePointerRestriction(formal.Clauses, argument.Clauses)
-                ? null
-                : $"the formal parameter ({formal}) and the argument ({argument}) are not pointers of the same category and "
-                  + "restriction (ISO §14.8.2.3.2)" + ClauseDifference(argument, formal);
+            return !IsPointerClass(formal) || !IsPointerClass(argument)
+                   || !string.Equals(formal.Category, argument.Category, StringComparison.Ordinal)
+                ? $"the formal parameter ({formal}) and the argument ({argument}) are not pointers of the same category "
+                  + "(ISO §14.8.2.3.2)"
+                : RestrictedPointerTypeViolation(argument, formal);
         if (ReferenceGroupViolation(argument, formal) is { } groupWhy) return groupWhy;
         if (!IsElementaryData(argument) || !IsElementaryData(formal) || !specifiedProgram) return null;
         // Rule 2. "Additionally" b) / c): a bit group matches an elementary bit item, a national group an elementary
@@ -585,40 +595,72 @@ public static class ActivationRelations
     /// <item>function-pointer — Format 8 SR20: "The function-prototypes associated with identifier-12 and
     /// identifier-13 shall have the same signature".</item>
     /// </list>
-    /// A pointer's restriction is its USAGE clause's TO phrase as <see cref="ActivationDescription.Clauses"/> carries
-    /// it (<see cref="ActivationDescription.Unrestricted"/> for none): for a prototype pointer the SIGNATURE class of its
+    /// A pointer's restriction here is what it may CONTAIN, <see cref="ActivationDescription.ContentRestriction"/>
+    /// (<see cref="ActivationDescription.Unrestricted"/> for none): for a prototype pointer the SIGNATURE class of its
     /// prototype (§13.18.60.4 GR25 / GR26), so two differently named prototypes of one signature share one restriction
     /// and the pair is admitted — which is what "the same signature" of SR20 / SR22 asks (kb/Work PB2464); for a
-    /// data-pointer its TYPE identity.</summary>
+    /// data-pointer its TYPE identity. This is the SET relation's alone; the identity rules ask the TO phrase by name
+    /// (<see cref="RestrictedPointerTypeViolation"/>; kb/Work PB4107).</summary>
     private static bool MaySet(string setClass, ActivationDescription receiving, ActivationDescription sending)
     {
         if (!string.Equals(SetClass(sending), setClass, StringComparison.Ordinal)) return false;
         return setClass switch
         {
-            ActivationCategory.ProgramPointer => receiving.Clauses == ActivationDescription.Unrestricted
-                                                 || SamePointerRestriction(receiving.Clauses, sending.Clauses),
+            ActivationCategory.ProgramPointer => receiving.ContentRestriction == ActivationDescription.Unrestricted
+                                                 || SamePointerRestriction(receiving.ContentRestriction, sending.ContentRestriction),
             ActivationCategory.DataPointer or ActivationCategory.FunctionPointer =>
-                SamePointerRestriction(receiving.Clauses, sending.Clauses),
+                SamePointerRestriction(receiving.ContentRestriction, sending.ContentRestriction),
             ActivationCategory.Object => ObjectReferenceSet.Refusal(ObjectOperand(sending), ObjectOperand(receiving)) is null,
             _ => true,   // index — SR2 asks only the class, which SetClass compared
         };
     }
 
-    /// <summary>⛔ ONE ANSWER TO "THE SAME RESTRICTION" FOR TWO CLASS POINTERS — §14.8.2.3.2's "If either is a restricted
-    /// pointer, both shall be restricted and of the same type", and §14.9.39.3 SR19 / SR20 / SR22's SET conditions that
-    /// §14.8.2.3.3 makes the BY CONTENT rule ("the same as if a SET statement were performed"). Equal restrictions are the
-    /// same; so is a pair of RESTRICTED pointers either of which is restricted to a prototype with no compile-time
-    /// signature (<see cref="ActivationDescription.IsExternalRestriction"/>): ISO §12.3.8.4 GR10 c) / GR11 c) leave that
-    /// signature to the run unit, so nothing can show the two types differ, and the bind-time SET relation
-    /// (<c>PrototypeSignatures.Same</c>, which lets an unresolved signature conform) admits exactly that pair. Before this
-    /// the two lanes answered one pair two ways: <c>SET PB TO PA</c> compiled and ran, while passing PA BY REFERENCE or BY
-    /// CONTENT to a formal of PB's type raised EC-PROGRAM-ARG-MISMATCH, because two unresolved prototypes' own names never
-    /// match (kb/Work PB3162); the CALL RETURNING pair (<see cref="ReturningConformance"/>) was the third lane that did
-    /// (kb/Work PB3686). A data-pointer's restriction is a TYPE identity and is never external.</summary>
+    /// <summary>⛔ THE SET RELATION'S "SAME RESTRICTION" FOR TWO CLASS POINTERS — §14.9.39.3 SR19 ("restricted to the same
+    /// type"), SR20 and SR22 ("the same signature"), over their <see cref="ActivationDescription.ContentRestriction"/>s, and
+    /// so the rules that send to SET: §14.8.2.3.3 ("the same as if a SET statement were performed") and §9.3.6 match rules
+    /// 4 c), 5 c) and 6. Equal restrictions are the same; so is a pair of RESTRICTED pointers either of which is restricted
+    /// to a prototype with no compile-time signature (<see cref="ActivationDescription.IsExternalRestriction"/>): ISO
+    /// §12.3.8.4 GR10 c) / GR11 c) leave that signature to the run unit, so nothing can show the two signatures differ, and
+    /// the bind-time SET relation (<c>PrototypeSignatures.Same</c>, which lets an unresolved signature conform) admits
+    /// exactly that pair (kb/Work PB3162). That stance is on the SIGNATURE only: the identity rules — §14.8.2.3.2's "of the
+    /// same type" (<see cref="RestrictedPointerTypeViolation"/>) and the clause identity of §9.3.6 3 e) and §14.8.3.3 —
+    /// compare the TO phrase by the prototype it names and never ask a signature (kb/Work PB4107). A data-pointer's
+    /// restriction is a TYPE identity and is never external.</summary>
     private static bool SamePointerRestriction(string a, string b) =>
         string.Equals(a, b, StringComparison.Ordinal)
         || (a != ActivationDescription.Unrestricted && b != ActivationDescription.Unrestricted
             && (ActivationDescription.IsExternalRestriction(a) || ActivationDescription.IsExternalRestriction(b)));
+
+    /// <summary>⛔ ISO §14.8.2.3.2's class-pointer paragraph for two pointers of one category — "If either is a restricted
+    /// pointer, both shall be restricted and of the same type" — the ONE copy a BY REFERENCE argument of a CALL
+    /// (<see cref="ByReferenceViolation"/>) and of a method §9.3.6 has bound (<see cref="ParameterViolation"/>) ask. "Of the
+    /// same type" is §8.5.3.1's relation over two typed items (§13.18.60.3 SR18 / SR19 make every restricted data- or
+    /// program-pointer one): "The items are described with TYPE clauses that reference equivalent type declarations", whose
+    /// equivalence requires "the same type-name" and "the same … USAGE clauses" — the pointers'
+    /// <see cref="ActivationDescription.PointerType"/>s and their USAGE clauses' TO phrases
+    /// (<see cref="ActivationDescription.Clauses"/>, compared by what they name). It is not the SET relation: two pointers
+    /// restricted to two prototypes of one signature, or alike but under two type-names, are refused here and admitted by a
+    /// SET or a BY CONTENT pass (<see cref="MaySet"/>), as an object reference of a subclass is (kb/Work PB3758 / PB4107;
+    /// docs/CONFORMANCE.md D-RP1). Two untyped restricted pointers (a FUNCTION-POINTER TO entry, which no TYPEDEF rule
+    /// governs) are of the same type when their USAGE clauses are the same. Null when the pair conforms.</summary>
+    private static string? RestrictedPointerTypeViolation(ActivationDescription argument, ActivationDescription formal)
+    {
+        bool argumentRestricted = argument.Clauses != ActivationDescription.Unrestricted;
+        bool formalRestricted = formal.Clauses != ActivationDescription.Unrestricted;
+        if (!argumentRestricted && !formalRestricted) return null;
+        if (argumentRestricted != formalRestricted)
+            return $"the {(formalRestricted ? "formal parameter" : "argument")} ({(formalRestricted ? formal : argument)}) is a "
+                + $"restricted pointer and the {(formalRestricted ? "argument" : "formal parameter")} "
+                + $"({(formalRestricted ? argument : formal)}) is not (ISO §14.8.2.3.2)";
+        if (!string.Equals(argument.Clauses, formal.Clauses, StringComparison.Ordinal))
+            return $"the formal parameter ({formal}) and the argument ({argument}) are restricted pointers that are not of the "
+                + "same type: their USAGE clauses name different restrictions (ISO §14.8.2.3.2; §8.5.3.1)"
+                + ClauseDifference(argument, formal);
+        return string.Equals(argument.PointerType, formal.PointerType, StringComparison.Ordinal) ? null
+            : $"the formal parameter ({formal}) and the argument ({argument}) are restricted alike but are not of the same "
+              + "type: they are not described with TYPE clauses that reference equivalent type declarations (ISO "
+              + "§14.8.2.3.2; §8.5.3.1)";
+    }
 
     /// <summary>An object-reference description as the §14.9.39.3 Format 5 table reads it. An ACTIVE-CLASS description
     /// names its containing class through its class facts (the first of <see cref="ActivationDescription.ObjectClasses"/>),
@@ -774,15 +816,13 @@ public static class ActivationRelations
                 : $"the returning item ({sending}) and the receiving item ({receiving}) do not match (ISO §14.8.3.3 "
                   + "\"Additionally\" 2) / 3))";
         // §14.8.3.3: "the receiving operand shall have the same ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED,
-        // PICTURE, SIGN, and USAGE clauses" (the class-pointer restriction is its USAGE clause's TO phrase). Two class
-        // pointers are the same USAGE when their restrictions are the same type by the ONE relation the BY REFERENCE and
-        // SET lanes ask, SamePointerRestriction: a pointer's TO phrase names a prototype, its type is that prototype's
-        // SIGNATURE (§13.18.60.4 GR25 / GR26), and a prototype with no compile-time signature is resolved by the run
-        // unit (§12.3.8.4 GR10 c)) — kb/Work PB3686, the RETURNING sibling of PB3162.
-        return (IsPointerClass(receiving) && IsPointerClass(sending)
-                ? string.Equals(receiving.Category, sending.Category, StringComparison.Ordinal)
-                  && SamePointerRestriction(receiving.Clauses, sending.Clauses)
-                : SameElementaryClauses(receiving, sending))
+        // PICTURE, SIGN, and USAGE clauses". A class pointer's USAGE clause carries its TO phrase, compared by the
+        // prototype or type it NAMES (ActivationDescription.Clauses): the standard lists the clause texts that match on
+        // meaning (currency strings, DECIMAL-POINT IS COMMA, LOCALE) and the TO phrase is not among them, so two
+        // prototypes of one signature — or of a signature only the run unit knows (§12.3.8.4 GR10 c)) — are two USAGE
+        // clauses. The signature relation is SET's (MaySet), which §14.8.3.3 does not send this pair to (kb/Work PB4107,
+        // overturning PB3686's reading).
+        return SameElementaryClauses(receiving, sending)
             ? null
             : $"the returning item ({sending}) and the receiving item ({receiving}) are not described with the same "
               + "clauses (ISO §14.8.3.3)";
