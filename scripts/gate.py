@@ -310,7 +310,7 @@ NOT_RUN_SHOWN = 10
 #: named here by hand: this tuple once named five while eleven orchestrator self-tests ran in no gate at all. The few
 #: that read the BUILT assemblies run beside the test hosts of a gate that builds (`self_tests.py --built`,
 #: `Host.built_self_tests`). Both halves run ONLY WHEN THE CHANGE TOUCHES A SCRIPT (`TOOLING_ONLY`, `Lane.tooling`; a
-#: compiler data file a self-test reads sets no flag in the full lane, owner 2026-11-01).
+#: compiler data file a self-test reads sets only `Lane.reads_tooling`, CI's flag, owner 2026-11-01, kb/Work PB4409).
 AUDITS = (
     ("CITATIONS", ["scripts/spec/audit_code_citations.py", "--check"]),
     ("DOC CITATIONS", ["scripts/spec/audit_doc_citations.py", "--check"]),
@@ -342,13 +342,14 @@ AUDITS = (
     # refused test is red here in a fraction of a second, long before the test hosts end.
     ("CONFORMANCE SUITE", ["conformance-suite/harness/generate.py", "--check"]),
 )
-#: ⛔ THE AUDITS THAT RUN ONLY WHEN THE CHANGE TOUCHES TOOLING (kb/Work PB4326; scripts/inert_lane.py `Lane.tooling`): a
-#: script self-test reads tooling and the data scripts/inert_lane.py's TOOLING_READS names (self_tests.py proves that
-#: list complete on every run it records), so only a change that touches a script, a workflow, a tool, an agent
-#: definition, a manifest it reads, any .py/.ps1/.sh file or one of those data paths can turn one red. The rest of the
-#: population is CI's: the merge group's `audits` job runs every Linux self-test whatever the change (a declared
-#: population reader and the DEVLOG/kb corpora are the named residue, inert_lane.py) and `windows-self-tests` the Windows ones for a tooling
-#: change (the recorded-inputs reuse, PB2914, still lets a tooling change re-run exactly the self-tests that read it).
+#: ⛔ THE AUDITS THAT RUN ONLY WHEN THE CHANGE TOUCHES A SCRIPT (kb/Work PB4326, PB4409; scripts/inert_lane.py
+#: `Lane.tooling`): a script, a workflow, a tool, an agent definition, a root manifest the self-tests read or any
+#: .py/.ps1/.sh file. A compiler data file a self-test reads (inert_lane.py's TOOLING_READS) starts none here (owner
+#: 2026-11-01: "I see no reason why a compiler change should need to run script self-tests"); its first run is CI's.
+#: The rest of the population is CI's: the merge group's `audits` job runs every Linux self-test whatever the change (a
+#: declared population reader and the DEVLOG/kb corpora are the named residue, inert_lane.py) and `windows-self-tests`
+#: the Windows ones whenever the change touches a script or that data (`Lane.reads_tooling`). The recorded-inputs
+#: reuse (PB2914) still lets a script change re-run exactly the self-tests that read it.
 TOOLING_ONLY = ("SELF-TESTS",)
 #: ⛔ WHAT AN AUDIT NEEDS IN THE TREE, made ready before any audit runs, exactly as CI's `audits` job makes it ready:
 #: FLEET PRACTICES reads the pinned public skills submodule, which a fresh worktree does not have. A prerequisite that
@@ -491,11 +492,12 @@ class Host:
         """The change's lane: what `tree` (the measured working tree) changes against `base`, classified by THE one
         classification (scripts/inert_lane.py). No base or no tree, or a change git cannot list, is the full lane."""
         if not base or not tree:
-            return inert_lane.Lane("full", "no base or no measured tree: the full lane", True)
+            return inert_lane.Lane("full", "no base or no measured tree: the full lane", tooling=True, reads_tooling=True)
         try:
             return inert_lane.CLASSIFICATION.classify(inert_lane.changed(self.repo, base, tree))
         except (subprocess.CalledProcessError, OSError) as e:
-            return inert_lane.Lane("full", f"the change could not be listed ({e}): the full lane", True)
+            return inert_lane.Lane("full", f"the change could not be listed ({e}): the full lane", tooling=True,
+                                   reads_tooling=True)
 
     def head(self) -> str | None:
         try:
@@ -1557,10 +1559,12 @@ class FakeHost(Host):
         """The planted lane: `inert` plants a change no test reads, `tooling-lane` one no compiler test reads; the
         classification itself is inert_lane.py's self-test."""
         if "inert" in self.plant:
-            return inert_lane.Lane("inert", "planted: all 2 changed path(s) are inert", False)
+            return inert_lane.Lane("inert", "planted: all 2 changed path(s) are inert", tooling=False, reads_tooling=False)
         if "tooling-lane" in self.plant:
-            return inert_lane.Lane("tooling", "planted: 1 of 1 changed path(s) are tooling no compiler test reads", True)
-        return inert_lane.Lane("full", "planted: the full lane", "tooling" in self.plant)
+            return inert_lane.Lane("tooling", "planted: 1 of 1 changed path(s) are tooling no compiler test reads", tooling=True,
+                                   reads_tooling=True)
+        return inert_lane.Lane("full", "planted: the full lane", tooling="tooling" in self.plant,
+                               reads_tooling="tooling" in self.plant)
 
     def head(self) -> str | None:
         return "head-1"

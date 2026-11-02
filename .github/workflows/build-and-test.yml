@@ -98,10 +98,11 @@ jobs:
       code: ${{ steps.decide.outputs.code }}
       verified: ${{ steps.decide.outputs.verified }}
       reason: ${{ steps.decide.outputs.reason }}
-      # Whether the change TOUCHES TOOLING (scripts/inert_lane.py `classify`, kb/Work PB4326): a path a script self-test
-      # reads (the scripts, and the data TOOLING_READS names, held complete by self_tests.py's proof), so `windows-self-tests`
-      # runs only then. `true` whenever nothing proves otherwise.
-      tooling: ${{ steps.decide.outputs.tooling }}
+      # Whether the change touches what a script self-test READS (scripts/inert_lane.py `classify`'s `reads_tooling=`;
+      # kb/Work PB4326, PB4409): a script, or the data TOOLING_READS names, held complete by self_tests.py's proof, so
+      # `windows-self-tests` runs only then. Broader than the local gate's `tooling=` (a changed script only): a compiler
+      # change's data file reaches its Windows self-tests first here. `true` whenever nothing proves otherwise.
+      reads_tooling: ${{ steps.decide.outputs.reads_tooling }}
       # What this merge group proposes to add is `base..sha` — the `audits` job's witness-loss check compares against it.
       # Empty when no honest base exists (a dispatch run, an unresolvable `before`); that check then falls back
       # to its own default, the merge-base with origin/main.
@@ -143,7 +144,7 @@ jobs:
         run: |
           set -uo pipefail
           ZERO=0000000000000000000000000000000000000000
-          code=true; verified=false; reason=""; BASE=""; tooling=true
+          code=true; verified=false; reason=""; BASE=""; reads_tooling=true
           if [ "$EVENT" = "pull_request" ]; then
             # ⛔ THE REQUIRED CHECK ONLY (kb/Work PB3024, PB4330): the matrix AND the audits run on the MERGE GROUP, which
             # tests this PR on top of main together with the others queued and is the one run each change gets. A PR run
@@ -180,8 +181,9 @@ jobs:
               # evidence of a no-op or a probe, never that no test reads the change (feedback_verdict_evidence_invariant).
               lane_out="$(python3 scripts/inert_lane.py classify --base "$BASE" --head "$SHA")"
               lane_reason="$(printf '%s\n' "$lane_out" | sed -n 's/^reason=//p')"
-              # A change proved to touch no tooling (kb/Work PB4326): any other answer, or none, leaves it true.
-              if printf '%s\n' "$lane_out" | grep -qx 'tooling=false'; then tooling=false; fi
+              # A change proved to touch nothing a self-test reads (kb/Work PB4326, PB4409): any other answer, or none,
+              # leaves it true.
+              if printf '%s\n' "$lane_out" | grep -qx 'reads_tooling=false'; then reads_tooling=false; fi
               if printf '%s\n' "$lane_out" | grep -qx 'lane=inert'; then
                 code=false
                 reason="inert lane over $BASE..$SHA: $lane_reason — the matrix is skipped"
@@ -222,14 +224,14 @@ jobs:
             echo "code=$code"
             echo "verified=$verified"
             echo "reason=$reason"
-            echo "tooling=$tooling"
+            echo "reads_tooling=$reads_tooling"
             echo "base=$BASE"
           } >> "$GITHUB_OUTPUT"
-          echo "run_matrix=$run_matrix (code=$code verified=$verified tooling=$tooling): $reason"
+          echo "run_matrix=$run_matrix (code=$code verified=$verified reads_tooling=$reads_tooling): $reason"
           {
             echo "### changes"
             echo
-            echo "\`run_matrix\` = **$run_matrix**  (code=$code, verified=$verified, tooling=$tooling)"
+            echo "\`run_matrix\` = **$run_matrix**  (code=$code, verified=$verified, reads_tooling=$reads_tooling)"
             echo
             echo "$reason"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -752,16 +754,18 @@ jobs:
 
   # ── Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's test_orchestrate_*.ps1
   # and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563). ONLY WHEN THE CHANGE TOUCHES
-  # TOOLING (`changes` says so, from scripts/inert_lane.py; kb/Work PB4326): a script self-test reads tooling and the
-  # data TOOLING_READS names (a declared population reader and the DEVLOG/kb corpora are the named residue), so no other change
-  # turns one red, and the Linux audits job runs every Linux self-test whatever the change. ITS OWN JOB, beside the
+  # WHAT A SELF-TEST READS (`changes`' `reads_tooling`, from scripts/inert_lane.py; kb/Work PB4326, PB4409): a script
+  # self-test reads tooling and the data TOOLING_READS names (a declared population reader and the DEVLOG/kb corpora are
+  # the named residue), so no other change turns one red, and the Linux audits job runs every Linux self-test whatever
+  # the change. A compiler change to such a data file runs none in its local gate (owner 2026-11-01), so this is their
+  # first run on Windows (THE RULE, class (d)). ITS OWN JOB, beside the
   # shards (kb/Work PB3581): the default phase never builds (self_tests.py BUILD), so it waits for no build, and as a
   # step after the Windows test legs it was 7.4 of that job's 16.5 minutes, the merge queue's longest job (merge group
   # run 40004159292: 440 s; the next job ended four minutes earlier). ──
   windows-self-tests:
     name: Windows script self-tests
     needs: changes
-    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.tooling == 'true'
+    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.reads_tooling == 'true'
     runs-on: windows-2025-vs2026
     timeout-minutes: 25
     steps:
