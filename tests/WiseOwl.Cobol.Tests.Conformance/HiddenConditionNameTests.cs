@@ -63,6 +63,27 @@ public sealed class HiddenConditionNameTests
         EditionHarness.AssertNoDiagnostic(errors, "is a condition-name");
     }
 
+    /// <summary>⛔ A BARE OPERAND ADMITS A DATA ITEM (kb/Work PB4433). IF and EVALUATE take <c>RELF (1)</c> as the contained
+    /// program's own scalar data item (§8.4.6.2.1 3) a)), so the verdict is the subscript's §8.4.2.3.3 SR2 (COBOL2096), the
+    /// one the same reference draws when no level-88 of the spelling exists; the condition-only wording ("this position
+    /// requires a condition-name") is for the positions that admit only a condition-name, and EVALUATE no longer adds a
+    /// Table 15 pairing error about a condition the operand never was.</summary>
+    [Theory]
+    [InlineData("           IF RELF (1) DISPLAY \"A\" END-IF.")]
+    [InlineData("           IF NOT RELF (1) DISPLAY \"A\" END-IF.")]
+    [InlineData("           PERFORM UNTIL RELF (1) DISPLAY \"A\" END-PERFORM.")]
+    [InlineData("           EVALUATE RELF (1) WHEN 3 DISPLAY \"A\" END-EVALUATE.")]
+    public void ABareOperand_NamesTheNearerDataItemAndMeetsItsSubscriptRule(string statement)
+    {
+        var (ok, errors) = EditionHarness.Compile(Program(statement), 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2096");
+        EditionHarness.AssertHasDiagnostic(errors, "'RELF (1)': a subscript is written on 'RELF'");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1639");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1634");
+        EditionHarness.AssertNoDiagnostic(errors, "names a data item, not a condition-name");
+    }
+
     /// <summary>The control: with no data item of the spelling in the contained program, the container's GLOBAL
     /// condition-name is the referenced item (§8.4.6.2.1 3) b) 1.) and SET binds it.</summary>
     [Fact]

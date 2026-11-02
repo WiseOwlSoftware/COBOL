@@ -1235,8 +1235,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // either — is a condition-name reference that identifies nothing. It is classified as the CONDITION-NAME
         // it was written as (so EVALUATE's Table-15 screen does not re-read it as an identifier and report a
         // pairing error about the wrong thing) and reported ONCE, through the one wording.
+        // A data item of a NEARER source element that hides the level-88 is NOT this arm's reference (ISO §8.4.6.2.1 3) a)):
+        // a bare operand admits a data item, so the reference is the data item's and the value arm reports whatever is
+        // wrong with it, such as a subscript on a scalar (§8.4.2.3.3 SR2, COBOL2096; kb/Work PB4433).
         if (inner is { } mqx && SoleDataRef(mqx) is { } mqr && ctx.Refs.Probe(mqr) is null
-            && ReportMisqualifiedCondition(mqr))
+            && !NamesHidingDataItem(mqr) && ReportMisqualifiedCondition(mqr))
             return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
                 Refused($"condition-name '{DataBinder.WrittenText(mqr)}'"));
         // A class-name-1 / alphabet-name-1 (§8.8.4.4.2) written bare — a word, never qualified, subscripted or
@@ -1705,7 +1708,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// entry, and the report then names THAT item.</summary>
     public bool ReportMisqualifiedCondition(Core.DataReferenceContext dref)
     {
-        string name = dref.cobolWord()?.GetText() ?? dref.GetText();
+        string name = WrittenWord(dref);
         if (!ctx.Symbols.TryResolveCondition(name, ctx.ActiveScope, out _)) return false;
         if (!_condDiagnosed.Add(dref)) return true;
         var qualifiers = QualifiersOf(dref);
@@ -1713,7 +1716,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A data item of a NEARER source element than the condition-name is the referenced item (ISO §8.4.6.2.1 3) a),
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
-        if (ctx.Data.ConditionNameHiddenByNearerDataItem(name, qualifiers, ctx.ActiveScope))
+        if (NamesHidingDataItem(dref))
             ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name));
         // A report entry of a NEARER source element is the referenced item the same way (kb/Work PB4196), and the
         // report-item refusal names it.
@@ -1722,6 +1725,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 ReferenceResolver.MisqualifiedConditionText(text, name, qualifiers));
         return true;
     }
+
+    /// <summary>True when the written word of <paramref name="dref"/> is a level-88 that a data item of a NEARER source
+    /// element hides, so the reference names that data item (ISO §8.4.6.2.1 3) a); kb/Work PB4219 review R1-1). It is a
+    /// fact about the reference; what to do with it is the POSITION's: a condition-only position refuses the data item
+    /// (<see cref="ReportMisqualifiedCondition"/>), a bare operand position takes it as the data item it is.</summary>
+    private bool NamesHidingDataItem(Core.DataReferenceContext dref) =>
+        ctx.Data.ConditionNameHiddenByNearerDataItem(WrittenWord(dref), QualifiersOf(dref), ctx.ActiveScope);
+
+    private static string WrittenWord(Core.DataReferenceContext dref) => dref.cobolWord()?.GetText() ?? dref.GetText();
 
     /// <summary>The written qualifier words of <paramref name="dref"/>, innermost first.</summary>
     internal static List<string> QualifiersOf(Core.DataReferenceContext dref) =>
