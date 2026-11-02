@@ -23,7 +23,8 @@ decided at two different times; each is recorded where its stage knows it.
 2), so no marker reached the lexer and the rewriter had nothing to decide. Its slot now holds the bare carrier
 (`LogicalLineBuilder.EmitDebugging`); it still touches neither the join target nor the literal state, so a blank `D` line between the
 parts of a literal reads as before (`ABlankDebuggingLine_BetweenTheLinesOfALiteral_StillContinuesIt`), and with the mode the line is
-source and the note stays.
+source and the note stays. The first gate caught three tests that pinned the old slot (`""`) and the marker's HIDDEN channel
+(`LogicalLineBuilderTests` x2, `DebuggingLineRewriterTests`); they now pin the bare carrier and the ABSENT channel.
 
 **Found in the same files (I9): a lone blank line lost its origin.** The control of the new test (the same past-margin-R line in the
 branch the directive TAKES) drew no note, before the fix too. A block of one empty line between two directives went through
