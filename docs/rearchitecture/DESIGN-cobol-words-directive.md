@@ -120,6 +120,11 @@ resolution read the canonical literal-4 as removed). A name the directive REMOVE
 names the UNDEFINE or SUBSTITUTE (`CobolWordsMap.RemovedBy` — the directive itself, not only the fact; `CobolWordsOp.At`
 supplies the line, through the line map) and, for SUBSTITUTE, the literal-5 that now denotes the function (kb/Work PB4309);
 COBOL1501 ("not an intrinsic function of ISO/IEC 1989") stays for a name that is no intrinsic function at all.
+The parse-layer twin is COBOL5926 (kb/Work PB4360): a withdrawn VERB written as a verb (`UNDEFINE "DISPLAY"` then
+`DISPLAY "X"`) is a user-defined word, the statement is no statement, and the syntax error stands; where the withdrawn
+word is the offending token or the one before it, `CobolErrorListener.NoteWithdrawnWord` reports a warning at the
+directive (`RemovedBy`, `CobolWordsOp.At` through the line map) naming it as the likely cause, once per directive, as
+the margin-R note (COBOL5788) names a cut beside the error it may explain.
 
 **Where the name resolution is called** (each is a §8.9/§8.10 word the lexer does not tokenize):
 `IntrinsicBinder.KeywordWordOf` — the single funnel every §15 phrase word is read through, so TRIM, FIND-STRING,

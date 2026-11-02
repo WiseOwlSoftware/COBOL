@@ -328,18 +328,54 @@ public sealed class CobolWordsDirectiveTests
 
     // ── end-to-end through the compiler (RESERVE 0901 · SR3/SR4 1623) ───────────────────────────────────────
 
-    private static IReadOnlyList<string> CompileErrors(string source)
+    private static IReadOnlyList<string> CompileErrors(string source) => Compile(source).Errors;
+
+    private static CompilerDriver.Result Compile(string source)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_CWords_");
         try
         {
             string src = Path.Combine(dir, "cw.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            return CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "cw.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
-            return r.Errors;
         }
         finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>kb/Work PB4360 (ISO §7.3.10.4 GR3, GR4): a verb a directive withdrew, written as a verb, is a user-defined
+    /// word and the statement is a syntax error; COBOL5926 beside it names the directive, once, at the directive's line.</summary>
+    [Theory]
+    [InlineData("UNDEFINE \"DISPLAY\"", "DISPLAY \"X\".", ">>COBOL-WORDS UNDEFINE \"DISPLAY\" withdrew DISPLAY (ISO §7.3.10.4 GR3)")]
+    [InlineData("SUBSTITUTE \"DISPLAY\" BY \"SHOW\"", "DISPLAY \"X\".",
+        ">>COBOL-WORDS SUBSTITUTE \"DISPLAY\" BY \"SHOW\" withdrew DISPLAY, and SHOW now stands for it (ISO §7.3.10.4 GR4)")]
+    [InlineData("UNDEFINE \"MOVE\"", "MOVE 1 TO R. MOVE 2 TO R.", ">>COBOL-WORDS UNDEFINE \"MOVE\" withdrew MOVE (ISO §7.3.10.4 GR3)")]
+    public void AWithdrawnVerbWrittenAsAVerb_IsNamedBesideTheSyntaxError(string directive, string statements, string named)
+    {
+        var r = Compile($"       >>COBOL-WORDS {directive}\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4360.\n"
+            + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 R PIC 9.\n"
+            + $"       PROCEDURE DIVISION.\n       MAIN.\n           {statements}\n           STOP RUN.\n");
+        Assert.Contains(r.Errors, e => e.Contains("COBOL0001"));   // the source is still no statement
+        var note = Assert.Single(r.Warnings, w => w.Contains("COBOL5926"));
+        Assert.Contains(named, note);
+        Assert.Contains("(1,", note);   // at the directive's own line
+    }
+
+    /// <summary>The control (kb/Work PB4360): a syntax error with no withdrawn word beside it draws no COBOL5926, and a
+    /// withdrawn word used as the user-defined word it now is compiles.</summary>
+    [Fact]
+    public void ASyntaxErrorAwayFromTheWithdrawnWord_DrawsNoNote_AndTheWordIsAUserWord()
+    {
+        var unrelated = Compile("       >>COBOL-WORDS UNDEFINE \"DISPLAY\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4360B.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 R PIC 9.\n"
+            + "       PROCEDURE DIVISION.\n       MAIN.\n           MOVE 1 R.\n           STOP RUN.\n");
+        Assert.Contains(unrelated.Errors, e => e.Contains("COBOL5506"));
+        Assert.DoesNotContain(unrelated.Warnings, w => w.Contains("COBOL5926"));
+
+        var used = Compile("       >>COBOL-WORDS UNDEFINE \"DISPLAY\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4360C.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 DISPLAY PIC 9.\n"
+            + "       PROCEDURE DIVISION.\n       MAIN.\n           MOVE 1 TO DISPLAY.\n           STOP RUN.\n");
+        Assert.Empty(used.Errors);
     }
 
     private const string WordsTail = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB3119.\n"

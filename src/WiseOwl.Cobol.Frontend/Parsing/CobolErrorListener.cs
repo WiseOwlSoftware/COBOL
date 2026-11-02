@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 
@@ -83,8 +85,41 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
             offendingSymbol?.StopIndex ?? 0);
         // ⛔ A CAUSE READS BEFORE ITS EFFECT (kb/Work PB4131): the cut precedes the error it may explain.
         NoteMarginRCut(recognizer, offendingSymbol, location);
+        NoteWithdrawnWord(recognizer, offendingSymbol, location);
         diagnostics.ReportError(code, message, location, span);
     }
+
+    /// <summary>⛔ A WORD A &gt;&gt;COBOL-WORDS DIRECTIVE WITHDREW IS NAMED BESIDE THE SYNTAX ERROR IT MAY CAUSE (kb/Work
+    /// PB4360; ISO §7.3.10.4 GR3, GR4). After <c>&gt;&gt;COBOL-WORDS UNDEFINE "DISPLAY"</c> the word DISPLAY "shall no
+    /// longer be reserved or restricted in any way", and any syntax requiring it "shall not be available for use in this
+    /// compilation group": <c>DISPLAY "X"</c> is a user-defined word and a literal, not a statement, and the bare COBOL0001
+    /// at the literal said nothing of the directive that made it so. The withdrawn word stands at the offending token or
+    /// right before it (the statement it would begin failed at its first operand), the evidence the margin-R note reads
+    /// too; <see cref="CobolWordsMap.RemovedBy"/> names the directive, as COBOL5776 does for an intrinsic function name
+    /// (kb/Work PB4309). Reported once per directive, as a warning beside the error, at the directive.</summary>
+    private void NoteWithdrawnWord(IRecognizer? recognizer, IToken? offending, SourceLocation errorAt)
+    {
+        if (offending is null || recognizer is not CobolParserCoreBase { CobolWords: { IsEmpty: false } words }) return;
+        foreach (var token in (ReadOnlySpan<IToken?>)[offending, PreviousToken(recognizer, offending)])
+        {
+            if (token?.Text is not { } written || words.RemovedBy(written) is not { } op) continue;
+            if (!_withdrawnNoted.Add(op)) return;
+            string word = CobolKeywords.Spelling(written);
+            string directive = op.Action == CobolWordsAction.Undefine
+                ? $">>COBOL-WORDS UNDEFINE \"{op.Existing}\" withdrew {word} (ISO §7.3.10.4 GR3)"
+                : $">>COBOL-WORDS SUBSTITUTE \"{op.Existing}\" BY \"{op.New}\" withdrew {word}, and {op.New} now stands for it "
+                  + "(ISO §7.3.10.4 GR4)";
+            diagnostics.ReportWarning(DiagnosticCatalog.WordWithdrawnBeforeSyntaxError.Code,
+                $"{directive}: '{written}' is a user-defined word in this compilation group, and syntax that requires the "
+                + $"word {word} is not available in it. The syntax error at {errorAt} may be this.",
+                lineMap?.Locate(op.At.Line, op.At.Column, sourcePath) ?? new SourceOrigin(sourcePath, op.At.Line).ToLocation(op.At.Column),
+                TextSpan.Empty);
+            return;
+        }
+    }
+
+    /// <summary>The directives already named beside a syntax error (<see cref="NoteWithdrawnWord"/>): one note each.</summary>
+    private readonly HashSet<CobolWordsOp> _withdrawnNoted = [];
 
     /// <summary>Name the margin-R cut that may be why the syntax error at <paramref name="errorAt"/> stands there (kb/Work
     /// PB2555; ISO §6.3.1: the program-text area ends at margin R, which the implementor fixes, so the text past it is not

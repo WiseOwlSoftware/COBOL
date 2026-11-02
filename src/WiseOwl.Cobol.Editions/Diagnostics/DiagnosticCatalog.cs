@@ -7869,6 +7869,20 @@ public static class DiagnosticCatalog
         + "wanted, or remove the directive.",
         "ISO §7.3.10.4 GR3; §7.3.10.4 GR4");
 
+    // kb/Work PB4360: `>>COBOL-WORDS UNDEFINE "DISPLAY"` then `DISPLAY "X"` drew a bare COBOL0001 that never named the
+    // directive: the word is a user-defined word in this compilation group, so the statement is not one. The syntax error
+    // stands (the source is not a statement); this NOTE beside it names the user's own directive as the likely cause, as
+    // COBOL5776 does for a withdrawn intrinsic function name (PB4309). Emitted by the front end's CobolErrorListener.
+    public static readonly DiagnosticDescriptor WordWithdrawnBeforeSyntaxError = new(
+        "COBOL5926", "word-withdrawn-before-syntax-error", EditionSeverity.Warning,
+        "A syntax error stands at, or right after, a word that a >>COBOL-WORDS directive of the compilation group "
+        + "withdrew. ISO §7.3.10.4 GR3: when UNDEFINE is specified, the COBOL word that is the content of literal-3 "
+        + "\"shall no longer be reserved or restricted in any way\" and any syntax requiring the use of that word \"shall "
+        + "not be available for use in this compilation group\"; GR4 withdraws the word of SUBSTITUTE literal-4 the same "
+        + "way and hands its role to literal-5. The word is a user-defined word here, so a statement or phrase it begins "
+        + "is not available. Write the SUBSTITUTE's literal-5 where the keyword is wanted, or remove the directive.",
+        "ISO §7.3.10.4 GR3; §7.3.10.4 GR4");
+
     // kb/Work PB4341: EXEC SQL … END-EXEC drew "cannot parse construct near 'SQL'", the message of a typo, where the
     // cause is an embedded-language block for a precompiler. Emitted by the front end's EmbeddedBlockReading, which reads
     // each block as one token before the parse; EXEC and END-EXEC are not reserved words, so a source that writes EXEC as

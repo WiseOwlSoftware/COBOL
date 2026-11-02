@@ -43,3 +43,11 @@ R14, R15, R10, R11, e1, e2, i14, S10, the nested and PERFORM siblings, the true 
 `pb4382-evaluate-when-group-without-statement` (COBOL2072, was COBOL2073), and
 `pb4300-evaluate-only-when-other-after-incomplete-display` (no COBOL2073). No inventory row changes verdict: every
 program involved was already refused. Design doc section 3.9 carries the four rules.
+
+**PB4360 (a withdrawn verb drew a bare COBOL0001).** After `>>COBOL-WORDS UNDEFINE "DISPLAY"`, `DISPLAY "X".` is a
+user-defined word and a literal, not a statement (ISO 7.3.10.4 GR3: syntax requiring the word "shall not be available
+for use in this compilation group"), and the error never named the directive. A new warning, COBOL5926, reported by
+`CobolErrorListener.NoteWithdrawnWord` beside the syntax error where the withdrawn word is the offending token or the
+one before it, names the UNDEFINE or SUBSTITUTE at the directive's own line (`CobolWordsMap.RemovedBy`), once per
+directive: the parse-layer twin of PB4309's COBOL5776, placed like the margin-R note because the listener holds the line
+map. Pinned by `CobolWordsDirectiveTests` (UNDEFINE, SUBSTITUTE, one note for two faults, and the control).
