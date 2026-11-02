@@ -37,7 +37,7 @@ from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_cluste
                       declare_fix_lane, lift_tiers, load_fix_clusters, load_notes, notes_cap, predicted_turns,
                       ready_notes_view, turn_budget)
 from groups import (Group, as_group_json, attempts, body_of, campaign_requirements, group_cost,  # noqa: E402
-                    group_requirements, landing_cost, requirements_text)
+                    group_requirements, landing_cost, requirements_text, FINDINGS_ANSWER, finisher_pred, join_preds)
 from dispatch_ledger import (held_by_dispatch, partition_record, partition_summary, record_dispatch,  # noqa: E402
                              record_partition, release_dispatch)
 sys.path.insert(0, str(HERE.parent))
@@ -1478,6 +1478,24 @@ rdup = TMP / "msg-w77-dup.txt"
 rdup.write_text(rspec.read_text(encoding="utf-8") + "\n" + requirements_text("PB950", REQS) + "\n", encoding="utf-8", newline="\n")
 check("... and the once-check still refuses a spec that states one campaign's requirements twice",
       [m.startswith("PB3777: states twice: the branch reviewer raises a finding") for m in check_practices.check(rdup, []) if "PB3777" in m], [True])
+# kb/Work PB4419: wave 20261815's group A absorbed two finishers of FINDINGS-reviewed branches (Group.absorb, PB4396),
+# each pred ending with the answer-by-id rule, so the spec stated it twice and the PB3777 once-check refused the wave.
+# Expected from the rule (a spec says each rule once): the joined pred names BOTH findings files and states the rule ONCE.
+two_rev = [r for r in load_reports(RV_REPORTS) if r.review and r.review.verdict == "FINDINGS"][:1]
+(RV_REPORTS / "w1062g-PB9-report.md").write_text(
+    "# PB9 report\n**Status:** DONE · **branch:** `worktree-wf_rv-9` · **HEAD:** `9999999ab`\n"
+    "**Review:** FINDINGS 1 w1062g-review-r1 9999999ab E:/s/review-w1062-g.jsonl\n\n## Reproduced?\n", encoding="utf-8", newline="\n")
+two_rev += [r for r in load_reports(RV_REPORTS) if r.lead == "PB9"]
+ga = dataclasses.replace(rg, kind="finisher", pred=finisher_pred(two_rev[0], two_rev[0].branch, "UNLANDED", ["PB5"]))
+ga.absorb(dataclasses.replace(rg_other, kind="finisher", pred=finisher_pred(two_rev[1], two_rev[1].branch, "UNLANDED", ["PB9"])))
+check("PB4419: an absorbed second FINDINGS finisher names both findings files and states the answer rule once",
+      (len(two_rev), "review-w1062-e.jsonl" in ga.pred, "review-w1062-g.jsonl" in ga.pred, ga.pred.count(FINDINGS_ANSWER),
+       ga.pred.endswith(FINDINGS_ANSWER)), (2, True, True, 1, True))
+fspec = TMP / "msg-w77-two-findings.txt"
+fj = as_group_json(ga, "77", notes, "COBOL0001-COBOL0003")
+fspec.write_text(mds.render(CFG77, fj, FILES(fj)), encoding="utf-8", newline="\n")
+check("... and its rendered spec passes the PB3777 once-check", [m for m in check_practices.check(fspec, []) if "PB3777" in m], [])
+check("join_preds leaves preds without the answer rule as a plain join", join_preds("a  b", "", "c"), "a  b c")
 nospec = TMP / "msg-w77-req-without.txt"
 nospec.write_text(mds.render(CFG77, gjson[0], FILES(gjson[0])), encoding="utf-8", newline="\n")
 check("a spec rendered without them is refused, naming each requirement",

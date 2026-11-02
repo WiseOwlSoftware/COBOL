@@ -70,7 +70,7 @@ class Group:
         claim, its instruction, the branches it continues and its tier; a finisher's work makes this a finisher."""
         self.notes += [i for i in other.notes if i not in self.notes]
         self.take(other.claim)
-        self.pred = " ".join(p for p in (self.pred, other.pred) if p)
+        self.pred = join_preds(self.pred, other.pred)
         self.continues += [b for b in other.continues if b not in self.continues]
         self.overflow += [i for i in other.overflow if i not in self.overflow]
         self.tier = min(self.tier, other.tier, key=work.tier_rank)
@@ -164,6 +164,25 @@ def branch_resume(branch: str, nid_list: list[str], replay: "Replay | None" = No
             + replay_clause(replay))
 
 
+#: How a finisher answers a branch review's findings (kb/Work PB3027), stated ONCE per spec however many reviewed branches
+#: its pred names. A group that absorbs another finisher of such a branch (Group.absorb, kb/Work PB4396) joins two preds
+#: that each end with it, and the spec said it twice, which check_practices.py's once-check refuses (kb/Work PB3777,
+#: PB4419): join_preds states it once, at the end. It names no branch, so the one sentence serves every review.
+FINDINGS_ANSWER = ("Then answer EVERY finding of every branch review named in this spec by its id: fix it at its root (a "
+                   "regression test or golden with it) or answer `no_change_needed` with the reason, one line each in your "
+                   "report's `## Review findings` section; re-gate; your branch is reviewed again when it returns DONE "
+                   "(kb/Work PB3027).")
+
+
+def join_preds(*preds: str) -> str:
+    """Several preds as ONE instruction (Group.absorb): each in order, and FINDINGS_ANSWER once at the end when any of
+    them carries it (kb/Work PB4419)."""
+    body = " ".join(p for p in preds if p)
+    if FINDINGS_ANSWER not in body:
+        return body
+    return " ".join(body.replace(FINDINGS_ANSWER, "").split()) + " " + FINDINGS_ANSWER
+
+
 def finisher_pred(rep: Report | None, branch: str | None, cls: str, nid_list: list[str],
                   carried_by: str | None = None, replay: "Replay | None" = None) -> str:
     if rep is None:
@@ -176,10 +195,7 @@ def finisher_pred(rep: Report | None, branch: str | None, cls: str, nid_list: li
                 + (f" (it is also contained in {carried_by}, whose report does not answer these findings and which may "
                    f"land its commits first: merge {rep.branch} only, never {carried_by}; kb/Work PB3150)"
                    if carried_by else "")
-                + f", read {rep.path} and its \"For the next implementer\" section, then answer EVERY finding by its "
-                f"id: fix it at its root (a regression test or golden with it) or answer `no_change_needed` with the reason, one line "
-                f"each in your report's `## Review findings` section; re-gate; your branch is reviewed again when it "
-                f"returns DONE (kb/Work PB3027).")
+                + f", and read {rep.path} and its \"For the next implementer\" section. " + FINDINGS_ANSWER)
     where = (f"Its branch {rep.branch} (worktree {rep.worktree or 'removed'}, head {rep.head or '?'}) is {cls}: "
              + (f"it is contained in {carried_by}, which carries its work to main: `python scripts/merge_drivers.py merge {carried_by} --keep` into your "
                 f"branch (never cherry-pick {rep.branch}: its commits would land twice) and re-gate before new work."
