@@ -35,8 +35,9 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     public DataBinder Data { get; } = data;
 
     /// <summary>The METHOD OPTIONS override of the code now emitted (ISO §11.9.4 GR1): a method's own OPTIONS model,
-    /// which <c>OoEmitter.EmitMethod</c> pushes over the unit's (<see cref="DataBinder.Options"/>) around the method's
-    /// LOCAL-STORAGE initializers (kb/Work PB1215) — the emitter's own scope, as <see cref="ProcedureBindState.Options"/>
+    /// which <c>OoEmitter.EmitMethod</c> pushes over the unit's (<see cref="ConfigurationSlice.Options"/>) around the
+    /// method's LOCAL-STORAGE initializers (kb/Work PB1215) and its whole body (kb/Work PB2296: the arithmetic mode and the
+    /// intermediate rounding the renderers read) — the emitter's own scope, as <see cref="ProcedureBindState.Options"/>
     /// is the statement binder's. <see cref="CurrentOptions"/> reads it.</summary>
     public Scoped<OptionsModel> Options { get; } = new();
 
