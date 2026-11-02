@@ -107,6 +107,71 @@ public sealed class ParseRecoveryCascadeTests
     public void AStatementTheEnclosingTerminatorEnded_IsNotLeftForALaterTerminator(string statements, params string[] diagnostics)
         => AssertDiagnostics(statements, diagnostics);
 
+    /// <summary>PB4438, PB4436: the terminator a recovery consumed as a left statement's own ends the recovery, so a stray
+    /// terminator written directly after it is met by the parse and drawn COBOL0306 (ISO §14.5.3.2 1)), and the
+    /// statement enclosing an empty IF takes its own END-IF without the recovery swallowing it, so the true stray later in
+    /// the sentence is drawn too.</summary>
+    [Theory]
+    // PB4438: the empty IF's own END-IF, then a stray one directly after it.
+    [InlineData("IF W-N = 1 END-IF END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 DISPLAY \"A\". IF W-N = 2 END-IF END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("PERFORM UNTIL W-N = 2 END-PERFORM END-PERFORM. MOVE 1 W-N.", "COBOL2072@END-PERFORM", "COBOL0306@END-PERFORM", "COBOL5506@W-N")]
+    // The same through the loop recovery: a fault in the condition leaves the IF, whose END-IF the recovery takes.
+    [InlineData("IF W-N NOT <> 1 DISPLAY \"C\" END-IF END-IF. MOVE 1 W-N.", "COBOL0001@<>", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    // PB4436: the empty inner IF takes its own END-IF, the enclosing IF's follows directly, and the stray one is last.
+    [InlineData("IF W-N = 1 DISPLAY \"A\" IF W-K = 2 END-IF END-IF DISPLAY \"X\" END-IF. MOVE 1 W-N.",
+                "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 DISPLAY \"A\" IF W-K = 2 END-IF END-IF END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    public void ATerminatorDirectlyAfterOneTheRecoveryTook_IsStray_AndTheNextFaultIsReported(string statements, params string[] diagnostics)
+        => AssertDiagnostics(statements, diagnostics);
+
+    /// <summary>PB4437: an IF that is the first statement of a WHEN group (EVALUATE, SEARCH) and faults at its ELSE is left
+    /// by the recovery, and the EVALUATE or SEARCH ends before the statement after it. The IF's own END-IF, and the
+    /// EVALUATE's or SEARCH's END-x after the statements the group's block could not take, are theirs (ISO §14.5.3.2 1)):
+    /// not COBOL0306. A terminator beyond them is the stray one.</summary>
+    [Theory]
+    [InlineData("EVALUATE W-N WHEN 1 IF W-K = 1 ELSE DISPLAY W-A END-IF DISPLAY \"X\" END-EVALUATE. MOVE 1 W-N.", "COBOL2072@ELSE", "COBOL5506@W-N")]
+    [InlineData("SEARCH W-A WHEN W-N = 1 IF W-K = 1 ELSE DISPLAY W-A END-IF END-SEARCH. MOVE 1 W-N.", "COBOL2072@ELSE", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 DISPLAY \"Q\" WHEN 2 IF W-K = 1 ELSE DISPLAY W-A END-IF DISPLAY \"X\" END-EVALUATE. MOVE 1 W-N.",
+                "COBOL2072@ELSE", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 IF W-K = 1 ELSE DISPLAY W-A END-IF END-IF DISPLAY \"X\" END-EVALUATE. MOVE 1 W-N.",
+                "COBOL2072@ELSE", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 IF W-K = 1 ELSE DISPLAY W-A END-IF DISPLAY \"X\" END-EVALUATE END-IF. MOVE 1 W-N.",
+                "COBOL2072@ELSE", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 IF W-K = 1 ELSE DISPLAY W-A END-IF DISPLAY \"X\" END-EVALUATE END-EVALUATE. MOVE 1 W-N.",
+                "COBOL2072@ELSE", "COBOL0306@END-EVALUATE", "COBOL5506@W-N")]
+    public void AnIfFirstInAWhenGroupFaultingAtElse_KeepsItsOwnEndIf(string statements, params string[] diagnostics)
+        => AssertDiagnostics(statements, diagnostics);
+
+    /// <summary>PB4436 review R1-1: the ELSE, WHEN or WHEN OTHER that follows the terminator a recovery consumed belongs to the
+    /// statement the recovery left, whose block the prediction ended before the malformed IF (ISO §14.5.3.2 2): the IF's
+    /// statement-1 and statement-2, the WHEN groups of one EVALUATE or SEARCH, are the phrases of one statement). The one
+    /// fault was reported; the word draws no COBOL0001 or COBOL2073 of its own, and a stray terminator after the
+    /// statement is still drawn COBOL0306.</summary>
+    [Theory]
+    [InlineData("IF W-N = 1 DISPLAY \"Q\" IF W-K = 1 END-IF ELSE DISPLAY \"Z\" END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 DISPLAY \"Q\" IF W-K = 1 ELSE DISPLAY W-A END-IF ELSE DISPLAY \"Z\" END-IF. MOVE 1 W-N.", "COBOL2072@ELSE", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 DISPLAY \"Q\" IF W-K = 1 END-IF ELSE DISPLAY \"Z\" END-IF END-IF. MOVE 1 W-N.",
+                "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 DISPLAY \"Q\" IF W-K = 1 END-IF WHEN 2 DISPLAY \"Y\" END-EVALUATE. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 DISPLAY \"Q\" IF W-K = 1 END-IF WHEN OTHER DISPLAY \"Y\" END-EVALUATE. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 DISPLAY \"Q\" IF W-K = 1 ELSE DISPLAY W-A END-IF WHEN 2 DISPLAY \"Y\" END-EVALUATE. MOVE 1 W-N.",
+                "COBOL2072@ELSE", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 IF W-K = 1 ELSE DISPLAY W-A END-IF WHEN 2 DISPLAY \"Y\" END-EVALUATE. MOVE 1 W-N.", "COBOL2072@ELSE", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 DISPLAY \"Q\" IF W-K = 1 END-IF WHEN 2 DISPLAY \"Y\" END-EVALUATE END-EVALUATE. MOVE 1 W-N.",
+                "COBOL2072@END-IF", "COBOL0306@END-EVALUATE", "COBOL5506@W-N")]
+    [InlineData("SEARCH W-A WHEN W-N = 1 DISPLAY \"Q\" IF W-K = 1 ELSE DISPLAY W-A END-IF WHEN W-N = 2 DISPLAY \"Y\" END-SEARCH. MOVE 1 W-N.",
+                "COBOL2072@ELSE", "COBOL5506@W-N")]
+    // The condition's fault leaves the IF; the WHEN after its END-IF is the EVALUATE's.
+    [InlineData("EVALUATE W-N WHEN 1 DISPLAY \"Q\" IF W-K NOT <> 1 DISPLAY \"C\" END-IF WHEN 2 DISPLAY \"Y\" END-EVALUATE. MOVE 1 W-N.",
+                "COBOL0001@<>", "COBOL5506@W-N")]
+    // A statement still short of its operand is refused at the word by its own fault, not taken for the left IF's phrase.
+    [InlineData("IF W-N = 1 DISPLAY \"Q\" IF W-K = 1 END-IF ADD 1 TO ELSE DISPLAY \"Z\".", "COBOL2072@END-IF", "COBOL5506@ELSE")]
+    // A phrase word met after the sentence's period is the next sentence's: no left statement awaits it.
+    [InlineData("IF W-N = 1 DISPLAY \"Q\" IF W-K = 1 END-IF. ELSE DISPLAY \"Z\".", "COBOL2072@END-IF", "COBOL0001@ELSE")]
+    public void APhraseWordOfAStatementTheRecoveryLeft_IsItsOwn_AndDrawsNoSecondReport(string statements, params string[] diagnostics)
+        => AssertDiagnostics(statements, diagnostics);
+
     /// <summary>PB4300: COBOL2073 is drawn by a WHEN OTHER phrase that repeats one or stands before every WHEN group,
     /// never by the one phrase written in its place after an incomplete statement.</summary>
     [Theory]

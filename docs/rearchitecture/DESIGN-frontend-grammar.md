@@ -1589,6 +1589,33 @@ target:
   statement the prediction ended before the malformed one (`IF A IF B END-IF END-IF`: the outer IF's block cannot take the
   inner IF, so the outer is left too, and its END-IF is its own). The grammar keeps
   `statementBlock` non-empty (PB396); the empty block is still named by hint 0a.
+  **The terminator the recovery consumed as a statement's own ENDS the recovery** (kb/Work PB4438, PB4436): the statement
+  is complete with it, as if its rule had matched it, so `Recover` (the terminator the fault stood at) and `ConsumeUntil`
+  (the terminator `EndsAStatementTheRecoveryLeft` suppressed the report for, in the loop recovery of `Sync` or in the
+  recovery of a rule inside the sentence) consume it, end the error condition (`ReportMatch`, as `Match` does) and
+  return: the resynchronization went on to the period or the recovery set, and swallowed a stray terminator written
+  directly after it (`IF W-N = 1 END-IF END-IF.`), or an enclosing statement's own END-IF (`IF A DISPLAY "X" IF B END-IF
+  END-IF DISPLAY "Y" END-IF.`, the outer record then took the true stray one as its own). The ANTLR error condition that
+  `ReportMatch` ends is what silences the next report, so without it the stray one drew nothing either. A unit that ends
+  at its period (the sentence) is the exception: it returns before the period, so its tail is still discarded to it.
+  **A record lives while its statement awaits its terminator** (PB4437): the statement enclosing a left one, and the left
+  one itself, die only by ending in their own terminator (`EndedWithItsTerminator`: the last child of the returned
+  context is a terminal that terminator closes), not by merely having returned, which the optional END-x lets any
+  statement do wherever the next token is not its own. A statement list that cannot go on (`Recover` in a
+  `statementBlock`: `EVALUATE W-N WHEN 1 IF … ELSE DISPLAY W-A END-IF DISPLAY "X" END-EVALUATE`, where the WHEN group's
+  block cannot take the left IF's END-IF) ends the block of its owning statement, which is recorded left too
+  (`OwningStatement`), so its END-EVALUATE is its own and the IF's END-IF, whose enclosing EVALUATE has returned without
+  its terminator, is the IF's.
+  **A phrase word of a left statement is its own** (PB4436, branch review R1-1): ending the error condition at the consumed
+  terminator unmasks the failure at the next phrase word of an enclosing statement the prediction already closed early
+  (`IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.`: the ELSE, a WHEN or a WHEN OTHER of an EVALUATE or SEARCH
+  after a malformed IF). `Report` suppresses it (`ContinuesAStatementTheRecoveryLeft`, after the terminator test) when a
+  record still due something belongs to a statement whose rule lets that word follow an imperative block
+  (`PhraseWords`, read from the ATN once per rule: what follows each `statementBlock` call in the rules the statement
+  reaches, a block that ends its rule followed by what follows the call, minus the scope terminators), under the same
+  record hygiene as the terminator test (`TakenByALeftStatement`), and only where the statement before the word is
+  complete (`AStatementMayEndBefore`: `IF A MOVE B TO ADD 1 TO ELSE …` is the ADD's own fault at the ELSE). The word is the one fault re-met, not a tail to discard:
+  the recovery goes on, so a genuine later fault in the sentence is still reported.
 - ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
   Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that
   calls a WHEN OTHER rule, both read from the ATN): a phrase is misplaced where the construct already holds one (the
