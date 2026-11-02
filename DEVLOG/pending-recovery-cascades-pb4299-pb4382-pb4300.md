@@ -106,6 +106,22 @@ lazy publication cannot tear. R1-2 (the 85 refusal of `OCCURS 0 TO TIMES` names 
 that exists from 2002) is left: the fix is a new edition read in `CobolParserCoreBase` that `EditionReadDriftTests` must
 adjudicate, in a file this change does not touch.
 
+Review round 2 (R2-1, R2-2; both blocking, both fixed). R2-1: the round-1 exclusion (no record for a fault at the statement's
+own terminator) left an empty IF nested in an IF faulting at its own END-IF, which the nested IF's recovery did not consume:
+the enclosing IF (whose block the prediction had already ended before the malformed IF) took it, and the enclosing IF's own
+END-IF drew a false COBOL0306 (`IF W-N = 1 IF W-N = 2 END-IF END-IF.`; origin/main said the same, and round 1's head was
+right only because the record paired with the wrong IF). `Recover` now consumes the statement's own terminator when the fault
+stands at it, and `NoteLeftBefore` records the statement the prediction ended before the malformed one (the previous
+sibling in the sentence or block that ends in an imperative block and not in its own terminator, with each unterminated
+statement down its last branch). R2-2: a record was never retired when an ENCLOSING statement's terminator ended the left
+one (ISO 14.5.3.2 2)), so `PERFORM UNTIL W-N = 2 IF W-N = 1 END-PERFORM DISPLAY "X" END-IF.` lost the true COBOL0306 at the
+END-IF that origin/main reports. A record now keeps its nearest enclosing statement of ANOTHER kind (the same kind is no
+boundary: 14.5.3.2 1)) and is dropped once the parser no longer stands in it (`StillOpen`). Golden
+`pb4382-stray-end-if-after-an-enclosing-terminator` (refused at all four editions, COBOL0306) and nine
+`ParseRecoveryCascadeTests` rows (each asserts the whole diagnostic list, which is what shows the absence of the false
+COBOL0306). The swallowed stray in `IF W-N = 1 END-IF END-IF.` (no statement between) stays the recovery-window limit named
+in round 1.
+
 Self-review found the terminator pairing too wide in the predecessor's part (narrowed, 2 rows) and, in this part, the
 new operand arm's COBOL5506 orphaning the next statement's tail (the PB4286 rows failed: fixed by `LeavesNoTail`) and its
 list of the parser's full set for `NUMVAL(A FROM` (a continuation set, so now unsaid). semgrep verify passed with no rule

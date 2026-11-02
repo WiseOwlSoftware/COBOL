@@ -84,6 +84,29 @@ public sealed class ParseRecoveryCascadeTests
     public void ATerminatorAfterTheFaultAtTheStatementsOwn_IsStray(string statements, params string[] diagnostics)
         => AssertDiagnostics(statements, diagnostics);
 
+    /// <summary>PB4382, review R2-1: an empty IF inside another statement faults at its own END-IF, which the IF takes
+    /// (ISO §14.5.3.2 1)); the ENCLOSING statement's own terminator is its own, not a stray one. The enclosing IF is left
+    /// too (the prediction ended its block before the malformed one), so a terminator beyond it is the stray.</summary>
+    [Theory]
+    [InlineData("IF W-N = 1 IF W-K = 2 END-IF END-IF.", "COBOL2072@END-IF")]
+    [InlineData("IF W-N = 1 DISPLAY \"A\" IF W-K = 2 END-IF DISPLAY \"B\" END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 IF W-K = 2 END-IF DISPLAY \"Y\" END-IF DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 IF W-K = 2 IF W-N = 3 END-IF END-IF END-IF END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 DISPLAY \"A\" ELSE IF W-K = 2 END-IF DISPLAY \"B\" END-IF DISPLAY \"C\". MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    public void AnEmptyIfInsideAnotherStatement_TakesItsOwnTerminator(string statements, params string[] diagnostics)
+        => AssertDiagnostics(statements, diagnostics);
+
+    /// <summary>PB4382, review R2-2: a statement the recovery left is terminated with the statement ENCLOSING it, by that
+    /// statement's terminator (ISO §14.5.3.2 2)), so a terminator of its kind met after that is a stray one: COBOL0306.</summary>
+    [Theory]
+    [InlineData("PERFORM UNTIL W-N = 2 IF W-N = 1 END-PERFORM DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@END-PERFORM", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 IF W-N = 1 END-EVALUATE DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@END-EVALUATE", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("PERFORM UNTIL W-N = 2 IF W-N = 1 ELSE DISPLAY \"A\" END-PERFORM DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@ELSE", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    // The enclosing statement's end does not end an IF that encloses IT.
+    [InlineData("IF W-N = 1 PERFORM UNTIL W-N = 2 IF W-K = 3 END-PERFORM DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@END-PERFORM", "COBOL5506@W-N")]
+    public void AStatementTheEnclosingTerminatorEnded_IsNotLeftForALaterTerminator(string statements, params string[] diagnostics)
+        => AssertDiagnostics(statements, diagnostics);
+
     /// <summary>PB4300: COBOL2073 is drawn by a WHEN OTHER phrase that repeats one or stands before every WHEN group,
     /// never by the one phrase written in its place after an incomplete statement.</summary>
     [Theory]

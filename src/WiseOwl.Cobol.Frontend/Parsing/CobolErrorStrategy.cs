@@ -99,8 +99,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             (at, kind, hints) = (carried, ErrorKind.NoViableAlternative, GuessCobolIntent(recognizer, carried));
             // The prediction closed the construct before the fault: each statement it holds that a terminator closes,
             // down its last branch, is left before its end (kb/Work PB4382).
+            if (carried.ClosedEarly is { } root) NoteLeftBefore(recognizer, root);
             for (var closed = carried.ClosedEarly; closed is not null; closed = LastRuleChild(closed))
-                NoteLeft(recognizer, closed.RuleIndex, closed.Start.TokenIndex, at.Token);
+                NoteLeft(recognizer, closed.RuleIndex, closed.Start.TokenIndex, closed, at.Token);
         }
         _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), at.Token.TokenIndex);
         _orphansItsTail = OrphansItsTail(hints, kind);
@@ -161,8 +162,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var stream = (ITokenStream)recognizer.InputStream;
         for (int i = _leftByRecovery.Count - 1; i >= 0; i--)
         {
-            var (rule, start) = _leftByRecovery[i];
+            var (rule, start, enclosing) = _leftByRecovery[i];
             if (HoldsAPeriod(stream, start, at.Token.TokenIndex)) { _leftByRecovery.RemoveRange(0, i + 1); return false; }
+            // The statement enclosing it ended: its scope terminator (or its end) terminated this one with it (§14.5.3.2 2)),
+            // so no terminator of its own is still due.
+            if (!StillOpen(recognizer, enclosing)) { _leftByRecovery.RemoveAt(i); continue; }
             if (!terminator.Statements.Contains(recognizer.RuleNames[rule])) continue;
             _leftByRecovery.RemoveAt(i);
             return true;
@@ -180,23 +184,87 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     }
 
     /// <summary>The statements whose rule the recovery left before their end, oldest first: each statement's rule and
-    /// the index of its first token (<see cref="EndsAStatementTheRecoveryLeft"/>).</summary>
-    private readonly List<(int Rule, int Start)> _leftByRecovery = [];
+    /// the index of its first token, and the nearest statement enclosing it that a terminator of another kind closes, null where none does
+    /// (<see cref="EndsAStatementTheRecoveryLeft"/>, <see cref="StillOpen"/>).</summary>
+    private readonly List<(int Rule, int Start, RuleContext? Enclosing)> _leftByRecovery = [];
 
-    /// <summary>Records <paramref name="rule"/>, begun at token <paramref name="start"/>, as a statement the recovery left
-    /// before its end (<see cref="_leftByRecovery"/>), once: the report carried into a closed construct and the recovery of
-    /// the rule that failed both name the same statement, and a second record would take a second, stray terminator as
-    /// that statement's own. Not a statement no terminator closes, and not one whose fault stands AT its own terminator
+    /// <summary>Records <paramref name="statement"/>, a statement the recovery left before its end
+    /// (<see cref="_leftByRecovery"/>), once: the report carried into a closed construct and the recovery of the rule
+    /// that failed both name the same statement, and a second record would take a second, stray terminator as that
+    /// statement's own. Not a statement no terminator closes, and not one whose fault stands AT its own terminator
     /// (<paramref name="faultAt"/>: <c>IF W-N = 1 END-IF</c>, the empty block COBOL2072 reports at the END-IF): that
-    /// terminator is the one fault, consumed with the statement, and a terminator met later is a stray one
-    /// (COBOL0306, ISO §14.5.3.2).</summary>
-    private void NoteLeft(Parser recognizer, int rule, int start, IToken? faultAt)
+    /// terminator is the one fault, consumed with the statement (<see cref="Recover"/>), and a terminator met later is
+    /// a stray one (COBOL0306, ISO §14.5.3.2).</summary>
+    private void NoteLeft(Parser recognizer, int rule, int start, RuleContext statement, IToken? faultAt)
     {
-        if (!ClosedByATerminator(recognizer, rule) || _leftByRecovery.Contains((rule, start))) return;
+        if (!ClosedByATerminator(recognizer, rule)) return;
+        var enclosing = EnclosingStatement(recognizer, statement, rule);
+        if (_leftByRecovery.Contains((rule, start, enclosing))) return;
         if (faultAt is not null && ScopeTerminator(recognizer, faultAt.Type) is { } own
             && own.Statements.Contains(recognizer.RuleNames[rule]))
             return;
-        _leftByRecovery.Add((rule, start));
+        _leftByRecovery.Add((rule, start, enclosing));
+    }
+
+    /// <summary>⛔ A STATEMENT WHOSE BLOCK THE PREDICTION ENDED BEFORE THE MALFORMED ONE IS LEFT TOO (kb/Work PB4382,
+    /// review R2-1). <c>IF A IF B END-IF END-IF.</c>: the outer IF's block cannot take the inner IF, whose statement-1 is
+    /// missing, so the prediction ends the outer IF before it and the inner IF is the sentence's next statement; the
+    /// outer IF is as much left before its end (its END-IF is still written) as the one the recovery returns from. A
+    /// statement of a list that stands before <paramref name="faulted"/>'s statement, ends in an imperative block and
+    /// does not end in its own terminator, could have taken the faulted statement into that block had it been
+    /// well-formed: its block ended at the fault, so it and each unterminated statement down its last branch are
+    /// recorded (<see cref="NoteLeft"/>), the innermost last. A statement that ends in its terminator is whole, and
+    /// the statements inside it end with it (§14.5.3.2 2)).</summary>
+    private void NoteLeftBefore(Parser recognizer, RuleContext faulted)
+    {
+        var statement = faulted;
+        while (statement is not null && statement.RuleIndex != CobolParserCore.RULE_statement) statement = statement.Parent;
+        if (statement?.Parent is not ParserRuleContext list) return;
+        ParserRuleContext? previous = null;
+        for (int i = 0; i < list.ChildCount && !ReferenceEquals(list.GetChild(i), statement); i++)
+            previous = list.GetChild(i) as ParserRuleContext;
+        var unterminated = new List<ParserRuleContext>();
+        bool endsInABlock = false;
+        for (var c = previous; c is not null; c = LastRuleChild(c))
+        {
+            if (ClosedByATerminator(recognizer, c.RuleIndex))
+            {
+                if (c.Stop is { } stop && ScopeTerminator(recognizer, stop.Type) is { } own
+                    && own.Statements.Contains(recognizer.RuleNames[c.RuleIndex]))
+                    break;
+                unterminated.Add(c);
+            }
+            endsInABlock |= c.RuleIndex == CobolParserCore.RULE_statementBlock;
+        }
+        if (endsInABlock)
+            foreach (var c in unterminated)
+                NoteLeft(recognizer, c.RuleIndex, c.Start.TokenIndex, c, null);
+    }
+
+    /// <summary>The nearest statement above <paramref name="statement"/> (a <paramref name="rule"/> statement) that a
+    /// scope terminator of ANOTHER kind closes, or null. That statement's terminator terminates this one with it: "any
+    /// unterminated statements that appear between that statement-name and the explicit scope terminator" (ISO §14.5.3.2
+    /// 2)). A statement of the same kind enclosing it does not: the first END-IF belongs to the "most-recently preceding
+    /// unterminated" IF (§14.5.3.2 1)), the left one, wherever the recovery's parse nested it.</summary>
+    private static RuleContext? EnclosingStatement(Parser recognizer, RuleContext statement, int rule)
+    {
+        string name = recognizer.RuleNames[rule];
+        for (var c = statement.Parent; c is not null; c = c.Parent)
+            if (ClosedByATerminator(recognizer, c.RuleIndex)
+                && !_scopeTerminators!.Values.Any(t => t.Statements.Contains(name) && t.Statements.Contains(recognizer.RuleNames[c.RuleIndex])))
+                return c;
+        return null;
+    }
+
+    /// <summary>Does the parser still stand inside <paramref name="enclosing"/> (null: in no statement a terminator
+    /// closes, the sentence the period ends)? A statement left by the recovery is awaiting its own terminator only while
+    /// the statement enclosing it is open: once that one returned, its terminator ended the left one too.</summary>
+    private static bool StillOpen(Parser recognizer, RuleContext? enclosing)
+    {
+        if (enclosing is null) return true;
+        for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
+            if (ReferenceEquals(c, enclosing)) return true;
+        return false;
     }
 
     /// <summary>Is <paramref name="rule"/> the rule of a statement an explicit scope terminator closes?</summary>
@@ -434,11 +502,21 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             // The verb consumed opens a statement of its own where the rule that failed is the dispatcher above it.
             if (!ClosedByATerminator(recognizer, recognizer.Context.RuleIndex)
                 && TerminatedStatementOpenedBy(recognizer, start.Type) is { } opened)
-                NoteLeft(recognizer, opened, start.TokenIndex, e.OffendingToken);
+                NoteLeft(recognizer, opened, start.TokenIndex, recognizer.Context, e.OffendingToken);
         }
         // The rule returns after this recovery: a statement an explicit scope terminator closes is left before its end.
         if (!_reparsedFromItsStart && recognizer.Context.Start is { } begun)
-            NoteLeft(recognizer, recognizer.Context.RuleIndex, begun.TokenIndex, e.OffendingToken);
+        {
+            NoteLeftBefore(recognizer, recognizer.Context);
+            NoteLeft(recognizer, recognizer.Context.RuleIndex, begun.TokenIndex, recognizer.Context, e.OffendingToken);
+            // A fault AT the statement's own terminator (IF W-N = 1 END-IF) is the one fault, and the terminator is consumed
+            // with it, as the statement's rule would have matched it (§14.5.3.2 1)). Left to the resynchronization it would
+            // be taken by the statement ENCLOSING it, whose recovery set holds the same word (IF A IF B END-IF END-IF),
+            // and the enclosing statement's own terminator would be a stray one.
+            if (input.LT(1) is { } at && at.TokenIndex == e.OffendingToken?.TokenIndex
+                && ScopeTerminator(recognizer, at.Type) is { } own && own.Statements.Contains(recognizer.RuleNames[recognizer.Context.RuleIndex]))
+                recognizer.Consume();
+        }
         _reparsedFromItsStart = false;
         Resynchronize(recognizer);
         FinishUnitTailDiscard(recognizer);

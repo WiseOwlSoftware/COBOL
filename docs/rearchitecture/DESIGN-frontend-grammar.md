@@ -1581,7 +1581,13 @@ target:
   as §14.5.3.2 pairs a terminator with the most recently preceding unterminated statement. `NoteLeft` is the one place a
   record is made: once per statement (the carried report and the failed rule name the same one), and not for a statement
   whose fault stands AT its own terminator (`IF W-N = 1 END-IF`: the empty block is that one fault, the END-IF is consumed
-  with it, and a terminator met later is a stray one, COBOL0306). The grammar keeps
+  with it by `Recover`: left to the resynchronization, an ENCLOSING statement whose recovery set holds the same word would
+  take it; a terminator met later is a stray one, COBOL0306). A record keeps the nearest enclosing statement of ANOTHER kind
+  and dies with it: that statement's terminator terminated the left one too (§14.5.3.2 2)), so a later terminator of the
+  left one's kind is stray (`PERFORM … IF A END-PERFORM DISPLAY "X" END-IF`); an enclosing statement of the SAME kind is
+  no boundary (§14.5.3.2 1): the first END-IF is the left IF's wherever the parse nested it). `NoteLeftBefore` records the
+  statement the prediction ended before the malformed one (`IF A IF B END-IF END-IF`: the outer IF's block cannot take the
+  inner IF, so the outer is left too, and its END-IF is its own). The grammar keeps
   `statementBlock` non-empty (PB396); the empty block is still named by hint 0a.
 - ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
   Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that
