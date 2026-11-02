@@ -44,10 +44,11 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 ///         statement position, kb/Work PB4201). The refusal names all of it:
 ///         <c>MEMORY SIZE 12 FOO</c> expects CHARACTERS, MODULES or WORDS; <c>SEGMENT-LIMIT IS .</c> an integer
 ///         literal; <c>USAGE 5</c> the usage keywords.</item>
-///   <item><b>A literal or a user-defined word at a statement position</b> (kb/Work PB4224): the statement names are
-///         ONE expected element, "a statement", beside the other words the position takes (<c>EVALUATE … WHEN 1 5</c>
-///         expects a statement or WHEN). A statement "begins with the first word of the statement name" (§14.5.3.1), the
-///         names are Table 12's (§14.5.1), and neither a literal nor a user-defined word is one.</item>
+///   <item><b>A literal or a user-defined word at a statement position</b> (kb/Work PB4224): the refusal says that a
+///         statement may begin there and that the token cannot, and lists nothing else the position takes: a position
+///         that follows an operand also takes what would lengthen it (<c>IF W-N = 1 5</c>: AND, OR, an operator), which
+///         the parser has already left behind. A statement "begins with the first word of the statement name"
+///         (§14.5.3.1), the names are Table 12's (§14.5.1), and neither a literal nor a user-defined word is one.</item>
 ///   <item><b>A literal at an open position that takes an operand</b> (a user-defined word or some literal): the
 ///         literals it expects are named, or that it expects none (<c>SET W-N TO "A"</c> expects a numeric literal,
 ///         never an alphanumeric one; <c>CALL "P" RETURNING 5</c> no literal).</item>
@@ -105,12 +106,17 @@ internal static class AdmittedKinds
         // A statement position takes neither a literal nor a user-defined word: a statement begins with the first word of
         // its statement name (§14.5.3.1; the names are Table 12's, §14.5.1), and that is a reserved word.
         // A figurative constant is a literal too (§8.3.3.1: "A literal is defined by a reserved word that references a
-        // figurative constant or is a character-string").
-        bool literal = IsLiteral(token.Type) || FigurativeWords.Contains(token.Type);
+        // figurative constant or is a character-string"), the `ALL literal-1` format of §8.3.3.6.2 included.
+        // ⛔ THE SENTENCE SAYS WHAT THE TOKEN IS NOT, NEVER WHAT THE POSITION TAKES (kb/Work PB4224, review R1-1). A statement
+        // position that directly follows an operand (an IF condition, an EVALUATE selection object) also takes what would
+        // lengthen it (AND, OR, an operator, THRU), which the parse has already left behind: the parser stands after the
+        // completed condition and its own admitted set holds the statements and not the operator, so a list of "what is
+        // expected" would be a false one (`IF W-N = 1 5 CONTINUE END-IF`). That a statement may begin here is true wherever
+        // this arm fires, and so is that the token cannot begin one.
+        bool literal = IsLiteral(token.Type) || FigurativeStarts.Contains(token.Type);
         if (named.Statement && (literal || token.Type == CobolLexer.IDENTIFIER))
-            return $"{written} is not expected here: expected {Join(["a statement", .. named.Words, .. named.Literals, .. named.Symbols])}; "
-                   + "a statement begins with the first word of its statement name, and "
-                   + $"{(literal ? "a literal" : "a user-defined word")} is none "
+            return $"{written} is not expected here: a statement may begin at this position, and a statement begins with the "
+                   + $"first word of its statement name, which {(literal ? "a literal" : "a user-defined word")} is not "
                    + "(ISO §14.5.3.1; the names are Table 12's, §14.5.1).";
         return null;
     }
@@ -145,6 +151,22 @@ internal static class AdmittedKinds
 
     private static IntervalSet? _figurativeWords;
 
+    /// <summary>Every token a figurative constant opens with: <see cref="FigurativeWords"/> and ALL, the required word of
+    /// Format 6, <c>ALL literal-1</c> (ISO §8.3.3.6.2). ALL is no figurative word to NAME (a position that takes it names
+    /// the literal), but a figurative constant to RECOGNISE in the token written.</summary>
+    private static IntervalSet FigurativeStarts => _figurativeStarts ??= BuildFigurativeStarts();
+
+    private static IntervalSet? _figurativeStarts;
+
+    private static IntervalSet BuildFigurativeStarts()
+    {
+        var set = new IntervalSet();
+        set.AddAll(FigurativeWords);
+        set.Add(CobolLexer.ALL);
+        set.SetReadonly(true);
+        return set;
+    }
+
     private static IntervalSet BuildFigurativeWords()
     {
         var atn = CobolParserCore._ATN;
@@ -157,8 +179,8 @@ internal static class AdmittedKinds
     }
 
     /// <summary>What a position expects, named. <paramref name="Statement"/>: a statement may begin here
-    /// (<see cref="BeginsAStatement"/>), so every statement name is ONE expected element, "a statement", and
-    /// <paramref name="Words"/> holds the words the position takes besides them (kb/Work PB4224).</summary>
+    /// (<see cref="BeginsAStatement"/>), so the statement names are left out of <paramref name="Words"/> (kb/Work
+    /// PB4224).</summary>
     private sealed record Named(List<string> Words, List<string> Literals, List<string> Symbols, bool Open, bool Statement);
 
     private static Named Name(IntervalSet admitted, IReadOnlyCollection<string> words, Func<int, bool> aWordChangesNothing,

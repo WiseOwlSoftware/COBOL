@@ -27,6 +27,11 @@ public sealed class WrittenKindRefusalTests
     private const string Config = "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n";
     private const string Table = "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-N PIC 9.\n"
         + "       01 W-X PIC X(4).\n       01 TB.\n          05 TE PIC X OCCURS 4 INDEXED BY IX.\n";
+    // The rest of the PB4224 sentence (AdmittedKinds.Refusal's statement arm): what a statement position says of the token.
+    private const string AStatementIsNoLiteral = "a statement may begin at this position, and a statement begins with the first "
+        + "word of its statement name, which a literal is not (ISO §14.5.3.1; the names are Table 12's, §14.5.1).";
+    private const string AStatementIsNoWord = "a statement may begin at this position, and a statement begins with the first "
+        + "word of its statement name, which a user-defined word is not (ISO §14.5.3.1; the names are Table 12's, §14.5.1).";
     private const string Files = "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
         + "           SELECT F ASSIGN TO \"pb3428u.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n"
         + "       01 R PIC X(4).\n";
@@ -89,34 +94,36 @@ public sealed class WrittenKindRefusalTests
         + "COMPUTATIONAL-2, COMPUTATIONAL-3, COMPUTATIONAL-4, COMPUTATIONAL-5, DISPLAY, FLOAT-BINARY-128, FLOAT-BINARY-32, "
         + "FLOAT-BINARY-64, FLOAT-DECIMAL-16, FLOAT-DECIMAL-34, FLOAT-EXTENDED, FLOAT-LONG, FLOAT-SHORT, FUNCTION-POINTER, "
         + "INDEX, MESSAGE-TAG, NATIONAL, OBJECT, PACKED-DECIMAL, POINTER or PROGRAM-POINTER (ISO §5.2.1).")]
-    // ⛔ A LITERAL OR A USER-DEFINED WORD WHERE A STATEMENT MUST BEGIN (kb/Work PB4224). A position where a statement may
-    // begin expects every statement's opening word, so the refusal says "a statement" once and why the token is none:
-    // a statement begins with the first word of its statement name (ISO §14.5.3.1; Table 12 of §14.5.1), which a literal
-    // (a figurative constant included, §8.3.3.1) or a user-defined word is not. The words the position takes besides the
-    // statements stay named (WHEN after an EVALUATE selection's statements); THEN, which changes nothing, does not.
+    // ⛔ A LITERAL OR A USER-DEFINED WORD WHERE A STATEMENT MUST BEGIN (kb/Work PB4224). A statement may begin at the
+    // position, and a statement begins with the first word of its statement name (ISO §14.5.3.1; Table 12 of §14.5.1), which
+    // a literal (a figurative constant included, §8.3.3.1, the `ALL literal-1` format of §8.3.3.6.2 too) or a user-defined
+    // word is not. The sentence lists no expected word (review R1-1): a position that follows an operand also takes what
+    // would lengthen it, which the parser has left behind, so a list would claim the operators are refused.
     [InlineData("literal-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN 5 END-IF.\n           STOP RUN.\n",
-        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected a statement; a statement begins "
-        + "with the first word of its statement name, and a literal is none (ISO §14.5.3.1; the names are Table 12's, §14.5.1).")]
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-then-85", 85, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN 5 END-IF.\n           STOP RUN.\n",
-        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected a statement; a statement begins "
-        + "with the first word of its statement name, and a literal is none (ISO §14.5.3.1; the names are Table 12's, §14.5.1).")]
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("alphanumeric-literal-after-else", 2023,
         Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN CONTINUE ELSE \"X\" END-IF.\n           STOP RUN.\n",
-        "COBOL5506: unexpected '\"X\"'. The alphanumeric literal \"X\" is not expected here: expected a statement; a statement "
-        + "begins with the first word of its statement name, and a literal is none (ISO §14.5.3.1; the names are Table 12's, §14.5.1).")]
+        "COBOL5506: unexpected '\"X\"'. The alphanumeric literal \"X\" is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("figurative-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN ZERO END-IF.\n           STOP RUN.\n",
-        "COBOL5506: unexpected 'ZERO'. The word ZERO is not expected here: expected a statement; a statement begins with "
-        + "the first word of its statement name, and a literal is none (ISO §14.5.3.1; the names are Table 12's, §14.5.1).")]
+        "COBOL5506: unexpected 'ZERO'. The word ZERO is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("all-literal-after-then", 2023,
+        Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN ALL \"A\" END-IF.\n           STOP RUN.\n",
+        "COBOL5506: unexpected 'ALL'. The word ALL is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-on-size-error", 2023,
         Table + "       PROCEDURE DIVISION.\n           ADD 1 TO W-N ON SIZE ERROR 5 END-ADD.\n           STOP RUN.\n",
-        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected a statement; a statement begins "
-        + "with the first word of its statement name, and a literal is none (ISO §14.5.3.1; the names are Table 12's, §14.5.1).")]
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-when", 2023, Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 5 END-EVALUATE.\n           STOP RUN.\n",
-        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected a statement or WHEN; a statement "
-        + "begins with the first word of its statement name, and a literal is none (ISO §14.5.3.1; the names are Table 12's, §14.5.1).")]
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+    // The position directly after an operand (review R1-1): `IF W-N = 1 5` could be lengthened (AND, OR, an operator), and
+    // the sentence says nothing of the words it takes, only that a literal begins no statement.
+    [InlineData("literal-after-a-condition", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 5 CONTINUE END-IF.\n           STOP RUN.\n",
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-a-relation", 85, Table + "       PROCEDURE DIVISION.\n           IF W-N = W-X 5 CONTINUE END-IF.\n           STOP RUN.\n",
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("user-word-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN FOO END-IF.\n           STOP RUN.\n",
-        "COBOL5506: unexpected 'FOO'. The word 'FOO' is not expected here: expected a statement; a statement begins with "
-        + "the first word of its statement name, and a user-defined word is none (ISO §14.5.3.1; the names are Table 12's, §14.5.1).")]
+        "COBOL5506: unexpected 'FOO'. The word 'FOO' is not expected here: " + AStatementIsNoWord)]
     public void AWrittenKindThePositionDoesNotExpect_IsNamedOnce(string name, int edition, string source, string expected)
     {
         string text = Head + source;

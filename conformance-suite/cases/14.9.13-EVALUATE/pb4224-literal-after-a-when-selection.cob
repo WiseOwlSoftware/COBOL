@@ -5,12 +5,13 @@
       *> portable: unverified
       *>---
       *> kb/Work PB4224 - after the selection object of a WHEN phrase
-      *> the parse expects a statement or another WHEN, and a literal
-      *> is neither. ISO 14.5.3.1 "A procedure division statement
-      *> begins with the first word of the statement name"
-      *> (cite.py --check 14.5.3.1 -> OK). The sentence names the
-      *> statement once, and the WHEN, the one other word the position
-      *> takes, by name.
+      *> a statement may begin, and a literal does not begin one. ISO
+      *> 14.5.3.1 "A procedure division statement begins with the
+      *> first word of the statement name" (cite.py --check 14.5.3.1
+      *> -> OK). The sentence says so and lists nothing else: the
+      *> position follows an operand, so it also takes what would
+      *> lengthen the selection object (THRU, ALSO, an operator,
+      *> 14.9.13.2), which the parser has left behind (review R1-1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P4224B.
        DATA DIVISION.

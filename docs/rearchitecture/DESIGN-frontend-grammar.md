@@ -1769,11 +1769,14 @@ joined the table the same way, which is the table doing its job: a tenth format 
   every statement's opening word expected, `AdmittedKinds.BeginsAStatement`, never one verb another clause shares:
   DISPLAY is a USAGE keyword, so `USAGE 5` is closed and names the usages, kb/Work PB4201) names everything; a
   literal at an open position that takes an operand names the literal categories taken, or none; a user-defined word
-  where only literals are taken says both. **A position where a statement may begin (kb/Work PB4224)** is the one
-  element "a statement" (`Named.Statement`), never fifty-odd verbs, and a literal (a figurative constant included) or a
-  user-defined word written there draws COBOL5506 saying a statement begins with the first word of its statement name
-  (§14.5.3.1, the names Table 12's, §14.5.1): `IF W-N = 1 THEN 5 END-IF` expects a statement, `EVALUATE … WHEN 1 5` a
-  statement or WHEN. **A noise word is no alternative (kb/Work PB4225):** the optional word of §8.3.2.4.3 is the one
+  where only literals are taken says both. **A position where a statement may begin (kb/Work PB4224)** is a
+  statement position (`Named.Statement`), and a literal (a figurative constant included, `ALL literal-1` too) or a
+  user-defined word written there draws COBOL5506 saying that a statement may begin there and that a statement begins
+  with the first word of its statement name (§14.5.3.1, the names Table 12's, §14.5.1), which the token is not. The
+  sentence lists NO expected word: a statement position that directly follows an operand (`IF W-N = 1 5`,
+  `EVALUATE … WHEN 1 5`) also takes what would lengthen it (AND, OR, an operator, THRU), which the parser has left
+  behind once the condition or selection object is complete, so its admitted set holds the statements and not the
+  operators and a list would state a false "expected" (review R1-1). **A noise word is no alternative (kb/Work PB4225):** the optional word of §8.3.2.4.3 is the one
   whose presence leaves the parse admitting exactly what it admitted without it, and `AdmittedKinds` leaves it out of
   the list (`USAGE 5` expects the usages, not IS). The test is the parse's own (`ResimulationWalk.WordChangesNothing`:
   one step of the walk over the word must expose the admitted set minus the word itself), so no word is kept on a
