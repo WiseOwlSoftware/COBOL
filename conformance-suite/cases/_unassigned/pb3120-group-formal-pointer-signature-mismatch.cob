@@ -5,13 +5,15 @@
       *> portable: unverified
       *>---
       *> kb/Work PB3120 - the converse of 2002/pb3120_group_formal_
-      *> pointer_type: comparing a strongly-typed group formal's pointer
-      *> by the SIGNATURE of its prototype (13.18.60.4 GR25; cite.py
-      *> --check 13.18.60.4 -> OK 13.18.60.4 25)) must still find a
-      *> difference. QA takes a PIC 9(4), QC a PIC X(4): two signatures,
-      *> so PX's prototype (group member restricted TO QA) and its
-      *> definition (TO QC) do not have "the same" signature, and
-      *> 10.6.2 SR2 (OK 10.6.2 2)) refuses the pair (COBOL1513).
+      *> pointer_type: a strongly-typed group formal's pointer member is
+      *> compared by the prototype its TO phrase names (kb/Work PB4107;
+      *> docs/CONFORMANCE.md D-RP1; 8.5.3.1, cite.py --check 8.5.3.1 ->
+      *> OK 8.5.3.1). QA and QC are two names (and two signatures: a
+      *> PIC 9(4) and a PIC X(4)), so PX's prototype (group member
+      *> restricted TO QA) and its definition (TO QC) do not have "the
+      *> same" signature, and 10.6.2 SR2 (OK 10.6.2 2)) refuses the
+      *> pair (COBOL1513). Two names of ONE signature are refused too:
+      *> pb4107-group-formal-pointer-two-names.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. QA IS PROTOTYPE.
        DATA DIVISION.

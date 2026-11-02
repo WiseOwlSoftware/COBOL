@@ -5,39 +5,37 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB3120 - a strongly-typed GROUP formal that holds a
-      *> restricted pointer is compared by the pointer's TYPE, as the
-      *> elementary formal is, never by the name it was written with.
-      *> 8.5.3.1 (cite.py --check 8.5.3.1 -> OK 8.5.3.1): two type
-      *> declarations are equivalent when "for each elementary item in
-      *> one type declaration there is a corresponding elementary item
-      *> in the other type declaration, starting at the same relative
-      *> byte or bit position and having the same length in bytes or
-      *> bits", each pair with the same USAGE clause. A program-pointer
-      *> restricted to a program-prototype is typed by that prototype's
-      *> SIGNATURE (13.18.60.4 GR25, OK 13.18.60.4 25)), so QA and QB,
-      *> which both take one PIC 9(4), restrict to ONE type.
+      *> kb/Work PB3120, PB4107 - a strongly-typed GROUP formal that
+      *> holds a restricted pointer is compared by 8.5.3.1's type-
+      *> declaration equivalence (cite.py --check 8.5.3.1 -> OK
+      *> 8.5.3.1): "Two type declarations are considered equivalent
+      *> when they have the same type-name", the same EXTERNAL and
+      *> STRONG presence, and corresponding elementary items with the
+      *> same USAGE clauses - a program-pointer's TO phrase compared by
+      *> the prototype it names (docs/CONFORMANCE.md D-RP1), so each
+      *> pair below restricts to ONE prototype name.
       *> DERIVATION:
-      *>   PX's prototype (its strong group TG holds a pointer TO QA)
-      *>     and PX's definition (the pointer TO QB): 10.6.2 SR2
-      *>     (OK 10.6.2 2)) "the signatures of these two compilation
-      *>     units shall be the same" - they are, so the unit compiles.
+      *>   PX's prototype and PX's definition each hold a strong group
+      *>     TG whose pointer is TO QA: 10.6.2 SR2 (OK 10.6.2 2)) "the
+      *>     signatures of these two compilation units shall be the
+      *>     same" - they are, so the unit compiles.
       *>   CALL PX USING G - 14.8.2.2 rule 2 (OK 14.8.2.2 2)) "If
       *>     either the formal parameter or the corresponding argument
       *>     is a strongly-typed group item, both shall be of the same
-      *>     type": G holds a pointer TO QA, the definition's TG one
-      *>     TO QB: one type, legal; PX sees the NULL address.
-      *>   GS1 (USING strong group holding a pointer TO GS2) and GS2
-      *>     (USING one holding a pointer TO GS1) name each other:
-      *>     no finite path through their formals reaches a difference
-      *>     (the greatest fixed point, kb/Work PB2495), so SET B TO A
-      *>     with B restricted to GS2 and A to GS1 is legal under
-      *>     14.9.39.3 SR22 (OK 14.9.39.3 22)) "the program-prototypes
-      *>     associated with identifier-7 and identifier-8 shall have
-      *>     the same signature".
+      *>     type": G and the definition's TG both hold a pointer TO
+      *>     QA: one type, legal; PX sees the NULL address.
+      *>   GS1 and GS2 each take a strong group holding a pointer TO
+      *>     GS1, so GS1 names itself and the two have one signature;
+      *>     SET B TO A with B restricted to GS2 and A to GS1 is legal
+      *>     under 14.9.39.3 SR22 (OK 14.9.39.3 22)) "the
+      *>     program-prototypes associated with identifier-7 and
+      *>     identifier-8 shall have the same signature".
       *>   DNX's prototype and definition each declare T-NODE with a
       *>     member restricted to T-NODE itself (13.18.60.4 GR23): the
       *>     declarations are equivalent, and comparing them terminates.
+      *> Two names of one signature in the group's member are refused:
+      *> 10.6-COBOL-compilation-group/pb4107-group-formal-pointer-two-
+      *> names-one-signature.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. QA IS PROTOTYPE.
        DATA DIVISION.
@@ -45,13 +43,6 @@
        01 L-X PIC 9(4).
        PROCEDURE DIVISION USING L-X.
        END PROGRAM QA.
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. QB IS PROTOTYPE.
-       DATA DIVISION.
-       LINKAGE SECTION.
-       01 L-Y PIC 9(4).
-       PROCEDURE DIVISION USING L-Y.
-       END PROGRAM QB.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PX IS PROTOTYPE.
        ENVIRONMENT DIVISION.
@@ -68,13 +59,9 @@
        END PROGRAM PX.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. GS1 IS PROTOTYPE.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       REPOSITORY.
-           PROGRAM GS2.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 PT IS TYPEDEF USAGE PROGRAM-POINTER TO GS2.
+       01 PT IS TYPEDEF USAGE PROGRAM-POINTER TO GS1.
        01 TG IS TYPEDEF STRONG.
           05 L-P TYPE PT.
        01 L-G TYPE TG.
@@ -140,10 +127,10 @@
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           PROGRAM QB.
+           PROGRAM QA.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 T2 IS TYPEDEF USAGE PROGRAM-POINTER TO QB.
+       01 T2 IS TYPEDEF USAGE PROGRAM-POINTER TO QA.
        01 TG IS TYPEDEF STRONG.
           05 L-P TYPE T2.
        01 L-G TYPE TG.

@@ -1,5 +1,6 @@
 set ok
 psdef null
+HANDLED=EC-OO-UNIVERSAL
 b ok
-HANDLED=EC-OO-METHOD                   
+HANDLED=EC-OO-METHOD
 d done

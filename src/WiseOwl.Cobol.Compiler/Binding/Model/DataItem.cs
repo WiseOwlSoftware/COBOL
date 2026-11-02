@@ -92,21 +92,22 @@ public sealed class DataItem
     /// resolves to through the unit's prototype tables — its namespace, externalized name and signature (kb/Work
     /// PB2495) — set post-build by <c>DataBinder.ResolveRestrictedPrototypes</c>, for EVERY forest of the group before
     /// any is classified, so a signature comparison can follow a formal's restriction to the signature it names
-    /// (<c>PrototypeSignatures.SameType</c>) instead of to the class that comparison is still building. Null for a name
+    /// (<c>PrototypeSignatures.SignatureRestriction</c>) instead of to the class that comparison is still building. Null for a name
     /// the tables do not hold, for an unrestricted pointer and for every other item.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "resolved post-build by DataBinder.ResolveRestrictedPrototypes in the copy's OWN scope (the prototype names resolve through the unit that declares the copy), after every clone exists")]
     internal RestrictedPrototype? RestrictedPrototype { get; set; }
 
-    /// <summary>⛔ THE TYPE OF A RESTRICTED PROGRAM- OR FUNCTION-POINTER (kb/Work PB2464): the signature class its
+    /// <summary>⛔ WHAT A RESTRICTED PROGRAM- OR FUNCTION-POINTER MAY CONTAIN (kb/Work PB2464): the signature class its
     /// <see cref="RestrictedPrototype"/> belongs to, set post-build by <c>PrototypeSignatureClasses.Classify</c>
     /// once every forest's <see cref="RestrictedPrototype"/> is resolved
-    /// (<c>PrototypeSignatureClasses</c>) — the prototype-pointer twin of <see cref="PicInfo.RestrictedTypeDecl"/>.
-    /// ISO §13.18.60.4 GR25 / GR26 type such a pointer by SIGNATURE ("shall contain only … the address of a program
-    /// with the same signature as that identified by the specified program-prototype-name"), so two pointers
-    /// restricted to two differently NAMED prototypes of one signature hold the same set of values and are of the
-    /// same type (§14.8.2.3.2: "If either is a restricted pointer, both shall be restricted and of the same type").
-    /// Read ONLY through <c>PrototypeSignatures.RestrictionIdentity</c>. It lives here and not on <see cref="PicInfo"/>
+    /// (<c>PrototypeSignatureClasses</c>). ISO §13.18.60.4 GR25 / GR26 bound such a pointer's contents by SIGNATURE
+    /// ("shall contain only … the address of a program with the same signature as that identified by the specified
+    /// program-prototype-name"), so two pointers restricted to two differently NAMED prototypes of one signature hold the
+    /// same set of values and a SET between them is valid (§14.9.39.3 SR20 / SR22). It is not the pointer's type: §14.8.2.3.2's
+    /// "of the same type" and the clause identity of §9.3.6 3 e) / §14.8.3.3 compare the TO phrase by the prototype it
+    /// names (<c>PrototypeSignatures.NamedRestriction</c>; kb/Work PB4107).
+    /// Read ONLY through <c>PrototypeSignatures.SignatureRestriction</c>. It lives here and not on <see cref="PicInfo"/>
     /// so that the PICTURE profile's record text (the §8.5.3.1 same-type key) does not change with the stamping
     /// state. Null before resolution, for an unrestricted pointer and for every non-pointer item.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,

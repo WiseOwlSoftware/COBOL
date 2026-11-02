@@ -25,13 +25,20 @@
       *>   PSDEF's prototype (USING TO PS2) and definition (USING TO
       *>     PS1) - 10.6.2 SR2 (OK 10.6.2 2)) "the signatures of these
       *>     two compilation units shall be the same": they are.
-      *>   CALL PSDEF USING A - the prototype's formal is TO PS2, A is
-      *>     TO PS1; 14.8.2.3.2 (OK 14.8.2.3.2 4)) "If either is a
-      *>     restricted pointer, both shall be restricted and of the
-      *>     same type": one type, legal; PSDEF sees NULL.
+      *>   CALL PSDEF USING BY CONTENT A - the prototype's formal is
+      *>     TO PS2, A is TO PS1; 14.8.2.3.3 (OK 14.8.2.3.3 2)) "the
+      *>     conformance rules shall be the same as if a SET
+      *>     statement were performed": SR22, one signature, legal;
+      *>     PSDEF sees NULL. BY REFERENCE it is refused: 14.8.2.3.2
+      *>     (OK 14.8.2.3.2 4)) "both shall be restricted and of the
+      *>     same type" compares the TO phrase by the prototype it
+      *>     names (kb/Work PB4107).
       *>   UNIVERSAL INVOKE U "RP" RETURNING B - RP returns TO PS1 into
-      *>     TO PS2: SR22 holds, so 9.3.6 rule 6 (OK 9.3.6 6)) matches:
-      *>     no exception.
+      *>     TO PS2: SR22 holds, so 9.3.6 rule 6 (OK 9.3.6 6)) matches
+      *>     and binds RP; its returning item then conforms by 14.8.3.3
+      *>     (OK 14.8.3.3 2)) "the same ... USAGE clauses", which TO
+      *>     PS1 and TO PS2 are not, so 14.9.23.4 GR7 c) (OK 14.9.23.4
+      *>     7)) sets EC-OO-UNIVERSAL (kb/Work PB4107).
       *>   UNIVERSAL ... RETURNING D (TO DX1) - SR22 refuses the SET, no
       *>     match, "otherwise, the EC-OO-METHOD exception condition is
       *>     set to exist" (OK 9.3.6 6)): HANDLED=EC-OO-METHOD.
@@ -154,7 +161,7 @@
            IF A = NULL AND B = NULL AND C = NULL
                DISPLAY "set ok"
            END-IF
-           CALL PSDEF USING A
+           CALL PSDEF USING BY CONTENT A
            INVOKE C2495 "NEW" RETURNING U
            INVOKE U "RP" RETURNING B
            DISPLAY "b ok"

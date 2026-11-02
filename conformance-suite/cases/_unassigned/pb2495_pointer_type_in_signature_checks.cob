@@ -22,6 +22,12 @@
       *>     - the same 9.3.8.2.3 rules: identical types.
       *> Each of the three ran before the pointer types were resolved
       *> and compared the prototype NAMES.
+      *>   INVOKE O "M1" / "M2" USING BY CONTENT A (TO Q1) into a
+      *>     formal TO Q2 - 9.3.6 rule 4 c) and 14.8.2.3.3 (OK
+      *>     14.8.2.3.3 2)) ask the SET (SR22: one signature): legal.
+      *>     BY REFERENCE the pair is refused: 9.3.6 3 e) (OK 9.3.6 3)
+      *>     e)) asks "the same ... USAGE clauses", and the TO phrase
+      *>     is compared by the prototype it names (kb/Work PB4107).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. Q1 IS PROTOTYPE.
        DATA DIVISION.
@@ -66,8 +72,8 @@
            SET A TO NULL
            CALL PX USING A
            INVOKE OVSUB "NEW" RETURNING O
-           INVOKE O "M1" USING A
-           INVOKE O "M2" USING A
+           INVOKE O "M1" USING BY CONTENT A
+           INVOKE O "M2" USING BY CONTENT A
            STOP RUN.
        END PROGRAM OVMAIN.
        IDENTIFICATION DIVISION.

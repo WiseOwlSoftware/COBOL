@@ -133,14 +133,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// they classify; null in unit-test direct construction.</summary>
     internal PrototypeSignatureClasses? SignatureClasses { get; init; }
 
-    /// <summary>The TYPE of a pointer restricted to program-prototype <paramref name="prototypeName"/> — its signature
-    /// class (<see cref="PrototypeSignatureClasses"/>), the identity a program-address-identifier argument is described
-    /// with. A name the unit's table does not hold has no compile-time signature (ISO §12.3.8.4 GR10 c)), so it is
-    /// described by its external identity (<see cref="PrototypeSignatures.ExternalIdentity"/>, kb/Work PB3162).</summary>
-    internal string ProgramRestrictionIdentityOf(string prototypeName) =>
+    /// <summary>The two restrictions of a pointer restricted to program-prototype <paramref name="prototypeName"/>, which a
+    /// program-address-identifier argument is described with: its TO phrase by the prototype's externalized name
+    /// (<see cref="PrototypeSignatures.NamedRestriction(string)"/>) and what it may contain, the prototype's signature class
+    /// (<see cref="PrototypeSignatureClasses"/>). A name the unit's table does not hold has no compile-time signature (ISO
+    /// §12.3.8.4 GR10 c)), so its content is its external identity (<see cref="PrototypeSignatures.ExternalIdentity"/>,
+    /// kb/Work PB3162) and its TO phrase the name as written (kb/Work PB4107).</summary>
+    internal PrototypeSignatures.PrototypeRestriction ProgramRestrictionOf(string prototypeName) =>
         ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true && SignatureClasses is { } classes
-            ? classes.Identity(RestrictedPrototype.Of(p))
-            : PrototypeSignatures.ExternalIdentity(prototypeName);
+            ? new(PrototypeSignatures.NamedRestriction(p.ExternalizedName), classes.Identity(RestrictedPrototype.Of(p)))
+            : new(PrototypeSignatures.NamedRestriction(prototypeName), PrototypeSignatures.ExternalIdentity(prototypeName));
 
     /// <summary>A program-prototype-name's bound signature, through the §8.4.6.8 scope table
     /// (<see cref="ProgramPrototypes"/>) its declaration was already screened against — THE ONE reader every

@@ -144,7 +144,7 @@ internal static class BackendContract
         // edges file tolerates until StatementBinder moves to Binding/Procedure.
         new("L6", ["PB2347"],
         [
-            "Bound.StatementBinder.FirstToken()", "Bound.StatementBinder.ProgramRestrictionIdentityOf()",
+            "Bound.StatementBinder.FirstToken()", "Bound.StatementBinder.ProgramRestrictionOf()",
             "Bound.StatementBinder.NestedCallables", "Bound.StatementBinder.ProgramPrototypes",
             "Bound.StatementBinder.UdfSelfName", "Bound.StatementBinder.UserFunctions",
             "Bound.StatementBinder.InputOutputStatement()", "Bound.StatementBinder.Children()",

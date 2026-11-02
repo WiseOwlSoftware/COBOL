@@ -172,7 +172,7 @@ public sealed class PrototypeSignatureClassesTests
         classes.Admit([decoded]);
         Assert.Equal(Sig(group[0]), Sig(decoded));
         Assert.Equal(before, group.Select(p => p.PointerRestrictionIdentity!).ToArray());
-        Assert.True(PrototypeSignatures.SameType(group[0], decoded));
+        Assert.True(PrototypeSignatures.SameSignatureRestriction(group[0], decoded));
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public sealed class PrototypeSignatureClassesTests
         Assert.NotEqual(a, Sig(decoded));
         Assert.Equal(b, Sig(groupB));
         Assert.Equal(a, Sig(groupA));
-        Assert.False(PrototypeSignatures.SameType(groupB, decoded));
+        Assert.False(PrototypeSignatures.SameSignatureRestriction(groupB, decoded));
     }
 
     [Fact]
