@@ -707,7 +707,7 @@ prescribes (kb/Work PB1500):
   `DescribeExternals()` is), and every method prologue — before the module-stack push, i.e. before GR7 e)'s
   transfer — calls `ExternalStore.DescribeAtMethodActivation(__DescribeExternals, <mask>)`. §14.8.4.1's pair: the
   activating half is the INVOKE statement guard's EC-EXTERNAL checking flags (the CALL boundary reads the same
-  flags), the method's half is `OoMethodSymbol.ExternalCheckMaskHere`, folded before the METHOD's Environment
+  flags), the method's half is `MethodChecking.ExternalCheckMask`, folded before the METHOD's Environment
   division. A violation is a `CobolFatalException` carrying the Table 13 name, so the INVOKE's guard selects it like
   EC-OO-METHOD (kb/Work PB1138).
 

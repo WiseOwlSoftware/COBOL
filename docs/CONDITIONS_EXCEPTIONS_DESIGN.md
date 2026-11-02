@@ -526,8 +526,8 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
 **Automatic propagation — `>>PROPAGATE` (ISO §7.3.21; kb/Work PB1119).** The directive stage
 (`PropagateDirectiveProcessor`) collects ON/OFF toggles into a `DirectiveTimeline` like every line-scoped directive
 (PUSH/POP replayed; `DirectiveStateRegistry` carries it), and the binder folds them ONCE per source element at its
-first line (`PropagateState` → `DataBinder.AutomaticPropagation` for a program or function,
-`OoMethodSymbol.AutomaticPropagationHere` for a method — §7.3.21.4 GR1/GR3, default OFF by GR4). The emitter holds
+first line (`PropagateState` → `UnitChecking.AutomaticPropagation` for a program or function,
+`MethodChecking.AutomaticPropagation` for a method — §7.3.21.4 GR1/GR3, default OFF by GR4). The emitter holds
 the element's `AutomaticPropagation` (its GOBACK signal and its header RAISING classes) in `EcState.Propagation`, and
 the rule is applied where the fatal default is decided: `EcEmitter.EmitSelection` emits, between §14.6.13.1.3 5)
 (a declarative ran → terminate) and 7), `if (r == -3) <stage LAST; GOBACK>` — `ExceptionState.StageAutomaticPropagation`

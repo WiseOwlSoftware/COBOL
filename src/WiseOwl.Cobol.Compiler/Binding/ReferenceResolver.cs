@@ -2480,7 +2480,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// (a fixed level, or no enabling >>TURN — the zero-scaffolding invariant). The bounds are the SAME the extent
     /// model uses (<see cref="CurrentOccurrenceCount"/>), so the superordinate and the element checks agree.</summary>
     private OdoReferenceCheck? OdoReferenceCheckFor(DataItem level) =>
-        data.OdoReferenceChecking && CurrentOccurrenceCount(level, []) is AllCount.Odo o
+        data.State.UnitChecking.OdoReferenceChecking && CurrentOccurrenceCount(level, []) is AllCount.Odo o
             ? new OdoReferenceCheck(o.Depending, o.MinOccurs, o.MaxOccurs) : null;
 
     /// <summary>The STRUCTURAL whole-table path to a table that may itself lie under OTHER tables — one index

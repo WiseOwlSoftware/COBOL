@@ -411,39 +411,6 @@ public sealed partial class DataBinder
     public IReadOnlyList<CallExternalBacking> CallExternalBackings => _callExternalBackings;
     private readonly List<CallExternalBacking> _callExternalBackings = [];
 
-    /// <summary>§14.9.4.4 GR3 d)'s ACTIVATED half (kb/Work PB133 wave C2b): this unit's EC-PROGRAM-ARG-MISMATCH
-    /// enablement at its PROCEDURE DIVISION header (§7.3.25.4 GR6 / GR8; <c>TurnState.EnabledAtHeader</c>, kb/Work
-    /// PB1381) — registered with the program table so a dynamic CALL's count check can apply the enabled-in-both
-    /// gate.</summary>
-    public bool ArgMismatchChecking { get; set; }
-
-    /// <summary>Is automatic propagation of exception conditions enabled for this program or function unit (ISO
-    /// §7.3.21.4 GR1/GR3; kb/Work PB1119)? Folded by <c>BinderDriver.BindUnitData</c> from the group's
-    /// <see cref="PropagateState"/> at the unit's first line; read by <c>ProgramEmitter</c> into the emitter's
-    /// per-element propagation state, which <c>EcEmitter.EmitSelection</c> applies (§14.6.13.1.3 6)).</summary>
-    public bool AutomaticPropagation { get; set; }
-
-    /// <summary>This unit's before-Environment-division EC-EXTERNAL enablement mask (ISO §14.8.4.1 — the
-    /// ACTIVATED-element half of the both-elements rule; <c>ExternalChecks</c> bits). Computed by
-    /// <c>BinderDriver.BindUnitData</c> from the group TurnState folded at the unit's first
-    /// post-Identification division header; emitted as the selfMask of the activation-entry
-    /// <c>ExternalStore.Describe</c> registrations.</summary>
-    public int ExternalCheckMask { get; set; }
-
-    /// <summary>True when any enabling <c>&gt;&gt;TURN</c> event anywhere in the compilation group covers an
-    /// EC-EXTERNAL condition — the group-level gate for emitting the activation-entry
-    /// <c>ExternalStore.Describe</c> registrations at all (an element with a zero
-    /// <see cref="ExternalCheckMask"/> must still REGISTER its descriptions so a later-enabled element can
-    /// check against them, §14.8.4; a group with no EC-EXTERNAL TURN emits nothing — zero-scaffolding).</summary>
-    public bool ExternalDescribe { get; set; }
-
-    /// <summary>True when any enabling <c>&gt;&gt;TURN</c> event anywhere in the compilation group covers
-    /// EC-BOUND-ODO — the gate for attaching §13.18.38.4 GR7's element-reference check
-    /// (<see cref="Model.OdoReferenceCheck"/>) to a subscripted OCCURS DEPENDING level. The run-time
-    /// <c>BoundOdoChecking</c> flag still decides per statement; this only keeps a group that can never enable the
-    /// condition free of the data-name-1 read at every element reference (zero-scaffolding).</summary>
-    public bool OdoReferenceChecking { get; set; }
-
     /// <summary>
     /// Bind the LINKAGE SECTION and the PROCEDURE DIVISION header's USING/RETURNING operands. Runs inside
     /// <c>Bind</c> right after WORKING-STORAGE (so linkage items join the same forest, name index, and

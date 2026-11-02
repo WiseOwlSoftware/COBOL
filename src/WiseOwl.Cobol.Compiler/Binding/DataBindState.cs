@@ -18,6 +18,16 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 public sealed class DataBindState
 {
+    /// <summary>The unit's checking slice (<see cref="Binding.UnitChecking"/>): <see cref="UnitChecking.None"/> until
+    /// <see cref="CheckingFold"/> writes it, once, after the unit's data phases; read by the reference resolver while the
+    /// procedure division binds and by code generation.</summary>
+    public UnitChecking UnitChecking
+    {
+        get => field ?? UnitChecking.None;
+        internal set => field = field is null ? value
+            : throw new InvalidOperationException("DataBindState.UnitChecking is written once, by CheckingFold (kb/Work PB2296)");
+    }
+
     /// <summary>Group items used as a WHOLE character-image operand (MOVE / DISPLAY / compare / ACCEPT / record I-O /
     /// whole-group CORRESPONDING pair / boundary formal). Appended at FilesResolved by
     /// <c>DataBinder.MarkFileRecordImageLeaves</c> (the FILE record areas) and at UsageCollected by

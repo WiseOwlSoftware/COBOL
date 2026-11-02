@@ -116,43 +116,18 @@ internal sealed class BinderDriver
         // deep-dive D12). An expanded one is bound through its expansions only (OoExpansion.Result.ExpandedNames).
         foreach (var iface in table.ParameterizedInterfaces) oo.BindParameterized(iface);
         foreach (var cls in table.ParameterizedClasses) oo.BindParameterized(cls);
-        // §14.9.23.4 GR7 c)'s METHOD-side half, folded once now that every method symbol exists — at the method's
-        // PROCEDURE DIVISION HEADER, the program twin's query point (TurnState.EnabledAtHeader; kb/Work PB1381).
-        // See OoMethodSymbol.OoUniversalCheckingHere for why this is bind-time.
+        // The checking slices of every class half and every method (kb/Work PB2296; CheckingFold), folded once every method
+        // symbol exists and before any body binds: §14.9.23.4 GR7 c)'s METHOD-side half at the method's PROCEDURE
+        // DIVISION HEADER (TurnState.EnabledAtHeader; kb/Work PB1381), §14.8.4.1's activated-method EC-EXTERNAL mask and
+        // §7.3.21.4's automatic propagation; and the group-level Describe gate, which reaches the class halves too (kb/Work
+        // PB1138): a method activation registers its factory's or object's external descriptions (§14.9.23.4 GR7 d)).
         foreach (var cls in table.Classes)
             foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
-                // A PROPERTY accessor SYNTHESIZED from a PROPERTY clause (§13.18.42) has no METHOD-ID in source
-                // and therefore no method context at all — reading `m.Ctx.Start` on one is a NullReferenceException
-                // that takes down the whole bind, which is exactly what it did to oo_property/oo_property_ref.
-                // Its enclosing CLASS-ID line is the right query point: the accessor is part of that definition
-                // and has no source position of its own to disagree with. A written method with no procedure
-                // division answers at its METHOD-ID line (it has no header for a TURN to precede).
-            {
-                m.OoUniversalCheckingHere = turn.EnabledAtHeader(
-                    "EC-OO-UNIVERSAL", m.Ctx?.procedureDivision(), (m.Ctx?.Start ?? cls.Ctx.Start).Line);
-                // §14.8.4.1's ACTIVATED-method half (kb/Work PB1138): the EC-EXTERNAL conditions enabled "before the
-                // Environment division" of the method — its first division after METHOD-ID, the fold a program unit
-                // takes at its own (BindUnitData). A synthesized PROPERTY accessor has no divisions; its CLASS-ID line
-                // stands in, exactly as for the EC-OO-UNIVERSAL half above.
-                int divLine = m.Ctx is { } mc
-                    ? (mc.environmentDivision()?.Start ?? mc.dataDivision()?.Start ?? mc.procedureDivision()?.Start ?? mc.Stop).Line
-                    : cls.Ctx.Start.Line;
-                m.ExternalCheckMaskHere = ExternalMaskAt(turn, divLine);
-                // §7.3.21.4 GR1/GR3 — automatic propagation for the METHOD (kb/Work PB1119), folded at its METHOD-ID
-                // line; §7.3.21.3 SR1 keeps the directive out of the class, so that is also the CLASS-ID's state.
-                m.AutomaticPropagationHere = propagate.IsOnAt((m.Ctx?.Start ?? cls.Ctx.Start).Line);
-            }
-        // The group-level Describe gate reaches the class halves too (kb/Work PB1138): a method activation registers
-        // its factory's or object's external descriptions (§14.9.23.4 GR7 d)), so the same zero-scaffolding switch the
-        // program units carry decides whether a class half emits them at all.
-        bool externalDescribe = Procedure.EcBinder.ExternalNames.Any(turn.AnyEnabledFor);
-        bool odoReferenceChecking = turn.AnyEnabledFor("EC-BOUND-ODO");   // §13.18.38.4 GR7 (kb/Work PB1268)
+                m.Checking = CheckingFold.Method(turn, propagate, m, cls);
         foreach (var cls in classes)
         {
-            cls.Data.ExternalDescribe = externalDescribe;
-            cls.FactoryData.ExternalDescribe = externalDescribe;
-            cls.Data.OdoReferenceChecking = odoReferenceChecking;
-            cls.FactoryData.OdoReferenceChecking = odoReferenceChecking;
+            cls.Data.State.UnitChecking = CheckingFold.ClassHalf(turn);
+            cls.FactoryData.State.UnitChecking = CheckingFold.ClassHalf(turn);
         }
 
         // TWO-PHASE binding (M2-UDF-1 key enabler): EVERY unit's DATA division binds before ANY procedure body
@@ -313,17 +288,6 @@ internal sealed class BinderDriver
     /// each naming the SAME corresponding external data item. Cross-compilation sameness (separately-built assemblies)
     /// is the runtime <c>ExternalTable</c> EC-EXTERNAL-DATA-MISMATCH check's face. (In-group LINAGE consistency,
     /// §13.4.5.4 GR2(c), is a separate longstanding requirement — not this 2023-gated check.)</summary>
-    /// <summary>⛔ THE ONE FOLD of an ACTIVATED element's §14.8.4.1 half — "the EC-EXTERNAL exception conditions to be
-    /// checked shall be enabled in both the activating and activated runtime elements, which for activated runtime
-    /// elements shall be before the Environment division": the <see cref="Runtime.ExternalChecks"/> bits of the
-    /// EC-EXTERNAL conditions the group's TurnState has enabled at <paramref name="divLine"/>, the element's first
-    /// division header after its identification. A program unit (<see cref="BindUnitData"/>) and a method (the
-    /// §14.9.23.4 GR7 d) fold above; kb/Work PB1138) both take it, so the two cannot answer the rule differently.</summary>
-    private static int ExternalMaskAt(TurnState turn, int divLine) =>
-        (turn.Enabled("EC-EXTERNAL-FORMAT-CONFLICT", null, divLine) ? (int)Runtime.ExternalChecks.FormatConflict : 0)
-        | (turn.Enabled("EC-EXTERNAL-DATA-MISMATCH", null, divLine) ? (int)Runtime.ExternalChecks.DataMismatch : 0)
-        | (turn.Enabled("EC-EXTERNAL-FILE-MISMATCH", null, divLine) ? (int)Runtime.ExternalChecks.FileMismatch : 0);
-
     private static void CheckExternalFileConsistency(IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
         var byExternalName = units.SelectMany(u => u.Data.Files)
@@ -752,29 +716,10 @@ internal sealed class BinderDriver
         data.Bind(unit.Ctx);
         unit.Data = data;
 
-        // The unit's EC-EXTERNAL enablement facts (ISO §14.8.4.1): the ACTIVATED-element mask is the group
-        // TurnState folded at the unit's first post-Identification division header line ("which for activated
-        // runtime elements shall be before the Environment division"); the group-level Describe gate is any
-        // EC-EXTERNAL enabling event anywhere in the group (a mask-zero unit still registers its descriptions
-        // so a later-enabled element can check against them; no event anywhere ⇒ zero-scaffolding).
-        int divLine = unit.Ctx.environmentDivision()?.Start.Line
-            ?? unit.Ctx.dataDivision()?.Start.Line
-            ?? unit.Ctx.procedureDivision()?.Start.Line
-            ?? int.MaxValue;
-        data.ExternalCheckMask = ExternalMaskAt(session.Turn, divLine);
-        // §14.9.4.4 GR3 d)'s ACTIVATED half (kb/Work PB133 wave C2b) — folded at the unit's PROCEDURE DIVISION
-        // HEADER, never at divLine: the before-Environment-division point above is §14.8.4.1's rule for the
-        // EC-EXTERNAL conditions ALONE, and §7.3.25.4 GR6 / GR8 scope a TURN to the "procedure division headers
-        // that follow" (kb/Work PB1381 — TurnState.EnabledAtHeader, which the METHOD twin asks too).
-        data.ArgMismatchChecking = session.Turn.EnabledAtHeader(
-            "EC-PROGRAM-ARG-MISMATCH", unit.Ctx.procedureDivision(), int.MaxValue);
-        data.ExternalDescribe = Procedure.EcBinder.ExternalNames.Any(session.Turn.AnyEnabledFor);
-        data.OdoReferenceChecking = session.Turn.AnyEnabledFor("EC-BOUND-ODO");   // §13.18.38.4 GR7 (kb/Work PB1268)
-        // §7.3.21.4 GR1/GR3 — automatic propagation for this program or function (kb/Work PB1119), folded at the
-        // unit's first line (§7.3.21.3 SR1: never inside a compilation unit, so a contained program folds to its
-        // container's state). Its IDENTIFICATION DIVISION is the first line: a CONTAINED unit's Ctx is the synthetic
-        // context Reparent builds, whose own Start is null (see NameCtx below).
-        data.AutomaticPropagation = session.Propagate.IsOnAt(unit.Ctx.identificationDivision().Start.Line);
+        // The unit's checking slice (kb/Work PB2296): its EC-EXTERNAL enablement facts (ISO §14.8.4.1), its
+        // EC-PROGRAM-ARG-MISMATCH header fold (§14.9.4.4 GR3 d)), the group-level Describe and EC-BOUND-ODO gates and its
+        // automatic propagation (§7.3.21.4 GR1/GR3), folded after its data phases and before its procedure division binds.
+        data.State.UnitChecking = CheckingFold.Unit(session.Turn, session.Propagate, unit.Ctx);
 
         // GLOBAL FD inheritance (ISO §13.18.27.4 GR1: the file-name of a GLOBAL FD is a GLOBAL name, visible in every
         // directly/indirectly contained program; §8.4.6.2.1 3) a)-b) — a local declaration shadows, then the nearest
