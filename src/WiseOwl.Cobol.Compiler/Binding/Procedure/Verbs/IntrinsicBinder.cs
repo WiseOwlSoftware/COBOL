@@ -1798,9 +1798,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// a consequence of the reservation: this detection depends on the word arriving as an ordinary argument, so a
     /// token would silently break the recognition. (fix-queue PB25.)</para>
     /// The argument-1 exclusion is POSITIONAL — the format puts argument-1 there, so a bare word in slot 0 is the
-    /// operand whatever it spells. (It is not "a data item happening to be named LOCALE": §8.9 reserves the word,
-    /// so only a &gt;&gt;COBOL-WORDS UNDEFINE can free it — and then <see cref="KeywordWordOf"/> resolves it to
-    /// null and no slot sees the keyword at all. kb/Work PB250.)</summary>
+    /// operand whatever it spells. (It is not "a data item happening to be named LOCALE": from 2002 §8.9 reserves
+    /// the word, so only a &gt;&gt;COBOL-WORDS UNDEFINE can free it — and then <see cref="KeywordWordOf"/> resolves
+    /// it to null and no slot sees the keyword at all; at COBOL-85, where §8.9 leaves it free, a DECLARED data item
+    /// of that name is an operand and <see cref="KeywordWordOf"/> answers null for it as well. kb/Work PB250,
+    /// PB4359.)</summary>
     private bool HasLocalePhrase(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         for (int i = 1; i < argCtxs.Count; i++)
@@ -1826,8 +1828,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // not an order-free keyword sweep (fix-queue PB60 / FMT-15.68.2). Slot 0 is ALWAYS argument-1 and binds
         // as an operand — POSITIONALLY, because the format puts argument-1 there, not because a data item may be
         // named ANYCASE or LOCALE: both are §8.9 RESERVED words from 2002 (reserved-words.json r2002/r2014/r2023)
-        // and NEITHER is in the §8.10 context-sensitive table, so absent a >>COBOL-WORDS UNDEFINE no data item
-        // may carry either name at all. (This comment claimed §8.10 — wrong by the repo's own data; kb/Work
+        // and NEITHER is in the §8.10 context-sensitive table, so from 2002 absent a >>COBOL-WORDS UNDEFINE no data
+        // item may carry either name at all; at COBOL-85 §8.9 leaves them free and a DECLARED data item of that name
+        // is an operand — KeywordWordOf returns null for it (kb/Work PB4359 review round 1). (This comment claimed
+        // §8.10 — wrong by the repo's own data; kb/Work
         // PB250, which is also why the words above now resolve through CobolWordsMap.) ANYCASE is admitted
         // ONCE, after the operands, and nothing may follow it. The old sweep
         // accepted NUMVAL-C(ANYCASE WS-A "USD") and a doubled trailing ANYCASE (both measured).
@@ -1846,6 +1850,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
                 }
                 anycase = true;
+                // ANYCASE is a 2002 introduction (§15.68.2 / §15.94.2 print it; ISO/IEC 1989:2002 §15.55 / §15.76
+                // already did, and §8.9 reserves the word only from 2002): below 2002 it is an ordinary user-defined
+                // word, so the keyword is refused by edition like the LOCALE keyword below (kb/Work PB4359).
+                ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.NumvalCAnycaseKeyword2002,
+                    $"the ANYCASE keyword of FUNCTION {sig.Name}");
                 continue;
             }
             if (anycase)
@@ -3064,10 +3073,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// otherwise reach the <c>cobolWord</c> branch below and be re-read as the keyword by its raw text.</para></summary>
     private string? KeywordWordOf(Core.FunctionArgumentContext a)
     {
+        bool bareName = a.fnArgPhraseWord() is null;
         var tok = a.fnArgPhraseWord() is { } kw ? kw.Start
             : SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0
                 && d.cobolWord() is { } cw ? cw.Start : null;
-        return WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.CanonicalWordOf(tok, ctx.CobolWords);
+        var word = WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.CanonicalWordOf(tok, ctx.CobolWords);
+        // ⛔ A WORD INTRODUCED AFTER THIS EDITION IS A USER-DEFINED WORD EXACTLY WHEN THE PROGRAM DECLARES IT
+        // (the parser's IsKeywordReadingHere determination, one layer down; kb/Work PB4359). ANYCASE and LOCALE are
+        // §8.9 reserved only from 2002 (reserved-words.json), so at COBOL-85 `01 ANYCASE PIC X(3)` is legal and
+        // NUMVAL-C('USD1,234.56' ANYCASE) names it as argument-2 — reading it as the keyword would refuse
+        // conforming source (or, before the keyword's edition gate, swallow the operand). A not-yet-introduced word
+        // that NO declaration names keeps its keyword reading, so the edition gate ("requires COBOL-2002") still
+        // answers. ReservedWords.AdmitsAsKeyword is the ONE "introduced after this edition" predicate: a word an
+        // older edition reserved and this one dropped (PHYSICAL at 2023) stays the keyword in its own position even
+        // when a data item shares the spelling (pb124_keyword_positions).
+        if (bareName && word is not null
+            && !WiseOwl.Cobol.Editions.ReservedWords.AdmitsAsKeyword(word, ctx.Edition.Edition.Year)
+            && ctx.Symbols.TryResolve(word, ctx.ActiveScope, out _))
+            return null;
+        return word;
     }
 
     /// <summary>The argument's sole data reference — non-null when the arithmetic-expression alternative is
@@ -3160,7 +3184,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return true;
         }
 
-        var indices = new LocalVector($"__all{_allSerial++}");
+        var indices = new LocalVector(new StatementLocal(StatementLocalRole.TableAllIndices, _allSerial++));
         var exprs = new Position[innerSegs.Count];
         var counts = new List<AllCount>();
         var outerExprs = new List<Position>();   // the index of every level ABOVE the current one
@@ -3215,7 +3239,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return true;
     }
 
-    /// <summary>One index variable per table(ALL) operand in the unit (<c>__all0</c>, <c>__all1</c>, …): a nested
+    /// <summary>One index vector per table(ALL) operand in the unit (the ordinal of its
+    /// <see cref="StatementLocalRole.TableAllIndices"/> local): a nested
     /// function inside a fixed subscript of an ALL argument renders its own enumeration lambda INSIDE the outer
     /// one, and C# forbids a lambda parameter that shadows an enclosing one.</summary>
     private int _allSerial;

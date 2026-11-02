@@ -3,7 +3,8 @@ notes (Note, note_of, load_notes, the harm weights), the lead notes that exist o
 (branch_lead_notes, kb/Work PB3150, PB3699), the notes an unlanded branch closes (closed_by_branch, add_closed_notes,
 kb/Work PB3473), the fix lane's clusters (fix_clusters.py over the notes that wait on nothing: run_fix_clusters,
 declare_fix_lane), a campaign's clusters on the sites its notes declare (campaign_clusters, kb/Work PB2120, PB3242) and
-the tiers that order them (lift_tiers, kb/Work PB3423), and a cluster's claim (cluster_claim, set_claim).
+the tiers that order them (lift_tiers, kb/Work PB3423), a cluster's claim (cluster_claim, set_claim), and the size of
+a group, the notes whose predicted turns one implementer holds (predicted_turns, turn_budget, notes_cap; kb/Work PB4396).
 
 Its readers: the wave planner (plan_wave.py), the ledger's estimate (scripts/spec/ledger_plan.py: the same
 run_fix_clusters call, kb/Work PB2912), the branch survey's train order (prune_worktrees.note_rank: harm_weights) and
@@ -55,6 +56,30 @@ def harm_weights() -> dict[str, int]:
     by the planner's ranks and by the branch survey's train order (prune_worktrees.py note_rank, kb/Work PB2981)."""
     fleet = json.loads((REPO / ".agent-fleet.json").read_text(encoding="utf-8"))
     return {k: int(v) for k, v in (p.split("=") for p in fleet["harm"].split(","))}
+
+
+def predicted_turns(n_notes: int, rules: Mapping[str, Any]) -> float:
+    """The turns an implementer is predicted to spend on a group of `n_notes` notes: model_rules.json's fit,
+    `wave.turns_per_group` + `wave.turns_per_note` x n (turns_by_group_size.py's least-squares line; kb/Work PB4396,
+    PB3718)."""
+    w = rules["wave"]
+    return w["turns_per_group"] + w["turns_per_note"] * n_notes
+
+
+def turn_budget(rules: Mapping[str, Any]) -> float:
+    """The turns one group may be predicted at: `wave.turn_budget_fraction` of the implementer's turn cap, whose one home
+    is its agent definition's maxTurns (coord.agent_turn_cap, kb/Work PB3701); the rest is the margin (kb/Work PB4396)."""
+    return rules["wave"]["turn_budget_fraction"] * coord.agent_turn_cap("cobol-implementer")
+
+
+def notes_cap(rules: Mapping[str, Any]) -> int:
+    """THE GROUP SIZE (kb/Work PB4396, owner 2026-11-01 "One step per file"): the most notes one implementer holds, the
+    largest n whose predicted_turns fit the turn_budget, and never fewer than one (a note is never split). Every reader
+    of a group's size asks this: the planner's group formation and overflow (plan_wave.py), the cluster size handed to
+    fix_clusters.py (run_fix_clusters), a campaign's clusters (campaign_clusters) and the ledger's estimate
+    (scripts/spec/ledger_plan.py)."""
+    w = rules["wave"]
+    return max(1, int((turn_budget(rules) - w["turns_per_group"]) // w["turns_per_note"]))
 
 
 def note_of(text: str, stem: str, harm_weights: dict[str, int]) -> Note | None:
@@ -161,13 +186,13 @@ def ready_notes_view(status: str, view: pathlib.Path, work_dir: pathlib.Path | N
 
 def run_fix_clusters(status: str, out: pathlib.Path, rules: dict[str, Any]) -> dict[str, Any]:
     """The fix lane's groups: fix_clusters.py --json over .agent-fleet.json's population (`kind`, `skip_flag`) of the
-    notes that wait on nothing (ready_notes_view), at the planner's group cap, written to `out` and returned whole
+    notes that wait on nothing (ready_notes_view), at the planner's group size (notes_cap), written to `out` and returned whole
     (`clusters`, `unsited`). The ONE call, shared by this planner and the ledger's estimate
     (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""
     if not FIX_CLUSTERS.exists():
         raise SystemExit(f"⛔ {FIX_CLUSTERS} is missing: run `git submodule update --init tools/claude-skills`")
     view = ready_notes_view(status, out.with_name(f"{out.stem}-notes"))
-    subprocess.run([sys.executable, str(FIX_CLUSTERS), "--notes", str(view), "--max", str(rules["wave"]["max_notes_per_group"]),
+    subprocess.run([sys.executable, str(FIX_CLUSTERS), "--notes", str(view), "--max", str(notes_cap(rules)),
                     "--open-status", status, "--json", str(out)], cwd=REPO, check=True, capture_output=True)
     return json.loads(out.read_text(encoding="utf-8"))
 
@@ -222,7 +247,7 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
     the member index's callers of what each note moves or changes; PB2118 Draft 8, J2), which never steer the
     clustering itself, plus its primary file. The clusters holding one dependent's blockers merge when they share a
     depth and fit the cap, so the dependent can follow one successor chain. `texts` is {note: its file text}."""
-    cap = rules["wave"]["max_notes_per_group"]
+    cap = notes_cap(rules)
     plannable: dict[str, dict] = {}
     waiting: dict[str, str] = {}
     for r in view["notes"]:  # topological order: every blocker is decided before what it blocks

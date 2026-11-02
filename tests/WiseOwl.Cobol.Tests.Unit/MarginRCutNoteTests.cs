@@ -82,6 +82,43 @@ public sealed class MarginRCutNoteTests : IDisposable
         AssertStopRunIsTheErrorAfterTheCut(diagnostics);
     }
 
+    [Fact] // PB4373: a tab states margin R as the POSITION the format fixes (72), not the column the file holds it at
+    public void ALineHoldingATab_StatesMarginRAtPosition72_AndTheColumnTheFileHoldsIt()
+    {
+        // The tab fills positions 1-8 (DOC-A.1-157: tab stops at 1, 9, 17, ...), so the line is seven characters shorter than
+        // its positions: position 73 is the 66th character of the line (column 66), the margin the format fixes is still 72.
+        string tabbed = "\t" + CutBetweenWords[8..];
+        var diagnostics = Compile(Program([.. Head, tabbed, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(9,66): warning", note);                                  // the column the file holds position 73 at
+        Assert.Contains("it ends at position 72 (a tab counts the positions it fills, so the column this warning names, where the file holds the cut, is less than that)", note);
+        Assert.Contains("'CONTENT WS-REPLY' (positions 73 to 88)", note);                   // positions, not columns 66 to 81
+        Assert.Contains("Shorten the line to end at position 72", note);
+        AssertStopRunIsTheErrorAfterTheCut(diagnostics);
+    }
+
+    [Fact] // PB4373: a supplementary-plane character is ONE position (kb/Work PB1966), so the cut text counts characters
+    public void ACutHoldingASupplementaryCharacter_CountsItsPositionsInCharacters()
+    {
+        string cut = CutBetweenWords[..72] + "CONTENT WS-\U0001E900";                      // 12 characters from position 73, 13 UTF-16 units
+        var diagnostics = Compile(Program([.. Head, cut, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(9,73): warning", note);
+        Assert.Contains("(positions 73 to 84)", note);
+    }
+
+    [Fact] // PB4373: the quoted cut is shortened at a CHARACTER, never between the two units of a supplementary one
+    public void AQuotedCutShortenedAtASupplementaryCharacter_KeepsTheCharacterWhole()
+    {
+        string cut = CutBetweenWords[..72] + "ABCDEFGHIJKLMNOPQRSTUVW\U0001E900ZZ";        // 26 characters: the 24th position is the astral one
+        var diagnostics = Compile(Program([.. Head, cut, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("'ABCDEFGHIJKLMNOPQRSTUVW\U0001E900...' (positions 73 to 98)", note);
+    }
+
     [Fact] // a CAUSE READS BEFORE ITS EFFECT: the cut precedes the error it may explain
     public void TheNote_IsReportedBeforeTheError()
     {
@@ -146,9 +183,120 @@ public sealed class MarginRCutNoteTests : IDisposable
     public void ACommentLinePastMarginR_IsNotACut()
     {
         string commentLine = "      * a comment line whose text runs on and on and on and on past margin R of the line";
-        var diagnostics = Compile(Program([.. Head, commentLine, "           CALL \"SUBPROG\" USING WS-MSG BY", "           STOP RUN."]));
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", commentLine, "           STOP RUN."]));
 
         Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(11,12)") && d.Contains("'STOP'"));
+    }
+
+    /// <summary>The line after <c>BY</c>: its program-text area is blank and <c>CONTENT WS-REPLY</c> stands from position 73.</summary>
+    private static readonly string OnlyPastMarginR = new string(' ', 72) + "CONTENT WS-REPLY";
+
+    [Fact] // PB4372: a statement written ONLY past margin R leaves a blank line and no token to anchor, yet it is the cut
+    public void AStatementWrittenOnlyPastMarginR_IsNamedOnItsOwnLine()
+    {
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", OnlyPastMarginR, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(10,73): warning", note);                    // line 10, the first position past the area
+        Assert.Contains("this line has no program text", note);
+        Assert.Contains("'CONTENT WS-REPLY' (positions 73 to 88)", note);
+        Assert.Contains("main.cob(11,12) may be this", note);                  // STOP stands on line 11
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(11,12)") && d.Contains("'STOP'"));
+    }
+
+    [Fact] // PB4372 x PB4373: a line with no program text that holds a tab states margin R as position 72 and says so
+    public void ALineWithNoProgramTextHoldingATab_StatesMarginRAtPosition72()
+    {
+        // The tab fills positions 1-8 (DOC-A.1-157), so position 73 is the 66th character of the line (column 66).
+        string tabbed = "\t" + OnlyPastMarginR[8..];
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", tabbed, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(10,66): warning", note);                                  // the column the file holds position 73 at
+        Assert.Contains("this line has no program text", note);
+        Assert.Contains("after position 72 (a tab counts the positions it fills, so the column this warning names, where the file holds the cut, is less than that)", note);
+        Assert.Contains("'CONTENT WS-REPLY' (positions 73 to 88)", note);
+        Assert.Contains("Write the text within positions 8 to 72", note);
+    }
+
+    [Fact] // PB4372: every line between the two tokens is asked about, not only the one beside the previous token
+    public void SeveralLinesBetweenTheTokens_NameTheCutOnTheOneThatHoldsIt()
+    {
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", "", "      * a comment line",
+            OnlyPastMarginR, "", "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(12,73): warning", note);
+        Assert.Contains("main.cob(14,12) may be this", note);
+    }
+
+    /// <summary>A DISPLAY with program text AND a cut (<c>UPON CONSOLE</c> from position 73): the line holds a statement.</summary>
+    private static readonly string TextAndCut = "           DISPLAY \"TRACE\" WS-MSG".PadRight(72) + "UPON CONSOLE";
+
+    [Fact] // PB4372 (review R1-1): ISO §7.3.16.4 3): a false >>IF branch is omitted, so its tokenless line is no cut's effect
+    public void ALineOfAnOmittedConditionalBranch_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", "       >>IF TRACING IS DEFINED", TextAndCut,
+            "       >>END-IF", "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(13,12)") && d.Contains("'STOP'"));
+    }
+
+    [Fact] // PB4372 (review R1-1): a debugging line compiled without debugging mode is a comment line, no cut's effect
+    public void ADebuggingLineWithoutDebuggingMode_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", "      D" + TextAndCut[7..], "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(11,12)") && d.Contains("'STOP'"));
+    }
+
+    [Fact] // PB4372: a sequence number on a line with no program text is still the ordinary use of the positions
+    public void ASequenceNumberOnABlankLine_IsNotACut()
+    {
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY", new string(' ', 72) + "00000010",
+            "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(11,12)") && d.Contains("'STOP'"));
+    }
+
+    [Fact] // PB4372: tags on a MINORITY of lines are still a convention that recurs, and a tagged blank line counts
+    public void TagsOnAMinorityOfLines_AreNotACut()
+    {
+        string[] lines = [.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY".PadRight(72) + "REV0042", new string(' ', 72) + "REV0042",
+            "           STOP RUN."];
+        var diagnostics = Compile(Program(lines));
+
+        Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(11,12)") && d.Contains("'STOP'"));
+    }
+
+    [Fact] // PB4372: ONE tag-shaped word is indistinguishable from a one-word tail (only recurrence tells), so the note stays
+    public void ALoneTagShapedWord_IsStillNamedAsAPossibleCut()
+    {
+        var diagnostics = Compile(Program([.. Head, "           CALL \"SUBPROG\" USING WS-MSG BY".PadRight(72) + "REV0042",
+            "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("'REV0042' (positions 73 to 79)", note);
+        Assert.Contains("may be this", note);
+    }
+
+    [Fact] // PB4372 (review R1-2): a tab is ONE column of the file and several positions; the note names POSITIONS 72 and 73
+    public void ALineHoldingATab_NamesPositionsNotFileColumns()
+    {
+        // A tab at the start of the line advances to the next tab stop, position 9 (PhysicalLines, DOC-A.1-157), so the text
+        // that follows it begins at position 9 and position 73, the first past the program-text area, is 64 characters on.
+        string line = "\t" + "CALL \"SUBPROG\" USING WS-MSG BY".PadRight(64) + "CONTENT WS-REPLY";
+        var diagnostics = Compile(Program([.. Head, line, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(9,66): warning", note);                     // 1 column for the tab + 64 characters, then 66
+        Assert.Contains("it ends at position 72", note);
+        Assert.Contains("'CONTENT WS-REPLY' (positions 73 to 88)", note);
     }
 
     [Fact] // free form is not column-bounded (§6.4): nothing is cut

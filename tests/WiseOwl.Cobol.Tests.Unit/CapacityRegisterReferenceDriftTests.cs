@@ -24,8 +24,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>conformance-suite/cases/14.9.39-SET/pb457_capacity_register_qualified.cob</c> and the three negatives
 /// <c>pb457-capacity-register-subscripted</c> / <c>-under-table</c> / <c>-bad-qualifier</c>, and for the method
 /// scope <c>conformance-suite/cases/_unassigned/pb3165_method_capacity_register_scope.cob</c> (kb/Work PB3165).</para>
-/// <para><b>A tree-wide sweep</b> (tier 0c, at every gate): the one-lookup scan reads all of <c>src</c>, so a second
-/// lookup added in ANY file breaks it, and the impact map of the file that adds one never names this class.</para>
+/// <para><b>A tree-wide sweep</b> (at every gate): the one-lookup scan reads all of <c>src</c>, so a second
+/// lookup added in ANY file breaks it.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class CapacityRegisterReferenceDriftTests

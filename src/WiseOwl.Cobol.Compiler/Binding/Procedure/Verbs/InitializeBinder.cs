@@ -11,13 +11,16 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>The INITIALIZE verb binder (P7 Step 10e — a real collaborator over <see cref="BinderContext"/>):
-/// the ONE <c>_initializeLoopVar</c> owner (program-unique <c>__iniN</c> loop variables — one instance per
-/// unit or the emitted locals renumber/redeclare); <c>ActiveScope</c> is read through ctx PER CALL, never
+/// the ONE <c>_initializeLoopVar</c> owner (program-unique loop counters, <see cref="StatementLocalRole.InitializeOccurrence"/>
+/// locals by ordinal — one instance per unit or the emitted locals renumber/redeclare); <c>ActiveScope</c> is read through ctx PER CALL, never
 /// captured (the OO roster mutates it). The bound records stayed in <c>Binding/Bound/BoundInitialize.cs</c>;
 /// the 0830–0833 2002-surface gate block moved VERBATIM (Exec Step E folds it).</summary>
 internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
 {
-    private int _initializeLoopVar;   // program-unique loop-variable counter (__iniN — `__` cannot occur in COBOL names)
+    private int _initializeLoopVar;   // program-unique loop-counter ordinal (NextLoopVar)
+
+    /// <summary>The next per-occurrence loop counter of the unit, by its identity (kb/Work PB4321): the backend names it.</summary>
+    private MethodLocal NextLoopVar() => new StatementLocal(StatementLocalRole.InitializeOccurrence, _initializeLoopVar++);
 
     /// <summary>What the statement's phrases select, threaded through the expansion: the receiver filter
     /// (ISO §14.9.20 GR5c) and the sending-operand precedence VALUE → REPLACING → category default (GR6).
@@ -202,7 +205,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             && ctx.Symbols.TryResolveUnqualified(dref.cobolWord()?.GetText() ?? dref.GetText(), ctx.ActiveScope, out var dyns)
             && dyns.FirstOrDefault(i => i.IsDynamicTable) is { } dtbl && ReferenceResolver.BuildTablePath(dtbl) is { } tblPath)
         {
-            string v = $"__ini{_initializeLoopVar++}";
+            var v = NextLoopVar();
             var body = new List<InitializeAction>();
             // identifier-1 carries no subscript on this arm (the guard above), so the ONE dimension the expansion
             // enters is the whole occurrence key a Format-2 VALUE on the element is looked up by. A cell-backed
@@ -400,7 +403,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // This replaced a staged COBOL1527 loud that predated GR10 being read.
             if (child.IsDynamicTable)
             {
-                string dv = $"__ini{_initializeLoopVar++}";
+                var dv = NextLoopVar();
                 var dbody = new List<InitializeAction>();
                 if (childCur.StoragePath is { } dtp && childCur.DynamicElement(new PositionLocal(dv)) is { } elementCur)
                 {
@@ -419,7 +422,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             }
             if (child.IsTable)
             {
-                string v = $"__ini{_initializeLoopVar++}";
+                var v = NextLoopVar();
                 var body = new List<InitializeAction>();
                 ExpandInitialize(childCur.Indexed(new PositionLocal(v)), spec, body, identifier1Item,
                     [.. key, new OccurrenceDim(new PositionLocal(v), null)]);
@@ -460,11 +463,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             var gap = window.Item;
             PlaceCursor? gapCur = null;
-            string? gapVar = null;
+            MethodLocal? gapVar = null;
             if (window.Gaps == 0) gapCur = cur.Child(gap);
             else
             {
-                gapVar = $"__ini{_initializeLoopVar++}";
+                gapVar = NextLoopVar();
                 gapCur = cur.Child(window.Subject)?.Indexed(new PositionLocal(gapVar)).Child(gap);
             }
             if (gapCur is null)
@@ -488,7 +491,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             if (filler.Kind is BitFillerKind.TablePad && qualification is InitializeQualification.ViaReplacing)
             {
                 int gapBits = BitLayout.StrideBits(filler.Subject) - BitLayout.WidthBits(filler.Subject);
-                string gapVar = $"__ini{_initializeLoopVar++}";
+                var gapVar = NextLoopVar();
                 if (ElementaryAction(fillerCur, item, InitializeCategory.Boolean, spec, effectiveValue: null,
                         receiver: PadGapPlace(fillerCur.ToPlace(), gapVar, gapBits)) is { } gapAction)
                     actions.Add(new InitializeLoop(gapVar, new AllCount.Fixed(filler.Subject.Occurs!.Value - 1), [gapAction]));
@@ -502,7 +505,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Gap <paramref name="loopVar"/> (1-based) of a stored table pad: the <paramref name="gapBits"/> boolean positions
     /// that start at <c>(loopVar - 1) * gapBits + 1</c> of the pad string (§8.4.3.3.4 GR5a: a reference-modified bit item is
     /// counted in bit positions), the elementary bit item §8.5.1.6.3 describes between two occurrences.</summary>
-    private static Place PadGapPlace(Place pad, string loopVar, int gapBits)
+    private static Place PadGapPlace(Place pad, MethodLocal loopVar, int gapBits)
     {
         var before = new PositionBinary(new PositionLocal(loopVar, AsLong: true), PositionOperator.Subtract, new PositionConstant(1));
         var offset = new PositionBinary(new PositionGroup(before), PositionOperator.Multiply, new PositionConstant(gapBits));

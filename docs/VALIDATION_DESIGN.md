@@ -53,7 +53,11 @@ semantics).
   DEPENDING ON placement rules, the seven-subscript limit — is positioned at `DataItem.ReferenceSite`, the entry that wrote
   the clause, kb/Work PB1629; a fault whose every involved entry lies inside the one copy is the declaration's fact and
   is reported there only, `DataItem.IsCopiedUnder`), and the two parse-tree passes through
-  `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit). A pass that runs AFTER the
+  `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit), and a data REFERENCE is positioned
+  at its own first token by `ReferenceResolver.ResolveImpl`, the one chokepoint every verb's operand resolution passes
+  through, so an undefined or ambiguous name (COBOL1639) on the continuation line of a long DISPLAY / MOVE / ADD names that
+  line and column and not the statement's first token (kb/Work PB4383; `DISPLAY`'s operand screens position per operand,
+  `AcceptDisplayBinder.BindDisplay`). A pass that runs AFTER the
   bind, over the BOUND tree (`VersionConformancePass`'s bound-tree arm: the SORT/MERGE/COMMIT/ROLLBACK placement
   rules, the SET and MOVE statement gates), has no parse tree to read, and a bound node carries no span: the
   position is `BoundStatement.At`, stamped on every statement node by the same funnel (`StatementBinder.BindStatement`,

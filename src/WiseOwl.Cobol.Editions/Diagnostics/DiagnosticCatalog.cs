@@ -2980,9 +2980,11 @@ public static class DiagnosticCatalog
     /// margin R (kb/Work PB2555; ISO §6.3.1, Annex A.1 item 158). Margin R is the implementor's (position 72 here), so the
     /// compiler is right to drop what lies past it, but a statement that runs past it ends early and the parse fails at the
     /// NEXT token (<c>cannot parse construct near STOP</c>) or at a word the margin cut in two (<c>unexpected 'END-SEN'</c>),
-    /// with nothing pointing at the truncation. The note is reported only BESIDE a syntax error whose offending token or
-    /// predecessor stands on a cut line, and only for a cut that may have been program text: a numeric area (the sequence
-    /// number convention) and the tail of an inline comment (§6.3.7.3) are the ordinary uses of those positions.</summary>
+    /// with nothing pointing at the truncation. The note is reported only BESIDE a syntax error whose offending token,
+    /// predecessor or a line between the two stands on a cut line (a line whose only text is past margin R reads as blank,
+    /// kb/Work PB4372), and only for a cut that may have been program text: a numeric area (the sequence number
+    /// convention), a tag that recurs, and the tail of an inline comment (§6.3.7.3) are the ordinary uses of those
+    /// positions.</summary>
     public static readonly DiagnosticDescriptor ProgramTextPastMarginR = new(
         "COBOL5788", "program-text-past-margin-r", EditionSeverity.Warning,
         "The program-text area of a fixed-form line ends at margin R, and a syntax error stands where the text of this line "
@@ -5371,8 +5373,8 @@ public static class DiagnosticCatalog
     //    the constant-name spelling (DataBinder.Constants.ExpandPicConstants rewrites it to `(integer)` and
     //    hands it to the same expander) can reach an unchecked `StringBuilder.Append(char, int)`. ──
 
-    /// <summary>COBOL2146 — character-string-1 is longer than the 63 characters ISO §13.18.40.3 SR4
-    /// allows.</summary>
+    /// <summary>COBOL2146 — character-string-1 is longer than the characters ISO §13.18.40.3 SR4 allows the
+    /// edition (63 from COBOL-2014, 50 at COBOL-2002, 30 at COBOL-85).</summary>
     public static readonly DiagnosticDescriptor PictureStringTooLong = new(
         "COBOL2146", "picture-string-too-long", EditionSeverity.Error,
         "ISO §13.18.40.3 syntax rule 4: \"The maximum number of characters allowed in character-string-1 is "
@@ -5382,7 +5384,11 @@ public static class DiagnosticCatalog
         + "counted toward the maximum number of characters in character-string-1\"), and the expanded reading "
         + "would outlaw `PIC X(30000)`, which is four characters long. So 64 written X's are rejected while "
         + "`PIC X(30000)` stays legal, and a constant-name repetition factor is counted by the digit length of "
-        + "the integer substituted for it (kb/Work PB532).",
+        + "the integer substituted for it (kb/Work PB532). The 63 is the 2023 text's bound, in force from COBOL-2014; "
+        + "the 2002 text's SR4 says 50, and COBOL-85 allowed 30, so a string of 31 to 63 characters is a length "
+        + "error at --std 85 and one of 51 to 63 at --std 2002, the message naming the edition's bound and where "
+        + "63 begins (constructs rows picture-string-50-2002 and picture-string-63-2014, VCR row 7.46; "
+        + "kb/Work PB4304).",
         "ISO §13.18.40.3 SR4");
 
     /// <summary>COBOL2147 — a parenthesized repetition factor that is not an unsigned nonzero integer (ISO
@@ -7848,6 +7854,47 @@ public static class DiagnosticCatalog
         + "directive named in the message removed its name. Write the SUBSTITUTE's literal-5 where the function is "
         + "wanted, or remove the directive.",
         "ISO §7.3.10.4 GR3; §7.3.10.4 GR4");
+
+    // kb/Work PB4341: EXEC SQL … END-EXEC drew "cannot parse construct near 'SQL'", the message of a typo, where the
+    // cause is an embedded-language block for a precompiler. Emitted by the front end's EmbeddedBlockReading, which reads
+    // each block as one token before the parse; EXEC and END-EXEC are not reserved words, so a source that writes EXEC as
+    // a word is read as COBOL throughout and draws none. A block left without its END-EXEC is COBOL5842 (kb/Work PB4381).
+    public static readonly DiagnosticDescriptor EmbeddedPrecompilerBlock = new(
+        "COBOL5818", "embedded-precompiler-block", EditionSeverity.Error,
+        "The source holds an embedded-language block, EXEC language-name through END-EXEC (EXEC SQL, EXEC CICS, EXEC "
+        + "DLI). ISO/IEC 1989 defines no EXEC construct: the block's text is another language, which a vendor's "
+        + "precompiler translates to COBOL before compilation, and ISO §4.2.14 permits an implementation \"to require "
+        + "components outside the COBOL implementation, such as precompilers\". This implementation has no precompiler, "
+        + "so the block is reported once, at its EXEC, and the parse resumes after its END-EXEC. Run the source through "
+        + "the precompiler first and compile the COBOL it writes.",
+        "ISO §4.2.14");
+
+    // kb/Work PB4381: an EXEC language-name block whose sentence ends before any END-EXEC. EmbeddedBlockReading used to read
+    // EXEC as a COBOL word at the first such EXEC and give up the whole source, so every well-formed block drew
+    // "cannot parse construct near 'SQL'" again. It is its own fault, reported at its EXEC, and the blocks that close stay
+    // one token each; a program that declares EXEC as a word (01 EXEC PIC X.) is still read as COBOL throughout.
+    public static readonly DiagnosticDescriptor UnterminatedEmbeddedBlock = new(
+        "COBOL5842", "unterminated-embedded-block", EditionSeverity.Error,
+        "An embedded-language block, EXEC language-name, has no END-EXEC before the separator period that ends its "
+        + "sentence. ISO §8.3.5 rule 3: \"The COBOL character period, when followed by a space, is a separator\", so "
+        + "the sentence, and with it the block's text, ends there. ISO/IEC 1989 defines no EXEC construct (a vendor's "
+        + "precompiler reads the block, ISO §4.2.14), so the fault is the embedded text's own: the block is taken through "
+        + "the text before the period, and END-EXEC belongs after that text and before the period. A program that "
+        + "declares EXEC as a COBOL word (01 EXEC PIC X.) is read as COBOL throughout and draws neither this nor "
+        + "COBOL5818.",
+        "ISO §8.3.5 3); §4.2.14");
+
+    // kb/Work PB4363: the ALL operand of the X3.23-1985 USE FOR DEBUGGING names a procedure, where the facility's
+    // `ALL [REFERENCES OF] identifier-1` takes a data item. It was reported as COBOL1571's legal-but-unmodeled data
+    // subject, which told the user the program was right and the compiler incomplete.
+    public static readonly DiagnosticDescriptor DebugAllOperandIsProcedure = new(
+        "COBOL5848", "debug-all-operand-is-procedure", EditionSeverity.Error,
+        "The identifier-1 of the X3.23-1985 USE FOR DEBUGGING operand ALL [REFERENCES OF] identifier-1 is a data item. "
+        + "The word written names a paragraph or section, a procedure-name (ISO §14.4.1: \"A procedure-name is a word "
+        + "used to refer to a paragraph or section in the source element in which it occurs\"), so it identifies no "
+        + "data item (ISO §8.4.2.1). A procedure is a debug subject by the plain operand, USE FOR DEBUGGING ON "
+        + "procedure-name, or with every procedure by ALL PROCEDURES.",
+        "ISO §14.4.1; ISO §8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

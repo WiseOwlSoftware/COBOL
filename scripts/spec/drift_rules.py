@@ -32,7 +32,7 @@ prefix that holds the file is SPECIFIC_DEPTH segments deep, as a tree-wide sweep
 such classes were invisible here, and one stopped PB3523's landing). An Except entry is a directory the rule does not
 apply to, or ONE EXACT PATH: a file the scope sets aside BY NAME is the rule's OWNER (where its pattern may be written,
 or the test itself), so the class governs that file SPECIFICALLY too (`owners`): editing the owner edits the rule
-(PB3531 review R1-1: CatalogCoverageDriftTests owns scripts/spec/spec_headings.py). `TrackedTreeScopeDriftTests` holds every
+(PB3531 review R1-1: CatalogCoverageDriftTests owns tests/_shared/SpecClauseText.cs). `TrackedTreeScopeDriftTests` holds every
 declaration this reads equal to the value the compiler builds (`--scopes`), and every `TrackedTree.Files` call to a
 declared field of a drift test.
 
@@ -56,8 +56,8 @@ Linux-only red to the landing's gate.
 A drift test that reads a REGISTER — a data file it names, such as the traceability inventory or docs/CONFORMANCE.md —
 and checks that the register's citations resolve is broken by a change that never touches the register: one that
 deletes a member a code-location names, renames a test a test-ref names, or deletes a file. `citing` answers that
-case for the gate's planner (kb/Work PB3131): given what a diff removes (`removal_of`, fed by
-scripts/spec/impacted_tests.py), the classes that govern each register citing it (`Citations.broken_by` reads the
+case (kb/Work PB3131; its caller, the gate's planner, was deleted with kb/Work PB4328, so today only this tool's
+self-test reaches it): given what a diff removes (`removal_of`), the classes that govern each register citing it (`Citations.broken_by` reads the
 three citation shapes a register uses: a path, a path and member, a dotted name).
 """
 import json
@@ -122,7 +122,7 @@ COMMENT = re.compile(r"//[^\n]*")
 TREE_ROOTS = r"(?:src|tests|docs|scripts|specs|kb|grammars|\.github|adjudication|conformance-suite)"
 LITERAL = re.compile(r'"(' + TREE_ROOTS + r'/[^"\s{}*]+)"')
 SUMMARY = re.compile(r"///\s*<summary>(.*?)</summary>", re.S)
-#: A drift class as a gate display name sees it: a partition `Family_P<k>` is the FAMILY (gate_plan.name_key), and an
+#: A drift class as a gate display name sees it: a partition `Family_P<k>` is the FAMILY, and an
 #: abstract base such as `FamilyDriftTestsBase` is no test, so neither matches.
 # A DECLARATION, which starts its line (attributes and modifiers before it): a `class XDriftTests {` a drift test PLANTS
 # inside a string literal, mid-line, declares no class of the assembly (kb/Work PB4325 review R1-4).
@@ -600,15 +600,140 @@ def render(rows):
 
 def is_sweep(row):
     """A TREE-WIDE SWEEP reads some path above SPECIFIC_DEPTH: a whole tree, or a file at its top. ONE rule: the
-    per-file query lists such a test after the specific ones, and the gate's plan runs every cheap one in leg 1 at
-    every gate (tier 0c, scripts/gate_plan.py), through the `[Trait("Sweep", "tree")]` its class carries
-    (HostWitnessTraitDriftTests holds the two equal; kb/Work PB3022). A declared scope of the committed tree reads
+    per-file query lists such a test after the specific ones, and its class carries `[Trait("Sweep", "tree")]`
+    (`trait_findings`, run by `--check`, holds the two equal; kb/Work PB3022). A declared scope of the committed tree reads
     above SPECIFIC_DEPTH when one of its prefixes does. Only the class's OWN scan decides (the paths it names, its
     scopes), never a path it reads through a helper class (`Sources.inherited`): that closure is file-grained, so it
-    governs a changed file (`governed`, tier 0d) but must not make a class a sweep, or a path literal added to one
+    governs a changed file (`governed`) but must not make a class a sweep, or a path literal added to one
     helper would move the `Sweep` trait of every class that uses it (kb/Work PB3247)."""
     return (any(len(p.split("/")) < SPECIFIC_DEPTH for p in row["paths"])
             or any(segments(u) < SPECIFIC_DEPTH for sc in readable(row) for u in sc["under"]))
+
+
+# ── THE TRAITS THAT NAME THE HOST-ONLY WITNESSES AND THE TREE-WIDE SWEEPS (kb/Work PB3022, PB4395; DESIGN-test-build-ci.md
+# §3.17.3) ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+# Every Unit test class that drives the file-sharing layer's host types (src/WiseOwl.Cobol.Runtime/IO/Sharing/, HostFile)
+# from concurrent workers carries [Trait("Host", "ReFS")], and the classes that carry [Trait("Sweep", "tree")] are exactly
+# the tree-wide sweeps `is_sweep` classifies, in every test project. Since kb/Work PB4328 every gate runs the whole
+# population, so no gate reads the traits to choose a case: they name the two kinds for a reader (`dotnet test --filter
+# Host=ReFS` by hand, the review), and `--check` keeps the names true. Why the host tier exists: E: is ReFS and CI's
+# Windows runner NTFS, and they delete differently (the PB2917 sidecar-unlink race reproduced here in 20 of 7,200 probes and
+# may never on NTFS). Membership is DERIVED from the sharing layer's declared types and the test's own concurrency, never
+# listed, so a new race witness without the trait is refused by name. Until kb/Work PB4395 a C# class of the compiler's test
+# assembly (HostWitnessTraitDriftTests) held both, reading the Unit assembly's compiled attributes and so seeing no other
+# project's sweeps; these rules read the sources, as the rest of this index does, and see every project.
+
+#: The sharing layer whose types a race witness drives, and the host type outside it.
+SHARING_DIR = "src/WiseOwl.Cobol.Runtime/IO/Sharing"
+HOST_TYPES = ("HostFile",)
+#: The project whose classes may be race witnesses (the host-only tier is the Unit assembly's).
+WITNESS_PROJECT = "WiseOwl.Cobol.Tests.Unit"
+#: The two witnesses the design names: a scan that stopped seeing them would report every witness traited over nothing.
+NAMED_WITNESSES = ("SidecarColumnLockHostDriftTests", "RegionLocksDriftTests")
+HOST_TRAIT, SWEEP_TRAIT = ("Host", "ReFS"), ("Sweep", "tree")
+#: A worker started beside the test's own thread: the shape of a race witness.
+CONCURRENT_WORKER = re.compile(r"\bnew Thread\(|\bnew Barrier\(|\bTask\.Run\(|\bParallel\.")
+#: A type declaration and its name. ⛔ `record struct` and `record class` are ONE keyword pair: read as `record` alone
+#: they named a type `struct`, and every concurrent test that says "struct" became a race witness (kb/Work PB3533's
+#: `PhysicalFileIdentity`, the first `record struct` in the sharing layer this pattern reached).
+_TYPE = (r"(?:(?:public|internal|sealed|static|partial|abstract|readonly|ref|file)\s+)*"
+         r"(?:record\s+(?:class|struct)|class|struct|interface|enum|record)\s+(?P<name>\w+)")
+TYPE_DECLARATION = re.compile(r"^\s*" + _TYPE, re.MULTILINE)
+#: A TOP-LEVEL type: every test source uses a file-scoped namespace, so its top-level types start in column 0 and a
+#: nested one is indented.
+TOP_LEVEL_TYPE = re.compile(r"^" + _TYPE, re.MULTILINE)
+#: The base class a declaration names after its type parameters and primary constructor (`class P0 : Base<Slot0>;`).
+BASE_TYPE = re.compile(r"(?:<[^>\n]*>)?\s*(?:\([^)\n]*\))?\s*:\s*(?P<base>\w+)")
+#: What ends the text before a top-level type's own attributes: the previous type's closing brace, or a column-0
+#: statement ending in `;` (the file-scoped namespace, a using directive, a one-line type `class P0 : Base<S0>;`, whose
+#: attributes are its own and never the next type's).
+PREAMBLE_START = re.compile(r"^(?:\}[^\n]*|[^\s\[/][^\n]*;[ \t]*)\n", re.MULTILINE)
+TRAIT = re.compile(r'\bTrait\(\s*"(?P<name>[^"\\]*)"\s*,\s*"(?P<value>[^"\\]*)"\s*\)')
+FACT = re.compile(r"\[\s*(?:Fact|Theory)\b")
+
+
+@dataclass
+class TestType:
+    """A top-level type of one test project, its partial declarations merged: the traits its declarations carry (a
+    class's own, never its base's: xunit reads a test class's traits from the class), whether it is abstract, the base
+    class it names, and whether it has a test: a `[Fact]` or `[Theory]` method of its own body or of a base class's
+    (`has_tests`, resolved within the project by `test_types`)."""
+    project: str
+    name: str
+    files: list
+    traits: set
+    abstract: bool = False
+    base: str = ""
+    own_tests: bool = False
+    has_tests: bool = False
+
+
+def test_types(root=ROOT):
+    """{(project, name): TestType} for every top-level type every test source declares."""
+    types = {}
+    for f in test_sources(root):
+        rel = f.relative_to(root).as_posix()
+        text = f.read_text(encoding="utf-8").replace("\r\n", "\n")
+        decls = list(TOP_LEVEL_TYPE.finditer(text))
+        for i, m in enumerate(decls):
+            before = text[:m.start()]
+            starts = list(PREAMBLE_START.finditer(before))
+            preamble = before[starts[-1].end() if starts else 0:]
+            code = "\n".join(x for x in preamble.split("\n") if not x.lstrip().startswith("//"))
+            body = text[m.start():decls[i + 1].start() if i + 1 < len(decls) else len(text)]
+            t = types.setdefault((project(rel), m.group("name")), TestType(project(rel), m.group("name"), [], set()))
+            t.files.append(rel)
+            t.traits |= {(x.group("name"), x.group("value")) for x in TRAIT.finditer(code)}
+            t.abstract |= "abstract " in text[m.start():m.end("name")]
+            base = BASE_TYPE.match(text, m.end("name"))
+            t.base = t.base or (base.group("base") if base else "")
+            t.own_tests |= bool(FACT.search(body))
+    for t in types.values():
+        seen, at = set(), t
+        while at is not None and at.name not in seen:   # a base's tests are the derived class's (a partitioned class)
+            seen.add(at.name)
+            t.has_tests |= at.own_tests
+            at = types.get((t.project, at.base)) or types.get(("_shared", at.base))
+    return types
+
+
+def race_witnesses(root=ROOT, types=None):
+    """The test classes of WITNESS_PROJECT that drive the sharing layer's host types from concurrent workers: a top-level
+    type xunit runs (not abstract, with a test of its own or of its base class), declared in a file of the project's own
+    directory that names one of the types SHARING_DIR declares (or HOST_TYPES) and starts a worker."""
+    types = types if types is not None else test_types(root)
+    sharing = sorted({m.group("name") for f in sorted((root / SHARING_DIR).glob("*.cs"))
+                      for m in TYPE_DECLARATION.finditer(f.read_text(encoding="utf-8"))} | set(HOST_TYPES))
+    mentions = re.compile(r"\b(?:" + "|".join(map(re.escape, sharing)) + r")\b")
+    out = set()
+    for f in sorted((root / "tests" / WITNESS_PROJECT).glob("*.cs")):
+        text = f.read_text(encoding="utf-8")
+        if mentions.search(text) and CONCURRENT_WORKER.search(text):
+            out |= {m.group("name") for m in TYPE_DECLARATION.finditer(text)
+                    if (t := types.get((WITNESS_PROJECT, m.group("name")))) is not None and t.has_tests
+                    and not t.abstract}
+    return out
+
+
+def trait_findings(rows, root=ROOT, named=NAMED_WITNESSES):
+    """THE TRAIT RULES (the section above): each race witness without the Host trait, each sweep without the Sweep trait
+    and each class with the Sweep trait that is no sweep, in every test project; and the named witnesses the scan must
+    see, and at least one traited sweep, so a scan over nothing never reports clean."""
+    types = test_types(root)
+    witnesses = race_witnesses(root, types)
+    out = [f"the scan no longer sees the race witness {w}: it is reading for a shape that no longer exists"
+           for w in named if w not in witnesses]
+    out += [f"{w} drives the file-sharing layer from concurrent workers (a file-system race witness, whose race may "
+            f"reproduce only on this host's ReFS drive) but does not carry [Trait(\"Host\", \"ReFS\")]"
+            for w in sorted(witnesses) if HOST_TRAIT not in types[(WITNESS_PROJECT, w)].traits]
+    sweeps = {(project(r["file"]), r["test"]) for r in rows if is_sweep(r)}
+    traited = {k for k, t in types.items() if SWEEP_TRAIT in t.traits}
+    if not sweeps or not traited:
+        out.append(f"the scan found {len(sweeps)} tree-wide sweep(s) and {len(traited)} class(es) with the Sweep trait: "
+                   "the reader or the tests moved")
+    out += [f"{p}/{n} is a tree-wide sweep but does not carry [Trait(\"Sweep\", \"tree\")]" for p, n in sorted(sweeps - traited)]
+    out += [f"{p}/{n} carries [Trait(\"Sweep\", \"tree\")] but is no tree-wide sweep" for p, n in sorted(traited - sweeps)]
+    return out
 
 
 def relative(target):
@@ -621,8 +746,7 @@ def relative(target):
 
 
 def governed(rows, paths):
-    """The drift-test classes that govern any of the repo-relative `paths`, specifically or as a sweep: what the gate's
-    planner puts in leg 1 for a change to them (tier 0d; scripts/spec/impacted_tests.py, scripts/gate_plan.py)."""
+    """The drift-test classes that govern any of the repo-relative `paths`, specifically or as a sweep."""
     out = set()
     for rel in paths:
         specific, sweeps = governing(rows, rel)
@@ -837,10 +961,9 @@ def tracked_tree(under=None):
 
 def citing(rows, removals, read=None, tree=None):
     """{drift class: (data file, citation)} for every data file (`data_files`) holding a citation one of `removals`
-    breaks: the classes that govern that file specifically, which the gate's planner puts in leg 1 with the governing
-    ones (tier 0d; scripts/spec/impacted_tests.py). A change that deletes a member, renames a test or deletes a file a
+    breaks: the classes that govern that file specifically. A change that deletes a member, renames a test or deletes a file a
     register cites breaks the register's check WITHOUT touching the register (kb/Work PB3131: four landings stopped in
-    CI's Linux unit leg on SpecTraceabilityInventoryDriftTests after a Windows leg 1 that never ran it). `read`
+    CI's Linux unit leg on SpecTraceabilityInventoryDriftTests after a Windows gate that selected around it, before PB4328 made the gate run the whole population). `read`
     (repo-relative path -> text) defaults to the tree; `tree` (the paths before the change, which a deleted file's
     path citation resolves against) defaults to the tracked tree plus the deleted paths."""
     read = read or (lambda p: (ROOT / p).read_text(encoding="utf-8", errors="replace"))
@@ -927,7 +1050,7 @@ def self_test():
                                                       '    IEnumerable<string> B => names.Select(Src);'),
             "tests/P/BlindDriftTests.cs": drift("BlindDriftTests", '    string A(string tree) => TestRepo.At(tree);'),
             # A file whose cases were split (kb/Work PB4325 review R1-1): a second class, a partitioned family (its
-            # display name is the family, gate_plan.name_key) and an abstract base, which is no test; and a class
+            # display name is the family) and an abstract base, which is no test; and a class
             # PLANTED in a string literal (review R1-4: TrackedTreeScopeDriftTests.cs), which is no class either.
             "tests/P/SplitDriftTests.cs": drift("SplitDriftTests", '    string A => TestRepo.Docs("OTHER.md");')
                                           + "public sealed class SplitSecondDriftTests { }\n"
@@ -950,7 +1073,7 @@ def self_test():
 
         def gov(rel):
             return governed(rows, [rel])
-        check("a helper's path is inherited through a helper chain: a suite golden governs the class (tier 0d)",
+        check("a helper's path is inherited through a helper chain: a suite golden governs the class",
               "ReadsCorpusDriftTests" in gov("conformance-suite/cases/1.2-Clause/g1.cob"),
               by["ReadsCorpusDriftTests"]["through"])
         check("a path read through TestRepo.Nist governs a file under it", "ReadsNotesDriftTests" in gov("tests/nist/cases/N1.txt"),
@@ -1035,6 +1158,55 @@ def self_test():
         (root / TEST_REPO).write_text(odd, encoding="utf-8", newline="\n")
         check("a TestRepo helper in a shape the index cannot read is reported (`--check` fails on it)",
               test_repo(root)["unread"] == ["Odd"], test_repo(root)["unread"])
+
+    # THE TRAIT RULES (kb/Work PB3022, PB4395), each on a planted tree: the shapes they refuse, and the shapes they must not.
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        unit = f"tests/{WITNESS_PROJECT}"
+        fact = "    [Fact]\n    public void F() { }\n"
+
+        def cls(name, body, attrs="", head="public sealed class"):
+            return f"namespace N;\n\n/// <summary>{name}: names [Trait(\"Sweep\", \"tree\")] in prose only.</summary>\n" \
+                   f"{attrs}{head} {name}\n{{\n{body}}}\n"
+        planted = {
+            f"{SHARING_DIR}/Locks.cs": "namespace S;\n\ninternal sealed class SharedLock { }\n"
+                                       "internal readonly record struct Ident(int N);\n",
+            f"{unit}/RaceDriftTests.cs": cls("RaceDriftTests", f"    SharedLock L;\n    void W() => new Thread(() => {{ }});\n{fact}",
+                                             '[Trait("Host", "ReFS")]\n'),
+            f"{unit}/BareRaceTests.cs": cls("BareRaceTests", f"    HostFile H;\n    void W() => Task.Run(() => {{ }});\n{fact}"),
+            f"{unit}/StructWordTests.cs": cls("StructWordTests", f"    // a struct, and a worker\n    void W() => Task.Run(() => {{ }});\n{fact}"),
+            f"{unit}/QuietTests.cs": cls("QuietTests", f"    SharedLock L;\n{fact}"),
+            f"{unit}/PairDriftTests.cs": "namespace N;\n\npublic abstract class PairBase<TSlot>\n{\n    Ident I;\n"
+                                         f"    void W() => Parallel.For(0, 2, _ => {{ }});\n{fact}}}\n\n"
+                                         '[Trait("Host", "ReFS")]\npublic sealed class Pair_P0 : PairBase<S0>;\n\n'
+                                         "public sealed class Pair_P1 : PairBase<S1>;\n",
+            f"{unit}/TreeDriftTests.cs": cls("TreeDriftTests", fact, '[Trait("Sweep", "tree")]\n'),
+            f"{unit}/BareTreeDriftTests.cs": cls("BareTreeDriftTests", fact),
+            f"{unit}/NarrowDriftTests.cs": cls("NarrowDriftTests", fact, '[Trait("Sweep", "tree")]\n'),
+            "tests/Other/OtherTreeDriftTests.cs": cls("OtherTreeDriftTests", fact),
+        }
+        for rel, text in planted.items():
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text(text, encoding="utf-8", newline="\n")
+        rows = [{"file": f"{unit}/{n}.cs", "test": n, "paths": ["src"], "scopes": []}
+                for n in ("TreeDriftTests", "BareTreeDriftTests")]
+        rows += [{"file": f"{unit}/NarrowDriftTests.cs", "test": "NarrowDriftTests", "paths": ["src/A/B/C.cs"], "scopes": []},
+                 {"file": "tests/Other/OtherTreeDriftTests.cs", "test": "OtherTreeDriftTests", "paths": ["docs"],
+                  "scopes": []}]
+        witnesses = race_witnesses(root)
+        check("a race witness is a class xunit runs whose file names a sharing type (a `record struct` read as its name, "
+              "never `struct`) or HostFile and starts a worker; a partition inherits its base's tests, the abstract base "
+              "is none", sorted(witnesses) == ["BareRaceTests", "Pair_P0", "Pair_P1", "RaceDriftTests"], sorted(witnesses))
+        found = trait_findings(rows, root, named=("RaceDriftTests",))
+        check("the trait rules name the witness and the partition without the Host trait, the sweep without the Sweep "
+              "trait (in another project too) and the traited class that is no sweep; a trait named in a doc comment is "
+              "no trait",
+              [f.split(" ")[0] for f in found] == ["BareRaceTests", "Pair_P1", "Other/OtherTreeDriftTests",
+                                                    f"{WITNESS_PROJECT}/BareTreeDriftTests",
+                                                    f"{WITNESS_PROJECT}/NarrowDriftTests"], found)
+        check("a scan that no longer sees a named witness, or finds no sweep, is a finding (never a clean report over "
+              "nothing)", any("no longer sees the race witness Gone" in f for f in trait_findings(rows, root, ("Gone",)))
+              and any("tree-wide sweep(s)" in f for f in trait_findings([], root, ())), found)
     print("ALL GREEN" if not failures else f"⛔ {failures} SELF-TEST FAILURE(S)")
     return 1 if failures else 0
 
@@ -1108,7 +1280,14 @@ def main(argv):
         if unread:
             print(f"{len(unread)} {TEST_REPO} path helper(s) the index cannot read (test_repo): {', '.join(unread)}")
             return 1
-        print(f"drift-rule index renders — {len(rows)} drift tests, every one with its rule")
+        # The traits that name the host-only witnesses and the tree-wide sweeps (DESIGN-test-build-ci.md §3.17.3).
+        traits = trait_findings(rows)
+        if traits:
+            print(f"{len(traits)} trait finding(s) — the Host trait names every file-system race witness and the Sweep "
+                  "trait exactly the tree-wide sweeps (kb/Work PB3022):\n  " + "\n  ".join(traits))
+            return 1
+        print(f"drift-rule index renders — {len(rows)} drift tests, every one with its rule; the Host and Sweep traits "
+              "hold")
         return 0
     if argv[:1] == ["--out"]:
         if len(argv) != 2:

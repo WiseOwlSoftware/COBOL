@@ -2,19 +2,16 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 // THE ARMS OF THIS CLASS are numbered as docs/rearchitecture/DESIGN-test-build-ci.md §3.14.4 numbers them, and each
-// is ONE self-contained test method whose name starts with its arm, so the mechanisms that land them separately
-// (DESIGN §3.14.9) merge by union:
-//   (1) LegOf is total and deterministic; NameKey strips exactly the partition suffix ........... M12
-//   (2) each orderer's output is a permutation of its input ...................................... M12
-//   (3) run_gate_legs.py --self-test (M13) and test_population.py --self-test (M14) fire every arm ..... M13, M14
-//   (4) every test project under tests/ that the gate runs links GateLegs.cs .................... M12
-//   (5) no discovered display name in a gated assembly contains the repository root ............. M12
-//   (6) every `dotnet test` caller outside the driver scrubs WISEOWL_COBOL_GATE_* ..................... M14
+// is ONE self-contained test method whose name starts with its arm:
+//   (2) the orderer runs the named classes first, then longest first, and its output is a permutation of its input
+//   (4) every test project under tests/ that the gate runs links GateLegs.cs
+//   (5) no discovered display name in a gated assembly contains the repository root
+// Arms (3) and (6), and the ONE SHAPE sweep, check the pipeline's SCRIPTS, so they are the scripts' own (kb/Work PB4395):
+// scripts/self_test_arms.py holds the arms gate.py's and test_population.py's self-tests declare, test_population.py's runs its caller, trx-writer
+// and trx-reader audits over the real tree, and `gate.py --audit-shape` is the gate's ONE SHAPE audit.
 
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Gate;
 using WiseOwl.Cobol.Tests.Shared;
@@ -25,31 +22,18 @@ using Xunit.Sdk;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE ORDERED GATE IS SOUND BY CONSTRUCTION ONLY IF EVERY WHOLE-ASSEMBLY RUN PROVES ITS POPULATION AND NO RUN BUT
-/// THE GATE'S LEGS CAN BE NARROWED (kb/Work PB1708, PB1718; DESIGN-test-build-ci.md §3.14.3–3.14.4): the one
-/// population check (<c>scripts/test_population.py</c>) fires on a dropped, a duplicated and a foreign case, and every
-/// <c>dotnet test</c> caller under <c>scripts/</c> or <c>.github/workflows/</c> scrubs the leg handshake and the
-/// MSBuild VSTest properties from its environment.
-///
-/// ⛔ THE GATE'S LEG FILTER IS SOUND BY CONSTRUCTION (kb/Work PB1719; DESIGN-test-build-ci.md sections 3.14.3 and
-/// 3.14.4): the leg function (tests/_shared/GateLegs.cs) is total, deterministic and a function of the display name
-/// alone, and its name key mirrors scripts/gate_plan.py exactly; the handshake runs a leg only when all three
-/// WISEOWL_COBOL_GATE_* variables are set and consistent, and refuses every other combination; an orderer's output is
-/// checked to be a permutation; every test project under tests/ links GateLegs.cs and names GateTestFramework; and no
-/// discovered case carries the repository root.
+/// ⛔ THE GATE'S TEST-ASSEMBLY HALF (kb/Work PB1708, PB4328, PB4329; DESIGN-test-build-ci.md §3.14.3–3.14.4): the test
+/// orderer (tests/_shared/GateLegs.cs <c>GateOrderer</c>) only orders, its output checked to be a permutation; CI's shard
+/// variable, weights file and deal; every test project under tests/ links GateLegs.cs and names GateTestFramework; and no
+/// discovered case carries the repository root. What the gate's SCRIPTS must hold (the population check's arms, the
+/// scrubbed <c>dotnet test</c> callers, the trx writers and readers, the one shape) is their own self-tests' and audits'
+/// (kb/Work PB4395: a compiler test reading a script made every change to it a compiler change).
 /// </summary>
 /// <remarks>
 /// <para>
-/// A run narrowed through the ENVIRONMENT is invisible to its own verdict line: <c>VSTestTestCaseFilter</c> (MSBuild
-/// imports every environment variable as a property) narrowed Characterization from 33 cases to 31 in the run AND
-/// in <c>--list-tests</c>, exit 0 — measured 2026-09-28, and a runsettings file named by <c>RunSettingsFilePath</c>
-/// did the same. So the population is always listed SCRUBBED, and every other caller runs scrubbed too; the gate's
-/// own three-variable handshake (M12) is the one narrowing that is ever meant to reach a test host.
-/// </para>
-/// <para>
-/// The arms are numbered as in section 3.14.4: (1) the leg function and the name key, (2) the orderers, (3) the
-/// population check's self-test, (4) the links, (5) no repository root in a name, (6) the scrubbed callers. Arm (4)'s and (5)'s per-assembly halves also run in the Conformance and
-/// Characterization assemblies (their own GateLegDriftTests), because each audits the assembly it runs in.
+/// The arms are numbered as in section 3.14.4: (2) the orderer, (4) the links, (5) no repository root in a name. Arm
+/// (4)'s and (5)'s per-assembly halves also run in the Conformance and Characterization assemblies (their own
+/// GateLegDriftTests), because each audits the assembly it runs in.
 /// </para>
 /// </remarks>
 [Trait("Sweep", "tree")]
@@ -61,467 +45,6 @@ public sealed class GateLegDriftTests
 
     /// <summary>The test sources (<c>tests/**/*.cs</c>), COMMITTED, for the same reason.</summary>
     private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
-
-    private const string PopulationTool = "test_population.py";
-    private const string DriverTool = "run_gate_legs.py";
-
-    /// <summary>
-    /// Arm (3), the population half: <c>test_population.py --self-test</c> passes and still drives every arm by
-    /// name — a self-test quietly reduced to its happy path also exits 0. ⛔ This test does not run the self-test
-    /// (kb/Work PB2882): the runner (<c>scripts/self_tests.py</c>) runs it in every gate and CI job, and this holds that
-    /// each arm is still DECLARED (<see cref="SelfTestArmSource"/>).
-    /// </summary>
-    [Fact]
-    public void Arm3_ThePopulationCheck_DeclaresEveryArm()
-    {
-        SelfTestArmSource.AssertDeclares(TestRepo.Scripts(PopulationTool), new[]
-                 {
-                     "short: a dropped case is NEVER RAN",
-                     "over: a case twice is RAN TWICE",
-                     "shard overlap that KEEPS THE COUNT",
-                     "skipped: a NotExecuted-only definition is counted skipped",
-                     "definitions, not result names",
-                     "a definition the listing never printed is NOT IN THE POPULATION",
-                     "stopped early",
-                     "two listings that disagree are an ERROR",
-                     "an EMPTY population is an ERROR",
-                     "`scrubbed <command>` runs the command without a planted handshake",
-                     "audit-callers flags every unscrubbed shape",
-                 });
-    }
-
-    /// <summary>
-    /// Arm (3), the driver half: <c>run_gate_legs.py --self-test</c> passes and still drives every arm by name — the
-    /// fail-fast stop and its named remainder, the population's dropped, duplicated and skipped cases, the identity
-    /// mismatches, the empty leg, the no-plan fallback, the scrubbed all-or-none handshake,
-    /// the refused second gate (kb/Work PB1721; DESIGN-test-build-ci.md section 3.14.4), ONE SHAPE for every gate
-    /// (kb/Work PB3022: no mode, a slot, the audits ahead of it, fail-fast), the scope
-    /// <c>leg1</c> of batched gating (kb/Work PB2515), the coded default when no scope is set: leg 1 only, its verdict
-    /// <c>LEG 1 ONLY (batched gating, PB2515)</c>, never a plain GREEN; and the
-    /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build, or the legs when it is found
-    /// while they run (kb/Work PB4326); and the audits run outside the gate slot, beside the build and the legs, the
-    /// script self-tests only for a change that touches tooling (kb/Work PB2524, PB4326); and every gate publishes its
-    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527); and a gate
-    /// outlives its caller and is gated once per measured tree (kb/Work PB3536): it runs DETACHED and is followed, it
-    /// survives a tree kill of its follower, `--await` reads its verdict file (PENDING, a process that DIED: NOT RUN
-    /// [verdict]) and resolves a relative run name against the worktree that gated it, and a re-gate of an unchanged
-    /// tree (coord.NEVER_WORK left out) answers from a recorded GREEN, never from a RED, another tree, another base or
-    /// a narrower scope. ⛔ This test does
-    /// not run the self-test (kb/Work PB2882): the runner runs it in every gate and CI job, and this holds that each arm
-    /// is still DECLARED (<see cref="SelfTestArmSource"/>); run a second time under the harness's fixed 120 s budget it
-    /// took 311 s, retried, in train 1058's lander gate.
-    /// </summary>
-    [Fact]
-    public void Arm3_TheGateDriver_DeclaresEveryArm()
-    {
-        SelfTestArmSource.AssertDeclares(TestRepo.Scripts(DriverTool), new[]
-                 {
-                     "a whole planted population in two legs is GREEN",
-                     "an assembly whose leg 1 is empty is not invoked for leg 1",
-                     "every leg host is handed all three handshake variables",
-                     "a dropped case is NEVER RAN",
-                     "a case run in both legs is RAN TWICE",
-                     "a skipped case is counted skipped, never as ran",
-                     "a leg host that read another plan digest is an IDENTITY MISMATCH",
-                     "a binary changed between the legs is an IDENTITY MISMATCH",
-                     "a red in leg 1 STOPS the gate",
-                     "the stopped gate NAMES its remainder",
-                     "a red leg's whole output, its failure message included",
-                     "no plan (the planner failed): ONE leg in the plain order",
-                     "a leg host's environment is scrubbed",
-                     "no scope set: the coded default is leg1 (batched gating)",
-                     "scope leg1 (batched gating): leg 1 only, every leg-2 case named NOT RUN",
-                     "scope leg1: a red in leg 1 is LEG 1 ONLY: RED",
-                     "scope leg1 with no plan: the one leg IS the whole population",
-                     "malformed shared gate settings: the gate is NOT RUN",
-                     "a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build",
-                     "the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one",
-                     // kb/Work PB4326: the audits run BESIDE the build and the legs, and only tooling runs the self-tests
-                     "an audit that turns RED while the gate queues for the slot ends the gate before the build",
-                     "an audit that is RED only after the legs have started STOPS them",
-                     "the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches tooling",
-                     "the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY",
-                     "the verdict file records, per assembly, the seconds its leg hosts ran and the legs' effective concurrency",
-                     // kb/Work PB2878: the inert lane, a change no test reads
-                     "a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN",
-                     "the inert lane under the `whole` scope is a plain GREEN",
-                     "a red audit is RED in the inert lane too",
-                     "shared gate settings that turn malformed while the gate queues: NOT RUN",
-                     "every gate that ran a leg publishes its measured durations to the shared timings store",
-                     "a failed publish to the timings store is reported and recorded, and the verdict is unaffected",
-                     "a hung self-test is `SELF-TESTS HANG` in the gate's reasons, never RED, and every gate's self-tests run with --reuse",
-                     "a failed audit prerequisite (CI's `git submodule update --init tools/claude-skills`) is its RED, with its output, and no audit runs",
-                     "a defect in work beside the critical path is a named RED with its traceback",
-                     "ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits beside the build and the legs and stops at a red in",
-                     "a second gate in the same worktree is REFUSED",
-                     "its verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED",
-                     "the one verdict reader: GREEN and LEG 1 ONLY: GREEN pass",
-                     "a defect in the driver still ends in ONE verdict line",
-                     // kb/Work PB3526, review R2-1 of wave 1150: every NOT RUN cause classified ONCE, its printers held to it
-                     "a population that cannot be listed after a GREEN build is NOT RUN [population]",
-                     "every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies",
-                     "the gate lock is per worktree",
-                     "the measured tree is the working tree's content",
-                     "a re-gate of an unchanged tree answers from the recorded GREEN",
-                     "a chain of reuses names the run that MEASURED the tree",
-                     "a re-gate of a CHANGED tree runs the gate",
-                     "a RED is never reused",
-                     "a LEG 1 ONLY GREEN never answers a gate under the scope whole",
-                     "a gate whose tree changed WHILE it ran is never reused",
-                     "--await reads the verdict file",
-                     // review R1-1 and R1-2 of wave 1152: a handed run's name is its worktree's; the harness's
-                     // edit of a tracked settings file is no part of a measured tree
-                     "the measured tree leaves out coord.NEVER_WORK",
-                     "a relative run name resolves against the worktree that gated it",
-                     "a record with no exit code takes it from its verdict through the one verdict reader",
-                     "build-local's gate runs DETACHED and is followed",
-                     "a detached gate OUTLIVES its follower's tree kill",
-                 });
-    }
-
-    /// <summary>
-    /// ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-build-ci.md §3.17.3): the gate takes no
-    /// mode, so no brief, skill, script, doc or test may tell anyone to run one — a caller left naming the deleted
-    /// lander mode would fail at the parameter binder, and one naming the implementer mode would teach a distinction
-    /// that no longer exists. History (the DEVLOG, the kb/Work notes, frozen evidence) keeps its words.
-    /// </summary>
-    [Fact]
-    public void TheGate_HasOneShape_NoCallerNamesAMode()
-    {
-        var mode = new Regex(@"(?:-Mode|--mode)\s+(?:" + "implementer" + "|" + "lander" + @")\b", RegexOptions.NonBacktracking);
-        string[] extensions = [".md", ".py", ".ps1", ".sh", ".js", ".cs", ".yml", ".json"];
-        string[] skipped = ["bin", "obj", ".git", "TestResults", "claude-skills", "evidence", "Work", "worktrees"];
-        IEnumerable<string> Walk(string dir) => Directory.Exists(dir)
-            ? Directory.EnumerateFiles(dir).Where(f => extensions.Contains(Path.GetExtension(f)))
-                .Concat(Directory.EnumerateDirectories(dir)
-                    .Where(d => !skipped.Contains(Path.GetFileName(d))).SelectMany(Walk))
-            : [];
-        // Each tree is spelled by its own call, so the drift-rule index names this test for a change under any of them.
-        var files = new[] { TestRepo.At(".claude"), TestRepo.At(".github"), TestRepo.Scripts(), TestRepo.Docs(), TestRepo.Tests() }
-            .SelectMany(Walk)
-            .Concat(Directory.EnumerateFiles(TestRepo.Root, "*.md")
-                .Where(f => Path.GetFileName(f) != "STATUS.md"))  // a worktree's gitignored checkpoint (the history, DEVLOG/, is not walked)
-            .ToList();
-        Assert.Contains(files, f => f.EndsWith(Path.Combine("templates", "MANDATORY-PRACTICES.md"), StringComparison.Ordinal));
-        var offenders = files
-            .SelectMany(f => File.ReadLines(f).Select((line, i) => (f, i, line)))
-            .Where(x => mode.IsMatch(x.line))
-            .Select(x => $"{Path.GetRelativePath(TestRepo.Root, x.f)}:{x.i + 1}: {x.line.Trim()}")
-            .ToList();
-        Assert.True(offenders.Count == 0,
-            "the gate has ONE shape — `pwsh scripts/build-local.ps1 [-Priority BelowNormal]`, no mode (kb/Work PB3022) — "
-            + "but these lines still name one:\n  " + string.Join("\n  ", offenders));
-    }
-
-    /// <summary>
-    /// Arm (6): every <c>dotnet test</c> caller under <c>scripts/</c> runs scrubbed, and no CI workflow sets a
-    /// variable that narrows a test run.
-    /// </summary>
-    [Fact]
-    public void Arm6_EveryDotnetTestCaller_ScrubsTheGateEnvironment()
-    {
-        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts(PopulationTool), "audit-callers");
-
-        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== CALLER AUDIT: CLEAN", StringComparison.Ordinal),
-            "A `dotnet test` caller can run with a gate leg handshake (WISEOWL_COBOL_GATE_*) or a VSTest*/"
-            + "RunSettingsFilePath variable in its environment, which narrows the run to a PART of its assembly while "
-            + "it exits 0 (kb/Work PB1718). Run it as `python scripts/test_population.py scrubbed dotnet test …` "
-            + "(a python caller passes `env=scrubbed_env()`), and never set one of those variables in a workflow.\n"
-            + $"(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
-
-        // ⛔ THE SCAN MUST ASSERT ITS OWN POPULATION: the callers §3.14.3 names, plus the gate twins. A scan that
-        // stopped seeing them would report a clean tree over nothing.
-        foreach (string site in new[]
-                 {
-                     "scripts/battery.sh", "scripts/run_gate_legs.py", "scripts/gen-vcr.ps1",
-                     "scripts/gen-diagnostics-doc.ps1", "scripts/spec/record_verdicts.py",
-                     "scripts/spec/record_impact_map.py", "scripts/abi_pin.py", ".github/workflows/build-and-test.yml",
-                 })
-        {
-            Assert.True(r.Stdout.Contains("  site  " + site + "\n", StringComparison.Ordinal)
-                        || r.Stdout.Contains("  site  " + site + "\r\n", StringComparison.Ordinal),
-                $"the caller audit no longer sees {site} — the scan is broken, not the tree clean.\n{r.Stdout}");
-        }
-    }
-
-    /// <summary>
-    /// RED AT THE PREVIOUS GATE MEANS EITHER HOST'S (kb/Work PB3155, PB3184; DESIGN-test-build-ci.md §3.14.2, tier 0a):
-    /// every live tool that writes a trx file into a worktree is a row of <c>gate_plan.TRX_WRITERS</c>, which says what
-    /// the plan takes from its results — the gate's own previous run, the Linux gate's newest run, or nothing and why —
-    /// and names a results directory its tool really writes. Until 2026-10-23 the plan read only the first, so a
-    /// finisher's re-gate after a landing's Linux red ran neither failed case in leg 1 and read GREEN (w1076a, PB2921).
-    /// </summary>
-    [Fact]
-    public void EveryTrxWriter_IsARedSourceOfThePlan_OrSaysWhyNot()
-    {
-        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("gate_plan.py"),
-            "--audit-trx-writers");
-
-        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== TRX WRITER AUDIT: CLEAN", StringComparison.Ordinal),
-            "A live tool writes test results (a trx file) that the gate's plan does not classify: give it a row in "
-            + "scripts/gate_plan.py TRX_WRITERS (its results directory, and whether its reds are tier 0a of the next "
-            + "gate, read by gate_plan.previous_gates), or correct the row that no longer matches its tool.\n"
-            + $"(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
-
-        // ⛔ THE AUDIT MUST SEE ITS POPULATION: the two gates whose reds the plan reads, and the battery. An audit that
-        // stopped seeing them would report a clean tree over nothing.
-        foreach (string writer in new[]
-                 {
-                     "scripts/run_gate_legs.py  TestResults/build-local", "scripts/linux-gate.sh  TestResults/linux-gate",
-                     "scripts/battery.sh  -",
-                 })
-        {
-            Assert.True(r.Stdout.Contains("  writer  " + writer + "  ", StringComparison.Ordinal),
-                $"the trx writer audit no longer sees {writer} — the audit is broken, not the tree clean.\n{r.Stdout}");
-        }
-    }
-
-    /// <summary>
-    /// ONE READER OF A TRX FILE (kb/Work PB3661; DESIGN-test-build-ci.md §3.14.2): <c>test_population.trx_root</c>, which
-    /// names the file it cannot read. The gate planner and the profiler each parsed a trx themselves, so a torn file
-    /// ended a gate's plan with a parse error that named no path (run 000005 of wf_1973801d-4fe-29, 2026-10-24).
-    /// </summary>
-    [Fact]
-    public void EveryTrxReader_IsTheOneReader_ThatNamesTheFileItCannotRead()
-    {
-        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("gate_plan.py"),
-            "--audit-trx-readers");
-
-        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== TRX READER AUDIT: CLEAN", StringComparison.Ordinal),
-            "A live tool parses a trx file itself: read it through scripts/test_population.py trx_root (it raises "
-            + "UnreadableTrx naming the file), so a torn file never fails a gate's plan with an unnamed parse error.\n"
-            + $"(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
-
-        // ⛔ THE AUDIT MUST SEE ITS POPULATION: the one reader parses XML, and the two tools that used to read for
-        // themselves still name the schema (the planner's fixtures, the profiler's namespace) and parse nothing.
-        foreach (string line in new[]
-                 {
-                     "  trx-schema  scripts/test_population.py  parses XML",
-                     "  trx-schema  scripts/gate_plan.py  no XML parser",
-                     "  trx-schema  scripts/profile-test-parallelism.py  no XML parser",
-                 })
-        {
-            Assert.True(r.Stdout.Contains(line, StringComparison.Ordinal),
-                $"the trx reader audit no longer reports `{line.Trim()}` — the audit is broken, not the tree clean.\n{r.Stdout}");
-        }
-    }
-
-    private const string Ns = "WiseOwl.Cobol.Tests.Conformance";
-
-    // ── Arm (1): the name key and the leg function ────────────────────────────────────────────────────────────────
-
-    /// <summary>The name-key cases, each with the key the contract gives it.</summary>
-    private static readonly (string Display, string Key)[] KeyCases =
-    [
-        ($"{Ns}.ConformanceSuiteTests_P3.SuiteTest_IsNoWorseThanItsVerdictAllows(edition: \"2023\", id: \"a\")",
-            $"{Ns}.ConformanceSuiteTests.SuiteTest_IsNoWorseThanItsVerdictAllows(edition: \"2023\", id: \"a\")"),
-        ($"{Ns}.VersionMatrixTests_P11.Cobol85Program_StillCompilesAtLaterEdition",
-            $"{Ns}.VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition"),
-        ($"{Ns}.Family_P1_P2.M", $"{Ns}.Family_P1.M"),                          // greedy: only the LAST suffix
-        ($"{Ns}.Plain.M(x: \"Foo_P3.Bar_P4\")", $"{Ns}.Plain.M(x: \"Foo_P3.Bar_P4\")"), // arguments untouched
-        ($"{Ns}.Outer_P2.M(a.b_P3.c)", $"{Ns}.Outer.M(a.b_P3.c)"),
-        ($"{Ns}.M_P3.Method_P4", $"{Ns}.M.Method_P4"),                          // the method segment is never touched
-        ("Class_P1.M", "Class_P1.M"),                                            // under three segments: untouched
-        ($"{Ns}._P1.M", $"{Ns}._P1.M"),                                          // the family must be non-empty
-        ($"{Ns}.C_Px.M", $"{Ns}.C_Px.M"),
-        ($"{Ns}.C_P.M", $"{Ns}.C_P.M"),
-        ($"{Ns}.C_P12x.M", $"{Ns}.C_P12x.M"),
-        ($"{Ns}.Dup.Long(s: \"0123456789012345678901234567890123456789012345678\"···)",
-            $"{Ns}.Dup.Long(s: \"0123456789012345678901234567890123456789012345678\"···)"),
-        ("", ""),
-        ("NoDots", "NoDots"),
-        // THE TRX'S SPELLING (kb/Work PB4274): xunit lists a supplementary-plane character literally and the trx logger
-        // writes each of its surrogates as \uXXXX, so the key is the logger's spelling. A lone surrogate xunit already
-        // wrote as \xd800, and the literal text that xunit writes with a doubled backslash, are left as they are.
-        ($"{Ns}.C_P2.M(s: \"A\U0001E900\")", $"{Ns}.C.M(s: \"A\\ud83a\\udd00\")"),
-        ($"{Ns}.C.M(s: \"\U0001D15E\")", $"{Ns}.C.M(s: \"\\ud834\\udd5e\")"),
-        ($"{Ns}.C.M(s: \"\\ud834\\udd5e\")", $"{Ns}.C.M(s: \"\\ud834\\udd5e\")"),
-        ($"{Ns}.C.M(s: \"\\\\ud834\\\\udd5e\")", $"{Ns}.C.M(s: \"\\\\ud834\\\\udd5e\")"),
-        ($"{Ns}.C.M(s: \"x\\xd800y\")", $"{Ns}.C.M(s: \"x\\xd800y\")"),
-        ($"{Ns}.C.M(s: \"z￿\")", $"{Ns}.C.M(s: \"z\\uffff\")"),
-    ];
-
-    [Fact]
-    public void Arm1_NameKey_StripsExactlyThePartitionSuffix()
-    {
-        var wrong = KeyCases.Where(c => GateNameKey.Of(c.Display) != c.Key)
-            .Select(c => $"{c.Display} -> {GateNameKey.Of(c.Display)} (expected {c.Key})").ToList();
-        Assert.True(wrong.Count == 0, "GateNameKey.Of broke the contract:\n  " + string.Join("\n  ", wrong));
-    }
-
-    [Fact]
-    public void Arm1_LegOf_IsTotalAndDeterministic_OverRepeatedUnknownAndTruncatedNames()
-    {
-        const string truncated = $"{Ns}.Dup.Long(s: \"0123456789012345678901234567890123456789012345678\"···)";
-        var plan = new GateAssemblyPlan("Conformance", "c0ffee",
-            [$"{Ns}.A.M", truncated], [$"{Ns}.Corpus.Run(n: 1)", $"{Ns}.B.M"]);
-        (string Display, int Leg)[] cases =
-        [
-            ($"{Ns}.A.M", 1),
-            ($"{Ns}.A.M", 1),                        // a repeated name: the same leg every time
-            (truncated, 1), (truncated, 1),          // two rows behind one truncated name: both in its leg
-            ($"{Ns}.Corpus_P4.Run(n: 1)", 2),        // a partition row, by its key
-            ($"{Ns}.Corpus_P0.Run(n: 1)", 2),        // the same key from another partition: the same leg
-            ($"{Ns}.B.M", 2),
-            ($"{Ns}.NeverPlanned.M", 1),             // unknown to the plan: leg 1, never nowhere
-            ("", 1),
-        ];
-        foreach (var (display, leg) in cases)
-        {
-            Assert.True(plan.LegOf(display) == leg, $"LegOf({display}) = {plan.LegOf(display)}, expected {leg}");
-            Assert.Equal(plan.LegOf(display), plan.LegOf(display));
-        }
-
-        Assert.True(plan.RankOf($"{Ns}.A.M") < plan.RankOf(truncated), "leg 1's list is in rank order");
-        Assert.True(plan.RankOf(truncated) < plan.RankOf($"{Ns}.Corpus_P9.Run(n: 1)"), "leg 1 ranks before leg 2");
-        Assert.Equal(int.MaxValue, plan.RankOf($"{Ns}.NeverPlanned.M"));
-
-        var empty = new GateAssemblyPlan("Conformance", "c0ffee", [], []);
-        Assert.All(cases, c => Assert.Equal(1, empty.LegOf(c.Display)));
-    }
-
-    /// <summary>The test hosts' key and leg function are one contract with scripts/gate_plan.py: the plan is built
-    /// by one and read by the other, and a disagreement is a case the plan put in one leg and the host ran in the
-    /// other — or in neither.</summary>
-    [Fact]
-    public void Arm1_NameKeyAndLegOf_MirrorGatePlanPy()
-    {
-        string[] names = [.. KeyCases.Select(c => c.Display), $"{Ns}.Corpus_P7.Run(n: 1)", $"{Ns}.Other.M"];
-        var planJson = new
-        {
-            schema = 1, sha256 = "c0ffee",
-            assemblies = new { Conformance = new { legs = new[] { 1, 2 }, leg1 = new[] { $"{Ns}.A.M" },
-                leg2 = new[] { $"{Ns}.Corpus.Run(n: 1)", KeyCases[0].Key } } },
-        };
-        DirectoryInfo dir = new(ScratchDirectory.Create("gate-legs-"));
-        try
-        {
-            string namesFile = Path.Combine(dir.FullName, "names.json");
-            string planFile = Path.Combine(dir.FullName, "plan.json");
-            File.WriteAllText(namesFile, JsonSerializer.Serialize(names), new UTF8Encoding(false));
-            File.WriteAllBytes(planFile, JsonSerializer.SerializeToUtf8Bytes(planJson));
-            string code = string.Join(Environment.NewLine,
-                "import json, sys",
-                "sys.path.insert(0, 'scripts')",
-                "import gate_plan",
-                "names = json.load(open(sys.argv[1], encoding='utf-8'))",
-                "plan = json.load(open(sys.argv[2], encoding='utf-8'))",
-                "print(json.dumps([[gate_plan.name_key(n), gate_plan.leg_of(plan, 'Conformance', n)] for n in names]))");
-            var r = PythonInstrument.Run(ObservationBudget.OneProcess, "-c", code, namesFile, planFile);
-            Assert.True(r.ExitCode == 0, $"gate_plan.py could not be driven:\n{r.Stdout}{r.Stderr}");
-            var python = JsonSerializer.Deserialize<JsonElement[][]>(r.Stdout.Trim())!;
-            GateAssemblyPlan plan = GatePlan.Parse(File.ReadAllBytes(planFile), "Conformance");
-            Assert.Equal(names.Length, python.Length);
-            for (int i = 0; i < names.Length; i++)
-            {
-                Assert.True(python[i][0].GetString() == GateNameKey.Of(names[i]),
-                    $"name key of '{names[i]}': Python '{python[i][0].GetString()}', C# '{GateNameKey.Of(names[i])}'");
-                Assert.True(python[i][1].GetInt32() == plan.LegOf(names[i]),
-                    $"leg of '{names[i]}': Python {python[i][1].GetInt32()}, C# {plan.LegOf(names[i])}");
-            }
-        }
-        finally
-        {
-            ScratchDirectory.Remove(dir.FullName);
-        }
-    }
-
-    // ── The handshake: a leg runs only on a complete, consistent environment ──────────────────────────────────────
-
-    private static readonly byte[] PlanBytes = Encoding.UTF8.GetBytes(
-        "{\"assemblies\":{\"Unit\":{\"leg1\":[\"N.C.A\"],\"leg2\":[\"N.C.B\"],\"legs\":[1,2]}},\"schema\":1,"
-        + "\"sha256\":\"c0ffee\"}");
-
-    private static GateHandshake Read(string? plan, string? leg, string? digest, string assembly = "Unit")
-    {
-        var env = new Dictionary<string, string?>
-        {
-            [GateHandshake.PlanVariable] = plan, [GateHandshake.LegVariable] = leg,
-            [GateHandshake.DigestVariable] = digest,
-        };
-        return GateHandshake.Read(name => env.GetValueOrDefault(name), assembly);
-    }
-
-    private static string Digest(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
-
-    [Fact]
-    public void Handshake_NoneSet_RunsEveryCase_AndAConsistentOneRunsTheLeg()
-    {
-        Assert.IsType<GateHandshake.None>(Read(null, null, null));
-        Assert.IsType<GateHandshake.None>(Read("", "", ""));        // an empty value is unset
-
-        DirectoryInfo dir = new(ScratchDirectory.Create("gate-legs-"));
-        try
-        {
-            string plan = Path.Combine(dir.FullName, "plan.json");
-            File.WriteAllBytes(plan, PlanBytes);
-            var leg = Assert.IsType<GateHandshake.Leg>(Read(plan, "2", Digest(PlanBytes).ToUpperInvariant()));
-            Assert.Equal(2, leg.Number);
-            Assert.Equal("c0ffee", leg.Plan.ContentSha256);
-            Assert.Equal(2, leg.Plan.LegOf("N.C.B"));
-            Assert.Equal(1, leg.Plan.LegOf("N.C.A"));
-            Assert.Equal(Path.Combine(dir.FullName, "leg-2-Unit.json"), GateIdentityRecord.PathFor(leg));
-        }
-        finally
-        {
-            ScratchDirectory.Remove(dir.FullName);
-        }
-    }
-
-    /// <summary>Every partial or stale handshake refuses — on a real host each case then becomes an execution error
-    /// and the run is RED (section 3.14.3; evidence b3: a constructor throw would run every case green).</summary>
-    [Fact]
-    public void Handshake_EveryPartialOrStaleEnvironment_Refuses()
-    {
-        DirectoryInfo dir = new(ScratchDirectory.Create("gate-legs-"));
-        try
-        {
-            string plan = Path.Combine(dir.FullName, "plan.json");
-            File.WriteAllBytes(plan, PlanBytes);
-            string digest = Digest(PlanBytes);
-            string Planted(string name, string text)
-            {
-                string p = Path.Combine(dir.FullName, name);
-                File.WriteAllText(p, text, new UTF8Encoding(false));
-                return p;
-            }
-
-            string notJson = Planted("not-json.json", "not json");
-            string schema2 = Planted("schema2.json", "{\"schema\":2,\"sha256\":\"x\",\"assemblies\":{}}");
-            string badKey = Planted("badkey.json",
-                "{\"schema\":1,\"sha256\":\"x\",\"assemblies\":{\"Unit\":{\"leg1\":[1],\"leg2\":[]}}}");
-            string bothLegs = Planted("both.json",
-                "{\"schema\":1,\"sha256\":\"x\",\"assemblies\":{\"Unit\":{\"leg1\":[\"N.C.A\"],\"leg2\":[\"N.C.A\"]}}}");
-            var arms = new (string Arm, GateHandshake Result, string Says)[]
-            {
-                ("plan only", Read(plan, null, null), "WISEOWL_COBOL_GATE_PLAN is set but WISEOWL_COBOL_GATE_LEG and WISEOWL_COBOL_GATE_PLAN_SHA256 are not"),
-                ("leg only", Read(null, "1", null), "WISEOWL_COBOL_GATE_LEG is set but"),
-                ("digest only", Read(null, null, digest), "WISEOWL_COBOL_GATE_PLAN_SHA256 is set but"),
-                ("plan + leg", Read(plan, "1", null), "WISEOWL_COBOL_GATE_PLAN and WISEOWL_COBOL_GATE_LEG are set but WISEOWL_COBOL_GATE_PLAN_SHA256 is not"),
-                ("plan + digest", Read(plan, null, digest), "but WISEOWL_COBOL_GATE_LEG is not"),
-                ("leg + digest", Read(null, "2", digest), "but WISEOWL_COBOL_GATE_PLAN is not"),
-                ("leg 3", Read(plan, "3", digest), "WISEOWL_COBOL_GATE_LEG is '3', not 1 or 2"),
-                ("leg ' 1'", Read(plan, " 1", digest), "not 1 or 2"),
-                ("missing file", Read(Path.Combine(dir.FullName, "absent.json"), "1", digest), "cannot be read"),
-                ("digest mismatch", Read(plan, "1", Digest([1, 2, 3])), "hashes to " + digest),
-                ("unparsable", Read(notJson, "1", Digest(File.ReadAllBytes(notJson))), "the plan is not JSON"),
-                ("schema 2", Read(schema2, "1", Digest(File.ReadAllBytes(schema2))), "the plan is not schema 1"),
-                ("no such assembly", Read(plan, "1", digest, "Conformance"), "the plan names no assembly 'Conformance'"),
-                ("a key not a string", Read(badKey, "1", Digest(File.ReadAllBytes(badKey))), "holds a Number"),
-                ("a key in both legs", Read(bothLegs, "1", Digest(File.ReadAllBytes(bothLegs))),
-                    "the plan puts 'N.C.A' in both legs"),
-            };
-            var wrong = arms.Where(a => a.Result is not GateHandshake.Refused r || !r.Cause.Contains(a.Says,
-                    StringComparison.Ordinal))
-                .Select(a => $"{a.Arm}: {a.Result}").ToList();
-            Assert.True(wrong.Count == 0, "a partial or stale handshake was not refused as expected:\n  "
-                                          + string.Join("\n  ", wrong));
-        }
-        finally
-        {
-            ScratchDirectory.Remove(dir.FullName);
-        }
-    }
 
     // ── Arm (2): the orderers ─────────────────────────────────────────────────────────────────────────────────────
 
@@ -555,33 +78,46 @@ public sealed class GateLegDriftTests
             Reflector.Wrap(typeof(GateLegDriftTests).GetMethod(nameof(PlantedMethod),
                 BindingFlags.Instance | BindingFlags.NonPublic)!));
 
+    /// <summary>THE ORDER (kb/Work PB4328): the collections whose classes the gate names first, then longest first by the
+    /// weights (a collection weighs its classes' sum, an unnamed class the default), ties in xunit's order; the first
+    /// classes come from the file <see cref="GateOrderer.FirstVariable"/> names, and none when it is unset.</summary>
     [Fact]
-    public void Arm2_EachOrderer_ReturnsAPermutation_InPlanOrder()
+    public void Arm2_TheOrderer_RunsTheNamedClassesFirst_ThenLongestFirst_AndReturnsAPermutation()
     {
         var assembly = new TestAssembly(Reflector.Wrap(typeof(GateLegDriftTests).Assembly));
-        var early = new TestCollection(assembly, null, "early");
-        var late = new TestCollection(assembly, null, "late");
-        var unplanned = new TestCollection(assembly, null, "unplanned");
-        var plan = new GateAssemblyPlan("Unit", "c0ffee", ["N.E.First", "N.L.Second"], ["N.E.Third"]);
+        var light = new TestCollection(assembly, null, "light");
+        var heavy = new TestCollection(assembly, null, "heavy");
+        var named = new TestCollection(assembly, null, "named");
+        var unknown = new TestCollection(assembly, null, "unknown");
+        ITestCase Case(ITestCollection collection, Type type) => new PlantedCase(type.Name,
+            new TestMethod(new TestClass(collection, Reflector.Wrap(type)),
+                Reflector.Wrap(typeof(GateLegDriftTests).GetMethod(nameof(PlantedMethod), BindingFlags.Instance | BindingFlags.NonPublic)!)));
+        TestWeights weights = TestWeights.Parse(Encoding.UTF8.GetBytes(
+            "{\"schema\": 1, \"default_seconds\": 5, \"assemblies\": {\"Unit\": {\""
+            + typeof(string).FullName + "\": 10, \"" + typeof(int).FullName + "\": 90, \"" + typeof(long).FullName + "\": 1}}}"));
         var cases = new List<ITestCase>
         {
-            new PlantedCase("N.U.Never", MethodIn(unplanned)),
-            new PlantedCase("N.E.Third", MethodIn(early)),
-            new PlantedCase("N.L.Second", MethodIn(late)),
-            new PlantedCase("N.E.First", MethodIn(early)),
-            new PlantedCase("N.E.First", MethodIn(early)),   // a repeated name: both kept
+            Case(light, typeof(string)), Case(heavy, typeof(int)), Case(named, typeof(long)), Case(unknown, typeof(Guid)),
         };
-
-        var orderedCases = new GateCaseOrderer(plan).OrderTestCases(cases).ToList();
-        Assert.Equal(cases.Count, orderedCases.Count);
-        Assert.True(cases.All(c => orderedCases.Count(o => ReferenceEquals(o, c)) == 1), "not a permutation");
-        Assert.Equal(new[] { "N.E.First", "N.E.First", "N.L.Second", "N.E.Third", "N.U.Never" },
-            orderedCases.Select(c => c.DisplayName));
-
-        var collections = new List<ITestCollection> { unplanned, late, early };
-        var orderedCollections = new GateCollectionOrderer(plan.CollectionRanks(cases))
-            .OrderTestCollections(collections).ToList();
-        Assert.Equal(new ITestCollection[] { early, late, unplanned }, orderedCollections);
+        string file = Path.Combine(ScratchDirectory.Create("gate-first-"),"first-classes.txt");
+        File.WriteAllText(file, typeof(long).FullName + "\n\n");
+        try
+        {
+            GateOrderer orderer = GateOrderer.For("Unit", weights, n => n == GateOrderer.FirstVariable ? file : null);
+            Assert.Equal(new[] { typeof(long).FullName }, orderer.First);
+            var collections = new List<ITestCollection> { light, unknown, heavy, named };
+            Assert.Equal(new ITestCollection[] { named, heavy, light, unknown },
+                orderer.Collections(cases).OrderTestCollections(collections).ToList());
+            GateOrderer unnamed = GateOrderer.For("Unit", weights, _ => null);
+            Assert.Empty(unnamed.First);
+            Assert.Equal(new ITestCollection[] { heavy, light, unknown, named },
+                unnamed.Collections(cases).OrderTestCollections(collections).ToList());
+            Assert.ThrowsAny<IOException>(() => GateOrderer.For("Unit", weights, _ => file + ".absent"));
+        }
+        finally
+        {
+            ScratchDirectory.Remove(Path.GetDirectoryName(file)!);
+        }
     }
 
     /// <summary>xunit trusts an orderer's output: a dropped case would silently never run. The permutation check
@@ -606,6 +142,124 @@ public sealed class GateLegDriftTests
         }
 
         Assert.Equal(new[] { c, a, b, a }, GateOrder.Permutation(input, xs => [xs[2], xs[0], xs[1], xs[3]]));
+    }
+
+    // ── CI's weighted shards (kb/Work PB4329): the shard variable, the weights file and the deal ───────────────────
+
+    [Fact]
+    public void Shard_ReadsKOfN_AndRefusesEveryOtherSpelling()
+    {
+        GateShard? Read(string? value) => GateShard.Read(name => name == GateShard.Variable ? value : null);
+
+        Assert.Null(Read(null));
+        Assert.Null(Read(""));                      // an empty value is unset, as Windows cannot hold one
+        Assert.Equal(new GateShard(3, 7), Read("3/7"));
+        Assert.Equal(new GateShard(1, 1), Read("1/1"));
+        Assert.Equal("5/5", Read("5/5")!.ToString());
+        foreach (string bad in new[] { "0/7", "8/7", "3/0", "3", "3-7", " 3/7", "3/7 ", "03/7", "-1/7", "3/7/9", "k/N", "1000/1000" })
+        {
+            var ex = Assert.Throws<GateShardException>(() => Read(bad));
+            Assert.Contains($"'{bad}'", ex.Message, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>The deal of the design (kb/Work PB4329): every class the file names, of every assembly, heaviest first to
+    /// the lightest shard so far (ties to the lowest), then this assembly's unnamed classes at the default weight in
+    /// ordinal order. Worked by hand: A 50 to shard 1, X 40 (another assembly) to 2, B 30 to 3, C 20 to 3 (load 30), D 10
+    /// to 2 (load 40), then New1 to 1 (50, 50, 50: the lowest) and New2 to 2 (55, 50, 50).</summary>
+    [Fact]
+    public void Shard_Deal_IsLongestFirstOverEveryAssembly_ThenTheUnnamedAtTheDefault()
+    {
+        TestWeights weights = TestWeights.Parse(Encoding.UTF8.GetBytes(
+            """{"schema": 1, "default_seconds": 5, "assemblies": {"Unit": {"A": 50, "B": 30, "C": 20, "D": 10}, "Conformance": {"X": 40}}}"""));
+        Dictionary<string, int> dealt = weights.Deal(3, "Unit", ["D", "New2", "A", "C", "New1", "B", "A"]);
+
+        Assert.Equal(new Dictionary<string, int> { ["A"] = 1, ["B"] = 3, ["C"] = 3, ["D"] = 2, ["New1"] = 1, ["New2"] = 2 },
+            dealt.Where(e => e.Key != "X").ToDictionary());
+        Assert.False(dealt.ContainsKey("X"), "another assembly's class is dealt, but never named in this one's map");
+        Assert.Equal(dealt, weights.Deal(3, "Unit", ["New1", "B", "New2", "C", "D", "A"]));   // the order of discovery is irrelevant
+        Assert.Equal(1, weights.Deal(1, "Unit", ["A", "New1"]).Values.Distinct().Single());
+        Assert.Throws<ArgumentOutOfRangeException>(() => weights.Deal(0, "Unit", ["A"]));
+    }
+
+    /// <summary>Every case runs in exactly one shard: the union of every shard's cases is the input, each once, in its
+    /// discovery order, whatever the weights know (a class the file never heard of included).</summary>
+    [Fact]
+    public void Shard_CasesOf_PartitionsTheCasesByClass_EveryCaseInExactlyOneShard()
+    {
+        var assembly = new TestAssembly(Reflector.Wrap(typeof(GateLegDriftTests).Assembly));
+        var collection = new TestCollection(assembly, null, "planted");
+        ITestCase Case(Type type, string name) => new PlantedCase(name,
+            new TestMethod(new TestClass(collection, Reflector.Wrap(type)),
+                Reflector.Wrap(typeof(GateLegDriftTests).GetMethod(nameof(PlantedMethod), BindingFlags.Instance | BindingFlags.NonPublic)!)));
+        var cases = new List<ITestCase>
+        {
+            Case(typeof(string), "S.One"), Case(typeof(int), "I.One"), Case(typeof(string), "S.Two"),
+            Case(typeof(Uri), "U.One"), Case(typeof(Guid), "G.One"), Case(typeof(int), "I.Two"),
+        };
+        TestWeights weights = TestWeights.Parse(Encoding.UTF8.GetBytes(
+            """{"schema": 1, "default_seconds": 1, "assemblies": {"Unit": {"System.String": 9, "System.Int32": 8, "System.Uri": 2}}}"""));
+
+        foreach (int count in new[] { 1, 2, 3, 7 })
+        {
+            var shards = Enumerable.Range(1, count).Select(k => new GateShard(k, count).CasesOf(cases, "Unit", weights)).ToList();
+            var all = shards.SelectMany(s => s).ToList();
+            Assert.True(all.Count == cases.Count && cases.All(c => all.Count(o => ReferenceEquals(o, c)) == 1),
+                $"{count} shards: not every case exactly once");
+            Assert.All(shards, s => Assert.Equal(cases.Where(s.Contains), s));                          // discovery order kept
+            Assert.All(shards, s => Assert.True(s.Select(GateShard.ClassOf).Distinct().All(cls =>
+                s.Count(c => GateShard.ClassOf(c) == cls) == cases.Count(c => GateShard.ClassOf(c) == cls)),
+                "a class is split across shards"));
+        }
+    }
+
+    [Fact]
+    public void Shard_TheWeightsReader_RefusesEveryMalformedFile()
+    {
+        foreach (var (arm, text, says) in new[]
+                 {
+                     ("not JSON", "not json", "not JSON"),
+                     ("schema 2", """{"schema": 2, "default_seconds": 1, "assemblies": {}}""", "not schema 1"),
+                     ("no default", """{"schema": 1, "assemblies": {}}""", "default_seconds"),
+                     ("a zero default", """{"schema": 1, "default_seconds": 0, "assemblies": {}}""", "default_seconds"),
+                     ("no assemblies", """{"schema": 1, "default_seconds": 1}""", "no assemblies"),
+                     ("an assembly not an object", """{"schema": 1, "default_seconds": 1, "assemblies": {"Unit": []}}""", "'Unit'"),
+                     ("a weight not a number", """{"schema": 1, "default_seconds": 1, "assemblies": {"Unit": {"A": "9"}}}""", "Unit/A"),
+                     ("a negative weight", """{"schema": 1, "default_seconds": 1, "assemblies": {"Unit": {"A": -1}}}""", "negative"),
+                 })
+        {
+            var ex = Record.Exception(() => TestWeights.Parse(Encoding.UTF8.GetBytes(text)));
+            Assert.True(ex is InvalidDataException && ex.Message.Contains(says, StringComparison.Ordinal),
+                $"{arm}: {ex?.GetType().Name}: {ex?.Message}");
+        }
+    }
+
+    /// <summary>The committed weights (tests/_shared/test-weights.json, embedded) deal the merge group's matrix evenly:
+    /// the heaviest of 7 Windows and of 5 Linux shards carries at most 1.10 times the mean (PIPELINE-REVIEW section 4.2's
+    /// "1.05 to 1.10x" over the weights). A regenerated file that deals worse is a design question, not a stale weight.</summary>
+    [Fact]
+    public void Shard_TheCommittedWeights_DealTheMatrixEvenly()
+    {
+        TestWeights weights = TestWeights.Embedded();
+        Assert.True(weights.Tenths.Count > 500, $"the weights name {weights.Tenths.Count} classes: the file did not load");
+        string[] assemblies = [.. weights.Tenths.Keys.Select(k => k.Assembly).Distinct().Order(StringComparer.Ordinal)];
+        Assert.Equal(["Characterization", "Conformance", "Unit"], assemblies);
+        foreach (int count in new[] { 5, 7 })
+        {
+            var load = new long[count];
+            foreach (string assembly in assemblies)
+            {
+                var named = weights.Tenths.Where(e => e.Key.Assembly == assembly).ToList();
+                Dictionary<string, int> dealt = weights.Deal(count, assembly, named.Select(e => e.Key.Class));
+                foreach (var e in named)
+                {
+                    load[dealt[e.Key.Class] - 1] += e.Value;
+                }
+            }
+
+            double spread = load.Max() / load.Average();
+            Assert.True(spread <= 1.10, $"{count} shards: the heaviest carries {spread:F3}x the mean ({string.Join(", ", load)} tenths)");
+        }
     }
 
     // ── Arm (4): every test project links GateLegs.cs and names the gate's framework ──────────────────────────────
@@ -656,6 +310,11 @@ public sealed class GateLegDriftTests
     [Fact]
     public void ThisTestHost_IsConfiguredForServerGc() =>
         GateLegAudit.AssertTestHostConfiguredForServerGc(typeof(GateLegDriftTests).Assembly);
+
+    /// <summary>This assembly embeds the weights CI's shards are dealt by (kb/Work PB4329).</summary>
+    [Fact]
+    public void ThisAssembly_EmbedsTheShardWeights() =>
+        GateLegAudit.AssertEmbedsTheWeights(typeof(GateLegDriftTests).Assembly);
 
     /// <summary>The audit's witness, on EVERY host for EVERY root shape (kb/Work PB1719): a Windows root and a POSIX
     /// root, both matched as text on either OS, and <c>host</c>, this run's own <see cref="TestRepo.Root"/> — the

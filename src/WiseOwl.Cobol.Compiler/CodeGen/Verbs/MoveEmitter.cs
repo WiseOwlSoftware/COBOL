@@ -108,8 +108,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 w.Line(LoudStmt(e.Unsupported ?? "the element moves of a variable-length group MOVE (ISO §14.6.9.2)"));
                 continue;
             }
-            using (w.Block($"for (long {e.Var} = 1, {e.Var}n = global::System.Math.Min((long)({PlaceRenderer.OccurrenceCount(sc)}), "
-                    + $"(long)({PlaceRenderer.OccurrenceCount(rc)})); {e.Var} <= {e.Var}n; {e.Var}++)"))
+            string v = LocalNames.Of(e.Var);
+            using (w.Block($"for (long {v} = 1, {v}n = global::System.Math.Min((long)({PlaceRenderer.OccurrenceCount(sc)}), "
+                    + $"(long)({PlaceRenderer.OccurrenceCount(rc)})); {v} <= {v}n; {v}++)"))
                 Emit(move);
         }
     }

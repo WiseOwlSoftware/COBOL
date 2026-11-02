@@ -5,13 +5,13 @@ section 16.10).
     python scripts/script_layering.py --check       # every declared module's imports against the DAG below
     python scripts/script_layering.py --self-test   # the planted cases, then --check over this tree
 
-⛔ WHY. The five pipeline scripts each did several jobs (plan_wave.py, prune_worktrees.py, run_gate_legs.py, enqueue.py,
+⛔ WHY. The five pipeline scripts each did several jobs (plan_wave.py, prune_worktrees.py, gate.py, enqueue.py,
 land_lane.py), and every fix appended to them; PB3726 splits each into library modules with ONE job each. A split is
 kept only if the modules stay layered: a report reader that imports the planner, or a survey module that imports the
 CLI built on it, is the tangle coming back. This audit holds the layering by structure, not by a list of forbidden
 pairs: the DAG below is the one declaration, read from each module's own syntax tree (every `import` and `from ...
-import`, at module level, inside a function, or under `if TYPE_CHECKING:`), and the C# sweep
-tests/WiseOwl.Cobol.Tests.Unit/ScriptLayeringDriftTests.cs runs `--check` in every gate's leg 1.
+import`, at module level, inside a function, or under `if TYPE_CHECKING:`), and the self-test runs `--check` over the
+tree (scripts/self_tests.py runs it in every gate of a change that touches tooling, and in CI; kb/Work PB4395).
 
 THE RULES (--check):
   1. DECLARED   a declared module may import another declared module only where the DAG lets it: a module of an
@@ -47,7 +47,7 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 #: tier of any line it is on; modules of one tier never import each other. Section 16.10 of the design draws these lines.
 LINES: tuple[tuple[tuple[str, ...], ...], ...] = (
     # scripts/: the gate
-    (("gate_verdict",), ("gate_runs",), ("gate_host",), ("run_gate_legs",)),
+    (("gate_verdict",), ("gate_runs",), ("gate_host",), ("gate",)),
     # scripts/orchestrator/: the branch survey, its CLI last
     (("coord",), ("reports",), ("branch_classify",), ("review_coverage",), ("branch_lifecycle",), ("branch_survey",),
      ("prune_worktrees",)),
@@ -69,7 +69,7 @@ NODES: dict[str, tuple[str, str | None]] = {
     "gate_verdict": ("scripts/gate_verdict.py", "PB3733"),
     "gate_runs": ("scripts/gate_runs.py", "PB3733"),
     "gate_host": ("scripts/gate_host.py", "PB3733"),
-    "run_gate_legs": ("scripts/run_gate_legs.py", None),
+    "gate": ("scripts/gate.py", None),
     "coord": ("scripts/orchestrator/coord.py", None),
     "reports": ("scripts/orchestrator/reports.py", "PB3728"),
     "branch_classify": ("scripts/orchestrator/branch_classify.py", "PB3731"),
@@ -102,7 +102,7 @@ NODES: dict[str, tuple[str, str | None]] = {
 SPLITS: dict[str, tuple[str, tuple[str, ...]]] = {
     "plan_wave": ("PB3728", ("reports", "inflight", "clusters", "groups", "dispatch_ledger")),
     "prune_worktrees":("PB3731", ("branch_classify", "review_coverage", "branch_lifecycle", "branch_survey")),
-    "run_gate_legs": ("PB3733", ("gate_verdict", "gate_runs", "gate_host")),
+    "gate": ("PB3733", ("gate_verdict", "gate_runs", "gate_host")),
     "enqueue": ("PB3735", ("landing_verdict", "land_checks", "land_tree", "land_evidence", "land_queue")),
     "land_lane": ("PB3737", ("lane_state", "conflict_brief", "lane_decide", "lane_watch", "lane_status")),
 }
@@ -236,15 +236,15 @@ def self_test() -> int:
     lines = ((("coord",), ("reports",), ("branch_classify",), ("inflight",), ("plan_wave",)),
              (("coord",), ("reports",), ("branch_classify",), ("branch_survey",), ("prune_worktrees",)),
              (("inflight",), ("branch_survey",)),
-             (("gate_verdict",), ("run_gate_legs",)))
+             (("gate_verdict",), ("gate",)))
     nodes = {"coord": ("scripts/orchestrator/coord.py", None), "reports": ("scripts/orchestrator/reports.py", "X1"),
              "branch_classify": ("scripts/orchestrator/branch_classify.py", "X2"),
              "inflight": ("scripts/orchestrator/inflight.py", "X1"), "plan_wave": ("scripts/orchestrator/plan_wave.py", None),
              "branch_survey": ("scripts/orchestrator/branch_survey.py", "X2"),
              "prune_worktrees": ("scripts/prune_worktrees.py", None),
-             "gate_verdict": ("scripts/gate_verdict.py", "X3"), "run_gate_legs": ("scripts/run_gate_legs.py", None)}
+             "gate_verdict": ("scripts/gate_verdict.py", "X3"), "gate": ("scripts/gate.py", None)}
     splits = {"plan_wave": ("X1", ("reports", "inflight")), "prune_worktrees": ("X2", ("branch_classify", "branch_survey")),
-              "run_gate_legs": ("X3", ("gate_verdict",))}
+              "gate": ("X3", ("gate_verdict",))}
     import scratch_repo  # (scripts/: THE way a self-test makes its scratch, removed on every way out, kb/Work PB3194)
     root = scratch_repo.scratch_dir("script-layering-")
 
@@ -259,7 +259,7 @@ def self_test() -> int:
 
     base = {"coord": "import json\n", "reports": "import coord\n", "inflight": "import coord\nfrom reports import X\n",
             "plan_wave": "import reports\nimport inflight\n", "prune_worktrees": "import coord\nimport inflight\n",
-            "run_gate_legs": "import json\n"}
+            "gate": "import json\n"}
     f, c = plant(base)
     expect("the declared edges pass (an earlier tier, the standard library, an unsplit module's own imports)",
            f == [] and c == {"checked": 4, "absent": 3, "unsplit": 2}, f"{f} {c}")
@@ -295,10 +295,10 @@ def self_test() -> int:
            len(f) == 1 and "prune_worktrees imports plan_wave" in f[0], str(f))
     f, _ = plant({**base, "prune_worktrees": "import plan_wave\n"})
     expect("while unsplit, prune_worktrees' own imports are its split's to check", f == [], str(f))
-    f, _ = plant({**base, "reports": "import coord\ndef gate():\n    import run_gate_legs\n",
-                  "run_gate_legs": "import json\n"})
+    f, _ = plant({**base, "reports": "import coord\ndef gate():\n    import gate\n",
+                  "gate": "import json\n"})
     expect("an orchestrator module may import a module of scripts/ (the gate), unsplit or not", f == [], str(f))
-    f, _ = plant({**base, "run_gate_legs": "import json\n", "gate_verdict": "import coord\n"})
+    f, _ = plant({**base, "gate": "import json\n", "gate_verdict": "import coord\n"})
     expect("a module of scripts/ may not import an orchestrator module", len(f) == 1 and "gate_verdict imports coord" in f[0],
            str(f))
     f, _ = check(root, ((("coord",), ("reports",)), (("reports",), ("coord",))), nodes, splits)
@@ -308,7 +308,11 @@ def self_test() -> int:
     expect("the real DAG is acyclic and every module on a line is declared",
            cycle(allowed_edges(LINES)) is None and {m for l in LINES for t in l for m in t} <= set(NODES))
     rc = run_check(REPO)
-    expect("--check over this tree", rc == 0)
+    _, counts = check(REPO)
+    # kb/Work PB4395: until then ScriptLayeringDriftTests, a compiler test, ran --check and held this floor. A net over
+    # nothing is no net: the planner's split (PB3728) put at least its six modules on disk.
+    expect(f"--check over this tree, and it checked at least the planner split's six modules ({counts['checked']})",
+           rc == 0 and counts["checked"] >= 6, str(counts))
     print(f"=== script_layering self-test: {'FAIL' if fails else 'PASS'} ({len(fails)} failed) ===")
     return 1 if fails else 0
 

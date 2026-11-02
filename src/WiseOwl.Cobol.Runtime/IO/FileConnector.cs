@@ -1033,7 +1033,11 @@ public abstract class FileConnector
         // transaction's holdings is §9.1.13.9 1)'s '61', with the file unaffected (§14.9.27.4 GR25).
         string? entered;
         try { entered = EnterPhysicalFile(mode); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { entered = FileStatusCode.PermanentError; }
+        // The settle's writable handle (or the lock directory) refused for the authority this process lacks: §9.1.13.6 6) b)'s '37',
+        // as the OPEN's own host open answers it below and as a keyed reader's settle does (kb/Work PB4097); any other host failure
+        // is item 1's '30'.
+        catch (UnauthorizedAccessException) { entered = FileStatusCode.PermissionDenied; }
+        catch (IOException) { entered = FileStatusCode.PermanentError; }
         if (entered is not null)
         {
             LeaveEntry();
@@ -1086,24 +1090,33 @@ public abstract class FileConnector
         (_begunByOpen, _openChangedFile) = (null, false);
     }
 
-    /// <summary>⛔ THE ENTRY STEP AT EVERY WRITABLE OPEN of a file of ANY organization (DESIGN-runtime-library.md 2.2.2.8, 2.2.2.14),
-    /// run before the presence probe (<see cref="OpenOnce"/>): the lock directory is listed for transaction journals — a live
-    /// transaction's holdings refuse the OPEN ('61' to an OPEN OUTPUT while any lives, to any writable OPEN while a replaced one
-    /// lives) and a dead one is settled (rolled back, or retired) first, so a keyed file a dead run unit captured is restored
-    /// before the store's own dead-owner step reads it. A covered OPEN takes the entry mutex for it and keeps it through its host
-    /// open, creation or capture (<see cref="LeaveEntry"/> gives it back); an uncovered one pays one listing and takes the mutex
-    /// only to settle. An OPEN INPUT runs no step (it has no writable handle to restore the file with, and reads it as it stands).
-    /// A lock directory this process may not list is the authority the OPEN lacks: '37' (§9.1.13.6 6) b): <i>"insufficient
-    /// authority exists to access the file"</i>), the file unaffected — never the '61' of a sharing conflict no holder is known to
-    /// cause. Returns the failing I-O status, or null to proceed.</summary>
+    /// <summary>⛔ THE ENTRY STEP AT EVERY OPEN of a file of ANY organization (DESIGN-runtime-library.md 2.2.2.8, 2.2.2.14; kb/Work
+    /// PB4097), run before the presence probe (<see cref="OpenOnce"/>): the lock directory is listed for transaction journals — a
+    /// live transaction's holdings refuse a writable OPEN ('61' to an OPEN OUTPUT while any lives, to any writable OPEN while a
+    /// replaced one lives) and a dead one is settled (rolled back, or retired) first, so a keyed file a dead run unit captured is
+    /// restored before the store's own dead-owner step reads it. A covered OPEN takes the entry mutex for it and keeps it through its
+    /// host open, creation or capture (<see cref="LeaveEntry"/> gives it back); an uncovered one pays one listing and takes the mutex
+    /// only to settle.
+    /// <para>⛔ AN OPEN INPUT SETTLES TOO, AND REFUSES NOTHING (§9.1.18.5: <i>"When a run unit terminates abnormally, all file changes
+    /// made since the previous commit or, if none, the beginning of the run unit are rolled back"</i>, and only then <i>"all file and
+    /// record locks are then released"</i>): once the dead run unit's locks are gone its change is no longer in the file, so a reader
+    /// that opens after the death never meets it. The settle writes through its own short-lived writable handle
+    /// (<see cref="SequentialJournal.AuxiliaryData"/>), never the reader's, so an INPUT connector can run it; a live transaction's
+    /// holdings are not the reader's OPEN to refuse (the Table 19 arbiter answers for the file lock, the READ's lock test for the
+    /// record). The keyed engine's own dead owners are <c>KeyedConnector.SettleDeadOwnersBeside</c>'s. A lock directory this process
+    /// may not list is the authority the OPEN lacks: '37' (§9.1.13.6 6) b): <i>"insufficient authority exists to access the
+    /// file"</i>), the file unaffected — never the '61' of a sharing conflict no holder is known to cause. Returns the failing I-O
+    /// status, or null to proceed.</para></summary>
     private string? EnterPhysicalFile(FileOpenMode mode)
     {
-        if (mode is FileOpenMode.Input || HostPath.Length == 0) return null;
+        if (HostPath.Length == 0) return null;
+        bool reading = mode is FileOpenMode.Input;
         // A file whose directory is not there has no lock directory beside it: nothing to settle and no one to exclude, and the
         // OPEN's own creation answers for the directory (§9.1.13.6 1)), after what the CLOSE kept of another file has retired.
-        if (CommitControlled && HostFile.ContainingDirectoryExists(HostPath)) EntryMutex = Transactions.HoldEntryMutex(HostPath);
+        if (!reading && CommitControlled && HostFile.ContainingDirectoryExists(HostPath)) EntryMutex = Transactions.HoldEntryMutex(HostPath);
         var holdings = SequentialJournal.Enter(Medium, HostPath, Journal?.Id, EntryMutex);
-        return holdings.Unlistable ? FileStatusCode.PermissionDenied : holdings.RefusesOpen(exclusive: mode is FileOpenMode.Output);
+        if (holdings.Unlistable) return FileStatusCode.PermissionDenied;
+        return reading ? null : holdings.RefusesOpen(exclusive: mode is FileOpenMode.Output);
     }
 
     /// <summary>The OPEN that <see cref="EnterPhysicalFile"/> entered has ended, successfully or not: the entry mutex given back.</summary>

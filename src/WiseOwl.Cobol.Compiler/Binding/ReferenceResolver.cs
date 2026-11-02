@@ -364,6 +364,12 @@ public sealed partial class ReferenceResolver(DataBinder data)
 
     private RefResolution ResolveImpl(Core.DataReferenceContext dref, bool report)
     {
+        // ⛔ EVERY DIAGNOSTIC THE RESOLUTION OF A REFERENCE REPORTS IS ABOUT THAT REFERENCE, SO IT IS POSITIONED AT THE
+        // REFERENCE'S FIRST TOKEN HERE, AT THE ONE CHOKEPOINT (kb/Work PB4383). Positioning was each statement binder's
+        // job, so a multi-operand statement (`DISPLAY A` with a continuation line `B C`) reported COBOL1639 for B and C
+        // at the statement's first line, and the next verb's binder would have had to remember again. A synthetic
+        // reference with no token leaves the position standing (DiagnosticCursorAt.At).
+        using var _ = data.Edition.At(dref);
         bool savedProbing = _probing, savedSegment = _segmentDeferred;
         _probing = !report;
         _segmentDeferred = false;
@@ -1846,7 +1852,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             // The cell is a reference-type StorageCell held in a READONLY field, so its guard passes it through
             // rather than taking it by ref (kb/Work PB971).
             ? new AccessPath([new RootFieldSegment(cls.BackingCellClrName,
-                OmittedFormalGuard.Of(cls.Canonical) is { } g ? g with { CarrierPrefix = cls.BackingCellClrName } : null)])
+                OmittedFormalGuard.Of(cls.Canonical) is { } g ? g with { PassesCarrier = true } : null)])
             : null;
 
     /// <summary>⛔ THE COMPONENT-ORDINAL BASE OF A CELL-BACKED CLASS'S RECORD SCOPE (kb/Work PB2094), as the leading term of
@@ -1923,7 +1929,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
                 if (cell is null) return null;
                 cell = cell.Add(CellTableSegment.Of(level, new PositionOffset(OrdinalOrigin(level.ClassDynOrdinal, ordinalBase), [.. ordinalTerms])))
                            .Add(new DynTableSegment(indexExprs[k]));
-                backing = cell.Add(new MemberSegment(nameof(WiseOwl.Cobol.Runtime.StorageCell.Ref)));
+                backing = cell.Add(CellBackingSegment.Instance);
                 (terms, bitTerms, ordinalBase, ordinalTerms, nested) = ([], [], null, [], true);
                 continue;
             }
@@ -1934,11 +1940,22 @@ public sealed partial class ReferenceResolver(DataBinder data)
         return new WindowScope(cell, backing, terms, bitTerms, ordinalBase, ordinalTerms, nested);
     }
 
-    /// <summary>⛔ THE ONE ROOT SEGMENT OF AN ITEM'S ACCESS PATH (kb/Work PB971): the item's field, carrying the
+    /// <summary>⛔ THE ONE ROOT OF AN ITEM'S ACCESS PATH (kb/Work PB971, PB4320): the item's field, carrying the
     /// *-ARG-OMITTED guard when the item is a formal parameter (<see cref="OmittedFormalGuard.Of"/>), so every
     /// path builder — element, whole table, Tier-B backing — checks a reference to an omitted formal the same
-    /// way, and a new builder that roots through here cannot forget it.</summary>
-    private static RootFieldSegment RootOf(DataItem root) => new(root.ClrName, OmittedFormalGuard.Of(root));
+    /// way, and a new builder that roots through here cannot forget it. A CARRIER-RESIDENT formal has no field: its
+    /// root is its carrier (<see cref="DataItem.ResidentCarrier"/>) and the next step is the storage the carrier
+    /// designates, <see cref="CarrierValueSegment"/> (ISO §14.2.3 GR8).</summary>
+    private static void AddRoot(List<AccessSegment> segs, DataItem root)
+    {
+        if (root.ResidentCarrier is { } carrier)
+        {
+            segs.Add(new RootFieldSegment(carrier, OmittedFormalGuard.Of(root)));
+            segs.Add(CarrierValueSegment.Instance);
+        }
+        else
+            segs.Add(new RootFieldSegment(root.ClrName, OmittedFormalGuard.Of(root)));
+    }
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
@@ -2393,7 +2410,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         bool first = true;
         foreach (var seg in chain)
         {
-            segs.Add(first ? RootOf(seg) : new MemberSegment(seg.ClrName));
+            if (first) AddRoot(segs, seg);
+            else segs.Add(new MemberSegment(seg.ClrName));
             first = false;
             if (seg.Occurs is not null) segs.Add(new FixedTableSegment(indexExprs[si++], odo?.Invoke(seg)));   // fixed OCCURS → CobolTable.At
             else if (seg.IsDynamicTable) segs.Add(new DynTableSegment(indexExprs[si++]));         // dynamic OCCURS → RefSending/RefReceiving
@@ -2462,7 +2480,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         int oi = 0;
         foreach (var n in chain)
         {
-            segs.Add(first ? RootOf(n) : new MemberSegment(n.ClrName));
+            if (first) AddRoot(segs, n);
+            else segs.Add(new MemberSegment(n.ClrName));
             first = false;
             if (ReferenceEquals(n, table)) break;
             if (!n.IsTable) continue;
@@ -3065,7 +3084,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // A report VARYING counter in scope (§13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
         // data item") is the compose-local integer the placement declares; it is no data item and has no scale.
         if (qualifiers.Count == 0 && VaryingScope is { } counters && counters.TryGetValue(name, out var counter))
-            return new PositionLocal(counter.CsName, AsLong: true);
+            return new PositionLocal(counter.Local, AsLong: true);
         DataItem? item = qualifiers.Count == 0 ? ResolveUnqualified(name) : ResolveQualified(name, qualifiers);
         if (item is null) return null;
         if (!IntrinsicArgumentRules.IsArithmeticOperandClass(item)) (pending ??= []).Add(new PendingScreen(item, name));

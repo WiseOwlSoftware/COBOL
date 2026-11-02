@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
+# SELF-TEST-CLOCK: real — the long-hold arm compares a holder process's real start time with the clock
 """gate_slot.py — THE CROSS-WORKTREE GATE CAP: one FIFO counting semaphore per repository (kb/Work PB1708, PB1720),
-and THE SHARED GATE SETTINGS that every gate reads from the same place (kb/Work PB2514, PB2515).
+and THE SHARED GATE SETTING, the cap, that every gate reads from the same place (kb/Work PB2514).
 
-    python scripts/gate_slot.py run [--pool gate|light] [--label TEXT] -- <command> [args…]   # take a slot, run it inside
-    python scripts/gate_slot.py status                                   # the settings, every slot, the queue (both pools)
+    python scripts/gate_slot.py run [--label TEXT] -- <command> [args…]   # take a slot, run it inside
+    python scripts/gate_slot.py status                                   # the setting, every slot, the queue
     python scripts/gate_slot.py set-cap N [--until ISO] [--why TEXT]     # the cap, for every gate at once
-    python scripts/gate_slot.py set-light-cap N [--until ISO] [--why TEXT]   # the light pool's cap
-    python scripts/gate_slot.py set-implementer-scope leg1|whole [--until ISO] [--why TEXT]
-    python scripts/gate_slot.py clear [cap] [light-cap] [implementer-scope]   # back to the coded defaults (none named: all)
+    python scripts/gate_slot.py clear [cap]                              # back to the coded default
     python scripts/gate_slot.py --self-test                              # the arms of DESIGN §3.14.6
 
-⛔ WHY. Concurrent gates starve each other: train 48's lander leg took 30.6 min against 9.6 quiet. Every gate (and the
-impact recorder) therefore takes a SLOT before it builds and holds it through its last leg, so at most N of them build
+⛔ WHY. Concurrent gates starve each other: train 48's lander leg took 30.6 min against 9.6 quiet. Every gate therefore
+takes a SLOT before it builds and holds it through its last leg, so at most N of them build
 or test at once, repository-wide; the gate has one shape, a landing's included (kb/Work PB3022). The battery and CI
-never take a slot (DESIGN-test-build-ci.md §3.14.6). Its callers are the gate driver `scripts/run_gate_legs.py`,
-`scripts/spec/record_impact_map.py` (kb/Work PB1721) and `scripts/orchestrator/enqueue.py`, which runs the landing's
+never take a slot (DESIGN-test-build-ci.md §3.14.6). Its callers are the gate driver `scripts/gate.py`,
+and `scripts/orchestrator/enqueue.py`, which runs the landing's
 Linux gate row under `run` (kb/Work PB3104).
 
 THE MECHANISM — every piece is an OS file lock, so nothing is ever cleaned up by guessing whether a pid is alive:
@@ -30,14 +29,6 @@ THE MECHANISM — every piece is an OS file lock, so nothing is ever cleaned up 
            every other gate). Every live landing ticket is served before every implementer ticket, and each class in
            ticket order, so a landing's gate takes the next free slot ahead of the implementer gates already waiting
            (landing is the measure). The cap is the same for both, so the machine's total gate load does not change.
-  pools    TWO POOLS (kb/Work PB3724), each with its own slots, tickets, cap and hold history: the GATE pool (the
-           directory itself; the builds and test legs the cap rations, DEFAULT_SLOTS) and the LIGHT pool (`light/`;
-           DEFAULT_LIGHT_SLOTS): built for a gate whose whole job is about a minute of script self-tests in a WSL clone (the
-           INERT lane's Linux half, kb/Work PB3646), so a notes-only or DEVLOG-only landing would not queue behind the
-           implementers' full gates for a slot that exists to ration builds. The Linux half left the gate (kb/Work
-           PB4327), so NO gate takes a light slot now; the pool stays until the gate driver is rewritten (PB4328). A light gate adds at most the
-           light cap's worth of Python processes beside the full gates; it never takes a gate-pool slot, and a gate-pool
-           gate never takes a light one, so neither pool can wait on the other.
   the tree The slot is held by the holder's whole PROCESS TREE. On Windows the holder puts itself into a Job object
            with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE before it spawns anything, so every descendant is in the job and, if
            the holder dies, the OS kills them all as its handle closes — an orphaned build or test host can never run
@@ -47,7 +38,7 @@ THE MECHANISM — every piece is an OS file lock, so nothing is ever cleaned up 
            gates can wait on each other in a cycle.
 
   settings ONE file, `<git common dir>/cobol-gate-slots/settings.json`, written only by `set-cap`,
-           `set-implementer-scope` and `clear` (under `settings.lock`, replaced atomically, recording who, when and
+           and `clear` (under `settings.lock`, replaced atomically, recording who, when and
            why) and read by every gate and by `status`. ⛔ The cap is a property of the SLOT DIRECTORY, never of a process: while
            each gate read N from its own environment (the deleted WISEOWL_COBOL_GATE_SLOTS), gates started with different
            N shared one FIFO queue, and a cap-1 gate at its head waited for slot 1 while slot 3 stood free, blocking
@@ -59,11 +50,10 @@ THE MECHANISM — every piece is an OS file lock, so nothing is ever cleaned up 
            marks a held slot older than HOLD_LONG_FACTOR times the median of its kind's recorded holds `LONG HOLD`
            (kb/Work PB3310): a hung gate keeps its slot for as long as its process lives, and nothing named it. The flag
            is advice, derived from the gates' own history; this tool never stops a holder.
-  defaults THE OWNER'S DECISIONS, coded here and nowhere else (2026-10-10): the cap is DEFAULT_SLOTS = 3 and the
-           implementer scope is DEFAULT_SCOPE = `leg1`. A setting exists only to depart from them.
-  scope    The implementer gate's population (`run_gate_legs.py` reads it): `leg1` (the default; batched gating,
-           kb/Work PB2515): leg 1 only, the whole population left to the lander's train gate; or `whole`
-           (kb/Work PB1708): both legs, the owner's switch back.
+  defaults THE OWNER'S DECISION, coded here and nowhere else (2026-10-10): the cap is DEFAULT_SLOTS = 3. A setting
+           exists only to depart from it. (The implementer scope `leg1|whole` and the LIGHT pool are gone: every gate
+           runs the whole population, kb/Work PB4328, and the light pool's one user, the inert lane's Linux half, left
+           with kb/Work PB4327.)
 
 N is the settings' cap while it is live, else DEFAULT_SLOTS. ⛔ The cap does not span operating systems: a Windows
 lock and a WSL lock on a drvfs mount do not see each other. The repository's gates run on Windows; a WSL run is an
@@ -98,13 +88,6 @@ SLOT_DIR_NAME = "cobol-gate-slots"
 SETTINGS_FILE = "settings.json"
 SETTINGS_LOCK = "settings.lock"
 SETTINGS_SCHEMA = 1
-#: The implementer gate's population: `leg1` (batched gating, kb/Work PB2515 — leg 1 only; the lander's
-#: whole-population train gate is the population check) or `whole` (kb/Work PB1708 — both legs).
-#: ⛔ THE OWNER'S DECISION (2026-10-10 10:19 PDT, kb/Work PB2515): batched gating is the rule, "Yes, permanently".
-#: Tried from 2026-10-07 and measured on the train records (`landing_measure.py summary`'s BEFORE column; 3.43 changes landed per hour batched against 0.71
-#: whole, 0 interaction reds, 1 CI red from an environment difference), it was kept.
-SCOPES = ("leg1", "whole")
-DEFAULT_SCOPE = "leg1"
 _SLOT_FILE = re.compile(r"(\d+)\.lock")
 
 # ⛔ THE OWNER'S DECISION (2026-10-10 10:20 PDT, kb/Work PB2514): "Cap 3 permanently" — at most three implementer
@@ -112,14 +95,11 @@ _SLOT_FILE = re.compile(r"(\d+)\.lock")
 # PB1720; evidence impact-map-pb1708/m13): the lander's whole-Conformance leg with N implementer gates running, builds
 # included, on the shared 32-core host, every gate cold, the lander at Normal and the implementers at BelowNormal,
 # 2026-09-29: quiet 143.1 / 135.8 / 133.6 s; N=1 1.24x and 1.30x; N=2 1.58x and 1.52x; N=3 1.56x. Only N=1 stayed
-# within 1.25x, but at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey), and under batched
-# gating (DEFAULT_SCOPE) each one runs leg 1 only; the owner chose the throughput.
+# within 1.25x, but at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey); the owner chose the
+# throughput. Re-measured for the whole-population gate (kb/Work PB4328, 2026-11-01, quiet box, compile cache off):
+# one gate's three populations 247 s; three whole gates started together 503 s each, 2.04x, so three gates finish
+# in 503 s where one-at-a-time takes 741 s, and cap 3 stays.
 DEFAULT_SLOTS = 3
-#: The LIGHT pool's coded default (kb/Work PB3724), built for the INERT lane's gate, whose slot work was the script
-#: self-tests in a WSL clone (about 45 s, one core mostly), not a build or a test leg; no gate takes it since PB4327. Two at once keep a burst
-#: of notes landings from queueing behind each other while adding at most two such Python runs to the host. An implementor's
-#: choice, not an owner decision: `set-light-cap N` departs from it.
-DEFAULT_LIGHT_SLOTS = 2
 DEFAULT_POLL_S = 1.0
 #: THE GATE CLASSES (kb/Work PB3103): a gate `enqueue.py land` starts is a LANDING gate (it sets CLASS_ENV=landing for
 #: its gate), every other gate an IMPLEMENTER gate. A landing ticket is served before every implementer ticket, ticket
@@ -145,9 +125,8 @@ class Pool:
     keys: tuple[str, ...]  # the settings keys its settings.json may carry (a subset of GateSettings.KEYS)
 
 
-GATE_POOL = Pool("gate", "", "cap", DEFAULT_SLOTS, ("cap", "implementer_scope"))
-LIGHT_POOL = Pool("light", "light", "light-cap", DEFAULT_LIGHT_SLOTS, ("cap",))
-POOLS = (GATE_POOL, LIGHT_POOL)
+GATE_POOL = Pool("gate", "", "cap", DEFAULT_SLOTS, ("cap",))
+POOLS = (GATE_POOL,)
 #: What a slot holder's children run without (Slot.spawn_kwargs): the persistent build servers that would outlive them.
 BUILD_SERVERS_OFF = {"MSBUILDDISABLENODEREUSE": "1", "UseSharedCompilation": "false"}
 
@@ -211,7 +190,7 @@ def _read_label(path: Path) -> str:
 
 class ExclusiveLock:
     """An exclusive OS lock on ONE file, taken WITHOUT waiting — the gate driver's per-worktree gate lock
-    (DESIGN-test-build-ci.md §3.14.3 step 1). The same primitive as a slot: the OS drops it when its holder dies, so
+    (DESIGN-test-build-ci.md §3.14.12 item 1). The same primitive as a slot: the OS drops it when its holder dies, so
     no stale-pid cleanup exists, and the holder's label at the start of the file names it to the gate it refuses."""
 
     def __init__(self, path: Path, fd: int):
@@ -285,7 +264,7 @@ def _now() -> dt.datetime:
 
 @dataclass(frozen=True)
 class Setting:
-    """One shared setting as `set-cap` / `set-implementer-scope` wrote it."""
+    """One shared setting as `set-cap` wrote it."""
     value: int | str
     until: dt.datetime | None
     why: str
@@ -301,26 +280,21 @@ class Setting:
         return f"set by {self.set_by} at {self.set_at}{expiry}" + (f": {self.why}" if self.why else "")
 
 
-def _validate(key: str, value: object, until: dt.datetime | None) -> int | str:
-    if key == "cap":
-        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
-            raise ValueError(f"the cap must be a positive integer, not {value!r}")
-        return value
-    if value not in SCOPES:
-        raise ValueError(f"the implementer scope must be one of {SCOPES}, not {value!r}")
+def _validate(key: str, value: object, until: dt.datetime | None) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+        raise ValueError(f"the cap must be a positive integer, not {value!r}")
     return value
 
 
 @dataclass(frozen=True)
 class GateSettings:
-    """THE SHARED GATE SETTINGS of one POOL's directory (`GateSlots.directory`): the pool's cap and, in the gate pool's
-    directory only, the implementer scope, each optional and each with an optional expiry. An absent or expired setting is its DEFAULT. A malformed file is an error, never a
-    silent default: a gate that cannot tell its cap or its population must not start."""
+    """THE SHARED GATE SETTINGS of one POOL's directory (`GateSlots.directory`): the pool's cap, optional and with an
+    optional expiry. An absent or expired setting is its DEFAULT. A malformed file is an error, never a silent default:
+    a gate that cannot tell its cap must not start."""
     directory: Path
     cap: Setting | None = None
-    implementer_scope: Setting | None = None
 
-    KEYS = ("cap", "implementer_scope")
+    KEYS = ("cap",)
 
     @classmethod
     def read(cls, directory: Path) -> "GateSettings":
@@ -332,7 +306,7 @@ class GateSettings:
             raw = json.loads(text)
         except ValueError as e:
             raise ValueError(f"{path}: not JSON ({e}); rewrite it with `gate_slot.py clear` (the coded defaults) "
-                             "or `set-cap` / `set-implementer-scope`") from None
+                             "or `set-cap`") from None
         if not isinstance(raw, dict) or raw.get("schema") != SETTINGS_SCHEMA or \
                 set(raw) - {"schema", *cls.KEYS}:
             raise ValueError(f"{path}: not a schema-{SETTINGS_SCHEMA} gate settings file (keys {sorted(raw)})")
@@ -354,25 +328,15 @@ class GateSettings:
         s = self.cap
         return s.value if s is not None and s.live(now or _now()) else pool.default_cap
 
-    def effective_scope(self, now: dt.datetime | None = None) -> tuple[str, Setting | None]:
-        """The implementer gate's population and the live setting that chose it (None: the default)."""
-        s = self.implementer_scope
-        return (s.value, s) if s is not None and s.live(now or _now()) else (DEFAULT_SCOPE, None)
-
     def report(self, pool: Pool = GATE_POOL, now: dt.datetime | None = None) -> list[str]:
-        """`status`'s settings lines for `pool`: its cap, and for the gate pool the implementer scope too."""
+        """`status`'s settings line for `pool`: its cap."""
         now = now or _now()
         cap_name = pool.cap_name.replace("-", " ")
-        lines = [f"gate-slot: {cap_name} {self.effective_cap(pool, now)}"
-                 + (f" ({self.cap.describe(now)})" if self.cap else f" (the default; no {cap_name} set)")]
-        if pool is GATE_POOL:
-            scope, _ = self.effective_scope(now)
-            lines.append(f"gate-slot: implementer scope {scope}" + (
-                f" ({self.implementer_scope.describe(now)})" if self.implementer_scope else " (the default)"))
-        return lines
+        return [f"gate-slot: {cap_name} {self.effective_cap(pool, now)}"
+                + (f" ({self.cap.describe(now)})" if self.cap else f" (the default; no {cap_name} set)")]
 
     @classmethod
-    def write(cls, directory: Path, key: str, value: int | str, until: dt.datetime | None, why: str,
+    def write(cls, directory: Path, key: str, value: int, until: dt.datetime | None, why: str,
               set_by: str, now: dt.datetime | None = None) -> "GateSettings":
         """Set one key: validated, then stored by `_store`."""
         if key not in cls.KEYS:
@@ -385,8 +349,7 @@ class GateSettings:
 
     @classmethod
     def clear(cls, directory: Path, keys: tuple[str, ...], pool: Pool = GATE_POOL) -> "GateSettings":
-        """Remove settings of `pool`'s directory, so the CODED DEFAULTS (DEFAULT_SLOTS, DEFAULT_LIGHT_SLOTS, DEFAULT_SCOPE)
-        are in force for them at once. Clearing every key of the pool replaces the file without reading it: the one
+        """Remove settings of `pool`'s directory, so the CODED DEFAULT (DEFAULT_SLOTS) is in force at once. Clearing every key of the pool replaces the file without reading it: the one
         repair of a malformed file."""
         unknown = sorted(set(keys) - set(pool.keys))
         if unknown or not keys:
@@ -482,8 +445,8 @@ _PID_SUFFIX = re.compile(r"\s*\(pid \d+.*$", re.DOTALL)
 def hold_kind(label: str) -> str:
     """The KIND of hold a slot label names, the one rule `Slot.release` (writing) and `status` (reading) share: the
     label without its `(pid …)` suffix, then the text after its last `": "` when it has one (`enqueue <branch>: Linux
-    gate` is a `Linux gate`), else its first word (`gate <worktree>` is a `gate`, `record_impact_map <sha>` is a
-    `record_impact_map`). A branch name or a path therefore never splits one kind into many."""
+    gate` is a `Linux gate`), else its first word (`gate <worktree>` is a `gate`, `battery <sha>` is a
+    `battery`). A branch name or a path therefore never splits one kind into many."""
     head = _PID_SUFFIX.sub("", label).strip()
     if ": " in head:
         return head.rsplit(": ", 1)[1].strip() or head
@@ -846,13 +809,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
     if not command:
         print("gate_slot.py run: no command given (usage: run [--label TEXT] -- <command> [args…])", file=sys.stderr)
         return 2
-    slots = GateSlots.for_repo(args.repo, args.poll, POOLS_BY_NAME[args.pool])
+    slots = GateSlots.for_repo(args.repo, args.poll)
     label = f"{args.label or ' '.join(command)[:120]} (pid {os.getpid()}, {time.strftime('%Y-%m-%d %H:%M:%S')})"
     with slots.acquire(label, say=lambda s: print(s, flush=True)) as slot:
         return subprocess.run(command, **slot.spawn_kwargs()).returncode
-
-
-POOLS_BY_NAME = {p.name: p for p in POOLS}
 
 
 def _cmd_status(args: argparse.Namespace) -> int:
@@ -884,10 +844,10 @@ def _set_by(args: argparse.Namespace) -> str:
 
 #: THE SETTINGS BY THE NAME `set-<name>` AND `clear` KNOW THEM BY: (the pool whose settings.json holds it, its key there),
 #: derived from the pools so a new pool's cap is settable and clearable with no second list to keep.
-SETTING_NAMES = {**{p.cap_name: (p, "cap") for p in POOLS}, "implementer-scope": (GATE_POOL, "implementer_scope")}
+SETTING_NAMES = {p.cap_name: (p, "cap") for p in POOLS}
 
 
-def _cmd_set(args: argparse.Namespace, name: str, value: int | str) -> int:
+def _cmd_set(args: argparse.Namespace, name: str, value: int) -> int:
     until = parse_until(args.until) if args.until else None
     pool, key = SETTING_NAMES[name]
     settings = GateSettings.write(GateSlots.for_repo(args.repo, pool=pool).directory, key, value, until,
@@ -998,15 +958,14 @@ def self_test() -> int:
     procs: list[_Proc] = []
     failures: list[str] = []
 
-    def gate(repo: Path, label: str, command: list[str], gate_class: str = IMPLEMENTER,
-             pool: str = GATE_POOL.name) -> _Proc:
-        pr = _Proc([py, me, "run", "--repo", str(repo), "--pool", pool, "--poll", "0.05", "--label", label, "--",
+    def gate(repo: Path, label: str, command: list[str], gate_class: str = IMPLEMENTER) -> _Proc:
+        pr = _Proc([py, me, "run", "--repo", str(repo), "--poll", "0.05", "--label", label, "--",
                     *command], root.parent, gate_class)  # a cwd inside `root` would pin it against deletion on Windows
         procs.append(pr)
         return pr
 
     def cli(repo: Path, *argv: str) -> subprocess.CompletedProcess:
-        """A synchronous `gate_slot.py <argv> --repo <repo>` (set-cap, set-implementer-scope, status)."""
+        """A synchronous `gate_slot.py <argv> --repo <repo>` (set-cap, status)."""
         return subprocess.run([py, me, *argv, "--repo", str(repo)], cwd=root.parent, capture_output=True, text=True,
                               encoding="utf-8", env={**os.environ, "PYTHONUTF8": "1"}, timeout=_GUARD_S)
 
@@ -1209,12 +1168,10 @@ def self_test() -> int:
             d = slot_dir(repo)
             past = "2000-01-01T00:00:00+00:00"
             entry = '{"value": %s, "until": "%s", "why": "", "set_by": "t", "set_at": "t"}'
-            # An expired LOWERED cap and an expired `whole`: once they pass, the coded defaults are in force.
-            plant_settings(repo, '{"schema": 1, "cap": %s, "implementer_scope": %s}'
-                           % (entry % (1, past), entry % ('"whole"', past)))
+            # An expired LOWERED cap: once it passes, the coded default is in force.
+            plant_settings(repo, '{"schema": 1, "cap": %s}' % (entry % (1, past)))
             s = GateSettings.read(d)
-            assert s.effective_cap() == DEFAULT_SLOTS and s.effective_scope() == (DEFAULT_SCOPE, None), \
-                f"an expired setting is still in force: {s}"
+            assert s.effective_cap() == DEFAULT_SLOTS, f"an expired setting is still in force: {s}"
             go = root / "expiry.go"
             h = gate(repo, "H", hold(go))
             h.expect(r"^held pid=")
@@ -1227,19 +1184,10 @@ def self_test() -> int:
                 "an --until already past": cli(repo, "set-cap", "2", "--until", past),
                 "an --until with no UTC offset": cli(repo, "set-cap", "2", "--until", "2999-01-01T00:00:00"),
                 "a cap of 0": cli(repo, "set-cap", "0"),
-                "a light cap of 0": cli(repo, "set-light-cap", "0"),
-                "an unknown scope": cli(repo, "set-implementer-scope", "trial"),
+                "the retired implementer scope": cli(repo, "set-implementer-scope", "whole"),
             }
             bad = {k: r.stdout + r.stderr for k, r in refused.items() if r.returncode != 2}
             assert not bad, f"accepted: {bad}"
-            # Either scope is settable with or without an expiry: `whole` is the owner's switch back (through the
-            # CLI once; the other shapes in-process, which is the same writer and costs no interpreter start).
-            r = cli(repo, "set-implementer-scope", "whole", "--why", "switch to whole")
-            scope, setting = GateSettings.read(d).effective_scope()
-            assert r.returncode == 0 and scope == "whole" and setting.why == "switch to whole", f"{r.stdout}{r.stderr}"
-            for value, until in (("leg1", None), ("whole", parse_until("2999-01-01T00:00:00+00:00"))):
-                GateSettings.write(d, "implementer_scope", value, until, f"switch to {value}", "self-test")
-                assert GateSettings.read(d).effective_scope()[0] == value, f"set-implementer-scope {value} {until}"
             plant_settings(repo, "{not json")
             bad_gate = gate(repo, "malformed", [py, "-c", "print('ran', flush=True)"])
             bad_gate.expect(r"^gate_slot\.py: .*settings\.json: not JSON")
@@ -1263,19 +1211,15 @@ def self_test() -> int:
 
         def coded_defaults() -> None:
             # The owner's decisions of 2026-10-10 (kb/Work PB2514, PB2515), with NO settings file: three gates hold a
-            # slot at once, a fourth queues under cap 3, and the implementer scope is leg1.
+            # slot at once and a fourth queues under cap 3; status names no scope and no light pool (kb/Work PB4328).
             repo = bare_repo
             d = slot_dir(repo)
             assert not (d / SETTINGS_FILE).exists(), "the defaults arm must start with no settings file"
             s = GateSettings.read(d)
-            light = GateSlots.for_repo(repo, pool=LIGHT_POOL).settings()
-            assert (s.effective_cap(), light.effective_cap(LIGHT_POOL), s.effective_scope()) == (3, 2, ("leg1", None)), \
-                f"the coded defaults are not cap 3, light cap 2 and scope leg1: cap {s.effective_cap()}, " \
-                f"light {light.effective_cap(LIGHT_POOL)}, {s.effective_scope()}"
+            assert s.effective_cap() == 3, f"the coded default is not cap 3: cap {s.effective_cap()}"
             r = inproc(repo, "status")
             assert r.returncode == 0 and "cap 3 (the default; no cap set)" in r.stdout \
-                and "light cap 2 (the default; no light cap set)" in r.stdout \
-                and "implementer scope leg1 (the default)" in r.stdout, f"status:\n{r.stdout}{r.stderr}"
+                and "scope" not in r.stdout and "light" not in r.stdout, f"status:\n{r.stdout}{r.stderr}"
             go = root / "defaults.go"
             holders = [gate(repo, f"H{k}", hold(go)) for k in (1, 2, 3)]
             for h in holders:
@@ -1290,38 +1234,16 @@ def self_test() -> int:
             repo = bare_repo
             d = slot_dir(repo)
             GateSettings.write(d, "cap", 1, None, "departed", "self-test")
-            GateSettings.write(d, "implementer_scope", "whole", None, "departed", "self-test")
-            ld = d / LIGHT_POOL.subdir
-            GateSettings.write(ld, "cap", 1, None, "departed", "self-test")
-            r = inproc(repo, "clear", "implementer-scope")
-            s, ls = GateSettings.read(d), GateSettings.read(ld)
-            assert r.returncode == 0 and s.implementer_scope is None and s.effective_scope() == ("leg1", None) \
-                and s.cap is not None and s.effective_cap() == 1 and ls.effective_cap(LIGHT_POOL) == 1, \
-                f"clear implementer-scope: {r.stdout}{r.stderr}{s}"
-            r = inproc(repo, "clear", "light-cap")
-            s, ls = GateSettings.read(d), GateSettings.read(ld)
-            assert r.returncode == 0 and ls.cap is None and ls.effective_cap(LIGHT_POOL) == DEFAULT_LIGHT_SLOTS \
-                and s.cap is not None and "light cap 2 (the default; no light cap set)" in r.stdout, \
-                f"clear light-cap: {r.stdout}{r.stderr}"
-            GateSettings.write(ld, "cap", 1, None, "departed", "self-test")
             r = inproc(repo, "clear")
-            s, ls = GateSettings.read(d), GateSettings.read(ld)
-            assert r.returncode == 0 and s.cap is None and ls.cap is None and s.implementer_scope is None \
-                and ls.effective_cap(LIGHT_POOL) == DEFAULT_LIGHT_SLOTS \
+            s = GateSettings.read(d)
+            assert r.returncode == 0 and s.cap is None \
                 and json.loads((d / SETTINGS_FILE).read_text(encoding="utf-8")) == {"schema": SETTINGS_SCHEMA} \
-                and json.loads((ld / SETTINGS_FILE).read_text(encoding="utf-8")) == {"schema": SETTINGS_SCHEMA} \
                 and "cap 3 (the default; no cap set)" in r.stdout, f"clear: {r.stdout}{r.stderr}"
-            (ld / SETTINGS_FILE).write_text("{not json", encoding="utf-8", newline="\n")
-            assert GateSettings.clear(ld, ("cap",), LIGHT_POOL).effective_cap(LIGHT_POOL) == DEFAULT_LIGHT_SLOTS, \
-                "clear did not repair a malformed light settings file"
+            GateSettings.write(d, "cap", 1, None, "departed", "self-test")
+            r = inproc(repo, "clear", "cap")
+            assert r.returncode == 0 and GateSettings.read(d).cap is None, f"clear cap: {r.stdout}{r.stderr}"
             plant_settings(repo, "{not json")
             assert GateSettings.clear(d, GateSettings.KEYS).effective_cap() == 3, "clear did not repair a malformed file"
-            plant_settings(repo, "{not json")
-            try:  # clearing one key must read the other: a malformed file is not guessed at
-                GateSettings.clear(d, ("cap",))
-                raise AssertionError("clear cap over a malformed file was accepted")
-            except ValueError as e:
-                assert "not JSON" in str(e), f"clear cap over a malformed file: {e}"
             r = inproc(repo, "clear", "slots")
             assert r.returncode == 2 and "unknown setting" in r.stderr, f"clear slots: {r.stdout}{r.stderr}"
 
@@ -1330,7 +1252,7 @@ def self_test() -> int:
             # never killed, and the limit comes from the gates' own recorded holds.
             kinds = {"enqueue wt-a: Linux gate (pid 7, 2026-10-24 10:00:00)": "Linux gate",
                      "gate E:\\COBOL\\wt (pid 8, since 2026-10-24 10:00:00, run x)": "gate",
-                     "record_impact_map 0123456789ab (pid 9, 2026-10-24 10:00:00)": "record_impact_map",
+                     "battery 0123456789ab (pid 9, 2026-10-24 10:00:00)": "battery",
                      "": "(no label)"}
             for label, kind in kinds.items():
                 assert hold_kind(label) == kind, f"hold_kind({label!r}) = {hold_kind(label)!r}, not {kind!r}"
@@ -1366,51 +1288,6 @@ def self_test() -> int:
             go.touch()
             assert hung.finish() == 0
 
-        def light_pool() -> None:
-            # kb/Work PB3724: the gate pool is FULL (cap 1, held, with an implementer waiting) and a light gate -- the
-            # inert lane's script self-tests -- still takes a light slot at once, its own cap holds, `set-light-cap`
-            # from another worktree frees the queue, the light holds are recorded in the light pool's own history, and
-            # `status` lists both pools. The gate pool is untouched throughout.
-            repo, wt = make_repo("light")
-            go, lgo, log = root / "light.go", root / "light.light-go", root / "light.order"
-            h = gate(repo, "H", hold(go))
-            h.expect(r"^held pid=")
-            heavy = gate(repo, "heavy", append(log, "heavy"))
-            heavy.expect(r"gate-slot: waiting, 0 ahead \(ticket \d+, cap 1,")
-            l1 = gate(wt, "L1", hold(lgo), pool="light")
-            l1.expect(r"gate-slot: took light slot 1 of 2")
-            l1.expect(r"^held pid=")
-            l2 = gate(repo, "L2", hold(lgo), pool="light")
-            l2.expect(r"gate-slot: took light slot 2 of 2")
-            l2.expect(r"^held pid=")
-            l3 = gate(repo, "L3", append(log, "L3"), pool="light")
-            l3.expect(r"gate-slot: waiting, 0 ahead \(ticket \d+, cap 2, implementer, .*[\\/]light\)")
-            both = inproc(repo, "status").stdout
-            assert "2 slot(s) held, cap 2, 1 waiting (light pool" in both and "1 slot(s) held, cap 1, 1 waiting\n" in both \
-                and re.search(r"slot 1: HELD by L[12] ", both) and "light cap 2 (the default; no light cap set)" in both, \
-                f"status does not list both pools:\n{both}"
-            r = cli(wt, "set-light-cap", "3", "--why", "self-test", "--until", "2999-01-01T00:00:00+00:00")
-            assert r.returncode == 0 and "light cap 3 (set by" in r.stdout, f"set-light-cap failed: {r.stdout}{r.stderr}"
-            l3.expect(r"gate-slot: took light slot 3 of 3")
-            assert l3.finish() == 0
-            # R1-1 of the PB3724 review: the light cap went to the LIGHT pool's own settings.json, so the gate pool's file --
-            # which every worktree not yet merged with main reads with its OWN copy of this script, refusing any key outside
-            # {schema, cap, implementer_scope} -- still holds only keys that reader knows.
-            gate_keys = set(json.loads((slot_dir(repo) / SETTINGS_FILE).read_text(encoding="utf-8")))
-            light_file = json.loads((slot_dir(repo) / LIGHT_POOL.subdir / SETTINGS_FILE).read_text(encoding="utf-8"))
-            assert gate_keys <= {"schema", "cap", "implementer_scope"} and light_file["cap"]["value"] == 3, \
-                f"the light cap leaked into the gate pool's settings file (keys {sorted(gate_keys)}), or is not in the light pool's: {light_file}"
-            st = GateSlots.for_repo(repo).state()
-            assert sorted(st.held) == [0] and [w[2].split(" ")[0] for w in st.waiting] == ["heavy"], \
-                f"the light gates touched the gate pool: {st}"
-            lgo.touch()
-            assert l1.finish() == 0 and l2.finish() == 0
-            go.touch()
-            assert h.finish() == 0 and heavy.finish() == 0
-            light_holds, gate_holds = read_holds(slot_dir(repo) / LIGHT_POOL.subdir), read_holds(slot_dir(repo))
-            assert {"L1", "L2", "L3"} <= set(light_holds) and not {"L1", "L2", "L3"} & set(gate_holds), \
-                f"a light hold was recorded in the wrong pool's history: light {sorted(light_holds)} gate {sorted(gate_holds)}"
-
         def passer_explained() -> None:
             # kb/Work PB3724: a waiting gate whose "k ahead" count RISES says why (a landing ticket taken after its own is
             # served first, PB3103), and the gate next in line says what it waits for.
@@ -1444,13 +1321,12 @@ def self_test() -> int:
         arm("an expired setting is the default again; a malformed file stops the gate; bad values are refused",
             expiry_and_refusals)
         arm("status shows every held slot, one above the cap in force included", status_every_slot)
-        arm("the coded defaults, with no setting: cap 3 (three gates at once, a fourth queues) and scope leg1",
+        arm("the coded default, with no setting: cap 3 (three gates at once, a fourth queues), and no scope or light pool",
             coded_defaults)
-        arm("clear returns one setting or both to the coded defaults, and repairs a malformed file", clear_settings)
+        arm("clear returns the cap to its coded default, and repairs a malformed file", clear_settings)
         arm("landing gates first: a landing ticket is served before every implementer ticket, FIFO within each class",
             landing_first)
         arm("a hold far past the median of its kind's recorded holds is flagged by status, never killed", long_holds)
-        arm("the light pool: a light gate takes a light slot at once while the gate pool is full, with its own cap, tickets and hold history, and status lists both pools", light_pool)
         arm("a waiting gate says why a later ticket is served first (landing before implementer) and what the gate next in line waits for", passer_explained)
     finally:
         alive.unlink(missing_ok=True)
@@ -1461,7 +1337,7 @@ def self_test() -> int:
     if failures:
         print(f"gate_slot.py --self-test: RED — {len(failures)} arm(s) failed")
         return 1
-    print("gate_slot.py --self-test: ALL GREEN — 14 arms")
+    print("gate_slot.py --self-test: ALL GREEN — 13 arms")
     return 0
 
 
@@ -1469,32 +1345,20 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--self-test", action="store_true", help="run every arm of DESIGN-test-build-ci.md §3.14.6")
     sub = ap.add_subparsers(dest="action")
-    for name in ("run", "status", "set-cap", "set-light-cap", "set-implementer-scope", "clear"):
+    for name in ("run", "status", "set-cap", "clear"):
         p = sub.add_parser(name)
         p.add_argument("--repo", type=Path, default=REPO, help="a checkout of the repository (default: this one)")
         if name == "run":
             p.add_argument("--label", help="who is waiting, as `status` shows it (default: the command)")
-            p.add_argument("--pool", choices=sorted(POOLS_BY_NAME), default=GATE_POOL.name,
-                           help="which pool's slot to take: gate (the default; builds and test legs) or light (a gate "
-                                "whose job is script self-tests alone, kb/Work PB3724)")
             p.add_argument("--poll", type=float, default=DEFAULT_POLL_S, help=argparse.SUPPRESS)
             p.add_argument("command", nargs=argparse.REMAINDER)
         elif name == "clear":
             p.add_argument("names", nargs="*", metavar="SETTING",
                            help=f"any of {', '.join(SETTING_NAMES)}; none named: all. Its coded default "
-                                f"(cap {DEFAULT_SLOTS}, light cap {DEFAULT_LIGHT_SLOTS}, scope {DEFAULT_SCOPE}) is in "
-                                "force at once")
+                                f"(cap {DEFAULT_SLOTS}) is in force at once")
         elif name.startswith("set-"):
-            if name == "set-cap":
-                p.add_argument("value", type=int, metavar="N",
-                               help=f"at most N implementer gates at once (the default is {DEFAULT_SLOTS})")
-            elif name == "set-light-cap":
-                p.add_argument("value", type=int, metavar="N",
-                               help=f"at most N light gates at once (script self-tests alone; the default is "
-                                    f"{DEFAULT_LIGHT_SLOTS})")
-            else:
-                p.add_argument("value", choices=SCOPES, help="leg1: leg 1 only, batched gating (kb/Work PB2515, the "
-                                                            "default); whole: the whole population (kb/Work PB1708)")
+            p.add_argument("value", type=int, metavar="N",
+                           help=f"at most N gates build or test at once (the default is {DEFAULT_SLOTS})")
             p.add_argument("--until", help="an ISO time with its UTC offset, after which the coded default is in "
                                            "force again")
             p.add_argument("--why", help="the reason, as `status` shows it")

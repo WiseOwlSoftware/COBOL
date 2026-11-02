@@ -1,6 +1,6 @@
 ---
 name: gate
-description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole population planned into two legs, leg 1 run fail-fast inside a gate slot, the same for an implementer's commit and a re-gate after a fix, nothing run on Linux; a landing reads its record and gates nothing; CI's merge-group run is the whole-population net), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
+description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole Unit, Conformance and Characterization populations inside a gate slot, previous reds first, the same for an implementer's commit and a re-gate after a fix, nothing run on Linux; a landing reads its record and gates nothing; CI's merge group is the first run of the merged tree, Linux and Release), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
 ---
 
 > ⛔ **BASE SKILL FIRST.** Invoke `brent-tools:test-gate` (Skill tool) before reading on. If the plugin is not loaded
@@ -12,13 +12,13 @@ description: Use before every commit and before every merge to choose and run th
 # Gate
 
 **Self-check first: is this a change's gate, or the batch's pre-merge?** A change's gate has ONE shape (owner
-2026-10-11, kb/Work PB3015 Q1a, PB3022): an implementer's commit, a re-gate after a fix and a landing all run the same
-command below. No gate FILTERS: every gate plans the whole population, ORDERED so a likely red comes first (owner,
-2026-09-28, kb/Work PB1708: "order, don't skip"), and runs leg 1 of it (batched gating, owner 2026-10-10, kb/Work
-PB2515); CI's merge-group run is the whole-population regression net — local runs confirm the targeted change, CI
-ensures no regression on the rest (owner 2026-10-11 ~11:20). What the owner corrected repeatedly was over-gating per
-fix with the whole-corpus suites (the battery, the NIST guard); the ordered gate is not that — its fail-fast leg 1 returns a red
-in minutes, and a gate slot caps how many run at once.
+2026-10-11, kb/Work PB3015 Q1a, PB3022): an implementer's commit and a re-gate after a fix run the same command
+below, and the landing runs none (kb/Work PB4331). No gate FILTERS: every gate runs the whole population, ORDERED so a likely red comes first (owner,
+2026-09-28, kb/Work PB1708: "order, don't skip"; owner decision 1 of PB4323, 2026-10-31, kb/Work PB4328: the population
+is the selection); CI's merge group is the first run of the merged tree, Linux, Release and GitHub's runners (THE RULE,
+below). What the owner corrected
+repeatedly was over-gating per fix with the whole-corpus suites (the battery, the NIST guard); the gate is not that —
+its populations take about four minutes on a quiet box, and a gate slot caps how many run at once.
 
 ## Always first
 
@@ -30,95 +30,74 @@ Build the **solution**, not one project. Building only the compiler project and 
 --no-build` tests whatever compiler was copied into the test bin at its LAST full build — a stale compiler. Local
 goes green while CI fails.
 
-## Per change — the ordered gate (every implementer, every re-gate, every landing)
+## Per change — the one gate (every implementer, every re-gate)
 
 ```
 pwsh scripts/build-local.ps1 -Priority BelowNormal *> <log>
 ```
 
-The driver, `scripts/run_gate_legs.py` (DESIGN-test-build-ci.md §3.14; kb/Work PB1721), holds the worktree's GATE
-LOCK (a second gate in the same worktree is refused), starts the audits BESIDE the build and the legs (outside the slot; FAIL-FAST: a red
-audit known before the slot or a leg ends an implementer gate in seconds with `NO LEG RAN`, and one found while the legs
-run STOPS them, kb/Work PB2523, PB4326 — run `python scripts/rendered_views.py --check`
-and the citation audits yourself before gating to avoid the round trip; one audit, `SELF-TESTS`, is every script
-self-test under `scripts/`, discovered and run in parallel by `scripts/self_tests.py`, kb/Work PB2563, and runs ONLY WHEN YOUR
-CHANGE TOUCHES TOOLING (a path under `scripts/`, `.github/`, `tools/`, `.claude/`, a `.py`/`.ps1`/`.sh` file, or data a
-self-test reads, such as `tests/_shared/TestRepo.cs`, the grammar, `.agent-fleet.json` or `tests/version-matrix/`: the
-`tooling=` line of `python scripts/inert_lane.py classify --base <rev>`, its `TOOLING_READS` list proved complete by
-`self_tests.py` on every run; CI's merge group runs every Linux self-test whatever the change, kb/Work PB4326) — run
-`python scripts/self_tests.py` yourself after editing a script; every gate passes `--reuse`, so a self-test
-whose inputs are unchanged since a recorded PASS is REUSED, not run (one that runs records its PASS), while CI and the
-Linux gate run them all; every self-test that runs takes a place in one machine-wide budget, and one still running an hour
-after taking it is `SELF-TESTS HANG`, never RED — kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10) and fetches the per-worktree GnuCOBOL corpus
-when absent — the audits never inside the slot and the fetch before it, because they read only the tree (kb/Work PB2524) — then takes a GATE SLOT
-(`scripts/gate_slot.py`: at most N gates build or test at once, repository-wide — `gate-slot: waiting, k
-ahead` is the cap working), builds the solution and lists every discovered case of Conformance, Unit and
-Characterization. The ORDER PLAN (`scripts/gate_plan.py`) puts in leg 1 the tests the change ADDS, the previous gate's
-reds on either host (tier 0a: build-local's previous run and the worktree's newest hand-run Linux gate, so a re-gate after a
-Linux red runs it; kb/Work PB3155), the host-only witnesses — every class carrying `[Trait("Host", "ReFS")]`, the Windows file-system race
-witnesses CI's NTFS runners may not reproduce (tier 0h, whatever the diff) — the cheap tree-wide sweeps, every class
-carrying `[Trait("Sweep", "tree")]` whose cases are cheap (tier 0c: the bookkeeping reds a population run used to
-find; `HostWitnessTraitDriftTests` keeps both traits on the classes they belong to, kb/Work PB3022), every drift
-test the drift-rule index says governs a file the change touches, whatever its cost (tier 0d, kb/Work PB3531: what
-`drift_rules.py <file>` lists, a sweep of the committed tree through its declared `TreeScope` included, a test
-reading the file through a helper class such as `SuiteManifest` (kb/Work PB3247), and the classes of a register — the
-traceability inventory, docs/CONFORMANCE.md — that cites a member, test or file the change removes, kb/Work PB3131)
-and the
-cheapest cases the change can reach — the tiers `impacted_tests.py` derives from an impact map, when one
-exists, or the WHOLE tier 1 when the change cannot be attributed precisely (no usable map, a grammar or build input, a
-file taken at the file level against a drifted map; owner 2026-10-31, kb/Work PB4269) — and everything else in leg 2, its collections LONGEST FIRST, timed from the shared timings store every gate
-publishes to after its legs, so a fresh worktree is timed too (kb/Work PB2527). The test hosts run Server GC (kb/Work
-PB2526). Each leg runs the three assemblies concurrently.
+The driver, `scripts/gate.py` (DESIGN-test-build-ci.md §3.13, §3.14; kb/Work PB4328), holds the worktree's GATE LOCK (a
+second gate in the same worktree is refused), decides the change's LANE (`python scripts/inert_lane.py classify --base
+<rev>`: a change no test reads is the INERT LANE, which runs the audits alone, kb/Work PB2878; a change whose every other path
+is tooling in `scripts/`, `.github/`, `tools/` or `.claude/` that no compiler test or the build reads — not under
+`inert_lane.py`'s `CODE_READS` — is the TOOLING LANE, which runs the audits with the script self-tests and no slot, build or
+test host, its verdict `TOOLING LANE (kb/Work PB4395)`), starts the audits BESIDE
+everything after them (outside the slot; FAIL-FAST: a red audit known before the slot or the hosts ends the gate in
+seconds with `NO TEST RAN`, and one found while the hosts run STOPS them, kb/Work PB2523, PB4326 — run `python
+scripts/rendered_views.py --check` and the citation audits yourself before gating to avoid the round trip; one audit,
+`SELF-TESTS`, is every script self-test, discovered and run in parallel by `scripts/self_tests.py`, kb/Work PB2563, and
+runs ONLY WHEN YOUR CHANGE TOUCHES A SCRIPT (a path under `scripts/`, `.github/`, `tools/`, `.claude/`, or a
+`.py`/`.ps1`/`.sh` file: the `tooling=` line of `inert_lane.py classify`; a compiler data file a self-test reads, its
+`TOOLING_READS` list, starts none, owner 2026-11-01, kb/Work PB4409; CI's merge group runs every Linux self-test
+whatever the change, and the Windows ones whenever the `reads_tooling=` line is true: a script or that data) — every gate
+passes `--reuse`, so a self-test whose inputs are unchanged since a recorded PASS is REUSED, not run; one still running an
+hour after taking its budget place is `SELF-TESTS HANG`, never RED, kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10) and
+fetches the per-worktree GnuCOBOL corpus when absent, then takes a GATE SLOT (`scripts/gate_slot.py`: at most N gates
+build or test at once, repository-wide — `gate-slot: waiting, k ahead` is the cap working), builds the solution and runs
+the WHOLE Unit, Conformance and Characterization populations, three `dotnet test --no-build` hosts at once (Server GC,
+kb/Work PB2526), each population then checked by name against its `--list-tests` (`scripts/test_population.py check`).
 
-- ⭐ **BATCHED GATING** (owner 2026-10-10 10:19 PDT, kb/Work PB2515: "Yes, permanently", after a measured trial from
-  2026-10-07): the gate runs LEG 1 ONLY, names every leg-2 case NOT RUN
-  (`TestResults/build-local/<run>/not-run-*.txt`) and prints `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
-  PB2515): GREEN — … ===` (or `…: RED`). That is the done-state of every gate. **A re-gate after a fix runs leg 1
-  again, never the population** (the operator's proposal 3, kb/Work PB3022): the previous reds are tier 0a and the
-  fix's reach is tier 1, so verifying a bookkeeping fix costs seconds, not a 7–34 min population run. The landing
-  (`python scripts/orchestrator/enqueue.py land <branch>`, kb/Work PB3023, MANDATORY-PRACTICES L1, L2) runs this same
-  gate on the branch merged with origin/main, plus CI's Linux legs under WSL; a red at the landing is the branch's own
-  (one branch per pull request) and goes to ONE `cobol-finisher` (L12). The whole population runs once, in CI, on the
-  pushed or queued head; a CI red is ALSO a local-gate defect to root-cause (the CI invariant, kb/Work PB1957).
-- **The owner's switch back is the shared implementer scope `whole`** (`python scripts/gate_slot.py
-  set-implementer-scope whole [--until ISO] [--why TEXT]`; the coded default is `leg1`). Under `whole` the implementer
-  gate runs both legs FAIL-FAST: a red in leg 1 stops it `RED/INCOMPLETE` and names the remainder, and it is GREEN only
-  when every leg ran, every assembly's population equals its `--list-tests` (`scripts/test_population.py`) and every
-  leg host ran this plan on these binaries.
+- ⭐ **THE POPULATION IS THE SELECTION** (owner decision 1 of PB4323, 2026-10-31; kb/Work PB4328). There is no plan, no
+  tier, no impact map and no leg 2: the gate runs every case and is done on `=== BUILD-LOCAL GATE: GREEN — Conformance
+  n/n · Unit n/n · Characterization n/n cases ran … ===` (or `RED`). Ordering changes WHEN a case runs, never WHETHER:
+  the classes red at the worktree's previous gate, its newest hand-run Linux gate or the merge-group run that bounced its
+  pull request (fetched into `TestResults/ci-bounce/`, kb/Work PB3644) go first (`WISEOWL_COBOL_GATE_FIRST`, the test
+  framework's `GateOrderer`), then every collection longest first by the committed weights (`tests/_shared/test-weights.json`,
+  `scripts/shard_weights.py generate`). Measured for this step (2026-11-01, quiet box, compile cache off): one gate's
+  three populations 247 s; three gates started together 503 s each; xunit's default thread count (the processor
+  count) beat 16 and 8 in both, so no `xunit.runner.json` caps it. A re-gate of an unchanged tree answers from its
+  GREEN record (`REUSED`, kb/Work PB3536). The landing (`python scripts/orchestrator/enqueue.py land <branch>`, kb/Work
+  PB3023, MANDATORY-PRACTICES L1, L2) reads this record; CI's merge group is the first run of the merged tree, of Linux
+  and of Release (PB4323 §5.1).
 - **The cap is ONE shared setting, 3 by default** (owner 2026-10-10 10:20 PDT, kb/Work PB2514: "Cap 3 permanently"):
   `python scripts/gate_slot.py set-cap N [--until ISO] [--why TEXT]` departs from it in the slot directory every
   worktree shares; every gate re-reads it while it waits, so a change reaches the queue at once, and an expired setting
-  is the coded default again with no one acting. `gate_slot.py clear [cap] [light-cap] [implementer-scope]` returns a
-  setting (none named: all) to its coded default at once. `gate_slot.py status` prints the cap, the light cap, the
-  implementer scope, every held slot and the queue of both pools. No environment variable sets either. **A notes-only
-  (inert-lane) gate takes no slot at all** (kb/Work PB4327): it runs the audits and ends, and CI's `audits` job runs the
-  Linux script self-tests; the LIGHT pool (`set-light-cap N`, PB3724) was built for the Linux self-tests it used to run
-  and no gate takes it now. A waiting gate's log says why a later ticket went first (landing gates are served before implementer gates, PB3103).
-- **The impact map AIMS leg 1; it never filters a leg.** Under batched gating (kb/Work PB2515) leg 1 is the local run,
-  so the map's tiers decide which cases it holds, and the loop records a map for EVERY main commit it adopts (owner
-  2026-10-24, kb/Work PB3663: `adopt_main.py` asks `impact_lane.py`, which records in a detached worker inside a gate
-  slot at BelowNormal, ~14 min and 25 MB a map, coalescing to the newest commit; `python scripts/orchestrator/
-  impact_lane.py status|measure` shows it; by hand `python scripts/spec/record_impact_map.py [--commit <sha>]`). A map
-  serves a base FILE BY FILE (`scripts/spec/impact_store.py`): a change to a file the map's commit and the base share is
-  attributed by line range, a change to a file that differs between them is taken at the file level, and the plan's
-  `map …` line says `exact`, `documentation-only drift`, `nearest` or `none`. With no map at all, the gate still plans
-  everything and CI's merge-group run still runs it — the aim is plainer, never the population smaller.
-- **An implementer is done on `LEG 1 ONLY (batched gating, PB2515): GREEN`** (a plain GREEN only while the owner sets
-  the scope `whole`). The gate runs nothing on Linux (owner 2026-10-31, kb/Work PB4327; MANDATORY-PRACTICES I8): CI's
-  merge group runs the whole Linux population and every Linux self-test, so a Linux-only red is found in the queue.
-  `bash scripts/linux-gate.sh --nice` (CI's whole Linux legs, ~6 min; `--legs unit,conformance,characterization,guard`
-  picks) is the tool that reproduces a Linux CI red on this box, run by hand and not a step of any change's gate; a
-  host-I-O group runs `--legs unit,conformance` at its own gate (I8).
+  is the coded default again with no one acting. `gate_slot.py clear` returns it to its coded default at once, and
+  `gate_slot.py status` prints the cap, every held slot and the queue. No environment variable sets it. **An inert-lane
+  gate takes no slot at all** (kb/Work PB4327).
+- **The gate runs nothing on Linux** (owner 2026-10-31, kb/Work PB4327; MANDATORY-PRACTICES I8): CI's merge group runs
+  the whole Linux population and every Linux self-test, so a Linux-only red is found in the queue. `bash
+  scripts/linux-gate.sh --nice` (CI's whole Linux legs, ~6 min; `--legs unit,conformance,characterization,guard` picks)
+  is the tool that reproduces a Linux CI red on this box, run by hand and not a step of any change's gate; its newest
+  run's red classes go first at the worktree's next gate.
 
-## Per landing — the landing reads the record; it gates nothing (owner 2026-10-23, kb/Work PB3612)
+## Per landing — the landing reads the record; it gates nothing (owner 2026-10-23, kb/Work PB3612, PB4331)
 
 A branch is gated locally ONCE, at its head, by its implementer or finisher: that run is the whole definition of "tested
 locally". `enqueue.py land` does not gate the merge with main and does not gate again when main moves: it READS the
 worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses (exit 14, UNTESTED) a tip none of them covers
 GREEN (a finisher gates the tip). The merge queue's `ci-gate` runs the whole population on the exact
-merge, on both operating systems, before `main` moves. One exception, the case a developer would also re-test: when
-bringing main in changed a file the branch also changes, the one gate runs once on the merged head
-(`pwsh scripts/build-local.ps1` at Normal priority, MANDATORY-PRACTICES L2).
+merge, on both operating systems, before `main` moves: it is the FIRST run of the merged tree, a true textual merge in
+a shared file included (kb/Work PB4331), and the landing lane classifies every red it bounces against this record
+(INFRA and RUNNER re-queued once, MERGE and GENUINE to a finisher, kb/Work PB4271). A gate of the worktree that
+runs when the landing would write it is exit 12, GATE BUSY, whatever record exists (kb/Work PB4204).
+
+⛔ **THE RULE (owner 2026-10-31, CLAUDE.md "Testing", replacing the CI invariant of 2026-10-04): every case the merge
+group runs on Windows already ran green at the pushed head, on this host, under the same `toolchain.env`.** The merge
+group is the FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling
+self-tests on a tooling change and (e) GitHub's runners; a red there is one of those five, a flake or infrastructure,
+never an untested case. A red of class (b), (c) or (e) is also a finding against the pipeline's record of that class,
+filed with its rate (`kb/Work/PB1957`); a flake is a kb/Work defect fixed at its root, never retried inside the run.
 
 **Do NOT run per commit:** the battery or the NIST guard (`scripts/guard-fast.sh`).
 
@@ -130,8 +109,8 @@ bringing main in changed a file the branch also changes, the one gate runs once 
 
 - **CI's own Linux leg — comprehensive is not comprehensive without it.** Everything above runs on ONE host
   (this Windows machine, Debug). The workflow's `ubuntu-26.04` jobs — `guard-fast.sh`'s NIST loop, the Linux
-  conformance shards, Linux greenfield unit + characterization — and the Release build are verified by CI and by
-  nothing else, so a test keyed on host ACL or file-lock semantics can be green here and red there. Read the
+  shards — and the Release build are verified by CI and by nothing else (`guard-fast.sh` is the nightly's, kb/Work
+  PB4332), so a test keyed on host ACL or file-lock semantics can be green here and red there. Read the
   verdict for the commit you pushed:
   `gh run list --branch main --commit <sha> --json databaseId,status,conclusion,displayTitle`, then
   `gh run view <id> --log-failed` on a red. `scripts/session-probe.ps1` prints the latest run's conclusion at
@@ -144,10 +123,10 @@ bringing main in changed a file the branch also changes, the one gate runs once 
   PB3024): main takes only pull requests GitHub's merge queue has tested, administrators included, so a bare
   `git push origin HEAD:main` is refused by the server (owner decision 2026-09-06, question 23; `kb/Work/PB796`). The
   landing is therefore a SCRIPT, not a habit: **`python scripts/orchestrator/enqueue.py land <branch>`** (kb/Work
-  PB3023) merges main in, gates, stamps the DEVLOG entry and ends in one pull request into the queue: no CI wait; the
+  PB3023) merges main in, stamps the DEVLOG entry and ends in one pull request into the queue, gating nothing: no CI wait; the
   merge group runs the matrix and is the CI verdict, and a pull request's own run is the cheap jobs only. It refuses
-  (exit 8) before merging or gating anything while `ruleset.py check` does not report the queue ACTIVE. Never run its
-  inner `queue` verb by hand: `land` is what merges main in, gates and stamps the DEVLOG entry. There is no other
+  (exit 8) before merging anything while `ruleset.py check` does not report the queue ACTIVE. Never run its
+  inner `queue` verb by hand: `land` is what merges main in and stamps the DEVLOG entry. There is no other
   landing path: main refuses a direct push (kb/Work PB3024).
 - ⚠ **A docs-only push runs `changes` + `ci-gate` and nothing else** — seconds, not a matrix. `paths-ignore` was
   removed because a workflow that declines to START leaves a required per-commit check unsatisfiable; the same
@@ -169,17 +148,17 @@ re-run). Here, additionally:
 - **Never chain ANYTHING after a verdict command** (build, test, `build-local`, `enqueue.py land`, battery) with `&&`,
   `||` or `;` — MANDATORY-PRACTICES P14, and the guard hook (`scripts/hooks/forbidden_commands.py` rule 5) BLOCKS
   it. To capture the status in the same call, append `; echo "EXIT=$?"`; read-only commands may follow that.
-- `scripts/build-local.{ps1,sh}` prints ONE `=== BUILD-LOCAL GATE: ` verdict line — `GREEN`, `RED`,
-  `RED/INCOMPLETE` (stopped after leg 1 under the scope `whole`), `LEG 1 ONLY (batched gating, PB2515): GREEN|RED`
-  (leg 1 ran, leg 2 is CI's — never a whole-population GREEN), `BUILD FAILED`, `BUSY` (exit 3: another gate holds
+- `scripts/build-local.{ps1,sh}` prints ONE `=== BUILD-LOCAL GATE: ` verdict line — `GREEN`, `RED`, `BUILD
+  FAILED`, `BUSY` (exit 3: another gate holds
   this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit
-  2: it measured nothing; the cause's class is `run_gate_legs.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
+  2: it measured nothing; the cause's class is `gate.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
   `[interpreter]` is no defect of yours, BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
   block on that line, never on the exit code. The run directory it names holds
-  every leg's full log, trx and identity record, the plan and `verdict.json` (timings, first red, slot).
+  every host's full log and trx (`Conformance.trx`, `Unit.trx`, `Characterization.trx`), each listing, the first-classes
+  file and `verdict.json` (timings, first red, slot, per-assembly wall and effective concurrency).
 - **The gate outlives its caller and is gated once per measured tree** (kb/Work PB3536; DESIGN-test-build-ci.md
   §3.14.12). `build-local` starts the gate DETACHED in its run directory (`gate.log`, `gate.pid`, `verdict.json`) and
-  follows it, so killing the caller leaves the gate running to its verdict; `python scripts/run_gate_legs.py --await
+  follows it, so killing the caller leaves the gate running to its verdict; `python scripts/gate.py --await
   <run> [--worktree W] [--wait-s N]` reads that verdict (its line and exit code; a process that died with none is
   `NOT RUN [verdict]` exit 2, a gate still running `PENDING` exit 4; a relative `<run>` is W's run). A re-gate of a
   tree an earlier gate in the worktree measured GREEN (the harness's `.claude/settings.local.json` edit, STATUS.md and

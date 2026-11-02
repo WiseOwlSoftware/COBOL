@@ -88,14 +88,19 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
 
     /// <summary>Name the margin-R cut that may be why the syntax error at <paramref name="errorAt"/> stands there (kb/Work
     /// PB2555; ISO §6.3.1: the program-text area ends at margin R, which the implementor fixes, so the text past it is not
-    /// program text and the reference format drops it). The error is the cut's effect in two shapes, each with its evidence
+    /// program text and the reference format drops it). The error is the cut's effect in three shapes, each with its evidence
     /// in the token stream, and only where the cut text may have been program text (<see cref="MarginRCut"/>):
     /// <list type="bullet">
     /// <item>the OFFENDING token ends the program text of its line AT margin R and the cut text begins right there
     /// (<see cref="LocatedMarginRCut.EndsAtMarginR"/>): a word the margin cut in two, <c>END-SEN</c> for <c>END-SEND</c>;</item>
     /// <item>the token BEFORE the offending one is the last of a physical line that was cut and the offending token stands on
     /// a later line: the statement the line began ended early and the parse failed at the next one, <c>STOP</c> after a
-    /// <c>CALL</c> whose last arguments lay past margin R.</item>
+    /// <c>CALL</c> whose last arguments lay past margin R;</item>
+    /// <item>a line BETWEEN the two tokens holds text ONLY past margin R: its program-text area is blank, so it reads as blank
+    /// and a statement written there vanished wholly (kb/Work PB4372). A line between the tokens that HOLDS program text and
+    /// yet no token is text the compiler OMITTED (a false conditional-compilation branch, ISO §7.3.16.4 GR 3: "all lines of
+    /// text-1 are omitted from the resultant text"; a debugging line compiled without debugging mode), never a cut's effect,
+    /// and is not asked about.</item>
     /// </list>
     /// Reported once per cut, as a warning beside the error.</summary>
     private void NoteMarginRCut(IRecognizer? recognizer, IToken? offending, SourceLocation errorAt)
@@ -109,11 +114,19 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
                 + "was cut, so the word may have been longer", errorAt);
             return;
         }
-        if (PreviousToken(recognizer, offending) is { } previous
-            && cuts.MarginRCutAt(previous.Line, previous.Column + (previous.StopIndex - previous.StartIndex)) is { } before
+        if (PreviousToken(recognizer, offending) is not { } previous) return;
+        if (cuts.MarginRCutAt(previous.Line, previous.Column + (previous.StopIndex - previous.StartIndex)) is { } before
             && !before.Cut.IsSequenceNumber
             && (before.At.FileName, before.At.Line) != (errorAt.FileName, errorAt.Line))
             ReportMarginRCut(before, "the statement that line began may have continued past it", errorAt);
+        // A line between the two tokens holds no token, so none anchors a question about it. One that holds text ONLY past
+        // margin R reads as blank, and a statement written there vanishes wholly (kb/Work PB4372). A line that HOLDS program
+        // text and yet stands tokenless was omitted by a stage after the reference format (a false >>IF branch, a debugging
+        // line without debugging mode), so it is not asked about. The column is immaterial: the question is of the line.
+        for (int line = previous.Line + 1; line < offending.Line; line++)
+            if (cuts.MarginRCutAt(line, 0) is { } between && !between.Cut.HoldsProgramText && !between.Cut.IsSequenceNumber
+                && (between.At.FileName, between.At.Line) != (errorAt.FileName, errorAt.Line))
+                ReportMarginRCut(between, "the statement written on that line vanished, so the parse failed at the next one", errorAt);
     }
 
     /// <summary>The token before <paramref name="token"/> on the parser's default channel, or null when there is none or no
@@ -132,13 +145,26 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
     {
         if (!_cutNoted.Add((cut.At.FileName, cut.At.Line))) return;
         var dropped = cut.Cut;
-        string shown = dropped.Text.Length > MaxDroppedShown ? dropped.Text[..MaxDroppedShown] + "..." : dropped.Text;
+        string shown = CharacterPositions.Count(dropped.Text) > MaxDroppedShown
+            ? dropped.Text[..CharacterPositions.IndexAt(dropped.Text, MaxDroppedShown)] + "..."
+            : dropped.Text;
+        // The message counts POSITIONS, which a tab fills and a character is one of; the location beside it is the COLUMN the
+        // file holds the cut at (kb/Work PB4373), so a line whose two differ says so rather than state two margins.
+        string held = dropped.Column == dropped.LastProgramTextPosition
+            ? ""
+            : " (a tab counts the positions it fills, so the column this warning names, where the file holds the cut, is less than that)";
+        // A line whose program-text area is blank has no "end" to name: all of its text lies past margin R (kb/Work PB4372).
+        (string cutAt, string remedy) = dropped.HoldsProgramText
+            ? ($"the program text of this line was cut at margin R: it ends at position {dropped.LastProgramTextPosition}{held}, and what "
+               + $"follows, '{shown}' (positions {dropped.FirstCutPosition} to {dropped.LastCutPosition}), is outside the "
+               + "program-text area and was ignored (ISO §6.3.1).",
+               $"Shorten the line to end at position {dropped.LastProgramTextPosition} or continue it on the next line.")
+            : ($"this line has no program text: all that it holds, '{shown}' (positions {dropped.FirstCutPosition} to "
+               + $"{dropped.LastCutPosition}), lies past margin R, after position {dropped.LastProgramTextPosition}{held}, outside "
+               + "the program-text area, so it was ignored and the line reads as blank (ISO §6.3.1).",
+               $"Write the text within positions 8 to {dropped.LastProgramTextPosition}.");
         diagnostics.ReportWarning(DiagnosticCatalog.ProgramTextPastMarginR.Code,
-            $"the program text of this line was cut at margin R: it ends at position {dropped.LastProgramTextPosition}, and what "
-            + $"follows, '{shown}' (positions {dropped.FirstCutPosition} to {dropped.LastCutPosition}), is outside the "
-            + $"program-text area and was ignored (ISO §6.3.1). The syntax error at {errorAt} may be this: {consequence}. "
-            + $"Shorten the line to end at position {dropped.LastProgramTextPosition} or continue it on the next line.",
-            cut.CutLocation, TextSpan.Empty);
+            $"{cutAt} The syntax error at {errorAt} may be this: {consequence}. {remedy}", cut.CutLocation, TextSpan.Empty);
     }
 
     /// <summary>The most characters of the cut text a note quotes.</summary>

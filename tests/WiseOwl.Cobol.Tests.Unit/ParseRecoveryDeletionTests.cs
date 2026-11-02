@@ -48,6 +48,38 @@ public sealed class ParseRecoveryDeletionTests
         Assert.Contains("'W-N'", errors[1]);
     }
 
+    /// <summary>⛔ THE VERB OF A COMPLETE NEXT STATEMENT, WHERE THE OPEN STATEMENT STILL REQUIRES MORE THAN ONE ELEMENT
+    /// (kb/Work PB4286). ISO §14.9.31.2 prints <c>GIVING identifier-1 data-name-2</c>, so after a bare GIVING the next
+    /// statement's verb is not in the follow of identifier-1 alone, and the deletion dropped it because the operand after
+    /// it fits identifier-1: <c>DISPLAY W-B.</c> lost its verb and the period drew a second COBOL0001 where data-name-2
+    /// was due. The same for the missing data-name-1 before GIVING and the SEARCH ALL table before its required WHEN. The
+    /// ADD row is the shape that already drew one diagnostic (its receiver may be followed by a statement). One fault,
+    /// one diagnostic, at the verb.</summary>
+    [Theory]
+    [InlineData("RECEIVE FROM W-A GIVING DISPLAY W-B.")]
+    [InlineData("RECEIVE FROM W-A GIVING W-B DISPLAY W-B.")]
+    [InlineData("RECEIVE FROM DISPLAY W-B.")]
+    [InlineData("SEARCH ALL DISPLAY W-B.")]
+    [InlineData("ADD 1 TO DISPLAY W-B.")]
+    [InlineData("IF W-N = 1 RECEIVE FROM W-A GIVING DISPLAY W-B END-IF.")]
+    public void TheVerbOfACompleteNextStatement_IsNotDeleted(string statements)
+    {
+        var errors = RecoverySources.Errors(RecoverySources.Program(statements));
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{RecoverySources.Listing(errors)}");
+        Assert.Contains("'DISPLAY'", errors[0]);
+    }
+
+    /// <summary>The statement after the incomplete one is read as written, not consumed by the recovery: its own fault is
+    /// a second fault, reported at its own token (kb/Work PB4286).</summary>
+    [Fact]
+    public void TheNextStatementAfterAnIncompleteRECEIVE_IsReadAsWritten()
+    {
+        var errors = RecoverySources.Errors(RecoverySources.Program("RECEIVE FROM W-A GIVING DISPLAY W-B MOVE 1 W-N."));
+        Assert.True(errors.Count == 2, $"expected the RECEIVE and the MOVE, got:\n{RecoverySources.Listing(errors)}");
+        Assert.Contains("'DISPLAY'", errors[0]);
+        Assert.Contains("'W-N'", errors[1]);
+    }
+
     /// <summary>A token that no element may be followed by is still deleted: a repeated TO or USING is the one fault,
     /// and the statement parses on past it.</summary>
     [Theory]
