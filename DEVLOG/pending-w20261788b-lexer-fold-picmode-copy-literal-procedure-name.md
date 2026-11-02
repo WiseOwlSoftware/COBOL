@@ -1,4 +1,4 @@
-## PB4233, PB4240, PB4176, PB4229: a total PICMODE, the keyword a folded word spells, the open COPY literal, and a reserved word as a procedure-name
+## PB4233, PB4240, PB4176, PB4229: a total PICMODE, keywords on the basic letters alone, the open COPY literal, and a reserved word as a procedure-name
 
 Wave 20261788 group B, one lexer-and-front-end root, four mechanisms, each re-probed on the build of 11e8949be before any
 change.
@@ -15,19 +15,21 @@ at every edition) and `pb4233_picture_string_then_separator_period` (accepted at
 `LexerDfaCacheDriftTests` now runs through `LexerErrorListener` and holds the lexer to reporting nothing on the suite's
 sources (branch review R1-2: a separate test had lexed the whole corpus a third time for that question alone). DESIGN-frontend-grammar 3.3c also lost a stale SUBSCRIPT mode.
 
-**PB4240 (wrong answer).** `RetypeDirectiveKeyword` compared a directive word with DEFINED by the host's OrdinalIgnoreCase,
-so `>>IF X DEF<U+0130>NED` was COBOL1619 beside an accepted `>><U+0130>F`. The sibling the note suspected was real and wider:
-the keyword rules match only the basic letters (`caseInsensitive`), so a keyword written with a letter Annex C.2 folds to a
-basic one (U+0130, the Kelvin sign U+212A, the dotless i before 2023) lexed as an IDENTIFIER: `D<U+0130>SPLAY "HI"` was
-COBOL0001 while `01 D<U+0130>SPLAY PIC X.` drew COBOL0901, the funnel folding by Annex C. `CobolLexer.RetypeFoldedKeyword`
-(in `NextToken`, after the edition spelling, before `>>COBOL-WORDS` and every keyword decision) gives such a word the type
-of the keyword its `UpperFold` spells; DEFINED compares through `CobolNames.Same`. Siblings the keyword token reached:
-`WordCharacterScreen.IsCandidate` now screens it (else it compiled at COBOL-85), and three ASCII-first-letter guards
-(`CobolErrorStrategy.IsReservedWord`, `IsClosedFormatResidueAhead`, `AdmittedKinds.Written`) take any letter.
-`CobolNameFoldDriftTests` scans the grammars' actions too. Goldens `pb4240_keyword_spelled_with_dotted_capital_i` (2002)
-and `pb4240-keyword-spelled-with-dotted-capital-i-85` (COBOL0900); `pb1965-kelvin-spelled-reserved-word` now expects
-COBOL1941, what `01 KEY PIC X` draws in basic letters.
-
+**PB4240 (wrong answer), to the owner's direction.** `>>IF X DEF<U+0130>NED` was COBOL1619 beside an accepted `>><U+0130>F` and
+`>>END-<U+0130>F`. The owner ruled on 2026-10-31 (GAP-REVIEW question 2; kb/Work PB4240's addendum, PB4312) that §8.1.3.2 4)
+folds extended letters in user-defined words only and a keyword matches on the basic letters alone (3) a)), so the
+outlier was the accepted directive, not the refused DEFINED. The branch's first fix went the other way: it made
+`D<U+0130>SPLAY "HI"` the DISPLAY verb by retyping a folded word as its keyword. Review round 1 blocked it (R1-1), and the
+finisher deleted that mechanism whole. The root of `>><U+0130>F` was `CompilerDirectiveLine`, which wrote a directive word
+as its Annex C `UpperFold`, so every stage after it read IF. One class, `Editions.CobolKeywords`, now holds the keyword
+reading: basic letters of either case, every other character only itself. The directive word, the directive catalog and
+every directive-word table use it, and so do the operand keywords of seven directives, the division cursor, the
+comment-entry paragraphs, the COPY phrase words, the lexer probe's map and the lexer's DEFINED (which had compared by the
+host's ordinal-ignore-case, which raises the dotless i and the long s to I and S). Four goldens are refused at 2002, 2014
+and 2023: the verb (COBOL0001), DEFINED (COBOL1619), the directive (COBOL0001), and the user-word half, where
+`01 D<U+0130>SPLAY` folds to the reserved `display` (COBOL0901). `pb1965-kelvin-spelled-reserved-word` again expects COBOL0901.
+`CobolNameFoldDriftTests` gains the rule that no Frontend or Editions line compares a keyword literal by the fold. PB4312,
+the diagnostics printing the folded spelling, stays open.
 **PB4176 (diagnosis).** `COPY "ABC` drew COBOL2450 "not an alphanumeric literal" and COBOL2449 at the next line's STOP. The
 COPY / REPLACE statement cursor is where every text-word of those statements is consumed, so it asks
 `LiteralScreen.ReportUnterminated` (the lexer's own COBOL5563 question, §6.3.5 1), §6.4.2) of each literal there, as the
@@ -48,22 +50,7 @@ rows.
 No inventory row was claimed or re-verdicted (each row these rules map to already CONFORMS); every note writes
 `closes_rows: []` with its reason. Codes: COBOL5704 used, COBOL5705 and COBOL5706 returned.
 
-**PB4274 (the finisher, at the landing's GATE RED).** The landing's gate on ecc64a97de64 ran every case and every case
-passed on both hosts, but Unit's population read 4 NEVER RAN and 4 NOT IN THE POPULATION. The four are main's theory
-cases whose argument holds a supplementary-plane character (PB107's NormalizerTests, PB4234's WordCharacterEveryEditionTests).
-The tools spell those names differently. xunit leaves the character literal and `--list-tests` prints it as UTF-8. The
-SDK's trx logger rewrites every UTF-16 code unit outside XML's character range as a backslash-u escape
-(`RemoveInvalidXmlChar`), so each surrogate of the pair becomes six characters. A lone surrogate matched because xunit
-already writes it as `\xd800`. The check compared raw strings. `test_population.trx_spelling` now states the logger's
-rewrite once, and `check` compares both sides in it. The rewrite is not invertible, so two listed names it spells alike
-are an error. `gate_plan.name_key` and the test hosts' `GateNameKey.Of` start from the same spelling, which also fixes two
-siblings: such a case's previous red never reached tier 0a, and the shared store dropped its timing. The defect hid
-because a leg-1-only gate ignored a stopped population whole: 15 leg-1-only runs printed these NOT IN THE POPULATION
-lines and stayed GREEN, until PB4269's whole-tier leg made the population exact. `Population.defective` now holds a
-stopped run to RAN TWICE and NOT IN THE POPULATION. CI never saw the mismatch because it checked only Conformance's
-population; `greenfield-unit` and `windows-build-test` now check Unit and Characterization too (PB1957 row 50).
-
-**PB4322 (the same finisher, the next gate's red).** The gate on c4aac6fe3 went RED on one Unit case,
+**PB4322 (the landing finisher, its gate's red).** The gate on c4aac6fe3 went RED on one Unit case,
 `ProcessObservationDriftTests.ASlowProcess_UnderOneUnit_…`. The case ran a 3 s child against a 1 s budget whose clock
 starts only at `WaitForExit`, and on a host 85 % busy the starved test host saw the child exit before the wait began:
 a wall-clock race, not a regression in the observer. The witness now runs a child that never ends by itself (`ping -t`,

@@ -726,7 +726,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // A word (a reserved word is the candidate) or a literal the production does not open with — in the data
         // division's form, one that begins with an unsigned integer (kb/Work PB3373, PB3390); ClosedFormatResidue
         // decides.
-        return (IsLiteral(token) || token.Text is [var first, ..] && char.IsLetter(first))
+        return (IsLiteral(token) || token.Text is [var first, ..] && char.IsAsciiLetter(first))
                && !atn.NextTokens(state, recognizer.Context).Contains(token.Type)
                && ClosedFormatResidue(recognizer, new OffendingPosition(recognizer, token), predictionFailedAt: false) is not null;
     }
@@ -1075,7 +1075,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // it follow it. A guess about punctuation is false when the written words are a phrase the statement before
         // them does not print; hint 0h names that.
         if (expected?.Contains(CobolLexer.DOT) == true
-            && !(token.Text is { } spelled && CobolNames.StartsWith(spelled, "END-"))
+            && !(token.Text is { } spelled && CobolKeywords.StartsWith(spelled, "END-"))
             && !HasStructuralHint(hints)
             && at.APeriodLetsTheSentenceFollow())
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
@@ -1667,7 +1667,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// multi-spelling keywords the vocabulary publishes no literal name for). Every such word begins with a letter;
     /// testing that first keeps a numeric literal away from the lexer probe.</summary>
     private static bool IsReservedWord(IToken token)
-        => token.Text is [var first, ..] text && char.IsLetter(first)
+        => token.Text is [var first, ..] text && char.IsAsciiLetter(first)
            && CobolKeywordTokens.TryTokenType(text, out int type) && type == token.Type;
 
     // ── The GO TO general-format complement (kb/Work PB412) ──

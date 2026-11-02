@@ -536,7 +536,7 @@ public abstract class CobolParserCoreBase : Parser
     /// candidates are the offending token and the first token of every open rule and of the rule each matched last (the
     /// misread statement begins at the word), each re-read with the word retyped to <c>IDENTIFIER</c>, from the sentence's first token through its
     /// separator period, as a <c>sentence</c> and — when the word begins the sentence and the sentence is not an
-    /// incomplete statement of that verb (<see cref="IsIncompleteStatement"/>) — as a <c>procedureUnit</c>, whose
+    /// incomplete statement of that verb (<see cref="IsIncompleteStatement"/>) — as a <c>sectionDefinition</c> and a <c>paragraphDefinition</c>, whose
     /// header it then names. A reading that parses the whole span with the word under <c>procedureName</c> is the one the
     /// source means; a genuine fault elsewhere fails every re-read, and its own report stands. <c>Through</c> is the stream
     /// index of the span's last token (its separator period): the one fault covers the sentence the re-read judged.
@@ -588,7 +588,7 @@ public abstract class CobolParserCoreBase : Parser
             var asName = (CommonToken)copies[at];
             asName.Type = CobolLexer.IDENTIFIER;
             int[] readings = word == first && !IsIncompleteStatement(span, word, offending)
-                ? [CobolParserCore.RULE_sentence, CobolParserCore.RULE_procedureUnit]   // a header names it too
+                ? [CobolParserCore.RULE_sentence, CobolParserCore.RULE_sectionDefinition, CobolParserCore.RULE_paragraphDefinition]   // a header names it too
                 : [CobolParserCore.RULE_sentence];
             foreach (int rule in readings)
                 if (Reading(copies, rule) is { Next: TokenConstants.EOF } reading && NamesAProcedure(reading.Tree, asName))
@@ -1007,7 +1007,7 @@ public abstract class CobolParserCoreBase : Parser
     /// </summary>
     protected bool parameterPhraseAhead()
         => TokenStream.LT(1) is { Type: CobolLexer.IDENTIFIER } word
-           && CobolNames.Same(word.Text, "PARAMETER")
+           && CobolKeywords.Same(word.Text, "PARAMETER")
            && TokenStream.LA(2) == CobolLexer.IDENTIFIER;
 
     /// <summary>

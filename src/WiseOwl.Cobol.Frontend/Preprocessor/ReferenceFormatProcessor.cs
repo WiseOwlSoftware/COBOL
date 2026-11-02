@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -46,7 +45,7 @@ public static partial class ReferenceFormatProcessor
     /// fixed form the entry is the rest of the header line and its content up to the next Area-A header (COBOL-85); in free
     /// form it is the rest of the header line (GnuCOBOL 3.2's <c>-free</c> reading; docs/CONFORMANCE.md D-CE1).
     /// </summary>
-    private static readonly HashSet<string> CommentEntryParagraphs = new(CobolNames.Comparer)
+    private static readonly HashSet<string> CommentEntryParagraphs = new(CobolKeywords.Comparer)
     {
         "AUTHOR", "INSTALLATION", "DATE-WRITTEN", "DATE-COMPILED", "SECURITY", "REMARKS",
     };

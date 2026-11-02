@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>Which migration-flagging directive an option belongs to — <c>&gt;&gt;FLAG-02</c> (§7.3.14, the
@@ -150,9 +149,9 @@ public static class FlagOptions
     private sealed class DirWordComparer : IEqualityComparer<(FlagDirective, string)>
     {
         public bool Equals((FlagDirective, string) x, (FlagDirective, string) y) =>
-            x.Item1 == y.Item1 && CobolNames.Same(x.Item2, y.Item2);
+            x.Item1 == y.Item1 && CobolKeywords.Same(x.Item2, y.Item2);
         public int GetHashCode((FlagDirective, string) o) =>
-            HashCode.Combine(o.Item1, CobolNames.Comparer.GetHashCode(o.Item2));
+            HashCode.Combine(o.Item1, CobolKeywords.Comparer.GetHashCode(o.Item2));
     }
 }
 
@@ -191,7 +190,7 @@ public static class FlagDirectiveLine
 
         // The second pair of braces: a trailing ON/OFF, written or not, identically for both directives.
         int end = tokens.Length;
-        if (end > 0 && CobolNames.UpperFold(tokens[^1]) is var last && last is "ON" or "OFF")
+        if (end > 0 && CobolKeywords.Spelling(tokens[^1]) is var last && last is "ON" or "OFF")
         {
             on = last == "ON";
             end--;
@@ -202,7 +201,7 @@ public static class FlagDirectiveLine
         var picked = new List<FlagOption>();
         for (int i = 0; i < end; i++)
         {
-            string w = CobolNames.UpperFold(tokens[i]);   // the directive's words are COBOL words: Annex C, not the host (kb/Work PB2845)
+            string w = CobolKeywords.Spelling(tokens[i]);   // the directive's words are keywords: the basic letters alone, never the host's case mapping (kb/Work PB2845, PB4240)
             if (w == "ALL")
             {
                 if (allWritten) { error = Repeated(tokens[i]); return false; }

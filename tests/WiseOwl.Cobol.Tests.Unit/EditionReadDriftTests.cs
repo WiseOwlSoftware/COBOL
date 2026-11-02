@@ -108,7 +108,7 @@ public sealed class EditionReadDriftTests
             "userWordHere",
         ],
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4"] =
-            ["ApplyEditionSpelling", "NextToken", "OnDefaultLParen", "PreviousTokenCouldBeDataName", "RetypeDirectiveKeyword"],
+            ["ApplyEditionSpelling", "NextToken", "OnDefaultLParen", "PreviousTokenCouldBeDataName"],
         ["src/WiseOwl.Cobol.Frontend/Parsing/TokenRetypes.cs"] =
             ["LexesDifferentlyFrom", "PrimeLexer", "ReservedNonDataNames"],
     };
@@ -165,8 +165,6 @@ public sealed class EditionReadDriftTests
         // The lexer: the Annex C spelling of a word at the edition, and whether a '(' after a word the edition
         // reserves can open a subscript (kb/Work PB1465).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | LPAREN | OnDefaultLParen"] = (1, Verdict.WordStatus),
-        // The primed directive expression's DEFINED is compared in the edition's Annex C spelling (kb/Work PB4240).
-        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | IDENTIFIER | RetypeDirectiveKeyword"] = (1, Verdict.WordStatus),
         // The error strategy names a syntax error on a reservation-gated word §8.9 reserves here, written where a
         // user-defined word stands, as that word's §8.9 violation (COBOL0901), ranked with its other diagnoses of the
         // token (kb/Work PB693, PB4132). Both recoveries of such a word read the same decision: the resynchronization

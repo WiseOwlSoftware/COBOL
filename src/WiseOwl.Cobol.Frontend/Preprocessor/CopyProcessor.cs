@@ -304,8 +304,8 @@ public sealed class CopyProcessor(
             if (w.IsWord("COPY")) return "a COPY statement";
             if (rule.ForbidsReplaceStatement && w.IsWord("REPLACE")) return "a REPLACE statement";
             var span = w.Span;
-            if (directiveNext && CobolNames.StartsWith(span, "SOURCE")
-                || span.StartsWith(">>") && CobolNames.StartsWith(span[2..].TrimStart(CobolSpace.Separators), "SOURCE"))
+            if (directiveNext && CobolKeywords.StartsWith(span, "SOURCE")
+                || span.StartsWith(">>") && CobolKeywords.StartsWith(span[2..].TrimStart(CobolSpace.Separators), "SOURCE"))
                 return "a SOURCE FORMAT directive";
             directiveNext = span.SequenceEqual(">>");
         }
@@ -605,7 +605,7 @@ public sealed class CopyProcessor(
     /// <summary>The figurative-constant words (§8.3.3.6.2 formats 1–6; a format-7 symbolic-character is a
     /// user-defined word, which as text-name-1 is simply a text-name), barred as literal-1 / literal-2 by
     /// §7.2.3.3 SR4.</summary>
-    private static readonly HashSet<string> FigurativeConstantWords = new(CobolNames.Comparer)
+    private static readonly HashSet<string> FigurativeConstantWords = new(CobolKeywords.Comparer)
     {
         "ZERO", "ZEROS", "ZEROES", "SPACE", "SPACES", "HIGH-VALUE", "HIGH-VALUES", "LOW-VALUE", "LOW-VALUES",
         "QUOTE", "QUOTES", "ALL",

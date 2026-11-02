@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -52,12 +51,12 @@ public static class DirectiveSiteProcessor
     /// <summary>The directive words whose syntax rules are about the directive's POSITION. ⛔ ONE set: a fourth
     /// such rule is one entry here, and the binder's predicate covers it with no new mechanism.</summary>
     public static readonly IReadOnlySet<string> PositionRuled =
-        new HashSet<string>(CobolNames.Comparer) { "TURN", "PUSH", "POP" };
+        new HashSet<string>(CobolKeywords.Comparer) { "TURN", "PUSH", "POP" };
 
     /// <summary>Of those, the ones NO dedicated stage owns, so this stage consumes the line (blank, never
     /// delete — line-count preserving, hazard H3).</summary>
     private static readonly IReadOnlySet<string> Consumed =
-        new HashSet<string>(CobolNames.Comparer) { "PUSH", "POP" };
+        new HashSet<string>(CobolKeywords.Comparer) { "PUSH", "POP" };
 
     /// <summary>The directive words whose row carries a PLACEMENT rule (<see cref="ConstructDialectStatus.Placement"/>
     /// — kb/Work PB1377, PB1378, PB1065), DERIVED from the catalog so a directive with a new placement restriction
@@ -65,7 +64,7 @@ public static class DirectiveSiteProcessor
     /// <c>DirectivePlacementPass</c> judges the rules that need the parse tree.</summary>
     private static readonly IReadOnlySet<string> PlacementRuled =
         CompilerDirectiveCatalog.Words.Where(w => CompilerDirectiveCatalog.Find(w)?.Placement is not null)
-            .ToHashSet(CobolNames.Comparer);
+            .ToHashSet(CobolKeywords.Comparer);
 
     /// <summary>⛔ THE ONE JUDGE OF <see cref="DirectivePlacementRule.BeforeFirstCompilationUnit"/> (§7.3.10.3 SR1,
     /// COBOL2652; kb/Work PB1377, PB1373): a directive whose row carries that rule — and a PUSH or POP that names

@@ -6,7 +6,6 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Preprocessor;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -102,12 +101,12 @@ internal static class DirectivePlacementPass
     {
         if (site.AllForm)
         {
-            var (rule, text) = CobolNames.Same(site.Word, "PUSH") ? PushRule : PopRule;
+            var (rule, text) = CobolKeywords.Same(site.Word, "PUSH") ? PushRule : PopRule;
             return $"the >>{site.Word} ALL directive on line {site.Line} is written {where} — \"{text}\" (ISO {rule}).";
         }
         if (named is not null)
         {
-            var (rule, _) = CobolNames.Same(site.Word, "PUSH") ? PushNameRule : PopNameRule;
+            var (rule, _) = CobolKeywords.Same(site.Word, "PUSH") ? PushNameRule : PopNameRule;
             return $"the >>{site.Word} {named.DirectiveWords[0]} directive on line {site.Line} is written {where}, where "
                 + $"{named.DirectiveWords[0]} must not be specified (ISO {rule}: \"the {site.Word} directive shall not be "
                 + $"specified where directive-name must not be specified\") — \"{placement!.Text}\" (ISO {placement.Citation}).";

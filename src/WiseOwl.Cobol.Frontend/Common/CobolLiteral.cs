@@ -134,7 +134,7 @@ public static class CobolLiteral
     public static string? AllLiteralRaw(string raw)
     {
         string t = raw.TrimStart();
-        if (t.Length < 3 || !CobolNames.StartsWith(t, "ALL")) return null;
+        if (t.Length < 3 || !CobolKeywords.StartsWith(t, "ALL")) return null;
         string rest = t[3..].TrimStart();
         return IsStringLiteral(rest) ? rest : null;
     }
