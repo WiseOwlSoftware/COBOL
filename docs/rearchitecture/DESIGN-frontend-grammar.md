@@ -1769,7 +1769,17 @@ joined the table the same way, which is the table doing its job: a tenth format 
   every statement's opening word expected, `AdmittedKinds.BeginsAStatement`, never one verb another clause shares:
   DISPLAY is a USAGE keyword, so `USAGE 5` is closed and names the usages, kb/Work PB4201) names everything; a
   literal at an open position that takes an operand names the literal categories taken, or none; a user-defined word
-  where only literals are taken says both. An open position that takes a period yields to the missing-period reading
+  where only literals are taken says both. **A position where a statement may begin (kb/Work PB4224)** is the one
+  element "a statement" (`Named.Statement`), never fifty-odd verbs, and a literal (a figurative constant included) or a
+  user-defined word written there draws COBOL5506 saying a statement begins with the first word of its statement name
+  (§14.5.3.1, the names Table 12's, §14.5.1): `IF W-N = 1 THEN 5 END-IF` expects a statement, `EVALUATE … WHEN 1 5` a
+  statement or WHEN. **A noise word is no alternative (kb/Work PB4225):** the optional word of §8.3.2.4.3 is the one
+  whose presence leaves the parse admitting exactly what it admitted without it, and `AdmittedKinds` leaves it out of
+  the list (`USAGE 5` expects the usages, not IS). The test is the parse's own (`ResimulationWalk.WordChangesNothing`:
+  one step of the walk over the word must expose the admitted set minus the word itself), so no word is kept on a
+  list: a word that matters changes what may follow it and stays named (the WHEN of an EVALUATE selection, after which
+  a new selection object is expected). An open position that
+  takes a period yields to the missing-period reading
   where a period would let the sentence or entry starting at the token follow (`01 W-X PIC X` then `05 W-Y`). The
   sentence says "expected", the parser's word: the grammar parses a superset of each format wherever a later check
   names the departure (INSPECT tallying FIRST/TRAILING for COBOL2269). **The keywords are the compile edition's own
