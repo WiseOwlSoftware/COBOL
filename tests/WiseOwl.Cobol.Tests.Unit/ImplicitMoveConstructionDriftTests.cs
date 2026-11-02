@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>RELEASE SRT-REC FROM WS-NUM</c> (a PIC 9(3) sender into a PIC A(8) record) compiled clean where the
 /// identical explicit MOVE drew COBOL0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an
 /// unhandled NotImplementedCobolFeatureException before the record was ever released, because
-/// <c>MarkImageForced</c> — a fact <c>StorageFormPass</c> consumes — is collected by the binder and the
+/// <c>DataBindState.ImageForcedItems</c> — a fact <c>StorageFormPass</c> consumes — is collected by the binder and the
 /// emitter-built move never passed through it. Same source, same SD, opposite result.</para>
 ///
 /// <para><b>The invariant.</b> Every <c>BoundMove</c> the I-O and sort emitters render was built by
@@ -63,7 +63,7 @@ public sealed class ImplicitMoveConstructionDriftTests
         Assert.False(Regex.IsMatch(src, $@"\bnew\s+{Node}\s*\("),
             $"{emitterFile} constructs a {Node}. The implicit MOVE of a FROM / INTO phrase is BOUND — "
             + "MoveBinder.BindFromPhrase / BindIntoPhrase — so that the §14.9.25.3 syntax rules and the "
-            + "MarkImageForced / MarkRefModStoreImage storage facts apply to it. A move built here escapes both, "
+            + "ImageForcedItems / MarkRefModStoreImage storage facts apply to it. A move built here escapes both, "
             + "which is how RELEASE … FROM QUOTE came to abort the run unit (kb/Work PB348).");
     }
 

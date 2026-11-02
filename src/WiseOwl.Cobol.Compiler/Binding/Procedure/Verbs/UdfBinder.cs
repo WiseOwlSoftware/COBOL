@@ -56,16 +56,16 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>THIS statement's not-yet-hoisted PRE-ops (statement-scoped: BindStatement marks the count on entry
     /// and drains only its own suffix — the property-op discipline).
-    /// <para>⛔ IT IS THE SHARED <see cref="DataBinder.PendingPreOps"/>, NOT A LIST OWNED HERE. A D18
+    /// <para>⛔ IT IS THE SHARED <see cref="ProcedureBindState.PendingPreOps"/>, NOT A LIST OWNED HERE. A D18
     /// function-bearing subscript registers its §15.4 temp store on the same list while this binder's arguments
     /// bind (fix-queue PB17), and only ONE list in registration order sequences the store before the activation
     /// that consumes it. Every member below is therefore written against <see cref="BoundStatement"/>, not
     /// <see cref="BoundCallProgram"/>.</para></summary>
-    private List<BoundStatement> Pending => ctx.Data.PendingPreOps;
+    private DrainQueue<BoundStatement> Pending => ctx.Data.Procedure.PendingPreOps;
 
     /// <summary>The mark of BOTH statement-scoped pending lists at one instant — the pre-op list
-    /// (<see cref="DataBinder.PendingPreOps"/>: function activations, inline method invocations, function-bearing
-    /// subscript temps) and the object-property op list (<see cref="DataBinder.OoPendingPropertyOps"/>).</summary>
+    /// (<see cref="ProcedureBindState.PendingPreOps"/>: function activations, inline method invocations, function-bearing
+    /// subscript temps) and the object-property op list (<see cref="ProcedureBindState.PropertyOps"/>).</summary>
     internal readonly record struct PendingMark(int PreOps, int PropertyOps);
 
     /// <summary>The pending-list mark for the host chokepoints (the suffix-drain protocol). ⛔ IT MARKS BOTH LISTS
@@ -73,7 +73,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// inline invocation AND an object-property GET — so none of the three can be hoisted out of a condition that
     /// is evaluated repeatedly or conditionally. It marked only the pre-op list until PB987, and a property
     /// reference in <c>PERFORM UNTIL P OF S &gt; 3</c> was fetched ONCE for the whole loop.</summary>
-    internal PendingMark Mark => new(Pending.Count, ctx.Data.OoPendingPropertyOps.Count);
+    internal PendingMark Mark => new(Pending.Mark(), ctx.Data.Procedure.PropertyOps.Mark());
 
     /// <summary>Bind one user-function reference (the <see cref="BindIntrinsicCore"/> dispatch target for a
     /// REPOSITORY-declared name, which per §12.3.8.4 GR12 refers to the user function and never a same-named
@@ -392,13 +392,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// so before PB892 they carried an empty profile and every condition they propagated was discarded.</para></summary>
     private List<BoundStatement>? DrainPending(int mark, List<BoundStatement>? leading = null)
     {
-        var calls = Pending;
         var taken = leading ?? [];
-        if (calls.Count > mark)
-        {
-            taken.AddRange(calls.GetRange(mark, calls.Count - mark));
-            calls.RemoveRange(mark, calls.Count - mark);
-        }
+        if (Pending.AnyAfter(mark)) taken.AddRange(Pending.DrainFrom(mark));
         return taken.Count == 0 ? null : OperandSteps(taken);
     }
 
@@ -418,7 +413,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 step = a.WithActivatorChecking(profile);
             }
             taken[i] = step;
-            ctx.Data.OperandEvaluations++;
+            ctx.Data.Procedure.OperandEvaluations.Advance(ctx.Data.Procedure.OperandEvaluations.Current + 1);
         }
         return taken;
     }

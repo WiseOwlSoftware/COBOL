@@ -13,7 +13,7 @@ internal sealed class OoMethodScope
     // TryAdd hole (kb/Work PB466).
     public readonly ProcedureNameMap<int> Paras = new();
     public readonly ProcedureNameMap<SectionInfo> Sections = new();
-    /// <summary>The method's DATA name scope (§11.7 GR5) — activated on <c>DataBinder.ActiveMethodScope</c>
+    /// <summary>The method's DATA name scope (§11.7 GR5) — activated on <c>ProcedureBindState.ActiveMethodScope</c>
     /// while this method's statements bind (slice 2).</summary>
     public OoMethodDataScope? Data;
     /// <summary>The METHOD-ID name — the §15.30.3 r2b1 element name of a statement inside this method ("the name of

@@ -143,7 +143,7 @@ public sealed partial class DataBinder
     private readonly ConstantScope _constants = new();
 
     /// <summary>The METHOD whose constants a reference made now reads first: the method whose data division is being
-    /// bound, else the method whose statements are (<see cref="ActiveMethodScope"/>); null at program, object,
+    /// bound, else the method whose statements are (<see cref="ProcedureBindState.ActiveMethodScope"/>); null at program, object,
     /// factory and interface level.</summary>
     private ConstantScope? MethodConstants => CurrentMethodScope?.Constants;
 

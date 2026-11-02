@@ -71,7 +71,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// one — the hook refuses it by name, COBOL2363), its written text for that message and its line, it binds the
     /// expression through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes the §15.4 temporary via
     /// <c>DataBinder.CreateCompilerTemp</c>, registers the store as a statement-scoped pending PRE-op on
-    /// <see cref="DataBinder.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
+    /// <see cref="ProcedureBindState.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
     /// position (<see cref="PositionRead"/>).
     /// <para>⛔ IT IS A HOOK, NOT A COLLABORATOR REFERENCE, because the binder dependency is ONE-WAY:
     /// <c>StatementBinder(DataBinder, ReferenceResolver)</c>. StatementBinder installs it in its constructor (the
@@ -500,12 +500,12 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // are the same item. The syntactic path, the data-division path (ResolveItemRefMod) and the resolved-place
         // path (RefModOf) all read it this way, so SR1 and the view are asked of one description.
         DataItem described = inner.Item;
-        int preOpMark = data.PendingPreOps.Count;   // the reference modifier's own pre-ops (function activations) start here
+        int preOpMark = data.Procedure.PendingPreOps.Mark();   // the reference modifier's own pre-ops (function activations) start here
         if (ReadScreenedRefMod(dref, written, described, out var refusal) is not { } spec) return refusal!;
         // §14.6.4 steps 6 → 7: an occurs-depending group's length is evaluated BEFORE the reference modifier, so when
         // the modifier registered pre-ops (a function whose side effect may change the DEPENDING ON object) the length
         // is pinned ahead of them (kb/Work PB1123).
-        if (inner is OdoGroupPlace odo && data.PendingPreOps.Count > preOpMark && FreezeOdoExtent is { } freeze)
+        if (inner is OdoGroupPlace odo && data.Procedure.PendingPreOps.AnyAfter(preOpMark) && FreezeOdoExtent is { } freeze)
             inner = freeze(odo, preOpMark, dref.Start.Line);
         return RefModView(described, inner, spec) is { } view
             ? RefResolution.Resolved(view, "")
@@ -775,7 +775,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             // P5.7: the bind-time wrap decision reads the COLLECTED early facts (same mid-bind timing the
             // deleted flag had — MarkRefModStoreImage records the SAME item during this statement's bind).
             // (A view over engine state has no cell to be image-backed: Place.OwnsStorageCell, kb/Work PB1943.)
-            if ((!inner.OwnsStorageCell || !data.IsImageBackedEarly(item)) && inner is not RedefViewPlace)
+            if ((!inner.OwnsStorageCell || !data.State.ImageForcedItems.RecordedSoFar(item)) && inner is not RedefViewPlace)
                 inner = new NumericImagePlace(inner);
         }
         // National/boolean items reference-modify in their OWN character positions (§8.4.3.3 GR1/GR5a — a
@@ -1207,7 +1207,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     private Place? SpanLeafPlace(DataItem leaf, IReadOnlyList<Position> indexExprs, out PlaceGap gap)
     {
         if (PlaceForItem(leaf, indexExprs, out gap) is not { } place) return null;
-        bool stringValued = data.IsImageBackedEarly(leaf) || place is RedefViewPlace
+        bool stringValued = data.State.ImageForcedItems.RecordedSoFar(leaf) || place is RedefViewPlace
             || leaf.Pic?.Category is not PicCategory.Numeric;
         var image = stringValued ? place : new NumericImagePlace(place);
         return leaf.Pic is { Usage: Usage.National } ? new NationalBytesPlace(image) : image;
@@ -1300,8 +1300,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         if (ScreenEmptyParentheses(dref, subCtx))   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         List<IndexUse> ixNames = [];
-        int preOpMark = data.PendingPreOps.Count;   // the subscripts' own pre-ops (D18 temp stores, activations) start here
-        int propertyMark = data.OoPendingPropertyOps.Count;   // ... and their object-property references (the other pending list)
+        int preOpMark = data.Procedure.PendingPreOps.Mark();   // the subscripts' own pre-ops (D18 temp stores, activations) start here
+        int propertyMark = data.Procedure.PropertyOps.Mark();   // ... and their object-property references (the other pending list)
         var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
         if (e is null) return SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
@@ -1313,7 +1313,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             })
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
-        if (!_probing) _enclosingCapture?.Offer(item, e, data.PendingPreOps.Skip(preOpMark), data.OoPendingPropertyOps.Skip(propertyMark));
+        if (!_probing) _enclosingCapture?.Offer(item, e, data.Procedure.PendingPreOps.Since(preOpMark), data.Procedure.PropertyOps.Since(propertyMark));
         return null;
     }
 
@@ -1335,7 +1335,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// execution's value, silently the wrong occurrence). The occurrence's pre-ops are therefore captured too
     /// (<see cref="EnclosingOccurrence.PreOps"/>) and the SEARCH runs them once ahead of the scan to determine the
     /// occurrence it bounds (§14.9.37.4 GR1); the WHEN condition still evaluates its own copy each time it is tried.
-    /// An OBJECT-PROPERTY subscript is the same shape on the OTHER pending list (<c>DataBinder.OoPendingPropertyOps</c>,
+    /// An OBJECT-PROPERTY subscript is the same shape on the OTHER pending list (<c>ProcedureBindState.PropertyOps</c>,
     /// which the per-evaluation wrapper drains alongside the pre-ops), so its pending GET is captured as well
     /// (<see cref="EnclosingOccurrence.PropertyOps"/>; kb/Work PB3365 review R2-1).</para></summary>
     internal EnclosingOccurrence? CaptureEnclosingSubscripts(DataItem table, Action bindWhile)
@@ -1363,8 +1363,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         /// <summary>A committed subscript reading of <paramref name="item"/>: the first one that is <c>table</c> or lies
         /// within it, fully subscripted (a reference the arity screen refused never reaches here), keeps the leading
         /// positions that belong to the tables ENCLOSING <c>table</c>.</summary>
-        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, IEnumerable<Bound.BoundStatement> preOps,
-            IEnumerable<DataBinder.OoPendingPropertyOp> propertyOps)
+        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, ReadOnlySpan<Bound.BoundStatement> preOps,
+            ReadOnlySpan<DataBinder.OoPendingPropertyOp> propertyOps)
         {
             if (Enclosing is not null) return;
             for (DataItem? n = item; n is not null; n = n.Parent)
@@ -2480,7 +2480,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// (a fixed level, or no enabling >>TURN — the zero-scaffolding invariant). The bounds are the SAME the extent
     /// model uses (<see cref="CurrentOccurrenceCount"/>), so the superordinate and the element checks agree.</summary>
     private OdoReferenceCheck? OdoReferenceCheckFor(DataItem level) =>
-        data.OdoReferenceChecking && CurrentOccurrenceCount(level, []) is AllCount.Odo o
+        data.State.UnitChecking.OdoReferenceChecking && CurrentOccurrenceCount(level, []) is AllCount.Odo o
             ? new OdoReferenceCheck(o.Depending, o.MinOccurs, o.MaxOccurs) : null;
 
     /// <summary>The STRUCTURAL whole-table path to a table that may itself lie under OTHER tables — one index
@@ -3008,10 +3008,10 @@ public sealed partial class ReferenceResolver(DataBinder data)
         return false;
 
         // The function-identifier's head token IS an activation site (ISO §7.3.14.4 GR4 b reads it back from
-        // DataBinder.ActivationSites — the subscript has no FunctionCall parse node of its own).
+        // DataBindState.ActivationSites — the subscript has no FunctionCall parse node of its own).
         bool Activation(IToken head)
         {
-            data.ActivationSites.Add(head);
+            data.State.ActivationSites.Add(head);
             return true;
         }
     }
