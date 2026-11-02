@@ -1,4 +1,4 @@
-## PB4416: a method's data roots and its Tier-B backing are rooted at a local's identity, not at a CLR name
+## Entry 2986 — 2026-11-01 23:34 PST — PB4416: a method's data roots and its Tier-B backing are rooted at a local's identity, not at a CLR name
 
 **The mechanism.** A METHOD's LOCAL-STORAGE and LINKAGE roots, and the one string backing of a method's Tier-B REDEFINES
 class, are locals of the generated method (ISO §8.6.4: "Their storage is allocated and set to initial state each time the
@@ -39,3 +39,4 @@ are method locals too (`long {idx.Cell} = 1;` in `OoEmitter.EmitMethod`) while t
 (`IndexDeclaration.Cell`, `PositionIndexCell.Cell`).
 
 **Gate.** See the report: the verdict line of the gate run at this branch's head.
+
