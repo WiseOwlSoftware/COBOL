@@ -116,7 +116,9 @@ public static partial class CobolCharacterRepertoire
     /// belongs to no Annex B table: <see cref="Violation"/> judges the extended letters by the edition's Annex B.3, whose
     /// item 3 mirrors this rule for them, and this judges the two basic characters. Null when the word starts and ends
     /// on something else. The lexer's word class takes <c>_A</c> and <c>A_</c> whole so that this rule can name them
-    /// (kb/Work PB4234); <see cref="IsWordShape"/> asks the same position question of the text-stage word readers.</summary>
+    /// (kb/Work PB4234), and the frontend's word screen joins a hyphen the lexer gave the minus (<c>A-</c>, <c>-A</c>)
+    /// back into its word for the same question (kb/Work PB4278); <see cref="IsWordShape"/> asks it of the text-stage
+    /// word readers.</summary>
     public static string? SeparatorPositionViolation(string word)
     {
         if (word.Length == 0) return null;
