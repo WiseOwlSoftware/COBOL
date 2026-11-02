@@ -2980,9 +2980,11 @@ public static class DiagnosticCatalog
     /// margin R (kb/Work PB2555; ISO §6.3.1, Annex A.1 item 158). Margin R is the implementor's (position 72 here), so the
     /// compiler is right to drop what lies past it, but a statement that runs past it ends early and the parse fails at the
     /// NEXT token (<c>cannot parse construct near STOP</c>) or at a word the margin cut in two (<c>unexpected 'END-SEN'</c>),
-    /// with nothing pointing at the truncation. The note is reported only BESIDE a syntax error whose offending token or
-    /// predecessor stands on a cut line, and only for a cut that may have been program text: a numeric area (the sequence
-    /// number convention) and the tail of an inline comment (§6.3.7.3) are the ordinary uses of those positions.</summary>
+    /// with nothing pointing at the truncation. The note is reported only BESIDE a syntax error whose offending token,
+    /// predecessor or a line between the two stands on a cut line (a line whose only text is past margin R reads as blank,
+    /// kb/Work PB4372), and only for a cut that may have been program text: a numeric area (the sequence number
+    /// convention), a tag that recurs, and the tail of an inline comment (§6.3.7.3) are the ordinary uses of those
+    /// positions.</summary>
     public static readonly DiagnosticDescriptor ProgramTextPastMarginR = new(
         "COBOL5788", "program-text-past-margin-r", EditionSeverity.Warning,
         "The program-text area of a fixed-form line ends at margin R, and a syntax error stands where the text of this line "
