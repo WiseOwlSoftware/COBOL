@@ -9,8 +9,8 @@ whole, or on a member of one that matches a member of the other) and the narrowe
 holds a group only where a member of one matches a member of the other, kb/Work PB4452).
 
 Its readers: the wave planner (plan_wave.py), the landing check's guarantee (landing_check.py), the spec renderer
-(make_dispatch_specs.py: the declared set of a group it records), check_practices.py (two groups of one wave whose
-claims meet are refused: one step per file, kb/Work PB4396) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
+(make_dispatch_specs.py: the declared set of a group it records), check_practices.py (two groups of one wave that
+edit one member are refused: `hold`, kb/Work PB4452) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
 index (scripts/arch/member_index.py) computes the declared sets declared_sets reads. In the import DAG of section 16.10
 (scripts/script_layering.py) it imports
 reports and, lazily, the branch survey's git facts (prune_worktrees: classify, main_names, branch_graph, replay_view,

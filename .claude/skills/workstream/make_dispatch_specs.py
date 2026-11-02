@@ -20,8 +20,8 @@ groups.json:
                           # branch survey holds each IN FLIGHT until this group's branch lands it (kb/Work PB4396)
      "overflow": [...],   # optional: the notes of its file family a LATER wave plans onto its branch, recorded in the
                           # ledger: its branch does not land alone while one of them is open (kb/Work PB4396)
-     "after": "K"}        # optional: DEPENDENCY SUCCESSOR of group K (a campaign's blocked_by on other files; two
-                          # groups whose claims meet never share a wave, kb/Work PB4396) — ignored here;
+     "after": "K"}        # optional: DEPENDENCY SUCCESSOR of group K (a campaign's blocked_by; two groups
+                          # editing one member never share a wave, kb/Work PB4452) — ignored here;
                           # wf_rolling_wave.js runs this group only after K returns and hands it K's branch and report
                           # (workstream references/rolling-wave.md)
   ]

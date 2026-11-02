@@ -576,7 +576,7 @@ def plan_finishers(s: PlanState) -> None:
 
 def plan_fill(s: PlanState) -> None:
     """THE CLUSTER GROUPS, by rows claimed: the clusters ranked (tier, depth, rows, harm), a group each; then every
-    group in tier order (plan_partition unites the groups whose claims meet)."""
+    group in tier order (plan_partition absorbs a group into one on its files with room, or places it beside them, PB4452)."""
     taken = s.taken
     # The drain plans no cluster, a finisher absorbs none, and a half note's open half waits too: counted, not listed.
     s.not_started = sorted({n["id"] for c in s.clusters + s.half_clusters for n in c["notes"]} & s.open_ids - taken
@@ -731,7 +731,12 @@ def plan_partition(s: PlanState) -> None:
             # own, never as overflow that waits a wave: different members of one file merge (git's three-way merge; a
             # finisher repairs a real conflict).
             holders = [t for t in family if hold(g.claim, t.claim)]
-            roomy = [t for t in family if not t.overflow and len(t.notes) + len(g.notes) <= s.cap]
+            # a group with room in ANOTHER dependency chain is no home (review w20261832a R2-2): joining it would make
+            # the group wait a wave on the chain check below, where running beside costs nothing
+            linked = {id(p) for p in pred_of.values()} | set(pred_of)
+            needs = {id(resolve(group_of[b])) for i in g.notes for b in (deps or {}).get(i, []) if b in group_of}
+            roomy = [t for t in family if not t.overflow and len(t.notes) + len(g.notes) <= s.cap
+                     and id(t) not in linked and (not needs or needs == {id(t)})]
             family = holders if holders else roomy[:1]
         if family:
             # ONE STEP PER FILE (kb/Work PB4396): the work of one file family is one group, sized by turns.

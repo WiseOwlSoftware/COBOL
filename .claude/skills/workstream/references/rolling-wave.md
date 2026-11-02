@@ -30,14 +30,16 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   are ONE group, sized by the turns an implementer holds (`clusters.notes_cap`, the cluster size `plan_wave.py` hands
   `fix_clusters.py`: `model_rules.json` `wave.turns_per_group` + `wave.turns_per_note` per note, under
   `wave.turn_budget_fraction` of the implementer's turn cap), never by a note count; a note on a file a finished
-  in-flight branch holds is planned ONTO that branch (its pred merges it first; groups.json `continues`); and what one
-  implementer cannot hold is the group's OVERFLOW (groups.json `overflow`), which the next wave plans onto the branch
+  in-flight branch holds is planned ONTO that branch (its pred merges it first; groups.json `continues`). Past what one
+  implementer holds (multiple editors per file, kb/Work PB4452): work sharing only FILES runs beside the group as a
+  group of its own; work on a MEMBER the group edits is the group's OVERFLOW (groups.json `overflow`), which the next
+  wave plans onto the branch
   the group leaves. The chain lands ONCE, with its last link: the dispatch ledger keeps both records and the branch
   survey reads a link reviewed CLEAN that a later link carries, or will carry, IN FLIGHT (`prune_worktrees.py`
   `chain_links`). Two groups of one wave never meet (`check_practices.py`, no `after:` exception). This replaced the
   4-note cap (kb/Work PB3704), the same-file successor (kb/Work PB3670) and, for same-file chains, kb/Work PB3381's
   "land the clean links as they come": together they built, gated, reviewed and landed one file's work once per link.
-- **Dependency successors.** A campaign group blocked by a group whose claim it does not meet declares
+- **Dependency successors.** A campaign group blocked by another group (on the same files or not) declares
   `after: '<predecessor letter>'`. A wave dispatches only the first `wave.links_per_chain` links of each chain (the
   owner's ONE, kb/Work PB3638: "no wave may take hours"), placed in tier order so the highest tier heads the chain;
   the rest wait for the next wave. Where a wave does run a successor, it waits until its
@@ -109,10 +111,10 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   DIR`), the ledger's one writer, so the planners' file-set partition and the landing check see a hand-planned wave too
   (kb/Work PB3186); a RED render records nothing (kb/Work PB3114). It refuses, before writing, a `scratch` or
   `stop_file` that is not an absolute path (and a scratch inside the checkout): quote Windows paths in Git Bash.
-  `check_practices.py <groups.json>` refuses two groups whose claims MEET on ANY file both claim, a primary file or a
-  secondary one (`inflight.collision`, the planner's own rule: either has no `member_set` entry for the file, so claims
-  it whole, or a member of one matches a member of the other) unless one declares `after:` the other: two groups on
-  different members of one file whose claims meet nowhere run side by side (kb/Work PB3670, PB3696). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
+  `check_practices.py <groups.json>` refuses two groups that edit the same MEMBER (`inflight.hold`: a member of one
+  matches a member of the other on a file both claim), `after:` or not; two groups that share only a file, or claim it
+  whole, run side by side and git's merge combines them (multiple editors per file, kb/Work PB4452, owner
+  2026-11-02). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
   give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``, a `:line` after
   the path optional: MANDATORY-PRACTICES R3, `work.SITES_RULE`), or `(whole: why)` when the change takes the file throughout (`work.py check` refuses a code file named with neither, and a name the
   file does not declare, for a held note: kb/Work PB3797), or the planner claims the whole file (one step with the wave's other groups on it, and a whole claim neither holds nor is held by RUNNING work: `inflight.hold` needs a member on both sides, kb/Work PB4452); a note with no site block holds nothing and is planned UNPARTITIONED, never held.
