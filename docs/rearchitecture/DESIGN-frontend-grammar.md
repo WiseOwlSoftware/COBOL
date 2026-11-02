@@ -1606,6 +1606,23 @@ target:
   block cannot take the left IF's END-IF) ends the block of its owning statement, which is recorded left too
   (`OwningStatement`), so its END-EVALUATE is its own and the IF's END-IF, whose enclosing EVALUATE has returned without
   its terminator, is the IF's.
+  **A terminator an OLDER open statement's optional END-x would match is the left statement's** (PB4447; ISO §14.5.3.2 1),
+  §14.5.3.3 4)): `IF A EVALUATE W WHEN 1 IF B ELSE DISPLAY X END-IF DISPLAY "Y" END-EVALUATE END-IF.` The left IF B's ELSE
+  and END-IF were taken by the OUTER IF A (its recovery set holds the ELSE, and its optional `END_IF?` decision matched
+  the END-IF with no failure), so the EVALUATE was closed early with no record and its END-EVALUATE drew a false
+  COBOL0306 (and so did an END-SEARCH, END-ADD, … inside any IF). Two places make the nearest unterminated statement
+  win. `Recover` consumes a fault's own phrase word with it (the ELSE `IF B ELSE` faulted at: the failed statement is
+  "the most-recently preceding unterminated statement" the phrase may associate with, §14.5.3.3 4)), as it consumes the
+  terminator the fault stood at. And `Sync`, which the generated parser calls before every optional END-x and every loop
+  decision, consumes a scope terminator as a left statement's own (`ConsumesALeftStatementsTerminator`) where a statement
+  of its kind is OPEN on the parser's stack and a record due began AFTER it: the newer statement owns the terminator, so
+  the open one never sees it, and the statements between go on as written. Where no statement of the kind is open the
+  terminator is unowned, which `EndsAStatementTheRecoveryLeft` answers at its report.
+  **A fault deep inside a statement ends every list around it early** (PB4447): the SLL prediction that died inside the
+  innermost malformed statement ended the preceding statement of EACH enclosing list before the statement that holds it
+  (`IF A DISPLAY "Z" IF B IF C ELSE … END-IF END-IF ELSE DISPLAY "Y" END-IF`: IF A ended before IF B), so `NoteLeftBefore`
+  climbs the enclosing statements, not only the nearest, and records each preceding unterminated statement that ends in
+  a block. Without the record the left IF A's ELSE drew COBOL0001 and its END-IF a false COBOL0306.
   **A phrase word of a left statement is its own** (PB4436, branch review R1-1): ending the error condition at the consumed
   terminator unmasks the failure at the next phrase word of an enclosing statement the prediction already closed early
   (`IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.`: the ELSE, a WHEN or a WHEN OTHER of an EVALUATE or SEARCH
