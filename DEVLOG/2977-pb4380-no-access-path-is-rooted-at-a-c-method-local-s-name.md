@@ -1,4 +1,4 @@
-## PB4380: no access path is rooted at a C# method local's name (leak L8's residue)
+## Entry 2977 — 2026-11-01 20:12 PST — PB4380: no access path is rooted at a C# method local's name (leak L8's residue)
 
 kb/Work PB4380 (campaign PB2293, wave 20261814 group C). DESIGN-backend-abstraction §1.2 forbids the name of a C#
 method local on a neutral node, because a CIL method addresses its locals by slot. PB4321 gave the binder's statement
@@ -42,3 +42,4 @@ the item's `ClrName`, still rooted at a `RootFieldSegment`; that is an allocated
 left to the report as a lead.
 
 **Gates.** Windows: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,540/20,540 · Unit 39,155/39,155 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261102T034805Z, at ebbe81afd; the new `AMethodsResidentFormal_IsRootedAtItsCarrierLocalsIdentity` Passed in `Unit.trx`). Linux: not part of the per-change gate (PB4327). `python scripts/semgrep/verify.py`: PASS, no count raised.
+
