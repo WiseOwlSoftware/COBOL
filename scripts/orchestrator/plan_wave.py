@@ -719,6 +719,13 @@ def plan_partition(s: PlanState) -> None:
                     waiting[i] = f"blocker {', '.join(unplanned)} is not planned in this wave"
                 continue
             dep_links = distinct(group_of[b] for b in g.blocked_by if b in group_of)
+        if family and (any(t.overflow for t in family) or sum(len(t.notes) for t in family) + len(g.notes) > s.cap) \
+                and not any(hold(g.claim, t.claim) for t in family):
+            # MULTIPLE EDITORS PER FILE (kb/Work PB4452, owner 2026-11-02): past what one implementer holds, the rest of a
+            # file family runs BESIDE it as a group of its own, never as overflow that waits a wave, unless the two edit
+            # the same member (hold). Different members of one file merge (git's three-way merge; a finisher repairs a
+            # real conflict).
+            family = []
         if family:
             # ONE STEP PER FILE (kb/Work PB4396): the work of one file family is one group, sized by turns.
             head = family[0]

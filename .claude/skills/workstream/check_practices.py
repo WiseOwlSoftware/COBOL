@@ -220,14 +220,12 @@ def mechanical_model_overrides():
     return found
 
 
-# O2: ONE STEP PER FILE (kb/Work PB4396, owner 2026-11-01). Two groups of one wave whose CLAIMS meet (inflight.collision:
-# on ANY file both claim, either claims it whole or a member of one matches a member of the other: the groups file's
-# `file_set` and `member_set`) are refused, `after:` or not: the planner makes the work of one file family ONE group
-# (plan_wave.plan_partition, the same reader), and what one implementer cannot hold is that group's overflow, which a
-# later wave plans onto its branch, never a second group of the wave. It once accepted such a pair as a successor chain
-# (`after:`, kb/Work PB3696), so one file's work built, gated, reviewed and landed once per link. Two groups on
-# DIFFERENT MEMBERS of a file, and nothing else shared, run side by side (kb/Work PB3670, the owner 2026-10-24:
-# "Developers do this all the time"); git's three-way merge combines their branches.
+# O2: NO TWO EDITORS OF ONE MEMBER (kb/Work PB4452, owner 2026-11-02: multiple editors of one file are allowed). Two
+# groups of one wave are refused only when they edit the SAME MEMBER (inflight.hold: a member of one matches a member of
+# the other on a file both claim, from the groups file's `file_set` and `member_set`), `after:` or not. A shared file,
+# or a file either claims whole, never refuses a pair: git's three-way merge combines their branches, and a finisher
+# repairs a real conflict. The planner still fuses one file family into ONE group while one implementer can hold it
+# (kb/Work PB4396, plan_wave.plan_partition); past that, the rest is a second group of the same wave, side by side.
 PRIMARY = re.compile(r'src/[\w./-]+\.(?:cs|g4)')
 
 
@@ -239,13 +237,13 @@ def group_claim(g):
 
 
 def claims_meet(groups_path):
-    """Every pair of groups in the groups file whose claims meet, as `A+B on <file or file#member>`: [] when the work of
-    each file family is one group (O2, kb/Work PB4396). No `after:` excuses a pair."""
+    """Every pair of groups in the groups file that edit the same member, as `A+B on <file#member>` (O2, inflight.hold,
+    kb/Work PB4452): a shared file alone never makes a pair. No `after:` excuses one."""
     groups = json.loads(groups_path.read_text(encoding='utf-8'))['groups']
     found = []
     for i, a in enumerate(groups):
         for b in groups[i + 1:]:
-            if hit := inflight.collision(group_claim(a), group_claim(b)):
+            if hit := inflight.hold(group_claim(a), group_claim(b)):
                 found.append(f"{a['letter']}+{b['letter']} on {hit}")
     return found
 

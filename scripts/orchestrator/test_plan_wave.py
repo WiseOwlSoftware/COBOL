@@ -1104,17 +1104,23 @@ def member_groups(*member_sets):
     return check_practices.claims_meet(MEMBER_GROUPS)
 
 
-check("check_practices O2 is a shared-MEMBER rule (kb/Work PB3670): different members of one primary file pass; one "
-      "member, or the whole file, refused",
+check("check_practices O2 is a shared-MEMBER rule (kb/Work PB4452): different members of one primary file pass, and so "
+      "does a group claiming the file whole; only one member both edit is refused",
       (member_groups(["Binder.Bind"], ["Binder.Sync"]), member_groups(["Binder.Bind"], ["Bind"]),
        member_groups(["Binder.Bind"], None)),
-      ([], ["A+B on src/X/Binder.cs#Binder.Bind"], ["A+B on src/X/Binder.cs"]))
-MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": [{"letter": "A", "root": "src/X/Binder.cs"},
-                                                              {"letter": "A2", "root": "src/X/Binder.cs", "after": "A"}]}),
+      ([], ["A+B on src/X/Binder.cs#Binder.Bind"], []))
+MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": [
+    {"letter": "A", "root": "src/X/Binder.cs", "member_set": {"src/X/Binder.cs": ["Binder.Bind"]}},
+    {"letter": "A2", "root": "src/X/Binder.cs", "after": "A", "member_set": {"src/X/Binder.cs": ["Binder.Bind"]}}]}),
                          encoding="utf-8", newline="\n")
-check("check_practices O2 refuses two groups whose claims meet even when one declares `after:` the other (one step per "
-      "file, kb/Work PB4396: no successor exception)", check_practices.claims_meet(MEMBER_GROUPS),
-      ["A+A2 on src/X/Binder.cs"])
+check("check_practices O2 refuses two groups editing one member even when one declares `after:` the other (no successor "
+      "exception, kb/Work PB4396)", check_practices.claims_meet(MEMBER_GROUPS),
+      ["A+A2 on src/X/Binder.cs#Binder.Bind"])
+MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": [{"letter": "A", "root": "src/X/Binder.cs"},
+                                                              {"letter": "B", "root": "src/X/Binder.cs"}]}),
+                         encoding="utf-8", newline="\n")
+check("check_practices O2: two groups claiming one file WHOLE run side by side (multiple editors per file, kb/Work "
+      "PB4452, owner 2026-11-02)", check_practices.claims_meet(MEMBER_GROUPS), [])
 
 
 def claim_groups(*claims):
@@ -1127,11 +1133,12 @@ def claim_groups(*claims):
 BIND_A = ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Bind"]})
 BIND_B = ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Sync"]})
 EMIT_B = ([F_EMIT, "src/X/Shared.cs"], {F_EMIT: ["Emitter.Emit"]})
-check("check_practices O2 asks the planner's rule over the WHOLE claim (kb/Work PB3696): a secondary file both groups "
-      "claim whole is a meeting, on one primary file or two; nothing shared is not",
+check("check_practices O2 reads the WHOLE claim by member (kb/Work PB3696, PB4452): a secondary file both groups claim "
+      "whole is no meeting, and a member both name on it is",
       (claim_groups(BIND_A, BIND_B), claim_groups(BIND_A, EMIT_B),
-       claim_groups(([F_BIND, "src/X/A.cs"], {F_BIND: ["Binder.Bind"]}), ([F_BIND, "src/X/B.cs"], {F_BIND: ["Binder.Sync"]}))),
-      (["A+B on src/X/Shared.cs"], ["A+B on src/X/Shared.cs"], []))
+       claim_groups(([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Bind"], "src/X/Shared.cs": ["Shared.Go"]}),
+                    ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Sync"], "src/X/Shared.cs": ["Shared.Go"]}))),
+      ([], [], ["A+B on src/X/Shared.cs#Shared.Go"]))
 
 # 8. THE FIX LANE WITHOUT --cluster IS UNCHANGED (kb/Work PB2120): the whole plan of this fixture, every group's
 #    rendered JSON included, equals the golden that the planner wrote BEFORE the campaign lane existed (committed
@@ -1346,12 +1353,13 @@ if fc:
     check("so the mixed dependent cluster follows the one Alpha.cs group instead of waiting",
           ([(g.letter, g.after, g.notes) for g in lp["groups"]], lp["waiting"]),
           ([("A", "", ["PB961", "PB962", "PB963"]), ("A2", "A", ["PB964", "PB965"])], {}))
-    # at the 2-note size the third Alpha.cs note is the group's OVERFLOW, and the dependents of it wait with it
+    # at the 2-note size the third Alpha.cs note runs BESIDE group A as a group of its own (multiple editors per file,
+    # kb/Work PB4452: no member of it meets A's), never as overflow that waits a wave; the dependents of both wait
     lp2 = pw.plan(lnotes, lopen, lhalf, [], lambda b: "ABSENT", {}, LRULES, budget_points=100, deps=ldeps)
-    check("PB4396: past the group size the Alpha.cs overflow waits for the next wave, and so do its dependents",
+    check("PB4452: past the group size the rest of the Alpha.cs family runs beside group A, not as overflow",
           ([(g.letter, g.notes, g.overflow) for g in lp2["groups"]], sorted(lp2["waiting"]),
            "ONTO group A's branch" in lp2["waiting"].get("PB963", "")),
-          ([("A", ["PB961", "PB962"], ["PB963"])], ["PB963", "PB964", "PB965"], True))
+          ([("A", ["PB961", "PB962"], []), ("B", ["PB963"], [])], ["PB964", "PB965"], False))
 
 # 9c. THE PLACEMENT ORDER IS THE TIER, AND A WAVE RUNS ONE LINK PER CHAIN (kb/Work PB3638, the owner's fix-cycle bar).
 #     Wave 20261029 chained two untiered FINISHERS (PB3112, PB2878) ahead of the tier-1 cluster PB3612 on one file,
