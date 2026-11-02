@@ -1,4 +1,4 @@
-## The process observer reads the wait after its kill: a survivor is named and waited for (PB4388)
+## Entry 2968 — 2026-11-01 18:03 PST — The process observer reads the wait after its kill: a survivor is named and waited for (PB4388)
 
 `ProcessObserver.Observe` killed a process that had exceeded its budget and called `WaitForExit(5_000)`, discarding the result. A process killed inside a blocking system call (the `MoveFileEx` on a loaded ReFS volume of PB4387) can outlive that wait, so the observation said `was killed` of a process that was alive, and `ObserveWithRetry` then asked `RestoreForRetry` to restore a run directory the survivor still held. The restore was refused, the retry never ran, and a transient stall became `HARNESS NON-OBSERVATION` (run `000002-20261101T113354Z` of the PB4278 branch: OBSQ4A, SQ203A, SQ214A and IX103A at 125-126 s, attempt 2 not run).
 
@@ -7,3 +7,4 @@ Re-probe: the arm needs a process that ignores its kill, which no test child can
 Fix: `ProcessObserver.ReportKilled` reads the wait. Exited: `TimedOut`, unchanged. Alive: the new `ProcessOutcome.SurvivedKill`, whose detail names the process id and no longer claims a completed kill, carrying a `SurvivingProcess` held by id (the `Process` object is disposed when `Observe` returns). `ObserveWithRetry` waits for the survivor for `SurvivorWaitMs` (60 s, before taking the retry gate so it holds nobody else's retry), then restores and retries; a survivor still alive raises the non-observation naming its id with `attempt2: not run`, never the `cannot be restored` refusal. `DESIGN-test-build-ci.md` §3.10 and `DOC_INDEX.md` updated.
 
 Tests (`ProcessObservationDriftTests`): exits within the wait; alive after it (detail, survivor, no partial stdout); exits during the retry's wait (order: attempt 1, wait, restore, attempt 2); never exits (one call, id named, directory untouched); the real by-id wait on a live and an exited process. Sibling sweep: `LiveProcess.Kill` waits unbounded, so it cannot misreport. Rows closed: none (test harness, no ISO rule).
+
