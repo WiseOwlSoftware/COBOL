@@ -1,4 +1,4 @@
-## PB4323 steps 8 and 11, PB4395 and PB4396: the landing gates nothing, the tooling lane, and one file is one step
+## Entry 2961 — 2026-11-01 16:12 PST — PB4323 steps 8 and 11, PB4395 and PB4396: the landing gates nothing, the tooling lane, and one file is one step
 
 One branch, one gate, one review (owner 2026-11-01: work on the same files is done in one step; then "I want the entire
 new pipeline up and running as quickly as possible"). PB4395 item 1 ran as four implementers on disjoint script families
@@ -454,3 +454,4 @@ fresh `PYTHONPYCACHEPREFIX` each, as CI's watched steps do. Without it the tool'
 `standard_streams.py`, served from the build's `__pycache__`. The `wiring` arm holds this. New self-test arms: the closure,
 check requiring an imported module, listing patterns, which listings the watch judges, and (on Linux) an import through an
 appended `scripts/` that is GREEN when the module is CODE_READS.
+
