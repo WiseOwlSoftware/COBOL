@@ -1,4 +1,4 @@
-## PB2103 part 2: the external repository is read — the metadata provider, REPO-1 … -12 and the four options
+## PB2103 part 2: the external repository is read — the metadata provider, REPO-1 … -12 and the four options; PB2104 step 1 begins (class identities in run-time descriptions)
 
 **Re-probe.** On this tree `cobol --repository x.dll prog.cob` answered "Unrecognized command or argument 'x.dll'", and a
 caller whose `REPOSITORY. PROGRAM P2103B.` named a program compiled apart (`LINKAGE PIC 9(4)`) passed a PIC X(10) and ran
@@ -46,3 +46,33 @@ damaged files no manifest case states.
 
 **Not yet witnessed by a case** (leads in the report): REPO-4, -5, -7 and -12 need a patched or older entry; the
 cross-repository REPO-13 and word cases; the pb1115 split across two units.
+
+**Group B (PB2104) finished group A's branch.** Group A ended at its turn cap with its gate RED on seven causes, all its
+own; each was fixed at its root before slice 8 began. *The compiled-program cache:* the provider probed the DEFAULT
+repository directory (the output directory, which the compilation itself creates) and `--repository-check` probed the
+output path, both recorded, so every rebuild in place missed; and an unrecorded `?? Directory.Exists` fallback bypassed
+the input record. Now `RepositorySearchSpace.Inputs` is non-nullable, typed as `Frontend.Common.IRepositoryInputs` (the
+binder may read `frontend.common`, never `frontend.pipeline`); a named `--repository` directory and a `--reference` file
+are probed through it; the default directory is not probed (missing is empty, and any question marks the record); the
+previous-build comparison marks `ReadsRepository` only when it REPORTS (REPO-9 / REPO-12), and
+`CompiledProgramCache.TryHit` replays over an existing output only when it is the stored output byte for byte
+(`APreviousBuildWithAnotherSignature_IsNeverReplayedOver`, seen red with the rule disabled). *Layering:* the driver calls
+`BinderDriver.Bind` itself, so CodeGen no longer names the search space. *The corpus and tests:* `NotLocatedReasonTests`
+puts the function its REPOSITORY names first (§12.3.8.4 GR11 a) "specified previously"); the `repository-program-2002`
+matrix sample states its prototype; `TypedPointerAcrossCompilationsTests` compiles P4107X's prototype as its own module
+first, which exposed a crash — a compilation group of prototypes alone dereferenced the current unit emitter in
+`ProgramEmitter.Emit`, which no program class had set; the sign encoding is now a compilation fact on `BoundCompilation`.
+The manual's example is a complete program plus a fragment; DOC-A.1-66's witnesses are a `;` list; GR-12.3.8.4-10's
+test-ref follows the renamed test (record_verdicts batch).
+
+**PB2104 step 1, part 1: a run-time description names a class by its identity.** DESIGN-external-repository §6.4: a
+word is per source element, so `ActivationDescriptions.Of` now spells the class or interface an object-reference
+description names, and its class facts (`ObjectClasses` / `ObjectInterfaces`), by the externalized name (ISO §11.3.4
+GR1), through `OoClassTable.DescribedOperand` — `SetOperand`'s one derivation, which keeps the words for the compile-time
+SET table — under call ABI 5 (`scripts/abi_pin.py bump --call-abi`). A corpus case was written first and did not witness
+it: two groups' classes are distinct CLR types until a class is imported, so a cross-group argument already fails its
+carrier (`CallAbi.Slot`) whatever the description says; it was removed, and `ObjectReferenceIdentityDescriptionTests`
+pins the spelling. Found: the design's `ObjectRefDescriptor.Target` cannot be the symbol (`Binding.Model` may not reference
+`Compiler.Oo`), so §6.4 now says it is the resolved identity; that, the class import and the rest of step 1 are next
+(PB2104 stays open). Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,987/20,987 · Unit 39,388/39,388 ·
+Characterization 37/37 cases ran (skipped 0) … (2 class(es) first; run 000002-20261102T220627Z) ===`.
