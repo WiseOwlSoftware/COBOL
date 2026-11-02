@@ -1,4 +1,4 @@
-## A bare operand takes the nearer data item that hides a container's GLOBAL condition-name (PB4433)
+## Entry 2994 — 2026-11-02 05:37 PST — A bare operand takes the nearer data item that hides a container's GLOBAL condition-name (PB4433)
 
 Wave 20261824, group C. PB4219's review fix made `ConditionBinder.ReportMisqualifiedCondition` word a condition-only
 position whose word a nearer data item hides ("names a data item, not a condition-name", ISO 8.4.6.2.1 3) a)). The bare-operand
@@ -16,3 +16,4 @@ Goldens: two refusals at 85/2002/2014/2023 (`pb4433_if_...`, `pb4433_evaluate_..
 `8.4.6.2-Local-and-global-names`, and `HiddenConditionNameTests.ABareOperand_...` (IF, IF NOT, PERFORM UNTIL, EVALUATE; no
 COBOL1639 / COBOL1634). Row GR-8.4.6.2.1-3 gains the witnesses (CONFORMS, GAP 19 to 19, batch `w20261824c-pb4433`).
 No codes used (COBOL5941-5943 returned).
+
