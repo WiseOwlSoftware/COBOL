@@ -28,7 +28,7 @@ namespace WiseOwl.Cobol.Binding;
 /// group-independent: <see cref="PrototypeSignatures.CanonicalIdentity"/> of its minimized signature graph,
 /// <c>SIG &lt;hex&gt;</c>. A group describes a method's <c>RETURNING PROGRAM-POINTER TO P1</c> and a separately compiled group
 /// its receiver <c>TO P2</c> of one signature with ONE string, so the run-time relations (§9.3.6 match rule 3 e), SET's
-/// validity, §14.9.4.4 GR3 d)) admit the pair GR25 makes one type — the founder's name each group's partition picked, the
+/// validity, §14.9.4.4 GR3 d)) admit the pair §13.18.60.4 GR25 makes one type — the founder's name each group's partition picked, the
 /// identity this replaced, was comparable only between descriptions compiled in one group. While the partition is
 /// refined, a pointer carries its prototype's PROVISIONAL identity, its block's position in the round
 /// (<see cref="Namespace.Refine"/> compares by it); the canonical identities are stamped once the partition is stable.</para>
