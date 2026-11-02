@@ -1,4 +1,4 @@
-## PB4383: an undefined operand on the continuation line of a statement is reported at that line, not at the statement's first token
+## Entry 2964 — 2026-11-01 16:54 PST — PB4383: an undefined operand on the continuation line of a statement is reported at that line, not at the statement's first token
 
 `DISPLAY W-X` on one line and `Q-ONE Q-TWO.` on the next drew COBOL1639 for both names at the DISPLAY's position
 (8,12), a line before the names stand. Re-probed on main 3b34806eb: it reproduced exactly. The note blamed
@@ -28,3 +28,4 @@ reports after the resolution. Full code: a null `Start` (a synthetic reference) 
 already allocates a `RefResolution`. Duplication: no second positioning rule; the callers that already wrapped
 `FieldOperand` in `At` (report writer, condition binder) are unchanged and now redundant only for the resolver's own
 reports. The gate's verdict line is recorded in the implementer report.
+
