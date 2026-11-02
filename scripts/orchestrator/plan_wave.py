@@ -114,11 +114,15 @@ PB2807: it once gated a campaign only, so with two planners, the loop and an att
 was planned on a file another session's running group held). A group's DECLARED SET (a Claim: collision_set, its notes'
 declared sets plus its primary file, the fix lane's and a campaign's alike, kb/Work PB3242) is the files it changes and,
 per file, the MEMBERS it changes there (a C# member, a Python function, a Markdown section: scripts/arch/source_units.py);
-a file with no members named is claimed whole. It is checked against the in-flight work below by ONE rule (collision):
-two claims meet only on a file that either claims whole, or on a member of one that matches a member of the other, and
-never on a file a merge driver merges by key (merge_drivers.covered_by_driver); two groups on DIFFERENT MEMBERS of one
-file run side by side, and git's three-way merge combines their branches (the owner: "Developers do this all the
-time"). A note's declared set (declared_sets, the one computation, on one explicit IndexPolicy, kb/Work PB3203) is its
+a file with no members named is claimed whole. It is checked against the in-flight work below by two rules of one
+shape. RUNNING work HOLDS a group by `hold` (kb/Work PB4452, the owner 2026-11-02: "Non overlapping edits to the same
+file typically will merge without conflict"): only where a member of one matches a member of the other (source_units.
+meet), so a shared FILE, or a file either side claims whole (an index-found caller, a site named whole), holds nothing;
+git's merge at landing is the authority on a conflict, and a finisher repairs a real one. Two claims MEET by `collision`
+(a file either claims whole, or a member of one that matches a member of the other, never a file a merge driver merges
+by key, merge_drivers.covered_by_driver) to GROUP: within a wave and against a FINISHED branch, where meeting on a file is
+what makes one step (kb/Work PB4396). Two groups on DIFFERENT MEMBERS of one file run side by side, and git's three-way
+merge combines their branches (the owner: "Developers do this all the time"). A note's declared set (declared_sets, the one computation, on one explicit IndexPolicy, kb/Work PB3203) is its
 STRUCTURED sites only, read by ONE reader (work.note_sites): the paths of its Code site / Site / Sites blocks with the
 members they name (`path#Member`, `path (`member`, ...)`), plus every file scripts/arch/member_index.py computes as a
 caller of what it MOVES, RENAMES or RE-SIGNS (its `**Moves or changes:**` and `r2_members:` names and site-block
@@ -131,12 +135,8 @@ group declares a site block and one names it. The in-flight work (inflight_file_
 unlanded branch's changed files, committed or not, with the units their ACTUAL diff touches in every file another claim
 shares (inflight_units, from batched git reads), and every dispatched group whose notes are still open, with its recorded
 members, from the coordination directory's dispatch ledger, which only the planner's and the spec renderer's
-record_dispatch write: kb/Work PB3186) and, for a campaign's plan, the open external-repository slices' RESERVATION
-(slice_reservation: work.slice_file_set, DESIGN-external-repository §12), which holds only the restructuring program's
-groups (R69 §2, work.restructuring; a fix campaign is never held for a slice, kb/Work PB3456) and reads OPEN (RESERVED)
-while nobody runs a slice, classified by ONE rule (classify_inflight): a group meeting RUNNING work (a dispatch with no
-report yet, a worktree or branch no finished report covers) waits, with the collision named (its file, or
-`file#member`); a group meeting only FINISHED branches (a DONE report, no review findings: waiting for review or
+record_dispatch write: kb/Work PB3186), classified by ONE rule (classify_inflight): a group HOLDING against RUNNING work (a dispatch with no
+report yet, a worktree or branch no finished report covers) waits, with the hold named (`file#member`); a group meeting only FINISHED branches (a DONE report, no review findings: waiting for review or
 landing) is planned ONTO them, their CONTINUATION (kb/Work PB4396: never a second branch behind them), its pred
 telling it to merge each first, and its dispatch records them (`continues`), so the branch survey holds each until the
 continuation lands it (prune_worktrees.chain_links). AN EMPTY SET HOLDS NOTHING (kb/Work
@@ -198,10 +198,9 @@ from standard_streams import ensure_utf8  # noqa: E402
 # The planner's modules, one job each (DESIGN-orchestrator-loop.md section 16.3; their import DAG is section 16.10's,
 # held by scripts/script_layering.py):
 from reports import FINISH_STATUSES, Report, load_reports, parse_report  # noqa: E402  (THE fleet-report reader)
-from inflight import (LANDED_CLASSES, SLICE_OWNER, Claim, InFlight, IndexPolicy, branch_carrier,  # noqa: E402
+from inflight import (LANDED_CLASSES, Claim, InFlight, IndexPolicy, branch_carrier,  # noqa: E402
                       branch_replays, classify_inflight, collision, collision_hits, declared_sets, git_branch_classifier,
-                      inflight_file_sets, inflight_units, local_branches, slice_reservation, survey_states,
-                      unlanded_branch_notes)
+                      hold, inflight_file_sets, inflight_units, local_branches, survey_states, unlanded_branch_notes)
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, cluster_claim,  # noqa: E402
                       declare_fix_lane, harm_weights, lift_tiers, load_fix_clusters, load_notes, notes_cap,
                       predicted_turns, run_fix_clusters, turn_budget)
@@ -675,8 +674,7 @@ def plan_partition(s: PlanState) -> None:
             met = {o: x for o, x in busy.items()                            # never the group's own work: the branch
                    if lands_through(x) not in g.continues                     # its pred continues (or one it carries,
                    and not x.notes & set(g.notes)                             # PB4352), or a dispatch of its own notes
-                   and (x.reserves is None or x.reserves & set(g.notes))      # (the hold decided those); a reservation
-                   and collision(mine, x.claim)}                              # holds only its notes' groups (PB3456)
+                   and collision(mine, x.claim)}                              # (the hold decided those)
             # a branch another group of this wave finishes, or one that lands through it (PB4352): that group's work
             # (PB3528, PB4396, above)
             planned = {o: finisher_of[b] for o, x in met.items() if (b := lands_through(x)) in finisher_of}
@@ -685,8 +683,10 @@ def plan_partition(s: PlanState) -> None:
                 if not decided(f):      # not placed yet: it joins this group's work when placed (one-sided, R1-1)
                     must_join.setdefault(id(f), []).append(g)
             met = {o: x for o, x in met.items() if o not in planned}
-            if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None}:
-                hits = collision_hits(mine, {o: x.claim for o, x in held_by.items()})
+            # RUNNING work HOLDS the group only where a member of one matches a member of the other (hold, kb/Work
+            # PB4452): a shared file, or a file either side claims whole, holds nothing; git's merge is the authority
+            if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None and hold(mine, x.claim)}:
+                hits = collision_hits(mine, {o: x.claim for o, x in held_by.items()}, hold)
                 for i in g.notes:
                     waiting[i] = (COLLISION_WAIT + "; ".join(f"{o} ({hit})" for o, hit in hits)
                                   + ": it waits until that work finishes (then continues it) or is decided")
@@ -897,8 +897,8 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     the branch the earlier link leaves (kb/Work PB3638).
     Both lanes pass `busy`, {in-flight owner: InFlight} from classify_inflight (kb/Work PB2807: the fix lane once
     passed none, so a fix-lane group was planned on a file another session's running group held): a group whose claim
-    meets RUNNING work (collision: a whole file, or a member of it, kb/Work PB3670) waits, the collision named, and so
-    does every group that would follow it; a group whose claim meets only FINISHED branches is planned ONTO them, their
+    HOLDS against RUNNING work (hold: a member of its claim matches a member of the work's, kb/Work PB3670, PB4452) waits,
+    the hold named, and so does every group that would follow it; a group whose claim meets only FINISHED branches is planned ONTO them, their
     continuation (continuation_pred: merge each first, no `after:`; `Group.continues` records them, kb/Work PB4396). An
     EMPTY set meets nothing (kb/Work PB3670): such a group runs beside everything, named UNPARTITIONED. Within the wave a
     group whose claim meets a placed group's on any file both claim (collision: one rule for the wave and for the
@@ -1120,11 +1120,9 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
         return status_of.get(nid) in work.TERMINAL_STATUSES
 
     # THE FILE-SET PARTITION, for EVERY plan (kb/Work PB2807): the in-flight work (worktrees, branches, dispatched
-    # groups) read once and classified once, and the open external-repository slices' reservation
+    # groups) read once and classified once
     meta: dict[str, dict] = {}
     raw = inflight_file_sets(coord_dir=cdir, terminal=terminal, with_git=not a.no_branches, meta=meta, reports=reports)
-    if reservation := slice_reservation(items, a.cluster):
-        raw[SLICE_OWNER], meta[SLICE_OWNER] = reservation
     states: dict[str, str] = {}
     owned: set[str] = set()
     locked: set[str] = set()
