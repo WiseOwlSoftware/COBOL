@@ -58,8 +58,8 @@ public static partial class ConditionalCompilationProcessor
     /// canonical UPPER-CASE spelling (DOC-A.1-49, DOC-A.1-55), which is <see cref="CobolNames.UpperFold"/> — the Annex C
     /// fold of §8.1.3.2 GR3 b) with the basic letters raised, the ONE upper-case key of a COBOL word — and not the
     /// host's <c>ToUpperInvariant</c>. A compilation-variable-name is a COBOL word, so every spelling of one name (§8.3.1;
-    /// the Kelvin sign and K, which Annex C.2 maps together) reads ONE variable, and two names Annex C keeps apart read
-    /// two. The ONE lookup of the DEFINE and DISPLAY directives, recorded on the compilation's inputs (kb/Work PB985,
+    /// an extended letter and its own lowercase) reads ONE variable, and two names Annex C keeps apart (the Kelvin sign
+    /// and K, kb/Work PB4420) read two. The ONE lookup of the DEFINE and DISPLAY directives, recorded on the compilation's inputs (kb/Work PB985,
     /// PB1533, PB2990).</summary>
     private static string? ParameterText(string name, CompilationInputs inputs) =>
         inputs.GetEnvironmentVariable(CobolNames.UpperFold(name));
@@ -80,7 +80,7 @@ public static partial class ConditionalCompilationProcessor
         foreach (var wordNode in upon.cobolWord())
         {
             string word = wordNode.GetText();
-            if (CobolNames.Same(word, "LISTING"))
+            if (CobolKeywords.Same(word, "LISTING"))
             {
                 if (listing) { diag.DisplayUpon("LISTING is written twice — the choice indicators of §5.2.6.4 admit each alternative at most once"); valid = false; }
                 listing = true;

@@ -179,6 +179,25 @@ public sealed class TextManipulationStatementTests : IDisposable
         Rejects(bag, "COBOL2572", rule);
     }
 
+    /// <summary>kb/Work PB4176 — a literal its line ends inside (§6.3.5 1), §6.4.2: open at a line's end only where a
+    /// continuation line continues it), consumed by a COPY or REPLACE statement, is named as not closed (COBOL5563) and is
+    /// the statement's ONE diagnostic: not "not an alphanumeric literal" (COBOL2450), and nothing for the next line's
+    /// words, which the open literal swallowed.</summary>
+    [Theory]
+    [InlineData(" COPY \"ABC\n STOP RUN.\n", "\"ABC")]                         // text-name-1's literal
+    [InlineData(" COPY bk1 OF \"LIB\n STOP RUN.\n", "\"LIB")]                   // literal-2
+    [InlineData(" COPY X\"41\n STOP RUN.\n", "X\"41")]                          // the hexadecimal format
+    [InlineData(" COPY \"ABC", "\"ABC")]                                         // and at the end of the text
+    [InlineData(" REPLACE ==A \"B== BY ==C==.\n STOP RUN.\n", "\"B== BY ==C==.")] // inside pseudo-text
+    public void AnOpenLiteral_InACopyOrReplaceStatement_IsNamedAsNotClosed(string source, string literal)
+    {
+        Copybook("bk1.cpy", " 01 AA-X PIC X.\n");
+        var (_, bag) = Run(source);
+        var d = Assert.Single(bag.Diagnostics);
+        Assert.Equal(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.LiteralUnterminated.Code, d.Code);
+        Assert.Contains($"the literal {literal} is not closed", d.Message, StringComparison.Ordinal);
+    }
+
     [Fact] // SR9: a text-word longer than 65,535 characters, in pseudo-text and (COPY) in library text.
     public void OverlongTextWord_IsScreened_InPseudoTextAndLibraryText()
     {

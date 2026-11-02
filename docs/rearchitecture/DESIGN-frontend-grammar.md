@@ -404,6 +404,26 @@ earlier alternative), and the only procedure-name lists — GO TO … DEPENDING'
 risk PB693 kept the arm off the reference slots for. A data or file REFERENCE keeps no arm: its error falls AT the
 word and is re-coded (below).
 
+A word reserved at EVERY edition (READ, DISPLAY, MOVE, EXIT) is no gated word: it is a keyword token with no name-slot
+arm, and it cannot have one, because a keyword alternative in `procedureName` would compete with every statement and
+header reading it is one of (`EXIT.` is a statement and would be a header). So the procedure-name slot answers for it
+after the fact, and only on a syntax error (kb/Work PB4229): `CobolParserCoreBase.ReservedProcedureName` takes the
+offending token and the first token of each open rule and of the rule each matched last (the misread statement begins
+at the word), keeps those §8.9 reserves at the edition, and re-reads the sentence from its first token through its
+separator period with that one word retyped to `IDENTIFIER` (`Reading`, the speculative `ParserInterpreter` parse
+`ReadingParses` uses too), as a `sentence` and, when the word begins it, as a `sectionDefinition` and a `paragraphDefinition`
+(the two headers; kb/Work PB4230 deleted their former union rule). A complete reading with the
+word under `procedureName` is what the source means, and `CobolErrorStrategy.Report` names the word with COBOL0901 at
+the word, covering the sentence through its period as the one fault and discarding the misreading's tail as orphaned:
+`PERFORM READ.`, `PERFORM READ THRU P1.`, `GO TO READ.`, `GO TO P1 READ DEPENDING ON N.`, `ALTER READ TO P1.`,
+`DISPLAY SECTION.` — each one diagnostic. A genuine fault elsewhere fails every re-read (`PERFORM DISPLAY X.`
+without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A verb and its period alone (`STOP.`,
+`DISPLAY.`, `READ.`) is not asked the header reading (`IsIncompleteStatement`, branch review R1-1): the same text is an
+incomplete statement and a paragraph header (§14.4.3), nothing in it shows a USE as a user-defined word (§8.3.2.1 1)),
+and the missing operand is a fault the source certainly holds, so it keeps its COBOL0001 at the period, inside a
+paragraph and where a header could stand alike. A reserved word in a DATA reference slot
+(`MOVE READ TO X`) is not this rule's: its error falls at the word and is still the strategy's own report.
+
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
 its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it — the greenfield
 `Frontend.LexAndParse` and the legacy differential oracle's `Compilation.LexAndParse` alike, because both parse
@@ -834,8 +854,18 @@ binder-side subscript re-parse (`ReferenceResolver.SplitSubscriptTokens`) is add
 rearchitecture (structured `Place` path segments), not here; the frontend's contribution is to preserve the
 captured token run faithfully.
 
-**3.3c Mode inventory** stays: DEFAULT, PICMODE, SUBSCRIPT, COMMENT_MODE (`CobolLexer.g4:497,651,726,782`).
-No change to mode semantics; only the shared-fragment factoring in 3.3b.
+**3.3c Mode inventory:** DEFAULT, PICMODE and COMMENT_MODE (the SUBSCRIPT mode is gone, kb/Work PB2113, §9).
+⛔ **Every mode is TOTAL, and a lexer error is a diagnostic (kb/Work PB4233).** DEFAULT ends in its one-character
+`ANY_CHAR`; PICMODE takes the separator period where the picture character-string should be (`PIC_PERIOD`, the DOT
+token, which ends the mode) as well as the character-string itself; COMMENT_MODE takes every character. Without
+`PIC_PERIOD`, `01 X PIC.` matched no PICMODE rule, ANTLR's default console listener printed the error outside the
+diagnostics, the period was dropped and the mode stayed open, so the next line's `X(3)` became the entry's picture
+and the program compiled. Every `CobolLexer` the front end creates carries a listener of its own: the main lex
+`LexerErrorListener` (reported, from the LAST lexer of the debugging-line loop only, as COBOL5704 — a compiler defect,
+never a diagnosis of the source), a fragment lex `FragmentParse`'s flag and the keyword probe `CobolKeywordTokens`'
+counter. `LexerDfaCacheDriftTests`' warm-up lex of the suite's sources runs through `LexerErrorListener` and holds
+the lexer to reporting nothing on them (the one suite lex for both questions, branch review R1-2);
+`LexerTotalityDriftTests` holds the PICMODE period and the listener.
 
 **3.3e ⛔ The lexer carries NO semantic predicate — context the lexer needs goes in an ACTION (kb/Work PB1715).**
 ANTLR 4.13.2 caches a mode's start state only when no predicate is in its closure (`LexerATNSimulator.MatchATN`),
@@ -2166,8 +2196,11 @@ the unit's TOKEN stream in `Frontend.LexAndParseOnce`, first of the post-lex rul
 the parse fails and a unit whose parse fails is never bound; and over each directive fragment in
 `ScreenFragment`, whose verdict it joins (an open literal has no value to evaluate). The rule is not the reference-format
 stage's: a literal open on a line an `>>IF` omits is legal (§7.3.16.4 3)), and conditional compilation runs after that
-stage. The other literal scanners already name the case themselves (pseudo-text COBOL2449, a COPY operand COBOL2450,
-`>>COBOL-WORDS` its SR2 defect).
+stage. The text-manipulation stage reads COPY and REPLACE before the lexer, and its text-word scanner runs an open
+literal to the end of its line the same way, so its statement cursor asks the same `LiteralScreen.ReportUnterminated` of
+every literal text-word it consumes, operand or pseudo-text alike, and that report is the statement's first error
+(kb/Work PB4176: `COPY "ABC` drew COBOL2450 "not an alphanumeric literal" and then COBOL2449 at the next line's word).
+`>>COBOL-WORDS` names its own case (its SR2 defect).
 
 ### 3.13 The characters of a COBOL word, and the ONE fold that compares words (kb/Work PB1402)
 
@@ -2208,7 +2241,8 @@ lowercase with Annex C. Three pieces, each in one place:
   compilation: every `IDENTIFIER` token that holds an underscore or a character outside the basic repertoire gets the
   underscore gate (`user-word-underscore-2002`), the extended-letter gate and the Annex B test, one report per distinct word
   (the Annex C fold). `IDENTIFIER` is the only token built from `NAME_BODY`, so the walk covers a name slot, a phrase word
-  and a word the grammar cannot place alike. It began as a check in the bound-tree funnel (`VisitCobolWord`), which never
+  and a word the grammar cannot place alike (a keyword token never holds an extended letter: a keyword matches on the basic
+  letters alone, below). It began as a check in the bound-tree funnel (`VisitCobolWord`), which never
   runs on a source that does not parse, so the U+00A0-only line of golden `pb1660-nbsp-only-line-is-not-blank` was
   answered "cannot parse near STOP" without the cause. One body (`Check`), two word sources chosen by whether the binder
   will run: a compilation whose frontend reported ANY error (a parse that failed, or one that parsed beside a separator,
@@ -2226,14 +2260,21 @@ lowercase with Annex C. Three pieces, each in one place:
   word stays before it, and the placement is the one place, for every diagnosis the screen makes.
 - **The fold** — `CobolNames` (Runtime, because the run-time externalized-name match needs it too): `Fold`, the
   `Comparer` every name table uses, `Same` / `StartsWith` / `EndsWith` / `Contains` over spans, and `UpperFold`, a
-  word's one upper-case spelling (the fold with the basic letters raised), which is the key wherever a word is
-  compared by ordinal, with an upper-case keyword, or as the name of the environment variable a PARAMETER phrase reads
+  word's one upper-case spelling (the fold with the basic letters raised), which is the key wherever a user-defined word
+  is compared by ordinal, or as the name of the environment variable a PARAMETER phrase reads
   (`ConditionalCompilationProcessor.ParameterText`, DOC-A.1-49 / DOC-A.1-55; kb/Work PB2990). No compiler, frontend or Editions file compares a word by
   `OrdinalIgnoreCase`, keys one by the host's `ToUpperInvariant`, or compares one with a keyword through it
   (`CobolNameFoldDriftTests` scans EVERY project under `src`, derived from the directory list, minus the named
   subtrees that hold no COBOL word, and the Runtime is one of them: a string that is not a COBOL word says so on
-  its line; kb/Work PB2845). The table is COBOL 2023's; the only fold difference a COBOL 2002/2014 word can observe is E.2
-  item 14 (U+0131 → i, U+03C2 → U+03C3 before 2023), so the lexer writes those letters in their edition's fold
+  its line; kb/Work PB2845). **The fold applies a C.2 pair only when both letters are basic or both extended (kb/Work PB4420,
+  owner decision 2026-11-01, GnuCOBOL's reading of 4) b), which names the corresponding lowercase EXTENDED letter).**
+  `gen_annex_bc.py` DERIVES the pairs that cross, from the three lists (C.2, E.2 item 14, E.3.3 item 6), into
+  `CobolNames.NotApplied` and leaves them out of the applied lists: today `(0130,0069)` and `(212A,006B)` at every edition and
+  `(0131,0069)` in the 2002/2014 table. `CUSTOMER-İD` and `CUSTOMER-ID` are two names. `AnnexBCDriftTests` re-reads the
+  lists from the spec and holds that the applied lists are the standard's less the crossing pairs, that those pairs are
+  `NotApplied`, and that no character at or above U+0080 folds to ASCII at any edition. The table is COBOL 2023's; the only fold
+  difference a COBOL 2002/2014 word can observe is E.2 item 14's (03C2,03C3) (U+03C2 → U+03C3 before 2023), so the lexer writes
+  that letter in its edition's fold
   (`CobolNames.EditionSpelling`, primed through `TokenRetypes.PrimeLexer`) and the one comparer then answers for the
   edition. A LITERAL that names a word (an AS literal, a CALL / CANCEL / `ADDRESS OF` target, an INVOKE method name)
   is source text too, so it is written in the same spelling when it is formed (`ExternalizedNames.FormInEdition`,
@@ -2244,11 +2285,50 @@ lowercase with Annex C. Three pieces, each in one place:
   or formal) is `DataItem.WordIdentifier`, the `Sanitize` of the word's `UpperFold`, so two spellings of one word are
   one C# member and two words are two (kb/Work PB1965: the host's upper-casing wrote final sigma and sigma alike at
   2023, CS0111). The EXTERNAL-file group, the SR14/SR15 WHEN census, the REPOSITORY specification table and the
-  Editions word tables (`CobolWordsMap`, the directive catalog, the §8.10 and implementor-name tables) are keyed by
-  the same comparer: `WiseOwl.Cobol.Editions` references the runtime, the foundation layer below it
+  Editions word tables (`CobolWordsMap`, the §8.10 and implementor-name tables) are keyed by
+  the same comparer (the directive catalog is keyed by keyword, below): `WiseOwl.Cobol.Editions` references the runtime, the foundation layer below it
   (`DESIGN-architecture-review.md` §8.1), for the fold. A default externalized name and the run-time EXTERNAL
   identities (`BinderDriver.ExternalItemIdentity`, `OoEmitter.SelectFingerprint`'s word segments) are written in the
   word's `UpperFold`, so the ordinal comparison at run time agrees with Annex C.
+- **A keyword matches on the basic letters alone; the fold is a user-defined word's (kb/Work PB4240, PB4312; owner
+  decision 2026-10-31, GAP-REVIEW question 2).** §8.1.3.2 3) a) treats the basic letters case-insensitively, and 4) opens
+  "Extended letters in user-defined words are subject to the following rules", so the Annex C fold of 4) b) governs
+  user-defined words only. Three Annex C pairs run from an extended letter to a BASIC one — U+0130 → i, the Kelvin sign
+  U+212A → k, and before 2023 the dotless i U+0131 → i (E.2 item 14) — and a word holding one is never the keyword it
+  resembles: `DİSPLAY "HI"` is no DISPLAY statement (COBOL0001), `>>İF` heads no directive, `DEFİNED` is no defined
+  condition (COBOL1619). Nor is it a user-defined word that FOLDS to one: since kb/Work PB4420 the fold applies none of the
+  three (above), so `01 DİSPLAY PIC X.` is a user-defined word of its own, legal (§8.3.2.1 1) forbids only the reserved word
+  DISPLAY) and a name no basic spelling reaches. Because no extended letter folds to a basic one, the fold-keyed word tables
+  (`ReservedWords`, `ContextSensitiveWords`, `ImplementorNames`) and the compiler's ~30 direct comparisons of a reserved
+  word, system-name or implementor-name with a keyword literal through `CobolNames.Same` / `UpperFold` (e.g. FILLER,
+  ZERO, ALL, LINE-COUNTER, the CONVERT format words, the class-condition keywords) answer exactly as the basic-letter
+  comparison does; `AnnexBCDriftTests.NoCharacterAboveAscii_FoldsToAscii` and `EveryKeywordPopulation_IsBasicCharactersOnly`
+  prove it, so those sites keep the fold and need no second spelling of the question. The lexer's keyword rules read this way (the grammar's
+  `caseInsensitive` folds A-Z and a-z only); every keyword read outside them goes through ONE class,
+  `WiseOwl.Cobol.Editions.CobolKeywords` (`Same`, `StartsWith`, `EndsWith`, `Spelling` — the basic letters raised,
+  everything else as written — and `Comparer`): the directive expression's `DEFINED` (`CobolLexer.RetypeDirectiveKeyword`, on the source's
+  text, never its edition spelling), the directive word of every directive line (`CompilerDirectiveLine.Word`, so the
+  catalog, `Frontend.LeftDirectives`, `DirectiveSiteProcessor`'s sets and the conditional-compilation switch never see
+  `>>İF` as IF), the directive catalog and its operand words, the operand keywords of `>>EVALUATE`, `>>DEFINE`, `>>FLAG`,
+  `>>TURN`, `>>COBOL-WORDS`, `>>LISTING`, PUSH/POP and the THRU of a compile-time range, the division cursor and the
+  comment-entry paragraph names, the COPY and REPLACE phrase words (`TextWord.IsWord`), and the lexer probe's map
+  (`CobolKeywordTokens`). **The by-name classifier is one of them (review finding R2-1).** A word the lexer leaves an
+  `IDENTIFIER` (the §8.10 words CLASSIFICATION, SEGMENT-LIMIT and their kind, the §15 phrase words, the SET locale
+  categories, the ALPHABET coded-set names, and every parser text predicate, `CobolParserCoreBase.Word`) is recognised
+  through `CobolWordsMap.Is` / `.Resolve` and `CobolWordsRewriter.TokenIs` / `.CanonicalWordOf`, and these compare on the
+  basic letters alone: `Resolve` returns the canonical word of a synonym, null for a de-reserved word, and otherwise the
+  word in its `CobolKeywords.Spelling`, so no caller `UpperFold`s the word first (that is a user-defined word's fold, and it
+  would make `CLASSİFİCATİON` the keyword before the map could tell). The map's keyword tables (the words a directive
+  UNDEFINEs or SUBSTITUTEs) are keyed by `CobolKeywords.Comparer`; its synonym table is keyed by the fresh user-defined word
+  and so by the fold. The `>>COBOL-WORDS` existing word (literal-1/3/4) is written in its keyword spelling, so
+  SR3 refuses `UNDEFINE "DİSPLAY"` (`VersionConformancePass.ValidateCobolWords`); an intrinsic function name is a word the
+  standard defines (§8.11), so `IntrinsicCatalog` is keyed by `CobolKeywords.Comparer` too and `FUNCTION İNTEGER` names no
+  function (COBOL1501). `CobolNameFoldDriftTests` holds it: no `OrdinalIgnoreCase` (which raises U+0131 and U+017F
+  to I and S) in any `.cs` or `.g4` under `src`, no `Resolve(CobolNames.UpperFold(…))` anywhere, and no `CobolNames`
+  comparison in the Frontend or Editions with an upper-case keyword literal (`"DISPLAY"`, `"LC_"`, `"IDENTIFICATION
+  DIVISION"`) or a parameter named `keyword` or `word` (a deliberate fold says `// Annex C: <why>`: the `>>TURN`
+  exception-name prefixes, compared as `ExceptionCatalog` compares the names). The diagnostics still print the folded
+  spelling of a user word (`'DISPLAY' is a reserved word`): kb/Work PB4312.
 - **The encoding of the grammar itself** (kb/Work PB1944) — ANTLR reads a `.g4` in the JVM's default charset (UTF-8 on
   Java 18+ and on Linux, Cp1252 on Windows CI's JVM), so `Invoke-Antlr4CSharp.ps1` passes `-encoding UTF-8` and every
   grammar file is valid UTF-8 without a byte-order mark (`GrammarEncodingDriftTests`). The encoding is declared, so

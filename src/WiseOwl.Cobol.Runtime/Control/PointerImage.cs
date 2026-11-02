@@ -99,7 +99,7 @@ public static class PointerImage
     {
         // §8.3.2.2 — externalized names compare by the Annex C fold, the key ProgramTable's ExternalizedNames.Comparer
         // compares by (kb/Work PB1965): never the host's ToUpperInvariant, which merges what the fold keeps apart
-        // (final sigma and sigma at 2023) and splits what it merges (the Kelvin sign and K).
+        // (final sigma and sigma at 2023) and splits what it merges (the capital sharp s and the sharp s).
         string key = category + CobolNames.UpperFold(name);
         lock (s_lock)
         {

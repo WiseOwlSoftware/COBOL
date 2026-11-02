@@ -6,6 +6,10 @@ The ISO standard is the authority for two compile-time tables (CLAUDE.md rule 1)
 * Annex B.3 — the characters permitted in a user-defined word, in three POSITION classes: (1) anywhere,
   (2) anywhere but first, (3) anywhere but first or last (§8.1.3.2 GR4; §8.3.2.1).
 * Annex C.2 — the uppercase-to-lowercase case mapping that folds COBOL words (§8.1.3.2 GR3 b) and GR4 b)).
+  The fold APPLIES a pair only when both its letters are basic or both extended (kb/Work PB4420, owner decision
+  2026-11-01): GR4 b) folds an uppercase extended letter to "its corresponding lowercase EXTENDED letter", so a pair
+  that crosses between the two classes (today (0130,0069), (0131,0069) and (212A,006B)) is transcribed from the standard
+  into NotApplied and left out of the applied lists. The generator DERIVES that set from the lists; there is no hand list.
 
 Both are given for COBOL 2023; the earlier editions' tables are the 2023 ones with Annex E's recorded changes
 reversed — E.2 item 4 (037A deleted, 30FB made medial), E.2 item 14 (two mappings deleted), E.3.3 item 4
@@ -127,6 +131,30 @@ def plausibility(data: dict[str, list[tuple[int, int]]]) -> list[str]:
     return notes
 
 
+def is_basic_letter(cp: int) -> bool:
+    """A basic letter: A-Z or a-z (§8.1.3.1 Table 1); every other letter Annex B holds is an EXTENDED letter."""
+    return 0x41 <= cp <= 0x5A or 0x61 <= cp <= 0x7A
+
+
+def crosses_classes(pair: tuple[int, int]) -> bool:
+    """Whether an (uppercase, lowercase) pair maps between the basic and the extended letters (§8.1.3.2 GR4 b)
+    names the corresponding lowercase EXTENDED letter of an extended one; GR3 b) the basic letters among themselves)."""
+    return is_basic_letter(pair[0]) != is_basic_letter(pair[1])
+
+
+#: The three pair lists the fold reads; each loses its crossing pairs to NotApplied (in this order).
+FOLD_LISTS = ("C2Mappings", "E2Item14Deleted", "E33Item6Added")
+
+
+def applied_lists(data: dict[str, list[tuple[int, int]]]) -> dict[str, list[tuple[int, int]]]:
+    """`data` with each fold list reduced to the pairs the fold applies, and NotApplied the pairs it left out."""
+    out = dict(data)
+    out["NotApplied"] = [p for name in FOLD_LISTS for p in data[name] if crosses_classes(p)]
+    for name in FOLD_LISTS:
+        out[name] = [p for p in data[name] if not crosses_classes(p)]
+    return out
+
+
 def render(data: dict[str, list[tuple[int, int]]], names: list[str], namespace: str, cls: str, what: str) -> str:
     def fmt(rs: list[tuple[int, int]]) -> str:
         items = [f"(0x{lo:04X}, 0x{hi:04X})" for lo, hi in rs]
@@ -148,13 +176,16 @@ def render(data: dict[str, list[tuple[int, int]]], names: list[str], namespace: 
         "B3Anywhere": "Annex B.3 item 1 (COBOL 2023): permitted anywhere in a user-defined word.",
         "B3NotFirst": "Annex B.3 item 2 (COBOL 2023): permitted except as the start character.",
         "B3Medial": "Annex B.3 item 3 (COBOL 2023): permitted except as the start or last character.",
-        "C2Mappings": "Annex C.2 (COBOL 2023): the general case mappings (uppercase, lowercase).",
+        "C2Mappings": "Annex C.2 (COBOL 2023): the general case mappings (uppercase, lowercase) the fold of a COBOL word "
+                      "applies, less <see cref=\"NotApplied\"/>.",
         "E2Item4Deleted": "Annex E.2 item 4: deleted from Annex B at COBOL 2023 (present before).",
         "E2Item4MadeMedial": "Annex E.2 item 4: made medial-only at COBOL 2023 (permitted anywhere before).",
-        "E2Item14Deleted": "Annex E.2 item 14: case mappings deleted at COBOL 2023 (present before).",
+        "E2Item14Deleted": "Annex E.2 item 14: case mappings deleted at COBOL 2023 (present before), less <see cref=\"NotApplied\"/>.",
         "E33Item4MadeFirst": "Annex E.3.3 item 4: newly permitted as the first character at COBOL 2023 (not first before).",
         "E33Item5Added": "Annex E.3.3 item 5: characters added to Annex B at COBOL 2023 (absent before).",
-        "E33Item6Added": "Annex E.3.3 item 6: case mappings added at COBOL 2023 (absent before).",
+        "E33Item6Added": "Annex E.3.3 item 6: case mappings added at COBOL 2023 (absent before), less <see cref=\"NotApplied\"/>.",
+        "NotApplied": "The pairs of Annex C.2, E.2 item 14 and E.3.3 item 6 that map an extended letter to a basic one, which the "
+                      "fold of a COBOL word does not apply (§8.1.3.2 GR4 b): the corresponding lowercase EXTENDED letter; kb/Work PB4420).",
     }
     for name in names:
         out.append(f"    /// <summary>{docs[name]}</summary>")
@@ -177,14 +208,15 @@ OUTPUTS = [
       "E33Item5Added"]),
     (ROOT / "src" / "WiseOwl.Cobol.Runtime" / "CobolNames.Table.cs", "WiseOwl.Cobol.Runtime", "CobolNames",
      "Annex C.2 (general case mappings, as (uppercase, lowercase) pairs)",
-     ["C2Mappings", "E2Item14Deleted", "E33Item6Added"]),
+     ["C2Mappings", "E2Item14Deleted", "E33Item6Added", "NotApplied"]),
 ]
 
 
 def main() -> int:
-    data = extract()
-    for note in plausibility(data):
+    transcribed = extract()
+    for note in plausibility(transcribed):
         print("plausibility:", note, file=sys.stderr)
+    data = applied_lists(transcribed)
     stale = 0
     for path, namespace, cls, what, names in OUTPUTS:
         text = render(data, names, namespace, cls, what)

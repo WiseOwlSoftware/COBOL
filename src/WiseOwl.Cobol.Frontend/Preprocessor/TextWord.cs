@@ -55,7 +55,7 @@ internal readonly record struct TextWord(string Source, TextWordKind Kind, int S
     /// <summary>A character-string equal to <paramref name="reservedWord"/>, case-insensitively — how the statement
     /// parsers recognise COPY, OF, IN, SUPPRESS, PRINTING, REPLACING, LEADING, TRAILING, BY and OFF.</summary>
     public bool IsWord(string reservedWord)
-        => Kind == TextWordKind.CharacterString && CobolNames.Same(Span, reservedWord);
+        => Kind == TextWordKind.CharacterString && CobolKeywords.Same(Span, reservedWord);
 
     /// <summary>The separator period that ends a COPY or REPLACE statement (§8.3.5 3)).</summary>
     public bool IsSeparatorPeriod => Kind == TextWordKind.Separator && Source[Start] == '.';
@@ -103,10 +103,10 @@ internal readonly record struct LiteralParts(string Prefix, char Quote, string C
     /// <summary>The "non-hexadecimal formats of alphanumeric and national literals" (§7.2.3.4 9) c) 3.) —
     /// <c>"…"</c> and <c>N"…"</c> — whose content keeps its letter case in matching.</summary>
     public bool IsNonHexadecimalAlphanumericOrNational
-        => Prefix.Length == 0 || CobolNames.Same(Prefix, "N");
+        => Prefix.Length == 0 || CobolKeywords.Same(Prefix, "N");
 
     /// <summary>An alphanumeric literal (§8.3.3.2): <c>"…"</c> or its hexadecimal format <c>X"…"</c>.</summary>
-    public bool IsAlphanumeric => Prefix.Length == 0 || CobolNames.Same(Prefix, "X");
+    public bool IsAlphanumeric => Prefix.Length == 0 || CobolKeywords.Same(Prefix, "X");
 }
 
 /// <summary>

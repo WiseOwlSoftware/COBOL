@@ -16,8 +16,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>&gt;&gt;DISPLAY</c> (§7.3.12.4 GR3, DOC-A.1-55) names its environment variable by the compilation-variable-name's
 /// canonical upper-case spelling, which is <see cref="CobolNames.UpperFold"/> — the Annex C fold of §8.1.3.2 GR3 b) with
 /// the basic letters raised — and not the host's <c>ToUpperInvariant</c>. A compilation-variable-name is a COBOL word, so
-/// two spellings Annex C makes ONE word (the Kelvin sign and K: Annex C.2 maps (212A,006B)) read ONE variable, and two
-/// spellings it keeps apart (a long s and S: C.2 lists no mapping for U+017F) read two. The witness is the NAME the
+/// two spellings Annex C makes ONE word (an extended letter and its own lowercase) read ONE variable, and two
+/// spellings it keeps apart (a long s and S: C.2 lists no mapping for U+017F; the Kelvin sign and K: the pair (212A,006B)
+/// crosses to a basic letter and the fold does not apply it, kb/Work PB4420) read two. The witness is the NAME the
 /// compilation recorded on its inputs (<see cref="CompilationInputs.EnvironmentReads"/>), so the test holds on a host whose
 /// environment names are case-insensitive and on one whose names are case-sensitive alike. The Kelvin sign and the long s
 /// are built from code points, never written as literals, so no tool can rewrite them.
@@ -47,8 +48,8 @@ public sealed class ParameterVariableNameTests
     {
         { "pb2990-plain", "PB2990-PLAIN" },
         { "Pb2990-Plain", "PB2990-PLAIN" },
-        { "PB2990-LA" + Kelvin + "E", "PB2990-LAKE" },    // Annex C.2 (212A,006B): the Kelvin sign IS k — the host keeps it apart
-        { "pb2990-la" + Kelvin + "e", "PB2990-LAKE" },
+        { "PB2990-LA" + Kelvin + "E", "PB2990-LA" + Kelvin + "E" },    // Annex C.2 (212A,006B) is not applied (kb/Work PB4420): the Kelvin sign is no k
+        { "pb2990-la" + Kelvin + "e", "PB2990-LA" + Kelvin + "E" },
         { "PB2990-LAKE", "PB2990-LAKE" },
         { "PB2990-" + ECapital + "T", "PB2990-" + ESmall + "T" },   // an extended letter stays in its fold: Annex C maps only upper to lower
         { "pb2990-" + ESmall + "t", "PB2990-" + ESmall + "T" },
@@ -65,10 +66,11 @@ public sealed class ParameterVariableNameTests
     public void Display_ReadsTheVariableOfTheCanonicalSpelling(string written, string variable)
         => Assert.Equal([variable], NamesRead($" >>DISPLAY PARAMETER {written}\n"));
 
-    [Fact] // two spellings of ONE COBOL word (Annex C.2 (212A,006B)) read ONE variable; two words Annex C keeps apart, two
+    [Fact] // two spellings of ONE COBOL word (Annex C.2 (00C9,00E9)) read ONE variable; two words Annex C keeps apart, two
     public void SpellingsAnnexCJoinsReadOneVariable_AndSpellingsItKeepsApartReadTwo()
     {
-        Assert.Single(NamesRead($" >>DISPLAY PARAMETER PB2990-X{Kelvin}\n >>DISPLAY PARAMETER PB2990-Xk\n").Distinct());
+        Assert.Single(NamesRead($" >>DISPLAY PARAMETER PB2990-X{ECapital}\n >>DISPLAY PARAMETER PB2990-X{ESmall}\n").Distinct());
+        Assert.Equal(2, NamesRead($" >>DISPLAY PARAMETER PB2990-X{Kelvin}\n >>DISPLAY PARAMETER PB2990-Xk\n").Distinct().Count());
         Assert.Equal(2, NamesRead($" >>DISPLAY PARAMETER PB2990-{LongS}\n >>DISPLAY PARAMETER PB2990-S\n").Distinct().Count());
     }
 }

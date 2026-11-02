@@ -141,7 +141,7 @@ public static class TurnDirectiveProcessor
         for (; k < words.Length; k++)
         {
             string w = words[k];
-            if (CobolNames.Same(w, "CHECKING"))
+            if (CobolKeywords.Same(w, "CHECKING"))
             {
                 Flush();
                 // { ON [ WITH LOCATION ] | OFF } — the printed diagram (PDF page 115) underlines OFF and LOCATION and
@@ -149,7 +149,7 @@ public static class TurnDirectiveProcessor
                 // and `CHECKING` alone, `CHECKING WITH LOCATION` and `CHECKING LOCATION` select ON, which §7.3.25.4 GR6
                 // says in as many words: "If the ON phrase is specified or implied" (kb/Work PB1365).
                 int q = k + 1;
-                if (q < words.Length && CobolNames.Same(words[q], "OFF"))
+                if (q < words.Length && CobolKeywords.Same(words[q], "OFF"))
                 {
                     on = false;
                     q++;
@@ -157,10 +157,10 @@ public static class TurnDirectiveProcessor
                 else
                 {
                     on = true;
-                    if (q < words.Length && CobolNames.Same(words[q], "ON")) q++;
+                    if (q < words.Length && CobolKeywords.Same(words[q], "ON")) q++;
                     int r = q;
-                    if (r < words.Length && CobolNames.Same(words[r], "WITH")) r++;
-                    if (r < words.Length && CobolNames.Same(words[r], "LOCATION"))
+                    if (r < words.Length && CobolKeywords.Same(words[r], "WITH")) r++;
+                    if (r < words.Length && CobolKeywords.Same(words[r], "LOCATION"))
                     {
                         withLocation = true;   // GR7
                         q = r + 1;
@@ -169,7 +169,7 @@ public static class TurnDirectiveProcessor
                 checkingEnd = q;
                 break;
             }
-            if (CobolNames.StartsWith(w, "EC-"))   // SR1 — an EC- word is an exception-name
+            if (CobolNames.StartsWith(w, "EC-"))   // SR1 — an EC- word is an exception-name. // Annex C: an exception-name, as ExceptionCatalog folds it
             {
                 Flush();
                 CheckWord(w);
@@ -191,7 +191,7 @@ public static class TurnDirectiveProcessor
                     return null;
                 }
                 // SR4 — a file-name only with an EC-I-O… name.
-                if (!CobolNames.StartsWith(currentEc, "EC-I-O"))
+                if (!CobolNames.StartsWith(currentEc, "EC-I-O"))   // Annex C: an exception-name, as ExceptionCatalog folds it
                     diagnostics.ReportError("COBOL0719",
                         $">>TURN: file-name '{w}' specified with exception-name '{currentEc}', which does not begin "
                         + "with 'EC-I-O' (ISO §7.3.25.3 SR4)", loc, default);

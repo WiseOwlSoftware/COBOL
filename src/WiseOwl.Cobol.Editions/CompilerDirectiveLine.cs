@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Editions;
 
@@ -26,7 +25,9 @@ namespace WiseOwl.Cobol.Editions;
 /// the period reaches <see cref="CompilerDirectiveCatalog.CheckOperand"/> as part of the operand and is
 /// diagnosed there.</para>
 /// </summary>
-/// <param name="Word">The compiler-directive word, upper-cased (§7.3.3 SR6 / §8.12).</param>
+/// <param name="Word">The compiler-directive word as written with its basic letters upper-cased (§7.3.3 SR6 / §8.12;
+/// <see cref="CobolKeywords.Spelling"/>): a directive word is a keyword, matched on the basic letters alone, so a word
+/// written with an extended letter is no directive word (kb/Work PB4240).</param>
 /// <param name="Operand">The compiler-instruction's remainder — trimmed, with the §7.3.3 SR3/SR4 inline comment
 /// removed. Empty when the directive word stands alone.</param>
 public readonly record struct CompilerDirectiveLine(string Word, string Operand)
@@ -58,7 +59,7 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
         while (i < s.Length && CobolCharacterRepertoire.IsWordCharacter(s[i])) i++;   // the ONE lexical word class (PB1402)
         if (i == wordStart) return false;                            // ">>" with no word heads no directive
 
-        string word = CobolNames.UpperFold(s[wordStart..i].ToString());
+        string word = CobolKeywords.Spelling(s[wordStart..i].ToString());   // a keyword: the basic letters alone (PB4240)
         // §7.3.3 SR3/SR4: the directive may be followed by an inline comment. The scan that finds it honours
         // character-strings, so the *> inside >>DISPLAY "a *> b" is data (CobolSourceText, kb/Work PB2621).
         var rest = s[i..];
@@ -72,7 +73,7 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
     /// <c>OTHERV</c> does not. The one answer for every stage that reads a directive's phrase word — <c>&gt;&gt;WHEN OTHER</c>
     /// (§7.3.13.3 SR5/SR6) in the conditional-compilation stage and in the converter's division cursor alike (kb/Work PB4241).</summary>
     public static bool StartsWithWord(string s, string word) =>
-        CobolNames.StartsWith(s, word)
+        CobolKeywords.StartsWith(s, word)
         && (s.Length == word.Length || CobolSpace.IsSeparator(s[word.Length]));
 
     /// <summary>The index in <paramref name="line"/> where its compiler-directive indicator stands — after the spaces
@@ -121,7 +122,7 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
     {
         operand = "";
         if (!TryParse(line, out var d)
-            || !CobolNames.Same(d.Word, word)) return false;
+            || !CobolKeywords.Same(d.Word, word)) return false;
         operand = d.Operand;
         return true;
     }

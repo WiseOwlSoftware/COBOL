@@ -145,6 +145,8 @@ internal sealed class VersionConformancePass
         foreach (var op in map.Ops)
         {
             using var _ = sink.At(op.At);   // the directive's own line and column (kb/Work PB1925)
+            // The existing word is a KEYWORD, written in basic letters: one written with an extended letter (DİSPLAY,
+            // U+0130) is no reserved word, and the fold never makes it one (§8.1.3.2 3) a), 4) b); kb/Work PB4240, PB4420).
             if (op.Existing is { } e && !IsReservedContextOrIntrinsic(e))
                 ReportCobolWordsInvalid(sink, $"the existing word '{e}' is not a reserved word, "
                     + "context-sensitive word, or intrinsic-function name (ISO §7.3.10.3 SR3)");
@@ -1507,7 +1509,7 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
             if (ctx.alphabetDefinition() is { } def && def.alphabetEntry() is [{ ChildCount: 1 } entry]
                 && entry.GetChild(0) is CobolParserCore.CobolWordContext w
-                && _cobolWords.Resolve(CobolNames.UpperFold(w.GetText())) is "UCS-4" or "UTF-8" or "UTF-16")
+                && _cobolWords.Resolve(w.GetText()) is "UCS-4" or "UTF-8" or "UTF-16")
                 _p.Check(Constructs.AlphabetNational2002, $"the ALPHABET {w.GetText().ToUpperInvariant()} phrase");
             // `IS LOCALE [locale-name-2]` (§12.3.7.2, either branch) — the locale facility's collating sequence, a 2002
             // introduction (Annex A.4.9 item 10; kb/Work PB101). The grammar recognizes the phrase at every edition as
