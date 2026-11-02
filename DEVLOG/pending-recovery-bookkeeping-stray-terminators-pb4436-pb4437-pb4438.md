@@ -1,0 +1,34 @@
+## Error recovery: a consumed terminator ends the recovery, and a left statement lives until its own terminator (PB4436, PB4437, PB4438)
+
+Three diagnostic-recovery defects in `CobolErrorStrategy`, all in the bookkeeping PB4382 added for the statements a
+syntax recovery leaves before their end (ISO §14.5.3.2 1), 2)). Every program involved was already refused; the defects
+lost a true COBOL0306 (PB4436, PB4438) or drew a false one (PB4437). No inventory row changes verdict.
+
+**PB4438 and PB4436 are one root.** `IF W-N = 1 END-IF END-IF.` drew COBOL2072 only. `Recover` consumed the empty IF's
+own END-IF and then resynchronized: the second END-IF is in no recovery set at the sentence level, so it was swallowed
+to the period. Worse, ANTLR stays in its error condition until a match succeeds, so even where the second END-IF
+reached the parser its report was silenced. PB4436 is the same swallow one level in: the empty inner IF of
+`IF A DISPLAY "A" IF B END-IF END-IF DISPLAY "X" END-IF.` consumed its own END-IF, the resynchronization then took the
+ENCLOSING IF's END-IF, and the enclosing IF's record outlived its terminator and took the true stray END-IF as its own.
+The note blamed `NoteLeftBefore`; the probe showed the records were right and the recovery ate the token. Fix: a
+terminator consumed as a statement's own ends the recovery, in both arms that consume one. `Recover` returns after
+`ReportMatch` (which ends the error condition, as `Match` does) and `Consume`; `ConsumeUntil` does the same for the
+terminator `EndsAStatementTheRecoveryLeft` suppressed the report for (the loop recovery of `Sync`: `IF W-N NOT <> 1
+DISPLAY "C" END-IF END-IF.`, the same swallow through the second arm, found by the sibling sweep), through
+`_leftStatementsTerminator`. A recovery that returns from a unit ending at its period keeps the discard to the period.
+
+**PB4437.** `EVALUATE W-N WHEN 1 IF W-K = 1 ELSE DISPLAY W-A END-IF DISPLAY "X" END-EVALUATE.` drew a false COBOL0306 at
+the IF's END-IF, which then discarded the rest of the sentence. The WHEN group's `statementBlock` cannot take the left
+IF's END-IF, so the EVALUATE returns before the next statement without its END-EVALUATE (the END-x is optional), and
+`StillOpen` read "the enclosing EVALUATE returned" as "its terminator ended the IF too". Fix: a record lives until its
+statement ENDS IN its own terminator (`EndedWithItsTerminator`, used by `StillOpen` and by the record loop), and
+`Recover` in a `statementBlock` records the owning statement as left (`OwningStatement`), so the EVALUATE's or SEARCH's
+END-x is its own. The sweep covered EVALUATE, SEARCH, PERFORM, ADD ON SIZE ERROR, and an EVALUATE nested in an IF.
+
+**Goldens.** Three refusals in `14.5.3.2-Explicit-scope-termination` (each expects the COBOL0306 sentence the baseline
+never drew): `pb4438-…`, `pb4436-…`, `pb4437-…`. Whole-list unit rows in `ParseRecoveryCascadeTests` (three new theories,
+15 rows), 285 `ParseRecovery*` tests green. **Left open, as leads in the report:** a WHEN written after the left IF's
+END-IF (`… IF c ELSE DISPLAY W-A END-IF WHEN 2 DISPLAY "Y" END-EVALUATE`) now draws a false COBOL0001 at the WHEN
+where the baseline drew a false COBOL0306 at the END-IF (the EVALUATE already returned); an EVALUATE nested in an IF
+with such a first-in-group IF draws a false COBOL0306 at its END-EVALUATE. Both need the empty-block recovery to keep
+the construct open rather than record it as left.
