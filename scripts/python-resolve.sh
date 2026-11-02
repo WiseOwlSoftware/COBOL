@@ -3,7 +3,7 @@
 # then `"$PY" script.py …`. A script with a verdict line of its own sources it in a subshell, so that a host with no
 # interpreter still ends on that line: `PY="$(. scripts/python-resolve.sh && printf '%s' "$PY")" || <its NOT RUN>`
 # (build-local.sh, linux-gate.sh). Its PowerShell twin, scripts/python-resolve.ps1, probes the same candidates against
-# the same floor for build-local.ps1, and PythonInterpreterDriftTests holds every gate script on one of the two
+# the same floor for build-local.ps1, and scripts/toolchain_audit.py holds every gate script on one of the two
 # (kb/Work PB3197).
 #
 # WHY THIS EXISTS (kb/Work PB1637). The gates spelled the interpreter `python3`. On the Windows dev box that name is

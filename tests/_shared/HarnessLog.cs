@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// to count afterwards (a retried or unobserved child process, <c>ProcessObserver</c>; a scratch directory that
 /// could not be removed, <c>ScratchDirectory</c>). The local gate (<c>scripts/gate.py</c>) and every CI test
 /// step set <c>WISEOWL_COBOL_HARNESS_LOG</c> to a file in their results directory, which CI uploads with the TRX (kb/Work
-/// PB3108; <c>CiHarnessLogDriftTests</c>). The Linux gate (<c>scripts/linux-gate.sh</c>) sets it to a file on the Linux
+/// PB3108; <c>scripts/test_linux_gate.py</c>). The Linux gate (<c>scripts/linux-gate.sh</c>) sets it to a file on the Linux
 /// filesystem and copies that into its results directory as it ends: the log is read beside its writers
 /// (<see cref="ReadAll"/>), and on a Windows drive mounted over 9P (WSL's <c>/mnt/e</c>) an append beside a reader lost
 /// lines and the read failed with ENODATA (kb/Work PB3194).

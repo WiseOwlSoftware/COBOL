@@ -24,9 +24,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <see cref="RunUnitFileLockDriftTests"/>.</para>
 /// </summary>
 /// <typeparam name="TSlot">This partition's slot.</typeparam>
-/// <remarks>It carries no <c>[Trait("Host", "ReFS")]</c> itself: each partition class does. The planner's source scan
-/// names a generic definition without its arity, the compiled assembly with it, and the two must agree
-/// (<c>HostWitnessTraitDriftTests</c>).</remarks>
+/// <remarks>It carries no <c>[Trait("Host", "ReFS")]</c> itself: each partition class does, since xunit reads a test
+/// class's own traits, and <c>scripts/spec/drift_rules.py --check</c> requires the trait on each class it runs (a
+/// partition inherits this base's tests; the abstract base runs none).</remarks>
 public abstract class RunUnitFileLockPairDriftTestsBase<TSlot>
     where TSlot : ITestPartitionSlot
 {

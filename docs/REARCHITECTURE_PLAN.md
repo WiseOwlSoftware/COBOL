@@ -63,7 +63,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   window; `origin` re-pointed, the old name redirects); `ruleset.py apply` on the 16:27 go then created ruleset 24904083
   and deleted the classic protection, and `ruleset.py check` reads **ACTIVE** (19:14). PB3024's closing change, the
   first branch cut after PB3023 landed, deleted the direct-push landing script, the landing lease, their drift tests and
-  the `ci/**` trigger (`LandingPipelineDriftTests` keeps them out); main's `push` run after each queued landing skips the
+  the `ci/**` trigger (`landing_rules.py --self-test` keeps them out); main's `push` run after each queued landing skips the
   matrix on the merge group's green run (measured on PRs 7–9). **LANDING IS `python scripts/orchestrator/enqueue.py land
   <branch>`; the ruleset refuses every direct push to `main`.**
 - **▶ THE SORT AND FILE I/O CAMPAIGN HAS AN ORDER (owner 2026-10-19 ~00:20 PDT, kb/Work PB3420, campaign lead PB3353).** The owner approved the Mythos lane's recommended order: the known defects with no decision pending first, then the transactions once the owner has decided their scope, then, after the weekly quota resets, the I/O architecture debt and the print and report-writer determinations, then the closure review and batteries. Nothing in it starts before the system restart on the morning of 2026-10-19; the owner's drain order of 2026-10-18 23:00 stands until then. The order is held IN THE REGISTER, not here: `python scripts/spec/work.py next --cluster PB3353` shows what is ready, and the later tiers follow PB3420's order (tier 2, the transactions, after tier 1; tier 3 until PB3420 is released). Quota facts as the owner measured them: account 2 at 48 % of the weekly quota after 38 h and account 1 at 27 % after 21 h, about 1.3 % per hour each, so about 98 account-hours of today's intensity remain; the harness's per-agent token counts are not billed tokens (every cached context re-read bills), which is why a day bills 1-5 billion. PB3420 carries the plan (the tiers, the budget, the clock and the mechanics for both lanes); this paragraph is live state and holds no list.
@@ -1920,8 +1920,8 @@ result. Run the long legs ONE AT A TIME.
   collection split took the Conformance leg from 721 s to 600 s on the dev box — the box is saturated, so the next
   lever is less WORK, never more partitions (§3.11). ⛔ Every OTHER filtered `dotnet test` in the repo (the two doc
   regenerators, the verdict recorder, the two single-purpose CI legs) puts each term back to vstest first
-  (`scripts/filter_population.py`, PB708/PB751/PB752), and `FilterPopulationGuardDriftTests` fails if a new one
-  does not. It is NOT the comprehensive gate.
+  (`scripts/filter_population.py`, PB708/PB751/PB752), and `test_population.py`'s self-test (`audit_filtered_runs`,
+  over the real tree) fails if a new one does not. It is NOT the comprehensive gate.
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
   the GnuCOBOL differential, plus `scripts/guard-fast.sh` (the CLI-level NIST leg through `cobol`, every program in
   its own directory, in parallel).
@@ -2189,8 +2189,8 @@ result. Run the long legs ONE AT A TIME.
   same baseline — 516 citations checked, 469 correct, ZERO MISFILED and ZERO ELIDED, `--self-test`
   PASS.** Its ELIDED arm (kb/Work PB900) gates on a quotation that is the clause's own sentence with
   words dropped. ⛔ **Both audits' `--self-test` ran in NO gate until 2026-09-21** — only `--check`
-  did, which is how ELIDED could be added and driven by nothing; `CitationAuditSelfTestDriftTests`
-  (Unit) now shells both and asserts the CASE NAMES. It ran
+  did, which is how ELIDED could be added and driven by nothing; the self-test runner now runs both and
+  `scripts/self_test_arms.py` asserts the CASE NAMES (kb/Work PB4395; until then `CitationAuditSelfTestDriftTests`). It ran
   in no gate until 2026-09-03 and was reporting six misfilings nobody owned; adjudicating them (kb/Work PB379)
   found ONE inherited clause number and five sites the audit could not READ, because a citation is written in
   more than one order here and it knew only `§ … "quote"`. It now reads the POSTFIX order too (`"quote" §N`),
@@ -3216,8 +3216,9 @@ already-derivable coverage; none change the pipeline.
   landing's at Normal priority); bash `scripts/build-local.sh`. There is no mode and no filter. The driver is `scripts/gate.py` (`--self-test` proves every arm); each
   gate writes a fresh run directory `TestResults/build-local/<n>-<UTC stamp>/`, n its number in the worktree (listings, `plan.json`, every
   leg's log, trx and identity record, `verdict.json` with the timings and the first red; the newest five are kept)
-  and prints one `=== BUILD-LOCAL GATE: GREEN|RED|RED/INCOMPLETE|LEG 1 ONLY (batched gating, PB2515):
-  GREEN|RED|BUILD FAILED|BUSY|NOT RUN [<cause>] — … ===` line (under the default scope `leg1`, `LEG 1 ONLY …`).
+  and prints one `=== BUILD-LOCAL GATE: GREEN|RED|RED/INCOMPLETE|BUILD FAILED|BUSY|NOT RUN [<cause>] — … ===` line;
+  a change of only inert paths says `GREEN — INERT LANE`, and one of only tooling no compiler test reads says
+  `GREEN — TOOLING LANE`, neither with a build or a test host (kb/Work PB4328, PB4395).
   ⛔ Any OTHER filtered `dotnet test` you run or script goes through `scripts/filter_population.py` first (PB708,
   PB751/PB752 — vstest answers an unmatched filter with a passing run of zero tests); add `--allow-build` when the
   run itself is what builds the project.
@@ -3228,7 +3229,7 @@ already-derivable coverage; none change the pipeline.
   handles `--self-test`, or a file named `test_*.py`/`test_*.ps1`), in parallel, each with a private `COBOL_COORD_DIR`
   and git global config; `--built` runs the ones that read the built test assemblies; `--list` prints what it found.
   The gate runs it as its `SELF-TESTS` audit, a hand-run Linux gate as legs `selftests`/`selftests-built`, and CI in its
-  `audits`, `greenfield-unit` and `windows-self-tests` jobs (kb/Work PB2563; `SelfTestDiscoveryDriftTests`). A
+  `audits`, `greenfield-unit` and `windows-self-tests` jobs (kb/Work PB2563; the runner's own self-test holds it). A
   self-test that cannot run on one platform says so in its header (`# SELF-TEST-PLATFORM: windows — <reason>`).
   `--reuse` (the implementer gate's) reports a self-test REUSED while everything its recorded PASS read is unchanged;
   every other run records; each self-test that runs takes a place in one machine-wide budget, and a hung one is HANG,
@@ -3362,13 +3363,13 @@ Close the version-correctness program to zero open work and make the greenfield 
 
 This phase is the load-bearing hinge between "the compiler works" and "we can safely delete the oracle." The survey/critique findings it closes:
 
-- **The net evaporates at G8 unless a faithful replacement is proven first** (`DESIGN-test-build-ci.md` §1.2, §3.4, §6 risk 4; `COMPLETION_ROADMAP_COUNCIL.md` §4 risk 4). ⭐ **RESOLVED 2026-09-06 by kb/Work/PB750 and R69.** `scripts/guard.sh`/`guard-fast.sh` compiled+ran ~353 programs through the legacy CLI and diffed `tests/nist/valid/*.txt`; they now drive `cobol` over all 376 in-scope programs, so the census coverage the greenfield lacked — the golden-less residue, the run-only programs, the compile+run health of the full corpus — is greenfield and was not lost when the engine went (PB2109 retired the legacy arm, PB2110 deleted the engine). What survives of this risk is narrower: the guard's NIST leg is bash/Linux-only, and `NistDifferentialTests` still asserts only the 349 green∪divergent rows in-process, so the two must stay reconcilable (`CorpusManifestTests` asserts the containment structurally, `guard-nist-audit.sh` per program).
+- **The net evaporates at G8 unless a faithful replacement is proven first** (`DESIGN-test-build-ci.md` §1.2; `COMPLETION_ROADMAP_COUNCIL.md` §4 risk 4). ⭐ **RESOLVED 2026-09-06 by kb/Work/PB750 and R69.** `scripts/guard.sh`/`guard-fast.sh` compiled+ran ~353 programs through the legacy CLI and diffed `tests/nist/valid/*.txt`; they now drive `cobol` over all 376 in-scope programs, so the census coverage the greenfield lacked — the golden-less residue, the run-only programs, the compile+run health of the full corpus — is greenfield and was not lost when the engine went (PB2109 retired the legacy arm, PB2110 deleted the engine). What survives of this risk is narrower: the guard's NIST leg is bash/Linux-only, and `NistDifferentialTests` still asserts only the 349 green∪divergent rows in-process, so the two must stay reconcilable (`CorpusManifestTests` asserts the containment structurally, `guard-nist-audit.sh` per program).
 
 - **Version-gating is unaudited and the VCR ledger is stale** (`DESIGN-edition-framework.md` P7/P8; `VERSION_CHANGE_REFERENCE.md` — `grep -c TODO` = 117 rows still open, 6 done/GATED as of this writing). The "four compilers in one" mission (`docs/VERSION_TEST_MATRIX_DESIGN.md`) is only validated at its deltas/boundaries; a `TODO` row is an un-proven claim. P3 made the audit harness-driven (`scripts/gen-vcr.ps1` + `--emit-status`); P14 is where the burn-down actually reaches zero and the ledger becomes structurally incapable of drifting.
 
 - **The default shipping edition (2023) is never behaviorally executed before G8** — the critics' one *fatal* challenge (`COMPLETION_ROADMAP_COUNCIL.md` §2 Phase 1, decision #10). `NistDifferentialTests` hard-compiles at `DialectLevel 85` (`CompilerUnderTest.cs`: `WiseOwlCobolCompiler(int dialectLevel = 85)`); the INV-1 sweep only asks "does it *compile*" via `check-batch` (`scripts/version-continuity-sweep.sh`), never runs. The `WISEOWL_COBOL_NIST_STD` / `WISEOWL_COBOL_NIST_PERMISSIVE` env override (`NistDifferentialTests.cs`) exists precisely so the whole golden run can be re-targeted to `--std 2023 --permissive` and asserted byte-identical; P14 promotes that leg to a hard, always-on G7 exit criterion.
 
-- **Diagnostics are unaddressable without a coverage floor** (`DESIGN-test-build-ci.md` §1.6, §3.5). P2 built the first-class descriptor registry; P14 is where "every rule has a test" becomes an enforced invariant (`DiagnosticRegistryCoverageTests`), so a registered code with no negative-corpus case is a red — closing the false-green class the 0899 catch-all and the `1533`-style code reuse used to hide.
+- **Diagnostics are unaddressable without a coverage floor** (`DESIGN-test-build-ci.md` §3.5). P2 built the first-class descriptor registry; P14 is where "every rule has a test" becomes an enforced invariant (`DiagnosticRegistryCoverageTests`), so a registered code with no negative-corpus case is a red — closing the false-green class the 0899 catch-all and the `1533`-style code reuse used to hide.
 
 
 ---
@@ -3609,7 +3610,7 @@ Expected: coverage test green (no uncovered descriptor); corpus manifest drift g
 dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj \
   --filter "VersionMatrixTests|VersionBehaviorMatrixTests|Inv1StrongGoldenTests"
 bash scripts/version-continuity-sweep.sh | tee /tmp/sweep.log ; ! grep -q BREAKS /tmp/sweep.log
-pwsh scripts/version-continuity-sweep.ps1   # add a .ps1 sibling if P3 didn't (DESIGN-test-build-ci §3.7)
+pwsh scripts/version-continuity-sweep.ps1   # add a .ps1 sibling if P3 didn't
 ```
 Expected: all green; sweep no `BREAKS`; strict breaks (if any) all edition-band-coded.
 
@@ -3683,7 +3684,7 @@ Expected: `=== ALL GREEN ===`, census summary `≥357 GREEN`, exit 0. On Windows
 
 **Change:** confirm the census guard's `green` set == the `NistDifferentialTests` golden set == the `corpus.tsv` `green` rows == `guard.sh` `NIST_TESTS`. Any mismatch is a triplication artifact — fix it in `corpus.tsv` (the single source) and re-point the in-process test's `[MemberData]` at it (if P0 left `[InlineData]` in place, do the fold here). Add/confirm `CorpusManifestTests` asserting: every `tests/nist/programs/*.cob` is listed; every `green` row has a `valid/<name>.txt`.
 
-**Why:** the in-process and the CLI-level NIST runners must enumerate the *same universe* from the *same manifest* (`DESIGN-test-build-ci.md` §6 risk 4).
+**Why:** the in-process and the CLI-level NIST runners must enumerate the *same universe* from the *same manifest* (`DESIGN-test-build-ci.md` §1.2).
 
 **Verify:**
 ```

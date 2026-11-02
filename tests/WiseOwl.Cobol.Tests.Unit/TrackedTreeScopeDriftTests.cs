@@ -18,8 +18,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>
 /// Why: a sweep that read <c>git ls-files</c> and filtered it in code named no path, so the index could not see it.
 /// Seven such classes were invisible to <c>drift_rules.py</c>; one of them
-/// (<c>CatalogCoverageDriftTests.NoScriptOrTest_SpellsTheGeneralFormatHeadingItself</c>) was not listed for the script
-/// PB3523's branch edited, the Windows gate left it in leg 2, and the landing's Linux unit leg found the red.
+/// (the general-format heading's no-copy sweep, whose half over the scripts is now <c>spec_headings.py --self-test</c>)
+/// was not listed for the script PB3523's branch edited, the Windows gate left it in leg 2, and the landing's Linux unit leg found the red.
 /// </remarks>
 [Trait("Sweep", "tree")]
 public sealed class TrackedTreeScopeDriftTests
@@ -100,7 +100,7 @@ public sealed class TrackedTreeScopeDriftTests
         Assert.True(scanning >= 6, $"only {scanning} test source(s) read the committed tree — the scan of the sources is broken");
         Assert.True(offenders.Count == 0,
             "these reads of the committed tree are invisible to scripts/spec/drift_rules.py, so it never names the sweep "
-            + "for a file it reads and the gate's planner never puts it in leg 1 (kb/Work PB3531). Declare the scope in "
+            + "for a file it reads (kb/Work PB3531). Declare the scope in "
             + "the drift-test class as a static readonly field of type TreeScope, initialized `new(Under: [...], "
             + "Except: [...], Kinds: [...])` with string literals only, and pass that field:\n  " + string.Join("\n  ", offenders));
     }
@@ -357,7 +357,7 @@ public sealed class TrackedTreeScopeDriftTests
 
     /// <summary>Every path a scope sets aside BY NAME (an exact-path <c>Except</c> entry: the rule's owner, where its
     /// one pattern lives, or the test itself) is one the per-file query lists its class as governing SPECIFICALLY — so
-    /// an agent editing the owner is told the rule, and the gate's planner puts the class in leg 1 (tier 0d). Review
+    /// an agent editing the owner is told the rule. Review
     /// R1-1 of PB3531: the index blanked the declarations, and <c>scripts/spec/spec_headings.py</c> and
     /// <c>tests/_shared/SpecClauseText.cs</c> lost <c>CatalogCoverageDriftTests</c>, which governed both on main.</summary>
     [Fact]

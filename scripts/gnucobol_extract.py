@@ -186,7 +186,7 @@ def parse_file(path: str) -> list[Group]:
 #
 # So the population is defined ONCE, here, and BOTH readers call it: `gnucobol_differential.py` for the cases
 # it compiles, `corpus_sweep.py` for the programs it greps. A sweep over "the corpus" now mechanically includes
-# the extracted programs, and `ExternalCorpusPopulationDriftTests` fails if the two ever diverge again.
+# the extracted programs, and `corpus_sweep.py --self-test` fails if the two ever diverge again.
 #
 # The canonical currency is the `asdict(Group)` DICT, not the dataclass: the differential ships groups across a
 # ProcessPoolExecutor, so they have to be picklable plain data anyway, and one shape means the predicate below
