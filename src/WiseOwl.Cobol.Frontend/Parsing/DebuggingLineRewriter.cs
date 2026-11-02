@@ -189,12 +189,30 @@ public static class DebuggingLineRewriter
         foreach (var line in unit.Lines) Hide(tokens, line);
     }
 
-    /// <summary>A debugging line that is a comment: its text tokens leave the default channel (the marker stays hidden).</summary>
+    /// <summary>A debugging line that is a comment: its marker and its text tokens leave for the
+    /// <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel. The MARKER moves too, so a line with no text token (one whose
+    /// program-text area is blank) is still found absent in the stream: the stream is where the unit's
+    /// <c>WITH DEBUGGING MODE</c> is decided, and <see cref="AbsentLines"/> reads the decision back (kb/Work PB4412).</summary>
     private static void Hide(IList<IToken> tokens, Extent line)
     {
-        for (int i = line.Start + 1; i < line.End; i++)
-            if (tokens[i].Channel == TokenConstants.DefaultChannel)
+        for (int i = line.Start; i < line.End; i++)
+            if (i == line.Start || tokens[i].Channel == TokenConstants.DefaultChannel)
                 tokens[i] = new CommonToken(tokens[i]) { Channel = CobolLexer.ABSENT_DEBUG_LINE };
+    }
+
+    /// <summary>The lines strictly between tokens <paramref name="after"/> and <paramref name="before"/> (indices into
+    /// <paramref name="tokenStream"/> as <see cref="Rewrite"/> left it) that are debugging lines the unit does not compile:
+    /// comment lines, however little text they hold (kb/Work PB4412). A text stage that omits a line marks the line map
+    /// (<see cref="WiseOwl.Cobol.Frontend.Common.LineOrigin.Omitted"/>); this stage cannot, because whether a debugging line
+    /// is source is decided here, on the tokens, after the line map is built. A diagnostic that must not ask of an omitted
+    /// line therefore asks of both.</summary>
+    public static IReadOnlySet<int> AbsentLines(ITokenStream tokenStream, int after, int before)
+    {
+        var lines = new HashSet<int>();
+        for (int i = after + 1; i < before; i++)
+            if (tokenStream.Get(i) is { Channel: CobolLexer.ABSENT_DEBUG_LINE, Type: CobolLexer.DEBUG_LINE or CobolLexer.DEBUG_LINE_IN_REGION } marker)
+                lines.Add(marker.Line);
+        return lines;
     }
 
     /// <summary>One source unit being walked: whether a container or the unit itself declared the mode (so its lines are

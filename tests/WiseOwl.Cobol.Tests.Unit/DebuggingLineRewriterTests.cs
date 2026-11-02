@@ -54,11 +54,11 @@ public sealed class DebuggingLineRewriterTests
         => Assert.All(ChannelsOf(tokens, marker), c => Assert.Equal(CobolLexer.ABSENT_DEBUG_LINE, c));
 
     [Fact]
-    public void NoClause_TheLineIsAComment_AndTheMarkerStaysHidden()
+    public void NoClause_TheLineIsAComment_AndItsMarkerLeavesWithIt()
     {
         var tokens = Rewritten(["PROGRAM-ID. P.", "SOURCE-COMPUTER. IBM-PC.", D("DISPLAY NOCLAUSE."), "STOP RUN."]);
         AssertComment(tokens, "NOCLAUSE");
-        Assert.Equal(TokenConstants.HiddenChannel, tokens.Single(t => t.Type == CobolLexer.DEBUG_LINE).Channel);
+        Assert.Equal(CobolLexer.ABSENT_DEBUG_LINE, tokens.Single(t => t.Type == CobolLexer.DEBUG_LINE).Channel);   // PB4412: a text-less debugging line is found absent by its marker
         Assert.Contains(tokens, t => t.Text == "STOP" && t.Channel == TokenConstants.DefaultChannel);
     }
 

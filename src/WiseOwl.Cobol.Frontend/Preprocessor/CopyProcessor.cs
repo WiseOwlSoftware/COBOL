@@ -716,6 +716,9 @@ public sealed class CopyProcessor(
             Report(DiagnosticDescriptors.CBL3622, mapped.LocateAt(0), MaxCopyDepth);
             return mapped;
         }
+        // A block of ONE EMPTY LINE (a blank line between two directives) holds no COPY statement, and the writer below,
+        // handed no content, would name its only piece by no file at all (kb/Work PB4412): hand the piece back as it stands.
+        if (text.Length == 0) return mapped;
 
         var w = new OriginWriter();
         int pos = 0;

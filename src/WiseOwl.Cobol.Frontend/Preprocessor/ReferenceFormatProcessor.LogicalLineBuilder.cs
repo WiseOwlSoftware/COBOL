@@ -122,7 +122,8 @@ public static partial class ReferenceFormatProcessor
         /// per source unit (docs/CONFORMANCE.md D-DEBUG; kb/Work PB1705). Which of the two it is is decided after this
         /// walk, so the walk must read the line so that BOTH readings agree on every OTHER line:
         /// <list type="bullet">
-        /// <item>a line of spaces is a blank line (§6.5 2)): discarded, never a join target;</item>
+        /// <item>a line of spaces is a blank line (§6.5 2)): discarded, never a join target, but its slot holds the bare
+        /// carrier so the rewriter can decide the line (kb/Work PB4412);</item>
         /// <item>a line written while the latest logical line is inside a literal that needs its continuation (an open
         /// literal, or one a floating indicator continues) is passed over like a comment line — "Comment lines and blank
         /// lines may be interspersed among lines containing the parts of a literal" (§6.3.5 2)) — so the continuation line
@@ -142,7 +143,13 @@ public static partial class ReferenceFormatProcessor
             string kept = Scan(programText, 0, ref state, site, fixedContinuation: false);
             if (CobolSpace.IsBlank(kept))
             {
-                Discard(site);
+                // A blank line, logically discarded (§6.5 2): its slot stays and it touches neither the join target nor the
+                // literal state. The slot holds the BARE carrier and not an empty line (kb/Work PB4412): whether the line is
+                // source or commentary is still the unit's WITH DEBUGGING MODE to say, and a blank debugging line may hold
+                // text past margin R that only the mode tells apart (a statement that vanished, or the commentary of a
+                // comment line), so the rewriter must be able to find the line to decide it.
+                _lines.Add(carrier);
+                _origins.Add([site.Span(file, 0, 0)]);
                 return;
             }
             string text = carrier + (state.InLiteral ? kept : kept.TrimSpacesEnd());

@@ -55,6 +55,41 @@ public sealed class SourceLineMapTests : IDisposable
         Assert.Equal([("cpy", 1), ("cpy", 2)], slice.Lines.Select(o => (o.Origin.File, o.Origin.Line)).ToArray());
     }
 
+    [Fact] // kb/Work PB4412: an EMPTY piece of the input names the output piece it becomes, final or alone, not the piece before it
+    public void OriginWriter_AnEmptyInputPiece_KeepsItsOwnOrigin()
+    {
+        var blankLines = new MappedText("\n", [new LineOrigin(new SourceOrigin("f", 10)), new LineOrigin(new SourceOrigin("f", 11))]);
+        var w = new OriginWriter();
+        w.AppendMapped(blankLines);
+        Assert.Equal([10, 11], LinesOf(w.Finish()));   // the final empty piece is line 11's, not "like the piece before it"
+
+        var alone = new MappedText("", [new LineOrigin(new SourceOrigin("f", 7))]);
+        var w2 = new OriginWriter();
+        w2.AppendMapped(alone);
+        Assert.Equal([("f", 7)], w2.Finish().Lines.Select(o => (o.Origin.File, o.Origin.Line)).ToArray());   // not ("", 0)
+    }
+
+    [Fact] // kb/Work PB4412: the omission of a line is part of its origin and survives every rebasing of the piece
+    public void LineOrigin_Omitted_TravelsWithTheOrigin_AndTheMapAnswersIt()
+    {
+        var kept = new LineOrigin(new SourceOrigin("f", 1));
+        var omitted = new LineOrigin(new SourceOrigin("f", 2)).AsOmitted();
+        Assert.False(kept.Omitted);
+        Assert.True(omitted.Omitted);
+        Assert.Same(omitted, omitted.AsOmitted());
+        Assert.True(omitted.From(0).Omitted);
+        Assert.True(omitted.From(3).Omitted);
+
+        var w = new OriginWriter();
+        w.AppendMapped(new MappedText("\n", [kept, omitted]));
+        var m = w.Finish();
+        var map = new SourceLineMap(m.Lines);
+        Assert.False(map.IsOmitted(1));
+        Assert.True(map.IsOmitted(2));
+        Assert.False(map.IsOmitted(3));   // outside the map
+        Assert.False(map.IsOmitted(0));
+    }
+
     // ── kb/Work PB1801: a resultant line maps to its source COLUMN by COLUMN ─────────────────────────────────
 
     [Fact]
