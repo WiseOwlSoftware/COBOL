@@ -26,6 +26,15 @@
       *>   8.4.3.2.4 GR7: the same condition in a user-defined FUNCTION, for OMITTED and a trailing
       *>     omission -> OP / PO / PO / PP.
       *>   A universal receiver (14.9.23.4 GR7c) carries the same omission -> TAKE OMITTED, B OMITTED.
+      *>   kb/Work PB2103 - 12.3.8.3 SR14: PB757S2's definition follows the REPOSITORY paragraph, so the
+      *>     program prototype definition ahead of every unit (10.6.2 SR1) supplies GR10 b)'s details.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB757S2 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 P PIC X(4).
+       PROCEDURE DIVISION USING OPTIONAL P.
+       END PROGRAM PB757S2.
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB757F.
        DATA DIVISION.

@@ -75,6 +75,10 @@ internal sealed class BindSession
     /// (<c>BinderDriver.ResolvePointerRestrictions</c>, kb/Work PB2495).</summary>
     public PrototypeSignatureClasses SignatureClasses { get; } = new();
 
+    /// <summary>The external repository this compilation reads (DESIGN-external-repository §8.6, §9.3): what
+    /// <see cref="RepositoryResolver"/>'s metadata provider searches and what <c>RepositoryCheck</c> compares against.</summary>
+    public RepositorySearchSpace SearchSpace { get; init; } = RepositorySearchSpace.None;
+
     /// <summary>The group's walk of the parse tree for storage-claim operands (<c>ADDRESS OF</c> heads, BY REFERENCE operands),
     /// done once and sliced per source element, because every unit's binder asks it about its own procedure division AND about each
     /// program it contains (kb/Work PB4302). Every unit's <see cref="DataBinder.ClaimScans"/> is this one.</summary>

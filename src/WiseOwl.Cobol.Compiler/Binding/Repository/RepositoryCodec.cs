@@ -116,14 +116,36 @@ internal static class RepositoryCodec
 
     /// <summary>Bind <paramref name="record"/> into a throw-away forest (§6.3) and admit its referenced prototypes into
     /// <paramref name="classes"/> (§6.4 part 2), so every decoded restricted pointer carries the identity of its
-    /// signature's class. The record is decoded in the publishing element's own scope (slice 4's round trip): its object
-    /// references keep their written words.</summary>
-    public static DecodedRecord Decode(RepositoryRecord record, PrototypeSignatureClasses classes)
+    /// signature's class. With no <paramref name="words"/> the record is decoded in the publishing element's own scope
+    /// (slice 4's round trip): its object references keep their written words. An importing group passes the word it gives
+    /// each class or interface identity the record names (<c>MetadataRepositoryProvider</c>, §8.7), so the decoded object
+    /// references are compared in ITS word space; an identity absent from <paramref name="words"/> keeps the written word.</summary>
+    public static DecodedRecord Decode(RepositoryRecord record, PrototypeSignatureClasses classes,
+        IReadOnlyDictionary<(bool Interface, string Identity), string>? words = null)
     {
-        var decoder = new Decoder(record);
+        var decoder = new Decoder(record, words);
         var decoded = decoder.Run();
         classes.Admit(decoder.RestrictedPointers);
         return decoded;
+    }
+
+    /// <summary>Every description of <paramref name="record"/> that is an object reference to a class or interface IDENTITY
+    /// (§6.4): its formals', returning item's, type declarations' and referenced prototypes' entries, subordinates included —
+    /// what an importer must be able to name (REPO-11).</summary>
+    public static IEnumerable<PicRecord> ObjectReferences(RepositoryRecord record)
+    {
+        var roots = record.Formals.Select(f => f.Description)
+            .Concat(record.Returning is { } r ? [r] : [])
+            .Concat(record.TypeDeclarations)
+            .Concat(record.ReferencedPrototypes.SelectMany(p => p.Formals.Select(f => f.Description)
+                .Concat(p.Returning is { } pr ? [pr] : [])));
+        var pending = new Stack<DescriptionRecord>(roots);
+        while (pending.Count > 0)
+        {
+            var entry = pending.Pop();
+            if (entry.Pic is { ObjectRefIdentity: not null } pic) yield return pic;
+            foreach (var child in entry.Children) pending.Push(child);
+        }
     }
 
     private static RecordList<T> List<T>(IEnumerable<T> items) => new([.. items]);
@@ -288,10 +310,9 @@ internal static class RepositoryCodec
             var signature = prototype.Signature;
             _prototypes[index] = new PrototypeRecord(index,
                 prototype.Function ? RepositoryUnitKind.FunctionPrototype : RepositoryUnitKind.ProgramPrototype,
-                prototype.ExternalizedName, signature is not null,
-                signature is null ? RecordList<FormalRecord>.Empty
-                    : List(signature.Formals.Select(f => Formal(f.Item, f.Position, f.ByValue, f.Optional))),
-                signature?.Returning is { } r ? Describe(r, r) : null);
+                prototype.ExternalizedName,
+                List(signature.Formals.Select(f => Formal(f.Item, f.Position, f.ByValue, f.Optional))),
+                signature.Returning is { } r ? Describe(r, r) : null);
             return index;
         }
     }
@@ -300,7 +321,7 @@ internal static class RepositoryCodec
     /// references are attached (the type declarations a restricted data-pointer names; the prototypes a restricted program-
     /// or function-pointer names, one <see cref="RestrictedPrototype"/> per row with a <see cref="PrototypeOrigin"/> of its
     /// own).</summary>
-    private sealed class Decoder(RepositoryRecord record)
+    private sealed class Decoder(RepositoryRecord record, IReadOnlyDictionary<(bool Interface, string Identity), string>? words)
     {
         private int _serial;
         private readonly List<(DataItem Pointer, int Declaration)> _typeReferences = [];
@@ -330,7 +351,7 @@ internal static class RepositoryCodec
                 typed.TypeDeclaration = At(types, declaration, "a TypeDeclaration");
             RestrictedPrototype[] restricted = [.. prototypes.Select(p => new RestrictedPrototype(
                 p.Record.Kind is RepositoryUnitKind.FunctionPrototype or RepositoryUnitKind.Function, p.Record.ExternalizedName,
-                p.Record.HasSignature ? new CalleeSignature(p.Formals, p.Returning) : null,
+                new CalleeSignature(p.Formals, p.Returning),
                 new PrototypeOrigin($"{record.ExternalizedName} ReferencedPrototypes[{p.Record.Index}]")))];
             foreach (var (pointer, prototype) in _prototypeReferences)
             {
@@ -418,7 +439,13 @@ internal static class RepositoryCodec
             return item;
         }
 
-        private static PicInfo Pic(PicRecord p)
+        /// <summary>The word an object reference is decoded with: the importer's for its identity, else the written one.</summary>
+        private string? ObjectWord(PicRecord p) =>
+            p.ObjectRefIdentity is { } identity && words is not null
+            && words.TryGetValue((p.ObjectRefKind is ObjectReferenceKind.Interface, identity), out var word)
+                ? word : p.ObjectRefName;
+
+        private PicInfo Pic(PicRecord p)
         {
             var pic = new PicInfo(FromPersisted(p.Category), FromPersisted(p.Usage), p.Length, p.Digits, p.Scale, p.Signed)
             {
@@ -437,7 +464,7 @@ internal static class RepositoryCodec
                         l.Size, l.Picture)
                     : null,
                 ObjectRef = FromPersisted(p.ObjectRefKind) is { } kind
-                    ? new ObjectRefDescriptor(kind, p.ObjectRefName, p.ObjectRefFactory, p.ObjectRefOnly, p.ObjectRefFormal)
+                    ? new ObjectRefDescriptor(kind, ObjectWord(p), p.ObjectRefFactory, p.ObjectRefOnly, p.ObjectRefFormal)
                     : null,
             };
             return p.DigitPositions is { } digitPositions ? pic with { DigitPositions = digitPositions } : pic;

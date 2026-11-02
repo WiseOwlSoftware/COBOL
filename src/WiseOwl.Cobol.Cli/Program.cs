@@ -18,7 +18,8 @@ namespace WiseOwl.Cobol.Cli;
 /// </summary>
 /// <remarks>
 /// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
-/// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions] [--repository-update on|off]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
+/// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions] [--repository-update on|off]
+/// [--repository DIR] [--reference FILE.dll] [--repository-check on|off]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
 /// option can swallow a following flag. The generated C# is written next to the output assembly
 /// (<c>&lt;name&gt;.g.cs</c>) so the translation is directly inspectable.
 /// </remarks>
@@ -168,13 +169,42 @@ internal static class Program
             Description = "Whether the compilation updates the external repository (ISO 8.13): on (default — the module "
                 + "carries every unit's signature, so a later compilation can bind against it) or off (the module runs and "
                 + "is found by name, but carries no signatures).",
-            HelpName = string.Join("|", RepositoryUpdateSpellings),
+            HelpName = string.Join("|", OnOffSpellings),
         };
-        repositoryUpdateOption.Validators.Add(result =>
+        repositoryUpdateOption.Validators.Add(result => ValidateOnOff(result, "--repository-update"));
+
+        // kb/Work PB2103: the external repository the compilation reads (DESIGN-external-repository §9.3; Annex A.1 item 66):
+        // a REPOSITORY specifier the compilation group cannot answer is looked for in the --repository directories in the
+        // order given (by default the output directory), then in the --reference assemblies in order (ISO §12.3.8.4 GR10 c) /
+        // GR11 c)). A place that does not exist is REPO-10 (a bind diagnostic, with every other).
+        var repositoryOption = new Option<string[]>("--repository")
         {
-            if (result.GetValueOrDefault<string?>() is { } v && !TryParseRepositoryUpdate(v, out _))
-                result.AddError($"--repository-update must be one of {string.Join(", ", RepositoryUpdateSpellings)} (got {v}).");
-        });
+            Description = "An external repository directory (repeatable), searched in order for a program or function a "
+                + "REPOSITORY paragraph names and this compilation group does not define (ISO 8.13, 12.3.8.4); default: the "
+                + "output directory.",
+            Arity = ArgumentArity.OneOrMore,
+            AllowMultipleArgumentsPerToken = false,   // `--repository A --repository B`, never grabbing the source positional
+            HelpName = "DIR",
+        };
+        var referenceOption = new Option<string[]>("--reference")
+        {
+            Description = "A compiled WiseOwl COBOL assembly (repeatable) searched, in order, after the --repository "
+                + "directories.",
+            Arity = ArgumentArity.OneOrMore,
+            AllowMultipleArgumentsPerToken = false,
+            HelpName = "FILE.dll",
+        };
+        // ISO §8.13 — "The implementor shall provide a mechanism that allows the user to specify whether to flag differences
+        // in prototypes and definitions in the compilation group from the information in the external repository."
+        // (DESIGN-external-repository §9.2, REPO-9.)
+        var repositoryCheckOption = new Option<string?>("--repository-check")
+        {
+            Description = "Whether the compilation flags a program or function whose signature differs from the information "
+                + "the external repository holds for it (ISO 8.13): on (default — a warning naming the entry and the first "
+                + "difference) or off.",
+            HelpName = string.Join("|", OnOffSpellings),
+        };
+        repositoryCheckOption.Validators.Add(result => ValidateOnOff(result, "--repository-check"));
 
         // The batch check is a separate tree (Parse), so this description is where the compile's help names it.
         var root = new RootCommand("cobol — translate a COBOL source unit to typed-native .NET (the Roslyn backend). "
@@ -182,6 +212,7 @@ internal static class Program
         {
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
             signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, repositoryUpdateOption,
+            repositoryOption, referenceOption, repositoryCheckOption,
         };
 
         CliOptions Resolve(ParseResult parse)
@@ -205,12 +236,17 @@ internal static class Program
             // Likewise: false can only be the absent option — fixed form, the standard default (kb/Work PB1362).
             _ = InitialReferenceFormatOption.TryParse(parse.GetValue(sourceFormatOption), out var sourceFormat);
             // Likewise: false can only be the absent option — on, the documented default (DESIGN-external-repository §9.1).
-            _ = TryParseRepositoryUpdate(parse.GetValue(repositoryUpdateOption), out bool repositoryUpdate);
+            _ = TryParseOnOff(parse.GetValue(repositoryUpdateOption), out bool repositoryUpdate);
+            // Likewise: on, the documented default (DESIGN-external-repository §9.2).
+            _ = TryParseOnOff(parse.GetValue(repositoryCheckOption), out bool repositoryCheck);
+            // No --repository is the output directory (null), never an empty search space.
+            string[]? repositories = parse.GetValue(repositoryOption) is { Length: > 0 } named ? named : null;
 
             return new CliOptions(
                 source, parse.GetValue(outputOption), nistName, std,
                 parse.GetValue(copyOption) ?? [], parse.GetValue(runOption), parse.GetValue(permissiveOption),
-                signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay, repositoryUpdate);
+                signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay, repositoryUpdate,
+                repositories, parse.GetValue(referenceOption) ?? [], repositoryCheck);
         }
 
         // The root's OWN action: a bare `cobol <source>` compiles.
@@ -297,15 +333,22 @@ internal static class Program
         return value is not null && Array.IndexOf(StdSpellings, value) >= 0 && int.TryParse(value, out year);
     }
 
-    /// <summary>The spellings <c>--repository-update</c> accepts.</summary>
-    internal static readonly string[] RepositoryUpdateSpellings = ["on", "off"];
+    /// <summary>The spellings an on/off option (<c>--repository-update</c>, <c>--repository-check</c>) accepts.</summary>
+    internal static readonly string[] OnOffSpellings = ["on", "off"];
 
-    /// <summary>Parse a <c>--repository-update</c> value (case-insensitive); an absent value is the default, on, and answers
+    /// <summary>Parse an on/off option's value (case-insensitive); an absent value is the default, on, and answers
     /// false.</summary>
-    internal static bool TryParseRepositoryUpdate(string? value, out bool update)
+    internal static bool TryParseOnOff(string? value, out bool on)
     {
-        update = !string.Equals(value, "off", StringComparison.OrdinalIgnoreCase);   // not a COBOL word: a command-line option value
-        return value is not null && (!update || string.Equals(value, "on", StringComparison.OrdinalIgnoreCase));   // not a COBOL word: a command-line option value
+        on = !string.Equals(value, "off", StringComparison.OrdinalIgnoreCase);   // not a COBOL word: a command-line option value
+        return value is not null && (!on || string.Equals(value, "on", StringComparison.OrdinalIgnoreCase));   // not a COBOL word: a command-line option value
+    }
+
+    /// <summary>The validator of an on/off option named <paramref name="option"/>: any other value is an argument error.</summary>
+    private static void ValidateOnOff(System.CommandLine.Parsing.OptionResult result, string option)
+    {
+        if (result.GetValueOrDefault<string?>() is { } v && !TryParseOnOff(v, out _))
+            result.AddError($"{option} must be one of {string.Join(", ", OnOffSpellings)} (got {v}).");
     }
 
     /// <summary>Compile per the resolved options, print diagnostics, and map the outcome to a POSIX exit code.</summary>
@@ -315,7 +358,8 @@ internal static class Program
             options.SourcePath, options.OutputPath, options.NistTestName, options.DialectLevel, options.CopyPaths,
             options.Permissive, SignEncoding: options.SignEncoding, SourceFormat: options.SourceFormat,
             FlagExtensions: options.FlagExtensions, NumericDisplay: options.NumericDisplay,
-            RepositoryUpdate: options.RepositoryUpdate));
+            RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths,
+            ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck));
 
         // What the compilation itself transferred — the lines of its DISPLAY directives (ISO §7.3.12.4 GR1, DOC-A.1-53,
         // kb/Work PB1538) — each to the compiler stream it names, in the order the directives were met.

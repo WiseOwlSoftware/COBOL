@@ -28,6 +28,9 @@ the form `--output=out.dll`.
 | `--sign-encoding <ibm\|ascii>` | how DISPLAY stores the sign of a signed item whose sign is not SEPARATE (default `ibm`) |
 | `--numeric-display <decimal\|digits>` | how DISPLAY shows, and ACCEPT reads, a numeric item (default `decimal`) |
 | `--repository-update <on\|off>` | whether the assembly carries the signatures other compilations bind against (default `on`) |
+| `--repository <DIR>` | a directory of compiled assemblies searched for a program or function the REPOSITORY paragraph names and the compilation group does not define (repeatable; default: the output directory) — see [Separately compiled units](../../separately-compiled-units/) |
+| `--reference <FILE.dll>` | a compiled assembly searched after the `--repository` directories (repeatable) |
+| `--repository-check <on\|off>` | whether a unit whose signature differs from the repository's information is flagged with a warning (default `on`) |
 | `--nist <NAME>` | the placeholder preprocessing the NIST CCVS test programs need; for running that suite, not for application code |
 | `--version` | prints the compiler's version |
 | `-?`, `-h`, `--help` | prints the options |

@@ -1420,7 +1420,11 @@ second word method; `RepositoryResolver` (`Binding/RepositoryResolver.cs`) holds
 `RepositoryOrigin` is a closed hierarchy whose one member so far is `GroupUnitOrigin(BoundUnit)`, with
 `IsDefinitionCompiledHere` (§4.2) and `Describe` (the REPO-13 wording, COBOL2969); `FunctionResolution.Shadowed` is a
 `FunctionAnswer`. The class, interface, skeleton and expansion members of the interface are slice 8's, added with their
-first provider, so none stands unimplemented.
+first provider, so none stands unimplemented. **Landed (kb/Work PB2103, slice 7 part 2):** `MetadataRepositoryProvider`
+is the resolver's second provider (`RepositoryResolver(group, external)`); `RepositoryEntryOrigin(Path, Mvid, Kind,
+ExternalizedName)` is the hierarchy's second member (never `IsDefinitionCompiledHere`); the provider caches every answer per
+name and word, reports each reader finding once at the specifier that first asked, and says when a miss was a refusal of its
+own (`Refused`), so the resolver adds REPO-1 (`ReportUnanswered`) only for a true miss, naming what it searched (`Searched`).
 
 ### 8.1 D-R2 — when the AS phrase is required
 Exactly when the externalized name differs from the declared word (spelling, or a non-COBOL name); without AS the word
@@ -1577,10 +1581,10 @@ precedent: A.1 item 66's own words; Micro Focus `REPOSITORY` directive family (s
 is `docs/manual/` (DESIGN-USER-DOCUMENTATION.md section 3 and 4). The chapter "Calling a WiseOwl COBOL program from .NET",
 with slice 5's trimmed/AOT paragraph, is `docs/manual/dotnet-interop.md`; it was written here first and moved there when
 PB1610 created the manual, so this document no longer carries it. The chapter "Separately compiled units and the
-repository" below is slice 7's draft (kb/Work PB2103): it describes `--repository`, `--reference` and `--repository-check`,
-which the command line does not have yet, so it stays here until slice 7 lands and then moves into `docs/manual/` as its
-own page, because the manual describes only what the compiler does. `OneHostSurfaceDriftTests` scans `docs/manual/`. The
-`docs/CONFORMANCE.md` rows below ARE written by the slices named in section 21, since that document exists.
+repository" is `docs/manual/separately-compiled-units.md`, moved there when slice 7 landed `--repository`, `--reference`
+and `--repository-check` (kb/Work PB2103); the draft below is its origin and the page is the text in force.
+`OneHostSurfaceDriftTests` scans `docs/manual/`. The `docs/CONFORMANCE.md` rows below ARE written by the slices named in
+section 21, since that document exists.
 **Manual, "Separately compiled units and the repository":**
 > A WiseOwl COBOL assembly is the external repository entry for every program, function, class, interface, program
 > prototype, function prototype, parameterized class or interface and expansion it compiled (ISO §8.13). When your
@@ -1970,17 +1974,17 @@ still changes (the planner holds a group only where running work edits the same 
 | `RecordStructEmitter` "published mode" with `GroupImageCodec` (this table's first text) | **landed differently, slice 3, and adopted:** a group FORMAL has no internal record struct (the program reads it through windows over its area), so there is no member walk to share; `PublishedRecordEmitter` renders the published record from the DESCRIPTION over the shared geometry (`BitLayout`) and the door rules (§4.3) | `HostEntryEmitter` |
 | — | **landed, slice 3:** `HostLanding` (runtime, `[EditorBrowsable(Never)]`): the exact landing that refuses every loss (`ArgumentOutOfRangeException`), the alias grouping (`ArgumentException`), the validity decode (`CobolNum.IsNumericImage`; `FormatException`) — one implementation of §4.3's door rules | `HostEntryEmitter`, `PublishedRecordEmitter` |
 | `BindSession.Repository : GroupRepository` (slice 6: the class holding the group's units, `ProgramDetails` / `ResolveFunction` / `FunctionsAt`, one `Find`) | **landed, slice 7 part 1 (kb/Work PB2103), §8.0's landed paragraph:** `: RepositoryResolver`; `GroupRepository` RENAMED AND MOVED to `GroupRepositoryProvider` (its `Find` answers the provider interface; `ProgramDetails` / `ResolveFunction` become the resolver's `ResolveProgram` / `ResolveFunction`, D-R3 written once there; `FunctionResolution.Shadowed` a `FunctionAnswer`), every caller changed, nothing left behind (§8.0) | `BinderDriver.Bind`, `BuildGroupRepository`, `UserFunctionsOf`, `ProgramPrototypesOf`, `BindUnitProcedure`, `OoDriver`, `GroupRepositoryOrderDriftTests` |
-| `ProgramPrototypesOf(…, repository, position)`; `ProgramPrototype(…, CalleeSignature? Signature)`; `PrototypeSignatures.Same` null arm and its "the external repository is the RUN UNIT's registry" remark; the null-signature state PB3162 spread: `PrototypeSignatures.ExternalIdentity` / `UnclassifiedIdentity`'s external arm, `RestrictedPrototype(…, CalleeSignature? Signature)`, `ProgramRestrictionOf`'s external arm (the statement binder's), `PrototypeSignatures.FormalCount`'s unresolved zero, and in the runtime `ActivationDescription.ExternalRestrictionPrefix` / `IsExternalRestriction` and `ActivationRelations.SamePointerRestriction`'s external arm | slice 7: resolver-driven; `Signature` non-nullable; every listed null arm and remark DELETED, the runtime members with a runtime-major bump and the description text with a call-ABI bump (§6.4; `scripts/abi_pin.py` raises the counters in `Directory.Build.props` and `RuntimeAbi.cs` and re-measures `RuntimeAbi.pin`; slice 8's call-ABI bump does the same) | `CallBinder`, `SetBinder`, `PtrBinder`, CANCEL arm, `CheckPrototypeSignaturePairs`, `ActivationRelations.MaySet` |
+| `ProgramPrototypesOf(…, repository, position)`; `ProgramPrototype(…, CalleeSignature? Signature)`; `PrototypeSignatures.Same` null arm and its "the external repository is the RUN UNIT's registry" remark; the null-signature state PB3162 spread: `PrototypeSignatures.ExternalIdentity` / `UnclassifiedIdentity`'s external arm, `RestrictedPrototype(…, CalleeSignature? Signature)`, `ProgramRestrictionOf`'s external arm (the statement binder's), `PrototypeSignatures.FormalCount`'s unresolved zero, and in the runtime `ActivationDescription.ExternalRestrictionPrefix` / `IsExternalRestriction` and `ActivationRelations.SamePointerRestriction`'s external arm | **landed, slice 7 part 2 (kb/Work PB2103):** resolver-driven (a specifier no provider answers is REPO-1 and registers no prototype); `ProgramPrototype.Details` and `Signature` non-nullable; every listed null arm and remark DELETED (`PrototypeSignatures.Same` is `FirstDifference is null`, the one comparison; a name a binder's table does not hold raises no second fault, `StatementBinder.SignaturesDiffer`), `PrototypeRecord.HasSignature` / `CobolPrototypeAttribute.HasSignature` deleted, the runtime members with the runtime-major bump to 22; the description text needed no call-ABI bump of its own: an old module's "EXTERNAL TO" text is refused by its runtime major first (§6.4; `scripts/abi_pin.py` raises the counters in `Directory.Build.props` and `RuntimeAbi.cs` and re-measures `RuntimeAbi.pin`; slice 8's call-ABI bump does the same) | `CallBinder`, `SetBinder`, `PtrBinder`, CANCEL arm, `CheckPrototypeSignaturePairs`, `ActivationRelations.MaySet` |
 | `BoundCallProgram.CalleeSignatureKnown` (one flag for "checked at bind time" and "cannot differ at run time"; `CallEmitter.DescribesOperands` / `LandsAtRunTime`) | **landed, slice 7 part 1 (kb/Work PB2103), §4.2's landed paragraph:** split into `CalleeSignatureKnown` and `CalleeCompiledHere`; a site whose callee is compiled elsewhere describes its operands for GR3 d) (§4.2) | `CallBinder`, `UdfBinder`, `CallEmitter` |
 | `ObjectRefDescriptor(Kind, Name, Factory, Only, Formal)`; `ActivationDescriptions.Of`'s `ObjectName` / `ObjectClasses` / `ObjectInterfaces` as folded WORDS (PB2463) | slice 8: `+ Target`; `ClrTypeName` over `Target`; the description's class facts become folded EXTERNALIZED names (a call-ABI bump, §6.4) | `PictureAnalyzer`/`DataBinder` (sets `Target`), `OoClassTable.SetOperand`, `OoEmitter.OoReturnClrType`, `OoConformance`, `SetBinder` Format 5 |
 | `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 8: `RaisingTarget.Target`. **Landed, slice 7 part 1 (kb/Work PB2103):** the structure DEFINITION key (§6.4, `DynamicLengthStructure.DefinitionKey`), inside slice 7's call-ABI bump | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
 | **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.SignatureRestriction` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4, **the classes part landed (kb/Work PB2100):** `PrototypeSignatureClasses` keys members by origin and name (`PrototypeKey`, `RestrictedPrototype.Origin`, `PrototypeOrigin`), admits decoded prototypes into its refinement (`Admit`: a re-run from one block, group members first) and spells a decoded founder's block `DECODED k TO name`, so a decoded pointer is classified by its decoded SIGNATURE (§6.4); and the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row and calls `Admit` (BoundCompilation.SignatureClasses is the group's instance). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype (the repository-resolved ones with the metadata provider); runtime-major bump with the null-signature deletion. **Landed, slice 7 part 1 (kb/Work PB2103):** a class's identity is `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`, under call-ABI 3 (§6.4's landed paragraph). (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
 | `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope` (+ prototypes, structures; reverse map) | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
 | `OoExpansion.Expand(tree, classes, interfaces, edition, words)` | slice 8: resolver-driven; imported skeletons re-parsed under their recorded `CompileState` with recorded resolutions; the `ExpansionKey`; import by key; placement (4a)/(4b); stale detection (REPO-9 with the referencing assemblies); publishes keys and skeleton records (§10.5) | `BinderDriver`, `FragmentParse.ParseTokens` (a `CompileState` parameter), the binder's option-dependent arms, `CompilerDriver`, `RepositoryIndex` (`AssemblyRef` listing) |
-| `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | slice 7: `ResolveRepositorySpecifiers` in `BinderDriver.BindUnitData` for every specifier at its position | `BinderDriver`, `OoDriver.BindClassData` |
+| `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | **landed differently, slice 7 part 2 (kb/Work PB2103):** every PROGRAM and FUNCTION specifier resolves in `BinderDriver.ProgramPrototypesOf` / `UserFunctionsOf`, which `ResolvePointerRestrictions` asks for every forest before any signature is compared or any body binds, and REPO-1 is reported once per specifier (`RepositoryResolver.ReportUnanswered`, keyed by the specifier a contained program inherits); a separate `ResolveRepositorySpecifiers` pass would have been a second walk of the same tables. `ProgramSpecifier` carries its entry (`At`) as `FunctionSpecifier` does. Class and interface specifiers are slice 8's | `BinderDriver`, `OoDriver.BindClassData` |
 | `OoNameResolution.Resolve` message "no … is defined in this compilation group" | slice 8: adds "and no information exists for it in the external repository" | — |
-| `RoslynBackend.Compile(csharp, path, name)` (console only; no extra refs; the driver keeps only `Error` diagnostics) | Slice 7: GUID temp + retrying rename (§7.5). Slice 8: the `RepositoryReferences` appended to the framework set; CS0435/CS0436/CS0437 escalated to errors (§10.2). Already landed, slice 3: `Compile(csharp, path, name, OutputKind)` (a library for a group with no main unit) | `RoslynBackend.Emit`, `CompilerDriver` |
-| `BackendOptions`; `CompilerDriver.Options` | Slice 7: `Options + RepositoryPaths`, `+ ReferencePaths`, `+ RepositoryCheck = true` and their CLI options. Slice 8: `BackendOptions + RepositoryReferences`. **Landed, slice 4 (kb/Work PB2100):** `BackendOptions + RepositoryUpdate`, its `AssemblyName` remark ("the COBOL PROGRAM-ID") corrected to the output file's base name, `Options + RepositoryUpdate = true` and `--repository-update on|off` (`CliOptions.RepositoryUpdate`, `Program.TryParseRepositoryUpdate`). (`OutputKind` is not an option: slice 3 landed it as `Compile`'s parameter, §10.2) | `WiseOwl.Cobol.Cli BuildParser`, test harnesses, `OptionsModelConsumerDriftTests` |
+| `RoslynBackend.Compile(csharp, path, name)` (console only; no extra refs; the driver keeps only `Error` diagnostics) | Slice 8: the `RepositoryReferences` appended to the framework set; CS0435/CS0436/CS0437 escalated to errors (§10.2). **Landed, slice 7 part 2 (kb/Work PB2103):** GUID temp + retrying rename (§7.5), `CodeGen/OutputFileProtocol.Replace`, which `AssemblyPackager`'s runtime copy and runtimeconfig write take too; a failed Emit leaves the previous build in place. Already landed, slice 3: `Compile(csharp, path, name, OutputKind)` (a library for a group with no main unit) | `RoslynBackend.Emit`, `CompilerDriver`, `AssemblyPackager` |
+| `BackendOptions`; `CompilerDriver.Options` | Slice 8: `BackendOptions + RepositoryReferences`. **Landed, slice 7 part 2 (kb/Work PB2103):** `Options + RepositoryPaths`, `+ ReferencePaths`, `+ RepositoryCheck = true` and `--repository`, `--reference`, `--repository-check on|off` (`CliOptions`; the one on/off parser `Program.TryParseOnOff` replaced `TryParseRepositoryUpdate`); the driver builds the bind's `RepositorySearchSpace`. **Landed, slice 4 (kb/Work PB2100):** `BackendOptions + RepositoryUpdate`, its `AssemblyName` remark ("the COBOL PROGRAM-ID") corrected to the output file's base name, `Options + RepositoryUpdate = true` and `--repository-update on|off` (`CliOptions.RepositoryUpdate`, `Program.TryParseRepositoryUpdate`). (`OutputKind` is not an option: slice 3 landed it as `Compile`'s parameter, §10.2) | `WiseOwl.Cobol.Cli BuildParser`, test harnesses, `OptionsModelConsumerDriftTests` |
 | `Directory.Build.props` (no `Version`) | **landed, slice 1:** `<Version>` from the package version; `RuntimeAbi.Version` reads the runtime's `AssemblyVersion`; `RuntimeAbi.CallAbi`, the call-ABI integer (§15.4); `Microsoft.CodeAnalysis.PublicApiAnalyzers` on `WiseOwl.Cobol.Runtime` with `PublicAPI.Shipped.txt`; the measured `RuntimeAbi.pin` (kb/Work PB3610) | `CobolRepositoryAttribute`, `ProgramTable.RegisterModule`, `EmitModuleRegistrar` (emits both versions) |
 | `WiseOwl.Cobol.Runtime.csproj` | **landed, slice 5 (kb/Work PB2101):** `IsTrimmable`, `EnableTrimAnalyzer`; `RuntimeFeatures.DynamicProbe` (`[FeatureSwitchDefinition("WiseOwl.Cobol.Runtime.DynamicProbe")]`; no `FeatureGuard`, see §15.5) guarding `ProbeSiblingModule` (§15.5) | — |
 | 14 characterization snapshots (`tests/WiseOwl.Cobol.Tests.Characterization/Snapshots/char_*.g.cs.txt`) | **Landed:** re-baselined for the record attributes of slice 4 (`HasSignatures`, the `[CobolUnit]` signature properties, the description attributes); and before: re-baselined for the namespace line, `global::`, the registrar attribute and `EnsureRegistered` (slice 1), and for the host-entry class of each program (slice 3) | — |
@@ -2013,7 +2017,11 @@ conditions (an unreadable PE, a malformed or oversized record or index under §1
 cannot rebuild) and REPO-7's (another schema, runtime major or call ABI) as typed outcomes of `RepositoryReader` /
 `RepositoryIndex.Read` that its tests pin; slice 7 maps each outcome to its code, so no code exists before a compilation
 can report it. **Slice 8** allocates REPO-6 and widens REPO-11 to imported bases, implemented interfaces and skeleton
-resolutions. REPO-13 is COBOL2969 (slice 6).
+resolutions. REPO-13 is COBOL2969 (slice 6). **Allocated by slice 7 (kb/Work PB2103):** REPO-1 COBOL5962, REPO-2
+COBOL5963, REPO-3 COBOL5964, REPO-4 COBOL5965, REPO-5 COBOL5966, REPO-7 COBOL5967, REPO-8 COBOL5968, REPO-9 COBOL5969,
+REPO-10 COBOL5970, REPO-11 COBOL5971, REPO-12 COBOL5972 (`DiagnosticCatalog`). REPO-12's "Info" is a warning: the compiler
+reports errors and warnings only, and a warning never fails a compilation. REPO-10 is reported before any source position,
+when the provider is built (an existence probe per named place, no listing).
 
 | Placeholder | Severity | Condition | Clause |
 |---|---|---|---|
@@ -2117,7 +2125,10 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
 
 - **No REPOSITORY paragraph / group answers everything:** no listing, no file open; `--repository-check` reads the
   previous output only when it exists and the entries the resolver already opened (the battery's fresh temp outputs pay
-  nothing). Tested (§17.6).
+  nothing). Tested (§17.6). One exception, landed with slice 7: a FUNCTION specifier the group answers by externalized
+  name still asks the repository's WORD rows for D-R3 step 3 (§8.3: a different function carrying the word "in the
+  compilation group or in the repository"), so a group with a FUNCTION specifier lists the search space once (the index
+  of each file is cached per process).
 - **First external miss:** one listing + one prefetched header read per DLL, cached per process by `(path, length, mtime)`.
 - **COBOL CALL:** unchanged — the repository adds no run-time work; the probe's index is read only when the named file
   misses, once per name per run unit.
@@ -2534,7 +2545,7 @@ green when the slices it depends on have landed, each carrying the sibling-docum
 (CLAUDE.md rule 6). The work items are `kb/Work/` notes filed after approval (CLAUDE.md rule 8), one per slice; their
 REPO-n codes are allocated with `scripts/orchestrator/alloc.py code N` by the slice that first reports them (§14). The
 dependency graph has no cycle: 1 and 2 and 6 stand alone; 3 needs 1, 2 and kb/Work PB2087; 4 needs 3; 5 needs 4; 7
-needs 4, 5 and 6; 8 needs 7. Landed: 1, 2, 3, 4, 5, 6 and part 1 of 7. Each open slice's list below is complete as of the 2026-10-27
+needs 4, 5 and 6; 8 needs 7. Landed: 1, 2, 3, 4, 5, 6 and 7. Each open slice's list below is complete as of the 2026-10-27
 currency pass; a slice that finds it is not makes the restructuring and corrects this list (CLAUDE.md rule 5).
 
 1. **Namespace, registration and the version guard — LANDED (kb/Work PB2097).** `CsNames.ModuleNamespaceOf`;
@@ -2639,7 +2650,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    with their goldens; and in the same change the corpus programs that name a later program definition with no
    prototype (§8.2's list) gain a prototype of the callee, so no golden depends on the order-blind table this slice
    deletes or on the null-signature arm slice 7 deletes. No prerequisite (no repository is consulted).
-7. **The resolver and the metadata provider** (kb/Work PB2103). `RepositoryResolver` over the group and metadata
+7. **The resolver and the metadata provider — LANDED (kb/Work PB2103, in two parts).** `RepositoryResolver` over the group and metadata
    providers with §8.0's interface (`GroupRepository` renamed and moved to `GroupRepositoryProvider`, D-R3 written once
    in the resolver, `FunctionResolution.Shadowed` a `FunctionAnswer`), `ResolveRepositorySpecifiers`,
    `FunctionByWord`; the null-signature state deleted everywhere it has spread (§6.4, §12), because with the metadata
@@ -2659,12 +2670,24 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    `SignatureIdentityDriftTests` and the dynamic-length structure's definition key (§6.4's), under call-ABI 3. The
    estimate above was one landing; it is at least two (CLAUDE.md rule 5): the slice's eleven REPO codes are reported
    only by the compilations that READ an entry, so they land with the metadata provider, and a slice that allocated them
-   ahead of their first reporter would ship codes nothing reports. **Remaining (part 2):** `MetadataRepositoryProvider`
-   joining the resolver's provider list; `ResolveRepositorySpecifiers`; the null-signature deletion with its
-   runtime-major bump (so part 2 makes the slice's one runtime-major bump, and part 1 made its one call-ABI bump);
-   REPO-1 … -12 (§14); `--repository` / `--reference` / `--repository-check`; §7.5's file protocol; §17.6; §17.1's slice-7
-   multi-unit cases; INTERPROGRAM's SR20/SR22 note, CONFORMANCE DOC-A.1-66/-67 and §3's D-R3 repository arms, the
-   manual's page, DESIGN §0.5/§9/§10 and DOC_INDEX rows.
+   ahead of their first reporter would ship codes nothing reports. **Part 2 LANDED (kb/Work PB2103, wave 20261830):**
+   `MetadataRepositoryProvider` (`Binding/MetadataRepositoryProvider.cs`) joining the resolver's providers after the group's,
+   over `RepositorySearchSpace` (the driver's `--repository` directories, else the output directory, then `--reference`
+   files; the output never resolved against, `RepositoryLocator.Find(…, excluding)`); REPO-1 … -12 as COBOL5962 … COBOL5972
+   (§14), REPO-1 by `RepositoryResolver.ReportUnanswered`; the null-signature deletion with the runtime-major bump to 22
+   (part 1 made the one call-ABI bump); `--repository` / `--reference` / `--repository-check` and `RepositoryCheck`
+   (§9.2); §7.5's file protocol (`OutputFileProtocol`); §17.6's zero-cost test
+   (`ExternalRepositoryResolutionTests.AGroupThatAnswersEverySpecifier_ReadsNoRepository`, over the new
+   `CompilationInputs.ReadsRepository`, which also keeps a repository-reading compilation out of the compiled-program
+   cache); §17.1's multi-unit cases (`pb3677_format1_sdidi_expression` / `_function_value`: a definition's build;
+   `pb2103_structure_compared_by_definition`: the stale caller) and `ExternalRepositoryResolutionTests` for the layouts and
+   damaged files no manifest case states; the manual's page (`docs/manual/separately-compiled-units.md`) and
+   CONFORMANCE DOC-A.1-66/-67 and D-R3. `ResolveRepositorySpecifiers` is not a pass of its own (§12's row). Found on the
+   way: nineteen corpus cases named a definition that FOLLOWS the paragraph, a contained program or nothing (SR14 / SR10),
+   which the deleted state had let through; each now states its details (a prototype ahead, or the callee as a build step).
+   Not yet witnessed by a case: REPO-4, -5, -7 and -12 (they need a patched or older entry; the reader's typed outcomes are
+   pinned by `RepositoryReaderTests`), the cross-repository REPO-13 and word cases, and the pb1115 split; they are in the
+   PB2103 report's leads.
 8. **OO across assemblies, in two steps** (kb/Work PB2104): `Origin` (replacing `OoClassSymbol.IsStandard`),
    `IdentityScope`, class import, `ObjectRefDescriptor.Target` and the run-time description's class facts as
    externalized names (a call-ABI bump, §6.4), REPO-6 and REPO-11's class arms, `BackendOptions.RepositoryReferences`

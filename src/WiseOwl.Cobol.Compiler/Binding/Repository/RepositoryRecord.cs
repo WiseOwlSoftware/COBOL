@@ -112,10 +112,9 @@ internal sealed record StructureRecord(int Index, string Name, RepositoryPrefix 
 
 /// <summary>A prototype a restricted program- or function-pointer of the record names, with its FULL signature, so the
 /// importer types the pointer by signature (ISO §13.18.60.4 GR25 / GR26; §6.4). Its own restricted-pointer formals index other
-/// rows, so a recursive prototype records as a finite graph. <paramref name="HasSignature"/> is false for a prototype whose
-/// details ISO §12.3.8.4 GR10 c) / GR11 c) leave to the external repository (no compile-time signature; the state slice 7
-/// deletes, §6.4).</summary>
-internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName, bool HasSignature,
+/// rows, so a recursive prototype records as a finite graph. Every prototype has its signature: one whose details ISO
+/// §12.3.8.4 GR10 c) / GR11 c) take from the external repository has the entry's (DESIGN-external-repository §8.2, §6.4).</summary>
+internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName,
     RecordList<FormalRecord> Formals, DescriptionRecord? Returning);
 
 /// <summary>

@@ -57,6 +57,16 @@ public static class CompilerDriver
     /// which a separately compiled unit binds against this group's signatures; OFF emits the unit index, the host
     /// entries and the registrar only, so the group runs and is locatable by name but no later compilation binds
     /// against it (§7.1).</param>
+    /// <param name="RepositoryPaths">The external repository's directories, in search order (CLI <c>--repository DIR</c>,
+    /// repeatable; DESIGN-external-repository §9.3): where a REPOSITORY specifier the compilation group cannot answer is
+    /// looked for (ISO §12.3.8.4 GR10 c) / GR11 c)). Null means the output directory. Annex A.1 item 66
+    /// (docs/CONFORMANCE.md DOC-A.1-66).</param>
+    /// <param name="ReferencePaths">Assemblies searched after the directories, in order (CLI <c>--reference FILE.dll</c>,
+    /// repeatable).</param>
+    /// <param name="RepositoryCheck">Whether the compilation flags a unit whose signature differs from the information the
+    /// external repository holds for it (CLI <c>--repository-check on|off</c>, default on; ISO §8.13: "The implementor shall
+    /// provide a mechanism that allows the user to specify whether to flag differences in prototypes and definitions in the
+    /// compilation group from the information in the external repository"; REPO-9, DESIGN-external-repository §9.2).</param>
     public sealed record Options(
         string SourcePath,
         string? OutputPath = null,
@@ -69,7 +79,10 @@ public static class CompilerDriver
         Frontend.Preprocessor.InitialReferenceFormat SourceFormat = Frontend.Preprocessor.InitialReferenceFormat.Fixed,
         bool FlagExtensions = false,
         Binding.NumericDisplayForm NumericDisplay = Binding.NumericDisplayForm.Decimal,
-        bool RepositoryUpdate = true);
+        bool RepositoryUpdate = true,
+        IReadOnlyList<string>? RepositoryPaths = null,
+        IReadOnlyList<string>? ReferencePaths = null,
+        bool RepositoryCheck = true);
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
     public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
@@ -186,7 +199,14 @@ public static class CompilerDriver
             FlagExtensions = options.FlagExtensions,
         };
         var emitter = new CSharpEmitter();
-        var bound = emitter.Bind(tree, edition, frontend.Directives);   // Phase 2a — BIND (terminal = conformance pass)
+        // The external repository (ISO §8.13; DESIGN-external-repository §9.3): the --repository directories, else the
+        // output directory, then the --reference assemblies; the output itself is never resolved against.
+        string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
+        var repository = new Binding.RepositorySearchSpace(
+            options.RepositoryPaths ?? [Path.GetDirectoryName(Path.GetFullPath(outputDll))!],
+            DirectoriesNamed: options.RepositoryPaths is not null,
+            options.ReferencePaths ?? [], outputDll, options.RepositoryCheck, inputs);
+        var bound = emitter.Bind(tree, edition, frontend.Directives, repository);   // Phase 2a — BIND (terminal = conformance pass)
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings])
                 { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
@@ -202,7 +222,6 @@ public static class CompilerDriver
         // Phases 2b + 3 — the BACKEND (the ICodeGenBackend seam, P7 Step 1): render the bound tree and compile
         // the result. Everything after Bind sits behind the seam so a second backend (direct CIL, PHASE 16) is a
         // new implementation, not a pipeline fork. Emit is unreachable when any diagnostics exist (above).
-        string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         var artifact = backend.Emit(bound, new BackendOptions(
             outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,

@@ -32,37 +32,44 @@ namespace WiseOwl.Cobol.Binding;
 /// restricted program- or function-pointer formal is asked by what it may CONTAIN, its prototype's signature class,
 /// where the pair-mode checks ask the TO phrase's name (<c>pointersBySignature</c>, kb/Work PB4442) — and, for an
 /// alphanumeric group, through its subordinate entries as well (<c>SameDescription</c>).</para>
-/// <para><b>An UNRESOLVED prototype conforms.</b> A prototype whose signature is null took ISO §12.3.8.4 GR10 c)
-/// — "the details are taken from the external repository" — and this implementation's external repository is the
-/// RUN UNIT's registry, resolved at execution. There is nothing to compare at compile time, and answering
-/// "mismatch" would reject legal source for a separately-compiled target; the run-time screen
-/// (§14.9.39.4 GR14 → <c>ProgramTable.FunctionSignatureMatches</c>) is what covers that case.</para>
+/// <para><b>Every prototype has a signature.</b> A prototype that took ISO §12.3.8.4 GR10 c) — "the details are taken
+/// from the external repository" — has the signature the repository entry records, decoded from the assembly that
+/// publishes it (<c>MetadataRepositoryProvider</c>, DESIGN-external-repository §8.2), and a specifier no provider answers is
+/// refused (REPO-1) and registers no prototype. So this comparison has no "unknown" arm: a caller that holds a NAME looks
+/// it up first, and a name its tables do not hold was refused where it was declared (kb/Work PB2103).</para>
 /// </summary>
 internal static class PrototypeSignatures
 {
-    /// <summary>True when the two prototypes have the same signature (see the type remarks for the derivation).
-    /// Either side being null — an unresolved / separately-compiled prototype — conforms. A formal that is itself a
+    /// <summary>True when the two prototypes have the same signature (see the type remarks for the derivation). A formal
+    /// that is itself a
     /// restricted program- or function-pointer is compared by the signature class its prototype belongs to
     /// (<see cref="SignatureRestriction"/>), which its description carries as its content restriction; while the classes are being computed that is
     /// the class of the current round of <see cref="PrototypeSignatureClasses"/>' partition refinement, so two prototypes
     /// that name each other or themselves compare by what they describe and never by what they are called (kb/Work
     /// PB2495, PB3101).</summary>
-    public static bool Same(CalleeSignature? a, CalleeSignature? b)
+    public static bool Same(CalleeSignature a, CalleeSignature b) => FirstDifference(a, b) is null;
+
+    /// <summary>Where two signatures first differ, in the words a diagnostic names it with (<c>the number of USING
+    /// formals</c>, <c>USING formal 2</c>, <c>the RETURNING item</c>), or null when they are <see cref="Same"/>: the ONE
+    /// comparison, which <see cref="Same"/> reads and §9.2's repository check (REPO-9) reports from
+    /// (DESIGN-external-repository §9.2: "naming the entry and the first differing position").</summary>
+    public static string? FirstDifference(CalleeSignature a, CalleeSignature b)
     {
-        if (a is null || b is null) return true;   // §12.3.8.4 GR10 c) — resolved by the run unit, not here
-        if (a.Formals.Count != b.Formals.Count) return false;
+        if (a.Formals.Count != b.Formals.Count)
+            return $"the number of USING formals ({a.Formals.Count} and {b.Formals.Count})";
         for (int i = 0; i < a.Formals.Count; i++)
         {
             var (fa, fb) = (a.Formals[i], b.Formals[i]);
             // §14.8.2's positional correspondence carries the MODE as well as the description: a BY VALUE formal
             // and a BY REFERENCE formal of identical description are different prototype information (§14.2.3
             // GR10 copies one and aliases the other), and OPTIONAL changes §14.8.2.1's required count.
-            if (fa.ByValue != fb.ByValue || fa.Optional != fb.Optional) return false;
-            if (!SameDescription(fa.Item, fb.Item)) return false;
+            if (fa.ByValue != fb.ByValue) return $"USING formal {i + 1}'s BY VALUE / BY REFERENCE";
+            if (fa.Optional != fb.Optional) return $"USING formal {i + 1}'s OPTIONAL";
+            if (!SameDescription(fa.Item, fb.Item)) return $"USING formal {i + 1}'s description";
         }
         // §14.8.3.1 — a returning item is present "if and only if"; presence is half the fact, description the other.
-        if ((a.Returning is null) != (b.Returning is null)) return false;
-        return a.Returning is null || SameDescription(a.Returning, b.Returning!);
+        if ((a.Returning is null) != (b.Returning is null)) return "the presence of a RETURNING item";
+        return a.Returning is null || SameDescription(a.Returning, b.Returning!) ? null : "the RETURNING item's description";
     }
 
     /// <summary>ISO §13.7.3 SR2 — a prototype's formal parameter or returning item "shall match the description of
@@ -106,10 +113,10 @@ internal static class PrototypeSignatures
     /// <see cref="DataItem.PointerRestrictionIdentity"/>: the canonical identity (<see cref="CanonicalIdentity"/>) of the
     /// signature class (<see cref="PrototypeSignatureClasses"/>) the item's prototype belongs to, so two pointers restricted
     /// to differently named prototypes of ONE signature have equal identities (ISO §13.18.60.4 GR25 / GR26: the pointer
-    /// "shall contain only the predefined address NULL or the address of a program with the same signature"). For a
-    /// prototype the unit's tables do not hold, and for one with no compile-time signature, the identity is its
-    /// <see cref="ExternalIdentity"/> (<see cref="UnclassifiedIdentity"/>). Null for an unrestricted pointer and for any
-    /// other item. ⛔ It answers the SIGNATURE question only — the SET relation (§14.9.39.3 SR20 / SR22, through
+    /// "shall contain only the predefined address NULL or the address of a program with the same signature"). A pointer the
+    /// partition has not stamped names a prototype its unit's tables do not hold — refused where it was declared — and its
+    /// identity is its TO phrase (<see cref="NamedRestriction(DataItem)"/>), which no canonical identity
+    /// (<see cref="CanonicalPrefix"/>) can equal. Null for an unrestricted pointer and for any other item. ⛔ It answers the SIGNATURE question only — the SET relation (§14.9.39.3 SR20 / SR22, through
     /// <c>ActivationDescription.ContentRestriction</c>), the rules that send to it, and the signature graph's elementary
     /// pointer formal (<see cref="Same"/> through <c>ActivationRelations.SignatureDifference</c>'s <c>pointersBySignature</c>
     /// arm; the pair-mode checks of §9.3.8.2.3 ask the TO phrase by name, kb/Work PB4442). It is NOT the pointer's
@@ -117,7 +124,7 @@ internal static class PrototypeSignatures
     /// type-declaration equivalence (a strongly-typed or group formal's member, <c>StrongTypeModel</c>) compare the TO
     /// phrase by the prototype it names (<see cref="NamedRestriction"/>; kb/Work PB3758 / PB4107).</summary>
     public static string? SignatureRestriction(DataItem pointer) =>
-        pointer.PointerRestrictionIdentity ?? UnclassifiedIdentity(pointer);
+        pointer.PointerRestrictionIdentity ?? NamedRestriction(pointer);
 
     /// <summary>The signature relation over two program- or function-pointer items: their <see cref="SignatureRestriction"/>
     /// values are equal. While <see cref="PrototypeSignatureClasses"/> refines its partition each restricted pointer carries
@@ -131,8 +138,8 @@ internal static class PrototypeSignatures
     /// tables do not hold. ISO §9.3.6 match rule 3 e), §14.8.2.3.2 rule 2 and §14.8.3.3 ask "the same ... USAGE clauses",
     /// and §8.5.3.1's equivalence the same of two type declarations' items: the standard lists the clause texts that match
     /// on meaning (currency strings, DECIMAL-POINT IS COMMA, the LOCALE phrase) and none for the TO phrase, so
-    /// <c>TO P1</c> and <c>TO P2</c> are two USAGE clauses whatever the two prototypes' signatures, and an unresolved
-    /// prototype (§12.3.8.4 GR10 c)) is as much a name as a resolved one (docs/CONFORMANCE.md D-RP1). Null for an
+    /// <c>TO P1</c> and <c>TO P2</c> are two USAGE clauses whatever the two prototypes' signatures, and a prototype whose
+    /// details come from the external repository (§12.3.8.4 GR10 c)) is a name as a group one is (docs/CONFORMANCE.md D-RP1). Null for an
     /// unrestricted pointer and for any other item. The phrase as the entry spells it is the description's reader text
     /// (<c>ActivationDescriptions.ElementaryClauses</c>).</summary>
     public static string? NamedRestriction(DataItem pointer) =>
@@ -143,31 +150,9 @@ internal static class PrototypeSignatures
 
     /// <summary>The two restrictions of a pointer to a named program prototype: <paramref name="Named"/>, its USAGE clause's
     /// TO phrase (<see cref="NamedRestriction(string)"/>, the identity rules'), and <paramref name="Content"/>, what it may
-    /// contain (<see cref="SignatureRestriction"/>'s signature class or <see cref="ExternalIdentity"/>, the SET relation's) —
-    /// for the unique program-pointer a program-address-identifier creates (§8.4.3.13.4 GR3), which has no item to read
-    /// them from.</summary>
+    /// contain (<see cref="SignatureRestriction"/>'s signature class, the SET relation's) — for the unique program-pointer a
+    /// program-address-identifier creates (§8.4.3.13.4 GR3), which has no item to read them from.</summary>
     internal readonly record struct PrototypeRestriction(string Named, string Content);
-
-    /// <summary>The identity of a restricted pointer <see cref="PrototypeSignatureClasses"/> has not stamped: the
-    /// prototype's <see cref="ExternalIdentity"/> when it has no compile-time signature — the unit's tables do not hold
-    /// it, or GR10 c) / GR11 c) left its details to the external repository — else its name,
-    /// <see cref="NamedRestriction(string)"/>, which no classified identity (<see cref="CanonicalPrefix"/>) can equal. Null for
-    /// an item that is not a restricted program- or function-pointer.</summary>
-    private static string? UnclassifiedIdentity(DataItem pointer) =>
-        pointer.Pic is { RestrictedPrototypeName: { } name }
-            ? pointer.RestrictedPrototype is { Signature: not null } resolved
-                ? NamedRestriction(resolved.ExternalizedName)
-                : ExternalIdentity(pointer.RestrictedPrototype?.ExternalizedName ?? name)
-            : null;
-
-    /// <summary>The identity of a prototype with NO compile-time signature (ISO §12.3.8.4 GR10 c) / GR11 c): the details
-    /// come from the external repository, the run unit here) — <see cref="ActivationDescription.ExternalRestrictionPrefix"/>
-    /// and the folded name. It differs from every <see cref="NamedRestriction(string)"/> and every canonical identity, so the
-    /// signature key keeps two such prototypes apart by name, while the SET relation reads the mark and lets the pair conform, as
-    /// <see cref="Same"/> lets an unresolved signature conform (<c>ActivationRelations.SamePointerRestriction</c>; kb/Work
-    /// PB3162) — the signature question only, never the identity rules (kb/Work PB4107).</summary>
-    public static string ExternalIdentity(string prototypeName) =>
-        ActivationDescription.ExternalRestrictionPrefix + CobolNames.Fold(prototypeName);
 
     /// <summary>⛔ THE CANONICAL, GROUP-INDEPENDENT IDENTITY OF A SIGNATURE CLASS (DESIGN-external-repository §6.4; kb/Work
     /// PB2103): <c>SIG &lt;hex&gt;</c>, the SHA-256 of the canonical encoding of the class's minimized signature graph — the
@@ -284,10 +269,4 @@ internal static class PrototypeSignatures
         };
         return DescribedBySubordinates(item) ? own + " LAYOUT" + StrongTypeModel.ElementaryLayoutKey(item) : own;
     }
-
-    /// <summary>The number of positional USING formals a prototype declares — the RUN-TIME screen's granularity
-    /// (ISO §14.9.39.4 GR14 via <c>ProgramTable.FunctionSignatureMatches</c>, which can see only the run-unit
-    /// registry's <c>FormalCount</c>). Zero when the prototype is unresolved, which is also what a zero-formal
-    /// unit registers.</summary>
-    public static int FormalCount(CalleeSignature? s) => s?.Formals.Count ?? 0;
 }

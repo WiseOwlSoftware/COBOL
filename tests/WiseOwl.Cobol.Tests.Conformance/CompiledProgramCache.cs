@@ -277,6 +277,9 @@ internal static class CompiledProgramCache
             return $"outcome {result.Status} is not cached";
         if (result.Inputs.ReadsCompilationTime)
             return "the compilation read the clock (WHEN-COMPILED) — its output is a function of WHEN it ran";
+        if (result.Inputs.ReadsRepository)
+            return "the compilation consulted the external repository — its output is a function of which assemblies a "
+                + "directory listing found, which no recorded input replays (kb/Work PB2103)";
         string outDir = OutputDirectory(options);
         foreach (string file in result.OutputFiles)
             if (!string.Equals(Path.GetDirectoryName(Path.GetFullPath(file)), outDir, StringComparison.OrdinalIgnoreCase))

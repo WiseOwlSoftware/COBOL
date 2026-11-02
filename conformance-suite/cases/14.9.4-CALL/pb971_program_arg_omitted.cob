@@ -19,7 +19,21 @@
       *> the omission is transitive (8.8.4.8.4 GR1c). The second CALL supplies
       *> every argument: no reference raises, so N stays 00. The OMITTED call is the
       *> program-prototype Format 2 (14.9.4.2 prints OMITTED there only), so P971C is
-      *> a REPOSITORY program-specifier (kb/Work PB3996).
+      *> a REPOSITORY program-specifier (kb/Work PB3996). Its definition follows the
+      *> paragraph, so it is not "specified previously" (12.3.8.3 SR14): the program
+      *> prototype definition ahead of every unit (10.6.2 SR1) supplies GR10 b)'s
+      *> details (kb/Work PB2103).
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P971C IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 X PIC X(4).
+       01 G.
+          05 G1 PIC X(2).
+          05 G2 PIC 9(2).
+       01 R PIC X(4).
+       PROCEDURE DIVISION USING OPTIONAL X OPTIONAL G OPTIONAL R.
+       END PROGRAM P971C.
       >>TURN EC-PROGRAM-ARG-OMITTED CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P971M.
