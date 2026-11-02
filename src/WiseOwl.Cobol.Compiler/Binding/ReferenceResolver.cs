@@ -364,6 +364,12 @@ public sealed partial class ReferenceResolver(DataBinder data)
 
     private RefResolution ResolveImpl(Core.DataReferenceContext dref, bool report)
     {
+        // ⛔ EVERY DIAGNOSTIC THE RESOLUTION OF A REFERENCE REPORTS IS ABOUT THAT REFERENCE, SO IT IS POSITIONED AT THE
+        // REFERENCE'S FIRST TOKEN HERE, AT THE ONE CHOKEPOINT (kb/Work PB4383). Positioning was each statement binder's
+        // job, so a multi-operand statement (`DISPLAY A` with a continuation line `B C`) reported COBOL1639 for B and C
+        // at the statement's first line, and the next verb's binder would have had to remember again. A synthetic
+        // reference with no token leaves the position standing (DiagnosticCursorAt.At).
+        using var _ = data.Edition.At(dref);
         bool savedProbing = _probing, savedSegment = _segmentDeferred;
         _probing = !report;
         _segmentDeferred = false;
