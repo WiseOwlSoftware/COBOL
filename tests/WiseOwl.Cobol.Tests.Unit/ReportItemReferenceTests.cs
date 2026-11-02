@@ -250,6 +250,59 @@ public sealed class ReportItemReferenceTests
         Assert.Equal(["DataBinder.Reports.cs"], reporters);
     }
 
+    /// <summary>kb/Work PB4226: a SEARCH ALL Format 2 condition-name operand the written reference does not reach is the
+    /// condition binder's verdict, given once: a report entry of a NEARER source element is the referenced item (ISO
+    /// §8.4.6.2.1 3) a)) and draws the report-item refusal alone, and a misqualified condition-name the misqualified
+    /// wording alone. The SEARCH ALL screen used to add its own COBOL1965 to both, calling the report entry a
+    /// condition-name.</summary>
+    [Theory]
+    [InlineData("WHEN CN", ReportItemCode)]
+    [InlineData("WHEN EKC OF K", "COBOL1639")]
+    public void ASearchAllConditionNameTheReferenceDoesNotReach_IsReportedOnce(string when, string code)
+    {
+        string source = string.Join("\n",
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. PB4226C.",
+            "       DATA DIVISION.",
+            "       WORKING-STORAGE SECTION.",
+            "       01 G IS GLOBAL.",
+            "          05 K PIC 9.",
+            "             88 CN VALUE 1.",
+            "       PROCEDURE DIVISION.",
+            "           STOP RUN.",
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. PB4226D.",
+            "       ENVIRONMENT DIVISION.",
+            "       INPUT-OUTPUT SECTION.",
+            "       FILE-CONTROL.",
+            "           SELECT RPTF ASSIGN TO \"pb4226d.rpt\".",
+            "       DATA DIVISION.",
+            "       FILE SECTION.",
+            "       FD RPTF REPORT IS R1.",
+            "       WORKING-STORAGE SECTION.",
+            "       01 T.",
+            "          05 E OCCURS 3 ASCENDING KEY IS EK INDEXED BY IX.",
+            "             10 EK PIC 9.",
+            "                88 EKC VALUE 1.",
+            "       REPORT SECTION.",
+            "       RD R1.",
+            "       01 DL TYPE DETAIL.",
+            "          05 LINE PLUS 1.",
+            "             10 CN COLUMN 1 PIC 9 SOURCE 5.",
+            "       PROCEDURE DIVISION.",
+            "           SEARCH ALL E",
+            "               AT END DISPLAY \"END\"",
+            "               " + when,
+            "                   DISPLAY \"HIT\"",
+            "           END-SEARCH",
+            "           GOBACK.",
+            "       END PROGRAM PB4226D.",
+            "       END PROGRAM PB4226C.");
+        var d = Bind(source);
+        Assert.Single(d, x => x.Contains(code));
+        Assert.DoesNotContain(d, x => x.Contains("COBOL1965"));
+    }
+
     private static IReadOnlyList<string> Bind(string source)
     {
         string path = Path.Combine(Path.GetTempPath(), $"pb1046_{Guid.NewGuid():N}.cob");

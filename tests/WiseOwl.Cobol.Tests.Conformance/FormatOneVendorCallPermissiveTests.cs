@@ -176,6 +176,6 @@ public sealed class FormatOneVendorCallPermissiveTests
        """;
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023, permissive: true);
         Assert.False(ok, "an omitted argument is passed BY REFERENCE only");
-        Assert.Single(errors, e => e.Contains("COBOL0899") && e.Contains("BY CONTENT … OMITTED"));
+        Assert.Single(errors, e => e.Contains("COBOL0899") && e.Contains("OMITTED (after BY CONTENT)"));
     }
 }

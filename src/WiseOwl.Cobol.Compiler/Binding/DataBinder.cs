@@ -365,7 +365,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Record one CONTAINING program's files, <paramref name="depth"/> containment levels out: a GLOBAL one is a
     /// visible file-name here (<see cref="InheritedGlobalFiles"/>, the nearest container's declaration kept, its depth
-    /// read by <see cref="InheritedFileDepth"/>), any other is known for one question only (<see cref="ContainerLocalFiles"/>);
+    /// read by <see cref="FileDepth"/>), any other is known for one question only (<see cref="ContainerLocalFiles"/>);
     /// a record that is a GLOBAL name is recorded with its file (<see cref="InheritedGlobalRecordAreas"/>). Called for
     /// every container, nearest first, before this unit binds — the file-name twin of <see cref="InheritGlobalTypeDecls"/>.</summary>
     internal void InheritFileNames(DataBinder container, int depth)
@@ -384,11 +384,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     private readonly Dictionary<FileModel, int> _inheritedFileDepth = new(ReferenceEqualityComparer.Instance);
 
-    /// <summary>How many containment levels out the GLOBAL file <paramref name="file"/> of <see cref="InheritedGlobalFiles"/>
-    /// is declared — the file-name twin of <see cref="DeclaringDepth"/> and <see cref="ReportDepth"/>, so a name a
-    /// container declares as a file and a nearer element declares as something else resolves to the nearer declaration
-    /// (§8.4.6.2.1 3)).</summary>
-    internal int InheritedFileDepth(FileModel file) => _inheritedFileDepth[file];
+    /// <summary>How many containment levels out <paramref name="file"/> is declared: 0 for this element's own file, n for a
+    /// GLOBAL file of its n-th container (<see cref="InheritedGlobalFiles"/>) — the file-name twin of
+    /// <see cref="DeclaringDepth"/> and <see cref="ReportDepth"/>, so a name a container declares as a file and a nearer
+    /// element declares as something else resolves to the nearer declaration (§8.4.6.2.1 3); kb/Work PB4219).</summary>
+    internal int FileDepth(FileModel file) => _inheritedFileDepth.GetValueOrDefault(file);
 
     /// <summary>The record areas of every CONTAINING program's files that are GLOBAL names (§13.18.27.4 GR1: the record
     /// of a GLOBAL FD, or a level-1 entry with its own GLOBAL clause), each mapped to the file that owns it — SR11's
@@ -710,6 +710,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ScreenFacility.ReportSection(Edition, scr, ScreenNames);
             // The section is refused, but its screen-names are declared all the same (§8.3.2.2; kb/Work PB1083).
             foreach (var sn in ScreenNames) DeclareUserWord(sn, UserWordKind.ScreenName);
+            // A constant entry among the screen entries (§13.9.2, kb/Work PB4306) is a constant of this source element
+            // like any other (§13.10), bound as the report section binds its own (BindReportSectionEntries).
+            foreach (var constant in scr.constantEntry())
+            {
+                using var _ = Edition.At(constant);
+                BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
+            }
         }
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)

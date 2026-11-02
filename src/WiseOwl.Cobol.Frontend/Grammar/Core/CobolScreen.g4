@@ -24,8 +24,12 @@ options {
 // SCREEN SECTION (ISO 2002 §13.9)
 // ==========================================
 
+// §13.9.2 prints `SCREEN SECTION. [ constant-entry | screen-description-entry ] …` (kb/Work PB4306): a constant entry
+// (§13.10) may stand among the screen description entries, as it does among a report's (CobolReportWriter.g4's
+// reportDescriptionEntry). Without the alternative `01 K CONSTANT AS 5.` drew a syntax error instead of the section's
+// named refusal; DataBinder binds the constant as the report host does, so a reference to it is not "undefined".
 screenSection
-    : SCREEN SECTION DOT screenDescriptionEntry*
+    : SCREEN SECTION DOT (constantEntry | screenDescriptionEntry)*
     ;
 
 screenDescriptionEntry

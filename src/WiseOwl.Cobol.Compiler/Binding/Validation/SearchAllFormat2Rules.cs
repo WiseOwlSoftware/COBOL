@@ -282,9 +282,16 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // spelled the same on each, the legal `WHEN CN OF K2 (IX)` was REJECTED under SR11 for "referencing K1
         // and not K2" (it referenced neither — it referenced K2), while with `ASCENDING KEY IS K1 K2` the SR11
         // violation in `WHEN CN OF K2 (IX)` went unreported. One reference, one resolution.
+        // A declared condition-name the written reference does not reach is the CONDITION binder's verdict, given once
+        // per reference by its one wording (kb/Work PB4226): a misqualified condition-name, or — when a report entry of
+        // a NEARER source element is the referenced item (ISO §8.4.6.2.1 3)) — the report-item refusal. The bind's
+        // bare-operand analysis has already asked it; asking again here reports nothing twice. This screen used to word
+        // it a second time, under its own code, and called a name a nearer report entry hides a condition-name.
         if (conditions.ConditionOf(dref) is not { } cond)
-            return Key(table, ReferenceResolver.MisqualifiedConditionText(DataBinder.WrittenText(dref), name,
-                ConditionBinder.QualifiersOf(dref)));
+        {
+            _ = conditions.ReportMisqualifiedCondition(dref);
+            return false;
+        }
         bool ok = true;
 
         // SR9 first clause — "All referenced condition-names shall be defined as having only a single value."

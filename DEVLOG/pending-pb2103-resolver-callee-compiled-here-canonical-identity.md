@@ -75,3 +75,24 @@ net10.0 host project with two HintPath references built against a compiled calle
 copies of the reference set (one of which hand-added `System.Private.CoreLib`, which is how the defect hid from the host
 tests) read the same property, the compiled-program cache keys on the files, and `EmittedReferenceIdentityTests` pins the
 metadata. The manual's "Known limitation" section became "Building a host project".
+
+**PB4219 — the non-data tier of a name's nearest declaration has a depth.** APPLY COMMIT ON RELF drew COBOL1639
+"index-name" where a nearer container's GLOBAL file made SR11 the rule (COBOL4709), and SR11 about a container's file
+where the program's own condition-name RELF was the referenced item. `NonDataDeclaration` now carries the depth of its
+declaring element (index-name by its table, constant by its inherited distance, condition-name by its variable, file by
+the new `DataBinder.FileDepth`, which replaces `InheritedFileDepth`), `NonDataDeclarationOf` ranks a file-name against a
+condition-name by it, and `ScreenEnclosingFileOperand` lets a non-file name hide the GLOBAL file only when no farther.
+Two goldens pin the repros.
+
+**PB4226 arm (1) — SEARCH ALL no longer words a condition-name reference twice.** `CheckConditionNameSide` added COBOL1965
+to the condition binder's own verdict (COBOL5092 for a nearer report entry, which it called a condition-name; COBOL1639
+for a misqualified one); it now defers to `ConditionBinder.ReportMisqualifiedCondition`, the one wording. Arm (2), an RD
+OCCURS DEPENDING ON whose name a nearer report entry hides, reproduces, but the text may make that report entry a legal
+DEPENDING ON object, so the note stays open and the question is a lead.
+
+**PB4306 — a screen-section constant entry parses.** §13.9.2 prints constant-entry beside screen-description-entry;
+`screenSection` now has both, and the binder binds the constant as the report host does, so the section draws its named
+COBOL1560 (not COBOL0001) and a reference to the constant resolves.
+
+**PB4267 — the EVALUATE, OO, MOVE, CALL and SET binders quote nodes as written.** Forty message sites in six binders read
+`GetText()` (glued qualifiers: "SET 'AOFG'"); each now reads `DataBinder.WrittenText`.

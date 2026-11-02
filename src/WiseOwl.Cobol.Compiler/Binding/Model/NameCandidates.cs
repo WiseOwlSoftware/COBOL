@@ -36,6 +36,11 @@ public readonly struct NameCandidates<T> where T : class
     public NameCandidates<T> Where(Func<T, bool> predicate) =>
         new(_items is null ? [] : _items.Where(predicate).ToList());
 
+    /// <summary>The containment depth of the nearest survivor's declaring source element (<paramref name="depthOf"/>,
+    /// <see cref="DataBinder.DeclaringDepth"/>'s measure), 0 when none survives: the tier ISO §8.4.6.2.1 3) ranks the
+    /// set in against a declaration of another name class (kb/Work PB4219).</summary>
+    internal int NearestDepth(Func<T, int> depthOf) => _items is { Count: > 0 } items ? items.Min(depthOf) : 0;
+
     /// <summary>Whether any survivor satisfies <paramref name="predicate"/>.</summary>
     internal bool Any(Func<T, bool> predicate) => _items is not null && _items.Exists(i => predicate(i));
 

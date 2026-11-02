@@ -274,7 +274,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 && Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, cref, cref.GetText(),
                     Compiler.Oo.OoNameResolution.Want.Class) is { Class: not null } or { IsFormal: true })
                 return BoundRejected.Report(ctx.Edition, "COBOL0866",
-                    $"INVOKE {cref.GetText()} {mref.GetText()}: when object-class-name-1 is specified, literal-1 "
+                    $"INVOKE {DataBinder.WrittenText(cref)} {DataBinder.WrittenText(mref)}: when object-class-name-1 is specified, literal-1 "
                     + "shall be specified (ISO §14.9.23.3 SR3) — identifier-2 may be specified only when identifier-1 "
                     + "is a universal object reference (SR7)");
             // kb/Work PB1030: a reference that did not resolve is the resolver's diagnostic, never SR7's.
@@ -302,7 +302,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (!ItemCategory.IsAlphanumericOrNational(msrc))
             {
                 return BoundRejected.Report(ctx.Edition, "COBOL0866",
-                    $"INVOKE: identifier-2 ('{mref.GetText()}') shall reference an alphanumeric or national data "
+                    $"INVOKE: identifier-2 ('{DataBinder.WrittenText(mref)}') shall reference an alphanumeric or national data "
                     + "item (ISO §14.9.23.3 SR8)");
             }
             return OoBindUniversalInvoke(site, urecv!, methodLiteral: null, methodSource: msrc);
@@ -392,7 +392,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (OoPredefinedSearchRoot(isSuper, superQualifier, "INVOKE") is not { } root)
                 return BoundRejected.Reported(ctx.Edition);
             var (cur, searchRoot) = root;
-            string predefined = superQualifier is not null ? $"{superQualifier.GetText()} OF SUPER" : isSuper ? "SUPER" : "SELF";
+            string predefined = superQualifier is not null ? $"{DataBinder.WrittenText(superQualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
             // SUPER over a formal superclass: the search starts in the actual (§8.4.3.8.4 GR3; kb/Work PB2937).
             if (searchRoot is null) return OoBindDeferredInvoke(site, $"INVOKE {predefined} \"{methodName}\"");
             // Roster selection by CONTEXT (§14.9.23.3 SR4f/g/h/i): a factory method's SELF/SUPER resolve
@@ -465,7 +465,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // A parameter-name declared CLASS, as class-name-1 (§11.3.4 GR6): the factory interface SR3 searches is the
         // actual's, so the method is selected in each expansion (§9.3.8.2.4; kb/Work PB2937).
         if (named.IsFormal)
-            return OoBindDeferredInvoke(site, $"INVOKE {dref.GetText()} \"{methodName}\"");
+            return OoBindDeferredInvoke(site, $"INVOKE {DataBinder.WrittenText(dref)} \"{methodName}\"");
         return BoundRejected.Report(ctx.Edition, "COBOL0823",
             $"INVOKE: '{DataBinder.WrittenText(dref)}' is neither a resolvable data item nor a class this source element "
             + "may reference (ISO §14.9.23.2 — identifier-1 or class-name-1; §8.4.6.4)");
@@ -645,7 +645,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     internal (OoClassSymbol Current, OoClassSymbol? SearchRoot)? OoPredefinedSearchRoot(bool isSuper,
         Core.CobolWordContext? qualifier, string position, bool report = true)
     {
-        string written = qualifier is not null ? $"{qualifier.GetText()} OF SUPER" : isSuper ? "SUPER" : "SELF";
+        string written = qualifier is not null ? $"{DataBinder.WrittenText(qualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
         if (!host.InMethod || host.OoCurrentClass is not { } cur)
         {
             if (report) _ = RefusePredefinedObjectOutsideMethod($"{position} {written}");
@@ -666,7 +666,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 if (report)
                     ctx.Edition.Error(DiagnosticCatalog.SuperQualifierNotInherited,
-                    $"{position} {written}: '{qualifier.GetText()}' is "
+                    $"{position} {written}: '{DataBinder.WrittenText(qualifier)}' is "
                     + (named is null ? "not a class this source element may reference"
                         : cur.Base is null ? $"not inherited — class '{cur.Name}' has no INHERITS clause"
                         : $"not the class the INHERITS clause of '{cur.Name}' names ('{cur.Base.Name}')")
@@ -766,13 +766,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         if (ret.Item.Pic is not { Category: PicCategory.ObjectReference } retPic)
             return BoundRejected.Report(ctx.Edition, "COBOL0826",
-                $"{verb} RETURNING '{retRef.GetText()}': the receiving item shall be a USAGE OBJECT REFERENCE data "
+                $"{verb} RETURNING '{DataBinder.WrittenText(retRef)}': the receiving item shall be a USAGE OBJECT REFERENCE data "
                 + "item (ISO §14.9.23.4 GR8 / §14.8.3.3)");
         var result = classView with { Factory = m.Standard is StandardMethod.FactoryObject };
         if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(result), retPic)
             is { } err)
             return BoundRejected.Report(ctx.Edition, "COBOL0826",
-                $"{verb} RETURNING '{retRef.GetText()}': {err} (ISO §14.8.3.3 rule 1)");
+                $"{verb} RETURNING '{DataBinder.WrittenText(retRef)}': {err} (ISO §14.8.3.3 rule 1)");
         return m.Standard switch
         {
             // Every New form renders through the ONE runtime body (OoEmitter.EmitNew): the class-name form names
@@ -1006,7 +1006,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(retRef) is not { } rp)
             {
                 return BoundRejected.Report(ctx.Edition, "COBOL0828",
-                    $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': the receiving identifier is not "
+                    $"INVOKE \"{m.Name}\" RETURNING '{DataBinder.WrittenText(retRef)}': the receiving identifier is not "
                     + "resolvable to storage");
             }
             if (!OoScreenReturning(rp, retRef, m.Name)) return BoundRejected.Reported(ctx.Edition);
@@ -1018,7 +1018,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (rerr is not null)
             {
                 return BoundRejected.Report(ctx.Edition, "COBOL0828",
-                    $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': {rerr} (ISO §14.8.3.3 "
+                    $"INVOKE \"{m.Name}\" RETURNING '{DataBinder.WrittenText(retRef)}': {rerr} (ISO §14.8.3.3 "
                     + "returning-item conformance)");
             }
             retPlace = rp;
@@ -1336,7 +1336,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             else if (host.SendingValue.Materialize(fnOperand, "invokearg", use: SendingValueTemp.ValueUse.Text) is { } fnTemp) inlinePlace = fnTemp;
             else
             {
-                Err($"BY CONTENT function-identifier argument '{soleFn.GetText()}' for formal "
+                Err($"BY CONTENT function-identifier argument '{DataBinder.WrittenText(soleFn)}' for formal "
                     + $"'{formal.CobolName}': its returned value has no intermediate item to cross by");
                 return null;
             }
@@ -1448,7 +1448,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             var bound = host.Cond.BindBoolExpr(bx);
             if (host.Params.ContentConformanceReason(formal, LiteralArg(null) with { ContentBool = bound }) is { } bErr)
             {
-                Err($"BY CONTENT boolean-expression argument '{bx.GetText()}' for formal "
+                Err($"BY CONTENT boolean-expression argument '{DataBinder.WrittenText(bx)}' for formal "
                     + $"'{formal.CobolName}': {bErr}");
                 return null;
             }
@@ -1467,7 +1467,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             bool functionValue = arithCtx is not null && ConditionBinder.SoleFunctionCall(arithCtx) is not null;
             if (host.Params.ContentConformanceReason(formal, LiteralArg(new BoundComputedOperand(expr) { FunctionValue = functionValue })) is { } aErr)
             {
-                Err($"BY CONTENT arithmetic-expression argument '{arg.Bool?.GetText() ?? ax.GetText()}' for formal "
+                Err($"BY CONTENT arithmetic-expression argument '{(arg.Bool is { } argBool ? DataBinder.WrittenText(argBool) : DataBinder.WrittenText(ax))}' for formal "
                     + $"'{formal.CobolName}': {aErr}");
                 return null;
             }
@@ -1695,7 +1695,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(retRef) is not { } rp)
             {
                 return BoundRejected.Report(ctx.Edition, "COBOL0866",
-                    $"INVOKE RETURNING '{retRef.GetText()}': the receiving identifier is not resolvable "
+                    $"INVOKE RETURNING '{DataBinder.WrittenText(retRef)}': the receiving identifier is not resolvable "
                     + "to storage");
             }
             if (!OoScreenReturning(rp, retRef, methodName: null)) return BoundRejected.Reported(ctx.Edition);
@@ -1841,7 +1841,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (indexName || probe!.Value.Item.Pic is not { Category: PicCategory.ObjectReference })
             {
                 return BoundRejected.Report(ctx.Edition, "COBOL0867",
-                    $"SET '{t.GetText()}': the receiving operand of an object-reference SET shall be a "
+                    $"SET '{DataBinder.WrittenText(t)}': the receiving operand of an object-reference SET shall be a "
                     + "USAGE OBJECT REFERENCE data item (ISO §14.9.39.3 SR8)");
             }
             if (host.Expr.ResolveReceiving(t) is not { } tp) return new BoundUnsupported("SET object-reference receiving operand");   // reported by the resolver

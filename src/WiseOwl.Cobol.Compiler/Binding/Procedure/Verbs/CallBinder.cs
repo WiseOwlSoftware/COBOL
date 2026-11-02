@@ -363,7 +363,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 else if (cBool is { } cbx)
                     args.Add(BooleanContentArg(cbx));
                 else
-                    return new BoundUnsupported($"CALL USING BY CONTENT argument '{byContent.GetText()}'");
+                    return new BoundUnsupported($"CALL USING BY CONTENT argument '{DataBinder.WrittenText(byContent)}'");
             }
             else if (a.callByValue() is { } byValue)
             {
@@ -460,7 +460,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
                 }
                 else
-                    return new BoundUnsupported($"CALL USING BY VALUE argument '{byValue.GetText()}'");
+                    return new BoundUnsupported($"CALL USING BY VALUE argument '{DataBinder.WrittenText(byValue)}'");
             }
             else if (a.addressIdentifier() is { } bareAddr)
             {
@@ -582,7 +582,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (bareArg.NonNumericLiteral is { } nbl)
             {
                 if (host.Expr.NullAdmittingOperand(nbl) is not { } nblOp)
-                    return new BoundUnsupported($"CALL USING argument '{nbl.GetText()}'");
+                    return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(nbl)}'");
                 var nblMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
                 if (nblMode is CobolPassMode.Value) Sr23LiteralIsNumeric(nbl, "a BY VALUE formal parameter");
                 args.Add(new BoundCallArg(nblMode, null, nblOp));
@@ -621,7 +621,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), a.GetText());
             }
             else
-                return new BoundUnsupported($"CALL USING argument '{a.GetText()}'");
+                return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(a)}'");
         }
 
         // ⛔ ONE BOOLEAN VALUE CHANNEL for the CALL side, mirroring BoundInvokeArg.ContentBool exactly
@@ -952,7 +952,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         if (a.OMITTED() is not null)
             return carriedMode is CobolPassMode.Reference
                 ? OmittedSpelling("OMITTED", vendorLane: true)
-                : OmittedSpelling($"BY {(carriedMode is CobolPassMode.Content ? "CONTENT" : "VALUE")} … OMITTED", vendorLane: false);
+                : OmittedSpelling($"OMITTED (after BY {(carriedMode is CobolPassMode.Content ? "CONTENT" : "VALUE")})", vendorLane: false);
         bool bareNonIdentifier = a.literal() is not null || bare.Bool is not null || bare.NonNumericLiteral is not null
             || bare.SoleNumericLiteral is not null || bare.Grouped is not null
             || (bare.Arith is { } arith && !IsSoleIdentifierExpression(arith));

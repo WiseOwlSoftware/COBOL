@@ -71,7 +71,7 @@ public static class AssemblyPackager
             : [];
         if (files.Length == 0)
             throw new InvalidOperationException($"The WiseOwl COBOL compiler's deployment has no framework reference "
-                + $"assemblies at {dir} (kb/Work PB4047): the build of WiseOwl.Cobol.Compiler lays them there.");
+                + $"assemblies at {dir} (kb/Work PB4047): the compiler project build lays them there.");
         Array.Sort(files, StringComparer.Ordinal);
         return files;
     }
