@@ -231,6 +231,12 @@ public sealed class ReportControlModel
     public ReportControlRef? Operand { get; init; }
     public DataItem? Item { get; set; }
 
+    /// <summary>The place the report engine saves and compares as this operand's prior control value (ISO §13.18.16.4 GR3:
+    /// "the same data description as the corresponding data item"): the item's place, or - for a reference-modified operand -
+    /// the §8.4.3.3.4 GR5 slice of it. Filled once binding is done (<c>PlaceTablePass</c>, kb/Work PB2375); null for FINAL and
+    /// for an operand that resolves to no place.</summary>
+    public Place? Place { get; set; }
+
     /// <summary>The operand as written, for diagnostics and emitted comments (FINAL has no data reference).</summary>
     public string Display => IsFinal ? "FINAL" : Operand?.ToString() ?? "?";
 }
@@ -1451,7 +1457,7 @@ public sealed partial class DataBinder
                   + "characters it occupies in every logical record (§13.18.12.4 GR2) are not a fixed number"
             : OdoModel.TableUnder(item) is { } odo
                 ? $"is a group with the occurs-depending-on table '{odo.CobolName ?? odo.ClrName}' subordinate to it"
-            : item.IsGroup && RefModBinder.HasVariableLengthSubordinate(item)
+            : item.IsGroup && DataItem.HasVariableLengthSubordinate(item)
                 ? "is a variable-length group"
             : item.IsDynamicLength || item.IsDynamicTable
                 ? "is a dynamic-length elementary item"
@@ -5311,7 +5317,7 @@ public sealed partial class DataBinder
                 $"has the occurs-depending table '{odo.CobolName ?? odo.ClrName}' subordinate to it: the "
                 + "entry specified by data-name-1 shall not have an occurs-depending table subordinate to it "
                 + "(ISO §13.18.16.3 SR5)");
-        if (item.IsGroup && RefModBinder.HasVariableLengthSubordinate(item))
+        if (item.IsGroup && DataItem.HasVariableLengthSubordinate(item))
             return (DiagnosticCatalog.ReportControlOperandShape,
                 "is a variable-length group (ISO §8.5.1.12.1 — a dynamic-length elementary item or a "
                 + "dynamic-capacity table is subordinate to it): data-name-1 shall not reference a "

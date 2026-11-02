@@ -178,7 +178,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// <para>SR1 and the view read the PLACE's item, as <see cref="Resolve"/> does — a no-THROUGH level-66 alias is
     /// described by data-name-2 (§13.18.45.4 GR1), never by its own entry (kb/Work PB1380).</para></summary>
     public Place? ResolveItemRefMod(DataItem item, int start, int? length, bool allowZeroLength = false) =>
-        refs.PlaceForItem(item, []) is { } inner && RefModExclusion(inner.Item) is null
+        refs.Places.PlaceForItem(item, []) is { } inner && RefModExclusion(inner.Item) is null
             ? RefModView(inner.Item, inner, new RefModSpec(new PositionConstant(start), length is { } l ? new PositionConstant(l) : null, allowZeroLength))
             : null;
 
@@ -202,7 +202,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     {
         if (item.IsGroup)
             return StrongTypeModel.IsStrongGroup(item) ? "a strongly-typed group item"
-                : HasVariableLengthSubordinate(item)
+                : DataItem.HasVariableLengthSubordinate(item)
                     ? "a variable-length group item (ISO §8.5.1.12 — a dynamic-length item or a dynamic-capacity table is subordinate to it)"
                 : null;
         // A leaf subordinate to a strongly-typed group (its own class/category still decides bullets 1–4).
@@ -259,7 +259,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     }
 
     private static bool HasOdoOnOrBeneathOrDynamicTable(DataItem item) =>
-        DataItem.HasOdoOnOrBeneath(item) || item.IsDynamicTable || HasVariableLengthSubordinate(item);
+        DataItem.HasOdoOnOrBeneath(item) || item.IsDynamicTable || DataItem.HasVariableLengthSubordinate(item);
 
     /// <summary>The decimal-integer LITERAL a rendered position is, or null when it is anything else (a data-name
     /// read, an expression, a narrowing call) — the screen's "is this position known at compile time". A figurative
@@ -294,15 +294,6 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             else data.Edition.Error(DiagnosticCatalog.RefModLiteralOutOfRange, at);
         }
         return checking;
-    }
-
-    /// <summary>§8.5.1.12 — a variable-length group has a dynamic-length elementary item or a dynamic-capacity table
-    /// as a subordinate (at any depth).</summary>
-    internal static bool HasVariableLengthSubordinate(DataItem group)
-    {
-        foreach (var c in group.Children)
-            if (c.IsDynamicLength || c.IsDynamicTable || (c.IsGroup && HasVariableLengthSubordinate(c))) return true;
-        return false;
     }
 
     // ── The ONE reference-modification reader (ISO §8.4.3.3.2) ───────────────────────────────────────────────

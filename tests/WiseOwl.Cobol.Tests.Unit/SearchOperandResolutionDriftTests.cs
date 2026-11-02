@@ -248,7 +248,7 @@ MAIN.
         string code = string.Join(Nl, File.ReadAllLines(path)
             .Where(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)));
         Assert.Equal(2, code.Split("DynamicTablePath(s.dataReference()").Length - 1);   // BindSearch, BindSearchAll
-        Assert.Equal(1, code.Split("ReferenceResolver.BuildTablePath(").Length - 1);    // inside DynamicTablePath
+        Assert.Equal(1, code.Split("PlaceBuilder.BuildTablePath(").Length - 1);    // inside DynamicTablePath
         Assert.DoesNotContain("later increment", code, StringComparison.Ordinal);
     }
 

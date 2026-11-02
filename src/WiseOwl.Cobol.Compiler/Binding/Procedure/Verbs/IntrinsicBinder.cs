@@ -253,7 +253,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// source element's (§8.4.6.2.1 3); <c>SymbolTable.TryResolveUnqualified</c>), so a contained program's own
     /// FUNCTION-POINTER hides a container's GLOBAL one of the same name instead of counting it as a rival.</summary>
     private Place? FunctionPointerNamed(string name) =>
-        FunctionPointerItemNamed(name) is { } only ? ctx.Refs.ResolveItem(only) : null;
+        FunctionPointerItemNamed(name) is { } only ? ctx.Refs.Places.ResolveItem(only) : null;
 
     /// <summary><see cref="FunctionPointerNamed"/>'s test, answering the declared item itself — for the readers that
     /// need its description and no <see cref="Place"/> (<see cref="ReturningItemOf(string)"/>).</summary>
@@ -2422,7 +2422,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="HasDynamicLengthLeaf"/>/<see cref="HasDynamicCapacityTable"/> stay: they serve
     /// <see cref="HasRuntimeLength"/>, which answers a LAYOUT question, not the §8.5.1.12.1 classification.</summary>
     private static bool IsVariableLengthGroup(DataItem g) =>
-        WiseOwl.Cobol.Binding.RefModBinder.HasVariableLengthSubordinate(g);
+        DataItem.HasVariableLengthSubordinate(g);
 
     private static bool HasRuntimeLength(DataItem g) =>
         DataItem.HasOdoBeneath(g) || HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);
@@ -3199,7 +3199,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 // for a repeating sum counter, its report-writer twin (a DEPENDING level counts by §13.18.38.4 GR13).
                 if ((counter is (_, { } countedFamily)
                         ? ctx.Refs.Counters.SumCounterOccurrenceCount(countedFamily, i)
-                        : ctx.Refs.CurrentOccurrenceCount(level, outerExprs)) is not { } count)
+                        : ctx.Refs.Places.CurrentOccurrenceCount(level, outerExprs)) is not { } count)
                 {
                     args.Add(BoundOperandError.Unbuilt(ctx.Edition, level.OccursSpec is { Depending: { } dep }
                         ? $"table(ALL) over OCCURS DEPENDING table '{name}': data-name-1 '{dep.CobolName}' could not be addressed"

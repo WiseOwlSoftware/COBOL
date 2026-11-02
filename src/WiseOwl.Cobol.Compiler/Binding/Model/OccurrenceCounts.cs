@@ -1,8 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>⛔ THE ONE bind-time reading of a table's CURRENT number of occurrences as an <see cref="AllCount"/> — ISO
 /// §14.6.9.1's three-way equivalence: "If another operand of the operation is a fixed capacity table, that table shall
@@ -12,7 +11,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// Two statements loop a table over it: INITIALIZE (§14.9.20.4 GR8 / GR10 — whose §13.18.38.4 GR8b maximum is its
 /// own arm, layered over this) and the §14.6.9.2 element moves of a variable-length group MOVE (kb/Work PB1144);
 /// a table(ALL) argument (§15.3) and the Format-2 table SORT reach it through
-/// <c>ReferenceResolver.CurrentOccurrenceCount</c>, which only builds the whole-table path from outer index
+/// <c>PlaceBuilder.CurrentOccurrenceCount</c>, which only builds the whole-table path from outer index
 /// expressions (it used to be a second copy of this switch).
 /// It was INITIALIZE's private pair of helpers until the second statement needed the same three counts.</summary>
 internal static class OccurrenceCounts
@@ -21,10 +20,10 @@ internal static class OccurrenceCounts
     /// a dynamic-capacity table's current capacity, an occurs-depending table's data-name-1 value (clamped by
     /// <see cref="AllCount.Odo"/>'s renderer, §13.18.38.4 GR7), a fixed table's occurrence count. Null when the count
     /// cannot be modelled — a dynamic table with no path, or an unresolvable data-name-1.</summary>
-    public static AllCount? Current(DataItem table, AccessPath? tablePath, ReferenceResolver refs) =>
+    public static AllCount? Current(DataItem table, AccessPath? tablePath, PlaceBuilder places) =>
         table.IsDynamicTable ? (tablePath is null ? null : Capacity(table, tablePath))
         : table.OccursSpec is { DependingName: not null, Depending: { } dep } odo
-            ? (refs.ResolveItem(dep) is { } depPlace
+            ? (places.ResolveItem(dep) is { } depPlace
                 ? new AllCount.Odo(depPlace, odo.Min, table.Occurs ?? odo.Max) : null)
         : table.Occurs is { } n ? new AllCount.Fixed(n)
         : null;

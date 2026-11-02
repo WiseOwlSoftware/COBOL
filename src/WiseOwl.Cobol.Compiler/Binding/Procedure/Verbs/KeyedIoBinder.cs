@@ -51,7 +51,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // SAME call the sequential arm makes, so the two organizations cannot disagree about which rules the
         // phrase carries (feedback_two_arm_dispatch).
         BoundMove? into = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceiving(d) is { } recv
-            && ctx.Refs.RecordArea(file) is { } readArea
+            && ctx.Refs.Places.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
         var (atEnd, notAtEnd) = PhraseBlocks.Bind(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd, b => host.BindBlocks([b]));
@@ -408,7 +408,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             if (operand is not null && !ReferenceEquals(operand.DenotedItem, file.RelativeKeyItem))
                 ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': data-name-1 shall be the RELATIVE KEY "
                     + $"item '{file.RelativeKeyItem?.CobolName ?? "(none)"}' (ISO §14.9.41.3 SR5)");
-            operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.ResolveItem(rk) : null;
+            operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.Places.ResolveItem(rk) : null;
             // ⛔ GR8's SUBSTITUTION HAS NO OPERAND, SO THE STATEMENT HAS NO MEANING (kb/Work PB236, row
             // GR-14.9.41.4-8). §14.9.41.4 GR8: "If the KEY phrase is omitted, the START statement behaves as
             // though KEY IS EQUAL TO data-name-1 had been specified, where data-name-1 is the name of the key
@@ -462,7 +462,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         else if (file.PrimeKey is { IsSourceForm: true } sourcePrime)
             namedKey = sourcePrime;
         else
-            operand = file.PrimeKey?.Item is { } pk ? ctx.Refs.ResolveItem(pk) : null;
+            operand = file.PrimeKey?.Item is { } pk ? ctx.Refs.Places.ResolveItem(pk) : null;
         if (operand is null && namedKey is null)
             return new BoundUnsupported($"START on '{name}' with no resolvable RECORD KEY item");
         return new BoundKeyedStart(file, KeyedStartMode.Key, op, keyIndex, operand, length, invalid) { NamedKey = namedKey };

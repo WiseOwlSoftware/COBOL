@@ -72,7 +72,7 @@ internal sealed record MemberCursor(AccessPath Path, DataItem Item) : PlaceCurso
         {
             if (cls.Tier == RedefinesTier.StringCanonical && child.IsCanonical)
                 return new ViewCursor(Path.Add(new MemberSegment(cls.BackingClrName)),
-                    new PositionConstant(child.ClassOffset), child.ClassOffset, child, ReferenceResolver.BuildCellPath(cls));
+                    new PositionConstant(child.ClassOffset), child.ClassOffset, child, PlaceBuilder.BuildCellPath(cls));
             if (cls.Tier != RedefinesTier.Alias || !child.IsCanonical) return null;
         }
         return new MemberCursor(Path.Add(new MemberSegment(child.ClrName)), child);
@@ -204,8 +204,8 @@ internal sealed record ViewCursor(
     /// PB1042) — a level the whole-table INITIALIZE enters only through <see cref="DynamicElement"/>, so the class
     /// backing it starts from is never read. Null outside a cell-backed class.</summary>
     public static ViewCursor? AtCellTable(DataItem table) =>
-        ReferenceResolver.BuildCellPath(table.Class) is { } cell
-            ? new ViewCursor(cell, new PositionConstant(0), 0, table, cell) { OrdinalBase = ReferenceResolver.CellOrdinalBase(table.Class!) }
+        PlaceBuilder.BuildCellPath(table.Class) is { } cell
+            ? new ViewCursor(cell, new PositionConstant(0), 0, table, cell) { OrdinalBase = PlaceBuilder.CellOrdinalBase(table.Class!) }
             : null;
 
     /// <summary>The cursor at an occurrence of the cell-backed dynamic-capacity table <paramref name="table"/> whose
@@ -226,7 +226,7 @@ internal sealed record ViewCursor(
     /// <summary>The component ordinal of <paramref name="item"/> at the cursor's position.</summary>
     private PositionOffset Ordinal(DataItem item)
     {
-        Position origin = ReferenceResolver.OrdinalOrigin(ReferenceEquals(item, ScopeTable) ? 0 : item.ClassDynOrdinal, OrdinalBase);
+        Position origin = PlaceBuilder.OrdinalOrigin(ReferenceEquals(item, ScopeTable) ? 0 : item.ClassDynOrdinal, OrdinalBase);
         if (EntryOrdinal is { } entry)   // origin + (the entry's run-time ordinal) − its static one
             origin = new PositionBinary(new PositionBinary(origin, PositionOperator.Add, new PositionGroup(entry.RunTime)),
                                         PositionOperator.Subtract, new PositionConstant(entry.Static));

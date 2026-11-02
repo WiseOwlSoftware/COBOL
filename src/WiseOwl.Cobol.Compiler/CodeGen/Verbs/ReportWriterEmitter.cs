@@ -23,7 +23,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// pattern.
 /// </summary>
 internal sealed class ReportWriterEmitter(
-    EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move, ConditionRenderer cond,
+    EmitContext ctx, NumericRenderer num, PlaceTable places, MoveEmitter move, ConditionRenderer cond,
     DispatchState dispatch, EcState ecState, EcEmitter ec)
 {
     /// <summary>The DATA DIVISION emitter of THIS unit, built once on first use — the report lane reaches it for
@@ -270,7 +270,7 @@ internal sealed class ReportWriterEmitter(
     /// first LINE clause of the report group" — and every placement of the group sees that one value.</summary>
     private string RepetitionTest(ReportRepetitionGuard g)
     {
-        if (g.Spec.DependingItem is not { } dn || refs.ResolveItem(dn) is not { } place) return "true";
+        if (g.Spec.DependingItem is not { } dn || places.Of(dn) is not { } place) return "true";
         // The GR13 count through the ONE occurrence-count renderer (AllCount.ReportDepending), which a table(ALL)
         // argument over a repeating sum counter reads too (kb/Work PB1271).
         return $"{g.Ordinal} < {PlaceRenderer.OccurrenceCount(new AllCount.ReportDepending(place, g.Spec.Min, g.Spec.Max))}";
@@ -626,10 +626,7 @@ internal sealed class ReportWriterEmitter(
                 // for a reference-modified operand is the §8.4.3.3.4 GR5 unique data item, the slice. The
                 // positions are integer literals (SR4), so the view needs no expression machinery: it is the ONE
                 // ref-mod view builder, reached by item instead of by parse context.
-                if (ctl.Item is not { } item
-                    || (ctl.Operand?.RefModStart is { } start
-                            ? refs.RefMods.ResolveItemRefMod(item, start, ctl.Operand.RefModLength)
-                            : refs.ResolveItem(item)) is not { } place)
+                if (ctl.Place is not { } place)
                 {
                     w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Display}' does not resolve to a place "
                         + "this backend can save and restore as the prior control value (ISO §13.18.16.4 GR3)"));

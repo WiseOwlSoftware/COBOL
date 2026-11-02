@@ -110,7 +110,7 @@ public sealed partial class StatementBinder
         var model = new DataItem { Level = 1, CobolName = "__SUBEXPR-MODEL", ClrName = "__subexprModel",
                                   Pic = SegmentTempPic };
         var temp = data.CreateCompilerTemp(model, "__SUBEXPR-", "__subexpr", $"L{line}");
-        if (Ctx.Refs.ResolveItem(temp) is not { } place) return null;
+        if (Ctx.Refs.Places.ResolveItem(temp) is not { } place) return null;
 
         data.PendingPreOps.Add(new BoundPositionValue(value, place, RefMod: position == SegmentPosition.RefMod));
         return temp;
@@ -126,7 +126,7 @@ public sealed partial class StatementBinder
     private Place FreezeOdoExtentBeforeRefMod(OdoGroupPlace odo, int preOpMark, int line)
     {
         var temp = data.CreateCompilerTemp(odo.Depending.Item, "__REFODO-", "__refodo", $"L{line}");
-        if (Ctx.Refs.ResolveItem(temp) is not { } frozen) return odo;
+        if (Ctx.Refs.Places.ResolveItem(temp) is not { } frozen) return odo;
         data.PendingPreOps.Insert(preOpMark, new BoundMove(new BoundFieldOperand(odo.Depending), [frozen]));
         return odo with { Depending = frozen };
     }

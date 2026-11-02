@@ -600,7 +600,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// (<see cref="VarPartKind.OdoTable"/>, flattened in place). <c>default</c> for a group without one.</summary>
     private OdoTail RecordOdo(DataItem group) =>
         OdoModel.TableUnder(group) is not { } t ? default
-        : !WiseOwl.Cobol.Binding.RefModBinder.HasVariableLengthSubordinate(t)
+        : !DataItem.HasVariableLengthSubordinate(t)
             ? OdoModel.FixedImageTail(OdoModel.ImageHolder(group, t), t)
         : new OdoTail(VarFixedWidth(t), t.Occurs ?? 1, VarComponentCount(t));
 

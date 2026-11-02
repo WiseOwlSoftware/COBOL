@@ -2803,7 +2803,7 @@ regression bisects to one step.
   ZERO`, `- ALL ZERO`, `(ALL ZERO)`), and `primaryExpression`'s arm is `ALL? ZERO_ARITH`, which carries the ALL to the
   binder's §8.3.3.6.3 SR1 a) edition gate (`ExpressionBinder.ZeroOperand`, the numeric reading of the figurative
   ZERO for both of its parse forms: accepted at 85, COBOL0902 from 2002; kb/Work PB3846; a direct-shape subscript or
-  ref-mod position is read by `ReferenceResolver.BindPosition` as `PositionConstant(0)` and asks the same gate through
+  ref-mod position is read by `SubscriptBinder.BindPosition` as `PositionConstant(0)` and asks the same gate through
   `FigurativeAssociation.GateAllZeroAsArithmeticOperand`; kb/Work PB3960). ⛔ **A sign touching the digits of the
   next literal is that literal's sign, never the ZERO's operator** (kb/Work PB3962): §8.7.1 makes a binary operator a
   character "preceded by a space and followed by a space", and §8.3.3.3.2 2) makes a sign the "leftmost character of
@@ -2865,7 +2865,7 @@ regression bisects to one step.
 > keyword-omitted argument lists are parse nodes, and the binder's hand-rolled splitter and captured-group readers are
 > gone (§9.5 records what each stage became). The SECOND half (kb/Work PB2151, DESIGN-binder-bound-tree.md §3.9): a
 > position is a typed `Position` node from the parse to the code generator. The binder reads each position's PARSE NODE
-> (`ReferenceResolver.BindPosition`); a position it cannot read term by term binds that same node through the
+> (`SubscriptBinder.BindPosition`); a position it cannot read term by term binds that same node through the
 > expression binder into the §15.4 temporary (`StatementBinder.BindPositionTemporary`); the `subscriptExpressionFragment`
 > grammar entry and its text re-parse are deleted; every offset and ordinal of the place model is a `PositionOffset`;
 > and only `CodeGen.PositionRenderer` turns a position into C#. `PositionCarrierDriftTests` keeps it so. §9.3's
@@ -2875,7 +2875,7 @@ regression bisects to one step.
 Replace the lexer **SUBSCRIPT mode** (`CobolLexer.g4` — entered via `LPAREN` after a data-name token, emits the
 `SUB_*` token family, popped by `SUB_RPAREN`) and the **flat uninterpreted stream** it feeds
 (`subscriptOrRefMod : subToken*`, `CobolParserCore.g4`) — which the binder RE-PARSES by hand
-(`ReferenceResolver.InterpretSubscripts` / `HasDepth0Colon` / `SplitSubscriptTokens` / `RenderSegment`, and the
+(`SubscriptBinder.InterpretSubscripts` / `HasDepth0Colon` / `SplitSubscriptTokens` / `RenderSegment`, and the
 ~250-line recursive-descent arithmetic parser over `SUB_*` in `StatementBinder.Intrinsics.cs`) — with **real
 grammar parse nodes**: a subscript list, a ref-mod, and a FUNCTION argument list parsed as `arithmeticExpression`
 / the existing `argumentList`, so the binder walks bound nodes instead of re-lexing a token soup. This kills a
@@ -2979,10 +2979,10 @@ all-or-nothing):**
   `refModSpec`'s leftmost position is optional so `X (:2)` still reaches its named refusal (COBOL2876). Each position is the
   superset `functionArgument`, the operand a subscript item takes, so a position that is not an arithmetic expression
   (`X ("A" : 1)`) reaches its named refusal too (COBOL2363, kb/Work PB1030) instead of a raw parse error. One
-  carrier, one `ReferenceResolver.ReadRefMod`.
+  carrier, one `RefModBinder.ReadRefMod`.
 - **D10.3** — `subscriptPart : REF_LPAREN subscriptList? REF_RPAREN`, `subscriptList : subscriptItem ((FNARG_SEPARATOR |
   COMMA)? subscriptItem)*`, `subscriptItem : ALL | functionArgument` (the superset: the same paren carries a keyword-omitted
-  argument list; a bare COMMA parses so SeparatorRule names it, COBOL2631). `ReferenceResolver.SegmentsOf` takes one
+  argument list; a bare COMMA parses so SeparatorRule names it, COBOL2631). `SubscriptBinder.SegmentsOf` takes one
   token segment per item and applies PB136's declaration-informed cut on the TREE (a dataReference at the item's own
   level whose name cannot be subscripted gives its paren to a new subscript). Each segment carries its parse node, which
   the second half's position walk reads (kb/Work PB2151).

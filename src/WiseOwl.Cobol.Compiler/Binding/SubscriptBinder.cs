@@ -1014,7 +1014,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // ⛔ THE BET ON OVERLOAD RESOLUTION IS ONLY GOOD FOR THE CARRIERS THAT HAVE AN OVERLOAD (kb/Work PB201).
         if (!HasPositionOverload(item, numeric)) return null;
         // An unsubscripted read: an item inside a table has no path without its subscripts (§8.4.2.3.3 SR3's count).
-        if (ReferenceResolver.BuildAccessPath(item, []) is not { } path) return null;
+        if (PlaceBuilder.BuildAccessPath(item, []) is not { } path) return null;
         return new PositionItemRead(path, item,
             !numeric ? PositionReadForm.Digits
             : position == SegmentPosition.Subscript ? PositionReadForm.Occurrence

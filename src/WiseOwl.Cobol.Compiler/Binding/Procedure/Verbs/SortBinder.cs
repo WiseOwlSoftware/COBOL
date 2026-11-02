@@ -214,7 +214,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         {
             // A subject whose class backing is not reachable from the statement (a class inside an OCCURS) is a
             // shape the ONE place builder has not built — the resolver's own deferral, never a second answer here.
-            if (ctx.Refs.ResolveItemAt(table, [.. outer, new PositionConstant(1)]) is null)
+            if (ctx.Refs.Places.ResolveItemAt(table, [.. outer, new PositionConstant(1)]) is null)
                 return new BoundUnsupported($"SORT of table '{name}': "
                     + DeferredShapes.Describe(DeferredShape.NestedClassBacking));
             // A pointer-class member's VALUE rides the area's managed slot, not its bytes (§14.9.3.4 GR9; kb/Work
@@ -226,13 +226,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // dynamic-capacity inner level is enumerated at its current capacity, which must be addressable too.
             if (SlotWindow.MembersOf(table).Any(m => SlotWindow.InnerLevelsOf(m, table) is var inner
                     && (inner.Where((l, d) => l.Occurs is null
-                            && ctx.Refs.CurrentOccurrenceCount(l, [.. outer, new PositionConstant(1), .. inner.Take(d).Select(_ => new PositionConstant(1))]) is null).Any()
-                        || ctx.Refs.ResolveItemAt(m, [.. outer, new PositionConstant(1), .. inner.Select(_ => new PositionConstant(1))]) is null)))
+                            && ctx.Refs.Places.CurrentOccurrenceCount(l, [.. outer, new PositionConstant(1), .. inner.Take(d).Select(_ => new PositionConstant(1))]) is null).Any()
+                        || ctx.Refs.Places.ResolveItemAt(m, [.. outer, new PositionConstant(1), .. inner.Select(_ => new PositionConstant(1))]) is null)))
                 return new BoundUnsupported($"SORT of table '{name}': "
                     + DeferredShapes.Describe(DeferredShape.UnbuiltAccessPath));
             storage = new TableSortStorage.SharedArea(outer);
         }
-        else if (ReferenceResolver.BuildTablePath(table, outer) is { } arrayPath)
+        else if (PlaceBuilder.BuildTablePath(table, outer) is { } arrayPath)
             storage = new TableSortStorage.TypedArray(arrayPath);
         else
             return new BoundUnsupported($"SORT of table '{name}': "
@@ -240,7 +240,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // §14.9.40.4 GR20 — "The number of occurrences of table elements referenced by data-name-2 is determined by
         // the rules in the OCCURS clause": the CURRENT count (§13.18.38.4 GR7 for OCCURS DEPENDING, the current
         // capacity for a dynamic-capacity table), never the physical array (kb/Work PB1174).
-        if (ctx.Refs.CurrentOccurrenceCount(table, outer) is not { } count)
+        if (ctx.Refs.Places.CurrentOccurrenceCount(table, outer) is not { } count)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                 $"SORT of table '{name}': its current number of occurrences cannot be addressed (ISO §14.9.40.4 GR20)");
 
@@ -349,7 +349,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 _ => null,
             } is { } windowOuter)
             foreach (var k in keys)
-                if (ctx.Refs.ResolveItemAt(k.Key, [.. windowOuter, new PositionConstant(1)]) is null)
+                if (ctx.Refs.Places.ResolveItemAt(k.Key, [.. windowOuter, new PositionConstant(1)]) is null)
                     return new BoundUnsupported($"SORT table key '{k.Key.CobolName}': "
                         + DeferredShapes.Describe(DeferredShape.UnbuiltAccessPath));
 
@@ -494,7 +494,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // is the one WRITE and REWRITE already make (D-WRT1, FileModel.TransfersPastRecord) — position n past the end of
         // record-name-1 is position n of the record area. The released length used to be the named record's OWN size,
         // which left ONE SD holding records of two sizes and wrote a short record into a longer GIVING record.
-        int width = file.TransfersPastRecord(record.Item) && ctx.Refs.RecordArea(file) is { } area
+        int width = file.TransfersPastRecord(record.Item) && ctx.Refs.Places.RecordArea(file) is { } area
             ? Model.RecordLayout.AreaWidth(area.Item)
             : Model.RecordLayout.AreaWidth(record.Item);
         return new BoundRelease(file, record, width, from, SortVaryingOf(file));
@@ -521,7 +521,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // (ReferenceResolver.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
         // store (ST111A's 50/75/100 SD). SortRecordOf stays the usability gate (the Tier-C byte-island fence).
         if (RecordLessSd(file)) return new BoundNop();
-        if (SortRecordOf(file) is null || ctx.Refs.RecordArea(file) is not { } area)
+        if (SortRecordOf(file) is null || ctx.Refs.Places.RecordArea(file) is not { } area)
             return new BoundUnsupported($"RETURN '{name}' without a usable SD record area");
         // RETURN ... INTO is an IMPLICIT MOVE and is bound as one (ISO §14.9.34.4 GR5 b); kb/Work PB348) -
         // THE SAME call READ ... INTO makes, because GR5 b) and §14.9.30.4 GR4 b) are the same sentence.
@@ -657,7 +657,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // order every negative after every positive, so it takes the algebraic double lane).
             keys.Add(new BoundSortMergeKey(descending, win.Offset, len, cls,
                 cls is CollatingClass.Numeric ? item : null,
-                win.FollowsVariable ? ctx.Refs.ResolveItem(root) : null));
+                win.FollowsVariable ? ctx.Refs.Places.ResolveItem(root) : null));
         }
         return true;
 
@@ -937,7 +937,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     private SortVaryingInfo? SortVaryingOf(FileModel file)
     {
         if (!file.RecordSizeVaries) return null;   // an explicit variable-length RECORD clause, or D-FRA's implied Format 2 (kb/Work PB981)
-        Place? dep = file.VaryingDependingItem is { } d ? ctx.Refs.ResolveItem(d) : null;
+        Place? dep = file.VaryingDependingItem is { } d ? ctx.Refs.Places.ResolveItem(d) : null;
         return new SortVaryingInfo(dep, file.VaryMin, file.VaryMax);
     }
 
@@ -966,7 +966,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // No stored field: a REDEFINES-view key (§13.18.44.4 GR1 — every view of the class is the one backing). A key
         // under an inner OCCURS is not a view problem and has no window either (§14.9.40.3 SR14 e / §13.18.38.3 SR6).
         return key.Class is not null && !KeyUnderInnerOccurs(table, key)
-            && ctx.Refs.ResolveItemAt(key, [.. outer, new PositionConstant(1)]) is not null
+            && ctx.Refs.Places.ResolveItemAt(key, [.. outer, new PositionConstant(1)]) is not null
             ? new BoundTableSortKey(descending, null, key) : null;
     }
 

@@ -278,7 +278,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         var temp = ctx.Data.CreateCompilerTemp(fn.Returning, "__FNRES-", "__fnres", name);
         // A result whose values ride managed slots is delivered into the temporary's AREA (kb/Work PB1940).
         ctx.Data.ClaimSlotCarriedCell(temp, "FUNCTION result temporary");
-        if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
+        if (ctx.Refs.Places.ResolveItem(temp) is not { } tempPlace)
             return BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {name} result temporary");
 
         // The activation names the callee by its EXTERNALIZED name — the key ProgramRegistry holds it under

@@ -327,12 +327,12 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // SR9 — a variable-length group is §8.5.1.12.1's: "a group item whose data description has at least one
         // dynamic-length elementary item or dynamic-capacity table as a subordinate item". ⛔ NOT an
         // occurs-depending group, whose size is its maximum — through the ONE definition
-        // (RefModBinder.HasVariableLengthSubordinate) so this screen cannot drift from the REDEFINES, VALUE
+        // (DataItem.HasVariableLengthSubordinate) so this screen cannot drift from the REDEFINES, VALUE
         // and report screens that ask the same question.
         for (int end = 0; end < 2; end++)
         {
             if ((end == 0 ? lo : hi) is not BoundFieldOperand { Place.Item: { IsGroup: true } item }) continue;
-            if (!RefModBinder.HasVariableLengthSubordinate(item)) continue;
+            if (!DataItem.HasVariableLengthSubordinate(item)) continue;
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                 $"the {(end == 0 ? "first" : "second")} operand of the range-expression '{DataBinder.WrittenText(range)}' "

@@ -1313,14 +1313,13 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 24,
-      "walkUses": 25,
+      "walkUses": 20,
       "removedBy": [
         "PB2361",
-        "PB2375",
         "PB2399",
         "PB2402"
       ],
-      "plan": "PB2361 (DataBindResult: BoundUnit.Data and .Refs, BoundCompilation.InterfaceData, OoClassUnit's binder), PB2375 (PlaceBuilder at bind time: OdoModel.SearchDepending's resolver, OdoModel.cs:188), PB2402 (OoMethodDataScope and OptionsModel.cs's types move with the OO symbols) and PB2399 (the rest: SymbolTable's binder, the binder statics the model calls, BoundCompilation.Turn, LinkageFormal, Table16Operand, the alphabet family); PB2399 also ends DataItem and FileModel -> ReferenceResolver (HasVariableLengthSubordinate, DataItem.cs:956, FileModel.cs:566,627) and moves NationalAlphabetDef with the alphabet family (Draft 6, G1)",
+      "plan": "PB2361 (DataBindResult: BoundUnit.Data and .Refs, BoundCompilation.InterfaceData, OoClassUnit's binder), PB2402 (OoMethodDataScope and OptionsModel.cs's types move with the OO symbols) and PB2399 (the rest: SymbolTable's binder, the binder statics the model calls, BoundCompilation.Turn, LinkageFormal, Table16Operand, the alphabet family); PB2399 moves NationalAlphabetDef with the alphabet family (Draft 6, G1). PB2375 (landed) built the PlaceBuilder in this layer (Binding/Model/PlaceBuilder.cs, over IPlaceFacts), so OdoModel.SearchDepending and DataItem, FileModel and RecordLayout no longer name a resolver (HasVariableLengthSubordinate is DataItem's)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
@@ -1368,7 +1367,6 @@
           "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
           "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
           "removedBy": [
-            "PB2375",
             "PB2361"
           ]
         },
@@ -1377,14 +1375,6 @@
           "to": "WiseOwl.Cobol.Binding.LinkageFormal",
           "removedBy": [
             "PB2361",
-            "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.DataItem",
-          "to": "WiseOwl.Cobol.Binding.RefModBinder",
-          "removedBy": [
-            "PB2375",
             "PB2399"
           ]
         },
@@ -1399,14 +1389,6 @@
           "from": "WiseOwl.Cobol.Binding.Model.FileModel",
           "to": "WiseOwl.Cobol.Binding.AlphabetDef",
           "removedBy": [
-            "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.FileModel",
-          "to": "WiseOwl.Cobol.Binding.RefModBinder",
-          "removedBy": [
-            "PB2375",
             "PB2399"
           ]
         },
@@ -1427,14 +1409,6 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.Binding.Model.OdoModel",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375",
-            "PB2399"
-          ]
-        },
-        {
           "from": "WiseOwl.Cobol.Binding.Model.OoClassUnit",
           "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
@@ -1447,7 +1421,7 @@
           "from": "WiseOwl.Cobol.Binding.Model.OoClassUnit",
           "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
           "removedBy": [
-            "PB2375"
+            "PB2361"
           ]
         },
         {
@@ -1468,14 +1442,6 @@
           "from": "WiseOwl.Cobol.Binding.Model.RecordLayout",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.RecordLayout",
-          "to": "WiseOwl.Cobol.Binding.RefModBinder",
-          "removedBy": [
-            "PB2375",
             "PB2399"
           ]
         },
@@ -1508,14 +1474,6 @@
           "to": "WiseOwl.Cobol.Binding.OoMethodDataScope",
           "removedBy": [
             "PB2402",
-            "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.VariableLengthCompatibility",
-          "to": "WiseOwl.Cobol.Binding.RefModBinder",
-          "removedBy": [
-            "PB2375",
             "PB2399"
           ]
         }
@@ -1697,19 +1655,18 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 113,
+      "walkUses": 101,
       "removedBy": [
         "PB2290",
         "PB2320",
         "PB2361",
-        "PB2375",
         "PB2399",
         "PB2402",
         "PB2405",
         "PB2418",
         "PB2420"
       ],
-      "plan": "PB2361 and PB2375 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs; PlaceBuilder runs at bind time, so UnitEmitters.Refs and the 24 emit-time ReferenceResolver.ResolveItem calls go), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1)",
+      "plan": "PB2361 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1). PB2375 (landed) removed UnitEmitters.Refs and the emit-time ResolveItem calls: the emitters read the PlaceTable the binder builds (BoundUnit.Places, OoClassUnit.Places)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
@@ -1732,7 +1689,6 @@
           "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
           "to": "WiseOwl.Cobol.Binding.CobolClass",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2418",
             "PB2402",
@@ -1762,7 +1718,6 @@
           "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2418",
             "PB2402",
@@ -1883,13 +1838,6 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.CodeGen.GroupImageCodec",
-          "to": "WiseOwl.Cobol.Binding.RefModBinder",
-          "removedBy": [
-            "PB2375"
-          ]
-        },
-        {
           "from": "WiseOwl.Cobol.CodeGen.GroupValueSlicer",
           "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
@@ -1964,7 +1912,6 @@
           "from": "WiseOwl.Cobol.CodeGen.InspectEmitter",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2418",
             "PB2399",
@@ -1998,13 +1945,6 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.CodeGen.KeyedIoEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375"
-          ]
-        },
-        {
           "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
           "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
@@ -2018,20 +1958,12 @@
           "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2418",
             "PB2402",
             "PB2399",
             "PB2405",
             "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375"
           ]
         },
         {
@@ -2141,14 +2073,6 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375",
-            "PB2418"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.ReportModel",
           "removedBy": [
             "PB2418",
@@ -2181,13 +2105,6 @@
           "removedBy": [
             "PB2399",
             "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375"
           ]
         },
         {
@@ -2272,20 +2189,6 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
-          "to": "WiseOwl.Cobol.Binding.RefModBinder",
-          "removedBy": [
-            "PB2375"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
           "to": "WiseOwl.Cobol.Binding.ReportCodeModel",
           "removedBy": [
             "PB2420"
@@ -2308,13 +2211,6 @@
         {
           "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
           "to": "WiseOwl.Cobol.Binding.ReportControlModel",
-          "removedBy": [
-            "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReportControlRef",
           "removedBy": [
             "PB2420"
           ]
@@ -2457,7 +2353,6 @@
           "from": "WiseOwl.Cobol.CodeGen.RuntimeApi",
           "to": "WiseOwl.Cobol.Binding.IntrinsicDomain",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2399",
             "PB2405",
@@ -2479,13 +2374,6 @@
           "to": "WiseOwl.Cobol.Binding.EditionContext",
           "removedBy": [
             "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375"
           ]
         },
         {
@@ -2553,13 +2441,6 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
           "to": "WiseOwl.Cobol.Binding.SortCollation",
           "removedBy": [
             "PB2399",
@@ -2570,7 +2451,6 @@
           "from": "WiseOwl.Cobol.CodeGen.StringEmitter",
           "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2418",
             "PB2399",
@@ -2589,13 +2469,6 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.CodeGen.TransactionEmitter",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375"
-          ]
-        },
-        {
           "from": "WiseOwl.Cobol.CodeGen.UnitEmitters",
           "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
@@ -2603,13 +2476,6 @@
             "PB2402",
             "PB2399",
             "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.UnitEmitters",
-          "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "removedBy": [
-            "PB2375"
           ]
         },
         {
@@ -3194,13 +3060,12 @@
       "walkUses": 34,
       "removedBy": [
         "PB2361",
-        "PB2375",
         "PB2399",
         "PB2402",
         "PB2405",
         "PB2420"
       ],
-      "plan": "PB2361, PB2375, PB2402, PB2399 and PB2405 (the same extracts and moves); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1)",
+      "plan": "PB2361, PB2402, PB2399 and PB2405 (the same extracts and moves); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1). PB2375 (landed) removed this layer's pairs onto the resolver",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
@@ -3344,7 +3209,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
           "to": "WiseOwl.Cobol.Binding.FunctionDeviceForm",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2399",
             "PB2405",
@@ -3355,7 +3219,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
           "to": "WiseOwl.Cobol.Binding.IntrinsicCatalog",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2399",
             "PB2405",
@@ -3366,7 +3229,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
           "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2399",
             "PB2405",
@@ -3394,7 +3256,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2402",
             "PB2399",
@@ -3406,7 +3267,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
           "to": "WiseOwl.Cobol.Binding.IntrinsicResultType",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2402",
             "PB2399",
@@ -3418,7 +3278,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
           "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2402",
             "PB2399",
@@ -3484,7 +3343,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
           "to": "WiseOwl.Cobol.Binding.AlgebraicRanges",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2399",
             "PB2405",
@@ -3495,7 +3353,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2399",
             "PB2405",
@@ -3506,7 +3363,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
           "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
           "removedBy": [
-            "PB2375",
             "PB2361",
             "PB2399",
             "PB2405",

@@ -92,7 +92,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     /// cannot be addressed.</summary>
     internal AllCount? SumCounterOccurrenceCount(ReportSumFamily family, int level) =>
         level < family.Repetitions.Count && family.Repetitions[level] is { DependingItem: { } dn } spec
-            ? (refs.ResolveItem(dn) is { } depending ? new AllCount.ReportDepending(depending, spec.Min, spec.Max) : null)
+            ? (refs.Places.ResolveItem(dn) is { } depending ? new AllCount.ReportDepending(depending, spec.Min, spec.Max) : null)
             : new AllCount.Fixed(family.Extents[level]);
 
     /// <summary>The SUM ENTRY a reference names — <see cref="SumCounterFor"/>'s name-and-qualifier half, shared with

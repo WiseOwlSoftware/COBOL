@@ -94,7 +94,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // first, in the order a per-evaluation window drains it - the property GETs, then the pre-ops (R1-1, R2-1).
         if (written is null && fromWhens is not null)
             prelude = host.Udf.OperandSteps([.. host.Oo.OoReplayPropertyGets(fromWhens.PropertyOps), .. fromWhens.PreOps]);
-        path = ReferenceResolver.BuildTablePath(table, enclosing);
+        path = PlaceBuilder.BuildTablePath(table, enclosing);
         if (path is null)
         {
             bail = new BoundUnsupported($"{verb} of the dynamic-capacity table '{table.CobolName}': "
@@ -203,7 +203,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         if (!DynamicTablePath(s.dataReference(), "SEARCH", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
         return Preceded(prelude, new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
-            DependItem: OdoModel.SearchDepending(table, ctx.Refs),
+            DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // §14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
             // sets the nonfatal range EC when checking is enabled — captured at the statement line (F10/CONTINUE template).
@@ -251,7 +251,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         if (!DynamicTablePath(s.dataReference(), "SEARCH ALL", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
         return Preceded(prelude, new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0,
-            AlsoVaried: null, atEnd, whens, IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
+            AlsoVaried: null, atEnd, whens, IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // SEARCH ALL forces the index to 1 (GR9 ignores the initial setting) so SEARCH-INDEX can never arise;
             // only an unsuccessful scan (incl. an empty table) sets EC-RANGE-SEARCH-NO-MATCH.

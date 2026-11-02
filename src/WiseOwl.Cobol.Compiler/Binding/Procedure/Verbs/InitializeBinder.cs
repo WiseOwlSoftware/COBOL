@@ -203,7 +203,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // item hides a container's GLOBAL dynamic table of the same name (SymbolTable.TryResolveUnqualified).
         if (dref.dataReferenceSuffix().Length == 0
             && ctx.Symbols.TryResolveUnqualified(dref.cobolWord()?.GetText() ?? dref.GetText(), ctx.ActiveScope, out var dyns)
-            && dyns.FirstOrDefault(i => i.IsDynamicTable) is { } dtbl && ReferenceResolver.BuildTablePath(dtbl) is { } tblPath)
+            && dyns.FirstOrDefault(i => i.IsDynamicTable) is { } dtbl && PlaceBuilder.BuildTablePath(dtbl) is { } tblPath)
         {
             var v = NextLoopVar();
             var body = new List<InitializeAction>();
@@ -354,7 +354,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         !table.IsDynamicTable && table.OccursSpec is { DependingName: not null, Depending: { } dep }
             && (identifier1 is null || OdoModel.IsWithin(dep, identifier1))
             ? (table.Occurs is { } max ? new AllCount.Fixed(max) : null)                // GR8b — the maximum
-            : OccurrenceCounts.Current(table, tablePath, ctx.Refs);                      // GR4 / GR8a / GR10
+            : OccurrenceCounts.Current(table, tablePath, ctx.Refs.Places);                      // GR4 / GR8a / GR10
 
     /// <summary>The recursive receiver walk (ISO §14.9.20 GR5), in definition order (GR8). Exclusions: GR5a2 —
     /// an explicit-or-implicit FILLER elementary item (a null <see cref="DataItem.CobolName"/>) unless WITH FILLER

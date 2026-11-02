@@ -92,7 +92,7 @@ internal static class SortKeyAdmission
         string? shape = null;
         if (key.IsDynamicLength)
             shape = rules == SortKeyRules.TableSort ? null : "a dynamic-length elementary item";   // SR14 d) names groups only
-        else if (key.IsGroup && RefModBinder.HasVariableLengthSubordinate(key))
+        else if (key.IsGroup && DataItem.HasVariableLengthSubordinate(key))
             shape = "a variable-length group (ISO §8.5.1.12.1)";
         else if (key.IsGroup && DataItem.DescendantsOf(key).Any(d => d.OccursSpec is { Depending: not null }))
             shape = "an occurs-depending group item (ISO §13.18.38.4 GR8)";

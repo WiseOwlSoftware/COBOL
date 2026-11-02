@@ -24,7 +24,7 @@ using WiseOwl.Cobol.Runtime;
 /// layout; the .NET type IS the storage. (Slice scope: WORKING-STORAGE groups + elementary items with fixed
 /// OCCURS recorded; FILE/LINKAGE/LOCAL-STORAGE, level-66/88, and REDEFINES follow in later slices.)
 /// </summary>
-public sealed partial class DataBinder(EditionContext? edition = null)
+public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceFacts
 {
     private int _fillerCounter;
     private int _uidCounter;
@@ -310,7 +310,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// to a later statement's; one recorded later is not — the pre-P5.7 order dependency, preserved verbatim
     /// and noted for the P7 lazy-place redesign). Post-bind consumers read <see cref="DataItem.StoreAsImage"/>
     /// (the Storage projection) instead.</summary>
-    internal bool IsImageBackedEarly(DataItem item) => _imageForcedItems.Contains(item);
+    public bool IsImageBackedEarly(DataItem item) => _imageForcedItems.Contains(item);
 
     /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
     /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);
@@ -7247,7 +7247,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "GROUP-USAGE clause may be specified only if the subject of the entry is not strongly typed "
                     + "(ISO §13.18.29.3 SR1)");
             using (Edition.Muted(answered))
-                if (RefModBinder.HasVariableLengthSubordinate(item))
+                if (DataItem.HasVariableLengthSubordinate(item))
                     Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
                         + "GROUP-USAGE clause may be specified only if the subject of the entry is not a "
                         + "variable-length group (ISO §13.18.29.3 SR1; §8.5.1.12)");
@@ -8212,7 +8212,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// mixed-USAGE pun is an ordinary byte-window class. D rejects the nested pointer/object backstop and the
     /// NATIONAL residue.</summary>
     // (ContainsDynamicTable was deleted with kb/Work PB177 arm C: its SUBORDINATE half is §13.18.44.3 SR17's,
-    // now screened per written entry through RefModBinder.HasVariableLengthSubordinate — §8.5.1.12.1's own
+    // now screened per written entry through DataItem.HasVariableLengthSubordinate — §8.5.1.12.1's own
     // definition of "variable-length group" — and its SELF half is the narrowed `m.IsDynamicTable` test at the
     // COBOL1525 arm. Two spellings of one walk collapsed into the predicate the standard actually defines.)
 
@@ -8543,6 +8543,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>
     private IEnumerable<DataItem> AllItems() => Roots.SelectMany(DataItem.SelfAndDescendantsOf);
+
+    /// <summary>Every data item a consumer may ask a <see cref="Place"/> of by item (<c>PlaceTablePass</c>, kb/Work PB2375): the
+    /// forest, and the LINKAGE formals and the RETURNING item with their subordinates - a formal a method declares can sit
+    /// outside <see cref="Roots"/>. Each item once.</summary>
+    internal IEnumerable<DataItem> PlaceableItems() => AllItems()
+        .Concat(LinkageFormals.Select(f => f.Item).Concat(LinkageReturning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
+        .Distinct(ReferenceEqualityComparer.Instance).Cast<DataItem>();
 
     /// <summary>The SUBORDINATE items of this forest's own TYPEDEF templates (<see cref="AllTypeDecls"/>, kept
     /// off <see cref="Roots"/>), pre-order in declaration order: the members the programmer wrote and the clones

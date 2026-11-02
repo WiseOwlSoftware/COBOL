@@ -91,7 +91,7 @@ internal sealed partial class OoBinder
                     factory: phrase.FACTORY() is not null, only: phrase.ONLY() is not null,
                     $"the object-view '{written} {phraseText}'", "ISO §8.4.3.5.2",
                     DiagnosticCatalog.ObjectViewInterfacePhrase, "ISO §8.4.3.5.2; §8.4.3.5.4 GR6");
-            if (ctx.Refs.ResolveItem(ctx.Data.OoCreateObjectViewTemp(view)) is not { } temp)
+            if (ctx.Refs.Places.ResolveItem(ctx.Data.OoCreateObjectViewTemp(view)) is not { } temp)
                 return BoundExprError.Unbuilt(ctx.Edition, "the object-view's temporary");
             ctx.Data.PendingPreOps.Add(new BoundObjectView(temp, source, view, $"{written} {phraseText}"));
             source = temp;

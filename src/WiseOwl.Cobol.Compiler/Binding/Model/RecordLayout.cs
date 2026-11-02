@@ -311,7 +311,7 @@ internal static class RecordLayout
                     if (c.RedefinesTargetName is null) { preceding++; maxBytes += FileModel.MaxDynamicExtent(c); }
                     continue;   // §8.5.1.12.3 — contributes nothing to the fixed run
                 }
-                if (c.IsGroup && RefModBinder.HasVariableLengthSubordinate(c) && c.RedefinesTargetName is null)
+                if (c.IsGroup && DataItem.HasVariableLengthSubordinate(c) && c.RedefinesTargetName is null)
                 {
                     running = Walk(c, cStart);   // a nested variable-length group flattens in place
                     continue;

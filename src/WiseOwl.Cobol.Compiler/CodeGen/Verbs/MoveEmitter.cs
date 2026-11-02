@@ -14,7 +14,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// <see cref="EmitContext"/>, extracted from the orchestrator partial): the pure per-kind MOVE renderer
 /// (the dispatch travels on <c>BoundMove.Kinds</c>, P7 Step 7) and <c>ConvertSource</c> — the ONE MOVE
 /// conversion path Report Writer's synthetic print items and INITIALIZE's implicit stores share.</summary>
-internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs,
+internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTable places,
     ReceiverBracketEmitter brackets)
 {
     /// <summary>Render one MOVE — a PURE per-store renderer since P7 Step 7: the dispatch travels on the node
@@ -446,7 +446,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // path skips the encode/decode round trip and is the locked NC107A shape.
             if (source is BoundFieldOperand { Place.Item: { IsGroup: true } srcGroup }
                 && AlignedLeafPairs(srcGroup, target.Item) is { } pairs
-                && pairs.Select(p => (S: refs.ResolveItem(p.Src), T: refs.ResolveItem(p.Tgt))).ToList()
+                && pairs.Select(p => (S: places.Of(p.Src), T: places.Of(p.Tgt))).ToList()
                     is { } resolved && resolved.All(r => r.S is not null && r.T is not null))
             {
                 // C#'s receiver-first order is unobservable here (kb/Work PB3261): AlignedLeafPairs admits no OCCURS on
