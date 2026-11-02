@@ -333,12 +333,12 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
                     + "the leftmost position explicitly, for example (1:2).");
             return null;
         }
-        if (refs.BindPosition(new ReferenceResolver.PositionSegment(ReferenceResolver.LeafTokens(spec.leftmost), spec.leftmost), SegmentPosition.RefMod)
+        if (refs.Subscripts.BindPosition(new PositionSegment(SubscriptBinder.LeafTokens(spec.leftmost), spec.leftmost), SegmentPosition.RefMod)
             is not { } rmStart) return null;
         Position? rmLen = null;
         if (spec.length is { } lengthExpr)
         {
-            if (refs.BindPosition(new ReferenceResolver.PositionSegment(ReferenceResolver.LeafTokens(lengthExpr), lengthExpr), SegmentPosition.RefMod)
+            if (refs.Subscripts.BindPosition(new PositionSegment(SubscriptBinder.LeafTokens(lengthExpr), lengthExpr), SegmentPosition.RefMod)
                 is not { } l) return null;
             rmLen = l;
         }
@@ -401,7 +401,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// whose text is "0"): §13.18.16.3 SR4 and its twins want an INTEGER LITERAL, and ZERO is a figurative constant
     /// (§8.8.1.1), so <see cref="ReadLiteralPositions"/> must not take its text for the literal <c>0</c> (kb/Work PB3960).</summary>
     private static bool WritesFigurativeZero(IParseTree position) =>
-        ReferenceResolver.LeafTokens(position).Exists(t => t.Type == Core.ZERO_ARITH);
+        SubscriptBinder.LeafTokens(position).Exists(t => t.Type == Core.ZERO_ARITH);
 }
 
 /// <summary>What ONE data reference carries after its base word, read lexically by

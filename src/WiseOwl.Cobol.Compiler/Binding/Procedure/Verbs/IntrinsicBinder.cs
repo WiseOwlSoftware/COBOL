@@ -3147,8 +3147,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // this was the one caller that passed none, so the "unknown → no split" fallback stood here and a
         // §8.4.2.3.2 NOTE-2 parenthesized-expression subscript (`T (CTR (- OFF) ALL)`) joined itself to the
         // preceding name. Three callers, one §8.4.2.3.3 SR2 answer.
-        var innerSegs = ReferenceResolver.SegmentsOf(sp, ctx.Refs.CannotBeSubscripted);
-        if (!innerSegs.Any(ReferenceResolver.IsAllSegment)) return false;
+        var innerSegs = SubscriptBinder.SegmentsOf(sp, ctx.Refs.Subscripts.CannotBeSubscripted);
+        if (!innerSegs.Any(SubscriptBinder.IsAllSegment)) return false;
 
         if (!sig.RepeatsAnArgument)
         {
@@ -3179,7 +3179,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (levels.Count != innerSegs.Count)
         {
             // The resolver's ONE §8.4.2.3.3 SR2/SR3 report (kb/Work PB1029 — this arm refused silently).
-            ctx.Refs.ScreenSubscriptArity(dref, item, innerSegs.Count);
+            ctx.Refs.Subscripts.ScreenSubscriptArity(dref, item, innerSegs.Count);
             args.Add(BoundOperandError.Refused(ctx.Edition, $"table(ALL) subscript count for '{name}'"));
             return true;
         }
@@ -3188,11 +3188,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         var exprs = new Position[innerSegs.Count];
         var counts = new List<AllCount>();
         var outerExprs = new List<Position>();   // the index of every level ABOVE the current one
-        List<ReferenceResolver.IndexUse> indexNames = [];   // §8.4.2.3.3 SR4's collector — see below the loop
+        List<IndexUse> indexNames = [];   // §8.4.2.3.3 SR4's collector — see below the loop
         for (int i = 0; i < innerSegs.Count; i++)
         {
             DataItem level = levels[i];
-            if (ReferenceResolver.IsAllSegment(innerSegs[i]))
+            if (SubscriptBinder.IsAllSegment(innerSegs[i]))
             {
                 exprs[i] = new PositionLocalElement(indices, counts.Count);
                 // The level's range is the ONE current-occurrence-count model (fixed / ODO / dynamic capacity) — or,
@@ -3208,7 +3208,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 }
                 counts.Add(count);
             }
-            else if (ctx.Refs.BindIndexSegment(innerSegs[i], indexNames) is { } bound)
+            else if (ctx.Refs.Subscripts.BindIndexSegment(innerSegs[i], indexNames) is { } bound)
                 exprs[i] = bound;
             else
             {
@@ -3219,9 +3219,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         // §8.4.2.3.3 SR4 — "Index-name-1 shall correspond to a data description entry in the hierarchy of the table
         // being referenced that contains an INDEXED BY phrase specifying that index-name" — through THE ONE screen the
-        // ordinary subscript reading asks (ReferenceResolver.ReadSubscripts), over the index-names the written
+        // ordinary subscript reading asks (SubscriptBinder.ReadSubscripts), over the index-names the written
         // non-ALL segments carried (kb/Work PB1472). The ALL segments name none.
-        ctx.Refs.ScreenIndexNameAssociation(item, indexNames);
+        ctx.Refs.Subscripts.ScreenIndexNameAssociation(item, indexNames);
         if ((counter is ({ } counterReport, { } counterFamily)
                 ? ctx.Refs.Counters.SumCounterPlace(counterReport, counterFamily, exprs)
                 : ctx.Refs.ResolveByName(name, quals, exprs)) is not { } element)

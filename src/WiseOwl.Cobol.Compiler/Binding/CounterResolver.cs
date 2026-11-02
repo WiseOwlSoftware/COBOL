@@ -60,7 +60,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         if (SumCounterFamilyFor(dref, name, written.Qualifiers, report) is not ({ } rep, { } family)) return null;
         // §8.4.3.3.3 SR3 — the count screen every identifier entry runs (ScreenRefModCount), asked of the counter too.
         if (!refs.RefMods.ScreenRefModCount(dref, written, name)) return RefResolution.Refused(DataBinder.WrittenText(dref));
-        if (refs.ReadSubscripts(dref, family.Register, written.SubscriptGroup, out var indexExprs) is { } refusal)
+        if (refs.Subscripts.ReadSubscripts(dref, family.Register, written.SubscriptGroup, out var indexExprs) is { } refusal)
             return refusal;
         var counter = SumCounterPlace(rep, family, indexExprs);
         if (written.RefModCount == 0) return RefResolution.Resolved(counter, "");

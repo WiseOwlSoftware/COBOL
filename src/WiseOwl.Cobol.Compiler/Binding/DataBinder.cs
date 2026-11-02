@@ -533,7 +533,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// ordinary-looking <c>dataReference</c>) and a property reference (§8.4.3.9 — <c>prop OF obj</c>, textually a
     /// qualified data reference, whose get/set accessor is a METHOD invocation). Only the binder can tell these from a
     /// subscripted or qualified data item, so it records the decision here once, where it makes it
-    /// (<c>IntrinsicBinder.KeywordOmittedFunction</c>, <c>ReferenceResolver.IsFunctionBearing</c>,
+    /// (<c>IntrinsicBinder.KeywordOmittedFunction</c>, <c>SubscriptBinder.IsFunctionBearing</c>,
     /// <c>ObjectPropertyResolver.ResolveObjectProperty</c>), and the migration-flag pass reads it back for ISO §7.3.14.4
     /// GR4 b ("the source element calls any function, or invokes any method") instead of re-deriving the rule from
     /// syntax. Identity-keyed: a node is a call site or it is not.</summary>
@@ -3738,7 +3738,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>⛔ THE ONE ANSWER to "does the REPOSITORY paragraph in scope identify this word as an
     /// intrinsic-function-name?" (kb/Work PB1083) — asked by the declaration screen (<see cref="DeclareUserWord"/>),
     /// the keyword-omitted function reference (<c>IntrinsicBinder.KeywordOmittedFunction</c>) and the subscript
-    /// renderer's function detection (<c>ReferenceResolver.IsFunctionBearing</c>), which used to ask
+    /// renderer's function detection (<c>SubscriptBinder.IsFunctionBearing</c>), which used to ask
     /// <c>IntrinsicCatalog.TryGet(written word)</c> three times over and so ignored both halves below.
     /// <list type="bullet">
     /// <item>&gt;&gt;COBOL-WORDS, through the ONE resolution (<c>CobolWordsMap.Resolve</c>, kb/Work PB250): §12.3.8.4

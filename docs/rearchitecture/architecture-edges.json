@@ -554,10 +554,12 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "from": "WiseOwl.Cobol.Binding.SubscriptBinder",
           "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
           "removedBy": [
-            "PB2404"
+            "PB2320",
+            "PB2404",
+            "PB2421"
           ]
         }
       ]
@@ -566,7 +568,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 41,
+      "walkUses": 42,
       "removedBy": [
         "PB2347",
         "PB2419",
@@ -868,6 +870,13 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.SegmentPosition",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.SubscriptBinder",
           "removedBy": [
             "PB2347"
           ]

@@ -59,7 +59,7 @@ public abstract record Position
     /// (<c>10^digits − 1</c>, widened by trailing P positions), and an operator composes its operands' bounds
     /// (<c>+ -</c> add them, <c>*</c> multiplies them). Narrow operands (the ordinary <c>T(I + 1)</c>) keep the
     /// <c>long</c> fast path; a position that answers true is bound through the ONE expression binder instead
-    /// (<c>ReferenceResolver.MaterializePosition</c>), whose intermediate rule is the arithmetic statements'
+    /// (<c>SubscriptBinder.MaterializePosition</c>), whose intermediate rule is the arithmetic statements'
     /// (§8.8.1.3 native arithmetic, kb/Work PB1900) and whose result then meets the §8.4.2.3.4 bound check.
     /// <para>A bare leaf never answers true: an item read is a single <c>CobolTable.Occ</c> and does no arithmetic. Every
     /// operator node answers for itself, and a leaf that is itself past <c>long</c> (a 19–38 digit item) makes its

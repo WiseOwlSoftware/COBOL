@@ -61,14 +61,14 @@ public sealed partial class StatementBinder
     /// detail for <c>EL(A + 5)</c> with <c>A PIC 9(21)</c> holding 10^20: the narrowing to <c>long</c> now happens only
     /// at the subscript read (<c>CobolTable.Occ</c>, which carries the exact value to the diagnostic). The item takes
     /// the <c>Int128</c> wide tier (<c>PicInfo.IsWide</c>, &gt;18 digits), which the position
-    /// read accepts (<see cref="ReferenceResolver.NumericPositionCarriers"/>). The temp is synthetic and never enters
+    /// read accepts (<see cref="SubscriptBinder.NumericPositionCarriers"/>). The temp is synthetic and never enters
     /// <c>DataBinder.ConformanceForest</c>, so the edition digit-capacity gates do not apply to it.</para></summary>
     private static readonly PicInfo SegmentTempPic =
         new(PicCategory.Numeric, Usage.Display, Length: 38, Digits: 38, Scale: 0, Signed: true);
 
     /// <summary>Materialize one position the resolver's direct walk cannot read — a function-bearing subscript or
     /// ref-mod bound, a division, an exponentiation, a decimal literal (the D18 route; the
-    /// <c>ReferenceResolver.MaterializeSegment</c> hook), given the position's own <c>arithmeticExpression</c> parse
+    /// <c>SubscriptBinder.MaterializeSegment</c> hook), given the position's own <c>arithmeticExpression</c> parse
     /// node (kb/Work PB2151: the node is bound where the grammar parsed it). Returns the §15.4 temporary the value
     /// lands in, or <see langword="null"/> to leave the caller's loud posture untouched. A position that is not an
     /// arithmetic expression never arrives: the resolver refuses it by name (COBOL2363, kb/Work PB1030).

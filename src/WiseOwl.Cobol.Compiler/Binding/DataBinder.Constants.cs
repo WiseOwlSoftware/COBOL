@@ -25,7 +25,7 @@ using WiseOwl.Cobol.Runtime;
 /// <list type="bullet">
 /// <item><c>ExpressionBinder.FieldOperand</c> / <c>RefExpr</c> — the ONE dataReference→operand/expression
 /// mappings every verb consumes (MOVE/DISPLAY sources, relations, PERFORM TIMES, arithmetic);</item>
-/// <item><c>ReferenceResolver.ResolveSubscriptName</c> — subscript positions (§13.10.3 SR2: an integer
+/// <item><c>SubscriptBinder.ResolveSubscriptName</c> — subscript positions (§13.10.3 SR2: an integer
 /// constant-name stands where the format specifies an integer);</item>
 /// <item><see cref="IntegerOperandValue"/> — every integer-n position (the OCCURS bounds, the report-writer LINE, COLUMN,
 /// NEXT GROUP, PAGE and STEP integers, RESERVE, BLOCK CONTAINS, RECORD CONTAINS, DYNAMIC LENGTH LIMIT, PICTURE LOCALE
@@ -621,7 +621,7 @@ public sealed partial class DataBinder
     private static string WrittenSpecification(Core.ConstantValueContext cv)
     {
         var tokens = new List<Antlr4.Runtime.IToken>();
-        ReferenceResolver.CollectLeafTokens(cv.dataReference() ?? (IParseTree)cv, tokens);
+        SubscriptBinder.CollectLeafTokens(cv.dataReference() ?? (IParseTree)cv, tokens);
         string written = string.Join(' ', tokens.Select(t => t.Text));
         return cv.LENGTH() is not null ? "LENGTH OF " + written
             : cv.constantByteLengthWord() is not null ? "BYTE-LENGTH OF " + written
@@ -807,7 +807,7 @@ public sealed partial class DataBinder
     /// size of the data item is used" — holds by construction. Every syntax rule of §13.10.3 names data-name-1 and
     /// data-name-2 TOGETHER, so the two operands take the same screens: SR3 all subscripts shall be literals; §8.4.2.3.3
     /// SR2/SR3/SR5 the subscript count against the item's OCCURS depth, through
-    /// <see cref="ReferenceResolver.ScreenSubscriptArity"/> (kb/Work PB1016); SR10 no ANY LENGTH operand; SR12 no
+    /// <see cref="SubscriptBinder.ScreenSubscriptArity"/> (kb/Work PB1016); SR10 no ANY LENGTH operand; SR12 no
     /// dynamic-length elementary item or variable-length group operand, through
     /// <see cref="VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup"/>. The operand may be described AFTER
     /// the entry (kb/Work PB1231 — §13.10.3 SR4 forbids only a length that depends on the constant): see
@@ -841,10 +841,10 @@ public sealed partial class DataBinder
         int subscripts = 0;   // the subscripts as written — §8.4.2.3.3 SR2/SR3/SR5's operand, screened below
         if (w.SubscriptGroup is { } sub)
         {
-            if (ReferenceResolver.IsEmptyGroup(sub))
+            if (SubscriptBinder.IsEmptyGroup(sub))
             {
                 Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
-                    $"{where}: {phrase} '{written}': " + ReferenceResolver.EmptyParenthesesMessage);
+                    $"{where}: {phrase} '{written}': " + SubscriptBinder.EmptyParenthesesMessage);
                 return null;
             }
             // §13.10.3 SR3: all subscripts of data-name-1 and data-name-2 shall be literals. (A subscript never
@@ -852,20 +852,20 @@ public sealed partial class DataBinder
             // A subscript is an integer position, and SR2 lets an INTEGER constant-name stand "anywhere that a format
             // specifies a literal of the class and category of constant-name-1" — GR1/GR3 make it that integer
             // literal — so `LENGTH OF E (KI)` with `01 KI CONSTANT AS 2` is a literal subscript (kb/Work PB1232; the
-            // procedure-division twin is ReferenceResolver.ResolveSubscriptName's constant arm).
+            // procedure-division twin is SubscriptBinder.ResolveSubscriptName's constant arm).
             var toks = new List<Antlr4.Runtime.IToken>();
-            ReferenceResolver.CollectLeafTokens(sub, toks);
+            SubscriptBinder.CollectLeafTokens(sub, toks);
             // GROUPING-PAREN-ONLY beside the list's own REF_ parens: a nested paren inside the list is a group (no
             // FNARG_ paren can occur without a FUNCTION, which is no literal).
             if (toks.Any(t => t.Type is not (Core.INTEGERLIT or Core.REF_LPAREN or Core.REF_RPAREN
                     or Core.LPAREN or Core.RPAREN or Core.FNARG_SEPARATOR or Core.COMMA)
-                && !(ReferenceResolver.IsNameToken(t) && IsIntegerConstant(t.Text))))
+                && !(SubscriptBinder.IsNameToken(t) && IsIntegerConstant(t.Text))))
             {
                 Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: all subscripts of the {phrase} "
                     + "operand shall be literals (ISO §13.10.3 SR3)");
                 return null;
             }
-            subscripts = resolver.SubscriptSegments(dref)?.Count ?? 0;
+            subscripts = resolver.Subscripts.SubscriptSegments(dref)?.Count ?? 0;
         }
         if (LengthOperandItem(resolver, baseName, w.Qualifiers, name, phrase, written, where, demanded, out waits)
             is not { } item)
@@ -875,7 +875,7 @@ public sealed partial class DataBinder
         // subscript ("All subscripts of data-name-1 and data-name-2 shall be literals"); whether one may be
         // written at all, and how many, is §8.4.2.3.3's, and a constant entry is not among SR5's seven
         // exemptions. `CONSTANT AS LENGTH OF PLAIN (1)` over a non-table item compiled and yielded 7.
-        if (resolver.ScreenSubscriptArity(dref, item, subscripts)) return null;
+        if (resolver.Subscripts.ScreenSubscriptArity(dref, item, subscripts)) return null;
         // §13.10.4 GR5/GR6 measure the item AS DESCRIBED — its implied PICTURE, TYPE / SAME AS composition, group USAGE
         // and group SIGN applied — and the pipeline that applies them has not run yet (kb/Work PB2465): the operand's
         // description is completed now, by the same passes, before anything below reads it.

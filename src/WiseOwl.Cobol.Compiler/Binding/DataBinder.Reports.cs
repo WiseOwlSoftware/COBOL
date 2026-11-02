@@ -5083,7 +5083,7 @@ public sealed partial class DataBinder
 
     private static IEnumerable<string> SubscriptIdentifiers(Antlr4.Runtime.Tree.IParseTree node) =>
         ParseTreeWalk.SelfAndDescendants(node).OfType<Antlr4.Runtime.Tree.ITerminalNode>()
-            .Where(t => ReferenceResolver.IsNameToken(t.Symbol) || t.Symbol.Type is Core.LINE_COUNTER or Core.PAGE_COUNTER)
+            .Where(t => SubscriptBinder.IsNameToken(t.Symbol) || t.Symbol.Type is Core.LINE_COUNTER or Core.PAGE_COUNTER)
             .Select(t => t.GetText());
 
     /// <summary>Is <paramref name="word"/> one of the identifiers ISO §8.4.2.3.3 SR8 bars as a report section subscript:

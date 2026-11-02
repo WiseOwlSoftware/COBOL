@@ -377,7 +377,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
 
     /// <summary>Whether the binder resolved <paramref name="dref"/> to a keyword-omitted function activation: the
     /// reference itself, or — for one written inside a subscript, which the subscript renderer binds from its tokens —
-    /// its head token (ReferenceResolver.IsFunctionBearing records that).</summary>
+    /// its head token (SubscriptBinder.IsFunctionBearing records that).</summary>
     private bool IsActivation(CobolParserCore.DataReferenceContext dref)
         => _activationSites.Contains(dref) || _activationSites.Contains(dref.Start);
 

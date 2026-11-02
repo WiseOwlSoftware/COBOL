@@ -43,7 +43,7 @@ using WiseOwl.Cobol.Runtime;
 /// associated with identifier-1 … The index-name subscript shall not be followed by a '+' or a '–'" — which the
 /// rendered C# index expression has already erased (an index-name and an integer item of the same value render
 /// identically, and <c>IX + 1</c> folds into the arithmetic). They are therefore asked of the raw subscript token
-/// segments, <see cref="ReferenceResolver.SubscriptSegments"/>.</para>
+/// segments, <see cref="SubscriptBinder.SubscriptSegments"/>.</para>
 /// <para>No edition gate: Format 2 is a COBOL-85 construct and SR7–SR13 are unchanged text at 85, 2002, 2014 and
 /// 2023, so all four editions get the same verdict (the PB445 negative goldens carry all four in their
 /// <c>reject-at</c> headers).</para>
@@ -377,7 +377,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 + $"OCCURS clause associated with '{table.CobolName}'; {role} \"shall be neither referenced in "
                 + "the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the first "
                 + "index-name associated with identifier-1\" (ISO §14.9.37.3 SR10)");
-        if (table.Indexes.Count > 0 && refs.SubscriptNamesIndex(dref, table.Indexes[0]))
+        if (table.Indexes.Count > 0 && refs.Subscripts.SubscriptNamesIndex(dref, table.Indexes[0]))
             ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is subscripted by '{firstIndex}', the "
                 + $"first index-name associated with '{table.CobolName}'; {role} \"shall be neither referenced "
                 + "in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the "
@@ -424,7 +424,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                                    string firstIndex, string rule)
     {
         int pos = OdoModel.SubscriptPositionOf(item, table);
-        var segs = refs.SubscriptSegments(dref);
+        var segs = refs.Subscripts.SubscriptSegments(dref);
         List<IToken> toks = pos >= 0 && segs is not null && pos < segs.Count ? segs[pos].Tokens : [];
         if (toks.Count == 0)
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not subscripted by '{firstIndex}': it \"shall be "
@@ -436,12 +436,12 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         int next = 1;
         List<string> quals = [];
         while (next + 1 < toks.Count && toks[next].Type is Core.OF or Core.IN
-               && ReferenceResolver.IsNameToken(toks[next + 1]))
+               && SubscriptBinder.IsNameToken(toks[next + 1]))
         {
             quals.Add(toks[next + 1].Text);
             next += 2;
         }
-        if (!ReferenceResolver.IsNameToken(toks[0])
+        if (!SubscriptBinder.IsNameToken(toks[0])
             || !CobolNames.Same(toks[0].Text, firstIndex)
             || (table.Indexes.Count > 0
                 && refs.Names.ResolveIndexName(toks[0].Text, quals, toks[0]) is { Outcome: IndexRefOutcome.Resolved } ix
