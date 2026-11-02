@@ -71,18 +71,18 @@ public sealed record BoundTableSort(
 public abstract record TableSortStorage
 {
     /// <summary>A table with its own typed element array, reached by <paramref name="Array"/> — the whole-table
-    /// access path, with an index for each enclosing table (<c>ReferenceResolver.BuildTablePath</c>).
+    /// access path, with an index for each enclosing table (<c>PlaceBuilder.BuildTablePath</c>).
     /// <para><paramref name="KeyWindowOuter"/> is null when every key is a stored member of the element struct (the key
     /// is read through its <see cref="BoundTableSortKey.MemberChain"/> off the element). It is the enclosing tables' rendered index expressions when ANY key is not —
     /// a key that lies behind a REDEFINES view of the element has no stored field on the struct (kb/Work PB599) — and then
-    /// EVERY key is read through its window at an occurrence number (<c>ReferenceResolver.ResolveItemAt</c>, the
+    /// EVERY key is read through its window at an occurrence number (<c>PlaceBuilder.ResolveItemAt</c>, the
     /// <see cref="SharedArea"/> law), the element order is sorted, and the elements are placed back by that
     /// permutation.</para></summary>
     public sealed record TypedArray(AccessPath Array, IReadOnlyList<Position>? KeyWindowOuter = null) : TableSortStorage;
 
     /// <summary>A table whose storage is a shared byte area — a REDEFINES class, a record area shared by several
     /// 01s, a BASED or EXTERNAL record. It has no element array: each element and each key is a window the class's
-    /// own offset law places (<c>ReferenceResolver.ResolveItemAt</c>), one rendered index expression per OCCURS
+    /// own offset law places (<c>PlaceBuilder.ResolveItemAt</c>), one rendered index expression per OCCURS
     /// level — <paramref name="OuterIndexExprs"/> for the enclosing tables, then the element's own.</summary>
     public sealed record SharedArea(IReadOnlyList<Position> OuterIndexExprs) : TableSortStorage;
 }

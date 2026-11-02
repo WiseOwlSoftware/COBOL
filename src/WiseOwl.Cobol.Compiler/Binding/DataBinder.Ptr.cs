@@ -240,7 +240,7 @@ public sealed partial class DataBinder
     /// <summary>Record a forced class's per-instance cell. ⛔ THE CLASS NAMES ITS OWN CELL (kb/Work PB231): the field used
     /// to carry an ad-hoc <c>_cell_{NAME}</c> spelling that only this list knew, so a place builder could not reach the
     /// cell to address the area's MANAGED SLOTS. It is now <see cref="RedefinesClass.BackingCellClrName"/>, the ONE name
-    /// every cell surface uses and <c>ReferenceResolver.BuildCellPath</c> resolves.</summary>
+    /// every cell surface uses and <c>PlaceBuilder.BuildCellPath</c> resolves.</summary>
     private void ClaimAddressableCell(RedefinesClass cls)
     {
         string cell = cls.BackingCellClrName;

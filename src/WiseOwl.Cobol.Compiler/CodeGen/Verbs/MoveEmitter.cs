@@ -597,7 +597,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
 
     /// <summary>The positionally-paired leaves of two groups whose flattened layouts are IDENTICAL — each pair
     /// shares usage, digit count, scale, sign and storage shape, and neither group involves OCCURS, REDEFINES,
-    /// RENAMES or reference ambiguity (so <see cref="ReferenceResolver.ResolveItem"/> is exact). Null when the
+    /// RENAMES or reference ambiguity (so <see cref="PlaceBuilder.ResolveItem"/> is exact). Null when the
     /// layouts differ — the caller falls back to the Tier-C loud guard. (ISO §14.9.25.4 GR4: the group move
     /// copies the underlying representation; identical layouts make that a memberwise copy.)</summary>
     private static List<(DataItem Src, DataItem Tgt)>? AlignedLeafPairs(DataItem source, DataItem target)

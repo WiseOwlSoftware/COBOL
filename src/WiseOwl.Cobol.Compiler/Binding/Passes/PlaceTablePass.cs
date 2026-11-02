@@ -20,7 +20,7 @@ internal static class PlaceTablePass
     {
         if (ctx.Session.Edition.HasErrors) return;
         foreach (var unit in ctx.Units)
-            unit.Places = TableOf(unit.Data, unit.Refs, ContainersOf(unit).SelectMany(c => c.Data.PlaceableItems()));
+            unit.Places = TableOf(unit.Data, unit.Refs, ContainersOf(unit).SelectMany(c => c.Data.GlobalPlaceableItems()));
         foreach (var cls in ctx.Classes)
         {
             cls.Places = TableOf(cls.Data, cls.Refs, []);
@@ -30,7 +30,7 @@ internal static class PlaceTablePass
 
     /// <summary>The units that contain <paramref name="unit"/>, nearest first. A contained program names its containers'
     /// GLOBAL data (ISO §13.18.27.4 GR1) - a file's record area, a FILE STATUS or key item - and the place of such an item is
-    /// built over THIS program's facts, so the containers' items join its table.</summary>
+    /// built over THIS program's facts, so the containers' GLOBAL items (§8.4.6.2.2), and only those, join its table.</summary>
     private static IEnumerable<BoundUnit> ContainersOf(BoundUnit unit)
     {
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent) yield return anc;

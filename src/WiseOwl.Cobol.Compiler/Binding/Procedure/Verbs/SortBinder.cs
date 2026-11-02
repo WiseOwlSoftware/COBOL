@@ -518,7 +518,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!ctx.Validation.ResolveFile(r.fileName(), "RETURN", out var file)) return BoundRejected.Reported(ctx.Edition);
         if (!ctx.Validation.CheckReturnFile(file)) return BoundRejected.Reported(ctx.Edition);
         // GR3 makes the record available in the WHOLE record area — resolve it through the LARGEST record's view
-        // (ReferenceResolver.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
+        // (PlaceTable.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
         // store (ST111A's 50/75/100 SD). SortRecordOf stays the usability gate (the Tier-C byte-island fence).
         if (RecordLessSd(file)) return new BoundNop();
         if (SortRecordOf(file) is null || ctx.Refs.Places.RecordArea(file) is not { } area)

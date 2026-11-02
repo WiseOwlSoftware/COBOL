@@ -32,7 +32,7 @@ internal abstract record PlaceCursor(DataItem Item)
     /// window cursor, whose members are character windows over one string backing. It is what a
     /// dynamic-capacity child needs (kb/Work PB393): its CAPACITY register and its per-occurrence element
     /// path are both built from the table's own path, and taking it from the cursor rather than from
-    /// <c>ReferenceResolver.BuildTablePath</c> is what keeps a SUBSCRIPTED or qualified group's indices on the
+    /// <c>PlaceBuilder.BuildTablePath</c> is what keeps a SUBSCRIPTED or qualified group's indices on the
     /// path.</summary>
     public virtual AccessPath? StoragePath => null;
 
@@ -58,7 +58,7 @@ internal abstract record PlaceCursor(DataItem Item)
     };
 }
 
-/// <summary>A plain member-access cursor, mirroring <c>ReferenceResolver.AccessPath</c>: <c>ClrName</c> segments
+/// <summary>A plain member-access cursor, mirroring <c>PlaceBuilder.BuildTablePath</c>: <c>ClrName</c> segments
 /// chained with <c>.</c>, each OCCURS level routed through the ref-returning <c>CobolTable.At</c> (benign
 /// subscripting, ISO §8.4.2.3.4 GR2). Entering a Tier-B (string-canonical) REDEFINES class — whose ONE stored
 /// string backing lives in the containing struct (DESIGN §4.2) — switches to a <see cref="ViewCursor"/>;
@@ -117,7 +117,7 @@ internal sealed record DynElementCursor(AccessPath Path, DataItem Item) : PlaceC
 /// the class's ONE string backing. The window offset = the entry place's offset (<paramref name="Base"/>) + (this
 /// item's in-class offset − the entry item's, <paramref name="BaseOffset"/>) + Σ (index − 1) × per-occurrence storage
 /// width for each OCCURS level crossed (ISO §13.18.44 — a redefined table lays its occurrences end-to-end in the one
-/// backing; the same <see cref="PositionOffset"/> law as <c>ReferenceResolver.WindowScopeOf</c>).</summary>
+/// backing; the same <see cref="PositionOffset"/> law as <c>PlaceBuilder.WindowScopeOf</c>).</summary>
 /// <param name="Cell">The backing <c>StorageCell</c> path of the cursor's SCOPE, for the three cell-backed surfaces
 /// — what a pointer-class member's managed slot and a variable-length component's slot address (kb/Work PB231,
 /// PB1042; <see cref="SlotWindow"/>, <see cref="CellComponents"/>). Null for a plain REDEFINES class, which cannot
@@ -140,7 +140,7 @@ internal sealed record ViewCursor(
     /// the level's components per occurrence — the ordinal twin of <see cref="OccursTerms"/>.</summary>
     public IReadOnlyList<OffsetTerm> OrdinalTerms { get; init; } = [];
 
-    /// <summary>The run-time component-ordinal base of the cursor's class scope (<c>ReferenceResolver.CellOrdinalBase</c>,
+    /// <summary>The run-time component-ordinal base of the cursor's class scope (<c>PlaceBuilder.CellOrdinalBase</c>,
     /// kb/Work PB2094) when the cursor entered it whole rather than through a resolved window — null otherwise, and once
     /// a dynamic-capacity table's element cell opened a scope of its own.</summary>
     public Position? OrdinalBase { get; init; }

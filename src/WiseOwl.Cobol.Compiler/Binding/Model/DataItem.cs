@@ -786,7 +786,7 @@ public sealed class DataItem
     /// <c>OoFormal.Carrier</c>) — and null for every other item. ISO §14.2.3 GR8: "the activated runtime element operates
     /// as if the formal parameter occupies the same storage area as the argument", so the item has no storage member of
     /// its own. Every access path rooted here starts at the carrier's root and steps through
-    /// <see cref="CarrierValueSegment"/> (<c>ReferenceResolver.AddRoot</c>), so the access is structure,
+    /// <see cref="CarrierValueSegment"/> (<c>PlaceBuilder.AddRoot</c>), so the access is structure,
     /// <see cref="ClrName"/> stays a name (kb/Work PB4320) and no C# local's name sits on the model (kb/Work PB4380;
     /// DESIGN-backend-abstraction §1.3 L7, L8). Set by <c>DataBinder.CallBindLinkage</c> and
     /// <c>DataBinder.OoBindMethodData</c>.</summary>
@@ -799,7 +799,7 @@ public sealed class DataItem
     /// LOCAL-STORAGE and LINKAGE roots live per activation (ISO §8.6.4: "Their storage is allocated and set to initial state
     /// each time the runtime element containing them is activated"), so they are locals, never members of the class: every
     /// access path to the root's own storage starts at a <see cref="LocalRootSegment"/> over this identity
-    /// (<c>ReferenceResolver.AddRoot</c>), and each backend names it where it declares it (DESIGN-backend-abstraction §1.2,
+    /// (<c>PlaceBuilder.AddRoot</c>), and each backend names it where it declares it (DESIGN-backend-abstraction §1.2,
     /// §1.3 L8). A root whose storage is elsewhere never roots a path here: a carrier-resident formal's is its carrier's
     /// (<see cref="ResidentCarrier"/>, asked first), a Tier-B REDEFINES member's is its class's backing
     /// (<see cref="RedefinesClass.BackingLocal"/>) or cell, and a Tier-A view's is its canonical's. Set by

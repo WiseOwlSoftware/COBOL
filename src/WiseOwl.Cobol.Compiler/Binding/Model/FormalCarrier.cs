@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// a <c>ManagedPointer&lt;T&gt;</c> carrier. Where that carrier lives is the one thing the two arms differ in: a PROGRAM's
 /// carrier is a member of its class, which a GLOBAL bridge and the activation entry also name; a METHOD's is a local of
 /// the method (DESIGN-backend-abstraction §1.2: a local is referenced by its identity, never its name). Each arm makes its
-/// own access-path root (<see cref="Root"/>), so <c>ReferenceResolver.AddRoot</c> asks the carrier and never the arm.
+/// own access-path root (<see cref="Root"/>), so <c>PlaceBuilder.AddRoot</c> asks the carrier and never the arm.
 /// </summary>
 public abstract record FormalCarrier
 {

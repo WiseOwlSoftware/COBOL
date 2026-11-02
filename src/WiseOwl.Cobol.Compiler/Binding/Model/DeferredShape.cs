@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>⛔ THE CENSUS OF REFERENCE SHAPES THE RESOLVER DEFERS (kb/Work PB1030). Every
-//// deferred answer of the reference resolver (<c>RefOutcome.Deferred</c>) names one member, so the list of legal reference shapes WiseOwl COBOL has
+/// deferred answer of the reference resolver (<c>RefOutcome.Deferred</c>) names one member, so the list of legal reference shapes WiseOwl COBOL has
 /// not built is THIS enum and nowhere else; <c>DeferredShapes.Describe</c> (beside the resolver's answer) gives each its text and its
 /// owner. A new deferral is a new member — <c>RefResolutionDriftTests</c> fails a member with no description.</summary>
 public enum DeferredShape

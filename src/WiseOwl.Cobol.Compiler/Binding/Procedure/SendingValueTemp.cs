@@ -568,7 +568,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// compiler temp is minted from data-name-1's own description, a store of data-name-1 into it is registered as
     /// a PRE-op <i>ahead of</i> the group store (<see cref="Materialize"/> adds the group store after this call
     /// returns, so the order is the rule's own: freeze the length, then move the data), and the clone's
-    /// <see cref="OccursSpec.Depending"/> is repointed at it — which is what <c>ReferenceResolver.WrapIfOdoGroup</c>
+    /// <see cref="OccursSpec.Depending"/> is repointed at it — which is what <c>PlaceBuilder.WrapIfOdoGroup</c>
     /// reads to build the GR8 extent slice, so the temp's every use inherits the frozen length with no second
     /// mechanism. The clone's <see cref="OccursSpec.DependingName"/> deliberately stays data-name-1 AS WRITTEN: it
     /// is a description-clause fact (the temp's description IS identifier-1's, §14.9.25.4 GR1), nothing re-resolves

@@ -140,7 +140,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         string name = FileKeyExpr(file);
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}", img = $"__kim{id}";
-        // The RECORD AREA is the LARGEST record description (ReferenceResolver.RecordArea, §13.18.33.4
+        // The RECORD AREA is the LARGEST record description (PlaceTable.RecordArea, §13.18.33.4
         // GR3 — multi-01 FDs share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = places.RecordArea(file);
@@ -353,7 +353,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         }
         // §14.9.10 GR3 — indexed random/dynamic deletes by the PRIME RECORD KEY's current content; DELETE carries
         // no record operand, so the key value is sliced from the record area image (GR8 — the area is unchanged).
-        // The RECORD AREA is the LARGEST record description (ReferenceResolver.RecordArea, §13.18.33.4
+        // The RECORD AREA is the LARGEST record description (PlaceTable.RecordArea, §13.18.33.4
         // GR3 — multi-01 FDs share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = places.RecordArea(file);

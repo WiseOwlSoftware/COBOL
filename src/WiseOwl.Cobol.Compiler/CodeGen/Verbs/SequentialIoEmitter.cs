@@ -945,7 +945,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         string name = FileKeyExpr(rd.File);
         string tmp = $"__rd{ctx.Names.NextRead()}";
         // The read record is made available in the WHOLE record area — store through the LARGEST record's view
-        // (ReferenceResolver.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
+        // (PlaceTable.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
         // splice (ST111A).
         Place? area = places.RecordArea(rd.File);
         // §9.1.16 record locking on the sequential organization (P10 Step 8): EVERY READ routes through the
@@ -1196,7 +1196,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// than record-name-1 holds (<see cref="FileModel.TransfersPastRecord"/>): §14.9.51.4 GR13 and §14.9.35.4 GR15
     /// leave the content of those bytes undefined (Annex A.2 items 64 and 49), and the compiler's determination is
     /// the record area's content at those positions — so the statement sends the image of the area
-    /// (<c>ReferenceResolver.RecordArea</c>, the widest record's view over the one shared backing,
+    /// (<c>PlaceTable.RecordArea</c>, the widest record's view over the one shared backing,
     /// §13.18.33.4 GR3), whose leading positions ARE record-name-1. The runtime's <c>Stored</c> then cuts it to the
     /// transferred length or pads it past the backing with spaces, unchanged. The FROM phrase needs no case of its
     /// own: its implicit MOVE into record-name-1 has already run when this is asked (§14.9.51.4 GR5 a)).</summary>

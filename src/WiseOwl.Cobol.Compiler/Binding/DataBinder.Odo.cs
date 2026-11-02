@@ -439,7 +439,7 @@ public sealed partial class DataBinder
             // ⛔ THE LINK IS RECORDED ONLY WHEN data-name-1 IS WHAT §13.18.38.3 REQUIRES OF IT (kb/Work PB3510): an
             // integer (SR17), not subscripted (SR2), and outside the range from the table's first byte to its record's
             // last (SR20). Every OccursSpec.Depending consumer — the GR8 group-operand slice
-            // (ReferenceResolver.WrapIfOdoGroup), the extent freeze (SendingValueTemp), the GR7 counts — resolves
+            // (PlaceBuilder.WrapIfOdoGroup), the extent freeze (SendingValueTemp), the GR7 counts — resolves
             // data-name-1's own place, and that resolution wraps a GROUP holding an occurs-depending table again. A
             // group data-name-1 that contains its table (DEPENDING ON the record that holds it) therefore resolved
             // itself without end: the binder died of a stack overflow before these diagnostics reached the user. An

@@ -8551,6 +8551,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         .Concat(LinkageFormals.Select(f => f.Item).Concat(LinkageReturning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
         .Distinct(ReferenceEqualityComparer.Instance).Cast<DataItem>();
 
+    /// <summary>The items of <see cref="PlaceableItems"/> a CONTAINED program may name: the ones of a global record
+    /// (<see cref="IsGlobalRecord"/>, ISO §8.4.6.2.2 - a GLOBAL clause on the entry or on the file whose record it is).
+    /// A contained program's <c>PlaceTable</c> takes these from each container and no others (kb/Work PB2375, review
+    /// round 1 R1-3: a table over every container item built places no contained program could ask for).</summary>
+    internal IEnumerable<DataItem> GlobalPlaceableItems() => PlaceableItems().Where(i => IsGlobalRecord(i.Root));
+
     /// <summary>The SUBORDINATE items of this forest's own TYPEDEF templates (<see cref="AllTypeDecls"/>, kept
     /// off <see cref="Roots"/>), pre-order in declaration order: the members the programmer wrote and the clones
     /// <c>ExpandTypes</c> composed inside a template for a member's TYPE clause (kb/Work PB1302). A type declaration

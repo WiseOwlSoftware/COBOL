@@ -669,7 +669,7 @@ the assemblies contain that the file does not place fails the test. The file's c
     { "from": "WiseOwl.Cobol.Binding.Procedure", "to": "WiseOwl.Cobol.Validation", "uses": 2, "removedBy": "PB2320 and PB2404 (the same moves)" },
     { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding", "uses": 93, "removedBy": "PB2361 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs; PB2375, landed, removed UnitEmitters.Refs and the emit-time ResolveItem calls), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1)" },
     { "from": "WiseOwl.Cobol.CodeGen.Emit", "to": "WiseOwl.Cobol.Binding", "uses": 33, "removedBy": "PB2361, PB2402, PB2399 and PB2405 (the same extracts and moves); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1)" },
-    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding.Procedure", "uses": 4, "removedBy": "PB2406 (the four cursor records of Binding/Procedure/PlaceCursor.cs and ReferenceResolver.BuildCellPath to compiler.model; EcBinder.ExternalNames to the model, IntrinsicBinder.CompileClock read at bind time)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding.Procedure", "uses": 4, "removedBy": "PB2406 (the four cursor records of Binding/Procedure/PlaceCursor.cs and PlaceBuilder.BuildCellPath to compiler.model; EcBinder.ExternalNames to the model, IntrinsicBinder.CompileClock read at bind time)" },
     { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Compiler.Oo", "uses": 19, "removedBy": "PB2402 (the OO symbols to compiler.model) and PB2403 (AdapterPair to compiler.model; the OoClassTable, ActivationDescriptions and OoStandardClasses answers reach the backend as BoundCompilation data); PB2403's sites include ProgramEmitter's OoClassTable read (Draft 6, G1)" },
     { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Frontend", "uses": 3, "removedBy": "PB2407 (move: CompilationInputs with the InputProbe and EnvironmentRead it names, Pipeline/CompilationInputs.cs, to frontend.common)" },
     { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 2, "removedBy": "PB2398 (the two code-generation parse-context reads become bound-node facts)" },
@@ -730,7 +730,7 @@ model; PB2405 sends `CobolClass` (an enum the model's `RecordLayout` names) to `
 `BoundStores`, because `MoveClassifier` and `MoveOverlap` are the bound-tree computations of point (1) above, which a
 bound node calls and an emitter reads; PB2404 moves `IntegerOperandRules` with `IntegerSlot` to `compiler.binding`, which
 may read the parse contexts its table is keyed on; PB2406 moves all four cursor records with
-`ReferenceResolver.BuildCellPath`; PB2407 moves `CompilationInputs` with `InputProbe` and `EnvironmentRead`. Draft 5's
+`PlaceBuilder.BuildCellPath`; PB2407 moves `CompilationInputs` with `InputProbe` and `EnvironmentRead`. Draft 5's
 sequence left out the Extract notes that move a member across a layer (the fifth refuter, G1), so Draft 6 runs the
 what-if over EVERY note that does (26 steps, PB2118 Draft 6): PB2320 moves `BinderDriver` to `compiler.pipeline` only
 after PB2418 takes out the three members other layers call (`BindProcedures`, `UserFunctionsOf` and
@@ -1306,7 +1306,7 @@ PB2299, PB2371–PB2375 ran as one group, one checkpoint commit per step, each p
 hierarchy to which a user-defined name belongs", §8.4.2.2.1); subscripts ("Subscripts are used when reference is made to an
 individual element within a table of like elements", §8.4.2.3.1) including ALL and index-name subscripts; reference
 modification ("Reference modification defines a unique data item by specifying an identifier, a leftmost position, and a
-length", §8.4.3.3.1); the item-to-`Place` construction (the ONE builder, `RenamesPlaceBuilderDriftTests`); the report
+length", §8.4.3.3.1); the item-to-`Place` construction (the ONE builder, `RenamesPlaceBuilderDriftTests`), whose boundary with the code generator `PlaceTableBoundaryDriftTests` pins; the report
 counters; object properties; and the closed answer `RefResolution` (`RefResolutionDriftTests`).
 *Target types, as built* (each `internal sealed class X(ReferenceResolver refs, DataBinder data)`, composed lazily by the
 funnel; the source-scan drift tests read the subsystem through `ResolverSources`, found by what a file declares):
