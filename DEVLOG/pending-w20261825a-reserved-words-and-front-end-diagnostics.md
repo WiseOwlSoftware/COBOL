@@ -40,3 +40,24 @@ system-name (§8.3.2.3.1) and so a COBOL word (§8.3.2.1), but the lexer never s
 `CopyProcessor.ScreenCopyWord` asks it, and the length rule, of text-name-1 and library-name-1 when they are written as
 words. Negatives: `8.1.3-COBOL-character-repertoire/pb4279-copy-text-name-edge-underscore` and `…-edge-hyphen` give
 COBOL2773 at every edition.
+
+The first gate (`000001-20261102T152138Z`) was RED on four `Ansi85AcceptanceTests.Word_FreesAsUserWord_AtItsTableEdition`
+rows. They pinned EVERY, CLOCK-UNITS, REFERENCES and PROCEDURES as reserved through 2014, which was PB4297's old
+GnuCOBOL reading, so the rows now free the words at 2002.
+
+### PB4305: fourteen 2002 Annex F.2 relaxations are refused at COBOL-85
+
+All fourteen compiled at `--std 85` with no edition diagnostic (re-probed). Following the owner's decision of
+2026-10-31, the 2002 Annex F.2 "formerly" statements decide the 85 edge, as D-SIGN2 and PB3683 already did. Each item
+is now a `constructs.json` row (introducedIn 2002, COBOL0900), and VCR row 7.47 and determination D-F2-85 record them.
+Each row is gated in one place:
+- `VersionConformancePass`'s parse arm handles the eleven syntactic items: a signed DISPLAY literal, EXIT PROGRAM not
+  last, GLOBAL in linkage, CONVERTING TO ALL, sentences before the first paragraph, an inline PERFORM AFTER, a RELATIVE
+  KEY outside ACCESS MODE, an expression subscript, a reference-modified UNSTRING sender, USE without PROCEDURE, and
+  VALUE in linkage, file or EXTERNAL.
+- Its bound arm handles CALL USING of a group item at levels 02-49, adjudicated in `EditionGateArmDriftTests`.
+- The binder handles the alphabet-name class condition and the qualified index-name, at their resolutions.
+
+One correction to the evidence: probe p03 passes an elementary level-05 item, which item 10 allows at 85, so the
+golden passes a level-05 group. Each item has a positive at 2002 and a negative at 85, and the negative expects its
+own row's text.

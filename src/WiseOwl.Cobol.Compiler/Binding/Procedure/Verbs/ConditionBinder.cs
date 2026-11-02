@@ -940,6 +940,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if ((ctx.Data.Alphabets.TryUse(at, word, out var aDef) && aDef.CodedSet is { } aSet
                 ? aSet : ctx.Data.NationalAlphabets.TryUse(at, word, out var nDef) ? nDef.CodedSet : null) is { } set)
         {
+            // ISO/IEC 1989:2002 Annex F.2 item 16: "The content of a data item can be tested against the coded
+            // character set named as alphabet-name" — a COBOL-2002 introduction (class-condition-alphabet-name-2002;
+            // kb/Work PB4305).
+            ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.ClassConditionAlphabetName2002,
+                $"the class condition testing the alphabet-name '{word}'");
             var opnd = operand();
             // ⛔ ITS OWN KIND, NOT THE CLASS-NAME'S. SR3 names alphabet-name-1 beside class-name-1, but SR4 —
             // "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified if the
