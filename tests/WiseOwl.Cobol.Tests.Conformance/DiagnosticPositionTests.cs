@@ -399,13 +399,13 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("srep.cob", Head + $"       PROCEDURE DIVISION.\n       REPLACE ==X== BY =={Wide} TO TO==.\n           MOVE X.\n           STOP RUN.\n");
         var (ok, lines) = Compile("srep.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("srep.cob(8,23): error COBOL0001"));
+        Assert.Contains(lines, d => d.Contains("srep.cob(8,23): error COBOL5506"));
 
         Write("srepl.cpy", "           MOVE X.\n");
         Write("srepl.cob", Head + $"       PROCEDURE DIVISION.\n       COPY \"srepl.cpy\" REPLACING ==X== BY =={Wide} TO TO==.\n           STOP RUN.\n");
         (ok, lines) = Compile("srepl.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("srepl.cpy(1,23): error COBOL0001"));
+        Assert.Contains(lines, d => d.Contains("srepl.cpy(1,23): error COBOL5506"));
     }
 
     /// <summary>⛔ kb/Work PB2982 — the indicator-column gates name column 7, and column 7 IS the physical column of the

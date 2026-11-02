@@ -16,11 +16,16 @@ public sealed class WordCharacterScreenTests
     private const string Euro = "€";
     private const string Katakana = "・";
 
-    /// <summary>The tail that makes a statement fail to parse with the GENERIC syntax error (COBOL0001): a MOVE with no
-    /// sending operand. Not <c>MOVE MOVE</c>: a reserved verb written as an operand is the named §8.3.2.1 1) refusal
-    /// (COBOL0901, kb/Work PB4208), after which the word is read as a user-defined word and the parse goes on (PB4218).
-    /// Every fixture here spells its unparseable statement with this one constant, so the tail cannot drift between them.</summary>
+    /// <summary>The tail that makes a statement fail to parse with a syntax error: a MOVE with no sending operand, whose TO
+    /// stands where the operand is due (<see cref="ParseError"/>, kb/Work PB4301). Not <c>MOVE MOVE</c>: a reserved verb
+    /// written as an operand is the named §8.3.2.1 1) refusal (COBOL0901, kb/Work PB4208), after which the word is read as a
+    /// user-defined word and the parse goes on (PB4218). Every fixture here spells its unparseable statement with this one
+    /// constant, so the tail cannot drift between them.</summary>
     private const string NoSender = "MOVE TO";
+
+    /// <summary>The code of the syntax error <see cref="NoSender"/> draws: the reserved TO where the sending operand of the
+    /// MOVE is due (ISO §14.9.25.2), which names the operand (kb/Work PB4301) where it was once the bare COBOL0001.</summary>
+    private const string ParseError = "COBOL5506";
 
     /// <summary>A program that DISPLAYs <paramref name="uses"/>: unless <paramref name="parses"/>, followed by
     /// <see cref="NoSender"/>, so the statement does not parse and nothing reaches a bound tree.</summary>
@@ -68,7 +73,7 @@ public sealed class WordCharacterScreenTests
         var (ok, errors, _) = EditionHarness.CompileFull(Program(word, word + " " + word + " " + word.ToLowerInvariant()), 2023);
         Assert.False(ok);
         Assert.Single(errors, e => e.Contains("COBOL2773"));
-        Assert.Contains(errors, e => e.Contains("COBOL0001"));
+        Assert.Contains(errors, e => e.Contains(ParseError));
     }
 
     /// <summary>Annex E.2 item 4 makes U+30FB a removed construct at 2023: <c>--permissive</c> keeps the warning beside the
@@ -84,7 +89,7 @@ public sealed class WordCharacterScreenTests
         Assert.False(okPermissive);
         Assert.Contains(warnings, w => w.Contains("COBOL0902"));
         Assert.DoesNotContain(errors, e => e.Contains("COBOL0902"));
-        Assert.Contains(errors, e => e.Contains("COBOL0001"));
+        Assert.Contains(errors, e => e.Contains(ParseError));
     }
 
     /// <summary>A source that PARSES keeps its bind-time diagnostics beside the word-character one (the binder driver screens
@@ -97,7 +102,7 @@ public sealed class WordCharacterScreenTests
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2773"));
         Assert.Contains(errors, e => e.Contains("NOWHERE-DEFINED"));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOL0001"));
+        Assert.DoesNotContain(errors, e => e.Contains(ParseError));
     }
 
     /// <summary>A word that no grammar rule uses as a name (a phrase word of a statement) is still a word of the program.</summary>
@@ -133,7 +138,7 @@ public sealed class WordCharacterScreenTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.False(ok);
-        Assert.Contains("COBOL0001", all);
+        Assert.Contains(ParseError, all);
         Assert.DoesNotContain("COBOL2773", all);
         Assert.DoesNotContain("COBOL0900", all);
         Assert.DoesNotContain("underscore", all);
@@ -159,7 +164,7 @@ public sealed class WordCharacterScreenTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.False(ok);
-        Assert.Contains("COBOL0001", all);
+        Assert.Contains(ParseError, all);
         Assert.DoesNotContain("COBOL2773", all);
         Assert.DoesNotContain("COBOL0900", all);
     }
@@ -185,7 +190,7 @@ public sealed class WordCharacterScreenTests
         // The gate's own detail text; COBOL2773's message names "the extended letters of Annex B" as what the word may hold.
         Assert.DoesNotContain("COBOL0900", all);
         Assert.DoesNotContain("the extended letter in the COBOL word", all);
-        Assert.Equal(!parses, all.Contains("COBOL0001"));
+        Assert.Equal(!parses, all.Contains(ParseError));
     }
 
     /// <summary>The 2002 gate is decided per CHARACTER (kb/Work PB4156): <c>CAFÉ€</c> holds an extended letter (É, Annex B) AND a
@@ -233,8 +238,8 @@ public sealed class WordCharacterScreenTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok);
-        var codes = errors.Select(e => e.Contains("COBOL2773") ? "COBOL2773" : e.Contains("COBOL0001") ? "COBOL0001" : "other").ToList();
-        Assert.Equal(["COBOL0001", "COBOL2773", "COBOL0001", "COBOL0001"], codes);
+        var codes = errors.Select(e => e.Contains("COBOL2773") ? "COBOL2773" : e.Contains(ParseError) ? ParseError : "other").ToList();
+        Assert.Equal([ParseError, "COBOL2773", ParseError, ParseError], codes);
         Assert.Contains("(4,", errors[0]);
         Assert.Contains("(5,", errors[1]);
         Assert.Contains("(5,", errors[2]);
@@ -275,9 +280,9 @@ public sealed class WordCharacterScreenTests
         var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
         Assert.False(ok);
         var codes = errors
-            .Select(e => e.Contains("COBOL0900") ? "COBOL0900" : e.Contains("COBOL2773") ? "COBOL2773" : e.Contains("COBOL0001") ? "COBOL0001" : "other")
+            .Select(e => e.Contains("COBOL0900") ? "COBOL0900" : e.Contains("COBOL2773") ? "COBOL2773" : e.Contains(ParseError) ? ParseError : "other")
             .ToList();
-        Assert.Equal(parses ? ["COBOL0900", "COBOL2773"] : ["COBOL0900", "COBOL2773", "COBOL0001"], codes);
+        Assert.Equal(parses ? ["COBOL0900", "COBOL2773"] : ["COBOL0900", "COBOL2773", ParseError], codes);
     }
 
     /// <summary>The cross-file arm of the placement (kb/Work PB4200): a parse error INSIDE a COPY member is never compared with
@@ -302,13 +307,13 @@ public sealed class WordCharacterScreenTests
         Assert.False(ok);
         Assert.Equal(4, errors.Count);
         Assert.Contains("prog.cob(4,", errors[0]);
-        Assert.Contains("COBOL0001", errors[0]);
+        Assert.Contains(ParseError, errors[0]);
         Assert.Contains("BADMEMBER.cpy(9,", errors[1]);
-        Assert.Contains("COBOL0001", errors[1]);
+        Assert.Contains(ParseError, errors[1]);
         Assert.Contains("prog.cob(6,", errors[2]);
         Assert.Contains("COBOL2773", errors[2]);
         Assert.Contains("prog.cob(6,", errors[3]);
-        Assert.Contains("COBOL0001", errors[3]);
+        Assert.Contains(ParseError, errors[3]);
     }
 
     /// <summary>A cause with no effect of its own file after it is appended, behind an effect of another file that the
@@ -385,7 +390,7 @@ public sealed class WordCharacterScreenTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL0902"));
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.Equal(edition == 85, all.Contains("COBOL0900"));
-        Assert.Equal(!parses, all.Contains("COBOL0001"));
+        Assert.Equal(!parses, all.Contains(ParseError));
         Assert.DoesNotContain("unexpected '_'", all);
     }
 
