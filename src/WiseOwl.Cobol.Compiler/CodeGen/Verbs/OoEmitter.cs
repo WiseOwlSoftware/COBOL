@@ -37,8 +37,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// activation), so there was no <see cref="Place"/> to hand <see cref="PlaceRenderer"/> and the three
     /// boundary sites spelled <c>.AsImage()</c> / <c>.FromImage(</c> themselves, with no capability guard and no
     /// window arm. A root local is structurally an <see cref="AccessPath"/> of exactly one
-    /// <see cref="RootFieldSegment"/>, so building it here costs nothing and buys the ONE reader's whole arm list,
-    /// including any arm added to it later.</para>
+    /// <see cref="LocalRootSegment"/> over the root's identity (<see cref="DataItem.ActivationLocal"/>; kb/Work PB4416), so
+    /// building it here costs nothing and buys the ONE reader's whole arm list, including any arm added to it later.</para>
     /// <para>⛔ NEVER used for a Tier-B REDEFINES canonical: that root's storage IS its string backing local
     /// (<c>MethodRedefinesBackingDecl</c>), whose width is the CLASS width — a wider level-01 redefiner needs
     /// the full backing (§13.18.44.3 SR8) — not the canonical VIEW's width. Every caller tests
@@ -46,7 +46,24 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// struct root: never a <c>RedefViewPlace</c>, never an <c>OdoGroupPlace</c> (a method boundary carries the
     /// FULL allocation, §14.2.3 GR8, exactly as <c>CallEmitter.CallStringRead</c> derives for CALL).</para></summary>
     private static Place MethodRootPlace(DataItem root) =>
-        new MemberPlace(new AccessPath([new RootFieldSegment(root.ClrName)]), root);
+        new MemberPlace(new AccessPath([new LocalRootSegment(ActivationLocalOf(root))]), root);
+
+    /// <summary>The local that holds a METHOD root's own storage, the identity <c>DataBinder.OoBindMethodData</c> gave it
+    /// (ISO §8.6.4; kb/Work PB4416). Its declaration and every read spell it through <see cref="LocalNames.Of"/>, so they
+    /// cannot name two locals.</summary>
+    private static MethodLocal ActivationLocalOf(DataItem root) =>
+        root.ActivationLocal ?? throw new InvalidOperationException(
+            $"OO method: the data root '{root.CobolName}' carries no activation local (DataBinder.OoBindMethodData sets one on every method root)");
+
+    /// <summary>The declaration of a METHOD Tier-B REDEFINES canonical's string backing local, or null when
+    /// <paramref name="root"/> is no such canonical (<see cref="DataEmitter.MethodRedefinesBackingDecl"/>): its initializer,
+    /// and its name spelled from the class's local identity (<see cref="RedefinesClass.BackingLocal"/>; kb/Work PB4416), the
+    /// identity every access path to the backing starts at.</summary>
+    private static (string Name, string Init)? MethodBackingDecl(DataEmitter fields, DataItem root) =>
+        fields.MethodRedefinesBackingDecl(root) is { } decl
+            ? (LocalNames.Of(root.Class?.BackingLocal ?? throw new InvalidOperationException(
+                $"OO method: the Tier-B canonical '{root.CobolName}' declares a backing local its class has no identity for")), decl.Init)
+            : null;
 
     /// <summary>⛔ THE ONE VALUE A METHOD LINKAGE ROOT HANDS BACK ACROSS THE ACTIVATION BOUNDARY — the BY REFERENCE
     /// copy-out (§14.2.3 GR8) and the RETURNING delivery (§14.9.23.4 GR8) both read it, so the storage arms
@@ -54,7 +71,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// root's addressable cell (kb/Work PB1019 — <see cref="MethodCellFormalLoad"/>); a variable-length or fixed
     /// group's image; else the root's own local.</summary>
     private string MethodBoundaryValue(DataEmitter fields, DataItem root, string what) =>
-        fields.MethodRedefinesBackingDecl(root) is { } bk ? bk.Name
+        MethodBackingDecl(fields, root) is { } bk ? bk.Name
         : root.Class is { Tier: RedefinesTier.StringCanonical, IsCellBacked: true } ? MethodCellFormalLoad(root)
         : OoVarGroupCarried(root) ? PlaceRenderer.VarGroupBoundaryImage(MethodRootPlace(root), what + " of")
         // A bit / national group hands back its ELEMENTARY value, an alphanumeric group its image — the CALL
@@ -63,7 +80,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // A strong group with no character image hands back its leaf vector (kb/Work PB1116).
         : OoClassTable.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodRootPlace(root))
         : root.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(root), what)
-        : root.ClrName;
+        : LocalNames.Of(ActivationLocalOf(root));
 
     /// <summary>An ADDRESS-OF-taken method LINKAGE root (kb/Work PB1019, method arm) lives in its per-activation
     /// <c>StorageCell</c> (<see cref="ActivationPointerSeeds"/>), so its crossing value is read from that storage: a
@@ -1196,7 +1213,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // A method Tier-B REDEFINES canonical's storage is its string backing, not the root struct (M2-OO-1h
                 // step 3) — emit that as the local; a LINKAGE formal seeds it from the caller's image, width-normalized
                 // to the class width (a wider redefiner needs the full backing — review D), else from the initializer.
-                if (fields.MethodRedefinesBackingDecl(root) is { } bkl)
+                if (MethodBackingDecl(fields, root) is { } bkl)
                 {
                     var formalB = m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
                     w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : $"{formalB.OmittedFlag} ? {bkl.Init} : {RuntimeApi.StrStore($"{formalB.ParamName}.Value", $"{root.Class!.Width}")}")};   "
@@ -1223,14 +1240,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 }
                 if (root.Class is { Tier: RedefinesTier.StringCanonical }) continue;
                 var (type, init) = fields.RootDecl(root);
+                string local = LocalNames.Of(ActivationLocalOf(root));   // the root's own storage (kb/Work PB4416)
                 var formal = m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
                 if (formal is null && root is { IsAnyLength: true, Pic: { } anyPic })
                     // An ANY LENGTH RETURNING item starts as n repetitions of its picture symbol, n being the activator's
                     // receiver length (§13.18.2.4 GR1 b)) — OoSignatureOf's trailing parameter.
-                    w.Line($"{type} {root.ClrName} = new string({RuntimeApi.AnyLengthFill(anyPic)}, {RetLenParam});   "
+                    w.Line($"{type} {local} = new string({RuntimeApi.AnyLengthFill(anyPic)}, {RetLenParam});   "
                         + $"// LINKAGE {root.CobolName} (ANY LENGTH RETURNING — n is the activator's, §13.18.2.4 GR1 b))");
                 else if (formal is null)
-                    w.Line($"{type} {root.ClrName} = {init};   // LINKAGE {root.CobolName} (§14.2.3 GR6)");
+                    w.Line($"{type} {local} = {init};   // LINKAGE {root.CobolName} (§14.2.3 GR6)");
                 else if (root.IsGroup)
                 {
                     // The image crossing: construct (arrays allocated), then distribute the caller's image
@@ -1242,7 +1260,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     // side (`DataBinder.Oo`) applies no image screen and the relations' description of such a
                     // group (`ActivationDescriptions.Of` answers none) is asked only when an INVOKE or an
                     // override/implements PAIR exists, so a merely-DECLARED method must not emit uncompilable C#.
-                    w.Line($"{type} {root.ClrName} = {init};   // LINKAGE formal {root.CobolName} (group — image crossing)");
+                    w.Line($"{type} {local} = {init};   // LINKAGE formal {root.CobolName} (group — image crossing)");
                     w.Line($"if (!{formal.OmittedFlag}) {{ " + (OoVarGroupCarried(root)
                         // §8.5.1.12's component carrier (kb/Work PB204) — the variable-length twin of the
                         // image distribution, through the SAME ONE channel.
@@ -1259,7 +1277,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 else
                     // An ACTIVE-CLASS formal crosses as the universal type (OoFormalCrossingType) and is viewed as the
                     // containing class here — GR22 e) guarantees the invoker's class is that class or a subclass.
-                    w.Line($"{type} {root.ClrName} = {formal.OmittedFlag} ? {init} : "
+                    w.Line($"{type} {local} = {formal.OmittedFlag} ? {init} : "
                         + $"{(OoIsActiveClassFormal(root) ? $"({type})" : "")}{formal.ParamName}.Value;   "
                         + $"// LINKAGE formal {root.CobolName} (BY REFERENCE copy-in; omitted → initial state)");
             }
@@ -1275,14 +1293,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             foreach (var root in m.Binding!.LocalRoots)
             {
                 if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view → no local (review C)
-                if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the string backing local (M2-OO-1h step 3)
+                if (MethodBackingDecl(fields, root) is { } bkl)   // Tier-B canonical → the string backing local (M2-OO-1h step 3)
                 {
                     w.Line($"string {bkl.Name} = {bkl.Init};   // LOCAL-STORAGE Tier-B REDEFINES backing for {root.CobolName} (§8.6.4)");
                     continue;
                 }
                 if (root.Class is { Tier: RedefinesTier.StringCanonical }) continue;   // a view — a window over the backing, no local (kb/Work PB203)
                 var (type, init) = fields.RootDecl(root);
-                w.Line($"{type} {root.ClrName} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§8.6.4)");
+                w.Line($"{type} {LocalNames.Of(ActivationLocalOf(root))} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§8.6.4)");
             }
             Ctx.Data.Options = savedOptions;   // an emission error abandons the whole compile, so no finally is owed
             Ctx.ActivationLocalRoots = savedActivationRoots;

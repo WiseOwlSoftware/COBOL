@@ -58,3 +58,19 @@ public enum StatementLocalRole
 /// that role's locals of the unit (<paramref name="Ordinal"/>). Two references to the same local are equal values, so the
 /// declaration and every read name the one local.</summary>
 public sealed record StatementLocal(StatementLocalRole Role, int Ordinal) : MethodLocal;
+
+/// <summary>⛔ THE STORAGE OF A METHOD'S LEVEL-1 DATA ROOT, a local of the generated method (kb/Work PB4416;
+/// DESIGN-backend-abstraction §1.2, §1.3 L8): a LOCAL-STORAGE root, whose items "are automatic items. Their storage is
+/// allocated and set to initial state each time the runtime element containing them is activated" (ISO §8.6.4), and a
+/// LINKAGE root that holds its own copy for the activation (a formal copied in, the RETURNING item, an unattached record).
+/// <paramref name="Root"/> is the root itself, so the identity is the root's and two references to it are equal values
+/// (<see cref="DataItem"/> compares by reference). Set as <see cref="DataItem.ActivationLocal"/> by
+/// <c>DataBinder.OoBindMethodData</c>; every access path to the root's own storage starts at a
+/// <see cref="LocalRootSegment"/> over it (<c>ReferenceResolver.AddRoot</c>).</summary>
+public sealed record MethodDataLocal(DataItem Root) : MethodLocal;
+
+/// <summary>The ONE character-string backing of a METHOD's Tier-B REDEFINES class whose canonical is a level-1 method root
+/// (<see cref="RedefinesClass.BackingLocal"/>; kb/Work PB4416): the class's storage area, held by the activation as a local
+/// of the generated method exactly as the root's own storage would be (<see cref="MethodDataLocal"/>), every member a
+/// window over it.</summary>
+public sealed record MethodRedefinesBackingLocal(RedefinesClass Class) : MethodLocal;

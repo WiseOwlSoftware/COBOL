@@ -54,10 +54,10 @@ public abstract record AccessSegment;
 public abstract record RootSegment(OmittedFormalGuard? Guard) : AccessSegment;
 
 /// <summary>A root named by an allocated CLR name (DESIGN-backend-abstraction §1.1): a static or instance MEMBER of the
-/// program class, or a data item's own storage (a method's LOCAL-STORAGE and LINKAGE roots are the method's, named by the
-/// item's <see cref="DataItem.ClrName"/>). <paramref name="MemberClrName"/> is never an access expression (kb/Work
-/// PB4320) and never the name of a local the binder or a backend invents for a statement: such a local is a
-/// <see cref="LocalRootSegment"/> (kb/Work PB4321, PB4380).
+/// program class — a data item's storage, a Tier-B class's backing or cell, a program's formal carrier.
+/// <paramref name="MemberClrName"/> is never an access expression (kb/Work PB4320) and never the name of a local of the
+/// generated method: a statement's local, a method's carrier and a METHOD's data root or Tier-B backing are each a
+/// <see cref="LocalRootSegment"/> (kb/Work PB4321, PB4380, PB4416).
 /// <paramref name="Anchor"/> is non-null when the member belongs to a CONTAINING program (<see cref="AccessPath.Reroot"/>)
 /// and says how the referencing program reaches it; null for the referencing program's own member.</summary>
 public sealed record RootFieldSegment(string MemberClrName, OmittedFormalGuard? Guard = null, ContainerAnchor? Anchor = null)
@@ -108,11 +108,12 @@ public abstract record ContainerAnchor
 }
 
 /// <summary>A root that is a LOCAL of the generated method, named by its identity, never its name
-/// (<see cref="MethodLocal"/>; DESIGN-backend-abstraction §1.2, §1.3 L8; kb/Work PB4321, PB4380): a CORRESPONDING
+/// (<see cref="MethodLocal"/>; DESIGN-backend-abstraction §1.2, §1.3 L8; kb/Work PB4321, PB4380, PB4416): a CORRESPONDING
 /// statement's hoisted group anchor (ISO §14.7.6: "Any item identification associated with a corresponding pair of
 /// operands is done at the start of the execution of the statement containing the CORRESPONDING phrase"), a METHOD's
-/// carrier-resident formal's carrier (<see cref="FormalCarrier.Local"/>), and the backend's own cell locals (a hoisted
-/// cell, a recreated dynamic table's element cell). A local is never a containing program's member, so
+/// carrier-resident formal's carrier (<see cref="FormalCarrier.Local"/>), a METHOD's level-1 data root
+/// (<see cref="MethodDataLocal"/>, ISO §8.6.4) and its Tier-B class backing (<see cref="MethodRedefinesBackingLocal"/>;
+/// kb/Work PB4416), and the backend's own cell locals (a hoisted cell, a recreated dynamic table's element cell). A local is never a containing program's member, so
 /// <see cref="AccessPath.Reroot"/>, which anchors only a <see cref="RootFieldSegment"/>, leaves it as it is.</summary>
 public sealed record LocalRootSegment(MethodLocal Local, OmittedFormalGuard? Guard = null) : RootSegment(Guard);
 
