@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Tests.Shared;
 using Microsoft.CodeAnalysis;
@@ -62,10 +63,7 @@ public sealed class ImportedTypeNameDriftTests
     /// set (the host's own, as <c>RoslynBackend</c> builds it) and the runtime assembly.</summary>
     private static CSharpCompilation FrameworkCompilation()
     {
-        string frameworkDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        var refs = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
-            .Where(p => p.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(Path.GetDirectoryName(p), frameworkDir, StringComparison.OrdinalIgnoreCase))
+        var refs = AssemblyPackager.ReferenceAssemblyPaths
             .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p))
             .Append(MetadataReference.CreateFromFile(typeof(ICobolProgram).Assembly.Location));
         return CSharpCompilation.Create("probe", [], refs, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

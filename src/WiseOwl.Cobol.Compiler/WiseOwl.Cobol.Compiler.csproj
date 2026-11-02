@@ -36,8 +36,30 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
+  <!--
+    THE REFERENCE ASSEMBLIES A GENERATED PROGRAM IS COMPILED AGAINST (kb/Work PB4047). An emitted assembly is a .NET
+    library or application that an ordinary MSBuild host project references, and such a project compiles against the
+    targeting pack's REFERENCE assemblies (System.Runtime, System.Console, ...). Compiled against the compiler's own
+    implementation assemblies (the trusted-platform set), the emitted assembly referenced System.Private.CoreLib, which
+    no reference set holds, and the host failed CS0012. So the build lays the very reference assemblies this project
+    compiles against, the Microsoft.NETCore.App targeting pack the SDK resolved, at reference-assemblies/ in the output
+    of every referencing project (the CLI, the test hosts) and in the CLI's publish output, which the tool package
+    packs; CodeGen/AssemblyPackager.cs reads them there. Same mechanism as the runtime's ReadyToRun images
+    (AssignTargetPaths precedes GetCopyToOutputDirectoryItems and GetCopyToPublishDirectoryItems).
+  -->
+  <Target Name="_CobolReferenceAssembliesContent" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveTargetingPackAssets">
+    <ItemGroup>
+      <_CobolReferenceAssembly Include="@(Reference)" Condition="'%(Reference.FrameworkReferenceName)' == 'Microsoft.NETCore.App'" />
+      <None Include="@(_CobolReferenceAssembly)"
+            Link="reference-assemblies$([System.IO.Path]::DirectorySeparatorChar)%(Filename)%(Extension)"
+            CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+    </ItemGroup>
+    <Error Condition="'@(_CobolReferenceAssembly)' == ''"
+           Text="No Microsoft.NETCore.App reference assembly was resolved (kb/Work PB4047): the compiler deploys the targeting pack's reference assemblies, which every generated program is compiled against." />
+  </Target>
+
   <ItemGroup>
-    <!-- Build-time source generator: emits the exhaustive I{Root}Visitor<T> + Accept<T> over the [BoundNode]
+    <!-- Build-time source generator:emits the exhaustive I{Root}Visitor<T> + Accept<T> over the [BoundNode]
          hierarchy (PHASE-07 Step 6). Analyzer-only — never a runtime dependency. -->
     <ProjectReference Include="..\WiseOwl.Cobol.Compiler.SourceGen\WiseOwl.Cobol.Compiler.SourceGen.csproj"
                       OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

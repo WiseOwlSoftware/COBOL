@@ -69,10 +69,10 @@ public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand
     /// those rules put them; when it is null the site states the MOVE's sending half instead (<c>CobolArg.Sending</c>).</para></summary>
     public DataItem? Formal { get; init; }
 
-    /// <summary>The argument's §14.8.2 description (<c>ActivationDescriptions.OfCallArgument</c>) when the activating
-    /// element holds no signature of the activated program (<see cref="BoundCallProgram.CalleeSignatureKnown"/> false): what
-    /// §14.9.4.4 GR3 d) compares with the activated program's registered formal at call initiation (kb/Work PB165). Null
-    /// otherwise, and for an omitted argument.</summary>
+    /// <summary>The argument's §14.8.2 description (<c>ActivationDescriptions.OfCallArgument</c>) when the activated
+    /// program is not a definition this compilation group compiles (<see cref="BoundCallProgram.CalleeCompiledHere"/>
+    /// false): what §14.9.4.4 GR3 d) compares with the activated program's registered formal at call initiation (kb/Work
+    /// PB165, PB2103). Null otherwise, and for an omitted argument.</summary>
     public WiseOwl.Cobol.Runtime.ActivationDescription? Description { get; init; }
 }
 
@@ -130,13 +130,24 @@ public sealed record BoundCallProgram(
     /// compilation group, a user-defined function (§12.3.8.4 GR11) — so §14.8.2 / §14.8.3 were checked at bind time and
     /// every argument carries its <see cref="BoundCallArg.Formal"/>. False for the lanes whose activated program is located
     /// by name at run time with no compile-time signature: a dynamic Format-1 CALL, and a program-prototype whose details
-    /// GR10 c) takes from the external repository. Only those describe their operands for §14.9.4.4 GR3 d)'s run-time
-    /// check (<c>CallEmitter</c>; kb/Work PB165).</summary>
+    /// GR10 c) takes from the external repository. It decides whether the site lands its arguments itself
+    /// (<c>CallEmitter.LandsAtRunTime</c>); whether it describes them is <see cref="CalleeCompiledHere"/>'s question.</summary>
     public bool CalleeSignatureKnown { get; init; }
 
+    /// <summary>⛔ True only when the element this site activates is a DEFINITION this compilation group compiles — an AS
+    /// NESTED call, a program-prototype CALL through §12.3.8.4 GR10 a)'s definition (or §8.4.6.8's containing program)
+    /// that names no other program, a user-defined function GR11 a) or §8.4.6.6 resolved to its definition — so the
+    /// activated element cannot differ from the signature the bind checked. Everywhere else the activated element is
+    /// compiled elsewhere and can be recompiled with another signature after this site (a GR10 b) / GR11 b) prototype
+    /// whose definition is in another group, GR10 c), a dynamic or pointer CALL), and §14.9.4.4 GR3 d) — "the rules for
+    /// conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply" to "the program being called" —
+    /// is asked at run time against the activated element's registered formals: the site describes its operands
+    /// (<c>CallEmitter.DescribesOperands</c>; DESIGN-external-repository §4.2, kb/Work PB2103).</summary>
+    public bool CalleeCompiledHere { get; init; }
+
     /// <summary>The RETURNING item's §14.8.3 description (<c>ActivationDescriptions.OfPlace</c>) when
-    /// <see cref="CalleeSignatureKnown"/> is false, for §14.9.4.4 GR3 d)'s run-time comparison with the activated program's
-    /// registered returning item (kb/Work PB165); null otherwise.</summary>
+    /// <see cref="CalleeCompiledHere"/> is false, for §14.9.4.4 GR3 d)'s run-time comparison with the activated program's
+    /// registered returning item (kb/Work PB165, PB2103); null otherwise.</summary>
     public WiseOwl.Cobol.Runtime.ActivationDescription? ReturningDescription { get; init; }
 }
 

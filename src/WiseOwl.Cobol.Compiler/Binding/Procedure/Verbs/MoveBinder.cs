@@ -108,7 +108,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // CORRESPONDING test above, so what remains here is a defensive arm over the one printed receiving
         // shape, and it must not claim an unimplemented feature that this binder in fact implements.
         if (move.sendingOperand() is not { } send || move.moveReceivingPhrase() is not { } targets)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"MOVE '{move.GetText()}': Format 1 prints one sending operand and "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"MOVE '{DataBinder.WrittenText(move)}': Format 1 prints one sending operand and "
                 + "TO identifier-2 … (ISO §14.9.25.2)");
         BoundOperand source = SendingOperand(send, "MOVE source");
         // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §13.18.38.3 r7's five index-name
@@ -384,7 +384,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (fc is not null && rules.FunctionCategories is { } admitted
             && MoveTable16.SenderPosition(source).Category is var cat && !admitted.Contains(cat))
             ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
-                $"{rules.Statement} {fc.GetText()}: {rules.FunctionRuleCite} — this function's result is of "
+                $"{rules.Statement} {DataBinder.WrittenText(fc)}: {rules.FunctionRuleCite} — this function's result is of "
                 + $"category {cat.ToString().ToLowerInvariant()}");
 
         // ── §14.9.32.3 SR4, "Literal-1 shall not be a zero-length literal." RELEASE's alone: neither

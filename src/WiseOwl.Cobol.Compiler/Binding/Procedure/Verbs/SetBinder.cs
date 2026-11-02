@@ -127,7 +127,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (set.setSwitchStatement() is { } sw) return host.Alter.SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
         if (set.setFunctionAddressStatement() is { } sfa) return BindSetFunctionAddress(sfa);   // F8 + §8.4.3.12 sender (kb/Work PB452)
         if (set.setProgramAddressStatement() is { } spa) return BindSetProgramAddress(spa);     // F9 + §8.4.3.13 sender (kb/Work PB549)
-        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"SET '{set.GetText()}': the statement matches no SET format (ISO §14.9.39.2)");
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"SET '{DataBinder.WrittenText(set)}': the statement matches no SET format (ISO §14.9.39.2)");
     }
 
     /// <summary><c>SET CONTENT OF { identifier-14 } … TO { FARTHEST-FROM-ZERO [IN-ARITHMETIC-RANGE] |
@@ -302,7 +302,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             setsUserDefault = true;
             if (words.Length > 2)
             {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE USER-DEFAULT {words[2].GetText()}: USER-DEFAULT as the first operand stands alone — "
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE USER-DEFAULT {DataBinder.WrittenText(words[2])}: USER-DEFAULT as the first operand stands alone — "
                     + "the general format's outer brace is a plain alternation of the category list OR USER-DEFAULT (ISO §14.9.39.2 format 11)");
             }
         }
@@ -327,7 +327,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 };
                 if (cat == LocaleCategorySet.None)
                 {
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE {words[i].GetText()}: '{words[i].GetText()}' is not a locale category — "
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE {DataBinder.WrittenText(words[i])}: '{DataBinder.WrittenText(words[i])}' is not a locale category — "
                         + "the first operand is one or more of LC_ALL, LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, LC_TIME, "
                         + "or USER-DEFAULT (ISO §14.9.39.2 format 11)");
                 }
@@ -397,7 +397,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var target = sl.setReceivingIdentifier().dataReference();   // a data reference: BindSet refused any other form (kb/Work PB1551)
         if (host.Expr.ResolveReceiving(target) is not { } place || place.Item.Pic?.Category is not PicCategory.Pointer)
         {
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"SET {target.GetText()} TO LOCALE {(userDefault ? "USER-DEFAULT" : "LC_ALL")}: identifier-11 shall "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"SET {DataBinder.WrittenText(target)} TO LOCALE {(userDefault ? "USER-DEFAULT" : "LC_ALL")}: identifier-11 shall "
                 + "reference an elementary data item of category data-pointer (ISO §14.9.39.3 SR28)");
         }
         return new BoundSaveLocale(place, userDefault);
@@ -475,7 +475,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{t.GetText()}': the receiving operand of a data-pointer SET shall be of category "
+                    $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a data-pointer SET shall be of category "
                     + "data-pointer (ISO §14.9.39 Format 7, §14.9.39.3 SR17)");
             }
             targets.Add(tp);
@@ -589,7 +589,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{t.GetText()}': the receiving operand of a program-pointer SET shall be USAGE "
+                    $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a program-pointer SET shall be USAGE "
                     + "PROGRAM-POINTER (ISO §14.9.39.3 Format 9 SR21)");
             }
             targets.Add(tp);
@@ -741,7 +741,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{t.GetText()}': the receiving operand of a function-pointer SET shall be USAGE "
+                    $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a function-pointer SET shall be USAGE "
                     + "FUNCTION-POINTER (ISO §14.9.39.3 SR20)");
             }
             targets.Add(tp);
@@ -806,7 +806,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(dref) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{dref.GetText()}': the receiving operand of SET … TO ADDRESS OF FUNCTION shall be "
+                    $"SET '{DataBinder.WrittenText(dref)}': the receiving operand of SET … TO ADDRESS OF FUNCTION shall be "
                     + "USAGE FUNCTION-POINTER (ISO §14.9.39.3 SR20 / §8.4.3.12.4 GR1)");
             }
             targets.Add(tp);
@@ -1042,7 +1042,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{drefs[i].GetText()}': the receiving operand of {where} shall be USAGE "
+                    $"SET '{DataBinder.WrittenText(drefs[i])}': the receiving operand of {where} shall be USAGE "
                     + "PROGRAM-POINTER (ISO §14.9.39.2 Format 9 / §14.9.39.3 SR21)");
                 return null;
             }
@@ -1525,7 +1525,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // this very reference as a CAPACITY register through the same peek, so a miss is a broken invariant.
         if (ctx.Refs.CapacityRegisterFor(targets[0]) is not { } cap)
             throw new InvalidOperationException(
-                $"SET Format 14 was selected for '{targets[0].GetText()}', which is not a CAPACITY register (kb/Work PB3225)");
+                $"SET Format 14 was selected for '{DataBinder.WrittenText(targets[0])}', which is not a CAPACITY register (kb/Work PB3225)");
         // The target NAMES a register but breaks one of its reference rules (§13.18.38.3 SR30/SR31, §8.4.2.2.3 SR4,
         // §8.4.3.3.3 SR1; kb/Work PB457). This is still SET Format 14 — SetFormatSelection chose the format from the
         // receiving list, and a CAPACITY register is what this receiver IS — so the format is CONSUMED here and the

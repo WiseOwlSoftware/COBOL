@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 using Xunit;
@@ -172,10 +173,7 @@ public sealed class RepositoryIndexTests : WiseOwlCobolTestBase
     /// <summary>A library of <paramref name="source"/> that references the runtime, as bytes.</summary>
     internal static byte[] Compile(string source)
     {
-        string frameworkDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        var refs = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
-            .Where(p => p.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(Path.GetDirectoryName(p), frameworkDir, StringComparison.OrdinalIgnoreCase))
+        var refs = AssemblyPackager.ReferenceAssemblyPaths
             .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p))
             .Append(MetadataReference.CreateFromFile(typeof(CobolRepositoryAttribute).Assembly.Location));
         var compilation = CSharpCompilation.Create("repository_index_probe", [CSharpSyntaxTree.ParseText(source)], refs,

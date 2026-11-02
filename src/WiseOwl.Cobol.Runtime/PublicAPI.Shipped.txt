@@ -2252,7 +2252,6 @@ const WiseOwl.Cobol.Runtime.NativeCollatingSequence.LowValue = '\0' -> char
 const WiseOwl.Cobol.Runtime.PointerImage.NullImage = "\0\0\0\0\0\0\0\0" -> string!
 const WiseOwl.Cobol.Runtime.PointerImage.Width = 8 -> int
 const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 1 -> int
-const WiseOwl.Cobol.Runtime.RuntimeAbi.CallAbi = 2 -> int
 const WiseOwl.Cobol.Runtime.SwitchStore.Prefix = "COBOL_" -> string!
 const WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeBreaker.ResourceName = "Unicode/Segmentation/Data/grapheme-break.bin" -> string!
 override WiseOwl.Cobol.Runtime.ActivationDescription.Equals(object? obj) -> bool

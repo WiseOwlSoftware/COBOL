@@ -385,7 +385,7 @@ public sealed class RepositoryCodecTests
         var original = unit.Data.LinkageFormals[3].Item;
         Assert.False(PrototypeSignatures.Same(original.RestrictedPrototype!.Signature, decoded.Prototypes[0].Signature));
         Assert.NotEqual(original.PointerRestrictionIdentity, decoded.Formals[3].Item.PointerRestrictionIdentity);
-        Assert.StartsWith("DECODED ", decoded.Formals[3].Item.PointerRestrictionIdentity);
+        Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, decoded.Formals[3].Item.PointerRestrictionIdentity);
     }
 
     /// <summary>§17.2's perturbation: a DATA-NAME is recorded and never compared (ISO §13.7.3 SR2), a TYPE-NAME is compared

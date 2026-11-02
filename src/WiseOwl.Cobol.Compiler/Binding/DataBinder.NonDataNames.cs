@@ -30,11 +30,13 @@ internal enum NonDataDeclarationKind
 }
 
 /// <summary>A declaration that gives a name although it declares no data item: its kind, for a type declaration's
-/// member or condition-name the type-name whose declaration holds it, and whether the
+/// member or condition-name the type-name whose declaration holds it, whether the
 /// declaration itself was REFUSED and reported at its entry (a constant entry that yielded no value), so a reference to
-/// it is that one fault's consequence and its reader reports nothing more.</summary>
+/// it is that one fault's consequence and its reader reports nothing more, and the <paramref name="Depth"/> of the
+/// source element that declares it (0 = this one, n = its n-th container, <see cref="DataBinder.DeclaringDepth"/>'s
+/// measure), the tier ISO §8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).</summary>
 internal readonly record struct NonDataDeclaration(
-    NonDataDeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false)
+    NonDataDeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0)
 {
     /// <summary>⛔ THE ONE WORDING of what <paramref name="name"/> IS (kb/Work PB1906), completing a sentence whose subject
     /// is the reference as <paramref name="written"/>: "'T' is declared as a type-name …". Every site that refuses a
@@ -73,22 +75,43 @@ public sealed partial class DataBinder
     /// (<see cref="ResolveClauseOperand"/>) and an OCCURS DEPENDING ON object. Each used to screen its own subset, so a
     /// type-name was "not defined" at all three and an alphabet-, constant-, index- or condition-name at the two clause
     /// sites. Null when the name is declared as nothing but data — or as nothing at all — so the caller's own
-    /// uniqueness verdict stands. A data-name of the same spelling wins over a constant-name, a condition-name and
-    /// the type declarations (§8.3.2.2 exception 3 lets a constant-name and a data-name share one word; the others are
+    /// uniqueness verdict stands. A data-name of the same spelling the ranked lookup leaves standing (a condition-name
+    /// declared NEARER hides it, kb/Work PB4219) wins over a constant-name, a condition-name and the type declarations (§8.3.2.2 exception 3 lets a constant-name and a data-name share one word; the others are
     /// a §8.3.2.2 conflict reported at the declaration). A REPORT SECTION entry is
-    /// <see cref="ReportEntryReferenceRefused"/>'s: its refusal is a section rule (§13.8.6.2.3), not this one.</summary>
+    /// <see cref="ReportEntryReferenceRefused"/>'s: its refusal is a section rule (§13.8.6.2.3), not this one.
+    /// <para>⛔ A FILE-NAME AND A CONDITION-NAME ARE RANKED BY THE ELEMENT THAT DECLARES THEM (kb/Work PB4219): ISO
+    /// §8.4.6.2.1 3) a) makes the declaration of the source element B the referenced item, and b) the nearest
+    /// containing one otherwise, so a contained program's own level-88 RELF is what `RELF` names there, not its
+    /// container's GLOBAL file RELF; the file used to be asked first whatever the nesting. Each answer carries its
+    /// <see cref="NonDataDeclaration.Depth"/> so a caller that weighs it against a declaration this query does not
+    /// rank (APPLY COMMIT's GLOBAL file, <see cref="ScreenEnclosingFileOperand"/>) compares like with like.</para></summary>
     internal NonDataDeclaration? NonDataDeclarationOf(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
         if (ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
         if (IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
-        bool dataName = Symbols.TryResolve(name, scope, out _);
+        // An unqualified reference's data-name answer is the RANKED one (§8.4.6.2.1 3)): a container's GLOBAL data item that
+        // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
+        // one keeps the raw answer, which the callers word as "declared, but not under the given qualifiers".
+        bool dataName = qualifiers.Count == 0
+            ? Symbols.TryResolveUnqualified(name, scope, out _)
+            : Symbols.TryResolve(name, scope, out _);
         if (qualifiers.Count == 0 && !dataName && IsConstantName(name))
-            return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name));
-        if (Symbols.IndexCandidates(name, qualifiers, scope) is not null) return new(NonDataDeclarationKind.IndexName);
+            return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name),
+                Depth: _inheritedConstants.GetValueOrDefault(name));
+        if (Symbols.IndexCandidates(name, qualifiers, scope) is { } indexes)
+            return new(NonDataDeclarationKind.IndexName, Depth: indexes.NearestDepth(i => DeclaringDepth(i.Table)));
         if (dataName) return null;
-        // A file-name (kb/Work PB3557): this element's own SELECT, or a containing element's GLOBAL file (§13.18.27.4 GR1).
-        if (qualifiers.Count == 0 && IsVisibleFileName(name)) return new(NonDataDeclarationKind.FileName);
-        if (Symbols.TryResolveCondition(name, scope, out _)) return new(NonDataDeclarationKind.ConditionName);
+        // A file-name (kb/Work PB3557): this element's own SELECT, or a containing element's GLOBAL file (§13.18.27.4 GR1);
+        // and a condition-name, the nearer of the two (§8.4.6.2.1 3), kb/Work PB4219; one element declaring both is a
+        // §8.3.2.2 conflict, where the file is named as before).
+        int? fileDepth = qualifiers.Count == 0 && TryGetVisibleFile(name, out var file)
+            ? FileDepth(file)
+            : null;
+        int? conditionDepth = Symbols.TryResolveCondition(name, scope, out var conditions)
+            ? conditions.Min(c => DeclaringDepth(c.Parent))
+            : null;
+        if (fileDepth is { } fd && !(conditionDepth < fd)) return new(NonDataDeclarationKind.FileName, Depth: fd);
+        if (conditionDepth is { } cd) return new(NonDataDeclarationKind.ConditionName, Depth: cd);
         if (qualifiers.Count == 0 && TryFindTypeDecl(name, scope, out _)) return new(NonDataDeclarationKind.TypeName);
         // §13.18.58.4 GR1: "Subordinate data description entries, condition-name entries, and RENAMES clauses are part of
         // the type declaration of that type" — a data-name or a condition-name such an entry declares.

@@ -61,7 +61,7 @@ TEST_PROJECT = "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj"
 TEST_FILTER = "FullyQualifiedName~RuntimeAbiPinDriftTests"
 NL = chr(10)
 _VERSION = re.compile(r"(<Version>)(\d+)(\.0\.0</Version>)")
-_CALL_ABI = re.compile(r"(public const int CallAbi = )(\d+)(;)")
+_CALL_ABI = re.compile(r"(public static int CallAbi \{ get; \} = )(\d+)(;)")
 #: THE TWO CLASSES OF A CLEAN MERGE THAT COULD NOT BE COMPLETED (kb/Work PB3673): the tags of the two `merge-*` rows of
 #: gate.NOT_RUN_CAUSES, the gate's ONE classification of a cause by who can fix it (enqueue.py reads the class
 #: from there; enqueue.py's self-test holds each tag to a row). BLOCKED is a cause outside the merged tree, which no
@@ -269,7 +269,7 @@ def self_test() -> int:
         repo = ScratchRepo.init(root / "repo").path
         for rel, text in ((PIN_PATH, pin(18, UNMEASURED, 3, UNMEASURED)),
                           (PROPS_PATH, "<Project><Version>17.0.0</Version></Project>" + NL),
-                          (CALL_ABI_PATH, "    public const int CallAbi = 2;" + NL)):
+                          (CALL_ABI_PATH, "    public static int CallAbi { get; } = 2;" + NL)):
             (repo / rel).parent.mkdir(parents=True, exist_ok=True)
             (repo / rel).write_bytes(text.encode("utf-8"))
         s = ScratchRepo(repo)
@@ -286,7 +286,7 @@ def self_test() -> int:
         why = settle(repo, measure=writes)
         expect("settle: the merged counters are written into the props and RuntimeAbi.cs BEFORE the measurement, the "
                "test's hashes land in the pin, and the owned files are staged",
-               why is None and "<Version>18.0.0</Version>" in seen[0] and "CallAbi = 3;" in seen[0]
+               why is None and "<Version>18.0.0</Version>" in seen[0] and "CallAbi { get; } = 3;" in seen[0]
                and parse((repo / PIN_PATH).read_text(encoding="utf-8")) == {
                    "runtime-major": "18", "runtime-hash": "1111", "call-abi": "3", "boundary-hash": "2222"}
                and not needs_settle(repo) and set(s.git("diff", "--cached", "--name-only").split()) == set(OWNED),

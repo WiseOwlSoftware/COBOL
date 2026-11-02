@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// carried on <see cref="PicInfo.Clause"/>.</summary>
 public static class DescriptionClauses
 {
-    /// <summary>ALIGNED (§13.18.1) and DYNAMIC LENGTH with its LIMIT phrase and structure-name (§13.18.19), asked of
+    /// <summary>ALIGNED (§13.18.1) and DYNAMIC LENGTH with its LIMIT phrase and its structure's definition (§13.18.19; the name never, DESIGN-external-repository §6.4), asked of
     /// both sides; null when they agree. kb/Work PB1166: the activation / signature comparator of the day compared
     /// neither, so <c>PIC 1(8) USAGE BIT ALIGNED</c> crossed BY REFERENCE into <c>PIC 1(8) USAGE BIT</c>, and
     /// <c>PIC X DYNAMIC LENGTH</c> overrode <c>PIC X</c>. That comparator is deleted (kb/Work PB3101): the activation and
@@ -29,9 +29,10 @@ public static class DescriptionClauses
             return "DYNAMIC LENGTH mismatch (the clause is specified for the "
                 + $"{(x.IsDynamicLength ? "formal" : "argument")} only — the corresponding items shall have the "
                 + "same DYNAMIC LENGTH clause)";
-        // A name is unique in its source element and inherited by reference, so name equality is structure identity.
+        // The structure is compared by its DEFINITION, never its name: a name is a word of its source element, and two
+        // separately compiled elements name one layout two ways (DESIGN-external-repository §6.4).
         if (x.IsDynamicLength && (x.DynMaxSize != y.DynMaxSize
-                || !CobolNames.Same(x.DynStructure?.Name, y.DynStructure?.Name)))
+                || DynamicLengthStructure.KeyOf(x.DynStructure) != DynamicLengthStructure.KeyOf(y.DynStructure)))
             return $"DYNAMIC LENGTH mismatch (maximum size {x.DynMaxSize} vs {y.DynMaxSize}, structure "
                 + $"{x.DynStructure?.Name ?? "(implementor)"} vs {y.DynStructure?.Name ?? "(implementor)"} — the "
                 + "corresponding items shall have the same DYNAMIC LENGTH clause, its LIMIT and STRUCTURE phrases "

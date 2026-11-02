@@ -356,7 +356,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// statement nobody wrote. With one helper the naming is what a new arm reaches for, which is what makes
     /// the next SET diagnostic name its receivers without anyone remembering to.</para></summary>
     public static string Written(IReadOnlyList<Core.DataReferenceContext> receivers) =>
-        string.Join(' ', receivers.Select(r => $"'{r.GetText()}'"));
+        string.Join(' ', receivers.Select(r => $"'{DataBinder.WrittenText(r)}'"));
 
     /// <summary>COBOL2112 — the residual arm §14.9.39.2 needs and did not have: NO printed general format's
     /// receiving brace admits these operands, so the statement is refused rather than executed as Format 1/2
@@ -368,7 +368,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     {
         string written = Written(receivers);
         string what = string.Join("; ", receivers
-            .Select((r, i) => $"'{r.GetText()}' is {Describe(kinds[i])}")
+            .Select((r, i) => $"'{DataBinder.WrittenText(r)}' is {Describe(kinds[i])}")
             .Distinct());
         string braces = string.Join("; ", Formats.Where(f => (f.Dir & dir) != 0).Select(f => f.Brace));
         ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
@@ -390,7 +390,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         {
             if (kinds[i] == SetOperandKind.Unclassified || row.Admits.Contains(kinds[i])) continue;
             ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
-                $"SET '{receivers[i].GetText()}': {row.Brace}, and '{receivers[i].GetText()}' is "
+                $"SET '{DataBinder.WrittenText(receivers[i])}': {row.Brace}, and '{DataBinder.WrittenText(receivers[i])}' is "
                 + $"{Describe(kinds[i])} ({row.Rule})");
             return true;
         }
