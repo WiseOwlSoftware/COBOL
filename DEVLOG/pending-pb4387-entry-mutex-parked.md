@@ -37,3 +37,5 @@ connector. Duplication: the held and idle names are written once each (`HeldName
 `UncoveredChangeGuard` (WRITE and REWRITE); every other user is per OPEN, per transaction, or per COMMIT. Found and not fixed:
 the same publish-and-retire-per-hold pattern exists for the store mutex and record locks of the sidecar HOST (macOS), which
 `SidecarHost.Open` endpoints never park; it cannot be measured here.
+
+**Gates.** Windows: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,540/20,540 · Unit 39,144/39,144 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261102T014256Z; the seven new cases Passed in `Unit.trx`). Linux: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built inert-watch; HEAD 917544760) ===`. `python scripts/semgrep/verify.py`: PASS, no count raised.
