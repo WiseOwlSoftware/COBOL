@@ -927,7 +927,7 @@ public sealed record BoundConditionError(string Feature) : BoundCondition;
 /// activations are the SAME lowering the hoist uses (one mechanism).
 /// <para>⚠ <paramref name="Activations"/> is <see cref="BoundStatement"/>, not <see cref="BoundCallProgram"/>,
 /// because the statement-pending list it drains from carries BOTH pre-op kinds (see
-/// <c>DataBinder.PendingPreOps</c>): a user-function activation AND a D18 function-bearing subscript's §15.4
+/// <c>ProcedureBindState.PendingPreOps</c>): a user-function activation AND a D18 function-bearing subscript's §15.4
 /// temporary store (fix-queue PB17). The window rule is identical for both — §8.8.4.13 r2 governs "functions",
 /// not one spelling of them — so widening the carrier is what makes the subscript case ride the machinery the
 /// UDF case already proved, instead of a parallel one.</para></summary>
@@ -941,7 +941,7 @@ public sealed record BoundUdfEvaluated(IReadOnlyList<BoundStatement> Activations
 public abstract record BoundStatement
 {
     /// <summary>True when this node is not a statement the programmer wrote but a step of EVALUATING AN OPERAND of
-    /// one — every pre-op drained from <c>DataBinder.PendingPreOps</c> (a user-function activation, an inline method
+    /// one — every pre-op drained from <c>ProcedureBindState.PendingPreOps</c> (a user-function activation, an inline method
     /// invocation, a D18 function-bearing subscript's §15.4 temporary store, a sending-value temp) and every
     /// object-property accessor lowered around a statement (kb/Work PB892, PB1432). Wherever the step runs —
     /// hoisted before the statement, or inside a per-evaluation window's lambda — a condition it raises or
@@ -1274,7 +1274,7 @@ public sealed record IntoPhraseRules(
 /// <para>⛔ EVERY BoundMove IS BUILT BY <c>MoveBinder</c>, AT BIND TIME (kb/Work PB348). The implicit ones used
 /// to be synthesized in the EMITTER, downstream of every bind-time MOVE screen AND of the storage facts codegen
 /// itself consumes — so <c>RELEASE R FROM WS-NUM</c> escaped the §14.9.25.3 Table-16 refusal its explicit twin
-/// draws, and <c>RELEASE N FROM QUOTE</c> aborted the RUN because <c>MarkImageForced</c> had never seen the
+/// draws, and <c>RELEASE N FROM QUOTE</c> aborted the RUN because <c>DataBindState.ImageForcedItems</c> had never seen the
 /// receiver. <c>ImplicitMoveConstructionDriftTests</c> keeps the I-O and sort emitters free of
 /// <c>new BoundMove</c>.</para></summary>
 public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement
@@ -1584,7 +1584,7 @@ public sealed record BoundImplicitSeries(IReadOnlyList<BoundStatement> Members) 
 /// and checking enabled for one of them reaches the statement's exception processing (kb/Work PB3338, review finding
 /// w1154a R1-3: with no entry there the mask was always 0, PB1036's shape).
 /// <para><paramref name="ForeignFiles"/>: the files of ANOTHER element's clause that this element can name — the
-/// GLOBAL file-names of its containers (§13.18.27.4 GR1, <c>FilesByName</c>) under commit control there. Their refusal
+/// GLOBAL file-names of its containers (§13.18.27.4 GR1, <c>DataBinder.VisibleFiles</c>) under commit control there. Their refusal
 /// is told by the describing element, but a TURN directive of THIS element that names one enables checking "only for
 /// exception conditions associated with that file-name" (§7.3.25.4 GR6, GR8), so each is an I-O file of the statement
 /// for <c>EcBinder.IoFilesOf</c> too (kb/Work PB3554, review finding w20261712a R1-1).</para></summary>

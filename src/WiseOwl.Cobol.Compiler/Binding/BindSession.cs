@@ -28,8 +28,8 @@ internal sealed class BindSession
     public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
 
     /// <summary>The group's compile-time <c>&gt;&gt;PROPAGATE</c> resolution (ISO §7.3.21; kb/Work PB1119) — folded
-    /// once per source element (<c>BinderDriver</c>: a program unit's <see cref="DataBinder.AutomaticPropagation"/>,
-    /// a method's <c>OoMethodSymbol.AutomaticPropagationHere</c>). Defaults to the §7.3.21.4 GR4 OFF.</summary>
+    /// once per source element (<c>BinderDriver</c>: a program unit's <see cref="UnitChecking.AutomaticPropagation"/>,
+    /// a method's <c>OoMethodSymbol.Checking</c>; both written by <c>CheckingFold</c>). Defaults to the §7.3.21.4 GR4 OFF.</summary>
     public PropagateState Propagate { get; init; } = PropagateState.Empty;
 
     /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the per-compilation-group

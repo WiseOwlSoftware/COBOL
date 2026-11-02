@@ -223,32 +223,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// clone (the invariant the OO compiler-temp clone already relies on).</summary>
     public Dictionary<string, DataItem> TypeDecls { get; } = new(CobolNames.Comparer);
 
-    /// <summary>The GLOBAL type declarations of every containing program, keyed by type-name (ISO §13.18.58.4 GR3 —
-    /// "The GLOBAL clause applies to the scope of the type-name" — and §8.4.6.2.2, "A type-name described with a
-    /// GLOBAL clause is a global name"; kb/Work PB1303). Kept APART from <see cref="TypeDecls"/>, which is this
-    /// source element's OWN declarations: an own declaration must neither collide with an inherited one (§8.4.6.2.1
-    /// 3 a — a name declared in the referencing element is the one referenced) nor be walked, emitted or re-validated
-    /// as this unit's. <see cref="FindTypeDecl"/> is the ONE lookup, own declarations first.</summary>
-    private readonly Dictionary<string, DataItem> _inheritedTypeDecls = new(CobolNames.Comparer);
-
-    /// <summary>Make <paramref name="container"/>'s GLOBAL type declarations visible here (ISO §13.18.58.4 GR3;
-    /// §8.4.6.2.1 1 — "all global names that are defined in source element A and in any source elements that
-    /// directly or indirectly contain source element A"). The caller passes EVERY container, nearest first, and the
-    /// first declaration of a name wins (§8.4.6.2.1 3 — the nearest containing element's). It must run BEFORE
-    /// <see cref="Bind"/>, because <see cref="ExpandTypes"/> runs inside it. An inherited template is already fully
-    /// expanded (its container's bind finished first), and cloning it writes only to the referencing item.</summary>
-    internal void InheritGlobalTypeDecls(DataBinder container)
-    {
-        foreach (var (name, decl) in container.TypeDecls)
-            if (decl.HasGlobalClause)
-                _inheritedTypeDecls.TryAdd(name, decl);
-    }
-
     /// <summary>⛔ THE ONE TYPE-NAME LOOKUP, in the source element <paramref name="scope"/> names: a METHOD's own
     /// declaration first (kb/Work PB3192) — and none of its object's when the method declares the word as anything
     /// else, since "the declaration in the containing object definition is inaccessible to this method" (§11.7.4 GR5) —
     /// then this binder's element's own, else the nearest containing program's GLOBAL one
-    /// (<see cref="InheritGlobalTypeDecls"/>). Every reader of a type-name (the TYPE clause, a restricted pointer's
+    /// (<see cref="InheritedGlobals.TypeDecls"/>). Every reader of a type-name (the TYPE clause, a restricted pointer's
     /// <c>USAGE POINTER TO type-name</c>, an intrinsic function's type-name argument) asks here, with the scope of the
     /// entry that writes it (<see cref="ScopeOf"/> of its root) or of the statement (<see cref="ActiveScope"/>).</summary>
     internal bool TryFindTypeDecl(string typeName, Model.Scope scope, out DataItem decl)
@@ -258,7 +237,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (m.TypeDecls.TryGetValue(typeName, out decl!)) return true;
             if (m.Declares(typeName)) return false;
         }
-        return TypeDecls.TryGetValue(typeName, out decl!) || _inheritedTypeDecls.TryGetValue(typeName, out decl!);
+        return TypeDecls.TryGetValue(typeName, out decl!) || State.Inherited.TypeDecls.TryGetValue(typeName, out decl!);
     }
 
     /// <summary>Every TYPE DECLARATION this binder's forest holds: its own element's (<see cref="TypeDecls"/>) and each
@@ -272,50 +251,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// this binder's element's.</summary>
     private Dictionary<string, DataItem> TypeDeclsOf(Model.Scope scope) => scope.Method?.TypeDecls ?? TypeDecls;
 
-    /// <summary>
-    /// Group items used as a WHOLE character-image operand (MOVE/DISPLAY/compare/ACCEPT/record I-O/whole-group
-    /// CORRESPONDING pair/boundary formal) — collected AFTER binding by <see cref="Passes.UsageCollectionPass"/>'s
-    /// typed walk of the bound tree (+ the structural FILE-record and boundary-formal sources), NOT by
-    /// <see cref="ReferenceResolver"/> mid-resolve (which over-collected every RESOLVED group; PHASE-05 Step 5). The
-    /// <c>StorageFormPass</c> consults this to decide which numeric-DISPLAY leaves must store their character
-    /// image (ISO §14.9.25.4 MOVE GR4 — a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).
-    /// </summary>
-    public HashSet<DataItem> WholeGroupReferenced { get; } = [];
+    /// <summary>The unit's data-binding state (<see cref="DataBindState"/>; docs/rearchitecture/DESIGN-architecture-review.md
+    /// §8.3 (1), kb/Work PB2296): its value slices and its four append-only fact sets. Every reader of those facts reads
+    /// through it.</summary>
+    public DataBindState State { get; } = new();
 
-    /// <summary>ELEMENTARY items a CHARACTER CHANNEL can write — collected after binding by
-    /// <see cref="Passes.UsageCollectionPass"/> beside <see cref="WholeGroupReferenced"/>, and promoted by
-    /// <c>StorageFormPass</c> exactly as a whole-referenced group's leaves are (kb/Work PB992). A channel that
-    /// delivers CHARACTERS rather than a value — §14.9.25.4 GR4's group move into an elementary receiver, and
-    /// §14.2.3 GR8's shared storage between a BY REFERENCE argument and its formal parameter, where §14.8.2.3.2
-    /// rule 1 admits a formal of any description "of the same length", and the CALL RETURNING receiver — can
-    /// deposit content that is not a numeric value, and a native carrier holds only a value.</summary>
-    public HashSet<DataItem> CharacterChannelItems { get; } = [];
+    /// <summary>The state procedure binding keeps on this unit's binder (<see cref="ProcedureBindState"/>; §8.3 (1)): the
+    /// scoped OPTIONS override, the two statement-scoped drain queues and the two scope cursors. Never part of
+    /// <see cref="State"/>.</summary>
+    internal ProcedureBindState Procedure { get; } = new();
 
-    /// <summary>The COLLECTED image-storage facts (PHASE-05 Step 7 — the flag-write sites become fact records):
-    /// every elementary item some bind-time rule forces to store its CHARACTER IMAGE, recorded at the exact
-    /// moment the legacy <c>StoreAsImage = true</c> writes fired — Tier-B/CALL-cell REDEFINES leaves (resolve),
-    /// FILE-record leaves (resolve), report print faces (resolve), figurative-fill and ref-mod-store receivers
-    /// (procedure bind). <see cref="Passes.StorageFormPass"/> unions this with the compiler-temp re-sync and the
-    /// whole-group promotion to compute <see cref="DataItem.Storage"/> WITHOUT reading the mutable flag; the
-    /// bind-time <c>NumericImagePlace</c> wrap decision reads it with the same mid-bind timing the flag had.</summary>
-    public IReadOnlySet<DataItem> ImageForcedItems => _imageForcedItems;
-    private readonly HashSet<DataItem> _imageForcedItems = [];
-
-    /// <summary>Record one image-storage fact (the ONE write channel for <see cref="ImageForcedItems"/>).</summary>
-    internal void MarkImageForced(DataItem item) => _imageForcedItems.Add(item);
-
-    /// <summary>The BIND-TIME image-storage query (P5.7): true when <paramref name="item"/> is already known —
-    /// at THIS point of binding — to store its character image. Reads the collected facts with EXACTLY the
-    /// mid-bind timing the deleted mutable flag had (a fact recorded by an earlier statement's bind is visible
-    /// to a later statement's; one recorded later is not — the pre-P5.7 order dependency, preserved verbatim
-    /// and noted for the P7 lazy-place redesign). Post-bind consumers read <see cref="DataItem.StoreAsImage"/>
-    /// (the Storage projection) instead.</summary>
-    internal bool IsImageBackedEarly(DataItem item) => _imageForcedItems.Contains(item);
-
-    /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
-    /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);
-    /// the remaining clauses are captured for the features that will consume them. Defaults when no OPTIONS.</summary>
-    public OptionsModel Options { get; internal set; } = OptionsModel.Default;
+    /// <summary>The unit's OPTIONS model (ISO §11.9): its own OPTIONS paragraph over the baseline its container or class
+    /// definition hands it (§11.9.4 GR1), bound once in <see cref="BindDeclarations"/>; the all-defaults model when there
+    /// is none. A method's own OPTIONS model governs that method only, through <see cref="ProcedureBindState.Options"/>
+    /// while its statements bind and <c>EmitContext.Options</c> while its LOCAL-STORAGE initializers are emitted.</summary>
+    public OptionsModel Options { get; private set; } = OptionsModel.Default;
 
     /// <summary>Hand an OO definition's OPTIONS paragraph to this binder (kb/Work PB135, PB780). An interface, class,
     /// factory or instance definition carries its paragraph on the SKELETON (§10.6.1), outside the synthetic program
@@ -346,59 +296,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// §12.4.3 SR1 forbids outright (kb/Work PB1076) and which belongs to no factory or object (kb/Work PB1077).</summary>
     private readonly Dictionary<string, FileModel> _selectedFiles = new(CobolNames.Comparer);
 
-    /// <summary>Every file of every CONTAINING program that is NOT a global name here — its FD has no GLOBAL clause
-    /// (ISO §13.18.27.3 SR1 d)), so its file-name is not in <see cref="FilesByName"/>. It is still reachable through a
-    /// record: a file-section level-1 entry may carry its own GLOBAL clause (SR1 b)), and the record-name is then
-    /// visible here. Read ONLY by <c>StatementValidation.ResolveRecordName</c>, to refuse WRITE / REWRITE of such a
-    /// record by §14.9.51.3 SR21 / §14.9.35.3 SR3 (kb/Work PB1193); filled by <see cref="InheritFileNames"/>, beside
-    /// <see cref="InheritedGlobalFiles"/>.</summary>
-    public List<FileModel> ContainerLocalFiles { get; } = [];
-
-    /// <summary>The GLOBAL files of every CONTAINING program, by file-name, nearest container first (ISO §13.18.27.4 GR1:
-    /// the file-name of a GLOBAL FD is a global name, visible in every directly or indirectly contained program; §8.4.6.2.1
-    /// 3) b): the nearest containing element's declaration is the referenced item). Filled by <see cref="InheritFileNames"/> BEFORE this unit binds, so the
-    /// data division's own resolutions can tell a name that IS a visible file from one declared nowhere
-    /// (<see cref="NonDataDeclarationOf"/>; the APPLY COMMIT clause's SR1 and SR11, <see cref="ResolveApplyCommit"/>).
-    /// It joins <see cref="FilesByName"/> only AFTER the unit binds (<c>BinderDriver.BindUnitData</c>), where an own file
-    /// shadows it: an FD of this unit must find the unit's own SELECT, never an inherited model.</summary>
-    internal Dictionary<string, FileModel> InheritedGlobalFiles { get; } = new(CobolNames.Comparer);
-
-    /// <summary>Record one CONTAINING program's files, <paramref name="depth"/> containment levels out: a GLOBAL one is a
-    /// visible file-name here (<see cref="InheritedGlobalFiles"/>, the nearest container's declaration kept, its depth
-    /// read by <see cref="FileDepth"/>), any other is known for one question only (<see cref="ContainerLocalFiles"/>);
-    /// a record that is a GLOBAL name is recorded with its file (<see cref="InheritedGlobalRecordAreas"/>). Called for
-    /// every container, nearest first, before this unit binds — the file-name twin of <see cref="InheritGlobalTypeDecls"/>.</summary>
-    internal void InheritFileNames(DataBinder container, int depth)
-    {
-        foreach (var f in container.Files)
-        {
-            if (!f.IsGlobal)
-                ContainerLocalFiles.Add(f);
-            else if (InheritedGlobalFiles.TryAdd(f.CobolName, f))
-                _inheritedFileDepth[f] = depth;
-            foreach (var record in f.Records)
-                if (container.CallGlobalRoots.Contains(record))
-                    InheritedGlobalRecordAreas.TryAdd(record, f);
-        }
-    }
-
-    private readonly Dictionary<FileModel, int> _inheritedFileDepth = new(ReferenceEqualityComparer.Instance);
-
-    /// <summary>How many containment levels out <paramref name="file"/> is declared: 0 for this element's own file, n for a
-    /// GLOBAL file of its n-th container (<see cref="InheritedGlobalFiles"/>) — the file-name twin of
-    /// <see cref="DeclaringDepth"/> and <see cref="ReportDepth"/>, so a name a container declares as a file and a nearer
-    /// element declares as something else resolves to the nearer declaration (§8.4.6.2.1 3); kb/Work PB4219).</summary>
-    internal int FileDepth(FileModel file) => _inheritedFileDepth.GetValueOrDefault(file);
-
-    /// <summary>The record areas of every CONTAINING program's files that are GLOBAL names (§13.18.27.4 GR1: the record
-    /// of a GLOBAL FD, or a level-1 entry with its own GLOBAL clause), each mapped to the file that owns it — SR11's
-    /// second half (§12.4.6.3.3: "a file or record area … declared with the GLOBAL clause"). Keyed by the record ITSELF,
-    /// never by its name: the record is a data item this unit inherits with its depth (<see cref="InheritContainerGlobalData"/>),
-    /// so the one data-name lookup (<see cref="QualifiedCandidates"/>: qualification, then the nearest declaring element)
-    /// decides which record a written operand names, and this map only says whether that record is a GLOBAL record area
-    /// and of which file (<c>ScreenEnclosingFileOperand</c>, kb/Work PB3557 review R2-1). Filled by
-    /// <see cref="InheritFileNames"/>.</summary>
-    internal Dictionary<DataItem, FileModel> InheritedGlobalRecordAreas { get; } = new(ReferenceEqualityComparer.Instance);
+    /// <summary>⛔ THE ONE LOOKUP OF A FILE-NAME VISIBLE IN THIS SOURCE ELEMENT, at any point of the bind: its own file
+    /// (<see cref="FilesByName"/>), which hides a container's of the same spelling (§8.4.6.2.1 3) a)), else the nearest
+    /// container's GLOBAL file (§13.18.27.4 GR1; <see cref="InheritedGlobals.Files"/>, known before the unit binds). A
+    /// container's GLOBAL record qualified by its file (§8.4.2.2.2 Format 1's file-report-qualifier) resolves through it
+    /// too (kb/Work PB3557 review R2-1).</summary>
+    public FileNameScope VisibleFiles => new(FilesByName, State.Inherited.Files);
 
     /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
     /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
@@ -526,18 +429,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="IsRepositoryIntrinsic"/> — the membership that applies GR14's >>COBOL-WORDS clauses and the edition
     /// — which the SR13 user-word prohibition (<see cref="DeclareUserWord"/>) asks too.</summary>
     internal bool RepositoryAllIntrinsic { get; set; }
-
-    /// <summary>The parse nodes (and subscript tokens) the binder RESOLVED to a function activation or an object-property
-    /// accessor invocation although the text carries no syntactic marker of one: a function-identifier written without
-    /// the word FUNCTION (§8.4.3.2.3 SR2 — <c>UPPER-CASE (X)</c> under <c>REPOSITORY. FUNCTION ALL INTRINSIC</c>, an
-    /// ordinary-looking <c>dataReference</c>) and a property reference (§8.4.3.9 — <c>prop OF obj</c>, textually a
-    /// qualified data reference, whose get/set accessor is a METHOD invocation). Only the binder can tell these from a
-    /// subscripted or qualified data item, so it records the decision here once, where it makes it
-    /// (<c>IntrinsicBinder.KeywordOmittedFunction</c>, <c>ReferenceResolver.IsFunctionBearing</c>,
-    /// <c>ReferenceResolver.ResolveObjectProperty</c>), and the migration-flag pass reads it back for ISO §7.3.14.4
-    /// GR4 b ("the source element calls any function, or invokes any method") instead of re-deriving the rule from
-    /// syntax. Identity-keyed: a node is a call site or it is not.</summary>
-    internal HashSet<object> ActivationSites { get; } = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
     /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
@@ -817,7 +708,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var rec in f.Records)
                 if (rec.IsGroup)
                 {
-                    WholeGroupReferenced.Add(rec);
+                    State.WholeGroupReferenced.Add(rec);
                     // Flag the leaves NOW (not at the group-tail whole-group pass): the bind-time
                     // NumericImagePlace wrap decision consults the early image facts (a ref-mod/RENAMES base
                     // under a record area must route through its character image at resolve time; ST102A's
@@ -841,7 +732,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // with the leaf's description leaves it holding §14.6.13.2's value rather than those
                 // characters, which is the same posture every other non-DISPLAY numeric usage already takes.
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    MarkImageForced(child);      // the collected image fact (same rule as the whole-group union, §14.9.25.4 MOVE GR4)
+                    State.ImageForcedItems.Add(child);      // the collected image fact (same rule as the whole-group union, §14.9.25.4 MOVE GR4)
             }
         }
     }
@@ -3893,7 +3784,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// Returns false when the declaration is still IN PROGRESS — the caller's TYPE clause is then part of this
     /// declaration's own description, directly or through another declaration, which is the recursion
     /// §13.18.58.3 SR2 forbids. A GLOBAL declaration inherited from a containing program
-    /// (<see cref="InheritGlobalTypeDecls"/>) was completed by that program's own bind, which runs first.
+    /// (<see cref="InheritedGlobals.TypeDecls"/>) was completed by that program's own bind, which runs first.
     /// <para>§13.18.58.3 SR1 — "If the subject of the entry is an elementary item, the STRONG phrase shall not be
     /// specified" — is asked HERE, after the chained TYPE clause has composed the subject (kb/Work PB1301): by
     /// §13.18.57.4 GR1 <c>01 T TYPEDEF STRONG TYPE E.</c> over an elementary E is an elementary subject exactly as
@@ -8146,7 +8037,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 foreach (var leaf in cls.Members.SelectMany(LeavesOf))
                 {
                     if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                        MarkImageForced(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
+                        State.ImageForcedItems.Add(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
                     // A national-form numeric leaf reaches the arm below (kb/Work PB646): its window over the
                     // one backing is Place.NationalWindow's transcoded CHARACTERS, not its bytes, but the
                     // image-forced verdict is the same one and this is the arm that already carried it.
@@ -8160,7 +8051,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         // DISPLAY concern — stays the declared BinaryMinus, which is what DISPLAY of the leaf
                         // must still render. The former rewrite to a trailing-overpunch ZONED image existed only
                         // because the window used to be Digits characters wide.
-                        MarkImageForced(leaf);
+                        State.ImageForcedItems.Add(leaf);
                 }
         }
     }
@@ -8961,9 +8852,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return QualifierWalk(NamesFrom(firstQualifiable), qualifiers, q =>
         {
             // Data ancestors exhausted: the OUTERMOST remaining qualifier may be the file name — any file-name visible
-            // here, a container's GLOBAL one included (TryGetVisibleFile): the data division's own clauses resolve
-            // before the inherited files join FilesByName (kb/Work PB3557 review R2-1).
-            if (!TryGetVisibleFile(q, out var file)) return false;
+            // here, a container's GLOBAL one included (VisibleFiles; kb/Work PB3557 review R2-1).
+            if (!VisibleFiles.TryGetValue(q, out var file)) return false;
             DataItem root = member;
             while (root.Parent is { } p) root = p;
             return file.Records.Contains(root);
