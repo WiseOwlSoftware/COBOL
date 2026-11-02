@@ -49,8 +49,9 @@ public sealed class CobolNameFoldDriftTests
     /// indexer, and as the left side of a keyword comparison (<c>x.ToUpperInvariant() == "ON"</c>, <c>is</c>,
     /// <c>switch</c>). A <c>char.ToUpperInvariant(c)</c> is a character, not a word, and carries empty parentheses on
     /// no call. Since kb/Work PB4240's R2-1 also a word handed to <c>CobolWordsMap.Resolve</c> already folded
-    /// (<c>Resolve(CobolNames.UpperFold(x))</c>): the map spells the word itself, and the fold of a user-defined word
-    /// would make an extended letter the keyword's basic one before the map could tell.</summary>
+    /// (<c>Resolve(CobolNames.UpperFold(x))</c>): the map spells the word itself (a keyword is asked on the word as written;
+    /// since kb/Work PB4420 the fold of a user-defined word no longer turns an extended letter into a basic one, so the
+    /// pre-fold is also pointless).</summary>
     private static readonly System.Text.RegularExpressions.Regex HostUpperKey = new(
         @"Sanitize\([^;]*\)\.ToUpperInvariant\(|\bResolve\([^;]*\.ToUpperInvariant\(|\bResolve\(CobolNames\.UpperFold\(|\bCobolName!?\.ToUpperInvariant\("
         + @"|\b(TryGetValue|ContainsKey|Contains|TryAdd|Add|Remove|Find|Lookup|GetValueOrDefault|GetEnvironmentVariable)\([^;]*\.To(Upper|Lower)Invariant\(\)"
