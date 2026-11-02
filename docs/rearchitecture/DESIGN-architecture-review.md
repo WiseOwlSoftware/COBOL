@@ -1853,9 +1853,9 @@ combined-diff set) and the ids leading its own subject, never with its first-par
 parent's whole history (a merged predecessor's commits, which the walk attributes one by one, or `main`'s own landings
 in a `Merge origin/main`); the first-parent reading charged one commit's R3 status flip to every file a merged
 predecessor changed and stopped PB3154's branch on a note whose only commit changed no code. A meeting
-stops the LATER of the two by dispatch time (the ledger's `at`, one millisecond apart per group so a wave never ties,
-else the branch's first commit), which re-plans and rebases onto the earlier once it lands, and the earlier one lands
-with a warning naming the branch that must rebase. An in-flight branch is R3 work because its DISPATCH says so, never
+stops neither (FIRST READY LANDS, owner 2026-11-02, kb/Work PB4452): the landing proceeds with a warning naming the
+other branch, which merges main after it lands, and a real conflict is that branch's finisher's (MANDATORY-PRACTICES
+L12); ordering by dispatch time let an idle, unfinished branch hold a finished, reviewed one for hours. An in-flight branch is R3 work because its DISPATCH says so, never
 by its commit wording alone (implementers commit `WIP checkpoint: …`), and it is bound to ONE dispatch (`identity`,
 kb/Work PB3186): its fix-lane REPORT (the newest whose branch field names it) and that report's ledger group (its
 slug), else the ids leading its subjects or whose status it flips, else the ONE ledger group that best covers its
@@ -1867,9 +1867,8 @@ is the landing's content. Two kinds of in-flight work never stop a landing (`dep
 DESCENDS from the landing branch (their merge-base lies beyond `origin/main`: a successor, a review finisher or a carrier
 that merged some head of it, and lands on top of it; wave 1118's successor -326-13 held PB3333's older head and stopped
 PB3333's reviewed branch three times), and a worktree with no commit beyond `origin/main` (its loose files are work in
-progress, a merge or a first edit; its dispatch, when the ledger records one, is read through its declared set). The
-partition orders only INDEPENDENT dispatches that edit the same member; anything else whose edits meet and was dispatched earlier stops it, naming how it was
-identified and how to bind work it did not recognise. (The train manifests that once named a train's own members are
+progress, a merge or a first edit; its dispatch, when the ledger records one, is read through its declared set). Anything
+else whose edits meet the landing's is named in a warning and never stops it. (The train manifests that once named a train's own members are
 gone with the train, kb/Work PB3023.) An aborted dispatch's entry never expires on a clock; it is released by hand
 (`plan_wave.py --release <wave|group|note>`). Fix-lane work against fix-lane work is never stopped: the merge queue
 merges it, at worst through a conflict finisher. The check

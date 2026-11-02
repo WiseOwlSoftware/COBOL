@@ -66,13 +66,14 @@ who acts next:
                    fixes a finding. A FINDINGS stamp at an older head is unreviewed work too, never a finisher's: the
                    planner reads the same coverage (kb/Work PB3394).
   WAITING TO LAND  coverages 1 and 2 hold and no attempt stopped at this tip (none ran here, one is running, or its exit
-                   is one the lane retries by itself: 3 once landing_check.py passes, 2 or 9 once, 8 after the halt; or
+                   is one the lane retries by itself: 12, 13, 15 or 16 once what it waits on is free, 2 or 9 once, 8 after the halt; or
                    the enqueue unit re-armed it): the loop's landing lane runs `enqueue.py land <branch>` on it
                    (land_lane.py, kb/Work PB3103, PB3023), one branch at a time, the most harmful lead first (`--brief`
                    lists them in that order, kb/Work PB2981's ranking). (A stamp that says FINDINGS and covers the tip is
                    a DECISION row: the next wave's finisher answers them, plan_wave.py.)
   STOPPED          coverages 1 and 2 hold and the lane's attempt at this tip STOPPED (land_lane's class: a conflict 4, a
-                   red gate 5, a DEVLOG refusal 6, UNREVIEWED 11, UNTESTED 14, a repeated exit 2 or 9, a runner that DIED twice): the
+                   red gate 5, a DEVLOG refusal 6, UNREVIEWED 11, UNTESTED 14, the landing check's STOP 3 (kb/Work PB4452), a repeated
+                   exit 2 or 9, a runner that DIED twice): the
                    lane never relaunches it at this head; the enqueue unit sends it to its finisher (or reviewer), whose
                    new tip is reviewed and landed, or re-arms a stop resolved with no commit. The evidence names the
                    attempt and land_lane.ACTION's owner. A branch it contains with no clean stamp at its tip lands
@@ -1920,7 +1921,7 @@ def self_test() -> int:
                                        'end_head': end_head or head})
         attempt('lane-stopped', lane_at['lane-stopped'], 5, 'GATE RED (Linux) on x',
                 scratch.git('rev-parse', 'lane-stopped'))
-        attempt('lane-free', lane_at['lane-free'], 3, 'NOT QUEUED (exit 3, above)')
+        attempt('lane-free', lane_at['lane-free'], 12, 'GATE BUSY (Windows) on g2')   # a retry-when-free exit; exit 3 is a STOP (PB4452)
         attempt('lane-done', lane_at['lane-done'], 0, 'ENQUEUED')
         attempt('qsucc', once_at['qsucc'], 0, 'ENQUEUED')
         attempt('lane-running', lane_at['lane-running'], None)
@@ -2219,8 +2220,8 @@ def self_test() -> int:
               f'{rows["lane-stopped"].why}')
         check('contained in lane-stopped (STOPPED)' in rows['lane-pred'].why,
               f'a predecessor of a STOPPED branch lands through it: {rows["lane-pred"].why}')
-        check('exit 3' in rows['lane-free'].why and 'landing_check.py passes' in rows['lane-free'].why,
-              f'an exit-3 attempt waits with the lane\'s retry rule named: {rows["lane-free"].why}')
+        check('exit 12' in rows['lane-free'].why and 'gate lock' in rows['lane-free'].why,
+              f'an exit-12 attempt waits with the lane\'s retry rule named: {rows["lane-free"].why}')
         check('exit 0' in rows['lane-done'].why, f'an exit-0 attempt at the tip reads ENQUEUED offline: {rows["lane-done"].why}')
         check('being landed' in rows['lane-running'].why, f'a running attempt is said: {rows["lane-running"].why}')
         check('the landing lane lands it' in rows['done-branch'].why and 'an-older' not in rows['done-branch'].why,

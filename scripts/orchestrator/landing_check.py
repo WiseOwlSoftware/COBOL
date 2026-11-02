@@ -16,9 +16,10 @@ kb/Work PB3694), then compares what the landing ACTUALLY changed with
      of one matches a member of the other (inflight.hold, on the units each diff touches, inflight.inflight_units;
      kb/Work PB4452). A shared file whose edits fall in different members, or a file either side changes whole (added,
      deleted, unreadable, a dispatch's declared file with no recorded members), stops nothing: git's merge combines
-     them. A meeting stops the LATER of the two (by dispatch time: the ledger's `at`, else the branch's first commit):
-     it re-plans and rebases onto the earlier after that lands. The earlier one lands, and the check names the branch
-     that must rebase.
+     them. A meeting STOPS NOTHING either (FIRST READY LANDS, owner 2026-11-02, kb/Work PB4452): the landing proceeds
+     and the check names the other branch, which merges main after this one lands; a real conflict is that branch's
+     finisher's (MANDATORY-PRACTICES L12). Ordering by dispatch time let an idle, unfinished branch hold a finished,
+     reviewed one for hours (w20261827a).
 
 R3 work is attributed PER COMMIT (PB2703). A train is MIXED: the lander makes one commit per cluster, and some clusters
 work on R3 notes while the rest are fix lane or tooling. The landing's R3 work is the commits that work on an R3 note
@@ -48,8 +49,7 @@ and it lands on top of it: wave 1118's successor -326-13 merged an OLDER head of
 PB3333's reviewed branch, stopping its own predecessor's landing three times with both gates GREEN), and a worktree
 whose branch has no commit beyond `base` (a finisher cut from main that has not committed: its loose files are a merge
 or an edit in progress, and its dispatch, when the ledger records one, is read through its declared set). Anything
-else whose edits meet this landing's and was dispatched earlier stops it: the partition orders only INDEPENDENT
-dispatches that edit the same member, and the stop names how it was identified and how to bind work it failed to recognise.
+else whose edits meet this landing's is named in a warning and never stops it (first ready lands, kb/Work PB4452).
 
 Fix lane against fix lane is never stopped: fix-lane implementers share files by design, and the merge queue merges
 them (at worst through a conflict finisher, MANDATORY-PRACTICES L12). The partition's domain is the campaign's code roots (model_rules.json `campaign`: src, tests, scripts,
@@ -59,7 +59,8 @@ text merge the rebase resolves, and kb/Work and DEVLOG/ are every landing's book
 Usage:
     python scripts/orchestrator/landing_check.py [--rev HEAD] [--base origin/main] [--coord DIR]
     python scripts/orchestrator/landing_check.py --self-test
-Exit 0: the landing may proceed (warnings name branches that must rebase). Exit 1: STOP (each reason printed).
+Exit 0: the landing may proceed (warnings name branches whose edits meet it: they merge main after it lands). Exit 1:
+STOP (each reason printed): a never-carried path or a duplicate public-API symbol, which only a new commit clears.
 """
 from __future__ import annotations
 
@@ -164,9 +165,6 @@ def commit_work(repo: pathlib.Path, git: Callable[..., Any], graph: Ancestry, re
     return out
 
 
-def first_commit_time(graph: Ancestry, rev: str) -> float | None:
-    """The committer date of the oldest commit `rev` has beyond the graph's base, or None when it has none."""
-    return float(min(graph.time(c) for c in graph.beyond(rev))) if graph.beyond(rev) else None
 
 
 def _key(path: str | None) -> str:
@@ -240,8 +238,6 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
             mine_r3_files |= {p for p in changed if inside(p)}
     full_ledger = coord.ledger_groups(coord_dir)   # THE reader: a retired hand entry is no dispatch (PB3186)
     ledger = [g for g in full_ledger if not all(terminal(i) for i in g.get("notes", []))]
-    my_at = min([g["at"] for g in ledger if "at" in g and set(g.get("notes", [])) & notes]
-                + [first_commit_time(graph, rev) or float("inf")])
     stops, warnings = [], []
     # 0. a path no landing carries (coord.NEVER_WORK: the harness's tracked per-machine settings, the checkpoint file, the
     # gate's results). `git add -A` and `git commit -a` stage the harness's edits of .claude/settings.local.json, and a
@@ -279,27 +275,22 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         report_of.update({k: r for k in (r.branch, _key(r.worktree)) if k})
     by_slug = {ledger_slug(g): g for g in full_ledger}
 
-    def identity(m: dict, files: set[str]) -> tuple[set[str], float, str]:
-        """(the notes an in-flight branch works on, its dispatch time, how that is known), bound to ONE dispatch by
+    def identity(m: dict, files: set[str]) -> set[str]:
+        """The notes an in-flight branch works on, bound to ONE dispatch by
         the first of (kb/Work PB3186; never by its WIP commit wording alone, K2; never the union of every ledger group
         its diff meets, which made a fix-lane worktree R3 work when one overlapping group was):
           1. its REPORT (the newest whose branch field or worktree names it): that report's ledger group (its slug,
              `w<wave><letter>`), else the report's lead;
           2. its COMMIT SUBJECTS: the ids that lead them or whose status it flips;
           3. the ONE ledger group that best covers its actual diff (best_group)."""
-        how = ""
         if rep := report_of.get(m.get("branch") or "") or report_of.get(_key(m.get("path"))):
             g = by_slug.get(rep.slug.lower())
-            their, how = (set(g.get("notes", [])) if g else {rep.lead}), f"report {rep.path.name}"
-        elif subj := work_notes(git, graph, base, m["rev"]):
-            their, how = subj, "commit subjects"
-        elif g := best_group(files, ledger):
-            their, how = set(g.get("notes", [])), f"dispatch-ledger group {ledger_slug(g)}"
-        else:
-            their = set()
-        at = min([g["at"] for g in ledger if "at" in g and set(g.get("notes", [])) & their]
-                 + [first_commit_time(graph, m["rev"]) or float("inf")])
-        return their, at, how or "nothing"
+            return set(g.get("notes", [])) if g else {rep.lead}
+        if subj := work_notes(git, graph, base, m["rev"]):
+            return subj
+        if g := best_group(files, ledger):
+            return set(g.get("notes", []))
+        return set()
 
     def depends(their_rev: str) -> bool:
         """An in-flight branch that blocks nothing (kb/Work PB3381 section H): one with no commit beyond `base` (an
@@ -315,7 +306,7 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         return bool(theirs & mine_beyond) and graph.sha(their_rev) not in mine_beyond
 
     # Who could meet this landing: the in-flight owners that share a code file with it and are R3 work on either side.
-    candidates: list[tuple[str, dict, set[str], bool, set[str], float, str]] = []
+    candidates: list[tuple[str, dict, set[str], bool, set[str]]] = []
     for owner, files in sorted(busy.items()):
         m = meta.get(owner, {})
         ancestor = False
@@ -327,13 +318,13 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
             shared = {f for f in mine & files if inside(f)}
             if not shared:
                 continue
-            their_notes, their_at, how = identity(m, files)
+            their_notes = identity(m, files)
             if not their_notes or their_notes & notes:     # not known to be OTHER work: its re-committed content
                 shared -= contained(m["rev"], shared - set(m.get("uncommitted", set())))   # is this landing's (K3)
                 if not shared:
                     continue
         else:                                              # an unanswered dispatch: its DECLARED set, started or not
-            their_notes, their_at, how = set(m.get("notes", [])), m.get("at", 0.0), "dispatch ledger"
+            their_notes = set(m.get("notes", []))
             if their_notes & notes:
                 continue                                   # this landing's own dispatch entry
             shared = {f for f in mine & files if inside(f)}
@@ -344,38 +335,33 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
                                                            # queue merges them, at worst through a conflict finisher
                                                            # (PB2703: per file — only a file an R3 commit changed is
                                                            # R3 here; PB3186: their notes are ONE dispatch's)
-        candidates.append((owner, m, shared, ancestor, their_notes, their_at, how))
+        candidates.append((owner, m, shared, ancestor, their_notes))
 
     # THE MEETING (kb/Work PB4452): a shared FILE stops nothing. The landing's and each candidate's edits in the files they
     # share are read as the units their diffs touch (inflight.inflight_units, the planner's own reader: a dispatch's units
-    # are the members its ledger entry recorded), and a candidate stops the landing only where a member of one matches a
-    # member of the other (inflight.hold); a file either side changes whole holds nothing, and git's merge combines the rest.
+    # are the members its ledger entry recorded), and a candidate is NAMED (a warning, never a stop) where a member of one
+    # matches a member of the other (inflight.hold); a file either side changes whole names nothing, and git's merge
+    # combines the rest.
     landing = "this landing"
     flights = {o: inflight.InFlight(set(sh), members=dict(inflight.Claim.of(sh, m.get("members")).members))
-               for o, m, sh, _, _, _, _ in candidates}
+               for o, m, sh, _, _ in candidates}
     unit_meta = {o: {**m, "committed": set() if anc else set(m.get("committed", ())) & sh,
                      "uncommitted": set(m.get("uncommitted", ())) & sh}
-                 for o, m, sh, anc, _, _, _ in candidates}
+                 for o, m, sh, anc, _ in candidates}
     if candidates:
-        every = set().union(*(sh for _, _, sh, _, _, _, _ in candidates))
+        every = set().union(*(sh for _, _, sh, _, _ in candidates))
         flights[landing] = inflight.InFlight(every)
         unit_meta[landing] = {"sha": graph.sha(rev), "base": git("merge-base", base, rev).stdout.strip() or base,
                             "committed": every}
         inflight.inflight_units(flights, unit_meta, [], git, repo)
-    for owner, m, _, _, their_notes, their_at, how in candidates:
-        if not (hit := inflight.hold(flights[landing].claim, flights[owner].claim)):
-            continue
-        if their_at < my_at:
-            unbound = (" It is " + (f"{', '.join(sorted(their_notes)[:4])} work by its {how}" if how != "nothing"
-                                    else "bound to no dispatch: no report names its branch, no commit subject leads "
-                                         "with its notes and no dispatch-ledger group declares its files") +
-                       "; if it IS this landing's own work, merge it into this branch (a merged branch is this "
-                       "landing's) and re-run.") if m.get("rev") else ""
-            stops.append(f"edits {hit} with {owner}, dispatched earlier: this landing is the LATER branch — it "
-                         f"waits, re-plans and rebases onto {owner} after that lands.{unbound}")
-        else:
-            warnings.append(f"edits {hit} with {owner}, dispatched later: this landing proceeds; {owner} must "
-                            f"re-plan and rebase onto it")
+    # FIRST READY LANDS (owner 2026-11-02, kb/Work PB4452): a branch ready to land never waits for another that edits the
+    # same member, whenever either was dispatched; an unfinished branch could hold a finished, reviewed one for hours
+    # (w20261827a, reviewed CLEAN, held by an idle SPLIT branch). The other branch merges main after this one lands, and a
+    # real conflict is a finisher's (MANDATORY-PRACTICES L12). The meeting is named so its owner knows.
+    for owner, _m, _, _, _ in candidates:
+        if hit := inflight.hold(flights[landing].claim, flights[owner].claim):
+            warnings.append(f"edits {hit} with {owner}: this landing proceeds (first ready lands); {owner} merges main "
+                            f"after it, and a real conflict goes to its finisher")
     return stops, warnings
 
 
@@ -443,9 +429,9 @@ def self_test() -> int:
     # PLANT 1: a two-branch overlap on ONE MEMBER — R3 work (dispatched at 1_000_100) and a fix-lane branch (first commit later)
     branch("r-one", "PB9001: extract", {"src/A.cs": cs(one="moved")}, 1_000_200)
     branch("f-two", "PB9100: fix", {"src/A.cs": cs(one="fixed")}, 1_000_500)
-    expect("PLANT 1a: the LATER branch (the fix lane) editing the member in-flight R3 work edits STOPS (against the R3 "
-           "branch and against its dispatch entry, which recorded the member)", land("f-two"), 2, 0)
-    expect("PLANT 1b: the EARLIER branch (the R3 wave) lands and names the branch that must rebase",
+    expect("PLANT 1a: the LATER branch (the fix lane) editing the member in-flight R3 work edits PROCEEDS (first ready lands, a warning) (against the R3 "
+           "branch and against its dispatch entry, which recorded the member)", land("f-two"), 0, 2)
+    expect("PLANT 1b: the EARLIER branch (the R3 wave) lands too and names the branch whose edits meet it",
            land("r-one"), 0, 1)
     # PB4452: the SAME FILE, ANOTHER MEMBER, merges without conflict: nobody waits
     branch("f-other", "PB9100: fix", {"src/A.cs": cs(two="fixed")}, 1_000_500)
@@ -458,13 +444,13 @@ def self_test() -> int:
     ledger(dict(a_set, members={}))
     branch("f-whole", "PB9100: fix", {"src/A.cs": cs(one="fixed")}, 1_000_500)
     expect("PB4452d: a dispatch entry that recorded NO members claims the file whole and holds nothing: the fix-lane edit "
-           "is stopped by the R3 BRANCH that edits the same member (one stop), never by the dispatch entry",
-           land("f-whole"), 1, 0)
+           "is named by the R3 BRANCH that edits the same member (one warning), never by the dispatch entry",
+           land("f-whole"), 0, 1)
     ledger(a_set)
     scratch.git("branch", "-D", "f-whole")
     scratch.git("branch", "-D", "f-other")
     # a branch whose commits the landing contains IS the landing: a train built on the R3 branch r-one names only
-    #   a later branch on its member as a branch to rebase, never r-one itself
+    #   a later branch on its member in a warning, never r-one itself
     scratch.git("checkout", "-q", "-b", "train", "r-one")
     write("src/F.cs", cs())
     scratch.git("add", "-A")
@@ -515,7 +501,7 @@ def self_test() -> int:
     worktree("wt-wip", "WIP checkpoint: extract", {"src/A.cs": cs(one="moved"), "src/B.cs": cs(one="caller")}, 1_000_200)
     branch("f-b", "PB9100: fix", {"src/B.cs": cs(one="fixed")}, 1_000_500)
     expect("K2: an R3 worktree whose commits are all `WIP checkpoint:` is R3 work by its dispatch entry: a later "
-           "fix-lane edit to a member it changed OUTSIDE its declared set STOPS", land("f-b"), 1, 0)
+           "fix-lane edit to a member it changed OUTSIDE its declared set PROCEEDS (first ready lands, a warning)", land("f-b"), 0, 1)
     scratch.git("branch", "-D", "f-b")
     drop("wt-wip")
 
@@ -529,9 +515,7 @@ def self_test() -> int:
     scratch.git("branch", "-D", "r-train")
     branch("r-train2", "PB9001: extract", {"src/A.cs": cs(one="moved, conflict resolved")}, 1_000_900)
     got = land("r-train2")
-    expect("K3b: an earlier worktree bound to no dispatch, whose content the landing changed, STOPS", got, 1, 0)
-    expect("K3b': ... and the stop says how to bind it", ([s for s in got[0] if "merge it into this branch" in s], []),
-           1, 0)
+    expect("K3b: an earlier worktree bound to no dispatch, whose content the landing changed, PROCEEDS (first ready lands, a warning)", got, 0, 1)
     scratch.git("checkout", "-q", "-b", "r-train3", "wt-impl")   # the landing MERGED its implementer's branch (a successor)
     write("src/A.cs", cs(one="moved, conflict resolved"))
     scratch.git("add", "-A")
@@ -539,7 +523,7 @@ def self_test() -> int:
     scratch.git("checkout", "-q", "main")
     expect("K3c: an implementer branch the landing contains is the landing's own: lands", land("r-train3"), 0, 0)
     worktree("wt-other", "WIP checkpoint: another", {"src/A.cs": cs(one="someone else")}, 1_000_150)
-    expect("K3d: ... and another earlier worktree on the same member still STOPS it", land("r-train3"), 1, 0)
+    expect("K3d: ... and another earlier worktree on the same member is named in a warning; the landing proceeds", land("r-train3"), 0, 1)
     drop("wt-other")
     worktree("wt-two", "WIP checkpoint: another member", {"src/A.cs": cs(two="someone else")}, 1_000_150)
     expect("PB4452e: ... while an earlier worktree on ANOTHER MEMBER of the file does not", land("r-train3"), 0, 0)
@@ -548,7 +532,7 @@ def self_test() -> int:
     # kb/Work PB3381 section H: a successor that merged an OLDER head of the landing branch descends from it and lands
     # on top of it, so it never blocks it (wave 1118: -326-13 held PB3333's 3dadec3a3 and stopped PB3333's reviewed
     # -326-20 three times); an empty worktree (no commit beyond main, a merge in progress) blocks nothing; an
-    # independent earlier dispatch on the same member (K3d above) still stops it.
+    # independent earlier dispatch on the same member (K3d above) is named in a warning, never a stop.
     scratch.git("checkout", "-q", "-b", "succ-old", "wt-impl")   # merged the landing's OLDER head (wt-impl), then its own edit
     write("src/A.cs", cs(one="the successor's own edit on the shared member"))
     scratch.git("add", "-A")
@@ -577,8 +561,8 @@ def self_test() -> int:
            land("pred-new", reports=h_reports), 0, 0)
     drop("wt-empty")
     worktree("wt-indep", "WIP checkpoint: independent", {"src/A.cs": cs(one="independent work")}, 1_000_150)
-    expect("H3: ... while an INDEPENDENT earlier dispatch on the same member still STOPS it",
-           land("pred-new", reports=h_reports), 1, 0)
+    expect("H3: ... while an INDEPENDENT earlier dispatch on the same member is named in a warning; the landing proceeds",
+           land("pred-new", reports=h_reports), 0, 1)
     drop("wt-indep")
     ledger()
     for b in ("succ-old", "pred-new"):
@@ -600,8 +584,8 @@ def self_test() -> int:
     worktree("wt-rep", "WIP checkpoint: fix", {"src/A.cs": cs(one="wip"), "src/B.cs": cs(one="wip"),
                                                 "src/D.cs": cs(one="wip")}, 1_000_200)
     branch("f-d", "PB9101: a later fix", {"src/D.cs": cs(one="a later fix")}, 1_000_500)
-    expect("PB3186b: a WIP worktree whose diff the R3 group covers best is R3 work (K2): a later edit to its member STOPS",
-           land("f-d"), 1, 0)
+    expect("PB3186b: a WIP worktree whose diff the R3 group covers best is R3 work (K2): a later edit to its member PROCEEDS (first ready lands, a warning)",
+           land("f-d"), 0, 1)
     rdir = root / "reports"
     rdir.mkdir(exist_ok=True)
     (rdir / "w3b-PB9100-report.md").write_text("Status: DONE" + chr(10) + "Branch: wt-rep" + chr(10), encoding="utf-8",
@@ -621,8 +605,8 @@ def self_test() -> int:
     ledger(dict(a_set, files=["src/A.cs", "src/C.cs"], members={"src/A.cs": ["K.One"], "src/C.cs": ["K.One"]}))
     worktree("wt-start", "WIP checkpoint: part 1", {"src/A.cs": cs(one="moved")}, 1_000_200)
     branch("f-c", "PB9100: fix", {"src/C.cs": cs(one="fixed")}, 1_000_500)
-    expect("N2: a STARTED R3 wave keeps its untouched declared members: a later fix-lane edit to one STOPS",
-           land("f-c"), 1, 0)
+    expect("N2: a STARTED R3 wave keeps its untouched declared members: a later fix-lane edit to one PROCEEDS (first ready lands, a warning)",
+           land("f-c"), 0, 1)
     ledger(dict(a_set, files=["src/A.cs", "src/C.cs"], members={}))
     expect("PB4452f: ... but a declared file the dispatch recorded no members for is claimed whole, and holds nothing",
            land("f-c"), 0, 0)
@@ -651,7 +635,7 @@ def self_test() -> int:
            land("mixed"), 0, 0)
     scratch.git("branch", "-D", "f-early")
     branch("f-early2", "PB9101: earlier fix", {"src/A.cs": cs(one="earlier fix")}, 1_000_050)
-    expect("PB2703b: ... while its R3 commit's member shared with an EARLIER in-flight branch STOPS", land("mixed"), 1, 0)
+    expect("PB2703b: ... while its R3 commit's member shared with an EARLIER in-flight branch PROCEEDS (first ready lands, a warning)", land("mixed"), 0, 1)
     scratch.git("branch", "-D", "f-early2")
     scratch.git("branch", "-D", "mixed")
     flipped = [dict(i, status="landed") if i["id"] == "PB9002" else i for i in items]   # as the landing's tree reads
@@ -664,7 +648,7 @@ def self_test() -> int:
                          1_000_200))
     branch("f-early3", "PB9101: earlier fix", {"src/B.cs": cs(one="earlier fix")}, 1_000_050)
     expect("PB2703d: ONE commit naming an R3 id and a fix-lane id is R3 whole: its fix-lane file's member shared with an "
-           "EARLIER in-flight fix-lane branch STOPS", land("squashed"), 1, 0)
+           "EARLIER in-flight fix-lane branch PROCEEDS (first ready lands, a warning)", land("squashed"), 0, 1)
     scratch.git("branch", "-D", "f-early3")
     scratch.git("branch", "-D", "squashed")
     ledger()
@@ -702,7 +686,7 @@ def self_test() -> int:
     branch("f-bc", "PB9101: earlier fix", {"src/B.cs": cs(one="earlier fix"), "src/C.cs": cs(one="earlier fix")}, 1_000_050)
     got = land("r-mrg")
     expect("PB3180b: an R3 merge whose conflict resolution (and evil-merge edit) changes members an EARLIER in-flight branch "
-           "edits STOPS", got, 1, 0)
+           "edits PROCEEDS (first ready lands, a warning)", got, 0, 1)
     scratch.git("branch", "-D", "r-mrg")
     resolve("r-theirs", cs(one="other side"))
     expect("PB3180b': ... while a resolution that takes the other parent's version introduces nothing (that parent's "

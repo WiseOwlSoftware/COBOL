@@ -9,8 +9,8 @@ whole, or on a member of one that matches a member of the other) and the narrowe
 holds a group only where a member of one matches a member of the other, kb/Work PB4452).
 
 Its readers: the wave planner (plan_wave.py), the landing check's guarantee (landing_check.py), the spec renderer
-(make_dispatch_specs.py: the declared set of a group it records), check_practices.py (two groups of one wave whose
-claims meet are refused: one step per file, kb/Work PB4396) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
+(make_dispatch_specs.py: the declared set of a group it records), check_practices.py (two groups of one wave that
+edit one member are refused: `hold`, kb/Work PB4452) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
 index (scripts/arch/member_index.py) computes the declared sets declared_sets reads. In the import DAG of section 16.10
 (scripts/script_layering.py) it imports
 reports and, lazily, the branch survey's git facts (prune_worktrees: classify, main_names, branch_graph, replay_view,
@@ -389,9 +389,10 @@ def unit_meet(f: str, mine: Claim, theirs: Claim) -> str | None:
 def collision(mine: Claim, theirs: Claim) -> str | None:
     """THE meeting rule of the partition (kb/Work PB2118 question 5, PB3670), or None when the two never meet: the
     label of what they share, the first shared file (by name) on which they meet (unit_meet: a member of it, or the
-    whole file). Two claims that meet are ONE step (kb/Work PB4396, one step per file): within a wave the planner makes
-    them one group (plan_wave.plan_partition) and check_practices.py refuses two such groups; against RUNNING work the
-    group waits, against FINISHED work it is planned onto that branch. Two groups on DIFFERENT MEMBERS of one file never
+    whole file). Two claims that meet are ONE step while one implementer holds them (kb/Work PB4396): within a wave the
+    planner absorbs a group into the first one it meets with room (plan_wave.plan_partition), and past that only a
+    shared MEMBER (`hold`) makes it overflow, otherwise it runs beside (kb/Work PB4452); against FINISHED work it is
+    planned onto that branch, and RUNNING work holds it only by `hold`. Two groups on DIFFERENT MEMBERS of one file never
     meet: git's three-way merge combines them, and the
     landing's merge conflict, when one still happens, is repaired then (the owner, 2026-10-24: "Developers do this all
     the time"). An EMPTY set meets NOTHING (kb/Work PB3670, superseding PB3263's "unknown meets its subsystem"): a group
@@ -410,9 +411,9 @@ def hold(mine: Claim, theirs: Claim) -> str | None:
     merge without conflict"), or None: the label (`file#member`) of the first shared file on which a member of `mine`
     matches a member of `theirs`. A shared FILE never holds work, and neither does a file either side claims WHOLE (no
     member list: an index-found caller, a site named whole, a file the diff reader could not read); only two edits to
-    the same member do. Running work holds a group by this rule; `collision` stays the rule of GROUPING (one step per
-    file within a wave, check_practices.py O2) and of JOINING a finished branch (PB4396), where meeting on the file is
-    what makes one step. Git's merge at landing is the authority on a conflict this rule cannot foresee (a finisher
+    the same member do. Running work holds a group by this rule, and so does check_practices.py O2 (two groups of
+    one wave may not edit one member); `collision` stays the rule of ABSORBING a group into one with room and of JOINING
+    a finished branch (PB4396), where meeting on the file is what makes one step. Git's merge at landing is the authority on a conflict this rule cannot foresee (a finisher
     repairs a real one)."""
     for f in sorted(mine.files & theirs.files):
         if f in mine.members and f in theirs.members and (hit := unit_meet(f, mine, theirs)):
