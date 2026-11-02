@@ -1,4 +1,4 @@
-## PB4278: a hyphen at a word's edge is named by ISO 8.3.2.1, and the NAME_BODY comment states the current rule
+## Entry 2975 — 2026-11-01 19:19 PST — PB4278: a hyphen at a word's edge is named by ISO 8.3.2.1, and the NAME_BODY comment states the current rule
 
 **Re-probe (base 2ce2e70a2).** `01 A- PIC X.` drew only COBOL1941 at `PIC` and `01 -A PIC X.` only COBOL5506 at `A`,
 at every `--std`. §8.3.2.1 ("The hyphen or underscore shall not appear as the first or last character in such words")
@@ -47,3 +47,4 @@ COBOL2773 beside its COBOL1902, and no test failed. The theory is now `_OnTheLex
 binder diagnostic it does NOT draw (`MOVE QQQ`, no COBOL1639) and adds a VALUE-slot sign for `TreeFacts`. The new
 `_OnTheParsedSource` proves the binder ran (COBOL1639) and pins `VALUE -A` to COBOL1902 alone. That VALUE-slot sign is
 the one hyphen the tree makes an `addOp` while the binder still runs. With the mutation applied, the new test fails.
+
