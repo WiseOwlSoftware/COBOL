@@ -359,7 +359,8 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     if candidates:
         every = set().union(*(sh for _, _, sh, _, _, _, _ in candidates))
         flights[landing] = inflight.InFlight(every)
-        unit_meta[landing] = {"sha": graph.sha(rev), "base": git("merge-base", base, rev).stdout.strip(), "committed": every}
+        unit_meta[landing] = {"sha": graph.sha(rev), "base": git("merge-base", base, rev).stdout.strip() or base,
+                            "committed": every}
         inflight.inflight_units(flights, unit_meta, [], git, repo)
     for owner, m, _, _, their_notes, their_at, how in candidates:
         if not (hit := inflight.hold(flights[landing].claim, flights[owner].claim)):
@@ -456,9 +457,8 @@ def self_test() -> int:
     expect("PB4452c: ... with no other branch on its member, the R3 wave lands clean", land("r-one"), 0, 0)
     ledger(dict(a_set, members={}))
     branch("f-whole", "PB9100: fix", {"src/A.cs": cs(one="fixed")}, 1_000_500)
-    expect("PB4452d: a dispatch entry that recorded NO members claims the file whole, and a whole claim holds nothing "
-           "(the other side's edit to a member is only the dispatch's declared file): the branch edits the file, "
-           "the R3 branch r-one edits the same member and stops it, nothing else",
+    expect("PB4452d: a dispatch entry that recorded NO members claims the file whole and holds nothing: the fix-lane edit "
+           "is stopped by the R3 BRANCH that edits the same member (one stop), never by the dispatch entry",
            land("f-whole"), 1, 0)
     ledger(a_set)
     scratch.git("branch", "-D", "f-whole")

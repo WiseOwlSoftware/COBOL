@@ -69,7 +69,7 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
        no attempt, or a NEW HEAD (a finisher's commit, reviewed)  launch
        ENQUEUED or NOTHING TO LAND (exit 0) at this head           nothing to land: the QUEUE WATCH (below) follows its
                                                                    pull request into the merge queue
-       exit 3 — the landing check's STOP: the branch shares a file with earlier-dispatched in-flight work (kb/Work
+       exit 3 — the landing check's STOP: the branch edits a member that earlier-dispatched in-flight work edits (kb/Work
                 PB2701)                                            retried at this head once `landing_check.py` passes
                                                                    on the branch (the overlap is gone); never as is
        exit 13 — another `land` of the branch runs (kb/Work     retried at this head once the worktree's land lock
@@ -159,11 +159,11 @@ SURVEY = "survey.json"
 HALT = "HALT"
 REARM = "rearm"
 TICK_LOCK = "tick.lock"
-EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch shares a file with in-flight work)
+EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch edits a member that in-flight work edits)
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
 #: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
-WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written)",
+WAITS = {EXIT_CHECK_STOP: "the in-flight work whose edits it meets", EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written)",
          EXIT_LAND_BUSY: "the worktree's land lock",
          EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries",
          EXIT_DRIVER_FILE_QUEUED: "the open pull request(s) that change a merge-driver file the branch changes too (kb/Work PB3642)"}
@@ -1369,7 +1369,7 @@ ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (a CONFLICT one is the r
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
           FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
-                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free and no Linux gate of the tree runs; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
+                "in-flight work whose edits it meets is gone; exit 12: the worktree's gate lock is free and no Linux gate of the tree runs; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
