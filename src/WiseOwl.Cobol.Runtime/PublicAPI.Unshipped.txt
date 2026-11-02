@@ -597,7 +597,7 @@ static WiseOwl.Cobol.Runtime.ActivationDescription.IsExternalRestriction(string!
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassFormalViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassReturningViolation(WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> string?
 static WiseOwl.Cobol.Runtime.ActivationRelations.MatchViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
-static WiseOwl.Cobol.Runtime.ActivationRelations.SignatureDifference(WiseOwl.Cobol.Runtime.ActivationDescription! first, WiseOwl.Cobol.Runtime.ActivationDescription! second, string! firstRole = "item", string! secondRole = "corresponding item") -> string?
+static WiseOwl.Cobol.Runtime.ActivationRelations.SignatureDifference(WiseOwl.Cobol.Runtime.ActivationDescription! first, WiseOwl.Cobol.Runtime.ActivationDescription! second, string! firstRole = "item", string! secondRole = "corresponding item", bool pointersBySignature = false) -> string?
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.SdidiValue(WiseOwl.Cobol.Runtime.CobolPassMode mode, WiseOwl.Cobol.Runtime.CobolDec value, WiseOwl.Cobol.Runtime.SignEncoding signEncoding) -> WiseOwl.Cobol.Runtime.CobolArg
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null, bool approximate = false) -> WiseOwl.Cobol.Runtime.CobolArg
 static WiseOwl.Cobol.Runtime.CobolBits.NatFromStorage(string! image) -> string!

@@ -457,16 +457,18 @@ public static class OoConformance
     /// (<see cref="PrototypeSignatures.Same"/>: §13.7.3 SR2, §10.6.2 SR2 / SR3, the SET pointer pairs and the signature
     /// classes of restricted prototype pointers) and the identity conversion of a variable-length MOVE's corresponding
     /// elementary tables (<c>MoveBinder.ElementMovesOf</c>). There is no <c>DataItem</c> comparator beside it (kb/Work
-    /// PB3101). Null when the two
+    /// PB3101). A restricted program- or function-pointer is compared by the prototype its TO phrase names, except for
+    /// <paramref name="pointersBySignature"/>, which only the signature comparison sets (kb/Work PB4442). Null when the two
     /// are the same description, else the difference with the two sides named by <paramref name="firstRole"/> and
     /// <paramref name="secondRole"/>.</summary>
-    public static string? SignatureDifference(DataItem first, DataItem second, string firstRole, string secondRole)
+    public static string? SignatureDifference(DataItem first, DataItem second, string firstRole, string secondRole,
+        bool pointersBySignature = false)
     {
         if (ActivationDescriptions.Of(first, classes: null) is not { } a)
             return ActivationDescriptions.NoDescriptionReason(first, firstRole);
         if (ActivationDescriptions.Of(second, classes: null) is not { } b)
             return ActivationDescriptions.NoDescriptionReason(second, secondRole);
-        return ActivationRelations.SignatureDifference(a, b, firstRole, secondRole);
+        return ActivationRelations.SignatureDifference(a, b, firstRole, secondRole, pointersBySignature);
     }
 
     // ══ ACTIVE-CLASS — CONFORMANCE THAT DEPENDS ON HOW THE METHOD IS INVOKED (kb/Work PB1112) ═══════════════════════

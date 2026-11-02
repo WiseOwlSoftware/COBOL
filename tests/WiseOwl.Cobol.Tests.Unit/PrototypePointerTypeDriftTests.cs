@@ -354,6 +354,26 @@ public sealed class PrototypePointerTypeDriftTests
         Assert.Equal(held.PointerRestrictionIdentity, sameSignature.PointerRestrictionIdentity);   // no admission moved a group identity
     }
 
+    /// <summary>⛔ ONLY THE SIGNATURE GRAPH ASKS A POINTER FORMAL'S SIGNATURE CLASS OF THE PAIR-MODE RELATION (kb/Work PB4442).
+    /// §9.3.8.2.3 rules 3 and 6 ask "the same … USAGE clauses", so an override, an IMPLEMENTS pair, an interface pair and a
+    /// property accessor pair compare a restricted program- or function-pointer by the prototype its TO phrase names; the
+    /// relation's <c>pointersBySignature</c> arm (what each pointer may contain) belongs to <c>PrototypeSignatures.Same</c>
+    /// alone. A second asker that set it would make pair mode admit two prototypes of one signature again.</summary>
+    [Fact]
+    public void OnlyThePrototypeSignatureGraphAsksTheSignatureClassOfAPairModePointer()
+    {
+        string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
+        var askers = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)
+                        && !f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar))
+            .Where(f => File.ReadLines(f).Any(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)
+                                                  && Regex.IsMatch(l, @"pointersBySignature\s*:\s*(?!false)")))
+            .Select(f => Path.GetFileName(f))
+            .Order(StringComparer.Ordinal)
+            .ToList();
+        Assert.Equal(["PrototypeSignatures.cs"], askers);
+    }
+
     [Fact]
     public void ThePatternThisTestKeysOn_FiresOnThePB2464Defect()
     {

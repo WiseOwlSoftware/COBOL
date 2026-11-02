@@ -242,9 +242,16 @@ public static class ActivationRelations
     /// "If the parameter is a variable-length group, sufficient information to determine if this group would match the
     /// group is specified in the invoke statement"), so it is never the same description as a fixed-length group, and two
     /// are the same when compatible (§8.5.1.12) at the same collapsed length.</item>
+    /// <item>A restricted class pointer's USAGE clause carries its TO phrase, which rules 3 and 6 ("the same … USAGE
+    /// clauses") compare by the prototype or type it NAMES (<see cref="ActivationDescription.Clauses"/>) — the reading the
+    /// group-member arm (rule 7, §8.5.3.1) and the activation rules take (docs/CONFORMANCE.md D-RP1), so an override
+    /// <c>USING TO Q2</c> over a base <c>USING TO Q1</c> is refused whatever the two prototypes' signatures
+    /// (kb/Work PB4442). <paramref name="pointersBySignature"/> asks the SIGNATURE graph's question instead, what each
+    /// pointer may CONTAIN (<see cref="ActivationDescription.ContentRestriction"/>): only
+    /// <c>PrototypeSignatures.Same</c>, the §13.7.3 SR2 / §10.6.2 SR2 comparison of two prototypes' formals, sets it.</item>
     /// </list></summary>
     public static string? SignatureDifference(ActivationDescription first, ActivationDescription second,
-        string firstRole = "item", string secondRole = "corresponding item")
+        string firstRole = "item", string secondRole = "corresponding item", bool pointersBySignature = false)
     {
         string Both() => $"the {firstRole} ({first}) and the {secondRole} ({second})";
         if (first.Shape is ActivationShape.ObjectReference || second.Shape is ActivationShape.ObjectReference)
@@ -283,11 +290,12 @@ public static class ActivationRelations
                 : $"{Both()}: a group carries none of the ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, "
                   + "PICTURE, SIGN and USAGE clauses an elementary item is described with, so the two are not described "
                   + "the same (ISO §9.3.8.2.3 rules 3 / 6)";
-        // Two class pointers are compared by what each may CONTAIN (ContentRestriction: a prototype pointer's signature
-        // class), the reading PrototypeSignatures.Same's signature graph is built on (kb/Work PB2464,
-        // DESIGN-external-repository §6.4), not by the TO phrase's name the activation rules' clause identity compares
-        // (kb/Work PB4107).
-        return (IsPointerClass(first) && IsPointerClass(second)
+        // Rules 3 / 6 ask "the same ... USAGE clauses", and a class pointer's USAGE clause carries its TO phrase, compared
+        // by what it NAMES (Clauses) as the activation rules' clause identity compares it (§9.3.6 3 e), §14.8.3.3; kb/Work
+        // PB4442). Only the signature graph (PrototypeSignatures.Same, §8.13's "description of the parameters" of a
+        // prototype whose formal is a restricted pointer: kb/Work PB2464, PB2495, DESIGN-external-repository §6.4) compares
+        // two class pointers by what each may CONTAIN (ContentRestriction: a prototype pointer's signature class).
+        return (pointersBySignature && IsPointerClass(first) && IsPointerClass(second)
                 ? string.Equals(first.Category, second.Category, StringComparison.Ordinal)
                   && string.Equals(first.ContentRestriction, second.ContentRestriction, StringComparison.Ordinal)
                 : first.AnyLength == second.AnyLength && SameElementaryClauses(first, second))

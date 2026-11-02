@@ -5,29 +5,28 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB2495 (sibling) - the TYPE of a restricted program-
-      *> pointer is its prototype's signature (13.18.60.4 GR25; cite.py
-      *> --check 13.18.60.4 -> OK 13.18.60.4 25)), and the group-level
-      *> signature checks ask it too. Q1 and Q2 are two prototypes of
-      *> one signature (USING 9(4)), so a pointer TO Q1 and a pointer
-      *> TO Q2 are "of the same type" (14.8.2.3.2, OK 14.8.2.3.2 4)).
+      *> kb/Work PB2495 (sibling) - what a restricted program-pointer
+      *> MAY CONTAIN is its prototype's signature (13.18.60.4 GR25;
+      *> cite.py --check 13.18.60.4 -> OK 13.18.60.4 25)), and the
+      *> group-level signature check and the SET-sent passes ask it.
+      *> Q1 and Q2 are two prototypes of one signature (USING 9(4)),
+      *> so a pointer TO Q1 and a pointer TO Q2 hold the same set of
+      *> values (14.9.39.3 SR22, OK 14.9.39.3 22)).
       *> DERIVATION:
       *>   PX's prototype (USING TO Q1) and definition (USING TO Q2) -
       *>     10.6.2 SR2 (OK 10.6.2 2)) "the signatures of these two
       *>     compilation units shall be the same": they are.
-      *>   OVSUB's M1 OVERRIDE (USING TO Q2) over OVBASE's M1 (USING TO
-      *>     Q1) - 11.7.3 SR9 (OK 11.7.3 9)) "shall obey the rules of
-      *>     conformance according to 9.3.8.2.3": identical types.
-      *>   OVSUB's M2 (USING TO Q2) implements IV2495's M2 (USING TO Q1)
-      *>     - the same 9.3.8.2.3 rules: identical types.
-      *> Each of the three ran before the pointer types were resolved
-      *> and compared the prototype NAMES.
-      *>   INVOKE O "M1" / "M2" USING BY CONTENT A (TO Q1) into a
+      *>   INVOKE O "M1" USING BY CONTENT A (TO Q1) into OVSUB's M1
       *>     formal TO Q2 - 9.3.6 rule 4 c) and 14.8.2.3.3 (OK
       *>     14.8.2.3.3 2)) ask the SET (SR22: one signature): legal.
       *>     BY REFERENCE the pair is refused: 9.3.6 3 e) (OK 9.3.6 3)
       *>     e)) asks "the same ... USAGE clauses", and the TO phrase
       *>     is compared by the prototype it names (kb/Work PB4107).
+      *> An OVERRIDE or an IMPLEMENTS pair over the two names is NOT
+      *> admitted: 9.3.8.2.3 rule 3 asks the same USAGE clauses too
+      *> (kb/Work PB4442; wiseowl/diagnostics/pb4442-*). The pair-mode
+      *> and the signature relation were one before PB4442, and this
+      *> test used to hold an override and an IMPLEMENTS over Q1 / Q2.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. Q1 IS PROTOTYPE.
        DATA DIVISION.
@@ -73,7 +72,6 @@
            CALL PX USING A
            INVOKE OVSUB "NEW" RETURNING O
            INVOKE O "M1" USING BY CONTENT A
-           INVOKE O "M2" USING BY CONTENT A
            STOP RUN.
        END PROGRAM OVMAIN.
        IDENTIFICATION DIVISION.
@@ -93,71 +91,24 @@
        END PROGRAM PX.
 
        IDENTIFICATION DIVISION.
-       INTERFACE-ID. IV2495.
+       CLASS-ID. OVSUB INHERITS FROM BASE.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           PROGRAM Q1.
-       PROCEDURE DIVISION.
-       METHOD-ID. M2.
-       DATA DIVISION.
-       LINKAGE SECTION.
-       01 T1 IS TYPEDEF USAGE PROGRAM-POINTER TO Q1.
-       01 LP TYPE T1.
-       PROCEDURE DIVISION USING LP.
-       END METHOD M2.
-       END INTERFACE IV2495.
-
-       IDENTIFICATION DIVISION.
-       CLASS-ID. OVBASE INHERITS FROM BASE.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       REPOSITORY.
-           PROGRAM Q1
+           PROGRAM Q2
            CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 T1 IS TYPEDEF USAGE PROGRAM-POINTER TO Q1.
+       01 T2 IS TYPEDEF USAGE PROGRAM-POINTER TO Q2.
        PROCEDURE DIVISION.
        METHOD-ID. M1.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 LP TYPE T1.
-       PROCEDURE DIVISION USING LP.
-           DISPLAY "base WRONG".
-       END METHOD M1.
-       END OBJECT.
-       END CLASS OVBASE.
-
-       IDENTIFICATION DIVISION.
-       CLASS-ID. OVSUB INHERITS FROM OVBASE.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       REPOSITORY.
-           PROGRAM Q2
-           CLASS OVBASE
-           INTERFACE IV2495.
-       IDENTIFICATION DIVISION.
-       OBJECT. IMPLEMENTS IV2495.
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01 T2 IS TYPEDEF USAGE PROGRAM-POINTER TO Q2.
-       PROCEDURE DIVISION.
-       METHOD-ID. M1 OVERRIDE.
-       DATA DIVISION.
-       LINKAGE SECTION.
        01 LP TYPE T2.
        PROCEDURE DIVISION USING LP.
-           IF LP = NULL DISPLAY "override null" END-IF.
+           IF LP = NULL DISPLAY "content null" END-IF.
        END METHOD M1.
-       METHOD-ID. M2.
-       DATA DIVISION.
-       LINKAGE SECTION.
-       01 LP TYPE T2.
-       PROCEDURE DIVISION USING LP.
-           IF LP = NULL DISPLAY "implements null" END-IF.
-       END METHOD M2.
        END OBJECT.
        END CLASS OVSUB.
