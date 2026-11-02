@@ -3,7 +3,7 @@
 confined to tooling NO COMPILER TEST OR BUILD READS runs the audits and the script self-tests, with no build (kb/Work
 PB2878, PB4395; docs/rearchitecture/DESIGN-test-build-ci.md §3.18).
 
-    python scripts/inert_lane.py classify --base <rev> [--head <rev-or-tree>]   # lane=inert|tooling|full, tooling=…, why
+    python scripts/inert_lane.py classify --base <rev> [--head <rev-or-tree>]   # lane=, tooling=, reads_tooling=, reason=
     python scripts/inert_lane.py watch [--root R] [--events F] -- <command …>   # Linux: run it, report any watched read
     python scripts/inert_lane.py check     # THE INERT LANE audit: every entry names a tracked path, every build step
                                            # and every compiler test that runs a script is CODE_READS
@@ -23,16 +23,21 @@ inert directory is not inert) are non-empty and every one is inert. The inert la
 them in every lane, CI's merge group once per landing; they are where a citation, a register note or a DEVLOG entry is checked) and no build
 and no test leg: no test reads the change, so no test can turn red on it. Every other change is the FULL lane.
 
-THE TOOLING FLAG (kb/Work PB4326, step 3 of PB4323). A FULL-lane change also says whether it TOUCHES TOOLING: a path under
-`TOOLING_UNDER` (scripts/, .github/, tools/, .claude/, and the two root files the script self-tests read through the
-checkout, `.gitattributes` and `toolchain.env`), ending in a `TOOLING_SUFFIXES` extension (.py, .ps1, .sh) anywhere, or
-under a `TOOLING_READS` entry: a path outside the scripts that a script self-test reads AS DATA, each entry naming its
-readers (tests/_shared/TestRepo.cs for scripts/spec/drift_rules.py, the .g4 grammar for scripts/spec/grammar_source.py,
-.agent-fleet.json for the orchestrator's self-tests, docs/CONFORMANCE.md for the witness-loss audit, ...). The script
-self-tests (scripts/self_tests.py) read tooling and those entries, so only a change that touches one of them can turn a
-self-test red: the local gate runs them (and the one self-test that reads the built assemblies) only then, and CI's
-`windows-self-tests` job runs only then. An empty or unlistable change touches tooling (nothing proves it does not). Like
-the inert lane, the flag is ONE classification used by every runner.
+THE TOOLING FLAGS (kb/Work PB4326, step 3 of PB4323; PB4409). A FULL-lane change also says two things. `reads_tooling`:
+it touches a path a script self-test reads, which is TOOLING (`is_tooling`): a path under `TOOLING_UNDER` (scripts/,
+.github/, tools/, .claude/, and the two root files the script self-tests read through the checkout, `.gitattributes` and
+`toolchain.env`), ending in a `TOOLING_SUFFIXES` extension (.py, .ps1, .sh) anywhere, or under a `TOOLING_READS` entry: a
+path outside the scripts that a script self-test reads AS DATA, each entry naming its readers (tests/_shared/TestRepo.cs
+for scripts/spec/drift_rules.py, the .g4 grammar for scripts/spec/grammar_source.py, .agent-fleet.json for the
+orchestrator's self-tests, docs/CONFORMANCE.md for the witness-loss audit, ...). The script self-tests
+(scripts/self_tests.py) read tooling and those entries, so only such a change can turn a self-test red, and CI's
+`windows-self-tests` job runs only then. `tooling`: it touches a SCRIPT (`is_script_tree`: the trees and suffixes, never a
+TOOLING_READS data file), and only then does the LOCAL gate run the self-tests (its SELF-TESTS audit and the one self-test
+that reads the built assemblies): owner 2026-11-01, "I see no reason why a compiler change should need to run script
+self-tests", so a compiler change's data file reaches its self-tests first in the merge group (CLAUDE.md "Testing", THE
+RULE (d)). `tooling` implies `reads_tooling`; the tooling lane sets both, the inert lane neither, and an empty or
+unlistable change both (nothing proves it touches neither). Like the inert lane, the flags are ONE classification used by
+every runner.
 
 THE TOOLING LANE (kb/Work PB4395; PIPELINE-REVIEW.md §13, owner-approved: "a tooling change (`scripts/`, `.github/`,
 `tools/`, `.claude/`, any `*.py`/`*.ps1`/`*.sh`) runs the audits and the self-tests whose recorded inputs it touches";
@@ -147,13 +152,17 @@ class Lane:
     #: One of LANES.
     name: str
     reason: str
-    #: The change touches tooling (module docstring): the script self-tests are the gate's to run. Never set on the inert
-    #: lane, which runs the audits and nothing else; always set on the tooling lane.
+    #: The change touches a SCRIPT (module docstring, THE TOOLING FLAGS): the script self-tests are the LOCAL gate's to
+    #: run. Never set on the inert lane, which runs the audits and nothing else; always set on the tooling lane.
     tooling: bool
+    #: The change touches anything a script self-test reads (a script, or a TOOLING_READS data file): CI's
+    #: `windows-self-tests` job runs then. Implied by `tooling`; never set on the inert lane.
+    reads_tooling: bool
 
     def __post_init__(self) -> None:
-        if self.name not in LANES or (self.name == "inert" and self.tooling) or (self.name == "tooling" and not self.tooling):
-            raise ValueError(f"no such lane: {self.name!r} with tooling={self.tooling}")
+        if (self.name not in LANES or (self.name == "inert" and self.reads_tooling) or (self.name == "tooling" and not self.tooling)
+                or (self.tooling and not self.reads_tooling)):
+            raise ValueError(f"no such lane: {self.name!r} with tooling={self.tooling}, reads_tooling={self.reads_tooling}")
 
     @property
     def inert(self) -> bool:
@@ -234,21 +243,32 @@ class Classification:
     def classify(self, paths: list[str]) -> Lane:
         """The lane of a change whose changed paths are `paths`."""
         if not paths:
-            return Lane("full", "no changed path: an empty diff is not evidence that no test reads the change", True)
+            return Lane("full", "no changed path: an empty diff is not evidence that no test reads the change",
+                        tooling=True, reads_tooling=True)
         read = [p for p in paths if not self.is_inert(p)]
         if not read:
             under = sorted({e for p in paths for e in self.inert if _under(p, e)})
             return Lane("inert", f"all {len(paths)} changed path(s) are inert (under {', '.join(under)}): no test reads "
-                        "them", False)
+                        "them", tooling=False, reads_tooling=False)
         code = [p for p in read if not self.in_tooling_lane(p)]
         if not code:
             return Lane("tooling", f"{len(read)} of {len(paths)} changed path(s) are tooling no compiler test or build "
-                        f"reads, e.g. {read[0]}, and the rest inert: the audits and the script self-tests", True)
-        tooling = [p for p in paths if self.is_tooling(p)]
+                        f"reads, e.g. {read[0]}, and the rest inert: the audits and the script self-tests",
+                        tooling=True, reads_tooling=True)
+        # ⛔ A COMPILER CHANGE RUNS NO SCRIPT SELF-TESTS LOCALLY (owner 2026-11-01: "I see no reason why a compiler change
+        # should need to run script self-tests"). In the full lane `tooling` counts only a changed SCRIPT (a TOOLING_UNDER
+        # tree or a TOOLING_SUFFIXES file: the change's own tooling half), never a TOOLING_READS data file a self-test
+        # happens to read (docs/CONFORMANCE.md, the grammar, TestRepo.cs): compiler fixes change those routinely, and their
+        # self-tests then cost the compiler gate 10 to 38 minutes. `reads_tooling` counts both, so CI's merge group still
+        # runs the Windows self-tests such a data file reaches: their first run (CLAUDE.md "Testing", THE RULE (d)).
+        scripts = [p for p in paths if self.is_script_tree(p)]
+        reads = [p for p in paths if self.is_tooling(p)]
         return Lane("full", f"{len(code)} of {len(paths)} changed path(s) may be read by a compiler test or the build, "
                     f"e.g. {code[0]}"
-                    + (f"; {len(tooling)} touch(es) tooling, e.g. {tooling[0]}" if tooling else "; none touches tooling"),
-                    bool(tooling))
+                    + (f"; {len(scripts)} touch(es) a script, e.g. {scripts[0]}" if scripts else "; none touches a script")
+                    + (f"; {len(reads)} touch(es) what a script self-test reads, e.g. {reads[0]}" if reads and not scripts
+                       else ""),
+                    tooling=bool(scripts), reads_tooling=bool(reads))
 
     def watch_dirs(self, root: Path) -> list[str]:
         """The directories to watch: the directory every watched tracked FILE lies in, and a watched tracked path that
@@ -878,11 +898,18 @@ def wiring(root: Path) -> list[str]:
          f"CI's `audits` job's `if` changed: {audits.value('if')!r} (PB4330: every merge group, no pull request)")
     need("pull_request" not in audits.code, "CI's `audits` job runs on a pull request again (PB4330)")
     need(f"python3 {cls} check" in audits.code, "CI's `audits` job no longer runs THE INERT LANE audit (check)")
-    for want in ("tooling: ${{ steps.decide.outputs.tooling }}", "grep -qx 'tooling=false'", "tooling=true"):
-        need(want in changes, f"CI's `changes` job no longer says `{want}` (the tooling flag, PB4326)")
+    for want in ("reads_tooling: ${{ steps.decide.outputs.reads_tooling }}", "grep -qx 'reads_tooling=false'",
+                 "reads_tooling=true", 'echo "reads_tooling=$reads_tooling"'):
+        need(want in changes, f"CI's `changes` job no longer says `{want}` (the reads_tooling flag, PB4326, PB4409)")
+    need("outputs.tooling" not in changes and "grep -qx 'tooling=" not in changes,
+         "CI's `changes` job decides on the local gate's narrow `tooling=` flag: CI's self-tests run on `reads_tooling=` "
+         "(PB4409 review R1-1)")
     need(jobs["windows-self-tests"].value("if")
-         == "needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.tooling == 'true'",
-         "CI's `windows-self-tests` job no longer runs exactly when the change touches tooling")
+         == "needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.reads_tooling == 'true'",
+         "CI's `windows-self-tests` job no longer runs exactly when the change touches what a self-test reads "
+         "(`reads_tooling`, PB4409)")
+    need('print(f"reads_tooling={' in text("scripts/inert_lane.py"),
+         "inert_lane.py classify no longer prints the `reads_tooling=` line CI's `changes` job reads")
     # The tooling flag is PROVED against what every self-test read (PB4326 R1-1), before its PASS is recorded; the one
     # exemption is a DECLARED population, held to the trace.
     for want in ("import inert_lane", "classification: inert_lane.Classification = inert_lane.CLASSIFICATION",
@@ -947,12 +974,14 @@ def self_test() -> int:
                                          "src/a.cs", "tests/b.cs", "docs/DOC_INDEX.md", "scriptsx/a.md", "toolchain.env.bak",
                                          "tests/_shared/TestRepoX.cs", ".agent-fleet.json.bak", "tests/_shared/Other.cs")],
            [True] * 16 + [False] * 8)
-    expect("a full-lane change that touches tooling says so, one that does not says so, and an inert one never does; "
-           "a change to only a file a script self-test reads is a tooling change (review R1-1)",
+    expect("a full-lane change that touches a SCRIPT says so, one that does not says so, and an inert one never does; "
+           "a compiler change to only a file a script self-test reads (TestRepo.cs, CONFORMANCE.md) runs no script "
+           "self-test (owner 2026-11-01)",
            [real.classify(["src/a.cs", "scripts/x.py"]).tooling, real.classify(["src/a.cs", "docs/x.md"]).tooling,
             real.classify(["kb/x.py", "DEVLOG/a.md"]).tooling, real.classify(["kb/x.py", "DEVLOG/a.md"]).inert,
-            real.classify(["tests/_shared/TestRepo.cs"]).tooling, real.classify(["src/a.cs", "tests/b.cs"]).tooling],
-           [True, False, False, True, True, False])
+            real.classify(["tests/_shared/TestRepo.cs"]).tooling, real.classify(["src/a.cs", "tests/b.cs"]).tooling,
+            real.classify(["src/a.cs", "docs/CONFORMANCE.md"]).tooling],
+           [True, False, False, True, False, False, False])
     tc = Classification(inert={"kb/": ""}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
                         tooling_reads={"data/a.json": "x", "lib/": "y"})
     expect("the proof of the flag: of what a self-test read, the paths neither tooling, nor a TOOLING_READS entry, nor "
@@ -962,7 +991,22 @@ def self_test() -> int:
            ["docs/z.md", "other/", "src/q.cs"])
     expect("the proof of the flag finds nothing in what a self-test read when every path is classified",
            tc.unclassified_reads(["scripts/a.py", "data/a.json"], ["paths:scripts", "content:lib"]), [])
-    expect("an empty change touches tooling: nothing proves it does not", real.classify([]).tooling, True)
+    expect("THE TWO FLAGS (owner 2026-11-01, kb/Work PB4409): a compiler change to a file a script self-test reads "
+           "(CONFORMANCE.md, TestRepo.cs, REARCHITECTURE_PLAN.md) sets `reads_tooling` (CI's Windows self-tests) and never "
+           "`tooling` (the local gate's); a script sets both; plain code and an inert change set neither",
+           [(real.classify(p).name, real.classify(p).tooling, real.classify(p).reads_tooling) for p in
+            (["src/a.cs", "docs/CONFORMANCE.md"], ["tests/_shared/TestRepo.cs"], ["src/a.cs", "docs/REARCHITECTURE_PLAN.md"],
+             ["src/a.cs", "scripts/x.py"], ["src/a.cs", "tests/b.cs"], ["DEVLOG/a.md"])],
+           [("full", False, True)] * 3 + [("full", True, True), ("full", False, False), ("inert", False, False)])
+    expect("an empty change touches tooling and what a self-test reads: nothing proves it does not",
+           (real.classify([]).tooling, real.classify([]).reads_tooling), (True, True))
+    expect("a lane whose `tooling` is set without `reads_tooling`, an inert lane that reads tooling, and a tooling lane "
+           "without the flag are refused",
+           [_refused(lambda: Lane("full", "x", tooling=True, reads_tooling=False)),
+            _refused(lambda: Lane("inert", "x", tooling=False, reads_tooling=True)),
+            _refused(lambda: Lane("tooling", "x", tooling=False, reads_tooling=True)),
+            _refused(lambda: Lane("full", "x", tooling=False, reads_tooling=True))],
+           [True, True, True, False])
     # THE TOOLING LANE (kb/Work PB4395), on a planted classification: scripts/ and .github/ are tooling trees, one script
     # and one workflow are CODE_READS, and a .py file elsewhere is tooling by its suffix but in a compiler tree.
     tl = Classification(inert={"DEVLOG/": "", "kb/": ""}, tooling_under=("scripts/", ".github/", "toolchain.env"),
@@ -974,11 +1018,12 @@ def self_test() -> int:
             (tl.classify(["scripts/steer.ps1"]), tl.classify(["scripts/a.py", ".github/w.yml", "DEVLOG/x.md", "kb/W/P.md"]))],
            [("tooling", True, False)] * 2)
     expect("a CODE_READS path, a directory entry's path, a script file outside the tooling trees, a TOOLING_READS data "
-           "file and any code path each make the change the full lane, the tooling flag still set",
+           "file and any code path each make the change the full lane; the tooling flag is set by a changed script only, "
+           "never by a TOOLING_READS data file (owner 2026-11-01: a compiler change runs no script self-tests)",
            [(tl.classify(p).name, tl.classify(p).tooling) for p in
             (["scripts/gen.ps1"], ["scripts/spec/cite.py", "scripts/a.py"], ["toolchain.env"],
              ["conformance-suite/harness/run.py"], ["docs/CONFORMANCE.md"], ["scripts/a.py", "src/a.cs"])],
-           [("full", True)] * 6)
+           [("full", True)] * 4 + [("full", False), ("full", True)])
     expect("an exact CODE_READS entry covers that path, never a sibling with a longer name",
            [tl.in_tooling_lane(p) for p in ("scripts/gen.ps1", "scripts/gen.ps1x", "scripts/specx/a.py")],
            [False, True, True])
@@ -999,7 +1044,7 @@ def self_test() -> int:
                                                      "scripts/xguard.sh")],
            [True, True, True, True, False, False, False])
     expect("a lane is one of the three, and the tooling lane always runs the self-tests while the inert one never does",
-           [_refused(lambda n=n, t=t: Lane(n, "", t)) for n, t in
+           [_refused(lambda n=n, t=t: Lane(n, "", tooling=t, reads_tooling=t)) for n, t in
             (("inert", True), ("tooling", False), ("code", True), ("full", False))], [True, True, True, False])
     expect("the lanes whose gate runs no compiler test", sorted(TEST_FREE_LANES), ["inert", "tooling"])
     expect("THE WIRING (the real tree): CI's changes job and the gate decide through this classification and carry no "
@@ -1161,9 +1206,10 @@ def main(argv: list[str]) -> int:
         try:
             lane = CLASSIFICATION.classify(changed(args.root, args.base, args.head))
         except (subprocess.CalledProcessError, OSError) as e:
-            lane = Lane("full", f"the change could not be listed ({e}): the full lane", True)
+            lane = Lane("full", f"the change could not be listed ({e}): the full lane", tooling=True, reads_tooling=True)
         print(f"lane={lane.name}")
         print(f"tooling={'true' if lane.tooling else 'false'}")
+        print(f"reads_tooling={'true' if lane.reads_tooling else 'false'}")
         print(f"reason={lane.reason}")
         return 0
     if args.cmd == "watch":

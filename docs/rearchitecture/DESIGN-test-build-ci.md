@@ -24,9 +24,10 @@ Every later section describes one mechanism of it in detail.
    recorded inputs it touches, no slot and no build. Any other change builds the solution once and runs the WHOLE Unit, Conformance and Characterization
    populations on Windows, three assemblies at once under a gate slot (cap 3), the classes red last time first and then
    longest first by `tests/_shared/test-weights.json` (`GateOrderer`), each population checked by name against its
-   listing (`scripts/test_population.py check`); the audits run beside the build and the hosts, and a TOOLING change
-   (`scripts/`, `.github/`, `tools/`, `.claude/`, any `.py`/`.ps1`/`.sh`, the data `TOOLING_READS` names) adds the script
-   self-tests whose recorded inputs it touches (kb/Work PB2914, PB4326). There is no impact map, no tier, no selected leg
+   listing (`scripts/test_population.py check`); the audits run beside the build and the hosts, and a change that touches
+   a SCRIPT (`scripts/`, `.github/`, `tools/`, `.claude/`, any `.py`/`.ps1`/`.sh`) adds the script self-tests whose
+   recorded inputs it touches (kb/Work PB2914, PB4326); a compiler data file a self-test reads (`TOOLING_READS`) adds
+   none, its self-tests' first run being the merge group's (owner 2026-11-01, kb/Work PB4409; §3.18). There is no impact map, no tier, no selected leg
    and no Linux half per change (kb/Work PB4327); `bash scripts/linux-gate.sh` reproduces a Linux CI red by hand (§3.15).
    A gate runs detached, records its head, its measured tree and its base, and a re-gate of an unchanged tree answers
    `REUSED` from its GREEN record (§3.14.12).
@@ -42,11 +43,12 @@ Every later section describes one mechanism of it in detail.
    Linux and of Release** (`.github/workflows/build-and-test.yml`, §1.4; kb/Work PB4329): seven Windows and five Linux
    weighted shards, each dealt test classes by their measured weight (`scripts/shard_weights.py`), their union checked
    against one listing per OS and assembly in `ci-gate`; the audits with every Linux self-test; the Windows self-tests
-   when a tooling path changed; `timeout-minutes` on every job and a bounded, retried checkout (kb/Work PB4324).
+   when a tooling path changed, a `TOOLING_READS` data file included (§3.18); `timeout-minutes` on every job and a bounded, retried checkout (kb/Work PB4324).
 5. **THE RULE** (owner 2026-10-31, replacing the CI invariant of 2026-10-04): every case the merge group runs on
    Windows already ran green at the pushed head, on this host, under the same `toolchain.env`. The merge group is the
    FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling
-   self-tests on a tooling change and (e) GitHub's runners; a red there is one of those five, a flake or
+   self-tests on a tooling change and the Windows self-tests a compiler change's data files reach, and (e) GitHub's
+   runners; a red there is one of those five, a flake or
    infrastructure, never an untested case. kb/Work PB1957 is the record of each class's differences and rate.
 6. **Every merge-queue red is classified before anyone is blamed** (`scripts/orchestrator/land_lane.py`, the queue
    watch; kb/Work PB4271, PB4331): the failed run's red cases (downloaded into the worktree's `TestResults/ci-bounce`,
@@ -858,7 +860,7 @@ longest first by the committed weights file. The growth trigger of PB4323 §3.4 
   in English, with the gate's own `WISEOWL_COBOL_GATE_FIRST` when it has first classes and the harness observation log
   in the run directory, one per host (kb/Work PB3108).
 - **The listings** (`dotnet test --list-tests`, scrubbed, one per assembly, kept as `<run>/listing-<assembly>.txt`) run
-  BESIDE the hosts, and so do, when the change touches tooling, the self-tests that read the built assemblies
+  BESIDE the hosts, and so do, when the change touches a script, the self-tests that read the built assemblies
   (`self_tests.py --built`, kb/Work PB4326); both are joined after the hosts.
 - **The threads**: xunit's default `maxParallelThreads`, the processor count, measured best (§3.13); no
   `xunit.runner.json` caps it. The test hosts run Server GC (kb/Work PB2526).
@@ -1795,16 +1797,21 @@ The audits run in every lane of the local gate (they are where a register note, 
 `audits` job runs in every merge group, whatever `changes` decided, and on no pull request and no verified push (kb/Work
 PB4330).
 
-**The tooling flag (kb/Work PB4326).** A full-lane change also says whether it TOUCHES TOOLING: a path under `scripts/`,
-`.github/`, `tools/`, `.claude/`, or `.gitattributes` / `toolchain.env`, ending `.py`, `.ps1` or `.sh` anywhere, or under a
-`TOOLING_READS` entry (a path outside the scripts that a script self-test reads as data, each entry naming its readers:
-`tests/_shared/TestRepo.cs`, the grammar, `.agent-fleet.json`, `docs/CONFORMANCE.md`, `tests/version-matrix/`, …). `classify`
-prints `tooling=true|false`; an empty or unlistable change touches tooling, and an inert change never does. The script
-self-tests read tooling and those entries, so only a change that touches one can turn one red: the gate's `SELF-TESTS` audit
-(`TOOLING_ONLY`) and its post-build self-tests run only then, and CI's `windows-self-tests` job runs only then
-(`needs.changes.outputs.tooling == 'true'`; the Linux self-tests of the `audits` job run in every merge group). A change that
-touches no tooling saves the median gate 147 s of self-tests and 145 s of waiting for the post-build ones (PIPELINE-REVIEW,
-step 3).
+**The tooling flags (kb/Work PB4326; split by the owner 2026-11-01, kb/Work PB4409).** A full-lane change also says two
+things, and `classify` prints both. `reads_tooling=true|false`: it touches a path a script self-test reads
+(`Classification.is_tooling`): a path under `scripts/`, `.github/`, `tools/`, `.claude/`, or `.gitattributes` /
+`toolchain.env`, ending `.py`, `.ps1` or `.sh` anywhere, or under a `TOOLING_READS` entry (a path outside the scripts that a
+script self-test reads as data, each entry naming its readers: `tests/_shared/TestRepo.cs`, the grammar,
+`.agent-fleet.json`, `docs/CONFORMANCE.md`, `docs/REARCHITECTURE_PLAN.md`, `tests/version-matrix/`, ...). CI's
+`windows-self-tests` job runs only then (`needs.changes.outputs.reads_tooling == 'true'`), so the Windows-only self-tests
+(`test_orchestrate_*.ps1`, `test_autostart.ps1`, ...) still run on every change that can turn one red, and the Linux
+self-tests of the `audits` job run in every merge group. `tooling=true|false`: it touches a SCRIPT
+(`Classification.is_script_tree`: the trees and suffixes, never a `TOOLING_READS` entry), and only then do the LOCAL
+gate's `SELF-TESTS` audit (`TOOLING_ONLY`) and its post-build self-tests run: owner 2026-11-01, "I see no reason why a
+compiler change should need to run script self-tests" (compiler fixes change those data files routinely, and their
+self-tests cost a compiler gate 10 to 38 minutes, measured on PB4097's gate). A self-test a compiler data file breaks
+therefore first goes red in the merge group (class (d) of THE RULE). `tooling` implies `reads_tooling` (`Lane` refuses
+the other); the tooling lane sets both, an inert change neither, and an empty or unlistable change both.
 
 **The proof of the tooling flag (kb/Work PB4326, review round 1 finding R1-1).** A path prefix alone was refuted by the PASS
 store's recorded inputs (§3.14.10): `tests/_shared/TestRepo.cs` is an input of `drift_rules.py`'s self-test and the `.g4` files
