@@ -1,4 +1,4 @@
-## PB4387: an uncovered sharing writer's entry mutex is parked between statements, not published and retired around each record
+## Entry 2970 — 2026-11-01 18:23 PST — PB4387: an uncovered sharing writer's entry mutex is parked between statements, not published and retired around each record
 
 An uncovered sequential writer (no APPLY COMMIT) whose file lock admits another writer holds the sidecar entry mutex around
 every WRITE and REWRITE (PB3340 R1-1: no other transaction may begin inside one change). The mutex is a lock file in the
@@ -39,3 +39,4 @@ the same publish-and-retire-per-hold pattern exists for the store mutex and reco
 `SidecarHost.Open` endpoints never park; it cannot be measured here.
 
 **Gates.** Windows: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,540/20,540 · Unit 39,144/39,144 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261102T014256Z; the seven new cases Passed in `Unit.trx`). Linux: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built inert-watch; HEAD 917544760) ===`. `python scripts/semgrep/verify.py`: PASS, no count raised.
+
