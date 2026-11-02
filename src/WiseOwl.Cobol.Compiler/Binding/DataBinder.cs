@@ -581,7 +581,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
         DeclareUnitName(program);
 
-        SwitchBindSpecialNames(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)
+        SpecialNames.Bind(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)
         BindFileSection(program, _rootNames);      // FD records → Roots + FileModel.Records + the shared-area REDEFINES
         ScreenSelectsHaveDescriptions();           // §12.4.5.2 SR3 — after every FD and SD has attached
@@ -1454,7 +1454,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 .Select(k => new CollatingKeyOperand { Name = k.Base, Qualifiers = k.Quals })
                 .ToList();
             file.KeyLevelCollating.Add(new KeyLevelCollatingClause(keys, ctx.cobolWord(0).GetText(), Edition.Cursor));
-            UseAlphabetName(ctx, ctx.cobolWord(0).GetText());   // the clause's §8.3.2.2 use (kb/Work PB3153)
+            SpecialNames.UseAlphabetName(ctx, ctx.cobolWord(0).GetText());   // the clause's §8.3.2.2 use (kb/Work PB3153)
             return;
         }
         if (file.FileLevelCollatingCount++ == 0) file.FileLevelCollatingAt = Edition.Cursor;   // §12.4.5.7.3 SR3 — at most one file-level clause
@@ -1463,7 +1463,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             $"file '{file.CobolName}' COLLATING SEQUENCE", "12.4.5.7.2 Format 1");
         // The written names are this clause's §8.3.2.2 uses (kb/Work PB3153); SR1/SR2 screen them post-build.
         if (file.FileLevelCollating is var (alnum, nat))
-            foreach (var name in new[] { alnum, nat }.OfType<string>()) UseAlphabetName(ctx, name);
+            foreach (var name in new[] { alnum, nat }.OfType<string>()) SpecialNames.UseAlphabetName(ctx, name);
     }
 
     /// <summary>Resolve each INDEXED key's collating-weight table from the file's §12.4.5.7 COLLATING SEQUENCE
@@ -1538,7 +1538,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // or record-key-name-1 is national, alphabet-name-3 shall reference an alphabet that defines a national
             // collating sequence; otherwise, alphabet-name-3 shall reference an alphabet that defines an
             // alphanumeric collating sequence." An undeclared alphabet breaks both halves and is said once.
-            if (!IsAlphabetName(alphabet3))
+            if (!SpecialNames.IsAlphabetName(alphabet3))
             {
                 Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
                     + $"OF {string.Join(' ', keys.Select(k => WrittenQualified(k.Name, k.Qualifiers)))} IS '{alphabet3}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
@@ -1592,17 +1592,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// that cannot produce a program.</para></summary>
     internal string? CollatingAlphabetFault(string alphabet, bool national)
     {
-        if (!IsAlphabetName(alphabet)
+        if (!SpecialNames.IsAlphabetName(alphabet)
             && OwnWords.IsDeclaredAs(alphabet, UserWordKind.AlphabetName))   // SPECIAL-NAMES: never a method's (§12.3.3 SR2)
             return null;
         if (national)
-            return NationalAlphabets.TryPeek(alphabet, out var nd)
+            return SpecialNames.NationalAlphabets.TryPeek(alphabet, out var nd)
                 ? nd.HasCollatingSequence ? null
                     : $"'{alphabet}' ({nd.Phrase}) names a national coded character set only (ISO §12.3.7.4 Table 6)"
-                : Alphabets.Declares(alphabet) ? $"'{alphabet}' is an alphanumeric alphabet"
+                : SpecialNames.Alphabets.Declares(alphabet) ? $"'{alphabet}' is an alphanumeric alphabet"
                 : $"'{alphabet}' is not an alphabet declared in SPECIAL-NAMES";
-        return Alphabets.Declares(alphabet) ? null
-            : NationalAlphabets.Declares(alphabet) ? $"'{alphabet}' is defined FOR NATIONAL"
+        return SpecialNames.Alphabets.Declares(alphabet) ? null
+            : SpecialNames.NationalAlphabets.Declares(alphabet) ? $"'{alphabet}' is defined FOR NATIONAL"
             : $"'{alphabet}' is not an alphabet declared in SPECIAL-NAMES";
     }
 
@@ -1683,9 +1683,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (alphabet is null) return null;                                                       // GR5 / GR4
 
         if (!national)
-            return Alphabets.TryPeek(alphabet, out var def) && !def.IsIdentity ? def : null;   // used at capture
+            return SpecialNames.Alphabets.TryPeek(alphabet, out var def) && !def.IsIdentity ? def : null;   // used at capture
         using var _ = Edition.At(where);
-        if (NationalAlphabets.TryPeek(alphabet, out var nd) && nd.HasCollatingSequence && !nd.IsIdentity)
+        if (SpecialNames.NationalAlphabets.TryPeek(alphabet, out var nd) && nd.HasCollatingSequence && !nd.IsIdentity)
             Edition.Declined(DiagnosticCatalog.FileCollatingNationalUnsupported, $"file '{file.CobolName}': national "
                 + $"record key '{key.Face}' under COLLATING SEQUENCE '{alphabet}' ({nd.Phrase})");
         return null;
@@ -2612,7 +2612,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string value = operand.Form switch
         {
             SuppressWhenForm.Figurative => new string(WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar(
-                operand.FigurativeKind!.Value, Collating, category, NationalCollating), positions),
+                operand.FigurativeKind!.Value, SpecialNames.Collating, category, SpecialNames.NationalCollating), positions),
             SuppressWhenForm.AllLiteral when operand.Characters.Length > 0 =>
                 string.Concat(Enumerable.Repeat(operand.Characters, positions / operand.Characters.Length + 1))[..positions],
             _ when operand.Characters.Length <= positions => operand.Characters.PadRight(positions),
@@ -3522,7 +3522,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>The census a declaration lands in: the METHOD whose words are being declared
     /// (<see cref="EnterMethodDeclarations"/> — its data entries, its METHOD-ID and its procedure-names), which is a
     /// source element of its own, else this binder's own (kb/Work PB2921).</summary>
-    private UserWordCensus WordCensus => _bindingMethodScope?.Words ?? OwnWords;
+    internal UserWordCensus WordCensus => _bindingMethodScope?.Words ?? OwnWords;
 
     /// <summary>⛔ §8.3.2.2: "<i>Within a source element, a given user-defined word may be used as only one type of
     /// user-defined word</i>", except as <see cref="UserWordKinds.MayBeOneWord"/> says. Asked at the ONE declaration funnel
@@ -3550,7 +3550,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// condition-name registries dropped the second silently (<c>TryAdd</c>, first wins) while LOCALE (COBOL1665) and
     /// DYNAMIC LENGTH STRUCTURE each kept a private refusal. A contained program or a method may re-declare a word its
     /// container declares (§8.4.6.1) — each is a source element with a census of its own.</summary>
-    private void CheckUnqualifiableDeclaration(string word, UserWordKind kind)
+    internal void CheckUnqualifiableDeclaration(string word, UserWordKind kind)
     {
         if (WordCensus.DeclareUnqualified(word, kind) < 2) return;
         Edition.Error(DiagnosticCatalog.SpecialNameDeclaredTwice,
@@ -4873,13 +4873,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     {
                         if (!cond.Values.Any(v => v.High is not null))
                         {
-                            if (IsAlphabetName(alphaName)) GateRangeAlphabetPhrase($"condition-name '{name}'");
+                            if (SpecialNames.IsAlphabetName(alphaName)) SpecialNames.GateRangeAlphabetPhrase($"condition-name '{name}'");
                             Edition.Error(DiagnosticCatalog.ValueAlphabetWithoutThrough, $"condition-name "
                                 + $"'{name}': alphabet-name '{alphaName}' is written with no THROUGH phrase in "
                                 + "the clause, so there are no \"literals specified in the THROUGH phrase\" for "
                                 + "it to order (ISO §13.18.63.3 SR31)");
                         }
-                        else if (TryResolveRangeAlphabet(value, alphaName,
+                        else if (SpecialNames.TryResolveRangeAlphabet(value, alphaName,
                                 CollatingSelection.ForComparison(parent.OperandPic?.Category, parent.OperandPic?.Category),
                                 $"condition-name '{name}'"))
                             cond.Alphabet = alphaName;
@@ -4934,7 +4934,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (dref.dataReferenceSuffix() is { Length: > 0 } suffixes)
         {
             if (suffixes[^1].qualification() is { } q && q.IN() is not null && q.ChildCount == 2
-                && q.cobolWord().GetText() is var qualWord && IsAlphabetName(qualWord))
+                && q.cobolWord().GetText() is var qualWord && SpecialNames.IsAlphabetName(qualWord))
             {
                 _alphabetPeeledOperands[last] = ReferenceResolver.WithoutTrailingSuffix(dref);
                 return (qualWord, null);
@@ -4947,7 +4947,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // container's alphabet-names, and "a source element's reference to such a name, even when it is a
         // different type of user-defined word, is to the item which that source element describes" (§8.4.6.1;
         // kb/Work PB3153), so the element's own constant-name of the spelling keeps its literal-2 reading.
-        return dref.GetText() is var word && IsAlphabetName(word) && ConstantOf(dref) is null
+        return dref.GetText() is var word && SpecialNames.IsAlphabetName(word) && ConstantOf(dref) is null
             ? (word, last) : (null, null);
     }
 
@@ -5247,17 +5247,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (alphabetName is not null)
         {
             // TryResolveRangeAlphabet resolved (and recorded) the reference; this reads its definition again.
-            if (national && NationalAlphabets.TryPeek(alphabetName, out var nd))
+            if (national && SpecialNames.NationalAlphabets.TryPeek(alphabetName, out var nd))
                 return nd.Locale is not null ? (null, false) : (nd.Table?.Collation(true), true);
-            if (!national && Alphabets.TryPeek(alphabetName, out var ad))
+            if (!national && SpecialNames.Alphabets.TryPeek(alphabetName, out var ad))
                 return ad.Locale is not null ? (null, false) : (ad.Table?.Collation(false), true);
             return (null, true);       // unresolved: TryResolveRangeAlphabet already reported it; native order
         }
         if (national)
-            return NationalCollating is { } pn
+            return SpecialNames.NationalCollating is { } pn
                 ? pn.Locale is not null ? (null, false) : (pn.Table?.Collation(true), true)
                 : (null, true);
-        return Collating is { } pa
+        return SpecialNames.Collating is { } pa
             ? pa.Locale is not null ? (null, false) : (pa.Table?.Collation(false), true)
             : (null, true);
     }
@@ -5351,7 +5351,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         var locale = LocaleRef.Current;
                         if (localeName is not null)
                         {
-                            var sym = ResolveLocaleName(localeName, localeName.GetText(),
+                            var sym = SpecialNames.ResolveLocaleName(localeName, localeName.GetText(),
                                 $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE {localeName.GetText()}",
                                 "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph");
                             if (sym is not null) locale = new LocaleRef(sym);
@@ -5787,9 +5787,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var usagePhrases = ScreenUsagePhrases(usageCtx, entryUsage, usageText, entryWhere);
 
         var pic = pictureText is not null
-            ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, currencies: CurrencySigns,
+            ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, currencies: SpecialNames.CurrencySigns,
                 blankWhenZero: blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs,
-                localeFormat2: pictureLocale, decimalPointIsComma: DecimalPointIsComma)
+                localeFormat2: pictureLocale, decimalPointIsComma: SpecialNames.DecimalPointIsComma)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem(restrictedTypeName)
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem(restrictedPrototypeName)   // §13.18.60.4 GR24/GR25 (P10 Step 7; kb/Work PB817)
@@ -6146,7 +6146,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // used to be refused outright as "not yet supported" (COBOL1562, retired): the clause it names had no
             // grammar at all (kb/Work PB829).
             else if (dynLengthStructureName is not null
-                     && !DynamicLengthStructures.TryUse(dynLengthStructureAt, dynLengthStructureName, out dynStructure))
+                     && !SpecialNames.DynamicLengthStructures.TryUse(dynLengthStructureAt, dynLengthStructureName, out dynStructure))
             {
                 Edition.Error(DiagnosticCatalog.DynamicLengthStructureReference, $"{entryWhere}: the DYNAMIC LENGTH "
                     + $"clause names '{dynLengthStructureName}', which is not a dynamic-length-structure-name "
@@ -6325,7 +6325,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var op in ops.Concat(item.valueClauseRange()?.valueClauseOperand() ?? []))
             if (!IsLiteralValueOperand(op)) { ReportNonLiteralValueOperand(op, where); ok = false; }
         if (!ok) return null;
-        return item.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
+        return item.GetText() is { } raw ? SpecialNames.NormalizeIfNumericLiteral(raw) : null;
     }
 
     /// <summary>EVERY operand of a FORMAT-4 (report-section) VALUE clause, in written order — ISO §13.18.63.2
@@ -6386,9 +6386,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var (alnumName, natName) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
             f => f.NATIONAL() is not null, f => f.cobolWord().GetText(), cs.cobolWord(),
             $"file '{file.CobolName}' CODE-SET", "13.18.13.2");
-        var alnumSet = alnumName is null ? null : CodedCharacterSetOf(cs, alnumName, $"CODE-SET {alnumName}",
+        var alnumSet = alnumName is null ? null : SpecialNames.CodedCharacterSetOf(cs, alnumName, $"CODE-SET {alnumName}",
             "ISO §13.18.13.3 SR1 — alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set");
-        var natSet = natName is null ? null : CodedCharacterSetOf(cs, natName, $"CODE-SET {natName}",
+        var natSet = natName is null ? null : SpecialNames.CodedCharacterSetOf(cs, natName, $"CODE-SET {natName}",
             "ISO §13.18.13.3 SR2 — alphabet-name-2 shall reference an alphabet that defines a national coded character set");
         if (alnumName is not null && alnumSet is null || natName is not null && natSet is null) return;
         if (alnumSet is { National: true })
@@ -6492,9 +6492,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // ExpressionBinder.LiteralAliasOf): a symbolic-character a CONTAINING element declares yields to the
             // element's own constant-name of the spelling (§8.4.6.1; kb/Work PB3153), and its resolution records
             // a §8.3.2.2 use. In one element the two cannot coexist (COBOL2692), so the order decides nothing there.
-            : ConstantValueRawText(op) is { } constantRaw ? NormalizeIfNumericLiteral(constantRaw)
+            : ConstantValueRawText(op) is { } constantRaw ? SpecialNames.NormalizeIfNumericLiteral(constantRaw)
             : SymbolicValueRawText(op) is { } rawBare ? rawBare
-            : NormalizeIfNumericLiteral(op.GetText());
+            : SpecialNames.NormalizeIfNumericLiteral(op.GetText());
     }
 
     /// <summary>THE literal-position predicate for a VALUE operand (kb/Work PB732), PURE — no folding, no
@@ -6524,7 +6524,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // counted a literal here, `PIC X VALUE NULL` stored LOW-VALUE).
             return nn.predefinedNull() is null
                 && (nn.figurativeConstant()?.cobolWord()?.GetText() is not { } symWord
-                || NamesSymbolic(symWord) || FindConstant(symWord) is not null);
+                || SpecialNames.NamesSymbolic(symWord) || FindConstant(symWord) is not null);
         // §8.3.3.3.2 rule 2 makes a written sign part of the numeric literal — ONE sign, as its leftmost
         // character — so `VALUE -9999` is literal-1, while `--5`, `+-5` and `- 5` are no literal at all (kb/Work
         // PB1445: this arm used to strip ANY number of signs, and `VALUE --5` reached the C# backend as a
@@ -6541,7 +6541,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // sign-stripping lookup here would have called it a literal while ConstantValueRawText, which does not
         // strip, still fell through — re-opening the very sink PB732 closed, on `-K` instead of `K`.
         return BareValueOperandWord(op) is { } dref
-            && (ConstantOf(dref) is not null || NamesSymbolic(dref));
+            && (ConstantOf(dref) is not null || SpecialNames.NamesSymbolic(dref));
     }
 
     /// <summary>The BARE (unqualified, unsubscripted, UNSIGNED) word reference a VALUE operand reduces to, or
@@ -6665,7 +6665,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §8.3.3.2.3 r3). A
     /// resolution, recorded as a use at <paramref name="site"/> (§8.3.2.2; kb/Work PB3153).</summary>
     internal string? SymbolicRaw(Antlr4.Runtime.RuleContext site, string word) =>
-        SymbolicOf(site, word) is not { } sym ? null
+        SpecialNames.SymbolicOf(site, word) is not { } sym ? null
         : "ALL" + (sym.National ? "N" : "") + "\"" + sym.Value.Replace("\"", "\"\"") + "\"";
 
     /// <summary>Build the <see cref="EditingPhraseSpec"/> list for a PICTURE clause's EDITING phrases
@@ -8842,7 +8842,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     internal bool SwitchConditionCompetes(Core.DataReferenceContext dref, IReadOnlyList<Condition88> matches) =>
         matches.Count != 0 && dref.dataReferenceSuffix().Length == 0
         && dref.cobolWord()?.GetText() is { } name
-        && SwitchConditions.ContainmentDepth(name) == DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
+        && SpecialNames.SwitchConditions.ContainmentDepth(name) == DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
 
     /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
     /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>

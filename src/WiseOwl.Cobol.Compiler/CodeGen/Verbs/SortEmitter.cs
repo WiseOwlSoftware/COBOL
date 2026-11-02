@@ -1057,7 +1057,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
     /// field — ST108A/ST137A shape).</summary>
     private string WeightsExpr(SortCollation c) =>
         c.Alphanumeric is not { } def ? "null"
-        : ReferenceEquals(def, ctx.Data.Collating) ? "__COLLATE"
+        : ReferenceEquals(def, ctx.Data.SpecialNames.Collating) ? "__COLLATE"
         : CollationEmit.New(def);
 
     /// <summary>Its NATIONAL twin (ISO §14.9.40.4 GR5 — the sequence for keys of class national, determined
@@ -1066,7 +1066,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
     /// which on the D-N1/D-N3 substrate IS code-point order.</summary>
     private string NatWeightsExpr(SortCollation c) =>
         c.National is not { } def ? "null"
-        : ReferenceEquals(def, ctx.Data.NationalCollating) ? "__COLLATE_NAT"
+        : ReferenceEquals(def, ctx.Data.SpecialNames.NationalCollating) ? "__COLLATE_NAT"
         : CollationEmit.New(def);
 
     /// <summary>The trailing collation argument a TABLE-sort key comparison takes, chosen by the key's CLASS
@@ -1077,9 +1077,9 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
     /// A non-PCS statement alphabet is materialized once per statement into a local carrier.</summary>
     private string TableWeightsArg(SortCollation c, CollatingClass cls, int id, HashSet<string> declared) => cls switch
     {
-        CollatingClass.Alphanumeric => CarrierArg(c.Alphanumeric, ctx.Data.Collating, "__COLLATE", $"__sw{id}",
+        CollatingClass.Alphanumeric => CarrierArg(c.Alphanumeric, ctx.Data.SpecialNames.Collating, "__COLLATE", $"__sw{id}",
             "statement COLLATING SEQUENCE (GR5a)", CollationEmit.New, declared),
-        CollatingClass.National => CarrierArg(c.National, ctx.Data.NationalCollating, "__COLLATE_NAT", $"__swn{id}",
+        CollatingClass.National => CarrierArg(c.National, ctx.Data.SpecialNames.NationalCollating, "__COLLATE_NAT", $"__swn{id}",
             "statement COLLATING SEQUENCE FOR NATIONAL (GR5a)", CollationEmit.New, declared),
         _ => "",
     };

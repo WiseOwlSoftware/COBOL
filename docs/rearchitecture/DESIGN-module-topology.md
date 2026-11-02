@@ -387,7 +387,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 | # | Action | From | To | Why |
 |---|---|---|---|---|
 | 9 | S | `Binding/DataBinder.cs` (1723) | `Binding/DataDivision/DataBinder.cs` (thin) + `EntryTreeBuilder.cs` + `Passes/*Pass.cs` | Orchestrator vs builder vs passes |
-| 10 | S/M | `Binding/DataBinder.Switches.cs` | `Binding/DataDivision/SpecialNamesBinder.cs` | ENV-division concern, not DATA |
+| 10 | S/M | `Binding/DataBinder.Switches.cs` | `Binding/SpecialNamesBinder*.cs` (landed, PB2355; flat in `Binding/`, one partial per clause family) | ENV-division concern, not DATA |
 | 11 | S/M | `DataBinder.Reports.cs` | `Binding/DataDivision/ReportSectionBinder.cs` | Self-contained |
 | 12 | S/M | `DataBinder.Linkage.cs` | `Binding/DataDivision/LinkageBinder.cs` | |
 | 13 | S/M | `DataBinder.Ptr.cs` | `Binding/DataDivision/PointerBinder.cs` | |

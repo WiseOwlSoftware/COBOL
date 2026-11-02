@@ -1052,7 +1052,8 @@ the binder (`d => d.ExpandTypes()`), from `SynthesizeImpliedPictures` to `MarkFi
 `PassPhase` watermark (`Passes/IBindPass.cs:23`: None, TypesExpanded, UsageResolved, SignResolved,
 RedefinesClassified, StrongTypeChecked, OccursResolved, FilesResolved, ProcedureBound, UsageCollected, StorageComputed,
 EditionConformanceChecked); §12.3's configuration facts ("The configuration section specifies aspects of the data
-processing system that are dependent on the specific system", §12.3.1) in `Switches` and `IoControl`; §13.18's clauses
+processing system that are dependent on the specific system", §12.3.1) in `Switches` (now `SpecialNamesBinder`) and the I-O-CONTROL
+paragraph's (§12.4.6, the input-output section, not §12.3) in `IoControl` (now `FileControlBinder`); §13.18's clauses
 one partial each (`Aligned`, `SignClause`, `UsageDeclaration`, `ValuePlacement`, `TableValue`, `GroupValue`, `Odo`,
 `RedefinesEntry`, `RenamesEntry`, `ConditionName`, `ConstantRecord`/`Constants`, `ImpliedPicture`, `PictureRequired`,
 `Ptr`, `CodeSetRecords`, `Linkage`, `ClausePlacement`, `EntryOrder`); the report section (`Reports`); OO data (`Oo`);
@@ -1093,7 +1094,7 @@ no word for:
   `BinderContext.cs:150`).
 And around a unit's data phases `BinderDriver` writes three more kinds of state, none of them an `IBindPass` (R1
 Draft 6 re-modelled them from the code after the fifth refuter, G2):
-- a **configuration seed** (`BinderDriver.cs:634` → `DataBinder.InheritConfiguration`, `DataBinder.Switches.cs:449-484`):
+- a **configuration seed** (`BinderDriver.cs:634` → `DataBinder.InheritConfiguration`, `DataBinder.Configuration.cs`, which asks `SpecialNamesBinder.InheritFrom` for the SPECIAL-NAMES half):
   BEFORE a contained unit binds, the container's whole configuration-derived state (SPECIAL-NAMES: decimal point,
   currency signs, switches, classes, alphabets, order tables, structures, locales; the OBJECT-COMPUTER collating
   sequences and classification; DEBUGGING MODE; the REPOSITORY specifiers) is copied into the child's OWN
@@ -1247,8 +1248,21 @@ walk's duty, as today, and the oracle proves it. Most of a data pass's output is
 writes stay ordered by the explicit pass list, exactly as today, and the oracle proves the order; the type system takes
 over where binding ends, because `DataBindResult` hands out the forest with `DataItem` immutable (R0-0028's row). One
 class per pass implements `IBindPass` (the lambda rows become an explicit ordered list of those classes; no
-reflection); one binder per non-pass concern: `SpecialNamesBinder` (`Switches`, `IoControl`), `FileControlBinder`,
-`ReportSectionBinder` (`Reports`), `ConstantEntryBinder`, `LinkageBinder`, `OoDataBinder`. During procedure binding the
+reflection); one binder per non-pass concern: `SpecialNamesBinder` (the former `Switches` partial: SPECIAL-NAMES and the
+OBJECT-COMPUTER alphabets and classification, §12.3.6–§12.3.7), `FileControlBinder` (FILE-CONTROL and I-O-CONTROL, §12.4.5–§12.4.6: the
+former `IoControl` partial belongs to the input-output section with FILE-CONTROL, as `DESIGN-module-topology.md` §2 and §3 row 15 had it, not to the
+configuration section), `ReportSectionBinder` (`Reports`), `ConstantEntryBinder`, `LinkageBinder`, `OoDataBinder`.
+*`SpecialNamesBinder` as built (PB2355).* One sealed class per unit, `DataBinder.SpecialNames` (made with the data binder, from the
+binder and its `EditionContext`), over six partial files by clause family (the switches, ORDER TABLE and DYNAMIC LENGTH STRUCTURE and the
+`Bind` walk in `SpecialNamesBinder.cs`; `.Alphabets`, `.Literals`, `.Classes` for CLASS and SYMBOLIC CHARACTERS, `.Currency`, `.Locales`). It
+owns the state it declares (the `ConfigurationNames` tables, the program collating sequences and classification, the decimal point, the
+currency set) and asks the data binder only for what is not SPECIAL-NAMES: the §8.3.2.2 declaration funnel, the constant-name
+readings, the method tier of a name lookup. Every reader of those facts (picture analysis, the literal binders, the procedure binders and
+the emitters) reads `Data.SpecialNames`; a contained unit's is seeded from its container's by `SpecialNamesBinder.InheritFrom` inside the one
+`DataBinder.InheritConfiguration`, which with the REPOSITORY specifier screens and the configuration-literal readings is
+`DataBinder.Configuration.cs`. The emitters' reads of it are tolerated edge pairs onto `SpecialNamesBinder` in
+`architecture-edges.json`, removed by PB2361 and the configuration slice of PB2296 (the facts become a value slice in
+`DataBindResult`, and the binder's state stops being read through the binder). During procedure binding the
 binders read the frozen value slices, append and early-read the fact sets, and use `ProcedureBindState`'s three
 shapes, all through `BindSession`; after the group
 tail (StorageComputed), when every slice is frozen and every fact set complete, the output is `DataBindResult`, the

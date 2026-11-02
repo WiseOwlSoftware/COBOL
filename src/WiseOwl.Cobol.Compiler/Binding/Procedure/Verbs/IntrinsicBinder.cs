@@ -570,7 +570,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A folded result's CHARACTER image is the literal form of the value, spelled with the unit's decimal separator
         // (§12.3.7.4 GR14 a; kb/Work PB2507): HIGHEST-ALGEBRAIC of a PIC 9V99 item displays 9,99 under DECIMAL-POINT IS COMMA.
         return result is BoundNumLiteral folded
-            ? folded with { FunctionValue = true, DecimalSeparator = ctx.Data.DecimalSeparator }
+            ? folded with { FunctionValue = true, DecimalSeparator = ctx.Data.SpecialNames.DecimalSeparator }
             : result;
     }
 
@@ -792,7 +792,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // Before this the argument bound cleanly and was then SILENTLY DISCARDED by a local format.
         if (args.Count > 0 && args[0] is BoundStringLiteral zoneFmt
             && OffsetArgumentIndex(sig.Name) is { } offIx && args.Count > offIx
-            && DateTimeFormatGrammar.Describe(zoneFmt.Value, ctx.Data.DecimalPointIsComma) is { } zoneInfo
+            && DateTimeFormatGrammar.Describe(zoneFmt.Value, ctx.Data.SpecialNames.DecimalPointIsComma) is { } zoneInfo
             && zoneInfo.Zone is DateTimeZone.Local)
             ctx.Edition.Error(DiagnosticCatalog.DateTimeOffsetArgumentNotPermitted,
                 $"FUNCTION {sig.Name} is given an offset-from-UTC argument (argument-{offIx + 1}), but its format "
@@ -804,7 +804,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (args.Count > 0 && args[0] is BoundStringLiteral fmt
             && FormatKindsAdmittedBy(sig.Name) is { } admitted)
         {
-            var actual = DateTimeFormatGrammar.Classify(fmt.Value, ctx.Data.DecimalPointIsComma);
+            var actual = DateTimeFormatGrammar.Classify(fmt.Value, ctx.Data.SpecialNames.DecimalPointIsComma);
             if (actual is null || Array.IndexOf(admitted, actual.Value) < 0)
                 ctx.Edition.Error(DiagnosticCatalog.DateTimeFormatKindMismatch,
                     $"FUNCTION {sig.Name} argument-1 is '{fmt.Value}', which is "
@@ -881,8 +881,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // alphanumeric / §8.8.4.2.9 national) — flag the STRING form (resolved above) so the backend passes __COLLATE /
         // __COLLATE_NAT, else it silently uses the native ordinal and disagrees with the program's relation conditions. (CA23.)
         bool maxMinStr = resolved.RuntimeMethod is "MaxString" or "MinString" or "OrdMaxString" or "OrdMinString";
-        bool collate = (sig.Name is "CHAR" or "ORD" || maxMinStr) && ctx.Data.Collating is not null && !nationalArg;
-        bool collateNat = ctx.Data.NationalCollating is not null
+        bool collate = (sig.Name is "CHAR" or "ORD" || maxMinStr) && ctx.Data.SpecialNames.Collating is not null && !nationalArg;
+        bool collateNat = ctx.Data.SpecialNames.NationalCollating is not null
             && (sig.Name is "CHAR-NATIONAL" || ((sig.Name is "ORD" || maxMinStr) && nationalArg));
 
         // CHAR takes an INTEGER argument (§15.15.3 r1) — a national operand is a category violation; the
@@ -1029,7 +1029,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // An argument-4 position: the element's own item of the word's spelling is the referent (§8.4.6.1).
             bool ownItem = !mustBeName && SoleDataReference(a) is { } own && ctx.Refs.DescribesOwnItem(own);
             if (at == 2 && !ownItem && KeywordWordOf(a) is { } word
-                && ctx.Data.OrderTables.TryUse(a, word, out string? literal9))
+                && ctx.Data.SpecialNames.OrderTables.TryUse(a, word, out string? literal9))
             {
                 orderingTable = literal9;
                 continue;
@@ -1039,12 +1039,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
                     + "§15.85.2 general format's third position IS ordering-name-1 (ISO §15.85.3 r5; §15.3 "
                     + "argument type 12)"
-                    + (ctx.Data.OrderTables.Count == 0
+                    + (ctx.Data.SpecialNames.OrderTables.Count == 0
                         ? "; this compilation unit declares no ORDER TABLE clause"
-                        : $"; declared: {string.Join(", ", ctx.Data.OrderTables.Names)}"));
+                        : $"; declared: {string.Join(", ", ctx.Data.SpecialNames.OrderTables.Names)}"));
             // A SECOND ordering-name where argument-4 belongs. Reachable, and worth its own message: the operand
             // path would otherwise report it as an unresolved data-name, which is true and useless.
-            if (!ownItem && KeywordWordOf(a) is { } second && ctx.Data.OrderTables.Declares(second))
+            if (!ownItem && KeywordWordOf(a) is { } second && ctx.Data.SpecialNames.OrderTables.Declares(second))
                 return Malformed($"is given the ordering-name '{second}' in the argument-4 position — the "
                     + "§15.85.2 general format admits ONE [ ordering-name-1 ], and the fourth position is "
                     + "argument-4, the ordering level (ISO §15.85.3 r6)");
@@ -1104,7 +1104,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             string site = $"FUNCTION {sig.Name}'s locale-name-1 '{a.GetText().Trim()}'";
             if (KeywordWordOf(a) is { } word)
             {
-                var sym = ctx.Data.ResolveLocaleName(a, word, site, rule);
+                var sym = ctx.Data.SpecialNames.ResolveLocaleName(a, word, site, rule);
                 if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                 locale = new LocaleRef(sym);
             }
@@ -1148,7 +1148,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         LocaleRef locale;
         if (KeywordWordOf(argCtxs[2]) is { } word)
         {
-            var sym = ctx.Data.ResolveLocaleName(argCtxs[2], word, $"FUNCTION {sig.Name}'s LOCALE phrase '{word}'", rule);
+            var sym = ctx.Data.SpecialNames.ResolveLocaleName(argCtxs[2], word, $"FUNCTION {sig.Name}'s LOCALE phrase '{word}'", rule);
             if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
             locale = new LocaleRef(sym);
         }
@@ -1872,7 +1872,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     $"the LOCALE keyword of FUNCTION {sig.Name}");
                 if (at + 1 < argCtxs.Count && KeywordWordOf(argCtxs[at + 1]) is { } lname && lname != "ANYCASE")
                 {
-                    var sym = ctx.Data.ResolveLocaleName(argCtxs[at + 1], lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
+                    var sym = ctx.Data.SpecialNames.ResolveLocaleName(argCtxs[at + 1], lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
                         "ISO §15.68.3 r5a — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph");
                     if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                     locale = new LocaleRef(sym);
@@ -1930,11 +1930,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // illegal (kb/Work PB60 / AR-15.68.3-3 — the former scalar injected whichever clause bound last, so
             // NUMVAL-C("#1,234.56") silently returned 0 in a '#'-then-'@' unit). Under LOCALE nothing is
             // injected — the currency strings are the locale's (r5b.3; PB64 T6).
-            if (ctx.Data.SoleCurrencyString is { } sole)
+            if (ctx.Data.SpecialNames.SoleCurrencyString is { } sole)
                 operands.Add(new BoundStringLiteral(sole));
             else
                 ctx.Edition.Error(DiagnosticCatalog.NumvalCAmbiguousCurrency, $"FUNCTION {sig.Name} without "
-                    + $"argument-2: the compilation unit specifies {ctx.Data.ExplicitCurrencyStringCount} distinct "
+                    + $"argument-2: the compilation unit specifies {ctx.Data.SpecialNames.ExplicitCurrencyStringCount} distinct "
                     + "currency strings in its SPECIAL-NAMES paragraph; when neither argument-2 nor LOCALE is "
                     + "specified there shall be only one currency string for the compilation unit (ISO §15.68.3 "
                     + "rule 3) — name the currency string as argument-2");

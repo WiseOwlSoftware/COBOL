@@ -146,8 +146,8 @@ public sealed partial class DataBinder
         item.PictureText = implied.Text;
         item.PicIsValueImplied = true;   // an IMPLICIT clause: no SR4/SR5/SR10 size bound (see the property)
         item.Pic = PictureAnalyzer.Analyze(implied.Text, item.OwnUsage ?? Usage.Display, Edition, where,
-            item.OwnSign, currencies: CurrencySigns, blankWhenZero: item.BlankWhenZero,
-            explicitUsage: item.OwnUsage is not null, decimalPointIsComma: DecimalPointIsComma);
+            item.OwnSign, currencies: SpecialNames.CurrencySigns, blankWhenZero: item.BlankWhenZero,
+            explicitUsage: item.OwnUsage is not null, decimalPointIsComma: SpecialNames.DecimalPointIsComma);
         // The entry is no longer picture-less, so the deferred §13.18.60.3 SR5/SR12 adjudication a
         // PICTURE-less USAGE NATIONAL / BIT entry carries is ANSWERED — by the picture SR9 supplies. The
         // screen above is the one that judges it (`01 A USAGE NATIONAL VALUE "AB".` is SR12's alphanumeric
@@ -173,7 +173,7 @@ public sealed partial class DataBinder
     {
         ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ValueImpliedPicture2002, where);
         return PictureAnalyzer.Analyze(implied.Text, itemUsage, Edition, where, ownSign,
-            currencies: CurrencySigns, explicitUsage: explicitUsage, decimalPointIsComma: DecimalPointIsComma);
+            currencies: SpecialNames.CurrencySigns, explicitUsage: explicitUsage, decimalPointIsComma: SpecialNames.DecimalPointIsComma);
     }
 
     /// <summary>The usage that applies to <paramref name="item"/> by §13.18.60.4 GR1 — its own clause (or the one

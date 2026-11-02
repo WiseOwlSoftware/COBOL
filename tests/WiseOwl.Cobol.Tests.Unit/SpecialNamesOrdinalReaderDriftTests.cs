@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -14,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// skipped a name without a diagnostic and ALPHABET / CLASS reported the noninteger-literal class rule for an integer.
 /// The three sites now read through <c>IntegerOperandRules.HostValue</c>, which separates the two questions and
 /// saturates; this test keeps the NEXT ordinal site (a fourth SPECIAL-NAMES clause, a private helper that re-parses
-/// the digits) automatic by requiring <c>DataBinder.Switches.cs</c> to carry no host-integer parse of its own.</para>
+/// the digits) automatic by requiring the <c>SpecialNamesBinder*.cs</c> partials to carry no host-integer parse of its own.</para>
 /// </summary>
 public sealed class SpecialNamesOrdinalReaderDriftTests
 {
@@ -41,17 +40,19 @@ public sealed class SpecialNamesOrdinalReaderDriftTests
     [Fact]
     public void TheSpecialNamesBinder_ReadsEveryOrdinalThroughTheOneReader()
     {
-        string path = TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Switches.cs");
-        var lines = File.ReadAllLines(path);
         var offenders = new List<string>();
         int reads = 0;
-        for (int i = 0; i < lines.Length; i++)
+        foreach (string file in SpecialNamesSource.Files())
         {
-            string code = Code(lines[i]);
-            foreach (string parse in OwnParses)
-                if (code.Contains(parse, StringComparison.Ordinal))
-                    offenders.Add($"DataBinder.Switches.cs:{i + 1}: {lines[i].Trim()}");
-            if (code.Contains("IntegerOperandRules.HostValue(", StringComparison.Ordinal)) reads++;
+            var lines = SpecialNamesSource.Lines(file);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string code = Code(lines[i]);
+                foreach (string parse in OwnParses)
+                    if (code.Contains(parse, StringComparison.Ordinal))
+                        offenders.Add($"{file}:{i + 1}: {lines[i].Trim()}");
+                if (code.Contains("IntegerOperandRules.HostValue(", StringComparison.Ordinal)) reads++;
+            }
         }
         Assert.True(offenders.Count == 0,
             "the SPECIAL-NAMES binder parses an integer itself — an ordinal is read by IntegerOperandRules.HostValue, "

@@ -1207,7 +1207,7 @@ on the author's machine and fail in CI — a failure mode this repo has already 
 |---|---|
 | `WiseOwl.Cobol.Frontend/Grammar/**` | G1–G5 (§5); delete the `computerAttributes` sink |
 | `WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs` | `localeClauseAhead()` stays; add the analogous OBJECT-COMPUTER predicate if needed |
-| `Compiler/Binding/DataBinder.Switches.cs` | LOCALE clause arm: declare instead of reject; ALPHABET `IS LOCALE`; ORDER TABLE |
+| `Compiler/Binding/SpecialNamesBinder.Locales.cs` and `SpecialNamesBinder.Alphabets.cs` | LOCALE clause arm: declare instead of reject; ALPHABET `IS LOCALE`; ORDER TABLE |
 | `Compiler/Binding/CollatingModel.cs` | `LocaleCollatingSpec`; `AlphabetDef.HasCodedCharacterSet` |
 | `Compiler/Binding/Model/LocaleRef.cs`, `LocaleSymbol.cs` | NEW |
 | `Compiler/Binding/IntrinsicCatalog.cs` | five rows lose `IntrinsicBind.Unsupported`; `'L'` ArgKind; `IntrinsicResultRule.RuntimeDetermined` |

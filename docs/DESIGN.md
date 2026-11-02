@@ -2103,7 +2103,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       six sub-rules ONCE, "where the native coded character set is the type of coded character set or collating
       sequence being defined, either alphanumeric or national", and both native sets are the 65,536 UTF-16 code units
       here (implementor item 188 / D-N1) — so `CollatingTable` (binder), `LiteralPhraseCollation` (runtime, with
-      `AlphanumericCollation` / `NationalCollation` as its two named arms) and `DataBinder.Switches`'s
+      `AlphanumericCollation` / `NationalCollation` as its two named arms) and `SpecialNamesBinder`'s
       `AlphabetLiteralPhrase` / `AlphabetOperands` each exist exactly once and take a `national` flag that reaches
       only the diagnostics and the per-operand literal CLASS. The arms drifted for as long as they were separate:
       the alphanumeric one implemented NONE of §12.3.7.3 SR14 (duplicates, the ordinal range, the literal class, the
@@ -2116,7 +2116,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       "Any characters of the native collating sequence that are not specified in the literal phrase shall assume a
       position in the collating sequence that is greater than that of the highest character specified in this
       literal phrase. The relative order within the set of these unspecified characters is unchanged from the
-      native collating sequence."), built in `DataBinder.Switches` (`Alphabets`/`Collating`), rendered as
+      native collating sequence."), built in `SpecialNamesBinder` (`Alphabets`/`Collating`), rendered as
       the generated `__COLLATE` field (declared by `ObjectComputerEmit.EmitMembers` for EVERY runtime-module
       type — a program class and a CLASS-ID's instance/factory classes alike, kb/Work PB111, beside the
       `__COLLATE_NAT` and `__CLASSIFY` members), consumed by the settled seam `CobolString.Compare(a,b,weights)` at every

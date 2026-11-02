@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -24,7 +23,7 @@ public sealed class SpecialNameRedeclarationDriftTests
     /// declaration asks <c>CheckUnqualifiableDeclaration</c> explicitly.</summary>
     private static readonly string[] OutsideTheSet = ["SymbolicCharacter", "ConditionName"];
 
-    private static string Switches() => File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Switches.cs"));
+    private static string Switches() => SpecialNamesSource.AllText();
 
     [Fact]
     public void EveryKindTheSpecialNamesBinderDeclares_IsInTheUnqualifiableSet()

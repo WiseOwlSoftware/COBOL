@@ -707,7 +707,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// the EC gate one line below keys on the SAME antecedent and the two must not be able to disagree
     /// (kb/Work PB401).</para></summary>
     private string? RangeAlphabet(Core.ValueRangeContext range, string? name, CollatingClass rangeClass) =>
-        name is not null && ctx.Data.TryResolveRangeAlphabet(range, name, rangeClass, "an EVALUATE WHEN THROUGH range")
+        name is not null && ctx.Data.SpecialNames.TryResolveRangeAlphabet(range, name, rangeClass, "an EVALUATE WHEN THROUGH range")
             ? name : null;
 
     /// <summary>The range's right-hand operand and its <c>IN alphabet-name-1</c> word, with the one ambiguity the
@@ -735,7 +735,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (hiNode.arithmeticExpression() is { } expr && ConditionBinder.SoleDataRef(expr) is { } dref
             && dref.dataReferenceSuffix() is { Length: > 0 } suffixes
             && suffixes[^1].qualification() is { } q && q.IN() is not null && q.ChildCount == 2
-            && ctx.Data.IsAlphabetName(q.cobolWord().GetText()) && !ctx.Refs.DescribesOwnItem(dref))
+            && ctx.Data.SpecialNames.IsAlphabetName(q.cobolWord().GetText()) && !ctx.Refs.DescribesOwnItem(dref))
             return (host.Expr.FieldOperand(ReferenceResolver.WithoutTrailingSuffix(dref)), q.cobolWord().GetText());
         return (BindValueOperand(hiNode), null);
     }

@@ -100,7 +100,7 @@ public sealed partial class DataBinder
     internal NonDataDeclaration? NonDataDeclarationOf(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
         if (ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
-        if (IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
+        if (SpecialNames.IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
         // An unqualified reference's data-name answer is the RANKED one (§8.4.6.2.1 3)): a container's GLOBAL data item that
         // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
         // one keeps the raw answer, which the callers word as "declared, but not under the given qualifiers".

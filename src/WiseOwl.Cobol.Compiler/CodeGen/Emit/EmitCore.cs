@@ -102,14 +102,14 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// ONE <c>CobolCollation</c> carrier — a literal-phrase table or a LOCALE sequence, kb/Work PB101) when a
     /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else empty
     /// (the native two-argument <c>CobolString.Compare</c> overload).</summary>
-    public string CollateArg => Data.Collating is null ? "" : ", __COLLATE";
+    public string CollateArg => Data.SpecialNames.Collating is null ? "" : ", __COLLATE";
 
     /// <summary>The NATIONAL twin of <see cref="CollateArg"/> — <c>", __COLLATE_NAT"</c> when a NON-native
     /// NATIONAL program collating sequence is active (ISO §12.3.6 GR11 / §8.8.4.2.9 — an <c>ALPHABET … FOR
     /// NATIONAL</c> literal phrase; the identity sequences NATIVE/UCS-4 stay null, D-N3), else empty. National
     /// comparisons NEVER take the alphanumeric <c>__COLLATE</c> table (its 256-entry domain would alias national
     /// characters through <c>&amp; 0xFF</c>).</summary>
-    public string NatCollateArg => Data.NationalCollating is null ? "" : ", __COLLATE_NAT";
+    public string NatCollateArg => Data.SpecialNames.NationalCollating is null ? "" : ", __COLLATE_NAT";
 
     /// <summary>The trailing collation argument a relation between operands of categories
     /// <paramref name="leftCategory"/> and <paramref name="rightCategory"/> takes — <see cref="CollateArg"/>,
