@@ -511,11 +511,11 @@ public sealed partial class DataBinder
                 }
                 // ⛔ A RESIDENT formal's every reference reads and writes its argument's storage through the method-local
                 // carrier (ISO §14.2.3 GR8; kb/Work PB2087, the method arm of CallBindLinkage's rule): every place built
-                // over it starts at the carrier (ReferenceResolver.AddRoot; kb/Work PB4320), and no local of its own is
-                // declared — the method's linkage roots were all suppressed above.
+                // over it starts at the carrier's local root (ReferenceResolver.AddRoot; kb/Work PB4320, PB4380), and no
+                // local of its own is declared — the method's linkage roots were all suppressed above.
                 bool resident = FormalIsCarrierResident(item, m.Binding!.LinkageRoots, addressed);
                 var formal = new OoFormal(item, pos, OoParamName(m, item, pos), optional, byValue, resident);
-                if (resident) item.ResidentCarrier = formal.CarrierLocal;
+                if (resident) item.ResidentCarrier = new FormalCarrier.Local(formal.Carrier);
                 m.Binding!.Formals.Add(formal);
             }
             pos++;

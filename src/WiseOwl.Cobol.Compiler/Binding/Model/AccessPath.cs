@@ -31,7 +31,7 @@ public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
         if (Segments.Count == 0 || Segments[0] is not RootFieldSegment root) return this;
         // The guard's presence member is Uid-keyed and bridged under the same name (kb/Work PB971), so only the
         // storage is re-anchored; the guard travels unchanged.
-        var segs = new List<AccessSegment>(Segments.Count) { root with { Anchor = anchorOf(root.CsField) } };
+        var segs = new List<AccessSegment>(Segments.Count) { root with { Anchor = anchorOf(root.MemberClrName) } };
         for (int i = 1; i < Segments.Count; i++) segs.Add(Segments[i]);
         return new AccessPath(segs);
     }
@@ -44,15 +44,24 @@ public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
 /// <summary>One step of an <see cref="AccessPath"/>.</summary>
 public abstract record AccessSegment;
 
-/// <summary>The root of the path — a static or instance member of the program class, or a cell local the backend
-/// hoisted (<c>PlaceIdentification.FreezeView</c>, <c>PlaceCursor.AtElementCell</c>); a local the binder declared is a
-/// <see cref="LocalRootSegment"/> (kb/Work PB4321). <paramref name="CsField"/> is always a bare name, never an access
-/// expression (kb/Work PB4320). <paramref name="Guard"/> is non-null when the root is a FORMAL PARAMETER whose reference can raise
-/// its *-ARG-OMITTED condition (kb/Work PB971): the backend then renders the root through the runtime guard.
+/// <summary>⛔ THE ROOT OF AN ACCESS PATH, its first segment: storage named by an allocated CLR name
+/// (<see cref="RootFieldSegment"/>) or a local of the generated method named by its identity
+/// (<see cref="LocalRootSegment"/>). The two kinds
+/// share what a root carries whichever storage it names: <paramref name="Guard"/> is non-null when the root is a FORMAL
+/// PARAMETER's storage whose reference can raise its *-ARG-OMITTED condition (kb/Work PB971), and the backend then
+/// renders the root through the runtime guard. A path step that asks "is this a root" asks this type, so a third kind of
+/// root (kb/Work PB4380 added the second's three residual producers) is answered everywhere at once.</summary>
+public abstract record RootSegment(OmittedFormalGuard? Guard) : AccessSegment;
+
+/// <summary>A root named by an allocated CLR name (DESIGN-backend-abstraction §1.1): a static or instance MEMBER of the
+/// program class, or a data item's own storage (a method's LOCAL-STORAGE and LINKAGE roots are the method's, named by the
+/// item's <see cref="DataItem.ClrName"/>). <paramref name="MemberClrName"/> is never an access expression (kb/Work
+/// PB4320) and never the name of a local the binder or a backend invents for a statement: such a local is a
+/// <see cref="LocalRootSegment"/> (kb/Work PB4321, PB4380).
 /// <paramref name="Anchor"/> is non-null when the member belongs to a CONTAINING program (<see cref="AccessPath.Reroot"/>)
-/// and says how the referencing program reaches it; null for the referencing program's own member or local.</summary>
-public sealed record RootFieldSegment(string CsField, OmittedFormalGuard? Guard = null, ContainerAnchor? Anchor = null)
-    : AccessSegment;
+/// and says how the referencing program reaches it; null for the referencing program's own member.</summary>
+public sealed record RootFieldSegment(string MemberClrName, OmittedFormalGuard? Guard = null, ContainerAnchor? Anchor = null)
+    : RootSegment(Guard);
 
 /// <summary>The storage a reference-type CARRIER designates: the step from a carrier-resident formal parameter's
 /// <c>ManagedPointer&lt;T&gt;</c> carrier — the path's root, <see cref="DataItem.ResidentCarrier"/> — to the argument
@@ -98,11 +107,14 @@ public abstract record ContainerAnchor
     public sealed record Static(string ClassClrName) : ContainerAnchor;
 }
 
-/// <summary>A root that is a method local the statement declared — a CORRESPONDING statement's hoisted group anchor
-/// (ISO §14.7.6 6): the identification is done at the start of the statement), held by reference — named by its
-/// identity, never its name (<see cref="MethodLocal"/>, kb/Work PB4321). A local is never a containing program's
-/// member, so <see cref="AccessPath.Reroot"/>, which anchors only a <see cref="RootFieldSegment"/>, leaves it as it is.</summary>
-public sealed record LocalRootSegment(MethodLocal Local) : AccessSegment;
+/// <summary>A root that is a LOCAL of the generated method, named by its identity, never its name
+/// (<see cref="MethodLocal"/>; DESIGN-backend-abstraction §1.2, §1.3 L8; kb/Work PB4321, PB4380): a CORRESPONDING
+/// statement's hoisted group anchor (ISO §14.7.6: "Any item identification associated with a corresponding pair of
+/// operands is done at the start of the execution of the statement containing the CORRESPONDING phrase"), a METHOD's
+/// carrier-resident formal's carrier (<see cref="FormalCarrier.Local"/>), and the backend's own cell locals (a hoisted
+/// cell, a recreated dynamic table's element cell). A local is never a containing program's member, so
+/// <see cref="AccessPath.Reroot"/>, which anchors only a <see cref="RootFieldSegment"/>, leaves it as it is.</summary>
+public sealed record LocalRootSegment(MethodLocal Local, OmittedFormalGuard? Guard = null) : RootSegment(Guard);
 
 /// <summary>A <c>.Member</c> access on the accumulated path: <paramref name="MemberClrName"/> is the CLR name of a
 /// nested <c>record struct</c> member or a class's backing member, never a runtime type's member (a cell's backing is

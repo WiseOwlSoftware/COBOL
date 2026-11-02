@@ -26,8 +26,9 @@ public enum StatementLocalRole
     /// unit's element-loop serial.</summary>
     ElementMoveOccurrence,
 
-    /// <summary>The sending group's anchor of a CORRESPONDING statement (ISO §14.7.6 6): the identification is done at the
-    /// start of the statement); the ordinal is the statement's serial in the unit.</summary>
+    /// <summary>The sending group's anchor of a CORRESPONDING statement (ISO §14.7.6: "Any item identification associated
+    /// with a corresponding pair of operands is done at the start of the execution of the statement containing the
+    /// CORRESPONDING phrase"); the ordinal is the statement's serial in the unit.</summary>
     CorrespondingSendingAnchor,
 
     /// <summary>The receiving group's anchor of a CORRESPONDING statement, the twin of
@@ -45,6 +46,12 @@ public enum StatementLocalRole
     /// <summary>A report VARYING counter (ISO §13.18.64.4 1): "an independent temporary integer data item"); the ordinal is
     /// the counter's compilation-unique <c>ReportVaryingModel.Uid</c>.</summary>
     ReportVaryingCounter,
+
+    /// <summary>A METHOD's carrier-resident formal's carrier (ISO §14.2.3 GR8: "the activated runtime element operates as
+    /// if the formal parameter occupies the same storage area as the argument"; <see cref="FormalCarrier.Local"/>,
+    /// kb/Work PB4380): the method-local <c>ManagedPointer&lt;T&gt;</c> every reference to the formal reads and writes
+    /// through. The ordinal is the formal's <see cref="DataItem.Uid"/>.</summary>
+    MethodFormalCarrier,
 }
 
 /// <summary>A method local the BINDER declares: the construct that declares it (<paramref name="Role"/>) and its ordinal among

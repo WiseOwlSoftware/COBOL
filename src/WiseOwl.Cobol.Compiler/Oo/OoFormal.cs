@@ -21,26 +21,31 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// lives in, or null), exactly the pair a program's <c>CobolArg</c> carries. A <paramref name="CarrierResident"/>
 /// formal (an elementary one no other LINKAGE entry REDEFINES and whose ADDRESS OF is not taken — the program arm's
 /// <c>DataBinder.FormalIsCarrierResident</c>) reads and writes through the carrier on every access: its access path
-/// starts at <see cref="CarrierLocal"/> (<see cref="DataItem.ResidentCarrier"/>) and steps through a
-/// <c>CarrierValueSegment</c>, while its <see cref="DataItem.ClrName"/> stays its name (kb/Work PB4320). Every other
+/// starts at the method local <see cref="Carrier"/> (<see cref="DataItem.ResidentCarrier"/>) and steps through a
+/// <c>CarrierValueSegment</c>, while its <see cref="DataItem.ClrName"/> stays its name (kb/Work PB4320, PB4380). Every other
 /// formal is an AREA formal when a cell
 /// can carry it (<see cref="IsArea"/>): its description is laid over the argument's area, as a BASED item's is.</para></summary>
 public sealed record OoFormal(DataItem Item, int Position, string ParamName, bool Optional = false, bool ByValue = false,
     bool CarrierResident = false)
 {
-    /// <summary>The method-local carrier a resident formal's references read and write (<c>{CarrierLocal}.Value</c>),
-    /// and — the same Uid-keyed name — the per-activation data-address pointer an AREA formal's class is described
-    /// over (<see cref="IsArea"/>).</summary>
-    public string CarrierLocal => $"__lnk{Item.Uid}";
+    /// <summary>The method-local carrier a RESIDENT formal's references read and write — named by its identity, which the
+    /// backend spells where it declares the local (DESIGN-backend-abstraction §1.2, §1.3 L8; kb/Work PB4380). Only a
+    /// <see cref="CarrierResident"/> formal's method declares it.</summary>
+    public MethodLocal Carrier => new StatementLocal(StatementLocalRole.MethodFormalCarrier, Item.Uid);
+
+    /// <summary>The CLR name of the per-activation data-address pointer an AREA formal's class is described over
+    /// (<see cref="IsArea"/>): a member of the class, re-seeded at each activation of the method to the argument's area,
+    /// Uid-keyed as the program arm's carrier member is.</summary>
+    public string AreaPointerClrName => $"__lnk{Item.Uid}";
 
     /// <summary>The C# name of the formal's AREA parameter (<c>CellPointer?</c>): the cell area its argument occupies,
     /// or null — positional, outside every COBOL-word family, like <see cref="OmittedFlag"/>.</summary>
     public string AreaParam => $"__area{Position}";
 
     /// <summary>True for an AREA formal: its class was claimed onto a cell whose implicit data-address pointer IS
-    /// <see cref="CarrierLocal"/> (<c>DataBinder.PtrBindBasedAndAddressables</c>), so the binder and the emitter cannot
-    /// disagree about which formals are areas.</summary>
-    public bool IsArea => !CarrierResident && Item.Class?.BasedPointerField == CarrierLocal;
+    /// <see cref="AreaPointerClrName"/> (<c>DataBinder.PtrBindBasedAndAddressables</c>), so the binder and the emitter
+    /// cannot disagree about which formals are areas.</summary>
+    public bool IsArea => !CarrierResident && Item.Class?.BasedPointerField == AreaPointerClrName;
 
     /// <summary>The C# name of the formal's omitted-presence parameter — the METHOD arm of the one presence fact
     /// (<see cref="OmittedProbe.MethodFlag"/>; kb/Work PB757). EVERY formal carries one, not only an OPTIONAL

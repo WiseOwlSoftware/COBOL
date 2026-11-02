@@ -39,6 +39,8 @@ internal static class LocalNames
         StatementLocalRole.TableAllIndices => "__all",
         StatementLocalRole.HeldTableAllIndices => "__hold",
         StatementLocalRole.ReportVaryingCounter => "__kv",
+        // Not the program arm's `__lnk` member stem: that carrier is a class member the binder names (kb/Work PB4380).
+        StatementLocalRole.MethodFormalCarrier => "__mlnk",
         _ => throw new System.InvalidOperationException($"LocalNames has no stem for {role}"),
     };
 

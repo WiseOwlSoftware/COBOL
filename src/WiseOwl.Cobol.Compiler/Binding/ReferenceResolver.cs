@@ -1944,13 +1944,14 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// *-ARG-OMITTED guard when the item is a formal parameter (<see cref="OmittedFormalGuard.Of"/>), so every
     /// path builder — element, whole table, Tier-B backing — checks a reference to an omitted formal the same
     /// way, and a new builder that roots through here cannot forget it. A CARRIER-RESIDENT formal has no field: its
-    /// root is its carrier (<see cref="DataItem.ResidentCarrier"/>) and the next step is the storage the carrier
-    /// designates, <see cref="CarrierValueSegment"/> (ISO §14.2.3 GR8).</summary>
+    /// root is its carrier's (<see cref="DataItem.ResidentCarrier"/>: a program's carrier member, a method's carrier
+    /// local, kb/Work PB4380) and the next step is the storage the carrier designates, <see cref="CarrierValueSegment"/>
+    /// (ISO §14.2.3 GR8).</summary>
     private static void AddRoot(List<AccessSegment> segs, DataItem root)
     {
         if (root.ResidentCarrier is { } carrier)
         {
-            segs.Add(new RootFieldSegment(carrier, OmittedFormalGuard.Of(root)));
+            segs.Add(carrier.Root(OmittedFormalGuard.Of(root)));
             segs.Add(CarrierValueSegment.Instance);
         }
         else

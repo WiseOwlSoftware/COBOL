@@ -144,9 +144,6 @@ internal static class BackendContract
             "Bound.StatementBinder.UdfSelfName", "Bound.StatementBinder.UserFunctions",
             "Bound.StatementBinder.InputOutputStatement()", "Bound.StatementBinder.Children()",
         ]),
-        // L8's residue: an access path still rooted at a C# method local's name (the method arm's carrier local, a
-        // cell the Roslyn backend hoisted, a dynamic table's element cell), where a LocalRootSegment belongs.
-        new("L8", ["PB4380"], ["Model.RootFieldSegment.CsField", "Model.DataItem.ResidentCarrier"]),
         // L9: C# source text, runtime type and member spellings, and C# operators on the model and the bound tree.
         new("L9", ["PB3252"],
         [

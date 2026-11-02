@@ -290,7 +290,7 @@ internal static class PlaceRenderer
     /// bare statements would leave the record outside the loop, naming the loop's variable out of its scope (CS0103 on
     /// legal source: the 2002 table-SORT goldens over a BASED table, kb/Work PB2690's landing).</summary>
     private static string Received(RedefViewPlace v, string store) =>
-        v is { Cell.Segments: [RootFieldSegment area, ..] cell, ViewItem.Root: { Class.BasedPointerField: not null } root }
+        v is { Cell.Segments: [RootSegment area, ..] cell, ViewItem.Root: { Class.BasedPointerField: not null } root }
         && DataItem.DescendantsOf(root).Any(static d => d.Occurs is not null && !d.IsDynamicTable)
             ? $"{{ {store} {RenderPath(new AccessPath([area]), AccessDir.Sending)}.{nameof(StorageCell.Received)}({ReceivedScope(cell)}{PositionRenderer.Render(v.Offset)}, {v.Width}); }}"
             : store;
@@ -384,10 +384,9 @@ internal static class PlaceRenderer
         foreach (var seg in ap.Segments)
             path = seg switch
             {
-                // A formal parameter's root renders through its *-ARG-OMITTED guard (kb/Work PB971).
-                RootFieldSegment r => r.Guard is { } g ? GuardedRoot(g, RootStorage(r)) : RootStorage(r),
-                // A statement local the binder declared, spelled from its identity (kb/Work PB4321).
-                LocalRootSegment l => LocalNames.Of(l.Local),
+                // A formal parameter's root renders through its *-ARG-OMITTED guard (kb/Work PB971), whichever kind of
+                // root it is: a member, or a method local spelled from its identity (kb/Work PB4321, PB4380).
+                RootSegment r => r.Guard is { } g ? GuardedRoot(g, RootStorage(r)) : RootStorage(r),
                 MemberSegment m => path + "." + m.MemberClrName,
                 // A carrier-resident formal's storage is the carrier's value (ISO §14.2.3 GR8; kb/Work PB4320).
                 CarrierValueSegment => path + "." + nameof(ManagedPointer<int>.Value),
@@ -427,7 +426,16 @@ internal static class PlaceRenderer
     /// <see cref="ContainerAnchor"/> when it belongs to a containing program (ISO §13.18.27.4 GR2; kb/Work PB4320). The
     /// path renderer's root and the statement-local hoist of a cell root (<c>PlaceIdentification.FreezeView</c>) both
     /// read it, so the two cannot reach different storage.</summary>
-    internal static string RootStorage(RootFieldSegment root) => Anchored(root.Anchor, root.CsField);
+    internal static string RootStorage(RootFieldSegment root) => Anchored(root.Anchor, root.MemberClrName);
+
+    /// <summary>The storage of any root, unguarded: a member's (<see cref="RootStorage(RootFieldSegment)"/>), or a method
+    /// local's, spelled from its identity (<see cref="LocalNames.Of"/>; kb/Work PB4321, PB4380).</summary>
+    private static string RootStorage(RootSegment root) => root switch
+    {
+        RootFieldSegment member => RootStorage(member),
+        LocalRootSegment local => LocalNames.Of(local.Local),
+        _ => throw new System.InvalidOperationException($"PlaceRenderer.RootStorage has no arm for {root.GetType().Name}"),
+    };
 
     /// <summary>⛔ THE ONE SPELLING OF A <see cref="ContainerAnchor"/> (kb/Work PB1133, PB4320): <paramref name="member"/>
     /// reached through the chain of containing instances (<see cref="RuntimeApi.OuterChain"/>) or through a containing
@@ -644,7 +652,7 @@ internal static class PlaceRenderer
                 // §14.6.9.2: the receiving table is recreated with the sender's occurrences (kb/Work PB3139), each element
                 // cell the recreation seeds taking one occurrence's vector through the same walk.
                 string e = $"__le{depth}", part = $"__lp{depth}";
-                var element = ViewCursor.AtElementCell(c, e);
+                var element = ViewCursor.AtElementCell(c, new CSharpLocal(e));
                 string store = c.IsGroup ? CellLeavesStore(element, part, depth + 1)
                     : LeafCarrierWrite(element.ToPlace(), $"({c.ElementType}){part}");
                 stmts.Add($"{CellTable(at)}.Recreate((object?[]){slot}!, (object?)null, ({e}, {part}) => {{ if ({part} is not null) {{ {store} }} return {e}; }});");

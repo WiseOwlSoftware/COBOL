@@ -1158,7 +1158,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // ⛔ A FORMAL OCCUPIES ITS ARGUMENT'S STORAGE (ISO §14.2.3 GR8: "If the argument is passed by reference, the
                 // activated runtime element operates as if the formal parameter occupies the same storage area as the
                 // argument"; kb/Work PB2087, the method arm). A RESIDENT formal reads and writes through the argument's
-                // carrier on every access (its C# path IS `{CarrierLocal}.Value`); an AREA formal's description is laid
+                // carrier local on every access (its C# path IS `{carrier}.Value`, the local LocalNames.Of spells from
+                // OoFormal.Carrier, kb/Work PB4380); an AREA formal's description is laid
                 // over the argument's own cell, so a second formal passed the same argument, the activating element's own
                 // references and a callback all see every store at once. Only an argument with no cell area (BY CONTENT,
                 // a BY VALUE formal, storage that is not a cell) gives an area formal a fresh cell, filled here from the
@@ -1175,19 +1176,19 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                             : bf.ParamName;
                         // An OMITTED formal (§14.9.23.4 GR9) has no argument: its storage starts at its initial state,
                         // which an unchecked reference reads (GR10 leaves it undefined — the documented leniency).
-                        w.Line($"ManagedPointer<{rType}> {bf.CarrierLocal} = {bf.OmittedFlag} ? ManagedPointer<{rType}>.Cell({rInit}) : {adopt};   "
+                        w.Line($"ManagedPointer<{rType}> {LocalNames.Of(bf.Carrier)} = {bf.OmittedFlag} ? ManagedPointer<{rType}>.Cell({rInit}) : {adopt};   "
                             + $"// LINKAGE formal {root.CobolName} — the argument's carrier, per-access (§14.2.3 GR8)");
                         continue;
                     }
                     if (bf.IsArea)
                     {
                         var (shape, fresh) = fields.AreaFormalShape(root);
-                        w.Line($"{bf.CarrierLocal} = {RuntimeApi.ArgAdaptAreaOf(bf.ByValue ? "null" : bf.AreaParam, $"!{bf.OmittedFlag}", root.Class!.Width, shape, fresh)};   "
+                        w.Line($"{bf.AreaPointerClrName} = {RuntimeApi.ArgAdaptAreaOf(bf.ByValue ? "null" : bf.AreaParam, $"!{bf.OmittedFlag}", root.Class!.Width, shape, fresh)};   "
                             + $"// LINKAGE formal {root.CobolName} — laid over the argument's area (§14.2.3 GR8)");
                         // …and, BY REFERENCE, records from then on the receiving references made through it, which a view
                         // over storage a store can grow takes back at return (ManagedPointer.Watch; kb/Work PB2690).
-                        string watch = bf.ByValue ? "" : $" {bf.ParamName}.{nameof(ManagedPointer<string>.Watch)}({bf.CarrierLocal});";
-                        w.Line($"if (!{bf.OmittedFlag} && !ReferenceEquals({bf.CarrierLocal}, {bf.AreaParam})) {{ {MethodCellFormalStore(root, $"{bf.ParamName}.Value")}{watch} }}   "
+                        string watch = bf.ByValue ? "" : $" {bf.ParamName}.{nameof(ManagedPointer<string>.Watch)}({bf.AreaPointerClrName});";
+                        w.Line($"if (!{bf.OmittedFlag} && !ReferenceEquals({bf.AreaPointerClrName}, {bf.AreaParam})) {{ {MethodCellFormalStore(root, $"{bf.ParamName}.Value")}{watch} }}   "
                             + "// no area to share: the fresh cell takes the argument's value (§14.2.3 GR9 / GR10)");
                         continue;
                     }
@@ -1335,7 +1336,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // An AREA formal laid over its argument's own cell has no copy; one that took a fresh cell stores it back.
                 // No copy-out for an omitted formal: there is no argument, and the caller's slot is a placeholder.
                 copyOut.Add(f.IsArea
-                    ? $"if (!{f.OmittedFlag} && !ReferenceEquals({f.CarrierLocal}, {f.AreaParam})) {f.ParamName}.Value = {MethodCellFormalLoad(f.Item)};   "
+                    ? $"if (!{f.OmittedFlag} && !ReferenceEquals({f.AreaPointerClrName}, {f.AreaParam})) {f.ParamName}.Value = {MethodCellFormalLoad(f.Item)};   "
                         + "// BY REFERENCE store-back of a fresh area (§14.2.3 GR8)"
                     : $"if (!{f.OmittedFlag}) {f.ParamName}.Value = {MethodBoundaryValue(fields, f.Item, "OO method BY REFERENCE copy-out")};   "
                         + "// BY REFERENCE copy-out of a formal whose area no cell carries (see DataBinder.CellCanCarry)");

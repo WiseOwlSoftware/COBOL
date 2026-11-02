@@ -537,7 +537,7 @@ public sealed partial class DataBinder
                 // Every place built over the item starts at the carrier and steps to the caller's storage
                 // (ReferenceResolver.AddRoot, a CarrierValueSegment) — the item keeps its own name, which no member
                 // declares (kb/Work PB4320).
-                item.ResidentCarrier = carrier;
+                item.ResidentCarrier = new FormalCarrier.Member(carrier);
                 _callSuppressedRootFields.Add(item.ClrName);
             }
             _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident, byValue, optional));

@@ -534,7 +534,7 @@ internal sealed class CallUnitState
                 return f.KeepsArgumentArea ? f.ArgumentAreaField : f.IsArea ? $"{f.CarrierField} as CellPointer" : "null";
         foreach (var f in MethodFormals)
             if (ReferenceEquals(f.Item, p.Item))
-                return f is { CarrierResident: true, ByValue: false } ? f.AreaParam : f.IsArea ? $"{f.CarrierLocal} as CellPointer" : "null";
+                return f is { CarrierResident: true, ByValue: false } ? f.AreaParam : f.IsArea ? $"{f.AreaPointerClrName} as CellPointer" : "null";
         return null;
     }
 

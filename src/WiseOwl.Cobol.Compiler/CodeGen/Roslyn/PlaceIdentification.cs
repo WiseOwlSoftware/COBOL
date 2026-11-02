@@ -125,7 +125,7 @@ internal static class PlaceIdentification
     /// <summary>A path step that evaluates whatever its subscript: a formal's omitted-argument guard
     /// (EC-PROGRAM-ARG-OMITTED), an occurs-depending bound test, an OCCURS DYNAMIC element.</summary>
     private static bool PathEvaluates(AccessPath path) =>
-        path.Segments is [RootFieldSegment { Guard: not null }, ..]
+        path.Segments is [RootSegment { Guard: not null }, ..]
         || path.Segments.Any(s => s is FixedTableSegment { Odo: not null } or DynTableSegment);
 
     /// <summary>The operand with its data reference frozen — a field operand's <see cref="Place"/>; a literal, a
@@ -163,7 +163,10 @@ internal static class PlaceIdentification
     /// formal's *-ARG-OMITTED guard stays on the new root (the hoist reads the cell without it, because §14.9.4.4 GR12 /
     /// §14.9.23.4 GR10 exempt a reference "as an argument", and an omitted formal's cell is a real, blank one), so a
     /// reference through the place is still checked where it was. A cell reached through a dynamic-capacity table's
-    /// element (more than a root) keeps its own rendering: its receiving accessor grows the table (§8.5.1.9.3).</summary>
+    /// element (more than a root) keeps its own rendering: its receiving accessor grows the table (§8.5.1.9.3). A cell
+    /// rooted at a method LOCAL (<see cref="LocalRootSegment"/>: a cell this hoist already holds, a recreated table's
+    /// element cell) is no member any activation re-seats, so it is the statement's own already and is not hoisted again
+    /// (kb/Work PB4380).</summary>
     private static RedefViewPlace FreezeView(RedefViewPlace v, Func<string, string> hoist)
     {
         var frozen = v with
@@ -176,15 +179,15 @@ internal static class PlaceIdentification
         };
         if (v.Cell is not { Segments: [RootFieldSegment root] }) return frozen;
         // The hoist reads the cell's storage (its container anchor included), never through the guard; the local is
-        // the referencing program's own, so it carries no anchor.
-        string local = hoist(PlaceRenderer.RootStorage(root));
-        var anchored = new AccessPath([new RootFieldSegment(local, root.Guard is { } g ? g with { PassesCarrier = true } : null)]);
+        // the backend's own (a CSharpLocal, never a name on a member root: kb/Work PB4380) and carries no anchor.
+        var local = new CSharpLocal(hoist(PlaceRenderer.RootStorage(root)));
+        var anchored = new AccessPath([new LocalRootSegment(local, root.Guard is { } g ? g with { PassesCarrier = true } : null)]);
         return frozen with
         {
             Backing = anchored.Add(CellBackingSegment.Instance),
             Cell = anchored,
             Coding = frozen.Coding is CellWindowCoding c && c.Cell is { Segments: [RootFieldSegment cr] }
-                     && cr.CsField == root.CsField && cr.Anchor == root.Anchor
+                     && cr.MemberClrName == root.MemberClrName && cr.Anchor == root.Anchor
                 ? c with { Cell = anchored } : frozen.Coding,
         };
     }
