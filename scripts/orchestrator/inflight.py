@@ -428,12 +428,6 @@ def collision_hits(mine: Claim, busy: Mapping[str, Claim],
     return [(owner, hit) for owner, theirs in sorted(busy.items()) if (hit := rule(mine, theirs))]
 
 
-def file_set_collisions(mine: Claim, busy: Mapping[str, Claim]) -> list[str]:
-    """The same owners as the text of a hold reason, each '<owner> (<what they share>)' (collision_hits). The text is
-    for a person: the partition's measurement records the hits themselves (partition_record), never parses this."""
-    return [f"{owner} ({hit})" for owner, hit in collision_hits(mine, busy)]
-
-
 @dataclasses.dataclass
 class InFlight:
     """One owner of in-flight work as the planner's partition reads it (classify_inflight, kb/Work PB2807): the files
@@ -560,8 +554,9 @@ def inflight_units(busy: Mapping[str, InFlight], meta: Mapping[str, dict], claim
     so it is never read. The reads are batched (`git_batch.py --self-test`, kb/Work PB3582): ONE `git diff-tree --stdin -p -U0`
     over every (tip, merge base) pair, ONE `git cat-file --batch-check` and ONE `git cat-file --batch` for every version
     read, and one `git diff -U0 HEAD` per worktree with an uncommitted shared file (the one `git status` per worktree
-    inflight_file_sets already runs is the same question kind). A git failure leaves every file whole: an unmeasured
-    unit is never read as "touches nothing"."""
+    inflight_file_sets already runs is the same question kind). A git failure leaves every file whole, and under the
+    hold rule (PB4452) a whole file holds nothing, so the failure is WARNED on stderr: an unmeasured unit is never
+    silently read as "touches nothing"."""
     seen: set[str] = set()
     shared: set[str] = set()
     for fs in [x.files for x in busy.values()] + [c.files for c in claims]:
@@ -587,7 +582,9 @@ def inflight_units(busy: Mapping[str, InFlight], meta: Mapping[str, dict], claim
                        | {f"{m['sha']}:{f}" for o, _, m in rows for f in loose_of.get(o, {})})
         oids = dict(zip(specs, git_batch.object_ids(repo, specs, git=git)))
         texts = {oid: data.decode("utf-8", "replace") for oid, data in git_batch.blobs(repo, oids.values())}
-    except git_batch.GitError:
+    except git_batch.GitError as e:
+        print(f"inflight_units: units not measured, every shared file is read whole and holds nothing ({e})",
+              file=sys.stderr)
         return
 
     def version(rev: str, f: str) -> str | None:

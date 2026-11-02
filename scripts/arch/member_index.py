@@ -48,7 +48,7 @@ landing's ACTUAL diff with its declared set and with every in-flight branch (DES
     for a site file that is no caller; the planner's partition meets on those, and on every other file whole
     (inflight.collision, scripts/arch/source_units.py; kb/Work PB3670).
 
-Callers: `inflight.declared_sets` (the planner's collision check, `file_set_collisions`, the spec renderer's and the
+Callers: `inflight.declared_sets` (the planner's collision and hold checks, the spec renderer's and the
 landing check's computed set, all on THE index of the tree: kb/Work PB3203) returns `note_file_set`'s `files` and
 `members`, and
 `work.py check` fails an open PB2119 note whose names are unknown (on `load()`: the newest committed record, a check

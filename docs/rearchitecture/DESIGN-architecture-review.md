@@ -51,8 +51,8 @@ R64's zero-GAP hold on the `tests/` layout (PB1754), because the reason recorded
 there", was R64's residue, and the partition now handles that reason mechanically (a wave declares its file set, the
 dispatcher checks it against the in-flight trains, and an edit to the same member defers the wave, never the train). Kept: "leaves
 first" as an ORDERING preference, never a gate; the v1.0 timing of Cut 3 (PB2349, a release decision on the public
-runtime namespaces); the external-repository slice blockers (a note whose files collide with an open slice's names
-that slice in `blocked_by`); PB2417 first (the drift test and the edges file before any Move/rename or Extract);
+runtime namespaces); an external-repository slice whose RESULT a note needs (that note names the slice in `blocked_by`;
+a slice that only shares a file is no gate, PB4452); PB2417 first (the drift test and the edges file before any Move/rename or Extract);
 PB2350 before any grammar wave; PB2118's own approval before any R3 wave (given 2026-10-07 17:42 PDT). Why now: the remaining GAP rows land in the
 god classes (48 in §14.9, 22 in §13.18, 14 in §12.3 at 173 GAP), so every fix landed before the split enlarges the
 extraction, and R1 lets those fixes be written into the target layout.
@@ -974,8 +974,8 @@ The rules (each a drift assertion, listed with the measure that shows today's di
     resolves R0-0220 by itself (`Oo/` under `WiseOwl.Cobol.Compiler` is `WiseOwl.Cobol.Compiler.Oo`). Files (*text scan,
     provisional*): the editions flip edits the `using` lines of 117 binding, code-generation, validation and OO files
     and 48 test files, the front-end flip 113 and 152, the compiler flip every compiler file (288) and about 650 test
-    files. So every flip is a wide wave: it runs between fix-lane trains only when its file set (those files)
-    collides with no in-flight train (the file-set partition, §8.7), which in practice means a quiet fix lane. The oracle: IDENTICAL for these four (no emitted `.g.cs` and no diagnostic stream names a
+    files. So every flip is a wide wave: it runs between fix-lane trains only when no running train edits the same
+    member of those files (the member partition, §8.7), which in practice means a quiet fix lane. The oracle: IDENTICAL for these four (no emitted `.g.cs` and no diagnostic stream names a
     compiler namespace, checked over the 14 characterization snapshots and the oracle blobs). Cut 3: the runtime root's
     flip to `WiseOwl.Cobol.Runtime` (given, v1.0, PB2349) becomes the first of five flips to one spelling. The four waves:
     PB2412 (editions), PB2413 (front end, after it), PB2414 (CLI) and PB2415 (compiler, last; it resolves R0-0220,

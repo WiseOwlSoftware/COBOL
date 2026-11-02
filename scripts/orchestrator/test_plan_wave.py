@@ -30,7 +30,7 @@ import plan_wave as pw  # noqa: E402
 from reports import (Report, Review, load_reports, parse_report, parse_review, report_index, same_commit,  # noqa: E402
                      status_line)
 from inflight import (Claim, InFlight, IndexPolicy, branch_replays, changed_files,  # noqa: E402
-                      classify_inflight, collision, collision_set, declared_sets, file_set_collisions, hold,
+                      classify_inflight, collision, collision_hits, collision_set, declared_sets, hold,
                       inflight_file_sets, inflight_units, unlanded_branch_notes)
 import inflight as inb  # noqa: E402
 import clusters as clusters_mod  # noqa: E402
@@ -80,6 +80,11 @@ WORK.mkdir()
 REPORTS = TMP / "reports"
 REPORTS.mkdir()
 fails, checked = [], []
+
+
+def collided(mine, busy):
+    """The whole-file collision hits as text, each '<owner> (<what they share>)'."""
+    return [f"{o} ({h})" for o, h in collision_hits(mine, busy)]
 
 
 def check(name, got, want):
@@ -1686,7 +1691,7 @@ bp = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5"), cl("src/X/Misc.
              {}, RULES, budget_points=100, deps={"PB13": ["PB5"]},
              busy={"worktree-train-a": running({F_BIND, "src/Other.cs"}, "worktree-train-a", {F_BIND: ["Binder.Bind"]})})
 check("a group holding against RUNNING work (the same member) waits, the hold named",
-      "file-set collision with in-flight work worktree-train-a [RUNNING] (" + F_BIND + "#Binder.Bind)" in bp["waiting"].get("PB5", ""),
+      "same-member collision with in-flight work worktree-train-a [RUNNING] (" + F_BIND + "#Binder.Bind)" in bp["waiting"].get("PB5", ""),
       True)
 check("its successor waits for it", "PB5 is not planned" in bp["waiting"].get("PB13", ""), True)
 check("a group that meets nothing runs", [g.notes for g in bp["groups"]], [["PB9"]])
@@ -1786,7 +1791,7 @@ check("PB4396 R1-2: ... and the arm can fail: read as the bare IN FLIGHT, every 
       sorted((i for i, w in next_wave({r.name: r.state for r in OVF_ROWS})["waiting"].items() if "worktree-seven" in w),
              key=pw.work.id_order), sorted(OVF_A.overflow, key=pw.work.id_order))
 check("the one collision rule, path separators folded",
-      file_set_collisions(Claim.of(["src" + chr(92) + "A.cs"]),
+      collided(Claim.of(["src" + chr(92) + "A.cs"]),
                              {"t": Claim.of({"src/A.cs"}), "u": Claim.of({"src/B.cs"})}), ["t (src/A.cs)"])
 
 # 9d. the in-flight set reads sources a branch CLASSIFICATION cannot drop (PB2118 Draft 7, the sixth refuter's
@@ -1855,7 +1860,7 @@ check("a dispatched group whose notes all landed is not", "src/Done.cs" in flat,
 check("STATUS.md is never a product file", "STATUS.md" in flat, False)
 check("the harness's settings file is in no owner's set, so a finisher continuing one worktree meets no other on it "
       "(kb/Work PB3465: wave 1134 held PB3337, PB3460 and PB1278 on it)",
-      (SETTINGS_FILE in flat, file_set_collisions(Claim.of([SETTINGS_FILE, "src/Mine.cs"]),
+      (SETTINGS_FILE in flat, collided(Claim.of([SETTINGS_FILE, "src/Mine.cs"]),
                                                     {o: Claim.of(fs) for o, fs in fly.items()})), (False, []))
 check("coord.NEVER_WORK: the settings file, STATUS.md and everything under TestResults/ are never work; a path that "
       "merely contains one of them is",
@@ -1868,7 +1873,7 @@ check("coord.porcelain_work keeps only the work lines of `git status --porcelain
       [" M src/A.cs", "R  STATUS.md -> src/New.cs"])
 check("the planner's own checkout is not in flight", any("main" in k for k in fly), False)
 check("the collision names the dispatched owner",
-      file_set_collisions(Claim.of(["src/Dispatched.cs"]), {o: Claim.of(fs) for o, fs in fly.items()}),
+      collided(Claim.of(["src/Dispatched.cs"]), {o: Claim.of(fs) for o, fs in fly.items()}),
       ["dispatched w1040a (PB70) (src/Dispatched.cs)"])
 
 # 9e. the group's file set (kb/Work PB3242; PB2118 Draft 8, the seventh refuter's J2): its notes' DECLARED sets, the
@@ -1904,7 +1909,7 @@ if fc:
     check("a note's computed callers are in its group's file set", "src/Lib/Caller.cs" in files2["PB951"], True)
     check("callers never steer the clustering (the primary file is a named site)",
           sorted(c["file"] for c in o2), ["src/Lib/Alpha.cs", "src/Lib/Beta.cs"])
-    check("the collision check sees a caller", file_set_collisions(Claim.of(files2["PB951"]),
+    check("the collision check sees a caller", collided(Claim.of(files2["PB951"]),
                                                     {"train t": Claim.of({"src/Lib/Caller.cs"})}),
           ["train t (src/Lib/Caller.cs)"])
 HL = TMP / "coord-hand"
@@ -2762,10 +2767,15 @@ def failing_git(*args, cwd=None, stdin=None):
 
 
 UFAIL = classify_inflight(URAW, UMETA, [], {})
-inflight_units(UFAIL, UMETA, [C({"src/Binder.cs", "src/New.cs"})], failing_git, urepo.path)
+UERR = io.StringIO()
+with contextlib.redirect_stderr(UERR):
+    inflight_units(UFAIL, UMETA, [C({"src/Binder.cs", "src/New.cs"})], failing_git, urepo.path)
 check("inflight_units: a git failure leaves every file whole, so the owner meets every claim on its files",
       (UFAIL[UOWN].members, collision(C({"src/Binder.cs"}, {"src/Binder.cs": ["Other"]}), UFAIL[UOWN].claim)),
       ({}, "src/Binder.cs"))
+check("... and the unmeasured read is WARNED (a whole file holds nothing, PB4452), never silent",
+      ("units not measured" in UERR.getvalue(), hold(C({"src/Binder.cs"}, {"src/Binder.cs": ["Bind"]}), UFAIL[UOWN].claim)),
+      (True, None))
 
 # kb/Work PB3786: A WORKTREE IN THE MIDDLE OF A MERGE (every file main changed shows as uncommitted and shared) used to put
 # its whole uncommitted shared set on `git diff HEAD`'s command line; one such worktree (3,331 paths) crashed every plan

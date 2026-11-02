@@ -45,3 +45,11 @@ now plans a group of eleven notes (PB2296, PB2398, PB2352-PB2360) and holds none
 **Left.** About 85 more census-written notes carry the sentence "dispatched only when its file set collides with no
 in-flight train and no open external-repository slice" in their Extraction order paragraph. The planner no longer reads
 it; the notes are history.
+
+**Review round 1 (finisher).** The reviewer found three agent-facing statements that still prescribed the deleted
+whole-file holds (the architecture-review skill's partition paragraph and landing-check sentence, design 8.7's "Kept:"
+list and the namespace-flip sentence); all restated to the member rule. Two leads in files this branch changes:
+`inflight_units` now warns on stderr when a git failure leaves every shared file unmeasured (a whole file holds
+nothing, so the failure must not be silent; pinned in test_plan_wave), and `file_set_collisions`, which only the tests
+called, is deleted (the tests use a local helper over `collision_hits`); the member-hold wait text reads
+"same-member collision with in-flight work".
