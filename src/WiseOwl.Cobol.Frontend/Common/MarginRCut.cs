@@ -96,7 +96,8 @@ public interface IMarginRCutLocator
 {
     /// <summary>The cut of the physical line that holds the text at 0-based resultant <paramref name="column"/> of 1-based
     /// resultant <paramref name="line"/> (an ANTLR token's position), together with where that text stands in the file — null
-    /// when the line was not cut at margin R. A text a continuation line joined stands on the physical line it was written
-    /// on.</summary>
+    /// when the line was not cut at margin R, or when a text stage omitted the line (<see cref="LineOrigin.Omitted"/>: a false
+    /// conditional-compilation branch is never read, so nothing on it was cut). A text a continuation line joined stands on
+    /// the physical line it was written on.</summary>
     LocatedMarginRCut? MarginRCutAt(int line, int column);
 }

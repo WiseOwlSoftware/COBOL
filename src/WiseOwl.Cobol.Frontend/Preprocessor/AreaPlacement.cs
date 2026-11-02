@@ -46,11 +46,12 @@ public sealed class FixedFormAreas(SourceLineMap lineMap, IReadOnlyDictionary<st
     }
 
     /// <inheritdoc cref="IMarginRCutLocator.MarginRCutAt"/>
-    /// <remarks>The line's cut is its <see cref="ReferenceFormatMap.CutAt"/> (kb/Work PB2555).</remarks>
+    /// <remarks>The line's cut is its <see cref="ReferenceFormatMap.CutAt"/> (kb/Work PB2555); a line a text stage omitted
+    /// (<see cref="SourceLineMap.IsOmitted"/>) has none: the compiler never read what it holds (kb/Work PB4412).</remarks>
     public LocatedMarginRCut? MarginRCutAt(int line, int column)
     {
-        var at = lineMap.Locate(line, column, fallbackFile: "");
-        return formats.TryGetValue(at.FileName, out var map) && map.CutAt(at.Line + 1) is { } cut
+        if (lineMap.IsOmitted(line)) return null;
+        var at = lineMap.Locate(line, column, fallbackFile: "");        return formats.TryGetValue(at.FileName, out var map) && map.CutAt(at.Line + 1) is { } cut
             ? new LocatedMarginRCut(at, cut)
             : null;
     }
