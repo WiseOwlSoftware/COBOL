@@ -1,3 +1,4 @@
-## kb/Work: file PB4420, the owner decision that a user-defined word folds only an extended letter's own case pair (follow GnuCOBOL)
+## Entry 2982 — 2026-11-01 22:04 PST — kb/Work: file PB4420, the owner decision that a user-defined word folds only an extended letter's own case pair (follow GnuCOBOL)
 
 The owner decided on 2026-11-01 ("Follow gnucobol") that the two Annex C.2 pairs that fold an extended letter onto a basic one, (0130,0069) and (212A,006B), are not applied to user-defined words. Section 8.1.3.2 4) b) speaks of the "lowercase extended letter", so it does not clearly reach them, and GnuCOBOL 3.2 keeps CUSTOMER-İD and CUSTOMER-ID apart (probed with the pinned toolchain). Main today merges the two names, which is a silent wrong answer, and refuses a program that declares both (COBOL1639). The note records the text, both probes and the change; it lands after the PB4240 review finisher, which touches the same files.
+
