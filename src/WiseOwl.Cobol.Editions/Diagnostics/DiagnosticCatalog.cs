@@ -7924,6 +7924,19 @@ public static class DiagnosticCatalog
         + "procedure-name, or with every procedure by ALL PROCEDURES.",
         "ISO §14.4.1; ISO §8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
 
+    // kb/Work PB4307: `MULTIPLE FILE TAPE.` and `MULTIPLE FILE.` compiled clean at --std 85, where `TAPE CONTAINS.`
+    // drew COBOL0001. Emitted by DataBinder.BindIoControl, the I-O-CONTROL clauses' own syntax rules, at every edition:
+    // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its files is malformed too.
+    public static readonly DiagnosticDescriptor MultipleFileNamesNoFile = new(
+        "COBOL5944", "multiple-file-names-no-file", EditionSeverity.Error,
+        "The X3.23-1985 MULTIPLE FILE clause of the I-O-CONTROL paragraph names no file. Its format is MULTIPLE FILE "
+        + "[TAPE] [CONTAINS] {file-name [POSITION integer]} ..., with the file list in braces and followed by an "
+        + "ellipsis, so at least one file-name is required: the clause states which files share one reel. The format "
+        + "is DERIVED, not quoted: ISO/IEC 1989:2002 Annex F.1 removes the clause and ISO/IEC 1989:2023 prints no "
+        + "format for it, and GnuCOBOL refuses the clause with no file-name under its cobol85, ibm and mf "
+        + "dialects.",
+        "VCR Table 7 row 7.6 (X3.23-1985 MULTIPLE FILE TAPE clause)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
