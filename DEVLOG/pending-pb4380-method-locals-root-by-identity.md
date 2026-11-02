@@ -41,4 +41,4 @@ CORRESPONDING phrase"). A method's LOCAL-STORAGE and non-formal LINKAGE roots ar
 the item's `ClrName`, still rooted at a `RootFieldSegment`; that is an allocated CLR name, not an invented one, and is
 left to the report as a lead.
 
-**Gate.** See the branch's gate record.
+**Gates.** Windows: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,540/20,540 · Unit 39,155/39,155 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261102T034805Z, at ebbe81afd; the new `AMethodsResidentFormal_IsRootedAtItsCarrierLocalsIdentity` Passed in `Unit.trx`). Linux: not part of the per-change gate (PB4327). `python scripts/semgrep/verify.py`: PASS, no count raised.
