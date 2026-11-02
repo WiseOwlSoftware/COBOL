@@ -7,7 +7,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
 /// Is a token the program's COBOL text? The one answer every reader of the whole token stream asks before it judges a token
-/// by a rule of the COBOL text (the separator, literal, PICTURE and word-character screens): NOT a token on a channel a
+/// by a rule of the COBOL text (the separator, literal and PICTURE screens; the word-character screen reads only the
+/// default channel, which holds neither channel below): NOT a token on a channel a
 /// rewriter moved text to because it is not the program's COBOL —
 /// <list type="bullet">
 /// <item><c>ABSENT_DEBUG_LINE</c>: a fixed-form debugging line whose source unit has no WITH DEBUGGING MODE, a comment
