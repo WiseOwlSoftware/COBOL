@@ -22,7 +22,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// forwarder that hands them out from the data binder again, cannot appear.</item>
 /// </list>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class LinkageBinderBoundaryDriftTests
 {
     private const BindingFlags Everything =
