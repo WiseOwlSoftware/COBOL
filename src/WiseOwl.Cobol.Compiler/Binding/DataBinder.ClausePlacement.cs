@@ -152,7 +152,7 @@ internal static class ClausePlacementRules
             DiagnosticCatalog.PropertyWithBasedOrTypedef, Excluded: DataClauseKind.Based | DataClauseKind.Typedef),
         // §13.18.42.3 SR3's ELEMENTARY half — kb/Work PB1273. Its qualification half ("whose name does not require
         // qualification for uniqueness of reference") asks the object's whole name space and is
-        // OoBindPropertyClauses'; SR1 (object / factory working storage only) is BindEntry's, because its axis is
+        // OoDataBinder.BindPropertyClauses'; SR1 (object / factory working storage only) is BindEntry's, because its axis is
         // the source element, not the section.
         new(DataClauseKind.Property, ClausePlacementKind.ElementaryOnly, "§13.18.42.3 SR3",
             "The PROPERTY clause may be specified only for an elementary item whose name does not require "

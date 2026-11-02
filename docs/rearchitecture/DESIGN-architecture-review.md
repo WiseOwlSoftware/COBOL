@@ -1084,12 +1084,12 @@ no word for:
   sentences and restored after (`Bound/StatementBinder.cs:350-374`; §11.9.4 GR1, kb/Work PB135), and read per
   statement (`ExpressionBinder.cs:703`, the default rounding; `IntrinsicBinder.cs:2598`, the arithmetic mode). Frozen
   as a value slice, a method's bare ROUNDED would take the class's mode: different emitted C#, and a wrong answer;
-- an **ordered drain queue**: `PendingPreOps` and `OoPendingPropertyOps` (`DataBinder.Oo.cs:583,609`) are
+- an **ordered drain queue**: `PendingPreOps` and `PropertyOps` (`Binding/OoPendingPropertyOp.cs`, the queue's entry type) are
   statement-scoped, mark-on-entry and drain-own-suffix: a statement marks the count when it starts binding and takes
   only the entries registered after its mark, removing them (`ReferenceResolver.ObjectProperty.cs:266`, `RemoveRange`),
   so a reference in an IF condition belongs to the IF, not to an arm that binds later; neither append-only nor frozen;
 - a **scope cursor**: `OperandEvaluations` is saved, zeroed and restored around each statement
-  (`StatementBinder.cs:432-498`), and `ActiveMethodScope` is set per procedure-table entry (`DataBinder.Oo.cs:44`,
+  (`StatementBinder.cs:432-498`), and `ActiveMethodScope` is set per procedure-table entry (`Binding/OoMethodDataScope.cs`, the scope it holds;
   `BinderContext.cs:150`).
 And around a unit's data phases `BinderDriver` writes three more kinds of state, none of them an `IBindPass` (R1
 Draft 6 re-modelled them from the code after the fifth refuter, G2):
@@ -1257,7 +1257,25 @@ immutable record that replaces `DataBinder` on `BoundUnit.Data`, `BoundCompilati
 pipeline and returns the result (`DESIGN-module-topology.md` §2.5's "thin orchestrator + named passes", with the
 slices and fact sets as the seam it lacked).
 *Seam:* `IBindPass` over its declared views (value slices and fact sets), `ProcedureBindState`'s three shapes, and
-`DataBindResult`; step 1 (PB2296) carries every field named above. *Steps:* PB2296,
+`DataBindResult`; step 1 (PB2296) carries every field named above.
+*Step 10 (PB2360), `OoDataBinder`, as built.* `DataBinder.Oo.cs` is gone. `Binding/OoDataBinder.cs` holds a class unit's
+OO half, one per binder (`DataBinder.Oo`, made from the init-only `DataBinder.OoRole` the driver sets): the method roster
+(`BoundMethods`), the method-scoped roots, the root-to-method owner map (`RootOwner`), the method declaration context
+(`BindingMethodScope`, `BindingMethod`, `EnterMethodDeclarations`), `BindMethodData` (a method's LINKAGE and
+LOCAL-STORAGE, its header formals), `BindPropertyClauses`, `BindObjectRefDescriptor` and the class-member-name
+reservation. It asks the binder for the entry binding every element kind shares (`BindEntries`, `DeclareDataEntries`,
+`BindRemainingConstants`, `CompleteDescriptionAhead`, `SealLinkageRules`, now `internal`). What the partial held that is
+not OO went to its own home: `Binding/OoMethodDataScope.cs` (the per-method name scope), `Binding/CompilerTemps.cs`
+(`DataBinder.Temps`: THE ONE constructor of a compiler temporary, the object-reference families that go through it, and
+the clone pairs `StorageFormPass` re-syncs), `Binding/OoPendingPropertyOp.cs` (the entry type of
+`ProcedureBindState.PropertyOps`), `ProcedureBindState.ClaimInterleavedReceiver` and `MoveBinder.ReceiverOpensAtRunTime`
+(the receiver claims, whose one asker is MOVE). The scope-aware resolver's four accessors (`Symbols`, `ActiveScope`,
+`ScopeOf`, `NameScopeOf`), the four static-storage channels (`StaticRootFields` and its three siblings, with
+`IsStaticMember`) and `IndexDeclarationsUnder` moved, text unchanged, into `DataBinder.cs`: the static channels are
+written by `RouteStaticUnitStorage`, a FilesResolved pass (PB2354), which takes them with it.
+`OoDataBinderBoundaryDriftTests` pins the boundary (no `DataBinder.Oo*` partial or member beyond the door; one maker of
+the OO binder; one constructor of a compiler temporary). The tolerated edge row `Bound -> Binding` grew two pairs
+(`StatementBinder -> OoDataBinder`, `-> CompilerTemps`), removed by PB2347 with the rest of its pairs. *Steps:* PB2296,
 PB2352–PB2361.
 
 **(2) `WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog`** — R0-0002: `public static readonly DiagnosticDescriptor`

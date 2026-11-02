@@ -581,7 +581,7 @@ ALIGNED (§13.18.1), ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) were
 
 1. **One copy.** `DataBinder.CopyEntryDescription(from, to, scope)` is the only place a clause travels, for
    all five carriers: the TYPE subject, the SAME AS subject, `CloneItem`'s reproduced subordinate, and the
-   compiler temporary's root and subtree (`CreateCompilerTemp` / `CloneTempNode`, kb/Work PB888). Each copier's
+   compiler temporary's root and subtree (`CompilerTemps.Create` / `CompilerTemps.CloneNode`, kb/Work PB888). Each copier's
    initializer carries nothing but identity, the level and the `MemberOnly` fields. `scope` is a
    `DescriptionCopyScope` — `TypeSubject` · `Entry` · `CompilerTemp` — the one axis on which the rules make the
    copies differ: §13.18.57.4 GR1 is the ONLY GR-1 that excludes "alignment" (its GR2d re-aligns the subject "as
@@ -604,7 +604,7 @@ ALIGNED (§13.18.1), ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) were
 3. **The classification is behaviourally true.** `DescriptionCopyCompletenessDriftTests` (Unit) fails when a
    stored property has no classification, when a `Clause`/`Alignment` field is not transferred by the copy, when
    a `None`/`MemberOnly` field is — once per `DescriptionCopyScope` — when any of `CloneItem`,
-   `CreateCompilerTemp` or `CloneTempNode` re-spells a clause of its own, and when ANY site in the compiler
+   `CompilerTemps.Create` or `CompilerTemps.CloneNode` re-spells a clause of its own, and when ANY site in the compiler
    outside the one copy hand-copies two or more clause fields from one source (`X = src.X`). It asserts it could
    give every property a distinct value first (so the audit is evidence about all of them), and drives its own
    failure branches over a copy that re-introduces the PB522 omission and over the pre-PB888 temp initializer.

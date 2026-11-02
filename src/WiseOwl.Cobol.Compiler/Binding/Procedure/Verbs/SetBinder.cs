@@ -1363,7 +1363,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // §14.9.39.4 GR2: "item identification of the data item referenced by identifier-1 is done immediately before the
         // value of that data item is changed", so SetEmitter places an object-property receiver's accessors around ITS
         // store (kb/Work PB2078): `SET IX, BAL OF AR(IX) TO 2` reaches AR(2).
-        ctx.Data.OoClaimInterleavedReceiver(targets.OfType<SetPlaceTarget>().Select(t => t.Place));
+        ctx.Data.Procedure.ClaimInterleavedReceiver(targets.OfType<SetPlaceTarget>().Select(t => t.Place));
         return new BoundSetTo(targets, FormatOneValueOf(sender, amount));
     }
 

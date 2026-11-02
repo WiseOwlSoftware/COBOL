@@ -28,7 +28,7 @@ internal sealed class OoDriver(BindSession session)
     public IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> InterfaceData => _ifaceData;
 
     /// <summary>Bind one INTERFACE's prototype formals (§10.6.2 SR4 — LINKAGE-only data divisions; the
-    /// prototypes reuse the whole OoBindMethodData machinery with no bodies).</summary>
+    /// prototypes reuse the whole OoDataBinder.BindMethodData machinery with no bodies).</summary>
     public void BindInterfaceData(OoInterfaceSymbol iface) => _ifaceData[iface] = BindInterface(iface);
 
     /// <summary>⛔ A PARAMETERIZED definition binds AS ITSELF, for its own rules, and nothing emits the result
@@ -85,7 +85,7 @@ internal sealed class OoDriver(BindSession session)
         data.BindDeclarations(synthetic);
         using (session.Edition.At(iface.Ctx)) data.DeclareUserWord(iface.Name, UserWordKind.InterfaceName);
         foreach (var proto in iface.Prototypes)
-            data.OoBindMethodData(proto);
+            data.Oo.BindMethodData(proto);
         data.BindResolve(synthetic);
         return data;
     }
@@ -94,7 +94,7 @@ internal sealed class OoDriver(BindSession session)
     /// through the STANDARD DataBinder over a synthetic program-unit context (the <c>CallReparent</c>
     /// discipline — direct-children accessors see exactly the class's own divisions) producing INSTANCE
     /// fields; each METHOD's LINKAGE/LOCAL-STORAGE/WS sections and PD USING/RETURNING formals bind between
-    /// the declaration and resolve halves (slice 2 — <c>DataBinder.OoBindMethodData</c>). Runs for EVERY class
+    /// the declaration and resolve halves (slice 2 — <c>OoDataBinder.BindMethodData</c>). Runs for EVERY class
     /// before ANY body binds, so a method of class A INVOKEing class B sees B's full signature regardless of
     /// source order (the pass-1 discipline, deep-dive D1).</summary>
     public void BindClassData(OoClassUnit cls)
@@ -109,7 +109,7 @@ internal sealed class OoDriver(BindSession session)
             classCtx.objectParagraph()?.environmentDivision(), edition);
         // The DATA-division twin: a factory or instance definition carries no LINKAGE or LOCAL-STORAGE SECTION
         // (§13.7.3 SR1, §13.6.3 SR1; kb/Work PB1251) and no GLOBAL clause in any entry (§13.18.27.3 SR4; kb/Work
-        // PB1045). Its methods' own data divisions are asked in OoBindMethodData.
+        // PB1045). Its methods' own data divisions are asked in OoDataBinder.BindMethodData.
         OoDefinitionRules.Screen(OoDefinition.Factory, $"class '{cls.Name}' FACTORY paragraph",
             classCtx.factoryParagraph()?.dataDivision(), edition);
         OoDefinitionRules.Screen(OoDefinition.Instance, $"class '{cls.Name}' OBJECT paragraph",
@@ -143,11 +143,11 @@ internal sealed class OoDriver(BindSession session)
         data.InheritConfiguration(classData);   // carries the class's OPTIONS model, the §11.9.4 GR1 baseline
         data.UseSkeletonOptions(obj?.optionsParagraph());
         var synthetic = OoReparent(obj?.environmentDivision(), obj?.dataDivision());
-        data.ReserveClassMemberNames(cls.Symbol.ClrName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
+        data.Oo.ReserveClassMemberNames(cls.Symbol.ClrName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
         data.BindDeclarations(synthetic);
         foreach (var m in cls.Symbol.Methods.ToList())   // snapshot — property synthesis appends accessors
-            data.OoBindMethodData(m);
-        data.OoBindPropertyClauses(cls.Symbol, factory: false);
+            data.Oo.BindMethodData(m);
+        data.Oo.BindPropertyClauses(cls.Symbol, factory: false);
         data.BindResolve(synthetic);
         // The class's symbolic-characters an OBJECT data-name of the spelling hides (§8.4.6.1; kb/Work PB3154 R1-1).
         data.DropShadowedConstants();
@@ -157,18 +157,18 @@ internal sealed class OoDriver(BindSession session)
         // The FACTORY half (§11.4; brief D11/D13): its OWN forest + uid band — factory data names are
         // invisible to instance methods and vice versa (separate source elements, §10.6), realized exactly
         // like method scoping: a second binder, never a merged namespace. SR 10 (INVOKE-argument ban on
-        // factory WS) works free: the factory binder's WS roots are not method-scoped → OoIsObjectData.
+        // factory WS) works free: the factory binder's WS roots are not method-scoped → OoDataBinder.IsObjectData.
         var fac = classCtx.factoryParagraph();
         var fdata = ElementBinder(fac, classCtx, cls.Name);
         fdata.CallSeedUids(session.TakeUidBand());
         fdata.InheritConfiguration(classData);
         fdata.UseSkeletonOptions(fac?.optionsParagraph());   // §11.9.4 GR1 (kb/Work PB135)
         var fsynthetic = OoReparent(fac?.environmentDivision(), fac?.dataDivision());
-        fdata.ReserveClassMemberNames(cls.Symbol.FactoryClrName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
+        fdata.Oo.ReserveClassMemberNames(cls.Symbol.FactoryClrName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
         fdata.BindDeclarations(fsynthetic);
         foreach (var m in cls.Symbol.FactoryMethods.ToList())
-            fdata.OoBindMethodData(m);
-        fdata.OoBindPropertyClauses(cls.Symbol, factory: true);
+            fdata.Oo.BindMethodData(m);
+        fdata.Oo.BindPropertyClauses(cls.Symbol, factory: true);
         fdata.BindResolve(fsynthetic);
         fdata.DropShadowedConstants();   // …and a FACTORY data-name, likewise
         cls.FactoryData = fdata;
@@ -243,8 +243,7 @@ internal sealed class OoDriver(BindSession session)
     {
         OoClasses = session.OoClasses,
         OwnWords = session.OoClasses.CensusOf(element) ?? new(),
-        OoIsClassUnit = true,
-        OoOwnerClassName = ownerClassName,
+        OoRole = new OoUnitRole(ownerClassName),
         RefModZeroLength = session.RefModZeroLength,
         CobolWords = session.CobolWords,
         Retypes = session.Retypes,

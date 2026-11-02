@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// equivalence is exact rather than approximate:</para>
 /// <list type="bullet">
 ///   <item><b>A data item</b> (<see cref="BoundFieldOperand"/> over an undecorated place,
-///     <see cref="BoundCurrentRecord"/>) — the item's description, cloned. <c>DataBinder.CreateCompilerTemp</c>
+///     <see cref="BoundCurrentRecord"/>) — the item's description, cloned. <c>CompilerTemps.Create</c>
 ///     copies the PICTURE and the description clauses at the root and deep-clones a group's subtree, and it does
 ///     NOT copy the root's OCCURS, which is exactly right: the sender <c>a (b)</c> is ONE OCCURRENCE, and the
 ///     temp holds one occurrence's value.</item>
@@ -413,14 +413,14 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     private Place? Freeze(BoundOperand op, string tag, ValueUse use)
     {
         if (Model(op, use) is not { } model) return null;
-        var temp = ctx.Data.CreateCompilerTemp(model.Item, "__SENDVAL-", "__sendval", tag);
+        var temp = ctx.Data.Temps.Create(model.Item, "__SENDVAL-", "__sendval", tag);
         // ⛔ GR1's OTHER sentence, for a group whose extent is decided at run time: "The length of the data item
         // referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of
         // the receiving operands", and the paragraph after it names the mechanism — "The evaluation of the length
         // of identifier-1 or identifier-2 may be affected by the DEPENDING ON phrase of the OCCURS clause". The
         // clone carries the DESCRIPTION, so it has to carry the CONTROL VALUE too (kb/Work PB394).
         if (!FreezeOdoExtent(temp, model.Item, tag)) return null;
-        // The run-time-length attributes are not part of the cloned DESCRIPTION (CreateCompilerTemp copies the
+        // The run-time-length attributes are not part of the cloned DESCRIPTION (Temps.Create copies the
         // PICTURE and the description clauses); §8.5.1.10 is a storage property, set here for the carrier shapes.
         // DynLimit 0 means "this clone is FIXED-length", not "a maximum size of zero" — the two are different
         // facts and DynMaxSize carries only the second (§8.5.1.10.1), so a fixed-length clone keeps the real
@@ -520,7 +520,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             Level = 1, CobolName = "__SENDTRUTH", ClrName = "__sendtruth",
             Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false),
         };
-        var temp = ctx.Data.CreateCompilerTemp(model, "__SENDTRUTH-", "__sendtruth", tag);
+        var temp = ctx.Data.Temps.Create(model, "__SENDTRUTH-", "__sendtruth", tag);
         if (ctx.Refs.ResolveItem(temp) is not { } place) return truth;
         ctx.Data.Procedure.PendingPreOps.Add(new BoundIf(truth, [StoreBit(place, "1")], [StoreBit(place, "0")]));
         return new BoundBooleanCondition(new BoundBoolRef(place));
@@ -545,7 +545,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             Level = 1, CobolName = "__SENDBOOL", ClrName = "__sendbool",
             Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: positions, Digits: 0, Scale: 0, Signed: false),
         };
-        var temp = ctx.Data.CreateCompilerTemp(model, "__SENDBOOL-", "__sendbool", tag);
+        var temp = ctx.Data.Temps.Create(model, "__SENDBOOL-", "__sendbool", tag);
         if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
         ctx.Data.Procedure.PendingPreOps.Add(new BoundComputeBoolean(expr, [place]));
         return place;
@@ -584,12 +584,12 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         if (model.OccursSpec is { Depending: { } dep } && temp.OccursSpec is { } clonedSpec)
         {
             if (ctx.Refs.ResolveItem(dep) is not { } depPlace) return false;
-            var frozen = ctx.Data.CreateCompilerTemp(dep, "__SENDODO-", "__sendodo", tag);
+            var frozen = ctx.Data.Temps.Create(dep, "__SENDODO-", "__sendodo", tag);
             if (ctx.Refs.ResolveItem(frozen) is not { } frozenPlace) return false;
             ctx.Data.Procedure.PendingPreOps.Add(new BoundMove(new BoundFieldOperand(depPlace), [frozenPlace]));
             clonedSpec.Depending = frozen;
         }
-        // The clone is node-for-node the model's (DataBinder.CloneTempNode walks Children in order), so the
+        // The clone is node-for-node the model's (CompilerTemps.CloneNode walks Children in order), so the
         // parallel walk is exact; the bound is defensive only.
         for (int i = 0; i < model.Children.Count && i < temp.Children.Count; i++)
             if (!FreezeOdoExtent(temp.Children[i], model.Children[i], tag)) return false;
@@ -628,7 +628,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         }
         var element = new BoundFieldOperand(all.Element);
         if (Model(element, default) is not { } model) return null;
-        var table = ctx.Data.CreateCompilerTempTable(model.Item, dynamic ? null : (int)capacity, "__HELDALL-", "__heldall", tag, out var cell);
+        var table = ctx.Data.Temps.CreateTable(model.Item, dynamic ? null : (int)capacity, "__HELDALL-", "__heldall", tag, out var cell);
         cell.IsDynamicLength = model.DynLimit > 0;   // the run-time-length attributes are no part of the cloned description (Freeze)
         if (cell.IsDynamicLength) cell.DynMaxSize = model.DynLimit;
         var held = new LocalVector(new StatementLocal(StatementLocalRole.HeldTableAllIndices, table.Uid));
@@ -652,7 +652,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
                 Level = 1, CobolName = "__HELDALLN", ClrName = "__heldalln",
                 Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 10, Digits: 10, Scale: 0, Signed: false),
             };
-            var number = ctx.Data.CreateCompilerTemp(numberModel, "__HELDALLN-", "__heldalln", tag);
+            var number = ctx.Data.Temps.Create(numberModel, "__HELDALLN-", "__heldalln", tag);
             if (ctx.Refs.ResolveItem(number) is not { } numberPlace)
                 throw new InvalidOperationException($"SendingValueTemp: the held table(ALL) count '{number.CobolName}' did not resolve to a place");
             (count, heldCount) = (numberPlace, new AllCount.Odo(numberPlace, 0, (int)capacity));
@@ -818,7 +818,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     {
         var model = CharacterCarrier("__CONCEPT", "__concept", category, CharacterUsage(category),
                                      WiseOwl.Cobol.Runtime.CobolDynString.MaxLength);
-        var temp = ctx.Data.CreateCompilerTemp(model.Item, "__CONCEPT-", "__concept", tag);
+        var temp = ctx.Data.Temps.Create(model.Item, "__CONCEPT-", "__concept", tag);
         temp.IsDynamicLength = true;
         temp.DynMaxSize = model.DynLimit;
         return ctx.Refs.ResolveItem(temp);

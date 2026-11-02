@@ -622,7 +622,7 @@ activation and a nested call naming the ALL could not be held (`LENGTH (MAX (MAX
 answered 8). `IntrinsicBinder.TryBindAllArgument` now records the operand it builds, and when a later argument registered pre-ops
 `ArgumentOrder.StoreAt` holds it with `SendingValueTemp.MaterializeTableAll`: a PRE-op `BoundHoldTableAll` copies the elements the
 enumeration yields, in §15.3's order and by the ordinary identity MOVE, into a compiler-temporary TABLE of the element's own description
-(`DataBinder.CreateCompilerTempTable`), and the call's operand becomes a `TableAllPlace` over that table. Everything downstream is therefore
+(`CompilerTemps.CreateTable`), and the call's operand becomes a `TableAllPlace` over that table. Everything downstream is therefore
 what it was for the source table: the lane an element is read in (`AllArgs<CobolDec>`, `<double>`, `<string>`, the Int128 alignment), the
 description `FunctionDeviceText.Field` gives a selecting function's result, and the `ArgumentOrder.Hold` recursion into a nested selecting
 call. The held table is ONE flat level in enumeration order whatever the number of ALL levels: a fixed table when every range is fixed
@@ -827,9 +827,9 @@ user-defined word may be used as only one type of user-defined word*" is asked a
 (a name a containing element passes down is inherited, not declared, and a contained element may re-declare it,
 §8.4.6.1). A program's `DataBinder` is one element and owns one census (`_ownWords`); a class binder also hosts its
 METHODS, each a source element of its own (§10.5), so each method carries its own census (`OoMethodDataScope.Words`)
-and `DataBinder.WordCensus` selects it while `DataBinder.EnterMethodDeclarations` is open — around the method's data
-entries and METHOD-ID (`OoBindMethodData`) and its procedure-names (`StatementBinder.BindClassBody`). ⛔ A new
-declaration site inside a method runs under `EnterMethodDeclarations`, or its word lands in the class's census
+and `DataBinder.WordCensus` selects it while `OoDataBinder.EnterMethodDeclarations` is open — around the method's data
+entries and METHOD-ID (`OoDataBinder.BindMethodData`) and its procedure-names (`StatementBinder.BindClassBody`). ⛔ A new
+declaration site inside a method runs under `OoDataBinder.EnterMethodDeclarations`, or its word lands in the class's census
 (kb/Work PB2921). Every element's census is the one `OoClassTable.CensusOf` keeps for it (a method's is its symbol's;
 a program's, a class's, a factory's and an interface's are kept by parse node and passed to their binder as
 `DataBinder.OwnWords`), and it also records each object-class-name, interface-name and parameter-name the element

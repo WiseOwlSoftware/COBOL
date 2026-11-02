@@ -1133,7 +1133,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The PROPERTY clause (ISO §13.18.42, OO) — a COBOL-2002 introduction. The OO property SEMANTICS
-        /// are bound independently in <c>DataBinder.Oo.OoBindPropertyClauses</c> (which reads the propertyClause node
+        /// are bound independently in <c>OoDataBinder.BindPropertyClauses</c> (which reads the propertyClause node
         /// directly), so the storage-clause loop no longer touches it; this arm only gates the edition.</summary>
         public override object? VisitPropertyClause(CobolParserCore.PropertyClauseContext ctx)
         {
@@ -1421,7 +1421,7 @@ internal sealed class VersionConformancePass
         // its OWN DataBinder whose BindDeclarations runs SwitchBindSpecialNames + BindFileControl + CallBindLinkage; the
         // parse-arm's single whole-tree walk equals the UNION of those per-scope binder walks. The one scope asymmetry
         // is PROCEDURE DIVISION RETURNING/RAISING: the procedureDivision rule is SHARED by program and method PDs, but
-        // CallBindLinkage gates PROGRAM units only (methods bind via OoBindMethodData) — so those two gates carry the
+        // CallBindLinkage gates PROGRAM units only (methods bind via OoDataBinder.BindMethodData) — so those two gates carry the
         // InMethodDefinition guard (the 14g.3 shared-rule lesson).
 
         /// <summary>The SELECT … SHARING clause (ISO §12.4.5.15) — a COBOL-2002 introduction. Its OPEN-statement twin
@@ -1643,7 +1643,7 @@ internal sealed class VersionConformancePass
 
         /// <summary>PROCEDURE DIVISION … RETURNING (ISO §14.2) — a COBOL-2002 introduction. Gated only OUTSIDE a method
         /// (the shared procedureDivision rule serves both, but CallBindLinkage — the former gate site — runs for program
-        /// units only; a method's RETURNING binds through OoBindMethodData, ungated). §14.2.3 GR6/SR1 stay bind-time.</summary>
+        /// units only; a method's RETURNING binds through OoDataBinder.BindMethodData, ungated). §14.2.3 GR6/SR1 stay bind-time.</summary>
         public override object? VisitReturningClause(CobolParserCore.ReturningClauseContext ctx)
         {
             if (!InMethodDefinition(ctx))

@@ -159,7 +159,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             Level = 1, CobolName = "__ACCEPT-" + kind, ClrName = "__accept" + kind,
             Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: 0, Signed: false),
         };
-        var temp = ctx.Data.CreateCompilerTemp(model, "__ACCEPT-", "__accept", $"{kind}L{line}");
+        var temp = ctx.Data.Temps.Create(model, "__ACCEPT-", "__accept", $"{kind}L{line}");
         return ctx.Refs.ResolveItem(temp);
     }
 

@@ -787,7 +787,7 @@ public sealed partial class DataBinder
             // the one refused. This used to be a hand-written file-name scan beside the data-name test.
             // (A method's word lands in the method's own census — the funnel reads it off the declaration scope.)
             if (methodScope is null) DeclareUserWord(capName, UserWordKind.DataName);
-            else using (EnterMethodDeclarations(methodScope)) DeclareUserWord(capName, UserWordKind.DataName);
+            else using (Oo.EnterMethodDeclarations(methodScope)) DeclareUserWord(capName, UserWordKind.DataName);
             AddCapacityRegister(registers, capName, item);
         }
     }

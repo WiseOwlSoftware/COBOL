@@ -291,9 +291,9 @@ public sealed partial class DataBinder
     /// <summary>Whether a nearer declaration of <paramref name="word"/> hides the symbolic-character of that spelling
     /// (§8.4.6.1, §8.4.6.2.1 3); kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
     /// condition- or index-name hides (<see cref="DropShadowedConstants"/>), or any one the method being bound
-    /// declares a name of (<see cref="ActiveMethodDeclares"/>). Asked by every symbolic lookup, the resolving and the
+    /// declares a name of (<see cref="OoOoDataBinder.ActiveMethodDeclares"/>). Asked by every symbolic lookup, the resolving and the
     /// predicate alike, so they cannot disagree.</summary>
-    private bool HidesSymbolic(string word) => _shadowedSymbolics.Contains(word) || ActiveMethodDeclares(word);
+    private bool HidesSymbolic(string word) => _shadowedSymbolics.Contains(word) || Oo.ActiveMethodDeclares(word);
 
     /// <summary>The inherited symbolic-characters a nearer declaration hides (<see cref="DropShadowedConstants"/>).
     /// Hidden by <see cref="HidesSymbolic"/>, never removed from <see cref="SymbolicCharacters"/>: a contained

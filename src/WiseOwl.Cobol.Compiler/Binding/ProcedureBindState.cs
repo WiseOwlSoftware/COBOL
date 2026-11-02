@@ -54,7 +54,7 @@ internal sealed class ProcedureBindState
     /// <summary>The unit's un-drained object-property reference ops (§8.4.3.9): statement-scoped like
     /// <see cref="PendingPreOps"/>, and drained by <c>OoBinder.OoWrapPropertyOps</c> into the GET before and the SET after
     /// the statement that names the property.</summary>
-    public DrainQueue<DataBinder.OoPendingPropertyOp> PropertyOps { get; } = new();
+    public DrainQueue<OoPendingPropertyOp> PropertyOps { get; } = new();
 
     /// <summary>How many OPERAND-EVALUATION steps (<see cref="Bound.BoundStatement.OperandEvaluation"/> — a function
     /// reference, an inline method invocation, an object-property accessor, a §15.4 function-bearing subscript's temporary
@@ -70,4 +70,19 @@ internal sealed class ProcedureBindState
     /// (<c>DataBinder.ResolveStorageClaimHead</c>) and the migration-flag pass (<c>FlagConformancePass</c>) enter it for
     /// the one method whose names they resolve.</summary>
     public Cursor<OoMethodDataScope?> ActiveMethodScope { get; } = new(null);
+
+    /// <summary>⛔ THE ONE CLAIM A RECEIVER-PLACING BINDER MAKES (kb/Work PB2078): each of <paramref name="receivers"/> is a
+    /// RECEIVING operand of a statement whose emitter places each receiver's accessors itself where the statement identifies
+    /// and stores it (<c>ReceiverBracketEmitter.Identify / Receive / Settle</c>). When it is an object-property reference
+    /// this marks the pending op, so <c>OoBinder.OoWrapPropertyOps</c> brackets it per receiver; any other place (and a
+    /// null, an absent phrase) is none of this method's business.
+    /// The claim and the emitter's <c>Receive</c> are one contract: a claimed property whose bracket the emitter never
+    /// places fails the compilation (<c>ReceiverBracketEmitter.Emit</c>).</summary>
+    public void ClaimInterleavedReceiver(params IEnumerable<Place?> receivers)
+    {
+        foreach (var receiver in receivers)
+            if (receiver is not null)
+                foreach (var op in PropertyOps.Since(0))
+                    if (ReferenceEquals(op.Temp, receiver.Item)) { op.Interleaved = true; break; }
+    }
 }

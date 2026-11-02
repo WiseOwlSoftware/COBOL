@@ -58,7 +58,7 @@ internal static class StorageFormPass
         foreach (var d in ctx.AllBindersAndInterfaces())
             promoted.UnionWith(d.State.ImageForcedItems);
         foreach (var d in ctx.AllBindersAndInterfaces())
-            foreach (var (temp, model) in d.CompilerTempClones)
+            foreach (var (temp, model) in d.Temps.Clones)
                 if (promoted.Contains(model))
                     promoted.Add(temp);
         foreach (var d in ctx.AllBindersAndInterfaces())
@@ -100,8 +100,8 @@ internal static class StorageFormPass
         //      The method's EFFECTIVE clause is the one the emitter seeds with (OoEmitter: MethodOptions, else the
         //      unit's), so the promotion decision and the seed read the same clause.
         foreach (var d in ctx.AllBindersAndInterfaces())
-            foreach (var root in d.OoMethodScopedRoots)
-                if (root.RootSection == EntrySection.LocalStorage && d.OoRootOwner.TryGetValue(root, out var method)
+            foreach (var root in d.Oo.MethodScopedRoots)
+                if (root.RootSection == EntrySection.LocalStorage && d.Oo.RootOwner.TryGetValue(root, out var method)
                     && (method.MethodOptions ?? d.Options).Initialize is { HasFill: true } methodInit
                     && methodInit.Governs(root, workingStorageRoot: false, localStorageRoot: true))
                     AddBackgroundFilled(root, promoted);

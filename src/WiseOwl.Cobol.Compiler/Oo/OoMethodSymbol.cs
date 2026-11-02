@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 namespace WiseOwl.Cobol.Compiler.Oo;
 
 /// <summary>One method of a class roster (ISO §11.7): the COBOL name, the emitted C# method name, the header
-/// USING/RETURNING presence recorded at pass-1, and — filled by <c>DataBinder.OoBindMethodData</c> at class
+/// USING/RETURNING presence recorded at pass-1, and — filled by <c>OoDataBinder.BindMethodData</c> at class
 /// bind time (BEFORE any statement binds, so every INVOKE site in the group sees the full signature) — the
 /// resolved formal list, RETURNING item, and data roots (port slice 2, deep-dive D3/D6).</summary>
 public sealed record OoMethodSymbol(
@@ -114,7 +114,7 @@ public sealed record OoMethodSymbol(
 
 
     /// <summary>The AFTER-DATA-BIND half of the description (P9 R7 — phase-explicit): attached by
-    /// <c>DataBinder.OoBindMethodData</c> once this method's data has bound; the pc range is stamped into it
+    /// <c>OoDataBinder.BindMethodData</c> once this method's data has bound; the pc range is stamped into it
     /// later still by <c>StatementBinder.BindClassBody</c>. Reading it before attach is a null-deref — the
     /// intended type-level ordering guard (never a silent -1 sentinel).</summary>
     public OoMethodBinding? Binding { get; internal set; }

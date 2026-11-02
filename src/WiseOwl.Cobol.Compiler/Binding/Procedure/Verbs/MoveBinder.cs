@@ -176,7 +176,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // this node through MoveEmitter.Emit places the accessors around the store itself, which also keeps them from
         // running after the statement's own phrase bodies (`READ f INTO P NOT AT END DISPLAY P`). A claim whose node is
         // emitted any other way fails the compilation (ReceiverBracketEmitter.Emit), never drops the accessors.
-        foreach (var target in targets) ctx.Data.OoClaimInterleavedReceiver(target);
+        foreach (var target in targets) ctx.Data.Procedure.ClaimInterleavedReceiver(target);
         // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.3.3.4 GR6;
         // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
         MarkRefModStoreImage(targets);
@@ -203,7 +203,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         //     EC-ARGUMENT-FUNCTION ahead of the sender's EC-BOUND-REF-MOD;
         //   • an OBJECT-PROPERTY receiver's accessor bracket, opened just before its store (ReceiverBracketEmitter.
         //     Receive): identifier-3's own pre-ops moved there (its Prelude), its evaluation into the identified-object
-        //     temporary, the GET of a part store (DataBinder.OoReceiverOpensAtRunTime) — so `MOVE X (1:L) TO P OF
+        //     temporary, the GET of a part store (ReceiverOpensAtRunTime) — so `MOVE X (1:L) TO P OF
         //     R (I)` raised R's EC-BOUND-SUBSCRIPT first, and `MOVE X (1:L) TO Q OF R (1) (1:2)` ran Q's get method.
         // When a receiver has either and the sender's evaluation can be overtaken, the sender is frozen at N = 1 too,
         // placed where it finished binding (senderPreOpsEnd), ahead of every pre-op and so of every bracket
@@ -216,7 +216,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // (kb/Work PB425; MoveClassifier.NeedsLengthFreeze names the shapes).
         bool receiverEvaluationOvertakesSender = senderPreOpsEnd is { } end
             && (ctx.Data.Procedure.PendingPreOps.AnyAfter(end)
-                || targets.Any(t => ctx.Data.OoReceiverOpensAtRunTime(t, BoundStores.WholeReceiverStore(t))))
+                || targets.Any(t => ReceiverOpensAtRunTime(ctx.Data.Procedure, t, BoundStores.WholeReceiverStore(t))))
             && WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifiesAtRunTime(source);
         if ((targets.Count > 1 || MoveClassifier.NeedsLengthFreeze(source, targets) || receiverEvaluationOvertakesSender)
             && host.SendingValue.Materialize(source, "move", senderPreOpsEnd, SendingValueTemp.ValueUse.MovedTo(targets)) is { } frozen)
@@ -306,6 +306,24 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 ? (element, count) : null;
         return TableCursor(group, table) is { } cur && OccurrenceCounts.Current(table, cur.StoragePath, ctx.Refs) is { } n
             ? (ElementPlace(cur, table, v), n) : null;
+    }
+
+    /// <summary>⛔ DOES IDENTIFYING THIS RECEIVER EVALUATE ANYTHING WHEN ITS ACCESSORS OPEN? (kb/Work PB370). A claimed
+    /// object-property receiver (<see cref="ProcedureBindState.ClaimInterleavedReceiver"/>) has its bracket opened just before its store
+    /// (<c>ReceiverBracketEmitter.Receive</c>): identifier-3's <see cref="OoPendingPropertyOp.Prelude"/>, its evaluation
+    /// into the identified-object temporary, and the GET of a part store (<c>OoBinder.OoWrapPropertyOps</c>, which builds
+    /// those steps from the same three members). True when any of them evaluates something at run time, so a statement
+    /// whose rules evaluate its sending operand first (§14.9.25.4 GR1) knows the bracket would overtake it. A receiver
+    /// that is no claimed property opens nothing.</summary>
+    private static bool ReceiverOpensAtRunTime(ProcedureBindState procedure, Place receiver, Bound.StoreKind kind)
+    {
+        foreach (var op in procedure.PropertyOps.Since(0))
+            if (ReferenceEquals(op.Temp, receiver.Item))
+                return op.Interleaved
+                    && (op.Prelude.Count > 0
+                        || op.IdentifiedReceiver is { } identified && WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifiesAtRunTime(identified)
+                        || op.GetsBefore(kind));
+        return false;
     }
 
     /// <summary>The cursor at <paramref name="table"/> inside the resolved group <paramref name="group"/>: down the

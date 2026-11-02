@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <c>arithmeticExpression</c>, where the grammar parsed it — binds through the ONE
 /// <c>ExpressionBinder.BindExpr</c> (documented as the entry "for COMPUTE, the arithmetic verbs, subscripts,
 /// reference-modifier offsets"), so a USER-defined function, a nested function, and a keyword-omitted reference
-/// all fall out of the same route. The value lands in a compiler temp via <c>DataBinder.CreateCompilerTemp</c> —
+/// all fall out of the same route. The value lands in a compiler temp via <c>CompilerTemps.Create</c> —
 /// "THE ONE synthesized-compiler-temp constructor" — whose store registers as a statement-scoped pending PRE-op on
 /// the shared <c>ProcedureBindState.PendingPreOps</c>, drained at the <c>BindStatement</c> chokepoint by the mark-on-entry /
 /// drain-own-suffix protocol that already served the UDF and object-property clients.</para>
@@ -105,11 +105,11 @@ public sealed partial class StatementBinder
             return null;
         }
 
-        // The MODEL is a description carrier only: CreateCompilerTemp clones its Pic (and, for a group, its
+        // The MODEL is a description carrier only: Temps.Create clones its Pic (and, for a group, its
         // subtree) and mints the temp's own names, so the model's own names are never emitted or registered.
         var model = new DataItem { Level = 1, CobolName = "__SUBEXPR-MODEL", ClrName = "__subexprModel",
                                   Pic = SegmentTempPic };
-        var temp = data.CreateCompilerTemp(model, "__SUBEXPR-", "__subexpr", $"L{line}");
+        var temp = data.Temps.Create(model, "__SUBEXPR-", "__subexpr", $"L{line}");
         if (Ctx.Refs.ResolveItem(temp) is not { } place) return null;
 
         data.Procedure.PendingPreOps.Add(new BoundPositionValue(value, place, RefMod: position == SegmentPosition.RefMod));
@@ -125,7 +125,7 @@ public sealed partial class StatementBinder
     /// the operand site would have read had no pre-op run first.</summary>
     private Place FreezeOdoExtentBeforeRefMod(OdoGroupPlace odo, int preOpMark, int line)
     {
-        var temp = data.CreateCompilerTemp(odo.Depending.Item, "__REFODO-", "__refodo", $"L{line}");
+        var temp = data.Temps.Create(odo.Depending.Item, "__REFODO-", "__refodo", $"L{line}");
         if (Ctx.Refs.ResolveItem(temp) is not { } frozen) return odo;
         data.Procedure.PendingPreOps.InsertAt(preOpMark, new BoundMove(new BoundFieldOperand(odo.Depending), [frozen]));
         return odo with { Depending = frozen };

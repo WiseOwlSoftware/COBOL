@@ -72,7 +72,7 @@ public sealed partial class DataBinder
     /// field is named by none of them.</summary>
     internal CellLifetime LifetimeOfCell(string cellField, DataItem canonical) =>
         StaticAddressableCells.Contains(cellField) ? CellLifetime.Static
-        : OoMethodScopedRoots.Contains(canonical) || LocalStorageRoots.Contains(canonical)
+        : Oo.MethodScopedRoots.Contains(canonical) || LocalStorageRoots.Contains(canonical)
           || LinkageRoots.Contains(canonical) ? CellLifetime.Activation
         : CellLifetime.Instance;
 
@@ -121,7 +121,7 @@ public sealed partial class DataBinder
         // A METHOD's formals take the same rule (the method arm, kb/Work PB2087): the pointer is the formal's per-activation
         // data-address member (OoFormal.AreaPointerClrName), set at each activation to the argument's area.
         var areaFormals = _linkageFormals.Where(f => !f.CarrierResident).Select(f => (f.Item, Pointer: f.CarrierField))
-            .Concat(OoBoundMethods.SelectMany(m => m.Binding?.Formals ?? []).Where(f => !f.CarrierResident)
+            .Concat(Oo.BoundMethods.SelectMany(m => m.Binding?.Formals ?? []).Where(f => !f.CarrierResident)
                 .Select(f => (f.Item, Pointer: f.AreaPointerClrName)));
         foreach (var (item, pointer) in areaFormals)
         {
@@ -182,8 +182,8 @@ public sealed partial class DataBinder
         // §8.4.6.6: a REPOSITORY function-prototype-name or the containing FUNCTION definition's own name — a program's
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
         bool IsUserFunction(string fn) => UserFunctionNames.Contains(fn) || UnitIsFunction && ContainingDefinitionNames.Contains(fn);
-        var own = OoIsClassUnit
-            ? OoBoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
+        var own = Oo.IsClassUnit
+            ? Oo.BoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
                 .SelectMany(m => ClaimScans.ByReferenceOperands(m.Ctx!.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
             : program.procedureDivision() is { } opd
                 ? ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
@@ -205,7 +205,7 @@ public sealed partial class DataBinder
             // Object data never crosses an INVOKE BY REFERENCE (§14.9.23.3 SR10: "Identifier-3 shall not reference a data
             // item defined in the file or working-storage section of a factory or instance object"), so a bare one is
             // passed BY CONTENT (GR6 a) 2.) and needs no cell.
-            if (invoke && OoIsObjectData(root)) continue;
+            if (invoke && Oo.IsObjectData(root)) continue;
             if (ForceStringCanonical(root, "BY REFERENCE operand") is { } cls) ClaimAddressableCell(cls);
         }
 
@@ -213,7 +213,7 @@ public sealed partial class DataBinder
         // group with an object-reference or pointer leaf is delivered as its AREA (§14.6.5 — "the content of the data item
         // referenced by that RETURNING phrase"; CobolArgAdapt.StoreReturnArea), its characters and its references into the
         // receiver's area, so the item itself lives in a cell.
-        if (!OoIsClassUnit && LinkageReturning is { } ret)
+        if (!Oo.IsClassUnit && LinkageReturning is { } ret)
             ClaimSlotCarriedCell(ret, "RETURNING item");
     }
 
@@ -303,9 +303,9 @@ public sealed partial class DataBinder
         // A CLASS unit's statements live in its METHODS' procedure divisions — the synthetic unit OoDriver
         // binds carries the data divisions only — so each method body is scanned and its targets carry the
         // method whose scope resolves them (kb/Work PB956).
-        if (OoIsClassUnit)
+        if (Oo.IsClassUnit)
         {
-            foreach (var m in OoBoundMethods)
+            foreach (var m in Oo.BoundMethods)
                 if (m.Ctx?.procedureDivision() is { } mpd)
                     foreach (var (n, q) in ClaimScans.AddressTargets(mpd))
                         yield return (n, q, m);

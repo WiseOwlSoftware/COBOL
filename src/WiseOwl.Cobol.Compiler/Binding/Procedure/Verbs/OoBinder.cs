@@ -42,7 +42,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// into an identified-object temporary, with its Prelude, and both accessors invoke on that temporary — so the GET and
     /// the SET always reach the object identified (§14.6.4; §8.4.3.9.4 GR3), wherever the steps go.</para>
     /// <para>⛔ WHERE THE STEPS GO (kb/Work PB2078). A reference the statement's binder CLAIMED as one of its receivers
-    /// (<see cref="DataBinder.OoClaimInterleavedReceiver"/>) gets a <see cref="ReceiverBracket"/> under a
+    /// (<see cref="ProcedureBindState.ClaimInterleavedReceiver"/>) gets a <see cref="ReceiverBracket"/> under a
     /// <see cref="BoundReceiverBrackets"/>, and the statement's emitter places it where the statement's rules identify and
     /// store that receiver (<c>ReceiverBracketEmitter</c>): identified as it is stored — the arithmetic statements
     /// (§14.7.7 4) b)), every MOVE built by <c>MoveBinder.BindMoveOf</c> (the written MOVE and the implicit moves of READ /
@@ -89,7 +89,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             var receiver = op.Receiver;
             if (needSet && op.IdentifiedReceiver is { Item.Pic.ObjectRef: { } described } written)
             {
-                var identified = ctx.Refs.ResolveItem(ctx.Data.OoCreateIdentifiedObjectTemp(described))!;
+                var identified = ctx.Refs.ResolveItem(ctx.Data.Temps.ForIdentifiedObject(described))!;
                 open.Add(new BoundSetObjectRef([identified], written, SourceIsNull: false, SourceIsSelf: false));
                 receiver = identified;
             }
@@ -139,7 +139,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// property method RETURNING the reference's temp — or null after SR3's diagnostic when the class has no GET.
     /// ONE builder for both places a GET is placed: the statement-level wrap (<see cref="OoWrapPropertyOps"/>) and
     /// a per-evaluation window (<see cref="OoDrainPropertyGets"/>).</summary>
-    private BoundInvoke? PropertyGet(DataBinder.OoPendingPropertyOp op, Place? receiver)
+    private BoundInvoke? PropertyGet(OoPendingPropertyOp op, Place? receiver)
     {
         if (op.Get is null)
         {
@@ -151,7 +151,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         return GetInvoke(op, op.Get, receiver);
     }
 
-    private BoundInvoke GetInvoke(DataBinder.OoPendingPropertyOp op, OoMethodSymbol get, Place? receiver) =>
+    private BoundInvoke GetInvoke(OoPendingPropertyOp op, OoMethodSymbol get, Place? receiver) =>
         new(op.Form, op.ClassClrName, receiver, get.ClrName, ctx.Refs.ResolveItem(op.Temp)!, null, get.Binding!.Returning, op.OwnerClrNameOf(get));
 
     /// <summary>Drain the property references registered since <paramref name="mark"/> for a PER-EVALUATION
@@ -182,7 +182,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// of an enclosing dynamic-capacity table through an object property needs the property fetched ahead of the scan
     /// bound that reads it, while the WHEN condition keeps its own per-evaluation fetch (kb/Work PB3365 R2-1;
     /// §14.9.37.4 GR1; §8.4.3.9.4 GR1).</summary>
-    internal List<BoundStatement> OoReplayPropertyGets(IEnumerable<DataBinder.OoPendingPropertyOp> ops)
+    internal List<BoundStatement> OoReplayPropertyGets(IEnumerable<OoPendingPropertyOp> ops)
     {
         List<BoundStatement> gets = [];
         foreach (var op in ops)
@@ -548,7 +548,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 || (!arg.ByContentWritten && !arg.ByValueWritten && host.Params.MeetsByReferenceRules(dref));
             Place? place = byReference ? host.Expr.ResolveReceiving(dref) : host.Expr.ResolveSending(dref).PlaceOrReported(ctx.Edition);
             if (place is null) return false;   // reported by the resolver or the receiving chokepoint
-            if (explicitReference && ctx.Data.OoIsObjectData(place.Item))
+            if (explicitReference && ctx.Data.Oo.IsObjectData(place.Item))
             {
                 ReportObjectDataByReference(subject, dref.GetText(), "pass it BY CONTENT");
                 return false;
@@ -1011,7 +1011,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     $"the inline method invocation of \"{m.Name}\": the invoked method's RETURNING item is "
                     + "described with the ACTIVE-CLASS phrase (ISO §8.4.3.4.3 SR4)");
             }
-            var temp = ctx.Data.OoCreateInvocationTemp(retModel, m.Name);
+            var temp = ctx.Data.Temps.ForInvocation(retModel, m.Name);
             if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
                 return new BoundUnsupported($"the inline method invocation of \"{m.Name}\" (result temporary)");
             site.ImplicitReturningPlace = tempPlace;
@@ -1402,7 +1402,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             }
             // §14.9.23.3 SR 10: object data (factory/instance WS) cannot cross BY REFERENCE — explicit
             // BY REFERENCE violates the rule; a BARE object-data identifier is assumed BY CONTENT (GR6a2, above).
-            if (explicitReference && ctx.Data.OoIsObjectData(place.Item))
+            if (explicitReference && ctx.Data.Oo.IsObjectData(place.Item))
             {
                 ReportObjectDataByReference($"{verb} \"{methodName}\"", argText, "pass it BY CONTENT");
                 return null;
@@ -1702,7 +1702,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 host.Params.ScreenBitAlignment(p, DiagnosticCatalog.InvokeBitAlignment, "INVOKE USING argument",
                     "§14.9.23.3 SR12");
             if (!ActiveClassSubordinateAdmitted(p, "INVOKE USING argument")) return BoundRejected.Reported(ctx.Edition);
-            if (ctx.Data.OoIsObjectData(p.Item))
+            if (ctx.Data.Oo.IsObjectData(p.Item))
             {
                 ReportObjectDataByReference("INVOKE through a universal object reference", DataBinder.WrittenText(dref),
                     "the universal path has no BY CONTENT fallback (SR6)");

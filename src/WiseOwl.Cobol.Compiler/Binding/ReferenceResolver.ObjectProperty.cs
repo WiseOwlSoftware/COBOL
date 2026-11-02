@@ -278,15 +278,15 @@ public sealed partial class ReferenceResolver
                 + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");
 
         // identifier-3's own evaluation — a view's conformance check, a function's activation, a subscript's — travels
-        // with the property, ahead of its accessor (DataBinder.OoPendingPropertyOp.Prelude).
+        // with the property, ahead of its accessor (OoPendingPropertyOp.Prelude).
         var prelude = data.Procedure.PendingPreOps.DrainFrom(preOpMark);
 
         // ⛔ THE TEMP TAKES THE ACCESSOR'S WHOLE DESCRIPTION, A GROUP INCLUDED (kb/Work PB1448). §8.4.3.9.4 GR1: "The
         // data description of temp-1 is the same as the data description of the item specified in the RETURNING phrase
         // of the get property method", GR2 gives temp-2 the USING parameter's, and §8.4.3.9.3 SR5/SR6 admit the property
         // "wherever a data item with that description would be valid" as a sending / receiving item.
-        var temp = data.OoCreatePropertyTemp(model, name);
-        data.Procedure.PropertyOps.Add(new DataBinder.OoPendingPropertyOp(
+        var temp = data.Temps.ForProperty(model, name);
+        data.Procedure.PropertyOps.Add(new OoPendingPropertyOp(
             temp, receiver.Form, receiver.Receiver, receiver.Interface?.ClrName ?? receiver.Class!.ClrName,
             get, set, name, objWritten, prelude, InterfaceClrName: receiver.Interface?.ClrName));
         return (temp, null);

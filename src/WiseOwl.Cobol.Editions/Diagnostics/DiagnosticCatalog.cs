@@ -6961,7 +6961,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2563 — a PROPERTY clause breaks one of §13.18.42.3's syntax rules (kb/Work PB1273): SR1 (only in
     /// the working-storage section of a factory or instance definition — <c>DataBinder.BindEntry</c>), SR3's elementary
     /// half (the clause-placement table's ElementaryOnly row), and SR2 / SR3's qualification half / SR5 / SR6, asked of
-    /// the item that carries the clause by <c>DataBinder.OoBindPropertyClauses</c>, and SR4 (the subject's data-name is
+    /// the item that carries the clause by <c>OoDataBinder.BindPropertyClauses</c>, and SR4 (the subject's data-name is
     /// a property-name defined in a superclass), asked once every roster of the group is complete by
     /// <c>OoClassTable.ResolveOverrides</c> (kb/Work PB1274 — source-order free). The site names the rule it caught.
     /// §13.16.3 SR21 keeps COBOL2333.</summary>
@@ -7369,9 +7369,9 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2790 — a GET or SET PROPERTY method (an explicit METHOD-ID, or an interface's prototype) breaks
     /// one of §11.7.3's property-method syntax rules (kb/Work PB1503): SR5, an explicit accessor for a data-name of the
     /// containing object's working storage that carries a PROPERTY clause (ANY PROPERTY clause, WITH NO GET / WITH NO SET
-    /// included — asked by <c>DataBinder.OoBindPropertyClauses</c>); SR6 / SR7, the accessor's BOUND procedure division
+    /// included — asked by <c>OoDataBinder.BindPropertyClauses</c>); SR6 / SR7, the accessor's BOUND procedure division
     /// header — the number of USING parameters, the RETURNING phrase, and an ACTIVE-CLASS formal or returning item
-    /// (asked by <c>DataBinder.OoBindMethodData</c>, the first point where the header is resolved). The site names the
+    /// (asked by <c>OoDataBinder.BindMethodData</c>, the first point where the header is resolved). The site names the
     /// rule it caught.</summary>
     public static readonly DiagnosticDescriptor PropertyMethodRule = new(
         "COBOL2790", "property-method-rule", EditionSeverity.Error,

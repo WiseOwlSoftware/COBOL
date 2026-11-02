@@ -177,9 +177,9 @@ public sealed class GlobalNameClassDriftTests
     {
         Assert.Equal(AskedByMethodShadowing.Keys.Order(StringComparer.Ordinal),
             NameIndexFields(typeof(OoMethodDataScope)).Order(StringComparer.Ordinal));
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Oo.cs"));
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoMethodDataScope.cs"));
         var m = Regex.Match(text, @"internal bool Declares\(string word\)\s*\{(?<body>.*?)\n    \}", RegexOptions.Singleline);
-        Assert.True(m.Success, "OoMethodDataScope.Declares not found in DataBinder.Oo.cs");
+        Assert.True(m.Success, "OoMethodDataScope.Declares not found in OoMethodDataScope.cs");
         foreach (var (index, ask) in AskedByMethodShadowing)
             Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
                 $"OoMethodDataScope.Declares no longer asks the method's name index '{index}' (expected '{ask}').");

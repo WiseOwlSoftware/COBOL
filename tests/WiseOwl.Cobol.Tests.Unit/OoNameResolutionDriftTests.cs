@@ -113,11 +113,11 @@ public sealed class OoNameResolutionDriftTests
                      Path.Combine("Binding", "Procedure", "ProcedureTableBuilder.cs"),// USE Format 4
                      // USAGE OBJECT REFERENCE lives in the DataBinder's Oo
                      // partial: kb/Work PB389 moved the §13.18.60.2 adjudication into
-                     // OoBindObjectRefDescriptor, and the written name is resolved there. DataBinder.cs
+                     // OoDataBinder.BindObjectRefDescriptor, and the written name is resolved there. DataBinder.cs
                      // itself no longer references a class-name or interface-name — and if one ever
                      // reappears there, EveryClassOrInterfaceNameLookup_IsTheFunnel_OrAdjudicated is the
                      // arm that fails, so dropping it from this list opens no hole.
-                     Path.Combine("Binding", "DataBinder.Oo.cs"),
+                     Path.Combine("Binding", "OoDataBinder.cs"),
                      Path.Combine("Binding", "RaisingPhrase.cs"),                     // PD-header + METHOD-ID RAISING (PB815)
                      Path.Combine("Binding", "Procedure", "Verbs", "OoBinder.cs"),    // INVOKE / SET class-name
                      Path.Combine("Binding", "ReferenceResolver.ObjectProperty.cs"),  // property-ref class-name object (PB1425)

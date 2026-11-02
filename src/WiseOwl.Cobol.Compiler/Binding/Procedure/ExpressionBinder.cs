@@ -1089,7 +1089,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// receiver list is built, and nowhere else.</summary>
     private Receiver ReceiverOf(Place resolved, Core.RoundedPhraseContext? rounded)
     {
-        ctx.Data.OoClaimInterleavedReceiver(resolved);
+        ctx.Data.Procedure.ClaimInterleavedReceiver(resolved);
         return new Receiver(resolved, RoundingOf(rounded));
     }
 
