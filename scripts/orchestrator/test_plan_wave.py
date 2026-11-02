@@ -1104,17 +1104,23 @@ def member_groups(*member_sets):
     return check_practices.claims_meet(MEMBER_GROUPS)
 
 
-check("check_practices O2 is a shared-MEMBER rule (kb/Work PB3670): different members of one primary file pass; one "
-      "member, or the whole file, refused",
+check("check_practices O2 is a shared-MEMBER rule (kb/Work PB4452): different members of one primary file pass, and so "
+      "does a group claiming the file whole; only one member both edit is refused",
       (member_groups(["Binder.Bind"], ["Binder.Sync"]), member_groups(["Binder.Bind"], ["Bind"]),
        member_groups(["Binder.Bind"], None)),
-      ([], ["A+B on src/X/Binder.cs#Binder.Bind"], ["A+B on src/X/Binder.cs"]))
-MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": [{"letter": "A", "root": "src/X/Binder.cs"},
-                                                              {"letter": "A2", "root": "src/X/Binder.cs", "after": "A"}]}),
+      ([], ["A+B on src/X/Binder.cs#Binder.Bind"], []))
+MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": [
+    {"letter": "A", "root": "src/X/Binder.cs", "member_set": {"src/X/Binder.cs": ["Binder.Bind"]}},
+    {"letter": "A2", "root": "src/X/Binder.cs", "after": "A", "member_set": {"src/X/Binder.cs": ["Binder.Bind"]}}]}),
                          encoding="utf-8", newline="\n")
-check("check_practices O2 refuses two groups whose claims meet even when one declares `after:` the other (one step per "
-      "file, kb/Work PB4396: no successor exception)", check_practices.claims_meet(MEMBER_GROUPS),
-      ["A+A2 on src/X/Binder.cs"])
+check("check_practices O2 refuses two groups editing one member even when one declares `after:` the other (no successor "
+      "exception, kb/Work PB4396)", check_practices.claims_meet(MEMBER_GROUPS),
+      ["A+A2 on src/X/Binder.cs#Binder.Bind"])
+MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": [{"letter": "A", "root": "src/X/Binder.cs"},
+                                                              {"letter": "B", "root": "src/X/Binder.cs"}]}),
+                         encoding="utf-8", newline="\n")
+check("check_practices O2: two groups claiming one file WHOLE run side by side (multiple editors per file, kb/Work "
+      "PB4452, owner 2026-11-02)", check_practices.claims_meet(MEMBER_GROUPS), [])
 
 
 def claim_groups(*claims):
@@ -1127,11 +1133,12 @@ def claim_groups(*claims):
 BIND_A = ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Bind"]})
 BIND_B = ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Sync"]})
 EMIT_B = ([F_EMIT, "src/X/Shared.cs"], {F_EMIT: ["Emitter.Emit"]})
-check("check_practices O2 asks the planner's rule over the WHOLE claim (kb/Work PB3696): a secondary file both groups "
-      "claim whole is a meeting, on one primary file or two; nothing shared is not",
+check("check_practices O2 reads the WHOLE claim by member (kb/Work PB3696, PB4452): a secondary file both groups claim "
+      "whole is no meeting, and a member both name on it is",
       (claim_groups(BIND_A, BIND_B), claim_groups(BIND_A, EMIT_B),
-       claim_groups(([F_BIND, "src/X/A.cs"], {F_BIND: ["Binder.Bind"]}), ([F_BIND, "src/X/B.cs"], {F_BIND: ["Binder.Sync"]}))),
-      (["A+B on src/X/Shared.cs"], ["A+B on src/X/Shared.cs"], []))
+       claim_groups(([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Bind"], "src/X/Shared.cs": ["Shared.Go"]}),
+                    ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Sync"], "src/X/Shared.cs": ["Shared.Go"]}))),
+      ([], [], ["A+B on src/X/Shared.cs#Shared.Go"]))
 
 # 8. THE FIX LANE WITHOUT --cluster IS UNCHANGED (kb/Work PB2120): the whole plan of this fixture, every group's
 #    rendered JSON included, equals the golden that the planner wrote BEFORE the campaign lane existed (committed
@@ -1346,12 +1353,68 @@ if fc:
     check("so the mixed dependent cluster follows the one Alpha.cs group instead of waiting",
           ([(g.letter, g.after, g.notes) for g in lp["groups"]], lp["waiting"]),
           ([("A", "", ["PB961", "PB962", "PB963"]), ("A2", "A", ["PB964", "PB965"])], {}))
-    # at the 2-note size the third Alpha.cs note is the group's OVERFLOW, and the dependents of it wait with it
+    # at the 2-note size the third Alpha.cs note runs BESIDE group A as a group of its own (multiple editors per file,
+    # kb/Work PB4452: no member of it meets A's), never as overflow that waits a wave; the dependents of both wait
     lp2 = pw.plan(lnotes, lopen, lhalf, [], lambda b: "ABSENT", {}, LRULES, budget_points=100, deps=ldeps)
-    check("PB4396: past the group size the Alpha.cs overflow waits for the next wave, and so do its dependents",
+    check("PB4452: past the group size the rest of the Alpha.cs family runs beside group A, not as overflow",
           ([(g.letter, g.notes, g.overflow) for g in lp2["groups"]], sorted(lp2["waiting"]),
            "ONTO group A's branch" in lp2["waiting"].get("PB963", "")),
-          ([("A", ["PB961", "PB962"], ["PB963"])], ["PB963", "PB964", "PB965"], True))
+          ([("A", ["PB961", "PB962"], []), ("B", ["PB963"], [])], ["PB964", "PB965"], False))
+    # ... and the side group FILLS before a third one opens (review w20261832a R1-1): five one-note clusters on one
+    # file claimed whole, at a 3-note size, are two groups of 3 and 2, never 3 + 1 + 1
+    FW = TMP / "fill" / "kb" / "Work"
+    FW.mkdir(parents=True)
+    for nid in ("PB971", "PB972", "PB973", "PB974", "PB975"):
+        (FW / f"{nid}.md").write_text(chr(10).join(["---", f'title: "{nid} t"', f"id: {nid}", "kind: defect", "status: open",
+                                                    "area: runtime/io", "wrong_answer: false", "process_only: true", "---",
+                                                    "", f"# {nid}", "", "**Sites:**", "- `src/Lib/Alpha.cs`", ""]),
+                                      encoding="utf-8", newline="\n")
+    fnotes = load_notes(FW, {"wrong_answer": 8})
+    fclusters = [{"notes": [{"id": i}], "file": "src/Lib/Alpha.cs", "files": ["src/Lib/Alpha.cs"], "members": {}}
+                 for i in ("PB971", "PB972", "PB973", "PB974", "PB975")]
+    fp = pw.plan(fnotes, fclusters, [], [], lambda b: "ABSENT", {}, rules_capped(RULES, 3), budget_points=100)
+    check("PB4452: a file family past one implementer's size fills a second group before a third opens",
+          ([g.notes for g in fp["groups"]], fp["waiting"]),
+          ([["PB971", "PB972", "PB973"], ["PB974", "PB975"]], {}))
+    # the home a dependent group joins (review w20261832a R2-2, R3-1): never a group on its file in ANOTHER dependency
+    # chain (it runs beside, after its own blocker), and always its own blocker's group when that one is on its file,
+    # successor or not (one step per file)
+    DW = TMP / "deps-home" / "kb" / "Work"
+    DW.mkdir(parents=True)
+    dsite = {"PB971": "src/Lib/Alpha.cs", "PB972": "src/Lib/Beta.cs", "PB973": "src/Lib/Alpha.cs"}
+    for nid, f in dsite.items():
+        (DW / f"{nid}.md").write_text(chr(10).join(["---", f'title: "{nid} t"', f"id: {nid}", "kind: defect", "status: open",
+                                                    "area: runtime/io", "wrong_answer: false", "process_only: true", "---",
+                                                    "", f"# {nid}", "", "**Sites:**", f"- `{f}`", ""]),
+                                      encoding="utf-8", newline="\n")
+    dnotes = load_notes(DW, {"wrong_answer": 8})
+    dclusters = [{"notes": [{"id": i}], "file": dsite[i], "files": [dsite[i]], "members": {}} for i in dsite]
+    drules = json.loads(json.dumps(RULES))
+    drules["wave"]["links_per_chain"] = 99
+    other = pw.plan(dnotes, dclusters, [], [], lambda b: "ABSENT", {}, drules, budget_points=100, deps={"PB973": ["PB972"]})
+    own = pw.plan(dnotes, dclusters, [], [], lambda b: "ABSENT", {}, drules, budget_points=100,
+                  deps={"PB972": ["PB971"], "PB973": ["PB971"]})
+    check("PB4452: a dependent group runs after its own blocker, beside a group on its file in another chain; and joins its "
+          "own blocker's group on its file even when that group has a successor",
+          ([(g.letter, g.after, g.notes) for g in other["groups"]], other["waiting"],
+           [(g.letter, g.after, g.notes) for g in own["groups"]], own["waiting"]),
+          ([("A", "", ["PB971"]), ("B", "", ["PB972"]), ("B2", "B", ["PB973"])], {},
+           [("A", "", ["PB971", "PB973"]), ("A2", "A", ["PB972"])], {}))
+    # ... and a group with NO blocker never joins a dependency SUCCESSOR on its file (review w20261832a R4-1): it runs
+    # beside, where the successor itself waits on the one-link-per-wave cap
+    fsite = {"PB971": "src/Lib/Alpha.cs", "PB972": "src/Lib/Beta.cs", "PB973": "src/Lib/Beta.cs"}
+    for nid, f in fsite.items():
+        (DW / f"{nid}.md").write_text(chr(10).join(["---", f'title: "{nid} t"', f"id: {nid}", "kind: defect", "status: open",
+                                                    "area: runtime/io", "wrong_answer: false", "process_only: true", "---",
+                                                    "", f"# {nid}", "", "**Sites:**", f"- `{f}`", ""]),
+                                      encoding="utf-8", newline="\n")
+    free = pw.plan(load_notes(DW, {"wrong_answer": 8}),
+                   [{"notes": [{"id": i}], "file": fsite[i], "files": [fsite[i]], "members": {}} for i in fsite],
+                   [], [], lambda b: "ABSENT", {}, {**drules, "wave": {**drules["wave"], "links_per_chain": 1}},
+                   budget_points=100, deps={"PB972": ["PB971"]})
+    check("PB4452: a group with no blocker runs beside a dependency successor on its file, never joins it to wait",
+          ([(g.letter, g.after, g.notes) for g in free["groups"]], sorted(free["waiting"])),
+          ([("A", "", ["PB971"]), ("B", "", ["PB973"])], ["PB972"]))
 
 # 9c. THE PLACEMENT ORDER IS THE TIER, AND A WAVE RUNS ONE LINK PER CHAIN (kb/Work PB3638, the owner's fix-cycle bar).
 #     Wave 20261029 chained two untiered FINISHERS (PB3112, PB2878) ahead of the tier-1 cluster PB3612 on one file,
@@ -1414,8 +1477,9 @@ for what, budget, cap, head_runs in (("the head runs", 100, None, True), ("the b
 # 9d. ONE STEP PER FILE (kb/Work PB4396, owner 2026-11-01: "One step per file"). Expected values from the note's
 #     acceptance: a planted register of 7 notes on ONE file plans ONE group (7 notes fit the turn budget: 65 + 20.5 x 7
 #     = 208.5 turns, under 0.75 x the implementer's cap); when the predicted turns exceed the budget, the group takes what
-#     fits and the rest is its OVERFLOW, which waits for the next wave to plan it ONTO the group's branch, and no two
-#     groups of the wave meet (check_practices.py's rule, with no `after:` exception).
+#     fits and the rest is its OVERFLOW, which waits for the next wave to plan it ONTO the group's branch: these notes
+#     all edit the one member Seven.Run (`inflight.hold`), so no second group may edit it beside (check_practices.py O2,
+#     no `after:` exception; kb/Work PB4452: work sharing only the FILE would run beside instead).
 SEVEN = [on_members("src/X/Seven.cs", ["Seven.Run"], f"PB{n}") for n in (6, 7, 8, 9, 10, 11, 12)]
 s7 = pw.plan(notes, SEVEN, [], [], lambda b: "ABSENT", {}, LIVE_RULES, budget_points=100)
 check("PB4396: seven notes on one file are ONE group under the live turn budget",
@@ -2606,9 +2670,10 @@ mw = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5"), on_members(F_BI
                      on_members(F_BIND, ["Sync"], "PB10"), cl(F_BIND, "PB11")],
              [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
 check("in a wave two groups on DIFFERENT MEMBERS of one primary file run side by side; one on the same member is that "
-      "group's work; one on the whole file meets both and unites them, one step per file family (PB4396)",
+      "group's work; one on the whole file joins the first with room and never unites them (multiple editors per "
+      "file, kb/Work PB4452)",
       ([(g.letter, g.after, g.notes) for g in mw["groups"]], mw["waiting"]),
-      ([("A", "", ["PB5", "PB9", "PB10", "PB11"])], {}))
+      ([("A", "", ["PB5", "PB11"]), ("B", "", ["PB9", "PB10"])], {}))
 mw2 = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5"), on_members(F_BIND, ["Binder.Sync"], "PB9"),
                       on_members(F_BIND, ["Sync"], "PB10")],
               [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)

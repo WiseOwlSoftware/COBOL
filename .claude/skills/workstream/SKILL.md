@@ -77,7 +77,7 @@ stamped `Review: CLEAN` at its head; one file's work is ONE group, its overflow 
 PB3381). **Args:** `{ scratch, wave, stop_file, global_stop, concurrency (6), groups: [{ letter,
 lead, notes, codes, after? }], review_fix_rounds (2), reviewer_ceiling_min (90) }`. **Return payloads are capped** (kb/Work PB1912): an implementer's `summary` is
 at most 900 characters, `leads` at most 6 of at most 500, a finisher's final text at most 25 lines; the detail lives in the report file. `check_practices.py
-<groups.json>` refuses two groups whose claims meet on any file or member, `after:` or not (`inflight.collision`, kb/Work PB3670, PB3696, PB4396).
+<groups.json>` refuses two groups that edit the same member, `after:` or not (`inflight.hold`); a shared file alone never refuses a pair (multiple editors per file, kb/Work PB4452).
 **Read `references/rolling-wave.md`** before you plan a chain, a successor, a campaign (`plan_wave.py --cluster <lead>`: a campaign is planned, never
 hand-picked, kb/Work PB2120), a review round or a spec render: it holds the review loop's rules, the findings-file reader, the successor chain and the renderer's full text.
 
