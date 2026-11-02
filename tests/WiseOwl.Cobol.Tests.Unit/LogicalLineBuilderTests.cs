@@ -235,11 +235,11 @@ public sealed class LogicalLineBuilderTests
     }
 
     [Fact] // a fixed-form program-text area is space-filled to margin R (DOC-A.1-157), so a bare >>D is followed by spaces there,
-           // and a debugging line of spaces is a blank line (6.5 2))
+           // and a debugging line of spaces is a blank line (6.5 2)) whose slot holds the bare carrier (kb/Work PB4412)
     public void FloatingDebuggingIndicator_AloneOnAFixedFormLine_IsABlankDebuggingLine()
     {
         var (m, bag) = Normalize("000100     >>D\n000200     STOP RUN.\n", InitialReferenceFormat.Fixed, 2002);
-        Assert.Equal("", m.Text.Split('\n')[0]);
+        Assert.Equal(Carrier, m.Text.Split('\n')[0]);
         Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);
     }
 
@@ -512,13 +512,13 @@ public sealed class LogicalLineBuilderTests
         Assert.Equal(Carrier + "    BC.", lines[1]);
     }
 
-    [Fact] // a debugging line of spaces is a blank line (§6.5 2)): discarded, so it is never the join target either
+    [Fact] // a debugging line of spaces is a blank line (§6.5 2)): never the join target, its slot the BARE carrier (kb/Work PB4412)
     public void DebuggingLine_OfSpaces_IsABlankLine()
     {
         string src = "000100     MOVE A TO X\n000200D\n000300-    Y.\n";
         var (m, _) = Normalize(src, InitialReferenceFormat.Fixed, 85);
         string[] lines = m.Text.Split('\n');
         Assert.Equal("    MOVE A TO XY.", lines[0]);
-        Assert.Equal("", lines[1]);
+        Assert.Equal(Carrier, lines[1]);
     }
 }

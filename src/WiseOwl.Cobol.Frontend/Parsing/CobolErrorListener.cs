@@ -98,9 +98,11 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
     /// <c>CALL</c> whose last arguments lay past margin R;</item>
     /// <item>a line BETWEEN the two tokens holds text ONLY past margin R: its program-text area is blank, so it reads as blank
     /// and a statement written there vanished wholly (kb/Work PB4372). A line between the tokens that HOLDS program text and
-    /// yet no token is text the compiler OMITTED (a false conditional-compilation branch, ISO §7.3.16.4 GR 3: "all lines of
-    /// text-1 are omitted from the resultant text"; a debugging line compiled without debugging mode), never a cut's effect,
-    /// and is not asked about.</item>
+    /// yet no token is one a later stage consumed (a directive, a COPY statement), and a line the compiler never read is
+    /// likewise no cut's effect, however little program text it holds (kb/Work PB4412): one a text stage OMITTED (a false
+    /// conditional-compilation branch, ISO §7.3.16.4 GR 3: "all lines of text-1 are omitted from the resultant text", which
+    /// <see cref="IMarginRCutLocator.MarginRCutAt"/> answers null for) or a debugging line compiled without debugging mode
+    /// (<see cref="DebuggingLineRewriter.AbsentLines"/>). Neither is asked about.</item>
     /// </list>
     /// Reported once per cut, as a warning beside the error.</summary>
     private void NoteMarginRCut(IRecognizer? recognizer, IToken? offending, SourceLocation errorAt)
@@ -121,10 +123,17 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
             ReportMarginRCut(before, "the statement that line began may have continued past it", errorAt);
         // A line between the two tokens holds no token, so none anchors a question about it. One that holds text ONLY past
         // margin R reads as blank, and a statement written there vanishes wholly (kb/Work PB4372). A line that HOLDS program
-        // text and yet stands tokenless was omitted by a stage after the reference format (a false >>IF branch, a debugging
-        // line without debugging mode), so it is not asked about. The column is immaterial: the question is of the line.
+        // text and yet stands tokenless is one a stage after the reference format consumed (a directive, a COPY statement),
+        // so it is not asked about. Nor is a line the compiler never read, which holds no program text either (kb/Work
+        // PB4412): one a text stage OMITTED (a false >>IF branch; the locator answers null for it, LineOrigin.Omitted) or a
+        // debugging line without debugging mode (a comment line: the rewriter's decision, read from the token stream).
+        // The column is immaterial: the question is of the line.
+        var absentDebugging = previous.Line + 1 < offending.Line && recognizer is Parser { TokenStream: { } stream }
+            ? DebuggingLineRewriter.AbsentLines(stream, previous.TokenIndex, offending.TokenIndex)
+            : null;
         for (int line = previous.Line + 1; line < offending.Line; line++)
-            if (cuts.MarginRCutAt(line, 0) is { } between && !between.Cut.HoldsProgramText && !between.Cut.IsSequenceNumber
+            if (absentDebugging?.Contains(line) != true
+                && cuts.MarginRCutAt(line, 0) is { } between && !between.Cut.HoldsProgramText && !between.Cut.IsSequenceNumber
                 && (between.At.FileName, between.At.Line) != (errorAt.FileName, errorAt.Line))
                 ReportMarginRCut(between, "the statement written on that line vanished, so the parse failed at the next one", errorAt);
     }
