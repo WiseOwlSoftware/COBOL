@@ -1,4 +1,4 @@
-## Error recovery: the nearest unterminated statement owns a left statement's terminator and phrases, and a hint 0i that named a legal statement start is silent (PB4447, PB4448, PB4449)
+## Entry 3006 — 2026-11-02 12:13 PST — Error recovery: the nearest unterminated statement owns a left statement's terminator and phrases, and a hint 0i that named a legal statement start is silent (PB4447, PB4448, PB4449)
 
 Three diagnostic-recovery defects from the review of the PB4436 branch, in `CobolErrorStrategy` and `AdmittedKinds`. Every
 program involved was already refused; the defects drew a false diagnostic (PB4447, PB4448) or lost a true one (PB4449).
@@ -89,3 +89,4 @@ the program is refused at its COBOL0001 whatever follows, and a refusal golden's
 present, so it cannot assert that a cascade diagnostic is absent; the unit theory asserts the exact diagnostic list.
 
 Gate after R2-1: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,382/39,382 · Characterization 37/37 cases ran (skipped 0) ===` (run 000001-20261102T195835Z at the code head a86d082e7; the DEVLOG line added after it is inert).
+
