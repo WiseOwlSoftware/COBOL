@@ -352,7 +352,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
     `BoundStatement.OperandEvaluation`, and `DrainPending` stamps an activation's profile there — a per-evaluation
     window's steps live inside a CONDITION or an OPERAND, where `EcWrap`'s statement-shaped stamp never reaches.
     `StatementBinder.BindStatement` wraps a statement that drained any in `BoundActivationSite` (the
-    `OperandEvaluations` save/zero/restore counter, so a nested statement's steps count only toward it).
+    `ProcedureBindState.OperandEvaluations` cursor, entered at zero per statement, so a nested statement's steps count only toward it).
     `StatementEmitter.EmitStatement` emits a marked step inside `DispatchState`'s operand-evaluation scope, and
     inside it the ONE landing, `DispatchState.ResumeTransfer`, THROWS `RaiseResumeSignal` for RESUME AT
     procedure-name and for RESUME AT NEXT STATEMENT; `EcEmitter.EmitActivationSite` catches it around the statement
@@ -526,8 +526,8 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
 **Automatic propagation — `>>PROPAGATE` (ISO §7.3.21; kb/Work PB1119).** The directive stage
 (`PropagateDirectiveProcessor`) collects ON/OFF toggles into a `DirectiveTimeline` like every line-scoped directive
 (PUSH/POP replayed; `DirectiveStateRegistry` carries it), and the binder folds them ONCE per source element at its
-first line (`PropagateState` → `DataBinder.AutomaticPropagation` for a program or function,
-`OoMethodSymbol.AutomaticPropagationHere` for a method — §7.3.21.4 GR1/GR3, default OFF by GR4). The emitter holds
+first line (`PropagateState` → `UnitChecking.AutomaticPropagation` for a program or function,
+`MethodChecking.AutomaticPropagation` for a method — §7.3.21.4 GR1/GR3, default OFF by GR4). The emitter holds
 the element's `AutomaticPropagation` (its GOBACK signal and its header RAISING classes) in `EcState.Propagation`, and
 the rule is applied where the fatal default is decided: `EcEmitter.EmitSelection` emits, between §14.6.13.1.3 5)
 (a declarative ran → terminate) and 7), `if (r == -3) <stage LAST; GOBACK>` — `ExceptionState.StageAutomaticPropagation`

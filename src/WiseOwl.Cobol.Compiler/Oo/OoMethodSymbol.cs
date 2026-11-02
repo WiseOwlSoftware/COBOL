@@ -43,37 +43,14 @@ public sealed record OoMethodSymbol(
     /// formal's class-level statics (numeric profiles) at CONTENT-conversion call sites.</summary>
     public OoClassSymbol Owner { get; set; } = null!;
 
-    /// <summary>The METHOD's half of §14.9.23.4 GR7c's "enabled in BOTH" gate: whether EC-OO-UNIVERSAL checking
-    /// is enabled for THIS method's procedure division header. Folded at BIND time from the compilation group's
-    /// line-keyed TurnState (<c>TurnState.EnabledAtHeader</c>) and baked by <c>OoEmitter</c> as a compile-time
-    /// literal.
-    ///
-    /// <para>⛔ It is folded HERE and not in the emitter because CODEGEN OWNS NO TurnState — every
-    /// <c>&gt;&gt;TURN</c> query in the compiler lives in the binder and codegen consumes only the results.
-    /// Reading TurnState from an emitter would be a second mechanism for a job the binder already does.</para>
-    ///
-    /// <para>The HEADER line is the query point: the raise sites are in the <c>__CobolInvoke</c> PROLOGUE — the
-    /// arity, per-argument descriptor and RETURNING checks, i.e. the conformance of the header's USING / RETURNING
-    /// — which run before any statement of the method body, and ISO §7.3.25.4 GR6 / GR8 scope a TURN to the
-    /// "procedure division headers that follow". A TURN between METHOD-ID and the header therefore governs it
-    /// (kb/Work PB1381; the METHOD-ID line used to be asked). A class- or program-level directive earlier in the
-    /// file is picked up for free, since the fold walks every event with a lower line.</para></summary>
-    public bool OoUniversalCheckingHere { get; set; }
-
-    /// <summary>Is automatic propagation of exception conditions enabled for this METHOD (ISO §7.3.21.4 GR1/GR3 —
-    /// "functions, methods, and programs that follow in the compilation group"; kb/Work PB1119)? Folded by
-    /// <c>BinderDriver</c> from the group's <c>PropagateState</c> at the METHOD-ID line (a synthesized PROPERTY
-    /// accessor: its CLASS-ID line), and read by <c>OoEmitter</c> into the emitter's per-element propagation
-    /// state.</summary>
-    public bool AutomaticPropagationHere { get; set; }
-
-    /// <summary>The METHOD's half of §14.8.4.1's "enabled in both the activating and activated runtime elements":
-    /// the <c>ExternalChecks</c> bits of the EC-EXTERNAL conditions enabled "before the Environment division" of this
-    /// method (<c>BinderDriver.ExternalMaskAt</c>, the one fold the program units' mask takes too), baked by
-    /// <c>OoEmitter.EmitMethod</c> as the self mask of the method activation's external-item registrations
-    /// (§14.9.23.4 GR7 d); kb/Work PB1138). Folded at bind time for the same reason as
-    /// <see cref="OoUniversalCheckingHere"/>: codegen owns no TurnState.</summary>
-    public int ExternalCheckMaskHere { get; set; }
+    /// <summary>The method's checking slice (<see cref="MethodChecking"/>): §14.9.23.4 GR7 c)'s EC-OO-UNIVERSAL half
+    /// at the method's PROCEDURE DIVISION HEADER, §14.8.4.1's activated-method EC-EXTERNAL mask and automatic propagation
+    /// (§7.3.21.4 GR1/GR3), written by <c>CheckingFold</c> once every method symbol exists and before any
+    /// method body binds, and read by <c>OoEmitter</c>.
+    /// <para>⛔ It is folded in the binder and not in the emitter because CODEGEN OWNS NO TurnState — every
+    /// <c>&gt;&gt;TURN</c> query in the compiler lives in the binder and codegen consumes only the results. Reading
+    /// TurnState from an emitter would be a second mechanism for a job the binder already does.</para></summary>
+    public MethodChecking Checking { get; set; } = MethodChecking.None;
 
     /// <summary>True for a FACTORY method (§11.4) — the SELF/SUPER roster selector and diagnostic wording;
     /// its formals' profiles/statics live on the FACTORY class, so CONTENT-conversion call sites qualify by

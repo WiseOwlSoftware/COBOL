@@ -16,7 +16,7 @@ using WiseOwl.Cobol.Runtime;
 /// same name in object data; and it is INVISIBLE to sibling methods, the legacy trap-#6 cross-wiring guard made
 /// structural): the per-method overlay <see cref="ReferenceResolver"/> and the condition-name lookup consult
 /// FIRST while binding this method's statements. Built by <see cref="DataBinder.OoBindMethodData"/>, activated
-/// per-pc by <c>StatementBinder.BindClassBody</c> through <see cref="DataBinder.ActiveMethodScope"/>.</summary>
+/// per-pc by <c>StatementBinder.BindClassBody</c> through <see cref="ProcedureBindState.ActiveMethodScope"/>.</summary>
 public sealed class OoMethodDataScope
 {
     public Dictionary<string, List<DataItem>> ByName { get; } = new(CobolNames.Comparer);
@@ -89,18 +89,14 @@ public sealed class OoMethodDataScope
 /// </summary>
 public sealed partial class DataBinder
 {
-    /// <summary>The name scope of the method whose statements are CURRENTLY being bound (set per-pc by
-    /// <c>StatementBinder.BindClassBody</c>; null while binding program/object-level code).</summary>
-    public OoMethodDataScope? ActiveMethodScope { get; set; }
-
     /// <summary>The METHOD a reference made now is made in: the method whose statements are being bound
-    /// (<see cref="ActiveMethodScope"/>), else the method whose data division is being bound (<see cref="_bindingMethodScope"/>);
+    /// (<see cref="ProcedureBindState.ActiveMethodScope"/>), else the method whose data division is being bound (<see cref="_bindingMethodScope"/>);
     /// null at program, object, factory and interface level. ⛔ THE ONE ANSWER every "which element am I in" lookup reads
     /// (kb/Work PB3192): a method's data division is part of the method's source element, so a reference its entries make
     /// (a constant's <c>LENGTH OF</c> operand, a TYPE clause's type-name) is answered from the method first (§11.7.4 GR5)
     /// exactly as one its statements make — <see cref="ActiveScope"/> used to read only the statement half, so the
     /// method's own data-names were invisible to its own data division.</summary>
-    private OoMethodDataScope? CurrentMethodScope => ActiveMethodScope ?? _bindingMethodScope;
+    private OoMethodDataScope? CurrentMethodScope => Procedure.ActiveMethodScope.Current ?? _bindingMethodScope;
 
     /// <summary>Whether the method a reference is made in (<see cref="CurrentMethodScope"/>) declares <paramref name="word"/>
     /// as a data-name, a condition-name, an index-name, a CAPACITY register, a type-name or a constant-name of its own
@@ -280,7 +276,7 @@ public sealed partial class DataBinder
     /// <summary>Method root (01/77) or method TYPE DECLARATION → its owning method symbol (M2-OO-1h), recorded when the
     /// method's entry opens it (<see cref="_bindingMethod"/>; kb/Work PB3192). The name registrations read it
     /// (<see cref="NameScopeOf"/>), and the post-build passes (OdoResolve, ResolveRedefines, ExpandTypes), which run with
-    /// <see cref="ActiveMethodScope"/> null, resolve a method item's data-name-1 / REDEFINES target / type-name through
+    /// <see cref="ProcedureBindState.ActiveMethodScope"/> null, resolve a method item's data-name-1 / REDEFINES target / type-name through
     /// its OWNING method's scope (§11.7.4 GR5), keyed off the item's root, never the class globals.</summary>
     internal Dictionary<DataItem, OoMethodSymbol> OoRootOwner { get; } = new(ReferenceEqualityComparer.Instance);
 
@@ -326,7 +322,7 @@ public sealed partial class DataBinder
     /// <summary>The lookup scope that OWNS <paramref name="anchorRoot"/> (M2-OO-1h): the owning METHOD's scope
     /// when the root — a record or a type declaration — is the method's (§11.7.4 GR5), else program scope. The
     /// post-build passes (OdoResolve, ResolveRedefines, the TYPE and SAME AS expansion) resolve through this —
-    /// <see cref="ActiveMethodScope"/> is null there, which is exactly why <c>LookupDataInScopeOf</c> existed — and so
+    /// <see cref="ProcedureBindState.ActiveMethodScope"/> is null there, which is exactly why <c>LookupDataInScopeOf</c> existed — and so
     /// does every NAME REGISTRATION of an item (<see cref="NameScopeOf"/>), at its bind or at a post-build copy.</summary>
     internal Model.Scope ScopeOf(DataItem anchorRoot) =>
         OoRootOwner.TryGetValue(anchorRoot, out var m) ? new Model.Scope(m.DataScope) : Model.Scope.Program;
@@ -694,7 +690,7 @@ public sealed partial class DataBinder
     /// that is no claimed property opens nothing.</summary>
     internal bool OoReceiverOpensAtRunTime(Place receiver, Bound.StoreKind kind)
     {
-        foreach (var op in OoPendingPropertyOps)
+        foreach (var op in Procedure.PropertyOps.Since(0))
             if (ReferenceEquals(op.Temp, receiver.Item))
                 return op.Interleaved
                     && (op.Prelude.Count > 0
@@ -714,49 +710,9 @@ public sealed partial class DataBinder
     {
         foreach (var receiver in receivers)
             if (receiver is not null)
-                foreach (var op in OoPendingPropertyOps)
+                foreach (var op in Procedure.PropertyOps.Since(0))
                     if (ReferenceEquals(op.Temp, receiver.Item)) { op.Interleaved = true; break; }
     }
-
-    /// <summary>The unit's un-drained property-reference ops (statement-scoped: BindStatement marks the
-    /// count on entry and drains only its own suffix, so a reference in an IF condition belongs to the IF,
-    /// not to an arm statement that binds later).</summary>
-    internal List<OoPendingPropertyOp> OoPendingPropertyOps { get; } = [];
-
-    /// <summary>⛔ THE ONE statement-scoped pending PRE-OP list — every activation that must run BEFORE the
-    /// carrying statement, in REGISTRATION order. Its clients register here:
-    /// <list type="bullet">
-    ///   <item>a user-defined function activation (<c>UdfBinder</c>, ISO §8.4.3.2.4 GR1 — the caller-side
-    ///         <c>BoundCallProgram</c> into the result temp), and an inline method invocation (§8.4.3.4.4 GR1);</item>
-    ///   <item>a D18 function-bearing subscript / ref-mod segment's §15.4 temporary store
-    ///         (<c>StatementBinder.BindPositionTemporary</c>, fix-queue PB17);</item>
-    ///   <item>a function argument's held value and its object-property GETs, placed at the argument's position by
-    ///         <c>ArgumentOrder</c> (§8.4.3.2.4 GR2; kb/Work PB1423, PB1932).</item>
-    /// </list>
-    /// <para>⛔ ONE LIST, NOT TWO, AND THAT IS A CORRECTNESS REQUIREMENT rather than tidiness: the two kinds
-    /// INTERLEAVE. A function subscript inside a user-function argument — <c>FUNCTION F(W-E(FUNCTION INTEGER(3)))</c>
-    /// — registers the subscript temp while F's arguments bind and F's activation after, so only a single list in
-    /// registration order puts the store before the activation that consumes it. Two parallel lists would have to
-    /// re-derive that ordering, and any rule for merging them would be a second mechanism for one job.</para>
-    /// <para>Both kinds are UNCONDITIONAL pre-ops with identical hoist rules, because §8.4.3.2.3 SR1 makes a
-    /// function-identifier a non-receiving operand — so unlike <see cref="OoPendingPropertyOps"/> there is no
-    /// store-polarity classification and there are no post-ops.</para>
-    /// <para>It lives on <c>DataBinder</c> because that is the ONLY binder both clients can reach: the procedure
-    /// dependency is one-way, <c>StatementBinder(DataBinder, ReferenceResolver)</c>, so ReferenceResolver's
-    /// materialization hook cannot register on <c>UdfBinder</c>. <c>UdfBinder.Mark</c> is the mark for the
-    /// mark-on-entry / drain-own-suffix protocol at the <c>BindStatement</c> chokepoint, and it now covers BOTH
-    /// kinds — which is why a function subscript in a per-evaluation window rides
-    /// <c>UdfAttachPerEvaluation</c> with no extra wiring.</para></summary>
-    internal List<Bound.BoundStatement> PendingPreOps { get; } = [];
-
-    /// <summary>How many OPERAND-EVALUATION steps (<see cref="Bound.BoundStatement.OperandEvaluation"/> — a
-    /// function reference, an inline method invocation, an object-property accessor, a §15.4 function-bearing
-    /// subscript's temporary store; kb/Work PB892, PB1432) the statement now binding has drained so far — the test
-    /// <c>StatementBinder.BindStatement</c> uses to wrap that statement in its <c>BoundActivationSite</c>
-    /// (kb/Work PB892). BindStatement saves it, zeroes it and restores it around each statement, so a nested
-    /// statement's activations count toward the nested statement only (§14.9.33.4 GR2 a) 3.: "the lowest level
-    /// statement, not the containing statement").</summary>
-    internal int OperandEvaluations { get; set; }
 
     /// <summary>Synthesize the GR1/GR2/GR3 compiler temp for one property reference: a level-1 elementary
     /// item CLONED from the accessor's crossing description (<paramref name="model"/> = the GET RETURNING

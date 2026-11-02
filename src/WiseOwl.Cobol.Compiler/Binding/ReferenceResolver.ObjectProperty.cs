@@ -162,7 +162,7 @@ public sealed partial class ReferenceResolver
         if (objRef is null && terminal is null) return default;
         string objWritten = objRef is not null ? DataBinder.WrittenText(objRef) : ObjectText(terminal!);
         RefResolution Refusal() => RefResolution.Refused(DataBinder.WrittenText(dref));
-        int preOpMark = data.PendingPreOps.Count;
+        int preOpMark = data.Procedure.PendingPreOps.Mark();
 
         PropertyReceiver receiver;
         if (objRef is null)
@@ -270,7 +270,7 @@ public sealed partial class ReferenceResolver
 
         // A property reference invokes the get / set accessor METHOD (§8.4.3.9.4 GR1/GR2): the source element
         // "invokes any method" for ISO §7.3.14.4 GR4 b, though the text is a qualified data reference.
-        data.ActivationSites.Add(dref);
+        data.State.ActivationSites.Add(dref);
 
         if (!data.OoRepositoryProperties.ContainsKey(name))
             data.Edition.Error("COBOL0843",
@@ -279,15 +279,14 @@ public sealed partial class ReferenceResolver
 
         // identifier-3's own evaluation — a view's conformance check, a function's activation, a subscript's — travels
         // with the property, ahead of its accessor (DataBinder.OoPendingPropertyOp.Prelude).
-        var prelude = data.PendingPreOps.GetRange(preOpMark, data.PendingPreOps.Count - preOpMark);
-        data.PendingPreOps.RemoveRange(preOpMark, prelude.Count);
+        var prelude = data.Procedure.PendingPreOps.DrainFrom(preOpMark);
 
         // ⛔ THE TEMP TAKES THE ACCESSOR'S WHOLE DESCRIPTION, A GROUP INCLUDED (kb/Work PB1448). §8.4.3.9.4 GR1: "The
         // data description of temp-1 is the same as the data description of the item specified in the RETURNING phrase
         // of the get property method", GR2 gives temp-2 the USING parameter's, and §8.4.3.9.3 SR5/SR6 admit the property
         // "wherever a data item with that description would be valid" as a sending / receiving item.
         var temp = data.OoCreatePropertyTemp(model, name);
-        data.OoPendingPropertyOps.Add(new DataBinder.OoPendingPropertyOp(
+        data.Procedure.PropertyOps.Add(new DataBinder.OoPendingPropertyOp(
             temp, receiver.Form, receiver.Receiver, receiver.Interface?.ClrName ?? receiver.Class!.ClrName,
             get, set, name, objWritten, prelude, InterfaceClrName: receiver.Interface?.ClrName));
         return (temp, null);

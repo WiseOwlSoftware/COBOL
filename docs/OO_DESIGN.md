@@ -707,7 +707,7 @@ prescribes (kb/Work PB1500):
   `DescribeExternals()` is), and every method prologue — before the module-stack push, i.e. before GR7 e)'s
   transfer — calls `ExternalStore.DescribeAtMethodActivation(__DescribeExternals, <mask>)`. §14.8.4.1's pair: the
   activating half is the INVOKE statement guard's EC-EXTERNAL checking flags (the CALL boundary reads the same
-  flags), the method's half is `OoMethodSymbol.ExternalCheckMaskHere`, folded before the METHOD's Environment
+  flags), the method's half is `MethodChecking.ExternalCheckMask`, folded before the METHOD's Environment
   division. A violation is a `CobolFatalException` carrying the Table 13 name, so the INVOKE's guard selects it like
   EC-OO-METHOD (kb/Work PB1138).
 
@@ -1197,7 +1197,7 @@ either INVOKE's written identifier or, for the inline form, the GR1 b)/c) TEMPOR
 typed/interface/universal identifier-1, class-name-1), `OoBindInstanceInvoke`, `OoBindClassInvoke`,
 `OoBindResolvedInvoke` and `OoBindInvocationArg` are shared verbatim; the inline binder adds exactly two things —
 `DataBinder.OoCreateInvocationTemp` (the GR1 b) clone of the method's own RETURNING item, so the delivery is an IDENTITY
-crossing and §14.8.3.3 has nothing to check) and registration of the activation on `DataBinder.PendingPreOps`, the ONE
+crossing and §14.8.3.3 has nothing to check) and registration of the activation on `ProcedureBindState.PendingPreOps`, the ONE
 statement-scoped pre-op list the user-function activation and the function-bearing subscript already use. It hoists
 through `UdfBinder.UdfWrapCalls` / `UdfAttachPerEvaluation` unchanged, because §8.4.3.4.3 SR1 gives the construct the
 same non-receiving property §8.4.3.2.3 SR1 gives a function-identifier: no store polarity, no post-ops. The expression
