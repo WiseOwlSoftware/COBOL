@@ -1,4 +1,4 @@
-## A reserved verb written as an operand is one COBOL0901, a verb that begins the next statement is not, and the next entry of a faulted one is parsed afresh (PB4208, PB4218, PB4207, PB4214)
+## Entry 2981 — 2026-11-01 21:59 PST — A reserved verb written as an operand is one COBOL0901, a verb that begins the next statement is not, and the next entry of a faulted one is parsed afresh (PB4208, PB4218, PB4207, PB4214)
 
 Four notes with one root, the error strategy (`CobolErrorStrategy`, `CobolParserCoreBase`), fixed together in harm order.
 
@@ -83,3 +83,4 @@ build. It takes `Program` now; a tree search for a reserved verb used as another
 change names `ReadingParses`, `FollowSet` and `ReadingParsesFollowDriftTests` as the pin there and in the `entryNameHere` paragraph, and drops the last
 `LookaheadBeginsAStatementThatParses` from section 3.11. The four landed notes' **Sites:** now name the members the diff touched (the deleted member is gone
 from PB4207's), including `ReservationGateRewriter.ParseToFixpoint` for PB4218. PB4285 keeps items 2 and 3, its item 1 recorded as landed.
+
