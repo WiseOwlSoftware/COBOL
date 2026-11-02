@@ -1623,16 +1623,29 @@ target:
   (`IF A DISPLAY "Z" IF B IF C ELSE … END-IF END-IF ELSE DISPLAY "Y" END-IF`: IF A ended before IF B), so `NoteLeftBefore`
   climbs the enclosing statements, not only the nearest, and records each preceding unterminated statement that ends in
   a block. Without the record the left IF A's ELSE drew COBOL0001 and its END-IF a false COBOL0306.
-  **A phrase word of a left statement is its own** (PB4436, branch review R1-1): ending the error condition at the consumed
-  terminator unmasks the failure at the next phrase word of an enclosing statement the prediction already closed early
-  (`IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.`: the ELSE, a WHEN or a WHEN OTHER of an EVALUATE or SEARCH
-  after a malformed IF). `Report` suppresses it (`ContinuesAStatementTheRecoveryLeft`, after the terminator test) when a
-  record still due something belongs to a statement whose rule lets that word follow an imperative block
-  (`PhraseWords`, read from the ATN once per rule: what follows each `statementBlock` call in the rules the statement
-  reaches, a block that ends its rule followed by what follows the call, minus the scope terminators), under the same
-  record hygiene as the terminator test (`TakenByALeftStatement`), and only where the statement before the word is
-  complete (`AStatementMayEndBefore`: `IF A MOVE B TO ADD 1 TO ELSE …` is the ADD's own fault at the ELSE). The word is the one fault re-met, not a tail to discard:
-  the recovery goes on, so a genuine later fault in the sentence is still reported.
+  **A phrase word of a left statement is its own, while its format permits another occurrence** (PB4436 branch review R1-1,
+  PB4449; ISO §14.5.3.3 4): "Any phrase encountered is the next phrase of the most-recently preceding unterminated
+  statement with which that phrase may be syntactically associated. If all permitted occurrences of a phrase have already
+  been specified for a given statement, a subsequent occurrence of that phrase is not syntactically associated with that
+  statement"). Ending the error condition at the consumed terminator unmasks the failure at the next phrase word of an
+  enclosing statement the prediction already closed early (`IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.`: the ELSE,
+  a WHEN or a WHEN OTHER of an EVALUATE or SEARCH after a malformed IF). `Report` suppresses it
+  (`ContinuesAStatementTheRecoveryLeft`, after the terminator test) when a record still due something takes the phrase
+  (`IsTheNextPhraseOf`), under the same record hygiene as the terminator test (`TakenByALeftStatement`), and only where
+  the statement before the word is complete (`AStatementMayEndBefore`: `IF A MOVE B TO ADD 1 TO ELSE …` is the ADD's own
+  fault at the ELSE). **Which phrases a format permits, and how often, is the ATN's, read by a walk.** Each record holds
+  the phrase words taken for it (`LeftStatement.Phrases`: the ELSE `Recover` consumed at the fault, and each one `Report`
+  suppressed), and the word is its own where `ResimulationWalk.AfterABlockOf(rule)`, seeded after every imperative block
+  of the statement's rule (`BlockFollows`: each `statementBlock` call in the rules the statement reaches, with the frames
+  of the calls on the way, never into a nested statement), takes the earlier phrases and then this one
+  (`TakesPhraseAt`: the phrase's words, one token at a time, up to the first position that takes a statement, then one
+  CONTINUE for the block, whatever statements really stand there). A second ELSE, or a WHEN or WHEN OTHER after the WHEN
+  OTHER, is then taken by no record and reported as the same word is after a statement the parse did not leave (COBOL2269,
+  COBOL2073), naming the IF or EVALUATE (`NameOfALeftStatementPrinting`), not the statement before it. The word is the one
+  fault re-met, not a tail to discard: the recovery goes on, so a genuine later fault in the sentence is still reported.
+  Not covered: the paired conditional phrases (`NOT ON SIZE ERROR` twice after a left ADD, READ, …) are one
+  `conditionalPhrases` loop whose occurrences a PREDICATE counts (`ConditionalPhraseAssociation`), which a walk does not
+  evaluate, so a repeat of one after a left statement is still silent.
 - ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
   Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that
   calls a WHEN OTHER rule, both read from the ATN): a phrase is misplaced where the construct already holds one (the
