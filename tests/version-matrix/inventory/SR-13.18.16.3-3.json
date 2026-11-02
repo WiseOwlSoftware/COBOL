@@ -6,10 +6,10 @@
  "subject": "CONTROL clause",
  "rule-digest": "190b9f9288ef",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandShapeViolation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandShapeViolation; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef",
  "test-ref": "conformance:cases/13.18.16-CONTROL/pb177-control-occurs; conformance:cases/13.18.16-CONTROL/pb205-control-operand-subscripted",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "The shape arm (kb/Work PB177 arm C) rejects an operand subject to any OCCURS clause, recognised with DataItem.IsTable so both dynamic-capacity shapes are covered. kb/Work PB205 added the WRITTEN half: a subscript on the operand was dropped at capture, and since SR3 bars the OCCURS case and 8.4.2.3.3 SR2 bars a subscript on an item without one, no subscripted control operand is legal - it is now rejected on the spelling, not only on the item.",
+ "notes": "The shape arm (kb/Work PB177 arm C) rejects an operand subject to any OCCURS clause, recognised with DataItem.IsTable so both dynamic-capacity shapes are covered. kb/Work PB205 added the WRITTEN half: a subscript on the operand was dropped at capture, and since SR3 bars the OCCURS case and 8.4.2.3.3 SR2 bars a subscript on an item without one, no subscripted control operand is legal - it is now rejected on the spelling, not only on the item. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandRef (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ControlOperandShapeViolation (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
  "state": "OK"
 }

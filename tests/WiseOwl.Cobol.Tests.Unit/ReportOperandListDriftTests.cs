@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// items … If no further operands remain, assignment begins again from the first operand"). The compiler holds
 /// ONE operand list (<see cref="ReportFieldModel.Sources"/>), ONE cycling reader
 /// (<see cref="ReportFieldModel.SourceAt"/>) and ONE syntax screen
-/// (<c>DataBinder.Reports.ScreenRepeatingOperandCount</c>), each fed by both clauses.</para>
+/// (<c>ReportSectionBinder.ScreenRepeatingOperandCount</c>), each fed by both clauses.</para>
 ///
 /// <para>GR23's SECOND sentence — the wrap-around — has no reachable COBOL source today: SR35 admits a short
 /// operand list only when a HIGHER-level repeating entry multiplies the count, and both higher-level vehicles
@@ -118,7 +118,7 @@ public sealed class ReportOperandListDriftTests
         var indexer = new Regex(@"\bSources\s*\[", RegexOptions.Compiled);
         var hits = sources
             .SelectMany(s => indexer.Matches(s.Text).Select(_ => s.Rel))
-            .Where(rel => !rel.EndsWith(Path.Combine("Binding", "ReportSectionBinder.cs"), StringComparison.Ordinal))
+            .Where(rel => !rel.EndsWith(Path.Combine("Binding", "ReportModel.cs"), StringComparison.Ordinal))
             .ToList();
         Assert.True(hits.Count == 0,
             "ReportFieldModel.Sources is indexed outside its own model file; ISO §13.18.63.4 GR23 / §13.18.53.4 "

@@ -35,7 +35,7 @@ public sealed class InheritedGlobals
 
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
     /// container (<see cref="Files"/>), 0 for any other — the file-name twin of <see cref="DataBinder.DeclaringDepth"/>
-    /// and <see cref="DataBinder.ReportDepth"/>, so a name a container declares as a file and a nearer element declares
+    /// and <see cref="ReportScope.Depth"/>, so a name a container declares as a file and a nearer element declares
     /// as something else resolves to the nearer declaration (§8.4.6.2.1 3); kb/Work PB4219).</summary>
     public int FileDepth(FileModel file) => _fileDepths.GetValueOrDefault(file);
 
@@ -65,7 +65,7 @@ public sealed class InheritedGlobals
     /// <summary>The containers' GLOBAL reports, nearest container first, each with how many containment levels out it
     /// lives (the <c>__outer</c> chain length a reference to its storage renders through). Like a GLOBAL FD, the report is
     /// SHARED, never re-declared: the child's verbs hold the container's <see cref="ReportModel"/>. Offered here and made
-    /// visible by the unit's own data division at the end of its declaration half (<c>DataBinder.InheritContainerReports</c>),
+    /// visible by the unit's own data division at the end of its declaration half (<c>ReportSectionBinder.InheritContainerReports</c>),
     /// so the unit's own clauses that name a report item (FILE STATUS, ODO, ASSIGN USING) see them (kb/Work
     /// PB3766).</summary>
     public IReadOnlyList<(ReportModel Report, int Depth)> Reports { get; private set; } = [];

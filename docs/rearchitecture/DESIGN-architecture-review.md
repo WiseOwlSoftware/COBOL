@@ -663,7 +663,7 @@ the assemblies contain that the file does not place fails the test. The file's c
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2347 (the StatementBinder move)" },
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 18, "removedBy": "PB2347 (StatementBinder, the parse-context reader, out of Bound/) and PB2398 (BoundOo.cs's parse-context use becomes a bound-node fact)" },
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Parsing", "uses": 1, "removedBy": "PB2347 and PB2398 (the StatementBinder move and the parse-context extract)" },
-    { "from": "WiseOwl.Cobol.Binding", "to": "WiseOwl.Cobol.Validation", "uses": 15, "removedBy": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, DataBinder.Reports.cs:3777), the pair no move of BinderDriver removes (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.Binding", "to": "WiseOwl.Cobol.Validation", "uses": 15, "removedBy": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends ReportSectionBinder -> VersionConformancePass (PictureConstructId to PicInfo, ReportSectionBinder.cs, the SUM clause PICTURE screen), the pair no move of BinderDriver removes (Draft 6, G1)" },
     { "from": "WiseOwl.Cobol.Binding.Passes", "to": "WiseOwl.Cobol.Validation", "uses": 1, "removedBy": "PB2320 (BindPipeline's VersionConformancePass row, BindPipeline.cs:163, goes with the driver's pass schedule)" },
     { "from": "WiseOwl.Cobol.Binding.Procedure", "to": "WiseOwl.Cobol.Validation", "uses": 2, "removedBy": "PB2320 and PB2404 (the same moves)" },
     { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding", "uses": 93, "removedBy": "PB2361 and PB2375 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs; PlaceBuilder runs at bind time, so UnitEmitters.Refs and the 24 emit-time ReferenceResolver.ResolveItem calls go), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1)" },
@@ -1068,7 +1068,7 @@ know which of them has run. And four facts ACCUMULATE across phases, which no si
   (`DataBinder.cs:718`), and `UsageCollectionPass.Collect` adds the boundary formals and the whole-group operands at
   UsageCollected (`Passes/UsageCollectionPass.cs:73-110`); `StorageFormPass` reads the union (`StorageFormPass.cs:65`).
 - `ImageForcedItems` is appended at resolve time (Tier-B and CALL-cell REDEFINES leaves, FILE record leaves, report
-  print faces: `DataBinder.cs:742,7567,7581`, `DataBinder.Linkage.cs:868`, `DataBinder.Reports.cs:3210`) and during
+  print faces: `DataBinder.cs:742,7567,7581`, `DataBinder.Linkage.cs:868`, `ReportSectionBinder.cs`) and during
   procedure binding (`MoveBinder`'s figurative-fill and ref-mod-store receivers, `Procedure/Verbs/MoveBinder.cs:458,551`),
   and it is read MID-BIND in statement order (`IsImageBackedEarly`, `ReferenceResolver.cs:651,1057`: "a fact recorded
   by an earlier statement's bind is visible to a later statement's; one recorded later is not", `DataBinder.cs:278-284`),
@@ -1213,7 +1213,7 @@ roots; a lookup reads the child's own declarations first and this slice after �
 writes the rest at `GlobalsInherited`, after the last data phase and before ProcedureBound: the formals'
 omitted-argument guards (`MarkFormals`, a write to the formals' items, ordered by the step as today), the GLOBAL
 bridges and the drop of an inherited constant a nearer data-name hides. A container's GLOBAL reports and GLOBAL data
-subtrees are made visible INSIDE the unit's declaration half (`DataBinder.InheritContainerReports`,
+subtrees are made visible INSIDE the unit's declaration half (`ReportSectionBinder.InheritContainerReports`,
 `InheritContainerGlobalData`; kb/Work PB3766, PB4199), because the unit's own FILE STATUS, KEY, DEPENDING ON and ASSIGN
 USING clauses name them, so the step offers them in its seed half rather than merging them after the data phases. The
 inherited constant-names still join the unit's own constant table (`InheritGlobalConstants`, called by the seed half,
@@ -1256,6 +1256,21 @@ immutable record that replaces `DataBinder` on `BoundUnit.Data`, `BoundCompilati
 `EmitContext.Data` (§8.1's largest refusal). `DataBinder` keeps only the orchestration that builds the state, runs the
 pipeline and returns the result (`DESIGN-module-topology.md` §2.5's "thin orchestrator + named passes", with the
 slices and fact sets as the seam it lacked).
+**The report section (step 7, PB2357).** The `Reports` partial (5,341 lines, of which the first thousand were the report
+model types) is three files and two classes. `ReportModel.cs` holds the model types, unchanged. `ReportSectionBinder`
+(`Binding/ReportSectionBinder.cs`, `DataBinder.ReportSection`) is the binder: it binds the RD entries
+(`BindReportSection`), resolves them after the data division is built (`ResolveReports`, the `FilesResolved` pass of that
+name), makes a container's GLOBAL reports visible (`InheritContainerReports`) and answers the report-item refusal
+(`ReportEntryReferenceRefused`, §13.8.6.2.3); it reaches the data binder's shared helpers (the clause-operand resolvers,
+the picture screens, the unique-id counter) through the `DataBinder` it is built with, which the later steps that extract
+those helpers replace one by one. `ReportScope` (`Binding/ReportScope.cs`, `DataBinder.Reports`) is the read side the binder
+writes: `Declared`, `Visible`, `Depth`, the sum counters, the refused PRESENT WHEN conditions and the three name lookups over
+them (`EntriesNamed`, `NearerEntryHides`, `NearestInScope`); it holds no binder, so it is what `DataBindResult` carries
+at step 11. `DataBinder.SumCounters` stays the gated view of `ReportScope.SumCounters` (the `FilesResolved` watermark).
+The code generator, the symbol table and `StatementBinder` read `ReportScope`, a type in `WiseOwl.Cobol.Binding` beside
+`ReportModel`, so their new pairs are tolerated in `architecture-edges.json` with the removers of their `ReportModel`
+pairs (PB2420, PB2347), and `ReportSectionBinder` replaces `DataBinder` as the owner of the two `Validation` pairs
+(`VersionConformancePass`, `IntegerOperandRules`).
 *Seam:* `IBindPass` over its declared views (value slices and fact sets), `ProcedureBindState`'s three shapes, and
 `DataBindResult`; step 1 (PB2296) carries every field named above. *Steps:* PB2296,
 PB2352–PB2361.

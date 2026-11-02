@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ISO §13.18.38.4 GR10 says a repeating entry "causes the entry to define integer-2 distinct report items" and
 /// GR11 says every clause has "the same effect on each repetition as they would on a single data item without
 /// the OCCURS clause" — so the ONE correct shape is to bind the entry's subtree once per repetition, not to
-/// teach each clause about repetition. <c>DataBinder.BindReportEntries</c> does exactly that, which is why
+/// teach each clause about repetition. <c>ReportSectionBinder.BindReportEntries</c> does exactly that, which is why
 /// §13.18.63.4 GR21's import of GR9 (a VALUE reaches every occurrence), GR22's OCCURS-DEPENDING suppressor and
 /// §13.18.64's VARYING counters all became correct at once.
 ///
@@ -36,6 +36,9 @@ public sealed class ReportRepeatingEntryDriftTests
 {
     private static string BinderText() => File.ReadAllText(
         Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "ReportSectionBinder.cs"));
+
+    private static string ModelText() => File.ReadAllText(
+        Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "ReportModel.cs"));
 
     private static string EmitterText() => File.ReadAllText(
         Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "CodeGen", "Verbs", "ReportWriterEmitter.cs"));
@@ -61,9 +64,9 @@ public sealed class ReportRepeatingEntryDriftTests
     [Fact]
     public void EveryColumnPlacementKind_IsReadByBothPlacementReaders()
     {
-        string binder = BinderText(), emitter = EmitterText();
+        string binder = BinderText(), emitter = EmitterText(), model = ModelText();
         var kinds = Regex.Matches(
-                binder[binder.IndexOf("public enum ReportColumnKindModel", StringComparison.Ordinal)..],
+                model[model.IndexOf("public enum ReportColumnKindModel", StringComparison.Ordinal)..],
                 @"^\s{4}(\w+),\s*$", RegexOptions.Multiline)
             .Select(m => m.Groups[1].Value).ToList();
         // Population: the enum really has the four placement kinds this guard was written for.
@@ -123,12 +126,12 @@ public sealed class ReportRepeatingEntryDriftTests
     [Fact]
     public void EveryLinePlacementKind_IsDeclaredByBothTheModelAndTheEngine()
     {
-        string binder = BinderText();
+        string binder = BinderText(), modelText = ModelText();
         string runtime = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Runtime"), "IO", "ReportWriter.cs"));
         // The members are read OFF the declaration — a new kind fails here until both declarations name it,
         // rather than being compared against a list this test would have to be taught about.
         var model = Regex.Matches(
-                binder[binder.IndexOf("public enum ReportLineKindModel", StringComparison.Ordinal)..].Split('}')[0],
+                modelText[modelText.IndexOf("public enum ReportLineKindModel", StringComparison.Ordinal)..].Split('}')[0],
                 @"\w+")
             .Select(m => m.Value)
             .Where(w => w is not ("public" or "enum" or "ReportLineKindModel"))

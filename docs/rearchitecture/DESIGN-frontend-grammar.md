@@ -765,7 +765,7 @@ order" can only be spelled as a repetition, and its "each once" is a later phase
 omission or repetition is named the same way the optional-word decision is, `// audit:required-word <WORD> …
 decided-by <Type>.<Member>` and `// audit:repeated-word …` (several words may share one line): SUBTRACT's FROM
 (`ArithmeticBinder.BindSubtract`), SEND's END-SEND (`DeclinedFacilityBinder.ScreenSendRequiredPhrases`), CONTROL's
-FINAL and the PAGE clause's phrases (`DataBinder.BindReportDescriptionClauses`), OCCURS DYNAMIC's phrases
+FINAL and the PAGE clause's phrases (`ReportSectionBinder.BindReportDescriptionClauses`), OCCURS DYNAMIC's phrases
 (`DataBinder.NarrowToDataDivisionFormats`). Its known catches, replayed as a control run, are PB755 (`LOCK ON?`),
 PB756 (`ALTERNATE RECORD?`) and PB1183's shape (`unstringIntoPhrase+`). A compiler directive's format (§7.3, "IF
 directive") is the preprocessor's and is never joined to a parser rule that shares its keyword.

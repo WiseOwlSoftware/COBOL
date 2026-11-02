@@ -276,7 +276,7 @@ public sealed class SymbolTable
     /// candidate, and yields the reference to the data-name when the answer is yes: a contained program's `01 IX` or
     /// `01 CAP` hides its container's global table's index-name or register exactly as its `01 X` hides the
     /// container's global `X`. At EQUAL depth the other class keeps the reference. A REPORT SECTION entry is such a
-    /// data-name of its source element too (<see cref="DataBinder.NearerReportEntryHides"/>, kb/Work PB4196): the
+    /// data-name of its source element too (<see cref="ReportScope.NearerEntryHides"/>, kb/Work PB4196): the
     /// reference is then the report entry's, refused by the callers' unidentified-reference report (§13.8.6.2.3). Free
     /// for a unit that inherits nothing (every candidate is then depth 0).</summary>
     public bool NearerDataNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>

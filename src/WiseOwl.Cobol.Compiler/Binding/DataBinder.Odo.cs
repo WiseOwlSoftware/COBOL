@@ -117,7 +117,7 @@ public sealed partial class DataBinder
     /// <summary>⛔ THE DATA DIVISION'S OCCURS CLAUSE IS FORMAT 1, 2 OR 4 — NARROWED HERE FROM THE GRAMMAR'S SUPERSET
     /// (kb/Work PB1265). <c>occursClause</c> parses every phrase of every format optionally and Format 4's phrases in
     /// any order and number, so that the refusal can name the rule; the report section narrows the same parse to
-    /// Format 3 (<c>DataBinder.Reports.cs#ReportOccursOf</c>), and this is the other arm. ISO §13.18.38.2:
+    /// Format 3 (<c>ReportSectionBinder.cs#ReportOccursOf</c>), and this is the other arm. ISO §13.18.38.2:
     /// <list type="bullet">
     /// <item>Format 2 prints <c>integer-1 TO integer-2 TIMES DEPENDING ON data-name-1</c> with nothing bracketed, so a
     /// TO without DEPENDING and a DEPENDING without TO are each in no data-division format (the bracketed
@@ -409,7 +409,7 @@ public sealed partial class DataBinder
             // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's order, kept by the lookup itself since PB4196,
             // ISO §8.4.6.2.1 3) a)).
             if (!declaration && tier.Count != 1
-                && ReportSection.EntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
+                && ReportSection.ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
                 continue;
             if (tier.Count == 0)
             {

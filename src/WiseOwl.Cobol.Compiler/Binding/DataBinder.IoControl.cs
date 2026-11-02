@@ -279,7 +279,7 @@ public sealed partial class DataBinder
         using var reportAt = Edition.At(at);
         if (Reports.EntriesNamed(name, quals) is [var (report, _), ..] && Reports.Depth(report) < fileDepth
             && !dataItems.Any(i => DeclaringDepth(i) <= Reports.Depth(report)))
-            return ReportSection.EntryReferenceRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals);
+            return ReportSection.ReportEntryReferenceRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals);
         if (global is not null && !dataItems.Any(i => DeclaringDepth(i) < fileDepth))
         {
             ApplyCommitRule($"'{global.CobolName}' is a file of a containing source element declared with the GLOBAL clause, "

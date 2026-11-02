@@ -6,10 +6,10 @@
  "subject": "SUM clause",
  "rule-digest": "93274565c78b",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryPicture; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#NumericSenderRefusal",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#NumericSenderRefusal; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryPicture",
  "test-ref": "conformance:cases/13.18.54-SUM/pb1295-sum-entry-alphabetic; conformance:cases/13.18.54-SUM/pb1295-sum-entry-boolean; conformance:cases/13.18.54-SUM/pb1295-sum-entry-unprintable-alphabetic",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1295 landed 2026-10-04 (wave 1012 G): the SUM entry's PICTURE category is asked of the one MOVE validity chain with a numeric sender (COBOL2750). DETERMINATION (docs/CONFORMANCE.md): the sender is the INTEGER numeric row, so only what the integer row refuses (alphabetic, boolean) is refused.",
+ "notes": "kb/Work PB1295 landed 2026-10-04 (wave 1012 G): the SUM entry's PICTURE category is asked of the one MOVE validity chain with a numeric sender (COBOL2750). DETERMINATION (docs/CONFORMANCE.md): the sender is the INTEGER numeric row, so only what the integer row refuses (alphabetic, boolean) is refused. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryPicture (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
  "state": "OK"
 }

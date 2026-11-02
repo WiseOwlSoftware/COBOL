@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -12,7 +11,6 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
-using WiseOwl.Cobol.Compiler.Oo;
 using ReportNextGroup = WiseOwl.Cobol.Runtime.IO.ReportNextGroup;
 using ReportNextGroupKind = WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind;
 using WiseOwl.Cobol.Runtime;
@@ -35,7 +33,7 @@ public sealed class ReportModel
     public required string Name { get; init; }
 
     /// <summary>The report description entry's own source position — the cursor every post-build rule about the report
-    /// (<c>DataBinder.ResolveReports</c>) is reported at when no finer position is known, so an RD diagnostic is never
+    /// (<c>ReportSectionBinder.ResolveReports</c>) is reported at when no finer position is known, so an RD diagnostic is never
     /// printed without a file and line (kb/Work PB2034).</summary>
     public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; init; }
 
@@ -116,7 +114,7 @@ public sealed class ReportModel
 
     /// <summary>The SUM counters of this report (ISO §13.18.54), one per OCCURRENCE, in counter-id order (the
     /// index of a counter in this list IS its <see cref="ReportSumModel.Id"/> once the description is bound —
-    /// <c>DataBinder.SealSumCounters</c>).</summary>
+    /// <c>ReportSectionBinder.SealSumCounters</c>).</summary>
     public List<ReportSumModel> Sums { get; } = [];
 
     /// <summary>The SUM ENTRIES of this report, one <see cref="ReportSumFamily"/> per entry containing a SUM clause

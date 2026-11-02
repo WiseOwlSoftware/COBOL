@@ -6,18 +6,27 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
-using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using ReportEntryLocation = WiseOwl.Cobol.Binding.DataBinder.ReportEntryLocation;
-using WiseOwl.Cobol.Compiler.Oo;
 using ReportNextGroup = WiseOwl.Cobol.Runtime.IO.ReportNextGroup;
 using ReportNextGroupKind = WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind;
+using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 
+/// <summary>
+/// The REPORT SECTION's binder (ISO/IEC 1989:2023 §13.6 report section / §13.14 report description / §13.15 report group
+/// description; docs/REPORT_WRITER_DESIGN.md §3; kb/Work PB2357, step 7 of the <see cref="DataBinder"/> extract): binds each RD
+/// entry into a <see cref="ReportModel"/> (<see cref="BindReportSection"/>), resolves the names those entries use once the data
+/// division is built (<see cref="ResolveReports"/>), makes a container's GLOBAL reports visible
+/// (<see cref="InheritContainerReports"/>) and answers the report-item refusal every other section's name lookup asks
+/// (<see cref="ReportEntryReferenceRefused"/>, §13.8.6.2.3). It writes <paramref name="scope"/>, the facts later phases read, and
+/// reaches the data binder's shared helpers (clause-operand resolution, picture screens, unique ids) through
+/// <paramref name="host"/>, the <see cref="DataBinder"/> that owns it.
+/// </summary>
 internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 {
     private readonly DataBinder _d = host;
@@ -28,7 +37,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the end of <see cref="DataBinder.BindDeclarations"/> — after this unit's own report-name and data-names are declared, so
     /// a name it declares hides the container's (§8.4.6.2), and BEFORE <see cref="DataBinder.BindResolve"/>, so every clause of
     /// this unit's own data division that names a report item (FILE STATUS, RELATIVE KEY, OCCURS … DEPENDING ON,
-    /// ASSIGN … USING) finds the inherited report when it asks <see cref="EntryReferenceRefused"/> (§13.8.6.2.3).
+    /// ASSIGN … USING) finds the inherited report when it asks <see cref="ReportEntryReferenceRefused"/> (§13.8.6.2.3).
     /// Inheriting after the whole <c>Bind</c> left those clauses telling a programmer that a name the container's
     /// report declares is "not defined" (kb/Work PB3766).</summary>
     internal void InheritContainerReports()
@@ -60,7 +69,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <c>BindFileControl</c>/<c>BindFileSection</c> (the FD REPORT clauses are captured there); SOURCE/CONTROL
     /// data references resolve post-build in <see cref="ResolveReports"/> (the FILE STATUS pattern — one
     /// canonical resolution point).</summary>
-    internal void Bind(Core.ProgramUnitContext program)
+    internal void BindReportSection(Core.ProgramUnitContext program)
     {
         var rs = program.dataDivision()?.reportSection();
         if (rs is null) return;
@@ -372,7 +381,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // A report entry's data-name is declared, and §13.15.3 SR7 bars this clause from naming it (kb/Work PB4226's
             // sibling): the one report-item refusal, under the report section's own rule, not "does not resolve".
             if (!ambiguous
-                && !EntryReferenceRefused(default, $"{where} '{code.Written}'", codeName, codeQuals, inReportSection: true))
+                && !ReportEntryReferenceRefused(default, $"{where} '{code.Written}'", codeName, codeQuals, inReportSection: true))
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names '{code.Written}', which does not resolve "
                     + "to a data item (ISO §8.4.2.1; identifier-1 of §13.18.12.2)");
             return;
@@ -3149,7 +3158,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>Post-build resolution for every report (the <c>ResolveFiles</c> pattern — runs after the storage
     /// forest is complete): the owning FILE (§13.18.46), SOURCE / CONTROL / SUM-addend data items, CH/CF control
     /// levels (§13.18.57.3 SR10/SR11), RESET levels, and the report's line width.</summary>
-    internal void Resolve()
+    internal void ResolveReports()
     {
         ScreenReportClauseNames();
         ScreenReportCodeAgreement();
@@ -4081,7 +4090,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <paramref name="dataItems"/> (the tier the data-name lookup leaves standing, <see cref="ReportScope.NearerEntryHides"/>): a
     /// report entry is a data-name §8.4.2.2.3 SR1 counts with the ordinary ones (kb/Work PB3232, PB3767 review R1-2), so the
     /// ambiguity's wording counts it too.</summary>
-    internal int EntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
+    internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
         var entries = _scope.EntriesNamed(name, qualifiers);
         return entries.Count != 0 && dataItems.Any(item => _d.DeclaringDepth(item) == _scope.Depth(entries[0].Report))
@@ -4114,7 +4123,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <c>OCCURS … DEPENDING ON</c>, kb/Work PB4226). §13.8.6.2.3 bars only the OTHER sections and the procedure
     /// division, so it is not the rule broken there; §13.15.3 SR7 is, and a sum counter is admitted in the report section
     /// only where a rule names it (a SOURCE clause, §13.18.53.3 SR4; a SUM clause, SR7 itself).</param>
-    internal bool EntryReferenceRefused(NameCandidates<DataItem> dataItems, string subject, string name,
+    internal bool ReportEntryReferenceRefused(NameCandidates<DataItem> dataItems, string subject, string name,
                                               IReadOnlyList<string> qualifiers, bool inReportSection = false)
     {
         if (dataItems.Count > 1) return false;

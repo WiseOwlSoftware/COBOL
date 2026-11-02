@@ -1730,7 +1730,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, hider));
         // A report entry of a NEARER source element is the referenced item the same way (kb/Work PB4196), and the
         // report-item refusal names it.
-        else if (!ctx.Data.ReportSection.EntryReferenceRefused(default, $"'{text}'", name, qualifiers))
+        else if (!ctx.Data.ReportSection.ReportEntryReferenceRefused(default, $"'{text}'", name, qualifiers))
             ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                 ReferenceResolver.MisqualifiedConditionText(text, name, qualifiers));
         return true;

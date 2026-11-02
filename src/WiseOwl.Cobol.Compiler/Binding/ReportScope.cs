@@ -131,7 +131,7 @@ public sealed class ReportScope
     /// item of the spelling is not, however many of them there are. A report entry is a data-name of the source element
     /// whose REPORT SECTION declares it (§8.4.2.2.3 SR1 counts it with the ordinary ones, kb/Work PB3232), so the data-name
     /// lookup <see cref="Model.SymbolTable.NearestDeclaringData"/> asks this at the tier it narrowed to and leaves the
-    /// set EMPTY, and the callers' own report-item refusal (<see cref="ReportSectionBinder.EntryReferenceRefused"/>, §13.8.6.2.3) names
+    /// set EMPTY, and the callers' own report-item refusal (<see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>, §13.8.6.2.3) names
     /// the entry. Free for a unit that inherits no global data or has no report (depth 0 is a unit's own item, which no
     /// entry is nearer than).</summary>
     internal bool NearerEntryHides(string name, IReadOnlyList<string> qualifiers, int declaringDepth) =>

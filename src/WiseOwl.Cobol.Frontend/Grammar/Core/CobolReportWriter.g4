@@ -25,7 +25,7 @@ reportSection
 
 // RD report-name [report-description-clause]... .  { constant-entry | report-group-description-entry } ...
 // (§13.8.2). The brace group's ellipsis is "one or more", and §13.8.4 says "An RD entry shall be followed by one
-// or more report group description entries": the grammar admits the list EMPTY and DataBinder.BindReportSection
+// or more report group description entries": the grammar admits the list EMPTY and ReportSectionBinder.BindReportSection
 // reports the RD with no report group entry (COBOL2708), exactly as the sort-merge twin's "one or more record
 // description entries" is a bind-time rule (COBOL1837) — a rule-named diagnostic, not a parse error.
 reportDescriptionEntry
@@ -69,7 +69,7 @@ reportCodeClause
 reportControlClause
     // §13.18.16.2 prints `FINAL [ data-name-1 ] …`: FINAL once, first. The binder refuses a FINAL written again or
     // after a data-name (COBOL2421), and the grammar audit reports it as DECIDED (kb/Work PB2024):
-    // audit:repeated-word FINAL decided-by DataBinder.BindReportDescriptionClauses
+    // audit:repeated-word FINAL decided-by ReportSectionBinder.BindReportDescriptionClauses
     : (CONTROL IS? | CONTROLS ARE?) (FINAL | dataReference)+
     ;
 
@@ -93,7 +93,7 @@ reportPageClause
     // §13.18.39.3 SR4 frees the ORDER of the five trailing phrases, so `reportPageSubclause*` spells any order; each is
     // still a bracket with no ellipsis, written once, which the binder enforces (COBOL2423, UnrepeatedElements). The
     // grammar audit reads the next line and reports the phrases' words as DECIDED (kb/Work PB2024):
-    // audit:repeated-word HEADING FIRST DETAIL DE LAST CONTROL CH FOOTING decided-by DataBinder.BindReportDescriptionClauses
+    // audit:repeated-word HEADING FIRST DETAIL DE LAST CONTROL CH FOOTING decided-by ReportSectionBinder.BindReportDescriptionClauses
     : PAGE (LIMIT IS? | IS | LIMITS ARE? | ARE)?
       ( integerOperand (LINE | LINES) reportPageWidth?
       | integerOperand
@@ -109,7 +109,7 @@ reportPageWidth
 // The five trailing phrases, each its own bracket with no ellipsis (SR4 gives the order licence; §5.2.7 the
 // at-most-once). SR1: FIRST DE = FIRST DETAIL, LAST CH = LAST CONTROL HEADING, LAST DE = LAST DETAIL.
 // ⚠ HEADING is a terminal of TWO alternatives (the HEADING phrase and LAST CONTROL HEADING): a reader classifies
-// a phrase by DataBinder.PagePhraseOf (its first token and the one after it), never by `HEADING()`.
+// a phrase by ReportSectionBinder.PagePhraseOf (its first token and the one after it), never by `HEADING()`.
 reportPageSubclause
     : HEADING IS? integerOperand
     | FIRST (DETAIL | DE) IS? integerOperand
@@ -210,7 +210,7 @@ reportRelativeSign
     ;
 
 // NEXT GROUP IS {integer-1 | {PLUS|+} integer-2 | NEXT PAGE [WITH RESET]}  (§13.18.37.2, PDF p427 rendered — both
-// the outer and the inner delimiters are braces). Bound by DataBinder.Reports BindNextGroupClauses (kb/Work PB957).
+// the outer and the inner delimiters are braces). Bound by ReportSectionBinder BindNextGroupClauses (kb/Work PB957).
 reportNextGroupClause
     : NEXT GROUP IS? (reportRelativeSign integerOperand | integerOperand | NEXT PAGE (WITH? RESET)?)
     ;
@@ -229,7 +229,7 @@ reportNextGroupClause
 // ⛔ THE ALIGNMENT BRACE IS OPTIONAL HERE although the diagram prints it as a brace: §13.18.14.3 SR9 — "If any of the
 // operands is absolute and neither LEFT, CENTER, nor RIGHT is specified, LEFT is assumed" — licenses its omission,
 // and `COLUMN 5` is the form every report program writes. The phrase is once per clause (the ellipsis closes only the
-// operand brace); SR9's "all the operands shall be absolute" is bound, not parsed (DataBinder.Reports, kb/Work
+// operand brace); SR9's "all the operands shall be absolute" is bound, not parsed (ReportSectionBinder, kb/Work
 // PB1220). The multi-operand form (a "multiple COLUMN clause", §13.18.14.3 SR10), the relative PLUS operand, the
 // COL/COLS/COLUMNS/NUMBERS/ARE spellings and the alignment phrase are COBOL-2002 — introduction-gated post-bind by
 // VersionConformancePass ParseArm.VisitReportColumnClause.
@@ -315,7 +315,7 @@ reportSumGroup
 // qualifier is not re-added. It was DEAD: `dataReference`'s own `dataReferenceSuffix*` swallows `OF word` as an
 // ordinary qualification before the optional tail is ever tried, the binder read only `op.dataReference()`, and
 // §13.18.54.2's general format prints no qualifier on the addend at all. A cross-report addend's report-name
-// qualifier is recognised where it is resolved (DataBinder.Reports ResolveSumAddend, SR4 g).
+// qualifier is recognised where it is resolved (ReportSectionBinder ResolveSumAddend, SR4 g).
 
 reportSumReset
     : RESET ON? (FINAL | dataReference)

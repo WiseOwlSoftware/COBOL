@@ -30,8 +30,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class OccursOperandCaptureDriftTests
 {
-    private static string[] BinderFiles() => Directory.GetFiles(
-        Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding"), "DataBinder*.cs");
+    private static string[] BinderFiles() =>
+    [
+        .. Directory.GetFiles(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding"), "DataBinder*.cs"),
+        Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "ReportSectionBinder.cs"),   // the REPORT SECTION's binder (kb/Work PB2357)
+    ];
 
     /// <summary>No binder file captures a clause operand by gluing its tokens.</summary>
     [Fact]

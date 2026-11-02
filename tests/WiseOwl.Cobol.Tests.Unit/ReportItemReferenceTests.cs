@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// statement", and §13.15.3 SR7: "The data-name shall not be referenced in any other way." The reference is refused
 /// (COBOL5092), under THAT rule — it used to be told COBOL1639 "no declaration gives the name", false about a
 /// name the report section declares. One lookup (<c>ReportScope.EntriesNamed</c>) and one refusal
-/// (<c>ReportSectionBinder.EntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
+/// (<c>ReportSectionBinder.ReportEntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
 /// test names the arms so a fourth cannot be added without asking.
 /// </summary>
 public sealed class ReportItemReferenceTests
@@ -231,16 +231,16 @@ public sealed class ReportItemReferenceTests
                      Path.Combine("Binding", "ReferenceResolver.cs"),   // procedure division: ReportUnidentified
                      Path.Combine("Binding", "DataBinder.Odo.cs"),      // OCCURS … DEPENDING ON
                  })
-            Assert.Contains("EntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
+            Assert.Contains("ReportEntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
 
         string dataBinder = Path.Combine(root, "Binding", "DataBinder.cs");
         foreach (string arm in new[]
                  {
-                     "private DataItem? ResolveClauseOperand(",   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
+                     "internal DataItem? ResolveClauseOperand(",   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
                      "private void ResolveAssignUsing(",          // ASSIGN … USING (kb/Work PB3768)
                      "DataItem? InRecords(",                      // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
                  })
-            Assert.Contains("EntryReferenceRefused(", MethodText(dataBinder, arm));
+            Assert.Contains("ReportEntryReferenceRefused(", MethodText(dataBinder, arm));
 
         var reporters = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains("Generated", StringComparison.Ordinal) && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))

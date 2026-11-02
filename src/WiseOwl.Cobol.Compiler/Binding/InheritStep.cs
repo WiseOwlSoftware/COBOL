@@ -31,7 +31,7 @@ internal static class InheritStep
         var inherited = data.State.Inherited;
         // The containers' GLOBAL reports (§13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369) and GLOBAL data roots,
         // OFFERED here and made visible by the unit's own data division at the end of its declaration half
-        // (DataBinder.InheritContainerReports / InheritContainerGlobalData), so the unit's own clauses that name one
+        // (ReportSectionBinder.InheritContainerReports / InheritContainerGlobalData), so the unit's own clauses that name one
         // (FILE STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) see it (kb/Work PB3766).
         inherited.OfferContainerGlobals(ContainerGlobalReportsOf(unit), [.. ContainerGlobalRootsOf(unit).Select(r => (r.Root, r.Depth))]);
         int depth = 0;   // the containment distance, 1 for the parent
@@ -114,7 +114,7 @@ internal static class InheritStep
 
     /// <summary>The GLOBAL report description entries of every container of <paramref name="unit"/>, nearest container
     /// first, each with how many containment levels out it lives (the <c>__outer</c> chain length a reference to its
-    /// storage renders through, <see cref="DataBinder.ReportDepth"/>). Like a GLOBAL FD, the report is SHARED, never
+    /// storage renders through, <see cref="ReportScope.Depth"/>). Like a GLOBAL FD, the report is SHARED, never
     /// re-declared: the child's verbs hold the container's <see cref="ReportModel"/> (ISO §13.18.27.4 GR1–GR2).</summary>
     private static List<(ReportModel Report, int Depth)> ContainerGlobalReportsOf(BoundUnit unit)
     {

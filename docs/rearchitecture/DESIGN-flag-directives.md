@@ -210,7 +210,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     TERMINATE-WITH-VARYING (TERMINATE + a report whose fields carry `Varyings`) — scope-exact (kb/Work PB3288): the
     WRITE's record-name (qualified or not, through `ResolveItem`) or `FILE file-name` resolves to a file among
     `VisibleFiles()` (the unit's own, then its containers' GLOBAL ones, §13.18.27.4 GR1), and each TERMINATE report-name
-    to a report among `DataBinder.VisibleReports`; `Run` builds no lookup.
+    to a report among `ReportScope.Visible`; `Run` builds no lookup.
   * **1b (DONE for j)** j VALUE-EDITING — a numeric-edited VALUE that is a LITERAL (not figurative) with no
     editing symbols (§13.18.63 SR6/SR11 + E.2 item 29: numeric literals get editing auto-supplied, alphanumeric/
     national literals now require it). The literal is read as its VALUE (`CobolLiteral.Decode`, the one literal

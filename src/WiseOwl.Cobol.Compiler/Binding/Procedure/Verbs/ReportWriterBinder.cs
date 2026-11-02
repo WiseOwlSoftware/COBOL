@@ -65,7 +65,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         ctx.Refs.VaryingScope = null;
         // The RD CODE clause's identifier-1 (§13.18.12.2): the place the engine reads at each body group (GR3), through
         // the same ONE sending-operand resolution a SOURCE identifier takes. Asked only of a base item the data phase
-        // resolved (DataBinder.ResolveReportCode): an unresolved or ambiguous one was reported there, once (kb/Work PB4226).
+        // resolved (ReportSectionBinder.ResolveReportCode): an unresolved or ambiguous one was reported there, once (kb/Work PB4226).
         if (r.Code is { Reference: { } codeRef, Item: not null } code)
         {
             using var at = ctx.Edition.At(codeRef);
@@ -387,7 +387,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// report-name-1 is defined in a containing program, the file description entry associated with report-name-1
     /// shall contain a GLOBAL clause" — §14.9.21.3 SR2 (INITIATE), §14.9.46.3 SR2 (TERMINATE), §14.9.16.3 SR4
     /// (GENERATE report-name) and the file half of §14.9.16.3 SR3 (GENERATE data-name). The report itself is
-    /// visible only because it is GLOBAL (<see cref="DataBinder.Reports.Visible"/>); the statement drives output to
+    /// visible only because it is GLOBAL (<see cref="ReportScope.Visible"/>); the statement drives output to
     /// its FILE, which a contained program may reference only when the FD is GLOBAL too (§13.18.27.3 SR3). Null
     /// when the statement may proceed — the report is this unit's own, or its file is GLOBAL.</summary>
     private BoundStatement? RejectContainedReportFile(ReportModel report, string where, string rule) =>

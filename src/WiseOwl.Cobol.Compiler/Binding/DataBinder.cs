@@ -584,7 +584,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)
         BindFileSection(program, _rootNames);      // FD records → Roots + FileModel.Records + the shared-area REDEFINES
         ScreenSelectsHaveDescriptions();           // §12.4.5.2 SR3 — after every FD and SD has attached
-        ReportSection.Bind(program);               // RD entries → ReportModels (ISO §13.14; ReportSectionBinder.cs)
+        ReportSection.BindReportSection(program);               // RD entries → ReportModels (ISO §13.14; ReportSectionBinder.cs)
         BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
 
         // SCREEN SECTION (ISO §13.9) is an OPTIONAL element of Annex A.4.2, the module docs/CONFORMANCE.md §5
@@ -1718,7 +1718,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// KEY). A clause that EXPRESSLY permits a ref-mod — §13.18.16.3 SR4's CONTROL operand and its §13.18.57.3
     /// SR10 / §13.18.54.3 SR8 twins — must NOT use this helper alone either: it binds as if the operand were
     /// unmodified, which is a silent wrong answer. Those three go through
-    /// <c>DataBinder.Reports.ControlOperandRef</c>, which keeps the whole written reference.</para></summary>
+    /// <c>ReportSectionBinder.ControlOperandRef</c>, which keeps the whole written reference.</para></summary>
     internal static (string Base, IReadOnlyList<string> Quals) KeyReference(Core.DataReferenceContext dref)
     {
         string baseWord = dref.cobolWord()?.GetText() ?? dref.GetText();
@@ -2375,7 +2375,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // PB3767's order, kept by the lookup itself since PB4196, ISO §8.4.6.2.1 3) a)); a key item of the file's own
                 // record is never hidden.
                 if (inFile.Count == 0 && cands.Count != 1
-                    && ReportSection.EntryReferenceRefused(cands, $"{face} '{written}'", keyName, quals))
+                    && ReportSection.ReportEntryReferenceRefused(cands, $"{face} '{written}'", keyName, quals))
                 {
                     refusedKeys.Add(keyName);
                     return null;
@@ -2465,7 +2465,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // OCCURS … DEPENDING ON is not one of them). A report entry of a NEARER source element is the referenced item
         // (ISO §8.4.6.2.1 3) a)): the lookup leaves it no survivor to hide (kb/Work PB4196), so the survivors here are the
         // ambiguity (kb/Work PB3767) or nothing.
-        if (ReportSection.EntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals, inReportSection)) return null;
+        if (ReportSection.ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals, inReportSection)) return null;
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
         // it is, the same the procedure division's unidentified reference asks. A refused declaration was reported.
@@ -2716,7 +2716,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // names the phrase as written, never `ASSIGN … USING` (kb/Work PB4160: a head that elides the statement renders
         // `ASSIGN . USING` on the console).
         if (candidates.Count != 1
-            && ReportSection.EntryReferenceRefused(candidates, $"ASSIGN USING '{written}'", dynName, file.AssignUsingQualifiers)) return;
+            && ReportSection.ReportEntryReferenceRefused(candidates, $"ASSIGN USING '{written}'", dynName, file.AssignUsingQualifiers)) return;
         DataItem? item = UniqueOrReportAmbiguous(candidates, "ASSIGN USING", written, out bool ambiguous);
         if (ambiguous && item is null) return;
         if (item is null || !ItemCategory.IsAlphanumeric(item))
@@ -2864,7 +2864,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// condition-name its conditional variable's characteristics). The funnel's one SIZE rule below stays dark
     /// for it, because <see cref="ValueSubject.ForConditionName"/> carries no size (kb/Work PB598). The report
     /// section's format 4 printable-item literals were the fourth arm, reached by NO part of this funnel but SR6's
-    /// edition gate: `03 COLUMN 1 PIC 9(2) VALUE 12345.` printed `45`. They take it too (DataBinder.Reports).</para></summary>
+    /// edition gate: `03 COLUMN 1 PIC 9(2) VALUE 12345.` printed `45`. They take it too (ReportSectionBinder).</para></summary>
     internal string ScreenValueLiteral(PicInfo pic, string raw, string where, ValueSubject subject)
     {
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
@@ -5542,7 +5542,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     else
                     {
                         // Format 1 (data-item), the ONLY format that prints neither VALUES nor ARE. The report
-                        // section's Format-4 list has its own binder (DataBinder.Reports), so this arm is
+                        // section's Format-4 list has its own binder (ReportSectionBinder), so this arm is
                         // Format 1 outright.
                         CheckValueConnective(value, pairedConnective: false, valueWhere);
                         rawValue = ExtractValue(value, valueWhere);

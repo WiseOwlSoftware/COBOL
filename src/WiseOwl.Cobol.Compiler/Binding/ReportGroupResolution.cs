@@ -14,7 +14,7 @@ using WiseOwl.Cobol.Runtime;
 /// report group by name — <c>GENERATE data-name-1</c> (ISO §14.9.16.3 SR1), <c>USE BEFORE REPORTING
 /// identifier-1</c> (§14.9.49.3 SR9) and, since kb/Work PB482, the SUM clause's <c>UPON data-name-2</c>
 /// (§13.18.54.3 SR7: "Data-name-2 shall be the name of a detail. It may be qualified only by a report-name" —
-/// the DATA-division site, resolved in <c>DataBinder.ResolveReports</c> once every group is described) — and
+/// the DATA-division site, resolved in <c>ReportSectionBinder.ResolveReports</c> once every group is described) — and
 /// before this funnel the two statement sites were written as
 /// <c>foreach (report) if (report.Groups.FirstOrDefault(name-matches) is {} g) return g;</c>: a loop shape that
 /// encodes <i>find one</i> where §8.4.2.2 requires <i>find exactly one</i>. With the same 01-level group name in
@@ -57,7 +57,7 @@ internal static class ReportGroupResolution
     /// <param name="where">The reference site for the diagnostic, e.g. <c>"GENERATE 'DET-A'"</c>.</param>
     /// <param name="scope">The procedure division's binder when <paramref name="reports"/> includes GLOBAL reports
     /// inherited from containers: candidates from more than one source element are narrowed to the NEAREST one
-    /// before ambiguity is asked (§8.4.6.2.1 rule 3 — <see cref="DataBinder.NearestInScope"/>). Null for the
+    /// before ambiguity is asked (§8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>). Null for the
     /// data-division site, whose reports are all the unit's own.</param>
     public static Match Resolve(EditionContext edition, IReadOnlyList<ReportModel> reports,
         string head, string? qualifier, string where, out ReportModel? report, out ReportGroupModel? group,

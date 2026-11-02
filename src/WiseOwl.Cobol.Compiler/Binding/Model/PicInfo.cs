@@ -876,7 +876,7 @@ public sealed record PicInfo(
     /// §13.18.40.3 SR14) keeps its full GR1 digit count. This used to clamp at 18 — the old <c>long</c> carrier's
     /// ceiling — so a PIC 9(20) SUM entry reported a false size error past 9.2·10^18 and printed spaces. The only
     /// counter still bounded is an alphanumeric or national PICTURE of more than 38 positions (one digit per
-    /// character position, <c>DataBinder.SumCounterDigits</c>), capped at the 38 digits the carrier holds.</para></summary>
+    /// character position, <c>ReportSectionBinder.SumCounterDigits</c>), capped at the 38 digits the carrier holds.</para></summary>
     public static PicInfo SumCounterItem(int digits, int scale)
     {
         int d = System.Math.Clamp(digits, 1, 38);

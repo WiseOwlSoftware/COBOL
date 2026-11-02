@@ -6,10 +6,10 @@
  "subject": "LINE clause",
  "rule-digest": "3fc72a64065f",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MultipleLineOperands",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MultipleLineOperands",
  "test-ref": "conformance:cases/13.18.35-LINE/pb1001-next-page-not-first-line",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1001. A NEXT PAGE phrase on any LINE clause but the group's first is COBOL2199; a multiple LINE clause's later operands are SR10a's (MultipleLineOperands) and are not reported twice. The binder sets the run-time flag only on the group's first report line (RepeatedLine), so a replayed occurrence places as the phrase-less form.",
+ "notes": "kb/Work PB1001. A NEXT PAGE phrase on any LINE clause but the group's first is COBOL2199; a multiple LINE clause's later operands are SR10a's (MultipleLineOperands) and are not reported twice. The binder sets the run-time flag only on the group's first report line (RepeatedLine), so a replayed occurrence places as the phrase-less form. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MultipleLineOperands (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineClauses (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
  "state": "OK"
 }

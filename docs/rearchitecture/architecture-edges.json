@@ -441,13 +441,13 @@
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.Validation",
       "uses": 15,
-      "walkUses": 14,
+      "walkUses": 15,
       "removedBy": [
         "PB2320",
         "PB2404",
         "PB2421"
       ],
-      "plan": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, DataBinder.Reports.cs:3777), the pair no move of BinderDriver removes (Draft 6, G1)",
+      "plan": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, ReportSectionBinder.cs, the SUM clause's PICTURE screen), the pair no move of BinderDriver removes (Draft 6, G1)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.BinderDriver",
@@ -537,18 +537,26 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.Binding.DataBinder",
-          "to": "WiseOwl.Cobol.Validation.VersionConformancePass",
+          "from": "WiseOwl.Cobol.Binding.ReferenceResolver",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2404"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.ReportSectionBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
           "removedBy": [
             "PB2404",
             "PB2421"
           ]
         },
         {
-          "from": "WiseOwl.Cobol.Binding.ReferenceResolver",
-          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "from": "WiseOwl.Cobol.Binding.ReportSectionBinder",
+          "to": "WiseOwl.Cobol.Validation.VersionConformancePass",
           "removedBy": [
-            "PB2404"
+            "PB2404",
+            "PB2421"
           ]
         }
       ]
@@ -557,7 +565,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 39,
+      "walkUses": 40,
       "removedBy": [
         "PB2347",
         "PB2419",
@@ -830,6 +838,14 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2347",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
           "removedBy": [
             "PB2347",
             "PB2420"
@@ -1281,7 +1297,7 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 24,
-      "walkUses": 25,
+      "walkUses": 26,
       "removedBy": [
         "PB2361",
         "PB2375",
@@ -1480,6 +1496,13 @@
           ]
         },
         {
+          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
           "from": "WiseOwl.Cobol.Binding.Model.VariableLengthCompatibility",
           "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
           "removedBy": [
@@ -1665,7 +1688,7 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 114,
+      "walkUses": 118,
       "removedBy": [
         "PB2290",
         "PB2320",
@@ -1823,6 +1846,13 @@
         {
           "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
           "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
           "removedBy": [
             "PB2420"
           ]
@@ -2180,6 +2210,13 @@
           ]
         },
         {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2420"
+          ]
+        },
+        {
           "from": "WiseOwl.Cobol.CodeGen.PtrEmitter",
           "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
@@ -2380,6 +2417,13 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
           "to": "WiseOwl.Cobol.Binding.ReportSumAddend",
           "removedBy": [
             "PB2420"
@@ -2466,6 +2510,13 @@
         {
           "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
           "to": "WiseOwl.Cobol.Binding.ReportModel",
+          "removedBy": [
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
           "removedBy": [
             "PB2420"
           ]
