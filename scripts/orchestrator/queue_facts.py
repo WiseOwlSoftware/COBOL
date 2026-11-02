@@ -30,7 +30,7 @@ WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not
     commit stayed in_progress for 50 minutes, the queue empty, the merge state BLOCKED): `CheckRun.stuck`.
 `fetch_bounce_results` asks for the REDS of a bounce (kb/Work PB3644): it downloads the test results of the
 newest failed merge-group run of a branch's open pull request into the worktree (`gate.CI_BOUNCE_RESULTS`), where the
-gate planner reads them as tier 0a, called by `gate.Host.fetch_bounce_results` before every gate's plan.
+gate runs their classes first (`gate.Host.fetch_bounce_results`, called before every gate's order is drawn).
 `live_heads` asks which commits the queue is TESTING (kb/Work PB3769): it returns the head commit of each of the
 queue's current entries (`mergeQueue(branch: "main").entries.headCommit`: the merge-group commit its workflow run tests)
 for CI's `supersede` job (scripts/orchestrator/cancel_superseded.py), which cancels every unfinished merge-group run whose
@@ -313,12 +313,22 @@ def bounce_run(runs: list, number: int) -> dict | None:
     return max(mine, key=lambda r: int(r.get('id') or 0), default=None)
 
 
-def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) -> str:
+@dataclasses.dataclass(frozen=True)
+class BounceFetch:
+    """What `fetch_bounce_results` answers: the line saying what the results directory now holds, and `run`, the failed
+    merge-group run whose results it now holds (kb/Work PB4271). 0 means it holds none of the newest failed run's:
+    emptied, left as it was (a download that failed, GitHub unreachable) or not observed, so whatever is still in the
+    directory belongs to an OLDER bounce and a reader of it (the landing lane's `red_facts`) must not trust it."""
+    line: str
+    run: int = 0
+
+
+def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) -> BounceFetch:
     """THE REDS OF A BOUNCE, where the gate reads their classes to run first (kb/Work PB3644, PB4328; gate.CI_BOUNCE_RESULTS): the test
     results (TRX) of the newest FAILED merge-group run of `branch`'s open pull request, downloaded into `dest`. The
     queue's bounce lives in GitHub's CI run, never in a worktree, so a finisher's re-gate planned from local files alone
-    ran the failed cases by impact like any other (tier 0a is for exactly them). Returns one line saying what `dest`
-    now holds. `dest` is REPLACED by the newest bounce's results, EMPTIED when the pull request has no failed
+    ran the failed cases in the order of any other gate (the bounce's classes go first). Returns a BounceFetch: the line saying what `dest`
+    now holds, and the run whose results it holds now (0: none of the newest failed run's). `dest` is REPLACED by the newest bounce's results, EMPTIED when the pull request has no failed
     merge-group run (a stale bounce's reds would mis-order the next plan), and LEFT AS IT WAS when GitHub cannot be
     asked or the download fails (a non-observation changes nothing, kb/Work PB3716). The download goes into a sibling
     staging directory (`<dest>.fetching`) that replaces `dest` only once it is whole, so a download that fails, or dies
@@ -329,17 +339,17 @@ def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) 
         rc, out, _ = run(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'])
         repo = out.strip()
         if rc != 0 or '/' not in repo:
-            return f'ci bounce: not observed (gh repo view exited {rc}); {dest} left as it was'
+            return BounceFetch(f'ci bounce: not observed (gh repo view exited {rc}); {dest} left as it was')
         rc, out, _ = run(['pr', 'list', '--head', branch, '--state', 'open', '--json', 'number', '--jq', '.[0].number'])
         if rc != 0:
-            return f'ci bounce: not observed (gh pr list exited {rc}); {dest} left as it was'
+            return BounceFetch(f'ci bounce: not observed (gh pr list exited {rc}); {dest} left as it was')
         if not out.strip().isdigit():
             return _no_bounce(dest, f'{branch} has no open pull request')
         number = int(out.strip())
         rc, out, _ = run(['api', f'repos/{repo}/actions/runs?event=merge_group&per_page=100'])
         listed = json.loads(out).get('workflow_runs') if rc == 0 else None
         if not isinstance(listed, list):
-            return f'ci bounce: not observed (the merge-group run list of pull request #{number} was unreadable); {dest} left as it was'
+            return BounceFetch(f'ci bounce: not observed (the merge-group run list of pull request #{number} was unreadable); {dest} left as it was')
         newest = bounce_run(listed, number)
         if newest is None or newest.get('conclusion') not in FAILED_RUNS:
             return _no_bounce(dest, f'pull request #{number} has no failed merge-group run among the newest {len(listed)}'
@@ -351,7 +361,7 @@ def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) 
         except OSError:
             fetched = False
         if fetched:   # a bounce's results are some 200 MB: a re-gate of the same bounce downloads them once
-            return f'ci bounce: the failed merge-group run {newest["id"]} of pull request #{number}: its test results are already in {dest}'
+            return BounceFetch(f'ci bounce: the failed merge-group run {newest["id"]} of pull request #{number}: its test results are already in {dest}', int(newest['id']))
         staging = dest.with_name(dest.name + STAGING_SUFFIX)
         shutil.rmtree(staging, ignore_errors=True)   # a staging directory an earlier, killed fetch left behind
         try:
@@ -359,7 +369,7 @@ def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) 
             rc, _, err = run(['run', 'download', str(newest['id']), '--repo', repo, '--pattern', RESULTS_PATTERN,
                               '--dir', str(staging)])
             if rc != 0:
-                return (f'ci bounce: run {newest["id"]} of pull request #{number} failed, but its test results could not be '
+                return BounceFetch(f'ci bounce: run {newest["id"]} of pull request #{number} failed, but its test results could not be '
                         f'downloaded ({(err.strip().splitlines() or ["no reason given"])[0]}; expired, never uploaded or '
                         f'GitHub unreachable): {dest} left as it was ({_holds(dest)})')
             (staging / BOUNCE_SOURCE).write_text(
@@ -368,18 +378,41 @@ def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) 
             _swap_in(staging, dest)
         finally:
             shutil.rmtree(staging, ignore_errors=True)   # gone after a swap; a failed or interrupted download's partial files
-        return f'ci bounce: the failed merge-group run {newest["id"]} of pull request #{number}: its test results are in {dest}'
+        return BounceFetch(f'ci bounce: the failed merge-group run {newest["id"]} of pull request #{number}: its test results are in {dest}', int(newest['id']))
     except (ruleset.Unobserved, ValueError, KeyError, TypeError, AttributeError, OSError) as e:
-        return f'ci bounce: not observed ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ""}); {dest} left as it was'
+        return BounceFetch(f'ci bounce: not observed ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ""}); {dest} left as it was')
+
+
+#: THE PROVENANCE MARKER's reading (`fetch_bounce_results` writes it beside the downloaded results): the run, the pull
+#: request and the run's conclusion. The conclusion is optional only for a marker written before it was read.
+SOURCE_MARKER = re.compile(r'GitHub Actions run (\d+) \((?:merge group of pull request #(\d+), ([a-z_]+),)?')
+
+
+@dataclasses.dataclass(frozen=True)
+class BounceSource:
+    """What a results directory holds by its provenance marker (`bounce_source`)."""
+    run: int
+    pr: int            # 0: a marker that names no pull request
+    conclusion: str    # '' when the marker names none
+
+
+def bounce_source(dest: pathlib.Path) -> BounceSource | None:
+    """THE ONE READER of `dest`'s provenance marker (BOUNCE_SOURCE): which failed merge-group run's results it holds,
+    or None when it holds none or no readable marker. The landing lane reads it after `fetch_bounce_results` and trusts it
+    only when it names the run that fetch answered (`BounceFetch.run`), so it classifies a red only on the results of
+    the run it is classifying (kb/Work PB4271), never a stale bounce's."""
+    try:
+        m = SOURCE_MARKER.match((dest / BOUNCE_SOURCE).read_text(encoding='utf-8'))
+    except OSError:
+        return None
+    return BounceSource(int(m.group(1)), int(m.group(2) or 0), m.group(3) or '') if m else None
 
 
 def _holds(dest: pathlib.Path) -> str:
     """What `dest` holds, for the message that says it was left as it was: the run its provenance marker names."""
-    try:
-        m = re.match(r'GitHub Actions run (\d+) \(', (dest / BOUNCE_SOURCE).read_text(encoding='utf-8'))
-    except OSError:
-        return 'no bounce results' if not dest.is_dir() or not any(dest.iterdir()) else 'files without a provenance marker'
-    return f'the test results of run {m.group(1)}' if m else 'files without a provenance marker'
+    if (src := bounce_source(dest)) is not None:
+        return f'the test results of run {src.run}'
+    return ('no bounce results' if not dest.is_dir() or not any(dest.iterdir()) else 'files without a provenance marker')
 
 
 def _swap_in(staging: pathlib.Path, dest: pathlib.Path) -> None:
@@ -398,9 +431,9 @@ def _swap_in(staging: pathlib.Path, dest: pathlib.Path) -> None:
     shutil.rmtree(aside, ignore_errors=True)
 
 
-def _no_bounce(dest: pathlib.Path, why: str) -> str:
+def _no_bounce(dest: pathlib.Path, why: str) -> BounceFetch:
     shutil.rmtree(dest, ignore_errors=True)
-    return f'ci bounce: none ({why})'
+    return BounceFetch(f'ci bounce: none ({why})')
 
 
 def describe(pr: PullRequest) -> str:
@@ -603,7 +636,8 @@ def self_test() -> int:
         asked: list[list[str]] = []
         runs = [group(5, 900, 'failure'), group(54, 901, 'failure'), group(547, 700, 'failure', 'old'),
                 group(547, 800, 'failure'), group(547, 750, 'success')]
-        note = fetch_bounce_results('fix', dest, bounce_gh(runs, asked=asked))
+        first = fetch_bounce_results('fix', dest, bounce_gh(runs, asked=asked))
+        note = first.line
         downloaded = [a for a in asked if a[:2] == ['run', 'download']]
         expect("a bounce fetches the newest FAILED merge-group run of the branch's open pull request (pr-547, never pr-5 "
                "or pr-54), its test-results artifacts only, into the directory the planner reads, with its provenance",
@@ -612,26 +646,32 @@ def self_test() -> int:
                and downloaded[0][downloaded[0].index('--pattern') + 1] == RESULTS_PATTERN
                and (dest / 'test-results-Linux-unit' / 'unit.trx').is_file()
                and 'run 800' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8'), f'{note} {asked}')
+        expect("bounce_source reads the provenance marker back: the run, its pull request and its conclusion (the landing "
+               "lane classifies only on the run it is classifying, kb/Work PB4271); a directory with none reads None",
+               bounce_source(dest) == BounceSource(800, 547, 'failure') and bounce_source(pathlib.Path(tmp)) is None,
+               str(bounce_source(dest)))
         asked.clear()
-        again = fetch_bounce_results('fix', dest, bounce_gh(runs, asked=asked))
+        again_fetch = fetch_bounce_results('fix', dest, bounce_gh(runs, asked=asked))
+        again = again_fetch.line
         expect("the same bounce is downloaded once: a re-gate finds its provenance marker and asks GitHub no download",
                'already in' in again and not [a for a in asked if a[:2] == ['run', 'download']], f'{again} {asked}')
         expect("the newest merge-group run decides: a pull request whose newest run PASSED, or was CANCELLED by the queue "
                "(a case that never ran is no red), is no bounce, and the previous bounce's results are EMPTIED",
-               'none' in fetch_bounce_results('fix', dest, bounce_gh([group(547, 800, 'failure'), group(547, 850, 'success')]))
+               'none' in fetch_bounce_results('fix', dest, bounce_gh([group(547, 800, 'failure'), group(547, 850, 'success')])).line
                and not dest.exists(), str(dest))
         fetch_bounce_results('fix', dest, bounce_gh(runs))
-        cancelled = fetch_bounce_results('fix', dest, bounce_gh([group(547, 800, 'failure'), group(547, 900, 'cancelled')]))
+        cancelled = fetch_bounce_results('fix', dest, bounce_gh([group(547, 800, 'failure'), group(547, 900, 'cancelled')])).line
         expect("a cancelled merge group is no bounce", 'none' in cancelled and 'cancelled' in cancelled and not dest.exists(),
                cancelled)
         fetch_bounce_results('fix', dest, bounce_gh(runs))
-        nopr = fetch_bounce_results('fix', dest, bounce_gh(runs, pr='null'))
+        nopr = fetch_bounce_results('fix', dest, bounce_gh(runs, pr='null')).line
         expect("a branch with no open pull request has no bounce: nothing is downloaded and old results are emptied",
                'none' in nopr and 'no open pull request' in nopr and not dest.exists(), nopr)
         fetch_bounce_results('fix', dest, bounce_gh(runs))
         staging = dest.with_name(dest.name + STAGING_SUFFIX)
         aside = dest.with_name(dest.name + '.replaced')
-        gone = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 810, 'failure')], download_rc=1, partial=True))
+        gone_fetch = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 810, 'failure')], download_rc=1, partial=True))
+        gone = gone_fetch.line
         expect("a failed run whose artifacts cannot be downloaded (expired, never uploaded, GitHub unreachable) says so, "
                "naming gh's reason and what the directory still holds, and LEAVES the previous results exactly as they were "
                "(kb/Work PB3716: it deleted them before the download, and a partial download landed in the directory)",
@@ -641,17 +681,23 @@ def self_test() -> int:
                and 'run 800' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8')
                and not (dest / 'test-results-Linux-half').exists() and not staging.exists(), gone)
         fresh = pathlib.Path(tmp) / 'never-fetched'
-        nothing = fetch_bounce_results('fix', fresh, bounce_gh(runs, download_rc=1, partial=True))
+        nothing = fetch_bounce_results('fix', fresh, bounce_gh(runs, download_rc=1, partial=True)).line
         expect("a failed download into a directory that was never fetched leaves nothing behind: no directory, no partial "
                "artifact, no staging directory, and the message says the directory holds no bounce results",
                not fresh.exists() and not fresh.with_name(fresh.name + STAGING_SUFFIX).exists()
                and f'{fresh} left as it was (no bounce results)' in nothing, nothing)
-        newer = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 810, 'failure')]))
+        newer_fetch = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 810, 'failure')]))
+        newer = newer_fetch.line
         expect("a newer bounce whose download succeeds REPLACES the older one whole: only run 810's marker and artifacts "
                "remain, with no staging and no aside directory",
                'run 810' in newer and 'run 810' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8')
                and sorted(q.name for q in dest.iterdir()) == [BOUNCE_SOURCE, 'test-results-Linux-unit']
                and not staging.exists() and not aside.exists(), newer)
+        expect("a fetch answers the run whose results the directory holds NOW: the newest failed run when it was downloaded "
+               "(800, then 810) or is already there; 0 when the download failed and the directory still holds an older "
+               "bounce's results, so a reader never takes them for the newest run's (kb/Work PB4271)",
+               (first.run, again_fetch.run, newer_fetch.run, gone_fetch.run) == (800, 800, 810, 0),
+               str((first.run, again_fetch.run, newer_fetch.run, gone_fetch.run)))
         real_rename = pathlib.Path.rename
 
         def failing_rename(self: pathlib.Path, target: object) -> pathlib.Path:
@@ -660,7 +706,7 @@ def self_test() -> int:
             return real_rename(self, target)
         pathlib.Path.rename = failing_rename   # type: ignore[method-assign]
         try:
-            locked = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 820, 'failure')]))
+            locked = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 820, 'failure')])).line
         finally:
             pathlib.Path.rename = real_rename   # type: ignore[method-assign]
         expect("a swap that cannot move the new results into place restores the old ones and says not observed",
@@ -668,9 +714,9 @@ def self_test() -> int:
                and 'run 810' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8')
                and not staging.exists() and not aside.exists(), locked)
         fetch_bounce_results('fix', dest, bounce_gh(runs))
-        unread = [fetch_bounce_results('fix', dest, bounce_gh(runs, runs_rc=1)),
-                  fetch_bounce_results('fix', dest, lambda a: (1, '', 'x')),
-                  fetch_bounce_results('fix', dest, offline)]
+        unread = [fetch_bounce_results('fix', dest, bounce_gh(runs, runs_rc=1)).line,
+                  fetch_bounce_results('fix', dest, lambda a: (1, '', 'x')).line,
+                  fetch_bounce_results('fix', dest, offline).line]
         expect("a GitHub that cannot be asked (a failed call, an offline gh) is a non-observation that leaves the results "
                "as they were, and says so",
                all('not observed' in u and 'left as it was' in u for u in unread)

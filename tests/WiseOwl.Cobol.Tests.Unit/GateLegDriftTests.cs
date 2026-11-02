@@ -4,15 +4,14 @@
 // THE ARMS OF THIS CLASS are numbered as docs/rearchitecture/DESIGN-test-build-ci.md §3.14.4 numbers them, and each
 // is ONE self-contained test method whose name starts with its arm:
 //   (2) the orderer runs the named classes first, then longest first, and its output is a permutation of its input
-//   (3) gate.py --self-test and test_population.py --self-test declare every arm
 //   (4) every test project under tests/ that the gate runs links GateLegs.cs
 //   (5) no discovered display name in a gated assembly contains the repository root
-//   (6) every `dotnet test` caller outside the gate scrubs WISEOWL_COBOL_GATE_* and the other narrowing channels
+// Arms (3) and (6), and the ONE SHAPE sweep, check the pipeline's SCRIPTS, so they are the scripts' own (kb/Work PB4395):
+// scripts/self_test_arms.py holds the arms gate.py's and test_population.py's self-tests declare, test_population.py's runs its caller, trx-writer
+// and trx-reader audits over the real tree, and `gate.py --audit-shape` is the gate's ONE SHAPE audit.
 
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Gate;
 using WiseOwl.Cobol.Tests.Shared;
@@ -23,27 +22,18 @@ using Xunit.Sdk;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE GATE RUNS THE WHOLE POPULATION, AND EVERY WHOLE-ASSEMBLY RUN PROVES IT (kb/Work PB1708, PB1718, PB4328;
-/// DESIGN-test-build-ci.md §3.14.3–3.14.4): the one population check (<c>scripts/test_population.py</c>) fires on a
-/// dropped, a duplicated and a foreign case; every <c>dotnet test</c> caller under <c>scripts/</c> or
-/// <c>.github/workflows/</c> scrubs the gate's channel and the MSBuild VSTest properties from its environment; the test
-/// orderer (tests/_shared/GateLegs.cs <c>GateOrderer</c>) only orders, its output checked to be a permutation; every
-/// test project under tests/ links GateLegs.cs and names GateTestFramework; and no discovered case carries the
-/// repository root.
+/// ⛔ THE GATE'S TEST-ASSEMBLY HALF (kb/Work PB1708, PB4328, PB4329; DESIGN-test-build-ci.md §3.14.3–3.14.4): the test
+/// orderer (tests/_shared/GateLegs.cs <c>GateOrderer</c>) only orders, its output checked to be a permutation; CI's shard
+/// variable, weights file and deal; every test project under tests/ links GateLegs.cs and names GateTestFramework; and no
+/// discovered case carries the repository root. What the gate's SCRIPTS must hold (the population check's arms, the
+/// scrubbed <c>dotnet test</c> callers, the trx writers and readers, the one shape) is their own self-tests' and audits'
+/// (kb/Work PB4395: a compiler test reading a script made every change to it a compiler change).
 /// </summary>
 /// <remarks>
 /// <para>
-/// A run narrowed through the ENVIRONMENT is invisible to its own verdict line: <c>VSTestTestCaseFilter</c> (MSBuild
-/// imports every environment variable as a property) narrowed Characterization from 33 cases to 31 in the run AND
-/// in <c>--list-tests</c>, exit 0 — measured 2026-09-28, and a runsettings file named by <c>RunSettingsFilePath</c>
-/// did the same. So the population is always listed SCRUBBED, and every other caller runs scrubbed too; CI's shard
-/// variable is the one narrowing that is ever meant to reach a test host, and only where <c>ci-gate</c> checks the
-/// shards' union.
-/// </para>
-/// <para>
-/// The arms are numbered as in section 3.14.4: (2) the orderer, (3) the self-tests, (4) the links, (5) no repository
-/// root in a name, (6) the scrubbed callers. Arm (4)'s and (5)'s per-assembly halves also run in the Conformance and
-/// Characterization assemblies (their own GateLegDriftTests), because each audits the assembly it runs in.
+/// The arms are numbered as in section 3.14.4: (2) the orderer, (4) the links, (5) no repository root in a name. Arm
+/// (4)'s and (5)'s per-assembly halves also run in the Conformance and Characterization assemblies (their own
+/// GateLegDriftTests), because each audits the assembly it runs in.
 /// </para>
 /// </remarks>
 [Trait("Sweep", "tree")]
@@ -55,243 +45,6 @@ public sealed class GateLegDriftTests
 
     /// <summary>The test sources (<c>tests/**/*.cs</c>), COMMITTED, for the same reason.</summary>
     private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
-
-    private const string PopulationTool = "test_population.py";
-    private const string DriverTool = "gate.py";
-
-    /// <summary>
-    /// Arm (3), the population half: <c>test_population.py --self-test</c> passes and still drives every arm by
-    /// name — a self-test quietly reduced to its happy path also exits 0. ⛔ This test does not run the self-test
-    /// (kb/Work PB2882): the runner (<c>scripts/self_tests.py</c>) runs it in every gate and CI job, and this holds that
-    /// each arm is still DECLARED (<see cref="SelfTestArmSource"/>).
-    /// </summary>
-    [Fact]
-    public void Arm3_ThePopulationCheck_DeclaresEveryArm()
-    {
-        SelfTestArmSource.AssertDeclares(TestRepo.Scripts(PopulationTool), new[]
-                 {
-                     "short: a dropped case is NEVER RAN",
-                     "over: a case twice is RAN TWICE",
-                     "shard overlap that KEEPS THE COUNT",
-                     "skipped: a NotExecuted-only definition is counted skipped",
-                     "definitions, not result names",
-                     "a definition the listing never printed is NOT IN THE POPULATION",
-                     "stopped early",
-                     "two listings that disagree are an ERROR",
-                     "an EMPTY population is an ERROR",
-                     "`scrubbed <command>` runs the command without a planted gate variable",
-                     "red_classes: the class of every definition with a Failed result",
-                     "the XML range is stated once, as escapes",
-                     "audit-callers flags every unscrubbed shape",
-                 });
-    }
-
-    /// <summary>
-    /// Arm (3), the driver half: <c>gate.py --self-test</c> passes and still drives every arm by name — the
-    /// fail-fast stop and its named remainder, the population's dropped, duplicated and skipped cases, the identity
-    /// mismatches, the empty leg, the no-plan fallback, the scrubbed all-or-none handshake,
-    /// the refused second gate (kb/Work PB1721; DESIGN-test-build-ci.md section 3.14.4), ONE SHAPE for every gate
-    /// (kb/Work PB3022: no mode, a slot, the audits ahead of it, fail-fast), the scope
-    /// <c>leg1</c> of batched gating (kb/Work PB2515), the coded default when no scope is set: leg 1 only, its verdict
-    /// <c>LEG 1 ONLY (batched gating, PB2515)</c>, never a plain GREEN; and the
-    /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build, or the legs when it is found
-    /// while they run (kb/Work PB4326); and the audits run outside the gate slot, beside the build and the legs, the
-    /// script self-tests only for a change that touches tooling (kb/Work PB2524, PB4326); and every gate publishes its
-    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527); and a gate
-    /// outlives its caller and is gated once per measured tree (kb/Work PB3536): it runs DETACHED and is followed, it
-    /// survives a tree kill of its follower, `--await` reads its verdict file (PENDING, a process that DIED: NOT RUN
-    /// [verdict]) and resolves a relative run name against the worktree that gated it, and a re-gate of an unchanged
-    /// tree (coord.NEVER_WORK left out) answers from a recorded GREEN, never from a RED, another tree, another base or
-    /// a narrower scope. ⛔ This test does
-    /// not run the self-test (kb/Work PB2882): the runner runs it in every gate and CI job, and this holds that each arm
-    /// is still DECLARED (<see cref="SelfTestArmSource"/>); run a second time under the harness's fixed 120 s budget it
-    /// took 311 s, retried, in train 1058's lander gate.
-    /// </summary>
-    [Fact]
-    public void Arm3_TheGateDriver_DeclaresEveryArm()
-    {
-        SelfTestArmSource.AssertDeclares(TestRepo.Scripts(DriverTool), new[]
-                 {
-                     "a whole planted population is GREEN, every assembly EXACT",
-                     "every assembly runs its WHOLE population in one host, handed no narrowing",
-                     "a dropped case is NEVER RAN",
-                     "a case run twice is RAN TWICE",
-                     "a trx definition the listing never printed is NOT IN THE POPULATION",
-                     "a skipped case is counted skipped, never as ran",
-                     "a host that wrote no trx is UNMEASURED",
-                     "a red host makes the gate RED",
-                     "a red host's whole output, its failure message included",
-                     // kb/Work PB4328: the classes red at the previous run or in the bounce run first
-                     "a re-gate hands every host the classes red at the previous run and in the bounce",
-                     "an unreadable trx among the first classes' sources is named and KEPT",
-                     "a test host's environment is scrubbed",
-                     "a population that cannot be listed is NOT RUN [population]",
-                     "a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build",
-                     "the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one",
-                     // kb/Work PB4326: the audits run BESIDE the build and the hosts, and only tooling runs the self-tests
-                     "an audit that turns RED while the gate queues for the slot ends the gate before the build",
-                     "an audit that is RED only after the test hosts have started STOPS them",
-                     "the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches tooling",
-                     "the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY",
-                     "the verdict file records, per assembly, the seconds its host ran and the hosts' effective concurrency",
-                     // kb/Work PB2878: the inert lane, a change no test reads
-                     "a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN",
-                     "a red audit is RED in the inert lane too",
-                     "shared gate settings that turn malformed while the gate queues: NOT RUN",
-                     "a hung self-test is `SELF-TESTS HANG` in the gate's reasons, never RED, and every gate's self-tests run with --reuse",
-                     "a failed audit prerequisite (CI's `git submodule update --init tools/claude-skills`) is its RED, with its output, and no audit runs",
-                     "a defect in work beside the critical path is a named RED with its traceback",
-                     "ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits beside the build and the hosts and runs the whole population",
-                     "a second gate in the same worktree is REFUSED",
-                     "its verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED",
-                     "the one verdict reader: GREEN and an older gate's LEG 1 ONLY: GREEN pass",
-                     "a defect in the driver still ends in ONE verdict line",
-                     // kb/Work PB3526, review R2-1 of wave 1150: every NOT RUN cause classified ONCE, its printers held to it
-                     "every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies",
-                     "the gate lock is per worktree",
-                     "the measured tree is the working tree's content",
-                     "a re-gate of an unchanged tree answers from the recorded GREEN",
-                     "a chain of reuses names the run that MEASURED the tree",
-                     "a re-gate of a CHANGED tree runs the gate",
-                     "a RED is never reused",
-                     "a GREEN a gate before PB4328 wrote (record schema below SCHEMA_WHOLE",
-                     "a gate whose tree changed WHILE it ran is never reused",
-                     "--await reads the verdict file",
-                     // review R1-1 and R1-2 of wave 1152: a handed run's name is its worktree's; the harness's
-                     // edit of a tracked settings file is no part of a measured tree
-                     "the measured tree leaves out coord.NEVER_WORK",
-                     "a relative run name resolves against the worktree that gated it",
-                     "a record with no exit code takes it from its verdict through the one verdict reader",
-                     "build-local's gate runs DETACHED and is followed",
-                     "a detached gate OUTLIVES its follower's tree kill",
-                 });
-    }
-
-    /// <summary>
-    /// ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-build-ci.md §3.17.3): the gate takes no
-    /// mode, so no brief, skill, script, doc or test may tell anyone to run one — a caller left naming the deleted
-    /// lander mode would fail at the parameter binder, and one naming the implementer mode would teach a distinction
-    /// that no longer exists. History (the DEVLOG, the kb/Work notes, frozen evidence) keeps its words.
-    /// </summary>
-    [Fact]
-    public void TheGate_HasOneShape_NoCallerNamesAMode()
-    {
-        var mode = new Regex(@"(?:-Mode|--mode)\s+(?:" + "implementer" + "|" + "lander" + @")\b", RegexOptions.NonBacktracking);
-        string[] extensions = [".md", ".py", ".ps1", ".sh", ".js", ".cs", ".yml", ".json"];
-        string[] skipped = ["bin", "obj", ".git", "TestResults", "claude-skills", "evidence", "Work", "worktrees"];
-        IEnumerable<string> Walk(string dir) => Directory.Exists(dir)
-            ? Directory.EnumerateFiles(dir).Where(f => extensions.Contains(Path.GetExtension(f)))
-                .Concat(Directory.EnumerateDirectories(dir)
-                    .Where(d => !skipped.Contains(Path.GetFileName(d))).SelectMany(Walk))
-            : [];
-        // Each tree is spelled by its own call, so the drift-rule index names this test for a change under any of them.
-        var files = new[] { TestRepo.At(".claude"), TestRepo.At(".github"), TestRepo.Scripts(), TestRepo.Docs(), TestRepo.Tests() }
-            .SelectMany(Walk)
-            .Concat(Directory.EnumerateFiles(TestRepo.Root, "*.md")
-                .Where(f => Path.GetFileName(f) != "STATUS.md"))  // a worktree's gitignored checkpoint (the history, DEVLOG/, is not walked)
-            .ToList();
-        Assert.Contains(files, f => f.EndsWith(Path.Combine("templates", "MANDATORY-PRACTICES.md"), StringComparison.Ordinal));
-        var offenders = files
-            .SelectMany(f => File.ReadLines(f).Select((line, i) => (f, i, line)))
-            .Where(x => mode.IsMatch(x.line))
-            .Select(x => $"{Path.GetRelativePath(TestRepo.Root, x.f)}:{x.i + 1}: {x.line.Trim()}")
-            .ToList();
-        Assert.True(offenders.Count == 0,
-            "the gate has ONE shape — `pwsh scripts/build-local.ps1 [-Priority BelowNormal]`, no mode (kb/Work PB3022) — "
-            + "but these lines still name one:\n  " + string.Join("\n  ", offenders));
-    }
-
-    /// <summary>
-    /// Arm (6): every <c>dotnet test</c> caller under <c>scripts/</c> runs scrubbed, and no CI workflow sets a
-    /// variable that narrows a test run.
-    /// </summary>
-    [Fact]
-    public void Arm6_EveryDotnetTestCaller_ScrubsTheGateEnvironment()
-    {
-        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts(PopulationTool), "audit-callers");
-
-        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== CALLER AUDIT: CLEAN", StringComparison.Ordinal),
-            "A `dotnet test` caller can run with the gate's channel (WISEOWL_COBOL_GATE_*) or a VSTest*/"
-            + "RunSettingsFilePath variable in its environment, which narrows the run to a PART of its assembly while "
-            + "it exits 0 (kb/Work PB1718). Run it as `python scripts/test_population.py scrubbed dotnet test …` "
-            + "(a python caller passes `env=scrubbed_env()`), and never set one of those variables in a workflow.\n"
-            + $"(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
-
-        // ⛔ THE SCAN MUST ASSERT ITS OWN POPULATION: the callers §3.14.3 names, plus the gate twins. A scan that
-        // stopped seeing them would report a clean tree over nothing.
-        foreach (string site in new[]
-                 {
-                     "scripts/battery.sh", "scripts/gate.py", "scripts/gen-vcr.ps1",
-                     "scripts/gen-diagnostics-doc.ps1", "scripts/spec/record_verdicts.py",
-                     "scripts/abi_pin.py", ".github/workflows/build-and-test.yml",
-                 })
-        {
-            Assert.True(r.Stdout.Contains("  site  " + site + "\n", StringComparison.Ordinal)
-                        || r.Stdout.Contains("  site  " + site + "\r\n", StringComparison.Ordinal),
-                $"the caller audit no longer sees {site} — the scan is broken, not the tree clean.\n{r.Stdout}");
-        }
-    }
-
-    /// <summary>
-    /// RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB4328; DESIGN-test-build-ci.md §3.14.2): every
-    /// live tool that writes a trx file into a worktree is a row of <c>test_population.TRX_WRITERS</c>, which says what the gate takes
-    /// from its results — its own previous run, the Linux gate's newest run, or nothing and why — and names a results
-    /// directory its tool really writes. The gate runs the classes red there first (<c>Gate._first</c>).
-    /// </summary>
-    [Fact]
-    public void EveryTrxWriter_IsASourceOfTheFirstClasses_OrSaysWhyNot()
-    {
-        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts(PopulationTool),
-            "audit-trx-writers");
-
-        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== TRX WRITER AUDIT: CLEAN", StringComparison.Ordinal),
-            "A live tool writes test results (a trx file) that the gate does not classify: give it a row in "
-            + "scripts/test_population.py TRX_WRITERS (its results directory, and whether its red classes run first at the next "
-            + "gate), or correct the row that no longer matches its tool.\n"
-            + $"(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
-
-        // ⛔ THE AUDIT MUST SEE ITS POPULATION: the two gates whose reds the gate reads, and the battery. An audit that
-        // stopped seeing them would report a clean tree over nothing.
-        foreach (string writer in new[]
-                 {
-                     "scripts/gate.py  TestResults/build-local", "scripts/linux-gate.sh  TestResults/linux-gate",
-                     "scripts/battery.sh  -",
-                 })
-        {
-            Assert.True(r.Stdout.Contains("  writer  " + writer + "  ", StringComparison.Ordinal),
-                $"the trx writer audit no longer sees {writer} — the audit is broken, not the tree clean.\n{r.Stdout}");
-        }
-    }
-
-    /// <summary>
-    /// ONE READER OF A TRX FILE (kb/Work PB3661; DESIGN-test-build-ci.md §3.14.2): <c>test_population.trx_root</c>, which
-    /// names the file it cannot read. The gate's former planner and the profiler each parsed a trx themselves, so a torn
-    /// file ended a gate's plan with a parse error that named no path (run 000005 of wf_1973801d-4fe-29, 2026-10-24).
-    /// </summary>
-    [Fact]
-    public void EveryTrxReader_IsTheOneReader_ThatNamesTheFileItCannotRead()
-    {
-        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts(PopulationTool),
-            "audit-trx-readers");
-
-        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== TRX READER AUDIT: CLEAN", StringComparison.Ordinal),
-            "A live tool parses a trx file itself: read it through scripts/test_population.py trx_root (it raises "
-            + "UnreadableTrx naming the file), so a torn file never fails a gate's plan with an unnamed parse error.\n"
-            + $"(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
-
-        // ⛔ THE AUDIT MUST SEE ITS POPULATION: the one reader parses XML, and the tools that name the schema (the gate's
-        // fixtures, the profiler's namespace) parse nothing.
-        foreach (string line in new[]
-                 {
-                     "  trx-schema  scripts/test_population.py  parses XML",
-                     "  trx-schema  scripts/gate.py  no XML parser",
-                     "  trx-schema  scripts/profile-test-parallelism.py  no XML parser",
-                 })
-        {
-            Assert.True(r.Stdout.Contains(line, StringComparison.Ordinal),
-                $"the trx reader audit no longer reports `{line.Trim()}` — the audit is broken, not the tree clean.\n{r.Stdout}");
-        }
-    }
 
     // ── Arm (2): the orderers ─────────────────────────────────────────────────────────────────────────────────────
 

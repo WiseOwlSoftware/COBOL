@@ -18,9 +18,9 @@ namespace WiseOwl.Cobol.Tests.Characterization;
 /// substituted only where both equal this runtime's own: a version or call-ABI bump re-records nothing, while an emitter
 /// that stamps any other version or ABI still diffs. The exact text of both stamps is
 /// RuntimeAbiPinDriftTests.TheEmittedRecord_StatesTheVersionsThisRuntimeDeclares' to hold. Before this, every major bump
-/// (and, until PB3570's finisher on 2026-10-23, every call-ABI bump) left all of these snapshots red under a gate whose
-/// leg 1 never planned them (a version change reaches no test through code impact), and only the landing's whole Linux
-/// run saw it (PB1099's finisher, 2026-10-16).</para>
+/// (and, until PB3570's finisher on 2026-10-23, every call-ABI bump) left all of these snapshots red under a gate that
+/// selected its cases by impact (a version change reaches no test through code impact), and only the landing's whole Linux
+/// run saw it (PB1099's finisher, 2026-10-16; the gate runs the whole population since PB4328).</para>
 /// </summary>
 public sealed class EmittedCSharpSnapshotTests
 {

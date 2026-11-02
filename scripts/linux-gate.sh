@@ -18,7 +18,7 @@
 # characterization (Linux)`: group F's new GateLegDriftTests.Arm5 planted the Windows root `E:\COBOL-wt\battery87`,
 # which `Path.GetFullPath` treats as RELATIVE on Linux. The unit leg reproduces exactly that one red; the CI round
 # trip cost ~30 min and a dropped cluster. MANDATORY-PRACTICES I8 names this script as the
-# reproduction tool, and LinuxGateDriftTests keeps its legs equal to what CI's
+# reproduction tool, and scripts/test_linux_gate.py keeps its legs equal to what CI's
 # Linux jobs run: every test project they `dotnet test`, and every repository script they `bash` (the `guard` leg,
 # CI's guard job, added 2026-10-04 by kb/Work PB1955 after that job's red reached CI unseen; the nightly's since PB4329).
 #
@@ -299,7 +299,7 @@ on_signal() {
 # THE CLONE'S origin/main IS THE TREE'S (kb/Work PB3825, branch review R1-1). A `--shared` clone of the tree's repository has
 # the SOURCE repository's local `main` branch as its refs/remotes/origin/main, and nothing advances a local `main`; the tree's
 # own origin/main (what the Windows half and the landing read) is usually ahead. A tool that reads origin/main inside the clone
-# (merge_drivers.py --check, which MergeDriverDriftTests runs in the test legs) would measure a different main than the Windows
+# (merge_drivers.py --check, which its own --self-test runs on the real tree) would measure a different main than the Windows
 # half and turn the gate RED for a branch cut from a newer origin/main. So each clone's origin/main is set to the tree's sha (the
 # clone reads the same object store), and DELETED when the tree has none: a tool then says "not checked", never reads local `main`.
 pin_origin_main() {   # <clone> <the tree's origin/main sha, or empty>
@@ -588,14 +588,14 @@ if ! git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$
 fi
 corpus_red=""
 echo "linux-gate: Linux clone of HEAD ${head:0:9} at $snap"
-# The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; ExternalCorpusPopulationDriftTests is RED without it by
-# design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery apply
+# The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; `scripts/corpus_sweep.py --self-test` (the population
+# invariant, run with the self-tests) is RED without it by design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery apply
 # (scripts/external_corpus.py, kb/Work PB2611): fetch when still absent, and a failed fetch is a named red.
 if [ -d tests/external/gnucobol ]; then
   mkdir -p "$snap/tests/external" && cp -r tests/external/gnucobol "$snap/tests/external/"
 fi
 if ! "$PY" "$snap/scripts/external_corpus.py" ensure --repo "$snap" > "$out/corpus-fetch.log" 2>&1; then
-  echo "linux-gate: EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED (TestResults/linux-gate/corpus-fetch.log); the two ExternalCorpusPopulationDriftTests reds in the unit leg are attributable to it"
+  echo "linux-gate: EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED (TestResults/linux-gate/corpus-fetch.log); a corpus_sweep.py --self-test red is attributable to it"
   corpus_red=" corpus-fetch"
 fi
 [ "$dirty" -gt 0 ] && echo "linux-gate: NOTE — $dirty uncommitted tracked change(s) are NOT tested (the clone is HEAD)"
@@ -671,7 +671,12 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   # re-read the file lost 8 to 14 of 800 lines per run, and the reader's read failed with ENODATA ("No data available");
   # the same run on the Linux filesystem lost none and failed none. HarnessLogTests reads the log beside its writers,
   # and on /mnt/e its read failed (the landing at c89014b6b, kb/Work PB3194).
+  # A FRESH Python bytecode cache per leg, as CI's watched steps get from `inert_lane.py watch` (kb/Work PB4395 review
+  # R2-1): the watch here runs beside the legs, never above them, so without it a script a test runs was served from the
+  # __pycache__ an earlier import left (the build's), unopened and unseen: measured 2026-11-01, this watch missed
+  # scripts/standard_streams.py, which CI's watch reported.
   ( cd "$snap" && export WISEOWL_COBOL_HARNESS_LOG="$gate/$leg.observations.log" \
+      && export PYTHONPYCACHEPREFIX="$gate/$leg.pycache" \
       && "${nice_prefix[@]}" "$PY" "$snap/scripts/test_population.py" scrubbed dotnet test "$proj" \
       --no-build --no-restore --logger "trx;LogFileName=$leg.trx" --results-directory "$out" ) > "$out/$leg.log" 2>&1
   rc=$?
