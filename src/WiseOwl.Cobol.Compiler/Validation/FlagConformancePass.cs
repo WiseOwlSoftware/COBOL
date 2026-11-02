@@ -77,7 +77,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     // a method definition each), in source order, each recording whether its own text calls a function or invokes a
     // method. A >>TURN directive for an EC-PROGRAM-family exception is flagged (post-walk) when the source element it
     // belongs to calls or invokes. _activationSites is the BINDER's record of the activations that carry no syntactic
-    // marker (DataBinder.ActivationSites).
+    // marker (DataBindState.ActivationSites).
     private readonly List<SourceElement> _elements = [];
     private SourceElement? _currentElement;
     private readonly IReadOnlySet<object> _activationSites;
@@ -141,9 +141,9 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
                     if (m.Ctx is { } mctx) methodScopes[mctx] = new MethodNameScope(data, refs, m.DataScope);
 
         // The binder's record of the function activations and property references that look like data references
-        // (DataBinder.ActivationSites) — every forest of the group, class and program alike.
+        // (DataBindState.ActivationSites) — every forest of the group, class and program alike.
         var activationSites = new HashSet<object>(ReferenceEqualityComparer.Instance);
-        foreach (var binder in group.AllBindersAndInterfaces()) activationSites.UnionWith(binder.ActivationSites);
+        foreach (var binder in group.AllBindersAndInterfaces()) activationSites.UnionWith(binder.State.ActivationSites);
 
         var pass = new FlagConformancePass(flag, sink,
             group.Session.RefModZeroLength, group.Session.Turn, unitByIdentification, methodScopes, activationSites);
@@ -203,10 +203,11 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitMethodDefinition(CobolParserCore.MethodDefinitionContext ctx)
     {
         if (!_methodScopes.TryGetValue(ctx, out var method)) return VisitElement(ctx);
-        var saved = (_currentData, _currentRefs, method.Data.ActiveMethodScope);
-        (_currentData, _currentRefs, method.Data.ActiveMethodScope) = (method.Data, method.Refs, method.Scope);
+        var saved = (_currentData, _currentRefs);
+        (_currentData, _currentRefs) = (method.Data, method.Refs);
+        using var scope = method.Data.Procedure.ActiveMethodScope.Enter(method.Scope);
         try { return VisitElement(ctx); }
-        finally { (_currentData, _currentRefs, method.Data.ActiveMethodScope) = saved; }
+        finally { (_currentData, _currentRefs) = saved; }
     }
 
     /// <summary>Open the source element <paramref name="ctx"/> for the walk of its subtree and close it on exit.</summary>
@@ -265,7 +266,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     }
 
     /// <summary>A data reference the BINDER resolved to a keyword-omitted function-identifier or a property reference
-    /// (<see cref="DataBinder.ActivationSites"/>): the two activations whose text looks like a data reference.</summary>
+    /// (<see cref="DataBindState.ActivationSites"/>): the two activations whose text looks like a data reference.</summary>
     public override object? VisitDataReference(CobolParserCore.DataReferenceContext ctx)
     {
         if (IsActivation(ctx)) NoteActivation();
@@ -363,7 +364,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// <summary>Whether the reference modification <paramref name="refMod"/> modifies the RESULT of a function rather
     /// than a data item: its host — the nearest enclosing function call, or data reference — is a FUNCTION activation (an
     /// explicit <c>functionCall</c>, or a data reference the binder resolved to a keyword-omitted function,
-    /// <see cref="DataBinder.ActivationSites"/>).</summary>
+    /// <see cref="DataBindState.ActivationSites"/>).</summary>
     private bool ModifiesAFunctionResult(ParserRuleContext refMod)
     {
         for (var host = refMod.Parent; host is not null; host = host.Parent)

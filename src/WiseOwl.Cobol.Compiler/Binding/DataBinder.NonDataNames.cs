@@ -164,8 +164,8 @@ public sealed partial class DataBinder
         if (Symbols.IndexCandidates(name, qualifiers, scope) is { } indexes)
             yield return new(NonDataDeclarationKind.IndexName,
                 Depth: indexes.Count > 0 ? indexes.NearestDepth(i => DeclaringDepth(i.Table)) : int.MaxValue);
-        if (!dataName && qualifiers.Count == 0 && TryGetVisibleFile(name, out var file))
-            yield return new(NonDataDeclarationKind.FileName, Depth: FileDepth(file));
+        if (!dataName && qualifiers.Count == 0 && VisibleFiles.TryGetValue(name, out var file))
+            yield return new(NonDataDeclarationKind.FileName, Depth: State.Inherited.FileDepth(file));
     }
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) a) FOR A CONDITION-NAME REFERENCE AGAINST THE OTHER NAME CLASSES (kb/Work PB4432, the
@@ -202,24 +202,11 @@ public sealed partial class DataBinder
         return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, DeclaringDepth(tier[0].Parent));
     }
 
-    /// <summary>Whether <paramref name="name"/> is a file-name visible in this source element: one of its own files or a
-    /// GLOBAL file of a containing element (<see cref="InheritedGlobalFiles"/>, known before the unit binds).</summary>
-    internal bool IsVisibleFileName(string name) => TryGetVisibleFile(name, out _);
-
-    /// <summary>⛔ THE ONE LOOKUP OF A FILE-NAME VISIBLE IN THIS SOURCE ELEMENT, at any point of the bind: its own file,
-    /// which hides a container's of the same spelling (§8.4.6.2.1 3) a)), else the nearest container's GLOBAL file
-    /// (§13.18.27.4 GR1). <see cref="FilesByName"/> alone answers only after the unit binds, when
-    /// <c>BinderDriver.BindUnitData</c> merges the inherited files in; the data division's own clauses resolve before
-    /// that, and a container's GLOBAL record qualified by its file (§8.4.2.2.2 Format 1's file-report-qualifier) must
-    /// resolve there too (kb/Work PB3557 review R2-1).</summary>
-    internal bool TryGetVisibleFile(string name, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out FileModel? file) =>
-        FilesByName.TryGetValue(name, out file) || InheritedGlobalFiles.TryGetValue(name, out file);
-
     /// <summary>The type declarations visible in <paramref name="scope"/>, in <see cref="TryFindTypeDecl"/>'s order: a
     /// method's own, this element's, a container's GLOBAL one.</summary>
     private IEnumerable<DataItem> VisibleTypeDeclarations(Model.Scope scope)
     {
-        IEnumerable<DataItem> visible = TypeDecls.Values.Concat(_inheritedTypeDecls.Values);
+        IEnumerable<DataItem> visible = TypeDecls.Values.Concat(State.Inherited.TypeDecls.Values);
         return scope.Method is { } m ? m.TypeDecls.Values.Concat(visible) : visible;
     }
 }

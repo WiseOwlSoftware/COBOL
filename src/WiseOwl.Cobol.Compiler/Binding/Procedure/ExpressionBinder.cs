@@ -760,16 +760,16 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         }
         if (dref.cobolWord() is { } q)   // qualified: LINAGE-COUNTER OF/IN file-name
         {
-            if (ctx.Data.FilesByName.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
+            if (ctx.Data.VisibleFiles.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
             ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
                 + "file whose file description entry contains a LINAGE clause (ISO §8.4.3.14 / §13.18.34.4 GR7a)");
             return null;
         }
-        // The VISIBLE set, not the program's own FD list (kb/Work PB123's sweep): FilesByName carries the
+        // The VISIBLE set, not the program's own FD list (kb/Work PB123's sweep): VisibleFiles carries the
         // containers' GLOBAL FDs too (§13.18.27.4 GR1), so a contained program whose only LINAGE file is the
         // container's GLOBAL one resolves the unqualified register instead of drawing COBOL0864; two
         // visible LINAGE files — own plus inherited — still require qualification (§8.4.3.14 SR3).
-        var linageFiles = ctx.Data.FilesByName.Values.Where(f => f.Linage is not null).Distinct().ToList();
+        var linageFiles = ctx.Data.VisibleFiles.Values.Where(f => f.Linage is not null).Distinct().ToList();
         if (linageFiles.Count == 1) return linageFiles[0];
         ctx.Edition.Error("COBOL0864", linageFiles.Count == 0
             ? "LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause (ISO §8.4.3.14 — "

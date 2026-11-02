@@ -256,7 +256,7 @@ public sealed partial class DataBinder
     /// source element"</i>; the file is outside this element's FILE-CONTROL paragraph too, so SR1 is broken with it, in
     /// the one report.</item>
     /// <item>The one data item the lookup identifies is a container's GLOBAL record area
-    /// (<see cref="InheritedGlobalRecordAreas"/>), bare or with its file-report-qualifier (§8.4.2.2.2 Format 1): SR11's
+    /// (<see cref="InheritedGlobals.RecordAreas"/>), bare or with its file-report-qualifier (§8.4.2.2.2 Format 1): SR11's
     /// other noun. Two GLOBAL files' records of one name are told apart by that qualifier, as any data-name is.</item>
     /// <item>No visible declaration, and a container's file with no GLOBAL clause of the spelling: SR1 — <i>"File-name-1
     /// shall be specified in the FILE-CONTROL paragraph of the source element that contains this clause"</i>.</item>
@@ -268,8 +268,8 @@ public sealed partial class DataBinder
     {
         var dataItems = QualifiedCandidates(name, quals, Model.Scope.Program);
         if (dataItems.Any(i => DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
-        FileModel? global = quals.Count == 0 && InheritedGlobalFiles.TryGetValue(name, out var g) ? g : null;
-        int fileDepth = global is null ? int.MaxValue : FileDepth(global);
+        FileModel? global = quals.Count == 0 && State.Inherited.Files.TryGetValue(name, out var g) ? g : null;
+        int fileDepth = global is null ? int.MaxValue : State.Inherited.FileDepth(global);
         // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§8.4.6.2.1 3)), and
         // the operand resolves as written to its own refusal; a farther one does not hide the file (kb/Work PB4219: a
         // container's GLOBAL table's INDEXED BY RELF used to beat a nearer container's GLOBAL file RELF).
@@ -286,14 +286,14 @@ public sealed partial class DataBinder
                 + "and it is not specified in the FILE-CONTROL paragraph of this source element either (SR1)", "SR11", Sr11Text);
             return true;
         }
-        if (dataItems.Single is { } item && InheritedGlobalRecordAreas.TryGetValue(item, out var owner))
+        if (dataItems.Single is { } item && State.Inherited.RecordAreas.TryGetValue(item, out var owner))
         {
             ApplyCommitRule($"'{written}' is a record area of file '{owner.CobolName}' declared with the GLOBAL clause in a "
                 + "containing source element", "SR11", Sr11Text);
             return true;
         }
         if (dataItems.Count == 0 && quals.Count == 0
-            && ContainerLocalFiles.Find(f => CobolNames.Same(f.CobolName, name)) is { } local)
+            && State.Inherited.ContainerLocalFiles.FirstOrDefault(f => CobolNames.Same(f.CobolName, name)) is { } local)
         {
             ApplyCommitRule($"'{local.CobolName}' is a file of a containing source element, not specified in the "
                 + "FILE-CONTROL paragraph of this one (it has no GLOBAL clause, so it is not visible here)", "SR1",

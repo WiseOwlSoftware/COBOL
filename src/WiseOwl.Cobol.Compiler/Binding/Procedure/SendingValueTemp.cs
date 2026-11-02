@@ -237,7 +237,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// the renderer flags every such value <c>NumX.Approximate</c>), so the intermediate that holds it says so
     /// (<see cref="DataItem.HoldsApproximation"/>, kb/Work PB1606).</summary>
     private bool IsBinary64Approximation(BoundOperand c) =>
-        c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Data.Options.Arithmetic);
+        c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Options.Arithmetic);
 
     /// <summary>The widest floating-point numeric-edited PICTURE (kb/Work PB370): §13.18.40.3 SR15's 36 significand
     /// digits and §13.18.40.4 GR13 b)'s four exponent digits, the point after the first digit.</summary>
@@ -393,7 +393,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// return the <see cref="Place"/> holding it, or <see langword="null"/> when the operand needs no
     /// materialization (a literal / figurative constant) or carries a description this clone cannot freeze (a
     /// variable-length group). The store registers as a statement-scoped PRE-op on the shared
-    /// <c>DataBinder.PendingPreOps</c>, which the <c>BindStatement</c> chokepoint drains into a
+    /// <c>ProcedureBindState.PendingPreOps</c>, which the <c>BindStatement</c> chokepoint drains into a
     /// <c>BoundSequence</c> ahead of the carrying statement — "immediately before data is moved to the first of
     /// the receiving operands" (§14.9.25.4 GR1) and "at the beginning of the execution of the EVALUATE
     /// statement" (§14.9.13.4 GR3) are the same position in the generated code.</summary>
@@ -443,7 +443,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // store — `EVALUATE IDA WHEN I2 WHEN I1` materialized its subject into an index clone through a MOVE and
         // then compared a value that never arrived, so it took WHEN OTHER. The identity copy of an index data item into
         // its own class-index clone is the SET it names.
-        ctx.Data.PendingPreOps.Add(IdentityStore(op, model.Item, place));
+        ctx.Data.Procedure.PendingPreOps.Add(IdentityStore(op, model.Item, place));
         return place;
     }
 
@@ -456,15 +456,11 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// were registered; a freeze that answers <see langword="null"/> moves nothing.</summary>
     private Place? Positioned(int? at, Func<Place?> register)
     {
-        var pending = ctx.Data.PendingPreOps;
-        int mark = pending.Count;
+        var pending = ctx.Data.Procedure.PendingPreOps;
+        int mark = pending.Mark();
         var place = register();
         if (place is not null && at is { } position && position < mark)
-        {
-            var steps = pending.GetRange(mark, pending.Count - mark);
-            pending.RemoveRange(mark, steps.Count);
-            pending.InsertRange(position, steps);
-        }
+            pending.InsertAt(position, pending.DrainFrom(mark));
         return place;
     }
 
@@ -506,7 +502,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <para>The intermediate result item for a truth value is a ONE-POSITION BOOLEAN item: §8.8.4.3.4 GR1 —
     /// "Boolean-expression-1 evaluates true if the result of the expression is 1" — reads exactly such an item, so
     /// the store (<c>IF condition-1 → B"1" ELSE B"0"</c>, a statement-scoped PRE-op on the same
-    /// <c>DataBinder.PendingPreOps</c> list, so it lands at the same "beginning of the execution" position as a
+    /// <c>ProcedureBindState.PendingPreOps</c> list, so it lands at the same "beginning of the execution" position as a
     /// value subject's store) and the read-back (<see cref="BoundBooleanCondition"/> over
     /// <see cref="BoundBoolRef"/>) are both ordinary nodes the emitter already renders. No new bound leaf.</para>
     /// <para>User-defined-function activations inside the condition stay on the pending list AHEAD of this
@@ -526,7 +522,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__SENDTRUTH-", "__sendtruth", tag);
         if (ctx.Refs.ResolveItem(temp) is not { } place) return truth;
-        ctx.Data.PendingPreOps.Add(new BoundIf(truth, [StoreBit(place, "1")], [StoreBit(place, "0")]));
+        ctx.Data.Procedure.PendingPreOps.Add(new BoundIf(truth, [StoreBit(place, "1")], [StoreBit(place, "0")]));
         return new BoundBooleanCondition(new BoundBoolRef(place));
 
         static BoundStatement StoreBit(Place p, string bit) => new BoundComputeBoolean(new BoundBoolLiteral(bit), [p]);
@@ -535,7 +531,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <summary>The BOOLEAN-EXPRESSION arm (kb/Work PB1423): store a boolean expression's value, of
     /// <paramref name="positions"/> boolean positions (§8.8.2 rule 10 — "the number of boolean positions of the
     /// larger item referenced"), into an intermediate boolean item, as a PRE-op on the same
-    /// <c>DataBinder.PendingPreOps</c> — so a function argument that IS a boolean expression is evaluated at its place
+    /// <c>ProcedureBindState.PendingPreOps</c> — so a function argument that IS a boolean expression is evaluated at its place
     /// in the argument list (§8.4.3.2.4 GR2) and not after a later argument's activation changed an item it reads.
     /// The store is COMPUTE Format 2's own (<see cref="BoundComputeBoolean"/>), the channel a boolean expression has
     /// and <see cref="Materialize"/> deliberately does not reach. Null when the item cannot be resolved.</summary>
@@ -551,7 +547,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__SENDBOOL-", "__sendbool", tag);
         if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
-        ctx.Data.PendingPreOps.Add(new BoundComputeBoolean(expr, [place]));
+        ctx.Data.Procedure.PendingPreOps.Add(new BoundComputeBoolean(expr, [place]));
         return place;
     }
 
@@ -590,7 +586,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             if (ctx.Refs.ResolveItem(dep) is not { } depPlace) return false;
             var frozen = ctx.Data.CreateCompilerTemp(dep, "__SENDODO-", "__sendodo", tag);
             if (ctx.Refs.ResolveItem(frozen) is not { } frozenPlace) return false;
-            ctx.Data.PendingPreOps.Add(new BoundMove(new BoundFieldOperand(depPlace), [frozenPlace]));
+            ctx.Data.Procedure.PendingPreOps.Add(new BoundMove(new BoundFieldOperand(depPlace), [frozenPlace]));
             clonedSpec.Depending = frozen;
         }
         // The clone is node-for-node the model's (DataBinder.CloneTempNode walks Children in order), so the
@@ -662,7 +658,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             (count, heldCount) = (numberPlace, new AllCount.Odo(numberPlace, 0, (int)capacity));
         }
         var heldAll = new TableAllPlace(heldElement, held, [heldCount]);
-        ctx.Data.PendingPreOps.Add(new BoundHoldTableAll(all, heldAll, count, IdentityStore(element, model.Item, heldElement)));
+        ctx.Data.Procedure.PendingPreOps.Add(new BoundHoldTableAll(all, heldAll, count, IdentityStore(element, model.Item, heldElement)));
         return heldAll;
     }
 
