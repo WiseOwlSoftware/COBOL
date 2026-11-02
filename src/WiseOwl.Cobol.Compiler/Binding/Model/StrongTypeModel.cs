@@ -157,6 +157,22 @@ public static class StrongTypeModel
     public static bool SameElementaryLayout(DataItem a, DataItem b) =>
         SameLayout(a, b, new Comparison());
 
+    /// <summary><see cref="SameElementaryLayout"/> as a KEY (kb/Work PB2103; DESIGN-external-repository §6.4): each
+    /// elementary item's relative bit position, length in bits and §8.5.3.1 essential characteristics, in order — what
+    /// <see cref="TypeIdentityKey"/> keys a declaration's leaves by — so two groups whose layouts are the same have equal
+    /// keys and two whose layouts differ do not. A group whose items cannot be placed is the same as no group (the relation
+    /// answers false even of itself), keyed apart by its name.</summary>
+    public static string ElementaryLayoutKey(DataItem group)
+    {
+        List<(DataItem Item, int Start)> leaves = [];
+        if (!CollectElementary(group, 0, leaves)) return "UNPLACED " + group.CobolName;
+        var key = new System.Text.StringBuilder();
+        List<DataItem> open = [];
+        foreach (var (leaf, start) in leaves)
+            key.Append(CultureInfo.InvariantCulture, $"|{start}:{BitLayout.RunBits(leaf)}:{EssentialCharacteristicsKey(leaf, open)}");
+        return key.ToString();
+    }
+
     private static bool SameLayout(DataItem a, DataItem b, Comparison within)
     {
         List<(DataItem Item, int Start)> la = [], lb = [];
@@ -230,7 +246,7 @@ public static class StrongTypeModel
     {
         string entry = string.Create(CultureInfo.InvariantCulture,
             $"{(x.IsAligned ? "A" : "-")}{(x.BlankWhenZero ? "B" : "-")}{(x.Justified ? "J" : "-")}{SynchronizedKey(x.Synchronized)}")
-            + (x.IsDynamicLength ? string.Create(CultureInfo.InvariantCulture, $"D{x.DynMaxSize}/{CobolNames.Fold(x.DynStructure?.Name ?? "")}") : "");
+            + (x.IsDynamicLength ? string.Create(CultureInfo.InvariantCulture, $"D{x.DynMaxSize}/{DynamicLengthStructure.KeyOf(x.DynStructure)}") : "");
         if (x.Pic is not { } p) return entry;
         string locale = p.LocaleEdit is { } le
             ? string.Create(CultureInfo.InvariantCulture,

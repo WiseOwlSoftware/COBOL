@@ -28,9 +28,13 @@ public static class RuntimeAbi
 
     /// <summary>The boundary layout this runtime adopts (§15.4). Bumped whenever a compiler-side crossing decision
     /// changes: <c>CallEmitter.CrossingOf</c>, <c>ProgramEmitter.FormalCrossing</c> / <c>FormalCarrierType</c>, the
-    /// profile and width <c>CallEmitter.RegisteredFormal</c> / <c>RegisteredReturning</c> register, or the BY VALUE
-    /// landing's arguments.</summary>
-    public const int CallAbi = 2;
+    /// profile and width <c>CallEmitter.RegisteredFormal</c> / <c>RegisteredReturning</c> register, the BY VALUE
+    /// landing's arguments, or the text a description carries for the relations to compare (3: a restricted pointer's
+    /// canonical signature identity and the DYNAMIC LENGTH structure's definition key, kb/Work PB2103).
+    /// <para>A property, never a <c>const</c>: a constant's value is part of the shipped public surface the runtime major
+    /// guards, so every call-ABI bump moved the runtime's public-API hash too and the two counters could not move apart
+    /// (kb/Work PB2103). No module reads this member; a module records the number it was compiled with.</para></summary>
+    public static int CallAbi { get; } = 3;
 
     /// <summary>Why a module compiled against <paramref name="runtimeVersion"/> and <paramref name="callAbi"/> cannot
     /// run on this runtime, or null when it can: the runtime MAJOR must equal this runtime's (a different major is a

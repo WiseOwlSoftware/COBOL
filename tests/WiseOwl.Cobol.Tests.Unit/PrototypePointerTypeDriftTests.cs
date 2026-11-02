@@ -344,7 +344,7 @@ public sealed class PrototypePointerTypeDriftTests
         var sameName = DecodedPointer("PA", "X(2)");
         Assert.NotEqual(held.PointerRestrictionIdentity, sameName.PointerRestrictionIdentity);
         Assert.False(PrototypeSignatures.SameType(held, sameName), "a decoded pointer named like the group's prototype took its type");
-        Assert.StartsWith("DECODED ", sameName.PointerRestrictionIdentity, StringComparison.Ordinal);
+        Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, sameName.PointerRestrictionIdentity, StringComparison.Ordinal);
 
         var again = DecodedPointer("PA", "S9(3)");
         Assert.NotEqual(sameName.PointerRestrictionIdentity, again.PointerRestrictionIdentity);

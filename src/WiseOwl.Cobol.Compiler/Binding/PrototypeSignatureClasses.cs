@@ -19,45 +19,39 @@ namespace WiseOwl.Cobol.Binding;
 /// travel to run time; the typed conformance comparator) compared the NAMES.
 /// <para><b>The class.</b> The prototypes are partitioned into classes by the ONE same-signature test
 /// (<see cref="PrototypeSignatures.Same"/>), as the coarsest stable partition (<see cref="Classify"/>: refined until a
-/// round splits nothing, so the classes do not depend on the order prototypes are presented in), and a class's identity
-/// is its founder's — the first member presented — externalized name
-/// (§8.3.2.2: "all instances of a given name that is externalized to the operating environment shall identify the same
-/// kind of entity"), spelled <c>TO name</c> as a pointer's USAGE clause spells it. A prototype that took ISO §12.3.8.4
-/// GR10 c) / GR11 c) — the details come from the external repository, so there is no compile-time signature to compare —
-/// is a class of its own, marked as such: <see cref="PrototypeSignatures.ExternalIdentity"/> of its own name, which the
-/// conformance relations let conform to any restricted pointer of its kind, as <see cref="PrototypeSignatures.Same"/>
-/// lets an unresolved signature conform (kb/Work PB3162). A prototype that is its own founder keeps the identity it
-/// always had; only an ALIAS of a founder changes.</para>
-/// <para><b>Two kinds of member (DESIGN-external-repository §6.4 parts 1-3; kb/Work PB2100).</b> A GROUP prototype is one
-/// the compilation group declares; a DECODED prototype is one a repository record describes
-/// (<see cref="RestrictedPrototype.Origin"/>, <see cref="Admit"/>). Members are keyed by ORIGIN AND NAME
-/// (<see cref="PrototypeKey"/>): a group name is classified once (§8.3.2.2: one externalized name, one program), and a
-/// decoded <c>P</c> is a member of its own, placed by <see cref="PrototypeSignatures.Same"/> over its DECODED signature,
-/// never by the group's <c>P</c> — the key is right inside one group and wrong the moment a second source of prototypes
-/// exists, because keying by name types a decoded pointer by NAME, which GR25 forbids. <see cref="Admit"/> adds the
-/// decoded prototypes and RE-RUNS the refinement over every member from ONE starting block, group members first in their
-/// original order, so a decoded <c>B</c> whose signature is <see cref="PrototypeSignatures.Same"/> as the group's <c>B</c>
-/// lands in that block rather than founding a second one (two types for one signature), and each block a group member
-/// founds keeps its founder and so its spelling: no group pointer's identity moves. A block founded by a decoded member is
-/// spelled <c>DECODED k TO name</c>, <c>k</c> its founder's ADMISSION number (the order <see cref="Admit"/> added decoded
-/// members, from 1, fixed before the re-run and independent of the round a block splits off in). Every group spelling
-/// begins <c>TO </c> and every decoded one <c>DECODED </c>, and neither is the runtime's reserved <c>EXTERNAL TO </c>
-/// (<see cref="PrototypeSignatures.ExternalIdentity"/>), whatever an <c>AS</c> literal holds, so two blocks never share an
-/// identity string and <see cref="PrototypeSignatures.SameType"/> (string equality of identities) stays "same block".</para>
-/// <para><b>Scope.</b> One instance per compilation group (<see cref="BindSession"/>). A group founder's identity is
-/// comparable between two descriptions of one run unit only while both were compiled in one group; the canonical,
-/// group-independent signature identity replaces the spelling in slice 7 (kb/Work PB2103), and this class stays the ONE
-/// place a signature class is formed.</para>
+/// round splits nothing, so the classes do not depend on the order prototypes are presented in). A prototype that took
+/// ISO §12.3.8.4 GR10 c) / GR11 c) — the details come from the external repository, so there is no compile-time signature
+/// to compare — is a class of its own, marked as such: <see cref="PrototypeSignatures.ExternalIdentity"/> of its own
+/// name, which the conformance relations let conform to any restricted pointer of its kind, as
+/// <see cref="PrototypeSignatures.Same"/> lets an unresolved signature conform (kb/Work PB3162).</para>
+/// <para><b>The identity (DESIGN-external-repository §6.4; kb/Work PB2103).</b> A class's identity is CANONICAL and
+/// group-independent: <see cref="PrototypeSignatures.CanonicalIdentity"/> of its minimized signature graph,
+/// <c>SIG &lt;hex&gt;</c>. A group describes a method's <c>RETURNING PROGRAM-POINTER TO P1</c> and a separately compiled group
+/// its receiver <c>TO P2</c> of one signature with ONE string, so the run-time relations (§9.3.6 match rule 3 e), SET's
+/// validity, §14.9.4.4 GR3 d)) admit the pair GR25 makes one type — the founder's name each group's partition picked, the
+/// identity this replaced, was comparable only between descriptions compiled in one group. While the partition is
+/// refined, a pointer carries its prototype's PROVISIONAL identity, its block's position in the round
+/// (<see cref="Namespace.Refine"/> compares by it); the canonical identities are stamped once the partition is stable.</para>
+/// <para><b>Two kinds of member (§6.4 parts 1 and 2; kb/Work PB2100).</b> A GROUP prototype is one the compilation group
+/// declares; a DECODED prototype is one a repository record describes (<see cref="RestrictedPrototype.Origin"/>,
+/// <see cref="Admit"/>). Members are keyed by ORIGIN AND NAME (<see cref="PrototypeKey"/>): a group name is classified once
+/// (§8.3.2.2: one externalized name, one program), and a decoded <c>P</c> is a member of its own, placed by
+/// <see cref="PrototypeSignatures.Same"/> over its DECODED signature, never by the group's <c>P</c> — keying by name types a
+/// decoded pointer by NAME, which GR25 forbids. <see cref="Admit"/> adds the decoded prototypes and RE-RUNS the refinement
+/// over every member from ONE starting block, so a decoded <c>B</c> whose signature is
+/// <see cref="PrototypeSignatures.Same"/> as the group's <c>B</c> lands in that block rather than founding a second one (two
+/// types for one signature).</para>
+/// <para><b>Scope.</b> One instance per compilation group (<see cref="BindSession"/>); the identities it stamps are the
+/// same in every group that describes the same signatures.</para>
 /// </summary>
 internal sealed class PrototypeSignatureClasses
 {
-    private readonly Namespace _programs = new();
-    private readonly Namespace _functions = new();
+    private readonly Namespace _programs = new(function: false);
+    private readonly Namespace _functions = new(function: true);
 
     /// <summary>Every pointer this instance stamps, group pointers first (the order they were presented in).</summary>
     private readonly List<DataItem> _pointers = [];
     private readonly HashSet<DataItem> _stamped = new(ReferenceEqualityComparer.Instance);
-    private int _admitted;
 
     /// <summary>⛔ THE PARTITION REFINEMENT (kb/Work PB3101; OO_DESIGN D6 item 7, the wave-1080 design decision):
     /// classify every prototype a restricted pointer of <paramref name="pointers"/> resolves to, and stamp each pointer
@@ -95,14 +89,21 @@ internal sealed class PrototypeSignatureClasses
         Run();
     }
 
-    /// <summary>The identity of a prototype's signature class (<c>TO name</c>, its founder's externalized name; <c>DECODED k TO
-    /// name</c> for a block a decoded member founded). A prototype <see cref="Classify"/> or <see cref="Admit"/>
-    /// partitioned answers its block; a GROUP prototype no restricted pointer names (a program-address-identifier's
-    /// prototype, asked by the procedure binder) joins the class whose founder it has the same signature as, under the
-    /// identities the partition stamped, or founds one of its own — no stamped pointer is restricted to it, so the
-    /// partition stays stable. A decoded prototype not yet admitted is a defect of the caller.</summary>
+    /// <summary>The canonical identity of a prototype's signature class (<see cref="PrototypeSignatures.CanonicalIdentity"/>).
+    /// A prototype <see cref="Classify"/> or <see cref="Admit"/> partitioned answers its block's; a GROUP prototype no
+    /// restricted pointer names (a program-address-identifier's prototype, asked by the procedure binder) joins the class
+    /// whose founder it has the same signature as, under the identities the partition stamped, or founds one of its own — no
+    /// stamped pointer is restricted to it, so the partition stays stable. A decoded prototype not yet admitted is a defect of
+    /// the caller.</summary>
     public string Identity(RestrictedPrototype prototype) =>
-        SpaceOf(prototype).Identity(prototype);
+        SpaceOf(prototype).BlockOf(prototype) is { } block ? Canonical(block) : PrototypeSignatures.ExternalIdentity(prototype.ExternalizedName);
+
+    /// <summary>A block's canonical identity, computed once its partition is stable (and again after an
+    /// <see cref="Admit"/> re-ran it).</summary>
+    private string Canonical(Block block) =>
+        block.Canonical ??= PrototypeSignatures.CanonicalIdentity(block,
+            b => (b.Function, b.Founder.Signature),
+            pointer => pointer.RestrictedPrototype is { } p ? SpaceOf(p).Known(p) : null);
 
     private Namespace SpaceOf(RestrictedPrototype prototype) => prototype.Function ? _functions : _programs;
 
@@ -116,7 +117,7 @@ internal sealed class PrototypeSignatureClasses
             var pointer = pending.Dequeue();
             if (pointer.RestrictedPrototype is not { } prototype || !_stamped.Add(pointer)) continue;
             _pointers.Add(pointer);
-            bool isNew = SpaceOf(prototype).Present(prototype, ref _admitted);
+            bool isNew = SpaceOf(prototype).Present(prototype);
             if (prototype.Origin is null || !isNew || prototype.Signature is not { } signature) continue;
             // A decoded signature reaches further prototypes through its own restricted-pointer formals.
             foreach (var root in signature.Formals.Select(f => f.Item).Concat(signature.Returning is { } r ? [r] : []))
@@ -129,7 +130,7 @@ internal sealed class PrototypeSignatureClasses
     }
 
     /// <summary>Refine to the coarsest stable partition from one starting block per namespace, re-stamping every pointer
-    /// each round.</summary>
+    /// with its prototype's PROVISIONAL identity each round, then stamp the canonical identities.</summary>
     private void Run()
     {
         _programs.Restart();
@@ -138,12 +139,18 @@ internal sealed class PrototypeSignatureClasses
         {
             foreach (var pointer in _pointers)
                 if (pointer.RestrictedPrototype is { } prototype)
-                    pointer.PointerRestrictionIdentity = Identity(prototype);
+                    pointer.PointerRestrictionIdentity = SpaceOf(prototype).Provisional(prototype);
             // Both namespaces refine under ONE stamping (a program prototype's formal may be a function-pointer), so
             // neither short-circuits the other.
             bool programsSplit = _programs.Refine(), functionsSplit = _functions.Refine();
-            if (!programsSplit && !functionsSplit) return;
+            if (!programsSplit && !functionsSplit) break;
         }
+        // The partition is stable: each pointer takes its class's canonical identity. Every class's identity is computed
+        // under the provisional stamps (CanonicalIdentity numbers the pointers of the graph it writes and restores them), so
+        // no class reads another's canonical spelling half-way through.
+        var canonical = _pointers.Select(p => p.RestrictedPrototype is { } prototype ? Identity(prototype) : null).ToList();
+        for (int i = 0; i < _pointers.Count; i++)
+            if (canonical[i] is { } identity) _pointers[i].PointerRestrictionIdentity = identity;
     }
 
     /// <summary>A prototype's key in a namespace: where it came from and its externalized name. A group prototype's origin
@@ -161,7 +168,7 @@ internal sealed class PrototypeSignatureClasses
 
     /// <summary>One namespace's classes (a program prototype and a function prototype of one name are two prototypes,
     /// §9.4): its blocks, each led by its founder, and every member already classified.</summary>
-    private sealed class Namespace
+    private sealed class Namespace(bool function)
     {
         private List<Block> _blocks = [];
         // A prototype is classified once per key (an externalized name is ONE program in a run unit, §8.3.2.2 rule 2) —
@@ -173,15 +180,13 @@ internal sealed class PrototypeSignatureClasses
         private readonly List<Member> _decoded = [];
 
         /// <summary>Make a prototype with a compile-time signature a member (GR10 c) / GR11 c), no signature, is a class of
-        /// its own and joins no block). A decoded member takes the next admission number. False when it was already one.</summary>
-        public bool Present(RestrictedPrototype prototype, ref int admitted)
+        /// its own and joins no block). False when it was already one.</summary>
+        public bool Present(RestrictedPrototype prototype)
         {
             if (prototype.Signature is not { } signature) return false;
             var key = new PrototypeKey(prototype.Origin, prototype.ExternalizedName);
             if (_members.ContainsKey(key)) return false;
-            var member = prototype.Origin is null
-                ? new Member(PrototypeSignatures.OwnIdentity(prototype.ExternalizedName), signature)
-                : new Member("DECODED " + ++admitted + " " + PrototypeSignatures.OwnIdentity(prototype.ExternalizedName), signature);
+            var member = new Member(signature);
             _members[key] = member;
             (prototype.Origin is null ? _group : _decoded).Add(member);
             return true;
@@ -192,14 +197,14 @@ internal sealed class PrototypeSignatureClasses
         {
             _blocks = [];
             if (_group.Count + _decoded.Count == 0) return;
-            var all = new Block();
+            var all = new Block(function);
             foreach (var member in _group) all.Add(member);
             foreach (var member in _decoded) all.Add(member);
             _blocks.Add(all);
         }
 
         /// <summary>One round: splits every block by <see cref="PrototypeSignatures.Same"/> against the founder of each
-        /// part (the founder stays first, so a block's identity survives the split). True when any block split.</summary>
+        /// part. True when any block split.</summary>
         public bool Refine()
         {
             bool split = false;
@@ -212,7 +217,7 @@ internal sealed class PrototypeSignatureClasses
                     Block? home = null;
                     for (int i = first; i < next.Count && home is null; i++)
                         if (PrototypeSignatures.Same(next[i].Founder.Signature, member.Signature)) home = next[i];
-                    if (home is null) next.Add(home = new Block());
+                    if (home is null) next.Add(home = new Block(function));
                     home.Add(member);
                 }
                 split |= next.Count - first > 1;
@@ -221,39 +226,50 @@ internal sealed class PrototypeSignatureClasses
             return split;
         }
 
-        public string Identity(RestrictedPrototype prototype)
+        /// <summary>A member's identity during the refinement: its block's position in the round, in this namespace —
+        /// unique per block, compared only inside one round.</summary>
+        public string Provisional(RestrictedPrototype prototype) =>
+            Known(prototype) is { } block
+                ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{(function ? "F" : "P")}#{_blocks.IndexOf(block)}")
+                : PrototypeSignatures.ExternalIdentity(prototype.ExternalizedName);
+
+        /// <summary>The block of a prototype this namespace has classified, or null.</summary>
+        public Block? Known(RestrictedPrototype prototype) =>
+            prototype.Signature is not null && _members.TryGetValue(new PrototypeKey(prototype.Origin, prototype.ExternalizedName), out var m)
+                ? m.Block : null;
+
+        /// <summary>The block of a prototype, classifying a GROUP prototype no pointer named on the way: it joins the block
+        /// whose founder it has the same signature as, or founds one. Null for a prototype with no compile-time signature.</summary>
+        public Block? BlockOf(RestrictedPrototype prototype)
         {
-            if (prototype.Signature is not { } signature)
-                return PrototypeSignatures.ExternalIdentity(prototype.ExternalizedName);   // GR10 c) / GR11 c)
-            if (_members.TryGetValue(new PrototypeKey(prototype.Origin, prototype.ExternalizedName), out var known))
-                return known.Block!.Founder.Identity;
+            if (prototype.Signature is not { } signature) return null;
+            if (Known(prototype) is { } known) return known;
             if (prototype.Origin is not null)
                 throw new InvalidOperationException($"PrototypeSignatureClasses: the decoded prototype '{prototype.ExternalizedName}' of {prototype.Origin.Description} was asked for before Admit classified it.");
-            // A group prototype no pointer named: join the block whose founder it has the same signature as, or found one.
-            int ignored = 0;
-            Present(prototype, ref ignored);
+            Present(prototype);
             var member = _members[new PrototypeKey(null, prototype.ExternalizedName)];
             var home = _blocks.Find(b => PrototypeSignatures.Same(b.Founder.Signature, signature));
-            if (home is null) _blocks.Add(home = new Block());
+            if (home is null) _blocks.Add(home = new Block(function));
             home.Add(member);
-            return home.Founder.Identity;
+            return home;
         }
     }
 
-    /// <summary>A prototype in the partition: its class identity were it a founder (<c>TO</c> its externalized name, or
-    /// <c>DECODED k TO</c> it), its signature, and the block it is in now.</summary>
-    private sealed class Member(string identity, CalleeSignature signature)
+    /// <summary>A prototype in the partition: its signature, and the block it is in now.</summary>
+    private sealed class Member(CalleeSignature signature)
     {
-        public string Identity { get; } = identity;
         public CalleeSignature Signature { get; } = signature;
         public Block? Block { get; set; }
     }
 
-    /// <summary>One block of the partition; its first member is its founder, whose identity is the block's.</summary>
-    private sealed class Block
+    /// <summary>One block of the partition — one signature class of its namespace; its first member is its founder, whose
+    /// signature describes the class, and its canonical identity is computed once the partition is stable.</summary>
+    private sealed class Block(bool function)
     {
+        public bool Function { get; } = function;
         public List<Member> Members { get; } = [];
         public Member Founder => Members[0];
+        public string? Canonical { get; set; }
 
         public void Add(Member member)
         {

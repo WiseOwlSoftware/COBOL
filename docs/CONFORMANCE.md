@@ -454,7 +454,15 @@ of an unsupported facility.
   PREFIXED / SIGNED / SHORT / DELIMITED form and a plain member, read back as the characters the file holds),
   `…_elementary_record` (a record that is the item: alphanumeric and national), `…_organizations` (indexed
   variable and Format 1, relative, SORT USING / GIVING and procedures) and `…_record_size` (the Format 1 fixed form
-  and RECORD VARYING … DEPENDING ON).
+  and RECORD VARYING … DEPENDING ON). **Two DYNAMIC LENGTH clauses name the same structure when the structures have
+  the same DEFINITION** — the PREFIXED phrase, DELIMITED and the physical structure, never the
+  dynamic-length-structure-name (kb/Work PB2103; DESIGN-external-repository §6.4). The rules that ask for "the same …
+  DYNAMIC LENGTH … clauses" (§8.5.3.1, §9.3.6 3 e), §14.8.2.3.2 rule 2, §14.8.3.3) compare two descriptions that may
+  have been compiled in two source elements, and a structure-name is a word of its own element's SPECIAL-NAMES
+  paragraph: two separately compiled programs name one layout two ways, and the layout is what the clause makes the
+  item. `DynamicLengthStructure.DefinitionKey` is the one key every such relation compares. Witnessed by
+  `conformance:wiseowl/cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb2103_structure_compared_by_definition`
+  (one layout under two names conforms; one name over two layouts does not).
 - **D-UN3 — which side of UNSTRING's all-national rule a NUMERIC receiver stands on** (2026-09-22; kb/Work
   PB980, row `SR-14.9.48.3-3`). §14.9.48.3 SR3 is category-worded: *"If any of identifier-1, identifier-2,
   identifier-3, identifier-4, identifier-5, literal-1, or literal-2 are of category national, then all shall be of

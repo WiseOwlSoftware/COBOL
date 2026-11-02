@@ -408,6 +408,16 @@ definition is compiled elsewhere — GR10 b) as much as c) — still states each
 `LandsAtRunTime` keeps reading `CalleeSignatureKnown`. The function lane takes the same rule through the same renderer
 (a GR11 b) / c) function is compiled elsewhere). This changes no crossing form (the described argument is the form a
 Format-1 CALL already uses), so it is no call-ABI change.
+**Landed (kb/Work PB2103):** `BoundCallProgram.CalleeCompiledHere`, set by `CallBinder` (AS NESTED; a prototype whose
+`ProgramPrototype.DefinitionCompiledHere` is true — GR10 a) or §8.4.6.8's containing program — when the CALL writes no
+target of its own or a literal naming that same program) and by `UdfBinder` (`UserFunctionSignature.DefinitionCompiledHere`;
+never through a function-pointer); both lanes describe through `StatementBinder.Described`. A described site that held a
+signature also states its program-specifiers, so `ProgramTable.Activate` asks §14.8.2.3.2 rule 2 of it, and lands its
+arguments a second time through the activated formal's landing, which is the identity for the description the site
+landed for. `ProgramTable.Activate` judges an activated FUNCTION by rule 2 always (rule 2 lists "a function"; the
+program-specifier test answered rule 1 for every function, never reached until a function site described its operands).
+Witnesses: `conformance:wiseowl/cases/14.9.4-CALL/pb2103_prototype_callee_compiled_elsewhere` (the CALL and RETURNING
+arms) and `FunctionCompiledElsewhereTests` (the fatal function arm).
 The DEFAULT is the lenient adoption: the activated program registers its formals' descriptions only when its own
 source enables EC-PROGRAM-ARG-MISMATCH checking (`>>TURN`, §7.3.25; `ProgramEmitter.EmitEntryWrapper`), so without
 that directive nothing is compared at run time and each argument is read through the callee's description. REPO-9
@@ -1179,6 +1189,26 @@ the group.
     the identity, as it carries the founder's name today, so `MaySet`, match rule 3 e) and `ReturningViolation` change no
     code; a message that names the restriction reads the prototype's externalized name from a display-only member the
     same slice adds (never compared), because a hash names nothing a user wrote.
+    **Landed (kb/Work PB2103, slice 7 part 1).** `PrototypeSignatures.CanonicalIdentity` numbers the classes reachable
+    from a class in first-visit order (each formal by position, then the RETURNING item; within an item, the item, its
+    subordinates in document order, and through a restricted data-pointer the declaration it is restricted to), stamps
+    each pointer of the graph with its number while it writes the class, restores the stamps, and hashes
+    `PrototypeSignatures.SignatureKey`: the mode, OPTIONAL and `DescriptionKey` of each formal and the RETURNING item's
+    presence and key. `DescriptionKey` is `Same`'s description half as a key, read by the arm
+    `ActivationRelations.SignatureDifference` takes and, for a group that is not a bit or national group,
+    `StrongTypeModel.ElementaryLayoutKey` (the leaf key `TypeIdentityKey` already wrote). Two facts the relation answers
+    false of even against themselves (an item with no crossing form, a group whose items cannot be placed) are keyed by
+    name, and the LOCALE identification is keyed as written, as `TypeIdentityKey` keys it. `PrototypeSignatureClasses`
+    refines with PROVISIONAL identities (a block's position in its round, `P#n` / `F#n`), which replaced the founder
+    spelling and the decoded admission numbers of part 3 (no spelling a group's AS literal can forge remains), and stamps
+    the canonical identity once the partition is stable. The display-only member is the existing
+    `ActivationDescription.ClausePhrases`: a pointer's phrase spells `TO` and the prototype as written (an address
+    identifier's through `BoundProgramAddress.Prototype`), so no new member was needed. `SignatureIdentityDriftTests`:
+    every prototype of the corpus against a representative of each identity met (most pairs cross compilation groups),
+    ten perturbations that must change the identity, and renamed, regrouped and differently recursive twins compiled in
+    another group that must not. The bump is `RuntimeAbi.CallAbi` 3; the member became a property, because a `const`'s
+    value is in `PublicAPI.Shipped.txt`, so a call-ABI bump moved the runtime's public-API hash too
+    (`scripts/abi_pin.py`'s `_CALL_ABI` and its self-test fixtures follow the new form).
   - *Slice 7 deletes the null-signature state everywhere it has spread (PB3162).* Every prototype then resolves with a
     signature or draws REPO-1 (§8.2 step 4), so `PrototypeSignatures.ExternalIdentity` and its `EXTERNAL TO` text,
     `UnclassifiedIdentity`'s external arm, `RestrictedPrototype(…, CalleeSignature? Signature)`'s nullability,
@@ -1193,9 +1223,12 @@ the group.
 - **Dynamic-length structures**: compared by DEFINITION (`StructureRecord` minus name) in `DescriptionClauses` AND in
   the activation description `ActivationDescriptions.Of` builds (the definition's canonical text replaces
   `DynStructure?.Name`), which `SignatureDifference` reads, so the compile-time and run-time answers stay one. The tree
-  still compares the folded NAME in both places (`DescriptionClauses.cs`, `ActivationDescriptions.cs`'s
-  `|DYNAMIC LENGTH` clause and phrase). Slice 4 records the definition (`StructureRecord`); slice 7 switches both
-  comparisons to it, inside the same call-ABI bump as the restriction identity (the description text changes).
+  compared the folded NAME in both places (`DescriptionClauses.cs`, `ActivationDescriptions.cs`'s `|DYNAMIC LENGTH`
+  clause). Slice 4 records the definition (`StructureRecord`); **slice 7 switched every comparison to it (kb/Work
+  PB2103)**: `DynamicLengthStructure.DefinitionKey` (the PREFIXED phrase, DELIMITED, the physical structure; never the
+  name) is what `DescriptionClauses.AlignedOrDynamicLengthMismatch`, `ActivationDescriptions.ClausesOf` and
+  `StrongTypeModel.EssentialCharacteristicsKey` compare, inside the same call-ABI bump as the restriction identity; the
+  phrase a reader sees keeps the name.
 - **RAISING, INHERITS, IMPLEMENTS, expansion actuals, skeleton resolutions**: externalized identities;
   `ClassRaisingCovered` walks from the `RaisingTarget`'s resolved symbol.
 Identity is the externalized name (the Annex C fold): §8.3.2.2 makes one externalized name one instance within a run
@@ -1337,7 +1370,7 @@ internal interface IRepositoryProvider
     // previously", PB989); the metadata provider ignores it — the repository has no source order.
     ProgramAnswer? Program(string externalizedName, int position);                 // GR10 a) / b) in the group; c) in metadata
     FunctionAnswer? Function(string externalizedName, int position);               // GR11 a) / b); c)
-    FunctionAnswer? FunctionByWord(string userFunctionName, int position);         // D-R3 step 2, §8.4.6.7: the WORD (§8.3)
+    IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position); // D-R3 steps 2 and 3, §8.4.6.7: the WORD (§8.3)
     OoClassSymbol? Class(string identity, out RepositoryOrigin origin);
     OoInterfaceSymbol? Interface(string identity, out RepositoryOrigin origin);
     SkeletonSymbol? Skeleton(string identity, out RepositoryOrigin origin);
@@ -1368,6 +1401,16 @@ reaches a repository function only through a REPOSITORY specifier (§8.4.6.7), s
 counterpart, and `UserFunctionsOf` reads it from `resolver.Group` (no resolver member re-states it).
 `MetadataRepositoryProvider` opens nothing until the first specifier the group cannot answer; `ClrTypeProvider` is
 §4.6's slot.
+**Landed (kb/Work PB2103, slice 7 part 1):** `GroupRepositoryProvider` (`Binding/GroupRepositoryProvider.cs`, the rename,
+every caller changed) answers `Program`, `Function` and `FunctionsByWord` — the word's candidates in the rule's own order
+(every definition before the position, then every prototype: the one ordered `Candidates` enumeration `Find` takes the
+first of), so D-R3 step 2 takes the first and step 3 the first of another externalized name, and no provider has a
+second word method; `RepositoryResolver` (`Binding/RepositoryResolver.cs`) holds its providers in search order
+(`IRepositoryProvider`; the group's alone until the metadata provider lands) and is `BindSession.Repository`;
+`RepositoryOrigin` is a closed hierarchy whose one member so far is `GroupUnitOrigin(BoundUnit)`, with
+`IsDefinitionCompiledHere` (§4.2) and `Describe` (the REPO-13 wording, COBOL2969); `FunctionResolution.Shadowed` is a
+`FunctionAnswer`. The class, interface, skeleton and expansion members of the interface are slice 8's, added with their
+first provider, so none stands unimplemented.
 
 ### 8.1 D-R2 — when the AS phrase is required
 Exactly when the externalized name differs from the declared word (spelling, or a non-COBOL name); without AS the word
@@ -1916,12 +1959,12 @@ with open work opens with that work and states its landed part after it, because
 | `CallEmitter.ArgText` (renders a COBOL argument's `CobolArg`) | **landed, slice 3:** the one argument renderer is callable for "an argument of description D passed by CONTENT over a detached value" (`CallEmitter.Described`, `ArgumentLength`), so the host entry renders through it | `HostEntryEmitter` |
 | `RecordStructEmitter` "published mode" with `GroupImageCodec` (this table's first text) | **landed differently, slice 3, and adopted:** a group FORMAL has no internal record struct (the program reads it through windows over its area), so there is no member walk to share; `PublishedRecordEmitter` renders the published record from the DESCRIPTION over the shared geometry (`BitLayout`) and the door rules (§4.3) | `HostEntryEmitter` |
 | — | **landed, slice 3:** `HostLanding` (runtime, `[EditorBrowsable(Never)]`): the exact landing that refuses every loss (`ArgumentOutOfRangeException`), the alias grouping (`ArgumentException`), the validity decode (`CobolNum.IsNumericImage`; `FormatException`) — one implementation of §4.3's door rules | `HostEntryEmitter`, `PublishedRecordEmitter` |
-| `BindSession.Repository : GroupRepository` (slice 6: the class holding the group's units, `ProgramDetails` / `ResolveFunction` / `FunctionsAt`, one `Find`) | slice 7: `: RepositoryResolver`; `GroupRepository` RENAMED AND MOVED to `GroupRepositoryProvider` (its `Find` answers the provider interface; `ProgramDetails` / `ResolveFunction` become the resolver's `ResolveProgram` / `ResolveFunction`, D-R3 written once there; `FunctionResolution.Shadowed` a `FunctionAnswer`), every caller changed, nothing left behind (§8.0) | `BinderDriver.Bind`, `BuildGroupRepository`, `UserFunctionsOf`, `ProgramPrototypesOf`, `BindUnitProcedure`, `OoDriver`, `GroupRepositoryOrderDriftTests` |
+| `BindSession.Repository : GroupRepository` (slice 6: the class holding the group's units, `ProgramDetails` / `ResolveFunction` / `FunctionsAt`, one `Find`) | **landed, slice 7 part 1 (kb/Work PB2103), §8.0's landed paragraph:** `: RepositoryResolver`; `GroupRepository` RENAMED AND MOVED to `GroupRepositoryProvider` (its `Find` answers the provider interface; `ProgramDetails` / `ResolveFunction` become the resolver's `ResolveProgram` / `ResolveFunction`, D-R3 written once there; `FunctionResolution.Shadowed` a `FunctionAnswer`), every caller changed, nothing left behind (§8.0) | `BinderDriver.Bind`, `BuildGroupRepository`, `UserFunctionsOf`, `ProgramPrototypesOf`, `BindUnitProcedure`, `OoDriver`, `GroupRepositoryOrderDriftTests` |
 | `ProgramPrototypesOf(…, repository, position)`; `ProgramPrototype(…, CalleeSignature? Signature)`; `PrototypeSignatures.Same` null arm and its "the external repository is the RUN UNIT's registry" remark; the null-signature state PB3162 spread: `PrototypeSignatures.ExternalIdentity` / `UnclassifiedIdentity`'s external arm, `RestrictedPrototype(…, CalleeSignature? Signature)`, `ProgramRestrictionIdentityOf`'s external arm (the statement binder's), `PrototypeSignatures.FormalCount`'s unresolved zero, and in the runtime `ActivationDescription.ExternalRestrictionPrefix` / `IsExternalRestriction` and `ActivationRelations.SamePointerRestriction`'s external arm | slice 7: resolver-driven; `Signature` non-nullable; every listed null arm and remark DELETED, the runtime members with a runtime-major bump and the description text with a call-ABI bump (§6.4; `scripts/abi_pin.py` raises the counters in `Directory.Build.props` and `RuntimeAbi.cs` and re-measures `RuntimeAbi.pin`; slice 8's call-ABI bump does the same) | `CallBinder`, `SetBinder`, `PtrBinder`, CANCEL arm, `CheckPrototypeSignaturePairs`, `ActivationRelations.MaySet` |
-| `BoundCallProgram.CalleeSignatureKnown` (one flag for "checked at bind time" and "cannot differ at run time"; `CallEmitter.DescribesOperands` / `LandsAtRunTime`) | slice 7: split into `CalleeSignatureKnown` and `CalleeCompiledHere`; a site whose callee is compiled elsewhere describes its operands for GR3 d) (§4.2) | `CallBinder`, `UdfBinder`, `CallEmitter` |
+| `BoundCallProgram.CalleeSignatureKnown` (one flag for "checked at bind time" and "cannot differ at run time"; `CallEmitter.DescribesOperands` / `LandsAtRunTime`) | **landed, slice 7 part 1 (kb/Work PB2103), §4.2's landed paragraph:** split into `CalleeSignatureKnown` and `CalleeCompiledHere`; a site whose callee is compiled elsewhere describes its operands for GR3 d) (§4.2) | `CallBinder`, `UdfBinder`, `CallEmitter` |
 | `ObjectRefDescriptor(Kind, Name, Factory, Only, Formal)`; `ActivationDescriptions.Of`'s `ObjectName` / `ObjectClasses` / `ObjectInterfaces` as folded WORDS (PB2463) | slice 8: `+ Target`; `ClrTypeName` over `Target`; the description's class facts become folded EXTERNALIZED names (a call-ABI bump, §6.4) | `PictureAnalyzer`/`DataBinder` (sets `Target`), `OoClassTable.SetOperand`, `OoEmitter.OoReturnClrType`, `OoConformance`, `SetBinder` Format 5 |
-| `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 7: the structure DEFINITION key (§6.4), inside slice 7's call-ABI bump; slice 8: `RaisingTarget.Target` | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
-| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.RestrictionIdentity` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4, **the classes part landed (kb/Work PB2100):** `PrototypeSignatureClasses` keys members by origin and name (`PrototypeKey`, `RestrictedPrototype.Origin`, `PrototypeOrigin`), admits decoded prototypes into its refinement (`Admit`: a re-run from one block, group members first) and spells a decoded founder's block `DECODED k TO name`, so a decoded pointer is classified by its decoded SIGNATURE (§6.4); and the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row and calls `Admit` (BoundCompilation.SignatureClasses is the group's instance). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype; a class's identity becomes `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`; call-ABI and runtime-major bump. (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
+| `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 8: `RaisingTarget.Target`. **Landed, slice 7 part 1 (kb/Work PB2103):** the structure DEFINITION key (§6.4, `DynamicLengthStructure.DefinitionKey`), inside slice 7's call-ABI bump | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
+| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.RestrictionIdentity` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4, **the classes part landed (kb/Work PB2100):** `PrototypeSignatureClasses` keys members by origin and name (`PrototypeKey`, `RestrictedPrototype.Origin`, `PrototypeOrigin`), admits decoded prototypes into its refinement (`Admit`: a re-run from one block, group members first) and spells a decoded founder's block `DECODED k TO name`, so a decoded pointer is classified by its decoded SIGNATURE (§6.4); and the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row and calls `Admit` (BoundCompilation.SignatureClasses is the group's instance). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype (the repository-resolved ones with the metadata provider); runtime-major bump with the null-signature deletion. **Landed, slice 7 part 1 (kb/Work PB2103):** a class's identity is `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`, under call-ABI 3 (§6.4's landed paragraph). (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
 | `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope` (+ prototypes, structures; reverse map) | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
 | `OoExpansion.Expand(tree, classes, interfaces, edition, words)` | slice 8: resolver-driven; imported skeletons re-parsed under their recorded `CompileState` with recorded resolutions; the `ExpansionKey`; import by key; placement (4a)/(4b); stale detection (REPO-9 with the referencing assemblies); publishes keys and skeleton records (§10.5) | `BinderDriver`, `FragmentParse.ParseTokens` (a `CompileState` parameter), the binder's option-dependent arms, `CompilerDriver`, `RepositoryIndex` (`AssemblyRef` listing) |
 | `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | slice 7: `ResolveRepositorySpecifiers` in `BinderDriver.BindUnitData` for every specifier at its position | `BinderDriver`, `OoDriver.BindClassData` |
@@ -2478,7 +2521,7 @@ green when the slices it depends on have landed, each carrying the sibling-docum
 (CLAUDE.md rule 6). The work items are `kb/Work/` notes filed after approval (CLAUDE.md rule 8), one per slice; their
 REPO-n codes are allocated with `scripts/orchestrator/alloc.py code N` by the slice that first reports them (§14). The
 dependency graph has no cycle: 1 and 2 and 6 stand alone; 3 needs 1, 2 and kb/Work PB2087; 4 needs 3; 5 needs 4; 7
-needs 4, 5 and 6; 8 needs 7. Landed: 1, 2, 3, 4, 6. Each open slice's list below is complete as of the 2026-10-27
+needs 4, 5 and 6; 8 needs 7. Landed: 1, 2, 3, 4, 5, 6 and part 1 of 7. Each open slice's list below is complete as of the 2026-10-27
 currency pass; a slice that finds it is not makes the restructuring and corrects this list (CLAUDE.md rule 5).
 
 1. **Namespace, registration and the version guard — LANDED (kb/Work PB2097).** `CsNames.ModuleNamespaceOf`;
@@ -2598,6 +2641,17 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    the operand description; OO_DESIGN's restricted-pointer sentence; CONFORMANCE DOC-A.1-66/-67 and §3's D-R3 bullet
    (the repository arms); the manual's "Separately compiled units", moved from §9.4 to its own page of `docs/manual/`; DESIGN
    §0.5/§9/§10 and DOC_INDEX rows. Depends on 4, 5 and 6.
+   **Part 1 LANDED (kb/Work PB2103):** the resolver over the group provider (§8.0's landed paragraph), the
+   `CalleeSignatureKnown` / `CalleeCompiledHere` split (§4.2's), the canonical signature identity with
+   `SignatureIdentityDriftTests` and the dynamic-length structure's definition key (§6.4's), under call-ABI 3. The
+   estimate above was one landing; it is at least two (CLAUDE.md rule 5): the slice's eleven REPO codes are reported
+   only by the compilations that READ an entry, so they land with the metadata provider, and a slice that allocated them
+   ahead of their first reporter would ship codes nothing reports. **Remaining (part 2):** `MetadataRepositoryProvider`
+   joining the resolver's provider list; `ResolveRepositorySpecifiers`; the null-signature deletion with its
+   runtime-major bump (so part 2 makes the slice's one runtime-major bump, and part 1 made its one call-ABI bump);
+   REPO-1 … -12 (§14); `--repository` / `--reference` / `--repository-check`; §7.5's file protocol; §17.6; §17.1's slice-7
+   multi-unit cases; INTERPROGRAM's SR20/SR22 note, CONFORMANCE DOC-A.1-66/-67 and §3's D-R3 repository arms, the
+   manual's page, DESIGN §0.5/§9/§10 and DOC_INDEX rows.
 8. **OO across assemblies, in two steps** (kb/Work PB2104): `Origin` (replacing `OoClassSymbol.IsStandard`),
    `IdentityScope`, class import, `ObjectRefDescriptor.Target` and the run-time description's class facts as
    externalized names (a call-ABI bump, §6.4), REPO-6 and REPO-11's class arms, `BackendOptions.RepositoryReferences`
