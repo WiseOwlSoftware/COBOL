@@ -706,6 +706,12 @@ public sealed class ReservedWordPositionConformanceTests
     [Theory]
     [InlineData("DISPLAY SECTION.", "DISPLAY")]
     [InlineData("READ SECTION.", "READ")]
+    // A word no statement begins with, written as a header after the division's last sentence, ends the paragraph list
+    // before the error is read; the division the parse completed last says where it stands (kb/Work PB4284).
+    [InlineData("ZERO.", "ZERO")]
+    [InlineData("FILLER.", "FILLER")]
+    [InlineData("TALLYING.", "TALLYING")]
+    [InlineData("SPACE.", "SPACE")]
     public void AWordReservedAtEveryEdition_DefinedAsAProcedure_IsNamedByCobol0901(string header, string word)
     {
         var (ok, diags) = EditionHarness.Compile($"""

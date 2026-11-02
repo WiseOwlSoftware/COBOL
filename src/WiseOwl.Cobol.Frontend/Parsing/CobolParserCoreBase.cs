@@ -631,7 +631,11 @@ public abstract class CobolParserCoreBase : Parser
                 && !candidates.Contains(last))
                 candidates.Add(last);
             if (ctx.RuleIndex == CobolParserCore.RULE_sentence) { first = ctx.Start; break; }
-            inProcedureDivision |= ctx.RuleIndex == CobolParserCore.RULE_procedureDivision;
+            // ⛔ IN THE PROCEDURE DIVISION, OR JUST PAST ITS END (kb/Work PB4284). A word no statement begins with and no
+            // header takes (`ZERO.`, `FILLER.` after `STOP RUN.`) ends the division's paragraph list, so the parser has
+            // returned from procedureDivision when the error is read; the division it completed last is the fact that
+            // survives, and the word stands where its next paragraph header would.
+            inProcedureDivision |= ctx.RuleIndex == CobolParserCore.RULE_procedureDivision || EndsWithAProcedureDivision(ctx);
         }
         // A prediction that failed BETWEEN sentences (`ALTER READ TO P1.`: neither a sentence nor a procedure header
         // survived READ) stands at the first token of the sentence the source writes, which no sentence context holds yet.
@@ -683,6 +687,15 @@ public abstract class CobolParserCoreBase : Parser
     /// begins with it) the header is its only reading, and it is asked.</summary>
     private static bool IsIncompleteStatement(List<IToken> span, IToken word, IToken offending)
         => span.Count == 2 && span[0] == word && span[1].Type == CobolLexer.DOT && offending != word;
+
+    /// <summary>Whether the last construct <paramref name="ctx"/> matched (its last rule child, and that child's, down the
+    /// chain) is a procedure division: the parse completed the division just before the fault (kb/Work PB4284).</summary>
+    private static bool EndsWithAProcedureDivision(ParserRuleContext ctx)
+    {
+        for (var c = ctx; c is { ChildCount: > 0 } && c.GetChild(c.ChildCount - 1) is ParserRuleContext last; c = last)
+            if (last.RuleIndex == CobolParserCore.RULE_procedureDivision) return true;
+        return false;
+    }
 
     /// <summary>The canonical upper-case word of <paramref name="token"/> when it is a KEYWORD token §8.9 reserves at this
     /// edition (gated or not), else null.</summary>

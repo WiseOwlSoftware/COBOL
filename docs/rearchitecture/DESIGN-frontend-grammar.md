@@ -421,7 +421,10 @@ without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A
 `DISPLAY.`, `READ.`) is not asked the header reading (`IsIncompleteStatement`, branch review R1-1): the same text is an
 incomplete statement and a paragraph header (§14.4.3), nothing in it shows a USE as a user-defined word (§8.3.2.1 1)),
 and the missing operand is a fault the source certainly holds, so it keeps its COBOL0001 at the period, inside a
-paragraph and where a header could stand alike. A reserved word in a DATA reference slot
+paragraph and where a header could stand alike. A word no statement begins with, written as a paragraph header after the
+division's last sentence (`ZERO.`, `FILLER.`, `TALLYING.`), ends the division's paragraph list before the error is read,
+so "in the procedure division" is also read from the division the parse completed last (`EndsWithAProcedureDivision`,
+kb/Work PB4284), and the word draws COBOL0901 as every other reserved header does. A reserved word in a DATA reference slot
 (`MOVE READ TO X`) is not this rule's: its error falls at the word and is still the strategy's own report.
 
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
