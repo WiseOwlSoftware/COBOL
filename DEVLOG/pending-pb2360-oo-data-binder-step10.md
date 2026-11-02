@@ -51,3 +51,7 @@ the subscript temporaries), both removed by PB2347 with the rest of that row's `
 byte-identical apart from `data.` qualification and renamed members; `RootOwner` is still written only in
 `DataBinder.AttachToHierarchy`. Performance: `Oo` and `Temps` are lazy fields, no new hot-path allocation. Duplication: none
 added; `IsClassUnit`/`OwnerClassName` no longer come from two properties.
+
+**Gate.** At head 2c5a0843f the gate answered `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,399/39,399 ·
+Characterization 37/37 cases ran (skipped 0) … (run 000001-20261102T221940Z) ===`, first time, no red on the way. The three
+`OoDataBinderBoundaryDriftTests` facts are in that run's `Unit.trx`. `python scripts/semgrep/verify.py`: PASS, no rule's count rose.
