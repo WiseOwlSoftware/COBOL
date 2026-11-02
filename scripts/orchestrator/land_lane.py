@@ -69,9 +69,9 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
        no attempt, or a NEW HEAD (a finisher's commit, reviewed)  launch
        ENQUEUED or NOTHING TO LAND (exit 0) at this head           nothing to land: the QUEUE WATCH (below) follows its
                                                                    pull request into the merge queue
-       exit 3 — the landing check's STOP: the branch edits a member that earlier-dispatched in-flight work edits (kb/Work
-                PB2701)                                            retried at this head once `landing_check.py` passes
-                                                                   on the branch (the overlap is gone); never as is
+       exit 3 — the landing check's STOP: a never-carried path   STOPPED: the enqueue unit's finisher (only a new
+                or a duplicate public-API symbol (an edit meeting  commit clears it); never retried as is
+                another branch's only warns, kb/Work PB4452)
        exit 13 — another `land` of the branch runs (kb/Work     retried at this head once the worktree's land lock
                 PB3310; nothing ran, nothing red)           is free (`wait_free`); never the enqueue unit's
        exit 15 — PREDECESSOR QUEUED: the branch carries the stamped DEVLOG entry of a branch it merged, whose pull
@@ -1303,7 +1303,7 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
             if not dec.launch:
                 if branches.get(row["name"]) and classify(branches[row["name"]][-1]) == FREE \
                         and finished(branches[row["name"]][-1]):
-                    say(f"land lane: {row['name']}: {dec.why}")   # why an exit 3 or 12 still waits, every tick
+                    say(f"land lane: {row['name']}: {dec.why}")   # why a retry-when-free exit still waits, every tick
                 continue
             if not row["worktree"]:
                 say(f"land lane: {row['name']}: WAITING TO LAND with no worktree; not launched (enqueue.py needs one)")
@@ -1355,8 +1355,7 @@ ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (a CONFLICT one is the r
                    "collected; UNREVIEWED: step 2 reviewer; a repeated exit 2 or 9: handoff)",
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
-          FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
-                "in-flight work whose edits it meets is gone; exit 12: the worktree's gate lock is free and no Linux gate of the tree runs; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
+          FREE: "the lane retries it at this head once what it waits on is free (exit 12: the worktree's gate lock is free and no Linux gate of the tree runs; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
