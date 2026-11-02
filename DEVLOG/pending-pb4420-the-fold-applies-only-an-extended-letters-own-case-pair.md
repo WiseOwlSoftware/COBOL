@@ -50,3 +50,11 @@ items), `pb1402_extended_letters_2023` (the Kelvin sign is its own word) and `pb
 **Docs.** The `CobolNames` class comment (it stated the opposite), DESIGN-frontend-grammar 3.13, DESIGN-cobol-words-directive,
 and docs/CONFORMANCE.md DOC-A.1-20 (the 4 b) determination, GnuCOBOL by the precedence). Inventory rows GR-8.1.3.2-4 and
 DOC-A.1-20 stay CONFORMS, restated by a `record_verdicts` batch (GAP 19 to 19; the Kelvin refusal golden retired).
+
+**Gate.** Run `000002-20261102T065957Z` on the code head (run 000001 was RED on one finding of my own, `AnnexA1RegisterDriftTests`: a prose
+mention of the row key `DOC-A.1-20` in CONFORMANCE.md; reworded):
+`=== BUILD-LOCAL GATE: GREEN — Conformance 20,725/20,725 · Unit 39,210/39,210 · Characterization 37/37 cases ran (skipped 0) ===`.
+`Conformance.trx` holds 28 `UnitTestResult`s for the new ids, all Passed (18 accepted-edition runs, 10 refusals). `semgrep/verify.py`: PASS,
+no rule's count rose. Left open and registered: PB4312's U+0130/U+212A examples no longer reproduce (the diagnostics print the word as
+written because the fold no longer maps them), and `CobolWordsDirectiveProcessor.Spelled`'s keyword/user-word split now differs only in
+how an extended letter is spelled in a diagnostic.
