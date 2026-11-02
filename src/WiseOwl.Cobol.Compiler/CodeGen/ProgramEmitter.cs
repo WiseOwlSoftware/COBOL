@@ -152,10 +152,9 @@ internal sealed class ProgramEmitter
                 EmitProgramClass(unit, w);
         // The .NET host surface (DESIGN-external-repository §4.3; kb/Work PB2099): one public class per outermost unit, named
         // in the module namespace's type scope beside every type the module already declares there. The over-punch convention
-        // is the compilation's one (kb/Work PB803), which every unit's binder carries: a group of prototypes alone — the
-        // library that publishes them to the external repository (DESIGN-external-repository §7.2) — emits no program class,
-        // so no unit emitter is current here.
-        new HostEntryEmitter(units[0].Data.Edition.SignEncoding, comp.OoClasses, _atoms, repositoryUpdate,
+        // is the compilation's one (kb/Work PB803): a group of prototypes alone — the library that publishes them to the
+        // external repository (DESIGN-external-repository §7.2) — emits no program class, so no unit emitter is current here.
+        new HostEntryEmitter(comp.SignEncoding, comp.OoClasses, _atoms, repositoryUpdate,
             data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(units,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
