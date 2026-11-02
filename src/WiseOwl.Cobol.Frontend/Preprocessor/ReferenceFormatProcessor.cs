@@ -29,6 +29,14 @@ public static partial class ReferenceFormatProcessor
     /// <c>*&gt; DEBUG: …</c> comment take part in matching).</summary>
     public static readonly string DebugLineCarrier = CobolSourceText.CommentIndicator + (char)0xFDD0 + "DEBUG ";
 
+    /// <summary>Whether a logical line (as <see cref="DebugLineCarrier"/> and the §6.5 conversion leave it) holds no
+    /// program text: it is empty, spaces, or the BARE carrier of a blank debugging line (which keeps its slot so
+    /// <c>DebuggingLineRewriter</c> can decide it; kb/Work PB4412). §6.5 2): a blank line is one with nothing but spaces
+    /// in its program-text area, whichever indicator it carries, so a stage that asks "is there text on this line" asks it
+    /// here.</summary>
+    public static bool HoldsNoProgramText(string line)
+        => CobolSpace.IsBlank(line.StartsWith(DebugLineCarrier, StringComparison.Ordinal) ? line[DebugLineCarrier.Length..] : line);
+
     /// <summary>Minimum percentage of lines that must match fixed-form pattern for detection.</summary>
     private const int FixedFormThresholdPercent = 60;
 

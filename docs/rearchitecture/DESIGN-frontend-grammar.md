@@ -1176,8 +1176,15 @@ reference formats, and the only place source comments are recognized. Its model:
   those two tokens holds text only past margin R (PB4372: its program-text area is blank, so it reads as blank, no token of it
   anchors a question, and the listener asks of every resultant line between the tokens that holds no program text
   (`MarginRCut.HoldsProgramText` false; the message names a line that "has no program text"). A tokenless line that DOES hold
-  program text was OMITTED by a stage after the reference format — a false `>>IF` branch, ISO §7.3.16.4 3), or a debugging line
-  without debugging mode — and is never asked about). It is never reported
+  program text was consumed by a stage after the reference format (a directive, a COPY statement) and is never asked about; nor
+  is a line the compiler never READ, which holds no program text either (PB4412): a line a TEXT stage omitted (a false `>>IF`
+  or unmatched `>>WHEN` branch, ISO §7.3.16.4 3), §7.3.13.4 4) and 5)) is born-marked in its `LineOrigin` (`LineOrigin.Omitted`,
+  `AsOmitted()` at the stage that drops it; every later stage carries the origin, `SourceLineMap.IsOmitted`) and
+  `FixedFormAreas.MarginRCutAt` answers null for it, so the next kind of text-stage omission is one `AsOmitted()` call; a
+  debugging line without debugging mode is a comment line, decided by `DebuggingLineRewriter` on the TOKENS after the line map
+  exists, so it is read back from the token stream (`DebuggingLineRewriter.Hide` moves the marker too, and `AbsentLines` names
+  the lines between two tokens — a blank debugging line is carried as the bare carrier for exactly that reason, so the rewriter
+  sees it; WITH DEBUGGING MODE leaves the line source and asked about)). It is never reported
   for a line with no cut: text past margin R that is blank, the rest of an inline comment (§6.3.7.3), a comment line, a
   numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
   most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file in which such a word recurs on at
