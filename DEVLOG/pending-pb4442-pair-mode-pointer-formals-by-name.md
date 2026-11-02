@@ -29,7 +29,9 @@ The probe now draws COBOL0829 (override, formal and returning item) and COBOL084
 `pb4442-override-pointer-two-prototypes`, `pb4442-override-returning-pointer-two-prototypes`,
 `pb4442-implements-pointer-two-prototypes`. `pb2495_pointer_type_in_signature_checks` lost its override and IMPLEMENTS legs (they
 asserted the under-rejection) and keeps the prototype / definition pair and the BY CONTENT pass. Unit:
-`PointerRestrictionRelationsTests.PairMode_TwoPrototypesOfOneSignature_AreTwoDescriptions_TheSignatureGraphMergesThem`.
+`PointerRestrictionRelationsTests.PairMode_TwoPrototypesOfOneSignature_AreTwoDescriptions_TheSignatureGraphMergesThem`, and
+`PrototypePointerTypeDriftTests.OnlyThePrototypeSignatureGraphAsksTheSignatureClassOfAPairModePointer` keeps a second asker
+from setting `pointersBySignature`.
 Docs: D-RP1 in `docs/CONFORMANCE.md`, `docs/OO_DESIGN.md` (D-RP1 passage and a stale `Clauses` sentence), DESIGN-external-repository
 §6.4.
 
