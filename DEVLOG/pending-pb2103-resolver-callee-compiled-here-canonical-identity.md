@@ -1,4 +1,4 @@
-## PB2103 part 1: the repository resolver, a callee compiled elsewhere checked at run time, and the canonical signature identity
+## PB2103 part 1 (the repository resolver, a callee compiled elsewhere checked at run time, the canonical signature identity), PB4047 reference assemblies, PB4012, PB4340, PB4219, PB4226 arm 1, PB4306, PB4267
 
 Slice 7 of the external repository (DESIGN-external-repository §21 item 7), part 1 of at least two. The slice's
 estimate was one landing; its eleven REPO codes are reported only by compilations that READ a repository entry, so they
