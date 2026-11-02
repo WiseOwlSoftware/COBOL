@@ -1,4 +1,4 @@
-## SELF and SUPER at COBOL-85 are the undefined reference; the deferred-construct message opens with its own words
+## Entry 2995 — 2026-11-02 05:46 PST — SELF and SUPER at COBOL-85 are the undefined reference; the deferred-construct message opens with its own words
 
 Two notes of the OO binder, one commit each (wave 20261824 group B).
 
@@ -7,3 +7,4 @@ Two notes of the OO binder, one commit each (wave 20261824 group B).
 **PB4268.** `StatementEmitter.Visit(BoundDeferredToExpansion)` opened its pipeline-defect exception with the construct's text, and `OoBindSetObjectRef` recorded that text as `SET … TO <name>`, so the message began with an elided statement that the drift test could not see (a hole head, and `NoteExpansionDeferred(` was not a reporting call it read). The message now opens `a statement of an unexpanded parameterized definition (…) reached code generation`, the construct names its receivers as written, and `ElidedMessageOpening.Source` reads `NoteExpansionDeferred(` / `BoundDeferredToExpansion(` and a lone `{…Construct}:` head. The exception is raised only by a pipeline defect, so the drift test's defect and repaired-twin lines are its witness.
 
 Closes no inventory row (both notes are diagnostic-text defects). Found and left: `MOVE SELF TO X` and `DISPLAY SELF` are parse errors ("expected '::'") at every edition, though SELF is a Format 6 identifier (lead in the report).
+
