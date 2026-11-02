@@ -130,6 +130,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             return ScreenStatusOperand(host.Expr.LiteralOperand(l), l.GetText());   // THE one literal→operand mapping (§8.3.3)
         if (sp.dataReference() is { } d)
         {
+            using var statusAt = ctx.Edition.At(d);   // the operand's own position, not the statement's (kb/Work PB4383)
             var op = host.Expr.FieldOperand(d);
             // §13.18.38.3 r7 — the STATUS phrase is NOT one of the five contexts that may reference an
             // index-name (a subscript, PERFORM/SEARCH VARYING, SET, a relation condition). The R16 screen for

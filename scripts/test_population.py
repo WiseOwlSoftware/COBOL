@@ -56,7 +56,7 @@ exiting 0, and every one of them is an ENVIRONMENT variable:
 Because the VSTest channel narrows DISCOVERY too, a population listed in the caller's environment would be blind
 to it — which is why the listing here always runs scrubbed. `is_scrubbed` is the ONE statement of the rule;
 python callers pass `env=scrubbed_env()`, every other caller runs `python scripts/test_population.py scrubbed
-dotnet test …`, and `audit-callers` (GateLegDriftTests arm 6) is red on a `dotnet test` under `scripts/` that
+dotnet test …`, and `audit-callers` (arm 6, run over the real tree by the self-test) is red on a `dotnet test` under `scripts/` that
 does neither, or on a CI workflow that SETS a scrubbed variable (a GitHub-hosted job's environment is exactly
 what the workflow declares, so a workflow that sets none is scrubbed by construction).
 
@@ -267,26 +267,39 @@ def trx_root(path: str | Path) -> ET.Element:
     return root
 
 
+def _red_definitions(paths: list[str | Path]):
+    """Every `<UnitTest>` definition in these trx files one of whose results Failed (red_classes, red_cases). A file that
+    cannot be read raises `UnreadableTrx` naming it."""
+    for path in paths:
+        root = trx_root(path)
+        failed = {r.get("testId", "") for r in root.iter(TRX_NS + "UnitTestResult") if r.get("outcome") == "Failed"}
+        yield from (u for u in root.iter(TRX_NS + "UnitTest") if u.get("id", "") in failed)
+
+
 def red_classes(paths: list[str | Path]) -> set[str]:
     """THE CLASSES WITH A RED CASE in these trx files (kb/Work PB4328): the `className` of the test method of every
     definition one of whose results Failed — the spelling the weights file, the shards and the gate's orderer use
     (tests/_shared/GateLegs.cs `GateShard.ClassOf`). A file that cannot be read raises `UnreadableTrx` naming it."""
     classes: set[str] = set()
-    for path in paths:
-        root = trx_root(path)
-        failed = {r.get("testId", "") for r in root.iter(TRX_NS + "UnitTestResult") if r.get("outcome") == "Failed"}
-        for u in root.iter(TRX_NS + "UnitTest"):
-            method = u.find(TRX_NS + "TestMethod")
-            if u.get("id", "") in failed and method is not None and method.get("className"):
-                classes.add(method.get("className"))
+    for u in _red_definitions(paths):
+        method = u.find(TRX_NS + "TestMethod")
+        if method is not None and method.get("className"):
+            classes.add(method.get("className"))
     return classes
+
+
+def red_cases(paths: list[str | Path]) -> set[str]:
+    """THE RED CASES in these trx files, by the definition's `name` (the spelling `read_trx` counts, so a merge-queue
+    red is compared case by case with a local gate's record: the landing lane's classification, kb/Work PB4271). A file
+    that cannot be read raises `UnreadableTrx` naming it."""
+    return {u.get("name", "") for u in _red_definitions(paths)}
 
 
 # ── RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB3644): the sources of the first classes ──────
 #: ⛔ EVERY LIVE TOOL THAT WRITES TEST RESULTS (a trx file) INTO A WORKTREE IS ONE ROW HERE: the results directory it
 #: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate.py `Gate._first`).
-#: `GateLegDriftTests` holds this table equal to the live tools that write a trx file (`audit-trx-writers`), so a new
-#: writer is classified here or that test is red.
+#: The self-test holds this table equal to the live tools that write a trx file (`audit-trx-writers` over the real tree),
+#: so a new writer is classified here or the self-test is red.
 TRX_WRITERS: dict[str, tuple[str | None, str]] = {
     "scripts/gate.py": ("TestResults/build-local", "the previous run (`Gate.previous_run`): its red classes run first"),
     "scripts/linux-gate.sh": ("TestResults/linux-gate", "the hand-run Linux gate's newest run: its red classes run first"),
@@ -429,7 +442,7 @@ def check(label: str, listed: Counter, trx_paths: list[str], stopped_early: bool
                       stopped_early=stopped_early)
 
 
-# ── the caller audit (GateLegDriftTests arm 6) ────────────────────────────────────────────────────────────────
+# ── the caller audit (DESIGN-test-build-ci.md §3.14.4 arm 6) ────────────────────────────────────────────────────────────────
 
 #: `dotnet test` in COMMAND position: at the start of a line or string, or after a shell separator, `&`, `(`,
 #: `$(` or a quote (not a backtick: in this tree that is Markdown prose far more often than a substitution). The
@@ -527,6 +540,80 @@ def audit_callers(root: Path = REPO) -> tuple[list[str], list[str]]:
     return sites, offenders
 
 
+# ── THE FILTERED-RUN AUDIT (kb/Work PB708, PB751, PB752, PB4395): no filtered `dotnet test` treats exit 0 as evidence ──
+#
+# vstest answers a filter that matches nothing with a PASSING RUN OF ZERO TESTS, so every filter is a claim about which
+# tests ran and needs its evidence. The hole was found four times in three shapes (PB287, PB708, PB751, PB752), each
+# fixed at its own site; this scan over the FILE TREE, never a list, covers the next site the moment it is written. Two
+# population assertions are admitted, recognised by SHAPE: a call of the guard (scripts/filter_population.py, which asks
+# vstest per term whether it names a real test), or the SHARDED form (the shard lists its population through this file
+# and uploads its trx, and the `ci-gate` job checks the shards' union against the listing, case by case: kb/Work
+# PB1718; a stronger assertion, so a shard is not made to call the guard as well). Every check reads code, never a
+# whole-line comment: a banner that talks about the guard is not a call of it.
+
+#: The guard: a site satisfies the rule by naming it. It is exempt from its own rule (its docstring quotes the flag).
+FILTER_GUARD = "filter_population.py"
+#: vstest's filter flag, spelled in two halves so that this file, which runs `dotnet test` itself, is not a site of the
+#: rule its own self-test plants.
+_FILTER_FLAG = "--" + "filter"
+#: The retried artifact actions (.github/actions/): the shards upload their trx, the checking job downloads them.
+UPLOAD_ACTION, DOWNLOAD_ACTION = "./.github/actions/upload-results", "./.github/actions/download-results"
+#: The filtered runs the scan must see on this tree, or it is broken (the gate no longer filters, kb/Work PB1721: the two
+#: regenerators and the verdict recorder are the filtered invocations left).
+FILTER_SITES = ("scripts/gen-vcr.ps1", "scripts/gen-diagnostics-doc.ps1", "scripts/spec/record_verdicts.py")
+
+
+def _filtered(code: str) -> bool:
+    return "dotnet test" in code and _FILTER_FLAG in code
+
+
+def _by_shard_union(code: str) -> bool:
+    return f"{MECHANISM} list" in code and TRX_LOGGER_MARK in code and UPLOAD_ACTION in code
+
+
+def audit_filtered_runs(root: Path = REPO) -> tuple[list[str], list[str], list[str]]:
+    """(the scripts that run a filtered `dotnet test`, the CI jobs that do, the offenders: each that asserts no
+    population). Scope: every file under `scripts/` but the guard, the hooks (a hook receives a command as data and
+    decides whether to allow it: forbidden_commands.py quotes filtered shapes to recognise them) and `__pycache__`; every
+    job of every workflow under `.github/workflows/`. Only whole-line `#` comments are stripped: a trailing `#` cannot be
+    told from one inside a string without parsing each language, and hiding real code is the failure this prevents."""
+    from ci_workflow import jobs  # noqa: PLC0415 — this directory's: the one reader of a CI workflow's shape
+    sites, job_sites, offenders = [], [], []
+    for path in sorted((root / "scripts").rglob("*")):
+        rel = path.relative_to(root).as_posix()
+        if not path.is_file() or "__pycache__" in rel or rel.endswith(FILTER_GUARD) or rel.startswith("scripts/hooks/"):
+            continue
+        code = "\n".join(line for _, line in _code_lines(path.read_text(encoding="utf-8", errors="replace")))
+        if _filtered(code):
+            sites.append(rel)
+            if FILTER_GUARD not in code:
+                offenders.append(rel)
+    wf_dir = root / ".github" / "workflows"
+    for path in sorted(wf_dir.glob("*.yml")) if wf_dir.is_dir() else []:
+        for j in jobs(path.read_text(encoding="utf-8")):
+            if _filtered(j.code):
+                job_sites.append(f"{path.name}:{j.id}")
+                if FILTER_GUARD not in j.code and not _by_shard_union(j.code):
+                    offenders.append(f"{path.name} job '{j.id}'")
+    return sites, job_sites, offenders
+
+
+def shard_union_checks(workflow: str) -> list[str]:
+    """What is wrong with the shards' exemption in `workflow`: it holds only while a CI job checks the shards' union
+    against the listing (`test_population.py check`, the downloaded trx), reading both halves, `--listing` and `--trx`,
+    at the step that runs it (the job also counts its `needs`, which is not this check), never a count of either."""
+    from ci_workflow import jobs  # noqa: PLC0415
+    checking = [j for j in jobs(workflow) if f"{MECHANISM} check" in j.code and DOWNLOAD_ACTION in j.code]
+    if not checking:
+        return ["no CI job checks the test shards' union against the discovered population: the shard legs are "
+                f"exempt from calling scripts/{FILTER_GUARD} only because that job asserts something stronger (kb/Work "
+                "PB752, PB1718, PB4329); restore it, or make each shard leg call the guard"]
+    code = "\n".join(s.code for s in checking[0].steps if f"{MECHANISM} check" in s.code)
+    return ([f"the `{checking[0].id}` job's union check does not read {flag}" for flag in ("--listing", "--trx")
+             if flag not in code]
+            + ([f"the `{checking[0].id}` job's union check counts with `grep -c`"] if "grep -c" in code else []))
+
+
 # ── the self-test ─────────────────────────────────────────────────────────────────────────────────────────────
 
 
@@ -559,8 +646,9 @@ def synthetic_listing(path: Path, names: list[str]) -> str:
     return str(path)
 
 
+
 def self_test() -> int:
-    from scratch_repo import remove_tree  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    from scratch_repo import remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     results: list[tuple[str, bool, str]] = []
 
     def arm(name: str, ok: bool, detail: str = "") -> None:
@@ -764,10 +852,85 @@ def self_test() -> int:
         (reds / "torn.trx").write_text("<TestRun", encoding="utf-8", newline="\n")
         rc, why = rc_of(lambda: red_classes([reds / "torn.trx"]))
         arm("red_classes: an unreadable trx raises UnreadableTrx naming the file", rc == RC_ERROR and "torn.trx" in why, why)
+        arm("red_cases: the name of every definition with a Failed result, across files (the landing lane's "
+            "classification compares them with a gate record, kb/Work PB4271); none for a pass or a skip",
+            red_cases(red_files) == {"N.A.Two", "N.B.T(x: \"a.b\")", "N.D.One"} and red_cases([]) == set(),
+            str(red_cases(red_files)))
         arm("the XML range is stated once, as escapes: the kept and the rewritten characters are its two sides",
             all(ord(ch) < 0x80 for ch in XML_RANGE) and _IS_XML.match("\ud7ff") and _IS_XML.match("\ue000")
             and _IS_XML.match("\ufffd") and not _IS_XML.match("\uffff") and _NOT_XML.search("\uffff")
             and _NOT_XML.search("\U0001d15e") and not _NOT_XML.search("\t\n\r ~"), XML_RANGE)
+
+    # THE REAL TREE (kb/Work PB4395: until then GateLegDriftTests, a compiler test, ran these three audits). Each must
+    # also SEE its population: a scan that stopped seeing the callers, writers or readers it names would report a clean
+    # tree over nothing.
+    sites, offenders = audit_callers(REPO)
+    want_sites = ("scripts/battery.sh", "scripts/gate.py", "scripts/gen-vcr.ps1", "scripts/gen-diagnostics-doc.ps1",
+                  "scripts/spec/record_verdicts.py", "scripts/abi_pin.py", ".github/workflows/build-and-test.yml")
+    arm("arm (6), the real tree: every `dotnet test` caller under scripts/ and .github/workflows/ runs scrubbed, and the "
+        "audit sees the callers DESIGN-test-build-ci.md §3.14.3 names",
+        not offenders and all(s in sites for s in want_sites),
+        f"offenders {offenders}; missing {[s for s in want_sites if s not in sites]}")
+    seen, bad = audit_trx_writers(REPO)
+    want_writers = ("scripts/gate.py  TestResults/build-local", "scripts/linux-gate.sh  TestResults/linux-gate",
+                    "scripts/battery.sh  -")
+    arm("the real tree: every live tool that writes a trx file is a TRX_WRITERS row (PB3155), and the audit sees the "
+        "gate, the Linux gate and the battery",
+        not bad and all(any(f"  writer  {w}  " in s for s in seen) for w in want_writers), f"{bad} {seen}")
+    seen, bad = audit_trx_readers(REPO)
+    want_readers = ("  trx-schema  scripts/test_population.py  parses XML", "  trx-schema  scripts/gate.py  no XML parser",
+                    "  trx-schema  scripts/profile-test-parallelism.py  no XML parser")
+    arm("the real tree: every live tool reads a trx file through trx_root (PB3661), and the audit sees the one reader "
+        "and the tools that only name the schema", not bad and all(w in seen for w in want_readers), f"{bad} {seen}")
+
+    # THE FILTERED-RUN AUDIT (kb/Work PB4395: until then FilterPopulationGuardDriftTests, a compiler test): planted,
+    # then the real tree, whose scan must see the filtered runs it names.
+    planted = scratch_dir("filtered-runs-")
+    try:
+        run = f"dotnet test X.csproj {_FILTER_FLAG} \"FullyQualifiedName~A\""
+        files = {
+            "scripts/bare.ps1": f"{run}\n",
+            "scripts/guarded.ps1": f"python scripts/{FILTER_GUARD} {_FILTER_FLAG} A --filtered X\n{run}\n",
+            "scripts/banner.sh": f"# python scripts/{FILTER_GUARD} is what guards it\n{run}\n",
+            "scripts/talks.sh": f"# {run}\necho done\n",
+            "scripts/hooks/quotes.py": f"SHAPES = ['{run}']\n",
+            f"scripts/{FILTER_GUARD}": f"\"\"\"{run}\"\"\"\n",
+            ".github/workflows/ci.yml": (
+                "jobs:\n  open:\n    runs-on: x\n    steps:\n      - run: " + run + "\n"
+                "  shard:\n    runs-on: x\n    steps:\n      - run: python3 " + MECHANISM + " list --out l\n"
+                "      - run: " + run + " --logger \"" + TRX_LOGGER_MARK + "s.trx\"\n      - uses: " + UPLOAD_ACTION + "\n"
+                "  guarded:\n    runs-on: x\n    steps:\n      - run: python3 scripts/" + FILTER_GUARD + " a\n"
+                "      - run: " + run + "\n"
+                "  gate:\n    runs-on: x\n    steps:\n      - uses: " + DOWNLOAD_ACTION + "\n"
+                "      - run: python3 " + MECHANISM + " check --listing l --trx s.trx\n"),
+        }
+        for rel, text in files.items():
+            (planted / rel).parent.mkdir(parents=True, exist_ok=True)
+            (planted / rel).write_text(text, encoding="utf-8", newline="\n")
+        got = audit_filtered_runs(planted)
+        arm("the filtered-run audit: a filtered run with no guard is an offender, in a script and in a CI job; a guarded "
+            "one, the sharded form and a run only a comment names are not; a comment naming the guard is no guard; the "
+            "guard and the hooks are out of scope",
+            got == (["scripts/banner.sh", "scripts/bare.ps1", "scripts/guarded.ps1"],
+                    ["ci.yml:open", "ci.yml:shard", "ci.yml:guarded"],
+                    ["scripts/banner.sh", "scripts/bare.ps1", "ci.yml job 'open'"]), str(got))
+        workflow = files[".github/workflows/ci.yml"]
+        union = (shard_union_checks(workflow), shard_union_checks(workflow.replace(" --trx s.trx", " | grep -c x")),
+                 len(shard_union_checks(workflow.replace(DOWNLOAD_ACTION, "./elsewhere"))))
+        arm("the shards' exemption holds while a job checks their union reading --listing and --trx at its step; a "
+            "missing job, a missing half and a `grep -c` count are each named",
+            union == ([], ["the `gate` job's union check does not read --trx",
+                           "the `gate` job's union check counts with `grep -c`"], 1), str(union))
+    finally:
+        remove_tree(planted)
+    sites, job_sites, offenders = audit_filtered_runs(REPO)
+    arm("the real tree: every filtered `dotnet test` under scripts/ and in CI asserts its population (the guard, or the "
+        "shards' union), and the scan sees the filtered runs it names and at least one CI job",
+        not offenders and all(s in sites for s in FILTER_SITES) and bool(job_sites),
+        f"offenders {offenders}; sites {sites}; jobs {job_sites}")
+    union = shard_union_checks((REPO / ".github" / "workflows" / "build-and-test.yml").read_text(encoding="utf-8"))
+    arm("the real tree: a CI job still checks the shards' union against the listing, reading both halves", not union,
+        str(union))
 
     for name, passed, detail in results:
         print(f"  {'PASS' if passed else 'FAIL'}  {name}" + ("" if passed or not detail else f"\n        {detail}"))
@@ -806,7 +969,7 @@ def main(argv: list[str]) -> int:
     ls.add_argument("--project", required=True)
     ls.add_argument("--configuration")
     ls.add_argument("--out", required=True)
-    sub.add_parser("audit-callers", help="every `dotnet test` caller scrubs (GateLegDriftTests arm 6)")
+    sub.add_parser("audit-callers", help="every `dotnet test` caller scrubs (DESIGN-test-build-ci.md §3.14.4 arm 6)")
     sub.add_parser("audit-trx-writers", help="every live tool that writes a trx file has its TRX_WRITERS row (PB3155)")
     sub.add_parser("audit-trx-readers", help="every live tool reads a trx file through trx_root (kb/Work PB3661)")
     args = ap.parse_args(argv)

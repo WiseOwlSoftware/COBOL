@@ -40,7 +40,7 @@ public sealed class ReferenceFormatMap
         var physicalText = new string[lines.Length];
         _textStarts = new (int, bool)?[lines.Length];
         _cuts = new MarginRCut?[lines.Length];
-        int codeLines = 0, identified = 0;   // fixed-form lines with program text, and those a tag past margin R labels
+        int tagShaped = 0;   // the fixed-form lines that carry ONE word of identification-area width past margin R
         for (int i = 0; i < lines.Length; i++)
         {
             physicalText[i] = lines[i].Text;
@@ -51,15 +51,13 @@ public sealed class ReferenceFormatMap
                 _textStarts[i] = (PhysicalLine.ColumnOf(lines[i].Columns, fixedLine.ProgramTextIndex + start),
                     fixedLine.BeginsInAreaA);
             _cuts[i] = CutOf(lines[i], fixedLine);
-            if (start >= 0 && fixedLine.Indicator.Value is not ('*' or '/'))
-            {
-                codeLines++;
-                if (_cuts[i] is { FitsIdentificationArea: true }) identified++;
-            }
+            if (_cuts[i] is { FitsIdentificationArea: true }) tagShaped++;
         }
-        // A file that labels most of its code lines with a word past margin R uses those positions for identification
-        // (program name, card number), whatever the tags spell; what it cuts is not its statements (kb/Work PB2555).
-        if (identified * 2 > codeLines)
+        // A file in which such a word recurs past margin R uses those positions for identification (program name, card
+        // number, a revision mark), whatever the tags spell; what it cuts is not its statements. A tag is counted on a line
+        // WITHOUT program text too (a tagged blank line), and a file that tags only some of its lines is still a file
+        // that tags (kb/Work PB2555, PB4372).
+        if (tagShaped >= MarginRCut.RecurrenceThatMakesATag)
             for (int i = 0; i < _cuts.Length; i++)
                 if (_cuts[i] is { FitsIdentificationArea: true }) _cuts[i] = null;
         PhysicalText = physicalText;
@@ -125,7 +123,7 @@ public sealed class ReferenceFormatMap
         string area = fixedLine.ProgramText;
         if (CobolSourceText.InlineCommentAt(area) < area.Length) return null;
         return new MarginRCut(PhysicalLine.ColumnOf(line.Columns, fixedLine.MarginRIndex), FixedFormLine.MarginR,
-            fixedLine.BeyondMarginR.ToString().TrimSpacesEnd());
+            fixedLine.BeyondMarginR.ToString().TrimSpacesEnd(), fixedLine.ProgramTextStart >= 0);
     }
 
     /// <summary>The initial reference format of library text copied by a COPY statement at 1-based physical line

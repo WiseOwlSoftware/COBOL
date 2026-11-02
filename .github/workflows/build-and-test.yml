@@ -27,7 +27,7 @@ on:
   # verdict. The merge-queue commit IS the commit main advances to, so its `push` run takes the already-verified
   # short-circuit in `changes`. ⛔ A pull request's green `ci-gate` is therefore NOT a verdict on the matrix: nothing
   # may merge a PR except the queue, which is why `scripts/orchestrator/enqueue.py` refuses to open or queue one unless
-  # `ruleset.py check` reports the queue ACTIVE on main (LandingPipelineDriftTests). ──
+  # `ruleset.py check` reports the queue ACTIVE on main (scripts/orchestrator/landing_rules.py --self-test). ──
   pull_request:
     branches: [ main ]
   merge_group:
@@ -53,8 +53,9 @@ concurrency:
 # jobs are independent gates — a failure in one is never masked by another.
 #
 # ⛔ EVERY LINUX `dotnet test` STEP RUNS UNDER THE INERT WATCH (`python3 scripts/inert_lane.py watch -- dotnet test …`;
-# kb/Work PB2878, InertLaneDriftTests): a test that opens a path the inert lane classes as read by no test turns its step
-# RED naming the path, so the classification that lets an inert change skip this matrix stays true. The Windows steps
+# kb/Work PB2878, PB4395; inert_lane.py's self-test holds it): a test that opens a path the inert lane classes as read by no
+# test, or a tooling-lane path (one no compiler test reads, kb/Work PB4395), turns its step RED naming the path, so the
+# classification that lets an inert change skip this matrix, and a tooling change gate with no build, stays true. The Windows steps
 # run the same tests and need no watch of their own (Windows has no open events).
 #
 # EVERY direct `dotnet test` step also writes a TRX log (--logger trx, --results-directory TestResults/<OS>-<job>/)
@@ -64,7 +65,7 @@ concurrency:
 # downloads and scripts/shard_weights.py reads. Each such step also sets WISEOWL_COBOL_HARNESS_LOG to
 # <its results directory>/harness-observations.log and its job uploads that file with the TRX: the test harness's every
 # retry and non-observation of a child process, with the budget, the work it covered and the host's load, so a
-# non-observation on CI is read from the artifact (kb/Work PB3108; CiHarnessLogDriftTests).
+# non-observation on CI is read from the artifact (kb/Work PB3108; scripts/test_linux_gate.py).
 #
 # ⛔ AN ARTIFACT NEVER DECIDES A VERDICT (kb/Work PB3140; CiArtifactDriftTests): every upload goes through ONE step,
 # ./.github/actions/upload-results (tried three times; when all fail it warns and passes), and every download through
@@ -97,10 +98,11 @@ jobs:
       code: ${{ steps.decide.outputs.code }}
       verified: ${{ steps.decide.outputs.verified }}
       reason: ${{ steps.decide.outputs.reason }}
-      # Whether the change TOUCHES TOOLING (scripts/inert_lane.py `classify`, kb/Work PB4326): a path a script self-test
-      # reads (the scripts, and the data TOOLING_READS names, held complete by self_tests.py's proof), so `windows-self-tests`
-      # runs only then. `true` whenever nothing proves otherwise.
-      tooling: ${{ steps.decide.outputs.tooling }}
+      # Whether the change touches what a script self-test READS (scripts/inert_lane.py `classify`'s `reads_tooling=`;
+      # kb/Work PB4326, PB4409): a script, or the data TOOLING_READS names, held complete by self_tests.py's proof, so
+      # `windows-self-tests` runs only then. Broader than the local gate's `tooling=` (a changed script only): a compiler
+      # change's data file reaches its Windows self-tests first here. `true` whenever nothing proves otherwise.
+      reads_tooling: ${{ steps.decide.outputs.reads_tooling }}
       # What this merge group proposes to add is `base..sha` — the `audits` job's witness-loss check compares against it.
       # Empty when no honest base exists (a dispatch run, an unresolvable `before`); that check then falls back
       # to its own default, the merge-base with origin/main.
@@ -142,7 +144,7 @@ jobs:
         run: |
           set -uo pipefail
           ZERO=0000000000000000000000000000000000000000
-          code=true; verified=false; reason=""; BASE=""; tooling=true
+          code=true; verified=false; reason=""; BASE=""; reads_tooling=true
           if [ "$EVENT" = "pull_request" ]; then
             # ⛔ THE REQUIRED CHECK ONLY (kb/Work PB3024, PB4330): the matrix AND the audits run on the MERGE GROUP, which
             # tests this PR on top of main together with the others queued and is the one run each change gets. A PR run
@@ -179,13 +181,17 @@ jobs:
               # evidence of a no-op or a probe, never that no test reads the change (feedback_verdict_evidence_invariant).
               lane_out="$(python3 scripts/inert_lane.py classify --base "$BASE" --head "$SHA")"
               lane_reason="$(printf '%s\n' "$lane_out" | sed -n 's/^reason=//p')"
-              # A change proved to touch no tooling (kb/Work PB4326): any other answer, or none, leaves it true.
-              if printf '%s\n' "$lane_out" | grep -qx 'tooling=false'; then tooling=false; fi
+              # A change proved to touch nothing a self-test reads (kb/Work PB4326, PB4409): any other answer, or none,
+              # leaves it true.
+              if printf '%s\n' "$lane_out" | grep -qx 'reads_tooling=false'; then reads_tooling=false; fi
               if printf '%s\n' "$lane_out" | grep -qx 'lane=inert'; then
                 code=false
                 reason="inert lane over $BASE..$SHA: $lane_reason — the matrix is skipped"
               else
-                reason="full lane over $BASE..$SHA: ${lane_reason:-$lane_out}"
+                # The code (full) lane, or the tooling lane (kb/Work PB4395): the local gate of a tooling-lane change ran
+                # no compiler test, and CI runs the whole population whatever the lane, the regression net.
+                lane_name="$(printf '%s\n' "$lane_out" | sed -n 's/^lane=//p')"
+                reason="${lane_name:-full} lane over $BASE..$SHA: ${lane_reason:-$lane_out}"
               fi
             fi
           fi
@@ -218,14 +224,14 @@ jobs:
             echo "code=$code"
             echo "verified=$verified"
             echo "reason=$reason"
-            echo "tooling=$tooling"
+            echo "reads_tooling=$reads_tooling"
             echo "base=$BASE"
           } >> "$GITHUB_OUTPUT"
-          echo "run_matrix=$run_matrix (code=$code verified=$verified tooling=$tooling): $reason"
+          echo "run_matrix=$run_matrix (code=$code verified=$verified reads_tooling=$reads_tooling): $reason"
           {
             echo "### changes"
             echo
-            echo "\`run_matrix\` = **$run_matrix**  (code=$code, verified=$verified, tooling=$tooling)"
+            echo "\`run_matrix\` = **$run_matrix**  (code=$code, verified=$verified, reads_tooling=$reads_tooling)"
             echo
             echo "$reason"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -272,7 +278,7 @@ jobs:
   # heads, never its own and never a live entry's, and cancels NOTHING when the queue cannot be read whole
   # (scripts/orchestrator/cancel_superseded.py, whose self-test holds every arm). It is the ONE job with `actions:
   # write`, and EVERY step of it is `continue-on-error` (the script runs only when the checkout succeeded, and a failed
-  # checkout is said as a warning): housekeeping never decides a verdict (LandingPipelineDriftTests, kb/Work PB3820). ──
+  # checkout is said as a warning): housekeeping never decides a verdict (landing_rules.py --self-test, kb/Work PB3820). ──
   supersede:
     name: supersede (cancel the merge-group runs the queue replaced)
     if: github.event_name == 'merge_group'
@@ -290,7 +296,7 @@ jobs:
         with:
           submodules: false
           # scripts/standard_streams.py: every orchestrator script imports its one UTF-8 switch (kb/Work PB3637)
-          # SparseCheckoutDriftTests (kb/Work PB3787) holds this list: every file the job runs, and every module those
+          # scripts/sparse_checkout.py (kb/Work PB3787) holds this list: every file the job runs, and every module those
           # import anywhere in their text (a function body's lazy import too, kb/Work PB3810), must be listed, or the
           # continue-on-error script step cancels nothing while the run stays green
           sparse-checkout: |
@@ -356,7 +362,8 @@ jobs:
   # verified (its matrix runs), are full runs and audit too.
   # They need no build and no submodule — `specs/ISO_COBOL.md` is tracked in this repository (the private
   # submodule holds only the PDF) — and only the standard library of toolchain.env's Python, which also runs their
-  # `--self-test`s inside the Unit leg (`CitationAuditSelfTestDriftTests`), proving each check can still fail.
+  # `--self-test`s through scripts/self_tests.py (and scripts/self_test_arms.py holds their arms, kb/Work PB4395),
+  # proving each check can still fail.
   # ONE STEP PER AUDIT, each `if: !cancelled()`, so one red never hides the others' verdicts.
   # ⛔ This is the SAME list, in the same order, as the gate driver's (`scripts/gate.py` AUDITS) and battery
   # phase -1; the
@@ -396,6 +403,13 @@ jobs:
       # pinned here.
       - name: Python YAML parser for the tooling self-test (pyyaml, pinned)
         run: python3 -m pip install --disable-pip-version-check --no-input pyyaml==6.0.3
+      # scripts/corpus_sweep.py's self-test (the PB209 population gate) obtains the GPL corpus through
+      # scripts/external_corpus.py; main's tarball, restored here, keeps the network to a cold cache (kb/Work PB4395).
+      - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)
+        uses: actions/cache/restore@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
       - name: Code citations — the clause vs the construct it names (audit_code_citations.py --check)
         run: python3 scripts/spec/audit_code_citations.py --check
       - name: Doc citations — a quoted fragment vs the clause it is filed under (audit_doc_citations.py --check)
@@ -450,6 +464,17 @@ jobs:
       - name: Conflict markers — no tracked file carries an unresolved merge conflict (conflict_markers.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/conflict_markers.py --check
+      # THE lanes' classification against the tree (kb/Work PB2878, PB4395): every entry names a tracked path, and every
+      # script the build or a compiler test is seen to read is CODE_READS, so a tooling-lane change never skips a compiler
+      # test that reads it. An audit, for the reason the conflict-marker check is one; its Linux test runs' twin is the watch.
+      - name: Inert lane — the lanes' classification against the tree (inert_lane.py check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/inert_lane.py check
+      # The gate has ONE shape (kb/Work PB3022): no live line tells anyone to run a gate mode. An audit since kb/Work
+      # PB4395: as a compiler test that walked every script, skill and workflow it made each of them a compiler test input.
+      - name: One shape — no live line names a gate mode (gate.py --audit-shape)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/gate.py --audit-shape
       # Every diagnostic code is COBOL####, every number kept (kb/Work PB3575): the rename's own rules asked as a
       # question, so a branch that merged main without converting itself is red here. An audit, not a Unit test, for the
       # reason the conflict-marker check is one (kb/Work PB2878).
@@ -729,16 +754,18 @@ jobs:
 
   # ── Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's test_orchestrate_*.ps1
   # and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563). ONLY WHEN THE CHANGE TOUCHES
-  # TOOLING (`changes` says so, from scripts/inert_lane.py; kb/Work PB4326): a script self-test reads tooling and the
-  # data TOOLING_READS names (a declared population reader and the DEVLOG/kb corpora are the named residue), so no other change
-  # turns one red, and the Linux audits job runs every Linux self-test whatever the change. ITS OWN JOB, beside the
+  # WHAT A SELF-TEST READS (`changes`' `reads_tooling`, from scripts/inert_lane.py; kb/Work PB4326, PB4409): a script
+  # self-test reads tooling and the data TOOLING_READS names (a declared population reader and the DEVLOG/kb corpora are
+  # the named residue), so no other change turns one red, and the Linux audits job runs every Linux self-test whatever
+  # the change. A compiler change to such a data file runs none in its local gate (owner 2026-11-01), so this is their
+  # first run on Windows (THE RULE, class (d)). ITS OWN JOB, beside the
   # shards (kb/Work PB3581): the default phase never builds (self_tests.py BUILD), so it waits for no build, and as a
   # step after the Windows test legs it was 7.4 of that job's 16.5 minutes, the merge queue's longest job (merge group
   # run 40004159292: 440 s; the next job ended four minutes earlier). ──
   windows-self-tests:
     name: Windows script self-tests
     needs: changes
-    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.tooling == 'true'
+    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.reads_tooling == 'true'
     runs-on: windows-2025-vs2026
     timeout-minutes: 25
     steps:
@@ -763,6 +790,13 @@ jobs:
       - name: Python packages for the script self-tests (tzdata, pyyaml, pinned)
         shell: pwsh
         run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3
+      # scripts/corpus_sweep.py's self-test (the PB209 population gate) obtains the GPL corpus through
+      # scripts/external_corpus.py; main's tarball, restored here, keeps the network to a cold cache (kb/Work PB4395).
+      - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)
+        uses: actions/cache/restore@v6
+        with:
+          path: tests/external/gnucobol-3.2.tar.xz
+          key: gnucobol-tests-3.2-3bb48af4
       - name: Script self-tests on Windows (self_tests.py)
         shell: pwsh
         run: python scripts/self_tests.py
@@ -774,7 +808,7 @@ jobs:
         run: python scripts/line_endings.py --check
 
   # ── ⛔ EVERY CACHE IS SAVED UNDER MAIN, AND BY THE TWO JOBS BELOW ALONE (kb/Work PB3308, PB4007, PB4324;
-  # .github/actions/setup-toolchain; CiBoundsDriftTests). A merge group's run restores only what its own ref or main
+  # .github/actions/setup-toolchain; scripts/ci_bounds.py). A merge group's run restores only what its own ref or main
   # saved, and its ref (`gh-readonly-queue/main/pr-<n>-<sha>`) is new every time, so what a merge group's jobs save is
   # never read again: it only fills the repository's 10 GB cache budget (10.77 GB held on 2026-10-31, every queue branch
   # holding its own NuGet and toolchain copy). The matrix jobs therefore only RESTORE (`actions/cache/restore`), and
@@ -944,6 +978,7 @@ jobs:
             scripts/live_tools.py
             scripts/scratch_repo.py
             scripts/test_population.py
+            scripts/ci_workflow.py
             .github/actions/download-results
             global.json
           sparse-checkout-cone-mode: false
@@ -961,6 +996,7 @@ jobs:
             scripts/live_tools.py
             scripts/scratch_repo.py
             scripts/test_population.py
+            scripts/ci_workflow.py
             .github/actions/download-results
             global.json
           sparse-checkout-cone-mode: false

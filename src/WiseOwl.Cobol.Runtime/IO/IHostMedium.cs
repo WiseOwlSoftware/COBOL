@@ -63,6 +63,11 @@ internal interface IHostMedium
 
     /// <summary><see cref="HostRegionLocks.EntryMutex"/>: the endpoint a sequential file's entry mutex is held through.</summary>
     RegionLocks EntryMutex(string hostPath);
+
+    /// <summary><see cref="HostRegionLocks.KeptEntryMutex"/>: the endpoint the entry mutex is held through once per statement for the
+    /// life of a connector, which parks the byte each statement gives back (kb/Work PB4387). Its owner disposes it at the connector's
+    /// CLOSE.</summary>
+    RegionLocks KeptEntryMutex(string hostPath);
 }
 
 /// <summary>The production <see cref="IHostMedium"/>: <see cref="HostFile"/>, <see cref="SidecarLockFiles"/> and
@@ -104,4 +109,6 @@ internal sealed class HostMedium : IHostMedium
     public void RetireDirectory(string directory) => SidecarLockFiles.RetireDirectory(directory);
 
     public RegionLocks EntryMutex(string hostPath) => HostRegionLocks.EntryMutex(hostPath);
+
+    public RegionLocks KeptEntryMutex(string hostPath) => HostRegionLocks.KeptEntryMutex(hostPath);
 }

@@ -475,18 +475,40 @@ internal abstract class KeyedStore
     internal StoreStatus RollBackDeadOwners(RegionLocks prober, RestoringTreesFactory restoring)
     {
         if (File is not { Writable: true } file || file.Meta.TransactionsRoot.IsNone) return StoreStatus.Ok;
-        var ids = new List<ulong>();
+        var status = TransactionIds(file, out var ids);
+        if (status != StoreStatus.Ok) return status;
+        foreach (ulong id in ids)
+            if (id != Transaction && MayRollBack(prober, id) && (status = RollBack(id, restoring)) != StoreStatus.Ok)
+                return status;
+        return StoreStatus.Ok;
+    }
+
+    /// <summary>Whether page 2 names a transaction of ANOTHER run unit whose owner is dead — a rollback §9.1.18.5 owes the file
+    /// (kb/Work PB4097) — asked through a READ-ONLY handle too: nothing is written, so a reader that finds one settles it
+    /// through a handle of its own for the purpose (<c>KeyedConnector.SettleDeadOwnersBeside</c>) before it reads on. The caller
+    /// holds the store mutex and has entered. Nothing to read while page 2's transactions root is empty, which is every file no
+    /// transaction stands in.</summary>
+    internal StoreStatus FindDeadOwner(RegionLocks prober, out bool found)
+    {
+        found = false;
+        if (File is not { } file || file.Meta.TransactionsRoot.IsNone) return StoreStatus.Ok;
+        var status = TransactionIds(file, out var ids);
+        if (status != StoreStatus.Ok) return status;
+        found = ids.Any(id => id != Transaction && MayRollBack(prober, id));
+        return StoreStatus.Ok;
+    }
+
+    /// <summary>The ids of the transactions page 2 names, in the order of the TRANSACTIONS tree (one read of its few pages).</summary>
+    private static StoreStatus TransactionIds(PagedFile file, out List<ulong> ids)
+    {
+        ids = [];
         var status = new BTree(file, KeyOrders.Ordinal, file.Meta.TransactionsRoot).First(out var cursor);
         while (status == StoreStatus.Ok && cursor.HasCurrent)
         {
             ids.Add(TransactionKeys.TransactionOf(cursor.Key));
             status = cursor.Next();
         }
-        if (status != StoreStatus.Ok) return status;
-        foreach (ulong id in ids)
-            if (id != Transaction && MayRollBack(prober, id) && (status = RollBack(id, restoring)) != StoreStatus.Ok)
-                return status;
-        return StoreStatus.Ok;
+        return status;
     }
 
     /// <summary>⛔ COMMIT this run unit's transaction on the file (§14.9.7.4 GR3; 2.2.1.10): the promotion that decides it

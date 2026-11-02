@@ -25,8 +25,9 @@ kb/Work PB3174, PB3176) is a self-test when
       PASSES `--self-test` to another one is not one; a .sh file with a `--self-test)` case arm or a
       `= "--self-test"` test outside a comment. It runs as `<file> --self-test`.
   (b) otherwise, it is NAMED `test_*.py` or `test_*.ps1`: a standalone test script. It runs bare.
-`SelfTestDiscoveryDriftTests` (Unit) holds the rule to a broader net, so a self-test written in a shape this rule
-misses fails a test instead of silently never running.
+This runner's own self-test holds the rule to a broader net over the real tree (`net`, kb/Work PB4395), so a self-test
+written in a shape this rule misses fails a self-test instead of silently never running; it also holds every gate entry
+point to running this runner and naming no self-test by hand (`entry_point_arms`).
 
 PLATFORM: every self-test runs on every platform unless its file declares otherwise, on a `#` comment line among its
 first HEADER_LINES lines (so a docstring that SHOWS the marker, as this one does, never declares it):
@@ -1002,12 +1003,145 @@ def self_test() -> int:
           ([1, 12], [True] * 4))
 
     fleet_arms(check)
+    net_arms(check)
+    entry_point_arms(check)
     print(f"self_tests.py --self-test: {'ALL GREEN' if not fails else f'{len(fails)} FAILED'}")
     return 1 if fails else 0
 
 
 #: How long each planted fleet self-test holds its place, and the budget the simulated gates share.
 _FLEET_SLEEP_S, _FLEET_CAP, _FLEET_GATES = 0.5, 2, 4
+
+
+# ── THE REAL TREE (kb/Work PB4395: until then SelfTestDiscoveryDriftTests, a compiler test, held these, so a change to
+#    any script was a compiler change): discovery misses nothing a broader net finds, and every gate entry point runs
+#    this runner and names no self-test by hand ─────────────────────────────────────────────────────────────────────
+
+#: THE NET: broader than `classify`, and read as TEXT: a `test_*.py`/`test_*.ps1` name, a Python code line holding a
+#: quoted `--self-test` beside `argv` or `add_argument`, or a shell `--self-test)` arm or `= "--self-test"` test.
+NET_QUOTED_FLAG = re.compile(r"""["']--self-test["']""")
+NET_SHELL_ARM = re.compile(r"""(^|\s)--self-test\)|=\s*["']--self-test["']""")
+NET_STANDALONE = re.compile(r"^test_[^/]*\.(py|ps1)$")
+#: Self-tests the net must find on the real tree, or the net is broken: the orchestrator's, a hook's, the gate's, this
+#: runner's own and the conformance harness's generator.
+NET_KNOWN = ("scripts/orchestrator/test_alloc.py", "scripts/orchestrator/test_orchestrate_core.ps1",
+             "scripts/orchestrator/landing_check.py", "scripts/hooks/test_forbidden_commands.py",
+             "scripts/guard-population.sh", "scripts/gate.py", "scripts/self_tests.py",
+             "conformance-suite/harness/generate.py")
+
+
+def net(repo: Path, paths: list[str]) -> list[str]:
+    """The paths among `paths` (repository-relative) the broad text net calls a self-test."""
+    found: list[str] = []
+    for rel in paths:
+        if NET_STANDALONE.match(rel.rsplit("/", 1)[-1]):
+            found.append(rel)
+            continue
+        python, shell = rel.endswith(".py"), rel.endswith(".sh")
+        for raw in (repo / rel).read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if line.startswith("#"):
+                continue
+            if ((python and NET_QUOTED_FLAG.search(line) and ("argv" in line or "add_argument" in line))
+                    or (shell and NET_SHELL_ARM.search(line))):
+                found.append(rel)
+                break
+    return found
+
+
+def net_arms(check: Callable[[str, object, object], None]) -> None:
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        planted = {"scripts/a.py": 'if "--self-test" in sys.argv: pass\n', "scripts/test_b.ps1": "1\n",
+                   "scripts/c.sh": 'case "$1" in\n  --self-test) t ;;\nesac\n', "scripts/d.py": "# '--self-test' argv\n",
+                   "scripts/e.py": 'CMD = ["x.py", "--self-test"]\n'}
+        for rel, text in planted.items():
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text(text, encoding="utf-8", newline="\n")
+        check("arm: the net finds a flag beside argv, a test_* name and a shell case arm, never a comment or a list that "
+              "only passes the flag", net(root, sorted(planted)), ["scripts/a.py", "scripts/c.sh", "scripts/test_b.ps1"])
+    found = net(REPO, live_tools.tracked(REPO, (".py", ".sh", ".ps1"), git_env()))
+    discovered = {t.path for t in discover(REPO)}
+    check("arm: THE REAL TREE: the net finds the known self-tests (a net that does not is broken)",
+          [k for k in NET_KNOWN if k not in found], [])
+    check("arm: THE REAL TREE: every self-test the net finds is discovered by the runner (widen `classify`, never a "
+          "list: kb/Work PB2563)", [p for p in found if p not in discovered], [])
+
+
+def _module_literal(path: Path, name: str):
+    """The literal value of the top-level assignment `name = …` in the Python module at `path`, read from its syntax
+    tree: what the module declares, without importing it (and everything it imports) into this self-test."""
+    for node in ast.parse(path.read_text(encoding="utf-8")).body:
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target] if isinstance(node, ast.AnnAssign) else []
+        if any(isinstance(t, ast.Name) and t.id == name for t in targets) and node.value is not None:
+            return ast.literal_eval(node.value)
+    raise LookupError(f"{path.name} no longer declares `{name} = …`")
+
+
+def hand_named(sources: dict[str, str], tests: list[SelfTest]) -> list[str]:
+    """Every code line of `sources` (a gate entry point's text, by where it is) that runs a discovered self-test by hand:
+    a flag-handling one named with `--self-test`, a standalone one named at all. This runner is the one exception."""
+    named: list[str] = []
+    for where, text in sources.items():
+        for raw in text.splitlines():
+            line = raw.strip()
+            if line.startswith("#"):
+                continue
+            named += [f"{where}: {t.path} in `{line}`" for t in tests if t.path != "scripts/self_tests.py"
+                      and (f"{t.path} {FLAG}" in line if t.handles_flag else t.path in line)]
+    return named
+
+
+def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
+    """Every gate entry point runs this runner: the local gate's audits (SELF-TESTS, only for a change that touches
+    tooling, TOOLING_ONLY, kb/Work PB4326) and its post-build half, the Linux gate's two legs, CI's `audits` job on
+    Linux, its `linux-built-self-tests` job and `windows-self-tests` on Windows; only the gate REUSES a recorded PASS
+    (kb/Work PB2914, PB3022); and none of them runs a discovered self-test itself (a hand list again, kb/Work PB2563)."""
+    from ci_workflow import jobs  # noqa: PLC0415 — this directory's: the one reader of a CI workflow's shape
+    scripts = REPO / "scripts"
+    driver = scripts / "gate.py"
+    audits = _module_literal(driver, "AUDITS")
+    linux = (scripts / "linux-gate.sh").read_text(encoding="utf-8")
+    workflow = (REPO / ".github" / "workflows" / "build-and-test.yml").read_text(encoding="utf-8")
+    check("arm: the gate's audits run this runner, its post-build half `--built`, the runner only for a change that "
+          "touches tooling, and with --reuse",
+          (("SELF-TESTS", ["scripts/self_tests.py"]) in audits, _module_literal(driver, "BUILT_SELF_TESTS"),
+           _module_literal(driver, "TOOLING_ONLY"), _module_literal(driver, "SELF_TESTS_REUSE")),
+          (True, ["scripts/self_tests.py", "--built"], ("SELF-TESTS",), "--reuse"))
+    # linux-gate.sh runs its legs in parallel (kb/Work PB2879) in the AUDIT clone, outside the inert watch of its test
+    # legs (kb/Work PB2878): each runner call may redirect to its leg's result file and run in the background.
+    check("arm: the Linux gate's two self-test legs run this runner, and neither the Linux gate nor CI reuses a PASS",
+          (bool(re.search(r'(?m)^\s*selftests_leg selftests "\$auditsnap"( > "\$out/selftests\.result" 2>&1 &)?\r?$', linux)),
+           bool(re.search(r'(?m)^\s+selftests_leg selftests-built "\$auditsnap" --built'
+                          r'( > "\$out/selftests-built\.result" 2>&1 &)?\r?$', linux)),
+           "--reuse" in linux, "--reuse" in workflow), (True, True, False, False))
+
+    def runs(jid: str) -> list[str]:
+        """The one-line `run:` commands of a job's steps (a block scalar is not one line)."""
+        return [v for s in by[jid].steps if (v := s.value("run")) and v not in ("|", ">", "|-", ">-")]
+    by = {j.id: j for j in jobs(workflow)}
+    # kb/Work PB3581, PB4329: the self-tests are their own jobs, never a step of a test shard.
+    check("arm: CI's audits (Linux), linux-built-self-tests and windows-self-tests jobs run this runner on their "
+          "platforms; no test shard runs it, and windows-self-tests builds nothing",
+          ("python3 scripts/self_tests.py" in runs("audits"), "python3 scripts/self_tests.py --built" in runs("linux-built-self-tests"),
+           "python scripts/self_tests.py" in runs("windows-self-tests"),
+           [by[j].value("runs-on").split("-")[0] for j in ("audits", "linux-built-self-tests", "windows-self-tests")],
+           any("self_tests.py" in r for j in ("windows-shard", "linux-shard") for r in runs(j)),
+           "dotnet build" in by["windows-self-tests"].code),
+          (True, True, True, ["ubuntu", "ubuntu", "windows"], False, False))
+    tests = discover(REPO)
+    planted = [SelfTest("scripts/x.py", True, None, ""), SelfTest("scripts/o/test_y.ps1", False, None, "")]
+    check("arm: a self-test named in an entry point is found: a flag-handling one with its flag, a standalone one at all; "
+          "a comment, the runner and the flag-handler's other modes are not",
+          hand_named({"w": "# scripts/x.py --self-test\npython scripts/x.py --check\npwsh scripts/o/test_y.ps1\n"
+                           "python scripts/x.py --self-test\npython scripts/self_tests.py\n"}, planted),
+          ["w: scripts/o/test_y.ps1 in `pwsh scripts/o/test_y.ps1`", "w: scripts/x.py in `python scripts/x.py --self-test`"])
+    sources = {"scripts/gate.py AUDITS": "\n".join(" ".join(cmd) for _, cmd in audits),
+               "scripts/linux-gate.sh": linux, ".github/workflows/build-and-test.yml": workflow}
+    sources |= {f"scripts/{n}": (scripts / n).read_text(encoding="utf-8")
+                for n in ("build-local.ps1", "build-local.sh", "battery.sh")}
+    check(f"arm: THE REAL TREE: no gate entry point runs one of the {len(tests)} discovered self-tests by hand",
+          hand_named(sources, tests), [])
 
 
 def _max_overlap(spans: list[tuple[float, float]]) -> int:

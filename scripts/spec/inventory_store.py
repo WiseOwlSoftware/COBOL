@@ -11,7 +11,7 @@ refusal registry (PB4147). The row's adjudicated facts now live where two differ
     tests/version-matrix/inventory/<rule-id>.json      one row, an object, `json.dumps(indent=1)` plus a newline
 
 Git's plain merge keeps both branches' rows; a conflict means two branches changed the SAME row, which is a real one.
-No merge driver governs the directory (`MergeDriverDriftTests` holds that), and `.gitattributes` does not name it.
+No merge driver governs the directory (`scripts/merge_drivers.py --self-test` holds that), and `.gitattributes` does not name it.
 
 THE ROW'S NAME IS ITS RULE ID, so a reader finds a row without a scan and a rename of a rule is a rename of a file. The
 catalog's ids are `[A-Z]+-<section>[-<n>]`; `row_name` is the one place that turns an id into a file name and refuses an id

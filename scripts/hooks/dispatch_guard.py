@@ -31,8 +31,8 @@ attended dispatch made without a rendered group is in flight from its worktree's
 (landing_check.py) is the guarantee behind the planner's partition.
 
 There is no lander to guard (kb/Work PB3023): a branch lands through `scripts/orchestrator/enqueue.py land`, a script, and
-its rule 4 (a lander dispatch named the loop's state) retired with the role; LandingPipelineDriftTests holds that no other
-file opens or queues a pull request.
+its rule 4 (a lander dispatch named the loop's state) retired with the role; scripts/orchestrator/landing_rules.py --self-test holds
+that no other file opens or queues a pull request.
 """
 import json
 import os

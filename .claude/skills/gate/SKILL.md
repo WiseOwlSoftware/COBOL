@@ -12,10 +12,11 @@ description: Use before every commit and before every merge to choose and run th
 # Gate
 
 **Self-check first: is this a change's gate, or the batch's pre-merge?** A change's gate has ONE shape (owner
-2026-10-11, kb/Work PB3015 Q1a, PB3022): an implementer's commit, a re-gate after a fix and a landing all run the same
-command below. No gate FILTERS: every gate runs the whole population, ORDERED so a likely red comes first (owner,
+2026-10-11, kb/Work PB3015 Q1a, PB3022): an implementer's commit and a re-gate after a fix run the same command
+below, and the landing runs none (kb/Work PB4331). No gate FILTERS: every gate runs the whole population, ORDERED so a likely red comes first (owner,
 2026-09-28, kb/Work PB1708: "order, don't skip"; owner decision 1 of PB4323, 2026-10-31, kb/Work PB4328: the population
-is the selection); CI's merge group is the first run of the merged tree, Linux and Release. What the owner corrected
+is the selection); CI's merge group is the first run of the merged tree, Linux, Release and GitHub's runners (THE RULE,
+below). What the owner corrected
 repeatedly was over-gating per fix with the whole-corpus suites (the battery, the NIST guard); the gate is not that —
 its populations take about four minutes on a quiet box, and a gate slot caps how many run at once.
 
@@ -37,14 +38,18 @@ pwsh scripts/build-local.ps1 -Priority BelowNormal *> <log>
 
 The driver, `scripts/gate.py` (DESIGN-test-build-ci.md §3.13, §3.14; kb/Work PB4328), holds the worktree's GATE LOCK (a
 second gate in the same worktree is refused), decides the change's LANE (`python scripts/inert_lane.py classify --base
-<rev>`: a change no test reads is the INERT LANE, which runs the audits alone; kb/Work PB2878), starts the audits BESIDE
+<rev>`: a change no test reads is the INERT LANE, which runs the audits alone, kb/Work PB2878; a change whose every other path
+is tooling in `scripts/`, `.github/`, `tools/` or `.claude/` that no compiler test or the build reads — not under
+`inert_lane.py`'s `CODE_READS` — is the TOOLING LANE, which runs the audits with the script self-tests and no slot, build or
+test host, its verdict `TOOLING LANE (kb/Work PB4395)`), starts the audits BESIDE
 everything after them (outside the slot; FAIL-FAST: a red audit known before the slot or the hosts ends the gate in
 seconds with `NO TEST RAN`, and one found while the hosts run STOPS them, kb/Work PB2523, PB4326 — run `python
 scripts/rendered_views.py --check` and the citation audits yourself before gating to avoid the round trip; one audit,
 `SELF-TESTS`, is every script self-test, discovered and run in parallel by `scripts/self_tests.py`, kb/Work PB2563, and
-runs ONLY WHEN YOUR CHANGE TOUCHES TOOLING (a path under `scripts/`, `.github/`, `tools/`, `.claude/`, a `.py`/`.ps1`/`.sh`
-file, or data a self-test reads: the `tooling=` line of `inert_lane.py classify`, its `TOOLING_READS` list proved
-complete by `self_tests.py` on every run; CI's merge group runs every Linux self-test whatever the change) — every gate
+runs ONLY WHEN YOUR CHANGE TOUCHES A SCRIPT (a path under `scripts/`, `.github/`, `tools/`, `.claude/`, or a
+`.py`/`.ps1`/`.sh` file: the `tooling=` line of `inert_lane.py classify`; a compiler data file a self-test reads, its
+`TOOLING_READS` list, starts none, owner 2026-11-01, kb/Work PB4409; CI's merge group runs every Linux self-test
+whatever the change, and the Windows ones whenever the `reads_tooling=` line is true: a script or that data) — every gate
 passes `--reuse`, so a self-test whose inputs are unchanged since a recorded PASS is REUSED, not run; one still running an
 hour after taking its budget place is `SELF-TESTS HANG`, never RED, kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10) and
 fetches the per-worktree GnuCOBOL corpus when absent, then takes a GATE SLOT (`scripts/gate_slot.py`: at most N gates
@@ -69,23 +74,30 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
   worktree shares; every gate re-reads it while it waits, so a change reaches the queue at once, and an expired setting
   is the coded default again with no one acting. `gate_slot.py clear` returns it to its coded default at once, and
   `gate_slot.py status` prints the cap, every held slot and the queue. No environment variable sets it. **An inert-lane
-  gate takes no slot at all** (kb/Work PB4327). A waiting gate's log says why a later ticket went first (landing gates
-  are served before implementer gates, PB3103).
+  gate takes no slot at all** (kb/Work PB4327).
 - **The gate runs nothing on Linux** (owner 2026-10-31, kb/Work PB4327; MANDATORY-PRACTICES I8): CI's merge group runs
   the whole Linux population and every Linux self-test, so a Linux-only red is found in the queue. `bash
   scripts/linux-gate.sh --nice` (CI's whole Linux legs, ~6 min; `--legs unit,conformance,characterization,guard` picks)
   is the tool that reproduces a Linux CI red on this box, run by hand and not a step of any change's gate; its newest
   run's red classes go first at the worktree's next gate.
 
-## Per landing — the landing reads the record; it gates nothing (owner 2026-10-23, kb/Work PB3612)
+## Per landing — the landing reads the record; it gates nothing (owner 2026-10-23, kb/Work PB3612, PB4331)
 
 A branch is gated locally ONCE, at its head, by its implementer or finisher: that run is the whole definition of "tested
 locally". `enqueue.py land` does not gate the merge with main and does not gate again when main moves: it READS the
 worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses (exit 14, UNTESTED) a tip none of them covers
 GREEN (a finisher gates the tip). The merge queue's `ci-gate` runs the whole population on the exact
-merge, on both operating systems, before `main` moves. One exception, the case a developer would also re-test: when
-bringing main in changed a file the branch also changes, the one gate runs once on the merged head
-(`pwsh scripts/build-local.ps1` at Normal priority, MANDATORY-PRACTICES L2).
+merge, on both operating systems, before `main` moves: it is the FIRST run of the merged tree, a true textual merge in
+a shared file included (kb/Work PB4331), and the landing lane classifies every red it bounces against this record
+(INFRA and RUNNER re-queued once, MERGE and GENUINE to a finisher, kb/Work PB4271). A gate of the worktree that
+runs when the landing would write it is exit 12, GATE BUSY, whatever record exists (kb/Work PB4204).
+
+⛔ **THE RULE (owner 2026-10-31, CLAUDE.md "Testing", replacing the CI invariant of 2026-10-04): every case the merge
+group runs on Windows already ran green at the pushed head, on this host, under the same `toolchain.env`.** The merge
+group is the FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling
+self-tests on a tooling change and (e) GitHub's runners; a red there is one of those five, a flake or infrastructure,
+never an untested case. A red of class (b), (c) or (e) is also a finding against the pipeline's record of that class,
+filed with its rate (`kb/Work/PB1957`); a flake is a kb/Work defect fixed at its root, never retried inside the run.
 
 **Do NOT run per commit:** the battery or the NIST guard (`scripts/guard-fast.sh`).
 
@@ -97,8 +109,8 @@ bringing main in changed a file the branch also changes, the one gate runs once 
 
 - **CI's own Linux leg — comprehensive is not comprehensive without it.** Everything above runs on ONE host
   (this Windows machine, Debug). The workflow's `ubuntu-26.04` jobs — `guard-fast.sh`'s NIST loop, the Linux
-  conformance shards, Linux greenfield unit + characterization — and the Release build are verified by CI and by
-  nothing else, so a test keyed on host ACL or file-lock semantics can be green here and red there. Read the
+  shards — and the Release build are verified by CI and by nothing else (`guard-fast.sh` is the nightly's, kb/Work
+  PB4332), so a test keyed on host ACL or file-lock semantics can be green here and red there. Read the
   verdict for the commit you pushed:
   `gh run list --branch main --commit <sha> --json databaseId,status,conclusion,displayTitle`, then
   `gh run view <id> --log-failed` on a red. `scripts/session-probe.ps1` prints the latest run's conclusion at
@@ -111,10 +123,10 @@ bringing main in changed a file the branch also changes, the one gate runs once 
   PB3024): main takes only pull requests GitHub's merge queue has tested, administrators included, so a bare
   `git push origin HEAD:main` is refused by the server (owner decision 2026-09-06, question 23; `kb/Work/PB796`). The
   landing is therefore a SCRIPT, not a habit: **`python scripts/orchestrator/enqueue.py land <branch>`** (kb/Work
-  PB3023) merges main in, gates, stamps the DEVLOG entry and ends in one pull request into the queue: no CI wait; the
+  PB3023) merges main in, stamps the DEVLOG entry and ends in one pull request into the queue, gating nothing: no CI wait; the
   merge group runs the matrix and is the CI verdict, and a pull request's own run is the cheap jobs only. It refuses
-  (exit 8) before merging or gating anything while `ruleset.py check` does not report the queue ACTIVE. Never run its
-  inner `queue` verb by hand: `land` is what merges main in, gates and stamps the DEVLOG entry. There is no other
+  (exit 8) before merging anything while `ruleset.py check` does not report the queue ACTIVE. Never run its
+  inner `queue` verb by hand: `land` is what merges main in and stamps the DEVLOG entry. There is no other
   landing path: main refuses a direct push (kb/Work PB3024).
 - ⚠ **A docs-only push runs `changes` + `ci-gate` and nothing else** — seconds, not a matrix. `paths-ignore` was
   removed because a workflow that declines to START leaves a required per-commit check unsatisfiable; the same

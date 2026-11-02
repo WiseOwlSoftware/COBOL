@@ -1141,18 +1141,25 @@ reference formats, and the only place source comments are recognized. Its model:
   below: `ReferenceFormatMap.CutAt(line)` holds, per fixed-form physical line, the text past margin R (`MarginRCut`, in
   `Frontend.Common`), and `FixedFormAreas.MarginRCutAt` composes it with the resultant-line map, so the listener
   (`CobolErrorListener.NoteMarginRCut`, behind `IMarginRCutLocator`, which keeps `Parsing` off `Preprocessor`) asks about a
-  token's position. The warning is reported BESIDE the error (the cause first, PB4131), once per cut, in two shapes: the
-  OFFENDING token ends at margin R with the cut text right behind it (the word was cut), or the token BEFORE the offending one
-  is the last of a cut line and the offending token stands on a later line (the statement ended early). It is never reported
+  token's position. The warning is reported BESIDE the error (the cause first, PB4131), once per cut, in three shapes: the
+  OFFENDING token ends at margin R with the cut text right behind it (the word was cut), the token BEFORE the offending one
+  is the last of a cut line and the offending token stands on a later line (the statement ended early), or a line BETWEEN
+  those two tokens holds text only past margin R (PB4372: its program-text area is blank, so it reads as blank, no token of it
+  anchors a question, and the listener asks of every resultant line between the tokens that holds no program text
+  (`MarginRCut.HoldsProgramText` false; the message names a line that "has no program text"). A tokenless line that DOES hold
+  program text was OMITTED by a stage after the reference format — a false `>>IF` branch, ISO §7.3.16.4 3), or a debugging line
+  without debugging mode — and is never asked about). It is never reported
   for a line with no cut: text past margin R that is blank, the rest of an inline comment (§6.3.7.3), a comment line, a
   numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
-  most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file that labels most of its code lines with
-  one. Only a parse error asks, so a program that parses never hears of its tags.
+  most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file in which such a word recurs on at
+  least `MarginRCut.RecurrenceThatMakesATag` (two) lines, a tagged blank line counting. Shape cannot tell ONE tag from the
+  one-word tail of a statement, so a lone tag-shaped word still draws the note, which says "may". Only a parse error asks, so
+  a program that parses never hears of its tags.
   `MarginRCut` carries the margin twice because the two units differ on a line holding a tab (kb/Work PB4373): `Column` is the
   physical column the file holds the cut at (what the warning's location names), `LastProgramTextPosition` is the position the
   format fixes (72, `FixedFormLine.MarginR`) and the one the message states, so the positions it quotes for the cut text
   (`FirstCutPosition`, `LastCutPosition`, counted in characters, `CharacterPositions`) continue from it; a line whose two
-  differ says so in the message.
+  differ says so in the message, in both of its forms (a line with program text, and one with none).
 - **COBOL-85's areas A and B are a fact the reference format RECORDS and a pass after the parse ASKS** (kb/Work PB3147;
   VCR Table 7 row 7.35). ANSI X3.23-1985 split the program-text area into area A (positions 8–11) and area B (12 to
   margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§6.3.1, §6.3.5), so
@@ -1418,10 +1425,21 @@ target:
   its text chose a reading only that text allowed (`WHEN 1 EXEC SQL …` read the class condition "1 IS EXEC", then a
   false COBOL2073 at WHEN OTHER) or failed before the block was met (`WHEN OTHER EXEC SQL …`), and the scan's stop at
   any period left `T.A` unrecognized. Made before the parse, every prediction sees the token. EXEC and END-EXEC are not
-  reserved (§8.9), so the source reads EXEC as an opener only when EVERY EXEC of it opens a block; one that does not
-  (a declaration `01 EXEC PIC X.`, a reference, a block left without its END-EXEC) means the source writes EXEC as a
-  COBOL word, and it is read as COBOL throughout, as the standard reads it (`DISPLAY EXEC SQL END-EXEC.` names three
-  data items). The misplaced-scope-terminator hint (COBOL0306, ISO
+  reserved (§8.9), so the source reads EXEC as an opener only when no EXEC of it is a COBOL word; one that is (a
+  declaration `01 EXEC PIC X.`, a reference: an EXEC with no word after it, or a reserved word) means the source writes
+  EXEC as a COBOL word, and it is read as COBOL throughout, as the standard reads it (`DISPLAY EXEC SQL END-EXEC.` names
+  three data items). `EmbeddedBlockReading.Scan` tells the three apart: EXEC, a word, and an END-EXEC before a
+  separator period is a closed block (COBOL5818); EXEC, a USER-DEFINED word (SQL, CICS, DLI are reserved in no edition)
+  and a separator period (§8.3.5 rule 3) before any END-EXEC is a block left unterminated (COBOL5842, kb/Work PB4381),
+  taken through the text before that period and one token like any block, so the blocks that do close stay blocks;
+  anything else is a word. The unterminated shape is a CANDIDATE only: a declaration that takes a list of user-defined
+  words (`INDEXED BY EXEC IDX.`, `SYMBOLIC CHARACTERS EXEC BEL ARE …`, any operand list) has the same one, and no lexical
+  rule or list of declaration positions can tell them apart (review R1-1). Only when the scan finds such a candidate and
+  no EXEC that is certainly a word, `Read` asks the parse (`Frontend.ParsesCleanly`: one whole parse of a copy of the
+  stream with every EXEC a COBOL word); a source that parses cleanly that way is COBOL, EXEC a word, and one that does not
+  holds the unterminated block. A source of closed blocks alone, and every source with no candidate, pays no parse. Every token of a block that is COBOL text moves to
+  `EMBEDDED_BLOCK_TEXT`, whatever its channel (kb/Work PB4384: the HIDDEN-channel semicolon of `A;B` was still judged
+  by `SeparatorRule.Violations`). The misplaced-scope-terminator hint (COBOL0306, ISO
   §14.5.3.2) reads from the ATN, once, which `…Statement` rules match each END-x token (`ScopeTerminator`):
   END-SEARCH closes both SEARCH rules, and a word no statement rule matches (END-OF-PAGE, a user word spelled
   END-…) is no terminator. It carries no edition logic: edition diagnosis lives in the
