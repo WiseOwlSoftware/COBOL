@@ -38,3 +38,5 @@ taken control; debugging line without the mode, with it, in a unit without it; t
 debugging line; the blank-debugging-line literal), `SourceLineMapTests` +2. Conformance: accepted `pb4412-past-margin-r-in-omitted-branch`
 (2002 on) and `pb4412-past-margin-r-in-debugging-line` (85, 2002); refused `pb4412-vanished-statement-beside-omitted-branch` and
 `pb4412-vanished-statement-beside-debugging-line`. No inventory row changes verdict (`closes_rows: []`).
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN` at db31e465d, run 000002-20261102T060344Z (Conformance 20,579/20,579, Unit 39,170/39,170, Characterization 37/37, no Linux half in the line); the first gate (000001-20261102T055830Z) was RED on the three tests that pinned the old blank-D slot, re-pinned above.
