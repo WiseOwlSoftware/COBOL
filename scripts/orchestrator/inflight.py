@@ -2,11 +2,11 @@
 section 16.3; the partition of section 9, kb/Work PB2807, PB3670): the in-flight work's file sets (inflight_file_sets:
 every worktree's and unlanded branch's changed files, committed or not, and every dispatch-ledger group no report
 answers), the units an owner's actual diff touches in a shared file (inflight_units), the planner's reading of that
-set by the branch survey's lifecycle states (classify_inflight), the open external-repository slices' reservation
-(slice_reservation), the local branches and their classification as the planner reads them (local_branches,
+set by the branch survey's lifecycle states (classify_inflight), the local branches and their classification as the planner reads them (local_branches,
 git_branch_classifier, branch_carrier, branch_replays, unlanded_branch_notes), and the ONE meeting rule of two declared
 sets (Claim, declared_sets, computed_file_set, collision_set, collision: two claims meet only on a file either claims
-whole, or on a member of one that matches a member of the other).
+whole, or on a member of one that matches a member of the other) and the narrower rule of a HOLD (hold: running work
+holds a group only where a member of one matches a member of the other, kb/Work PB4452).
 
 Its readers: the wave planner (plan_wave.py), the landing check's guarantee (landing_check.py), the spec renderer
 (make_dispatch_specs.py: the declared set of a group it records), check_practices.py (two groups of one wave whose
@@ -35,7 +35,6 @@ import coord  # noqa: E402
 import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
 import merge_drivers  # noqa: E402  (scripts/: covered_by_driver, the files merged by key, which never meet)
 import source_units  # noqa: E402  (scripts/arch/: the units of a file, the units a diff touches, the name match)
-import work  # noqa: E402  (the slices' file set and the restructuring program's notes)
 from reports import Report, answers, ledger_slug  # noqa: E402  (the report reader: "a dispatch returned")
 if TYPE_CHECKING:
     from prune_worktrees import Replay  # noqa: E402  (imported lazily at run time: it imports this module back)
@@ -406,10 +405,27 @@ def collision(mine: Claim, theirs: Claim) -> str | None:
     return None
 
 
-def collision_hits(mine: Claim, busy: Mapping[str, Claim]) -> list[tuple[str, str]]:
-    """The in-flight owners a group meets, each with what they share, as (owner, hit), by THE one rule (collision):
-    `mine` is the group's claim, `busy` each owner's. `hit` is a file or `file#member`, never prose."""
-    return [(owner, hit) for owner, theirs in sorted(busy.items()) if (hit := collision(mine, theirs))]
+def hold(mine: Claim, theirs: Claim) -> str | None:
+    """THE rule of a HOLD (kb/Work PB4452, owner 2026-11-02: "Non overlapping edits to the same file typically will
+    merge without conflict"), or None: the label (`file#member`) of the first shared file on which a member of `mine`
+    matches a member of `theirs`. A shared FILE never holds work, and neither does a file either side claims WHOLE (no
+    member list: an index-found caller, a site named whole, a file the diff reader could not read); only two edits to
+    the same member do. Running work holds a group by this rule; `collision` stays the rule of GROUPING (one step per
+    file within a wave, check_practices.py O2) and of JOINING a finished branch (PB4396), where meeting on the file is
+    what makes one step. Git's merge at landing is the authority on a conflict this rule cannot foresee (a finisher
+    repairs a real one)."""
+    for f in sorted(mine.files & theirs.files):
+        if f in mine.members and f in theirs.members and (hit := unit_meet(f, mine, theirs)):
+            return hit
+    return None
+
+
+def collision_hits(mine: Claim, busy: Mapping[str, Claim],
+                   rule: Callable[[Claim, Claim], str | None] = collision) -> list[tuple[str, str]]:
+    """The in-flight owners a group meets, each with what they share, as (owner, hit), by one meeting rule (`collision`,
+    or `hold` for the owners that hold a group): `mine` is the group's claim, `busy` each owner's. `hit` is a file or
+    `file#member`, never prose."""
+    return [(owner, hit) for owner, theirs in sorted(busy.items()) if (hit := rule(mine, theirs))]
 
 
 def file_set_collisions(mine: Claim, busy: Mapping[str, Claim]) -> list[str]:
@@ -426,15 +442,12 @@ class InFlight:
     its branch (a worktree's or an unlanded branch's), the notes it works on (a dispatch's notes; a branch's newest
     report's ids and its commit subjects' ids), its lifecycle state (the branch survey's, or the dispatch's), and the
     FINISHED report that names its branch when it is finished work. A group whose claim meets a finished owner
-    CONTINUES it; one whose claim meets any other owner waits. `reserves` marks a RESERVATION, not work: the file set
-    of open notes nobody need be running (the external-repository slices, slice_reservation), held only from the
-    groups holding one of these notes; None holds every group."""
+    CONTINUES it; one whose claim HOLDS against any other owner waits (hold)."""
     files: set[str]
     branch: str | None = None
     notes: set[str] = dataclasses.field(default_factory=set)
     finished: Report | None = None
     state: str = "RUNNING"
-    reserves: set[str] | None = None
     members: dict[str, frozenset[str]] = dataclasses.field(default_factory=dict)
 
     @property
@@ -480,11 +493,8 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         STOPPED or BOUNCED at its landing (its finisher works on it next), one undecided (DECISION: unlanded work no
         session has decided, MANDATORY-PRACTICES O10; the collision names it, so the operator decides it), or a
         detached worktree or owner the survey does not name;
-      - a RESERVATION (its meta's `reserves`, slice_reservation: the open external-repository slices) is no work of its
-        own: it reads OPEN (RESERVED) while no other owner works on one of its notes, and RUNNING (naming that owner)
-        once one does, so a plan never calls a slice nobody runs RUNNING (kb/Work PB3456).
     `branch_notes` ({branch: the note ids its commit subjects name}, unlanded_branch_notes) and each branch's newest
-    report's `notes` (answered_notes, plus what an unlanded branch closes, add_closed_notes) are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
+    report's `notes` (answered_notes, plus what an unlanded branch closes, add_closed_notes) are the branch's notes:
     plan() never defers a group for work on its OWN notes. A dispatch's `members` are the member claims its ledger
     entry recorded; a worktree's or branch's are read from its actual diff afterwards (inflight_units, kb/Work PB3670),
     and until then every file is changed whole."""
@@ -499,21 +509,14 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
             out[owner] = InFlight(set(files), notes=set(m.get("notes", [])), state="DISPATCHED, NO REPORT YET",
                                   members=dict(Claim.of(files, m.get("members")).members))
             continue
-        if "reserves" in m:   # its state is read below, from the work on its notes
-            out[owner] = InFlight(set(files), notes=set(m.get("notes", [])), reserves=set(m["reserves"]))
-            continue
         branch = m.get("branch")
         state = states.get(branch or "", "RUNNING")
         if state in GONE_STATES:
             continue
         rep = by_branch.get(branch or "")
-        notes = set(rep.notes if rep else []) | set((branch_notes or {}).get(branch or "", [])) | set(m.get("notes", []))
+        notes = set(rep.notes if rep else []) | set((branch_notes or {}).get(branch or "", []))
         done = rep if state in CONTINUED_STATES and rep and rep.finished else None
         out[owner] = InFlight(set(files), branch, notes, done, state)
-    for x in out.values():
-        if x.reserves is not None:
-            carriers = sorted(o for o, y in out.items() if y.reserves is None and y.notes & x.notes)
-            x.state = f"RUNNING ({'; '.join(carriers)})" if carriers else "OPEN (RESERVED)"
     return out
 
 
@@ -605,25 +608,3 @@ def inflight_units(busy: Mapping[str, InFlight], meta: Mapping[str, dict], claim
             if parts and all(p is not None for p in parts):
                 members[f] = frozenset().union(*parts)
         x.members = members
-
-
-#: The in-flight owner the open external-repository slices' reservation is filed under.
-SLICE_OWNER = "the open external-repository slices"
-
-
-def slice_reservation(items: list[dict], campaign: str | None,
-                      file_set: Callable[[], set[str]] = work.slice_file_set) -> tuple[set[str], dict] | None:
-    """The open external-repository slices' RESERVATION for one plan, as (its file set, its classify_inflight meta), or
-    None when there is none to make. R69 §2 reserves DESIGN-external-repository §12's in-flight set (`file_set`,
-    work.slice_file_set) from the restructuring program's waves only, "R2 and every R3 wave" (work.restructuring),
-    whichever campaign proposes them: a fix campaign's group is never held for slices nobody runs (kb/Work PB3456:
-    PB3353's tier 1 and its tier-2 chain waited on docs/CONFORMANCE.md for them), and the fix lane, which plans no
-    restructuring wave, never reads the set (DESIGN-architecture-review §8.7, set (b)). The meta names the slices (the
-    owner's notes, whose work in flight makes the reservation RUNNING) and `reserves`, the open restructuring notes
-    whose groups it holds; every file of the set is reserved whole."""
-    slices = work.open_slices(items)
-    reserved = sorted((i["id"] for i in items if work.restructuring(i) and i.get("status") not in work.TERMINAL_STATUSES),
-                      key=work.id_order)
-    if not campaign or not slices or not reserved:
-        return None
-    return file_set(), {"notes": slices, "reserves": reserved}
