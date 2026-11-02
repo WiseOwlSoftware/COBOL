@@ -454,7 +454,7 @@ public sealed class FileModel
     /// <summary>Which class the FD's CODE-SET clause selected for its §13.18.13.3 SR3 a)/b) record screen —
     /// <c>true</c> = alphabet-name-2 / national (b), <c>false</c> = alphabet-name-1 / alphanumeric (a),
     /// <c>null</c> = no clause, or a clause whose alphabet failed SR1/SR2 and is not screened against.
-    /// <para>⛔ The screen itself is <c>DataBinder.CheckCodeSetRecordItems</c>, a DECLARED pass at
+    /// <para>⛔ The screen itself is <c>CheckCodeSetRecordItemsPass</c>, a DECLARED pass at
     /// <see cref="WiseOwl.Cobol.Binding.Passes.PassPhase.SignResolved"/>, not the FD walk: SR3's "described with the SIGN IS SEPARATE
     /// clause" and "described as usage display" are both facts a LATER pass settles (§13.18.52.4 GR1 group-SIGN
     /// inheritance; §13.18.60.4 GR1 group-USAGE inheritance), and reading them at the FD refused legal source
@@ -713,7 +713,7 @@ public sealed class FileModel
     /// <para>⛔ A DYNAMIC-LENGTH ELEMENTARY ITEM IS THE ONLY VARIABLE-LENGTH MEMBER A RECORD CAN HOLD, so this
     /// walk has no dynamic-capacity-table arm (kb/Work PB1604, discharged): a dynamic-capacity table "may be
     /// defined in any place, other than the file section" (§8.5.1.9.1 3)), and COBOL1526
-    /// (<c>DataBinder.DynamicResolve</c>) refuses one under any FD / SD record — written there directly, or
+    /// (<c>DynamicResolvePass</c>) refuses one under any FD / SD record — written there directly, or
     /// arriving through a TYPE or SAME AS clause — so no record reaches this walk with one
     /// (<c>OccursDynamicGuardTests.FileSectionDynamicTable_EveryRoute_Rejected1526</c> pins every route). Were
     /// that rule ever relaxed, GR8 b)'s maximum for such a table is the implementor's MAXIMUM capacity

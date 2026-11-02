@@ -236,7 +236,7 @@ public static class UsageFamilies
     /// VALUE-implied picture aside), and an elementary item without one is nonconforming, not a zero-length cell.
     ///
     /// <para>⛔ ONE table, THREE readers — <c>DataBinder.BindEntry</c> screens an entry's OWN clause against it,
-    /// <c>DataBinder.UsageInheritancePass</c> screens the usage an elementary item acquires by §13.18.60.4 GR1
+    /// <c>UsageInheritancePass</c> screens the usage an elementary item acquires by §13.18.60.4 GR1
     /// group inheritance, and the drift test <c>UsageInheritanceTests</c> enumerates <see cref="Usage"/> against
     /// it. Before kb/Work PB495 the same fact was written down twice as two disagreeing hand-lists (the shed list
     /// in <c>ResolveIndexItems</c> and the inherited set in <c>InheritUsageClauses</c>), and a usage in neither
@@ -415,7 +415,7 @@ public sealed record PicInfo(
     public string? RestrictedTypeName { get; init; }
 
     /// <summary>The TYPE DECLARATION <see cref="RestrictedTypeName"/> resolves to — the <c>DataBinder.TypeDecls</c>
-    /// entry, attached post-build by <c>DataBinder.ResolveRestrictedTypes</c> (inside the ONE <c>ExpandTypes</c>
+    /// entry, attached post-build by <c>ExpandTypesPass.ResolveRestrictedTypes</c> (inside the ONE <c>ExpandTypes</c>
     /// pass, so the template's own nested TYPE references are already expanded). Null when the item carries no
     /// restriction, and when the name resolves to no type declaration in this source element.
     /// <para>It exists because §8.5.3.1's "same type" is declaration EQUIVALENCE, of which the type-name is one

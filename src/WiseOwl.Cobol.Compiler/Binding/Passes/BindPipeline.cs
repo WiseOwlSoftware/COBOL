@@ -37,53 +37,24 @@ internal static class BindPipeline
         new CheckClauseSubjectsPass(),
         new CheckSignClausesPass(),
         new InheritSignClausesPass(),
-        // The §13.18.13.3 SR3 a)/b) CODE-SET record screen — §13.18.52.3 SR3's twin (kb/Work PB536). Placed
-        // HERE, immediately after InheritSignClauses, and the placement IS the fix: SR3 asks whether a record
-        // item is "described with the SIGN IS SEPARATE clause" and "described as usage display", and BOTH facts
-        // can arrive by GROUP INHERITANCE — §13.18.52.4 GR1 for the sign, §13.18.60.4 GR1 for the usage — so the
-        // screen must run no earlier than the last pass that can supply one. Run from BindFileSection, where it
-        // used to live, it read the entry-bind default trailing over-punch and REFUSED a legal record whose
-        // group carried SIGN IS SEPARATE. Nothing later is needed: it reads declared shape only, and ExpandTypes
-        // (the first pass) has already composed the leaves of a record described with TYPE or SAME AS.
-        new BindPass("CheckCodeSetRecordItems", PassPhase.SignResolved, PassPhase.SignResolved, d => d.CheckCodeSetRecordItems()),
-        new BindPass("ResolveRedefines", PassPhase.SignResolved, PassPhase.SignResolved, d => d.ResolveRedefines()),
-        new BindPass("ClassifyRedefinesClasses", PassPhase.SignResolved, PassPhase.RedefinesClassified, d => d.ClassifyRedefinesClasses()),
-        new BindPass("CheckStrongTypeDeclarations", PassPhase.RedefinesClassified, PassPhase.StrongTypeChecked, d => d.CheckStrongTypeDeclarations()),
-        new BindPass("OoRouteMethodRedefinesBackings", PassPhase.RedefinesClassified, PassPhase.StrongTypeChecked, d => d.OoRouteMethodRedefinesBackings()),
-        // The §13.18.63.3 SR13/SR14 group-level VALUE subordinate screen (kb/Work PB184). Placed HERE because
-        // SR14's "explicitly or IMPLICITLY described with usage DISPLAY" needs UsageInheritancePass to have
-        // propagated a group-level USAGE down to the leaves (§13.18.60.4 GR1) — an inherited COMP must be
-        // caught exactly as a written one is — and nothing later than that: it reads only declared shape.
-        new BindPass("CheckGroupValueDeclarations", PassPhase.StrongTypeChecked, PassPhase.StrongTypeChecked, d => d.CheckGroupValueDeclarations()),
-        new BindPass("OdoResolve", PassPhase.StrongTypeChecked, PassPhase.OccursResolved, d => d.OdoResolve()),
-        new BindPass("DynamicResolve", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.DynamicResolve()),
-        // The OCCURS KEY phrase (§13.18.38.3 SR3) resolved ONCE through the §8.4.2.2 resolver, qualifiers and all
-        // (kb/Work PB1018) — after the forest and every TYPEDEF clone exist, before SEARCH ALL / the table SORT read it.
-        new BindPass("OccursKeyResolve", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.OccursKeyResolve()),
-        // The §13.18.63.3 SR18–SR23 Format-2 (table) VALUE geometry + the §13.18.63.4 GR12–GR16 odometer
-        // resolution (kb/Work PB505; DataBinder.TableValue.cs). Placed HERE, and no earlier, because every one of
-        // those rules is written against the entry's OCCURS ANCESTORS — DataItem.Parent is assigned only after
-        // the entry binds — and because the dimension ceilings it measures subscripts against are the ones
-        // OdoResolve / DynamicResolve have settled (§8.5.1.8's allocated maximum, the dynamic expected capacity).
-        // Nothing later than that: it reads declared shape only, and the emitters read the plan it produces.
-        new BindPass("ResolveTableValues", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.ResolveTableValues()),
-        // The §13.18.63.3 SR7 VALUE-literal CLASS screen (kb/Work PB646). Placed HERE for two reasons, and it
-        // needs both. SR7 reads §8.5.2.1 Table 2's CLASS of a numeric-edited item, which IS its usage
-        // ("Numeric-edited (if usage is display)" / "(if usage is national)"), so UsageInheritancePass must have
-        // settled §13.18.60.4 GR1 — an INHERITED usage has to give the same verdict as a written one, in both
-        // directions. And the rule reaches formats 2 and 5 as well, whose per-occurrence literals only exist
-        // once ResolveTableValues has built the plan. Nothing later is needed: it reads declared shape only.
-        new BindPass("CheckValueLiteralClasses", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.CheckValueLiteralClasses()),
-        new BindPass("ResolveFiles", PassPhase.OccursResolved, PassPhase.FilesResolved, d => d.ResolveFiles()),
-        new BindPass("GateFileRecordByteSurface", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.GateFileRecordByteSurface()),
-        new BindPass("ResolveReports", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.ResolveReports()),
-        new BindPass("CallBindExternalAndGlobal", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.CallBindExternalAndGlobal(program)),
-        new BindPass("PtrBindBasedAndAddressables", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.PtrBindBasedAndAddressables(program)),
-        // A RECURSIVE unit's WS → the static-field channel (§13.5.4 GR1 / §14.6.2.3.3; no-op unless the binder's
-        // UnitStaticWs). AFTER the pointer pass — the last tier-overwrite seam — so Tier-B backings, EXTERNAL
-        // re-basing, and BASED/ADDRESS-OF forcing are settled facts when the roots route.
-        new BindPass("RouteStaticUnitStorage", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.RouteStaticUnitStorage()),
-        new BindPass("MarkFileRecordImageLeaves", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.MarkFileRecordImageLeaves()),
+        new CheckCodeSetRecordItemsPass(),
+        new ResolveRedefinesPass(),
+        new ClassifyRedefinesClassesPass(),
+        new CheckStrongTypeDeclarationsPass(),
+        new OoRouteMethodRedefinesBackingsPass(),
+        new CheckGroupValueDeclarationsPass(),
+        new OdoResolvePass(),
+        new DynamicResolvePass(),
+        new OccursKeyResolvePass(),
+        new ResolveTableValuesPass(),
+        new CheckValueLiteralClassesPass(),
+        new ResolveFilesPass(),
+        new GateFileRecordByteSurfacePass(),
+        new ResolveReportsPass(),
+        new CallBindExternalAndGlobalPass(program),
+        new PtrBindBasedAndAddressablesPass(program),
+        new RouteStaticUnitStoragePass(),
+        new MarkFileRecordImageLeavesPass(),
     };
 
     /// <summary>The whole-GROUP middle-end manifest (P6 Steps 3–4 — the formerly-hidden second pipeline, now
@@ -95,11 +66,24 @@ internal static class BindPipeline
     public static IReadOnlyList<GroupBindPass> GroupTail() => new GroupBindPass[]
     {
         // Every unit's PROCEDURE DIVISION binds (user-function signature table first — §8.4.3.2.4 GR1 forward refs).
-        new("ProcedureBinding", PassPhase.FilesResolved, PassPhase.ProcedureBound, BinderDriver.BindProcedures),
+        new("ProcedureBinding", PassPhase.FilesResolved, PassPhase.ProcedureBound, BinderDriver.BindProcedures)
+        {
+            // MoveBinder's figurative-fill and ref-mod-store receivers; the resolver's NumericImagePlace wrap reads the
+            // set as it stands; IntrinsicBinder and the resolver mark the function and property call sites.
+            Views = PassViews.Of(appends: [FactSetKind.ImageForcedItems, FactSetKind.ActivationSites],
+                readsEarly: [FactSetKind.ImageForcedItems], readsWhole: []),
+        },
         // Whole-group operand collection from the BOUND trees + boundary formals (PHASE-05 Step 5; DEVLOG 752/753).
-        new("UsageCollectionPass", PassPhase.ProcedureBound, PassPhase.UsageCollected, UsageCollectionPass.Run),
+        new("UsageCollectionPass", PassPhase.ProcedureBound, PassPhase.UsageCollected, UsageCollectionPass.Run)
+        {
+            Views = PassViews.Appends(FactSetKind.WholeGroupReferenced, FactSetKind.CharacterChannelItems),
+        },
         // Settle every StoreAsImage flag (temp re-sync → image marking → OO harmonize), then classify StorageForm.
-        new("StorageFormPass", PassPhase.UsageCollected, PassPhase.StorageComputed, StorageFormPass.Run),
+        new("StorageFormPass", PassPhase.UsageCollected, PassPhase.StorageComputed, StorageFormPass.Run)
+        {
+            Views = PassViews.Of(appends: [], readsEarly: [],
+                readsWhole: [FactSetKind.ImageForcedItems, FactSetKind.WholeGroupReferenced, FactSetKind.CharacterChannelItems]),
+        },
         // THE edition gate (P3's two-arm pass, now the NAMED terminal pass — P6 Step 4): the parse-tree arm fires
         // every syntactic introduction/removal/phrase gate on RECOGNITION; the bound-tree arm fires the
         // genuinely-semantic gates. Reports through the session's edition sink, so the Bind result carries every

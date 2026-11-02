@@ -541,7 +541,7 @@ public static class DiagnosticCatalog
         "ISO §13.18.38.3 SR29");
 
     /// <summary>COBOL2646 — a table is nested under seven others, so a reference to it would need eight
-    /// subscripts (kb/Work PB1260). <c>DataBinder.OdoResolve</c> is its only reporter.</summary>
+    /// subscripts (kb/Work PB1260). <c>OdoResolvePass</c> is its only reporter.</summary>
     public static readonly DiagnosticDescriptor TableNestingTooDeep = new(
         "COBOL2646", "table-nesting-too-deep", EditionSeverity.Error,
         "An OCCURS entry is subordinate to seven other OCCURS entries, so a reference to it requires eight subscripts. "
@@ -1306,7 +1306,7 @@ public static class DiagnosticCatalog
     // shape this descriptor was written for is LIVE: the category and the national-edited form (PB492), the
     // byte surfaces (PB231 + PB327), the SORT/MERGE keys (PB678), and — with PB646 — §13.18.60.3 SR12's
     // national-form numeric, numeric-edited and boolean. ONE caller remains,
-    // DataBinder.GateFileRecordByteSurface, and its residue clause now names only what
+    // GateFileRecordByteSurfacePass, and its residue clause now names only what
     // DataBinder.ByteWindowResidueOf still refuses: a leaf with no bound representation (the staged §13.18.60
     // USAGE band — USAGE FUNCTION-POINTER / MESSAGE-TAG, which gain no PicInfo at all). The id stays
     // "national-data" because it is a PUBLISHED diagnostic key; the TEXT says what it reports.
@@ -1698,7 +1698,7 @@ public static class DiagnosticCatalog
         + "a variable-length group.\" (A variable-length group is §8.5.1.12.1's — a group with a dynamic-length "
         + "elementary item or a dynamic-capacity table subordinate to it.)",
         "ISO §13.18.63.3 SR1");
-    // ── The FORMAT 2 (table) VALUE GEOMETRY band (kb/Work PB505; DataBinder.ResolveTableValues). SR18, SR20's
+    // ── The FORMAT 2 (table) VALUE GEOMETRY band (kb/Work PB505; ResolveTableValuesPass). SR18, SR20's
     //    and SR21's count sentences, and SR23 had NO site at all: one staged "not implemented" refusal stood in
     //    for the whole population, so the shapes SR18 expressly PERMITS were rejected alongside the ones SR20/
     //    SR22/SR23 forbid, and a user reading the diagnostic was told the compiler was incomplete rather than
@@ -6052,7 +6052,7 @@ public static class DiagnosticCatalog
     /// the clause is illegal on it at every edition (the rule is 85-era and unchanged in all four).
     /// <para>This is §13.16.3 SR8's CONVERSE, and the two together are the whole picture-PLACEMENT rule:
     /// COBOL0881 says "elementary ⇒ has a PICTURE", this says "has a PICTURE ⇒ elementary". Both are
-    /// screened by one pass over the finished forest (<c>DataBinder.CheckPictureRequired</c>), because neither
+    /// screened by one pass over the finished forest (<c>CheckPictureRequiredPass</c>), because neither
     /// question can be asked at entry bind — the subordinate entries are not parsed yet.</para>
     /// <para>It had no screen at all, and the shape it admits has NO REPRESENTATION in the bound data model:
     /// <c>DataItem.IsElementary</c> is <c>Pic is not null</c> and <c>IsGroup</c> is <c>Pic is null &amp;&amp;
@@ -6929,7 +6929,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2560 — the subject of a BASED entry is a dynamic-length elementary item or a variable-length
     /// group (kb/Work PB1213). The twin of COBOL1797 (SR1, class object); the shape is asked through
     /// <c>VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup</c>, the one screen of that pair, and
-    /// never through the BASED cell's carriage gates. <c>DataBinder.CheckUsageDeclarations</c> is the one site.</summary>
+    /// never through the BASED cell's carriage gates. <c>CheckUsageDeclarationsPass</c> is the one site.</summary>
     public static readonly DiagnosticDescriptor BasedSubjectVariableLength = new(
         "COBOL2560", "based-subject-variable-length", EditionSeverity.Error,
         "ISO §13.18.5.3 syntax rule 2: \"The subject of the entry shall not be a dynamic-length elementary item or "
@@ -6939,7 +6939,7 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL2561 — an item within a level-66 RENAMES range has a shape §13.18.45.3 SR8 bars (kb/Work
     /// PB1284). The range is enumerated over the declaration tree (§13.18.45.4 GR1/GR2) by
-    /// <c>DataBinder.RenamesRangeFault</c>; the strongly-typed arms of the same rule are COBOL1532's.</summary>
+    /// <c>ResolveRedefinesPass.RenamesRangeFault</c>; the strongly-typed arms of the same rule are COBOL1532's.</summary>
     public static readonly DiagnosticDescriptor RenamesRangeContent = new(
         "COBOL2561", "renames-range-content", EditionSeverity.Error,
         "ISO §13.18.45.3 syntax rule 8: \"None of the items within the range, including data-name-2 and data-name-3, "
@@ -7329,7 +7329,7 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL2787 — an OCCURS KEY data-name-2 resolves within the table but is an item the KEY phrase may
     /// not name (kb/Work PB1263): under a nested table (SR4), itself a table (SR6), of class boolean, message-tag,
-    /// object or pointer (SR8), or a variable-length group (SR9). Bound in <c>DataBinder.OccursKeyResolve</c>, beside
+    /// object or pointer (SR8), or a variable-length group (SR9). Bound in <c>OccursKeyResolvePass</c>, beside
     /// SR3's COBOL2353.</summary>
     public static readonly DiagnosticDescriptor OccursKeyItemNotAdmitted = new(
         "COBOL2787", "occurs-key-item-not-admitted", EditionSeverity.Error,
@@ -7341,7 +7341,7 @@ public static class DiagnosticCatalog
         "ISO §13.18.38.3 SR4, SR6, SR8, SR9");
 
     /// <summary>COBOL2788 — an OCCURS DEPENDING ON data-name-1 lacks the GLOBAL or EXTERNAL attribute the table's
-    /// record has (kb/Work PB1261; §13.18.38.3 SR18 / SR21). Bound in <c>DataBinder.OdoResolve</c>.</summary>
+    /// record has (kb/Work PB1261; §13.18.38.3 SR18 / SR21). Bound in <c>OdoResolvePass</c>.</summary>
     public static readonly DiagnosticDescriptor OccursDependingAttributeMismatch = new(
         "COBOL2788", "occurs-depending-attribute-mismatch", EditionSeverity.Error,
         "The object of an OCCURS DEPENDING ON phrase does not share its table record's GLOBAL or EXTERNAL attribute. "

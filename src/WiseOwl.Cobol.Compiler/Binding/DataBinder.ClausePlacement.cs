@@ -183,7 +183,7 @@ internal static class ClausePlacementRules
         new Dictionary<DataClauseKind, string>
         {
             [DataClauseKind.Usage] = "no placement rule — group or elementary (§13.18.60.4 GR1 inheritance)",
-            [DataClauseKind.Redefines] = "§13.18.44.3 — ScreenLeadingClausePosition (position) / ScreenRedefinesEntry (DataBinder.RedefinesEntry.cs: level, file-section, size, alignment)",
+            [DataClauseKind.Redefines] = "§13.18.44.3 — ScreenLeadingClausePosition (position) / ScreenRedefinesEntry (Passes/ResolveRedefinesPass.cs: level, file-section, size, alignment)",
             [DataClauseKind.Value] = "§13.18.63.3 — ScreenValueLiteral / CheckGroupValueDeclarations",
             [DataClauseKind.Sign] = "§13.18.52.3 — InheritSignClauses (group and elementary both legal)",
             [DataClauseKind.Synchronized] = "§13.18.55 — group legal at 2023 (GateSynchronizedGroup)",

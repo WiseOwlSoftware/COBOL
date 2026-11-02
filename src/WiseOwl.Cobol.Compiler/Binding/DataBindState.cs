@@ -38,14 +38,15 @@ public sealed class DataBindState
 
     /// <summary>Group items used as a WHOLE character-image operand (MOVE / DISPLAY / compare / ACCEPT / record I-O /
     /// whole-group CORRESPONDING pair / boundary formal). Appended at FilesResolved by
-    /// <c>DataBinder.MarkFileRecordImageLeaves</c> (the FILE record areas) and at UsageCollected by
+    /// <c>MarkFileRecordImageLeavesPass</c> (the FILE record areas) and at UsageCollected by
     /// <see cref="Passes.UsageCollectionPass"/> (the boundary formals and the whole-group operands of the bound tree);
     /// read whole by <c>StorageFormPass</c>, which promotes the leaves of each group to their character image (ISO
     /// §14.9.25.4 GR4: a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).</summary>
     public FactSet<DataItem> WholeGroupReferenced { get; }
 
-    /// <summary>Every elementary item some bind-time rule forces to store its CHARACTER IMAGE: Tier-B and CALL-cell
-    /// REDEFINES leaves, FILE record leaves and report print faces (appended at FilesResolved), figurative-fill and
+    /// <summary>Every elementary item some bind-time rule forces to store its CHARACTER IMAGE: Tier-B REDEFINES leaves
+    /// (appended at RedefinesClassified, <c>ClassifyRedefinesClassesPass</c>), CALL-cell REDEFINES leaves, FILE record leaves
+    /// and report print faces (appended at FilesResolved; <see cref="FactSetContract"/> holds the phases), figurative-fill and
     /// ref-mod-store receivers (appended at ProcedureBound, <c>MoveBinder</c>). Read EARLY by
     /// <see cref="ReferenceResolver"/>'s <c>NumericImagePlace</c> wrap decision (<see cref="IReadsEarly{T}"/>: a fact an
     /// earlier statement's bind recorded is visible to a later statement's), and read whole by <c>StorageFormPass</c>,

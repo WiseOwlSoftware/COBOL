@@ -176,9 +176,9 @@ public sealed class CapacityRegisterReferenceDriftTests
     [Fact]
     public void TheCapacityRegister_IsMintedWithItsSr30Parent()
     {
-        string odo = File.ReadAllText(OdoBinderPath);
+        string odo = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Passes", "DynamicResolvePass.cs"));
         var mint = Regex.Match(odo, @"var reg = new DataItem\s*\{(?<body>.*?)\};", RegexOptions.Singleline);
-        Assert.True(mint.Success, "The CAPACITY register minting site was not found in DataBinder.Odo.cs");
+        Assert.True(mint.Success, "The CAPACITY register minting site was not found in DynamicResolvePass.cs");
         Assert.Contains("Parent = item.Parent,", mint.Groups["body"].Value, StringComparison.Ordinal);
     }
 

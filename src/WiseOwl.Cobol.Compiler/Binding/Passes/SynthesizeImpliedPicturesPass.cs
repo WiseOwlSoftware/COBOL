@@ -106,7 +106,7 @@ internal sealed class SynthesizeImpliedPicturesPass : IBindPass
     /// not yet exist. The two agreeing is pinned end-to-end by
     /// <c>ImpliedPictureTests.Sr9_FigurativeContext_TravelsTheWholeAncestorChain</c>, which nests the usage two
     /// levels above the entry so a one-level or self-only reading fails.</para></summary>
-    internal static Usage Sr9EffectiveUsage(DataItem item)
+    private static Usage Sr9EffectiveUsage(DataItem item)
     {
         for (DataItem? d = item; d is not null; d = d.Parent)
             if (DataBinder.DeclaredUsageOf(d) is { } u) return u;

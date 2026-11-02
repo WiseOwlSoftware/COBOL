@@ -3,9 +3,16 @@
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Passes;
 
 /// <summary>
+/// The CheckCodeSetRecordItems pass: row 12 of the per-unit resolve pipeline (SignResolved to SignResolved).
+/// </summary>
+/// <remarks>
+/// <para><b>Placement in the pipeline.</b>
+/// The §13.18.13.3 SR3 a)/b) CODE-SET record screen — §13.18.52.3 SR3's twin (kb/Work PB536). Placed HERE, immediately after InheritSignClauses, and the placement IS the fix: SR3 asks whether a record item is "described with the SIGN IS SEPARATE clause" and "described as usage display", and BOTH facts can arrive by GROUP INHERITANCE — §13.18.52.4 GR1 for the sign, §13.18.60.4 GR1 for the usage — so the screen must run no earlier than the last pass that can supply one. Run from BindFileSection, where it used to live, it read the entry-bind default trailing over-punch and REFUSED a legal record whose group carried SIGN IS SEPARATE. Nothing later is needed: it reads declared shape only, and ExpandTypes (the first pass) has already composed the leaves of a record described with TYPE or SAME AS.
+/// </para>
+/// <para>
 /// The CODE-SET clause's record-description screen — <b>ISO §13.18.13.3 SR3 a) and b)</b>: <i>"if alphabet-name-1
 /// is specified, all elementary data items of all record description entries associated with the file shall be
 /// described as usage display, and any signed numeric data items shall be described with the SIGN IS SEPARATE
@@ -41,36 +48,49 @@ namespace WiseOwl.Cobol.Binding;
 ///
 /// <para><b>Edition axis.</b> Plain syntax rules at every edition the CODE-SET clause exists in (85 through 2023);
 /// the binder is edition-agnostic and the clause's own gates are <c>VersionConformancePass</c>'s.</para>
-/// </summary>
-public sealed partial class DataBinder
+/// </para>
+/// </remarks>
+internal sealed class CheckCodeSetRecordItemsPass : IBindPass
 {
+    /// <inheritdoc/>
+    public string Name => "CheckCodeSetRecordItems";
+
+    /// <inheritdoc/>
+    public PassPhase Requires => PassPhase.SignResolved;
+
+    /// <inheritdoc/>
+    public PassPhase Produces => PassPhase.SignResolved;
+
+    /// <inheritdoc/>
+    public PassViews Views => PassViews.None;
+
     /// <summary>§13.18.13.3 SR3 a)/b) over every FD that carried a CODE-SET clause — one verdict per offending
     /// elementary record item, reported AT THAT ITEM (the FD line named the file but never the item the
     /// programmer has to change).</summary>
-    internal void CheckCodeSetRecordItems()
+    public void Run(DataBinder binder)
     {
-        foreach (var file in _files)
+        foreach (var file in binder._files)
         {
             if (file.CodeSetRecordClass is not { } wantNational) continue;
             // SR3's antecedent — "If there are record description entries associated with the file" — is about the
             // entries the program WROTE: the implied record an FD without any receives (§14.9.30.4 GR6) is not one,
             // so a file with none has nothing to screen and CODE-SET naming either alphabet (or both, which
             // §13.18.13.4 GR4's second sentence expressly contemplates) is legal (kb/Work PB1219).
-            foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(rec, wantNational);
+            foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(binder, rec, wantNational);
         }
     }
 
     /// <summary>The SR3 a)/b) walk of one record description entry. Elementary items only — both sentences say
     /// "all elementary data items" — and the sign sentence is asked only of the items the usage sentence
     /// admitted, exactly as the rule's "and" joins them.</summary>
-    private void CheckCodeSetRecordItem(DataItem it, bool wantNational)
+    private static void CheckCodeSetRecordItem(DataBinder binder, DataItem it, bool wantNational)
     {
-        foreach (var child in it.Children) CheckCodeSetRecordItem(child, wantNational);
+        foreach (var child in it.Children) CheckCodeSetRecordItem(binder, child, wantNational);
         if (it.Pic is not { } pic || it.Children.Count > 0) return;   // elementary items only (SR3 a/b)
-        using var _ = Edition.At(it);
+        using var _ = binder.Edition.At(it);
         bool right = !wantNational && pic.Usage is Usage.Display || wantNational && pic.Usage is Usage.National;
         if (!right)
-            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the record item "
+            binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the record item "
                 + $"'{it.CobolName ?? "FILLER"}' is not usage {(wantNational ? "NATIONAL" : "DISPLAY")} — all "
                 + "elementary data items of all record description entries shall be described as usage "
                 + $"{(wantNational ? "national" : "display")} (ISO §13.18.13.3 SR3 {(wantNational ? "b" : "a")})");
@@ -79,7 +99,7 @@ public sealed partial class DataBinder
         // numeric item subordinate to the group to which it applies" — which is why this pass runs after
         // InheritSignClauses rather than at the FD (kb/Work PB536).
         else if (pic is { Signed: true } sp && !sp.SignKind.Contains("Separate"))
-            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the signed numeric record "
+            binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the signed numeric record "
                 + $"item '{it.CobolName ?? "FILLER"}' shall be described with the SIGN IS SEPARATE clause "
                 + $"(ISO §13.18.13.3 SR3 {(wantNational ? "b" : "a")}; §13.18.52.3 SR3)");
     }

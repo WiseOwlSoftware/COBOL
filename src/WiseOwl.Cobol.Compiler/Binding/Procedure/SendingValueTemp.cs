@@ -568,7 +568,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// reads to build the GR8 extent slice, so the temp's every use inherits the frozen length with no second
     /// mechanism. The clone's <see cref="OccursSpec.DependingName"/> deliberately stays data-name-1 AS WRITTEN: it
     /// is a description-clause fact (the temp's description IS identifier-1's, §14.9.25.4 GR1), nothing re-resolves
-    /// a name after <c>DataBinder.OdoResolve</c>, and the RESOLVED item is the only thing the extent is read from.</para>
+    /// a name after <c>OdoResolvePass</c>, and the RESOLVED item is the only thing the extent is read from.</para>
     ///
     /// <para><b>Measured</b> (kb/Work PB394's own repro): a 3-of-5 <c>OCCURS 1 TO 5 DEPENDING ON N</c> group into
     /// <c>N, Z</c> where <c>N</c> is the first receiver gave <c>Z=[1    ]</c> — the second receiver saw a

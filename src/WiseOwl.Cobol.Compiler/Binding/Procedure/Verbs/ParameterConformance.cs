@@ -62,7 +62,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         // MANAGED SLOTS of a StorageCell, so the program ABI carries it
         // only as an AREA — BY REFERENCE the argument's own (§14.2.3 GR8), BY CONTENT a detached copy of it (GR9's record,
         // CobolArgAdapt.ContentRecord) — and the activating element claims every such operand onto a cell
-        // (DataBinder.PtrBindBasedAndAddressables). The one argument left is storage no claim reaches (a LINKAGE item that
+        // (PtrBindBasedAndAddressablesPass). The one argument left is storage no claim reaches (a LINKAGE item that
         // is not a formal): a copy of its image would silently drop the references, so it is refused HERE, naming why.
         if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(formal)
             && SlotCarrierResidue(arg.Mode is CobolPassMode.Reference or CobolPassMode.Content ? arg.Place : null) is { } residue)

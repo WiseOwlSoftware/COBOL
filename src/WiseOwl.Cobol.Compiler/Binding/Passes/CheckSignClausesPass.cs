@@ -65,7 +65,7 @@ internal sealed class CheckSignClausesPass : IBindPass
     /// compiler refuses what the 85 text refuses through the canonical funnel, and later editions take the 2023 rules.
     /// A subordinate that writes its own SIGN clause is the subject of that clause (§13.18.52.4 GR2/GR3), so the group's
     /// clause applies neither to it nor below it.</summary>
-    internal static void GateGroupSignSubordinates(DataBinder binder, DataItem group)
+    private static void GateGroupSignSubordinates(DataBinder binder, DataItem group)
     {
         if (binder.Edition.DialectLevel >= 2002) return;
         string where = $"data item '{group.CobolName ?? "FILLER"}'";

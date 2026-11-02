@@ -804,7 +804,7 @@ internal sealed class ProgramEmitter
     {
         // A strongly-typed group with an object-reference or pointer leaf has no character image: its content is its
         // AREA — the characters and the references of its cell — delivered into the receiver's area (kb/Work PB1940;
-        // DataBinder.PtrBindBasedAndAddressables claims both onto cells).
+        // PtrBindBasedAndAddressablesPass claims both onto cells).
         if (ret.DenotedItem is { } leafGroup && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(leafGroup)
             && CallEmitter.AreaOf(ret, _atoms) is { } area)
             return RuntimeApi.ArgAdaptStoreReturnArea("__ret", area, leafGroup.ByteWidth, CellComponents.PerOccurrence(leafGroup));

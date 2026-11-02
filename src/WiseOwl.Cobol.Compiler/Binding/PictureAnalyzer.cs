@@ -503,7 +503,7 @@ public static class PictureAnalyzer
     /// <list type="number">
     ///   <item>the item's OWN USAGE clause — <see cref="Analyze"/>, at entry bind; and</item>
     ///   <item>§13.18.60.4 GR1 GROUP INHERITANCE — "If the USAGE clause is specified or implied at a group level,
-    ///     it applies only to each elementary item in the group" — <c>DataBinder.UsageInheritancePass</c>, once
+    ///     it applies only to each elementary item in the group" — <c>UsageInheritancePass</c>, once
     ///     the forest is complete.</item>
     /// </list>
     /// <para>The four rules are written against the item, not against the clause's PLACEMENT: SR3 governs "an

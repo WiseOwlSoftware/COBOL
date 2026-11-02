@@ -67,7 +67,7 @@ internal sealed class ProcedureBindState
     /// <summary>The name scope of the method whose statements are CURRENTLY being bound — entered per procedure-table entry
     /// by <c>BinderContext.EnterMethodScope</c>; null while binding program-, object- or factory-level code. A data-name
     /// lookup made while it is entered answers from the method first (§11.7.4 GR5); the storage-claim resolution
-    /// (<c>DataBinder.ResolveStorageClaimHead</c>) and the migration-flag pass (<c>FlagConformancePass</c>) enter it for
+    /// (<c>PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead</c>) and the migration-flag pass (<c>FlagConformancePass</c>) enter it for
     /// the one method whose names they resolve.</summary>
     public Cursor<OoMethodDataScope?> ActiveMethodScope { get; } = new(null);
 }

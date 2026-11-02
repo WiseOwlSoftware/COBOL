@@ -742,7 +742,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <summary>⛔ THE STORAGE AREA OF A BY REFERENCE ARGUMENT (kb/Work PB2087) — the C# expression of the cell area it
     /// occupies, or null when its storage is not a cell. ISO §14.2.3 GR8: "If the argument is passed by reference,
     /// the activated runtime element operates as if the formal parameter occupies the same storage area as the argument."
-    /// An argument whose class lives in a <c>StorageCell</c> — a group a CALL claims (<c>DataBinder.PtrBindBasedAndAddressables</c>),
+    /// An argument whose class lives in a <c>StorageCell</c> — a group a CALL claims (<c>PtrBindBasedAndAddressablesPass</c>),
     /// an EXTERNAL, BASED or ADDRESS-OF-taken record, an area formal passed on — states the cell and the offset it begins
     /// at, the same pair <c>ADDRESS OF</c> renders (<c>PtrEmitter.AddressOfText</c>), and an area formal is laid over
     /// exactly those positions. A reference-modified operand is "a subset of the data item referenced by identifier-1" (§8.4.3.3.4 GR5) beginning at its leftmost-position — the inner

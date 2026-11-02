@@ -253,17 +253,17 @@ public sealed partial class DataBinder
     /// <summary>The STATIC-field channel: every emitted root field name whose storage is ONE per-class copy —
     /// consumed by <c>RecordStructEmitter</c> to add the <c>static</c> modifier. ONE producer: a RECURSIVE-and-not-INITIAL
     /// unit's (incl. every FUNCTION's, §8.6.6) WORKING-STORAGE roots + Tier-B backings
-    /// (<see cref="RouteStaticUnitStorage"/> — §13.5.4 GR1 static data, ONE last-used copy across all activations,
+    /// (<see cref="RouteStaticUnitStoragePass.Run"/> — §13.5.4 GR1 static data, ONE last-used copy across all activations,
     /// §14.6.2.3.3). A method has no WORKING-STORAGE to put here (§13.5.3 SR1, kb/Work PB1308).
     /// (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlySet<string> StaticRootFields => _staticRootFields;
-    private readonly HashSet<string> _staticRootFields = new(StringComparer.Ordinal);
+    internal readonly HashSet<string> _staticRootFields = new(StringComparer.Ordinal);
 
     /// <summary>The BASED bridge address fields of a RECURSIVE unit's static WORKING-STORAGE (kb/Work PB154 —
     /// §14.6.2.3.2 action 5): the `__addr_X` field emits STATIC and `__ResetStatics` sets it back to NULL,
     /// where the old routing REJECTED legal `01 X BASED.` in a RECURSIVE program outright.</summary>
     public IReadOnlySet<string> StaticBasedBridgeAddrs => _staticBasedBridgeAddrs;
-    private readonly HashSet<string> _staticBasedBridgeAddrs = new(StringComparer.Ordinal);
+    internal readonly HashSet<string> _staticBasedBridgeAddrs = new(StringComparer.Ordinal);
 
     /// <summary>The ADDRESS-OF cell fields of a RECURSIVE unit's static WORKING-STORAGE (kb/Work PB234): the
     /// record's <c>StorageCell</c> — its ONE storage, which <c>ManagedPointer.At</c> aliases — emits STATIC
@@ -271,7 +271,7 @@ public sealed partial class DataBinder
     /// (§14.6.2.3.2 action 2), where the old routing REJECTED `ADDRESS OF` a static item outright
     /// (COBOL0899 — legal source refused).</summary>
     public IReadOnlySet<string> StaticAddressableCells => _staticAddressableCells;
-    private readonly HashSet<string> _staticAddressableCells = new(StringComparer.Ordinal);
+    internal readonly HashSet<string> _staticAddressableCells = new(StringComparer.Ordinal);
 
     /// <summary>Method root (01/77) or method TYPE DECLARATION → its owning method symbol (M2-OO-1h), recorded when the
     /// method's entry opens it (<see cref="_bindingMethod"/>; kb/Work PB3192). The name registrations read it
@@ -282,12 +282,12 @@ public sealed partial class DataBinder
 
     /// <summary>The STATIC index-cell channel — INDEXED BY cells emitted as class-level STATIC <c>long</c>
     /// fields because their table's storage is static: a RECURSIVE unit's WS table cells
-    /// (<see cref="RouteStaticUnitStorage"/> — the cell rides its table's §13.5.4 GR1 static storage; these DO also
+    /// (<see cref="RouteStaticUnitStoragePass.Run"/> — the cell rides its table's §13.5.4 GR1 static storage; these DO also
     /// appear in <see cref="IndexNames"/>, so the emitter's instance-cell loop consults this set for the modifier).
     /// A method table's cell is instead a per-activation method local, emitted in <c>OoEmitMethod</c>, and never
     /// appears here. (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlySet<string> StaticIndexCells => _staticIndexCells;
-    private readonly HashSet<string> _staticIndexCells = new(StringComparer.Ordinal);
+    internal readonly HashSet<string> _staticIndexCells = new(StringComparer.Ordinal);
 
     /// <summary>⛔ THE ONE QUESTION "IS THIS CLASS MEMBER STATIC?" — true when <paramref name="csMember"/> is on any of
     /// the four static channels (<see cref="StaticRootFields"/>, <see cref="StaticBasedBridgeAddrs"/>,

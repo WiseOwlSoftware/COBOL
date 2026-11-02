@@ -331,7 +331,7 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
     /// for one non-hierarchical data element). ONE named predicate so the determination is a one-line change.
     /// A level-66 RENAMES entry and a level-88 condition-name are not nodes in the forest at all — the binder's
     /// level stack attaches an 88 to its conditional variable — so this predicate never sees them.</summary>
-    internal static bool Sr14PermittedLevel(int level) => level is 1 or 77;
+    private static bool Sr14PermittedLevel(int level) => level is 1 or 77;
 
     /// <summary>Which of ISO §13.18.60.3 SR4's SIX usage phrases an entry names, or null. ⛔ INDEX IS IN THAT
     /// LIST and NOT in <see cref="Sr14PlacementClass"/>'s — SR4 reads "The INDEX, MESSAGE-TAG, OBJECT
@@ -344,7 +344,7 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
     /// <para>Reads the RESOLVED class as well as the written clause, because SR4's reach is "in a data item
     /// described with the CONSTANT RECORD clause, or in any item subordinate to" it — an inherited usage inside
     /// that subtree is as much "specified in" it as a written one (§13.18.60.4 GR1).</para></summary>
-    internal static string? Sr4ConstantRecordUsage(DataItem d) =>
+    private static string? Sr4ConstantRecordUsage(DataItem d) =>
         ItemCategory.Sr4PhraseOf(d.OwnUsage)
         ?? (Sr14Elementary(d) ? ItemCategory.Sr4PhraseOf(d.Pic?.Usage) : null);
 }

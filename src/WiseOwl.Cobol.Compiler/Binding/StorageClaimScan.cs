@@ -18,7 +18,7 @@ internal readonly record struct ByReferenceOperand(
     string Name, List<string> Qualifiers, bool Invoke, bool SlotsOnly, string? UserFunction = null);
 
 /// <summary>⛔ THE ONE WALK OF A COMPILATION'S PARSE TREE FOR THE STORAGE-CLAIM OPERANDS (kb/Work PB4302). The pointer pass
-/// (<c>DataBinder.PtrBindBasedAndAddressables</c>) and the linkage pass (<c>DataBinder.CallBindLinkage</c>) ask, of each source
+/// (<c>PtrBindBasedAndAddressablesPass</c>) and the linkage pass (<c>DataBinder.CallBindLinkage</c>) ask, of each source
 /// element, which data-names a data-address-identifier (<c>ADDRESS OF x</c>, ISO §8.4.3.11) takes and which operands an
 /// activation may pass BY REFERENCE (§14.9.4.4 GR5, §14.9.23.4 GR6) — and a CONTAINING element asks the same of every
 /// program it contains, because a contained program references the container's GLOBAL names without describing them again

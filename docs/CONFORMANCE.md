@@ -1704,7 +1704,7 @@ of an unsupported facility.
   description entry" (one whose PICTURE contains the character S), and requires "The numeric data description entries
   to which the SIGN clause applies" to be USAGE DISPLAY. The 2023 §13.18.52.3 keeps neither restriction. At `--std 85`
   each is refused with COBOL0900 through its construct row (`sign-group-unsigned-subordinates-2002`,
-  `sign-group-nondisplay-subordinate-2002`; `DataBinder.GateGroupSignSubordinates`); at 2002 and later the 2023
+  `sign-group-nondisplay-subordinate-2002`; `CheckSignClausesPass.GateGroupSignSubordinates`); at 2002 and later the 2023
   rules and D-SIGN1 apply. The 2002 edge of the first restriction is QUOTED (ISO/IEC 1989:2002 Annex F.2 item 124:
   "A sign clause may be specified on any group item. Formerly, the group had to contain at least one numeric item.");
   the second is DERIVED and stated in the VCR row so it can be overturned. A subordinate that writes its own SIGN clause is outside the group's reach (§13.18.52.4

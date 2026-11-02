@@ -70,7 +70,7 @@ public sealed class DataClausePlacementDriftTests
 
     /// <summary>A written sample of each clause that can be the subject of an <see cref="ClausePlacementKind.ElementaryOnly"/>
     /// row. ⛔ A clause joining such a row without a sample here fails <see cref="EveryElementaryOnlySubject_IsRefusedOnAGroup"/>
-    /// — add the sample, and the arm in <c>DataBinder.ElementaryOnlyClausesOn</c> that makes the screen see it.</summary>
+    /// — add the sample, and the arm in <c>CheckPictureRequiredPass.ElementaryOnlyClausesOn</c> that makes the screen see it.</summary>
     private static readonly Dictionary<DataClauseKind, string> ElementaryOnlySample = new()
     {
         [DataClauseKind.Picture] = "PIC X(3)",

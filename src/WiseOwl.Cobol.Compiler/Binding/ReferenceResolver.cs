@@ -1198,7 +1198,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// abort for <c>66 RN RENAMES RA THRU RC</c> over a <c>PIC 9(4) COMP</c> member), although the image place it
     /// declined renders every numeric usage through the ONE storage codec (<c>NumFormatImage</c> /
     /// <c>NumStoreImage</c>, and the float lane). Pointer, object and message-tag members never reach here: §13.18.45.3
-    /// SR8 refuses them in the range at the declaration (<c>DataBinder.RenamesRangeFault</c>).</para>
+    /// SR8 refuses them in the range at the declaration (<c>ResolveRedefinesPass.RenamesRangeFault</c>).</para>
     /// <para>⛔ A USAGE NATIONAL CELL IS ITS BYTES TOO (kb/Work PB1665, PB2466): its value carrier holds one character
     /// per national position, and the position occupies two storage bytes (D-N1), so the cell is composed through
     /// <see cref="NationalBytesPlace"/> — after the numeric image, for a usage-national numeric leaf whose image is
@@ -1218,7 +1218,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// struct member, or a Tier-B / BASED class-tier window; kb/Work PB80). data-name-1 is resolved post-build,
     /// declared anywhere outside the table (SR20), and read at the operation site via CobolTable.Occ
     /// (storage-form-agnostic). Any other place passes through unchanged.
-    /// <para>The recursion through <see cref="ResolveItem"/> ends because <c>DataBinder.OdoResolve</c> records only an
+    /// <para>The recursion through <see cref="ResolveItem"/> ends because <c>OdoResolvePass</c> records only an
     /// ADMITTED data-name-1 (<see cref="OccursSpec.Depending"/>: an integer, so an elementary item, kb/Work PB3510);
     /// a group data-name-1 — the record holding the table, or a record whose own table depends on this one — is
     /// refused there with its SR17/SR20 diagnostics and never reaches this wrap.</para></summary>

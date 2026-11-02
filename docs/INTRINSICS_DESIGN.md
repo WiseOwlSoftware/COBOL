@@ -411,7 +411,7 @@ as a `BoundOdoExtent` (data-name-1's value clamped to [integer-1, integer-2] wit
 GR7 — the SAME `CobolTable.OdoExtent` the group's sending image slices with, so the two extents cannot disagree),
 each dynamic-length leaf's current byte length, and each dynamic-capacity table's `Capacity × element bytes` read
 through a `CapacityRegisterPlace` (the register is now minted for EVERY dynamic table and NAMED only under
-`CAPACITY IN` — `DataBinder.DynamicResolve`). Every subordinate's place is DERIVED from the group's own access path
+`CAPACITY IN` — `DynamicResolvePass`). Every subordinate's place is DERIVED from the group's own access path
 (a `MemberSegment` per level), so a subscripted or nested group sums correctly. The one shape it will not sum is
 NAMED, never miscounted: a runtime-length item INSIDE a table element (a per-occurrence loop; §15.50.4 r7c's "based
 on their current capacity" defines only the fixed-element case; the group's current image states it when the

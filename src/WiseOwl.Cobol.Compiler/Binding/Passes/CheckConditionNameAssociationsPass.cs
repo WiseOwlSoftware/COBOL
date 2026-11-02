@@ -54,7 +54,7 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
     /// shape: the lettered exclusion that bars <paramref name="candidate"/> from being a conditional variable,
     /// or null when it may be one. The FIRST matching row wins, and the rows are in the standard's own order, so
     /// the letter in the diagnostic is the one the programmer looks up.</summary>
-    private static Sr24Exclusion? ConditionalVariableExclusion(DataItem candidate)
+    internal static Sr24Exclusion? ConditionalVariableExclusion(DataItem candidate)
     {
         foreach (var row in Sr24Exclusions)
             if (row.Applies(candidate)) return row;
@@ -64,12 +64,12 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
     /// <summary>One lettered exclusion of ISO §13.16.3 SR24. <paramref name="Text"/> is the standard's own
     /// sentence; <paramref name="Article"/> is the same shape phrased for a message ("a level 66 entry");
     /// <paramref name="Also"/> carries a second rule stating the SAME prohibition, empty for most rows.</summary>
-    private readonly record struct Sr24Exclusion(char Letter, string Text, string Article,
+    internal readonly record struct Sr24Exclusion(char Letter, string Text, string Article,
         Func<DataItem, bool> Applies, string Also = "");
 
     /// <summary>⛔ THE EIGHT EXCLUSIONS OF ISO §13.16.3 SR24, as a table — the ONE place the rule is written
     /// down. Each predicate is a static lambda held in this static array, so the walk allocates nothing.</summary>
-    private static readonly IReadOnlyList<Sr24Exclusion> Sr24Exclusions =
+    internal static readonly IReadOnlyList<Sr24Exclusion> Sr24Exclusions =
     [
         // a) Another level 88 entry.
         // ⛔ HELD BY CONSTRUCTION, and the row is here because the rule is. `BindEntries` leaves its

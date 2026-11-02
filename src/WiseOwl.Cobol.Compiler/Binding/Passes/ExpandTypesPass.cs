@@ -79,7 +79,7 @@ internal sealed class ExpandTypesPass : IBindPass
     /// itself a form of the type declaration the model compares and keys (<c>StrongTypeModel.EquivalentTypeDeclarations</c>,
     /// <c>TypeIdentityKey</c>), so a pointer member restricted to a type must resolve in the template exactly as in the
     /// TYPE subject cloned from it, or the two forms of one declaration key apart.</para></summary>
-    internal static void ResolveRestrictedTypes(DataBinder binder)
+    private static void ResolveRestrictedTypes(DataBinder binder)
     {
         foreach (var item in binder.ClauseResolutionForest())
             if (item.Pic is { Category: PicCategory.Pointer, RestrictedTypeName: { } tn, RestrictedTypeDecl: null }
