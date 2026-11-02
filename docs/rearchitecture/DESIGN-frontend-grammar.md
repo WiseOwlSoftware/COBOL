@@ -1606,16 +1606,62 @@ target:
   block cannot take the left IF's END-IF) ends the block of its owning statement, which is recorded left too
   (`OwningStatement`), so its END-EVALUATE is its own and the IF's END-IF, whose enclosing EVALUATE has returned without
   its terminator, is the IF's.
-  **A phrase word of a left statement is its own** (PB4436, branch review R1-1): ending the error condition at the consumed
-  terminator unmasks the failure at the next phrase word of an enclosing statement the prediction already closed early
-  (`IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.`: the ELSE, a WHEN or a WHEN OTHER of an EVALUATE or SEARCH
-  after a malformed IF). `Report` suppresses it (`ContinuesAStatementTheRecoveryLeft`, after the terminator test) when a
-  record still due something belongs to a statement whose rule lets that word follow an imperative block
-  (`PhraseWords`, read from the ATN once per rule: what follows each `statementBlock` call in the rules the statement
-  reaches, a block that ends its rule followed by what follows the call, minus the scope terminators), under the same
-  record hygiene as the terminator test (`TakenByALeftStatement`), and only where the statement before the word is
-  complete (`AStatementMayEndBefore`: `IF A MOVE B TO ADD 1 TO ELSE …` is the ADD's own fault at the ELSE). The word is the one fault re-met, not a tail to discard:
-  the recovery goes on, so a genuine later fault in the sentence is still reported.
+  **A terminator an OLDER open statement's optional END-x would match is the left statement's** (PB4447; ISO §14.5.3.2 1),
+  §14.5.3.3 4)): `IF A EVALUATE W WHEN 1 IF B ELSE DISPLAY X END-IF DISPLAY "Y" END-EVALUATE END-IF.` The left IF B's ELSE
+  and END-IF were taken by the OUTER IF A (its recovery set holds the ELSE, and its optional `END_IF?` decision matched
+  the END-IF with no failure), so the EVALUATE was closed early with no record and its END-EVALUATE drew a false
+  COBOL0306 (and so did an END-SEARCH, END-ADD, … inside any IF). Two places make the nearest unterminated statement
+  win. `Recover` consumes a fault's own phrase word with it (the ELSE `IF B ELSE` faulted at: the failed statement is
+  "the most-recently preceding unterminated statement" the phrase may associate with, §14.5.3.3 4)), as it consumes the
+  terminator the fault stood at. And `Sync`, which the generated parser calls before every optional END-x and every loop
+  decision, consumes a scope terminator as a left statement's own (`ConsumesALeftStatementsTerminator`) where a statement
+  of its kind is OPEN on the parser's stack and a record due began AFTER it: the newer statement owns the terminator, so
+  the open one never sees it, and the statements between go on as written. Where no statement of the kind is open the
+  terminator is unowned, which `EndsAStatementTheRecoveryLeft` answers at its report.
+  **The next phrase of a containing statement ends the left statements inside it** (PB4447 review R1-1; ISO §14.5.3.3 4)
+  b): a conditional statement contained within another is terminated by "the next phrase of any containing statement"):
+  `IF A IF B ELSE DISPLAY X ELSE DISPLAY Y END-IF END-IF.` The left IF B took the one ELSE its format prints, so the
+  second is the open IF A's; the parse takes it without a failure, and B's record would then take the first END-IF
+  (`ConsumesALeftStatementsTerminator`) and leave A the second, hiding the true stray. So `Sync` first runs
+  `EndsLeftStatementsAtAContainingStatementsPhrase`: where the token is a phrase word an OPEN statement takes
+  (`OpenStatementTaking`: the first rule invocation outward from the parser's position whose own next tokens hold it,
+  and the nearest terminated statement at or above), the records begun after that statement are decided newest first:
+  the word is the next phrase of the first whose format permits it (recorded in its `Phrases`, so a second occurrence
+  decides the other way), and a record whose format does not is ended by it and retired (an EVALUATE's WHEN ends a
+  left IF the same way). Only a PHRASE does this (review R2-1): a token in the first set of `statement`
+  (`BeginsAStatement`) is the start of the next statement of a containing block, which the open statement's block takes at a
+  synchronization point inside the statement before it (a MOVE's receiving list, a DISPLAY's operands), and it ends no
+  record. **Not covered, a lead:** an open statement the parse let take a phrase that the ideal
+  reading gives the left one (`IF A IF B NOT <> 1 DISPLAY C ELSE D ELSE E END-IF END-IF`: the parse's A took the first
+  ELSE) has no phrase left for the second, which is reported where the ideal reading has none to report.
+  **A fault deep inside a statement ends every list around it early** (PB4447): the SLL prediction that died inside the
+  innermost malformed statement ended the preceding statement of EACH enclosing list before the statement that holds it
+  (`IF A DISPLAY "Z" IF B IF C ELSE … END-IF END-IF ELSE DISPLAY "Y" END-IF`: IF A ended before IF B), so `NoteLeftBefore`
+  climbs the enclosing statements, not only the nearest, and records each preceding unterminated statement that ends in
+  a block. Without the record the left IF A's ELSE drew COBOL0001 and its END-IF a false COBOL0306.
+  **A phrase word of a left statement is its own, while its format permits another occurrence** (PB4436 branch review R1-1,
+  PB4449; ISO §14.5.3.3 4): "Any phrase encountered is the next phrase of the most-recently preceding unterminated
+  statement with which that phrase may be syntactically associated. If all permitted occurrences of a phrase have already
+  been specified for a given statement, a subsequent occurrence of that phrase is not syntactically associated with that
+  statement"). Ending the error condition at the consumed terminator unmasks the failure at the next phrase word of an
+  enclosing statement the prediction already closed early (`IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.`: the ELSE,
+  a WHEN or a WHEN OTHER of an EVALUATE or SEARCH after a malformed IF). `Report` suppresses it
+  (`ContinuesAStatementTheRecoveryLeft`, after the terminator test) when a record still due something takes the phrase
+  (`IsTheNextPhraseOf`), under the same record hygiene as the terminator test (`TakenByALeftStatement`), and only where
+  the statement before the word is complete (`AStatementMayEndBefore`: `IF A MOVE B TO ADD 1 TO ELSE …` is the ADD's own
+  fault at the ELSE). **Which phrases a format permits, and how often, is the ATN's, read by a walk.** Each record holds
+  the phrase words taken for it (`LeftStatement.Phrases`: the ELSE `Recover` consumed at the fault, and each one `Report`
+  suppressed), and the word is its own where `ResimulationWalk.AfterABlockOf(rule)`, seeded after every imperative block
+  of the statement's rule (`BlockFollows`: each `statementBlock` call in the rules the statement reaches, with the frames
+  of the calls on the way, never into a nested statement), takes the earlier phrases and then this one
+  (`TakesPhraseAt`: the phrase's words, one token at a time, up to the first position that takes a statement, then one
+  CONTINUE for the block, whatever statements really stand there). A second ELSE, or a WHEN or WHEN OTHER after the WHEN
+  OTHER, is then taken by no record and reported as the same word is after a statement the parse did not leave (COBOL2269,
+  COBOL2073), naming the IF or EVALUATE (`NameOfALeftStatementPrinting`), not the statement before it. The word is the one
+  fault re-met, not a tail to discard: the recovery goes on, so a genuine later fault in the sentence is still reported.
+  Not covered: the paired conditional phrases (`NOT ON SIZE ERROR` twice after a left ADD, READ, …) are one
+  `conditionalPhrases` loop whose occurrences a PREDICATE counts (`ConditionalPhraseAssociation`), which a walk does not
+  evaluate, so a repeat of one after a left statement is still silent.
 - ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
   Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that
   calls a WHEN OTHER rule, both read from the ATN): a phrase is misplaced where the construct already holds one (the
@@ -1658,6 +1704,13 @@ target:
   from the closed construct (`ClosedJustBefore`'s walk): over `WHEN 1` that walk re-opens the superset grammar (a
   class-name without IS, the sign words), which routes the literal-category arm to "only ZERO", and no sentence prints
   the longer set. An arm that prints a list at such a position must derive it first, and answers that routing.
+- ⛔ **A token the construct just before it could have taken is a fault further on, never a kind refused** (kb/Work
+  PB4448; ISO §5.2.6.3). `AdmittedKinds.Refusal` answers null first where `whatTheConstructBeforeCouldTake` holds the
+  token, for every arm (the operand arm of PB4426 asked it alone). `PERFORM UNTIL c DISPLAY "A" IF W-K = 2 END-IF
+  END-PERFORM`: the parser leaves the block before the IF (its prediction died inside the malformed IF), admits END-PERFORM,
+  FINALLY and WHEN there, and hint 0i said "unexpected 'IF' … expected END-PERFORM, FINALLY or WHEN", a false claim about
+  a statement the block may begin there. Hint 0i is then silent, `Report` carries the report into the closed block to where
+  its parse dies, and hint 0a names the IF's missing statement-1, COBOL2072 at the END-IF, as it does inside an IF.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle
