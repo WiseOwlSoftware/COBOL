@@ -35,6 +35,12 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <para><b>Release and close.</b> A released byte's file is deleted before its descriptor closes
 /// (<see cref="SidecarLockFiles.LockFileHolder"/>), the endpoint's disposal releases every byte it still holds, and a
 /// run unit that is killed holds nothing — the kernel dropped its locks with its descriptors.</para>
+/// <para><b>Parking (kb/Work PB4387).</b> An endpoint made by <see cref="ParkingForPath"/> does not retire a byte it releases: the
+/// holder's file is renamed to <c>i&lt;offset as 16 hex digits&gt;-&lt;guid&gt;</c> with its lock still held, a name no
+/// <see cref="Look"/> reads, so it holds against no one, and the next hold of the byte renames it back and then looks, which is the
+/// publish-then-test protocol over a file already published. For the one holder that takes and gives back one byte per statement
+/// for the life of a connector. Its first publication sweeps the dead idle files of the byte (a killed holder leaves one), and
+/// its disposal retires the parked file and, with the last file, the lock directory.</para>
 /// </summary>
 internal sealed class SidecarRegionLocks : RegionLocks
 {
@@ -43,14 +49,21 @@ internal sealed class SidecarRegionLocks : RegionLocks
 
     private sealed class SidecarHost : IRegionLockHost
     {
-        public RegionLocks Open(SafeFileHandle handle, string hostPath, bool writable) => new SidecarRegionLocks(hostPath, writable);
+        public RegionLocks Open(SafeFileHandle handle, string hostPath, bool writable) => new SidecarRegionLocks(hostPath, writable, parkReleased: false);
     }
 
     /// <summary>An endpoint on the physical file at <paramref name="hostPath"/> that is held through no handle on it — the
     /// one kind of endpoint that serves a file that may not exist (<see cref="HostRegionLocks.EntryMutexByte"/>, kb/Work
     /// PB3340). Writable: a lock file holds an exclusive byte whatever the access to the physical file
     /// (<see cref="ExclusiveNeedsWritableHandle"/>).</summary>
-    internal static RegionLocks ForPath(string hostPath) => new SidecarRegionLocks(hostPath, writable: true);
+    internal static RegionLocks ForPath(string hostPath) => new SidecarRegionLocks(hostPath, writable: true, parkReleased: false);
+
+    /// <summary>⛔ AN ENDPOINT THAT PARKS WHAT IT RELEASES (kb/Work PB4387): like <see cref="ForPath"/>, but a byte released is not
+    /// retired, it is RENAMED to an idle name no prober reads and kept, its lock still held, until the byte is held again (one
+    /// rename back) or the endpoint is disposed. For a holder who takes and gives back the SAME byte once per statement for the
+    /// life of a connector (<see cref="HostRegionLocks.KeptEntryMutex"/>): a publication and a retirement of the file and of the
+    /// lock directory per statement is what this replaces.</summary>
+    internal static RegionLocks ParkingForPath(string hostPath) => new SidecarRegionLocks(hostPath, writable: true, parkReleased: true);
 
     /// <summary>The lock directory, or null for a path no lock directory can be named beside (every operation is then
     /// <see cref="RegionLockResult.Unavailable"/>).</summary>
@@ -58,14 +71,24 @@ internal sealed class SidecarRegionLocks : RegionLocks
 
     private readonly Dictionary<long, Held> _holds = [];
 
+    /// <summary>Whether a released byte is parked (<see cref="ParkingForPath"/>) rather than retired.</summary>
+    private readonly bool _parkReleased;
+
+    /// <summary>The bytes released and parked, by offset: holders whose files carry the idle name (<see cref="IdleName"/>), their
+    /// locks still held. Always empty for an endpoint that does not park.</summary>
+    private readonly Dictionary<long, Parked> _parked = [];
+
     private bool _disposed;
 
-    private readonly record struct Held(SidecarLockFiles.LockFileHolder Holder, bool Exclusive);
+    private readonly record struct Held(SidecarLockFiles.LockFileHolder Holder, bool Exclusive, Guid Id);
+
+    private readonly record struct Parked(SidecarLockFiles.LockFileHolder Holder, Guid Id);
 
     private enum Conflict { None, Live, Unobservable }
 
-    private SidecarRegionLocks(string hostPath, bool writable) : base(writable)
+    private SidecarRegionLocks(string hostPath, bool writable, bool parkReleased) : base(writable)
     {
+        _parkReleased = parkReleased;
         try { _directory = SidecarLockFiles.LockDirectoryOf(hostPath); }
         catch (ArgumentException) { }
         catch (NotSupportedException) { }
@@ -78,6 +101,49 @@ internal sealed class SidecarRegionLocks : RegionLocks
 
     /// <summary>The prefix of every file holding <paramref name="offset"/>: <c>r</c> and the offset as 16 hex digits.</summary>
     private static string Prefix(long offset) => $"r{offset:x16}-";
+
+    /// <summary>⛔ A WIRE VALUE: the name of a holder file that holds <paramref name="offset"/> (<see cref="Prefix"/>, the mode, the id).</summary>
+    private static string HeldName(long offset, bool exclusive, Guid id) => $"{Prefix(offset)}{(exclusive ? 'X' : 'S')}-{id:N}";
+
+    /// <summary>The prefix of every PARKED file of <paramref name="offset"/> (<see cref="ParkingForPath"/>): <c>i</c> and the offset
+    /// as 16 hex digits. No <see cref="Look"/> reads it, so a parked file holds nothing against anyone, and no older runtime
+    /// reads it either.</summary>
+    private static string IdlePrefix(long offset) => $"i{offset:x16}-";
+
+    /// <summary>⛔ A WIRE VALUE: the name a released byte's file is parked under (<see cref="IdlePrefix"/> and the id).</summary>
+    private static string IdleName(long offset, Guid id) => $"{IdlePrefix(offset)}{id:N}";
+
+    /// <summary>Give back the holder of <paramref name="offset"/> that was never (or is no longer) a hold: parked under its idle
+    /// name when this endpoint parks and the host renames it, else closed and retired.</summary>
+    private void GiveBack(long offset, SidecarLockFiles.LockFileHolder holder, Guid id)
+    {
+        if (_parkReleased && !_disposed && holder.Rename(IdleName(offset, id))) _parked[offset] = new Parked(holder, id);
+        else holder.Dispose();
+    }
+
+    /// <summary>The parked holder of <paramref name="offset"/> named a hold in this mode again, or null (nothing parked, or the host
+    /// refused the rename: the parked holder is then closed, and the caller publishes).</summary>
+    private Held? TakeParked(long offset, bool exclusive)
+    {
+        if (!_parked.Remove(offset, out var parked)) return null;
+        if (parked.Holder.Rename(HeldName(offset, exclusive, parked.Id))) return new Held(parked.Holder, exclusive, parked.Id);
+        parked.Holder.Dispose();
+        return null;
+    }
+
+    /// <summary>Retire the parked files of <paramref name="offset"/> whose holders are dead (a run unit killed while it kept one),
+    /// which nothing else reads: a live one is another endpoint's and is left alone. Asked once per publication of a parking
+    /// endpoint, so a killed run unit's litter is swept by the next one to publish and never grows.</summary>
+    private void SweepIdle(long offset)
+    {
+        try
+        {
+            foreach (string path in Directory.EnumerateFileSystemEntries(_directory!, IdlePrefix(offset) + "*").ToList())
+                SidecarLockFiles.Observe(path);
+        }
+        catch (DirectoryNotFoundException) { }       // no holder has ever published here
+        catch (UnauthorizedAccessException) { }      // a directory this user may enter but not list: nothing to sweep
+    }
 
     internal override RegionLockResult Hold(long offset, bool exclusive, bool wait)
     {
@@ -104,7 +170,20 @@ internal sealed class SidecarRegionLocks : RegionLocks
                     if (plain == Conflict.Unobservable) return wait ? RegionLockResult.Unavailable : RegionLockResult.Held;
                     if (plain == Conflict.Live) { if (!wait) return RegionLockResult.Held; Backoff(pause); continue; }
                 }
-                var publication = SidecarLockFiles.Publish(_directory, id => $"{Prefix(offset)}{(exclusive ? 'X' : 'S')}-{id:N}", out var holder);
+                // ⛔ A PARKED HOLDER IS NAMED A HOLDER AGAIN, NOT PUBLISHED AGAIN (kb/Work PB4387): one rename, after which the
+                // look below is the publish-then-test protocol exactly as for a fresh file.
+                SidecarLockFiles.LockFileHolder? holder;
+                Guid published = default;
+                RegionLockResult publication;
+                if (TakeParked(offset, exclusive) is { } reused)
+                {
+                    (holder, published, publication) = (reused.Holder, reused.Id, RegionLockResult.Ok);
+                }
+                else
+                {
+                    if (_parkReleased && pause == 0) SweepIdle(offset);
+                    publication = SidecarLockFiles.Publish(_directory, id => HeldName(offset, exclusive, published = id), out holder);
+                }
                 if (publication == RegionLockResult.Unavailable) return RegionLockResult.Unavailable;   // a host that takes no lock here sees no holder
                 if (publication == RegionLockResult.Held)
                 {
@@ -131,13 +210,13 @@ internal sealed class SidecarRegionLocks : RegionLocks
                 switch (Look(offset, exclusive, holder!.Name))
                 {
                     case Conflict.None:
-                        _holds[offset] = new Held(holder, exclusive);
+                        _holds[offset] = new Held(holder, exclusive, published);
                         return RegionLockResult.Ok;
                     case Conflict.Unobservable:
-                        holder.Dispose();
+                        GiveBack(offset, holder, published);
                         return wait ? RegionLockResult.Unavailable : RegionLockResult.Held;
                     default:
-                        holder.Dispose();
+                        GiveBack(offset, holder, published);
                         if (!wait) return RegionLockResult.Held;
                         Backoff(pause);
                         continue;
@@ -164,7 +243,7 @@ internal sealed class SidecarRegionLocks : RegionLocks
 
     internal override void Release(long offset)
     {
-        if (_holds.Remove(offset, out var held)) held.Holder.Dispose();
+        if (_holds.Remove(offset, out var held)) GiveBack(offset, held.Holder, held.Id);
     }
 
     public override void Dispose()
@@ -172,6 +251,8 @@ internal sealed class SidecarRegionLocks : RegionLocks
         _disposed = true;
         foreach (var held in _holds.Values) held.Holder.Dispose();
         _holds.Clear();
+        foreach (var parked in _parked.Values) parked.Holder.Dispose();
+        _parked.Clear();
     }
 
     /// <summary>Is there a holder of <paramref name="offset"/>, other than the file <paramref name="ownName"/>, that a

@@ -5,17 +5,17 @@ name: Nightly
 # it: a red job here is a signal to read the next morning, never a landing refused. Each job is independent (no `needs`),
 # so one red never hides another's verdict, and each says what it measures that build-and-test.yml's merge group does not:
 #
-#   guard       the NIST corpus through the `cobol` CLI (scripts/guard-fast.sh, about 12 minutes at JOBS=4). The merge group
-#               carries it until pipeline step 6 (kb/Work PB4329) moves it here (owner decision 2, 2026-10-31): its
-#               Conformance shards run the same NIST programs in-process, and the CLI path (a separate process per program,
-#               every verdict audited against the manifest) needs a daily witness, not a per-landing one.
+#   guard       the NIST corpus through the `cobol` CLI (scripts/guard-fast.sh, about 12 minutes at JOBS=4). Its one home
+#               since pipeline step 6 (kb/Work PB4329) took it out of the merge group (owner decision 2, 2026-10-31): the
+#               merge group's shards run the same NIST programs in-process, and the CLI path (a separate process per
+#               program, every verdict audited against the manifest) needs a daily witness, not a per-landing one.
 #   self-tests  EVERY script self-test on BOTH operating systems, the Windows ones whether or not the day's landings touched
 #               a tooling path (the merge group runs them there only when one did), and the `--built` phase on both.
 #   differential  the GnuCOBOL differential (scripts/battery.sh, its phase 3 and the phases it needs): the external corpus
 #               through the built compiler, red on any per-case verdict flip against the committed baseline.
 #   shard-spread  how evenly the day's merge-group shards divided the test work (scripts/shard_weights.py report): above
-#               1.5 times the mean is the signal that the weights file needs regenerating (kb/Work PB4323, R7); not
-#               measured until the merge group shards by that file (PB4328, PB4329).
+#               1.5 times the mean is the signal that the weights file needs regenerating (kb/Work PB4323, R7;
+#               `python scripts/shard_weights.py generate`); live since the merge group shards by it (PB4329).
 #   latest      is toolchain.env at every publisher's newest release? images: does each runner image carry the git
 #               toolchain.env names for it? (Both were the toolchain-freshness workflow, which this one absorbed: the daily
 #               schedule is one mechanism, kb/Work PB4007.)
@@ -39,7 +39,7 @@ name: Nightly
 # ⛔ THE SCHEDULE: 09:17 UTC (02:17 PDT), so every verdict is in before the working day's first landing. A scheduled run
 # reads the default branch, so it measures main as the day's landings left it.
 #
-# ⛔ BOUNDED LIKE EVERY WORKFLOW (kb/Work PB4227, PB4324; DESIGN-test-build-ci.md §1.4; CiBoundsDriftTests): each job
+# ⛔ BOUNDED LIKE EVERY WORKFLOW (kb/Work PB4227, PB4324; DESIGN-test-build-ci.md §1.4; scripts/ci_bounds.py): each job
 # states `timeout-minutes`, begins with a checkout retried once, and kills each checkout and toolchain step after 5
 # minutes; its caches are only RESTORED (`actions/cache/restore`), since build-and-test.yml's `toolchain-cache` and
 # `package-cache` jobs save them on every push to main, which is the ref this run reads.
@@ -209,9 +209,9 @@ jobs:
   # ── How evenly the merge group divided the work (scripts/shard_weights.py report): the slowest shard's wall over the
   # mean shard wall of one OS in one run, the worst of the newest 8 shard runs of the last 24 hours (one run's artifacts
   # are about 200 MB, so it downloads one run at a time and deletes it). Red above 1.5x. NOT MEASURED, and green, on a
-  # day nothing ran the matrix and while the merge group still shards by name: the report is live once
-  # tests/_shared/test-weights.json exists and build-and-test.yml names WISEOWL_COBOL_SHARD (PB4328, PB4329), because
-  # its remedy is regenerating that file. It reads the merge group's `test-results-*` artifacts (14 days retention). ──
+  # day nothing ran the matrix. The report is live while tests/_shared/test-weights.json exists and build-and-test.yml
+  # names WISEOWL_COBOL_SHARD (the weighted shards, kb/Work PB4329), because its remedy is regenerating that file
+  # (`python scripts/shard_weights.py generate`). It reads the merge group's `test-results-*` artifacts (14 days). ──
   shard-spread:
     name: Shard spread (shard_weights.py report)
     runs-on: ubuntu-26.04

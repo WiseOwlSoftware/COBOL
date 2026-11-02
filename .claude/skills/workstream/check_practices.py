@@ -3,7 +3,7 @@
 
     python .claude/skills/workstream/check_practices.py              # every brief in templates/
     python .claude/skills/workstream/check_practices.py <spec.txt…>  # rendered implementer specs
-    python .claude/skills/workstream/check_practices.py <groups.json> <spec.txt…>  # + the same-file successor rule (O2)
+    python .claude/skills/workstream/check_practices.py <groups.json> <spec.txt…>  # + the one-step-per-file rule (O2)
 
 A practice that lives only in a scratchpad or a transcript is forgotten by the next session (owner 2026-09-23);
 this check is what keeps "automatic" true.
@@ -17,6 +17,7 @@ sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'arch'))
 import inflight  # noqa: E402  (collision: THE meeting rule of the partition, kb/Work PB3670, PB3696)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+from test_population import GATED_ASSEMBLIES  # noqa: E402  (the gate writes one `<assembly>.trx` per entry)
 T = HERE / 'templates'
 POINTER = 'MANDATORY-PRACTICES.md'
 
@@ -55,12 +56,12 @@ BRIEFS = {
     # kb/Work PB3777: the implementer's ONE instruction file. The fix-lane brief and the generic implementer brief are folded into
     # this spec and deleted, so the patterns they carried are carried here: a practice the fold dropped is RED, never silent (O1).
     # P4: the stamped handoff (kb/Work/PB1698) — STATUS.md names the commit it describes; a resumer reads the delta.
-    # PB1721: the gate is the ORDERED gate — `build-local.ps1 -Priority BelowNormal`; PB2515: leg 1 only; PB3022: one shape.
+    # PB1721: the gate is the ORDERED gate — `build-local.ps1 -Priority BelowNormal`; PB4328: the whole population; PB3022: one shape.
     'dispatch-spec-implementer.md': [r'claude-skills', POINTER, r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'\{global_stop\}', r'\{stop_file\}',
                                      r'\{reports\}',  # PB2980: the report goes in coord.reports_dir(), never the wave's scratch
                                      r'until grep -q', r'where\.py', r'orient\.py', r'semgrep/verify\.py', r'cite\.py --check',
                                      r'Turn cap \{turn_cap\}',  # PB3701: read from the agent's maxTurns, never typed
-                                     r'code site', r'leg-1-Conformance\.trx', r'drift_rules\.py', r'STATUS-AT:',
+                                     r'code site', r'build-local/<run>/Conformance\.trx', r'drift_rules\.py', r'STATUS-AT:',
                                      r'status_delta\.py',
                                      # PB1721: the ordered gate, blocked on its own verdict line
                                      r'BUILD-LOCAL GATE: ', r'BUILD-LOCAL GATE: GREEN',
@@ -77,12 +78,12 @@ BRIEFS = {
                                      # I11: the owner's SORT and file I/O exception-path test rule (2026-10-17), as a
                                      # POINTER to its one home (the I11 row), never a second case list
                                      r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11', r'the I11 row of',
-                                     r'LEG 1 ONLY \(batched gating, PB2515\)'],  # PB2515: the implementer's done-state
-    # O2: the standard fix-lane dispatch — rolling pool, same-file successors (no hold), the graceful STOP, and the explicit
+                                     r'the WHOLE Unit, Conformance and Characterization populations'],  # PB4328: the implementer's done-state
+    # O2: the standard fix-lane dispatch — rolling pool, dependency successors (no hold), the graceful STOP, and the explicit
     # final StructuredOutput reminder (three agents in waves 65-67 ended without it and stranded finished branches).
     # PB1703 / PB1704: a dead agent (rejection) and a hung agent (ceiling) must not hold the wave.
     'wf_rolling_wave.js': [r'args\.stop_file', r'args\.global_stop', r"agentType: 'cobol-implementer'", r'StructuredOutput',
-                           # PB3381: no hold; a successor starts once its predecessor's review loop settled, every
+                           # PB3381: no hold; a (dependency) successor starts once its predecessor's review loop settled, every
                            # finished result is reviewed in its slot, round 2+ reviews the diff, a severity threshold
                            r'g\.after', r'settled\(g\.after\)', r'if \(r\.finished\) r = await reviewed\(g, r\)',
                            r'reviewed_head', r'BLOCKING_AT_CAP', r'status_delta\.py', r'withCeiling\(',
@@ -96,7 +97,7 @@ BRIEFS = {
     # O8: every fleet workflow runs with the stall watchdog beside it (PB1704).
     'MANDATORY-PRACTICES.md': [r'stall_watch\.py', r'linux-gate\.sh', r'I9', r'dispatch_guard\.py', r'prune_worktrees\.py',  # O8; PB1732; I9, O9, O10
                                r'STOP-<scope>',  # P3, PB2483: the scoped stop
-                               r'set-cap', r'set-implementer-scope',  # PB2514 (one shared cap)
+                               r'set-cap',  # PB2514 (one shared cap)
                                # PB2600 (O10: the owner's branch rule; nothing archived, abandon by a recorded
                                # decision); PB2602 (O11: one landing queue); PB2601 (L13: the landing hand-off)
                                r'NO BRANCH IS LEFT UNDECIDED', r'--abandon', r'ONE LANDING PATH', r'coord\.py loop-state',
@@ -104,8 +105,8 @@ BRIEFS = {
                                r'I10', r'review_findings\.py', r'WAITING FOR REVIEW',  # PB3027: review on the branch
                                r'\| I11 \|'],  # the owner's SORT and file I/O exception-path test rule (2026-10-17)
 }
-# The group slug is w<wave><letter>, optionally followed by a successor ordinal (w68v2 = the second same-file
-# cluster after group V), so the report path stays wave-and-group prefixed.
+# The group slug is w<wave><letter>, optionally followed by a successor ordinal (w68v2 = the second link of a dependency
+# chain, after group V), so the report path stays wave-and-group prefixed.
 # A RENDERED spec names the two stop files themselves (PB2483): the owner's global `...\scratch\STOP` and the fleet's own
 # `...\STOP-<scope>`, never a bare shared `{S}\STOP` that another session's wind-down would trip.
 RENDERED_STOPS = [r'scratch[\\/]STOP(?![-\w])', r'[\\/]STOP-' + coord.STOP_SCOPE.pattern]   # the scope: coord's one rule
@@ -161,6 +162,11 @@ HANGING_WAIT = re.compile(r"tail -n \+1 -f[^\n]*grep -m1|tail -f[^\n]*grep -m1")
 ONCE_FILES = ('dispatch-spec-implementer.md',)
 RENDERED_SPEC_NAME = re.compile(r'msg-w[^-]+-[a-z0-9]+\.txt')
 SENTENCE_MIN = 60
+# A test-result file a brief or spec tells its agent to read (kb/Work PB4328 review R1-2): the gate writes exactly one
+# `<assembly>.trx` per gated assembly in its run directory, so a name outside that set sends the agent to a file no gate
+# writes (a golden lane looked for `leg-1-Conformance.trx` after the legs were deleted).
+TRX_NAME = re.compile(r'[A-Za-z0-9_.-]+\.trx\b')
+GATE_TRX = frozenset(f'{a}.trx' for a in GATED_ASSEMBLIES)
 
 
 def repeated_sentences(text):
@@ -180,6 +186,8 @@ def check(path, pats):
     missing = [p for p in pats if not re.search(p if p != POINTER else re.escape(POINTER), text)]
     if path.name in ONCE_FILES or RENDERED_SPEC_NAME.fullmatch(path.name):
         missing += [f'PB3777: states twice: {s[:90]}…' for s in repeated_sentences(text)]
+    missing += [f'{n}: a test-result file no gate writes (the run directory holds {", ".join(sorted(GATE_TRX))})'
+                for n in sorted(set(TRX_NAME.findall(text)) - GATE_TRX)]
     if HANGING_WAIT.search(text):
         missing.append('P2: a `tail -f … | grep -m1` wait (it idles to its timeout); use `until grep -q …; do sleep 5; done`')
     return missing
@@ -224,12 +232,14 @@ def mechanical_model_overrides():
     return found
 
 
-# O2: two groups of one wave whose CLAIMS meet (inflight.collision: on ANY file both claim, either claims it whole or a
-# member of one matches a member of the other: the groups file's `file_set` and `member_set`) are a SUCCESSOR chain
-# (`after:`), so the second merges the first's branch instead of conflicting with it: the rule the planner chains by and
-# holds in-flight work by (kb/Work PB3696; it once compared the primary file alone, a second copy of the rule). Two
-# groups on DIFFERENT MEMBERS of a file, and nothing else shared, run side by side (kb/Work PB3670, the owner
-# 2026-10-24: "Developers do this all the time"); git's three-way merge combines their branches.
+# O2: ONE STEP PER FILE (kb/Work PB4396, owner 2026-11-01). Two groups of one wave whose CLAIMS meet (inflight.collision:
+# on ANY file both claim, either claims it whole or a member of one matches a member of the other: the groups file's
+# `file_set` and `member_set`) are refused, `after:` or not: the planner makes the work of one file family ONE group
+# (plan_wave.plan_partition, the same reader), and what one implementer cannot hold is that group's overflow, which a
+# later wave plans onto its branch, never a second group of the wave. It once accepted such a pair as a successor chain
+# (`after:`, kb/Work PB3696), so one file's work built, gated, reviewed and landed once per link. Two groups on
+# DIFFERENT MEMBERS of a file, and nothing else shared, run side by side (kb/Work PB3670, the owner 2026-10-24:
+# "Developers do this all the time"); git's three-way merge combines their branches.
 PRIMARY = re.compile(r'src/[\w./-]+\.(?:cs|g4)')
 
 
@@ -240,23 +250,15 @@ def group_claim(g):
     return inflight.Claim.of(files, g.get('member_set'))
 
 
-def claims_meet_without_successor(groups_path):
+def claims_meet(groups_path):
+    """Every pair of groups in the groups file whose claims meet, as `A+B on <file or file#member>`: [] when the work of
+    each file family is one group (O2, kb/Work PB4396). No `after:` excuses a pair."""
     groups = json.loads(groups_path.read_text(encoding='utf-8'))['groups']
-    after = {g['letter']: g.get('after') for g in groups}
-
-    def chain(letter):
-        seen = []
-        while letter and letter not in seen:
-            seen.append(letter)
-            letter = after.get(letter)
-        return seen
-
     found = []
     for i, a in enumerate(groups):
         for b in groups[i + 1:]:
-            if a['letter'] not in chain(b['letter']) and b['letter'] not in chain(a['letter']):
-                if hit := inflight.collision(group_claim(a), group_claim(b)):
-                    found.append(f"{a['letter']}+{b['letter']} on {hit}")
+            if hit := inflight.collision(group_claim(a), group_claim(b)):
+                found.append(f"{a['letter']}+{b['letter']} on {hit}")
     return found
 
 
@@ -344,6 +346,26 @@ def overlay_problems(name, text, repo=None):
     return found
 
 
+# kb/Work PB4334 (owner decision 1 of PB4323, kb/Work PB4328): the gate runs the WHOLE population, so the words of the
+# gating it retired (batched gating, a plan's legs and tiers, the impact map) must not instruct anyone. They belong to the
+# surfaces an agent or an author is TOLD what to do by; a line may name them only as history, citing PB4328 (the landing that
+# retired them), and "no impact map" is the statement of the retirement itself.
+RETIRED_GATING = re.compile(r'\btier 0[a-d]\b|LEG 1 ONLY|batched gating|(?<!no )impact map|\bleg 1\b', re.IGNORECASE)
+GATING_SURFACES = ('.github/', '.claude/', 'CLAUDE.md')
+GATING_HISTORY = 'PB4328'
+
+
+def retired_gating_lines(rel, text):
+    """The lines of the instruction surface `rel` that instruct in the words of the retired gating, as `rel:line: text`
+    messages: a line is history, and passes, when it cites PB4328. This module names the words, so it is no surface."""
+    if not rel.startswith(GATING_SURFACES) or rel == '.claude/skills/workstream/check_practices.py':
+        return []
+    return [f'{rel}:{n}: {line.strip()[:100]} (the gate runs the whole population, kb/Work PB4328; name the retired gating '
+            f'only as history, citing PB4328)'
+            for n, line in enumerate(text.splitlines(), 1)
+            if RETIRED_GATING.search(line) and GATING_HISTORY not in line]
+
+
 def fleet_tooling():
     plugin = SKILLS / '.claude-plugin' / 'plugin.json'
     if not plugin.exists():
@@ -377,6 +399,7 @@ def fleet_tooling():
             text = (REPO / rel).read_text(encoding='utf-8')
         except (OSError, UnicodeDecodeError):
             continue
+        found += retired_gating_lines(rel, text)
         if RETIRED.search(text):
             found.append(f'{rel} still calls a retired project copy (use the tools/claude-skills path)')
         found += [f'{rel} names tools/claude-skills/{m}, which the pinned submodule does not have'
@@ -411,11 +434,11 @@ def main():
             if why:
                 bad += 1
                 print(f'FAIL     {gp.name}: {why} (P3)')
-        clash = claims_meet_without_successor(gp)
+        clash = claims_meet(gp)
         if clash:
             bad += 1
-            print(f'FAIL     {gp.name}: groups whose claims meet (a shared file or member) without a successor (`after:`, '
-                  f'O2): {clash}')
+            print(f'FAIL     {gp.name}: groups whose claims meet (a shared file or member): one step per file makes them '
+                  f'ONE group, with an overflow for what one implementer cannot hold, never two (O2, kb/Work PB4396): {clash}')
         else:
             print(f'ok       {gp.name}')
     specs = [a for a in sys.argv[1:] if not a.endswith('.json')]

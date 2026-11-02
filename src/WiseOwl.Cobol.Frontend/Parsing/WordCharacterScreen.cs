@@ -245,8 +245,10 @@ public static class WordCharacterScreen
     /// a token's text is cut from the input on every call. A word of a fixed-form debugging line that is a COMMENT (its
     /// unit has no WITH DEBUGGING MODE, so <see cref="DebuggingLineRewriter"/> moved it to the
     /// <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel) is not a COBOL word of the program, as the sibling readers of
-    /// the stream decide it too (<see cref="SeparatorRule"/>, <see cref="PictureSeparatorPeriodRule"/>; kb/Work PB1705):
-    /// both callers pass only the default channel's tokens.</summary>
+    /// the stream decide it too (<see cref="SeparatorRule"/>, <see cref="PictureSeparatorPeriodRule"/>; kb/Work PB1705), and
+    /// nor is a word of an embedded precompiler block, whose text is on the <c>EMBEDDED_BLOCK_TEXT</c> channel
+    /// (<see cref="ProgramText"/>, kb/Work PB4341): both callers pass only the default channel's tokens, which holds
+    /// neither.</summary>
     private static bool IsCandidate(IToken token, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? text)
     {
         text = null;

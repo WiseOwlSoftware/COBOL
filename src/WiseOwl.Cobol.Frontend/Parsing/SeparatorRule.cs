@@ -77,7 +77,7 @@ public static class SeparatorRule
         for (int i = 0; i < tokens.Count; i++)
         {
             var t = tokens[i];
-            if (t.Channel == CobolLexer.ABSENT_DEBUG_LINE) continue;   // a debugging line that is a comment (kb/Work PB1705)
+            if (!ProgramText.Holds(t)) continue;   // a debugging line that is a comment (PB1705), a precompiler block (PB4341)
             switch (t.Type)
             {
                 case CobolLexer.AMPERSAND or CobolLexer.COLONCOLON:
@@ -234,6 +234,18 @@ public static class SeparatorRule
 
     /// <summary>The source character at <paramref name="index"/>, or -1 before the first or after the last.</summary>
     public static int CharAt(string text, int index) => (uint)index < (uint)text.Length ? text[index] : -1;
+
+    /// <summary>Rule 3 for the period token <paramref name="period"/>, read from the characters its own lexer read: "The
+    /// COBOL character period, when followed by a space, is a separator". The question a reader of the token stream asks
+    /// where a separator period ends a unit and any other period is text inside it (an embedded block's qualified SQL
+    /// name, <c>T.A</c>: <see cref="EmbeddedBlockReading"/>, kb/Work PB4341). A token with no character source (a synthetic one)
+    /// is taken as the separator its type says it stands for.</summary>
+    public static bool IsSeparatorPeriod(IToken period)
+    {
+        if (period.InputStream is not { } chars) return true;
+        int next = period.StopIndex + 1;
+        return IsSeparatorSpace(next < chars.Size ? chars.GetText(Antlr4.Runtime.Misc.Interval.Of(next, next))[0] : -1);
+    }
 
     /// <summary>The separator space as the lexer reads it — the characters of its skipped <c>WS</c> rule (the space and
     /// the line end: the line-entry stage leaves no tab or CR LF, kb/Work PB1800) — or the start or end of the text,

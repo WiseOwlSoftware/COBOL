@@ -16,8 +16,14 @@ groups.json:
      "member_set": {"src/...": ["Type.Member", ...]},   # optional: the members it claims in those files (a file
                                       # absent is claimed whole; kb/Work PB3670), recorded in the ledger with them
      "pred": "",          # optional: predecessor-branch / resume instruction, rendered into the spec
-     "after": "K"}        # optional: SAME-FILE SUCCESSOR of group K — ignored here; wf_rolling_wave.js runs this group
-                          # only after K returns and hands it K's branch and report (workstream references/rolling-wave.md)
+     "continues": [...],  # optional: the branches it continues (merges or cherry-picks), recorded in the ledger: the
+                          # branch survey holds each IN FLIGHT until this group's branch lands it (kb/Work PB4396)
+     "overflow": [...],   # optional: the notes of its file family a LATER wave plans onto its branch, recorded in the
+                          # ledger: its branch does not land alone while one of them is open (kb/Work PB4396)
+     "after": "K"}        # optional: DEPENDENCY SUCCESSOR of group K (a campaign's blocked_by on other files; two
+                          # groups whose claims meet never share a wave, kb/Work PB4396) — ignored here;
+                          # wf_rolling_wave.js runs this group only after K returns and hands it K's branch and report
+                          # (workstream references/rolling-wave.md)
   ]
 }
 Refuses (exit 2, nothing written) a groups file whose `scratch` or `stop_file` is not a fleet path (coord.scratch_problem,
@@ -142,7 +148,9 @@ def record(cfg, coord_dir, terminal=None, claim_of=None):
         terminal = lambda n: status.get(n) in work.TERMINAL_STATUSES  # noqa: E731
     claim_of = claim_of or computed_claims(coord_dir)
     groups = [{'letter': g['letter'], 'slug': g.get('slug'), 'notes': list(dict.fromkeys(PB.findall(g.get('notes', '')))),
-               'files': sorted(c.files), 'members': c.member_lists()}
+               'files': sorted(c.files), 'members': c.member_lists(),
+               # the chain's records (kb/Work PB4396): the branches the group continues and the notes a later link takes
+               'continues': list(g.get('continues', [])), 'overflow': list(g.get('overflow', []))}
               for g in cfg['groups'] for c in [group_claim(g, claim_of)]]
     return dispatch_ledger.record_dispatch(coord_dir, str(cfg['wave']), groups, terminal,
                                            lane=mailbox.account_lane(coord_dir))
@@ -181,7 +189,7 @@ def main(argv=None):
             print(f"{a.groups}: group {g.get('letter')}: no value for {e}")
             return 1
         # Keyed on the FULL letter, lower-cased: the workflow opens msg-w<wave>-<letter.toLowerCase()>.txt, and a
-        # multi-character letter (a same-file successor such as "V2") must not collide with another group's file.
+        # multi-character letter (a dependency successor such as "V2") must not collide with another group's file.
         p = scratch / f"msg-w{cfg['wave']}-{g['letter'].lower()}.txt"
         p.write_text(body, encoding='utf-8', newline="\n")
         out.append(str(p))

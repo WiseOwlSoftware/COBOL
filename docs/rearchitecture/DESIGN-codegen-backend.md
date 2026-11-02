@@ -257,11 +257,15 @@ public sealed record MemberPlace(AccessPath Path, DataItem MemberItem) : Place;
 // AccessPath = an ordered chain of segments the backend renders:
 public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments);
 public abstract record AccessSegment;
-public sealed record RootFieldSegment(string CsField) : AccessSegment;           // a static/instance root field
-public sealed record MemberSegment(string CsMember) : AccessSegment;             // .Foo
-public sealed record IndexSegment(BoundExpr ZeroBased) : AccessSegment;          // [expr]  (1→0 already applied)
-public sealed record FixedTableSegment(BoundExpr OneBased, AccessDir Dir) : AccessSegment; // CobolTable.At polarity
-public sealed record DynTableSegment(BoundExpr OneBased, AccessDir Dir) : AccessSegment;   // RefSending/RefReceiving
+public sealed record RootFieldSegment(string CsField, OmittedFormalGuard? Guard = null,   // a program-class member,
+    ContainerAnchor? Anchor = null) : AccessSegment;                               // guarded and anchored
+public sealed record LocalRootSegment(MethodLocal Local) : AccessSegment;        // a statement local, by identity
+public sealed record MemberSegment(string MemberClrName) : AccessSegment;        // .Foo
+public sealed record CarrierValueSegment : AccessSegment;                        // a carrier formal's storage
+public sealed record CellBackingSegment : AccessSegment;                         // a cell-backed area's backing
+public sealed record FixedTableSegment(Position OneBasedIndex, OdoReferenceCheck? Odo = null) : AccessSegment; // CobolTable.At
+public sealed record DynTableSegment(Position OneBasedIndex) : AccessSegment;    // RefSending/RefReceiving
+public sealed record CellTableSegment(Position Ordinal, int Min, int ElementWidth) : AccessSegment; // a cell's dynamic table
 
 // The wrapping subtypes carry STRUCTURE + resolved DataItems, never call text:
 public sealed record RefModPlace(Place Inner, BoundExpr Start, BoundExpr? Length) : Place;
@@ -271,8 +275,8 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 public sealed record CapacityRegisterPlace(Place Table, DataItem RegisterItem) : Place;  // read-only view
 ```
 
-`AccessDir` (`Read`/`Write`) already exists for OCCURS DYNAMIC polarity — promote it to the shared segment model so
-`DynTablePlace`'s two-string hack disappears; polarity is a render-time choice from the segment + the operation.
+`AccessDir` (`Sending`/`Receiving`) is the OCCURS DYNAMIC polarity, a render-time choice from the operation
+(`PlaceRenderer.RenderPath(path, dir)`), so `DynTablePlace`'s two-string hack is gone and no segment carries it.
 
 The Roslyn backend gets **`PlaceRenderer`**, the sole owner of the old `Read()/Write()` logic:
 

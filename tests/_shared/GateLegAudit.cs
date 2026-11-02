@@ -36,6 +36,20 @@ internal static class GateLegAudit
             $"{assembly.GetName().Name} does not compile tests/_shared/GateLegs.cs");
     }
 
+    /// <summary>The assembly carries the weights file CI's shards are dealt by (kb/Work PB4329; tests/Directory.Build.props
+    /// embeds tests/_shared/test-weights.json as <see cref="TestWeights.ResourceName"/>), it parses, and it names this
+    /// assembly's classes. Without it a merge-group shard of this assembly refuses every case, and the merge group is
+    /// red on a defect a local run, which sets no shard, never meets.</summary>
+    public static void AssertEmbedsTheWeights(Assembly assembly)
+    {
+        Assert.True(assembly.GetManifestResourceNames().Contains(TestWeights.ResourceName, StringComparer.Ordinal),
+            $"{assembly.GetName().Name} does not embed {TestWeights.ResourceName} (tests/Directory.Build.props embeds "
+            + "tests/_shared/test-weights.json in every test project)");
+        string key = TestWeights.AssemblyKey(assembly.GetName().Name!);
+        Assert.True(TestWeights.Embedded().Tenths.Keys.Any(k => k.Assembly == key),
+            $"the embedded weights name no class of {key}: regenerate them (python scripts/shard_weights.py generate)");
+    }
+
     /// <summary>The test host that runs <paramref name="assembly"/> is configured for SERVER garbage collection
     /// (kb/Work PB2526): <c>tests/Directory.Build.props</c> sets <c>ServerGarbageCollection</c>, which writes
     /// <c>System.GC.Server: true</c> into the assembly's runtimeconfig.json, and the host loads it as an AppContext
@@ -56,7 +70,7 @@ internal static class GateLegAudit
 
     /// <summary>Arm (5): no discovered case of <paramref name="assembly"/> carries the repository root in its
     /// display name or in a string argument. A worktree path in a name makes the name differ between the worktree
-    /// the impact map was recorded in and the one a gate runs in, so no plan could ever key on it (evidence
+    /// a case was recorded in and the one a gate runs in, so no record of it could ever key on its name (evidence
     /// <c>b8</c>: 404 Unit rows). Substituting a placeholder is not a fix — xunit truncates a long argument with
     /// <c>···</c> at a fixed length, so the cut moves with the root's length — the test passes a
     /// repository-relative path instead.</summary>

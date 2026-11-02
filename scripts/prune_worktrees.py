@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-CLOCK: real — its arms commit scratch repositories at real time and compare their ages with the clock (idle hours, --min-age)
 """Every local branch, every branch of origin and every worktree, by CONTENT against origin/main and by LIFECYCLE (who
 acts on it next); with --apply, remove the ones whose work is on main, and the ones abandoned by a recorded decision.
 
@@ -27,8 +28,11 @@ who acts next:
                    branch a review finisher merged, an unfinished or unreviewed predecessor; contained()) is IN FLIGHT
                    too: an unreviewed checkpoint never lands alone, it lands through that branch (its row names it,
                    `carrier`), and reads LANDED once it has. A branch reviewed CLEAN at its tip keeps its own
-                   lifecycle, contained or not: a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at
-                   once (kb/Work PB3381). A WAITING TO LAND branch that carries ANOTHER note's unanswered FINDINGS is
+                   lifecycle, contained or not (kb/Work PB3381), EXCEPT a link of a one-file chain (chain_links(), kb/Work
+                   PB4396, owner 2026-11-01 "One step per file"): a WAITING TO LAND branch that a dispatch still in the
+                   ledger CONTINUES (its `continues`), or whose own dispatch left an OVERFLOW no later dispatch has
+                   taken yet (its `overflow`, open notes), is IN FLIGHT (`chain`: that dispatch's slug), and the chain
+                   lands once, with its last link. A WAITING TO LAND branch that carries ANOTHER note's unanswered FINDINGS is
                    IN FLIGHT, waiting on that branch (`waits_on`, carrying_findings(): read from the findings file's
                    last verdict, review_findings.last_verdict, never from a report's stamp; a verdict that is not the round
                    after the last review finisher is the successor's own review's, which releases the branch once it is
@@ -547,6 +551,12 @@ class Row:
                                     # measures, `refs/remotes/origin/<branch>`; '' for a local branch or a detached tree.
                                     # Named `<branch>` when no local branch of that name exists, else `origin/<branch>`
                                     # (origin holds commits the local branch does not). It has no worktree.
+    chain: str = ''                 # chain_links(): the slug of the dispatch whose one-file chain holds this CLEAN
+                                    # link until the chain's last link lands it (kb/Work PB4396); nobody works on THIS
+                                    # one (owned() excludes it)
+    overflow: tuple[str, ...] = ()  # chain_links(): the pending overflow notes this held link waits for; its work is
+                                    # FINISHED for the planner, which plans the overflow ONTO it (inflight.survey_states,
+                                    # kb/Work PB4396 review R1-2); () for a link a live dispatch continues
     foreseen: tuple[tuple[str, str], ...] = ()   # lifecycle(): a queued head the queue's simulation finds conflicting
                                     # with what is ahead of it: (the entry's branch, its head commit) per entry it
                                     # conflicts with, or (origin/main, origin/main) for main alone (kb/Work PB3723)
@@ -936,13 +946,15 @@ def live_survey(repo=REPO, *, coord_dir: pathlib.Path | None = None, reports_dir
     terminal = terminal or note_terminal()
     rdir = reports_dir or coord.reports_dir(str(coord_dir) if coord_dir else None)
     return survey(repo, reports=report_index(rdir, terminal), slugs=in_flight_slugs(coord_dir, terminal, rdir),
+                  chains=chain_records(coord_dir, terminal),
                   min_age=min_age, stale_hours=stale_hours, live=live, coord_dir=coord_dir,
                   prs=queue_facts.read(gh) if prs is UNREAD else prs)
 
 
 def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[IndexedReport] = (),
            slugs: set[str] = frozenset(), min_age: int = 180, stale_hours: float = 24,
-           live: Callable[[str | None], bool] = live_lock, coord_dir: pathlib.Path | None = None) -> list[Row]:
+           live: Callable[[str | None], bool] = live_lock, coord_dir: pathlib.Path | None = None,
+           chains: Iterable[ChainRecord] = ()) -> list[Row]:
     """Every local branch but main, every branch of origin (Row.origin, kb/Work PB3413) and every detached worktree, measured and given its lifecycle state. `prs`:
     {branch: its open pull request into main} (queue_facts.read), or None when GitHub was not observed (the git-only
     lifecycle); REQUIRED so no caller reads a git-only lifecycle by omission; production readers call live_survey, and
@@ -1037,6 +1049,7 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
             r.foreseen = (tuple((b, prs[b].head) for b in queue_foreseen[r.name].ahead)
                           or (('origin/main', 'origin/main'),))
     contained(rows, graph, reports, pathlib.Path(repo) / 'kb' / 'Work')
+    chain_links(rows, chains)   # before the landing holds below read WAITING TO LAND (kb/Work PB4396)
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the one reader of a findings file, kb/Work PB3381)
     scratch = (pathlib.Path(coord_dir) if coord_dir else coord.coord_path()) / 'scratch'
     stamped = [r.review.file for r in reports if r.review and r.review.file]
@@ -1255,6 +1268,69 @@ def carrying_findings(rows: list[Row], graph: Ancestry, findings: list[dict] = (
                      'lands once that note\'s finisher has answered them and landed it (kb/Work PB3381); ' + evidence(r))
 
 
+@dataclasses.dataclass(frozen=True)
+class ChainRecord:
+    """One dispatch's record of a ONE-FILE CHAIN (kb/Work PB4396), from the dispatch ledger (make_dispatch_specs.py
+    writes what the planner's groups.json states): the branches it CONTINUES, which land with its own branch, and the
+    notes of its OVERFLOW that no other dispatch has taken yet, while which its own branch does not land."""
+    slug: str                       # the dispatch's `w<wave><letter>`, the prefix of its report's name
+    notes: tuple[str, ...]          # its notes: its report's lead is one of them (a slug alone is no unique name)
+    continues: tuple[str, ...]
+    pending: tuple[str, ...]
+
+
+def chain_records(coord_dir: pathlib.Path | None, terminal: Callable[[str], bool]) -> list[ChainRecord]:
+    """The ledger's chain records (coord.ledger_groups, the one reader), of every entry with a note still open: an entry
+    whose notes are all landed or retired holds nothing (its branch landed, and the chain with it). An overflow note is
+    PENDING while it is open and no other live entry names it: once a later dispatch takes it, that dispatch's own
+    `continues` holds the branch, and a note planned elsewhere releases it."""
+    if not coord_dir:
+        return []
+    live = [g for g in coord.ledger_groups(pathlib.Path(coord_dir)) if not all(terminal(i) for i in g.get('notes', []))]
+    out = []
+    for g in live:
+        taken = {i for h in live if h is not g for i in h.get('notes', [])}
+        pending = tuple(i for i in g.get('overflow', []) if not terminal(i) and i not in taken)
+        if g.get('continues') or pending:
+            out.append(ChainRecord(g.get('slug') or f"w{g['wave']}{g['letter'].lower()}", tuple(g.get('notes', [])),
+                                   tuple(g.get('continues', [])), pending))
+    return out
+
+
+def chain_links(rows: list[Row], chains: Iterable[ChainRecord]) -> None:
+    """ONE STEP PER FILE (kb/Work PB4396, owner 2026-11-01: "One step per file"): the links of a one-file chain land
+    ONCE, with the last link, so a link reviewed CLEAN that a later link carries, or will carry, is IN FLIGHT, not
+    WAITING TO LAND. This replaces kb/Work PB3381's "land the clean links as they come" for same-file chains: the owner
+    chose one step over landing each link early. Two records say so, both from the dispatch ledger (chain_records):
+      * a branch a live dispatch CONTINUES (the planner planned that group ONTO it: groups.continuation_pred) lands with
+        the continuation, whose branch merged or will merge it;
+      * the branch of a dispatch whose OVERFLOW is still pending (the notes of its file family it could not hold) waits
+        for the next link, which the next wave plans onto it.
+    The branch of a dispatch is the one its report names (the report whose name starts with the dispatch's slug and
+    whose lead is one of its notes; a review finisher rewrites that report for its own branch, which then is the
+    chain's). Only WAITING TO LAND changes: a
+    pull request already queued lands as queued, and every other state has its own owner. `chain` names the dispatch,
+    and owned() excludes the row: nobody works on it. An overflow link carries its pending notes (`overflow`), so the
+    planner reads it as FINISHED work and plans the overflow ONTO it (inflight.survey_states): read as running, the
+    overflow's group would wait for it, and it for the overflow, forever (review R1-2). The landing of the last link carries every earlier link's commits
+    (the continuation merged them), so carrying_landing_branch, which runs after this, no longer holds it behind them."""
+    by_name = {r.name: r for r in rows}
+    for c in chains:
+        mine = next((r for r in rows if r.report and r.report.name.startswith(c.slug + '-') and r.report.lead in c.notes),
+                    None)
+        for b in c.continues:
+            r = by_name.get(b)
+            if r and r.state == 'WAITING TO LAND':
+                r.state, r.chain = 'IN FLIGHT', c.slug
+                r.why = (f'continued by dispatch {c.slug}' + (f' on {mine.name}' if mine else '') +
+                         ': one step per file, the chain lands once, with its last link (kb/Work PB4396); ' + evidence(r))
+        if c.pending and mine and mine.state == 'WAITING TO LAND':
+            mine.state, mine.chain, mine.overflow = 'IN FLIGHT', c.slug, c.pending
+            mine.why = (f'dispatch {c.slug} left an overflow ({", ".join(c.pending)}) that a later wave plans onto this '
+                        'branch: one step per file, the chain lands once, with its last link (kb/Work PB4396; '
+                        '`plan_wave.py --release` drops the record); ' + evidence(mine))
+
+
 def carrying_landing_branch(rows: list[Row], graph: Ancestry) -> None:
     """A branch is landed ONCE (kb/Work PB3693): of two branches where one CONTAINS the other's tip, not yet on main, and
     both have a landing of their own (WAITING TO LAND, or ENQUEUED: a pull request in the merge queue), exactly one
@@ -1294,10 +1370,10 @@ def owned(rows: list[Row]) -> set[str]:
     """The branches with a live owner of their OWN: IN FLIGHT by lifecycle() (a live agent's lock, its dispatch still
     out, a touch inside --min-age, which is how a resumed branch whose tip moved past its report reads), never by
     contained(). A contained branch reads IN FLIGHT because its work lands through its carrier, and the carrier may be
-    any finished branch that merged it (a same-file successor of ANOTHER note, MANDATORY-PRACTICES O2): that says
+    any finished branch that merged it (a continuation or a successor of ANOTHER note, MANDATORY-PRACTICES O2): that says
     nothing about who works on THIS branch. The planner's FINDINGS arm reads this set (plan_wave.plan `owned`, kb/Work
     PB3311): the bare state made a carried FINDINGS branch wait for an answer nobody was writing (review R1-1)."""
-    return {r.name for r in rows if r.state == 'IN FLIGHT' and not r.carrier and not r.waits_on}
+    return {r.name for r in rows if r.state == 'IN FLIGHT' and not r.carrier and not r.waits_on and not r.chain}
 
 
 def locked(rows: list[Row], live: Callable[[str | None], bool] = live_lock) -> set[str]:
@@ -2104,6 +2180,38 @@ def self_test() -> int:
         check('wsucc' not in [r.name for r in landing_order(list(rows.values()), lambda note: (0, 1))]
               and 'wpred' in [r.name for r in landing_order(list(rows.values()), lambda note: (0, 1))],
               'the landing lane is offered the predecessor, never its waiting successor')
+        # kb/Work PB4396: ONE STEP PER FILE. The ledger's chain records (written from the planner's groups.json by
+        # make_dispatch_specs.py through dispatch_ledger.record_dispatch, read by chain_records): wsucc's dispatch
+        # (w9989b) CONTINUES wpred, so the CLEAN wpred lands with wsucc, never alone, and wsucc is no longer held behind
+        # it; wpred's own dispatch (w9989a) left an overflow, PB990 (open, no other dispatch names it), so wpred waits
+        # for the next link; an overflow note another dispatch has taken, or one that landed, holds nothing.
+        import dispatch_ledger  # noqa: PLC0415  (scripts/orchestrator: THE ledger writer)
+        chain_coord = tmp / 'coord-chain'
+        chain_coord.mkdir()
+        dispatch_ledger.record_dispatch(chain_coord, '9989', [
+            {'letter': 'a', 'notes': ['PB70'], 'files': ['src/WP.cs'], 'overflow': ['PB990', 'PB991', 'PB992']},
+            {'letter': 'b', 'notes': ['PB71'], 'files': ['src/WS.cs'], 'continues': ['wpred']},
+            {'letter': 'e', 'notes': ['PB991'], 'files': ['src/WP.cs']}], lambda n: False)
+        records = chain_records(chain_coord, lambda n: n == 'PB992')
+        check([(c.slug, c.notes, c.continues, c.pending) for c in records]
+              == [('w9989a', ('PB70',), (), ('PB990',)), ('w9989b', ('PB71',), ('wpred',), ())],
+              f'the chain records: a continuation, and an overflow pending only while open and taken by no other '
+              f'dispatch: {records}')
+        check(chain_records(chain_coord, lambda n: True) == [] and chain_records(None, lambda n: False) == [],
+              'a ledger whose notes are all landed holds no chain, and no coordination directory holds none')
+        # (w9989a is also the slug of reviewed-noted's report, of another lead: the lead tells them apart)
+        for label, chain in (('a continuation', [ChainRecord('w9989b', ('PB71',), ('wpred',), ())]),
+                             ('an overflow', [ChainRecord('w9989a', ('PB70',), (), ('PB990',))])):
+            crows = {r.name: r for r in survey(repo, reports=report_index(rdir, terminal), slugs={'w9999a'}, min_age=180,
+                                               stale_hours=24, live=live, coord_dir=landed_coord, prs=None, chains=chain)}
+            check((crows['wpred'].state, crows['wpred'].chain, crows['wsucc'].state, crows['wsucc'].waits_on,
+                   'wpred' in owned(list(crows.values())))
+                  == ('IN FLIGHT', chain[0].slug, 'WAITING TO LAND', '', False)
+                  and crows['wpred'].overflow == chain[0].pending,
+                  f'{label}: the CLEAN chain link wpred is IN FLIGHT (owned by no one), and wsucc lands: '
+                  f'{crows["wpred"].state} {crows["wpred"].why} / {crows["wsucc"].state} {crows["wsucc"].why}')
+            check('one step per file' in crows['wpred'].why and chain[0].slug in crows['wpred'].why,
+                  f'{label}: the held link names the rule and the dispatch: {crows["wpred"].why}')
         # ONE RULE FOR A FINISHED BRANCH (kb/Work PB3181, PB3125): coverage, never age; the lane's attempt at the tip
         check('exit 5' in rows['lane-stopped'].why and 'step 4 finisher' in rows['lane-stopped'].why
               and 'later commits mechanical' in rows['lane-stopped'].why,

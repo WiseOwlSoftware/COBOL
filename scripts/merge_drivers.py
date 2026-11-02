@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """merge_drivers.py — THE GIT MERGE DRIVERS FOR THE FILES TWO LANDINGS BOTH EDIT, and the one way main is merged in
-(kb/Work PB3610; DESIGN-test-build-ci.md section 3.17.2 step 2).
+(kb/Work PB3610; DESIGN-test-build-ci.md section 3.17.2 step 3).
 
     python scripts/merge_drivers.py merge <ref> [--message M] [--keep] [--repo DIR]   merge <ref> with the drivers, settle the ABI pin
     python scripts/merge_drivers.py driver <name> <base> <ours> <theirs> [<path>]   what git runs per conflicting file
@@ -83,11 +83,11 @@ the merge commit. The settle writes only the files abi_pin.OWNED names; `prune_w
 coverage rule) accepts a merge whose tree differs from the drivers' own merge in those files and nowhere else.
 `merge` answers with a `Merged`, which tells THREE ends apart (kb/Work PB3673): the branch now contains the ref (`clean`),
 files left in conflict (`conflicts`: a finisher resolves them), and a CLEAN merge whose runtime ABI pin could not be
-settled (`unsettled`: abi_pin's Failure, classified by run_gate_legs.NOT_RUN_CAUSES as the host's or the tree's). Both
+settled (`unsettled`: abi_pin's Failure, classified by gate.NOT_RUN_CAUSES as the host's or the tree's). Both
 non-clean ends abort the merge and leave the branch unchanged (`--keep` leaves it in progress for a finisher); the landing
 (enqueue.py) ends them differently, because a conflict is a finisher's work and a settle the host blocked is a retry. The
 `merge` command's exit: 0 merged · 1 conflicts · EXIT_INCOMPLETE (3) a clean merge that could not be completed, its line
-`NOT COMPLETED [<cause>] — …` naming the cause's tag (run_gate_legs.NOT_RUN_CAUSES: `merge-blocked` is the host's,
+`NOT COMPLETED [<cause>] — …` naming the cause's tag (gate.NOT_RUN_CAUSES: `merge-blocked` is the host's,
 `merge-failed` the merged tree's).
 """
 from __future__ import annotations
@@ -513,7 +513,7 @@ class Merged(NamedTuple):
     """What `merge` made of its ref (kb/Work PB3673): THREE ends, which a caller must tell apart because three different
     people fix them. `clean`: the branch now contains the ref. `conflicts`: the files left in conflict, a finisher's work.
     `incomplete`: the merge was clean (or git refused to start it) but could not be completed, abi_pin's Failure with the
-    cause classified by run_gate_legs: the ABI pin could not be settled, or git refused the merge commit or the fast-forward;
+    cause classified by gate: the ABI pin could not be settled, or git refused the merge commit or the fast-forward;
     MERGE_BLOCKED is the host's, a retry's, MERGE_FAILED is the merged tree's. Never both a conflict and an incomplete merge.
     `in_progress`: the merge was left in progress for a finisher (`keep`), not aborted."""
     conflicts: tuple[str, ...] = ()
@@ -1266,6 +1266,35 @@ def self_test() -> int:
                and any("names no tracked file" in f for f in found), "; ".join(found))
     finally:
         remove_tree(root)
+
+    # THE REAL TREE (kb/Work PB3825, PB4147, PB4148): this branch adds no driver main's attributes lack, --check holds
+    # both rules, and no driver governs the conformance suite's registries or the traceability inventory.
+    repo = HERE.parent
+    landing, unread = new_driver_files(repo)
+    if unread:
+        print(f"  NOTE  'a new driver lands alone' was NOT CHECKED on this tree: {unread}")
+    expect("real tree: a new driver lands alone (no file of a driver main's .gitattributes does not yet give is changed "
+           "here; where main is absent the rule says NOT CHECKED)", not landing, "; ".join(landing))
+    source = pathlib.Path(__file__).read_text(encoding="utf-8").replace("\r\n", NL)
+    at = source.index(f"{NL}def self_test(")
+    code = source[:at] + source[source.index(f"{NL}def ", at + 1):]
+    expect("--check runs both rules: the registry against .gitattributes, and a new driver lands alone",
+           "findings = check(HERE.parent)" in code and "landing, unread = new_driver_files(HERE.parent)" in code)
+    attributes = [ln.strip() for ln in (repo / ".gitattributes").read_text(encoding="utf-8").splitlines()
+                  if ln.strip() and not ln.lstrip().startswith("#")]
+    entries = list((repo / "conformance-suite" / "wiseowl").iterdir())
+    suite, files = sorted(e.name for e in entries), [e.name for e in entries if e.is_file()]
+    expect("real tree: no registry of the conformance suite is one shared file (wiseowl/ holds only its three "
+           "one-file-per-test directories), and no driver or attribute line governs a conformance-suite path "
+           "(kb/Work PB4147)",
+           suite == ["cases", "diagnostics", "options"] and not files
+           and not [ln for ln in attributes if "merge=cobol-" in ln and ln.startswith("conformance-suite/")]
+           and not [p for d in DRIVERS for p in d.patterns if p.startswith("conformance-suite/")], f"{suite} {files}")
+    named = [ln for ln in attributes if any(w in ln for w in ("tests/version-matrix/inventory", "traceability-inventory",
+                                                                 "cobol-keyed-inventory"))]
+    drivers = [d.name for d in DRIVERS if "inventory" in d.name or any("inventory" in p for p in d.patterns)]
+    expect("real tree: no driver and no attribute line names the traceability inventory: its rows are one file each "
+           "(kb/Work PB4148)", not named and not drivers, f"{named} {drivers}")
     print(f"merge_drivers self-test: {'FAIL' if failures else 'PASS'}")
     return 1 if failures else 0
 

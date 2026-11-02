@@ -503,6 +503,36 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal(expected, reg.Status("F"));
     }
 
+    /// <summary>⛔ kb/Work PB4097 (review round 1, R1-2) — a dynamic target that names a file system ROOT (<c>C:/</c>, <c>/</c>) is a
+    /// directory, not a file: the OPEN's entry step looks for a lock directory beside the file, and a root has no directory to
+    /// hold one, so it names no transaction (<c>SequentialJournal.Enter</c>) and the OPEN's own probe answers, an I-O status like
+    /// every other open failure (§12.4.5.3 GR3 b): data-name-1 holds an arbitrary string; §9.1.13.6 1)). The OPEN INPUT of the
+    /// file, which no entry step touched before the reader's OPEN settled dead transactions, must answer what it answered then:
+    /// '35' for a file not found, '05' for an OPTIONAL one.</summary>
+    [Theory]
+    [InlineData(false, "35")]
+    [InlineData(true, "05")]
+    public void OpenInput_ADynamicTargetThatIsAFileSystemRoot_IsAnIoStatus(bool optional, string expected)
+    {
+        var reg = Register("seq", Path.Combine(_root, "placeholder.dat"), optional);
+        reg.Open("F", FileOpenMode.Input, Path.GetPathRoot(_root)!, assignDynamic: true, page: null);
+        Assert.Equal(expected, reg.Status("F"));
+    }
+
+    /// <summary>The writable arms of the same entry step (<c>SequentialJournal.Enter</c>) reached the same throw before PB4097's
+    /// review. A root is a directory in the way of the file an OUTPUT would create (§14.9.27.4 GR3's '37') and no file for an
+    /// EXTEND or I-O OPEN to find ('35').</summary>
+    [Theory]
+    [InlineData(FileOpenMode.Output, "37")]
+    [InlineData(FileOpenMode.Extend, "35")]
+    [InlineData(FileOpenMode.IO, "35")]
+    public void OpenWritable_ADynamicTargetThatIsAFileSystemRoot_IsAnIoStatus(FileOpenMode mode, string expected)
+    {
+        var reg = Register("seq", Path.Combine(_root, "placeholder.dat"), optional: false);
+        reg.Open("F", mode, Path.GetPathRoot(_root)!, assignDynamic: true, page: null);
+        Assert.Equal(expected, reg.Status("F"));
+    }
+
     /// <summary>Give <paramref name="witness"/> its read access back so the test can read what the write-only
     /// handle wrote — <see cref="Dispose"/> restores it too, but a test that reads the file needs it now.</summary>
     private static void RestoreWindowsOrUnixRead(string witness)

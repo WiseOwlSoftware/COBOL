@@ -7,7 +7,7 @@
 #   python scripts/self_tests.py runs `bash scripts/linux-gate.sh --self-test` (the host hand-off, with stand-ins).
 #
 #   THE LINUX HALF LEFT THE PER-CHANGE GATE (owner 2026-10-31, kb/Work PB4327; PIPELINE-REVIEW.md section 7). The local
-#   gate (scripts/build-local.ps1 -> run_gate_legs.py) runs nothing on Linux: its Linux half re-ran on WSL the leg
+#   gate (scripts/build-local.ps1 -> gate.py) runs nothing on Linux: its Linux half re-ran on WSL the leg
 #   Windows had just run, cost 167 s a gate, and no compiler test was red on Linux alone in October's 31 incidents.
 #   Every merge group runs the whole Linux population and all the Linux self-tests, so a Linux-only red is found in the
 #   queue. This script is what is left of it: the tool that REPRODUCES a Linux CI red on this box, run by hand (and by a
@@ -18,9 +18,9 @@
 # characterization (Linux)`: group F's new GateLegDriftTests.Arm5 planted the Windows root `E:\COBOL-wt\battery87`,
 # which `Path.GetFullPath` treats as RELATIVE on Linux. The unit leg reproduces exactly that one red; the CI round
 # trip cost ~30 min and a dropped cluster. MANDATORY-PRACTICES I8 names this script as the
-# reproduction tool, and LinuxGateDriftTests keeps its legs equal to what CI's
+# reproduction tool, and scripts/test_linux_gate.py keeps its legs equal to what CI's
 # Linux jobs run: every test project they `dotnet test`, and every repository script they `bash` (the `guard` leg,
-# CI's guard job, added 2026-10-04 by kb/Work PB1955 after that job's red reached CI unseen).
+# CI's guard job, added 2026-10-04 by kb/Work PB1955 after that job's red reached CI unseen; the nightly's since PB4329).
 #
 # HOW: a LINUX CLONE OF THE COMMIT, never the Windows tree. The tree's committed HEAD is cloned (`--shared`: it
 # borrows the Windows repository's object store read-only, so it copies nothing) into ~/linux-gate/<tree>.<pid>/<tree>
@@ -53,7 +53,7 @@
 # line each, and ONE verdict:
 #   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
 #   === LINUX GATE: BUSY — … ===  (exit 3: another gate of this tree is running; this run touched nothing, kb/Work PB3310)
-# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of run_gate_legs.NOT_RUN_CAUSES, which classifies it
+# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of gate.NOT_RUN_CAUSES, which classifies it
 # ONCE (ENVIRONMENT or BRANCH: kb/Work PB3526); the driver's self-test holds every NOT RUN line here to a known tag.
 set -u
 
@@ -231,7 +231,7 @@ busy_line() {
 # other's clone: on 2026-10-16 the second `enqueue.py land` of a branch deleted the first's clone mid-test, and its
 # `dotnet test` hung 6 h 40 min in the deleted directory holding a gate slot. Each run now has its own clone (the pid in
 # the directory name), and a second run on a tree whose gate is RUNNING answers `=== LINUX GATE: BUSY ...` (exit 3) before
-# it touches anything: BUSY is neither a pass nor a red (run_gate_legs.BUSY is the same word). The check and the registration (the owner file) are one step under
+# it touches anything: BUSY is neither a pass nor a red (gate.BUSY is the same word). The check and the registration (the owner file) are one step under
 # an flock on a dotfile (reap_gates' glob skips it), so two gates started together cannot both pass.
 begin_gate() {
   local name="${2##*/}" me="$BASHPID" other   # captured here: inside $( ) BASHPID is that subshell's
@@ -299,7 +299,7 @@ on_signal() {
 # THE CLONE'S origin/main IS THE TREE'S (kb/Work PB3825, branch review R1-1). A `--shared` clone of the tree's repository has
 # the SOURCE repository's local `main` branch as its refs/remotes/origin/main, and nothing advances a local `main`; the tree's
 # own origin/main (what the Windows half and the landing read) is usually ahead. A tool that reads origin/main inside the clone
-# (merge_drivers.py --check, which MergeDriverDriftTests runs in the test legs) would measure a different main than the Windows
+# (merge_drivers.py --check, which its own --self-test runs on the real tree) would measure a different main than the Windows
 # half and turn the gate RED for a branch cut from a newer origin/main. So each clone's origin/main is set to the tree's sha (the
 # clone reads the same object store), and DELETED when the tree has none: a tool then says "not checked", never reads local `main`.
 pin_origin_main() {   # <clone> <the tree's origin/main sha, or empty>
@@ -517,7 +517,7 @@ if [ ! -f WiseOwl.Cobol.sln ]; then
   echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
 fi
 # ⛔ THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a Linux run under any other measures
-# what CI will not run; the Windows gate holds its own host to the manifest the same way (run_gate_legs.Host.toolchain).
+# what CI will not run; the Windows gate holds its own host to the manifest the same way (gate.Host.toolchain).
 if ! toolchain_report="$("$PY" scripts/toolchain.py check --scope gate 2>&1)"; then
   printf '%s\n' "$toolchain_report"
   echo "=== LINUX GATE: NOT RUN [toolchain] (this host's tools are not toolchain.env's — run scripts/wsl/setup-wsl.sh) ==="; exit 2
@@ -568,9 +568,9 @@ repo_written() {   # 0 (and the RED line) when something wrote to the REAL repos
        "after: $state_after). Undo it, then find what escaped the clone."
 }
 
-# THE PLANNER READS THIS DIRECTORY (gate_plan.TRX_WRITERS, kb/Work PB3155): a case red in a trx file here is tier 0a of
-# this worktree's next gate, so a re-gate after a hand run's Linux red runs it in leg 1. It holds only the newest run:
-# emptied first.
+# THE GATE READS THIS DIRECTORY (test_population.py TRX_WRITERS, kb/Work PB3155, PB4328): a class red in a trx file here runs
+# first at this worktree's next gate, so a re-gate after a hand run's Linux red shows it first. It holds only the
+# newest run: emptied first.
 out="$tree/TestResults/linux-gate"
 # This gate's footprint (kb/Work PB3194, above): reap what ended gates left, refuse on a full filesystem, then work in
 # this gate's own directory, removed on every exit path. begin_gate answers BUSY before the results directory below is
@@ -588,14 +588,14 @@ if ! git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$
 fi
 corpus_red=""
 echo "linux-gate: Linux clone of HEAD ${head:0:9} at $snap"
-# The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; ExternalCorpusPopulationDriftTests is RED without it by
-# design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery apply
+# The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; `scripts/corpus_sweep.py --self-test` (the population
+# invariant, run with the self-tests) is RED without it by design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery apply
 # (scripts/external_corpus.py, kb/Work PB2611): fetch when still absent, and a failed fetch is a named red.
 if [ -d tests/external/gnucobol ]; then
   mkdir -p "$snap/tests/external" && cp -r tests/external/gnucobol "$snap/tests/external/"
 fi
 if ! "$PY" "$snap/scripts/external_corpus.py" ensure --repo "$snap" > "$out/corpus-fetch.log" 2>&1; then
-  echo "linux-gate: EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED (TestResults/linux-gate/corpus-fetch.log); the two ExternalCorpusPopulationDriftTests reds in the unit leg are attributable to it"
+  echo "linux-gate: EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED (TestResults/linux-gate/corpus-fetch.log); a corpus_sweep.py --self-test red is attributable to it"
   corpus_red=" corpus-fetch"
 fi
 [ "$dirty" -gt 0 ] && echo "linux-gate: NOTE — $dirty uncommitted tracked change(s) are NOT tested (the clone is HEAD)"
@@ -628,9 +628,9 @@ selftests_leg() {  # <leg name> <clone> [runner arguments…]
   fi
 }
 guard_leg() {
-  # CI's `guard` job (kb/Work PB1955, PB1957 row 40): the NIST suite through the `cobol` CLI from bash, the manifest
-  # audit, the baseline check and the guard's own self-tests — the one CI Linux job that runs a SCRIPT rather than
-  # `dotnet test`, so it was the one no local gate ran. Train 1013's CI red on PB322's TERMINATES rows was invisible to
+  # CI's `guard` job, the nightly's since kb/Work PB4329 (kb/Work PB1955, PB1957 row 40): the NIST suite through the
+  # `cobol` CLI from bash, the manifest audit, the baseline check and the guard's own self-tests — the one CI Linux
+  # job that runs a SCRIPT rather than `dotnet test`, so it was the one no local gate ran. Train 1013's CI red on PB322's TERMINATES rows was invisible to
   # every local leg. Its scratch is private to this clone (guard-fast.sh's own mktemp directory and every
   # group's lie under TMPDIR, and implementers run this gate concurrently; kb/Work PB2922). It runs in the AUDIT clone
   # (kb/Work PB2878), whose build its own `dotnet build` of the CLI finds up to date (kb/Work PB3529).
@@ -671,7 +671,12 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   # re-read the file lost 8 to 14 of 800 lines per run, and the reader's read failed with ENODATA ("No data available");
   # the same run on the Linux filesystem lost none and failed none. HarnessLogTests reads the log beside its writers,
   # and on /mnt/e its read failed (the landing at c89014b6b, kb/Work PB3194).
+  # A FRESH Python bytecode cache per leg, as CI's watched steps get from `inert_lane.py watch` (kb/Work PB4395 review
+  # R2-1): the watch here runs beside the legs, never above them, so without it a script a test runs was served from the
+  # __pycache__ an earlier import left (the build's), unopened and unseen: measured 2026-11-01, this watch missed
+  # scripts/standard_streams.py, which CI's watch reported.
   ( cd "$snap" && export WISEOWL_COBOL_HARNESS_LOG="$gate/$leg.observations.log" \
+      && export PYTHONPYCACHEPREFIX="$gate/$leg.pycache" \
       && "${nice_prefix[@]}" "$PY" "$snap/scripts/test_population.py" scrubbed dotnet test "$proj" \
       --no-build --no-restore --logger "trx;LogFileName=$leg.trx" --results-directory "$out" ) > "$out/$leg.log" 2>&1
   rc=$?

@@ -14,9 +14,8 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// <para>
 /// ⛔ A sweep reads the tree ONLY through a declared <see cref="TreeScope"/> (kb/Work PB3531): <c>scripts/spec/drift_rules.py</c>
 /// reads the same declaration from the test's source, so <c>drift_rules.py &lt;file&gt;</c> names the sweep for every file
-/// it reads, and the gate's planner puts the sweep in leg 1 for a change to one (tier 0d, <c>scripts/gate_plan.py</c>).
-/// A sweep that filtered the whole list in code was invisible to both, and one such sweep stopped PB3523's landing on
-/// Linux after the Windows gate had left it in leg 2.
+/// it reads. A sweep that filtered the whole list in code was invisible to it, and one such sweep stopped PB3523's
+/// landing on Linux after the Windows gate (which then ran a selection) had left it out.
 /// </para>
 /// <para>
 /// It RAISES when git cannot be run: an empty list from a missing <c>git</c> would read as "the tree is clean"
@@ -64,8 +63,7 @@ internal static class TrackedTree
 /// with named arguments. <c>scripts/spec/drift_rules.py</c> mirrors <see cref="Holds"/> (its <c>in_scope</c>), and
 /// <c>TrackedTreeScopeDriftTests</c> holds every declaration the index reads equal to the value the compiler builds, and
 /// every <see cref="TrackedTree.Files"/> call to a declared field. A scope may hold more than its sweep reads (a sweep
-/// that narrows further by a list it reads at run time, as <c>SelfTestDiscoveryDriftTests</c> narrows to the live
-/// tools' roots): the index then names the sweep for a file it skips, and never misses a file it reads.
+/// that narrows further by a list it reads at run time, the live tools' roots for one): the index then names the sweep for a file it skips, and never misses a file it reads.
 /// </para>
 /// </summary>
 internal sealed record TreeScope(IReadOnlyList<string> Under, IReadOnlyList<string>? Except = null, IReadOnlyList<string>? Kinds = null)

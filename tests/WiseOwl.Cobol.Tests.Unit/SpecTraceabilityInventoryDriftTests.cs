@@ -1784,7 +1784,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Single(BadStates(
             [Doc("DOC-A.1-19") with
             {
-                CodeLocation = $"{Anchor}; tools/impact/ImpactProbe.cs#Hit",
+                CodeLocation = $"{Anchor}; tools/ArchCensus/Program.cs#Main",
                 TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active", State = "OK",
             }], s));
         // ✔ And the shape that DOES close: own anchor + a greenfield site + a spec-derived test.

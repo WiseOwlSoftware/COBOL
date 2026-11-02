@@ -284,7 +284,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             {
                 // GR23: data-name-1 omitted — the table ELEMENT itself is the key data item.
                 if (Inadmissible(table) is { } elementRefusal) return elementRefusal;
-                keys.Add(new BoundTableSortKey(desc, "", table));
+                keys.Add(new BoundTableSortKey(desc, [], table));
                 continue;
             }
             foreach (var dref in drefs)
@@ -338,7 +338,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // A key with no stored field on the element struct (a REDEFINES view, kb/Work PB599) moves the WHOLE statement
         // to window reads: one comparer reads every key one way, so the typed array keeps its storage and learns
         // the enclosing occurrences the windows are placed by.
-        if (storage is TableSortStorage.TypedArray typedStorage && keys.Any(k => k.MemberPath is null))
+        if (storage is TableSortStorage.TypedArray typedStorage && keys.Any(k => k.MemberChain is null))
             storage = typedStorage with { KeyWindowOuter = outer };
         // A window-read key is read through its own window, which the ONE place builder positions (the same
         // question the subject asked above): a key it cannot place is the resolver's deferral, never a guess here.
@@ -950,19 +950,19 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>One Format-2 key over <paramref name="key"/> — the ONE construction both key sources share (the
-    /// statement's KEY phrase, §14.9.40.4 GR2, and the table's own OCCURS KEY phrase, GR21), so the member-path
+    /// statement's KEY phrase, §14.9.40.4 GR2, and the table's own OCCURS KEY phrase, GR21), so the member-chain
     /// rule cannot drift between them. A key of a <see cref="TableSortStorage.SharedArea"/> table is the item itself,
     /// addressed through the class's window law, so it must lie in the SAME class as the table; a typed-array key is
-    /// a member path over the element struct — or, when it lies behind a REDEFINES view of the element (no stored field
-    /// on the struct), a key with a NULL member path that the statement reads through its window at an occurrence number
+    /// a member chain over the element struct — or, when it lies behind a REDEFINES view of the element (no stored field
+    /// on the struct), a key with a NULL member chain that the statement reads through its window at an occurrence number
     /// (<see cref="TableSortStorage.TypedArray.KeyWindowOuter"/>; kb/Work PB599). <see langword="null"/> only for a key
     /// no window can be placed for (see <see cref="TableSortKeyUnsupported"/>).</summary>
     private BoundTableSortKey? TableSortKey(DataItem table, TableSortStorage storage, IReadOnlyList<Position> outer,
         bool descending, DataItem key)
     {
         if (storage is TableSortStorage.SharedArea)
-            return ReferenceEquals(key.Class, table.Class) ? new BoundTableSortKey(descending, "", key) : null;
-        if (SortMemberPath(table, key) is { } path) return new BoundTableSortKey(descending, path, key);
+            return ReferenceEquals(key.Class, table.Class) ? new BoundTableSortKey(descending, [], key) : null;
+        if (SortMemberChain(table, key) is { } chain) return new BoundTableSortKey(descending, chain, key);
         // No stored field: a REDEFINES-view key (§13.18.44.4 GR1 — every view of the class is the one backing). A key
         // under an inner OCCURS is not a view problem and has no window either (§14.9.40.3 SR14 e / §13.18.38.3 SR6).
         return key.Class is not null && !KeyUnderInnerOccurs(table, key)
@@ -977,7 +977,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             + "(an inner OCCURS between a written key and data-name-2 is refused before this, §14.9.40.3 SR14 e)");
 
     /// <summary>§14.9.40.3 SR14 e): the key, or an entry between it and data-name-2, carries an OCCURS clause.
-    /// A predicate over the DATA DESCRIPTION alone — the member path below answers a storage question and returns
+    /// A predicate over the DATA DESCRIPTION alone — the member chain below answers a storage question and returns
     /// null for a REDEFINES view too, so it cannot tell the source's error from the compiler's gap.</summary>
     private static bool KeyUnderInnerOccurs(DataItem table, DataItem key)
     {
@@ -986,22 +986,23 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         return false;
     }
 
-    /// <summary>The C# member path of <paramref name="key"/> RELATIVE to a table-element variable ("" when the key
-    /// IS the element), or null when an inner OCCURS / REDEFINES view intervenes (SR14e; the suppressed view field
-    /// does not exist on the element struct).</summary>
-    private static string? SortMemberPath(DataItem table, DataItem key)
+    /// <summary>The chain of members from a table ELEMENT down to <paramref name="key"/>, outermost first (empty when
+    /// the key IS the element, §14.9.40.4 GR23), or null when an inner OCCURS / REDEFINES view intervenes (SR14 e; the
+    /// suppressed view field does not exist on the element struct). The chain is the items themselves: the backend
+    /// spells the access (kb/Work PB4320).</summary>
+    private static IReadOnlyList<DataItem>? SortMemberChain(DataItem table, DataItem key)
     {
-        if (ReferenceEquals(table, key)) return "";
+        if (ReferenceEquals(table, key)) return [];
         if (key.Class is not null) return null;   // a Tier-A/B view member — no stored field on the struct
-        var segs = new List<string>();
+        var chain = new List<DataItem>();
         for (DataItem? n = key; n is not null && !ReferenceEquals(n, table); n = n.Parent)
         {
             if (n.Occurs is not null) return null;   // §14.9.40.3 SR14 e — refused earlier by KeyUnderInnerOccurs
-            segs.Add(n.ClrName);
+            chain.Add(n);
             if (n.Parent is null) return null;        // ran off the root without meeting the table
         }
-        segs.Reverse();
-        return string.Join(".", segs);
+        chain.Reverse();
+        return chain;
     }
 
 }

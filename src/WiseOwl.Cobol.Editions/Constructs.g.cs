@@ -30,6 +30,8 @@ public static class Constructs
     public const string SetDynLengthSize2023 = "set-dyn-length-size-2023";
     public const string WordLength632023 = "word-length-63-2023";
     public const string LiteralLength81912014 = "literal-length-8191-2014";
+    public const string PictureString502002 = "picture-string-50-2002";
+    public const string PictureString632014 = "picture-string-63-2014";
     public const string CopyLiteralName2002 = "copy-literal-name-2002";
     public const string CopySuppress2002 = "copy-suppress-2002";
     public const string ContinueAfter2023 = "continue-after-2023";
@@ -170,6 +172,7 @@ public static class Constructs
     public const string LocaleTimeFromSeconds2014 = "locale-time-from-seconds-2014";
     public const string PictureLocaleFormat22002 = "picture-locale-format2-2002";
     public const string NumvalCLocalePhrase2002 = "numval-c-locale-phrase-2002";
+    public const string NumvalCAnycaseKeyword2002 = "numval-c-anycase-keyword-2002";
     public const string StandardCompare2002 = "standard-compare-2002";
     public const string ProgramCollatingNational2002 = "program-collating-national-2002";
     public const string CallByValue2002 = "call-by-value-2002";

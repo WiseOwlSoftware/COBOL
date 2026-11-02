@@ -157,6 +157,13 @@ internal static class HostRegionLocks
     /// (<see cref="SidecarRegionLocks.ForPath"/>).</summary>
     internal static RegionLocks EntryMutex(string hostPath) => SidecarRegionLocks.ForPath(hostPath);
 
+    /// <summary>⛔ THE ENTRY MUTEX FOR A HOLDER WHO TAKES IT ONCE PER STATEMENT FOR THE LIFE OF A CONNECTOR (kb/Work PB4387; DESIGN-
+    /// runtime-library.md 2.2.2.3): the same byte through the same lock-file mechanism, but the endpoint PARKS the byte each statement
+    /// gives back (<see cref="SidecarRegionLocks.ParkingForPath"/>), so the next statement's hold is one rename and one listing and not a
+    /// publication, a listing and two retirements. The endpoint is disposed by its owner at the connector's CLOSE, which retires the
+    /// parked file and the lock directory with it.</summary>
+    internal static RegionLocks KeptEntryMutex(string hostPath) => SidecarRegionLocks.ParkingForPath(hostPath);
+
     /// <summary>The first byte of the record-lock region; a record's byte is <see cref="RecordLockByte"/>.</summary>
     private const long RecordRegionBase = RegionBase + (1L << 60);
 
