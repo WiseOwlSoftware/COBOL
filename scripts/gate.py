@@ -309,7 +309,8 @@ NOT_RUN_SHOWN = 10
 #: ⛔ SELF-TESTS is EVERY script self-test, found by discovery (scripts/self_tests.py; kb/Work PB2563) — never a self-test
 #: named here by hand: this tuple once named five while eleven orchestrator self-tests ran in no gate at all. The few
 #: that read the BUILT assemblies run beside the test hosts of a gate that builds (`self_tests.py --built`,
-#: `Host.built_self_tests`). Both halves run ONLY WHEN THE CHANGE TOUCHES TOOLING (`TOOLING_ONLY`, `Lane.tooling`).
+#: `Host.built_self_tests`). Both halves run ONLY WHEN THE CHANGE TOUCHES A SCRIPT (`TOOLING_ONLY`, `Lane.tooling`; a
+#: compiler data file a self-test reads sets no flag in the full lane, owner 2026-11-01).
 AUDITS = (
     ("CITATIONS", ["scripts/spec/audit_code_citations.py", "--check"]),
     ("DOC CITATIONS", ["scripts/spec/audit_doc_citations.py", "--check"]),

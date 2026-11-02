@@ -244,7 +244,12 @@ class Classification:
         if not code:
             return Lane("tooling", f"{len(read)} of {len(paths)} changed path(s) are tooling no compiler test or build "
                         f"reads, e.g. {read[0]}, and the rest inert: the audits and the script self-tests", True)
-        tooling = [p for p in paths if self.is_tooling(p)]
+        # ⛔ A COMPILER CHANGE RUNS NO SCRIPT SELF-TESTS (owner 2026-11-01: "I see no reason why a compiler change should
+        # need to run script self-tests"). In the full lane the flag counts only a changed SCRIPT (a TOOLING_UNDER tree or a
+        # TOOLING_SUFFIXES file: the change's own tooling half), never a TOOLING_READS data file a self-test happens to read
+        # (docs/CONFORMANCE.md, the grammar, TestRepo.cs): compiler fixes change those routinely, and their self-tests then
+        # cost the compiler gate 10 to 38 minutes. Those self-tests first run in CI's self-tests job (CLAUDE.md "Testing").
+        tooling = [p for p in paths if self.is_script_tree(p)]
         return Lane("full", f"{len(code)} of {len(paths)} changed path(s) may be read by a compiler test or the build, "
                     f"e.g. {code[0]}"
                     + (f"; {len(tooling)} touch(es) tooling, e.g. {tooling[0]}" if tooling else "; none touches tooling"),
@@ -947,12 +952,14 @@ def self_test() -> int:
                                          "src/a.cs", "tests/b.cs", "docs/DOC_INDEX.md", "scriptsx/a.md", "toolchain.env.bak",
                                          "tests/_shared/TestRepoX.cs", ".agent-fleet.json.bak", "tests/_shared/Other.cs")],
            [True] * 16 + [False] * 8)
-    expect("a full-lane change that touches tooling says so, one that does not says so, and an inert one never does; "
-           "a change to only a file a script self-test reads is a tooling change (review R1-1)",
+    expect("a full-lane change that touches a SCRIPT says so, one that does not says so, and an inert one never does; "
+           "a compiler change to only a file a script self-test reads (TestRepo.cs, CONFORMANCE.md) runs no script "
+           "self-test (owner 2026-11-01)",
            [real.classify(["src/a.cs", "scripts/x.py"]).tooling, real.classify(["src/a.cs", "docs/x.md"]).tooling,
             real.classify(["kb/x.py", "DEVLOG/a.md"]).tooling, real.classify(["kb/x.py", "DEVLOG/a.md"]).inert,
-            real.classify(["tests/_shared/TestRepo.cs"]).tooling, real.classify(["src/a.cs", "tests/b.cs"]).tooling],
-           [True, False, False, True, True, False])
+            real.classify(["tests/_shared/TestRepo.cs"]).tooling, real.classify(["src/a.cs", "tests/b.cs"]).tooling,
+            real.classify(["src/a.cs", "docs/CONFORMANCE.md"]).tooling],
+           [True, False, False, True, False, False, False])
     tc = Classification(inert={"kb/": ""}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
                         tooling_reads={"data/a.json": "x", "lib/": "y"})
     expect("the proof of the flag: of what a self-test read, the paths neither tooling, nor a TOOLING_READS entry, nor "
@@ -974,11 +981,12 @@ def self_test() -> int:
             (tl.classify(["scripts/steer.ps1"]), tl.classify(["scripts/a.py", ".github/w.yml", "DEVLOG/x.md", "kb/W/P.md"]))],
            [("tooling", True, False)] * 2)
     expect("a CODE_READS path, a directory entry's path, a script file outside the tooling trees, a TOOLING_READS data "
-           "file and any code path each make the change the full lane, the tooling flag still set",
+           "file and any code path each make the change the full lane; the tooling flag is set by a changed script only, "
+           "never by a TOOLING_READS data file (owner 2026-11-01: a compiler change runs no script self-tests)",
            [(tl.classify(p).name, tl.classify(p).tooling) for p in
             (["scripts/gen.ps1"], ["scripts/spec/cite.py", "scripts/a.py"], ["toolchain.env"],
              ["conformance-suite/harness/run.py"], ["docs/CONFORMANCE.md"], ["scripts/a.py", "src/a.cs"])],
-           [("full", True)] * 6)
+           [("full", True)] * 4 + [("full", False), ("full", True)])
     expect("an exact CODE_READS entry covers that path, never a sibling with a longer name",
            [tl.in_tooling_lane(p) for p in ("scripts/gen.ps1", "scripts/gen.ps1x", "scripts/specx/a.py")],
            [False, True, True])
