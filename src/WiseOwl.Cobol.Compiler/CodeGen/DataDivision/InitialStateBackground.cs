@@ -78,7 +78,7 @@ internal sealed class InitialStateBackground(EmitContext ctx)
     /// value character" is the collating-sequence minimum. They coincide under the native sequence and DIVERGE
     /// under a PROGRAM COLLATING SEQUENCE whose lowest character is not NUL, so they take separate arms.</para>
     /// </summary>
-    private char? ClauseFillChar() => ctx.Options.Current?.Initialize switch
+    private char? ClauseFillChar() => ctx.CurrentOptions?.Initialize switch
     {
         null => null,
         { Fill: OptionsFill.BinaryZeroes } => '\0',
@@ -95,7 +95,7 @@ internal sealed class InitialStateBackground(EmitContext ctx)
 
     private char? FillFor(DataItem item)
     {
-        if (ctx.Options.Current?.Initialize is not { } init) return null;   // GR6: no clause ⇒ implementor's choice
+        if (ctx.CurrentOptions?.Initialize is not { } init) return null;   // GR6: no clause ⇒ implementor's choice
         if (ClauseFillChar() is not { } fill) return null;               // SR1-rejected literal ⇒ as if absent
 
         // The section predicate is OptionsInitialize.Governs — shared with the bind-time storage decision.

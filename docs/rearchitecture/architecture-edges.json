@@ -1665,7 +1665,7 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 115,
+      "walkUses": 114,
       "removedBy": [
         "PB2290",
         "PB2320",
@@ -2138,13 +2138,6 @@
             "PB2402",
             "PB2399",
             "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.PhysicalModel",
-          "to": "WiseOwl.Cobol.Binding.OptionsModel",
-          "removedBy": [
-            "PB2402"
           ]
         },
         {

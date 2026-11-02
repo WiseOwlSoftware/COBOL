@@ -25,10 +25,11 @@ namespace WiseOwl.Cobol.Binding;
 internal sealed class ProcedureBindState
 {
     /// <summary>The OPTIONS model the statement now binding is governed by: the unit's own (<see cref="DataBinder.Options"/>,
-    /// the root value), or, while a method's sentences bind, the method's own OPTIONS model pushed over it
+    /// the root the reader passes to <see cref="Scoped{T}.Over"/>), or, while a method's sentences bind, the method's own
+    /// OPTIONS model pushed over it
     /// (<c>StatementBinder.BindClassBody</c>; §11.9.4 GR1). Read per statement: the default rounding
     /// (<c>ExpressionBinder</c>) and the arithmetic mode (<c>IntrinsicBinder</c>, <c>SetBinder</c>).</summary>
-    public Scoped<OptionsModel> Options { get; }
+    public Scoped<OptionsModel> Options { get; } = new();
 
     /// <summary>⛔ THE ONE statement-scoped pending PRE-OP queue — every activation that must run BEFORE the carrying
     /// statement, in REGISTRATION order. Its clients register here:
@@ -69,7 +70,4 @@ internal sealed class ProcedureBindState
     /// (<c>DataBinder.ResolveStorageClaimHead</c>) and the migration-flag pass (<c>FlagConformancePass</c>) enter it for
     /// the one method whose names they resolve.</summary>
     public Cursor<OoMethodDataScope?> ActiveMethodScope { get; } = new(null);
-
-    /// <summary>The state of a unit whose OPTIONS model is <paramref name="options"/>'s value.</summary>
-    internal ProcedureBindState(Func<OptionsModel> options) => Options = new Scoped<OptionsModel>(options);
 }

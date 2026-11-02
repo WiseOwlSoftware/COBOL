@@ -796,7 +796,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         var pic = f.Place.Item.OperandPic!;
         if (AlgebraicRanges.Of(pic) is not { } range)
             return EmitText.LoudValue("bool", "IN-ARITHMETIC-RANGE over a description with no numeric capacity");
-        var (modeFarthest, modeNearest) = ArithmeticModes.IntermediateExtremes(ctx.Options.Current.Arithmetic);
+        var (modeFarthest, modeNearest) = ArithmeticModes.IntermediateExtremes(ctx.CurrentOptions.Arithmetic);
         bool contained = AlgebraicRanges.CompareMagnitude(range.Farthest, modeFarthest) <= 0
             && (range.FarthestNegative is null || AlgebraicRanges.CompareMagnitude(range.FarthestNegative, modeFarthest) <= 0)
             && (range.Nearest is null || AlgebraicRanges.CompareMagnitude(range.Nearest, modeNearest) >= 0);
@@ -878,7 +878,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// <summary>§8.8.4.4.4 GR3 l) over a computed operand's decimal value, against the mode's intermediate.</summary>
     private string ComputedInArithmeticRangeTest(string dec)
     {
-        var (farthest, nearest) = ArithmeticModes.IntermediateExtremes(ctx.Options.Current.Arithmetic);
+        var (farthest, nearest) = ArithmeticModes.IntermediateExtremes(ctx.CurrentOptions.Arithmetic);
         return RuntimeApi.ValueClassIsInArithmeticRange(dec, DecLiteral(farthest), DecLiteral(nearest));
     }
 

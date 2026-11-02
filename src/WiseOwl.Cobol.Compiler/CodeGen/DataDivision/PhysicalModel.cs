@@ -109,7 +109,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
         // with it — one entry per group everywhere else, one per (group, occurrence tuple) on the spine, which
         // is proportional to the source the emitter writes for that table anyway. The recipe adds at most one
         // entry per group inside an INITIALIZED dynamic-capacity table's element.
-        var key = (owner, owner.ContainsTableValue ? subs : default, recipe, (object?)ctx.Options.Current, (object?)ctx.ActivationLocalRoots);
+        var key = (owner, owner.ContainsTableValue ? subs : default, recipe, (object?)ctx.CurrentOptions, (object?)ctx.ActivationLocalRoots);
         if (_physCache.TryGetValue(key, out var cached)) return cached;
         ListBuilds++;
         var list = BuildPhysicals(owner.Children, subs, recipe).ToList();

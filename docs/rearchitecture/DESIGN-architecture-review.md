@@ -1149,8 +1149,9 @@ UsageCollected; `ImageForcedItems`: FilesResolved and ProcedureBound, read early
 `CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule).
 The procedure-bind state is NOT in `DataBindState`: it is `ProcedureBindState` (`Binding/ProcedureBindState.cs`), which
 no data pass reads and which is never in `DataBindResult`, in its three shapes: a **scoped override** (`Scoped<T>`:
-`Push(value)` returns the scope whose disposal restores the previous value; it holds `Options`, whose root is the unit's
-OPTIONS slice and whose pushed value is the method symbol's own `MethodOptions`, pushed by
+`Push(value)` returns the scope whose disposal restores the previous value, and `Over(root)` reads the innermost pushed
+value, else the root its reader passes, so the override holds no reference to the state it overrides; it holds
+`Options`, whose root is the unit's OPTIONS slice and whose pushed value is the method symbol's own `MethodOptions`, pushed by
 `StatementBinder.BindClassBody`); an **ordered drain queue** (`DrainQueue<T>`: `Add`, `Mark()` and `DrainFrom(mark)`,
 which returns and removes the entries after the mark in registration order, plus the two operations the binders
 proved they need: `InsertAt(position, …)`, the evaluation-order placement a freeze makes ahead of a later operand's

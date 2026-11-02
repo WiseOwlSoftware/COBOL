@@ -259,7 +259,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>The state procedure binding keeps on this unit's binder (<see cref="ProcedureBindState"/>; §8.3 (1)): the
     /// scoped OPTIONS override, the two statement-scoped drain queues and the two scope cursors. Never part of
     /// <see cref="State"/>.</summary>
-    internal ProcedureBindState Procedure => field ??= new(() => Options);
+    internal ProcedureBindState Procedure { get; } = new();
 
     /// <summary>The unit's OPTIONS model (ISO §11.9): its own OPTIONS paragraph over the baseline its container or class
     /// definition hands it (§11.9.4 GR1), bound once in <see cref="BindDeclarations"/>; the all-defaults model when there

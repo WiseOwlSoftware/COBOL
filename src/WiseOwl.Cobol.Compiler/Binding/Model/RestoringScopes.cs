@@ -8,21 +8,17 @@ namespace WiseOwl.Cobol.Binding.Model;
 // no binder type, so they live in compiler.model, below both the binder (ProcedureBindState) and code generation
 // (EmitContext.Options), each of which keeps its own instance.
 
-/// <summary>A SCOPED OVERRIDE (§8.3 (1)): a value with a root and, over it, the values pushed by the scopes now open.
-/// <see cref="Push"/> returns the scope whose disposal restores the value the push replaced, so an override can only end
-/// where it began.</summary>
+/// <summary>A SCOPED OVERRIDE (§8.3 (1)): the values pushed over a root by the scopes now open. <see cref="Push"/>
+/// returns the scope whose disposal restores the value the push replaced, so an override can only end where it began.
+/// The root is not held here: it is the unit's own value (its OPTIONS slice, written by its producer), which the reader
+/// passes to <see cref="Over"/>, so the override is a value with no reference to the state it overrides.</summary>
 public sealed class Scoped<T>
 {
-    private readonly Func<T> _root;
     private T _pushed = default!;
     private int _depth;
 
-    /// <summary>A value whose root is read from <paramref name="root"/> each time no push is open (the root is the unit's
-    /// own value, which its producer may set after this object exists).</summary>
-    public Scoped(Func<T> root) => _root = root;
-
-    /// <summary>The innermost pushed value, else the root.</summary>
-    public T Current => _depth > 0 ? _pushed : _root();
+    /// <summary>The innermost pushed value, else <paramref name="root"/>.</summary>
+    public T Over(T root) => _depth > 0 ? _pushed : root;
 
     /// <summary>Override the value with <paramref name="value"/> until the returned scope is disposed.</summary>
     public RestoreScope Push(T value)
