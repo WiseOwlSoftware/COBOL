@@ -19,6 +19,22 @@
       *>  - a RECURSIVE program's WORKING-STORAGE record held in a static
       *>    cell is seeded with its VALUE image (it used to fail its type
       *>    initializer).
+      *> kb/Work PB2103 - 12.3.8.3 SR14: P2087OM is defined AFTER the REPOSITORY
+      *> paragraph that names it, so no definition was "specified previously"; the program prototype
+      *> definitions ahead of every unit (10.6.2 SR1) supply 12.3.8.4 GR10 b)'s details.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2087OM IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LK-1.
+          05 H1 PIC 9.
+          05 H2 PIC X(3).
+       01 LK-2.
+          05 H3 PIC X(4).
+       01 LK-3.
+          05 H4 PIC X(4).
+       PROCEDURE DIVISION USING LK-1 OPTIONAL LK-2 LK-3.
+       END PROGRAM P2087OM.
        IDENTIFICATION DIVISION.
        FUNCTION-ID. P2087FN.
        DATA DIVISION.
@@ -129,7 +145,7 @@
           05 H3 PIC X(4).
        01 LK-3.
           05 H4 PIC X(4).
-       PROCEDURE DIVISION USING LK-1 LK-2 LK-3.
+       PROCEDURE DIVISION USING LK-1 OPTIONAL LK-2 LK-3.
            IF LK-2 IS OMITTED
               DISPLAY "OM LK-2 OMITTED"
            END-IF

@@ -478,6 +478,132 @@ public static class DiagnosticCatalog
         + "externalized name wins, which is GnuCOBOL 3.2.0's answer (it resolves by externalized name only); the other "
         + "function is reachable through a specifier FUNCTION F AS \"G\".",
         "ISO §12.3.8.4 GR11 / §8.4.6.7");
+
+    // ── The external repository (ISO §8.13; DESIGN-external-repository §14, the REPO-n placeholders; kb/Work PB2103).
+    // A compilation that READS an entry reports these: the resolver's (§8.2, §8.3, MetadataRepositoryProvider) and the
+    // --repository-check comparison's (§9.2, RepositoryCheck). REPO-6 is the OO slice's (kb/Work PB2104); REPO-13 is COBOL2969.
+
+    /// <summary>COBOL5962 — REPO-1: a REPOSITORY PROGRAM or FUNCTION specifier that neither the compilation group nor the
+    /// external repository answers (ISO §12.3.8.3 SR14 / SR10; DESIGN-external-repository §8.2 step 4, §8.3).</summary>
+    public static readonly DiagnosticDescriptor RepositorySpecifierUnanswered = new(
+        "COBOL5962", "repository-specifier-unanswered", EditionSeverity.Error,
+        "A REPOSITORY specifier names a program or function that neither this compilation group nor the external repository "
+        + "holds. ISO §12.3.8.3 syntax rule 14 requires literal-3, or program-prototype-name-1, to be \"the name of a program "
+        + "prototype specified in this compilation group\", \"the name of a program definition specified previously in this "
+        + "compilation group\" or \"the name of a program for which information exists in the external repository\"; syntax "
+        + "rule 10 states the same three alternatives for a function, and a function is also reached by the user-function-name "
+        + "its definition declares (§8.4.6.7, determination D-R3). A definition that FOLLOWS the paragraph is none of them. "
+        + "WiseOwl COBOL's external repository is the compiled assemblies of the --repository directories (by default the "
+        + "output directory) and the --reference files, searched in that order; the message names every place searched.",
+        "ISO §12.3.8.3 SR14 / SR10");
+
+    /// <summary>COBOL5963 — REPO-2: a later entry of the external repository publishes the unit the resolver chose, from
+    /// another build, with a different signature (DESIGN-external-repository §8.6).</summary>
+    public static readonly DiagnosticDescriptor RepositoryEntryShadowedDiffers = new(
+        "COBOL5963", "repository-entry-shadowed-differs", EditionSeverity.Warning,
+        "Two assemblies of the external repository publish the program or function a REPOSITORY specifier names, and their "
+        + "signatures differ. The first entry in the documented search order is used (the --repository directories in the order "
+        + "given, then the --reference files); the later one is not. ISO §8.13 makes the repository the information \"required "
+        + "for activating programs, functions, or methods and for checking conformance\", so two different signatures under one "
+        + "name mean a caller compiled against the other entry is not checked against this one. At run time the program is "
+        + "activated by its name from the run unit's application directory.",
+        "ISO §8.13");
+
+    /// <summary>COBOL5964 — REPO-3: the file the external repository names for a unit is not a readable managed assembly
+    /// (DESIGN-external-repository §14, §15.3).</summary>
+    public static readonly DiagnosticDescriptor RepositoryEntryUnreadable = new(
+        "COBOL5964", "repository-entry-unreadable", EditionSeverity.Error,
+        "A file the external repository search reads for a REPOSITORY specifier is not a readable managed (.NET) assembly: it "
+        + "cannot be opened, or it is not a portable executable with metadata. WiseOwl COBOL's external repository entries are "
+        + "the assemblies the compiler produced (ISO §8.13: \"any other information that the implementor requires\"); the file "
+        + "named after the unit (<name>.dll) is read first, so a stray file of that name hides nothing else but cannot answer.",
+        "ISO §8.13");
+
+    /// <summary>COBOL5965 — REPO-4: a repository entry's record or index is malformed or over the reader's limits
+    /// (DESIGN-external-repository §14, §15.2, §15.3).</summary>
+    public static readonly DiagnosticDescriptor RepositoryEntryMalformed = new(
+        "COBOL5965", "repository-entry-malformed", EditionSeverity.Error,
+        "A repository entry's record is malformed or exceeds the reader's limits: an attribute of a type the schema does not "
+        + "use, a row that names no row, descriptions that form no tree, parallel arrays of unequal length, an index of more "
+        + "than 65,536 units. Nothing an entry holds is trusted: the record is refused whole, naming the file and the fault, "
+        + "and the unit is not bound against it (ISO §8.13).",
+        "ISO §8.13");
+
+    /// <summary>COBOL5966 — REPO-5: a repository entry's description cannot be rebuilt into a data description
+    /// (DESIGN-external-repository §6.3, §14).</summary>
+    public static readonly DiagnosticDescriptor RepositoryDescriptionUnbuildable = new(
+        "COBOL5966", "repository-description-unbuildable", EditionSeverity.Error,
+        "A repository entry describes a formal parameter, returning item, type declaration or referenced prototype that cannot "
+        + "be rebuilt into a data description: an index names no row of its table, a REDEFINES or OCCURS DEPENDING ON names no "
+        + "entry of the record, or the link is one the description rules forbid. ISO §8.13 makes \"the description of the "
+        + "parameters\" and of \"the returning item\" the information a separately compiled unit is checked against, so a "
+        + "description that cannot be rebuilt is no information.",
+        "ISO §8.13");
+
+    /// <summary>COBOL5967 — REPO-7: a repository entry of another schema version, runtime major version or call ABI
+    /// (DESIGN-external-repository §15.4).</summary>
+    public static readonly DiagnosticDescriptor RepositoryEntryVersionSkew = new(
+        "COBOL5967", "repository-entry-version-skew", EditionSeverity.Error,
+        "A repository entry was written for another repository schema, compiled against another major version of the WiseOwl "
+        + "COBOL runtime, or for another call ABI (the crossing form of every item passed by a CALL) than this compiler's. Its "
+        + "signature cannot be read, or its program could not be activated by programs this compiler produces; recompile it. "
+        + "The schema version and the two versions are what the repository records beside the signature (Annex A.1 item 67, "
+        + "ISO §8.13 \"any other information that the implementor requires\").",
+        "ISO §8.13; Annex A.1 item 67");
+
+    /// <summary>COBOL5968 — REPO-8: a specifier resolves to an entry built with <c>--repository-update off</c>
+    /// (DESIGN-external-repository §9.1).</summary>
+    public static readonly DiagnosticDescriptor RepositoryEntryWithoutSignatures = new(
+        "COBOL5968", "repository-entry-without-signatures", EditionSeverity.Error,
+        "A REPOSITORY specifier resolves to an assembly compiled with --repository-update off, which carries the names of its "
+        + "units but not their signatures. ISO §8.13: \"The implementor shall provide a mechanism that allows the user to "
+        + "specify whether to update the external repository when a compilation unit is compiled\"; a compilation that did not "
+        + "update it left no information to bind against. Recompile that unit with --repository-update on (the default).",
+        "ISO §8.13");
+
+    /// <summary>COBOL5969 — REPO-9: <c>--repository-check</c> found a unit of this group whose signature differs from the
+    /// previous build of the output or from an entry of the same name (DESIGN-external-repository §9.2).</summary>
+    public static readonly DiagnosticDescriptor RepositorySignatureDiffers = new(
+        "COBOL5969", "repository-signature-differs", EditionSeverity.Warning,
+        "A program or function this compilation group defines or prototypes differs in signature from the information the "
+        + "external repository holds for it: the previous build of this output, or another entry of the same name the "
+        + "compilation read. ISO §8.13: \"The implementor shall provide a mechanism that allows the user to specify whether to "
+        + "flag differences in prototypes and definitions in the compilation group from the information in the external "
+        + "repository\" — WiseOwl COBOL's is --repository-check on (the default) and off. Callers compiled against that entry "
+        + "are checked at run time by ISO §14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments "
+        + "positionally otherwise; recompile them.",
+        "ISO §8.13");
+
+    /// <summary>COBOL5970 — REPO-10: a <c>--repository</c> directory or <c>--reference</c> file that does not exist or cannot
+    /// be listed (DESIGN-external-repository §9.3).</summary>
+    public static readonly DiagnosticDescriptor RepositoryLocationUnavailable = new(
+        "COBOL5970", "repository-location-unavailable", EditionSeverity.Error,
+        "A --repository directory does not exist or cannot be listed, or a --reference file does not exist. The command line "
+        + "names the external repository the compilation reads (DESIGN-external-repository §9.3), so a place it names that "
+        + "cannot be read is an error of the command, not an empty repository.",
+        "ISO §8.13");
+
+    /// <summary>COBOL5971 — REPO-11: a repository entry's description names a class or interface identity that nothing in
+    /// the compilation group answers (DESIGN-external-repository §6.4, §14).</summary>
+    public static readonly DiagnosticDescriptor RepositoryIdentityUnanswered = new(
+        "COBOL5971", "repository-identity-unanswered", EditionSeverity.Error,
+        "A repository entry describes an object reference to a class or an interface, by its externalized name, that no class "
+        + "or interface of this compilation group has. ISO §12.3.8.4 GR6: \"The compiler shall use the information specified for "
+        + "object-class-name-1 together with the external repository to determine the details of the class that is to be used\"; "
+        + "a formal or returning item of that class cannot be checked or passed by a group that does not know the class. Define "
+        + "or declare the class in this compilation group.",
+        "ISO §12.3.8.4 GR6");
+
+    /// <summary>COBOL5972 — REPO-12: the previous build of the output carries another schema, runtime major or call ABI, so
+    /// <c>--repository-check</c> does not compare against it (DESIGN-external-repository §9.2).</summary>
+    public static readonly DiagnosticDescriptor RepositoryPreviousBuildSkew = new(
+        "COBOL5972", "repository-previous-build-skew", EditionSeverity.Warning,
+        "The previous build of this compilation's output was written for another repository schema, runtime major version or "
+        + "call ABI, so --repository-check does not compare this group's signatures against it (ISO §8.13's \"flag "
+        + "differences\" mechanism has nothing it can read). Every caller compiled against that build must be recompiled with "
+        + "this compiler in any case.",
+        "ISO §8.13");
+
     // kb/Work PB609: the CALL side of the restricted program-pointer (§13.18.60.4 GR25). The pointer's own
     // restriction is declared and screened at its TYPEDEF (COBOL0881); this is the rule that CONSUMES it.
     public static readonly DiagnosticDescriptor CallRestrictedProgramPointerSignature = new(

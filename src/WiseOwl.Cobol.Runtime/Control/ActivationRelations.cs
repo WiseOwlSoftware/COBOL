@@ -626,18 +626,14 @@ public static class ActivationRelations
     /// <summary>⛔ THE SET RELATION'S "SAME RESTRICTION" FOR TWO CLASS POINTERS — §14.9.39.3 SR19 ("restricted to the same
     /// type"), SR20 and SR22 ("the same signature"), over their <see cref="ActivationDescription.ContentRestriction"/>s, and
     /// so the rules that send to SET: §14.8.2.3.3 ("the same as if a SET statement were performed") and §9.3.6 match rules
-    /// 4 c), 5 c) and 6. Equal restrictions are the same; so is a pair of RESTRICTED pointers either of which is restricted
-    /// to a prototype with no compile-time signature (<see cref="ActivationDescription.IsExternalRestriction"/>): ISO
-    /// §12.3.8.4 GR10 c) / GR11 c) leave that signature to the run unit, so nothing can show the two signatures differ, and
-    /// the bind-time SET relation (<c>PrototypeSignatures.Same</c>, which lets an unresolved signature conform) admits
-    /// exactly that pair (kb/Work PB3162). That stance is on the SIGNATURE only: the identity rules — §14.8.2.3.2's "of the
-    /// same type" (<see cref="RestrictedPointerTypeViolation"/>) and the clause identity of §9.3.6 3 e) and §14.8.3.3 —
-    /// compare the TO phrase by the prototype it names and never ask a signature (kb/Work PB4107). A data-pointer's
-    /// restriction is a TYPE identity and is never external.</summary>
-    private static bool SamePointerRestriction(string a, string b) =>
-        string.Equals(a, b, StringComparison.Ordinal)
-        || (a != ActivationDescription.Unrestricted && b != ActivationDescription.Unrestricted
-            && (ActivationDescription.IsExternalRestriction(a) || ActivationDescription.IsExternalRestriction(b)));
+    /// 4 c), 5 c) and 6: the restrictions are equal. Every prototype a restricted pointer names has a compile-time
+    /// signature — the group's, or the external repository entry's (ISO §12.3.8.4 GR10 c) / GR11 c), read from the
+    /// assembly that publishes it, DESIGN-external-repository §8.2) — so a program- or function-pointer's restriction is
+    /// always its signature class and a pair is the same exactly when the classes are (kb/Work PB2103 deleted the
+    /// "no compile-time signature" arm PB3162 added). The identity rules — §14.8.2.3.2's "of the same type"
+    /// (<see cref="RestrictedPointerTypeViolation"/>) and the clause identity of §9.3.6 3 e) and §14.8.3.3 — compare the TO
+    /// phrase by the prototype it names and never ask a signature (kb/Work PB4107).</summary>
+    private static bool SamePointerRestriction(string a, string b) => string.Equals(a, b, StringComparison.Ordinal);
 
     /// <summary>⛔ ISO §14.8.2.3.2's class-pointer paragraph for two pointers of one category — "If either is a restricted
     /// pointer, both shall be restricted and of the same type" — the ONE copy a BY REFERENCE argument of a CALL

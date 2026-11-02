@@ -38,6 +38,45 @@
       *> space-filled cell as byte pairs (NOT SPACES), an omitted
       *> AREA numeric read spaces, and an omitted carrier read the
       *> empty string.
+      *> kb/Work PB2103 - 12.3.8.3 SR14: the callees' definitions follow
+      *> the REPOSITORY paragraph, so the program prototype definitions
+      *> ahead of every unit (10.6.2 SR1) supply GR10 b)'s details.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB2671OA IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L1 PIC N(2).
+       01 L2 PIC NNBN.
+       01 L3 PIC 9(3).
+       01 L4 PIC S9(5) COMP-3.
+       01 L5 COMP-2.
+       01 L6.
+          05 L6N PIC N(2).
+          05 L6D PIC 9(2).
+       01 L7 PIC X(3).
+       01 L8 PIC 1(3).
+       PROCEDURE DIVISION USING OPTIONAL L1 OPTIONAL L2 OPTIONAL L3
+               OPTIONAL L4 OPTIONAL L5 OPTIONAL L6 OPTIONAL L7
+               OPTIONAL L8.
+       END PROGRAM PB2671OA.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB2671OB IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L1 PIC N(2).
+       01 L2 PIC NNBN.
+       01 L3 PIC 9(3).
+       01 L4 PIC S9(5) COMP-3.
+       01 L5 COMP-2.
+       01 L6.
+          05 L6N PIC N(2).
+          05 L6D PIC 9(2).
+       01 L7 PIC X(3).
+       01 L8 PIC 1(3).
+       PROCEDURE DIVISION USING OPTIONAL L1 OPTIONAL L2 OPTIONAL L3
+               OPTIONAL L4 OPTIONAL L5 OPTIONAL L6 OPTIONAL L7
+               OPTIONAL L8.
+       END PROGRAM PB2671OB.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2671OM.
        ENVIRONMENT DIVISION.

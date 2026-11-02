@@ -21,6 +21,7 @@ answered.
 | compile and run a first program | [Getting started](getting-started/) |
 | use the `cobol` command, its options and its editions | [User guide](user-guide/command-line/) |
 | call a COBOL program from C#, F# or Visual Basic | [.NET interoperability](dotnet-interop/) |
+| call a program or function compiled in another compilation | [Separately compiled units](separately-compiled-units/) |
 | move a program from IBM Enterprise COBOL, Micro Focus or GnuCOBOL | [Migrating](migrating/) |
 | see what changed in a release | [Release notes](release-notes/) |
 

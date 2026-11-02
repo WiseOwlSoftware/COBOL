@@ -136,23 +136,31 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>The two restrictions of a pointer restricted to program-prototype <paramref name="prototypeName"/>, which a
     /// program-address-identifier argument is described with: its TO phrase by the prototype's externalized name
     /// (<see cref="PrototypeSignatures.NamedRestriction(string)"/>) and what it may contain, the prototype's signature class
-    /// (<see cref="PrototypeSignatureClasses"/>). A name the unit's table does not hold has no compile-time signature (ISO
-    /// §12.3.8.4 GR10 c)), so its content is its external identity (<see cref="PrototypeSignatures.ExternalIdentity"/>,
-    /// kb/Work PB3162) and its TO phrase the name as written (kb/Work PB4107).</summary>
+    /// (<see cref="PrototypeSignatureClasses"/>). A name the unit's table does not hold was refused where it was declared
+    /// (a specifier no provider answers is REPO-1), and both its restrictions are its TO phrase as written (kb/Work PB4107),
+    /// which no signature class can equal.</summary>
     internal PrototypeSignatures.PrototypeRestriction ProgramRestrictionOf(string prototypeName) =>
         ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true && SignatureClasses is { } classes
             ? new(PrototypeSignatures.NamedRestriction(p.ExternalizedName), classes.Identity(RestrictedPrototype.Of(p)))
-            : new(PrototypeSignatures.NamedRestriction(prototypeName), PrototypeSignatures.ExternalIdentity(prototypeName));
+            : new(PrototypeSignatures.NamedRestriction(prototypeName), PrototypeSignatures.NamedRestriction(prototypeName));
 
     /// <summary>A program-prototype-name's bound signature, through the §8.4.6.8 scope table
     /// (<see cref="ProgramPrototypes"/>) its declaration was already screened against — THE ONE reader every
     /// signature comparison asks (the SET program-pointer pairs, the address-identifier argument, a restricted
-    /// program-pointer's CALL, kb/Work PB609). Null for a null or unknown name and for a §12.3.8.4 GR10 c)
-    /// external-repository prototype, which <see cref="PrototypeSignatures.Same"/> treats as conforming.</summary>
+    /// program-pointer's CALL, kb/Work PB609). Null for a null name and for a name the table does not hold, which was
+    /// refused where it was declared (REPO-1, or the prototype-name screen); a comparison with such a side has no
+    /// second fault to report (<see cref="SignaturesDiffer"/>).</summary>
     internal CalleeSignature? ProgramSignatureOf(string? prototypeName) =>
         prototypeName is not null && ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true
             ? p.Signature
             : null;
+
+    /// <summary>True when two looked-up prototype signatures are both known and not <see cref="PrototypeSignatures.Same"/>.
+    /// A side that is null names a prototype its tables do not hold — refused where it was declared — so the pair raises
+    /// no signature fault of its own (one fault, one diagnostic). Every name-to-name signature screen of the SET, CALL and
+    /// argument binders asks this.</summary>
+    internal static bool SignaturesDiffer(CalleeSignature? a, CalleeSignature? b) =>
+        a is not null && b is not null && !PrototypeSignatures.Same(a, b);
 
     /// <summary>The unit's RECURSIVE attribute — explicit, or inherited per §11.10.4 GR4 (kb/Work PB137:
     /// §14.9.7.3 SR1 bans COMMIT/ROLLBACK in a recursive source element). Set by BinderDriver.</summary>

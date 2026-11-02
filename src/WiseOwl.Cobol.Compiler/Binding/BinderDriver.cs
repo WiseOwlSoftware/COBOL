@@ -37,8 +37,10 @@ internal sealed class BinderDriver
     /// compile when any exist, BEFORE emit). <paramref name="turnEvents"/> are the frontend's <c>&gt;&gt;TURN</c>
     /// directive events (ISO §7.3.25) — they build the group's compile-time TurnState (EC deep-dive D10);
     /// null/empty means the GR1 default, EC-ALL CHECKING OFF.</summary>
+    /// <param name="repository">The external repository the group's specifiers resolve against when the group cannot
+    /// answer them (ISO §12.3.8.4 GR10 c) / GR11 c); DESIGN-external-repository §8.6, §9.3); none when null.</param>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
-        Frontend.Preprocessor.DirectiveResults? directives = null)
+        Frontend.Preprocessor.DirectiveResults? directives = null, RepositorySearchSpace? repository = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
         // The frontend's directive outputs travel as ONE record (kb/Work PB65); absent ⇒ every directive's default.
@@ -104,6 +106,7 @@ internal sealed class BinderDriver
             Retypes = tree.TokenRetypes,
             LeapSecond = LeapSecondState.Build(directives.LeapSecondEvents),
             CompilationVariables = directives.CompilationVariables,
+            SearchSpace = repository ?? RepositorySearchSpace.None,
         };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
@@ -182,6 +185,10 @@ internal sealed class BinderDriver
         // after every BindUnitData. So each check is a top-level statement of Bind, after this call, and
         // PrototypePointerTypeDriftTests pins that execution order.
         CheckPrototypeSignaturePairs(units, session.Edition);   // §10.6.2 SR2 / SR3
+        // ISO §8.13's "flag differences in prototypes and definitions in the compilation group from the information in
+        // the external repository" (--repository-check, REPO-9 / REPO-12; DESIGN-external-repository §9.2) — after the
+        // pointer types exist, as every signature comparison is.
+        RepositoryCheck.Run(units, session);
         OoConformance.ValidateInterfaceInheritance(table, edition);   // §11.6.3 SR5 — an inheriting interface conforms to all it inherits (kb/Work PB1502)
         OoConformance.ValidateOverrideSignatures(table, edition);   // §9.3.8.2 — after all formals resolve (slice 3a)
         OoConformance.ValidatePropertyAccessorPairs(table, edition);   // §8.4.3.9.3 SR7 — get RETURNING = set USING, over the formals just resolved
@@ -303,7 +310,7 @@ internal sealed class BinderDriver
             || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
 
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
-            anyFiles, edition.DialectLevel, session.SignatureClasses);
+            anyFiles, edition.DialectLevel, session.SignatureClasses, edition.SignEncoding);
     }
 
     /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
@@ -879,7 +886,8 @@ internal sealed class BinderDriver
     }
 
     /// <summary>Build the group's REPOSITORY specifier resolver (§12.3.8.4 GR10 / GR11 — <see cref="RepositoryResolver"/>
-    /// over <see cref="GroupRepositoryProvider"/>) — once, between the DATA phase and the first procedure body.</summary>
+    /// over <see cref="GroupRepositoryProvider"/> and <see cref="MetadataRepositoryProvider"/>, in that search order) —
+    /// once, between the DATA phase and the first procedure body.</summary>
     private static RepositoryResolver BuildRepositoryResolver(IReadOnlyList<BoundUnit> units,
                                                               IReadOnlyList<OoClassUnit> classes, BindSession session)
     {
@@ -890,7 +898,9 @@ internal sealed class BinderDriver
         CheckFunctionUnits(units, session.Edition);
         // kb/Work PB237 / PB894 / PB989 — the compilation group's program and function units, the search space
         // §12.3.8.4 GR10 / GR11 a) and b) name. Built once; each source element searches it AS OF ITS OWN POSITION.
-        return new RepositoryResolver(new GroupRepositoryProvider(units));
+        // c) is the external repository's (kb/Work PB2103): it reads nothing until a specifier the group cannot answer.
+        return new RepositoryResolver(new GroupRepositoryProvider(units),
+            new MetadataRepositoryProvider(session.SearchSpace, session.SignatureClasses, session.OoClasses, session.Edition));
     }
 
     /// <summary>⛔ Give every restricted program- or function-pointer in the group the signature class its prototype's
@@ -1179,9 +1189,7 @@ internal sealed class BinderDriver
                 || PrototypeSignatures.Same(Signature(proto), Signature(definition)))
                 continue;
             string kind = proto.IsFunction ? "function" : "program";
-            var body = proto.Ctx.identificationDivision()?.identificationBody();
-            using var _ = edition.At((ParserRuleContext?)(body?.programIdParagraph()?.programName()
-                ?? body?.functionIdParagraph()?.programName()) ?? proto.Ctx);
+            using var _ = edition.At(NameCtx(proto));
             edition.Error("COBOL1513",
                 $"{kind} prototype '{proto.Name}' and the {kind} definition '{definition.Name}' share the "
                 + $"externalized name \"{proto.ExternalizedName}\" but not a signature — the USING formals (count, "
@@ -1203,26 +1211,36 @@ internal sealed class BinderDriver
     /// CLASS's OBJECT or FACTORY forest, the class-level REPOSITORY, which §12.3.4 GR1 applies to every method —
     /// kb/Work PB1100), resolved through GR10 by <paramref name="repository"/> AS OF
     /// <paramref name="position"/> — a definition specified LATER in the group is not a) and takes the element
-    /// down to b) / c) (kb/Work PB989);</item>
+    /// down to b) / c) (kb/Work PB989), c) being the external repository's entry; a specifier none answers is REPO-1 and
+    /// is not registered (kb/Work PB2103);</item>
     /// <item>for a program <paramref name="unit"/>, its own name and every containing program definition's name,
     /// which §8.4.6.8 admits with no specifier at all — and which is also exactly what §12.3.8.3 syntax rule 15 means
     /// by "references to program-prototype-name-1 are to the named program definition and this program-specifier is
-    /// ignored": a self- or container-named specifier resolves to that definition, so registering the definition
-    /// LAST and letting it overwrite realizes SR15 without a second code path. A class forest
+    /// ignored": a self- or container-named specifier is never resolved, and the definition, registered LAST, is the
+    /// name's entry. A class forest
     /// (<paramref name="unit"/> null) has neither: a class is not a program definition and contains none.</item>
     /// </list></summary>
     internal static Dictionary<string, ProgramPrototype> ProgramPrototypesOf(
         DataBinder data, BoundUnit? unit, RepositoryResolver repository, int position)
     {
         var map = new Dictionary<string, ProgramPrototype>(CobolNames.Comparer);
+        var containing = ContainingDefinitions(unit).Where(u => !u.IsFunction).ToList();
         foreach (var (name, spec) in data.ProgramSpecifiers)
+        {
+            // §12.3.8.3 SR15: a specifier naming the element's own or a containing program definition "is ignored" — never
+            // resolved (it would take c) and draw REPO-1: a definition does not precede itself); the self entry below is
+            // the reference's target.
+            if (containing.Exists(u => CobolNames.Same(name, u.Name))) continue;
             // GR10 a) / b): the in-group definition SPECIFIED PREVIOUSLY — else the in-group program PROTOTYPE
-            // definition (kb/Work PB894) — supplies the details (RepositoryResolver.ResolveProgram, the one search).
-            // Otherwise GR10 c) — the external repository, i.e. this implementation's run-unit program registry,
-            // resolved at execution (§14.9.4.4 GR3 b)) — so the prototype is legal and simply carries no
-            // compile-time signature.
-            map[name] = new ProgramPrototype(name, spec.ExternalizedName,
-                repository.ResolveProgram(spec.ExternalizedName, position));
+            // definition (kb/Work PB894) — supplies the details; c) the external repository entry that publishes the
+            // externalized name (RepositoryResolver.ResolveProgram, the one search over both providers). None is REPO-1
+            // (SR14), at the specifier, and registers no prototype: a CALL through it is COBOL1760 (§8.2 step 4).
+            using var _ = data.Edition.At(spec.At);
+            if (repository.ResolveProgram(spec.ExternalizedName, position) is { } details)
+                map[name] = new ProgramPrototype(name, spec.ExternalizedName, details);
+            else
+                repository.ReportUnanswered(spec, function: false, name, spec.ExternalizedName, data.Edition);
+        }
         // §8.4.6.8's other spelling: "the program-name of a containing program definition" is a referable
         // program-prototype-name with NO specifier at all — the element's OWN program definition included, the one
         // set ContainingDefinitions names and DataBinder's TO-phrase screen asks (kb/Work PB3121). Registered LAST,
@@ -1268,11 +1286,11 @@ internal sealed class BinderDriver
     /// <see cref="RepositoryResolver.ResolveFunction"/> as of <paramref name="position"/> (determination D-R3,
     /// DESIGN-external-repository §8.3): §12.3.8.4 GR11 a) / b) keyed by the EXTERNALIZED name — literal-5 when the
     /// specifier writes <c>AS literal-5</c>, else the name itself (NOTE 2) — over the definitions specified BEFORE this
-    /// element and then the prototypes; when both miss, the function the WORD names (§8.4.6.7). No hit leaves the name
-    /// unmapped — GR11 c)'s external repository, which this implementation holds no compile-time signature for — and
-    /// the reference draws COBOL1505 at its use; a definition that FOLLOWS the element and has no prototype is
-    /// such a name. A hit that is NOT the function the word names, while a different function does carry the word,
-    /// warns (COBOL2969): the externalized name wins, as GnuCOBOL's does.
+    /// element and then the prototypes, then c) the external repository's entry of that externalized name; when all miss,
+    /// the function the WORD names (§8.4.6.7), in the group and then in the repository. No hit is REPO-1 at the specifier
+    /// (SR10; DESIGN-external-repository §8.3) and leaves the name unmapped; a definition that FOLLOWS the element and has
+    /// no prototype is such a name. A hit that is NOT the function the word names, while a different function does carry
+    /// the word, warns (COBOL2969): the externalized name wins, as GnuCOBOL's does.
     /// A specifier naming the function definition it is written in is IGNORED (§12.3.8.3 SR11; the definition is
     /// <see cref="ContainingDefinitions"/>' function member) and the name resolves to its own signature — registered LAST,
     /// as <see cref="ProgramPrototypesOf"/> registers its self entry. <paramref name="data"/> is a program unit's
@@ -1298,16 +1316,19 @@ internal sealed class BinderDriver
             // kb/Work PB1084); the self entry below is the reference's target.
             if (selves.Exists(u => CobolNames.Same(name, u.Name))) continue;
             own ??= new Dictionary<string, UserFunctionSignature>(group, CobolNames.Comparer);
+            using var _ = data.Edition.At(specifier.At);
             if (repository.ResolveFunction(name, specifier.ExternalizedName, position) is not { } resolved)
             {
+                // None of SR10's three alternatives, nor §8.4.6.7's word, holds: REPO-1 at the specifier (§8.3), and the
+                // name is no function of the element.
                 own.Remove(name);
+                repository.ReportUnanswered(specifier, function: true, name, specifier.ExternalizedName, data.Edition);
                 continue;
             }
 
             own[name] = resolved.Signature;
             if (resolved.Shadowed is { } shadowed)
             {
-                using var _ = data.Edition.At(specifier.At);
                 data.Edition.Warning(DiagnosticCatalog.FunctionWordNamesAnotherFunction,
                     $"FUNCTION {name} activates the function externalized \"{resolved.Signature.Externalized}\" "
                     + $"(§12.3.8.4 GR11 a) / b) take the details by externalized name), but {shadowed.Origin.Describe("function")} "
@@ -1328,7 +1349,7 @@ internal sealed class BinderDriver
     /// SYNTHETIC programUnit context Reparent builds (<c>new ProgramUnitContext(null!, -1)</c>), whose Start
     /// is null — so positioning on it silently produced a diagnostic with NO source location at all,
     /// while the outermost arm of the same message carried one. One accessor, every arm.</summary>
-    private static ParserRuleContext? NameCtx(BoundUnit u)
+    internal static ParserRuleContext? NameCtx(BoundUnit u)
     {
         var body = u.Ctx.identificationDivision()?.identificationBody();
         return (ParserRuleContext?)(body?.programIdParagraph()?.programName()

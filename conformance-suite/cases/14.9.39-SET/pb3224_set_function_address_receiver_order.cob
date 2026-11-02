@@ -11,16 +11,24 @@
 *>   cite.py: OK  §14.9.39.3 20)  (Syntax rules)
 *> GR3: "When function-prototype-name-1 is specified, the function-address-identifier has the characteristics
 *>   of a function-pointer restricted to function-prototype-name-1."   cite.py: OK  §8.4.3.12.4 3)
-*> FPE is restricted to EXTF, which this compilation group does not define (no compile-time signature,
-*> §12.3.8.4 GR11 c)), and FPD to NSDBL. The sender ADDRESS OF FUNCTION NSDBL is restricted to NSDBL, so it
-*> meets SR20 for FPD, and EXTF's signature is the external repository's to state, so the compiler cannot find
-*> it different. The statement is accepted with FPE written first and with FPD written first; the refusal
-*> twin is pb3224-set-function-address-external-first, which differs only in the sender (NSZERO).
+*> FPE is restricted to EXTF, a function prototype definition this compilation group carries but implements nowhere
+*> (§12.3.8.4 GR11 b)), of the same signature as NSDBL, and FPD to NSDBL. The sender ADDRESS OF FUNCTION NSDBL is
+*> restricted to NSDBL, so it meets SR20 for FPD and for FPE. The statement is accepted with FPE written first and
+*> with FPD written first; the refusal twin is pb3224-set-function-address-external-first, which differs only in the
+*> sender (NSZERO). (kb/Work PB2103: EXTF used to be a specifier with no information anywhere, whose signature the
+*> compiler took as unknown; such a specifier is REPO-1 now, so the prototype states the signature.)
 *> EXPECTED OUTPUT, derived line by line:
 *>   FPE-SET FPD-SET   after `SET FPE FPD TO ADDRESS OF FUNCTION NSDBL` (§14.9.39.4 GR14 stores the address in
-*>                     each receiver) neither pointer is NULL. (EXTF is not in the group, so the stored address
-*>                     is the one the run unit's registry holds for NSDBL, which is not NULL.)
+*>                     each receiver) neither pointer is NULL.
 *>   FPD-SET2 FPE-SET2 the same after the receivers are NULLed and written in the other order.
+IDENTIFICATION DIVISION.
+FUNCTION-ID. EXTF IS PROTOTYPE.
+DATA DIVISION.
+LINKAGE SECTION.
+01 L-ARG PIC S9(4).
+01 L-RES PIC S9(9).
+PROCEDURE DIVISION USING L-ARG RETURNING L-RES.
+END FUNCTION EXTF.
 IDENTIFICATION DIVISION.
 FUNCTION-ID. NSDBL.
 DATA DIVISION.
