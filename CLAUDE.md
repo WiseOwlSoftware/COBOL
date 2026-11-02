@@ -122,39 +122,29 @@ comprehensive pass once the design settles (`PROMPT.md` §4).
   (`git submodule update --init --recursive`) — needed only to render a page (`scripts/render-spec-page.py`).
 
 ## Testing
-The owner decided on 2026-09-28 (kb/Work PB1708): ORDER, DON'T SKIP. Every gate plans the whole discovered
-population of Conformance, Unit and Characterization, ordered, and no gate filters. **The gate has ONE shape (owner
-2026-10-11, kb/Work PB3015 Q1a, PB3022): `pwsh scripts/build-local.ps1 -Priority BelowNormal`** (MANDATORY-PRACTICES
-I1/I2; kb/Work PB1721) for an implementer's commit and a re-gate after a fix alike:
-the likely failures first, fail-fast, inside a gate slot that caps how many gates run at once (one shared cap, 3 by
-default, kb/Work PB2514). **Batched gating (owner 2026-10-10, kb/Work PB2515):** the gate runs leg 1 only — the
-change's own tests, the previous reds, the host-only witnesses (`[Trait("Host", "ReFS")]`, tier 0h), the cheap
-tree-wide sweeps (`[Trait("Sweep", "tree")]`, tier 0c) and the cheapest reach, or the WHOLE tier 1 when the change
-cannot be attributed precisely (owner 2026-10-31, kb/Work PB4269) — and its verdict reads `LEG 1 ONLY
-(batched gating, PB2515): GREEN|RED`; CI is the regression net and the ONLY whole-population run (owner 2026-10-11
-~11:20: "local testing confirms the targeted change; CI/CD ensures no regression on the remaining codebase"). A
-self-test whose inputs are unchanged since a recorded PASS is reused, never re-run, by every gate (kb/Work PB2914,
-PB3022). **A branch lands through ONE script, `python scripts/orchestrator/enqueue.py land <branch>`** (kb/Work
-PB3023): it reads the record of the branch's local gate (it refuses a tip none covers, exit 14), merges origin/main in,
-stamps the DEVLOG entry, runs the landing checks and queues one pull request in GitHub's merge queue (it refuses while
-the queue is not ACTIVE); there is no lander and no train. **A branch is gated locally ONCE, at its head (owner
-2026-10-23, kb/Work PB3612): leg 1 on Windows and the same plan's legs in a WSL clone of the committed head, under the
-one slot, inside that one gate. The merge with main is gated by the merge queue's CI, never re-gated locally** — except
-when bringing main in changed a file the branch also changes (a true textual merge in a shared file), where the one gate
-runs once on the merged head. Under batched gating leg 1 is the local run, so the impact map's tiers decide which cases
-it holds: the loop records a map for every main commit it adopts (owner 2026-10-24, kb/Work PB3663), a map serves a
-base file by file, and a base with no map costs the aim, never the population (CI's merge-group run). Run the comprehensive
-battery plus the GnuCOBOL differential once per accumulated batch, pre-merge, in its own worktree. **CI also runs on
-Linux, so the implementer's gate runs the Linux half of the targeted leg under WSL before a push** (`scripts/linux-gate.sh
---legs targeted`, kb/Work PB1732, PB3612); without `--legs targeted` that script runs CI's four whole Linux legs (unit,
-characterization, conformance, and CI's `guard` job), about 6 minutes, the tool that reproduces a Linux CI red on this
-box. Build `WiseOwl.Cobol.sln` (not a single project) before
-any `--no-build` run. Commands and the current battery baseline are in plan §0 "Gates" and §9.
-⛔ **THE CI INVARIANT (owner 2026-10-04): GitHub CI must never fail when the same code was tested locally by the same
-processes.** CI is the verification of the local process, never its first run. A CI red is therefore ALSO a defect in the
-local gates: find why they did not see it and fix that in the same change (a missing leg, an unpinned tool, a setting CI has
-and the local run lacks), then sweep for the others like it (rule 4). `kb/Work/PB1957` is the survey of the known
-differences and carries the drift test that maps every CI job to a local leg or to a recorded reason it cannot run locally.
-**CI and every local host run the SAME tool versions, and those are the LATEST releases** (owner 2026-10-28: "CI and
-local should always be using the latest version"; kb/Work PB4007): one toolchain manifest names each version, everything
-installs from it, and a version is never left to a runner image or to whatever a host happens to have.
+The owner decided on 2026-10-31 (kb/Work PB4323): THE POPULATION IS THE PLAN. **The gate has ONE shape:
+`pwsh scripts/build-local.ps1 -Priority BelowNormal`** (`scripts/gate.py`), run once at a branch's head before it is
+enqueued, and after every fix. It decides a lane from the diff's paths: an **inert** change (`inert_lane.py classify`,
+proven by the inotify watch in CI) runs the tree audits (≈ 40 s); a **tooling** change (`scripts/`, `.github/`, `tools/`,
+`.claude/`, any `*.py`/`*.ps1`/`*.sh`) runs the audits and the self-tests whose recorded inputs it touches, with no build
+(kb/Work PB4395: the tooling a compiler test or the build reads, `inert_lane.py`'s `CODE_READS`, and a script outside
+those four trees are code; the same watch proves it); every other change is a **code** change and runs the build once and the WHOLE Unit, Conformance and
+Characterization populations on Windows, three assemblies at once, longest collections first, the audits beside them.
+There is no impact map, no tier, no selected leg and no Linux half per change; the inner loop (`dotnet test --filter` by
+hand) is the agent's and claims nothing. **A branch lands through ONE script, `python scripts/orchestrator/enqueue.py
+land <branch>`** (kb/Work PB3023): it refuses a tip no GREEN record covers (exit 14), merges `origin/main` in, stamps the
+DEVLOG entry, runs the landing checks and queues one pull request in GitHub's merge queue; it never gates the merged
+head. **The merge group is the whole-population net on both OSes** (12 time-weighted shards, the audits with every Linux
+self-test, the Windows self-tests when a tooling path changed) and the ONLY run of the merged tree, of Linux and of
+Release. A nightly runs the CLI NIST guard, every self-test on both OSes and the GnuCOBOL differential. Build
+`WiseOwl.Cobol.sln` (not a single project) before any `--no-build` run. Commands and the current baseline are in plan §0
+"Gates" and §9.
+⛔ **THE RULE (owner 2026-10-31, replacing the CI invariant of 2026-10-04): every case the merge group runs on Windows
+already ran green at the pushed head, on this host, under the same `toolchain.env`.** The merge group is therefore the
+FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling self-tests on
+a tooling change, and (e) GitHub's runners; a merge-group red is one of those five, a flake, or infrastructure — never
+an untested case. The landing lane classifies every red against the branch's gate record (PB4271) before anyone is
+blamed: INFRA and RUNNER re-queue once automatically; MERGE and a genuine red go to a finisher; a flake is a kb/Work
+defect fixed at its root, never retried inside the run. A red of class (b), (c) or (e) is ALSO a finding against the
+pipeline's record of that class, filed with its rate (`kb/Work/PB1957`). **CI and every local host run the SAME tool
+versions, the LATEST releases** (owner 2026-10-28; kb/Work PB4007): one toolchain manifest, everything installs from it.

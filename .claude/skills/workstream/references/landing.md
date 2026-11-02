@@ -57,11 +57,10 @@
   queued, nothing red) is the same: the lane retries it once none does (kb/Work PB3642); exit 13 (another
   `land` of the branch holds the worktree's land lock, kb/Work PB3310) is the same: nothing ran, the lane retries it
   once the lock is free. A gate NOT RUN (it
-  measured nothing) goes by its cause's class in `gate.NOT_RUN_CAUSES` (kb/Work PB3526): an ENVIRONMENT cause
-  (malformed gate settings, a host with no WSL, Python or SDK) is exit 2 with no BLOCKED line, retried once and a second
-  time the operator's handoff; a BRANCH cause (code the gated tree carries failed: the driver, the population listing,
-  no verdict line) is measured on main at the same step, and blocks like a red (exit 5, a finisher's) unless main fails
-  the same way (then exit 2, the operator's).
+  measured nothing) goes by its cause's class in `gate.NOT_RUN_CAUSES` (kb/Work PB3526): the landing runs no gate (kb/Work
+  PB4331), so the only one it reads is its own merge of main's (`merge-blocked`: exit 2, retried once; `merge-failed`:
+  exit 5, a finisher's). A gate of the worktree that runs or is starting when the landing would write it is exit 12,
+  GATE BUSY, whatever record exists (kb/Work PB4204): the lane lands the head again once the gate lock is free.
   After `ENQUEUED` the
   lane's QUEUE WATCH follows the pull request into the merge queue: a NOT QUEUED pull request past the grace gets a
   re-run of its stuck check, then a close, reopen and re-queue, then a mailbox question to the operator. A stop resolved with no new commit is landed again only when the enqueue
@@ -70,7 +69,7 @@
 - **No landing takes a lease: the merge queue orders main (kb/Work PB2537, PB3023 review R1-1, PB3024).** Main
   refuses a direct push (the ruleset binds administrators), so every waiting branch is enqueued at once and main moving
   under a gate is merged in by the script. The direct-push landing script, the landing lease that serialized it and its
-  `ci/` landing branches are deleted (kb/Work PB3024's closing change; `LandingPipelineDriftTests` keeps them out).
+  `ci/` landing branches are deleted (kb/Work PB3024's closing change; `scripts/orchestrator/landing_rules.py --self-test` keeps them out).
 - ⛔ **No branch is left undecided (MANDATORY-PRACTICES O10, owner 2026-10-08, kb/Work PB2600).** After every landing,
   `python scripts/prune_worktrees.py` (the lifecycle survey) then `--apply`, which deletes the LANDED branches; a branch
   that will not land is ABANDONED by a line in its kb/Work note (the word ABANDONED directly after the branch's name, then the reason) and
@@ -118,7 +117,8 @@
   (`git worktree add --detach <path> <sha>`), never stash/build/probe/pop.
 - The GPL GnuCOBOL corpus (`tests/external/gnucobol`) is git-ignored and **per worktree**. The gate (`scripts/gate.py`) fetches it
   when absent (train 23), so a fresh implementer or lander worktree measures the population from its first gate;
-  `ExternalCorpusPopulationDriftTests` is RED BY DESIGN without it (`kb/Work/PB209`). ⛔ **The two population reds are NOT
+  the population gate (`scripts/corpus_sweep.py --self-test`, which applies the same rule itself) is RED BY DESIGN
+  without it (`kb/Work/PB209`). ⛔ **The two population reds are NOT
   "the known worktree shape" any more** (`kb/Work/PB897`): the fetch was broken on every host whose PATH `tar` is GNU tar —
   it deleted the corpus and then failed to extract — so those reds were permanent and everyone was told to ignore them.
   The fetch now stages and swaps, tries each `tar` it can find, and prints one `FETCH FAILED: <cause>` line; a failed fetch

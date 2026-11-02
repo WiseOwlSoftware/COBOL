@@ -21,7 +21,7 @@ and apt said nothing (kb/Work PB4007).
 TOOLS below is the ONE table of the tools: the manifest names exactly its keys and OTHER_KEYS; CI's setup-toolchain
 installs exactly the rows that run in CI and come from scripts/install-tool.sh (`ci-installs`); install-tool.sh's
 TOOL_INSTALLABLE is exactly the install-tool rows (`check` refuses otherwise, in every CI job and every gate); and
-ToolchainManifestDriftTests reads the rows from this file's text instead of keeping a list of its own. So a new tool is
+scripts/toolchain_audit.py imports the rows instead of keeping a list of its own. So a new tool is
 one row here, one manifest line and, for an install-tool row, one `tool_spec` arm in install-tool.sh.
 
 git is the runner image's in CI. actions/checkout runs it before any repository file exists, and no publisher ships a
@@ -84,7 +84,7 @@ Latest = Callable[[Callable[[str], str], dict[str, str]], Release]
 class Tool:
     """One tool of the manifest: its name, its manifest key, how it reports its version, how a host gets it, where it
     runs, where its newest stable release is read, and the one OS it applies on (`platform.system()`, None on every
-    OS). Each row of TOOLS is written on one line: ToolchainManifestDriftTests reads them from this file's text."""
+    OS)."""
     name: str
     key: str
     command: tuple[str, ...] | None     # None: the interpreter running this script (the gate's own $PY)
@@ -189,7 +189,7 @@ TOOLS: tuple[Tool, ...] = (
     Tool("semgrep", "SEMGREP_VERSION", ("semgrep", "--version"), r"(\d+\.\d+\.\d+)\s*$", UV_TOOL, HOST, _pypi("semgrep")),
 )
 #: Manifest lines that name no tool of their own: the semgrep interpreter exception and the CI runner labels, which the
-#: workflow's `runs-on:` lines must equal (ToolchainManifestDriftTests).
+#: workflow's `runs-on:` lines must equal (scripts/toolchain_audit.py).
 OTHER_KEYS = ("SEMGREP_PYTHON_VERSION", "CI_LINUX_IMAGE", "CI_WINDOWS_IMAGE")
 
 

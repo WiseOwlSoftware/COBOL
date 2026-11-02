@@ -30,7 +30,8 @@ internal static class SpecClauseText
     /// the standard heads 321 clauses "General format(s)", one "General forms" (§14.9.7.2) and one "General format."
     /// with a period (§7.3.23.2). Four drift guards each wrote <c>General formats?</c> privately and all four skipped
     /// the other two. Compose a pattern from this; the Python reader of the same question is
-    /// <c>scripts/spec/spec_headings.py</c>, and <c>CatalogCoverageDriftTests</c> fails when either is re-typed.</summary>
+    /// <c>scripts/spec/spec_headings.py</c>; <c>CatalogCoverageDriftTests</c> fails when the C# is re-typed and
+    /// <c>spec_headings.py --self-test</c> when a script re-types the Python.</summary>
     public const string GeneralFormatNoun = @"General\s+form(?:at)?s?\.?";
 
     /// <summary>A numbered general-format heading line in the transcription: capture <c>num</c> is the clause.</summary>

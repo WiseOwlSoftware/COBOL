@@ -2,7 +2,7 @@
 """external_corpus.py — THE ONE RULE for obtaining the git-ignored GnuCOBOL corpus in a tree (kb/Work PB2611).
 
     python scripts/external_corpus.py ensure [--repo <tree>]   # fetch when absent; exit 1 on a failed fetch
-    python scripts/external_corpus.py --self-test
+    python scripts/external_corpus.py --self-test    # the rule's arms, the fetch's own -SelfTest, the real scripts
 
 ⚖ The corpus is GPL-3.0, never committed, and lives per WORKTREE (and per clone) in `tests/external/gnucobol/`
 (kb/Work PB209, PB277). `scripts/fetch-gnucobol-tests.ps1` is the fetch itself (pinned 3.2, sha256-verified,
@@ -12,13 +12,13 @@ around it:
   1. the corpus is PRESENT when its marker `tests/external/gnucobol/tests/testsuite.src` exists — then nothing runs;
   2. otherwise the fetch script runs in that tree;
   3. a fetch that exits non-zero, or that exits 0 and still leaves no marker, is ONE named red,
-     `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`: the population ExternalCorpusPopulationDriftTests and the
+     `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`: the population scripts/corpus_sweep.py's self-test and the
      GnuCOBOL differential measure is then unmeasured, and every red they show is attributable to it.
 
 ⛔ WHY ONE MODULE. Battery #89 (2026-10-08) read NOT GREEN at a green tree because `scripts/battery.sh` had no fetch at
 all while the gate driver had one; the impact-map recorder, the Linux gate and the cloud session hook each carried a
 fourth, fifth and sixth spelling of the rule. Every caller now imports `ensure` (python) or runs `ensure` (shell), and
-`ExternalCorpusFetchTests` fails when any other script invokes the fetch script directly. CI's two fetch steps are the
+this module's `--self-test` fails when any other script invokes the fetch script directly. CI's two fetch steps are the
 one recorded exception: a fresh checkout never holds the corpus, and the step's own exit status is the red.
 
 Exit codes of `ensure`: 0 present or fetched · 1 FETCH FAILED.
@@ -71,11 +71,79 @@ def ensure(tree: Path, say: Callable[[str], None] = print, run: Runner = _attach
     if rc != 0 or not present(tree):
         cause = f"exit {rc}" if rc != 0 else f"exit 0 but no {MARKER.as_posix()}"
         say(f"=== EXTERNAL CORPUS: FETCH FAILED ({cause}; the FETCH FAILED line above names the cause) — the "
-            "ExternalCorpusPopulationDriftTests reds and the GnuCOBOL differential's `corpus absent` are ATTRIBUTABLE "
+            "population reds of corpus_sweep.py --self-test and the GnuCOBOL differential's `corpus absent` are ATTRIBUTABLE "
             "TO IT, and the run is RED because it could not measure that population ===")
         return [FETCH_FAILED]
     say("=== EXTERNAL CORPUS: fetched ===")
     return []
+
+
+# ── the fetch's own gate (kb/Work PB897) ─────────────────────────────────────────────────────────────────────────
+# The fetch carried three faults that together made the population gate RED in every fresh worktree, permanently: it
+# DELETED the corpus before an extraction it then failed to perform; it passed the archive as a drive-letter path, which GNU
+# tar reads as `host:path` and Windows' bsdtar accepts; and Git-for-Windows' GNU tar cannot read a `.tar.xz` at all. Which
+# tar was first on PATH decided whether the corpus existed, per machine, so the population reds became "the known worktree
+# shape" every brief told agents to ignore: a red everyone is told to ignore is a gate that has stopped gating. Its
+# `-SelfTest` drives `Invoke-CorpusExtraction`, the REAL function the real fetch calls, against a synthetic `.tar.xz` in a
+# temporary sandbox (no network, no repository state), the FAILURE branches included; the self-test below runs it and
+# reads the individual check lines, since a self-test quietly reduced to its happy path would still print PASS. A missing
+# PowerShell is a LOUD failure, never a skip: pwsh is how CI runs the fetch, so a host without it cannot fetch either.
+
+#: The fetch self-test's named checks, each one of PB897's faults driven.
+FETCH_CHECKS = (
+    "a .tar.xz fixture can be produced",                       # fault 3: some tar here speaks xz
+    "a good archive extracts and swaps in",                    # fault 2, and fault 1 on a GNU-tar host
+    "the PREVIOUS corpus survived the failed extraction",      # fault 2: the whole of it
+    "the corpus survived the missing-member failure",
+    "no staging directory is left behind",
+)
+#: The tar invocations of the fetch script, by the variables that hold the tar it chose and the one it made the fixture
+#: with. Keyed on the INVOCATIONS, not the file: the prose that explains why `--force-local` is wrong names it.
+TAR_CALL = ("$tarExe ", "$mkTar ")
+#: The files that may name the fetch script outside a comment: the rule and the fetch itself.
+FETCH_OWNERS = ("scripts/external_corpus.py", FETCH_SCRIPT.as_posix())
+SCRIPT_KINDS = (".py", ".sh", ".ps1", ".psm1")
+
+
+def fetch_self_test(repo: Path = REPO) -> tuple[str, int | str]:
+    """The fetch script's `-SelfTest`: (its output, its exit code, or why it could not start)."""
+    try:
+        r = subprocess.run([*fetch_command(repo), "-SelfTest"], cwd=repo, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace")
+    except OSError as exc:
+        return "", f"could not start pwsh: {exc} — the fetch is a PowerShell instrument, so this host cannot fetch either"
+    return r.stdout + r.stderr, r.returncode
+
+
+def tracked_scripts(repo: Path = REPO) -> list[str]:
+    """The tracked script files under scripts/ (`git ls-files`: an untracked scratch file is never judged)."""
+    out = subprocess.run(["git", "-c", "core.quotePath=false", "ls-files", "-z", "--", "scripts/"], cwd=repo,
+                         capture_output=True, text=True, encoding="utf-8", check=True).stdout
+    return sorted(p for p in out.split("\0") if p.endswith(SCRIPT_KINDS))
+
+
+def fetch_invocations(repo: Path = REPO) -> tuple[set[str], list[str]]:
+    """(the owners that name the fetch script outside a comment, every other script line that does): ONE fetch rule in
+    ONE place (kb/Work PB2611), so every gate, the battery, the Linux gate and the cloud hook obtain the corpus the same
+    way. Battery #89 read NOT GREEN at a green tree because battery.sh had no fetch while the gate driver had one."""
+    name = FETCH_SCRIPT.name
+    seen: set[str] = set()
+    strays: list[str] = []
+    for rel in tracked_scripts(repo):
+        for line in (repo / rel).read_text(encoding="utf-8", errors="replace").splitlines():
+            if name not in line or line.lstrip().startswith("#"):
+                continue
+            if rel in FETCH_OWNERS:
+                seen.add(rel)
+            else:
+                strays.append(f"{rel}: {line.strip()}")
+    return seen, strays
+
+
+def tar_invocations(repo: Path = REPO) -> list[str]:
+    """The fetch script's tar invocation lines."""
+    text = (repo / FETCH_SCRIPT).read_text(encoding="utf-8")
+    return [x.strip() for x in text.splitlines() if any(c in x for c in TAR_CALL)]
 
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -130,6 +198,21 @@ def _self_test(root: Path) -> int:
     reds, calls, said, _ = planted("no-pwsh", has=False, raises=True)
     arm("a fetch that cannot start (no pwsh) is the named FETCH FAILED red, never a crash",
         reds == [FETCH_FAILED] and any("could not start" in s for s in said), f"{reds} {said}")
+
+    # THE FETCH ITSELF (kb/Work PB897, PB4395: until then ExternalCorpusFetchTests, a compiler test, held these three).
+    out, rc = fetch_self_test()
+    missing = [c for c in FETCH_CHECKS if c not in out]
+    arm("the fetch's own -SelfTest passes and still drives each of PB897's faults, the failure branches included: the "
+        "extraction never destroys a corpus it cannot replace",
+        rc == 0 and not missing and "=== FETCH SELF-TEST: PASS" in out, f"exit {rc}; checks no longer driven {missing}\n{out}")
+    seen, strays = fetch_invocations()
+    arm("only the rule invokes the fetch script: no other script under scripts/ names it outside a comment (kb/Work "
+        "PB2611), and the scan sees the rule's own reference",
+        "scripts/external_corpus.py" in seen and not strays, f"seen {sorted(seen)}; strays {strays}")
+    tar = tar_invocations()
+    arm("the fetch never passes --force-local to tar (bsdtar refuses it, so it moves PB897's failure to the other "
+        "machine), and the scan sees at least two tar invocations", len(tar) >= 2 and not any("--force-local" in x for x in tar),
+        tar)
 
     ok = all(results)
     print(f"external_corpus SELF-TEST: {'PASS' if ok else 'FAIL'} ({sum(results)}/{len(results)} arms)")
