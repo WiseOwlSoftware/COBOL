@@ -67,6 +67,28 @@ public sealed class WrittenKindRefusalTests
         + "only a numeric literal or the figurative constant ZERO is expected at this position")]
     [InlineData("call-returning-literal", 2023, Table + "       PROCEDURE DIVISION.\n           CALL \"P\" RETURNING 5.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: no literal is expected at this position")]
+    // ⛔ A RESERVED WORD WHERE AN OPERAND IS DUE (kb/Work PB4301, PB4426): the TIMES of `OCCURS 0 TO TIMES` stands where
+    // integer-2 is due (ISO §13.18.38.2), so the element before it is incomplete and the position's own operand is named;
+    // the user-defined words are one element (the context words cobolWord also takes are spellings of it). The WHEN of
+    // `DISPLAY WHEN OTHER` is the same fault for DISPLAY's operand (§14.9.11.2).
+    [InlineData("occurs-to-without-integer-2", 2023,
+        "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
+        + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
+        "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected a user-defined word or an "
+        + "integer literal (ISO §5.2.1).")]
+    [InlineData("occurs-to-without-integer-2-85", 85,
+        "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
+        + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
+        "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected a user-defined word or an "
+        + "integer literal (ISO §5.2.1).")]
+    [InlineData("display-operand-before-when", 2023,
+        Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 DISPLAY WHEN OTHER DISPLAY \"O\" END-EVALUATE.\n           STOP RUN.\n",
+        "COBOL5506: unexpected 'WHEN'. The word WHEN is not expected here: expected a user-defined word, FUNCTION, LENGTH")]
+    // The control: a reserved word after an operand that is WHOLE (the FROM of `NUMVAL(A FROM 1)` may be followed by ')' or a
+    // qualifier) is not "an operand is expected": the set holds punctuation, and nothing false is said.
+    [InlineData("reserved-word-after-a-whole-argument", 2023,
+        Table + "       PROCEDURE DIVISION.\n           MOVE FUNCTION NUMVAL(W-X FROM 1 FOR 4) TO W-N.\n           STOP RUN.\n",
+        "COBOL0001: cannot parse construct near 'FROM'")]
     // ⛔ A VERB SHARED WITH ANOTHER CLAUSE IS NO STATEMENT POSITION (kb/Work PB4201). DISPLAY is a statement's opening word
     // AND a USAGE keyword, so the one-token overlap made `USAGE 5` an "open" position and left it the bare COBOL0001; the
     // usage keywords the edition has (ISO §13.18.60.2: [USAGE IS] followed by the usage) are named instead, the 2002
@@ -120,10 +142,39 @@ public sealed class WrittenKindRefusalTests
     // the sentence says nothing of the words it takes, only that a literal begins no statement.
     [InlineData("literal-after-a-condition", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 5 CONTINUE END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+    // PB4426: the same sentence at each edition, for the selection object (a THRU may lengthen it) and the condition.
+    [InlineData("literal-after-when-85", 85, Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 5 END-EVALUATE.\n           STOP RUN.\n",
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-when-2002", 2002, Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 5 END-EVALUATE.\n           STOP RUN.\n",
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-when-2014", 2014, Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 5 END-EVALUATE.\n           STOP RUN.\n",
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-a-condition-2002", 2002, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 5 CONTINUE END-IF.\n           STOP RUN.\n",
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-a-condition-2014", 2014, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 5 CONTINUE END-IF.\n           STOP RUN.\n",
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-a-relation", 85, Table + "       PROCEDURE DIVISION.\n           IF W-N = W-X 5 CONTINUE END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("user-word-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN FOO END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected 'FOO'. The word 'FOO' is not expected here: " + AStatementIsNoWord)]
+    // ⛔ A LITERAL WHERE THE NEXT SENTENCE BEGINS (kb/Work PB4425): the period ends the sentence (ISO §14.5.1), so the
+    // next one may begin at the literal, wherever the period stood: after a sentence, an END-IF, a paragraph header, a
+    // section header, the division header. The parser itself has left the procedure division by then.
+    [InlineData("literal-after-a-sentence", 2023, Table + "       PROCEDURE DIVISION.\n           DISPLAY \"A\". \"B\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+    // (An integer there is not this row: a paragraph-name need not contain a letter, ISO §8.3.2.2 3), so `5 DISPLAY "C".`
+    // is a header whose period is missing, which hint 14 says.)
+    [InlineData("literal-after-a-sentence-85", 85, Table + "       PROCEDURE DIVISION.\n           DISPLAY \"A\". \"B\" DISPLAY \"C\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-end-if", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 DISPLAY \"A\" END-IF. \"B\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("figurative-after-a-paragraph-header", 2014, Table + "       PROCEDURE DIVISION.\n       P1.\n           SPACES.\n           STOP RUN.\n",
+        "COBOL5506: unexpected 'SPACES'. The word SPACES is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-a-section-header", 2002, Table + "       PROCEDURE DIVISION.\n       S1 SECTION.\n       P1.\n           DISPLAY \"A\".\n"
+        + "       S2 SECTION.\n           \"B\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-the-division-header", 2023, Table + "       PROCEDURE DIVISION.\n           \"B\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
     public void AWrittenKindThePositionDoesNotExpect_IsNamedOnce(string name, int edition, string source, string expected)
     {
         string text = Head + source;

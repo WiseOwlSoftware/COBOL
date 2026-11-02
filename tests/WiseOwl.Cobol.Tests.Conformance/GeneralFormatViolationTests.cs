@@ -34,7 +34,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// PB3428 and PB3861 the rows whose token stands where the parse expects only nameable elements, or a literal of
 /// another category, draw COBOL5506 naming what is expected there: OPEN F1 expects EXTEND, I-O, INPUT or OUTPUT (PBGF40),
 /// PERFORM VARYING … BY 1 expects UNTIL (PBGF12), CALL … RETURNING 5 expects no literal (PBGF23, which drew the
-/// guess COBOL0308 "a data-name is expected here"). Since kb/Work PB4133 every refused row draws exactly ONE
+/// guess COBOL0308 "a data-name is expected here"). Since kb/Work PB4301 a reserved word where an operand is due draws
+/// COBOL5506 naming the operand: PBGF25 (SET TO), PBGF32 (the USING of MERGE), PBGF34 (WRITE … FROM), PBGF37 (READ … INTO)
+/// and PBGF42 (the second mode of OPEN). Since kb/Work PB4133 every refused row draws exactly ONE
 /// diagnostic: PBGF04, 07 and 10 (a statement where the IF, WHEN or UNTIL operand is required) drew a false COBOL2072
 /// after the true COBOL0001, and PBGF32 a second one at the GIVING, when ANTLR's single-token deletion repaired the
 /// wrong element.</para>
@@ -72,26 +74,26 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF23", "CALL \"PBSUB\" RETURNING 5", "COBOL5506")]
     [InlineData("PBGF24", "CALL \"PBSUB\" USING W-A USING W-B", "COBOL2269")]
     // SET (M420) — a receiving operand is required; UP BY / DOWN BY is one brace choice over index-names.
-    [InlineData("PBGF25", "SET TO 5", "COBOL0001")]
+    [InlineData("PBGF25", "SET TO 5", "COBOL5506")]
     [InlineData("PBGF26", "SET W-N UP BY 1", "COBOL2112")]
     [InlineData("PBGF27", "SET IX UP BY 1 DOWN BY 1", "COBOL2269")]
     // SORT / MERGE (M422, M423) — the file format's ON … KEY phrase is a brace group, data-name-1 unbracketed.
     [InlineData("PBGF28", "SORT SW USING F1 GIVING F2", "COBOL1757")]
     [InlineData("PBGF29", "SORT SW ON ASCENDING KEY USING F1 GIVING F2", "COBOL1757")]
     [InlineData("PBGF31", "MERGE SW USING F1 F2 GIVING F3", "COBOL5506")]
-    [InlineData("PBGF32", "MERGE SW ON ASCENDING KEY USING F1 F2 GIVING F3", "COBOL0001")]
+    [InlineData("PBGF32", "MERGE SW ON ASCENDING KEY USING F1 F2 GIVING F3", "COBOL5506")]
     // WRITE (M424) — a written FROM needs its operand, once; ADVANCING takes an integer or identifier.
-    [InlineData("PBGF34", "WRITE R1 FROM", "COBOL0001")]
+    [InlineData("PBGF34", "WRITE R1 FROM", "COBOL5506")]
     [InlineData("PBGF35", "WRITE R1 AFTER ADVANCING \"A\" LINES", "COBOL2365")]
     [InlineData("PBGF36", "WRITE R1 FROM W-A FROM W-B", "COBOL2269")]
     // READ (M425) — a written INTO needs its operand; AT END once; KEY only for an indexed file.
-    [InlineData("PBGF37", "READ F1 INTO", "COBOL0001")]
+    [InlineData("PBGF37", "READ F1 INTO", "COBOL5506")]
     [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL2269")]   // named since kb/Work PB3830 (§14.5.3.3)
     [InlineData("PBGF39", "READ F1 KEY IS W-A", "COBOL0864")]
     // OPEN / CLOSE (M426) — a mode is required, one per file group; CLOSE names a file.
     [InlineData("PBGF40", "OPEN F1", "COBOL5506")]
     [InlineData("PBGF41", "CLOSE W-A", "COBOL1639")]
-    [InlineData("PBGF42", "OPEN INPUT OUTPUT F1", "COBOL0001")]
+    [InlineData("PBGF42", "OPEN INPUT OUTPUT F1", "COBOL5506")]
     public void AStatementOutsideItsGeneralFormat_IsRefused(string pid, string statement, string code)
     {
         var (ok, diagnostics) = EditionHarness.Compile(Program(pid, statement), 2023);

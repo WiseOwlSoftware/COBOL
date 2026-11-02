@@ -506,12 +506,12 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData("MOVE W-X TO", "ADD 1 TO.", "DISPLAY W-Y.", "ADD", "COBOL0001: unexpected '.'")]
     [InlineData("MOVE W-X TO", "SEND TO W-X.", "DISPLAY W-Y.", "SEND", "COBOL5506")]
     [InlineData("MOVE W-X TO", "DISPLAY W-Y UPON.", "DISPLAY W-Y.", "DISPLAY", "COBOL0001: unexpected '.'")]
-    [InlineData("MOVE W-X TO", "ADD 1 TO", "DISPLAY W-Y.", "ADD", "COBOL0001: unexpected 'DISPLAY'")]
-    [InlineData("MOVE W-X TO", "ADD 1 TO", "MOVE W-X TO W-Y.", "ADD", "COBOL0001: unexpected 'MOVE'")]
-    [InlineData("MOVE W-X TO", "DISPLAY W-Y UPON", "DISPLAY W-Y.", "DISPLAY", "COBOL0001: unexpected 'DISPLAY'")]
+    [InlineData("MOVE W-X TO", "ADD 1 TO", "DISPLAY W-Y.", "ADD", "COBOL5506: unexpected 'DISPLAY'")]
+    [InlineData("MOVE W-X TO", "ADD 1 TO", "MOVE W-X TO W-Y.", "ADD", "COBOL5506: unexpected 'MOVE'")]
+    [InlineData("MOVE W-X TO", "DISPLAY W-Y UPON", "DISPLAY W-Y.", "DISPLAY", "COBOL5506: unexpected 'DISPLAY'")]
     [InlineData("MOVE W-X TO", "SEND TO W-X", "DISPLAY W-Y.", "SEND", "COBOL5506")]
     [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "END-IF.", "ADD", "COBOL0306")]
-    [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "ELSE DISPLAY W-Y.", "ADD", "COBOL0001: unexpected 'ELSE'")]
+    [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "ELSE DISPLAY W-Y.", "ADD", "COBOL5506: unexpected 'ELSE'")]
     [InlineData("PERFORM UNTIL W-N = 1 MOVE W-X TO", "ADD 1 TO", "END-PERFORM.", "ADD", "COBOL0001: unexpected 'END-PERFORM'")]
     public void AReservedVerbBeginningAnIncompleteNextStatement_IsNotCalledAMisusedName(
         string incomplete, string statement, string after, string word, string secondFault)
@@ -554,7 +554,7 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData("MOVE W-X TO RECEIVE W-Y", "ADD 1 TO.", "RECEIVE", "COBOL0001: unexpected '.'")]
     [InlineData("MOVE W-X TO SEND W-Y", "DISPLAY W-Z\n    DISPLAY W-Z UPON.", "SEND", "COBOL0001: unexpected '.'")]
     [InlineData("MOVE W-X TO RECEIVE W-Y",
-        "DISPLAY W-Z\n    ADD 1 TO W-N\n    DISPLAY W-X\n    MOVE W-Y TO W-Z\n    DISPLAY W-Z UPON", "RECEIVE", "COBOL0001: unexpected 'STOP'")]
+        "DISPLAY W-Z\n    ADD 1 TO W-N\n    DISPLAY W-X\n    MOVE W-Y TO W-Z\n    DISPLAY W-Z UPON", "RECEIVE", "COBOL5506: unexpected 'STOP'")]
     public void AReservedVerbOperandCarryingTheSentenceToALaterFault_IsStillCalledAMisusedName(
         string head, string tail, string word, string laterFault)
     {

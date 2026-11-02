@@ -1556,6 +1556,81 @@ target:
   `CobolErrorStrategy.Resynchronize` keys the guard on (state, invoking state): a loop failing again re-enters the same
   state from the same call and still consumes, and at one token the pairs are finite, so every recovery still makes
   progress. `EndErrorCondition` clears it as the base clears its own.
+- ⛔ **Inside a unit that ends at a period, a token only the structure AROUND the unit takes is a resynchronization
+  point only where that structure resumes** (kb/Work PB4299; ISO §14.4.3). ANTLR's recovery set is the union of what
+  may follow every rule on the stack, one token deep and predicate-blind, so the rules around a sentence put a
+  paragraph header's first token, a user-defined word, in it. A fault whose sentence tail held such a word with no
+  period after it (`IF A = 1 THEN ADD TO A END-IF.`) stopped there, the paragraph list could not take the word, and the
+  procedure division's own recovery swallowed every later sentence and its faults. `ConsumeUntil` now splits the set:
+  what the rules from the parser up to the innermost period-terminated unit hold (`UnitTailDiscard.HeldWithin`, plus
+  what the caller added, a loop's continuation) still stops it; a token held only by the rules around the unit stops
+  it only where `UnitTailDiscard.Resumes` holds (the tail discard's two-token test, so `word.` is the unit's own last
+  operand, never a header). The unit's period then ends the sentence and the next one is parsed afresh.
+- ⛔ **A construct whose own prediction failed ahead of it is not re-parsed from its first token** (kb/Work PB4299
+  R10). Where the rule that failed began at the decision's first token and every alternative died later (`ADD TO
+  "X"`), `Recover` consumes that first token before resynchronizing: resuming at it, every enclosing list predicted the
+  same malformed statement again and gave up in turn, so the IF around it ended and its ELSE branch and END-IF were
+  parsed as the sentence's. Not where the report retyped the word ahead for a fresh parse (PB4218), never a period.
+- ⛔ **The terminator of a statement the recovery left is that statement's own** (kb/Work PB4382; ISO §14.5.3.2 1),
+  §14.5.3.3 1) c)). A fault caught by the rule of a statement an explicit scope terminator closes ends that rule (the
+  generated rule reports, recovers and returns): `IF W-N = 1 ELSE …` fails at the THEN?/block decision of the IF itself,
+  so the IF returned and its END-IF met no open IF, a false COBOL0306. `Recover` records each such statement it leaves
+  (and the statement a consumed first token opens; `Report` does the same for the constructs a prediction closed early
+  when it carries a report into them), and a terminator of that statement's kind later in the same unit that no open
+  statement owns (hint 13's test), no separator period between, is consumed with the statement's tail and reported nothing: the most recent record of its kind first,
+  as §14.5.3.2 pairs a terminator with the most recently preceding unterminated statement. `NoteLeft` is the one place a
+  record is made: once per statement (the carried report and the failed rule name the same one), and not for a statement
+  whose fault stands AT its own terminator (`IF W-N = 1 END-IF`: the empty block is that one fault, the END-IF is consumed
+  with it by `Recover`: left to the resynchronization, an ENCLOSING statement whose recovery set holds the same word would
+  take it; a terminator met later is a stray one, COBOL0306). A record keeps the nearest enclosing statement of ANOTHER kind
+  and dies with it: that statement's terminator terminated the left one too (§14.5.3.2 2)), so a later terminator of the
+  left one's kind is stray (`PERFORM … IF A END-PERFORM DISPLAY "X" END-IF`); an enclosing statement of the SAME kind is
+  no boundary (§14.5.3.2 1): the first END-IF is the left IF's wherever the parse nested it). `NoteLeftBefore` records the
+  statement the prediction ended before the malformed one (`IF A IF B END-IF END-IF`: the outer IF's block cannot take the
+  inner IF, so the outer is left too, and its END-IF is its own). The grammar keeps
+  `statementBlock` non-empty (PB396); the empty block is still named by hint 0a.
+- ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
+  Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that
+  calls a WHEN OTHER rule, both read from the ATN): a phrase is misplaced where the construct already holds one (the
+  parse stands inside it, or it is a child) or holds no WHEN group before it. After a WHEN group and before any WHEN
+  OTHER it is in its place, and the fault is before it: a statement missing its operand (no 0b hint), or, where the
+  parse took the WHEN as the group's next selection phrase and died at the OTHER, the group's own missing statement
+  (COBOL2072 with the owner's name). A prediction that failed ahead of the parser through a construct no rule context
+  holds yet (an EVALUATE written inside the tokens it looked at) leaves the placement unread, and 0b says nothing.
+- ⛔ **A literal where the next sentence begins is refused as a statement position** (kb/Work PB4425; ISO §14.5.1,
+  §14.5.3.1). After `DISPLAY "A".` a literal fails only once every sentence, paragraph and section list has let it pass,
+  at the program's end, whose expected set names nothing about a sentence: the bare COBOL0001. Hint 0i, when the
+  parser's own admitted set names nothing, asks `OffendingPosition.SentenceMayBeginAt`: the rule whose last token is the
+  separator period before the token (a sentence, a paragraph, section or division header), re-simulated over its own
+  tokens through its periods (`ResimulationWalk.Over(…, throughItsPeriods: true)`), takes every statement start there.
+  Then the refusal is `AdmittedKinds.Refusal` over FIRST(`statementBlock`), the PB4224 statement arm. A user-defined
+  word, and an integer (a paragraph-name need not contain a letter, §8.3.2.2 3)), is left to the missing-period guess.
+- ⛔ **A foreign word run is refused by the word that opened it; a word its clause could have taken is the clause's**
+  (kb/Work PB4301; ISO §12.4.5.1, §13.16.2, §13.18.38.2, §5.2.1). `ClosedFormatPass` quotes a run's OPENING item
+  (`SELECT F1 ASIGN TO "f"`: ASIGN) but never runs once a unit has a parse error, and the parse layer used to name the
+  token that ENDED the run (the TO, or a phantom level-3 entry's TIMES). `OffendingPosition.ResidueRun` finds the error
+  production's node the parser stands inside (the loop's Sync) or has just completed (the data form's run returns at an
+  integer, the next entry's possible level-number); `ResidueRefusal` words the row's refusal from the run's opening, the
+  hint's `Subject` makes the report stand there (`NotifyErrorListeners` at that token), and the run's tail is the
+  refusal's own (`OrphansItsTail`) unless a period would let the sentence at the token follow (`EndsARunBeforeTheNextSentence`:
+  `FOO` then `05 C PIC X.`), when the run is refused in a report of its own and the missing period is this one's. A
+  run is refused once (`NoteRunRefused`). A word the CLOSED CONSTRUCT before it could have taken
+  (`OffendingPosition.ClosedConstructTakes`, the `OCCURS 0 TO TIMES` TO) is no residue: the carried report names the
+  incomplete clause at the next token.
+- ⛔ **A reserved word where an operand is due names the operand** (kb/Work PB4301, PB4426; ISO §5.2.1). `AdmittedKinds`
+  fifth shape: the position takes a user-defined word or a literal and no punctuation or operator (so the element
+  before the token is incomplete: `OCCURS 0 TO TIMES`, `DISPLAY WHEN OTHER`), and a reserved word stands there. The
+  sentence lists the user-defined word once (the context words `cobolWord` also takes are spellings of it,
+  `AdmittedKinds.UserWordSpellings`), the words and the literals; the report leaves no tail to discard
+  (`DiagnosticHint.LeavesNoTail`), the keyword opens the next element. A set with punctuation (`NUMVAL(A FROM`) is not
+  said: an operand is not due after a whole argument. **The parser's admitted set after a completed operand is not the
+  set that may follow it (kb/Work PB4426):** the parser leaves its optional phrases early (the condition of an IF, the
+  selection object of a WHEN), so the set holds the statements and not AND, OR, an operator or THRU. No arm prints that
+  set as an expectation: the statement arm lists nothing, the closed-list arm needs a position with no user-defined word,
+  period or statement start, and the operand arm needs a set without punctuation. The continuations are not derived
+  from the closed construct (`ClosedJustBefore`'s walk): over `WHEN 1` that walk re-opens the superset grammar (a
+  class-name without IS, the sign words), which routes the literal-category arm to "only ZERO", and no sentence prints
+  the longer set. An arm that prints a list at such a position must derive it first, and answers that routing.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle

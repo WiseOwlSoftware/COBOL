@@ -32,6 +32,17 @@ public sealed class ClosedFormatReservedWordTests
 
     public static TheoryData<string, string, string, string> ReservedWordResidue() => new()
     {
+        // ⛔ A FOREIGN RUN A RESERVED WORD ENDS IS REFUSED BY ITS OPENING WORD (kb/Work PB4301): the misspelled clause
+        // keyword is the fault, not the clause word after it that the run happened to meet.
+        { "select-misspelled-assign", Head + "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASIGN TO \"f.dat\".\n"
+            + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc,
+          "COBOL1970", "'ASIGN' is not a clause of the file control entry for 'SF'" },
+        { "data-entry-misspelled-sync", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC 9 SINC LEFT.\n" + Proc,
+          "COBOL1941", "'SINC' is not a clause of the data description entry for 'W-X'" },
+        // The data division's run holds no integer: it ends at the 3, which a level-number may be, and the whole entry is
+        // still the one refusal (no level-3 entry `3 TIMES` is made of its tail).
+        { "data-entry-misspelled-occurs-before-integer", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC 9(3) OCURS 3 TIMES.\n" + Proc,
+          "COBOL1941", "'OCURS' is not a clause of the data description entry for 'W-X'" },
         // §13.16.2 Format 1 — after a complete entry, so the clause list has already ended when BLOCK fails.
         { "data-entry", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X BLOCK CONTAINS 10.\n" + Proc,
           "COBOL1941", "'BLOCK' is not a clause of the data description entry for 'W-X'" },
@@ -73,19 +84,20 @@ public sealed class ClosedFormatReservedWordTests
         { "object-computer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ GLOBAL.\n" + Proc,
           "COBOL1970", "'GLOBAL' is not a clause of the OBJECT-COMPUTER paragraph" },
         // ... and after an unrecognized word run, where no list loop of the format's own is left to Sync: the residue
-        // continues inside the production (CobolErrorStrategy reads the parser's own call of it).
+        // continues inside the production (CobolErrorStrategy reads the parser's own call of it). The word refused is the
+        // run's OPENING, WIBBLE, as ClosedFormatPass quotes it, never the GLOBAL that ended the run (kb/Work PB4301).
         { "source-computer-after-residue", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.\n" + Proc,
-          "COBOL1970", "'GLOBAL' is not a clause of the SOURCE-COMPUTER paragraph" },
+          "COBOL1970", "'WIBBLE' is not a clause of the SOURCE-COMPUTER paragraph" },
         // §12.3.2 — the configuration section's PARAGRAPH list.
         { "configuration-section", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       GLOBAL.\n" + Proc,
           "COBOL1971", "'GLOBAL' is not a paragraph of the CONFIGURATION SECTION" },
         { "configuration-section-after-residue", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       WIBBLE GLOBAL.\n" + Proc,
-          "COBOL1971", "'GLOBAL' is not a paragraph of the CONFIGURATION SECTION" },
+          "COBOL1971", "'WIBBLE' is not a paragraph of the CONFIGURATION SECTION" },
         // §11.2.1 — the identification division's PARAGRAPH list.
         { "identification", Head + "       GLOBAL.\n" + Proc,
           "COBOL1971", "'GLOBAL' is not a paragraph of the IDENTIFICATION DIVISION" },
         { "identification-after-residue", Head + "       WIBBLE GLOBAL.\n" + Proc,
-          "COBOL1971", "'GLOBAL' is not a paragraph of the IDENTIFICATION DIVISION" },
+          "COBOL1971", "'WIBBLE' is not a paragraph of the IDENTIFICATION DIVISION" },
         // A FIGURATIVE CONSTANT after the computer-name is a reserved word too (kb/Work PB3373): the word run's tail used
         // to be the whole `literal` rule, which read `XYZ ZERO` as one run and XYZ as the clause.
         { "object-computer-figurative-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ ZERO.\n" + Proc,
@@ -151,9 +163,10 @@ public sealed class ClosedFormatReservedWordTests
           "COBOL1941", "'FOO' is not a clause of the data description entry for 'W-X'" },
         // The data division's run holds no item that begins with an unsigned integer (kb/Work PB3390), so the run FOO
         // ends at `1,5`; the comma decimal is one character-string and never a level-number, so the parse layer
-        // refuses it by name, quoted whole, rather than guess a missing period.
+        // refuses the run rather than guess a missing period, by the word that OPENED it, FOO (kb/Work PB4301:
+        // ClosedFormatPass quotes the same word), not the literal that ended it.
         { "data-entry-comma-decimal-in-run", Head + CommaMode + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO 1,5.\n" + Proc,
-          "COBOL1941", "'1,5' is not a clause of the data description entry for 'W-X'" },
+          "COBOL1941", "'FOO' is not a clause of the data description entry for 'W-X'" },
         { "data-entry-comma-decimal-opening", Head + CommaMode + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X 1,5.\n" + Proc,
           "COBOL1941", "'1,5' is not a clause of the data description entry for 'W-X'" },
         { "data-entry-leading-comma-opening", Head + CommaMode + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X ,5.\n" + Proc,
@@ -349,22 +362,42 @@ public sealed class ClosedFormatReservedWordTests
 
     /// <summary>An unsigned integer the data division's run never holds keeps the missing-period diagnosis where it may
     /// be the next entry's level-number (ISO §8.3.2.2.13): <c>01 W-X PIC X</c> then <c>05 W-Y PIC X.</c> is a forgotten
-    /// period, never "'05' is not a clause" — and after a foreign word (kb/Work PB3390) never the one run <c>FOO 05
-    /// W-Y</c>, which read W-Y's PICTURE as W-X's second (COBOL2423). One case per list a level-number follows.</summary>
+    /// period, never "'05' is not a clause". One case per list a level-number follows.</summary>
+    [Fact]
+    public void LevelNumberAfterAMissingPeriod_IsNotCalledAClause()
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X\n       05 W-Y PIC X.\n" + Proc);
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("error COBOL0307: ", errors[0]);
+        Assert.Contains("'05'", errors[0]);
+        Assert.Contains("period may be missing", errors[0]);
+    }
+
+    /// <summary>After a foreign word (kb/Work PB3390) the level-number is never the one run <c>FOO 05 W-Y</c>, which read
+    /// W-Y's PICTURE as W-X's second (COBOL2423); the missing period is reported, and so is the run (kb/Work PB4301):
+    /// FOO is no clause whichever way the period goes, and <c>ClosedFormatPass</c>, which would name it, never runs once
+    /// the unit has a parse error. One case per list a level-number follows; the run's refusal comes first, at its word.</summary>
     [Theory]
-    [InlineData("data-entry", "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X\n       05 W-Y PIC X.\n", "'05'")]
-    [InlineData("data-entry-after-run", "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO\n       05 W-Y PIC X.\n", "'05'")]
+    [InlineData("data-entry-after-run", "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO\n       05 W-Y PIC X.\n",
+        "COBOL1941", "'FOO' is not a clause of the data description entry for 'W-X'", "'05'")]
+    // `VALEU 5.`: the 5 may be the next entry's level-number, so the missing period is reported too; VALEU is the fault either way.
+    [InlineData("data-entry-misspelled-value", "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC 9 VALEU 5.\n",
+        "COBOL1941", "'VALEU' is not a clause of the data description entry for 'W-X'", "'5'")]
     [InlineData("fd-after-run", "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\".\n"
-        + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF FOO\n       01 R PIC X.\n", "'01'")]
+        + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF FOO\n       01 R PIC X.\n",
+        "COBOL1970", "'FOO' is not a clause of the file description entry for 'SF'", "'01'")]
     [InlineData("sd-after-run", "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\".\n"
-        + "       DATA DIVISION.\n       FILE SECTION.\n       SD SF FOO\n       01 R PIC X.\n", "'01'")]
-    public void LevelNumberAfterAMissingPeriod_IsNotCalledAClause(string name, string body, string at)
+        + "       DATA DIVISION.\n       FILE SECTION.\n       SD SF FOO\n       01 R PIC X.\n",
+        "COBOL1970", "'FOO' is not a clause of the sort-merge file description entry for 'SF'", "'01'")]
+    public void LevelNumberAfterAForeignRun_IsTheRunsRefusalAndTheMissingPeriod(string name, string body, string code, string sentence, string at)
     {
         var errors = Compile(Head + body + Proc);
-        Assert.True(errors.Count == 1, $"[{name}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
-        Assert.Contains("error COBOL0307: ", errors[0]);
-        Assert.Contains(at, errors[0]);
-        Assert.Contains("period may be missing", errors[0]);
+        Assert.True(errors.Count == 2, $"[{name}] expected the run's refusal and the missing period, got:\n{string.Join("\n", errors)}");
+        Assert.Contains($"error {code}: ", errors[0]);
+        Assert.Contains(sentence, errors[0]);
+        Assert.Contains("error COBOL0307: ", errors[1]);
+        Assert.Contains(at, errors[1]);
+        Assert.Contains("period may be missing", errors[1]);
     }
 
     [Theory]
