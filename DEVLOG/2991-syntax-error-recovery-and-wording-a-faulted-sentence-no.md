@@ -1,4 +1,4 @@
-## Syntax-error recovery and wording: a faulted sentence no longer swallows the program, a left statement keeps its terminator, COBOL2073 names only a misplaced WHEN OTHER, a withdrawn verb is named, a literal at a sentence start is refused as one (PB4299, PB4382, PB4300, PB4360, PB4425, PB4301, PB4426)
+## Entry 2991 — 2026-11-02 05:04 PST — Syntax-error recovery and wording: a faulted sentence no longer swallows the program, a left statement keeps its terminator, COBOL2073 names only a misplaced WHEN OTHER, a withdrawn verb is named, a literal at a sentence start is refused as one (PB4299, PB4382, PB4300, PB4360, PB4425, PB4301, PB4426)
 
 Wave 20261822, group A: the `CobolErrorStrategy` notes, fixed at their root in harm order.
 
@@ -126,3 +126,4 @@ Self-review found the terminator pairing too wide in the predecessor's part (nar
 new operand arm's COBOL5506 orphaning the next statement's tail (the PB4286 rows failed: fixed by `LeavesNoTail`) and its
 list of the parser's full set for `NUMVAL(A FROM` (a continuation set, so now unsaid). semgrep verify passed with no rule
 count risen. Gate at b980b426d (the code head; two earlier gates went RED on conformance rows that pinned the bare COBOL0001, fixed): `=== BUILD-LOCAL GATE: GREEN — Conformance 20,833/20,833 · Unit 39,311/39,311 · Characterization 37/37 cases ran (skipped 0) ===` (run 000004-20261102T120524Z).
+
