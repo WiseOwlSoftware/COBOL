@@ -56,18 +56,18 @@ internal sealed class BindSession
     public Frontend.Preprocessor.DirectiveTimeline<Frontend.Preprocessor.CompilationVariableEvent> CompilationVariables { get; init; } =
         Frontend.Preprocessor.DirectiveTimeline<Frontend.Preprocessor.CompilationVariableEvent>.Empty;
 
-    /// <summary>The compilation group's REPOSITORY resolution sources (<see cref="GroupRepository"/>), built ONCE by
+    /// <summary>The compilation group's REPOSITORY specifier resolver (<see cref="RepositoryResolver"/>), built ONCE by
     /// <c>BinderDriver.Bind</c> after every DATA division has bound and before the FIRST procedure body binds —
     /// a CLASS's method bodies as well as a program unit's (kb/Work PB1100). Reading it earlier is a driver-order
     /// defect, so the getter throws rather than answering from an empty table.</summary>
-    public GroupRepository Repository
+    public RepositoryResolver Repository
     {
         get => _repository ?? throw new InvalidOperationException(
             "BindSession.Repository was read before BinderDriver.Bind built it (the tables need every unit's DATA "
             + "division bound, and every procedure body — class and program — reads them)");
         set => _repository = value;
     }
-    private GroupRepository? _repository;
+    private RepositoryResolver? _repository;
 
     /// <summary>The group's prototype signature classes (kb/Work PB2464) — the TYPE of every restricted program- or
     /// function-pointer, assigned by <c>PrototypeSignatureClasses.Classify</c> once

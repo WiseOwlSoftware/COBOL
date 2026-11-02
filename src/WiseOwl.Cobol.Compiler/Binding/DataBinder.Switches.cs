@@ -797,7 +797,7 @@ public sealed partial class DataBinder
     /// §12.3.8.3 SR15's "this specifier is ignored" for the unit's own or a containing program's name — needs the
     /// unit's identity and its siblings, which this binder does not have. Those run in
     /// <c>BinderDriver.ProgramPrototypesOf</c>, exactly where the function twin's GR11 search runs
-    /// (<c>BinderDriver.UserFunctionsOf</c>, through <c>GroupRepository</c>). Collecting the SYNTAX here and resolving
+    /// (<c>BinderDriver.UserFunctionsOf</c>, through <c>RepositoryResolver</c>). Collecting the SYNTAX here and resolving
     /// it there is the same split.</para></summary>
     private void BindProgramSpecifier(Core.RepositoryEntryContext re, string name)
     {

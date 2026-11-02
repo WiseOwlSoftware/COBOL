@@ -100,8 +100,11 @@ internal readonly record struct ExternalizedSubject(
 /// specified, is the name of the function that is externalized to the operating environment"; else the word).
 /// The activation the emitter writes names the callee THIS way, because that is the key the run-unit registry
 /// holds it under — the two must not drift (kb/Work PB303).</param>
+/// <param name="DefinitionCompiledHere">True when the signature is a DEFINITION this compilation group compiles
+/// (§12.3.8.4 GR11 a), or §8.4.6.6's containing definition), so a reference to it activates the function whose formals
+/// were checked at bind time (<c>RepositoryOrigin.IsDefinitionCompiledHere</c>; DESIGN-external-repository §4.2).</param>
 public sealed record UserFunctionSignature(
-    string Name, string Externalized, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals);
+    string Name, string Externalized, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals, bool DefinitionCompiledHere);
 
 /// <summary>ONE Format-2 callee's activation signature: its positional USING formals and its PROCEDURE DIVISION
 /// RETURNING item. §14.9.4.3 SR25 makes BOTH §14.8.2, Parameters and §14.8.3, Returning items apply to a Format-2
@@ -128,19 +131,28 @@ public sealed record ProgramSpecifier(string Name, string ExternalizedName);
 /// literal-5]</c>. <paramref name="ExternalizedName"/> is literal-5 when the AS phrase is present and the name itself
 /// otherwise (§12.3.8.4 GR11 NOTE 2). <paramref name="At"/> is the REPOSITORY entry, where a diagnostic about its
 /// resolution (<c>BinderDriver.UserFunctionsOf</c>, COBOL2969) is reported. Collected by
-/// <c>DataBinder</c>'s REPOSITORY loop; RESOLVED by <c>GroupRepository.ResolveFunction</c>.</summary>
+/// <c>DataBinder</c>'s REPOSITORY loop; RESOLVED by <c>RepositoryResolver.ResolveFunction</c>.</summary>
 internal sealed record FunctionSpecifier(string Name, string ExternalizedName, Antlr4.Runtime.ParserRuleContext At);
 
 /// <summary>One RESOLVED program prototype, as §12.3.8.4 GR10 defines it: the declared program-prototype-name, the
-/// externalized name that identifies the program to be called, and — when GR10 a) found a program definition in
-/// this compilation group — that definition's <see cref="CalleeSignature"/> (kb/Work PB237).
-/// <para><paramref name="Signature"/> is null when the details come from GR10 c), "the external repository for the
-/// program with the same name as the externalized name of the program prototype": this implementation's external
-/// repository is the RUN UNIT's program registry, resolved at execution (§14.9.4.4 GR3 b), with
-/// EC-PROGRAM-NOT-FOUND when the locate fails), so a separately-compiled callee is legal and simply carries no
-/// compile-time signature for §14.8.2/§14.8.3 to check. That is the ONE difference between a prototype call and an
-/// AS NESTED call, and it is the difference the standard itself draws.</para></summary>
-public sealed record ProgramPrototype(string Name, string ExternalizedName, CalleeSignature? Signature);
+/// externalized name that identifies the program to be called, and the <paramref name="Details"/> GR10 a) or b) took
+/// from this compilation group — the program's <see cref="CalleeSignature"/> and where it came from
+/// (<see cref="RepositoryResolver.ResolveProgram"/>; kb/Work PB237, PB2103).
+/// <para><paramref name="Details"/> is null when the details come from GR10 c), "the external repository for the
+/// program with the same name as the externalized name of the program prototype", which no provider holds until the
+/// metadata provider lands (DESIGN-external-repository §8.2 step 3): the program is located in the RUN UNIT at
+/// execution (§14.9.4.4 GR3 b), with EC-PROGRAM-NOT-FOUND when the locate fails), and the prototype carries no
+/// compile-time signature for §14.8.2/§14.8.3 to check.</para></summary>
+internal sealed record ProgramPrototype(string Name, string ExternalizedName, ProgramAnswer? Details)
+{
+    /// <summary>The program's signature, or null for GR10 c).</summary>
+    public CalleeSignature? Signature => Details?.Signature;
+
+    /// <summary>True when the program GR10 names is a DEFINITION this compilation group compiles (GR10 a), or §8.4.6.8's
+    /// containing program), so the program a CALL through the prototype activates by its externalized name is the one
+    /// whose formals the bind checked (DESIGN-external-repository §4.2).</summary>
+    public bool DefinitionCompiledHere => Details?.Origin.IsDefinitionCompiledHere ?? false;
+}
 
 /// <summary>
 /// The LINKAGE SECTION / EXTERNAL / GLOBAL half of the data binder (INTERPROGRAM_DESIGN D1–D5).

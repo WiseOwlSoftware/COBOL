@@ -99,6 +99,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // `callee`, never "was this AS NESTED". Wiring the prototype producer therefore delivered the whole
         // §14.8.2/§14.8.3 regime to prototype calls in one assignment rather than by copying seven checks.
         CalleeSignature? callee = null;
+        // ⛔ Whether the element this CALL activates is a definition this compilation group compiles — AS NESTED, or a
+        // prototype through §12.3.8.4 GR10 a)'s definition that names no other program (DESIGN-external-repository §4.2,
+        // kb/Work PB2103). Only then can the activated program not differ from the signature checked here; otherwise
+        // §14.9.4.4 GR3 d) is asked again at run time against the program actually activated.
+        bool calleeCompiledHere = false;
         // kb/Work PB131 — the AS NESTED callee's bound formals (§14.9.4.3 SR15 sentence 2 enforced here:
         // the name shall be a directly-contained or visible-COMMON program; the old binder bound the flag,
         // discarded it, and let ProgramTable resolve ANY outermost program at run time).
@@ -109,7 +114,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (ProgramName(asLit, "CALL AS NESTED", "§14.9.4.3 SR2") is not { } nestedName)
                 return BoundRejected.Reported(ctx.Edition);
             if (host.NestedCallables is { } nc && nc.TryGetValue(nestedName, out var sig))
-                callee = sig;
+                (callee, calleeCompiledHere) = (sig, true);
             else
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallAsNestedScope,
@@ -199,8 +204,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // EC-PROGRAM-ARG-MISMATCH conformance check then happen at activation, per GR3 b) and GR3 d).
         if (prototype is { } proto2)
         {
+            // GR3 b): with neither identifier-1 nor literal-1 written, the program activated IS the prototype's; a written
+            // target names a program by its own value, which only a literal naming that same program pins at bind time.
+            bool activatesPrototypeProgram = dynamicName is null
+                && (literalName is null || ExternalizedNames.Same(literalName, proto2.ExternalizedName));
             if (literalName is null && dynamicName is null) literalName = proto2.ExternalizedName;
-            callee ??= proto2.Signature;
+            if (callee is null)
+                (callee, calleeCompiledHere) = (proto2.Signature, proto2.DefinitionCompiledHere && activatesPrototypeProgram);
         }
         // Format 2 is selected by the AS phrase OR by a bare program-prototype-name operand (the two spellings of
         // §14.9.4.2 Format 2). Every narrowing below that reads `formatTwo` — Format 1's ban on BY VALUE, on a
@@ -823,20 +833,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
         // ON OVERFLOW is the COBOL-74-carried synonym for ON EXCEPTION, REMOVED at ISO 2023; the edition gate
         // (CallOnOverflowRemoved2023) moved to the post-bind VersionConformancePass (Step 14d), reading the flag.
-        // ⛔ A CALL WHOSE ACTIVATED PROGRAM NO SIGNATURE DESCRIBES HERE (a dynamic Format-1 CALL; a §12.3.8.4 GR10 c)
-        // prototype) has §14.8.2 / §14.8.3 asked at run time instead (§14.9.4.4 GR3 d); kb/Work PB165): each operand's
-        // description, built by the ONE builder a universal INVOKE's operands take, rides its CobolArg when the site
-        // checks EC-PROGRAM-ARG-MISMATCH.
-        if (callee is null)
-        {
+        // ⛔ A CALL WHOSE ACTIVATED PROGRAM THIS GROUP DOES NOT COMPILE (a dynamic Format-1 CALL; a §12.3.8.4 GR10 b) / c)
+        // prototype; a pointer target) has §14.8.2 / §14.8.3 asked at run time against the program actually activated
+        // (§14.9.4.4 GR3 d); kb/Work PB165, PB2103): each operand's description rides its CobolArg when the site checks
+        // EC-PROGRAM-ARG-MISMATCH — whether or not a signature was also checked here, because the callee may have been
+        // recompiled since (DESIGN-external-repository §4.2).
+        if (!calleeCompiledHere)
             for (int i = 0; i < args.Count; i++)
-                args[i] = args[i] with
-                {
-                    Description = ActivationDescriptions.OfCallArgument(args[i],
-                        args[i].ProgramAddress?.Prototype is { } addressed ? host.ProgramRestrictionIdentityOf(addressed) : null,
-                        host.OoClasses),
-                };
-        }
+                args[i] = host.Described(args[i]);
         // The CALL's receivers -- each BY REFERENCE argument and the RETURNING item -- are identified at its start
         // (§14.9.4.4 GR3 a)) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
         // object-property receiver's accessors there (kb/Work PB2078).
@@ -846,7 +850,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             UsedOverflowSpelling = usedOverflow,
             IsPointerTarget = isPointerTarget,
             CalleeSignatureKnown = callee is not null,
-            ReturningDescription = callee is null && returning is { } described ? ActivationDescriptions.OfPlace(described, host.OoClasses) : null,
+            CalleeCompiledHere = calleeCompiledHere,
+            ReturningDescription = !calleeCompiledHere && returning is { } described ? ActivationDescriptions.OfPlace(described, host.OoClasses) : null,
         };
     }
 

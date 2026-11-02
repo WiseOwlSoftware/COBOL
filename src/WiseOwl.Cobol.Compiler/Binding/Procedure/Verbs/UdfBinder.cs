@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Exceptions;
+using WiseOwl.Cobol.Compiler.Oo;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -284,11 +285,20 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // (§8.3.2.2 2); ordinarily identical to fn.Name, and the AS literal when FUNCTION-ID wrote one, PB303).
         // Through a function-pointer the callee is whatever the pointer HOLDS when the activation runs (GR6c):
         // the pointer operand rides DynamicName and the emitter's pointer arm reads its carrier.
+        // ⛔ The function lane takes the CALL's rule (DESIGN-external-repository §4.2; kb/Work PB2103): unless the activated
+        // function is a definition this compilation group compiles (§12.3.8.4 GR11 a), or §8.4.6.6's own definition), it
+        // may have been recompiled with another signature since §8.4.3.2.3 SR13 checked it here, so every operand is
+        // described for §14.9.4.4 GR3 d)'s run-time check — through a function-pointer always (GR6c: whatever it holds).
+        bool calleeCompiledHere = pointer is null && fn.DefinitionCompiledHere;
+        if (!calleeCompiledHere)
+            for (int i = 0; i < callArgs.Count; i++)
+                callArgs[i] = host.Described(callArgs[i]);
+        var returningDescription = calleeCompiledHere ? null : ActivationDescriptions.OfPlace(tempPlace, host.OoClasses);
         Pending.Add(pointer is null
             ? new BoundCallProgram(fn.Externalized, null, callArgs, tempPlace, null, null)
-                { IsFunction = true, CalleeSignatureKnown = true }
+                { IsFunction = true, CalleeSignatureKnown = true, CalleeCompiledHere = calleeCompiledHere, ReturningDescription = returningDescription }
             : new BoundCallProgram(null, pointer, callArgs, tempPlace, null, null)
-                { IsFunction = true, IsPointerTarget = true, CalleeSignatureKnown = true });
+                { IsFunction = true, IsPointerTarget = true, CalleeSignatureKnown = true, ReturningDescription = returningDescription });
         // The reading expression: a BoundNumRef over the temp's Place. Every general-operand chokepoint
         // (MOVE source, DISPLAY, relation operands, function arguments — IntrinsicBinder.OperandOf) maps it
         // to a BoundFieldOperand, whose Place.Item carries the cloned category into Table-16 legality, the

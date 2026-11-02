@@ -130,7 +130,7 @@ public sealed class PrototypePointerTypeDriftTests
     /// attaches; a check that runs before it reads an unstamped pointer, whose identity is its prototype's own NAME, and so
     /// refuses an override, an implementation or a §10.6.2 SR2 prototype / definition pair restricted to two differently
     /// named prototypes of one signature. Being after the program units' DATA phase is not enough: the four OO checks
-    /// once ran ahead of that phase, but <c>CheckPrototypeSignaturePairs</c> ran inside <c>BuildGroupRepository</c> —
+    /// once ran ahead of that phase, but <c>CheckPrototypeSignaturePairs</c> ran inside the REPOSITORY resolver's builder —
     /// after it, and still ahead of <c>ResolvePointerRestrictions</c> — and refused the same pairs.
     /// <para>The pin is EXECUTION order, not text order: a helper defined below <c>Bind</c> can run before a call written
     /// above it, which is exactly where <c>CheckPrototypeSignaturePairs</c> sat. So each check is invoked ONCE in the
@@ -151,7 +151,7 @@ public sealed class PrototypePointerTypeDriftTests
     }
 
     /// <summary>The order pin, proven to fail on the shape the tree carried before kb/Work PB2495:
-    /// <c>CheckPrototypeSignaturePairs</c> inside <c>BuildGroupRepository</c> (a helper written BELOW <c>Bind</c>, which a
+    /// <c>CheckPrototypeSignaturePairs</c> inside <c>BuildRepositoryResolver</c> (a helper written BELOW <c>Bind</c>, which a
     /// text-offset comparison reads as "after" <c>ResolvePointerRestrictions</c>) and an OO check written ahead of it are
     /// both caught; the repaired shape passes, and a check hidden in a loop or a lambda, or missing, is caught.</summary>
     [Fact]
@@ -164,11 +164,11 @@ public sealed class PrototypePointerTypeDriftTests
                 {
                     OoConformance.ValidateOverrideSignatures(table, edition);
                     foreach (var unit in units) BindUnitData(unit, session);
-                    session.Repository = BuildGroupRepository(units, classes, session);
+                    session.Repository = BuildRepositoryResolver(units, classes, session);
                     ResolvePointerRestrictions(units, classes, oo.InterfaceData, session);
                     return null;
                 }
-                private static GroupRepository BuildGroupRepository()
+                private static RepositoryResolver BuildRepositoryResolver()
                 {
                     CheckPrototypeSignaturePairs(units, session.Edition);
                     return null;
@@ -184,7 +184,7 @@ public sealed class PrototypePointerTypeDriftTests
             {
                 public BoundCompilation Bind()
                 {
-                    session.Repository = BuildGroupRepository(units, classes, session);
+                    session.Repository = BuildRepositoryResolver(units, classes, session);
                     ResolvePointerRestrictions(units, classes, oo.InterfaceData, session);
                     CheckPrototypeSignaturePairs(units, session.Edition);
                     var ooAdapters = OoConformance.ValidateImplements(table, edition);
