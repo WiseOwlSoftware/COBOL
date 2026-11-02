@@ -63,15 +63,23 @@ internal static class RecoverySources
     /// word passes each, kb/Work PB4132); the source holds a syntax error and must be rejected.</summary>
     public static IReadOnlyList<string> Errors(string source, int edition = DefaultEdition)
     {
+        var r = Check(source, edition);
+        Assert.False(r.Success, "the source holds a syntax error and must be rejected");
+        return r.Errors;
+    }
+
+    /// <summary>Does the check-only compile of <paramref name="source"/> (as <see cref="Errors"/> compiles) accept it?</summary>
+    public static bool Accepts(string source, int edition = DefaultEdition) => Check(source, edition).Success;
+
+    private static CompilerDriver.Result Check(string source, int edition)
+    {
         string dir = ScratchDirectory.Create("WiseOwlCobol_PBREC_");
         try
         {
             string src = Path.Combine(dir, "prrec.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            return CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "prrec.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
-            Assert.False(r.Success, "the source holds a syntax error and must be rejected");
-            return r.Errors;
         }
         finally { ScratchDirectory.Remove(dir); }
     }
