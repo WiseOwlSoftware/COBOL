@@ -92,7 +92,7 @@ public sealed class DataItem
     /// resolves to through the unit's prototype tables — its namespace, externalized name and signature (kb/Work
     /// PB2495) — set post-build by <c>DataBinder.ResolveRestrictedPrototypes</c>, for EVERY forest of the group before
     /// any is classified, so a signature comparison can follow a formal's restriction to the signature it names
-    /// (<c>PrototypeSignatures.SameSignatureRestriction</c>) instead of to the class that comparison is still building. Null for a name
+    /// (<c>PrototypeSignatures.SignatureRestriction</c>) instead of to the class that comparison is still building. Null for a name
     /// the tables do not hold, for an unrestricted pointer and for every other item.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "resolved post-build by DataBinder.ResolveRestrictedPrototypes in the copy's OWN scope (the prototype names resolve through the unit that declares the copy), after every clone exists")]

@@ -107,10 +107,11 @@ internal static class PrototypeSignatures
     /// prototype the unit's tables do not hold, and for one with no compile-time signature, the identity is its
     /// <see cref="ExternalIdentity"/> (<see cref="UnclassifiedIdentity"/>). Null for an unrestricted pointer and for any
     /// other item. ⛔ It answers the SIGNATURE question only — the SET relation (§14.9.39.3 SR20 / SR22, through
-    /// <c>ActivationDescription.ContentRestriction</c>), the rules that send to it, and the signature graph itself
-    /// (<see cref="Same"/>, §8.5.3.1's key of a type declaration that holds such a pointer). It is NOT the pointer's type
-    /// and not its USAGE clause: §14.8.2.3.2's "of the same type", §9.3.6 3 e) and §14.8.3.3 compare the TO phrase by
-    /// the prototype it names (<see cref="NamedRestriction"/>; kb/Work PB3758 / PB4107).</summary>
+    /// <c>ActivationDescription.ContentRestriction</c>), the rules that send to it, and the signature graph's elementary
+    /// pointer formal (<see cref="Same"/> through <c>ActivationRelations.SignatureDifference</c>). It is NOT the pointer's
+    /// type and not its USAGE clause: §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3 and §8.5.3.1's
+    /// type-declaration equivalence (a strongly-typed or group formal's member, <c>StrongTypeModel</c>) compare the TO
+    /// phrase by the prototype it names (<see cref="NamedRestriction"/>; kb/Work PB3758 / PB4107).</summary>
     public static string? SignatureRestriction(DataItem pointer) =>
         pointer.PointerRestrictionIdentity ?? UnclassifiedIdentity(pointer);
 
@@ -157,8 +158,8 @@ internal static class PrototypeSignatures
 
     /// <summary>The identity of a prototype with NO compile-time signature (ISO §12.3.8.4 GR10 c) / GR11 c): the details
     /// come from the external repository, the run unit here) — <see cref="ActivationDescription.ExternalRestrictionPrefix"/>
-    /// and the folded name. It differs from every <see cref="NamedRestriction(string)"/>, so the §8.5.3.1 type-declaration key
-    /// keeps two such prototypes apart by name, while the SET relation reads the mark and lets the pair conform, as
+    /// and the folded name. It differs from every <see cref="NamedRestriction(string)"/> and every canonical identity, so the
+    /// signature key keeps two such prototypes apart by name, while the SET relation reads the mark and lets the pair conform, as
     /// <see cref="Same"/> lets an unresolved signature conform (<c>ActivationRelations.SamePointerRestriction</c>; kb/Work
     /// PB3162) — the signature question only, never the identity rules (kb/Work PB4107).</summary>
     public static string ExternalIdentity(string prototypeName) =>
@@ -212,29 +213,16 @@ internal static class PrototypeSignatures
     /// <summary>The spelling every canonical identity begins with (<see cref="CanonicalIdentity"/>).</summary>
     public const string CanonicalPrefix = "SIG ";
 
-    /// <summary>Every restricted program- or function-pointer a signature's descriptions read, in the order a description is
-    /// written: each formal by position, then the RETURNING item; within an item, the item, then its subordinate items in
-    /// document order, and through a restricted DATA-pointer the declaration it is restricted to (whose key the description
-    /// reads, <c>StrongTypeModel.EssentialCharacteristicsKey</c>), each declaration once.</summary>
-    private static IEnumerable<DataItem> RestrictedPointersOf(CalleeSignature signature)
-    {
-        var declarations = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        var roots = signature.Formals.Select(f => f.Item).Concat(signature.Returning is { } r ? [r] : []);
-        foreach (var root in roots)
-            foreach (var pointer in Walk(root))
-                yield return pointer;
-
-        IEnumerable<DataItem> Walk(DataItem item)
-        {
-            foreach (var x in new[] { item }.Concat(DataItem.DescendantsOf(item)))
-            {
-                if (x.RestrictedPrototype is not null) yield return x;
-                if (x.Pic?.RestrictedTypeDecl is { } decl && declarations.Add(decl))
-                    foreach (var inner in Walk(decl))
-                        yield return inner;
-            }
-        }
-    }
+    /// <summary>Every restricted program- or function-pointer whose signature class a signature's descriptions read, in the
+    /// order a description is written: each formal by position, then the RETURNING item — those that ARE such a pointer
+    /// (<see cref="DescriptionKey"/>'s class-pointer arm reads <c>ActivationDescription.ContentRestriction</c>). A pointer
+    /// SUBORDINATE to a formal, or inside a declaration a restricted data-pointer names, is not one: the §8.5.3.1 keys
+    /// (<c>StrongTypeModel.TypeIdentityKey</c>, <c>ElementaryLayoutKey</c>) read its USAGE clause by the prototype it names
+    /// (kb/Work PB4107), so numbering its class would make the identity depend on a signature <see cref="Same"/> never
+    /// asks.</summary>
+    private static IEnumerable<DataItem> RestrictedPointersOf(CalleeSignature signature) =>
+        signature.Formals.Select(f => f.Item).Concat(signature.Returning is { } r ? [r] : [])
+            .Where(item => item.RestrictedPrototype is not null);
 
     /// <summary>⛔ <see cref="Same"/> AS A KEY: the text two signatures share exactly when they are the same — the formal
     /// count, each formal's mode (BY VALUE), OPTIONAL phrase and <see cref="DescriptionKey"/> by position, and the RETURNING

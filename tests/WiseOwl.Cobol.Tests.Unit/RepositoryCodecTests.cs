@@ -595,6 +595,9 @@ public sealed class RepositoryCodecTests
         if (p.RestrictedPrototypeName is not null)
         {
             Assert.True(PrototypeSignatures.SameSignatureRestriction(x, y), $"{at}: PrototypeSignatures.SameSignatureRestriction");
+            // The USAGE clause's TO phrase, which §8.5.3.1 and the identity rules compare (kb/Work PB4107).
+            Assert.True(PrototypeSignatures.NamedRestriction(x) == PrototypeSignatures.NamedRestriction(y),
+                $"{at}: NamedRestriction {PrototypeSignatures.NamedRestriction(x)} vs {PrototypeSignatures.NamedRestriction(y)}");
             Assert.True(x.PointerRestrictionIdentity == y.PointerRestrictionIdentity,
                 $"{at}: restriction identity {x.PointerRestrictionIdentity} vs {y.PointerRestrictionIdentity}");
             Assert.True(PrototypeSignatures.Same(x.RestrictedPrototype?.Signature, y.RestrictedPrototype?.Signature), $"{at}: referenced prototype signature");

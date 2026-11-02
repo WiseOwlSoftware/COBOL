@@ -801,18 +801,22 @@ name — and the SET relation (`ActivationRelations.SamePointerRestriction`, rea
 pointer of that class conform to any restricted pointer of its kind, exactly as `PrototypeSignatures.Same` lets an
 unresolved signature conform (kb/Work PB3162). The identity rules never read the mark: an unresolved prototype is still
 a name, so its pointer passed BY REFERENCE or returned meets a pointer to another prototype as two USAGE clauses (kb/Work
-PB4107, which re-verdicted PB3686's RETURNING reading). The §8.5.3.1 equivalence and its key keep comparing the identity exactly, because an
-equivalence (and a key) must stay transitive. The signature relation also decides a pointer that is a MEMBER of a group (kb/Work PB3120): a
-strongly-typed group formal is compared through §8.5.3.1's type-declaration equivalence
-(`StrongTypeModel.EquivalentTypeDeclarations` / `SameElementaryLayout`), whose per-item profile compare
-(`SameAnalyzedProfile`) elides `PicInfo.RestrictedPrototypeName` and `RestrictedTypeName` from the record equality and
-asks `PrototypeSignatures.SameSignatureRestriction` / `StrongTypeModel.SameRestriction` instead, under one private `Comparison` that
-carries the declaration pairs assumed equivalent while compared (so a type whose pointer member is restricted back to it
-terminates); a pointer member restricted to a prototype still being classified carries that prototype's current block. `StrongTypeModel.TypeIdentityKey` keys such a member the same way
-(the signature class, the folded type-name and the key of the declaration it resolves to, `@depth` for a cycle). A
-member is thus compared by its signature class where an elementary pointer's own USAGE clause is compared by the
-prototype it names (D-RP1); §14.8.2.3.2 still refuses a top-level pair of two names whatever its type key says, since it
-compares the USAGE clauses too.
+PB4107, which re-verdicted PB3686's RETURNING reading). A pointer that is a MEMBER of a type declaration or of a group is
+compared by §8.5.3.1's type-declaration equivalence (`StrongTypeModel.EquivalentTypeDeclarations` /
+`SameElementaryLayout`), whose per-item profile compare (`SameAnalyzedProfile`) elides `PicInfo.RestrictedPrototypeName`
+and `RestrictedTypeName` from the record equality and asks the USAGE clause's TO phrase by the prototype it names
+(`PrototypeSignatures.NamedRestriction`, D-RP1) and `StrongTypeModel.SameRestriction` instead, under one private
+`Comparison` that carries the declaration pairs assumed equivalent while compared (so a type whose data-pointer member is
+restricted back to it terminates). `StrongTypeModel.TypeIdentityKey` keys such a member the same way (the folded prototype
+name; for a data-pointer the folded type-name and the key of the declaration it resolves to, `@depth` for a cycle). It never
+reads a signature class (kb/Work PB4107, branch review R1-1): the key is compared ACROSS compilations
+(`ActivationDescription.StrongType`, `PointerType`), and a class only a compilation that holds the prototype's signature
+can compute keyed one declaration two ways, refusing a `TYPE TB` argument opposite a `TYPE TB` formal compiled without
+the prototype. So the signature relation reaches a pointer member through §8.5.3.1 by NAME: a strongly-typed group formal
+(§9.3.8.2.3 rule 7) whose member is `TO QA` and one whose member is `TO QB` are two signatures, and two prototypes whose
+strong-group formals hold pointers naming each other (`GS1` holding `TO GS2`, `GS2` holding `TO GS1`) are two
+signatures, where an ELEMENTARY pointer formal is still compared by its prototype's signature class
+(`ActivationRelations.SignatureDifference`'s class-pointer arm; kb/Work PB4107's lead on §9.3.8.2.3 rules 3 / 6).
 `PrototypePointerTypeDriftTests` pins that no profile projection leaves either restricted name in the record compare.
 
 ### D12. Parameterized classes and interfaces (§9.3.12 / §9.3.13) are EXPANDED, one ordinary class per expansion — never C# generics; the parameterized definition itself is a skeleton that emits nothing and binds only for its own rules.

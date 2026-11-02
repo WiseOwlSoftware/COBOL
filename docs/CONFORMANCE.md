@@ -2358,16 +2358,28 @@ of an unsupported facility.
   TYPE clause. Such an item is of the type its USAGE clause states, so opposite it only the USAGE clauses are compared
   (`ADDRESS OF S`, S of strong type T-REC, conforms to a formal `TYPE PT` with `PT TYPEDEF USAGE POINTER TO T-REC`, as
   `conformance:cases/_unassigned/pb1408_universal_address_of_subordinate_group` pins); two TYPED items are compared by
-  their type declarations as well. GnuCOBOL, IBM and Micro Focus have no restricted prototype pointer. Implementing site: `ActivationRelations.RestrictedPointerTypeViolation` (BY REFERENCE, both the
+  their type declarations as well. §8.5.3.1's equivalence of two type declarations compares a member pointer's USAGE
+  clause the same way, by the prototype it names (`StrongTypeModel.SameAnalyzedProfile` and its key,
+  `EssentialCharacteristicsKey`): one declaration `TB TYPEDEF USAGE PROGRAM-POINTER TO P` is one type in a compilation
+  that holds P's signature and in one that only names P (§12.3.8.4 GR10 c)), and a strongly-typed group whose pointer
+  member is `TO QA` is not of the type of one whose member is `TO QB`, whatever the signatures — so two prototypes whose
+  strong-group formals differ so have two signatures (§9.3.8.2.3 rule 7; branch review R1-1 of kb/Work PB4107).
+  GnuCOBOL, IBM and Micro Focus have no restricted prototype pointer. Implementing site: `ActivationRelations.RestrictedPointerTypeViolation` (BY REFERENCE, both the
   CALL and the INVOKE lanes), `ActivationRelations.MatchViolation` / `ReturningConformance` over
   `ActivationDescription.Clauses` (`PrototypeSignatures.NamedRestriction`), `ActivationRelations.MaySet` over
-  `ActivationDescription.ContentRestriction` (`PrototypeSignatures.SignatureRestriction`). Witnesses:
+  `ActivationDescription.ContentRestriction` (`PrototypeSignatures.SignatureRestriction`), `StrongTypeModel.SameAnalyzedProfile`
+  / `EssentialCharacteristicsKey` (`PrototypeSignatures.NamedRestriction`). Witnesses:
   `conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb4107_restricted_pointer_identity_and_signature`,
   `conformance:cases/_unassigned/pb2464_prototype_pointer_signature_type`,
   `conformance:cases/_unassigned/pb2464_function_pointer_signature_type`,
-  `conformance:cases/14.8.2-Formal-parameters-and-arguments/pb3686_returning_external_prototype_pointer` and the negatives
-  `pb4107-call-byref-pointer-two-types`, `pb4107-invoke-byref-datapointer-two-types`,
-  `pb4107-invoke-returning-same-signature`, `pb4107-invoke-returning-funcptr-same-signature`.
+  `conformance:cases/14.8.2-Formal-parameters-and-arguments/pb3686_returning_external_prototype_pointer`,
+  `conformance:cases/_unassigned/pb3120_group_formal_pointer_type`,
+  `conformance-test:TypedPointerAcrossCompilationsTests`,
+  `unit:PointerRestrictionRelationsTests.TheTypeOfATypedRestrictedPointer_IsTheSameText_WhetherOrNotItsPrototypeResolved`
+  and the negatives `pb4107-call-byref-pointer-two-types`, `pb4107-invoke-byref-datapointer-two-types`,
+  `pb4107-invoke-returning-same-signature`, `pb4107-invoke-returning-funcptr-same-signature`,
+  `pb4107-group-formal-pointer-two-names`, `pb4107-group-formal-template-pointer-two-names`,
+  `pb4107-set-group-member-pointers-naming-each-other`.
 - **D-N8 — a group sender into a national DYNAMIC LENGTH receiver** (kb/Work PB546; decision PB3099, 2026-10-12).
   §14.9.25.4 GR4 makes the move a byte copy and §8.5.1.10.4 sets the receiver's new length to the content's. An odd
   byte count cannot be national content (D-N1: two bytes per position), so the last position is completed with the

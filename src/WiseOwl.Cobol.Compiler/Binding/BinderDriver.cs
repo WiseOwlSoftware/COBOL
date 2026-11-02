@@ -903,7 +903,7 @@ internal sealed class BinderDriver
     /// would make an item and its twin disagree when their prototype is not its own signature class's founder).
     /// <para>TWO passes over the forests (kb/Work PB2495): the first attaches each pointer's resolved prototype, the
     /// second classifies it. Classifying a prototype compares its formals, and a formal that is itself a restricted
-    /// pointer is compared by the prototype IT names (<see cref="PrototypeSignatures.SameSignatureRestriction"/>) — which may be declared
+    /// pointer is compared by the signature class of the prototype IT names (<see cref="PrototypeSignatures.SignatureRestriction"/>) — which may be declared
     /// in a forest later in the group, so every forest is resolved before any is classified.</para></summary>
     private static void ResolvePointerRestrictions(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes,
         IReadOnlyList<KeyValuePair<OoInterfaceSymbol, DataBinder>> interfaces, BindSession session)

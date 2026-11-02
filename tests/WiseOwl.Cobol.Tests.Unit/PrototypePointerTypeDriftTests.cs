@@ -80,19 +80,20 @@ public sealed class PrototypePointerTypeDriftTests
     /// projection, the shape that elides the members a record compare cannot carry.</summary>
     private static readonly Regex ProfileProjection = new(@"with\s*\{\s*EditingRules\s*=\s*null[^}]*\}", RegexOptions.Compiled);
 
-    /// <summary>The restricted-pointer names a <c>PicInfo</c> record compare must not read (kb/Work PB3120): the prototype
-    /// name (a program- or function-pointer is typed by its prototype's SIGNATURE) and the type-name (a data-pointer is
-    /// typed by the DECLARATION it names, which the record compare elides).</summary>
+    /// <summary>The restricted-pointer names a <c>PicInfo</c> record compare must not read (kb/Work PB3120, PB4107): the
+    /// prototype name as WRITTEN (a program- or function-pointer's TO phrase names the prototype by its folded externalized
+    /// name, <c>PrototypeSignatures.NamedRestriction</c>) and the type-name (a data-pointer is typed by the DECLARATION it
+    /// names, which the record compare elides).</summary>
     private static readonly string[] RestrictionNames = ["RestrictedPrototypeName", "RestrictedTypeName"];
 
-    /// <summary>⛔ A <c>PicInfo</c> RECORD COMPARE DOES NOT DECIDE A RESTRICTED POINTER'S TYPE (kb/Work PB3120).
+    /// <summary>⛔ A <c>PicInfo</c> RECORD COMPARE DOES NOT DECIDE A RESTRICTED POINTER'S TYPE (kb/Work PB3120, PB4107).
     /// <c>StrongTypeModel.SameAnalyzedProfile</c> compares two elementary items' analyzed profiles with <c>PicInfo</c>'s own
-    /// record equality, which compares <c>RestrictedPrototypeName</c> and <c>RestrictedTypeName</c> by value — the NAMES
-    /// §8.5.3.1 does not compare. A group formal that held a pointer restricted to two differently named prototypes of one
-    /// signature (or to two declarations of one type-name) was therefore decided by the name while the elementary formal of
-    /// the same pair was decided by the type, refusing the first (COBOL1513) and admitting the second. Every
-    /// <c>with { EditingRules = null, … }</c> projection in the compiler must elide BOTH names, and the comparison reads
-    /// <c>PrototypeSignatures.SameSignatureRestriction</c> / <c>StrongTypeModel.SameRestriction</c> instead.</summary>
+    /// record equality, which compares <c>RestrictedPrototypeName</c> and <c>RestrictedTypeName</c> by value — the words as
+    /// WRITTEN, which §8.5.3.1 does not compare: a prototype is named by its externalized name whatever its local word or
+    /// case, and a data-pointer's type is the declaration its type-name resolves to (two declarations of one type-name in
+    /// two source elements). Every <c>with { EditingRules = null, … }</c> projection in the compiler must elide BOTH names,
+    /// and the comparison reads <c>PrototypeSignatures.NamedRestriction</c> / <c>StrongTypeModel.SameRestriction</c>
+    /// instead.</summary>
     [Fact]
     public void EveryPicInfoProfileProjectionElidesTheRestrictedNames()
     {

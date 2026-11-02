@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 using Xunit;
 
@@ -55,8 +57,69 @@ public sealed class PointerRestrictionRelationsTests
         { "TO p2", "SIG t", "tb", "TO p1", "SIG s", "ta", false, false },
         // Two prototypes only the run unit resolves: the SET's stance admits; the names still differ.
         { "TO x2", External("X2"), "tb", "TO x1", External("X1"), "ta", true, false },
+        // One prototype, resolved in one compilation and not in the other: one type declaration is one type in both (the
+        // real builder's PointerType is the same text on each side,
+        // TheTypeOfATypedRestrictedPointer_IsTheSameText_WhetherOrNotItsPrototypeResolved).
         { "TO x1", External("X1"), "ta", "TO x1", "SIG s", "ta", true, true },
     };
+
+    private const string ResolvingGroup = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. P4107X IS PROTOTYPE.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 L-Y PIC 9(4).
+        PROCEDURE DIVISION USING L-Y.
+        END PROGRAM P4107X.
+
+        """;
+
+    private const string Holder = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H4107X.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            PROGRAM P4107X.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TB TYPEDEF USAGE PROGRAM-POINTER TO P4107X.
+        01 TG TYPEDEF STRONG.
+           05 M TYPE TB.
+        01 PB TYPE TB.
+        01 GB TYPE TG.
+        PROCEDURE DIVISION.
+            GOBACK.
+        END PROGRAM H4107X.
+        """;
+
+    /// <summary>⛔ The run-time "of the same type" compares two compilations' §8.5.3.1 keys (kb/Work PB4107, branch review
+    /// R1-1): a key built from a prototype's signature class differed between a compilation that holds P4107X's signature
+    /// and one that only names it (ISO §12.3.8.4 GR10 c)), and refused one type declaration against itself. The key reads
+    /// the TO phrase by the prototype it names, so both compilations spell the pointer's type and the strong group's type
+    /// with one string, while what the pointer may CONTAIN still differs as the SET relation needs it to.</summary>
+    [Fact]
+    public void TheTypeOfATypedRestrictedPointer_IsTheSameText_WhetherOrNotItsPrototypeResolved()
+    {
+        (ActivationDescription Pointer, ActivationDescription Group) Describe(string source)
+        {
+            var roots = RepositoryCodecTests.Bind(source, 2002).Units.Single(u => u.Name == "H4107X").Data.WorkingStorageRoots;
+            return (ActivationDescriptions.Of(roots.Single(r => r.CobolName == "PB"), classes: null)!,
+                ActivationDescriptions.Of(roots.Single(r => r.CobolName == "GB"), classes: null)!);
+        }
+
+        var resolved = Describe(ResolvingGroup + Holder);
+        var external = Describe(Holder);
+        Assert.NotNull(resolved.Pointer.PointerType);
+        Assert.Equal(resolved.Pointer.PointerType, external.Pointer.PointerType);
+        Assert.Equal(resolved.Pointer.Clauses, external.Pointer.Clauses);
+        Assert.NotNull(resolved.Group.StrongType);
+        Assert.Equal(resolved.Group.StrongType, external.Group.StrongType);
+        Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, resolved.Pointer.ContentRestriction, StringComparison.Ordinal);
+        Assert.True(ActivationDescription.IsExternalRestriction(external.Pointer.ContentRestriction));
+        Assert.True(ByReference(resolved.Pointer, external.Pointer));
+        Assert.True(ByReference(external.Pointer, resolved.Pointer));
+    }
 
     [Theory]
     [MemberData(nameof(Pairs))]

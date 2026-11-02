@@ -151,9 +151,10 @@ public static class StrongTypeModel
     /// positions and lengths of the ELEMENTARY items … and the ALIGNED, BLANK WHEN ZERO, DYNAMIC LENGTH,
     /// JUSTIFIED, PICTURE, SIGN, SYNCHRONIZED, and USAGE clauses specified for each of these elementary items",
     /// and an intermediate group level is none of those.</para>
-    /// <para>A group's elementary items may be restricted program- or function-pointers, whose type is a prototype's
-    /// SIGNATURE CLASS (<see cref="SameAnalyzedProfile"/>); asked while the classes are computed, each carries its
-    /// prototype's current block (<see cref="PrototypeSignatureClasses.Classify"/>; kb/Work PB3120, PB3101).</para></summary>
+    /// <para>A group's elementary items may be restricted program- or function-pointers, whose USAGE clauses are the same
+    /// when their TO phrases name one prototype (<see cref="SameAnalyzedProfile"/>; docs/CONFORMANCE.md D-RP1, kb/Work
+    /// PB4107) — never asked of the prototype's signature class, so the answer is the same in every compilation and
+    /// while <see cref="PrototypeSignatureClasses.Classify"/> is still refining.</para></summary>
     public static bool SameElementaryLayout(DataItem a, DataItem b) =>
         SameLayout(a, b, new Comparison());
 
@@ -233,9 +234,11 @@ public static class StrongTypeModel
 
     /// <summary><see cref="SameEssentialCharacteristics"/> as a key: the entry clauses, then the analyzed profile
     /// (<see cref="PicInfo"/>'s own record text, every axis by construction, with the members
-    /// <see cref="SameAnalyzedProfile"/> handles apart rendered apart — a restricted prototype-pointer by the TYPE it
-    /// is, its prototype's signature class, never the prototype's name; a restricted data-pointer by its type-name
-    /// under the fold <see cref="SameRestriction"/> compares with, and the declaration it resolves to).
+    /// <see cref="SameAnalyzedProfile"/> handles apart rendered apart — a restricted prototype-pointer by its USAGE
+    /// clause's TO phrase, the prototype it names (<see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>), never
+    /// the prototype's signature class, which only a compilation that holds the signature can compute (kb/Work PB4107);
+    /// a restricted data-pointer by its type-name under the fold <see cref="SameRestriction"/> compares with, and the
+    /// declaration it resolves to).
     /// <para>⛔ THE KEY IS THE SAME TEXT ON EVERY HOST (kb/Work PB3257). It is compiled into the program and compared
     /// ordinally at run time against a key another compilation built (<c>ActivationRelations</c>), so a number in it
     /// is formatted with the invariant culture: a negative <see cref="PicInfo.Scale"/> (<c>PIC 99P</c>) printed U+2212
@@ -260,7 +263,7 @@ public static class StrongTypeModel
                      ? string.Create(CultureInfo.InvariantCulture, $"@{open.Count - at}")
                      : $"[{TypeIdentityKey(decl, open)}]");
         string profile = InvariantRecordText(p with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null, LocaleEdit = null });
-        return $"{entry}|{profile}|{rules}|{locale}|{PrototypeSignatures.SignatureRestriction(x)}|{restricted}";
+        return $"{entry}|{profile}|{rules}|{locale}|{PrototypeSignatures.NamedRestriction(x)}|{restricted}";
     }
 
     /// <summary>A record's synthesized text under the invariant culture: its <c>PrintMembers</c> formats each member
@@ -361,12 +364,16 @@ public static class StrongTypeModel
     /// equality uses the DEFAULT comparer — reference equality — so two separately-analyzed items with identical
     /// PICTURE EDITING phrases would compare unequal and legal source would be refused. It is elided from the
     /// record compare and compared element-wise.</para>
-    /// <para>⛔ THE RESTRICTED-POINTER MEMBERS ARE ELIDED TOO, AND ASKED THEIR TYPE (kb/Work PB3120). A restricted
-    /// program- or function-pointer is typed by its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), so
-    /// <see cref="PicInfo.RestrictedPrototypeName"/> leaves the record compare and the pair is asked
-    /// <see cref="PrototypeSignatures.SameSignatureRestriction"/> — two pointers restricted to differently named prototypes of one
-    /// signature are of the same type, exactly as an elementary pointer's description reads them
-    /// (<c>ActivationDescriptions</c>' <c>TO</c> class clause). A restricted data-pointer is typed by the DECLARATION its type-name
+    /// <para>⛔ THE RESTRICTED-POINTER MEMBERS ARE ELIDED TOO, AND ASKED WHAT THEY NAME (kb/Work PB3120, PB4107). A
+    /// restricted program- or function-pointer's USAGE clause names a prototype, and §8.5.3.1's "the same … USAGE
+    /// clauses" compares the TO phrase by the prototype it names — its folded EXTERNALIZED name
+    /// (<see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>; docs/CONFORMANCE.md D-RP1), as an elementary
+    /// pointer's description reads it (<c>ActivationDescriptions.ElementaryClauses</c>) — so
+    /// <see cref="PicInfo.RestrictedPrototypeName"/>, the word as written, leaves the record compare. Two pointers
+    /// restricted to differently named prototypes of one signature are two USAGE clauses; what each may CONTAIN, the
+    /// signature class (§13.18.60.4 GR25 / GR26), is the SET relation's and never this one's — a class only a compilation
+    /// holding the signature can compute would key one declaration two ways across compilations. A restricted
+    /// data-pointer is typed by the DECLARATION its type-name
     /// resolves to (GR23), so <see cref="PicInfo.RestrictedTypeName"/> and its resolution
     /// <see cref="PicInfo.RestrictedTypeDecl"/> leave the record compare and the pair is asked
     /// <see cref="SameRestriction(TypeRestriction, TypeRestriction)"/>, the relation the elementary arm spends. Neither
@@ -384,7 +391,8 @@ public static class StrongTypeModel
         if ((x.RestrictedTypeName is not null || y.RestrictedTypeName is not null)
             && !SameRestriction(PointerRestriction(a), PointerRestriction(b), within)) return false;
         if ((x.RestrictedPrototypeName is not null || y.RestrictedPrototypeName is not null)
-            && !PrototypeSignatures.SameSignatureRestriction(a, b)) return false;
+            && !string.Equals(PrototypeSignatures.NamedRestriction(a), PrototypeSignatures.NamedRestriction(b), StringComparison.Ordinal))
+            return false;
         return x.EditingRules is null ? y.EditingRules is null
             : y.EditingRules is { } yr && x.EditingRules.SequenceEqual(yr);
     }
@@ -393,7 +401,8 @@ public static class StrongTypeModel
     /// carries down to the pointer members it meets. A restricted data-pointer member is typed by its type declaration
     /// (§13.18.60.4 GR23), which may itself hold a pointer restricted back to it, so the declaration pairs being compared
     /// are assumed equivalent (<see cref="Assume"/>) and the walk terminates. (A restricted program- or function-pointer
-    /// member is typed by the signature class its item carries, <see cref="PrototypeSignatures.SameSignatureRestriction"/>.) Created at
+    /// member is compared by the prototype it names, <see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>, which
+    /// never recurses.) Created at
     /// each public entry, so no state outlives one question.</summary>
     private sealed class Comparison
     {

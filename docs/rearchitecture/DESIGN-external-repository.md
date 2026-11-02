@@ -1054,7 +1054,8 @@ the signature class, PB2464, which the pair-mode relation compares for two class
 `DescriptionClauses.AlignedOrDynamicLengthMismatch` + `SameAnalyzedProfile` — `PicInfo` record equality with
 `EditingRules`, `RestrictedTypeName`, `RestrictedTypeDecl` and `RestrictedPrototypeName` set aside, then `EditingRules`
 element-wise, then a restricted data-pointer by `StrongTypeModel.SameRestriction` (the declaration it names, GR23) and a
-restricted program- or function-pointer by `PrototypeSignatures.SameSignatureRestriction` (the signature, GR25 / GR26), both under the
+restricted program- or function-pointer by its USAGE clause's TO phrase, `PrototypeSignatures.NamedRestriction` (the prototype
+it names, folded; never its signature class, which only a compilation holding the signature computes: kb/Work PB4107), under the
 enclosing comparison's `Comparison` assumption set (PB3120); `BitLayout.*`; `DataItem.ImageWidth`/`ByteWidth`.
 | Member read | Read by | Schema field |
 |---|---|---|
@@ -1079,7 +1080,8 @@ not the invariant: `RestrictedTypeDecl` is a `DataItem` reference (the twin's is
 and decoded for ANOTHER element the restriction names are that element's words (§8.7). The invariant is the
 normalization `SameAnalyzedProfile` already applies — the four restriction members set aside, every other member
 record-equal (so `_digitPositions` and every future member are seen), `EditingRules` element-wise, and the
-restrictions equal by their relations (`SameRestriction`, `PrototypeSignatures.SameSignatureRestriction`) — plus, for the activation
+restrictions equal by their relations (`SameRestriction`, `PrototypeSignatures.NamedRestriction` and
+`PrototypeSignatures.SameSignatureRestriction`) — plus, for the activation
 description, `ActivationRelations.SignatureDifference` null in both directions (an `ActivationDescription` holds arrays,
 so record `==` is reference equality on them). **Data-names and intermediate grouping are recorded and never
 compared:** `Name` fields serve diagnostics, the host surface and the REDEFINES/ODO targets inside one record;
@@ -1115,13 +1117,18 @@ the group.
   DECLARATION it resolves to (`RestrictedTypeDeclaration`, an index into `TypeDeclarations`); the decoder sets
   `PicInfo.RestrictedTypeDecl` to the decoded declaration, and the type is compared by `StrongTypeModel.SameRestriction`
   / `EquivalentTypeDeclarations` ("both shall be restricted and of the same type", §14.8.2.3.2), as in the group.
-- **Restricted program- and function-pointers: the TYPE is the SIGNATURE.** §13.18.60.4 GR25: "A restricted
-  program-pointer shall contain only the predefined address NULL or the address of a program with the same signature as
-  that identified by the specified program-prototype-name" (`cite.py --check` OK, 25)), and GR26 is its function-pointer
-  twin. Two pointers restricted to two differently named prototypes of one signature are one type. The approved text of
-  this design compared the prototype by IDENTITY and replaced `PicInfo.RestrictedPrototypeName` by an identity field;
-  done literally that re-types restricted pointers by name across units and contradicts GR25, which kb/Work PB2464 /
-  PB2495 / PB3101 / PB3120 / PB3162 settled in the code. The design adopts the code:
+- **Restricted program- and function-pointers: what they may CONTAIN is the SIGNATURE; their USAGE clause is the NAME.**
+  §13.18.60.4 GR25: "A restricted program-pointer shall contain only the predefined address NULL or the address of a
+  program with the same signature as that identified by the specified program-prototype-name" (`cite.py --check` OK,
+  25)), and GR26 is its function-pointer twin, so the SET relation (and the rules that send to it) admits two pointers
+  restricted to two differently named prototypes of one signature (kb/Work PB2464 / PB2495 / PB3101 / PB3162). The
+  identity rules — §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3 and §8.5.3.1's type-declaration equivalence —
+  compare the USAGE clause's TO phrase by the prototype it NAMES, its folded externalized name
+  (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107), so the §8.5.3.1 keys two
+  compilations compare (`ActivationDescription.StrongType`, `PointerType`) are the same text whether or not a compilation
+  holds the prototype's signature. The approved text of this design replaced `PicInfo.RestrictedPrototypeName` by an
+  identity field; the code keeps the written name and records the signature beside it, because the SET relation needs
+  the signature and a written word is not an identity:
   - The record keeps the restriction NAME (`RestrictedPrototypeName`, the publisher's word, for diagnostics and
     `IdentityScope` mapping; the code keeps it on `PicInfo` deliberately, because a new `PicInfo` field would change the
     strong-type key text) and the prototype's FULL signature (`RestrictedPrototype` → a `PrototypeRecord` in
