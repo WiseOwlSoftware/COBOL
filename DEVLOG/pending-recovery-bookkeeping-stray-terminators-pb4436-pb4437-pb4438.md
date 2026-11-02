@@ -32,3 +32,9 @@ END-IF (`… IF c ELSE DISPLAY W-A END-IF WHEN 2 DISPLAY "Y" END-EVALUATE`) now 
 where the baseline drew a false COBOL0306 at the END-IF (the EVALUATE already returned); an EVALUATE nested in an IF
 with such a first-in-group IF draws a false COBOL0306 at its END-EVALUATE. Both need the empty-block recovery to keep
 the construct open rather than record it as left.
+
+**Self-review** (architecture, full code, performance, duplication): the new code runs on the error path only; the
+terminator-match test is one helper (`EndedWithItsTerminator`) used by both the record loop and `StillOpen`;
+`OwningStatement` repeats `EnclosingStatement`'s ancestor walk without its kind filter (kept apart: different question).
+Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,895/20,895 · Unit 39,331/39,331 · Characterization 37/37` (run
+000001-20261102T151937Z); the three new refusals passed at 85, 2002, 2014 and 2023; `semgrep/verify.py` PASS.
