@@ -1,4 +1,4 @@
-## Leads from wave 20261824/20261825 reports filed as kb/Work notes
+## Entry 3001 — 2026-11-02 08:35 PST — Leads from wave 20261824/20261825 reports filed as kb/Work notes
 
 Filed by the enqueue unit's lead clerk, one note per mechanism (MANDATORY-PRACTICES R1-R3), from four finisher reports in `E:/COBOL-coord/scratch/reports/`:
 
@@ -8,3 +8,4 @@ Filed by the enqueue unit's lead clerk, one note per mechanism (MANDATORY-PRACTI
 * `w20261825b-PB4436-report.md`: PB4447 (false COBOL0306 at END-EVALUATE after a left IF's END-IF), PB4448 (COBOL5506 where COBOL2072 belongs), PB4449 (over-wide phrase suppression and its wrong 14.5.3.2 citation, which is 14.5.3.3).
 
 No code changed.
+
