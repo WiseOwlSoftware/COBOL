@@ -27,8 +27,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// diagnosis would contradict or restate stands behind <see cref="HasStructuralHint"/> (<c>GO TO DEPENDING ON X.</c>
     /// read "at least one procedure-name is required. A period may be missing", kb/Work PB412); one that adds to it
     /// does not (the OCCURS KEY phrase after INDEXED BY, hint 8, completes the closed-format refusal of 0g).</para>
+    /// <para><paramref name="Subject"/>: the token the refusal is ABOUT where that is not the offending token, because the
+    /// fault was written earlier and the offending token only ended it (the opening word of a foreign word run a reserved
+    /// word ended, kb/Work PB4301); the report stands there and names it.</para>
+    /// <para><paramref name="LeavesNoTail"/>: the refusal says an element is INCOMPLETE and the offending token opens the
+    /// next one (a reserved word where an operand is due), so the recovery has no operand's tail to discard
+    /// (<see cref="OrphansItsTail"/>).</para>
     /// </summary>
-    private readonly record struct DiagnosticHint(Diagnostics.DiagnosticDescriptor Descriptor, string Message, int Priority)
+    private readonly record struct DiagnosticHint(Diagnostics.DiagnosticDescriptor Descriptor, string Message, int Priority,
+        IToken? Subject = null, bool LeavesNoTail = false)
     {
         public string Code => Descriptor.Code;
 
@@ -42,6 +49,14 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// it named; empty before the first. The strategy is created per parse (<c>Frontend</c>), so this never crosses
     /// programs.</summary>
     private (int From, int Through) _lastReported = (-1, -2);
+
+    /// <summary>The token index of the opening word of the last foreign word run refused in a report of its own (kb/Work
+    /// PB4301); a run's end met by a second report is not a second refusal.</summary>
+    private int _lastRunRefused = -1;
+
+    /// <summary>Is this the first refusal of the run opened at <paramref name="opening"/> (and, if so, note it)?</summary>
+    private bool NoteRunRefused(IToken opening)
+        => opening.TokenIndex > _lastRunRefused && (_lastRunRefused = opening.TokenIndex) >= 0;
 
     /// <summary>⛔ ONE REPORT PER FAULT (kb/Work PB3832). A failed adaptive prediction reports the token where every
     /// alternative died while the parser still stands at the decision's first token, and the recovery resumes THERE:
@@ -70,6 +85,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // (EmbeddedBlockReading.Report, kb/Work PB4341), never a second one naming its text.
         if (token.Type == CobolParserCore.EMBEDDED_BLOCK) return;
         if (EndsAStatementTheRecoveryLeft(recognizer, at)) return;
+        // A foreign word run that the next entry follows with its period missing (kb/Work PB4301): the run is refused by
+        // name in a report of its own, and this one is the missing period's, which the recovery conjures and goes on from.
+        if (at.EndsARunBeforeTheNextSentence && ClosedFormatResidue(recognizer, at, predictionFailedAt: false) is { Format: var runFormat }
+            && ResidueRefusal(recognizer, at, runFormat) is { Subject: { } opening } refusal && NoteRunRefused(opening))
+        {
+            recognizer.NotifyErrorListeners(opening, BuildMessage(opening, ErrorKind.UnwantedToken, [refusal]), e);
+        }
         var hints = GuessCobolIntent(recognizer, at);
         if (!HasStructuralHint(hints) && at.Carried is { } carried)
         {
@@ -102,8 +124,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
         // The recovery consumes the named token as the operand it stood for only when it is the offending token itself.
         _reportedReservedWordUse = violation is not null && named == at.Token;
-        recognizer.NotifyErrorListeners(named,
-            violation is not null ? $"[{EditionCodes.ReservedWord}] {violation}" : BuildMessage(at.Token, kind, hints), e);
+        // A refusal about an earlier token stands at that token (DiagnosticHint.Subject, kb/Work PB4301).
+        var subject = violation is null ? hints.OrderBy(h => h.Priority).FirstOrDefault().Subject : null;
+        if (subject is null || NoteRunRefused(subject))
+            recognizer.NotifyErrorListeners(subject ?? named,
+                violation is not null ? $"[{EditionCodes.ReservedWord}] {violation}" : BuildMessage(subject ?? at.Token, kind, hints), e);
         if (violation is not null && ReadsAsTheNameAhead(recognizer, at, kind))
         {
             ((CobolParserCoreBase)recognizer).ReadAsUserWord(at.Token);
@@ -330,7 +355,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static bool OrphansItsTail(List<DiagnosticHint> hints, ErrorKind kind)
         => EndsAConstructEarly(hints)
            || (kind != ErrorKind.MissingToken && hints.Count > 0
-               && hints.MinBy(h => h.Priority).Code == Diagnostics.DiagnosticDescriptors.COBOL5506.Code);
+               && hints.MinBy(h => h.Priority) is { LeavesNoTail: false } first
+               && first.Code == Diagnostics.DiagnosticDescriptors.COBOL5506.Code)
+           // A foreign word run's refusal (kb/Work PB4301): what follows the opening word is the run's own tail.
+           || (hints.Count > 0 && hints.MinBy(h => h.Priority) is { Subject: not null, LeavesNoTail: false });
 
     /// <summary>⛔ THE FAULTS THAT FIND THE ENCLOSING STATEMENTS ALREADY CLOSED (kb/Work PB3843): a word the statement
     /// just written does not print there (hint 0h, COBOL2269), a WHEN OTHER phrase repeated or out of place (hint 0b,
@@ -1218,10 +1246,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // position is read FROM THE ATN (ClosedFormatResidue), the format and the wording from the ONE table the pass
         // reads, so the refusal is the pass's own — same code, same sentence — and a closed format added tomorrow
         // inherits it.
-        if (ClosedFormatResidue(recognizer, at, predictionFailedAt) is { Format: var closedFormat })
-            hints.Add(new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
-                    Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
-                closedFormat.Refusal(WrittenResidueItem(recognizer, token), ClosedFormats.OwnerName(recognizer.Context)) + ".", 0));
+        // ⛔ THE WORD A RUN WAS OPENED BY IS THE ONE REFUSED, NOT THE RESERVED WORD THAT ENDED IT (kb/Work PB4301). Where
+        // the parser stands INSIDE a foreign word run (`SELECT F1 ASIGN TO "f"`: the run ASIGN, ended by TO, which the
+        // production never holds) the word refused by name is the run's opening, as ClosedFormatPass quotes it at bind
+        // (that pass never runs once a parse error exists), and the report stands there. Where a period would let the
+        // sentence at the token follow (`01 B PIC 9 FOO` then `05 C PIC X.`), the token is the next entry's and the
+        // missing period is this report's: the run's refusal is its own report beforehand (<see cref="Report"/>).
+        if (ClosedFormatResidue(recognizer, at, predictionFailedAt) is { Format: var closedFormat }
+            && !at.EndsARunBeforeTheNextSentence)
+            hints.Add(ResidueRefusal(recognizer, at, closedFormat));
 
         if (token.Type is CobolLexer.CORRESPONDING or CobolLexer.CORR && IsInRule(ruleStack, "moveStatement"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2173,
@@ -1265,15 +1298,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         Func<string, bool> theEditionPrints = recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true;
         if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
-                   at.APeriodLetsTheSentenceFollow, theEditionPrints) is { } kindMsg)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0));
+                   at.APeriodLetsTheSentenceFollow, theEditionPrints, out bool anOperandIsDue) is { } kindMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0, LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
         // boundary's, which admits what a sentence begins with: the statement arm of the PB4224 refusal. A user-defined
         // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
         else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
                  && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
-                        () => false, theEditionPrints) is { } sentenceMsg)
+                        () => false, theEditionPrints, out _) is { } sentenceMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, sentenceMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -1453,6 +1486,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // The residue is named only where the parse gave up near the parser: a closed construct carried forward, or a
         // prediction that failed past the bound, is not the place a clause list stands (MaxResimulatedTokens).
         if (at.CarriedForward || at.Lookahead > MaxResimulatedTokens || at.Walk is not { } walk) return null;
+        // ⛔ A WORD THE CLAUSE JUST WRITTEN COULD HAVE TAKEN IS THAT CLAUSE'S, NOT A FOREIGN ONE (kb/Work PB4301): in
+        // `OCCURS 0 TO TIMES` the clause is complete at the 0 and the TO is a word OF it, so naming the TO "not a clause"
+        // blames the wrong word; the missing integer-2 (ISO §13.18.38.2) is the fault, and the carried report names it.
+        if (at.ClosedConstructTakes()) return null;
+        // ⛔ A FOREIGN RUN IS REFUSED WHATEVER ENDED IT (kb/Work PB4301): `01 B PIC 9 VALEU 5.` may be a missing period
+        // before a level-number, but VALEU is no clause in that reading either, and ClosedFormatPass (which a unit with a
+        // parse error never reaches) would name it. The missing period is then the report's second reading, the recovery's.
+        if (at.ResidueRun is { } run && ClosedFormats.Of(run.Parent?.GetType()) is { } runFormat)
+            return new Residue(runFormat, run.RuleIndex);
         int k = at.Lookahead;
         var probe = walk.Probe();
         // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
@@ -1464,6 +1506,19 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return probe.Format is { } format && (refusedWord || !beginsWhatFollows)
             ? new Residue(format, probe.Production)
             : null;
+    }
+
+    /// <summary>The refusal of <paramref name="at"/> as a closed format's residue (the 0g hint, and a run's own report): the
+    /// row's code and sentence, naming the foreign run's OPENING word where the token ends a run
+    /// (<see cref="OffendingPosition.ResidueRunOpening"/>, kb/Work PB4301) and the token itself otherwise. A run's tail
+    /// belongs to the refusal (<see cref="DiagnosticHint.LeavesNoTail"/> false), a lone residue has none.</summary>
+    private static DiagnosticHint ResidueRefusal(Parser recognizer, OffendingPosition at, ClosedFormat closedFormat)
+    {
+        var run = at.ResidueRunOpening;
+        return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
+                Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
+            closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token),
+                ClosedFormats.OwnerName(recognizer.Context)) + ".", 0, run?.Start, LeavesNoTail: run is null);
     }
 
     /// <summary>A closed format's residue: the format whose list stands there, and the error production's form
@@ -2012,7 +2067,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// makes a keyword token of exactly this type (<see cref="CobolKeywordTokens.TryTokenType"/>, which reaches the
     /// multi-spelling keywords the vocabulary publishes no literal name for). Every such word begins with a letter;
     /// testing that first keeps a numeric literal away from the lexer probe.</summary>
-    private static bool IsReservedWord(IToken token)
+    internal static bool IsReservedWord(IToken token)
         => token.Text is [var first, ..] text && char.IsAsciiLetter(first)
            && CobolKeywordTokens.TryTokenType(text, out int type) && type == token.Type;
 
@@ -2637,6 +2692,46 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             => Expected() is { } expected
                && (expected.Contains(CobolLexer.DOT) || !expected.And(StatementBlockStart(_recognizer)).IsNil
                    || ScopeTerminatorTypes(_recognizer).Any(expected.Contains));
+
+        /// <summary>⛔ THE FOREIGN WORD RUN THE TOKEN ENDS (kb/Work PB4301): the error production's node (either form) the
+        /// parser stands inside (<c>SELECT F1 ASIGN TO</c>: the run ASIGN, which the TO the production cannot hold ends,
+        /// reported by the loop's Sync) or has just completed (<c>01 B PIC 9 VALEU 5.</c>: the data form's run holds no
+        /// integer, so it returned at the 5, which the entry then misses its period before); null otherwise.</summary>
+        public ParserRuleContext? ResidueRun
+        {
+            get
+            {
+                if (!ParserIsThere || PredictionFailedAt || Token.Type == TokenConstants.EOF) return null;
+                if (_recognizer.Context is ParserRuleContext inside && ClosedFormats.IsErrorProduction(inside.RuleIndex))
+                    return inside.ChildCount > 0 ? inside : null;
+                int i = Token.TokenIndex;
+                return PreviousDefault((ITokenStream)_recognizer.InputStream, ref i) is { } previous
+                       && LastClosedConstruct(_recognizer.Context as ParserRuleContext, previous.TokenIndex) is { } closed
+                       && ClosedFormats.IsErrorProduction(closed.RuleIndex)
+                    ? closed
+                    : null;
+            }
+        }
+
+        /// <summary>Does the token end a foreign word run that a period would let the next sentence follow
+        /// (<see cref="ResidueRun"/>, <see cref="APeriodLetsTheSentenceFollow"/>): the run's period is forgotten and the token
+        /// is the next entry's?</summary>
+        public bool EndsARunBeforeTheNextSentence
+            => ResidueRun is not null && APeriodLetsTheSentenceFollow()
+               // The comma decimal `1,5` heads a longer literal and is no level-number (kb/Work PB3390).
+               && CobolParserCoreBase.NumericLiteralWidth((ITokenStream)_recognizer.InputStream, Lookahead) <= 1;
+
+        /// <summary>The run's opening item (the <c>residueOpening</c> or <c>residueInteger</c> node), the word
+        /// <c>ClosedFormatPass</c> refuses by name at bind, so the parse layer names the same one; null without a run.</summary>
+        public ParserRuleContext? ResidueRunOpening
+            => ResidueRun is { } run && run.GetChild(0) is ParserRuleContext { Start: { } opening } first
+               && opening.TokenIndex < Token.TokenIndex
+                ? first
+                : null;
+
+        /// <summary>Could the construct the parser completed just before the token have gone on with it
+        /// (<see cref="ClosedJustBefore"/>'s re-simulation takes the token)? False where no construct was closed there.</summary>
+        public bool ClosedConstructTakes() => ClosedJustBefore() is var (_, _, walk) && walk.Takes(Token.Type);
 
         /// <summary>⛔ COULD A USER-DEFINED WORD STAND AT THE TOKEN (kb/Work PB4132)? The three readings the strategy
         /// already makes of a refused token, each asked of the token read as a user-defined word (<c>IDENTIFIER</c>, the

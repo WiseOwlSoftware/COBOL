@@ -36,7 +36,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// semantics of the format." A word after which the parse admits exactly what it admitted without the word
 /// (<c>aWordChangesNothing</c>: the IS of <c>USAGE [IS] usage</c>) is left out of the expected words, unless it is all
 /// there is to name.</para>
-/// <para>Four shapes, one rule (ISO §5.2.1: the elements of a general format are written in its sequence):</para>
+/// <para>Five shapes, one rule (ISO §5.2.1: the elements of a general format are written in its sequence):</para>
 /// <list type="bullet">
 ///   <item><b>A closed position</b>: everything it expects can be named — no user-defined word, no separator period
 ///         (the construct cannot end here), no statement (a position where a statement may begin expects EVERY
@@ -54,6 +54,10 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 ///         never an alphanumeric one; <c>CALL "P" RETURNING 5</c> no literal).</item>
 ///   <item><b>A user-defined word at an open position that expects literals but no user-defined word</b>: both are
 ///         said.</item>
+///   <item><b>A reserved word where an operand is due</b> (kb/Work PB4301): the position takes a user-defined word or a
+///         literal and nothing that continues an operand (no punctuation or operator), so the element before the
+///         token is incomplete (<c>OCCURS 0 TO TIMES</c>: the integer after TO is missing, <c>DISPLAY WHEN OTHER</c>: the
+///         operand of the DISPLAY): the words and literals it takes are named, the user-defined words once.</item>
 /// </list>
 /// <para>An open position that takes the separator period is left to the missing-period reading wherever a period
 /// would let the sentence or entry that starts at the token follow: <c>01 W-X PIC X</c> then <c>05 W-Y PIC X.</c> is a
@@ -69,7 +73,9 @@ internal static class AdmittedKinds
     /// whether a general format of the compile edition can print a keyword (kb/Work PB4174), and a keyword it refuses
     /// is not named. <paramref name="aWordChangesNothing"/> says whether a word, written there, leaves the parse
     /// admitting exactly what it admitted without it (the optional word of §8.3.2.4.3, kb/Work PB4225), and such a word
-    /// is no alternative to name.
+    /// is no alternative to name. <paramref name="anOperandIsDue"/> is true when the sentence says that the element before
+    /// the token is incomplete (a reserved word was written where an operand is due): the token is the next element's
+    /// opening, which the structure around the fault resumes at, so the fault has no tail to discard.
     /// <para>⛔ <c>ZERO_ARITH</c> IS NAMED "the figurative constant ZERO" WHEREVER THE PARSE EXPECTS IT (kb/Work PB4120). It is
     /// a token no program writes, and a ZERO written where the parse expects it becomes it: <c>ZeroTokenRewriter</c>
     /// makes it so by the ZERO's neighbours, and where no neighbour shows the arithmetic expression the parse does
@@ -79,8 +85,9 @@ internal static class AdmittedKinds
     /// the rewrite, not of the name, and went with it.</para></summary>
     public static string? Refusal(IToken token, IntervalSet admitted, IReadOnlyCollection<string> words,
         Func<int, bool> aWordChangesNothing, IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow,
-        Func<string, bool> theEditionPrints)
+        Func<string, bool> theEditionPrints, out bool anOperandIsDue)
     {
+        anOperandIsDue = false;
         if (token.Type == TokenConstants.EOF || admitted.Contains(token.Type) || admitted.Count == 0 && words.Count == 0)
             return null;
         var named = Name(admitted, words, aWordChangesNothing, statementStart, theEditionPrints);
@@ -118,7 +125,50 @@ internal static class AdmittedKinds
             return $"{written} is not expected here: a statement may begin at this position, and a statement begins with the "
                    + $"first word of its statement name, which {(literal ? "a literal" : "a user-defined word")} is not "
                    + "(ISO §14.5.3.1; the names are Table 12's, §14.5.1).";
+        // ⛔ A RESERVED WORD WHERE AN OPERAND IS DUE (kb/Work PB4301, PB4426): the position takes a user-defined word or a
+        // literal, and a keyword of the next phrase (the TIMES of `OCCURS 0 TO TIMES`, the WHEN of `DISPLAY WHEN OTHER`)
+        // was written instead: the element before it is incomplete, and what it needs is the position's own. Not at a
+        // position where a statement may begin, which the arm above words, and said only when the position takes an
+        // operand at all (a keyword where nothing but words are due is the phrase out of its sequence, not a missing one).
+        // The user-defined word is ONE element: the context-sensitive words `cobolWord` also takes (§8.10: a user-defined
+        // word at the position) are spellings of it, not alternatives to list.
+        // ⛔ SAID ONLY OF A POSITION THAT TAKES NOTHING BUT AN OPERAND (kb/Work PB4426). A punctuation mark or an operator in
+        // the set ( ')' , '(' , '*' ) means the element before the token is COMPLETE and goes on with it
+        // (`FUNCTION NUMVAL(A FROM 1)`: the argument is whole, the ')' or a qualifier OF may follow), so "an operand is
+        // expected" would be false, and a list of the parser's set after a completed operand is not the set that may follow
+        // it (the parser leaves its optional phrases early); such a position is left to the other readings.
+        bool takesAWord = admitted.Contains(CobolLexer.IDENTIFIER);
+        if (!named.Statement && CobolErrorStrategy.IsReservedWord(token) && (takesAWord || named.Literals.Count > 0))
+        {
+            var operand = takesAWord
+                ? Name(admitted.Subtract(UserWordSpellings), [.. words.Where(w => !CobolKeywordTokens.TryTokenType(w, out int t)
+                                                                                  || !UserWordSpellings.Contains(t))],
+                    aWordChangesNothing, statementStart, theEditionPrints)
+                : named;
+            if (operand.Symbols.Count > 0) return null;
+            anOperandIsDue = true;
+            return $"{written} is not expected here: expected "
+                   + $"{Join([.. takesAWord ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
+                   + "(ISO §5.2.1).";
+        }
         return null;
+    }
+
+    /// <summary>The context-sensitive words the <c>cobolWord</c> rule takes as user-defined words besides
+    /// <c>IDENTIFIER</c> (ISO §8.10, §8.3.2.1): FIRST(<c>cobolWord</c>) without it. Where a position admits a user-defined
+    /// word they are that element, never an alternative of their own.</summary>
+    private static IntervalSet UserWordSpellings => _userWordSpellings ??= BuildUserWordSpellings();
+
+    private static IntervalSet? _userWordSpellings;
+
+    private static IntervalSet BuildUserWordSpellings()
+    {
+        var atn = CobolParserCore._ATN;
+        var set = new IntervalSet();
+        set.AddAll(atn.NextTokens(atn.ruleToStartState[CobolParserCore.RULE_cobolWord]));
+        set.Remove(CobolLexer.IDENTIFIER);
+        set.SetReadonly(true);
+        return set;
     }
 
     private static bool IsLiteral(int type) => LiteralTokens.Whole.Contains(type);
@@ -189,7 +239,9 @@ internal static class AdmittedKinds
         bool statement = BeginsAStatement(admitted, words, statementStart);
         bool open = admitted.Contains(CobolLexer.IDENTIFIER) || admitted.Contains(CobolLexer.DOT)
                     || admitted.Contains(TokenConstants.EOF) || statement;
-        // At a statement position the statement names are the one element "a statement", not fifty-odd words.
+        // At a statement position the statement names are not listed: no arm prints Words at a statement position (a
+        // position that begins a statement is Open, so the closed-list arm never fires there), and the sentence of the
+        // statement arm says "a statement" and nothing of what else the position takes (kb/Work PB4224, PB4426).
         bool ListedByName(int type) => !(statement && statementStart.Contains(type));
         var wordNames = new SortedSet<string>(
             words.Where(w => theEditionPrints(w) && (!CobolKeywordTokens.TryTokenType(w, out int t) || ListedByName(t))),
@@ -223,7 +275,7 @@ internal static class AdmittedKinds
         // ⛔ A NOISE WORD IS NOT AN ALTERNATIVE (kb/Work PB4225). The optional word that may stand before what the position
         // expects (the IS of `USAGE [IS] usage`) is left out of the list, unless it is all there is to name.
         var noise = wordNames.Where(w => CobolKeywordTokens.TryTokenType(w, out int t) && aWordChangesNothing(t)).ToList();
-        if (noise.Count < wordNames.Count + literals.Count + symbols.Count + (statement ? 1 : 0)) wordNames.ExceptWith(noise);
+        if (noise.Count < wordNames.Count + literals.Count + symbols.Count) wordNames.ExceptWith(noise);
         return new([.. wordNames], literals, symbols, open, statement);
     }
 

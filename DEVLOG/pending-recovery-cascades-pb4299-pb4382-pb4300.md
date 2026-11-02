@@ -1,4 +1,4 @@
-## Syntax-error recovery and wording: a faulted sentence no longer swallows the program, a left statement keeps its terminator, COBOL2073 names only a misplaced WHEN OTHER, a withdrawn verb is named, a literal at a sentence start is refused as one (PB4299, PB4382, PB4300, PB4360, PB4425)
+## Syntax-error recovery and wording: a faulted sentence no longer swallows the program, a left statement keeps its terminator, COBOL2073 names only a misplaced WHEN OTHER, a withdrawn verb is named, a literal at a sentence start is refused as one (PB4299, PB4382, PB4300, PB4360, PB4425, PB4301, PB4426)
 
 Wave 20261822, group A: the `CobolErrorStrategy` notes, fixed at their root in harm order.
 
@@ -63,9 +63,30 @@ of its statement name). A user-defined word or an integer there may be a paragra
 3)), which the missing-period guess keeps saying. Rows in `WrittenKindRefusalTests` at four editions, after a sentence,
 END-IF, a paragraph header, a section header and the division header; refusal `pb4425-literal-where-the-next-sentence-begins`.
 
-**Left open, for a successor (the group proved to be several mechanisms):** PB4426 (the admitted set after a completed
-operand, with the dead statement-element counting in `AdmittedKinds.Name`) and PB4301 (the closed-format residue arm
-should defer to a closed clause that takes the token, `OCCURS 0 TO TIMES`, and name the run's opening word). Self-review
-found the terminator pairing too wide (any terminator, not only an unowned one) and narrowed it; semgrep verify passed
-with no rule count risen. Gate at 8e242b481: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,768/20,768 · Unit
-39,273/39,273 · Characterization 37/37 cases ran (skipped 0) ===` (run 000002-20261102T110043Z).
+**PB4301 (a misspelled clause keyword was refused as the word after it).** Re-probed: `SELECT F1 ASIGN TO "f"` named TO,
+`SINC LEFT` named LEFT, `OCURS 3 TIMES` drew a bare COBOL0001 at the 3 and a phantom level-3 entry's COBOL1941 at TIMES,
+and `OCCURS 0 TO TIMES` named TO, a word of the clause itself (ISO 13.18.38.2: "integer-1 TO integer-2"). One root, the
+by-name refusal of a foreign word run named the token that ended it, while `ClosedFormatPass` (which names the run's
+opening and never runs once a unit has a parse error) names the opening. `OffendingPosition.ResidueRun` finds the error
+production's node the parser stands in or has just completed; `ResidueRefusal` words the row's sentence from the run's
+opening and the hint's `Subject` stands the report there; the run's tail belongs to the refusal, so no `3 TIMES` entry is
+made of it. Where a period would let the sentence at the token follow (`FOO` then `05 C PIC X.`) the run is refused in a
+report of its own, once, and the missing period is still reported. `ClosedFormatResidue` defers where the closed
+construct before the token takes it (`ClosedConstructTakes`), and `AdmittedKinds` gained a fifth shape for a reserved word
+where an operand is due, which also gives the predecessor's lead (`DISPLAY WHEN OTHER`, `ADD TO "X"`, `MOVE 1 TO WHEN`)
+a named COBOL5506 where it drew the bare COBOL0001, without discarding the next statement (`DiagnosticHint.LeavesNoTail`).
+It is said only of a set with no punctuation: `NUMVAL(A FROM 1)` has a whole argument and keeps its COBOL0001. i29 (the
+unit with another parse error never reaches the pass) is PB4313's trade-off and stays there. Refusals at all four
+editions: `pb4301-misspelled-clause-keyword-is-named`, `pb4301-occurs-to-without-integer-2`,
+`pb4301-misspelled-occurs-before-an-integer`; `pb4300` now expects COBOL5506.
+
+**PB4426 (the admitted set after a completed operand).** No arm prints that set as an expectation, so none is false today;
+the guarantee is structural and stated in the design doc (section 3.9), the continuation walk over a closed WHEN phrase
+re-opens the superset grammar and is not built. The dead statement-element counting in `AdmittedKinds.Name` is deleted.
+Rows at 85, 2002, 2014 and 2023 for the selection object and the condition, and the refusal
+`pb4426-literal-after-a-completed-selection-object`.
+
+Self-review found the terminator pairing too wide in the predecessor's part (narrowed, 2 rows) and, in this part, the
+new operand arm's COBOL5506 orphaning the next statement's tail (the PB4286 rows failed: fixed by `LeavesNoTail`) and its
+list of the parser's full set for `NUMVAL(A FROM` (a continuation set, so now unsaid). semgrep verify passed with no rule
+count risen. 

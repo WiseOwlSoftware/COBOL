@@ -9,9 +9,10 @@
 *> and the DISPLAY before WHEN OTHER below has none: that is the fault, at the WHEN. The WHEN OTHER phrase is the
 *> program's only one, written after the WHEN group, which ISO 14.9.13.2 prints it after
 *>   cite.py: OK  14.9.13.2  (General format) - "imperative-statement-2"
-*> so the refusal is a syntax error at the WHEN that names no misplaced phrase. It fails if the report is COBOL2073
+*> so the refusal is COBOL5506 at the WHEN (PB4301: a reserved word where an operand is due; the DISPLAY's operand is
+*> what the position takes), which names no misplaced phrase. It fails if the report is COBOL2073
 *> "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase", which is false of the
-*> program.
+*> program, or the bare COBOL0001 that names no operand.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB4300ONLYOTHER.
 DATA DIVISION.

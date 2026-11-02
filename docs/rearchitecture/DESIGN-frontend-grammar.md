@@ -1596,6 +1596,32 @@ target:
   tokens through its periods (`ResimulationWalk.Over(…, throughItsPeriods: true)`), takes every statement start there.
   Then the refusal is `AdmittedKinds.Refusal` over FIRST(`statementBlock`), the PB4224 statement arm. A user-defined
   word, and an integer (a paragraph-name need not contain a letter, §8.3.2.2 3)), is left to the missing-period guess.
+- ⛔ **A foreign word run is refused by the word that opened it; a word its clause could have taken is the clause's**
+  (kb/Work PB4301; ISO §12.4.5.1, §13.16.2, §13.18.38.2, §5.2.1). `ClosedFormatPass` quotes a run's OPENING item
+  (`SELECT F1 ASIGN TO "f"`: ASIGN) but never runs once a unit has a parse error, and the parse layer used to name the
+  token that ENDED the run (the TO, or a phantom level-3 entry's TIMES). `OffendingPosition.ResidueRun` finds the error
+  production's node the parser stands inside (the loop's Sync) or has just completed (the data form's run returns at an
+  integer, the next entry's possible level-number); `ResidueRefusal` words the row's refusal from the run's opening, the
+  hint's `Subject` makes the report stand there (`NotifyErrorListeners` at that token), and the run's tail is the
+  refusal's own (`OrphansItsTail`) unless a period would let the sentence at the token follow (`EndsARunBeforeTheNextSentence`:
+  `FOO` then `05 C PIC X.`), when the run is refused in a report of its own and the missing period is this one's. A
+  run is refused once (`NoteRunRefused`). A word the CLOSED CONSTRUCT before it could have taken
+  (`OffendingPosition.ClosedConstructTakes`, the `OCCURS 0 TO TIMES` TO) is no residue: the carried report names the
+  incomplete clause at the next token.
+- ⛔ **A reserved word where an operand is due names the operand** (kb/Work PB4301, PB4426; ISO §5.2.1). `AdmittedKinds`
+  fifth shape: the position takes a user-defined word or a literal and no punctuation or operator (so the element
+  before the token is incomplete: `OCCURS 0 TO TIMES`, `DISPLAY WHEN OTHER`), and a reserved word stands there. The
+  sentence lists the user-defined word once (the context words `cobolWord` also takes are spellings of it,
+  `AdmittedKinds.UserWordSpellings`), the words and the literals; the report leaves no tail to discard
+  (`DiagnosticHint.LeavesNoTail`), the keyword opens the next element. A set with punctuation (`NUMVAL(A FROM`) is not
+  said: an operand is not due after a whole argument. **The parser's admitted set after a completed operand is not the
+  set that may follow it (kb/Work PB4426):** the parser leaves its optional phrases early (the condition of an IF, the
+  selection object of a WHEN), so the set holds the statements and not AND, OR, an operator or THRU. No arm prints that
+  set as an expectation: the statement arm lists nothing, the closed-list arm needs a position with no user-defined word,
+  period or statement start, and the operand arm needs a set without punctuation. The continuations are not derived
+  from the closed construct (`ClosedJustBefore`'s walk): over `WHEN 1` that walk re-opens the superset grammar (a
+  class-name without IS, the sign words), which routes the literal-category arm to "only ZERO", and no sentence prints
+  the longer set. An arm that prints a list at such a position must derive it first, and answers that routing.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle

@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL0001: unexpected 'WHEN'"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL5506: unexpected 'WHEN'. The word WHEN is not expected here: expected a user-defined word, FUNCTION, LENGTH"}

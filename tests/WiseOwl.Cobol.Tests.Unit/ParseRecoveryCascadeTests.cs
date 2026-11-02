@@ -44,14 +44,14 @@ public sealed class ParseRecoveryCascadeTests
     [InlineData("ADD TO W-N W-K. MOVE 1 W-N.")]                                            // G4-refute/R14: `W-K.` is no header
     [InlineData("IF W-N = 1 THEN ADD TO \"X\" END-IF. MOVE 1 W-N.")]                     // G4-refute/R15: no word in the tail
     public void AWordInTheFaultsTail_IsNoParagraphHeader_AndTheNextFaultIsReported(string statements)
-        => AssertDiagnostics(statements, "COBOL0001@TO", "COBOL5506@W-N");
+        => AssertDiagnostics(statements, "COBOL5506@TO", "COBOL5506@W-N");
 
     /// <summary>Both faults of one sentence and the next sentence's are reported, and no END-x is orphaned.</summary>
     [Theory]
     // G4-refute/R10: the ADD's own fault, then the ELSE branch's MOVE, then the next sentence's; the END-IF is the IF's.
-    [InlineData("IF W-N = 1 THEN ADD TO \"X\" ELSE MOVE 1 W-N END-IF. MOVE 2 W-N.", "COBOL0001@TO", "COBOL5506@W-N", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 THEN ADD TO \"X\" ELSE MOVE 1 W-N END-IF. MOVE 2 W-N.", "COBOL5506@TO", "COBOL5506@W-N", "COBOL5506@W-N")]
     // G4-refute/R11: two faults of one sentence (cobc reports both).
-    [InlineData("ADD TO \"X\" MOVE 1 W-N. MOVE 2 W-N.", "COBOL0001@TO", "COBOL5506@W-N", "COBOL5506@W-N")]
+    [InlineData("ADD TO \"X\" MOVE 1 W-N. MOVE 2 W-N.", "COBOL5506@TO", "COBOL5506@W-N", "COBOL5506@W-N")]
     // A fault in an IF's condition ends the IF's rule; its END-IF is still the IF's own.
     [InlineData("IF W-N NOT <> 1 DISPLAY \"C\" END-IF. MOVE 1 W-N.", "COBOL0001@<>", "COBOL5506@W-N")]
     // A terminator an open statement owns is never taken for the left one's: the second IF's empty block is its own fault.
@@ -80,12 +80,12 @@ public sealed class ParseRecoveryCascadeTests
     /// never by the one phrase written in its place after an incomplete statement.</summary>
     [Theory]
     // G4/i14, G4/S10: the statement before the only WHEN OTHER misses its operand; no misplaced phrase is named.
-    [InlineData("EVALUATE TRUE WHEN W-N = 2 DISPLAY WHEN OTHER DISPLAY \"O\" END-EVALUATE. MOVE 1 W-N.", "COBOL0001@WHEN", "COBOL5506@W-N")]
-    [InlineData("EVALUATE W-N WHEN 1 MOVE 1 TO WHEN OTHER DISPLAY \"Y\" END-EVALUATE. MOVE 1 W-N.", "COBOL0001@WHEN", "COBOL5506@W-N")]
-    [InlineData("PERFORM DISPLAY \"A\" WHEN EC-ALL DISPLAY WHEN OTHER DISPLAY \"C\" END-PERFORM. MOVE 1 W-N.", "COBOL0001@WHEN", "COBOL5506@W-N")]
+    [InlineData("EVALUATE TRUE WHEN W-N = 2 DISPLAY WHEN OTHER DISPLAY \"O\" END-EVALUATE. MOVE 1 W-N.", "COBOL5506@WHEN", "COBOL5506@W-N")]
+    [InlineData("EVALUATE W-N WHEN 1 MOVE 1 TO WHEN OTHER DISPLAY \"Y\" END-EVALUATE. MOVE 1 W-N.", "COBOL5506@WHEN", "COBOL5506@W-N")]
+    [InlineData("PERFORM DISPLAY \"A\" WHEN EC-ALL DISPLAY WHEN OTHER DISPLAY \"C\" END-PERFORM. MOVE 1 W-N.", "COBOL5506@WHEN", "COBOL5506@W-N")]
     // A missing operand inside a nested EVALUATE that stands in the outer one's WHEN OTHER: the inner phrase is in place.
     [InlineData("EVALUATE W-N WHEN 1 DISPLAY W-A WHEN OTHER EVALUATE W-K WHEN 1 DISPLAY WHEN OTHER DISPLAY \"Y\" END-EVALUATE "
-                + "END-EVALUATE. MOVE 1 W-N.", "COBOL0001@WHEN", "COBOL5506@W-N")]
+                + "END-EVALUATE. MOVE 1 W-N.", "COBOL5506@WHEN", "COBOL5506@W-N")]
     public void TheOnlyWhenOther_AfterAnIncompleteStatement_IsNoRepeat(string statements, params string[] diagnostics)
         => AssertDiagnostics(statements, diagnostics);
 
