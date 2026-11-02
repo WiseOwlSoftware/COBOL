@@ -1578,7 +1578,10 @@ target:
   (and the statement a consumed first token opens; `Report` does the same for the constructs a prediction closed early
   when it carries a report into them), and a terminator of that statement's kind later in the same unit that no open
   statement owns (hint 13's test), no separator period between, is consumed with the statement's tail and reported nothing: the most recent record of its kind first,
-  as §14.5.3.2 pairs a terminator with the most recently preceding unterminated statement. The grammar keeps
+  as §14.5.3.2 pairs a terminator with the most recently preceding unterminated statement. `NoteLeft` is the one place a
+  record is made: once per statement (the carried report and the failed rule name the same one), and not for a statement
+  whose fault stands AT its own terminator (`IF W-N = 1 END-IF`: the empty block is that one fault, the END-IF is consumed
+  with it, and a terminator met later is a stray one, COBOL0306). The grammar keeps
   `statementBlock` non-empty (PB396); the empty block is still named by hint 0a.
 - ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
   Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that

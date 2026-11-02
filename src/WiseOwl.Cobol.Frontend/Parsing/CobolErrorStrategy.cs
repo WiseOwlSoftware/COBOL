@@ -100,8 +100,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             // The prediction closed the construct before the fault: each statement it holds that a terminator closes,
             // down its last branch, is left before its end (kb/Work PB4382).
             for (var closed = carried.ClosedEarly; closed is not null; closed = LastRuleChild(closed))
-                if (ClosedByATerminator(recognizer, closed.RuleIndex))
-                    _leftByRecovery.Add((closed.RuleIndex, closed.Start.TokenIndex));
+                NoteLeft(recognizer, closed.RuleIndex, closed.Start.TokenIndex, at.Token);
         }
         _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), at.Token.TokenIndex);
         _orphansItsTail = OrphansItsTail(hints, kind);
@@ -183,6 +182,22 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>The statements whose rule the recovery left before their end, oldest first: each statement's rule and
     /// the index of its first token (<see cref="EndsAStatementTheRecoveryLeft"/>).</summary>
     private readonly List<(int Rule, int Start)> _leftByRecovery = [];
+
+    /// <summary>Records <paramref name="rule"/>, begun at token <paramref name="start"/>, as a statement the recovery left
+    /// before its end (<see cref="_leftByRecovery"/>), once: the report carried into a closed construct and the recovery of
+    /// the rule that failed both name the same statement, and a second record would take a second, stray terminator as
+    /// that statement's own. Not a statement no terminator closes, and not one whose fault stands AT its own terminator
+    /// (<paramref name="faultAt"/>: <c>IF W-N = 1 END-IF</c>, the empty block COBOL2072 reports at the END-IF): that
+    /// terminator is the one fault, consumed with the statement, and a terminator met later is a stray one
+    /// (COBOL0306, ISO §14.5.3.2).</summary>
+    private void NoteLeft(Parser recognizer, int rule, int start, IToken? faultAt)
+    {
+        if (!ClosedByATerminator(recognizer, rule) || _leftByRecovery.Contains((rule, start))) return;
+        if (faultAt is not null && ScopeTerminator(recognizer, faultAt.Type) is { } own
+            && own.Statements.Contains(recognizer.RuleNames[rule]))
+            return;
+        _leftByRecovery.Add((rule, start));
+    }
 
     /// <summary>Is <paramref name="rule"/> the rule of a statement an explicit scope terminator closes?</summary>
     private static bool ClosedByATerminator(Parser recognizer, int rule)
@@ -419,12 +434,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             // The verb consumed opens a statement of its own where the rule that failed is the dispatcher above it.
             if (!ClosedByATerminator(recognizer, recognizer.Context.RuleIndex)
                 && TerminatedStatementOpenedBy(recognizer, start.Type) is { } opened)
-                _leftByRecovery.Add((opened, start.TokenIndex));
+                NoteLeft(recognizer, opened, start.TokenIndex, e.OffendingToken);
         }
         // The rule returns after this recovery: a statement an explicit scope terminator closes is left before its end.
-        if (!_reparsedFromItsStart && recognizer.Context.Start is { } begun
-            && ClosedByATerminator(recognizer, recognizer.Context.RuleIndex))
-            _leftByRecovery.Add((recognizer.Context.RuleIndex, begun.TokenIndex));
+        if (!_reparsedFromItsStart && recognizer.Context.Start is { } begun)
+            NoteLeft(recognizer, recognizer.Context.RuleIndex, begun.TokenIndex, e.OffendingToken);
         _reparsedFromItsStart = false;
         Resynchronize(recognizer);
         FinishUnitTailDiscard(recognizer);
@@ -2409,10 +2423,6 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// rule, or is one; the rules are read from the ATN (<see cref="WhenOtherRules"/>), so a format that gains the
     /// phrase is covered. A hint that called the program's only WHEN OTHER a repeat (<c>WHEN A = 2 DISPLAY WHEN
     /// OTHER …</c>: the DISPLAY's operand is missing) asked only what follows the OTHER.</summary>
-    private static PhrasePlacement WhenOtherPlacement(Parser recognizer, IToken? when)
-        => WhenOtherPlacement(recognizer, when, out _);
-
-    /// <inheritdoc cref="WhenOtherPlacement(Parser, IToken?)"/>
     /// <param name="owner">The construct the phrase stands in: the statement rule that calls the WHEN OTHER rule.</param>
     private static PhrasePlacement WhenOtherPlacement(Parser recognizer, IToken? when, out ParserRuleContext? owner)
     {
@@ -2443,7 +2453,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>The rules that spell a WHEN OTHER phrase (whose first two tokens are WHEN and OTHER), and the rules
     /// that call one: read ONCE from the ATN.</summary>
-    private static (HashSet<int> Phrases, HashSet<int> Callers) WhenOtherRules(ATN atn)
+    private static WhenOtherRuleSets WhenOtherRules(ATN atn)
     {
         if (_whenOtherRules is { } cached) return cached;
         var phrases = new HashSet<int>();
@@ -2456,11 +2466,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             for (int i = 0; state is not null && i < state.NumberOfTransitions; i++)
                 if (state.Transition(i) is RuleTransition call && phrases.Contains(call.target.ruleIndex))
                     callers.Add(state.ruleIndex);
-        _whenOtherRules = (phrases, callers);
-        return (phrases, callers);
+        return _whenOtherRules = new WhenOtherRuleSets(phrases, callers);
     }
 
-    private static (HashSet<int> Phrases, HashSet<int> Callers)? _whenOtherRules;
+    /// <summary>The WHEN OTHER rule sets, a reference type so that the lazily published cache cannot tear.</summary>
+    private sealed record WhenOtherRuleSets(HashSet<int> Phrases, HashSet<int> Callers);
+
+    private static WhenOtherRuleSets? _whenOtherRules;
 
     /// <summary>The tokens that begin a rule that calls a WHEN OTHER rule (EVALUATE, PERFORM), read once from the ATN.</summary>
     private static IntervalSet WhenOtherOwnerOpeners(ATN atn)

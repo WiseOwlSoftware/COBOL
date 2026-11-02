@@ -76,6 +76,14 @@ public sealed class ParseRecoveryCascadeTests
     public void ABranchWithNoStatement_IsOneCOBOL2072_AndItsConstructCloses(string statements, params string[] diagnostics)
         => AssertDiagnostics(statements, diagnostics);
 
+    /// <summary>PB4382, review R1-1: a fault reported AT a statement's own terminator (the empty block it ends) leaves no
+    /// record of that statement, so a terminator met later in the sentence is a stray one (ISO §14.5.3.2 1)): COBOL0306.</summary>
+    [Theory]
+    [InlineData("IF W-N = 1 END-IF DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 END-IF IF W-K = 2 DISPLAY \"X\" END-IF END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
+    public void ATerminatorAfterTheFaultAtTheStatementsOwn_IsStray(string statements, params string[] diagnostics)
+        => AssertDiagnostics(statements, diagnostics);
+
     /// <summary>PB4300: COBOL2073 is drawn by a WHEN OTHER phrase that repeats one or stands before every WHEN group,
     /// never by the one phrase written in its place after an incomplete statement.</summary>
     [Theory]

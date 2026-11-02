@@ -92,6 +92,20 @@ re-opens the superset grammar and is not built. The dead statement-element count
 Rows at 85, 2002, 2014 and 2023 for the selection object and the condition, and the refusal
 `pb4426-literal-after-a-completed-selection-object`.
 
+Review round 1 (R1-1 to R1-4). R1-1 (blocking): `Recover` recorded an IF in `_leftByRecovery` even when the fault was
+reported AT that IF's own END-IF (the empty statement-1, COBOL2072), so the record outlived the END-IF the recovery had
+consumed and a genuine stray END-IF later in the sentence (`IF W-N = 1 END-IF DISPLAY "X" END-IF.`) was taken for the
+IF's own and drew nothing (origin/main said COBOL0306). One method, `NoteLeft`, now makes every record: once per
+statement, and not for a statement whose fault stands at its own terminator. Golden `pb4382-stray-end-if-after-an-empty-if`
+(refused at all four editions, COBOL0306) and two `ParseRecoveryCascadeTests` rows. The reviewer's second shape
+(`IF W-N = 1 ELSE DISPLAY W-A END-IF END-IF.`, the second END-IF silent) is no regression: origin/main reports the FIRST,
+the IF's own, END-IF there and swallows the second in the same error-recovery window; the branch reports neither
+falsely, and the swallowed stray is the existing recovery-mode limit, not this record. R1-3: the dead two-argument
+`WhenOtherPlacement` forwarder is deleted. R1-4: `_whenOtherRules` is a reference-typed record (`WhenOtherRuleSets`), so the
+lazy publication cannot tear. R1-2 (the 85 refusal of `OCCURS 0 TO TIMES` names a user-defined word, the constant-name
+that exists from 2002) is left: the fix is a new edition read in `CobolParserCoreBase` that `EditionReadDriftTests` must
+adjudicate, in a file this change does not touch.
+
 Self-review found the terminator pairing too wide in the predecessor's part (narrowed, 2 rows) and, in this part, the
 new operand arm's COBOL5506 orphaning the next statement's tail (the PB4286 rows failed: fixed by `LeavesNoTail`) and its
 list of the parser's full set for `NUMVAL(A FROM` (a continuation set, so now unsaid). semgrep verify passed with no rule
