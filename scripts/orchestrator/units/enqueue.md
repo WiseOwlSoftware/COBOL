@@ -61,7 +61,9 @@ leads, the records and the ledger.
    - `STOPPED`: `CONFLICT` (exit 4, bringing main in: the review lane already started its finisher and collected the
      attempt, kb/Work PB3608; read it in `review_lane.py status`, step 2), `UNTESTED` (exit 14: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `MERGE NOT COMPLETED, BRANCH-CARRIED` (exit 5:
      bringing main in was clean but the merged tree's own ABI pin, build or measuring test failed; kb/Work PB3673; the
-     landing runs no gate, kb/Work PB4331) or a DEVLOG, register or diagnostic-prefix refusal (exit 6): the
+     landing runs no gate, kb/Work PB4331), the landing check's STOP (exit 3: a never-carried path such as
+     `.claude/settings.local.json`, or a public-API baseline listing a symbol twice; an edit meeting another branch's
+     only warns, kb/Work PB4452; a finisher's new commit clears it) or a DEVLOG, register or diagnostic-prefix refusal (exit 6): the
      reason is in the log and in the branch's report (`BLOCKED: enqueue …`); the branch survey reads the branch
      STOPPED too, never WAITING TO LAND, until a new tip or a re-arm (kb/Work PB3125):
      step 4. `UNREVIEWED` (exit 11): the branch's tip is not covered by its CLEAN review stamp (MANDATORY-PRACTICES
@@ -69,9 +71,7 @@ leads, the records and the ledger.
      never to a finisher and never landed another way. A repeated exit 2 or
      9 (main kept moving, GitHub refused twice at one head, or a gate NOT RUN twice for a cause in the environment or
      one main fails the same way: no finisher fixes it, kb/Work PB3526): name it in the handoff with its log.
-   - `RETRY-WHEN-FREE` (exit 3, the landing check's STOP: the branch edits a member that earlier-dispatched,
-     INDEPENDENT in-flight work also edits; a branch that descends from it — its successor, its finisher, a carrier that merged
-     any head of it — and a worktree with no commit beyond main never stop it, kb/Work PB3381; or exit 12, `GATE BUSY`:
+   - `RETRY-WHEN-FREE` (exit 12, `GATE BUSY`:
      another gate held the worktree's gate lock, the branch's own gate has not written its verdict yet, nothing ran and
      nothing is red, kb/Work PB3527, PB3662; or exit 13: another
      `land` of the branch holds the worktree's land lock, nothing ran and nothing is red, kb/Work PB3310; or exit 15,
@@ -79,8 +79,7 @@ leads, the records and the ledger.
      entry beside its own, nothing queued and nothing red, kb/Work PB3145; or exit 16, `DRIVER FILE QUEUED`: an open
      pull request changes a merge-driver file the branch changes too, nothing stamped or queued and nothing red,
      kb/Work PB3642) and
-     `RETRY-ONCE` (a first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 3 once
-     `landing_check.py` passes on the branch, exit 12 once the gate lock is free, exit 13 once the land lock is free, exit 15 once no
+     `RETRY-ONCE` (a first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 12 once the gate lock is free, exit 13 once the land lock is free, exit 15 once no
      open pull request owns a DEVLOG entry the branch carries, exit 16 once no open pull request changes a merge-driver
      file the branch changes too).
      Nothing to do here.

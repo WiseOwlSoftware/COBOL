@@ -123,8 +123,8 @@ Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to 
 refusing on the landing's own range before a CI run is spent:
   devlog.py check   (exactly one new, stamped DEVLOG/ entry, numbered above the tree it was stamped on and unique;
                     kb/Work PB2605, PB3025, PB3123) → exit 6
-  landing_check.py  (in-flight overlap by member; kb/Work PB2118, PB4452) → exit 3 (STOP: re-plan, never
-                    retry as is)
+  landing_check.py  (a never-carried path or a duplicate public-API symbol; an in-flight overlap by member only
+                    warns, kb/Work PB4452) → exit 3 (STOP: a finisher's new commit, never retry as is)
   work.py check     (the work register of the MERGED head, read by that head's own work.py: a branch is gated at its
                     own head, so a note main gained since — one carrying a key the branch's rule now refuses — meets
                     the rule here, not for the first time in the merge group's CI; kb/Work PB3389) → exit 6

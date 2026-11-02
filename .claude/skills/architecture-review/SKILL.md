@@ -37,8 +37,9 @@ engine's deletion was the `PB2108` cluster (landed), implemented from the plan's
   or a whole-file claim holds nothing, and git's merge at landing is the authority on a real conflict. A group
   meeting only FINISHED branches is planned as their continuation (it merges them first, `inflight.collision`). The
   in-flight work comes from worktrees, unlanded branches and the dispatch ledger, which only
-  `make_dispatch_specs.py` writes, never a branch classification. The landing check stops the later of two
-  branches whose actual edits meet by member.
+  `make_dispatch_specs.py` writes, never a branch classification. The landing check never stops a ready
+  branch for another whose edits meet it by member: it names that branch, which merges main after (first ready lands,
+  kb/Work PB4452).
 
 ## Dispatch (R69 §4 and PB2120)
 
