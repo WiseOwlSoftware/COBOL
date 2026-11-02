@@ -2451,8 +2451,13 @@ lowercase with Annex C. Three pieces, each in one place:
   to I and S) in any `.cs` or `.g4` under `src`, no `Resolve(CobolNames.UpperFold(…))` anywhere, and no `CobolNames`
   comparison in the Frontend or Editions with an upper-case keyword literal (`"DISPLAY"`, `"LC_"`, `"IDENTIFICATION
   DIVISION"`) or a parameter named `keyword` or `word` (a deliberate fold says `// Annex C: <why>`: the `>>TURN`
-  exception-name prefixes, compared as `ExceptionCatalog` compares the names). The diagnostics still print the folded
-  spelling of a user word (`'DISPLAY' is a reserved word`): kb/Work PB4312.
+  exception-name prefixes, compared as `ExceptionCatalog` compares the names). **The fold decides a user word's identity,
+  never its spelling (kb/Work PB4312).** A diagnostic names a word in its `CobolKeywords.Spelling` — the letters the source
+  writes, the basic ones raised — and never in its fold, which lowercases an upper-case extended letter: the
+  `>>COBOL-WORDS` fresh word (literal-2/5/6) is kept in that spelling (`CobolWordsDirectiveProcessor.Spelled`; the map's sets,
+  SR5's set and the §8.9 / §8.10 tables compare it through their fold comparers), and the §8.9 funnel
+  (`VersionConformancePass.FlagReservedUserWord`) looks the word up by its fold and names its spelling, so `RESERVE "café"`
+  then `01 CAFÉ` reads `'CAFÉ' is a reserved word`, never `'CAFé'`.
 - **The encoding of the grammar itself** (kb/Work PB1944) — ANTLR reads a `.g4` in the JVM's default charset (UTF-8 on
   Java 18+ and on Linux, Cp1252 on Windows CI's JVM), so `Invoke-Antlr4CSharp.ps1` passes `-encoding UTF-8` and every
   grammar file is valid UTF-8 without a byte-order mark (`GrammarEncodingDriftTests`). The encoding is declared, so

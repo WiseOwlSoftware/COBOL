@@ -1,4 +1,4 @@
-## The 2002 and 2014 reserved-word flags follow the ISO texts
+## Reserved-word tables, F.2 edition edges and front-end diagnostics that name what the user wrote
 
 ### PB4297: the 2002 and 2014 flags follow the ISO texts, not GnuCOBOL's implementor words
 
@@ -65,5 +65,55 @@ own row's text.
 Gate `000002-20261102T160241Z` was RED on 166 cases. Each is a program that the repository's own tests accept at 85
 and that writes one of the relaxations; CCVS-85 stayed green. In 103 suite tests the program begins its procedure
 division or a section with a sentence. Each of those now gets `PB4305-LEAD.` where the compiler names the sentence, so
-it keeps its 85 coverage. The two pb3505 tests drop 85, because the signed DISPLAY literal is their subject. Twelve
-85-only suite tests and about 55 C# cases remain for this branch's next link (kb/Work PB4305, "Gate fallout").
+it keeps its 85 coverage. The two pb3505 tests drop 85, because the signed DISPLAY literal is their subject.
+
+The next link (wave 20261826, cherry-picked onto main 1046b4cff) finished the fallout, each test kept at the edition
+its subject is about. Where the relaxation IS the subject the test runs from 2002: `pb436_varying_after_from_outer`,
+`pb1523_global_linkage_redefiner`, `pb2087_by_reference_group_aliasing`, `pb1643_display_literal_decimal_comma`,
+`pb332_use_optional_words` and `pb919_index_name_qualified`; `pb394_evaluate_function_subscript_subject_85` is deleted
+(its 2002+ twins keep the function subscript). Where it is incidental the test is rewritten into its 85 form:
+`pb1390` and `pb413` nest inline PERFORM VARYINGs, `pb440_perform_empty_range_85` keeps the out-of-line VARYING alone,
+`pb1913` subscripts with `W-I + 2`, and `pb571` drops its alphabet-name line. The three `pb4432` tests main gained
+since get `PB4305-LEAD.`, and the C# sources at 85 write `MAIN-P.`. `IndexNameUniquenessTests` compiles every case
+that writes a qualified index-name at 2002, and `OptionalWordSubsetDriftTests` sweeps USE Format 1 twice: from 2002
+with PROCEDURE optional, and at 85 (`use-format-1-85`) with PROCEDURE written, the format item 141 describes. The
+items 46, 75 and 133 diagnostics quote source through `WrittenSource.Of` (they printed `FUNCTIONINTEGER(1)`).
+Gate `000001-20261102T170457Z` was GREEN at 68d8361e5.
+
+### PB4435: a word where a format specifies a literal is a constant-name, which COBOL-85 lacks
+
+`OCCURS 0 TO TIMES` at `--std 85` drew "expected a user-defined word or an integer literal" (re-probed). That word is a
+constant-name (§13.10.3 SR2: "constant-name-1 may be used anywhere that a format specifies a literal of the class and
+category of constant-name-1"), and the constant entry is COBOL-2002's. The walk now decides it from the ATN:
+`ResimulationWalk.EveryWordStandsForALiteral` asks whether every configuration taking IDENTIFIER takes it in
+`integerOperand` or `valueTableSubscript`, and `CobolParserCoreBase.PrintsConstantName` is the edition read, recorded
+in `EditionReadDriftTests` under a new verdict, `DiagnosisOnly`, which `PrintsKeyword` now shares. At 85 the sentence
+names "an integer literal" alone. The sibling sweep found the binder's COBOL1547 for `OCCURS K TIMES` and the PICTURE
+repetition count offering a constant-name at 85 too (`DataBinder.ConstantNamesExist`), and the repetition message's
+citation was §13.18.40.2 where the rule is §13.18.40.3 SR6. Goldens `pb4435-occurs-bound-omitted-at-85` and
+`pb4435-occurs-bound-data-name-at-85`; `pb4301-occurs-to-without-integer-2` now refuses at 2002 and later.
+
+### PB4284: a reserved word as a paragraph header after the division's last sentence is COBOL0901
+
+`ZERO.`, `FILLER.`, `TALLYING.` and `SPACE.` written as a header after `STOP RUN.` drew COBOL0001 or COBOL5506, never the
+COBOL0901 every other reserved header draws (re-probed). The word ends the division's paragraph list, so the parser has
+left `procedureDivision` when `ReservedProcedureName` reads the error context. It now also reads the division the parse
+completed last (`EndsWithAProcedureDivision`). Golden `pb4284-reserved-header-after-the-last-sentence`, and four rows
+in `AWordReservedAtEveryEdition_DefinedAsAProcedure_IsNamedByCobol0901`.
+
+### PB4312: a diagnostic names the word the user wrote, never its fold
+
+`>>COBOL-WORDS RESERVE "CAFÉ-"` was refused as 'CAFé-', a second `RESERVE "ÉCOLE"` as 'éCOLE', and `01 CAFÉ` after
+`RESERVE "café"` as "'CAFé' is a reserved word" (re-probed): the Annex C fold lowercases an upper-case extended letter.
+The fold now decides identity only. The directive keeps both words in `CobolKeywords.Spelling` (the fresh word is
+compared through the fold comparers it already met), and `FlagReservedUserWord` looks the word up by its fold and
+names its spelling. Goldens `pb4312-reserved-fresh-word-named-as-written` and
+`pb4312-fresh-word-diagnostic-spelled-as-written`; DESIGN-frontend-grammar.md §3.13 records the determination.
+
+### PB4283: re-verdicted, left open
+
+The note's fix (a verb between periods is an incomplete statement, asked by the header predicate, by
+`ReservedProcedureName` and by `ReservedWordUse`) was implemented and reverted. It broke PB4206's pinned case: a header
+`RECEIVE.` that `PERFORM RECEIVE.` references draws one COBOL0901. From 2002 no token tells that header from a bare
+`FREE.` sentence; only a procedure reference does, which the binder knows and the parse does not. The note now carries
+that direction.

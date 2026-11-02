@@ -191,8 +191,8 @@ public static class CobolWordsDirectiveProcessor
                 + $"literal-1 {join} literal-2 (ISO §7.3.10.2)");
             return false;
         }
-        if (!Literal(toks[1], diag, loc, "the existing word", keyword: true, definitionOf, out string existing, out _)) return false;
-        if (!Literal(toks[3], diag, loc, "the new word", keyword: false, definitionOf, out string @new, out bool newIsWritten)) return false;
+        if (!Literal(toks[1], diag, loc, "the existing word", definitionOf, out string existing, out _)) return false;
+        if (!Literal(toks[3], diag, loc, "the new word", definitionOf, out string @new, out bool newIsWritten)) return false;
         if (newIsWritten && !UserWord(@new, diag, loc)) return false;
         op = new CobolWordsOp(action, existing, @new, at);
         return true;
@@ -208,7 +208,7 @@ public static class CobolWordsDirectiveProcessor
             Invalid(diag, loc, $">>COBOL-WORDS {toks[0].Text.ToUpperInvariant()} expects a single literal (ISO §7.3.10.2)");
             return false;
         }
-        if (!Literal(toks[1], diag, loc, isExisting ? "the word" : "the new word", keyword: isExisting, definitionOf, out string word,
+        if (!Literal(toks[1], diag, loc, isExisting ? "the word" : "the new word", definitionOf, out string word,
                 out bool isWritten)) return false;
         // RESERVE's operand is a fresh user word (SR4 §8.3.2.2 form); UNDEFINE's is an existing word (no form check).
         if (!isExisting && isWritten && !UserWord(word, diag, loc)) return false;
@@ -218,13 +218,13 @@ public static class CobolWordsDirectiveProcessor
         return true;
     }
 
-    /// <summary>SR2: a plain alphanumeric literal (quoted, non-hex/national, space-free). Returns the UPPER-CASE
-    /// content. A WORD in the slot is a compilation-variable-name (§7.3.11.4 GR1: "In text that follows a DEFINE
+    /// <summary>SR2: a plain alphanumeric literal (quoted, non-hex/national, space-free). Returns the content as
+    /// <see cref="Spelled"/> keeps it. A WORD in the slot is a compilation-variable-name (§7.3.11.4 GR1: "In text that follows a DEFINE
     /// directive specifying compilation-variable-name-1 without the OFF phrase, compilation-variable-name-1 may be used
     /// … in any compiler directive where a literal of the category associated with the name is permitted"): it stands
     /// for the literal its DEFINE wrote, and that literal meets SR2 like a written one — so a name defined
     /// <c>AS X"…"</c> is still a hexadecimal-format literal (kb/Work PB1368).</summary>
-    private static bool Literal(Tok tok, DiagnosticBag diag, SourceLocation loc, string role, bool keyword,
+    private static bool Literal(Tok tok, DiagnosticBag diag, SourceLocation loc, string role,
         Func<string, CompilationVariableEvent?>? definitionOf, out string content, out bool isWritten)
     {
         content = "";
@@ -239,7 +239,7 @@ public static class CobolWordsDirectiveProcessor
                     + $"compilation-variable-name (ISO §7.3.11.4 GR1), not '{tok.Text}'");
                 return false;
             }
-            content = Spelled(tok.Text, keyword);
+            content = Spelled(tok.Text);
             isWritten = false;
             return true;
         }
@@ -280,15 +280,18 @@ public static class CobolWordsDirectiveProcessor
             Invalid(diag, loc, $">>COBOL-WORDS: {role} literal must be a non-empty, space-free COBOL word (ISO §7.3.10.3 SR2)");
             return false;
         }
-        content = Spelled(tok.Text, keyword);
+        content = Spelled(tok.Text);
         return true;
     }
 
-    /// <summary>The upper-case content of a literal: the EXISTING word (literal-1/3/4) is a keyword and keeps every
-    /// extended letter as written, so <c>UNDEFINE "DİSPLAY"</c> (U+0130) names no word SR3 admits and undefines nothing;
-    /// the FRESH word (literal-2/5/6) is a user-defined word and takes the Annex C fold (ISO §8.1.3.2 3) a), 4) b);
-    /// kb/Work PB4240).</summary>
-    private static string Spelled(string text, bool keyword) => keyword ? CobolKeywords.Spelling(text) : CobolNames.UpperFold(text);
+    /// <summary>The content of a literal as the directive keeps it: <see cref="CobolKeywords.Spelling"/>, its basic letters
+    /// upper-cased and every other character as written. The EXISTING word (literal-1/3/4) is a keyword, so
+    /// <c>UNDEFINE "DİSPLAY"</c> (U+0130) names no word SR3 admits and undefines nothing; the FRESH word (literal-2/5/6) is
+    /// a user-defined word, compared through the Annex C fold wherever it is looked up (the map's
+    /// <c>CobolNames.Comparer</c> sets, SR5's set, the §8.9 / §8.10 tables; ISO §8.1.3.2 3) a), 4) b); kb/Work PB4240), so
+    /// the fold decides its identity and never its spelling, and a diagnostic names the letters the user wrote
+    /// (<c>'CAFÉ-'</c>, never the folded <c>'CAFé-'</c>; kb/Work PB4312).</summary>
+    private static string Spelled(string text) => CobolKeywords.Spelling(text);
 
     /// <summary>SR4 (frontend half): the fresh word (literal-2/5/6) is a well-formed user-defined word per
     /// §8.3.2.1 / §8.3.2.2 — the word shape (word characters, the extended letters included, neither hyphen nor
