@@ -18,8 +18,11 @@ the CALL lane's BY REFERENCE arm and both INVOKE lanes' `ParameterViolation` ask
 the type. `SamePointerRestriction`'s unknown-signature arm is now the SET relation's only. A program-address-identifier
 carries both restrictions (`StatementBinder.ProgramRestrictionOf`, `PrototypeSignatures.PrototypeRestriction`).
 The text a description carries changed, so `abi_pin.py bump --call-abi` raised the call ABI to 4. The
-determination is docs/CONFORMANCE.md D-RP1. It records one reading the text leaves open: an untyped
-`FUNCTION-POINTER TO` entry is of the same type as another only by its USAGE clause.
+determination is docs/CONFORMANCE.md D-RP1. It records one reading the text leaves open: an untyped restricted
+pointer (a `FUNCTION-POINTER TO` entry, or the unique item an address-identifier creates, which INVOKE passes BY
+REFERENCE by §14.9.23.3 SR9) is of the type its USAGE clause states. The first gate found that reading was needed:
+pb1408, pb480 and pb3120 pass `ADDRESS OF S` to a formal `TYPE PT` through a universal INVOKE, and a strict
+§8.5.3.1 reading had turned all three into EC-OO-UNIVERSAL.
 
 **Goldens.** New: `14.8.2.3.2/pb4107_restricted_pointer_identity_and_signature`. It shows SET, BY CONTENT,
 BY REFERENCE of the same type, BY REFERENCE across two names and across two types (EC-PROGRAM-ARG-MISMATCH), and the

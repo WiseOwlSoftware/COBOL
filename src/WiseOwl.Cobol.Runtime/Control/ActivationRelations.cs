@@ -641,8 +641,9 @@ public static class ActivationRelations
     /// (<see cref="ActivationDescription.Clauses"/>, compared by what they name). It is not the SET relation: two pointers
     /// restricted to two prototypes of one signature, or alike but under two type-names, are refused here and admitted by a
     /// SET or a BY CONTENT pass (<see cref="MaySet"/>), as an object reference of a subclass is (kb/Work PB3758 / PB4107;
-    /// docs/CONFORMANCE.md D-RP1). Two untyped restricted pointers (a FUNCTION-POINTER TO entry, which no TYPEDEF rule
-    /// governs) are of the same type when their USAGE clauses are the same. Null when the pair conforms.</summary>
+    /// docs/CONFORMANCE.md D-RP1). An untyped restricted pointer (the unique item an address-identifier creates, a
+    /// FUNCTION-POINTER TO entry, which no TYPEDEF rule governs) is of the type its USAGE clause states, so opposite it
+    /// only the USAGE clauses are compared. Null when the pair conforms.</summary>
     private static string? RestrictedPointerTypeViolation(ActivationDescription argument, ActivationDescription formal)
     {
         bool argumentRestricted = argument.Clauses != ActivationDescription.Unrestricted;
@@ -656,7 +657,12 @@ public static class ActivationRelations
             return $"the formal parameter ({formal}) and the argument ({argument}) are restricted pointers that are not of the "
                 + "same type: their USAGE clauses name different restrictions (ISO §14.8.2.3.2; §8.5.3.1)"
                 + ClauseDifference(argument, formal);
-        return string.Equals(argument.PointerType, formal.PointerType, StringComparison.Ordinal) ? null
+        // §8.5.3.1 defines "the same type" for two TYPED items. An item described with no TYPE clause — the unique item an
+        // address-identifier creates (§8.4.3.11.4 GR2: "restricted to the type of identifier-1"; INVOKE passes one BY
+        // REFERENCE, §14.9.23.3 SR9), an untyped FUNCTION-POINTER TO entry — has no type declaration to compare, and is
+        // of the type its USAGE clause states, which the clause identity above has compared (docs/CONFORMANCE.md D-RP1).
+        return argument.PointerType is null || formal.PointerType is null
+               || string.Equals(argument.PointerType, formal.PointerType, StringComparison.Ordinal) ? null
             : $"the formal parameter ({formal}) and the argument ({argument}) are restricted alike but are not of the same "
               + "type: they are not described with TYPE clauses that reference equivalent type declarations (ISO "
               + "§14.8.2.3.2; §8.5.3.1)";

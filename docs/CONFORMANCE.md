@@ -2352,10 +2352,13 @@ of an unsupported facility.
   (a compile-time COBOL1688 / COBOL0828 when the formal is known, else EC-PROGRAM-ARG-MISMATCH or EC-OO-UNIVERSAL at the
   activation), and a returning pair of two names is refused by §14.8.3.3 — as an object reference of a subclass is
   admitted by SET and refused BY REFERENCE (§14.9.39.3 SR12 a) 2. against §14.8.2.3.2 rule 3). One reading the text
-  leaves to the implementor: §8.5.3.1 defines "the same type" for TYPED items only, and an entry `USAGE FUNCTION-POINTER
-  TO` needs no TYPEDEF, so two UNTYPED restricted function-pointers are of the same type when their USAGE clauses are the
-  same, and a typed one is never of the same type as an untyped one. GnuCOBOL, IBM and Micro Focus have no restricted
-  prototype pointer. Implementing site: `ActivationRelations.RestrictedPointerTypeViolation` (BY REFERENCE, both the
+  leaves to the implementor: §8.5.3.1 defines "the same type" for TYPED items only, and two restricted pointers are not
+  always typed — an entry `USAGE FUNCTION-POINTER TO` needs no TYPEDEF, and the unique item an address-identifier creates
+  (§8.4.3.11.4 GR2, "restricted to the type of identifier-1"), which INVOKE passes BY REFERENCE (§14.9.23.3 SR9), has no
+  TYPE clause. Such an item is of the type its USAGE clause states, so opposite it only the USAGE clauses are compared
+  (`ADDRESS OF S`, S of strong type T-REC, conforms to a formal `TYPE PT` with `PT TYPEDEF USAGE POINTER TO T-REC`, as
+  `conformance:cases/_unassigned/pb1408_universal_address_of_subordinate_group` pins); two TYPED items are compared by
+  their type declarations as well. GnuCOBOL, IBM and Micro Focus have no restricted prototype pointer. Implementing site: `ActivationRelations.RestrictedPointerTypeViolation` (BY REFERENCE, both the
   CALL and the INVOKE lanes), `ActivationRelations.MatchViolation` / `ReturningConformance` over
   `ActivationDescription.Clauses` (`PrototypeSignatures.NamedRestriction`), `ActivationRelations.MaySet` over
   `ActivationDescription.ContentRestriction` (`PrototypeSignatures.SignatureRestriction`). Witnesses:

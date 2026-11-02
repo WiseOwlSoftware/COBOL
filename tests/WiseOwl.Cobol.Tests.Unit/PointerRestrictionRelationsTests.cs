@@ -121,13 +121,17 @@ public sealed class PointerRestrictionRelationsTests
     }
 
     [Fact]
-    public void TwoUntypedFunctionPointers_AreOfTheSameTypeWhenTheirUsageClausesAre()
+    public void AnUntypedRestrictedPointer_IsOfTheTypeItsUsageClauseStates()
     {
-        var a = Pointer(ActivationCategory.FunctionPointer, "TO f1", "SIG s");
-        var b = Pointer(ActivationCategory.FunctionPointer, "TO f1", "SIG s");
+        // §8.5.3.1 defines "the same type" for TYPED items only: an untyped FUNCTION-POINTER TO entry, or the unique item an
+        // address-identifier creates (which INVOKE passes BY REFERENCE, §14.9.23.3 SR9), is compared by its USAGE clause.
+        var untyped = Pointer(ActivationCategory.FunctionPointer, "TO f1", "SIG s");
+        var alsoUntyped = Pointer(ActivationCategory.FunctionPointer, "TO f1", "SIG s");
         var typed = Pointer(ActivationCategory.FunctionPointer, "TO f1", "SIG s", "tf");
-        Assert.True(ByReference(a, b));
-        Assert.False(ByReference(a, typed));   // §8.5.3.1 defines "the same type" for TYPED items only
+        var otherName = Pointer(ActivationCategory.FunctionPointer, "TO f2", "SIG s", "tf");
+        Assert.True(ByReference(untyped, alsoUntyped));
+        Assert.True(ByReference(typed, untyped));
+        Assert.False(ByReference(otherName, untyped));
     }
 
     [Fact]

@@ -204,8 +204,8 @@ public sealed record ActivationDescription
     /// TYPE clause references, keyed so two descriptions are "of the same type" exactly when they are equal (§13.18.60.3
     /// SR18 / SR19 require the TYPEDEF clause on every entry that restricts a data- or program-pointer, so such an item
     /// is always typed). Null for an untyped item — a FUNCTION-POINTER TO entry, which no TYPEDEF rule governs, or the
-    /// unique item an address-identifier creates — and for every item that is not a restricted pointer (kb/Work
-    /// PB4107).</summary>
+    /// unique item an address-identifier creates, each of the type its USAGE clause states, so that only the clauses are
+    /// compared opposite it — and for every item that is not a restricted pointer (kb/Work PB4107).</summary>
     public string? PointerType { get; init; }
 
     /// <summary>The <see cref="Clauses"/> as a reader spells them: one phrase per clause the item is described with,

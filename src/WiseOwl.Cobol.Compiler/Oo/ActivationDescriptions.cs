@@ -269,8 +269,8 @@ public static class ActivationDescriptions
     /// <paramref name="programRestriction"/> is the program-address-identifier's prototype's two restrictions — the TO
     /// phrase's name and the signature class (<see cref="PrototypeSignatureClasses"/>), resolved by the invoking unit's
     /// prototype table — null when it names none. The unique item has no TYPE clause, so it carries no
-    /// <see cref="ActivationDescription.PointerType"/>; an address-identifier is passed BY CONTENT or BY VALUE, where the
-    /// SET relation decides (§14.8.2.3.3).</summary>
+    /// <see cref="ActivationDescription.PointerType"/>: passed BY REFERENCE (an INVOKE argument, §14.9.23.3 SR9) it is
+    /// of the type its USAGE clause states (docs/CONFORMANCE.md D-RP1).</summary>
     internal static ActivationDescription OfAddress(BoundAddressOperand address, PrototypeSignatures.PrototypeRestriction? programRestriction)
     {
         if (address.Data is { } data)
