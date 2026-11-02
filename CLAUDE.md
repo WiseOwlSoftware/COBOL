@@ -131,20 +131,21 @@ proven by the inotify watch in CI) runs the tree audits (≈ 40 s); a **tooling*
 those four trees are code; the same watch proves it); every other change is a **code** change and runs the build once and the WHOLE Unit, Conformance and
 Characterization populations on Windows, three assemblies at once, longest collections first, the audits beside them,
 and NO script self-test unless it changes a script itself (owner 2026-11-01: a compiler data file a self-test reads, such
-as `docs/CONFORMANCE.md` or the grammar, starts none; CI's Linux audits job runs every self-test on every merge group).
+as `docs/CONFORMANCE.md` or the grammar, starts none; CI's Linux audits job runs every self-test on every merge group,
+its Windows self-tests job the ones that file reaches).
 There is no impact map, no tier, no selected leg and no Linux half per change; the inner loop (`dotnet test --filter` by
 hand) is the agent's and claims nothing. **A branch lands through ONE script, `python scripts/orchestrator/enqueue.py
 land <branch>`** (kb/Work PB3023): it refuses a tip no GREEN record covers (exit 14), merges `origin/main` in, stamps the
 DEVLOG entry, runs the landing checks and queues one pull request in GitHub's merge queue; it never gates the merged
 head. **The merge group is the whole-population net on both OSes** (12 time-weighted shards, the audits with every Linux
-self-test, the Windows self-tests when a script changed) and the ONLY run of the merged tree, of Linux and of
+self-test, the Windows self-tests when a tooling path changed) and the ONLY run of the merged tree, of Linux and of
 Release. A nightly runs the CLI NIST guard, every self-test on both OSes and the GnuCOBOL differential. Build
 `WiseOwl.Cobol.sln` (not a single project) before any `--no-build` run. Commands and the current baseline are in plan §0
 "Gates" and §9.
 ⛔ **THE RULE (owner 2026-10-31, replacing the CI invariant of 2026-10-04): every case the merge group runs on Windows
 already ran green at the pushed head, on this host, under the same `toolchain.env`.** The merge group is therefore the
 FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling self-tests on
-a tooling change, and (e) GitHub's runners; a merge-group red is one of those five, a flake, or infrastructure — never
+a tooling change and the Windows self-tests a compiler change's data files reach, and (e) GitHub's runners; a merge-group red is one of those five, a flake, or infrastructure — never
 an untested case. The landing lane classifies every red against the branch's gate record (PB4271) before anyone is
 blamed: INFRA and RUNNER re-queue once automatically; MERGE and a genuine red go to a finisher; a flake is a kb/Work
 defect fixed at its root, never retried inside the run. A red of class (b), (c) or (e) is ALSO a finding against the
