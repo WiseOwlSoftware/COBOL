@@ -1985,6 +1985,26 @@ of an unsupported facility.
   `{!numericLiteralIsLeftOperand()}?` on the literal arms), with the binders recovering the sole identifier;
   pinned by `conformance:cases/14.9.4-CALL/pb130_call_format2_bare` and `conformance:cases/14.9.23-INVOKE/pb1135_invoke_keywordless_expression_argument`.
 
+- **D-CALLV — the `--permissive` vendor spellings of a Format 1 CALL's USING phrase** (kb/Work PB162, PB3996, PB4012;
+  owner decision 2026-10-28). §14.9.4.2 Format 1 prints `[ BY REFERENCE ] { identifier-2 } …` and
+  `BY CONTENT { identifier-2 } …` and nothing else (`cite.py --check 14.9.4.2 "Format 1 (Program)"` → OK); BY VALUE,
+  a literal or expression argument and OMITTED belong to Format 2, which the AS phrase selects. **Strict** refuses each
+  with COBOL0899, the standard's verdict. **`--permissive`** reports the same code as a warning, names the spelling, and
+  binds it with the Format-2 meaning it spells, for exactly the spellings the CLAUDE.md rule-1 survey finds the
+  vendors accept on a CALL naming no prototype: BY VALUE (the Value mode), a BY CONTENT literal or expression and a
+  bare literal or expression (a detached BY CONTENT value) — GnuCOBOL accepts all five, IBM Enterprise COBOL and
+  Micro Focus BY VALUE and a BY CONTENT literal — and **OMITTED passed BY REFERENCE**, bare (`USING W OMITTED`) or
+  written `USING BY REFERENCE OMITTED`, the §14.9.4.4 GR11 omitted argument ("If an OMITTED phrase is specified …
+  the omitted-argument condition for that parameter evaluates to true in the called program", OK 11)), which
+  GnuCOBOL (`tests/external/gnucobol/tests/testsuite.src/run_misc.at:4415`, `run_file.at:1217`), IBM (its BY
+  REFERENCE OMITTED for callable services) and Micro Focus accept. Asked by the owner whether `--permissive` accepts
+  OMITTED there, the owner answered on 2026-10-28: "Yes, permissive accepts". An OMITTED that a BY CONTENT phrase
+  carries over by §14.9.4.4 GR5's transitivity (`USING BY CONTENT W OMITTED`) is refused under both modes: an omitted
+  argument has no BY CONTENT value, and cobc 3.2 refuses that spelling too. Implemented once, in
+  `CallBinder.Format2OnlySpellingOf` (which spellings, reading the carried mode) and `CallBinder.Format1Narrowing`
+  (the framing); pinned by `conformance-test:FormatOneVendorCallPermissiveTests` and the strict refusals
+  `conformance:cases/14.9.4-CALL/pb3996-call-format1-omitted-*`.
+
 - **D-DEBUG — the COBOL-85 debug facility's debugging lines (indicator `D`) and `WITH DEBUGGING MODE`** (kb/Work
   PB1705, PB1802, PB1088; owner decisions R56 and R61). ISO/IEC 1989:2023 no longer carries the facility: §6.2.2 lists no
   `D` fixed indicator (`cite.py --check 6.2.2 "The following are fixed indicators:"` → OK), so the earlier-edition

@@ -253,13 +253,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 UnreservedKeywordReference.Report(ctx.Edition, "NULL");
                 return BoundRejected.Reported(ctx.Edition);
             }
-            if (!formatTwo && Format2OnlySpellingOf(a, bareArg) is { } format2Only && !Format1Narrowing(format2Only))
+            if (!formatTwo && Format2OnlySpellingOf(a, bareArg, mode) is { } format2Only && !Format1Narrowing(format2Only))
                 return BoundRejected.Reported(ctx.Edition);
             if (a.callByReference() is { } byRef)
             {
                 mode = CobolPassMode.Reference;
-                // §14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130); Format 1 never
-                // reaches this arm with OMITTED — Format2OnlySpellingOf refused it above (kb/Work PB3996).
+                // §14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130); Format 1 reaches
+                // this arm with OMITTED only under the --permissive vendor lane Format1Narrowing admitted it by
+                // (kb/Work PB3996, PB4012), and binds it with this same Format-2 meaning.
                 if (byRef.OMITTED() is not null)
                 {
                     // §14.9.4.4 GR11 (kb/Work PB133 wave C): the omitted argument occupies its position with
@@ -889,8 +890,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         ConditionBinder.SoleFunctionCall(ax) is not null || ConditionBinder.SoleOoIdentifier(ax) is not null;
 
     /// <summary>A USING argument spelling that only §14.9.4.2 Format 2 prints, and the refusal text that names it.
-    /// <paramref name="VendorLane"/> is true for the five spellings GnuCOBOL accepts and the dialect axis admits under
-    /// <c>--permissive</c> (kb/Work PB162); false for OMITTED, which has no such lane (kb/Work PB3996).</summary>
+    /// <paramref name="VendorLane"/> is true for the spellings GnuCOBOL accepts on a CALL naming no prototype and the
+    /// dialect axis admits under <c>--permissive</c> (kb/Work PB162): the five literal / expression / BY VALUE
+    /// spellings, and OMITTED passed BY REFERENCE (kb/Work PB4012, owner decision 2026-10-28). It is false for an
+    /// OMITTED a BY CONTENT or BY VALUE phrase carries over (§14.9.4.4 GR5's transitivity), which GnuCOBOL refuses
+    /// too (cobc 3.2, kb/Work PB3996's probe).</summary>
     private readonly record struct Format2OnlySpelling(string Refusal, bool VendorLane);
 
     /// <summary>The predefined NULL an argument writes as its operand, in any of the four places the grammar lets an
@@ -921,13 +925,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// <para>Null = Format 1 prints the spelling (identifier-2, an address-identifier, a function-identifier, which
     /// §14.9.4.4 GR8 makes an identifier). A literal and a parenthesized expression an operator-free boolean node held
     /// are literal-2 and arithmetic-expression-1 exactly as their written spellings are (kb/Work PB3760 review R1-1).</para></summary>
-    private Format2OnlySpelling? Format2OnlySpellingOf(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare)
+    private Format2OnlySpelling? Format2OnlySpellingOf(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare,
+        CobolPassMode carriedMode)
     {
         const string Shared = " belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects";
         if (a.callByValue() is { } byValue)
             return new($"CALL USING {DataBinder.WrittenText(byValue)}{Shared} — Format 1’s USING admits BY REFERENCE and BY CONTENT only", true);
         if (a.callByReference() is { } byRef)
-            return byRef.OMITTED() is not null ? OmittedSpelling("BY REFERENCE OMITTED") : null;
+            return byRef.OMITTED() is not null ? OmittedSpelling("BY REFERENCE OMITTED", vendorLane: true) : null;
         if (a.callByContent() is { } byContent)
         {
             if (byContent.addressIdentifier() is not null) return null;
@@ -942,7 +947,12 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 : null;
         }
         if (a.addressIdentifier() is not null || bare.Reference is not null) return null;
-        if (a.OMITTED() is not null) return OmittedSpelling("OMITTED");
+        // A bare OMITTED takes the mode the last BY phrase carries (GR5): BY REFERENCE (the default) is the vendor
+        // spelling; after BY CONTENT or BY VALUE it is an omitted argument passed by a mode that has none.
+        if (a.OMITTED() is not null)
+            return carriedMode is CobolPassMode.Reference
+                ? OmittedSpelling("OMITTED", vendorLane: true)
+                : OmittedSpelling($"BY {(carriedMode is CobolPassMode.Content ? "CONTENT" : "VALUE")} … OMITTED", vendorLane: false);
         bool bareNonIdentifier = a.literal() is not null || bare.Bool is not null || bare.NonNumericLiteral is not null
             || bare.SoleNumericLiteral is not null || bare.Grouped is not null
             || (bare.Arith is { } arith && !IsSoleIdentifierExpression(arith));
@@ -951,9 +961,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                   + "bare argument is identifier-2 only", true)
             : null;
 
-        static Format2OnlySpelling OmittedSpelling(string spelling) =>
+        static Format2OnlySpelling OmittedSpelling(string spelling, bool vendorLane) =>
             new($"CALL USING {spelling}: the OMITTED phrase belongs to the program-prototype CALL (ISO §14.9.4.2 "
-                + "Format 2), which the AS phrase selects — Format 1's USING prints `{ identifier-2 } …` only", false);
+                + "Format 2), which the AS phrase selects — Format 1's USING prints `{ identifier-2 } …` only"
+                + (vendorLane ? "" : "; an omitted argument is passed BY REFERENCE, never by the BY CONTENT or BY VALUE "
+                    + "phrase that precedes it, so no --permissive vendor spelling admits it"), vendorLane);
     }
 
     /// <summary>⛔ THE ONE FRAMING OF §14.9.4.2 FORMAT 1'S NARROWING (kb/Work PB162), for every spelling
@@ -963,8 +975,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// spelling plainly intends — a literal or expression is a detached BY CONTENT value, BY VALUE is the Value mode.
     /// GnuCOBOL accepts those five spellings, and IBM Enterprise COBOL and Micro Focus accept BY VALUE and a BY CONTENT
     /// literal, on the CALL that names no prototype (CLAUDE.md rule 1's precedence for implementor latitude; the strict
-    /// verdict is the standard's, not latitude). OMITTED has no vendor lane: it is refused under both (kb/Work PB3996).
-    /// True = bind on.</summary>
+    /// verdict is the standard's, not latitude). OMITTED passed BY REFERENCE — bare or written `BY REFERENCE OMITTED` —
+    /// is the sixth vendor spelling (GnuCOBOL, IBM and Micro Focus all accept it; owner decision 2026-10-28, kb/Work
+    /// PB4012) and binds as §14.9.4.4 GR11's omitted argument. True = bind on.</summary>
     private bool Format1Narrowing(Format2OnlySpelling spelling)
     {
         if (spelling.VendorLane && ctx.Edition.Permissive)

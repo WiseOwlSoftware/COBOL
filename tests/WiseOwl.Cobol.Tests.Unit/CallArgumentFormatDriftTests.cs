@@ -107,10 +107,10 @@ public sealed class CallArgumentFormatDriftTests
         string bind = MethodBody(source, "public BoundStatement BindCall");
 
         // The question is asked before the first arm of the dispatch…
-        int ask = bind.IndexOf("Format2OnlySpellingOf(a, bareArg)", StringComparison.Ordinal);
+        int ask = bind.IndexOf("Format2OnlySpellingOf(a, bareArg, mode)", StringComparison.Ordinal);
         int firstArm = bind.IndexOf("if (a.callByReference() is { } byRef)", StringComparison.Ordinal);
         Assert.True(ask >= 0 && firstArm > ask,
-            "BindCall must ask Format2OnlySpellingOf(a, bareArg) for every argument BEFORE the dispatch over "
+            "BindCall must ask Format2OnlySpellingOf(a, bareArg, mode) for every argument BEFORE the dispatch over "
             + "callByReference / callByContent / callByValue / the keyword-less arms (kb/Work PB3996).");
 
         // …and is the only place Format 1's narrowing is framed: the per-arm copies (PB130's) are gone.

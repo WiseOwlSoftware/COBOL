@@ -48,3 +48,20 @@ member. `abi_pin.py`'s pattern and the two self-test fixtures follow; the runtim
 
 Rows: none re-verdicted (the rows stay claimed by PB1086; GR-14.9.4.4-3 and GR-14.8.2.3.2-L2.1 were already CONFORMS
 and gain witnesses).
+
+**Wave 20261816 (group A) carried part 1 onto main** (cherry-picked, re-gated GREEN at run 000001) and landed the group's
+smaller mechanisms on the same branch.
+
+**PB4012 — `--permissive` accepts OMITTED passed BY REFERENCE in a Format 1 CALL** (owner decision 2026-10-28, "Yes,
+permissive accepts"). The re-probe drew COBOL0899 errors under `--permissive` for `USING W OMITTED` and `USING W BY
+REFERENCE OMITTED`. `CallBinder.Format2OnlySpellingOf` now reads the mode §14.9.4.4 GR5 carries: OMITTED passed BY
+REFERENCE is the sixth vendor spelling (a COBOL0899 warning, bound as the GR11 omitted argument); an OMITTED a BY
+CONTENT phrase carries over keeps the error under both modes, as cobc 3.2 does. The survey and the decision are
+CONFORMANCE D-CALLV; `FormatOneVendorCallPermissiveTests` pins strict, permissive (run output
+`A=ABCD B OMITTED` twice, then `A=ABCD B=ABCD`) and the BY CONTENT refusal.
+
+**PB4340 — `cobol check-batch --help` named the compile's `<source>`.** System.CommandLine writes a parent command's
+arguments before a subcommand, in the usage line and in the grammar (so `cobol x.cob check-batch m.tsv` ran the batch
+and ignored `x.cob`). The two verbs are now two command trees, `Program.BuildParser` and
+`Program.BuildCheckBatchParser`, chosen by the first word in `Program.Parse`; `CliParserTests` pins the help and the
+usage error.

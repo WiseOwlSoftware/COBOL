@@ -33,8 +33,20 @@ internal static class Program
         // rule, one place: WiseOwl.Cobol.Runtime.IO.StandardStreams, which the other process entry, a compiled program's
         // Main (ProgramTable.RunModule), calls too; a host entry never does (kb/Work PB3193).
         WiseOwl.Cobol.Runtime.IO.StandardStreams.EnsureUtf8();
-        return BuildParser().Command.Parse(args).Invoke();
+        return Parse(args).Invoke();
     }
+
+    /// <summary>The name of the batch-check command, the one command line whose first word is not a source file.</summary>
+    internal const string CheckBatchName = "check-batch";
+
+    /// <summary>⛔ THE ONE ROUTE FROM A COMMAND LINE TO ITS PARSE (kb/Work PB4340). The compile and the batch check are
+    /// two verbs, not a command and its child: <c>System.CommandLine</c> writes a parent command's arguments before
+    /// a subcommand, both in the subcommand's usage line and in its grammar, so while check-batch was a subcommand of
+    /// the compile root its help listed <c>&lt;source&gt;</c> and printed <c>cobol &lt;source&gt; check-batch
+    /// &lt;manifest&gt;</c>, and <c>cobol x.cob check-batch m.tsv</c> ran the batch and ignored <c>x.cob</c>. Each verb
+    /// is therefore its own command tree, and the first word chooses the tree.</summary>
+    internal static ParseResult Parse(IReadOnlyList<string> args) =>
+        args is [CheckBatchName, ..] ? BuildCheckBatchParser().Parse(args) : BuildParser().Command.Parse(args);
 
     /// <summary>Build the argument parser (exposed for unit testing the grammar without spawning a process):
     /// the configured <see cref="RootCommand"/> plus a pure resolver that maps a <see cref="ParseResult"/> to the
@@ -164,7 +176,9 @@ internal static class Program
                 result.AddError($"--repository-update must be one of {string.Join(", ", RepositoryUpdateSpellings)} (got {v}).");
         });
 
-        var root = new RootCommand("cobol — translate a COBOL source unit to typed-native .NET (the Roslyn backend).")
+        // The batch check is a separate tree (Parse), so this description is where the compile's help names it.
+        var root = new RootCommand("cobol — translate a COBOL source unit to typed-native .NET (the Roslyn backend). "
+            + $"`cobol {CheckBatchName} <manifest>` checks many sources without emitting (`cobol {CheckBatchName} --help`).")
         {
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
             signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, repositoryUpdateOption,
@@ -199,29 +213,36 @@ internal static class Program
                 signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay, repositoryUpdate);
         }
 
-        // A no-emit BATCH check subcommand (the INV-1 continuity sweep fast path): parse + edition-validate +
-        // bind-check many (source, edition) entries in ONE warm process — skipping the Roslyn backend AND the
-        // ~2s-per-file `dotnet` cold-start that made the sweep ~1400 cold full compiles.
+        // The root's OWN action: a bare `cobol <source>` compiles.
+        root.SetAction(parse => RunCompile(Resolve(parse)));
+
+        return (root, Resolve);
+    }
+
+    /// <summary>The batch-check verb's own command tree, <c>cobol check-batch &lt;manifest&gt;</c> (see <see cref="Parse"/>):
+    /// a no-emit BATCH check (the INV-1 continuity sweep fast path) that parses, edition-validates and bind-checks many
+    /// (source, edition) entries in ONE warm process, skipping the Roslyn backend and the ~2 s-per-file <c>dotnet</c>
+    /// cold start that made the sweep ~1400 cold full compiles. Its root carries no argument, so the usage line and the
+    /// grammar are exactly the subcommand's.</summary>
+    internal static RootCommand BuildCheckBatchParser()
+    {
         var manifestArgument = new Argument<string>("manifest")
         {
             Description = "A TSV file; each line `source<TAB>std<TAB>nist-name<TAB>permissive(0|1)` is "
                 + "parse+bind-checked (no Roslyn emit). Prints `source<TAB>std<TAB>PASS|FAIL` per line.",
         };
-        var checkBatch = new Command("check-batch",
-            "Parse + edition-validate + bind-check many (source, edition) entries in one process (no Roslyn emit).")
+        var checkBatch = new Command(CheckBatchName, CheckBatchDescription)
         {
             manifestArgument,
         };
         checkBatch.SetAction(parse => RunCheckBatch(parse.GetValue(manifestArgument)!));
+        var root = new RootCommand(CheckBatchDescription);
         root.Subcommands.Add(checkBatch);
-
-        // The root's OWN action (a bare `cobol <source>` compiles) — set here so the root is invokable WITHOUT a
-        // subcommand (otherwise System.CommandLine treats a command that has subcommands but no action as a pure
-        // group and errors "Required command was not provided").
-        root.SetAction(parse => RunCompile(Resolve(parse)));
-
-        return (root, Resolve);
+        return root;
     }
+
+    private const string CheckBatchDescription =
+        "Parse + edition-validate + bind-check many (source, edition) entries in one process (no Roslyn emit).";
 
     /// <summary>Parse + edition-validate + bind-check every entry of a TSV manifest in one warm process, in
     /// parallel (CompilerDriver.Compile is proven concurrency-safe — ConcurrentCompilationTests). Each entry
