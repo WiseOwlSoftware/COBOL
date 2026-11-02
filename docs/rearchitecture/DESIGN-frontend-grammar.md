@@ -1613,7 +1613,8 @@ target:
   record still due something belongs to a statement whose rule lets that word follow an imperative block
   (`PhraseWords`, read from the ATN once per rule: what follows each `statementBlock` call in the rules the statement
   reaches, a block that ends its rule followed by what follows the call, minus the scope terminators), under the same
-  record hygiene as the terminator test (`TakenByALeftStatement`). The word is the one fault re-met, not a tail to discard:
+  record hygiene as the terminator test (`TakenByALeftStatement`), and only where the statement before the word is
+  complete (`AStatementMayEndBefore`: `IF A MOVE B TO ADD 1 TO ELSE …` is the ADD's own fault at the ELSE). The word is the one fault re-met, not a tail to discard:
   the recovery goes on, so a genuine later fault in the sentence is still reported.
 - ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
   Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that

@@ -165,6 +165,8 @@ public sealed class ParseRecoveryCascadeTests
     // The condition's fault leaves the IF; the WHEN after its END-IF is the EVALUATE's.
     [InlineData("EVALUATE W-N WHEN 1 DISPLAY \"Q\" IF W-K NOT <> 1 DISPLAY \"C\" END-IF WHEN 2 DISPLAY \"Y\" END-EVALUATE. MOVE 1 W-N.",
                 "COBOL0001@<>", "COBOL5506@W-N")]
+    // A statement still short of its operand is refused at the word by its own fault, not taken for the left IF's phrase.
+    [InlineData("IF W-N = 1 DISPLAY \"Q\" IF W-K = 1 END-IF ADD 1 TO ELSE DISPLAY \"Z\".", "COBOL2072@END-IF", "COBOL5506@ELSE")]
     // A phrase word met after the sentence's period is the next sentence's: no left statement awaits it.
     [InlineData("IF W-N = 1 DISPLAY \"Q\" IF W-K = 1 END-IF. ELSE DISPLAY \"Z\".", "COBOL2072@END-IF", "COBOL0001@ELSE")]
     public void APhraseWordOfAStatementTheRecoveryLeft_IsItsOwn_AndDrawsNoSecondReport(string statements, params string[] diagnostics)

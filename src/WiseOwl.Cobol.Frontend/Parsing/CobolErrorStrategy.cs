@@ -182,6 +182,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// words are those the grammar lets follow an imperative block of the statement's rule (<see cref="PhraseWords"/>).</summary>
     private bool ContinuesAStatementTheRecoveryLeft(Parser recognizer, OffendingPosition at)
         => _leftByRecovery.Count > 0 && at.Token.Type != CobolLexer.DOT && ScopeTerminator(recognizer, at.Token.Type) is null
+           // Only where the statement before the word is complete: a statement still short of an operand
+           // (IF A MOVE B TO ADD 1 TO ELSE …) is refused at the word by its own fault.
+           && at.AStatementMayEndBefore()
            && TakenByALeftStatement(recognizer, at, rule => PhraseWords(recognizer, rule).Contains(at.Token.Type), consume: false);
 
     /// <summary>The newest statement the recovery left (<see cref="_leftByRecovery"/>) that is still due something and
