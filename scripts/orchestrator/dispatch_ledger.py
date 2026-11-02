@@ -119,7 +119,7 @@ def release_dispatch(coord_dir: pathlib.Path, selector: str) -> list[dict[str, A
 #: The partition's measurement (kb/Work PB3670 item 5): one JSON line per wave a plan dispatches, in the coordination
 #: directory, read by `--partition-summary`.
 PARTITION_MEASURE = "partition-measure.jsonl"
-COLLISION_WAIT = "file-set collision with in-flight work "
+COLLISION_WAIT = "same-member collision with in-flight work "
 
 
 def partition_record(wave: str, groups: Sequence[Group], waiting: Mapping[str, str],

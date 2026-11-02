@@ -115,4 +115,4 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   different members of one file whose claims meet nowhere run side by side (kb/Work PB3670, PB3696). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
   give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``, a `:line` after
   the path optional: MANDATORY-PRACTICES R3, `work.SITES_RULE`), or `(whole: why)` when the change takes the file throughout (`work.py check` refuses a code file named with neither, and a name the
-  file does not declare, for a held note: kb/Work PB3797), or the planner claims the whole file; a note with no site block holds nothing and is planned UNPARTITIONED, never held.
+  file does not declare, for a held note: kb/Work PB3797), or the planner claims the whole file (one step with the wave's other groups on it, and a whole claim neither holds nor is held by RUNNING work: `inflight.hold` needs a member on both sides, kb/Work PB4452); a note with no site block holds nothing and is planned UNPARTITIONED, never held.
