@@ -143,12 +143,12 @@ internal sealed class RoslynBackend : ICodeGenBackend
     }
 
     /// <summary>
-    /// The framework reference set: every assembly currently loaded as a trusted-platform assembly. This makes
-    /// the generated program able to reference the same BCL the compiler itself runs on (System.Runtime,
-    /// System.Console, System.Linq, …) without bundling a reference pack. CACHED for the process lifetime — the
-    /// TPA set and the deployed runtime DLL are stable per process, and building the set does ~180
+    /// The reference set: the framework's REFERENCE assemblies (<see cref="AssemblyPackager.ReferenceAssemblyPaths"/>,
+    /// the targeting pack the compiler deploys, so the emitted assembly references <c>System.Runtime</c> and a .NET
+    /// host project can build against it; kb/Work PB4047) and the WiseOwl COBOL runtime the program is deployed with.
+    /// CACHED for the process lifetime — both are stable per process, and building the set does ~160
     /// <see cref="MetadataReference.CreateFromFile(string)"/> calls; the in-process test battery compiles thousands
-    /// of times per run (rearchitecture P0 step 2 — behavior-neutral: an identical set, computed once).
+    /// of times per run (rearchitecture P0 step 2).
     /// </summary>
     private static readonly Lazy<ImmutableArray<MetadataReference>> _referenceAssemblies =
         new(BuildReferenceAssemblies, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -157,12 +157,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
 
     private static ImmutableArray<MetadataReference> BuildReferenceAssemblies()
     {
-        string tpa = (string)(AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "");   // not a compilation input: the host's own framework reference set
-        var refs = tpa.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-            .Where(static p => p.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))   // not a COBOL word: a file-system extension
-            // The host's own copy of the runtime is not the one the program runs with (kb/Work PB2528): that is
-            // AssemblyPackager.RuntimePath, added below, so the program binds against the very file it is deployed with.
-            .Where(static p => !string.Equals(Path.GetFileName(p), AssemblyPackager.RuntimeFileName, StringComparison.OrdinalIgnoreCase))   // not a COBOL word: a file name
+        var refs = AssemblyPackager.ReferenceAssemblyPaths
             .Select(static p => (MetadataReference)MetadataReference.CreateFromFile(p))
             .ToList();
         // The WiseOwl COBOL runtime the generated program calls (CobolNum / CobolString).

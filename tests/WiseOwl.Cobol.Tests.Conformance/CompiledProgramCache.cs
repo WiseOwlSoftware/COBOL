@@ -187,6 +187,7 @@ internal static class CompiledProgramCache
     /// reaches only the image (a crossgen or Release-only build setting) would otherwise replay a stale one.</summary>
     internal static IReadOnlyList<string> ToolFiles() =>
         [.. CompilerClosure().Select(a => a.Location).Append(AssemblyPackager.RuntimePath)
+            .Concat(AssemblyPackager.ReferenceAssemblyPaths)
             .Distinct(StringComparer.OrdinalIgnoreCase)];
 
     /// <summary>The tool fingerprint over an explicit assembly set (the drift test flips a byte in a copy).</summary>

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol;
+using WiseOwl.Cobol.CodeGen;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
@@ -37,10 +38,10 @@ internal static class NonCobolElement
     public static void CompileCSharp(string dir, string assemblyName, string source, string? runtimeConfigOf,
         params string[] cobolModules)
     {
-        var tpa = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator);
-        var refs = tpa
-            .Where(p => Path.GetFileNameWithoutExtension(p) is "System.Private.CoreLib" or "System.Runtime"
-                or "System.Console" or "System.Reflection" or "netstandard")
+        // An ordinary MSBuild host's reference set: the framework's REFERENCE assemblies, never the implementation
+        // assemblies (System.Private.CoreLib) this process runs on; a module that referenced one of those fails such a
+        // host with CS0012 (kb/Work PB4047).
+        var refs = AssemblyPackager.ReferenceAssemblyPaths
             .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p))
             .Append(MetadataReference.CreateFromFile(typeof(WiseOwl.Cobol.Runtime.ProgramRegistry).Assembly.Location))
             .Concat(cobolModules.Select(m => MetadataReference.CreateFromFile(Path.Combine(dir, m + ".dll"))))

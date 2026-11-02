@@ -2345,8 +2345,11 @@ trimmed host with the probe off and the runtime rooted: no trim warning, no `Loa
 and a CALL nothing registered reports the disabled probe; the probe on with the runtime rooted: an untrimmed callee beside the
 application is located and runs). They are not yet automated, for two reasons recorded in the PB2101 report: a `dotnet publish
 -p:PublishTrimmed` restores the SDK-matched `Microsoft.NET.ILLink.Tasks` and runtime pack, which a host without network access
-to NuGet does not have (the local gate must not depend on it), and a host project that references an emitted COBOL assembly
-does not compile, because the emitted assemblies reference `System.Private.CoreLib` directly (CS0012).
+to NuGet does not have (the local gate must not depend on it; kb/Work PB4048), and a host project that referenced an emitted
+COBOL assembly did not compile, because the assembly referenced `System.Private.CoreLib` (CS0012). The second is gone (kb/Work
+PB4047): the backend compiles every program against the targeting pack's reference assemblies, which the compiler's build
+deploys at `reference-assemblies/` (`AssemblyPackager.ReferenceAssemblyPaths`), and the host tests compile their host
+against exactly that set.
 
 ### 17.6 Zero-cost-when-unused; 17.7 Determinism
 As §16: no listing/open when the group answers every specifier (slice 7, with the resolver); two compiles →

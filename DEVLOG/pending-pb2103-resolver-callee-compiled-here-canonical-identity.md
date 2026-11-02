@@ -65,3 +65,13 @@ arguments before a subcommand, in the usage line and in the grammar (so `cobol x
 and ignored `x.cob`). The two verbs are now two command trees, `Program.BuildParser` and
 `Program.BuildCheckBatchParser`, chosen by the first word in `Program.Parse`; `CliParserTests` pins the help and the
 usage error.
+
+**PB4047 — an emitted assembly is compiled against the framework's reference assemblies.** The re-probe's AssemblyRef
+table named `System.Private.CoreLib`, so an ordinary MSBuild host failed CS0012. The compiler's build now lays the
+Microsoft.NETCore.App targeting pack it resolved at `reference-assemblies/` beside every referencing project's output and
+in the CLI's publish output (the ReadyToRun images' content mechanism); `AssemblyPackager.ReferenceAssemblyPaths` is the
+one reader and `RoslynBackend` compiles against it, so the same program references `System.Runtime`, and a plain
+net10.0 host project with two HintPath references built against a compiled callee and ran it. The three test-side
+copies of the reference set (one of which hand-added `System.Private.CoreLib`, which is how the defect hid from the host
+tests) read the same property, the compiled-program cache keys on the files, and `EmittedReferenceIdentityTests` pins the
+metadata. The manual's "Known limitation" section became "Building a host project".
