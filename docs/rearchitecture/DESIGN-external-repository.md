@@ -1124,7 +1124,9 @@ the group.
   restricted to two differently named prototypes of one signature (kb/Work PB2464 / PB2495 / PB3101 / PB3162). The
   identity rules — §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3 and §8.5.3.1's type-declaration equivalence —
   compare the USAGE clause's TO phrase by the prototype it NAMES, its folded externalized name
-  (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107), so the §8.5.3.1 keys two
+  (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107) — and so does the pair-mode
+  conformance of §9.3.8.2.3 rules 3 and 6 (an override, an IMPLEMENTS pair; kb/Work PB4442), the signature graph alone
+  reading an elementary pointer formal by its class — so the §8.5.3.1 keys two
   compilations compare (`ActivationDescription.StrongType`, `PointerType`) are the same text whether or not a compilation
   holds the prototype's signature. The approved text of this design replaced `PicInfo.RestrictedPrototypeName` by an
   identity field; the code keeps the written name and records the signature beside it, because the SET relation needs

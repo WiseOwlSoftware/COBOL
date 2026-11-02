@@ -21,7 +21,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (<see cref="ActivationDescription.Clauses"/>), never its signature.</item>
 /// </list>
 /// So two pointers restricted to two prototypes of one signature, or alike under two type-names, are admitted by the
-/// first and refused by the second — the standard's split, as an object reference of a subclass is.
+/// first and refused by the second — the standard's split, as an object reference of a subclass is. The pair-mode
+/// identity of §9.3.8.2.3 rules 3 and 6 (<see cref="ActivationRelations.SignatureDifference"/>) is a second identity rule:
+/// it asks the TO phrase's name too (kb/Work PB4442).
 /// </summary>
 public sealed class PointerRestrictionRelationsTests
 {
@@ -205,5 +207,31 @@ public sealed class PointerRestrictionRelationsTests
         Assert.False(Returning(program, function));
         Assert.False(ByReference(program, function));
         Assert.False(Set(program, function));
+        Assert.NotNull(ActivationRelations.SignatureDifference(program, function));
+        Assert.NotNull(ActivationRelations.SignatureDifference(program, function, pointersBySignature: true));
+    }
+
+    /// <summary>⛔ THE PAIR-MODE IDENTITY ASKS THE TO PHRASE'S NAME (kb/Work PB4442). §9.3.8.2.3 rules 3 and 6 — an override,
+    /// an IMPLEMENTS pair, an interface pair, a property accessor pair — ask "the same ... USAGE clauses", so two
+    /// program-pointers restricted to two prototypes of ONE signature are two descriptions, as the same pair is as members of
+    /// a strongly-typed group (rule 7). Only the signature graph (<c>pointersBySignature</c>, <c>PrototypeSignatures.Same</c>)
+    /// asks what each may contain, and it merges them.</summary>
+    [Theory]
+    [InlineData(ActivationCategory.ProgramPointer)]
+    [InlineData(ActivationCategory.FunctionPointer)]
+    public void PairMode_TwoPrototypesOfOneSignature_AreTwoDescriptions_TheSignatureGraphMergesThem(string category)
+    {
+        var q1 = Pointer(category, "TO q1", "SIG s");
+        var q2 = Pointer(category, "TO q2", "SIG s");
+        var other = Pointer(category, "TO q3", "SIG t");
+        Assert.NotNull(ActivationRelations.SignatureDifference(q1, q2));
+        Assert.NotNull(ActivationRelations.SignatureDifference(q2, q1));
+        Assert.Null(ActivationRelations.SignatureDifference(q1, q1 with { }));
+        Assert.Null(ActivationRelations.SignatureDifference(q1, q2, pointersBySignature: true));
+        Assert.NotNull(ActivationRelations.SignatureDifference(q1, other, pointersBySignature: true));
+        // An unrestricted pointer is a third description in both.
+        var unrestricted = Pointer(category, ActivationDescription.Unrestricted, ActivationDescription.Unrestricted);
+        Assert.NotNull(ActivationRelations.SignatureDifference(q1, unrestricted));
+        Assert.NotNull(ActivationRelations.SignatureDifference(q1, unrestricted, pointersBySignature: true));
     }
 }

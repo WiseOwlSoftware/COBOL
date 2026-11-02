@@ -2364,9 +2364,20 @@ of an unsupported facility.
   that holds P's signature and in one that only names P (§12.3.8.4 GR10 c)), and a strongly-typed group whose pointer
   member is `TO QA` is not of the type of one whose member is `TO QB`, whatever the signatures — so two prototypes whose
   strong-group formals differ so have two signatures (§9.3.8.2.3 rule 7; branch review R1-1 of kb/Work PB4107).
+  The pair-mode conformance of §9.3.8.2.3 asks the same identity of an ELEMENTARY pointer (kb/Work PB4442): rule 3 (a
+  formal) and rule 6 (a returning item) require "the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH,
+  JUSTIFIED, PICTURE, SIGN, and USAGE clauses" — the very words §9.3.6 3 e) and §14.8.3.3 use — and a restricted
+  program- or function-pointer's USAGE clause is `USAGE PROGRAM-POINTER TO program-prototype-name`, so an override
+  (§11.7.3 SR9, COBOL0829), an IMPLEMENTS pair (§9.3.11, COBOL0841), an interface-to-interface pair and a property
+  accessor pair (§8.4.3.9.3 SR7) conform exactly when both name the same prototype, whatever the two prototypes'
+  signatures, as the same pair does as strong-group members (rule 7). The signature graph alone keeps asking what a
+  prototype pointer formal may CONTAIN (`ActivationRelations.SignatureDifference` with `pointersBySignature`, set by
+  `PrototypeSignatures.SameDescription`: §13.7.3 SR2 and §10.6.2 SR2 compare two prototypes' formals through the signature
+  classes of PB2464 / PB2495); whether that arm should itself read the TO phrase by name, as the strong-group member arm of
+  the same graph does, is a separate question of the signature relation, not of §9.3.8.2.3 (kb/Work PB4442's report).
   GnuCOBOL, IBM and Micro Focus have no restricted prototype pointer. Implementing site: `ActivationRelations.RestrictedPointerTypeViolation` (BY REFERENCE, both the
   CALL and the INVOKE lanes), `ActivationRelations.MatchViolation` / `ReturningConformance` over
-  `ActivationDescription.Clauses` (`PrototypeSignatures.NamedRestriction`), `ActivationRelations.MaySet` over
+  `ActivationDescription.Clauses` (`PrototypeSignatures.NamedRestriction`), `ActivationRelations.SignatureDifference` (pair mode, over `Clauses`), `ActivationRelations.MaySet` over
   `ActivationDescription.ContentRestriction` (`PrototypeSignatures.SignatureRestriction`), `StrongTypeModel.SameAnalyzedProfile`
   / `EssentialCharacteristicsKey` (`PrototypeSignatures.NamedRestriction`). Witnesses:
   `conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb4107_restricted_pointer_identity_and_signature`,
@@ -2374,12 +2385,14 @@ of an unsupported facility.
   `conformance:cases/_unassigned/pb2464_function_pointer_signature_type`,
   `conformance:cases/14.8.2-Formal-parameters-and-arguments/pb3686_returning_external_prototype_pointer`,
   `conformance:cases/_unassigned/pb3120_group_formal_pointer_type`,
+  `conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb4442_override_pointer_same_prototype_two_type_names`,
   `conformance-test:TypedPointerAcrossCompilationsTests`,
   `unit:PointerRestrictionRelationsTests.TheTypeOfATypedRestrictedPointer_IsTheSameText_WhetherOrNotItsPrototypeResolved`
   and the negatives `pb4107-call-byref-pointer-two-types`, `pb4107-invoke-byref-datapointer-two-types`,
   `pb4107-invoke-returning-same-signature`, `pb4107-invoke-returning-funcptr-same-signature`,
   `pb4107-group-formal-pointer-two-names`, `pb4107-group-formal-template-pointer-two-names`,
-  `pb4107-set-group-member-pointers-naming-each-other`.
+  `pb4107-set-group-member-pointers-naming-each-other`, `pb4442-override-pointer-two-prototypes`,
+  `pb4442-override-returning-pointer-two-prototypes`, `pb4442-implements-pointer-two-prototypes`.
 - **D-N8 — a group sender into a national DYNAMIC LENGTH receiver** (kb/Work PB546; decision PB3099, 2026-10-12).
   §14.9.25.4 GR4 makes the move a byte copy and §8.5.1.10.4 sets the receiver's new length to the content's. An odd
   byte count cannot be national content (D-N1: two bytes per position), so the last position is completed with the

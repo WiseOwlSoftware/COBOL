@@ -28,7 +28,9 @@ namespace WiseOwl.Cobol.Binding;
 /// conformance fact — "if and only if"). So this compares exactly those, position by position, through
 /// <see cref="OoConformance.SignatureDifference"/> — the ONE pair-mode relation over two descriptions
 /// (<c>ActivationRelations.SignatureDifference</c>) that the override, IMPLEMENTS, interface and property-accessor
-/// checks ask too, so a description rule cannot mean one thing here and another there (kb/Work PB3101) — and, for an
+/// checks ask too, so a description rule cannot mean one thing here and another there (kb/Work PB3101) — except that a
+/// restricted program- or function-pointer formal is asked by what it may CONTAIN, its prototype's signature class,
+/// where the pair-mode checks ask the TO phrase's name (<c>pointersBySignature</c>, kb/Work PB4442) — and, for an
 /// alphanumeric group, through its subordinate entries as well (<c>SameDescription</c>).</para>
 /// <para><b>An UNRESOLVED prototype conforms.</b> A prototype whose signature is null took ISO §12.3.8.4 GR10 c)
 /// — "the details are taken from the external repository" — and this implementation's external repository is the
@@ -71,7 +73,8 @@ internal static class PrototypeSignatures
     /// (class and category, the clause identity, ANY LENGTH and the LOCALE identification, the object-reference phrases,
     /// the strong type, a variable-length group's matching information; a bit / national group is the elementary
     /// <c>PIC 1(m)</c> / <c>N(m)</c> item §13.18.29.4 GR1 b) / GR2 b) treat it as, and an alphanumeric group is never
-    /// an elementary item);</item>
+    /// an elementary item; an elementary program- or function-pointer pair is asked by its prototypes' signature class,
+    /// <c>pointersBySignature</c>);</item>
     /// <item>for two groups that are NOT bit / national groups, their SUBORDINATE entries (kb/Work PB1115, row
     /// SR-13.7.3-2): such a group's data description entry carries no PICTURE, USAGE or length of its own, so what
     /// describes it is the entries subordinate to it.
@@ -92,7 +95,7 @@ internal static class PrototypeSignatures
     /// carry the same address there (kb/Work PB3101, review finding R1-1).</item>
     /// </list></summary>
     private static bool SameDescription(DataItem a, DataItem b) =>
-        OoConformance.SignatureDifference(a, b, "prototype's item", "definition's item") is null
+        OoConformance.SignatureDifference(a, b, "prototype's item", "definition's item", pointersBySignature: true) is null
         && (!DescribedBySubordinates(a) || !DescribedBySubordinates(b) || StrongTypeModel.SameElementaryLayout(a, b));
 
     /// <summary>A group whose description is its subordinate entries' — the "is this a group operation?" test
@@ -108,7 +111,8 @@ internal static class PrototypeSignatures
     /// <see cref="ExternalIdentity"/> (<see cref="UnclassifiedIdentity"/>). Null for an unrestricted pointer and for any
     /// other item. ⛔ It answers the SIGNATURE question only — the SET relation (§14.9.39.3 SR20 / SR22, through
     /// <c>ActivationDescription.ContentRestriction</c>), the rules that send to it, and the signature graph's elementary
-    /// pointer formal (<see cref="Same"/> through <c>ActivationRelations.SignatureDifference</c>). It is NOT the pointer's
+    /// pointer formal (<see cref="Same"/> through <c>ActivationRelations.SignatureDifference</c>'s <c>pointersBySignature</c>
+    /// arm; the pair-mode checks of §9.3.8.2.3 ask the TO phrase by name, kb/Work PB4442). It is NOT the pointer's
     /// type and not its USAGE clause: §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3 and §8.5.3.1's
     /// type-declaration equivalence (a strongly-typed or group formal's member, <c>StrongTypeModel</c>) compare the TO
     /// phrase by the prototype it names (<see cref="NamedRestriction"/>; kb/Work PB3758 / PB4107).</summary>
@@ -237,7 +241,8 @@ internal static class PrototypeSignatures
     }
 
     /// <summary>⛔ <see cref="SameDescription"/> AS A KEY, read from what the relation reads — the item's activation
-    /// description (<c>ActivationDescriptions.Of</c>) by the arm <c>ActivationRelations.SignatureDifference</c> takes for it,
+    /// description (<c>ActivationDescriptions.Of</c>) by the arm <c>ActivationRelations.SignatureDifference</c> takes for it
+    /// under <c>pointersBySignature</c>,
     /// and for a group that is not a bit or national group its elementary layout
     /// (<see cref="StrongTypeModel.ElementaryLayoutKey"/>):
     /// <list type="bullet">
@@ -272,7 +277,8 @@ internal static class PrototypeSignatures
             ActivationShape.StrongGroup => "TYPE " + d.StrongType,
             ActivationShape.VariableLengthGroup => "VARIABLE GROUP",
             ActivationShape.AlphanumericGroup => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"GROUP {d.Positions}"),
-            // A class pointer by what it may CONTAIN, the signature class SignatureDifference compares (kb/Work PB4107).
+            // A class pointer by what it may CONTAIN, the signature class SignatureDifference compares under pointersBySignature
+            // (kb/Work PB4442).
             _ => (d.AnyLength ? "ANY LENGTH " : "") + d.Category + " " + (d.ContentRestriction.Length > 0 ? d.ContentRestriction : d.Clauses)
                  + (d.LocaleExternal is { } locale ? (d.LocaleFromLiteral ? " LOCALE L:" + locale : " LOCALE W:" + CobolNames.Fold(locale)) : ""),
         };
