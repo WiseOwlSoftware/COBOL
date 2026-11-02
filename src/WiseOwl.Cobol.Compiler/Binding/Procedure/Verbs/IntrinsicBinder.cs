@@ -166,7 +166,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         // §8.4.3.2.3 SR6 was already decided by the caller, from the definition, before the call bound — the
         // only ref-mod that reaches here is one that FOLLOWS the argument list (or a zero-argument function).
-        return ResultRefMod(call, ctx.Refs.ReadRefMod(refMods[0]), display);
+        return ResultRefMod(call, ctx.Refs.RefMods.ReadRefMod(refMods[0]), display);
     }
 
     /// <summary>
@@ -332,7 +332,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         //   (start:len)              refModPart — a ref-mod on a ZERO-ARGUMENT result
         //   (args) (start:len)       the argument list, then a ref-mod
         // The parser tells the middle two apart by the colon (kb/Work PB2113: both open with the REF_LPAREN the lexer
-        // gives every '(' after a name). Both ref-mods are read by the ONE ReferenceResolver.ReadRefMod.
+        // gives every '(' after a name). Both ref-mods are read by the ONE RefModBinder.ReadRefMod.
         Core.SubscriptPartContext? sp = null;
         Core.RefModPartContext? capturedRefMod = null;   // `name (start:len)` — a zero-argument result
         Core.RefModPartContext? tailRefMod = null;       // `name (args) (start:len)`
@@ -370,7 +370,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             var viaPointer = ArgumentsOf(sp) is { } fpArgs
                 ? host.Udf.UdfBindPointerCall(fp, fpArgs)
                 : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
-            return Activated(tailRefMod is null ? viaPointer : ResultRefMod(viaPointer, ctx.Refs.ReadRefMod(tailRefMod), name));
+            return Activated(tailRefMod is null ? viaPointer : ResultRefMod(viaPointer, ctx.Refs.RefMods.ReadRefMod(tailRefMod), name));
         }
         // The word as an intrinsic-function-name OF THIS COMPILATION (>>COBOL-WORDS and the edition window —
         // DataBinder.TryIntrinsicOfThisCompilation), and the REPOSITORY half through DataBinder.IsRepositoryIntrinsic,
@@ -438,7 +438,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 var udfBare = host.Udf.UdfBindCall(name, []);
                 return Activated(capturedRefMod is null
                     ? udfBare
-                    : ResultRefMod(udfBare, ctx.Refs.ReadRefMod(capturedRefMod), name));
+                    : ResultRefMod(udfBare, ctx.Refs.RefMods.ReadRefMod(capturedRefMod), name));
             }
             // A bare CATALOGUED name only becomes a function reference when the function genuinely admits
             // ZERO arguments (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form,
@@ -453,14 +453,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // form applies it, and the two reference forms cannot drift apart.
             return Activated(capturedRefMod is null
                 ? bare
-                : ResultRefMod(bare, ctx.Refs.ReadRefMod(capturedRefMod), name));
+                : ResultRefMod(bare, ctx.Refs.RefMods.ReadRefMod(capturedRefMod), name));
         }
         var call = ArgumentsOf(sp) is { } args
             ? BindIntrinsicCore(functionWord, args)
             : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
         return Activated(tailRefMod is null
             ? call
-            : ResultRefMod(call, ctx.Refs.ReadRefMod(tailRefMod), name));
+            : ResultRefMod(call, ctx.Refs.RefMods.ReadRefMod(tailRefMod), name));
 
         // Every non-null return of this method IS a function activation (§8.4.3.2.3 SR2); record the decision where it
         // is made so the migration-flag pass (§7.3.14.4 GR4 b) need not re-derive it from syntax.
@@ -2422,7 +2422,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="HasDynamicLengthLeaf"/>/<see cref="HasDynamicCapacityTable"/> stay: they serve
     /// <see cref="HasRuntimeLength"/>, which answers a LAYOUT question, not the §8.5.1.12.1 classification.</summary>
     private static bool IsVariableLengthGroup(DataItem g) =>
-        WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(g);
+        WiseOwl.Cobol.Binding.RefModBinder.HasVariableLengthSubordinate(g);
 
     private static bool HasRuntimeLength(DataItem g) =>
         DataItem.HasOdoBeneath(g) || HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);

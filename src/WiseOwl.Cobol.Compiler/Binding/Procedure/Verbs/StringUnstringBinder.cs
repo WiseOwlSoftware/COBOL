@@ -113,7 +113,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             return Reject($"STRING INTO '{intoText}': identifier-3 shall not be described with the JUSTIFIED clause (ISO §14.9.43.3 SR5)");
         if (StrongTypeModel.IsStrongGroup(into.Item))
             return Reject($"STRING INTO '{intoText}': identifier-3 shall not reference a strongly-typed group item (ISO §14.9.43.3 SR6)");
-        if (into.Item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(into.Item))
+        if (into.Item.IsGroup && RefModBinder.HasVariableLengthSubordinate(into.Item))
             return Reject($"STRING INTO '{intoText}': identifier-3 shall not specify a variable-length group (ISO §14.9.43.3 SR11; §8.5.1.12)");
         // ⛔ DA7 — SR1 at BIND time. This check previously existed ONLY in StringEmitter as a run-time loud stage,
         // so `STRING … INTO <a COMP item>` compiled clean and crashed at the statement. It now asks the SAME
@@ -192,7 +192,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         if (UnstringSenderCategory(source) is { } badCat)
             return Reject($"UNSTRING sender '{senderText}' is category {badCat} "
                 + "(identifier-1 shall reference a data item of category alphanumeric or national, ISO §14.9.48.3 SR2)");
-        if (source is BoundFieldOperand { Place.Item: { IsGroup: true } sg } && ReferenceResolver.HasVariableLengthSubordinate(sg))
+        if (source is BoundFieldOperand { Place.Item: { IsGroup: true } sg } && RefModBinder.HasVariableLengthSubordinate(sg))
             return Reject($"UNSTRING sender '{senderText}' shall not reference a variable-length group (ISO §14.9.48.3 SR10; §8.5.1.12)");
 
         var delims = new List<BoundUnstringDelimiter>();
@@ -266,7 +266,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
                 return Reject("UNSTRING DELIMITER IN / COUNT IN: the DELIMITED BY phrase shall be specified when either "
                     + "is written (ISO §14.9.48.3 SR7)");
-            if (target.Item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(target.Item))
+            if (target.Item.IsGroup && RefModBinder.HasVariableLengthSubordinate(target.Item))
                 return Reject($"UNSTRING INTO '{DataBinder.WrittenText(drefs[0])}' shall not reference a variable-length group (ISO §14.9.48.3 SR10; §8.5.1.12)");
             int next = 1;
             Place? delimIn = null, countIn = null;

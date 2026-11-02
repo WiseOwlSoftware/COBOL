@@ -628,7 +628,7 @@ internal sealed class ReportWriterEmitter(
                 // ref-mod view builder, reached by item instead of by parse context.
                 if (ctl.Item is not { } item
                     || (ctl.Operand?.RefModStart is { } start
-                            ? refs.ResolveItemRefMod(item, start, ctl.Operand.RefModLength)
+                            ? refs.RefMods.ResolveItemRefMod(item, start, ctl.Operand.RefModLength)
                             : refs.ResolveItem(item)) is not { } place)
                 {
                     w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Display}' does not resolve to a place "

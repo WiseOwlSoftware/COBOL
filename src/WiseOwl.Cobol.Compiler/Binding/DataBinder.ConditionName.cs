@@ -107,7 +107,7 @@ public sealed partial class DataBinder
         }
     }
 
-    /// <summary>ISO §13.16.3 SR24 read as an EXCLUSION test, in the <c>ReferenceResolver.RefModExclusion</c>
+    /// <summary>ISO §13.16.3 SR24 read as an EXCLUSION test, in the <c>RefModBinder.RefModExclusion</c>
     /// shape: the lettered exclusion that bars <paramref name="candidate"/> from being a conditional variable,
     /// or null when it may be one. The FIRST matching row wins, and the rows are in the standard's own order, so
     /// the letter in the diagnostic is the one the programmer looks up.</summary>

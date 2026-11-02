@@ -1056,7 +1056,7 @@ public sealed partial class DataBinder
     /// of a container (or in two containers), "the item in source element B is the referenced item", else the one
     /// in the nearest containing element: of <paramref name="candidates"/> keep those whose report lives at the
     /// smallest <see cref="ReportDepth"/>. The ONE application of the rule to a report-scoped name — a report
-    /// group (<c>ReportGroupResolution.Resolve</c>), a sum counter (<c>ReferenceResolver.SumCounterFor</c>) and an
+    /// group (<c>ReportGroupResolution.Resolve</c>), a sum counter (<c>CounterResolver.SumCounterFor</c>) and an
     /// unqualified LINE-/PAGE-COUNTER (<c>ReportWriterBinder.CounterReportOf</c>) — so ambiguity (§8.4.2.2.3 SR1)
     /// is asked only among candidates of one source element.</summary>
     internal List<T> NearestInScope<T>(IEnumerable<T> candidates, Func<T, ReportModel> reportOf)
@@ -1438,7 +1438,7 @@ public sealed partial class DataBinder
         // whatever the base's category — so the CLASS half of SR2 is asked of the base item only when no
         // reference-modification is written, and the length is the slice's, which the logical record size needs FIXED
         // (GR2) — an integer-literal position and length, as the CONTROL operand's ref-mod requires.
-        var codeSfx = ReferenceResolver.ReadOperandSuffixes(code.Reference!);
+        var codeSfx = RefModBinder.ReadOperandSuffixes(code.Reference!);
         bool codeRefMod = codeSfx.RefMods > 0;
         // ⛔ "AN ALPHANUMERIC DATA ITEM" IS THE CATEGORY (§8.5.2.1: a class or category named in the rules of COBOL
         // "refers to the category unless class is specifically indicated"), so it asks the ONE category reader every
@@ -1451,7 +1451,7 @@ public sealed partial class DataBinder
                   + "characters it occupies in every logical record (§13.18.12.4 GR2) are not a fixed number"
             : OdoModel.TableUnder(item) is { } odo
                 ? $"is a group with the occurs-depending-on table '{odo.CobolName ?? odo.ClrName}' subordinate to it"
-            : item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item)
+            : item.IsGroup && RefModBinder.HasVariableLengthSubordinate(item)
                 ? "is a variable-length group"
             : item.IsDynamicLength || item.IsDynamicTable
                 ? "is a dynamic-length elementary item"
@@ -4107,7 +4107,7 @@ public sealed partial class DataBinder
         {
             Ctx = op, Reference = dref, Name = name, Qualifiers = quals, Written = written,
         };
-        var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
+        var sfx = RefModBinder.ReadOperandSuffixes(dref);
         if (sfx.RefMods > 0)
         {
             Edition.Error(DiagnosticCatalog.ReportSumAddendNotNumeric, $"RD '{model.Name}': SUM addend '{written}' is reference-modified. "
@@ -4134,7 +4134,7 @@ public sealed partial class DataBinder
     {
         var (name, quals) = KeyReference(dref);
         string written = WrittenText(dref);
-        var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
+        var sfx = RefModBinder.ReadOperandSuffixes(dref);
         if (sfx.Subscripts > 0 || sfx.RefMods > 0)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"RD '{model.Name}': the UPON operand '{written}' is "
@@ -4253,7 +4253,7 @@ public sealed partial class DataBinder
                     // §8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
                     // it is read through the ONE exclusion test so the two paths cannot drift (kb/Work PB205).
                     else if (op.RefModStart is not null && ctl.Item is not null
-                             && ReferenceResolver.RefModExclusion(ctl.Item) is { } why)
+                             && RefModBinder.RefModExclusion(ctl.Item) is { } why)
                         Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted, $"RD '{model.Name}': CONTROL operand '{op}': reference "
                             + $"modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
                     // The literal BOUNDS are screened by the same one screen the procedure division uses (kb/Work
@@ -4262,7 +4262,7 @@ public sealed partial class DataBinder
                     // error. A zero length is not judged (REF-MOD-ZERO-LENGTH is a per-line directive this data
                     // clause cannot be folded against); the run-time test still owns it.
                     else if (op.RefModStart is { } ctlStart && ctl.Item is { } ctlRmItem
-                             && ReferenceResolver.LiteralRefModRangeViolation(ctlRmItem, ctlStart, op.RefModLength,
+                             && RefModBinder.LiteralRefModRangeViolation(ctlRmItem, ctlStart, op.RefModLength,
                                  omittedLength: op.RefModLength is null, allowZeroLength: true) is { } outOfRange)
                         Edition.Error(DiagnosticCatalog.RefModLiteralOutOfRange,
                             $"RD '{model.Name}': CONTROL operand '{op}': {outOfRange}");
@@ -4766,7 +4766,7 @@ public sealed partial class DataBinder
         }
         // SR4 — "If it is associated with an OCCURS clause, it shall be specified without the subscripting normally
         // required": the reference names the WHOLE repeating item, and GR8 says how its occurrences are added.
-        if (addend.Reference is { } reference && ReferenceResolver.ReadOperandSuffixes(reference).Subscripts > 0)
+        if (addend.Reference is { } reference && RefModBinder.ReadOperandSuffixes(reference).Subscripts > 0)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} is subscripted: if data-name-1 is associated with an "
                 + "OCCURS clause, it shall be specified without the subscripting normally required (ISO §13.18.54.3 SR4) — "
@@ -5254,7 +5254,7 @@ public sealed partial class DataBinder
         Core.DataReferenceContext dref, DiagnosticDescriptor code, string where, string rule)
     {
         var (name, quals) = KeyReference(dref);
-        var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
+        var sfx = RefModBinder.ReadOperandSuffixes(dref);
         if (sfx.Subscripts > 0)
             Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is subscripted. A control operand may not be subject "
                 + "to an OCCURS clause (ISO §13.18.16.3 SR3), and a subscript may be written only for an item that "
@@ -5311,7 +5311,7 @@ public sealed partial class DataBinder
                 $"has the occurs-depending table '{odo.CobolName ?? odo.ClrName}' subordinate to it: the "
                 + "entry specified by data-name-1 shall not have an occurs-depending table subordinate to it "
                 + "(ISO §13.18.16.3 SR5)");
-        if (item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))
+        if (item.IsGroup && RefModBinder.HasVariableLengthSubordinate(item))
             return (DiagnosticCatalog.ReportControlOperandShape,
                 "is a variable-length group (ISO §8.5.1.12.1 — a dynamic-length elementary item or a "
                 + "dynamic-capacity table is subordinate to it): data-name-1 shall not reference a "

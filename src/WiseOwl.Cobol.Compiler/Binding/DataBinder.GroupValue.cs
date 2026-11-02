@@ -312,7 +312,7 @@ public sealed partial class DataBinder
     /// subordinate item" — NOT an occurs-depending group, whose size is its maximum.</summary>
     private static string? Sr1SubjectShape(DataItem item) =>
         StrongTypeModel.IsStrongGroup(item) ? "a strongly-typed group item (ISO §8.5.3)"
-        : ReferenceResolver.HasVariableLengthSubordinate(item)
+        : RefModBinder.HasVariableLengthSubordinate(item)
             ? "a variable-length group (ISO §8.5.1.12.1 — a dynamic-length elementary item or a "
               + "dynamic-capacity table is subordinate to it)"
         : null;

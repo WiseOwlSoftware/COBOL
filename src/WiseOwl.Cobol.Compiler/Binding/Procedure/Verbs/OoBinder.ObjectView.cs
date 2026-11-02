@@ -100,7 +100,7 @@ internal sealed partial class OoBinder
         return new BoundNumRef(source!);
     }
 
-    /// <summary>The resolver's view edge (<c>ReferenceResolver.ApplyObjectView</c>): the object-view of a qualified data
+    /// <summary>The resolver's view edge (<c>ObjectPropertyResolver.ApplyObjectView</c>): the object-view of a qualified data
     /// item written as one chain, <c>A OF G AS C</c> (§8.4.3.1.4 GR1 a) before c)), over the item already resolved.
     /// §8.4.3.5.3 SR1 asks identifier-1's class here as it does for every other subject. Null having reported.</summary>
     internal Place? OoApplyObjectView(Place subject, Core.ObjectViewContext ov, string written)

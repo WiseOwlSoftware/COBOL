@@ -1645,7 +1645,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // The NEGATIVE side of §13.16.3 SR23 (kb/Work PB567): no condition-name of this spelling is subordinate to
         // the written qualifiers, so this reference names no condition-name. It is not reported HERE because the
         // same word may still be a DATA-name those qualifiers do reach; the caller falls through to the data
-        // resolution, whose one unidentified-reference report (ReferenceResolver.ReportUnidentified) words the
+        // resolution, whose one unidentified-reference report (NameResolution.ReportUnidentified) words the
         // declared-but-misqualified condition-name case — or a caller that admits only a condition-name asks
         // ReportMisqualifiedCondition.
         if (matches.Count == 0) return null;
@@ -1661,7 +1661,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN, SET condition-name-1 TO TRUE/FALSE) resolves through here,
         // so this one screen covers them; the reference still names its level-88, so the caller binds on and the
         // compile fails here, once per source reference (the asker count is not the fact count, as below).
-        if (ReferenceResolver.ReadOperandSuffixes(dref).RefMods > 0 && _refModCondDiagnosed.Add(dref))
+        if (RefModBinder.ReadOperandSuffixes(dref).RefMods > 0 && _refModCondDiagnosed.Add(dref))
         {
             using var _ = ctx.Edition.At(dref);
             ctx.Edition.Error(DiagnosticCatalog.ConditionNameReferenceModified,
@@ -1699,7 +1699,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     + "variable or its containing groups");
         }
         // §13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
-        // is — the same decision the data-name arm asks (ReferenceResolver.ScreenLinkageReference), once per reference.
+        // is — the same decision the data-name arm asks (NameResolution.ScreenLinkageReference), once per reference.
         if (ctx.Data.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
             ctx.Refs.Names.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
         return matches[0];
@@ -1708,7 +1708,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>For a position that admits ONLY a condition-name (SET Format 4's condition-name-1): when
     /// <paramref name="dref"/>'s word IS a declared level-88 condition-name but <see cref="ConditionOf"/> found
     /// none under the written qualifiers, report that through the ONE wording
-    /// (<see cref="ReferenceResolver.MisqualifiedConditionText"/>) and answer true; otherwise report nothing and
+    /// (<see cref="NameResolution.MisqualifiedConditionText"/>) and answer true; otherwise report nothing and
     /// answer false, leaving the caller's own not-a-condition-name verdict (kb/Work PB567). The word's level-88s
     /// may also be HIDDEN rather than misqualified (ISO §8.4.6.2.1 3) a)): by a nearer data item or a nearer report
     /// entry, and the report then names THAT item.</summary>

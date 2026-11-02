@@ -804,7 +804,7 @@ public sealed class FileModel
     /// variable-length group (§8.5.1.12.1). The subset of <see cref="IsOutOfLineRecord"/> that makes the implied
     /// RECORD clause Format 2 (<see cref="ImpliesVariableFormat"/>).</summary>
     public static bool IsVariableLengthRecord(DataItem record) =>
-        record.IsDynamicLength || (record.IsGroup && WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(record));
+        record.IsDynamicLength || (record.IsGroup && WiseOwl.Cobol.Binding.RefModBinder.HasVariableLengthSubordinate(record));
 
     /// <summary>The records of this file's area that ride OUT OF LINE (<see cref="IsOutOfLineRecord"/>) and are
     /// not <see cref="AreaRecord"/> itself, together with those of every file that shares the area through a

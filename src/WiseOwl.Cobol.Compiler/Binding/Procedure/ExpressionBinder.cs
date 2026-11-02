@@ -174,7 +174,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The C# <c>long</c> index cell when <paramref name="dref"/> is an INDEXED BY index-name reference
     /// — bare or QUALIFIED (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — <c>SET IX OF T TO 1</c>) — else
     /// <see langword="null"/>. Index-names are a separate name class (<see cref="DataBinder.IndexNames"/>), not the
-    /// data-item tree; the ONE resolution <see cref="ReferenceResolver.ResolveIndexName"/> counts the candidates, so
+    /// data-item tree; the ONE resolution <see cref="NameResolution.ResolveIndexName"/> counts the candidates, so
     /// a duplicated spelling written without the qualifiers that settle it is §8.4.2.2.3 SR1's error — reported
     /// there, and still answered with an (inert) cell so the caller keeps the index-name shape instead of
     /// re-resolving the word as a data-name (kb/Work PB919).</summary>

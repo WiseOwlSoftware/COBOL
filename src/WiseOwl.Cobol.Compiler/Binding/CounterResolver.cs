@@ -59,7 +59,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         var written = ReferenceResolver.ReadWritten(dref);
         if (SumCounterFamilyFor(dref, name, written.Qualifiers, report) is not ({ } rep, { } family)) return null;
         // §8.4.3.3.3 SR3 — the count screen every identifier entry runs (ScreenRefModCount), asked of the counter too.
-        if (!refs.ScreenRefModCount(dref, written, name)) return RefResolution.Refused(DataBinder.WrittenText(dref));
+        if (!refs.RefMods.ScreenRefModCount(dref, written, name)) return RefResolution.Refused(DataBinder.WrittenText(dref));
         if (refs.ReadSubscripts(dref, family.Register, written.SubscriptGroup, out var indexExprs) is { } refusal)
             return refusal;
         var counter = SumCounterPlace(rep, family, indexExprs);
@@ -71,8 +71,8 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // (RefModView: the counter's DISPLAY character image, GR1's digits) as every other numeric item. This used
         // to return null here, which sent the reference to ordinary resolution, where a sum counter is not in
         // ByName: COBOL1639 "'CF-T(1:2)' is not defined", naming a rule the program had not broken.
-        if (refs.ReadScreenedRefMod(dref, written, counter.Item, out var refModRefusal) is not { } spec) return refModRefusal;
-        return refs.RefModView(counter.Item, counter, spec) is { } view
+        if (refs.RefMods.ReadScreenedRefMod(dref, written, counter.Item, out var refModRefusal) is not { } spec) return refModRefusal;
+        return refs.RefMods.RefModView(counter.Item, counter, spec) is { } view
             ? RefResolution.Resolved(view, "")
             : RefResolution.Deferred(DeferredShape.NumericRefModSubstrate, DataBinder.WrittenText(dref));
     }

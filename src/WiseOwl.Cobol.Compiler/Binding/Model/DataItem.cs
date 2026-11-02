@@ -1258,11 +1258,11 @@ public sealed class DataItem
     /// when it does not state its own (kb/Work PB2497; <c>PlaceRenderer.WriteVarGroupContiguous</c>).</summary>
     internal static bool HasOdoTableOfVariableLengthElements(DataItem g) =>
         g.IsGroup && g.Children.Any(c => c.RedefinesTargetName is null && c.IsGroup
-            && ((c.OccursSpec?.DependingName is not null && WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(c))
+            && ((c.OccursSpec?.DependingName is not null && WiseOwl.Cobol.Binding.RefModBinder.HasVariableLengthSubordinate(c))
                 || HasOdoTableOfVariableLengthElements(c)));
 
     private bool ComposesCurrentExtent(bool transfer) =>
-        IsGroup && WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(this)
+        IsGroup && WiseOwl.Cobol.Binding.RefModBinder.HasVariableLengthSubordinate(this)
         && Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))
             .All(c => CurrentExtentComposes(c, transfer));
 

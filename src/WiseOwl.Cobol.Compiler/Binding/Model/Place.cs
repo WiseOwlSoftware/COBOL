@@ -1049,7 +1049,7 @@ public sealed record ExceptionObjectPlace(DataItem RegisterItem) : Place
 /// <summary>
 /// One source reference-modification <c>(start : [length])</c>, reduced to its typed positions — the ISO §8.4.3.3.2
 /// general format read off the source, independent of WHAT is being modified. Produced by the ONE reader
-/// (<c>ReferenceResolver.ReadRefMod</c>, over the parsed <c>refModPart</c>) and consumed by the two things a ref-mod
+/// (<c>RefModBinder.ReadRefMod</c>, over the parsed <c>refModPart</c>) and consumed by the two things a ref-mod
 /// can attach to:
 /// <list type="bullet">
 ///   <item>a storage <b>place</b> — <see cref="RefModPlace"/>, readable AND writable (the splice);</item>

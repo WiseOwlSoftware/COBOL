@@ -93,7 +93,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
 
         // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§8.5.1.12 —
         // a group with a DYNAMIC LENGTH elementary item or dynamic-capacity table subordinate at any depth).
-        if (rItem.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(rItem))
+        if (rItem.IsGroup && RefModBinder.HasVariableLengthSubordinate(rItem))
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptVariableLengthGroup, $"ACCEPT receiver '{rItem.CobolName}' references a "
                 + "variable-length group (a DYNAMIC LENGTH item or dynamic-capacity table is subordinate to "

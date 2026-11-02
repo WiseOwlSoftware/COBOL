@@ -65,7 +65,7 @@ internal readonly record struct NonDataDeclaration(
 
     /// <summary>What the three name classes that a position can meet BESIDE a level-88 are, as a noun phrase: the one
     /// wording of <see cref="DeclaredAs"/> ("is declared as …, not as a data item") and of the condition-only position's
-    /// refusal of a condition-name a nearer declaration of the class hides (<c>ReferenceResolver.HiddenConditionText</c>,
+    /// refusal of a condition-name a nearer declaration of the class hides (<c>NameResolution.HiddenConditionText</c>,
     /// ISO §8.4.6.2.1 3) a)).</summary>
     public string ClassPhrase => Kind switch
     {
@@ -82,7 +82,7 @@ public sealed partial class DataBinder
     /// <summary>⛔ THE ONE ANSWER TO "WHAT IS THIS NAME DECLARED AS, IF NOT A DATA ITEM?" (kb/Work PB1906), asked by every
     /// site that refuses a reference for identifying no data item (ISO §8.4.2.1: "a statement shall contain a reference
     /// that uniquely identifies that resource"): the procedure division's unidentified reference
-    /// (<see cref="ReferenceResolver.ReportUnidentified"/>), a file clause's data-name operand
+    /// (<see cref="NameResolution.ReportUnidentified"/>), a file clause's data-name operand
     /// (<see cref="ResolveClauseOperand"/>) and an OCCURS DEPENDING ON object. Each used to screen its own subset, so a
     /// type-name was "not defined" at all three and an alphabet-, constant-, index- or condition-name at the two clause
     /// sites. Null when the name is declared as nothing but data — or as nothing at all — so the caller's own
