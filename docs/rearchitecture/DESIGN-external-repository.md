@@ -1954,8 +1954,8 @@ compile. A host entry always enables the check on its side (§4.3).
 
 Each row names the code as it stood before the change ("Today" for an open slice) and the slice that makes it. A row
 whose Change cell OPENS with **landed** is history and describes the tree as it is (re-verified 2026-10-27); a row
-with open work opens with that work and states its landed part after it, because `scripts/spec/work.py`
-(`slice_file_set`) reads the unlanded rows as the in-flight file set no restructuring wave may touch (R1 §8.6).
+with open work opens with that work and states its landed part after it, so the table says what each open slice
+still changes (the planner holds a group only where running work edits the same member, kb/Work PB4452).
 
 | Today | Change | Callers updated in the same change |
 |---|---|---|

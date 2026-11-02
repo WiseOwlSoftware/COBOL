@@ -16,7 +16,7 @@ description: Use when running (or preparing) the comprehensive, whole-codebase a
 assembly names may change; the `tests/` layout is in scope; the preview-SDK question trails the review. The start
 is SPLIT (R69): R0 has landed and R1 is approved (§8 Draft 10, owner 2026-10-07 17:42 PDT, PB2118); R2 and every R3 wave run between fix-lane trains under the
 file-set partition, the ONLY gate (the owner dropped the GAP-near-zero hold on binding and code generation and R64's
-zero-GAP hold on `tests/`, 2026-10-07, PB2118 question 5). The planner's computed file set is the ADMISSION estimate; the GUARANTEE is the landing check `enqueue.py land` runs (`scripts/orchestrator/landing_check.py`): a landing whose actual diff leaves its declared set, or meets an earlier in-flight branch, stops and re-plans (PB2118 Drafts 9–10: a moved file counts at both paths, an in-flight branch is R3 work by its dispatch and not its commit wording, and a landing's own members are known by its train manifest and by content). PB1754 is the decision card.
+zero-GAP hold on `tests/`, 2026-10-07, PB2118 question 5). The planner's computed file set is the ADMISSION estimate; the GUARANTEE is the landing check `enqueue.py land` runs (`scripts/orchestrator/landing_check.py`): a landing whose actual edits meet an earlier in-flight branch's by member stops and re-plans (PB2118 Drafts 9–10, PB4452: a moved file counts at both paths, an in-flight branch is R3 work by its dispatch and not its commit wording, and a landing's own members are known by its train manifest and by content). PB1754 is the decision card.
 
 **The plan is `docs/rearchitecture/DESIGN-architecture-review.md`.** Follow it (CLAUDE.md rule 2); correct it in the
 same change when implementation proves it wrong (rule 5). Phases: R0 baseline and oracle · R1 target architecture ·
@@ -29,14 +29,16 @@ engine's deletion was the `PB2108` cluster (landed), implemented from the plan's
 - **There is no legacy engine to refactor.** kb/Work PB2110 deleted it (`docs/rearchitecture/LEGACY-ARCHIVE.md` names the
   tag); the census and every wave cover `src/WiseOwl.Cobol.*` (`.agent-fleet.json` indexes that tree only).
 - **The approved `DESIGN-external-repository.md` is given, not reopened.** Its slices PB2097–PB2104 are in flight;
-  R1 designs around them and a wave never touches a file an in-flight slice names.
-- **The fix lane is partitioned**, never paused: every group's file set is checked against the in-flight work
-  before dispatch, by ONE rule for every plan (kb/Work PB2807): a group meeting RUNNING work waits, the collision
-  named; one meeting only FINISHED branches is planned as their continuation (it merges them first). The check is
-  `plan_wave.py`'s `file_set_collisions` through `classify_inflight` (the in-flight work from worktrees, unlanded
-  branches and the dispatch ledger, which only `make_dispatch_specs.py` writes, never a branch classification; for a
-  campaign also the open slices' §12 set, all three columns); `work.py check` verifies that a note on a slice's file
-  names the slice. The landing check is the guarantee for R3 work.
+  R1 designs around them. A slice holds a wave only through a RESULT a note needs (that note names the slice in
+  `blocked_by`); sharing a file with a slice holds nothing (kb/Work PB4452).
+- **The fix lane is partitioned**, never paused: every group is checked against the in-flight work before dispatch,
+  by ONE rule for every plan (kb/Work PB2807, PB4452): a group is HELD by RUNNING work only when a member of one
+  matches a member of the other on a file both hold (`inflight.hold`, through `classify_inflight`); a shared file
+  or a whole-file claim holds nothing, and git's merge at landing is the authority on a real conflict. A group
+  meeting only FINISHED branches is planned as their continuation (it merges them first, `inflight.collision`). The
+  in-flight work comes from worktrees, unlanded branches and the dispatch ledger, which only
+  `make_dispatch_specs.py` writes, never a branch classification. The landing check stops the later of two
+  branches whose actual edits meet by member.
 
 ## Dispatch (R69 §4 and PB2120)
 

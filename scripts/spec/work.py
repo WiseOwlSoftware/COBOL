@@ -1052,21 +1052,12 @@ def topology_problems(items: list[dict]) -> list[str]:
 # ── the R3 program's two prerequisites, checked (kb/Work PB2118 Draft 5, F1 and F5; Draft 6, owner question 5) ──────
 # ⛔ A WAVE THE PLANNER CAN DISPATCH IS ONE `blocked_by` LETS IT DISPATCH. Draft 4 left four binding and code-generation
 # renames with `blocked_by: []`, so the planner offered them between fix-lane trains before anything measured them.
-# On 2026-10-07 the owner made the FILE-SET PARTITION the only gate between restructuring waves and fix-lane trains
-# (PB2118 question 5, "Drop it"; R69 §2): the folder hold Draft 5 checked here is gone, and the collision check lives
-# where the dispatcher decides (scripts/orchestrator/plan_wave.py, `file_set_collisions`). The register keeps only
-# what it can verify alone:
-#   1. the slices (DESIGN-external-repository §12, R1 §8.6): an open R3 note whose sites name a file of the §12
-#      in-flight file set must reach an open external-repository slice note through `blocked_by`, so the note itself
-#      says which slice it waits for (the planner then never sees it until that slice lands);
-#   2. the measurement (DESIGN-architecture-review §8.1): an open Move/rename or Extract note of the program must
-#      reach the note that lands the architecture drift test through `blocked_by`.
+# The FILE-SET PARTITION is the only gate between restructuring waves and fix-lane trains, and it lives where the
+# dispatcher decides (scripts/orchestrator/plan_wave.py, inflight.hold: a shared file holds nothing, only an edit to the
+# same member does; kb/Work PB4452). The register keeps only what it can verify alone: the measurement
+# (DESIGN-architecture-review §8.1): an open Move/rename or Extract note of the program must reach the note that lands
+# the architecture drift test through `blocked_by`.
 R3_PROGRAM, R3_DRIFT_TEST = "PB2119", "PB2417"
-#: THE RESTRUCTURING PROGRAM of R69 §2, "R2 and every R3 wave (the Delete program PB2119 included)": the clusters of the
-#: architecture review (PB1754, its R2 findings) and of the Delete program (R3_PROGRAM). The open external-repository
-#: slices' §12 file set is reserved from ITS waves only, whichever plan proposes them; a fix campaign (PB3353, PB2911)
-#: and the fix lane are never held for a slice (DESIGN-architecture-review §8.7 set (b); kb/Work PB3456).
-RESTRUCTURING_PROGRAM = ("PB1754", R3_PROGRAM)
 R3_MEASURED_WAVES = ("move", "move-rename", "extract", "re-model")
 _WAVE_KIND = re.compile(r"\*\*Wave kind:\*\*\s*([\w-]+)", re.I)
 #: The wave kind of an R2 defect routed to the fix lane (scripts/arch/r2_collect.py WAVES; file_census_notes writes it):
@@ -1097,42 +1088,6 @@ _DOC_ID = re.compile(r"`[MPFETN]:([^`\s@]+)")
 #: (note_sites, expand_globs; kb/Work PB3721).
 _PATH_CHAR = r"[^\s`'\"()\[\],;|]"
 _PLACEHOLDER = re.compile(r"[<>{}…]|\.\.\.")
-#: The external-repository slices are the notes whose title says so (kb/Work PB2097-PB2104).
-EXTERNAL_SLICE_TITLE = re.compile(r"\A\S+ — external repository slice \d+\b")
-
-
-def open_slices(items: list[dict]) -> list[str]:
-    """The open external-repository slices (EXTERNAL_SLICE_TITLE, not terminal), in id order: THE reading the register's
-    R3 check and the planner's slice reservation share."""
-    return sorted((i["id"] for i in items if EXTERNAL_SLICE_TITLE.match(i.get("title") or "")
-                   and i.get("status") not in TERMINAL_STATUSES), key=id_order)
-
-
-def restructuring(item: dict) -> bool:
-    """The note belongs to the restructuring program (its `cluster` list names a RESTRUCTURING_PROGRAM lead): THE
-    predicate of R69 §2's slice reservation, so a note shared with a fix campaign is reserved too (kb/Work PB3456)."""
-    return isinstance(item.get("cluster"), list) and any(c in item["cluster"] for c in RESTRUCTURING_PROGRAM)
-EXTERNAL_DESIGN = REPO / "docs" / "rearchitecture" / "DESIGN-external-repository.md"
-_S12 = re.compile(r"^## 12\. .*?$(.*?)^## 13\. ", re.M | re.S)
-_DECL = re.compile(r"\b(?:class|record|struct|interface|enum)\s+(?:class\s+|struct\s+)?([A-Z]\w*)")
-#: A member declaration's name: modifiers, an optional return type, the name, then a parameter list, a generic list,
-#: an accessor block, an expression body or an initializer. Approximate by design: it only maps a §12 name that is not
-#: a type to the file that declares it, and a name declared in more than SLICE_MEMBER_FANOUT files is too generic to
-#: be a site (`Main`, `Equals`) and is reported, never guessed.
-_MEMBER = re.compile(r"^[ \t]*(?:\[[^\]\n]*\][ \t]*)*(?:(?:public|private|internal|protected|static|readonly|override|"
-                     r"virtual|sealed|async|partial|new|abstract|required|unsafe|extern|const)\s+)+"
-                     r"(?:(?:\([^)\n]*\)|[\w.]+(?:<[^\n]*?>)?)(?:\[\])*\??\s+)?"
-                     r"([A-Za-z_]\w*)\s*(?:\(|<[^>\n]*>\s*\(|\{|=>|=|;)", re.M)
-SLICE_MEMBER_FANOUT = 3
-_ONE_WORD = re.compile(r"_?[A-Za-z][a-z0-9]*")
-_SLICE_ROOTS = ("src", "tests")
-_CS_KEYWORDS = frozenset("""abstract as base bool break byte case catch char checked class const continue decimal default
-delegate do double else enum event explicit extern false finally fixed float for foreach goto if implicit in int interface
-internal is lock long namespace new null object operator out override params private protected public readonly ref return
-sbyte sealed short sizeof stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe
-ushort using virtual void volatile while global record var dynamic""".split())
-
-
 @dataclasses.dataclass(frozen=True)
 class NoteSites:
     """What a note DECLARES it works on (kb/Work PB3242): the repo-relative `paths` of its site blocks (files and
@@ -1537,106 +1492,6 @@ def process_only_problems(it: dict) -> list[str]:
             f'`process_only_reason:` why the change reaches no user\'s program (kb/Work PB3836)']
 
 
-def _slice_rows(repo: pathlib.Path) -> list[list[str]]:
-    """DESIGN-external-repository §12's rows whose change has not landed (a row whose "Change" cell opens with
-    "landed" is history), each as its three cells: Today, Change, Callers updated in the same change."""
-    doc = (repo / EXTERNAL_DESIGN.relative_to(REPO)).read_text(encoding="utf-8")
-    m = _S12.search(doc)
-    if not m:
-        raise SystemExit("⛔ DESIGN-external-repository.md has no §12 table: the slice file set cannot be read")
-    rows = []
-    for line in m.group(1).splitlines():
-        cells = [c.strip() for c in line.strip().strip("|").split(" | ")]
-        if not line.startswith("| ") or len(cells) < 3 or cells[0] == "Today" or line.startswith("|---"):
-            continue
-        if cells[1].lstrip("*").lower().startswith("landed"):
-            continue
-        rows.append(cells)
-    return rows
-
-
-def _slice_spans(cell: str) -> list[str]:
-    """The code spans of one §12 cell with their parenthesized and angle-bracketed parts removed: a parameter or
-    argument list (`ObjectRefDescriptor(Kind, Name, Factory, Only)`, `RegisterModule(registrar, …)`) and a generic
-    or placeholder (`Cobol.<S>`, `<Version>`) name parameters, never sites."""
-    out = []
-    for span in re.findall(r"`([^`]+)`", cell):
-        prev = None
-        while prev != span:
-            prev, span = span, re.sub(r"\([^()]*\)|<[^<>]*>", " ", span)
-        out.append(span)
-    return out
-
-
-def slice_file_set(repo: pathlib.Path = REPO, unmapped: list[str] | None = None) -> set[str]:
-    """DESIGN-external-repository §12's in-flight file set (R1 §8.6): every file a slice still to land edits. All three
-    columns of every unlanded row are read (the "Callers updated in the same change" column names files the Today
-    column does not: PB2118 Draft 7, the sixth refuter's H4), and every name in a code span counts, not only the
-    first. A span that is a path (`docs/CONFORMANCE.md`, a `tests/.../char_*.g.cs.txt` glob) or a build file
-    (`Directory.Build.props`, `*.csproj`) maps to itself. Otherwise each dotted chain is read: every TYPE in it maps
-    to every file under src/ or tests/ that declares it (each partial), and a member after a type is that type's
-    (`BindSession.Repository : GroupRepository` is BindSession's and GroupRepository's files); a lone name that is
-    not a type is a MEMBER, in the Today and Callers columns only (a Change cell's lone names are the new shape),
-    mapped to the row's own types' files when one of them declares it and otherwise to the files declaring a member
-    of that name when at most SLICE_MEMBER_FANOUT do and the name is more than one word (`CheckPrototypeSignaturePairs`
-    is a site; `Version`, `Target` and `Main` are prose). A name more generic than that, and a Today-column name declared
-    nowhere (the table is stale: the code moved), is appended to `unmapped`, never guessed.
-    Repo-relative POSIX paths. One implementation: plan_wave.py's collision check and r3_program_problems read it."""
-    rows = _slice_rows(repo)
-    words: set[str] = set()
-    for cells in rows:
-        for span in (s for c in cells for s in _slice_spans(c)):
-            words.update(re.findall(r"[A-Za-z_]\w*", span))
-    types: dict[str, set[str]] = {}
-    members: dict[str, set[str]] = {}
-    tracked = tracked_paths(repo)   # the committed tree, never a build output or a stray file (PB1957, 2026-10-07)
-    for root in _SLICE_ROOTS:
-        for f in (repo / root).rglob("*.cs"):
-            rel = f.relative_to(repo).as_posix()
-            if rel not in tracked:
-                continue
-            text = f.read_text(encoding="utf-8", errors="replace")
-            for n in set(_DECL.findall(text)) & words:
-                types.setdefault(n, set()).add(rel)
-            for n in set(_MEMBER.findall(text)) & words:
-                members.setdefault(n, set()).add(rel)
-    out: set[str] = set()
-    for cells in rows:
-        row_types: set[str] = set()
-        lone: list[tuple[int, str]] = []
-        for col, cell in enumerate(cells):
-            for span in _slice_spans(cell):
-                s = span.strip()
-                if "/" in s or re.fullmatch(r"[\w.*-]+\.(?:props|csproj|targets|md|json)", s):
-                    found = repo.glob(s) if "/" in s else [*repo.glob(s), *(repo / "src").rglob(s)]
-                    out |= {r for g in found if (r := g.relative_to(repo).as_posix()) in tracked and g.is_file()}
-                    continue
-                for chain in re.findall(r"[A-Za-z_][\w.]*", s):
-                    segs = [x for x in chain.split(".") if x and x not in _CS_KEYWORDS]
-                    # the first type in a chain is the site; what follows it is that type's member
-                    if first := next((x for x in segs if x in types), None):
-                        row_types.add(first)
-                    elif len(segs) == 1:
-                        lone.append((col, segs[0]))
-        for n in row_types:
-            out |= types[n]
-        for col, n in lone:
-            if col == 1:
-                continue
-            mine = {f for t_ in row_types for f in types[t_]} & members.get(n, set())
-            if mine:
-                out |= mine
-            elif n in members and len(members[n]) <= SLICE_MEMBER_FANOUT and not _ONE_WORD.fullmatch(n):
-                out |= members[n]
-            elif unmapped is not None and n in members:
-                unmapped.append(f"{n} ({len(members[n])} declaring files)")
-            elif unmapped is not None and col == 0 and n[:1].isupper():
-                unmapped.append(f"{n} (declared nowhere: a planned name, or §12's Today column is stale)")
-    if unmapped is not None:
-        unmapped[:] = sorted(set(unmapped))
-    return out
-
-
 _NAMED_PATH = re.compile(r"`((?:src|tests|scripts|docs|tools)/[^`\s:#]+\.[A-Za-z0-9]+)(?:[:#][^`]*)?`(\s*\(new)?")
 # the same path written WITHOUT a code span (the eighth refuter's K1, plant 4): a source file named in prose
 _BARE_PATH = re.compile(r"(?<![`\w/.-])((?:src|tests)/[\w./-]+\.(?:cs|g4|py))(?![\w`])(\s*\(new)?")
@@ -1708,19 +1563,13 @@ def load_member_index():
     return member_index
 
 
-def r3_program_problems(items: list[dict], slice_files: set[str] | None = None,
-                        unknown_names: dict[str, list[str]] | None = None) -> list[str]:
+def r3_program_problems(items: list[dict], unknown_names: dict[str, list[str]] | None = None) -> list[str]:
     """The register's own checks of the R3 program (cluster PB2119): every path an open note names exists; every
-    name it moves or changes is one the member index knows (so the planner can compute its callers); a note whose
-    declared Sites meet the external repository's in-flight set waits for an open slice; and every measured wave
-    waits for the drift test. The CALLERS' collision with the slices is the planner's, recomputed at every plan
-    (clusters.campaign_clusters; DESIGN-architecture-review §8.7): callers change with every landing, so a
-    blocked_by written from them would be a hand list that drifts. `unknown_names` is {note id: unknown names}
+    name it moves or changes is one the member index knows (so the planner can compute its callers); and every
+    measured wave waits for the drift test. Whether a wave's edits meet running work's is the planner's, recomputed at
+    every plan (inflight.hold; DESIGN-architecture-review §8.7). `unknown_names` is {note id: unknown names}
     (computed here when None)."""
     by_id = {i.get("id"): i for i in items}
-    slices = open_slices(items)
-    if slice_files is None:
-        slice_files = slice_file_set() if slices else set()
 
     def reaches(it: dict, target: str) -> bool:
         seen, todo = set(), list(it.get("blocked_by") or [])
@@ -1754,13 +1603,6 @@ def r3_program_problems(items: list[dict], slice_files: set[str] | None = None,
         if it.get("id") == R3_DRIFT_TEST:
             continue
         wave = (m.group(1).lower() if (m := _WAVE_KIND.search(body)) else "")
-        hit = sorted(set(note_sites(body).paths) & slice_files)
-        if hit and not any(reaches(it, s) for s in slices):
-            bad.append(f"{it['_file']}: an R3 {wave or '?'} wave whose sites name {hit[0]}"
-                       f"{f' (+{len(hit) - 1} more)' if len(hit) > 1 else ''}, a file of the external repository's "
-                       f"in-flight set (DESIGN-external-repository §12; R1 §8.6), and that waits for no open slice — "
-                       f"add the slice note that changes it ({', '.join(slices)}) to "
-                       f"blocked_by")
         if wave in R3_MEASURED_WAVES and not reaches(it, R3_DRIFT_TEST):
             bad.append(f"{it['_file']}: an R3 {wave} wave that does not wait for {R3_DRIFT_TEST}, the architecture "
                        f"drift test — its neutrality is 'the walk shows no row growing' (DESIGN-architecture-review "

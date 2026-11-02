@@ -32,7 +32,7 @@ closed per weekly-quota point.
 | `scripts/orchestrator/budget.py` | the weekly and session quota estimator (section 8) |
 | `scripts/orchestrator/plan_wave.py` + `model_rules.json` | the deterministic wave planner's plan (five stages over one `PlanState`) and its command line, and its routing and cost constants (section 9) |
 | `scripts/orchestrator/reports.py` | THE fleet-report reader: a report's name, status line, header fields, review stamp and the one finished predicate, the one order of reports, the notes a report answers, and the branch survey's index of them (sections 9, 16.3) |
-| `scripts/orchestrator/inflight.py` | what is in flight and whether a claim meets it: the in-flight file sets and units, their classification, the slices' reservation, the local branches as the planner reads them, and the ONE meeting rule (`Claim`, `collision`; sections 9, 16.3) |
+| `scripts/orchestrator/inflight.py` | what is in flight and whether a claim meets it: the in-flight file sets and units, their classification, the local branches as the planner reads them, and the two rules of meeting (`Claim`, `collision` to group, `hold` to hold; sections 9, 16.3) |
 | `scripts/orchestrator/clusters.py` | the plannable population: the notes, the fix lane's and a campaign's clusters, their tiers and claims (sections 9, 9.1, 16.3) |
 | `scripts/orchestrator/groups.py` | a group of a wave: its shape, model, cost, predecessor instruction, standing requirements and rendering as a groups-file entry (sections 9, 16.3) |
 | `scripts/orchestrator/once_rule.py` | THE once rule: a dispatch spec states each sentence once (the sentence, the test `check_practices.py` applies, the repair `groups.join_preds` applies; kb/Work PB3777, PB4419) |
@@ -595,7 +595,7 @@ from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 | re-armed by the enqueue unit at this head (`land_lane.py rearm`) | launches, once: the launch consumes the re-arm; a re-arm whose branch moved is dropped |
 | none, or at another head (a finisher's commit, reviewed CLEAN) | launches |
 | `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head (`NOTHING TO LAND` is a branch that is origin/main or whose tip is already inside it: a second run after the queue merged the branch, kb/Work PB3157) | nothing to land: the QUEUE WATCH (step 4) follows its pull request into the merge queue |
-| exit 3, the landing check's STOP (the branch shares a file with earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
+| exit 3, the landing check's STOP (the branch edits a member another branch edits, an earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
 | exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; or the branch's own gate is still running, `gate.live_gate`: the worktree's gate lock is held, which a gate does until its verdict file is written and the OS drops when it dies; nothing ran and nothing is red, kb/Work PB3527, PB3662) | retries at this head once the worktree's gate lock is free and no Linux gate of the tree runs (`wait_free`; kb/Work PB3649); never the enqueue unit's |
 | exit 15, PREDECESSOR QUEUED (the branch merged a predecessor whose pull request is still open into main, so it adds that pull request's stamped DEVLOG entry beside its own and `devlog.landing_entries` finds no single entry to title its pull request with; `enqueue.open_predecessors` names the pull requests; nothing queued, nothing red, no report line, kb/Work PB3145) | retries at this head once the same reader finds no open pull request owning an entry the branch carries (`wait_free`, `predecessor_free`; GitHub unreadable is not free); a predecessor pull request that closed unmerged is no longer open, and the same head then ends exit 6 NO ENTRY, the finisher's; never the enqueue unit's |
 | exit 16, DRIVER FILE QUEUED (an open pull request into main changes a file a merge driver covers, `merge_drivers.DRIVERS`, that the branch changes too: GitHub's merge queue builds its merge groups with plain git and none of the drivers, so the two would conflict inside the queue although each merged main through them; `enqueue.driver_file_holders` names the pull requests and the shared files, counting only a pull request that ENTERS the queue, `queue_facts.PullRequest.entering`: a bounced, conflicting or red one re-enters only through a fresh `land`, so it holds nothing; nothing stamped, pushed or queued, nothing red, no report line, kb/Work PB3642) | retries at this head once the same reader finds no open pull request sharing a driver-covered file with the branch (`wait_free`, `driver_files_free`; GitHub unreadable is not free); the merge of main that follows brings the merged pull request's change in through the drivers; never the enqueue unit's |
@@ -1033,22 +1033,24 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    lifecycle rule, MANDATORY-PRACTICES O10, read with the open pull requests exactly as the landing lane reads it, so
    ENQUEUED and BOUNCED mean the same to both): a group meeting FINISHED work (WAITING FOR REVIEW, WAITING TO LAND, ENQUEUED) is
    planned as its CONTINUATION, its `pred` telling it to merge each such branch first (no `after:`: the branch is not
-   in this wave); a group meeting RUNNING work (a ledger group with no report yet, a branch IN FLIGHT, STOPPED,
-   BOUNCED or undecided as DECISION) waits, the collision and the owner's state named, so an undecided branch is
-   decided rather than planned over. A group's own work never collides: the branch its `pred` already continues
+   in this wave); a group HOLDING against RUNNING work (a ledger group with no report yet, a branch IN FLIGHT, STOPPED,
+   BOUNCED or undecided as DECISION) waits, the hold and the owner's state named, so an undecided branch is
+   decided rather than planned over. RUNNING work HOLDS a group only where a member of one matches a member of the
+   other (`inflight.hold`, kb/Work PB4452, the owner 2026-11-02: "Non overlapping edits to the same file typically will
+   merge without conflict"): a shared file holds nothing, and neither does a file either side claims whole. A group's own work never collides: the branch its `pred` already continues
    (`Group.continues`), a dispatch of its own notes, a branch whose report or commit subjects name its notes (an
    earlier attempt). A ledger group a report answers (its slug) is read through its branch, never its declared set; a
-   LANDED branch is gone. The open external-repository slices are a RESERVATION (`inflight.slice_reservation`, kb/Work
-   PB3456): a campaign's plan holds only the restructuring program's groups for them (R69 §2, `work.restructuring`),
-   never a fix campaign's or the fix lane's, and names them OPEN (RESERVED) while nobody runs one. The landing check stays the
-   guarantee for R3 work; fix lane against fix lane is never stopped there, and costs at most a conflict finisher.
+   LANDED branch is gone. No open note reserves a file: a slice holds a group only through the members its work edits. The
+   landing check stays the guarantee for R3 work; fix lane against fix lane is never stopped there, and costs at most a
+   conflict finisher.
    **The partition meets on MEMBERS, and an empty set holds nothing** (`inflight.collision`, kb/Work PB3670, the
    owner's top priority of 2026-10-24: "I do not understand why we cannot update separate regions of code in a single
    source file from different groups such that a merge conflict doesn't occur"). A declared set is a `inflight.Claim`:
    its files and, per file, the members it changes there (`scripts/arch/source_units.py`: a C# member, a Python
-   function, a Markdown section; a file with none named is claimed whole). Two claims meet only on a file either claims
-   whole or on a member of one that matches a member of the other (`collision` meets `inflight.collision`, a type its
-   members, a section its subsections); a file a merge driver merges by key never meets
+   function, a Markdown section; a file with none named is claimed whole). Two claims MEET (`inflight.collision`, to
+   group) on a file either claims whole or on a member of one that matches a member of the other (a type meets its
+   members, a section its subsections), and HOLD (`inflight.hold`, running work against a group) only on the member
+   match; a file a merge driver merges by key never meets
    (`merge_drivers.covered_by_driver`, the rule `enqueue.py`'s re-gate reads). A note's members come from its site block (`path#Member`,
    `` `path` (`member`, ...) `` with an optional `:line` after the path, the form MANDATORY-PRACTICES R3 and
    `work.SITES_RULE` require, `work.NoteSites.members`), each kept only when the file on the planned tree declares a
@@ -1684,7 +1686,7 @@ day it gains a directory, and converting them is a separate owner decision.
 | Module | The job it owns | What it holds (moved from `plan_wave.py` unless marked) |
 |---|---|---|
 | `reports.py` | THE fleet-report reader: a report file's name, status line, header fields, review stamp, branch and gate run; the one finished predicate and the one order; the notes a report answers | `STATUS_WORD`, `GATE_RUN`, `BRANCH`, `BRANCH_FIELD`, `REVIEW_LINE`, `WORKTREE`, `sha_field`, `HEAD`, `BASE`, `header_sha`, `REVIEW`, `FINISH_STATUSES`, `Review`, `parse_review`, `Report` (with `finished`, `gate_state`), `same_commit`, `header_lines`, `status_line`, `parse_report`, `report_order`, `load_reports`, `ledger_slug`, `answers`, `answered_notes`; and from `prune_worktrees.py` its second copy of the reader: the survey's report record `IndexedReport` (was `Report`), `report_index`, `newest_report` with its matching rule `BRANCH_MENTION` (was `BRANCH_FIELD`), and `age_minutes` (one reader, PB3077's one stamp definition) |
-| `inflight.py` | What is in flight and whether a claim meets it: worktrees, unlanded branches, the ledger's open groups, the units a diff touches, the local branches as the planner reads them, the meeting rule | `IndexPolicy`, `Claim`, `declared_sets`, `computed_file_set`, `collision_set`, `unit_meet`, `collision`, `collision_hits`, `file_set_collisions`, `InFlight`, `CONTINUED_STATES`, `GONE_STATES`, `classify_inflight`, `inflight_units`, `split_patch`, `_DIFF_FILE`, `PATHSPEC_CHARS`, `inflight_file_sets`, `work_names`, `changed_files`, `_still_differs`, `_names`, `PB`, `LANDED_CLASSES`, `local_branches`, `git_branch_classifier`, `branch_carrier`, `branch_replays`, `unlanded_branch_notes`, `slice_reservation`, `SLICE_OWNER` |
+| `inflight.py` | What is in flight and whether a claim meets it: worktrees, unlanded branches, the ledger's open groups, the units a diff touches, the local branches as the planner reads them, the meeting rule | `IndexPolicy`, `Claim`, `declared_sets`, `computed_file_set`, `collision_set`, `unit_meet`, `collision`, `hold`, `collision_hits`, `InFlight`, `CONTINUED_STATES`, `GONE_STATES`, `classify_inflight`, `inflight_units`, `split_patch`, `_DIFF_FILE`, `PATHSPEC_CHARS`, `inflight_file_sets`, `work_names`, `changed_files`, `_still_differs`, `_names`, `PB`, `LANDED_CLASSES`, `local_branches`, `git_branch_classifier`, `branch_carrier`, `branch_replays`, `unlanded_branch_notes` |
 | `clusters.py` | The plannable population: the notes (main's, a report branch's own, those a branch closes), the fix-lane clusters, the campaign view, tiers, a cluster's claim | `Note`, `note_of`, `load_notes`, `harm_weights`, `branch_lead_notes`, `closed_by_branch`, `add_closed_notes`, `BRANCH_NOTE_FILE`, `ready_notes_view`, `run_fix_clusters`, `declare_fix_lane`, `load_fix_clusters`, `FIX_CLUSTERS`, `campaign_clusters`, `lift_tiers`, `cluster_claim`, `set_claim` |
 | `groups.py` | A group: its shape, letter sequence, model, cost, predecessor instruction, requirements and rendering to `groups.json` | `Group`, `group_of_cluster`, `letters`, `attempts`, `choose_model`, `group_cost`, `landing_cost`, `replay_clause`, `half_clause`, `branch_resume`, `finisher_pred`, `continuation_pred`, `shared_rule` with the rules it declares (`RESUME_RULE`, `UNLANDED_RULE`, `LANDED_RULE`, `HALF_RULE`, `FINDINGS_ANSWER`, `DRAIN_CLAUSE`), `join_preds`, `Group.absorb`, `Group.join`, `Group.close_pred`, `title_of`, `REQUIREMENTS_HEADING`, `campaign_requirements`, `requirements_text`, `group_requirements`, `unpartitioned`, `sites_text`, `body_of`, `as_group_json` (new, kb/Work PB4419: the pred join) |
 | `once_rule.py` | THE once rule (kb/Work PB3777, PB4419): a spec states each sentence once; the sentence, the test `check_practices.py` holds a rendered spec to, and the repair a joined pred uses (an undeclared sentence stated twice is stated once) | `SENTENCE_MIN`, `sentences`, `repeated_sentences`, `without_repeats` |
@@ -1725,7 +1727,7 @@ rule is a new stage or a change inside one, never a hunk in a 500-line body. The
 oracle, unchanged (416 `check(` calls, 460 run), with their imports re-pointed in this landing; their conversion to case
 files is the next step (§16.10).
 
-Importers re-pointed: `landing_check.py` (`inflight_file_sets`, `computed_file_set`, `changed_files`, `work_names` →
+Importers re-pointed: `landing_check.py` (`inflight_file_sets`, `changed_files`, `work_names` →
 `inflight`; the report reads → `reports`), `progress.py` and `landing_measure.py` (→ `reports`), `review_findings.py`
 (the stamp → `reports`), `.claude/skills/workstream/make_dispatch_specs.py` (`record_dispatch` → `dispatch_ledger`;
 `Claim`, `computed_file_set`, `IndexPolicy` → `inflight`), `check_practices.py` (`Claim`, `collision` → `inflight`),
