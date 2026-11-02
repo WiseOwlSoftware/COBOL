@@ -30,7 +30,7 @@ public sealed class InheritedGlobals
     /// b): the nearest containing element's declaration is the referenced item). Read after the unit's own files
     /// (<see cref="DataBinder.VisibleFiles"/>): an FD of this unit finds the unit's own SELECT, never an inherited model,
     /// and the shared <see cref="FileModel"/> keys the child's verbs to the owner's connector, so the child never
-    /// re-registers, re-qualifies or CANCEL-closes it. (An EXTERNAL non-GLOBAL FD is not here — §13.18.22 NOTE 1.)</summary>
+    /// re-registers, re-qualifies or CANCEL-closes it. (An EXTERNAL non-GLOBAL FD is not here — §13.18.22.4 GR1 NOTE 1.)</summary>
     public IReadOnlyDictionary<string, FileModel> Files => _files;
 
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
