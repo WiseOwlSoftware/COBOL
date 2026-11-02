@@ -139,6 +139,12 @@ public static class DiagnosticDescriptors
         WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.EmbeddedPrecompilerBlock.Code,
         DiagnosticSeverity.Error, "{0}");
 
+    // COBOL5842: an embedded block left without its END-EXEC (kb/Work PB4381) — reported once, at its EXEC, by
+    // EmbeddedBlockReading.Report after the parse. Same single-sourcing as 2269.
+    public static readonly DiagnosticDescriptor COBOL5842 = new(
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.UnterminatedEmbeddedBlock.Code,
+        DiagnosticSeverity.Error, "{0}");
+
     // ══════════════════════════════════════
     // CBL3620–3622: COPY preprocessing (ISO §7.2.3). All three are unconditional errors: CBL3620 is library
     // text that cannot be located (§7.2.3.4 GR1/GR2 — at every edition and on every path since kb/Work PB1355;

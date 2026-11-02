@@ -16,7 +16,7 @@ it without importing the landing script. It owns:
   * the CONFLICT outcome inside it: `conflict_outcome(files)` (the one writer: `enqueue.py land`'s exit 4 and
     `merge_drivers.py merge`) and `outcome_files(outcome)` / `conflict_files(text)` (the readers: the lane's conflict
     brief, the drivers' coverage report).
-`LandingLaneDriftTests` holds the rule: no other file under scripts/ spells the prefix.
+`scripts/orchestrator/landing_rules.py` holds the rule: no other file under scripts/ spells the prefix in a literal.
 """
 from __future__ import annotations
 

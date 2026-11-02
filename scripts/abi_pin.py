@@ -339,6 +339,12 @@ def self_test() -> int:
                and "<Version>19.0.0</Version>" in (repo / PROPS_PATH).read_text(encoding="utf-8"), f"{fresh}")
     finally:
         remove_tree(root)
+    # THE REAL TREE: the pin is a measured file nobody hand-edits; it holds exactly the four lines the measuring test
+    # reads, in its order, and never UNMEASURED on a committed tree (a merge settles it before its commit).
+    real = (HERE.parent / PIN_PATH).read_text(encoding="utf-8")
+    keys = [ln.split()[0] for ln in real.split(NL) if ln.strip() and not ln.lstrip().startswith("#")]
+    expect("real tree: the pin holds the four measured lines in order, none of them UNMEASURED",
+           keys == list(KEYS) and parse(real) is not None and not unmeasured(real), f"{keys}")
     print(f"abi_pin self-test: {'FAIL' if failures else 'PASS'}")
     return 1 if failures else 0
 

@@ -39,7 +39,7 @@ name: Nightly
 # ⛔ THE SCHEDULE: 09:17 UTC (02:17 PDT), so every verdict is in before the working day's first landing. A scheduled run
 # reads the default branch, so it measures main as the day's landings left it.
 #
-# ⛔ BOUNDED LIKE EVERY WORKFLOW (kb/Work PB4227, PB4324; DESIGN-test-build-ci.md §1.4; CiBoundsDriftTests): each job
+# ⛔ BOUNDED LIKE EVERY WORKFLOW (kb/Work PB4227, PB4324; DESIGN-test-build-ci.md §1.4; scripts/ci_bounds.py): each job
 # states `timeout-minutes`, begins with a checkout retried once, and kills each checkout and toolchain step after 5
 # minutes; its caches are only RESTORED (`actions/cache/restore`), since build-and-test.yml's `toolchain-cache` and
 # `package-cache` jobs save them on every push to main, which is the ref this run reads.

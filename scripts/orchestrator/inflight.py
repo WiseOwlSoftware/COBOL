@@ -10,7 +10,7 @@ whole, or on a member of one that matches a member of the other).
 
 Its readers: the wave planner (plan_wave.py), the landing check's guarantee (landing_check.py), the spec renderer
 (make_dispatch_specs.py: the declared set of a group it records), check_practices.py (two groups of one wave whose
-claims meet need `after:`) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
+claims meet are refused: one step per file, kb/Work PB4396) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
 index (scripts/arch/member_index.py) computes the declared sets declared_sets reads. In the import DAG of section 16.10
 (scripts/script_layering.py) it imports
 reports and, lazily, the branch survey's git facts (prune_worktrees: classify, main_names, branch_graph, replay_view,
@@ -390,7 +390,10 @@ def unit_meet(f: str, mine: Claim, theirs: Claim) -> str | None:
 def collision(mine: Claim, theirs: Claim) -> str | None:
     """THE meeting rule of the partition (kb/Work PB2118 question 5, PB3670), or None when the two never meet: the
     label of what they share, the first shared file (by name) on which they meet (unit_meet: a member of it, or the
-    whole file). Two groups on DIFFERENT MEMBERS of one file never meet: git's three-way merge combines them, and the
+    whole file). Two claims that meet are ONE step (kb/Work PB4396, one step per file): within a wave the planner makes
+    them one group (plan_wave.plan_partition) and check_practices.py refuses two such groups; against RUNNING work the
+    group waits, against FINISHED work it is planned onto that branch. Two groups on DIFFERENT MEMBERS of one file never
+    meet: git's three-way merge combines them, and the
     landing's merge conflict, when one still happens, is repaired then (the owner, 2026-10-24: "Developers do this all
     the time"). An EMPTY set meets NOTHING (kb/Work PB3670, superseding PB3263's "unknown meets its subsystem"): a group
     none of whose notes declares a site block, or a dispatch the ledger recorded with no files, holds nothing and is
@@ -439,9 +442,21 @@ class InFlight:
         return Claim.of(self.files, self.members)
 
 
+#: The planner's name for a CLEAN link of a one-file chain that the survey holds IN FLIGHT only until a later wave plans
+#: its pending overflow onto it (prune_worktrees.chain_links, Row.overflow; kb/Work PB4396): nobody works on it, and
+#: the overflow's group is its continuation. Read as running, the group would wait for the link and the link for the
+#: group, every wave (review R1-2).
+OVERFLOW_HELD = "IN FLIGHT (ITS OVERFLOW CONTINUES IT)"
+
 #: The branch survey's lifecycle states (prune_worktrees.lifecycle, MANDATORY-PRACTICES O10) of FINISHED work: a
 #: finished report covers the tip and nobody is working on it, so a group on its files continues it (merges it first).
-CONTINUED_STATES = ("WAITING FOR REVIEW", "WAITING TO LAND", "ENQUEUED", "NOT QUEUED")
+CONTINUED_STATES = ("WAITING FOR REVIEW", "WAITING TO LAND", "ENQUEUED", "NOT QUEUED", OVERFLOW_HELD)
+
+
+def survey_states(rows: Iterable[Any]) -> dict[str, str]:
+    """{branch: state} as the planner reads the branch survey's rows (prune_worktrees.live_survey) for classify_inflight:
+    each row's lifecycle state, but OVERFLOW_HELD for a link held only for its overflow (a non-empty `overflow`)."""
+    return {r.name: OVERFLOW_HELD if r.overflow else r.state for r in rows}
 
 
 #: ... and the state whose work is on main already: nothing in flight.
@@ -453,9 +468,10 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
     """THE planner's reading of the in-flight set (inflight_file_sets and its `meta`), ONE rule for the fix lane and
     a campaign (kb/Work PB2807), keyed on the branch survey's lifecycle `states` ({branch: state},
     prune_worktrees.live_survey, the one lifecycle rule, the open pull requests included):
-      - a worktree or unlanded branch the survey reads WAITING FOR REVIEW, WAITING TO LAND or ENQUEUED is FINISHED
-        work (CONTINUED_STATES): it carries the newest report whose branch field names it, and a group meeting it is
-        planned as its CONTINUATION (plan(): merge it first);
+      - a worktree or unlanded branch the survey reads WAITING FOR REVIEW, WAITING TO LAND or ENQUEUED, or a chain
+        link it holds only for its overflow (OVERFLOW_HELD, survey_states), is FINISHED work (CONTINUED_STATES): it
+        carries the newest report whose branch field names it, and a group meeting it is planned as its CONTINUATION
+        (plan(): merge it first);
       - one the survey reads LANDED is dropped (its work is on main);
       - a dispatch-ledger group a report answers never reaches it (inflight_file_sets drops it at source 3, the one
         rule the landing check shares), so every dispatch owner here is DISPATCHED, NO REPORT YET;
@@ -538,7 +554,7 @@ def inflight_units(busy: Mapping[str, InFlight], meta: Mapping[str, dict], claim
     with another claim (kb/Work PB3670), in place: `members[f]` for each such file whose versions the unit reader reads
     (scripts/arch/source_units.py `touched`: both sides of every hunk), and no entry (the whole file) for one added,
     deleted, untracked or unreadable. A file no other owner and no candidate group (`claims`) holds can meet nothing,
-    so it is never read. The reads are batched (GitBatchDriftTests, kb/Work PB3582): ONE `git diff-tree --stdin -p -U0`
+    so it is never read. The reads are batched (`git_batch.py --self-test`, kb/Work PB3582): ONE `git diff-tree --stdin -p -U0`
     over every (tip, merge base) pair, ONE `git cat-file --batch-check` and ONE `git cat-file --batch` for every version
     read, and one `git diff -U0 HEAD` per worktree with an uncommitted shared file (the one `git status` per worktree
     inflight_file_sets already runs is the same question kind). A git failure leaves every file whole: an unmeasured

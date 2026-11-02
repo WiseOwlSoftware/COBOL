@@ -109,6 +109,13 @@ public static class FileLockPosture
         _ => OfSharingMode(sharing),
     };
 
+    /// <summary>⛔ THE SHARE MODE OF A HANDLE THAT IS NO CONNECTOR'S: the one opened for a dead owner's rollback (kb/Work PB4097;
+    /// <c>KeyedConnector.SettleDeadOwnersBeside</c>), read/write, for the length of that step. It establishes no §9.1.15 file lock
+    /// (no OPEN took it) and must coexist with every connector's handle the table admits beside a reader, so it admits every
+    /// reader and writer: <see cref="FileShare.ReadWrite"/>. The handle is refused, as any handle is, by a share mode that excludes
+    /// a writer, which is the host's own answer that no owner can have died beside it.</summary>
+    internal static FileShare ForSettling => FileShare.ReadWrite;
+
     /// <summary>The access an open mode needs OF THE PHYSICAL FILE (ISO §9.1.4 open modes): INPUT reads, OUTPUT
     /// and EXTEND write, I-O does both (§14.9.35 GR3 — REWRITE replaces the record a READ retrieved, through the
     /// one connector).

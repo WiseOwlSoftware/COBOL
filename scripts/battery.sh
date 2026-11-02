@@ -121,9 +121,8 @@ note "$(printf '%-16s %s' 'retired names:' "$(grep -E '^=== RETIRED NAMES' "$OUT
 [ "$RETIRED" -eq 0 ] || { note "retired names:   ⛔ a path or line spells a retired name — see $OUT/citations.log"; RC=1; }
 
 # ⛔ THE EXTERNAL CORPUS, BY THE GATE'S OWN RULE (kb/Work PB2611). The GPL GnuCOBOL corpus is git-ignored and per
-# worktree, and two legs below measure it: phase 1's Unit (ExternalCorpusPopulationDriftTests) and phase 3 (the
-# differential). Battery #89 ran in a fresh worktree with no fetch here, so both were red for a reason that was not the
-# tree's. scripts/external_corpus.py is THE rule the gate driver applies too: fetch when absent, and a failed fetch is
+# worktree, and phase 3 below (the differential) measures it. Battery #89 ran in a fresh worktree with no fetch here,
+# so its corpus legs were red for a reason that was not the tree's. scripts/external_corpus.py is THE rule the gate driver applies too: fetch when absent, and a failed fetch is
 # the one named red, `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. The battery goes on running every leg, so
 # the reds the missing corpus causes are seen and attributed to it.
 if [ "${SKIP_TESTS:-0}" != "1" ] || [ "${SKIP_DIFF:-0}" != "1" ]; then
@@ -163,8 +162,8 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
     # any verdict line with exit 0, so a run that executed a THIRD of its assembly — a stray filter, a leg handshake
     # left in the environment — read GREEN. Each assembly is now listed (`--list-tests`, scrubbed) and its trx's test
     # definitions must equal that listing as a multiset: every discovered case ran exactly once. It is the ONE tool
-    # CI's shard guard uses too (and the ordered gate's driver, §3.14.9 M13); its `--self-test` fires every arm
-    # (GateLegDriftTests).
+    # CI's shard guard uses too (and the gate driver, DESIGN-test-build-ci.md §3.14.4); its `--self-test` fires every arm
+    # (scripts/self_test_arms.py holds the arms it must declare; kb/Work PB4395).
     for leg in conformance unit characterization; do
         case "$leg" in conformance) asm=Conformance ;; unit) asm=Unit ;; characterization) asm=Characterization ;; esac
         v=$(grep -E "^(Passed!|Failed!)" "$OUT/$leg.log" | tail -1)

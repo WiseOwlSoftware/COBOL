@@ -419,6 +419,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// compiled clean and aborted at run time in the string channel.</summary>
     private BoundOperand ScreenedField(Core.DataReferenceContext dref, string role)
     {
+        using var operandAt = ctx.Edition.At(dref);   // the operand's own position, not the statement's (kb/Work PB4383)
         var op = host.Expr.FieldOperand(dref);
         return host.Expr.ScreenIndexNameOperand(op, DataBinder.WrittenText(dref), role)
             ? BoundOperandError.Refused(ctx.Edition, $"{role}: the index-name '{DataBinder.WrittenText(dref)}' (ISO §13.18.38.3 r7)")

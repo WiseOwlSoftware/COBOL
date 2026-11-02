@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A SCRIPT SELF-TEST'S ARMS ARE HELD BY NAME FROM ITS SOURCE, AND ITS RUN IS LEFT TO THE RUNNER (kb/Work PB2882):
 /// <c>scripts/self_tests.py</c> discovers every script self-test and runs it in the lander's gate, the Linux gate and
 /// CI's jobs, where a red arm is a non-zero exit and a hang is bounded by the runner's machine-wide budget place
-/// (<see cref="SelfTestDiscoveryDriftTests"/> holds the discovery and that every gate runs the runner). What the runner
+/// (its own self-test holds the discovery and that every gate runs the runner, kb/Work PB4395). What the runner
 /// cannot see is an arm DELETED from a self-test, which still exits 0 — so a drift test names the arms it requires and
 /// this reader finds each one among the script's string literals.
 /// </summary>
@@ -18,8 +18,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// 120 s per-process budget (<c>WISEOWL_COBOL_RUN_TIMEOUT_MS</c>), and under a lander's whole-population gate beside the WSL
 /// Linux gate each went past it: <c>self_tests.py --self-test</c> took 19 s alone and over 120 s twice in train 1058's
 /// first gate (a harness non-observation, with every arm passing in the runner). A fixed time limit in a test is a
-/// defect; train 1055 fixed the first of them (<see cref="GateSlotDriftTests"/>) and named these as its siblings.
-/// <see cref="SelfTestDiscoveryDriftTests.TheArmReader_ReportsADeletedArm_AndFindsASplitLabelWhole"/> sees it fire.
+/// defect; train 1055 fixed the first of them (GateSlotDriftTests, whose arms are scripts/self_test_arms.py's since kb/Work
+/// PB4395) and named these as its siblings.
+/// <see cref="SelfTestArmSourceTests.TheArmReader_ReportsADeletedArm_AndFindsASplitLabelWhole"/> sees it fire.
 /// </remarks>
 internal static class SelfTestArmSource
 {

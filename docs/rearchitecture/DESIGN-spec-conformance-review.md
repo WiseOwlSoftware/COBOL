@@ -145,7 +145,7 @@ edit admits one pull request at a time, and the one 4,214-row file was the secon
 landings that close different rows now touch different files and merge with git's plain merge; a conflict means two
 branches changed the SAME row. A file is named by its rule id, nothing else lives in the directory, and two names
 differing only in case are refused (`SpecTraceabilityInventoryDriftTests.EveryRow_IsItsOwnFile_AndTheDirectoryHoldsNothingElse`;
-`MergeDriverDriftTests.TheInventory_HasNoMergeDriver`). `write_inventory` writes only the files whose text changed and
+`merge_drivers.py --self-test`, its real-tree arm). `write_inventory` writes only the files whose text changed and
 deletes the file of a rule the spec dropped.
 
 | field | meaning |
@@ -570,7 +570,7 @@ file's space — an anchored file being cited bare included.
 **And the register audit runs every build.** `audit_annex_a1.py --check --json` was wired into nothing until
 2026-09-02 — not `battery.sh`, not the CI workflow, not `build-local.*` — so the A.1 register's own correctness
 was enforced when a human remembered. `AnnexA1RegisterDriftTests` now shells it from the Unit project, following
-`ExternalCorpusPopulationDriftTests`'s precedent for a Python gate, which puts it in the per-commit wave-local
+the precedent of a Unit class that shells a Python gate, which puts it in the per-commit wave-local
 gate, battery phase 1 and both CI unit jobs at once. It asserts its POPULATION (a run that filed nothing is not a
 pass), that every §7 row is filed under the item A.1 names, that no `DOC-A.1-<n>` token occurs outside a row key,
 that each row's `Pinned by` agrees with its inventory row's spec-derived `test-ref`, that every verdicted DOC row

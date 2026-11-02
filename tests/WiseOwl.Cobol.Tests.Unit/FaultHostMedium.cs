@@ -273,6 +273,15 @@ internal sealed class FaultHostMedium : IHostMedium
         return mutex;
     }
 
+    public RegionLocks KeptEntryMutex(string hostPath)
+    {
+        if (_dead) throw new Death();
+        OnEntryMutex?.Invoke();
+        var mutex = HostMedium.Production.KeptEntryMutex(hostPath);
+        _mutexes.Add(mutex);
+        return mutex;
+    }
+
     /// <summary>A real file stream whose every write, sync and truncation is one of the medium's operations.</summary>
     private sealed class FaultFileStream(FaultHostMedium medium, string hostPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
         : FileStream(hostPath, mode, access, share, bufferSize: 1, options)

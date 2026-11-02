@@ -1,93 +1,129 @@
-# DESIGN — Test, Build & CI Architecture (+ Migration Safety)
+# DESIGN — Test, Build & CI Architecture
 
-Status: DESIGN (rearchitecture dimension). Author: rearchitecture review. Date: 2026-07-07.
-Scope: the harness/build/CI machinery that KEEPS THE BATTERY GREEN through the clean-slate rearchitecture of
-`src/WiseOwl.Cobol.*`, plus the diagnostic-code registry, the characterization strategy, and the roadmap/DEVLOG
-discipline that make each phase resumable and behavior-neutral.
+Status: AS BUILT. Section 0 is the pipeline as it is (kb/Work PB4323, 2026-10-31); CLAUDE.md "Testing" states its rule.
+Every later section describes the mechanism it names as it is now; how it got here lives in `DEVLOG/` and in git.
+Scope: the harness, build and CI machinery that keeps the battery green: the three test projects, the NIST and
+characterization nets, the verdict-evidence rules every harness obeys, the gate and its slot cap, the compiled-program
+cache, the landing pipeline through GitHub's merge queue, and the inert lane.
 
-This dimension underpins every other rearchitecture dimension: none of the god-class splits, pass-pipeline
-extractions, or storage-form unifications can proceed safely unless the test net can PROVE, per phase, that
-observable behavior did not change. The net once proved agreement with a legacy engine that was to be deleted — so it
-was rearchitected first, to compare against committed goldens, and the engine is now deleted (P15 Cut 2).
+Section numbers are anchors. Code, workflows and tests cite them (`DESIGN-test-build-ci.md §3.14.6`), so nothing
+renumbers: a section that was retired leaves its number unused.
 
 ---
 
-## 1. Current state (as-built, grounded)
+## 0. THE PIPELINE AS IT IS (owner decisions 2026-10-31, kb/Work PB4323; steps 1 to 9 of PIPELINE-REVIEW.md §10)
 
-### 1.1 Test projects (four, two stacks)
-| Project | Files | Role |
-|---|---|---|
-| `tests/WiseOwl.Cobol.Tests.Conformance` | ~80 `.cs` | ACTIVE greenfield net: differential feature tests (`*DifferentialTests.cs`), `NistDifferentialTests` (the corpus goldens, `[MemberData]` over `corpus.tsv` — see §3.2), `VersionMatrixTests`, `ConformanceSuiteTests`, `EditionHarness`, `CompilerUnderTest`/`CutRunner`. Those three theory-heavy families are **PARTITIONED across xUnit collections** — §3.11. |
-| `tests/WiseOwl.Cobol.Tests.Unit` | ~17 `.cs` | Greenfield unit: runtime kernels, `ConstructRegistryDriftTests`, `ReservedWordsDriftTests`, `CheckOnlyCompileTests`, CLI parser, `EditionContextTests`. |
+The CLAUDE.md "Testing" section is the rule; this section is the design it rests on, in the order a change meets it.
+Every later section describes one mechanism of it in detail.
 
-### 1.2 The differential oracle (the load-bearing risk)
-`CompilerUnderTest.cs` defines `WiseOwlCobolCompiler` (drives `CompilerDriver`) and `CutRunner`. The ~60
-`*DifferentialTests.cs` compile each source with WiseOwl COBOL and compare its normalized stdout
-(`CutRunner.Normalize` = the guard's `normalize()`: drop CR, per-line trailing-trim) with a committed golden under
-`tests/differential/` (`DifferentialGolden.Assert`, one mode). Those goldens were recorded once from the legacy
-engine; the live legacy comparison, its bake and verify modes and the conformance project's `ProjectReference`s
-to `Legacy.*` were removed by kb/Work PB2108 (R69), so a new golden is spec-derived and never baked.
+1. **The one gate, at the branch's head** (`pwsh scripts/build-local.ps1 -Priority BelowNormal`, `scripts/gate.py`;
+   §3.13, §3.14; kb/Work PB4328). THE POPULATION IS THE PLAN (owner decision 1 of PB4323): the gate decides a lane from
+   the diff's paths (`scripts/inert_lane.py classify`, §3.18). An INERT change runs the tree audits alone (about 40 s,
+   no slot). A TOOLING-LANE change (every non-inert path in `scripts/`, `.github/`, `tools/` or `.claude/` and none the
+   build or a compiler test reads, `CODE_READS`; kb/Work PB4395) runs the audits with the script self-tests whose
+   recorded inputs it touches, no slot and no build. Any other change builds the solution once and runs the WHOLE Unit, Conformance and Characterization
+   populations on Windows, three assemblies at once under a gate slot (cap 3), the classes red last time first and then
+   longest first by `tests/_shared/test-weights.json` (`GateOrderer`), each population checked by name against its
+   listing (`scripts/test_population.py check`); the audits run beside the build and the hosts, and a change that touches
+   a SCRIPT (`scripts/`, `.github/`, `tools/`, `.claude/`, any `.py`/`.ps1`/`.sh`) adds the script self-tests whose
+   recorded inputs it touches (kb/Work PB2914, PB4326); a compiler data file a self-test reads (`TOOLING_READS`) adds
+   none, its self-tests' first run being the merge group's (owner 2026-11-01, kb/Work PB4409; §3.18). There is no impact map, no tier, no selected leg
+   and no Linux half per change (kb/Work PB4327); `bash scripts/linux-gate.sh` reproduces a Linux CI red by hand (§3.15).
+   A gate runs detached, records its head, its measured tree and its base, and a re-gate of an unchanged tree answers
+   `REUSED` from its GREEN record (§3.14.12).
+2. **The landing reads that record and gates nothing** (`python scripts/orchestrator/enqueue.py land <branch>`, §3.17.2
+   step 3; kb/Work PB3612, PB4331). It refuses a tip no GREEN record covers (exit 14) and, before it reads the record
+   and before every later write of the worktree, a gate of the worktree that runs or is starting (exit 12, whatever
+   record exists, kb/Work PB4204); it merges `origin/main` in through the merge drivers, stamps the DEVLOG entry, runs
+   the landing checks and queues one pull request in GitHub's merge queue. It never gates the merged head, a true
+   textual merge in a shared file included, and a lane MANDATORY-PRACTICES I10 does not review gates its own tip.
+3. **The pull request's own run is the cheap jobs** (`changes` and `ci-gate`, plus `toolchain-cache` on a push to main;
+   kb/Work PB4330), and its caches are saved from main only (kb/Work PB4324).
+4. **The merge group is the whole-population net on both operating systems and the ONLY run of the merged tree, of
+   Linux and of Release** (`.github/workflows/build-and-test.yml`, §1.4; kb/Work PB4329): seven Windows and five Linux
+   weighted shards, each dealt test classes by their measured weight (`scripts/shard_weights.py`), their union checked
+   against one listing per OS and assembly in `ci-gate`; the audits with every Linux self-test; the Windows self-tests
+   when a tooling path changed, a `TOOLING_READS` data file included (§3.18); `timeout-minutes` on every job and a bounded, retried checkout (kb/Work PB4324).
+5. **THE RULE** (owner 2026-10-31, replacing the CI invariant of 2026-10-04): every case the merge group runs on
+   Windows already ran green at the pushed head, on this host, under the same `toolchain.env`. The merge group is the
+   FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling
+   self-tests on a tooling change and the Windows self-tests a compiler change's data files reach, and (e) GitHub's
+   runners; a red there is one of those five, a flake or
+   infrastructure, never an untested case. kb/Work PB1957 is the record of each class's differences and rate.
+6. **Every merge-queue red is classified before anyone is blamed** (`scripts/orchestrator/land_lane.py`, the queue
+   watch; kb/Work PB4271, PB4331): the failed run's red cases (downloaded into the worktree's `TestResults/ci-bounce`,
+   which the finisher's gate runs first, and trusted only when `fetch_bounce_results` answers that they are the failed run's:
+   a failed download leaves an older bounce's results there, and the red is then UNCLASSIFIED) are compared with the
+   branch's GREEN record. INFRA (no test failed, or the run
+   timed out) and RUNNER (every red case ran GREEN in the record, or the record is the inert or the tooling lane's) are re-queued once
+   with no agent and filed against the pipeline (`landing_measure.py`'s `reds`, the `infrastructure` cause); GENUINE (a
+   case the record listed but did not run), MERGE (a case it lacks), UNCLASSIFIED and a second red of a re-queued
+   landing go to the enqueue unit's finisher with the class on the BOUNCED line. No flake is retried inside a run: a
+   flake is a kb/Work defect fixed at its root.
+7. **The nightly runs what no landing waits for** (`.github/workflows/nightly.yml`, §1.4a; kb/Work PB4332): the CLI
+   NIST guard (`scripts/guard-fast.sh`), every self-test on both operating systems, the GnuCOBOL differential, the
+   toolchain's latest-version check and the shard-weights report. It blocks nothing.
+8. **Per accumulated batch**, before a release: the comprehensive battery plus the GnuCOBOL differential in its own
+   worktree (plan section 9; the `gate` skill).
 
-`NistDifferentialTests` is DIFFERENT and safe: it compares WiseOwl COBOL output to committed goldens
-(`tests/nist/valid/*.txt`), not to a live legacy run. Its program set and every chain's predecessors come from
-`tests/nist/corpus.tsv` through `CorpusManifest`. The guard derives its population from the same file
-(`scripts/guard-population.sh#guard_nist_population`: the asserted rows plus their declared chain predecessors), so
-the two NIST legs run one population by construction (kb/Work PB925, PB3383); `CorpusManifestTests.GuardNistPopulation_*`
+---
+
+## 1. Current state
+
+### 1.1 Test projects (three)
+| Project | Role |
+|---|---|
+| `tests/WiseOwl.Cobol.Tests.Conformance` | End-to-end program behavior against COMMITTED goldens only: the differential feature tests (`*DifferentialTests.cs`), `NistDifferentialTests` (the corpus goldens, `[MemberData]` over `corpus.tsv`, §3.2), `VersionMatrixTests`, `ConformanceSuiteTests` (the one runner of `conformance-suite/cases`), `EditionHarness`, `CompilerUnderTest`/`CutRunner`. The theory-heavy families are PARTITIONED across xUnit collections (§3.11). |
+| `tests/WiseOwl.Cobol.Tests.Unit` | Runtime kernels, the drift tests (`ConstructRegistryDriftTests`, `ReservedWordsDriftTests`, the CI and gate drift tests named below), `CheckOnlyCompileTests`, the CLI parser, `EditionContextTests`. |
+| `tests/WiseOwl.Cobol.Tests.Characterization` | The behavior-neutrality harness (§3.3): diagnostic and emitted-C# snapshots over `tests/characterization/`. |
+
+Every one is gated whole (§3.13), runs under `GateTestFramework` (§3.14.3) and carries a `GateLegDriftTests` (§3.14.4).
+
+### 1.2 The differential oracle
+`CompilerUnderTest.cs` defines `WiseOwlCobolCompiler` (drives `CompilerDriver`) and `CutRunner`. The `*DifferentialTests.cs`
+compile each source and compare its normalized stdout (`CutRunner.Normalize` = the guard's `normalize()`: drop CR,
+per-line trailing-trim) with a committed golden under `tests/differential/` (`DifferentialGolden.Assert`). There is no
+second compiler to compare against, so a new golden is spec-derived and never baked from another engine.
+
+`NistDifferentialTests` compares output to the committed goldens `tests/nist/valid/*.txt`. Its program set and every
+chain's predecessors come from `tests/nist/corpus.tsv` through `CorpusManifest`; the guard derives its population from the
+same file (`scripts/guard-population.sh#guard_nist_population`: the asserted rows plus their declared chain predecessors),
+so the two NIST legs run one population by construction (kb/Work PB925, PB3383). `CorpusManifestTests.GuardNistPopulation_*`
 keep the derivation in place and the script's `--self-test` proves it.
 
-### 1.3 Guard scripts (bash, Linux-only NIST loop, over the WiseOwl COBOL CLI)
-⛔ **The NIST leg drives `cobol` (`src/WiseOwl.Cobol.Cli`), not the legacy CLI** — since kb/Work/PB750, which found
-that the guards had hard-coded the legacy engine's `legacy.dll`. That binary's project
-graph was the legacy engine plus `WiseOwl.Cobol.Frontend`; `WiseOwl.Cobol.Compiler` — the Roslyn code
-generator that IS WiseOwl COBOL — is not in it, so the leg was structurally blind to every greenfield codegen defect
-and each battery's headline `guard NIST: 353 MATCH` was a true statement about the ORACLE. Battery #58 is the
-demonstration: `NC215A` printed a wrong answer (PB741) that `NistDifferentialTests_P0` caught and the guard's
-353-MATCH/audit-CLEAN NIST line could not see.
-⛔ **There is ONE guard and ONE runner of NIST programs** (kb/Work PB3383). A serial twin, `scripts/guard.sh`, ran
-the population in ONE shared directory, in the order of its hand-written `NIST_TESTS` (kb/Work PB925), so a program
-met every file the programs before it had left: once the keyed-store engine's writable OPEN fenced `tf024.txt`
-(kb/Work PB3334), IX115A went red in the serial guard alone. It was retired with `guard-verify.sh`'s serial↔parallel
-"equivalence proof", which was RELATIVE (two guards sharing a hole agreed: kb/Work PB473) where the audit below is
-ABSOLUTE.
-- `scripts/guard-compiler.sh` — ⭐ **the ONE place that answers "which compiler is this gate measuring?"**,
-  sourced by the guard: `cobol` (src/WiseOwl.Cobol.Cli), the only compiler any gate drives since the legacy engine's
-  retirement (kb/Work R69, PB2109). `guard_assert_compiler_identity` reads the resolved CLI's own `.deps.json` — the
-  build's record of its project graph — and REFUSES to run when the closure does not contain `WiseOwl.Cobol.Compiler`,
-  so a path typo, a stale bin dir or a project rename can never silently point the gate at another binary.
-  `--self-test` proves the refusal fires (on synthetic manifests, so it needs no second compiler); `guard-verify.sh`
-  runs it too.
-- `scripts/guard-compile.sh` — the compile invocation, written once: `cobol` takes the test name as
-  `--nist NAME` (its parser binds the next token, so `--nist prog.cob` would consume the SOURCE). Called by the
-  guard's parallel compile and its serial re-observation retry.
-- `scripts/guard-fast.sh` — THE NIST guard: builds the CLI under test, compiles its population (and, under a
-  `GUARD_TESTS` subset, the subset's declared predecessors) through it, runs EVERY PROGRAM AS ITS OWN JOB across the
-  cores (`JOBS=1` runs it serially) and diffs against `tests/nist/valid/` — every program, the ISO-rebaselined
-  `divergent` goldens included, since those are exactly what the compiler must reproduce; a `TERMINATES` row must
-  instead end naming its declared exception — then audits every verdict ABSOLUTELY against the manifest
-  (`guard-nist-audit.sh`) and runs the golden-cleanliness sweep. Every summary line names the compiler:
-  `=== NIST (cobol): … ===`. See §3.10's isolation row.
-- `scripts/guard-run-group.sh` — the one runner: each named program in its own clean scratch dir after exactly its
-  declared predecessors (NistRunner's rule); runs the per-test EVIDENCE RULES, which `guard-verdict.sh` holds, among
-  them the written-files arm (§3.2.1).
-- `scripts/guard-nist-audit.sh` — the population/manifest/expectation audit the guard runs.
-- `scripts/guard-population.sh` — the ONE shell reader of the manifest: the population, the chain predecessors and the
-  `TERMINATES` rows.
-- `scripts/guard-verify.sh --self-test` — the guard's instrument self-test, discovered by `scripts/self_tests.py`
-  (every gate and CI's audits run it) and run again by `guard-fast.sh` before it measures: the compiler-identity
-  watchdog and the evidence-rule witnesses (§3.10), the run-directory witnesses among them.
-- `scripts/version-continuity-sweep.sh` — INV-1: one warm `cobol check-batch` over ~350 programs × 4 editions
-  (no Roslyn), fails on any `BREAKS`. THIS one drives the greenfield CLI.
+### 1.3 Guard scripts (bash, Linux, over the `cobol` CLI)
+⛔ **The NIST leg drives `cobol` (`src/WiseOwl.Cobol.Cli`)** and no other compiler (kb/Work PB750, PB2109). A guard that
+drives a binary lacking `WiseOwl.Cobol.Compiler`, the Roslyn code generator that IS the product, is structurally blind to
+every codegen defect and reports a true statement about the wrong thing. There is ONE guard and ONE runner of NIST programs
+(kb/Work PB3383): a serial twin that ran every program in one shared directory let a program meet the files of those before
+it, and was retired.
+- `scripts/guard-compiler.sh` — ⭐ the ONE place that answers "which compiler is this gate measuring?". `guard_assert_compiler_identity`
+  reads the resolved CLI's own `.deps.json` and REFUSES to run when the closure lacks `WiseOwl.Cobol.Compiler`, so a path typo,
+  a stale bin directory or a project rename never silently points the gate at another binary. Its `--self-test` proves the
+  refusal on synthetic manifests.
+- `scripts/guard-compile.sh` — the compile invocation, written once (`cobol` takes the test name as `--nist NAME`; its parser
+  binds the next token, so `--nist prog.cob` would consume the SOURCE).
+- `scripts/guard-fast.sh` — THE NIST guard: builds the CLI under test, compiles the population (and, under a `GUARD_TESTS`
+  subset, the subset's declared predecessors), runs EVERY PROGRAM AS ITS OWN JOB across the cores and diffs against
+  `tests/nist/valid/` (the `divergent` goldens included, since those are exactly what the compiler must reproduce; a
+  `TERMINATES` row must instead end naming its declared exception), then audits every verdict ABSOLUTELY against the manifest
+  (`guard-nist-audit.sh`) and runs the golden-cleanliness sweep. Every summary line names the compiler: `=== NIST (cobol): … ===`.
+- `scripts/guard-run-group.sh` — the one runner: each named program in its own clean scratch directory after exactly its
+  declared predecessors (NistRunner's rule); runs the per-test EVIDENCE RULES that `guard-verdict.sh` holds (§3.10).
+- `scripts/guard-nist-audit.sh` — the population, manifest and expectation audit; `scripts/guard-population.sh` — the ONE
+  shell reader of the manifest (the population, the chain predecessors and the `TERMINATES` rows).
+- `scripts/guard-verify.sh --self-test` — the guard's instrument self-test, discovered by `scripts/self_tests.py` and run
+  again by `guard-fast.sh` before it measures (§3.10).
+- `scripts/version-continuity-sweep.sh` — INV-1: one warm `cobol check-batch` over ~350 programs × 4 editions (no Roslyn),
+  fails on any `BREAKS`.
 
-**NIST is measured twice, by two different paths, and they are ONE POPULATION.** `NistDifferentialTests`
-(6 partitions) drives `CompilerDriver` IN-PROCESS over the 364 green∪divergent rows on both OSes (kb/Work PB804 made the
-15 programs that have a golden and that only the guard ran green rows too);
-`guard-fast.sh` drives the `cobol` CLI as a separate process over the whole 376-program in-scope corpus from
-bash on Linux. Neither subsumes the other — one covers the library API and Windows, the other covers the
-shipped exe, the CCVS chain-isolation model and the compile+run health of the golden-less programs — and both
-derive their population AND their expected verdict from `tests/nist/corpus.tsv`. `CorpusManifestTests` asserts
-that structurally (guard population ⊇ every asserted program, ⊆ the manifest, surplus only `pending` rows, and
-neither guard hard-coding a CLI path or naming the retired engine); `guard-nist-audit.sh` asserts it dynamically,
-per program.
+**NIST is measured twice, by two paths, and they are ONE POPULATION.** `NistDifferentialTests` (6 partitions) drives
+`CompilerDriver` IN-PROCESS over the 364 green and divergent rows on both OSes; `guard-fast.sh` drives the `cobol` CLI as a
+separate process over the whole 376-program in-scope corpus from bash on Linux. Neither subsumes the other (one covers the
+library API and Windows, the other the shipped exe, the CCVS chain-isolation model and the compile+run health of the
+golden-less programs), and both derive their population AND expected verdict from `tests/nist/corpus.tsv`.
+`CorpusManifestTests` asserts that structurally (guard population ⊇ every asserted program, ⊆ the manifest, surplus only
+`pending` rows, neither guard hard-coding a CLI path); `guard-nist-audit.sh` asserts it dynamically, per program.
 
 ### 1.4 CI (`.github/workflows/build-and-test.yml`) — a gated matrix behind ONE required check
 Ten jobs. `changes` decides whether the matrix runs at all; `supersede` (merge group only) cancels the runs the queue replaced; `audits` runs in every merge group and on no pull request or verified push (kb/Work PB4330); then, concurrently, `linux-shard` (ubuntu, 5 weighted shards,
@@ -96,13 +132,11 @@ Debug, INV-1-strong a step of each) · `windows-shard` (windows, 7 weighted shar
 on a Windows checkout, no build, kb/Work PB3581); `toolchain-cache` and `package-cache` (push to main only, both OSes: save the
 manifest's tools, Python's directory, the NuGet packages and the GnuCOBOL tarball under main, below); and finally `ci-gate`,
 which also checks that the shards ran the discovered population exactly once (below). The NIST corpus through the `cobol`
-CLI (`guard`) runs in the nightly (owner 2026-10-31, kb/Work PB4323 decision 2), whose job is its one home (§1.4a). (The nightly
-`legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
-PB2109.) NuGet cached (restored by every matrix job, saved by `package-cache` alone); `Generated/` regenerated per checkout (java+pwsh prerequisites). A second workflow,
+CLI (`guard`) runs in the nightly (owner 2026-10-31, kb/Work PB4323 decision 2), whose job is its one home (§1.4a). NuGet cached (restored by every matrix job, saved by `package-cache` alone); `Generated/` regenerated per checkout (java+pwsh prerequisites). A second workflow,
 `nightly.yml`, runs once a day and blocks nothing (§1.4a).
 
 **⛔ CI and every local host run the tool versions ONE manifest names, and each is the tool's latest release (kb/Work
-PB4007; `ToolchainManifestDriftTests`).** The owner, 2026-10-28: "CI tooling should match local tooling versions -
+PB4007; `scripts/toolchain_audit.py`).** The owner, 2026-10-28: "CI tooling should match local tooling versions -
 always", then "CI and local should always be using the latest version". `toolchain.env` (the repository root) names the
 exact version of every tool a CI job or a local gate runs (the .NET SDK, Python, the Oracle JDK, pwsh, each image's git,
 gh, jq, uv, semgrep) and the two runner images (`ubuntu-26.04`, `windows-2025-vs2026`); it is the only place a version
@@ -117,8 +151,7 @@ manifest line and, for an install-tool row, one `tool_spec` arm. Every job of ev
 `actions/setup-python` at the manifest's version, and every `ci-installs` tool (the SDK, the JDK, pwsh, gh and jq) with
 `scripts/install-tool.sh`, all restored from one Actions cache entry keyed on the manifest's version lines, the OS and the
 architecture. The entry also holds Python's directory in the runner's tool cache (`$RUNNER_TOOL_CACHE/Python/<version>`), restored
-before `actions/setup-python`, which then finds it and downloads nothing (its download was 48.9 s in each of the eight Windows
-jobs, measured 2026-10-31). It puts them first on `PATH` (with `DOTNET_ROOT` and `JAVA_HOME`), then runs `python scripts/toolchain.py
+before `actions/setup-python`, which then finds it and downloads nothing. It puts them first on `PATH` (with `DOTNET_ROOT` and `JAVA_HOME`), then runs `python scripts/toolchain.py
 check --scope ci`, which fails the job unless every tool it installed reports the manifest's version. git is the one tool
 CI cannot install: `actions/checkout` runs the image's git before any repository file exists, and no publisher ships a
 Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl headers a source build needs). So the manifest
@@ -146,12 +179,11 @@ cloud setup carries the manifest's block byte for byte; every job sets up the to
 on a manifest image. No workflow or action installs a tool any other way: no `actions/setup-*` but the action's own
 Python step, no package manager, no `dotnet tool install`. Every command a step runs is a manifest tool, a repository
 script, or the image's shell and utilities, so a new tool fails the test on the day it is added. The host setups write no
-version of their own. Before this, CI's Windows jobs ran the runner image's Python 3.12 while every local host ran 3.14,
-and merge-group run 40754265548 (pull request #734) went red on a self-test that was green on every local leg.
+version of their own.
 
 **⛔ The .NET SDK is installed one way, never through the aka.ms redirect (kb/Work PB3308;
-`DotnetSdkInstallDriftTests`).** `toolchain.env` pins the exact SDK version (one `global.json`'s `10.0.100` and
-`rollForward: latestMinor` accept; the drift test checks it), and `scripts/install-tool.sh` lists the SDK's feeds,
+`scripts/toolchain_audit.py`).** `toolchain.env` pins the exact SDK version (one `global.json`'s `10.0.100` and
+`rollForward: latestMinor` accept; the audit checks it), and `scripts/install-tool.sh` lists the SDK's feeds,
 `builds.dotnet.microsoft.com` first and `ci.dot.net/public` second. Every tool the script installs is downloaded from the
 first feed that serves it and its checksum file (the SDK's `.sha512`, the JDK's and uv's `.sha256`, or the release's
 checksum list: PowerShell's UTF-16 `hashes.sha256`, gh's `checksums.txt`, jq's `sha256sum.txt`). The script checks the
@@ -161,36 +193,30 @@ A merge group's run restores only what its own ref or main saved, and its ref is
 saves the tools (and Python's directory) under main on every push to main: a merge group then finds them even while every feed refuses. A warm-up
 that fails warns and passes, because the merge group's own install still tries the feeds. `scripts/wsl/setup-wsl.sh`
 calls the script. `scripts/cloud/setup-env.sh` runs before the repository is cloned, so it carries the script's install
-block byte for byte between the `tool-install` markers. Before PB3308, every building job ran `actions/setup-dotnet`
-with `dotnet-version: 10.0.x`, which resolves "the newest 10.0" through aka.ms on every job, with no cache. A dropped
-transfer cost one merge group (run 38974314534, 2026-10-16). From about 18:50Z on 2026-10-25 the redirect's storage
-origin answered `409 PublicAccessNotPermitted`, so every code merge group failed `Setup .NET 10` while
-builds.dotnet.microsoft.com served the same file. An exact version never goes through aka.ms.
+block byte for byte between the `tool-install` markers. An exact version never goes through aka.ms.
 
-**⛔ CI is bounded, and every cache is saved from main only (kb/Work PB4227, PB4324; `CiBoundsDriftTests`).** Merge-group run
-41226218068 (pull request #893, 2026-10-31) sat 45 minutes in `actions/checkout` of a job whose code was fine, and the queue
-removed the pull request: the workflow had no `timeout-minutes`. Now every job states one, about twice its measured p90
+**⛔ CI is bounded, and every cache is saved from main only (kb/Work PB4227, PB4324; `scripts/ci_bounds.py`).** Every job states a `timeout-minutes`, about twice its measured p90
 (2026-10-31, 18 to 70 runs a job): `changes`, `supersede`, `audits` and `ci-gate` 10 minutes, `linux-shard` and
 `linux-built-self-tests` 15, `windows-shard`, `toolchain-cache` and `package-cache` 20, `windows-self-tests` 25 (the
 weighted shards of kb/Work PB4329 took the review's bounds, 15 minutes a Linux shard and 20 a Windows one, with their
 size: about 4 minutes of a shard's tests where the name split's longest job, Windows Unit, ran 8); in the nightly (§1.4a), `latest` and `images` 10, `shard-spread` 15, and `guard`, `self-tests` and `differential` 60,
 the most any job may state (the nightly blocks no landing, so its bound only stops a hang). Every `actions/checkout` step and every `setup-toolchain`
 step is killed after 5 minutes; a job's first step is a checkout with `id: checkout` and `continue-on-error: true`, and its
-second is the same checkout (the same `with:` block, which the drift test compares) run `if: steps.checkout.outcome !=
+second is the same checkout (the same `with:` block, which the audit compares) run `if: steps.checkout.outcome !=
 'success'`, so one transient failure or hang costs at most 10 minutes and the job, not the queue's verdict, absorbs it (the
 `supersede` job's retry is `checkout-retry` and is itself `continue-on-error`, kb/Work PB3820). Caches: the matrix jobs only
 RESTORE (`actions/cache/restore`; `actions/cache@` is refused, since it saves on every ref), and a merge group's ref is new
-every time, so a copy it saved was never read again and only filled the 10 GB budget (10.77 GB held on 2026-10-31, main's
-own copies evicted). The saves are the `setup-toolchain` action's (when `github.ref` is main) and the `toolchain-cache` and
+every time, so a copy it saved was never read again and only filled the 10 GB budget. The saves are the `setup-toolchain` action's (when `github.ref` is main) and the `toolchain-cache` and
 `package-cache` jobs', which run on a push to main alone: main's push run skips the matrix, so these jobs are what keeps the
 caches a merge group restores. A save runs only after the step that produced what it stores succeeded: `package-cache`'s
 `dotnet restore` and GnuCOBOL fetch continue on error, so their saves require `steps.restore.outcome` and
 `steps.fetch.outcome` to be `success`, since a failed restore would store a partial package set under the exact key and a
-run that hits an exact key never saves it again (kb/Work PB4348). `CiBoundsDriftTests` holds all of it, with a fixture arm
-for each shape it forbids.
+run that hits an exact key never saves it again (kb/Work PB4348). `scripts/ci_bounds.py` holds all of it: `--check` over every workflow and action, and a
+`--self-test` that fires each audit on the shape it forbids before it runs them over the real tree (kb/Work PB4395 moved
+the audits out of the compiler's test assembly).
 
 **⛔ The tests run as weighted shards, and `ci-gate` proves they ran the population (kb/Work PB4329, step 6 of PB4323;
-`GateLegDriftTests` `Shard_*`, `FilterPopulationGuardDriftTests`).** Each shard job builds the solution and runs every
+`GateLegDriftTests` `Shard_*`, `test_population.py --self-test`'s filtered-run audit).** Each shard job builds the solution and runs every
 test assembly (Unit, Characterization, Conformance, and on Linux INV-1-strong's `FullyQualifiedName~NistProgram_MatchesGolden`
 under `--std 2023 --permissive`) with `WISEOWL_COBOL_SHARD=k/N` in its environment, N = 5 on Linux and 7 on Windows. The
 test framework of each host (`tests/_shared/GateLegs.cs`: `GateShard`, `TestWeights`) runs the cases of the test classes
@@ -209,10 +235,7 @@ shards' trx against the one listing shard 1 made, and INV-1's five trx against t
 `NistProgram_MatchesGolden` cases (`--method`), so a case dealt to no shard or two is a named NEVER RAN or RAN TWICE.
 `WISEOWL_COBOL_SHARD` is a scrubbed variable (`test_population.is_scrubbed`), so no local caller of `dotnet test` can run
 a part of an assembly through it, and `audit-callers` allows a workflow to set it only where the same workflow runs the
-check. The nightly's `shard-spread` job (§1.4a) is the regeneration trigger. The shards replaced a name split (six
-Conformance filters per OS, kb/Work A14, beside one whole Unit + Characterization job per OS) whose longest job, Windows
-Unit at 8 minutes of tests, was the merge group's critical path with the Guard job's 14 minutes (merge-group run
-41284754898: 14.7 minutes); the review's estimate for the shards is about 7.7 minutes.
+check. The nightly's `shard-spread` job (§1.4a) is the regeneration trigger.
 
 **⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
 results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
@@ -221,10 +244,7 @@ it tries the upload three times (30 s, then 90 s apart; each retry `overwrite: t
 and passes, because a job's verdict is its tests'. The one artifact a verdict does depend on, a test shard's
 trx and shard 1's listings, is checked by the job that reads it: `ci-gate` downloads through
 `.github/actions/download-results` (three attempts; only the third failure fails the step), and a shard whose upload
-was lost is absent from the union it checks, so the guard fails there and names the missing cases. Before this, a bare
-`actions/upload-artifact` step under `always()` made the artifact service part of the verdict: merge-group run
-38502926616 (PR #39, 2026-10-14) passed 5338 of 5338 tests in a Windows conformance shard, its upload failed on
-`ETIMEDOUT`, and the merge queue removed the pull request. No workflow names the raw upload or download action; the
+was lost is absent from the union it checks, so the guard fails there and names the missing cases. No workflow names the raw upload or download action; the
 drift test holds every step, and both actions' retry shape, to this rule. (`actions/cache` needs no such step: a
 cache restore or save that fails only warns. The one network fetch a job makes itself, the GnuCOBOL testsuite on a
 cache miss, retries the same way inside `scripts/fetch-gnucobol-tests.ps1`: three attempts before it fails.)
@@ -238,9 +258,7 @@ names carry the shard AND its filter text (`Greenfield conformance (Linux, shard
 measured on `5bf5a7f1`), so any shard edit renames the context, and every matrix job is skipped on a docs-only
 push, which a required check reads as "never reported".
 
-**The skip moved one layer down, and is now the inert lane (§3.18).** `paths-ignore` used to make the workflow decline
-to START for a doc-only push — incompatible with a per-commit required check, which has nothing to satisfy when no run
-exists. `changes` now decides it, by calling `scripts/inert_lane.py classify` over `base .. github.sha` (§3.18: the one
+**Whether the matrix runs is the inert lane's decision (§3.18).** `changes` decides it by calling `scripts/inert_lane.py classify` over `base .. github.sha` (§3.18: the one
 classification, which the local gate and the Linux gate call too), and outputs `run_matrix`; every other job carries
 `needs: changes` + `if: needs.changes.outputs.run_matrix == 'true'`. A merge group's base is its
 `merge_group.base_sha`, so a group of inert pull requests skips the matrix; a pull request never
@@ -253,8 +271,7 @@ push run does not pay for the matrix a second time, and it carries the drift che
 **The landing protocol is `enqueue.py land` into GitHub's merge queue (§3.17):** main takes only pull requests the queue
 tested (the ruleset binds administrators), so the push trigger is `branches: [ main ]` and the one push it sees is the
 merge-queue commit. `cancel-in-progress` is restricted to `pull_request`, because a cancelled push run leaves its sha
-permanently unlandable. The direct-push landing script that preceded the queue, its `ci/` landing branches and its
-landing lease are deleted (kb/Work PB3024's closing change).
+permanently unlandable.
 
 ### 1.4a The nightly (`.github/workflows/nightly.yml`) — what no landing waits for (kb/Work PB4332; PB4323 step 9)
 
@@ -283,121 +300,62 @@ NIST programs in-process.
 `Manifest_CoversEveryProgram_NoOverlap`, kb/Work PB3177);
 `ReservedWordsDriftTests` binds `reserved-words.json`. Nothing silently undiscovered.
 
-### 1.6 Diagnostics
-161 distinct `COBOL####` codes exist as **bare string literals**; only 4 are named consts (`EditionCodes.cs`).
-`COBOL0899` (catch-all "recognized-not-implemented") appears at ~47 sites; several codes are reused for
-unrelated rules (e.g. `1533` ×3). There is no registry, no `docs/DIAGNOSTICS.md`, no per-code metadata, so tests
-and `--suppress` cannot target a specific rule and the version matrix cannot enumerate diagnostics.
-
 ### 1.7 The fleet build guard (`scripts/hooks/fleet_active_build.py`) — a PreToolUse gate on `dotnet *`
-Wired in `.claude/settings.json` for both `Bash(dotnet *)` and `PowerShell(dotnet *)`. It **denies**
-`dotnet build|test|clean|publish|run|msbuild` while a live subagent is probing the binaries the build would
-replace — the guard that exists because ~6 rebuilds under a running 60-agent fleet made all 60 verdicts unusable
-(2026-08-04, PB15). Liveness is transcript MTIME within 120 s, scoped to this session's id.
-**The unit of the freeze is the WORKING TREE, not the session (2026-09-01).** It denies iff some *foreign* live
-agent works in the caller's own tree, and both trees are derived, never listed: the caller's tree is the nearest
-ancestor holding a `.git` entry (a directory in the main checkout, a file in a worktree) of WHERE THE BUILD RUNS —
-the project a `dotnet` command names, else the directory the shell is in when it runs it. That directory comes from
-`scripts/hooks/shell_location.py`, the ONE parser of both shells' command lines and location changes (`cd`,
-`pushd`/`popd`, a subshell, an and-or list a single `&` backgrounds, `bash -c`; `Set-Location`/`sl`/`chdir`/
-`Push-Location` with `-Path`/`-LiteralPath`, `pwsh -WorkingDirectory`, `Start-Process -WorkingDirectory`, cmd.exe's
-`cd /d`), which `worktree_rm_allow.py`, `forbidden_commands.py` (every rule; kb/Work PB3095, PB3198) and
-`status_guard.py` share (kb/Work PB2599; each used to carry its own partial parser, and a PowerShell `Set-Location
-<worktree>; dotnet build` was judged to build in the main checkout). It is the ONE model of a command line those rules
-read (kb/Work PB3198): heredoc bodies cut out at their own delimiter lines, and every place a shell takes a command line
-from walked as one (a `$( … )`, backquote or PowerShell expression or script block; `bash -c`, `pwsh -Command` /
-`-EncodedCommand`, `cmd /c`, `eval`, `Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`; a heredoc,
-here-string or literal pipe a shell reads as its script), each step marked with how many substitutions enclose it, so
-the steps of one level are that level's own command line (a pipe inside `$( … )` reads the stage beside it), and a
-walk carrying what its own stdin holds: the read side of a `|` reads the stage before it (a group's last step
-when the group writes the pipe), a group reading a pipe, a Bash substitution and a `-c` payload hand the stdin they
-inherit to their commands, and only a `|` of a walk's OWN makes a command a pipeline side (a `cd` inside a group
-that reads a pipe moves the group's later steps);
-a foreign agent's tree is the tree of the directory **the agent was launched in**, which its own transcript records
-on its first record (`cwd`; `launch_cwd`, `agent_place`; kb/Work PB3770). The host writes that field however it
-starts an agent, so one mechanism covers `Agent(isolation="worktree")`'s `agent-<id>`, a rolling wave's
-`wf_<run>-<n>`, a named `git worktree add` and the main checkout (the guard used to infer the tree from the existence of
-`<main>/.claude/worktrees/agent-<agentId>` and read every other agent as a main-checkout agent). So N implementer
-agents in N worktrees build in parallel, a main-tree build is still denied by a live main-tree agent, and a main-tree
-build is *allowed* while only worktree agents are live. A build outside every working tree (a read-only adjudicator's
-scratch probe) writes next to the projects of its graph — the project or solution it names, or the only one in the
-directory, and the closure of their `ProjectReference`s, solution members and a file-based app's `#:project`
-directives (`build_places`) — so it is denied only by an agent working in a tree such a project references.
-An output path given on the command line is one more place the build writes (kb/Work PB3811): `-o`, `--output` and
-`--artifacts-path` (relative to the directory the command runs in) and `-p:`/`-property:`/`--property:`/`/p:` naming one
-of `OUTPUT_PATH_PROPERTIES` (`OutDir`, `OutputPath`, `PublishDir`, …; relative to the project directory) each add
-the directory's working tree, or the plain directory, to the places (`dotnet_arguments`, `output_directories`), so a
-scratch build whose `-o` lands in a live agent's worktree is denied by that agent. Words after a bare `--` are the
-program's own and are not read. Fail-open on any error; an **unknown** answer reverts to the old session-wide deny rather
-than to an allow: a
-directory the command line does not determine, an agent whose transcript names no launch directory or whose launch
-directory no longer exists, and a scratch graph the guard cannot read to the end (a missing project, a `$(…)` in a
-reference, an `<Import>`, an output property set in a project file, a `Directory.Build.props`/`.targets`/`.rsp` or
-`MSBuild.rsp` in an ancestor directory), and a command line that moves the output without saying where (a variable in
-the path, a response file `@x.rsp`, `-p:UseArtifactsOutput=…`, an output property that climbs out of the project
-directory, an environment variable MSBuild reads as an output property: `OutDir=x dotnet build`, `$env:OutputPath = …`).
-`--self-test` fires every branch over real temporary worktrees, scratch projects and agent transcripts, and is the only
-thing that proves the ALLOW arm — three of this hook's four defects were it failing closed.
+Wired in `.claude/settings.json` for both `Bash(dotnet *)` and `PowerShell(dotnet *)`. It **denies** `dotnet
+build|test|clean|publish|run|msbuild` while a live subagent is probing the binaries the build would replace: ~6 rebuilds under
+a running 60-agent fleet made all 60 verdicts unusable (2026-08-04, PB15). Liveness is transcript MTIME within 120 s.
+**The unit of the freeze is the WORKING TREE, not the session (2026-09-01).** It denies iff some *foreign* live agent works in
+the caller's own tree, and both trees are derived, never listed:
+- the caller's tree is the nearest ancestor holding a `.git` entry (a directory in the main checkout, a file in a worktree) of
+  WHERE THE BUILD RUNS: the project a `dotnet` command names, else the directory the shell is in when it runs it. That
+  directory comes from `scripts/hooks/shell_location.py`, the ONE parser of both shells' command lines and location changes
+  (`cd`, `pushd`/`popd`, a subshell, `bash -c`; `Set-Location`/`sl`/`chdir`/`Push-Location`, `pwsh -WorkingDirectory`,
+  `Start-Process -WorkingDirectory`, cmd.exe's `cd /d`), shared by `worktree_rm_allow.py`, `forbidden_commands.py` (every rule;
+  kb/Work PB3095, PB3198) and `status_guard.py` (kb/Work PB2599). It is the ONE model of a command line those rules read
+  (kb/Work PB3198): heredoc bodies cut out at their own delimiter lines, and every place a shell takes a command line from
+  walked as one (`$( … )`, backquote and PowerShell expressions and script blocks; `bash -c`, `pwsh -Command` /
+  `-EncodedCommand`, `cmd /c`, `eval`, `Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`), each step marked with
+  how many substitutions enclose it and a walk carrying what its own stdin holds;
+- a foreign agent's tree is the tree of the directory **the agent was launched in**, which its own transcript records on its
+  first record (`cwd`; `launch_cwd`, `agent_place`; kb/Work PB3770), however the host starts the agent
+  (`Agent(isolation="worktree")`, a rolling wave's `wf_<run>-<n>`, a named `git worktree add`, the main checkout).
+So N implementer agents in N worktrees build in parallel, a main-tree build is denied by a live main-tree agent, and a
+main-tree build is *allowed* while only worktree agents are live. A build outside every working tree (a read-only adjudicator's
+scratch probe) writes next to the projects of its graph (the project or solution it names, or the only one in the directory,
+and the closure of their `ProjectReference`s, solution members and a file-based app's `#:project` directives:
+`build_places`), so it is denied only by an agent working in a tree such a project references. An output path on the command
+line is one more place the build writes (kb/Work PB3811): `-o`, `--output`, `--artifacts-path` and the `OUTPUT_PATH_PROPERTIES`
+(`OutDir`, `OutputPath`, `PublishDir`, …); words after a bare `--` are the program's own. Fail-open on any error; an
+**unknown** answer reverts to the old session-wide deny rather than to an allow: a directory the command line does not
+determine, an agent whose transcript names no launch directory or whose launch directory no longer exists, a scratch graph the
+guard cannot read to the end (a missing project, a `$(…)` in a reference, an `<Import>`, an output property set in a project
+file, a `Directory.Build.props`/`.targets`/`.rsp` in an ancestor directory), and a command line that moves the output without
+saying where (a variable in the path, a response file, `-p:UseArtifactsOutput=…`, an environment variable MSBuild reads as an
+output property). `--self-test` fires every branch over real temporary worktrees, scratch projects and agent transcripts, and
+is the only thing that proves the ALLOW arm — three of this hook's four defects were it failing closed.
 
 ---
 
-## 2. Problems this design must fix
-
-1. **The net evaporates at G8.** ~60 differential tests are oracle-coupled to code that gets deleted.
-2. **No behavior-neutrality proof for a refactor.** A rearchitecture phase that splits `StatementBinder` or unifies
-   `StoreAsImage` has NO characterization gate: it relies on output goldens for the subset of programs that happen
-   to be in the corpus, and nothing snapshots the generated C# to catch an unintended emit change.
-3. **"Which programs are green" has one source for the tests and a second, hand-written one for the guards.**
-   `tests/nist/corpus.tsv` replaced the `[InlineData]` list and the chain table at P0, and the guard's population
-   (`guard_nist_population`) since kb/Work PB925 and PB3383 retired the serial guard's hand-written `NIST_TESTS`.
-4. ~~**The authoritative NIST gate tests frozen code.**~~ **CLOSED 2026-09-06 (kb/Work/PB750).** CI's heaviest job
-   (`guard`) drove the legacy engine for the whole of the rearchitecture, so the compiler under development was
-   gated on NIST only by the in-process differential suite — and battery #58's `NC215A` wrong answer proved the
-   cost. Both guards now resolve their compiler through `scripts/guard-compiler.sh` (`cobol`, the only compiler
-   since kb/Work PB2109), refuse to start unless the resolved binary's `.deps.json` closure contains the code
-   generator, and name the compiler in every verdict line.
-5. **NIST loop is Linux-only bash**, so the Windows job cannot run it; the authoritative regression has an OS gap.
-6. **Diagnostics are unaddressable.** No registry ⇒ the version matrix, `--suppress`, and per-rule tests cannot key
-   on a stable id; a renumber/reuse is invisible.
-7. **`CheckOnly` runs full Emit** (no Bind phase boundary) ⇒ the fast verdict path is not actually fast, and a
-   characterization harness cannot snapshot the bound tree independently of emission.
-8. **Roslyn reference set uncached** ⇒ the in-process battery pays ~180 `MetadataReference.CreateFromFile` per
-   compile (thousands of times per run).
-9. **Roadmap SSOT was a 100 KB `resume-prompt.md`** (since absorbed into `docs/REARCHITECTURE_PLAN.md` and deleted) — excellent for session resume, but there is no compact,
-   phase-structured, exit-criteria-bearing rearchitecture roadmap doc that a future engineer resumes the
-   MIGRATION (not the feature drive) from.
-
----
-
-## 3. Target design
+## 3. The mechanisms
 
 ### 3.0 Guiding principle: three neutrality gates, ranked
-A rearchitecture phase is "behavior-neutral" iff, in order of authority:
-1. **Output goldens** (primary, spec-anchored): NIST `valid/*.txt` + corpus `.out` + negative `.err`. These are the
-   ISO-conforming oracle and MUST stay byte-identical across every refactor phase. Non-negotiable.
-2. **Diagnostic goldens** (primary): every emitted diagnostic (code + message + location) for a fixed corpus of
-   positive and negative programs is snapshotted; a refactor must not change the diagnostic surface.
-3. **Emitted-C# snapshots** (secondary, advisory): the generated `.g.cs` for a representative program set is
-   snapshotted. A refactor that is a pure reorg SHOULD leave these byte-identical; a refactor that intentionally
-   changes emission form (e.g. structured `Place` → different but equivalent C#) RE-BASELINES the snapshot **with
-   explicit review**, and gate (1) proves the re-baseline is behavior-preserving. The runtime version a module
-   records (`CobolRepository`, `EnsureRegistered`) is the package version, which every runtime major bump raises
-   (DESIGN-external-repository.md §15.4): the snapshot holds it as `{RUNTIME-VERSION}`, substituted only where it is
-   the runtime's own version, so a bump re-baselines nothing (a version reaches no test through code impact, so
-   leg 1 never planned these cases on one) and an emitter stamping any other version still diffs.
+A change to the compiler is behavior-neutral iff, in order of authority:
+1. **Output goldens** (primary, spec-anchored): NIST `valid/*.txt`, the conformance suite's `.out` files and the negative
+   `.err` expectations. They are the ISO-conforming oracle and stay byte-identical across a refactor.
+2. **Diagnostic goldens** (primary): every emitted diagnostic (code, message, location) for a fixed corpus of positive and
+   negative programs is snapshotted; a refactor does not change the diagnostic surface.
+3. **Emitted-C# snapshots** (secondary, reviewed): the generated `.g.cs` for a representative program set is snapshotted. A
+   pure reorganization leaves it byte-identical; a deliberate change of emission form RE-BASELINES it with explicit review,
+   and gate (1) proves the re-baseline preserves behavior. The runtime version a module records (`CobolRepository`,
+   `EnsureRegistered`) is the package version, which every runtime major bump raises (DESIGN-external-repository.md §15.4):
+   the snapshot holds it as `{RUNTIME-VERSION}`, substituted only where it is the runtime's own version, so a bump
+   re-baselines nothing and an emitter stamping any other version still diffs.
 
 Gates (1) and (2) are hard (red = stop). Gate (3) is a reviewed diff, never auto-accepted, never silently drifting.
 
-### 3.1 Test project taxonomy (target)
-Collapse to a coherent, layered set under one namespace root `WiseOwl.Cobol.Tests.*`:
-
-| Project | Replaces | Contents |
-|---|---|---|
-| `tests/WiseOwl.Cobol.Tests.Unit` | (kept) | Pure unit: runtime kernels, binder/emitter component units, CLI/driver, drift tests. Fast, no Roslyn where avoidable. |
-| `tests/WiseOwl.Cobol.Tests.Conformance` | (kept, refocused) | End-to-end program behavior: NIST goldens, per-edition corpus, version matrix, negative corpus. Compares to COMMITTED goldens only — no live second compiler. |
-| `tests/WiseOwl.Cobol.Tests.Characterization` | NEW | The behavior-neutrality harness: diagnostic snapshots + emitted-C# snapshots (gates 2 & 3) over a fixed "characterization corpus". Runs on every phase. |
-
-Rationale: `ConformanceSuiteTests` is the one suite runner (it replaced `CorpusRunnerTests`, kb/Work PB3177); the legacy `ConformanceTests` runner and its `GreenfieldOnly`/`LegacyDivergent` skip sets were deleted with the legacy test projects (PB2110).
+### 3.1 Test project taxonomy
+The three projects of section 1.1 live under one namespace root `WiseOwl.Cobol.Tests.*`. `ConformanceSuiteTests` is the one
+suite runner (it replaced `CorpusRunnerTests`, kb/Work PB3177), and no test compares against a live second compiler.
 
 ### 3.2 The green-corpus single source of truth: `tests/nist/corpus.tsv`
 Replace the three copies with ONE declarative manifest, consumed everywhere.
@@ -483,168 +441,43 @@ program that writes a second file is graded with no change anywhere.
 - **A `TERMINATES` row is graded for files too** (review round 1 of PB804; the owner's PB3353 requirement that the abnormal paths are covered as fully as the success paths). Its run ends abnormally by declaration, and what it had written by then — the closed data files, the print file, the console output — is graded with the same rule: a run that exits non-zero has NO report to separate out, so `NistRunner` returns every file it wrote (print file included) and its console output whenever it printed anything (`NistRunResult.Written`), and `guard_files_apply` is called with an empty report name on the termination arm. ST146A is the witness: `xxxxx014.txt` (SQ-FS1, closed before the end), `xxxxx015.txt` and its partial `st146a.txt` have goldens. `NC401M` terminates before it writes any file, so it has no directory.
 
 ### 3.3 The characterization harness (`WiseOwl.Cobol.Tests.Characterization`)
-The behavior-neutrality proof the rearchitecture needs. Structure:
+The behavior-neutrality proof for refactors. `CharacterizationCorpus.cs` discovers `tests/characterization/**/*.cob` (with a
+per-file `.std` directive); `positive/*.cob` compile clean and have their emitted C# snapshotted, `negative/*.cob` must
+diagnose and have their diagnostic list snapshotted. The snapshots are the committed `Snapshots/*.diag.txt` and
+`Snapshots/*.g.cs.txt`.
 
-```
-tests/WiseOwl.Cobol.Tests.Characterization/
-  CharacterizationCorpus.cs      # discovers tests/characterization/**/*.cob (+ per-file .std directive)
-  DiagnosticSnapshotTests.cs     # gate (2)
-  EmittedCSharpSnapshotTests.cs  # gate (3)
-  Snapshots/                     # committed golden snapshots (.diag.txt, .g.cs.txt)
-tests/characterization/
-  positive/*.cob                 # programs that compile clean — snapshot their emitted C#
-  negative/*.cob                 # programs that must diagnose — snapshot their diagnostic list
-  README.md
-```
+- `DiagnosticSnapshotTests` compiles each program, formats its diagnostics deterministically
+  (`{code}\t{severity}\t{line}:{col}\t{message}`) and asserts equality with `Snapshots/<name>.diag.txt`.
+- `EmittedCSharpSnapshotTests` emits the C# for each positive program and asserts equality with `Snapshots/<name>.g.cs.txt`
+  (line endings normalized). Roslyn is NOT invoked: it snapshots the emitter's output string, which is cheap and
+  deterministic.
+- **Re-baselining** is a deliberate, reviewed action: `WISEOWL_COBOL_UPDATE_SNAPSHOTS=1 dotnet test …/Characterization`
+  rewrites the files and the diff shows in the pull request. Gate (1) proves the re-baseline preserves behavior. Never run
+  in CI; CI always compares. The corpus stays small and representative (one program per feature family), not the NIST set.
 
-Signatures (concrete):
+### 3.5 Diagnostic-code registry
+The compiler's diagnostics are a first-class catalogue, `DiagnosticCatalog` (`src/WiseOwl.Cobol.Editions/Diagnostics/`): each
+rule has a `DiagnosticDescriptor` (`Code`, a stable `Id`, `Severity`, `Title`, `IsoSection`, `SuppressKey`), so the version matrix, `--suppress` and per-rule tests key on an address instead of a literal.
+`DiagnosticCatalog.All` reflects the public descriptor fields, so a new descriptor needs no hand-kept list.
+- `DiagnosticRegistryDriftTests` (Unit): every descriptor has a unique `Id`; codes are unique outside the declared split
+  families; every code the compiler emits is a registered descriptor; a split code has no bare emit literal in the compiler.
+- `docs/DIAGNOSTICS.md` is a RENDERED view (`pwsh scripts/gen-diagnostics-doc.ps1`, §3.17.4), never committed.
+- The diagnostic goldens of gate (2) key on these stable codes.
 
-```csharp
-public interface ICompilerProbe {
-    // Bind-only: no Roslyn. Returns the diagnostic list (code+message+location) and, optionally, the emitted C#.
-    ProbeResult Probe(string source, int edition, bool emit);
-}
-public sealed record ProbeResult(
-    bool Ok,
-    IReadOnlyList<Diagnostic> Diagnostics,   // structured — see 3.5
-    string? EmittedCSharp);                   // null unless emit:true
-```
+**The wire encoding of a diagnostic is part of the diagnostic** (kb/Work PB899). A message carries its ISO citation, so it
+carries non-ASCII (`(ISO §11.10.3 SR5–6)` holds U+00A7 and U+2013). `WiseOwl.Cobol.Runtime.IO.StandardStreams.EnsureUtf8()` is
+the ONE place that rule is written, and BOTH process entries call it: `Program.Main` in the CLI before it parses an argument,
+and `ProgramTable.RunModule` for a compiled program's `Main` (never a host entry such as `RunMain`, whose host owns its
+console: kb/Work PB3193). No golden can see a violation: the corpus runner matches `.err` files on a pure-ASCII code
+substring and the harness decodes every capture as UTF-8. The witness is therefore a BYTE assertion through a redirected
+stream, `CliDiagnosticEncodingTests`, which drives the CLI from a console forced to cp437 on Windows and FAILS if that code
+page was not actually in force (a child with no console inherits .NET's UTF-8 default and would pass on a broken build).
 
-- `DiagnosticSnapshotTests` compiles each `characterization/**` program, formats its diagnostics deterministically
-  (`{code}\t{severity}\t{line}:{col}\t{message}`), and asserts equality with `Snapshots/<name>.diag.txt`.
-- `EmittedCSharpSnapshotTests` emits the C# for each `positive/*.cob` and asserts equality with
-  `Snapshots/<name>.g.cs.txt` (line-ending normalized). Roslyn is NOT invoked — this snapshots the emitter output
-  string, which is cheap and deterministic.
-- Re-baselining: `WISEOWL_COBOL_UPDATE_SNAPSHOTS=1 dotnet test …/Characterization` rewrites the `Snapshots/` files. This
-  is a DELIBERATE, reviewed action (the diff shows in the PR). Gate (1) — output goldens — proves any re-baseline
-  is behavior-preserving. Never run in CI; CI always compares.
-
-The characterization corpus is seeded ONCE, at the START of the rearchitecture, from the current (pre-refactor)
-emitter, so the first snapshot is "how the emitter emits today." Every subsequent phase must match it (or
-review-re-baseline). This is the missing "prove I changed nothing" gate.
-
-### 3.4 Oracle bake-out: converting the differential net to goldens (the G8-survival migration)
-The ~60 `*DifferentialTests.cs` currently assert `wiseowl-cobol == legacy` at RUN time. Before the legacy engine is
-deleted, run a ONE-TIME bake that freezes the legacy output as a committed golden, then rewrite each test to assert
-`wiseowl-cobol == golden`.
-
-Mechanism:
-1. Add `CutRunner`-driven `DifferentialBakeTool` (a `[Fact(Skip=…)]`-gated maintenance test, or a small
-   console tool in `tools/`) that, for every differential test's source, runs `LegacyCompiler`, captures normalized
-   stdout, and writes `tests/differential/<TestClass>/<case>.out`.
-2. Rewrite the differential base to a golden-comparison base:
-   ```csharp
-   protected void AssertMatchesGolden(string source, string goldenName, int edition = 85)
-       => Assert.Equal(ReadGolden(goldenName), Cn.CompileAndRun(source).stdout);
-   ```
-   The legacy `ICompilerUnderTest`/`LegacyCompiler` and the `WiseOwl.Cobol==Legacy` asserts are deleted.
-3. A `divergent`-style escape hatch stays for the handful of legacy-non-conforming cases (already tracked in
-   `LegacyDivergent`) — those goldens are hand-authored to the ISO value.
-
-After the bake, the entire greenfield net is self-standing: it depends on committed goldens, not on the legacy
-`ProjectReference`. The legacy test projects can be deleted at G8 with zero net loss.
-⛔ **The CLI-level NIST guard (`guard-fast.sh`) cannot** — not any more (kb/Work/PB750). It no longer drives the
-legacy engine: it is the CLI-level, separate-process NIST leg over `cobol`, and deleting it would drop the
-golden-less chain predecessors' compile+run health, the CCVS chain-isolation model and the shipped exe's own
-path. What retired with the engine (kb/Work PB2109) was the legacy arm of `guard-compiler.sh` and the legacy
-exemption list, not the leg.
-**This bake is a PREREQUISITE gate for G8 and for retiring the legacy CI job.**
-
-### 3.5 Diagnostic-code registry (`WiseOwl.Cobol.Diagnostics`)
-A first-class subsystem (also required by the Editions dimension). Minimal shape:
-
-```csharp
-public sealed record DiagnosticDescriptor(
-    string Code,           // "COBOL1533" — one code, one rule
-    Severity DefaultSeverity,
-    string SpecRef,        // "ISO §8.4.3.9.4" — the citation
-    string MessageTemplate,// "strong TYPE mismatch: {0} vs {1}"
-    string? SuppressKey);  // stable --suppress token
-
-public static class Diag {                    // the catalogue (generated-friendly consts)
-    public static readonly DiagnosticDescriptor StrongTypeMoveMismatch = new("COBOL1533", …);
-    // … one entry per distinct rule …
-}
-public readonly record struct Diagnostic(
-    DiagnosticDescriptor Descriptor, string Message, SourceSpan Location, Severity Severity);
-```
-
-- `EditionContext.Error("COBOL####", text)` → `sink.Report(Diag.X, args…)`. The 47 `0899` sites split into
-  named unimplemented-feature descriptors behind a tracked list; `1533`-style reuse is un-merged into distinct
-  codes.
-- `DiagnosticRegistryDriftTests` (in `Tests.Unit`): every `Diag.*` descriptor has a unique code; every code emitted
-  anywhere in the compiler is a registered descriptor (a source-scan or a runtime-collected set). Mirrors the
-  existing `ConstructRegistryDriftTests` discipline.
-- A build step (or a `[Fact]` that writes when `WISEOWL_COBOL_UPDATE_DOCS=1`) generates `docs/DIAGNOSTICS.md` from the
-  catalogue — the single human-readable code table understandability #1 asks for.
-
-This makes gate (2) precise (snapshots key on stable codes) and lets the version matrix and `--suppress` target a
-rule.
-
-**The wire encoding of a diagnostic is part of the diagnostic** (`kb/Work/PB899`). A message carries its ISO
-citation, so it carries non-ASCII — `(ISO §11.10.3 SR5–6)` holds U+00A7 and U+2013. `WiseOwl.Cobol.Runtime.IO.StandardStreams.EnsureUtf8()`
-is the ONE place that rule is written down, and BOTH process entries call it: `Program.Main` in the CLI before it
-parses an argument, and `ProgramTable.RunModule` for a compiled program's `Main` (never a host entry such as
-`RunMain`, whose host owns its console: kb/Work PB3193). The run-unit entry is where it used to live ALONE, so every
-citation the compiler printed left the process at the OS code page (on cp437 the section sign is the single byte
-`0x15`) in every redirected capture and every CI log. No golden could see it: the corpus runner matches `.err`
-files on a pure-ASCII diagnostic CODE substring, and the harness decodes every capture as UTF-8 (and encodes what it
-pipes to standard input as UTF-8, the ACCEPT device's decoding, kb/Work PB3193). The witness is
-therefore a BYTE assertion through a redirected stream, `CliDiagnosticEncodingTests`, which drives the CLI from a
-console forced to cp437 on Windows and FAILS if that code page was not actually in force — a child with no console
-inherits .NET's UTF-8 default and would pass on the broken build.
-
-### 3.6 Build & driver seams the harness depends on
-Two build-side changes this dimension REQUIRES (owned by the driver/emitter dimensions but gated here):
-- **Real Bind phase boundary.** Extract the binder passes — reached today through the `CSharpEmitter.Bind` host
-  facade — into a standalone `Binding.BindPipeline.Bind(tree, edition) → BoundCompilation`. Then: `CheckOnly`/`--check-batch` stop after Bind
-  (fast verdict, no Emit); `ICompilerProbe.Probe(emit:false)` returns diagnostics from Bind only; the
-  characterization emitter snapshot is a pure `Emit(BoundCompilation)`.
-- **Cache the Roslyn reference set.** `RoslynBackend.ReferenceAssemblies()` →
-  `static readonly Lazy<ImmutableArray<MetadataReference>>`. Single highest-leverage battery-throughput fix.
-
-### 3.7 Guard consolidation (cross-platform, greenfield-first)
-Target: the authoritative regression is the in-process `dotnet test` battery (runs on every OS), NOT a Linux bash
-loop over frozen code. ⚠ **"over frozen code" was the whole objection and it no longer applies** (PB750): the
-bash loop drives `cobol`. It stays a SECOND path — the shipped exe, out of process — deliberately, and the two
-are reconciled by `corpus.tsv` + `CorpusManifestTests` + `guard-nist-audit.sh` rather than by one replacing the
-other. Scripts collapse to:
-
-- KEEP `scripts/version-continuity-sweep.sh` (the check-batch INV-1 sweep — it drives the greenfield CLI and is
-  already fast/portable) but add a `.ps1` sibling.
-- ⛔ **REVISED by kb/Work/PB750:** `guard-fast.sh`, `guard-run-group.sh`, `guard-verify.sh`, `guard-compiler.sh`,
-  `guard-compile.sh`, `guard-verdict.sh` and `guard-nist-audit.sh` no longer "exist to parallelize the legacy
-  NIST loop" — they ARE the CLI-level WiseOwl COBOL NIST leg, and they carry the verdict-evidence rules, the chain
-  isolation model and the population/expectation audit. They SURVIVE G8. kb/Work PB2109 deleted
-  `guard-compiler.sh`'s legacy arm, the legacy exemption list, the guard's legacy Unit and Integration legs, and
-  the ad-hoc dashboards `compliance.sh`, `nist-batch.sh` and `run-suite.sh`.
-
-### 3.8 CI (target `build-and-test.yml`)
-An OS matrix, greenfield-authoritative, with the characterization gate:
-
-```yaml
-strategy: { matrix: { os: [ubuntu-latest, windows-latest] } }
-jobs:
-  build-test:      # per-OS: build -warnaserror; dotnet test Unit + Conformance + Characterization --no-build
-  version-sweep:   # ubuntu: cobol check-batch INV-1 (permissive continuity), fail on BREAKS
-  nist-cli:        # ubuntu: guard-fast.sh — the CLI-level WiseOwl COBOL NIST leg (PB750). Survives G8.
-```
-
-The `legacy-oracle` job is gone (kb/Work PB2108); post-G8 the two legacy test projects go too, and `build-test` becomes the whole gate,
-identical on both OSes (NIST now runs in-process, closing smell #5). `Generated/` continues to regenerate per
-checkout (a failed regen fails the build — keep).
-
-### 3.9 Roadmap SSOT + DEVLOG discipline
-- **`docs/REARCHITECTURE_PLAN.md`** (the master plan) — the resumable migration SSOT / ROADMAP: an ordered
-  P0–P16 phase index, per-phase exit criteria (universal clause: "gates (1) & (2) green; gate (3) either unchanged or
-  reviewed-re-baselined in this change set"), a top STATE banner naming the current phase, and the owner-decisions
-  table. This is what a future engineer resumes the REARCH from; the plan §0 banner is the feature-drive live
-  state and cross-links to it.
-- **DEVLOG/** — one file per entry (§3.17.4, kb/Work PB3025), rendered descending; a real timestamp; one entry per
-  landing on main, checked by `enqueue.py land` and CI through `python scripts/devlog.py check`, kb/Work PB2605) per the existing
-  `feedback_devlog*` memories. Each rearch phase commit references its ROADMAP phase id.
-- **`docs/DOC_INDEX.md`** — add rows for `REARCHITECTURE_PLAN.md` (the migration SSOT / ROADMAP),
-  `DIAGNOSTICS.md`, this doc, and the sibling `DESIGN-*` / `PHASE-*` docs; keep the "one canonical doc per subsystem" rule.
+### 3.9 DEVLOG discipline
+The migration roadmap and live state are `docs/REARCHITECTURE_PLAN.md` (section 0 is the live state, never a worklist). The
+only history is `DEVLOG/`, one file per entry (§3.17.4, kb/Work PB3025): one entry per landing on main, checked by
+`enqueue.py land` and CI through `python scripts/devlog.py check` (kb/Work PB2605). `docs/DOC_INDEX.md` names the one
+canonical doc per subsystem.
 
 ### 3.10 THE VERDICT-EVIDENCE INVARIANT (the instrument gate — plan §11 A12/A12b/A12c/A12d/A12e)
 
@@ -720,8 +553,8 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
 | site | what it does now |
 |---|---|
-| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `WiseOwlCobolTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units, so a program or a script gets one unit and `run.py` over a suite gets one per round of its compiles and runs (the two-runner drift test observes it once per edition, `--jobs` stated). The unit stays the floor for one program: 120 s against a recorded cost of at most 9.3 s for one suite test's compile and run and 7.0 s and 3.8 s for the two single-program tests PB3108 names, a multiple of 13 to 32 for load. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`: `/proc/stat` and `/proc/loadavg`, `GetSystemTimes`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the local gate (`gate.py`'s `leg_env`) and every CI test step (`CiHarnessLogDriftTests`) point into their results directory and the Linux gate (`linux-gate.sh`'s `test_leg`) into its own directory on the Linux filesystem, copying it into `TestResults/linux-gate` as it ends (`remove_gate`: that directory is a Windows drive mounted over 9P, where an append beside a reader of the same file lost lines and the read failed with ENODATA, measured 2026-10-24, kb/Work PB3194), and CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
-| `tests/_shared/CiWorkflow.cs` (`CiWorkflowDriftTests`) | **THE one reader of a CI workflow's shape** (kb/Work PB3819): the jobs under the top-level `jobs:` key (ids two spaces deep), each job's `steps:` list (items at the indentation of the first, a list may sit at the key's own indentation), each step's own keys (`Value("uses")`, `Value("continue-on-error")`, `Input("overwrite")` for a `with:` input; a key nested under `with:` is not the step's) and the comments. Replaced the readers of ten classes: the private splitters of seven (`CiHarnessLogDriftTests`, `DotnetSdkInstallDriftTests`, `FilterPopulationGuardDriftTests`, `InertLaneDriftTests`, `SelfTestDiscoveryDriftTests`, `SparseCheckoutAudit`, `ToolchainManifestDriftTests`), the fixed-depth step splitter of `CiArtifactDriftTests`, and the inline job regexes of `LandingPipelineDriftTests` and `LinuxGateDriftTests`, which disagreed on comments, step blocks and the `jobs:` anchor (one returned the `on:` triggers as jobs). **A comment or blank line belongs to what follows it**: a banner above a job documents that job, never the one above. A shape the line reader cannot read (no `jobs:`, a job with no id, a flow-style `steps:`) raises `InvalidDataException`, never an empty answer. `CiWorkflowDriftTests` holds its arms on a fixture workflow and sweeps `tests/` for a job-key regex, a `jobs:` anchor or a hand-found `steps:` key of any other file. |
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** It replaced seven copies of "start `dotnet`, wait N s, return whatever came back". A run that does not complete raises `HarnessNonObservationException` and never returns partial output for a caller to compare. It retries **once, serialized**, first: that re-attempts a measurement that did not complete, not a failed assertion. A process killed at its budget has not necessarily exited: the wait after the kill is read, a process still alive is `ProcessOutcome.SurvivedKill` (its id in the detail), and the retry waits for it (`SurvivorWaitMs`) before it restores the run directory, or raises the non-observation naming it (kb/Work PB4388). A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input: kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the gate (`gate.py`'s `leg_env`), every CI test step (`scripts/test_linux_gate.py`) and the Linux reproduction tool point into their results directory; CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
+| `tests/_shared/CiWorkflow.cs` (`CiWorkflowDriftTests`) | **THE one reader of a CI workflow's shape** (kb/Work PB3819): the jobs under the top-level `jobs:` key, each job's `steps:` list, each step's own keys (`Value("uses")`, `Value("continue-on-error")`, `Input("overwrite")` for a `with:` input) and the comments. **A comment or blank line belongs to what follows it**: a banner above a job documents that job. A shape the line reader cannot read (no `jobs:`, a job with no id, a flow-style `steps:`) raises `InvalidDataException`, never an empty answer. `CiWorkflowDriftTests` holds its arms on a fixture workflow and sweeps `tests/` for a job-key regex, a `jobs:` anchor or a hand-found `steps:` key of any other file. |
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by the guard so the rule is written once. A plain `divergent` row expects `MATCH` (PB750) and a `TERMINATES` row expects `TERMINATES <EC>` (PB1955), the second set asked of `guard-population.sh`; a verdict word it does not know (the retired `LEGACY DIVERGENT` included) is an UNRECOGNIZED finding. `--self-test` proves all sixteen checks can fail, including the two `divergent` arms and the five TERMINATES arms. `guard-fast.sh` runs it, with `guard-population.sh --self-test` and `guard-verify.sh --self-test`, before every guard run. |
 | `scripts/guard-compiler.sh` | ⭐ **THE one answer to "which compiler is this gate measuring?"** (kb/Work/PB750): `cobol`. `guard_assert_compiler_identity` reads the resolved CLI's own `.deps.json` and REFUSES to run when the closure does not contain `WiseOwl.Cobol.Compiler`. Earned by the guards hard-coding the legacy CLI, so `guard NIST: 353 MATCH` measured the ORACLE for the whole rearchitecture and battery #58's NC215A wrong answer was invisible to it. `--self-test` (discovered by `scripts/self_tests.py`, and run by `guard-verify.sh` too) proves the refusal fires on synthetic manifests. |
@@ -730,13 +563,13 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 | `scripts/guard-baselines.sh` | ⭐ **THE baseline-cleanliness audit, written ONCE and called by the guard** (`feedback_one_rule_one_place`). Empty / `FAIL*` / non-zero-footer baselines are refused, unless the program is declared `CCVS-DEFECT` in `tests/nist/corpus.tsv` — the same declaration, read from the same file, that `CorpusManifestTests.GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects` states as a set equality. The complement is audited here too (a declaration with nothing to describe is a defect). Exits with the FAILURE COUNT, so each caller keeps its own aggregation. |
 | `scripts/guard-run-group.sh` | ⭐ **The ONE runner of NIST programs** (kb/Work PB3383): each named program in its own clean `mktemp` directory after exactly its declared predecessors. A serial twin, `scripts/guard.sh`, carried a COPY of the rules "kept character-for-character in step" by prose — which had already drifted (one `normalize()` had a `[ -f ]` guard, the other did not) and kept both copies of the compare-arm hole — and ran every program in ONE shared directory, so IX115A graded over the `tf024.txt` IX114A fenced; it is retired, and `guard-verify.sh` fails on any other guard script that runs a NIST program. Compile diagnostics are captured (`<TEST>.compile.log` + `.compile.rc`) instead of `/dev/null`; the run is bounded by `timeout` and its exit status kept instead of `\|\| true`; **any non-MATCH's report, streams and both normalized sides are copied into a run-scoped forensic directory** before the program's dir dies with it (attributing battery #43 cost hours because that directory was already gone). |
 | `scripts/guard-fast.sh` | THE NIST guard. Runner stderr captured instead of discarded (a runner could die and take its verdicts with it in silence); the audit gates `ALL GREEN`. ⛔ **FULL FAN-OUT IS KEPT AND THE LOST OBSERVATIONS ARE RE-TAKEN INSTEAD** — capping `-P` would pay for the damage on every run to protect against something the evidence rules now DETECT. Contention can no longer corrupt a verdict, only lose one, so step 3b re-runs serially just the lost programs and the members that declare one of them as a predecessor. See this table's isolation row below. |
-| `scripts/guard-fast.sh` isolation | ⭐ **Every program is its own job** (kb/Work PB3334, PB3383): its runner gives it a clean directory and runs its DECLARED predecessors (`corpus.tsv` `chain-preds`) there first, so no grouping and no order carries a chain, and a non-predecessor cannot touch a consumer's file at all. It replaced the chain graph's connected components (332 groups over 376 programs, each serial in one directory), which had replaced a hand-written "these six suites run serially" list. Justified by evidence, not guessed: `NistDifferentialTests` runs every asserted program in a per-program directory with only its declared predecessors and is green. A missing predecessor edge shows as a consumer DIFF, never a false green. ⚠ **The leg is THROUGHPUT-bound on `dotnet` cold-start**, not tail-bound: measured on a 32-core Windows box, shortening the longest serial group from 40 to 9 moved the NIST phase from 564 s to 598 s (~150 s of it the compile phase, effective concurrency ~7). **The real lever is a persistent run-host to amortize cold-start**; the isolation is kept for correctness and for retiring a hand-maintained list, not for speed. |
-| `scripts/guard-verify.sh` | `--self-test`, discovered by `scripts/self_tests.py` (every gate and CI's audits) and run again by `guard-fast.sh` before it measures. **The evidence-rule witnesses** — synthetic runs through the REAL `guard-run-group.sh` over a fake repo root with `dotnet`/`diff` shims on `PATH` and a fake `corpus.tsv`, one rule per case, no corpus and no compiler: absent report → NO-VERDICT, 0-byte report → NO-VERDICT, `diff` forced to exit 2 → NO-VERDICT, `rc≠0` with empty stderr → NO-VERDICT, **a genuinely wrong report → REGRESSION** and `rc≠0` *with* a reason → REGRESSION (the discriminators, without which the fix could turn every regression into a NO-VERDICT and look green), plus the compile arm, the FAIL*/footer rules, the written-files and termination arms, the forensics, **the run directory** (a consumer is not corrupted by a non-predecessor that wrote its file, and gets its declared predecessor's file when run alone — both red against the pre-PB3334 shared-directory runner — with a discriminator proving the consumer needs the file) and the structural checks (no process substitution in a verdict path; one copy of the rules; one runner of NIST programs). Re-run them against an old runner with `GUARD_GROUP_RUNNER=<old copy>`. It used to run an **equivalence proof** too, diffing the retired serial guard's verdicts with `guard-fast.sh`'s: RELATIVE, so two guards sharing PB473's hole agreed, and red for the serial guard's shared directory rather than for any difference in what a verdict means (kb/Work PB3383). |
+| `scripts/guard-fast.sh` isolation | ⭐ **Every program is its own job** (kb/Work PB3334, PB3383): its runner gives it a clean directory and runs its DECLARED predecessors (`corpus.tsv` `chain-preds`) there first, so no grouping and no order carries a chain, and a non-predecessor cannot touch a consumer's file at all. It replaced the chain graph's connected components (332 groups over 376 programs, each serial in one directory), which had replaced a hand-written "these six suites run serially" list. Justified by evidence, not guessed: `NistDifferentialTests` runs every asserted program in a per-program directory with only its declared predecessors and is green. A missing predecessor edge shows as a consumer DIFF, never a false green. The leg is throughput-bound on `dotnet` cold-start, not tail-bound; the isolation is kept for correctness and to retire a hand-maintained list, not for speed. |
+| `scripts/guard-verify.sh` | `--self-test`, discovered by `scripts/self_tests.py` (every gate and CI's audits) and run again by `guard-fast.sh` before it measures. **The evidence-rule witnesses** — synthetic runs through the REAL `guard-run-group.sh` over a fake repo root with `dotnet`/`diff` shims on `PATH` and a fake `corpus.tsv`, one rule per case, no corpus and no compiler: absent report → NO-VERDICT, 0-byte report → NO-VERDICT, `diff` forced to exit 2 → NO-VERDICT, `rc≠0` with empty stderr → NO-VERDICT, **a genuinely wrong report → REGRESSION** and `rc≠0` *with* a reason → REGRESSION (the discriminators, without which the fix could turn every regression into a NO-VERDICT and look green), plus the compile arm, the FAIL*/footer rules, the written-files and termination arms, the forensics, **the run directory** (a consumer is not corrupted by a non-predecessor that wrote its file, and gets its declared predecessor's file when run alone — both red against the pre-PB3334 shared-directory runner — with a discriminator proving the consumer needs the file) and the structural checks (no process substitution in a verdict path; one copy of the rules; one runner of NIST programs). Re-run them against an old runner with `GUARD_GROUP_RUNNER=<old copy>`. |
 | `scripts/gnucobol_differential.py` | A rejection needs a non-zero exit **and** a diagnostic; an acceptance needs the artifact. Evidence-free compiles are retried once and then bucketed `NO_COMPILER_EVIDENCE`, which counts as a harness failure and is **named for re-run**, never folded into a divergence bucket. Its population is no longer its own: it filters with `gnucobol_extract.differential_cases()` before dispatch, so `len(payload)` IS `cases run` and the corpus has one definition. |
 | `scripts/gnucobol_extract.py` | **THE external-corpus population, as an API** — `primary_source` (the one "is this a case" predicate, returning the `(member, compile-check)` pair the caller actually needs so nothing re-derives half of it), `differential_cases` (the 1,323), `iter_programs` (the 1,611 COBOL members, what a sweep must read). Both readers call it; there is no second place to define the corpus. |
-| `scripts/corpus_sweep.py` + `ExternalCorpusPopulationDriftTests` | The reachability instrument and its lock. The sweep prints a per-population census on EVERY run and refuses to report hit counts when its population check fails. The drift test asserts the sweep's live external population equals the differential's COMMITTED per-case baseline — two independently produced numbers, so agreement is evidence. It was **proved failing first**, driven against the old `*.cob` reader, where it reported `{"external": 2, "baseline": 1323, "state": "drift"}`; `TheDriftCheck_ActuallyFails_WhenTheExtractionIsEmptied` keeps that red permanently reachable. A missing interpreter or an absent corpus is a LOUD failure, never a skip. |
-| `scripts/fetch-gnucobol-tests.ps1` | **THE fetch the population gate depends on, and a gate in its own right.** It broke all three of its own contracts at once (`kb/Work/PB897`): it `Remove-Item`d `tests/external/gnucobol` BEFORE an extraction that then failed, it passed the archive as a drive-letter path that GNU tar reads as `host:path` (`Cannot connect to E: resolve failed`, exit 128) while bsdtar accepts it, and Git-for-Windows’ GNU tar cannot read a `.tar.xz` at all (it execs an `xz` it does not ship). Which `tar` was first on PATH therefore decided whether the corpus existed — so the two `ExternalCorpusPopulationDriftTests` reds became permanent and every implementer brief told agents to ignore them, which is a gate that has stopped gating. Now: extraction lands in a STAGING directory and is swapped in only after tar succeeded **and** the payload was verified (nothing is ever deleted before its replacement exists); the archive is named RELATIVE to its own directory, which neither tar misreads (⛔ `--force-local` is the wrong repair — bsdtar rejects it outright); and the tar is chosen by ATTEMPTING the work down an ordered candidate list rather than by trusting `Get-Command`. Every failure prints one `FETCH FAILED: <cause>` line and exits non-zero, and `build-local.{ps1,sh}` both surface it: the gate goes RED with `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED` on the verdict line. `-SelfTest` drives the REAL `Invoke-CorpusExtraction` over a synthetic `.tar.xz` — including the failure branches — and `ExternalCorpusFetchTests` runs it; it was proved failing first against the old shape (4 of 8 checks red under GNU tar, and 4 of 8 under bsdtar too, since the delete-first fault is tar-independent). |
-| `scripts/external_corpus.py` | **THE one rule for obtaining the corpus in a tree** (`kb/Work/PB2611`): present when `tests/external/gnucobol/tests/testsuite.src` exists, otherwise the fetch script runs there, and a fetch that exits non-zero, exits 0 with no corpus or cannot start is ONE named red, `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. The gate driver (`Host.fetch_corpus`), `battery.sh` (phase −½, before the Unit leg and the differential), `record_impact_map.py`, `linux-gate.sh` and the cloud session hook all apply it; battery #89 read NOT GREEN at a green tree because `battery.sh` alone had no fetch. Its `--self-test` drives every arm and `ExternalCorpusFetchTests` runs it, and `OnlyTheCorpusRule_InvokesTheFetchScript` keeps any other script under `scripts/` from naming the fetch script; CI's two fetch steps are the recorded exception (a fresh checkout never holds the corpus, and the step's exit status is the red). |
+| `scripts/corpus_sweep.py` | The reachability instrument and its lock. The sweep prints a per-population census on EVERY run and refuses to report hit counts when its population check fails. Its `--self-test` asserts the sweep's live external population equals the differential's COMMITTED per-case baseline — two independently produced numbers, so agreement is evidence — obtaining the corpus through `external_corpus.ensure` first. The check was **proved failing first**, driven against the old `*.cob` reader, where it reported `{"external": 2, "baseline": 1323, "state": "drift"}`; the self-test's emptied-extraction arm keeps that red permanently reachable, and its census arms run on a planted tree. An absent corpus is a LOUD failure, never a skip. |
+| `scripts/fetch-gnucobol-tests.ps1` | **THE fetch the population gate depends on, and a gate in its own right** (kb/Work PB897). Extraction lands in a STAGING directory and is swapped in only after tar succeeded **and** the payload was verified (nothing is deleted before its replacement exists); the archive is named RELATIVE to its own directory, which neither GNU tar nor bsdtar misreads (⛔ `--force-local` is the wrong repair: bsdtar rejects it); and the tar is chosen by ATTEMPTING the work down an ordered candidate list rather than by trusting `Get-Command` (Git-for-Windows' GNU tar cannot read a `.tar.xz`). Every failure prints one `FETCH FAILED: <cause>` line and exits non-zero, and `build-local.{ps1,sh}` both surface it: the gate goes RED with `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. `-SelfTest` drives the REAL `Invoke-CorpusExtraction` over a synthetic `.tar.xz`, failure branches included, and `scripts/external_corpus.py --self-test` runs it and reads its named check lines. |
+| `scripts/external_corpus.py` | **THE one rule for obtaining the corpus in a tree** (`kb/Work/PB2611`): present when `tests/external/gnucobol/tests/testsuite.src` exists, otherwise the fetch script runs there, and a fetch that exits non-zero, exits 0 with no corpus or cannot start is ONE named red, `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED`. The gate driver (`Host.fetch_corpus`), `battery.sh` (phase −½, before the Unit leg and the differential), `record_impact_map.py`, `linux-gate.sh` and the cloud session hook all apply it; battery #89 read NOT GREEN at a green tree because `battery.sh` alone had no fetch. Its `--self-test` drives every arm (`corpus_sweep.py --self-test` holds them declared), runs the fetch's `-SelfTest`, refuses a `--force-local` tar invocation and keeps any other script under `scripts/` from naming the fetch script; CI's two fetch steps are the recorded exception (a fresh checkout never holds the corpus, and the step's exit status is the red). |
 
 **What this does not claim.** The invariant makes a false GREEN and a false RED *visible*; it does not by itself
 prove the battery is deterministic. That is the measurement A12/A12d asks for, and it is recorded in plan §11
@@ -744,24 +577,17 @@ beside the row, not here.
 
 ### 3.11 TEST-COLLECTION PARALLELISM — the partitioned-theory mechanism (plan §11 A13)
 
-> **A test CLASS is a scheduling unit, not just a namespace.** xUnit 2.9.2 parallelizes at TEST-COLLECTION
-> granularity and by default **each test class is one collection**, so every test in a class — including every
-> row of a `[Theory]` — runs SERIALLY ON ONE THREAD. A fat class caps an assembly's whole wall clock, and
-> nothing in the normal output says so: `dotnet test` reports totals and a duration, never concurrency.
+> **A test CLASS is a scheduling unit, not just a namespace.** xUnit 2.9.2 parallelizes at TEST-COLLECTION granularity and
+> by default **each test class is one collection**, so every test in a class, every row of a `[Theory]` included, runs
+> SERIALLY ON ONE THREAD. A fat class caps an assembly's whole wall clock, and nothing in the normal output says so.
 
-**The instrument.** `scripts/profile-test-parallelism.py <run.trx>` reads the trx `scripts/battery.sh` already
-emits and prints, per class, `tests / sum(s) / span(s)` plus the assembly's average concurrency. Read the two time
-columns together: `sum ≈ span` means the class ran serially and is a splitting candidate; `span << sum` means it
-was already spread across threads.
+**The instrument.** `scripts/profile-test-parallelism.py <run.trx>` reads a trx and prints, per class, `tests / sum(s) /
+span(s)` plus the assembly's average concurrency. Read the two time columns together: `sum ≈ span` means the class ran
+serially and is a splitting candidate; `span << sum` means it was already spread across threads.
 
-**The mechanism** — `tests/_shared/TestPartitioning.cs`, linked into every project under `tests/`.
-
-xUnit v2 offers exactly two levers and only one of them can split: `[Collection]` MERGES classes into a shared
-collection, so it can never divide one. (A third-party framework that runs a class's rows in parallel was measured
-against the partitions after M6 and not adopted, its lead inside the noise on the shared host and on a reserved one:
-section 3.11.1, kb/Work PB4150, PB4195.) That leaves genuine class splits — and the naive class split duplicates
-the test bodies, which is how a split rots. So the tests live ONCE in an abstract generic base and each partition
-is one line:
+**The mechanism** — `tests/_shared/TestPartitioning.cs`, linked into every project under `tests/`. xUnit v2 offers two levers
+and only one can split: `[Collection]` MERGES classes, so it never divides one. The naive class split duplicates the test
+bodies, which is how a split rots, so the tests live ONCE in an abstract generic base and each partition is one line:
 
 ```csharp
 public abstract class FamilyTestsBase<TSlot> where TSlot : ITestPartitionSlot
@@ -779,226 +605,89 @@ public abstract class FamilyTestsBase<TSlot> where TSlot : ITestPartitionSlot
 public sealed class FamilyTests_P0 : FamilyTestsBase<Slot0>;          // one line per collection
 ```
 
-Row `i` belongs to slot `i % Partitions` — a STRIDE, not a contiguous block, because theory rows are ordered by
-construct or program name and adjacent rows have correlated cost; a block would concentrate the expensive rows in
-one partition.
+Row `i` belongs to slot `i % Partitions` — a STRIDE, not a contiguous block, because theory rows are ordered by construct or
+program name and adjacent rows have correlated cost. ⭐ **Why it works:** static members of a CLOSED generic type are
+per-type-argument, and xUnit resolves `[MemberData]` against `testMethod.DeclaringType`, which for a method inherited from
+`FamilyTestsBase<Slot3>` is the *closed* type (proved with a standalone probe on xunit 2.9.2 / runner 2.8.2: 3 partitions
+over 9 rows gave 9 tests; open-type resolution would have given 27 tests and 18 failures).
 
-⭐ **Why it works:** static members of a CLOSED generic type are per-type-argument, and xUnit resolves
-`[MemberData]` against `testMethod.DeclaringType`, which for a method inherited from `FamilyTestsBase<Slot3>` is
-the *closed* type, not the open definition. That was PROVED with a standalone probe on xunit 2.9.2 /
-xunit.runner.visualstudio 2.8.2 before any real class was touched — 3 partitions over 9 rows produced 9 tests, 3
-per partition, each asserting its own slot; open-type resolution would have produced 27 tests and 18 failures.
-
-**⛔ The invariant, and its gate.** A partitioned family FAILS OPEN: delete one partition class and the rows it
-owned are simply never run — no error, no red, just a smaller and entirely plausible test count.
-`TestPartitionAudit`, run per assembly by `TestPartitionCoverageDriftTests`, closes that. It is SHAPE-DRIVEN, not
-registered — it finds every family by structure (a top-level, author-written, abstract generic base with one type
-parameter constrained to `ITestPartitionSlot`), so a NEW family is covered the moment it is written. Five checks,
-one per way a family loses rows silently or rebuilds the serial pole it exists to remove:
+**⛔ The invariant, and its gate.** A partitioned family FAILS OPEN: delete one partition class and the rows it owned are
+never run, with no error and a smaller, plausible test count. `TestPartitionAudit`, run per assembly by
+`TestPartitionCoverageDriftTests`, closes that. It is SHAPE-DRIVEN, not registered: it finds every family by structure (a
+top-level, author-written, abstract generic base with one type parameter constrained to `ITestPartitionSlot`), so a NEW
+family is covered the moment it is written. Five checks, one per way a family loses rows silently or rebuilds the serial
+pole it exists to remove:
 
 | check | what it catches |
 |---|---|
 | the row source yields NOTHING | every check below would compare an empty union against an empty source and report green |
 | slot indices ≠ {0 … `Partitions`−1} | a deleted, duplicated or mis-slotted partition class |
-| an EMPTY partition over a non-empty source | more partitions declared than the source can fill — the one waste the union check cannot see, because the surviving slots still cover the whole set |
-| a partition outside its even SHARE (⌊rows/P⌋ or ⌈rows/P⌉ of a source's rows) | a sliced member that filters by something other than the stride, so one partition can grow into the family's pole while the union still covers every row once (kb/Work PB4146; fired by a planted count in the Unit assembly's `TestPartitionCoverageDriftTests`, and by a planted block split of the optional-word sweep) |
+| an EMPTY partition over a non-empty source | more partitions declared than the source can fill, which the union check cannot see |
+| a partition outside its even SHARE (⌊rows/P⌋ or ⌈rows/P⌉) | a sliced member that filters by something other than the stride, so one partition grows into the family's pole while the union still covers every row once (kb/Work PB4146) |
 | union of the partitions ≠ the source as a MULTISET | rows dropped or double-run, each named in the failure |
 
-Plus a ladder check: `Slot9.Index => 8` would silently put two classes in one partition and corrupt EVERY family
-at once, so the slot ladder is verified against its own names, once, centrally.
+Plus a ladder check, once and centrally: `Slot9.Index => 8` would put two classes in one partition and corrupt EVERY family.
+Roslyn emits a nested `<>O` delegate-cache class inside any generic type that caches a lambda, and a nested type inherits its
+enclosing type's generic parameter with its constraints, so the audit skips compiler-generated nested types.
 
-⚠ **The gate was proved failing, not trusted silent** — and it earned that on its FIRST real run, before any
-deliberate break: Roslyn emits a nested `<>O` delegate-cache class inside any generic type that caches a lambda,
-and a nested type inherits its enclosing type's generic parameter *with its constraints*, so every family produced
-a phantom family with no `Partitions` const. Both structural checks were then fired deliberately (a partition
-class commented out → the slot-set violation plus a per-source "87 row(s) NEVER RUN" naming the exact dropped
-rows; a slice count desynced from the const → `TestPartitioning.Slice`'s own range guard throws first, which is
-why that direction cannot reach the audit at all).
+**⭐ How many partitions: the host's parallelism, never the row total (kb/Work PB4146).** A partition's time is its family's
+time over `Partitions` (P), and the leg's ideal wall is the leg's time over the host's T workers, so a partition stays under
+that wall while **P ≥ T × (the family's share of the leg's work)**. Neither side moves when a family grows with the leg. A
+family's `Partitions` is therefore chosen from the gate host's parallelism and the family's share, kept at its measured
+floor by a drift test (`ConformancePartitioningDriftTests`: a floor of 24 for the conformance suite, 8 for the optional-word sweep,
+kb/Work PB2527), and re-measured when the host or the shares change, never raised because rows were added. No test bounds
+the rows a partition holds: an absolute bound guarded nothing the floor and the share check do not, and it turned every
+golden-adding branch red once the suite crossed it.
+- **A row is the smallest unit of work the theory can judge alone.** The share check balances rows, so it balances time only
+  when rows cost about the same: the optional-word sweep's row is one SPELLING, not a whole format (a format of seven
+  optional words is 128 compiles, 41–59 s).
+- **The partition classes are written, not generated.** The count changes only with the host, and the suite's rows exist
+  only at test time (`SuiteManifest` runs `generate.py` in the test process), while xUnit v2 makes a collection of a
+  compile-time class.
 
-**⭐ How many partitions: the host's parallelism, never the row total (kb/Work PB4146).** A partition's time is its
-family's time over `Partitions` (P), because the share check holds every partition to 1/P of its rows and the stride
-spreads cost-correlated neighbours apart. The leg's ideal wall is the leg's time over the host's T workers. So a
-partition stays under that wall while **P ≥ T × (the family's share of the leg's work)**, and neither side of that
-inequality moves when a family grows with the leg: a suite that doubles doubles every partition and the wall alike.
-A family's `Partitions` is therefore chosen from the gate host's parallelism and the family's share of its leg, kept
-at its measured floor by a drift test (`ConformancePartitioningDriftTests`: 24 for the conformance suite, 8 for the
-optional-word sweep, kb/Work PB2527), and re-measured when the host or the shares change — never raised because rows
-were added. No test bounds the rows a partition holds: an absolute bound guarded nothing the floor and the share
-check do not, and it turned every golden-adding branch red once the suite crossed it (kb/Work PB4146: #811's merge
-group at 12,005 rows, 24 × 500).
+#### 3.11.1 What is partitioned
+| family | `Partitions` | notes |
+|---|---|---|
+| `VersionMatrixTests_P0 … _P11` | 12 | the continuity cells, once the lexer lock was removed (§3.14.5) |
+| `NistDifferentialTests_P0 … _P5` | 6 | the 364 asserted programs |
+| `ConformanceSuiteTests_P0 … _P31` | 32 | one partition per processor of the 32-way gate host, held above its floor of 24 (kb/Work PB2527, PB4146) |
+| `OptionalWordSubsetDriftTests_P0 … _P7` | 8 | each an eighth of the SPELLINGS (kb/Work PB4146) |
+| `StorageFormNistEquivalenceTests_P0 … _P15` | 16 | slice-`[Fact]`s of the corpus (kb/Work PB4325) |
+| `BothRunnersVerdictDriftTests_P0 … _P7` | 8 | `run.py` once per edition its share names; suites generated once per test host (`SuiteManifest.Generated`) |
+| `RunUnitFileLockPairDriftTests_P0 … _P7` | 8 | 768 (sharing × open mode) pairs, 96 each |
 
-Two consequences shape the families:
-- **A row is the smallest unit of work the theory can judge alone.** The share check balances rows, so it balances
-  time only when rows cost about the same. The optional-word sweep's row is therefore one SPELLING (a format and a
-  subset mask), not a whole format: a format of seven optional words is 128 compiles (41–59 s), and as one row it
-  could only land whole in one partition. Each spelling compares its output with its format's bare spelling, which
-  `OptionalWordBaselines` observes once per test process for every partition (a static of the generic family would
-  be one per closed type, that is per partition).
-- **The partition classes are written, not generated.** The count changes only with the host, so a generator buys
-  nothing a one-line class and the audit's slot check do not. Deriving the count from the row total was rejected on
-  its mechanics as well: the suite's rows exist only at test time (`SuiteManifest` runs `generate.py` in the test
-  process, the one reader of the test headers), xUnit v2 makes a collection of a compile-time class, and
-  `scripts/gate_plan.py` models a collection as a class (`class_of`, the leg-1 collection cap), so a run-time
-  partitioning would need a second copy of the partition rule in the plan.
+Four serial classes have no row set to slice (their cases are different programs), so they are split into classes along the
+cases themselves over one abstract harness holding the helpers (kb/Work PB4325): the keyed-store witnesses, 
+`CommitRollbackRuntimeHarness`, `SequentialCommitControlHarness` and the `UsageInheritance` equivalence. The cut is made by
+cost; a case added to a class grows that class alone, and a class that outgrows its share is split again at a test boundary.
+Whole-corpus assertions stay OFF the partitioned base and run ONCE (`VersionMatrixTests`' catalogue facts, the
+alternative-sign-convention test, `BothRunners_RunExactlyTheSameTests`): an inherited `[Fact]` would run N times. A sliced
+sweep keeps a POPULATION assertion per partition (its proportional share rounded UP), so a partition that silently stopped
+binding goes RED instead of green-and-empty (§3.10 corollary 1).
 
-#### 3.11.1 What is partitioned, and what it measured
-
-| family | `Partitions` | before (battery #41 trx) | after |
-|---|---|---|---|
-| `VersionMatrixTests_P0 … _P11` | 12 | 2127 rows, **720.5 s SERIAL** — the whole 721 s leg | 12 × (175…179 rows), 552–601 s each, all spanning the run together |
-| `NistDifferentialTests_P0 … _P5` | 6 | 349 rows, 237.9 s SERIAL | 6 × (58–59 rows), 329–354 s each |
-| `ConformanceSuiteTests_P0 … _P31` (formerly `CorpusRunnerTests`) | 32 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); now one partition per processor of the 32-way gate host, each its 32nd of the suite (about 12,000 rows in 2026-10: about 375 a partition) |
-| `OptionalWordSubsetDriftTests_P0 … _P7` | 8 | one 23-row class, 131–152 s span (one row 59 s) | 8 partitions (kb/Work PB2527), each an eighth of the SPELLINGS since kb/Work PB4146 (about 380 spellings of 26 formats in 2026-10: about 48 a partition), so no format's power set lands whole in one partition |
-| `StorageFormNistEquivalenceTests_P0 … _P15` | 16 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock; at 8 partitions the slowest (`_P6`) took 131 s | 16 slice-`[Fact]`s (kb/Work PB4325), the slowest about 65 s |
-| `BothRunnersVerdictDriftTests_P0 … _P7` | 8 | one `[Fact]`, `run.py` over every edition's suite against the in-process runner: 109–232 s local, **352 s** on Windows CI, the longest case of every run | 8 partitions (kb/Work PB4325), each an eighth of the in-suite tests (89 in 2026-10, about 11 a partition) run by `run.py` once per edition its share names; the suites are generated once per test host (`SuiteManifest.Generated`) and shared |
-| `RunUnitFileLockPairDriftTests_P0 … _P7` | 8 | 768 (sharing × open mode) pairs in one class, 108.5 s on Windows CI | 8 partitions (kb/Work PB4325), 96 pairs each |
-
-Four serial classes have no row set to slice (their cases are different programs), so kb/Work PB4325 splits them into
-classes along the cases themselves, over one abstract harness holding the helpers (`private protected`): the keyed-store
-witness (`KeyedStoreLoadWitnessTests` once per file shape and sharing mode, 6 classes, and `KeyedStoreStatementWitnessTests` once
-per shape, 3 classes; the 30-case `IndexedTwoAlternates` class took 131 s on a loaded gate), `CommitRollbackRuntimeHarness` (3 classes of
-about a third of the cost each; 170 s on Windows CI), `SequentialCommitControlHarness` (3 classes: the fault sweeps are 27 of its
-28 s) and the `UsageInheritance` equivalence (usages, phrases and the rest, 3 classes; 109 s on Windows CI). The cut is made by cost
-(each class at most about a third of the old one); a case added to a class grows that class alone, and a class that outgrows its
-share is split again at a test boundary.
-
-Whole-corpus assertions stay OFF the partitioned base and run ONCE (`VersionMatrixTests`' two catalogue facts,
-`ConformanceSuiteTests.TheAlternativeSignConventionTest_CarriesItsWiseOwlOption`, `ConformanceSuiteRunnerDriftTests.BothRunners_RunExactlyTheSameTests`) — an inherited `[Fact]` would run N times and inflate
-the count N-fold. The StorageForm sweep is the one deliberate count change (6 → 13) and it keeps its POPULATION
-assertion: the whole-corpus bar was `parsed >= 50`, and each partition now asserts its proportional share rounded
-UP, so a partition that silently stopped binding goes RED instead of green-and-empty (§3.10 corollary 1).
-
-**What the split bought (battery #41, 2026-09, before M6; same box, 24-physical/32-logical i9-13900K):**
-
-| leg | wall | sum of test time | avg concurrency |
-|---|---|---|---|
-| Conformance | 721 s → **600 s** | 1948 s → 10469 s | 2.7× → **17.4×** |
-| Unit | 171 s → **138 s** | 329 s → 895 s | 1.9× → **6.5×** |
-
-The split removed the serial tail but moved the wall only 17 %, because one lock in the ANTLR lexer's ATN simulation
-(§3.14.5) serialized every compile in the process. M6 removed that lock, so whether running a class's rows in parallel
-would now beat the partition classes was measured again.
-
-**⭐ Per-row parallelism against the partitions, after M6 (kb/Work PB4150, 2026-10-30).** The Conformance assembly at
-`3abfbbdbb` (Debug, compiled-program cache off, server GC, xunit 2.9.2, 32 threads = the processor count, 19,881
-cases), each run inside a gate slot, the arms alternated round by round on the gate host. The arms: **A** today's
-assembly (32 suite partitions; xunit's default `conservative` algorithm); **Ag** A with `parallelAlgorithm: aggressive`;
-**B** A under `Meziantou.Xunit.ParallelTestFramework` 2.3.0 (the latest; it supports xunit v2), which runs every row of
-a class in parallel, with `aggressive`; **B2** B with the suite collapsed into ONE class; **A64** A at 64 threads.
-Wall seconds:
-
-| round | A | Ag | A64 | B | B2 |
-|---|---|---|---|---|---|
-| 1 | 176 | 154 | – | 291 | 174 |
-| 2 | 187 | 171 | – | 141 | 177 |
-| 3 | 170 | 143 | – | 135 | 131 |
-| 4 | 230 | 149 | – | 391 | 162 |
-| 5 | 277 | 320 | – | 223 | 197 |
-| 6 | 266 | 332 | – | 244 | 380 |
-| 7 | 263 | 218 | 187 | – | – |
-| 8 | 176 | 246 | 212 | – | – |
-| 9 | 197 | 224 | 291 | – | – |
-| **median** | **197** | **218** | **212** | **234** | **176** |
-
-A second series (the same arms A, Ag and B2, rebuilt at `773f18466`: 19,961 cases)
-re-measured A against B2 to see whether B2's lead survives a quieter host. Rounds 1–5 ran A, B2, Ag in that order and
-rounds 6–8 ran B2 before A; every run also sampled the gate slots every 5 s, so a run is QUIET only when no other gate
-held a slot at any sample:
-
-| round | A | B2 | Ag | most other gates in a slot during the A / B2 run |
-|---|---|---|---|---|
-| 1 | 196 | 208 | 177 | 1 / 2 |
-| 2 | 193 | 170 | 141 | 2 / 2 |
-| 3 | 181 | 143 | 173 | 1 / 1 |
-| 4 | 140 | 140 | 178 | none / none |
-| 5 | 211 | 160 | 229 | none / none |
-| 6 | 290 | 254 | – | 2 / 2 |
-| 7 | 441 | 233 | – | 2 / 2 |
-| 8 | 414 | 494 | – | 2 / 2 |
-
-- **⚠ The host was never idle, so the protocol's step 3 was not met, and the noise here is the shared host's.**
-  PB4150 asked for the arms measured on an otherwise idle host. The fleet's gates held other slots through 12 of the 14
-  A/B2 pairs (first series: 0–4 other slots, system CPU 55–96 %), and even the two pairs with no other gate (rounds 4
-  and 5 above) ran beside other sessions' builds: arm A took 140 s and 211 s in them. Arm A alone ranged 170–277 s in
-  the first series (standard deviation 43.5 s, n = 9) and 140–441 s in the second. A reserved host was not available:
-  the experiment ends when the fleet's next wave fills the slots, as the second series did after round 8.
-- **B2, the arm that would retire the partition machinery, led in most paired rounds.** B2 minus A per round:
-  −2, −10, −39, −68, −80, +114 s (first series) and +12, −23, −38, 0, −51, −36, −208, +80 s (second). Pooled over the 14
-  pairs, B2 was faster in 10, slower in 3 and tied in 1; its median ratio to A is 0.878 and the geometric mean of the
-  ratios 0.877, about 12 % faster. That lead does not clear the shared host's noise: a paired t-test on the log ratio
-  gives p = 0.070 (t = −1.97, 13 degrees of freedom) and an exact sign test p = 0.092. Ag against A over the same 14
-  rounds is noise (8 faster, 6 slower, geometric mean 0.977, p = 0.70), so a real B2 gain would come from the per-row
-  parallelism, not from the `aggressive` algorithm it runs under. Arm B (per-row parallelism over the 32 partitions)
-  ran from 54 s faster to 161 s slower than A in its rounds, and twice the threads (A64) did not beat the noise either.
-- **The pass sets are identical** by name key (section 3.11.2) in every run of every arm of both series, except the two witnesses each
-  variant trips by construction: `GateLegDriftTests.Arm4_ThisAssembly_NamesTheGateFramework` (B and B2 name Meziantou's
-  framework) and `ConformancePartitioningDriftTests.TheSuiteRunner_KeepsItsMeasuredPartitionFloor` (B2). No row failed
-  only under per-row parallelism.
-- **The leg is bound mostly by its threads waiting on child processes; the class structure costs at most B2's
-  unproven 12 %.** Every arm keeps 32 cases
-  in flight until its tail (average concurrency 25–32); a mid-run stack sample of arm B found 32 test threads, 26 of them
-  in `Process.WaitForExit` on a compiled program, and the test host itself used 548–734 s of CPU per run. The GC pause
-  share was 2–5 % in most runs (1.6–13.5 %).
-
-**⭐ The reserved-host series (kb/Work PB4195, 2026-10-30/31).** The owner reserved the host overnight: no fleet, no
-other session's gates, the gate cap set to 1 so each run held the only slot (every run's slot samples show it alone).
-A and B2 rebuilt at `f49f3e7e4`, alternated A then B2, six rounds, the same settings as above. Wall seconds:
-
-| round | 1 | 2 | 3 | 4 | 5 | 6 | mean | sd |
-|---|---|---|---|---|---|---|---|---|
-| A | 128 | 143 | 132 | 133 | 136 | 127 | 133.2 | 5.8 |
-| B2 | 126 | 127 | 128 | 137 | 131 | 129 | 129.7 | 4.0 |
-
-B2 minus A per round: −2, −16, −4, +4, −5, +2 s; mean −3.5 s, geometric mean of the ratios 0.974 (2.6 % faster),
-paired t = −1.23 with 5 degrees of freedom: inside the quiet host's own noise. The pass sets are identical except the
-same two by-construction witnesses. The shared host's 12 % lead was contention, not the per-row parallelism. And the
-quiet host runs the leg in about 133 s against about 200 s on the shared host, so the other gates beside a leg cost it
-far more than its class structure does (section 3.14.6 has the cap measurement).
-
-**Determination: keep the partition classes** (kb/Work PB4195). PB4150's bar is a gain beyond run-to-run noise with an
-identical pass set; on the reserved host B2's gain is 2.6 % and not beyond the noise, so per-row parallelism is not
-adopted. Its four costs, each witnessed, are what any future proposal must answer:
-1. **Under xunit 2.9.2's default algorithm it is unbounded.** Its assembly runner overrides `RunTestCollectionAsync`
-   and so skips the `conservative` algorithm's semaphore of `maxParallelThreads`, and with no
-   `MaxConcurrencySyncContext` it starts every case with `Task.Run`. The first such run reached 1,720 threads, 1,710 of
-   them inside `ProcessObserver.Observe` (most waiting on a child's stdout read, which needs a pool thread the
-   blocked cases hold); a child that had used 0.1 s of CPU never exited, so
-   `DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine` timed out twice (120 s each), and the run
-   was stopped at 10 minutes. It needs `parallelAlgorithm: aggressive` to keep the cap.
-2. **It names its own `[assembly: Xunit.TestFramework]`**, and an assembly names exactly one framework
-   (`GateTestFramework`, section 3.14.3), so adopting it means re-implementing its runners inside the gate's framework.
-3. **It schedules the long pole last.** The runner-drift verdict comparison (then `ConformanceSuiteRunnerDriftTests.BothRunners_GiveEverySuiteTestTheSameVerdict`; partitioned by kb/Work PB4325)
-   (one case, 50–205 s) is its own collection under the partitions; under B it queues behind thousands of rows,
-   started 113–234 s into four of the six runs, and ended those four runs. It ended one of the nine arm-A runs.
-4. **It removes the bound on a heavy family.** Six NIST partitions run at most six NIST rows at once; per-row
-   parallelism ran three rows of one partition together at 52–56 s each (round 4; the slowest NIST rows take 12–24 s
-   under the partitions).
-
-The Unit assembly was not measured (PB4150's step 4 runs only after the Conformance arm clears the bar). Its `[Collection("process-globals")]`
-classes would stay serial (the framework leaves an explicit collection serial), but a class outside that collection
-that swaps process-wide state in each case would race with its own rows: `AcceptSourceTests` sets `Console.In` in each
-of its five facts. The remaining levers are to
-reduce the WORK (the persistent compile/run host of §3.10's `guard-fast` row and A13(c)) and the long pole above.
+**Per-row parallelism was measured against the partitions and not adopted** (kb/Work PB4150, PB4195, 2026-10-30/31). On the
+shared host the arm that collapsed the suite into one class under `Meziantou.Xunit.ParallelTestFramework` led by about 12 %
+(p = 0.07); on a host reserved overnight, with the gate cap at 1, six alternated rounds measured 133.2 s (partitions, sd 5.8)
+against 129.7 s (per-row, sd 4.0), 2.6 % and inside the noise: the shared host's lead was contention. Its four costs, each
+witnessed, are what any future proposal must answer: (1) under xunit 2.9.2's default algorithm it is unbounded (1,720
+threads in the first run; it needs `parallelAlgorithm: aggressive` to keep the cap); (2) it names its own
+`[assembly: Xunit.TestFramework]`, and an assembly names exactly one (`GateTestFramework`, §3.14.3); (3) it schedules the long
+pole last (the runner-drift comparison queued behind thousands of rows); (4) it removes the bound on a heavy family (three
+NIST rows of one partition ran together at 52–56 s each against 12–24 s). The remaining levers reduce the WORK (§3.12).
 
 #### 3.11.2 ⛔ Filters must key on the METHOD, never on `Class.Method`
-
-A partition class is `VersionMatrixTests_P0`, so `FullyQualifiedName~VersionMatrixTests` still selects it and
-`!~VersionMatrixTests` still excludes it — but `~VersionMatrixTests.Cobol85Program_…` can never match
-`VersionMatrixTests_P0.Cobol85Program_…`, and **vstest answers a filter that matches nothing with a SILENT
-GREEN**. Two CI filters were keyed that way: the three continuity shards, and the **INV-1-STRONG job**
-(`~NistDifferentialTests.NistProgram_MatchesGolden`), which unlike the shard matrix has **no population guard**
-and would have kept reporting success over ZERO goldens. Both now key on the method name alone — unique in the
-tree, and immune to the next re-partition. The shard-population job (§3.8) is what catches this class of error for
-the sharded leg, and it was re-run locally against the split tree: 349+349+349+1080+1354+1761 = 5242 = discovered.
+A partition class is `VersionMatrixTests_P0`, so `FullyQualifiedName~VersionMatrixTests` still selects it, but
+`~VersionMatrixTests.Cobol85Program_…` can never match `VersionMatrixTests_P0.Cobol85Program_…`, and **vstest answers a filter
+that matches nothing with a SILENT GREEN**. A filter that must survive a re-partition keys on the method name alone, which is
+unique in the tree (INV-1-strong's `~NistProgram_MatchesGolden` is one); the population check (§3.14.4) catches this class of
+error for every whole-assembly run.
 
 ### 3.12 THE COMPILED-PROGRAM CACHE — reducing the WORK of a re-gate (kb/Work PB985)
 
-§3.11 ends with more parallelism not shown to beat the shared host's noise and "reduce the WORK" as the lever left. The largest repeated work
-is the lander's whole-Conformance re-gate after a TEST-ONLY fix (a probe template, a stale test-ref, a pinned
-expectation — the dominant cause of trains 46–48's first-gate reds): ~7,900 cases recompiled although no compiler
-or runtime bit changed. `tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCache.cs` makes that re-gate reuse every
-compiled program. **A hit still RUNS the program** — runtime behaviour is what a case checks; only the compile is
-skipped.
+The largest repeated work in a gate is recompiling programs when only a test changed (a probe template, a stale test-ref, a
+pinned expectation): thousands of cases recompiled although no compiler or runtime bit changed.
+`tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCache.cs` makes a re-gate reuse every compiled program. **A hit still
+RUNS the program** — runtime behaviour is what a case checks; only the compile is skipped.
 
 **Where a case's time goes (measured first, PB985 obligation 1; Debug build, serial, a loaded host).** A sampled
 corpus case: front end + bind ≈ 60 ms, emit + Roslyn + packaging ≈ 40 ms, the program RUN (a `dotnet` child
@@ -1057,27 +746,21 @@ names (blobs younger than ten minutes are spared for a concurrent writer), and s
 go. Each process appends its hit/miss tally to `stats.log`.
 
 **The switch.** `WISEOWL_COBOL_COMPILE_CACHE=off` disables it, `=on` forces it. Unset, it is ON for local gates
-(`build-local`, the lander) and OFF under CI (`CI` set — GitHub Actions always sets it); `scripts/battery.sh`
+(`build-local`) and OFF under CI (`CI` set — GitHub Actions always sets it); `scripts/battery.sh`
 exports `off`, so **the battery and CI run COLD** (PB985 obligation 4 — the owner may decide otherwise).
 
-**Measured (PB985 obligation 5)** — the whole Conformance assembly, 7,951 cases, three back-to-back runs on one
-unchanged tree at `BelowNormal` priority on the shared 32-core host (2026-09-22): **cold, cache off: 22 m 53 s**;
-**first gate, cache on and empty: 21 m 31 s** (12,886 compilations stored — the store's overhead is inside the
-noise); **re-gate, warm, no product change: 1 m 27 s** (13,133 hits, 27 misses — the 6 WHEN-COMPILED programs and
-the few harnesses whose sources live in a per-case random directory beside their copybooks — all 7,951 green in
-all three). The compile, not the run, was the wall-clock pole under full parallel load: the populate run's
-compilations summed to 25,217 thread-seconds (~2 s each under contention, against ~0.1 s serial), while the
-program runs, being separate processes, spread across the cores. The whole store was 49 MB.
+**Measured (kb/Work PB985, 2026-09-22)** — the whole Conformance assembly, 7,951 cases, three back-to-back runs on one unchanged
+tree at `BelowNormal` on the shared 32-core host: **cold, cache off: 22 m 53 s**; **first run, cache on and empty: 21 m 31 s**
+(the store's overhead is inside the noise); **re-gate, warm, no product change: 1 m 27 s** (13,133 hits, 27 misses: the 6
+WHEN-COMPILED programs and the few harnesses whose sources live in a per-case random directory). The compile, not the run, was
+the wall-clock pole under full parallel load. The whole store was 49 MB.
 
-**⛔ A Debug build must not depend on the commit it was built at.** The three runs above shared one HEAD. The
-lander's real re-gate COMMITS the test-only fix first, and the SDK then stamped the new commit into every
-assembly (`AssemblyInformationalVersion` "1.0.0+&lt;sha&gt;", and the Source Link map whose PDB checksum the
-assembly embeds) — every compiler bit changed, every case missed, and every incremental build recompiled every
-project. `Directory.Build.props` therefore sets `EnableSourceControlManagerQueries=false` (and drops the revision
-suffix) for **Debug only**; Release, the shipped build, keeps its stamp. `ADebugBuild_DoesNotStampTheCommit`
-pins it on the built bits. Re-measured on the real flow — populate at one commit (14 m 0 s, a quieter host), then
-a TEST-ONLY commit (that very test), rebuild, whole assembly: **build 5 s + 1 m 18 s, 13,133 hits / 27 misses,
-7,952 green.**
+**⛔ A Debug build must not depend on the commit it was built at.** The SDK stamps the commit into every assembly
+(`AssemblyInformationalVersion` "1.0.0+&lt;sha&gt;", and the Source Link map whose PDB checksum the assembly embeds), so a
+test-only COMMIT would change every compiler bit, miss every case and recompile every project. `Directory.Build.props` therefore
+sets `EnableSourceControlManagerQueries=false` (and drops the revision suffix) for **Debug only**; Release, the shipped build,
+keeps its stamp. `ADebugBuild_DoesNotStampTheCommit` pins it on the built bits. Re-measured on the real flow (populate at one
+commit, a TEST-ONLY commit, rebuild, whole assembly): build 5 s + 1 m 18 s, 13,133 hits / 27 misses, 7,952 green.
 
 ### 3.13 THE POPULATION IS THE SELECTION — the gate runs every case (kb/Work PB4328, step 5 of PB4323)
 
@@ -1153,7 +836,7 @@ longest first by the committed weights file. The growth trigger of PB4323 §3.4 
   (the class of each trx definition with a Failed result, through the one trx reader, kb/Work PB3661). They are written
   one per line to `<run>/first-classes.txt`, whose path every host gets as `WISEOWL_COBOL_GATE_FIRST`.
   `test_population.TRX_WRITERS` names every live tool that writes a trx file and what the gate takes from it, and
-  `GateLegDriftTests` holds it equal to the tools (`test_population.py audit-trx-writers`). A trx the gate cannot read
+  `test_population.py --self-test` holds it equal to the tools (`audit-trx-writers` over the real tree). A trx the gate cannot read
   is named on the console and KEPT in the run directory as `unreadable-<its directory>-<its name>.bad` (never `.trx`:
   later readers glob a run's trx files), and the gate goes on without it: this orders the run, it never selects it.
 - **The orderer** (tests/_shared/GateLegs.cs `GateOrderer`, installed by `GateAssemblyRunner` in every run): the test
@@ -1177,7 +860,7 @@ longest first by the committed weights file. The growth trigger of PB4323 §3.4 
   in English, with the gate's own `WISEOWL_COBOL_GATE_FIRST` when it has first classes and the harness observation log
   in the run directory, one per host (kb/Work PB3108).
 - **The listings** (`dotnet test --list-tests`, scrubbed, one per assembly, kept as `<run>/listing-<assembly>.txt`) run
-  BESIDE the hosts, and so do, when the change touches tooling, the self-tests that read the built assemblies
+  BESIDE the hosts, and so do, when the change touches a script, the self-tests that read the built assemblies
   (`self_tests.py --built`, kb/Work PB4326); both are joined after the hosts.
 - **The threads**: xunit's default `maxParallelThreads`, the processor count, measured best (§3.13); no
   `xunit.runner.json` caps it. The test hosts run Server GC (kb/Work PB2526).
@@ -1185,19 +868,23 @@ longest first by the committed weights file. The growth trigger of PB4323 §3.4 
   the toolchain, the slot, the lane, whether tooling was touched, the first classes, each host's exit, wall and finish,
   the timings (`build_s`, `tests_s`, `first_red_s`, `wall_s`, the waits beside), `assembly_wall_s`,
   `effective_concurrency` and each population's counts.
+- **A gate that measured nothing ends `NOT RUN [<cause>]`**, never GREEN and never RED. `gate.NOT_RUN_CAUSES` is the ONE table
+  of causes, each with a class: ENVIRONMENT (the host, not the tree: `settings`, `interpreter`, `toolchain`, `disk`, `tree`,
+  `launch`, `run`, `merge-blocked`, `host`, `sdk`) or BRANCH (the tree's own scripts or merged tree: `driver`,
+  `merge-failed`, `population`, `arguments`, `verdict`, `unclassified`). The landing judges a NOT RUN by its class (§3.17.2
+  step 3), and a NOT RUN verdict naming no known cause is `unclassified`.
 
 #### 3.14.4 Soundness: the population check — ONE tool for every whole-assembly run
 
 `scripts/test_population.py` (a module and a CLI) answers one question for any run: did the union of its trx files
-execute exactly the discovered population? Its callers are the gate driver (per assembly, over both legs: the module's
-`list_population` and `check`), the battery (`battery.sh` PHASE 1, all three assemblies — `check --project … --trx …`;
-until M14 it accepted any `Passed!` line with exit 0), and CI's `ci-gate` job (`check --listing … --trx …` per OS
-and test assembly over the weighted shards' trx files, and `--method NistProgram_MatchesGolden` over INV-1-strong's,
-kb/Work PB4329; the inline `grep -c` count block and the `shard-count-*` artifacts were deleted in the M14 change,
-because a count cannot see a dropped test offset by one that ran twice). Shard 1 of each OS lists its build's population (`test_population.py list`, 2 s) and uploads it beside its trx as
+execute exactly the discovered population? Its callers are the gate driver (per assembly: the module's
+`list_population` and `check`), the battery (`battery.sh` PHASE 1, all three assemblies — `check --project … --trx …`) and
+CI's `ci-gate` job (`check --listing … --trx …` per OS and test assembly over the weighted shards' trx files, and `--method
+NistProgram_MatchesGolden` over INV-1-strong's, kb/Work PB4329; a bare count cannot see a dropped test offset by one that
+ran twice). Shard 1 of each OS lists its build's population (`test_population.py list`, 2 s) and uploads it beside its trx as
 `test-results-<OS>-conformance-<shard>`, so the checking job needs no .NET and no build of its own, and the listings
 of one platform must be identical — the shards ran one build — or the check is an error. It also owns the ONE parser
-of a `--list-tests` output (`parse_listing`); `filter_population.py` and `record_impact_map.py` import it.
+of a `--list-tests` output (`parse_listing`); `filter_population.py` imports it.
 - **The population** is `dotnet test --list-tests` — vstest discovery, which never calls the executor and so cannot see
   the leg filter — listed by the tool itself in a SCRUBBED environment (§3.14.3), because the VSTest environment
   channel narrows discovery exactly as it narrows the run.
@@ -1205,539 +892,254 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` and `record
   discovered case that executed). Not the RESULT names: xunit lists a theory whose data it cannot serialize as ONE
   case and then reports one result per row, so Unit's results carry 33 names `--list-tests` never printed and miss 2
   it did, while its 29,703 definitions equal the listing exactly (`b8`).
-- **One spelling** (kb/Work PB4274): the two sides are compared in the trx logger's spelling (`trx_spelling`, the name
-  key's first step above), which is what the logger did to the listed name, so a case always meets itself. The rewrite
-  cannot be inverted (the logger escapes no backslash), so two LISTED names it spells alike are an error naming both,
+- **One spelling** (kb/Work PB4274): the two sides are compared in the trx logger's spelling (`trx_spelling`), which is
+  what the logger did to the listed name, so a case always meets itself. The rewrite cannot be inverted (the logger escapes no backslash), so two LISTED names it spells alike are an error naming both,
   never one merged count.
-- a name short → `NEVER RAN` (red, each named) — unless the run stopped early (a fail-fast stop, a leg-1-only gate),
-  when the remainder is reported as NOT RUN and the verdict is already RED/INCOMPLETE, or LEG 1 ONLY;
+- a name short → `NEVER RAN` (red, each named) — unless the run was stopped early (a red audit stops the hosts), when the
+  remainder is reported as NOT RUN and the verdict is already RED;
 - a name over → `RAN TWICE` (red, named), whether or not the run stopped early;
 - a definition the listing never printed → `NOT IN THE POPULATION` (red, named: a trx of another build or assembly),
-  whether or not the run stopped early (`Population.defective`; until PB4274 a leg-1-only gate printed it and stayed
-  GREEN);
+  whether or not the run stopped early;
 - a definition with no Passed or Failed result → counted as SKIPPED on the verdict line, never as ran;
-- an input it cannot read (a missing or non-trx file, a listing without vstest's marker, an EMPTY population,
-  listings that disagree) → exit 2, an error, never a finding. Each run prints one line,
-  `=== POPULATION <label>: EXACT — 9,317/9,317 cases ran (skipped 0) across 1 trx ===` or `RED — …` followed by the
-  named cases;
-- (gate only) an IDENTITY MISMATCH → red: two legs read two plans (digest), or a leg ran binaries other than the ones
-  the driver built and listed (the identity records' hashes against step 3's), so totality no longer holds.
+- an input it cannot read (a missing or non-trx file, a listing without vstest's marker, an EMPTY population, listings that
+  disagree) → exit 2, an error, never a finding. Each run prints one line,
+  `=== POPULATION <label>: EXACT — 9,317/9,317 cases ran (skipped 0) across 1 trx ===` or `RED — …` followed by the named
+  cases.
 
-`GateLegDriftTests` (Unit) proves it fails: (1) `LegOf` is total and deterministic over synthetic cases with
-repeated, unknown and truncated names and an empty plan, and `NameKey` strips exactly the partition suffix; (2) each
-orderer's output is a permutation of its input, and a planted non-permutation throws; (3) `gate.py
---self-test` and `test_population.py --self-test` fire every arm on planted inputs — a dropped case, a duplicated
-case, a skipped case, a digest mismatch, a binary changed between legs, a red in leg 1 (stop, remainder named,
-RED/INCOMPLETE), no plan (one leg, plain order), an assembly whose leg 1 is empty (not invoked; its population still
-whole), a partial handshake on a real leg host (every case an execution error, RED), a second gate in the same
-worktree (refused), and ONE SHAPE (every gate takes a slot, its audits ahead of it, and stops at a red in leg 1);
-(4) every test project under `tests/` that
-the gate runs links `GateLegs.cs` and names `GateTestFramework`; (5) no discovered display name in a gated assembly
-contains the repository root. Arms (4) and (5) audit the assembly they run in (`tests/_shared/GateLegAudit.cs`: the
-attribute, and xunit's own discovery with theories pre-enumerated, checking each name and each string argument,
-since a truncated argument can cut the root off; the root is matched as TEXT in its written, `/` and xunit-escaped
-forms, never through the host's path rules, and Unit's witness plants a Windows, a POSIX and the host's own root, so
-the arm is proven on each OS CI runs), so every gated assembly carries a `GateLegDriftTests` with those
-two arms; Unit's also holds (1), (2), (3)'s population half, (6), the handshake arms and (4)'s structural half over
-every test `.csproj`; (6) every `dotnet test` caller scrubs `WISEOWL_COBOL_GATE_*`, `VSTest*` and `RunSettingsFilePath`
-(`test_population.py audit-callers`, §3.14.3) — the driver included, which merges its own handshake over the
-scrubbed environment. Each arm is one test method named for its number, so the mechanisms that land them separately
-merge by union.
+**The drift tests that prove it fails** (`GateLegDriftTests`, one per assembly, each arm one method named for its number,
+for the test assemblies' half; the scripts' half is their own self-tests', kb/Work PB4395):
+(2) the orderer runs the named classes first, then longest first, and its output is a permutation of its input (a planted
+non-permutation throws); (3) `gate.py --self-test` and `test_population.py --self-test` declare every arm (a dropped case,
+a duplicated case, a skipped case, a foreign definition, a red audit that stops the hosts, a second gate in the same worktree
+refused, one shape for every gate): `scripts/self_test_arms.py`'s `DECLARED`, the one register of the arms each pipeline
+self-test must declare (kb/Work PB4395 moved it out of the compiler's test assembly); (4) every test project under `tests/` links `GateLegs.cs` and names `GateTestFramework`;
+(5) no discovered display name in a gated assembly contains the repository root (the audit reads the attribute and xunit's
+own discovery with theories pre-enumerated, `tests/_shared/GateLegAudit.cs`, and matches the root as TEXT in its written, `/`
+and xunit-escaped forms, never through the host's path rules; Unit's witness plants a Windows, a POSIX and the host's own
+root, so the arm is proven on each OS CI runs); (6) every `dotnet test` caller scrubs `WISEOWL_COBOL_GATE_*`, `VSTest*` and
+`RunSettingsFilePath` (`test_population.py audit-callers`, §3.14.3, run over the real tree by `test_population.py
+--self-test`); plus `Shard_*` for CI's deal (§1.4), and `test_population.py --self-test`'s real-tree arms that hold
+`test_population.TRX_WRITERS` and the one trx reader (§3.14.2).
 
-#### 3.14.5 Whole-suite speed — measured first
+#### 3.14.5 Whole-suite speed: what was measured, and what it fixed
 
-An uninstrumented whole-Conformance run (battery #87, `b1`): 9,054 tests, **571 s wall**, 11,553 test-seconds.
+A whole-Conformance run is bound by what its threads wait on and by the lock-free-ness of the compiler's hot path, so each
+speed lever below was found by measuring a run first (`scripts/profile-test-parallelism.py`, stack samples, an in-process
+scaling probe), never by assuming.
 
-| share of test-seconds | method |
-|---|---|
-| 54.4 % | `VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition` — the continuity cells, 1,047 rows |
-| 18.1 % | `NistDifferentialTests.NistProgram_MatchesGolden`, 349 rows |
-| 10.8 % | `CorpusRunnerTests` (negative 6.3 %, positive 4.5 %) |
-| 3.3 % | two single tests: the corpus row `pb505-table-value-dynamic-span-levels` (266 s, inside the corpus share above) and `ValueFormat2Tests.DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946` (116 s) |
-
-**The critical path is the twelve continuity partitions:** eleven of them ran 525–557 s each and all twelve ended
-in the run's last 26 s, against a 361 s floor for the whole assembly's work on 32 threads. A continuity cell is two check-only compiles of
-one NIST program (permissive, strict) at a later edition.
-
-**Why a partition is slow — one lock in the lexer (`b6`, `b2`).** One partition alone: 0.97 s per row. All twelve
-in one process: 369–395 s, ~4.5 s per row, with the test host using only ~3.8 of 24 cores. Server GC: 360 s. The
-same work as two concurrent processes: 209 s; four: 136 s — the limit is INSIDE one process. An in-process probe of
-exactly that work (`b2-scaling`) peaks at 3.5× by 8 threads, with ~1,400 contended `Monitor` acquisitions per
-compile. Stack samples name it: **28 of 30 single-thread samples, and all 24 twelve-thread stacks, are in ANTLR's
-`LexerATNSimulator.ComputeStartState` / `AddDFAState`** — half of the latter blocked in `Monitor.Enter`. ANTLR 4.13.2
-`LexerATNSimulator.MatchATN` caches a mode's start state only when its closure carries no semantic context, and
-`CobolLexer.g4`'s default mode has six predicates on the LEFT EDGE of a rule (`FN_SIGNED_FLOATLIT`,
-`FN_SIGNED_COMMA_FLOATLIT`, `FN_SIGNED_DECIMALLIT`, `FN_SIGNED_INTEGERLIT`, `DEFINED`, `FNARG_SEPARATOR`). So every
-token of every compilation recomputes the closure over all default-mode rules and re-adds it under
-`lock (dfa.states)`. That is a PRODUCT defect: the `cobol` CLI pays it serially, and any host compiling in parallel
-(the test host, an IDE) pays the lock too.
-
-- **M6 — after warm-up, lexing performs NO ATN simulation.** Moving a predicate off the left edge is NOT enough.
-  ANTLR 4.13.2 (decompiled `LexerATNSimulator`) never stores a DFA edge whose target configuration set passed
-  through a predicate (`AddDFAEdge(from, t, q)` returns before `AddDFAEdge(from, t, state)` when
-  `q.hasSemanticContext`), so every token that REACHES a predicate re-runs `ComputeTargetState` and `AddDFAState`
-  under `lock (dfa.states)` — on every occurrence, not once. With `DEFINED`'s predicate one character in, s0's `D`
-  edge stays uncached and every D-initial default-mode token (DATA, DIVISION, DISPLAY, DEPENDING, D-initial names)
-  still takes the lock; `FNARG_SEPARATOR`'s does the same for every `,` and `;` separator, and the `FN_SIGNED_*`
-  rules' for every `+` and `-`. So each predicate LEAVES the lexer's hot paths:
-  - `FNARG_SEPARATOR` and `DEFINED` match exactly the text their fallback matches, so an ACTION picks the outcome
-    (`[,;] [ \t\r\n]+` always lexes as one token; the action keeps it as `FNARG_SEPARATOR` in function arguments
-    and skips it otherwise, exactly as `COMMA_SEP` / `SEMICOLON` and the whitespace rule skipped, and `COMMA_SEP`,
-    which it subsumes, is deleted). `DEFINED` lost its rule: it is a virtual token that `IDENTIFIER`'s action
-    retypes when the directive expression is primed. ⚠ The first cut — an unconditional `'DEFINED'` rule retyping
-    itself to `IDENTIFIER` — lexed identical tokens but published the literal name `'DEFINED'`, which
-    `CobolKeywordTokens` reads as "the lexer makes this word a keyword token" (so `>>COBOL-WORDS` would have
-    treated DEFINED as one) and `CobolWordsDriftTests` flagged; a token-stream differential cannot see a
-    vocabulary consumer, so this is recorded here (DESIGN-frontend-grammar.md §3.3e). Actions do not suppress
-    DFA edges.
-  - the four `FN_SIGNED_*` rules lex ONE token where the fallback lexes TWO (the sign, then the number), so an action
-    cannot choose between them by retyping alone. They stay unconditional DEFAULT-mode rules, and their action
-    (`OnSignedLiteral`) keeps the signed literal where `SignedLiteralCanStart()` holds — now asked of the character
-    before the TOKEN'S START — and otherwise CUTS the token back to its sign: the type becomes `PLUS`/`MINUS`, the
-    input is re-seeked to the character after the sign and the column restored (no numeric body contains a line
-    break), so the lexer resumes at the digits and lexes them exactly as the predicate-false path did. The
-    alternative, a mode entered by the preceding token's action, was rejected: the context is "a separator
-    character immediately before the sign", which a mode would have to re-derive on every token.
-  `LexerDfaCacheDriftTests` pins the invariant that matters: after one warm-up pass over the suite's sources, no
-  ASCII character of a re-lex leaves the cached DFA, and `s0` is non-null for every mode. ⚠ The instrument is NOT
-  a counting `LexerATNSimulator` subclass as first designed: in ANTLR 4.13.2 `MatchATN`, `ComputeTargetState` and
-  `ExecATN` are not virtual, so no subclass can count them. It is a probe on the INPUT side — `Lexer.NextToken`
-  and `LexerATNSimulator.Match` each `Mark()` the `ICharStream` as a match begins, and the test's stream, at that
-  moment, walks the cached DFA of the lexer's current mode over the coming characters exactly as `ExecATN` will and
-  records the first place the walk would leave the cache (no start state; a missing ASCII edge; a character above
-  127; EOF). The lexer runs over a PRIVATE DFA, so the measurement is independent of what other tests lexed first,
-  and the warm-up pass must itself see misses, or the probe is blind. The next predicate on a common prefix is
-  therefore red, wherever in the rule it sits — measured: the pre-M6 grammar is red (5,216,645 start-state misses
-  on the re-lex, 13 min against the fixed grammar's 3 s), and a predicate planted one character into `DEFINED`
-  (`'D' {true}? 'EFINED'`) is red (68,289 mid-token misses — every D-initial token). ⚠ ANTLR's DFA edges cover only
-  characters 0–127 (`MAX_DFA_EDGE = 127`), so a non-ASCII character is simulated on every occurrence, and the EOF
-  transition is never cached (`GetExistingTargetState` rejects `t < MIN_DFA_EDGE`), so the token that reaches the
-  end of an input is simulated once per input; the test REPORTS both, never asserts them. Over the lexer inputs the
-  suite actually produces (17,055 distinct preprocessed texts and fragments): 14,556 ASCII inputs re-lex with zero
-  misses; the 2,499 non-ASCII ones (38,675 non-ASCII characters in 72.8 M) leave the cache 77,196 times — against
-  9,955,488 tokens. The implementing change proved equivalence once: every distinct (lexer input, priming) the
-  Conformance, Unit and Characterization assemblies lexed on the pre-M6 grammar (compile cache off) was captured and
-  replayed through both lexers, and all 17,055 token streams — type, channel, offsets, line, column, text, lexer
-  errors and final mode — are identical (DEVLOG). Measured gain (`b2-scaling/b2-after-m6.txt`): the one-thread
-  wall of `b2` fell from 110.1 s to 3.4 s (32×, beyond the 15× Amdahl bound estimated from the stack samples), at
-  12 threads it is 2.0 s (55× today's one-thread wall: acceptance MET) with ZERO contended `Monitor` acquisitions;
-  CPU utilisation at 12 threads is 21 % (acceptance NOT met) and the reason is no longer the lexer — 1.3 s of the
-  2.0 s is workstation-GC pause, and the same run under server GC reaches 87 %. `b1` is re-measured on the next
-  battery.
-- **Sharing one front end across editions is REJECTED** as unsound: edition state is cached in the front end
-  (`Frontend.LexAndParse` primes the lexer with the cell's `EditionInfo`; the reference-format and COPY
-  preprocessors and `CobolParserCoreBase` hold per-edition state), so a shared front end would answer the 2014 cell
-  from another edition's parse. M6 changes no test's inputs.
-- **Process sharding is not built.** It bought 1.8× (two processes) and 2.8× (four) only because each process has
-  its own lock; building it would route around the product defect (CLAUDE.md rule 4). After M6, `b6` is re-run: if
-  two processes still beat one by more than 15 %, the next in-process serialization is found and fixed at its root.
-- **Server GC** bought 3–9 % while the lexer lock bound the process: not adopted then. After M6 it is the next
-  in-process serialization — `b2` over the whole green set spends 3.1–4.0 s of each ~5 s round paused in
-  workstation GC at 8–24 threads, and reaches 6.1× at 87 % CPU on 12 threads under server GC
-  (`b2-scaling/b2-after-m6.txt`) — so it is re-decided as its own mechanism, not inside M6. **Adopted (kb/Work
-  PB2526, 2026-10-07):** `tests/Directory.Build.props` sets `ServerGarbageCollection` for every test host after the
-  w1033 diagnosis measured 69 % of a 32-thread compile probe's wall in workstation-GC pauses, and the whole
-  Conformance leg 318 s to 255 s and Unit 74 s to 56 s with identical pass sets; each gated assembly's
-  `GateLegDriftTests` asserts its host's runtimeconfig carries `System.GC.Server`.
-- **The compiled-program cache** (§3.12) already stores check-only results, so a TEST-ONLY re-gate hits every
-  continuity cell; a gate after a product change misses by design. No change.
-- **The class split's 17 % (§3.11.1, battery #41)** was measured under this lock. After M6, the partition counts
-  (one `Partitions` constant per family, audited by `TestPartitionAudit`) are re-measured; the first re-measure
-  (w1033, kb/Work PB2527) took `CorpusRunnerTests` from 3 partitions to 24 and split `OptionalWordSubsetDriftTests` 8
-  ways, and kb/Work PB4150 measured per-row parallelism against the partitions: about 12 % on the shared host, 2.6 %
-  and inside the noise on the reserved host (kb/Work PB4195), so the partitions stay (section 3.11.1).
-
-**M7 — the long poles.** `pb505-table-value-dynamic-span-levels` (266 s in the battery; **29.6 s alone through the
-`cobol` CLI** for a 26-line program) and `DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946` (116 s) are one
-product defect: all three stack samples of the CLI compile sit in `TableValueOdometer.Resolve`, whose fill loop is
-bounded only by its `MaxFillElements` ceiling (64,000,000) — and when the odometer can never carry out of a DYNAMIC
-dimension with no TO, the phrase's TO is never reached, which is exactly the §13.18.63.3 SR23 violation ("the values
-of subscript-1 and subscript-2 corresponding to all levels higher than that of the OCCURS clause, if applicable,
-shall be equal") that `COBOL1946` then reports. The fix checks SR23 before any fill and bounds the
-fill by the elements the phrase names; the test keeps asserting the diagnostic. **Landed (kb/Work PB1716):**
-`TableValueOdometer.ElementCount` computes a phrase's element count as the mixed-radix distance from subscript-1 to
-subscript-2 BEFORE anything is read and returns none for a phrase SR20/SR21/SR23 reject, so the `MaxFillElements`
-cap is gone (and since kb/Work PB1722 `Resolve` keeps the PHRASES, never filling an element map at all); the SR23 rule's shape ("a level above ANY unbounded
-dimension") lives once in `TableValueOdometer.UnboundedBelow`, read by both the fill and the `COBOL1946` screen,
-which had tested only the OUTERMOST unbounded dimension and so accepted two nested ones spanned at the outer level.
-pb505 now rejects in 0.49 s through the CLI (was 25.3 s on the same build). The other poles over 30 s in `b1`
-(`CompiledProgramCacheDriftTests.TheOutputDirectory_DoesNotReachTheOutput` 55 s, `OptionalWordSubsetDriftTests`
-`special-names-85` 41 s, `St101A` 30 s, continuity rows of IX113A/NC177A/NC253A/RL101A at 40–49 s) are compile-bound
-and are re-measured after M6 before any is touched. The battery summary prints the five slowest tests (a REPORT,
-never a wall-clock assertion — MANDATORY-PRACTICES forbids those), so the next pole is seen when it appears.
-
-**The w1033 gate-cost levers (kb/Work PB2524–PB2527), measured 2026-10-07.** The diagnosis
-(`E:\COBOL-coord\scratch\reports\w1033-perf-gate-report.md`) found a typical implementer gate holding its slot
-430–940 s, 35–45 % of it the twelve serial audits, and the Conformance leg ending in a 1–4-thread tail of three corpus
-partitions. Four levers landed together; each was measured on the same 32-core host, the arms alternated, the
-compiled-program cache off:
-
-| lever | before | after |
-|---|---|---|
-| audits run before the slot (PB2524) | about 230 s of each slot hold (94–358 s, 22 gates) | 0 s in the slot: gate 2 `audits_s` 28.8 s before `gate-slot: took slot`, `slot_wait_s` 0.1 s |
-| `audit_doc_citations.py --check` in-process (PB2525) | 78.2 s (843 `cite.py` processes) | 2.5 s, byte-identical `--all` output over the corpus (949 citations) |
-| the twelve audits, serial | 113.7 s (diagnosis, 25 % host load) | 28.3 s (`CITATIONS` 18.5 s is now the largest) |
-| whole Conformance assembly, xunit order (PB2526 + PB2527) | 171.9 s, 196.5 s | 95.7 s, 68.0 s (10,917/10,917 passed) |
-| whole Unit assembly (PB2526) | 76.0 s, 92.8 s | 49.0 s, 65.8 s |
-
-The host was otherwise near idle (about 10 % load before the runs); the load sampled during each run is mostly the
-run's own and is recorded with the evidence in `docs/rearchitecture/evidence/w1033-gate-levers/` (`measure.txt` and
-the script that took it, `audits-after.txt`, and the doc-citation audit's `--all` output before and after). The
-implementer gate
-on the branch: gate 1 (fresh worktree, cold, `timings none`) 381 s wall, 333 s of it in the slot; gate 2 (a re-gate,
-warm compile cache, timed from the shared store) 161 s wall, 123 s in the slot, Conformance leg 2 88.7 s. Not
-adopted, left to the owner as the diagnosis' levers 4 and 5: a shared location-independent compile store, and a
-ReadyToRun runtime for the programs the tests run.
+- **M6 — after warm-up, lexing performs NO ATN simulation (kb/Work PB1715).** The twelve continuity partitions were the
+  critical path, 4.5 s a row in one process against 0.97 s alone, with the test host using ~3.8 of 24 cores: 28 of 30
+  single-thread stack samples sat in ANTLR's `LexerATNSimulator.ComputeStartState` / `AddDFAState`, half blocked in
+  `Monitor.Enter`. ANTLR 4.13.2 caches a mode's start state only when its closure carries no semantic context, and never
+  stores a DFA edge whose target configuration set passed through a predicate (`AddDFAEdge` returns early when
+  `q.hasSemanticContext`), so every token that REACHED a predicate recomputed under `lock (dfa.states)`. That is a PRODUCT
+  defect (the `cobol` CLI paid it serially, any parallel host paid the lock), fixed in `CobolLexer.g4` by removing the
+  predicates from the lexer's hot paths rather than by sharding processes (which would route around the defect):
+  `FNARG_SEPARATOR` and `DEFINED` match the same text as their fallback, so an ACTION picks the outcome (`DEFINED` is a
+  virtual token that `IDENTIFIER`'s action retypes when the directive expression is primed; DESIGN-frontend-grammar.md
+  §3.3e); the four `FN_SIGNED_*` rules stay unconditional default-mode rules whose action (`OnSignedLiteral`) keeps the
+  signed literal where `SignedLiteralCanStart()` holds, and otherwise cuts the token back to its sign and re-seeks. Actions
+  do not suppress DFA edges. `LexerDfaCacheDriftTests` pins the invariant: after one warm-up pass over the suite's sources,
+  no ASCII character of a re-lex leaves the cached DFA, and `s0` is non-null for every mode. Its instrument is a probe on
+  the INPUT side (`Lexer.NextToken` and `LexerATNSimulator.Match` each `Mark()` the `ICharStream`, which then walks the
+  cached DFA over the coming characters exactly as `ExecATN` will), because in ANTLR 4.13.2 `MatchATN`, `ComputeTargetState`
+  and `ExecATN` are not virtual and no subclass can count them. The next predicate on a common prefix is red wherever in the
+  rule it sits. DFA edges cover characters 0–127 only and the EOF transition is never cached, so those are REPORTED, never
+  asserted. The one-thread wall of the scaling probe fell from 110.1 s to 3.4 s, with ZERO contended `Monitor` acquisitions.
+  Sharing one front end across editions was REJECTED as unsound (edition state is cached in the front end).
+- **Server GC (kb/Work PB2526).** Once the lexer lock was gone, 69 % of a 32-thread compile probe's wall was workstation-GC
+  pause; `tests/Directory.Build.props` sets `ServerGarbageCollection` for every test host (Conformance 318 s to 255 s, Unit
+  74 s to 56 s, identical pass sets), and each gated assembly's `GateLegDriftTests` asserts its host's runtimeconfig carries
+  `System.GC.Server`.
+- **M7 — the long poles.** `pb505-table-value-dynamic-span-levels` (266 s; 29.6 s alone through the CLI for a 26-line
+  program) and `DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946` (116 s) were one product defect: `TableValueOdometer.Resolve`
+  filled up to 64,000,000 elements before reaching the SR23 violation that `COBOL1946` reports (ISO §13.18.63.3 SR23). The
+  fix (kb/Work PB1716, PB1722) computes the phrase's element count as the mixed-radix distance from subscript-1 to
+  subscript-2 BEFORE anything is read, returns none for a phrase SR20/SR21/SR23 reject, and keeps the PHRASES instead of an
+  element map; the SR23 shape lives once in `TableValueOdometer.UnboundedBelow`. The pb505 program now rejects in 0.49 s. The
+  battery summary prints the five slowest tests (a REPORT, never a wall-clock assertion), so the next pole is seen when it
+  appears.
+- **The gate-cost levers (kb/Work PB2524–PB2527, 2026-10-07).** The audits run before the slot (about 230 s of every slot
+  hold became 0), `audit_doc_citations.py --check` runs in-process (78.2 s to 2.5 s, byte-identical output over 949
+  citations), and the compiled-program cache (§3.12) and the ReadyToRun runtime (§3.16) cut the rest. Evidence:
+  `docs/rearchitecture/evidence/w1033-gate-levers/`.
+- **The compiled-program cache (§3.12)** already stores check-only results, so a TEST-ONLY re-gate hits every continuity
+  cell; a gate after a product change misses by design.
 
 #### 3.14.6 The gate cap (M2)
 
-**Long holds are flagged, never killed (kb/Work PB3310).** The OS frees only a DEAD holder's slot, so a hung gate keeps
-its slot for as long as its process lives (2026-10-16: a Linux gate whose WSL clone was deleted under it held one of the
-three slots 6 h 40 min). Every released hold records its duration per kind (`gate_slot.hold_kind`: `gate`, `Linux gate`,
-`record_impact_map`) in `<git common dir>/cobol-gate-slots/holds.json` (the last 50 per kind); `gate_slot.py status` marks a
-held slot older than 5 times the median of its kind's recorded holds (at least 5 recorded) `LONG HOLD`, and the session
-probe prints those lines. The limit is the gates' own history, not a fixed one, and the flag is advice: the operator
-verifies the holder's pid before stopping anything. The Linux gate (`scripts/linux-gate.sh`) runs one gate per tree: a
-second run on a tree whose gate is running answers `=== LINUX GATE: BUSY ...` (exit 3) before it touches the tree's
-results, and `enqueue.py land` holds a per-worktree land lock (§3.17.2 step 3), so the overlap that produced the hang
-cannot start.
-
-`scripts/gate_slot.py` is ONE counting semaphore for the whole repository, served FIFO:
-- **Slots.** N lock files `<git common dir>/cobol-gate-slots/<k>.lock`, each held by an exclusive OS file lock
-  (`LockFile` on Windows, `flock` on Linux), so a crashed holder releases its slot when it dies and no stale-pid
-  cleanup exists. The holder writes its label (who, pid, since when) at the start of the file; on Windows the lock
-  covers one byte far past the end of the file, so the label stays readable. The label is informational only: a slot
-  is free exactly when its lock can be taken.
-- **Tickets.** A waiter first takes a TICKET: under an exclusive lock on `cobol-gate-slots/tickets.lock` it reads and
-  increments the monotonic counter in `tickets.seq` (rewritten atomically; a counter that is not a number is an error,
-  never a silent reset, since a reset could hand a new waiter a number below a live one), creates
-  `ticket-<seq>.lock` and holds it with an exclusive OS lock for as long as it waits. A ticket is LIVE while its file
-  is locked, so a waiter that dies drops out of the queue by itself; the next scan deletes its file. Scans run under
-  `tickets.lock`, so a ticket is never probed between its creation and its lock. A waiter may take a free slot only
-  when no live ticket is served before it, and it drops its ticket only AFTER it holds the slot; so a gate that
-  finishes and re-gates at once queues BEHIND everyone already waiting, instead of winning every race by polling
-  first. `gate-slot: waiting, k ahead (ticket t, cap N, <class>, …)` counts the live tickets served before one's own
-  and is printed each time `k` changes; `gate-slot: took slot k of N (ticket t, waited s)` is printed on acquisition.
-- **Two classes, landing first (kb/Work PB3103).** A ticket has a CLASS: `landing` (`ticket-<seq>-landing.lock`) for
-  the gate `enqueue.py land` starts, which sets `COBOL_GATE_CLASS=landing` in its gate's environment, and
-  `implementer` (`ticket-<seq>.lock`) for every other gate. THE SERVICE ORDER is every live landing ticket before
-  every implementer ticket, ticket order within each class, so a landing's gate takes the next free slot ahead of
-  the implementer gates already waiting instead of queueing behind up to the cap's worth of them (landing is the
-  measure; owner 2026-10-12, "Supervisor lane (Recommended)"). The cap is the same for both classes, so the
-  machine's total gate load does not change. An unknown class value stops the gate with the reason, as malformed
-  settings do; `status` lists the queue in service order with each ticket's class.
-- **Two pools: a light gate never waits for a full one (kb/Work PB3724).** The cap exists to ration builds and test legs,
-  and a gate that runs neither queued for it anyway: on 2026-10-25 a notes-only gate (the INERT lane, §3.18), whose only
-  slot work is about a minute of script self-tests in a WSL clone of HEAD, waited ten minutes behind the implementers' full
-  gates. (That LIGHT pool was deleted with kb/Work PB4328: its one user, the inert lane's Linux half, left the gate with
-  kb/Work PB4327, and an inert-lane gate now takes no slot at all.) ⛔ A setting lives in its pool's OWN directorylive in its OWN directory, never as a new key of the gate pool's `settings.json`: every worktree reads that file with its
-  own copy of `gate_slot.py` and refuses a key it does not know, so a key added there would stop every gate in every
-  worktree not yet merged with main (the PB3724 review, R1-1; the self-test's light-pool arm pins it). `Host.take_slot(label, say, pool)` takes the
-  pool its work follows: the full lane's gate takes a GATE slot (the inert lane none), and `gate_slot.py run --pool
-  light|gate` wraps a command in either. No gate holds both, so neither pool waits on the other. `status` prints both
-  pools. A waiting gate also says WHY it waits: a count that rises while it waits (`k ahead` 0, 1, 2, 0) is a landing
-  ticket numbered after its own and served first (PB3103), and the log names each such ticket once; the gate next in line
-  says it waits for the first released slot of its pool.
-- **What holds it.** A Python caller holds a slot with `GateSlots.for_repo().acquire(label)` (a `Slot`, released by
-  its `with` block or by the holder's death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] --
-  <command>`, which exits with the command's code. `gate.py` takes the slot after the worktree's gate lock
-  and its audits (kb/Work PB2524: the audits read only the tree, so they never hold a slot) and BEFORE the build
-  (§3.14.3), and holds it through the population check, so the cap bounds the concurrent solution
-  builds as well as the test legs. The slot is held by the gate's whole PROCESS TREE. On Windows, acquisition puts the
-  holder ITSELF into a Job object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` before it spawns anything, so every
-  descendant is in the job from birth, with no window in which a grandchild can escape, and if the driver dies the OS
-  kills every `dotnet` process with it. On Linux the slot's descriptor is inherited by the children: Python's
-  `subprocess` closes descriptors by default, so every spawn passes `**slot.spawn_kwargs()`. `dotnet` hands inherited
-  descriptors on to its own children, and an `flock` lives until the last descriptor closes, so an ORPHANED Linux
-  tree keeps its slot until it exits. The cap still bounds it; nothing kills it. ⛔ `spawn_kwargs` also turns
-  PERSISTENT BUILD SERVERS off in every child's environment (`MSBUILDDISABLENODEREUSE=1`, `UseSharedCompilation=false`;
-  MSBuild imports environment variables as properties): a reused MSBuild node or a VBCSCompiler server started inside
-  the slot is a descendant of the holder that OTHER worktrees' builds connect to, so on Windows the job would kill it
-  in the middle of another gate's build when this gate ends, and on Linux it would inherit the descriptor and hold
-  the slot for its whole idle lifetime (a design correction made by M13, kb/Work PB1721). Acquisition is never nested beyond
-  the one fixed order (worktree lock, then ticket, then slot), so no two gates can wait on each other in a cycle.
-- **Who takes one.** Every gate (one shape, kb/Work PB3022), a landing's included, and the impact recorder. The
-  BATTERY never takes a slot and never waits. N is ONE shared setting of the slot directory (kb/Work PB2514):
-  `cobol-gate-slots/settings.json`, written only by `gate_slot.py set-cap N [--until ISO] [--why TEXT]` (under
-  `settings.lock`, replaced atomically, recording who, when and why) and re-read by every waiter on every poll, so
-  every gate applies the same cap at the same moment and a raise reaches the queue at once. While each gate read N
-  from its own environment, gates started with different N shared one FIFO queue, and a cap-1 gate at its head
-  waited for slot 1 while slot 3 stood free, blocking every cap-3 gate behind it (2026-10-07 16:13 PDT). A setting
-  may carry an expiry (an ISO time with its UTC offset); once it passes, the CODED DEFAULT is in force again with no
-  one acting, and `gate_slot.py clear [cap]` removes it so its default is in force at once — clearing rewrites the
-  file without reading it, the one repair of a malformed file. Malformed settings stop the gate with the reason. (The
-  implementer SCOPE `leg1|whole` the same file carried is gone with kb/Work PB4328: every gate runs the whole
-  population.) ⛔ THE CODED DEFAULT IS THE OWNER'S DECISION (2026-10-10, kb/Work PB2514), in `gate_slot.py` and nowhere
-  else: `DEFAULT_SLOTS = 3` ("Cap 3 permanently"), re-measured for the whole-population gate (§3.13: three gates together
-  503 s each, one alone 247 s). The cap's
-  measurement (M2's acceptance: the largest N at which the lander's whole-Conformance leg stays within 1.25× of its
-  quiet time with N implementer gates running, builds included; kb/Work PB1720, evidence `m13`: every gate cold, the
-  lander at Normal, the implementers at BelowNormal, each rebuilding its compiler) gave quiet 143.1, 135.8 and 133.6 s;
-  ONE implementer gate 1.24x and 1.30x; two 1.58x and 1.52x; three 1.56x — only N = 1 met the line. The owner chose
-  three anyway: at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey). The verdict line prints the wait and the slot (`Slot.describe()`).
-  **The host's throughput at N concurrent legs (kb/Work PB4181, 2026-10-31, the reserved host).** N copies of the
-  Conformance assembly (arm A of section 3.11.1, cache off, server GC) started together inside one slot, nothing else
-  running, two repetitions; runs per hour = N × 3600 / the batch's wall:
+`scripts/gate_slot.py` is ONE counting semaphore for the whole repository, served FIFO. It rations builds and test legs, so
+the cap bounds the concurrent solution builds as well as the test legs (an inert-lane gate runs neither and takes no slot).
+- **Slots.** N lock files `<git common dir>/cobol-gate-slots/<k>.lock`, each held by an exclusive OS file lock (`LockFile` on
+  Windows, `flock` on Linux), so a crashed holder releases its slot when it dies and no stale-pid cleanup exists. The holder
+  writes its label (who, pid, since when) at the start of the file; on Windows the lock covers one byte far past the end of
+  the file, so the label stays readable. The label is informational: a slot is free exactly when its lock can be taken.
+- **Tickets.** A waiter first takes a TICKET: under an exclusive lock on `tickets.lock` it increments the monotonic counter in
+  `tickets.seq` (rewritten atomically; a counter that is not a number is an error, never a silent reset, since a reset could
+  hand a new waiter a number below a live one), creates `ticket-<seq>.lock` and holds it for as long as it waits. A ticket is
+  LIVE while its file is locked, so a waiter that dies drops out of the queue by itself. A waiter may take a free slot only
+  when no live ticket is served before it, and it drops its ticket only AFTER it holds the slot; a gate that finishes and
+  re-gates at once therefore queues BEHIND everyone already waiting. `gate-slot: waiting, k ahead (ticket t, cap N, …)` is
+  printed each time `k` changes, `gate-slot: took slot k of N (ticket t, waited s)` on acquisition, and a waiting gate says
+  WHY it waits (a count that rises while it waits is a landing ticket numbered after its own and served first; the gate next
+  in line says it waits for the first released slot).
+- **Two classes, landing first (kb/Work PB3103).** A ticket is `landing` (`ticket-<seq>-landing.lock`, selected by
+  `COBOL_GATE_CLASS=landing`) or `implementer`; every live landing ticket is served before every implementer ticket, FIFO
+  within a class, with the same cap. ⚠ Since the landing stopped gating (kb/Work PB4331) nothing sets that variable, so the
+  class is served but never used.
+- **What holds it.** A Python caller uses `GateSlots.for_repo().acquire(label)` (released by its `with` block or the holder's
+  death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] -- <command>`. `gate.py` takes the slot after
+  the worktree's gate lock and its audits and BEFORE the build, and holds it through the population check. The slot is held
+  by the gate's whole PROCESS TREE. On Windows, acquisition puts the holder ITSELF into a Job object with
+  `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` before it spawns anything, so no grandchild can escape and a dead driver takes every
+  `dotnet` process with it. On Linux the slot's descriptor is inherited by the children (every spawn passes
+  `**slot.spawn_kwargs()`), and an `flock` lives until the last descriptor closes, so an ORPHANED Linux tree keeps its slot
+  until it exits. ⛔ `spawn_kwargs` also turns PERSISTENT BUILD SERVERS off in every child (`MSBUILDDISABLENODEREUSE=1`,
+  `UseSharedCompilation=false`): a reused MSBuild node or VBCSCompiler started inside the slot is a descendant of the holder
+  that OTHER worktrees' builds connect to, so the job would kill it in the middle of another gate's build. Acquisition is
+  nested in one fixed order (worktree lock, ticket, slot), so no two gates can wait on each other in a cycle.
+- **Long holds are flagged, never killed (kb/Work PB3310).** Every released hold records its duration per kind in
+  `holds.json` (the last 50 per kind); `gate_slot.py status` marks a held slot older than 5 times the median of its kind
+  (at least 5 recorded) `LONG HOLD`, and the session probe prints it. The flag is advice; the operator verifies the holder's
+  pid before stopping anything.
+- **The cap is ONE shared setting** (kb/Work PB2514): `cobol-gate-slots/settings.json`, written only by `gate_slot.py set-cap N
+  [--until ISO] [--why TEXT]` (under `settings.lock`, replaced atomically) and re-read by every waiter on every poll, so a raise
+  reaches the queue at once (while each gate read N from its own environment, a cap-1 gate at the head waited for slot 1
+  while slot 3 stood free, blocking every cap-3 gate behind it). An expiry (an ISO time with its UTC offset) returns the
+  CODED DEFAULT with no one acting; `clear [cap]` removes the setting (the one repair of a malformed file); malformed settings
+  stop the gate with the reason. ⛔ THE CODED DEFAULT IS THE OWNER'S DECISION (2026-10-10, kb/Work PB2514), in `gate_slot.py`
+  and nowhere else: `DEFAULT_SLOTS = 3`. A setting lives in the slot directory's OWN file, never as a new key of another
+  tool's settings (every worktree reads it with its own copy of `gate_slot.py` and refuses an unknown key).
+- **Why 3.** At cap 1 implementer gates waited 62 % of their wall time (the w1033 survey), and a whole-Conformance
+  leg stayed within 1.25× of its quiet time only with no other gate beside it (1.24× and 1.30× with one implementer gate,
+  1.58× with two, 1.56× with three: kb/Work PB1720, evidence `m13`). Re-measured for the whole-population gate (§3.13): three gates together take
+  503 s each, 2.04 times one gate alone, so they finish 238 s sooner than three run one after another. **The host's
+  throughput at N concurrent legs (kb/Work PB4181, 2026-10-31, the reserved host):** N copies of the Conformance assembly
+  started together inside one slot, runs per hour = N × 3600 / the batch's wall:
 
   | N | 1 | 2 | 3 | 4 | 6 | 8 |
   |---|---|---|---|---|---|---|
   | batch wall, rep 1 / rep 2 (s) | 125 / 123 | 213 / 217 | 308 / 298 | 421 / 389 | 618 / 594 | 841 / 824 |
   | runs per hour (mean) | 29.0 | 33.5 | 35.7 | 35.6 | 35.7 | 34.6 |
-  | one run's wall against N = 1 | 1.00× | 1.73× | 2.40× | 3.25× | 4.86× | 6.63× |
 
-  Throughput rises 23 % from one leg to three and not at all beyond: one quiet Conformance leg already keeps most of the
-  32 processors busy. (PB4181's premise, about 3 busy cores per leg, counted the test host's own CPU only, never the
-  compiled programs it runs as children.) At N = 8 two runs of rep 1 and all eight of rep 2 ended RED on a HARNESS
-  NON-OBSERVATION (a compiled program, 8–9 s of its own CPU, not finished in two 120 s attempts at 77–87 % host load),
-  never on a value: that oversubscription starves a program past its run budget. This is a proxy, test legs without
-  builds, but on this host more slots than 3 add waiting, not throughput, for a whole leg. The owner kept the cap at 3 on
-  this series (2026-10-31, kb/Work PB4181).
-  `gate_slot.py status` prints the cap and the scope with who set them, EVERY held slot (one taken under an earlier,
-  higher cap included) and the live tickets in queue order.
-- `gate_slot.py --self-test` proves eleven arms against throwaway repositories, each with one linked worktree (the queue
-  arms set cap 1 explicitly, so they prove FIFO, release and sharing on one slot whatever the default): the FIFO
-  order (three waiters queued behind a holder are served in ticket order, and the holder re-gating the moment it
-  releases is served LAST), the release on a killed holder, a dead waiter leaving the queue, the orphaned tree (on
-  Windows the job kills the orphaned child and grandchild and the slot frees; on Linux the tree keeps the slot until it
-  exits) and the sharing across worktrees (both checkouts resolve one slot directory, and a holder in one makes a
-  waiter in the other wait); the SHARED CAP (a gate queued at the head under cap 1 and one behind it both take a slot
-  the moment `set-cap 3` is written from the linked worktree, while the first holder still holds slot 1: no
-  head-of-line block); the EXPIRY and the refusals (an expired cap 1 holds no gate back under the default 3, and an
-  expired `whole` leaves the default `leg1`; an expiry already past or without its offset, a cap of 0 and an unknown
-  scope are refused; either scope is accepted with or without an expiry; a malformed settings file stops a gate);
-  STATUS (a slot held above a lowered cap is shown); the CODED DEFAULTS (with no settings file the cap is 3 — three
-  gates hold a slot at once and a fourth queues — and the scope is `leg1`, and `status` says both are the default);
-  CLEAR (one setting or both back to the defaults, a malformed file repaired by clearing both and refused by
-  clearing one); and LANDING FIRST (two implementer and two landing gates queued interleaved behind one holder at cap
-  1 are served landing, landing, implementer, implementer, `status` lists them in that order, and an unknown class
-  value stops a gate). Each arm was seen RED on a planted defect: no ticket check, a ticket file counted live unlocked, no
-  Job object, the descriptor withheld from Linux children, the per-worktree git dir, the cap read once per process
-  (kb/Work PB2514's defect), `status` probing only the slots below the cap, and the defaults reverted to cap 1 and
-  scope `whole` (the expiry, defaults and clear arms). It passes on
-  Windows and under WSL, and the self-test runner (`scripts/self_tests.py`) runs it in every gate (reusing an unchanged PASS), the Linux
-  gate and CI's Linux and Windows jobs, so each operating system's arm is proven where it runs; `GateSlotDriftTests`
-  (Unit) holds the arms by name and the ALL GREEN count to them WITHOUT re-running it (kb/Work PB2882: its duplicate
-  run under the test harness's fixed 120 s budget went red under a whole-population gate's load). Every helper process it starts exits once its sentinel
-  file is deleted, so a red arm leaves nothing running on the host. ⛔ The cap does not span operating systems: a
-  Windows lock and a WSL lock on a drvfs mount do not see each other; the repository's gates run on Windows
-  (`build-local.ps1`), and the WSL legs of the Linux gate (section 3.15) are not counted against the cap.
+  Throughput rises 23 % from one leg to three and not at all beyond (one quiet leg already keeps most of the 32 processors
+  busy, counting the compiled programs it runs as children). At N = 8 ten runs ended RED on a HARNESS NON-OBSERVATION (a
+  compiled program not finished in two 120 s attempts at 77–87 % host load), never on a value. The owner kept the cap at 3.
+- **Who takes one.** Every gate (one shape, kb/Work PB3022). The BATTERY never takes a slot and never waits.
+  `gate_slot.py status` prints the cap with who set it, EVERY held slot (one taken under an earlier, higher cap included) and
+  the live tickets in queue order. ⛔ The cap does not span operating systems: a Windows lock and a WSL lock on a drvfs mount
+  do not see each other, so the hand-run Linux tool (§3.15) is not counted against it.
+- **`gate_slot.py --self-test` declares fourteen arms** against throwaway repositories, each with one linked worktree: FIFO
+  order (three waiters behind a holder are served in ticket order, and the holder re-gating the moment it releases is served
+  LAST), release on a killed holder, a dead waiter leaving the queue, the orphaned tree (the job kills the orphaned child and
+  grandchild on Windows; on Linux the tree keeps the slot until it exits), sharing across worktrees, the SHARED CAP (a gate
+  at the head under cap 1 and one behind it both take a slot the moment `set-cap 3` is written from the linked worktree),
+  the EXPIRY and the refusals, STATUS (a slot held above a lowered cap is shown), the CODED DEFAULTS, CLEAR, LANDING FIRST,
+  LONG HOLDS, and A WAITING GATE SAYS WHY. Each arm was seen RED on a planted defect (no ticket check, a ticket file counted
+  live unlocked, no Job object, the descriptor withheld from Linux children, the per-worktree git dir, the cap read once per
+  process, `status` probing only the slots below the cap). It passes on Windows and under WSL, `self_tests.py` runs it in every
+  gate and in CI's Linux and Windows jobs, and `scripts/self_test_arms.py` holds the arms by name, in order, and the ALL
+  GREEN count to them WITHOUT re-running it (kb/Work PB2882, PB4395). Every helper process it starts exits once its sentinel file is deleted, so a red
+  arm leaves nothing running on the host.
 
-**Retirement is measured** (owner, 2026-09-28): the cap goes when, over one full train, the median implementer
-selection is under 25 % of the Conformance assembly, or a whole cold Conformance implementer gate at `BelowNormal` —
-both legs, the leg barrier included — costs under 6 minutes on the shared host. Under ordering nothing is selected,
-so the second criterion is the live one — and M6 and M7 are what can meet it.
-
-#### 3.14.7 PB1712 under ordering
-
-PB1712 found that the recorder cannot see static FIELD reads, so a change to one `DiagnosticCatalog` descriptor
-reaches 80 tests in the map where the methods reporting it are reached by up to 9,225. Under selection that was a
-silent SKIP of every test the map missed. Under ordering it cannot skip anything: a test the map under-reaches lands
-in a later tier and still runs in the same gate, so the harm is a later red, never a missed one. The finding stays
-documented in the note as an ORDERING-quality limit, and the gate needs no field probes for soundness. M11 deleted
-the selection code (kb/Work PB1717), which closed PB1712, and M13 deleted `impacted_tests.py`'s filter line with
-every caller (kb/Work PB1721), so a map recorded into the shared store can only reorder a gate, never narrow one.
-
-#### 3.14.8 What the rejected SELECTION design's mechanisms become
-
-`M1` (field probes, map schema 3) and `M9` (a map recorded per main commit) are not needed for SOUNDNESS. M9's
-retirement (owner, 2026-09-28, kb/Work PB1709) is superseded by the owner's decision of
-2026-10-24 (kb/Work PB3663): the loop records a map for every main commit it adopts, because batched gating (PB2515)
-made leg 1 the only local run and the map's tiers now decide what it holds (§3.13). The gate still works with any map
-or none, and on the one replay with named reds recorded cost carried the order (§3.13). `M3`, `M4`, `M5`, `M8` and `M10` (the registry restructuring) are shelved as a speed
-measure (owner, 2026-09-28) and revisited on engineering merit only. `M2` (the cap), `M6` and `M7` are redesigned
-above. The rejected design and both reviews are in the DEVLOG entry that pivoted it and in kb/Work PB1708.
-
-#### 3.14.9 Implementation plan — gateable mechanisms, each within one implementer's turn cap
-
-| id | mechanism | files | acceptance (measured, never asserted) | depends on | size |
-|---|---|---|---|---|---|
-| M6 | after warm-up the lexer performs no ATN simulation (§3.14.5); kb/Work PB1715 | `src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4` and the predicate and action methods it calls; `tests/WiseOwl.Cobol.Tests.Unit/LexerDfaCacheDriftTests.cs`; this section | token streams of every suite source identical before/after (one-time differential, recorded in the DEVLOG); `LexerDfaCacheDriftTests` red on a planted predicate at the left edge AND on one placed after a common prefix's first character; zero ATN simulation on re-lexing the suite's ASCII sources (the one EOF transition per input ANTLR never caches is reported, not counted); the non-ASCII residual reported; `b2` at 12 threads ≥ 8× today's 1-thread wall, CPU utilisation ≥ 70 % (measured 55× and 21 %: the utilisation limit is now the workstation GC, §3.14.5); whole battery green | — | 140–200 turns |
-| M7 | SR23 before the table-value fill; the fill bounded by the phrase (§3.14.5); defect note: id allocated by the orchestrator | `src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs` (`TableValueOdometer.Resolve`), `DataBinder.ResolveTableValues`; battery summary top-5 report in `scripts/battery.sh` | the pb505 program rejects with `COBOL1946` in < 1 s through the CLI (was 29.6 s); both tests keep their assertions; every Format 2 VALUE golden unchanged; the battery summary lists the five slowest tests | — | 60–100 turns |
-| M11 | the order plan: `NameKey`, tiers 0a/0u/1–3, the budgets and the collection cap (§3.13, §3.14.2); the NARROWING deleted — LANDED (kb/Work PB1717: b4 first red 0.32 %, b7 one tier-0u case and a 15.3 s floor; tier 0a corrected to ADDED test methods) | `scripts/spec/impacted_tests.py` (selection code DELETED — its filter line is always the whole-assembly filter until M13 deletes the line; `--plan` added), `scripts/gate_plan.py`, `tests/WiseOwl.Cobol.Tests.Unit/ImpactedTestsDriftTests.cs`, kb/Work PB1712 (closed) | `--self-test` covers every tier arm, `NameKey`, the unknown budget, the collection cap and the no-map / no-timings / stale-map / empty-leg-1 / whole-assembly-in-leg-1 arms; the filter line is the whole-assembly filter for a base WITH a map; `b4` re-run through the new script reproduces cheapest-first on 68b X (first red ≤ 1 % of the work); `b7` re-run through it: a golden appended to the 85 manifest leaves ONE tier-0u case and a leg-1 floor ≤ 16 s | — | 110–160 turns |
-| M14 | ONE population check for every whole-assembly run, and the handshake scrub (§3.14.3–4) | `scripts/test_population.py` + `--self-test`; `scripts/battery.sh` (PHASE 1 population check; scrub); `.github/workflows/build-and-test.yml` (`conformance-population` runs the tool on the shard trx files; the inline `grep -c` block DELETED; scrub); `gen-vcr.ps1`, `gen-diagnostics-doc.ps1`, `scripts/spec/record_verdicts.py`, `scripts/spec/record_impact_map.py` (scrub); `GateLegDriftTests` (6); `docs/DRIFT_RULES.md`. As landed, the arm-(6) scan also found `build-local.ps1`/`.sh`, `guard.sh`, `guard-fast.sh`, `measure-battery-determinism.sh` and `filter_population.py` (scrubbed), the scrub grew the VSTest channel, the two other `--list-tests` parsers were folded into the tool's, and `FilterPopulationGuardDriftTests` recognises the new shard shape | the self-test's arms (short, over, skipped, definitions vs results); the battery's PHASE 1 prints each assembly's population line and is red on a planted dropped case; CI's guard red on a planted shard overlap that keeps the count; `b8`'s two inputs pass | — | 60–100 turns |
-| M12 | the in-assembly leg filter, the handshake and the identity records (§3.14.3) — LANDED (kb/Work PB1719, evidence `m12`: no handshake, 35 / 29,715 / 9,319 definitions = `--list-tests`; a plan from `gate_plan.py` ran Characterization in one leg and Unit 28,754 + 961 and Conformance 5,069 + 4,250, each leg exactly its plan's cases, union = `--list-tests`, five identity records; eight partial or stale handshakes each `Failed!`, exit 1; a recording at its head recorded 39,100 tests, the gate's 9,319 + 29,746 + 35, with the watchdog clean) | `tests/_shared/GateLegs.cs` + `GateLegAudit.cs` (linked by the existing `_shared` glob, so no `.csproj` changes), `tests/Directory.Build.props` (the framework attribute, by assembly name), `tools/impact/ImpactTestFramework.cs` + `ImpactRecording.targets` (`IMPACT_RECORDING`), `tests/WiseOwl.Cobol.Tests.Unit/ParenTokenTwinDriftTests.cs` (repository-relative path argument), `GateLegDriftTests` (1), (2), (4), (5) in Unit and (4), (5) in Conformance and Characterization | with no handshake every assembly's count and verdict are unchanged; with a full one, each leg's trx definitions are exactly its leg's cases and the two legs' union equals `--list-tests`; each partial handshake (one variable, two, missing file, digest mismatch, bad leg) makes every case an execution error and the run RED; each leg writes its identity record; a planted non-permutation throws; no display name carries the repository root; a recording at HEAD still records every test (the recorder's watchdog) | M11 (the plan format) | 130–190 turns |
-| M2 | the cross-worktree gate cap, FIFO (§3.14.6) — LANDED (kb/Work PB1720: the tool in train 71; N measured by M13's landing, evidence `m13`: one implementer gate 1.24x and 1.30x of the lander's quiet Conformance leg, two 1.58x and 1.52x, three 1.56x; the owner set `DEFAULT_SLOTS = 3` on 2026-10-10, kb/Work PB2514) | `scripts/gate_slot.py` + `--self-test`; `tests/WiseOwl.Cobol.Tests.Unit/GateSlotDriftTests.cs` | the self-test's five arms (FIFO order included), on Windows and on Linux; N measured: the lander's whole-Conformance leg ≤ 1.25× quiet with N implementer gates, their builds included | — | 90–130 turns |
-| M13 | the ordered gate: driver, modes, worktree lock, run directory, fail-fast, and the wiring that deletes the selection interface (§3.14.1, §3.14.3–4) — LANDED (kb/Work PB1721, evidence `m13`: a real implementer gate GREEN with every population equal to `--list-tests`, 9,321 / 29,728 / 35; a planted leg-1 red stopped the gate after leg 1 11.7 s into the legs with 5,402 Conformance and 817 Unit cases named NOT RUN; a real lander-mode gate ran one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern; the self-test's 22 arms each seen RED on a planted defect. Corrected on the way: a slot holder's children run with persistent build servers OFF (§3.14.6), the gate's audit list moved into the driver, and a defect in the driver still ends in one `NOT RUN` verdict line) | `scripts/gate.py` (takes the slot, §3.14.6), `scripts/spec/record_impact_map.py` (the recorder takes a slot too, and spawns every child through `Slot.spawn_kwargs`), `scripts/build-local.ps1` + `.sh` (`-Filter` removed, a lander or implementer mode required (one shape since PB3022)\|implementer` required, `Leg` replaced); `scripts/spec/impacted_tests.py` (the filter line and `--plus` DELETED); `GateLegDriftTests` (3); in the SAME change every caller of either interface: `.claude/skills/workstream/templates/MANDATORY-PRACTICES.md` (I1, I2, I7), `implementer-brief.md`, `fix-lane-implementer-brief.md`, `dispatch-spec-implementer.md`, `lander-train-brief.md` and `lander-brief.md` (the lander mode), `.claude/skills/workstream/check_practices.py` (its required `impacted_tests\.py --base` patterns), `.claude/skills/workstream/SKILL.md`, `.claude/agents/cobol-implementer.md`, `.claude/skills/gate/SKILL.md`, `scripts/hooks/test_forbidden_commands.py` (its `-Filter` fixture), `tests/WiseOwl.Cobol.Tests.Unit/ImpactedTestsDriftTests.cs`, `docs/DRIFT_RULES.md`, `docs/DOC_INDEX.md`, plan §9, README, CONTRIBUTING, the PR template | the self-test's arms (§3.14.4 (3)); a real gate on a planted red in a leg-1 test stops after leg 1 with the remainder named; a real green gate's population equals `--list-tests` for all three assemblies; a real lander-mode gate runs one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern left; over the next train, each implementer gate's time to first red, whole wall and green-path barrier cost (leg 1's wall beyond its share of the work, plus the extra host starts) are recorded, against the lander's single leg | M11, M12, M14, M2 | 170–220 turns |
-
-M6, M7, M11, M14 and M2 are independent and may run in parallel groups; M12 follows M11; M13 lands last, with M2's N
-in the same train so no implementer runs a whole-population gate uncapped. ⛔ **Nothing deletes an interface its
-callers still read:** M11 only emptied the selection behind `impacted_tests.py`'s filter line (every caller kept
-working, always handed the whole assembly), and the line, `--plus` and `-Filter` went in M13 together with every
-caller named above. M13's landing updated CLAUDE.md "Testing" to the landed gate under the owner's standing
-authorization (kb/Work PB1708, fifth decision, 2026-09-28). What M13's acceptance still records over the next train
-— each implementer gate's time to first red, whole wall and green-path barrier cost against the lander's single leg —
-every gate now writes into its run directory's `verdict.json` (`timings`, and each leg's per-assembly wall).
+**Retirement is measured** (owner, 2026-09-28): the cap goes when a whole cold Conformance gate at `BelowNormal` costs under
+6 minutes on the shared host, which M6 and M7 are what can meet.
 
 #### 3.14.10 The self-test phase: a PASS reused for unchanged inputs, one machine-wide budget, no verdict from the clock (kb/Work PB2914)
 
-**The defect it removes.** Every implementer gate ran all of the ~68 script self-tests (§3.14.3 step 3) in a pool as
-wide as the cores, AHEAD of its gate slot (kb/Work PB2524), and the runner judged a self-test RED after a fixed 900 s.
-Nothing bounded the self-tests across gates, so a fleet's N gates ran N × 32 of them at once, the slowest
-(`test_orchestrate_{stop,steer,breaker,handoff}.ps1`, `landing_check.py --self-test`) passed only after 15-20 minutes,
-and on 2026-10-10 every one of 15+ implementer gates ended `SELF-TESTS RED … NO LEG RAN` on the clock alone: a test
-that fails with no regression, which the owner forbids (2026-09-25), sitting inside the gate.
+Every gate runs the ~70 script self-tests (§3.14.3), and a self-test is judged by what it does, never by how long it takes:
+a test that fails with no regression, which the owner forbids (2026-09-25), must not sit inside the gate. Three rules follow.
 
-**1. Reuse — who records, who reuses.** `scripts/self_tests.py` TRACES every self-test it runs and records each PASS
-with the content of everything it read, in ONE store shared by every checkout of the repository:
-`<git common dir>/cobol-self-test-passes/<platform>/<test digest>/<deps digest>.json` (beside the gate slots, never
-keyed on a branch name; the newest PASS_KEEP per self-test). `scripts/self_test_inputs.py` owns what "read" means:
-- **traced** — the runner puts a `sitecustomize` tracer first on PYTHONPATH, so every Python process a self-test
-  starts records, through the interpreter's audit hooks (PEP 578), each file it opens (a module's `__pycache__` file
-  counts as its source), each directory it lists and each path it hands a child process, inside the repository;
-- **static** — what no audit hook sees: the self-test's own file, the runner itself (`self_tests.py`,
-  `self_test_inputs.py`: a change to how self-tests run re-runs them all), `# SELF-TEST-READS: <path> …` header
-  declarations, and for a PowerShell or bash self-test the closure over the files its CODE mentions (comments
-  dropped; a path resolved from the root, the mentioning file's directory or one above it; a directory only as a bare
-  word beside the mentioning file, so `kb/Work` in a message string never pulls in the register);
+**1. Reuse — who records, who reuses.** `scripts/self_tests.py` TRACES every self-test it runs and records each PASS with
+the content of everything it read, in ONE store shared by every checkout of the repository:
+`<git common dir>/cobol-self-test-passes/<platform>/<test digest>/<deps digest>.json` (the newest PASS_KEEP per self-test).
+`scripts/self_test_inputs.py` owns what "read" means:
+- **traced** — a `sitecustomize` tracer first on PYTHONPATH records, through the interpreter's audit hooks (PEP 578), each
+  file a Python process opens (a module's `__pycache__` file counts as its source), each directory it lists and each path it
+  hands a child process, inside the repository;
+- **static** — what no audit hook sees: the self-test's own file, the runner itself (`self_tests.py`, `self_test_inputs.py`),
+  `# SELF-TEST-READS: <path> …` header declarations, and for a PowerShell or bash self-test the closure over the files its
+  CODE mentions (comments dropped);
 - **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says: nothing for its
   location, configuration, worktrees or a commit id; the NAMES (`ls-files`) or the CONTENT (`diff`, `ls-files -s`,
   `show <rev>:<path>`, any other command) under its pathspec, the whole tree when it names none.
-A record holds each file's git blob id (the working tree's content id for an edited or untracked, not-ignored file; `-` where the run looked and found nothing) and a digest of what it saw
-of each directory (`Tree.digest`: `entries`, `paths` or `content`); the blob ids are the index's, `git hash-object`'s
-for a file the working tree edited, a submodule's commit for anything under it. `--reuse` reports a self-test REUSED,
-unrun, while a record's inputs are ALL unchanged on the tree being gated. A self-test that RUNS says why on its
-console line (kb/Work PB3061): `first run: no PASS recorded for <platform>, Python <v>`, or `re-run: N input(s)
-changed since the newest PASS — a, b, c (+k more)`; the line also says how long it waited for a budget place when
-that was a second or more, and the verdict line carries the budget's width and the total wait, so a gate log shows
-whether the inputs or the budget set the phase's time (wave 1062: 50 of 75 re-ran in every first gate, the slowest
-6 min, with no line saying what had changed). **Every gate reuses** (one shape, kb/Work
-PB3022; `gate.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit, and a self-test that runs records its
-PASS); **CI's `audits` and `windows-self-tests` jobs and the Linux gate never reuse**: they run every self-test, so a
-branch that changes nothing a self-test reads reuses the PASS an earlier gate recorded, and the CI invariant (kb/Work PB1957) is
-untouched — CI still runs them all. The `--built` phase reads build output no record covers: it always runs and never
-records. Measured 2026-10-10 on this host: the whole phase recorded in 71-76 s; the same tree with `--reuse`, 0 ran and
-69 reused in 0.9 s; a one-line edit of a `src/` file re-ran 2 (`test_dispatch_guard.py`, whose `git diff`/`ls-files -s`
-read `src/` and `tests/`, and `test_plan_wave.py`, which opens 3,712 tracked files, `src/` among them) in 10 s; an edit
-of one `kb/Work` note re-ran 4 in 10 s.
-**What nothing sees**, and why it is safe: a PowerShell or bash process's own reads of a path it builds at run time
-(declare it), the git commands such a process runs itself, `os.stat`-style probes (no audit event), and a self-test
-whose Python children are started without the inherited PYTHONPATH (`-I`, a scrubbed environment). A PASS reused past
-such a read is caught by CI's `audits` job, which never reuses — the same backstop batched gating relies on for
-every gate's leg 2 (kb/Work PB2515, PB3022). A Python self-test whose trace does not show its
-own file had no tracer, and records no PASS.
+A record holds each file's git blob id (the working tree's content id for an edited or untracked file; `-` where the run looked
+and found nothing) and a digest of what it saw of each directory (`Tree.digest`). `--reuse` reports a self-test REUSED, unrun,
+while a record's inputs are ALL unchanged on the tree being gated. A self-test that RUNS says why on its console line (kb/Work
+PB3061): `first run: no PASS recorded for <platform>, Python <v>`, or `re-run: N input(s) changed since the newest PASS — a,
+b, c (+k more)`. **Every gate reuses** (`gate.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit); **CI's `audits` and
+`windows-self-tests` jobs and the hand-run Linux tool never reuse**, so a PASS reused past a read nothing traced (a PowerShell
+or bash process's own reads of a path built at run time, `os.stat`-style probes, a Python child started with `-I`) is caught
+in the merge group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
+self-test whose trace does not show its own file had no tracer, and records no PASS.
 
-**2. The machine-wide budget.** A self-test waits for one of `BUDGET_CAP` places (one per core: the width one gate
-alone always ran at) before it starts, and holds it to its end: one OS file lock per place under
-`<git common dir>/cobol-self-test-slots/` (gate_slot.py's `ExclusiveLock`, so a dead holder's place is freed by the
-OS). One thread per runner polls for a place; the rest wait without spinning. N gates therefore share the cores
-instead of multiplying them, and a gate's self-test time no longer grows with N. ⚖ **Why a budget of its own and not
-the gate slot:** the slot rations builds and test legs and is held for a whole gate (~4-6 min); moving the self-tests
-inside it would make a red self-test wait behind up to three other gates' builds and legs, which is exactly what
-PB2524 moved the audits out of the slot to stop (fail fast, kb/Work PB2523). A per-self-test place keeps fail-fast and
-bounds the load, and with reuse a gate rarely needs a place at all. Every caller takes it.
-⚖ **Why one place per core, and how a run says whether the cores were its limit (kb/Work PB3585).** The self-tests
-mostly start processes, so a wider budget than the cores would help only if they spent the phase waiting rather than
-computing. The GREEN verdict line says which, from every run: `the host's P processors u% busy` (`HostCpu`: two readings
-of `GetSystemTimes` or `/proc/stat`, the reading `tests/_shared/HostLoad.cs` takes) across the phase. Near 100 % the
-cores were the limit; well below it, `--budget N` measures a wider width for one run (a measurement only: no gate or CI
-job passes it, since a run wider than another gate's also takes the places above that gate's width). Measured
-2026-10-24 on CI's 4-core Windows runner (merge-group runs 40058976771, 40057441922, 40048830853): the phase took 290,
-369 and 236 s for 1,031, 1,332 and 812 summed self-test seconds, with all four places busy from the 20th second until
-the last long self-test, so the places were never short of work. The phase's own processes needed 988 CPU-seconds and
-started 12,996 processes on this host (a Job object's accounting at 4 logical processors), 85 % of the 1,160
-processor-seconds a 4-core runner has in 290 s. On a runner as fast as this host, a wider budget can win at most the
-rest, and on a slower one less, so the default stays the cores. What does cost time is the order: a self-test starts in discovery order, so a long one discovered late
-(`prune_worktrees.py`, started at 196 s of 286 in run 40058976771) runs alone for the last 50 s.
+**2. The machine-wide budget.** A self-test waits for one of `BUDGET_CAP` places (one per core) before it starts, and holds
+it to its end: one OS file lock per place under `<git common dir>/cobol-self-test-slots/` (gate_slot.py's `ExclusiveLock`,
+so a dead holder's place is freed by the OS). N gates therefore share the cores instead of multiplying them. ⚖ It is a budget
+of its own and not the gate slot: the slot rations builds and test legs and is held for a whole gate, so moving the
+self-tests inside it would make a red self-test wait behind up to three other gates' builds, which is what moving the audits
+out of the slot stopped (fail fast, kb/Work PB2523, PB2524). ⚖ One place per core, and a run says whether the cores were its
+limit (kb/Work PB3585): the GREEN verdict line reports `the host's P processors u% busy` across the phase (`HostCpu`); near
+100 % the cores were the limit, and `--budget N` measures a wider width for one run (a measurement only; no gate or CI job
+passes it). Measured 2026-10-24 on CI's 4-core Windows runner, all four places were busy from the 20th second until the last
+long self-test, so the places were never short of work; what costs time is the ORDER (a self-test starts in discovery order,
+so one discovered late runs alone for the last 50 s).
 
-**3. No verdict from the clock.** A self-test is never RED for being slow. A run still going HANG_AFTER_S = 3600 s after
-it took its place — counted from the place, so waiting behind other gates never counts; far above every PASS
-measured (466 s beside four gates, 1,291 s at the worst of the unbounded fleet load the budget removed) — is stopped and
-reported HANG with its output so far: its own state, `=== SELF-TESTS: HANG — … ===`, exit 3, and the gate's reason
-`SELF-TESTS HANG`, never `SELF-TESTS RED`.
+**3. No verdict from the clock.** A self-test is never RED for being slow. A run still going `HANG_AFTER_S = 3600` s after it
+took its place (counted from the place, so waiting behind other gates never counts; far above every PASS measured) is stopped
+and reported HANG with its output so far: `=== SELF-TESTS: HANG — … ===`, exit 3, the gate's reason `SELF-TESTS HANG`, never
+`SELF-TESTS RED`.
 
-**Proof.** `self_tests.py --self-test` (`fleet_arms`) runs the phase from four CONCURRENT simulated gates over one
-planted repository — each its own Runner, Budget and PassStore over the shared directories: a full run records; the
-four gates on the unchanged tree re-run nothing; a changed input (a file read through a name built at run time, which
-only the trace sees) re-runs exactly its self-test in every gate, at most the budget's two at a time; an edited import
-re-runs only its importer; a planted 60-s self-test under a 1-s detector is HANG; a malformed store record is skipped.
-Each arm was seen RED once with its mechanism disabled (reuse off: three arms; budget 99: the overlap arm; a hang
-mapped to RED: the HANG arm). `self_test_inputs.py --self-test` proves the static rule, the git classification and the
-tracer; `gate.py --self-test` proves every gate reuses, and that a hung
-self-test is `SELF-TESTS HANG`; `SelfTestDiscoveryDriftTests` holds the arms by name and forbids `--reuse` in CI and
-the Linux gate.
+**Proof.** `self_tests.py --self-test` (`fleet_arms`) runs the phase from four CONCURRENT simulated gates over one planted
+repository: a full run records; the gates on the unchanged tree re-run nothing; a changed input (a file read through a name
+built at run time, which only the trace sees) re-runs exactly its self-test in every gate, at most the budget's two at a
+time; an edited import re-runs only its importer; a planted 60-s self-test under a 1-s detector is HANG; a malformed store
+record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification and the tracer;
+`gate.py --self-test` proves every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
+holds the arms by name, and `self_tests.py --self-test` forbids `--reuse` in CI and the Linux tool (kb/Work PB4395).
 
-**4. One scratch-repository fixture (kb/Work PB3584).** A self-test that needs a git repository builds and drives it
-through `scripts/scratch_repo.py`'s `ScratchRepo` (`init`, `clone`, `origin`, `worktree`, `git`, `run`, `write`,
-`commit`), the one place a self-test's git process starts. `init` and `clone` write the identity, no automatic
-maintenance (`maintenance.auto = false`, `gc.auto = 0`) and no signing into the new repository's OWN config, so every
-git process in it — the fixture's, the code under test's, a linked worktree's — behaves the same whoever runs the
-self-test (the runner, whose private global config takes the same constants from the fixture, CI, or a hand run:
-outside the runner the `prune_worktrees.py` self-test once started 74 background `git maintenance` processes in the
-repository it was still building). Every command runs without git's repository-selection variables, a failed one
-raises with git's own message (`run` is the unchecked form for a command whose failure is the case), and `isolate()`
-drops the variables from a process whose code under test runs git itself. Until PB3584 fifteen self-tests created
-their own repositories and seven carried a git helper of their own, each with its own identity and checking.
-`scratch_repo.py --audit` reads every self-test's syntax tree (a function named for a self-test, a standalone
-`test_*.py`): a `subprocess` call whose argv is a git argv, a repository created around the fixture, or a nested helper
-over the subject's own git runner is a finding; `SelfTestFixtureDriftTests` runs the audit, adds a text net for
-`"git"` and `"init"` in one argv, and holds the fixture's rules (the repository-selection variables, the identity, the
-maintenance settings) to that one file.
-**A self-test's scratch directory goes with it (kb/Work PB3194).** `scratch_dir(prefix)` makes it in the machine-wide
-temp directory and registers `remove_tree` for the process's exit, so a return, a raised exception and `sys.exit` all
-remove it; `remove_tree` makes a refused entry writable and removes it again, and prints what still cannot go. Before
-it, three self-tests never removed their scratch and the rest called `shutil.rmtree(..., ignore_errors=True)`, which on
-Windows cannot delete the read-only files git writes its objects as and says nothing: one host's temp directory held
-7,359 such directories (0.75 GB of files) on 2026-10-23. The audit's SCRATCH arm finds a self-test's `tempfile.mkdtemp`
-outside a directory it already owns, and any `rmtree(ignore_errors=True)` in self-test code.
-**A C# test's scratch directory follows the same rules (kb/Work PB3194, review R1-2): `tests/_shared/ScratchDirectory.cs`.**
-About a hundred test classes made a directory in the temp directory and removed it with `try { Directory.Delete(dir,
-recursive: true); } catch { }`; the witness tests that loaded the program they compiled into the test host
-(`LoadFromAssemblyPath`, `Assembly.LoadFrom`) kept its file mapped, so every one of their deletes failed on Windows, in
-silence, and a test host the gate ends at its first red runs no cleanup at all: 16,096 `WiseOwlCobol_Tests_*` directories
-in one host's temp directory on 2026-10-23 (17,331 old-layout `WiseOwlCobol_*` directories untouched for over 3 hours were
-removed by hand when this landed). Now `ScratchDirectory.Create(prefix)` makes every scratch directory under ONE
-directory per test host, `<temp>/wiseowl-cobol-tests/<pid>-<id>`, beside `<pid>-<id>.lock`, which the host holds exclusively
-(`FileShare.None`, an flock on Linux) until its process ends; `Remove(dir)` deletes a directory whole, read-only entries
-included, and reports what it cannot (`HarnessLog.ReportLeft`: standard error and `WISEOWL_COBOL_HARNESS_LOG`), never
-throwing from a `finally` or a `Dispose`; the host's directory goes at exit, and every host's first `Create` REAPS each
-host directory whose lock is free or gone, holding that lock while it removes the directory (deleted on close), so a
-starting host can never lose its directory to a reaper. `LoadAssembly(path)` loads a compiled program from its bytes,
-so the host keeps no mapping of the file. `FileHarness.TryDelete` (a test's physical file) reports through the same
-`HarnessLog.ReportLeft`. `ScratchDirectoryDriftTests` holds every C# file under `tests/` to it (no recursive delete, no
-temp directory of its own, no assembly load from a path, no delete in a `try` whose catches are all empty), with its
-two exemptions named and each still checked live; `ScratchDirectoryTests` drives the read-only removal, the report of a
-directory that cannot go (a held handle on Windows, an unsearchable directory on Linux), the reaping rules and the
-unlocked load.
+**4. One scratch-repository fixture (kb/Work PB3584).** A self-test that needs a git repository builds and drives it through
+`scripts/scratch_repo.py`'s `ScratchRepo`, the one place a self-test's git process starts. `init` and `clone` write the
+identity, no automatic maintenance (`maintenance.auto = false`, `gc.auto = 0`) and no signing into the new repository's OWN
+config, so every git process in it behaves the same whoever runs the self-test. Every command runs without git's
+repository-selection variables, a failed one raises with git's own message (`run` is the unchecked form), and `isolate()`
+drops the variables from a process whose code under test runs git itself. `scratch_repo.py --audit` reads every self-test's
+syntax tree (a `subprocess` call whose argv is a git argv, a repository created around the fixture, or a nested helper over
+the subject's own git runner is a finding); the fixture's own self-test runs it over the real tree and holds the
+fixture's rules to that one file (`rule_copies`, kb/Work PB4395). **A self-test's scratch directory goes with it (kb/Work PB3194):** `scratch_dir(prefix)` makes it in the machine-wide
+temp directory and registers `remove_tree` for the process's exit; `remove_tree` makes a refused entry writable and removes
+it again, and prints what still cannot go (git's read-only objects defeat `shutil.rmtree(ignore_errors=True)` on Windows,
+silently: one host's temp directory held 7,359 such directories on 2026-10-23). The audit's SCRATCH arm finds a bare
+`tempfile.mkdtemp` and any `rmtree(ignore_errors=True)` in self-test code.
+**A C# test's scratch directory follows the same rules: `tests/_shared/ScratchDirectory.cs`.** `ScratchDirectory.Create(prefix)`
+makes every scratch directory under ONE directory per test host, `<temp>/wiseowl-cobol-tests/<pid>-<id>`, beside
+`<pid>-<id>.lock`, which the host holds exclusively until its process ends; `Remove(dir)` deletes a directory whole,
+read-only entries included, and reports what it cannot (`HarnessLog.ReportLeft`), never throwing from a `finally` or a
+`Dispose`; the host's directory goes at exit, and every host's first `Create` REAPS each host directory whose lock is free or
+gone. `LoadAssembly(path)` loads a compiled program from its bytes, so the host keeps no mapping of the file (a witness that
+loaded a program by path kept it mapped, and every delete failed on Windows in silence). `ScratchDirectoryDriftTests` holds
+every C# file under `tests/` to it (no recursive delete, no temp directory of its own, no assembly load from a path, no delete
+in a `try` whose catches are all empty).
 
 **5. One git process per question kind, never one per object (kb/Work PB3582).** A Windows process start costs tens of
-milliseconds where Linux pays about one, so a script that asks git one question per branch, commit, pair or file is
-bounded by process creation: merge-group run 40004159292 summed the script self-tests at 1,444 s on CI's Windows runner
-and 144 s on Linux, and GIT_TRACE2 counted 3,048 git processes in `prune_worktrees.py`'s self-test, 1,471 in
-`landing_check.py`'s, 646 in `enqueue.py`'s and 363 in `devlog.py`'s, nearly all one question about one object. The
-same loops are the session probe's survey, the landing check and the planner's in-flight sets, so every session paid
-it. `scripts/git_batch.py` answers a whole list from one process each: `Ancestry` (one `cat-file --batch-check` resolve
-and one `git log --stdin <tips> --not <base>`: every commit the tips reach beyond origin/main with its parents, tree,
-date and subject, so `on_base`, `beyond`, `is_ancestor`, the count ahead and the subjects are read from memory; a tip
-that names no commit raises, never reads "on the base"), `diff_names` / `diff_patches` (one `diff-tree --stdin
---always` over `<commit> <parent>` pairs: one header per pair in input order, empty diffs included) and `object_ids`
-(one `cat-file --batch-check` over `<rev>:<path>`), `tree_entries` / `blobs` (one `cat-file --batch` each: the files of many
-`<rev>:<dir>` trees, then the content of the distinct object ids they name, so a note two commits share is read once, and `blobs` yields one blob at a time, so a caller that reduces each as
-it arrives holds one;
-`gen_ledger.measure_commits` measures every commit since the trend's last point from these two processes, kb/Work PB3315).
-The survey reads every branch's tip and last commit from one
-`for-each-ref` and every row's ancestry (MERGED, ahead, the review's coverage, `contained`, `carrying_findings`) from
-one graph; the landing check charges each commit through the two batched diffs and reads `depends` from the graph; the
-in-flight sets read each worktree with one `status` and every unmerged branch from one `for-each-ref --no-merged`;
-the planner's classifier, carrier rule and `add_closed_notes` share one graph of the local branches. Each reader is
-held to the one-process-per-object form it replaces by `git_batch.py --self-test`, and `GitBatchDriftTests` keeps the
-per-object ancestry questions out of the survey, the landing check and the planner. Measured on the batched readers:
-1,246, 846, 510 and 286 processes for the same four self-tests.
+milliseconds where Linux pays about one, so a script that asks git one question per branch, commit or file is bounded by
+process creation (one run summed the script self-tests at 1,444 s on CI's Windows runner and 144 s on Linux, with 3,048 git
+processes in `prune_worktrees.py`'s self-test alone). `scripts/git_batch.py` answers a whole list from one process each:
+`Ancestry` (one `cat-file --batch-check` and one `git log --stdin <tips> --not <base>`, so `on_base`, `beyond`,
+`is_ancestor`, the count ahead and the subjects are read from memory; a tip that names no commit raises, never reads "on the
+base"), `diff_names` / `diff_patches` (one `diff-tree --stdin --always` over `<commit> <parent>` pairs), `object_ids` and
+`tree_entries` / `blobs` (one `cat-file --batch` each). The survey, the landing check, the planner and the ledger read through
+it, `git_batch.py --self-test` holds each reader to the one-process form and keeps per-object ancestry questions out of them
+(`per_object_questions`) (1,246, 846, 510 and 286 processes for the four self-tests above, down from 3,048, 1,471, 646, 363).
 
-⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
-The runner above is the one place a script self-test RUNS: in every gate, the Linux gate and CI, where a red arm
-is a non-zero exit and a hang is bounded by the budget place, never by a clock. What the runner cannot see is an arm
-deleted from a self-test, which still exits 0, so a Unit drift test names the arms it requires and
-`SelfTestArmSource.AssertDeclares` finds each label among the script's string literals (implicitly concatenated
-literals joined; an f-string arm named as its source spells it). A drift test that ran the self-test again did so under
-the test harness's fixed 120 s per-process budget (`WISEOWL_COBOL_RUN_TIMEOUT_MS`), and under a lander's gate beside the WSL
-Linux gate each went past it with every arm passing: `GateSlotDriftTests` (train 1055), then
-`SelfTestDiscoveryDriftTests`, the landing lease's drift test (retired since, kb/Work PB3024) and `GateLegDriftTests`'
-two driver tests (train 1058;
-`self_tests.py --self-test` 19 s alone, over 120 s twice in that train's first gate).
+⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).** The
+runner is the one place a script self-test RUNS. What it cannot see is an arm deleted from a self-test (which still exits 0),
+so a Unit drift test names the arms it requires and `SelfTestArmSource.AssertDeclares` finds each label among the script's
+string literals. A drift test that ran the self-test again did so under the test harness's fixed 120 s per-process budget and
+went red under load with every arm passing.
 
-**The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under
-`scripts/selftests/`, found by this runner's rule (b) with no change here; the layout, its collector and its drift test
-are `DESIGN-orchestrator-loop.md` §16.2.
+**The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under `scripts/selftests/`,
+found by this runner's rule (b); the layout, its collector and its drift test are DESIGN-orchestrator-loop.md §16.2.
 
 **5. The clock proof (kb/Work PB4358).** *The defect it removes.* PB4353's self-test planted merge-group runs dated the
 day before it was written and read them through a real 24-hour window. It passed on its branch, in its merge group and
@@ -1826,86 +1228,62 @@ that installs the interpreter itself (`scripts/cloud/setup-env.sh`, `scripts/wsl
 names one directly. The rule covers the scripts; CI's other workflow steps name the runner image's interpreter
 (`python3` on ubuntu, `python` on windows) and are not scanned.
 
-**The drift test.** `PythonInterpreterDriftTests` (Unit, a tree-wide sweep): no bash script under `scripts/` and no
+**The audit.** `scripts/toolchain_audit.py` (its `--self-test`, run by `self_tests.py`): no bash script under `scripts/` and no
 PowerShell twin of one names an interpreter as a command (`python3 x.py`, `command -v python`, `& python`); every script
 that runs `$PY` sources its shell's resolver; and the two resolvers probe the same candidates in the same order with the
-same floor probe. Before PB3197 the gate's own entry points bypassed the resolver (bare `python` in both
-`build-local` twins; `command -v python3 || command -v python`, no probe and no floor, in `linux-gate.sh`), so
-`bash scripts/build-local.sh` died `python: command not found` (exit 127, no verdict line) on a python3-only host.
+same floor probe.
 
 #### 3.14.12 A gate outlives its caller, and a measured tree is gated once (kb/Work PB3536)
 
-**The defect it removes.** A workflow agent's return kills the process TREE of every background command it started
-(the harness walks the tree; the agent's shell is in no job object). Measured 2026-10-22 on wave 1150 group A: the
-review finisher reached its turn cap while its gate ran, its return killed the gate mid-audit (run
-`20261022T225440Z-2797b8`: no verdict, its log stopping in the audits), the wave read the return as SPLIT, and the only
-path was a second finisher whose whole job was to re-run the same gate at the same head. Owner, ~16:50 PDT: "Reruning
-these simply wastes tokens: but the workflow returned before its gate finished, so it needs the gate re-run at its
-head and a round-2 review. - we should have the failure in the first place". The bar: the gate's result is PERSISTED
-and AWAITED by the orchestrator, never left to an agent's turn budget.
+A workflow agent's return kills the process TREE of every background command it started (the harness walks the tree; the
+agent's shell is in no job object). A gate whose caller returned mid-audit therefore had no verdict and cost a finisher whose
+only job was to re-run the same gate at the same head (wave 1150, 2026-10-22). The bar: the gate's result is PERSISTED and
+AWAITED by the orchestrator, never left to an agent's turn budget.
 
-**1. Detached, and followed.** `gate.py` (what `build-local.ps1` and `.sh` run) makes the run directory and
-starts the gate itself (`--run <run>`) through `scripts/detached.py`, THE one launch that outlives its caller: a
-launcher that starts the target and exits at once, so no walk of the caller's tree reaches it (Windows: its own
-process group and a console with no window, out of the caller's job where the job allows it; POSIX: its own session).
-The landing lane starts its runners through the same function (§DESIGN-orchestrator-loop 4.9). The run directory
-holds `gate.log` (the gate's whole output), `gate.pid` and, at the end, `verdict.json`. The caller FOLLOWS it: it
-echoes the log as it grows and exits with the gate's own exit code once the verdict file is written, so every caller
-that blocks on the `=== BUILD-LOCAL GATE: ` line (agents, `enqueue.py`, a person) sees exactly what it saw before. A
-caller that is killed leaves the gate running to its verdict. The gate writes `gate.pid` itself, UNDER its worktree's gate lock (the launcher writes none), so a
-pid file proves the gate took the lock. ⛔ **The window before the lock (kb/Work PB3707).** The run directory exists, and its
-child is alive, for the moment of interpreter start and imports before the child takes the lock and writes `gate.pid`; neither
-fact says a gate is coming. The launcher therefore records the child it spawned in `gate.spawn` (its pid), and the child's first
-act under the lock replaces it with `gate.pid`. `gate.gate_phase` reads a run by THREE facts, never a pid alone: the
-gate lock is held by a gate writing this run (RUNNING); else the run has no `gate.pid`, is younger than `START_WINDOW_S` (60 s,
-read from the stamp in its name, so no gap lies between the directory and its record) and its spawn record, when it has one,
-names a live process (STARTING); else the gate DIED. A reused pid can therefore read a dead child as starting for the window and
-no longer. `enqueue.tested_locally` reads a STARTING run as a verdict still owed (exit 12, GATE BUSY, never exit 14), and
-`--await` reports it PENDING. To stop a gate, end the process `gate.pid` names.
+**1. Detached, and followed.** `gate.py` (what `build-local.ps1` and `.sh` run) makes the run directory and starts the gate
+itself (`--run <run>`) through `scripts/detached.py`, THE one launch that outlives its caller: a launcher that starts the
+target and exits at once (Windows: its own process group and a console with no window, out of the caller's job where the job
+allows it; POSIX: its own session). The landing lane starts its runners through the same function (DESIGN-orchestrator-loop.md
+4.9). The run directory holds `gate.log`, `gate.pid` and, at the end, `verdict.json`. The caller FOLLOWS it: it echoes the log
+as it grows and exits with the gate's own exit code once the verdict file is written, so every caller that blocks on the
+`=== BUILD-LOCAL GATE: ` line (agents, `enqueue.py`, a person) sees the same thing; a caller that is killed leaves the gate
+running to its verdict. The gate writes `gate.pid` itself, UNDER its worktree's gate lock, so a pid file proves the gate took
+the lock. ⛔ **The window before the lock (kb/Work PB3707).** The run directory exists and its child is alive for the moment
+of interpreter start before the child takes the lock; neither fact says a gate is coming. The launcher therefore records the
+child it spawned in `gate.spawn`, and the child's first act under the lock replaces it with `gate.pid`. `gate.gate_phase`
+reads a run by THREE facts, never a pid alone (Windows reuses pids): the gate lock is held by a gate writing this run
+(RUNNING); else the run has no `gate.pid`, is younger than `START_WINDOW_S` (60 s, read from the stamp in its name) and its
+spawn record names a live process (STARTING); else the gate DIED. `enqueue.gate_busy` reads RUNNING and STARTING as a verdict
+still owed (exit 12, never exit 14), and `--await` reports STARTING PENDING. To stop a gate, end the process `gate.pid` names.
 
-**2. One way to wait: the verdict file.** `gate.watch` — the CLI `gate.py --await <run> [--worktree
-W] [--wait-s N]` — reads the run directory, never a log's tail: the record's line and exit code once `verdict.json` is
-there; `NOT RUN [verdict]` (exit 2, BRANCH) when the gate DIED without one (`gate_running`, over `gate_phase`: the worktree's gate
-lock is not held by a gate writing that run and the run is not STARTING; never the pid's liveness, which the OS reuses; only the
-follower watches its own freshly spawned child); PENDING (exit 4: exit 3
-is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
-directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
-that gated it, never of the reader's checkout: `gate.resolve_run` is the one resolution, and the rolling
-wave's await (`--worktree`, the agent's worktree) and `reports.Report.gate_state` (the report's Worktree field) both
-read from the main checkout through it (review R1-1 of wave 1152). The follower, the rolling wave's await and
-`reports.Report.gate_state` all read through `watch`.
+**2. One way to wait: the verdict file.** `gate.watch` (the CLI `gate.py --await <run> [--worktree W] [--wait-s N]`) reads the
+run directory, never a log's tail: the record's line and exit code once `verdict.json` is there; `NOT RUN [verdict]` (exit 2,
+BRANCH) when the gate DIED without one; PENDING (exit 4; exit 3 is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN
+[run]` (exit 2, ENVIRONMENT) when there is no such directory. A relative `<run>` (`TestResults/build-local/<run>`) names a run
+of the worktree that gated it, never of the reader's checkout: `gate.resolve_run` is the one resolution, and the follower, the
+rolling wave's await and `reports.Report.gate_state` all read through `watch`.
 
-**3. The handoff.** An implementer or finisher that reaches its TURN CAP while its gate still runs on its committed
-head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` and `head`, its report's header saying
-`Status: GATE-PENDING` and `Gate run: <run>` (MANDATORY-PRACTICES P2's one exception). The rolling wave
-(`wf_rolling_wave.js` `settleGate`) awaits the run inside the agent's own ceiling, one window at a time (one mechanical
-`cobol-locator` per window runs `--await`; a workflow script has no process API and no clock): GREEN continues exactly
-as a DONE return carrying that verdict (the finished test, then the branch review), any other verdict sends ONE gate
-finisher (`gate_fix_rounds`), and no verdict by the last window, or the ceiling, is STALLED. The persisted verdict
-also needs no awaiter: `reports.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
-is GREEN for the report's HEAD and measured that commit's own tree, unchanged while it ran; the planner waits on a
-gate still running and plans a finisher for one that ended otherwise, and the branch survey reads the same predicate.
+**3. The handoff.** An implementer or finisher that reaches its TURN CAP while its gate still runs on its committed head, with
+nothing uncommitted, returns status `GATE-PENDING` with `gate_run` and `head`, its report's header saying `Status:
+GATE-PENDING` and `Gate run: <run>` (MANDATORY-PRACTICES P2's one exception). The rolling wave (`wf_rolling_wave.js`
+`settleGate`) awaits the run inside the agent's own ceiling, one window at a time: GREEN continues exactly as a DONE return
+carrying that verdict (the finished test, then the branch review), any other verdict sends ONE gate finisher
+(`gate_fix_rounds`), and no verdict by the last window, or the ceiling, is STALLED. The persisted verdict also needs no
+awaiter: `reports.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict is GREEN for the
+report's HEAD and measured that commit's own tree, unchanged while it ran.
 
-**4. Reuse: a measured tree is gated once.** Every verdict record (schema 4, `gate.RECORD_SCHEMA`) carries the HEAD, the TREE the gate
-measured at its start and again at its end (`Host.measured_tree`: the git tree id of the working tree — tracked files
-as on disk, untracked files git does not ignore — written through a private copy of the index that keeps the index
-file's own mtime, git's racy-git reference: an edit in the cached entry's own second keeps its size and mtime, and only
-that reference makes git re-read such an entry by content; a path
-`coord.NEVER_WORK` names measures at HEAD's content, so the harness's edit of the TRACKED `.claude/settings.local.json`
-in every agent worktree is no difference and a GREEN at a clean commit measures as that commit's own tree, the tree
-`gate_state` checks: review R1-2 of wave 1152), the base it planned
-against and its exit code. A gate whose tree and base equal those of an earlier GREEN run in this worktree whose tree
-did not change while it ran, written by a gate that ran the whole population (record schema 5 on, kb/Work PB4328),
-takes the worktree's gate lock, answers from that record WITHOUT running an audit, a slot, a build or a host, and
-says so: `=== BUILD-LOCAL GATE: GREEN — REUSED (kb/Work PB3536): tree … at head
-… was gated in run <the measuring run> and has not changed since, so nothing ran (run <this run>); that gate: … ===`.
-It is the self-test reuse rule (§3.14.10) extended to the gate, keyed on what was measured rather than on a branch or
-a head: a RED is never reused, and the landing's gate on the merged head (another tree, another base) always runs.
-A reused record carries its own seconds (`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
-
-**What it would have saved on 2026-10-22.** The wave journals of the day name one rerun of this shape (wave 1150 group
-A, PB3527: a whole finisher dispatched to re-run the gate its predecessor's return killed, plus the second review
-round it waited on); with the gate detached and handed over, the wave awaits the verdict and goes straight to round 2.
+**4. Reuse: a measured tree is gated once.** Every verdict record (schema 5, `gate.RECORD_SCHEMA`) carries the HEAD, the TREE
+the gate measured at its start and again at its end (`Host.measured_tree`: the git tree id of the working tree, tracked files
+as on disk and untracked files git does not ignore, written through a private copy of the index that keeps the index file's
+own mtime, git's racy-git reference; a path `coord.NEVER_WORK` names measures at HEAD's content, so the harness's edit of the
+tracked `.claude/settings.local.json` is no difference and a GREEN at a clean commit measures as that commit's own tree), the
+base it planned against and its exit code. A gate whose tree and base equal those of an earlier GREEN run in this worktree
+whose tree did not change while it ran, written by a gate that ran the whole population (schema 5 on, kb/Work PB4328), takes
+the worktree's gate lock, answers from that record WITHOUT running an audit, a slot, a build or a host, and says so: `===
+BUILD-LOCAL GATE: GREEN — REUSED (kb/Work PB3536): tree … at head … was gated in run <the measuring run> and has not changed
+since, so nothing ran (run <this run>); that gate: … ===`. It is the self-test reuse rule (§3.14.10) extended to the gate,
+keyed on what was measured rather than on a branch or a head; a RED is never reused. A reused record carries its own seconds
+(`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
 
 #### 3.14.13 The growth trigger, and the program differential it would build (kb/Work PB4333, step 10 of PB4323)
 
@@ -1944,141 +1322,65 @@ code, `conformance-suite/harness`, the build properties); the other 26 change an
 "run everything" unless a finer rule is proved. A builder starts there: the selection is only as sound as the
 classification of a harness change, which is the failure class that ended the impact map (kb/Work PB2696, PB4228).
 
-### 3.15 THE LOCAL LINUX GATE — CI's Linux legs under WSL before a push (kb/Work PB1732)
+### 3.15 THE LINUX REPRODUCTION TOOL — CI's Linux legs under WSL, run by hand (kb/Work PB1732, PB4327)
 
 > ⛔ **The Linux gate is a HAND-RUN reproduction tool, and no per-change gate runs it (owner 2026-10-31, kb/Work PB4327;
-> PIPELINE-REVIEW.md section 7).** From 2026-10-11 (kb/Work PB3612) the local gate ran a LINUX HALF OF THE TARGETED LEG,
-> leg 1 of the same plan in a WSL clone; it re-ran the leg Windows had just run, cost 167 s a gate serially and was red
-> once in 78 records (a population-check false red), and no compiler test was red on Linux alone in October's 31
-> incidents. It is gone: `LinuxLeg`, the `targeted` and `inert` modes, `--plan`, `--plan-legs`, `--probe`, the gate
-> driver's `--plan-leg` entry and the `linux` field of the gate's record are deleted. CI's merge group runs the whole
-> Linux population and every Linux self-test (the `audits` job). `linux-gate.sh` keeps its whole-leg form, `--legs
-> unit,characterization,conformance,guard`, as the tool that reproduces a Linux CI red on this box (`reference
-> wsl_linux_repro`); a host-I-O group runs its unit and conformance legs at its own gate (MANDATORY-PRACTICES I8). Below
-> is that tool. **Accepted risk:** a Linux-only compiler red is found in the queue at the cost of one group, expected 0 to 1 a
-> month; if two months show more than 2 a month, the response is a nightly whole-population WSL run on main, never a
-> per-change Linux half.
+> PIPELINE-REVIEW.md section 7).** From 2026-10-11 to 2026-10-31 the local gate ran a LINUX HALF OF THE TARGETED LEG in a WSL
+> clone; it re-ran the leg Windows had just run, cost 167 s a gate serially and was red once in 78 records (a
+> population-check false red), and no compiler test was red on Linux alone in October's 31 incidents. CI's merge group runs
+> the whole Linux population and every Linux self-test (the `audits` job). `linux-gate.sh` keeps its whole-leg form as the
+> tool that reproduces a Linux CI red on this box (`reference wsl_linux_repro`); a host-I-O group runs its unit and
+> conformance legs at its own gate (MANDATORY-PRACTICES I8). **Accepted risk:** a Linux-only compiler red is found in the
+> queue at the cost of one group, expected 0 to 1 a month; if two months show more than 2 a month, the response is a nightly
+> whole-population WSL run on main, never a per-change Linux half.
 
-CI runs most of its test jobs on `ubuntu-26.04` (pinned, so the runner image moves only when the repository says so),
-and every local gate runs on the Windows host, so without this a
-change's first Linux run was CI's. Train 71b showed the cost: a Windows path literal in a new drift test was green
-on Windows and red in CI's Linux unit job. That was a ~30-minute round trip and a dropped cluster, for a failure a
-2.5-minute WSL run reproduces.
+CI runs most of its test jobs on `ubuntu-26.04` (pinned), and every local gate runs on the Windows host. **`scripts/linux-gate.sh`**
+(`bash scripts/linux-gate.sh [--legs unit,characterization,conformance,guard] [--nice]` at a tree's root; on a host that is
+not Linux it runs itself under WSL through `wsl.exe -d Ubuntu --cd <tree> --exec bash -lc …`, kb/Work PB2999) runs the test
+projects CI's Linux jobs run and the scripts they run: leg `guard` runs `bash scripts/guard-fast.sh` with a `TMPDIR` private to
+the clone, leg `selftests` runs `scripts/self_tests.py` in the clone as CI's `audits` job does, and `selftests-built` runs
+`self_tests.py --built` against the one build (kb/Work PB2563, PB2879). `scripts/test_linux_gate.py` holds the default legs equal to
+the workflows': every `dotnet test` project of a Linux job of `build-and-test.yml` and every `run: bash scripts/….sh` step of
+a Linux job of it or of `nightly.yml` is a default leg.
 
-**`scripts/linux-gate.sh`** runs, from any tree and any shell (`bash scripts/linux-gate.sh` at the tree's root: on a host that is not Linux it runs itself under WSL with `wsl.exe -d Ubuntu --cd <tree> --exec bash -lc ...`, its arguments verbatim, kb/Work PB2999),
-the test projects CI's Linux jobs run, and the scripts they run: leg `guard` runs `bash scripts/guard-fast.sh`, the
-nightly's `guard` job (the merge group's until kb/Work PB4329; the NIST suite through the `cobol` CLI, the manifest audit, the baseline check and the guard's own
-self-tests), with a `TMPDIR` private to the clone because the guard writes fixed file names there. Leg `selftests`
-runs always, beside the build: `scripts/self_tests.py` in the clone, as CI's `audits` job runs it; `selftests-built`
-runs `self_tests.py --built` against the one build, beside the other legs (kb/Work PB2563, PB2879). Its first Linux run found two
-self-tests that had never run on Linux: an unguarded Windows-only arm in `fleet_active_build.py` and
-`test_autostart.ps1`, which installs a Windows Startup entry and is now marked windows-only.
-`LinuxGateDriftTests` holds both sets equal to the workflows': every `dotnet test` project of a Linux job of
-`build-and-test.yml` and every `run: bash scripts/….sh` step of a Linux job of it or of `nightly.yml` is a default leg. The guard leg was added 2026-10-04 (kb/Work PB1955, PB1957 row 40):
-the guard job was the one CI Linux job no local gate ran, so train 1013's guard red on PB322's `TERMINATES` rows
-reached CI behind a green Windows gate and a green Linux gate. It is a Linux-gate leg and not a `build-local` leg
-because CI runs that job on Linux only; a Git Bash run on Windows would add minutes and no CI parity.
+**How: a Linux clone of the commit, never the Windows tree.** The tree's COMMITTED HEAD is cloned `--shared` (it borrows the
+Windows repository's object store read-only) into `~/linux-gate/<tree>.<pid>/<tree>` on the Linux filesystem, the solution is
+built there ONCE with the Linux SDK, and every leg runs in PARALLEL against that build, each to its own log (234 s against
+351 s serially). The git-ignored GnuCOBOL corpus is copied in or fetched as CI fetches it. Commit before running:
+uncommitted changes are counted, reported and not tested. Two earlier designs failed, each measured: (1) Windows-built
+binaries run `--no-build` bake `[CallerFilePath]` goldens in as `E:\…` paths, which are relative on Linux (363 false reds);
+(2) the Windows tree with `GIT_DIR`/`GIT_WORK_TREE` exported let those variables reach every test process, and
+`gate_slot.py`'s self-test wrote `core.worktree` into the REAL repository's shared `.git/config` (2026-09-29). So the script
+exports nothing; its only git calls on the tree are READS (HEAD, the git directory, the count of uncommitted changes, the
+tripwire below), all through one function, `wgit`, the TREE'S OWN git without optional locks (a Windows-drive tree is read by
+`git.exe` through WSL interop: Linux git re-hashed ~16,000 tracked files across 9P for one `status`, 34 s, kb/Work PB2880).
+`scripts/test_linux_gate.py` holds every git call on the tree to `wgit` and every arm of it to `--no-optional-locks`. A self-test
+builds its repositories through `scratch_repo.py` (§3.14.10), and the script snapshots the real repository's `HEAD` and
+`core.worktree` before the legs and is RED (`repository-written`) when either changed.
 
-**How: a Linux clone of the commit, never the Windows tree.** The tree's COMMITTED HEAD is cloned into
-`~/linux-gate/<tree>.<pid>/<tree>` on the Linux filesystem (removed when the gate ends, below). The clone is `--shared`: it borrows the Windows repository's object
-store read-only, so nothing is copied. The solution is built there ONCE with the Linux SDK, and every leg then runs
-in PARALLEL against that build, each to its own log (kb/Work PB2879: 234 s against 351 s with the legs one after
-another), the shape of CI's ubuntu jobs. The git-ignored GnuCOBOL corpus is copied in from the tree, or fetched as CI
-fetches it. Commit before running: uncommitted changes are counted, reported, and not tested.
+**The gate leaves nothing behind on the Linux filesystem (kb/Work PB3194).** One built gate is about 1 GB and 80,000 inodes;
+345 leftover clones once filled the disk and every Linux gate on the host ended NOT RUN until someone deleted clones by hand.
+Now: each gate works in its own `~/linux-gate/<tree>.<pid>/` (the clone, the guard leg's `guard-tmp` beside it, and an `owner`
+file naming the gate's process by pid and start time, so a reused pid is never mistaken for it); it removes that directory on
+every exit path (the EXIT trap after its verdict, and `on_signal` for HUP, INT and TERM, which first ends the legs' process
+trees read from `/proc`; the one build runs in the background because bash defers a trap until a foreground command returns);
+a gate killed outright is REAPED by the next gate (an owner that no longer runs, or no owner file and this tree's or older than
+3 hours); and it refuses, `=== LINUX GATE: NOT RUN [disk] (…) ===`, below 1,000,000 free inodes or 20 GB free (`disk` is an
+ENVIRONMENT cause in `gate.NOT_RUN_CAUSES`). `linux-gate.sh --self-test` drives each exit path on real directories and
+processes and each bound over a stand-in `df`; its signal arm is SYNCHRONIZED through fifos, never timed, and its grandchild
+takes the first signal with `sigwait` (a `bash -c` witness with a TERM trap was wrong: 2 of 256 runs recorded PROBE although
+the TERM had been sent). That arm reads `/proc`, which Cygwin serves slowly, so on a Windows host it prints `n/a` and runs in
+the Linux `selftests` leg and CI's audits job.
 
-**The gate leaves nothing behind on the Linux filesystem (kb/Work PB3194).** One built gate is about 1 GB and 80,000
-inodes. The clone used to live at `~/linux-gate/<tree>` (with `<tree>.guard-tmp` beside it) and was removed only when
-the same tree was gated again; worktrees come and go, so 345 clones filled the disk on 2026-10-15 (`No space left on
-device` mid-leg read as 2,919 conformance failures, then the distro remounted read-only), 430 exhausted its inodes on
-2026-10-19 and 394 again on 2026-10-22, and each time every Linux gate on the host ended NOT RUN until someone deleted
-clones by hand. Now one mechanism in `linux-gate.sh` owns the footprint:
-- each gate works in its own directory, `~/linux-gate/<tree>.<pid>/`: the clone (`<tree>`), the guard leg's scratch
-  (`guard-tmp`, beside the clone and never inside it, kb/Work PB2989) and an `owner` file naming the gate's process by
-  pid and start time, so a reused pid is never mistaken for it;
-- the gate removes that directory on every exit path: the EXIT trap after its verdict (GREEN, RED, or a NOT RUN after
-  the clone), and `on_signal` for HUP, INT and TERM, which first ends the legs' process trees (every background job and
-  each process under it, read from `/proc` in one pass) so nothing writes into the clone while it goes. The one build
-  runs in the background (`wait`) because bash defers a trap until a foreground command returns. What survives is what
-  the gate already wrote to the tree's `TestResults/linux-gate`, the guard's forensics of a non-MATCH included
-  (`GUARD_FORENSICS` points there);
-- a gate killed outright (SIGKILL, or WSL ending its session) runs no trap, so every gate first REAPS: a directory
-  whose owner no longer runs goes at once, and one with no owner file (the layout before this mechanism, from a
-  branch not yet merged with it) goes when it is this tree's or older than 3 hours;
-- then it measures the filesystem and refuses, `=== LINUX GATE: NOT RUN [disk] (…) ===`, below 1,000,000 free inodes
-  or 20 GB free (about twelve built gates: the gate cap of 3 and every implementer gate beside it). `disk` is an
-  ENVIRONMENT cause in `gate.NOT_RUN_CAUSES`, so a landing retries it and never blames the branch. A
-  filesystem that counts no inodes (btrfs) is held to the space bound alone; one `df` cannot measure is NOT RUN.
-`linux-gate.sh --self-test` drives each exit path on real directories and processes (status 0, 1 and 2, and a TERM
-mid-way with a background leg and its child, which must both be gone), the reaping rules and both bounds over a
-stand-in `df`; removing the EXIT trap, the signal trap, the kill, the descendant walk, either bound, the liveness test
-or the age rule each turns it red. The signal arm is SYNCHRONIZED, never timed (review R1-1: a 20 s watchdog failed a
-slow correct gate and 5 s polls passed without testing): the leg's grandchild says READY through a fifo once it has
-blocked TERM and the probe signal, the gate signals itself only after reading it, and the arm reads a second fifo the
-grandchild holds open to its end, so it waits for that process's exit itself. A PROBE signal sent after the gate has
-exited (SIGVTALRM) ends a grandchild the stop never reached. The grandchild takes the first signal with `sigwait` and
-records TERM when TERM is that one or still pending beside it, so it records whether a TERM was ever sent, whatever the
-order or the load; a PROBE alone is a red. A stop that does not end its jobs hangs the arm, which `self_tests.py`
-reports HANG, a non-observation, never a pass. The grandchild was first a `bash -c` with a TERM trap, and that witness
-was wrong: run 32 at a time, 2 of 256 runs recorded PROBE although `on_signal` had sent the TERM (status 0), because
-bash did not run the TERM trap before the probe's trap ended the shell; the Linux gate's selftests leg at the landing
-of c89014b6b failed so. The `sigwait` grandchild (Python, the one interpreter) is GREEN in 256 of 256 runs 32 at a
-time, and the mutant whose stop signals only its jobs is red (`leg-child: PROBE`). The signal arm reads every process's `/proc` entry, which Cygwin's emulation on a
-Windows host serves at about half a second each, so there it prints `n/a` and runs in the Linux gate's `selftests`
-leg and CI's audits job.
+**Line endings.** Every tracked text file is LF on every checkout (`.gitattributes` `* text=auto eol=lf`, kb/Work PB3029,
+§3.17.4); a CRLF script dies at its first line under bash.
 
-Two earlier designs failed, and each failure was measured:
-1. **Windows-built binaries run `--no-build`.** The Conformance tests find their goldens through `[CallerFilePath]`,
-   which a Windows build bakes in as `E:\…` paths that are relative on Linux: 363 false reds.
-2. **The Windows tree, with `GIT_DIR`/`GIT_WORK_TREE` exported** so Linux git could read a worktree whose `.git` file
-   names an `E:/` gitdir. The variables reached every test process. `gate_slot.py`'s self-test (git init, commit,
-   worktree add in its own temp repositories) then wrote into the REAL repository: `core.worktree` landed in the
-   shared `.git/config` and broke git in every checkout until the owner removed it (2026-09-29).
-
-So the script exports nothing. Its only git calls on the tree are READS (HEAD, the git directory, the count of
-uncommitted changes, the tripwire below), all through one function, `wgit`: the TREE'S OWN git, without optional
-locks. A tree on a Windows drive is read by Windows git (`git.exe`, through WSL interop) with its Windows path; a tree
-on a Linux filesystem by Linux git. kb/Work PB2880 measured why: Linux git found the Windows-written index's stat data
-foreign, re-hashed all ~16,000 tracked files across the 9P boundary for the one `status` (34 s at half of one core, the
-gate's first serial valley in every run) and then wrote the refreshed index back into the real worktree, which Windows
-git rewrote on its next command; `git.exe` reads it in 0.1-1.2 s. `LinuxGateDriftTests` holds every git call on the
-tree to `wgit`, and every arm of it to `--no-optional-locks`.
-
-Two guards stay beside the clone (group G, kb/Work PB1719). A self-test builds and drives its repositories through
-the one scratch-repository fixture, `scripts/scratch_repo.py` (§3.14.10, kb/Work PB3584), which runs every git
-command without the variables `git rev-parse --local-env-vars` names, and a self-test whose code under test runs git
-in its own process drops them from that process first (`scratch_repo.isolate`), so an inherited `GIT_DIR` can never
-redirect it into the real repository. And the script snapshots the real repository's `HEAD` and
-`core.worktree` before the legs and is RED (`repository-written`) when either changed. (Not the worktree list:
-other agents add and remove worktrees of the shared repository while it runs.)
-
-**Line endings.** Every tracked text file is LF on every checkout (`.gitattributes` `* text=auto eol=lf`, kb/Work
-PB3029, §3.17.4). Before it, `core.autocrlf=true` checked a script out CRLF in every fresh Windows worktree, and bash
-died at its first line (`set: -: invalid option`).
-
-**Verdict.** One `=== LINUX GATE: GREEN|RED|NOT RUN [<cause>] ===` line naming the HEAD it tested. NOT RUN is never
-green; its cause's class is `gate.NOT_RUN_CAUSES`' (§3.14.3 item 1).
-
-**Which legs run (MANDATORY-PRACTICES I8): all four by default**, by hand, to reproduce a Linux CI red; no gate runs
-the Linux gate (kb/Work PB4327).
-- **Measured at `044d2aa4f`** (wave 1015 group V), 2026-10-04, `--nice`: unit 137 s, characterization 10 s,
-  conformance 127 s, **guard 81 s** (364 NIST programs MATCH, audit clean, legacy Unit + Integration green). The
-  guard leg adds about 1.4 minutes to a ~4.6-minute gate.
-- **Measured at `4fdc6897c`** (train 71b with F), 2026-09-29: 195 s in all.
-  - `unit`: 75 s including the build; exactly CI's one red, `Arm5`.
-  - `characterization`: 8 s.
-  - `conformance`: 102 s, for 9,321/9,321.
-- **The shared `.git/config` and the worktree list were unchanged afterwards.**
-
-That was about 3–4 minutes for the three test assemblies, about 6 with the guard leg. A platform-sensitivity detector, which would have added the
-conformance leg only for flagged diffs, was built and deleted the same night. At that cost no selection is worth its
-misses (the rule of section 3.14.1, ORDER, DON'T SKIP).
-
-**Limits.**
-- The local WSL distro is the same Ubuntu release as the pinned `ubuntu-26.04` runner (upgraded in place 2026-10-04),
-  but it runs Microsoft's WSL kernel, not the runner's, and the gate runs Debug where CI also runs Release (kb/Work
-  PB1957 lists every remaining difference). It catches platform assumptions, and CI's merge-group run remains
-  the proof.
-- The gate cap (section 3.14.6) does not span operating systems, so WSL legs are not counted against it.
+**Verdict.** One `=== LINUX GATE: GREEN|RED|NOT RUN [<cause>] ===` line naming the HEAD it tested; NOT RUN is never green and
+its cause's class is `gate.NOT_RUN_CAUSES`' (§3.14.3). All four legs run by default, about 3–4 minutes for the three test
+assemblies and about 6 with the guard leg (2026-10-04: unit 137 s, characterization 10 s, conformance 127 s, guard 81 s).
+**Limits.** The local WSL distro is the same Ubuntu release as the pinned runner but runs Microsoft's WSL kernel, and the tool
+runs Debug where CI also runs Release (kb/Work PB1957 lists every remaining difference): it catches platform assumptions, and
+CI's merge-group run remains the proof.
 
 ### 3.16 THE READYTORUN RUNTIME — the gates and the package run the same precompiled runtime (kb/Work PB2528)
 
@@ -2119,829 +1421,487 @@ JIT compiling the runtime's methods was paid at every program start; the w1033 g
   the architecture combined with the operating-system code of the .NET runtime's `pedecoder.h`) with no source stamp;
   every declared platform's image is in the test host and in the CLI output, byte-identical; and the declared
   platforms cover every `runs-on:` runner in `.github/workflows/` (a runner the test cannot name fails it).
-- **Off switch: `CobolRuntimeReadyToRun=false`.** `tools/impact/ImpactRecording.targets` sets it, because the impact
-  map's probes are woven into the portable runtime assembly (§3.13), which a recorded program must then load; the
-  drift test's arms require the portable assembly under `IMPACT_RECORDING`.
+- **Off switch: `CobolRuntimeReadyToRun=false`.** It is the condition of the CLI's publish guard (Guard 1);
+  nothing in the tree sets it now (the impact recorder that did was deleted with the impact map, kb/Work PB4328).
 
-**What the gate certifies.** The gates' programs load the Release ReadyToRun runtime, not the Debug build of it: the
-same image the package ships. `src/WiseOwl.Cobol.Runtime` has no `Debug.Assert`, and CI's Windows Conformance shards
-already ran Release, so no check is lost; the Debug portable assembly is still what the test hosts load in-process.
+**What the gate certifies.** The gate's programs load the Release ReadyToRun runtime, not the Debug build of it: the same image
+the package ships. `src/WiseOwl.Cobol.Runtime` has no `Debug.Assert`, and CI's Windows Conformance shards already ran Release,
+so no check is lost; the Debug portable assembly is still what the test hosts load in-process.
 
-**Measured** (2026-10-07, this host shared with other gates; probe `E:\COBOL-coord\scratch\w1033x\startup.py`:
-24 stride-sampled `tests/conformance/2023` programs, 21 runs each, the two runtimes interleaved run by run, 21 of 24
-outputs equal to the golden in both arms):
+**Measured** (2026-10-07, shared host; 24 stride-sampled `tests/conformance/2023` programs, 21 runs each, the two runtimes
+interleaved): a program start's median fell from 104.7 ms (Debug portable runtime) to 74.5 ms (ReadyToRun), −29 %. A change to a
+runtime source costs about **+4 s** of build (two Release compiles and two crossgens, in parallel); a no-op build is unchanged,
+and a clean restore downloads the crossgen2 pack and the two runtime packs once.
 
-| program start, median of per-program medians | Debug portable runtime (before) | ReadyToRun runtime (after) |
-|---|---|---|
-| run 1 | 104.7 ms | 74.5 ms (−29 %) |
-| run 2 | 102.8 ms | 76.5 ms (−26 %) |
-| quieter host, an earlier pair | 83.2 ms | 60.4 ms (−27 %) |
+### 3.17 THE LANDING PIPELINE — one whole-population gate at the head, the merge group as the first run of the merged tree, one pull request per branch through GitHub's merge queue (kb/Work PB3015, PB4323; owner decisions 2026-10-11 and 2026-10-31)
 
-Build cost (probe `buildcost.py`: `dotnet build WiseOwl.Cobol.sln -c Debug` with node reuse and the compiler server off,
-as the gate slot runs it, three rounds): a change to a runtime source costs 8.5–11.5 s with the images against
-4.3–7.1 s without, about **+4 s** (two Release compiles and two crossgens, in parallel); a no-op build is unchanged
-(2.3–4.6 s either way). A clean restore also downloads the crossgen2 pack and the two runtime packs once.
+#### 3.17.1 The decisions this section stands on
 
-### 3.17 THE LANDING PIPELINE — a targeted local gate, CI as the regression net, one pull request per branch through GitHub's merge queue (kb/Work PB3015; owner decisions 2026-10-11)
+Measured on 2026-10-10 (frozen: `evidence/fleet-optimization/2026-10-11-pipeline-measurement-2026-10-10.md`): of 567 lander
+minutes, 233 (41 %) were local whole-population gate runs (7–13 min on a quiet host, 25–53 min under load, 8 of 15 RED, mostly
+from fixed time limits under load) and 94 (16.5 %) were a direct-push landing script holding a lease while CI ran the same
+population a third time. The owner, 2026-10-11:
 
-#### 3.17.1 The decisions this section is built from
+- "We are free to completely rearchitect the build pipeline as needed to be maximally productive and minimally costly."
+- The principle: "We need local testing to confirm the targeted changes are correct. The CI / CD should primarily ensure no
+  regression on the remaining codebase. Another consideration, local runs are free." (The repository is PUBLIC, so
+  GitHub-hosted standard runners are free for it.)
+- Landing goes through a **GitHub merge queue** on `main`; the DEVLOG becomes **one file per entry**, rendered as a view;
+  **one pull request per finished branch**, and the train and the lander role retire.
 
-Measured on 2026-10-10 (frozen: `evidence/fleet-optimization/2026-10-11-pipeline-measurement-2026-10-10.md`): of 567
-lander minutes, 233 (41 %) were local whole-population gate runs — 7–13 min on a quiet host, 25–53 min under load, 8
-of 15 RED, mostly from fixed time limits under load — and 94 (16.5 %) were the former direct-push landing script holding the
-landing lease while CI ran the same population a third time on 20 free runners in 13 min; 10 landers for 6 trains; first commit on
-main 6 h 49 min after the day began. The owner, 2026-10-11:
+The operator's constraint (2026-10-11): `E:` is ReFS and CI's Windows runner is NTFS; they delete differently (the PB2917 race
+reproduced here in 20 of 7,200 probes and may not on NTFS), so the Windows file-system race witnesses run in the local gate and
+PB1957's local-versus-CI survey lists the filesystem.
 
-- ~10:38: "We are free to completely rearchitect the build pipeline as needed to be maximally productive and minimally costly."
-- ~11:20, the principle: "We need local testing to confirm the targeted changes are correct. The CI / CD should primarily
-  ensure no regression on the remaining codebase. Another consideration, local runs are free." (The repository is PUBLIC,
-  so GitHub-hosted standard runners are free for it; only larger runners or a private repository bill minutes.)
-- ~11:30, Q1a: the lander's local gate becomes the TARGETED leg (its clusters' own tests, the likely reds, and the
-  Windows file-system race witnesses that reproduce only on this box's ReFS drive); its local whole-population run and
-  the WSL copy of CI's Linux legs are removed; CI stays the whole-population regression net on the pushed head.
-- ~11:33, Q1b: landing goes through a **GitHub merge queue** on `main`.
-- ~11:36, Q2: the DEVLOG becomes **one file per entry**, rendered as a view (the kb/Work pattern); rule 6 unchanged.
-- ~11:40, Q3: **one pull request per finished branch**; the train and the lander role retire.
-- ~12:45, the owner's correction, asked as "doesn't this mean many (all?) of the Linux only failures that we caught in
-  WSL runs now aren't found until CI (very late)": **"Yes, both hosts, leg 1"** — the targeted leg runs natively on
-  Windows AND under WSL in every local gate (implementer and enqueue); only the whole-population regression run is CI's.
-
-The operator's constraint (2026-10-11 11:19): `E:` is ReFS and CI's Windows runner is NTFS; they delete differently (the
-PB2917 race reproduced here in 20 of 7,200 probes and may not on NTFS), so the Windows file-system race witnesses run
-locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
+**Narrowed on 2026-10-31 (kb/Work PB4323, the redesign from measurement; §0).** The local run is no longer a targeted leg: the
+owner's decision 1 made the population the selection (kb/Work PB4328), the Linux half left the per-change gate (kb/Work
+PB4327), the landing gates nothing (kb/Work PB4331), and the CI invariant of 2026-10-04 became THE RULE of §0 item 5 ("This does
+weaken the CI must pass if local passes rule. I'm okay with that"). The merge queue, one pull request per branch and the
+one-file-per-entry DEVLOG stand.
 
 #### 3.17.2 The contract — what every change goes through, in order
 
-1. **Implement** (unchanged): an implementer in its worktree; its gate is the ordered leg 1 (§3.14, scope `leg1`), its
-   report `Status: DONE` with the O11 header; it writes its own **DEVLOG entry file** (§3.17.4) with the number its
-   dispatch spec allocated, and flips its notes.
-2. **Review on the branch** (landed, PB3027; MANDATORY-PRACTICES I10): a read-only reviewer (`cobol-reviewer`, the
-   `review` skill's "branch form": the full-code pass over `origin/main...HEAD`, the drift rules of the changed files,
-   fixed time limits in tests, `cite.py --check`, the other dimensions where the diff warrants) runs THE MOMENT the
-   branch is DONE, inside the wave's slot for that group (`wf_rolling_wave.js` `reviewed()`), a same-file predecessor's
-   branch too: no branch waits for its successor, and a branch reviewed CLEAN is landable at once (kb/Work PB3381,
-   below). Every decision is a line in
-   `<scratch>/review-w<wave>-<letter>.jsonl`, appended through `scripts/orchestrator/review_findings.py`, which computes
-   the verdict from the file and stamps it into the report's header — `**Review:** CLEAN <reviewer> <head>` or
-   `FINDINGS <n> <reviewer> <head> <file>` — read back through `reports.parse_review`, the one reader. The stamp sits
-   one line under the Status line, above an O11 header's `Branch:` line, and its reviewer label
-   (`land-review-<branch>-r<k>`) carries the branch name, so `reports.parse_report` reads the branch, worktree and
-   head from the header's own fields with the stamp lines skipped (kb/Work PB3077). FINDINGS → a
-   REVIEW FINISHER (a fresh implementer, because a workflow cannot message an agent that has returned: it merges the
-   branch, answers every finding by its id — fixed at its root, or `no_change_needed` with the reason — re-gates and
-   returns DONE), reviewed again, at most `review_fix_rounds` (2) times; after that the FINDINGS stamp stays and
-   `plan_wave.py` plans a finisher for it while the stamp covers the branch tip (a later commit that is not
-   mechanical makes the branch WAITING FOR REVIEW to the survey and the planner alike: `prune_worktrees.stamp_covers`,
-   kb/Work PB3394). **The rounds converge (kb/Work PB3381, owner 2026-10-18: "We should not be
-   holding finished work this long, continually postponing it. Something in our process is flawed"; on the change:
-   "Make the changes now and land the clean links as they come.").** Round 1 is the whole branch; round 2 and later
-   review ONLY `git diff <the head the last round reviewed>..HEAD` (the wave passes `reviewed_head`) and the report's
-   answers, since the earlier content is reviewed and is not re-opened unless the diff touches it. Every finding
-   carries a severity (critical, high, medium, low, info) and the verdict is a threshold, `review_findings.py verdict
-   --blocking`: critical, high and medium block in every round a finisher can still answer, critical and high only in
-   the round after the last finisher; low and info never block; every finding stays recorded, and each non-blocking
-   one is a LEAD the stamp lists under the report's `## Review findings` and the wave returns in `leads`, filed by the
-   enqueue unit's clerk. Measured on wave 1118 (the PB3330 engine chain, 7 h, six groups DONE, none landed): PB3331's
-   three whole-branch rounds found 5, 2 and 1 findings over 2.3 h, each new, and the cap turned one LOW finding into
-   a DECISION row. **Nothing is held for a same-file successor (kb/Work PB3381):** the train-era rule that a
-   predecessor "lands THROUGH" its successor saved nothing once every branch became one pull request in the merge
-   queue (PB3023, PB3024) and kept a chain off main until its last link was clean; now the successor starts once the
-   predecessor's review loop has ended, merges the REVIEWED head, and its pull request merges on top of the
-   predecessor's. Unanswered findings have ONE source, the predecessor's findings file, and ONE reader,
-   `review_findings.last_verdict` (its newest verdict: round, branch, head, verdict and the number of blocking
-   findings), which the wave's `predecessorEnd` (through the CLI's `last-verdict`) and `prune_worktrees.py`
-   `carrying_findings` (over `findings_files`: every `review-*.jsonl` in the coordination scratch and one level under
-   it, and every file a stamp names, found by NAME only, never opened to decide what is one) both call. A report stamp is only their rendering: a review finisher rewrites the group's one report for its
-   own branch with no Review line whatever it returns, so a hold read from the stamp released the successor exactly
-   when nobody had answered them (branch review R3-1). While that last verdict is FINDINGS with blocking findings at a
-   head a successor contains, the survey holds the successor IN FLIGHT (`waits_on`) until a later round of that review
-   records CLEAN or the head is on main; a branch of the same note (its later finisher) is exempt. `predecessorEnd`
-   reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
-   successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
-   without answering, its report rewritten: the successor's review covers the predecessor's content and records again
-   each finding that still holds; branch review R1-1, R2-1, R3-1). `capped` is one definition, `review_findings.capped`
-   (the verdict blocked on `BLOCKING_AT_CAP`), and gives each case ONE owner (kb/Work PB3404): a capped verdict's
-   findings are the predecessor's next-wave finisher's and hold the successor until it lands; an uncapped one's are
-   the successor's, whose review answers them, so `carrying_findings` does not hold a successor reviewed CLEAN over a
-   head that contains the verdict's head (`prune_worktrees.review_answers`), and no finisher fixes them twice. Every content problem is a TEAR, and a TORN
-   findings file holds every branch it names (review R4-1, R5-1, R6-1, R6-2): the reader classifies a file as torn
-   when it cannot be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark,
-   holds bytes that are not UTF-8, does not end with a newline, holds no record, or holds a line that is not a record
-   under `review_findings.SCHEMA` (every required field of its kind present with the right type, a verdict's FINDINGS
-   when and only when its count is above zero; an extra field is allowed), the one record schema the writers share
-   (`append` refuses to write a record that fails it). No verdict is read from a torn file, whatever its records say:
-   `last_verdict` returns verdict TORN, `unanswered`, with `torn` naming the file, line, byte offset and reason
-   (`reason` and `line` apart) and the `branches` and `heads` its parseable lines name (or the branch an enqueue
-   unit's `review-<branch>.jsonl` names), and it never raises, so the CLI's `last-verdict` (exit 0) and the survey
-   read one answer. `carrying_findings` holds each WAITING TO LAND branch it names and each one containing a head it
-   names, the same note's included (a file that names none holds the branches of the note whose review it records,
-   by the stamp that names it or its wave name), and writes the tear and what the operator does into the held row's
-   `why`; `predecessorEnd` reads it `unanswered`, never `capped`; one file never stops the landing lane's tick; every
-   writer refuses a torn file BEFORE writing, naming `review_findings.py repair <file>`, which only the operator runs
-   (the review lane alone mends a file torn at its LAST line, a reviewer's cut-off append, through
-   `repair_interrupted_append`, kb/Work PB3608):
-   it removes a byte-order mark, keeps a last record that only lost its newline, removes any other torn tail, deletes
-   a file left with no record, refuses a file it cannot read, and leaves an intact file unchanged.
-   `review_findings.py --self-test` proves the rule by cutting a findings file at every byte offset, alone and with a
-   record glued on, by each discovery case made at the file's first read (a read denied, a byte-order mark, a
-   zero-byte file, a directory in its place, the CLI and the survey agreeing on each) and by each schema mutation;
-   and a merged branch with no clean stamp at its tip never lands alone,
-   it lands through the branch that carries it (`prune_worktrees.contained`). Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
-   and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches the reviewer for
-   one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the
-   stamp: `enqueue.py land` refuses (exit 11, UNREVIEWED) a branch whose newest report's CLEAN stamp names no commit of
-   it, or after which it gained a commit that is not main's, a clean merge of main (its tree the auto-merge of its
-   parents) or register-only (below) — a finisher's fix, a hand-resolved conflict — so that work is reviewed at its new tip first;
-   the lanes I10 does not review (the registrar, the golden lane, the clerk: notes and spec-derived goldens) name
-   themselves with `--lane`. The lander's former train review is retired. The role keeps the R2 design's 120-turn cap (one role, one cap; one branch's diff fits it).
-   `review_findings.py summary` measures findings per branch, the re-review rate and reviewer minutes.
-   **REGISTER-ONLY commits (kb/Work PB3849).** One coverage rule answers for the review gate, the landing's reading of the
-   gate record (step 3), the report's coverage and the branch survey: `prune_worktrees.mechanical` counts a commit as
-   covered by the head before it when it is main's, a clean merge of main through the drivers, or REGISTER-ONLY: every
-   path it changes is a DEVLOG entry or a `kb/Work/*.md` note (`prune_worktrees.register_path`, the one definition).
-   Nothing a test runs or a reviewer reads for behaviour lives there; what can be wrong with such a commit is audited
-   mechanically, at every landing and in CI's `audits` job: `devlog.py check` (the entry), `work.py check` (the register
-   is well-formed) and, through it, `work_inventory.py` (a note's FRONTMATTER claims and closes rows against the
-   traceability inventory). A note's frontmatter change (status, harm flags, `inventory_rows`, `closes_rows`) is therefore
-   covered the same way and not reviewed: a claim or a closed row that is wrong fails `work_inventory.py`, and a row
-   whose verdict really changed carries an inventory edit, which is no register path, so that commit is the branch's own
-   and reviewed. Deleting one stale line in a note after a reviewed, gated head (PB3849's witness: about 20 minutes of
-   a new gate and a new review) now lands as it stands. DEVLOG-only and notes-only commits are one rule, not two.
-3. **Enqueue** (`scripts/orchestrator/enqueue.py land <branch>`, PB3023 — a SCRIPT, deterministic, no agent, started
-   by the loop's landing lane the moment the branch is WAITING TO LAND, PB3103, DESIGN-orchestrator-loop.md §4.9;
-   its gate's slot is served ahead of waiting implementer gates, §3.14.6): fetch;
-   the review stamp (step 2; exit 11); MERGE
-   `origin/main` into the branch — not a rebase, corrected at implementation: a branch that merged a same-file
-   predecessor or a sibling carries conflict resolutions in its merge commits, which a rebase discards and asks for
-   again, and the queue lands by merge commit anyway. **THROUGH THE MERGE DRIVERS** (`scripts/merge_drivers.py`, kb/Work
-   PB3610): the files two landings both edit are merged by key, not by line — the keyed catalogues a landing adds an
-   entry to (`constructs.json`), the work notes
-   two branches append to, the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
-   two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit;
-   that measuring build, like every build in a worktree after its agent has returned, is not blocked by a session's
-   C# language server holding the source generator `WiseOwl.Cobol.Compiler.SourceGen.dll` from `bin\`: the generator
-   project's `MoveAsideHeldOutput` target renames a held output aside before the copy, and
-   `scripts/test_held_analyzer_output.py` rebuilds it with a real process holding it, kb/Work PB3674),
-   and the public-API baselines (`src/**/PublicAPI.*.txt`, `cobol-keyed-publicapi`, kb/Work PB3727: a SET of symbol
-   lines, so a line either side added is kept, a line either side removed is gone, the header stays first and the rest
-   is sorted; the line union before it kept a removed line and once a symbol twice, PB3694).
-   `DRIVERS` is the registry, `.gitattributes` repeats its patterns, `merge_drivers.py --check` and
-   `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
-   (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale, and the attributes with them
-   (`-c attr.tree=…`, `merge_drivers.attributes_tree`: the merged-into side's `.gitattributes` with a `merge=<driver>`
-   line per registry pattern after it), so a branch cut before a driver existed merges that driver's files through it.
-   The other way round fails: until a branch that ADDS a driver lands, its landing merges main in through main's
-   registry, which has no such driver, so that branch leaves the files the driver governs as main has them (a new driver
-   lands alone, DESIGN-orchestrator-loop.md section 16.9; `merge_drivers.py --check`, run by
-   `MergeDriverDriftTests`, refuses a branch that changes such a file, kb/Work PB3825; a hand-run Linux gate's clones carry the TREE's
-   `origin/main`, `linux-gate.sh`'s `pin_origin_main`, so both hosts read one main). The review's coverage rule (`prune_worktrees.mechanical`)
-   reads the same `is_drivers_merge`, built on `merged_tree` (kb/Work PB3713), the one definition of a clean merge's
-   tree, which the branch survey's LANDED proof (`prune_worktrees.merges_to_main_unchanged`) reads too, with the first
-   parent's attributes through `attributes_tree`; so a merge the drivers made is mechanical and a hand resolution is
-   not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643): `docs/CONFORMANCE.md` and the `DESIGN-*.md`
-   documents look append-only, but `merge_drivers.py --hunks <file>…` replays the merges in history and classifies each
-   conflict hunk of git's line merge, and over `CONFORMANCE.md`, `DESIGN-runtime-library.md` and this document it counted
-   45 conflicted merges holding 3 hunks where both sides inserted at one place and 115 where both REVISED text the base
-   already held (one mechanism's paragraph, one Annex A.1 register row), so a union merge would keep a stale paragraph
-   beside its replacement in a document that describes the current compiler, and a word-level merge came out different
-   from the person's resolution in 3 of the 9 merges it resolved. Such a conflict is a decision about what the text now
-   says, the finisher's; `--hunks` is rerun before any prose driver is proposed, and a file whose conflicts are
-   insertions earns one. kb/Work PB3723 asked the same question of an INSERTION-ONLY resolution (keep both sides where the
-   base section is empty, decline the file otherwise) and PB3643's trial of it is the answer: it resolved 1 of 32 conflicted
-   merges, in a different order from the person's resolution, and the two same-file pairs of wave 20261107 that read as
-   insert/insert from a simulated merge were revise/revise once resolved (both sides rewrote one base sentence, so a union
-   keeps its trailing clause twice). It is not adopted; a script's test arms are no prose and leave the merge by being
-   one test per case (kb/Work PB3726). THE QUEUE'S CONFLICTS ARE SEEN BEFORE THEY HAPPEN (kb/Work PB3723): the queue
-   builds each entry's merge group on main plus the entries ahead of it that stay, and removes one that conflicts there
-   (`merge_conflict`) with no failed run and no event any reader sees until it has happened. `merge_drivers.foresee_queue`
-   replays that build with git's own line merge and NO driver (`probe(drivers=False)`, the one `merge-tree`: GitHub's merge group runs no driver, so two entries that each add a key to one keyed catalogue conflict there and the queue removes the second), skipping the entries it would remove, on the
-   queue's own order (`queue_facts.PullRequest.position`) and heads; `prune_worktrees.foresee_queued` asks it on every survey,
-   and a queued head that conflicts reads BOUNCED (a FORESEEN CONFLICT, naming the entries ahead of it, or main alone) with
-   `Row.foreseen`, so the review lane's conflict finisher takes it while the entry ahead is still queued:
-   `land_lane.py conflict-brief` is then against that entry's head, and the finisher merges it with `merge_drivers.py merge
-   <head> --keep` (the branch then carries that pull request's DEVLOG entry and lands after it, exit 15). The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`, and the CONFLICT outcome
-   inside it have ONE home, `scripts/verdict_line.py` (kb/Work PB3714): `enqueue.py` writes through `render` and
-   `conflict_outcome`, the landing lane and the drivers' coverage report read through `parse`, `outcomes` and
-   `outcome_files`, and `LandingLaneDriftTests` keeps every other script from spelling the prefix. What is left in
-   conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
-   report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
-   origin/main --keep`). A CLEAN merge that could not be COMPLETED is no conflict (kb/Work PB3673: a pin settle whose
-   measuring build met a locked DLL used to end `CONFLICT in …RuntimeAbi.pin` and cost a finisher for a merge with
-   nothing to resolve). `merge_drivers.merge` answers with a `Merged` (`clean`, `conflicts`, or `incomplete`: abi_pin's
-   `Failure(cause, why)`, also for git's own refusal of the merge commit), and the cause is read from the gate's one
-   classification, the `merge-*` rows of `gate.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a build output
-   another process holds, MSB3027 or MSB3021, a full disk, no SDK, git refused a write) is exit 2, `MERGE NOT COMPLETED`,
-   no report line, retried once by the lane and then the operator's; `merge-failed` (BRANCH: the merged tree's pin, build
-   or measuring test) blocks like a red, exit 5, a finisher's. `merge_drivers.py merge` ends exit 3 with `NOT COMPLETED
-   [<cause>] — …` where a conflict ends 1; with `--keep` a merge stopped at the pin stays in progress, for
-   `abi_pin.py settle --stage` once the cause is removed. Before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
-   every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
-   line, and the landing lane retries it once the lock is free (two runs on one branch raced on the merge, the stamp and
-   the gates' files); **READ THE RECORD OF THE BRANCH'S OWN LOCAL GATE, AND GATE NOTHING** (owner 2026-10-23 ~20:4x PDT, kb/Work PB3612: "Taking one
-   hour to finish a branch is stupidly ridiculously slow … Developers merge separate branches into a continually moving
-   main all the time without problems … Why don't we do that?", then "yes"; measured: PB3140's landing ran 3 local gate
-   runs, 4,615 s, because main moved twice while it waited for a slot; five branches took about an hour each from CLEAN to
-   queued; the lane lands 1.47 changes per hour). A branch is gated locally ONCE, at its head, by its implementer or
-   finisher: that run (§3.17.3: leg 1 on Windows, under the one slot; the Linux half left the gate, kb/Work PB4327) is the whole definition of "tested locally". `enqueue.tested_locally` reads it from the worktree's newest
-   `TestResults/build-local/*/verdict.json` runs and refuses the tip no run covers (exit 14, UNTESTED, before anything is
-   merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN …` and a finisher gates the tip): a run
-   covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), and its head IS the tip or every later
-   commit is main's, a clean merge of main or register-only (`prune_worktrees.unreviewed_since`, the review's coverage rule).
-   The record is written by the BRANCH's gate driver and read by main's lander, so a record the driver wrote before a
-   field the lander requires existed (`gate.LANDING_FIELDS`: `head_tree`; schema below
-   `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander" (`gate.predates_landing`),
-   never "uncommitted changes", and its BLOCKED remedy is to merge origin/main into the branch FIRST and gate the merged
-   head: gating the tip again with the same older driver writes the same record (kb/Work PB3660). Whenever the lander
-   starts to require a new field: raise `RECORD_SCHEMA` and `LANDABLE_SCHEMA` and add it to `LANDING_FIELDS`
-   (schema 3 was written both before and after PB3612 added `head_tree` without a bump, so for it the field is the
-   discriminator; PB4327 removed the `linux` field the same PB3612 added, which no landing reads, with no bump). A later RED does not unrecord an earlier GREEN of the same head. The merge with main is the MERGE QUEUE'S to test
-   (step 4): `ci-gate` runs the whole population on the exact merge, both operating systems, and main moving again
-   costs no re-gate. ONE exception, the case a developer would also re-test: when bringing main in changed a file the
-   branch also changes (`enqueue.merge_overlap`: a true textual merge in a shared file; the files a merge driver
-   merges by key and the inert ones no test reads are set aside), the one gate (`build-local`, Normal priority, its
-   slot served first) runs once on the merged head. The lanes I10 does not review write no gated report, so with no
-   record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
-   the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
-   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit, for the same wait, when the
-   worktree's own gate is still running (or STARTING: spawned moments ago, its child alive, the lock not yet taken, kb/Work PB3707) and has written no verdict, `gate.gate_phase` over `live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
-   otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
-   whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
-   (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the
-   branch carries, kb/Work PB3145); exit 16, never a red, in step 4 (4a) when an open pull request changes a file a
-   merge driver covers that the branch changes too and ENTERS the queue (`enqueue.driver_file_holders`, counting
-   `queue_facts.PullRequest.entering`: in the queue or with auto-merge on, not bounced, conflicting or red; a bounced
-   one holds nothing, it re-enters only through a fresh `land`; GitHub's merge queue builds its
-   merge groups with plain git and none of `merge_drivers.DRIVERS`, so the two would conflict inside the queue; nothing
-   is stamped or queued, and the lane retries it once no open pull request shares such a file, main then coming in
-   through the drivers; the repository's queue-entry lock is held from that look to the queueing, so two landings of
-   one file cannot both look and both queue, kb/Work PB3642); a branch whose tip is already inside origin/main (its
-   pull request merged) ends exit 0 NOTHING TO LAND, never exit 6 (kb/Work PB3157); a gate NOT RUN, which measured
-   nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an ENVIRONMENT cause or a BRANCH cause main fails
-   the same way at the same step, else exit 5 like a red. Bring main in AGAIN when it moved while the pull request is
-   queued, without a gate (review R1-2, corrected at implementation: the queue merges other pull requests meanwhile,
-   `queue` takes only a head that descends from main, and re-gating every such head would race the queue forever; the
-   merge group below integrates the branch on the current main and runs the whole population; a conflict here is exit 4
-   too);
-   `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123); run the landing checks that used to live in
-   the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (the register audit, run by the merged
-   head's own `scripts/spec/work.py`: a note main gained after the branch's gate meets a rule the branch added there, never first in the
-   merge group's CI, PB3389), `rename_diagnostic_prefix.py --check` (the DIAGNOSTIC PREFIX audit, run by the merged head's own copy for the same
-   reason: a branch cut before the codes became `COBOL####` that merges main cleanly meets it here, never first in CI's `audits` job, PB3575),
-   `rename_retired_names.py --check` (the RETIRED NAMES audit, the same shape for the same reason: a branch cut before the code took the
-   product's name, WiseOwl.Cobol, PB3837)
-   and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then a public-API symbol listed twice, PB3694, then the R3 file-set
-   partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
-   `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
-   whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
-   (DESIGN-orchestrator-loop.md section 4.9 step 4, kb/Work PB3527): on every tick it reads the merge queue's entries
-   and the head's check-runs, the newest workflow run of each workflow only (`queue_facts.py`), waits while any of them
-   runs (kb/Work PB4052), and, past a 10-minute grace after their work ended, re-runs a stuck check, then closes,
-   reopens and re-queues the pull request (refused while a run on its head is in progress), then asks the operator. A
-   HOST-I-O group (a file of its set under
-   `src/WiseOwl.Cobol.Runtime/IO/`) runs the Linux unit and conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8;
-   `make_dispatch_specs.host_io`, kb/Work PB3381: wave 1118's PB3333 was refused at its landing by 31 NIST RL programs that
-   differ on Linux, 2.6 h after its DONE), and CI's merge group runs all of them. Every gate row (the rare gate above) hands
-   its gate to `gate.py`, which takes the slot, and `enqueue.py` runs no row while one would not (PB3104; the
-   Linux row, which ran under `gate_slot.py run` as a landing ticket, is gone with the landing's Linux gate).
-4. **The merge queue** (PB3024): GitHub builds the merge group (several queued PRs on top of `main`), the workflow runs on
-   the `merge_group` event — the full matrix: Linux and Windows, the sharded conformance legs, unit + characterization,
-   the population check (§3.14.4), audits, guard, INV-1 — `ci-gate` stays the one required check, and main advances in
-   order. A red bounces only the PR that caused it (GitHub re-tests the rest); the loop sees the bounce
-   (`gh pr view --json mergeQueueEntry,statusCheckRollup`), names the CI red in the branch's report and dispatches a
-   finisher; the fixed branch is reviewed again at its new tip (step 2), then enqueued again.
-   **What the queue stacks (kb/Work PB3107, PB3123; owner 2026-10-13: "Why are many, many github runs failing? Due
-   to our local testing, we should rarely see failures", then "Fix them now").** A merge group is built ON TOP of every
-   group queued ahead of it, in the order GitHub picks when each pull request's own checks finish, so the tree a
-   group tests is one no branch ever checked: main, then each pull request ahead, then this one. Measured
-   2026-10-12 23:46Z to 2026-10-13 07:06Z: 12 of 39 merge-group runs failed, nine on the arch-oracle baseline (two or
-   three manifests in the stacked tree: each branch had re-recorded its own on one main, and PR 29, which changed no
-   oracle input, failed only for being queued behind two that did) and two on the DEVLOG number (an entry stamped 1990
-   queued behind one stamped 1991). THE RULE that follows, for every check a landing or a merge group runs: **a
-   check's verdict on a pull request may not depend on what else is queued.** A check that holds a branch to a
-   committed record of its own tree fails it, because no such record describes the stacked tree; so does one that
-   orders landings by a value fixed before the queue orders them. The two such checks were redesigned, never relaxed
-   into a retry: (a) the oracle commits nothing: its baseline is the capture of a change's own base commit, made on
-   demand by `compare_oracle.py` (a capture is a pure function of its commit, DESIGN-architecture-review.md §4.1), and
-   the landing oracle and its exit 7 are retired with the committed manifest; recording on the merged head at enqueue
-   (the note's candidate) was rejected because two pull requests queued together still stack two such records;
-   (b) the DEVLOG number is STAMP order, not merge order: `devlog.py check` holds a new entry above every entry of the
-   tree it was STAMPED on (the first parent of the commit that added its file) and unique on the landing's tree,
-   never above the group's base; serializing the auto-merge so queue order equals stamp order was rejected because a
-   bounced pull request re-enters behind later ones. Proof: `devlog.py --self-test` builds the stacked trees as the
-   queue does (a merge commit of each branch onto the group ahead) in both orders, and `LandingPipelineDriftTests`
-   keeps the oracle's record and the landing oracle out of the tree. The checks swept for the same dependence and
-   found free of it: the witness-loss audit and the `changes` job's docs-only decision both read base..head, and a
-   group's `base_sha` is the head of the group queued ahead of it (run 38360587401's base held entry 1996 before that
-   pull request reached main), so the range is this pull request's own change whatever is queued with it.
-   `landing_check.py` reads the in-flight branches on purpose, and only locally.
-   **Superseded runs are cancelled (kb/Work PB3769; owner 2026-10-25: "cancelling superseded runs automatically").**
-   When an entry ahead fails or leaves, GitHub rebuilds every group behind it: each entry gets a new merge-group commit
-   and a new run, and the old runs kept running, holding runners under the concurrent-job limit (2026-10-25: after #591
-   was ejected at 20:18Z, runs 40228927401 and 40228888256, later 40230142896, 40230142122 and 40230639741, held
-   runners until cancelled by hand). A `concurrency` group cannot catch them, since each group's ref
-   (`gh-readonly-queue/main/pr-<n>-<base sha>`) is unique. So every merge-group run starts with the `supersede` job (no
-   `needs`): `scripts/orchestrator/cancel_superseded.py` lists the unfinished merge-group runs, THEN reads the head
-   commit of every current queue entry (`queue_facts.live_heads`, the one reader of the queue's facts; in that order,
-   because a run created after the read would otherwise look superseded), and cancels each run of the queue on main
-   whose head commit no entry heads, never its own run and never a live entry's. The replacement groups' runs are
-   created at the moment of supersession, so they are what sweeps the runs they replaced. ⛔ It cancels NOTHING when
-   the queue cannot be read whole (a failed or malformed read, no queue, more entries than one page), reads empty, or
-   does not hold the run's own head commit (a read taken before GitHub recorded the group, or the run is itself
-   superseded); each is a warning annotation. Every outcome exits 0 and EVERY step of the job is `continue-on-error`
-   (the checkout too, kb/Work PB3820: the script step runs only when `steps.checkout.outcome == 'success'`, and a failed
-   checkout is said as a warning annotation by a step of its own): housekeeping never decides a verdict, and the job
-   stays a `needs` of `ci-gate` because the drift check above wires every job. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
-   which the queue no longer reads. ⛔ The job checks out only `scripts/orchestrator` and `scripts/standard_streams.py`
-   (a sparse checkout) and its script step is `continue-on-error`, so a module its scripts import that the list leaves out
-   would make it cancel nothing while the run stays green (kb/Work PB3637 added `standard_streams.py` by hand):
-   `SparseCheckoutDriftTests` (kb/Work PB3787) reads the closure of every sparse-checkout job of the workflow and
-   refuses a file it runs or imports that the list does not cover (§3.17.8).
-5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
-   record the probe reads) and the cache jobs (`toolchain-cache`, `package-cache`: restore, install and save only on a
-   miss); the matrix and the audits run on `merge_group` and `workflow_dispatch`. On `pull_request` only the required check
-   runs (`changes` + `ci-gate`: kb/Work PB4330 took the audits, with the DEVLOG and work-register checks, out of the pull
-   request's and the push's run, where they were the same 5.7-minute job a third and a second time), so twenty PRs do not
-   queue twenty full matrices behind the organization's 60-concurrent-job limit (section 3.17.6).
+1. **Implement**: an implementer in its worktree; its gate is the one whole-population gate (§0 item 1), its report `Status:
+   DONE` with the O11 header; it writes its own **DEVLOG entry file** (§3.17.4) and flips its notes.
+2. **Review on the branch** (MANDATORY-PRACTICES I10; kb/Work PB3027): a read-only reviewer (`cobol-reviewer`, the `review`
+   skill's "branch form": the full-code pass over `origin/main...HEAD`, the drift rules of the changed files, fixed time limits
+   in tests, `cite.py --check`, the other dimensions where the diff warrants) runs THE MOMENT the branch is DONE, inside the
+   wave's slot for that group (`wf_rolling_wave.js` `reviewed()`). Every decision is a line in
+   `<scratch>/review-w<wave>-<letter>.jsonl`, appended through `scripts/orchestrator/review_findings.py`, which computes the
+   verdict from the file and stamps it into the report's header (`**Review:** CLEAN <reviewer> <head>` or `FINDINGS <n>
+   <reviewer> <head> <file>`), read back through `reports.parse_review`, the one reader.
+   FINDINGS go to a REVIEW FINISHER (a fresh implementer: a workflow cannot message an agent that has returned), who merges the
+   branch, answers every finding by its id (fixed at its root, or `no_change_needed` with the reason), re-gates and returns
+   DONE; the branch is reviewed again, at most `review_fix_rounds` (2) times, after which the FINDINGS stamp stays and
+   `plan_wave.py` plans a finisher for it while the stamp covers the branch tip. **The rounds converge (kb/Work PB3381, owner
+   2026-10-18: "We should not be holding finished work this long").** Round 1 is the whole branch; later rounds review ONLY
+   `git diff <the head the last round reviewed>..HEAD` and the report's answers. Every finding carries a severity (critical,
+   high, medium, low, info) and the verdict is a threshold (`review_findings.py verdict --blocking`): critical, high and medium
+   block in every round a finisher can still answer, critical and high only in the round after the last finisher; low and info
+   never block, and each non-blocking one is a LEAD the stamp lists under `## Review findings` and the wave returns in
+   `leads`. **Nothing is held for a dependency successor** (a one-file chain lands ONCE instead, with its last link: kb/Work PB4396, `prune_worktrees.chain_links`): the successor starts once the predecessor's review loop has ended,
+   merges the REVIEWED head, and its pull request merges on top of the predecessor's. Unanswered findings have ONE source (the
+   predecessor's findings file) and ONE reader (`review_findings.last_verdict`: round, branch, head, verdict and the number of
+   blocking findings), which the wave's `predecessorEnd` and `prune_worktrees.py` `carrying_findings` both call; a report
+   stamp is only their rendering. While the last verdict is FINDINGS with blocking findings at a head a successor contains, the
+   survey holds the successor IN FLIGHT (`waits_on`); `capped` (`review_findings.capped`, the round after the last finisher) is
+   the predecessor's next-wave finisher's, an uncapped one is the successor's review's (`prune_worktrees.review_answers`).
+   Every content problem in a findings file is a TEAR (unreadable, a byte-order mark, bytes that are not UTF-8, no final
+   newline, no record, a line that is not a record under `review_findings.SCHEMA`), and a TORN file holds every branch it names:
+   `last_verdict` returns TORN, `unanswered`, naming the file, line, offset and reason, and never raises; every writer refuses
+   a torn file BEFORE writing, naming `review_findings.py repair <file>`, which only the operator runs (the review lane alone
+   mends a file torn at its LAST line, kb/Work PB3608). `review_findings.py --self-test` cuts a findings file at every byte
+   offset and mutates every schema field. Only a branch stamped CLEAN at its tip is landable, and the landing step ENFORCES it:
+   `enqueue.py land` refuses (exit 11, UNREVIEWED) a branch whose newest CLEAN stamp names no commit of it, or after which it
+   gained a commit that is not main's, a clean merge of main (its tree the auto-merge of its parents) or register-only; the
+   lanes I10 does not review (the registrar, the golden lane, the clerk) name themselves with `--lane`.
+   **REGISTER-ONLY commits (kb/Work PB3849).** One coverage rule answers for the review gate, the landing's reading of the gate
+   record, the report's coverage and the branch survey: `prune_worktrees.mechanical` counts a commit as covered by the head
+   before it when it is main's, a clean merge of main through the drivers, or REGISTER-ONLY: every path it changes is a DEVLOG
+   entry or a `kb/Work/*.md` note (`prune_worktrees.register_path`). What can be wrong with such a commit is audited
+   mechanically at every landing and in CI's `audits` job (`devlog.py check`, `work.py check` and, through it,
+   `work_inventory.py`).
+3. **Enqueue** (`scripts/orchestrator/enqueue.py land <branch>` — a SCRIPT, deterministic, no agent, started by the loop's
+   landing lane the moment the branch is WAITING TO LAND; DESIGN-orchestrator-loop.md 4.9): fetch; the review stamp (step 2,
+   exit 11); the branch's LAND LOCK (`<git dir>/cobol-land.lock`; a second `land` of the branch is exit 13, never a red); then
+   **READ THE RECORD OF THE BRANCH'S OWN LOCAL GATE AND GATE NOTHING** (owner 2026-10-23, kb/Work PB3612: "Developers merge
+   separate branches into a continually moving main all the time without problems … Why don't we do that?"; the landing lane
+   landed 1.47 changes an hour while it re-gated). A branch is gated locally ONCE, at its head, by its implementer or finisher:
+   `enqueue.tested_locally` reads the worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses a tip no run
+   covers (exit 14, UNTESTED, before anything is merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN …`
+   and a finisher gates the tip). A run covers the tip when it read GREEN with exit 0, measured the COMMITTED head's own tree
+   (`tree` equals `head_tree`), and its head IS the tip or every later commit is main's, a clean merge of main or register-only
+   (`prune_worktrees.unreviewed_since`). A record the branch's older driver wrote before a field the landing requires existed
+   (`gate.LANDING_FIELDS`, schema below `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander"
+   (`gate.predates_landing`), and its remedy is to merge origin/main into the branch FIRST and gate the merged head. A later RED
+   does not unrecord an earlier GREEN of the same head. ⛔ **BEFORE it reads the record, and before every later write of the
+   worktree, it asks the gate lock** (`enqueue.gate_busy`): exit 12, never a red, when a gate of the worktree runs (the gate
+   lock held, `gate.live_gate`; never a process id, which Windows reuses, kb/Work PB3662) or is STARTING (spawned moments ago,
+   kb/Work PB3707), WHATEVER record exists (kb/Work PB4204: an older GREEN record once let a landing merge main into a worktree
+   under a running gate); the lane retries it once the lock is free. A lane I10 does not review gates its own tip.
+   Then **MERGE `origin/main` into the branch** — not a rebase (a branch that merged a same-file predecessor carries conflict
+   resolutions in its merge commits, which a rebase discards and asks for again, and the queue lands by merge commit anyway)
+   **THROUGH THE MERGE DRIVERS** (`scripts/merge_drivers.py`, kb/Work PB3610): the files two landings both edit are merged by
+   key, not by line: the keyed catalogues (`constructs.json`), the work notes two branches append to, the runtime ABI pin
+   (`RuntimeAbi.pin`, measured by `scripts/abi_pin.py` on the merged tree before the merge commit) and the public-API baselines
+   (`src/**/PublicAPI.*.txt`, a SET of symbol lines). `DRIVERS` is the registry, `.gitattributes` repeats its patterns,
+   `merge_drivers.py --check` (which its `--self-test` runs on the real tree) holds the two together, and git is given the drivers on its command
+   line (`-c merge.<name>.driver=…`) and the attributes with them (`-c attr.tree=…`), so no checkout carries configuration that
+   can go stale. A new driver lands alone (DESIGN-orchestrator-loop.md 16.9). The review's coverage rule reads the same
+   `is_drivers_merge`, built on `merged_tree` (kb/Work PB3713). PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643):
+   `merge_drivers.py --hunks <file>…` replays history's merges and showed that over `CONFORMANCE.md`,
+   `DESIGN-runtime-library.md` and this document 115 conflict hunks were two sides REVISING text the base already held (against
+   3 where both inserted at one place), so a union merge would keep a stale paragraph beside its replacement in a document that
+   describes the current compiler; such a conflict is a decision about what the text now says, the finisher's. What is left in
+   conflict is real: exit 4, the merge is aborted, the report gains `BLOCKED: enqueue … conflict in <files>`, and a
+   `cobol-finisher` resolves with `merge_drivers.py merge origin/main --keep`. A CLEAN merge that could not be COMPLETED is no
+   conflict (kb/Work PB3673): `merge_drivers.merge` answers `clean`, `conflicts` or `incomplete` (abi_pin's `Failure(cause, why)`),
+   and the cause is read from the `merge-*` rows of `gate.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a held build output,
+   a full disk, no SDK) is exit 2, retried once by the lane; `merge-failed` (BRANCH: the merged tree's pin, build or measuring
+   test) is exit 5, a finisher's. THE QUEUE'S CONFLICTS ARE SEEN BEFORE THEY HAPPEN (kb/Work PB3723): GitHub's merge group runs
+   no driver and removes an entry that conflicts (`merge_conflict`) with no event any reader sees, so
+   `merge_drivers.foresee_queue` replays that build with git's own line merge (`probe(drivers=False)`) on the queue's own order
+   and heads, `prune_worktrees.foresee_queued` asks it on every survey, and a queued head that conflicts reads BOUNCED (a
+   FORESEEN CONFLICT) while the entry ahead is still queued. The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`,
+   has ONE home, `scripts/verdict_line.py` (kb/Work PB3714), and `landing_rules.py --self-test` keeps every other script from spelling
+   the prefix.
+   Then `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123) and the landing checks run
+   (`enqueue.py checks`): `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (run by the
+   merged head's own copy, so a note main gained after the branch's gate meets a rule the branch added there, never first in
+   CI, PB3389), `rename_diagnostic_prefix.py --check` (PB3575), `rename_retired_names.py --check` (PB3837) and
+   `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`; a public-API symbol listed twice, PB3694; the R3 file-set
+   partition, PB2118). Two refusals are exits that are not reds, retried by the lane: exit 15 when the branch merged a
+   predecessor whose pull request is still open and so adds that pull request's stamped DEVLOG entry beside its own
+   (`enqueue.open_predecessors`, PB3145), and exit 16 when an open pull request that ENTERS the queue
+   (`enqueue.driver_file_holders`, `queue_facts.PullRequest.entering`) changes a file a merge driver covers that the branch
+   changes too (the queue merges with plain git, so the two would conflict inside it; the repository's queue-entry lock covers
+   the look and the queueing, kb/Work PB3642). A branch whose tip is already inside origin/main ends exit 0 NOTHING TO LAND
+   (PB3157). A gate NOT RUN, which measured nothing, is judged by its cause's class (PB3526): exit 2, no red, for an
+   ENVIRONMENT cause or a BRANCH cause main fails the same way at the same step, else exit 5. Main moving again while the pull
+   request is queued costs no re-gate: the merge group integrates the branch on the current main and runs the whole population.
+   Finally `gh pr create` (title = the branch's one-line subject, body = the forensic message) and `gh pr merge --auto`, so
+   the pull request joins the queue. No lease, no local whole population, no waiting for CI. That the pull request then
+   ENTERS the queue is the landing lane's QUEUE WATCH (DESIGN-orchestrator-loop.md 4.9 step 4, kb/Work PB3527): on every tick
+   it reads the queue's entries and the head's check-runs (`queue_facts.py`), waits while any runs (PB4052), and past a
+   10-minute grace after their work ended re-runs a stuck check, then closes, reopens and re-queues the pull request, then
+   asks the operator. A HOST-I-O group (a file of its set under `src/WiseOwl.Cobol.Runtime/IO/`) runs the Linux unit and
+   conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8; `make_dispatch_specs.host_io`, kb/Work PB3381).
+4. **The merge queue** (kb/Work PB3024): GitHub builds the merge group (several queued pull requests on top of `main`), the
+   workflow runs on the `merge_group` event (the matrix of §1.4), `ci-gate` stays the one required check, and main advances in
+   order. A red bounces only the pull request that caused it (GitHub re-tests the rest). **The landing lane classifies the red
+   before anyone is blamed** (§0 item 6; `land_lane.classify_red`, kb/Work PB4271, PB4331); INFRA and RUNNER are re-queued
+   once, and the rest go to a finisher, whose fixed branch is reviewed again at its new tip (step 2) and enqueued again.
+   **What the queue stacks (kb/Work PB3107, PB3123; owner 2026-10-13: "Due to our local testing, we should rarely see
+   failures").** A merge group is built ON TOP of every group queued ahead of it, so the tree a group tests is one no branch
+   ever checked. THE RULE for every check a landing or a merge group runs: **a check's verdict on a pull request may not depend
+   on what else is queued.** A check that holds a branch to a committed record of its own tree fails it, because no such record
+   describes the stacked tree; so does one that orders landings by a value fixed before the queue orders them. The two such
+   checks were redesigned, never relaxed into a retry: (a) the arch oracle commits nothing: its baseline is the capture of a
+   change's own base commit, made on demand by `compare_oracle.py` (a capture is a pure function of its commit,
+   DESIGN-architecture-review.md §4.1); (b) the DEVLOG number is STAMP order, not merge order: `devlog.py check` holds a new
+   entry above every entry of the tree it was STAMPED on (the first parent of the commit that added its file) and unique on
+   the landing's tree, never above the group's base. `devlog.py --self-test` builds the stacked trees in both orders, and
+   `landing_rules.py --self-test` keeps the oracle's record out of the tree. The witness-loss audit and the `changes` job's
+   docs-only decision read base..head, and a group's `base_sha` is the head of the group ahead of it, so the range is this
+   pull request's own change whatever is queued with it; `landing_check.py` reads the in-flight branches on purpose, and only
+   locally.
+   **Superseded runs are cancelled (kb/Work PB3769; owner 2026-10-25).** When an entry ahead fails or leaves, GitHub rebuilds
+   every group behind it with new commits and new runs, and the old runs kept holding runners under the concurrent-job limit.
+   A `concurrency` group cannot catch them (each group's ref `gh-readonly-queue/main/pr-<n>-<base sha>` is unique), so every
+   merge-group run starts with the `supersede` job (no `needs`): `scripts/orchestrator/cancel_superseded.py` lists the
+   unfinished merge-group runs, THEN reads the head commit of every current queue entry (`queue_facts.live_heads`, in that
+   order, because a run created after the read would otherwise look superseded), and cancels each run of the queue on main
+   whose head commit no entry heads, never its own run and never a live entry's. ⛔ It cancels NOTHING when the queue cannot be
+   read whole, reads empty, or does not hold the run's own head commit; each is a warning annotation. Every outcome exits 0 and
+   EVERY step is `continue-on-error` (the checkout too, kb/Work PB3820): housekeeping never decides a verdict, and the job
+   stays a `needs` of `ci-gate` because the drift check wires every job. ⛔ The job checks out only `scripts/orchestrator` and
+   `scripts/standard_streams.py` (a sparse checkout), so a module its scripts import that the list leaves out would make it
+   cancel nothing while the run stays green: `scripts/sparse_checkout.py` (kb/Work PB3787) reads the closure of every
+   sparse-checkout job and refuses a file it runs or imports that the list does not cover (§3.17.8).
+5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the record
+   the probe reads) and the cache jobs (`toolchain-cache`, `package-cache`); the matrix and the audits run on `merge_group` and
+   `workflow_dispatch`. On `pull_request` only the required check runs (`changes` + `ci-gate`, kb/Work PB4330), so twenty pull
+   requests do not queue twenty full matrices behind the organization's 60-concurrent-job limit (§3.17.6).
 
-The implementer's leg-1 gate stays first for every change (the owner's principle); CI is the regression net and the
-only whole-population run.
+The implementer's whole-population gate stays first for every change (the owner's principle); CI is the regression net and
+the only run of the merged tree.
 
 #### 3.17.3 The gate driver's ONE mode (PB3022)
 
-- **LANDED (kb/Work PB3022):** the lander's mode of `build-local` and its arm of `gate.py` are deleted: the gate has one shape, the
-  whole-population gate of §3.13–3.14 (no plan and no scope since kb/Work PB4328), inside a gate slot.
-- **REMOVED (kb/Work PB4327; owner 2026-10-31, PIPELINE-REVIEW.md section 7) — the Linux half of the targeted leg.** PB3612
-  (owner 2026-10-11 ~12:45, "Yes, both hosts, leg 1") ran the SAME plan's legs in a WSL clone of the committed head
-  inside the implementer's gate (`Gate._linux_leg`, `Host.linux_leg`, `linux-gate.sh --legs targeted`, the driver's
-  `--plan-leg`). Measured against 78 gate records, it cost 167 s a gate serially, re-ran the leg Windows had just run,
-  loaded WSL (averages of 28 to 77 were seen) and was red once, a population-check false red with 0 failed tests; no
-  compiler test was red on Linux alone in October's 31 incidents (the Linux-specific reds were a Python `iterdir`
-  order and scripts). Every merge group runs the whole Linux population in 5 shards plus all Linux self-tests in
-  `audits`, so the gate runs nothing on Linux: `LinuxLeg`, `Host.runs_linux_leg`/`linux_leg`/`linux_gate_holder`,
-  `plan_leg`, the `linux` field of `verdict.json`, `enqueue.tested_locally`'s `linux_half`, the landing lane's
-  `linux_gate_holder` wait and `linux-gate.sh`'s `targeted`, `inert` and `--plan`/`--plan-legs`/`--probe` forms are
-  deleted, and `LinuxGateDriftTests` holds them gone. The PB3612 measurement that motivated it (2026-10-10: three of 38
-  clusters had Linux-only reds, in the clusters' OWN tests) is the risk accepted: such a red is found in the queue.
-- **LANDED (kb/Work PB3022) — tier 0h, host-only witnesses, and tier 0c, the cheap tree-wide sweeps** (§3.14.2's
-  tiers; `TIER_ORDER = 0a, 0h, 0c, 0d, 0u, 1, 2, 3`, tier 0d since kb/Work PB3531; the race witnesses are the Unit classes that drive the sharing
-  layer's host types from concurrent workers, the sweeps are `drift_rules.py --sweeps`). The design as decided: every
-  test case whose class carries the xUnit trait `Host` with a value naming a property CI's runners lack (`ReFS` today)
-  is in leg 1 at every gate, whatever the diff. Membership is DERIVED from the trait, never listed; a drift test asserts
-  that every test class under the file-system race witnesses (`SidecarColumnLockHostDriftTests`, `RegionLocksDriftTests`,
-  their siblings found by `drift_rules.py`) carries it. CI runs the same tests on NTFS, where they may not reproduce.
-- **Audits only when their inputs changed, at every gate** (PB2914 generalized from the implementer gate to the one
-  gate): a script self-test, a drift-rules regeneration or a citation check with inputs unchanged since a recorded PASS
-  is reused, never re-run; CI's `audits` job (53 s, its own runner) runs them all on every merge group.
-- **No fixed time limit in any test** (owner rule 2026-09-25) — **LANDED (kb/Work PB3022)**: the eight Unit drift
-  tests that re-ran a script self-test under the harness's fixed 120 s budget (`GateSlotDriftTests`'s siblings) hold its
-  arms from source (`SelfTestArmSource`, the PB2882 mechanism) and leave the run to `self_tests.py`; the seven regex
-  match timeouts became `RegexOptions.NonBacktracking` (linear, so no clock); the two generators' bounded
-  `WaitForExit(n)` after their streams' EOF became the unbounded wait (and left `ProcessObservationDriftTests`'
-  exemptions); the interpreter probes take the harness budget. `NoWallClockAssertionDriftTests.NoTestSetsALiteralTimeLimit`
-  fails on a new literal limit in any shape. What remains is the ONE harness budget rule (`ObservationBudget`,
-  kb/Work PB3108: one 120 s unit, `WISEOWL_COBOL_RUN_TIMEOUT_MS`, per serial step of the work the process was started to
-  do), a hang guard whose expiry is a named non-observation, never a value.
+- **One shape.** The gate has no mode and no scope: the whole-population gate of §3.13–3.14 inside a gate slot, for an
+  implementer's commit, a finisher's re-gate and a landing's own-tip gate alike (kb/Work PB3022, PB4328).
+- **No Linux half.** The Linux half of the targeted leg (kb/Work PB3612) was removed (kb/Work PB4327, §3.15): measured against
+  78 gate records it cost 167 s a gate, re-ran the leg Windows had just run and was red once, a false red. `LinuxLeg`,
+  `Host.runs_linux_leg`/`linux_leg`/`linux_gate_holder`, `plan_leg`, the `linux` field of `verdict.json` and `linux-gate.sh`'s
+  `targeted`/`inert` forms are deleted, and `scripts/test_linux_gate.py` holds them gone. The risk accepted is §3.15's.
+- **Host-only witnesses and tree-wide sweeps are named by trait** (kb/Work PB3022): every Unit test class that drives the
+  file-sharing layer's host types from concurrent workers carries `[Trait("Host", "ReFS")]`, and every drift test that
+  `drift_rules.py --sweeps` classifies as a tree-wide sweep carries `[Trait("Sweep", "tree")]`; membership is DERIVED from the
+  trait, never listed, and `drift_rules.py --check` (the RENDERED VIEWS audit, in every lane) asserts it over every test
+  project's sources, with a planted fixture for each shape in its `--self-test`. The whole-population gate runs them all; CI runs the same
+  tests on NTFS, where the race may not reproduce.
+- **Audits only when their inputs changed** (§3.14.10): a script self-test, a drift-rules regeneration or a citation check with
+  inputs unchanged since a recorded PASS is reused; CI's `audits` job runs them all on every merge group.
+- **No fixed time limit in any test** (owner rule 2026-09-25): the Unit drift tests that re-ran a script self-test hold its
+  arms from source (`SelfTestArmSource`); regex match timeouts are `RegexOptions.NonBacktracking` (linear, so no clock); a
+  generator's stream wait is unbounded; `NoWallClockAssertionDriftTests.NoTestSetsALiteralTimeLimit` fails on a new literal
+  limit in any shape. What remains is the ONE harness budget rule (`ObservationBudget`, §3.10), a hang guard whose expiry is
+  a named non-observation, never a value.
 
 #### 3.17.4 Conflict-free landing files — the tree holds SOURCES, views are RENDERED (PB3025, PB3026)
 
-Two queued PRs that both insert at the top of one file collide, and the second is bounced; the queue is only as parallel
-as the files are disjoint. The rule: a landing adds or edits files that are ITS OWN; anything derived is rendered on
+Two queued pull requests that both insert at the top of one file collide, and the second is bounced; the queue is only as
+parallel as the files are disjoint. The rule: a landing adds or edits files that are ITS OWN; anything derived is rendered on
 demand and not committed.
 
-- **DEVLOG (PB3025).** `DEVLOG/NNNN-<slug>.md`, one file per landing, header line unchanged (`## Entry NNNN —
-  YYYY-MM-DD HH:MM TZ — Title`). The implementer writes the entry WITHOUT a number, as `DEVLOG/pending-<slug>.md`; the
-  number is stamped AT ENQUEUE (`devlog.py stamp`, called by `enqueue.py`: `alloc.py devlog` allocates `NNNN`, the file
-  is renamed and its header completed, one commit on the branch before the pull request opens), so number order IS
-  STAMP order (operator review item 2; gaps are fine). It is not merge order, and the check never asks it to be
-  (kb/Work PB3123, §3.17.2 step 4): GitHub orders the queue after the stamps, so two landings stamped minutes apart
-  can reach main in the other order, and a bounced pull request keeps its number when it lands later; "newest first"
-  by number is newest first by stamp. `python scripts/devlog.py render [--since NNNN] [--out <file>]`
-  prints the descending narrative (`DEVLOG/README.md` first, then the entries newest first, the files concatenated
-  byte for byte; `DEVLOG.rendered.md` is gitignored); `devlog.py check` is the landing rule `landing_devlog.py` was
-  (exactly one new, stamped entry file in the PR — new meaning a header the base's history lacks — numbered above
-  every number of the tree it was stamped on, header well-formed; a `pending-` file, a stray file, an entry whose header disagrees with
-  its name, two files with one number, the monolith back, or a deleted entry is a red — a deleted entry counts the
-  base's monolith too, header by header, so the one landing that migrates the log cannot drop an entry main has), run
-  by the landing checks (`enqueue.py checks`, run by `enqueue.py land`) and by CI's `audits` job on every pull request and merge group. Its tree half (`lint`) also runs
-  over the repository's own `DEVLOG/` in `devlog.py --self-test`, so every gate holds the whole log to it. **Line endings (PB3029; owner 2026-10-11 ~12:35: "standardize on a single line-ending
-  format"):** LF everywhere. `.gitattributes` opens with `* text=auto eol=lf`, so git stores and checks out every text
-  file LF on every OS; a file that must keep its bytes is declared `-text` there with its reason. One normalization
-  landing made every blob LF (the index was already LF for 15,234 files: what changed is what each OS's WORKING TREE
-  shows). `scripts/line_endings.py --check` — a gate audit, CI's `audits` job and a `windows-self-tests` step —
-  refuses a CR in a tracked text file's blob or checkout and a Python text-mode write that does not state `newline=`;
-  `--fix` rewrites a checkout made before the rule and then re-states the index entry of every file `git diff-files`
-  lists whose cleaned content (`git hash-object --stdin-paths`) IS the staged blob and whose working-tree mode IS the
-  staged mode, with a plain `git update-index` (`refresh_index`), so `git status` reads the rewritten tree clean while
-  a real edit or an unstaged mode change stays unstaged. Not `git update-index --refresh`: it trusts the stale
-  recorded size and answers "needs update" for exactly these files (git's `ie_modified`); `--fix-writers` adds `newline="\n"`
-  to a new writer. The PowerShell generators of tracked files write through `scripts/LfText.psm1` (`Set-LfContent`);
-  the C# regeneration modes already wrote `\n`. `merge.renormalize` is the documented per-clone setting
-  (CONTRIBUTING.md). The entry files below are written LF. A ONE-TIME migration script
-  (`scripts/devlog_migrate.py`, deleted by the landing that runs it last, on main's `DEVLOG.md` after its final rebase,
-  and which writes the history's range into `DEVLOG/README.md`) split every entry of the 7.1 MB
-  mixed-CRLF `DEVLOG.md` into files with LF line endings (PB3029), PROVED by rendering them byte-identical to the
-  LF-normalized monolith, and deleted `DEVLOG.md`, `prepend-devlog.py` and `landing_devlog.py`. The history keeps
-  every header as written; the twenty numbers the monolith used twice (008-014, 171-185) and 1191a-1191d carry a
-  letter in the FILE name (`0185b-…` above `0185a-…`) so the render keeps the monolith's order; CLAUDE.md rule 6, the skills and every brief that said "the TOP of
-  DEVLOG.md" changed in that landing (`session-probe` and the ledger read no DEVLOG; the `devlog` memory and the public
-  `brent-tools:devlog` skill live outside this repository and are the attended session's to update). `enqueue.py
-  land` (PB3023) stamps, one branch per landing: a branch that merged an unlanded predecessor (a same-file successor,
-  a review finisher; `prune_worktrees.contained`) lands that predecessor THROUGH it, so `devlog.py stamp` folds every
-  pending file the branch carries into its one entry, oldest first, each body under its own title
-  (MANDATORY-PRACTICES L8). A predecessor reviewed CLEAN lands on its own instead (PB3381), and a branch is landed
-  ONCE (PB3693): the survey holds a WAITING TO LAND successor behind its WAITING TO LAND or ENQUEUED predecessor
-  (`prune_worktrees.carrying_landing_branch`), `enqueue.py land` waits (exit 15) while an open pull request already
-  adds the stamped entry of a pending title the branch carries (`open_predecessors`' pending arm), and `devlog.py
-  stamp` drops a pending entry whose title is already a stamped entry of the tree instead of folding it a second time.
-  The stamp is all or nothing (PB3367): its git writes retry on `index.lock`, a failure restores the pending bytes,
-  resets the index and prints git's stderr (exit 3, which `land` maps to exit 2, retried once by the lane), and an
-  interrupted stamp (entry written, pending gone, uncommitted) is completed by the next run. Rule 6's substance is untouched: one entry per
-  landing on main, newest first, the only history.
-- **Generated indexes leave the tree (PB3026, landed):** a derived index is a RENDERED VIEW: gitignored, rendered on demand
-  by its generator, never committed. `scripts/rendered_views.py` holds the ONE registry (`VIEWS`): `docs/DRIFT_RULES.md`
-  (`drift_rules.py --out`; its count line was rewritten by every PR that added a drift test), the `kb/Conformance`
-  burn-down (`gen_conformance_notes.py --out`; STALE in the probe for days, now rendered by the probe itself at every
-  session start), `docs/DIAGNOSTICS.md` (`gen-diagnostics-doc.ps1`, rendered by `DiagnosticRegistryDriftTests`), the
-  `kb/Reference` and `kb/Grammar` vault views, and the ledger page (rendered into the coordination directory). A new
-  generated index is one row there plus a `.gitignore` entry. `rendered_views.py --check` is the gate's `RENDERED VIEWS`
-  audit (it runs before the slot, so its cost is every gate's: the ledger view's `--check` measures every commit since
-  the trend's last recorded point through two git processes, `gen_ledger.measure_commits`, whose self-test holds the
-  process count constant in the number of commits: kb/Work PB3315) and a step of CI's `audits` job, and enforces per
-  view: not tracked (`git ls-files` ∩ outputs = ∅), gitignored when inside the tree, its generator's own `--check` renders
-  it in memory (a drift test with no `<summary>`, an inventory the burn-down cannot read, a plan the ledger cannot read),
-  plus a sweep that no tracked `docs/` or `kb/` markdown declares itself generated without a row. Nothing compares a view
-  with a copy on disk, so "absent" and "stale" no longer exist; a reader that needs a view (`phase_b_batch.py` reads the
-  diagnostics table) refuses with the render command when it is absent, never reads an empty one as "no diagnostics".
-  No test asks the script (a Unit test did until kb/Work PB2878: its tree sweep reads the head of every tracked `kb/` note,
-  and a test that read the vault made every note a test input), so the audit and CI are its only callers. NOT views, and
-  tracked on purpose: generated SOURCE the build compiles (`*.g.cs`, `*.Table.cs`: a clone must build with no pre-step; each
-  has its own drift test), DATA extracted from the licensed standard (the generator needs the private PDF), the gating
-  status block embedded in `VERSION_CHANGE_REFERENCE.md` (a region of a hand-written, anchor-checked document: one row per
-  construct, sorted, so it merges line by line; separating it is a lead, not part of this change).
-- **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh PR, never inside a fix PR; a
-  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` was measured
-  (93 commits in the week to 2026-10-25; kb/Work PB3643 counted 126 conflict hunks over it) and becomes one source file
-  per determination with a rendered index: the design is `DESIGN-orchestrator-loop.md` §16.8 (kb/Work PB3726, PB3738).
+- **DEVLOG (PB3025).** `DEVLOG/NNNN-<slug>.md`, one file per landing, header `## Entry NNNN — YYYY-MM-DD HH:MM TZ — Title`.
+  The implementer writes the entry WITHOUT a number, as `DEVLOG/pending-<slug>.md`; the number is stamped AT ENQUEUE
+  (`devlog.py stamp`, called by `enqueue.py`: `alloc.py devlog` allocates `NNNN`, the file is renamed and its header
+  completed, one commit on the branch before the pull request opens), so number order IS STAMP order (gaps are fine). It is
+  not merge order, and the check never asks it to be (kb/Work PB3123, §3.17.2 step 4). `python scripts/devlog.py render
+  [--since NNNN] [--out <file>]` prints the descending narrative (`DEVLOG/README.md` first, then the entries newest first;
+  `DEVLOG.rendered.md` is gitignored). `devlog.py check` is the landing rule: exactly one new, stamped entry file in the pull
+  request (new meaning a header the base's history lacks), numbered above every number of the tree it was stamped on, header
+  well-formed; a `pending-` file, a stray file, an entry whose header disagrees with its name, two files with one number or a
+  deleted entry is a red. It runs in the landing checks and in CI's `audits` job on every merge group, and its tree half
+  (`lint`) runs over the repository's own `DEVLOG/` in `devlog.py --self-test`, so every gate holds the whole log to it.
+  A branch that merged an unlanded predecessor lands it THROUGH itself, so `devlog.py stamp` folds every pending file the
+  branch carries into its one entry, oldest first, each body under its own title (MANDATORY-PRACTICES L8); a predecessor
+  reviewed CLEAN lands on its own instead (PB3381), a branch is landed ONCE (PB3693: the survey holds a WAITING TO LAND
+  successor behind its predecessor, `enqueue.py land` waits with exit 15 while an open pull request already adds the stamped
+  entry of a pending title the branch carries, and `stamp` drops a pending entry whose title is already a stamped entry). The
+  stamp is all or nothing (PB3367): its git writes retry on `index.lock`, a failure restores the pending bytes and resets the
+  index (exit 3, which `land` maps to exit 2), and an interrupted stamp is completed by the next run.
+- **Line endings (PB3029; owner 2026-10-11: "standardize on a single line-ending format"): LF everywhere.** `.gitattributes`
+  opens with `* text=auto eol=lf`, and a file that must keep its bytes is declared `-text` there with its reason.
+  `scripts/line_endings.py --check` (a gate audit, CI's `audits` job and a `windows-self-tests` step) refuses a CR in a tracked
+  text file's blob or checkout and a Python text-mode write that does not state `newline=`; `--fix` rewrites a checkout made
+  before the rule and re-states the index entry of each file whose cleaned content IS the staged blob (a plain `git update-index`:
+  `--refresh` trusts the stale recorded size and answers "needs update" for exactly these files), `--fix-writers` adds
+  `newline="\n"` to a new writer, and the PowerShell generators of tracked files write through `scripts/LfText.psm1`
+  (`Set-LfContent`). `merge.renormalize` is the documented per-clone setting (CONTRIBUTING.md).
+- **Generated indexes leave the tree (PB3026):** a derived index is a RENDERED VIEW: gitignored, rendered on demand by its
+  generator, never committed. `scripts/rendered_views.py` holds the ONE registry (`VIEWS`): `docs/DRIFT_RULES.md`
+  (`drift_rules.py --out`), the `kb/Conformance` burn-down (`gen_conformance_notes.py --out`), `docs/DIAGNOSTICS.md`
+  (`gen-diagnostics-doc.ps1`), the `kb/Reference` and `kb/Grammar` vault views, and the ledger page. A new generated index is
+  one row there plus a `.gitignore` entry. `rendered_views.py --check` is the gate's `RENDERED VIEWS` audit (it runs before the
+  slot) and a step of CI's `audits` job, and enforces per view: not tracked (`git ls-files` ∩ outputs = ∅), gitignored when
+  inside the tree, its generator's own `--check` renders it in memory, plus a sweep that no tracked `docs/` or `kb/` markdown
+  declares itself generated without a row. Nothing compares a view with a copy on disk, so "absent" and "stale" no longer
+  exist; a reader that needs a view refuses with the render command when it is absent, never reads an empty one as "no
+  diagnostics". NOT views, and tracked on purpose: generated SOURCE the build compiles (`*.g.cs`, `*.Table.cs`: a clone must
+  build with no pre-step; each has its own drift test), DATA extracted from the licensed standard, and the gating status
+  block embedded in `VERSION_CHANGE_REFERENCE.md`.
+- **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh pull request, never inside a fix
+  pull request; a fix edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md`
+  becomes one source file per determination with a rendered index (DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB3738).
 
-#### 3.17.5 The loop's units and the fleet after this design (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
+#### 3.17.5 The loop's units and the fleet (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 
-- `land` became **`enqueue`** (PB3023, `units/enqueue.md`), and its landing step moved into the supervisor's
-  **landing lane** (PB3103, `land_lane.py`, DESIGN-orchestrator-loop.md §4.9): beside whatever unit runs, the lane
-  runs `enqueue.py land` for every WAITING TO LAND branch (`prune_worktrees.py`'s survey, in harm order) the moment
-  it is ready and retries what a script can see end; the unit reads `land_lane.py status` and dispatches ONE
-  `cobol-finisher` (`finisher-brief.md`) for a lane attempt stopped on a conflict, a red gate, a DEVLOG or oracle
-  refusal, or a queue bounce (`prune_worktrees.py` BOUNCED, from one
-  GraphQL read of the open pull requests: in the merge queue → ENQUEUED, removed from it at the branch's tip → BOUNCED
-  with GitHub's reason; offline the states are git-only); one `cobol-clerk` files the reports' leads; render the ledger;
-  hand off. It is mostly a script run; its model turns are the review and finisher dispatches and the handoff. While
-  the queue is not ACTIVE, `enqueue.py land` refuses before it merges or gates anything (exit 8): main takes only
-  queued pull requests (the ruleset binds administrators), so a direct-push arm could land nothing and gated half an hour
-  with no lease held (review R1-1, corrected at implementation; the phase-1 bridge that kept the direct-push landing
-  until the owner's ruleset go retired once the ruleset was ACTIVE).
-- The **train, the lander role, `lander-train-brief.md`, `lander-brief.md` and the train applier are retired** (PB3023;
-  CLAUDE.md rule 4: deleted, never wrapped); `golden-lander-brief.md` became `golden-lane-brief.md` (the lane-1
-  integrator, landing through `enqueue.py land --lane golden`); `prune_worktrees.py --train` and `TRAIN_MAX` are gone (the landing
-  order is `--brief`'s); `dispatch_guard.py`'s lander rule went with the role. `cobol-lander` became `cobol-finisher`
-  (resolve a conflict, fix a red or a bounce, gate and return DONE: its commits are reviewed on the branch before the
-  landing lane lands the new tip; turn cap 160). The landing lease, the direct-push landing script and its `ci/**`
-  branches are deleted (PB3024's closing change, the first branch cut after PB3023 landed).
-- `wf_rolling_wave.js` **starts no lander** (PB3023): a wave produces DONE branches reviewed CLEAN; the landing lane
-  lands each as it comes back, while the wave runs (PB3103). This removed PB3016's policy question (may THIS wave land?) with the mechanism; `train_size`,
-  `min_final_train`, `lead_ids_per_train` and the lead-id blocks are gone, and the planner prices each group's landing
-  at `landing_tokens` (`model_rules.json`) instead of one lander per train.
-- **Measurement** (PB3028, landed): `landing_measure.py` replaced `train_measure.py`, which is deleted with its drift
-  test. One record per pull request in `<coord>/landing-measurements.jsonl`, built up by patches because no tool sees
-  a whole landing: `enqueue.py queue` writes the enqueue time, each carried change's DONE (`done_times`: the committer time of the HEAD commit its DONE implementer report names, never the report file's time, which the branch review's stamp rewrites; the changes are the reports naming the branch plus those a train commit's `Report:` line names, one per lead note, each the earliest of its finisher chain; a report whose HEAD is already an ancestor of origin/main is a change that landed before this one and counts for nothing, because the queue's MERGE method makes every landed head an ancestor of every later branch) the dispatch and review-clean times (`stage_times`, kb/Work PB3638: `dispatched` the dispatch ledger's time of the earliest dispatch still recorded for a lead note the branch's reports answer, `review_clean` the time of the CLEAN verdict record the newest report's stamp names; a time out of order stays null; the order is judged against the record the enqueue will patch, so a re-enqueue after a bounce and a re-review keeps the first `enqueued`, the earliest `dispatched` and `done`, and leaves out a CLEAN verdict, and a DONE (`done_times` is bounded by the first enqueue, not this call's time), that follows the first enqueue, kb/Work PB3710) and the worktree's local gate seconds (the sum of its `verdict.json` `timings.wall_s`);
-  `record --review-clean` (a hand correction) and `--bounce-causes` (cluster-defect · load-timing · conflict · infrastructure) are named by
-  whoever knows; `complete` reads `mergedAt`, the count of FAILED merge-group runs of the PR (a run GitHub cancelled
-  because an earlier entry failed is a ripple, not a bounce), the count of FAILED `pull_request` runs on the PR's head
-  branch (`pre_queue_reds`, kb/Work PB3096: a PR red before the queue never reaches a merge group, so `bounces` cannot
-  see it; a branch with no pull-request run at all stays null) and the successful run's wall from `gh`. A field never
-  observed stays null and prints UNMEASURED (a missing observation is not a zero); a bounce with no named cause prints
-  UNATTRIBUTED. `summary` prints changes landed per hour, median and p90 minutes DONE → on main per change, bounces per landing and
-  their causes, pull-request reds before the queue per landing, merge-group CI wall and local gate minutes, and the stages of the owner's fix-cycle bar (kb/Work PB3638: dispatch → DONE → review clean → enqueued → merged, median and p90 each, and dispatch → enqueued against 30 minutes and enqueued → merged against 15, a median over its budget printed OVER, a defect against PB3638) as the AFTER column beside the BEFORE column from the retired
-  train records (batched gating) and the frozen 2026-10-10 evidence; `freeze` copies the train records and the first
-  after-summary under `evidence/fleet-optimization/` once a PR has landed. The completion ledger's landing rate and its
-  minutes per landing come from the same file (`landing_measure.landing_rate_input`: the queue's own from two landings,
-  else the trains', whose minutes are lander start → push, a floor; the headline names what its minutes measure and the ledger prints that label). The design is judged by changes landed per hour and minutes per landing, before and after.
+- `enqueue` (`units/enqueue.md`) is the supervisor's **landing lane** (PB3103, `land_lane.py`, DESIGN-orchestrator-loop.md
+  §4.9): beside whatever unit runs, the lane runs `enqueue.py land` for every WAITING TO LAND branch (`prune_worktrees.py`'s
+  survey, in harm order) the moment it is ready and retries what a script can see end; the unit reads `land_lane.py status` and
+  dispatches ONE `cobol-finisher` (`finisher-brief.md`) for a lane attempt stopped on a conflict, a red gate, a DEVLOG or oracle
+  refusal, or a queue bounce the lane did not re-queue (§0 item 6; `prune_worktrees.py` BOUNCED comes from one GraphQL read of
+  the open pull requests: in the merge queue → ENQUEUED, removed from it at the branch's tip → BOUNCED with GitHub's reason).
+  While the queue is not ACTIVE, `enqueue.py land` refuses before it merges anything (exit 8): main takes only queued pull
+  requests (the ruleset binds administrators).
+- There is no train, no lander role and no direct-push landing script, landing lease or `ci/**` branch (kb/Work PB3023,
+  PB3024; CLAUDE.md rule 4: deleted, never wrapped). `golden-lane-brief.md` is the lane-1 integrator landing through
+  `enqueue.py land --lane golden`; `cobol-finisher` resolves a conflict, fixes a red or a bounce, gates and returns DONE
+  (turn cap 160), its commits reviewed on the branch before the lane lands the new tip. `wf_rolling_wave.js` starts no lander:
+  a wave produces DONE branches reviewed CLEAN, and the lane lands each as it comes back.
+- **Measurement** (PB3028): `landing_measure.py` keeps one record per pull request in `<coord>/landing-measurements.jsonl`,
+  built up by patches because no tool sees a whole landing: `enqueue.py queue` writes the enqueue time, each carried change's
+  DONE (`done_times`: the committer time of the HEAD commit its DONE implementer report names, never the report file's time)
+  and the stage times (`stage_times`, kb/Work PB3638: `dispatched`, `review_clean`; a time out of order stays null, and a
+  re-enqueue after a bounce keeps the first `enqueued`), and the worktree's local gate seconds (the sum of its `verdict.json`
+  `timings.wall_s`); `complete` reads `mergedAt`, the FAILED merge-group runs of the pull request (a run GitHub cancelled
+  because an earlier entry failed is a ripple, not a bounce), the FAILED `pull_request` runs on its head branch
+  (`pre_queue_reds`, PB3096) and the successful run's wall; and each bounce is recorded with its class (`reds`, `record_red`,
+  PB4331: INFRA and RUNNER also count as the `infrastructure` cause). A field never observed stays null and prints UNMEASURED
+  (a missing observation is not a zero); a bounce with no named cause prints UNATTRIBUTED. `summary` prints changes landed per
+  hour, median and p90 minutes DONE → on main, bounces per landing and their causes, pull-request reds before the queue,
+  merge-group CI wall, local gate minutes and the stages of the owner's fix-cycle bar (kb/Work PB3638: dispatch → enqueued
+  against 30 minutes and enqueued → merged against 15, a median over its budget printed OVER). The design is judged by
+  changes landed per hour and minutes per landing.
 
 #### 3.17.6 CI and repository settings (PB3024)
 
-- `build-and-test.yml` (landed, PB3024 phase 1): `merge_group:` added; the `changes` job runs the matrix on
-  `merge_group` (base = the group's `base_sha`, so a group of inert-lane PRs skips it exactly as an inert landing did, §3.18)
-  and `workflow_dispatch`, only the required check (`changes`, `ci-gate`; the audits moved to the merge group, PB4330) on
-  `pull_request`, and on `push` to main the
-  already-verified short-circuit (the merge-queue commit IS the commit main advances to; measured on the first three
-  queued landings, PRs 7–9: each `push` run found its merge group's green run on the same sha and skipped the matrix).
-  ⛔ The short-circuit counts only a successful run of the workflow from an event other than `pull_request`: a PR's
-  cheap `ci-gate` is attached to the PR's HEAD commit, so a check-run lookup would have read it as a verdict on the
-  matrix. `push.branches` is `[ main ]` (PB3024's closing change dropped the `ci/**` landing branches), and the
+- `build-and-test.yml`: the `changes` job runs the matrix on `merge_group` (base = the group's `base_sha`, so a group of
+  inert-lane pull requests skips it, §3.18) and `workflow_dispatch`, only the required check (`changes`, `ci-gate`) on
+  `pull_request`, and on `push` to main the already-verified short-circuit (the merge-queue commit IS the commit main advances
+  to: each `push` run finds its merge group's green run on the same sha and skips the matrix). ⛔ The short-circuit counts only
+  a successful run of the workflow from an event other than `pull_request`: a pull request's cheap `ci-gate` is attached to
+  its HEAD commit, so a check-run lookup would read it as a verdict on the matrix. `push.branches` is `[ main ]`, and the
   DEVLOG-entry check runs only on `merge_group` (PB4330). `audits` runs `if: github.event_name == 'merge_group' ||
-  needs.changes.outputs.run_matrix == 'true'`: every merge group, and any other event only when its matrix runs (a dispatch
-  run, or a push no merge group verified), never a pull request or a verified push. `ci-gate`'s `needs:` and its drift check (every job
-  wired) are unchanged. The `supersede` job (kb/Work PB3769) runs on `merge_group` only and is the one job granted
-  `actions: write` (with `contents: read` for its sparse checkout and `pull-requests: read` for the queue's entries); it
-  cancels the runs the queue has replaced (§3.17.2 step 4).
+  needs.changes.outputs.run_matrix == 'true'`: every merge group, and any other event only when its matrix runs, never a pull
+  request or a verified push. `ci-gate`'s `needs:` and its drift check (every job wired) cover every job; the `supersede` job
+  (kb/Work PB3769) runs on `merge_group` only and is the one job granted `actions: write` (with `contents: read` for its
+  sparse checkout and `pull-requests: read` for the queue's entries).
 - A **ruleset** on `main` (classic branch protection has no merge queue, and GitHub offers a merge queue only to an
-  ORGANIZATION-owned repository — the second apply, 2026-10-11 18:44, was refused with `Invalid rule 'merge_queue'` on
-  the personal account's repository, so the repository is `WiseOwlSoftware/COBOL`: owner decision 2026-10-11, kb/Work
-  PB3078): require a pull request, require the merge
-  queue with merge method **merge commit** — the branch's commits stay ancestors of `main`, so the branch lifecycle
-  (`prune_worktrees.py`'s landed test, `carried()`, `git cherry`) keeps working offline, and `git log --first-parent
-  main` reads one merge commit per landing — GitHub's `Merge pull request #N from …` subject with the PR's one-line
-  title as its body. GitHub pairs the MERGE_MESSAGE title only with PR_TITLE (its three pairs are PR_TITLE+PR_BODY,
-  PR_TITLE+BLANK and MERGE_MESSAGE+PR_TITLE; the first apply, 2026-10-11 16:27, asked for MERGE_MESSAGE+PR_BODY and
-  was refused), and PR_TITLE as the subject would put `Train <label>:` on the merge commit, which
-  `prune_worktrees.py`'s `train_heads` reads as a train's last commit. The forensic record of a landing is therefore
-  the branch's own commits beneath the merge commit and the PR body, never the merge commit's message;
-  `ruleset.py` refuses any pair outside GitHub's three before it calls GitHub. Squash was considered and rejected on the operator's review (2026-10-11 12:16): a
-  squashed head is never an ancestor of main, so every lifecycle tool would have to key on the merged-PR record instead.
-  Required status check `ci-gate` on the merge group, enforce for administrators (the owner's credentials make every
-  push), minimum group size 1, maximum 5, check timeout 60 min. The classic protection is removed in the same change.
-- **The concurrent-job budget and the queue's build width (kb/Work PB3773).** The organization is on GitHub Team since
-  2026-10-25: standard hosted runners run **60 jobs at once** (the Free plan's 20 had saturated: five merge groups of about
-  20 jobs each shared 20 slots, so a 12-14 minute run took 25-30). `max_entries_to_build` stays **5**, re-measured against
-  60 on 2026-10-31 over the day's 60 merge-group runs: a full group is 23 jobs with a peak of 18-19 running at once, an
-  inert-lane group (section 3.18) 13 jobs; the busiest observed moment, five groups at once (two full, three inert-lane,
-  run ids 41231268883, 41231270319, 41231270803, 41231271575, 41231400422), peaked at 40 running jobs, every job started
-  within a second of its run's creation, and a full group's wall was 13-16 minutes, its unthrottled time. The budget holds
-  three full groups at once (about 57 jobs); a fourth and fifth full group would queue part of their jobs behind the
-  budget, which costs no more than the serial order a narrower width would impose, and the day's landings never put more
-  than two full groups in flight (a wave that adds refusals lands one at a time on the driver-file rule, kb/Work PB4147).
-  Narrow the width to 3 only if a measured day shows full groups waiting for runners; `ruleset.py check` binds the
-  committed value.
-- **Cutover (operator review item 4; owner fast track ~12:58, "Why are we still using push-main?" → "Fast track now"):**
-  every step of this design lands through the THEN-CURRENT pipeline. **Phase 1 = PB3024, landed FIRST and ALONE (a
-  blocking one-cluster landing), as the last landing through the direct-push landing script:** the `merge_group` trigger and the
-  cheap-PR arm, the committed ruleset (`scripts/orchestrator/ruleset-main.json`) and `ruleset.py check|apply`, and the
-  pull-request step as a SCRIPT, `scripts/orchestrator/enqueue.py queue` (the landing checks, push the branch, open or
-  reuse its pull request, queue it with auto-merge; no CI wait), with `enqueue.py checks` the one landing-check
-  sequence both paths run. **⛔ The operator's review (2026-10-11 13:39, mailbox 20261011-133923):** with
-  `pull_request` limited to the cheap jobs (since PB4330 `changes` and `ci-gate` alone), a PR opened BEFORE the owner applies the ruleset has no merge-group run,
-  its `ci-gate` passes on the cheap jobs, and auto-merge would land it with NO whole-population run. Closed by
-  construction: `enqueue.py queue` refuses (exit 8) before any check, push or pull request unless `ruleset.py check`
-  reports the queue ACTIVE (live ruleset equal to the committed one, the queue present, the classic protection gone);
-  no other tracked file opens or queues a pull request (`LandingPipelineDriftTests`, §3.17.8); until the queue was
-  ACTIVE the lander kept landing through the direct-push script. That script, the landing lease and their drift tests,
-  the `ci/**` trigger and MANDATORY-PRACTICES L3/L13's references to them were deleted by PB3024's closing change, cut
-  right after PB3023 landed — not by the first queued landings (PB3077, PB3078), because PB3023 rewrote 39 of the 48
-  files that retirement touches (kb/Work PB3078). **The switch happened 2026-10-11 19:14:** on the owner's go (16:27) the attended session ran
-  `python scripts/orchestrator/ruleset.py apply --owner-go "<the go>"` (it also set the repository's auto-merge and
-  delete-branch settings) — after the repository's transfer to the WiseOwlSoftware organization, the merge queue being
-  organization-only (PB3078); from that instant main accepts only queued pull requests.
-  **Phase 2 = PB3023 (`enqueue.py` gains the rebase, the one local gate and the DEVLOG stamp) and PB3025 (the
-  per-entry DEVLOG and its CI check)**, each through the queue.
-- `guard` (12.8 min) was the long pole of a merge-group run; kb/Work PB4329 moved it to the nightly (owner decision,
-  kb/Work PB4323) and divided the merge group's tests into weighted shards (§1.4).
-
-#### 3.17.7 What each document says after this lands (the implementer's sweep; rule 6, same change set)
-
-`CLAUDE.md` (rule 6's DEVLOG shape; the Testing paragraph: one gate mode, CI as the regression net, the merge queue,
-no WSL gate, the CI invariant restated as "a PR bounced by the queue is a defect fixed on its branch before re-enqueue")
-· `MANDATORY-PRACTICES.md` L1–L3, L10–L13, O10, O11 · `.claude/skills/{gate,land-a-fix,workstream,session-start,
-kb-sync}` · `scripts/orchestrator/units/{land,wave,resume}.md` → `enqueue.md` · `DESIGN-orchestrator-loop.md` §3, §4.7,
-§9 · plan §0 "Gates" and §9 · `docs/DOC_INDEX.md` · `.claude/agents/cobol-lander.md` → `cobol-finisher.md` ·
-`scripts/session-probe.ps1` (the `gate :` line) · `scripts/hooks/dispatch_guard.py` (refuses a lander dispatch: there is
-none) · §3.14.1 (one mode), §3.15 (the WSL gate becomes the Linux-red REPRO tool, `linux-gate.sh` kept for that use
-only, out of every gate path and brief).
+  ORGANIZATION-owned repository, so the repository is `WiseOwlSoftware/COBOL`: owner decision 2026-10-11, kb/Work PB3078)
+  requires a pull request and the merge queue with merge method **merge commit**: the branch's commits stay ancestors of
+  `main`, so the branch lifecycle (`prune_worktrees.py`'s landed test, `carried()`, `git cherry`) keeps working offline and
+  `git log --first-parent main` reads one merge commit per landing. GitHub pairs the MERGE_MESSAGE title only with PR_TITLE
+  (its three pairs are PR_TITLE+PR_BODY, PR_TITLE+BLANK and MERGE_MESSAGE+PR_TITLE), so the forensic record of a landing is the
+  branch's own commits beneath the merge commit and the pull request body; `ruleset.py` refuses any pair outside GitHub's
+  three before it calls GitHub. Squash was rejected (a squashed head is never an ancestor of main, so every lifecycle tool
+  would key on the merged-PR record instead). Required status check `ci-gate` on the merge group, enforce for administrators
+  (the owner's credentials make every push), minimum group size 1, maximum 5, check timeout 60 min.
+  `scripts/orchestrator/ruleset-main.json` is the committed ruleset and `ruleset.py check|apply` compares and applies it;
+  `enqueue.py queue` refuses (exit 8) before any check, push or pull request unless `ruleset.py check` reports the queue
+  ACTIVE, and no other tracked file opens or queues a pull request (`landing_rules.py --self-test`, §3.17.8).
+- **The concurrent-job budget and the queue's build width (kb/Work PB3773).** The organization is on GitHub Team: standard
+  hosted runners run **60 jobs at once**. `max_entries_to_build` stays **5**, measured against 60 on 2026-10-31 over the day's
+  60 merge-group runs: a full group is 23 jobs with a peak of 18-19 running at once, an inert-lane group (§3.18) 13 jobs; five
+  groups at once peaked at 40 running jobs, every job started within a second of its run's creation, and a full group's wall
+  was 13-16 minutes, its unthrottled time. The budget holds three full groups at once; the day's landings never put more than
+  two in flight. Narrow the width to 3 only if a measured day shows full groups waiting for runners; `ruleset.py check` binds
+  the committed value.
+- `guard` (12.8 min) was the long pole of a merge-group run; kb/Work PB4329 moved it to the nightly (owner decision, kb/Work
+  PB4323) and divided the merge group's tests into weighted shards (§1.4).
 
 #### 3.17.8 Drift tests that pin the design
 
-`LandingPipelineDriftTests` (phase 1, landed): the workflow has a `merge_group` trigger, a `pull_request` arm that
-skips the matrix, and a short-circuit that never counts a pull request's run; no tracked file outside the narrative paths (docs, kb, history, tests) opens or
-queues a pull request except `enqueue.py`, and its queue guard precedes its checks, push and pull-request calls; the
-self-test arms of `enqueue.py` and `ruleset.py` are declared. The live ruleset is compared by `ruleset.py check`, whose
-consumers are the landing (exit 8 on anything but ACTIVE) and the session probe's `gate :` line, not an xUnit arm (the
-suite has no dynamic skip, and an offline comparison must read SKIPPED, never green). Landed with PB3024's closing
-change (`TheDirectPushLanding_IsRetired_AndNothingNamesIt`, with its planted-name arm): the direct-push landing
-script (both forms), the landing lease, the train applier and the landing oracle (kb/Work PB3107) do not exist, the
-push trigger is `[ main ]` with no
-`ci/**`, and no tracked file outside the history paths (`DEVLOG/`, `docs/rearchitecture/evidence/`, `kb/Work/`,
-`adjudication/`) names any of them by file name. A later arm, with the change that retires it: no generated index is tracked
-(`git ls-files` ∩ the generators' outputs is empty). Landed with kb/Work PB3022's first part: `GateLegDriftTests` (no
-caller names a gate mode) and `HostWitnessTraitDriftTests` (`TIER_ORDER` contains `0h` and every race-witness class
-carries the `Host` trait). Landed with kb/Work PB3025: `DEVLOG.md` does not exist and every `DEVLOG/*.md` has a
-well-formed header and a unique number (`devlog.py --self-test`'s `lint` arm over the repository's own `DEVLOG/`, run
-by every gate's self-tests and CI's `audits` job). Landed with kb/Work PB3107: `NoTrackedRecord_DescribesOneBranchsTree`
-(no committed arch-oracle baseline, and `capture_oracle.py` has no `--record`), the rule of §3.17.2 step 4 that no
-landing is held to a record of its own tree. Landed with kb/Work PB3769:
-`TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
-with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
-has every step `continue-on-error` (kb/Work PB3820: the checkout and its retry too, the script gated on either checkout's outcome, a failed checkout said as a warning; `StepsThatCanFailTheJob` is the step reader, held by its own arms) and is a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
-are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
-`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `toolchain-cache`, `ci-gate`, the nightly's `latest` and `images` jobs)
-lists each repository file its steps name, each file its local action names, and each repository module a Python script
-it runs imports anywhere in its text, transitively (a function body's lazy import is followed, kb/Work PB3810: an
-under-approximated closure fails silently on the runner; `importlib` and path strings are the static read's limits), and
-sets `sparse-checkout-cone-mode: false`, the mode the list is read in; the workflow's jobs come from the one reader,
-`CiWorkflow.Jobs` (`tests/_shared/CiWorkflow.cs`, kb/Work PB3819: the keys beneath `jobs:`, never the `on:` triggers); the
-arms hold the real workflow (without `scripts/standard_streams.py` it is flagged; `live_tools.py` and `scratch_repo.py`,
-which `standard_streams.live_python` imports lazily, are in every list), a transitive import, a lazy import (reached),
-a docstring, relative imports, packages, a local action, comments, the pattern forms, a cone-mode job and a negation.
+`scripts/orchestrator/landing_rules.py --self-test`: the workflow has a `merge_group` trigger, a `pull_request` arm that skips the matrix, and a
+short-circuit that never counts a pull request's run; no tracked file outside the narrative paths (docs, kb, history, tests)
+opens or queues a pull request except `enqueue.py`, and its queue guard precedes its checks, push and pull-request calls; the
+self-test arms of `enqueue.py` and `ruleset.py` are declared; the direct-push landing script (both forms), the landing lease,
+the train applier and the landing oracle do not exist, the push trigger is `[ main ]` with no `ci/**`, and no tracked file
+outside the history paths names them; no generated index is tracked; `NoTrackedRecord_DescribesOneBranchsTree` (no committed
+arch-oracle baseline and `capture_oracle.py` has no `--record`, the rule of §3.17.2 step 4). Beside it:
+the ONE SHAPE audit (`gate.py --audit-shape`: no live line names a gate mode; kb/Work PB4395), `drift_rules.py --check`'s trait rules (the traits of §3.17.3), `devlog.py
+--self-test`'s `lint` arm over the repository's own `DEVLOG/`, `TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse`
+(the `supersede` job runs on `merge_group` alone with no `needs`, runs `cancel_superseded.py` with the run's id and head
+commit, is the only job with `actions: write`, has every step `continue-on-error` and is a `needs` of `ci-gate`; the arms of
+`cancel_superseded.py` and `queue_facts.live_heads` are declared) and `scripts/sparse_checkout.py --self-test` (over the workflow's jobs from
+the one reader `scripts/ci_workflow.py`): every job whose checkout has a `sparse-checkout` list lists
+each repository file its steps name, each file its local action names and each repository module a Python script it runs
+imports, transitively (a function body's lazy import is followed, kb/Work PB3810), and sets `sparse-checkout-cone-mode: false`.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
 
-**Why.** Owner 2026-10-09, on a one-change landing that edited a practices file and two briefs: "Should this require a
-full CI run? I would think not." Of the 300 landings of 2026-10-16..23, 137 changed only paths CI's doc-only regex
-named, and each still paid the local gate (median about 14 min: the audits, a slot, a build, leg 1) and the landing's
-four Linux legs. And the regex was not a classification: `docs/` and `kb/Work/` are test INPUTS, so CI skipped the
-very tests that read them, and a kb/Work-only branch went RED on the landing's Linux gate behind a GREEN Windows gate
-(kb/Work PB3603); the CI invariant (PB1957) held only because the Linux gate ran every leg.
+**Why.** Owner 2026-10-09, on a one-change landing that edited a practices file and two briefs: "Should this require a full CI
+run? I would think not." Of the 300 landings of 2026-10-16..23, 137 changed only paths CI's doc-only regex named, and each
+still paid a full local gate. And the regex was not a classification: `docs/` and `kb/Work/` are test INPUTS, so CI skipped the
+very tests that read them (kb/Work PB3603).
 
-**The classification — ONE module, `scripts/inert_lane.py`.** A path is INERT when it lies under an `INERT` entry and
-under no `READ` entry; each entry names who reads it (an audit, a person; a READ entry names the tests that read it).
-A change is in the inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into
-an inert directory shows its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/`, `kb/` (the
-knowledge base, THE work register `kb/Work/` among it). NOT inert, measured on 2026-10-23 by deleting
-each candidate and running the three assemblies on Windows, and then by the watch below over the whole Linux
-population: `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every doc, and twenty-odd classes read
-CONFORMANCE.md, the rule catalog or VERSION_CHANGE_REFERENCE.md); `.claude/` and the root `*.md` files
-(GateLegDriftTests, ArchReviewFleetDriftTests, SelfTestDiscoveryDriftTests); the `tools/claude-skills` pin, which the
-self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflict-marker sweep moved before them:
+**The classification — ONE module, `scripts/inert_lane.py`.** A path is INERT when it lies under an `INERT` entry and under no
+`READ` entry; each entry names who reads it (an audit, a person; a READ entry names the tests that read it). A change is in the
+inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into an inert directory shows
+its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/` and `kb/` (the knowledge base, THE work register
+`kb/Work/` among it). NOT inert, measured on 2026-10-23 by deleting each candidate and running the three assemblies, then by the
+watch below over the whole Linux population: `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every doc, and
+twenty-odd classes read CONFORMANCE.md, the rule catalog or VERSION_CHANGE_REFERENCE.md); `.claude/` and the root `*.md` files;
+the `tools/claude-skills` pin, which the self-tests initialize. Two sweeps moved to make `kb/` inert:
+- **The conflict-marker sweep**, which read EVERY tracked file, became an audit (`scripts/conflict_markers.py --check`), which
+  also closes the hole that it never ran in CI on a change whose matrix was skipped.
+- **The register's cross-checks against the inventory** (every defective-verdict row claimed by a live note; every landed
+  `kind: defect` note naming the rows it closed, or why none, and every row so named closed in the inventory) are
+  `scripts/spec/work_inventory.py`, called by `work.py check`, so the register has ONE reader and the checks are audits: the
+  gate's `WORK REGISTER` audit runs them, and CI's `audits` job in every merge group. The tree sweeps of
+  `landing_rules.py --self-test` (until kb/Work PB4395 three C# landing classes) set `kb/` aside whole, and
+  `rendered_views.py --check` (the gate's `RENDERED VIEWS` audit and a step of CI's `audits` job) replaced the Unit test that
+  read the vault, so no test reads it.
 
-- **The conflict-marker sweep**, which read EVERY tracked file and so made every path a test input, became an audit
-  (`scripts/conflict_markers.py --check`, kb/Work PB735's rule unchanged), which also closes the hole that it never ran
-  in CI on a change whose matrix was skipped.
-- **The register's cross-checks against the inventory** (every defective-verdict row claimed by a live note; every
-  landed `kind: defect` note naming the rows it closed, or why none, and every row so named closed in the inventory)
-  were two Unit drift tests that read every `kb/Work/` note through a C# twin of `work.py`'s frontmatter reader. They are
-  now `scripts/spec/work_inventory.py`, called by `work.py check`, so the register has ONE reader and the checks are
-  audits: the gate's `WORK REGISTER` audit runs them beside its build and legs, CI's `audits` job in every merge group, and they run on a
-  `kb/`-only change exactly as on any other. The twin, its parity fixture's second engine and `work.py parity` are gone
-  (the fixture stays as `work.py --self-test`'s cases). The tree sweeps of LandingPipelineDriftTests (two scopes),
-  LandingLaneDriftTests and LandingMeasureDriftTests set `kb/` aside whole, and EcRaiseSiteRegistryDriftTests
-  no longer reads a note (the raise site is its evidence). `RenderedViewsDriftTests`, which only ran
-  `rendered_views.py --tree` (rule (c) there reads the head of every tracked `kb/` note), is deleted: the same rule is
-  `rendered_views.py --check`, the gate's `RENDERED VIEWS` audit and a step of CI's `audits` job, so no test reads the
-  vault.
-
-**Who calls it — every runner, no list of its own (the CI invariant).**
+**Who calls it — every runner, no list of its own.**
 
 | Runner | Inert lane | Full lane |
 |---|---|---|
 | CI `changes` (`classify --base <group base or before> --head <sha>`) | `run_matrix=false`: `audits` (merge group) + `ci-gate` | the matrix |
-| local gate (`gate.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or test leg; under either scope | the ordered gate |
-| hand-run Linux gate (`linux-gate.sh`) | classifies nothing (kb/Work PB4327): it runs the legs it is asked to | every leg, under the watch |
+| local gate (`gate.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or test leg | the ordered gate |
+| hand-run Linux tool (`linux-gate.sh`) | classifies nothing (kb/Work PB4327): it runs the legs it is asked to | every leg, under the watch |
 
-The audits run in every lane of the local gate (they are where a register note, a citation or a DEVLOG entry is checked);
-CI's `audits` job runs in every merge group, whatever `changes` decided, and on no pull request and no verified push
-(kb/Work PB4330: it ran three times per landing, 5.7 minutes each time; it runs once, where the landing waits for it).
+The audits run in every lane of the local gate (they are where a register note, a citation or a DEVLOG entry is checked); CI's
+`audits` job runs in every merge group, whatever `changes` decided, and on no pull request and no verified push (kb/Work
+PB4330).
 
-**The tooling flag (kb/Work PB4326).** A full-lane change also says whether it TOUCHES TOOLING: a path under `scripts/`,
-`.github/`, `tools/`, `.claude/`, or `.gitattributes` / `toolchain.env` (the two root files the Windows self-tests job reads
-through its checkout), ending `.py`, `.ps1` or `.sh` anywhere, or under a `TOOLING_READS` entry (a path outside the scripts
-that a script self-test reads as data, each entry naming its readers: `tests/_shared/TestRepo.cs`, the grammar,
-`.agent-fleet.json`, `docs/CONFORMANCE.md`, `tests/version-matrix/`, ...). `classify` prints it as `tooling=true|false`; an
-empty or unlistable change touches tooling, and an inert change never does. The script self-tests read tooling and those
-entries, so only a change that touches one can turn one red: the local gate's `SELF-TESTS` audit (`TOOLING_ONLY`) and its
-post-build self-tests run only then, and CI's `windows-self-tests` job runs only then (`needs.changes.outputs.tooling ==
-'true'`, beside `run_matrix`; the Linux self-tests of the `audits` job run in every merge group). That a self-test's PASS is
-reused while its recorded inputs are unchanged (3.14.10) is what keeps a tooling change to the self-tests it can affect. A
-change that touches no tooling saves the median gate 147 s of self-tests and 145 s of waiting for the post-build ones
-(PIPELINE-REVIEW, step 3).
+**The tooling flags (kb/Work PB4326; split by the owner 2026-11-01, kb/Work PB4409).** A full-lane change also says two
+things, and `classify` prints both. `reads_tooling=true|false`: it touches a path a script self-test reads
+(`Classification.is_tooling`): a path under `scripts/`, `.github/`, `tools/`, `.claude/`, or `.gitattributes` /
+`toolchain.env`, ending `.py`, `.ps1` or `.sh` anywhere, or under a `TOOLING_READS` entry (a path outside the scripts that a
+script self-test reads as data, each entry naming its readers: `tests/_shared/TestRepo.cs`, the grammar,
+`.agent-fleet.json`, `docs/CONFORMANCE.md`, `docs/REARCHITECTURE_PLAN.md`, `tests/version-matrix/`, ...). CI's
+`windows-self-tests` job runs only then (`needs.changes.outputs.reads_tooling == 'true'`), so the Windows-only self-tests
+(`test_orchestrate_*.ps1`, `test_autostart.ps1`, ...) still run on every change that can turn one red, and the Linux
+self-tests of the `audits` job run in every merge group. `tooling=true|false`: it touches a SCRIPT
+(`Classification.is_script_tree`: the trees and suffixes, never a `TOOLING_READS` entry), and only then do the LOCAL
+gate's `SELF-TESTS` audit (`TOOLING_ONLY`) and its post-build self-tests run: owner 2026-11-01, "I see no reason why a
+compiler change should need to run script self-tests" (compiler fixes change those data files routinely, and their
+self-tests cost a compiler gate 10 to 38 minutes, measured on PB4097's gate). A self-test a compiler data file breaks
+therefore first goes red in the merge group (class (d) of THE RULE). `tooling` implies `reads_tooling` (`Lane` refuses
+the other); the tooling lane sets both, an inert change neither, and an empty or unlistable change both.
 
 **The proof of the tooling flag (kb/Work PB4326, review round 1 finding R1-1).** A path prefix alone was refuted by the PASS
-store's recorded inputs (3.14.10): `tests/_shared/TestRepo.cs` is an input of `drift_rules.py`'s self-test and the `.g4` files of
-`grammar_source.py`'s, so a change to only one of them skipped a self-test the merge group's `audits` job then turned red.
-`scripts/self_tests.py` therefore applies `Classification.unclassified_reads` to what every self-test it RUNS observably
-read (its trace, not a guess): a self-test that passes but read a tracked path that is not tooling, under no `TOOLING_READS`
-entry and under no INERT entry is RED, naming the path, until the path gets an entry naming its reader; `inert_lane.py
-check` holds every entry to a tracked path. The accepted residue, named (owner 2026-10-31, PB4323: a merge-group red may be
-one of five first-run classes): a DECLARED POPULATION reader (`# SELF-TEST-POPULATION: tree — <why>` in the self-test's first
-lines: `test_plan_wave.py`, `test_dispatch_guard.py` and `impacted_tests.py` walk every markdown file or path) is not judged,
-since no set of paths bounds it, and the declaration is held to the trace (review round 2, finding R2-1): a self-test that
-declares it and ran no git command over the whole repository is RED, and one that ran such a command without declaring it is
-judged like any other, so a whole-tree git command never exempts the specific files its self-test also reads (`work.py` reads
-`docs/DESIGN.md`, `merge_drivers.py` the ABI pin, `test_orchestrate_steer.ps1` the plan: each a `TOOLING_READS` entry); the `DEVLOG/` and `kb/` corpora, which every landing grows and `devlog.py check` and `work.py
-check` govern in every lane; and a directory listing, which changes when a file is added and not when a listed file is edited.
+store's recorded inputs (§3.14.10): `tests/_shared/TestRepo.cs` is an input of `drift_rules.py`'s self-test and the `.g4` files
+of `grammar_source.py`'s. `scripts/self_tests.py` therefore applies `Classification.unclassified_reads` to what every
+self-test it RUNS observably read (its trace, not a guess): a self-test that passes but read a tracked path that is not
+tooling, under no `TOOLING_READS` entry and under no INERT entry is RED, naming the path, until the path gets an entry naming
+its reader; `inert_lane.py check` holds every entry to a tracked path. The accepted residue, named (owner 2026-10-31, PB4323: a
+merge-group red may be one of five first-run classes): a DECLARED POPULATION reader (`# SELF-TEST-POPULATION: tree — <why>` in
+the self-test's first lines) is not judged, since no set of paths bounds it, and the declaration is held to the trace (review
+round 2, R2-1): a self-test that declares it and ran no git command over the whole repository is RED, and one that ran such a
+command without declaring it is judged like any other; the `DEVLOG/` and `kb/` corpora, which every landing grows and
+`devlog.py check` and `work.py check` govern in every lane; and a directory listing, which changes when a file is added and
+not when a listed file is edited.
 
 **The script self-tests run on Linux in the inert lane too: in CI (kb/Work PB3646, PB4327).** CI's `audits` job runs
 `self_tests.py` on Linux in every merge group, and those self-tests are audits that read the inert paths by design (the
-register, the DEVLOG, the skills submodule they initialize), so the inert watch cannot vouch for them and a `kb/` or
-`DEVLOG/` change can turn them red on Linux. From PB3646 to PB4327 the local gate ran them in a WSL clone of HEAD in its
-inert lane (a LIGHT slot, `Host.linux_leg(inert=True)`); the Linux half is gone from the gate (§3.15), so the Windows
-gate's inert lane ends after its audits and takes no slot, and the merge group is the first Linux run of a notes-only
-change. `InertLaneDriftTests` holds the CI job (`audits` runs the runner in every merge group and on no pull request) and the
-local lane's lack of a Linux step. A Linux host's audits ARE the Linux self-tests.
+register, the DEVLOG, the skills submodule), so the inert watch cannot vouch for them and a `kb/` or `DEVLOG/` change can turn
+them red on Linux. The Windows gate's inert lane ends after its audits and takes no slot, and the merge group is the first
+Linux run of a notes-only change. `inert_lane.py --self-test` (its `wiring` arm) holds the CI job and the local lane's lack of
+a Linux step.
 
-**The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test
-that starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux
-runs under `inert_lane.py watch`: an inotify watch (through `ctypes`, no package to install) of every directory an
-inert tracked file lies in and of every inert directory itself, so an OPEN of an inert file or a LISTING of an inert
-directory, by the test or by any process it starts, is recorded; the run is RED naming each such path (`opened: …`), and
-an overflowed event queue is RED too (it proves nothing). CI's four Linux `dotnet test` steps run under it; the Linux
-gate runs one watch over its parallel test legs (the `inert-watch` leg) in a clone that runs those three legs and nothing
-else, and runs the script self-tests (audits, which read inert paths by design: the register, every DEVLOG entry, the
-skills submodule they initialize) and the guard in a second clone with its own build, the AUDIT clone (which also takes
-the guard's own `dotnet build` of the CLI off the clone whose CLI the legs run, kb/Work PB3529). Windows has no open
-events, so the
-Windows runs carry no watch; the Linux runs are the whole population on every code change. The answer to a RED watch is
-a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, never deleting the watch.
+**The tooling lane (kb/Work PB4395; PIPELINE-REVIEW §13, owner 2026-11-01 "Build the approved lane").** A change whose every
+non-inert path lies in a tooling tree (`TOOLING_UNDER`: `scripts/`, `.github/`, `tools/`, `.claude/`) and under no
+`CODE_READS` entry is the TOOLING LANE (`lane=tooling`): the gate joins the audits, the script self-tests among them, and ends,
+with no corpus fetch, slot, build or test host (`gate.py` `_tooling`), and its record says `lane: tooling`. `CODE_READS` is
+the tooling the compiler's build or tests read, each entry naming its readers: the scripts a csproj `Exec` runs, the generators
+and extractors whose output a C# test checks (`gen-reserved-words.ps1`, `gen-constructs.ps1`, `scripts/spec/`, ...),
+`filter_population.py` (its self-test reads the built assemblies, `SELF-TEST-NEEDS: build`), `.gitattributes` and
+`toolchain.env`. A change to one is the code lane with the self-tests beside it. A script file outside the tooling trees
+(`conformance-suite/harness/*.py`, a `.sh` under `tests/`) and a `TOOLING_READS` entry lie in trees the compiler reads, so they
+are never the tooling lane. The proof is the watch below, which also watches every tooling-lane path, and its static twin, the
+`INERT LANE` audit (`inert_lane.py check`, in every gate's audits and CI's `audits` job): every csproj `Exec` of a script,
+every build-needing self-test's script, every script or directory a compiler test names through `TestRepo.<dir>(...)` with
+literal arguments (or runs by a computed name under a literal directory, `[InlineData("r2_cost.py")]`), every pattern a
+compiler test lists a tooling directory by, and every Python module one of those scripts IMPORTS, transitively, lies under a
+CODE_READS entry (kb/Work PB4395 review R2-1: `conformance-suite/harness/run.py` and the spec extractors import
+`scripts/standard_streams.py`, so it is code). The import closure is read statically (`ast`): each module is resolved
+against its importer's directory and every directory the importing chain puts on `sys.path`, a lazy import included (the
+twin over-reads rather than under-reads; whether a lazy import runs is the watch's to see). A CODE_READS entry may be a
+LISTING PATTERN (`scripts/guard*.sh`, CorpusManifestTests' listing), which covers a file added later that it matches. The
+residue, named: a Windows-only compiler test that reads a tooling path through a computed name (the watch runs on Linux
+only), and tooling DATA a script reads (`model_rules.json`, `tools/rr/rr.war`), which only the watch sees. A whole-tree CODE_READS entry names the pipeline classes still in the
+compiler's test assembly that walk it; kb/Work PB4395 item 1 moves each into the self-test of the script it checks, and the
+entry narrows when its last walker leaves. CI runs the whole population for a tooling-lane change (it is the regression net),
+and the landing reads a tooling-lane record as it reads an inert one (`land_lane.red_facts`: no compiler test reads the
+change, `inert_lane.TEST_FREE_LANES`).
 
-**Drift test.** `InertLaneDriftTests`: the `changes` job classifies through the module and carries no path regex; every
-`dotnet test` line of a Linux job runs under the watch; `gate.py` classifies through the module, and `linux-gate.sh` classifies nothing but
-watches its test legs; `inert_lane.py check` is GREEN (every entry names a tracked path, every READ entry lies
-under an INERT one). The classification's logic and the watch's firing (a read, a listing, a READ path, the command's
-own exit code) are `inert_lane.py --self-test`'s arms, run by the self-test runner in every gate and CI (the inotify
-arms on Linux: CI's `audits` job and the Linux gate's `selftests` leg). `SelfTestDiscoveryDriftTests` holds both
-self-test legs of the Linux gate to the audit clone.
+**The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test that
+starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux runs under
+`inert_lane.py watch`: an inotify watch (through `ctypes`) of every directory an inert or tooling-lane tracked file lies in and
+of every such directory itself (a submodule's whole checked-out tree), so an OPEN of a watched file or a LISTING of a watched
+directory, by the test or by any process it starts, is recorded; the run is RED naming each such path (`opened: …`), and an
+overflowed event queue is RED too (it proves nothing). A LISTING judges a lane only when every name the directory can list
+is watched: an inert directory, or a tooling-lane directory that holds no CODE_READS entry. A directory that holds one
+(`scripts/`, which Python's import system lists to resolve `scripts/standard_streams.py`) may be listed for that entry's
+name, which the watch cannot tell from any other; the static twin knows which name the lister wants (the import closure's
+module, a literal listing's pattern), so it judges those listings (kb/Work PB4395 review R2-1). The watched command runs
+with a fresh `PYTHONPYCACHEPREFIX`, and so does each test leg of the Linux tool (whose watch runs beside its legs, not
+above them), so a script a test imports is opened as source at least once per run, never served unseen from an earlier
+run's `__pycache__` (measured 2026-11-01: without it the Linux tool's watch missed `scripts/standard_streams.py`).
+CI's four Linux `dotnet test` steps run under it, and the hand-run Linux tool runs one watch over its parallel test legs (the
+`inert-watch` leg) in a clone that runs those legs and nothing else, with the script self-tests and the guard in a second
+clone with its own build (kb/Work PB3529). Windows has no open events, so the Windows runs carry no watch. The answer to a RED
+watch is a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, and for a tooling-lane
+path a CODE_READS entry naming it or making the reader a script's self-test, never deleting the watch.
 
-**What the lane covers.** A notes landing changes `DEVLOG/` and `kb/Work/` (107 of the 137 landings above changed only
-those), so it is the inert lane: the audits (the register's checks among them) and nothing else. A change to `docs/`, a
-skill or a brief is still the full lane until its readers become audits or gain READ entries, one measured path at a
-time (an INERT entry is added only with a GREEN Linux watch run: `bash scripts/linux-gate.sh --nice`, its `inert-watch`
-leg).
+**Drift test.** `inert_lane.py --self-test`'s `wiring` arm (the real tree; kb/Work PB4395 moved it out of the compiler's test
+assembly, where `InertLaneDriftTests` held it): the `changes` job classifies through the module and carries no path regex;
+every `dotnet test` line of a Linux job runs under the watch; `gate.py` classifies through the module and its inert and
+tooling lanes take no slot and build nothing, and `linux-gate.sh` classifies nothing but watches its test legs; CI's `audits`
+job runs the self-tests and `inert_lane.py check`. The `INERT LANE` audit (`inert_lane.py check`) holds every entry to a
+tracked path, every READ entry under an INERT one and every tooling the build or a compiler test is seen to read under
+CODE_READS. The classification's logic and the watch's firing (a read, a listing, a READ path, a tooling-lane import served
+from a stale bytecode cache, a CODE_READS read, the command's own exit code) are `inert_lane.py --self-test`'s arms, run by
+the self-test runner in every gate that touches tooling and in CI (the inotify arms on Linux).
+`self_tests.py --self-test` holds both self-test legs of the Linux tool to the audit clone.
 
----
-
-## 4. Current → target module changes
-
-| Action | From | To | Why |
-|---|---|---|---|
-| create | — | `tests/WiseOwl.Cobol.Tests.Characterization/` (+ `tests/characterization/`, `Snapshots/`) | The behavior-neutrality harness (gates 2 & 3) — the missing "prove I changed nothing" proof for every refactor phase. |
-| create | — | `tests/nist/corpus.tsv` | The source of the green NIST set + chains, and of the guard's population: it replaced all three copies, the last the serial guard's `NIST_TESTS` (kb/Work PB925, PB3383). |
-| create | — | `src/WiseOwl.Cobol.Compiler/Diagnostics/` (`DiagnosticDescriptor`, `Diag`, `Diagnostic`, `Severity`) | Registry so codes are addressable, snapshot-keyable, doc-generable, suppress-targetable. |
-| (exists) | — | `docs/REARCHITECTURE_PLAN.md` | Resumable migration SSOT + roadmap with per-phase exit criteria = battery-green gate (the master plan already in the repo). |
-| create | — | `docs/DIAGNOSTICS.md` (generated) | The single human-readable code table (understandability #1). |
-| create | — | `tools/DifferentialBakeTool` (or a skip-gated maintenance test) | One-time freeze of legacy output → committed goldens (the G8-survival bake). |
-| create | — | `scripts/guard.ps1` | Cross-platform authoritative guard (Windows parity for the regression). |
-| split | `NistDifferentialTests.cs` (318 `[InlineData]`) | `[MemberData]` over `corpus.tsv` + a thin theory | Remove the hand-maintained green list; single source of truth. |
-| refactor | ~60 `*DifferentialTests.cs` (assert `wiseowl-cobol==legacy`) | golden-comparison base (`AssertMatchesGolden`) + `tests/differential/**/*.out` | Sever the oracle coupling so the net survives G8. |
-| refactor | `EditionContext.Error(code,msg)` string-concat; 161 bare codes | `sink.Report(Diag.X, args)` | Route all diagnostics through the registry. |
-| split | `COBOL0899` (~47 sites) | distinct unimplemented-feature descriptors behind a tracked list | One code = one rule; snapshot precision. |
-| move | `CompilerUnderTest.LegacyCompiler` / `ICompilerUnderTest` | DELETE after the bake | Legacy oracle gone once goldens are baked. |
-| refactor | `RoslynBackend.ReferenceAssemblies()` (uncached) | `static Lazy<ImmutableArray<MetadataReference>>` | Battery throughput (thousands of rebuilds → one). |
-| refactor | binder passes behind the `CSharpEmitter.Bind` host facade | `Binding.BindPipeline → BoundCompilation` (standalone) | Bind phase boundary: fast `CheckOnly`, probe-able bound tree, clean Emit snapshot. |
-| rewrite | `.github/workflows/build-and-test.yml` (4 jobs, legacy-authoritative) | OS-matrix `build-test` + `version-sweep` (the temporary `legacy-oracle` job was deleted, PB2108) | Greenfield-authoritative, cross-platform NIST, characterization gated. |
-| deleted (PB2110) | the legacy unit and integration test projects | — | Retired with the engine. |
-| deleted (PB2109) | `scripts/compliance.sh`, `nist-batch.sh`, `run-suite.sh` and the guard scripts' legacy arms | — | The guard scripts themselves stay: they are the CLI-level NIST leg over `cobol` (PB750). |
-| delete | `CobolParserJsonXml.g4`, `CobolExtensionsJsonXml.g4` (dead JSON/XML) | — | Non-ISO (0 spec occurrences) — hard invariant #5; remove from any test/build surface. |
-| move | legacy `ConformanceTests` corpus + `GreenfieldOnly`/`LegacyDivergent` sets | folded into `CorpusRunnerTests` | One corpus runner over committed goldens. |
-
----
-
-## 5. Migration notes — keeping the battery green through the phases
-
-The rearchitecture proceeded so the net was STRENGTHENED before it was relied on, then legacy was severed:
-
-- **Phase R0 — Net-first (do BEFORE any refactor).**
-  1. Land `corpus.tsv` + `CorpusManifestTests`; repoint `NistDifferentialTests` at it (behavior identical, coverage
-     unchanged — pure de-duplication). 2. Stand up `WiseOwl.Cobol.Tests.Characterization` and SEED `Snapshots/` from the
-     CURRENT emitter (captures "today's behavior"). 3. Cache the Roslyn reference set (safe, pure speed). 4. Land the
-     diagnostic registry + `DiagnosticSnapshotTests` seeded from today's output. After R0 the battery can prove
-     behavior-neutrality; no compiler behavior changed.
-- **Phase R1 — Bake the oracle (DONE).** The legacy output was committed as `tests/differential/**/*.out` and the differential
-  base rewritten to golden comparison, so the `wiseowl-cobol==legacy` asserts are gone and the net is self-standing.
-- **Phases R2…Rn — the actual rearchitecture** (god-class splits, pass pipeline, storage-form unification, per the
-  sibling DESIGN-* docs). EACH phase: run the full battery; gates (1)+(2) MUST stay green; gate (3) stays green or
-  is reviewed-re-baselined IN THE SAME change set (with a DEVLOG note citing the intended emit change and the
-  gate-(1) proof). No phase merges red. Small phases (feedback_tiered_gates) so a snapshot diff is legible.
-- **Phase G8 — Sever legacy (DONE, PB2108–PB2110).** The legacy test projects, the legacy `ProjectReference`s, the legacy guard
-  arms, the `legacy-oracle` CI job and the engine itself are deleted. The `build-test` matrix is the whole gate, cross-platform.
-
-Throughout: `Generated/` remains a build output (regen per checkout, failed regen fails the build); warnings-as-
-errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `ReservedWords`, `CorpusManifest`,
-`DiagnosticRegistry`) are the "nothing silently added/dropped" backstop.
+**What the lane covers.** A notes landing changes `DEVLOG/` and `kb/Work/` (107 of the 137 landings above changed only those),
+so it is the inert lane: the audits and nothing else. A change to `docs/`, a skill or a brief is still the full lane until its
+readers become audits or gain READ entries, one measured path at a time (an INERT entry is added only with a GREEN Linux watch
+run: `bash scripts/linux-gate.sh --nice`, its `inert-watch` leg).
 
 ---
 
-## 6. Risks
-
-1. **Snapshot brittleness.** Emitted-C# snapshots (gate 3) will diff on almost every emitter refactor. MITIGATION:
-   gate (3) is advisory/reviewed, never a hard CI red on its own IF gates (1)+(2) are green — but a gate-(3) diff
-   with NO corresponding source change in the PR IS a red (unexpected drift). Keep the characterization corpus small
-   and representative (one program per feature family), not the whole NIST set.
-2. **Bake faithfulness.** If the bake captures a legacy output that WiseOwl COBOL already diverges from (an
-   intended ISO fix), the golden would wrongly pin the legacy value. MITIGATION: bake only cases where the
-   differential test is currently GREEN (wiseowl-cobol already == legacy); a currently-red/skip differential case is
-   hand-authored to the ISO value and marked `divergent`.
-3. **Two runtimes side-by-side until G8.** The conformance project references both runtimes; a program loads only
-   its own. Low risk (proven today) but the characterization/probe path must use the greenfield driver ONLY.
-4. **`corpus.tsv` chain semantics.** The manifest-driven run was verdict-equivalent to the old sources (349/349,
-   DEVLOG entry 667), and `chains.tsv`, the `[InlineData]` list and the serial guard's hand-ordered `NIST_TESTS`
-   are deleted (kb/Work PB925, PB3383).
-5. **Diagnostic registry churn** touches ~161 call sites. MITIGATION: mechanical, one code family at a time, each
-   change set battery-green; the drift test catches any orphaned/duplicate code.
-6. **CI time** could rise if characterization emits Roslyn-compile every program. MITIGATION: gate (3) snapshots the
-   emitter STRING only (no Roslyn); the reference-set cache offsets the rest.
-
----
-
-## 7. Open questions for the owner
-
-1. **Snapshot tooling:** hand-rolled `Assert.Equal(File)` + `WISEOWL_COBOL_UPDATE_SNAPSHOTS` env, or adopt Verify
-   (`Verify.Xunit`)? Verify gives received/verified diffing + review workflow for free but adds a dependency. Lean:
-   hand-rolled (zero new deps, matches the repo's existing golden-file idiom) unless you want the Verify UX.
-2. **Characterization corpus size:** one program per feature family (~120 programs, fast) vs. snapshot the full NIST
-   corpus's emitted C# (maximal coverage, slower, noisier diffs). Recommend the curated family set for gate (3), NIST
-   goldens already cover gate (1) breadth.
-3. **When to sever legacy (G8 timing) — RESOLVED (R69, 2026-10-06).** The legacy engine was deleted without a live cross-check
-   job and without an equivalence proof, because the one guard has driven `cobol` since PB750; the archive is the tag in
-   `docs/rearchitecture/LEGACY-ARCHIVE.md`.
-4. **`--suppress` granularity:** per-code, per-family, or per-descriptor `SuppressKey`? Affects the registry shape;
-   default proposed is per-code with an optional family key.
-5. **Migration-SSOT vs resume-prompt.md ownership — RESOLVED (2026-07-07):** the migration roadmap is the standalone
-   `docs/REARCHITECTURE_PLAN.md` (since 2026-07-19 THE ONE consolidated plan incl. the §0 live banner);
-   the feature-drive state ALSO lives there now — `resume-prompt.md` was absorbed into it and DELETED (2026-07-19).
-6. **Do we snapshot the runtime deploy?** The runtime DLL is copied per emit; characterization ignores it. Confirm
-   the runtime is out of the neutrality scope (it is typed-native and separately unit-tested) — assumed yes.
+## 4. Standing risks
+1. **Snapshot brittleness.** Emitted-C# snapshots (gate 3) diff on almost every emitter refactor. Gate (3) is reviewed, never
+   a hard red on its own while gates (1) and (2) are green, but a gate-(3) diff with NO corresponding source change IS a red
+   (unexpected drift). The characterization corpus stays small and representative.
+2. **A Linux-only compiler red is found in the queue** (§3.15's accepted risk), classified and re-queued or finished by the
+   landing lane (§0 item 6).
+3. **A merge-group red is one of five first-run classes, a flake, or infrastructure** (§0 item 5). A flake is a kb/Work defect
+   fixed at its root, never retried inside the run; kb/Work PB1957 records each class's differences and rate.
+4. **CI time grows with the suite.** The growth trigger (§3.14.13) decides when the program differential is built.

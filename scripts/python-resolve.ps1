@@ -3,7 +3,7 @@
 #
 # WHY A TWIN. The probe runs before any Python can, so it is written in the shell that starts the gate, once per shell:
 # this file and python-resolve.sh probe the SAME candidates in the SAME order with the SAME floor probe, and
-# PythonInterpreterDriftTests holds them equal. python-resolve.sh says why each candidate is PROBED by running it: a
+# scripts/toolchain_audit.py holds them equal. python-resolve.sh says why each candidate is PROBED by running it: a
 # name on PATH is not an interpreter (on the Windows dev box `python3` is the Microsoft Store alias, which runs, prints
 # "Python was not found" and exits non-zero).
 #
