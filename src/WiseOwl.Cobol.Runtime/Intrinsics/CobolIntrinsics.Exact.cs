@@ -30,11 +30,13 @@ namespace WiseOwl.Cobol.Runtime;
 /// Both bounds are the UNALIGNED ones. Alignment multiplies: a 31-digit integer beside a scale-18 operand needs 49
 /// digits, past this carrier entirely, and three aligned 38-digit SUM arguments exceed it while each one passes the
 /// per-argument escape. That false premise is precisely why the always-SDIDI routing was built one arm at a time
-/// (kb/Work PB62, then PB252). The rule is now structural and lives in ONE place — <c>IntrinsicRenderer</c>'s
-/// <c>CrossAlignedNativeArms</c>: <b>every native arm that cross-aligns (MOD · REM · SUM · RANGE · MEAN · MEDIAN ·
-/// MIDRANGE) routes to its <c>…Dec</c> body under a standard mode</b>, so §15.4.1 r1 is satisfied by the SDIDI and
-/// not by a bound on this carrier. Under NATIVE arithmetic these bodies keep the exact-Int128 lane and reaching the
-/// D1 boundary is the §14.7.5 SIZE ERROR condition, never a wrap (see <c>SizeEscape</c>).</para>
+/// (kb/Work PB62, then PB252). The rule is now structural and lives in ONE place — the compiler's
+/// <c>IntrinsicCarrierRules.CrossAligningFunctions</c>: <b>every function whose native arm cross-aligns (MOD · REM · SUM ·
+/// RANGE · MEDIAN · MIDRANGE) routes to its <c>…Dec</c> body under a standard mode</b>, so §15.4.1 r1 is satisfied by the
+/// SDIDI and not by a bound on this carrier; MEAN, whose quotient is inexact, takes <c>MeanDec</c> in every mode
+/// (kb/Work PB3860). Under NATIVE arithmetic these bodies keep the exact-Int128 lane unless the aligned arguments may
+/// leave it (<c>IntrinsicCarrierRules.AlignmentMayLeaveCarrier</c>, kb/Work PB621), and reaching the D1 boundary is the
+/// §14.7.5 SIZE ERROR condition, never a wrap (see <c>SizeEscape</c>).</para>
 /// <para>The ONE recorded residue: a result whose exact form exceeds 34 significant digits (FACTORIAL of 31–33)
 /// stays exact-Int128 here where the SDIDI evaluation would round each step to 34 digits — a divergence in the
 /// direction of MORE precision, undetectable at bind time (argument values are runtime data) and recorded in

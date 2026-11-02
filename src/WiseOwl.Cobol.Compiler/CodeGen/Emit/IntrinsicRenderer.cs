@@ -102,7 +102,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // receiver-shape dependence CONFORMANCE.md item 92's NUMVAL paragraph rejects, and a double rounding
         // (§14.7.4.3's rounding happens ONCE, at the receiver). The determination is the exact parse, r3's value, in every
         // mode and channel; a floating-point receiver is the SDIDI landing's own one conversion of that exact value.
-        if (IntrinsicCarrierRules.ReturnsExactParse(sig.RuntimeMethod) && RenderDec(ic) is { } fixedByDefinition)
+        if (IntrinsicCarrierRules.ReturnsExactParse(sig.Name) && RenderDec(ic) is { } fixedByDefinition)
             return fixedByDefinition;
 
         // ⛔ ROUTE ON THE ARGUMENT'S TYPE, NOT ONLY THE FUNCTION'S FAMILY (fix-queue PB2). The exact family
@@ -173,7 +173,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // wider carrier must be the one that changes. The question is asked of the arguments' digit BOUNDS
         // (NumX.Digits) so an ordinary list keeps its Int128 body unchanged and only a list that may leave the
         // carrier moves; an argument whose bound is unknown keeps the escape-checked native arm.
-        if (IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(sig.RuntimeMethod) && AlignmentMayLeaveCarrier(ic)
+        if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name) && AlignmentMayLeaveCarrier(ic)
             && RenderDec(ic) is { } wideAligned)
             return wideAligned;
         // ⛔ MEAN'S VALUE IS THE SDIDI QUOTIENT UNDER NATIVE ARITHMETIC TOO (kb/Work PB3860). §15.60.4 r1's equivalent arithmetic
@@ -185,7 +185,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // the standard-mode value in every mode and channel (the PB3839 owner determination: one reference, one value), which
         // the receiver then rounds ONCE (§14.7.4.3). A list with a binary64 operand keeps the float lane below: its one value
         // IS a double, and the landing is the float family's own (ReceiverContext.FloatLanding).
-        if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.RuntimeMethod) && !AnyRealArgument(ic)
+        if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.Name) && !AnyRealArgument(ic)
             && RenderDec(ic) is { } sdidiQuotient)
             return sdidiQuotient;
         if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
@@ -317,7 +317,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // SUM/RANGE genuinely ADD, so they keep aligned arguments — escape-CHECKED both at the per-argument
             // alignment (Align emits RescaleEscape) AND across the accumulation itself (CobolIntrinsics.SizeEscape,
             // kb/Work PB252): every step past the Int128 intermediate is the size-error condition, never a wrap.
-            // ⛔ Both of these reach here ONLY under NATIVE arithmetic — CrossAlignedNativeArms routes them to
+            // ⛔ Both of these reach here ONLY under NATIVE arithmetic — CrossAligningFunctions routes them to
             // SumDec/RangeDec under a standard mode, where §15.4.1 r1 admits no approximation at all.
             case "SumScaled":                                                   // §15.88 — Σ at the common scale
             {
@@ -1108,7 +1108,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// one of unknown digit bound (<see cref="NumX.Digits"/> 0), is not provable and answers <c>null</c>.</summary>
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
     private bool AlignmentMayLeaveCarrier(BoundIntrinsicCall ic) =>
-        IntrinsicCarrierRules.AlignmentMayLeaveCarrier(ic.Sig.RuntimeMethod, Operands(ic)
+        IntrinsicCarrierRules.AlignmentMayLeaveCarrier(ic.Sig.Name, Operands(ic)
             .Select((x, i) => x.Dec || x.Real || x.Digits == 0
                 ? (IntrinsicCarrierRules.AlignedOperand?)null
                 : new IntrinsicCarrierRules.AlignedOperand(x.Digits, x.Scale, ic.Args[i] is BoundFieldOperand { Place: TableAllPlace }))
@@ -1130,7 +1130,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>
     /// The second half of the always-SDIDI set: functions whose standard-mode returned value a RULE fixes
-    /// outright, so the argument carrier cannot matter. Unlike <see cref="IntrinsicCarrierRules.CrossAlignedNativeArms"/> this half has
+    /// outright, so the argument carrier cannot matter. Unlike <see cref="IntrinsicCarrierRules.CrossAligningFunctions"/> this half has
     /// no structural derivation — each member is here for its own cited reason and is listed one by one.
     /// The NUMVAL family is not listed: <see cref="IntrinsicCarrierRules.ReturnsExactParse"/> (every mode, every
     /// channel) is the third member of the always-SDIDI union <see cref="RenderDec"/> forms.
@@ -1195,7 +1195,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// unscaled landing whose fixed working scale truncated sub-microscale operands to zero.
     /// </summary>
     /// <remarks>
-    /// <para>Routing, in ONE line: <c>CrossAlignedNativeArms ∪ StandardValueFixedByRule ∪ ReturnsExactParse ∪ ReturnsSdidiQuotient</c> route here for EVERY
+    /// <para>Routing, in ONE line: <c>CrossAligningFunctions ∪ StandardValueFixedByRule ∪ ReturnsExactParse ∪ ReturnsSdidiQuotient</c> route here for EVERY
     /// argument shape, and everything else routes here only when a RAW argument is Dec or float — or, for an
     /// <see cref="EquivalentExpressionUnaryArms"/> member, when the argument's lift would ROUND
     /// (<see cref="ArgumentRoundsAtLift"/>, kb/Work PB2965). The remaining NON-aligning exact-EAE functions with an
@@ -1203,7 +1203,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// then digit-identical to the SDIDI evaluation (documented equivalence, <c>NUMERIC_DESIGN.md</c> D3;
     /// the &gt;34-digit exact residue keeps MORE precision than per-op rounding would) — that equivalence is what
     /// ALIGNMENT breaks, which is exactly why the aligning arms are unconditional (see
-    /// <see cref="IntrinsicCarrierRules.CrossAlignedNativeArms"/>). Returns null for functions with no Dec body (the prose family
+    /// <see cref="IntrinsicCarrierRules.CrossAligningFunctions"/>). Returns null for functions with no Dec body (the prose family
     /// converts its binary64 result in <see cref="RenderFloat"/>).</para>
     /// <para>Result carriers: SIGN / ORD-MAX / ORD-MIN return INTEGERS (scale-0 exact); everything else
     /// returns the SDIDI itself (<c>Dec: true</c>), the same channel the R18 constant arms and MEAN's
@@ -1212,20 +1212,22 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX? RenderDec(BoundIntrinsicCall ic)
     {
         string m = ic.Sig.RuntimeMethod;
-        // ⛔ FOUR SETS, ONE DECISION (kb/Work PB252, PB3860): CrossAlignedNativeArms is STRUCTURAL (the native arm
+        // ⛔ FOUR SETS, ONE DECISION (kb/Work PB252, PB3860): CrossAligningFunctions is STRUCTURAL (the native arm
         // cross-aligns, so alignment can need more digits than the Int128 carrier holds),
         // StandardValueFixedByRule is the cited-exception half, ReturnsExactParse is the NUMVAL family and
         // ReturnsSdidiQuotient is MEAN, whose inexact quotient may not depend on its receiver.
         // Between them they replace the inline `alwaysDec` name chain, and ExactCarrierBoundaryDriftTests derives
-        // the first from this switch.
+        // the first from this switch. The three IntrinsicCarrierRules sets are asked of the FUNCTION (its catalog
+        // name, kb/Work PB4370); StandardValueFixedByRule is this renderer's own table and keys on its runtime body.
         // ⛔ THE NUMVAL FAMILY REACHES HERE IN EVERY MODE AND CHANNEL (kb/Work PB251, PB3839): RenderNum consults
         // RenderDec for it through ReturnsExactParse BEFORE the arithmetic-mode dispatch, because §15.67.4 r1 /
         // §15.68.4 r1 name the returned value with no mode qualification, §15.4.1's implementor latitude reaches only
         // a function whose definition does NOT otherwise specify it, and NUMVAL-F's §15.69.4 r2 approximation is
         // resolved to r3's exact value. Their argument is a STRING, so AnyDecOrRealRaw is false and the set is the
         // only thing that keeps this early-out from returning null under native.
-        bool alwaysSdidi = IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(m) || StandardValueFixedByRule.Contains(m)
-            || IntrinsicCarrierRules.ReturnsExactParse(m) || IntrinsicCarrierRules.ReturnsSdidiQuotient(m);
+        string fn = ic.Sig.Name;
+        bool alwaysSdidi = IntrinsicCarrierRules.CrossAligningFunctions.Contains(fn) || StandardValueFixedByRule.Contains(m)
+            || IntrinsicCarrierRules.ReturnsExactParse(fn) || IntrinsicCarrierRules.ReturnsSdidiQuotient(fn);
         if (!alwaysSdidi && !AnyDecOrRealRaw(ic) && !ArgumentRoundsAtLift(ic) && !SelectionPastReceiverHeadroom(ic)) return null;
 
         string mode = num.IntermediateMode;

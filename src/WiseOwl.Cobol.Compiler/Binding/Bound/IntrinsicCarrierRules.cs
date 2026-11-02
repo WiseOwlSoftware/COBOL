@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
+using System.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Bound;
 
@@ -8,15 +9,23 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// ⛔ <b>THE INTRINSIC CARRIER RULES TWO LAYERS ASK</b> (kb/Work PB3268, review R1-2): which carrier a numeric function's
 /// value is computed on is decided by <c>IntrinsicRenderer.RenderNum</c> (compiler.codegen) and PREDICTED at bind time
 /// by <c>FunctionValueLane</c> (compiler.binding), which describes the §14.9.25.4 GR1 intermediate result item for it.
-/// The facts both read are pure functions of a runtime-method name and of operand digit bounds, so they live in the
+/// The facts both read are pure functions of a function's identity and of operand digit bounds, so they live in the
 /// layer both may reach (DESIGN-architecture-review.md §8.1: compiler.codegen reaches compiler.bound, compiler.binding
 /// reaches compiler.bound, and neither reaches the other) — written once, never restated by either side.
+/// <para>⛔ <b>KEYED ON THE FUNCTION, NEVER ON A BACKEND'S SPELLING OF IT</b> (kb/Work PB4370;
+/// DESIGN-backend-abstraction.md §1.2 bullet 2). Every key is an intrinsic-function-name as its catalog row spells it
+/// (<c>IntrinsicSig.Name</c>, the key <c>IntrinsicCatalog.TryGet</c> looks up): <c>"MOD"</c>, <c>"NUMVAL-C"</c>. The
+/// runtime body a backend calls for the function is that backend's spelling of the identity (the Roslyn renderer's is
+/// the row's <c>RuntimeMethod</c>: <c>ModScaled</c>, <c>NumvalC</c>), so a second backend asks these rules of the same
+/// name and spells its own call. <c>IntrinsicCarrierRuleKeyDriftTests</c> holds every key to a catalog row, so a misspelt
+/// key cannot answer false in silence.</para>
 /// </summary>
 internal static class IntrinsicCarrierRules
 {
     /// <summary>
-    /// ⛔ THE FIRST HALF OF THE ALWAYS-SDIDI SET, AND THE ONLY HALF WITH A STRUCTURAL DEFINITION: the native-switch
-    /// arms in <c>IntrinsicRenderer.RenderNum</c> that CROSS-ALIGN their arguments to one common scale before evaluating.
+    /// ⛔ THE FIRST HALF OF THE ALWAYS-SDIDI SET, AND THE ONLY HALF WITH A STRUCTURAL DEFINITION: the functions whose
+    /// native-switch arm in <c>IntrinsicRenderer.RenderNum</c> CROSS-ALIGNS their arguments to one common scale before
+    /// evaluating.
     /// </summary>
     /// <remarks>
     /// <para>Under a standard mode §15.4.1 r1 makes each of these equal its equivalent arithmetic expression
@@ -32,18 +41,19 @@ internal static class IntrinsicCarrierRules
     /// pattern so that <c>ExactCarrierBoundaryDriftTests</c> can hold it against the switch itself: the test reads
     /// <c>IntrinsicRenderer.cs</c>, collects the case labels of every arm whose body calls
     /// <c>IntrinsicRenderer.AlignedArgs</c> or <c>NumericRenderer.Align(x, s)</c> against a
-    /// COMMON scale, and fails if any of them is missing here. A new aligning arm is therefore routed
-    /// automatically or the build goes red — it can no longer be forgotten.</para>
+    /// COMMON scale, and fails unless they are exactly the runtime methods the catalog rows of this set's functions
+    /// name. A new aligning arm is therefore routed automatically or the build goes red — it can no longer be
+    /// forgotten.</para>
     /// <para>MAX / MIN / ORD-MAX / ORD-MIN are deliberately ABSENT: <c>IntrinsicRenderer.RawArgPairs</c> aligns each argument
     /// to its OWN scale (an identity rescale), because §15.59.4 / §15.63.4 / §15.71.4 / §15.72.4 return the
     /// CONTENT or the ORDINAL of an argument — pure selection, no cross-argument arithmetic, no common scale to
     /// escape (kb/Work PB65).</para>
     /// </remarks>
-    internal static readonly FrozenSet<string> CrossAlignedNativeArms = new[]
+    internal static readonly FrozenSet<string> CrossAligningFunctions = new[]
     {
-        "ModScaled", "RemScaled",                                   // §15.64.4 / §15.77.4 — Align(a, s), Align(b, s)
-        "SumScaled", "RangeScaled",                                 // §15.88.4 / §15.76.4 — AlignedArgs
-        "MedianScaled", "MidrangeScaled",                           // §15.61.4 / §15.62.4 — AlignedArgs
+        "MOD", "REM",                                               // §15.64.4 / §15.77.4 — Align(a, s), Align(b, s)
+        "SUM", "RANGE",                                             // §15.88.4 / §15.76.4 — AlignedArgs
+        "MEDIAN", "MIDRANGE",                                       // §15.61.4 / §15.62.4 — AlignedArgs
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>
@@ -63,14 +73,14 @@ internal static class IntrinsicCarrierRules
     /// barring an explicit requirement differently") is the standard-mode value in every mode, so no receiver can change it.</para>
     /// <para>A function belongs here only when its equivalent expression DIVIDES by a count or a value that makes the quotient
     /// inexact: MEDIAN and MIDRANGE halve, and the halving is exact at the common argument scale plus one
-    /// (<see cref="CrossAlignedNativeArms"/>), so they have no receiver-dependent digit to remove. A binary64 operand keeps the
+    /// (<see cref="CrossAligningFunctions"/>), so they have no receiver-dependent digit to remove. A binary64 operand keeps the
     /// float lane, whose one value IS the double (<c>ReceiverShapeReaderDriftTests.Readers</c>, <c>FloatLanding</c>).</para>
     /// </remarks>
-    internal static readonly FrozenSet<string> SdidiQuotientFunctions = new[] { "MeanScaled" }.ToFrozenSet(StringComparer.Ordinal);
+    internal static readonly FrozenSet<string> SdidiQuotientFunctions = new[] { "MEAN" }.ToFrozenSet(StringComparer.Ordinal);
 
-    /// <summary>Is this function's value the SDIDI quotient of its equivalent arithmetic expression whatever receives it
-    /// (<see cref="SdidiQuotientFunctions"/>)?</summary>
-    internal static bool ReturnsSdidiQuotient(string runtimeMethod) => SdidiQuotientFunctions.Contains(runtimeMethod);
+    /// <summary>Is the value of the function <paramref name="functionName"/> the SDIDI quotient of its equivalent
+    /// arithmetic expression whatever receives it (<see cref="SdidiQuotientFunctions"/>)?</summary>
+    internal static bool ReturnsSdidiQuotient(string functionName) => SdidiQuotientFunctions.Contains(functionName);
 
     /// <summary>
     /// ⛔ THE FUNCTIONS WHOSE RETURNED VALUE IS THE EXACT PARSE OF THEIR STRING ARGUMENT IN EVERY ARITHMETIC MODE AND IN
@@ -98,12 +108,12 @@ internal static class IntrinsicCarrierRules
     /// only decides WHEN that lane is taken, never what it does. If it ever returned <c>null</c> there the switch's
     /// <c>default</c> stages LOUD, never a quiet fallback to a working-scale render.</para>
     /// </remarks>
-    internal static bool ReturnsExactParse(string runtimeMethod) => ExactParseFunctions.Contains(runtimeMethod);
+    internal static bool ReturnsExactParse(string functionName) => ExactParseFunctions.Contains(functionName);
 
-    /// <summary>The runtime-method names <see cref="ReturnsExactParse"/> answers true for, as a set so that
-    /// <c>ReceiverShapeReaderDriftTests</c> can hold each member against the renderer (no <c>RenderNum</c> arm of its own,
-    /// an SDIDI arm in <c>RenderDec</c>) instead of restating the list.</summary>
-    internal static readonly FrozenSet<string> ExactParseFunctions = new[] { "Numval", "NumvalC", "NumvalF" }.ToFrozenSet(StringComparer.Ordinal);
+    /// <summary>The functions <see cref="ReturnsExactParse"/> answers true for, as a set so that
+    /// <c>ReceiverShapeReaderDriftTests</c> can hold each member's runtime body against the renderer (no <c>RenderNum</c>
+    /// arm of its own, an SDIDI arm in <c>RenderDec</c>) instead of restating the list.</summary>
+    internal static readonly FrozenSet<string> ExactParseFunctions = new[] { "NUMVAL", "NUMVAL-C", "NUMVAL-F" }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>An exact scaled operand whose digit bound is known: its unscaled digits (<c>NumX.Digits</c>), its scale
     /// and whether it is a table(ALL) argument, which stands for an unknown number of elements.</summary>
@@ -123,14 +133,14 @@ internal static class IntrinsicCarrierRules
     /// MIDRANGE add two and halve through ×10; MOD and REM align a pair and return one of them.</para>
     /// <para>The aligned value's own digits are an UPPER bound by construction: an argument's unscaled digits plus
     /// the scale gap it is shifted by.</para></remarks>
-    internal static bool AlignmentMayLeaveCarrier(string runtimeMethod, IReadOnlyList<AlignedOperand?> operands)
+    internal static bool AlignmentMayLeaveCarrier(string functionName, IReadOnlyList<AlignedOperand?> operands)
     {
         // ⛔ MOD / REM ARE NOT ROUTED. Their value is a DIFFERENCE of nearly equal magnitudes: MOD(9E30, 0.12345678) is
         // 0.1194939, which needs 39 digits of the dividend, and the SDIDI body keeps 34 — it would answer an
         // approximation SILENTLY where the native arm refuses LOUDLY (EC-SIZE-OVERFLOW at the carrier). The summing
         // family's value, in contrast, is as large as its arguments, so every digit a receiver can store (≤ 31) lies
         // inside the SDIDI's 34. (PB621 names SUM, RANGE, MEAN, MEDIAN and MIDRANGE only; MEAN left this family with PB3860.)
-        if (runtimeMethod is "ModScaled" or "RemScaled") return false;
+        if (functionName is "MOD" or "REM") return false;
         if (operands.Count == 0 || operands.Any(x => x is null)) return false;
         var xs = operands.Select(x => x!.Value).ToList();
         int s = xs.Max(x => x.Scale);
@@ -143,11 +153,13 @@ internal static class IntrinsicCarrierRules
         // allowance sent it to the SDIDI, which keeps 34 digits (kb/Work PB621's review follow-up).
         var terms = xs.Select(x => Pow10Bound(x.Digits + (s - x.Scale) + (x.TableAll ? 9 : 0)))
             .OrderByDescending(t => t).ToList();
-        UInt128? bound = runtimeMethod switch
+        UInt128? bound = functionName switch
         {
-            "SumScaled" => SumOf(terms),
-            "RangeScaled" => SumOf(terms.Take(2)),
-            _ => SumOf(terms.Take(2)) is { } two && two <= UInt128.MaxValue / 10 ? two * 10 : null,   // MEDIAN / MIDRANGE
+            "SUM" => SumOf(terms),
+            "RANGE" => SumOf(terms.Take(2)),
+            "MEDIAN" or "MIDRANGE" => SumOf(terms.Take(2)) is { } two && two <= UInt128.MaxValue / 10 ? two * 10 : null,
+            _ => throw new UnreachableException(
+                $"AlignmentMayLeaveCarrier was asked of FUNCTION {functionName}, which is not in CrossAligningFunctions"),
         };
         return bound is not { } b || b > (UInt128)Int128.MaxValue;
 
