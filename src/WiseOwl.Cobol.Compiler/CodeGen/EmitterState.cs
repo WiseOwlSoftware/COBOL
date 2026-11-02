@@ -383,7 +383,7 @@ internal sealed class EcState
         [.. raising.SelectMany(t => t.Kind switch
         {
             Binding.Model.RaisingTargetKind.ObjectClass when table?.Find(t.Name) is { } c =>
-                (IEnumerable<string>)[t.Factory ? c.FactoryCsName : c.CsName],
+                (IEnumerable<string>)[t.Factory ? c.FactoryClrName : c.ClrName],
             Binding.Model.RaisingTargetKind.Interface when table?.FindInterface(t.Name) is { } i => i.ImplementedCsTypes,
             _ => [],
         }).Distinct(StringComparer.Ordinal)];
@@ -486,7 +486,7 @@ internal sealed class EcState
 /// <summary>The inter-program emission state of the unit being emitted (INTERPROGRAM_DESIGN D1–D5).</summary>
 internal sealed class CallUnitState
 {
-    /// <summary>The emitted unit's qualified program path (<see cref="BoundUnit.Path"/>) — the CALL/CANCEL calling-path
+    /// <summary>The emitted unit's qualified program path (<see cref="BoundUnit.RegistryKey"/>) — the CALL/CANCEL calling-path
     /// argument (§8.4.6.3). Set per unit; <see cref="NoProgramPath"/> in a method body.</summary>
     public string SelfPath { get; set; } = NoProgramPath;
 

@@ -419,6 +419,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// compiled clean and aborted at run time in the string channel.</summary>
     private BoundOperand ScreenedField(Core.DataReferenceContext dref, string role)
     {
+        using var operandAt = ctx.Edition.At(dref);   // the operand's own position, not the statement's (kb/Work PB4383)
         var op = host.Expr.FieldOperand(dref);
         return host.Expr.ScreenIndexNameOperand(op, DataBinder.WrittenText(dref), role)
             ? BoundOperandError.Refused(ctx.Edition, $"{role}: the index-name '{DataBinder.WrittenText(dref)}' (ISO §13.18.38.3 r7)")
@@ -493,7 +494,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         string usage = ItemCategory.UsageOf(outside)?.ToString() ?? "(none)";
         const string requirement = "which has no character image; SR1 requires every identifier except the POINTER to be usage display or national";
         if (!ReferenceEquals(outside, operand))
-            return $"is a strongly-typed group item holding '{outside.CobolName ?? outside.CsName}' of USAGE {usage}, "
+            return $"is a strongly-typed group item holding '{outside.CobolName ?? outside.ClrName}' of USAGE {usage}, "
                 + requirement + ", and a strongly-typed group's usage is that of the elementary items it is made of "
                 + "(§8.5.2.1 gives only an alphanumeric group the usage of display)";
         return outside.IsGroup

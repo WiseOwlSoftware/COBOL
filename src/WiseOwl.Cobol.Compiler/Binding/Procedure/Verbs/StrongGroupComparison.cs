@@ -45,7 +45,7 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
         unbuilt = null;
         if (PlaceCursor.Over(left) is not { } lc || PlaceCursor.Over(right) is not { } rc)
         {
-            unbuilt = $"the storage form of '{left.Item.CobolName ?? left.Item.CsName}'";
+            unbuilt = $"the storage form of '{left.Item.CobolName ?? left.Item.ClrName}'";
             return null;
         }
         var ll = new List<(Place Leaf, BoundCondition? Present)>();
@@ -59,7 +59,7 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
         // are set aside, so the two leaf lists pair by index.
         if (ll.Count != rl.Count)
         {
-            unbuilt = $"the elementary items of '{left.Item.CobolName ?? left.Item.CsName}' (the operands' leaf counts differ)";
+            unbuilt = $"the elementary items of '{left.Item.CobolName ?? left.Item.ClrName}' (the operands' leaf counts differ)";
             return null;
         }
         var pairs = new List<ElementPair>(ll.Count);

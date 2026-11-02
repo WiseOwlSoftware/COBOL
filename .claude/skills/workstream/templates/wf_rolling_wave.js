@@ -73,11 +73,11 @@ const RETURN_LINE =
 // A GATE HANDED TO THE WAVE (kb/Work PB3536; owner 2026-10-22 ~16:50 PDT: "Reruning these simply wastes tokens: but the
 // workflow returned before its gate finished, so it needs the gate re-run at its head and a round-2 review. - we
 // should have the failure in the first place"). An agent that reaches its turn cap while its gate runs returns
-// GATE-PENDING with the gate's run directory: the gate runs DETACHED (scripts/run_gate_legs.py starts it through
+// GATE-PENDING with the gate's run directory: the gate runs DETACHED (scripts/gate.py starts it through
 // scripts/detached.py), so the agent's return does not kill it, and its verdict lands in the run directory's verdict
 // file. The wave AWAITS that file, inside the same ceiling, one window at a time: ONE mechanical cobol-locator per
-// window runs `run_gate_legs.py --await <run> --worktree <its worktree>` (a workflow script has no process API; a
-// relative run name is the agent's WORKTREE's run, never the main checkout's: run_gate_legs.resolve_run) and returns
+// window runs `gate.py --await <run> --worktree <its worktree>` (a workflow script has no process API; a
+// relative run name is the agent's WORKTREE's run, never the main checkout's: gate.resolve_run) and returns
 // its exit code and line. Exit 0 (GREEN) continues exactly as a DONE return carrying that verdict: the finished test
 // (the report's `Status: GATE-PENDING` is finished only when its gate run is GREEN at its HEAD,
 // reports.Report.finished), then the branch review. Any other verdict (RED; NOT RUN, a process that DIED among them;
@@ -87,7 +87,7 @@ const RETURN_LINE =
 const GATE_FIX_ROUNDS = args.gate_fix_rounds === undefined ? 1 : args.gate_fix_rounds
 const AWAIT_WAIT_S = args.gate_await_wait_s === undefined ? 540 : args.gate_await_wait_s
 const AWAIT_WINDOWS = args.gate_await_windows === undefined ? Math.max(1, Math.ceil((CEILING_MIN || 240) / 9)) : args.gate_await_windows
-// `--await`'s exit while the gate still runs: run_gate_legs.AWAIT_PENDING_EXIT (3 is BUSY there, kb/Work PB3527);
+// `--await`'s exit while the gate still runs: gate.AWAIT_PENDING_EXIT (3 is BUSY there, kb/Work PB3527);
 // test_rolling_wave.py holds the two equal.
 const AWAIT_PENDING_EXIT = 4
 const AWAIT_SCHEMA = {
@@ -101,7 +101,7 @@ async function awaitGate(g, r, label, ctl) {
     try {
       v = await agent(
         AUTH + `Run exactly ONE command, from the repository root E:\\COBOL, with the Bash tool's timeout set to 600000 ms, and nothing else: ` +
-        `python scripts/run_gate_legs.py --await "${r.gate_run}" --worktree "${r.worktree}" --wait-s ${AWAIT_WAIT_S} ` +
+        `python scripts/gate.py --await "${r.gate_run}" --worktree "${r.worktree}" --wait-s ${AWAIT_WAIT_S} ` +
         `— then call StructuredOutput with its exit code as \`exit\` and its last line verbatim as \`line\`. ` +
         `Read no file, judge nothing, retry nothing: an exit code other than 0 is an answer, not an error.`,
         { label: `gate-await-${label}-${w}`, phase: 'Implement', agentType: 'cobol-locator', schema: AWAIT_SCHEMA })
@@ -116,7 +116,7 @@ function fixGate(g, r, v, round) {
     AUTH + `You are the wave-${W} GATE FINISHER for group ${g.letter} (${g.notes}), gate round ${round} (kb/Work PB3536). ` +
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are implemented on the branch. ` +
     `FIRST \`python scripts/merge_drivers.py merge ${r.branch} --keep\` into your branch (head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
-    `Its gate (run ${r.gate_run}) ended: ${v.line} — read that run's verdict.json, its leg logs and not-run files, and fix every red at its root with the sibling sweep (a gate that DIED or was NOT RUN with no red of the change needs only the re-gate). ` +
+    `Its gate (run ${r.gate_run}) ended: ${v.line} — read that run's verdict.json, its gate.log and each assembly's \`<assembly>.log\` and \`<assembly>.trx\`, and fix every red at its root with the sibling sweep (a gate that DIED or was NOT RUN with no red of the change needs only the re-gate). ` +
     `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD and your status, and its gate section your verdict. ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
     RETURN_LINE,

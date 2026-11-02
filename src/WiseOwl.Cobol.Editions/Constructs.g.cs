@@ -30,6 +30,8 @@ public static class Constructs
     public const string SetDynLengthSize2023 = "set-dyn-length-size-2023";
     public const string WordLength632023 = "word-length-63-2023";
     public const string LiteralLength81912014 = "literal-length-8191-2014";
+    public const string PictureString502002 = "picture-string-50-2002";
+    public const string PictureString632014 = "picture-string-63-2014";
     public const string CopyLiteralName2002 = "copy-literal-name-2002";
     public const string CopySuppress2002 = "copy-suppress-2002";
     public const string ContinueAfter2023 = "continue-after-2023";
@@ -50,6 +52,7 @@ public static class Constructs
     public const string FloatingCommentIndicator2002 = "floating-comment-indicator-2002";
     public const string FloatingLiteralContinuation2002 = "floating-literal-continuation-2002";
     public const string DebuggingLineRemoved2014 = "debugging-line-removed-2014";
+    public const string FloatingDebuggingIndicator2002 = "floating-debugging-indicator-2002";
     public const string SourceFormatDirective2002 = "source-format-directive-2002";
     public const string TurnDirective2002 = "turn-directive-2002";
     public const string DisplayDirective2023 = "display-directive-2023";
@@ -162,12 +165,14 @@ public static class Constructs
     public const string SetLocale2002 = "set-locale-2002";
     public const string SetSaveLocale2002 = "set-save-locale-2002";
     public const string CharacterClassification2002 = "character-classification-2002";
-    public const string CaseFunctionLocalePhrase2002 = "case-function-locale-phrase-2002";
+    public const string CaseFunctionLocalePhrase2014 = "case-function-locale-phrase-2014";
+    public const string LengthPhysicalArgument2014 = "length-physical-argument-2014";
     public const string OrderTable2002 = "order-table-2002";
     public const string LocaleFunctions2002 = "locale-functions-2002";
     public const string LocaleTimeFromSeconds2014 = "locale-time-from-seconds-2014";
     public const string PictureLocaleFormat22002 = "picture-locale-format2-2002";
     public const string NumvalCLocalePhrase2002 = "numval-c-locale-phrase-2002";
+    public const string NumvalCAnycaseKeyword2002 = "numval-c-anycase-keyword-2002";
     public const string StandardCompare2002 = "standard-compare-2002";
     public const string ProgramCollatingNational2002 = "program-collating-national-2002";
     public const string CallByValue2002 = "call-by-value-2002";

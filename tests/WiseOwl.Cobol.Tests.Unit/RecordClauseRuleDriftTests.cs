@@ -172,8 +172,8 @@ public sealed class RecordClauseRuleDriftTests
     public void EveryRow_ShipsAMessageThatNamesItsOwnCitation()
     {
         var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
-        var record = new DataItem { Level = 1, CobolName = "F-REC", CsName = "FRec" };
-        var depending = new DataItem { Level = 1, CobolName = "F-LEN", CsName = "FLen", RootSection = EntrySection.File };
+        var record = new DataItem { Level = 1, CobolName = "F-REC", ClrName = "FRec" };
+        var depending = new DataItem { Level = 1, CobolName = "F-LEN", ClrName = "FLen", RootSection = EntrySection.File };
         foreach (var rule in RecordClauseRules.Catalog)
         {
             var clause = new RecordClauseFacts(rule.Format, 3, 7, default);

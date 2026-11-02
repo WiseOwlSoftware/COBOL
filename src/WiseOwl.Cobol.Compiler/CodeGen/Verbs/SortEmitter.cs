@@ -845,9 +845,9 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
         }
         w.Line($"global::System.Comparison<{elem}> __tc{id} = (__a, __b) =>");
         EmitKeyComparer(ts, weightsArg,
-            (key, v) => key.MemberPath is not { } path
-                ? throw new InvalidOperationException($"table-sort key '{key.Key.CobolName}' has no member path in a member-path sort (kb/Work PB599)")
-                : path.Length == 0 ? v : $"{v}.{path}",
+            (key, v) => key.MemberChain is not { } chain
+                ? throw new InvalidOperationException($"table-sort key '{key.Key.CobolName}' has no member chain in a member-chain sort (kb/Work PB599)")
+                : chain.Aggregate(v, static (access, member) => $"{access}.{member.ClrName}"),
             shared: false);
         w.Line($"{RuntimeApi.TableSortInPlace(occurrences, $"__tc{id}")};   // GR24 — placed back in data-name-2");
     }

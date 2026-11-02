@@ -30,13 +30,12 @@ neutrality is enforced by a test, not by convention.*
 
 1. **Neutrality is a CONTRACT with a test, not a comment.** Today the bound tree's own doc-comment claims neutrality
    (`BoundTree.cs:7-13`) while `Place` returns C# strings (`Place.cs:22-25`) and several `Bound*` statement nodes
-   carry pre-rendered C# access-path strings (`BoundSetCapacity.TablePath` `BoundTree.cs:493`; `BoundSearch`
-   `BoundTree.cs:508-511`; `BoundIndexRef` `BoundTree.cs:109`; `BoundMethod.CsName` `BoundTree.cs:32`). §1 defines
-   exactly what a bound node **MAY** and **MUST NEVER** contain and enumerates every current leak with its removal.
+   carry pre-rendered C# access-path strings (`BoundSearch` and `BoundIndexRef`, §1.3 L3/L4). §1 defines exactly
+   what a bound node **MAY** and **MUST NEVER** contain and enumerates every current leak with its removal.
 2. **`ICodeGenBackend` consumes an immutable `BoundCompilation` and produces a `BackendArtifact`** (§2) — the same
    seam `DESIGN-codegen-backend.md §2.2` declares, with the **shared vs per-backend** split made concrete: the
-   exhaustive `IBound*Visitor<T>` interfaces, the bound tree, the `NameMangler`, and a new backend-neutral
-   `RuntimeMembers` catalogue are **shared**; the visitor *implementations*, the `Place` rendering, and all
+   exhaustive `IBound*Visitor<T>` interfaces, the bound tree, the ONE CLR name allocator `CsNames.Allocate` (§2.4),
+   and a new backend-neutral `RuntimeMembers` catalogue are **shared**; the visitor *implementations*, the `Place` rendering, and all
    structure→branch lowering are **per-backend**.
 3. **Both backends call the ONE `WiseOwl.Cobol.Runtime` through ONE ABI catalogue.** `DESIGN-codegen-backend.md §3`'s
    `RuntimeApi` (a C#-fragment-string façade) is **Roslyn-specific**; it is generalized here into a neutral,
@@ -76,6 +75,14 @@ droppable in without touching the frontend/binder/bound tree, every fact a backe
 - **Neutral runtime-data strings** — e.g. `EcStatementInfo.Location` (`BoundTree.cs:606-610`), the
   §15.30.3-formatted `"element; para; line"` string. This is a **COBOL runtime datum** (it ends up in a program's
   last-exception state), not C# code — allowed.
+- **Allocated CLR names** — the type, field and method names the module EMITS (`DataItem.ClrName`,
+  `OoClassSymbol.ClrName` / `FactoryClrName`, `OoMethodSymbol.ClrName`, `BoundMethod.ClrName`,
+  `RedefinesClass.BackingClrName` / `BackingCellClrName`, `CallExternalBacking`, `BoundInvoke.ClassClrName` /
+  `MethodClrName` / `OwnerClrName`, `ModuleNamespace.ClrName`). They are decided ONCE, at bind time, by
+  `CsNames.Allocate` (§2.4), and they are the module's ABI: a program compiled by one backend calls, and inherits
+  from, a class compiled by the other only if both emit the SAME names (DESIGN-external-repository §4.5, kb/Work
+  PB2104). A CLR name is therefore not a target decision of either backend, and a node may carry it. Its field says
+  so: `ClrName`, never `CsName` (kb/Work PB4265).
 - **Structured control-flow shape** — `BoundIf(cond, then, else)`, `BoundInlinePerform(control, body)`,
   `BoundOutOfLinePerform(startPc, endPc, control)`, `BoundParagraph.Sentences`. The structure both backends walk;
   each lowers it as far as its target needs (Roslyn: not at all; CIL: to branches, privately).
@@ -87,12 +94,16 @@ droppable in without touching the frontend/binder/bound tree, every fact a backe
 - **.NET / runtime type names as text** — no `"CobolString.SpliceInto(...)"` (`Place.cs:101`),
   `"CobolNum.FormatDisplay(...)"` (`Place.cs:160`), `"{TablePath}.Capacity"` (`Place.cs:185`). Runtime members are
   referenced through the `RuntimeMembers` catalogue (§2.3), never spelled in a node.
-- **Pre-mangled C# identifiers** — no C# field/method names baked into a node: `BoundIndexRef.IndexField`
-  (`BoundTree.cs:109`), `SetIndexTarget.IndexField` (`BoundTree.cs:471`), `BoundMethod.CsName` (`BoundTree.cs:32`),
-  `BoundSetCapacity.TablePath` (`BoundTree.cs:493`), `BoundSearch.IndexField/DependCount/DynTable`
-  (`BoundTree.cs:508-511`), `DynTablePlace.SendingPath/ReceivingPath` (`Place.cs:58`),
-  `CapacityRegisterPlace.TablePath` (`Place.cs:176`), `RedefViewPlace.Backing` (`Place.cs:82`). An identifier is a
-  **target-naming decision** owned by the shared `NameMangler` (§2.4), resolved from a symbol at render time.
+- **C#-only spellings of a name, and C# text built from names** — a node may carry an allocated CLR name (§1.1), but
+  never its C# SPELLING (the `@int` keyword escape — which is why the allocator refuses a C# keyword, §2.4), never an
+  ACCESS PATH spelled from names (`__outer.X`, `carrier.Value`, `a.b.c`), and never the name of a C# METHOD LOCAL (a
+  CIL method addresses its locals by slot, so a local's name is the Roslyn backend's alone). A local is referenced
+  by its IDENTITY, a `MethodLocal` (`Binding/Model/MethodLocal.cs`): the binder's are `StatementLocal`s (the
+  declaring construct's `StatementLocalRole` and an ordinal), and the Roslyn backend spells every one in
+  `CodeGen/Roslyn/LocalNames.cs` (`LocalNames.Of`), its own locals being `CSharpLocal`s it makes itself (§1.3 L8,
+  DONE). The current leaks of this shape are §1.3 L4 and L8's residue, three method locals that still root an access
+  path (kb/Work PB4380); L7, the access text, is removed. A field that carries a C# spelling or fragment is named for it
+  (`CsName`, `*Path`, `*Field`), and the §6 contract test never classifies such a name neutral.
 - **Roslyn `Syntax*` nodes or `using` decisions** — the `using WiseOwl.Cobol.Runtime;` / `using WiseOwl.Cobol.Runtime.IO;`
   choices (`ProgramEmitter.cs`) are a C#-source concern; a CIL backend has no `using`s. These live in
   the Roslyn backend, keyed off which `RuntimeMembers` members were referenced.
@@ -106,13 +117,21 @@ droppable in without touching the frontend/binder/bound tree, every fact a backe
 | L1 | **`Place.Read()` / `Place.Write(rhs)` abstract C#-string contract** — `Place.cs:22-25`; every subtype hard-codes runtime text: `MemberPlace` `Place.cs:42,45`, `RedefViewPlace` `Place.cs:94,97-101`, `NumericImagePlace` `Place.cs:160-164`, `RenamesPlace` (a full C# block) `Place.cs:120-138`, `RefModPlace` `Place.cs:215-230`. | The lvalue's public API *is* "emit C#". A CIL backend cannot lower a string. | **P7 Step 11**: `Place` becomes structural (`AccessPath`/`AccessSegment` + `BoundExpr` subscripts); a Roslyn-side `PlaceRenderer` and a CIL-side `CilPlaceLower` own rendering. `Read/Write` deleted from `Place`. |
 | L2 | **`DynTablePlace(string SendingPath, string ReceivingPath, …)`** — `Place.cs:58,67,70`: TWO pre-rendered C# path strings encoding OCCURS DYNAMIC read/write polarity. | Two C# strings; polarity baked as text. | Replace with a `DynTableSegment(BoundExpr OneBased, AccessDir Dir)` in the `AccessPath`; polarity is a render-time choice from `AccessDir` + operation (P7 Step 11 already sketches `AccessDir`). |
 | L3 | **Bound STATEMENT nodes carrying C# access-path strings** — `CapacityRegisterPlace.TablePath` `Place.cs:176`; `BoundSetCapacity.TablePath` `BoundTree.cs:493`; `BoundSearch.IndexField / DependCount / DynTable` `BoundTree.cs:508-511`. | The *bound tree itself* (not just `Place`) presupposes a C# path — the leak `DESIGN-binder-bound-tree.md` does not guard. | Carry the **table `Place`/symbol** (a `CapacityRegisterPlace` holding a `Place Table`, per `DESIGN-codegen-backend.md §2.3`) and an index **symbol**; the backend renders `.Capacity`/the field. `BoundSetCapacity(Place Table, …)`; `BoundSearch(DataItem Index, …, Place? DynTable)`. **(Addition to P6 — §5.)** |
-| L4 | **C#-identifier fields on bound nodes** — `BoundIndexRef.IndexField` `BoundTree.cs:109`; `SetIndexTarget.IndexField` `BoundTree.cs:471`; `BoundMethod.CsName` `BoundTree.cs:32`. | A mangled C# name is a target-naming decision frozen into the neutral tree. | Store the **index `DataItem`** (SSOT §3.5: an index IS its 1-based occurrence field — the symbol suffices) and the **method `OoMethodSymbol`**; the shared `NameMangler` (§2.4) forms the identifier per backend. **(Addition to P6 — §5.)** |
+| L4 | **Storage-member text on bound and model nodes (OPEN)** — the index cells `BoundIndexRef.IndexField`, `SetIndexTarget.IndexField`, `BoundSearch.IndexField` (`Binding/Bound/BoundTree.cs`), `IndexDeclaration.Cell` and `PositionIndexCell.Cell` (`Binding/Model/Position.cs`); the data-address pointers `PositionPointerOffset.PointerField`, `PositionPointerDynBase.PointerField`, `RedefinesClass.BasedPointerField` and `BoundOdoExtent.BasedAddress`; the ALTER fields `BoundAlterEntry.AlterField` and `BoundGoToAlterable.AlterField`; a file's `FileModel.InstanceKeyField` (kb/Work PB3251); a factory class's `BoundSetObjectRef.SourceFactoryCs`. (`BoundMethod` is not a leak: its `ClrName` is the method's allocated CLR name, §1.1.) | The node names a storage member by text instead of carrying the symbol it belongs to; a backend that lowers that storage differently has no symbol to start from. | Store the **symbol** — the index `DataItem` (SSOT §3.5: an index IS its 1-based occurrence field), the BASED item, the altered paragraph, the file, the class — and read its CLR name off it. **(Addition to P6 — §5.)** |
 | L5 | **The backend seam — IN PLACE.** `ICodeGenBackend` (`CodeGen/ICodeGenBackend.cs`) is the ONE seam; `RoslynBackend : ICodeGenBackend` consumes the immutable `BoundCompilation` and performs no binding; `BinderDriver` produces the tree; `CSharpEmitter` is now only the bind-host facade whose `EmitBound` renders C# from the bound tree. | (Resolved — a second backend now has a defined `ICodeGenBackend` to implement against `BoundCompilation`.) | **DONE**: binding is extracted into the Binder phase (`BinderDriver` → `BoundCompilation`); `ICodeGenBackend` is materialized so the driver hands `BoundCompilation` to a selected backend. |
-| L6 | **The backend input carries the binder and the parse tree** — `BoundUnit.Ctx`/`.Data`/`.Refs` (`Binding/Model/BoundUnit.cs:34,48-49`), `BoundCompilation.Tree` and `.InterfaceData` (`Binding/Model/BoundCompilation.cs:34,38`), `EmitContext.Data` (`CodeGen/Emit/EmitCore.cs:19,34`), `UnitEmitters.Refs`; the OO symbols hold parse contexts too (`Oo/OoClassSymbol.cs:29`, `Oo/OoInterfaceSymbol.cs:25`, `Oo/OoMethodSymbol.cs:15`, so §1.1's `OoMethodSymbol` is not yet the pure resolved symbol it lists); emitters call `ReferenceResolver.ResolveItem` (the `Place` builder) 24 times at emit time. | A second backend cannot form a `Place` or read a data fact without driving the binder and the ANTLR tree; §1.1 lists neither. | `PlaceBuilder` to the model layer, run at bind time; an immutable `DataBindResult` in place of `DataBinder` on the backend input; parse-context reads become bound-node facts, and the OO symbols' contexts move to a binder-side map before the symbols move to the model (`DESIGN-architecture-review.md` §8.1 and §8.3 (1), (4); kb/Work PB2293, and the waves PB2375, PB2361, PB2398, PB2401). |
+| L6 | **The backend input carries the binder and the parse tree** — `BoundUnit.Ctx`/`.Data`/`.Refs` (`Binding/Model/BoundUnit.cs:34,48-49`), `BoundCompilation.Tree` and `.InterfaceData` (`Binding/Model/BoundCompilation.cs:34,38`), `EmitContext.Data` (`CodeGen/Emit/EmitCore.cs:19,34`), `UnitEmitters.Refs`; the bound layer still DECLARES a binder, `StatementBinder` (`Binding/Bound/StatementBinder.cs`, namespace `WiseOwl.Cobol.Binding.Bound`), whose members return the parse tree (`InputOutputStatement`, `Children`); the OO symbols hold parse contexts too (`Oo/OoClassSymbol.cs:29`, `Oo/OoInterfaceSymbol.cs:25`, `Oo/OoMethodSymbol.cs:15`, so §1.1's `OoMethodSymbol` is not yet the pure resolved symbol it lists); emitters call `ReferenceResolver.ResolveItem` (the `Place` builder) 24 times at emit time; and `HostEntryEmitter`, `OoEmitter` and `RepositoryAttributeRenderer` encode each unit's external-repository record at emit time through the binder-side `RepositoryCodec` (`Of`, `KindOf`), whose records live in `WiseOwl.Cobol.Binding.Repository`. | A second backend cannot form a `Place` or read a data fact without driving the binder and the ANTLR tree; §1.1 lists neither. | `PlaceBuilder` to the model layer, run at bind time; an immutable `DataBindResult` in place of `DataBinder` on the backend input; parse-context reads become bound-node facts, and the OO symbols' contexts move to a binder-side map before the symbols move to the model (`DESIGN-architecture-review.md` §8.1 and §8.3 (1), (4); kb/Work PB2293, and the waves PB2375, PB2361, PB2398, PB2401); the repository records move to the model and the encode to bind time, so the record crosses the seam as data (kb/Work PB4319); `StatementBinder` moves to `Binding/Procedure` (kb/Work PB2347). |
+| L7 | **C# access text built from names in the binder (DONE, kb/Work PB4320)** — a carrier-resident linkage formal's `DataItem.ClrName` was rewritten to `__lnk{Uid}.Value` (`DataBinder.CallBindLinkage`, `DataBinder.OoBindMethodData`); `AccessPath.Reroot` joined `__outer.` / a container's class name onto `RootFieldSegment.CsField`; `DataBinder.GlobalBridgesOf` built each `CallBridge`'s path as `anchor + member` (`CallBridge.Field`, `.Path`) through `BoundUnit.AnchorOf`; `BoundUnit.ClassRef` joined nested class names with `.`; `MemberSegment.CsMember` held a runtime member's name (`StorageCell.Ref`) beside the CLR names; `SortBinder.SortMemberPath` joined a key's member names with `.` (`BoundTableSortKey.MemberPath`). | Each was a C# member-access expression, or a runtime member's spelling, in a field that should hold a name; a CIL backend has no `.Value` property access to lower from text, and `ClrName` was false for the carrier formal. | **Removed.** A carrier-resident formal keeps its name and carries its carrier as a fact (`DataItem.ResidentCarrier`); its access path is the carrier root then a `CarrierValueSegment`, and the guard's carrier pass-through is a flag (`OmittedFormalGuard.PassesCarrier`), not a prefix searched for in root text. A root segment carries its containing program as a `ContainerAnchor` (`Instance(depth)` or `Static(class)`, decided by `BoundUnit.AnchorOf`), and a bridge carries its member's CLR name and its anchor (`CallBridge.MemberClrName`, `.Anchor`). A cell-backed area's step to its backing string is a `CellBackingSegment`, so a `MemberSegment` holds only a member's CLR name (`MemberSegment.MemberClrName`). A sort key carries its member chain of items (`BoundTableSortKey.MemberChain`). The Roslyn backend spells each access (`PlaceRenderer.RenderPath`, `PlaceRenderer.RootStorage`, `PlaceRenderer.Anchored`, the class reference in `ProgramEmitter`); `ModelAccessStructureTests` pins it, and the §6 contract test holds no L7 leak row. |
+| L8 | **C# method locals in the model (DONE for the binder's statement locals, kb/Work PB4321; the residue is OPEN, kb/Work PB4380)** — were `PositionLocal.CsName` and `LocalVector.CsName` (`Binding/Model/Position.cs`), `BoundReportVaryingRef.CsName` with `ReportVaryingModel.CsName` (`__kv{Uid}`), and the siblings the sweep found: `InitializeLoop.Var` (`__iniN`), `TableElementMove.Var` (`__vlmN`), `CorrespondingHoist.Local` with the anchor's `RootFieldSegment` (`__corrNs`/`__corrNt`), and the table(ALL) vectors `__allN`/`__holdN` the binders formatted. The residue: `RootFieldSegment.CsField` still roots an access path at a C# method local in three places, the method arm's carrier local (`DataItem.ResidentCarrier`, set from `OoFormal.CarrierLocal` by `DataBinder.OoBindMethodData`), the Roslyn backend's hoisted cell (`PlaceIdentification.FreezeView`) and the element cell `ViewCursor.AtElementCell` is handed (`Binding/Procedure/PlaceCursor.cs`). | A local's name is a Roslyn decision; CIL addresses a local by slot. These were honestly named `CsName`, but they were a backend's names on a neutral node. | Each now carries a `MethodLocal`: a `StatementLocal(StatementLocalRole, Ordinal)` the binder makes, and a CORRESPONDING anchor's member paths start at a `LocalRootSegment`. The Roslyn backend spells them in `LocalNames.Of` (the generated C# is unchanged) and a CIL backend allocates a slot per identity. `MethodLocalIdentityDriftTests` refuses a local-named string on a `WiseOwl.Cobol.Binding` type and a local's stem in binder source. The residue's roots move to a `LocalRootSegment` (kb/Work PB4380); until they do, the §6 contract test tolerates `RootFieldSegment.CsField` and `DataItem.ResidentCarrier` as its one L8 leak row. |
+| L9 | **C# source text, runtime spellings and C# operators on the model and the bound tree (OPEN)** — the model's C# text (kb/Work PB3252): `PicInfo.ClrType`, `.DefaultInitializer`, `.ProfileInitializer` (a `new NumProfile { … }` initializer), `.SignKind`/`SignKindFor` (a runtime enum member's name), `DataItem.ElementType` and `.FieldType` (C# type text), `ObjectRefDescriptor.ClrTypeName`, `OmittedFormalGuard.Presence` (a C# boolean expression), `.PresenceMember`, `OmittedProbe`'s `Carrier.CarrierField` and `MethodFlag.FlagParam`, and `HostType.CsType`, the C# type text `HostSurface.TypeOf` returns for a description (built on `PicInfo.ClrType`); the runtime method names `IntrinsicCarrierRules` keys its sets on (`CrossAlignedNativeArms`, `SdidiQuotientFunctions`, `ExactParseFunctions`: `"ModScaled"`, `"Numval"`); and on condition and START nodes, the C# operator as text (`BoundRelational.Op` "the mapped C# operator", `BoundLogical.Op` `&&`/`||`/`^`, `BoundKeyedStart.Op`) and `BoundCodedSetClassCondition.Kind` (a runtime enum member's name). | §1.2's first two bullets: C# a CIL backend would have to parse back, and runtime names it would have to resolve from text. | Carry the fact (the PICTURE profile's fields, a relational-operator enum, the coded-set kind as the runtime enum value); each backend spells it, the Roslyn backend through `RuntimeApi`. |
 
 L1/L2 are already scheduled by `DESIGN-codegen-backend.md §2.3` + PHASE-07 Step 11. **L3/L4 are NOT** — they live in
 `BoundTree.cs` records the bound-tree design treats as neutral but which still carry C# path/identifier strings. §5
-adds them to PHASE-06 explicitly. L5 (the P6→P7 seam extraction) is **DONE** — `ICodeGenBackend` is in place and a `BoundCompilation` crosses the backend boundary. L6 is OPEN: that `BoundCompilation` still carries the binder and the parse tree, and the architecture review's edges file (DESIGN-architecture-review §8.1) ratchets it to zero.
+adds them to PHASE-06 explicitly. L5 (the P6→P7 seam extraction) is **DONE** — `ICodeGenBackend` is in place and a `BoundCompilation` crosses the backend boundary. L6 is OPEN: that `BoundCompilation` still carries the binder and the parse tree, and the architecture review's edges file (DESIGN-architecture-review §8.1) ratchets it to zero. L7 and L8,
+the residue of the name-allocator correction (kb/Work PB4265), are **DONE**: the access text the binder built from
+names is structure on the model now (kb/Work PB4320), and a binder's statement local is a `MethodLocal` identity on the
+node (kb/Work PB4321); three method locals still root an access path, L8's OPEN residue (kb/Work PB4380). L4 and L9
+are OPEN. Every member the OPEN rows name is a tolerated leak row of the §6 contract test, which refuses any text
+member of the backend input it does not classify, so the rows can only shrink.
 
 ---
 
@@ -132,15 +151,19 @@ public interface ICodeGenBackend
 
 public enum BackendId { Roslyn, Cil }
 
-public sealed record BackendOptions(
+public sealed record BackendOptions(           // what EVERY backend reads; nothing one target's (kb/Work PB4272)
     string OutputPath, string AssemblyName, EditionInfo Edition,
-    bool EmitPdb = true, bool WriteSource = true /* .g.cs — Roslyn only */);
+    bool EmitPdb = true, CompilationInputs? Inputs = null, bool RepositoryUpdate = true);
+
+public sealed record BackendDiagnostic(       // the seam's own diagnostic: no Roslyn type crosses it (kb/Work PB4272)
+    string Code, DiagnosticSeverity Severity, string Message,
+    SourceLocation? Location);                 // null: names no position; renders through Diagnostic.Render
 
 public sealed record BackendArtifact(
     bool Success,
-    IReadOnlyList<Diagnostic> Diagnostics,     // ONE structured Diagnostic type (driver/editions dim)
-    string? GeneratedSourcePath,               // .g.cs for Roslyn; null for Cil
-    string? AssemblyPath);
+    IReadOnlyList<BackendDiagnostic> Diagnostics,
+    string? GeneratedSourcePath,               // .g.cs for Roslyn (always written); null for Cil
+    string? AssemblyPath, IReadOnlyList<string> OutputFiles, bool Library);
 
 public static class BackendFactory
 {
@@ -154,6 +177,14 @@ public static class BackendFactory
 }
 ```
 
+- **The seam is Roslyn-free (kb/Work PB4272).** Nothing the contract names is a Roslyn type or a C#-only choice:
+  each backend translates its own diagnostics into `BackendDiagnostic` (`RoslynBackend.Neutral`, which renders the
+  line Roslyn's own formatter renders), the driver reads only those, and the `.g.cs` is the Roslyn backend's own
+  artifact rather than a seam option. The seam file, the model, the binders and the driver reference no
+  `Microsoft.CodeAnalysis` type; the facts the model used to ask Roslyn (the identifier characters,
+  `CsNames.IsIdentifierStartCharacter`/`IsIdentifierPartCharacter`, and the C# reserved keywords) it states, each
+  pinned to Roslyn by a drift test (`RoslynFreeSeamDriftTests`, `CsNameReservationDriftTests`). The factory still takes
+  the bind host until kb/Work PB2290 deletes it; PB4273 then makes a Roslyn use outside the Roslyn backend a build error.
 - **Consumes:** the immutable `BoundCompilation` (P6 result) — units, the OO class model, the `SymbolTable`, and
   structural `Place`s — plus `BackendOptions`. **Performs no binding** (binding is the Binder phase's job —
   `BinderDriver` produces the `BoundCompilation`, per `DESIGN-binder-bound-tree.md §3.1`).
@@ -219,15 +250,41 @@ catalogue's `nameof` at compile time and both renderers with it. This **reconcil
 the Roslyn `RuntimeApi` stays (renamed `RoslynRuntimeApi`), now sourced from `RuntimeMembers`; the CIL backend gets its
 own resolver for free.
 
-### 2.4 The shared `NameMangler`
+### 2.4 The one CLR name allocator — `CsNames.Allocate`
 
-The COBOL-name → target-identifier mapping (today scattered as pre-baked strings in nodes — L4 — and as ad-hoc
-`CsName`/`__` conventions in the emitter) becomes **one shared service** owned by P5/P6
-(`Model/NameMangler.cs`, per topology §2.10's `NamingConvention` for OO; generalized to all identifiers). Both
-backends call it: Roslyn to spell a C# field/method name; Cil to name a `FieldDefinition`/`MethodDefinition`. It is
-**deterministic** (same COBOL name → same identifier) so the equivalence harness (PHASE-16) can even cross-check
-emitted metadata names if desired. No mangled name is ever stored on a bound node — the node holds the **symbol**;
-the mangler is applied at render time.
+> **Amended 2026-10-31 (kb/Work PB4265):** this section specified a shared `NameMangler` applied at RENDER time, with
+> no name ever stored on a node. The owner-approved `DESIGN-external-repository.md` (2026-10-05, the later decision)
+> made the emitted names an ABI allocated at BIND time, and the code follows it; this section, §1.1, §1.2, L4, §4,
+> §5 and §6 assertion 2 now state that design.
+
+Every name the module EMITS for a COBOL word — the record structs' members, the program class's roots, the REDEFINES
+backings and cells, the OO classes, interfaces and methods, the host-entry classes, the published records and their
+members — is decided ONCE, at bind time, by ONE function, `CsNames.Allocate(baseName, scope)`
+(`Binding/Model/CsNames.cs`; DESIGN-external-repository §4.5, kb/Work PB2093, PB2098): the base
+(`DataItem.Sanitize`: the word's characters made identifier characters by an injective mapping, a leading digit
+prefixed with `_`) when it is free, else the smallest free `_2`, `_3`, …, against a scope SEEDED with every name the
+scope already holds. Both backends read the allocated name off the model and emit it unchanged, because the names are
+an ABI: another compilation unit, another assembly and a host bind to them, and a CIL-built module must expose the same
+names as a Roslyn-built one (kb/Work PB2104). A per-backend name mangler applied at render time would be the defect.
+
+**A CLR name is never a C# keyword (kb/Work PB4265).** Every scope kind is seeded with
+`CsNames.CSharpReservedKeywords` (written in the model, which references no Roslyn, and pinned to Roslyn's
+`SyntaxFacts.GetReservedKeywordKinds` by `CsNameReservationDriftTests`; kb/Work PB4272), so a
+lowercase data-name `int` is allocated `int_2`. The allocated name is then the same text in the metadata and in the
+generated C#, needs no `@` spelling anywhere, and stays a valid identifier when a prefix or suffix is joined to it
+(`_redef_int_2`). The `@int` escape it replaced was a C#-only spelling on the model, and the names derived from it
+(`_redef_@int`, `__cap_@int`, `__sum_@int_1`) were refused by the C# compiler. A CIL backend loses nothing: `int_2` is
+an ordinary CLR name. The imported-type-name seed is the same kind of rule: harmless to CIL, required by the C# the
+Roslyn backend writes, and therefore part of the shared ABI rather than a per-backend rename.
+
+**The one name not allocated is the module namespace** (`CsNames.ModuleNamespaceOf`, `Cobol.<S>`): an assembly
+simple name is the user's, so `class.dll` keeps the namespace `Cobol.class` in metadata, and the Roslyn backend
+writes its C# spelling, `namespace Cobol.@class;` (`ProgramEmitter.CSharpNamespace`). Synthesized names whose prefix
+no COBOL word can spell (`__`-prefixed temporaries, `_T_n` struct types, `_P_n` profiles) are formed by
+`NameAllocator` and `NamingConvention` from a prefix and a unique stem, and are CLR names on the same terms.
+
+What stays per backend is the spelling of things that are not ABI: a method local's name (§1.3 L8; the Roslyn
+backend's `LocalNames.Of` spells each `MethodLocal`) and the access text a renderer forms from the names (§1.3 L7).
 
 ---
 
@@ -277,7 +334,8 @@ are genuine.
 
 - **Shared** (`WiseOwl.Cobol.Compiler`, consumed by both): the frontend, the binder, `BoundCompilation` + the sealed
   bound hierarchy, the structural `Place`/`AccessSegment`, the source-generated `IBound*Visitor<T>` interfaces + the
-  exhaustive `Accept<T>`, the `RuntimeMembers` catalogue, the `NameMangler`, the ONE `WiseOwl.Cobol.Runtime`.
+  exhaustive `Accept<T>`, the `RuntimeMembers` catalogue, the ONE CLR name allocator (`CsNames.Allocate`, §2.4), the
+  ONE `WiseOwl.Cobol.Runtime`.
 - **Backend-specific**: the visitor *implementations* (text vs IL), `PlaceRenderer` vs `CilPlaceLower`, the
   runtime-call renderer (`RoslynRuntimeApi` vs `CilRuntimeApi`), the control-flow lowering (Roslyn preserves;
   Cil branches privately), the assembly writer (`CSharpCompilation` + `AssemblyPackager` vs Cecil `ModuleDefinition`
@@ -296,9 +354,9 @@ what P7 already lists.
 | create | `CodeGen/ICodeGenBackend.cs` (`ICodeGenBackend`, `BackendId`, `BackendOptions`, `BackendArtifact`, `BackendFactory`) | The seam (also in P7 Step 1 / `DESIGN-codegen-backend.md §2.2`). |
 | refactor | `RoslynBackend` → `RoslynBackend : ICodeGenBackend` consuming `BoundCompilation` | The default backend behind the seam; owns all C# syntax. |
 | create | `Model/RuntimeMembers.cs` (neutral catalogue) + `CodeGen/Roslyn/RoslynRuntimeApi.cs` (was `RuntimeApi`) | ONE runtime ABI for BOTH backends (§2.3); generalizes `DESIGN-codegen-backend.md §3`. |
-| create | `Model/NameMangler.cs` (COBOL-name → target identifier) | ONE naming service; removes L4 baked identifiers (§2.4). |
+| exists | `Binding/Model/CsNames.cs` (`CsNames.Allocate`, the seeded `CsNameScope`s) — the ONE allocator of the CLR names both backends emit | §2.4; no per-backend name mangler is created. |
 | refactor | `Binding/Model/Place.cs` `Read()/Write()` strings → structural `Place` + `AccessSegment` | L1/L2 removal (also P7 Step 11 / `DESIGN-codegen-backend.md §2.3`). |
-| refactor | `BoundTree.cs` C#-string node fields (`BoundSetCapacity.TablePath` :493; `BoundSearch.IndexField/DependCount/DynTable` :508-511; `BoundIndexRef.IndexField` :109; `SetIndexTarget.IndexField` :471; `BoundMethod.CsName` :32; `CapacityRegisterPlace.TablePath` `Place.cs:176`) → symbol/`Place` references | **L3/L4 removal — NEW; not in P7.** (§5, addition to P6.) |
+| refactor | `BoundTree.cs` C#-text node fields (`BoundSearch.IndexField`; `BoundIndexRef.IndexField`; `SetIndexTarget.IndexField`) → symbol/`Place` references; the binder's C# access text (§1.3 L7) → structure (DONE, kb/Work PB4320); the model's C# locals (§1.3 L8) → `MethodLocal` identities (DONE, kb/Work PB4321; the three residual roots OPEN, kb/Work PB4380) | **L3/L4 removal — NEW; not in P7.** (§5, addition to P6.) |
 | create | `CodeGen/BackendContractTest` fixture (reflection + `CodeGen/**` analyzer scan) | Enforce §1: no `string`-returning render member / no raw-C#-identifier field on any `Place`/`Bound*` (§6). Generalizes `DESIGN-codegen-backend.md §6 R5`. |
 | create *(PHASE-16)* | assembly `WiseOwl.Cobol.Backend.Cil/` (`CilBackend`, `CilStatementEmitter`, `CilExpressionEmitter`, `CilConditionEmitter`, `CilPlaceLower`, `CilRuntimeApi`, `CilDispatcher`) | The second backend, Cecil, isolated (§3.2). Answers topology Open Q4. |
 | create *(PHASE-16 M0)* | `CodeGen/NullBackend.cs` + `CodeGen/DisplayBackend.cs` (in-box `System.Reflection.Emit`) | Dependency-free seam-proof (§3.3 / PHASE-16 M0). |
@@ -314,19 +372,18 @@ splice into the named phase file (fuller bullets follow).
 
 - **PHASE-05 (`PHASE-05-unified-data-model-storageform.md`) — one-line addition:**
   > *Declare `Place`/`AccessSegment`/`StorageForm` in `Model/` as **backend-neutral value types carrying zero target
-  > text** (segments hold a symbol + `BoundExpr` subscripts, never a C# field/path string), and introduce the shared
-  > `Model/NameMangler` as the ONE place a COBOL name becomes a target identifier — so no `Place`/`DataItem` ever
-  > stores a pre-mangled C# name.*
+  > text** (segments hold a symbol + `BoundExpr` subscripts, never a C# path string); the ONE place a COBOL name
+  > becomes an emitted name is `CsNames.Allocate`, at bind time, and what it allocates is a CLR name (never a C#
+  > spelling) — so no `Place`/`DataItem` ever stores a C# spelling or a C# fragment.*
 
   Fuller: P5 owns the structural `Place` shape and the `StorageForm` discriminator; it must specify them as neutral
-  (symbol references + `BoundExpr`, per §1.1) and add `NameMangler` (§2.4). This makes L1/L2/L4 removable in P7
-  without inventing the naming service there.
+  (symbol references + `BoundExpr`, per §1.1); the names come from `CsNames.Allocate` (§2.4). This makes L1/L2/L4
+  removable in P7 without inventing a naming service there.
 
 - **PHASE-06 (`PHASE-06-binder-pipeline-symbol-table-bindphase.md`) — one-line addition:**
-  > *Replace the C#-identifier/path string fields on bound nodes (`BoundIndexRef.IndexField`,
-  > `SetIndexTarget.IndexField`, `BoundMethod.CsName`, `BoundSetCapacity.TablePath`,
-  > `BoundSearch.IndexField/DependCount/DynTable`, `CapacityRegisterPlace.TablePath`) with **symbol/`Place`
-  > references** resolved through the `SymbolTable`/`NameMangler`, and add a `Produces` capability `BackendNeutral`
+  > *Replace the C# text fields on bound nodes (`BoundIndexRef.IndexField`, `SetIndexTarget.IndexField`,
+  > `BoundSearch.IndexField`) with **symbol/`Place` references** resolved
+  > through the `SymbolTable` (a symbol's emitted name is its allocated CLR name), and add a `Produces` capability `BackendNeutral`
   > that the pipeline-completion gate asserts (the backend-contract precondition).*
 
   Fuller: P6 already builds `BoundCompilation` and the `SymbolTable`; it must additionally **de-C#** the L3/L4 node
@@ -356,18 +413,51 @@ One test fixture in the Characterization/Unit project, three assertions — all 
    `Bound*` record; assert none declares a public/internal `string Read(...)`, `string Write(...)`, or any member
    whose name matches `^(Read|Write|Render|Emit|AsCs|ToCsharp)` returning `string`. (Generalizes
    `DESIGN-codegen-backend.md §6 R5`.)
-2. **No raw-C#-identifier field on a bound node.** Assert no `Place`/`Bound*` record has a `string` field whose
-   name matches `(CsName|Path|Field|IndexField|TablePath|Backing|SendingPath|ReceivingPath)` — the L2/L3/L4 shapes.
-   (A curated allow-list covers the *legitimately-neutral* strings: `BoundStringLiteral.Value`,
+2. **No C# spelling or C# fragment on a bound node.** Assert no `Place`/`Bound*` record has a `string` field whose
+   name matches `(CsName|CsField|CsMember|Path|Field|IndexField|TablePath|SendingPath|ReceivingPath)` — the
+   L2/L3/L4/L7/L8 shapes. A `ClrName` (or `*ClrName`) field is an allocated CLR name (§1.1, §2.4) and is neutral by
+   construction. (A curated allow-list covers the other *legitimately-neutral* strings: `BoundStringLiteral.Value`,
    `*.Text` source literals, `EcStatementInfo.Location`, `SectionName`/`CobolName`.)
 3. **The seam has ≥2 real consumers.** Assert `ICodeGenBackend` has at least the `RoslynBackend` and the seam-proof
    backend implementations, and that a fixed tiny `BoundCompilation` (a DISPLAY-only program) round-trips through
    **both** producing byte-identical stdout. This is the executable proof that the tree carries no C#: a
    non-C# backend can consume it.
 
-The test is **incremental-friendly**: assertions 1–2 land at P7 Step 11 (an allow-list shrinks to the curated set as
-subtypes convert); assertion 3 lands at P7 Step 13 (the seam-proof). In CI it is a hard gate — a new node with a C#
+The test is **incremental-friendly**: assertions 1–2 land as a ratchet (an allow-list shrinks to the curated set as
+nodes convert); assertion 3 lands with the seam-proof (§3.2, §3.3). In CI it is a hard gate — a new node with a C#
 string field fails the build, exactly the "missing-arm-is-a-compile-error" culture extended to neutrality.
+
+**As built (kb/Work PB4266): `tests/WiseOwl.Cobol.Tests.Unit/Architecture/BackendContractDriftTests.cs`.**
+- **The population is measured, not named.** A backend reaches a model type three ways: by holding a value (a field
+  of a value it holds), by calling a member (what a method or property returns: `HostSurface.TypeOf` returns a
+  `HostType`) and by naming a type outright (a static function or table, a constant, the generated visitor interface it
+  implements). So `BackendInput` walks from EVERY type `docs/rearchitecture/architecture-edges.json` places in
+  `compiler.model` and `compiler.bound`, following each field's type (instance and static) and each member's return
+  type through arrays and generic arguments, and to every subtype of a reached type; a member whose type lies outside
+  those layers is a walk exit, not descended. A walk from `BoundCompilation` by instance field alone missed 83 of the
+  layers' types, `HostType` among them, whose `CsType` the host-entry emitter writes verbatim (kb/Work PB4266 review
+  R1-1). The test therefore holds every `Bound*` record, every `Place` and access-path type and every model type and
+  function a backend can reach (§1.1), and a new node, function result or table is held the day it is declared. A
+  FIELD typed `object` or a delegate is refused: the walk cannot see through it, and a delegate is code, not a fact (a
+  method returning `object`, the generated `BoundStatementTree.OwnValueParts`, is a traversal over parts already on the
+  input). A type the source generator declares carries `[GeneratedCode]` naming it, so the test knows its declaring
+  file.
+- **Assertions 1 and 2 classify every text member.** A member that carries text (an instance field whose type holds
+  `string`, directly or as an element) or returns it (a method or computed property) is either neutral by construction
+  (a field named `ClrName` or `*ClrName`, §2.4), a NEUTRAL row of `BackendContract.Table` (the curated allow-list, by
+  kind: COBOL word, CLR name, literal value, run-time datum, diagnostic text, identity key), or a LEAK row naming its §1.3
+  row and the kb/Work notes that remove it. An unclassified member fails, a row whose member is gone fails (the leak rows
+  only shrink), and a name matching assertion 1's render pattern or assertion 2's C#-spelling pattern (`Cs` as a word,
+  `Path`, `Field`) cannot be neutral. This is stricter than the name pattern alone: `PicInfo.ProfileInitializer` (C#
+  initializer text) and `BoundRelational.Op` (a C# operator) match neither pattern and are leak rows (L9).
+- **The parse-context half is the edges file's.** `architecture-edges.json` allows no edge from `compiler.model` or
+  `compiler.bound` to `frontend.parse` or `compiler.binding`, so its walk (ArchitectureEdgesDriftTests) pins each such
+  field at a tolerated row (L6: `BoundCompilation.Tree`, `BoundUnit.Ctx`, kb/Work PB2398; the binder fields, PB2293's
+  waves); the contract test asserts the file keeps refusing those edges, and refuses the one parse-tree reference that
+  walk cannot see, a member holding or returning an ANTLR runtime type, unless an L6 leak row names it (today only
+  `StatementBinder`'s, kb/Work PB2347).
+- **Assertion 3 is held open by a pin.** Until the seam-proof lands, the test asserts `RoslynBackend` is the only
+  `ICodeGenBackend`, so a second backend cannot land without the round-trip assertion that replaces the pin.
 
 ---
 

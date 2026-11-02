@@ -520,11 +520,13 @@ public sealed class ReportVaryingModel
     public BoundExpr? From { get; set; }
     public BoundExpr? By { get; set; }
 
-    /// <summary>The compilation-unique identity that names the compose-local variable holding the counter.</summary>
+    /// <summary>The compilation-unique identity of the counter, the ordinal of its compose-local <see cref="Local"/>.</summary>
     public required int Uid { get; init; }
 
-    /// <summary>The compose-local variable (<see cref="BoundReportVaryingRef.CsName"/>) a reference to this counter reads.</summary>
-    public string CsName => $"__kv{Uid}";
+    /// <summary>The compose-local holding the counter, by its identity (<see cref="MethodLocal"/>, kb/Work PB4321): the
+    /// local a reference to this counter reads (<see cref="BoundReportVaryingRef.Counter"/>), named by the backend that
+    /// declares it.</summary>
+    public MethodLocal Local => new StatementLocal(StatementLocalRole.ReportVaryingCounter, Uid);
 
     /// <summary>The report group description entry whose VARYING clause declares the counter.</summary>
     public required CobolParserCore.ReportGroupEntryContext Entry { get; init; }
@@ -1138,7 +1140,7 @@ public sealed partial class DataBinder
                     Level = 49,
                     DeclaredAt = Edition.Cursor,
                     CobolName = "PAGE-COUNTER",
-                    CsName = $"__pagectr_{Reports.Count}",
+                    ClrName = $"__pagectr_{Reports.Count}",
                     Pic = PicInfo.ReportCounterItem(),
                     Uid = _uidCounter++,
                 },
@@ -1445,7 +1447,7 @@ public sealed partial class DataBinder
                 ? "is reference-modified with a leftmost-position or length that is not a single integer literal, so the "
                   + "characters it occupies in every logical record (§13.18.12.4 GR2) are not a fixed number"
             : OdoModel.TableUnder(item) is { } odo
-                ? $"is a group with the occurs-depending-on table '{odo.CobolName ?? odo.CsName}' subordinate to it"
+                ? $"is a group with the occurs-depending-on table '{odo.CobolName ?? odo.ClrName}' subordinate to it"
             : item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item)
                 ? "is a variable-length group"
             : item.IsDynamicLength || item.IsDynamicTable
@@ -3287,7 +3289,7 @@ public sealed partial class DataBinder
                     Level = level,
                     DeclaredAt = Edition.Cursor,
                     CobolName = entryName,
-                    CsName = "_rptItem" + _uidCounter,
+                    ClrName = "_rptItem" + _uidCounter,
                     Pic = pic,
                     OwnSign = ownSign,
                     Justified = justified,
@@ -3844,7 +3846,7 @@ public sealed partial class DataBinder
             {
                 Level = 48,
                 DeclaredAt = Edition.Cursor,
-                CsName = $"{NamingConvention.SumCounterName(model.Name, baseId)}_occ{k}",
+                ClrName = $"{NamingConvention.SumCounterName(model.Name, baseId)}_occ{k}",
                 Occurs = st.Repetitions[k].Spec.Max,
                 Parent = parent,
             };
@@ -3870,7 +3872,7 @@ public sealed partial class DataBinder
                 Level = 49,
                 DeclaredAt = Edition.Cursor,
                 CobolName = entryName,
-                CsName = NamingConvention.SumCounterName(model.Name, baseId),
+                ClrName = NamingConvention.SumCounterName(model.Name, baseId),
                 Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic), sumScale),
                 Occurs = columnCount > 1 ? columnCount : null,
                 Parent = parent,
@@ -5064,17 +5066,10 @@ public sealed partial class DataBinder
         }
     }
 
-    private static IEnumerable<string> SubscriptIdentifiers(Antlr4.Runtime.Tree.IParseTree node)
-    {
-        if (node is Antlr4.Runtime.Tree.ITerminalNode t)
-        {
-            if (ReferenceResolver.IsNameToken(t.Symbol) || t.Symbol.Type is Core.LINE_COUNTER or Core.PAGE_COUNTER)
-                yield return t.GetText();
-            yield break;
-        }
-        for (int i = 0; i < node.ChildCount; i++)
-            foreach (var w in SubscriptIdentifiers(node.GetChild(i))) yield return w;
-    }
+    private static IEnumerable<string> SubscriptIdentifiers(Antlr4.Runtime.Tree.IParseTree node) =>
+        ParseTreeWalk.SelfAndDescendants(node).OfType<Antlr4.Runtime.Tree.ITerminalNode>()
+            .Where(t => ReferenceResolver.IsNameToken(t.Symbol) || t.Symbol.Type is Core.LINE_COUNTER or Core.PAGE_COUNTER)
+            .Select(t => t.GetText());
 
     /// <summary>Is <paramref name="word"/> one of the identifiers ISO §8.4.2.3.3 SR8 bars as a report section subscript:
     /// the LINE-COUNTER or PAGE-COUNTER register, or a sum counter — the name of a report section entry (and of no
@@ -5112,13 +5107,8 @@ public sealed partial class DataBinder
             }
     }
 
-    private IEnumerable<string> SubscriptWordsOf(Antlr4.Runtime.Tree.IParseTree node)
-    {
-        if (node is Core.DataReferenceContext dref)
-            foreach (var w in SubscriptWordsOfReference(dref)) yield return w;
-        for (int i = 0; i < node.ChildCount; i++)
-            foreach (var w in SubscriptWordsOf(node.GetChild(i))) yield return w;
-    }
+    private IEnumerable<string> SubscriptWordsOf(Antlr4.Runtime.Tree.IParseTree node) =>
+        ParseTreeWalk.SelfAndDescendants(node).OfType<Core.DataReferenceContext>().SelectMany(SubscriptWordsOfReference);
 
     /// <summary>The report-section-exclusive names of one report: the data-name of EVERY report group description
     /// entry it writes — the group's own, an intermediate group entry's, a printable entry's, a sum counter's, an
@@ -5288,11 +5278,11 @@ public sealed partial class DataBinder
         // INNERMOST level, which is the one the hand-written self→parent loop used to report.
         if (item.SubscriptLevels() is [.., var innermost])
             return (DiagnosticCatalog.ReportControlOperandShape,
-                $"is subject to the OCCURS clause on '{innermost.CobolName ?? innermost.CsName}': data-name-1 shall "
+                $"is subject to the OCCURS clause on '{innermost.CobolName ?? innermost.ClrName}': data-name-1 shall "
                 + "not be subject to any OCCURS clauses (ISO §13.18.16.3 SR3)");
         if (OdoModel.TableUnder(item) is { } odo)
             return (DiagnosticCatalog.ReportControlOperandShape,
-                $"has the occurs-depending table '{odo.CobolName ?? odo.CsName}' subordinate to it: the "
+                $"has the occurs-depending table '{odo.CobolName ?? odo.ClrName}' subordinate to it: the "
                 + "entry specified by data-name-1 shall not have an occurs-depending table subordinate to it "
                 + "(ISO §13.18.16.3 SR5)");
         if (item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))

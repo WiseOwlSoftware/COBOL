@@ -704,7 +704,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   - **The slots belong to the CELL, never to the item**, and that is the whole point: EXTERNAL sharing,
     ADDRESS OF aliasing and `SET ADDRESS OF` re-pointing all mean "two descriptions of ONE storage area", so a
     pointer member re-pointed through one description is visible through every other. Each cell surface now
-    emits `StorageCell {RedefinesClass.BackingCellCsName}` FIRST and defines the `ref string` backing as
+    emits `StorageCell {RedefinesClass.BackingCellClrName}` FIRST and defines the `ref string` backing as
     `ref {cell}.Ref`, so the two halves being one area is an identity, not a coincidence.
   - **A REDEFINES class has no cell, and that is a CARRIER question, asked once** — in `ComputeTier`, not in
     the shared gate. It is unreachable on conforming source: §13.18.44.3 SR12/SR14 bar a class-object /
@@ -1711,7 +1711,7 @@ type): cloned + re-registered. (5) recursion/placement guards. **This also fixes
 `BindEntries`) builds each TYPEDEF template (fresh `Uid`s, `Parent`/`Children`, but NO `Roots.Add`/`RegisterName`) and
 returns the consumed entries so the main pass SKIPS them. A recursive **`CloneSubtree`/`CloneItem`** (generalizes the
 flat `CreateCompilerTemp`, `DataBinder.Oo.cs:362`): a fresh `Uid` per node (CRITICAL — `StructName`/`ProfileName` ride
-on it), shares the immutable `Pic`, copies the description fields, re-uniquifies `CsName` in the NEW scope, and DOES
+on it), shares the immutable `Pic`, copies the description fields, re-uniquifies `ClrName` in the NEW scope, and DOES
 `RegisterName` (clones ARE referenceable, unlike the template). **`ExpandType`** runs inside `BindEntries` right after
 an item is placed (so the clone is in the forest BEFORE `BindResolve` — every post-build pass sees it automatically,
 the same invariant `CreateCompilerTemp` relies on). STRONG equivalence: `StrongTypeModel.StrongRoot` (walk
@@ -1784,7 +1784,7 @@ grammar (`STRONG` token + `typedefClause`; `EditionGateHints.TypedefClause` → 
 `typedef-def-2002` matrix/registry row) + the weak-TYPE spine (`DataItem` `IsTypedef`/`TypedefStrong`/`TypeRefName`;
 `BindEntries` routes a TYPEDEF root to `TypeDecls`, off `Roots`/`ByName`; `RegisterTypeDecl` → **1529**; a post-build
 `ExpandTypes` at the top of `BindResolve` clones each `TYPE [TO] type-name` (§13.18.57 Format 1 — TO is the optional word) via `CloneItem` — fresh `Uid`/re-uniquified
-`CsName`/registered — elementary→copy PIC, group→clone children, forward refs OK; unresolved/recursive → **1530**).
+`ClrName`/registered — elementary→copy PIC, group→clone children, forward refs OK; unresolved/recursive → **1530**).
 `TypeName`/`StrongType` are populated here (the STRONG checks are increment (2)). — **the ONLY grammar/legacy-guard slice** → goldens
 `typedef_weak_elem`/`typedef_weak_group`. (2) STRONG typing (all BINDER-ONLY): the
 `DataItem.StrongRoot` walk (outermost `StrongType` ancestor — §8.5.3.1, a group SUBORDINATE to a strong group is
@@ -2349,7 +2349,10 @@ Goldens `2023/pb491_editing_variable_width` (Annex D.24's own images and sizes) 
 §13.18.40.3 SR4 caps character-string-1 at 63 characters AS WRITTEN — SR6's second sentence ("the length of the
 integer, not the length of the constant-name, is counted toward the maximum number of characters in
 character-string-1") is what fixes that reading, and it is what keeps `PIC X(30000)` legal — reported as
-**COBOL2146**. SR6's repetition factor is validated ONCE, in `PictureAnalyzer.TryExpandRepeats`, against "an
+**COBOL2146**. The 63 is the 2023 text's number, in force from COBOL-2014; the bound is the EDITION's, ONE function
+`PictureAnalyzer.MaxStringLength(dialectLevel)` (30 at COBOL-85, 50 at COBOL-2002 — the 2002 text's own SR4 and Annex
+F.2 item 94 — and 63 from 2014), its two edges the registry rows `picture-string-50-2002` and `picture-string-63-2014`
+(VCR row 7.46; kb/Work PB4304), a length error also under `--permissive`. SR6's repetition factor is validated ONCE, in `PictureAnalyzer.TryExpandRepeats`, against "an
 unsigned nonzero integer": a sign, a zero, an empty or non-numeric factor and an unclosed parenthesis each draw
 **COBOL2147**, by the literal route and by the constant-name route alike, since
 `DataBinder.Constants.ExpandPicConstants` rewrites `(constant-name)` to `(integer)` in the source string and

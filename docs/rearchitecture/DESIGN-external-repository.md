@@ -411,7 +411,7 @@ Format-1 CALL already uses), so it is no call-ABI change.
 The DEFAULT is the lenient adoption: the activated program registers its formals' descriptions only when its own
 source enables EC-PROGRAM-ARG-MISMATCH checking (`>>TURN`, §7.3.25; `ProgramEmitter.EmitEntryWrapper`), so without
 that directive nothing is compared at run time and each argument is read through the callee's description. REPO-9
-at the callee's compile is then the only signal; the manual says so (§9.4).
+at the callee's compile is then the only signal; the manual says so (`docs/manual/dotnet-interop.md`).
 
 ### 4.3 The host entry
 §14.2.3 GR13 governs: "When either the activating or the activated runtime element is other than a COBOL runtime
@@ -684,15 +684,16 @@ and a "facade" that "forwards" are rewritten to that statement in the same chang
 ### 4.5 Namespaces and `__CobolModule`
 Every emitted type lives in the namespace `Cobol.<S>`, where `<S>` is the assembly simple name made ONE identifier by
 `DataItem.Sanitize` (each character a C# identifier cannot hold, `.` and `_` included, written `_uXXXX_`; a hyphen
-written `_`; a leading digit prefixed with `_`; a C# keyword escaped with `@` in the source and bare in metadata — an
-INJECTIVE mapping, `DataItem.IdentifierCharacters`, kb/Work PB2839), `CsNames.ModuleNamespaceOf`, so
+written `_`; a leading digit prefixed with `_` — an INJECTIVE mapping, `DataItem.IdentifierCharacters`, kb/Work
+PB2839), `CsNames.ModuleNamespaceOf`; a segment that is a C# keyword stays bare in metadata (`Cobol.class`) and the
+Roslyn backend writes it `@`-escaped in the source (`ProgramEmitter.CSharpNamespace`, kb/Work PB4265), so
 `PAY.V2.dll` is `Cobol.PAY_u002E_V2` and never meets a type `V2` in `Cobol.PAY` (r7-ns: the dotted form is CS0434 in
 a host and CS0437 in a group), and `PAY-ROLL.dll` (`Cobol.PAY_ROLL`) and `PAY_ROLL.dll` (`Cobol.PAY_u005F_ROLL`) are
 two namespaces and two registrars. No emitted type lives directly in `Cobol`, so a namespace never meets a type, and two
 COBOL assemblies referenced by one host never collide on a program or class name or on `__CobolModule`; two needed
 assemblies whose namespaces coincide are REPO-6. `[assembly: CobolRepository(…, Registrar = "Cobol.ACCT.__CobolModule")]`
 tells the run-time probe which type to invoke.
-**The one name allocator.** Every C# name generated from a COBOL word — the internal record structs' members, the
+**The one name allocator.** Every CLR name generated from a COBOL word — the internal record structs' members, the
 host-entry classes, the published record structs and their members, the `Call` parameters, OO classes and interfaces
 — comes from ONE function, `CsNames.Allocate(baseName, scope)` (`Binding/Model/CsNames.cs`): the base name (the
 `DataItem.Sanitize`d word, or a synthesized base such as `_impliedRecordF`) when it is free, else the smallest free
@@ -715,6 +716,12 @@ namespace. `ImportedTypeNameDriftTests` keeps the derivation total: the using di
 `System` type by simple name that the core-library derivation misses (it found `Console.Error.WriteLine`, now
 `global::System.Console…`). OO class, interface, method and property names are `DataItem.WordIdentifier`'s UPPER-CASE
 fold and so spell no imported type (the one all-capitals type, `BASE`, is the OO base class itself).
+**Every scope is also seeded with the C# reserved keywords (kb/Work PB4265):** `CsNames.CSharpReservedKeywords`,
+written in the model and pinned to Roslyn's `SyntaxFacts` by `CsNameReservationDriftTests` (the model references no
+Roslyn, kb/Work PB4272), so a lowercase data-name `int` is allocated `int_2`. An allocated name is then the
+same text in metadata and in C# — the names are the module's ABI, the same for a Roslyn-built and a CIL-built module
+(DESIGN-backend-abstraction §2.4) — and a prefix or suffix joined to it stays an identifier (`_redef_int_2`; the `@int`
+spelling it replaced made `_redef_@int`, refused by the C# compiler). OO names are upper-case and spell no keyword.
 **Landed for the internal scopes (kb/Work PB2093):**
 `DataBinder`'s private `Unique`, which left both unseeded (a subordinate named `AsImage` or `Equals` drew CS0102 in
 `_T_0`, a record named `CloseFiles` in the program class), is deleted; a group's members are appended only through
@@ -977,7 +984,7 @@ prototype's formals and entries are joined by the prototype's index and the form
   `[CobolMethod(Accessor, PropertyName)]` beside the same parameter attributes. An interface's members are emitted by the
   same `OoSignatureOf` and carry the same attributes on the interface's own CLR methods. The covariant-return adapters
   (explicit interface implementations, §9.3.8.2.3 5a / 5c2) are no COBOL method: they carry no `[CobolMethod]` and the
-  reader skips every method without one. The FACTORY is its own CLR type (`OoClassSymbol.FactoryCsName`): the class's
+  reader skips every method without one. The FACTORY is its own CLR type (`OoClassSymbol.FactoryClrName`): the class's
   `[CobolUnit]` names it (`FactoryType`, a type-name string, never a `System.Type`), and each factory method carries
   `[CobolMethod(IsFactory = true)]` on the factory type's method.
 
@@ -1052,7 +1059,7 @@ enclosing comparison's `Comparison` assumption set (PB3120); `BitLayout.*`; `Dat
 | `DataItem.RestrictedPrototype`, `PointerRestrictionIdentity` (a restricted program- / function-pointer's resolved prototype and its signature class, PB2464 / PB2495) | `PrototypeSignatures.RestrictionIdentity` / `SameType`, `PrototypeSignatureClasses` | not recorded as such: rebuilt at decode from `RestrictedPrototype` → `ReferencedPrototypes` (§6.4) |
 | `Renames` | `AtomsOf` | not applicable (a formal is level 01/77, §14.2.2 SR1) |
 | `CobolName` | diagnostics; REDEFINES/ODO targets inside the record | `Name` |
-Not recorded (emitter facts): `CsName`, `Uid`, carrier field names, `StoreAsImage`, `RedefinesClass` tiers, VALUEs,
+Not recorded (emitter facts): `ClrName`, `Uid`, carrier field names, `StoreAsImage`, `RedefinesClass` tiers, VALUEs,
 condition-names, index names. The decoded tree is bound into a codec-owned throw-away forest so derived members answer
 as on a bound item (`UsageInheritancePass`, `InheritSignClauses`, group-usage classification, `BitLayout`, and the
 pointer-restriction stamp of §6.4). Invariant (§17.2): `Decode(Encode(x))` is indistinguishable from `x` to every
@@ -1090,7 +1097,7 @@ the group.
   `Name`, and the run-time description's `ObjectName`, `ObjectClasses` and `ObjectInterfaces` become the folded
   EXTERNALIZED names of their classes and interfaces instead of words, so two separately compiled groups describe one
   class with one spelling. That changes the text every module's descriptions carry and the run-time relations compare:
-  a call-ABI bump (`scripts/abi_pin.py bump --call-abi`, §15.4) in slice 8. `ClrTypeName` is `Target.CsName` with its
+  a call-ABI bump (`scripts/abi_pin.py bump --call-abi`, §15.4) in slice 8. `ClrTypeName` is `Target.ClrName` with its
   namespace. ACTIVE-CLASS carries its containing class's identity (excluded from equality by §9.3.8.2.3 rule 2 d) as
   today).
 - **Restricted data-pointers**: `POINTER TO type` → `RestrictedTypeName` (the word as written) and the type
@@ -1472,7 +1479,7 @@ words for two identities. `OoClassTable` therefore stores IMPORTED symbols by ID
 identity), and each source element's `IdentityScope` — `OoRepositoryScope` extended to program prototypes, function
 prototypes and dynamic-length structures — maps word → identity and identity → word. Decoding a record for element E
 maps every identity through E's scope: the first word whose identity it is becomes the symbol's `Name` IN E (the
-`OoClassSymbol` keeps one `CsName`; its word is scope-dependent and `OoNameResolution.Lookup` composes scope + table
+`OoClassSymbol` keeps one `ClrName`; its word is scope-dependent and `OoNameResolution.Lookup` composes scope + table
 as today). An identity E has no word for is imported anonymously (reachable from descriptors, never from `Find(word)`,
 spelled `class "<identity>"` in diagnostics). A prototype identity a signature mentions (a restricted program-pointer)
 maps through the same scope to E's program-prototype word, else stays anonymous.
@@ -1513,13 +1520,14 @@ directories). The output being produced is never consulted for RESOLUTION (its p
 precedent: A.1 item 66's own words; Micro Focus `REPOSITORY` directive family (spelling only).
 
 ### 9.4 The user documentation and the `docs/CONFORMANCE.md` rows (verbatim)
-**Where the manual text goes (determination, Mythos lane 2026-10-27).** The user manual does not exist: `docs/manual/`
-was never created, and kb/Work PB1610 owns its scaffold and chapters (DESIGN-USER-DOCUMENTATION.md §4). Slice 3 placed
-its host chapter's text here and recorded the hand-off in PB1610; slices 5 and 7 do the same. Each writes its text into
-this subsection (the trimmed/AOT paragraph below is slice 5's, the "Separately compiled units" chapter slice 7's) and
-adds a line to PB1610 naming the subsection; no slice creates `docs/manual/` or a second place for user text.
-`OneHostSurfaceDriftTests` already scans `docs/manual/` and needs no change when PB1610 creates it. The
-`docs/CONFORMANCE.md` rows below ARE written by the slices named in §21, since that document exists.
+**Where the manual text goes (determination, Mythos lane 2026-10-27; made current by kb/Work PB1610).** The user manual
+is `docs/manual/` (DESIGN-USER-DOCUMENTATION.md section 3 and 4). The chapter "Calling a WiseOwl COBOL program from .NET",
+with slice 5's trimmed/AOT paragraph, is `docs/manual/dotnet-interop.md`; it was written here first and moved there when
+PB1610 created the manual, so this document no longer carries it. The chapter "Separately compiled units and the
+repository" below is slice 7's draft (kb/Work PB2103): it describes `--repository`, `--reference` and `--repository-check`,
+which the command line does not have yet, so it stays here until slice 7 lands and then moves into `docs/manual/` as its
+own page, because the manual describes only what the compiler does. `OneHostSurfaceDriftTests` scans `docs/manual/`. The
+`docs/CONFORMANCE.md` rows below ARE written by the slices named in section 21, since that document exists.
 **Manual, "Separately compiled units and the repository":**
 > A WiseOwl COBOL assembly is the external repository entry for every program, function, class, interface, program
 > prototype, function prototype, parameterized class or interface and expansion it compiled (ISO §8.13). When your
@@ -1536,39 +1544,9 @@ adds a line to PB1610 naming the subsection; no slice creates `docs/manual/` or 
 > a prototype or definition of the same name in the repository; `off` suppresses it. A caller compiled against an
 > earlier signature is checked at run time when EC-PROGRAM-ARG-MISMATCH checking is enabled in both programs.
 
-**Manual, "Calling a WiseOwl COBOL program from .NET":** reference the COBOL assembly and `WiseOwl.Cobol.Runtime`; deploy
-both beside your host. Every program and user-defined function has a class `Cobol.<assembly>.<NAME>` with a method
-`Call` whose parameters are its PROCEDURE DIVISION USING formals — a `ref` parameter for BY REFERENCE (the variable
-receives what the program stored), a plain parameter for BY VALUE, nullable when OPTIONAL (`null` passes OMITTED) —
-and whose return value is its RETURNING item; a program's class also has `Cancel()`. Numbers are `long` or `Int128`
-when the PICTURE has no decimal places and `decimal` when it has; text is `string`; a group is a nested record struct
-named `<group>_Record`, with `AsImage()` and `FromImage()` for its character image; in a group holding a DYNAMIC LENGTH item or an
-OCCURS DYNAMIC table that item is a `string` and that table an array as long as its current capacity, and the record has
-no image methods. Run your calls inside
-`RunUnit.Run(ru => { … })`, which begins a run unit and ends it (closing its files) when the body returns; a call
-outside it joins the ambient run unit of your execution context. Every call crosses the same boundary a COBOL CALL
-crosses: the program keeps one WORKING-STORAGE per run unit until you `Cancel()` it, recursion is refused unless the
-program is RECURSIVE, and an INITIAL program is re-initialized per call. **What a call can throw:**
-`ArgumentException` — before the program runs — when a value would lose anything on the way in (a digit at either
-end, a sign, characters beyond the item's length: `ArgumentOutOfRangeException`), when a non-OPTIONAL parameter is
-`null`, or when you pass one variable to two `ref` parameters whose COBOL descriptions differ (to two parameters of
-one description, the program gets one storage for both); `CobolCallException` with its EC-* name (`EcName`) when the
-program cannot be activated or a condition propagates out of it; the run-unit-ended exception when the program
-executes STOP RUN or a fatal condition terminates the run unit — the run unit's files are closed and your process
-continues; `FormatException` when the program leaves a numeric item holding characters that are not a number of its
-description (the variable is left as it was). **Trimmed and AOT applications** have no dynamic loading: your host
-references every COBOL assembly the run unit uses and calls each one's `__CobolModule.EnsureRegistered()` before the
-first call; a program called by name from COBOL is then found among them. A COBOL program that calls another program
-by name finds it, when no host registered it, by loading the assembly that carries it from the application directory
-(the file named after the program first, then any assembly there that lists it); that loading is the runtime's one use of
-reflection, behind the switch `WiseOwl.Cobol.Runtime.DynamicProbe`. The switch is on unless the application sets it; a native-AOT or trimmed application turns it off with `<RuntimeHostConfigurationOption Include="WiseOwl.Cobol.Runtime.DynamicProbe" Value="false"
-Trim="true" />`; a CALL that nothing registered is then an EC-PROGRAM-NOT-FOUND condition saying the dynamic probe is
-disabled. A trimmed application that keeps the switch on must keep the whole runtime (`<TrimmerRootAssembly
-Include="WiseOwl.Cobol.Runtime" />`) and deploy the called assemblies untrimmed beside it. A program that cannot be
-located, whether its assembly is missing, does not load, is of another runtime version, or fails while it registers,
-is an EC-PROGRAM-NOT-FOUND condition naming the reason. A program compiled against a different
-signature than the one it is called with is detected at run time only when it enables EC-PROGRAM-ARG-MISMATCH checking
-(`>>TURN EC-PROGRAM-ARG-MISMATCH CHECKING ON`); otherwise the arguments are read through its own description.
+**Manual, "Calling a WiseOwl COBOL program from .NET":** `docs/manual/dotnet-interop.md` (moved there by kb/Work PB1610).
+A change to the host entry's surface, its marshaling, its exceptions or the trimmed/AOT switch updates that page in the
+same change set.
 
 **`docs/CONFORMANCE.md`, DOC-A.1-141 (the §14.2.3 GR13 determination, verbatim):** "**Supported non-COBOL language
 products: any .NET language, and only as the ACTIVATING element.** No non-COBOL element can be activated: a CALL, a
@@ -1634,7 +1612,7 @@ and identity and otherwise creates the class." **DOC-A.1-162:** the same for int
 `MetadataRepositoryProvider.Class(identity)` decodes the TypeDef's attributes into a `ClassRecord` and builds an
 `OoClassSymbol { Origin = Imported(path, simpleName, fullName) }` (`OoSymbolOrigin { Source, Standard, Imported, Clr }`
 replaces `OoClassSymbol.IsStandard`, today `ctx is null`, and every reader of it; `Ctx` already throws on the standard
-class and throws on an imported one too): `CsName` = the TypeDef's full name (namespace included); `FactoryCsName`; `IsFinal`;
+class and throws on an imported one too): `ClrName` = the TypeDef's full name (namespace included); `FactoryClrName`; `IsFinal`;
 `Base`/`Implements` resolved by identity through the same provider (transitively; the standard class → `StandardBase`;
 unreachable → REPO-11); one `OoMethodSymbol` per `[CobolMethod]` over decoded `DataItem`s; `OverrideOf` re-linked;
 accessors; `Raising`. `OoClassTable.Import(symbol)` registers by IDENTITY (§8.7). Downstream — INVOKE binding,
@@ -1648,7 +1626,7 @@ their `MetadataReference`s to that set. `OutputKind` landed in slice 3 different
 the design adopts it: it is a parameter of `RoslynBackend.Compile(…, OutputKind)` chosen from `ProgramEmitter.MainUnit`
 (a group with no main unit is a library), reported back as `BackendArtifact.Library`, so `BackendOptions` carries no
 `OutputKind`. Imported types are named by full name
-under `global::`, so a source `ACCOUNT` and an imported `ACCOUNT` never meet and two imports of one CsName are
+under `global::`, so a source `ACCOUNT` and an imported `ACCOUNT` never meet and two imports of one ClrName are
 distinct. **Warnings.** The driver surfaces only `Error` diagnostics from the backend, because generated C# for legal
 COBOL draws warnings no emitter change can remove (CS1718 for `IF B = B`, r6-warn), so a warning-free corpus is not a
 property a test can assert. Three warnings are escalated to errors on generated code (`SpecificDiagnosticOptions`):
@@ -2419,8 +2397,10 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
 (§8.2); the one-segment namespace (§4.5); the call-ABI version (§15.4).
 
 **Determinations of the 2026-10-27 currency pass (Mythos lane; kb/Work PB1086; none an owner question):**
-- **(a) User-manual text stays with kb/Work PB1610**, as slice 3's did: slices 5 and 7 write their text into §9.4 and
-  record it in PB1610; no slice creates `docs/manual/` (§9.4).
+- **(a) User-manual text.** Until kb/Work PB1610 created `docs/manual/`, slices 3 and 5 wrote their text into §9.4 and
+  recorded it in PB1610. PB1610 has created the manual and moved the host chapter into
+  `docs/manual/dotnet-interop.md`; slice 7 writes its chapter as its own page of `docs/manual/` in the change that
+  adds the options it describes (§9.4).
 - **(b) A fault on the way to an activation is one of the CALL's own conditions** (§14.9.4.4 GR3 b) / c), §8.4.3.2.4
   GR6 b) / c)), as `docs/CONFORMANCE.md` DOC-A.1-14 and DOC-A.1-89 already determine them under CLAUDE.md rule 1
   (GR3 c)'s checked resources are the implementor's; GnuCOBOL's resolver sets EC-PROGRAM-NOT-FOUND for a module found
@@ -2616,7 +2596,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    cases of §17.1 marked slice 7 (the cross-repository REPO-13 and word cases, the pb1115 split, the restricted-pointer
    and stale GR10 b) cases), in the shape slice 5 landed. Docs: INTERPROGRAM's prototype paragraph, SR20/SR22 note and
    the operand description; OO_DESIGN's restricted-pointer sentence; CONFORMANCE DOC-A.1-66/-67 and §3's D-R3 bullet
-   (the repository arms); the manual's "Separately compiled units", into §9.4 and recorded in kb/Work PB1610; DESIGN
+   (the repository arms); the manual's "Separately compiled units", moved from §9.4 to its own page of `docs/manual/`; DESIGN
    §0.5/§9/§10 and DOC_INDEX rows. Depends on 4, 5 and 6.
 8. **OO across assemblies, in two steps** (kb/Work PB2104): `Origin` (replacing `OoClassSymbol.IsStandard`),
    `IdentityScope`, class import, `ObjectRefDescriptor.Target` and the run-time description's class facts as

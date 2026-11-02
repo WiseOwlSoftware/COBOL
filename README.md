@@ -80,8 +80,10 @@ The options you will use most:
 | `--repository-update on` or `off` | whether the module records its units' signatures in the external repository (default on), the state in which a later compilation's REPOSITORY paragraph binds against them; with `off` the module still runs and its host entries still work, but no later compilation can bind against it |
 | `--nist NAME` | the NIST CCVS placeholder preprocessing |
 
-`cobol --help` lists them all. `cobol check-batch manifest.json` parses, edition-checks and binds many sources in one
-process without emitting code.
+`cobol --help` lists them all. `cobol check-batch manifest.tsv` parses, edition-checks and binds many sources in one
+process without emitting code; the manifest is a tab-separated file of `source`, `std`, `nist-name` and `permissive`
+fields, one entry per line. The user manual, in [docs/manual](docs/manual/index.md), covers installing the compiler,
+every option, the editions, .NET interoperability and migration from other COBOL compilers.
 
 ## Run the tests
 
@@ -105,8 +107,8 @@ dotnet test tests/WiseOwl.Cobol.Tests.Conformance --no-build --filter "FullyQual
 ```
 
 On Windows, `bash scripts/linux-gate.sh` runs CI's Linux legs under WSL to reproduce a Linux red. It clones the committed
-HEAD into the Linux filesystem and builds and tests it there, the way CI's Ubuntu jobs do; `build-local` runs the Linux
-half of its own plan the same way (`--legs targeted`).
+HEAD into the Linux filesystem and builds and tests it there, the way CI's Ubuntu jobs do. The per-change gate
+(`build-local`) runs nothing on Linux (kb/Work PB4327): CI's merge group runs the whole Linux population.
 
 The test populations:
 

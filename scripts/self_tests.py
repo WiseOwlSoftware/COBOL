@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-CLOCK: real — its arms run nested runners that move the clock themselves, and compare it with file modification times
 """self_tests.py — THE ONE RUNNER OF EVERY SCRIPT SELF-TEST among the live tools (kb/Work PB2563).
 
     python scripts/self_tests.py            # every self-test that needs no build, in parallel; exit 0 only when all pass
@@ -11,7 +12,8 @@
 named five, CI's audits job named those five plus `landing_check.py`, linux-gate.sh named three, and eleven of the
 fourteen orchestrator self-tests (the loop's unit choice, the allocator's lock, the wave planner, …) ran in no gate and
 no CI job at all, so a regression in any of them passed everything. A list goes stale the day a self-test is added.
-This runner FINDS them, and the local gate (scripts/run_gate_legs.py AUDITS, before the gate slot), the Linux gate
+This runner FINDS them, and the local gate (scripts/gate.py AUDITS, only for a change that touches tooling,
+kb/Work PB4326, and beside its build and legs, never inside the gate slot), the Linux gate
 (scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and `windows-self-tests` on Windows) all run
 THIS entry point, so no gate can run a self-test CI does not, or the reverse (the CI invariant, kb/Work PB1957).
 
@@ -23,8 +25,9 @@ kb/Work PB3174, PB3176) is a self-test when
       PASSES `--self-test` to another one is not one; a .sh file with a `--self-test)` case arm or a
       `= "--self-test"` test outside a comment. It runs as `<file> --self-test`.
   (b) otherwise, it is NAMED `test_*.py` or `test_*.ps1`: a standalone test script. It runs bare.
-`SelfTestDiscoveryDriftTests` (Unit) holds the rule to a broader net, so a self-test written in a shape this rule
-misses fails a test instead of silently never running.
+This runner's own self-test holds the rule to a broader net over the real tree (`net`, kb/Work PB4395), so a self-test
+written in a shape this rule misses fails a self-test instead of silently never running; it also holds every gate entry
+point to running this runner and naming no self-test by hand (`entry_point_arms`).
 
 PLATFORM: every self-test runs on every platform unless its file declares otherwise, on a `#` comment line among its
 first HEADER_LINES lines (so a docstring that SHOWS the marker, as this one does, never declares it):
@@ -37,9 +40,24 @@ BUILD: a self-test that reads the BUILT test assemblies (filter_population.py as
 declares it the same way:
     # SELF-TEST-NEEDS: build — <what it reads>
 The default run names it `deferred to --built` in its verdict; `--built` runs exactly those, after a solution build
-(the gate driver right after its build, concurrently with the legs; CI's `greenfield-unit` job; linux-gate.sh after its
-unit and conformance legs). The default run never builds: it is one of the gate's audits, which run before the gate
-slot, and the slot is what rations builds.
+(the gate driver right after its build, concurrently with the legs, only for a change that touches tooling; CI's
+`linux-built-self-tests` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
+gate's audits, which run outside the gate slot, and the slot is what rations builds.
+
+POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/inert_lane.py): what it read
+must be tooling, a TOOLING_READS entry or an inert corpus, else it is RED naming the path. The one exemption is a self-test
+that reads the tracked tree as a population, declared the same way and checked against the trace (a declaration whose
+trace shows no git command over the whole repository is RED; a whole-tree git command without the declaration is judged):
+    # SELF-TEST-POPULATION: tree — <why it reads the whole tracked tree>
+
+THE CLOCK PROOF (kb/Work PB4358; scripts/self_test_clock.py; DESIGN-test-build-ci.md §3.14.10): a Python self-test whose
+run opened a tracked `.py` file that can read the wall clock is run a SECOND time, in the same budget place, with the clock
+moved forward CLOCK_SHIFT_DAYS in every Python process it starts, and passes only if both runs do. A fixture dated near
+its authoring day (PB4353's shape) goes RED in the first gate that runs the self-test, not on the day the clock overtakes
+it. A self-test that compares the clock with a REAL one the shift cannot move (a file's modification time, a process's
+start time, a git commit time) declares it, with the reason, on a `#` line among its first HEADER_LINES lines:
+    # SELF-TEST-CLOCK: real — <the real clock it compares the Python clock with>
+and a recorded PASS carries the last day its proof covers, so `--reuse` never answers past it.
 
 ISOLATION: each self-test runs with `COBOL_COORD_DIR` pointed at a fresh private directory, so none can read or write
 the live coordination state (`E:\\COBOL-coord`: the loop's units, leases and allocations), and without git's
@@ -69,7 +87,7 @@ THE BUDGET (kb/Work PB2914): at most BUDGET_CAP self-tests run at once on the MA
 together — one OS lock file per place under `<git common dir>/cobol-self-test-slots/`. A self-test waits for a place
 before it starts and holds it to its end, so one gate alone runs as wide as the cores, and N gates share the cores
 instead of multiplying them: a gate's self-test time no longer grows with the number of gates. A gate's
-self-tests keep running BEFORE its gate slot (kb/Work PB2524: a red one fails the gate without queueing behind other
+self-tests keep running OUTSIDE its gate slot (kb/Work PB2524, PB4326: a red one fails the gate without queueing behind other
 gates' builds and legs, PB2523); the budget is their own, so they never wait for a whole gate either.
 WHETHER THE CORES ARE THE LIMIT (kb/Work PB3585): the verdict line says how busy the host's processors were across the
 phase (`HostCpu`, the reading HostLoad.cs takes). Near 100 % the cores were the limit and a wider budget cannot shorten
@@ -114,7 +132,9 @@ from typing import Callable, Iterator
 
 import sharedfile  # this directory's: the one Windows share-retry rule for files several processes read and replace
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
+import inert_lane  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
 import self_test_inputs as inputs  # this directory's: what a self-test read, and the tracer that records it
+import self_test_clock as clocks  # this directory's: the clock a self-test's PASS is proven against (kb/Work PB4358)
 from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS file lock every gate place is
 # this directory's: the one scratch-repository fixture, whose identity, maintenance settings and scrubbed environment
 # the private global config and every self-test's environment share (kb/Work PB3584)
@@ -141,13 +161,14 @@ BUDGET_DIR = "cobol-self-test-slots"
 BUDGET_POLL_S = 0.25
 #: The shared PASS store (module docstring), and how many PASS records it keeps per self-test and platform.
 PASS_STORE_DIR = "cobol-self-test-passes"
-PASS_SCHEMA = 2  # 2: Deps.trees (kb/Work PB2914)
+PASS_SCHEMA = 3  # 2: Deps.trees (kb/Work PB2914); 3: the clock proof (kb/Work PB4358)
 PASS_KEEP = 20
 #: A marker counts only on a `#` line among a file's first lines: its header comment.
 HEADER_LINES = 5
 
 PLATFORM_RE = re.compile(r"^#\s*SELF-TEST-PLATFORM:\s*(windows|linux)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
 NEEDS_RE = re.compile(r"^#\s*SELF-TEST-NEEDS:\s*(build)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
+POPULATION_RE = re.compile(r"^#\s*SELF-TEST-POPULATION:\s*(tree)\s*[—-]+\s*(\S.*?)\s*$", re.MULTILINE)
 SH_FLAG_RE = re.compile(r"""^(?!\s*#).*(?:^|\s)--self-test\)|^(?!\s*#).*=\s*["']--self-test["']""", re.MULTILINE)
 
 
@@ -187,6 +208,7 @@ class SelfTest:
     platform_reason: str
     needs_build: bool = False  # reads the built test assemblies: run by `--built`, never by the default run
     build_reason: str = ""
+    population: str = ""      # why it reads the tracked tree as a population (SELF-TEST-POPULATION); "" when it does not
 
     def command(self) -> list[str]:
         """The command line, run with the repository root as its cwd. The path stays RELATIVE with forward slashes:
@@ -245,8 +267,9 @@ def classify(rel: str, text: str) -> SelfTest | None:
     header = "\n".join(text.splitlines()[:HEADER_LINES])
     m = PLATFORM_RE.search(header)
     b = NEEDS_RE.search(header)
+    pop = POPULATION_RE.search(header)
     return SelfTest(rel, handles, m.group(1) if m else None, m.group(2) if m else "", b is not None,
-                    b.group(2) if b else "")
+                    b.group(2) if b else "", pop.group(2) if pop else "")
 
 
 def discover(repo: Path = REPO) -> list[SelfTest]:
@@ -445,6 +468,8 @@ class PassStore:
         re-run (50 of 75 re-ran in every first gate of wave 1062 with no line saying why)."""
         newest_changed: list[str] | None = None
         unusable = 0   # records that are there but are no PASS here: the why-line must not call that a first run
+        lapsed: dict | None = None   # the newest record whose inputs are unchanged but whose clock proof has ended
+        today = dt.datetime.now(dt.timezone.utc).date()
         for path in self._records(test, platform):
             try:
                 text = sharedfile.read_text(path)
@@ -461,9 +486,25 @@ class PassStore:
                 unusable += 1
                 continue  # a record of another shape is not a PASS: the self-test runs, never a crash of the gate
             if not changed:
-                return rec, ""
+                # ⛔ A PASS is reused only inside the horizon its clock proof reached (self_test_clock.py): past it, a
+                # fixture dated near the day the PASS was recorded could have expired, and only a fresh run says so
+                try:
+                    holds = clocks.Clock.holds(rec.get("clock"), today)
+                except (KeyError, TypeError, ValueError):
+                    unusable += 1
+                    continue
+                if holds:
+                    return rec, ""
+                lapsed = lapsed or rec
+                continue
             if newest_changed is None:
                 newest_changed = changed
+        if lapsed is not None and newest_changed is None:
+            real = lapsed["clock"].get("real")
+            return None, (f"re-run: the clock proof of the PASS of {lapsed.get('when', '?')} ended "
+                          f"{lapsed['clock']['until']} (a PASS is reused only while the clock it was proven against "
+                          f"covers today"
+                          + (f"; {real} cannot be moved, so it covers the day it was recorded" if real else "") + ")")
         if newest_changed is None:
             if unusable:
                 return None, (f"re-run: {unusable} recorded PASS(es) for {platform} are of another schema, Python or "
@@ -472,14 +513,21 @@ class PassStore:
         shown = ", ".join(newest_changed[:3]) + (f" (+{len(newest_changed) - 3} more)" if len(newest_changed) > 3 else "")
         return None, f"re-run: {len(newest_changed)} input(s) changed since the newest PASS — {shown}"
 
-    def record(self, test: str, platform: str, deps: "inputs.Deps", seconds: float, by: str) -> Path:
+    def record(self, test: str, platform: str, deps: "inputs.Deps", seconds: float, by: str,
+               clock: "clocks.Clock | None" = None) -> Path:
+        """Record a PASS. `clock` is the clock proof the run made (a shifted run that passed too, or a clock that cannot be
+        shifted): the record carries the last day it covers (`Clock.until`), which `lookup` holds a reuse to. Only a
+        self-test that cannot read a clock records none, and is reused whatever the day."""
         d = self._dir(test, platform)
         d.mkdir(parents=True, exist_ok=True)
         body = json.dumps(deps.to_json(), sort_keys=True)
         path = d / f"{hashlib.sha256(body.encode('utf-8')).hexdigest()[:20]}.json"
+        when = dt.datetime.now(dt.timezone.utc)
+        proof = ({"shift_days": clock.shift_days, "real": clock.real, "until": clock.until(when)}
+                 if clock is not None and clock.bounded else None)
         sharedfile.replace_text(path, json.dumps(
             {"schema": PASS_SCHEMA, "test": test, "platform": platform, "python": _python(), "seconds": round(seconds, 1),
-             "when": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "by": by,
+             "when": when.isoformat(timespec="seconds"), "by": by, "clock": proof,
              "deps": deps.to_json()}, indent=1, sort_keys=True) + "\n")
         for old in self._records(test, platform)[PASS_KEEP:]:
             with contextlib.suppress(OSError):
@@ -503,6 +551,8 @@ class Runner:
     store: PassStore | None = None
     hang_after_s: float = HANG_AFTER_S
     by: str = ""
+    #: What counts as tooling when a PASS is recorded (`_record`'s proof); the fleet arms plant their own.
+    classification: inert_lane.Classification = inert_lane.CLASSIFICATION
 
     def __post_init__(self) -> None:
         self.budget = self.budget or Budget.for_repo(self.repo)
@@ -561,6 +611,7 @@ class Runner:
         coord = Path(tempfile.mkdtemp(prefix="coord-", dir=scratch))
         trace = Path(tempfile.mkdtemp(prefix="trace-", dir=scratch))
         env = git_env()
+        env.pop(clocks.SHIFT_ENV, None)  # the first run is at the REAL clock, whatever process this runner itself runs in
         env.update(COBOL_COORD_DIR=str(coord), GIT_CONFIG_GLOBAL=str(git_config), PYTHONIOENCODING="utf-8",
                    PYTHONUTF8="1")
         if temp is not None:  # CI's Windows runner's TEMP is an alias of its directory; so is this one (aliased_temp)
@@ -570,38 +621,108 @@ class Runner:
         with self.budget.place(f"self-test {test.path} of {self.by}"):
             start = time.monotonic()
             waited = start - asked  # the budget's queue, reported apart from the run itself (kb/Work PB3061)
-            try:
-                r = subprocess.run(test.command(), cwd=self.repo, env=env, stdin=subprocess.DEVNULL,
-                                   capture_output=True, text=True, encoding="utf-8", errors="replace",
-                                   timeout=self.hang_after_s)
-            except subprocess.TimeoutExpired as e:
-                return Result(test, HANG, None, time.monotonic() - start,
-                              f"{_text(e.stdout)}{_text(e.stderr)}\n⛔ HANG: still running {self.hang_after_s:.0f} s "
-                              f"after it took its budget place; stopped (a hang detector, never a verdict on speed)",
-                              why, waited)
-            except OSError as e:
-                return Result(test, RED, 127, time.monotonic() - start, f"⛔ could not start {test.command()[0]}: {e}",
-                              why, waited)
+            ran = self._exec(test, env, why, waited)
+            if isinstance(ran, Result):
+                return ran
             seconds = time.monotonic() - start
-        out = (r.stdout or "") + (r.stderr or "")
-        if r.returncode != 0:
-            return Result(test, RED, r.returncode, seconds, out, why, waited)
+            out = (ran.stdout or "") + (ran.stderr or "")
+            if ran.returncode != 0:
+                return Result(test, RED, ran.returncode, seconds, out, why, waited)
+            # ⛔ THE CLOCK PROOF (scripts/self_test_clock.py): a self-test that can read the wall clock passes only if it
+            # passes a second time with the clock moved forward, in the same budget place
+            try:
+                clock = self._clock(test, trace)
+            except ValueError as e:  # a `SELF-TEST-READS` that names nothing: the self-test's declaration is the defect
+                return Result(test, RED, 0, seconds, f"{out}\n⛔ it passed, but its inputs cannot be derived: {e}", why,
+                              waited)
+            if clock.shift_days:
+                again = self._exec(test, self._shifted(env, scratch, clock), why, waited,
+                                   f"with the clock moved forward {clock.shift_days} days: ")
+                if isinstance(again, Result):
+                    return again
+                seconds = time.monotonic() - start
+                if again.returncode != 0:
+                    return Result(test, RED, again.returncode, seconds,
+                                  f"{again.stdout or ''}{again.stderr or ''}\n⛔ it passes at today's clock and fails with "
+                                  f"the clock moved forward {clock.shift_days} days (scripts/self_test_clock.py): a fixture "
+                                  f"dated near its authoring day that the wall clock will overtake (derive its dates from "
+                                  f"the clock the test runs at, or pass the clock in), or a comparison with a real clock "
+                                  f"the shift cannot move (declare `# SELF-TEST-CLOCK: real — <why>` in its first "
+                                  f"{HEADER_LINES} lines) (kb/Work PB4358)", why, waited)
+        proved = f"also green with the clock moved forward {clock.shift_days} days" if clock.shift_days else ""
         try:
-            return Result(test, GREEN, 0, seconds, out, _join(why, self._record(test, trace, seconds)), waited)
+            return Result(test, GREEN, 0, seconds, out, _join(why, proved, self._record(test, trace, seconds, clock)),
+                          waited)
         except ValueError as e:  # a `SELF-TEST-READS` that names nothing: the self-test's declaration is the defect
             return Result(test, RED, 0, seconds, f"{out}\n⛔ it passed, but its PASS cannot be recorded: {e}", why,
                           waited)
 
-    def _record(self, test: SelfTest, trace_dir: Path, seconds: float) -> str:
+    def _exec(self, test: SelfTest, env: dict[str, str], why: str, waited: float,
+              label: str = "") -> "subprocess.CompletedProcess[str] | Result":
+        """One run of the self-test's command, or the HANG or RED-127 Result when it did not finish (`label` says which
+        run of a clock-proved self-test it was)."""
+        start = time.monotonic()
+        try:
+            return subprocess.run(test.command(), cwd=self.repo, env=env, stdin=subprocess.DEVNULL,
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                  timeout=self.hang_after_s)
+        except subprocess.TimeoutExpired as e:
+            return Result(test, HANG, None, time.monotonic() - start,
+                          f"{_text(e.stdout)}{_text(e.stderr)}\n⛔ HANG: {label}still running {self.hang_after_s:.0f} s "
+                          f"after it took its budget place; stopped (a hang detector, never a verdict on speed)",
+                          why, waited)
+        except OSError as e:
+            return Result(test, RED, 127, time.monotonic() - start,
+                          f"⛔ could not start {test.command()[0]}: {e}", why, waited)
+
+    def _clock(self, test: SelfTest, trace_dir: Path) -> "clocks.Clock":
+        """The clock proof this self-test's PASS needs (scripts/self_test_clock.py `Clock.of`), from the tracked Python
+        files its run opened, the self-test's own header and, for a PowerShell or bash self-test (which the tracer cannot
+        follow), the scripts of its closure (`Deriver.closure`, the files its PASS is keyed on). A run that records no
+        PASS needs none."""
+        if test.needs_build:
+            return clocks.Clock()
+        seen = inputs.read_trace(trace_dir, self.tree)
+        paths = {test.path, *(p for p in seen.files if p.endswith(".py"))}
+        if test.path.endswith(inputs.UNTRACED_SCRIPTS):
+            paths |= {p for p in self.deriver.closure(test.path) if p.endswith(inputs.UNTRACED_SCRIPTS)}
+        texts = {}
+        for p in paths:
+            with contextlib.suppress(OSError, UnicodeDecodeError):  # looked for and absent, or not text: no source
+                texts[p] = (self.repo / p).read_text(encoding="utf-8")
+        return clocks.Clock.of(test.path, texts, HEADER_LINES, inputs.RUNNER)
+
+    def _shifted(self, env: dict[str, str], scratch: Path, clock: "clocks.Clock") -> dict[str, str]:
+        """The environment of the proof run: the first run's, with its own private coordination directory (nothing the
+        first run left is read), no trace (the first run's is the one recorded) and the clock moved forward."""
+        moved = {k: v for k, v in env.items() if k not in (inputs.TRACE_ENV, inputs.TRACE_ROOT_ENV)}
+        moved["COBOL_COORD_DIR"] = tempfile.mkdtemp(prefix="coord-", dir=scratch)
+        return clocks.shifted_env(moved, clock.shift_days)
+
+    def _record(self, test: SelfTest, trace_dir: Path, seconds: float, clock: "clocks.Clock | None" = None) -> str:
         """Record the PASS with what it read; returns the console note when it records none."""
         if test.needs_build:
             return ""
         seen = inputs.read_trace(trace_dir, self.tree)
         if test.path.endswith(".py") and not seen.saw(test.path):
             return "no PASS recorded: the trace does not show the self-test's own file, so the tracer did not run"
-        self.store.record(test.path, self.platform, inputs.run_deps(test.path, self.tree, self.deriver, seen),
-                          seconds, self.by)
+        deps = inputs.run_deps(test.path, self.tree, self.deriver, seen)
         whole = {kind for kind, d in seen.git_read if d == ""}
+        if test.population and not whole:  # a declaration the trace does not bear out would exempt a self-test unproved
+            raise ValueError(f"{test.path} declares SELF-TEST-POPULATION but its trace shows no git command over the "
+                             f"whole tree: remove the declaration (the self-test no longer reads the tree as a population)")
+        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (inert_lane.py)
+            stray = self.classification.unclassified_reads((p for p, blob in deps.files.items() if blob != inputs.UNTRACKED),
+                                                                 deps.trees)
+            if stray:
+                raise ValueError(
+                    f"it read {', '.join(stray[:6])}{' and more' if len(stray) > 6 else ''}, which the tooling flag does "
+                    f"not see: a change to only {'it' if len(stray) == 1 else 'one of them'} would skip this self-test in "
+                    f"a gate and turn it red in CI's merge group. Give the path a TOOLING_READS entry naming "
+                    f"{test.path} in scripts/inert_lane.py"
+                    + (f"; or, if it reads the tracked tree as a population, declare `# SELF-TEST-POPULATION: tree — "
+                       f"<why>` in its first {HEADER_LINES} lines" if whole else "") + " (kb/Work PB4326)")
+        self.store.record(test.path, self.platform, deps, seconds, self.by, clock)
         if whole:
             what = "the whole tree's content" if "content" in whole else "the name of every tracked file"
             return (f"its PASS is keyed on {what}: a git command it ran inside the repository read it "
@@ -768,6 +889,9 @@ def self_test() -> int:
     b = classify("scripts/x.py", "# SELF-TEST-NEEDS: build — reads the built assemblies\nap.add_argument('--self-test')\n")
     check("arm: the build marker is read with its reason", (b.needs_build, b.build_reason),
           (True, "reads the built assemblies"))
+    pop = classify("scripts/test_p.py", "#!/usr/bin/env python3\n# SELF-TEST-POPULATION: tree — walks every tracked file\nx = 1\n")
+    check("arm: the population marker is read with its reason, and a self-test without one has none",
+          (pop.population, b.population), ("walks every tracked file", ""))
     shown = classify("scripts/test_doc.py", '"""\n1\n2\n3\n4\n    # SELF-TEST-PLATFORM: windows — shown, not declared\n"""\n')
     check("arm: a marker SHOWN past the header (a docstring example) declares nothing", shown.platform, None)
     check("arm: --built runs exactly the build-needing ones, the default run the rest",
@@ -879,12 +1003,145 @@ def self_test() -> int:
           ([1, 12], [True] * 4))
 
     fleet_arms(check)
+    net_arms(check)
+    entry_point_arms(check)
     print(f"self_tests.py --self-test: {'ALL GREEN' if not fails else f'{len(fails)} FAILED'}")
     return 1 if fails else 0
 
 
 #: How long each planted fleet self-test holds its place, and the budget the simulated gates share.
 _FLEET_SLEEP_S, _FLEET_CAP, _FLEET_GATES = 0.5, 2, 4
+
+
+# ── THE REAL TREE (kb/Work PB4395: until then SelfTestDiscoveryDriftTests, a compiler test, held these, so a change to
+#    any script was a compiler change): discovery misses nothing a broader net finds, and every gate entry point runs
+#    this runner and names no self-test by hand ─────────────────────────────────────────────────────────────────────
+
+#: THE NET: broader than `classify`, and read as TEXT: a `test_*.py`/`test_*.ps1` name, a Python code line holding a
+#: quoted `--self-test` beside `argv` or `add_argument`, or a shell `--self-test)` arm or `= "--self-test"` test.
+NET_QUOTED_FLAG = re.compile(r"""["']--self-test["']""")
+NET_SHELL_ARM = re.compile(r"""(^|\s)--self-test\)|=\s*["']--self-test["']""")
+NET_STANDALONE = re.compile(r"^test_[^/]*\.(py|ps1)$")
+#: Self-tests the net must find on the real tree, or the net is broken: the orchestrator's, a hook's, the gate's, this
+#: runner's own and the conformance harness's generator.
+NET_KNOWN = ("scripts/orchestrator/test_alloc.py", "scripts/orchestrator/test_orchestrate_core.ps1",
+             "scripts/orchestrator/landing_check.py", "scripts/hooks/test_forbidden_commands.py",
+             "scripts/guard-population.sh", "scripts/gate.py", "scripts/self_tests.py",
+             "conformance-suite/harness/generate.py")
+
+
+def net(repo: Path, paths: list[str]) -> list[str]:
+    """The paths among `paths` (repository-relative) the broad text net calls a self-test."""
+    found: list[str] = []
+    for rel in paths:
+        if NET_STANDALONE.match(rel.rsplit("/", 1)[-1]):
+            found.append(rel)
+            continue
+        python, shell = rel.endswith(".py"), rel.endswith(".sh")
+        for raw in (repo / rel).read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if line.startswith("#"):
+                continue
+            if ((python and NET_QUOTED_FLAG.search(line) and ("argv" in line or "add_argument" in line))
+                    or (shell and NET_SHELL_ARM.search(line))):
+                found.append(rel)
+                break
+    return found
+
+
+def net_arms(check: Callable[[str, object, object], None]) -> None:
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        planted = {"scripts/a.py": 'if "--self-test" in sys.argv: pass\n', "scripts/test_b.ps1": "1\n",
+                   "scripts/c.sh": 'case "$1" in\n  --self-test) t ;;\nesac\n', "scripts/d.py": "# '--self-test' argv\n",
+                   "scripts/e.py": 'CMD = ["x.py", "--self-test"]\n'}
+        for rel, text in planted.items():
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text(text, encoding="utf-8", newline="\n")
+        check("arm: the net finds a flag beside argv, a test_* name and a shell case arm, never a comment or a list that "
+              "only passes the flag", net(root, sorted(planted)), ["scripts/a.py", "scripts/c.sh", "scripts/test_b.ps1"])
+    found = net(REPO, live_tools.tracked(REPO, (".py", ".sh", ".ps1"), git_env()))
+    discovered = {t.path for t in discover(REPO)}
+    check("arm: THE REAL TREE: the net finds the known self-tests (a net that does not is broken)",
+          [k for k in NET_KNOWN if k not in found], [])
+    check("arm: THE REAL TREE: every self-test the net finds is discovered by the runner (widen `classify`, never a "
+          "list: kb/Work PB2563)", [p for p in found if p not in discovered], [])
+
+
+def _module_literal(path: Path, name: str):
+    """The literal value of the top-level assignment `name = …` in the Python module at `path`, read from its syntax
+    tree: what the module declares, without importing it (and everything it imports) into this self-test."""
+    for node in ast.parse(path.read_text(encoding="utf-8")).body:
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target] if isinstance(node, ast.AnnAssign) else []
+        if any(isinstance(t, ast.Name) and t.id == name for t in targets) and node.value is not None:
+            return ast.literal_eval(node.value)
+    raise LookupError(f"{path.name} no longer declares `{name} = …`")
+
+
+def hand_named(sources: dict[str, str], tests: list[SelfTest]) -> list[str]:
+    """Every code line of `sources` (a gate entry point's text, by where it is) that runs a discovered self-test by hand:
+    a flag-handling one named with `--self-test`, a standalone one named at all. This runner is the one exception."""
+    named: list[str] = []
+    for where, text in sources.items():
+        for raw in text.splitlines():
+            line = raw.strip()
+            if line.startswith("#"):
+                continue
+            named += [f"{where}: {t.path} in `{line}`" for t in tests if t.path != "scripts/self_tests.py"
+                      and (f"{t.path} {FLAG}" in line if t.handles_flag else t.path in line)]
+    return named
+
+
+def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
+    """Every gate entry point runs this runner: the local gate's audits (SELF-TESTS, only for a change that touches
+    tooling, TOOLING_ONLY, kb/Work PB4326) and its post-build half, the Linux gate's two legs, CI's `audits` job on
+    Linux, its `linux-built-self-tests` job and `windows-self-tests` on Windows; only the gate REUSES a recorded PASS
+    (kb/Work PB2914, PB3022); and none of them runs a discovered self-test itself (a hand list again, kb/Work PB2563)."""
+    from ci_workflow import jobs  # noqa: PLC0415 — this directory's: the one reader of a CI workflow's shape
+    scripts = REPO / "scripts"
+    driver = scripts / "gate.py"
+    audits = _module_literal(driver, "AUDITS")
+    linux = (scripts / "linux-gate.sh").read_text(encoding="utf-8")
+    workflow = (REPO / ".github" / "workflows" / "build-and-test.yml").read_text(encoding="utf-8")
+    check("arm: the gate's audits run this runner, its post-build half `--built`, the runner only for a change that "
+          "touches tooling, and with --reuse",
+          (("SELF-TESTS", ["scripts/self_tests.py"]) in audits, _module_literal(driver, "BUILT_SELF_TESTS"),
+           _module_literal(driver, "TOOLING_ONLY"), _module_literal(driver, "SELF_TESTS_REUSE")),
+          (True, ["scripts/self_tests.py", "--built"], ("SELF-TESTS",), "--reuse"))
+    # linux-gate.sh runs its legs in parallel (kb/Work PB2879) in the AUDIT clone, outside the inert watch of its test
+    # legs (kb/Work PB2878): each runner call may redirect to its leg's result file and run in the background.
+    check("arm: the Linux gate's two self-test legs run this runner, and neither the Linux gate nor CI reuses a PASS",
+          (bool(re.search(r'(?m)^\s*selftests_leg selftests "\$auditsnap"( > "\$out/selftests\.result" 2>&1 &)?\r?$', linux)),
+           bool(re.search(r'(?m)^\s+selftests_leg selftests-built "\$auditsnap" --built'
+                          r'( > "\$out/selftests-built\.result" 2>&1 &)?\r?$', linux)),
+           "--reuse" in linux, "--reuse" in workflow), (True, True, False, False))
+
+    def runs(jid: str) -> list[str]:
+        """The one-line `run:` commands of a job's steps (a block scalar is not one line)."""
+        return [v for s in by[jid].steps if (v := s.value("run")) and v not in ("|", ">", "|-", ">-")]
+    by = {j.id: j for j in jobs(workflow)}
+    # kb/Work PB3581, PB4329: the self-tests are their own jobs, never a step of a test shard.
+    check("arm: CI's audits (Linux), linux-built-self-tests and windows-self-tests jobs run this runner on their "
+          "platforms; no test shard runs it, and windows-self-tests builds nothing",
+          ("python3 scripts/self_tests.py" in runs("audits"), "python3 scripts/self_tests.py --built" in runs("linux-built-self-tests"),
+           "python scripts/self_tests.py" in runs("windows-self-tests"),
+           [by[j].value("runs-on").split("-")[0] for j in ("audits", "linux-built-self-tests", "windows-self-tests")],
+           any("self_tests.py" in r for j in ("windows-shard", "linux-shard") for r in runs(j)),
+           "dotnet build" in by["windows-self-tests"].code),
+          (True, True, True, ["ubuntu", "ubuntu", "windows"], False, False))
+    tests = discover(REPO)
+    planted = [SelfTest("scripts/x.py", True, None, ""), SelfTest("scripts/o/test_y.ps1", False, None, "")]
+    check("arm: a self-test named in an entry point is found: a flag-handling one with its flag, a standalone one at all; "
+          "a comment, the runner and the flag-handler's other modes are not",
+          hand_named({"w": "# scripts/x.py --self-test\npython scripts/x.py --check\npwsh scripts/o/test_y.ps1\n"
+                           "python scripts/x.py --self-test\npython scripts/self_tests.py\n"}, planted),
+          ["w: scripts/o/test_y.ps1 in `pwsh scripts/o/test_y.ps1`", "w: scripts/x.py in `python scripts/x.py --self-test`"])
+    sources = {"scripts/gate.py AUDITS": "\n".join(" ".join(cmd) for _, cmd in audits),
+               "scripts/linux-gate.sh": linux, ".github/workflows/build-and-test.yml": workflow}
+    sources |= {f"scripts/{n}": (scripts / n).read_text(encoding="utf-8")
+                for n in ("build-local.ps1", "build-local.sh", "battery.sh")}
+    check(f"arm: THE REAL TREE: no gate entry point runs one of the {len(tests)} discovered self-tests by hand",
+          hand_named(sources, tests), [])
 
 
 def _max_overlap(spans: list[tuple[float, float]]) -> int:
@@ -909,6 +1166,8 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         (root / "data" / "a.txt").write_text("a\n", encoding="utf-8", newline="\n")
         (root / "data" / "c.txt").write_text("c\n", encoding="utf-8", newline="\n")
         (root / "scripts" / "helper_b.py").write_text("VALUE = 1\n", encoding="utf-8", newline="\n")
+        # the span files compare the Python clock across processes, so these planted self-tests declare it real
+        REAL_CLOCK = "# SELF-TEST-CLOCK: real — the arm compares the spans of several processes\n"
         span = ("import os, sys, time\nt0 = time.time(); time.sleep({sleep}); t1 = time.time()\n"
                 f"open(os.path.join({str(spans_dir)!r}, '%s-%d-%s' % (os.path.basename(sys.argv[0]), os.getpid(),"
                 " os.urandom(4).hex())), 'w').write('%f %f' % (t0, t1))\n")
@@ -918,17 +1177,68 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
             "test_c.py": "open('data/' + 'c' + '.txt').read()\n",          # a name built at run time: only the trace sees it
         }
         for name, body in bodies.items():
-            (root / "scripts" / name).write_text(body + span.format(sleep=_FLEET_SLEEP_S), encoding="utf-8", newline="\n")
+            (root / "scripts" / name).write_text(REAL_CLOCK + body + span.format(sleep=_FLEET_SLEEP_S), encoding="utf-8",
+                                                 newline="\n")
         (root / "scripts" / "test_hang.py").write_text("import time\ntime.sleep(60)\n", encoding="utf-8", newline="\n")
+        # The proof of the tooling flag (`_record`): a self-test that reads a file `planted` does not see; one that reads
+        # it while walking the whole tree with git, undeclared (judged) and declared a population (the accepted residue);
+        # and a declaration its trace does not bear out.
+        (root / "elsewhere").mkdir()
+        (root / "elsewhere" / "x.txt").write_text("x\n", encoding="utf-8", newline="\n")
+        walk = ("import subprocess\nsubprocess.run(['git', 'ls-files'], check=True, capture_output=True)\n"
+                "open('elsewhere/x.txt').read()\n")
+        declare = "# SELF-TEST-POPULATION: tree — the arm's walker\n"
+        for name, body in (("test_stray.py", "open('elsewhere/x.txt').read()\n"), ("test_walker.py", walk),
+                           ("test_population.py", declare + walk), ("test_claim.py", declare + "open('data/a.txt').read()\n")):
+            (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
+        # The clock proof (kb/Work PB4358; scripts/self_test_clock.py): a fixture written when the arm runs (an hour ago)
+        # and compared with the wall clock, which the real clock keeps within its window and a clock moved forward
+        # overtakes (PB4353's shape); the same test deriving its fixture from the clock, which cannot expire; a child
+        # process whose clock must move with its parent's; a Python clock compared with a file's modification time,
+        # a real clock the shift cannot move, undeclared and declared; and a self-test that cannot read the clock.
+        authored = dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=1)
+        (root / "data" / "authored.txt").write_text(authored.isoformat(), encoding="utf-8", newline="\n")
+        mtime = "import os, sys, time\nsys.exit(0 if abs(time.time() - os.path.getmtime(__file__)) < 86400 else 1)\n"
+        for name, body in (
+                ("test_dated.py", "import datetime, sys\nauthored = datetime.datetime.fromisoformat(open('data/authored.txt').read())\n"
+                                  "age = datetime.datetime.now(datetime.timezone.utc) - authored\n"
+                                  "sys.exit(0 if age < datetime.timedelta(days=30) else 1)\n"),
+                ("test_relative.py", "import datetime, sys\nnow = datetime.datetime.now(datetime.timezone.utc)\n"
+                                     "authored = now - datetime.timedelta(hours=1)\n"
+                                     "sys.exit(0 if datetime.datetime.now(datetime.timezone.utc) - authored < datetime.timedelta(days=30) else 1)\n"),
+                # the child's clock must lie inside the interval the parent's own clock brackets its run in: moved with its
+                # parent's it does, at the other clock it is 400 days outside it; a slow start-up only widens the interval
+                # (a second of allowance is for the two clocks' rounding, never a limit on how long the child takes)
+                ("test_child.py", "import subprocess, sys, time\n"
+                                  "before = time.time()\n"
+                                  "child = float(subprocess.run([sys.executable, '-c', 'import time; print(time.time())'],"
+                                  " capture_output=True, text=True, check=True).stdout)\n"
+                                  "after = time.time()\n"
+                                  "sys.exit(0 if before - 1 <= child <= after + 1 else 1)\n"),
+                ("test_mtime.py", mtime),
+                ("test_real.py", "# SELF-TEST-CLOCK: real — it compares the Python clock with its file's modification time\n" + mtime),
+                ("test_plain.py", "import sys\nsys.exit(0)\n")):
+            (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
+        # R1-2's and R2-1's bash arms: a script self-test whose OWN text reads a clock, one that reads none, one that
+        # sources a helper which does, and one that runs a Python helper which does (its trace is planted below)
+        for name, body in (("test_date.sh", "stamp=$(date +%s)\n"), ("test_none.sh", "echo 1\n"),
+                           ("test_sourced.sh", ". helper_date.sh\n"), ("helper_date.sh", "stamp=$(date +%s)\n"),
+                           ("test_pyrun.sh", "python scripts/py_clock.py\n"), ("py_clock.py", "import time\nt = time.time()\n")):
+            (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
         ScratchRepo.init(root).git("add", "-A")
         found = {t.path.rsplit("/", 1)[-1]: t for t in discover(root)}
         tests = [found[n] for n in sorted(bodies)]
         plat = this_platform()
+        # The planted repository's own classification: its scripts are tooling, and the data its self-tests read is
+        # declared, as scripts/inert_lane.py declares the real tree's (the proof of the tooling flag, `_record`).
+        planted = inert_lane.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
+                                            tooling_reads={"data/": "the fleet arms' fixtures"})
         budget_dir, store_dir = root / ".git" / BUDGET_DIR, root / ".git" / PASS_STORE_DIR
 
         def gate(reuse: bool, said: list[str], hang_after_s: float = HANG_AFTER_S, which=None) -> list[Result]:
             return Runner(root, plat, said.append, reuse=reuse, budget=Budget(budget_dir, _FLEET_CAP),
-                          store=PassStore(store_dir), hang_after_s=hang_after_s, by="fleet arm").run(which or tests)
+                          store=PassStore(store_dir), hang_after_s=hang_after_s, by="fleet arm",
+                          classification=planted).run(which or tests)
 
         def fleet(reuse: bool, which=None) -> list[list[Result]]:
             barrier = threading.Barrier(_FLEET_GATES)
@@ -1002,7 +1312,8 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               (notes["scripts/test_b.py"], notes["scripts/test_a.py"].startswith("the PASS of")),
               ("re-run: 1 input(s) changed since the newest PASS — scripts/helper_u.py", True))
         fresh = Runner(root, plat, lambda _: None, reuse=True, budget=Budget(budget_dir, _FLEET_CAP),
-                       store=PassStore(Path(tempfile.mkdtemp(dir=s))), by="fleet arm").run([found["test_a.py"]])
+                       store=PassStore(Path(tempfile.mkdtemp(dir=s))), by="fleet arm",
+                       classification=planted).run([found["test_a.py"]])
         check("arm: a self-test with no PASS recorded at all says so — `first run` — rather than naming a change "
               "(kb/Work PB3061)", (fresh[0].state, fresh[0].note.startswith("first run: no PASS recorded for")),
               (GREEN, True))
@@ -1014,7 +1325,7 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         odd._dir("scripts/test_a.py", plat).mkdir(parents=True, exist_ok=True)
         (odd._dir("scripts/test_a.py", plat) / src.name).write_text(json.dumps(rec_a), encoding="utf-8", newline="\n")
         other = Runner(root, plat, lambda _: None, reuse=True, budget=Budget(budget_dir, _FLEET_CAP), store=odd,
-                       by="fleet arm").run([found["test_a.py"]])
+                       by="fleet arm", classification=planted).run([found["test_a.py"]])
         check("arm: a self-test whose recorded PASSes are all unusable says so — never `first run` (train 1063 review)",
               (other[0].state, other[0].note.startswith("re-run: 1 recorded PASS(es)")), (GREEN, True))
         said: list[str] = []
@@ -1024,11 +1335,107 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               "never RED", (hung[0].state, rc, line.startswith(VERDICT + "HANG")), (HANG, HANG_EXIT, True))
         check("arm: a hung self-test's output names the hang",
               any("HANG: still running" in s for s in said), True)
+        stray = gate(False, [], which=[found["test_stray.py"]])
+        check("arm: a self-test that passes but read a file the tooling flag does not see is RED, naming the file and "
+              "TOOLING_READS, and records no PASS (kb/Work PB4326, review R1-1)",
+              (stray[0].state, "elsewhere/x.txt" in stray[0].output and "TOOLING_READS" in stray[0].output,
+               PassStore(store_dir).find("scripts/test_stray.py", plat, inputs.Tree.load(root))), (RED, True, None))
+        walker = gate(False, [], which=[found["test_walker.py"]])
+        check("arm: a self-test that walks the whole tree with git WITHOUT declaring a population is judged like any "
+              "other: RED, naming the file and the declaration, and records no PASS (kb/Work PB4326, review R2-1)",
+              (walker[0].state, "elsewhere/x.txt" in walker[0].output and "SELF-TEST-POPULATION" in walker[0].output,
+               PassStore(store_dir).find("scripts/test_walker.py", plat, inputs.Tree.load(root))), (RED, True, None))
+        population = gate(False, [], which=[found["test_population.py"]])
+        check("arm: a self-test that declares a population and walks the whole tree with git is not judged: GREEN and "
+              "recorded",
+              (population[0].state,
+               PassStore(store_dir).find("scripts/test_population.py", plat, inputs.Tree.load(root)) is not None),
+              (GREEN, True))
+        claim = gate(False, [], which=[found["test_claim.py"]])
+        check("arm: a declared population its trace does not bear out is RED and records no PASS (the declaration "
+              "would otherwise exempt a self-test unproved)",
+              (claim[0].state, "SELF-TEST-POPULATION" in claim[0].output,
+               PassStore(store_dir).find("scripts/test_claim.py", plat, inputs.Tree.load(root))), (RED, True, None))
         empty = Path(tempfile.mkdtemp(dir=s))
         note = Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1),
-                      store=PassStore(store_dir))._record(found["test_a.py"], empty, 1.0)
+                      store=PassStore(store_dir), classification=planted)._record(found["test_a.py"], empty, 1.0)
         check("arm: a Python self-test whose trace does not show its own file records no PASS (the tracer did not run)",
               note.startswith("no PASS recorded"), True)
+
+        # kb/Work PB4358: the clock proof (scripts/self_test_clock.py)
+        def recorded(name: str) -> dict | None:
+            return PassStore(store_dir).find(f"scripts/{name}", plat, inputs.Tree.load(root))
+
+        os.environ[clocks.SHIFT_ENV] = str(clocks.CLOCK_SHIFT_DAYS)  # a runner inside a shifted process still runs at the real clock
+        try:
+            dated = gate(False, [], which=[found["test_dated.py"]])
+        finally:
+            del os.environ[clocks.SHIFT_ENV]
+        check("arm: a self-test that passes at today's clock but compares a fixture dated near its authoring day with a "
+              "clock moved forward is RED, says so and names the real-clock declaration, and records no PASS (PB4353's "
+              "shape: it passed on every gate until the day the wall clock overtook the fixture), even when the runner "
+              "itself runs in a process whose clock is moved",
+              (dated[0].state, "clock moved forward 400 days" in dated[0].output and "SELF-TEST-CLOCK" in dated[0].output,
+               recorded("test_dated.py")), (RED, True, None))
+        proofs = {n: gate(False, [], which=[found[n]])[0] for n in ("test_relative.py", "test_child.py", "test_plain.py",
+                                                                   "test_real.py")}
+        check("arm: a self-test that derives its fixture from the clock, and one whose child process must agree with it, "
+              "pass both runs (the shim moves every Python process the self-test starts); one that cannot read the clock "
+              "and one that declares it real run once",
+              {n: (r.state, "also green with the clock moved forward" in r.note) for n, r in proofs.items()},
+              {"test_relative.py": (GREEN, True), "test_child.py": (GREEN, True), "test_plain.py": (GREEN, False),
+               "test_real.py": (GREEN, False)})
+        undeclared = gate(False, [], which=[found["test_mtime.py"]])
+        check("arm: the same comparison with a file's modification time, undeclared, is RED (a real clock the shift cannot "
+              "move), and declared real it is not shifted", (undeclared[0].state, proofs["test_real.py"].state), (RED, GREEN))
+        def horizon(rec: dict | None) -> tuple[int, bool] | None:
+            """(shift days, whether `until` is that many days from today, give or take a midnight)."""
+            proof = (rec or {}).get("clock")
+            if proof is None:
+                return None
+            away = (dt.date.fromisoformat(proof["until"]) - dt.datetime.now(dt.timezone.utc).date()).days
+            return proof["shift_days"], abs(away - proof["shift_days"]) <= 1
+
+        check("arm: a clock-proved PASS records the horizon it proved, a declared real clock the day it was recorded (no "
+              "shift can prove it past today); only a self-test that cannot read the clock records none",
+              (horizon(recorded("test_relative.py")), horizon(recorded("test_plain.py")), horizon(recorded("test_real.py"))),
+              ((clocks.CLOCK_SHIFT_DAYS, True), None, (0, True)))
+        arm_runner = Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1), store=PassStore(store_dir),
+                            classification=planted)
+        traced = Path(tempfile.mkdtemp(dir=s))  # the trace of a run in which a Python child opened scripts/py_clock.py
+        (traced / "1.trace").write_text("F" + chr(9) + "scripts/py_clock.py" + chr(10), encoding="utf-8", newline=chr(10))
+        clock_of = {name: arm_runner._clock(SelfTest(f"scripts/{name}", False, None, ""), where).real
+                    for name, where in (("test_date.sh", empty), ("test_none.sh", empty), ("test_sourced.sh", empty),
+                                        ("test_pyrun.sh", traced))}
+        check("arm: a bash self-test whose own text reads the clock gets the day-bound clock, so does one whose closure "
+              "does: a script it sources, or a Python process it started (R1-2, R2-1: the closure its PASS is keyed on was "
+              "never read, so such a PASS was reused forever); one whose closure reads none gets none",
+              {n: bool(r) for n, r in clock_of.items()},
+              {"test_date.sh": True, "test_none.sh": False, "test_sourced.sh": True, "test_pyrun.sh": True})
+        check("arm: the same bash self-test, its Python child not in the trace, has no clock",
+              arm_runner._clock(SelfTest("scripts/test_pyrun.sh", False, None, ""), empty).real, "")
+        realized = PassStore(store_dir)._records("scripts/test_real.py", plat)[0]
+        past = json.loads(realized.read_text(encoding="utf-8"))
+        past["clock"]["until"] = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)).date().isoformat()
+        realized.write_text(json.dumps(past), encoding="utf-8", newline="\n")
+        reran = gate(True, [], which=[found["test_real.py"]])
+        check("arm: a declared-real PASS recorded on an earlier day is NOT reused (CI runs the self-test fresh against "
+              "today's clock; a local gate must not answer REUSED for a fixture the clock may have overtaken), says why, and "
+              "the fresh PASS is reused on its own day",
+              (reran[0].state, "cannot be moved" in reran[0].note, gate(True, [], which=[found["test_real.py"]])[0].state),
+              (GREEN, True, REUSED))
+        reused = gate(True, [], which=[found["test_relative.py"]])
+        check("arm: inside its horizon a clock-proved PASS is reused", reused[0].state, REUSED)
+        stored = PassStore(store_dir)._records("scripts/test_relative.py", plat)[0]
+        lapsed = json.loads(stored.read_text(encoding="utf-8"))
+        lapsed["clock"]["until"] = "2000-01-01"
+        stored.write_text(json.dumps(lapsed), encoding="utf-8", newline="\n")
+        again = gate(True, [], which=[found["test_relative.py"]])
+        check("arm: past its horizon the PASS is NOT reused: the self-test runs again, says the clock proof ended, and "
+              "records a fresh horizon",
+              (again[0].state, again[0].note.startswith("re-run: the clock proof of the PASS of"),
+               horizon(recorded("test_relative.py"))), (GREEN, True, (clocks.CLOCK_SHIFT_DAYS, True)))
+        check("arm: and the fresh PASS is reused again", gate(True, [], which=[found["test_relative.py"]])[0].state, REUSED)
 
 
 if __name__ == "__main__":

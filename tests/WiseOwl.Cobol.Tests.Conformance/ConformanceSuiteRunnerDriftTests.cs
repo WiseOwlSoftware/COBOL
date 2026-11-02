@@ -21,110 +21,37 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// library only, z/OS included); the in-process runner is WiseOwl's fast one, compiling through the compiled-program
 /// cache. Each states the verdict logic once in its own language, and each reads the adapter's diagnostic pattern and
 /// the profile its own way; a difference between them would make WiseOwl's own gate green on a suite a user's
-/// <c>run.py</c> run reports red. This test runs both on the same generated suites and names every test whose verdict
+/// <c>run.py</c> run reports red. These tests run both on the same generated suites and name every test whose verdict
 /// differs, with both reasons.</para>
-/// <para><b>Its cost grows with the suite</b>: <c>run.py</c> starts a <c>cobol</c> process per compile and one per
-/// run. It runs every test of every per-edition suite, one <c>run.py</c> observation per edition, each bounded by the
-/// work it does (<see cref="ObservationBudget.ForChildren"/>, kb/Work PB3108), so the budget grows with the suite
-/// instead of killing it at one program's limit.</para>
+/// <para><b>The verdict comparison is PARTITIONED</b> (<see cref="BothRunnersVerdictDriftTestsBase{TSlot}"/>;
+/// <see cref="TestPartitioning"/>; kb/Work PB4325): <c>run.py</c> starts a <c>cobol</c> process per compile and one per
+/// run, so its cost grows with the suite, and as ONE test it was the longest case of every run (166 s local, 352 s on
+/// Windows CI) and set the floor of the Conformance leg's wall. Each partition runs its even share of the suite's
+/// tests; the class below holds the whole-population assertions that no partition can make.</para>
 /// </remarks>
 public sealed class ConformanceSuiteRunnerDriftTests
 {
+    /// <summary>The two runners run exactly the same tests: the tests of the generator's per-edition suites (what
+    /// <c>run.py</c> runs) are the wiseowl manifest's in-suite tests (what the in-process runner judges), edition by
+    /// edition. A WHOLE-population assertion, so it lives here and not on the partitioned base, where each partition
+    /// would repeat it. It starts no process: both sides are read from the one generation
+    /// (<see cref="SuiteManifest.Generated"/>).</summary>
     [Fact]
-    public void BothRunners_GiveEverySuiteTestTheSameVerdict()
+    public void BothRunners_RunExactlyTheSameTests()
     {
-        string cli = TestRepo.SrcBin("WiseOwl.Cobol.Cli", OperatingSystem.IsWindows() ? "cobol.exe" : "cobol");
-        Assert.True(File.Exists(cli),
-            $"{cli} does not exist: the Conformance project builds the cobol command (its ProjectReference to "
-            + "WiseOwl.Cobol.Cli) so that run.py can drive it");
-        string scratch = ScratchDirectory.Create("suitedrift");
-        try
-        {
-            string suites = Path.Combine(scratch, "suites");
-            SuiteManifest.Generate(suites);
-            var theirs = new Dictionary<(string Edition, string Id), SuiteResult>();
-            foreach (var (edition, tests) in GeneratedSuites(suites))
-                foreach (var (id, result) in RunPy(cli, suites, edition, tests, Path.Combine(scratch, "results", edition)))
-                    theirs.Add((edition, id), result);
-            Assert.NotEmpty(theirs);
+        var theirs = RunPyHarness.GeneratedSuites(SuiteManifest.Generated)
+            .SelectMany(s => s.Ids.Select(id => (s.Edition, Id: id)))
+            .ToHashSet();
+        Assert.NotEmpty(theirs);
+        var ours = RunPyHarness.InSuiteTests().Select(t => (t.Edition, t.Id)).ToHashSet();
+        Assert.NotEmpty(ours);
 
-            var ours = SuiteManifest.Manifest.Editions
-                .SelectMany(e => e.Value.Values.Where(t => t.InSuite).Select(t => (Edition: e.Key, t.Id, Test: t)))
-                .ToDictionary(x => (x.Edition, x.Id), x => ConformanceSuiteRunner.Judge(x.Edition, x.Test));
-
-            Assert.NotEmpty(ours);
-            var onlyOurs = ours.Keys.Except(theirs.Keys).Order().ToList();
-            var onlyTheirs = theirs.Keys.Except(ours.Keys).Order().ToList();
-            Assert.True(onlyOurs.Count == 0 && onlyTheirs.Count == 0,
-                "the two runners ran different tests: the wiseowl manifest's in-suite tests and the per-edition suites "
-                + $"disagree. Only in-process: {string.Join(", ", onlyOurs)}. Only run.py: {string.Join(", ", onlyTheirs)}.");
-
-            var differing = ours.Where(o => o.Value.Verdict != theirs[o.Key].Verdict)
-                .OrderBy(o => o.Key)
-                .Select(o => $"  {o.Key.Edition}/{o.Key.Id}: in-process {o.Value.Verdict} ({o.Value.Reason}); "
-                    + $"run.py {theirs[o.Key].Verdict} ({theirs[o.Key].Reason})")
-                .ToList();
-            Assert.True(differing.Count == 0,
-                $"{differing.Count} test(s) of the suite have different verdicts in the two runners:\n{string.Join("\n", differing)}");
-        }
-        finally { ScratchDirectory.Remove(scratch); }
-    }
-
-    /// <summary>The processes run.py starts for one test, at most: an accepted test's compile and run, or a flagged
-    /// test's control compile and its flagged compile (run.py's <c>accept</c> and <c>flagged</c>); a test NOT APPLICABLE
-    /// starts none.</summary>
-    private const int RunPyProcessesPerTest = 2;
-
-    /// <summary>run.py's parallelism, stated here so its budget and its run agree: half the logical processors, at most
-    /// eight (run.py's own default).</summary>
-    private static readonly int RunPyJobs = Math.Clamp(Environment.ProcessorCount / 2, 1, 8);
-
-    /// <summary>The generator's per-edition suites, each with its test count: the population run.py runs (a suite is
-    /// <c>suites/&lt;edition&gt;/manifest.json</c>, an edition being all digits; <c>suites/wiseowl</c> is the WiseOwl
-    /// manifest, not a suite).</summary>
-    private static IEnumerable<(string Edition, int Tests)> GeneratedSuites(string suites)
-    {
-        foreach (string dir in Directory.EnumerateDirectories(suites).Order(StringComparer.Ordinal))
-        {
-            string edition = Path.GetFileName(dir);
-            string manifest = Path.Combine(dir, "manifest.json");
-            if (!edition.All(char.IsAsciiDigit) || !File.Exists(manifest)) continue;
-            using var doc = JsonDocument.Parse(File.ReadAllText(manifest));
-            int tests = doc.RootElement.GetProperty("tests").GetArrayLength();
-            // An edition suite with no test runs nothing in a whole run, and run.py refuses a run over nothing (exit 2):
-            // skip it here; a test the in-process side has at that edition then reads "only in-process".
-            if (tests > 0) yield return (edition, tests);
-        }
-    }
-
-    /// <summary>
-    /// run.py over ONE edition's suite, within the budget of the work it does (kb/Work PB3108): one harness unit for
-    /// run.py itself and one per round of <see cref="RunPyJobs"/> of its at most <see cref="RunPyProcessesPerTest"/>
-    /// processes per test. One observation per edition, so a retry re-runs one edition and no observation covers the
-    /// whole suite. Until PB3108 one run.py process ran every edition under one program's 120 s, and went RED on load
-    /// alone at least eight times between 2026-10-18 and 2026-10-22 (its 78 processes take 30 s on a quiet host).
-    /// </summary>
-    private static IEnumerable<(string Id, SuiteResult Result)> RunPy(string cli, string suites, string edition, int tests,
-        string results)
-    {
-        var budget = ObservationBudget.ForChildren(RunPyProcessesPerTest * tests, RunPyJobs,
-            $"run.py over the {edition} suite ({tests} test(s), at most {RunPyProcessesPerTest} processes each, "
-            + $"{RunPyJobs} at a time)");
-        ProcessObservation run = PythonInstrument.Run(budget, ConformanceSuite.Harness, "--compiler", ConformanceSuite.Compiler,
-            "--set", $"cobol={cli}", "--suites", suites, "--editions", edition,
-            "--jobs", RunPyJobs.ToString(CultureInfo.InvariantCulture), "--out", results);
-        // 0 GREEN, 1 RED (a FAIL: the in-process runner must then say FAIL too); 2 is a usage or configuration error.
-        Assert.True(run.ExitCode is 0 or 1,
-            $"run.py could not run the {edition} suite (exit {run.ExitCode}):\n{run.Stdout}\n{run.Stderr}");
-        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(results, "results.json")));
-        var ran = doc.RootElement.GetProperty("tests").EnumerateArray()
-            .Select(t => (Edition: t.GetProperty("edition").GetString()!, Id: t.GetProperty("id").GetString()!,
-                Result: new SuiteResult(t.GetProperty("verdict").GetString()!, t.GetProperty("reason").GetString()!)))
-            .ToList();
-        Assert.True(ran.All(t => t.Edition == edition),
-            $"run.py --editions {edition} reported tests of another edition: "
-            + string.Join(", ", ran.Where(t => t.Edition != edition).Select(t => $"{t.Edition}/{t.Id}")));
-        return ran.Select(t => (t.Id, t.Result));
+        var onlyOurs = ours.Except(theirs).Order().ToList();
+        var onlyTheirs = theirs.Except(ours).Order().ToList();
+        Assert.True(onlyOurs.Count == 0 && onlyTheirs.Count == 0,
+            "the two runners run different tests: the wiseowl manifest's in-suite tests and the per-edition suites "
+            + $"disagree. Only in-process: {string.Join(", ", onlyOurs.Select(t => $"{t.Edition}/{t.Id}"))}. "
+            + $"Only run.py: {string.Join(", ", onlyTheirs.Select(t => $"{t.Edition}/{t.Id}"))}.");
     }
 
     /// <summary>The two runners run a program under the same default locales: <see cref="CutRunner.RunExit"/> pins
@@ -179,3 +106,190 @@ public sealed class ConformanceSuiteRunnerDriftTests
             + $"case, what it produced):\n{string.Join("\n", wrong)}");
     }
 }
+
+/// <summary>
+/// Both runners give THIS PARTITION'S share of the suite's tests the same verdict (kb/Work PB3176, PB4325): the
+/// in-process runner judges each test, <c>run.py</c> runs the same tests through the <c>cobol</c> command, and every
+/// test whose two verdicts differ, or that only one side ran, is named with both reasons.
+/// </summary>
+/// <remarks>
+/// <para>⛔ THIS FAMILY IS PARTITIONED (<see cref="TestPartitioning"/>; kb/Work PB4325, step 2 of PB4323). It was one
+/// <c>[Fact]</c> that ran <c>run.py</c> over every edition's suite, one observation per edition and the editions in
+/// series: 109 to 232 s on the local gate host, 352 s on Windows CI, the longest case of every run, which made CI's
+/// "rest" shard 2.2 times (Linux) to 1.4 times (Windows) longer than its other cases need. <see cref="Partitions"/>
+/// classes run in parallel, each holding its even share of the rows (<see cref="TestPartitionAudit"/> refuses a lost
+/// row); a partition runs <c>run.py</c> once per edition its share names, the edition's tests given by <c>--test</c>,
+/// each observation bounded by the work it does (<see cref="ObservationBudget.ForChildren"/>, kb/Work PB3108).</para>
+/// <para>The row set is the wiseowl manifest's in-suite tests, <c>(edition, id)</c>. That it equals the set <c>run.py</c>
+/// runs is asserted ONCE, by <see cref="ConformanceSuiteRunnerDriftTests.BothRunners_RunExactlyTheSameTests"/> (an
+/// inherited <c>[Fact]</c> would run in every partition); each partition still asserts that <c>run.py</c> ran exactly
+/// the tests it was asked to: a test <c>run.py</c> was given and left out of its results reads "only in-process", and
+/// one the chosen suite does not hold at all fails <c>run.py</c> itself (<c>--test names X, which no chosen suite
+/// holds</c>, exit 2), which <c>RunPyHarness.Run</c> reports first.</para>
+/// </remarks>
+/// <typeparam name="TSlot">This partition's slot.</typeparam>
+public abstract class BothRunnersVerdictDriftTestsBase<TSlot>
+    where TSlot : ITestPartitionSlot
+{
+    /// <summary>Partition count: the suite's in-suite tests (89 in 2026-10) in eighths, about 11 a partition, so the
+    /// longest observation is a few <c>run.py</c> rounds instead of the whole suite's. The stride gives each partition
+    /// an eighth of the rows whatever the suite's size, so the suite grows with no edit here (kb/Work PB4146).</summary>
+    public const int Partitions = 8;
+
+    [PartitionedRowSource(nameof(Tests))]
+    public static IEnumerable<object[]> AllTests() =>
+        RunPyHarness.InSuiteTests().Select(t => new object[] { t.Edition, t.Id });
+
+    /// <summary>This partition's share of the suite's in-suite tests.</summary>
+    public static IEnumerable<object[]> Tests() => TestPartitioning.SliceRows<TSlot>(AllTests(), Partitions);
+
+    [Fact]
+    public void BothRunners_GiveThisPartitionsSuiteTestsTheSameVerdict()
+    {
+        string cli = TestRepo.SrcBin("WiseOwl.Cobol.Cli", OperatingSystem.IsWindows() ? "cobol.exe" : "cobol");
+        Assert.True(File.Exists(cli),
+            $"{cli} does not exist: the Conformance project builds the cobol command (its ProjectReference to "
+            + "WiseOwl.Cobol.Cli) so that run.py can drive it");
+        var share = Tests().Select(r => (Edition: (string)r[0], Id: (string)r[1])).ToList();
+        Assert.NotEmpty(share);
+
+        string scratch = ScratchDirectory.Create("suitedrift");
+        try
+        {
+            var differentTests = new List<string>();
+            var differing = new List<string>();
+            foreach (var byEdition in share.GroupBy(t => t.Edition, StringComparer.Ordinal))
+            {
+                string edition = byEdition.Key;
+                string[] ids = [.. byEdition.Select(t => t.Id)];
+                Dictionary<string, SuiteResult> theirs = RunPyHarness.Run(cli, SuiteManifest.Generated, edition, ids,
+                    Path.Combine(scratch, "results", edition));
+                var ours = ids.ToDictionary(id => id,
+                    id => ConformanceSuiteRunner.Judge(edition, SuiteManifest.Manifest.Editions[edition][id]),
+                    StringComparer.Ordinal);
+
+                var onlyOurs = ours.Keys.Except(theirs.Keys).Order(StringComparer.Ordinal).ToList();
+                var onlyTheirs = theirs.Keys.Except(ours.Keys).Order(StringComparer.Ordinal).ToList();
+                if (onlyOurs.Count > 0 || onlyTheirs.Count > 0)
+                    differentTests.Add($"  {edition}: only in-process: {string.Join(", ", onlyOurs)}. "
+                        + $"Only run.py: {string.Join(", ", onlyTheirs)}.");
+                differing.AddRange(ours.Where(o => theirs.ContainsKey(o.Key) && o.Value.Verdict != theirs[o.Key].Verdict)
+                    .OrderBy(o => o.Key, StringComparer.Ordinal)
+                    .Select(o => $"  {edition}/{o.Key}: in-process {o.Value.Verdict} ({o.Value.Reason}); "
+                        + $"run.py {theirs[o.Key].Verdict} ({theirs[o.Key].Reason})"));
+            }
+            Assert.True(differentTests.Count == 0,
+                "the two runners ran different tests, though this partition asked run.py for the in-process side's:\n"
+                + string.Join("\n", differentTests));
+            Assert.True(differing.Count == 0,
+                $"{differing.Count} test(s) of the suite have different verdicts in the two runners:\n{string.Join("\n", differing)}");
+        }
+        finally { ScratchDirectory.Remove(scratch); }
+    }
+}
+
+/// <summary>What the partitioned verdict comparison and the whole-population test share: the suite's in-suite tests,
+/// the generator's per-edition suites, and one <c>run.py</c> observation.</summary>
+internal static class RunPyHarness
+{
+    /// <summary>The processes run.py starts for one test, at most: an accepted test's compile and run, or a flagged
+    /// test's control compile and its flagged compile (run.py's <c>accept</c> and <c>flagged</c>); a test NOT APPLICABLE
+    /// starts none.</summary>
+    private const int ProcessesPerTest = 2;
+
+    /// <summary>run.py's parallelism, stated here so its budget and its run agree: half the logical processors, at most
+    /// eight (run.py's own default).</summary>
+    private static readonly int Jobs = Math.Clamp(Environment.ProcessorCount / 2, 1, 8);
+
+    /// <summary>The wiseowl manifest's in-suite tests, <c>(edition, id)</c>, in a stable order: the population the
+    /// in-process runner judges and <c>run.py</c> must run.</summary>
+    internal static IEnumerable<(string Edition, string Id)> InSuiteTests() =>
+        SuiteManifest.Manifest.Editions.OrderBy(e => e.Key, StringComparer.Ordinal)
+            .SelectMany(e => e.Value.Values.Where(t => t.InSuite).OrderBy(t => t.Id, StringComparer.Ordinal)
+                .Select(t => (Edition: e.Key, t.Id)));
+
+    /// <summary>The generator's per-edition suites, each with the ids of its tests: the population run.py runs (a suite
+    /// is <c>suites/&lt;edition&gt;/manifest.json</c>, an edition being all digits; <c>suites/wiseowl</c> is the
+    /// WiseOwl manifest, not a suite).</summary>
+    internal static IEnumerable<(string Edition, IReadOnlyList<string> Ids)> GeneratedSuites(string suites)
+    {
+        foreach (string dir in Directory.EnumerateDirectories(suites).Order(StringComparer.Ordinal))
+        {
+            string edition = Path.GetFileName(dir);
+            string manifest = Path.Combine(dir, "manifest.json");
+            if (!edition.All(char.IsAsciiDigit) || !File.Exists(manifest)) continue;
+            using var doc = JsonDocument.Parse(File.ReadAllText(manifest));
+            yield return (edition,
+                [.. doc.RootElement.GetProperty("tests").EnumerateArray().Select(t => t.GetProperty("id").GetString()!)]);
+        }
+    }
+
+    /// <summary>
+    /// run.py over the tests <paramref name="ids"/> of ONE edition's suite, within the budget of the work it does
+    /// (kb/Work PB3108): one harness unit for run.py itself and one per round of its at most
+    /// <see cref="ProcessesPerTest"/> processes per test. One observation per edition and partition, so a retry re-runs
+    /// one partition's share of one edition and no observation covers the whole suite. Until PB3108 one run.py process
+    /// ran every edition under one program's 120 s, and went RED on load alone at least eight times between 2026-10-18
+    /// and 2026-10-22 (its 78 processes take 30 s on a quiet host). Returns what run.py reported, by test id.
+    /// </summary>
+    internal static Dictionary<string, SuiteResult> Run(string cli, string suites, string edition,
+        IReadOnlyList<string> ids, string results)
+    {
+        int jobs = Math.Min(Jobs, ids.Count);
+        var budget = ObservationBudget.ForChildren(ProcessesPerTest * ids.Count, jobs,
+            $"run.py over {ids.Count} test(s) of the {edition} suite (at most {ProcessesPerTest} processes each, "
+            + $"{jobs} at a time)");
+        var args = new List<string>
+        {
+            "--compiler", ConformanceSuite.Compiler, "--set", $"cobol={cli}",
+            "--suites", suites, "--editions", edition, "--jobs", jobs.ToString(CultureInfo.InvariantCulture),
+            "--out", results,
+        };
+        foreach (string id in ids)
+        {
+            args.Add("--test");
+            args.Add(id);
+        }
+        ProcessObservation run = PythonInstrument.Run(budget, ConformanceSuite.Harness, [.. args]);
+        // 0 GREEN, 1 RED (a FAIL: the in-process runner must then say FAIL too); 2 is a usage or configuration error.
+        Assert.True(run.ExitCode is 0 or 1,
+            $"run.py could not run the {edition} suite (exit {run.ExitCode}):\n{run.Stdout}\n{run.Stderr}");
+        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(results, "results.json")));
+        var ran = doc.RootElement.GetProperty("tests").EnumerateArray()
+            .Select(t => (Edition: t.GetProperty("edition").GetString()!, Id: t.GetProperty("id").GetString()!,
+                Result: new SuiteResult(t.GetProperty("verdict").GetString()!, t.GetProperty("reason").GetString()!)))
+            .ToList();
+        Assert.True(ran.All(t => t.Edition == edition),
+            $"run.py --editions {edition} reported tests of another edition: "
+            + string.Join(", ", ran.Where(t => t.Edition != edition).Select(t => $"{t.Edition}/{t.Id}")));
+        return ran.ToDictionary(t => t.Id, t => t.Result, StringComparer.Ordinal);
+    }
+}
+
+// ⛔ THE EIGHT PARTITIONS — each its own xUnit collection. TestPartitionAudit proves they cover the in-suite tests
+// exactly once, each partition its even share; a deleted partition class drops an eighth of the suite from the
+// verdict comparison without it.
+
+/// <summary>Runner-drift partition 0 of <see cref="BothRunnersVerdictDriftTestsBase{TSlot}.Partitions"/>.</summary>
+public sealed class BothRunnersVerdictDriftTests_P0 : BothRunnersVerdictDriftTestsBase<Slot0>;
+
+/// <summary>Runner-drift partition 1.</summary>
+public sealed class BothRunnersVerdictDriftTests_P1 : BothRunnersVerdictDriftTestsBase<Slot1>;
+
+/// <summary>Runner-drift partition 2.</summary>
+public sealed class BothRunnersVerdictDriftTests_P2 : BothRunnersVerdictDriftTestsBase<Slot2>;
+
+/// <summary>Runner-drift partition 3.</summary>
+public sealed class BothRunnersVerdictDriftTests_P3 : BothRunnersVerdictDriftTestsBase<Slot3>;
+
+/// <summary>Runner-drift partition 4.</summary>
+public sealed class BothRunnersVerdictDriftTests_P4 : BothRunnersVerdictDriftTestsBase<Slot4>;
+
+/// <summary>Runner-drift partition 5.</summary>
+public sealed class BothRunnersVerdictDriftTests_P5 : BothRunnersVerdictDriftTestsBase<Slot5>;
+
+/// <summary>Runner-drift partition 6.</summary>
+public sealed class BothRunnersVerdictDriftTests_P6 : BothRunnersVerdictDriftTestsBase<Slot6>;
+
+/// <summary>Runner-drift partition 7.</summary>
+public sealed class BothRunnersVerdictDriftTests_P7 : BothRunnersVerdictDriftTestsBase<Slot7>;

@@ -124,7 +124,8 @@ public sealed class Frontend
                 Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps);
             var passLineMap = new SourceLineMap(processed.Lines);
             LineMap = passLineMap;
-            var (tree, parsed, sourceDebuggingLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics);
+            var passAreas = new FixedFormAreas(passLineMap, formats);
+            var (tree, parsed, sourceDebuggingLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas);
             // A debugging line the §6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(
@@ -167,7 +168,7 @@ public sealed class Frontend
                 foreach (var d in passDiagnostics.Diagnostics) diagnostics.Add(d);
                 diagnostics.AddCompileOutput(passDiagnostics.CompileOutput);
                 Directives = directives.WithStackOps(ops);
-                Areas = new FixedFormAreas(passLineMap, formats);
+                Areas = passAreas;
                 return tree;
             }
             if (pass > SpeculationBound(encounters, formats))
@@ -395,7 +396,7 @@ public sealed class Frontend
     /// can use it (<see cref="Parse"/>'s §14.9.28.4 GR14 op placement) and never an answer to hand on.
     /// </summary>
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParse(
-        string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics)
+        string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
     {
         // The pass's earlier stages (line entry, COPY, directives) reported into <diagnostics> already; the attempt bags below
         // hold the lex and parse stages' own. An error of either keeps the binder from running.
@@ -417,7 +418,7 @@ public sealed class Frontend
         while (true)
         {
             var attemptDiagnostics = new DiagnosticBag();
-            var (tree, parsed, sourceDebuggingLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics);
+            var (tree, parsed, sourceDebuggingLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, cuts);
             if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
             {
                 retypes = tree.TokenRetypes;
@@ -433,7 +434,7 @@ public sealed class Frontend
     /// <see cref="LexAndParse"/>), reporting into <paramref name="diagnostics"/>.</summary>
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParseOnce(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, TokenRetypes retypes, EditionInfo edition,
-        bool priorErrors, DiagnosticBag diagnostics)
+        bool priorErrors, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
     {
         // FIRST: a fixed-form debugging line is source or comment per its unit's WITH DEBUGGING MODE clause (kb/Work PB1705);
         // every reader after this one sees only the lines that are source. A line inside an open PICTURE or subscript
@@ -468,11 +469,16 @@ public sealed class Frontend
         // The §8.9 reservation gate's retype of the words the program declares where the edition frees them (kb/Work PB655).
         // (The >>COBOL-WORDS retype was applied by the lexer itself.) A no-op when no such word is declared.
         retypes.Rewrite(tokens);
+        // ISO §4.2.14 — each embedded precompiler block (EXEC … END-EXEC) becomes the one token that stands for what its
+        // precompiler writes, BEFORE every reader of the stream: the screens below skip its text, which is another
+        // language, and every prediction of the parse sees the token (kb/Work PB4341). A no-op for a source with none.
+        var embeddedBlocks = EmbeddedBlockReading.Read(tokens,
+            () => ParsesCleanly(tokens, retypes, edition, cobolWordsMap, sourcePath, cuts));
 
         // ISO §13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
         // parse error; the parse itself still runs, so every other diagnostic of the unit is reported too.
-        var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap);
+        var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts);
         // ISO §6.3.5 1) / §6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
         // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
         LiteralScreen.ReportUnterminated(tokens.GetTokens(), (t, descriptor, message) =>
@@ -496,17 +502,24 @@ public sealed class Frontend
         // the parse dying. Setting only DialectLevel left Permissive false for every real compile, so
         // `--permissive` could not save a program that names a reservation-gated word — the one thing the mode
         // exists for. Every other stage of this pipeline is already handed `Permissive`; the parser was the gap.
-        var parser = new CobolParserCore(tokens)
-        {
-            Edition = edition,
-            CobolWords = cobolWordsMap,
-        };
+        var parser = NewParser(tokens, edition, cobolWordsMap);
 
         // ⛔ THE TOKEN-LEVEL §8.9 GATE (kb/Work PB655): the ONE loop both front ends share —
         // ReservationGateRewriter.ParseToFixpoint re-parses until no newly declared free gated word remains.
         int parseStart = diagnostics.Diagnostics.Count;   // the parse's own reports start here (the cause below is placed among them)
         var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
-            (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath));
+            (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath, cuts));
+
+        // ISO §4.2.14 — each embedded precompiler block, reported once at its EXEC and placed among the parse's reports by
+        // position (kb/Work PB4341); a source that holds one did not parse, whatever the parse's own errors.
+        if (embeddedBlocks.Any)
+        {
+            var blockReports = new DiagnosticBag();
+            var blockListener = new CobolErrorListener(blockReports, sourcePath, LineMap, cuts);
+            embeddedBlocks.Report((exec, message) =>
+                blockListener.SyntaxError(TextWriter.Null, null!, exec, exec.Line, exec.Column, message, null!));
+            diagnostics.AddBeforeEffects(blockReports.Diagnostics, parseStart);
+        }
 
         // ISO §8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
@@ -534,14 +547,32 @@ public sealed class Frontend
             diagnostics.AddBeforeEffects(screened.Diagnostics, parseStart);
         }
 
-        return (tree, parser.NumberOfSyntaxErrors == 0, sourceDebuggingLines);
+        return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines);
+    }
+
+    /// <summary>The whole-group parser of <paramref name="tokens"/>: the ONE place the driver hands it the edition (both axes) and
+    /// the words map (see the call in <see cref="LexAndParseOnce"/>).</summary>
+    private static CobolParserCore NewParser(CommonTokenStream tokens, EditionInfo edition, CobolWordsMap cobolWordsMap)
+        => new(tokens) { Edition = edition, CobolWords = cobolWordsMap };
+
+    /// <summary>Does the source parse with no syntax error as it stands? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
+    /// EXEC only the grammar can classify (kb/Work PB4381): one whole parse, the gate's loop included, of a COPY of the
+    /// stream (the loop retypes the tokens it is handed) into a bag nothing reads.</summary>
+    private bool ParsesCleanly(CommonTokenStream tokens, TokenRetypes retypes, EditionInfo edition,
+        CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts)
+    {
+        var copy = new CommonTokenStream(new ListTokenSource(tokens.GetTokens().Select(t => (IToken)new CommonToken(t)).ToList()));
+        var parser = NewParser(copy, edition, cobolWordsMap);
+        ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(),
+            (bag, witness) => ParsePass(parser, copy, bag, witness, sourcePath, cuts));
+        return parser.NumberOfSyntaxErrors == 0;
     }
 
     /// <summary>One parse of the whole token stream from token 0: fast SLL prediction first (with a
     /// <see cref="BailErrorStrategy"/> so an ambiguity throws rather than hangs), falling back to full LL on
     /// failure.</summary>
     private CobolParserCore.CompilationUnitContext ParsePass(CobolParserCore parser, CommonTokenStream tokens,
-        DiagnosticBag diagnostics, IAntlrErrorListener<IToken> gateWitness, string sourcePath)
+        DiagnosticBag diagnostics, IAntlrErrorListener<IToken> gateWitness, string sourcePath, IMarginRCutLocator cuts)
     {
         tokens.Seek(0);
         parser.Reset();
@@ -569,7 +600,7 @@ public sealed class Frontend
             parser.Reset();
             parser.Interpreter.PredictionMode = PredictionMode.LL;
             parser.ErrorHandler = new CobolErrorStrategy();
-            parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap));
+            parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts));
             parser.AddErrorListener(gateWitness);
             return parser.compilationUnit();
         }

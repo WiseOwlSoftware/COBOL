@@ -13,7 +13,7 @@
     python scripts/scratch_repo.py --self-test      # the fixture's guarantees and the audit's arms, then --audit
 
 ⛔ WHY ONE FIXTURE. Until PB3584 fifteen self-tests `git init`-ed their own scratch repositories, and seven defined a
-git helper of their own (devlog.py `sh`, prune_worktrees.py `g`, rendered_views.py `git`, run_gate_legs.py two,
+git helper of their own (devlog.py `sh`, prune_worktrees.py `g`, rendered_views.py `git`, gate.py two,
 enqueue.py `sh`, landing_check.py `sh`, test_plan_wave.py `git`), each with its own identity, its own checking (some
 raised with git's message, some with none, some never checked) and its own idea of the environment. A change to how a
 self-test drives git reached one helper and left the others behind. Measured: run outside scripts/self_tests.py
@@ -36,7 +36,7 @@ WHAT IT GUARANTEES, for every repository it creates and every command it runs:
   DECODING    text as UTF-8 (errors replaced), `binary=True` for bytes in and out (a text-mode pipe on Windows writes
               CRLF into a `-z` or `--index-info` input).
 
-THE AUDIT (`--audit`; `SelfTestFixtureDriftTests` runs it): in SELF-TEST CODE — every function whose name contains
+THE AUDIT (`--audit`; the self-test runs it over the real tree): in SELF-TEST CODE — every function whose name contains
 `self_test` or `selftest` and everything nested in it, and the whole of a standalone `test_*.py` — of every tracked
 Python file under live_tools.ROOTS but this one,
   SPAWN   a `subprocess.<anything>(…)` call whose argv holds a GIT ARGV (a list or tuple literal whose first element is
@@ -55,6 +55,11 @@ Python file under live_tools.ROOTS but this one,
           (devlog.py's `landing` over `commit_files`) is a case, no finding.
   EMPTY   an audit that read no self-test code at all is a finding: a net over nothing is no net.
 Calling the code under test's own git functions from a self-test's body is no finding: that is the subject under test.
+
+THE RULES ARE WRITTEN ONCE (`rule_copies`, run over the real tree by the self-test; kb/Work PB3821, PB4395): a broader text
+net than the audit's syntax tree, over every live Python file but this one: no code line creates a repository (a quoted
+`git` and a quoted `init`), none reads `--local-env-vars` or declares the identity or the maintenance settings (the
+runner imports this file's), and `git_env` (here) and `test_population.scrubbed_env` are each defined only at home.
 """
 from __future__ import annotations
 
@@ -62,6 +67,7 @@ import argparse
 import ast
 import atexit
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -427,6 +433,51 @@ def audit(repo: Path = REPO) -> list[str]:
     return findings
 
 
+# ── THE FIXTURE'S RULES ARE WRITTEN ONCE (kb/Work PB3584, PB3821, PB4395): a text net broader than the audit's tree ──
+
+#: The commonest shape of a repository made by hand, `["git", "-C", d, "init", "-q"]`: a quoted `git` and a quoted
+#: `init` on one code line.
+GIT_LITERAL = re.compile(r"""["']git["']""")
+INIT_LITERAL = re.compile(r"""["']init["']""")
+#: A second reading of git's repository-selection variables (the fixture's `local_env_vars` is the one).
+LOCAL_ENV_VARS_LITERAL = re.compile(r"""["']--local-env-vars["']""")
+#: A second declaration of the self-test identity or the no-maintenance settings (self_tests.py imports the fixture's).
+OWN_IDENTITY_OR_MAINTENANCE = re.compile(
+    r"""^\s*(GIT_)?(IDENTITY|NO_AUTO_MAINTENANCE)\s*=|["']maintenance["']\s*,\s*["']auto["']""", re.MULTILINE)
+#: The two environment scrubs, each defined only at its home (kb/Work PB3821): the git child's, which drops git's
+#: repository-selection variables, and `dotnet test`'s, which drops the gate's handshake and the VSTest filters
+#: (kb/Work PB1718): two jobs, named apart so a caller cannot take one for its twin.
+ENVIRONMENT_SCRUBS = (("git_env", THIS), ("scrubbed_env", "scripts/test_population.py"))
+#: The runner's private global config takes the fixture's identity and maintenance settings from here.
+RUNNER_IMPORT = ("scripts/self_tests.py", "from scratch_repo import IDENTITY, NO_AUTO_MAINTENANCE")
+
+
+def rule_copies(repo: Path, paths: list[str]) -> list[str]:
+    """Every copy of a rule this fixture owns among the repository-relative Python `paths` (this file left out): a code
+    line that creates a repository, a second `git rev-parse --local-env-vars`, a second identity or maintenance
+    declaration, an environment scrub defined away from its home; and the runner no longer importing the fixture's
+    settings. This file must itself hold the rules the net looks for, or the net looks for nothing."""
+    own = (repo / THIS).read_text(encoding="utf-8")
+    bad = [f"{THIS}: no longer holds the {name} rule, so the net for its copies is blind"
+           for name, rule in (("--local-env-vars", LOCAL_ENV_VARS_LITERAL), ("identity", OWN_IDENTITY_OR_MAINTENANCE))
+           if not rule.search(own)]
+    for rel in (p for p in paths if p != THIS):
+        text = (repo / rel).read_text(encoding="utf-8")
+        bad += [f"{rel}:{n}: creates a git repository itself; a self-test uses ScratchRepo.init: {line.strip()}"
+                for n, line in enumerate(text.splitlines(), 1) if not line.lstrip().startswith("#")
+                and GIT_LITERAL.search(line) and INIT_LITERAL.search(line)]
+        if LOCAL_ENV_VARS_LITERAL.search(text):
+            bad.append(f"{rel}: runs `git rev-parse --local-env-vars` itself (use scratch_repo.isolate or git_env)")
+        if OWN_IDENTITY_OR_MAINTENANCE.search(text):
+            bad.append(f"{rel}: declares its own self-test identity or maintenance settings (import scratch_repo's)")
+        bad += [f"{rel}: defines `{name}`, which {home} owns (a second environment scrub, or the twin's name)"
+                for name, home in ENVIRONMENT_SCRUBS if rel != home and re.search(rf"^\s*def {name}\(", text, re.MULTILINE)]
+    runner, line = RUNNER_IMPORT
+    if runner in paths and line not in (repo / runner).read_text(encoding="utf-8"):
+        bad.append(f"{runner}: no longer takes the fixture's identity and maintenance settings (`{line}`)")
+    return bad
+
+
 # ── the self-test: the fixture's guarantees, and the audit's arms ──────────────────────────────────────────────────
 
 def self_test() -> int:
@@ -562,6 +613,48 @@ def self_test() -> int:
     for f in findings:
         print(f"  FINDING {f}")
     check("the tree: no self-test drives git around the fixture", not findings, f"{len(findings)} finding(s)")
+
+    # THE FIXTURE'S RULES ARE WRITTEN ONCE (kb/Work PB4395: until then SelfTestFixtureDriftTests, a compiler test).
+    planted = scratch_dir("scratch-repo-rules-")
+    try:
+        files = {
+            THIS: "IDENTITY = ('a', 'b')\nrun(['git', 'rev-parse', '--local-env-vars'])\n",
+            "scripts/maker.py": "# subprocess.run(['git', 'init'])\nsubprocess.run(['git', '-C', d, 'init', '-q'])\n",
+            "scripts/vars.py": "names = run(['git', 'rev-parse', \"--local-env-vars\"])\n",
+            "scripts/who.py": "GIT_IDENTITY = ('me', 'me@x')\nCFG = [('maintenance', 'auto', 'false')]\n",
+            "scripts/twin.py": "def scrubbed_env():\n    return {}\n",
+            "scripts/test_population.py": "def scrubbed_env():\n    return {}\n",
+            "scripts/self_tests.py": "from scratch_repo import IDENTITY\n",
+            "scripts/clean.py": "ScratchRepo.init(p)\n",
+        }
+        for rel, text in files.items():
+            (planted / rel).parent.mkdir(parents=True, exist_ok=True)
+            (planted / rel).write_text(text, encoding="utf-8", newline="\n")
+        got = rule_copies(planted, sorted(files))
+        want = ["scripts/maker.py:2: creates a git repository itself; a self-test uses ScratchRepo.init: "
+                "subprocess.run(['git', '-C', d, 'init', '-q'])",
+                "scripts/self_tests.py: no longer takes the fixture's identity and maintenance settings "
+                "(`from scratch_repo import IDENTITY, NO_AUTO_MAINTENANCE`)",
+                "scripts/twin.py: defines `scrubbed_env`, which scripts/test_population.py owns (a second environment "
+                "scrub, or the twin's name)",
+                "scripts/vars.py: runs `git rev-parse --local-env-vars` itself (use scratch_repo.isolate or git_env)",
+                "scripts/who.py: declares its own self-test identity or maintenance settings (import scratch_repo's)"]
+        check("rules once: a hand-made repository (never a comment), a second --local-env-vars reading, a second "
+              "identity, a scrub away from its home and a runner that no longer imports the settings are each named",
+              sorted(got) == want and not any(g.startswith(("scripts/clean.py", "scripts/test_population.py"))
+                                              for g in got), "\n".join(got))
+        (planted / THIS).write_text("pass\n", encoding="utf-8", newline="\n")
+        check("rules once: a fixture that no longer holds the rules makes the net blind, and says so",
+              sum("so the net for its copies is blind" in g for g in rule_copies(planted, [THIS])) == 2,
+              str(rule_copies(planted, [THIS])))
+    finally:
+        remove_tree(planted)
+    live = live_tools.tracked(REPO, (".py",), git_env())
+    copies = rule_copies(REPO, live)
+    check(f"THE REAL TREE: no script but the fixture creates a repository, reads git's repository-selection variables, "
+          f"declares the identity or the maintenance settings, or defines an environment scrub away from its home "
+          f"({len(live)} live Python files read; under 100 means the listing is broken)",
+          not copies and len(live) > 100, "\n".join(copies))
     print(f"scratch_repo self-test: {'FAIL ' + str(len(fails)) if fails else 'all checks OK'}")
     return 1 if fails else 0
 

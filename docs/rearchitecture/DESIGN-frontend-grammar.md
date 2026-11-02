@@ -1132,7 +1132,10 @@ reference formats, and the only place source comments are recognized. Its model:
   merged driver flushes between directive lines; a spliced library
   text hands its end division back to the text it was spliced into. And the `D` indicator is
   gated by the registry row `debugging-line-removed-2014` (accepted at 85, obsolete at 2002 — COBOL0903 — removed at
-  2014 — COBOL0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). A `D`
+  2014 — COBOL0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). The 2002
+  FLOATING spelling `>>D`, in either reference format, is the same line in a second spelling (kb/Work PB4298): both
+  classifiers call `LogicalLineBuilder.TryEmitFloatingDebugging`, its own row `floating-debugging-indicator-2002` gates
+  it (introduced 2002, obsolete 2002, removed 2014), and SR8 (it on a fixed `D` or `-` line) is COBOL5770. A `D`
   line is NOT decided here (kb/Work PB1705, owner decision R56): the clause that makes it source is further down the text
   than the line, so the converter CARRIES it — `ReferenceFormatProcessor.DebugLineCarrier` + its program text — and the
   lexer reads the carrier as the hidden `DEBUG_LINE` marker and the text as ordinary tokens. The builder reads the line
@@ -1160,6 +1163,32 @@ reference formats, and the only place source comments are recognized. Its model:
   `HideAll` is exactly right for them.
 - **The program-text area is always positions 8–72**, a shorter record read as space-filled to margin R
   (DOC-A.1-157), so a continued literal carries every position to margin R (§6.3.5).
+- **A syntax error beside text the margin cut NAMES the cut** (kb/Work PB2555; COBOL5788). Text past margin R is not program
+  text (§6.3.1; Annex A.1 item 158), so the reference format drops it; a statement that ran past the margin then ends early and
+  the parse fails at the NEXT token, or at a word the margin cut in two (`END-SEND` written across position 72 reaches the
+  parser as `END-SEN`). The reference format RECORDS the cut and the syntax-error listener ASKS, the same split as the areas
+  below: `ReferenceFormatMap.CutAt(line)` holds, per fixed-form physical line, the text past margin R (`MarginRCut`, in
+  `Frontend.Common`), and `FixedFormAreas.MarginRCutAt` composes it with the resultant-line map, so the listener
+  (`CobolErrorListener.NoteMarginRCut`, behind `IMarginRCutLocator`, which keeps `Parsing` off `Preprocessor`) asks about a
+  token's position. The warning is reported BESIDE the error (the cause first, PB4131), once per cut, in three shapes: the
+  OFFENDING token ends at margin R with the cut text right behind it (the word was cut), the token BEFORE the offending one
+  is the last of a cut line and the offending token stands on a later line (the statement ended early), or a line BETWEEN
+  those two tokens holds text only past margin R (PB4372: its program-text area is blank, so it reads as blank, no token of it
+  anchors a question, and the listener asks of every resultant line between the tokens that holds no program text
+  (`MarginRCut.HoldsProgramText` false; the message names a line that "has no program text"). A tokenless line that DOES hold
+  program text was OMITTED by a stage after the reference format — a false `>>IF` branch, ISO §7.3.16.4 3), or a debugging line
+  without debugging mode — and is never asked about). It is never reported
+  for a line with no cut: text past margin R that is blank, the rest of an inline comment (§6.3.7.3), a comment line, a
+  numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
+  most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file in which such a word recurs on at
+  least `MarginRCut.RecurrenceThatMakesATag` (two) lines, a tagged blank line counting. Shape cannot tell ONE tag from the
+  one-word tail of a statement, so a lone tag-shaped word still draws the note, which says "may". Only a parse error asks, so
+  a program that parses never hears of its tags.
+  `MarginRCut` carries the margin twice because the two units differ on a line holding a tab (kb/Work PB4373): `Column` is the
+  physical column the file holds the cut at (what the warning's location names), `LastProgramTextPosition` is the position the
+  format fixes (72, `FixedFormLine.MarginR`) and the one the message states, so the positions it quotes for the cut text
+  (`FirstCutPosition`, `LastCutPosition`, counted in characters, `CharacterPositions`) continue from it; a line whose two
+  differ says so in the message, in both of its forms (a line with program text, and one with none).
 - **COBOL-85's areas A and B are a fact the reference format RECORDS and a pass after the parse ASKS** (kb/Work PB3147;
   VCR Table 7 row 7.35). ANSI X3.23-1985 split the program-text area into area A (positions 8–11) and area B (12 to
   margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§6.3.1, §6.3.5), so
@@ -1225,7 +1254,7 @@ reference formats, and the only place source comments are recognized. Its model:
   `floating-comment-indicator-2002` and `floating-literal-continuation-2002` (COBOL0900, once per compilation, asked
   in FIXED form only: free form is itself a 2002 introduction reached below 2002 only through the `--source-format
   free|auto` selection, and its comment and its literal continuation are the floating ones), `debugging-line-removed-2014`,
-  `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
+  `floating-debugging-indicator-2002`, `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
   above, plus SR2 (a `*>` not preceded by a separator space — COBOL2495; the text after it is still the comment) and
   SR3 (a continuation line completing a `*>` or `>>` begun at the end of the line it continues — COBOL2496).
 
@@ -1404,7 +1433,42 @@ target:
   word is a scope terminator, because whoever wrote `END-INVOKE` (no ISO word, kb/Work PB758) or `END-OF-PAGE` at a
   sentence end meant to close something; there the spelling is the evidence, and keying it on the token type
   turns the `pb758-invoke-end-invoke-*` negatives into a false "A period may be missing". No hint is ever ADDED
-  because of a spelling. The misplaced-scope-terminator hint (COBOL0306, ISO
+  because of a spelling, with ONE exception that is not a guess and is not a hint: an embedded precompiler block, a
+  word EXEC that a word follows, through the first END-EXEC of the unit (no SEPARATOR period between, §8.3.5 rule 3,
+  so the period of a qualified SQL name `T.A` is block text; kb/Work PB4341). ISO/IEC 1989 defines no EXEC construct
+  and §4.2.14 names precompilers as components outside the implementation. ⛔ **The block is one token from BEFORE
+  the first reader of the stream** (`EmbeddedBlockReading.Read`, called by `Frontend` after the token rewriters and
+  before the screens): the EXEC becomes an `EMBEDDED_BLOCK` token spanning the block (a parser `tokens {}` type no
+  lexer rule emits) and the rest moves to the `EMBEDDED_BLOCK_TEXT` channel, which the parser does not read and the
+  separator, literal, PICTURE and word-character screens skip (`ProgramText.Holds`, the one test those four readers
+  ask, with PB1705's `ABSENT_DEBUG_LINE`). Where a statement may begin, the grammar takes the token as
+  `embeddedBlockStatement` (one `statement` alternative), the statements the precompiler writes in its place, so a
+  block that is the only statement of an IF's or an ELSE's branch, a WHEN, an inline PERFORM or an AT END phrase
+  leaves that construct whole (§14.9.19.3 1)); elsewhere (an entry of WORKING-STORAGE) `CobolErrorStrategy.Sync`
+  consumes it as nothing (`SkipsEmbeddedBlock`, with the period after it where the block was the whole entry,
+  `WasAWholeUnit`), and a report at the token is the block's own fault, never a second diagnostic. The reading
+  reports COBOL5818 once per block after the parse, placed among the parse's reports by position, and a source that
+  holds a block never parses. An earlier shape (review R1-1, R1-2) found the block only at a parse decision whose walk
+  could not read it as COBOL and consumed it as nothing: a block that was a branch's only statement left the
+  construct without its statement (a false COBOL0306 at END-IF), a prediction made before the block that looked into
+  its text chose a reading only that text allowed (`WHEN 1 EXEC SQL …` read the class condition "1 IS EXEC", then a
+  false COBOL2073 at WHEN OTHER) or failed before the block was met (`WHEN OTHER EXEC SQL …`), and the scan's stop at
+  any period left `T.A` unrecognized. Made before the parse, every prediction sees the token. EXEC and END-EXEC are not
+  reserved (§8.9), so the source reads EXEC as an opener only when no EXEC of it is a COBOL word; one that is (a
+  declaration `01 EXEC PIC X.`, a reference: an EXEC with no word after it, or a reserved word) means the source writes
+  EXEC as a COBOL word, and it is read as COBOL throughout, as the standard reads it (`DISPLAY EXEC SQL END-EXEC.` names
+  three data items). `EmbeddedBlockReading.Scan` tells the three apart: EXEC, a word, and an END-EXEC before a
+  separator period is a closed block (COBOL5818); EXEC, a USER-DEFINED word (SQL, CICS, DLI are reserved in no edition)
+  and a separator period (§8.3.5 rule 3) before any END-EXEC is a block left unterminated (COBOL5842, kb/Work PB4381),
+  taken through the text before that period and one token like any block, so the blocks that do close stay blocks;
+  anything else is a word. The unterminated shape is a CANDIDATE only: a declaration that takes a list of user-defined
+  words (`INDEXED BY EXEC IDX.`, `SYMBOLIC CHARACTERS EXEC BEL ARE …`, any operand list) has the same one, and no lexical
+  rule or list of declaration positions can tell them apart (review R1-1). Only when the scan finds such a candidate and
+  no EXEC that is certainly a word, `Read` asks the parse (`Frontend.ParsesCleanly`: one whole parse of a copy of the
+  stream with every EXEC a COBOL word); a source that parses cleanly that way is COBOL, EXEC a word, and one that does not
+  holds the unterminated block. A source of closed blocks alone, and every source with no candidate, pays no parse. Every token of a block that is COBOL text moves to
+  `EMBEDDED_BLOCK_TEXT`, whatever its channel (kb/Work PB4384: the HIDDEN-channel semicolon of `A;B` was still judged
+  by `SeparatorRule.Violations`). The misplaced-scope-terminator hint (COBOL0306, ISO
   §14.5.3.2) reads from the ATN, once, which `…Statement` rules match each END-x token (`ScopeTerminator`):
   END-SEARCH closes both SEARCH rules, and a word no statement rule matches (END-OF-PAGE, a user word spelled
   END-…) is no terminator. It carries no edition logic: edition diagnosis lives in the
@@ -1438,6 +1502,23 @@ target:
   same finding for the block an owner's terminator ends, which sits one element downstream of the state the parser stands
   at. Both Sync (a decision) and `RecoverInline` (a match) reach it through the one override.
   `ParseRecoveryDeletionTests` pins the count.
+- ⛔ **The verb of a complete next statement is never deleted where the open statement could have ended** (kb/Work
+  PB4286; ISO §14.9.31.2). The PB4133 test asks what may follow the ONE element the parser stands before, so a statement
+  missing two required elements in a row slipped past it: after `RECEIVE FROM W-X GIVING` (identifier-1 and data-name-2,
+  both unbracketed) the next statement's verb is not in identifier-1's follow, `DISPLAY W-Y.` lost its DISPLAY to the
+  deletion (W-Y fits identifier-1), and the period drew a false second COBOL0001 where data-name-2 was due.
+  `SingleTokenDeletion` also declines when `BeginsTheNextStatement`: the base deletion would act, the token may follow
+  the innermost open `statement` completed, in its real context (the ATN's follow from where it was called), and it
+  begins a statement that is a complete reading (`LookaheadBeginsAStatementThatParses`, PB3248's test). A reserved word
+  written as the operand begins no statement that parses, so it is still deleted as the refused name.
+- ⛔ **A recovery that makes no progress is one at the same state of the same CALL** (kb/Work PB4286). ANTLR's
+  `Recover` consumes one token first when the last recovery stood at this token and this ATN state, keyed on the state
+  alone, and a rule called twice in one statement fails at the same state in both calls: the missing identifier-1
+  resynchronized at the DISPLAY above and the missing data-name-2, the same `dataReference` state, then consumed it, so
+  the next statement was lost into the RECEIVE's tail and a fault in it went unreported.
+  `CobolErrorStrategy.Resynchronize` keys the guard on (state, invoking state): a loop failing again re-enters the same
+  state from the same call and still consumes, and at one token the pairs are finite, so every recovery still makes
+  progress. `EndErrorCondition` clears it as the base clears its own.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle
@@ -2193,11 +2274,40 @@ the scraped Table 12 and proves the proxy sound (only a row with a conditional p
 END-PERFORM, reaches a `statementBlock`).
 
 **Format 1 (with sections) versus Format 2 (without sections) (COBOL2797; §14.2.1, §14.4.1).** The rule
-`declarativePart* sentence* procedureUnit*` is the union of the two formats. Rendered from PDF page 557: Format 1
+`declarativePart* sentence* paragraphDefinition* sectionDefinition*` is the union of the two formats, and each
+section holds the paragraphs that follow its header (`sectionDefinition : … sentence* paragraphDefinition*`), as
+§14.4.2 says: "A section consists of a section header followed by zero, one, or more successive paragraphs. A section
+ends immediately before the next section or at the end of the procedure division". The section owns its paragraphs
+in the SHAPE (kb/Work PB4230), never as alternatives of one loop (`(sectionDefinition | paragraphDefinition)*`): in that
+shape a paragraph after a section header can either stay in the section or close its loop and be the division's own,
+both derivations accept every token to the next section header or the end of the division, and full-context LL
+prediction, the pass every program whose SLL pass bails takes, scans that far at every paragraph header. The cost is
+quadratic in a section's paragraphs (measured: a legal 400-paragraph section with one `SET p TO NULL`, 112 s; CCVS
+DB201A, 58 s; 6.8 s and 1.4 s in this shape). Here the continuations after a section's last paragraph (another section
+header, an end marker, a nested source unit, the end of input) differ from `paragraphName DOT` within the header's own
+tokens, and `ProcedureDivisionShapeDriftTests` holds that bound under LL prediction. Rendered from PDF page 557: Format 1
 prints ONE bracketed DECLARATIVES portion and nothing between the header (or END DECLARATIVES) and the first section
 header; §14.4.1 adds "If one paragraph is in a section, all paragraphs shall be in sections". So once a division has
 a section or a DECLARATIVES portion, a leading sentence, a paragraph outside every section, or a second DECLARATIVES
 portion is refused — one diagnostic per violation kind, at its first occurrence.
+
+**One rule for `SET receivers TO sender` (kb/Work PB4231; §14.9.39.2).** Formats 1, 5, 7, 8, 9, 14, 16 (bare) and 17
+share the shape `SET { operand } … TO operand`, and only the receivers' categories tell them apart, which is the
+binder's question (DESIGN-binder-bound-tree §3.8). The grammar writes the shape ONCE, `setToStatement : SET
+setToReceiver+ TO setToSender`, with Format 7's receiving brace as the receiver and `setToSender : predefinedNull |
+dataAddressIdentifier | arithmeticExpression`. It must never be split across `setStatement`'s alternatives by the
+sender's form: it was (`setToValueStatement`, `setObjectReferenceStatement`, `setAddressStatement`), all three could
+consume `NULL`, and after `SET X TO NULL` SLL held the three at shared ATN states with no state owned by one of them, so
+ANTLR's conflict heuristic stopped and took the lowest, the arithmetic rule, which needs `AS` or `::` after NULL. The
+SLL pass bailed at the next token and the whole file was parsed again under LL, the pass whose quadratic paragraph scan
+the section reshape above removed: 75 of the corpus's 95 legal programs that bailed SLL did so on this shape alone, and
+`setStatement` reported 125 context sensitivities on the LL pass. With the one rule the sender's arm is decided at its
+left edge, NULL first, by the token after NULL; the corpus's SLL-bailing legal programs fell to 20 (none at a SET) and
+the SET decisions report no context sensitivity. The arithmetic expression derives every object-reference shape but the
+bare NULL (an object-view, an inline invocation, SELF / SUPER, a function-identifier are `primaryExpression` arms), so
+no `objectReference` arm follows it. `SetToStatementSllDriftTests` parses every sender shape the way the SLL pass does
+and under the LL profiler; `PrintedFormatAlternativeDriftTests.SetToSender_OffersNullFirst_AndSetStatementOffersOneToRule`
+holds the arm order and the single rule.
 
 ### 3.15 One rule per printed operand shape (kb/Work PB2114)
 

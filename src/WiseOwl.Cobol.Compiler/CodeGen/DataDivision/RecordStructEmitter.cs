@@ -30,7 +30,8 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // (ISO §13.5.4 GR1) — ONE copy in last-used state across all activations (§14.6.2.3.3) — while its
         // fresh-per-activation instance carries the automatic data (LOCAL-STORAGE, §13.6.4 GR1) and formals.
         // The suppression filter skips members another mechanism provides: a carrier-resident LINKAGE formal
-        // (its field is `__lnk{Uid}.Value` — caller storage, ISO §13.7.1). An inherited GLOBAL table's index cell
+        // (it has no field: its storage is the caller's, reached through its carrier, ISO §13.7.1 /
+        // DataItem.ResidentCarrier). An inherited GLOBAL table's index cell
         // is never among the unit's OWN declarations — the container emits it and a ref-bridge reaches it
         // (§13.18.27 GR2; kb/Work PB919).
         foreach (var idx in ctx.Data.IndexNames.Own)
@@ -82,8 +83,8 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             else if (root.Class is { Tier: RedefinesTier.StringCanonical } cls)
             {
                 // The class's ONE string backing is the storage; members are windows. Reset once, at the canonical.
-                if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StaticRootFields.Contains(cls.BackingCsName))
-                    stmts.Add($"{cls.BackingCsName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
+                if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StaticRootFields.Contains(cls.BackingClrName))
+                    stmts.Add($"{cls.BackingClrName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
                 // An ADDRESS-OF-taken record's static StorageCell (kb/Work PB234): re-seeded IN PLACE with the SAME
                 // image its declaration carries (ProgramEmitter's cell initializer — one composer, ImageInitOf), so
                 // a pointer taken before the CANCEL still names the unit's one copy (§13.5.4 GR1).
@@ -93,8 +94,8 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                     stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")}){codec.CellDynSeeds(root)};   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §14.6.2.3.2 #2)");
             }
             else if (!(root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical)   // a Tier-A view has no field
-                && ctx.Data.StaticRootFields.Contains(root.CsName))
-                stmts.Add($"{root.CsName} = {vals.FieldInit(root)};   // {root.CobolName ?? "FILLER"}");
+                && ctx.Data.StaticRootFields.Contains(root.ClrName))
+                stmts.Add($"{root.ClrName} = {vals.FieldInit(root)};   // {root.CobolName ?? "FILLER"}");
             foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
                 if (ctx.Data.StaticIndexCells.Contains(idx.Cell))
                     stmts.Add($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
@@ -124,7 +125,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // class-level `ref` bridge over the cell, and a local of the same name would SHADOW it, splitting the
         // one storage area in two.
         root.Class is { Tier: RedefinesTier.StringCanonical, IsCellBacked: false } cls && ReferenceEquals(cls.Canonical, root)
-            ? (cls.BackingCsName, RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}"))
+            ? (cls.BackingClrName, RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}"))
             : null;
 
     private void EmitStructTypeDecls(DataItem item, CodeWriter w)
@@ -241,12 +242,12 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                     (true, false) => $"__s.{f.Name} = __s.{f.Name}.WithLeaves((object?[]){v}!);",
                     (true, true) => FixedGroupTableIn(f, v),
                 };
-        w.Line($"public readonly object?[] AsLeaves() => [{string.Join(", ", fs.Select((f, i) => Out(f, members[i])).Concat(fillers.Select(f => f.Field)))}];   // kb/Work PB1116");
+        w.Line($"public readonly object?[] AsLeaves() => [{string.Join(", ", fs.Select((f, i) => Out(f, members[i])).Concat(fillers.Select(f => f.ClrName)))}];   // kb/Work PB1116");
         using (w.Block($"public readonly {item.StructName} WithLeaves(object?[] __l)"))
         {
             w.Line("var __s = this;");
             for (int i = 0; i < fs.Count; i++) w.Line(In(fs[i], members[i], $"__l[{i}]"));
-            for (int j = 0; j < fillers.Count; j++) w.Line($"__s.{fillers[j].Field} = (string)__l[{fs.Count + j}]!;");
+            for (int j = 0; j < fillers.Count; j++) w.Line($"__s.{fillers[j].ClrName} = (string)__l[{fs.Count + j}]!;");
             w.Line("return __s;");
         }
     }

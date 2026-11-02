@@ -88,10 +88,10 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
         foreach (var h in hoists)
             ctx.Writer.Line(h switch
             {
-                { RefGroup: { } g } => $"ref var {h.Local} = ref {PlaceRenderer.Read(g)};",
-                { ViewOffset: { } offset } => $"long {h.Local} = (long)({PositionRenderer.Render(offset)});",
+                { RefGroup: { } g } => $"ref var {LocalNames.Of(h.Local)} = ref {PlaceRenderer.Read(g)};",
+                { ViewOffset: { } offset } => $"long {LocalNames.Of(h.Local)} = (long)({PositionRenderer.Render(offset)});",
                 _ => throw new System.InvalidOperationException(
-                    $"CorrespondingHoist '{h.Local}' sets neither RefGroup nor ViewOffset — exactly one is set by construction"),
+                    $"CorrespondingHoist '{LocalNames.Of(h.Local)}' sets neither RefGroup nor ViewOffset — exactly one is set by construction"),
             });
     }
 }

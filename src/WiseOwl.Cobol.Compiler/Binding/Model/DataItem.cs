@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
@@ -64,7 +63,7 @@ public sealed class DataItem
     /// A globally-unique id assigned at bind time. It backs the collision-free names for an item's
     /// <c>record struct</c> type (<see cref="StructName"/>) and its numeric profile field (<see cref="ProfileName"/>)
     /// — two distinct groups both named <c>REC</c>, or two leaves both named <c>NUM</c> in different groups, would
-    /// otherwise collide. (The member/field name, <see cref="CsName"/>, only needs to be unique within its struct.)
+    /// otherwise collide. (The member/field name, <see cref="ClrName"/>, only needs to be unique within its struct.)
     /// </summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "identity — every clone gets a FRESH Uid; StructName/ProfileName ride on it, so a shared one would collide the clone's emitted type with the template's")]
@@ -75,10 +74,14 @@ public sealed class DataItem
         "both GR-1 exclusion lists exclude the NAME of a subject; a cloned SUBORDINATE keeps its own (ISO §13.18.49.4 GR2a — 'the same names, descriptions, and hierarchy')")]
     public string? CobolName { get; init; }
 
-    /// <summary>The C#-safe member/field identifier for this item (unique within its containing struct scope).</summary>
+    /// <summary>The CLR name of this item's member or field — the same for every backend (kb/Work PB4265;
+    /// DESIGN-backend-abstraction §1.2): <see cref="CsNames.Allocate"/>d at bind time in the item's scope (its group's
+    /// record struct, or the program class for a root), so it is unique there and never a C# keyword.
+    /// <para>⛔ It is a NAME, never an access expression, for every item (kb/Work PB4320): a carrier-resident formal
+    /// keeps its own name, and the carrier its storage is reached through is <see cref="ResidentCarrier"/>.</para></summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "identity — re-uniquified among the clone's NEW siblings")]
-    public required string CsName { get; set; }
+    public required string ClrName { get; set; }
 
     /// <summary>The analyzed PICTURE/USAGE for an elementary item; <see langword="null"/> for a group.</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
@@ -680,12 +683,12 @@ public sealed class DataItem
     private CsNameScope? _memberNames;
 
     /// <summary>Append <paramref name="member"/> as this group's next subordinate, ALLOCATING its
-    /// <see cref="CsName"/> in this group's record-struct scope (<see cref="CsNames.Allocate"/>; kb/Work PB2093): a
+    /// <see cref="ClrName"/> in this group's record-struct scope (<see cref="CsNames.Allocate"/>; kb/Work PB2093): a
     /// member spelled like a sibling, or like a member the struct itself carries (<c>AsImage</c>, <c>Equals</c>),
     /// takes the smallest free <c>_n</c>. The ONE way a member joins a group, so no path can bypass the scope.</summary>
     public void AddMember(DataItem member)
     {
-        member.CsName = CsNames.Allocate(member.CsName, _memberNames ??= CsNameScope.RecordStruct());
+        member.ClrName = CsNames.Allocate(member.ClrName, _memberNames ??= CsNameScope.RecordStruct());
         _children.Add(member);
     }
 
@@ -775,6 +778,18 @@ public sealed class DataItem
     [DescriptionCopy(DescriptionCopyKind.None,
         "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
     public OmittedFormalGuard? OmittedGuard { get; set; }
+
+    /// <summary>⛔ The name of the <c>ManagedPointer&lt;T&gt;</c> CARRIER through which a CARRIER-RESIDENT formal
+    /// parameter's storage is reached on every access — the program class's <c>__lnk{Uid}</c> member
+    /// (<c>LinkageFormal.CarrierField</c>) or the method's carrier local (<c>OoFormal.CarrierLocal</c>) — and null for
+    /// every other item. ISO §14.2.3 GR8: "the activated runtime element operates as if the formal parameter occupies
+    /// the same storage area as the argument", so the item has no storage member of its own. Every access path rooted
+    /// here starts at the carrier and steps through <see cref="CarrierValueSegment"/> (<c>ReferenceResolver.AddRoot</c>),
+    /// so the access is structure and <see cref="ClrName"/> stays a name (kb/Work PB4320; DESIGN-backend-abstraction
+    /// §1.3 L7). Set by <c>DataBinder.CallBindLinkage</c> and <c>DataBinder.OoBindMethodData</c>.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
+    public string? ResidentCarrier { get; set; }
 
     /// <summary>True for a BASED 01/77 entry (ISO §13.18.5 — a storage TEMPLATE with an implicit data-address
     /// pointer, initially NULL; no storage of its own until SET ADDRESS OF / ALLOCATE gives it one). The
@@ -917,11 +932,28 @@ public sealed class DataItem
     /// <summary>Every item under <paramref name="group"/>, depth first in declaration (storage) order.</summary>
     public static IEnumerable<DataItem> DescendantsOf(DataItem group)
     {
-        foreach (var c in group.Children)
+        // An explicit stack, never a recursive iterator: that hands every item up through one MoveNext per level above it
+        // and allocates an iterator per group (kb/Work PB4302; the parse-tree twin is ParseTreeWalk).
+        var pending = new Stack<DataItem>();
+        PushChildren(pending, group);
+        while (pending.Count > 0)
         {
-            yield return c;
-            foreach (var d in DescendantsOf(c)) yield return d;
+            var next = pending.Pop();
+            yield return next;
+            PushChildren(pending, next);
         }
+    }
+
+    /// <summary><paramref name="item"/> itself, then every item under it (<see cref="DescendantsOf"/>) — the pre-order of its tree.</summary>
+    public static IEnumerable<DataItem> SelfAndDescendantsOf(DataItem item)
+    {
+        yield return item;
+        foreach (var d in DescendantsOf(item)) yield return d;
+    }
+
+    private static void PushChildren(Stack<DataItem> pending, DataItem item)
+    {
+        for (int i = item.Children.Count - 1; i >= 0; i--) pending.Push(item.Children[i]);
     }
 
     /// <summary>The start of this view's window within its class's shared area expressed in BITS — the unit
@@ -1485,15 +1517,17 @@ public sealed class DataItem
     // (The ClrType back-compat alias is DELETED — P5.10: zero readers, grep-proven by the topology audit.)
 
     /// <summary>
-    /// Convert a COBOL data-name to a valid, collision-safe C# identifier: <see cref="IdentifierCharacters"/>, then a
-    /// leading character C# cannot start an identifier with (a digit) gets an underscore prefix, and C# keywords are
-    /// escaped with <c>@</c>.
+    /// Convert a COBOL word (or another name, such as an assembly simple name) to the BASE of a CLR name, the same for
+    /// every backend: <see cref="IdentifierCharacters"/>, then a leading character an identifier cannot start with (a
+    /// digit) gets an underscore prefix. The result may spell a C# keyword (<c>int</c>): a name a module declares is
+    /// <see cref="CsNames.Allocate"/>d from it in a scope that refuses one (kb/Work PB4265), and the base is a valid
+    /// identifier part, so a prefix or suffix joined to it (<c>_redef_</c>, <c>_Record</c>) never breaks it — the
+    /// <c>@</c> escape this used to append made <c>_redef_@int</c>.
     /// </summary>
     public static string Sanitize(string cobolName)
     {
         string s = IdentifierCharacters(cobolName);
-        if (s.Length == 0 || !SyntaxFacts.IsIdentifierStartCharacter(s[0])) s = "_" + s;
-        return SyntaxFacts.GetKeywordKind(s) != SyntaxKind.None ? "@" + s : s;
+        return s.Length == 0 || !CsNames.IsIdentifierStartCharacter(s[0]) ? "_" + s : s;
     }
 
     /// <summary>The C# identifier of a COBOL word whose IDENTITY is the word — a class, interface, method, property,
@@ -1529,7 +1563,7 @@ public sealed class DataItem
         {
             char c = cobolName[i];
             bool plainHyphen = c == '-' && i > 0 && (i + 1 == cobolName.Length || cobolName[i + 1] != 'u');
-            if (plainHyphen || c == '_' || c == '-' || !SyntaxFacts.IsIdentifierPartCharacter(c))
+            if (plainHyphen || c == '_' || c == '-' || !CsNames.IsIdentifierPartCharacter(c))
             {
                 sb ??= new System.Text.StringBuilder(cobolName.Length + 8).Append(cobolName, 0, i);
                 if (plainHyphen) { sb.Append('_'); continue; }

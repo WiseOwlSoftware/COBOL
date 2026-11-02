@@ -1,0 +1,4 @@
+## Entry 2973 — 2026-11-01 18:47 PST — kb/Work PB4412-PB4414: file three leads from the PB4372 and PB4387 landings
+
+Filed three open MINOR defect notes from the leads those landings left. PB4412 (frontend/diagnostics, misleading diagnostic): the margin-R note's between-lines arm still asks about omitted lines (a false `>>IF` branch, a debugging line without debugging mode) because no stage reports which lines were omitted. PB4413 (runtime/io, performance): the sidecar host's store mutex and record locks still publish and retire a lock file per hold, and `ParkingForPath` could serve them. PB4414 (runtime/io, performance): the rename pair, `Look` listing and `SequentialJournal.Enter` listing still cost about 0.3 ms per uncovered sharing WRITE, and removing them is a DESIGN-runtime-library 2.2.2.3 protocol change. No code changed.
+

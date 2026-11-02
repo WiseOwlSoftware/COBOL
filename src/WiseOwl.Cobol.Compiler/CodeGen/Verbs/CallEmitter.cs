@@ -1240,8 +1240,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <summary>The PROCEDURE DIVISION USING formal this argument place denotes AS A WHOLE, or null
     /// (ISO §8.8.4.8.4 GR1c / §14.9.4.4 GR12 — kb/Work PB165).
     /// <para>⛔ THE TEST IS IDENTITY AGAINST THE UNIT'S FORMAL LIST, not a <c>__lnk</c> prefix match on the
-    /// emitted field name. The name match could only ever see a CARRIER-RESIDENT formal — <c>DataBinder</c>
-    /// rewrites just those to <c>__lnk{Uid}.Value</c> — so a GROUP formal, whose carrier is a copy-in field with
+    /// emitted field name. The name match could only ever see a CARRIER-RESIDENT formal — only those are reached
+    /// through a <c>__lnk{Uid}</c> carrier — so a GROUP formal, whose carrier is a copy-in field with
     /// an ordinary name, fell through and lost its omitted state on every forward. Identity sees both, and it
     /// keeps seeing both when a future residency rule changes.</para>
     /// <para>Identity against the formal's own <c>DataItem</c> is itself the whole-item test: a SUBITEM
@@ -1647,14 +1647,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line($"if ({inGlobalRange}) ExceptionState.FlowGlobalGobackError(\"a GOBACK statement executed "
                 + "within the range of a USE ... GLOBAL declarative procedure of the same program "
                 + "(ISO 14.9.18.4 GR6)\");");
-        if (g.ReturningSource is not null)
-        {
-            // The move was BOUND by CallBinder.BindGoback (kb/Work PB880) into the same RETURNING item.
-            if (g.ReturningMove is { } rm)
-                move.Emit(rm);
-            else
-                w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18.4 GR2)"));
-        }
+        // The move was BOUND by CallBinder.BindGoback (kb/Work PB880) into the header's RETURNING item. A RETURNING
+        // source with no such item has no move: the binder folded it into Status (the main-program exit status,
+        // kb/Work PB4335), emitted below with the written status phrase.
+        if (g.ReturningMove is { } rm)
+            move.Emit(rm);
         if (g.Raising is { } r)
             // §14.9.18.4 GR3 (the P13 review C3 fix): in a program NOT under the control of a calling runtime
             // element, GOBACK operates as STOP and "a RAISING phrase, if specified, is ignored" — so the staging

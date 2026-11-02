@@ -772,14 +772,23 @@ clause it serves; `SendingValueOnceDriftTests` measures all of them together wit
 
 ISO §14.9.39.2 prints seventeen general formats for one verb, and several of them share a token shape exactly.
 A reserved word settles most of them at the grammar (`SET LOCALE`, `SET CONTENT`, `SET … TO TRUE`, `SET SIZE OF`,
-`SET ADDRESS OF`, `SET … TO ENTRY`, `SET … TO ADDRESS OF FUNCTION`); what is left is three written shapes
+`SET … TO ENTRY`, `SET … TO ADDRESS OF FUNCTION`); what is left is two written shapes
 carrying nine formats:
 
 | written shape | grammar rule | formats it can be |
 | --- | --- | --- |
-| `SET receivers… TO arithmetic-expression` | `setToValueStatement` | 1 · 5 · 7 · 8 · 9 · 14 · 16 |
-| `SET receivers… TO {NULL\|SELF\|SUPER\|reference}` | `setObjectReferenceStatement` | 5 · 7 · 8 · 9 |
+| `SET receivers… TO sender` | `setToStatement` (sender `setToSender`: NULL · ADDRESS OF identifier · arithmetic-expression) | 1 · 5 · 7 · 8 · 9 · 14 · 16 · 17 |
 | `SET receivers… {UP\|DOWN} BY arithmetic-expression` | `setIndexStatement` | 2 · 10 · 14 |
+
+One `setToStatement` carries every `SET … TO` shape (kb/Work PB4231), Format 7's printed receiving brace
+`{ ADDRESS OF data-name-1 | identifier-5 } …` included. Its ADDRESS phrase is the one thing the PARSE decides: a
+statement with an `ADDRESS OF data-name-1` receiver or a data-address-identifier sender is Format 7 by spelling
+(`SetToStatementCst.SpellsAddressPhrase`), so `SetBinder.BindSet` sends it to `PtrBinder.BindSetAddress` before any
+receiver is resolved, `VersionConformancePass` gates it on recognition (`set-address-2002`), and the FLAG-02 e index
+flag skips it. Everything else is selected here: a NULL sender through `SetBinder.BindSetToNull`, every other sender
+through `BindSetTo` after the one classifier (`SetSenders.Classify`) has read it. The grammar used to split the shape
+across three rules by the SENDER's form, and that split was what defeated SLL prediction on every `SET x TO NULL`
+(kb/Work PB4231; DESIGN-frontend-grammar §3.14).
 
 **`Binding/Procedure/Verbs/SetFormatSelection.cs` is the ONE place that choice is made**, and the fact it reads
 is that EVERY receiving brace in §14.9.39.2 is written `{ … } …` — one or more operands of one kind. So the
@@ -914,9 +923,10 @@ public sealed record PositionConstant(long Value) : Position;       // an intege
 public sealed record PositionIndexCell(string Cell) : Position;     // an index-name: its occurrence cell (IndexDeclaration.Cell)
 public sealed record PositionItemRead(AccessPath Path, DataItem Item, PositionReadForm Form) : Position;
         // a data item read as an ordinal position through its own profile (CobolTable.Occ / CobolString.RefModPosition)
-public sealed record PositionLocal(string CsName, bool AsLong = false) : Position;   // a statement local: a hoisted
-        // identification, a report VARYING counter, an INITIALIZE loop variable, a CORRESPONDING view anchor
-public sealed record LocalVector(string CsName);                    // a table(ALL) enumeration's index vector (ISO §15.3)
+public sealed record PositionLocal(MethodLocal Local, bool AsLong = false) : Position;   // a statement local: a hoisted
+        // identification, a report VARYING counter, an INITIALIZE loop variable, a CORRESPONDING view anchor — by its
+        // identity (Binding/Model/MethodLocal.cs; the Roslyn backend spells it in LocalNames.Of, kb/Work PB4321)
+public sealed record LocalVector(MethodLocal Local);                // a table(ALL) enumeration's index vector (ISO §15.3)
 public sealed record PositionLocalElement(LocalVector Vector, int Index) : Position;   // one ALL level's occurrence
 public sealed record PositionBinary(Position Left, PositionOperator Op, Position Right) : Position;   // + - *
 public sealed record PositionNegate(Position Operand) : Position;
@@ -1015,7 +1025,8 @@ identical. `PlaceRenderer`, `RuntimeApi.RefModStart` / `RefModLength`, `CallEmit
 `CorrespondingEmitter` and `InitializeEmitter` call it wherever they read a position field. A formal's *-ARG-OMITTED
 root guard renders in `PlaceRenderer.GuardedRoot`, beside the one path renderer that emits a root.
 
-`PlaceIdentification.Freeze` hoists NODES: `Hoist(p) => p.IsSelfEvaluating ? p : new PositionLocal(hoist(Render(p)))`,
+`PlaceIdentification.Freeze` hoists NODES: `Hoist(p) => p.IsSelfEvaluating ? p : CSharpLocal.Position(hoist(Render(p)))`
+(a position over a local the backend declares itself, kb/Work PB4321),
 over every position of the place model's own walk (`FreezePath`, `FreezeView`, `FreezeCoding`, `FreezeRefMod`): the
 table indices, the cell ordinals, the view offset and ordinal, the ref-mod bounds. A `BitWindow`'s offset is not
 hoisted, because no verb that identifies its operands there can receive a USAGE BIT item with a run-time subscript: a

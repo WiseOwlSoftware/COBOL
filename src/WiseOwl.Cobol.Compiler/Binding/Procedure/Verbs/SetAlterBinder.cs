@@ -64,13 +64,8 @@ internal sealed class SetAlterBinder(BinderContext ctx)
 
     /// <summary>Every <c>alterStatement</c> context under <paramref name="node"/> (ALTER is an imperative
     /// statement — it may sit inside IF branches etc., so the scan is a full subtree walk).</summary>
-    private static IEnumerable<Core.AlterStatementContext> AlterStatementsIn(IParseTree node)
-    {
-        if (node is Core.AlterStatementContext al) { yield return al; yield break; }
-        for (int i = 0; i < node.ChildCount; i++)
-            foreach (var inner in AlterStatementsIn(node.GetChild(i)))
-                yield return inner;
-    }
+    private static IEnumerable<Core.AlterStatementContext> AlterStatementsIn(IParseTree node) =>
+        ParseTreeWalk.SelfAndDescendants(node).OfType<Core.AlterStatementContext>();
 
     /// <summary>The pc of the paragraph lexically containing <paramref name="node"/> (walk to the enclosing
     /// <c>paragraphDefinition</c>), or null outside any collected paragraph. Requires <see cref="AlterEnsureScan"/>.</summary>
@@ -142,7 +137,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             if (ctx.Table.ResolveProcedureOperand(names[0], "ALTER") is not { } target) { bad = true; continue; }
             if (!target.Range.IsParagraph || !AlterIsSoleGoToParagraph(target.Range.Start))
             {
-                ctx.Validation.RejectStatementOperand($"ALTER '{ProcedureNameShape.Head(names[0])}' — the procedure "
+                ctx.Validation.RejectStatementOperand($"ALTER '{ProcedureNameShape.AsWritten(names[0])}' — the procedure "
                     + "to be altered shall be a paragraph consisting of a single sentence that is one GO TO "
                     + "statement (ANSI X3.23-1985 ALTER syntax rule)"
                     + (target.Range.IsParagraph ? "" : "; this name resolves to a SECTION"));

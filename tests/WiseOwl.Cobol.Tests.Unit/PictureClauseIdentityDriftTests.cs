@@ -42,7 +42,7 @@ public sealed class PictureClauseIdentityDriftTests
         var pic = PictureAnalyzer.Analyze(picture, usage, ed, "data item 'P'", currencies: currencies ?? Dollar,
             decimalPointIsComma: dpc);
         Assert.False(pic.IsRecovery, $"PIC {picture} did not analyze");
-        return new DataItem { Level = 1, CobolName = "P", CsName = "P", Pic = pic, PictureText = picture };
+        return new DataItem { Level = 1, CobolName = "P", ClrName = "P", Pic = pic, PictureText = picture };
     }
 
     [Fact]

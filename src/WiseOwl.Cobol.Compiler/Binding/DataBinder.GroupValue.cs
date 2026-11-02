@@ -78,7 +78,7 @@ public sealed partial class DataBinder
             // (DataBinder's level stack attaches it to its conditional variable), so every descendant
             // reached below is a real data item — SR13/SR14's "data items subordinate to" exactly.
             if (!HasGroupValue(item)) continue;
-            string subject = item.CobolName ?? item.CsName;
+            string subject = item.CobolName ?? item.ClrName;
 
             // ⛔ A VALUE THE ENTRY ONLY ASSUMED (§13.18.57.4 GR1 / §13.18.49 GR1) is screened where it was
             // WRITTEN for every predicate its source could already answer — but SR1 is not such a predicate when
@@ -291,8 +291,8 @@ public sealed partial class DataBinder
         var anchor = StrongTypeModel.StrongRoot(item) ?? StrongTypeModel.TypeAnchor(item) ?? item;
         using var _ = Edition.At(anchor);
         Edition.Error(DiagnosticCatalog.GroupValueSubjectShape, $"data item '{subject}' carries a group-level "
-            + $"VALUE clause assumed from the description of '{source.CobolName ?? source.CsName}' and is {shape}, "
-            + $"composed by the TYPE clause of '{anchor.CobolName ?? anchor.CsName}' "
+            + $"VALUE clause assumed from the description of '{source.CobolName ?? source.ClrName}' and is {shape}, "
+            + $"composed by the TYPE clause of '{anchor.CobolName ?? anchor.ClrName}' "
             + "— the subject of the entry shall not be a strongly-typed group item or a variable-length group "
             + "(ISO §13.18.63.3 SR1; §13.18.58.4 GR3)");
     }

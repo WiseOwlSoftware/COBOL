@@ -8,9 +8,11 @@ something it reads has changed (kb/Work PB2914; docs/rearchitecture/DESIGN-test-
 ⛔ WHY. A self-test whose inputs did not change cannot change its verdict, so a gate that re-runs it learns nothing and
 pays for it: every implementer gate ran all 68 (kb/Work PB2563), the slowest 4-8 minutes on a quiet host, and a fleet's
 gates ran them all at once until they passed the runner's time limit and failed every gate (kb/Work PB2914).
-scripts/self_tests.py therefore records, with each PASS, the CONTENT of everything the self-test read, and an
-gate reuses that PASS while all of it is unchanged (every gate, kb/Work PB3022). CI and the Linux gate run every
-self-test and record.
+scripts/self_tests.py therefore records, with each PASS, the CONTENT of everything the self-test read, and a
+gate reuses that PASS while all of it is unchanged (every gate, kb/Work PB3022). The gate runs the self-tests at all only
+for a change that TOUCHES TOOLING (scripts/inert_lane.py `Lane.tooling`, kb/Work PB4326): it is the tooling lane's, and
+these recorded inputs are what keep that lane to the self-tests the change can affect. CI's merge group and the Linux
+gate run every self-test and record.
 
 THE INPUTS OF A RUN (`Deps`) are OBSERVED, not guessed — a list of what a script mentions is far wider than what its
 self-test reads (a hand-derived closure over mentions reached the whole tree from most orchestrator scripts):
@@ -40,7 +42,8 @@ for an edited one (a gate tests the working tree), a submodule's commit for anyt
 ⛔ WHAT NOTHING HERE SEES, named rather than hidden: a PowerShell or bash process's own reads of a path it builds at run
 time (declare it: `SELF-TEST-READS`) and the git commands it runs itself, and `os.stat`-style probes (no audit event).
 A trace that does not contain a Python self-test's own file means the tracer did not run: the runner records no PASS
-for it. The backstop for all three is CI (and the Linux gate), which never reuse a PASS.
+for it. The same `sitecustomize` begins with the CLOCK SHIM (scripts/self_test_clock.py, kb/Work PB4358): it moves the
+Python clock only in the proof run of a self-test that can read it, and does nothing otherwise. The backstop for all three is CI (and the Linux gate), which never reuse a PASS.
 """
 from __future__ import annotations
 
@@ -55,11 +58,12 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+import self_test_clock as clock  # this directory's: the shim every traced process starts with (kb/Work PB4358)
 from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 #: The runner itself: a change to how a self-test is run (its environment, isolation, tracer) re-runs every self-test.
-RUNNER = ("scripts/self_tests.py", "scripts/self_test_inputs.py")
+RUNNER = ("scripts/self_tests.py", "scripts/self_test_inputs.py", "scripts/self_test_clock.py")
 #: Scripts whose own reads the tracer cannot see: their mentions are followed (`Deriver.static`).
 UNTRACED_SCRIPTS = (".ps1", ".psm1", ".sh")
 READS_RE = re.compile(r"^#\s*SELF-TEST-READS:\s*(\S.*?)\s*$", re.MULTILINE)
@@ -332,6 +336,12 @@ class Deriver:
             self._mentions[rel] = (files, dirs)
         return self._mentions[rel]
 
+    def closure(self, test: str) -> set[str]:
+        """Every tracked file `static` reaches, a static directory's files included: what a script self-test may RUN
+        that no Python tracer sees (kb/Work PB4358 uses it to find the clock reads of the scripts it runs)."""
+        files, dirs = self.static(test)
+        return files.union(*(self.tree.under(d) for d in dirs))
+
     def static(self, test: str) -> tuple[set[str], set[str]]:
         """(files, directories) the trace cannot see for self-test `test` — its own file, the runner, its declared
         reads, and for an untraced script the closure over its mentions (module docstring)."""
@@ -361,9 +371,10 @@ class Deriver:
 
 
 def install_tracer(directory: Path) -> Path:
-    """Write the tracer as `sitecustomize.py` into `directory`, which `traced_env` puts first on PYTHONPATH."""
+    """Write the tracer as `sitecustomize.py` into `directory`, which `traced_env` puts first on PYTHONPATH, behind the
+    clock shim (scripts/self_test_clock.py `SHIM`: it moves the clock only for a run that sets `SHIFT_ENV`)."""
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / "sitecustomize.py").write_text(TRACER, encoding="utf-8", newline="\n")
+    (directory / "sitecustomize.py").write_text(clock.SHIM + TRACER, encoding="utf-8", newline="\n")
     return directory
 
 

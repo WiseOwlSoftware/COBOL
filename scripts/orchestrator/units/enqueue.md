@@ -59,9 +59,9 @@ leads, the records and the ledger.
      operator a mailbox question and stops (`ALERTED`) — never a finisher's, and nothing to do here but name an
      ALERTED one in the handoff. Its leads go to step 5 and its record to step 6b.
    - `STOPPED`: `CONFLICT` (exit 4, bringing main in: the review lane already started its finisher and collected the
-     attempt, kb/Work PB3608; read it in `review_lane.py status`, step 2), `UNTESTED` (exit 14: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5, the rare gate a landing runs:
-     a gate that measured nothing because code the branch carries failed, and main passes that step; kb/Work PB3526)
-     or a DEVLOG, register or diagnostic-prefix refusal (exit 6): the
+     attempt, kb/Work PB3608; read it in `review_lane.py status`, step 2), `UNTESTED` (exit 14: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `MERGE NOT COMPLETED, BRANCH-CARRIED` (exit 5:
+     bringing main in was clean but the merged tree's own ABI pin, build or measuring test failed; kb/Work PB3673; the
+     landing runs no gate, kb/Work PB4331) or a DEVLOG, register or diagnostic-prefix refusal (exit 6): the
      reason is in the log and in the branch's report (`BLOCKED: enqueue …`); the branch survey reads the branch
      STOPPED too, never WAITING TO LAND, until a new tip or a re-arm (kb/Work PB3125):
      step 4. `UNREVIEWED` (exit 11): the branch's tip is not covered by its CLEAN review stamp (MANDATORY-PRACTICES
@@ -72,15 +72,15 @@ leads, the records and the ledger.
    - `RETRY-WHEN-FREE` (exit 3, the landing check's STOP: the branch shares a file with earlier-dispatched,
      INDEPENDENT in-flight work; a branch that descends from it — its successor, its finisher, a carrier that merged
      any head of it — and a worktree with no commit beyond main never stop it, kb/Work PB3381; or exit 12, `GATE BUSY`:
-     another gate held the worktree's gate lock, the branch's own gate has not written its verdict yet, or a Linux gate of
-     the tree runs (`linux-gate.sh --probe`), nothing ran and nothing is red, kb/Work PB3527, PB3662, PB3649; or exit 13: another
+     another gate held the worktree's gate lock, the branch's own gate has not written its verdict yet, nothing ran and
+     nothing is red, kb/Work PB3527, PB3662; or exit 13: another
      `land` of the branch holds the worktree's land lock, nothing ran and nothing is red, kb/Work PB3310; or exit 15,
      `PREDECESSOR QUEUED`: the branch merged a predecessor whose pull request is still open and carries its stamped DEVLOG
      entry beside its own, nothing queued and nothing red, kb/Work PB3145; or exit 16, `DRIVER FILE QUEUED`: an open
      pull request changes a merge-driver file the branch changes too, nothing stamped or queued and nothing red,
      kb/Work PB3642) and
      `RETRY-ONCE` (a first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 3 once
-     `landing_check.py` passes on the branch, exit 12 once the gate lock is free and no Linux gate of the tree runs, exit 13 once the land lock is free, exit 15 once no
+     `landing_check.py` passes on the branch, exit 12 once the gate lock is free, exit 13 once the land lock is free, exit 15 once no
      open pull request owns a DEVLOG entry the branch carries, exit 16 once no open pull request changes a merge-driver
      file the branch changes too).
      Nothing to do here.
@@ -117,7 +117,9 @@ leads, the records and the ledger.
    finding, or a medium one at the capped round, is recorded and filed, never blocking; a LEAD the same section answers
    as fixed is not filed). Dispatch ONE `cobol-clerk` with ids from `python scripts/orchestrator/alloc.py pb <n>`
    (one note per MECHANISM, grepped against kb/Work first, MANDATORY-PRACTICES R1-R3), in a worktree cut from
-   origin/main, which commits the notes with a `DEVLOG/pending-<slug>.md` entry and lands its own branch with
+   origin/main, which commits the notes with a `DEVLOG/pending-<slug>.md` entry, gates its tip (`pwsh
+   scripts/build-local.ps1 -Priority BelowNormal`: notes and a DEVLOG entry take the inert lane, the audits alone; the
+   landing gates nothing and refuses a tip with no GREEN record, exit 14, kb/Work PB4331) and lands its own branch with
    `enqueue.py land <branch> --lane clerk` (a lane MANDATORY-PRACTICES I10 does not review). Skip it when no report carries a lead.
 6. `python scripts/prune_worktrees.py --apply` removes the branches that landed (O10).
 6b. Complete the landing records (kb/Work PB3028): `enqueue.py` wrote each queued pull request's record;

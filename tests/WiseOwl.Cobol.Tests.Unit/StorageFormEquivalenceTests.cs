@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The StorageForm equivalence HARNESS — the bind-and-verify half, held in ONE non-generic type so the crafted
-/// cases and the eight NIST-corpus partitions share it rather than duplicating it.
+/// cases and the sixteen NIST-corpus partitions share it rather than duplicating it.
 /// </summary>
 internal static class StorageFormEquivalence
 {
@@ -189,20 +189,22 @@ public sealed class StorageFormEquivalenceTests
 /// <remarks>
 /// ⛔ THIS SWEEP IS PARTITIONED — see <see cref="TestPartitioning"/> (plan §11 A13). As ONE test it took
 /// <b>171.5 s</b> on the battery #41 trx and <i>was</i> the Unit assembly's entire 171 s wall clock while 31 cores
-/// idled (the leg's average concurrency was 1.9x). Splitting it eight ways puts each collection at ≈21 s, below
+/// idled (the leg's average concurrency was 1.9x). Splitting it eight ways put each collection at ≈21 s, below
 /// the leg's next-largest class (<c>GrammarDiagramGeneratorDriftTests</c>, 35.7 s, a single indivisible test).
 /// <para>⚠ THE POPULATION ASSERTION SURVIVES THE SPLIT, and that is deliberate — a MISSING observation is not a
 /// negative one. The whole-corpus form asserted <c>parsed &gt;= 50</c>, i.e. that the sweep actually bound
 /// programs rather than skipping all of them; each partition now asserts its PROPORTIONAL share of that bar
-/// (rounded UP), so the eight partitions together still prove ≥50 programs were bound. A partition that silently
+/// (rounded UP), so the partitions together still prove ≥50 programs were bound. A partition that silently
 /// stopped parsing goes RED instead of green-and-empty.</para>
 /// </remarks>
 /// <typeparam name="TSlot">This partition's slot.</typeparam>
 public abstract class StorageFormNistEquivalenceTestsBase<TSlot>
     where TSlot : ITestPartitionSlot
 {
-    /// <summary>Partition count, chosen from the MEASURED serial cost: 171.5 s ÷ 8 ≈ 21 s per collection.</summary>
-    public const int Partitions = 8;
+    /// <summary>Partition count, chosen from the MEASURED serial cost: 171.5 s ÷ 8 ≈ 21 s per collection on the
+    /// battery #41 trx, but 131 s for the slowest of the eight (<c>_P6</c>) under a 2026-10-31 loaded gate, so sixteen
+    /// partitions put the slowest near 65 s (kb/Work PB4325, step 2 of PB4323).</summary>
+    public const int Partitions = 16;
 
     /// <summary>The whole-corpus parse bar the unpartitioned sweep asserted, apportioned below.</summary>
     private const int WholeCorpusMinParsed = 50;
@@ -242,8 +244,8 @@ public abstract class StorageFormNistEquivalenceTestsBase<TSlot>
     }
 }
 
-// ⛔ THE EIGHT PARTITIONS — each its own xUnit collection. TestPartitionAudit proves they cover the corpus
-// exactly once; a deleted partition class silently drops an eighth of the NIST corpus from this gate without it.
+// ⛔ THE SIXTEEN PARTITIONS — each its own xUnit collection. TestPartitionAudit proves they cover the corpus
+// exactly once; a deleted partition class silently drops a sixteenth of the NIST corpus from this gate without it.
 
 /// <summary>StorageForm NIST partition 0 of
 /// <see cref="StorageFormNistEquivalenceTestsBase{TSlot}.Partitions"/>.</summary>
@@ -269,3 +271,27 @@ public sealed class StorageFormNistEquivalenceTests_P6 : StorageFormNistEquivale
 
 /// <summary>StorageForm NIST partition 7.</summary>
 public sealed class StorageFormNistEquivalenceTests_P7 : StorageFormNistEquivalenceTestsBase<Slot7>;
+
+/// <summary>StorageForm NIST partition 8.</summary>
+public sealed class StorageFormNistEquivalenceTests_P8 : StorageFormNistEquivalenceTestsBase<Slot8>;
+
+/// <summary>StorageForm NIST partition 9.</summary>
+public sealed class StorageFormNistEquivalenceTests_P9 : StorageFormNistEquivalenceTestsBase<Slot9>;
+
+/// <summary>StorageForm NIST partition 10.</summary>
+public sealed class StorageFormNistEquivalenceTests_P10 : StorageFormNistEquivalenceTestsBase<Slot10>;
+
+/// <summary>StorageForm NIST partition 11.</summary>
+public sealed class StorageFormNistEquivalenceTests_P11 : StorageFormNistEquivalenceTestsBase<Slot11>;
+
+/// <summary>StorageForm NIST partition 12.</summary>
+public sealed class StorageFormNistEquivalenceTests_P12 : StorageFormNistEquivalenceTestsBase<Slot12>;
+
+/// <summary>StorageForm NIST partition 13.</summary>
+public sealed class StorageFormNistEquivalenceTests_P13 : StorageFormNistEquivalenceTestsBase<Slot13>;
+
+/// <summary>StorageForm NIST partition 14.</summary>
+public sealed class StorageFormNistEquivalenceTests_P14 : StorageFormNistEquivalenceTestsBase<Slot14>;
+
+/// <summary>StorageForm NIST partition 15.</summary>
+public sealed class StorageFormNistEquivalenceTests_P15 : StorageFormNistEquivalenceTestsBase<Slot15>;

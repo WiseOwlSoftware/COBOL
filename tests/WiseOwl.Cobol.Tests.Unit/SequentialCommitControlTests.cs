@@ -24,14 +24,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>It is a file-system race witness (<c>[Trait("Host", "ReFS")]</c>, kb/Work PB3022): its interleaving case drives two run
 /// units' statements from two workers through the host's locks.</para>
 /// </summary>
-[Trait("Host", "ReFS")]
-public sealed class SequentialCommitControlTests
+public abstract class SequentialCommitControlHarness
 {
     /// <summary>A statement answered '30': the fatal EC-I-O-PERMANENT-ERROR of a file under commit control.</summary>
-    private sealed class Fatal() : Exception("a statement answered '30' (fatal: item 8's ROLLBACK follows)");
+    private protected sealed class Fatal() : Exception("a statement answered '30' (fatal: item 8's ROLLBACK follows)");
 
     /// <summary>One run unit's connector F on the physical file.</summary>
-    private sealed class Unit
+    private protected sealed class Unit
     {
         internal const string N = "F";
         internal readonly FileRegistry Reg;
@@ -99,32 +98,32 @@ public sealed class SequentialCommitControlTests
 
     /// <summary>A status the row requires: '30' is the fatal condition (<see cref="Fatal"/>); anything else must be
     /// <paramref name="expected"/>.</summary>
-    private static void Ok(string status, string expected = "00")
+    private protected static void Ok(string status, string expected = "00")
     {
         if (status == "30") throw new Fatal();
         Assert.Equal(expected, status);
     }
 
-    private static void OkCommit(Unit u)
+    private protected static void OkCommit(Unit u)
     {
         if (!u.Commit()) throw new Fatal();
     }
 
-    private static void OkRollback(Unit u)
+    private protected static void OkRollback(Unit u)
     {
         if (!u.Rollback()) throw new Fatal();
     }
 
-    private delegate void Program(Unit u);
+    private protected delegate void Program(Unit u);
 
-    private static byte[]? State(string f) => File.Exists(f) ? File.ReadAllBytes(f) : null;
+    private protected static byte[]? State(string f) => File.Exists(f) ? File.ReadAllBytes(f) : null;
 
-    private static string Show(byte[]? state) => state is null ? "<absent>" : Encoding.Latin1.GetString(state);
+    private protected static string Show(byte[]? state) => state is null ? "<absent>" : Encoding.Latin1.GetString(state);
 
-    private static byte[]? Bytes(string? text, bool line) =>
+    private protected static byte[]? Bytes(string? text, bool line) =>
         text is null ? null : Encoding.Latin1.GetBytes(line ? string.Concat(text.Chunk(2).Select(r => new string(r) + Environment.NewLine)) : text);
 
-    private static void AssertNoLitter(string f)
+    private protected static void AssertNoLitter(string f)
     {
         string lockDirectory = SequentialJournal.DirectoryOf(f);
         string[] left = Directory.Exists(lockDirectory)
@@ -135,7 +134,7 @@ public sealed class SequentialCommitControlTests
 
     /// <summary>The next entry: another run unit's writable OPEN (an uncovered OPEN EXTEND of an OPTIONAL file), whose entry
     /// step settles a dead transaction, closed at once — or nothing, for a file that is not there and has no journal.</summary>
-    private static void NextEntry(string f, bool line)
+    private protected static void NextEntry(string f, bool line)
     {
         var next = new Unit(f, covered: false, optional: true, line: line);
         string status = next.Open(FileOpenMode.Extend);
@@ -144,7 +143,7 @@ public sealed class SequentialCommitControlTests
     }
 
     /// <summary>Run the row fault-free and under every fault at every operation of the medium, and assert I1 and I3.</summary>
-    private static void Sweep(string? initial, string? before, string? after, bool line, Program program, bool optional = false)
+    private protected static void Sweep(string? initial, string? before, string? after, bool line, Program program, bool optional = false)
     {
         int total, synced, handed;
         {
@@ -209,123 +208,16 @@ public sealed class SequentialCommitControlTests
             }
     }
 
-    private static bool Same(byte[]? a, byte[]? b) => a is null ? b is null : b is not null && a.AsSpan().SequenceEqual(b);
+    private protected static bool Same(byte[]? a, byte[]? b) => a is null ? b is null : b is not null && a.AsSpan().SequenceEqual(b);
 
     public static TheoryData<bool> Framings() => [false, true];
+}
 
-    [Theory]
-    [MemberData(nameof(Framings))]
-    public void First_write_under_extend_then_commit(bool line) =>
-        Sweep("C1C2", "C1C2", "C1C2X1", line, u =>
-        {
-            Ok(u.Open(FileOpenMode.Extend));
-            Ok(u.Write("X1"));
-            OkCommit(u);
-        });
-
-    [Theory]
-    [MemberData(nameof(Framings))]
-    public void Rewrite_then_rewrite_again_then_rollback(bool line) =>
-        Sweep("C1C2", "C1C2", "C1C2", line, u =>
-        {
-            Ok(u.Open(FileOpenMode.IO));
-            Ok(u.Read(out _));
-            Ok(u.Rewrite("Y1"));
-            Ok(u.Close());
-            Ok(u.Open(FileOpenMode.IO));
-            Ok(u.Read(out string again));
-            Assert.Equal("Y1", again);   // D.2.5: the run unit reads its own uncommitted change
-            Ok(u.Rewrite("Y2"));
-            OkRollback(u);
-        });
-
-    [Theory]
-    [MemberData(nameof(Framings))]
-    public void Capture_then_rewrite_then_rollback(bool line) =>
-        // 2.2.2.12 "R1-1 capture then REWRITE": nothing after the capture is journaled; F = C1 C2.
-        Sweep("C1C2", "C1C2", "C1C2", line, u =>
-        {
-            Ok(u.Open(FileOpenMode.Output));
-            Ok(u.Write("X1"));
-            Ok(u.Write("X2"));
-            Ok(u.Close());
-            Ok(u.Open(FileOpenMode.IO));
-            Ok(u.Read(out _));
-            Ok(u.Rewrite("Y1"));
-            OkRollback(u);
-        });
-
-    [Theory]
-    [MemberData(nameof(Framings))]
-    public void Append_then_capture_then_rollback(bool line) =>
-        // "R1-1 append then capture": the before file holds C1 C2 X1; truncated to L after the restore: C1 C2.
-        Sweep("C1C2", "C1C2", "C1C2", line, u =>
-        {
-            Ok(u.Open(FileOpenMode.Extend));
-            Ok(u.Write("X1"));
-            Ok(u.Close());
-            Ok(u.Open(FileOpenMode.Output));
-            Ok(u.Write("X2"));
-            OkRollback(u);
-        });
-
-    [Theory]
-    [MemberData(nameof(Framings))]
-    public void A_creation_rolled_back_removes_the_file(bool line) =>
-        // "R1-2 created by OPEN OUTPUT": removed; the OPEN INPUT answers '35' (GR18: the state at the start was "no file").
-        Sweep(null, null, null, line, u =>
-        {
-            Ok(u.Open(FileOpenMode.Output));
-            Ok(u.Write("X1"));
-            OkRollback(u);
-            Ok(u.Close());
-            Ok(u.Open(FileOpenMode.Input), "35");
-        });
-
-    [Fact]
-    public void An_optional_file_created_by_open_extend_rolled_back_is_absent_again() =>
-        // "R1-2 OPTIONAL created by OPEN EXTEND": the file removed; the OPEN INPUT answers '05' (GR17).
-        Sweep(null, null, null, line: false, optional: true, program: u =>
-        {
-            Ok(u.Open(FileOpenMode.Extend), "05");
-            Ok(u.Write("X1"));
-            OkRollback(u);
-            Ok(u.Close());
-            Ok(u.Open(FileOpenMode.Input), "05");
-        });
-
-    [Fact]
-    public void A_creation_committed_keeps_the_file() =>
-        Sweep(null, null, "X1", line: false, program: u =>
-        {
-            Ok(u.Open(FileOpenMode.Output));
-            Ok(u.Write("X1"));
-            OkCommit(u);
-        });
-
-    [Fact]
-    public void Delete_file_then_commit_leaves_the_file_absent() =>
-        // "DELETE FILE then COMMIT": absent, durably; the NOTE under §14.9.10.4 GR15 lets the delete proceed.
-        Sweep("C1C2", "C1C2", null, line: false, program: u =>
-        {
-            Ok(u.Open(FileOpenMode.Input));
-            Ok(u.Close());                     // the CLOSE keeps the handle (GR9) — and the DELETE FILE is not '62' for it
-            Ok(u.DeleteFile());
-            OkCommit(u);
-        });
-
-    [Fact]
-    public void Delete_file_then_recreate_then_rollback_restores_the_file() =>
-        // "DELETE FILE then re-create then ROLLBACK": the re-creation is replaced-phase and unjournaled; C1 C2.
-        Sweep("C1C2", "C1C2", "C1C2", line: false, program: u =>
-        {
-            Ok(u.DeleteFile());
-            Ok(u.Open(FileOpenMode.Output));
-            Ok(u.Write("X1"));
-            Ok(u.Close());
-            OkRollback(u);
-        });
-
+/// <summary>The rest of 2.2.2.12's rows: the last two fault sweeps (a COMMIT then more, a writer whose file a ROLLBACK removed) and
+/// the cases that are no sweep, which cost under a second each (the other sweeps are the two classes below, kb/Work PB4325).</summary>
+[Trait("Host", "ReFS")]
+public sealed class SequentialCommitControlTests : SequentialCommitControlHarness
+{
     [Fact]
     public void Commit_then_more_then_rollback() =>
         // "COMMIT then more, ROLLBACK": C1 X1 — the second transaction's L is the first's committed length.
@@ -970,7 +862,9 @@ public sealed class SequentialCommitControlTests
     {
         // §9.1.13.6 6) b): "insufficient authority exists to access the file" ('37'; §14.9.10.4 GR16 for the DELETE FILE). The
         // entry step cannot tell whether a transaction lives on the file, and no holder is known to conflict, so the answer is
-        // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§14.9.27.4 GR25).
+        // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§14.9.27.4 GR25). An OPEN INPUT
+        // runs the entry step too (kb/Work PB4097): a dead run unit's rewrite is rolled back before any reader meets it
+        // (§9.1.18.5), and a reader that cannot list the lock directory cannot tell that none stands.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -980,9 +874,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("37", u.Open(FileOpenMode.Extend));
             Assert.Equal("37", u.Open(FileOpenMode.Output));
             if (covered) Assert.Equal("37", u.DeleteFile());   // the covered DELETE FILE's entry step (the uncovered one runs none)
-            Ok(u.Open(FileOpenMode.Input));                     // an OPEN INPUT runs no entry step
-            Ok(u.Read(out string record));
-            Assert.Equal("C1", record);
+            Assert.Equal("37", u.Open(FileOpenMode.Input));     // an OPEN INPUT runs the entry step, and refuses nothing else
             u.Reg.CloseAll();
             Assert.Equal("C1", File.ReadAllText(f, Encoding.Latin1));
         }
@@ -1018,6 +910,156 @@ public sealed class SequentialCommitControlTests
             AssertNoLitter(f);
         }
         finally { ScratchDirectory.Remove(dir); }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_reader_that_opens_after_a_run_unit_was_killed_reads_the_file_as_the_rollback_leaves_it(bool allOther)
+    {
+        // §9.1.18.5: "When a run unit terminates abnormally, all file changes made since the previous commit or, if none, the
+        // beginning of the run unit are rolled back ...", and only then "all file and record locks are then released": no
+        // reader may meet the dead transaction's REWRITE (kb/Work PB4097; the reader's OPEN settles through its own handle).
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+                Ok(a.Close());
+                Ok(a.Open(FileOpenMode.Extend));
+                Ok(a.Write("X1"));
+            }
+            medium.Kill();
+            Assert.StartsWith("Y1C2", File.ReadAllText(f, Encoding.Latin1), StringComparison.Ordinal);   // its REWRITE reached the file
+            var reader = new Unit(f, covered: false, sharing: allOther ? FileSharing.AllOther : null);
+            Ok(reader.Open(FileOpenMode.Input));
+            Ok(reader.Read(out string first));
+            Assert.Equal("C1", first);
+            Ok(reader.Read(out string second));
+            Assert.Equal("C2", second);
+            Assert.Equal("10", reader.Read(out _));
+            reader.Reg.CloseAll();
+            Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_run_unit_killed_beside_an_open_reader_is_rolled_back_at_the_readers_next_read(bool ignoringLock)
+    {
+        // The owner lives while the reader is open (SHARING WITH ALL OTHER on both): the READ is refused '51' (§9.1.13.8 1)).
+        // Killed, its REWRITE is rolled back before the reader's next READ - the plain one and the IGNORING LOCK one alike
+        // (§14.9.30.4 GR12 ignores a live owner's lock, not a rollback §9.1.18.5 owes; kb/Work PB4097).
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var reader = new Unit(f, covered: false, sharing: FileSharing.AllOther);
+            Ok(reader.Open(FileOpenMode.Input));
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium, sharing: FileSharing.AllOther);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+                Assert.Equal("51", reader.Read(out _));
+            }
+            medium.Kill();
+            Ok(reader.Read(out string first, ignoringLock: ignoringLock));
+            Assert.Equal("C1", first);
+            Ok(reader.Read(out string second, ignoringLock: ignoringLock));
+            Assert.Equal("C2", second);
+            reader.Reg.CloseAll();
+            Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    [Fact]
+    public void A_reader_that_cannot_write_the_file_is_refused_not_shown_the_dead_change()
+    {
+        // kb/Work PB4097 (review round 1, R1-3): the settle of a dead run unit's REWRITE is a write the reader's OPEN cannot make
+        // when the file is read-only to this process: the authority it lacks, '37' (§14.9.27.4 GR3; §9.1.13.6 6) b)), as a keyed
+        // reader is refused (DeadOwnerReaderTests), never the dead change and never a '30' the host's other refusals share.
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+            }
+            medium.Kill();
+            File.SetAttributes(f, FileAttributes.ReadOnly);
+            if (HostFile.PermitsWrite(f)) return;   // a host where this process may write a read-only file anyway
+            var reader = new Unit(f, covered: false);
+            Assert.Equal("37", reader.Open(FileOpenMode.Input));
+            Assert.Equal("47", reader.Read(out _));   // not open: nothing was read
+            reader.Reg.CloseAll();
+        }
+        finally
+        {
+            if (File.Exists(f)) File.SetAttributes(f, FileAttributes.Normal);
+            ScratchDirectory.Remove(dir);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_reader_whose_settle_of_a_killed_run_units_change_the_host_refuses_answers_30(bool ignoringLock)
+    {
+        // kb/Work PB4097 (review round 1, R1-1): the reader is open (SHARING WITH ALL OTHER) when the owner dies and the file
+        // becomes read-only to this process, so its next READ cannot make the rollback §9.1.18.5 owes. The entry step's host
+        // failure is a permanent error ('30', §9.1.13.6 1), §9.1.13.1: it stays in effect for the file's later statements), the
+        // statement of every organization (KeyedConnector.Enter), never an exception out of the run unit and never the dead
+        // change - the IGNORING LOCK READ (§14.9.30.4 GR12) included, since it ignores a live owner's lock, not a rollback.
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var reader = new Unit(f, covered: false, sharing: FileSharing.AllOther);
+            Ok(reader.Open(FileOpenMode.Input));
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium, sharing: FileSharing.AllOther);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+            }
+            medium.Kill();
+            File.SetAttributes(f, FileAttributes.ReadOnly);
+            if (HostFile.PermitsWrite(f)) return;   // a host where this process may write a read-only file anyway
+            Assert.Equal("30", reader.Read(out string first, ignoringLock: ignoringLock));
+            Assert.NotEqual("Y1", first);
+            Assert.Equal("30", reader.Read(out _, ignoringLock: ignoringLock));   // the permanent error stays in effect
+            reader.Reg.CloseAll();
+        }
+        finally
+        {
+            if (File.Exists(f)) File.SetAttributes(f, FileAttributes.Normal);
+            ScratchDirectory.Remove(dir);
+        }
     }
 
     [Fact]
@@ -1284,4 +1326,130 @@ public sealed class SequentialCommitControlTests
         }
         finally { ScratchDirectory.Remove(dir); }
     }
+}
+
+/// <summary>The fault sweeps of the rows that first write, rewrite and capture (kb/Work PB4325): each sweep runs its
+/// program fault-free and under every fault at every operation of the medium, about 2 to 5 s each, so the sweeps are three
+/// classes that run in parallel.</summary>
+[Trait("Host", "ReFS")]
+public sealed class SequentialCommitControlSweepATests : SequentialCommitControlHarness
+{
+    [Theory]
+    [MemberData(nameof(Framings))]
+    public void First_write_under_extend_then_commit(bool line) =>
+        Sweep("C1C2", "C1C2", "C1C2X1", line, u =>
+        {
+            Ok(u.Open(FileOpenMode.Extend));
+            Ok(u.Write("X1"));
+            OkCommit(u);
+        });
+
+    [Theory]
+    [MemberData(nameof(Framings))]
+    public void Rewrite_then_rewrite_again_then_rollback(bool line) =>
+        Sweep("C1C2", "C1C2", "C1C2", line, u =>
+        {
+            Ok(u.Open(FileOpenMode.IO));
+            Ok(u.Read(out _));
+            Ok(u.Rewrite("Y1"));
+            Ok(u.Close());
+            Ok(u.Open(FileOpenMode.IO));
+            Ok(u.Read(out string again));
+            Assert.Equal("Y1", again);   // D.2.5: the run unit reads its own uncommitted change
+            Ok(u.Rewrite("Y2"));
+            OkRollback(u);
+        });
+
+    [Theory]
+    [MemberData(nameof(Framings))]
+    public void Capture_then_rewrite_then_rollback(bool line) =>
+        // 2.2.2.12 "R1-1 capture then REWRITE": nothing after the capture is journaled; F = C1 C2.
+        Sweep("C1C2", "C1C2", "C1C2", line, u =>
+        {
+            Ok(u.Open(FileOpenMode.Output));
+            Ok(u.Write("X1"));
+            Ok(u.Write("X2"));
+            Ok(u.Close());
+            Ok(u.Open(FileOpenMode.IO));
+            Ok(u.Read(out _));
+            Ok(u.Rewrite("Y1"));
+            OkRollback(u);
+        });
+}
+
+/// <summary>The fault sweeps of the rows that append, create and delete (kb/Work PB4325); see
+/// <see cref="SequentialCommitControlSweepATests"/>.</summary>
+[Trait("Host", "ReFS")]
+public sealed class SequentialCommitControlSweepBTests : SequentialCommitControlHarness
+{
+    [Theory]
+    [MemberData(nameof(Framings))]
+    public void Append_then_capture_then_rollback(bool line) =>
+        // "R1-1 append then capture": the before file holds C1 C2 X1; truncated to L after the restore: C1 C2.
+        Sweep("C1C2", "C1C2", "C1C2", line, u =>
+        {
+            Ok(u.Open(FileOpenMode.Extend));
+            Ok(u.Write("X1"));
+            Ok(u.Close());
+            Ok(u.Open(FileOpenMode.Output));
+            Ok(u.Write("X2"));
+            OkRollback(u);
+        });
+
+    [Theory]
+    [MemberData(nameof(Framings))]
+    public void A_creation_rolled_back_removes_the_file(bool line) =>
+        // "R1-2 created by OPEN OUTPUT": removed; the OPEN INPUT answers '35' (GR18: the state at the start was "no file").
+        Sweep(null, null, null, line, u =>
+        {
+            Ok(u.Open(FileOpenMode.Output));
+            Ok(u.Write("X1"));
+            OkRollback(u);
+            Ok(u.Close());
+            Ok(u.Open(FileOpenMode.Input), "35");
+        });
+
+    [Fact]
+    public void An_optional_file_created_by_open_extend_rolled_back_is_absent_again() =>
+        // "R1-2 OPTIONAL created by OPEN EXTEND": the file removed; the OPEN INPUT answers '05' (GR17).
+        Sweep(null, null, null, line: false, optional: true, program: u =>
+        {
+            Ok(u.Open(FileOpenMode.Extend), "05");
+            Ok(u.Write("X1"));
+            OkRollback(u);
+            Ok(u.Close());
+            Ok(u.Open(FileOpenMode.Input), "05");
+        });
+
+    [Fact]
+    public void A_creation_committed_keeps_the_file() =>
+        Sweep(null, null, "X1", line: false, program: u =>
+        {
+            Ok(u.Open(FileOpenMode.Output));
+            Ok(u.Write("X1"));
+            OkCommit(u);
+        });
+
+    [Fact]
+    public void Delete_file_then_commit_leaves_the_file_absent() =>
+        // "DELETE FILE then COMMIT": absent, durably; the NOTE under §14.9.10.4 GR15 lets the delete proceed.
+        Sweep("C1C2", "C1C2", null, line: false, program: u =>
+        {
+            Ok(u.Open(FileOpenMode.Input));
+            Ok(u.Close());                     // the CLOSE keeps the handle (GR9) — and the DELETE FILE is not '62' for it
+            Ok(u.DeleteFile());
+            OkCommit(u);
+        });
+
+    [Fact]
+    public void Delete_file_then_recreate_then_rollback_restores_the_file() =>
+        // "DELETE FILE then re-create then ROLLBACK": the re-creation is replaced-phase and unjournaled; C1 C2.
+        Sweep("C1C2", "C1C2", "C1C2", line: false, program: u =>
+        {
+            Ok(u.DeleteFile());
+            Ok(u.Open(FileOpenMode.Output));
+            Ok(u.Write("X1"));
+            Ok(u.Close());
+            OkRollback(u);
+        });
 }

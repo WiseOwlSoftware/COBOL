@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// <see cref="OoMethodSymbol.Binding"/> by <c>DataBinder.OoBindMethodData</c> once the method's data has
 /// bound — reading it earlier is a null-deref (a TYPE-level ordering fact), never a silent <c>-1</c>
 /// sentinel mis-read. (<c>OverrideOf</c> stays on the SYMBOL: it is an identity fact of the roster, which
-/// <c>OoClassTable.ResolveOverrides</c> marks — with the CsName adoption — once every roster is complete, before any
+/// <c>OoClassTable.ResolveOverrides</c> marks — with the ClrName adoption — once every roster is complete, before any
 /// signature is compared or any body binds; kb/Work PB1274.)
 /// </summary>
 public sealed class OoMethodBinding

@@ -300,7 +300,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an unscaled
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
     // A report VARYING counter read (ISO §13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.
-    public NumX Visit(BoundReportVaryingRef n) => new(n.CsName, 0);
+    public NumX Visit(BoundReportVaryingRef n) => new(LocalNames.Of(n.Counter), 0);
     // An OCCURS DEPENDING table's current extent (ISO §13.18.38 GR8; the §15.50.4 r4b / §15.14.4 r2b channel,
     // kb/Work PB61): CobolTable.OdoExtent over data-name-1's current count — scale 0, EC-BOUND-ODO inside.
     public NumX Visit(BoundOdoExtent n)

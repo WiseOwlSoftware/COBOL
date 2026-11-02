@@ -18,8 +18,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// float carrier from its fill image (kb/Work PB1134). Any other emitter that needs a value or a carrier from an image
 /// asks one of the two readers (an overlapping MOVE's in-place store asks <c>CarrierOfImage</c>, kb/Work PB1910).
 /// <para>A DRIFT test by name, so the drift-rule index (<c>scripts/spec/drift_rules.py</c>) reads its CodeGen scope and
-/// the gate runs it in leg 1 for every change to a CodeGen file (tier 0d). Kept inside <c>SortNumericKeyLaneTests</c> it
-/// was in no index and no leg-1 tier, so a change it governs met it late: kb/Work PB2099 part 4 at a whole gate, PB1910
+/// the gate runs it for every change, as it runs the whole population. Kept inside <c>SortNumericKeyLaneTests</c> it
+/// was in no index, so a change it governs met it late: kb/Work PB2099 part 4 at a whole gate, PB1910
 /// only in its landing's Linux legs.</para></summary>
 public sealed class NumericImageDecodeSiteDriftTests
 {

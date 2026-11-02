@@ -24,20 +24,31 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   <scratch>` measures it.
 - **No lander, no train (kb/Work PB3023).** The wave ends when its groups return; every branch reviewed CLEAN is the
   loop's landing lane's (`land_lane.py`, kb/Work PB3103), which lands each with `scripts/orchestrator/enqueue.py land`
-  (main merged in, the gate on both hosts under the gate slot, the DEVLOG stamp, the landing checks, one pull request
+  (the local gate's record read, never re-gated; main merged in, the DEVLOG stamp, the landing checks, one pull request
   into the merge queue); the `enqueue` unit handles the reviews, the finishers, the re-arms and the leads.
-- **Same-file successors.** A file with more open notes than the cluster cap (`model_rules.json` `wave.max_notes_per_group`, the cap `plan_wave.py` hands `fix_clusters.py`) becomes
-  two or more groups, and each later one declares `after: '<predecessor letter>'`. A wave dispatches only the first
-  `wave.links_per_chain` links of each chain (the owner's ONE, kb/Work PB3638: "no wave may take hours"), placed in
-  tier order so the highest tier heads the chain; the rest wait for the next wave. Where a wave does run a successor, it waits until its
+- **One step per file (kb/Work PB4396, owner 2026-11-01: "One step per file").** The notes whose claims meet on any file
+  are ONE group, sized by the turns an implementer holds (`clusters.notes_cap`, the cluster size `plan_wave.py` hands
+  `fix_clusters.py`: `model_rules.json` `wave.turns_per_group` + `wave.turns_per_note` per note, under
+  `wave.turn_budget_fraction` of the implementer's turn cap), never by a note count; a note on a file a finished
+  in-flight branch holds is planned ONTO that branch (its pred merges it first; groups.json `continues`); and what one
+  implementer cannot hold is the group's OVERFLOW (groups.json `overflow`), which the next wave plans onto the branch
+  the group leaves. The chain lands ONCE, with its last link: the dispatch ledger keeps both records and the branch
+  survey reads a link reviewed CLEAN that a later link carries, or will carry, IN FLIGHT (`prune_worktrees.py`
+  `chain_links`). Two groups of one wave never meet (`check_practices.py`, no `after:` exception). This replaced the
+  4-note cap (kb/Work PB3704), the same-file successor (kb/Work PB3670) and, for same-file chains, kb/Work PB3381's
+  "land the clean links as they come": together they built, gated, reviewed and landed one file's work once per link.
+- **Dependency successors.** A campaign group blocked by a group whose claim it does not meet declares
+  `after: '<predecessor letter>'`. A wave dispatches only the first `wave.links_per_chain` links of each chain (the
+  owner's ONE, kb/Work PB3638: "no wave may take hours"), placed in tier order so the highest tier heads the chain;
+  the rest wait for the next wave. Where a wave does run a successor, it waits until its
   predecessor is SETTLED (its review loop ended: CLEAN, FINDINGS n, STOPPED, NO-RESULT or STALE; or it returned
   unfinished), merges the predecessor's FINAL branch (the review finisher's, when one ran: the reviewed head), and
   orients from that report's "For the next implementer" section and STATUS.md instead of re-surveying the file.
-  NOTHING IS HELD (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean links as they come."): a
-  predecessor reviewed CLEAN is ready at once and the landing lane lands it, the successor's pull request merging on
-  top. The train-era hold (the predecessor "lands THROUGH the successor") saved nothing once every branch became its
-  own pull request (kb/Work PB3023, PB3024) and only postponed: wave 1118's six-link chain had six groups DONE and
-  none landed in seven hours. Whether a branch carries a predecessor's UNANSWERED findings is read from ONE source,
+  A dependency link is another file's step, so NOTHING IS HELD for it (kb/Work PB3381, owner 2026-10-18: "Make the
+  changes now and land the clean links as they come."): a predecessor reviewed CLEAN is ready at once and the
+  landing lane lands it, the successor's pull request merging on top. The train-era hold (the predecessor "lands
+  THROUGH the successor") saved nothing once every branch became its own pull request (kb/Work PB3023, PB3024) and
+  only postponed: wave 1118's six-link chain had six groups DONE and none landed in seven hours. Whether a branch carries a predecessor's UNANSWERED findings is read from ONE source,
   the predecessor's FINDINGS FILE (its last verdict: FINDINGS with blocking findings at a head the branch contains),
   through ONE reader, `review_findings.py last_verdict` (CLI `last-verdict`), which the wave's `predecessorEnd` and
   `prune_worktrees.py carrying_findings` both call; never from a report stamp, because a review finisher rewrites the

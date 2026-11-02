@@ -203,7 +203,7 @@ occupies the same storage area as the argument." The carrier of a BY REFERENCE i
 argument (the typed INVOKE's arm chain states the read, `InvokeArgumentStore` the write; the universal switch views the
 caller's LIVE `CobolInvokeArg` box), and the area is the cell the argument lives in (every BY REFERENCE operand is claimed onto
 a cell — `DataBinder.PtrBindBasedAndAddressables`). In the body a RESIDENT formal (`DataBinder.FormalIsCarrierResident`, the
-program arm's test) reads and writes through its carrier on every access — its path IS `__lnk{Uid}.Value` — and an AREA
+program arm's test) reads and writes through its carrier on every access — its access path is the carrier and its value step (`DataItem.ResidentCarrier`, `CarrierValueSegment`; rendered `__lnk{Uid}.Value`) — and an AREA
 formal (group / REDEFINED / addressed) is described as a BASED item whose per-activation pointer `CobolArgAdapt.Area` sets to
 the argument's area; only an argument with no area gives it a fresh cell, filled from the carrier and, BY REFERENCE, stored
 back at return. A variable-length group formal is an area formal too (kb/Work PB2094): it is laid over an argument of the
@@ -1002,7 +1002,7 @@ THE OO IDENTIFIERS IN THE EXPRESSION TIER (§8.4.3.1.3 SR1; live — kb/Work PB1
   `inlineMethodInvocation`, so every SENDING position the expression tier serves takes them: a relation or EVALUATE
   operand (§8.8.4.2.15, reference identity — `IF O = SELF`, `IF U AS C = D`), an INVOKE argument (the `SELF` arms
   of `invokeArgument` are gone: SELF is the sole primary of its expression arm), an inline-invocation argument, a
-  SET sender (`SET O TO SELF` now parses as `setToValueStatement`, which precedes the object-reference alternative;
+  SET sender (`SET O TO SELF` parses through `setToSender`'s arithmetic arm, the expression tier carrying SELF;
   that alternative is left with NULL). The GOBACK / EXIT RAISING phrase's identifier-1 (`raisingPhrase`) is
   `objectReference`, RAISE's operand rule. A RECEIVING position never parses an expression; it parses SELF, SUPER,
   NULL and the view only as a `nonReceivableIdentifier`, refused by §8.4.3.8.3 SR2 (COBOL3978), §8.4.3.7.3 SR1

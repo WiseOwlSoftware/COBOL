@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SELF-TEST-CLOCK: real — coord.py's lock staleness compares the lock file's modification time with the clock (LOCK_STALE_S)
 """Self-test for alloc.py: the truth rules, the reservation high-water mark, stale-lock recovery, and that parallel
 REAL processes never receive the same value.
 Run: python scripts/orchestrator/test_alloc.py   (no submodule, no build; a fabricated repo in a temp directory)."""

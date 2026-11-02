@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -146,30 +147,32 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         // §14.4.3 — sentences written directly after the PROCEDURE DIVISION header, with no paragraph-name.
         // They form the first nondeclarative paragraph, so they must take the ENTRY pc (execution begins with
-        // the first nondeclarative procedure, §14.2.3 GR1) — hence before the procedureUnit walk.
+        // the first nondeclarative procedure, §14.2.3 GR1) — hence before the paragraph and section walks.
         AddAnonymousParagraph(pd.sentence(), null, used);
 
-        foreach (var unit in pd.procedureUnit())
+        // The grammar writes the division's own paragraphs ahead of its sections, because every paragraph after a
+        // section header is that section's (§14.4.2; kb/Work PB4230), so the two walks below run in source order.
+        foreach (var para in pd.paragraphDefinition())
         {
-            using var _ = ctx.Edition.At(unit);   // the paragraph / section header's position (kb/Work PB82)
-            if (unit.paragraphDefinition() is { } para)
-                AddParagraph(HeaderName(para.paragraphName().procedureName(), "paragraph"), para.sentence(), null, used);
-            else if (unit.sectionDefinition() is { } section)
-            {
-                // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
-                // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
-                // statement of its first paragraph through last statement of its last (ISO §14.9.28).
-                string sectionName = HeaderName(section.sectionName().procedureName(), "section");
-                ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-                var info = new SectionInfo(sectionName, _paras.Count);
-                // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
-                // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
-                AddAnonymousParagraph(section.sentence(), info, used);
-                foreach (var p in section.paragraphDefinition())
-                    AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
-                info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§14.4.2)
-                (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
-            }
+            using var _ = ctx.Edition.At(para);   // the paragraph header's position (kb/Work PB82)
+            AddParagraph(HeaderName(para.paragraphName().procedureName(), "paragraph"), para.sentence(), null, used);
+        }
+        foreach (var section in pd.sectionDefinition())
+        {
+            using var _ = ctx.Edition.At(section);   // the section header's position (kb/Work PB82)
+            // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
+            // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
+            // statement of its first paragraph through last statement of its last (ISO §14.9.28).
+            string sectionName = HeaderName(section.sectionName().procedureName(), "section");
+            ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
+            var info = new SectionInfo(sectionName, _paras.Count);
+            // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
+            // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
+            AddAnonymousParagraph(section.sentence(), info, used);
+            foreach (var p in section.paragraphDefinition())
+                AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
+            info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§14.4.2)
+            (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
         }
     }
 
@@ -188,7 +191,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (!ProcedureNameShape.IsQualified(pn)) return ProcedureNameShape.Head(pn);
         using (ctx.Edition.At(pn))   // the HEADER's position — a paragraph in a section is collected under its section's At
             ctx.Edition.Error(DiagnosticCatalog.QualifiedProcedureHeader,
-                $"{kind}-name '{pn.GetChild(0).GetText()}{ProcedureNameShape.QualifierAsWritten(pn)}' is written qualified in its "
+                $"{kind}-name '{ProcedureNameShape.AsWritten(pn)}' is written qualified in its "
                 + $"{kind} header — a {kind}-name that is being defined is written alone (ISO §14.2.1: "
                 + "\"section-name-1 SECTION.\", \"paragraph-name-1.\"); qualification (§8.4.2.2.2) belongs to a "
                 + "reference, and §14.4.1 gives it to the procedure-name that refers to a paragraph. Write "
@@ -248,7 +251,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         var resolved = Resolve(pn);
         if (resolved.Procedure is { } procedure)
-            return ctx.Validation.CheckDeclarativesBoundary(procedure, ctx.CurrentSection, pn.GetText(), verb, kind)
+            return ctx.Validation.CheckDeclarativesBoundary(procedure, ctx.CurrentSection, ProcedureNameShape.AsWritten(pn), verb, kind)
                 ? procedure : null;
         string head = ProcedureNameShape.Head(pn);
         // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §8.4.2.1's "a
@@ -261,7 +264,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             ctx.Validation.RejectAmbiguousProcedureName(ambiguity, verb);
             return null;
         }
-        ctx.Validation.RejectProcedureName(head + ProcedureNameShape.QualifierAsWritten(pn), head, verb, rule, ctx.CurrentMethodScope is not null);
+        ctx.Validation.RejectProcedureName(ProcedureNameShape.AsWritten(pn), head, verb, rule, ctx.CurrentMethodScope is not null);
         return null;
     }
 
@@ -575,36 +578,57 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             foreach (var t in use.useDebugTarget())
             {
+                // FinalizeDebug runs after every walker, so the operand positions its own diagnostics (kb/Work
+                // PB2034: a refusal names the file and line the user edits).
+                using var _ = ctx.Edition.At(t);
                 if (t.PROCEDURES() is not null)          // ALL PROCEDURES → every nondeclarative procedure
                 {
                     for (int pc = _entryPc; pc < _paras.Count; pc++)
                         AddDebugSubject(pc, section);
                 }
-                else if (t.REFERENCES() is not null)     // ALL REFERENCES OF identifier-1 → data-name subject (staged)
+                else if (t.ALL() is not null)            // ALL [REFERENCES] [OF] identifier-1 → data-name subject (staged)
                 {
+                    // ALL, not REFERENCES, marks the arm: REFERENCES and OF are the '85 format's optional words,
+                    // so `ALL W-A` is this operand too and never a procedure-name subject (kb/Work PB4237). The
+                    // message names the operand, so two ALL operands of one USE are two diagnostics (DB201A).
+                    // ⛔ THE OPERAND IS RESOLVED BEFORE IT IS CALLED A DATA ITEM (kb/Work PB4363): identifier-1 is a
+                    // data item, and a word that names a procedure or names nothing is not the legal-but-unmodeled
+                    // subject COBOL1571 tells the user about.
+                    var adr = t.dataReference();
+                    string anm = DebugOperandAsWritten(adr);
+                    if (!NamesDataItem(adr))
+                    {
+                        if (ResolveDebugProcedure(adr, section) is { Procedure: not null } or { Ambiguity: not null })
+                        {
+                            ctx.Edition.Error(DiagnosticCatalog.DebugAllOperandIsProcedure, $"declarative section "
+                                + $"'{section.Name}': USE FOR DEBUGGING ON ALL REFERENCES OF '{anm}' names a paragraph or "
+                                + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item (ISO §14.4.1: a "
+                                + $"procedure-name refers to a paragraph or section); write ON {anm} for a procedure-name subject");
+                            continue;
+                        }
+                        if (ReportUnresolvedDebugOperand(adr, section)) continue;
+                    }
                     ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
-                        + "ON ALL REFERENCES OF a data item (the after-statement data trigger with DEBUG-CONTENTS/"
-                        + "DEBUG-SUB rendering) is recognized but not modeled — only ON procedure-name / ALL "
+                        + $"ON ALL REFERENCES OF '{anm}' (the data-item subject: the after-statement data trigger with "
+                        + "DEBUG-CONTENTS/DEBUG-SUB rendering) is recognized but not modeled — only ON procedure-name / ALL "
                         + "PROCEDURES is implemented (X3.23-1985 debug module; VCR Table 7 row 7.17)");
                 }
                 else if (t.dataReference() is { } dr)    // bare name: procedure-name, else file/data/cd (staged)
                 {
-                    string nm = dr.cobolWord()?.GetText() ?? dr.GetText();
+                    string nm = DebugOperandAsWritten(dr);
                     // ⛔ THE SAME §8.4.2.2 RESOLUTION AS EVERY OTHER PROCEDURE-NAME REFERENCE, through the same
                     // method (kb/Work PB466) — USE FOR DEBUGGING ON procedure-name is an explicit reference, so
                     // an ambiguous spelling owes the same diagnostic here as it does at GO TO. The referencing
                     // section is THIS declarative section, which is what §8.4.2.2.1 rule 6 is measured against.
                     // A range covers both cases the leg needs: a paragraph is (pc, pc), a section is its whole
                     // paragraph range, and every pc in the range becomes a trigger point either way.
-                    var subject = dr.dataReferenceSuffix().Length == 0
-                        ? ResolveProcedureWord(nm, null, section)
-                        : default;
+                    var subject = ResolveDebugProcedure(dr, section);
                     if (subject.Ambiguity is { } dambiguity)
                         ctx.Validation.RejectAmbiguousProcedureName(dambiguity, "USE FOR DEBUGGING ON");
                     else if (subject.Range is { } drange)
                         for (int pc = drange.Start; pc <= drange.End; pc++)
                             AddDebugSubject(pc, section);
-                    else
+                    else if (NamesDataItem(dr) || NamesFile(dr) || !ReportUnresolvedDebugOperand(dr, section))
                         ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
                             + $"ON '{nm}' names a file-name, cd-name, or data item (not a procedure-name of this "
                             + "program) — only the ON procedure-name / ALL PROCEDURES leg is modeled; the file / "
@@ -619,9 +643,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (_debugSubjects.Count > 0)
         {
             var subjectPcs = _debugSubjects.Select(s => s.SubjectPc).ToHashSet();
-            foreach (var (name, rng) in SortMergeProcedureRanges(pd))
+            foreach (var (name, phrase, rng) in SortMergeProcedureRanges(pd))
                 if (Enumerable.Range(rng.Start, rng.End - rng.Start + 1).Any(subjectPcs.Contains))
                 {
+                    using var _ = ctx.Edition.At(phrase);   // the INPUT/OUTPUT PROCEDURE phrase (kb/Work PB2034)
                     ctx.Edition.Error("COBOL1571", $"the SORT/MERGE {name} PROCEDURE is also a USE FOR "
                         + "DEBUGGING subject: the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not "
                         + "modeled (only the plain-transfer / fall-through / PERFORM-loop / START-PROGRAM causes "
@@ -629,6 +654,72 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     break;
                 }
         }
+    }
+
+    /// <summary>The operand of a USE FOR DEBUGGING target as a message quotes it: the word and its OF/IN qualifiers
+    /// as written, <c>P1 OF S1</c>. <c>GetText()</c> of the node would glue the words (<c>P1OFS1</c>, the class
+    /// kb/Work PB4252 and PB4277 record), and a subscript or reference modifier is left off as it always was.</summary>
+    private static string DebugOperandAsWritten(Core.DataReferenceContext operand)
+    {
+        string written = operand.cobolWord()?.GetText() ?? operand.GetText();
+        foreach (var suffix in operand.dataReferenceSuffix())
+            if (suffix.qualification() is { } q)
+                written += " " + q.GetChild(0).GetText() + " " + q.cobolWord().GetText();
+        return written;
+    }
+
+    /// <summary>⛔ THE ONE PLACE A USE FOR DEBUGGING OPERAND IS READ AS A <c>procedure-name</c> (kb/Work PB4363). The
+    /// grammar spells the operand as a dataReference because the phrase also admits file-, cd- and data-names, so
+    /// the procedure-name shapes <c>word</c> and <c>word OF section</c> (ISO §14.4.1: "a paragraph-name (that may be
+    /// qualified) or a section-name") are recognized here and handed to the §8.4.2.2 algorithm; any other suffix (a
+    /// subscript, a reference modifier, a property) cannot be a procedure-name and resolves to nothing. Both operand
+    /// arms of <see cref="FinalizeDebug"/> ask it, so a qualified procedure-name is a procedure-name in either.</summary>
+    private ProcedureResolution ResolveDebugProcedure(Core.DataReferenceContext operand, SectionInfo section)
+    {
+        if (operand.cobolWord() is not { } head) return default;
+        var suffixes = operand.dataReferenceSuffix();
+        if (suffixes.Length == 0)
+            return ResolveProcedureWord(head.GetText(), null, section);
+        return suffixes is [{ } only] && only.qualification() is { } q && q.subscriptPart().Length == 0 && q.refModPart().Length == 0
+            ? ResolveProcedureWord(head.GetText(), q.cobolWord().GetText(), section)
+            : default;
+    }
+
+    /// <summary>Whether the operand names a data item the program declares, or a special register — the §8.4.2.2
+    /// lookup alone, asked silently (<see cref="ReferenceResolver.ProbeDeclaration"/>), so the answer is about the
+    /// DECLARATION. The reference SHAPE screens that <see cref="ReferenceResolver.Probe"/> applies are left out on
+    /// purpose: the debug identifier of a table element is written without its subscripts (the DEBUG-SUB-n items
+    /// report them, X3.23-1985), so that operand is the data item the staged COBOL1571 describes, not one the
+    /// COBOL2270 "shall be subscripted" rule (ISO §8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
+    private bool NamesDataItem(Core.DataReferenceContext operand) =>
+        new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null;
+
+    /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
+    private bool NamesFile(Core.DataReferenceContext operand) =>
+        operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
+        && ctx.Data.FilesByName.ContainsKey(word.GetText());
+
+    /// <summary>An operand that is no procedure, data item or file is told why. A qualified word whose HEAD is a
+    /// paragraph or section the program declares (<c>P1 OF NOSEC</c>) is a procedure-name that identifies nothing,
+    /// and is reported as every other procedure-name operand is (<c>RejectProcedureName</c>, COBOL1639): the data
+    /// resolver's "no declaration gives the name P1" would send the user hunting for a declaration that is there.
+    /// Any other operand is asked of the ONE reference resolver, which says why — "'X' is not defined" for a name
+    /// nothing declares (COBOL1639, ISO §8.4.2.1: "a statement shall contain a reference that uniquely identifies
+    /// that resource"), the ambiguity for a name several declarations share (§8.4.2.2.3 SR1). True when it
+    /// reported; false when it found nothing to say, and the caller falls back to the staged COBOL1571 rather than
+    /// let an operand through in silence.</summary>
+    private bool ReportUnresolvedDebugOperand(Core.DataReferenceContext operand, SectionInfo section)
+    {
+        if (operand.dataReferenceSuffix().Length > 0 && operand.cobolWord() is { } head
+            && ResolveProcedureWord(head.GetText(), null, section) is { Procedure: not null } or { Ambiguity: not null })
+        {
+            ctx.Validation.RejectProcedureName(DebugOperandAsWritten(operand), head.GetText(), "USE FOR DEBUGGING ON", "",
+                ctx.CurrentMethodScope is not null);
+            return true;
+        }
+        int recorded = ctx.Edition.ErrorsRecorded;
+        ctx.Refs.Resolve(operand);
+        return ctx.Edition.ErrorsRecorded != recorded;
     }
 
     /// <summary>Record one debug trigger subject (the subject pc's name + source line + the debugging section's
@@ -644,24 +735,24 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>The pc range of each SORT/MERGE INPUT/OUTPUT PROCEDURE in the procedure division (for the debug
     /// SORT/MERGE-overlap staging check). Resolves the phrase's procedure-name(s) via the ordinary procedure
     /// table (THRU forms span first..last).</summary>
-    private List<(string Kind, PcRange Range)> SortMergeProcedureRanges(
+    private List<(string Kind, Antlr4.Runtime.ParserRuleContext Phrase, PcRange Range)> SortMergeProcedureRanges(
         Core.ProcedureDivisionContext pd)
     {
-        var results = new List<(string, PcRange)>();
-        void Add(string kind, Core.ProcedureNameContext[] pns)
+        var results = new List<(string, Antlr4.Runtime.ParserRuleContext, PcRange)>();
+        void Add(string kind, Antlr4.Runtime.ParserRuleContext phrase, Core.ProcedureNameContext[] pns)
         {
             if (pns.Length == 0) return;
             if (ResolveProcedureQuiet(pns[0]) is not { } first) return;
             var last = pns.Length > 1 ? ResolveProcedureQuiet(pns[^1]) : first;
-            if (last is { } l) results.Add((kind, first.Through(l)));
+            if (last is { } l) results.Add((kind, phrase, first.Through(l)));
         }
         void Walk(Antlr4.Runtime.Tree.IParseTree node)
         {
             switch (node)
             {
-                case Core.SortInputProcedurePhraseContext ip: Add("INPUT", ip.procedureName()); return;
-                case Core.SortOutputProcedurePhraseContext op: Add("OUTPUT", op.procedureName()); return;
-                case Core.MergeOutputProcedurePhraseContext mo: Add("OUTPUT", mo.procedureName()); return;
+                case Core.SortInputProcedurePhraseContext ip: Add("INPUT", ip, ip.procedureName()); return;
+                case Core.SortOutputProcedurePhraseContext op: Add("OUTPUT", op, op.procedureName()); return;
+                case Core.MergeOutputProcedurePhraseContext mo: Add("OUTPUT", mo, mo.procedureName()); return;
             }
             for (int i = 0; i < node.ChildCount; i++) Walk(node.GetChild(i));
         }

@@ -48,7 +48,7 @@ public enum KeyedAccess
 /// Random/Extend and Dynamic/Extend WRITE cells blank), not divert into the sequential-release branch and
 /// succeed. That divergence was PB325.
 /// </summary>
-public abstract class KeyedConnector : FileConnector
+public abstract partial class KeyedConnector : FileConnector
 {
     protected KeyedConnector(string hostPath, int recordWidth, KeyedAccess access, int varyMin, int varyMax)
         : base(hostPath, recordWidth, varyMin, varyMax) => Access = access;
@@ -293,6 +293,7 @@ public abstract class KeyedConnector : FileConnector
                     break;
                 }
                 if ((Lock(FileTaking.Existing) ?? Attach(create: false)) is { } refusedInput) return refusedInput;   // §9.1.15 — the lock, before the store is read through it
+                if (SettleDeadOwnersOfTheOpen() is { } unsettled) return unsettled;   // §9.1.18.5, before any record is read (kb/Work PB4097)
                 break;
             case FileOpenMode.Output:
                 // §14.9.27.4 GR18 — OUTPUT creates the physical file: a new, EMPTY store (kb/Work PB754). Under commit control an
@@ -1153,9 +1154,13 @@ public abstract class KeyedConnector : FileConnector
                     if (owner == 0 || owner == store.Transaction && CommitControlled) break;
                     if (owner == store.Transaction) return RetryAttempt.InRunUnit(FileStatusCode.RecordLocked);
                     if (!KeyedStore.MayRollBack(regions, owner)) return RetryAttempt.OutsideRunUnit(FileStatusCode.RecordLocked);
-                    // A dead owner's holding: an INPUT connector writes nothing and reads the file as it stands, dead
-                    // transaction included (2.2.1.10: D.2.5's tolerated read); a writer rolls the owner back here.
-                    if (!file.Writable) break;
+                    // A dead owner's holding: a writer rolls the owner back here. A reader cannot (its handle is read-only and
+                    // it holds the mutex shared): the statement's entry settled every dead owner through a handle of its own
+                    // (Enter, SettleDeadOwnersBeside), so a holder met dead HERE died after that probe, within this very
+                    // statement. Its holding stands until the rollback (§9.1.18.5 releases the locks only after it), so the
+                    // reader is refused as by any holding, '51' (§9.1.16's implementor-specified circumstance, DOC-A.1-152) and
+                    // the RETRY phrase's wait lets go of the mutex; the attempt after it re-enters and settles.
+                    if (!file.Writable) return RetryAttempt.OutsideRunUnit(FileStatusCode.RecordLocked);
                     if (store.RollBack(owner, Restoring) != StoreStatus.Ok) return RetryAttempt.InRunUnit(FileStatusCode.PermanentError);
                     rolledBack = true;
                 }
@@ -1278,8 +1283,15 @@ public abstract class KeyedConnector : FileConnector
             // The DEAD-OWNER step (2.2.1.10, finding R3-1): an exclusive entry through a writable handle, once the entry
             // resolved a PROMOTING flag (so a COMMIT's fate is settled before its transaction is probed), rolls back
             // every transaction whose owner's liveness byte is free before the statement proceeds.
-            else if (exclusive && store.RollBackDeadOwners(_regions, Restoring) != StoreStatus.Ok)
-                SetStatus(FileStatusCode.PermanentError);
+            else if (exclusive)
+            {
+                if (store.RollBackDeadOwners(_regions, Restoring) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
+            }
+            // ⛔ A READER's entry owes the same step (§9.1.18.5, kb/Work PB4097), and cannot take it through its own handle: the
+            // statement enters under the SHARED mutex through a read-only handle. It finds a dead owner (a read) and, if there is
+            // one, lets go of the mutex, settles through a handle opened for the purpose and enters again.
+            else if (ReaderEntryFindsDeadOwner(store, out var found) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
+            else if (found) SettleAtTheEntry(store);
         }
         catch (Exception failure) when (IsHostStoreFailure(failure))
         {

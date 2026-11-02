@@ -61,6 +61,10 @@ public static class ArchOracle
             ConformanceSuiteTestsBase<Slot0>.AllTests, SuiteTestCase),
         new(typeof(ConformanceSuiteTestsBase<>), nameof(ConformanceSuiteTestsBase<Slot0>.AllRefusals),
             ConformanceSuiteTestsBase<Slot0>.AllRefusals, SuiteRefusalCase),
+        // The runner-drift comparison's rows are the suite's in-suite tests, a subset of the rows above (kb/Work PB4325):
+        // the same cases by identity, counted once.
+        new(typeof(BothRunnersVerdictDriftTestsBase<>), nameof(BothRunnersVerdictDriftTestsBase<Slot0>.AllTests),
+            BothRunnersVerdictDriftTestsBase<Slot0>.AllTests, SuiteTestCase),
         new(typeof(NistDifferentialTestsBase<>), nameof(NistDifferentialTestsBase<Slot0>.AllGreenPrograms),
             NistDifferentialTestsBase<Slot0>.AllGreenPrograms, NistGolden),
         new(typeof(VersionMatrixTestsBase<>), nameof(VersionMatrixTestsBase<Slot0>.AllMatrix),

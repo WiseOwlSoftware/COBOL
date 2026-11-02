@@ -7,7 +7,6 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
-using Microsoft.CodeAnalysis.CSharp;
 
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Procedure;
@@ -314,7 +313,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 m.Binding!.EntryPc = table.Paragraphs.Count;
                 m.Binding!.DeclStartPc = m.Binding!.EntryPc;
                 m.Binding!.EndPc = table.Paragraphs.Count - 1;   // empty body by construction
-                methods.Add(new BoundMethod(m.Name, m.CsName, m.Binding!.EntryPc, m.Binding!.EndPc));
+                methods.Add(new BoundMethod(m.Name, m.ClrName, m.Binding!.EntryPc, m.Binding!.EndPc));
                 continue;
             }
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
@@ -341,7 +340,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 table.CollectNondeclaratives(pd, used);
             }
             m.Binding!.EndPc = table.Paragraphs.Count - 1;
-            methods.Add(new BoundMethod(m.Name, m.CsName, m.Binding!.EntryPc, m.Binding!.EndPc));
+            methods.Add(new BoundMethod(m.Name, m.ClrName, m.Binding!.EntryPc, m.Binding!.EndPc));
         }
         Ctx.CurrentMethodScope = null;
 

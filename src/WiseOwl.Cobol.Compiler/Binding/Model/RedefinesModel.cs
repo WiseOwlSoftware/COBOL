@@ -231,19 +231,19 @@ public sealed class RedefinesClass
     public int Width { get; private set; }
 
     /// <summary>The C# name of the single stored backing field for a Tier-B (byte-window) class.</summary>
-    public string BackingCsName => "_redef_" + Canonical.CsName;
+    public string BackingClrName => "_redef_" + Canonical.ClrName;
 
     /// <summary>The C# name of the <c>StorageCell</c> BEHIND the backing, for the three CELL-BACKED surfaces —
     /// EXTERNAL (the run-unit <c>ExternalStore</c> cell), ADDRESS OF (the per-instance cell) and BASED (the
-    /// pointer-deref bridge). The emitters define it and then define <see cref="BackingCsName"/> as
+    /// pointer-deref bridge). The emitters define it and then define <see cref="BackingClrName"/> as
     /// <c>ref {cell}.Ref</c>, so the byte image and the cell's MANAGED SLOTS (kb/Work PB231 — the pointer third)
     /// are provably the same storage area rather than two expressions that happen to agree. It is
     /// <see cref="IsCellBacked"/> that says whether this name is emitted; a plain REDEFINES class's backing is a
     /// stored string field with no cell behind it.</summary>
-    public string BackingCellCsName => "_scell_" + Canonical.CsName;
+    public string BackingCellClrName => "_scell_" + Canonical.ClrName;
 
     /// <summary>True once one of the three cell surfaces has claimed this class, i.e.
-    /// <see cref="BackingCellCsName"/> is emitted and a <c>SlotWindow</c> member may address it (kb/Work PB231).
+    /// <see cref="BackingCellClrName"/> is emitted and a <c>SlotWindow</c> member may address it (kb/Work PB231).
     /// Set by <c>DataBinder.ForceStringCanonical</c>'s callers, which are the only sites that create a cell.</summary>
     public bool IsCellBacked { get; set; }
 

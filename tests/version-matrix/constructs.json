@@ -258,6 +258,30 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMLL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(200).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\" TO W.\n    STOP RUN.\n"
   },
   {
+   "id": "picture-string-50-2002",
+   "description": "The PICTURE character-string length bound (ISO §13.18.40.3 SR4: 63 characters in the 2023 text) is 30 below COBOL-2002 - a RELAXATION, so a 31-to-50-character character-string-1 compiles at 2002 and later and is rejected at COBOL-85 with COBOL2146 (also under --permissive: a length error, not a removed construct), the word-length row's posture. THE EDGE IS QUOTED for the 2002 half and DERIVED for the 85 half (VCR row 7.46; the repo holds no 1985 text, ratified decision #1): the 2002 draft's own 13.16.38.2 SR4 reads 'The maximum number of characters allowed in character-string-1 is 50' and its Annex F.2 item 94 records 'The maximum number of characters that may be specified in a picture character-string is increased from 30 to 50'; GnuCOBOL 3.2's cobol85.conf carries pic-length 30 (kb/Work R61's method). ONE bound, PictureAnalyzer.MaxStringLength(edition), read by Analyze's prologue (kb/Work PB4304).",
+   "display": "a PICTURE character-string longer than 30 characters",
+   "diagnosticCode": "COBOL2146",
+   "citation": "ISO §13.18.40.3 SR4 (the character-string length bound; 63 in the 2023 text) - the 30-character bound at COBOL-85 is DERIVED (VCR row 7.46); emit site: PictureAnalyzer.AnalyzeCharacterString (binder)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL2146",
+   "vcr": "VCR row 7.46 (PICTURE character-string bound 30 -> 50 at 2002); kb/Work PB4304",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPS50.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+   "id": "picture-string-63-2014",
+   "description": "The PICTURE character-string length bound (ISO §13.18.40.3 SR4: 63 characters in the 2023 text) is 50 at COBOL-2002 - a RELAXATION, so a 51-to-63-character character-string-1 compiles at 2014 and 2023 and is rejected at COBOL-85 and COBOL-2002 with COBOL2146 (also under --permissive: a length error, not a removed construct). THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.46; the repo holds no 2002 or 2014 text of record, ratified decision #1), by the method of owner decision kb/Work R61: GnuCOBOL 3.2's cobol2014.conf carries pic-length 63 (while keeping word-length 31, so it distinguishes the two limits per edition), and Annex E (2014 to 2023) lists a word-length increase (item 11) but no picture-string increase, which it would have to if 2014 still said 50, so 2014 = 2023; the 2014 CD's 50 is the committee draft, not the standard. ONE bound, PictureAnalyzer.MaxStringLength(edition) (kb/Work PB4304).",
+   "display": "a PICTURE character-string longer than 50 characters",
+   "diagnosticCode": "COBOL2146",
+   "citation": "ISO §13.18.40.3 SR4 (63 characters in the 2023 text) - the 50-character bound at COBOL-2002 is quoted from the 2002 draft's SR4 and the 2014 edge is DERIVED (VCR row 7.46); emit site: PictureAnalyzer.AnalyzeCharacterString (binder)",
+   "introducedIn": 2014,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL2146",
+   "vcr": "VCR row 7.46 (PICTURE character-string bound 50 -> 63 at 2014); kb/Work PB4304",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPS63.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
    "id": "copy-literal-name-2002",
    "description": "The literal forms of the COPY statement's library-text name and library name (ISO §7.2.3.2: COPY { text-name-1 | literal-1 } [ { OF | IN } { library-name-1 | literal-2 } ]; 7.2.3.3 SR4/SR5 restrict them to alphanumeric literals; 7.2.3.4 GR1 \"Text-name-1 or literal-1 identifies the library text\"). ANSI X3.23-1985's COPY is COPY text-name [ { OF | IN } library-name ] [ REPLACING ... ]: the names are user-defined words only. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.44; the repo holds no 1985, 2002 or 2014 text, ratified decision #1): none of the NIST CCVS-85 programs or copy library writes a literal library-text name; Micro Focus's COPY reference marks the external-file-name literal as a dialect extension (OSVS, VSC2, MF, COB370), not ANS85; Annex E lists no COPY name change, so it predates 2023; 2002 is the edition that rewrote COPY as a compiler-directing statement and whose literal-1/literal-2 Micro Focus marks ISO2002; GnuCOBOL 3.2 parses a literal name at every -std (silence, not evidence). The row takes the 2002 edge, the one that never refuses a legal 2002 program. ONE gate for both literals, CopyProcessor.GateCopyPhrase (kb/Work PB1601).",
    "display": "a literal COPY library-text name or library name",
@@ -591,7 +615,7 @@
   },
   {
    "id": "debugging-line-removed-2014",
-   "description": "The fixed-form DEBUGGING LINE (indicator D in column 7) - the COBOL-85 debug module's lines, compiled only under WITH DEBUGGING MODE. ISO 6.2.2 lists no such fixed indicator at COBOL-2023. Owner decision kb/Work R61 (researched against GnuCOBOL's per-standard dialect files, debugging-mode: ok at 85, obsolete at 2002, unconformable at 2014): accepted at 85, OBSOLETE at 2002 (the obsolete-element warning COBOL0903), REMOVED at 2014 (COBOL0902, error strict / warning permissive, the pre-removal comment semantics kept). Medium confidence on the 2002/2014 edge (the ISO 2002 and 2014 texts are not in the repository). Recognized in ONE place, the fixed-form classifier of the 6.5 logical conversion (kb/Work PB1494). The WITH DEBUGGING MODE clause and USE FOR DEBUGGING keep their own rows.",
+   "description": "The fixed-form DEBUGGING LINE (indicator D in column 7) - the COBOL-85 debug module's lines, compiled only under WITH DEBUGGING MODE. ISO 6.2.2 lists no such fixed indicator at COBOL-2023. Owner decision kb/Work R61 (researched against GnuCOBOL's per-standard dialect files, debugging-mode: ok at 85, obsolete at 2002, unconformable at 2014): accepted at 85, OBSOLETE at 2002 (the obsolete-element warning COBOL0903), REMOVED at 2014 (COBOL0902, error strict / warning permissive, the pre-removal comment semantics kept). Medium confidence on the 2002/2014 edge (the ISO 2002 and 2014 texts are not in the repository). Recognized in ONE place, the fixed-form classifier of the 6.5 logical conversion (kb/Work PB1494); the 2002 floating spelling >>D is the row floating-debugging-indicator-2002 (kb/Work PB4298). The WITH DEBUGGING MODE clause and USE FOR DEBUGGING keep their own rows.",
    "display": "the fixed-form debugging line (indicator D)",
    "diagnosticCode": "COBOL0902",
    "citation": "ISO 6.2.2 (no D indicator at 2023); kb/Work R61 (owner decision 2026-09-30): obsolete 2002, removed 2014",
@@ -601,6 +625,20 @@
    "expectDiagnostic": "COBOL0902",
    "vcr": "VCR rows 7.9 and 7.17 (the debug facility); kb/Work R61",
    "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. PB1494DL.\n000300 PROCEDURE DIVISION.\n000400 MAIN.\n000500     DISPLAY \"A\".\n000600D    DISPLAY \"DEBUG\".\n000700     STOP RUN.\n"
+  },
+  {
+   "id": "floating-debugging-indicator-2002",
+   "description": "The FLOATING debugging indicator >>D (ISO/IEC 1989:2002 6.1.2: \"a debugging line when followed by at least one space character\"; 6.3.4 debugging lines; 6.1.2.1 SR7 it is preceded on a line only by spaces, SR8 it is not specified on a line that holds a fixed debugging or fixed continuation indicator, COBOL5770) - the same debug-module facility as the fixed indicator D (row debugging-line-removed-2014), in EITHER reference format: ISO 2023 6.2.3.1 \"Floating indicators may be used in fixed-form or free-form reference format\". Unlike the fixed D it is a COBOL-2002 INTRODUCTION, because the floating indicators are (rows floating-comment-indicator-2002, floating-literal-continuation-2002): the facility is OBSOLETE from 2002 (the 2002 text's own NOTE \"The debugging indicators and the debugging feature are obsolete and are to be removed in the next revision\") and REMOVED at 2014 (COBOL0902, error strict / warning permissive; owner decision kb/Work R61 dates the facility's edges, and GnuCOBOL 3.2 -std=cobol2014 refuses it: \"debugging indicator does not conform\"). ISO 2023 has no >>D (6.2.3.1 lists no debugging indicator), so the window is read from the archived 2002 draft, not from the 2023 text. Recognized in ONE place with the fixed D, the 6.5 logical conversion (LogicalLineBuilder.TryEmitFloatingDebugging, kb/Work PB4298), which carries the line for DebuggingLineRewriter. The witness is fixed-form: free form is itself a 2002 introduction, reached below 2002 only through the documented extension.",
+   "display": "the floating debugging indicator >>D",
+   "diagnosticCode": "COBOL0902",
+   "citation": "ISO/IEC 1989:2002 6.1.2, 6.3.4 (the 2002 text is not in the repository); ISO 2023 6.2.3.1 (floating indicators, both reference formats; no debugging indicator at 2023); kb/Work R61: obsolete 2002, removed 2014",
+   "introducedIn": 2002,
+   "removedIn": 2014,
+   "obsoleteIn": 2002,
+   "expectDiagnostic": "COBOL0902",
+   "expectDiagnosticBelow": "COBOL0900",
+   "vcr": "VCR row 7.25 (the debug facility); floating indicators (6.2.3) - 2002 introduction; kb/Work PB4298",
+   "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. PB4298DL.\n000300 PROCEDURE DIVISION.\n000400 MAIN.\n000500     DISPLAY \"A\".\n000600     >>D DISPLAY \"DEBUG\".\n000700     STOP RUN.\n"
   },
   {
    "id": "source-format-directive-2002",
@@ -1298,7 +1336,7 @@
   {
    "id": "set-function-pointer-2014",
    "status": "active",
-   "description": "SET { identifier-12 } … TO identifier-13 (ISO §14.9.39.2 Format 8, function-pointer-assignment), including the §8.4.3.12 ADDRESS OF FUNCTION function-address-identifier sender — dated 2014 by its only possible operand, the 2014 USAGE FUNCTION-POINTER item (usage-function-pointer-2014). The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder (the Format-9 pattern); the ADDRESS OF FUNCTION sender is its own grammar rule (setFunctionAddressStatement). SR20's same-signature screen is COBOL1959 and §8.4.3.12.3 SR1/SR2 is COBOL1960. LIVE as of kb/Work PB452 + PB817.",
+   "description": "SET { identifier-12 } … TO identifier-13 (ISO §14.9.39.2 Format 8, function-pointer-assignment), including the §8.4.3.12 ADDRESS OF FUNCTION function-address-identifier sender — dated 2014 by its only possible operand, the 2014 USAGE FUNCTION-POINTER item (usage-function-pointer-2014). The plain form reuses the setToStatement shape every SET ... TO format shares (kb/Work PB4231) and re-routes on the receiver's category in SetBinder (the Format-9 pattern); the ADDRESS OF FUNCTION sender is its own grammar rule (setFunctionAddressStatement). SR20's same-signature screen is COBOL1959 and §8.4.3.12.3 SR1/SR2 is COBOL1960. LIVE as of kb/Work PB452 + PB817.",
    "display": "SET TO function-pointer (Format 8)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.39.2 Format 8 / §14.9.39.3 SR20 / §14.9.39.4 GR14 / §8.4.3.12",
@@ -1310,7 +1348,7 @@
   {
    "id": "set-program-pointer-2002",
    "status": "active",
-   "description": "SET { identifier-7 } \u2026 TO identifier-8 (ISO \u00a714.9.39.2 Format 9, program-pointer-assignment), including the \u00a78.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender \u2014 dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since \u00a714.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the \u00a78.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOL1959 and \u00a78.4.3.13.3 SR1/SR2/SR3 is COBOL2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
+   "description": "SET { identifier-7 } \u2026 TO identifier-8 (ISO \u00a714.9.39.2 Format 9, program-pointer-assignment), including the \u00a78.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender \u2014 dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since \u00a714.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToStatement shape every SET ... TO format shares (kb/Work PB4231) and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the \u00a78.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOL1959 and \u00a78.4.3.13.3 SR1/SR2/SR3 is COBOL2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
    "display": "SET TO program-pointer (Format 9)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO \u00a714.9.39.2 Format 9 / \u00a714.9.39.3 SR21 / SR22 / \u00a78.4.3.13",
@@ -2052,16 +2090,28 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T5CCR.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. X CHARACTER CLASSIFICATION IS USER-DEFAULT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
-   "id": "case-function-locale-phrase-2002",
-   "description": "The LOCALE phrase of FUNCTION UPPER-CASE / LOWER-CASE (argument-1 LOCALE locale-name-1), ISO 15.97.2 / 15.57.2 - introduced 2002 with the locale facility (Annex A.4.9 items 13 / 6; kb/Work PB64 T5): the case correspondence of the named locale's LC_CTYPE (15.97.4 r2 / 15.57.4 r2). The functions themselves are 1985 (the Intrinsic Function Module amendment); the phrase is gated in the binder (IntrinsicBinder.BindCaseFunctionWithLocale) like the other function-argument introductions.",
+   "id": "case-function-locale-phrase-2014",
+   "description": "The LOCALE phrase of FUNCTION UPPER-CASE / LOWER-CASE (argument-1 LOCALE locale-name-1), ISO 15.97.2 / 15.57.2 - introduced 2014 (kb/Work PB4311): the printed 2002 formats of both functions are `( argument-1 )` with no phrase, and the 2009 CD that became the 2014 edition prints `[ LOCALE locale-name-1 ]` and lists it among the substantive changes not affecting existing programs (its D.3 items 9 and 23). The 2023 Annex A.4.9 items 13 / 6 name the phrase as part of the locale-support module; that is an optional-module list, not an introduction record. The phrase selects the case correspondence of the named locale's LC_CTYPE (15.97.4 r2 / 15.57.4 r2). The functions themselves are 1985 (the Intrinsic Function Module amendment); the SPECIAL-NAMES LOCALE clause that declares locale-name-1 is 2002 (special-names-locale-2002); the phrase is gated in the binder (IntrinsicBinder.BindCaseFunctionWithLocale) like the other function-argument introductions.",
    "display": "the LOCALE phrase of UPPER-CASE / LOWER-CASE",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §15.97.2 / §15.57.2 (the LOCALE phrase); §15.97.4 r2 / §15.57.4 r2; binder gate (BindCaseFunctionWithLocale)",
-   "introducedIn": 2002,
+   "introducedIn": 2014,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
-   "vcr": "2002 introduction (the locale facility; kb/Work PB64 T5)",
+   "vcr": "2014 introduction (the 2009 CD's D.3 items 9 / 23; absent from the printed 2002 formats; kb/Work PB4311)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T5CPR.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE TR IS \"tr-TR\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION UPPER-CASE(\"i\" LOCALE TR) TO S.\n    STOP RUN.\n"
+  },
+  {
+   "id": "length-physical-argument-2014",
+   "description": "The PHYSICAL keyword of FUNCTION LENGTH / BYTE-LENGTH (argument-1 PHYSICAL), ISO 15.50.2 / 15.14.2 - introduced 2014 (kb/Work PB4308) with the variable-length group (15.50.4 r8 / 15.14.4 r7): the printed 2002 format is `( argument-1 )`, PHYSICAL is a reserved word only from 2014 (reserved-words.json r85 false / r2002 false / r2014 true), so below 2014 it is a user-defined word and the phrase is no keyword; the 2023 Annex E lists no change to it. The functions themselves are 1985 (LENGTH) and 2002 (BYTE-LENGTH). One row covers both functions, gated in the binder (IntrinsicBinder.BindLengthFamily) like the other function-argument introductions.",
+   "display": "the PHYSICAL phrase of FUNCTION LENGTH / BYTE-LENGTH",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO §15.50.2 / §15.14.2 (argument-1 [ PHYSICAL ]); §15.50.4 r8 / §15.14.4 r7; binder gate (BindLengthFamily)",
+   "introducedIn": 2014,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "2014 introduction (PHYSICAL reserved from 2014; absent from the printed 2002 format; kb/Work PB4308)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB4308LP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(4).\n01 N PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION LENGTH(S PHYSICAL).\n    STOP RUN.\n"
   },
   {
    "id": "order-table-2002",
@@ -2113,7 +2163,7 @@
   },
   {
    "id": "numval-c-locale-phrase-2002",
-   "description": "The LOCALE keyword of FUNCTION NUMVAL-C / TEST-NUMVAL-C (argument-1 LOCALE [locale-name-1] [ANYCASE]), ISO 15.68.2 / 15.94.2 - introduced 2002 with the locale facility (Annex A.4.9 item 12; kb/Work PB64 T6): argument-1 read under the named-else-current LC_MONETARY locale (15.68.3 r5). ONE row covers both functions - 15.94.3 r1 imports 15.68.3 whole. NUMVAL-C itself is 1985; the keyword is gated in the binder (BindNumvalCFamily) like case-function-locale-phrase-2002.",
+   "description": "The LOCALE keyword of FUNCTION NUMVAL-C / TEST-NUMVAL-C (argument-1 LOCALE [locale-name-1] [ANYCASE]), ISO 15.68.2 / 15.94.2 - introduced 2002 with the locale facility (Annex A.4.9 item 12; kb/Work PB64 T6): argument-1 read under the named-else-current LC_MONETARY locale (15.68.3 r5). ONE row covers both functions - 15.94.3 r1 imports 15.68.3 whole. NUMVAL-C itself is 1985; the keyword is gated in the binder (BindNumvalCFamily) like case-function-locale-phrase-2014.",
    "display": "the LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §15.68.2 / §15.94.2 (the LOCALE keyword); §15.68.3 r5; binder gate (BindNumvalCFamily)",
@@ -2122,6 +2172,18 @@
    "expectDiagnostic": "COBOL0900",
    "vcr": "2002 introduction (the locale facility; kb/Work PB64 T6)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T6NL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC S9(7)V99.\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION NUMVAL-C(\"1234.56\" LOCALE).\n    STOP RUN.\n"
+  },
+  {
+   "id": "numval-c-anycase-keyword-2002",
+   "description": "The ANYCASE keyword of FUNCTION NUMVAL-C / TEST-NUMVAL-C (argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE]), ISO 15.68.2 / 15.94.2 - introduced 2002 (kb/Work PB4359): the printed 2002 formats (15.55 / 15.76 of ISO/IEC 1989:2002) already carry [ ANYCASE ], 15.68.3 r4f folds the currency-string match, and ANYCASE is a reserved word only from 2002 (reserved-words.json r85 false), so below 2002 it is an ordinary user-defined word and the keyword is refused by edition. ONE row covers both functions - 15.94.3 r1 imports 15.68.3 whole; TEST-NUMVAL-C is itself a 2002 function (its own COBOL1502 gate answers first below 2002). FIND-STRING and SUBSTITUTE carry ANYCASE too but are 2023 functions whose catalog gate covers the keyword. Gated in the binder (BindNumvalCFamily) like numval-c-locale-phrase-2002.",
+   "display": "the ANYCASE keyword of NUMVAL-C / TEST-NUMVAL-C",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO §15.68.2 / §15.94.2 (the ANYCASE keyword); §15.68.3 r4f; binder gate (BindNumvalCFamily)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "2002 introduction (ANYCASE reserved from 2002; printed in the 2002 NUMVAL-C format; kb/Work PB4359)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB4359NA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC S9(7)V99.\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION NUMVAL-C(\"$1,234.56\" ANYCASE).\n    STOP RUN.\n"
   },
   {
    "id": "standard-compare-2002",
@@ -2330,10 +2392,10 @@
   {
    "id": "set-object-reference-2002",
    "status": "active",
-   "description": "SET ... TO object-reference (ISO 14.9.39 Format 5) - introduced 2002 (OO). Grammar-gated (setObjectReferenceStatement) for NULL/SELF senders; a dataReference sender parses as the Format-1 shape and re-routes SEMANTICALLY in BindSetTo (the ANTLR alternative-order reality). Below 2002 the W1.5 mapping fires on the NULL/SELF-after-TO signature (0900). SR8/SR9/SR12/SR13 violations are COBOL0867; LIVE as of the universal wave (D-U7, DEVLOG 608).",
+   "description": "SET ... TO object-reference (ISO 14.9.39 Format 5) - introduced 2002 (OO). Bound-arm gated: every SET ... TO shape parses as the one setToStatement rule (kb/Work PB4231), and the receivers' RESOLVED object-reference category selects Format 5 in SetFormatSelection (BindSetToNull for a NULL sender, BindSetTo for every other), so the gate fires on the BoundSetObjectRef node (0900). SR8/SR9/SR12/SR13 violations are COBOL0867; LIVE as of the universal wave (D-U7, DEVLOG 608).",
    "display": "SET TO object-reference (Format 5)",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO §14.9.39 F5 (OO); grammar-gated (setObjectReferenceStatement) for NULL/SELF senders + the BindSetTo semantic re-route for data senders (ANTLR alternative-order reality); LIVE as of the universal wave (D-U7) — SR8/SR9/SR12/SR13 = COBOL0867",
+   "citation": "ISO §14.9.39 F5 (OO); bound-arm gated on BoundSetObjectRef (the receivers' category selects Format 5; kb/Work PB4231); LIVE as of the universal wave (D-U7) — SR8/SR9/SR12/SR13 = COBOL0867",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",

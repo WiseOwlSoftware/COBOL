@@ -217,7 +217,7 @@ conformance-suite/
   is needed and the shape stays right for the next case (CLAUDE.md rule 5). The alternative of putting `refuse-at` and
   `expect` in the refused test's own header was rejected: `cases/` tests are compiler-neutral and every adapter's harness
   reads their headers, while a WiseOwl diagnostic code is exactly what §1 keeps out of them. The generator refuses a
-  file that is not `<key>.json`, one that is not JSON, and an entry naming no test; `MergeDriverDriftTests` keeps the
+  file that is not `<key>.json`, one that is not JSON, and an entry naming no test; `merge_drivers.py --self-test` keeps the
   registries from becoming one file again and keeps a merge driver off every path of the suite.
 - **Filed by clause**, because edition is metadata: a folder per clause shows coverage against the standard's
   structure, and an inherited rule's test is written once.
@@ -377,13 +377,13 @@ conformance-suite/
 ## 9. Drift tests
 
 - The generator's refusals (§4) run in every gate as an audit (`generate.py --check`, one entry of
-  `run_gate_legs.py`'s AUDITS and a command of CI's `audits` job), before the gate slot and the build, so a refused
+  `gate.py`'s AUDITS and a command of CI's `audits` job), before the gate slot and the build, so a refused
   test costs a red in seconds, never a build.
 - Every inventory `test-ref` naming a suite test resolves to a file; every test's `rules` exist in the inventory.
 - Every `accept`/`flag` list agrees with `constructs.json`; every flagged test's control exists and is accepted at
   the same editions.
 - Every flagged test has a `wiseowl/diagnostics/<id>.json` file, and every file names an existing test; nothing else sits in
-  a registry directory, and no merge driver governs a path of the suite (`MergeDriverDriftTests`, kb/Work PB4147).
+  a registry directory, and no merge driver governs a path of the suite (`merge_drivers.py --self-test`, kb/Work PB4147).
 - The xUnit runner and `harness/run.py` (WiseOwl adapter) report the same verdict for every test.
 - The two output normalizations agree on the shared fixture.
 - The completeness report (§4) is printed by the generator and shown on the ledger per edition.
@@ -500,10 +500,12 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   refuse with its code) over `ConformanceSuiteRunner` (the verdicts of §5, compiling through the compiled-program
   cache) and `ConformanceSuite` (the manifest, generated once per test process into a directory of its own by the new
   `generate.py --out`; the adapter's diagnostic pattern and the profile, read rather than restated, since
-  `config.py` validates them at the audit). `ConformanceSuiteRunnerDriftTests` runs `run.py` through the WiseOwl
-  adapter on the same generated suites, once per edition suite with `--jobs` stated, each run bounded by the work it
-  does (`ObservationBudget.ForChildren`, kb/Work PB3108: one harness unit per round of its compiles and runs, never one
-  program's budget for the whole suite), and names every test whose verdict differs, and holds `CutRunner.Normalize`
+  `config.py` validates them at the audit). `BothRunnersVerdictDriftTests` (eight partitions over the in-suite tests,
+  kb/Work PB4325) runs `run.py` through the WiseOwl adapter on the same generated suites (generated once per test
+  process), once per edition suite its partition names, with `--jobs` and `--test` stated, each run bounded by the work
+  it does (`ObservationBudget.ForChildren`, kb/Work PB3108: one harness unit per round of its compiles and runs, never
+  one program's budget for the whole suite), and names every test whose verdict differs;
+  `ConformanceSuiteRunnerDriftTests` holds the two runners to the same test set, and `CutRunner.Normalize`
   and `run.py`'s `normalize()` to `harness/normalization-fixture.json`. Two corrections to this design, written
   above and in §4: the verdict drift test runs `run.py` itself (§5), and a refusal's manifest entry carries the
   test's declared files, so the refused program compiles as the suite compiles it. The WiseOwl adapter pins a

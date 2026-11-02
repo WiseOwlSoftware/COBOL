@@ -49,8 +49,7 @@ public sealed class NulByteDriftTests
         Kinds: [".cs", ".cob", ".cbl", ".cpy", ".g4", ".json", ".md", ".txt", ".csproj", ".props", ".ps1", ".tsv", ".out", ".err"]);
 
     /// <summary>The one sweep of the committed tree the three tree tests judge, read once per test assembly (a read of
-    /// the text tree costs 15-60 s under a gate's load, and the gate runs this class in leg 1 for a change to any file
-    /// it sweeps, tier 0d).</summary>
+    /// the text tree costs 15-60 s under a gate's load, and the gate runs this class in every run).</summary>
     private static readonly Lazy<SweepResult> s_tree = new(() => Sweep(TestRepo.Root, TrackedTree.Files(TextKinds)));
 
     /// <summary>The tracked text-kind files that legitimately hold a NUL, each with why: a key is a path, or a

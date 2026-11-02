@@ -119,9 +119,9 @@ WiseOwl COBOL's test assembly `tests/WiseOwl.Cobol.Tests.Conformance` runs the s
 `ConformanceSuiteTests` generates the manifests into a directory of its own (`generate.py --out`) and runs every test
 of `suites/wiseowl/manifest.json` (both trees, at every edition each names) through `ConformanceSuiteRunner`, which
 judges exactly as `run.py` does with the WiseOwl adapter, red on FAIL or NO VERDICT; and it compiles every refusal of
-`wiseowl/diagnostics/` at its editions, which must be refused with its code or text. `ConformanceSuiteRunnerDriftTests`
-runs `run.py` through the WiseOwl adapter on the same generated suites and requires both runners to give every suite
-test the same verdict, holds both output normalizations to the one fixture `harness/normalization-fixture.json`, and
+`wiseowl/diagnostics/` at its editions, which must be refused with its code or text. `BothRunnersVerdictDriftTests`
+(partitioned) runs `run.py` through the WiseOwl adapter on the same generated suites and requires both runners to give every suite
+test the same verdict, and `ConformanceSuiteRunnerDriftTests` requires them to run the same tests, holds both output normalizations to the one fixture `harness/normalization-fixture.json`, and
 holds the WiseOwl adapter's locale pin (a program's default locales are its environment's) to the in-process one.
 
 ### Writing an adapter for another compiler

@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 public enum DescriptionCopyKind
 {
     /// <summary>Carried by NO description copy: the item's identity (<see cref="DataItem.Uid"/>,
-    /// <see cref="DataItem.CsName"/>), the structure a copier rebuilds itself
+    /// <see cref="DataItem.ClrName"/>), the structure a copier rebuilds itself
     /// (<see cref="DataItem.Children"/>, <see cref="DataItem.Parent"/>, <see cref="DataItem.Own88s"/>),
     /// a clause NAMED in a GR-1 exclusion list, or a value a POST-BUILD pass computes in the copy's own
     /// scope. The attribute's reason says which.</summary>

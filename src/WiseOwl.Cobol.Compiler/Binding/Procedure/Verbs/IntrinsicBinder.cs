@@ -574,6 +574,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             : result;
     }
 
+    /// <summary>The cause of a function name's removal, for COBOL5776 (kb/Work PB4309): the directive as written (its
+    /// words are held upper-case, without quotes), where it stands in the user's source (<see cref="CobolWordsOp.At"/>
+    /// through the line map), and the rule that withdrew the name — ISO §7.3.10.4 GR3 (UNDEFINE) or GR4 (SUBSTITUTE,
+    /// whose literal-5 takes over the role, so it is named as the spelling to write).</summary>
+    private static string RemovalClause(CobolWordsOp op, EditionContext edition)
+    {
+        var origin = edition.OriginOf(op.At.Line);
+        string where = $"{origin.File} line {origin.Line}";
+        return op.Action == CobolWordsAction.Undefine
+            ? $">>COBOL-WORDS UNDEFINE \"{op.Existing}\" ({where}) withdrew the word as an intrinsic function name "
+              + "(ISO §7.3.10.4 GR3)"
+            : $">>COBOL-WORDS SUBSTITUTE \"{op.Existing}\" BY \"{op.New}\" ({where}) withdrew the word as an intrinsic "
+              + $"function name; FUNCTION {op.New} now denotes it (ISO §7.3.10.4 GR4)";
+    }
+
     private BoundExpr BindFunctionResult(FunctionWord word, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4) was applied ONCE, when the FunctionWord was made (kb/Work PB1372 —
@@ -602,14 +617,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         if (cobolWordsRemoved || !IntrinsicCatalog.TryGet(name, out var sig))
         {
-            bool definedInGroup = host.UserFunctions?.ContainsKey(name) == true;
-            ctx.Edition.Error("COBOL1501", $"FUNCTION {name.ToUpperInvariant()} is not an intrinsic function "
-                + "of ISO/IEC 1989 (§15.6 summary of functions)"
-                + (definedInGroup
-                    ? $"; the compilation group defines FUNCTION-ID {name.ToUpperInvariant()} — declare "
-                      + $"FUNCTION {name.ToUpperInvariant()} in this unit's REPOSITORY paragraph to reference "
-                      + "it as a user-defined function (ISO §12.3.8.4 GR12)"
-                    : ""));
+            // The two causes are told apart (kb/Work PB4309): a name the user's own >>COBOL-WORDS directive withdrew
+            // IS an intrinsic function of ISO/IEC 1989 (§15) — only this compilation group no longer has it — so the
+            // refusal names the directive and where it is written; any other name is no intrinsic function at all.
+            string upper = name.ToUpperInvariant();
+            string declareHint = host.UserFunctions?.ContainsKey(name) == true
+                ? $"; the compilation group defines FUNCTION-ID {upper} — declare FUNCTION {upper} in this unit's "
+                  + "REPOSITORY paragraph to reference it as a user-defined function (ISO §12.3.8.4 GR12)"
+                : "";
+            // ⛔ The directive's SR3 lets it name a RESERVED word that never named a function (UNDEFINE "ACCEPT"); it
+            // withdrew nothing the FUNCTION keyword could reach, so COBOL1501 is the true answer there. The cause is
+            // told only for a word the catalog holds (review r1 R1-1).
+            if (cobolWordsRemoved && IntrinsicCatalog.TryGet(word.Written, out _)
+                && ctx.CobolWords.RemovedBy(word.Written) is { } removedBy)
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicRemovedByCobolWords,
+                    $"FUNCTION {upper} is not available in this compilation group: " + RemovalClause(removedBy, ctx.Edition)
+                    + declareHint);
+            else
+                ctx.Edition.Error("COBOL1501", $"FUNCTION {upper} is not an intrinsic function of ISO/IEC 1989 "
+                    + "(§15.6 summary of functions)" + declareHint);
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
 
@@ -1115,8 +1141,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + $"({rule}); {argCtxs.Count} argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
-        // The phrase is a 2002 introduction (the function is 1985): the construct gate, like EXCEPTION-FILE's argument.
-        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2002,
+        // The phrase is a 2014 introduction (kb/Work PB4311; the function is 1985; the printed 2002 formats are
+        // `( argument-1 )`): the construct gate, like EXCEPTION-FILE's argument.
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2014,
             $"the LOCALE phrase of FUNCTION {sig.Name}");
         var operand = BindArgOperand(argCtxs[0]);
         LocaleRef locale;
@@ -1771,9 +1798,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// a consequence of the reservation: this detection depends on the word arriving as an ordinary argument, so a
     /// token would silently break the recognition. (fix-queue PB25.)</para>
     /// The argument-1 exclusion is POSITIONAL — the format puts argument-1 there, so a bare word in slot 0 is the
-    /// operand whatever it spells. (It is not "a data item happening to be named LOCALE": §8.9 reserves the word,
-    /// so only a &gt;&gt;COBOL-WORDS UNDEFINE can free it — and then <see cref="KeywordWordOf"/> resolves it to
-    /// null and no slot sees the keyword at all. kb/Work PB250.)</summary>
+    /// operand whatever it spells. (It is not "a data item happening to be named LOCALE": from 2002 §8.9 reserves
+    /// the word, so only a &gt;&gt;COBOL-WORDS UNDEFINE can free it — and then <see cref="KeywordWordOf"/> resolves
+    /// it to null and no slot sees the keyword at all; at COBOL-85, where §8.9 leaves it free, a DECLARED data item
+    /// of that name is an operand and <see cref="KeywordWordOf"/> answers null for it as well. kb/Work PB250,
+    /// PB4359.)</summary>
     private bool HasLocalePhrase(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         for (int i = 1; i < argCtxs.Count; i++)
@@ -1799,8 +1828,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // not an order-free keyword sweep (fix-queue PB60 / FMT-15.68.2). Slot 0 is ALWAYS argument-1 and binds
         // as an operand — POSITIONALLY, because the format puts argument-1 there, not because a data item may be
         // named ANYCASE or LOCALE: both are §8.9 RESERVED words from 2002 (reserved-words.json r2002/r2014/r2023)
-        // and NEITHER is in the §8.10 context-sensitive table, so absent a >>COBOL-WORDS UNDEFINE no data item
-        // may carry either name at all. (This comment claimed §8.10 — wrong by the repo's own data; kb/Work
+        // and NEITHER is in the §8.10 context-sensitive table, so from 2002 absent a >>COBOL-WORDS UNDEFINE no data
+        // item may carry either name at all; at COBOL-85 §8.9 leaves them free and a DECLARED data item of that name
+        // is an operand — KeywordWordOf returns null for it (kb/Work PB4359 review round 1). (This comment claimed
+        // §8.10 — wrong by the repo's own data; kb/Work
         // PB250, which is also why the words above now resolve through CobolWordsMap.) ANYCASE is admitted
         // ONCE, after the operands, and nothing may follow it. The old sweep
         // accepted NUMVAL-C(ANYCASE WS-A "USD") and a doubled trailing ANYCASE (both measured).
@@ -1819,6 +1850,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
                 }
                 anycase = true;
+                // ANYCASE is a 2002 introduction (§15.68.2 / §15.94.2 print it; ISO/IEC 1989:2002 §15.55 / §15.76
+                // already did, and §8.9 reserves the word only from 2002): below 2002 it is an ordinary user-defined
+                // word, so the keyword is refused by edition like the LOCALE keyword below (kb/Work PB4359).
+                ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.NumvalCAnycaseKeyword2002,
+                    $"the ANYCASE keyword of FUNCTION {sig.Name}");
                 continue;
             }
             if (anycase)
@@ -2265,7 +2301,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // An INDEX result is the index carrier, a compile-time constant. Every other result, string or numeric, is measured at run time.
         if (args[0] is BoundComputedOperand { Expr: BoundIntrinsicCall fn } && fn.ResultType is IntrinsicType.Index)
         {
-            var item = new DataItem { Level = 1, CobolName = "__FN-RESULT", CsName = "__fnResult", Pic = PicInfo.IndexItem };
+            var item = new DataItem { Level = 1, CobolName = "__FN-RESULT", ClrName = "__fnResult", Pic = PicInfo.IndexItem };
             return new BoundNumLiteral((bytes ? item.ByteWidth : ItemLength.Positions(item)).ToString());
         }
         return new BoundIntrinsicCall(sig, args, PicCategory.Numeric);   // the renderer measures the result image (string) or the temporary (FunctionDeviceText)
@@ -2319,6 +2355,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (KeywordWordOf(a) == "PHYSICAL" && operands.Count == 1 && !physical && i == argCtxs.Count - 1)
             {
                 physical = true;
+                // PHYSICAL is a 2014 introduction (kb/Work PB4308): the printed 2002 format is `( argument-1 )`, and below
+                // 2014 the word is an ordinary user word (reserved-words.json r85/r2002 false), so the construct gate
+                // answers here, once for LENGTH and BYTE-LENGTH, exactly as TRIM's argument-2 and EXCEPTION-FILE's argument do.
+                ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.LengthPhysicalArgument2014,
+                    $"the PHYSICAL phrase of FUNCTION {sig.Name}");
                 continue;
             }
             // A type-name argument (§15.50.3 r1 / §15.14.3 r1 — kb/Work PB61): the length of the type
@@ -2433,7 +2474,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         Place inner = op.Place.Undecorated;
         DataItem group = inner.Item;
         AccessPath? basePath = inner switch { MemberPlace m => m.Path, DynTablePlace d => d.Path, _ => null };
-        BoundExprError Stage(string what) => BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {sig.Name} of '{group.CobolName ?? group.CsName}': {what} (ISO {rules})");
+        BoundExprError Stage(string what) => BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {sig.Name} of '{group.CobolName ?? group.ClrName}': {what} (ISO {rules})");
         // ⛔ A TABLE OF VARIABLE-LENGTH ELEMENTS (kb/Work PB244) — an OCCURS DEPENDING or dynamic-capacity table
         // whose occurrences each hold a runtime-length member — is a per-occurrence loop over run-time storage the
         // term-by-term sum below cannot write down. The group's own CurrentImage composes exactly that extent (A.1
@@ -2478,18 +2519,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             foreach (var c in g.Children.Where(x => x.RedefinesTargetName is null))
             {
                 if (failure is not null) return;
-                var cPath = path?.Add(new MemberSegment(c.CsName));
+                var cPath = path?.Add(new MemberSegment(c.ClrName));
                 if (c.IsDynamicTable)
                 {
                     // r7c / r6c — the current capacity × the element width. ByteWidth counted ONE occurrence.
                     if (HasRuntimeLength(c) || (c.IsElementary && c.IsDynamicLength))
-                    { failure = ImageOrStage($"the dynamic-capacity table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                    { failure = ImageOrStage($"the dynamic-capacity table '{c.CobolName ?? c.ClrName}' has a runtime-length element — a per-occurrence sum"); return; }
                     // A CELL-BACKED group's table is a component of the cell (kb/Work PB1042): its path is the
                     // group's cell and its ordinal relative to the group's first component.
                     var tablePath = cPath ?? (inner is RedefViewPlace { Coding: VarGroupWindow tg }
                         ? tg.Cell.Add(CellTableSegment.Of(c, CellOrdinal(tg, c, shift))) : null);
                     if (tablePath is null || c.OccursSpec?.CapacityRegister is not { } reg)
-                    { failure = Stage($"the dynamic-capacity table '{c.CobolName ?? c.CsName}' could not be addressed"); return; }
+                    { failure = Stage($"the dynamic-capacity table '{c.CobolName ?? c.ClrName}' could not be addressed"); return; }
                     fixedPart -= c.ByteWidth;
                     dynamicBytes += c.ByteWidth;
                     Add(new BoundBinary(new BoundNumRef(new CapacityRegisterPlace(tablePath, reg)), '*',
@@ -2502,9 +2543,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     // MAXIMUM. data-name-1's place is the one the resolver wrapped the operand with (SR22 makes
                     // the table the record's trailing part, so the operand IS the OdoGroupPlace).
                     if (HasRuntimeLength(c))
-                    { failure = ImageOrStage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                    { failure = ImageOrStage($"the OCCURS DEPENDING table '{c.CobolName ?? c.ClrName}' has a runtime-length element — a per-occurrence sum"); return; }
                     if (odo is null)   // the resolver wraps every ODO group operand — struct member or class-tier window (kb/Work PB80); reaching here is a shape it could not resolve
-                    { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' has no resolvable data-name-1 place"); return; }
+                    { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.ClrName}' has no resolvable data-name-1 place"); return; }
                     int elem = c.ByteWidth, max = c.Occurs ?? 1;
                     // r4a / r2a — a BASED entry not associated with actual data answers the maximum (GR8b): the
                     // entry's data-address field guards the ODO term (kb/Work PB80).
@@ -2519,7 +2560,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         // takes the ceiling (§15.50.4 r9 / §15.14.4 r4); a bit group's LENGTH is the positions.
                         int prefixBits = BitLayout.StartBitOf(group, c), strideBits = BitLayout.StrideBits(c);
                         if (prefixBits < 0)
-                        { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' follows an overlay chain whose layout is not modelled"); return; }
+                        { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.ClrName}' follows an overlay chain whose layout is not modelled"); return; }
                         // A table whose occurrences stride whole bytes (an ALIGNED table or member, §13.18.1.4 GR2) has
                         // its occurrences a stride apart and the LAST one's padding is not part of the extent
                         // (BitLayout.TableBits; §8.5.1.6.3 generates filler "as needed to advance alignment to a required
@@ -2563,7 +2604,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                             Walk(c, cPath?.Add(new FixedTableSegment(new PositionConstant(i))), shift + (i - 1) * CellComponents.PerOccurrence(c));
                     }
                     else if (HasRuntimeLength(c) || c.IsDynamicLength)
-                    { failure = ImageOrStage($"the table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
+                    { failure = ImageOrStage($"the table '{c.CobolName ?? c.ClrName}' has a runtime-length element — a per-occurrence sum"); return; }
                 }
                 else if (c.IsDynamicLength)
                 {
@@ -2577,7 +2618,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         : inner is RedefViewPlace { Coding: VarGroupWindow vg } rv
                             ? RedefViewPlace.For(rv.Backing, c, rv.Offset, cell: vg.Cell, dynOrdinal: CellOrdinal(vg, c, shift))
                             : null;
-                    if (cPlace is null) { failure = Stage($"the dynamic-length subordinate '{c.CobolName ?? c.CsName}' could not be addressed"); return; }
+                    if (cPlace is null) { failure = Stage($"the dynamic-length subordinate '{c.CobolName ?? c.ClrName}' could not be addressed"); return; }
                     Add(new BoundIntrinsicCall(sig, [new BoundFieldOperand(cPlace)], PicCategory.Numeric)
                             { LengthInBytes = !bytes && c.Pic is { Usage: Usage.National } });
                 }
@@ -3032,10 +3073,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// otherwise reach the <c>cobolWord</c> branch below and be re-read as the keyword by its raw text.</para></summary>
     private string? KeywordWordOf(Core.FunctionArgumentContext a)
     {
+        bool bareName = a.fnArgPhraseWord() is null;
         var tok = a.fnArgPhraseWord() is { } kw ? kw.Start
             : SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0
                 && d.cobolWord() is { } cw ? cw.Start : null;
-        return WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.CanonicalWordOf(tok, ctx.CobolWords);
+        var word = WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.CanonicalWordOf(tok, ctx.CobolWords);
+        // ⛔ A WORD INTRODUCED AFTER THIS EDITION IS A USER-DEFINED WORD EXACTLY WHEN THE PROGRAM DECLARES IT
+        // (the parser's IsKeywordReadingHere determination, one layer down; kb/Work PB4359). ANYCASE and LOCALE are
+        // §8.9 reserved only from 2002 (reserved-words.json), so at COBOL-85 `01 ANYCASE PIC X(3)` is legal and
+        // NUMVAL-C('USD1,234.56' ANYCASE) names it as argument-2 — reading it as the keyword would refuse
+        // conforming source (or, before the keyword's edition gate, swallow the operand). A not-yet-introduced word
+        // that NO declaration names keeps its keyword reading, so the edition gate ("requires COBOL-2002") still
+        // answers. ReservedWords.AdmitsAsKeyword is the ONE "introduced after this edition" predicate: a word an
+        // older edition reserved and this one dropped (PHYSICAL at 2023) stays the keyword in its own position even
+        // when a data item shares the spelling (pb124_keyword_positions).
+        if (bareName && word is not null
+            && !WiseOwl.Cobol.Editions.ReservedWords.AdmitsAsKeyword(word, ctx.Edition.Edition.Year)
+            && ctx.Symbols.TryResolve(word, ctx.ActiveScope, out _))
+            return null;
+        return word;
     }
 
     /// <summary>The argument's sole data reference — non-null when the arithmetic-expression alternative is
@@ -3128,7 +3184,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return true;
         }
 
-        var indices = new LocalVector($"__all{_allSerial++}");
+        var indices = new LocalVector(new StatementLocal(StatementLocalRole.TableAllIndices, _allSerial++));
         var exprs = new Position[innerSegs.Count];
         var counts = new List<AllCount>();
         var outerExprs = new List<Position>();   // the index of every level ABOVE the current one
@@ -3183,7 +3239,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return true;
     }
 
-    /// <summary>One index variable per table(ALL) operand in the unit (<c>__all0</c>, <c>__all1</c>, …): a nested
+    /// <summary>One index vector per table(ALL) operand in the unit (the ordinal of its
+    /// <see cref="StatementLocalRole.TableAllIndices"/> local): a nested
     /// function inside a fixed subscript of an ALL argument renders its own enumeration lambda INSIDE the outer
     /// one, and C# forbids a lambda parameter that shadows an enclosing one.</summary>
     private int _allSerial;
