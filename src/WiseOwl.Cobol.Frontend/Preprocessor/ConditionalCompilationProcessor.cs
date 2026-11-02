@@ -289,7 +289,7 @@ public static partial class ConditionalCompilationProcessor
                             + ">>EVALUATE and its first >>WHEN (ISO §7.3.13.2)");
                     }
                     if (_stack.Count == 0 || _stack.Peek().Emitting) { block.Add(line); blockOrigins.Add(origin); }   // accumulate; COPY expands at Flush
-                    else { Flush(); output.Add(""); outputOrigins.Add(origin); }                                     // omitted ordinary line
+                    else { Flush(); output.Add(""); outputOrigins.Add(origin.AsOmitted()); }                           // omitted ordinary line (ISO §7.3.16.4 GR 3, §7.3.13.4 GR 4), marked so a diagnostic never asks of its text (kb/Work PB4412)
                     continue;
                 }
 

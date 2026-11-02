@@ -44,8 +44,10 @@ public sealed class LineOrigin
     public LineOrigin(SourceOrigin origin, int sourceColumn = 0) => _spans = [new OriginSpan(0, origin, sourceColumn)];
 
     /// <param name="spans">At least one span, in strictly increasing <see cref="OriginSpan.ResultColumn"/> order.</param>
-    public LineOrigin(OriginSpan[] spans)
+    /// <param name="omitted">See <see cref="Omitted"/>.</param>
+    public LineOrigin(OriginSpan[] spans, bool omitted = false)
     {
+        Omitted = omitted;
         if (spans.Length == 0)
             throw new ArgumentException("a line piece has at least one origin span (kb/Work PB1801)", nameof(spans));
         for (int i = 1; i < spans.Length; i++)
@@ -56,6 +58,17 @@ public sealed class LineOrigin
 
     /// <summary>The file and physical line that name this piece: those of its first stretch (kb/Work PB82).</summary>
     public SourceOrigin Origin => _spans[0].Origin;
+
+    /// <summary>Whether a text stage OMITTED the line this piece stands for (kb/Work PB4412): the stage dropped it from the
+    /// resultant text, which holds an empty piece in its place — the lines of a false <c>&gt;&gt;IF</c> or <c>&gt;&gt;WHEN</c>
+    /// branch (ISO §7.3.16.4 GR 3). The compiler never read what the line holds, so a question about the line is asked of
+    /// nothing: a diagnostic that explains a syntax error by the text of a line (<c>IMarginRCutLocator</c>) skips it. The
+    /// stage that omits a line BORN-marks its origin (<see cref="AsOmitted"/>) and every stage after carries it with the origin
+    /// (<see cref="From"/>), so a new kind of omission is one call at the stage that drops, and no reader keeps a list.</summary>
+    public bool Omitted { get; }
+
+    /// <summary>This piece, marked as a line a text stage omitted (<see cref="Omitted"/>).</summary>
+    public LineOrigin AsOmitted() => Omitted ? this : new LineOrigin(_spans, omitted: true);
 
     /// <summary>The stretches, in resultant-column order.</summary>
     public ReadOnlySpan<OriginSpan> Spans => _spans;
@@ -87,7 +100,7 @@ public sealed class LineOrigin
         var spans = new List<OriginSpan> { PointAt(column) with { ResultColumn = 0 } };
         foreach (var span in _spans)
             if (span.ResultColumn > column) spans.Add(span with { ResultColumn = span.ResultColumn - column });
-        return new LineOrigin([.. spans]);
+        return new LineOrigin([.. spans], Omitted);
     }
 }
 
@@ -116,6 +129,10 @@ public sealed class SourceLineMap
     /// <summary>The file and physical line of RESULTANT line <paramref name="line"/> (1-based, the ANTLR token line), or
     /// null when the line is outside the mapped text (a synthetic position).</summary>
     public SourceOrigin? Origin(int line) => line >= 1 && line <= _origins.Length ? _origins[line - 1].Origin : null;
+
+    /// <summary>Whether a text stage omitted RESULTANT line <paramref name="line"/> (1-based; <see cref="LineOrigin.Omitted"/>);
+    /// false for a line outside the map.</summary>
+    public bool IsOmitted(int line) => line >= 1 && line <= _origins.Length && _origins[line - 1].Omitted;
 
     /// <summary>THE diagnostic location of RESULTANT line <paramref name="line"/> (1-based) at 0-based resultant
     /// <paramref name="column"/>: the physical file, line and column it came from (kb/Work PB1801), or
@@ -228,6 +245,7 @@ public sealed class OriginWriter
     private readonly List<LineOrigin> _lines = new();
     private readonly List<OriginSpan> _spans = new();   // the spans of the piece being written
     private int _column;                                  // the resultant column the next character lands on
+    private LineOrigin? _open;                            // the input piece an EMPTY run was written for: names the open piece should it end with no content
 
     /// <summary>The number of line pieces completed so far — the 0-based index of the piece the next content opens
     /// when the current piece is empty (just after a newline).</summary>
@@ -258,10 +276,14 @@ public sealed class OriginWriter
     /// <summary>Append a slice of a mapped input — every character keeps its input origin.</summary>
     public void AppendSlice(MappedText input, int start, int length)
     {
-        if (length <= 0) return;
-        var s = input.Text.AsSpan(start, length);
         int piece = input.LineIndexAt(start);
         int column = start - input.LineStart(piece);
+        if (length <= 0)
+        {
+            Write([], input.Lines[Math.Min(piece, input.Lines.Length - 1)], column);   // nothing to write, but the piece has an origin
+            return;
+        }
+        var s = input.Text.AsSpan(start, length);
         while (true)
         {
             int nl = s.IndexOf('\n');
@@ -287,9 +309,12 @@ public sealed class OriginWriter
 
     public MappedText Finish()
     {
-        // The final piece (possibly empty after a trailing newline): an empty one is named like the piece before it.
+        // The final piece (possibly empty after a trailing newline): an empty one is named by the empty input piece it was
+        // written for. A blank line between two directives is such a piece (kb/Work PB4412): named like the piece before it,
+        // it would be a line other than its own, and named by nothing, a line of no file, so a question about its omission
+        // or its cut would have no answer. With no such piece it is named like the piece before it.
         _lines.Add(_spans.Count > 0 ? new LineOrigin([.. _spans])
-            : _lines.Count > 0 ? _lines[^1] : new LineOrigin(new SourceOrigin("", 0)));
+            : _open ?? (_lines.Count > 0 ? _lines[^1] : new LineOrigin(new SourceOrigin("", 0))));
         return new MappedText(_sb.ToString(), _lines.ToArray());
     }
 
@@ -298,7 +323,11 @@ public sealed class OriginWriter
     /// run lands on, each one that merely continues the span before it folded into it.</summary>
     private void Write(ReadOnlySpan<char> run, LineOrigin origin, int column)
     {
-        if (run.IsEmpty) return;
+        if (run.IsEmpty)
+        {
+            if (_spans.Count == 0) _open = origin.From(column);
+            return;
+        }
         AddSpan(origin.PointAt(column) with { ResultColumn = _column });
         foreach (var span in origin.Spans)
             if (span.ResultColumn > column && span.ResultColumn < column + run.Length)
@@ -347,6 +376,7 @@ public sealed class OriginWriter
         _sb.Append('\n');
         _lines.Add(_spans.Count > 0 ? new LineOrigin([.. _spans]) : origin.From(column));
         _spans.Clear();
+        _open = null;
         _column = 0;
     }
 }

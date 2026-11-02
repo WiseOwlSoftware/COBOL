@@ -253,6 +253,143 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(11,12)") && d.Contains("'STOP'"));
     }
 
+    /// <summary><see cref="Head"/> with the program's SOURCE-COMPUTER paragraph naming WITH DEBUGGING MODE, so a debugging
+    /// line is SOURCE (kb/Work PB1705).</summary>
+    private static readonly string[] DebuggingModeHead =
+    [
+        .. Head[..2],
+        "       ENVIRONMENT DIVISION.",
+        "       CONFIGURATION SECTION.",
+        "       SOURCE-COMPUTER. X-1 WITH DEBUGGING MODE.",
+        .. Head[2..],
+    ];
+
+    /// <summary>The call the parse fails to finish at <c>STOP</c> when the line after it vanishes.</summary>
+    private const string OpenCall = "           CALL \"SUBPROG\" USING WS-MSG BY";
+
+    [Fact] // PB4412: ISO §7.3.16.4 3): the lines of a false >>IF branch are omitted, so a line with text ONLY past margin R there is never read
+    public void ALineWithTextOnlyPastMarginR_InAnOmittedIfBranch_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, OpenCall, "       >>IF TRACING IS DEFINED", OnlyPastMarginR,
+            "       >>END-IF", "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(13,12)") && d.Contains("'STOP'"));
+    }
+
+    [Fact] // PB4412: the control: the same line in the branch the directive TAKES is read, so it is asked about
+    public void ALineWithTextOnlyPastMarginR_InATakenIfBranch_IsStillAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, OpenCall, "       >>IF TRACING IS NOT DEFINED", OnlyPastMarginR,
+            "       >>END-IF", "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(11,73): warning", note);
+        Assert.Contains("main.cob(13,12) may be this", note);
+    }
+
+    [Fact] // PB4412: ISO §7.3.16.4 GR 2: a TRUE IF omits its ELSE phrase's lines
+    public void ALineWithTextOnlyPastMarginR_InAnOmittedElseBranch_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, OpenCall, "       >>IF TRACING IS NOT DEFINED", "           CONTINUE",
+            "       >>ELSE", OnlyPastMarginR, "       >>END-IF", "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+    }
+
+    [Fact] // PB4412: the control: a false IF takes the ELSE phrase, whose line is read and so asked about
+    public void ALineWithTextOnlyPastMarginR_InTheElseBranchATrueConditionOmitsTheIfFor_IsAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, OpenCall, "       >>IF TRACING IS DEFINED", "           CONTINUE",
+            "       >>ELSE", OnlyPastMarginR, "       >>END-IF", "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(13,73): warning", note);
+        Assert.Contains("main.cob(15,12) may be this", note);
+    }
+
+    [Fact] // PB4412: ISO §7.3.13.4 4): the WHEN phrases that do not match are omitted like the branch of a false IF
+    public void ALineWithTextOnlyPastMarginR_InAnUnmatchedWhenPhrase_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, OpenCall, "       >>EVALUATE TRUE", "       >>WHEN TRACING IS DEFINED",
+            OnlyPastMarginR, "       >>WHEN OTHER", "           CONTINUE", "       >>END-EVALUATE", "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+    }
+
+    [Fact] // PB4412: a copybook's omitted branch is omitted in the copybook's own lines, and its text is no cut
+    public void ALineWithTextOnlyPastMarginR_InAnOmittedBranchOfLibraryText_IsNotAskedAbout()
+    {
+        File.WriteAllText(Path.Combine(_dir, "OM.cpy"), "       >>IF TRACING IS DEFINED\n" + OnlyPastMarginR + "\n       >>END-IF\n");
+        var diagnostics = Compile(Program([.. Head, OpenCall, "           COPY OM.", "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+    }
+
+    [Fact] // PB4412: a debugging line compiled without debugging mode is a comment line, however little program text it holds
+    public void ADebuggingLineWithTextOnlyPastMarginR_WithoutDebuggingMode_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. Head, OpenCall, "      D" + OnlyPastMarginR[7..], "           STOP RUN."]));
+
+        Assert.Empty(Notes(diagnostics));
+        Assert.Single(diagnostics, d => d.Contains("error") && d.Contains("main.cob(11,12)") && d.Contains("'STOP'"));
+    }
+
+    [Fact] // PB4412: the control: WITH DEBUGGING MODE makes the debugging line SOURCE, so the statement that vanished is named
+    public void ADebuggingLineWithTextOnlyPastMarginR_WithDebuggingMode_IsAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. DebuggingModeHead, OpenCall, "      D" + OnlyPastMarginR[7..], "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(13,73): warning", note);
+        Assert.Contains("main.cob(14,12) may be this", note);
+    }
+
+    [Fact] // PB4412: the debugging mode is the UNIT's (ISO §12.3.5.4 GR1): a mode in another program leaves this one's line a comment
+    public void ADebuggingLineWithTextOnlyPastMarginR_InAUnitWithoutTheMode_IsNotAskedAbout()
+    {
+        var diagnostics = Compile(Program([.. DebuggingModeHead, "           STOP RUN.", "       END PROGRAM MARGINR.",
+            "       IDENTIFICATION DIVISION.", "       PROGRAM-ID. SECOND.", "       DATA DIVISION.", "       WORKING-STORAGE SECTION.",
+            "       01 WS-MSG PIC X(8) VALUE \"MSG\".", "       PROCEDURE DIVISION.", "       MAIN-P.", OpenCall,
+            "      D" + OnlyPastMarginR[7..], "           STOP RUN.", "       END PROGRAM SECOND."]));
+
+        Assert.Empty(Notes(diagnostics));
+    }
+
+    [Fact] // PB4412: beside an omitted branch the LIVE line is named, and only it (the goldens pb4412-vanished-statement-beside-*)
+    public void AnOmittedBranchBesideALiveCut_IsSkipped_AndTheLiveLineIsNamed()
+    {
+        var diagnostics = Compile(Program([.. Head, OpenCall, "       >>IF TRACING IS DEFINED", OnlyPastMarginR, "       >>END-IF",
+            OnlyPastMarginR, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(13,73): warning", note);        // the live line, not the omitted one on line 11
+        Assert.Contains("main.cob(14,12) may be this", note);
+    }
+
+    [Fact] // PB4412: the same beside a debugging line that is a comment
+    public void ACommentDebuggingLineBesideALiveCut_IsSkipped_AndTheLiveLineIsNamed()
+    {
+        var diagnostics = Compile(Program([.. Head, OpenCall, "      D" + OnlyPastMarginR[7..], OnlyPastMarginR, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("main.cob(11,73): warning", note);        // the live line, not the debugging line on line 10
+        Assert.Contains("main.cob(12,12) may be this", note);
+    }
+
+    [Fact] // PB4412: carrying a blank debugging line to the rewriter changes nothing else: it still reads as a blank line (§6.5 2)
+    public void ABlankDebuggingLine_BetweenTheLinesOfALiteral_StillContinuesIt()
+    {
+        string[] lines =
+        [
+            .. Head, "           DISPLAY \"ABC", "      D", "      -    \"DEF\".", "           STOP RUN.",
+        ];
+        var diagnostics = Compile(Program(lines));
+
+        Assert.DoesNotContain(diagnostics, d => d.Contains("error"));
+        Assert.Empty(Notes(diagnostics));
+    }
+
     [Fact] // PB4372: a sequence number on a line with no program text is still the ordinary use of the positions
     public void ASequenceNumberOnABlankLine_IsNotACut()
     {
