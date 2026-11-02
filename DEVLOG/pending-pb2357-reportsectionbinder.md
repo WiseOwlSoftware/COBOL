@@ -36,3 +36,8 @@ allocation on a hot path (the binder is built once per unit). Duplication: none 
 the binder shares are the single copies.
 
 **Proof.** `compare_oracle.py --base bd9a034e0`: `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===`.
+
+**Gate.** Run 000001 was RED on the evidence-supersession audit (two frozen PHASE-13 citations named the split file; each now
+carries a `superseded_by` marker). Run 000002-20261102T221759Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit
+39,398/39,398 · Characterization 37/37 cases ran (skipped 0) ===`; `ReportScopeBoundaryDriftTests` 3/3 passed in its Unit.trx;
+`semgrep/verify.py` PASS (no count rose). Linux: not part of the per-change gate (PB4327).
