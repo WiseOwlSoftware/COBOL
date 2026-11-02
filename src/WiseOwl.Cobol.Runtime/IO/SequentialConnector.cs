@@ -485,9 +485,13 @@ public sealed partial class SequentialConnector : FileConnector
     /// <summary>Give the endpoint up with the handle it was made for.</summary>
     private void GiveUpRegions()
     {
-        _regions?.Dispose();
-        _regions = null;
-        _regionsOn = null;
+        try { _regions?.Dispose(); }
+        finally
+        {
+            _regions = null;
+            _regionsOn = null;
+            GiveUpEntryMutex();   // an uncovered sharing writer's kept entry mutex goes with its endpoint (kb/Work PB4387)
+        }
     }
 
     /// <inheritdoc/>

@@ -2855,10 +2855,28 @@ death) cut it — a record GR19 and GR12 keep; under it a transaction begins eit
 holding ('51'), or after the release, whose bytes its L counts (and its image of a rewritten record holds the uncovered
 bytes). Where this host cannot hold the mutex (a lock directory the process may not create), the uncovered statement
 proceeds without it, DOC-A.1-75's rule for a waiting hold; a covered first change there is refused '30', so no transaction
-of this process begins beside it either. The price is the mutex's lock file per such statement, serializing the WRITEs of
+of this process begins beside it either. The price is the mutex held per such statement, serializing the WRITEs of
 the uncovered writers that share one file across run units (`unit:SequentialCommitControlTests`
 `An_uncovered_writers_record_is_never_cut_by_a_transaction_that_begins_during_its_write`: the covered WRITE run at the
-uncovered one's release, through the fault-injecting medium's `BeforeOperation` seam). **The RETRY phrase (§14.7.9.3 GR4 b), as built in
+uncovered one's release, through the fault-injecting medium's `BeforeOperation` seam). **⛔ THE BYTE IS PARKED BETWEEN
+STATEMENTS, NEVER PUBLISHED AND RETIRED AROUND EACH ONE (kb/Work PB4387).** The uncovered connector owns ONE entry-mutex endpoint for
+its life (`HostRegionLocks.KeptEntryMutex`, `IHostMedium.KeptEntryMutex`, created at its first guarded change and disposed with
+its regions at the CLOSE or the abandonment of its OPEN: `SequentialConnector.TryHoldKeptEntryMutex`, `GiveUpEntryMutex`).
+The endpoint is a `SidecarRegionLocks` that PARKS what it releases (`SidecarRegionLocks.ParkingForPath`): the holder's lock file is
+RENAMED, its lock still held, from the held name `r<byte>-X-<id>` to the idle name `i<byte>-<id>` (`SidecarLockFiles.LockFileHolder.Rename`; ⛔
+WIRE VALUES), which no `Look` reads, so a parked file holds against no one; the next statement's hold renames it back and looks for
+other holders exactly as the publish-then-test protocol does for a fresh file. A statement costs one rename, one listing and
+one rename (and the journal listing every entry step makes), where publishing and retiring the file and the lock directory
+was about ten metadata operations a record (SQ214A: 3 s alone, 19 to 30 s in 24 copies on a loaded ReFS volume; measured on
+this host over 20,000 WRITEs under `SHARING WITH ALL OTHER`, the mutex's share fell from about 32 s to about 6 s). The parked
+file keeps the lock directory standing for the connector's life, which the CLOSE ends (`SidecarLockFiles.RetireDirectory`'s
+rule, unchanged). A parking endpoint's first publication sweeps the dead idle files of its byte (`SweepIdle`: a run unit killed
+while it kept one leaves its file with the lock gone), so a killed writer's litter never grows past the next writer's start; a
+parked file removed under the endpoint (the rename finds it gone) is published again. A refused rename never loses the lock:
+the holder is closed and a fresh one published. `unit:SequentialEntryMutexParkingTests` pins the COUNT of publications (one for
+25 WRITEs and for 3 REWRITEs, through `SidecarLockFiles.RaceInjector`) and the lock directory's NAMES between statements (one
+parked file, the same one every time), two writers interleaving, a killed writer's litter, a parked file removed, and the WRITE the
+medium refuses. **The RETRY phrase (§14.7.9.3 GR4 b), as built in
 `SequentialConnector.JournalLockTest`):** every journal arm of the test — WRITE, REWRITE and READ, covered or not — is ONE
 attempt function under `FileRegistry.RetryLoop` with the statement's phrase, so a statement that meets a holding waits and
 attempts again exactly as one that meets a region lock does. Each attempt is a whole entry step (a dead owner met on a later
