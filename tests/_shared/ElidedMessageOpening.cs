@@ -23,6 +23,11 @@ internal static class ElidedMessageOpening
     /// <c>{verb} …</c>.</summary>
     private const string Head = @"(?:[A-Z][A-Z-]*|\{[\w.]+\})(?: (?:[A-Z][A-Z-]*|\{[\w.]+\})){0,3} (?:…|\.\.\.)";
 
+    /// <summary>A hole standing for a deferred construct's own text (<c>{n.Construct}</c>, <c>{construct}</c>) followed by
+    /// the colon that opens the sentence: the construct text is a statement the binder named, and may itself be elided
+    /// (<c>SET … TO X</c>). Source-only — a rendered message has no hole to see.</summary>
+    private const string ConstructHole = @"\{[\w.]*[Cc]onstruct\}:";
+
     /// <summary>A leading call argument that is not the message, ended by its comma: a <c>"COBOLnnnn"</c> code literal,
     /// any non-delimiter, or a parenthesized group. ONE alternation under ONE star, so the match is linear — two
     /// adjacent unbounded classes would backtrack catastrophically on the many calls that do not match.</summary>
@@ -36,11 +41,16 @@ internal static class ElidedMessageOpening
     /// <c>Removed(code, message)</c> and <c>Declined(descriptor, seen)</c> (<c>"{seen}: title"</c>).
     /// <para>The messages of the RUNNING program (kb/Work PB4212) open the same way and are caught by the same head:
     /// the emitter's <c>detail</c> that <c>CobolIndex</c> puts in front of its exception text (<c>LandAmount(…, detail, …)</c>,
-    /// <c>AugmentSetTarget(…, detail)</c>), <c>FileRegistry.MisroutedVerb(verb, …)</c>, and any <c>new …Exception(</c>.</para></summary>
+    /// <c>AugmentSetTarget(…, detail)</c>), <c>FileRegistry.MisroutedVerb(verb, …)</c>, and any <c>new …Exception(</c>.</para>
+    /// <para>⛔ A CONSTRUCT'S TEXT IS A HEAD TOO (kb/Work PB4268). <c>NoteExpansionDeferred(</c> and <c>BoundDeferredToExpansion(</c>
+    /// carry the text of a statement the binder deferred to an expansion, and the emitter's pipeline-defect exception once
+    /// opened with it (<c>$"{n.Construct}: a statement of an unexpanded …"</c>) — so the text opened a message through a
+    /// <c>{…Construct}</c> hole no <c>VERB …</c> pattern can see. <see cref="ConstructHole"/> is that head: a lone hole
+    /// named for a construct, then its colon.</para></summary>
     public static readonly Regex Source = new(
         @"\b(?:Error|Report|Refused|Warning|InitializeErrorAction|EditionDiagnostic|Extension|Removed|Declined"
-        + @"|LandAmount|AugmentSetTarget|MisroutedVerb|\w+Exception)\((?:" + LeadingArgument
-        + @"){0,4}\s*\$?""" + Head,
+        + @"|LandAmount|AugmentSetTarget|MisroutedVerb|NoteExpansionDeferred|BoundDeferredToExpansion|\w+Exception)\((?:" + LeadingArgument
+        + @"){0,4}\s*\$?""(?:" + Head + "|" + ConstructHole + ")",
         RegexOptions.Compiled);
 
     /// <summary>A text that BEGINS with the head — for a string that becomes the head of a message when a registry

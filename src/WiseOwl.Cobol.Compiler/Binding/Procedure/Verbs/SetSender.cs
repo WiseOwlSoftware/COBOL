@@ -86,7 +86,13 @@ internal sealed class SetSenders(StatementBinder host)
         // SELF / SUPER (Format 6) are carried by NAME: the SET rules speak of them as such (kb/Work PB1425). They parse
         // here, through setToSender's arithmeticExpression arm, since the expression tier carries them.
         if (ConditionBinder.SolePredefinedObject(amount) is { } predefined)
+        {
+            // Where §8.9 leaves the word free it is an undeclared name, not the predefined object reference (kb/Work
+            // PB4153): reported once here, so no SET format meets a sender of a facility the edition does not have.
+            if (host.Oo.UnreservedPredefinedObjectRefusal(predefined) is { } refused)
+                return Identified(predefined, refused);
             return new SetSender(DataBinder.WrittenText(amount), null, null, predefined, predefined);
+        }
         // An inline invocation or an object-view (Formats 4 and 5) references a temporary item, bound once here.
         if (ConditionBinder.SoleOoIdentifier(amount) is { } ooId)
             return Identified(ooId, host.Oo.OoBindOoIdentifier(ooId));

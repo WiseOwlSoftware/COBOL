@@ -518,6 +518,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return host.Ptr.BindAddressIdentifier(addrCtx, "INVOKE USING") is not null;
         if (arg.Self)
         {
+            if (RefuseUnreservedPredefinedObject(arg.Arith, isSuper: false)) return false;   // kb/Work PB4153
             if (host.OoCurrentClass is not null) return true;
             _ = RefusePredefinedObjectOutsideMethod($"{subject} SELF");
             return false;
@@ -646,6 +647,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         Core.CobolWordContext? qualifier, string position, bool report = true)
     {
         string written = qualifier is not null ? $"{DataBinder.WrittenText(qualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
+        if (RefuseUnreservedPredefinedObject(qualifier, isSuper, report)) return null;   // kb/Work PB4153
         if (!host.InMethod || host.OoCurrentClass is not { } cur)
         {
             if (report) _ = RefusePredefinedObjectOutsideMethod($"{position} {written}");
@@ -692,6 +694,35 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     internal BoundRejected RefusePredefinedObjectOutsideMethod(string written) =>
         BoundRejected.Report(ctx.Edition, "COBOL0827", $"{written} may be specified only within a method definition "
             + "(ISO §8.4.3.8.3 SR1 — the predefined object references of the current object)");
+
+    /// <summary>⛔ SELF AND SUPER ARE PREDEFINED OBJECT REFERENCES ONLY WHERE §8.9 RESERVES THEM (kb/Work PB4153, the
+    /// determination of PB655 / PB1673 applied to the OO pair). Both words are reserved from COBOL 2002 on; at COBOL-85
+    /// a SELF or SUPER token that no entry declared names nothing, and the program drew the 2002 rules of a facility
+    /// the edition does not have (SET's §14.9.39.3 SR8 / SR9, §8.4.3.8.3 SR1 / SR3) instead of the §8.4.2.1 undefined
+    /// reference. EVERY reader of the keyword asks this FIRST: the OO identifier door (<see cref="OoBindSelfOperand"/>),
+    /// the readers that take SELF by name (SET's sender classifier, the INVOKE argument), the receiver of an INVOKE or an
+    /// object property (<see cref="OoPredefinedSearchRoot"/>), an object-view's identifier-1 and RAISE.
+    /// <para>True having reported, and the caller stops: the reference is as refused as any other undeclared name
+    /// (<paramref name="report"/> false is a resolver probe, which never diagnoses).</para></summary>
+    internal bool RefuseUnreservedPredefinedObject(Antlr4.Runtime.ParserRuleContext? at, bool isSuper, bool report = true)
+    {
+        string word = isSuper ? "SUPER" : "SELF";
+        if (!UnreservedKeywordReference.IsFreeAt(word, ctx.Edition)) return false;
+        if (report)
+        {
+            using var _ = ctx.Edition.At(at);
+            UnreservedKeywordReference.Report(ctx.Edition, word);
+        }
+        return true;
+    }
+
+    /// <summary><see cref="RefuseUnreservedPredefinedObject(Antlr4.Runtime.ParserRuleContext?, bool, bool)"/> for a parsed
+    /// <c>selfAndSuper</c> node, which names its own word, as the refused expression an operand channel carries on
+    /// (null: the edition reserves the word, and the caller reads it as the predefined object reference).</summary>
+    internal BoundExprError? UnreservedPredefinedObjectRefusal(Core.SelfAndSuperContext s) =>
+        RefuseUnreservedPredefinedObject(s, s.SUPER() is not null)
+            ? BoundExprError.Refused(ctx.Edition, $"{DataBinder.WrittenText(s)}, a word §8.9 does not reserve at this edition")
+            : null;
 
     /// <summary><c>INVOKE class-name-1 "m" …</c>: §14.9.23.3 SR3 — "The value of literal-1 shall be the name of a
     /// method defined in the factory interface of object-class-name-1". Resolution walks the INHERITS chain over
@@ -1164,6 +1195,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // (SelfSenderRefusals). It used to be a parse error.
         if (arg.Self)
         {
+            if (RefuseUnreservedPredefinedObject(arg.Arith, isSuper: false)) return null;   // kb/Work PB4153
             if (host.OoCurrentClass is not { } selfClass)
             {
                 Err("SELF is defined only within a method definition (ISO §8.4.3.8.3 SR1)");
@@ -1980,8 +2012,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 }
                 if (scls is null)
                 {
-                    ctx.Edition.NoteExpansionDeferred($"SET … TO {sname}");
-                    return new BoundDeferredToExpansion($"SET … TO {sname}");
+                    // The receivers as written (kb/Work PB388): the construct text reaches a message, and `SET … TO` named a
+                    // statement nobody wrote (kb/Work PB4268).
+                    string construct = $"SET {SetFormatSelection.Written(targetRefs)} TO {sname}";
+                    ctx.Edition.NoteExpansionDeferred(construct);
+                    return new BoundDeferredToExpansion(construct);
                 }
                 srcFactoryClassCs = scls.FactoryClrName;
             }

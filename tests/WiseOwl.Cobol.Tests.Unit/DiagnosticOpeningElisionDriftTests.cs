@@ -104,6 +104,10 @@ public sealed class DiagnosticOpeningElisionDriftTests
             "throw new InvalidOperationException(\n                $\"OPEN … WITH NO REWIND reached a {c.Category} connector '{name}'\");",
             "throw MisroutedVerb(\"OPEN … REVERSED\", name, c);",
             "set.AugmentSetTarget(also, down: false, new NumX(\"1\", 0), \"SEARCH ... VARYING\");",
+            // PB4268: a deferred construct's text, and the exception that opened with it through a construct hole
+            "ctx.Edition.NoteExpansionDeferred($\"SET … TO {sname}\");",
+            "return new BoundDeferredToExpansion($\"SET … TO {sname}\");",
+            "public bool Visit(BoundDeferredToExpansion n) => throw new InvalidOperationException(\n        $\"{n.Construct}: a statement of an unexpanded parameterized definition reached code generation (kb/Work PB2937)\");",
         ];
         foreach (string defect in defects)
             Assert.True(ElidedMessageOpening.Source.IsMatch(defect), $"the elided-opening pattern no longer matches: {defect}");
@@ -130,6 +134,12 @@ public sealed class DiagnosticOpeningElisionDriftTests
             "throw new InvalidOperationException(\n                $\"OPEN WITH NO REWIND reached a {c.Category} connector '{name}'\");",
             "throw MisroutedVerb(\"OPEN REVERSED\", name, c);",
             "throw new InvalidOperationException(\"the receiving operand of SET … TO ENTRY is missing\");",
+            // PB4268: the repaired twins - the construct names its receivers and sits mid-sentence
+            "ctx.Edition.NoteExpansionDeferred(construct);",
+            "return new BoundDeferredToExpansion($\"SET {SetFormatSelection.Written(targetRefs)} TO {sname}\");",
+            "public bool Visit(BoundDeferredToExpansion n) => throw new InvalidOperationException(\n        $\"a statement of an unexpanded parameterized definition ({n.Construct}) reached code generation (kb/Work PB2937)\");",
+            // a hole that is not a construct's text keeps its colon head (a location label, a subject)
+            "throw new InvalidOperationException($\"{where}: nonNumericLiteral alternative has no arm\");",
         ];
         foreach (string ok in fine)
             Assert.False(ElidedMessageOpening.Source.IsMatch(ok), $"the elided-opening pattern matches a message it must leave alone: {ok}");
