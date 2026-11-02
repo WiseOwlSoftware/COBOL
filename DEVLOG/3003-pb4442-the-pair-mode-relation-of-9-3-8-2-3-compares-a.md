@@ -1,4 +1,4 @@
-## PB4442: the pair-mode relation of §9.3.8.2.3 compares a restricted program- or function-pointer by the prototype it names
+## Entry 3003 — 2026-11-02 10:42 PST — PB4442: the pair-mode relation of §9.3.8.2.3 compares a restricted program- or function-pointer by the prototype it names
 
 **What was wrong.** An override `USING TO Q2` over a base `USING TO Q1`, or an IMPLEMENTS pair of the same two, was admitted
 when Q1 and Q2 have one signature, while the same pair as members of a strongly-typed group was refused (PB4107's group-member
@@ -39,3 +39,4 @@ Docs: D-RP1 in `docs/CONFORMANCE.md`, `docs/OO_DESIGN.md` (D-RP1 passage and a s
 §10.6.2 SR2 pair (prototype `USING TO Q1`, definition `USING TO Q2`) is admitted while the group-member form is refused. Which
 the standard wants of the graph is a question of the signature relation (it reverses PB2495), not of §9.3.8.2.3; registered in
 the report. No inventory row closed (`closes_rows: []`).
+
