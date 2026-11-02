@@ -1,4 +1,4 @@
-## kb/Work PB4452: a shared file holds no work, only an edit to the same member does
+## Entry 3005 — 2026-11-02 11:51 PST — kb/Work PB4452: a shared file holds no work, only an edit to the same member does
 
 The owner made this the top priority on 2026-11-02 ("Fixing the planner to allow this should be the top priority. And
 preempt everything else as it unblocks so much"; "Non overlapping edits to the same file typically will merge without
@@ -53,3 +53,4 @@ list and the namespace-flip sentence); all restated to the member rule. Two lead
 nothing, so the failure must not be silent; pinned in test_plan_wave), and `file_set_collisions`, which only the tests
 called, is deleted (the tests use a local helper over `collision_hits`); the member-hold wait text reads
 "same-member collision with in-flight work".
+
