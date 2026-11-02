@@ -17,7 +17,7 @@
     "files": [
      "src/X/Emitter.cs"
     ],
-    "pred": "FINISH-FIRST: predecessor w1014b (PB3) returned SPLIT for PB3. Read <TMP>/reports/w1014b-PB3-report.md first, its NEXT and its \"For the next implementer\" section, and run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the worktree still exists. Its branch worktree-wf_bbb-2 (worktree E:/COBOL/.claude/worktrees/wf_bbb-2, head 2222222bb) is LANDED: its landed part is already on main, so orient from the report only.",
+    "pred": "FINISH-FIRST: predecessor w1014b (PB3) returned SPLIT for PB3. Read <TMP>/reports/w1014b-PB3-report.md first, its NEXT and its \"For the next implementer\" section, and run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the worktree still exists. Its branch worktree-wf_bbb-2 (worktree E:/COBOL/.claude/worktrees/wf_bbb-2, head 2222222bb) is LANDED. For each LANDED branch named above, its landed part is already on main, so orient from the report only.",
     "cost": 0.34,
     "json": {
      "letter": "A",
@@ -35,7 +35,7 @@
       "src/X/Emitter.cs"
      ],
      "member_set": {},
-     "pred": "FINISH-FIRST: predecessor w1014b (PB3) returned SPLIT for PB3. Read <TMP>/reports/w1014b-PB3-report.md first, its NEXT and its \"For the next implementer\" section, and run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the worktree still exists. Its branch worktree-wf_bbb-2 (worktree E:/COBOL/.claude/worktrees/wf_bbb-2, head 2222222bb) is LANDED: its landed part is already on main, so orient from the report only.",
+     "pred": "FINISH-FIRST: predecessor w1014b (PB3) returned SPLIT for PB3. Read <TMP>/reports/w1014b-PB3-report.md first, its NEXT and its \"For the next implementer\" section, and run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the worktree still exists. Its branch worktree-wf_bbb-2 (worktree E:/COBOL/.claude/worktrees/wf_bbb-2, head 2222222bb) is LANDED. For each LANDED branch named above, its landed part is already on main, so orient from the report only.",
      "continues": [
       "worktree-wf_bbb-2"
      ]
@@ -54,7 +54,7 @@
     "files": [
      "src/X/Half.cs"
     ],
-    "pred": "FINISH-FIRST: PB4 is `status: half`: read each note's record of the landed half and its kb/Work history before touching code; finish the open half at its root. Branch worktree-wf_fff-3 carries unlanded work for PB4 with no report. Run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
+    "pred": "FINISH-FIRST: PB4 is `status: half`. For each `status: half` note, read its record of the landed half and its kb/Work history before touching code, and finish the open half at its root. Branch worktree-wf_fff-3 carries unlanded work for PB4 with no report. For each branch that carries unlanded work with no report, run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
     "cost": 0.16,
     "json": {
      "letter": "B",
@@ -72,7 +72,7 @@
       "src/X/Half.cs"
      ],
      "member_set": {},
-     "pred": "FINISH-FIRST: PB4 is `status: half`: read each note's record of the landed half and its kb/Work history before touching code; finish the open half at its root. Branch worktree-wf_fff-3 carries unlanded work for PB4 with no report. Run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
+     "pred": "FINISH-FIRST: PB4 is `status: half`. For each `status: half` note, read its record of the landed half and its kb/Work history before touching code, and finish the open half at its root. Branch worktree-wf_fff-3 carries unlanded work for PB4 with no report. For each branch that carries unlanded work with no report, run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
      "continues": [
       "worktree-wf_fff-3"
      ]
@@ -91,7 +91,7 @@
     "files": [
      "src/X/Zero.cs"
     ],
-    "pred": "FINISH-FIRST: Branch worktree-wf_ddd-9 carries unlanded work for PB13 with no report. Run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
+    "pred": "FINISH-FIRST: Branch worktree-wf_ddd-9 carries unlanded work for PB13 with no report. For each branch that carries unlanded work with no report, run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
     "cost": 0.16,
     "json": {
      "letter": "C",
@@ -109,7 +109,7 @@
       "src/X/Zero.cs"
      ],
      "member_set": {},
-     "pred": "FINISH-FIRST: Branch worktree-wf_ddd-9 carries unlanded work for PB13 with no report. Run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
+     "pred": "FINISH-FIRST: Branch worktree-wf_ddd-9 carries unlanded work for PB13 with no report. For each branch that carries unlanded work with no report, run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
      "continues": [
       "worktree-wf_ddd-9"
      ]
@@ -312,7 +312,7 @@
     "files": [
      "src/X/Emitter.cs"
     ],
-    "pred": "FINISH-FIRST: predecessor w1014b (PB3) returned SPLIT for PB3. Read <TMP>/reports/w1014b-PB3-report.md first, its NEXT and its \"For the next implementer\" section, and run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the worktree still exists. Its branch worktree-wf_bbb-2 (worktree E:/COBOL/.claude/worktrees/wf_bbb-2, head 2222222bb) is LANDED: its landed part is already on main, so orient from the report only.",
+    "pred": "FINISH-FIRST: predecessor w1014b (PB3) returned SPLIT for PB3. Read <TMP>/reports/w1014b-PB3-report.md first, its NEXT and its \"For the next implementer\" section, and run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the worktree still exists. Its branch worktree-wf_bbb-2 (worktree E:/COBOL/.claude/worktrees/wf_bbb-2, head 2222222bb) is LANDED. For each LANDED branch named above, its landed part is already on main, so orient from the report only.",
     "cost": 0.34,
     "json": null
    }
@@ -395,7 +395,7 @@
     "files": [
      "src/X/Half.cs"
     ],
-    "pred": "FINISH-FIRST: PB4 is `status: half`: read each note's record of the landed half and its kb/Work history before touching code; finish the open half at its root. Branch worktree-wf_fff-3 carries unlanded work for PB4 with no report. Run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
+    "pred": "FINISH-FIRST: PB4 is `status: half`. For each `status: half` note, read its record of the landed half and its kb/Work history before touching code, and finish the open half at its root. Branch worktree-wf_fff-3 carries unlanded work for PB4 with no report. For each branch that carries unlanded work with no report, run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
     "cost": 0.16,
     "json": null
    }
@@ -484,7 +484,7 @@
     "files": [
      "src/X/Emitter.cs"
     ],
-    "pred": "FINISH-FIRST: predecessor w1014b (PB3) returned SPLIT for PB3. Read <TMP>/reports/w1014b-PB3-report.md first, its NEXT and its \"For the next implementer\" section, and run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the worktree still exists. Its branch worktree-wf_bbb-2 (worktree E:/COBOL/.claude/worktrees/wf_bbb-2, head 2222222bb) is LANDED: its landed part is already on main, so orient from the report only.",
+    "pred": "FINISH-FIRST: predecessor w1014b (PB3) returned SPLIT for PB3. Read <TMP>/reports/w1014b-PB3-report.md first, its NEXT and its \"For the next implementer\" section, and run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the worktree still exists. Its branch worktree-wf_bbb-2 (worktree E:/COBOL/.claude/worktrees/wf_bbb-2, head 2222222bb) is LANDED. For each LANDED branch named above, its landed part is already on main, so orient from the report only.",
     "cost": 0.34,
     "json": null
    },
@@ -501,7 +501,7 @@
     "files": [
      "src/X/Half.cs"
     ],
-    "pred": "FINISH-FIRST: PB4 is `status: half`: read each note's record of the landed half and its kb/Work history before touching code; finish the open half at its root. Branch worktree-wf_fff-3 carries unlanded work for PB4 with no report. Run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
+    "pred": "FINISH-FIRST: PB4 is `status: half`. For each `status: half` note, read its record of the landed half and its kb/Work history before touching code, and finish the open half at its root. Branch worktree-wf_fff-3 carries unlanded work for PB4 with no report. For each branch that carries unlanded work with no report, run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.",
     "cost": 0.16,
     "json": null
    }

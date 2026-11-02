@@ -205,8 +205,9 @@ from inflight import (LANDED_CLASSES, SLICE_OWNER, Claim, InFlight, IndexPolicy,
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, cluster_claim,  # noqa: E402
                       declare_fix_lane, harm_weights, lift_tiers, load_fix_clusters, load_notes, notes_cap,
                       predicted_turns, run_fix_clusters, turn_budget)
-from groups import (Group, as_group_json, branch_resume, choose_model, continuation_pred, finisher_pred,  # noqa: E402
-                    group_cost, group_of_cluster, group_requirements, landing_cost, letters, replay_clause, unpartitioned)
+from groups import (FINISH_FIRST, Group, as_group_json, branch_resume, choose_model, finisher_pred,  # noqa: E402
+                    group_cost, group_of_cluster, group_requirements, half_clause, join_preds, landing_cost, letters,
+                    replay_clause, unpartitioned)
 from dispatch_ledger import (COLLISION_WAIT, held_by_dispatch, partition_record, partition_summary,  # noqa: E402
                              record_partition, release_dispatch)
 if TYPE_CHECKING:
@@ -316,9 +317,7 @@ class PlanState:
         """The resume instruction for notes no report names that a branch carries: a half note's record first, then
         the commits other branches replay (replay_clause, kb/Work PB3170)."""
         halves = [i for i in ids if i in self.half_ids]
-        return ((f"{', '.join(halves)} {'is' if len(halves) == 1 else 'are'} `status: half`: read each "
-                 f"note's record of the landed half and its kb/Work history before touching code; finish the open half "
-                 f"at its root. " if halves else "") + branch_resume(branch, ids, rp))
+        return (half_clause(halves) + " " if halves else "") + branch_resume(branch, ids, rp)
 
     def rows(self, ids: list[str]) -> int:
         return sum(len(self.notes[i].rows) for i in ids if i in self.notes)
@@ -542,7 +541,7 @@ def plan_finishers(s: PlanState) -> None:
             if extra:
                 # The same branch's commits: the replayed ones are named once (the report's pred may already name them).
                 clause = replay_clause(rp)
-                pred += " " + s.branch_work_pred(rep.branch, extra, None if clause and clause in pred else rp)
+                pred = join_preds(pred, s.branch_work_pred(rep.branch, extra, None if clause and clause in pred else rp))
             ids += extra
             groups.append(s.notes_group("finisher", ids, pred=pred, continues=[b for b in (rep.branch, by) if b]))
             taken |= set(ids)
@@ -555,9 +554,7 @@ def plan_finishers(s: PlanState) -> None:
         chunk = [n["id"] for n in c["notes"] if n["id"] not in taken and n["id"] not in on_branch][:s.cap]
         if chunk:
             groups.append(group_of_cluster("finisher", chunk, c,
-                                pred=("FINISH-FIRST: " + ", ".join(chunk) + (" is" if len(chunk) == 1 else " are") +
-                                      " `status: half`: read each note's record of the landed half and its kb/Work "
-                                      "history before touching code; finish the open half at its root.")))
+                                pred=FINISH_FIRST + half_clause(chunk)))
             taken |= set(chunk)
     # a branch carrying a half note first (the half arm's place before this change), then by name
     for branch, ids in sorted(s.unlanded.items(), key=lambda kv: (not any(i in s.half_ids for i in kv[1]), kv[0])):
@@ -570,7 +567,7 @@ def plan_finishers(s: PlanState) -> None:
             # ONE finisher per branch, its notes never split at the cap (as for a report's, above): the notes past the
             # cap would be planned again as clusters, redoing the work this finisher cherry-picks.
             groups.append(s.notes_group("finisher", ids,
-                                        pred=("FINISH-FIRST: " + s.branch_work_pred(branch, ids, s.replay(branch))),
+                                        pred=FINISH_FIRST + s.branch_work_pred(branch, ids, s.replay(branch)),
                                         continues=[branch]))
             taken |= set(ids)
 
@@ -582,11 +579,6 @@ def plan_fill(s: PlanState) -> None:
     # The drain plans no cluster, a finisher absorbs none, and a half note's open half waits too: counted, not listed.
     s.not_started = sorted({n["id"] for c in s.clusters + s.half_clusters for n in c["notes"]} & s.open_ids - taken
                            - {i for g in s.groups for i in g.notes}, key=work.id_order) if s.drain else []
-    if s.drain:
-        for g in s.groups:
-            g.pred += (" DRAIN (plan_wave.py --drain, the owner's: no new work, only in-process work to main): finish "
-                       "only what this branch STARTED and answer its review findings; a note its report says was NOT "
-                       "started stays open and unstarted: name it in your report.")
     ranked = []
     for c in (s.clusters if not s.drain else []):
         ids = [n["id"] for n in c["notes"] if n["id"] in s.open_ids and n["id"] not in taken]
@@ -705,8 +697,8 @@ def plan_partition(s: PlanState) -> None:
             done = {x.finished.branch: x.finished for x in met.values() if x.finished and x.finished.branch}
             if done:
                 shared = {b: sorted(mine.files & x.files) for x in met.values() if (b := x.branch) in done}
-                g.pred = (g.pred + " " if g.pred else "") + continuation_pred(list(done.values()), shared)
-                g.continues += [b for b in done if b not in g.continues]
+                for b, rep_done in done.items():
+                    g.join(rep_done, shared.get(b, []))   # stated once, when the group is final (Group.close_pred)
                 # the branch's work is now the group's: its claim joins the group's, so a later group meeting the
                 # branch's files meets this group, and the branch is this group's to continue (registered once the
                 # group is placed or absorbed, below: a group that waits continues nothing)
@@ -795,6 +787,7 @@ def plan_partition(s: PlanState) -> None:
             g.letter = next(gen)
         if deps:
             g.blocked_by = sorted({b for i in g.notes for b in deps.get(i, [])} - set(g.notes), key=work.id_order)
+        g.close_pred(s.drain)   # the group's own clauses, once: what it joined and, under --drain, the DRAIN clause (PB4419)
         g.model, g.why_model = choose_model(g, s.notes, s.reports, s.rules)
         g.cost = group_cost(g.model, len(g.notes), s.rules)
         for i in g.overflow:

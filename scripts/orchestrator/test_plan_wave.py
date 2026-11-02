@@ -16,6 +16,7 @@ import io
 import json
 import os
 import pathlib
+from types import SimpleNamespace
 import re
 import subprocess
 import sys
@@ -37,7 +38,8 @@ from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_cluste
                       declare_fix_lane, lift_tiers, load_fix_clusters, load_notes, notes_cap, predicted_turns,
                       ready_notes_view, turn_budget)
 from groups import (Group, as_group_json, attempts, body_of, campaign_requirements, group_cost,  # noqa: E402
-                    group_requirements, landing_cost, requirements_text, FINDINGS_ANSWER, finisher_pred, join_preds)
+                    group_requirements, landing_cost, requirements_text, DRAIN_CLAUSE, FINDINGS_ANSWER, FINISH_FIRST,
+                    branch_resume, finisher_pred, half_clause, join_preds, shared_rules)
 from dispatch_ledger import (held_by_dispatch, partition_record, partition_summary, record_dispatch,  # noqa: E402
                              record_partition, release_dispatch)
 sys.path.insert(0, str(HERE.parent))
@@ -47,6 +49,7 @@ import git_batch  # noqa: E402  (scripts/: the batched git reads, kb/Work PB3582
 
 sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
 import check_practices  # noqa: E402
+import once_rule  # noqa: E402
 import make_dispatch_specs as mds  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -947,7 +950,7 @@ spec_file.write_text(spec0, encoding="utf-8", newline="\n")
 #      whose paragraphs state each rule once, so a rendered spec repeats no sentence of SENTENCE_MIN characters or more and
 #      check_practices refuses a spec that does (the spec and brief it replaced carried the checkpoint protocol, the gate,
 #      the DEVLOG entry, I9, the citation rule and the STOP rule twice).
-check("a rendered spec states no sentence twice", check_practices.repeated_sentences(spec0), [])
+check("a rendered spec states no sentence twice", once_rule.repeated_sentences(spec0), [])
 twice = "orientation (grep/read) was 46 % of every implementer's tokens in waves 45–57, re-deriving what earlier waves had already learned."
 check("... and the sentence this test repeats is one the spec states", twice in " ".join(spec0.split()), True)
 spec_file.write_text(spec0 + "\n" + twice + "\n", encoding="utf-8", newline="\n")
@@ -963,7 +966,7 @@ one_spec = TMP / "msg-w77-one.txt"
 one_spec.write_text(mds.render(CFG77, g1, FILES(g1)), encoding="utf-8", newline="\n")
 one_text = " ".join(one_spec.read_text(encoding="utf-8").split())
 check("PB4005: a one-file group's spec ends the root and the sites with its long path, and the once-check passes it",
-      (len(ONE) + 1 >= check_practices.SENTENCE_MIN, f"ONE ROOT: {ONE}. " in one_text, f"notes name: {ONE}. " in one_text,
+      (len(ONE) + 1 >= once_rule.SENTENCE_MIN, f"ONE ROOT: {ONE}. " in one_text, f"notes name: {ONE}. " in one_text,
        [m for m in check_practices.check(one_spec, []) if "PB3777" in m]), (True, True, True, []))
 check("every statement of a cap in the tree matches its role's maxTurns", check_practices.turn_cap_copies(), [])
 CAPREPO = TMP / "caprepo"
@@ -1472,7 +1475,7 @@ check("the rendered spec carries every requirement (check_practices.py finds non
 # Review R1-1 of wave 20261709: the lead-in used to be repeated before EVERY requirement, so a campaign group with two or
 # more requirements rendered a spec the PB3777 once-check refused and make_dispatch_specs.py could not dispatch the wave.
 check("a spec rendered for a campaign group with two or more requirements states no sentence twice (PB3777)",
-      (len(REQS) >= 2, check_practices.repeated_sentences(rspec.read_text(encoding="utf-8")),
+      (len(REQS) >= 2, once_rule.repeated_sentences(rspec.read_text(encoding="utf-8")),
        [m for m in check_practices.check(rspec, []) if "PB3777" in m]), (True, [], []))
 rdup = TMP / "msg-w77-dup.txt"
 rdup.write_text(rspec.read_text(encoding="utf-8") + "\n" + requirements_text("PB950", REQS) + "\n", encoding="utf-8", newline="\n")
@@ -1495,7 +1498,67 @@ fspec = TMP / "msg-w77-two-findings.txt"
 fj = as_group_json(ga, "77", notes, "COBOL0001-COBOL0003")
 fspec.write_text(mds.render(CFG77, fj, FILES(fj)), encoding="utf-8", newline="\n")
 check("... and its rendered spec passes the PB3777 once-check", [m for m in check_practices.check(fspec, []) if "PB3777" in m], [])
-check("join_preds leaves preds without the answer rule as a plain join", join_preds("a  b", "", "c"), "a  b c")
+# Review R1-1 of PB4419's first branch: FINDINGS_ANSWER was the only rule joined once, but EVERY pred builder writes rules the
+# same for each branch, so two groups of any other kinds said them twice. Expected from the once rule (a spec says each
+# sentence once, and a join loses nothing but a copy): joining ANY two kinds of pred, a kind with itself included, leaves
+# no sentence twice, every sentence either had still there, and every note either names.
+def _pred_report(n, review=None):
+    return Report(pathlib.Path(f"E:/s/w1x{n}-PB9{n}-report.md"), 1, f"w1x{n}", f"PB9{n}", "DONE", [f"PB9{n}"], False,
+                  f"worktree-k{n}", f"E:/w/k{n}", f"abc{n}0000", review)
+
+
+_REPLAY = SimpleNamespace(by=(("worktree-held", 2),), fresh=("abcdef123456",), carrier=None)
+PRED_KINDS = {   # one builder call each; n names the branch, so two calls never share a fact
+    "branch with no report": lambda n: finisher_pred(None, f"worktree-k{n}", "UNLANDED", [f"PB9{n}"]),
+    "... and replayed commits": lambda n: finisher_pred(None, f"worktree-k{n}", "UNLANDED", [f"PB9{n}"], replay=_REPLAY),
+    "half note": lambda n: FINISH_FIRST + half_clause([f"PB9{n}"]),
+    "half note on a branch": lambda n: FINISH_FIRST + half_clause([f"PB9{n}"]) + " " + branch_resume(f"worktree-k{n}", [f"PB9{n}"]),
+    "UNLANDED report": lambda n: finisher_pred(_pred_report(n), f"worktree-k{n}", "UNLANDED", [f"PB9{n}"]),
+    "... with replayed commits": lambda n: finisher_pred(_pred_report(n), f"worktree-k{n}", "CHECK", [f"PB9{n}"], replay=_REPLAY),
+    "... carried": lambda n: finisher_pred(_pred_report(n), f"worktree-k{n}", "UNLANDED", [f"PB9{n}"], carried_by=f"worktree-c{n}"),
+    "LANDED report": lambda n: finisher_pred(_pred_report(n), f"worktree-k{n}", "LANDED", [f"PB9{n}"]),
+    "FINDINGS report": lambda n: finisher_pred(_pred_report(n, Review("FINDINGS", 1, f"w1x{n}-review-r1", f"abc{n}0000", f"E:/s/rv{n}.jsonl")),
+                                                f"worktree-k{n}", "UNLANDED", [f"PB9{n}"]),
+    "FINDINGS report, carried": lambda n: finisher_pred(_pred_report(n, Review("FINDINGS", 1, f"w1x{n}-review-r1", f"abc{n}0000", f"E:/s/rv{n}.jsonl")),
+                                             f"worktree-k{n}", "UNLANDED", [f"PB9{n}"], carried_by=f"worktree-c{n}"),
+}
+bad_joins = []
+for ka, mk_a in PRED_KINDS.items():
+    for kb_, mk_b in PRED_KINDS.items():
+        pa, pb_ = mk_a(1), mk_b(2)
+        both = join_preds(pa, pb_)
+        had = {s for s in once_rule.sentences(pa + " " + pb_) if len(s) >= once_rule.SENTENCE_MIN and " " in s}
+        got = {s for s in once_rule.sentences(both) if len(s) >= once_rule.SENTENCE_MIN and " " in s}
+        if once_rule.repeated_sentences(both) or had != got or not all(b in both for b in ("PB91", "PB92")):
+            bad_joins.append((ka, kb_))
+check("PB4419: joining any two kinds of pred states every sentence once and loses none", (len(PRED_KINDS), bad_joins), (10, []))
+check("... and a joined FINDINGS pred ends with the answer rule, whatever it was joined with",
+      [k for k, mk in PRED_KINDS.items() if k.startswith("FINDINGS")
+       and not join_preds(PRED_KINDS["branch with no report"](1), mk(2)).endswith(FINDINGS_ANSWER)], [])
+check("... and every rule a builder declares is stated by some kind of pred above, so the drift test reaches it",
+      [r[:40] for r in shared_rules() if r != DRAIN_CLAUSE and not any(r in mk(1) for mk in PRED_KINDS.values())], [])
+# The clauses of the FINISHED group (Group.close_pred): the CONTINUATION onto the finished branches it joined and, under
+# --drain, the DRAIN clause. A group that absorbs another used to carry each of its own, so both were stated twice.
+cg1 = dataclasses.replace(rg, kind="finisher", pred=PRED_KINDS["UNLANDED report"](1), joins={}, continues=[])
+cg2 = dataclasses.replace(rg_other, kind="finisher", pred=PRED_KINDS["UNLANDED report"](2), joins={}, continues=[])
+cg1.join(_pred_report(3), ["a.cs"])
+cg2.join(_pred_report(3), ["b.cs"])
+cg2.join(_pred_report(4), ["c.cs"])
+cg1.absorb(cg2)
+cg1.close_pred(True)
+check("PB4419: a group that absorbed another joins each finished branch once, each file shared once, and says CONTINUATION and DRAIN once",
+      (sorted(cg1.joins), cg1.joins["worktree-k3"][1], cg1.continues, cg1.pred.count("CONTINUATION ("), cg1.pred.count("DRAIN ("),
+       once_rule.repeated_sentences(cg1.pred), "worktree-k3" in cg1.pred and "worktree-k4" in cg1.pred),
+      (["worktree-k3", "worktree-k4"], ["a.cs", "b.cs"], ["worktree-k3", "worktree-k4"], 1, 1, [], True))
+# The planner end to end: the drain plan's group of two finishers whose claims meet (PB4396), and the fix lane's two groups on
+# the files of one finished branch, state no sentence twice.
+dr_pair = next(g for g in pd["groups"] if sorted(g.notes) == ["PB6", "PB7"])
+check("PB4419: the drain plan's absorbed finisher group states DRAIN once and no sentence twice",
+      (dr_pair.pred.count("DRAIN ("), once_rule.repeated_sentences(dr_pair.pred)), (1, []))
+check("join_preds drops a sentence stated twice that no builder declared a rule, and collapses whitespace",
+      join_preds("A  b.", "", "Do the one thing the old way, then stop and read the report in full.", "C.",
+                 "Do the one thing the old way, then stop and read the report in full."),
+      "A b. Do the one thing the old way, then stop and read the report in full. C.")
 nospec = TMP / "msg-w77-req-without.txt"
 nospec.write_text(mds.render(CFG77, gjson[0], FILES(gjson[0])), encoding="utf-8", newline="\n")
 check("a spec rendered without them is refused, naming each requirement",
@@ -1617,6 +1680,11 @@ check("PB4396: two groups on the files of one finished branch are ONE continuati
       ([(g.notes, g.continues) for g in fl2["groups"]],
        [as_group_json(g, "9401", notes, "COBOL0001-COBOL0003").get("continues") for g in fl2["groups"]]),
       ([(["PB5", "PB9"], ["worktree-done"])], [["worktree-done"]]))
+# kb/Work PB4419: the fix lane planned both groups ONTO the finished branch; each carried its own CONTINUATION, and the
+# group that absorbed the other said it, and every sentence of it, twice.
+fl2_pred = fl2["groups"][0].pred
+check("PB4419: two fix-lane groups planned onto one finished branch say CONTINUATION once and no sentence twice",
+      (fl2_pred.count("CONTINUATION ("), once_rule.repeated_sentences(fl2_pred)), (1, []))
 check("fix lane: a dispatch of the group's OWN notes never defers it (the hold already decided them)",
       ("PB9",) in FG, True)
 check("fix lane: a group meeting another dispatch's RUNNING group waits, naming it",
