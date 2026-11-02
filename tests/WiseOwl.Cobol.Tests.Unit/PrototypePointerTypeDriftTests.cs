@@ -17,23 +17,24 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE TYPE OF A RESTRICTED PROGRAM- OR FUNCTION-POINTER IS ITS PROTOTYPE'S SIGNATURE, SO NO RELATION COMPARES THE
-/// PROTOTYPE'S NAME (kb/Work PB2464).
-/// <para>ISO §13.18.60.4 GR25 / GR26 type such a pointer by the SIGNATURE of the prototype it names ("shall contain
-/// only … the address of a program with the same signature as that identified by the specified
-/// program-prototype-name"), so §14.9.39.3 SR20 / SR22 admit a SET between pointers restricted to two differently
-/// named prototypes of one signature, and §14.8.2.3.2 ("If either is a restricted pointer, both shall be restricted
-/// and of the same type") is the same question at an argument. The relations that have a unit's prototype tables in
-/// hand ask <c>PrototypeSignatures.Same</c>; the ones that do not — the §9.3.6 match of a UNIVERSAL INVOKE, whose two
-/// descriptions travel to run time, and the typed comparator (since deleted, kb/Work PB3101) — compared
-/// <c>PicInfo.RestrictedPrototypeName</c> instead, which refused two prototypes of one signature in the first and
-/// rejected legal source in the second. Both now read the pointer's resolved TYPE,
-/// <c>PrototypeSignatures.RestrictionIdentity</c> (the signature class <c>PrototypeSignatureClasses.Classify</c>
-/// attached; while the classes are refined it is the prototype's current block, kb/Work PB2495 / PB3101), and this
-/// test keeps the NEXT relation from comparing the name again: no source line may compare
-/// <c>RestrictedPrototypeName</c>. Behaviour is pinned by <c>conformance:cases/_unassigned/pb2464_prototype_pointer_signature_type</c>,
-/// <c>conformance:cases/_unassigned/pb2464_function_pointer_signature_type</c> and the negative
-/// <c>pb2464-typed-pointer-signature-mismatch</c>.</para>
+/// ⛔ NO RELATION COMPARES A RESTRICTED PROGRAM- OR FUNCTION-POINTER'S PROTOTYPE NAME AS WRITTEN (kb/Work PB2464, PB4107):
+/// each asks one of the pointer's two resolved restrictions.
+/// <para>What such a pointer may CONTAIN is fixed by the SIGNATURE of the prototype it names (ISO §13.18.60.4 GR25 / GR26:
+/// "shall contain only … the address of a program with the same signature as that identified by the specified
+/// program-prototype-name"), so §14.9.39.3 SR20 / SR22 admit a SET between pointers restricted to two differently named
+/// prototypes of one signature, and so do the rules that send to SET (§14.8.2.3.3; §9.3.6 4 c), 5 c), 6). Those ask
+/// <c>PrototypeSignatures.SignatureRestriction</c> (the signature class <c>PrototypeSignatureClasses.Classify</c>
+/// attached; while the classes are refined it is the prototype's current block, kb/Work PB2495 / PB3101) or, with the
+/// unit's prototype tables in hand, <c>PrototypeSignatures.Same</c>. The identity rules — §9.3.6 3 e), §14.8.2.3.2's "of
+/// the same type", §14.8.3.3 — compare the USAGE clause's TO phrase by the prototype it NAMES, which is
+/// <c>PrototypeSignatures.NamedRestriction</c>: the folded EXTERNALIZED name, so neither a spelling's case nor a
+/// prototype's local word decides (kb/Work PB4107). A comparison of <c>PicInfo.RestrictedPrototypeName</c> itself is
+/// neither relation: it once refused two prototypes of one signature in a SET-governed relation (kb/Work PB2464), and
+/// this test keeps the NEXT relation from comparing it again. Behaviour is pinned by
+/// <c>conformance:cases/_unassigned/pb2464_prototype_pointer_signature_type</c>,
+/// <c>conformance:cases/_unassigned/pb2464_function_pointer_signature_type</c>,
+/// <c>conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb4107_restricted_pointer_identity_and_signature</c>
+/// and the negatives <c>pb2464-typed-pointer-signature-mismatch</c> and <c>pb4107-*</c>.</para>
 /// <para>A pointer decoded from another group's repository record is held to the same rule end to end
 /// (<see cref="ADecodedPointer_IsTypedByItsPrototypesSignature_NeverByItsName"/>; DESIGN-external-repository §6.4).</para>
 /// <para>Proven to FAIL before it was trusted: <see cref="ThePatternThisTestKeysOn_FiresOnThePB2464Defect"/> feeds the
@@ -68,30 +69,31 @@ public sealed class PrototypePointerTypeDriftTests
             }
         }
         Assert.True(offenders.Count == 0,
-            "A source line compares a restricted program- or function-pointer's prototype NAME. ISO §13.18.60.4 GR25 / GR26 "
-            + "type such a pointer by its prototype's SIGNATURE, so two pointers restricted to differently named prototypes of "
-            + "one signature are of the same type (§14.8.2.3.2; §14.9.39.3 SR20 / SR22). Ask the pointer's TYPE — "
-            + "PrototypeSignatures.RestrictionIdentity — or, with the unit's prototype tables in hand, "
-            + "PrototypeSignatures.Same (kb/Work PB2464):\n  " + string.Join("\n  ", offenders));
+            "A source line compares a restricted program- or function-pointer's prototype name AS WRITTEN. A SET-governed "
+            + "relation asks what the pointer may contain — PrototypeSignatures.SignatureRestriction, or with the unit's "
+            + "prototype tables in hand PrototypeSignatures.Same (ISO §13.18.60.4 GR25 / GR26; §14.9.39.3 SR20 / SR22; kb/Work "
+            + "PB2464) — and an identity rule the TO phrase by the prototype it names, PrototypeSignatures.NamedRestriction "
+            + "(§9.3.6 3 e); §14.8.2.3.2; §14.8.3.3; kb/Work PB4107):\n  " + string.Join("\n  ", offenders));
     }
 
     /// <summary>A <c>PicInfo</c> record-equality compare as the type model writes it: a <c>with { EditingRules = null, … }</c>
     /// projection, the shape that elides the members a record compare cannot carry.</summary>
     private static readonly Regex ProfileProjection = new(@"with\s*\{\s*EditingRules\s*=\s*null[^}]*\}", RegexOptions.Compiled);
 
-    /// <summary>The restricted-pointer names a <c>PicInfo</c> record compare must not read (kb/Work PB3120): the prototype
-    /// name (a program- or function-pointer is typed by its prototype's SIGNATURE) and the type-name (a data-pointer is
-    /// typed by the DECLARATION it names, which the record compare elides).</summary>
+    /// <summary>The restricted-pointer names a <c>PicInfo</c> record compare must not read (kb/Work PB3120, PB4107): the
+    /// prototype name as WRITTEN (a program- or function-pointer's TO phrase names the prototype by its folded externalized
+    /// name, <c>PrototypeSignatures.NamedRestriction</c>) and the type-name (a data-pointer is typed by the DECLARATION it
+    /// names, which the record compare elides).</summary>
     private static readonly string[] RestrictionNames = ["RestrictedPrototypeName", "RestrictedTypeName"];
 
-    /// <summary>⛔ A <c>PicInfo</c> RECORD COMPARE DOES NOT DECIDE A RESTRICTED POINTER'S TYPE (kb/Work PB3120).
+    /// <summary>⛔ A <c>PicInfo</c> RECORD COMPARE DOES NOT DECIDE A RESTRICTED POINTER'S TYPE (kb/Work PB3120, PB4107).
     /// <c>StrongTypeModel.SameAnalyzedProfile</c> compares two elementary items' analyzed profiles with <c>PicInfo</c>'s own
-    /// record equality, which compares <c>RestrictedPrototypeName</c> and <c>RestrictedTypeName</c> by value — the NAMES
-    /// §8.5.3.1 does not compare. A group formal that held a pointer restricted to two differently named prototypes of one
-    /// signature (or to two declarations of one type-name) was therefore decided by the name while the elementary formal of
-    /// the same pair was decided by the type, refusing the first (COBOL1513) and admitting the second. Every
-    /// <c>with { EditingRules = null, … }</c> projection in the compiler must elide BOTH names, and the comparison reads
-    /// <c>PrototypeSignatures.SameType</c> / <c>StrongTypeModel.SameRestriction</c> instead.</summary>
+    /// record equality, which compares <c>RestrictedPrototypeName</c> and <c>RestrictedTypeName</c> by value — the words as
+    /// WRITTEN, which §8.5.3.1 does not compare: a prototype is named by its externalized name whatever its local word or
+    /// case, and a data-pointer's type is the declaration its type-name resolves to (two declarations of one type-name in
+    /// two source elements). Every <c>with { EditingRules = null, … }</c> projection in the compiler must elide BOTH names,
+    /// and the comparison reads <c>PrototypeSignatures.NamedRestriction</c> / <c>StrongTypeModel.SameRestriction</c>
+    /// instead.</summary>
     [Fact]
     public void EveryPicInfoProfileProjectionElidesTheRestrictedNames()
     {
@@ -339,11 +341,11 @@ public sealed class PrototypePointerTypeDriftTests
 
         var sameSignature = DecodedPointer("PB", "9(4)");
         Assert.Equal(held.PointerRestrictionIdentity, sameSignature.PointerRestrictionIdentity);
-        Assert.True(PrototypeSignatures.SameType(held, sameSignature), "a decoded pointer of the group's signature is not the group pointer's type");
+        Assert.True(PrototypeSignatures.SameSignatureRestriction(held, sameSignature), "a decoded pointer of the group's signature is not the group pointer's type");
 
         var sameName = DecodedPointer("PA", "X(2)");
         Assert.NotEqual(held.PointerRestrictionIdentity, sameName.PointerRestrictionIdentity);
-        Assert.False(PrototypeSignatures.SameType(held, sameName), "a decoded pointer named like the group's prototype took its type");
+        Assert.False(PrototypeSignatures.SameSignatureRestriction(held, sameName), "a decoded pointer named like the group's prototype took its type");
         Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, sameName.PointerRestrictionIdentity, StringComparison.Ordinal);
 
         var again = DecodedPointer("PA", "S9(3)");
@@ -361,10 +363,10 @@ public sealed class PrototypePointerTypeDriftTests
         Assert.Matches(NameComparison, "if (a.Pic.RestrictedPrototypeName == b.Pic.RestrictedPrototypeName)");
         // The repaired line, and the readers that legitimately name the property, are not caught.
         Assert.DoesNotMatch(NameComparison,
-            "if (!string.Equals(PrototypeSignatures.RestrictionIdentity(formal), PrototypeSignatures.RestrictionIdentity(arg), StringComparison.Ordinal))");
-        Assert.DoesNotMatch(NameComparison, "&& !PrototypeSignatures.SameType(a, b)) return false;");
+            "if (!string.Equals(PrototypeSignatures.SignatureRestriction(formal), PrototypeSignatures.SignatureRestriction(arg), StringComparison.Ordinal))");
+        Assert.DoesNotMatch(NameComparison, "&& !PrototypeSignatures.SameSignatureRestriction(a, b)) return false;");
         Assert.DoesNotMatch(NameComparison,
-            "? OwnIdentity(pointer.RestrictedPrototype?.ExternalizedName ?? name)");
+            "? NamedRestriction(pointer.RestrictedPrototype?.ExternalizedName ?? name)");
         Assert.DoesNotMatch(NameComparison, "string? targetProto = receiver.Pic.RestrictedPrototypeName;");
         Assert.DoesNotMatch(NameComparison, "if (item.Pic is { RestrictedPrototypeName: { } name } pic)");
         Assert.DoesNotMatch(NameComparison, "!PrototypeSignatures.Same(host.ProgramSignatureOf(held), named.Signature)");

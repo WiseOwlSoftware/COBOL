@@ -19,12 +19,16 @@ WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.get -> string?
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.init -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.ClausePhrases.get -> string![]?
 WiseOwl.Cobol.Runtime.ActivationDescription.ClausePhrases.init -> void
+WiseOwl.Cobol.Runtime.ActivationDescription.ContentRestriction.get -> string!
+WiseOwl.Cobol.Runtime.ActivationDescription.ContentRestriction.init -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.ObjectClasses.get -> string![]?
 WiseOwl.Cobol.Runtime.ActivationDescription.ObjectClasses.init -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.ObjectInterfaces.get -> string![]?
 WiseOwl.Cobol.Runtime.ActivationDescription.ObjectInterfaces.init -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.ObjectNameIsParameter.get -> bool
 WiseOwl.Cobol.Runtime.ActivationDescription.ObjectNameIsParameter.init -> void
+WiseOwl.Cobol.Runtime.ActivationDescription.PointerType.get -> string?
+WiseOwl.Cobol.Runtime.ActivationDescription.PointerType.init -> void
 WiseOwl.Cobol.Runtime.CellPointer.Extent.get -> int?
 WiseOwl.Cobol.Runtime.CellPointer.Extent.init -> void
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision
@@ -589,7 +593,7 @@ override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.OpenCore(WiseOwl.Cobol.R
 static WiseOwl.Cobol.Runtime.AcceptSource.DeviceNumeric(in WiseOwl.Cobol.Runtime.NumProfile receiver, int size, bool commaMode) -> System.Int128
 static WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeSenderOf(string? category) -> WiseOwl.Cobol.Runtime.FigurativeSender?
 static WiseOwl.Cobol.Runtime.ActivationCategory.OfFigurative(WiseOwl.Cobol.Runtime.FigurativeSender sender) -> string!
-static WiseOwl.Cobol.Runtime.ActivationDescription.IsExternalRestriction(string! clauses) -> bool
+static WiseOwl.Cobol.Runtime.ActivationDescription.IsExternalRestriction(string! restriction) -> bool
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassFormalViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassReturningViolation(WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> string?
 static WiseOwl.Cobol.Runtime.ActivationRelations.MatchViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?

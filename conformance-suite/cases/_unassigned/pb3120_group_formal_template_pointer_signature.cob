@@ -5,22 +5,24 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB3120, review finding R1-1 (sibling) - a data-pointer
-      *> restricted to a strongly-typed record is compared through that
-      *> type's TYPEDEF TEMPLATE, whose program-pointer member is typed
-      *> by its prototype's SIGNATURE, never by the name it was written
-      *> with (13.18.60.4 GR25; cite.py --check 13.18.60.4 -> OK
-      *> 13.18.60.4 25)). 8.5.3.1 (OK 8.5.3.1): equivalent type
-      *> declarations pair corresponding elementary items of the same
-      *> USAGE.
+      *> kb/Work PB3120, review finding R1-1 (sibling); kb/Work PB4107
+      *> - a data-pointer restricted to a strongly-typed record is
+      *> compared through that type's TYPEDEF TEMPLATE, whose
+      *> program-pointer member is compared by the prototype its TO
+      *> phrase names (docs/CONFORMANCE.md D-RP1). 8.5.3.1 (cite.py
+      *> --check 8.5.3.1 -> OK 8.5.3.1): "Two type declarations are
+      *> considered equivalent when they have the same type-name", and
+      *> corresponding elementary items have the same USAGE clauses.
       *> DERIVATION:
-      *>   PX's prototype: T-REC holds a program-pointer TO QA, TG holds
-      *>     a pointer restricted TO T-REC. PX's definition: T-REC holds
-      *>     one TO QB. QA and QB both take one PIC 9(4): one signature.
+      *>   PX's prototype and PX's definition: T-REC holds a
+      *>     program-pointer TO QA, TG a pointer restricted TO T-REC.
       *>   10.6.2 SR2 (OK 10.6.2 2)) "the signatures of these two
       *>     compilation units shall be the same": they are, so the unit
       *>     compiles, and CALL PX USING G (14.8.2.2 rule 2, OK
       *>     14.8.2.2 2)) runs PX, which displays PX RAN.
+      *> The template's member TO a second prototype of the same
+      *> signature is refused: 10.6-COBOL-compilation-group/
+      *> pb4107-group-formal-template-pointer-two-names.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. QA IS PROTOTYPE.
        DATA DIVISION.
@@ -28,13 +30,6 @@
        01 L-X PIC 9(4).
        PROCEDURE DIVISION USING L-X.
        END PROGRAM QA.
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. QB IS PROTOTYPE.
-       DATA DIVISION.
-       LINKAGE SECTION.
-       01 L-Y PIC 9(4).
-       PROCEDURE DIVISION USING L-Y.
-       END PROGRAM QB.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PX IS PROTOTYPE.
        ENVIRONMENT DIVISION.
@@ -78,10 +73,10 @@
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           PROGRAM QB.
+           PROGRAM QA.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 T2 IS TYPEDEF USAGE PROGRAM-POINTER TO QB.
+       01 T2 IS TYPEDEF USAGE PROGRAM-POINTER TO QA.
        01 T-REC IS TYPEDEF STRONG.
           05 R-P TYPE T2.
        01 PT IS TYPEDEF USAGE POINTER TO T-REC.

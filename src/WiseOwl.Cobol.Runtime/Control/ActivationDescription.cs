@@ -163,29 +163,50 @@ public sealed record ActivationDescription
     /// an alphanumeric group's alphanumeric.</summary>
     public string Category { get; init; } = "";
 
-    /// <summary>The <see cref="Clauses"/> of a class pointer described without a TO phrase (an unrestricted pointer).</summary>
+    /// <summary>The <see cref="Clauses"/> and the <see cref="ContentRestriction"/> of a class pointer described without a
+    /// TO phrase (an unrestricted pointer).</summary>
     public const string Unrestricted = "*";
 
-    /// <summary>The <see cref="Clauses"/> prefix of a program- or function-pointer restricted to a prototype that has NO
-    /// compile-time signature: ISO §12.3.8.4 GR10 c) / GR11 c) take its details "from the external repository", which in
-    /// this implementation is the run unit, so its signature — the pointer's TYPE (§13.18.60.4 GR25 / GR26) — is not known
-    /// to the compilation that describes it (kb/Work PB3162). Followed by the prototype's folded name.</summary>
+    /// <summary>The <see cref="ContentRestriction"/> prefix of a program- or function-pointer restricted to a prototype that
+    /// has NO compile-time signature: ISO §12.3.8.4 GR10 c) / GR11 c) take its details "from the external repository",
+    /// which in this implementation is the run unit, so the signature that bounds what the pointer may contain
+    /// (§13.18.60.4 GR25 / GR26) is not known to the compilation that describes it (kb/Work PB3162). Followed by the
+    /// prototype's folded name.</summary>
     public const string ExternalRestrictionPrefix = "EXTERNAL TO ";
 
-    /// <summary>True when <paramref name="clauses"/> is the restriction of a pointer whose prototype's signature is
-    /// unknown at compile time (<see cref="ExternalRestrictionPrefix"/>).</summary>
-    public static bool IsExternalRestriction(string clauses) =>
-        clauses.StartsWith(ExternalRestrictionPrefix, StringComparison.Ordinal);
+    /// <summary>True when <paramref name="restriction"/> is the <see cref="ContentRestriction"/> of a pointer whose
+    /// prototype's signature is unknown at compile time (<see cref="ExternalRestrictionPrefix"/>).</summary>
+    public static bool IsExternalRestriction(string restriction) =>
+        restriction.StartsWith(ExternalRestrictionPrefix, StringComparison.Ordinal);
 
     /// <summary>ISO §9.3.6 match rule 3 e) — the identity of "the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC
     /// LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses", with rule 3 e) 1.'s currency strings and 2.'s
     /// DECIMAL-POINT IS COMMA state folded into the PICTURE part, as one canonical text (empty for a group, which
-    /// carries none of the clauses). The class-pointer restriction (§14.8.2.3.2's class-pointer paragraph) is its
-    /// USAGE clause's TO phrase and is part of it too: <c>TO</c> a data-pointer's TYPE identity, or the SIGNATURE class of a
-    /// program- or function-pointer's prototype (§13.18.60.4 GR25 / GR26; kb/Work PB2464), <see cref="Unrestricted"/> for
-    /// none. The LOCALE phrase's external identification is not an
-    /// identity (<see cref="LocaleExternal"/>).</summary>
+    /// carries none of the clauses); §14.8.2.3.2 rule 2 and §14.8.3.3 ask the same identity. A class pointer's USAGE
+    /// clause carries its TO phrase, compared by WHAT IT NAMES: <c>TO</c> a data-pointer's TYPE identity, or <c>TO</c> the
+    /// folded externalized name of a program- or function-pointer's prototype — never that prototype's signature, which is
+    /// the SET relation's question (<see cref="ContentRestriction"/>; docs/CONFORMANCE.md D-RP1, kb/Work PB4107: the standard
+    /// lists exceptions for the clause texts that match on meaning, and none for the TO phrase); <see cref="Unrestricted"/>
+    /// for none. The LOCALE phrase's external identification is not an identity (<see cref="LocaleExternal"/>).</summary>
     public string Clauses { get; init; } = "";
+
+    /// <summary>ISO §13.18.60.4 GR23 / GR25 / GR26 — what a restricted class pointer MAY CONTAIN, the restriction the SET
+    /// relation compares (§14.9.39.3 SR19 "a data-pointer restricted to the same type", SR20 / SR22 "the same signature")
+    /// and with it every rule that sends to SET (§14.8.2.3.3; §9.3.6 match rules 4 c), 5 c) and 6): <c>TO</c> a
+    /// data-pointer's TYPE identity (its <see cref="Clauses"/>), or the SIGNATURE class of a program- or function-pointer's
+    /// prototype (kb/Work PB2464), <see cref="ExternalRestrictionPrefix"/> and the name for a prototype with no compile-time
+    /// signature; <see cref="Unrestricted"/> for an unrestricted pointer. Empty for every item that is not of class
+    /// pointer.</summary>
+    public string ContentRestriction { get; init; } = "";
+
+    /// <summary>ISO §14.8.2.3.2's class-pointer paragraph, "If either is a restricted pointer, both shall be restricted and
+    /// of the same type": the §8.5.3.1 type identity of a restricted pointer that is a TYPED item — the type declaration its
+    /// TYPE clause references, keyed so two descriptions are "of the same type" exactly when they are equal (§13.18.60.3
+    /// SR18 / SR19 require the TYPEDEF clause on every entry that restricts a data- or program-pointer, so such an item
+    /// is always typed). Null for an untyped item — a FUNCTION-POINTER TO entry, which no TYPEDEF rule governs, or the
+    /// unique item an address-identifier creates, each of the type its USAGE clause states, so that only the clauses are
+    /// compared opposite it — and for every item that is not a restricted pointer (kb/Work PB4107).</summary>
+    public string? PointerType { get; init; }
 
     /// <summary>The <see cref="Clauses"/> as a reader spells them: one phrase per clause the item is described with,
     /// in the words of its data description entry (<c>PICTURE 9(6)</c>, <c>USAGE PACKED-DECIMAL</c>, <c>JUSTIFIED</c>,

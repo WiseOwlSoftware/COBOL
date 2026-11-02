@@ -125,6 +125,8 @@ public static class ActivationDescriptions
             Usage = p.Usage.ToString(),
             Clauses = clauses,
             ClausePhrases = phrases,
+            ContentRestriction = ContentRestrictionOf(item, p, clauses),
+            PointerType = PointerTypeOf(item, p, clauses),
             AnyLength = item.IsAnyLength,
             AnyLengthClauses = AnyLengthClausesOf(item),
             Positions = p.Length,
@@ -193,10 +195,10 @@ public static class ActivationDescriptions
     /// PB165) — what §14.9.4.4 GR3 d) compares with the activated program's registered formal
     /// (<c>ActivationRelations.CallArgumentViolation</c>). An identifier is described as the place it is
     /// (<see cref="OfPlace"/>), an address-identifier as the unique pointer item it creates (<see cref="OfAddress"/>;
-    /// <paramref name="programRestriction"/> is a program-address-identifier's prototype's signature class), and a BY
+    /// <paramref name="programRestriction"/> is a program-address-identifier's prototype's two restrictions), and a BY
     /// CONTENT / BY VALUE argument that has no storage as the sending VALUE §14.8.2.3.3 rule 2 names
     /// (<see cref="OfValue"/>). Null for an omitted argument (§14.9.4.4 GR11), which has nothing to describe.</summary>
-    public static ActivationDescription? OfCallArgument(BoundCallArg a, string? programRestriction, OoClassTable? classes)
+    internal static ActivationDescription? OfCallArgument(BoundCallArg a, PrototypeSignatures.PrototypeRestriction? programRestriction, OoClassTable? classes)
     {
         if (a.Omitted) return null;
         // §14.9.4.2 Format 2's boolean-expression-1: a boolean value (§8.8.2), with the character image of its bits.
@@ -264,31 +266,60 @@ public static class ActivationDescriptions
     /// strongly-typed group or a restricted data-pointer (GR2, <see cref="StrongTypeModel.AddressOfRestriction"/>) —
     /// and §8.4.3.13.4 GR1 a program-address-identifier one of category program-pointer, restricted by its prototype
     /// (GR3). Described exactly as <see cref="Of"/> describes a pointer ITEM of the same restriction.
-    /// <paramref name="programRestriction"/> is the program-address-identifier's prototype's signature class
-    /// (<see cref="PrototypeSignatureClasses"/>, resolved by the invoking unit's prototype table), null when it names none.</summary>
-    public static ActivationDescription OfAddress(BoundAddressOperand address, string? programRestriction)
+    /// <paramref name="programRestriction"/> is the program-address-identifier's prototype's two restrictions — the TO
+    /// phrase's name and the signature class (<see cref="PrototypeSignatureClasses"/>), resolved by the invoking unit's
+    /// prototype table — null when it names none. The unique item has no TYPE clause, so it carries no
+    /// <see cref="ActivationDescription.PointerType"/>: passed BY REFERENCE (an INVOKE argument, §14.9.23.3 SR9) it is
+    /// of the type its USAGE clause states (docs/CONFORMANCE.md D-RP1).</summary>
+    internal static ActivationDescription OfAddress(BoundAddressOperand address, PrototypeSignatures.PrototypeRestriction? programRestriction)
     {
         if (address.Data is { } data)
         {
             var type = StrongTypeModel.AddressOfRestriction(data.Item);
-            return Pointer(ActivationCategory.DataPointer, Restriction(type), PointerPhrase(Usage.Pointer, TypePhrase(type)));
+            return Pointer(ActivationCategory.DataPointer, Restriction(type), Restriction(type),
+                PointerPhrase(Usage.Pointer, TypePhrase(type)));
         }
-        // The restriction is an IDENTITY (the signature class's, kb/Work PB2103); the phrase a reader sees names the prototype
-        // the identifier wrote (§8.4.3.13.4 GR3: "a program-pointer restricted to program-prototype-name-1").
-        return Pointer(ActivationCategory.ProgramPointer, programRestriction ?? ActivationDescription.Unrestricted,
+        // The restrictions are IDENTITIES (the prototype's folded name, its signature class's, kb/Work PB2103 / PB4107); the
+        // phrase a reader sees names the prototype the identifier wrote (§8.4.3.13.4 GR3: "a program-pointer restricted to
+        // program-prototype-name-1").
+        return Pointer(ActivationCategory.ProgramPointer, programRestriction?.Named ?? ActivationDescription.Unrestricted,
+            programRestriction?.Content ?? ActivationDescription.Unrestricted,
             PointerPhrase(Usage.ProgramPointer,
                 programRestriction is not null && address.Program?.Prototype is { } prototype ? "TO " + prototype : null));
     }
 
-    private static ActivationDescription Pointer(string category, string restriction, string phrase) => new()
+    private static ActivationDescription Pointer(string category, string clauses, string content, string phrase) => new()
     {
-        Shape = ActivationShape.Elementary, Category = category, Usage = category, Clauses = restriction,
-        ClausePhrases = [phrase],
+        Shape = ActivationShape.Elementary, Category = category, Usage = category, Clauses = clauses,
+        ContentRestriction = content, ClausePhrases = [phrase],
     };
+
+    /// <summary>What a class-pointer ITEM may contain (<see cref="ActivationDescription.ContentRestriction"/>, the SET
+    /// relation's restriction): a data-pointer's type identity, which is its USAGE clause's <paramref name="clauses"/> too;
+    /// a program- or function-pointer's signature class (<see cref="PrototypeSignatures.SignatureRestriction"/>); empty for
+    /// an item that is not of class pointer.</summary>
+    private static string ContentRestrictionOf(DataItem item, PicInfo p, string clauses) => p.Category switch
+    {
+        PicCategory.Pointer => clauses,
+        PicCategory.ProgramPointer or PicCategory.FunctionPointer =>
+            PrototypeSignatures.SignatureRestriction(item) ?? ActivationDescription.Unrestricted,
+        _ => "",
+    };
+
+    /// <summary>The §8.5.3.1 type identity of a RESTRICTED class-pointer item that is typed — the key of the type
+    /// declaration its TYPE clause references (<see cref="StrongTypeModel.TypedItemType"/>), which §14.8.2.3.2's "of the
+    /// same type" compares (<see cref="ActivationDescription.PointerType"/>; kb/Work PB4107). Null for an untyped item, an
+    /// unrestricted pointer and an item of another class.</summary>
+    private static string? PointerTypeOf(DataItem item, PicInfo p, string clauses) =>
+        p.Category is PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer
+        && clauses != ActivationDescription.Unrestricted
+        && StrongTypeModel.TypedItemType(item) is { IsRestricted: true } type
+            ? type.Key
+            : null;
 
     /// <summary>A class pointer's USAGE clause as its entry spells it, with its TO phrase (<paramref name="to"/>, null
     /// for an unrestricted pointer) — the reader's half of <see cref="Restriction"/> and
-    /// <see cref="PrototypeSignatures.RestrictionIdentity"/>, which are identities, not spellings.</summary>
+    /// <see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>, which are identities, not spellings.</summary>
     private static string PointerPhrase(Usage usage, string? to) =>
         $"USAGE {UsageFamilies.UsageWord(usage)}{(to is null ? "" : " " + to)}";
 
@@ -302,8 +333,9 @@ public static class ActivationDescriptions
     /// non-equivalent declarations of one type-name in two source elements are two restrictions), and for the address
     /// of a strongly-typed group SUBORDINATE to a type declaration its position and length (§8.4.3.11.4 GR2 "restricted to the
     /// type of identifier-1", kb/Work PB1408) — so that address never matches a formal restricted to the whole
-    /// record's type. A program- or function-pointer's restriction is its prototype's signature class
-    /// (<see cref="PrototypeSignatures.RestrictionIdentity"/>).</summary>
+    /// record's type. A program- or function-pointer's USAGE clause names its prototype
+    /// (<see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>), and what it may contain is the prototype's signature
+    /// class (<see cref="PrototypeSignatures.SignatureRestriction"/>).</summary>
     private static string Restriction(StrongTypeModel.TypeRestriction type) =>
         type.IsRestricted ? "TO " + type.Key : ActivationDescription.Unrestricted;
 
@@ -318,7 +350,8 @@ public static class ActivationDescriptions
     /// <c>DataItem</c> comparator that compared them a second time is deleted, kb/Work PB3101), so the §9.3.6 match and the
     /// pair-mode identity agree — held by
     /// <c>PictureClauseIdentityDriftTests.ActivationMatch_AgreesWithThePairModeRelation_OverEveryElementaryPair</c>. A
-    /// class pointer's restriction is its USAGE clause's TO phrase.</summary>
+    /// class pointer's USAGE clause carries its TO phrase, by what it names: a data-pointer's type identity, a program- or
+    /// function-pointer's prototype (kb/Work PB4107).</summary>
     public static (string Clauses, string[] Phrases) ElementaryClauses(DataItem item)
     {
         var p = item.Pic!;
@@ -328,7 +361,7 @@ public static class ActivationDescriptions
             return (Restriction(type), [PointerPhrase(p.Usage, TypePhrase(type))]);
         }
         if (p.Category is PicCategory.ProgramPointer or PicCategory.FunctionPointer)
-            return (PrototypeSignatures.RestrictionIdentity(item) ?? ActivationDescription.Unrestricted,
+            return (PrototypeSignatures.NamedRestriction(item) ?? ActivationDescription.Unrestricted,
                 [PointerPhrase(p.Usage, p.RestrictedPrototypeName is { } prototype ? "TO " + prototype : null)]);
         string[] phrases = PhrasesOf(item, p, p.Clause?.Phrases() ?? []);
         // An ANY LENGTH item's one-symbol picture has no length of its own (§13.18.2.3 SR1).

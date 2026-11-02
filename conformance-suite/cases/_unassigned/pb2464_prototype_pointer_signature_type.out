@@ -1,5 +1,5 @@
-typed r2 null
 r1 ok
+HANDLED=EC-OO-UNIVERSAL
 r2 ok
-HANDLED=EC-OO-METHOD                   
+HANDLED=EC-OO-METHOD
 r3 done

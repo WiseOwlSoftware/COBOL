@@ -5,8 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB2464 - the TYPE of a FUNCTION-POINTER is its prototype's
-      *> SIGNATURE, not its prototype's name.
+      *> kb/Work PB2464 - what a FUNCTION-POINTER may CONTAIN is fixed by
+      *> its prototype's SIGNATURE, and the SET relation asks that
+      *> signature, not the prototype's name. The identity rules do not:
+      *> 14.8.3.3 (OK 14.8.3.3 2)) asks "the same ... USAGE clauses" of two
+      *> returning items, and TO F1 and TO F2 are two USAGE clauses
+      *> (kb/Work PB4107; the typed INVOKE of the pair is the negative
+      *> pb4107-invoke-returning-funcptr-same-signature).
       *> 13.18.60.4 GR26 (cite.py --check 13.18.60.4 -> OK 13.18.60.4 26)):
       *> "A function-pointer shall contain only the predefined address NULL
       *> or the address of a function with the same signature as that
@@ -20,14 +25,14 @@
       *> the same type".
       *> DERIVATION (F1: USING 9(4) RETURNING 9(6); F2: the same with other
       *> data-names, the same signature; F3: USING X(4), another one):
-      *>   TYPED      INVOKE OC "RF1" RETURNING FP2 - 14.8.3.3 (OK
-      *>              14.8.3.3 2)) asks the same USAGE clause of the pair;
-      *>              the type is the signature: legal, FP2 = NULL.
       *>   UNIVERSAL  INVOKE U "RF1" RETURNING FP1 (TO F1)   rule 6: SET
-      *>              valid (SR20, the same prototype): r1 ok
+      *>              valid (SR20, the same prototype), 14.8.3.3 holds
+      *>              (one USAGE clause): r1 ok
       *>   UNIVERSAL  ... RETURNING FP2 (TO F2, same signature): SR20
-      *>              holds, so rule 6 MATCHES (OK 9.3.6 6)); no
-      *>              exception: r2 ok
+      *>              holds, so rule 6 MATCHES (OK 9.3.6 6)) and binds
+      *>              RF1; 14.8.3.3 then fails (TO F1 is not TO F2), so
+      *>              14.9.23.4 GR7 c) (OK 14.9.23.4 7)) sets
+      *>              EC-OO-UNIVERSAL: HANDLED=EC-OO-UNIVERSAL, r2 ok
       *>   UNIVERSAL  ... RETURNING FP3 (TO F3, another signature): SR20
       *>              refuses the SET, no match, "otherwise, the EC-OO-
       *>              METHOD exception condition is set to exist" (OK
@@ -69,7 +74,6 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 U USAGE OBJECT REFERENCE.
-       01 OC USAGE OBJECT REFERENCE C2464F.
        01 FP1 USAGE FUNCTION-POINTER TO F1.
        01 FP2 USAGE FUNCTION-POINTER TO F2.
        01 FP3 USAGE FUNCTION-POINTER TO F3.
@@ -83,10 +87,6 @@
        END DECLARATIVES.
        MAIN SECTION.
        MAIN-P.
-           INVOKE C2464F "NEW" RETURNING OC
-           INVOKE OC "RF1" RETURNING FP2
-           IF FP2 = NULL DISPLAY "typed fp2 null"
-           ELSE DISPLAY "typed fp2 WRONG" END-IF
            INVOKE C2464F "NEW" RETURNING U
            INVOKE U "RF1" RETURNING FP1
            DISPLAY "r1 ok"
