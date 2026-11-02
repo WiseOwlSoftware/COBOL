@@ -25,8 +25,12 @@ receiver holds. PB621's witness missed it because each of its legs had two wide 
 soon as any argument's aligned bound is unbounded. Witness: `wiseowl/cases/15.76.4-Returned-value-rule/pb4370_one_wide_argument_leaves_the_carrier`,
 accepted from 2002 (the first edition with a 31-digit item), with expected values computed by exact arithmetic.
 
-**Rows.** None: the re-key is process-only, and the found defect's rows (RV-15.76.4-1, RV-15.61.4-1/2, RV-15.62.4-1) already read
-CONFORMS for the cases their witnesses exercise.
+**Rows.** None closed: the re-key is process-only, and the found defect's rows (RV-15.76.4-1, RV-15.61.4-1/2, RV-15.62.4-1)
+already read CONFORMS for the cases their witnesses exercise. One witness was re-sited: the first gate went RED on
+`SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree`, because RV-15.4.1-L2.1 still cited
+`IntrinsicRenderer.cs#CrossAlignedNativeArms`. That witness had been stale since PB3268 moved the set and resolved only through a
+renderer comment that named it. A `record_verdicts` batch retired it for `IntrinsicCarrierRules.cs#CrossAligningFunctions` and
+restated the row's notes (GAP 19 to 19).
 
 **Not changed, and reported as leads:** `FunctionValueLane`'s own sets, the binder's restatement of the renderer's switch labels,
 still key on runtime bodies, and `IntrinsicSig.RuntimeMethod` crosses into the bound tree on `BoundIntrinsicCall.Sig`. That
