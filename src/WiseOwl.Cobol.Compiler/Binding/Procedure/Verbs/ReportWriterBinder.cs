@@ -32,7 +32,12 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var memo = new Dictionary<Core.ConditionContext, BoundCondition>(ReferenceEqualityComparer.Instance);
         BoundCondition Bind(Core.ConditionContext c)
         {
-            if (!memo.TryGetValue(c, out var b)) memo[c] = b = host.Cond.BindCondition(c);
+            // A condition §13.15.3 SR16 refused at data bind was reported there, under its rule; binding it would word
+            // the same report-section reference again under §13.8.6.2.3 (kb/Work PB4226).
+            if (!memo.TryGetValue(c, out var b))
+                memo[c] = b = ctx.Data.PresentWhenRefused(c)
+                    ? host.Cond.Refused("a PRESENT WHEN condition refused by ISO §13.15.3 SR16")
+                    : host.Cond.BindCondition(c);
             return b;
         }
         try
@@ -59,8 +64,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         ctx.Refs.ReportScope = r;
         ctx.Refs.VaryingScope = null;
         // The RD CODE clause's identifier-1 (§13.18.12.2): the place the engine reads at each body group (GR3), through
-        // the same ONE sending-operand resolution a SOURCE identifier takes.
-        if (r.Code is { Reference: { } codeRef } code)
+        // the same ONE sending-operand resolution a SOURCE identifier takes. Asked only of a base item the data phase
+        // resolved (DataBinder.ResolveReportCode): an unresolved or ambiguous one was reported there, once (kb/Work PB4226).
+        if (r.Code is { Reference: { } codeRef, Item: not null } code)
         {
             using var at = ctx.Edition.At(codeRef);
             if (host.Expr.FieldOperand(codeRef) is BoundFieldOperand { Place: { } codePlace }) code.Value = codePlace;

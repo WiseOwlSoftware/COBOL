@@ -123,6 +123,8 @@ internal static class BackendContract
             "Model.DataItem.PointerRestrictionIdentity", "Model.PictureClauseIdentity.Key",
             "Model.StrongTypeModel.EssentialCharacteristicsKey()", "Model.StrongTypeModel.InvariantRecordText()",
             "Model.StrongTypeModel.TypeIdentityKey()", "Model.StrongTypeModel+TypeRestriction.Key",
+            "Model.StrongTypeModel.ElementaryLayoutKey()", "Model.DynamicLengthStructure.DefinitionKey",
+            "Model.DynamicLengthStructure.KeyOf()",
         ]),
     ],
     [

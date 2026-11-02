@@ -15,8 +15,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A RESTRICTED POINTER IS TYPED BY ITS PROTOTYPE'S SIGNATURE, WHEREVER THE PROTOTYPE CAME FROM (ISO §13.18.60.4 GR25 and
 /// GR26; DESIGN-external-repository §6.4 parts 1-3; kb/Work PB2100). <c>PrototypeSignatureClasses</c> keys its members by
 /// ORIGIN AND NAME, admits decoded prototypes into the refinement (<c>Admit</c>: re-run from one block, group members
-/// first, never an append) and spells a block a decoded member founds <c>DECODED k TO name</c>, so two blocks never share
-/// an identity string. The fixture is five bound programs whose linkage items stand for five signatures (A and B are one
+/// first, never an append) and names every class by its CANONICAL identity (<c>PrototypeSignatures.CanonicalIdentity</c>,
+/// <c>SIG &lt;hex&gt;</c> of the signature graph; kb/Work PB2103), so a class's identity depends on its signature alone —
+/// never on a name, on which member founded it, or on the group that classified it. The fixture is five bound programs whose linkage items stand for five signatures (A and B are one
 /// signature, C and D another, E a third), driven through the class directly, because no source yet reaches a decoded
 /// prototype (the reader and the codec are the rest of the slice).
 /// </summary>
@@ -117,7 +118,7 @@ public sealed class PrototypeSignatureClassesTests
     }
 
     [Fact]
-    public void GroupPrototypes_AreClassifiedBySignature_AndAClassIsNamedByItsFirstMember()
+    public void GroupPrototypes_AreClassifiedBySignature_AndAClassHasOneCanonicalIdentity()
     {
         var f = Bind();
         var classes = new PrototypeSignatureClasses();
@@ -127,7 +128,34 @@ public sealed class PrototypeSignatureClassesTests
             Pointer(f.Holders[2], Group("Q1", f.C)), Pointer(f.Holders[3], Group("Q2", f.D)),
         };
         classes.Classify(pointers);
-        Assert.Equal(["TO p1", "TO p1", "TO q1", "TO q1"], pointers.Select(p => p.PointerRestrictionIdentity!).ToArray());
+        string[] ids = pointers.Select(Sig).ToArray();
+        Assert.Equal(ids[0], ids[1]);
+        Assert.Equal(ids[2], ids[3]);
+        Assert.NotEqual(ids[0], ids[2]);
+    }
+
+    /// <summary>⛔ THE IDENTITY IS GROUP-INDEPENDENT (DESIGN-external-repository §6.4; kb/Work PB2103): two partitions — two
+    /// compilation groups — that classify differently named prototypes of one signature, presented in another order, spell
+    /// the class with ONE string, which is what lets two separately compiled modules' descriptions of a restricted pointer
+    /// compare at run time.</summary>
+    [Fact]
+    public void TwoGroups_NameOneSignatureOneWay_WhateverTheNamesAndTheOrder()
+    {
+        var f = Bind();
+        var first = new[] { Pointer(f.Holders[0], Group("P1", f.A)), Pointer(f.Holders[1], Group("Q1", f.C)) };
+        new PrototypeSignatureClasses().Classify(first);
+        var second = new[] { Pointer(f.Holders[2], Group("Q9", f.D)), Pointer(f.Holders[3], Group("P9", f.B)) };
+        new PrototypeSignatureClasses().Classify(second);
+        Assert.Equal(Sig(first[0]), Sig(second[1]));
+        Assert.Equal(Sig(first[1]), Sig(second[0]));
+        Assert.NotEqual(Sig(first[0]), Sig(first[1]));
+    }
+
+    private static string Sig(DataItem pointer)
+    {
+        string identity = pointer.PointerRestrictionIdentity!;
+        Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, identity, StringComparison.Ordinal);
+        return identity;
     }
 
     [Fact]
@@ -142,7 +170,7 @@ public sealed class PrototypeSignatureClassesTests
         // A decoded B whose signature is the group B's: ONE type, not two (GR25) — the same block, not a block of its own.
         var decoded = Pointer(f.Holders[2], Decoded(new PrototypeOrigin("record 1"), "B", f.B));
         classes.Admit([decoded]);
-        Assert.Equal("TO b", decoded.PointerRestrictionIdentity);
+        Assert.Equal(Sig(group[0]), Sig(decoded));
         Assert.Equal(before, group.Select(p => p.PointerRestrictionIdentity!).ToArray());
         Assert.True(PrototypeSignatures.SameType(group[0], decoded));
     }
@@ -156,13 +184,14 @@ public sealed class PrototypeSignatureClassesTests
         var groupA = Pointer(f.Holders[0], Group("A", f.A));
         var groupB = Pointer(f.Holders[1], Group("B", f.C));
         classes.Classify([groupA, groupB]);
-        Assert.Equal("TO b", groupB.PointerRestrictionIdentity);
+        string a = Sig(groupA), b = Sig(groupB);
 
         var decoded = Pointer(f.Holders[2], Decoded(new PrototypeOrigin("record 1"), "B", f.E));
         classes.Admit([decoded]);
-        Assert.Equal("DECODED 1 TO b", decoded.PointerRestrictionIdentity);
-        Assert.Equal("TO b", groupB.PointerRestrictionIdentity);
-        Assert.Equal("TO a", groupA.PointerRestrictionIdentity);
+        Assert.NotEqual(b, Sig(decoded));
+        Assert.NotEqual(a, Sig(decoded));
+        Assert.Equal(b, Sig(groupB));
+        Assert.Equal(a, Sig(groupA));
         Assert.False(PrototypeSignatures.SameType(groupB, decoded));
     }
 
@@ -177,9 +206,8 @@ public sealed class PrototypeSignatureClassesTests
         var second = Pointer(f.Holders[1], Decoded(two, "X", f.E));
         var again = Pointer(f.Holders[2], Decoded(one, "x", f.A));   // the same record's X, named in another case: the same member
         classes.Admit([first, second, again]);
-        Assert.Equal("DECODED 1 TO x", first.PointerRestrictionIdentity);
-        Assert.Equal("DECODED 2 TO x", second.PointerRestrictionIdentity);
-        Assert.Equal("DECODED 1 TO x", again.PointerRestrictionIdentity);
+        Assert.NotEqual(Sig(first), Sig(second));
+        Assert.Equal(Sig(first), Sig(again));
     }
 
     [Fact]
@@ -194,8 +222,7 @@ public sealed class PrototypeSignatureClassesTests
         classes.Classify([forgedDecoded, forgedMarker]);
         var decoded = Pointer(f.Holders[2], Decoded(new PrototypeOrigin("record 1"), "B", f.E));
         classes.Admit([decoded]);
-        string[] identities = [forgedDecoded.PointerRestrictionIdentity!, forgedMarker.PointerRestrictionIdentity!, decoded.PointerRestrictionIdentity!];
-        Assert.Equal(["TO decoded 1 to b", "TO b #1", "DECODED 1 TO b"], identities);
+        string[] identities = [Sig(forgedDecoded), Sig(forgedMarker), Sig(decoded)];
         Assert.Equal(3, identities.Distinct(StringComparer.Ordinal).Count());
     }
 
@@ -206,13 +233,13 @@ public sealed class PrototypeSignatureClassesTests
         var classes = new PrototypeSignatureClasses();
         var decoded = Pointer(f.Holders[0], Decoded(new PrototypeOrigin("record 1"), "D", f.A));
         classes.Admit([decoded]);
-        Assert.Equal("DECODED 1 TO d", decoded.PointerRestrictionIdentity);
+        string alone = Sig(decoded);
         // A group pointer of the same signature, classified afterwards, re-runs the refinement with the group member first:
-        // the group's class is founded by the group member, and the decoded prototype joins it.
+        // the decoded prototype joins the group's class, and the class's identity is what it was — it names the signature.
         var group = Pointer(f.Holders[1], Group("G", f.B));
         classes.Classify([group]);
-        Assert.Equal("TO g", group.PointerRestrictionIdentity);
-        Assert.Equal("TO g", decoded.PointerRestrictionIdentity);
+        Assert.Equal(alone, Sig(group));
+        Assert.Equal(alone, Sig(decoded));
     }
 
     [Fact]

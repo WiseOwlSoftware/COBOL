@@ -1700,19 +1700,26 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <paramref name="dref"/>'s word IS a declared level-88 condition-name but <see cref="ConditionOf"/> found
     /// none under the written qualifiers, report that through the ONE wording
     /// (<see cref="ReferenceResolver.MisqualifiedConditionText"/>) and answer true; otherwise report nothing and
-    /// answer false, leaving the caller's own not-a-condition-name verdict (kb/Work PB567).</summary>
+    /// answer false, leaving the caller's own not-a-condition-name verdict (kb/Work PB567). The word's level-88s
+    /// may also be HIDDEN rather than misqualified (ISO §8.4.6.2.1 3) a)): by a nearer data item or a nearer report
+    /// entry, and the report then names THAT item.</summary>
     public bool ReportMisqualifiedCondition(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
         if (!ctx.Symbols.TryResolveCondition(name, ctx.ActiveScope, out _)) return false;
         if (!_condDiagnosed.Add(dref)) return true;
-        // A report entry of a NEARER source element than the condition-name is the referenced item (ISO §8.4.6.2.1 3) a),
-        // kb/Work PB4196: the condition lookup leaves the container's GLOBAL condition-name no survivor), and the
-        // report-item refusal names it; the word is not a misqualified condition-name.
         var qualifiers = QualifiersOf(dref);
-        if (ctx.Data.ReportEntryReferenceRefused(default, $"'{DataBinder.WrittenText(dref)}'", name, qualifiers)) return true;
-        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
-            ReferenceResolver.MisqualifiedConditionText(DataBinder.WrittenText(dref), name, qualifiers));
+        string text = DataBinder.WrittenText(dref);
+        // A data item of a NEARER source element than the condition-name is the referenced item (ISO §8.4.6.2.1 3) a),
+        // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
+        // the reference names that data item where this position admits only a condition-name.
+        if (ctx.Data.ConditionNameHiddenByNearerDataItem(name, qualifiers, ctx.ActiveScope))
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name));
+        // A report entry of a NEARER source element is the referenced item the same way (kb/Work PB4196), and the
+        // report-item refusal names it.
+        else if (!ctx.Data.ReportEntryReferenceRefused(default, $"'{text}'", name, qualifiers))
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
+                ReferenceResolver.MisqualifiedConditionText(text, name, qualifiers));
         return true;
     }
 

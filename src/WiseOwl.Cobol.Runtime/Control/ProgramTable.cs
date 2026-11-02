@@ -457,10 +457,14 @@ public sealed class ProgramTable
     /// present) converts it to the exception branch (GR3h); otherwise the run unit terminates loudly.
     /// </summary>
     /// <param name="programSpecifiers">The externalized names of the activating element's §12.3.8.2 program-specifiers
-    /// (empty when it writes none), stated by a site that held NO signature of the activated program when it was compiled
-    /// and either describes its arguments for GR3 d) (kb/Work PB165) or passes one BY CONTENT or BY VALUE (kb/Work
-    /// PB2549); null for a site with no argument left to land here — it held the signature, and checked and landed every
-    /// argument at compile time, or it passes every argument BY REFERENCE.
+    /// (empty when it writes none), stated by a site that describes its arguments for GR3 d) because the program it
+    /// activates is not a definition its compilation group compiles (kb/Work PB165, PB2103), or that held NO signature of
+    /// the activated program and passes an argument BY CONTENT or BY VALUE (kb/Work PB2549); null for a site with no
+    /// argument left to land here — it held the signature, and checked and landed every argument at compile time, against
+    /// a definition its group compiles, or it passes every argument BY REFERENCE. A described site that held a signature
+    /// landed each argument against it already; landing it again through the activated formal is the identity whenever the
+    /// formal is the description the site landed for, and the conformance check above stops a call whose formal is not
+    /// when checking is enabled in both elements.
     /// §14.8.2.3.2 and §14.8.2.3.3 give "a
     /// program for which there is a program-specifier in the REPOSITORY paragraph of the activating element" rule 2 (the
     /// clause identity, or a COMPUTE, SET or MOVE) and every other program rule 1 (the same length), and which program a
@@ -586,8 +590,11 @@ public sealed class ProgramTable
         // chosen by whether the activating element has a program-specifier for THIS program — rule 2's clause identity /
         // COMPUTE / SET / MOVE when it does, rule 1's "same length" when it does not. An omitted argument (§14.9.4.4 GR11)
         // has no storage to describe. Unchecked, the call proceeds LENIENTLY, as it does for the argument count above.
-        bool specifiedProgram = programSpecifiers is not null
-            && Array.Exists(programSpecifiers, s => ExternalizedNames.Same(s, n.CallName));
+        // Rule 1 is "a PROGRAM for which there is no program-specifier"; rule 2 lists "a function" outright, so an
+        // activated FUNCTION is always rule 2's, whatever program-specifiers the site states (kb/Work PB2103: a function
+        // site describes its operands once its function can be compiled elsewhere, DESIGN-external-repository §4.2).
+        bool specifiedProgram = n.IsFunction || (programSpecifiers is not null
+            && Array.Exists(programSpecifiers, s => ExternalizedNames.Same(s, n.CallName)));
         if (mismatchChecked && n.Formals is { } formals)
             for (int i = 0; i < args.Length && i < formals.Length; i++)
                 if (!args[i].Carrier.IsNull

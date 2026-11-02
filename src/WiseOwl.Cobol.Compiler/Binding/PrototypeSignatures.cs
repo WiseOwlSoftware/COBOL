@@ -100,7 +100,7 @@ internal static class PrototypeSignatures
     private static bool DescribedBySubordinates(DataItem item) => item.IsPlainGroup;
 
     /// <summary>⛔ THE TYPE OF A RESTRICTED PROGRAM- OR FUNCTION-POINTER ITEM (kb/Work PB2464) — the one reader of
-    /// <see cref="DataItem.PointerRestrictionIdentity"/>: <c>TO name</c> of the signature class
+    /// <see cref="DataItem.PointerRestrictionIdentity"/>: the canonical identity (<see cref="CanonicalIdentity"/>) of the signature class
     /// (<see cref="PrototypeSignatureClasses"/>) the item's prototype belongs to, so two pointers restricted to
     /// differently named prototypes of ONE signature have equal identities (ISO §13.18.60.4 GR25 / GR26 type the pointer
     /// by that signature; §14.8.2.3.2 "of the same type"). For a prototype the unit's tables do not hold, and for one
@@ -132,9 +132,9 @@ internal static class PrototypeSignatures
                 : ExternalIdentity(pointer.RestrictedPrototype?.ExternalizedName ?? name)
             : null;
 
-    /// <summary>The identity of a prototype that is a signature class of its own — <c>TO name</c> (folded), the spelling
-    /// of a pointer's USAGE clause.</summary>
-    public static string OwnIdentity(string prototypeName) => "TO " + CobolNames.Fold(prototypeName);
+    /// <summary>The identity of a resolved prototype no partition has classified — <c>TO name</c> (folded), the spelling of
+    /// a pointer's USAGE clause, which no classified identity (<see cref="CanonicalPrefix"/>) can equal.</summary>
+    private static string OwnIdentity(string prototypeName) => "TO " + CobolNames.Fold(prototypeName);
 
     /// <summary>The identity of a prototype with NO compile-time signature (ISO §12.3.8.4 GR10 c) / GR11 c): the details
     /// come from the external repository, the run unit here) — <see cref="ActivationDescription.ExternalRestrictionPrefix"/>
@@ -144,6 +144,130 @@ internal static class PrototypeSignatures
     /// PB3162).</summary>
     public static string ExternalIdentity(string prototypeName) =>
         ActivationDescription.ExternalRestrictionPrefix + CobolNames.Fold(prototypeName);
+
+    /// <summary>⛔ THE CANONICAL, GROUP-INDEPENDENT IDENTITY OF A SIGNATURE CLASS (DESIGN-external-repository §6.4; kb/Work
+    /// PB2103): <c>SIG &lt;hex&gt;</c>, the SHA-256 of the canonical encoding of the class's minimized signature graph — the
+    /// classes reachable from <paramref name="root"/> numbered in first-visit order, each written as its namespace and its
+    /// signature (<see cref="SignatureKey"/>), with every restricted program- or function-pointer inside a signature written
+    /// as the number of its class. Two separately compiled groups that describe one signature therefore spell its pointers'
+    /// type with ONE string, which the run-time relations compare (§13.18.60.4 GR25: "the address of a program with the same
+    /// signature as that identified by the specified program-prototype-name"; GR26 its function twin) — the founder's name
+    /// a group's own partition picks is comparable only inside that group. It must agree with <see cref="Same"/>: equal
+    /// identities exactly when the signatures are the same, held by <c>SignatureIdentityDriftTests</c>.
+    /// <para>The graph is the one <see cref="PrototypeSignatureClasses"/> minimized (its coarsest stable partition, so two
+    /// prototypes that name each other are one class when no finite path tells them apart, kb/Work PB3101):
+    /// <paramref name="founder"/> gives a class's namespace and a representative signature (every member of a class has the
+    /// same signature, so any member describes it), <paramref name="classOf"/> the class of a restricted pointer's
+    /// prototype (null for a prototype no class holds). While a class is written, every pointer its signature holds is
+    /// stamped with its number (<see cref="DataItem.PointerRestrictionIdentity"/>, the field every description reads) and
+    /// restored after.</para></summary>
+    public static string CanonicalIdentity<TClass>(TClass root, Func<TClass, (bool Function, CalleeSignature Signature)> founder,
+        Func<DataItem, TClass?> classOf) where TClass : class
+    {
+        var order = new List<TClass> { root };
+        var number = new Dictionary<TClass, int>(ReferenceEqualityComparer.Instance) { [root] = 0 };
+        var saved = new Dictionary<DataItem, string?>(ReferenceEqualityComparer.Instance);
+        var text = new System.Text.StringBuilder();
+        try
+        {
+            for (int i = 0; i < order.Count; i++)
+            {
+                var (function, signature) = founder(order[i]);
+                foreach (var pointer in RestrictedPointersOf(signature))
+                {
+                    if (classOf(pointer) is not { } cls) continue;
+                    if (!number.TryGetValue(cls, out int k)) { number[cls] = k = order.Count; order.Add(cls); }
+                    saved.TryAdd(pointer, pointer.PointerRestrictionIdentity);
+                    pointer.PointerRestrictionIdentity = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"#{k}");
+                }
+                text.Append(System.Globalization.CultureInfo.InvariantCulture, $"[{i}:{(function ? "FUNCTION" : "PROGRAM")}{SignatureKey(signature)}]");
+            }
+        }
+        finally
+        {
+            foreach (var (pointer, identity) in saved) pointer.PointerRestrictionIdentity = identity;
+        }
+        return CanonicalPrefix + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text.ToString())));
+    }
+
+    /// <summary>The spelling every canonical identity begins with (<see cref="CanonicalIdentity"/>).</summary>
+    public const string CanonicalPrefix = "SIG ";
+
+    /// <summary>Every restricted program- or function-pointer a signature's descriptions read, in the order a description is
+    /// written: each formal by position, then the RETURNING item; within an item, the item, then its subordinate items in
+    /// document order, and through a restricted DATA-pointer the declaration it is restricted to (whose key the description
+    /// reads, <c>StrongTypeModel.EssentialCharacteristicsKey</c>), each declaration once.</summary>
+    private static IEnumerable<DataItem> RestrictedPointersOf(CalleeSignature signature)
+    {
+        var declarations = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        var roots = signature.Formals.Select(f => f.Item).Concat(signature.Returning is { } r ? [r] : []);
+        foreach (var root in roots)
+            foreach (var pointer in Walk(root))
+                yield return pointer;
+
+        IEnumerable<DataItem> Walk(DataItem item)
+        {
+            foreach (var x in new[] { item }.Concat(DataItem.DescendantsOf(item)))
+            {
+                if (x.RestrictedPrototype is not null) yield return x;
+                if (x.Pic?.RestrictedTypeDecl is { } decl && declarations.Add(decl))
+                    foreach (var inner in Walk(decl))
+                        yield return inner;
+            }
+        }
+    }
+
+    /// <summary>⛔ <see cref="Same"/> AS A KEY: the text two signatures share exactly when they are the same — the formal
+    /// count, each formal's mode (BY VALUE), OPTIONAL phrase and <see cref="DescriptionKey"/> by position, and the RETURNING
+    /// item's presence and key (§14.8.3.1's "if and only if"). Data-names and intermediate grouping are not in it (§13.7.3
+    /// SR2 matches descriptions, not names).</summary>
+    public static string SignatureKey(CalleeSignature signature)
+    {
+        var key = new System.Text.StringBuilder();
+        foreach (var f in signature.Formals)
+            key.Append(f.ByValue ? "|VALUE " : "|REFERENCE ").Append(f.Optional ? "OPTIONAL " : "").Append(DescriptionKey(f.Item));
+        return key.Append(signature.Returning is { } r ? "|RETURNING " + DescriptionKey(r) : "|NO RETURNING").ToString();
+    }
+
+    /// <summary>⛔ <see cref="SameDescription"/> AS A KEY, read from what the relation reads — the item's activation
+    /// description (<c>ActivationDescriptions.Of</c>) by the arm <c>ActivationRelations.SignatureDifference</c> takes for it,
+    /// and for a group that is not a bit or national group its elementary layout
+    /// (<see cref="StrongTypeModel.ElementaryLayoutKey"/>):
+    /// <list type="bullet">
+    /// <item>an object reference — the kind, the folded class-name or interface-name, and the FACTORY and ONLY phrases
+    /// (§9.3.8.2.3 rule 2; an ACTIVE-CLASS description its FACTORY phrase alone);</item>
+    /// <item>a strongly-typed group — its §8.5.3.1 type identity;</item>
+    /// <item>a variable-length or an alphanumeric group — its shape and length (with the layout, which settles §8.5.1.12's
+    /// compatibility: two identical layouts are compatible);</item>
+    /// <item>any other — ANY LENGTH, the category, the §9.3.6 3 e) clause identity and the LOCALE external
+    /// identification.</item>
+    /// </list>
+    /// Two facts cannot key exactly, and both answer the relation's false of an item even against itself, so no two
+    /// prototypes share a class through them: an item with no crossing form, and a group whose items cannot be placed — each
+    /// keyed by its name. The LOCALE identification compares two literals by case and anything else without (§8.5.3.1); it
+    /// is keyed as written, so a literal and a word that differ only in case key apart, as
+    /// <see cref="StrongTypeModel.TypeIdentityKey"/> keys them.</summary>
+    public static string DescriptionKey(DataItem item)
+    {
+        if (ActivationDescriptions.Of(item, classes: null) is not { } d) return "UNDESCRIBED " + item.CobolName;
+        string own = d.Shape switch
+        {
+            ActivationShape.ObjectReference => "OBJECT " + (d.ObjectNameIsParameter ? "PARAMETER " : "") + d.ObjectKind switch
+            {
+                ObjectReferenceKind.Interface => "INTERFACE " + CobolNames.Fold(d.ObjectName ?? ""),
+                ObjectReferenceKind.ObjectClass => "CLASS " + CobolNames.Fold(d.ObjectName ?? "")
+                    + (d.Factory ? " FACTORY" : "") + (d.Only ? " ONLY" : ""),
+                ObjectReferenceKind.ActiveClass => "ACTIVE-CLASS" + (d.Factory ? " FACTORY" : ""),
+                var kind => kind.ToString(),
+            },
+            ActivationShape.StrongGroup => "TYPE " + d.StrongType,
+            ActivationShape.VariableLengthGroup => "VARIABLE GROUP",
+            ActivationShape.AlphanumericGroup => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"GROUP {d.Positions}"),
+            _ => (d.AnyLength ? "ANY LENGTH " : "") + d.Category + " " + d.Clauses
+                 + (d.LocaleExternal is { } locale ? (d.LocaleFromLiteral ? " LOCALE L:" + locale : " LOCALE W:" + CobolNames.Fold(locale)) : ""),
+        };
+        return DescribedBySubordinates(item) ? own + " LAYOUT" + StrongTypeModel.ElementaryLayoutKey(item) : own;
+    }
 
     /// <summary>The number of positional USING formals a prototype declares — the RUN-TIME screen's granularity
     /// (ISO §14.9.39.4 GR14 via <c>ProgramTable.FunctionSignatureMatches</c>, which can see only the run-unit

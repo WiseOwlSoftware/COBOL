@@ -523,7 +523,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     return new BoundNot(new BoundLogical("^",
                         [subjCond, host.Udf.UdfAttachPerEvaluation(objCond2, objMark2)]));
             }
-            return host.Cond.Refused($"EVALUATE condition-subject paired with non-boolean WHEN '{item.GetText()}'");
+            return host.Cond.Refused($"EVALUATE condition-subject paired with non-boolean WHEN '{DataBinder.WrittenText(item)}'");
         }
 
         // ⛔ TRUE-or-FALSE × TRUE-or-FALSE (Table 15's two 'Y' cells for the words) IS A CONSTANT, AND NO CONDITION
@@ -597,7 +597,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     ? host.Cond.BindPartialExpression(leadingClass, spliced)
                 : pair.ObjectBare.ClassWord is { } classWord
                     ? host.Cond.BindPartialClassName(item, classWord, spliced)
-                    : host.Cond.Refused($"EVALUATE partial-expression '{item.GetText()}'");
+                    : host.Cond.Refused($"EVALUATE partial-expression '{DataBinder.WrittenText(item)}'");
             return host.Udf.UdfAttachPerEvaluation(partialCond, objMark);
         }
 
@@ -694,7 +694,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             return host.Udf.UdfAttachPerEvaluation(
                 host.Cond.CheckedRelational(left, "==", BindValueOperand(v)), objMark);
         }
-        return host.Cond.Refused($"EVALUATE WHEN object '{item.GetText()}'");
+        return host.Cond.Refused($"EVALUATE WHEN object '{DataBinder.WrittenText(item)}'");
     }
 
     /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §14.9.13.2's range-expression), screened by

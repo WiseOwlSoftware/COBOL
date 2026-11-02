@@ -1107,7 +1107,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // that ended before the token, a closed format's residue and an empty block name the fault better; a scope
         // terminator is hint 13's.
         if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
-            && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, StatementBlockStart(recognizer),
+            && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow,
                    // The words the compile edition has (kb/Work PB4174): the parse is the superset of the editions.
                    recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true) is { } kindMsg)
@@ -1416,7 +1416,27 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 if (!walk.Consume(at.Type)) return null;
                 at = next;
             }
-            return new Admitted(TokensOf(walk._configs), walk._closureWords ?? []);
+            var configs = walk._configs;
+            var tokens = TokensOf(configs);
+            return new Admitted(tokens, walk._closureWords ?? [], type => walk.WordChangesNothing(configs, tokens, type));
+        }
+
+        /// <summary>⛔ DOES THE WORD <paramref name="type"/> CHANGE NOTHING ABOUT WHAT THE PARSE ADMITS NEXT (kb/Work
+        /// PB4225)? The optional word of ISO §8.3.2.4.3 ("Within each format, uppercase words that are not underlined
+        /// are called optional words and may be specified at the user's option with no effect on the semantics of the
+        /// format") is the one whose presence leaves the parse admitting exactly what it admitted without it: after
+        /// <c>USAGE IS</c> the usages, as after <c>USAGE</c> minus the <c>IS</c> itself. A word that matters narrows
+        /// the continuation or opens more (the <c>WHEN</c> of an EVALUATE selection expects a new selection object after
+        /// it). The test is the parse's own, one step of the walk past <paramref name="configs"/>, so no word is listed
+        /// here.</summary>
+        private bool WordChangesNothing(ATNConfigSet configs, IntervalSet tokens, int type)
+        {
+            if (!tokens.Contains(type)) return false;
+            var after = TokensOf(Step(configs, type));
+            var without = new IntervalSet();
+            without.AddAll(tokens);
+            without.Remove(type);
+            return after.Count > 0 && after.Equals(without);
         }
 
         /// <summary>A walk over <paramref name="closed"/>, a construct the parser has completed, re-run from its rule's
@@ -1773,8 +1793,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>What a position admits at a token (<see cref="ResimulationWalk.AdmittedAt"/>): the tokens its
     /// configurations take with their predicates evaluated there, and the context words the refusing text predicates
-    /// tested (kb/Work PB3428).</summary>
-    private readonly record struct Admitted(IntervalSet Tokens, IReadOnlyCollection<string> Words);
+    /// tested (kb/Work PB3428); <c>WordChangesNothing</c> says whether a word of the set is an optional word, one after
+    /// which the walk admits exactly the set without it (kb/Work PB4225).</summary>
+    private readonly record struct Admitted(IntervalSet Tokens, IReadOnlyCollection<string> Words,
+        Func<int, bool> WordChangesNothing);
 
     /// <summary>What the final closure of <see cref="ClosedFormatResidue"/> found: the innermost closed format whose
     /// error production it reached, the form of the production that list calls, and the tokens that may follow a

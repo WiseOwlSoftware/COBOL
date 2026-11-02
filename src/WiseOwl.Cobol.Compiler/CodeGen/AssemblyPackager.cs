@@ -43,6 +43,39 @@ public static class AssemblyPackager
     /// order.</remarks>
     public static string RuntimePath { get; } = ResolveRuntimePath();
 
+    /// <summary>The directory of the compiler's deployment that holds the framework's reference assemblies.</summary>
+    internal const string ReferenceAssemblyDirectoryName = "reference-assemblies";
+
+    /// <summary>The framework REFERENCE assemblies a generated program is compiled against (kb/Work PB4047): the
+    /// Microsoft.NETCore.App targeting pack the compiler was built against, which its build lays beside it at
+    /// <c>reference-assemblies/</c> (WiseOwl.Cobol.Compiler.csproj). An emitted assembly therefore references
+    /// <c>System.Runtime</c> and the other reference identities, as an assembly an ordinary MSBuild project builds
+    /// does, so a .NET host project can reference it (DOC-A.1-141's host mechanism); compiled against the compiler's
+    /// own implementation assemblies it referenced <c>System.Private.CoreLib</c>, which no host's reference set
+    /// holds. Sorted by file name, so the reference set, and the deterministic assembly built from it, do not depend
+    /// on the directory's enumeration order.</summary>
+    /// <exception cref="InvalidOperationException">The deployment lacks the directory, or the directory holds no
+    /// assembly: the compiler cannot compile a program without its reference set.</exception>
+    /// <remarks>Public because the Conformance runner's compiled-program cache keys on these files and its host
+    /// tests compile a .NET host against exactly this set.</remarks>
+    public static IReadOnlyList<string> ReferenceAssemblyPaths => s_referenceAssemblyPaths.Value;
+
+    private static readonly Lazy<IReadOnlyList<string>> s_referenceAssemblyPaths =
+        new(ResolveReferenceAssemblyPaths, LazyThreadSafetyMode.ExecutionAndPublication);
+
+    private static IReadOnlyList<string> ResolveReferenceAssemblyPaths()
+    {
+        string dir = Path.Combine(AppContext.BaseDirectory, ReferenceAssemblyDirectoryName);
+        string[] files = Directory.Exists(dir)   // not a compilation input: the reference set is part of the compiler's own deployment
+            ? Directory.GetFiles(dir, "*.dll")   // not a compilation input: the compiler's own deployment, keyed by the cache's tool files; not a COBOL word: a file-system pattern
+            : [];
+        if (files.Length == 0)
+            throw new InvalidOperationException($"The WiseOwl COBOL compiler's deployment has no framework reference "
+                + $"assemblies at {dir} (kb/Work PB4047): the compiler project build lays them there.");
+        Array.Sort(files, StringComparer.Ordinal);
+        return files;
+    }
+
     private static string ResolveRuntimePath()
     {
         string image = Path.Combine(AppContext.BaseDirectory, "ReadyToRun", ReadyToRunPlatform, RuntimeFileName);

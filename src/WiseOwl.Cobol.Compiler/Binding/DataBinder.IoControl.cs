@@ -245,8 +245,9 @@ public sealed partial class DataBinder
     /// (§8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
     /// item"; b): otherwise the nearest containing element's):</para>
     /// <list type="bullet">
-    /// <item>A data item this element declares, or another kind of name it declares (a constant, an alphabet, an index):
-    /// identifier-1 as written.</item>
+    /// <item>A data item this element declares, or another kind of name (a constant, an alphabet, an index, a
+    /// condition-name) declared no farther out than the GLOBAL file of the spelling (<see cref="NonDataDeclaration.Depth"/>,
+    /// kb/Work PB4219): identifier-1 as written.</item>
     /// <item>A report entry nearer than any data item or file of the spelling (this element's own, against a container's
     /// GLOBAL record): the report-item refusal, §13.8.6.2.3 (<see cref="ReportEntryReferenceRefused"/>; review R2-2, the
     /// kb/Work PB4196 order on this arm).</item>
@@ -267,10 +268,13 @@ public sealed partial class DataBinder
     {
         var dataItems = QualifiedCandidates(name, quals, Model.Scope.Program);
         if (dataItems.Any(i => DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
-        if (NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
-            && declared.Kind != NonDataDeclarationKind.FileName) return false;
         FileModel? global = quals.Count == 0 && InheritedGlobalFiles.TryGetValue(name, out var g) ? g : null;
-        int fileDepth = global is null ? int.MaxValue : InheritedFileDepth(global);
+        int fileDepth = global is null ? int.MaxValue : FileDepth(global);
+        // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§8.4.6.2.1 3)), and
+        // the operand resolves as written to its own refusal; a farther one does not hide the file (kb/Work PB4219: a
+        // container's GLOBAL table's INDEXED BY RELF used to beat a nearer container's GLOBAL file RELF).
+        if (NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
+            && declared.Kind != NonDataDeclarationKind.FileName && declared.Depth <= fileDepth) return false;
         string written = WrittenQualified(name, quals);
         using var reportAt = Edition.At(at);
         if (ReportEntriesNamed(name, quals) is [var (report, _), ..] && ReportDepth(report) < fileDepth

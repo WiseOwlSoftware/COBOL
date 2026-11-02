@@ -203,8 +203,9 @@ public sealed class GlobalNameClassDriftTests
     /// name is declared in source element B, the item in source element B is the referenced item" ranks it with the data
     /// items: a contained program's report entry <c>PV</c> hides its container's GLOBAL <c>PV</c>. The lookup took a lone
     /// GLOBAL data item without asking, so <c>MOVE PV TO W</c> and <c>FILE STATUS IS PV</c> used another program's data.
-    /// <c>SymbolTable.NearestDeclaringNamed</c> is the narrowing every data-name and condition-name set goes through (it asks
-    /// <c>DataBinder.NearerReportEntryHides</c>), so no lookup outside <c>SymbolTable</c> may call the bare
+    /// <c>SymbolTable.NearestDeclaringData</c> and <c>NearestDeclaringConditions</c> are the narrowings every data-name and
+    /// condition-name set goes through (each asks <c>DataBinder.NearerReportEntryHides</c>, the condition one through
+    /// <c>NearerDataNameHides</c>, and each asks the OTHER class's nearer declaration, kb/Work PB4219), so no lookup outside <c>SymbolTable</c> may call the bare
     /// <c>NearestDeclaring</c> (it would skip the entries), and the other-class predicates (<c>NearerDataNameHides</c> for
     /// index-names and capacity registers, <c>DeclaredNearerThan</c> for constants) must ask the entries too. The behavioural
     /// half is the <c>pb4196-*</c> cases of <c>conformance-suite/cases/13.8.6.2.3-Report-Items</c>.</summary>
@@ -221,10 +222,13 @@ public sealed class GlobalNameClassDriftTests
             .ToList();
         Assert.True(bare.Count == 0,
             "a lookup outside SymbolTable calls NearestDeclaring directly, skipping the report entries a nearer source element "
-            + $"declares (use NearestDeclaringNamed, ISO §8.4.6.2.1 3) a)): {string.Join(", ", bare.Select(Path.GetFileName))}");
+            + $"declares (use NearestDeclaringData / NearestDeclaringConditions, ISO §8.4.6.2.1 3) a)): "
+            + string.Join(", ", bare.Select(Path.GetFileName)));
 
         string table = File.ReadAllText(symbolTable);
-        AssertBodyAsks(table, @"public List<T> NearestDeclaringNamed<T>\(", "NearerReportEntryHides(");
+        AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerReportEntryHides(");
+        AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerConditionNameHides(");
+        AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NearerDataNameHides(");
         AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerReportEntryHides(");
         string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs"));
         AssertBodyAsks(constants, @"internal bool DeclaredNearerThan\(", "NearerReportEntryHides(");

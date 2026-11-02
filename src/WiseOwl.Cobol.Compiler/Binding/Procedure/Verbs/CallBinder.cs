@@ -99,6 +99,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // `callee`, never "was this AS NESTED". Wiring the prototype producer therefore delivered the whole
         // §14.8.2/§14.8.3 regime to prototype calls in one assignment rather than by copying seven checks.
         CalleeSignature? callee = null;
+        // ⛔ Whether the element this CALL activates is a definition this compilation group compiles — AS NESTED, or a
+        // prototype through §12.3.8.4 GR10 a)'s definition that names no other program (DESIGN-external-repository §4.2,
+        // kb/Work PB2103). Only then can the activated program not differ from the signature checked here; otherwise
+        // §14.9.4.4 GR3 d) is asked again at run time against the program actually activated.
+        bool calleeCompiledHere = false;
         // kb/Work PB131 — the AS NESTED callee's bound formals (§14.9.4.3 SR15 sentence 2 enforced here:
         // the name shall be a directly-contained or visible-COMMON program; the old binder bound the flag,
         // discarded it, and let ProgramTable resolve ANY outermost program at run time).
@@ -109,7 +114,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (ProgramName(asLit, "CALL AS NESTED", "§14.9.4.3 SR2") is not { } nestedName)
                 return BoundRejected.Reported(ctx.Edition);
             if (host.NestedCallables is { } nc && nc.TryGetValue(nestedName, out var sig))
-                callee = sig;
+                (callee, calleeCompiledHere) = (sig, true);
             else
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallAsNestedScope,
@@ -199,8 +204,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // EC-PROGRAM-ARG-MISMATCH conformance check then happen at activation, per GR3 b) and GR3 d).
         if (prototype is { } proto2)
         {
+            // GR3 b): with neither identifier-1 nor literal-1 written, the program activated IS the prototype's; a written
+            // target names a program by its own value, which only a literal naming that same program pins at bind time.
+            bool activatesPrototypeProgram = dynamicName is null
+                && (literalName is null || ExternalizedNames.Same(literalName, proto2.ExternalizedName));
             if (literalName is null && dynamicName is null) literalName = proto2.ExternalizedName;
-            callee ??= proto2.Signature;
+            if (callee is null)
+                (callee, calleeCompiledHere) = (proto2.Signature, proto2.DefinitionCompiledHere && activatesPrototypeProgram);
         }
         // Format 2 is selected by the AS phrase OR by a bare program-prototype-name operand (the two spellings of
         // §14.9.4.2 Format 2). Every narrowing below that reads `formatTwo` — Format 1's ban on BY VALUE, on a
@@ -243,13 +253,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 UnreservedKeywordReference.Report(ctx.Edition, "NULL");
                 return BoundRejected.Reported(ctx.Edition);
             }
-            if (!formatTwo && Format2OnlySpellingOf(a, bareArg) is { } format2Only && !Format1Narrowing(format2Only))
+            if (!formatTwo && Format2OnlySpellingOf(a, bareArg, mode) is { } format2Only && !Format1Narrowing(format2Only))
                 return BoundRejected.Reported(ctx.Edition);
             if (a.callByReference() is { } byRef)
             {
                 mode = CobolPassMode.Reference;
-                // §14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130); Format 1 never
-                // reaches this arm with OMITTED — Format2OnlySpellingOf refused it above (kb/Work PB3996).
+                // §14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130); Format 1 reaches
+                // this arm with OMITTED only under the --permissive vendor lane Format1Narrowing admitted it by
+                // (kb/Work PB3996, PB4012), and binds it with this same Format-2 meaning.
                 if (byRef.OMITTED() is not null)
                 {
                     // §14.9.4.4 GR11 (kb/Work PB133 wave C): the omitted argument occupies its position with
@@ -352,7 +363,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 else if (cBool is { } cbx)
                     args.Add(BooleanContentArg(cbx));
                 else
-                    return new BoundUnsupported($"CALL USING BY CONTENT argument '{byContent.GetText()}'");
+                    return new BoundUnsupported($"CALL USING BY CONTENT argument '{DataBinder.WrittenText(byContent)}'");
             }
             else if (a.callByValue() is { } byValue)
             {
@@ -449,7 +460,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
                 }
                 else
-                    return new BoundUnsupported($"CALL USING BY VALUE argument '{byValue.GetText()}'");
+                    return new BoundUnsupported($"CALL USING BY VALUE argument '{DataBinder.WrittenText(byValue)}'");
             }
             else if (a.addressIdentifier() is { } bareAddr)
             {
@@ -571,7 +582,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (bareArg.NonNumericLiteral is { } nbl)
             {
                 if (host.Expr.NullAdmittingOperand(nbl) is not { } nblOp)
-                    return new BoundUnsupported($"CALL USING argument '{nbl.GetText()}'");
+                    return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(nbl)}'");
                 var nblMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
                 if (nblMode is CobolPassMode.Value) Sr23LiteralIsNumeric(nbl, "a BY VALUE formal parameter");
                 args.Add(new BoundCallArg(nblMode, null, nblOp));
@@ -610,7 +621,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), a.GetText());
             }
             else
-                return new BoundUnsupported($"CALL USING argument '{a.GetText()}'");
+                return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(a)}'");
         }
 
         // ⛔ ONE BOOLEAN VALUE CHANNEL for the CALL side, mirroring BoundInvokeArg.ContentBool exactly
@@ -823,20 +834,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
         // ON OVERFLOW is the COBOL-74-carried synonym for ON EXCEPTION, REMOVED at ISO 2023; the edition gate
         // (CallOnOverflowRemoved2023) moved to the post-bind VersionConformancePass (Step 14d), reading the flag.
-        // ⛔ A CALL WHOSE ACTIVATED PROGRAM NO SIGNATURE DESCRIBES HERE (a dynamic Format-1 CALL; a §12.3.8.4 GR10 c)
-        // prototype) has §14.8.2 / §14.8.3 asked at run time instead (§14.9.4.4 GR3 d); kb/Work PB165): each operand's
-        // description, built by the ONE builder a universal INVOKE's operands take, rides its CobolArg when the site
-        // checks EC-PROGRAM-ARG-MISMATCH.
-        if (callee is null)
-        {
+        // ⛔ A CALL WHOSE ACTIVATED PROGRAM THIS GROUP DOES NOT COMPILE (a dynamic Format-1 CALL; a §12.3.8.4 GR10 b) / c)
+        // prototype; a pointer target) has §14.8.2 / §14.8.3 asked at run time against the program actually activated
+        // (§14.9.4.4 GR3 d); kb/Work PB165, PB2103): each operand's description rides its CobolArg when the site checks
+        // EC-PROGRAM-ARG-MISMATCH — whether or not a signature was also checked here, because the callee may have been
+        // recompiled since (DESIGN-external-repository §4.2).
+        if (!calleeCompiledHere)
             for (int i = 0; i < args.Count; i++)
-                args[i] = args[i] with
-                {
-                    Description = ActivationDescriptions.OfCallArgument(args[i],
-                        args[i].ProgramAddress?.Prototype is { } addressed ? host.ProgramRestrictionIdentityOf(addressed) : null,
-                        host.OoClasses),
-                };
-        }
+                args[i] = Described(host, args[i]);
         // The CALL's receivers -- each BY REFERENCE argument and the RETURNING item -- are identified at its start
         // (§14.9.4.4 GR3 a)) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
         // object-property receiver's accessors there (kb/Work PB2078).
@@ -846,9 +851,22 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             UsedOverflowSpelling = usedOverflow,
             IsPointerTarget = isPointerTarget,
             CalleeSignatureKnown = callee is not null,
-            ReturningDescription = callee is null && returning is { } described ? ActivationDescriptions.OfPlace(described, host.OoClasses) : null,
+            CalleeCompiledHere = calleeCompiledHere,
+            ReturningDescription = !calleeCompiledHere && returning is { } described ? ActivationDescriptions.OfPlace(described, host.OoClasses) : null,
         };
     }
+
+    /// <summary>⛔ ONE ARGUMENT, DESCRIBED FOR §14.9.4.4 GR3 d)'s RUN-TIME CHECK (kb/Work PB165, PB2103): <paramref name="arg"/>
+    /// with its §14.8.2 description (<see cref="ActivationDescriptions.OfCallArgument"/>, the builder a universal INVOKE's
+    /// operands take; a program-address-identifier described by its prototype's restriction, through the
+    /// <paramref name="host"/>'s prototype table). The CALL statement and the user-defined function reference
+    /// (<c>UdfBinder</c>) both describe their arguments through it whenever the element they activate is not a definition
+    /// this compilation group compiles (<see cref="BoundCallProgram.CalleeCompiledHere"/>).</summary>
+    internal static BoundCallArg Described(StatementBinder host, BoundCallArg arg) => arg with
+    {
+        Description = ActivationDescriptions.OfCallArgument(arg,
+            arg.ProgramAddress?.Prototype is { } addressed ? host.ProgramRestrictionIdentityOf(addressed) : null, host.OoClasses),
+    };
 
     /// <summary>Bind ONE address-identifier argument (ISO §8.4.3.1.2 identifier Format 9; §14.9.4.3 SR3/SR4 —
     /// kb/Work PB239) through the ONE operand binder of each arm — <c>PtrBinder.BindDataAddress</c> for
@@ -872,8 +890,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         ConditionBinder.SoleFunctionCall(ax) is not null || ConditionBinder.SoleOoIdentifier(ax) is not null;
 
     /// <summary>A USING argument spelling that only §14.9.4.2 Format 2 prints, and the refusal text that names it.
-    /// <paramref name="VendorLane"/> is true for the five spellings GnuCOBOL accepts and the dialect axis admits under
-    /// <c>--permissive</c> (kb/Work PB162); false for OMITTED, which has no such lane (kb/Work PB3996).</summary>
+    /// <paramref name="VendorLane"/> is true for the spellings GnuCOBOL accepts on a CALL naming no prototype and the
+    /// dialect axis admits under <c>--permissive</c> (kb/Work PB162): the five literal / expression / BY VALUE
+    /// spellings, and OMITTED passed BY REFERENCE (kb/Work PB4012, owner decision 2026-10-28). It is false for an
+    /// OMITTED a BY CONTENT or BY VALUE phrase carries over (§14.9.4.4 GR5's transitivity), which GnuCOBOL refuses
+    /// too (cobc 3.2, kb/Work PB3996's probe).</summary>
     private readonly record struct Format2OnlySpelling(string Refusal, bool VendorLane);
 
     /// <summary>The predefined NULL an argument writes as its operand, in any of the four places the grammar lets an
@@ -904,13 +925,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// <para>Null = Format 1 prints the spelling (identifier-2, an address-identifier, a function-identifier, which
     /// §14.9.4.4 GR8 makes an identifier). A literal and a parenthesized expression an operator-free boolean node held
     /// are literal-2 and arithmetic-expression-1 exactly as their written spellings are (kb/Work PB3760 review R1-1).</para></summary>
-    private Format2OnlySpelling? Format2OnlySpellingOf(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare)
+    private Format2OnlySpelling? Format2OnlySpellingOf(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare,
+        CobolPassMode carriedMode)
     {
         const string Shared = " belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects";
         if (a.callByValue() is { } byValue)
             return new($"CALL USING {DataBinder.WrittenText(byValue)}{Shared} — Format 1’s USING admits BY REFERENCE and BY CONTENT only", true);
         if (a.callByReference() is { } byRef)
-            return byRef.OMITTED() is not null ? OmittedSpelling("BY REFERENCE OMITTED") : null;
+            return byRef.OMITTED() is not null ? OmittedSpelling("BY REFERENCE OMITTED", vendorLane: true) : null;
         if (a.callByContent() is { } byContent)
         {
             if (byContent.addressIdentifier() is not null) return null;
@@ -925,7 +947,12 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 : null;
         }
         if (a.addressIdentifier() is not null || bare.Reference is not null) return null;
-        if (a.OMITTED() is not null) return OmittedSpelling("OMITTED");
+        // A bare OMITTED takes the mode the last BY phrase carries (GR5): BY REFERENCE (the default) is the vendor
+        // spelling; after BY CONTENT or BY VALUE it is an omitted argument passed by a mode that has none.
+        if (a.OMITTED() is not null)
+            return carriedMode is CobolPassMode.Reference
+                ? OmittedSpelling("OMITTED", vendorLane: true)
+                : OmittedSpelling($"OMITTED (after BY {(carriedMode is CobolPassMode.Content ? "CONTENT" : "VALUE")})", vendorLane: false);
         bool bareNonIdentifier = a.literal() is not null || bare.Bool is not null || bare.NonNumericLiteral is not null
             || bare.SoleNumericLiteral is not null || bare.Grouped is not null
             || (bare.Arith is { } arith && !IsSoleIdentifierExpression(arith));
@@ -934,9 +961,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                   + "bare argument is identifier-2 only", true)
             : null;
 
-        static Format2OnlySpelling OmittedSpelling(string spelling) =>
+        static Format2OnlySpelling OmittedSpelling(string spelling, bool vendorLane) =>
             new($"CALL USING {spelling}: the OMITTED phrase belongs to the program-prototype CALL (ISO §14.9.4.2 "
-                + "Format 2), which the AS phrase selects — Format 1's USING prints `{ identifier-2 } …` only", false);
+                + "Format 2), which the AS phrase selects — Format 1's USING prints `{ identifier-2 } …` only"
+                + (vendorLane ? "" : "; an omitted argument is passed BY REFERENCE, never by the BY CONTENT or BY VALUE "
+                    + "phrase that precedes it, so no --permissive vendor spelling admits it"), vendorLane);
     }
 
     /// <summary>⛔ THE ONE FRAMING OF §14.9.4.2 FORMAT 1'S NARROWING (kb/Work PB162), for every spelling
@@ -946,8 +975,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// spelling plainly intends — a literal or expression is a detached BY CONTENT value, BY VALUE is the Value mode.
     /// GnuCOBOL accepts those five spellings, and IBM Enterprise COBOL and Micro Focus accept BY VALUE and a BY CONTENT
     /// literal, on the CALL that names no prototype (CLAUDE.md rule 1's precedence for implementor latitude; the strict
-    /// verdict is the standard's, not latitude). OMITTED has no vendor lane: it is refused under both (kb/Work PB3996).
-    /// True = bind on.</summary>
+    /// verdict is the standard's, not latitude). OMITTED passed BY REFERENCE — bare or written `BY REFERENCE OMITTED` —
+    /// is the sixth vendor spelling (GnuCOBOL, IBM and Micro Focus all accept it; owner decision 2026-10-28, kb/Work
+    /// PB4012) and binds as §14.9.4.4 GR11's omitted argument. True = bind on.</summary>
     private bool Format1Narrowing(Format2OnlySpelling spelling)
     {
         if (spelling.VendorLane && ctx.Edition.Permissive)

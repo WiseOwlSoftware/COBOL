@@ -47,6 +47,17 @@ public enum DynamicLengthPrefix
 public sealed record DynamicLengthStructure(
     string Name, DynamicLengthPrefix Prefix, bool Delimited, string? PhysicalStructureName)
 {
+    /// <summary>⛔ THE STRUCTURE'S DEFINITION AS A KEY (DESIGN-external-repository §6.4; kb/Work PB2103): what lays the item
+    /// out — the PREFIXED phrase, the DELIMITED phrase, the physical structure — and never its name. A
+    /// dynamic-length-structure-name is a word of its source element, so two separately compiled groups name one layout
+    /// two ways; every relation that asks whether two DYNAMIC LENGTH clauses are the same (the §8.5.3.1 profile, §9.3.6 3 e)'s
+    /// clause identity, §14.8.2.3.2 rule 2) compares this, through <see cref="KeyOf"/>.</summary>
+    public string DefinitionKey => $"{Prefix}/{(Delimited ? "DELIMITED" : "-")}/{PhysicalStructureName}";
+
+    /// <summary>The <see cref="DefinitionKey"/> of an item's structure, or the empty key of the implementor's default
+    /// structure (none named).</summary>
+    public static string KeyOf(DynamicLengthStructure? structure) => structure?.DefinitionKey ?? "";
+
     /// <summary>§8.5.1.10.1's second candidate — the largest integer the PREFIXED phrase's length field can hold,
     /// or null when there is no PREFIXED phrase. WiseOwl COBOL's length fields are exactly the binary fields GR18
     /// names (32-bit, or 16-bit with SHORT), so these are GR18's own table values.</summary>

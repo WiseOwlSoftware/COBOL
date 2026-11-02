@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The binder used to build two order-blind tables once for the whole group (<c>BuildProgramDetailsTable</c>, keyed by
 /// externalized name; <c>BuildUserFunctionTable</c>, keyed by WORD), so a definition that followed its caller supplied
 /// the details a), and a function prototype was replaced by a definition that merely shared its word. The rule now
-/// lives in <c>GroupRepository.Find</c>; this pins that no second reading of it, and no order-blind table, comes back.
+/// lives in <c>GroupRepositoryProvider.Find</c>; this pins that no second reading of it, and no order-blind table, comes back.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class GroupRepositoryOrderDriftTests
@@ -45,36 +45,38 @@ public sealed class GroupRepositoryOrderDriftTests
         }
 
         Assert.True(hits.Count == 0,
-            "an order-blind REPOSITORY table (or a reference to one) reappeared; resolve through GroupRepository "
+            "an order-blind REPOSITORY table (or a reference to one) reappeared; resolve through GroupRepositoryProvider "
             + "(kb/Work PB989):" + Environment.NewLine + string.Join(Environment.NewLine, hits));
     }
 
-    /// <summary>Only <c>GroupRepository</c> READS a unit's position; the driver that hands each element its own position
+    /// <summary>Only <c>GroupRepositoryProvider</c> READS a unit's position; the driver that hands each element its own position
     /// to the two resolvers is the one other file that names it, and the model type defines it.</summary>
     [Fact]
     public void OnlyTheGroupRepository_ComparesSourcePositions()
     {
-        string[] allowed = ["BoundUnit.cs", "BinderDriver.cs", "GroupRepository.cs"];
+        string[] allowed = ["BoundUnit.cs", "BinderDriver.cs", "GroupRepositoryProvider.cs"];
         var offenders = SourceFiles()
             .Where(f => File.ReadAllText(f).Contains("SourcePosition", StringComparison.Ordinal))
             .Select(Path.GetFileName)
             .Where(name => !allowed.Contains(name))
             .ToList();
         Assert.True(offenders.Count == 0,
-            "BoundUnit.SourcePosition is read outside GroupRepository: " + string.Join(", ", offenders));
+            "BoundUnit.SourcePosition is read outside GroupRepositoryProvider: " + string.Join(", ", offenders));
 
         string driver = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "BinderDriver.cs"));
         Assert.DoesNotMatch(new Regex(@"SourcePosition\s*[<>]"), driver);   // the driver passes a position; it never compares one
     }
 
     /// <summary>The search itself is ONE function with the rule's own order — a definition strictly BEFORE the position
-    /// first (a), then the prototype definition (b) — and both twins (program and function) call it.</summary>
+    /// first (a), then the prototype definition (b) — and both twins (program and function) call it, as does the word
+    /// search D-R3 steps 2 and 3 read (kb/Work PB2103: the resolver applies D-R3 once, over every provider).</summary>
     [Fact]
     public void BothTwins_SearchThroughTheOneFind()
     {
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "GroupRepository.cs"));
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "GroupRepositoryProvider.cs"));
         Assert.Single(Regex.Matches(text, @"u\.SourcePosition\s*<\s*position"));
-        Assert.Matches(new Regex(@"ProgramDetails\([^)]*\)\s*=>\s*Find\(_programs", RegexOptions.Singleline), text);
-        Assert.Contains("Find(_functions, Externalized(externalized), position)", text, StringComparison.Ordinal);
+        Assert.Matches(new Regex(@"ProgramAnswer\? Program\([^)]*\)\s*=>\s*Find\(_programs", RegexOptions.Singleline), text);
+        Assert.Contains("Find(_functions, Externalized(externalizedName), position)", text, StringComparison.Ordinal);
+        Assert.Contains("Candidates(_functions, u => CobolNames.Same(u.Name, userFunctionName), position)", text, StringComparison.Ordinal);
     }
 }

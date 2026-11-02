@@ -152,16 +152,11 @@ application that keeps the switch on must keep the whole runtime and deploy the 
 </ItemGroup>
 ```
 
-## Known limitation: building a host project
+## Building a host project
 
-The compiler builds a program against the framework's implementation assemblies, so the emitted assembly refers to
-`System.Private.CoreLib` rather than to `System.Runtime`. A host project that uses the SDK's reference assemblies cannot
-resolve that reference, and its first use of a type from the COBOL assembly fails with error CS0012 ("The type 'Object' is
-defined in an assembly that is not referenced"). Until the compiler is changed to build against reference assemblies, a
-host has to be compiled against the same implementation assemblies, which is how the compiler's own host tests build
-theirs.
-
-<!-- kb/Work PB4047 fixes this limitation; delete this section when it lands. -->
+The compiler builds a program against the framework's reference assemblies, the same ones an SDK project compiles
+against, so the emitted assembly refers to `System.Runtime` and a host project references it like any other library: a
+`Reference` item whose `HintPath` names the COBOL assembly, and one that names `WiseOwl.Cobol.Runtime.dll` beside it.
 
 ## Interaction with other COBOL implementations
 

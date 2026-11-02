@@ -26,6 +26,7 @@ import work  # noqa: E402  (tier_rank: the one tier order)
 from reports import Report  # noqa: E402
 from inflight import Claim  # noqa: E402
 from clusters import Note, cluster_claim  # noqa: E402
+from once_rule import without_repeats  # noqa: E402  (a pred states each sentence once: Group.absorb, join_preds)
 if TYPE_CHECKING:
     from prune_worktrees import Replay  # noqa: E402  (a type only: the survey's replay record, finisher_pred's input)
 
@@ -64,19 +65,44 @@ class Group:
     link: int = 0                  # its place in its DEPENDENCY chain: 0 heads it (wave.links_per_chain, PB3638)
     overflow: list[str] = dataclasses.field(default_factory=list)   # the notes of its file family it cannot hold: a
     #   later wave plans them ONTO its branch, and the chain lands once, with its last link (kb/Work PB4396)
+    joins: dict[str, tuple[Report, list[str]]] = dataclasses.field(default_factory=dict)   # {branch: (its finished
+    #   report, the files it shares with the group)}: the finished branches the group is planned ONTO. The planner
+    #   records them and close_pred states them in ONE continuation_pred once the group is final, because a clause
+    #   rendered per group would be rendered twice by the group that absorbs another (kb/Work PB4419)
+
+    def join(self, report: Report, shared: list[str]) -> None:
+        """Plan the group ONTO `report`'s finished branch, which shares `shared` files with it (kb/Work PB4396)."""
+        branch = report.branch or ""
+        self.joins[branch] = (report, sorted({*self.joins.get(branch, (report, []))[1], *shared}))
+        if branch not in self.continues:
+            self.continues.append(branch)
 
     def absorb(self, other: "Group") -> None:
         """Take `other`'s work into this group (kb/Work PB4396, one step per file): its notes after this group's, its
-        claim, its instruction, the branches it continues and its tier; a finisher's work makes this a finisher."""
+        claim, its instruction (join_preds), the branches it continues and joins and its tier; a finisher's work makes
+        this a finisher."""
         self.notes += [i for i in other.notes if i not in self.notes]
         self.take(other.claim)
-        self.pred = " ".join(p for p in (self.pred, other.pred) if p)
+        self.pred = join_preds(self.pred, other.pred)
+        for report, shared in other.joins.values():
+            self.join(report, shared)
         self.continues += [b for b in other.continues if b not in self.continues]
         self.overflow += [i for i in other.overflow if i not in self.overflow]
         self.tier = min(self.tier, other.tier, key=work.tier_rank)
         self.file = self.file or other.file
         if other.kind == "finisher":
             self.kind = "finisher"
+
+    def close_pred(self, drain: bool) -> None:
+        """State, ONCE, the clauses that belong to the finished group rather than to any group it absorbed (kb/Work
+        PB4419): the CONTINUATION onto every finished branch it joined (continuation_pred) and, under --drain,
+        DRAIN_CLAUSE. The planner calls it when the group is final, so an absorbed group's pred carries neither and
+        the joined pred cannot say either twice."""
+        if self.joins:
+            shared = {b: files for b, (_, files) in self.joins.items()}
+            self.pred = join_preds(self.pred, continuation_pred([r for r, _ in self.joins.values()], shared))
+        if drain:
+            self.pred = join_preds(self.pred, DRAIN_CLAUSE)
 
     @property
     def claim(self) -> Claim:
@@ -144,6 +170,78 @@ def landing_cost(rules: dict[str, Any]) -> float:
     return c["landing_tokens"] / rules["calibration"]["tokens_per_point"][c["landing_model"]]
 
 
+#: THE SHARED RULES (kb/Work PB4419). A pred is two kinds of sentence: FACTS that name a branch, a note or a report, and
+#: RULES the builder writes the same for every branch. When one group takes in another (Group.absorb, kb/Work PB4396) its
+#: pred is joined with the other's, and a rule written once per pred is then written twice, which check_practices.py's
+#: once-check refuses (kb/Work PB3777). So a builder declares a rule with `shared_rule`, and join_preds states each
+#: declared rule ONCE, at the end, after every branch's facts; a rule so declared needs no second list, and the next
+#: builder's rule is stated once the day it is declared. A sentence a builder repeats WITHOUT declaring it is still
+#: stated once (join_preds drops a later copy), and the planner's drift test absorbs every kind of pred into every
+#: other, so an undeclared one shows there as a facts-less orphan.
+_SHARED: list[str] = []
+
+
+def shared_rule(text: str) -> str:
+    """Declare `text` a RULE: a sentence naming no branch, which a joined pred states once, at the end (join_preds)."""
+    _SHARED.append(text)
+    return text
+
+
+def shared_rules() -> tuple[str, ...]:
+    """Every declared rule, in declaration order (the planner's drift test reads it)."""
+    return tuple(_SHARED)
+
+
+FINISH_FIRST = "FINISH-FIRST: "   # the lead-in of a finisher's pred (a joined pred keeps each: a label, never a rule)
+
+#: The branch classes whose unlanded commits a finisher cherry-picks onto main (prune_worktrees.py: CHECK is an unlanded
+#: fix to existing files, UNLANDED a branch no other landed). finisher_pred appends UNLANDED_RULE for exactly these and the
+#: rule names exactly these, so a fact "is CHECK" is covered by the rule that says what to do with it (review R1-1 of wave
+#: 20261821 b: the rule said UNLANDED only).
+CARRIED_CLASSES = ("UNLANDED", "CHECK")
+#: Where a branch's fact says "cherry-pick ONLY those" (replay_clause, PB3170) the rules below take only those. A rule is
+#: stated at the END of a joined pred, after every fact, so it says itself that the restriction qualifies it (review R1-2
+#: of wave 20261821 b: the last instruction a finisher read said to pick all the commits).
+CHERRY_PICK_SCOPE = (
+    "(all of them, unless the sentence above that names the branch restricts it to ONLY some commits, and then only those: the "
+    "others land from the branch that replays them, and a second copy would land twice)")
+RESUME_RULE = shared_rule(
+    "For each branch that carries unlanded work with no report, run "
+    "`python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still "
+    f"exists, read its STATUS.md, cherry-pick its commits {CHERRY_PICK_SCOPE} onto current main (never merge the "
+    "branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.")
+UNLANDED_RULE = shared_rule(
+    f"For each {' or '.join(CARRIED_CLASSES)} branch named above, cherry-pick its unlanded commits {CHERRY_PICK_SCOPE} "
+    "onto current main (never merge the branch) and re-gate before new work.")
+LANDED_RULE = shared_rule(
+    "For each LANDED branch named above, its landed part is already on main, so orient from the report only.")
+HALF_RULE = shared_rule(
+    "For each `status: half` note, read its record of the landed half and its kb/Work history before touching code, and "
+    "finish the open half at its root.")
+#: How a finisher answers a branch review's findings (kb/Work PB3027): once per spec however many reviewed branches its
+#: pred names (PB4419, which found it first: two FINDINGS finishers of one file said it twice and the wave went RED).
+FINDINGS_ANSWER = shared_rule(
+    "Then answer EVERY finding of every branch review named in this spec by its id: fix it at its root (a regression "
+    "test or golden with it) or answer `no_change_needed` with the reason, one line each in your report's "
+    "`## Review findings` section; re-gate; your branch is reviewed again when it returns DONE (kb/Work PB3027).")
+#: The --drain clause of a finisher group's pred (plan_wave.py --drain, the owner's: no new work); Group.close_pred adds it.
+DRAIN_CLAUSE = shared_rule(
+    "DRAIN (plan_wave.py --drain, the owner's: no new work, only in-process work to main): finish only what each branch "
+    "named here STARTED and answer its review findings; a note its report says was NOT started stays open and "
+    "unstarted: name it in your report.")
+
+
+def join_preds(*preds: str) -> str:
+    """Several preds as ONE instruction (Group.absorb, Group.close_pred): the facts of each in order, then every shared
+    rule any of them carries, once, in declaration order (kb/Work PB4419); a sentence stated twice that no builder
+    declared is stated once (once_rule.without_repeats)."""
+    body = " ".join(p for p in preds if p)
+    rules = [r for r in _SHARED if r in body]
+    for r in rules:
+        body = body.replace(r, "")
+    return " ".join([without_repeats(body), *rules]).strip()
+
+
 def replay_clause(replay: "Replay | None") -> str:
     """What a finisher is told when OTHER unlanded branches replay some of the branch's commits (kb/Work PB3170): take
     only the commits no outranking branch holds, because the branches that hold the rest are planned from and land them,
@@ -156,39 +254,38 @@ def replay_clause(replay: "Replay | None") -> str:
             f"main, and picking them again would land them twice.")
 
 
+def half_clause(ids: list[str]) -> str:
+    """What a finisher of `status: half` notes is told: which they are, and the HALF_RULE (the one text of the half arm
+    and of a branch's resume instruction, plan_wave.py)."""
+    return f"{', '.join(ids)} {'is' if len(ids) == 1 else 'are'} `status: half`. {HALF_RULE}"
+
+
 def branch_resume(branch: str, nid_list: list[str], replay: "Replay | None" = None) -> str:
-    return (f"Branch {branch} carries unlanded work for {', '.join(nid_list)} with no report. Run "
-            f"`python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the "
-            f"worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the "
-            f"branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots."
-            + replay_clause(replay))
+    return (f"Branch {branch} carries unlanded work for {', '.join(nid_list)} with no report."
+            + replay_clause(replay) + " " + RESUME_RULE)
 
 
 def finisher_pred(rep: Report | None, branch: str | None, cls: str, nid_list: list[str],
                   carried_by: str | None = None, replay: "Replay | None" = None) -> str:
     if rep is None:
-        return "FINISH-FIRST: " + branch_resume(branch or "?", nid_list, replay)
+        return FINISH_FIRST + branch_resume(branch or "?", nid_list, replay)
     if rep.finished and rep.review and rep.review.verdict == "FINDINGS":
-        return (f"FINISH-FIRST: the branch review of {rep.slug} ({rep.lead}) found {rep.review.findings} finding(s) at "
+        return (f"{FINISH_FIRST}the branch review of {rep.slug} ({rep.lead}) found {rep.review.findings} finding(s) at "
                 f"head {rep.review.sha}: the records of kind `finding` in {rep.review.file} "
                 f"(`python scripts/orchestrator/review_findings.py show {rep.review.file}`). Its branch {rep.branch} "
                 f"(worktree {rep.worktree or 'removed'}) is {cls}: `python scripts/merge_drivers.py merge {rep.branch} --keep` into your branch"
                 + (f" (it is also contained in {carried_by}, whose report does not answer these findings and which may "
                    f"land its commits first: merge {rep.branch} only, never {carried_by}; kb/Work PB3150)"
                    if carried_by else "")
-                + f", read {rep.path} and its \"For the next implementer\" section, then answer EVERY finding by its "
-                f"id: fix it at its root (a regression test or golden with it) or answer `no_change_needed` with the reason, one line "
-                f"each in your report's `## Review findings` section; re-gate; your branch is reviewed again when it "
-                f"returns DONE (kb/Work PB3027).")
-    where = (f"Its branch {rep.branch} (worktree {rep.worktree or 'removed'}, head {rep.head or '?'}) is {cls}: "
-             + (f"it is contained in {carried_by}, which carries its work to main: `python scripts/merge_drivers.py merge {carried_by} --keep` into your "
+                + f", and read {rep.path} and its \"For the next implementer\" section. " + FINDINGS_ANSWER)
+    where = (f"Its branch {rep.branch} (worktree {rep.worktree or 'removed'}, head {rep.head or '?'}) is {cls}. "
+             + (f"It is contained in {carried_by}, which carries its work to main: `python scripts/merge_drivers.py merge {carried_by} --keep` into your "
                 f"branch (never cherry-pick {rep.branch}: its commits would land twice) and re-gate before new work."
                 if carried_by else
-                "cherry-pick its unlanded commits onto current main (never merge the branch) and re-gate before new work."
-                + replay_clause(replay)
-                if cls in ("UNLANDED", "CHECK") else
-                "its landed part is already on main, so orient from the report only."))
-    return (f"FINISH-FIRST: predecessor {rep.slug} ({rep.lead}) returned {rep.status or 'an unfinished report'} for "
+                f"{replay_clause(replay).strip()} {UNLANDED_RULE}".strip()
+                if cls in CARRIED_CLASSES else
+                LANDED_RULE))
+    return (f"{FINISH_FIRST}predecessor {rep.slug} ({rep.lead}) returned {rep.status or 'an unfinished report'} for "
             f"{', '.join(nid_list)}. Read {rep.path} first, its NEXT and its \"For the next implementer\" section, and "
             f"run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` when the "
             f"worktree still exists. {where}")
@@ -230,7 +327,7 @@ def requirements_text(campaign: str, requirements: Sequence[str]) -> str:
     """One campaign's requirements as a group's spec body states them: ONE OWNER REQUIREMENTS lead-in for the campaign,
     then each requirement numbered and carried verbatim, which is what check_practices.py looks for in every rendered
     spec. The lead-in is stated once per campaign, never once per requirement: a spec says each rule once
-    (check_practices.repeated_sentences, kb/Work PB3777), and a fixed prefix repeated before every one of a campaign's
+    (once_rule.repeated_sentences, kb/Work PB3777), and a fixed prefix repeated before every one of a campaign's
     requirements is the same sentence twice (review R1-1 of wave 20261709). The lead-in names its campaign in each of
     its clauses, because the once-check splits at `;` and `:`: a clause that did not would repeat across two campaigns."""
     if not requirements:
