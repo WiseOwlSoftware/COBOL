@@ -1,4 +1,4 @@
-## PB4224, PB4225: COBOL5506 names a statement position and no longer offers a noise word as an alternative
+## Entry 2987 — 2026-11-02 00:29 PST — PB4224, PB4225: COBOL5506 names a statement position and no longer offers a noise word as an alternative
 
 Two defects in `AdmittedKinds` (hint 0i, COBOL5506), one file pair (`AdmittedKinds.cs`, `CobolErrorStrategy.cs`).
 
@@ -40,3 +40,4 @@ at 85 and 2023, after ELSE, ZERO, after ON SIZE ERROR, after WHEN, a user word) 
 `literal-at-a-statement-start` control (which pinned the bare COBOL0001) is gone. `DESIGN-frontend-grammar.md` states both rules. After review round 1: the two PB4224 goldens carry the new sentence,
 `14.9.19-IF/pb4224-literal-after-a-condition` is added (an operand directly before the refused literal), and the theory
 gained `all-literal-after-then`, `literal-after-a-condition` and `literal-after-a-relation` (85).
+
