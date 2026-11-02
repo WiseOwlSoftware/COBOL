@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// what each pointer may CONTAIN (<see cref="ActivationDescription.ContentRestriction"/>: a prototype pointer's signature
 /// class), with the unknown-signature stance for a prototype only the run unit resolves (§12.3.8.4 GR10 c)): a SET of the
 /// pair (<see cref="ActivationRelations.ReturningMatches"/>, §9.3.6 rule 6) and a BY CONTENT argument (§14.8.2.3.3).</item>
-/// <item>The identity rules — §14.8.2.3.2's "both shall be restricted and of the same type" (§8.5.3.1: the TYPE clause's
-/// declaration, <see cref="ActivationDescription.PointerType"/>, and its USAGE clause) for a BY REFERENCE argument, and
+/// <item>The identity rules — "both shall be restricted and of the same type" (§14.8.2.3.2, read through §8.5.3.1: the
+/// TYPE clause's declaration, <see cref="ActivationDescription.PointerType"/>, and its USAGE clause) for a BY REFERENCE argument, and
 /// §14.8.3.3's "the same ... USAGE clauses" for a returning item — over the TO phrase as it NAMES its prototype
 /// (<see cref="ActivationDescription.Clauses"/>), never its signature.</item>
 /// </list>
