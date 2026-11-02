@@ -70,6 +70,7 @@
        01 C3 PIC 9.
        01 C4 PIC 9.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            UNSTRING S DELIMITED BY "#" OR ALL "*" OR W-DL OR SPACE
                INTO R1 DELIMITER IN E1 COUNT IN C1
                     R2 DELIMITER IN E2 COUNT IN C2

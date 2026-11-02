@@ -33,6 +33,7 @@
            88 HALF-OR-ONE VALUE 1 ,5.
        01  R5 PIC S9(18) VALUE -000000000000000012.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY R1
            DISPLAY R2
            COMPUTE R3 = 1,25 * -2

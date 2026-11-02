@@ -77,6 +77,7 @@
        01 L20 PIC $$$$PP.
        01 L21 PIC S9(5).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 12 TO L01
            MOVE 1200 TO L02
            MOVE 0.0012 TO L03

@@ -18,5 +18,6 @@
        IDENTIFICATION DIVISION.                                         PB255501
        PROGRAM-ID. PB2555P.                                             PB255502
        PROCEDURE DIVISION.                                              PB255503
+       PB4305-LEAD.
            DISPLAY "A"                                                   "B"
            STOP RUN.                                                    PB255505

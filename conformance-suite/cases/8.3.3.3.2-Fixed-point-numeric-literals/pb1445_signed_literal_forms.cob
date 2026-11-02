@@ -25,6 +25,7 @@
        01 E PIC -(5)9.99.
        01 F PIC -9.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE B TO F
            DISPLAY F
            MOVE C TO F

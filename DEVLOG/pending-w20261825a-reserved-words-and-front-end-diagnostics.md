@@ -61,3 +61,9 @@ Each row is gated in one place:
 One correction to the evidence: probe p03 passes an elementary level-05 item, which item 10 allows at 85, so the
 golden passes a level-05 group. Each item has a positive at 2002 and a negative at 85, and the negative expects its
 own row's text.
+
+Gate `000002-20261102T160241Z` was RED on 166 cases. Each is a program that the repository's own tests accept at 85
+and that writes one of the relaxations; CCVS-85 stayed green. In 103 suite tests the program begins its procedure
+division or a section with a sentence. Each of those now gets `PB4305-LEAD.` where the compiler names the sentence, so
+it keeps its 85 coverage. The two pb3505 tests drop 85, because the signed DISPLAY literal is their subject. Twelve
+85-only suite tests and about 55 C# cases remain for this branch's next link (kb/Work PB4305, "Gate fallout").

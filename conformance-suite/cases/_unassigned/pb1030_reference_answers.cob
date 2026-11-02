@@ -29,6 +29,7 @@
           05 CV PIC 9 OCCURS 3.
              88 C-THREE VALUE 3.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE "ABCDE" TO TB.
            MOVE 1 TO CV (1).
            MOVE 3 TO CV (2).

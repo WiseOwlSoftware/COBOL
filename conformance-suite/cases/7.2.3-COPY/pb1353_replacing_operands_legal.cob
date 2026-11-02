@@ -28,6 +28,7 @@
            REPLACE ==XX1== BY =="A==B"==
                    ==XX2 , XX3== BY =="ZZ"==
                    ==XX4== BY ====.
+       PB4305-LEAD.
            DISPLAY "[" XX1 "]".
            DISPLAY "[" XX2, XX3 "]".
            DISPLAY "[" XX4 "]".

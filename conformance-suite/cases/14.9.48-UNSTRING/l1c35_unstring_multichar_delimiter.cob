@@ -55,6 +55,7 @@
        01 C2 PIC 9.
        01 C3 PIC 9.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            PERFORM PRESET
            UNSTRING S DELIMITED BY "AB"
                INTO R1 DELIMITER IN D1 COUNT IN C1

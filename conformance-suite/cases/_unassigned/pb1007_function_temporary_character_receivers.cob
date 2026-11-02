@@ -42,6 +42,7 @@
        01 TB.
           05 TE PIC X(4) OCCURS 3.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE FUNCTION INTEGER(N) TO R1 R2
            DISPLAY "M1=[" R1 "][" R2 "]"
            MOVE SPACES TO R1

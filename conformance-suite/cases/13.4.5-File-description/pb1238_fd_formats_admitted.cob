@@ -39,6 +39,7 @@
        WORKING-STORAGE SECTION.
        01 RK PIC 9(4).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            OPEN OUTPUT RL
            MOVE 3 TO RK
            MOVE "REL-REC-03" TO RL-REC

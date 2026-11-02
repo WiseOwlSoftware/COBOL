@@ -82,6 +82,7 @@
           05 CobolNum PIC 9(3).
           05 StorageCell PIC X(3).
        PROCEDURE DIVISION USING ProgramRegistry CobolRec.
+       PB4305-LEAD.
            DISPLAY "IN " ProgramRegistry " " CobolNum " " StorageCell
            MOVE "EF" TO ProgramRegistry
            ADD 1 TO CobolNum

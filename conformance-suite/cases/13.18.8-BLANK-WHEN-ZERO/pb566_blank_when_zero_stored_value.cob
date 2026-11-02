@@ -52,6 +52,7 @@
        01 WS-BIG    PIC 9(3)    VALUE 100.
        01 WS-BACK   PIC 9(3)V99 VALUE 55.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE WS-SRC TO WS-E
            DISPLAY "MOVE-LOW-E[" WS-E "]"
            MOVE WS-SRC TO WS-P

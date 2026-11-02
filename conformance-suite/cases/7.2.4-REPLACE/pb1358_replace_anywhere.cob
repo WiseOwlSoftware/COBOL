@@ -26,6 +26,7 @@
        01 AAA PIC X(3) VALUE "AAA".
        01 REPLACE-FLAG PIC X VALUE "Y".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "[START]". REPLACE ==XX1== BY ==AAA==.
            DISPLAY "[" XX1 "]".
            DISPLAY "[" REPLACE ==XX2== BY =="B-C"==. XX2 "]".
