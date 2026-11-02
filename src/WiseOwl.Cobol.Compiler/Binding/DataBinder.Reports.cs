@@ -1426,7 +1426,10 @@ public sealed partial class DataBinder
         code.Item = LookupQualified(codeName, codeQuals, where, out bool ambiguous);
         if (code.Item is not { } item)
         {
-            if (!ambiguous)
+            // A report entry's data-name is declared, and §13.15.3 SR7 bars this clause from naming it (kb/Work PB4226's
+            // sibling): the one report-item refusal, under the report section's own rule, not "does not resolve".
+            if (!ambiguous
+                && !ReportEntryReferenceRefused(default, $"{where} '{code.Written}'", codeName, codeQuals, inReportSection: true))
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names '{code.Written}', which does not resolve "
                     + "to a data item (ISO §8.4.2.1; identifier-1 of §13.18.12.2)");
             return;
@@ -4939,6 +4942,8 @@ public sealed partial class DataBinder
     /// ("other report section data item"), not this RD's alone.</summary>
     private void CheckConditionOperands(ReportModel model)
     {
+        // Each condition refused here is recorded, so the procedure phase does not bind it a second time and word the
+        // same reference again under §13.8.6.2.3, the other sections' rule (kb/Work PB4226's sibling: one verdict).
         var conds = new List<Core.ConditionContext>();
         foreach (var ge in model.WrittenEntries)
             foreach (var clause in ge.reportGroupClause())
@@ -4957,17 +4962,27 @@ public sealed partial class DataBinder
             // parentheses of a subscript (`TE(PAGE-COUNTER)`), which a token-type test never saw (kb/Work PB1474) —
             // so the word is asked, which both spellings share.
             if (HasWord(cond, "LINE-COUNTER") || HasWord(cond, "PAGE-COUNTER"))
+            {
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': a PRESENT WHEN condition shall not "
                     + "reference LINE-COUNTER or PAGE-COUNTER (ISO §13.15.3 SR16)");
+                _refusedPresentWhen.Add(cond);
+            }
             foreach (var n in names)
                 if (HasWord(cond, n))
                 {
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': a PRESENT WHEN condition shall not "
                         + $"reference the report section data item '{n}' (ISO §13.15.3 SR16)");
+                    _refusedPresentWhen.Add(cond);
                     break;
                 }
         }
     }
+
+    private readonly HashSet<Core.ConditionContext> _refusedPresentWhen = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>The §13.15.3 SR16 scan (<see cref="CheckConditionOperands"/>) refused this PRESENT WHEN condition and named
+    /// its rule; the procedure phase does not bind it (one verdict per refusal, kb/Work PB4226).</summary>
+    internal bool PresentWhenRefused(Core.ConditionContext cond) => _refusedPresentWhen.Contains(cond);
 
     /// <summary>⛔ THE ONE "is this one of the CONTROL clause's operands" TEST (kb/Work PB205) — the level of the
     /// CONTROL operand <paramref name="operand"/> names, or −1. Both clauses that name a control level ask this
@@ -5173,8 +5188,8 @@ public sealed partial class DataBinder
     }
 
     /// <summary>⛔ THE ONE REFUSAL OF A REFERENCE TO A REPORT SECTION ENTRY WHERE NONE IS ADMITTED (kb/Work PB1046) — a
-    /// procedure division statement, or a clause of any section of the data division other than the report section.
-    /// ISO §13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
+    /// procedure division statement, a clause of any section of the data division other than the report section, or a
+    /// report section clause whose operand §13.15.3 SR7 does not list (<paramref name="inReportSection"/>). ISO §13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
     /// data division or by any other procedure division statements, except in the following cases: 1) Sum counters may
     /// be inspected or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE
     /// statement", and §13.15.3 SR7: "The data-name shall not be referenced in any other way" than in a GENERATE
@@ -5193,20 +5208,31 @@ public sealed partial class DataBinder
     /// <param name="dataItems">The data items the written reference reaches (<see cref="QualifiedCandidates"/>, the
     /// nearest tier): none, or several when the caller found no unique one.</param>
     /// <param name="subject">The reference as the caller words it: <c>'PV OF DL'</c>, or <c>FILE STATUS 'PN'</c>.</param>
+    /// <param name="inReportSection">The reference is an operand of a clause of the REPORT SECTION itself (an RD's
+    /// <c>OCCURS … DEPENDING ON</c>, kb/Work PB4226). §13.8.6.2.3 bars only the OTHER sections and the procedure
+    /// division, so it is not the rule broken there; §13.15.3 SR7 is, and a sum counter is admitted in the report section
+    /// only where a rule names it (a SOURCE clause, §13.18.53.3 SR4; a SUM clause, SR7 itself).</param>
     internal bool ReportEntryReferenceRefused(NameCandidates<DataItem> dataItems, string subject, string name,
-                                              IReadOnlyList<string> qualifiers)
+                                              IReadOnlyList<string> qualifiers, bool inReportSection = false)
     {
         if (dataItems.Count > 1) return false;
         if (ReportEntriesNamed(name, qualifiers) is not [var (report, entry), ..]) return false;
+        const string sr7 = "ISO §13.15.3 SR7: \"The data-name shall not be referenced in any other way\" than in a GENERATE "
+            + "statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM "
+            + "clause, or as an operand in a SUM clause.";
         Edition.Error(DiagnosticCatalog.ReportItemReference,
             $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "
-            + "here may not name. ISO §13.8.6.2.3: \"Report items shall not be accessed or referred to by any clauses in any "
-            + "other section of the data division or by any other procedure division statements, except in the following "
-            + "cases: 1) Sum counters may be inspected or altered in the procedure division. 2) Report groups of type "
-            + "DETAIL are accessed by the GENERATE statement\"; and ISO §13.15.3 SR7: \"The data-name shall not be "
-            + "referenced in any other way\" than in a GENERATE statement, a USE BEFORE REPORTING statement, as a "
-            + "qualifier for a SUM counter, in the UPON phrase of the SUM clause, or as an operand in a SUM clause."
-            + (entry.IsSumCounter ? " A sum counter is admitted in the procedure division only." : ""));
+            + "here may not name. "
+            + (inReportSection
+                ? sr7 + (entry.IsSumCounter
+                    ? " A sum counter is admitted in the report section only by a SOURCE clause (ISO §13.18.53.3 SR4) or a "
+                      + "SUM clause."
+                    : "")
+                : "ISO §13.8.6.2.3: \"Report items shall not be accessed or referred to by any clauses in any other section "
+                  + "of the data division or by any other procedure division statements, except in the following cases: "
+                  + "1) Sum counters may be inspected or altered in the procedure division. 2) Report groups of type DETAIL "
+                  + "are accessed by the GENERATE statement\"; and " + sr7
+                  + (entry.IsSumCounter ? " A sum counter is admitted in the procedure division only." : "")));
         return true;
     }
 

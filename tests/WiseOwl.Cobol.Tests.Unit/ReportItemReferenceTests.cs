@@ -303,6 +303,43 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain(d, x => x.Contains("COBOL1965"));
     }
 
+    /// <summary>kb/Work PB4226 arm 2: an RD's OCCURS … DEPENDING ON naming a report entry is refused under the rule the
+    /// REPORT SECTION's own clauses break, ISO §13.15.3 SR7 ("The data-name shall not be referenced in any other way"),
+    /// never §13.8.6.2.3 (the other sections' rule) and never COBOL1639's "not declared" / "not under the given
+    /// qualifiers" (the report section declares the name). A sum counter is told where the report section admits one;
+    /// a working-storage item of another spelling is data-name-1 as written.</summary>
+    [Theory]
+    [InlineData("PN", ReportItemCode, false)]
+    [InlineData("SC", ReportItemCode, true)]
+    [InlineData("N", null, false)]
+    public void AnRdOccursDependingOnObject_NamingAReportEntry_IsRefusedUnderSr7(string depending, string? code, bool sumCounter)
+    {
+        var d = Bind(Source("", $"           05  COLUMN 20 PIC X VALUE \"A\" OCCURS 1 TO 3 DEPENDING ON {depending} STEP 2.", ""));
+        Assert.DoesNotContain(d, x => x.Contains("COBOL1639"));
+        if (code is null) { Assert.DoesNotContain(d, x => x.Contains(ReportItemCode)); return; }
+        string refusal = Assert.Single(d, x => x.Contains(code));
+        Assert.Contains("§13.15.3 SR7", refusal);
+        Assert.DoesNotContain("§13.8.6.2.3", refusal);
+        Assert.Equal(sumCounter, refusal.Contains("§13.18.53.3 SR4", StringComparison.Ordinal));
+    }
+
+    /// <summary>kb/Work PB4226's siblings, the other report-section clauses that name a report entry: an RD CODE clause's
+    /// identifier-1 draws the one report-item refusal under §13.15.3 SR7 (it was "does not resolve to a data item" AND a
+    /// second COBOL5092 from the procedure phase), and a PRESENT WHEN condition draws §13.15.3 SR16's COBOL1559 alone (the
+    /// procedure phase added COBOL5092 under §13.8.6.2.3). An undeclared CODE operand keeps its one COBOL2713.</summary>
+    [Theory]
+    [InlineData("RD  RR CODE IS PV.", "", ReportItemCode)]
+    [InlineData("RD  RR CODE IS XQ.", "", "COBOL2713")]
+    [InlineData("RD  RR.", "           05  COLUMN 20 PIC 9 VALUE 1 PRESENT WHEN PN = 5.", "COBOL1559")]
+    public void AReportSectionClauseNamingAReportEntry_DrawsOneVerdict(string rd, string reportExtra, string code)
+    {
+        var d = Bind(Source("", reportExtra, "").Replace("RD  RR.", rd, StringComparison.Ordinal));
+        string verdict = Assert.Single(d);
+        Assert.Contains(code, verdict);
+        if (code == ReportItemCode) Assert.Contains("§13.15.3 SR7", verdict);
+        Assert.DoesNotContain("§13.8.6.2.3", verdict);
+    }
+
     private static IReadOnlyList<string> Bind(string source)
     {
         string path = Path.Combine(Path.GetTempPath(), $"pb1046_{Guid.NewGuid():N}.cob");

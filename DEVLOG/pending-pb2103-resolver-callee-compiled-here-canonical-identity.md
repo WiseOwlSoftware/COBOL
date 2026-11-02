@@ -1,4 +1,4 @@
-## PB2103 part 1 (the repository resolver, a callee compiled elsewhere checked at run time, the canonical signature identity), PB4047 reference assemblies, PB4012, PB4340, PB4219, PB4226 arm 1, PB4306, PB4267
+## PB2103 part 1 (the repository resolver, a callee compiled elsewhere checked at run time, the canonical signature identity), PB4047 reference assemblies, PB4012, PB4340, PB4219, PB4226, PB4306, PB4267
 
 Slice 7 of the external repository (DESIGN-external-repository §21 item 7), part 1 of at least two. The slice's
 estimate was one landing; its eleven REPO codes are reported only by compilations that READ a repository entry, so they
@@ -86,9 +86,25 @@ Two goldens pin the repros.
 
 **PB4226 arm (1) — SEARCH ALL no longer words a condition-name reference twice.** `CheckConditionNameSide` added COBOL1965
 to the condition binder's own verdict (COBOL5092 for a nearer report entry, which it called a condition-name; COBOL1639
-for a misqualified one); it now defers to `ConditionBinder.ReportMisqualifiedCondition`, the one wording. Arm (2), an RD
-OCCURS DEPENDING ON whose name a nearer report entry hides, reproduces, but the text may make that report entry a legal
-DEPENDING ON object, so the note stays open and the question is a lead.
+for a misqualified one); it now defers to `ConditionBinder.ReportMisqualifiedCondition`, the one wording.
+
+**PB4226 arm (2) — a report section clause naming a report entry is refused under §13.15.3 SR7** (wave 20261819).
+Wave 20261816 left open whether an RD OCCURS DEPENDING ON may name a report entry: §13.8.6.2.3 bars only the other
+sections. §13.15.3 SR7 settles it: the entry's data-name "shall not be referenced in any other way" than GENERATE, USE
+BEFORE REPORTING, a SUM counter's qualifier, UPON and a SUM operand. The re-probe drew COBOL1639 under the wrong rule
+three ways: a nearer report entry hiding a container's GLOBAL N was "declared, but not under the given qualifiers" with
+no qualifier written; an own report entry N and a sum counter S were "no declaration … gives the name".
+`ResolveClauseOperand` now asks `ReportEntryReferenceRefused` in the report section too, and that refusal words a
+report-section position by SR7 alone (and tells a sum counter that a SOURCE or SUM clause admits it), so all three draw
+COBOL5092. The sibling sweep found two more report-section clauses that gave two verdicts for one reference: an RD
+CODE clause naming a report entry drew COBOL2713 "does not resolve to a data item" plus a procedure-phase COBOL5092
+under §13.8.6.2.3, and any undeclared CODE operand drew COBOL2713 plus COBOL1639. `ResolveReportCode` now asks the
+refusal first, and `ReportWriterBinder` binds the CODE operand only when the data phase resolved its base item. A PRESENT
+WHEN condition naming a report entry drew SR16's COBOL1559 plus a procedure-phase COBOL5092; the SR16 scan records the
+condition it refuses (`DataBinder.PresentWhenRefused`) and the procedure phase does not bind it again. Golden
+`cases/13.15-Report-group-description/pb4226-rd-occurs-depending-names-nearer-report-entry` (refused at 2002, 2014 and
+2023, COBOL5092); `ReportItemReferenceTests` pins the SR7 wording (own entry, sum counter, ordinary item) and the one
+verdict for CODE and PRESENT WHEN.
 
 **PB4306 — a screen-section constant entry parses.** §13.9.2 prints constant-entry beside screen-description-entry;
 `screenSection` now has both, and the binder binds the constant as the report host does, so the section draws its named

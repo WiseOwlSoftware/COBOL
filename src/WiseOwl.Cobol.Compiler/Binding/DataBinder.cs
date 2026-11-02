@@ -2570,11 +2570,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         using var __ = Edition.At(at);
         string written = WrittenQualified(name, quals);
         // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars every clause of a data
-        // division section other than the report section from referring to a report item. (The report section's own
-        // clauses are that section's; their operand rules are theirs, so for them the ambiguity always stands.) A report
-        // entry of a NEARER source element is the referenced item (ISO §8.4.6.2.1 3) a)): the lookup leaves it no survivor
-        // to hide (kb/Work PB4196), so the survivors here are the ambiguity (kb/Work PB3767) or nothing.
-        if (!inReportSection && ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals)) return null;
+        // division section other than the report section from referring to a report item, and §13.15.3 SR7 bars the report
+        // section's own clauses from naming an entry's data-name in any way it does not list (kb/Work PB4226: an RD's
+        // OCCURS … DEPENDING ON is not one of them). A report entry of a NEARER source element is the referenced item
+        // (ISO §8.4.6.2.1 3) a)): the lookup leaves it no survivor to hide (kb/Work PB4196), so the survivors here are the
+        // ambiguity (kb/Work PB3767) or nothing.
+        if (ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals, inReportSection)) return null;
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
         // it is, the same the procedure division's unidentified reference asks. A refused declaration was reported.
