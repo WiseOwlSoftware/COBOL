@@ -223,6 +223,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var stream = (ITokenStream)recognizer.InputStream;
         var token = stream.LT(1);
         if (token.Type is CobolLexer.DOT or TokenConstants.EOF || ScopeTerminator(recognizer, token.Type) is not null
+            || BeginsAStatement(recognizer, token.Type)
             || OpenStatementTaking(recognizer, token.Type) is not { Start: { } begun })
             return;
         while (TakenByALeftStatement(recognizer, token, left => left.Start > begun.TokenIndex, consume: false, out var left))
@@ -237,6 +238,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             _leftByRecovery.Remove(left);
         }
     }
+
+    /// <summary>Can a token of type <paramref name="type"/> begin a statement (<c>statement</c>'s first set, read once from the
+    /// ATN)? Such a word at a synchronization point inside the statement before it is the next statement's start, which an
+    /// enclosing statement's block takes (<see cref="OpenStatementTaking"/> finds that statement open), and no phrase of any
+    /// statement: it ends no left statement (ISO §14.5.3.3 4) b) ends a contained statement at "the next phrase of any
+    /// containing statement", not at the next statement of a containing block).</summary>
+    private static bool BeginsAStatement(Parser recognizer, int type)
+        => (_statementStarts ??= recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[CobolParserCore.RULE_statement])).Contains(type);
+
+    private static IntervalSet? _statementStarts;
 
     /// <summary>The statement open on the parser's stack that takes a token of type <paramref name="type"/> as one of its own
     /// phrases here, or null: the first rule invocation, going out from the parser's position through the rules that may end

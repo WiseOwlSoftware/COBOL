@@ -74,3 +74,16 @@ record type; the phrase test is one walk, no second list of words. Full code: th
 `ATNConfig` a closure merges into is never shared). Duplication: `PhraseWords`, `CollectPhraseWords` deleted, no shim.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,377/39,377 · Characterization 37/37 cases ran (skipped 0) ===` (run 000001-20261102T194504Z in the review finisher worktree, at the code head 397c11b7d; the DEVLOG line added after it is inert). The four new goldens' refusals ran at all four editions in `Conformance.trx`. Leads for the registrar: a repeated paired phrase after a left statement stays silent; an enclosing statement that returns normally after a recovery has no record (a false COBOL0306 at its END-IF, identical on main); an open statement the parse let take a phrase the ideal reading gives the left IF leaves none for the next one.
+
+**Branch review round 2, R2-1 (blocking, fixed).** `EndsLeftStatementsAtAContainingStatementsPhrase` retired a left
+statement's record at the START of the next statement of a containing block, not only at a phrase word: at a
+synchronization point inside the statement before it (a MOVE or ADD receiving list, a DISPLAY operand list) the rule the
+parser is in does not take DISPLAY, the enclosing block does, so `OpenStatementTaking` returned the open IF or PERFORM, the
+left IF was no format that takes DISPLAY as its phrase, and its record was retired: its own END-IF then went to the open
+statement and the open statement's END-IF drew a false COBOL0306 (`IF A IF B NOT <> 1 MOVE 1 TO N DISPLAY 'C' END-IF
+END-IF.`; also ADD, two DISPLAYs before an ELSE, an inline PERFORM). The fix is the doc comment's own claim made true: a
+token in FIRST(`statement`) (`BeginsAStatement`, read once from the ATN, no word list) is no phrase and ends nothing
+(ISO §14.5.3.3 4) b)). Five unit rows (`TheStartOfTheNextStatement_EndsNoStatementTheRecoveryLeft`), the reviewer's five
+inputs; the probe on the reviewer's first input drew COBOL0001 + COBOL0306 before and COBOL0001 alone after. No golden:
+the program is refused at its COBOL0001 whatever follows, and a refusal golden's `expect` names a substring that must be
+present, so it cannot assert that a cascade diagnostic is absent; the unit theory asserts the exact diagnostic list.

@@ -214,6 +214,23 @@ public sealed class ParseRecoveryCascadeTests
     public void TheNextPhraseOfAContainingStatement_EndsTheStatementTheRecoveryLeft(string statements, params string[] diagnostics)
         => AssertDiagnostics(statements, diagnostics);
 
+    /// <summary>PB4447 review R2-1: only a PHRASE of a containing statement ends the statement the recovery left (ISO §14.5.3.3 4)
+    /// b)), never the START of the next statement of a containing block. A synchronization point inside the statement before
+    /// the word (a MOVE or ADD receiving list, a DISPLAY operand list) meets the next statement's first word (DISPLAY) where the
+    /// enclosing block takes it; that word is no phrase of the open IF or PERFORM, so the left IF stays due its own END-IF and
+    /// the outer IF the one after it: no COBOL0306 where the source writes one END-IF for each IF.</summary>
+    [Theory]
+    [InlineData("IF W-N = 1 IF W-K NOT <> 1 MOVE 1 TO W-N DISPLAY 'C' END-IF END-IF. MOVE 1 W-N.", "COBOL0001@<>", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 IF W-K NOT <> 1 ADD 1 TO W-N DISPLAY 'C' END-IF END-IF. MOVE 1 W-N.", "COBOL0001@<>", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 IF W-K NOT <> 1 DISPLAY 'C' DISPLAY 'E' ELSE DISPLAY 'D' END-IF END-IF. MOVE 1 W-N.",
+                "COBOL0001@<>", "COBOL5506@W-N")]
+    [InlineData("IF W-N = 1 IF W-K NOT <> 1 MOVE 1 TO W-N DISPLAY 'C' ELSE DISPLAY 'D' END-IF END-IF. MOVE 1 W-N.",
+                "COBOL0001@<>", "COBOL5506@W-N")]
+    [InlineData("PERFORM UNTIL W-N > 3 IF W-K NOT <> 1 MOVE 1 TO W-N DISPLAY 'C' END-IF END-PERFORM. MOVE 1 W-N.",
+                "COBOL0001@<>", "COBOL5506@W-N")]
+    public void TheStartOfTheNextStatement_EndsNoStatementTheRecoveryLeft(string statements, params string[] diagnostics)
+        => AssertDiagnostics(statements, diagnostics);
+
     /// <summary>PB4447, sibling: a fault deep inside a statement ends the lists around it early, not only the nearest
     /// one. The prediction that died inside the IF C ended the IF A before the IF B that holds it, so the IF A is left too
     /// (ISO §14.5.3.2 1)): its ELSE phrase and its END-IF are its own (§14.5.3.3 4)), where they drew a COBOL0001 and a

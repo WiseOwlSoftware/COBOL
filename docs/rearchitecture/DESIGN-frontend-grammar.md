@@ -1628,7 +1628,10 @@ target:
   and the nearest terminated statement at or above), the records begun after that statement are decided newest first:
   the word is the next phrase of the first whose format permits it (recorded in its `Phrases`, so a second occurrence
   decides the other way), and a record whose format does not is ended by it and retired (an EVALUATE's WHEN ends a
-  left IF the same way). **Not covered, a lead:** an open statement the parse let take a phrase that the ideal
+  left IF the same way). Only a PHRASE does this (review R2-1): a token in the first set of `statement`
+  (`BeginsAStatement`) is the start of the next statement of a containing block, which the open statement's block takes at a
+  synchronization point inside the statement before it (a MOVE's receiving list, a DISPLAY's operands), and it ends no
+  record. **Not covered, a lead:** an open statement the parse let take a phrase that the ideal
   reading gives the left one (`IF A IF B NOT <> 1 DISPLAY C ELSE D ELSE E END-IF END-IF`: the parse's A took the first
   ELSE) has no phrase left for the second, which is reported where the ideal reading has none to report.
   **A fault deep inside a statement ends every list around it early** (PB4447): the SLL prediction that died inside the
