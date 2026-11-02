@@ -133,31 +133,20 @@ public sealed class SymbolTable
 
     /// <summary>The condition-name twin of <see cref="NearestDeclaringData"/>: the nearest declaring source element's
     /// condition-names, or none when a data-name (or a report entry) of the spelling is declared nearer
-    /// (<see cref="NearerDataNameHides"/>), or a constant-name, index-name, CAPACITY register or file-name is
-    /// (<see cref="DataBinder.NonConditionDeclarationNearerThan"/>, kb/Work PB4432 review R1-1): the reverse arm of the
+    /// (<see cref="NearerDataNameHides"/>), or a constant-name, index-name or file-name is
+    /// (<see cref="DataBinder.NonConditionDeclarationHides"/>, kb/Work PB4432 review R1-1): the reverse arm of the
     /// ranking <see cref="IndexCandidates"/> and <c>ReferenceResolver.CapacityRegisterFor</c> already apply to a condition-name
-    /// beside them. The caller's own verdict then says what the name is declared as.</summary>
+    /// beside them. (A nearer CAPACITY register is asked by <c>ConditionBinder.ConditionOf</c> of the register's one lookup.)
+    /// The caller's own verdict then says what the name is declared as.</summary>
     public List<Condition88> NearestDeclaringConditions(
         List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers, Scope scope)
     {
         var tier = NearestDeclaring(candidates, static c => c.Parent);
         if (tier.Count == 0) return tier;
         int depth = _data.DeclaringDepth(tier[0].Parent);
-        return NearerDataNameHides(name, qualifiers, depth) || _data.NonConditionDeclarationNearerThan(name, qualifiers, scope, depth) is not null
+        return NearerDataNameHides(name, qualifiers, depth) || _data.NonConditionDeclarationHides(name, qualifiers, scope, depth)
             ? []
             : tier;
-    }
-
-    /// <summary>Which declaration of ANOTHER class than a data item hides the level-88s <paramref name="candidates"/> (the
-    /// ones the written <paramref name="qualifiers"/> reach) — a constant-name, index-name, CAPACITY register or file-name
-    /// declared in a nearer source element (ISO §8.4.6.2.1 3) a))? The condition-only position's refusal names it
-    /// (kb/Work PB4432 review R1-1); null when none does.</summary>
-    internal NonDataDeclaration? NearerNonDataDeclarationHidesConditions(
-        List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers, Scope scope)
-    {
-        var tier = NearestDeclaring(candidates, static c => c.Parent);
-        return tier.Count == 0 ? null
-            : _data.NonConditionDeclarationNearerThan(name, qualifiers, scope, _data.DeclaringDepth(tier[0].Parent));
     }
 
     /// <summary>Is <see cref="NearestDeclaringConditions"/>' empty answer for <paramref name="candidates"/> (the

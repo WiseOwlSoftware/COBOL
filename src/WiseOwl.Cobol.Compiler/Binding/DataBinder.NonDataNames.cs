@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Passes;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
@@ -28,10 +27,6 @@ internal enum NonDataDeclarationKind
     TypeDeclarationCondition,
     /// <summary>A file-name: a SELECT entry of this source element, or the GLOBAL file of a containing one (§13.18.27.4 GR1).</summary>
     FileName,
-    /// <summary>The named CAPACITY register of an OCCURS DYNAMIC table (§13.18.38.3 SR30). A register a reference
-    /// resolves is judged by <c>ReferenceResolver.CapacityRegisterFor</c>; this kind is the NAME's class where a
-    /// position that accepts none (or a nearer declaration of another class) meets it.</summary>
-    CapacityRegister,
 }
 
 /// <summary>A declaration that gives a name although it declares no data item: its kind, for a type declaration's
@@ -52,7 +47,7 @@ internal readonly record struct NonDataDeclaration(
         NonDataDeclarationKind.ScreenEntry => "is declared as a SCREEN SECTION entry, not as a data item",
         NonDataDeclarationKind.AlphabetName => "is declared as an alphabet-name in the SPECIAL-NAMES paragraph, not as a data item",
         NonDataDeclarationKind.ConstantName or NonDataDeclarationKind.IndexName or NonDataDeclarationKind.ConditionName
-            or NonDataDeclarationKind.FileName or NonDataDeclarationKind.CapacityRegister => $"is declared as {ClassPhrase}, not as a data item",
+            or NonDataDeclarationKind.FileName => $"is declared as {ClassPhrase}, not as a data item",
         NonDataDeclarationKind.TypeName => "is declared as a type-name (a TYPEDEF entry), not as a data item: a type "
             + "declaration has no storage associated with it (ISO §13.18.58.4 GR2)",
         NonDataDeclarationKind.TypeDeclarationMember =>
@@ -68,7 +63,7 @@ internal readonly record struct NonDataDeclaration(
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
 
-    /// <summary>What the four name classes that a position can meet BESIDE a level-88 are, as a noun phrase: the one
+    /// <summary>What the three name classes that a position can meet BESIDE a level-88 are, as a noun phrase: the one
     /// wording of <see cref="DeclaredAs"/> ("is declared as …, not as a data item") and of the condition-only position's
     /// refusal of a condition-name a nearer declaration of the class hides (<c>ReferenceResolver.HiddenConditionText</c>,
     /// ISO §8.4.6.2.1 3) a)).</summary>
@@ -78,8 +73,6 @@ internal readonly record struct NonDataDeclaration(
         NonDataDeclarationKind.IndexName => "an index-name (an INDEXED BY phrase, ISO §13.18.38)",
         NonDataDeclarationKind.ConditionName => "a condition-name (a level-88 entry)",
         NonDataDeclarationKind.FileName => "a file-name (a file control entry, ISO §12.4.5)",
-        NonDataDeclarationKind.CapacityRegister =>
-            "the CAPACITY register of an OCCURS DYNAMIC table (a CAPACITY IN phrase, ISO §13.18.38.3 SR30)",
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
 }
@@ -144,13 +137,16 @@ public sealed partial class DataBinder
     }
 
     /// <summary>⛔ THE ONE LIST OF THE NAME CLASSES BESIDE A CONDITION-NAME, each with the depth of the element that declares
-    /// it (kb/Work PB4432): the constant-name, the index-name, the named CAPACITY register and the file-name of the
-    /// spelling (this element's own SELECT or a containing element's GLOBAL file, §13.18.27.4 GR1), in the order a tie at
-    /// one depth keeps. <see cref="NonDataDeclarationOf"/> ranks them with the condition-name for a reference that
-    /// identifies no data item, and <see cref="NonConditionDeclarationNearerThan"/> asks the same list the other way
-    /// round for the condition-name lookup, so a class added here ranks in both.
+    /// it (kb/Work PB4432): the constant-name, the index-name and the file-name of the spelling (this element's own SELECT
+    /// or a containing element's GLOBAL file, §13.18.27.4 GR1), in the order a tie at one depth keeps.
+    /// <see cref="NonDataDeclarationOf"/> ranks them with the condition-name for a reference that identifies no data
+    /// item, and <see cref="NonConditionDeclarationNearerThan"/> asks the same list the other way round for the
+    /// condition-name lookup, so a class added here ranks in both. (A named CAPACITY register is not in it: the register
+    /// has ONE lookup, <c>ReferenceResolver.CapacityRegisterFor</c>, which judges the written reference
+    /// (<c>CapacityRegisterReferenceDriftTests</c>), so the condition-name lookup asks that one,
+    /// <c>ConditionBinder.ConditionOf</c>.)
     /// <paramref name="dataName"/> is whether the ranked data-name lookup left a data item standing: it answers for
-    /// itself, so the constant, the register and the file are not offered beside it (an index-name is, because
+    /// itself, so the constant and the file are not offered beside it (an index-name is, because
     /// <see cref="Model.SymbolTable.IndexCandidates"/> has already weighed it against the data-name). The inherited
     /// GLOBAL constant is still in the table until the unit's data division has bound (<c>DropShadowedConstants</c>), so
     /// the data division's own clause operands meet it here, where a contained program's own level-88 of the spelling
@@ -163,31 +159,18 @@ public sealed partial class DataBinder
                 Depth: _inheritedConstants.GetValueOrDefault(name));
         if (Symbols.IndexCandidates(name, qualifiers, scope) is { } indexes)
             yield return new(NonDataDeclarationKind.IndexName, Depth: indexes.NearestDepth(i => DeclaringDepth(i.Table)));
-        if (dataName) yield break;
-        // The register is a data-name of its entry's source element (§13.18.38.3 SR30), reached by the qualifiers its
-        // register item answers to; the nearest source element that declares one the qualifiers reach is its depth. The
-        // registers exist once the OCCURS pass has built them (CapacityRegisters' watermark): the ODO pass itself, which
-        // asks this list for its depending-on operands, meets none yet, and a clause operand names no register.
-        if (Watermark >= PassPhase.OccursResolved && Symbols.CapacityCandidates(name, scope) is { } tables)
-        {
-            int depth = int.MaxValue;
-            foreach (var table in tables)
-                if (table.OccursSpec?.CapacityRegister is { } register && QualifierChainMatches(register, qualifiers))
-                    depth = Math.Min(depth, DeclaringDepth(table));
-            if (depth != int.MaxValue) yield return new(NonDataDeclarationKind.CapacityRegister, Depth: depth);
-        }
-        if (qualifiers.Count == 0 && TryGetVisibleFile(name, out var file))
+        if (!dataName && qualifiers.Count == 0 && TryGetVisibleFile(name, out var file))
             yield return new(NonDataDeclarationKind.FileName, Depth: FileDepth(file));
     }
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) a) FOR A CONDITION-NAME REFERENCE AGAINST THE OTHER NAME CLASSES (kb/Work PB4432, the
-    /// reverse arm of <see cref="NonDataDeclarationOf"/>'s ranking): the nearest constant-name, index-name, CAPACITY
-    /// register or file-name of the spelling declared in a source element NEARER than <paramref name="depth"/>, the depth
-    /// of the level-88 tier the reference reaches, or null when none is. "If the name is declared in source element B, the
-    /// item in source element B is the referenced item", so a contained program's own `INDEXED BY RELF`, `RELF CONSTANT`,
-    /// CAPACITY IN RELF or SELECT RELF hides its container's GLOBAL level-88 RELF exactly as its own `01 RELF` does. A
-    /// tie is not "nearer": at one depth the condition-name keeps the reference, as it always has. Free for a unit that
-    /// inherits nothing (every level-88 is then depth 0).</summary>
+    /// reverse arm of <see cref="NonDataDeclarationOf"/>'s ranking): the nearest constant-name, index-name or file-name of
+    /// the spelling declared in a source element NEARER than <paramref name="depth"/>, the depth of the level-88 tier the
+    /// reference reaches, or null when none is. "If the name is declared in source element B, the item in source element
+    /// B is the referenced item", so a contained program's own `INDEXED BY RELF`, `RELF CONSTANT` or SELECT RELF hides its
+    /// container's GLOBAL level-88 RELF exactly as its own `01 RELF` does. A tie is not "nearer": at one depth the
+    /// condition-name keeps the reference, as it always has. Free for a unit that inherits nothing (every level-88 is
+    /// then depth 0).</summary>
     internal NonDataDeclaration? NonConditionDeclarationNearerThan(
         string name, IReadOnlyList<string> qualifiers, Model.Scope scope, int depth)
     {
@@ -196,6 +179,22 @@ public sealed partial class DataBinder
         foreach (var other in NonConditionDeclarationsOf(name, qualifiers, scope, dataName: false))
             if (other.Depth < depth && (nearest is not { } best || other.Depth < best.Depth)) nearest = other;
         return nearest;
+    }
+
+    /// <summary>Whether <see cref="NonConditionDeclarationNearerThan"/> finds a declaration — the question
+    /// <c>SymbolTable.NearestDeclaringConditions</c> asks, which has no use for the declaration itself.</summary>
+    internal bool NonConditionDeclarationHides(string name, IReadOnlyList<string> qualifiers, Model.Scope scope, int depth) =>
+        NonConditionDeclarationNearerThan(name, qualifiers, scope, depth) is not null;
+
+    /// <summary>⛔ ISO §8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
+    /// (kb/Work PB4432 review R1-1, the class twin of <see cref="ConditionNameHiddenByNearerDataItem"/>): the written
+    /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name or file-name of it declared in a
+    /// NEARER source element is the referenced item. The declaration that hides it, or null. Pure: it reports nothing.</summary>
+    internal NonDataDeclaration? ConditionNameHiddenByNearerNonDataName(
+        string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
+    {
+        var tier = ConditionTier(name, qualifiers, scope);
+        return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, DeclaringDepth(tier[0].Parent));
     }
 
     /// <summary>Whether <paramref name="name"/> is a file-name visible in this source element: one of its own files or a

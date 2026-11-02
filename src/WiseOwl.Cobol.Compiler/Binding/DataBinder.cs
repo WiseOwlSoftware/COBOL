@@ -8908,14 +8908,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
     }
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
-    /// (kb/Work PB4432 review R1-1, the class twin of <see cref="ConditionNameHiddenByNearerDataItem"/>): the written
-    /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name, CAPACITY register or file-name of it
-    /// declared in a NEARER source element is the referenced item. The declaration that hides it, or null. Pure: it
-    /// reports nothing.</summary>
-    internal NonDataDeclaration? ConditionNameHiddenByNearerNonDataName(
-        string name, IReadOnlyList<string> qualifiers, Model.Scope scope) =>
-        Symbols.NearerNonDataDeclarationHidesConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name, qualifiers, scope);
+    /// <summary>The nearest declaring source element's level-88s of <paramref name="name"/> that the written
+    /// <paramref name="qualifiers"/> reach, BEFORE a nearer declaration of another name class hides them: the tier the
+    /// §8.4.6.2.1 3) a) question "is a nearer element's declaration the referenced item?" is asked of
+    /// (<see cref="ConditionNameHiddenByNearerNonDataName"/>, and <c>ConditionBinder</c>'s CAPACITY register arm).</summary>
+    internal List<Condition88> ConditionTier(string name, IReadOnlyList<string> qualifiers, Model.Scope scope) =>
+        Symbols.NearestDeclaring(ConditionsUnderQualifiers(name, qualifiers, scope), static c => c.Parent);
 
     /// <summary>Every level-88 of <paramref name="name"/> visible in <paramref name="scope"/> whose conditional-variable
     /// chain carries each written qualifier, BEFORE the §8.4.6.2.1 3) narrowing: the qualifier walk of
