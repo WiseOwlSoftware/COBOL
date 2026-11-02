@@ -2148,7 +2148,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         int depth = data.DeclaringDepth(table);
         reached.RemoveAll(t => data.DeclaringDepth(t) != depth);
         if (table.OccursSpec?.CapacityRegister is not { } reg
-            || data.Symbols.NearerDataNameHides(name, written.Qualifiers, depth)) return null;
+            || data.Symbols.NearerDataOrConditionNameHides(name, written.Qualifiers, depth)) return null;
         var place = CapacityRegisterPlaceOf(table);
         var fault =
               written.SubscriptGroup is not null                     ? CapacityRefFault.Subscripted

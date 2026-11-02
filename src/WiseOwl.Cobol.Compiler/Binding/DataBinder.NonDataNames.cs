@@ -79,10 +79,11 @@ public sealed partial class DataBinder
     /// declared NEARER hides it, kb/Work PB4219) wins over a constant-name, a condition-name and the type declarations (§8.3.2.2 exception 3 lets a constant-name and a data-name share one word; the others are
     /// a §8.3.2.2 conflict reported at the declaration). A REPORT SECTION entry is
     /// <see cref="ReportEntryReferenceRefused"/>'s: its refusal is a section rule (§13.8.6.2.3), not this one.
-    /// <para>⛔ A FILE-NAME AND A CONDITION-NAME ARE RANKED BY THE ELEMENT THAT DECLARES THEM (kb/Work PB4219): ISO
+    /// <para>⛔ A CONSTANT-NAME, AN INDEX-NAME, A FILE-NAME AND A CONDITION-NAME ARE RANKED BY THE ELEMENT THAT DECLARES
+    /// THEM (kb/Work PB4219, PB4432): ISO
     /// §8.4.6.2.1 3) a) makes the declaration of the source element B the referenced item, and b) the nearest
     /// containing one otherwise, so a contained program's own level-88 RELF is what `RELF` names there, not its
-    /// container's GLOBAL file RELF; the file used to be asked first whatever the nesting. Each answer carries its
+    /// container's GLOBAL file, constant-name or index-name RELF; each used to be asked first whatever the nesting. Each answer carries its
     /// <see cref="NonDataDeclaration.Depth"/> so a caller that weighs it against a declaration this query does not
     /// rank (APPLY COMMIT's GLOBAL file, <see cref="ScreenEnclosingFileOperand"/>) compares like with like.</para></summary>
     internal NonDataDeclaration? NonDataDeclarationOf(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
@@ -95,23 +96,33 @@ public sealed partial class DataBinder
         bool dataName = qualifiers.Count == 0
             ? Symbols.TryResolveUnqualified(name, scope, out _)
             : Symbols.TryResolve(name, scope, out _);
+        // ⛔ THE NON-DATA DECLARATIONS OF THE SPELLING ARE RANKED TOGETHER, by the depth of the element that declares each
+        // (§8.4.6.2.1 3), kb/Work PB4219, PB4432): a constant-name, an index-name, a file-name — this element's own SELECT,
+        // or a containing element's GLOBAL file (§13.18.27.4 GR1, kb/Work PB3557) — and a condition-name. The nearest wins;
+        // at EQUAL depth one element declares both, a §8.3.2.2 conflict reported at the declaration, and the first
+        // offered keeps the answer as it always has (constant, index, file, condition). The inherited GLOBAL constant is
+        // still in the table until the unit's data division has bound (DropShadowedConstants), so the data division's
+        // own clause operands meet it here, where a contained program's own level-88 of the spelling must outrank it.
+        NonDataDeclaration? nearest = null;
+        void Offer(NonDataDeclaration candidate)
+        {
+            if (nearest is not { } best || candidate.Depth < best.Depth) nearest = candidate;
+        }
         if (qualifiers.Count == 0 && !dataName && IsConstantName(name))
-            return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name),
-                Depth: _inheritedConstants.GetValueOrDefault(name));
+            Offer(new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name),
+                Depth: _inheritedConstants.GetValueOrDefault(name)));
         if (Symbols.IndexCandidates(name, qualifiers, scope) is { } indexes)
-            return new(NonDataDeclarationKind.IndexName, Depth: indexes.NearestDepth(i => DeclaringDepth(i.Table)));
+            Offer(new(NonDataDeclarationKind.IndexName, Depth: indexes.NearestDepth(i => DeclaringDepth(i.Table))));
+        // A data-name the ranked lookup leaves standing answers for itself, unless an index-name outranks or ties it
+        // (IndexCandidates has already weighed the two); the file and the condition-name never take it.
+        if (!dataName)
+        {
+            if (qualifiers.Count == 0 && TryGetVisibleFile(name, out var file)) Offer(new(NonDataDeclarationKind.FileName, Depth: FileDepth(file)));
+            if (Symbols.TryResolveCondition(name, scope, out var conditions))
+                Offer(new(NonDataDeclarationKind.ConditionName, Depth: conditions.Min(c => DeclaringDepth(c.Parent))));
+        }
+        if (nearest is { } answer) return answer;
         if (dataName) return null;
-        // A file-name (kb/Work PB3557): this element's own SELECT, or a containing element's GLOBAL file (§13.18.27.4 GR1);
-        // and a condition-name, the nearer of the two (§8.4.6.2.1 3), kb/Work PB4219; one element declaring both is a
-        // §8.3.2.2 conflict, where the file is named as before).
-        int? fileDepth = qualifiers.Count == 0 && TryGetVisibleFile(name, out var file)
-            ? FileDepth(file)
-            : null;
-        int? conditionDepth = Symbols.TryResolveCondition(name, scope, out var conditions)
-            ? conditions.Min(c => DeclaringDepth(c.Parent))
-            : null;
-        if (fileDepth is { } fd && !(conditionDepth < fd)) return new(NonDataDeclarationKind.FileName, Depth: fd);
-        if (conditionDepth is { } cd) return new(NonDataDeclarationKind.ConditionName, Depth: cd);
         if (qualifiers.Count == 0 && TryFindTypeDecl(name, scope, out _)) return new(NonDataDeclarationKind.TypeName);
         // §13.18.58.4 GR1: "Subordinate data description entries, condition-name entries, and RENAMES clauses are part of
         // the type declaration of that type" — a data-name or a condition-name such an entry declares.
