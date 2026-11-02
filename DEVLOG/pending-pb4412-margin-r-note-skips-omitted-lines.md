@@ -11,7 +11,7 @@ no program text" beside the COBOL5506 at STOP, both times.
 
 **Fix shape: record the omission where the dropping stage knows it.** The filed shape (the CC stage records omitted origins) covers one
 of the two kinds. (1) A TEXT stage's omission is now part of the line's origin: `LineOrigin.Omitted`, set with `AsOmitted()` where the
-conditional-compilation driver drops an ordinary line (ISO 7.3.16.4 GR 3, 7.3.13.4 GR 4), carried by every later stage with the origin
+conditional-compilation driver drops an ordinary line (ISO 7.3.16.4 GR 3, 7.3.13.4 GR 4 and 5), carried by every later stage with the origin
 (`LineOrigin.From`, `OriginWriter`), answered by `SourceLineMap.IsOmitted`, and refused by `FixedFormAreas.MarginRCutAt` (null), so the
 next text stage that drops a line is one call and no reader keeps a list. (2) A debugging line is not a text-stage fact: whether a `D` line
 is source is its unit's `WITH DEBUGGING MODE` (12.3.5.4 GR 1), which `DebuggingLineRewriter` reads off the tokens after the line map
@@ -40,3 +40,5 @@ debugging line; the blank-debugging-line literal), `SourceLineMapTests` +2. Conf
 `pb4412-vanished-statement-beside-debugging-line`. No inventory row changes verdict (`closes_rows: []`).
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN` at db31e465d, run 000002-20261102T060344Z (Conformance 20,579/20,579, Unit 39,170/39,170, Characterization 37/37, no Linux half in the line); the first gate (000001-20261102T055830Z) was RED on the three tests that pinned the old blank-D slot, re-pinned above.
+
+**Review round 1.** R1-1 (blocking): the blank debugging line now kept the bare carrier in its slot, and the conditional-compilation driver's text-before-the-first->>WHEN check read it as program text, so a legal program with a blank `D` line between `>>EVALUATE` and its first `>>WHEN` was refused with COBOL2649 (§6.5 2): a blank line is discarded; §7.3.13.2). Fixed at the root: `ReferenceFormatProcessor.HoldsNoProgramText` is the one answer to "does this logical line hold text" (the carrier alone, or spaces, is none) and the check asks it. Tests: `MarginRCutNoteTests` +2 (blank `D` lines pass; a `D` line with text is still text), conformance `pb4412-blank-debugging-line-before-first-when` (2002). R1-2: the omitted-WHEN citation is now §7.3.13.4 GR 4 and 5 everywhere (GR 5 is the no-true-WHEN rule the test builds; Format 2 repeats it as GR 9). R1-3: the two statements in `FixedFormAreas.MarginRCutAt` are on two lines.

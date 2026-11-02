@@ -1178,7 +1178,7 @@ reference formats, and the only place source comments are recognized. Its model:
   (`MarginRCut.HoldsProgramText` false; the message names a line that "has no program text"). A tokenless line that DOES hold
   program text was consumed by a stage after the reference format (a directive, a COPY statement) and is never asked about; nor
   is a line the compiler never READ, which holds no program text either (PB4412): a line a TEXT stage omitted (a false `>>IF`
-  or unmatched `>>WHEN` branch, ISO §7.3.16.4 3), §7.3.13.4 4)) is born-marked in its `LineOrigin` (`LineOrigin.Omitted`,
+  or unmatched `>>WHEN` branch, ISO §7.3.16.4 3), §7.3.13.4 4) and 5)) is born-marked in its `LineOrigin` (`LineOrigin.Omitted`,
   `AsOmitted()` at the stage that drops it; every later stage carries the origin, `SourceLineMap.IsOmitted`) and
   `FixedFormAreas.MarginRCutAt` answers null for it, so the next kind of text-stage omission is one `AsOmitted()` call; a
   debugging line without debugging mode is a comment line, decided by `DebuggingLineRewriter` on the TOKENS after the line map

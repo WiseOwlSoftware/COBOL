@@ -279,8 +279,8 @@ public static partial class ConditionalCompilationProcessor
                 if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
                 {
                     // §7.3.13.2: `>> EVALUATE` is followed directly by its first `>> WHEN` — text-1 belongs to a WHEN phrase,
-                    // so program text between the two belongs to no phrase of the format (a blank line is no text).
-                    if (trimmed.Length > 0 && _stack.Count > 0 && _stack.Peek() is { Phase: FramePhase.EvaluateBeforeWhen } before
+                    // so program text between the two belongs to no phrase of the format (a blank line is no text, a blank debugging line included: kb/Work PB4412).
+                    if (!ReferenceFormatProcessor.HoldsNoProgramText(trimmed) && _stack.Count > 0 && _stack.Peek() is { Phase: FramePhase.EvaluateBeforeWhen } before
                         && !before.TextBeforeWhenReported)
                     {
                         before.TextBeforeWhenReported = true;
@@ -289,7 +289,7 @@ public static partial class ConditionalCompilationProcessor
                             + ">>EVALUATE and its first >>WHEN (ISO §7.3.13.2)");
                     }
                     if (_stack.Count == 0 || _stack.Peek().Emitting) { block.Add(line); blockOrigins.Add(origin); }   // accumulate; COPY expands at Flush
-                    else { Flush(); output.Add(""); outputOrigins.Add(origin.AsOmitted()); }                           // omitted ordinary line (ISO §7.3.16.4 GR 3, §7.3.13.4 GR 4), marked so a diagnostic never asks of its text (kb/Work PB4412)
+                    else { Flush(); output.Add(""); outputOrigins.Add(origin.AsOmitted()); }                           // omitted ordinary line (ISO §7.3.16.4 GR 3, §7.3.13.4 GR 4 and 5), marked so a diagnostic never asks of its text (kb/Work PB4412)
                     continue;
                 }
 

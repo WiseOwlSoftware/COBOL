@@ -51,7 +51,8 @@ public sealed class FixedFormAreas(SourceLineMap lineMap, IReadOnlyDictionary<st
     public LocatedMarginRCut? MarginRCutAt(int line, int column)
     {
         if (lineMap.IsOmitted(line)) return null;
-        var at = lineMap.Locate(line, column, fallbackFile: "");        return formats.TryGetValue(at.FileName, out var map) && map.CutAt(at.Line + 1) is { } cut
+        var at = lineMap.Locate(line, column, fallbackFile: "");
+        return formats.TryGetValue(at.FileName, out var map) && map.CutAt(at.Line + 1) is { } cut
             ? new LocatedMarginRCut(at, cut)
             : null;
     }

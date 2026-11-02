@@ -308,13 +308,36 @@ public sealed class MarginRCutNoteTests : IDisposable
         Assert.Contains("main.cob(15,12) may be this", note);
     }
 
-    [Fact] // PB4412: ISO §7.3.13.4 4): the WHEN phrases that do not match are omitted like the branch of a false IF
+    [Fact] // PB4412: ISO §7.3.13.4 5) (no WHEN true, Format 2 as GR 9): the WHEN phrases that do not match are omitted like the branch of a false IF
     public void ALineWithTextOnlyPastMarginR_InAnUnmatchedWhenPhrase_IsNotAskedAbout()
     {
         var diagnostics = Compile(Program([.. Head, OpenCall, "       >>EVALUATE TRUE", "       >>WHEN TRACING IS DEFINED",
             OnlyPastMarginR, "       >>WHEN OTHER", "           CONTINUE", "       >>END-EVALUATE", "           STOP RUN."]));
 
         Assert.Empty(Notes(diagnostics));
+    }
+
+    private static string[] EvaluateWithLineBeforeFirstWhen(string between) =>
+    [
+        "       IDENTIFICATION DIVISION.", "       PROGRAM-ID. EVD.", "       PROCEDURE DIVISION.", "       >>EVALUATE TRUE", between,
+        "       >>WHEN TRACING IS DEFINED", "           DISPLAY \"T\"", "       >>WHEN OTHER", "           DISPLAY \"OK\"",
+        "       >>END-EVALUATE", "           STOP RUN.",
+    ];
+
+    [Fact] // PB4412 review R1-1: ISO §6.5 2): a blank debugging line is a blank line, so it is no text before the first >>WHEN (§7.3.13.2)
+    public void ABlankDebuggingLine_BetweenEvaluateAndItsFirstWhen_IsNoText()
+    {
+        foreach (string blank in new[] { "      D", "      D      " })
+            Assert.DoesNotContain(Compile(Program(EvaluateWithLineBeforeFirstWhen(blank)), InitialReferenceFormat.Fixed),
+                d => d.Contains("text follows the >>EVALUATE"));   // the default edition's own COBOL0902 (D removed in 2014) is not under test
+    }
+
+    [Fact] // PB4412 review R1-1: the control: a debugging line that holds program text there is text (the unit has no debugging mode, yet the directive is read first)
+    public void ADebuggingLineWithText_BetweenEvaluateAndItsFirstWhen_IsStillText()
+    {
+        var diagnostics = Compile(Program(EvaluateWithLineBeforeFirstWhen("      D    CONTINUE")), InitialReferenceFormat.Fixed);
+
+        Assert.Single(diagnostics, d => d.Contains("text follows the >>EVALUATE"));
     }
 
     [Fact] // PB4412: a copybook's omitted branch is omitted in the copybook's own lines, and its text is no cut
