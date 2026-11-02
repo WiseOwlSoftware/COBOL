@@ -1146,11 +1146,12 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    earlier group's on ANY file both claim (the whole file, or a shared member: `inflight.collision` over `unit_meet`,
    the question the in-flight check asks too, kb/Work PB3696) is that group's WORK, absorbed into it (`Group.absorb`:
    its notes, claim, pred and continued branches; a finisher's makes it a finisher), and a group meeting several
-   groups of the wave unites them, while the result fits the group size. What does not fit is the group's
-   **overflow** (`Group.overflow`): its notes wait, named, and the next wave plans them ONTO the branch the group
-   leaves (item 1's continuation). `check_practices.py` (O2) refuses two groups of a groups file whose claims meet,
-   with no `after:` exception, through the same `collision`; a group on other members of a file, and nothing else
-   shared, runs beside it (kb/Work PB3670). **The absorbed pred states each sentence once** (kb/Work PB4419, which
+   groups of the wave unites them, while the result fits the group size. Past that size (multiple editors per file,
+   kb/Work PB4452, owner 2026-11-02) a group sharing only FILES joins the first group on them with room or runs BESIDE
+   them as a group of its own; only one sharing a MEMBER (`inflight.hold`) is the group's **overflow**
+   (`Group.overflow`): its notes wait, named, and the next wave plans them ONTO the branch the group leaves (item 1's
+   continuation). `check_practices.py` (O2) refuses two groups of a groups file that edit the same member, with no
+   `after:` exception, through `hold`; a shared file alone never refuses a pair. **The absorbed pred states each sentence once** (kb/Work PB4419, which
    `check_practices.py`'s once rule, `once_rule.py`, enforces on a rendered spec): a pred is the FACTS that name a branch,
    a note or a report, then the RULES its builder writes the same for every branch, and `Group.absorb` joins preds with
    `join_preds`, which keeps every group's facts in order and states each rule a builder declared with `shared_rule`
