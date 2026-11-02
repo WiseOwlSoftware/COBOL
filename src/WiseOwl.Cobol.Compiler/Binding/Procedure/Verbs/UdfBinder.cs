@@ -292,7 +292,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         bool calleeCompiledHere = pointer is null && fn.DefinitionCompiledHere;
         if (!calleeCompiledHere)
             for (int i = 0; i < callArgs.Count; i++)
-                callArgs[i] = host.Described(callArgs[i]);
+                callArgs[i] = CallBinder.Described(host, callArgs[i]);
         var returningDescription = calleeCompiledHere ? null : ActivationDescriptions.OfPlace(tempPlace, host.OoClasses);
         Pending.Add(pointer is null
             ? new BoundCallProgram(fn.Externalized, null, callArgs, tempPlace, null, null)

@@ -133,17 +133,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// they classify; null in unit-test direct construction.</summary>
     internal PrototypeSignatureClasses? SignatureClasses { get; init; }
 
-    /// <summary>⛔ ONE ARGUMENT, DESCRIBED FOR §14.9.4.4 GR3 d)'s RUN-TIME CHECK (kb/Work PB165, PB2103): <paramref name="arg"/>
-    /// with its §14.8.2 description (<see cref="ActivationDescriptions.OfCallArgument"/>, the builder a universal INVOKE's
-    /// operands take; a program-address-identifier described by its prototype's restriction). The CALL statement and the
-    /// user-defined function reference both describe their arguments through it whenever the element they activate is
-    /// not a definition this compilation group compiles (<see cref="BoundCallProgram.CalleeCompiledHere"/>).</summary>
-    internal BoundCallArg Described(BoundCallArg arg) => arg with
-    {
-        Description = ActivationDescriptions.OfCallArgument(arg,
-            arg.ProgramAddress?.Prototype is { } addressed ? ProgramRestrictionIdentityOf(addressed) : null, OoClasses),
-    };
-
     /// <summary>The TYPE of a pointer restricted to program-prototype <paramref name="prototypeName"/> — its signature
     /// class (<see cref="PrototypeSignatureClasses"/>), the identity a program-address-identifier argument is described
     /// with. A name the unit's table does not hold has no compile-time signature (ISO §12.3.8.4 GR10 c)), so it is

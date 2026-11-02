@@ -20,7 +20,7 @@ changed, nothing kept.
 **The split (§4.2).** `BoundCallProgram.CalleeCompiledHere` is true only for AS NESTED, a prototype CALL that
 activates GR10 a)'s definition (or §8.4.6.8's containing program) and a GR11 a) / §8.4.6.6 function. Everywhere else
 the activated element is compiled elsewhere and may have been rebuilt since the bind checked it, so the site
-describes its operands (`StatementBinder.Described`, both lanes) and §14.9.4.4 GR3 d) is asked against the program
+describes its operands (`CallBinder.Described`, both lanes) and §14.9.4.4 GR3 d) is asked against the program
 actually activated. Sibling found and fixed in `ProgramTable.Activate`: an activated FUNCTION was judged by
 §14.8.2.3.2 rule 1 (same length) unless the site listed it as a program-specifier; rule 2 lists "a function". Golden
 `wiseowl/cases/14.9.4-CALL/pb2103_prototype_callee_compiled_elsewhere` (multi-unit: a conforming callee runs, a stale

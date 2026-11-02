@@ -411,7 +411,7 @@ Format-1 CALL already uses), so it is no call-ABI change.
 **Landed (kb/Work PB2103):** `BoundCallProgram.CalleeCompiledHere`, set by `CallBinder` (AS NESTED; a prototype whose
 `ProgramPrototype.DefinitionCompiledHere` is true — GR10 a) or §8.4.6.8's containing program — when the CALL writes no
 target of its own or a literal naming that same program) and by `UdfBinder` (`UserFunctionSignature.DefinitionCompiledHere`;
-never through a function-pointer); both lanes describe through `StatementBinder.Described`. A described site that held a
+never through a function-pointer); both lanes describe through `CallBinder.Described`. A described site that held a
 signature also states its program-specifiers, so `ProgramTable.Activate` asks §14.8.2.3.2 rule 2 of it, and lands its
 arguments a second time through the activated formal's landing, which is the identity for the description the site
 landed for. `ProgramTable.Activate` judges an activated FUNCTION by rule 2 always (rule 2 lists "a function"; the

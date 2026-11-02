@@ -840,7 +840,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // recompiled since (DESIGN-external-repository §4.2).
         if (!calleeCompiledHere)
             for (int i = 0; i < args.Count; i++)
-                args[i] = host.Described(args[i]);
+                args[i] = Described(host, args[i]);
         // The CALL's receivers -- each BY REFERENCE argument and the RETURNING item -- are identified at its start
         // (§14.9.4.4 GR3 a)) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
         // object-property receiver's accessors there (kb/Work PB2078).
@@ -854,6 +854,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             ReturningDescription = !calleeCompiledHere && returning is { } described ? ActivationDescriptions.OfPlace(described, host.OoClasses) : null,
         };
     }
+
+    /// <summary>⛔ ONE ARGUMENT, DESCRIBED FOR §14.9.4.4 GR3 d)'s RUN-TIME CHECK (kb/Work PB165, PB2103): <paramref name="arg"/>
+    /// with its §14.8.2 description (<see cref="ActivationDescriptions.OfCallArgument"/>, the builder a universal INVOKE's
+    /// operands take; a program-address-identifier described by its prototype's restriction, through the
+    /// <paramref name="host"/>'s prototype table). The CALL statement and the user-defined function reference
+    /// (<c>UdfBinder</c>) both describe their arguments through it whenever the element they activate is not a definition
+    /// this compilation group compiles (<see cref="BoundCallProgram.CalleeCompiledHere"/>).</summary>
+    internal static BoundCallArg Described(StatementBinder host, BoundCallArg arg) => arg with
+    {
+        Description = ActivationDescriptions.OfCallArgument(arg,
+            arg.ProgramAddress?.Prototype is { } addressed ? host.ProgramRestrictionIdentityOf(addressed) : null, host.OoClasses),
+    };
 
     /// <summary>Bind ONE address-identifier argument (ISO §8.4.3.1.2 identifier Format 9; §14.9.4.3 SR3/SR4 —
     /// kb/Work PB239) through the ONE operand binder of each arm — <c>PtrBinder.BindDataAddress</c> for
