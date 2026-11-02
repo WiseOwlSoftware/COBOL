@@ -1,0 +1,3 @@
+## File PB4418: landing_measure complete refuses a pull request the merge queue removed for a conflict
+
+Filed PB4418. `landing_measure.py complete` counts bounces only as failed merge-group runs. When the merge queue removes a pull request for a merge conflict, no run fails, but the record already counts that removal as a bounce with the cause `conflict`. So `complete` refuses PR #963 on every run ("1 bounce cause(s) name more than the 0 bounce(s)"), and that record never gets its merge time or CI wall. This also moves the PB4418 line out of the already-stamped entry 2979 into an entry of its own. Notes only; no code changed.
