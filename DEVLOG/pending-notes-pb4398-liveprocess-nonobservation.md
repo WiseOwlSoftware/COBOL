@@ -1,4 +1,4 @@
-## PB4398 and PB4399 filed: two gaps a six-hour wave exposed
+## PB4398, PB4399 and PB4411 filed: two gaps a six-hour wave exposed, and a planner hold with no exit
 
 Wave 20261808's group A gated its second review-fix round on the whole population, since it is a tooling change. The
 gate went RED on one Unit case of 39,225: a `RunUnitProcessBoundaryTests` holder printed no line within the 120 s
@@ -14,3 +14,8 @@ The same wave also filed PB4399. The unit started O8's stall watchdog with the B
 and the harness killed it at 2 h while the wave ran for 6 h 6 min, so the last four hours had no watchdog. The note
 asks for one stall mechanism for the loop: a watchdog that re-arms, or the supervisor's own stall posts with O8
 retired for loop units.
+
+A resume unit filed PB4411. Two PB4274 split-out commits were made by hand on `worktree-wf_2201113e-54d-26` after its
+DONE report. `plan_wave.py`'s RESUMED arm then waited for "its agent" to rewrite the report, and no agent owned the
+branch. PB4240 and three sibling notes waited a day, and so did the four PB4207-group notes, held through a file-set
+collision. The fix is the IN FLIGHT arm's ownership test: an unowned branch goes to a finisher.
