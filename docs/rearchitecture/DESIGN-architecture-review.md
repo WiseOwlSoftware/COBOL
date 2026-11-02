@@ -1262,7 +1262,18 @@ the emitters) reads `Data.SpecialNames`; a contained unit's is seeded from its c
 `DataBinder.InheritConfiguration`, which with the REPOSITORY specifier screens and the configuration-literal readings is
 `DataBinder.Configuration.cs`. The emitters' reads of it are tolerated edge pairs onto `SpecialNamesBinder` in
 `architecture-edges.json`, removed by PB2361 and the configuration slice of PB2296 (the facts become a value slice in
-`DataBindResult`, and the binder's state stops being read through the binder). During procedure binding the
+`DataBindResult`, and the binder's state stops being read through the binder).
+*`FileControlBinder` as built (PB2356).* The same shape, `DataBinder.FileControl`, over two files: `FileControlBinder.cs` (the SELECT
+entries, `BindFileControl`; the RECORD KEY and ALTERNATE RECORD KEY source phrase; the key-level and file-level COLLATING SEQUENCE
+clauses and their post-build resolution, `ResolveFileCollating`; the ORGANIZATION, ACCESS MODE, SHARING and LOCK MODE mappers) and
+`FileControlBinder.IoControl.cs` (the I-O-CONTROL paragraph: the SAME clauses' membership model and syntax rules, APPLY COMMIT and the
+record-area link). It owns `SelectedFiles` (the SELECT-declared files, §12.4.5.2 SR2/SR3), `SuppressWhenOperands` and `ApplyCommit`; the
+files themselves stay on the data binder (`Files`, `FilesByName`), where the FD, the report section and the file resolution reach
+them. The COLLATING SEQUENCE alphabet class test, shared by the file clause, PROGRAM COLLATING SEQUENCE and SORT/MERGE, is an alphabet
+question and lives with the alphabets, `SpecialNamesBinder.CollatingAlphabetFault`. What stays for the next FILE step is the post-build
+half: `ResolveFiles` and its FILE STATUS, LINAGE, ASSIGN USING and key resolutions, and the FD/SD binding. `ConfigurationBindersBoundaryDriftTests`
+pins both binders: the data binder declares no member a binder declares (no forwarder), and each binder is made in one place. During
+procedure binding the
 binders read the frozen value slices, append and early-read the fact sets, and use `ProcedureBindState`'s three
 shapes, all through `BindSession`; after the group
 tail (StorageComputed), when every slice is frozen and every fact set complete, the output is `DataBindResult`, the

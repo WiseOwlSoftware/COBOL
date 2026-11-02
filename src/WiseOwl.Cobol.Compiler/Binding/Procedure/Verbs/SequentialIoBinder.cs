@@ -40,7 +40,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // The 2002 EDITION gate is elsewhere: the post-bind VersionConformancePass (Step 14c) recognizes
             // the SHARING phrase on the parse tree; the binder just records it.
             SharingMode? sharing = clause.sharingPhrase() is { } sp && sp.sharingMode() is { } sm
-                ? DataBinder.MapSharing(sm)   // ONE mapper for both writers of the `sharingMode` production
+                ? FileControlBinder.MapSharing(sm)   // ONE mapper for both writers of the `sharingMode` production
                 : null;
             RetrySpec? retry = clause.retryPhrase() is { } rp ? host.BindRetry(rp) : null;
             foreach (var spec in clause.openFileSpec())
@@ -53,7 +53,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 // OPEN statement, then file sharing is completely specified in the file control entry."
                 // ⛔ THIS IS SR8's ONLY SITE (kb/Work PB319): the rule speaks about the OPEN statement's
                 // operand, so a file control entry cannot host it. The full antecedent lives in the callee.
-                ctx.Data.ScreenApplyCommitSubject(file, clause.sharingPhrase() is not null, "OPEN with a SHARING phrase",
+                ctx.Data.FileControl.ScreenApplyCommitSubject(file, clause.sharingPhrase() is not null, "OPEN with a SHARING phrase",
                     "ISO §14.9.27.3 SR7: \"The sharing phrase shall not be specified for a file subject to an APPLY "
                     + "COMMIT clause\"");   // SR7 — the phrase, never the file control entry's clause (kb/Work PB666)
                 ctx.Validation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing);   // SR8 — pure check

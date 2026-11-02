@@ -129,7 +129,7 @@ utilities, now reachable by both layers:
 * **`CobolLiteral`** (the ONE literal codec) relocated Compiler → `Frontend/Common` (namespace `WiseOwl.Cobol.Common`
   unchanged; all Compiler `using`s still resolve). **Done, build-verified.**
 * **`NumericLiteral.Normalize`** — the §12.3.7 GR14a numeric-literal normalizer extracted to `Frontend/Common`;
-  `DataBinder.NormalizeNumericLiteral` delegates to it and keeps emitting COBOL0895 byte-identically. **Done,
+  `SpecialNamesBinder.NormalizeNumericLiteral` delegates to it and keeps emitting COBOL0895 byte-identically. **Done,
   build-verified.**
 
 `PicCategory` stays in Compiler — the evaluator uses its own `CtCategory`; the binder adapts at the call boundary.

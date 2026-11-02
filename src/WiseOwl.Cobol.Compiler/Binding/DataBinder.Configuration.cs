@@ -26,6 +26,11 @@ public sealed partial class DataBinder
     /// point and currency signs. One per binder, made with it; every reader of these facts asks it here.</summary>
     public SpecialNamesBinder SpecialNames => field ??= new(this, Edition);
 
+    /// <summary>The unit's INPUT-OUTPUT SECTION binder (ISO §12.4): the FILE-CONTROL entries it captures into
+    /// <see cref="Files"/> and the I-O-CONTROL paragraph (the APPLY COMMIT clause, the SAME clauses) bound against them.
+    /// One per binder, made with it.</summary>
+    public FileControlBinder FileControl => field ??= new(this, Edition);
+
     /// <summary>The OPTIONS baseline a contained program starts from — its container's model (ISO §11.9.4 GR1:
     /// "The clauses in the OPTIONS paragraph apply to the source element in which they are specified and to all
     /// source elements contained in that source element unless overridden by a clause in an OPTIONS paragraph in

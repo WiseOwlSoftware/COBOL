@@ -120,7 +120,7 @@ internal static class AssignTargetRule
     /// <para>⚠ DETERMINATION (CLAUDE.md rule 1: ISO leaves it to the implementor → GnuCOBOL, which substitutes the
     /// declared constant for an ASSIGN operand): <b>the program's own declaration of the word wins</b> — the answer the
     /// SPECIAL-NAMES positions that admit both readings already give (the LOCALE clause's external-locale-name-1,
-    /// <c>DataBinder.LocaleBind</c>; the ALPHABET clause's code-name, <c>DataBinder.AlphabetCodeName</c>). A word that
+    /// <c>SpecialNamesBinder.LocaleBind</c>; the ALPHABET clause's code-name, <c>SpecialNamesBinder.AlphabetCodeName</c>). A word that
     /// names no constant entry is device-name-1: its own spelling. The constant is "as if literal-1 … were written"
     /// (§13.10.4 GR1), so it meets §12.4.5.2 SR4 as a written literal does: alphanumeric, not zero-length (a constant
     /// never stands for a figurative constant: §13.10.3 SR6 refuses that at the entry). A constant whose own entry was

@@ -673,7 +673,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// be omitted in the source — it is an OPTIONAL word (§5.2.3: the printed formats underline only SEQUENCE), so
     /// `SEQUENCE IS alphabet-name` (ST139A's spelling) is standard and nothing flags it (kb/Work PB1139). Alphabet-name-2 / the FOR
     /// NATIONAL form are CLASS-VALIDATED here by the one test every COLLATING SEQUENCE operand shares
-    /// (<c>DataBinder.CollatingAlphabetFault</c>; §14.9.40.3 SR1/SR2 — a UTF-8/UTF-16 alphabet references NO
+    /// (<c>SpecialNamesBinder.CollatingAlphabetFault</c>; §14.9.40.3 SR1/SR2 — a UTF-8/UTF-16 alphabet references NO
     /// collating sequence, §12.3.7 Table 6), and since kb/Work PB678 the
     /// resolved national half IS carried into the bound node: a national key reaches the comparator (PB327 admitted
     /// national leaves to FD/SD records) and GR5 is what tells it which sequence to use.
@@ -699,13 +699,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // that fails either check leaves the national half on the program collating sequence — the diagnostic is
         // the verdict, and inventing a sequence for a rejected alphabet-name would only add a second wrong answer.
         // BOTH slots ask the ONE class test the PROGRAM COLLATING SEQUENCE and the file COLLATING SEQUENCE clauses
-        // ask (DataBinder.CollatingAlphabetFault, kb/Work PB1082) — SORT states the rules as SR1/SR2, MERGE as SR5/SR6,
+        // ask (SpecialNamesBinder.CollatingAlphabetFault, kb/Work PB1082) — SORT states the rules as SR1/SR2, MERGE as SR5/SR6,
         // and each message cites the bound verb's own rule (SortCollatingClauses).
         NationalAlphabetDef? nat = pcs.National;
         if (natName is not null)
         {
-            if (ctx.Data.CollatingAlphabetFault(natName, national: true) is { } natFault)
-                ctx.Edition.Error("COBOL0898", DataBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
+            if (ctx.Data.SpecialNames.CollatingAlphabetFault(natName, national: true) is { } natFault)
+                ctx.Edition.Error("COBOL0898", SpecialNamesBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
                     natName, national: true, natFault, clauses.National));
             else if (ctx.Data.SpecialNames.NationalAlphabets.TryPeek(natName, out var def))
                 nat = def.IsIdentity ? null : def;   // GR5a — an identity national alphabet (NATIVE/UCS-4) ⇒ native
@@ -716,8 +716,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (alnumName is null) return (pcs with { National = nat }, null);
         if (!ctx.Data.SpecialNames.Alphabets.TryPeek(alnumName, out var alnumDef))
         {
-            if (ctx.Data.CollatingAlphabetFault(alnumName, national: false) is { } fault)
-                ctx.Edition.Error("COBOL0898", DataBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
+            if (ctx.Data.SpecialNames.CollatingAlphabetFault(alnumName, national: false) is { } fault)
+                ctx.Edition.Error("COBOL0898", SpecialNamesBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
                     alnumName, national: false, fault, clauses.Alphanumeric));
             // A FOR NATIONAL alphabet in the slot leaves the statement bindable (the alphanumeric keys fall to the
             // native order); any other word is no alphabet at all and the statement is rejected (PB236).

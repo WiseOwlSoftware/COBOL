@@ -535,4 +535,43 @@ public sealed partial class SpecialNamesBinder
         "ZERO" or "ZEROS" or "ZEROES" => "0",
         _ => null,
     };
+
+    /// <summary>Why <paramref name="alphabet"/> does NOT define a collating sequence of the class asked for, as the
+    /// clause's diagnostics print it — or null when it does. ⛔ THE ONE CLASS TEST for the three alphabet operands
+    /// of §12.4.5.7.3 (SR1 alphabet-name-1 alphanumeric, SR2 alphabet-name-2 national, SR7 alphabet-name-3 of the
+    /// key's class). The two alphabet domains are disjoint (§12.3.7: an ALPHABET clause defines one class), so the
+    /// lookup IS the class test; a national alphabet naming a coded character set only (UTF-8 / UTF-16 — §12.3.7.4
+    /// Table 6's empty collating-sequence column) defines no sequence at all.
+    /// <para>⛔ ASKED BY EVERY SITE THAT NAMES AN ALPHABET AS A COLLATING SEQUENCE (kb/Work PB1082, PB1074): the
+    /// file-control COLLATING SEQUENCE clause, the OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE clause
+    /// (<c>ResolveProgramCollating</c>) and the SORT/MERGE COLLATING SEQUENCE phrase (<c>SortBinder</c>). The program
+    /// collating sequence kept its own copy of this test and made alphabet-name-1's undeclared arm inert — its
+    /// alphabet-name-2 slot refused the same shapes (the two-arm dispatch).</para>
+    /// <para>A word whose ALPHABET clause DID declare it but failed its own screens has no fault of its own: that
+    /// clause reported already, and a second "not declared" would be false about the source (one fault, one
+    /// verdict) — the caller then finds no definition to apply and continues on the native order, in a compilation
+    /// that cannot produce a program.</para></summary>
+    internal string? CollatingAlphabetFault(string alphabet, bool national)
+    {
+        if (!IsAlphabetName(alphabet)
+            && _host.OwnWords.IsDeclaredAs(alphabet, UserWordKind.AlphabetName))   // SPECIAL-NAMES: never a method's (§12.3.3 SR2)
+            return null;
+        if (national)
+            return NationalAlphabets.TryPeek(alphabet, out var nd)
+                ? nd.HasCollatingSequence ? null
+                    : $"'{alphabet}' ({nd.Phrase}) names a national coded character set only (ISO §12.3.7.4 Table 6)"
+                : Alphabets.Declares(alphabet) ? $"'{alphabet}' is an alphanumeric alphabet"
+                : $"'{alphabet}' is not an alphabet declared in SPECIAL-NAMES";
+        return Alphabets.Declares(alphabet) ? null
+            : NationalAlphabets.Declares(alphabet) ? $"'{alphabet}' is defined FOR NATIONAL"
+            : $"'{alphabet}' is not an alphabet declared in SPECIAL-NAMES";
+    }
+
+    /// <summary>The message of a COLLATING SEQUENCE alphabet that does not define the class its slot asks for —
+    /// one text for the two statement-level sites that share <see cref="CollatingAlphabetFault"/> (PROGRAM COLLATING
+    /// SEQUENCE and the SORT/MERGE phrase), alphabet-name-1 being the alphanumeric slot and alphabet-name-2 the
+    /// national one. <paramref name="rule"/> names the slot's own syntax rule, never its sibling's.</summary>
+    internal static string CollatingAlphabetViolation(string site, string name, bool national, string fault, string rule) =>
+        $"{site} '{name}': alphabet-name-{(national ? 2 : 1)} shall reference an alphabet that defines "
+        + $"{(national ? "a NATIONAL" : "an ALPHANUMERIC")} collating sequence — {fault} ({rule})";
 }

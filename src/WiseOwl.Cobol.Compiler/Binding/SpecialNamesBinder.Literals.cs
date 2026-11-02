@@ -151,7 +151,7 @@ public sealed partial class SpecialNamesBinder
     }
 
     /// <summary>The symbolic-character names the SPECIAL-NAMES paragraph being bound declares (see
-    /// <c>SwitchBindSpecialNames</c>) — read by the §12.3.7.3 SR11 arm of <see cref="LiteralPhraseOperand"/>.</summary>
+    /// <c>SpecialNamesBinder.BindSpecialNames</c>) — read by the §12.3.7.3 SR11 arm of <see cref="LiteralPhraseOperand"/>.</summary>
     private HashSet<string> _paragraphSymbolicNames = new(CobolNames.Comparer);
 
     /// <summary>⛔ THE ONE SPECIAL-NAMES literal-operand decoder (ISO §12.3.7.3 SR14 b/c for the ALPHABET clause,

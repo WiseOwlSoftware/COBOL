@@ -22,7 +22,7 @@ using WiseOwl.Cobol.Runtime;
 /// conditions [GR2 / §8.8.4.6], SET alters the status [GR3 / §14.9.39 F3]), the CLASS, ALPHABET, SYMBOLIC CHARACTERS,
 /// LOCALE, ORDER TABLE and DYNAMIC LENGTH STRUCTURE names, the PROGRAM COLLATING SEQUENCE and CHARACTER CLASSIFICATION,
 /// DECIMAL-POINT IS COMMA and the CURRENCY SIGN set. The data binder constructs one per unit
-/// (<see cref="DataBinder.SpecialNames"/>), walks the configuration section through <see cref="Bind"/> at the top of its
+/// (<see cref="DataBinder.SpecialNames"/>), walks the configuration section through <see cref="BindSpecialNames"/> at the top of its
 /// declaration half, and hands the facts to every reader through that one member; a contained unit's binder is seeded
 /// from its container's by <see cref="InheritFrom"/> (§12.3.4 GR1).
 /// </summary>
@@ -245,7 +245,7 @@ public sealed partial class SpecialNamesBinder
     /// [OFF [STATUS] [IS] condition-name-2]</c>; the NIST-85 surface also writes <c>ON IS cond</c> with no STATUS —
     /// both shapes are one grammar rule). Only the switch-names <see cref="ImplementorNames"/> makes available are
     /// accepted (§12.3.7.3 SR8, Annex A.1 item 191 — kb/Work PB862).</summary>
-    internal void Bind(Core.ProgramUnitContext program)
+    internal void BindSpecialNames(Core.ProgramUnitContext program)
     {
         Core.ProgramCollatingSequenceClauseContext? pcsClause = null;
         Core.CharacterClassificationClauseContext? ccClause = null;
@@ -302,7 +302,7 @@ public sealed partial class SpecialNamesBinder
             {
                 using var _ = Edition.At(entry);
                 // §12.3.7 LOCALE clause (Annex A.4.9 item 10, the clause half) — IMPLEMENTED since kb/Work PB64 T1: the
-                // locale-name is DECLARED (DataBinder.LocaleBind). It used to be refused by name with COBOL1518
+                // locale-name is DECLARED (SpecialNamesBinder.LocaleBind). It used to be refused by name with COBOL1518
                 // (PB25 → T0), and before that a raw parse error at the clause's own literal.
                 if (entry.localeClause() is { } loc) { LocaleBind(loc); continue; }
                 if (entry.orderTableClause() is { } ot) { OrderTableBind(ot); continue; }
@@ -404,15 +404,15 @@ public sealed partial class SpecialNamesBinder
         // class-name — so the program silently ran on the native order, while name-2's slot refused the same shapes.
         if (alnumName is not null)
         {
-            if (_host.CollatingAlphabetFault(alnumName, national: false) is { } fault)
-                Edition.Error("COBOL0898", DataBinder.CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
+            if (CollatingAlphabetFault(alnumName, national: false) is { } fault)
+                Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
                     national: false, fault, "ISO §12.3.6.3 SR1"));
             else if (Alphabets.TryUse(pcs, alnumName, out var def)) Collating = def.IsIdentity ? null : def;
         }
         if (natName is not null)
         {
-            if (_host.CollatingAlphabetFault(natName, national: true) is { } fault)
-                Edition.Error("COBOL0898", DataBinder.CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
+            if (CollatingAlphabetFault(natName, national: true) is { } fault)
+                Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
                     natName, national: true, fault, "ISO §12.3.6.3 SR2"));
             else if (NationalAlphabets.TryUse(pcs, natName, out var def))
                 NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)

@@ -25,7 +25,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// </summary>
 internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs, SequentialIoEmitter seqIo)
 {
-    private ApplyCommitModel? Clause => ctx.Data.ApplyCommit;
+    private ApplyCommitModel? Clause => ctx.Data.FileControl.ApplyCommit;
 
     /// <summary>The program-class members of an element with an APPLY COMMIT clause: the per-instance activation flag,
     /// one image field per item, and the three methods the run unit calls back.</summary>

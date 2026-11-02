@@ -510,7 +510,7 @@ public sealed record PicInfo(
     public string? EditMask { get; init; }
 
     /// <summary>For a numeric-edited item whose PICTURE uses a currency symbol: the currency STRING that symbol
-    /// stands for (ISO §12.3.7.4 GR13 — the unit's CURRENCY SIGN SET, <c>DataBinder.CurrencySigns</c>), when it is
+    /// stands for (ISO §12.3.7.4 GR13 — the unit's CURRENCY SIGN SET, <c>SpecialNamesBinder.CurrencySigns</c>), when it is
     /// not the single character <c>$</c>. <c>PictureAnalyzer</c> canonicalizes the mask's symbol to <c>$</c> and
     /// records the string here, so every edit/de-edit call site passes ONE per-item argument
     /// (<c>currencyString:</c>) and <c>CobolEdit</c> expands the rendered currency position into it — a

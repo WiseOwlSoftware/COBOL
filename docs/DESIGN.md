@@ -2140,7 +2140,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     arms** (kb/Work PB793). SR15 says "The implementor shall specify the names supported for code-name-1 and
     code-name-2 in the ALPHABET clause, if any", and the answer is one row per supported name carrying everything
     §12.3.7.4 GR7 i/j obliges the implementor to supply for it — the coded character set's ordinal count, the
-    collating positions, and the correspondence with the native set. `DataBinder.AlphabetCodeName` is a LOOKUP
+    collating positions, and the correspondence with the native set. `SpecialNamesBinder.AlphabetCodeName` is a LOOKUP
     keyed by (spelling, class) with the refusal on miss, so **the next supported code-name is a row and no code
     path at all**, and the diagnostic names the supported set FROM the table. The set (owner decision, PB793;
     `follow_gnucobol_on_split_latitude`): code-name-1 = **`ASCII`** (ISO/IEC 646 IRV — 128 ordinals, the identity
@@ -2178,7 +2178,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     sites that reference the CODED CHARACTER SET — "*the class condition, the CLASS clause …, a SYMBOLIC CHARACTERS
     clause, or the CODE-SET clause*" — and Table 6 which phrases define one (every phrase but LOCALE). ONE model
     serves all four: `Binding/CodedCharacterSet.cs` — `CodedCharacterSet.Of(AlphabetDef)` / `Of(NationalAlphabetDef)`
-    (null for a LOCALE alphabet, and the ONE refusal `DataBinder.CodedCharacterSetOf(name, site, rule)` → COBOL1669
+    (null for a LOCALE alphabet, and the ONE refusal `SpecialNamesBinder.CodedCharacterSetOf(name, site, rule)` → COBOL1669
     at every site — §8.8.4.4.3 SR2, §12.3.7.3 SR16g / SR17d, §13.18.13.3 SR1/SR2), with `CharAt(ordinal)` (the
     character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §8.8.4.4.4 GR3 a) and
     `Medium` + `MediumCorrespondence` (the medium codec, §13.18.13.4 GR2/GR6 — the ONE classifier that says whether
@@ -2209,7 +2209,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     `OrdinalCount` (the SR16 e/f and SR17 b2 range bound) and `Medium` come from the table and not from a switch on
     the phrase name. **Consumers:** (a) `SYMBOLIC CHARACTERS` — each symbolic-character-1 defines a FIGURATIVE CONSTANT
     (GR11 a) whose value is the character at ordinal integer-1 in the native set or the `IN` alphabet's set (GR11 b/c;
-    SR16 a/c/e/f/g checked); it is carried as `DataBinder.SymbolicCharacters` (name → the one-character literal and
+    SR16 a/c/e/f/g checked); it is carried as `SpecialNamesBinder.SymbolicCharacters` (name → the one-character literal and
     its class) and SUBSTITUTED where a figurative constant may stand (§8.3.3.6.2 Format 7 `[ALL] symbolic-character-1`;
     §8.3.3.6.4 GR2 — it FILLS a fixed-length receiver / VALUE like SPACE, GR3 b — one character in DISPLAY / STRING):
     the substituted form IS the ALL-literal NODE of that one character (`BoundAllLiteral` — the fill semantics of
