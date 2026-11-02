@@ -1258,12 +1258,20 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // COBOL0001, kb/Work PB906) and its converse (COBOL0309). After 0h, as a later structural diagnosis: a statement
         // that ended before the token, a closed format's residue and an empty block name the fault better; a scope
         // terminator is hint 13's.
+        // The words the compile edition has (kb/Work PB4174): the parse is the superset of the editions.
+        Func<string, bool> theEditionPrints = recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true;
         if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
-                   at.APeriodLetsTheSentenceFollow,
-                   // The words the compile edition has (kb/Work PB4174): the parse is the superset of the editions.
-                   recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true) is { } kindMsg)
+                   at.APeriodLetsTheSentenceFollow, theEditionPrints) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0));
+        // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
+        // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
+        // boundary's, which admits what a sentence begins with: the statement arm of the PB4224 refusal. A user-defined
+        // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
+        else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
+                 && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
+                        () => false, theEditionPrints) is { } sentenceMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, sentenceMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
         // separated is §8.3.5 rule 5's violation, and SeparatorRule reports it — for every literal token, whether or
@@ -1613,7 +1621,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// start in its real context over its own tokens, so every path the parser's prediction did NOT take in it is
         /// open again; null when the walk cannot take them, or they cross a separator period (a construct closed by its
         /// period is no candidate: the period is where it ended).</summary>
-        public static ResimulationWalk? Over(Parser recognizer, ParserRuleContext closed)
+        public static ResimulationWalk? Over(Parser recognizer, ParserRuleContext closed, bool throughItsPeriods = false)
         {
             var stream = (ITokenStream)recognizer.InputStream;
             var walk = new ResimulationWalk(recognizer, recognizer.Atn.ruleToStartState[closed.RuleIndex], closed);
@@ -1621,7 +1629,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             {
                 var t = stream.Get(i);
                 if (t.Channel != Lexer.DefaultTokenChannel) continue;
-                if (t.Type is CobolLexer.DOT or TokenConstants.EOF || !walk.Consume(t.Type)) return null;
+                if (t.Type == TokenConstants.EOF || t.Type == CobolLexer.DOT && !throughItsPeriods || !walk.Consume(t.Type))
+                    return null;
             }
             return walk;
         }
@@ -2756,6 +2765,27 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
         private Admitted? _admitted;
         private bool _admittedAsked;
+
+        /// <summary>⛔ MAY A SENTENCE BEGIN AT THE TOKEN, WHICH A SEPARATOR PERIOD PRECEDES (kb/Work PB4425)? A literal
+        /// written where the next sentence would begin (<c>DISPLAY "A". "B".</c>) fails where the parser has left every
+        /// sentence, paragraph and section that might have taken it: the procedure division's lists end where their
+        /// next token is not their own, and the error surfaces at the program's end, whose expected set (END PROGRAM, the
+        /// next program, the end of the file) names nothing about a sentence. The boundary is read from the parse
+        /// instead: the rule whose last token is that period (the sentence it ended, the paragraph, section or division
+        /// header it ended), re-simulated over its own tokens in its real context
+        /// (<see cref="ResimulationWalk.Over"/>), may be followed there by every token a statement begins with.</summary>
+        public bool SentenceMayBeginAt()
+        {
+            var stream = (ITokenStream)_recognizer.InputStream;
+            int at = Token.TokenIndex;
+            if (PreviousDefault(stream, ref at) is not { Type: CobolLexer.DOT } period) return false;
+            ParserRuleContext? owner = null;
+            for (var c = _recognizer.Context; c is not null; c = LastRuleChild(c))
+                if (c.Stop?.TokenIndex == period.TokenIndex) owner = c;
+                else if (owner is not null) break;
+            return owner is not null && ResimulationWalk.Over(_recognizer, owner, throughItsPeriods: true) is { } walk
+                   && StatementBlockStart(_recognizer).ToIntegerList().TrueForAll(walk.Takes);
+        }
 
         /// <summary>The rules open at the token, or null.</summary>
         public string[]? OpenRules() => ParserIsThere ? _recognizer.GetRuleInvocationStack().ToArray() : Walk?.OpenRuleNames();

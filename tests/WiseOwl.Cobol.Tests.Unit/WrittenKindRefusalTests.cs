@@ -124,6 +124,24 @@ public sealed class WrittenKindRefusalTests
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("user-word-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN FOO END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected 'FOO'. The word 'FOO' is not expected here: " + AStatementIsNoWord)]
+    // ⛔ A LITERAL WHERE THE NEXT SENTENCE BEGINS (kb/Work PB4425): the period ends the sentence (ISO §14.5.1), so the
+    // next one may begin at the literal, wherever the period stood: after a sentence, an END-IF, a paragraph header, a
+    // section header, the division header. The parser itself has left the procedure division by then.
+    [InlineData("literal-after-a-sentence", 2023, Table + "       PROCEDURE DIVISION.\n           DISPLAY \"A\". \"B\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+    // (An integer there is not this row: a paragraph-name need not contain a letter, ISO §8.3.2.2 3), so `5 DISPLAY "C".`
+    // is a header whose period is missing, which hint 14 says.)
+    [InlineData("literal-after-a-sentence-85", 85, Table + "       PROCEDURE DIVISION.\n           DISPLAY \"A\". \"B\" DISPLAY \"C\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-end-if", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 DISPLAY \"A\" END-IF. \"B\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("figurative-after-a-paragraph-header", 2014, Table + "       PROCEDURE DIVISION.\n       P1.\n           SPACES.\n           STOP RUN.\n",
+        "COBOL5506: unexpected 'SPACES'. The word SPACES is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-a-section-header", 2002, Table + "       PROCEDURE DIVISION.\n       S1 SECTION.\n       P1.\n           DISPLAY \"A\".\n"
+        + "       S2 SECTION.\n           \"B\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+    [InlineData("literal-after-the-division-header", 2023, Table + "       PROCEDURE DIVISION.\n           \"B\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
     public void AWrittenKindThePositionDoesNotExpect_IsNamedOnce(string name, int edition, string source, string expected)
     {
         string text = Head + source;

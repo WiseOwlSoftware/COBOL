@@ -51,3 +51,14 @@ for use in this compilation group"), and the error never named the directive. A 
 one before it, names the UNDEFINE or SUBSTITUTE at the directive's own line (`CobolWordsMap.RemovedBy`), once per
 directive: the parse-layer twin of PB4309's COBOL5776, placed like the margin-R note because the listener holds the line
 map. Pinned by `CobolWordsDirectiveTests` (UNDEFINE, SUBSTITUTE, one note for two faults, and the control).
+
+**PB4425 (a literal where the next sentence begins drew a bare COBOL0001).** After `DISPLAY "A".` the literal `"B"`
+passes every procedure-division list (each may end) and fails at the program's end, whose expected set (END PROGRAM, the
+next program, the end of the file) names nothing about a sentence. Hint 0i now reads the boundary from the parse when
+the parser's own set names nothing: `OffendingPosition.SentenceMayBeginAt` re-simulates the rule whose last token is
+the period before the token (the sentence, or the paragraph, section or division header) over its own tokens through
+its periods, and where every statement start may follow, the refusal is the PB4224 statement arm over FIRST of a
+statement block (ISO 14.5.1: a sentence ends at its separator period; 14.5.3.1: a statement begins with the first word
+of its statement name). A user-defined word or an integer there may be a paragraph-name whose period is missing (8.3.2.2
+3)), which the missing-period guess keeps saying. Rows in `WrittenKindRefusalTests` at four editions, after a sentence,
+END-IF, a paragraph header, a section header and the division header; refusal `pb4425-literal-where-the-next-sentence-begins`.

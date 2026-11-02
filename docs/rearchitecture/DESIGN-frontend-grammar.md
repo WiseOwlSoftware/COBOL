@@ -1588,6 +1588,14 @@ target:
   parse took the WHEN as the group's next selection phrase and died at the OTHER, the group's own missing statement
   (COBOL2072 with the owner's name). A prediction that failed ahead of the parser through a construct no rule context
   holds yet (an EVALUATE written inside the tokens it looked at) leaves the placement unread, and 0b says nothing.
+- ⛔ **A literal where the next sentence begins is refused as a statement position** (kb/Work PB4425; ISO §14.5.1,
+  §14.5.3.1). After `DISPLAY "A".` a literal fails only once every sentence, paragraph and section list has let it pass,
+  at the program's end, whose expected set names nothing about a sentence: the bare COBOL0001. Hint 0i, when the
+  parser's own admitted set names nothing, asks `OffendingPosition.SentenceMayBeginAt`: the rule whose last token is the
+  separator period before the token (a sentence, a paragraph, section or division header), re-simulated over its own
+  tokens through its periods (`ResimulationWalk.Over(…, throughItsPeriods: true)`), takes every statement start there.
+  Then the refusal is `AdmittedKinds.Refusal` over FIRST(`statementBlock`), the PB4224 statement arm. A user-defined
+  word, and an integer (a paragraph-name need not contain a letter, §8.3.2.2 3)), is left to the missing-period guess.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle

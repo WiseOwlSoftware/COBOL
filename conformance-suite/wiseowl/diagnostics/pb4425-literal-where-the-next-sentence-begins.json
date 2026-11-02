@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: a statement may begin at this position, and a statement begins with the first word of its statement name, which a literal is not (ISO §14.5.3.1; the names are Table 12's, §14.5.1)."}
