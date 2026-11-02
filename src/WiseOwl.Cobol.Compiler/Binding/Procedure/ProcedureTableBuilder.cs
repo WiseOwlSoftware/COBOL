@@ -697,7 +697,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
     private bool NamesFile(Core.DataReferenceContext operand) =>
         operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
-        && ctx.Data.FilesByName.ContainsKey(word.GetText());
+        && ctx.Data.VisibleFiles.ContainsKey(word.GetText());
 
     /// <summary>An operand that is no procedure, data item or file is told why. A qualified word whose HEAD is a
     /// paragraph or section the program declares (<c>P1 OF NOSEC</c>) is a procedure-name that identifies nothing,
@@ -768,8 +768,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
-    /// walk). <c>ON file-name</c> resolves against <c>FilesByName</c>, which includes containers' GLOBAL FDs
-    /// (§13.18.27.4 GR1 — merged by <c>CallBindUnit</c>; IC234A's contained USE names the outer's GLOBAL file).
+    /// walk). <c>ON file-name</c> resolves against <c>DataBinder.VisibleFiles</c>, which includes containers' GLOBAL FDs
+    /// (§13.18.27.4 GR1; IC234A's contained USE names the outer's GLOBAL file).
     /// Format 2 (BEFORE REPORTING, SR9) names a report group — the section becomes the group's
     /// before-reporting hook, invoked by the report engine just before the group is produced (GR8; wired in
     /// <c>CSharpEmitter.ReportWriter.cs</c>). The same group shall not appear in two such statements (SR9).</summary>
@@ -852,7 +852,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         foreach (var fn in target.fileName())
         {
             string fname = fn.GetText();
-            if (!ctx.Data.FilesByName.TryGetValue(fname, out var file))
+            if (!ctx.Data.VisibleFiles.TryGetValue(fname, out var file))
             {
                 ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE names unknown "
                     + $"file '{fname}' (ISO §14.9.49)");
@@ -924,7 +924,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             foreach (var fn in fileNames)
             {
                 string fname = fn.GetText();
-                if (!ctx.Data.FilesByName.TryGetValue(fname, out var file))
+                if (!ctx.Data.VisibleFiles.TryGetValue(fname, out var file))
                 {
                     ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE names unknown "
                         + $"file '{fname}' (ISO §14.9.49)");

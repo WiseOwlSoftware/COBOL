@@ -130,7 +130,7 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>⛔ THE ONE file-name → <see cref="FileModel"/> resolution for a STATEMENT operand (kb/Work
     /// PB236). Seven binder sites — UNLOCK, OPEN, CLOSE, READ, DELETE, DELETE FILE and START — each wrote its
-    /// own <c>FilesByName.TryGetValue</c> and its own unreported <c>BoundUnsupported</c>, so a word naming no
+    /// own <c>FilesByName.TryGetValue</c> (now <c>VisibleFiles</c>) and its own unreported <c>BoundUnsupported</c>, so a word naming no
     /// file connector compiled clean at every edition and either aborted the run unit or, on an unexecuted
     /// path, said nothing at all. Each of those statements' general formats writes the operand as
     /// <c>file-name-1</c>, and ISO §8.4.2.1 fixes what a name must do: "In order to use a resource, a statement
@@ -204,7 +204,7 @@ internal sealed class StatementValidation(DataBinder data)
     private bool ResolveFileWord(string name, string verb, [NotNullWhen(true)] out FileModel? file,
                                  bool admitsReportFile, string? statementRule)
     {
-        if (data.FilesByName.TryGetValue(name, out file))
+        if (data.VisibleFiles.TryGetValue(name, out file))
             return admitsReportFile || ScreenReportFileReference(file, verb, statementRule);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
@@ -642,7 +642,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// file-section level-1 entry carry its OWN GLOBAL clause, which makes the record-name a global name
     /// (§13.18.27.4 GR1) under an FD that has none — so a contained program resolves the record, but the file stays
     /// the container's alone, and SR21 / SR3 are exactly the rule for that case ("the file description entry … shall
-    /// contain a GLOBAL clause"). The record is found in <see cref="DataBinder.ContainerLocalFiles"/> and refused BY
+    /// contain a GLOBAL clause"). The record is found in <see cref="InheritedGlobals.ContainerLocalFiles"/> and refused BY
     /// THAT RULE; it used to fall to the "not a logical record of any file description entry" arm below, a false
     /// reason that would have become a silent acceptance the day that arm learned about global records.</remarks>
     public bool ResolveRecordName(Place record, string refText, string verb, string rule, string containedRule,
@@ -662,7 +662,7 @@ internal sealed class StatementValidation(DataBinder data)
                 return false;
             }
         if (FileWhoseRecordIs(record.Item) is { } owner) { file = owner; return true; }
-        if (data.ContainerLocalFiles.FirstOrDefault(f => f.Records.Contains(record.Item)) is { } hiddenFile)
+        if (data.State.Inherited.ContainerLocalFiles.FirstOrDefault(f => f.Records.Contains(record.Item)) is { } hiddenFile)
         {
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"{verb} '{refText}' — '{refText}' is a logical record of '{hiddenFile.CobolName}', which a containing "
@@ -686,14 +686,14 @@ internal sealed class StatementValidation(DataBinder data)
     /// <see cref="ResolveRecordName"/>, asked of the reference's own item and (for the message only) of its
     /// top-level record. The second sweep is an inherited GLOBAL FD's record (ISO §13.18.27.4 GR1 — the record-names
     /// of a GLOBAL FD are GLOBAL names): the owning file is a CONTAINER's <see cref="FileModel"/>, present in
-    /// this unit only through the <c>FilesByName</c> merge (<c>CallBindUnit</c>), so a contained program's
+    /// this unit only through <c>DataBinder.VisibleFiles</c> (<see cref="InheritedGlobals.Files"/>), so a contained program's
     /// WRITE/REWRITE of the owner's record resolves to the owner's ONE connector (IC233A's family; never a
     /// second mapping mechanism).</summary>
     private FileModel? FileWhoseRecordIs(DataItem item)
     {
         foreach (var f in data.Files)
             if (f.Records.Contains(item)) return f;
-        foreach (var f in data.FilesByName.Values)
+        foreach (var f in data.VisibleFiles.Values)
             if (f.Records.Contains(item)) return f;
         return null;
     }

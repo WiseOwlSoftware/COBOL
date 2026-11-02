@@ -324,10 +324,6 @@ public sealed partial class DataBinder
     internal bool DeclaresOwnDataName(string name) =>
         ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
 
-    /// <summary>The containers' named GLOBAL data roots (ISO §13.18.27.4 GR1/GR2), nearest container first, each with
-    /// its containment distance; set by <c>BinderDriver.BindUnitData</c> before the unit binds and inherited by
-    /// <see cref="InheritContainerGlobalData"/> (kb/Work PB3766, review finding R1-1).</summary>
-    internal IReadOnlyList<(DataItem Root, int Depth)> ContainerGlobalRoots { get; init; } = [];
 
     /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2),
     /// beside <see cref="InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
@@ -338,7 +334,7 @@ public sealed partial class DataBinder
     /// defined" (the data-item twin of kb/Work PB3766's report case).</summary>
     private void InheritContainerGlobalData()
     {
-        foreach (var (root, depth) in ContainerGlobalRoots)
+        foreach (var (root, depth) in State.Inherited.DataRoots)
             InheritGlobalSubtree(root, depth);
     }
 
@@ -728,7 +724,7 @@ public sealed partial class DataBinder
         // record-names described subordinate to the FD are global names): the records join the GLOBAL roots so
         // contained programs reach the OWNER's record area through the standard containment bridges
         // (§13.18.27 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
-        // emitter's FilesByName containment merge (CallBindUnit).
+        // contained unit's VisibleFiles lookup (InheritedGlobals.Files).
         foreach (var file in Files)
             if (file.IsGlobal)
                 foreach (var rec in file.Records)

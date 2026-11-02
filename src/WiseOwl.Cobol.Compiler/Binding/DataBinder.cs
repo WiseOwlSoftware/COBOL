@@ -223,32 +223,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// clone (the invariant the OO compiler-temp clone already relies on).</summary>
     public Dictionary<string, DataItem> TypeDecls { get; } = new(CobolNames.Comparer);
 
-    /// <summary>The GLOBAL type declarations of every containing program, keyed by type-name (ISO §13.18.58.4 GR3 —
-    /// "The GLOBAL clause applies to the scope of the type-name" — and §8.4.6.2.2, "A type-name described with a
-    /// GLOBAL clause is a global name"; kb/Work PB1303). Kept APART from <see cref="TypeDecls"/>, which is this
-    /// source element's OWN declarations: an own declaration must neither collide with an inherited one (§8.4.6.2.1
-    /// 3 a — a name declared in the referencing element is the one referenced) nor be walked, emitted or re-validated
-    /// as this unit's. <see cref="FindTypeDecl"/> is the ONE lookup, own declarations first.</summary>
-    private readonly Dictionary<string, DataItem> _inheritedTypeDecls = new(CobolNames.Comparer);
-
-    /// <summary>Make <paramref name="container"/>'s GLOBAL type declarations visible here (ISO §13.18.58.4 GR3;
-    /// §8.4.6.2.1 1 — "all global names that are defined in source element A and in any source elements that
-    /// directly or indirectly contain source element A"). The caller passes EVERY container, nearest first, and the
-    /// first declaration of a name wins (§8.4.6.2.1 3 — the nearest containing element's). It must run BEFORE
-    /// <see cref="Bind"/>, because <see cref="ExpandTypes"/> runs inside it. An inherited template is already fully
-    /// expanded (its container's bind finished first), and cloning it writes only to the referencing item.</summary>
-    internal void InheritGlobalTypeDecls(DataBinder container)
-    {
-        foreach (var (name, decl) in container.TypeDecls)
-            if (decl.HasGlobalClause)
-                _inheritedTypeDecls.TryAdd(name, decl);
-    }
-
     /// <summary>⛔ THE ONE TYPE-NAME LOOKUP, in the source element <paramref name="scope"/> names: a METHOD's own
     /// declaration first (kb/Work PB3192) — and none of its object's when the method declares the word as anything
     /// else, since "the declaration in the containing object definition is inaccessible to this method" (§11.7.4 GR5) —
     /// then this binder's element's own, else the nearest containing program's GLOBAL one
-    /// (<see cref="InheritGlobalTypeDecls"/>). Every reader of a type-name (the TYPE clause, a restricted pointer's
+    /// (<see cref="InheritedGlobals.TypeDecls"/>). Every reader of a type-name (the TYPE clause, a restricted pointer's
     /// <c>USAGE POINTER TO type-name</c>, an intrinsic function's type-name argument) asks here, with the scope of the
     /// entry that writes it (<see cref="ScopeOf"/> of its root) or of the statement (<see cref="ActiveScope"/>).</summary>
     internal bool TryFindTypeDecl(string typeName, Model.Scope scope, out DataItem decl)
@@ -258,7 +237,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (m.TypeDecls.TryGetValue(typeName, out decl!)) return true;
             if (m.Declares(typeName)) return false;
         }
-        return TypeDecls.TryGetValue(typeName, out decl!) || _inheritedTypeDecls.TryGetValue(typeName, out decl!);
+        return TypeDecls.TryGetValue(typeName, out decl!) || State.Inherited.TypeDecls.TryGetValue(typeName, out decl!);
     }
 
     /// <summary>Every TYPE DECLARATION this binder's forest holds: its own element's (<see cref="TypeDecls"/>) and each
@@ -317,59 +296,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// §12.4.3 SR1 forbids outright (kb/Work PB1076) and which belongs to no factory or object (kb/Work PB1077).</summary>
     private readonly Dictionary<string, FileModel> _selectedFiles = new(CobolNames.Comparer);
 
-    /// <summary>Every file of every CONTAINING program that is NOT a global name here — its FD has no GLOBAL clause
-    /// (ISO §13.18.27.3 SR1 d)), so its file-name is not in <see cref="FilesByName"/>. It is still reachable through a
-    /// record: a file-section level-1 entry may carry its own GLOBAL clause (SR1 b)), and the record-name is then
-    /// visible here. Read ONLY by <c>StatementValidation.ResolveRecordName</c>, to refuse WRITE / REWRITE of such a
-    /// record by §14.9.51.3 SR21 / §14.9.35.3 SR3 (kb/Work PB1193); filled by <see cref="InheritFileNames"/>, beside
-    /// <see cref="InheritedGlobalFiles"/>.</summary>
-    public List<FileModel> ContainerLocalFiles { get; } = [];
-
-    /// <summary>The GLOBAL files of every CONTAINING program, by file-name, nearest container first (ISO §13.18.27.4 GR1:
-    /// the file-name of a GLOBAL FD is a global name, visible in every directly or indirectly contained program; §8.4.6.2.1
-    /// 3) b): the nearest containing element's declaration is the referenced item). Filled by <see cref="InheritFileNames"/> BEFORE this unit binds, so the
-    /// data division's own resolutions can tell a name that IS a visible file from one declared nowhere
-    /// (<see cref="NonDataDeclarationOf"/>; the APPLY COMMIT clause's SR1 and SR11, <see cref="ResolveApplyCommit"/>).
-    /// It joins <see cref="FilesByName"/> only AFTER the unit binds (<c>BinderDriver.BindUnitData</c>), where an own file
-    /// shadows it: an FD of this unit must find the unit's own SELECT, never an inherited model.</summary>
-    internal Dictionary<string, FileModel> InheritedGlobalFiles { get; } = new(CobolNames.Comparer);
-
-    /// <summary>Record one CONTAINING program's files, <paramref name="depth"/> containment levels out: a GLOBAL one is a
-    /// visible file-name here (<see cref="InheritedGlobalFiles"/>, the nearest container's declaration kept, its depth
-    /// read by <see cref="FileDepth"/>), any other is known for one question only (<see cref="ContainerLocalFiles"/>);
-    /// a record that is a GLOBAL name is recorded with its file (<see cref="InheritedGlobalRecordAreas"/>). Called for
-    /// every container, nearest first, before this unit binds — the file-name twin of <see cref="InheritGlobalTypeDecls"/>.</summary>
-    internal void InheritFileNames(DataBinder container, int depth)
-    {
-        foreach (var f in container.Files)
-        {
-            if (!f.IsGlobal)
-                ContainerLocalFiles.Add(f);
-            else if (InheritedGlobalFiles.TryAdd(f.CobolName, f))
-                _inheritedFileDepth[f] = depth;
-            foreach (var record in f.Records)
-                if (container.CallGlobalRoots.Contains(record))
-                    InheritedGlobalRecordAreas.TryAdd(record, f);
-        }
-    }
-
-    private readonly Dictionary<FileModel, int> _inheritedFileDepth = new(ReferenceEqualityComparer.Instance);
-
-    /// <summary>How many containment levels out <paramref name="file"/> is declared: 0 for this element's own file, n for a
-    /// GLOBAL file of its n-th container (<see cref="InheritedGlobalFiles"/>) — the file-name twin of
-    /// <see cref="DeclaringDepth"/> and <see cref="ReportDepth"/>, so a name a container declares as a file and a nearer
-    /// element declares as something else resolves to the nearer declaration (§8.4.6.2.1 3); kb/Work PB4219).</summary>
-    internal int FileDepth(FileModel file) => _inheritedFileDepth.GetValueOrDefault(file);
-
-    /// <summary>The record areas of every CONTAINING program's files that are GLOBAL names (§13.18.27.4 GR1: the record
-    /// of a GLOBAL FD, or a level-1 entry with its own GLOBAL clause), each mapped to the file that owns it — SR11's
-    /// second half (§12.4.6.3.3: "a file or record area … declared with the GLOBAL clause"). Keyed by the record ITSELF,
-    /// never by its name: the record is a data item this unit inherits with its depth (<see cref="InheritContainerGlobalData"/>),
-    /// so the one data-name lookup (<see cref="QualifiedCandidates"/>: qualification, then the nearest declaring element)
-    /// decides which record a written operand names, and this map only says whether that record is a GLOBAL record area
-    /// and of which file (<c>ScreenEnclosingFileOperand</c>, kb/Work PB3557 review R2-1). Filled by
-    /// <see cref="InheritFileNames"/>.</summary>
-    internal Dictionary<DataItem, FileModel> InheritedGlobalRecordAreas { get; } = new(ReferenceEqualityComparer.Instance);
+    /// <summary>⛔ THE ONE LOOKUP OF A FILE-NAME VISIBLE IN THIS SOURCE ELEMENT, at any point of the bind: its own file
+    /// (<see cref="FilesByName"/>), which hides a container's of the same spelling (§8.4.6.2.1 3) a)), else the nearest
+    /// container's GLOBAL file (§13.18.27.4 GR1; <see cref="InheritedGlobals.Files"/>, known before the unit binds). A
+    /// container's GLOBAL record qualified by its file (§8.4.2.2.2 Format 1's file-report-qualifier) resolves through it
+    /// too (kb/Work PB3557 review R2-1).</summary>
+    public FileNameScope VisibleFiles => new(FilesByName, State.Inherited.Files);
 
     /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
     /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
@@ -3852,7 +3784,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// Returns false when the declaration is still IN PROGRESS — the caller's TYPE clause is then part of this
     /// declaration's own description, directly or through another declaration, which is the recursion
     /// §13.18.58.3 SR2 forbids. A GLOBAL declaration inherited from a containing program
-    /// (<see cref="InheritGlobalTypeDecls"/>) was completed by that program's own bind, which runs first.
+    /// (<see cref="InheritedGlobals.TypeDecls"/>) was completed by that program's own bind, which runs first.
     /// <para>§13.18.58.3 SR1 — "If the subject of the entry is an elementary item, the STRONG phrase shall not be
     /// specified" — is asked HERE, after the chained TYPE clause has composed the subject (kb/Work PB1301): by
     /// §13.18.57.4 GR1 <c>01 T TYPEDEF STRONG TYPE E.</c> over an elementary E is an elementary subject exactly as
@@ -8920,9 +8852,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return QualifierWalk(NamesFrom(firstQualifiable), qualifiers, q =>
         {
             // Data ancestors exhausted: the OUTERMOST remaining qualifier may be the file name — any file-name visible
-            // here, a container's GLOBAL one included (TryGetVisibleFile): the data division's own clauses resolve
-            // before the inherited files join FilesByName (kb/Work PB3557 review R2-1).
-            if (!TryGetVisibleFile(q, out var file)) return false;
+            // here, a container's GLOBAL one included (VisibleFiles; kb/Work PB3557 review R2-1).
+            if (!VisibleFiles.TryGetValue(q, out var file)) return false;
             DataItem root = member;
             while (root.Parent is { } p) root = p;
             return file.Records.Contains(root);

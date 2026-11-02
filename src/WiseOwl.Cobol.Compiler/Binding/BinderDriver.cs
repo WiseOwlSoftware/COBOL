@@ -242,8 +242,8 @@ internal sealed class BinderDriver
         // runtime key is purely a rename. An EXTERNAL FD instead keys by its run-unit EXTERNALIZED name
         // (ISO §13.18.22.4 GR4a: ONE external file connector per run unit, shared by every describer — two units'
         // FileModels with the same external name converge on ONE registry key, hence one connector; GR5: the name
-        // is the FD name). Each FileModel lives in exactly ONE unit's Files list (a fix-E GLOBAL merge shares
-        // references through FilesByName only), so no model is renamed twice.
+        // is the FD name). Each FileModel lives in exactly ONE unit's Files list (a container's GLOBAL file is
+        // reached through the contained unit's VisibleFiles only), so no model is renamed twice.
         foreach (var unit in units)
             foreach (var file in unit.Data.Files)
                 file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
@@ -667,16 +667,6 @@ internal sealed class BinderDriver
             // registries read too (ContainingDefinitions; kb/Work PB452/PB817, PB3121).
             ContainingDefinitionNames = new HashSet<string>(ContainingDefinitions(unit).Select(u => u.Name), CobolNames.Comparer),
             UnitStaticWs = unit.Recursive && !unit.Initial,
-            // GLOBAL RD inheritance (ISO §13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369): the containers'
-            // GLOBAL reports, nearest container first. They are OFFERED here and inherited by the unit's own data
-            // division at the end of its declaration half (DataBinder.InheritContainerReports), so the unit's own
-            // clauses that name a report item (FILE STATUS, ODO, ASSIGN USING) see them (kb/Work PB3766).
-            ContainerGlobalReports = ContainerGlobalReportsOf(unit),
-            // …and the containers' GLOBAL data roots, offered the same way and inherited at the same point
-            // (DataBinder.InheritContainerGlobalData): FILE STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON and
-            // ASSIGN … USING of the unit's own data division resolve inside data.Bind, so a container's GLOBAL item
-            // they name (§13.18.27.4 GR1/GR2) must already be visible (kb/Work PB3766, review finding R1-1).
-            ContainerGlobalRoots = ContainerGlobalRootsOf(unit).Select(r => (r.Root, r.Depth)).ToList(),
         };
         data.CallSeedUids(session.TakeUidBand());
 
@@ -689,30 +679,10 @@ internal sealed class BinderDriver
         // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0). One level suffices: the container inherited
         // from ITS container before it bound (units bind container-first).
         if (unit.Parent is not null) data.InheritConfiguration(unit.Parent.Data);
-        // The container's GLOBAL constant-names (§13.18.27.4 GR1–GR2; kb/Work PB1009) — compile-time
-        // substitutions, so they join BEFORE this unit binds, and a local data-name shadows them after. EVERY
-        // container, nearest first (the nearest global declaration wins): an intermediate program's own NON-global
-        // declaration of the name hides nothing from the programs it contains.
-        int containerDepth = 0;   // the containment distance, 1 for the parent
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            data.InheritGlobalConstants(anc.Data, ++containerDepth);
-            // …and its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2 — a type-name described with a GLOBAL
-            // clause is a global name; kb/Work PB1303): the same BEFORE-Bind, nearest-first, local-shadows contract —
-            // ExpandTypes runs inside data.Bind, so a TYPE clause here already sees the container's type-name.
-            data.InheritGlobalTypeDecls(anc.Data);
-            // …and its files' names (§13.18.27.4 GR1), the same BEFORE-Bind contract: the data division's own
-            // resolutions ask whether a name that is no data item IS a visible file-name (kb/Work PB3557).
-            data.InheritFileNames(anc.Data, containerDepth);
-        }
-        // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the
-        // bridges are emitted for every global root below, so a LOCAL root spelled like one (the §8.4.6.2.1 3) a)
-        // shadowing case) must take another C# name — its stem too, or a member DERIVED from the stem (a REDEFINES
-        // backing) would re-spell the bridge (DataBinder.InheritedMemberNamesOf).
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var g in anc.Data.CallGlobalRoots)
-                data.ReserveInheritedMemberNames(anc.Data.InheritedMemberNamesOf(g));
-
+        // The inheritance merge's seed half (InheritStep.Seed; ISO §13.18.27.4 GR1–GR2; kb/Work PB2296): every container's
+        // GLOBAL constant-names, type declarations, file-names, reports and data roots, and the C# member names their
+        // GLOBAL roots occupy, nearest container first, BEFORE this unit binds, because its own data division reads them.
+        InheritStep.Seed(unit, data);
         data.Bind(unit.Ctx);
         unit.Data = data;
 
@@ -721,89 +691,13 @@ internal sealed class BinderDriver
         // automatic propagation (§7.3.21.4 GR1/GR3), folded after its data phases and before its procedure division binds.
         data.State.UnitChecking = CheckingFold.Unit(session.Turn, session.Propagate, unit.Ctx);
 
-        // GLOBAL FD inheritance (ISO §13.18.27.4 GR1: the file-name of a GLOBAL FD is a GLOBAL name, visible in every
-        // directly/indirectly contained program; §8.4.6.2.1 3) a)-b) — a local declaration shadows, then the nearest
-        // container's, which TryAdd realizes: local files are already present, and InheritedGlobalFiles is nearest first). Merge into FilesByName ONLY —
-        // never Files: the child must not re-register, re-qualify, or CANCEL-close the owner's connector; its
-        // bound verbs hold the SHARED FileModel reference, so the owner's one-time PROG::FILE qualification
-        // automatically keys the child's verbs to the owner's connector. (EXTERNAL is NOT global — §13.18.22
-        // NOTE 1: an EXTERNAL non-GLOBAL FD's name is not visible in contained programs.) The record-name half
-        // of §13.18.27.4 GR1 rides the standard GLOBAL-root bridges (DataBinder.CallBindExternalAndGlobal adds a
-        // GLOBAL FD's records to CallGlobalRoots).
-        // A container's NON-global FD is recorded too, for one question only: a GLOBAL record under it (§13.18.27.3
-        // SR1 b)) is visible here while its file is not, and WRITE / REWRITE of it is refused by name (kb/Work PB1193).
-        // (The containers' files were recorded BEFORE this unit bound — DataBinder.InheritFileNames — so the data
-        // division could ask what a name is; the merge into FilesByName waits until the unit's own files are in.)
-        foreach (var (name, f) in data.InheritedGlobalFiles)
-            data.FilesByName.TryAdd(name, f);
-
-        // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent
-        // binds before its children), so the GLOBAL bridge below can carry a guarded root's presence member.
-        Procedure.EcBinder.MarkFormals(data.LinkageFormals, SourceElementKindOf(unit), session.Turn);
-
-        var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (anc, g, depth) in ContainerGlobalRootsOf(unit))
-        {
-            // The root's NAMES are inherited already, at the end of the unit's declaration half
-            // (DataBinder.InheritContainerGlobalData, offered through ContainerGlobalRoots above); what is left here
-            // is the C# half. Every container member a reference to the root can render, from the ONE list the
-            // container's binder owns (kb/Work PB1009 — the per-residence arms used to be spelled here, and the
-            // carrier-resident formal and the BASED item's address pointer were missing from them). A local
-            // root never collides with a bridge's member name: ReserveInheritedMemberNames ran before Bind.
-            // A SET keyed on the emitted member (kb/Work PB1523): two global roots can name ONE member — the records of
-            // a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its anchor share one field — and a
-            // member declared twice is CS0102. The member names are unique along the container chain
-            // (ReserveInheritedMemberNames), so equal names are the same member.
-            foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
-                if (bridgedMembers.Add(bridge.MemberClrName)) unit.Bridges.Add(bridge);
-        }
-
-        // Every tier is in place now — this unit's own names and every container's globals — so an inherited
-        // constant a NEARER data-name hides can leave (§8.4.6.2.1 3); kb/Work PB1009 / PB1047).
-        data.DropShadowedConstants();
+        // The inheritance merge's second half (InheritStep.Merge; kb/Work PB2296): the formals' omitted-argument guards,
+        // the GLOBAL bridges and the drop of an inherited constant a nearer data-name hides. A container's GLOBAL FD needs
+        // no merge into FilesByName: every file-name lookup reads the unit's own files first and its containers' GLOBAL
+        // ones after (DataBinder.VisibleFiles), and the child's bound verbs hold the SHARED FileModel, so the owner's
+        // one-time PROG::FILE qualification keys them to the owner's connector.
+        InheritStep.Merge(unit, SourceElementKindOf(unit), session.Turn);
         unit.Refs = new ReferenceResolver(data);
-    }
-
-    /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
-    /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out
-    /// it lives (the nesting distance ISO §8.4.6.2.1 3) selects on). EVERY global root joins, shadowed spelling or not
-    /// (kb/Work PB1047 / PB1243): §8.4.6.2.1 1) puts "all global names that are defined in source element A and in
-    /// any source elements that directly or indirectly contain source element A" in the set, and §8.4.6.2.2 makes
-    /// every data-name subordinate to a global name a global name in its own right — so a local 01 G hides the
-    /// container's G, never its subordinate Y. WHICH candidate a reference names is §8.4.6.2.1 3)'s
-    /// nearest-declaring-element rule, applied after qualification (SymbolTable.NearestDeclaring); the depth is what
-    /// it reads. The names are inherited from it by <c>DataBinder.InheritContainerGlobalData</c>, the C# bridges
-    /// are built from it in <see cref="BindUnitData"/>.</summary>
-    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerGlobalRootsOf(BoundUnit unit)
-    {
-        var roots = new List<(BoundUnit Container, DataItem Root, int Depth)>();
-        int depth = 0;
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            depth++;
-            foreach (var g in anc.Data.CallGlobalRoots)
-                if (g.CobolName is not null)
-                    roots.Add((anc, g, depth));
-        }
-        return roots;
-    }
-
-    /// <summary>The GLOBAL report description entries of every container of <paramref name="unit"/>, nearest container
-    /// first, each with how many containment levels out it lives (the <c>__outer</c> chain length a reference to its
-    /// storage renders through, <see cref="DataBinder.ReportDepth"/>). Like a GLOBAL FD, the report is SHARED, never
-    /// re-declared: the child's verbs hold the container's <see cref="ReportModel"/> (ISO §13.18.27.4 GR1–GR2).</summary>
-    private static List<(ReportModel Report, int Depth)> ContainerGlobalReportsOf(BoundUnit unit)
-    {
-        var reports = new List<(ReportModel Report, int Depth)>();
-        int depth = 0;
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            depth++;
-            foreach (var r in anc.Data.Reports)
-                if (r.IsGlobal)
-                    reports.Add((r, depth));
-        }
-        return reports;
     }
 
     /// <summary>ALWAYS-ON (P6 Step 6): assert <paramref name="pass"/>'s declared prerequisite phase has been

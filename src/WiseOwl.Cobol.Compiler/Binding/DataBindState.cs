@@ -18,6 +18,10 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 public sealed class DataBindState
 {
+    /// <summary>What the unit inherits from the programs that contain it (<see cref="InheritedGlobals"/>), written by
+    /// <see cref="InheritStep"/> before the unit's first data phase; empty for an outermost program and an OO element.</summary>
+    public InheritedGlobals Inherited { get; } = new();
+
     /// <summary>The unit's checking slice (<see cref="Binding.UnitChecking"/>): <see cref="UnitChecking.None"/> until
     /// <see cref="CheckingFold"/> writes it, once, after the unit's data phases; read by the reference resolver while the
     /// procedure division binds and by code generation.</summary>

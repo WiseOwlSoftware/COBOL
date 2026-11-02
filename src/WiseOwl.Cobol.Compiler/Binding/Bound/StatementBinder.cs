@@ -756,10 +756,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 $"{verb} shall not be specified in a recursive source element (ISO {cite}; a function or "
                 + "method is always recursive, §8.6.6)");
         }
-        // The files of a CONTAINER's clause this element names: its GLOBAL file-names, merged into FilesByName and never
-        // into Files (BinderDriver). A refusal of one is told by its describing element, and a TURN directive here that names
-        // it still decides the checking of that refusal (BoundCommitRollback.ForeignFiles).
-        var foreign = Ctx.Data.FilesByName.Values
+        // The files of a CONTAINER's clause this element names: its GLOBAL file-names, visible here (VisibleFiles) and never
+        // in Files. A refusal of one is told by its describing element, and a TURN directive here that names it still
+        // decides the checking of that refusal (BoundCommitRollback.ForeignFiles).
+        var foreign = Ctx.Data.VisibleFiles.Values
             .Where(f => f.SubjectToApplyCommit && !Ctx.Data.Files.Contains(f))
             .Distinct().ToList();
         return new BoundCommitRollback(isCommit, [.. Ctx.Data.ApplyCommit?.Files ?? []], foreign);

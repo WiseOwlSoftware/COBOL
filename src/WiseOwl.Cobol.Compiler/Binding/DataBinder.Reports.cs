@@ -1072,10 +1072,6 @@ public sealed partial class DataBinder
         return nearest;
     }
 
-    /// <summary>The containers' GLOBAL reports (ISO §13.18.27.4 GR1/GR2), nearest container first, each with its
-    /// <see cref="ReportDepth"/>; set by <c>BinderDriver.BindUnitData</c> before the unit binds and inherited by
-    /// <see cref="InheritContainerReports"/> (kb/Work PB3766).</summary>
-    internal IReadOnlyList<(ReportModel Report, int Depth)> ContainerGlobalReports { get; init; } = [];
 
     /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL REPORTS BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2):
     /// the end of <see cref="BindDeclarations"/> — after this unit's own report-name and data-names are declared, so
@@ -1086,7 +1082,7 @@ public sealed partial class DataBinder
     /// report declares is "not defined" (kb/Work PB3766).</summary>
     private void InheritContainerReports()
     {
-        foreach (var (report, depth) in ContainerGlobalReports)
+        foreach (var (report, depth) in State.Inherited.Reports)
             InheritGlobalReport(report, depth);
     }
 

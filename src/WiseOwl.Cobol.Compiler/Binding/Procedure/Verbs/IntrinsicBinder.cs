@@ -951,11 +951,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // description entry at all fails the second half; the resolver used to match on the bare name only, so
         // both compiled clean and answered r2a's two spaces. The clause cited is the function's OWN.
         string clause = sig.Name == "EXCEPTION-FILE" ? "§15.28.3 rule 1" : "§15.29.3 rule 1";
-        // Resolve through FilesByName — the ONE file-name resolution every other site uses (kb/Work PB123:
+        // Resolve through VisibleFiles — the ONE file-name resolution every other site uses (kb/Work PB123:
         // this arm scanned ctx.Data.Files, the program's OWN FD list, so a contained program naming its
-        // container's GLOBAL FD — visible per §13.18.27.4 GR1–2, merged into FilesByName by
-        // BinderDriver — drew "not the name of a file connector" on legal source).
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
+        // container's GLOBAL FD — visible per §13.18.27.4 GR1–2 — drew "not the name of a file connector" on legal source).
+        if (!ctx.Data.VisibleFiles.TryGetValue(name, out var file))
         {
             ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
                 + $"is not the name of a file connector specified in an FD statement (ISO {clause})");
