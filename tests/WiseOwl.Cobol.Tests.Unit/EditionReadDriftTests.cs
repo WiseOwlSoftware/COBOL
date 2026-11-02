@@ -100,7 +100,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
+            "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord", "ReservedWord",
             "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
             "is2023", "is85", "keywordContinuesHere", "pointerOperandHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
@@ -164,11 +164,13 @@ public sealed class EditionReadDriftTests
         // The lexer: the Annex C spelling of a word at the edition, and whether a '(' after a word the edition
         // reserves can open a subscript (kb/Work PB1465).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | LPAREN | OnDefaultLParen"] = (1, Verdict.WordStatus),
-        // The error strategy names a syntax error on a reservation-gated word §8.9 reserves here, written where a
-        // user-defined word stands, as that word's §8.9 violation (COBOL0901), ranked with its other diagnoses of the
-        // token (kb/Work PB693, PB4132). Both recoveries of such a word read the same decision: the resynchronization
-        // after the report consumes the word as the operand it stood for, never resuming at it (kb/Work PB3248), and the
-        // single-token deletion, asking it before its report, deletes it (review R3-1 of the PB4133 branch).
+        // The error strategy names a syntax error on a reserved word §8.9 reserves here (a reservation-gated word, or a
+        // verb a statement begins with, kb/Work PB4208), written where a user-defined word stands, as that word's §8.9
+        // violation (COBOL0901), ranked with its other diagnoses of the token and not when the word begins the statement
+        // that follows an incomplete one (kb/Work PB693, PB4132, PB4207). Every recovery of such a word reads the same
+        // decision: the resynchronization after the report consumes the word as the operand it stood for, never resuming
+        // at it (kb/Work PB3248); the single-token deletion, asking it before its report, deletes it (review R3-1 of the
+        // PB4133 branch); and the single-token substitution reads it as the name (kb/Work PB4218).
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ReservedWordUse | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
         // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, leaving out each one a
         // general format of the compile edition cannot print (kb/Work PB4174, PrintsKeyword): a word the §8.9 table proves
