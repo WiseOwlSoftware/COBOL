@@ -16,6 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// this list with its position; the behaviour is pinned by
 /// <c>DiagnosticPositionTests.PostResolutionScreen_NamesTheOperandsOwnLineAndColumn</c>.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class PostResolutionOperandPositionDriftTests
 {
     /// <summary>The signature fragment that finds each member in <c>ExpressionBinder.cs</c>, and the reason it must position.</summary>
