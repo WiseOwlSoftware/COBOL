@@ -46,9 +46,10 @@ everything after them (outside the slot; FAIL-FAST: a red audit known before the
 seconds with `NO TEST RAN`, and one found while the hosts run STOPS them, kb/Work PB2523, PB4326 — run `python
 scripts/rendered_views.py --check` and the citation audits yourself before gating to avoid the round trip; one audit,
 `SELF-TESTS`, is every script self-test, discovered and run in parallel by `scripts/self_tests.py`, kb/Work PB2563, and
-runs ONLY WHEN YOUR CHANGE TOUCHES TOOLING (a path under `scripts/`, `.github/`, `tools/`, `.claude/`, a `.py`/`.ps1`/`.sh`
-file, or data a self-test reads: the `tooling=` line of `inert_lane.py classify`, its `TOOLING_READS` list proved
-complete by `self_tests.py` on every run; CI's merge group runs every Linux self-test whatever the change) — every gate
+runs ONLY WHEN YOUR CHANGE TOUCHES A SCRIPT (a path under `scripts/`, `.github/`, `tools/`, `.claude/`, or a
+`.py`/`.ps1`/`.sh` file: the `tooling=` line of `inert_lane.py classify`; a compiler data file a self-test reads, its
+`TOOLING_READS` list, starts none, owner 2026-11-01, kb/Work PB4409; CI's merge group runs every Linux self-test
+whatever the change, and the Windows ones whenever the `reads_tooling=` line is true: a script or that data) — every gate
 passes `--reuse`, so a self-test whose inputs are unchanged since a recorded PASS is REUSED, not run; one still running an
 hour after taking its budget place is `SELF-TESTS HANG`, never RED, kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10) and
 fetches the per-worktree GnuCOBOL corpus when absent, then takes a GATE SLOT (`scripts/gate_slot.py`: at most N gates
