@@ -793,6 +793,20 @@ public sealed class DataItem
         "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
     public FormalCarrier? ResidentCarrier { get; set; }
 
+    /// <summary>⛔ The LOCAL OF THE GENERATED METHOD that holds a METHOD's level-1 data root's own storage
+    /// (<see cref="MethodDataLocal"/>; kb/Work PB4416), and null for every item that is not a method's root. A method's
+    /// LOCAL-STORAGE and LINKAGE roots live per activation (ISO §8.6.4: "Their storage is allocated and set to initial state
+    /// each time the runtime element containing them is activated"), so they are locals, never members of the class: every
+    /// access path to the root's own storage starts at a <see cref="LocalRootSegment"/> over this identity
+    /// (<c>ReferenceResolver.AddRoot</c>), and each backend names it where it declares it (DESIGN-backend-abstraction §1.2,
+    /// §1.3 L8). A root whose storage is elsewhere never roots a path here: a carrier-resident formal's is its carrier's
+    /// (<see cref="ResidentCarrier"/>, asked first), a Tier-B REDEFINES member's is its class's backing
+    /// (<see cref="RedefinesClass.BackingLocal"/>) or cell, and a Tier-A view's is its canonical's. Set by
+    /// <c>DataBinder.OoBindMethodData</c>.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a fact of the method that declares the root (where its storage lives), not of the data description")]
+    public MethodLocal? ActivationLocal { get; set; }
+
     /// <summary>True for a BASED 01/77 entry (ISO §13.18.5 — a storage TEMPLATE with an implicit data-address
     /// pointer, initially NULL; no storage of its own until SET ADDRESS OF / ALLOCATE gives it one). The
     /// post-build pass routes every reference through the pointer (Phase-4b increment 2). Written by

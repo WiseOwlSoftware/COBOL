@@ -247,6 +247,18 @@ public sealed class RedefinesClass
     /// Set by <c>DataBinder.ForceStringCanonical</c>'s callers, which are the only sites that create a cell.</summary>
     public bool IsCellBacked { get; set; }
 
+    /// <summary>⛔ The LOCAL OF THE GENERATED METHOD that holds this class's one string backing
+    /// (<see cref="MethodRedefinesBackingLocal"/>; kb/Work PB4416) when the class is a METHOD's Tier-B class stored by the
+    /// activation — its canonical a level-1 method root (<see cref="DataItem.ActivationLocal"/>) and no cell behind it — else
+    /// null: the backing of a nested canonical is a member of its root's storage, and a cell-backed class's backing is the
+    /// <c>ref</c> bridge over its cell, a member (kb/Work PB956). A path to the backing then starts at a
+    /// <see cref="LocalRootSegment"/> over it (<c>ReferenceResolver.BuildBackingPath</c>), never at the CLR name
+    /// <see cref="BackingClrName"/> (DESIGN-backend-abstraction §1.2, §1.3 L8). Derived, so it answers for the class's FINAL
+    /// tier and cell verdict whenever it is asked.</summary>
+    public MethodLocal? BackingLocal =>
+        Tier == RedefinesTier.StringCanonical && !IsCellBacked && Canonical is { Parent: null, ActivationLocal: not null }
+            ? new MethodRedefinesBackingLocal(this) : null;
+
     /// <summary>For a BASED class (Phase-4b increment 2, ISO §13.18.5): the C# name of the implicit
     /// data-address pointer field (<c>__addr_X</c>). The backing "field" is then a deref bridge property
     /// (<c>ref CobolPtr.Deref(__addr_X, width).Ref</c>) and every view's window offset is displaced by the

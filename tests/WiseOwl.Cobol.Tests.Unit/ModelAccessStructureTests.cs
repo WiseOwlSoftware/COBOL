@@ -146,6 +146,97 @@ public sealed class ModelAccessStructureTests
         Assert.Equal(OmittedFormalGuard.Of(formal.Item), root.Guard);
     }
 
+    // PB4416K: a METHOD whose data roots the method holds as locals of its own — a LOCAL-STORAGE group (§8.6.4: "Data items
+    // defined in the local-storage section are automatic items"), a LOCAL-STORAGE Tier-B REDEFINES class (a binary view
+    // over characters), the RETURNING item and an unattached LINKAGE record — beside an AREA formal (a FLOAT-LONG formal,
+    // laid over its argument's cell, whose backing is the class's member bridge over that cell) and OBJECT data, which are
+    // members of the class.
+    private const string MethodDataSource = """
+               IDENTIFICATION DIVISION.
+               CLASS-ID. PB4416K.
+               OBJECT.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 OBJ-N PIC 9(4).
+               PROCEDURE DIVISION.
+               METHOD-ID. M.
+               DATA DIVISION.
+               LOCAL-STORAGE SECTION.
+               01 LS-G.
+                  05 LS-A PIC 9(4) VALUE 7.
+               01 LS-R PIC X(4) VALUE "1234".
+               01 LS-V REDEFINES LS-R PIC S9(8) USAGE BINARY.
+               LINKAGE SECTION.
+               01 L-F USAGE FLOAT-LONG.
+               01 L-U PIC X(3).
+               01 L-R PIC 9(4).
+               PROCEDURE DIVISION USING L-F RETURNING L-R.
+                   ADD LS-A TO L-R.
+                   MOVE LS-R TO OBJ-N.
+                   MOVE LS-V TO L-R.
+               END METHOD M.
+               END OBJECT.
+               END CLASS PB4416K.
+        """;
+
+    /// <summary>⛔ A METHOD'S DATA IS A LOCAL, NAMED BY ITS IDENTITY (kb/Work PB4416; DESIGN-backend-abstraction §1.2,
+    /// §1.3 L8). Every access path to a method root's own storage starts at a <see cref="LocalRootSegment"/> over the
+    /// root's <see cref="MethodDataLocal"/>, and a path to a method Tier-B class's backing at one over its
+    /// <see cref="MethodRedefinesBackingLocal"/> — never at a <see cref="RootFieldSegment"/> holding the C# local's name, as
+    /// each was before PB4416 — while object data stays a member root. The roots are asked by enumeration, so a root kind
+    /// added to the fixture is held at once.</summary>
+    [Fact]
+    public void AMethodsDataRoots_AreRootedAtTheirLocalsIdentity()
+    {
+        var comp = RepositoryCodecTests.Bind(MethodDataSource, 2023);
+        var cls = comp.ClassUnits.Single(c => c.Name == "PB4416K");
+        var method = cls.Data.OoBoundMethods.Single().Binding!;
+        var roots = method.LocalRoots.Concat(method.LinkageRoots).ToList();
+        Assert.Equal(["LS-G", "LS-R", "LS-V", "L-F", "L-U", "L-R"], roots.Select(r => r.CobolName));
+        Assert.All(roots, r => Assert.Equal(new MethodDataLocal(r), r.ActivationLocal));
+
+        // The roots whose own storage the activation holds, and the member beneath one.
+        foreach (var name in new[] { "LS-G", "L-U", "L-R" })
+        {
+            var root = roots.Single(r => r.CobolName == name);
+            var place = Assert.IsType<MemberPlace>(cls.Refs.ResolveItem(root));
+            var seg = Assert.IsType<LocalRootSegment>(Assert.Single(place.Path.Segments));
+            Assert.Equal(root.ActivationLocal, seg.Local);
+            Assert.Equal(OmittedFormalGuard.Of(root), seg.Guard);
+        }
+        var member = Assert.IsType<MemberPlace>(cls.Refs.ResolveItem(roots[0].Children.Single()));
+        Assert.Equal([typeof(LocalRootSegment), typeof(MemberSegment)], member.Path.Segments.Select(s => s.GetType()));
+        Assert.Equal(roots[0].ActivationLocal, ((LocalRootSegment)member.Path.Segments[0]).Local);
+
+        // The Tier-B class, LS-R with its redefiner LS-V, is a window over the class backing local, never over a member.
+        foreach (var name in new[] { "LS-R", "LS-V" })
+        {
+            var item = roots.Single(r => r.CobolName == name);
+            var redef = item.Class!;
+            Assert.Equal(RedefinesTier.StringCanonical, redef.Tier);
+            Assert.False(redef.IsCellBacked);
+            var view = Assert.IsType<RedefViewPlace>(cls.Refs.ResolveItem(item));
+            var seg = Assert.IsType<LocalRootSegment>(Assert.Single(view.Backing.Segments));
+            Assert.Equal(new MethodRedefinesBackingLocal(redef), seg.Local);
+            Assert.Equal(redef.BackingLocal, seg.Local);
+        }
+
+        // The AREA formal's backing is the class's member bridge over the argument's cell (kb/Work PB956), so its class
+        // has no backing local and its window starts at the member.
+        var area = roots.Single(r => r.CobolName == "L-F");
+        Assert.True(area.Class!.IsCellBacked);
+        Assert.Null(area.Class.BackingLocal);
+        var areaView = Assert.IsType<RedefViewPlace>(cls.Refs.ResolveItem(area));
+        Assert.Equal(area.Class.BackingClrName,
+            Assert.IsType<RootFieldSegment>(Assert.Single(areaView.Backing.Segments)).MemberClrName);
+
+        // Object data is a member of the class, so it keeps its member root and carries no local.
+        var objectRoot = cls.Data.Roots.Single(r => r.CobolName == "OBJ-N");
+        Assert.Null(objectRoot.ActivationLocal);
+        var objectPlace = Assert.IsType<MemberPlace>(cls.Refs.ResolveItem(objectRoot));
+        Assert.Equal(objectRoot.ClrName, Assert.IsType<RootFieldSegment>(Assert.Single(objectPlace.Path.Segments)).MemberClrName);
+    }
+
     /// <summary>The records that held joined access text or a local's name now carry no string but a member's NAME: a new
     /// string property on any of them is a failure here until it is shown to be a name, not an access or a local.</summary>
     [Theory]
@@ -155,6 +246,8 @@ public sealed class ModelAccessStructureTests
     [InlineData(typeof(LocalRootSegment))]
     [InlineData(typeof(FormalCarrier.Member), "MemberClrName")]
     [InlineData(typeof(FormalCarrier.Local))]
+    [InlineData(typeof(MethodDataLocal))]
+    [InlineData(typeof(MethodRedefinesBackingLocal))]
     public void TheFormerAccessTextCarriers_HoldNoStringButAName(Type carrier, params string[] names)
     {
         var strings = carrier.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)

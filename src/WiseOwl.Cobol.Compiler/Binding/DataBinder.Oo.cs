@@ -462,10 +462,14 @@ public sealed partial class DataBinder
         foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
             OoMethodScopedRoots.Add(root);
         // M2-OO-1h step 4: a method table's index cell is a per-activation method local (emitted in OoEmitMethod).
-        // LINKAGE + LOCAL-STORAGE roots are C# LOCALS of the emitted method (their struct types and numeric
-        // profiles still emit at class level) — never instance fields.
+        // LINKAGE + LOCAL-STORAGE roots are LOCALS of the emitted method (their struct types and numeric profiles still
+        // emit at class level) — never instance fields — so each root's storage is named by its local's identity, never by
+        // a CLR name (ISO §8.6.4; kb/Work PB4416): every access path to it starts at that local (ReferenceResolver.AddRoot).
         foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
+        {
+            root.ActivationLocal = new MethodDataLocal(root);
             _callSuppressedRootFields.Add(root.ClrName);
+        }
 
         // The PD header formals (§14.2.2 SR1 — level-01/77 LINKAGE entries; correspondence is positional).
         // The using-phrase modes (§14.2.1: { [BY REFERENCE] { [OPTIONAL] d }… | BY VALUE { d }… }…) are TRANSITIVE

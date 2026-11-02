@@ -1829,11 +1829,12 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// parent's own dimensions, outermost first (ISO §13.18.44.3 SR5, kb/Work PB1279). A canonical within an OCCURS
     /// DYNAMIC table is reached the same way (kb/Work PB1933): the path's <see cref="DynTableSegment"/> renders its
     /// accessor from the direction <c>PlaceRenderer</c> renders the backing in — <c>RefSending</c> on a read,
-    /// <c>RefReceiving</c> (grow-and-seed, §8.5.1.9.3) on a store into the window.</summary>
+    /// <c>RefReceiving</c> (grow-and-seed, §8.5.1.9.3) on a store into the window. A METHOD's top-level class backing is a
+    /// local of the method (<see cref="RedefinesClass.BackingLocal"/>; kb/Work PB4416), the root of its path by identity.</summary>
     private AccessPath? BuildBackingPath(RedefinesClass cls, IReadOnlyList<Position> outerIndexExprs)
     {
         if (cls.Canonical.Parent is not { } parent)
-            return new AccessPath([new RootFieldSegment(cls.BackingClrName, OmittedFormalGuard.Of(cls.Canonical))]);
+            return new AccessPath([StorageRoot(cls.BackingLocal, cls.BackingClrName, OmittedFormalGuard.Of(cls.Canonical))]);
         // The enclosing element carries the same §13.18.38.4 GR7 OCCURS DEPENDING check every other element path does.
         return BuildAccessPath(parent, outerIndexExprs, OdoReferenceCheckFor) is { } parentPath
             ? parentPath.Add(new MemberSegment(cls.BackingClrName)) : null;
@@ -1940,23 +1941,34 @@ public sealed partial class ReferenceResolver(DataBinder data)
         return new WindowScope(cell, backing, terms, bitTerms, ordinalBase, ordinalTerms, nested);
     }
 
-    /// <summary>⛔ THE ONE ROOT OF AN ITEM'S ACCESS PATH (kb/Work PB971, PB4320): the item's field, carrying the
+    /// <summary>⛔ THE ONE ROOT OF AN ITEM'S ACCESS PATH (kb/Work PB971, PB4320): the item's storage, carrying the
     /// *-ARG-OMITTED guard when the item is a formal parameter (<see cref="OmittedFormalGuard.Of"/>), so every
     /// path builder — element, whole table, Tier-B backing — checks a reference to an omitted formal the same
-    /// way, and a new builder that roots through here cannot forget it. A CARRIER-RESIDENT formal has no field: its
-    /// root is its carrier's (<see cref="DataItem.ResidentCarrier"/>: a program's carrier member, a method's carrier
-    /// local, kb/Work PB4380) and the next step is the storage the carrier designates, <see cref="CarrierValueSegment"/>
-    /// (ISO §14.2.3 GR8).</summary>
+    /// way, and a new builder that roots through here cannot forget it. A CARRIER-RESIDENT formal has no storage of its
+    /// own: its root is its carrier's (<see cref="DataItem.ResidentCarrier"/>: a program's carrier member, a method's
+    /// carrier local, kb/Work PB4380) and the next step is the storage the carrier designates,
+    /// <see cref="CarrierValueSegment"/> (ISO §14.2.3 GR8). A METHOD's root is a local of the method, named by its
+    /// identity (<see cref="DataItem.ActivationLocal"/>, ISO §8.6.4; kb/Work PB4416); every other root is a member of the
+    /// program class, named by its CLR name.</summary>
     private static void AddRoot(List<AccessSegment> segs, DataItem root)
     {
+        var guard = OmittedFormalGuard.Of(root);
         if (root.ResidentCarrier is { } carrier)
         {
-            segs.Add(carrier.Root(OmittedFormalGuard.Of(root)));
+            segs.Add(carrier.Root(guard));
             segs.Add(CarrierValueSegment.Instance);
         }
         else
-            segs.Add(new RootFieldSegment(root.ClrName, OmittedFormalGuard.Of(root)));
+            segs.Add(StorageRoot(root.ActivationLocal, root.ClrName, guard));
     }
+
+    /// <summary>⛔ THE ONE CHOICE OF A STORAGE ROOT'S KIND (kb/Work PB4416): a local of the generated method when the storage
+    /// has a local's identity (<paramref name="local"/>: a method's data root, <see cref="DataItem.ActivationLocal"/>, or its
+    /// Tier-B class backing, <see cref="RedefinesClass.BackingLocal"/>), else the program class's member named
+    /// <paramref name="memberClrName"/> (DESIGN-backend-abstraction §1.2: a local is referenced by its identity, never its
+    /// name).</summary>
+    private static RootSegment StorageRoot(MethodLocal? local, string memberClrName, OmittedFormalGuard? guard) =>
+        local is not null ? new LocalRootSegment(local, guard) : new RootFieldSegment(memberClrName, guard);
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
