@@ -1,4 +1,4 @@
-## PB4370: the intrinsic carrier rules key on the function, and one wide argument no longer escapes the carrier
+## Entry 2978 — 2026-11-01 20:17 PST — PB4370: the intrinsic carrier rules key on the function, and one wide argument no longer escapes the carrier
 
 **The mechanism (kb/Work PB4370, cluster PB2293).** `IntrinsicCarrierRules` lives in `compiler.bound`, the layer a second
 code-generation backend would consume, and keyed its three sets and `AlignmentMayLeaveCarrier` on the Roslyn renderer's runtime
@@ -41,3 +41,4 @@ compile-time path. The key-to-runtime-body map lives in one test helper (`Intrin
 shared by the four drift tests that compare a set with the switch. The `CobolIntrinsics.Exact` summary still named MEAN as
 cross-aligning and `IntrinsicRenderer` as the set's home; it is corrected. **Gate:** `=== BUILD-LOCAL GATE: GREEN — Conformance
 20,541/20,541 · Unit 39,150/39,150 · Characterization 37/37 cases ran (skipped 0) ... run 000002-20261102T040002Z ===`.
+
