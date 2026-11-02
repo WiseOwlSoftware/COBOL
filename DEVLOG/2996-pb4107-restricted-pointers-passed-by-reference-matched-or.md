@@ -1,4 +1,4 @@
-## PB4107: restricted pointers passed BY REFERENCE, matched or returned compare by identity; the signature is SET's
+## Entry 2996 — 2026-11-02 06:36 PST — PB4107: restricted pointers passed BY REFERENCE, matched or returned compare by identity; the signature is SET's
 
 **The defect.** kb/Work PB4107 (from the deciding adjudication of PB3758): a restricted program-, function- or
 data-pointer passed BY REFERENCE, matched by §9.3.6 3 e) or returned (§14.8.3.3) was compared by its prototype's
@@ -65,3 +65,4 @@ compares two ELEMENTARY class pointers by signature class. A pointer that is a m
 compares by name. D-RP1's clause-identity reading suggests the elementary arm should compare by name too. That would
 change GR25's signature classes, which DESIGN-external-repository §6.4 rests on, so it stays a lead. kb/Work PB2103 (the
 group's other note) was not started: part 2 needs eleven codes and the wave allocated three.
+
