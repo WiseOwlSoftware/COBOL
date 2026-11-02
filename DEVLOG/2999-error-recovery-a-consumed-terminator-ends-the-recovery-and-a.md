@@ -1,4 +1,4 @@
-## Error recovery: a consumed terminator ends the recovery, and a left statement lives until its own terminator (PB4436, PB4437, PB4438)
+## Entry 2999 — 2026-11-02 08:25 PST — Error recovery: a consumed terminator ends the recovery, and a left statement lives until its own terminator (PB4436, PB4437, PB4438)
 
 Three diagnostic-recovery defects in `CobolErrorStrategy`, all in the bookkeeping PB4382 added for the statements a
 syntax recovery leaves before their end (ISO §14.5.3.2 1), 2)). Every program involved was already refused; the defects
@@ -50,3 +50,4 @@ The first gate of the review fix went RED on `ReservedWordPositionConformanceTes
 statement before the word is complete (`AStatementMayEndBefore`), pinned by a unit row.
 Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,899/20,899 · Unit 39,343/39,343 · Characterization 37/37` (run
 000002-20261102T160657Z); the four new refusals passed at 85, 2002, 2014 and 2023; `semgrep/verify.py` PASS.
+
