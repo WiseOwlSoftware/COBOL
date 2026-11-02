@@ -35,7 +35,7 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     private readonly Dictionary<string, int> _inherited = new(CobolNames.Comparer);
 
     /// <summary>The inherited names with their containment distances: the tier a same-spelled name declared in a
-    /// NEARER source element hides them at (§8.4.6.2.1 3); <c>DataBinder.DropShadowedConstants</c>).</summary>
+    /// NEARER source element hides them at (§8.4.6.2.1 3); <c>InheritStep.DropShadowed</c>).</summary>
     public IEnumerable<KeyValuePair<string, int>> InheritedDepths => _inherited;
 
     public int Count => _entries.Count;

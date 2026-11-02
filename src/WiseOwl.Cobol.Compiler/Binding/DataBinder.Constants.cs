@@ -117,9 +117,9 @@ public sealed partial class DataBinder
     /// §13.10.3 SR9.</summary>
     internal sealed class ConstantScope
     {
-        /// <summary>The bound constants by name (§13.10.4 GR1 substitution source). The binder's own table also holds
-        /// the GLOBAL constants of every containing program (<see cref="InheritGlobalConstants"/>, kb/Work PB1009),
-        /// named in <see cref="_inheritedConstants"/> until a local declaration shadows them.</summary>
+        /// <summary>The bound constants by name (§13.10.4 GR1 substitution source): this element's OWN entries only. The
+        /// GLOBAL constants of the containing programs are <see cref="InheritedGlobals.Constants"/>, read after these
+        /// (kb/Work PB1009).</summary>
         internal Dictionary<string, ConstantDef> Bound { get; } = new(CobolNames.Comparer);
 
         /// <summary>The element's constant entries by name, in source order (a duplicated name, §13.10.3 SR9, has
@@ -132,7 +132,7 @@ public sealed partial class DataBinder
         /// nothing (kb/Work PB3192). §11.7.4 GR5 makes each hide a word of the same spelling in the containing object or
         /// factory definition, from before the entry that defines it binds (<see cref="OoMethodDataScope.Declares"/>). Empty for the binder's own element, whose data-names cannot repeat
         /// one of its own constant-names (§8.3.2.2) and whose containers' constants it shadows through
-        /// <see cref="DropShadowedConstants"/>.</summary>
+        /// <see cref="InheritStep.DropShadowed"/>.</summary>
         internal HashSet<string> OtherWords { get; } = new(CobolNames.Comparer);
 
         /// <summary>Whether the element has any constant, bound or still to bind.</summary>
@@ -176,7 +176,7 @@ public sealed partial class DataBinder
     /// inheritance)? A PURE question: unlike <see cref="FindConstant"/> it binds nothing. The reporter of an
     /// unidentified reference asks it so a constant-name is never told it "is not defined".</summary>
     internal bool IsConstantName(string name) =>
-        ConstantScopeOf(name) is { } scope && (scope.Declared.ContainsKey(name) || scope.Bound.ContainsKey(name));
+        ConstantScopeOf(name) is { } scope && (scope.Declared.ContainsKey(name) || BoundConstantOf(scope, name) is not null);
 
     /// <summary>Is <paramref name="name"/> a constant-name whose every entry FINISHED with no value — refused, and
     /// reported at the entry (a cycle, a bad operand)? A PURE question, like <see cref="IsConstantName"/>: a reference to
@@ -186,56 +186,37 @@ public sealed partial class DataBinder
         && scope.Declared.TryGetValue(name, out var declared)
         && declared.TrueForAll(static d => d.State == ConstantBindState.Finished);
 
-    /// <summary>The names in <see cref="_constants"/> that came from a container, not from this unit's own entries,
-    /// each with the containment distance of the container that declared it (1 = the direct container) — the tier
-    /// <see cref="DropShadowedConstants"/> weighs against a same-spelled data-name's (kb/Work PB1047).</summary>
-    private readonly Dictionary<string, int> _inheritedConstants = new(CobolNames.Comparer);
-
     /// <summary>ISO §13.18.27.4 GR1–GR2 for constant-names (kb/Work PB1009): "A constant-name, data-name, file-name,
     /// report-name, or screen-name described using a GLOBAL clause is a global name", and "A statement in a program
     /// contained directly or indirectly within a program that describes a global name may reference that name
-    /// without describing it again". A constant occupies no storage, so it needs no bridge — the container's
-    /// folded definition joins this unit's table BEFORE this unit binds (definition precedes reference, the §13.10.4
-    /// GR1 substitution model). The caller passes EVERY container, nearest first, and the first definition of a
-    /// name wins — "directly or indirectly", with the nearest global declaration taking precedence. A local declaration of
-    /// the same name shadows (§8.4.6): a local constant entry replaces the inherited one
-    /// (<see cref="BindConstantEntry"/>), and a data-name declared NEARER removes it (<see cref="DropShadowedConstants"/>).
-    /// <paramref name="depth"/> is the container's containment distance (1 = the direct container).</summary>
-    internal void InheritGlobalConstants(DataBinder container, int depth)
+    /// without describing it again". The constants a program contained in THIS one inherits: this unit's own bound GLOBAL
+    /// constants, and the GLOBAL constants it inherited itself (<see cref="InheritedGlobals.Constants"/>) that no
+    /// declaration of its own hides. <see cref="InheritStep"/> offers them to the contained unit's slice, nearest container
+    /// first, the first definition of a name winning — "directly or indirectly", with the nearest global declaration
+    /// taking precedence. A local declaration of the same name shadows (§8.4.6): a local constant entry hides the inherited
+    /// one structurally (<see cref="InheritedConstantOf"/>), and a data-name declared NEARER removes it
+    /// (<see cref="InheritStep.DropShadowed"/>).</summary>
+    internal IEnumerable<KeyValuePair<string, ConstantDef>> GlobalConstantsToInherit()
     {
-        foreach (var (name, def) in container._constants.Bound)
-            if (def.IsGlobal && _constants.Bound.TryAdd(name, def))
-                _inheritedConstants[name] = depth;
+        foreach (var (name, def) in _constants.Bound)
+            if (def.IsGlobal)
+                yield return new(name, def);
+        foreach (var (name, inherited) in State.Inherited.Constants)
+            if (!_constants.Declared.ContainsKey(name))
+                yield return new(name, inherited.Definition);
     }
 
-    /// <summary>Once this unit's DATA DIVISION is bound AND every container's global data is inherited
-    /// (<see cref="InheritGlobalSubtree"/>): an inherited GLOBAL constant is SHADOWED by a data-name of the same
-    /// spelling declared in a NEARER source element — this unit's own, or a nearer container's global one — by ISO
-    /// §8.4.6.2.1 3) ("a) If the name is declared in source element B, the item in source element B is the referenced
-    /// item. b) … 1. The item in source element A if the name is declared in source element A"), so it leaves the
-    /// table before any procedure reference can substitute it (kb/Work PB1009; the nearer-container half kb/Work
-    /// PB1047 — an outer program's constant used to beat the middle program's global data-name).
-    /// <para>The INHERITED SYMBOLIC CHARACTERS figurative constants (§12.3.7.4 GR11 a; <see cref="ConfigurationStep"/>)
-    /// obey the same rule: §8.4.6.1 "a source element's reference to such a name, even when it is a different type of
-    /// user-defined word, is to the item which that source element describes", so a contained program's or an OO
-    /// half's data item spelled like its container's symbolic-character is the referenced item (kb/Work PB3154 review
-    /// R1-1: <c>MOVE S1 TO Y</c> moved the container's figurative instead of the local <c>01 S1</c>, with no
-    /// diagnostic). A shadowed symbolic is HIDDEN (<see cref="_shadowedSymbolics"/>), never removed: a contained unit
-    /// inherits the whole table from this one (<see cref="ConfigurationStep"/> copies one level), and this unit's
-    /// local data-name hides nothing from it.</para>
-    /// <para>Every tier a name can be declared at is asked by <see cref="DeclaredNearerThan"/>; a METHOD's own names
-    /// are the one tier nearer still, asked at reference time (<see cref="ActiveMethodDeclares"/>).</para></summary>
-    internal void DropShadowedConstants()
-    {
-        foreach (var (name, depth) in _inheritedConstants.ToList())
-            if (DeclaredNearerThan(name, depth))
-            {
-                _constants.Bound.Remove(name);
-                _inheritedConstants.Remove(name);
-            }
-        foreach (var (name, depth) in State.Configuration.SymbolicCharacters.InheritedDepths)
-            if (DeclaredNearerThan(name, depth)) _shadowedSymbolics.Add(name);
-    }
+    /// <summary>The GLOBAL constant of a container that <paramref name="name"/> names in <paramref name="scope"/>, or null:
+    /// only the unit's own element reads the inherited table (a method's constants hide, never inherit, §11.7.4 GR5), and
+    /// an entry of this unit's own that is DECLARED under the name — bound, still to bind or refused — hides it (§8.4.6).</summary>
+    private ConstantDef? InheritedConstantOf(ConstantScope scope, string name) =>
+        ReferenceEquals(scope, _constants) && !scope.Declared.ContainsKey(name)
+        && State.Inherited.Constants.TryGetValue(name, out var inherited) ? inherited.Definition : null;
+
+    /// <summary>The constant bound under <paramref name="name"/> in <paramref name="scope"/>: the element's own, else the
+    /// GLOBAL one a container offered.</summary>
+    private ConstantDef? BoundConstantOf(ConstantScope scope, string name) =>
+        scope.Bound.TryGetValue(name, out var def) ? def : InheritedConstantOf(scope, name);
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) ACROSS NAME CLASSES for a word that stands for a literal: whether this unit's set
     /// of names (its own and every container's global ones) declares <paramref name="name"/> as a data-name, a
@@ -283,12 +264,12 @@ public sealed partial class DataBinder
                 if (scope.Bound.ContainsKey(name)) break;
                 BindDeclaredConstant(d, demanded: true);
             }
-        return scope.Bound.TryGetValue(name, out var def) ? def : null;
+        return BoundConstantOf(scope, name);
     }
 
     /// <summary>Whether a constant, bound or still to bind, is visible here — this unit's own, or the method's being
     /// bound — the guard the PICTURE expansion takes so a constant-free program's PICTURE pipeline is untouched.</summary>
-    private bool UnitHasConstants => _constants.Any || MethodConstants?.Any == true;
+    private bool UnitHasConstants => _constants.Any || State.Inherited.Constants.Count > 0 || MethodConstants?.Any == true;
 
     // ── Declaration before binding (kb/Work PB1231) ──────────────────────────────────────────────────────────────
 
@@ -379,7 +360,6 @@ public sealed partial class DataBinder
         {
             if (!scope.Declared.TryGetValue(name, out var list)) scope.Declared[name] = list = [];
             list.Add(d);
-            if (scope == _constants && _inheritedConstants.Remove(name)) _constants.Bound.Remove(name);
         }
         return d;
     }

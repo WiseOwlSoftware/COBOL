@@ -148,7 +148,7 @@ public sealed partial class DataBinder
     /// <paramref name="dataName"/> is whether the ranked data-name lookup left a data item standing: it answers for
     /// itself, so the constant and the file are not offered beside it (an index-name is, because
     /// <see cref="Model.SymbolTable.IndexCandidates"/> has already weighed it against the data-name). The inherited
-    /// GLOBAL constant is still in the table until the unit's data division has bound (<c>DropShadowedConstants</c>), so
+    /// GLOBAL constant is still in the table until the unit's data division has bound (<c>InheritStep.DropShadowed</c>), so
     /// the data division's own clause operands meet it here, where a contained program's own level-88 of the spelling
     /// must outrank it.</summary>
     private IEnumerable<NonDataDeclaration> NonConditionDeclarationsOf(
@@ -156,7 +156,7 @@ public sealed partial class DataBinder
     {
         if (qualifiers.Count == 0 && !dataName && IsConstantName(name))
             yield return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name),
-                Depth: _inheritedConstants.GetValueOrDefault(name));
+                Depth: !_constants.Declared.ContainsKey(name) && State.Inherited.Constants.TryGetValue(name, out var inheritedConstant) ? inheritedConstant.Depth : 0);
         // An index-name that the written qualifiers reach NONE of is still the declaration a refusal words ("declared, but not
         // under the given qualifiers"), but the reference does not name it: it ranks behind every other class (int.MaxValue),
         // so a qualified `RELF OF X` that only a container's GLOBAL level-88 satisfies is not hidden by an own `INDEXED BY RELF`

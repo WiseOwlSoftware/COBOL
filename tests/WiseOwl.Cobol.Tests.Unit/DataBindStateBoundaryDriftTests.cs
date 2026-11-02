@@ -89,7 +89,7 @@ public sealed class DataBindStateBoundaryDriftTests
     [Fact]
     public void TheInheritedGlobalsSlice_IsWrittenOnlyByInheritStep()
     {
-        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|OfferContainerGlobals)\(");
+        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|AddContainerConstants|OfferContainerGlobals)\(|Inherited\.DropShadowed\(");
         var offenders = new List<string>();
         int found = 0;
         foreach (var (file, text) in CompilerSources())

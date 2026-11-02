@@ -91,7 +91,7 @@ internal static class ConfigurationStep
     /// diagnostic (AR-15.67.3-5). The SYMBOLIC CHARACTERS figurative constants (§12.3.7.4 GR11 a; §8.4.6.1 lists
     /// symbolic-character among the names a configuration section declares for "any source element contained within that
     /// source element") carry their containment distance (<see cref="ConfigurationNames{T}.InheritedDepths"/>), so a nearer
-    /// declaration of the spelling hides them (<c>DataBinder.DropShadowedConstants</c>; kb/Work PB3154 review R1-1).
+    /// declaration of the spelling hides them (<c>InheritStep.DropShadowed</c>; kb/Work PB3154 review R1-1).
     /// §11.9.4 GR1's OPTIONS inheritance rides the same call: the container's model is the baseline the unit's own OPTIONS
     /// paragraph overrides clause by clause.
     /// </summary>

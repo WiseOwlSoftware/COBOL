@@ -151,7 +151,7 @@ internal sealed class OoDriver(BindSession session)
         data.OoBindPropertyClauses(cls.Symbol, factory: false);
         data.BindResolve(synthetic);
         // The class's symbolic-characters an OBJECT data-name of the spelling hides (§8.4.6.1; kb/Work PB3154 R1-1).
-        data.DropShadowedConstants();
+        InheritStep.DropShadowed(data);
         cls.Data = data;
         cls.Refs = new ReferenceResolver(data);
 
@@ -170,7 +170,7 @@ internal sealed class OoDriver(BindSession session)
             fdata.OoBindMethodData(m);
         fdata.OoBindPropertyClauses(cls.Symbol, factory: true);
         fdata.BindResolve(fsynthetic);
-        fdata.DropShadowedConstants();   // …and a FACTORY data-name, likewise
+        InheritStep.DropShadowed(fdata);   // …and a FACTORY data-name, likewise
         cls.FactoryData = fdata;
         cls.FactoryRefs = new ReferenceResolver(fdata);
     }

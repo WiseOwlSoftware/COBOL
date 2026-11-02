@@ -243,15 +243,10 @@ public sealed partial class DataBinder
 
     /// <summary>Whether a nearer declaration of <paramref name="word"/> hides the symbolic-character of that spelling
     /// (§8.4.6.1, §8.4.6.2.1 3); kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
-    /// condition- or index-name hides (<see cref="DropShadowedConstants"/>), or any one the method being bound
+    /// condition- or index-name hides (<see cref="InheritStep.DropShadowed"/>), or any one the method being bound
     /// declares a name of (<see cref="ActiveMethodDeclares"/>). Asked by every symbolic lookup, the resolving and the
     /// predicate alike, so they cannot disagree.</summary>
-    private bool HidesSymbolic(string word) => _shadowedSymbolics.Contains(word) || ActiveMethodDeclares(word);
-
-    /// <summary>The inherited symbolic-characters a nearer declaration hides (<see cref="DropShadowedConstants"/>).
-    /// Hidden by <see cref="HidesSymbolic"/>, never removed from <see cref="SymbolicCharacters"/>: a contained
-    /// unit inherits the whole table from this one, and this unit's local name hides nothing from it.</summary>
-    private readonly HashSet<string> _shadowedSymbolics = new(CobolNames.Comparer);
+    private bool HidesSymbolic(string word) => State.Inherited.HidesSymbolic(word) || ActiveMethodDeclares(word);
 
     /// <summary>Normalize a NUMERIC literal's source text to the canonical dot-decimal form the whole emit-side
     /// decode pipeline consumes (ISO §12.3.7.4 GR14 a): under DECIMAL-POINT IS COMMA "the character written in
