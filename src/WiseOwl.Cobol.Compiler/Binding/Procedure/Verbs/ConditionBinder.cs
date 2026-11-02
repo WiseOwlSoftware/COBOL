@@ -1237,9 +1237,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // pairing error about the wrong thing) and reported ONCE, through the one wording.
         // A data item of a NEARER source element that hides the level-88 is NOT this arm's reference (ISO §8.4.6.2.1 3) a)):
         // a bare operand admits a data item, so the reference is the data item's and the value arm reports whatever is
-        // wrong with it, such as a subscript on a scalar (§8.4.2.3.3 SR2, COBOL2096; kb/Work PB4433).
+        // wrong with it, such as a subscript on a scalar (§8.4.2.3.3 SR2, COBOL2096; kb/Work PB4433). A constant-name,
+        // index-name, CAPACITY register or file-name of a NEARER source element is the referenced item the same way
+        // (kb/Work PB4432 review R1-1), and the value arm refuses it as the operand it is.
         if (inner is { } mqx && SoleDataRef(mqx) is { } mqr && ctx.Refs.Probe(mqr) is null
-            && !NamesHidingDataItem(mqr) && ReportMisqualifiedCondition(mqr))
+            && !NamesHidingDataItem(mqr) && HidingClassPhrase(mqr) is null && ReportMisqualifiedCondition(mqr))
             return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
                 Refused($"condition-name '{DataBinder.WrittenText(mqr)}'"));
         // A class-name-1 / alphabet-name-1 (§8.8.4.4.2) written bare — a word, never qualified, subscripted or
@@ -1647,6 +1649,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // declared-but-misqualified condition-name case — or a caller that admits only a condition-name asks
         // ReportMisqualifiedCondition.
         if (matches.Count == 0) return null;
+        // A named CAPACITY register of a NEARER source element is the referenced item, not the level-88 (ISO §8.4.6.2.1 3) a);
+        // kb/Work PB4432 review R1-1). The register has ONE lookup, which judges the written reference
+        // (ReferenceResolver.CapacityRegisterFor, already weighed against a nearer condition-name), so it is asked here.
+        if (CapacityRegisterHides(dref, matches)) return null;
         // ⛔ A CONDITION-NAME TAKES NO REFERENCE MODIFIER (kb/Work PB2468). §8.4.4.2 prints condition-name-1,
         // qualified and subscripted (§8.4.2.3.2 Format 2), and §8.8.4.5.2 condition-name-1 alone; §8.4.3.3.3 SR5 admits
         // reference modification only where "an identifier referencing a data item of class alphanumeric, boolean,
@@ -1717,7 +1723,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
         if (NamesHidingDataItem(dref))
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, "a data item"));
+        // ... and so is a constant-name, index-name, CAPACITY register or file-name of a nearer one (kb/Work PB4432 review
+        // R1-1): this position names THAT, not the container's level-88.
+        else if (HidingClassPhrase(dref) is { } hider)
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, hider));
         // A report entry of a NEARER source element is the referenced item the same way (kb/Work PB4196), and the
         // report-item refusal names it.
         else if (!ctx.Data.ReportEntryReferenceRefused(default, $"'{text}'", name, qualifiers))
@@ -1732,6 +1742,32 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// (<see cref="ReportMisqualifiedCondition"/>), a bare operand position takes it as the data item it is.</summary>
     private bool NamesHidingDataItem(Core.DataReferenceContext dref) =>
         ctx.Data.ConditionNameHiddenByNearerDataItem(WrittenWord(dref), QualifiersOf(dref), ctx.ActiveScope);
+
+    /// <summary>What hides the level-88 <paramref name="dref"/> names, when it is a declaration of another name class than
+    /// a data item — a constant-name, index-name or file-name (<see cref="DataBinder.ConditionNameHiddenByNearerNonDataName"/>)
+    /// or a CAPACITY register (<see cref="CapacityRegisterHides"/>) of a NEARER source element (ISO §8.4.6.2.1 3) a); kb/Work
+    /// PB4432 review R1-1) — as the noun phrase the refusal says, else null. The class twin of
+    /// <see cref="NamesHidingDataItem"/>.</summary>
+    private string? HidingClassPhrase(Core.DataReferenceContext dref)
+    {
+        string name = WrittenWord(dref);
+        var qualifiers = QualifiersOf(dref);
+        if (ctx.Data.ConditionNameHiddenByNearerNonDataName(name, qualifiers, ctx.ActiveScope) is { } hider) return hider.ClassPhrase;
+        return CapacityRegisterHides(dref, ctx.Data.ConditionTier(name, qualifiers, ctx.ActiveScope))
+            ? ReferenceResolver.CapacityRegisterClassPhrase
+            : null;
+    }
+
+    /// <summary>Does <paramref name="dref"/> name a CAPACITY register declared in a source element NEARER than the level-88s
+    /// <paramref name="tier"/> (ISO §8.4.6.2.1 3) a); kb/Work PB4432 review R1-1)? A tie is not "nearer": the condition-name
+    /// keeps the reference at one depth, as it always has. ⛔ Only a register the WRITTEN QUALIFIERS REACH hides
+    /// (<c>CapacityRef.Reached</c> non-empty): <c>CapacityRegisterFor</c> also answers the nearest register with
+    /// <c>CapacityRefFault.Qualifiers</c> so the qualifier fault can be stated about it, but a reference those qualifiers
+    /// do not take to that register names only the level-88 (§8.4.6.2.1 2): rule 1 applies qualification over the whole
+    /// set before rule 3 ranks it; kb/Work PB4432 review R2-2).</summary>
+    private bool CapacityRegisterHides(Core.DataReferenceContext dref, List<Condition88> tier) =>
+        tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref) is { Reached.Count: > 0 } cap
+        && ctx.Data.DeclaringDepth(cap.Table) < ctx.Data.DeclaringDepth(tier[0].Parent);
 
     private static string WrittenWord(Core.DataReferenceContext dref) => dref.cobolWord()?.GetText() ?? dref.GetText();
 
