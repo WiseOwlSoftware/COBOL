@@ -29,3 +29,14 @@ every kind with every kind (a sentence twice, a sentence lost, or a branch missi
 joined a finished branch and closes them under drain, and checks the drain plan's real absorbed group and the fix lane's
 two groups planned onto one finished branch. Self-test 527/527. The rules' wording changed, so
 `testdata/plan_wave_default.json` was regenerated; its diff is only the wording of those sentences.
+
+Review round 1 of the finisher (wave 20261821 b) found two defects in the moved rules. R1-1 (blocking): `UNLANDED_RULE`
+said "each UNLANDED branch", but `finisher_pred` appends it for CHECK as well, so the fact "is CHECK" (an unlanded fix to
+existing files, the common shape of a SPLIT fix branch) had no instruction left; the classes the arm carries are now one
+constant, `groups.CARRIED_CLASSES`, which the arm's test and the rule's text both read. The same arm left a doubled
+space when no commits were replayed; the clause is now stripped before it is joined. R1-2: a joined pred ends with the
+rules, after the "cherry-pick ONLY those" of a replayed branch, so the rules now say themselves (`CHERRY_PICK_SCOPE`)
+that a branch's own restriction qualifies them. Tests: every carried class and a no-report branch, joined or alone,
+meets a rule that names its class; LANDED gets no cherry-pick rule; no kind of pred, alone or joined, has a doubled
+space; a joined pred of replayed branches ends with rules that honor the restriction. Self-test 531/531; the golden's
+diff is only the rules' wording.

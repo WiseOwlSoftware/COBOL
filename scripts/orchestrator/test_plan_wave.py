@@ -39,7 +39,8 @@ from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_cluste
                       ready_notes_view, turn_budget)
 from groups import (Group, as_group_json, attempts, body_of, campaign_requirements, group_cost,  # noqa: E402
                     group_requirements, landing_cost, requirements_text, DRAIN_CLAUSE, FINDINGS_ANSWER, FINISH_FIRST,
-                    branch_resume, finisher_pred, half_clause, join_preds, shared_rules)
+                    branch_resume, finisher_pred, half_clause, join_preds, shared_rules, CARRIED_CLASSES, LANDED_RULE,
+                    RESUME_RULE, UNLANDED_RULE)
 from dispatch_ledger import (held_by_dispatch, partition_record, partition_summary, record_dispatch,  # noqa: E402
                              record_partition, release_dispatch)
 sys.path.insert(0, str(HERE.parent))
@@ -1537,6 +1538,30 @@ check("... and a joined FINDINGS pred ends with the answer rule, whatever it was
        and not join_preds(PRED_KINDS["branch with no report"](1), mk(2)).endswith(FINDINGS_ANSWER)], [])
 check("... and every rule a builder declares is stated by some kind of pred above, so the drift test reaches it",
       [r[:40] for r in shared_rules() if r != DRAIN_CLAUSE and not any(r in mk(1) for mk in PRED_KINDS.values())], [])
+# Review R1-1 of wave 20261821 b: moving a rule to the end of a joined pred must leave it covering the class its fact names. Expected
+# from the planner's own arms: finisher_pred appends UNLANDED_RULE for each class in CARRIED_CLASSES (CHECK, an unlanded fix to
+# existing files, is carried like UNLANDED), so the fact says "is <class>" and the rule, alone or joined, names that class; a LANDED
+# branch gets LANDED_RULE and never the cherry-pick rule. The text has no doubled space whatever the replay (None had left one).
+bad_cover = []
+for cls in CARRIED_CLASSES:
+    for rep_ in (None, _pred_report(1)):
+        for rp in (None, _REPLAY):
+            one = finisher_pred(rep_, "worktree-k1", cls, ["PB91"], replay=rp)
+            joined = join_preds(one, PRED_KINDS["LANDED report"](2))
+            if not (UNLANDED_RULE in joined or RESUME_RULE in joined) or (rep_ and (f"is {cls}" not in joined or cls not in UNLANDED_RULE)):
+                bad_cover.append((cls, rep_ is None, rp is None))
+check("PB4419 R1-1: a CHECK or UNLANDED branch's fact and the cherry-pick rule that follows it, joined or not, name the same class",
+      (CARRIED_CLASSES, bad_cover), (("UNLANDED", "CHECK"), []))
+check("... and a LANDED branch gets the landed rule and never the cherry-pick rule",
+      (LANDED_RULE in PRED_KINDS["LANDED report"](1), UNLANDED_RULE in PRED_KINDS["LANDED report"](1)), (True, False))
+check("... and no kind of pred, nor any two joined, carries a doubled space",
+      [k for k, mk in PRED_KINDS.items() if "  " in mk(1) or "  " in join_preds(mk(1), mk(2))], [])
+# Review R1-2: a joined pred ends with the rules, after the "cherry-pick ONLY those" of a replayed branch, so each cherry-pick rule says
+# itself that the restriction qualifies it.
+_rep_joined = join_preds(PRED_KINDS["... and replayed commits"](1), PRED_KINDS["... with replayed commits"](2))
+check("PB4419 R1-2: a joined pred whose facts restrict a branch to ONLY some commits ends with rules that honor the restriction",
+      (_rep_joined.count("cherry-pick ONLY those"), _rep_joined.endswith(UNLANDED_RULE),
+       all("restricts it to ONLY some commits" in r for r in (RESUME_RULE, UNLANDED_RULE))), (2, True, True))
 # The clauses of the FINISHED group (Group.close_pred): the CONTINUATION onto the finished branches it joined and, under
 # --drain, the DRAIN clause. A group that absorbs another used to carry each of its own, so both were stated twice.
 cg1 = dataclasses.replace(rg, kind="finisher", pred=PRED_KINDS["UNLANDED report"](1), joins={}, continues=[])

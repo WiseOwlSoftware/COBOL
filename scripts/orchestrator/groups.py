@@ -194,14 +194,25 @@ def shared_rules() -> tuple[str, ...]:
 
 FINISH_FIRST = "FINISH-FIRST: "   # the lead-in of a finisher's pred (a joined pred keeps each: a label, never a rule)
 
+#: The branch classes whose unlanded commits a finisher cherry-picks onto main (prune_worktrees.py: CHECK is an unlanded
+#: fix to existing files, UNLANDED a branch no other landed). finisher_pred appends UNLANDED_RULE for exactly these and the
+#: rule names exactly these, so a fact "is CHECK" is covered by the rule that says what to do with it (review R1-1 of wave
+#: 20261821 b: the rule said UNLANDED only).
+CARRIED_CLASSES = ("UNLANDED", "CHECK")
+#: Where a branch's fact says "cherry-pick ONLY those" (replay_clause, PB3170) the rules below take only those. A rule is
+#: stated at the END of a joined pred, after every fact, so it says itself that the restriction qualifies it (review R1-2
+#: of wave 20261821 b: the last instruction a finisher read said to pick all the commits).
+CHERRY_PICK_SCOPE = (
+    "(all of them, unless the sentence above that names the branch restricts it to ONLY some commits, and then only those: the "
+    "others land from the branch that replays them, and a second copy would land twice)")
 RESUME_RULE = shared_rule(
     "For each branch that carries unlanded work with no report, run "
     "`python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the worktree still "
-    "exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the branch), resolve conflicts "
-    "against the spec, re-gate, then finish the notes at their roots.")
+    f"exists, read its STATUS.md, cherry-pick its commits {CHERRY_PICK_SCOPE} onto current main (never merge the "
+    "branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.")
 UNLANDED_RULE = shared_rule(
-    "For each UNLANDED branch named above, cherry-pick its unlanded commits onto current main (never merge the branch) "
-    "and re-gate before new work.")
+    f"For each {' or '.join(CARRIED_CLASSES)} branch named above, cherry-pick its unlanded commits {CHERRY_PICK_SCOPE} "
+    "onto current main (never merge the branch) and re-gate before new work.")
 LANDED_RULE = shared_rule(
     "For each LANDED branch named above, its landed part is already on main, so orient from the report only.")
 HALF_RULE = shared_rule(
@@ -271,8 +282,8 @@ def finisher_pred(rep: Report | None, branch: str | None, cls: str, nid_list: li
              + (f"It is contained in {carried_by}, which carries its work to main: `python scripts/merge_drivers.py merge {carried_by} --keep` into your "
                 f"branch (never cherry-pick {rep.branch}: its commits would land twice) and re-gate before new work."
                 if carried_by else
-                replay_clause(replay).lstrip() + " " + UNLANDED_RULE
-                if cls in ("UNLANDED", "CHECK") else
+                f"{replay_clause(replay).strip()} {UNLANDED_RULE}".strip()
+                if cls in CARRIED_CLASSES else
                 LANDED_RULE))
     return (f"{FINISH_FIRST}predecessor {rep.slug} ({rep.lead}) returned {rep.status or 'an unfinished report'} for "
             f"{', '.join(nid_list)}. Read {rep.path} first, its NEXT and its \"For the next implementer\" section, and "
