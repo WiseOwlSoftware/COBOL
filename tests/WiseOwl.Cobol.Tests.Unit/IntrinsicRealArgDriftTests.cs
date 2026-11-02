@@ -57,11 +57,12 @@ public sealed class IntrinsicRealArgDriftTests
         // so any digit-bearing arm was structurally invisible to this guard — the PB21 under-count shape again.
         // ⛔ PLUS THE SDIDI-QUOTIENT FUNCTIONS (kb/Work PB3860): MEAN has no arm in the switch (its native value is the SDIDI
         // quotient, RenderDec's MeanDec), but a binary64 operand still routes it to MeanReal through RealMethod, so its
-        // counterpart is owed exactly as an arm's is.
+        // counterpart is owed exactly as an arm's is. The set names the FUNCTION (kb/Work PB4370), so its runtime body is
+        // read off the catalog row.
         return [.. Regex.Matches(body, @"case\s+(?<lbl>""[A-Za-z0-9]+""(?:\s+or\s+""[A-Za-z0-9]+"")*)\s*(?::|when\b)")
             .SelectMany(m => Regex.Matches(m.Groups["lbl"].Value, @"""(?<n>[A-Za-z0-9]+)""")
                                   .Select(x => x.Groups["n"].Value))
-            .Concat(IntrinsicCarrierRules.SdidiQuotientFunctions)];
+            .Concat(IntrinsicCarrierRules.SdidiQuotientFunctions.Select(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf))];
     }
 
     private static HashSet<string> RealBodies() =>

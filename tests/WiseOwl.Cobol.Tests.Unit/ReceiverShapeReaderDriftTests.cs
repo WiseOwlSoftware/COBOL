@@ -86,11 +86,13 @@ public sealed class ReceiverShapeReaderDriftTests
         string code = RendererCode();
         Assert.True(IntrinsicCarrierRules.ExactParseFunctions.Count >= 3);
         Assert.True(IntrinsicCarrierRules.SdidiQuotientFunctions.Count >= 1);
-        foreach (string method in IntrinsicCarrierRules.ExactParseFunctions.Concat(IntrinsicCarrierRules.SdidiQuotientFunctions))
+        foreach (string fn in IntrinsicCarrierRules.ExactParseFunctions.Concat(IntrinsicCarrierRules.SdidiQuotientFunctions))
         {
+            // The sets name the FUNCTION (kb/Work PB4370); the renderer's arms are labelled with its runtime body.
+            string method = IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(fn);
             Assert.DoesNotContain($"case \"{method}\"", code, StringComparison.Ordinal);
             Assert.True(Regex.IsMatch(code, $"\"{method}\"\\s*(=>|when)"),
-                $"RenderDec has no SDIDI arm for {method}, which IntrinsicCarrierRules.ReturnsExactParse / ReturnsSdidiQuotient routes to it");
+                $"RenderDec has no SDIDI arm for FUNCTION {fn} ({method}), which IntrinsicCarrierRules.ReturnsExactParse / ReturnsSdidiQuotient routes to it");
         }
     }
 }

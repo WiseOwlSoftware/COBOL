@@ -91,7 +91,7 @@ internal static class FunctionValueLane
         var sig = call.Sig;
         // NUMVAL / NUMVAL-C / NUMVAL-F return the SDIDI in EVERY mode — RenderNum's first arm, ahead of the mode dispatch and of
         // whatever their arguments are (the value is the exact parse of the argument: by definition for NUMVAL and NUMVAL-C, by the PB3839 determination for NUMVAL-F).
-        if (IntrinsicCarrierRules.ReturnsExactParse(sig.RuntimeMethod)) return CarrierKind.Dec;
+        if (IntrinsicCarrierRules.ReturnsExactParse(sig.Name)) return CarrierKind.Dec;
         // A function of a non-numeric result (reachable in a numeric context only under --permissive) is an exact value
         // (RenderNum's alphanumeric-decode arm). ⛔ AN INTEGER FUNCTION IS NOT EXEMPT (kb/Work PB3268, review R3-1):
         // RenderNum has no integer early-out, so INTEGER(1.5E0) computes FloorDec on the SDIDI, a SUM over wide integer
@@ -111,12 +111,12 @@ internal static class FunctionValueLane
         if (anyDec && sdidiBody) return OnSdidiBody(sig.RuntimeMethod);
         // A cross-aligning arm (SUM / RANGE / MEDIAN / MIDRANGE) whose aligned arguments may leave the Int128 carrier
         // takes the SDIDI (RenderNum's PB621 arm) — ahead of the float lane, whatever the arithmetic around it.
-        if (IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(sig.RuntimeMethod)
-            && IntrinsicCarrierRules.AlignmentMayLeaveCarrier(sig.RuntimeMethod, args.Select(a => a.Aligned).ToList()))
+        if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name)
+            && IntrinsicCarrierRules.AlignmentMayLeaveCarrier(sig.Name, args.Select(a => a.Aligned).ToList()))
             return OnSdidiBody(sig.RuntimeMethod);
         // MEAN is the SDIDI quotient of its equivalent expression for every list with no binary64 operand (RenderNum's
         // PB3860 arm); a list with one keeps the float lane below, as there.
-        if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.RuntimeMethod) && !anyReal) return OnSdidiBody(sig.RuntimeMethod);
+        if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.Name) && !anyReal) return OnSdidiBody(sig.RuntimeMethod);
         // A mixed selection list rides the SDIDI too (RenderNum's selection arm).
         if (Selections.Contains(sig.RuntimeMethod) && anyReal && !allReal && sdidiBody) return OnSdidiBody(sig.RuntimeMethod);
         if (sig.Float) return CarrierKind.ApproximateReal;

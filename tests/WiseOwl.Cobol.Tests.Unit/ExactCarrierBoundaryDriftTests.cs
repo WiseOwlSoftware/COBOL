@@ -216,9 +216,11 @@ public sealed class ExactCarrierBoundaryDriftTests
                 .SelectMany(a => a.Labels),
             StringComparer.Ordinal);
 
-    /// <summary>⛔ THE PB62/PB252 GUARD. Every arm that cross-aligns is in <c>CrossAlignedNativeArms</c>, and every
-    /// name in that set is still such an arm. Adding an aligning arm without routing it fails here rather than
-    /// eight months later on a user's program.</summary>
+    /// <summary>⛔ THE PB62/PB252 GUARD. Every arm that cross-aligns is the runtime body of a function in
+    /// <c>CrossAligningFunctions</c>, and every function in that set still has such an arm. The set is keyed on the
+    /// function (kb/Work PB4370) and the switch on the Roslyn renderer's runtime body, so the two meet through the
+    /// catalog row (<see cref="IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf"/>). Adding an aligning arm without
+    /// routing it fails here rather than eight months later on a user's program.</summary>
     [Fact]
     public void EveryCrossAligningNativeArm_IsRoutedToTheSdidiUnderAStandardMode()
     {
@@ -226,19 +228,21 @@ public sealed class ExactCarrierBoundaryDriftTests
         Assert.True(inSwitch.Count >= 6,       // MOD · REM · SUM · RANGE · MEDIAN · MIDRANGE (MEAN left with PB3860)
             $"only {inSwitch.Count} cross-aligning arms found ({string.Join(", ", inSwitch.Order())}) — the scan "
             + "has stopped seeing the switch and would pass with the routing set empty");
+        var routed = IntrinsicCarrierRules.CrossAligningFunctions
+            .ToDictionary(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf, fn => fn, StringComparer.Ordinal);
 
         foreach (string arm in inSwitch)
-            Assert.True(IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(arm),
-                $"the native arm {arm} aligns its arguments to a COMMON scale on the Int128 carrier but is not in "
-                + "IntrinsicCarrierRules.CrossAlignedNativeArms, so under ARITHMETIC IS STANDARD-DECIMAL it still "
+            Assert.True(routed.ContainsKey(arm),
+                $"the native arm {arm} aligns its arguments to a COMMON scale on the Int128 carrier but its function is "
+                + "not in IntrinsicCarrierRules.CrossAligningFunctions, so under ARITHMETIC IS STANDARD-DECIMAL it still "
                 + "evaluates there. Alignment multiplies — a 31-digit integer beside a scale-18 operand needs 49 "
                 + "digits — so it raises EC-SIZE-OVERFLOW where §15.4.1 rule 1 requires the equivalent arithmetic "
                 + "expression's exact SDIDI value (kb/Work PB62, then PB252 for MOD/REM).");
 
-        foreach (string arm in IntrinsicCarrierRules.CrossAlignedNativeArms)
+        foreach (var (arm, fn) in routed)
             Assert.True(inSwitch.Contains(arm),
-                $"{arm} is routed as a cross-aligning arm but no longer aligns in the native switch — the set is "
-                + "stale, and a stale entry silently changes that function's standard-mode carrier");
+                $"FUNCTION {fn} is routed as cross-aligning but its native arm {arm} no longer aligns in the switch — the "
+                + "set is stale, and a stale entry silently changes that function's standard-mode carrier");
     }
 
     /// <summary>The pure-SELECTION arms are the complement, and they must STAY out: §15.59.4 / §15.63.4 / §15.71.4
@@ -247,10 +251,14 @@ public sealed class ExactCarrierBoundaryDriftTests
     [Fact]
     public void ThePureSelectionArms_AreNotRoutedAsCrossAligning()
     {
-        foreach (string sel in new[] { "MaxScaled", "MinScaled", "OrdMax", "OrdMin" })
-            Assert.False(IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(sel),
+        foreach (string sel in new[] { "MAX", "MIN", "ORD-MAX", "ORD-MIN" })
+        {
+            // A name the catalog does not spell would be absent from the set vacuously.
+            Assert.NotEmpty(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(sel));
+            Assert.False(IntrinsicCarrierRules.CrossAligningFunctions.Contains(sel),
                 $"{sel} is pure selection (RawArgPairs rescales each argument to its OWN scale) — it forms no "
                 + "common scale and has no boundary to escape (kb/Work PB65)");
+        }
     }
 
     // ── 3. An arm that can be handed a Dec argument has a Dec body ─────────────────────────────────────────

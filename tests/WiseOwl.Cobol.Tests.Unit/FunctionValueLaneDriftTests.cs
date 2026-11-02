@@ -97,27 +97,29 @@ public sealed class FunctionValueLaneDriftTests
     }
 
     /// <summary>The other function sets the prediction shares with the renderer
-    /// (<see cref="IntrinsicCarrierRules.CrossAlignedNativeArms"/>, <see cref="IntrinsicCarrierRules.ReturnsExactParse"/>,
+    /// (<see cref="IntrinsicCarrierRules.CrossAligningFunctions"/>, <see cref="IntrinsicCarrierRules.ReturnsExactParse"/>,
     /// <see cref="IntrinsicCarrierRules.SdidiQuotientFunctions"/>) route a call
-    /// to its SDIDI body, so each member needs one in <see cref="FunctionValueLane.NativeSdidiBodies"/> - else the
-    /// prediction would name a lane the renderer cannot take (kb/Work PB3268, review R2-1).</summary>
+    /// to its SDIDI body, so each member's runtime body needs one in <see cref="FunctionValueLane.NativeSdidiBodies"/> - else
+    /// the prediction would name a lane the renderer cannot take (kb/Work PB3268, review R2-1). The sets name functions and
+    /// the bodies are runtime methods, so each member meets its body through its catalog row (kb/Work PB4370).</summary>
     [Fact]
     public void TheSdidiRoutedSets_AreSubsetsOfNativeSdidiBodies()
     {
-        var crossAligned = IntrinsicCarrierRules.CrossAlignedNativeArms;
+        var crossAligned = IntrinsicCarrierRules.CrossAligningFunctions;
         Assert.True(crossAligned.Count > 0);
-        foreach (string arm in crossAligned)
-            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(arm),
-                $"CrossAlignedNativeArms names {arm}, which has no native SDIDI body in NativeSdidiBodies");
-        foreach (string arm in new[] { "Numval", "NumvalC", "NumvalF" })
+        foreach (string fn in crossAligned)
+            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(fn)),
+                $"CrossAligningFunctions names FUNCTION {fn}, which has no native SDIDI body in NativeSdidiBodies");
+        foreach (string fn in new[] { "NUMVAL", "NUMVAL-C", "NUMVAL-F" })
         {
-            Assert.True(IntrinsicCarrierRules.ReturnsExactParse(arm), $"{arm} returns the exact parse of its argument (§15.67.4 r1 / §15.68.4 r1 by definition, §15.69.4 r2/r3 by the PB3839 determination)");
-            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(arm), $"{arm} has no native SDIDI body in NativeSdidiBodies");
+            Assert.True(IntrinsicCarrierRules.ReturnsExactParse(fn), $"FUNCTION {fn} returns the exact parse of its argument (§15.67.4 r1 / §15.68.4 r1 by definition, §15.69.4 r2/r3 by the PB3839 determination)");
+            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(fn)),
+                $"FUNCTION {fn} has no native SDIDI body in NativeSdidiBodies");
         }
         Assert.True(IntrinsicCarrierRules.SdidiQuotientFunctions.Count > 0);
-        foreach (string arm in IntrinsicCarrierRules.SdidiQuotientFunctions)
-            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(arm),
-                $"SdidiQuotientFunctions names {arm}, which has no native SDIDI body in NativeSdidiBodies (kb/Work PB3860)");
+        foreach (string fn in IntrinsicCarrierRules.SdidiQuotientFunctions)
+            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf(fn)),
+                $"SdidiQuotientFunctions names FUNCTION {fn}, which has no native SDIDI body in NativeSdidiBodies (kb/Work PB3860)");
     }
 
     [Fact]

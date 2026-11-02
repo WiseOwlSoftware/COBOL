@@ -21,6 +21,9 @@ internal static class BackendContract
             "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundRangeMembership.Alphabet",
             "Bound.BoundSetSwitches.Switches", "Bound.BoundSwitchCondition.ImplementorName",
             "Bound.InitializeCategories.Spelling()", "Bound.SetCapacityKinds.Text()",
+            // intrinsic-function-names as their catalog rows spell them (kb/Work PB4370)
+            "Bound.IntrinsicCarrierRules.CrossAligningFunctions", "Bound.IntrinsicCarrierRules.ExactParseFunctions",
+            "Bound.IntrinsicCarrierRules.SdidiQuotientFunctions",
             "Model.ApplyCommitModel.Identifiers", "Model.IndexNameRegistry._byName",
             "Model.ItemCategory.CategoryName()", "Model.ItemCategory.Spell()", "Model.ItemCategory.Sr14PhraseOf()",
             "Model.ItemCategory.Sr4PhraseOf()", "Model.RecordLayout.CategoryOfItem()",
@@ -158,8 +161,6 @@ internal static class BackendContract
         [
             "Bound.BoundRelational.Op", "Bound.BoundLogical.Op", "Bound.BoundKeyedStart.Op",
             "Bound.BoundCodedSetClassCondition.Kind",
-            "Bound.IntrinsicCarrierRules.CrossAlignedNativeArms", "Bound.IntrinsicCarrierRules.ExactParseFunctions",
-            "Bound.IntrinsicCarrierRules.SdidiQuotientFunctions",
         ]),
     ]);
 }
