@@ -12,7 +12,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <c>--permissive</c> reports the same code as a WARNING and binds the argument with the Format-2 semantics the
 /// spelling plainly intends — a literal or expression crosses as a detached BY CONTENT value, BY VALUE as the Value
 /// mode. GnuCOBOL accepts all of these on a CALL naming no prototype, and IBM / Micro Focus accept BY VALUE and a
-/// BY CONTENT literal (CLAUDE.md rule 1's precedence for implementor latitude).
+/// BY CONTENT literal (CLAUDE.md rule 1's precedence for implementor latitude). OMITTED passed BY REFERENCE is the
+/// sixth vendor spelling (kb/Work PB4012); docs/CONFORMANCE.md D-CALLV records the survey and the owner's decision.
 /// </summary>
 public sealed class FormatOneVendorCallPermissiveTests
 {
@@ -100,5 +101,81 @@ public sealed class FormatOneVendorCallPermissiveTests
                 "N=+0000000002",    // no BY VALUE store reached the caller's N
             },
             stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
+    }
+
+    // kb/Work PB4012 (owner decision 2026-10-28: "Yes, permissive accepts"): OMITTED passed BY REFERENCE is the sixth
+    // vendor spelling. Expected values, derived: §14.9.4.4 GR11 makes an omitted argument's formal OMITTED, so the
+    // callee's §8.8.4.8 omitted-argument condition `B IS OMITTED` is true for the first two calls and false for the
+    // third, which passes W in both positions.
+    private const string OmittedProgram = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4012VEND.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 W PIC X(4) VALUE "ABCD".
+       PROCEDURE DIVISION.
+           CALL "PB4012S1" USING W OMITTED
+           CALL "PB4012S1" USING W BY REFERENCE OMITTED
+           CALL "PB4012S1" USING W W
+           STOP RUN.
+       END PROGRAM PB4012VEND.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4012S1.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 A PIC X(4).
+       01 B PIC X(4).
+       PROCEDURE DIVISION USING A OPTIONAL B.
+           IF B IS OMITTED
+               DISPLAY "A=" A " B OMITTED"
+           ELSE
+               DISPLAY "A=" A " B=" B
+           END-IF
+           GOBACK.
+       END PROGRAM PB4012S1.
+       """;
+
+    /// <summary>Strict: both OMITTED spellings are the standard's COBOL0899 (kb/Work PB3996, unchanged).</summary>
+    [Fact]
+    public void OmittedByReference_IsRejectedUnderStrict()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(OmittedProgram, 2023);
+        Assert.False(ok, "ISO §14.9.4.2 Format 1 prints OMITTED nowhere");
+        Assert.Equal(2, errors.Count(e => e.Contains("COBOL0899") && e.Contains("OMITTED")));
+    }
+
+    /// <summary><c>--permissive</c>: one vendor-extension warning per OMITTED, naming it, and each binds as the
+    /// §14.9.4.4 GR11 omitted argument.</summary>
+    [Fact]
+    public void OmittedByReference_UnderPermissive_WarnsAndPassesTheOmittedArgument()
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull(OmittedProgram, 2023, permissive: true);
+        Assert.True(ok, $"--permissive must accept OMITTED passed BY REFERENCE: {string.Join("\n", errors)}");
+        Assert.Equal(2, warnings.Count(w => w.Contains("COBOL0899") && w.Contains("OMITTED") && w.Contains("--permissive")));
+
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(OmittedProgram, 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(new[] { "A=ABCD B OMITTED", "A=ABCD B OMITTED", "A=ABCD B=ABCD" },
+            stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
+    }
+
+    /// <summary>An OMITTED that a BY CONTENT phrase carries over (§14.9.4.4 GR5) has no vendor lane: GnuCOBOL refuses
+    /// it too (cobc 3.2, kb/Work PB3996), so <c>--permissive</c> keeps the error.</summary>
+    [Fact]
+    public void OmittedAfterByContent_StaysRejectedUnderPermissive()
+    {
+        const string source = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4012BC.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 W PIC X(4) VALUE "ABCD".
+       PROCEDURE DIVISION.
+           CALL "OTHER" USING BY CONTENT W OMITTED
+           STOP RUN.
+       """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023, permissive: true);
+        Assert.False(ok, "an omitted argument is passed BY REFERENCE only");
+        Assert.Single(errors, e => e.Contains("COBOL0899") && e.Contains("OMITTED (after BY CONTENT)"));
     }
 }

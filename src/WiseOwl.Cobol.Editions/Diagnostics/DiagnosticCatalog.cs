@@ -958,7 +958,9 @@ public static class DiagnosticCatalog
         "This CALL argument belongs to a different CALL format. ISO §14.9.4.2 Format 1's USING admits "
         + "\"{ identifier-2 } …\" (BY REFERENCE or BY CONTENT) and nothing else; BY VALUE, the OMITTED phrase and the "
         + "expression operands (arithmetic-expression-1, boolean-expression-1, literal-2) are Format 2's, which the "
-        + "AS phrase selects (kb/Work PB130, PB3996). A boolean expression is additionally "
+        + "AS phrase selects (kb/Work PB130, PB3996). Under --permissive the vendor spellings of a CALL naming no "
+        + "prototype — BY VALUE, a literal or expression argument, and OMITTED passed BY REFERENCE — are a warning and "
+        + "bind with their Format-2 meaning (docs/CONFORMANCE.md D-CALLV; kb/Work PB162, PB4012). A boolean expression is additionally "
         + "not yet carried across a CALL boundary — the INVOKE side has BoundInvokeArg.ContentBool and the CALL "
         + "argument model has no counterpart.",
         "ISO §14.9.4.2 Formats 1 and 2", RecognizedNotImplemented);

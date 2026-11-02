@@ -29,6 +29,37 @@ public sealed class CliParserTests
     private static IReadOnlyList<string> Errors(params string[] args)
         => Program.BuildParser().Command.Parse(args).Errors.Select(e => e.Message).ToList();
 
+    private static string HelpOf(params string[] args)
+    {
+        var output = new StringWriter();
+        Assert.Equal(0, Program.Parse(args).Invoke(new InvocationConfiguration { Output = output, Error = new StringWriter() }));
+        return output.ToString();
+    }
+
+    /// <summary>kb/Work PB4340: check-batch takes only its manifest, so its help names no <c>&lt;source&gt;</c> and its
+    /// usage line is <c>cobol check-batch &lt;manifest&gt;</c>; the compile's help still names its source and points at
+    /// the batch check.</summary>
+    [Fact]
+    public void CheckBatchHelp_NamesOnlyTheManifest_AndTheCompileHelpNamesTheSource()
+    {
+        string batch = HelpOf(Program.CheckBatchName, "--help");
+        Assert.Contains($" {Program.CheckBatchName} <manifest>", batch);
+        Assert.DoesNotContain("<source>", batch);
+
+        string compile = HelpOf("--help");
+        Assert.Contains("<source>", compile);
+        Assert.Contains($"cobol {Program.CheckBatchName} <manifest>", compile);
+    }
+
+    /// <summary>kb/Work PB4340, the grammar half: a source written before check-batch is not a command line of either
+    /// verb, so it is a usage error, never a batch run that ignores the source.</summary>
+    [Fact]
+    public void ASourceBeforeCheckBatch_IsAUsageError()
+    {
+        Assert.NotEmpty(Program.Parse(["a.cob", Program.CheckBatchName, "m.tsv"]).Errors);
+        Assert.Empty(Program.Parse([Program.CheckBatchName, "m.tsv"]).Errors);
+    }
+
     [Theory]
     [InlineData("-o", "out.dll")]         // space form
     [InlineData("-o=out.dll")]            // inline form (the old parser rejected this as "unknown option")

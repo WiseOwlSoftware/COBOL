@@ -188,17 +188,18 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         var ret = c.Returning is { } rp ? PlaceIdentification.Freeze(rp, hoist) : c.Returning;
         return c with { Args = args, Returning = ret };
     }
-    /// <summary>⛔ WHETHER THIS SITE DESCRIBES ITS OPERANDS FOR §14.9.4.4 GR3 d)'s RUN-TIME CONFORMANCE CHECK (kb/Work PB165): it
-    /// checks EC-PROGRAM-ARG-MISMATCH, and the activating element held no signature of the activated program when it was
-    /// compiled (<see cref="BoundCallProgram.CalleeSignatureKnown"/> false — a dynamic Format-1 CALL, or a program-prototype
-    /// whose details §12.3.8.4 GR10 c) takes from the external repository), so §14.8.2 / §14.8.3 could not be asked at bind
-    /// time. Which ELEMENTARY rule applies — §14.8.2.3.2 / §14.8.2.3.3 rule 1 ("the same length") for "a program for which
+    /// <summary>⛔ WHETHER THIS SITE DESCRIBES ITS OPERANDS FOR §14.9.4.4 GR3 d)'s RUN-TIME CONFORMANCE CHECK (kb/Work PB165,
+    /// PB2103): it checks EC-PROGRAM-ARG-MISMATCH, and the element it activates is not a definition this compilation group
+    /// compiles (<see cref="BoundCallProgram.CalleeCompiledHere"/> false — a dynamic Format-1 CALL, a program-prototype whose
+    /// details §12.3.8.4 GR10 b) or c) took from a prototype or the external repository, a GR11 b) / c) function, a
+    /// pointer target), so the program actually activated may have been recompiled with another signature after the bind
+    /// checked §14.8.2 / §14.8.3, or the bind had none to check (DESIGN-external-repository §4.2). Which ELEMENTARY rule applies — §14.8.2.3.2 / §14.8.2.3.3 rule 1 ("the same length") for "a program for which
     /// there is no program-specifier in the REPOSITORY paragraph of the activating element", rule 2 (the clause identity,
     /// or a COMPUTE / SET / MOVE) for a program there is one for — depends on which program the CALL reaches, which a CALL
     /// by data-name or through a program-pointer knows only at run time, so the site states the element's program-specifiers
     /// (<see cref="ProgramSpecifiersText"/>) and <c>ProgramTable.CallProgram</c> decides.</summary>
     private static bool DescribesOperands(BoundCallProgram c, bool argMismatchChecking) =>
-        argMismatchChecking && !c.CalleeSignatureKnown;
+        argMismatchChecking && !c.CalleeCompiledHere;
 
     /// <summary>⛔ WHETHER THIS SITE LEAVES §14.2.3 GR9 / GR10's COMPUTE TO THE ACTIVATION BOUNDARY (kb/Work PB2549): it held no
     /// signature of the activated program (<see cref="BoundCallProgram.CalleeSignatureKnown"/> false, so no argument carries

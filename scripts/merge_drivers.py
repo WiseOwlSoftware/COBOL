@@ -1117,7 +1117,7 @@ def self_test() -> int:
         pr = ScratchRepo.init(root / "pin")
         pin = lambda major, h: f"runtime-major {major}{NL}runtime-hash {h}{NL}call-abi 2{NL}boundary-hash {h}{NL}"    # noqa: E731
         files_at = lambda major, h: {abi_pin.PIN_PATH: pin(major, h), abi_pin.PROPS_PATH: f"<Version>{major}.0.0</Version>{NL}",    # noqa: E731
-                                     abi_pin.CALL_ABI_PATH: f"public const int CallAbi = 2;{NL}",
+                                     abi_pin.CALL_ABI_PATH: f"public static int CallAbi {{ get; }} = 2;{NL}",
                                      ".gitattributes": f"{abi_pin.PIN_PATH} merge=cobol-abi-pin{NL}"}
         pr.commit("base", files_at(17, "A0"))
         pr.git("switch", "-q", "-c", "topic")

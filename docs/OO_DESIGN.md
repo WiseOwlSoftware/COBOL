@@ -427,7 +427,7 @@ The procedure-division header's BY phrases parse and CARRY on a method (kb/Work 
    b) / GR2 b)); two fixed groups are the same description at the same length, two variable-length groups when
    compatible at the same collapsed length (§9.3.5.3 item 7 keeps a variable-length group apart from a fixed one).
    **The signature classes are a PARTITION REFINEMENT (design decision of wave 1080, landed in wave 1082).** A
-   restricted program- or function-pointer's description carries its signature CLASS (`Clauses` = `TO` the class, and
+   restricted program- or function-pointer's description carries its signature CLASS (`Clauses` = the class's identity, and
    inside a strong group's `StrongType` key), and the classes are what `PrototypeSignatures.Same` decides, so a
    description relation asked inside a classification that threads its own assumptions would be circular. Shape (a), a
    restriction-equivalence parameter on `SignatureDifference` with the prototype NAME as a provisional identity, was
@@ -783,8 +783,12 @@ prototype starts in one block per namespace, each round stamps every pointer wit
 splits each block by `PrototypeSignatures.Same` (`ActivationRelations.SignatureDifference` per formal, through
 `OoConformance.SignatureDifference`), and a round that splits nothing is the greatest fixed point, so prototypes that
 name each other or themselves are classified by what they describe and never by what they are called (kb/Work PB2495). Two differently named prototypes of one signature are therefore one
-type on both lanes; the class identity is group-local until the external repository (`DESIGN-external-repository.md`)
-supplies a record's identity. A prototype with NO compile-time signature (§12.3.8.4 GR10 c) / GR11 c)) is a class of its
+type on both lanes, and the class identity is CANONICAL and group-independent (kb/Work PB2103;
+`DESIGN-external-repository.md` §6.4): `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` — the SHA-256 of the class's
+minimized signature graph, its reachable classes numbered in first-visit order and every description written by
+`PrototypeSignatures.DescriptionKey`, the relation `Same` reads as a key — so two separately compiled groups describe one
+signature's pointers with one string, and `SignatureIdentityDriftTests` holds the identity to `Same`. While the partition
+is refined a pointer carries its block's provisional position; the canonical identities are stamped once it is stable. A prototype with NO compile-time signature (§12.3.8.4 GR10 c) / GR11 c)) is a class of its
 own marked as such — `PrototypeSignatures.ExternalIdentity`, `ActivationDescription.ExternalRestrictionPrefix` + its
 name — and the conformance relations (`ActivationRelations.SamePointerRestriction`, read by `MaySet`, the BY REFERENCE
 pointer arm and the RETURNING pair's `ReturningConformance`) let a restricted pointer of that type conform to any restricted pointer of its kind, exactly as

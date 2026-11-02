@@ -127,7 +127,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// characteristics of the called program". Built per unit in BinderDriver.BindUnitProcedure, the
     /// NestedCallables precedent (and, for a class's methods, in <c>OoDriver.BindClassBody</c>); null in unit-test
     /// direct construction.</summary>
-    public IReadOnlyDictionary<string, ProgramPrototype>? ProgramPrototypes { get; set; }
+    internal IReadOnlyDictionary<string, ProgramPrototype>? ProgramPrototypes { get; set; }
 
     /// <summary>The group's prototype signature classes (kb/Work PB2464), beside the tables that name the prototypes
     /// they classify; null in unit-test direct construction.</summary>

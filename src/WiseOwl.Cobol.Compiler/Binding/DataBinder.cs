@@ -365,7 +365,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Record one CONTAINING program's files, <paramref name="depth"/> containment levels out: a GLOBAL one is a
     /// visible file-name here (<see cref="InheritedGlobalFiles"/>, the nearest container's declaration kept, its depth
-    /// read by <see cref="InheritedFileDepth"/>), any other is known for one question only (<see cref="ContainerLocalFiles"/>);
+    /// read by <see cref="FileDepth"/>), any other is known for one question only (<see cref="ContainerLocalFiles"/>);
     /// a record that is a GLOBAL name is recorded with its file (<see cref="InheritedGlobalRecordAreas"/>). Called for
     /// every container, nearest first, before this unit binds — the file-name twin of <see cref="InheritGlobalTypeDecls"/>.</summary>
     internal void InheritFileNames(DataBinder container, int depth)
@@ -384,11 +384,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     private readonly Dictionary<FileModel, int> _inheritedFileDepth = new(ReferenceEqualityComparer.Instance);
 
-    /// <summary>How many containment levels out the GLOBAL file <paramref name="file"/> of <see cref="InheritedGlobalFiles"/>
-    /// is declared — the file-name twin of <see cref="DeclaringDepth"/> and <see cref="ReportDepth"/>, so a name a
-    /// container declares as a file and a nearer element declares as something else resolves to the nearer declaration
-    /// (§8.4.6.2.1 3)).</summary>
-    internal int InheritedFileDepth(FileModel file) => _inheritedFileDepth[file];
+    /// <summary>How many containment levels out <paramref name="file"/> is declared: 0 for this element's own file, n for a
+    /// GLOBAL file of its n-th container (<see cref="InheritedGlobalFiles"/>) — the file-name twin of
+    /// <see cref="DeclaringDepth"/> and <see cref="ReportDepth"/>, so a name a container declares as a file and a nearer
+    /// element declares as something else resolves to the nearer declaration (§8.4.6.2.1 3); kb/Work PB4219).</summary>
+    internal int FileDepth(FileModel file) => _inheritedFileDepth.GetValueOrDefault(file);
 
     /// <summary>The record areas of every CONTAINING program's files that are GLOBAL names (§13.18.27.4 GR1: the record
     /// of a GLOBAL FD, or a level-1 entry with its own GLOBAL clause), each mapped to the file that owns it — SR11's
@@ -710,6 +710,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ScreenFacility.ReportSection(Edition, scr, ScreenNames);
             // The section is refused, but its screen-names are declared all the same (§8.3.2.2; kb/Work PB1083).
             foreach (var sn in ScreenNames) DeclareUserWord(sn, UserWordKind.ScreenName);
+            // A constant entry among the screen entries (§13.9.2, kb/Work PB4306) is a constant of this source element
+            // like any other (§13.10), bound as the report section binds its own (BindReportSectionEntries).
+            foreach (var constant in scr.constantEntry())
+            {
+                using var _ = Edition.At(constant);
+                BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
+            }
         }
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
@@ -2563,11 +2570,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         using var __ = Edition.At(at);
         string written = WrittenQualified(name, quals);
         // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars every clause of a data
-        // division section other than the report section from referring to a report item. (The report section's own
-        // clauses are that section's; their operand rules are theirs, so for them the ambiguity always stands.) A report
-        // entry of a NEARER source element is the referenced item (ISO §8.4.6.2.1 3) a)): the lookup leaves it no survivor
-        // to hide (kb/Work PB4196), so the survivors here are the ambiguity (kb/Work PB3767) or nothing.
-        if (!inReportSection && ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals)) return null;
+        // division section other than the report section from referring to a report item, and §13.15.3 SR7 bars the report
+        // section's own clauses from naming an entry's data-name in any way it does not list (kb/Work PB4226: an RD's
+        // OCCURS … DEPENDING ON is not one of them). A report entry of a NEARER source element is the referenced item
+        // (ISO §8.4.6.2.1 3) a)): the lookup leaves it no survivor to hide (kb/Work PB4196), so the survivors here are the
+        // ambiguity (kb/Work PB3767) or nothing.
+        if (ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals, inReportSection)) return null;
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
         // it is, the same the procedure division's unidentified reference asks. A refused declaration was reported.
@@ -8654,7 +8662,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // §8.4.6.2.1 3) AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole
         // set first): the survivors of the nearest declaring source element (kb/Work PB1047 / PB1243), and none when a
         // report entry of a nearer source element is the referenced item (kb/Work PB4196).
-        return new NameCandidates<DataItem>(Symbols.NearestDeclaringNamed(survivors, static i => i, name, quals));
+        return new NameCandidates<DataItem>(Symbols.NearestDeclaringData(survivors, name, quals));
     }
 
     /// <summary>⛔ ISO §8.4.2.2.1 RULE 4, IN THE ONE PLACE EVERY DATA-NAME LOOKUP READS (kb/Work PB1476). "Qualification
@@ -8895,13 +8903,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// it reports nothing.</summary>
     internal List<Condition88> QualifiedConditionCandidates(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
-        if (!Symbols.TryResolveCondition(name, scope, out var list)) return [];
-        var matches = qualifiers.Count == 0
-            ? list
-            : list.Where(c => ConditionQualifierChainMatches(c, qualifiers)).ToList();
-        matches = Symbols.NearestDeclaringNamed(matches, static c => c.Parent, name, qualifiers);   // kb/Work PB4196
+        var matches = Symbols.NearestDeclaringConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name,
+            qualifiers);   // kb/Work PB4196, PB4219
         return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
     }
+
+    /// <summary>Every level-88 of <paramref name="name"/> visible in <paramref name="scope"/> whose conditional-variable
+    /// chain carries each written qualifier, BEFORE the §8.4.6.2.1 3) narrowing: the qualifier walk of
+    /// <see cref="QualifiedConditionCandidates"/> and of <see cref="ConditionNameHiddenByNearerDataItem"/>.</summary>
+    private List<Condition88> ConditionsUnderQualifiers(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
+    {
+        if (!Symbols.TryResolveCondition(name, scope, out var list)) return [];
+        return qualifiers.Count == 0 ? list : list.Where(c => ConditionQualifierChainMatches(c, qualifiers)).ToList();
+    }
+
+    /// <summary>⛔ ISO §8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION (kb/Work PB4219 review R1-1): the written
+    /// qualifiers reach a level-88 of the spelling, but an ordinary data item of the spelling declared in a NEARER source
+    /// element hides it, and that data item is what the reference names (it survives <see cref="QualifiedCandidates"/>, so
+    /// no report entry or condition-name nearer still takes the reference from it). "If the name is declared in source
+    /// element B, the item in source element B is the referenced item." Pure: it reports nothing.</summary>
+    internal bool ConditionNameHiddenByNearerDataItem(string name, IReadOnlyList<string> qualifiers, Model.Scope scope) =>
+        Symbols.NearerDataItemHidesConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name, qualifiers)
+        && QualifiedCandidates(name, qualifiers, scope).Count != 0;
 
     /// <summary>⛔ THE OTHER HALF OF THE §8.4.2.2.1 UNIQUENESS COUNT OF A CONDITION-NAME REFERENCE (kb/Work PB3347): does
     /// the written reference ALSO name a switch-status condition-name (§12.3.7.4 GR2) declared in the SAME source element

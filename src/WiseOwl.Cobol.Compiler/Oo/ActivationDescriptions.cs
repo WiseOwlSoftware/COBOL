@@ -273,8 +273,11 @@ public static class ActivationDescriptions
             var type = StrongTypeModel.AddressOfRestriction(data.Item);
             return Pointer(ActivationCategory.DataPointer, Restriction(type), PointerPhrase(Usage.Pointer, TypePhrase(type)));
         }
+        // The restriction is an IDENTITY (the signature class's, kb/Work PB2103); the phrase a reader sees names the prototype
+        // the identifier wrote (§8.4.3.13.4 GR3: "a program-pointer restricted to program-prototype-name-1").
         return Pointer(ActivationCategory.ProgramPointer, programRestriction ?? ActivationDescription.Unrestricted,
-            PointerPhrase(Usage.ProgramPointer, programRestriction));
+            PointerPhrase(Usage.ProgramPointer,
+                programRestriction is not null && address.Program?.Prototype is { } prototype ? "TO " + prototype : null));
     }
 
     private static ActivationDescription Pointer(string category, string restriction, string phrase) => new()
@@ -360,7 +363,7 @@ public static class ActivationDescriptions
         string locale = p.LocaleEdit is { } le
             ? string.Create(CultureInfo.InvariantCulture, $"|LOCALE {(le.Locale.IsCurrent ? "-" : "N")} SIZE {le.Size} {le.Picture}") : "";
         string dynamic = item.IsDynamicLength
-            ? string.Create(CultureInfo.InvariantCulture, $"|DYNAMIC LENGTH {item.DynMaxSize} {CobolNames.Fold(item.DynStructure?.Name ?? "")}") : "";
+            ? string.Create(CultureInfo.InvariantCulture, $"|DYNAMIC LENGTH {item.DynMaxSize} {DynamicLengthStructure.KeyOf(item.DynStructure)}") : "";
         return string.Create(CultureInfo.InvariantCulture,
             $"USAGE {p.Usage}|SIGN {(p.Signed ? "S" : "U")} {p.SignKind}|DIGITS {p.Digits}.{p.Scale}|LENGTH {length}"
             + $"|{(item.BlankWhenZero ? "BLANK WHEN ZERO" : "-")}|{(item.Justified ? "JUSTIFIED" : "-")}"
