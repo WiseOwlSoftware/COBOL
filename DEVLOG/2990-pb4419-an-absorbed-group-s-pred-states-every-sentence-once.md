@@ -1,4 +1,4 @@
-## PB4419: an absorbed group's pred states every sentence once
+## Entry 2990 — 2026-11-02 02:18 PST — PB4419: an absorbed group's pred states every sentence once
 
 Wave unit 20261815 planned group A, ONE step over `DataBinder.cs` (kb/Work PB4396). The step absorbed the finishers of
 two branches whose reviews stamped FINDINGS. `finisher_pred` ended each of their preds with the same answer-by-id
@@ -40,3 +40,4 @@ that a branch's own restriction qualifies them. Tests: every carried class and a
 meets a rule that names its class; LANDED gets no cherry-pick rule; no kind of pred, alone or joined, has a doubled
 space; a joined pred of replayed branches ends with rules that honor the restriction. Self-test 531/531; the golden's
 diff is only the rules' wording.
+
