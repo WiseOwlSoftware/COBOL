@@ -27,11 +27,20 @@ END-x is its own. The sweep covered EVALUATE, SEARCH, PERFORM, ADD ON SIZE ERROR
 
 **Goldens.** Three refusals in `14.5.3.2-Explicit-scope-termination` (each expects the COBOL0306 sentence the baseline
 never drew): `pb4438-…`, `pb4436-…`, `pb4437-…`. Whole-list unit rows in `ParseRecoveryCascadeTests` (three new theories,
-15 rows), 285 `ParseRecovery*` tests green. **Left open, as leads in the report:** a WHEN written after the left IF's
-END-IF (`… IF c ELSE DISPLAY W-A END-IF WHEN 2 DISPLAY "Y" END-EVALUATE`) now draws a false COBOL0001 at the WHEN
-where the baseline drew a false COBOL0306 at the END-IF (the EVALUATE already returned); an EVALUATE nested in an IF
-with such a first-in-group IF draws a false COBOL0306 at its END-EVALUATE. Both need the empty-block recovery to keep
-the construct open rather than record it as left.
+15 rows), 285 `ParseRecovery*` tests green.
+
+**Branch review round 1 (R1-1, blocking).** Ending the error condition at the consumed terminator un-masked the failure at
+the next phrase word of an enclosing statement the prediction had closed early: `IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY
+"Z" END-IF.` drew a false COBOL0001 at the ELSE (main drew COBOL2072 only), and a WHEN or WHEN OTHER after a malformed IF
+in an EVALUATE or SEARCH drew a false COBOL0001 or COBOL2073. Fix: `Report` suppresses a word that a still-due left
+statement's rule lets follow an imperative block (`ContinuesAStatementTheRecoveryLeft`, `PhraseWords` read from the ATN,
+`TakenByALeftStatement` shared with the terminator test). A discard of the tail to the period was tried first and dropped:
+it lost genuine later faults main reported (`... MOVE TO W-N. END-IF`). One golden
+(`pb4436-stray-end-if-after-an-else-of-a-left-if`) and a 12-row unit theory
+(`APhraseWordOfAStatementTheRecoveryLeft_IsItsOwn_AndDrawsNoSecondReport`). The earlier lead 1 (a WHEN after the left IF's
+END-IF) is closed by the same change. **Left open, as a lead in the report:** an EVALUATE nested in an IF with such a
+first-in-group IF draws a false COBOL0306 at its END-EVALUATE (the outer IF's optional END-IF matches the left IF's
+terminator without a failure, so no recovery sees it; identical on main).
 
 **Self-review** (architecture, full code, performance, duplication): the new code runs on the error path only; the
 terminator-match test is one helper (`EndedWithItsTerminator`) used by both the record loop and `StillOpen`;

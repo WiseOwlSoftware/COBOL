@@ -1606,6 +1606,15 @@ target:
   block cannot take the left IF's END-IF) ends the block of its owning statement, which is recorded left too
   (`OwningStatement`), so its END-EVALUATE is its own and the IF's END-IF, whose enclosing EVALUATE has returned without
   its terminator, is the IF's.
+  **A phrase word of a left statement is its own** (PB4436, branch review R1-1): ending the error condition at the consumed
+  terminator unmasks the failure at the next phrase word of an enclosing statement the prediction already closed early
+  (`IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.`: the ELSE, a WHEN or a WHEN OTHER of an EVALUATE or SEARCH
+  after a malformed IF). `Report` suppresses it (`ContinuesAStatementTheRecoveryLeft`, after the terminator test) when a
+  record still due something belongs to a statement whose rule lets that word follow an imperative block
+  (`PhraseWords`, read from the ATN once per rule: what follows each `statementBlock` call in the rules the statement
+  reaches, a block that ends its rule followed by what follows the call, minus the scope terminators), under the same
+  record hygiene as the terminator test (`TakenByALeftStatement`). The word is the one fault re-met, not a tail to discard:
+  the recovery goes on, so a genuine later fault in the sentence is still reported.
 - ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
   Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that
   calls a WHEN OTHER rule, both read from the ATN): a phrase is misplaced where the construct already holds one (the

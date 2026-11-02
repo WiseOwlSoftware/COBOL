@@ -86,6 +86,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // (EmbeddedBlockReading.Report, kb/Work PB4341), never a second one naming its text.
         if (token.Type == CobolParserCore.EMBEDDED_BLOCK) return;
         if (EndsAStatementTheRecoveryLeft(recognizer, at)) return;
+        if (ContinuesAStatementTheRecoveryLeft(recognizer, at))
+        {
+            _lastReported = (at.Token.TokenIndex, at.Token.TokenIndex);   // the recovery re-meets the word: still the one fault
+            return;
+        }
         // A foreign word run that the next entry follows with its period missing (kb/Work PB4301): the run is refused by
         // name in a report of its own, and this one is the missing period's, which the recovery conjures and goes on from.
         if (at.EndsARunBeforeTheNextSentence && ClosedFormatResidue(recognizer, at, predictionFailedAt: false) is { Format: var runFormat }
@@ -160,6 +165,32 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // a fault reported at it (the empty block it ends, COBOL2072) is that statement's own.
         if (_leftByRecovery.Count == 0 || UnownedScopeTerminator(recognizer, at.Token.Type, at.OpenRules()) is not { } terminator)
             return false;
+        if (!TakenByALeftStatement(recognizer, at, rule => terminator.Statements.Contains(recognizer.RuleNames[rule]), consume: true))
+            return false;
+        _leftStatementsTerminator = at.Token.TokenIndex;
+        return true;
+    }
+
+    /// <summary>⛔ A PHRASE WORD OF A STATEMENT THE RECOVERY LEFT CONTINUES THAT STATEMENT (kb/Work PB4436 review R1-1).
+    /// <c>IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.</c>: the first IF's block cannot take the second IF, whose
+    /// statement-1 is missing, so the prediction ended the first IF before it, and the ELSE (the next WHEN or the WHEN
+    /// OTHER of an EVALUATE or a SEARCH, the NOT phrase of a statement with paired conditional phrases) meets no open
+    /// statement that takes it. The statement is left by the recovery and the word is its own (ISO §14.5.3.2 2): the
+    /// IF's statement-1 and statement-2 are the phrases of one IF), so the one fault was reported and the word is no
+    /// second: the tail it begins belongs to the construct the parse already left (<see cref="OrphansItsTail"/>), and
+    /// the resynchronization discards it to the unit's period, as for every construct the prediction closed early. The
+    /// words are those the grammar lets follow an imperative block of the statement's rule (<see cref="PhraseWords"/>).</summary>
+    private bool ContinuesAStatementTheRecoveryLeft(Parser recognizer, OffendingPosition at)
+        => _leftByRecovery.Count > 0 && at.Token.Type != CobolLexer.DOT && ScopeTerminator(recognizer, at.Token.Type) is null
+           && TakenByALeftStatement(recognizer, at, rule => PhraseWords(recognizer, rule).Contains(at.Token.Type), consume: false);
+
+    /// <summary>The newest statement the recovery left (<see cref="_leftByRecovery"/>) that is still due something and
+    /// whose rule <paramref name="takes"/> the token at <paramref name="at"/>; removed from the records when
+    /// <paramref name="consume"/> (its terminator is met). A record is no longer due where a separator period stands
+    /// between (§14.5.3.3 1) c)), where the statement ended in its own terminator after all, or where the statement
+    /// enclosing it ended (§14.5.3.2 2)).</summary>
+    private bool TakenByALeftStatement(Parser recognizer, OffendingPosition at, Func<int, bool> takes, bool consume)
+    {
         var stream = (ITokenStream)recognizer.InputStream;
         for (int i = _leftByRecovery.Count - 1; i >= 0; i--)
         {
@@ -170,10 +201,64 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             // The statement enclosing it ended: its scope terminator (or its end) terminated this one with it (§14.5.3.2 2)),
             // so no terminator of its own is still due.
             if (!StillOpen(recognizer, enclosing)) { _leftByRecovery.RemoveAt(i); continue; }
-            if (!terminator.Statements.Contains(recognizer.RuleNames[rule])) continue;
-            _leftByRecovery.RemoveAt(i);
-            _leftStatementsTerminator = at.Token.TokenIndex;
+            if (!takes(rule)) continue;
+            if (consume) _leftByRecovery.RemoveAt(i);
             return true;
+        }
+        return false;
+    }
+
+    /// <summary>The words that can follow an imperative block (<c>statementBlock</c>) of the statement of
+    /// <paramref name="rule"/>, other than its scope terminator: the ELSE of an IF, the WHEN and WHEN OTHER of an EVALUATE,
+    /// the WHEN of a SEARCH, the NOT of a paired conditional phrase. Read once per rule from the ATN, through the rules the
+    /// statement calls up to its blocks (a block that ends its rule is followed by what follows the call), so a phrase a
+    /// statement gains tomorrow is one.</summary>
+    private static IntervalSet PhraseWords(Parser recognizer, int rule)
+        => PhraseWordsByRule.GetOrAdd(rule, r =>
+        {
+            var words = new IntervalSet();
+            CollectPhraseWords(recognizer.Atn, r, new IntervalSet(), words, []);
+            words.Remove(TokenConstants.EPSILON);
+            foreach (int terminator in ScopeTerminatorTypes(recognizer)) words.Remove(terminator);
+            return words;
+        });
+
+    private static readonly ConcurrentDictionary<int, IntervalSet> PhraseWordsByRule = new();
+
+    /// <summary>Adds to <paramref name="words"/> what follows each call of <c>statementBlock</c> in the rules reached from
+    /// <paramref name="rule"/> (not into statements: a nested statement's phrases are its own); <paramref name="outer"/>
+    /// is what follows the call of <paramref name="rule"/> itself, which follows a block that ends it.</summary>
+    private static void CollectPhraseWords(ATN atn, int rule, IntervalSet outer, IntervalSet words, HashSet<(int, string)> seen)
+    {
+        if (!seen.Add((rule, outer.ToString()))) return;
+        foreach (var state in atn.states)
+        {
+            if (state is null || state.ruleIndex != rule) continue;
+            for (int i = 0; i < state.NumberOfTransitions; i++)
+            {
+                if (state.Transition(i) is not RuleTransition call) continue;
+                var after = atn.NextTokens(call.followState);
+                if (after.Contains(TokenConstants.EPSILON)) after = after.Or(outer);
+                int callee = call.target.ruleIndex;
+                if (callee == CobolParserCore.RULE_statementBlock) words.AddAll(after);
+                else if (callee != CobolParserCore.RULE_statement && ReachesABlock(atn, callee, [])) CollectPhraseWords(atn, callee, after, words, seen);
+            }
+        }
+    }
+
+    /// <summary>Does <paramref name="rule"/> call <c>statementBlock</c>, directly or through the rules it calls (not into
+    /// statements)?</summary>
+    private static bool ReachesABlock(ATN atn, int rule, HashSet<int> visiting)
+    {
+        if (!visiting.Add(rule)) return false;
+        foreach (var state in atn.states)
+        {
+            if (state is null || state.ruleIndex != rule) continue;
+            for (int i = 0; i < state.NumberOfTransitions; i++)
+                if (state.Transition(i) is RuleTransition call
+                    && (call.target.ruleIndex == CobolParserCore.RULE_statementBlock
+                        || (call.target.ruleIndex != CobolParserCore.RULE_statement && ReachesABlock(atn, call.target.ruleIndex, visiting))))
+                    return true;
         }
         return false;
     }
