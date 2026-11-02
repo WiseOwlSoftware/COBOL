@@ -119,10 +119,10 @@ public sealed partial class DataBinder
         // carrier field, so the omitted-argument condition, the GLOBAL bridge and ADDRESS OF all read the one member.
         // A formal whose area the cell cannot carry keeps the image round trip at the boundary (CellCanCarry).
         // A METHOD's formals take the same rule (the method arm, kb/Work PB2087): the pointer is the formal's per-activation
-        // data-address member (OoFormal.CarrierLocal), set at each activation to the argument's area.
+        // data-address member (OoFormal.AreaPointerClrName), set at each activation to the argument's area.
         var areaFormals = _linkageFormals.Where(f => !f.CarrierResident).Select(f => (f.Item, Pointer: f.CarrierField))
             .Concat(OoBoundMethods.SelectMany(m => m.Binding?.Formals ?? []).Where(f => !f.CarrierResident)
-                .Select(f => (f.Item, Pointer: f.CarrierLocal)));
+                .Select(f => (f.Item, Pointer: f.AreaPointerClrName)));
         foreach (var (item, pointer) in areaFormals)
         {
             if (!CellCanCarry(item)) continue;

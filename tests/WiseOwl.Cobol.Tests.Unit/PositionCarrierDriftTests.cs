@@ -32,7 +32,7 @@ public sealed class PositionCarrierDriftTests
     /// member, local or field the code generator emits as is — and not a position expression.</summary>
     private static readonly Dictionary<string, string> AdjudicatedNames = new(StringComparer.Ordinal)
     {
-        ["RootFieldSegment.CsField"] = "the root field's C# member name",
+        ["RootFieldSegment.MemberClrName"] = "the root member's CLR name",
         ["MemberSegment.MemberClrName"] = "a nested record struct member's or a class backing's CLR name",
         ["PositionIndexCell.Cell"] = "an index-name's occurrence cell, a C# member name (IndexDeclaration.Cell)",
         ["PositionPointerOffset.PointerField"] = "a BASED item's data-address pointer field, a C# member name",

@@ -257,9 +257,11 @@ public sealed record MemberPlace(AccessPath Path, DataItem MemberItem) : Place;
 // AccessPath = an ordered chain of segments the backend renders:
 public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments);
 public abstract record AccessSegment;
-public sealed record RootFieldSegment(string CsField, OmittedFormalGuard? Guard = null,   // a program-class member,
-    ContainerAnchor? Anchor = null) : AccessSegment;                               // guarded and anchored
-public sealed record LocalRootSegment(MethodLocal Local) : AccessSegment;        // a statement local, by identity
+public abstract record RootSegment(OmittedFormalGuard? Guard) : AccessSegment;  // a root, guarded when a formal's
+public sealed record RootFieldSegment(string MemberClrName, OmittedFormalGuard? Guard = null,   // a CLR-named member,
+    ContainerAnchor? Anchor = null) : RootSegment(Guard);                         // anchored in a container
+public sealed record LocalRootSegment(MethodLocal Local, OmittedFormalGuard? Guard = null)
+    : RootSegment(Guard);                                                         // a method local, by identity
 public sealed record MemberSegment(string MemberClrName) : AccessSegment;        // .Foo
 public sealed record CarrierValueSegment : AccessSegment;                        // a carrier formal's storage
 public sealed record CellBackingSegment : AccessSegment;                         // a cell-backed area's backing
