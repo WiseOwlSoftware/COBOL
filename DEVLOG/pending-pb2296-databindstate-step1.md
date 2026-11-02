@@ -38,6 +38,15 @@ nearest first), so §8.4.6.2.1 3) a)'s local-shadows rule is the lookup's struct
 `DataBindStateBoundaryDriftTests` pins who writes the new slices (seen to fail on a planted violation), and
 `GlobalNameClassDriftTests` now walks the slices for name indexes, so a name index that moves into one stays checked.
 
+**Layering.** The gate's `ArchitectureEdgesDriftTests` refused the first cut: code generation and the statement binder
+(still in `Binding.Bound`) had gained pairs onto the new binding types. The restoring shapes, the two checking records
+and `FileNameScope` hold no binder type, so they moved to compiler.model, below both users. Three pairs remain and are
+tolerated by hand on their rows with the notes that remove them: `ProgramEmitter` and `OoEmitter` onto `DataBindState`
+(PB2361, `DataBindResult`), `EmitContext` and `PhysicalModel` onto `OptionsModel` (PB2402, the OPTIONS types move to
+compiler.model) and `StatementBinder` onto `ProcedureBindState` (PB2347, `StatementBinder` leaves `Bound/`). The
+inventory's three code-locations that named moved members were re-sited by a `record_verdicts` batch (GAP 19 → 19),
+and `OptionsModelConsumerDriftTests` now counts a read through a scoped override's `Current`.
+
 **Found on the way.** `DataBinder.IsVisibleFileName` had no caller and is deleted; `CheckExternalFileConsistency`'s
 summary sat stacked above `ExternalMaskAt`'s and now documents its own method; an inherited "§13.18.22 NOTE 1" citation
 is §13.18.22.4 GR1's NOTE 1.

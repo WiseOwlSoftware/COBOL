@@ -557,7 +557,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 38,
+      "walkUses": 39,
       "removedBy": [
         "PB2347",
         "PB2419",
@@ -787,6 +787,13 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.ProcedureBindState",
           "removedBy": [
             "PB2347"
           ]
@@ -1658,7 +1665,7 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 112,
+      "walkUses": 115,
       "removedBy": [
         "PB2290",
         "PB2320",
@@ -2066,6 +2073,13 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
             "PB2361",
@@ -2124,6 +2138,20 @@
             "PB2402",
             "PB2399",
             "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.PhysicalModel",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2402"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
           ]
         },
         {
@@ -3145,7 +3173,7 @@
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 38,
-      "walkUses": 34,
+      "walkUses": 35,
       "removedBy": [
         "PB2361",
         "PB2375",
@@ -3292,6 +3320,13 @@
           "removedBy": [
             "PB2361",
             "PB2405"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2402"
           ]
         },
         {

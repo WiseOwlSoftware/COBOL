@@ -1165,7 +1165,10 @@ methods bind through their half's binder), and the method-scope cursor is also e
 names they resolve, by the storage-claim resolution (`DataBinder.ResolveStorageClaimHead`, a data pass) and by the
 migration-flag pass (`FlagConformancePass`, after binding). Code generation has its own scoped override,
 `EmitContext.Options`: `OoEmitter.EmitMethod` pushes the method's OPTIONS model around the method's LOCAL-STORAGE
-initializers (kb/Work PB1215), which used to assign `DataBinder.Options` and restore it. The three kinds `BinderDriver` writes around the data phases take
+initializers (kb/Work PB1215), which used to assign `DataBinder.Options` and restore it. The three shapes hold no
+binder type, so they live in compiler.model (`Binding/Model/RestoringScopes.cs`), below both of their users; so do
+the checking slices' records (`UnitChecking`, `MethodChecking`, `Binding/Model/CheckingSlices.cs`) and the
+visible-file view (`FileNameScope`), which code generation and the statement binder read. The three kinds `BinderDriver` writes around the data phases take
 three shapes. The **configuration slice** is a value slice with ONE producer per bound unit, `ConfigurationStep`, at
 the environment phase, before every data phase that reads it (today's literal and PICTURE reads), and its source is a
 closed union with three arms, one per kind of unit the standard gives a configuration: **Own** — an outermost program,

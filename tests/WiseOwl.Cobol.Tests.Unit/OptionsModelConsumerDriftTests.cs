@@ -23,7 +23,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>OptionsBinder.ScreenEntryConvention</c> leaves with exactly one admissible value, COBOL, the implied
 /// default. A clause that is screened or declined, and so cannot change a program, has no field.
 /// <para>The rule pinned here: each public property of <see cref="OptionsModel"/> is read as
-/// <c>…Options.&lt;Field&gt;</c> (or <c>(… Options).&lt;Field&gt;</c>) somewhere in <c>src/</c> outside its producer
+/// <c>…Options.&lt;Field&gt;</c> (or <c>(… Options).&lt;Field&gt;</c>, or through a scoped override's current value,
+/// <c>…Options.Current.&lt;Field&gt;</c>, kb/Work PB2296) somewhere in <c>src/</c> outside its producer
 /// (<c>OptionsBinder.cs</c>) and its declaration (<c>OptionsModel.cs</c>). A new field fails the test until a
 /// consumer reads it, so a producer-only field cannot be added in silence.</para>
 /// </summary>
@@ -56,7 +57,7 @@ public sealed class OptionsModelConsumerDriftTests
         var sources = ConsumerSources().Select(Code).ToList();
         Assert.NotEmpty(sources);
         var unread = fields
-            .Where(f => !sources.Any(s => Regex.IsMatch(s, $@"Options\)?\s*\.\s*{f}\b")))
+            .Where(f => !sources.Any(s => Regex.IsMatch(s, $@"Options(\.Current)?\)?\s*\.\s*{f}\b")))
             .ToList();
         Assert.True(unread.Count == 0, "OptionsModel field(s) set by OptionsBinder and read by nothing in src/: "
             + string.Join(", ", unread) + ". A producer-only OPTIONS field is a clause the program wrote that changes "
