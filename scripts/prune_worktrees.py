@@ -1920,7 +1920,7 @@ def self_test() -> int:
                                        'end_head': end_head or head})
         attempt('lane-stopped', lane_at['lane-stopped'], 5, 'GATE RED (Linux) on x',
                 scratch.git('rev-parse', 'lane-stopped'))
-        attempt('lane-free', lane_at['lane-free'], 3, 'NOT QUEUED (exit 3, above)')
+        attempt('lane-free', lane_at['lane-free'], 12, 'GATE BUSY (Windows) on g2')   # a retry-when-free exit; exit 3 is a STOP (PB4452)
         attempt('lane-done', lane_at['lane-done'], 0, 'ENQUEUED')
         attempt('qsucc', once_at['qsucc'], 0, 'ENQUEUED')
         attempt('lane-running', lane_at['lane-running'], None)
@@ -2219,8 +2219,8 @@ def self_test() -> int:
               f'{rows["lane-stopped"].why}')
         check('contained in lane-stopped (STOPPED)' in rows['lane-pred'].why,
               f'a predecessor of a STOPPED branch lands through it: {rows["lane-pred"].why}')
-        check('exit 3' in rows['lane-free'].why and 'landing_check.py passes' in rows['lane-free'].why,
-              f'an exit-3 attempt waits with the lane\'s retry rule named: {rows["lane-free"].why}')
+        check('exit 12' in rows['lane-free'].why and 'gate lock' in rows['lane-free'].why,
+              f'an exit-12 attempt waits with the lane\'s retry rule named: {rows["lane-free"].why}')
         check('exit 0' in rows['lane-done'].why, f'an exit-0 attempt at the tip reads ENQUEUED offline: {rows["lane-done"].why}')
         check('being landed' in rows['lane-running'].why, f'a running attempt is said: {rows["lane-running"].why}')
         check('the landing lane lands it' in rows['done-branch'].why and 'an-older' not in rows['done-branch'].why,
