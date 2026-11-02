@@ -140,6 +140,17 @@ public sealed class SymbolTable
         return tier.Count != 0 && NearerDataNameHides(name, qualifiers, _data.DeclaringDepth(tier[0].Parent)) ? [] : tier;
     }
 
+    /// <summary>Is <see cref="NearestDeclaringConditions"/>' empty answer for <paramref name="candidates"/> (the
+    /// level-88s the written <paramref name="qualifiers"/> reach) the work of an ordinary DATA ITEM of the spelling
+    /// declared in a nearer source element (ISO §8.4.6.2.1 3) a))? A condition-only position then meets a reference that
+    /// names a data item, which is neither a misqualified condition-name nor an undeclared one (kb/Work PB4219 review
+    /// R1-1).</summary>
+    public bool NearerDataItemHidesConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
+    {
+        var tier = NearestDeclaring(candidates, static c => c.Parent);
+        return tier.Count != 0 && NearerDataItemHides(name, qualifiers, _data.DeclaringDepth(tier[0].Parent));
+    }
+
     /// <summary>⛔ ISO §8.4.6.2.1 3) FOR A DATA-NAME AGAINST A NEARER CONDITION-NAME — does a level-88 of this spelling,
     /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than <paramref name="depth"/>?
     /// A type declaration's condition-name identifies nothing alone (§13.18.58.4 GR1), so it hides nothing. Free for a
@@ -258,13 +269,18 @@ public sealed class SymbolTable
     /// data-name of its source element too (<see cref="DataBinder.NearerReportEntryHides"/>, kb/Work PB4196): the
     /// reference is then the report entry's, refused by the callers' unidentified-reference report (§13.8.6.2.3). Free
     /// for a unit that inherits nothing (every candidate is then depth 0).</summary>
-    public bool NearerDataNameHides(string name, IReadOnlyList<string> qualifiers, int depth)
+    public bool NearerDataNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
+        NearerDataItemHides(name, qualifiers, depth) || _data.NearerReportEntryHides(name, qualifiers, depth);
+
+    /// <summary>The ordinary-data-item half of <see cref="NearerDataNameHides"/>: a data description entry of this
+    /// spelling (no report entry), reached by the written <paramref name="qualifiers"/>, in a source element NEARER than
+    /// <paramref name="depth"/>. Free for a unit that inherits nothing.</summary>
+    public bool NearerDataItemHides(string name, IReadOnlyList<string> qualifiers, int depth)
     {
-        if (depth == 0 || !_data.InheritsGlobalData) return false;
-        if (_data.ByName.TryGetValue(name, out var dataNames))
-            foreach (var item in dataNames)
-                if (_data.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
-                    return true;
-        return _data.NearerReportEntryHides(name, qualifiers, depth);
+        if (depth == 0 || !_data.InheritsGlobalData || !_data.ByName.TryGetValue(name, out var dataNames)) return false;
+        foreach (var item in dataNames)
+            if (_data.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
+                return true;
+        return false;
     }
 }

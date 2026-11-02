@@ -224,12 +224,16 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // A CONDITION-NAME written on the receiving side of a comparison is a FORMAT verdict, not SR8's: Format 2
         // prints condition-name-1 as an alternative to the whole comparison, so `WHEN cond-name (IX) = 05` is a
         // shape the format does not print. Without this arm it drew SR8's "not referenced in the KEY phrase",
-        // which sends a reader looking for a KEY phrase edit that would not help.
+        // which sends a reader looking for a KEY phrase edit that would not help. A level-88 that a NEARER data item of
+        // the spelling hides is not what the operand names (ISO §8.4.6.2.1 3) a), kb/Work PB4219 review R1-1): the
+        // operand is that data item, and SR8 is its verdict.
+        string word = dref.cobolWord()?.GetText() ?? "";
         if (item is null
-            && data.Symbols.TryResolveCondition(dref.cobolWord()?.GetText() ?? "", data.ActiveScope, out var cn)
-            && cn.Count > 0)
+            && data.Symbols.TryResolveCondition(word, data.ActiveScope, out var cn)
+            && cn.Count > 0
+            && !data.ConditionNameHiddenByNearerDataItem(word, ConditionBinder.QualifiersOf(dref), data.ActiveScope))
             return validation.RejectStatementOperand(
-                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(dref)} … — '{dref.cobolWord()?.GetText()}' is a "
+                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(dref)} … — '{word}' is a "
                 + "condition-name, and Format 2 prints condition-name-1 as an ALTERNATIVE to the whole "
                 + "`data-name-1 IS EQUAL TO …` comparison, never as its receiving operand (ISO §14.9.37.2 "
                 + $"Format 2). Write `WHEN {DataBinder.WrittenText(dref)}` alone, or compare the key data-name itself.");

@@ -8903,13 +8903,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// it reports nothing.</summary>
     internal List<Condition88> QualifiedConditionCandidates(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
-        if (!Symbols.TryResolveCondition(name, scope, out var list)) return [];
-        var matches = qualifiers.Count == 0
-            ? list
-            : list.Where(c => ConditionQualifierChainMatches(c, qualifiers)).ToList();
-        matches = Symbols.NearestDeclaringConditions(matches, name, qualifiers);   // kb/Work PB4196, PB4219
+        var matches = Symbols.NearestDeclaringConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name,
+            qualifiers);   // kb/Work PB4196, PB4219
         return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
     }
+
+    /// <summary>Every level-88 of <paramref name="name"/> visible in <paramref name="scope"/> whose conditional-variable
+    /// chain carries each written qualifier, BEFORE the §8.4.6.2.1 3) narrowing: the qualifier walk of
+    /// <see cref="QualifiedConditionCandidates"/> and of <see cref="ConditionNameHiddenByNearerDataItem"/>.</summary>
+    private List<Condition88> ConditionsUnderQualifiers(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
+    {
+        if (!Symbols.TryResolveCondition(name, scope, out var list)) return [];
+        return qualifiers.Count == 0 ? list : list.Where(c => ConditionQualifierChainMatches(c, qualifiers)).ToList();
+    }
+
+    /// <summary>⛔ ISO §8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION (kb/Work PB4219 review R1-1): the written
+    /// qualifiers reach a level-88 of the spelling, but an ordinary data item of the spelling declared in a NEARER source
+    /// element hides it, and that data item is what the reference names (it survives <see cref="QualifiedCandidates"/>, so
+    /// no report entry or condition-name nearer still takes the reference from it). "If the name is declared in source
+    /// element B, the item in source element B is the referenced item." Pure: it reports nothing.</summary>
+    internal bool ConditionNameHiddenByNearerDataItem(string name, IReadOnlyList<string> qualifiers, Model.Scope scope) =>
+        Symbols.NearerDataItemHidesConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name, qualifiers)
+        && QualifiedCandidates(name, qualifiers, scope).Count != 0;
 
     /// <summary>⛔ THE OTHER HALF OF THE §8.4.2.2.1 UNIQUENESS COUNT OF A CONDITION-NAME REFERENCE (kb/Work PB3347): does
     /// the written reference ALSO name a switch-status condition-name (§12.3.7.4 GR2) declared in the SAME source element

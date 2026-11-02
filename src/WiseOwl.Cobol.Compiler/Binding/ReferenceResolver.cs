@@ -328,6 +328,16 @@ public sealed partial class ReferenceResolver(DataBinder data)
               + "variable and that variable's containing groups, innermost first (ISO §13.16.3 SR23; "
               + "§8.4.2.2.3 SR4, SR5).";
 
+    /// <summary>The wording of a reference in a CONDITION-ONLY position whose word names a level-88 of a containing program
+    /// that a nearer data item of the spelling hides (<see cref="DataBinder.ConditionNameHiddenByNearerDataItem"/>, kb/Work
+    /// PB4219 review R1-1): the reference names that data item, so it is neither a misqualified condition-name nor an
+    /// undeclared word, and saying either states the opposite of the facts.</summary>
+    internal static string HiddenConditionText(string text, string name) =>
+        $"'{text}' names a data item, not a condition-name, and this position requires a condition-name: the data-name "
+        + $"'{name}' is declared in a source element nearer than the containing program whose GLOBAL condition-name "
+        + $"'{name}' it hides (ISO §8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source "
+        + "element B is the referenced item\").";
+
     /// <summary>True while the CURRENT resolution is a <see cref="Probe"/> — the R30 purity flag (kb/Work
     /// PB157). A probe is a TYPE-DISCRIMINATING sniff whose Place is discarded after reading its Item, so in
     /// probe mode the resolver must be SIDE-EFFECT-FREE: no diagnostics beyond none, no OO property temp/op

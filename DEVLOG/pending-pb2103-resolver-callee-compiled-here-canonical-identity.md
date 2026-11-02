@@ -131,3 +131,13 @@ COBOL1560 (not COBOL0001) and a reference to the constant resolves.
 83a1e47f4 (clean) and re-gated GREEN (run 000001-20261102T085751Z: Conformance 20,784, Unit 39,265, Characterization
 37). PB2103 part 2 and PB2104 stay open. Part 2 reports eleven REPO codes and the wave allocated three, so PB2103 now
 records that it must be dispatched alone with eleven, and this branch lands the other seven notes.
+
+**Wave 20261821 (review finisher, R1-1).** The PB4219 sibling hid a container's GLOBAL condition-name behind a nearer
+own data item in the lookup, but the positions that admit only a condition-name still asked the raw condition table:
+`SET RELF TO TRUE` and SEARCH ALL `WHEN RELF (IX)` in the contained program said RELF "is a condition-name … which
+identifies no data item", the inverse of both facts (§8.4.6.2.1 3) a)). `ConditionBinder.ReportMisqualifiedCondition`
+now asks `DataBinder.ConditionNameHiddenByNearerDataItem` (built on the split-out `SymbolTable.NearerDataItemHides`) and
+says the reference names a data item; the SEARCH ALL relation's "is a condition-name" arm asks the same predicate, so
+`WHEN RELF (IX) = 1` draws SR8 (COBOL1965). Three goldens,
+`cases/8.4.6.2-Local-and-global-names/pb4219_*_names_own_data_item_hiding_container_global_condition_name`, and
+`HiddenConditionNameTests` pin the codes and the wording.
