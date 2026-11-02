@@ -565,7 +565,7 @@ from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
    coverage; and this lane's newest attempt AT THE TIP (`land_lane.view`, its head or end head) is read back: STOPPED
    at the tip reads **STOPPED** (the enqueue unit's; never WAITING TO LAND, so the table's "never relaunched at this
    head" and the survey agree), exit 0 at the tip reads ENQUEUED, and only a tip with no attempt, a running one or a
-   retryable one (exit 3, 2, 9, 8, or a re-arm) reads WAITING TO LAND. A STOPPED branch carries the predecessors it
+   retryable one (exit 2, 9, 8, 12, 13, 15, 16, or a re-arm) reads WAITING TO LAND; exit 3 is a STOP (kb/Work PB4452). A STOPPED branch carries the predecessors it
    contains that have no clean stamp at their tips (they read IN FLIGHT); a predecessor reviewed CLEAN keeps its own
    state and lands on its own (kb/Work PB3381). The commit a report describes is its header's HEAD, else the head its
    review stamp names (`reports.parse_report`, the one reader: the reviewer stamps the head it reviewed, so a header whose
@@ -665,9 +665,8 @@ instead of at the next enqueue unit, is the headless lane's second job (kb/Work 
    pull request (kb/Work PB3628: read NOT QUEUED, a re-armed branch waited hours, no reader acting on it). `status`
    says of a pending re-arm whether the next tick lands it. A sleep loop inside `enqueue.py` was rejected: the landing ends at
    `ENQUEUED` and holds nothing: the tick already runs every few minutes, while a waiting landing would keep its
-   runner alive for the whole CI time, and a runner that died would leave its pull request with no watcher at all. Mid-wave landing meets exit 3 more often than the enqueue unit
-did, because a wave's other groups are still in flight; the lane waits them out instead of handing the stop to the
-attended session.
+   runner alive for the whole CI time, and a runner that died would leave its pull request with no watcher at all. Mid-wave landing once met exit 3 often, because a wave's other groups were still in flight; since kb/Work PB4452 an
+edit meeting another branch's only warns (first ready lands), so in-flight work never stops a landing.
 
 **What the enqueue unit keeps.** The judgment (units/enqueue.md): step 2 reads the review lane's results and holds
 (section 4.9.1), step 3 reads `land_lane.py status`
@@ -1420,7 +1419,7 @@ real dispatch-spec template and `check_practices.py`'s same-file rule; the fix l
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
 against the retired train records, kb/Work PB3028; `landing_rules.py --self-test` keeps the retired train writer out), `landing_check.py
 --self-test` (section 4.7's file-set guarantee), `land_lane.py --self-test` (section 4.9: planted survey rows start
-in survey order and only once; a planted exit 3 is retried at its head only once the overlap is gone, an exit 12
+in survey order and only once; a planted exit 3 is a STOP, never retried at its head (the enqueue unit's finisher), an exit 12
 (GATE BUSY) only once the worktree's gate lock is free (held until a gate has written its verdict, so a gate still running
 owes none, kb/Work PB3662; the Linux half left the gate, so the lock is exit 12's only source, kb/Work PB4327), and an exit 15 (PREDECESSOR QUEUED) only once no open pull request owns a DEVLOG
 entry the branch carries (kb/Work PB3145), an exit 16 (DRIVER FILE QUEUED) only once no open pull request
