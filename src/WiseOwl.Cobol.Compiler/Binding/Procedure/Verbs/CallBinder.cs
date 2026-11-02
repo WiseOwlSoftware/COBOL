@@ -151,6 +151,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // program-prototype-name-1 determines the externalized program-name of the program being
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
+            else if (prototype is null && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } declaredWord
+                     && ctx.Data.ProgramSpecifiers.ContainsKey(declaredWord))
+                // The word is a PROGRAM specifier no provider answered (REPO-1 at the specifier, DESIGN-external-repository
+                // §8.2 step 4): it registered no prototype, so this is SR16's undeclared prototype — never a data name.
+            {
+                _ = ResolvePrototype(declaredWord, "CALL");
+                return BoundRejected.Reported(ctx.Edition);
+            }
             else if (host.Expr.ResolveSending(dref) is var calleeAnswer && calleeAnswer.Place is not { } place)
                 return calleeAnswer.Refusal(ctx.Edition);   // the resolver's answer picks the node (kb/Work PB1030)
             else
@@ -170,10 +178,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // same as the signature of program-prototype-name-1." — the pointer's own prototype
                     // (§13.18.60.3 SR19 / §13.18.60.4 GR25, PicInfo.RestrictedPrototypeName) against the AS phrase's,
                     // through the ONE signature comparator and the ONE name-to-signature reader the SET
-                    // program-pointer pairs spend. An unrestricted pointer has no prototype to disagree with, and
-                    // a prototype with no compile-time signature (§12.3.8.4 GR10 c)) is the run unit's to match.
+                    // program-pointer pairs spend. An unrestricted pointer has no prototype to disagree with; a
+                    // prototype whose details are the external repository's (§12.3.8.4 GR10 c)) has that entry's
+                    // signature (DESIGN-external-repository §8.2), and so is compared as any other.
                     if (prototype is { } named && pointerPic.RestrictedPrototypeName is { } held
-                        && !PrototypeSignatures.Same(host.ProgramSignatureOf(held), named.Signature))
+                        && StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(held), named.Signature))
                     {
                         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallRestrictedProgramPointerSignature,
                             $"CALL {DataBinder.WrittenText(dref)} AS {named.Name}: '{DataBinder.WrittenText(dref)}' is a "

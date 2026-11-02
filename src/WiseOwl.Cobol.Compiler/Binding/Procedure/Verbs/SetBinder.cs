@@ -665,11 +665,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 // prototypes "associated with identifier-7 and identifier-8" to have the same signature, and an
                 // unrestricted program-pointer is associated with none. (§14.8.2.3.2 says the same thing in the
                 // argument-passing direction and says it explicitly — "if either is a restricted pointer, both
-                // shall be restricted and of the same type".) This is DISTINCT from a prototype that names no
-                // compile-time signature, which PrototypeSignatures.Same deliberately lets through.
+                // shall be restricted and of the same type".) A prototype name the unit's tables do not hold was
+                // refused where it was declared, and raises no second fault here (StatementBinder.SignaturesDiffer).
                 string? senderProto = sender.Pic?.RestrictedPrototypeName;
                 return senderProto is null
-                       || !PrototypeSignatures.Same(host.ProgramSignatureOf(targetProto), host.ProgramSignatureOf(senderProto))
+                       || StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(targetProto), host.ProgramSignatureOf(senderProto))
                     ? $"the receiving program-pointer is restricted to program-prototype '{targetProto}' and the sender "
                       + $"{(senderProto is null ? "is unrestricted" : $"to '{senderProto}'")}, so the associated "
                       + "program-prototypes do not have the same signature (ISO §14.9.39.3 SR22; §13.18.60.4 GR25)"
@@ -823,8 +823,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 + "sender cannot satisfy both (ISO §14.9.39.3 SR20)");
         }
         // §14.9.39.4 GR14's run-time screen compares the stored address with ONE signature. The receivers agree
-        // (the pair test above), so any receiver with a compile-time signature states it; with none, the screen is
-        // suppressed (ExpectedFormalsOf).
+        // (the pair test above), so any RESTRICTED receiver states it; with none (every receiver unrestricted), the screen
+        // is suppressed (ExpectedFormalsOf).
         int expectedFormals = ExpectedFormalsOf(
             targets.Select(t => t.Item.Pic?.RestrictedPrototypeName).FirstOrDefault(n => FunctionSignatureOf(n) is not null));
 
@@ -939,10 +939,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <summary>ISO §14.9.39.3 SR20's last sentence over two function-prototype NAMES: resolve each through the
     /// compilation group's user-function table (the §8.4.6.6 scope the declarations were already screened
     /// against) and hand the pair to the ONE same-signature test <see cref="PrototypeSignatures.Same"/>, which
-    /// SR22 reads as well. A name with no table entry is a §12.3.8.4 GR11 c) external-repository prototype: no
-    /// compile-time signature exists and the compare conforms (the run-time screen covers it).</summary>
+    /// SR22 reads as well. A §12.3.8.4 GR11 c) prototype has its external repository entry's signature; a name with no
+    /// table entry was refused where it was declared and raises no second fault (<see cref="StatementBinder.SignaturesDiffer"/>).</summary>
     private bool SameFunctionPrototypeSignature(string? a, string? b) =>
-        PrototypeSignatures.Same(FunctionSignatureOf(a), FunctionSignatureOf(b));
+        !StatementBinder.SignaturesDiffer(FunctionSignatureOf(a), FunctionSignatureOf(b));
 
     private CalleeSignature? FunctionSignatureOf(string? prototypeName) =>
         prototypeName is not null && host.UserFunctions?.TryGetValue(prototypeName, out var s) == true
@@ -950,12 +950,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             : null;
 
     /// <summary>The run-time signature granularity of §14.9.39.4 GR14 for a receiver restricted to
-    /// <paramref name="prototypeName"/> — the prototype's formal count, or −1 when no compile-time signature
-    /// exists (a §12.3.8.4 GR11 c) external-repository prototype). ⛔ −1 SUPPRESSES the emitted GR14 screen
-    /// rather than defaulting it to zero: with no declared signature there is nothing for "the same signature as
-    /// the function referenced in the definition of identifier-13" to name, and screening against a guessed
-    /// arity would REJECT a conforming separately-compiled target at run time. GR4's not-found screen still
-    /// runs, because locating the function needs no signature.</summary>
+    /// <paramref name="prototypeName"/> — the prototype's formal count, or −1 when no receiver is restricted (null) or
+    /// the name has no table entry (refused where it was declared). ⛔ −1 SUPPRESSES the emitted GR14 screen rather
+    /// than defaulting it to zero: with no prototype there is nothing for "the same signature as the function referenced
+    /// in the definition of identifier-13" to name. GR4's not-found screen still runs, because locating the function
+    /// needs no signature.</summary>
     private int ExpectedFormalsOf(string? prototypeName) =>
         FunctionSignatureOf(prototypeName) is { } s ? s.Formals.Count : -1;
 
@@ -1111,7 +1110,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             foreach (var t in targets)
             {
                 if (t.Item.Pic?.RestrictedPrototypeName is not { } receiverProto
-                    || PrototypeSignatures.Same(host.ProgramSignatureOf(receiverProto), host.ProgramSignatureOf(word)))
+                    || !StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(receiverProto), host.ProgramSignatureOf(word)))
                     continue;
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
                     $"SET '{t.Item.CobolName}' TO ADDRESS OF PROGRAM {word}: the receiving "
@@ -1234,9 +1233,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ SR20 / SR22 AMONG THE RECEIVERS OF ONE ADDRESS SENDER, ORDER-FREE (kb/Work PB3224). The standard
     /// binds every receiver to the ONE sender's signature, so two receivers restricted to prototypes of different
     /// signatures cannot both conform to it, whatever the sender. Every PAIR is compared (not each receiver against
-    /// the first): <see cref="PrototypeSignatures.Same"/> conforms whenever either side has no compile-time signature,
-    /// which is not transitive, so a representative with none — or an unrestricted one — would hide a clash between the
-    /// rest. Returns the first disagreeing pair in source order, or null.</summary>
+    /// the first): <see cref="StatementBinder.SignaturesDiffer"/> raises nothing for an unrestricted receiver (or one
+    /// whose prototype name was refused where it was declared), so a representative of that kind would hide a clash
+    /// between the rest. Returns the first disagreeing pair in source order, or null.</summary>
     /// <param name="signatureOf">The prototype name → compile-time signature lookup of the carrier (program or
     /// function), null for a name with none.</param>
     private static (Place A, Place B)? ReceiversDisagreeing(IReadOnlyList<Place> receivers,
@@ -1244,7 +1243,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         for (int i = 0; i < receivers.Count; i++)
             for (int j = i + 1; j < receivers.Count; j++)
-                if (!PrototypeSignatures.Same(signatureOf(receivers[i].Item.Pic?.RestrictedPrototypeName),
+                if (StatementBinder.SignaturesDiffer(signatureOf(receivers[i].Item.Pic?.RestrictedPrototypeName),
                                               signatureOf(receivers[j].Item.Pic?.RestrictedPrototypeName)))
                     return (receivers[i], receivers[j]);
         return null;

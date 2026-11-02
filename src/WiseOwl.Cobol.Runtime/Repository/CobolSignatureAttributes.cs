@@ -273,8 +273,6 @@ public sealed class CobolPrototypeAttribute(int index, RepositoryUnitKind kind, 
     public RepositoryUnitKind Kind { get; } = kind;
     /// <summary>The prototype's externalized name.</summary>
     public string ExternalizedName { get; } = externalizedName;
-    /// <summary>The prototype had a compile-time signature (false for ISO §12.3.8.4 GR10 c) / GR11 c)).</summary>
-    public bool HasSignature { get; set; }
 }
 
 /// <summary>One formal of a referenced prototype's signature.</summary>

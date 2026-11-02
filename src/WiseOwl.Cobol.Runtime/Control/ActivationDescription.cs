@@ -167,18 +167,6 @@ public sealed record ActivationDescription
     /// TO phrase (an unrestricted pointer).</summary>
     public const string Unrestricted = "*";
 
-    /// <summary>The <see cref="ContentRestriction"/> prefix of a program- or function-pointer restricted to a prototype that
-    /// has NO compile-time signature: ISO §12.3.8.4 GR10 c) / GR11 c) take its details "from the external repository",
-    /// which in this implementation is the run unit, so the signature that bounds what the pointer may contain
-    /// (§13.18.60.4 GR25 / GR26) is not known to the compilation that describes it (kb/Work PB3162). Followed by the
-    /// prototype's folded name.</summary>
-    public const string ExternalRestrictionPrefix = "EXTERNAL TO ";
-
-    /// <summary>True when <paramref name="restriction"/> is the <see cref="ContentRestriction"/> of a pointer whose
-    /// prototype's signature is unknown at compile time (<see cref="ExternalRestrictionPrefix"/>).</summary>
-    public static bool IsExternalRestriction(string restriction) =>
-        restriction.StartsWith(ExternalRestrictionPrefix, StringComparison.Ordinal);
-
     /// <summary>ISO §9.3.6 match rule 3 e) — the identity of "the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC
     /// LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses", with rule 3 e) 1.'s currency strings and 2.'s
     /// DECIMAL-POINT IS COMMA state folded into the PICTURE part, as one canonical text (empty for a group, which
@@ -194,8 +182,9 @@ public sealed record ActivationDescription
     /// relation compares (§14.9.39.3 SR19 "a data-pointer restricted to the same type", SR20 / SR22 "the same signature")
     /// and with it every rule that sends to SET (§14.8.2.3.3; §9.3.6 match rules 4 c), 5 c) and 6): <c>TO</c> a
     /// data-pointer's TYPE identity (its <see cref="Clauses"/>), or the SIGNATURE class of a program- or function-pointer's
-    /// prototype (kb/Work PB2464), <see cref="ExternalRestrictionPrefix"/> and the name for a prototype with no compile-time
-    /// signature; <see cref="Unrestricted"/> for an unrestricted pointer. Empty for every item that is not of class
+    /// prototype (kb/Work PB2464) — every prototype has one, since a REPOSITORY specifier that no provider answers is refused
+    /// (REPO-1, DESIGN-external-repository §8.2) — and <see cref="Unrestricted"/> for an unrestricted pointer. Empty for every
+    /// item that is not of class
     /// pointer.</summary>
     public string ContentRestriction { get; init; } = "";
 
