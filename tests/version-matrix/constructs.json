@@ -1544,10 +1544,10 @@
   },
   {
    "id": "receive-as-user-word",
-   "description": "The word RECEIVE as a user-defined word — the RE-reservation interval in ONE f(case,V) row: 85/2002-reserved (the communication facility, obsolete at 2002 per GnuCOBOL's cobol2002.conf, its word reserved by the GnuCOBOL 2002 list) → user-definable at 2014 → re-reserved 2023 (Annex E.2 item 25, which compares 2023 with 2014 only: E.1). kb/Work PB656.",
+   "description": "The word RECEIVE as a user-defined word — the RE-reservation interval in ONE f(case,V) row: 85/2002-reserved (the communication facility, obsolete at 2002 per GnuCOBOL's cobol2002.conf, its word on the ISO 2002 §8.9 list, kb/Work PB4297) → user-definable at 2014 → re-reserved 2023 (Annex E.2 item 25, which compares 2023 with 2014 only: E.1). kb/Work PB656.",
    "display": "the word RECEIVE as a user-defined word",
    "diagnosticCode": "COBOL0901",
-   "citation": "§8.9 interval encoding of the RE-reservation: 85/2002-reserved (communication; GnuCOBOL 2002 list) → user-definable 2014 → re-reserved 2023 (Annex E.2 item 25)",
+   "citation": "§8.9 interval encoding of the RE-reservation: 85/2002-reserved (communication; ISO 2002 §8.9) → user-definable 2014 → re-reserved 2023 (Annex E.2 item 25)",
    "introducedIn": 2014,
    "removedIn": 2023,
    "expectDiagnostic": "COBOL0901",
@@ -1616,7 +1616,7 @@
   },
   {
    "id": "segment-limit-removed-2002",
-   "description": "SEGMENT-LIMIT clause (OBJECT-COMPUTER) — segmentation deleted by ISO 2002; gated at the modelled segmentLimitClause (P2.6; kb/Work PB830). The CLAUSE leaves at 2002 while the WORD stays reserved there (reserved-words.json r2002, the GnuCOBOL 2002 list): two facts, not a contradiction - GnuCOBOL 3.2 at -std=cobol2002 refuses both the clause ('does not conform to COBOL 2002') and the word as a data-name (kb/Work PB656; VCR row 7.8).",
+   "description": "SEGMENT-LIMIT clause (OBJECT-COMPUTER) — segmentation deleted by ISO 2002; gated at the modelled segmentLimitClause (P2.6; kb/Work PB830). The CLAUSE and the WORD both leave at 2002: the 2002 standard's own §8.9 list does not hold SEGMENT-LIMIT (reserved-words.json r2002 false, kb/Work PB4297), so it is a data-name from 2002 on (VCR row 7.8).",
    "display": "the SEGMENT-LIMIT clause (OBJECT-COMPUTER)",
    "diagnosticCode": "COBOL0902",
    "citation": "segmentation deleted by ISO 2002; VCR Table 7",

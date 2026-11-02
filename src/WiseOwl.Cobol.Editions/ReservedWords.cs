@@ -8,8 +8,9 @@ namespace WiseOwl.Cobol.Editions;
 /// One per-edition reserved-word row (VERSION_TEST_MATRIX_DESIGN "Phase-2 implementation plan" P2.4): the
 /// four-edition reservation flags for a word, its confidence, and its provenance. Rows come from the generated
 /// table (<c>ReservedWords.Table.cs</c>, emitted by <c>scripts/gen-reserved-words.ps1</c> from the in-repo ISO
-/// 2023 §8.9 list + VCR row 32 + the GnuCOBOL per-standard 85/2002/2014 word lists — derived facts with
-/// provenance); <c>tests/version-matrix/reserved-words.json</c> is the same data in its canonical form and a
+/// 2023 §8.9 list + VCR row 32 + the transcribed ISO 2002 §8.9 list (the 2002 flags) + the 2009 draft's §8.9/§8.10
+/// lists (one 2014 correction) + the GnuCOBOL per-standard 85/2014 word lists — derived facts with provenance,
+/// kb/Work PB4297); <c>tests/version-matrix/reserved-words.json</c> is the same data in its canonical form and a
 /// drift test asserts they agree both directions.
 /// </summary>
 /// <param name="Word">The word, uppercase.</param>
