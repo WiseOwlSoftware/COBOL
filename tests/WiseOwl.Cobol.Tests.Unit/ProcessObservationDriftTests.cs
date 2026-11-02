@@ -138,6 +138,126 @@ public sealed class ProcessObservationDriftTests
         Assert.Equal("", obs.Stdout);
     }
 
+    // ── A killed process that has not exited (kb/Work PB4388) ──────────────────────────────────────────────
+    //
+    // The observer reads the result of its wait after the kill. The three arms are driven by an in-process stand-in whose
+    // exit is chosen by the test (no child, no clock decides which arm runs): the process exits within the wait after its
+    // kill; it exits after that wait, while the retry waits for it; it never exits.
+
+    /// <summary>Arm 1: the process exits within the wait after its kill. The observation is the timeout it always was, with
+    /// no survivor, and its detail may say "killed".</summary>
+    [Fact]
+    public void AKilledProcessThatExitsWithinTheWait_IsATimeoutWithNoSurvivor()
+    {
+        var waits = new List<int>();
+        var obs = ProcessObserver.ReportKilled(4242, 1_000, "measured", ms => { waits.Add(ms); return true; },
+            (_, _) => throw new InvalidOperationException("no survivor to wait for"));
+
+        Assert.Equal(ProcessOutcome.TimedOut, obs.Outcome);
+        Assert.Null(obs.Survivor);
+        Assert.Equal([ProcessObserver.KillWaitMs], waits);
+        Assert.Contains("did not exit within 1000 ms and was killed; measured", obs.Detail, StringComparison.Ordinal);
+    }
+
+    /// <summary>Arm 2a: the process is still alive when the wait after its kill ends. The observation does not claim a
+    /// completed kill: it names the process and carries it for the retry to wait for.</summary>
+    [Fact]
+    public void AKilledProcessStillAliveAfterTheWait_IsASurvivedKillThatNamesIt()
+    {
+        var byId = new List<(int id, int ms)>();
+        var obs = ProcessObserver.ReportKilled(4242, 1_000, "measured", _ => false, (id, ms) => { byId.Add((id, ms)); return true; });
+
+        Assert.Equal(ProcessOutcome.SurvivedKill, obs.Outcome);
+        Assert.False(obs.Completed);
+        Assert.NotNull(obs.Survivor);
+        Assert.Equal(4242, obs.Survivor!.Id);
+        Assert.Contains("process 4242", obs.Detail, StringComparison.Ordinal);
+        Assert.Contains("STILL ALIVE", obs.Detail, StringComparison.Ordinal);
+        Assert.DoesNotContain("and was killed", obs.Detail, StringComparison.Ordinal);   // the claim that was untrue
+        Assert.Equal("", obs.Stdout);                                                    // partial output is never returned
+
+        Assert.True(obs.Survivor.WaitForExit(77));                                       // the survivor waits by id
+        Assert.Equal([(4242, 77)], byId);
+    }
+
+    /// <summary>A survivor that exits during the retry's wait (the transient hold of PB4387): the directory the survivor
+    /// held is restored AFTER it exited, and the retry runs and is observed.</summary>
+    [Fact]
+    public void ARetryWaitsForTheSurvivorToExit_ThenRestoresTheDirectoryAndRuns()
+    {
+        var (outer, run) = WritingProbeDirectories();
+        try
+        {
+            var events = new List<string>();
+            int calls = 0;
+            string? createdSeenByRetry = null;
+            var survivor = new SurvivingProcess(4242, (id, ms) => { events.Add($"wait {id} {ms}"); return true; });
+
+            var obs = ProcessObserver.ObserveWithRetry("probe", OneSecond, run, () =>
+            {
+                if (++calls == 1)
+                {
+                    events.Add("attempt 1");
+                    File.WriteAllText(Path.Combine(run, "created.txt"), "x");
+                    return new ProcessObservation(ProcessOutcome.SurvivedKill, -1, "", "", "still alive", survivor);
+                }
+                events.Add("attempt 2");
+                createdSeenByRetry = File.Exists(Path.Combine(run, "created.txt")).ToString();
+                return new ProcessObservation(ProcessOutcome.Completed, 0, "", "", "");
+            });
+
+            Assert.Equal(ProcessOutcome.Completed, obs.Outcome);
+            Assert.Equal(["attempt 1", $"wait 4242 {ProcessObserver.SurvivorWaitMs}", "attempt 2"], events);
+            Assert.Equal("False", createdSeenByRetry);
+        }
+        finally { ScratchDirectory.Remove(outer); }
+    }
+
+    /// <summary>Arm 2b/3: a survivor that never exits. The retry is not made, the directory is left as the survivor holds
+    /// it (it is not restored over a held file), and the non-observation names the process.</summary>
+    [Fact]
+    public void ARetryWhoseSurvivorNeverExits_RaisesNamingTheSurvivorAndDoesNotRetry()
+    {
+        var (outer, run) = WritingProbeDirectories();
+        try
+        {
+            int calls = 0;
+            var survivor = new SurvivingProcess(4242, (_, _) => false);
+            var ex = Assert.Throws<HarnessNonObservationException>(() => ProcessObserver.ObserveWithRetry("probe", OneSecond, run, () =>
+            {
+                ++calls;
+                File.WriteAllText(Path.Combine(run, "created.txt"), "x");
+                return new ProcessObservation(ProcessOutcome.SurvivedKill, -1, "", "", "still alive", survivor);
+            }));
+
+            Assert.Equal(1, calls);
+            Assert.Contains("HARNESS NON-OBSERVATION", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("process 4242", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("attempt2: not run", ex.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain("cannot be restored", ex.Message, StringComparison.Ordinal);   // not mistaken for the PB3388 refusal
+            Assert.True(File.Exists(Path.Combine(run, "created.txt")));
+        }
+        finally { ScratchDirectory.Remove(outer); }
+    }
+
+    /// <summary>The real by-id wait: a process that is running is waited for and reported alive; once it has exited (or
+    /// when no process has the id) it is reported exited. A one-millisecond wait cannot outlast a 30 s sleeper, so no clock
+    /// decides the first assertion.</summary>
+    [Fact]
+    public void TheSurvivorsWaitById_SeesALiveProcessAliveAndAnExitedOneExited()
+    {
+        using var sleeper = Process.Start(RunsForever())!;
+        int id = sleeper.Id;
+        try
+        {
+            Assert.False(SurvivingProcess.WaitForExitById(id, 1));
+            sleeper.Kill(entireProcessTree: true);
+            sleeper.WaitForExit();
+        }
+        finally { if (!sleeper.HasExited) sleeper.Kill(entireProcessTree: true); }
+        Assert.True(SurvivingProcess.WaitForExitById(id, ObservationBudget.UnitMs));
+    }
+
     // ── The retry of a program that WRITES (kb/Work PB3388) ────────────────────────────────────────────────
     //
     // The retry policy is exercised through ProcessObserver.ObserveWithRetry with an IN-PROCESS attempt, not a child
