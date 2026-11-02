@@ -46,6 +46,7 @@ internal sealed partial class OoBinder
     /// inline receiver, the object of an object property).</summary>
     private BoundExpr OoBindSelfOperand(Core.SelfAndSuperContext s)
     {
+        if (UnreservedPredefinedObjectRefusal(s) is { } unreserved) return unreserved;   // kb/Work PB4153
         string written = DataBinder.WrittenText(s);
         if (s.SUPER() is not null)
             return BoundExprError.Report(ctx.Edition, DiagnosticCatalog.SuperPosition,

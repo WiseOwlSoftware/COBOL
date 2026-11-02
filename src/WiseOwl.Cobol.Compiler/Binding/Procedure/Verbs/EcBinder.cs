@@ -56,6 +56,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             var oref = r.objectReference();
             // The plain term — null for an inline invocation or an object-view, which the computed arm below binds.
             var atom = oref.objectReferenceAtom()?.objectReferenceTerm();
+            // SELF / SUPER are predefined only where §8.9 reserves them; elsewhere an undeclared name (kb/Work PB4153).
+            if (atom?.selfAndSuper() is { } selfOrSuper && host.Oo.UnreservedPredefinedObjectRefusal(selfOrSuper) is not null)
+                return BoundRejected.Reported(ctx.Edition);
             if (atom?.predefinedNull() is not null || atom?.selfAndSuper()?.SUPER() is not null)
             {
                 return BoundRejected.Report(ctx.Edition, "COBOL0848",

@@ -37,6 +37,8 @@ internal sealed partial class OoBinder
         // The INTRODUCTION gate fires on RECOGNITION in the VersionConformancePass parse arm (VisitObjectView).
         var term = ov.objectReferenceTerm();
         string written = DataBinder.WrittenText(term);
+        if (term.selfAndSuper() is { } viewSelf && UnreservedPredefinedObjectRefusal(viewSelf) is { } unreserved)   // kb/Work PB4153
+            return unreserved;
 
         // §8.4.3.5.3 SR1: "Identifier-1 shall be of class object; the predefined object references SUPER and NULL shall
         // not be specified." Both are admitted by the grammar (the P3 superset parse) so they are refused by THIS rule.
