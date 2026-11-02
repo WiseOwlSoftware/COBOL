@@ -1701,7 +1701,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // §13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (ReferenceResolver.ScreenLinkageReference), once per reference.
         if (ctx.Data.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
-            ctx.Refs.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
+            ctx.Refs.Names.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
         return matches[0];
     }
 
@@ -1723,16 +1723,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
         if (NamesHidingDataItem(dref))
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, "a data item"));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, "a data item"));
         // ... and so is a constant-name, index-name, CAPACITY register or file-name of a nearer one (kb/Work PB4432 review
         // R1-1): this position names THAT, not the container's level-88.
         else if (HidingClassPhrase(dref) is { } hider)
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, hider));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, hider));
         // A report entry of a NEARER source element is the referenced item the same way (kb/Work PB4196), and the
         // report-item refusal names it.
         else if (!ctx.Data.ReportEntryReferenceRefused(default, $"'{text}'", name, qualifiers))
             ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                ReferenceResolver.MisqualifiedConditionText(text, name, qualifiers));
+                NameResolution.MisqualifiedConditionText(text, name, qualifiers));
         return true;
     }
 
@@ -1754,7 +1754,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var qualifiers = QualifiersOf(dref);
         if (ctx.Data.ConditionNameHiddenByNearerNonDataName(name, qualifiers, ctx.ActiveScope) is { } hider) return hider.ClassPhrase;
         return CapacityRegisterHides(dref, ctx.Data.ConditionTier(name, qualifiers, ctx.ActiveScope))
-            ? ReferenceResolver.CapacityRegisterClassPhrase
+            ? NameResolution.CapacityRegisterClassPhrase
             : null;
     }
 

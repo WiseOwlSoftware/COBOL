@@ -937,8 +937,8 @@ public sealed partial class DataBinder
         waits = false;
         // A subordinate a TYPE or SAME AS clause supplies exists once its subject is composed (kb/Work PB2844):
         // `M OF V` with `01 V TYPE T.` names T's M, copied under V only when V's clause is expanded.
-        DataItem? FindComposed() => resolver.FindItem(baseName, qualifiers)
-            ?? (ComposePendingSubjectsAhead() ? resolver.FindItem(baseName, qualifiers) : null);
+        DataItem? FindComposed() => resolver.Names.FindItem(baseName, qualifiers)
+            ?? (ComposePendingSubjectsAhead() ? resolver.Names.FindItem(baseName, qualifiers) : null);
         DataItem? item = FindComposed();
         if (item is null && ReportEntryCandidates(baseName, qualifiers) is { Count: > 0 } reportEntries)
             return ReportLengthOperand(reportEntries, baseName, phrase, written, where);

@@ -122,7 +122,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             // (`TOT OF WS-GROUP`, the counter's name reused as a data item), the reference is that item's and
             // resolution carries on; otherwise the name IS a sum counter and the ordinary resolver would only say
             // "not defined", so name the real rule (§8.4.2.2.2 / §8.4.2.2.3 SR4).
-            if (refs.ResolveQualified(name, qualifiers) is not null) return null;
+            if (refs.Names.ResolveQualified(name, qualifiers) is not null) return null;
             if (report && refs.Diagnosed.Add(dref))
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': '{name}' is a sum counter "
                     + $"(ISO §13.18.54.4 GR5), but none is subordinate to the qualifiers written — a sum counter is "
@@ -139,7 +139,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         if (counterDepth > 0
             && (qualifiers.Count == 0
                 ? data.DeclaredNearerThan(name, counterDepth)
-                : refs.ResolveQualified(name, qualifiers) is { } nearer && data.DeclaringDepth(nearer) < counterDepth))
+                : refs.Names.ResolveQualified(name, qualifiers) is { } nearer && data.DeclaringDepth(nearer) < counterDepth))
             return null;
         // ⛔ THE COUNTER IS ONE CANDIDATE AMONG ALL THE DATA-NAMES OF ITS SPELLING (kb/Work PB3232). §13.18.54.4 GR5 makes a
         // SUM entry's data-name the name of its sum counter, so the counter is a data-name like the ordinary data items

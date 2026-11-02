@@ -189,8 +189,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             if (suffix.qualification() is not { } q || q.ChildCount != 2) return null;
             (quals ??= []).Add(q.cobolWord().GetText());
         }
-        var ix = ctx.Refs.ResolveIndexName(w, (IReadOnlyList<string>?)quals ?? [], dref);
-        return ix.Outcome is ReferenceResolver.IndexRefOutcome.NotAnIndexName ? null : ix.Cell;
+        var ix = ctx.Refs.Names.ResolveIndexName(w, (IReadOnlyList<string>?)quals ?? [], dref);
+        return ix.Outcome is IndexRefOutcome.NotAnIndexName ? null : ix.Cell;
     }
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────

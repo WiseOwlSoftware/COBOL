@@ -444,7 +444,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (!ReferenceResolver.IsNameToken(toks[0])
             || !CobolNames.Same(toks[0].Text, firstIndex)
             || (table.Indexes.Count > 0
-                && refs.ResolveIndexName(toks[0].Text, quals, toks[0]) is { Outcome: ReferenceResolver.IndexRefOutcome.Resolved } ix
+                && refs.Names.ResolveIndexName(toks[0].Text, quals, toks[0]) is { Outcome: IndexRefOutcome.Resolved } ix
                 && !ReferenceEquals(ix.Decl, table.Indexes[0])))
             return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "

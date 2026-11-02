@@ -228,7 +228,7 @@ public sealed class ReportItemReferenceTests
         string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
         foreach (string rel in new[]
                  {
-                     Path.Combine("Binding", "ReferenceResolver.cs"),   // procedure division: ReportUnidentified
+                     Path.Combine("Binding", "NameResolution.cs"),       // procedure division: ReportUnidentified
                      Path.Combine("Binding", "DataBinder.Odo.cs"),      // OCCURS … DEPENDING ON
                  })
             Assert.Contains("ReportEntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));

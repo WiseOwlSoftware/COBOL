@@ -70,7 +70,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         if (dref.cobolWord() is not { } head) return false;
         var written = ReferenceResolver.ReadWritten(dref);
         if (written.PropertyObject is null
-            && (written.Qualifiers.Count == 0 || refs.ResolveQualified(head.Name(), written.Qualifiers) is not null))
+            && (written.Qualifiers.Count == 0 || refs.Names.ResolveQualified(head.Name(), written.Qualifiers) is not null))
             return false;
         bool saved = refs.Probing;
         refs.Probing = true;
@@ -145,7 +145,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         subject.Stop = term.Stop;
 
         var w = ReferenceResolver.ReadWritten(subject);
-        return refs.ResolveQualified(head.Name(), w.Qualifiers) is not null ? (subject, view) : null;
+        return refs.Names.ResolveQualified(head.Name(), w.Qualifiers) is not null ? (subject, view) : null;
     }
 
     /// <summary>Resolve <paramref name="dref"/> (head word <paramref name="name"/>, already known NOT to be a data name)

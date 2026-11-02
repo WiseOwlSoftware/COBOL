@@ -3164,7 +3164,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // sum counter"; kb/Work PB1271): it is asked of the ONE counter resolver FIRST, in the order
         // ReferenceResolver.Resolve asks it, and its register carries the OCCURS levels the walk below reads.
         var counter = ctx.Refs.Counters.SumCounterFamilyFor(dref, name, quals, report: true);
-        if ((counter?.Family.Register ?? ctx.Refs.FindReportedItem(dref, name, quals)) is not { } item)
+        if ((counter?.Family.Register ?? ctx.Refs.Names.FindReportedItem(dref, name, quals)) is not { } item)
         {
             // The resolver's ONE reported lookup (kb/Work PB1029 — this arm refused silently; kb/Work PB3287 — and it
             // asked no §13.7.3 SR4 screen of a LINKAGE table the procedure division may not reference): the §8.4.2.1 /

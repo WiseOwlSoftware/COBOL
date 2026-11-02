@@ -615,7 +615,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// data-name-1 is legal here and none is turned away by refusing them.</para></summary>
     private DataItem? PtrResolveBased(Core.DataReferenceContext dref)
     {
-        DataItem? item = dref.ChildCount == 1 ? ctx.Refs.DeclarationOf(dref, dref.GetText()) : null;
+        DataItem? item = dref.ChildCount == 1 ? ctx.Refs.Names.DeclarationOf(dref, dref.GetText()) : null;
         if (item is { IsBased: true }) return item;
         // A name no declaration in scope carries — or one several carry — is an §8.4.2.1/§8.4.2.2.1 failure the
         // resolver has already stated precisely. Adding "shall be a BASED level-01/77 item" on top of it would

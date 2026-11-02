@@ -103,8 +103,8 @@ public sealed class ReferenceIdentificationDriftTests
             "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
         Assert.Contains("ctx.Refs.Counters.SumCounterFamilyFor(dref, name, quals, report: true)", text, StringComparison.Ordinal);
         // ... and its table lookup is the REPORTED one (the §8.4.2.2 report and the §13.7.3 SR4 screen), not a bare FindItem.
-        Assert.Contains("ctx.Refs.FindReportedItem(dref, name, quals)", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("Refs.FindItem(", text, StringComparison.Ordinal);
+        Assert.Contains("ctx.Refs.Names.FindReportedItem(dref, name, quals)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Names.FindItem(", text, StringComparison.Ordinal);
     }
 
     /// <summary>The two references that name a TABLE rather than a place — the SEARCH / SORT table operand and the

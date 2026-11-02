@@ -614,7 +614,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         var quals = new List<string>();
         foreach (var suffix in dref.dataReferenceSuffix())
             if (suffix.qualification()?.cobolWord()?.GetText() is { } q) quals.Add(q);
-        return _currentRefs.FindItem(name, quals);
+        return _currentRefs.Names.FindItem(name, quals);
     }
 
     /// <summary>Whether a same-DDE MOVE operand triggers GR4 d: (1) the OPERANDS are category alphanumeric-edited (the
