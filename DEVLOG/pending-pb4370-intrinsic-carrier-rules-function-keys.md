@@ -35,3 +35,9 @@ restated the row's notes (GAP 19 to 19).
 **Not changed, and reported as leads:** `FunctionValueLane`'s own sets, the binder's restatement of the renderer's switch labels,
 still key on runtime bodies, and `IntrinsicSig.RuntimeMethod` crosses into the bound tree on `BoundIntrinsicCall.Sig`. That
 field is chosen at bind time (`MaxString` for MAX over strings) and is reached through a tolerated bound-to-binding edge.
+
+**Self-review** (architecture, full code, performance, duplication): the fix adds one allocation-free early return on a
+compile-time path. The key-to-runtime-body map lives in one test helper (`IntrinsicCarrierRuleKeyDriftTests.RuntimeMethodOf`),
+shared by the four drift tests that compare a set with the switch. The `CobolIntrinsics.Exact` summary still named MEAN as
+cross-aligning and `IntrinsicRenderer` as the set's home; it is corrected. **Gate:** `=== BUILD-LOCAL GATE: GREEN — Conformance
+20,541/20,541 · Unit 39,150/39,150 · Characterization 37/37 cases ran (skipped 0) ... run 000002-20261102T040002Z ===`.
