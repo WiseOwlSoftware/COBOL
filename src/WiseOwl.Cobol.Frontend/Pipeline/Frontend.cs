@@ -9,7 +9,6 @@ using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend;
 
@@ -380,7 +379,7 @@ public sealed class Frontend
     /// <c>CompilerDirectiveCatalog</c> row, and the EDITION question was already answered by the driver before the
     /// line reached these stages (kb/Work PB725), which is why none of them takes a dialect any more.
     /// <c>CompilerDirectiveCatalogDriftTests</c> asserts the subset relation.</summary>
-    public static readonly IReadOnlySet<string> LeftDirectives = new HashSet<string>(CobolNames.Comparer)
+    public static readonly IReadOnlySet<string> LeftDirectives = new HashSet<string>(CobolKeywords.Comparer)
     {
         "TURN", "PUSH", "POP", "PROPAGATE", "REF-MOD-ZERO-LENGTH", "FLAG-02", "FLAG-14", "COBOL-WORDS", "LEAP-SECOND",
     };
@@ -446,10 +445,12 @@ public sealed class Frontend
         // The debugging lines that stay SOURCE: the region lines blanked on the way (their marker is gone from the final
         // stream) and the final stream's own (kb/Work PB2490).
         var sourceDebuggingLines = new List<IToken>();
+        LexerErrorListener lexErrors;
         while (true)
         {
             var lexer = new CobolLexer(new AntlrInputStream(text));
             retypes.PrimeLexer(lexer, edition);
+            lexErrors = LexerErrorListener.AttachTo(lexer);
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
             if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines) is not { } sourceRegionLine)
@@ -460,6 +461,9 @@ public sealed class Frontend
             sourceDebuggingLines.Add(sourceRegionLine);
             text = DebuggingLineRewriter.WithCarrierBlanked(text, sourceRegionLine);
         }
+        // Only the LAST lexer's errors describe the text the parse reads (kb/Work PB4233): an earlier one lexed a debugging
+        // line's carrier this loop has since blanked.
+        lexErrors.ReportInto(diagnostics, sourcePath, LineMap);
         ZeroTokenRewriter.Rewrite(tokens);
         // The §8.9 reservation gate's retype of the words the program declares where the edition frees them (kb/Work PB655).
         // (The >>COBOL-WORDS retype was applied by the lexer itself.) A no-op when no such word is declared.

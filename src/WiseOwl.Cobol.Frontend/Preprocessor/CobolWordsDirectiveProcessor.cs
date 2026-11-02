@@ -163,7 +163,7 @@ public static class CobolWordsDirectiveProcessor
             Invalid(diag, loc, ">>COBOL-WORDS requires an EQUATE, UNDEFINE, SUBSTITUTE, or RESERVE option (ISO §7.3.10.2)");
             return false;
         }
-        switch (CobolNames.UpperFold(kw.Text))
+        switch (CobolKeywords.Spelling(kw.Text))
         {
             case "EQUATE":   // EQUATE literal-1 WITH literal-2
                 return TryBinary(toks, "WITH", CobolWordsAction.Equate, at, diag, loc, definitionOf, out op);
@@ -329,7 +329,7 @@ public static class CobolWordsDirectiveProcessor
     /// (§8.3.3.2.3, §8.3.5 5) — SR2 requires each operand literal to be one.</param>
     private readonly record struct Tok(string Text, bool IsLiteral, string Prefix, string? Defect = null)
     {
-        public bool IsKeyword(string kw) => !IsLiteral && CobolNames.Same(Text, kw);
+        public bool IsKeyword(string kw) => !IsLiteral && CobolKeywords.Same(Text, kw);
     }
 
     /// <summary>Split the operand into barewords and quoted literals. The separators are the operand's own: the

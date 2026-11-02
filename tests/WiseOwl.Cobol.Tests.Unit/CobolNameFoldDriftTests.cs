@@ -11,8 +11,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A COBOL WORD IS COMPARED BY ONE FOLD, ANNEX C, AND BY NOTHING ELSE (kb/Work PB1402; ISO §8.1.3.2 GR3 b) and
-/// GR4 b)). Every name table and every word comparison in EVERY project under <c>src</c> goes through
-/// <see cref="CobolNames"/> (kb/Work PB1965, PB2845); .NET's ordinal-ignore-case comparison may not appear there, and
+/// GR4 b)), AND A KEYWORD ON THE BASIC LETTERS ALONE (kb/Work PB4240: 4) folds extended letters in user-defined words
+/// only). Every name table and every comparison of two words in EVERY project under <c>src</c> goes through
+/// <see cref="CobolNames"/> (kb/Work PB1965, PB2845), every comparison of a word with a keyword through
+/// <see cref="CobolKeywords"/>; .NET's ordinal-ignore-case comparison may not appear there, and
 /// neither may its <c>ToUpperInvariant</c> / <c>ToLowerInvariant</c> as a word's KEY or as the word a keyword is
 /// compared with (<see cref="CobolNames.UpperFold"/> is that key), because it upper-cases by the host's case mapping
 /// and disagrees with Annex C on the extended letters (it makes final sigma the same letter as sigma, long s the same
@@ -57,12 +59,18 @@ public sealed class CobolNameFoldDriftTests
     private static IEnumerable<string> WordProjects() =>
         Directory.EnumerateDirectories(TestRepo.Src(), "WiseOwl.Cobol.*").Select(d => Path.GetFileName(d)!).Order(StringComparer.Ordinal);
 
+    /// <summary>The source files a word comparison can be written in: C#, and the grammars, whose actions and members are
+    /// C# the ANTLR tool copies into the generated lexer and parser (kb/Work PB4240: the lexer's DEFINED retype compared by
+    /// ordinal-ignore-case in a .g4 action, which the scan of the generated output's directory could never reach).</summary>
+    private static readonly string[] ScannedKinds = ["*.cs", "*.g4"];
+
     /// <summary>Every non-comment source line of every scanned project, as <c>(path from the repository root, 1-based
     /// line, text)</c>; the line carrying the <see cref="Marker"/> is not returned.</summary>
     private static IEnumerable<(string Rel, int Line, string Text)> ScannedLines()
     {
         foreach (string project in WordProjects())
-            foreach (string file in Directory.EnumerateFiles(TestRepo.Src(project), "*.cs", SearchOption.AllDirectories))
+            foreach (string file in ScannedKinds.SelectMany(kind =>
+                         Directory.EnumerateFiles(TestRepo.Src(project), kind, SearchOption.AllDirectories)))
             {
                 string rel = Path.GetRelativePath(TestRepo.Root, file);
                 if (rel.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
@@ -84,6 +92,7 @@ public sealed class CobolNameFoldDriftTests
         foreach (string expected in new[] { "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Runtime" })
             Assert.Contains(expected, projects);
         Assert.Contains(ScannedLines(), l => l.Rel.Contains("CobolNames.cs", StringComparison.Ordinal));
+        Assert.Contains(ScannedLines(), l => l.Rel.EndsWith("CobolLexer.g4", StringComparison.Ordinal));   // the grammars too
         Assert.DoesNotContain(ScannedLines(), l => l.Rel.Contains("Collation", StringComparison.Ordinal) && l.Rel.Contains("CldrLocaleLoader", StringComparison.Ordinal));
         foreach (var (subtree, _) in NotCobolWordSubtrees)
             Assert.True(Directory.Exists(TestRepo.Src(subtree.Split('/'))), $"the excluded subtree '{subtree}' no longer exists: remove its entry");
@@ -95,7 +104,7 @@ public sealed class CobolNameFoldDriftTests
         var hits = ScannedLines().Where(l => HostUpperKey.IsMatch(l.Text)).Select(l => $"{l.Rel}:{l.Line}: {l.Text}").ToList();
         Assert.True(hits.Count == 0,
             "a COBOL word's upper-case key is CobolNames.UpperFold (a C# identifier: DataItem.WordIdentifier), and a word "
-            + "is compared with a keyword as CobolNames.UpperFold(word) is \"KEYWORD\" — never the host's "
+            + "is compared with a keyword through CobolKeywords (Same, Spelling) — never the host's "
             + "ToUpperInvariant, which keeps the Kelvin sign apart from K and joins final sigma with sigma and long s with s; "
             + $"a string that is not a COBOL word carries '{Marker} <what>':\n" + string.Join("\n", hits));
     }
@@ -213,6 +222,92 @@ public sealed class CobolNameFoldDriftTests
         string? v = CobolCharacterRepertoire.Violation(word, edition);
         if (expected is null) Assert.Null(v);
         else Assert.Contains(expected, v);
+    }
+
+    /// <summary>A KEYWORD matches on the basic letters alone (kb/Work PB4240; ISO §8.1.3.2 3) a) and 4): the Annex C fold
+    /// of an extended letter governs user-defined words only, owner decision 2026-10-31): a word written with one of the
+    /// three letters Annex C folds to a BASIC letter is an IDENTIFIER, never the keyword its fold spells, at every edition,
+    /// and so is the primed directive expression's DEFINED. <c>#</c> in <paramref name="word"/> stands for
+    /// <paramref name="codePoint"/> (written in the body, so the case names stay ASCII).</summary>
+    [Theory]
+    [InlineData("D#SPLAY", 0x0130, 2023, false, "IDENTIFIER")] // (0130,0069): a user word folding to display, not DISPLAY
+    [InlineData("#EY", 0x212A, 2023, false, "IDENTIFIER")]     // KELVIN SIGN (212A,006B)
+    [InlineData("D#SPLAY", 0x0131, 2014, false, "IDENTIFIER")] // dotless i: (0131,0069) folds a user word before 2023 only
+    [InlineData("D#SPLAY", 0x0131, 2023, false, "IDENTIFIER")]
+    [InlineData("D#SPLAY", 0x0069, 2023, false, "DISPLAY")]    // the basic i, either case, is the keyword
+    [InlineData("DEF#NED", 0x0130, 2023, true, "IDENTIFIER")]  // the directive expression's DEFINED (§7.3.8.4.4) too
+    [InlineData("DEF#NED", 0x0131, 2014, true, "IDENTIFIER")]  // ... its source text, not the edition spelling (i)
+    [InlineData("def#ned", 0x0069, 2023, true, "DEFINED")]
+    [InlineData("DEF#NED", 0x0049, 2023, false, "IDENTIFIER")] // ... a user word everywhere else
+    public void TheLexer_MatchesAKeywordOnTheBasicLettersAlone(string word, int codePoint, int edition, bool directive, string token)
+    {
+        string text = word.Replace("#", char.ConvertFromUtf32(codePoint), StringComparison.Ordinal);
+        var lexer = new WiseOwl.Cobol.Frontend.Generated.CobolLexer(new Antlr4.Runtime.AntlrInputStream(text));
+        lexer.RemoveErrorListeners();
+        lexer.SetCaseMappingEdition(edition);
+        if (directive) lexer.PrimeDirectiveExpr();
+        var t = lexer.NextToken();
+        Assert.Equal(token, WiseOwl.Cobol.Frontend.Generated.CobolLexer.DefaultVocabulary.GetSymbolicName(t.Type));
+        Assert.Equal(CobolNames.EditionSpelling(text, edition), t.Text);   // the source's spelling, in its edition
+    }
+
+    /// <summary><see cref="CobolKeywords"/> is that reading for the stages that find a keyword in text the lexer does not
+    /// see: the basic letters of either case, every other character only itself — so neither the Annex C fold (U+0130,
+    /// the Kelvin sign) nor the host's case mapping (the dotless i U+0131 and the long s U+017F, which .NET's
+    /// ordinal-ignore-case upper-cases to I and S) makes a keyword of a word that is not one.</summary>
+    [Theory]
+    [InlineData("if", "IF", true)]
+    [InlineData("End-If", "END-IF", true)]
+    [InlineData("#F", "IF", false, 0x0130)]
+    [InlineData("#F", "IF", false, 0x0131)]
+    [InlineData("#EY", "KEY", false, 0x212A)]
+    [InlineData("PU#H", "PUSH", false, 0x017F)]
+    [InlineData("IF-", "IF", false)]
+    [InlineData("I@", "I`", false)]   // '@' | 0x20 is '`': only a LETTER pairs with its other case
+    public void CobolKeywords_MatchTheBasicLettersAlone(string written, string keyword, bool same, int codePoint = 0)
+    {
+        string text = codePoint == 0 ? written : written.Replace("#", char.ConvertFromUtf32(codePoint), StringComparison.Ordinal);
+        Assert.Equal(same, CobolKeywords.Same(text, keyword));
+        Assert.Equal(same, CobolKeywords.Comparer.Equals(text, keyword));
+        if (same) Assert.Equal(CobolKeywords.Comparer.GetHashCode(keyword), CobolKeywords.Comparer.GetHashCode(text));
+        Assert.Equal(same, CobolKeywords.Spelling(text) == keyword);
+    }
+
+    /// <summary>The directive line reads its directive word the same way: <c>&gt;&gt;İF</c> heads no directive (the word
+    /// stays as written, its basic letters raised), so the conditional-compilation stage, the reference-format stage
+    /// and the directive catalog never take it for <c>&gt;&gt;IF</c> (kb/Work PB4240).</summary>
+    [Fact]
+    public void TheDirectiveWord_IsAKeyword_NotAFoldedWord()
+    {
+        string dotted = ">>" + char.ConvertFromUtf32(0x0130) + "f X DEFINED";
+        Assert.True(CompilerDirectiveLine.TryParse(dotted, out var d));
+        Assert.Equal(char.ConvertFromUtf32(0x0130) + "F", d.Word);
+        Assert.False(CompilerDirectiveCatalog.IsDirective(d.Word));
+        Assert.True(CompilerDirectiveLine.TryParse(">>end-if", out var e));
+        Assert.Equal("END-IF", e.Word);
+        Assert.True(CompilerDirectiveCatalog.IsDirective(e.Word));
+    }
+
+    /// <summary>A text stage, the directive catalog and the directive-line parse compare a word with a KEYWORD written as a
+    /// literal through <see cref="CobolKeywords"/>, never through the fold of a user-defined word (kb/Work PB4240): a
+    /// <c>CobolNames</c> comparison whose argument is an upper-case keyword literal, or a <c>CobolNames.UpperFold</c>
+    /// switched over or matched against one. A line that compares a word the rules fold on purpose says so with the marker
+    /// <c>// Annex C: &lt;why&gt;</c>.</summary>
+    [Fact]
+    public void NoKeywordComparedByTheFold_InTheTextStages()
+    {
+        var keywordByFold = new System.Text.RegularExpressions.Regex(
+            @"CobolNames\.(Same|StartsWith|EndsWith|Contains)\([^;]*""[A-Z][A-Z0-9-]*""|CobolNames\.UpperFold\([^;]*\)\s*(is\s+(var\s+\w+\s*&&\s*\w+\s+is\s+)?""|==\s*""|switch)");
+        var hits = ScannedLines()
+            .Where(l => l.Rel.Replace('\\', '/') is var r
+                        && (r.StartsWith("src/WiseOwl.Cobol.Frontend/", StringComparison.Ordinal)
+                            || r.StartsWith("src/WiseOwl.Cobol.Editions/", StringComparison.Ordinal)))
+            .Where(l => keywordByFold.IsMatch(l.Text) && !l.Text.Contains("// Annex C:", StringComparison.Ordinal))
+            .Select(l => $"{l.Rel}:{l.Line}: {l.Text}").ToList();
+        Assert.True(hits.Count == 0,
+            "a keyword is matched on the basic letters alone (CobolKeywords.Same / StartsWith / Spelling / Comparer; ISO "
+            + "§8.1.3.2 4) folds extended letters in user-defined words only); a word folded on purpose carries "
+            + "'// Annex C: <why>':\n" + string.Join("\n", hits));
     }
 
     /// <summary>A supplementary-plane pair (Adlam, added at 2023 by E.3.3 items 5 and 6) — built in the body, because

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 
@@ -136,7 +137,7 @@ public sealed class EmbeddedBlockReading
     /// <summary>A default-channel IDENTIFIER spelled EXEC. Only a four-character one has its text read.</summary>
     private static bool IsExec(IToken token)
         => token.Type == CobolKeywordTokens.IdentifierType && token.Channel == TokenConstants.DefaultChannel
-           && token.StopIndex - token.StartIndex == 3 && CobolNames.Same(token.Text, "EXEC");
+           && token.StopIndex - token.StartIndex == 3 && CobolKeywords.Same(token.Text, "EXEC");
 
     /// <summary>A COBOL word token (a user-defined word or a keyword) whose spelling is <paramref name="word"/>.</summary>
     private static bool IsWordSpelled(IToken token, string word) => IsWord(token) && CobolNames.Same(token.Text, word);
