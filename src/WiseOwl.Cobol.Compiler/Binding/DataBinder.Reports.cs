@@ -1072,10 +1072,6 @@ public sealed partial class DataBinder
         return nearest;
     }
 
-    /// <summary>The containers' GLOBAL reports (ISO §13.18.27.4 GR1/GR2), nearest container first, each with its
-    /// <see cref="ReportDepth"/>; set by <c>BinderDriver.BindUnitData</c> before the unit binds and inherited by
-    /// <see cref="InheritContainerReports"/> (kb/Work PB3766).</summary>
-    internal IReadOnlyList<(ReportModel Report, int Depth)> ContainerGlobalReports { get; init; } = [];
 
     /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL REPORTS BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2):
     /// the end of <see cref="BindDeclarations"/> — after this unit's own report-name and data-names are declared, so
@@ -1086,7 +1082,7 @@ public sealed partial class DataBinder
     /// report declares is "not defined" (kb/Work PB3766).</summary>
     private void InheritContainerReports()
     {
-        foreach (var (report, depth) in ContainerGlobalReports)
+        foreach (var (report, depth) in State.Inherited.Reports)
             InheritGlobalReport(report, depth);
     }
 
@@ -3307,7 +3303,7 @@ public sealed partial class DataBinder
                 // stood here sent `05 COLUMN 1 PIC 9(3) USAGE NATIONAL SOURCE N` to the line as a long, and the
                 // backend refused the generated C# (CS1503) at every edition (kb/Work PB3280).
                 if (pic.IsCharacterFormNumeric)
-                    MarkImageForced(item);
+                    State.ImageForcedItems.Add(item);
                 // THE OPERAND LIST (§13.18.63.2 format 4 / §13.18.53.2 — both clauses write `{ operand } …`).
                 // SUM wins the entry (§13.18.54.4 GR4 — the sum counter acts as the source item); then the
                 // SOURCE operands; then the VALUE operands. There is no fourth arm: §13.15.3 SR10 forbids the

@@ -1047,7 +1047,7 @@ public sealed record PicInfo(
     /// <c>NumericImagePlace</c> (§13.18.45). (A STRING receiver is not such a site: it is a CHARACTER CHANNEL, so
     /// its numeric DISPLAY item is promoted to its image, kb/Work PB4089.) Do NOT read it where the
     /// question is whether the leaf's carrier may be REPLACED by that character string
-    /// (<c>DataBinder.MarkImageForced</c> / <c>StorageFormPass</c>'s promotion): promotion pins the carrier at
+    /// (<c>DataBindState.ImageForcedItems</c> / <c>StorageFormPass</c>'s promotion): promotion pins the carrier at
     /// <c>ImageWidth</c> CHARACTER positions, which for usage DISPLAY is the leaf's whole storage and for usage
     /// NATIONAL is half of it (D-N1), and promoting a national-form numeric leaf was MEASURED to corrupt a plain
     /// group-to-group MOVE between two of them. Each such site says so in its own comment. The carriage sites

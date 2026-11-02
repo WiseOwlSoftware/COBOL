@@ -1146,14 +1146,29 @@ statement-order visibility is today's exactly because the binder appends and rea
 are the four fact sets, each with its declared appending phases (`WholeGroupReferenced`: FilesResolved and
 UsageCollected; `ImageForcedItems`: FilesResolved and ProcedureBound, read early by the resolver;
 `CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule).
-The procedure-bind state is NOT in `DataBindState`: it is `BindSession`'s `ProcedureBindState`, which exists only while
-procedure binding runs and is never in `DataBindResult`, in its three shapes: a **scoped override** (`Scoped<T>`:
-`Push(value)` returns the scope whose disposal restores the previous value, the `using` shape `EnterMethodScope`
-already has at `StatementBinder.cs:350`; it holds `Options`, whose pushed value is the method symbol's own
-`MethodOptions`); an **ordered drain queue** (`DrainQueue<T>`: `Add`, `Mark()` and `DrainFrom(mark)`, which returns and
-removes the entries after the mark in registration order; it holds `PendingPreOps` and `OoPendingPropertyOps`); and a
-**scope cursor** (`Cursor<T>`: `Enter(value)` returns the restoring scope; it holds `OperandEvaluations`, entered at
-zero per statement, and `ActiveMethodScope`). The three kinds `BinderDriver` writes around the data phases take
+The procedure-bind state is NOT in `DataBindState`: it is `ProcedureBindState` (`Binding/ProcedureBindState.cs`), which
+no data pass reads and which is never in `DataBindResult`, in its three shapes: a **scoped override** (`Scoped<T>`:
+`Push(value)` returns the scope whose disposal restores the previous value, and `Over(root)` reads the innermost pushed
+value, else the root its reader passes, so the override holds no reference to the state it overrides; it holds
+`Options`, whose root is the unit's OPTIONS slice and whose pushed value is the method symbol's own `MethodOptions`, pushed by
+`StatementBinder.BindClassBody`); an **ordered drain queue** (`DrainQueue<T>`: `Add`, `Mark()` and `DrainFrom(mark)`,
+which returns and removes the entries after the mark in registration order, plus the two operations the binders
+proved they need: `InsertAt(position, …)`, the evaluation-order placement a freeze makes ahead of a later operand's
+entries (`SendingValueTemp.Positioned`, `StatementBinder.FreezeOdoExtentBeforeRefMod`; §14.6.4), and `Since(mark)`,
+the read of an operand's entries without taking them (the reference resolver's enclosing-occurrence capture); it holds
+`PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`); and a **scope cursor** (`Cursor<T>`:
+`Enter(value)` returns the restoring scope, and `Advance(value)` moves the cursor inside the open scope, which the
+operand-evaluation count needs as the statement drains its steps; it holds `OperandEvaluations`, entered at zero per
+statement, and `ActiveMethodScope`). It is held per unit binder (`DataBinder.Procedure`), not on `BindSession`: the
+statement walk, the reference resolver and the binder's own name lookup reach it through the unit's binder (a class's
+methods bind through their half's binder), and the method-scope cursor is also entered, for the one method whose
+names they resolve, by the storage-claim resolution (`DataBinder.ResolveStorageClaimHead`, a data pass) and by the
+migration-flag pass (`FlagConformancePass`, after binding). Code generation has its own scoped override,
+`EmitContext.Options`: `OoEmitter.EmitMethod` pushes the method's OPTIONS model around the method's LOCAL-STORAGE
+initializers (kb/Work PB1215), which used to assign `DataBinder.Options` and restore it. The three shapes hold no
+binder type, so they live in compiler.model (`Binding/Model/RestoringScopes.cs`), below both of their users; so do
+the checking slices' records (`UnitChecking`, `MethodChecking`, `Binding/Model/CheckingSlices.cs`) and the
+visible-file view (`FileNameScope`), which code generation and the statement binder read. The three kinds `BinderDriver` writes around the data phases take
 three shapes. The **configuration slice** is a value slice with ONE producer per bound unit, `ConfigurationStep`, at
 the environment phase, before every data phase that reads it (today's literal and PICTURE reads), and its source is a
 closed union with three arms, one per kind of unit the standard gives a configuration: **Own** — an outermost program,
@@ -1186,14 +1201,23 @@ writes them today) and before ProcedureBound; and `MethodChecking` (`OoUniversal
 `BinderDriver.cs:112-135` does today, after `ResolveOverrides` and before any body binds, read through the method
 symbol as today. `OoUniversalCheckingHere` is a binder-state kind of this shape, not a sixth one: a `TurnState` fold the
 binder writes once and code generation reads (`OoEmitter.cs:539`). The
-**inheritance merge** is `BindSession`'s `InheritStep`, run once per contained program, which receives the containers
-as their `DataBindResult`s, nearest first (a parent binds before its children), and writes only one slice of its own,
-never a data phase's: `InheritedGlobals` (the inherited files, container-local files, reports, subtree tiers with their
-depth, bridges, and the shadowed-constant drop list; a lookup reads the child's own slice first and this one after,
-which is `TryAdd`'s local-shadows rule made structural), carried into `DataBindResult`. `InheritStep.Seed` writes the
-seed part at a phase before the first data phase, `GlobalsSeeded`; `InheritStep.Merge` writes the rest at
-`GlobalsInherited`, after the last data phase and before ProcedureBound; `MarkFormals` stays a write to the formals'
-items, ordered by the step as today.
+**inheritance merge** is `InheritStep` (`Binding/InheritStep.cs`), run for every program unit (an outermost one has no
+container and inherits nothing), which receives the containers nearest first (a parent binds before its children; as
+their `DataBindResult`s once step 11 makes one), and writes one slice of its own, never a data phase's:
+`InheritedGlobals` (`DataBindState.Inherited`: the inherited GLOBAL files with their depth, their GLOBAL record areas,
+the container-local files, the inherited type declarations, and the offers of the containers' GLOBAL reports and data
+roots; a lookup reads the child's own declarations first and this slice after — `DataBinder.VisibleFiles`,
+`TryFindTypeDecl` — which is `TryAdd`'s local-shadows rule made structural: the merge of the inherited files into
+`FilesByName` is gone, and `FilesByName` holds the unit's own files only), carried into `DataBindResult`.
+`InheritStep.Seed` writes the seed part at a phase before the first data phase, `GlobalsSeeded`; `InheritStep.Merge`
+writes the rest at `GlobalsInherited`, after the last data phase and before ProcedureBound: the formals'
+omitted-argument guards (`MarkFormals`, a write to the formals' items, ordered by the step as today), the GLOBAL
+bridges and the drop of an inherited constant a nearer data-name hides. A container's GLOBAL reports and GLOBAL data
+subtrees are made visible INSIDE the unit's declaration half (`DataBinder.InheritContainerReports`,
+`InheritContainerGlobalData`; kb/Work PB3766, PB4199), because the unit's own FILE STATUS, KEY, DEPENDING ON and ASSIGN
+USING clauses name them, so the step offers them in its seed half rather than merging them after the data phases. The
+inherited constant-names still join the unit's own constant table (`InheritGlobalConstants`, called by the seed half,
+and `DropShadowedConstants`, by the merge half), and the inherited subtrees its own name indexes with their depth.
 A pass declares its views on its `IBindPass` class, and `ValidateDag` checks
 the declarations against the phase order at startup: a value slice is written only in its phase and read only after
 it; a fact set is appended only in a phase that declares it, read early only by a pass that says so, and read whole
@@ -1213,9 +1237,11 @@ neither can write one. Neither checks the merge's order (nearest
 container first, a local name shadowing), which stays the step's loop, as today, and the oracle proves it.
 `ValidateDag` checks nothing about the three procedure-bind shapes, because they live inside ONE phase
 (ProcedureBound), where order is the statement walk's, not the pass list's; what holds them is the type: no
-`IBindPass` can receive `ProcedureBindState` (`BindSession` constructs it when procedure binding starts, after the
-pipeline's last data pass), a scoped override and a cursor change only through a restoring scope, and a drain queue
-admits no removal but `DrainFrom` its own mark. That a statement drains exactly its own suffix stays the statement
+`IBindPass` declares `ProcedureBindState` among its views, a scoped override and a cursor change only through a
+restoring scope (a cursor's `Advance` moves it inside the open scope only), and a drain queue admits no removal but
+`DrainFrom` its own mark. Who writes a value slice, which the types cannot say, is pinned by
+`DataBindStateBoundaryDriftTests` (the checking slices are written only with `CheckingFold`'s answer;
+`InheritedGlobals` only by `InheritStep`). That a statement drains exactly its own suffix stays the statement
 walk's duty, as today, and the oracle proves it. Most of a data pass's output is mutation of the `DataItem` forest
 (`UsageInheritancePass` writes `item.Pic`, `DataBinder.cs:6752,6775,6816`), which no slice declaration covers: those
 writes stay ordered by the explicit pass list, exactly as today, and the oracle proves the order; the type system takes

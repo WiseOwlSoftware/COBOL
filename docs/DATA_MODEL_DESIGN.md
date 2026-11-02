@@ -530,7 +530,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
     `PicInfo.IsCharacterFormNumeric` is THE ONE predicate for "this item's image is a run of digit characters",
     read by every site that VIEWS an item through its characters (reference modification §8.4.3.3.4 GR3/GR5a, a
     RENAMES span's `NumericImagePlace`, a STRING receiver). ⚠ It is **not** read by the sites that decide whether
-    the carrier may be REPLACED by that string (`MarkImageForced` / `StorageFormPass`'s whole-group promotion):
+    the carrier may be REPLACED by that string (`DataBindState.ImageForcedItems` / `StorageFormPass`'s whole-group promotion):
     promotion pins the carrier at the leaf's `ImageWidth` CHARACTER positions, which is the whole storage of a
     DISPLAY item and half of a national one. A national-form numeric leaf IS promoted since kb/Work PB1665 made
     an alphanumeric group's `ImageWidth` count storage characters (the group MOVE that corrupted across such a
@@ -1914,7 +1914,7 @@ shape it could read term by term.
 nested recursion, so a USER-defined function in a subscript falls out of the same change); synthesize the temp via
 `DataBinder.CreateCompilerTemp`, already "THE ONE synthesized-compiler-temp constructor"; register a statement-scoped
 pending PRE-op drained at the `BindStatement` chokepoint — the mark-on-entry / drain-own-suffix protocol that
-ALREADY serves two clients (`Udf.Mark`, `data.OoPendingPropertyOps`). The subscript segment then renders
+ALREADY serves two clients (`Udf.Mark`, `data.Procedure.PropertyOps`). The subscript segment then renders
 as an ordinary data-name through the existing `ResolveSubscriptName`.
 ⭐ **Prefer GENERALIZING the UDF pending list to a third list**: a function-identifier is never a receiving operand
 (**§8.4.3.2.3 SR1**), so intrinsic and user-function activations are both unconditional pre-ops with identical

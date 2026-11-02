@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A <c>Place</c> THAT IS A VIEW OVER ENGINE STATE SAYS SO, AND NO IMAGE-BACKING FACT IS EVER RECORDED FOR IT
 /// (kb/Work PB1943).
-/// <para>The image-backing facts (<c>DataBinder.MarkImageForced</c>, read mid-bind by <c>IsImageBackedEarly</c>) are
+/// <para>The image-backing facts (<c>DataBindState.ImageForcedItems</c>, read mid-bind through its <c>IReadsEarly</c> view) are
 /// keyed by <see cref="DataItem"/> and say "this item's cell stores its character image". The implicitly-defined
 /// registers — a report's sum counter, PAGE-COUNTER, the CAPACITY register, DEBUG-ITEM, EXCEPTION-OBJECT — carry a
 /// synthetic <c>RegisterItem</c> whose value the engine owns and which has no cell, so a fact recorded for it describes
