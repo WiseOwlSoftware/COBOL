@@ -757,8 +757,9 @@ Table 16 to the printed table cell for cell.
 Rule 6 for an OBJECT REFERENCE returning item is the §14.9.39.3 Format 5 table (`ObjectReferenceSet.Refusal`, the one
 copy the compiler's SET screens ask too) over CLASS FACTS each description carries (`ActivationDescription.ObjectClasses`
 — the class, for ACTIVE-CLASS "the class containing the data item", and its ancestors; `ObjectInterfaces` — the
-interfaces its objects implement, or an interface and those it inherits), built by `OoClassTable.SetOperand` (kb/Work
-PB2463): a method returning an unrelated class, an interface the receiver's class is not, a universal reference into a
+interfaces its objects implement, or an interface and those it inherits), built by `OoClassTable.DescribedOperand` (kb/Work
+PB2463), `SetOperand`'s derivation with every class and interface spelled by its EXTERNALIZED name, because a description
+is compared with one of another, separately compiled group (DESIGN-external-repository §6.4; kb/Work PB2104): a method returning an unrelated class, an interface the receiver's class is not, a universal reference into a
 typed item, or an ACTIVE-CLASS item of a class that is not the receiver's or a subclass does not match, and the search
 ends in EC-OO-METHOD. The standard class BASE's New and FactoryObject describe their returning items as written in BASE
 (`StandardMethodCrossing`), so through a universal receiver they match a universal item, one described with BASE (FACTORY

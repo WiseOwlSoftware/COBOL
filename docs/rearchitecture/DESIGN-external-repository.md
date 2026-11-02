@@ -1112,7 +1112,18 @@ the group.
   class with one spelling. That changes the text every module's descriptions carry and the run-time relations compare:
   a call-ABI bump (`scripts/abi_pin.py bump --call-abi`, §15.4) in slice 8. `ClrTypeName` is `Target.ClrName` with its
   namespace. ACTIVE-CLASS carries its containing class's identity (excluded from equality by §9.3.8.2.3 rule 2 d) as
-  today).
+  today). **Landed, slice 8 step 1 part 1 (kb/Work PB2104, wave 20261830):** the run-time description's class facts —
+  `ActivationDescriptions.Of` reads `OoClassTable.DescribedOperand`, `SetOperand`'s one derivation with every class and
+  interface spelled by its externalized name, while the compile-time SET table keeps the words of its one scope — under
+  call-ABI 5 (`ObjectReferenceIdentityDescriptionTests`). No run-time case can show the difference yet: two groups'
+  classes are distinct CLR types until a class is imported, so a cross-group argument of a class the callee did not
+  define already fails its carrier (`CallAbi.Slot`); the identity spelling is what lets an IMPORTED class, named by
+  another word, conform. **Correction (layering):** `Target` cannot be the symbol — `ObjectRefDescriptor` is in
+  `Binding.Model`, which may not reference `Compiler.Oo` (architecture-edges.json) — so it is the resolved IDENTITY
+  (the class's or interface's externalized name, set where `DataBinder.OoDescribeNamedReference` resolves the word),
+  which also lets the readers that build a description with no class table (`PrototypeSignatures.CanonicalIdentity`'s
+  `ActivationDescriptions.Of(item, classes: null)`, which still spells the word) spell the identity; that and
+  `ClrTypeName` over an imported class's full name are step 1's next part.
 - **Restricted data-pointers**: `POINTER TO type` → `RestrictedTypeName` (the word as written) and the type
   DECLARATION it resolves to (`RestrictedTypeDeclaration`, an index into `TypeDeclarations`); the decoder sets
   `PicInfo.RestrictedTypeDecl` to the decoded declaration, and the type is compared by `StrongTypeModel.SameRestriction`

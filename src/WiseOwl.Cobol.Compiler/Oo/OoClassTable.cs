@@ -258,10 +258,24 @@ public sealed class OoClassTable
     /// <para>A FORMAL description (<see cref="ObjectRefDescriptor.Formal"/>; kb/Work PB2937) names no class of the table
     /// — a parameter-name and a group class spelled alike are different words — so alone it is OPAQUE: its lineage is
     /// the parameter-name and nothing else, which relates it to exactly the descriptions naming the same parameter.
-    /// A pair that relates a formal to something else is <see cref="SetOperands"/>'.</para></summary>
-    public ObjectReferenceOperand SetOperand(ObjectRefDescriptor d)
+    /// A pair that relates a formal to something else is <see cref="SetOperands"/>'.</para>
+    /// <para>The operand spells each class and interface by its WORD: the compile-time table relates two descriptions of
+    /// one source element's scope. A run-time description crosses separately compiled groups, so it spells them by
+    /// identity instead (<see cref="DescribedOperand"/>).</para></summary>
+    public ObjectReferenceOperand SetOperand(ObjectRefDescriptor d) => Facts(d, identities: false);
+
+    /// <summary>⛔ THE CLASS FACTS OF ONE OBJECT-REFERENCE DESCRIPTION AS A RUN-TIME DESCRIPTION CARRIES THEM
+    /// (<see cref="ActivationDescriptions"/>; DESIGN-external-repository §6.4): <see cref="SetOperand"/>'s derivation, with
+    /// the class or interface the description names and every class and interface of its facts spelled by its
+    /// EXTERNALIZED name (ISO §11.3.4 GR1, §11.6.4 GR1: "the name … that is externalized to the operating environment"),
+    /// because a word is per source element and two separately compiled groups name one class by its identity (§8.13). A
+    /// FORMAL description keeps its parameter-name: nothing emits a skeleton.</summary>
+    public ObjectReferenceOperand DescribedOperand(ObjectRefDescriptor d) => Facts(d, identities: true);
+
+    private ObjectReferenceOperand Facts(ObjectRefDescriptor d, bool identities)
     {
         IReadOnlyList<string>? classes = null, interfaces = null;
+        string? name = d.Name;
         if (d.Formal)
         {
             string[] self = [d.Name!];
@@ -269,14 +283,20 @@ public sealed class OoClassTable
                 d.Kind is ObjectRefKind.Interface ? null : self, d.Kind is ObjectRefKind.Interface ? self : []);
         }
         if (d.Kind is ObjectRefKind.Interface && FindInterface(d.Name!) is { } i)
-            interfaces = InterfaceLineage(i);
+        {
+            interfaces = InterfaceLineage(i).Select(x => Spell(x)).ToArray();
+            if (identities) name = i.ExternalizedName;
+        }
         else if (d.Kind is ObjectRefKind.ObjectClass or ObjectRefKind.ActiveClass && d.Name is { } n
                  && (Find(n) ?? ContainingSkeleton(d, n)) is { } c)
         {
-            classes = ClassLineage(c);
-            interfaces = ImplementsClosure(c, d.Factory).Select(x => x.Name).ToArray();
+            classes = ClassLineage(c).Select(x => identities ? x.ExternalizedName : x.Name).ToArray();
+            interfaces = ImplementsClosure(c, d.Factory).Select(x => Spell(x)).ToArray();
+            if (identities) name = c.ExternalizedName;
         }
-        return new ObjectReferenceOperand(d.RuntimeKind, d.Name, d.Factory, d.Only, classes, interfaces);
+        return new ObjectReferenceOperand(d.RuntimeKind, name, d.Factory, d.Only, classes, interfaces);
+
+        string Spell(OoInterfaceSymbol x) => identities ? x.ExternalizedName : x.Name;
     }
 
     /// <summary>⛔ THE SENDER AND RECEIVER OF ONE §14.9.39.3 PAIR, as the SET table relates them — <see cref="SetOperand"/>
@@ -318,29 +338,29 @@ public sealed class OoClassTable
         d.IsActiveClass ? _parameterizedClasses.FirstOrDefault(c => CobolNames.Same(c.Name, name)) : null;
 
     /// <summary>The class and every class it inherits from, nearest first (cycle-safe; §11.3.3 SR4 refuses a cycle).</summary>
-    private static string[] ClassLineage(OoClassSymbol cls)
+    private static List<OoClassSymbol> ClassLineage(OoClassSymbol cls)
     {
-        var names = new List<string>();
+        var lineage = new List<OoClassSymbol>();
         var seen = new HashSet<OoClassSymbol>();
         for (OoClassSymbol? c = cls; c is not null && seen.Add(c); c = c.Base)
-            names.Add(c.Name);
-        return [.. names];
+            lineage.Add(c);
+        return lineage;
     }
 
     /// <summary>The interface and every interface it inherits from, itself first (cycle-safe).</summary>
-    private static string[] InterfaceLineage(OoInterfaceSymbol iface)
+    private static List<OoInterfaceSymbol> InterfaceLineage(OoInterfaceSymbol iface)
     {
-        var names = new List<string>();
+        var lineage = new List<OoInterfaceSymbol>();
         var seen = new HashSet<OoInterfaceSymbol>();
         var stack = new Stack<OoInterfaceSymbol>([iface]);
         while (stack.Count > 0)
         {
             var cur = stack.Pop();
             if (!seen.Add(cur)) continue;
-            names.Add(cur.Name);
+            lineage.Add(cur);
             foreach (var b in cur.Inherits) stack.Push(b);
         }
-        return [.. names];
+        return lineage;
     }
 
     /// <summary>
