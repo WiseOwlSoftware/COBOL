@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Passes;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
@@ -164,8 +165,10 @@ public sealed partial class DataBinder
             yield return new(NonDataDeclarationKind.IndexName, Depth: indexes.NearestDepth(i => DeclaringDepth(i.Table)));
         if (dataName) yield break;
         // The register is a data-name of its entry's source element (§13.18.38.3 SR30), reached by the qualifiers its
-        // register item answers to; the nearest source element that declares one the qualifiers reach is its depth.
-        if (Symbols.CapacityCandidates(name, scope) is { } tables)
+        // register item answers to; the nearest source element that declares one the qualifiers reach is its depth. The
+        // registers exist once the OCCURS pass has built them (CapacityRegisters' watermark): the ODO pass itself, which
+        // asks this list for its depending-on operands, meets none yet, and a clause operand names no register.
+        if (Watermark >= PassPhase.OccursResolved && Symbols.CapacityCandidates(name, scope) is { } tables)
         {
             int depth = int.MaxValue;
             foreach (var table in tables)
