@@ -1,4 +1,4 @@
-## PB4400-PB4405 filed: the leads of PB4323 step 8 and of PB4395, and three amendments
+## Entry 2962 — 2026-11-01 16:45 PST — PB4400-PB4405 filed: the leads of PB4323 step 8 and of PB4395, and three amendments
 
 The operator filed the leads that the step 8 report (w20261807a-PB4331) and the combined PB4395 branch (w20261810i,
 landed in #991) left for it, each site re-read on main 10ae76f52 first. Leads already in the register became amendments.
@@ -18,3 +18,4 @@ landed in #991) left for it, each site re-read on main 10ae76f52 first. Leads al
   - PB3725: the merged count read 0 again.
   - PB3182: a rule moved into a script self-test drops out of `drift_rules.py`.
   - PB4198: account 2 has also lost its 5-hour limit.
+
