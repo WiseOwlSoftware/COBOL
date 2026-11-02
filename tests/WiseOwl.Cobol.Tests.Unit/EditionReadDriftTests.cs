@@ -100,8 +100,9 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord", "ReservedWord",
-            "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
+            "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsKeyword", "ReservedGatedWord",
+            "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "conditionalPhraseAssociates",
+            "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
             "is2023", "is85", "keywordContinuesHere", "pointerOperandHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
             "userWordHere",
@@ -172,6 +173,10 @@ public sealed class EditionReadDriftTests
         // at it (kb/Work PB3248); the single-token deletion, asking it before its report, deletes it (review R3-1 of the
         // PB4133 branch); and the single-token substitution reads it as the name (kb/Work PB4218).
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ReservedWordUse | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
+        // ... and a syntax error a word §8.9 reserves here explains by standing in a procedure-name slot, where the parse
+        // read it as its keyword (kb/Work PB4229): whether the word is reserved at the edition decides only whether it is
+        // a candidate for that report (COBOL0901). It refuses nothing the error had not refused and gates no construct.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.Report | ReservedProcedureName"] = (1, Verdict.WordStatus),
         // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, leaving out each one a
         // general format of the compile edition cannot print (kb/Work PB4174, PrintsKeyword): a word the §8.9 table proves
         // a LATER edition introduced, or a §8.10 context-sensitive word first listed at a LATER edition

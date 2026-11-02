@@ -3,7 +3,6 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Parsing;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -14,11 +13,13 @@ namespace WiseOwl.Cobol.Binding;
 /// could reach (<see cref="CobolWordsRewriter.Plan"/>: a synonym of a keyword token arrives respelled canonically, a
 /// de-reserved keyword arrives as an <c>IDENTIFIER</c>). Resolving the text of a token a second time reads a
 /// SUBSTITUTE'd literal-4 — canonical AND de-reserved at once — as "removed", so
-/// <c>SUBSTITUTE "SUM" BY "TOTAL"</c> made <c>FUNCTION TOTAL(1 2 3)</c> "not an intrinsic function". The two factories
+/// <c>SUBSTITUTE "SUM" BY "TOTAL"</c> made <c>FUNCTION TOTAL(1 2 3)</c> "not an intrinsic function". These factories
 /// are the only ways to make one, so every consumer asks the SAME once-only question:
 /// <see cref="OfToken"/> for a word read off a token (the token-aware <see cref="CobolWordsRewriter.CanonicalWordOf"/>
-/// knows which tokens were resolved already) and <see cref="OfWrittenWord"/> for a word that is source text no lexer
-/// token carries (a SUBSCRIPT-mode capture).
+/// knows which tokens were resolved already), <see cref="OfWrittenWord"/> for a word that is source text no lexer
+/// token carries (a SUBSCRIPT-mode capture, or a USER-DEFINED word asked whether it collides with a function name:
+/// an extended letter never folds to a basic one, so the user word's Annex C fold and its basic letters give one
+/// answer, kb/Work PB4420).
 /// </summary>
 /// <param name="Written">The word's text as the parser saw it (a respelled synonym of a keyword token reads canonically).</param>
 /// <param name="Canonical">The canonical word the directive makes of it, or null when the directive REMOVED it (UNDEFINE
@@ -39,5 +40,5 @@ internal readonly record struct FunctionWord(string Written, string? Canonical)
 
     /// <summary>The word as WRITTEN in source text under <paramref name="map"/> — the directive applied once, here.</summary>
     public static FunctionWord OfWrittenWord(string written, CobolWordsMap map) =>
-        map.IsEmpty ? new(written, written) : new(written, map.Resolve(CobolNames.UpperFold(written)));
+        map.IsEmpty ? new(written, written) : new(written, map.Resolve(written));
 }

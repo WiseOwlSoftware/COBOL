@@ -53,10 +53,10 @@ public sealed class PointerImageTests
     /// <see cref="ProgramPointer.SameTarget"/> calls equal (§8.8.4.2.16, "The operands are equal if they reference the same
     /// address", cite.py OK) have one image, and pointers it calls unequal have two. The witnesses are where the host's
     /// <c>ToUpperInvariant</c> disagrees with Annex C: it raises U+017F LATIN SMALL LETTER LONG S to S, which Annex C maps
-    /// nowhere, and leaves U+212A KELVIN SIGN alone, which Annex C folds to k.</summary>
+    /// nowhere, and it keeps U+1E9E LATIN CAPITAL LETTER SHARP S apart from the sharp s, which Annex C.2 pairs (1E9E,00DF).</summary>
     [Theory]
     [InlineData("Pſ", "PS", false)]
-    [InlineData("KP2741", "KP2741", true)]
+    [InlineData("P\u1E9E", "P\u00DF", true)]
     public void AProgramPointersImage_FollowsItsEquality(string a, string b, bool sameTarget)
     {
         Assert.Equal(sameTarget, ProgramPointer.SameTarget(new ProgramPointer(a), new ProgramPointer(b)));

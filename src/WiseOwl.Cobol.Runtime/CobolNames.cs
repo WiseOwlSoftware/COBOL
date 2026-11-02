@@ -9,21 +9,31 @@ namespace WiseOwl.Cobol.Runtime;
 /// ⛔ THE ONE CASE FOLD OF A COBOL WORD — ISO Annex C, the "Mapping of uppercase letters to lowercase letters in the
 /// COBOL character repertoire" (kb/Work PB1402). Every table keyed by a COBOL word, and every comparison of two
 /// words, folds through here and through nothing else (<c>CobolNameFoldDriftTests</c>).
-/// <para><b>The rule.</b> §8.1.3.2 GR3 b): "Equivalence of uppercase and lowercase basic letters is achieved by
-/// folding from uppercase to lowercase in accordance with the case mapping described in Annex C", and GR4 b): "An
+/// <para><b>The rule.</b> §8.1.3.2 3): "Equivalence of uppercase and lowercase basic letters is achieved by
+/// folding from uppercase to lowercase in accordance with the case mapping described in Annex C", and 4) b): "An
 /// uppercase extended letter is treated as though it were folded to its corresponding lowercase extended letter, if
 /// any, in accordance with the case mapping described in Annex C". A character Annex C.2 does not list folds to
 /// nothing but itself — so a COBOL word is NOT compared by .NET's ordinal-ignore-case, which upper-cases by the host's
 /// simple case mapping and disagrees with C.2 exactly on the extended letters: it makes final sigma (U+03C2) the same
 /// letter as sigma and a lowercase Cherokee syllable the same as its capital (C.2 lists neither; Annex G.2 item 2
-/// explains the Cherokee omission), and it keeps U+0130 and the Kelvin sign U+212A apart from <c>i</c> and <c>k</c>
-/// (C.2 maps both).</para>
+/// explains the Cherokee omission).</para>
+/// <para><b>The determination (kb/Work PB4420, owner decision 2026-11-01, "Follow gnucobol").</b> 4) b) names the
+/// corresponding lowercase EXTENDED letter, so the fold applies a pair only when both of its letters are basic or both
+/// extended. The pairs Annex C.2 and Annex E.2 item 14 list that cross from an extended letter to a basic one,
+/// (0130,0069) LATIN CAPITAL LETTER I WITH DOT ABOVE to <c>i</c>, (0131,0069) the dotless i to <c>i</c> (a pair of the
+/// 2002 and 2014 tables) and (212A,006B) KELVIN SIGN to <c>k</c>, are <see cref="NotApplied"/>: <c>CUSTOMER-İD</c> and
+/// <c>CUSTOMER-ID</c> are two names, as in GnuCOBOL 3.2 (CLAUDE.md rule 1: the standard leaves the latitude, GnuCOBOL
+/// follows it). The generator derives that set from the lists (<c>scripts/spec/gen_annex_bc.py</c>), and a reserved word,
+/// system-name or implementor-name is written in basic letters only, so no spelling with an extended letter equals one
+/// through this fold (<c>AnnexBCDriftTests</c>). The UPPER-CASE and LOWER-CASE intrinsic functions are a separate,
+/// implementor-defined mapping (§15.97.4 4)) and are not this fold.</para>
 /// <para><b>The edition.</b> The tables are the COBOL 2023 Annex C; the earlier editions differ by Annex E's two
 /// recorded changes: E.2 item 14 DELETED (0131,0069) and (03C2,03C3) at 2023, and E.3.3 item 6 ADDED 597 mappings.
 /// Every added mapping pairs at least one character that the earlier editions' Annex B does not hold (measured by
 /// <c>AnnexBCDriftTests</c>), so a word that could tell the two tables apart is refused by the Annex B screen before
-/// any fold; the deleted pair is the ONLY observable difference, and <see cref="EditionSpelling"/> gives a word lexed
-/// under an earlier edition the spelling that makes this one comparer answer for that edition.</para>
+/// any fold; of the deleted pairs only (03C2,03C3) is applied (the dotless-i pair is not applied at any edition), so
+/// final sigma is the ONLY observable difference, and <see cref="EditionSpelling"/> gives a word lexed under an
+/// earlier edition the spelling that makes this one comparer answer for that edition.</para>
 /// </summary>
 public static partial class CobolNames
 {
@@ -68,11 +78,11 @@ public static partial class CobolNames
 
     /// <summary>The word's ONE upper-case spelling: its Annex C <see cref="Fold(string)"/> with the basic letters
     /// a-z then written A-Z (kb/Work PB1965). Two spellings of one COBOL word give one string, so it is the key a
-    /// table compared by ordinal, a derived C# identifier, an externalized name the compiler forms, or a word
-    /// compared with an upper-case keyword reads. It replaces the host's <c>ToUpperInvariant</c>, which is not the
-    /// standard's mapping: it keeps the Kelvin sign U+212A apart from <c>K</c>, and at COBOL 2023 it writes the
-    /// dotless i U+0131 as <c>I</c> and final sigma U+03C2 as sigma's capital, joining words Annex C keeps apart
-    /// (Annex E.2 item 14). Only the basic letters are raised, because only their upper case is the standard's
+    /// table compared by ordinal, a derived C# identifier or an externalized name the compiler forms reads (a word
+    /// compared with a KEYWORD is compared on its basic letters alone, by <c>WiseOwl.Cobol.Editions.CobolKeywords</c>:
+    /// §8.1.3.2 4) folds extended letters in user-defined words only, kb/Work PB4240). It replaces the host's <c>ToUpperInvariant</c>, which is not the
+    /// standard's mapping: at COBOL 2023 it writes the dotless i U+0131 as <c>I</c> and final sigma U+03C2 as sigma's
+    /// capital, joining words Annex C keeps apart (Annex E.2 item 14). Only the basic letters are raised, because only their upper case is the standard's
     /// (§8.1.3.1 Table 1: the basic letters A to Z are the "Latin capital letters (uppercase letters)"); an extended
     /// letter stays in its fold, as Annex C maps only from upper case to lower.
     /// All-basic words that are already upper case are returned as they are.</summary>
@@ -152,14 +162,13 @@ public static partial class CobolNames
 
     /// <summary>True when the edition <paramref name="dialectLevel"/>'s Annex C differs from the 2023 table the ONE comparer
     /// implements, so a name must be written in <see cref="EditionSpelling"/> to be compared as that edition would: every
-    /// edition below 2023 (Annex E.2 item 14 deleted the final-sigma and dotless-i mappings at 2023). The single question
+    /// edition below 2023 (Annex E.2 item 14 deleted the final-sigma mapping at 2023, and the dotless-i one the fold never applies). The single question
     /// the lexer's spelling, the bind-time literal formation and the emitted run-time name formation all ask.</summary>
     public static bool HasEditionSpelling(int dialectLevel) => dialectLevel < 2023;
 
     /// <summary>The spelling under which the ONE (2023) comparer answers as the edition <paramref name="dialectLevel"/>'s
     /// Annex C would: each character whose fold differs between the two tables, and is not left as itself by the
-    /// edition's, is written as the edition's fold (below 2023: dotless i U+0131 as <c>i</c>, final sigma U+03C2 as
-    /// sigma U+03C3 — Annex E.2 item 14). The lexer applies it to every word it emits, so the word IS that edition's
+    /// edition's, is written as the edition's fold (below 2023: final sigma U+03C2 as sigma U+03C3 — Annex E.2 item 14). The lexer applies it to every word it emits, so the word IS that edition's
     /// word from then on. At 2023 and for a word of basic characters it returns <paramref name="word"/> itself.</summary>
     public static string EditionSpelling(string word, int dialectLevel)
     {

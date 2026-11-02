@@ -1549,7 +1549,7 @@ public sealed class DataItem
     /// <summary>The C# identifier of a COBOL word whose IDENTITY is the word — a class, interface, method, property,
     /// program or formal, where two spellings of one word name one thing (§8.1.3.2 GR3 and GR4 b), the Annex C fold):
     /// <see cref="Sanitize"/> of the word's one upper-case spelling, <see cref="CobolNames.UpperFold"/> (kb/Work
-    /// PB1965). The host's <c>ToUpperInvariant</c> this replaced gave the Kelvin-sign spelling of a word a second
+    /// PB1965). The host's <c>ToUpperInvariant</c> this replaced gave an extended letter's lowercase spelling a second
     /// identifier, and at COBOL 2023 gave two different words (dotless i, final sigma) one.</summary>
     public static string WordIdentifier(string cobolWord) => Sanitize(CobolNames.UpperFold(cobolWord));
 

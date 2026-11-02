@@ -97,7 +97,10 @@ The design is therefore **two mechanisms over one rule**:
 | **name resolution** — `CobolWordsMap.Resolve` / `.Is` | a word that lexes as a bare `IDENTIFIER` | at each point that classifies a word BY NAME |
 
 `CobolWordsMap.Resolve` is the ONE reading of GR2/GR3/GR4 (canonical for a synonym, `null` for a de-reserved
-word, the word itself otherwise) and both mechanisms call it. `CobolKeywordTokens` decides which mechanism owns
+word, the word in its keyword spelling otherwise) and both mechanisms call it. Its comparisons with a keyword are on the
+basic letters alone (`CobolKeywords`; §8.1.3.2 3) a), 4), kb/Work PB4240): a de-reserved word is found by keyword, a
+synonym (a fresh user-defined word, SR4) by the Annex C fold, and a word written with an extended letter that folds to a
+basic one (U+0130, U+212A) is never the keyword. `CobolKeywordTokens` decides which mechanism owns
 a word, and answers mechanically — the ANTLR vocabulary as the fast path, then a **lex probe** (run the real
 lexer over the word and read the type it produces) for the multi-spelling rules the vocabulary hides. No
 hand-maintained list, so the next such rule is covered automatically.
@@ -109,7 +112,7 @@ wrote. `CobolWordsRewriter.CanonicalWordOf` / `.TokenIs` are the token-aware pai
 `CobolWordsMap.Is` takes a word as WRITTEN and is for the words the lexer does not tokenize.
 The binder's intrinsic-function-name sites hold the answer in ONE value, `FunctionWord` (the written word and its
 canonical word, null when the directive removed it), made only by `FunctionWord.OfToken` (a word read off a token,
-through `CanonicalWordOf`) or `FunctionWord.OfWrittenWord` (source text no lexer token carries); `DefinitionPermitsArguments`,
+through `CanonicalWordOf`) or `FunctionWord.OfWrittenWord` (source text no lexer token carries, and the user-defined word `DeclareUserWord` asks about: the Annex C fold applies no pair from an extended letter to a basic one, kb/Work PB4420, so the word's fold and its basic letters give one answer); `DefinitionPermitsArguments`,
 `BindIntrinsicCore`, `DataBinder.TryIntrinsicOfThisCompilation` and `IsRepositoryIntrinsic` take it, so none can
 resolve a name twice (kb/Work PB1372: `SUBSTITUTE "SUM" BY "TOTAL"` made `FUNCTION TOTAL(1 2 3)` — and the
 REPOSITORY specifier and the keyword-omitted `TOTAL(1 2 3)` — "not an intrinsic function", because the second

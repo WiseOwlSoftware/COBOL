@@ -64,9 +64,9 @@ public sealed class CobolWordsMap
     public CobolWordsMap(IReadOnlyList<CobolWordsOp> ops)
     {
         Ops = ops;
-        _synonyms = new(CobolNames.Comparer);
-        _removedBy = new(CobolNames.Comparer);
-        _reserved = new(CobolNames.Comparer);
+        _synonyms = new(CobolNames.Comparer);       // keyed by the FRESH user word (literal-2 / literal-5): Annex C folds it
+        _removedBy = new(CobolKeywords.Comparer);   // keyed by the EXISTING keyword (literal-3 / literal-4): basic letters alone
+        _reserved = new(CobolNames.Comparer);       // RESERVE's literal-6 is a fresh user word
         foreach (var op in ops)
         {
             switch (op.Action)
@@ -86,7 +86,7 @@ public sealed class CobolWordsMap
                     break;
             }
         }
-        _deReserved = new(_removedBy.Keys, CobolNames.Comparer);
+        _deReserved = new(_removedBy.Keys, CobolKeywords.Comparer);
     }
 
     /// <summary>The parsed operations, in source order (SR3/SR4 validation + the token rewriter walk these).</summary>
@@ -142,15 +142,33 @@ public sealed class CobolWordsMap
     /// precedence choice. It matches the order <c>IntrinsicBinder.BindIntrinsicCore</c> has always used
     /// (removal tested against the ORIGINAL written name, then the synonym applied).
     /// </summary>
-    /// <param name="written">The word as written in the source. The tables are keyed by the Annex C fold
-    /// (<see cref="CobolNames.Comparer"/>; SR2/GR1 — case-insensitive), so any spelling of the word finds its entry; a
-    /// caller that compares the RESULT with an upper-case keyword passes <see cref="CobolNames.UpperFold"/> of it, so
-    /// the word returned unchanged is in that spelling too.</param>
+    /// <param name="written">The word as written in the source. A de-reserved keyword is found on its basic letters
+    /// alone (<see cref="CobolKeywords.Comparer"/>; ISO §8.1.3.2 3) a), SR2/GR1 — case-insensitive), a synonym by the
+    /// Annex C fold of the fresh user word that stands for it (<see cref="CobolNames.Comparer"/>; §8.1.3.2 4) b)).</param>
+    /// <returns>The canonical word, or <paramref name="written"/> in its KEYWORD SPELLING
+    /// (<see cref="CobolKeywords.Spelling"/>: the basic letters raised, every other character as written) when the
+    /// directives leave it alone, so a caller that compares the result with an upper-case keyword is handed the word
+    /// ready for it, and a word written with an extended letter (<c>DİSPLAY</c>, U+0130) is never a keyword
+    /// (kb/Work PB4240, PB4420). A caller does not <see cref="CobolNames.UpperFold"/> the word first: that is the fold of a
+    /// user-defined word, and a keyword is asked on the word as written.</returns>
     public string? Resolve(string written)
     {
-        if (Ops.Count == 0) return written;
+        if (Ops.Count == 0) return CobolKeywords.Spelling(written);
+        string? denoted = Denoted(written, out bool left);
+        return left ? CobolKeywords.Spelling(written) : denoted;
+    }
+
+    /// <summary>The directives' reading of <paramref name="written"/>, the ONE place GR2-GR4 are applied, before any
+    /// spelling: null when removed, the canonical word of a synonym, and <paramref name="written"/> itself with
+    /// <paramref name="left"/> set when they leave it alone. <see cref="Is"/> compares the result on the basic letters
+    /// and so needs no spelled copy (it is allocation-free).</summary>
+    private string? Denoted(string written, out bool left)
+    {
+        left = false;
         if (_deReserved.Contains(written)) return null;
-        return _synonyms.TryGetValue(written, out string? canonical) ? canonical : written;
+        if (_synonyms.TryGetValue(written, out string? canonical)) return canonical;
+        left = true;
+        return written;
     }
 
     /// <summary>
@@ -159,8 +177,10 @@ public sealed class CobolWordsMap
     /// GR2/GR3/GR4 reading is applied once and no caller re-implements it. Used by the parser's text predicates
     /// (<c>CobolParserCoreBase.Word</c>) and by every binder site that recognizes a §8.9/§8.10 word the lexer
     /// does not tokenize — the SET-statement locale categories, the ALPHABET coded-set names, CALL … AS NESTED.
-    /// <para>Allocation-free: both comparisons are the Annex C fold (<see cref="CobolNames.Same(string?, string?)"/>),
-    /// and these run inside ANTLR's speculative prediction.</para>
+    /// <para>The comparison with the keyword is on the BASIC LETTERS ALONE (<see cref="CobolKeywords.Same"/>; ISO
+    /// §8.1.3.2 3) a), 4): the Annex C fold governs user-defined words only), so a word written with an extended letter is
+    /// not a keyword (<c>CLASSİFİCATİON</c>, U+0130, is no CLASSIFICATION; kb/Work PB4240, PB4420).
+    /// Allocation-free (it never takes <see cref="Resolve"/>'s spelled copy): these run inside ANTLR's speculative prediction.</para>
     /// </summary>
     /// <remarks>⛔ Give this a word AS WRITTEN, and only for a word the LEXER does not tokenize (the
     /// §8.9/§8.10 words that arrive as bare IDENTIFIERs). For a word that may arrive as a keyword TOKEN use
@@ -169,6 +189,6 @@ public sealed class CobolWordsMap
     public bool Is(string? written, string keyword)
         => written is not null
            && (Ops.Count == 0
-               ? CobolNames.Same(written, keyword)
-               : Resolve(written) is { } w && CobolNames.Same(w, keyword));
+               ? CobolKeywords.Same(written, keyword)
+               : Denoted(written, out _) is { } w && CobolKeywords.Same(w, keyword));
 }

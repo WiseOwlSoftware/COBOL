@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
@@ -37,12 +37,12 @@ public static class CobolKeywordTokens
     /// <summary>Memoized <see cref="LexProbe"/> answers for words the vocabulary walk did not carry (0 = "the
     /// lexer does not make this word a keyword token"). Written under its own lock; the population is bounded by
     /// the words the compilation group's directives name.</summary>
-    private static readonly Dictionary<string, int> Probed = new(CobolNames.Comparer);
+    private static readonly Dictionary<string, int> Probed = new(CobolKeywords.Comparer);
 
     private static Dictionary<string, int> Build()
     {
         var vocab = CobolLexer.DefaultVocabulary;
-        var map = new Dictionary<string, int>(CobolNames.Comparer);
+        var map = new Dictionary<string, int>(CobolKeywords.Comparer);
         // GetLiteralName returns null for out-of-range indices (and for rule-defined tokens), so an upper bound
         // generously above the lexer's token count is safe — the COBOL lexer has a few hundred tokens.
         for (int t = 1; t < 8192; t++)

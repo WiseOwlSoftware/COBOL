@@ -23,9 +23,9 @@ internal static class CompilationUnitStart
     /// unit's identification division — the header (or its <c>ID DIVISION</c> abbreviation), or, the header being
     /// optional, the unit's own first paragraph.</summary>
     public static bool IsAt(string trimmed)
-        => CobolNames.StartsWith(trimmed, "IDENTIFICATION DIVISION")
-        || CobolNames.StartsWith(trimmed, "ID DIVISION")
-        || UnitParagraphNames.Any(name => CobolNames.StartsWith(trimmed, name));
+        => CobolKeywords.StartsWith(trimmed, "IDENTIFICATION DIVISION")   // keywords: the basic letters alone (kb/Work PB4240)
+        || CobolKeywords.StartsWith(trimmed, "ID DIVISION")
+        || UnitParagraphNames.Any(name => CobolKeywords.StartsWith(trimmed, name));
 
     /// <summary>The paragraphs that open a compilation unit's identification division when its header is left out
     /// (§11.2.1 General format: program-id-paragraph, function-id-paragraph, class-id-paragraph,
