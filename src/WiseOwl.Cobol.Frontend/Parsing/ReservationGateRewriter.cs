@@ -84,6 +84,9 @@ public static class ReservationGateRewriter
             var passDiagnostics = new DiagnosticBag();
             var witness = new OffenderWitness();
             var tree = parsePass(passDiagnostics, witness);
+            // The words the recovery of this pass read as names (kb/Work PB4218) are the pass's own repair: put back before
+            // the gate looks for the keyword tokens it retypes, and before another pass reads the stream.
+            parser.RestoreWordsReadAsNames();
             if (parser.FreeGatedDeclarations.Where(freed.Add).ToList() is { Count: > 0 })
             {
                 retypes = retypes with { FreedReservedWords = new HashSet<string>(freed, StringComparer.Ordinal) };

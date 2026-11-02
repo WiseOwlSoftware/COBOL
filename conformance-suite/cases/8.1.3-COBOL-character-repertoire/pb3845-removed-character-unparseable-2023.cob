@@ -13,5 +13,5 @@
        WORKING-STORAGE SECTION.
        01 ABC・ PIC X VALUE "M".
        PROCEDURE DIVISION.
-           DISPLAY ABC・ MOVE MOVE.
+           DISPLAY ABC・ MOVE TO.
            STOP RUN.
