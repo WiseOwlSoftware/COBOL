@@ -3567,7 +3567,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         CheckOneTypePerWord(word, kind);
         CheckLetter(word, kind);
         if (UserWordKinds.DeclaredUnqualifiable.Contains(kind)) CheckUnqualifiableDeclaration(word, kind);
-        if (RepositoryIntrinsicSpecifier(FunctionWord.OfUserWord(word, CobolWords)) is not { } specifier) return false;
+        if (RepositoryIntrinsicSpecifier(FunctionWord.OfWrittenWord(word, CobolWords)) is not { } specifier) return false;
         bool named = specifier != AllIntrinsics;   // SR12 (a named specifier) or SR13 (ALL)
         if (_repositoryNameReported.Add(word))
             Edition.Error(DiagnosticCatalog.RepositoryIntrinsicNameAsUserWord,

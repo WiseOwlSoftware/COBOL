@@ -8,7 +8,8 @@
       *> kb/Work PB1402 - the COBOL 2023 Annex B and Annex C (ISO 8.1.3.2 GR4; 8.3.2.1). U+0131 and
       *> U+03C2 no longer fold (Annex E.2 item 14), so each names a word of its own; E.3.3 items 5 and 6
       *> add the capital sharp s, Adlam and the combining marks; E.3.3 item 4 lets the Kelvin sign start
-      *> a word; U+30FB is medial only (E.2 item 4).
+      *> a word; U+30FB is medial only (E.2 item 4). The Kelvin sign pairs with the BASIC letter k, (212A,006B), which
+      *> 8.1.3.2 4) b) does not reach (kb/Work PB4420): K-WERT is a word of its own, written with the Kelvin sign.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1402XM.
        DATA DIVISION.
@@ -29,7 +30,7 @@
            DISPLAY größe.
            DISPLAY 𞤢𞤣.
            DISPLAY café.
-           DISPLAY k-wert.
+           DISPLAY K-wert.
            DISPLAY a・b.
            STOP RUN.
        END PROGRAM PB1402XM.

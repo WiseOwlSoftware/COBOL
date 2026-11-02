@@ -112,7 +112,7 @@ wrote. `CobolWordsRewriter.CanonicalWordOf` / `.TokenIs` are the token-aware pai
 `CobolWordsMap.Is` takes a word as WRITTEN and is for the words the lexer does not tokenize.
 The binder's intrinsic-function-name sites hold the answer in ONE value, `FunctionWord` (the written word and its
 canonical word, null when the directive removed it), made only by `FunctionWord.OfToken` (a word read off a token,
-through `CanonicalWordOf`) or `FunctionWord.OfWrittenWord` (source text no lexer token carries) or `FunctionWord.OfUserWord` (a user-defined word asked whether it collides with a function name: the Annex C fold first, `DeclareUserWord`); `DefinitionPermitsArguments`,
+through `CanonicalWordOf`) or `FunctionWord.OfWrittenWord` (source text no lexer token carries, and the user-defined word `DeclareUserWord` asks about: the Annex C fold applies no pair from an extended letter to a basic one, kb/Work PB4420, so the word's fold and its basic letters give one answer); `DefinitionPermitsArguments`,
 `BindIntrinsicCore`, `DataBinder.TryIntrinsicOfThisCompilation` and `IsRepositoryIntrinsic` take it, so none can
 resolve a name twice (kb/Work PB1372: `SUBSTITUTE "SUM" BY "TOTAL"` made `FUNCTION TOTAL(1 2 3)` — and the
 REPOSITORY specifier and the keyword-omitted `TOTAL(1 2 3)` — "not an intrinsic function", because the second

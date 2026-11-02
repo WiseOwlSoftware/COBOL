@@ -20,8 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// neither may its <c>ToUpperInvariant</c> / <c>ToLowerInvariant</c> as a word's KEY or as the word a keyword is
 /// compared with (<see cref="CobolNames.UpperFold"/> is that key), because it upper-cases by the host's case mapping
 /// and disagrees with Annex C on the extended letters (it makes final sigma the same letter as sigma, long s the same
-/// as s, and a lowercase Cherokee syllable the same as its capital, and keeps U+0130 and the Kelvin sign apart from i
-/// and k). The projects are DERIVED from the directory list, so a project added tomorrow is scanned tomorrow; the
+/// as s, and a lowercase Cherokee syllable the same as its capital). The projects are DERIVED from the directory list, so a project added tomorrow is scanned tomorrow; the
 /// exceptions are named, never listed by inclusion: a source subtree that holds no COBOL word
 /// (<see cref="NotCobolWordSubtrees"/>, each with its reason) and a single line that compares a string that is not a
 /// COBOL word — a file-system path, a command-line option, an environment value — which says so with the marker
@@ -109,20 +108,20 @@ public sealed class CobolNameFoldDriftTests
         Assert.True(hits.Count == 0,
             "a COBOL word's upper-case key is CobolNames.UpperFold (a C# identifier: DataItem.WordIdentifier), and a word "
             + "is compared with a keyword through CobolKeywords (Same, Spelling) — never the host's "
-            + "ToUpperInvariant, which keeps the Kelvin sign apart from K and joins final sigma with sigma and long s with s; "
+            + "ToUpperInvariant, which joins final sigma with sigma and long s with s; "
             + $"a string that is not a COBOL word carries '{Marker} <what>':\n" + string.Join("\n", hits));
     }
 
     /// <summary>The one upper-case spelling: Annex C's fold with only the basic letters raised.</summary>
     [Theory]
     [InlineData("kup", "KUP")]
-    [InlineData("KUP", "KUP")]   // K is U+212A, the KELVIN SIGN: (212A,006B)
+    [InlineData("\u212AUP", "\u212AUP")]   // the KELVIN SIGN: (212A,006B) crosses to a basic letter and is not applied (kb/Work PB4420)
     [InlineData("café", "CAFé")]  // an extended letter stays in its fold
     [InlineData("CAFÉ", "CAFé")]
     [InlineData("Xς", "Xς")]     // final sigma: no mapping at 2023 (E.2 item 14), kept apart from sigma
     [InlineData("Xσ", "Xσ")]
     [InlineData("ıTEM", "ıTEM")]   // dotless i: no mapping at 2023 (E.2 item 14)
-    [InlineData("DİX", "DIX")]     // (0130,0069)
+    [InlineData("D\u0130X", "D\u0130X")]   // (0130,0069) is not applied either (kb/Work PB4420): the dotted capital I keeps itself
     public void UpperFold_IsTheFoldWithTheBasicLettersRaised(string word, string upper)
     {
         Assert.Equal(upper, CobolNames.UpperFold(word));
@@ -149,8 +148,11 @@ public sealed class CobolNameFoldDriftTests
     [Theory]
     [InlineData("CAFÉ", "café", true)]          // (00C9,00E9)
     [InlineData("GRÜẞE", "grüße", true)]        // (1E9E,00DF) — .NET's case-insensitive comparison keeps them apart
-    [InlineData("XK", "xk", true)]         // KELVIN SIGN (212A,006B)
-    [InlineData("DİX", "dix", true)]       // (0130,0069)
+    [InlineData("X\u212A", "xk", false)]   // KELVIN SIGN (212A,006B): not applied (kb/Work PB4420)
+    [InlineData("X\u212A", "X\u212A", true)]
+    [InlineData("D\u0130X", "dix", false)]   // (0130,0069): not applied (kb/Work PB4420), a name of its own as in GnuCOBOL
+    [InlineData("DİX", "dİx", true)]   // ... and U+0130 itself is still one letter: only the basic letters around it differ in case
+    [InlineData("D\u0130X", "DIX", false)]
     [InlineData("Xς", "Xσ", false)]   // final sigma: (03C2,03C3) deleted at 2023 (E.2 item 14)
     [InlineData("ıTEM", "ITEM", false)]    // dotless i: (0131,0069) deleted at 2023 (E.2 item 14)
     [InlineData("XᎠ", "Xꭰ", false)]   // Cherokee: not folded (G.2 item 2)
@@ -177,7 +179,7 @@ public sealed class CobolNameFoldDriftTests
     [Fact]
     public void EditionSpelling_AppliesTheDeletedMappingsBelow2023()
     {
-        Assert.Equal("iTEM", CobolNames.EditionSpelling("ıTEM", 2014));
+        Assert.Equal("ıTEM", CobolNames.EditionSpelling("ıTEM", 2014));   // (0131,0069): applied at no edition
         Assert.Equal("Xσ", CobolNames.EditionSpelling("Xς", 2002));
         Assert.Equal("ıTEM", CobolNames.EditionSpelling("ıTEM", 2023));
         const string basic = "WS-TOTAL";
@@ -189,7 +191,7 @@ public sealed class CobolNameFoldDriftTests
     [Theory]
     [InlineData("  Xς  ", 2014, "Xσ")]
     [InlineData("  Xς  ", 2023, "Xς")]
-    [InlineData("ıTEM", 2002, "iTEM")]
+    [InlineData("ıTEM", 2002, "ıTEM")]   // (0131,0069) is applied at no edition (kb/Work PB4420)
     [InlineData("SUB-P", 2014, "SUB-P")]
     public void FormInEdition_FormsAndWritesTheEditionSpelling(string written, int edition, string expected)
     {
@@ -236,11 +238,11 @@ public sealed class CobolNameFoldDriftTests
     [Theory]
     [InlineData("D#SPLAY", 0x0130, 2023, false, "IDENTIFIER")] // (0130,0069): a user word folding to display, not DISPLAY
     [InlineData("#EY", 0x212A, 2023, false, "IDENTIFIER")]     // KELVIN SIGN (212A,006B)
-    [InlineData("D#SPLAY", 0x0131, 2014, false, "IDENTIFIER")] // dotless i: (0131,0069) folds a user word before 2023 only
+    [InlineData("D#SPLAY", 0x0131, 2014, false, "IDENTIFIER")] // dotless i: no keyword at any edition (its pair is applied at none, kb/Work PB4420)
     [InlineData("D#SPLAY", 0x0131, 2023, false, "IDENTIFIER")]
     [InlineData("D#SPLAY", 0x0069, 2023, false, "DISPLAY")]    // the basic i, either case, is the keyword
     [InlineData("DEF#NED", 0x0130, 2023, true, "IDENTIFIER")]  // the directive expression's DEFINED (§7.3.8.4.4) too
-    [InlineData("DEF#NED", 0x0131, 2014, true, "IDENTIFIER")]  // ... its source text, not the edition spelling (i)
+    [InlineData("DEF#NED", 0x0131, 2014, true, "IDENTIFIER")]  // ... its source text as written
     [InlineData("def#ned", 0x0069, 2023, true, "DEFINED")]
     [InlineData("DEF#NED", 0x0049, 2023, false, "IDENTIFIER")] // ... a user word everywhere else
     public void TheLexer_MatchesAKeywordOnTheBasicLettersAlone(string word, int codePoint, int edition, bool directive, string token)

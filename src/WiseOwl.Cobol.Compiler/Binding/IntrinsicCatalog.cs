@@ -158,8 +158,8 @@ public static class IntrinsicCatalog
 {
     /// <summary>The function a written name denotes. An intrinsic-function-name is a word the standard defines (§8.11), not
     /// a user-defined word, so it matches on the BASIC LETTERS ALONE (ISO §8.1.3.2 3) a), 4); kb/Work PB4240): <c>İNTEGER</c>
-    /// (U+0130) is no INTEGER. A caller that asks whether a USER-DEFINED word collides with a function name folds the word
-    /// first (<see cref="CobolNames.UpperFold"/>), as the user-word rules do.</summary>
+    /// (U+0130) is no INTEGER, and it is no user-defined word that folds to INTEGER either: the Annex C fold applies no pair
+    /// from an extended letter to a basic one (kb/Work PB4420), so a USER-DEFINED word asks this same question.</summary>
     public static bool TryGet(string name, out IntrinsicSig sig) => Table.TryGetValue(name, out sig);
 
     private static readonly Dictionary<string, IntrinsicSig> Table = Build();

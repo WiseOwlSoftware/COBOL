@@ -145,10 +145,9 @@ internal sealed class VersionConformancePass
         foreach (var op in map.Ops)
         {
             using var _ = sink.At(op.At);   // the directive's own line and column (kb/Work PB1925)
-            // The existing word is a KEYWORD: one written with an extended letter that folds to a basic one (DİSPLAY,
-            // U+0130) is no reserved word, whatever the Annex C fold of a user-defined word makes of it (§8.1.3.2 3) a), 4);
-            // kb/Work PB4240).
-            if (op.Existing is { } e && !(CobolKeywords.Same(e, CobolNames.UpperFold(e)) && IsReservedContextOrIntrinsic(e)))
+            // The existing word is a KEYWORD, written in basic letters: one written with an extended letter (DİSPLAY,
+            // U+0130) is no reserved word, and the fold never makes it one (§8.1.3.2 3) a), 4) b); kb/Work PB4240, PB4420).
+            if (op.Existing is { } e && !IsReservedContextOrIntrinsic(e))
                 ReportCobolWordsInvalid(sink, $"the existing word '{e}' is not a reserved word, "
                     + "context-sensitive word, or intrinsic-function name (ISO §7.3.10.3 SR3)");
             if (op.New is { } n && IsReservedContextOrIntrinsic(n))
@@ -170,7 +169,7 @@ internal sealed class VersionConformancePass
     /// edition inside its window (<see cref="IntrinsicSig.IsDefinedAt"/>).</summary>
     private static bool IsReservedContextOrIntrinsic(string w) =>
         ReservedWords.Find(w) is { R2023: true } || ContextSensitiveWords.Contains(w)
-        || (IntrinsicCatalog.TryGet(CobolNames.UpperFold(w), out var function) && function.IsDefinedAt(CobolWordsMap.DirectiveEdition));   // the fold of a user word, then the keyword (kb/Work PB4240)
+        || (IntrinsicCatalog.TryGet(w, out var function) && function.IsDefinedAt(CobolWordsMap.DirectiveEdition));
 
     private static void ReportCobolWordsInvalid(IDiagnosticSink sink, string message) =>
         sink.Report(new EditionDiagnostic(DiagnosticCatalog.CobolWordsDirectiveInvalid.Code, EditionSeverity.Error,

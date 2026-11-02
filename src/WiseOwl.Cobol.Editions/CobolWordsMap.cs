@@ -148,9 +148,9 @@ public sealed class CobolWordsMap
     /// <returns>The canonical word, or <paramref name="written"/> in its KEYWORD SPELLING
     /// (<see cref="CobolKeywords.Spelling"/>: the basic letters raised, every other character as written) when the
     /// directives leave it alone, so a caller that compares the result with an upper-case keyword is handed the word
-    /// ready for it, and a word written with an extended letter (<c>DİSPLAY</c>, U+0130) is never the keyword it folds to
-    /// (kb/Work PB4240). A caller does not <see cref="CobolNames.UpperFold"/> the word first: that is the fold of a
-    /// user-defined word, and it would make the extended letter the basic one before this method could tell.</returns>
+    /// ready for it, and a word written with an extended letter (<c>DİSPLAY</c>, U+0130) is never a keyword
+    /// (kb/Work PB4240, PB4420). A caller does not <see cref="CobolNames.UpperFold"/> the word first: that is the fold of a
+    /// user-defined word, and a keyword is asked on the word as written.</returns>
     public string? Resolve(string written)
     {
         if (Ops.Count == 0) return CobolKeywords.Spelling(written);
@@ -179,7 +179,7 @@ public sealed class CobolWordsMap
     /// does not tokenize — the SET-statement locale categories, the ALPHABET coded-set names, CALL … AS NESTED.
     /// <para>The comparison with the keyword is on the BASIC LETTERS ALONE (<see cref="CobolKeywords.Same"/>; ISO
     /// §8.1.3.2 3) a), 4): the Annex C fold governs user-defined words only), so a word written with an extended letter is
-    /// not the keyword the fold would make of it (<c>CLASSİFİCATİON</c>, U+0130, is no CLASSIFICATION; kb/Work PB4240).
+    /// not a keyword (<c>CLASSİFİCATİON</c>, U+0130, is no CLASSIFICATION; kb/Work PB4240, PB4420).
     /// Allocation-free (it never takes <see cref="Resolve"/>'s spelled copy): these run inside ANTLR's speculative prediction.</para>
     /// </summary>
     /// <remarks>⛔ Give this a word AS WRITTEN, and only for a word the LEXER does not tokenize (the

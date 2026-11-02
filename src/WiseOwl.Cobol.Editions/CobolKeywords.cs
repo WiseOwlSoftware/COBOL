@@ -4,15 +4,17 @@ namespace WiseOwl.Cobol.Editions;
 
 /// <summary>
 /// ⛔ THE ONE COMPARISON OF A WRITTEN WORD WITH A KEYWORD — a reserved word, a compiler-directive word (§8.12), a phrase
-/// word of a directive or of a text-manipulation statement — on the BASIC LETTERS ALONE (kb/Work PB4240, PB4312;
+/// word of a directive or of a text-manipulation statement — on the BASIC LETTERS ALONE (kb/Work PB4240, PB4312, PB4420;
 /// DESIGN-frontend-grammar §3.13). ISO §8.1.3.2 3) a): "COBOL basic letters appearing elsewhere within the compilation
 /// group are treated in a case-insensitive manner"; 4) opens "Extended letters in user-defined words are subject to the
 /// following rules", so the Annex C fold of an extended letter (4) b)) governs USER-DEFINED WORDS only. A keyword is
 /// basic letters, digits and hyphens, so a word that holds any other character is not that keyword: <c>DİSPLAY</c>
-/// (U+0130) and <c>KEY</c> spelled with the Kelvin sign U+212A, which Annex C.2 folds to the basic i and k, are not the
-/// keywords DISPLAY and KEY (owner decision 2026-10-31, answering GAP-REVIEW question 2). As user-defined words they DO
-/// fold (E.2 14) records the deletion of (0131,0069) as a change affecting existing programs), so such a word, folding to
-/// a reserved word, is refused as one: that question is <c>CobolNames</c>', never this class's.
+/// (U+0130) and <c>KEY</c> spelled with the Kelvin sign U+212A are not the keywords DISPLAY and KEY (owner decision
+/// 2026-10-31, answering GAP-REVIEW question 2). The user-defined-word fold agrees: it applies no pair from an extended
+/// letter to a basic one (<c>CobolNames.NotApplied</c>, owner decision 2026-11-01), so those two spellings are user words
+/// of their own that fold to no reserved word, and a fold-keyed table and this comparison answer alike for every keyword
+/// (<c>AnnexBCDriftTests</c> holds it). This class stays the keyword question's home because it needs no table, never
+/// allocates, and keeps a word's spelling as written.
 /// <para>The lexer's keyword rules read exactly this (the grammar's <c>caseInsensitive</c> option folds A-Z and a-z and
 /// nothing else); every stage that reads a keyword out of text the lexer does not see — the directive line, the directive
 /// operands, the conditional-compilation expression, the division cursor, the COPY and REPLACE phrases — and the lexer's

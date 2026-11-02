@@ -195,7 +195,8 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // built for an ordinary source identifier. ⛔ A KEYWORD MATCHES ON THE BASIC LETTERS ALONE (CobolKeywords; ISO §8.1.3.2
     // 3) a) and 4), DESIGN-frontend-grammar §3.13, kb/Work PB4240): the Annex C fold of an extended letter governs
     // user-defined words only, so DEF<U+0130>NED is not DEFINED, exactly as the keyword rules (caseInsensitive) read every
-    // other keyword. The source's text is compared, never its edition spelling, which writes the dotless i as i below 2023.
+    // other keyword (kb/Work PB4420: and the fold applies no pair from an extended letter to a basic one, so no user-defined
+    // word folds to DEFINED either). The source's text is compared, never an edition spelling.
     private void RetypeDirectiveKeyword()
     {
         if (WiseOwl.Cobol.Editions.CobolKeywords.Same(Text, "DEFINED")) Type = DEFINED;

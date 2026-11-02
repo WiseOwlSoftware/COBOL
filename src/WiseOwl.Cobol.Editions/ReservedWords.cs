@@ -107,10 +107,7 @@ public sealed class ReservedWordSet
     /// §7.3.10). An empty map yields <see cref="Default"/> (byte-identical). RESERVE words become reserved;
     /// UNDEFINE / SUBSTITUTE words are de-reserved (SR5 forbids a word being both, so no conflict).</summary>
     public static ReservedWordSet Compose(CobolWordsMap map) =>
-        map.IsEmpty ? Default : new ReservedWordSet(map.Reserved,
-            // The set answers "may this USER-DEFINED word be used", which the Annex C fold decides (§8.1.3.2 4) b));
-            // the map's de-reserved words are KEYWORDS, compared on their basic letters (kb/Work PB4240).
-            new HashSet<string>(map.DeReserved, CobolNames.Comparer));
+        map.IsEmpty ? Default : new ReservedWordSet(map.Reserved, map.DeReserved);
 
     /// <summary>The entry for <paramref name="upperWord"/>, or null when the word is not in the effective set.</summary>
     public ReservedWordEntry? Find(string upperWord) => ReservedWords.Find(upperWord);
