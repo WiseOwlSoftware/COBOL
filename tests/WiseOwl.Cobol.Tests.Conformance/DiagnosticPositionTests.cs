@@ -68,7 +68,42 @@ public sealed class DiagnosticPositionTests : IDisposable
         var (ok, lines) = Compile("b.cob");
         Assert.False(ok);
         AssertPositioned(lines, "b.cob", 7, "error COBOL1639");
-        Assert.Contains(lines, d => d.Contains("b.cob(7,12): error COBOL1639"));   // column 12 = the M of MOVE
+        Assert.Contains(lines, d => d.Contains("b.cob(7,17): error COBOL1639"));   // column 17 = the U of UNDEF, the reference (MOVE is at 12; kb/Work PB4383)
+    }
+
+    [Fact] // kb/Work PB4383: a diagnostic about an OPERAND stands at the operand, on the line of a continued statement
+    public void OperandOnAContinuationLine_NamesItsOwnLineAndColumn()
+    {
+        const string DataHead =
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4383.\n       DATA DIVISION.\n"
+            + "       WORKING-STORAGE SECTION.\n       01 W PIC X.\n       01 T.\n          05 E OCCURS 2 INDEXED BY IX PIC X.\n"
+            + "       PROCEDURE DIVISION.\n";
+        // DISPLAY: two undefined names on the second line (the note's repro) — each at its own column, none at DISPLAY's (8,12).
+        Write("pb4383a.cob", DataHead + "           DISPLAY W\n               Q-ONE Q-TWO.\n           STOP RUN.\n");
+        var (ok, lines) = Compile("pb4383a.cob");
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains("pb4383a.cob(10,16): error COBOL1639") && d.Contains("'Q-ONE'"));
+        Assert.Contains(lines, d => d.Contains("pb4383a.cob(10,22): error COBOL1639") && d.Contains("'Q-TWO'"));
+        Assert.DoesNotContain(lines, d => d.Contains("pb4383a.cob(9,"));
+        // DISPLAY of an index-name operand (the §13.18.38.3 r7 screen, COBOL1637) on the continuation line: the operand's position.
+        Write("pb4383b.cob", DataHead + "           DISPLAY W\n               IX.\n           STOP RUN.\n");
+        (ok, lines) = Compile("pb4383b.cob");
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains("pb4383b.cob(10,16): error COBOL1637"));
+        // The sibling arm every verb shares: MOVE's second receiver, undefined, on the continuation line.
+        Write("pb4383c.cob", DataHead + "           MOVE \"A\" TO W\n               NOPE.\n           STOP RUN.\n");
+        (ok, lines) = Compile("pb4383c.cob");
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains("pb4383c.cob(10,16): error COBOL1639") && d.Contains("'NOPE'"));
+        // The same screen at MOVE's sending operand and at an UNSTRING/STRING sending operand: the index-name's own position.
+        Write("pb4383d.cob", DataHead + "           MOVE\n               IX TO W.\n           STOP RUN.\n");
+        (ok, lines) = Compile("pb4383d.cob");
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains("pb4383d.cob(10,16): error COBOL1637"));
+        Write("pb4383e.cob", DataHead + "           STRING W\n               IX DELIMITED SIZE INTO W.\n           STOP RUN.\n");
+        (ok, lines) = Compile("pb4383e.cob");
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains("pb4383e.cob(10,16): error COBOL1637"));
     }
 
     [Fact] // kb/Work PB1728: a PICTURE string's trimmed clause separator (`PIC X, VALUE …`) must not shift the column
@@ -179,14 +214,14 @@ public sealed class DiagnosticPositionTests : IDisposable
     [Theory]
     // a plain fixed-form line: the parse error at the '.' written in column 21
     [InlineData("plain", "       PROCEDURE DIVISION.\n           MOVE 1 TO.\n           STOP RUN.\n", "plain.cob(7,21)", "COBOL0001")]
-    // the binder's statement cursor on a plain fixed-form line: DISPLAY at column 12
-    [InlineData("cursor", "       PROCEDURE DIVISION.\n           DISPLAY UNDEF.\n           STOP RUN.\n", "cursor.cob(7,12)", "COBOL1639")]
+    // the binder's operand cursor on a plain fixed-form line: the undefined UNDEF at column 20 (DISPLAY is at 12; kb/Work PB4383)
+    [InlineData("cursor", "       PROCEDURE DIVISION.\n           DISPLAY UNDEF.\n           STOP RUN.\n", "cursor.cob(7,20)", "COBOL1639")]
     // a fixed continuation FRAGMENT: the '.' is on the continuation line, at its own line and column
     [InlineData("contin", "       PROCEDURE DIVISION.\n           MOVE \"ABC\n      -    \"DEF\" TO.\n           STOP RUN.\n", "contin.cob(8,20)", "COBOL0001")]
     // a TAB in the program text counts ONE column, as in the editor (the tab expanded to positions 18-24)
     [InlineData("tabbed", "       PROCEDURE DIVISION.\n           MOVE 1\tTO.\n           STOP RUN.\n", "tabbed.cob(7,21)", "COBOL0001")]
-    // after a >>SOURCE FORMAT FREE switch the line is read whole: DISPLAY at column 4
-    [InlineData("switch", "       >>SOURCE FORMAT FREE\nPROCEDURE DIVISION.\n   DISPLAY UNDEF.\n   STOP RUN.\n", "switch.cob(8,4)", "COBOL1639")]
+    // after a >>SOURCE FORMAT FREE switch the line is read whole: UNDEF at column 12 (DISPLAY is at 4)
+    [InlineData("switch", "       >>SOURCE FORMAT FREE\nPROCEDURE DIVISION.\n   DISPLAY UNDEF.\n   STOP RUN.\n", "switch.cob(8,12)", "COBOL1639")]
     public void FixedForm_DiagnosticNamesThePhysicalColumn(string name, string tail, string position, string code)
     {
         Write(name + ".cob", Head + tail);
