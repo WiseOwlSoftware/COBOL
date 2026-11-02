@@ -87,3 +87,5 @@ token in FIRST(`statement`) (`BeginsAStatement`, read once from the ATN, no word
 inputs; the probe on the reviewer's first input drew COBOL0001 + COBOL0306 before and COBOL0001 alone after. No golden:
 the program is refused at its COBOL0001 whatever follows, and a refusal golden's `expect` names a substring that must be
 present, so it cannot assert that a cascade diagnostic is absent; the unit theory asserts the exact diagnostic list.
+
+Gate after R2-1: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,382/39,382 · Characterization 37/37 cases ran (skipped 0) ===` (run 000001-20261102T195835Z at the code head a86d082e7; the DEVLOG line added after it is inert).
