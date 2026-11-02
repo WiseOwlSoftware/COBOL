@@ -1,4 +1,4 @@
-## PB4406: the screens that run after a reference resolved report at the operand, not at the statement
+## Entry 2983 — 2026-11-01 22:06 PST — PB4406: the screens that run after a reference resolved report at the operand, not at the statement
 
 PB4383 put the position inside `ReferenceResolver.ResolveImpl`, so an undefined name on a continuation line named its own
 line. The reports made AFTER the resolution did not move: the expression mapping (`ExpressionBinder.RefExpr`: the
@@ -27,3 +27,4 @@ and a new reporter is added to the list. No conformance golden: the refusal gold
 the `BoundRejected.Report` sites of SetBinder, InspectBinder, KeyedIoBinder, SortBinder, ReportWriterBinder), the subscript and
 reference-modification bound screens in `ReferenceResolver`, and `CheckLiteral(string)`'s node-less callers still stand at the
 statement or the outer reference.
+
