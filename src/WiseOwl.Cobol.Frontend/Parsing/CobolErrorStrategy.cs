@@ -81,6 +81,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private void Report(Parser recognizer, IToken token, RecognitionException? e, ErrorKind kind)
     {
         var at = new OffendingPosition(recognizer, token, IsPredictionFailedAt(e, token));
+        at.LeftStatementPrintingTheToken = () => NameOfALeftStatementPrinting(recognizer, token);
         if (Reported(at)) return;
         // An embedded precompiler block the parse cannot take here is the block's own fault, which its reading reports
         // (EmbeddedBlockReading.Report, kb/Work PB4341), never a second one naming its text.
@@ -102,6 +103,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (!HasStructuralHint(hints) && at.Carried is { } carried)
         {
             if (Reported(carried)) return;
+            carried.LeftStatementPrintingTheToken = at.LeftStatementPrintingTheToken;
             (at, kind, hints) = (carried, ErrorKind.NoViableAlternative, GuessCobolIntent(recognizer, carried));
             // The prediction closed the construct before the fault: each statement it holds that a terminator closes,
             // down its last branch, is left before its end (kb/Work PB4382).
@@ -165,88 +167,229 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // a fault reported at it (the empty block it ends, COBOL2072) is that statement's own.
         if (_leftByRecovery.Count == 0 || UnownedScopeTerminator(recognizer, at.Token.Type, at.OpenRules()) is not { } terminator)
             return false;
-        if (!TakenByALeftStatement(recognizer, at, rule => terminator.Statements.Contains(recognizer.RuleNames[rule]), consume: true))
+        if (!TakenByALeftStatement(recognizer, at.Token, left => terminator.Statements.Contains(recognizer.RuleNames[left.Rule]), consume: true, out _))
             return false;
         _leftStatementsTerminator = at.Token.TokenIndex;
         return true;
     }
 
-    /// <summary>⛔ A PHRASE WORD OF A STATEMENT THE RECOVERY LEFT CONTINUES THAT STATEMENT (kb/Work PB4436 review R1-1).
-    /// <c>IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z" END-IF.</c>: the first IF's block cannot take the second IF, whose
-    /// statement-1 is missing, so the prediction ended the first IF before it, and the ELSE (the next WHEN or the WHEN
-    /// OTHER of an EVALUATE or a SEARCH, the NOT phrase of a statement with paired conditional phrases) meets no open
-    /// statement that takes it. The statement is left by the recovery and the word is its own (ISO §14.5.3.2 2): the
-    /// IF's statement-1 and statement-2 are the phrases of one IF), so the one fault was reported and the word is no
-    /// second: the tail it begins belongs to the construct the parse already left (<see cref="OrphansItsTail"/>), and
-    /// the resynchronization discards it to the unit's period, as for every construct the prediction closed early. The
-    /// words are those the grammar lets follow an imperative block of the statement's rule (<see cref="PhraseWords"/>).</summary>
+    /// <summary>⛔ THE TERMINATOR OF A LEFT STATEMENT IS ITS OWN WHERE AN OLDER OPEN STATEMENT'S OPTIONAL TERMINATOR WOULD
+    /// MATCH IT (kb/Work PB4447; ISO §14.5.3.2 1)). <c>IF A EVALUATE W WHEN 1 IF B ELSE DISPLAY X END-IF DISPLAY "Y"
+    /// END-EVALUATE END-IF.</c>: the inner IF has no statement-1 and is left by the recovery, the WHEN group's block ends
+    /// at the END-IF it cannot take, the EVALUATE (whose END-EVALUATE is optional) returns, and the outer IF's optional
+    /// END-IF matches the left IF's END-IF without any failure, so no recovery sees it: the EVALUATE was closed early with
+    /// no record, and its END-EVALUATE drew a false COBOL0306. The statement a terminator terminates is "the most-recently
+    /// preceding unterminated statement having the statement-name for which that scope terminator is defined", and the
+    /// left IF began after the open one, so the END-IF is the left IF's. At every synchronization point a terminator that a
+    /// statement OPEN on the parser's stack would take, and that a record of a statement begun after it is due, is
+    /// consumed here as the left statement's own, so the statements around it go on as the source wrote them (the EVALUATE
+    /// takes the DISPLAY and its END-EVALUATE, the outer IF its END-IF). Where no statement of the kind is open the terminator
+    /// is unowned, and <see cref="EndsAStatementTheRecoveryLeft"/> consumes it at its report.</summary>
+    private bool ConsumesALeftStatementsTerminator(Parser recognizer)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        var token = stream.LT(1);
+        if (ScopeTerminator(recognizer, token.Type) is not { } terminator) return false;
+        int open = -1;
+        for (RuleContext? c = recognizer.Context; c is not null && open < 0; c = c.Parent)
+            if (c is ParserRuleContext { Start: { } begun } && terminator.Statements.Contains(recognizer.RuleNames[c.RuleIndex]))
+                open = begun.TokenIndex;
+        if (open < 0
+            || !TakenByALeftStatement(recognizer, token, left => left.Start > open
+                                                                  && terminator.Statements.Contains(recognizer.RuleNames[left.Rule]),
+                consume: true, out _))
+            return false;
+        ReportMatch(recognizer);
+        recognizer.Consume();
+        return true;
+    }
+
+    /// <summary>⛔ THE NEXT PHRASE OF A CONTAINING STATEMENT ENDS THE LEFT STATEMENTS INSIDE IT (kb/Work PB4447 review R1-1;
+    /// ISO §14.5.3.3 4) b)). A conditional statement contained within another is implicitly terminated by "the next phrase
+    /// of any containing statement", and "any phrase encountered is the next phrase of the most-recently preceding
+    /// unterminated statement with which that phrase may be syntactically associated". <c>IF A IF B ELSE DISPLAY X ELSE
+    /// DISPLAY Y END-IF END-IF.</c>: the inner IF is left at its first ELSE (its statement-1 is missing), has taken the one
+    /// ELSE its format permits, and so the second is the outer IF's, which ends the inner IF: the first END-IF is the
+    /// outer IF's, the second a stray one. The parse takes the second ELSE as the open outer IF's phrase without any
+    /// failure, so no recovery sees it, and the inner IF's record would take the first END-IF
+    /// (<see cref="ConsumesALeftStatementsTerminator"/>) and leave the outer IF the second. At a synchronization point where
+    /// the token is a phrase word the statements OPEN on the parser's stack take (not a statement's start, not a
+    /// terminator), the records of the statements begun after that open statement are decided newest first: the word is the
+    /// next phrase of a record whose format permits it (its own, recorded: the newest such statement is the one it is
+    /// associated with), and a record whose format does not is ended by it and retired. A phrase word of a statement begun
+    /// after the record ends nothing the record holds.</summary>
+    private void EndsLeftStatementsAtAContainingStatementsPhrase(Parser recognizer)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        var token = stream.LT(1);
+        if (token.Type is CobolLexer.DOT or TokenConstants.EOF || ScopeTerminator(recognizer, token.Type) is not null
+            || BeginsAStatement(recognizer, token.Type)
+            || OpenStatementTaking(recognizer, token.Type) is not { Start: { } begun })
+            return;
+        while (TakenByALeftStatement(recognizer, token, left => left.Start > begun.TokenIndex, consume: false, out var left))
+        {
+            // Every synchronization point at this token meets it again: a word taken already is the record's own.
+            if (left!.Phrases.Contains(token.TokenIndex)) return;
+            if (IsTheNextPhraseOf(recognizer, left, token.TokenIndex))
+            {
+                left.Phrases.Add(token.TokenIndex);
+                return;
+            }
+            _leftByRecovery.Remove(left);
+        }
+    }
+
+    /// <summary>Can a token of type <paramref name="type"/> begin a statement (<c>statement</c>'s first set, read once from the
+    /// ATN)? Such a word at a synchronization point inside the statement before it is the next statement's start, which an
+    /// enclosing statement's block takes (<see cref="OpenStatementTaking"/> finds that statement open), and no phrase of any
+    /// statement: it ends no left statement (ISO §14.5.3.3 4) b) ends a contained statement at "the next phrase of any
+    /// containing statement", not at the next statement of a containing block).</summary>
+    private static bool BeginsAStatement(Parser recognizer, int type)
+        => (_statementStarts ??= recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[CobolParserCore.RULE_statement])).Contains(type);
+
+    private static IntervalSet? _statementStarts;
+
+    /// <summary>The statement open on the parser's stack that takes a token of type <paramref name="type"/> as one of its own
+    /// phrases here, or null: the first rule invocation, going out from the parser's position through the rules that may end
+    /// where it stands, whose own next tokens hold the type, and the nearest statement an explicit scope terminator closes
+    /// at or above it. Null where the rule the parser is in takes the token itself (a statement's start), or where no
+    /// invocation outside it does.</summary>
+    private static ParserRuleContext? OpenStatementTaking(Parser recognizer, int type)
+    {
+        var atn = recognizer.Atn;
+        var local = atn.NextTokens(atn.states[recognizer.State]);
+        for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
+        {
+            if (local.Contains(type))
+            {
+                if (ReferenceEquals(c, recognizer.Context)) return null;
+                for (; c is not null; c = c.Parent)
+                    if (ClosedByATerminator(recognizer, c.RuleIndex)) return c as ParserRuleContext;
+                return null;
+            }
+            if (!local.Contains(TokenConstants.EPSILON) || c.invokingState < 0) return null;
+            local = atn.NextTokens(((RuleTransition)atn.states[c.invokingState].Transition(0)).followState);
+        }
+        return null;
+    }
+
+    /// <summary>⛔ A PHRASE WORD OF A STATEMENT THE RECOVERY LEFT CONTINUES THAT STATEMENT, WHILE THE STATEMENT'S FORMAT PERMITS
+    /// ANOTHER OCCURRENCE OF THE PHRASE (kb/Work PB4436 review R1-1, PB4449). <c>IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z"
+    /// END-IF.</c>: the first IF's block cannot take the second IF, whose statement-1 is missing, so the prediction ended the
+    /// first IF before it, and the ELSE (the next WHEN or the WHEN OTHER of an EVALUATE or a SEARCH, the NOT phrase of a
+    /// statement with paired conditional phrases) meets no open statement that takes it. The statement is left by the
+    /// recovery and the word is its own: "Any phrase encountered is the next phrase of the most-recently preceding
+    /// unterminated statement with which that phrase may be syntactically associated" (ISO §14.5.3.3 4)), so the one fault was
+    /// reported and the word is no second: the tail it begins belongs to the construct the parse already left
+    /// (<see cref="OrphansItsTail"/>), and the resynchronization discards it to the unit's period, as for every construct
+    /// the prediction closed early. "If all permitted occurrences of a phrase have already been specified for a given
+    /// statement, a subsequent occurrence of that phrase is not syntactically associated with that statement" (the same
+    /// paragraph): a second ELSE, or a WHEN OTHER after the statement's WHEN OTHER, is no phrase of the left statement and is
+    /// reported as any stray word is. Which phrases a statement's format permits, and how often, is the ATN's:
+    /// <see cref="LeftStatement.Phrases"/> holds the phrase words taken for it so far, and the word is the statement's own
+    /// where the statement's rule, re-walked from after one of its blocks over those phrases, takes this one
+    /// (<see cref="ResimulationWalk.TakesPhraseAt"/>).</summary>
     private bool ContinuesAStatementTheRecoveryLeft(Parser recognizer, OffendingPosition at)
-        => _leftByRecovery.Count > 0 && at.Token.Type != CobolLexer.DOT && ScopeTerminator(recognizer, at.Token.Type) is null
-           // Only where the statement before the word is complete: a statement still short of an operand
-           // (IF A MOVE B TO ADD 1 TO ELSE …) is refused at the word by its own fault.
-           && at.AStatementMayEndBefore()
-           && TakenByALeftStatement(recognizer, at, rule => PhraseWords(recognizer, rule).Contains(at.Token.Type), consume: false);
+    {
+        if (_leftByRecovery.Count == 0 || at.Token.Type == CobolLexer.DOT || ScopeTerminator(recognizer, at.Token.Type) is not null
+            // Only where the statement before the word is complete: a statement still short of an operand
+            // (IF A MOVE B TO ADD 1 TO ELSE …) is refused at the word by its own fault.
+            || !at.AStatementMayEndBefore()
+            || !TakenByALeftStatement(recognizer, at.Token, left => IsTheNextPhraseOf(recognizer, left, at.Token.TokenIndex),
+                consume: false, out var taker))
+            return false;
+        if (!taker!.Phrases.Contains(at.Token.TokenIndex)) taker.Phrases.Add(at.Token.TokenIndex);
+        return true;
+    }
+
+    /// <summary>The name of the newest statement the recovery left, still due, whose format prints the token after a
+    /// statement it holds (<see cref="TokensAfterANestedStatement"/>: the IF of a second ELSE, the EVALUATE of a WHEN after
+    /// its WHEN OTHER), or null: the statement hint 0h names for a word no phrase of it may be (kb/Work PB4449).</summary>
+    private string? NameOfALeftStatementPrinting(Parser recognizer, IToken token)
+        => _leftByRecovery.Count > 0
+           && TakenByALeftStatement(recognizer, token, left => TokensAfterANestedStatement(left.Rule).Contains(token.Type),
+               consume: false, out var taker)
+           && taker!.Statement is ParserRuleContext statement
+            ? StatementName(statement)
+            : null;
+
+    /// <summary>Is the phrase that begins at token <paramref name="first"/> the next phrase of <paramref name="left"/>: the
+    /// walk of its rule from after one of its imperative blocks takes the phrases it has been given so far and then this
+    /// one?</summary>
+    private static bool IsTheNextPhraseOf(Parser recognizer, LeftStatement left, int first)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        var walk = ResimulationWalk.AfterABlockOf(recognizer, left.Rule);
+        foreach (int taken in left.Phrases)
+            if (!walk.TakesPhraseAt(stream, taken)) return false;
+        return walk.TakesPhraseAt(stream, first);
+    }
 
     /// <summary>The newest statement the recovery left (<see cref="_leftByRecovery"/>) that is still due something and
-    /// whose rule <paramref name="takes"/> the token at <paramref name="at"/>; removed from the records when
-    /// <paramref name="consume"/> (its terminator is met). A record is no longer due where a separator period stands
+    /// which <paramref name="takes"/> (the token at <paramref name="token"/> is its terminator or its next phrase), returned
+    /// in <paramref name="taker"/>; removed from the records when <paramref name="consume"/> (its terminator is met). A
+    /// record is no longer due where a separator period stands
     /// between (§14.5.3.3 1) c)), where the statement ended in its own terminator after all, or where the statement
     /// enclosing it ended (§14.5.3.2 2)).</summary>
-    private bool TakenByALeftStatement(Parser recognizer, OffendingPosition at, Func<int, bool> takes, bool consume)
+    private bool TakenByALeftStatement(Parser recognizer, IToken token, Func<LeftStatement, bool> takes, bool consume,
+        out LeftStatement? taker)
     {
+        taker = null;
         var stream = (ITokenStream)recognizer.InputStream;
         for (int i = _leftByRecovery.Count - 1; i >= 0; i--)
         {
-            var (rule, start, statement, enclosing) = _leftByRecovery[i];
-            if (HoldsAPeriod(stream, start, at.Token.TokenIndex)) { _leftByRecovery.RemoveRange(0, i + 1); return false; }
+            var left = _leftByRecovery[i];
+            if (HoldsAPeriod(stream, left.Start, token.TokenIndex)) { _leftByRecovery.RemoveRange(0, i + 1); return false; }
             // The statement went on after all and ended with its own terminator: nothing is due to it.
-            if (EndedWithItsTerminator(recognizer, statement)) { _leftByRecovery.RemoveAt(i); continue; }
+            if (EndedWithItsTerminator(recognizer, left.Statement)) { _leftByRecovery.RemoveAt(i); continue; }
             // The statement enclosing it ended: its scope terminator (or its end) terminated this one with it (§14.5.3.2 2)),
             // so no terminator of its own is still due.
-            if (!StillOpen(recognizer, enclosing)) { _leftByRecovery.RemoveAt(i); continue; }
-            if (!takes(rule)) continue;
+            if (!StillOpen(recognizer, left.Enclosing)) { _leftByRecovery.RemoveAt(i); continue; }
+            if (!takes(left)) continue;
             if (consume) _leftByRecovery.RemoveAt(i);
+            taker = left;
             return true;
         }
         return false;
     }
 
-    /// <summary>The words that can follow an imperative block (<c>statementBlock</c>) of the statement of
-    /// <paramref name="rule"/>, other than its scope terminator: the ELSE of an IF, the WHEN and WHEN OTHER of an EVALUATE,
-    /// the WHEN of a SEARCH, the NOT of a paired conditional phrase. Read once per rule from the ATN, through the rules the
-    /// statement calls up to its blocks (a block that ends its rule is followed by what follows the call), so a phrase a
-    /// statement gains tomorrow is one.</summary>
-    private static IntervalSet PhraseWords(Parser recognizer, int rule)
-        => PhraseWordsByRule.GetOrAdd(rule, r =>
+    /// <summary>The positions just after an imperative block (<c>statementBlock</c>) of the statement of <paramref name="rule"/>:
+    /// for each call of <c>statementBlock</c> in the rules the statement reaches (not into statements: a nested
+    /// statement's phrases are its own), the ATN state that follows the call and the return states of the calls from the
+    /// statement's rule down to the rule holding it, outermost first. Where the statement's format may be followed by a
+    /// phrase, one of these is the position it stands at (the ELSE of an IF, the WHEN and WHEN OTHER of an EVALUATE, the
+    /// WHEN of a SEARCH, the NOT of a paired conditional phrase). Read once per rule from the ATN, so a phrase a statement
+    /// gains tomorrow is one.</summary>
+    private static (int Follow, int[] Frames)[] BlockFollows(ATN atn, int rule)
+        => BlockFollowsByRule.GetOrAdd(rule, r =>
         {
-            var words = new IntervalSet();
-            CollectPhraseWords(recognizer.Atn, r, new IntervalSet(), words, []);
-            words.Remove(TokenConstants.EPSILON);
-            foreach (int terminator in ScopeTerminatorTypes(recognizer)) words.Remove(terminator);
-            return words;
+            var found = new List<(int, int[])>();
+            CollectBlockFollows(atn, r, [], found, [r]);
+            return [.. found];
         });
 
-    private static readonly ConcurrentDictionary<int, IntervalSet> PhraseWordsByRule = new();
+    private static readonly ConcurrentDictionary<int, (int Follow, int[] Frames)[]> BlockFollowsByRule = new();
 
-    /// <summary>Adds to <paramref name="words"/> what follows each call of <c>statementBlock</c> in the rules reached from
-    /// <paramref name="rule"/> (not into statements: a nested statement's phrases are its own); <paramref name="outer"/>
-    /// is what follows the call of <paramref name="rule"/> itself, which follows a block that ends it.</summary>
-    private static void CollectPhraseWords(ATN atn, int rule, IntervalSet outer, IntervalSet words, HashSet<(int, string)> seen)
+    /// <summary>Adds to <paramref name="found"/> the state after each call of <c>statementBlock</c> in
+    /// <paramref name="rule"/> and in the rules it reaches, with the return states of the calls on the way
+    /// (<paramref name="frames"/>); <paramref name="inProgress"/> are the rules of the path, which a recursive grammar
+    /// would enter again.</summary>
+    private static void CollectBlockFollows(ATN atn, int rule, List<int> frames, List<(int, int[])> found, HashSet<int> inProgress)
     {
-        if (!seen.Add((rule, outer.ToString()))) return;
-        foreach (var state in atn.states)
-        {
-            if (state is null || state.ruleIndex != rule) continue;
+        foreach (var state in StatesByRule.Value[rule])
             for (int i = 0; i < state.NumberOfTransitions; i++)
             {
                 if (state.Transition(i) is not RuleTransition call) continue;
-                var after = atn.NextTokens(call.followState);
-                if (after.Contains(TokenConstants.EPSILON)) after = after.Or(outer);
                 int callee = call.target.ruleIndex;
-                if (callee == CobolParserCore.RULE_statementBlock) words.AddAll(after);
-                else if (callee != CobolParserCore.RULE_statement && ReachesABlock(atn, callee, [])) CollectPhraseWords(atn, callee, after, words, seen);
+                if (callee == CobolParserCore.RULE_statementBlock) found.Add((call.followState.stateNumber, [.. frames]));
+                else if (callee != CobolParserCore.RULE_statement && ReachesABlock(atn, callee, []) && inProgress.Add(callee))
+                {
+                    frames.Add(call.followState.stateNumber);
+                    CollectBlockFollows(atn, callee, frames, found, inProgress);
+                    frames.RemoveAt(frames.Count - 1);
+                    inProgress.Remove(callee);
+                }
             }
-        }
     }
 
     /// <summary>Does <paramref name="rule"/> call <c>statementBlock</c>, directly or through the rules it calls (not into
@@ -283,7 +426,22 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>The statements whose rule the recovery left before their end, oldest first: each statement's rule, the
     /// index of its first token and its context, and the nearest statement enclosing it that a terminator of another kind
     /// closes, null where none does (<see cref="EndsAStatementTheRecoveryLeft"/>, <see cref="StillOpen"/>).</summary>
-    private readonly List<(int Rule, int Start, RuleContext Statement, RuleContext? Enclosing)> _leftByRecovery = [];
+    private readonly List<LeftStatement> _leftByRecovery = [];
+
+    /// <summary>A statement the recovery left before its end (<see cref="_leftByRecovery"/>): its rule, the index of its
+    /// first token, its context, and the nearest statement enclosing it that a terminator of another kind closes, null
+    /// where none does.</summary>
+    private sealed class LeftStatement(int rule, int start, RuleContext statement, RuleContext? enclosing)
+    {
+        public int Rule { get; } = rule;
+        public int Start { get; } = start;
+        public RuleContext Statement { get; } = statement;
+        public RuleContext? Enclosing { get; } = enclosing;
+
+        /// <summary>The token indexes of the phrase words the recovery took as this statement's own (the ELSE it faulted at,
+        /// the ELSE and the WHENs met after it), in order: the statement's phrases so far (kb/Work PB4449).</summary>
+        public List<int> Phrases { get; } = [];
+    }
 
     /// <summary>Records <paramref name="statement"/>, a statement the recovery left before its end
     /// (<see cref="_leftByRecovery"/>), once: the report carried into a closed construct and the recovery of the rule
@@ -296,11 +454,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         if (!ClosedByATerminator(recognizer, rule)) return;
         var enclosing = EnclosingStatement(recognizer, statement, rule);
-        if (_leftByRecovery.Contains((rule, start, statement, enclosing))) return;
+        if (_leftByRecovery.Exists(l => l.Rule == rule && l.Start == start && ReferenceEquals(l.Statement, statement)
+                                        && ReferenceEquals(l.Enclosing, enclosing)))
+            return;
         if (faultAt is not null && ScopeTerminator(recognizer, faultAt.Type) is { } own
             && own.Statements.Contains(recognizer.RuleNames[rule]))
             return;
-        _leftByRecovery.Add((rule, start, statement, enclosing));
+        _leftByRecovery.Add(new(rule, start, statement, enclosing));
     }
 
     /// <summary>⛔ A STATEMENT WHOSE BLOCK THE PREDICTION ENDED BEFORE THE MALFORMED ONE IS LEFT TOO (kb/Work PB4382,
@@ -314,9 +474,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// the statements inside it end with it (§14.5.3.2 2)).</summary>
     private void NoteLeftBefore(Parser recognizer, RuleContext faulted)
     {
-        var statement = faulted;
-        while (statement is not null && statement.RuleIndex != CobolParserCore.RULE_statement) statement = statement.Parent;
-        if (statement?.Parent is not ParserRuleContext list) return;
+        // Every statement enclosing the faulted one is a candidate to follow a statement the prediction ended early: the
+        // prediction that died inside the malformed IF of `IF A DISPLAY "Z" IF B EVALUATE W WHEN 1 IF C ELSE …` ended the
+        // IF A before the IF B, which holds the fault.
+        for (var statement = StatementAround(faulted); statement is not null; statement = StatementAround(statement.Parent))
+            NoteLeftBeforeStatement(recognizer, statement);
+    }
+
+    /// <summary>The nearest statement (the <c>statement</c> dispatcher's context) at or above
+    /// <paramref name="context"/>, or null.</summary>
+    private static RuleContext? StatementAround(RuleContext? context)
+    {
+        while (context is not null && context.RuleIndex != CobolParserCore.RULE_statement) context = context.Parent;
+        return context;
+    }
+
+    private void NoteLeftBeforeStatement(Parser recognizer, RuleContext statement)
+    {
+        if (statement.Parent is not ParserRuleContext list) return;
         ParserRuleContext? previous = null;
         for (int i = 0; i < list.ChildCount && !ReferenceEquals(list.GetChild(i), statement); i++)
             previous = list.GetChild(i) as ParserRuleContext;
@@ -645,6 +820,20 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 ReportMatch(recognizer);
                 recognizer.Consume();
                 return;
+            }
+            // A fault AT a phrase word of the statement that failed (the ELSE of `IF A ELSE …`, whose statement-1 is missing) is
+            // that statement's own word: "Any phrase encountered is the next phrase of the most-recently preceding
+            // unterminated statement with which that phrase may be syntactically associated" (§14.5.3.3 4)), and the failed
+            // statement is the most recent. It is consumed with the fault, as its terminator is: left to the
+            // resynchronization, an ENCLOSING statement whose recovery set holds the same word would take it for ITS phrase
+            // (`IF A EVALUATE W WHEN 1 IF B ELSE …`: the outer IF's ELSE), and everything after the word would be read as that
+            // statement's (kb/Work PB4447).
+            if (input.LT(1) is { } phraseAt && phraseAt.TokenIndex == e.OffendingToken?.TokenIndex
+                && ClosedByATerminator(recognizer, recognizer.Context.RuleIndex)
+                && ResimulationWalk.AfterABlockOf(recognizer, recognizer.Context.RuleIndex).TakesPhraseAt(input, phraseAt.TokenIndex))
+            {
+                _leftByRecovery.Find(l => ReferenceEquals(l.Statement, recognizer.Context))?.Phrases.Add(phraseAt.TokenIndex);
+                recognizer.Consume();
             }
         }
         _reparsedFromItsStart = false;
@@ -1196,6 +1385,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // An embedded block that stands where no statement may begin is nothing, consumed here, each of a run of them,
         // and the decision then syncs on what follows them, as the precompiler writes it (PB4341).
         while (!InErrorRecoveryMode(recognizer) && SkipsEmbeddedBlock(recognizer)) { }
+        if (_leftByRecovery.Count > 0)
+        {
+            EndsLeftStatementsAtAContainingStatementsPhrase(recognizer);
+            if (ConsumesALeftStatementsTerminator(recognizer)) return;
+        }
         if (!InErrorRecoveryMode(recognizer) && IsClosedFormatResidueAhead(recognizer))
         {
             ReportUnwantedToken(recognizer);
@@ -1858,6 +2052,40 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             => new(recognizer, recognizer.Atn.ruleToStopState[container.RuleIndex], container,
                 skipsErrorProductions: skipsErrorProductions);
 
+        /// <summary>A walk positioned just after an imperative block of the statement of <paramref name="rule"/>, at every
+        /// place its format has one (<see cref="BlockFollows"/>): the walk of the phrases a statement may be followed by,
+        /// with no token of the statement itself taken. The statement's own rule is the root of every stack, so the walk
+        /// never leaves it for what follows the statement.</summary>
+        public static ResimulationWalk AfterABlockOf(Parser recognizer, int rule)
+        {
+            var atn = recognizer.Atn;
+            return new(recognizer, [.. BlockFollows(atn, rule).Select(b => new ATNConfig(atn.states[b.Follow], 1,
+                b.Frames.Aggregate<int, PredictionContext>(EmptyPredictionContext.Instance,
+                    (parent, frame) => SingletonPredictionContext.Create(parent, frame))))]);
+        }
+
+        /// <summary>⛔ TAKES THE PHRASE THAT BEGINS AT TOKEN <paramref name="first"/>, AND THE IMPERATIVE BLOCK THAT FOLLOWS ITS
+        /// WORDS AS ONE STATEMENT (kb/Work PB4449). The words are the tokens from <paramref name="first"/> up to where a
+        /// statement may begin (<c>ELSE</c>; <c>WHEN OTHER</c>; <c>WHEN</c> and its selection objects; <c>NOT ON SIZE
+        /// ERROR</c>): the walk takes them one at a time, and the first position that takes a statement (CONTINUE, the
+        /// no-operation statement, ISO §14.9.9.1, as <see cref="EmptyBlockOwner"/> uses it) is the block's, which one CONTINUE
+        /// stands for: what the real statements between this phrase and the next are is no phrase's concern. False, the
+        /// walk where it stopped, where a token the phrase cannot hold comes first (a period, the end of the input, a word
+        /// no position takes), so a phrase whose permitted occurrences were all written is not taken again: after
+        /// <c>ELSE</c> and its block the IF's walk takes only its END-IF.</summary>
+        public bool TakesPhraseAt(ITokenStream stream, int first)
+        {
+            int index = first;
+            for (int words = 0; words < MaxResimulatedTokens; words++)
+            {
+                var token = stream.Get(index);
+                if (token.Type is TokenConstants.EOF or CobolLexer.DOT || !Consume(token.Type)) return false;
+                if (Takes(CobolLexer.CONTINUE)) return Consume(CobolLexer.CONTINUE);
+                if (NextDefault(stream, ref index) is null) return false;
+            }
+            return false;
+        }
+
         /// <summary>A walk re-run from the parser's state to <paramref name="token"/>, or null when no configuration
         /// takes the tokens before it (a recovery the walk cannot follow, or an SLL prediction that looked past a
         /// failure the full context would meet first).</summary>
@@ -2169,6 +2397,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             for (RuleContext? c = context; c is not null; c = c.Parent)
                 _own.TryAdd(PredictionContext.FromRuleContext(atn, c), c);
             _entered = [new ATNConfig(start, 1, PredictionContext.FromRuleContext(atn, context))];
+            _configs = Close(_entered);
+        }
+
+        /// <summary>A walk from the ATN positions <paramref name="seeds"/> (each with its own stack), in no rule context of the
+        /// parser: <see cref="AfterABlockOf"/>. It never predicts either (see the constructor above).</summary>
+        private ResimulationWalk(Parser parser, List<ATNConfig> seeds)
+            : base(parser, parser.Atn, new DFA[parser.Atn.NumberOfDecisions], new PredictionContextCache())
+        {
+            mergeCache = new MergeCache();
+            _entered = seeds;
             _configs = Close(_entered);
         }
 
@@ -2852,6 +3090,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// <summary>The token the report names.</summary>
         public IToken Token { get; }
 
+        /// <summary>The name of the statement the recovery left whose format prints the token after a statement it holds,
+        /// or null; set by <see cref="Report"/>, which holds the records (<see cref="NameOfALeftStatementPrinting"/>).</summary>
+        public Func<string?>? LeftStatementPrintingTheToken { get; set; }
+
         /// <summary>Did an adaptive prediction fail AT the token, refused by a semantic predicate (kb/Work PB3391)?</summary>
         public bool PredictionFailedAt { get; }
 
@@ -3204,7 +3446,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             for (ParserRuleContext? c = ended; c is not null; c = c.Parent as ParserRuleContext)
                 if (IsStatementRule(c.RuleIndex) && TokensAfterANestedStatement(c.RuleIndex).Contains(Token.Type))
                     return StatementName(c);
-            return StatementName(ended);
+            // A statement the recovery left is no ancestor of the one that ended, though it is the one whose format prints the
+            // token (a second ELSE after `IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z"`, kb/Work PB4449).
+            return LeftStatementPrintingTheToken?.Invoke() ?? StatementName(ended);
         }
 
         /// <summary>The innermost statement rule context at or below <paramref name="context"/> whose last token is

@@ -92,6 +92,16 @@ internal static class AdmittedKinds
         anOperandIsDue = false;
         if (token.Type == TokenConstants.EOF || admitted.Contains(token.Type) || admitted.Count == 0 && words.Count == 0)
             return null;
+        // ⛔ A TOKEN THE CONSTRUCT JUST BEFORE IT COULD HAVE TAKEN IS A FAULT FURTHER ON, NOT A KIND REFUSED HERE (kb/Work
+        // PB4448). The parser leaves a construct as soon as its prediction allows, so the set the parser admits at the
+        // token omits what the construct completed just before it would still take: after `PERFORM UNTIL c DISPLAY "A"`
+        // the parser admits END-PERFORM, FINALLY and WHEN, and not the IF that the block's next statement begins with. When
+        // that statement is the malformed one (`IF W-K = 2 END-IF`, its statement-1 missing), the prediction died inside it
+        // and the report stands at its first token; naming that token "not expected here" says a false thing about a
+        // statement the source may begin there. The report is carried forward to where the construct's own parse dies
+        // (OffendingPosition.Carried), which names the fault: COBOL2072 at the END-IF.
+        if (whatTheConstructBeforeCouldTake() is { } couldTake && couldTake.Contains(token.Type))
+            return null;
         var named = Name(admitted, words, aWordChangesNothing, statementStart, theEditionPrints);
         string written = Written(token);
         if (!named.Open && named.Words.Count + named.Literals.Count + named.Symbols.Count == 0)
