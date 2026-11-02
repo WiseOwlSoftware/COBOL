@@ -130,7 +130,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// terminator map hint 13 reads, so a statement that gains a terminator is covered.</summary>
     private bool EndsAStatementTheRecoveryLeft(Parser recognizer, OffendingPosition at)
     {
-        if (_leftByRecovery.Count == 0 || ScopeTerminator(recognizer, at.Token.Type) is not { } terminator) return false;
+        // Only a terminator no open statement owns (hint 13's test): one an open statement takes is that statement's, and
+        // a fault reported at it (the empty block it ends, COBOL2072) is that statement's own.
+        if (_leftByRecovery.Count == 0 || UnownedScopeTerminator(recognizer, at.Token.Type, at.OpenRules()) is not { } terminator)
+            return false;
         var stream = (ITokenStream)recognizer.InputStream;
         for (int i = _leftByRecovery.Count - 1; i >= 0; i--)
         {
@@ -1380,14 +1383,23 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
            + "omission (ISO §5.2.6.2), and one alternative of a brace group shall be explicitly specified "
            + "(ISO §5.2.6.3).";
 
-    /// <summary>The name of the statement <paramref name="context"/> is, or the innermost one around it, for a message
-    /// (<c>EVALUATE</c>, <c>SEARCH ALL</c>): its rule name without the <c>Statement</c> suffix, split and uppercased.</summary>
+    /// <summary>The name of the statement <paramref name="context"/> is, or of the innermost one around it, for a message
+    /// (<c>EVALUATE</c>, <c>PERFORM</c>; <see cref="StatementName"/>).</summary>
     private static string StatementOwning(ParserRuleContext context)
     {
         for (var c = context; c is not null; c = c.Parent as ParserRuleContext)
-            if (CobolParserCore.ruleNames[c.RuleIndex] is var rule && rule.EndsWith(StatementSuffix, StringComparison.Ordinal))
-                return SplitCamelCase(rule[..^StatementSuffix.Length]).ToUpperInvariant();
+            if (IsStatementRule(c.RuleIndex)) return StatementName(c);
         return SplitCamelCase(CobolParserCore.ruleNames[context.RuleIndex]).ToUpperInvariant();
+    }
+
+    /// <summary>The statement's name as the standard names it: from its rule (<c>ifStatement</c> → IF), and where
+    /// the grammar spells a statement's formats as rules of their own under a statement rule (<c>setStatement</c> →
+    /// <c>setIndexStatement</c>, one per SET format), the rule that dispatches them (SET, never SET INDEX).</summary>
+    private static string StatementName(ParserRuleContext context)
+    {
+        while (context.Parent is ParserRuleContext parent && IsStatementRule(parent.RuleIndex)) context = parent;
+        string rule = CobolParserCore.ruleNames[context.RuleIndex];
+        return SplitCamelCase(rule[..^StatementSuffix.Length]).ToUpperInvariant();
     }
 
     // ── A reserved word or a literal at a closed general format's error production (kb/Work PB2533, PB3373) ──
@@ -2855,16 +2867,6 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 if (IsStatementRule(c.RuleIndex) && TokensAfterANestedStatement(c.RuleIndex).Contains(Token.Type))
                     return StatementName(c);
             return StatementName(ended);
-        }
-
-        /// <summary>The statement's name as the standard names it: from its rule (<c>ifStatement</c> → IF), and where
-        /// the grammar spells a statement's formats as rules of their own under a statement rule (<c>setStatement</c> →
-        /// <c>setIndexStatement</c>, one per SET format), the rule that dispatches them (SET, never SET INDEX).</summary>
-        private static string StatementName(ParserRuleContext context)
-        {
-            while (context.Parent is ParserRuleContext parent && IsStatementRule(parent.RuleIndex)) context = parent;
-            string rule = CobolParserCore.ruleNames[context.RuleIndex];
-            return SplitCamelCase(rule[..^StatementSuffix.Length]).ToUpperInvariant();
         }
 
         /// <summary>The innermost statement rule context at or below <paramref name="context"/> whose last token is

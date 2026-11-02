@@ -54,6 +54,11 @@ public sealed class ParseRecoveryCascadeTests
     [InlineData("ADD TO \"X\" MOVE 1 W-N. MOVE 2 W-N.", "COBOL0001@TO", "COBOL5506@W-N", "COBOL5506@W-N")]
     // A fault in an IF's condition ends the IF's rule; its END-IF is still the IF's own.
     [InlineData("IF W-N NOT <> 1 DISPLAY \"C\" END-IF. MOVE 1 W-N.", "COBOL0001@<>", "COBOL5506@W-N")]
+    // A terminator an open statement owns is never taken for the left one's: the second IF's empty block is its own fault.
+    [InlineData("IF W-N NOT <> 1 DISPLAY \"C\" END-IF IF W-K = 1 END-IF. MOVE 1 W-N.", "COBOL0001@<>", "COBOL2072@END-IF", "COBOL5506@W-N")]
+    // Two IFs left by two faults: both END-IFs are theirs, and the third IF's empty block is still its own fault.
+    [InlineData("IF W-N NOT <> 1 IF W-K NOT <> 2 DISPLAY \"C\" END-IF END-IF IF W-K = 1 END-IF. MOVE 1 W-N.",
+                "COBOL0001@<>", "COBOL0001@<>", "COBOL2072@END-IF", "COBOL5506@W-N")]
     public void ATerminatorOfAStatementTheRecoveryLeft_IsThatStatementsOwn(string statements, params string[] diagnostics)
         => AssertDiagnostics(statements, diagnostics);
 
