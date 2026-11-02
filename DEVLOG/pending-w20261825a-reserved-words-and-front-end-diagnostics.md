@@ -99,7 +99,9 @@ citation was §13.18.40.2 where the rule is §13.18.40.3 SR6. Goldens `pb4435-oc
 COBOL0901 every other reserved header draws (re-probed). The word ends the division's paragraph list, so the parser has
 left `procedureDivision` when `ReservedProcedureName` reads the error context. It now also reads the division the parse
 completed last (`EndsWithAProcedureDivision`). Golden `pb4284-reserved-header-after-the-last-sentence`, and four rows
-in `AWordReservedAtEveryEdition_DefinedAsAProcedure_IsNamedByCobol0901`.
+in `AWordReservedAtEveryEdition_DefinedAsAProcedure_IsNamedByCobol0901`. The first gate of this link (`000002-20261102T173130Z`) was
+RED on one row: `WrittenKindRefusalTests` pinned `SPACES.` after `P1.` as the PB4224 literal-at-a-statement refusal;
+written alone with its period it is now the reserved header it reads as, so the row writes `SPACES DISPLAY "A".`.
 
 ### PB4312: a diagnostic names the word the user wrote, never its fold
 

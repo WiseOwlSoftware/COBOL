@@ -179,7 +179,9 @@ public sealed class WrittenKindRefusalTests
         "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-end-if", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 DISPLAY \"A\" END-IF. \"B\".\n           STOP RUN.\n",
         "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
-    [InlineData("figurative-after-a-paragraph-header", 2014, Table + "       PROCEDURE DIVISION.\n       P1.\n           SPACES.\n           STOP RUN.\n",
+    // The figurative constant begins a sentence that goes on (`SPACES DISPLAY "A".`): written alone with its period,
+    // `SPACES.` is a paragraph header naming a reserved word, COBOL0901 (kb/Work PB4284).
+    [InlineData("figurative-after-a-paragraph-header", 2014, Table + "       PROCEDURE DIVISION.\n       P1.\n           SPACES DISPLAY \"A\".\n           STOP RUN.\n",
         "COBOL5506: unexpected 'SPACES'. The word SPACES is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-a-section-header", 2002, Table + "       PROCEDURE DIVISION.\n       S1 SECTION.\n       P1.\n           DISPLAY \"A\".\n"
         + "       S2 SECTION.\n           \"B\".\n           STOP RUN.\n",
