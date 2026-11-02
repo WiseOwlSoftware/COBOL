@@ -73,8 +73,4 @@ record type; the phrase test is one walk, no second list of words. Full code: th
 1), 2); 14.5.3.3 4); 5.2.6.3). Performance: the walk runs on the error path only, seeds cached per rule as descriptors (an
 `ATNConfig` a closure merges into is never shared). Duplication: `PhraseWords`, `CollectPhraseWords` deleted, no shim.
 
-**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 20,961/20,961 · Unit 39,369/39,369 · Characterization 37/37 cases ran
-(skipped 0) ===` (run 000001-20261102T184500Z, at the code head; the DEVLOG line added after it is inert). The three new
-goldens' refusals ran at all four editions in `Conformance.trx`. Two leads for the registrar: a repeated paired phrase after
-a left statement stays silent, and an enclosing statement that returns normally after a recovery has no record (a false
-COBOL0306 at its END-IF, identical on main).
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,377/39,377 · Characterization 37/37 cases ran (skipped 0) ===` (run 000001-20261102T194504Z in the review finisher worktree, at the code head 397c11b7d; the DEVLOG line added after it is inert). The four new goldens' refusals ran at all four editions in `Conformance.trx`. Leads for the registrar: a repeated paired phrase after a left statement stays silent; an enclosing statement that returns normally after a recovery has no record (a false COBOL0306 at its END-IF, identical on main); an open statement the parse let take a phrase the ideal reading gives the left IF leaves none for the next one.
