@@ -797,13 +797,14 @@ signature class on both lanes, and the class identity is CANONICAL and group-ind
 minimized signature graph, its reachable classes numbered in first-visit order and every description written by
 `PrototypeSignatures.DescriptionKey`, the relation `Same` reads as a key — so two separately compiled groups describe one
 signature's pointers with one string, and `SignatureIdentityDriftTests` holds the identity to `Same`. While the partition
-is refined a pointer carries its block's provisional position; the canonical identities are stamped once it is stable. A prototype with NO compile-time signature (§12.3.8.4 GR10 c) / GR11 c)) is a class of its
-own marked as such — `PrototypeSignatures.ExternalIdentity`, `ActivationDescription.ExternalRestrictionPrefix` + its
-name — and the SET relation (`ActivationRelations.SamePointerRestriction`, read by `MaySet` alone) lets a restricted
-pointer of that class conform to any restricted pointer of its kind, exactly as `PrototypeSignatures.Same` lets an
-unresolved signature conform (kb/Work PB3162). The identity rules never read the mark: an unresolved prototype is still
-a name, so its pointer passed BY REFERENCE or returned meets a pointer to another prototype as two USAGE clauses (kb/Work
-PB4107, which re-verdicted PB3686's RETURNING reading). A pointer that is a MEMBER of a type declaration or of a group is
+is refined a pointer carries its block's provisional position; the canonical identities are stamped once it is stable. Every
+prototype has a compile-time signature: one whose details §12.3.8.4 GR10 c) / GR11 c) take from the external repository has
+the entry's, decoded and admitted into the partition (DESIGN-external-repository §8.2, §6.4), and a specifier nothing answers
+is REPO-1 — so the SET relation (`ActivationRelations.SamePointerRestriction`, read by `MaySet` alone) compares two
+restricted pointers' signature classes and nothing else (kb/Work PB2103 deleted the "no compile-time signature" class and
+its conform-to-anything mark, which PB3162 had added). The identity rules compare the TO phrase by name: a pointer passed
+BY REFERENCE or returned meets a pointer to another prototype as two USAGE clauses (kb/Work PB4107, which re-verdicted
+PB3686's RETURNING reading). A pointer that is a MEMBER of a type declaration or of a group is
 compared by §8.5.3.1's type-declaration equivalence (`StrongTypeModel.EquivalentTypeDeclarations` /
 `SameElementaryLayout`), whose per-item profile compare (`SameAnalyzedProfile`) elides `PicInfo.RestrictedPrototypeName`
 and `RestrictedTypeName` from the record equality and asks the USAGE clause's TO phrase by the prototype it names
