@@ -115,18 +115,47 @@ public sealed class SymbolTable
     /// NEARER than the survivors' tier leaves NO survivor. The caller then meets an unidentified reference and names the
     /// entry (§13.8.6.2.3, <c>ReportEntryReferenceRefused</c>) instead of using a container's GLOBAL item, which the entry
     /// hides. <paramref name="qualifiers"/> are the ones the reference wrote, which the report entry's own qualification
-    /// must also satisfy.</summary>
-    public List<T> NearestDeclaringNamed<T>(List<T> candidates, Func<T, DataItem> declarationOf, string name,
-                                            IReadOnlyList<string> qualifiers)
+    /// must also satisfy.
+    /// <para>⛔ AND ACROSS THE TWO CLASSES (kb/Work PB4219's sibling): rule 1's set is "all names", so a condition-name and a
+    /// data-name of one spelling compete in it. A contained program's own level-88 RELF is what `RELF` names there, not
+    /// its container's GLOBAL data item RELF, and its own data item RELF hides the container's GLOBAL condition-name RELF:
+    /// each lookup leaves no survivor when the OTHER class declares the spelling nearer (<see cref="NearerConditionNameHides"/>,
+    /// <see cref="NearerDataNameHides"/>), and the caller's own verdict then says what the name is declared as.</para></summary>
+    public List<DataItem> NearestDeclaringData(List<DataItem> candidates, string name, IReadOnlyList<string> qualifiers)
     {
-        var tier = NearestDeclaring(candidates, declarationOf);
-        return tier.Count != 0 && _data.NearerReportEntryHides(name, qualifiers, _data.DeclaringDepth(declarationOf(tier[0])))
+        var tier = NearestDeclaring(candidates, static i => i);
+        if (tier.Count == 0) return tier;
+        int depth = _data.DeclaringDepth(tier[0]);
+        return _data.NearerReportEntryHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
             ? []
             : tier;
     }
 
+    /// <summary>The condition-name twin of <see cref="NearestDeclaringData"/>: the nearest declaring source element's
+    /// condition-names, or none when a data-name (or a report entry) of the spelling is declared nearer
+    /// (<see cref="NearerDataNameHides"/>).</summary>
+    public List<Condition88> NearestDeclaringConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
+    {
+        var tier = NearestDeclaring(candidates, static c => c.Parent);
+        return tier.Count != 0 && NearerDataNameHides(name, qualifiers, _data.DeclaringDepth(tier[0].Parent)) ? [] : tier;
+    }
+
+    /// <summary>⛔ ISO §8.4.6.2.1 3) FOR A DATA-NAME AGAINST A NEARER CONDITION-NAME — does a level-88 of this spelling,
+    /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than <paramref name="depth"/>?
+    /// A type declaration's condition-name identifies nothing alone (§13.18.58.4 GR1), so it hides nothing. Free for a
+    /// unit that inherits nothing (every candidate is then depth 0).</summary>
+    public bool NearerConditionNameHides(string name, IReadOnlyList<string> qualifiers, int depth)
+    {
+        if (depth == 0 || !_data.InheritsGlobalData || !_data.Conditions.TryGetValue(name, out var conditions)) return false;
+        foreach (var c in conditions)
+            if (_data.DeclaringDepth(c.Parent) < depth && !DataBinder.IsTypeDeclarationCondition(c)
+                && _data.ConditionQualifierChainMatches(c, qualifiers))
+                return true;
+        return false;
+    }
+
     /// <summary>The candidates an UNQUALIFIED data-name reference can name: <see cref="TryResolve"/>'s set narrowed
-    /// by <see cref="NearestDeclaringNamed{T}"/> (ISO §8.4.6.2.1 3) — with no qualifier to apply, the nearest declaring
+    /// by <see cref="NearestDeclaringData"/> (ISO §8.4.6.2.1 3) — with no qualifier to apply, the nearest declaring
     /// source element's items are the whole set, and a report entry of a nearer one hides them all). False when the
     /// word names no data item here, or only items a nearer report entry hides. ⛔ A caller that picks among the
     /// candidates BY KIND (the FUNCTION-POINTER of §8.4.3.2.3 SR4, a dynamic-capacity table) filters THIS set, never the
@@ -136,7 +165,7 @@ public sealed class SymbolTable
     public bool TryResolveUnqualified(string name, Scope scope, out List<DataItem> items)
     {
         if (!TryResolve(name, scope, out items)) return false;
-        items = NearestDeclaringNamed(items, static i => i, name, []);
+        items = NearestDeclaringData(items, name, []);
         return items.Count != 0;
     }
 

@@ -456,14 +456,21 @@ off-by-one through every later counter check.
   (FILE STATUS, RELATIVE KEY, LINAGE, APPLY COMMIT), the data-division OCCURS … DEPENDING ON lookup,
   `DataBinder.ResolveAssignUsing` (ASSIGN … USING, kb/Work PB3768) and the record-key resolver `InRecords` inside
   `ResolveFiles` (RECORD KEY / ALTERNATE RECORD KEY, which would otherwise draw SR2's COBOL0863 "references nothing
-  described"); `ReportItemReferenceTests.EveryUndefinedNameArm_AsksTheOneRefusal` names each arm by member. The report
-  section's own clauses are not refused here: their operand rules are theirs (`ReportSectionNameIn`, COBOL2144).
+  described"); `ReportItemReferenceTests.EveryUndefinedNameArm_AsksTheOneRefusal` names each arm by member. A report
+  section clause whose operand names an entry breaks §13.15.3 SR7 ("The data-name shall not be referenced in any other
+  way"), not §13.8.6.2.3: an RD's OCCURS … DEPENDING ON (`ResolveClauseOperand`'s `inReportSection` arm) and the RD CODE
+  clause (`ResolveReportCode`) ask the same refusal with `inReportSection`, which words the position by SR7 alone (kb/Work
+  PB4226); a SOURCE operand keeps its own rule (`ReportSectionNameIn`, §13.18.53.3 SR4, COBOL2144), a CONTROL operand
+  §13.18.16.3 SR2's and a PRESENT WHEN condition §13.15.3 SR16's (COBOL1559). A clause refused in the data phase is not
+  bound again in the procedure phase (`DataBinder.PresentWhenRefused`; a CODE operand binds only once its base item
+  resolved), so each reference draws one verdict.
   **The ambiguity among data items is told first** (kb/Work PB3767): a reference that reaches SEVERAL data items breaks
   §8.4.2.2.3 SR1 whether or not a report entry spells the same. **A report entry takes part in §8.4.6.2.1 3) with the
-  data items, in the lookup itself** (kb/Work PB4196): `SymbolTable.NearestDeclaringNamed`, the ONE narrowing of a
-  qualified data-name or condition-name set (asked by `TryResolveUnqualified`, `DataBinder.QualifiedCandidates` and
-  `QualifiedConditionCandidates`; `NearerDataNameHides` and `DeclaredNearerThan` ask it for the index-name, capacity
-  register and constant classes), keeps the survivors of the nearest declaring source element and leaves NONE when
+  data items, in the lookup itself** (kb/Work PB4196): `SymbolTable.NearestDeclaringData` and
+  `NearestDeclaringConditions`, the narrowings of a qualified data-name or condition-name set (asked by
+  `TryResolveUnqualified`, `DataBinder.QualifiedCandidates` and `QualifiedConditionCandidates`; `NearerDataNameHides` and
+  `DeclaredNearerThan` ask it for the index-name, capacity register and constant classes, and each narrowing asks the
+  other class's nearer declaration too, kb/Work PB4219), keep the survivors of the nearest declaring source element and leave NONE when
   `DataBinder.NearerReportEntryHides` finds a report entry of a nearer one that the written qualifiers reach — "if the name
   is declared in source element B, the item in source element B is the referenced item" (3) a)), however many farther
   GLOBAL data items spell the same, and whether there is one of them (`FILE STATUS IS PV`, `MOVE PV TO W`) or several.

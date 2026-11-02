@@ -8662,7 +8662,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // §8.4.6.2.1 3) AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole
         // set first): the survivors of the nearest declaring source element (kb/Work PB1047 / PB1243), and none when a
         // report entry of a nearer source element is the referenced item (kb/Work PB4196).
-        return new NameCandidates<DataItem>(Symbols.NearestDeclaringNamed(survivors, static i => i, name, quals));
+        return new NameCandidates<DataItem>(Symbols.NearestDeclaringData(survivors, name, quals));
     }
 
     /// <summary>⛔ ISO §8.4.2.2.1 RULE 4, IN THE ONE PLACE EVERY DATA-NAME LOOKUP READS (kb/Work PB1476). "Qualification
@@ -8907,7 +8907,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var matches = qualifiers.Count == 0
             ? list
             : list.Where(c => ConditionQualifierChainMatches(c, qualifiers)).ToList();
-        matches = Symbols.NearestDeclaringNamed(matches, static c => c.Parent, name, qualifiers);   // kb/Work PB4196
+        matches = Symbols.NearestDeclaringConditions(matches, name, qualifiers);   // kb/Work PB4196, PB4219
         return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
     }
 

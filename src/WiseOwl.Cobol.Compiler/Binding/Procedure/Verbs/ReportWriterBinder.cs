@@ -36,7 +36,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             // the same report-section reference again under §13.8.6.2.3 (kb/Work PB4226).
             if (!memo.TryGetValue(c, out var b))
                 memo[c] = b = ctx.Data.PresentWhenRefused(c)
-                    ? new BoundConditionError("a PRESENT WHEN condition refused by ISO §13.15.3 SR16")
+                    ? host.Cond.Refused("a PRESENT WHEN condition refused by ISO §13.15.3 SR16")
                     : host.Cond.BindCondition(c);
             return b;
         }

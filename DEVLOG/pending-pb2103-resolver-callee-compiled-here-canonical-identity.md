@@ -84,6 +84,20 @@ the new `DataBinder.FileDepth`, which replaces `InheritedFileDepth`), `NonDataDe
 condition-name by it, and `ScreenEnclosingFileOperand` lets a non-file name hide the GLOBAL file only when no farther.
 Two goldens pin the repros.
 
+**PB4219's sibling — a condition-name and a data-name of one spelling rank together** (wave 20261819). §8.4.6.2.1 1)
+builds the reference's set from "all names", but each lookup ranked only its own class: a contained program's own
+`88 RELF` beside its container's GLOBAL `01 RELF` compiled `DISPLAY RELF` and displayed the container's 7, and its own
+`01 RELF` beside the container's GLOBAL `88 RELF` compiled `IF RELF` and tested the container's condition. The one
+narrowing `SymbolTable.NearestDeclaringNamed<T>` is now `NearestDeclaringData` and `NearestDeclaringConditions`, each
+leaving no survivor when the other class (or a report entry) declares the spelling nearer
+(`SymbolTable.NearerConditionNameHides` is new; the condition side asks the existing `NearerDataNameHides`); every
+caller changed. `NonDataDeclarationOf` reads the ranked data answer for an unqualified reference. The two repros now
+draw COBOL1639 "is a condition-name" and COBOL2318 "is data item 'RELF'"; goldens
+`cases/8.4.6.2-Local-and-global-names/pb4219_own_condition_name_hides_container_global_data_item` and
+`…/pb4219_own_data_item_hides_container_global_condition_name` are refused at all four editions, and
+`GlobalNameClassDriftTests` asserts both narrowings ask the other class. GR-8.4.6.2.1-3 stays CONFORMS; batch
+`w20261819a-pb4219-cross-class` re-sites its witness.
+
 **PB4226 arm (1) — SEARCH ALL no longer words a condition-name reference twice.** `CheckConditionNameSide` added COBOL1965
 to the condition binder's own verdict (COBOL5092 for a nearer report entry, which it called a condition-name; COBOL1639
 for a misqualified one); it now defers to `ConditionBinder.ReportMisqualifiedCondition`, the one wording.

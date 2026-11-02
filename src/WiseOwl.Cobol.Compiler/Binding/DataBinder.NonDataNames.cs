@@ -75,8 +75,8 @@ public sealed partial class DataBinder
     /// (<see cref="ResolveClauseOperand"/>) and an OCCURS DEPENDING ON object. Each used to screen its own subset, so a
     /// type-name was "not defined" at all three and an alphabet-, constant-, index- or condition-name at the two clause
     /// sites. Null when the name is declared as nothing but data — or as nothing at all — so the caller's own
-    /// uniqueness verdict stands. A data-name of the same spelling wins over a constant-name, a condition-name and
-    /// the type declarations (§8.3.2.2 exception 3 lets a constant-name and a data-name share one word; the others are
+    /// uniqueness verdict stands. A data-name of the same spelling the ranked lookup leaves standing (a condition-name
+    /// declared NEARER hides it, kb/Work PB4219) wins over a constant-name, a condition-name and the type declarations (§8.3.2.2 exception 3 lets a constant-name and a data-name share one word; the others are
     /// a §8.3.2.2 conflict reported at the declaration). A REPORT SECTION entry is
     /// <see cref="ReportEntryReferenceRefused"/>'s: its refusal is a section rule (§13.8.6.2.3), not this one.
     /// <para>⛔ A FILE-NAME AND A CONDITION-NAME ARE RANKED BY THE ELEMENT THAT DECLARES THEM (kb/Work PB4219): ISO
@@ -89,7 +89,12 @@ public sealed partial class DataBinder
     {
         if (ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
         if (IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
-        bool dataName = Symbols.TryResolve(name, scope, out _);
+        // An unqualified reference's data-name answer is the RANKED one (§8.4.6.2.1 3)): a container's GLOBAL data item that
+        // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
+        // one keeps the raw answer, which the callers word as "declared, but not under the given qualifiers".
+        bool dataName = qualifiers.Count == 0
+            ? Symbols.TryResolveUnqualified(name, scope, out _)
+            : Symbols.TryResolve(name, scope, out _);
         if (qualifiers.Count == 0 && !dataName && IsConstantName(name))
             return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name),
                 Depth: _inheritedConstants.GetValueOrDefault(name));
