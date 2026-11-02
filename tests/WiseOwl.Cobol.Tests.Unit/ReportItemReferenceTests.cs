@@ -236,7 +236,7 @@ public sealed class ReportItemReferenceTests
         string dataBinder = Path.Combine(root, "Binding", "DataBinder.cs");
         foreach (string arm in new[]
                  {
-                     "private DataItem? ResolveClauseOperand(",   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
+                     "internal DataItem? ResolveClauseOperand(",   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
                      "private void ResolveAssignUsing(",          // ASSIGN … USING (kb/Work PB3768)
                      "DataItem? InRecords(",                      // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
                  })
