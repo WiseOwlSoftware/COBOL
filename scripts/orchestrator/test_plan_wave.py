@@ -1400,6 +1400,21 @@ if fc:
            [(g.letter, g.after, g.notes) for g in own["groups"]], own["waiting"]),
           ([("A", "", ["PB971"]), ("B", "", ["PB972"]), ("B2", "B", ["PB973"])], {},
            [("A", "", ["PB971", "PB973"]), ("A2", "A", ["PB972"])], {}))
+    # ... and a group with NO blocker never joins a dependency SUCCESSOR on its file (review w20261832a R4-1): it runs
+    # beside, where the successor itself waits on the one-link-per-wave cap
+    fsite = {"PB971": "src/Lib/Alpha.cs", "PB972": "src/Lib/Beta.cs", "PB973": "src/Lib/Beta.cs"}
+    for nid, f in fsite.items():
+        (DW / f"{nid}.md").write_text(chr(10).join(["---", f'title: "{nid} t"', f"id: {nid}", "kind: defect", "status: open",
+                                                    "area: runtime/io", "wrong_answer: false", "process_only: true", "---",
+                                                    "", f"# {nid}", "", "**Sites:**", f"- `{f}`", ""]),
+                                      encoding="utf-8", newline="\n")
+    free = pw.plan(load_notes(DW, {"wrong_answer": 8}),
+                   [{"notes": [{"id": i}], "file": fsite[i], "files": [fsite[i]], "members": {}} for i in fsite],
+                   [], [], lambda b: "ABSENT", {}, {**drules, "wave": {**drules["wave"], "links_per_chain": 1}},
+                   budget_points=100, deps={"PB972": ["PB971"]})
+    check("PB4452: a group with no blocker runs beside a dependency successor on its file, never joins it to wait",
+          ([(g.letter, g.after, g.notes) for g in free["groups"]], sorted(free["waiting"])),
+          ([("A", "", ["PB971"]), ("B", "", ["PB973"])], ["PB972"]))
 
 # 9c. THE PLACEMENT ORDER IS THE TIER, AND A WAVE RUNS ONE LINK PER CHAIN (kb/Work PB3638, the owner's fix-cycle bar).
 #     Wave 20261029 chained two untiered FINISHERS (PB3112, PB2878) ahead of the tier-1 cluster PB3612 on one file,

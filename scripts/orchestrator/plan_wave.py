@@ -735,7 +735,7 @@ def plan_partition(s: PlanState) -> None:
             # the group wait a wave on the chain check below, where running beside costs nothing
             needs = {id(resolve(group_of[b])) for i in g.notes for b in (deps or {}).get(i, []) if b in group_of}
             roomy = [t for t in family if not t.overflow and len(t.notes) + len(g.notes) <= s.cap
-                     and (not needs or needs == {id(t)})]
+                     and (needs == {id(t)} if needs else id(t) not in pred_of)]
             family = holders if holders else roomy[:1]
         if family:
             # ONE STEP PER FILE (kb/Work PB4396): the work of one file family is one group, sized by turns.
