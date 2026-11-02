@@ -57,7 +57,13 @@ semantics).
   at its own first token by `ReferenceResolver.ResolveImpl`, the one chokepoint every verb's operand resolution passes
   through, so an undefined or ambiguous name (COBOL1639) on the continuation line of a long DISPLAY / MOVE / ADD names that
   line and column and not the statement's first token (kb/Work PB4383; `DISPLAY`'s operand screens position per operand,
-  `AcceptDisplayBinder.BindDisplay`). A pass that runs AFTER the
+  `AcceptDisplayBinder.BindDisplay`). What the binder reports about an operand AFTER the
+  resolution is positioned by the member that reports it, because the resolver's scope has closed: the expression mapping
+  (`ExpressionBinder.RefExpr`, `FieldOperand`), the receiving chokepoint (`ResolveReceiving`, `RefuseNonReceivable`), the
+  arithmetic resultant's category screen (`ScreenResultant`) and the literal screens each open `At(...)` on the operand,
+  so COBOL1637, COBOL0844, COBOL1675 and the receiving bars of a continued statement name the operand's line and column
+  (kb/Work PB4406; `PostResolutionOperandPositionDriftTests` lists the members, `DiagnosticPositionTests` pins the position).
+  A pass that runs AFTER the
   bind, over the BOUND tree (`VersionConformancePass`'s bound-tree arm: the SORT/MERGE/COMMIT/ROLLBACK placement
   rules, the SET and MOVE statement gates), has no parse tree to read, and a bound node carries no span: the
   position is `BoundStatement.At`, stamped on every statement node by the same funnel (`StatementBinder.BindStatement`,

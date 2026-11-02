@@ -152,7 +152,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // the direct Refs.Resolve bypass skipped the CONSTANT RECORD / CAPACITY-register / constant-name
             // screens, and §14.9.12.3 SR2 fixes its category (numeric or numeric-edited).
             if (host.Expr.ResolveReceiving(rem.receivingIdentifier()) is not { } r0
-                || host.Expr.ScreenResultant(r0, rem.receivingIdentifier().GetText(), editedOk: true, "§14.9.12.3 SR2") is not { } r)
+                || host.Expr.ScreenResultant(r0, rem.receivingIdentifier(), editedOk: true, "§14.9.12.3 SR2") is not { } r)
                 return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.receivingIdentifier().GetText()}'");
             BoundExpr dividend = div.divideIntoPhrase() is { } i ? host.Expr.BindExpr(i.receiversOrSendingOperand())
                 : div.divideByPhrase() is not null ? a

@@ -106,6 +106,40 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.Contains(lines, d => d.Contains("pb4383e.cob(10,16): error COBOL1637"));
     }
 
+    /// <summary>kb/Work PB4406 (the post-resolution half of PB4383): the screens that run AFTER a reference resolved — the
+    /// expression mapping's (§13.18.38.3 r7 index-name, §8.8.1.1 class, LINAGE-COUNTER, a keyword-omitted function), the
+    /// receiving chokepoint's bars, the arithmetic resultant's category (§14.9.2.3 …) and a literal's refusal — name the
+    /// OPERAND'S own line and column. The statement is on line 12 of the program below, its continuation on line 13.</summary>
+    [Theory]
+    [InlineData("           COMPUTE N = 1\n               + IX.", 13, 18, "COBOL1637")]    // §13.18.38.3 r7: index-name inside an arithmetic expression
+    [InlineData("           COMPUTE N = 1\n               + W.", 13, 18, "COBOL0844")]     // §8.8.1.1: alphanumeric item
+    [InlineData("           COMPUTE N = 1\n               + G.", 13, 18, "COBOL0844")]     // §8.8.1.1: group item
+    [InlineData("           COMPUTE N = 1\n               + IDX.", 13, 18, "COBOL0844")]   // §13.18.60.3 SR10: index data item
+    [InlineData("           COMPUTE N = 1\n               + UPPER-CASE(\"B\").", 13, 18, "COBOL1543")]   // §8.4.3.2.3: undeclared keyword-omitted function
+    [InlineData("           COMPUTE N = 1\n               + LINAGE-COUNTER.", 13, 18, "COBOL0864")]      // §8.4.3.14: no LINAGE clause
+    [InlineData("           COMPUTE N = 1\n               + 1.0E+9000.", 13, 18, "COBOL1661")]          // §8.3.3.3.3 r3: exponent range
+    [InlineData("           ADD 1 TO N\n               W.", 13, 16, "COBOL1675")]            // §14.9.2.3: resultant category
+    [InlineData("           ADD 1 TO N\n               NE.", 13, 16, "COBOL1675")]           // §14.9.2.3: numeric-edited barred in place
+    [InlineData("           ADD 1 TO N\n               G.", 13, 16, "COBOL1675")]            // group resultant
+    [InlineData("           SUBTRACT 1 FROM N\n               IDX.", 13, 16, "COBOL1675")]   // index data item resultant
+    [InlineData("           MULTIPLY 2 BY N\n               W.", 13, 16, "COBOL1675")]       // §14.9.26.3 SR1
+    [InlineData("           DIVIDE 2 INTO N GIVING N REMAINDER\n               W.", 13, 16, "COBOL1675")]   // §14.9.12.3 SR2
+    [InlineData("           MOVE 1 TO N\n               LINE-COUNTER.", 13, 16, "COBOL2197")]          // §8.4.3.15.3
+    [InlineData("           ADD 1 TO N\n               LINAGE-COUNTER.", 13, 16, "COBOL2026")]         // §8.4.3.14.3
+    [InlineData("           ADD 1 TO N\n               ADDRESS OF W.", 13, 16, "COBOL3979")]           // a data-address-identifier as a receiver
+    [InlineData("           ADD \"A\" TO\n               N.", 12, 16, "COBOL0844")]                   // §8.8.1.1: the literal, not the verb
+    public void PostResolutionScreen_NamesTheOperandsOwnLineAndColumn(string statement, int line, int column, string code)
+    {
+        Write("pb4406.cob",
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4406.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n"
+            + "       01 W PIC X.\n       01 N PIC 9.\n       01 NE PIC 9.9.\n       01 G.\n          05 E OCCURS 2 INDEXED BY IX PIC X.\n"
+            + "       01 IDX USAGE INDEX.\n       PROCEDURE DIVISION.\n" + statement + "\n           STOP RUN.\n");
+        var (ok, lines) = Compile("pb4406.cob");
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains($"pb4406.cob({line},{column}): error {code}"));
+        Assert.DoesNotContain(lines, d => d.Contains("pb4406.cob(12,12): error"));   // the statement's own first token
+    }
+
     [Fact] // kb/Work PB1728: a PICTURE string's trimmed clause separator (`PIC X, VALUE …`) must not shift the column
     // of every later token on the line — the lexer used to seek back over the ',' without restoring its column, so a
     // diagnostic on the VALUE literal pointed one column right. The two lines differ only in ',' versus ' ', so the

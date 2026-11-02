@@ -210,6 +210,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     public BoundOperand? NonNumericLiteralOperand(Core.NonNumericLiteralContext? nn)
     {
         if (nn is null) return null;
+        using var _ = ctx.Edition.At(nn);   // kb/Work PB4406 — a refusal of this literal stands at the literal
         // A concatenation expression folds to its equivalent single literal at COMPILE time (ISO §8.8.3.3
         // GR3 — "equivalent to a literal of the same class and value"): no BoundConcat node, no emitter leg;
         // the folded value rides the same operand shapes the plain literals produce (P10 Step 14).
@@ -238,9 +239,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>A <c>literal</c> node as an operand: the non-numeric forms through the ONE
     /// <see cref="NonNumericLiteralOperand"/> mapping, else a numeric literal under the edition digit cap
     /// (ISO §8.3.3.3.2).</summary>
-    public BoundOperand LiteralOperand(Core.LiteralContext lit) =>
-        NonNumericLiteralOperand(lit.nonNumericLiteral())
-        ?? NumericLiteralOperand(lit.GetText());
+    public BoundOperand LiteralOperand(Core.LiteralContext lit)
+    {
+        using var _ = ctx.Edition.At(lit);   // kb/Work PB4406 — the digit-cap and exponent-range screens stand at the literal
+        return NonNumericLiteralOperand(lit.nonNumericLiteral())
+            ?? NumericLiteralOperand(lit.GetText());
+    }
 
     /// <summary>⛔ THE ONE PRODUCER OF A NUMERIC LITERAL OPERAND THE PROGRAM WROTE (a literal, or the constant-name that
     /// substitutes one): the value is <see cref="CheckLiteral"/>'s canonical dot-decimal text, and the literal keeps
@@ -388,8 +392,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         new BoundAllLiteral(sym.Value) { Category = sym.National ? PicCategory.National : PicCategory.Alphanumeric,
             BeginsWithAll = false };   // the BARE Format-7 reference — fill semantics without the word ALL
 
-    public BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
-        host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
+    public BoundOperand FieldOperand(Core.DataReferenceContext dref)
+    {
+        // ⛔ A DIAGNOSTIC ABOUT A REFERENCE STANDS AT THE REFERENCE, FOR EVERY ARM BELOW (kb/Work PB4406, the
+        // post-resolution half of PB4383): ReferenceResolver.ResolveImpl positions what the resolution reports,
+        // and this scope positions what the mapping reports after it (the LINAGE-COUNTER refusal, a keyword-omitted
+        // function's COBOL1543), so an operand on a continuation line is never reported at the statement's first token.
+        using var _ = ctx.Edition.At(dref);
+        return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
                 : BoundOperandError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
@@ -400,6 +410,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
         : LiteralAliasOperand(dref) is { } alias ? alias   // a constant-name or symbolic-character stands for a literal (kb/Work PB1544)
         : ctx.Refs.Resolve(dref) is var r && r.Place is { } p ? new BoundFieldOperand(p) : r.OperandError(ctx.Edition);   // kb/Work PB1030
+    }
 
     /// <summary>The §13.18.38.3 r7 screen for an operand slot OUTSIDE the five contexts that may reference an
     /// index-name (a subscript · PERFORM VARYING · SEARCH VARYING · SET · a relation-condition operand) — kb/Work
@@ -516,10 +527,16 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// occurrence number (valid in SET/SEARCH/relations, ISO §13.18.38); the LINAGE-COUNTER register reads its
     /// file's runtime counter (ISO §8.4.3.14 GR1 — an unsigned integer); otherwise the resolved item's value.
     /// The ONE dataReference→<see cref="BoundExpr"/> mapping, used by every expression path.</summary>
-    private BoundExpr RefExpr(Core.DataReferenceContext dref, OperandContext context) =>
+    private BoundExpr RefExpr(Core.DataReferenceContext dref, OperandContext context)
+    {
+        // ⛔ A DIAGNOSTIC ABOUT A REFERENCE STANDS AT THE REFERENCE (kb/Work PB4406, the post-resolution half of
+        // PB4383): every screen below runs AFTER ReferenceResolver.ResolveImpl positioned its own — the index-name
+        // COBOL1637, the §8.8.1.1 class COBOL0844, the LINAGE-COUNTER refusal, a keyword-omitted function's
+        // COBOL1543 — so this scope is what puts them on the operand's line of a continued statement.
+        using var _ = ctx.Edition.At(dref);
         // §8.4.3.2.3 SR2 — a repository intrinsic/function name + (args) without FUNCTION: a function-identifier
         // like any other, so it takes the SAME §8.8.1.1 class screen (kb/Work PB1142).
-        host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? ScreenIdentifierOperand(kof, dref, context)
+        return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? ScreenIdentifierOperand(kof, dref, context)
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
                 : BoundExprError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
@@ -536,6 +553,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 : NonNumericAliasExpr(alias)
         : ctx.Refs.Resolve(dref) is var r && r.Place is { } p ? OperandRef(dref, p, context)
         : r.ExprError(ctx.Edition);   // kb/Work PB1030 — the resolver's answer picks Refused or Unbuilt
+    }
 
     /// <summary>The §13.18.38.3 r7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
     /// the arithmetic sibling of R16's statement-slot screen). r7's closed context list admits an index-name
@@ -833,6 +851,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// receivable.</para></summary>
     public Place? ResolveReceiving(Core.DataReferenceContext dref)
     {
+        // ⛔ EVERY REFUSAL BELOW STANDS AT THE RECEIVER (kb/Work PB4406, the post-resolution half of PB4383): the form
+        // and place bars and the deferred-shape error are raised here, after ResolveImpl's own scope has closed, so a
+        // receiver on a continuation line was reported at the statement's first token.
+        using var _ = ctx.Edition.At(dref);
         if (ReceivingFormBar(dref) is { } formBar) return Refuse(formBar);
         // ⛔ PAGE-COUNTER IS A RECEIVING-CAPABLE PLACE, NOT A PER-VERB PERMISSION (kb/Work PB429). §8.4.3.15.3
         // SR1 — "In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where
@@ -917,6 +939,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// reference, worded once by <see cref="UnreservedKeywordReference"/>.</summary>
     internal Place? RefuseNonReceivable(NonReceivableForm form, Antlr4.Runtime.ParserRuleContext written)
     {
+        using var _ = ctx.Edition.At(written);   // kb/Work PB4406 — the refusal names the form, so it stands at the form
         if (written.Start.Type is CobolLexer.SELF or CobolLexer.SUPER or CobolLexer.NULL_ or CobolLexer.ADDRESS
             && UnreservedKeywordReference.IsFreeAt(written.Start.Text, ctx.Edition))
         {
@@ -1029,8 +1052,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// which is the <paramref name="editedOk"/> parameter. Collapsing the two would either lose that axis or
     /// smuggle a receiver rule into the sending screen. The two DO share the class vocabulary
     /// (<c>ClassOfPlace</c> / <c>ClassOfItem</c>) already, which is the part that must not fork.</para></summary>
-    internal Place? ScreenResultant(Place p, string refText, bool editedOk, string clause)
+    internal Place? ScreenResultant(Place p, Antlr4.Runtime.ParserRuleContext written, bool editedOk, string clause)
     {
+        using var _ = ctx.Edition.At(written);   // kb/Work PB4406 — the resultant's own position, not the statement's
+        string refText = written.GetText();
         var pic = p.Item.Pic;
         // ⛔ THE IDENTITY QUESTION, ASKED ONCE (kb/Work PB602). It used to be `p is not RefModPlace` — PB128's
         // route AROUND the fact that a decorated place reported the item underneath — and §8.4.3.3.4 GR5's
@@ -1074,7 +1099,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// an unresolvable or rejected reference is dropped after its diagnostic.</summary>
     public List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops, bool editedOk, string clause) =>
         ops.Select(o => ResolveReceiving(o.receivingIdentifier()) is { } p
-                && ScreenResultant(p, o.receivingIdentifier().GetText(), editedOk, clause) is { } sp
+                && ScreenResultant(p, o.receivingIdentifier(), editedOk, clause) is { } sp
                 ? ReceiverOf(sp, o.roundedPhrase()) : null)
            .OfType<Receiver>().ToList();
 
@@ -1082,7 +1107,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// optional ROUNDED), each carrying its own mode; a literal BY operand (only valid in a GIVING form) is dropped.</summary>
     public List<Receiver> Receivers(IEnumerable<Core.MultiplyByOperandContext> ops) =>
         ops.Select(o => o.receivingOperand()?.receivingIdentifier() is { } d && ResolveReceiving(d) is { } p
-                && ScreenResultant(p, d.GetText(), editedOk: false, "§14.9.26.3 SR1") is { } sp
+                && ScreenResultant(p, d, editedOk: false, "§14.9.26.3 SR1") is { } sp
                 ? ReceiverOf(sp, o.roundedPhrase()) : null)
            .OfType<Receiver>().ToList();
 
@@ -1090,7 +1115,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// ROUNDED) — §14.9.8.3 SR1 admits elementary numeric or numeric-edited.</summary>
     public List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) =>
         stores.Select(s => ResolveReceiving(s.receivingIdentifier()) is { } p
-                && ScreenResultant(p, s.receivingIdentifier().GetText(), editedOk: true, "§14.9.8.3 SR1") is { } sp
+                && ScreenResultant(p, s.receivingIdentifier(), editedOk: true, "§14.9.8.3 SR1") is { } sp
                 ? ReceiverOf(sp, s.roundedPhrase()) : null)
               .OfType<Receiver>().ToList();
 
@@ -1158,9 +1183,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// wrapped spelling of the same operand cited §8.8.1.1 alone (kb/Work PB218). The remaining two delegating
     /// arms — <c>BindExprCore</c> and <c>RefExpr</c> — still cite §8.8.1.1 alone; that residue is DECLARED in
     /// docs/rearchitecture/DESIGN-binder-bound-tree.md's funnel entry table rather than left to be rediscovered.</param>
-    private BoundExpr NumLiteral(Core.LiteralContext lit, string? positionRule = null) =>
-        NonNumericInNumericContext(lit.nonNumericLiteral(), lit.GetText(), positionRule)
-        ?? NumericLiteralExpr(lit.GetText());
+    private BoundExpr NumLiteral(Core.LiteralContext lit, string? positionRule = null)
+    {
+        using var _ = ctx.Edition.At(lit);   // kb/Work PB4406 — the literal's own position, for the digit-cap and range screens
+        return NonNumericInNumericContext(lit.nonNumericLiteral(), lit.GetText(), positionRule)
+            ?? NumericLiteralExpr(lit.GetText());
+    }
 
     /// <summary>A COMPUTE right side that parsed as a boolean-expression but is a sole figurative ZERO
     /// (<see cref="ComputeFormats.SoleFigurativeZero"/>), read as the Format 1 arithmetic expression §8.8.1.1 makes it:
@@ -1207,6 +1235,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private BoundExpr? NonNumericInNumericContext(Core.NonNumericLiteralContext? nn, string text, string? positionRule)
     {
         if (nn is null) return null;
+        using var _ = ctx.Edition.At(nn);   // kb/Work PB4406 — the refusal of a non-numeric literal stands at the literal
         string where = positionRule is null ? "" : $" — {positionRule}";
         if (nn.concatenationExpression() is not null)
         {
@@ -1338,6 +1367,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     private BoundExpr BindPrimary(Core.PrimaryExpressionContext pe, OperandContext context)
     {
+        using var _ = ctx.Edition.At(pe);   // kb/Work PB4406 — every refusal below stands at the primary, not at the statement
         if (pe.numericLiteral() is { } num) return NumericLiteralExpr(num.GetText());
         if (pe.ZERO_ARITH() is { } zero)
             return ZeroOperand(writtenAll: pe.ALL() is not null,
@@ -1479,6 +1509,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// address-identifier (class pointer): none is "an identifier referencing a numeric data item".</summary>
     private BoundExpr NotNumericIdentifier(Antlr4.Runtime.ParserRuleContext written)
     {
+        using var _ = ctx.Edition.At(written);   // kb/Work PB4406 — the refusal stands at the operand
         string what = $"'{DataBinder.WrittenText(written)}'";
         ctx.Edition.Error("COBOL0844", $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an identifier "
             + "referencing a NUMERIC data item, a numeric literal, or the figurative constant ZERO in an arithmetic "
