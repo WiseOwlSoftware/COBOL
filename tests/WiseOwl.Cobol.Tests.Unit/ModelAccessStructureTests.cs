@@ -86,10 +86,10 @@ public sealed class ModelAccessStructureTests
         // The carrier-resident formal: its storage is reached through its carrier, a structural step.
         var formal = Unit("PB4320A").Data.LinkageFormals.Single();
         Assert.True(formal.CarrierResident);
-        Assert.Equal(formal.CarrierField, formal.Item.ResidentCarrier);
+        Assert.Equal(new FormalCarrier.Member(formal.CarrierField), formal.Item.ResidentCarrier);
         var place = Assert.IsType<MemberPlace>(Unit("PB4320A").Refs.ResolveItem(formal.Item));
         Assert.Equal([typeof(RootFieldSegment), typeof(CarrierValueSegment)], place.Path.Segments.Select(s => s.GetType()));
-        Assert.Equal(formal.CarrierField, ((RootFieldSegment)place.Path.Segments[0]).CsField);
+        Assert.Equal(formal.CarrierField, ((RootFieldSegment)place.Path.Segments[0]).MemberClrName);
 
         // The contained program's bridge to it: the carrier's name, anchored one containing instance out.
         var carrierBridge = Unit("PB4320B").Bridges.Single(b => b.Kind == CallBridgeKind.Carrier);
@@ -109,11 +109,52 @@ public sealed class ModelAccessStructureTests
         Assert.Equal(["G", "K"], chain.Select(d => d.CobolName));
     }
 
-    /// <summary>The two records that held joined access text now carry no string but the bridged member's NAME: a new
-    /// string property on either is a failure here until it is shown to be a name, not an access.</summary>
+    // PB4380K: a METHOD whose elementary USING formal is carrier-resident (§14.2.3 GR8), the method arm of PB4320A's L-X.
+    private const string MethodSource = """
+               IDENTIFICATION DIVISION.
+               CLASS-ID. PB4380K.
+               OBJECT.
+               PROCEDURE DIVISION.
+               METHOD-ID. BUMP.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 L-N PIC 9(4).
+               PROCEDURE DIVISION USING L-N.
+                   ADD 1 TO L-N.
+               END METHOD BUMP.
+               END OBJECT.
+               END CLASS PB4380K.
+        """;
+
+    /// <summary>⛔ A METHOD'S CARRIER IS A LOCAL, NAMED BY ITS IDENTITY (kb/Work PB4380; DESIGN-backend-abstraction §1.2,
+    /// §1.3 L8). The method arm's carrier-resident formal is reached through the method-local carrier, so its access path
+    /// is rooted at a <see cref="LocalRootSegment"/> holding the formal's <see cref="StatementLocalRole.MethodFormalCarrier"/>
+    /// identity, never at a <see cref="RootFieldSegment"/> holding the C# local's name, as it was before PB4380.</summary>
+    [Fact]
+    public void AMethodsResidentFormal_IsRootedAtItsCarrierLocalsIdentity()
+    {
+        var comp = RepositoryCodecTests.Bind(MethodSource, 2023);
+        var cls = comp.ClassUnits.Single(c => c.Name == "PB4380K");
+        var formal = cls.Data.OoBoundMethods.Single().Binding!.Formals.Single();
+        Assert.True(formal.CarrierResident);
+        var carrier = new StatementLocal(StatementLocalRole.MethodFormalCarrier, formal.Item.Uid);
+        Assert.Equal(new FormalCarrier.Local(carrier), formal.Item.ResidentCarrier);
+        var place = Assert.IsType<MemberPlace>(cls.Refs.ResolveItem(formal.Item));
+        Assert.Equal([typeof(LocalRootSegment), typeof(CarrierValueSegment)], place.Path.Segments.Select(s => s.GetType()));
+        var root = (LocalRootSegment)place.Path.Segments[0];
+        Assert.Equal(carrier, root.Local);
+        Assert.Equal(OmittedFormalGuard.Of(formal.Item), root.Guard);
+    }
+
+    /// <summary>The records that held joined access text or a local's name now carry no string but a member's NAME: a new
+    /// string property on any of them is a failure here until it is shown to be a name, not an access or a local.</summary>
     [Theory]
     [InlineData(typeof(CallBridge), "MemberClrName")]
     [InlineData(typeof(BoundTableSortKey))]
+    [InlineData(typeof(RootFieldSegment), "MemberClrName")]
+    [InlineData(typeof(LocalRootSegment))]
+    [InlineData(typeof(FormalCarrier.Member), "MemberClrName")]
+    [InlineData(typeof(FormalCarrier.Local))]
     public void TheFormerAccessTextCarriers_HoldNoStringButAName(Type carrier, params string[] names)
     {
         var strings = carrier.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)

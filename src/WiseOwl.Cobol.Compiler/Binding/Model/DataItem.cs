@@ -779,17 +779,19 @@ public sealed class DataItem
         "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
     public OmittedFormalGuard? OmittedGuard { get; set; }
 
-    /// <summary>⛔ The name of the <c>ManagedPointer&lt;T&gt;</c> CARRIER through which a CARRIER-RESIDENT formal
-    /// parameter's storage is reached on every access — the program class's <c>__lnk{Uid}</c> member
-    /// (<c>LinkageFormal.CarrierField</c>) or the method's carrier local (<c>OoFormal.CarrierLocal</c>) — and null for
-    /// every other item. ISO §14.2.3 GR8: "the activated runtime element operates as if the formal parameter occupies
-    /// the same storage area as the argument", so the item has no storage member of its own. Every access path rooted
-    /// here starts at the carrier and steps through <see cref="CarrierValueSegment"/> (<c>ReferenceResolver.AddRoot</c>),
-    /// so the access is structure and <see cref="ClrName"/> stays a name (kb/Work PB4320; DESIGN-backend-abstraction
-    /// §1.3 L7). Set by <c>DataBinder.CallBindLinkage</c> and <c>DataBinder.OoBindMethodData</c>.</summary>
+    /// <summary>⛔ The <c>ManagedPointer&lt;T&gt;</c> CARRIER through which a CARRIER-RESIDENT formal parameter's storage
+    /// is reached on every access — the program class's carrier member (<see cref="FormalCarrier.Member"/>,
+    /// <c>LinkageFormal.CarrierField</c>) or the method's carrier local (<see cref="FormalCarrier.Local"/>,
+    /// <c>OoFormal.Carrier</c>) — and null for every other item. ISO §14.2.3 GR8: "the activated runtime element operates
+    /// as if the formal parameter occupies the same storage area as the argument", so the item has no storage member of
+    /// its own. Every access path rooted here starts at the carrier's root and steps through
+    /// <see cref="CarrierValueSegment"/> (<c>ReferenceResolver.AddRoot</c>), so the access is structure,
+    /// <see cref="ClrName"/> stays a name (kb/Work PB4320) and no C# local's name sits on the model (kb/Work PB4380;
+    /// DESIGN-backend-abstraction §1.3 L7, L8). Set by <c>DataBinder.CallBindLinkage</c> and
+    /// <c>DataBinder.OoBindMethodData</c>.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
-    public string? ResidentCarrier { get; set; }
+    public FormalCarrier? ResidentCarrier { get; set; }
 
     /// <summary>True for a BASED 01/77 entry (ISO §13.18.5 — a storage TEMPLATE with an implicit data-address
     /// pointer, initially NULL; no storage of its own until SET ADDRESS OF / ALLOCATE gives it one). The
