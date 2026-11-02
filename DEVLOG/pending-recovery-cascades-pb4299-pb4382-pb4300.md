@@ -1,4 +1,4 @@
-## Recovery cascades: a faulted sentence no longer swallows the program, a left statement keeps its terminator, and COBOL2073 names only a misplaced WHEN OTHER (PB4299, PB4382, PB4300)
+## Syntax-error recovery and wording: a faulted sentence no longer swallows the program, a left statement keeps its terminator, COBOL2073 names only a misplaced WHEN OTHER, a withdrawn verb is named, a literal at a sentence start is refused as one (PB4299, PB4382, PB4300, PB4360, PB4425)
 
 Wave 20261822, group A: the `CobolErrorStrategy` notes, fixed at their root in harm order.
 
@@ -62,3 +62,10 @@ statement block (ISO 14.5.1: a sentence ends at its separator period; 14.5.3.1: 
 of its statement name). A user-defined word or an integer there may be a paragraph-name whose period is missing (8.3.2.2
 3)), which the missing-period guess keeps saying. Rows in `WrittenKindRefusalTests` at four editions, after a sentence,
 END-IF, a paragraph header, a section header and the division header; refusal `pb4425-literal-where-the-next-sentence-begins`.
+
+**Left open, for a successor (the group proved to be several mechanisms):** PB4426 (the admitted set after a completed
+operand, with the dead statement-element counting in `AdmittedKinds.Name`) and PB4301 (the closed-format residue arm
+should defer to a closed clause that takes the token, `OCCURS 0 TO TIMES`, and name the run's opening word). Self-review
+found the terminator pairing too wide (any terminator, not only an unowned one) and narrowed it; semgrep verify passed
+with no rule count risen. Gate at 8e242b481: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,768/20,768 · Unit
+39,273/39,273 · Characterization 37/37 cases ran (skipped 0) ===` (run 000002-20261102T110043Z).
