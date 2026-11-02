@@ -836,11 +836,13 @@ def inputs_text(inputs: dict) -> str:
         items.append(f'the fix lane\'s groups: {UNMEASURED} (the <span class="mono">tools/claude-skills</span> submodule '
                      f'is not checked out here)')
     if rules:
+        from clusters import notes_cap, turn_budget  # noqa: PLC0415  (the planner's group size, kb/Work PB4396)
         w, c, cal = rules["wave"], rules["cost"], rules["calibration"]["tokens_per_point"]
         m = inputs["implementer_model"]
         items.append(f'the planner (<span class="mono">model_rules.json</span> <span class="mono">wave</span>): '
-                     f'{n(w["max_notes_per_group"])} notes per group (a campaign\'s and a held cluster\'s groups are counted '
-                     f'at this cap, a lower bound: a campaign clusters by the sites its notes name), {n(w["max_groups"])} groups '
+                     f'up to {n(notes_cap(rules))} notes per group, the notes whose predicted turns fit '
+                     f'{n(round(turn_budget(rules)))} turns (kb/Work PB4396; a campaign\'s and a held cluster\'s groups are counted '
+                     f'at this size, a lower bound: a campaign clusters by the sites its notes name), {n(w["max_groups"])} groups '
                      f'per wave, implementers on {e(m)} unless routed to Opus (the default is <span class="mono">.claude/agents/cobol-implementer.md</span>\'s model)')
         items.append(f'the cost constants (<span class="mono">cost</span>, <span class="mono">calibration</span>): a group '
                      f'{n(c["per_group_tokens"][m])} + {n(c["per_note_tokens"][m])} tokens per note at {n(cal[m])} {e(m)} '
@@ -1317,7 +1319,7 @@ def self_test() -> int:
     cells = re.findall(r'<td class="r">(.*?)</td>', est)
     check("a missing input renders UNMEASURED, never a number",
           bool(cells) and all(c == UNMEASURED for c in cells), str(cells)[:300])
-    rules = {"wave": {"max_notes_per_group": 5, "max_groups": 8},
+    rules = {"wave": {"turns_per_group": 65, "turns_per_note": 20.5, "turn_budget_fraction": 0.75, "max_groups": 8},
              "cost": {"per_group_tokens": {"sonnet": 400000}, "per_note_tokens": {"sonnet": 240000},
                       "landing_tokens": 96000, "landing_model": "opus"},
              "calibration": {"tokens_per_point": {"sonnet": 4000000, "opus": 1600000}}}

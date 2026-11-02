@@ -410,7 +410,7 @@ explains every listed case; a fix-lane landing, which legitimately changes emitt
 
 **Drift.** `ArchOracleDriftTests` holds every `[PartitionedRowSource]` of the Conformance assembly enrolled, every
 non-sentinel row a case, no two rows one case, and an observation free of machine paths and the clock. It pins the
-enumerator; no capture is committed for it to pin (kb/Work PB3107, `LandingPipelineDriftTests` keeps it so).
+enumerator; no capture is committed for it to pin (kb/Work PB3107, `landing_rules.py --self-test` keeps it so).
 
 **Item 3 is not yet built.** The token-stream and parse-tree differential for grammar changes is the next step, and
 kb/Work PB2113 and PB2114 are its first consumers. It needs a capture of the lexer's token stream and the parse
@@ -480,7 +480,7 @@ chooses its preview (PB1754), two .NET 11 items are candidates for R1 to evaluat
 Layout and duplication only. Test behavior is the oracle and is not rewritten, except to follow a renamed
 production type. Scripts follow the same no-wrapper rule, and the same one-rule-in-one-place rule: a rule every script
 needs is stated once per shell and the statements are held equal by a drift test (the interpreter every gate script
-runs: `scripts/python-resolve.sh` and its PowerShell twin, `PythonInterpreterDriftTests`,
+runs: `scripts/python-resolve.sh` and its PowerShell twin, `scripts/toolchain_audit.py`,
 DESIGN-test-build-ci.md §3.14.11, kb/Work PB3197).
 
 ## 6. Risks
@@ -1927,7 +1927,7 @@ test keeps alive** and is deleted with the tests that test only it, as the findi
 reviewer applies the rule; a Sonnet wave executes (c).
 
 **The R3 size estimate, in the planner's units.** Every number below is `plan_wave.py --cluster PB2119 --dry-run`'s own
-output (an implementer GROUP is at most `model_rules.json` `wave.max_notes_per_group` notes on one file chain, five when these counts were computed; a
+output (an implementer GROUP was at most five notes on one file chain when these counts were computed, the count cap kb/Work PB4396 replaced with `clusters.notes_cap`, the notes one implementer's turns hold; a
 TRAIN is five groups, `wave.train_size`; the model is what `choose_model` routes), never a sum of targets. Because the
 planner groups NOTES (`plan_wave.py:217-221`), §8.3's step orders are notes, so these counts include them. The
 planner plans only what is unblocked and collides with nothing, and chains a note's successors inside one wave, so the

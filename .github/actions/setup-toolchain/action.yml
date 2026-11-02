@@ -1,5 +1,5 @@
-# ⛔ THE ONE WAY A JOB OF THIS REPOSITORY GETS ITS TOOLS (kb/Work PB3308, PB4007; DotnetSdkInstallDriftTests,
-# ToolchainManifestDriftTests; DESIGN-test-build-ci.md §1.4). Every job's first step after its checkout.
+# ⛔ THE ONE WAY A JOB OF THIS REPOSITORY GETS ITS TOOLS (kb/Work PB3308, PB4007; scripts/toolchain_audit.py
+# holds it; DESIGN-test-build-ci.md §1.4). Every job's first step after its checkout.
 #
 # It installs the exact versions toolchain.env names and puts them first on PATH: Python through actions/setup-python,
 # and every tool `python scripts/toolchain.py ci-installs` names (the .NET SDK, the JDK, pwsh, gh and jq: the rows of

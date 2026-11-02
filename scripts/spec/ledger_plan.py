@@ -252,7 +252,8 @@ def estimate(sizes: list[int] | None, inputs: dict) -> dict:
 
 def bucket_estimates(rem: dict, inputs: dict) -> dict:
     rules = inputs.get("rules")
-    cap = rules["wave"]["max_notes_per_group"] if rules else 1
+    from clusters import notes_cap  # noqa: PLC0415  (the planner's group size, kb/Work PB4396, never a copy)
+    cap = notes_cap(rules) if rules else 1
     out = {}
     for key, release in (("compiler", False), ("gap", False), ("held", True)):
         sizes, unplanned = group_sizes(rem[key]["ids"], rem["lanes"], inputs.get("fix_groups"), cap, release)
@@ -436,7 +437,7 @@ def self_test() -> int:
     check("register_counts before inventory_rows existed",
           register_counts([{"id": "PB1", "status": "open", "kind": "defect"}], {"R-1"})["gap_holders"], None)
 
-    rules = {"wave": {"max_notes_per_group": 5, "max_groups": 8},
+    rules = {"wave": {"turns_per_group": 65, "turns_per_note": 20.5, "turn_budget_fraction": 0.75, "max_groups": 8},
              "cost": {"per_group_tokens": {"sonnet": 400000}, "per_note_tokens": {"sonnet": 240000},
                       "landing_tokens": 96000, "landing_model": "opus"},
              "calibration": {"tokens_per_point": {"sonnet": 4000000, "opus": 1600000}}}

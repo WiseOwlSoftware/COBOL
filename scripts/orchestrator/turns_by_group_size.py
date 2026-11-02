@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """turns_by_group_size.py — the turns a fix-lane agent spent against the number of notes its group carried: the
-measurement `model_rules.json` `wave.max_notes_per_group_source` cites (kb/Work PB3641).
+measurement `model_rules.json` `wave.group_turns_source` cites (kb/Work PB3641, PB4396).
 
 WHY. PB3611 raised the group cap from 5 to 8 notes on a fit computed by an untracked scratch script that counted the
 note ids in each REPORT's title: 188 of the 316 reports it read counted 0 notes (their titles name none), so the line
@@ -10,7 +10,7 @@ measurement lives here, and it counts the notes where the planner wrote them: th
 SPEC (`DISPATCH SPEC — wave <n> (<L>), <label>: PB…, PB…`, written by `make_dispatch_specs.py`).
 
 THE JOIN. A report in the coordination directory's reports directory (`coord.reports_dir()`) is named
-`w<wave><letter>-<lead>-report.md` (coord.REPORT_NAME, the one fix-lane report name; a same-file successor's
+`w<wave><letter>-<lead>-report.md` (coord.REPORT_NAME, the one fix-lane report name; a successor's
 letter carries its digit, `w1021b2-…`); its spec is `msg-w<wave>-<letter>.txt` under the scratch directory (searched
 three levels down: the wave's own scratch, or the operator's `op/`). A `w*-report.md` that is no group report (a train,
 refute or filing report) is left out and counted as such. A spec name found more than once with different note
@@ -77,7 +77,7 @@ def measure(cdir: pathlib.Path) -> dict:
         if not t:
             skipped["no turns figure"] += 1
             continue
-        # A same-file successor (`w1021b2-…`) is the group `b2`, whose spec is `msg-w1021-b2.txt` (make_dispatch_specs.py).
+        # A successor (`w1021b2-…`) is the group `b2`, whose spec is `msg-w1021-b2.txt` (make_dispatch_specs.py).
         name = f"msg-w{m.group('wave')}-{m.group('letter')}.txt"
         if name not in specs:
             skipped["no spec"] += 1
@@ -150,7 +150,7 @@ def self_test() -> int:
     spec("op/msg-w9001-c.txt", "PB1005")
     spec("w9001/msg-w9001-c.txt", "PB1006")        # the same name, other notes: ambiguous
     spec("op/msg-w9001-e.txt", "PB1007, PB1008, PB1009")
-    spec("w9001/msg-w9001-b2.txt", "PB1012, PB1013")              # a same-file successor's spec
+    spec("w9001/msg-w9001-b2.txt", "PB1012, PB1013")              # a successor's spec
     report("w9001a-PB1001-report.md", "DONE\n**Status:** DONE · **turns:** ~80 of 220 · **worktree:** x")
     report("w9001b-PB1002-report.md", "SPLIT\n**Status:** SPLIT · **turns:** ~120 of 220")
     report("w9001c-PB1005-report.md", "DONE\n**Status:** DONE · **turns:** ~50 of 220")
