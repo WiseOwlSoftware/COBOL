@@ -50,6 +50,24 @@ SIZE ERROR` twice after a left ADD) are one `conditionalPhrases` loop whose coun
 evaluate it, so such a repeat stays silent as before. A first attempt that refused them by kind turned the silence into a
 false COBOL0306 at the END-ADD (the carried report), which is worse, so it was not kept.
 
+**Branch review round 1, R1-1 (blocking, fixed).** `Sync`'s `ConsumesALeftStatementsTerminator` took an older open IF's
+END-IF as a left IF's own even after the next phrase of a containing statement had ended the left IF (ISO §14.5.3.3 4) b)):
+`IF A IF B ELSE DISPLAY X ELSE DISPLAY Y END-IF END-IF.` gave COBOL2072 only where main gave the true stray COBOL0306 at the
+second END-IF (the same with a WHEN of an open EVALUATE). The record hygiene retired a record only at a period, at its
+own terminator or when an enclosing statement of another kind ended; nothing retired it at a phrase the parse gave to the
+open statement without a failure. `EndsLeftStatementsAtAContainingStatementsPhrase` now runs first in `Sync`: where the
+token is a phrase word an open statement takes (`OpenStatementTaking`, a walk of the rule invocations outward over their own
+next tokens), the records begun after that statement are decided newest first, the word the next phrase of the first
+whose format permits it (recorded, so a repeat decides the other way) and a record whose format does not ended by it.
+The first attempt retired a record at the second synchronization point of the same word (the word was already in its
+`Phrases`); a word taken already is the record's own. One golden refused at the four editions, six unit rows (the
+finding's two scenarios, the correct whole programs, the condition-fault IF whose ELSE is its own). Sweep over the arms
+(WHEN OTHER twice, ON SIZE ERROR/NOT ON SIZE ERROR inside an IF, EVALUATE inside an IF): three inputs changed, each
+toward the spec (the stray END-IF or END-ADD now drawn where the old recovery swallowed it). R1-2 (the CONTINUE citation,
+§14.9.9.1) fixed. R1-3 stays a lead (the repeated paired phrase needs the left-statement arm in
+`ConditionalPhraseAssociation`, another file). New lead: an open statement the parse let take a phrase that the ideal
+reading gives the left IF (`IF A IF B NOT <> 1 DISPLAY C ELSE D ELSE E END-IF END-IF`) has none for the second ELSE.
+
 **Self-review.** Architecture: the two terminator decisions (unowned, older-open) share `TakenByALeftStatement` and one
 record type; the phrase test is one walk, no second list of words. Full code: the citations are `cite.py --check`ed (14.5.3.2
 1), 2); 14.5.3.3 4); 5.2.6.3). Performance: the walk runs on the error path only, seeds cached per rule as descriptors (an

@@ -204,6 +204,64 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return true;
     }
 
+    /// <summary>⛔ THE NEXT PHRASE OF A CONTAINING STATEMENT ENDS THE LEFT STATEMENTS INSIDE IT (kb/Work PB4447 review R1-1;
+    /// ISO §14.5.3.3 4) b)). A conditional statement contained within another is implicitly terminated by "the next phrase
+    /// of any containing statement", and "any phrase encountered is the next phrase of the most-recently preceding
+    /// unterminated statement with which that phrase may be syntactically associated". <c>IF A IF B ELSE DISPLAY X ELSE
+    /// DISPLAY Y END-IF END-IF.</c>: the inner IF is left at its first ELSE (its statement-1 is missing), has taken the one
+    /// ELSE its format permits, and so the second is the outer IF's, which ends the inner IF: the first END-IF is the
+    /// outer IF's, the second a stray one. The parse takes the second ELSE as the open outer IF's phrase without any
+    /// failure, so no recovery sees it, and the inner IF's record would take the first END-IF
+    /// (<see cref="ConsumesALeftStatementsTerminator"/>) and leave the outer IF the second. At a synchronization point where
+    /// the token is a phrase word the statements OPEN on the parser's stack take (not a statement's start, not a
+    /// terminator), the records of the statements begun after that open statement are decided newest first: the word is the
+    /// next phrase of a record whose format permits it (its own, recorded: the newest such statement is the one it is
+    /// associated with), and a record whose format does not is ended by it and retired. A phrase word of a statement begun
+    /// after the record ends nothing the record holds.</summary>
+    private void EndsLeftStatementsAtAContainingStatementsPhrase(Parser recognizer)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        var token = stream.LT(1);
+        if (token.Type is CobolLexer.DOT or TokenConstants.EOF || ScopeTerminator(recognizer, token.Type) is not null
+            || OpenStatementTaking(recognizer, token.Type) is not { Start: { } begun })
+            return;
+        while (TakenByALeftStatement(recognizer, token, left => left.Start > begun.TokenIndex, consume: false, out var left))
+        {
+            // Every synchronization point at this token meets it again: a word taken already is the record's own.
+            if (left!.Phrases.Contains(token.TokenIndex)) return;
+            if (IsTheNextPhraseOf(recognizer, left, token.TokenIndex))
+            {
+                left.Phrases.Add(token.TokenIndex);
+                return;
+            }
+            _leftByRecovery.Remove(left);
+        }
+    }
+
+    /// <summary>The statement open on the parser's stack that takes a token of type <paramref name="type"/> as one of its own
+    /// phrases here, or null: the first rule invocation, going out from the parser's position through the rules that may end
+    /// where it stands, whose own next tokens hold the type, and the nearest statement an explicit scope terminator closes
+    /// at or above it. Null where the rule the parser is in takes the token itself (a statement's start), or where no
+    /// invocation outside it does.</summary>
+    private static ParserRuleContext? OpenStatementTaking(Parser recognizer, int type)
+    {
+        var atn = recognizer.Atn;
+        var local = atn.NextTokens(atn.states[recognizer.State]);
+        for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
+        {
+            if (local.Contains(type))
+            {
+                if (ReferenceEquals(c, recognizer.Context)) return null;
+                for (; c is not null; c = c.Parent)
+                    if (ClosedByATerminator(recognizer, c.RuleIndex)) return c as ParserRuleContext;
+                return null;
+            }
+            if (!local.Contains(TokenConstants.EPSILON) || c.invokingState < 0) return null;
+            local = atn.NextTokens(((RuleTransition)atn.states[c.invokingState].Transition(0)).followState);
+        }
+        return null;
+    }
+
     /// <summary>⛔ A PHRASE WORD OF A STATEMENT THE RECOVERY LEFT CONTINUES THAT STATEMENT, WHILE THE STATEMENT'S FORMAT PERMITS
     /// ANOTHER OCCURRENCE OF THE PHRASE (kb/Work PB4436 review R1-1, PB4449). <c>IF A DISPLAY "Q" IF B END-IF ELSE DISPLAY "Z"
     /// END-IF.</c>: the first IF's block cannot take the second IF, whose statement-1 is missing, so the prediction ended the
@@ -1316,7 +1374,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // An embedded block that stands where no statement may begin is nothing, consumed here, each of a run of them,
         // and the decision then syncs on what follows them, as the precompiler writes it (PB4341).
         while (!InErrorRecoveryMode(recognizer) && SkipsEmbeddedBlock(recognizer)) { }
-        if (_leftByRecovery.Count > 0 && ConsumesALeftStatementsTerminator(recognizer)) return;
+        if (_leftByRecovery.Count > 0)
+        {
+            EndsLeftStatementsAtAContainingStatementsPhrase(recognizer);
+            if (ConsumesALeftStatementsTerminator(recognizer)) return;
+        }
         if (!InErrorRecoveryMode(recognizer) && IsClosedFormatResidueAhead(recognizer))
         {
             ReportUnwantedToken(recognizer);
@@ -1995,7 +2057,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// WORDS AS ONE STATEMENT (kb/Work PB4449). The words are the tokens from <paramref name="first"/> up to where a
         /// statement may begin (<c>ELSE</c>; <c>WHEN OTHER</c>; <c>WHEN</c> and its selection objects; <c>NOT ON SIZE
         /// ERROR</c>): the walk takes them one at a time, and the first position that takes a statement (CONTINUE, the
-        /// no-operation statement, ISO §14.9.9.2, as <see cref="EmptyBlockOwner"/> uses it) is the block's, which one CONTINUE
+        /// no-operation statement, ISO §14.9.9.1, as <see cref="EmptyBlockOwner"/> uses it) is the block's, which one CONTINUE
         /// stands for: what the real statements between this phrase and the next are is no phrase's concern. False, the
         /// walk where it stopped, where a token the phrase cannot hold comes first (a period, the end of the input, a word
         /// no position takes), so a phrase whose permitted occurrences were all written is not taken again: after

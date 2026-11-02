@@ -1618,6 +1618,19 @@ target:
   of its kind is OPEN on the parser's stack and a record due began AFTER it: the newer statement owns the terminator, so
   the open one never sees it, and the statements between go on as written. Where no statement of the kind is open the
   terminator is unowned, which `EndsAStatementTheRecoveryLeft` answers at its report.
+  **The next phrase of a containing statement ends the left statements inside it** (PB4447 review R1-1; ISO §14.5.3.3 4)
+  b): a conditional statement contained within another is terminated by "the next phrase of any containing statement"):
+  `IF A IF B ELSE DISPLAY X ELSE DISPLAY Y END-IF END-IF.` The left IF B took the one ELSE its format prints, so the
+  second is the open IF A's; the parse takes it without a failure, and B's record would then take the first END-IF
+  (`ConsumesALeftStatementsTerminator`) and leave A the second, hiding the true stray. So `Sync` first runs
+  `EndsLeftStatementsAtAContainingStatementsPhrase`: where the token is a phrase word an OPEN statement takes
+  (`OpenStatementTaking`: the first rule invocation outward from the parser's position whose own next tokens hold it,
+  and the nearest terminated statement at or above), the records begun after that statement are decided newest first:
+  the word is the next phrase of the first whose format permits it (recorded in its `Phrases`, so a second occurrence
+  decides the other way), and a record whose format does not is ended by it and retired (an EVALUATE's WHEN ends a
+  left IF the same way). **Not covered, a lead:** an open statement the parse let take a phrase that the ideal
+  reading gives the left one (`IF A IF B NOT <> 1 DISPLAY C ELSE D ELSE E END-IF END-IF`: the parse's A took the first
+  ELSE) has no phrase left for the second, which is reported where the ideal reading has none to report.
   **A fault deep inside a statement ends every list around it early** (PB4447): the SLL prediction that died inside the
   innermost malformed statement ended the preceding statement of EACH enclosing list before the statement that holds it
   (`IF A DISPLAY "Z" IF B IF C ELSE … END-IF END-IF ELSE DISPLAY "Y" END-IF`: IF A ended before IF B), so `NoteLeftBefore`
