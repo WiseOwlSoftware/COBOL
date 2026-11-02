@@ -585,7 +585,7 @@ and the pre-bind reader (`PreBindConstants`) follows the same chain for an AS ph
 
 Several general rules say a value is computed **once, before the statement's effect**, and then used several
 times. The bound tree expresses that with a statement-scoped **pre-op**: a binder appends a `BoundStatement` to
-the shared `DataBinder.PendingPreOps`, and the `StatementBinder.BindStatement` chokepoint drains its own suffix
+the shared `ProcedureBindState.PendingPreOps`, and the `StatementBinder.BindStatement` chokepoint drains its own suffix
 into a `BoundSequence` placed ahead of the carrying statement (mark on entry, drain the suffix — the same
 protocol a hoisted user-function activation and a §15.4 function-bearing subscript temp already use). Registration
 ORDER is evaluation order, so a nested materialization precedes its consumer without extra wiring.

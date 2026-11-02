@@ -958,7 +958,7 @@ public sealed partial class DataBinder
         // strictly worse than the bind diagnostic it replaced. The two-arm shape, nine lines apart.
         foreach (var leaf in leaves)
             if (leaf.Pic is { Category: PicCategory.Numeric, HasImageByteForm: true })
-                MarkImageForced(leaf);   // the collected image fact
+                State.ImageForcedItems.Add(leaf);   // the collected image fact
         return cls;
     }
 

@@ -95,7 +95,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// <param name="recipe">The seed recipe the members' <see cref="Physical.Init"/> compose by — the OTHER input
     /// Init varies on (kb/Work PB1267), so it is part of the memo key; everything else in a Physical is still the
     /// declaration's alone. ⛔ A THIRD INPUT is the INITIAL-STATE CONTEXT (kb/Work PB1134): the OPTIONS clause in force
-    /// (<c>Data.Options</c>) and the LOCAL-STORAGE roots of the activation being emitted (<c>ActivationLocalRoots</c>)
+    /// (<see cref="EmitContext.Options"/>) and the LOCAL-STORAGE roots of the activation being emitted (<c>ActivationLocalRoots</c>)
     /// decide what a VALUE-less item is filled with (<c>InitialStateBackground</c>). <c>OoEmitter</c> swaps both for an OO
     /// method's LOCAL-STORAGE, so the key carries them: without that a method-local group's members were answered from the
     /// entry the CLASS-level emission cached first, with no background, and a group under a method's
@@ -109,7 +109,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
         // with it — one entry per group everywhere else, one per (group, occurrence tuple) on the spine, which
         // is proportional to the source the emitter writes for that table anyway. The recipe adds at most one
         // entry per group inside an INITIALIZED dynamic-capacity table's element.
-        var key = (owner, owner.ContainsTableValue ? subs : default, recipe, (object?)ctx.Data.Options, (object?)ctx.ActivationLocalRoots);
+        var key = (owner, owner.ContainsTableValue ? subs : default, recipe, (object?)ctx.Options.Current, (object?)ctx.ActivationLocalRoots);
         if (_physCache.TryGetValue(key, out var cached)) return cached;
         ListBuilds++;
         var list = BuildPhysicals(owner.Children, subs, recipe).ToList();

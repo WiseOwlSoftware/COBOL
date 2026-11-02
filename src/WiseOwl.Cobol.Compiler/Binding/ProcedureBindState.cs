@@ -1,0 +1,189 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Runtime.InteropServices;
+
+using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Oo;
+
+namespace WiseOwl.Cobol.Binding;
+
+/// <summary>
+/// The state procedure binding keeps that is no fact at all (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1);
+/// kb/Work PB2296), in the three shapes the data pipeline has no word for. It is not part of <see cref="DataBindState"/>:
+/// a value slice is frozen when its phase ends and a fact set only grows, and each of these changes and changes back
+/// while ONE phase, ProcedureBound, walks the statements in order.
+/// <list type="bullet">
+/// <item>A SCOPED OVERRIDE (<see cref="Scoped{T}"/>): <see cref="Options"/>, the unit's OPTIONS model, which a method's
+/// own OPTIONS paragraph overrides for that method's sentences (ISO §11.9.4 GR1; kb/Work PB135).</item>
+/// <item>An ORDERED DRAIN QUEUE (<see cref="DrainQueue{T}"/>): <see cref="PendingPreOps"/> and
+/// <see cref="PropertyOps"/>, statement-scoped — a statement marks the queue when it starts binding and takes only the
+/// entries registered after its mark, so a reference in an IF condition belongs to the IF, not to an arm that binds
+/// later.</item>
+/// <item>A SCOPE CURSOR (<see cref="Cursor{T}"/>): <see cref="OperandEvaluations"/>, entered at zero per statement, and
+/// <see cref="ActiveMethodScope"/>, entered per procedure-table entry.</item>
+/// </list>
+/// Each unit's <see cref="DataBinder"/> holds one, because the statement walk, the reference resolver and the binder's
+/// own name lookup all reach it through the unit's binder (a class's methods bind through their half's binder).
+/// </summary>
+internal sealed class ProcedureBindState
+{
+    /// <summary>The OPTIONS model the statement now binding is governed by: the unit's own (<see cref="DataBinder.Options"/>,
+    /// the root value), or, while a method's sentences bind, the method's own OPTIONS model pushed over it
+    /// (<c>StatementBinder.BindClassBody</c>; §11.9.4 GR1). Read per statement: the default rounding
+    /// (<c>ExpressionBinder</c>) and the arithmetic mode (<c>IntrinsicBinder</c>, <c>SetBinder</c>).</summary>
+    public Scoped<OptionsModel> Options { get; }
+
+    /// <summary>⛔ THE ONE statement-scoped pending PRE-OP queue — every activation that must run BEFORE the carrying
+    /// statement, in REGISTRATION order. Its clients register here:
+    /// <list type="bullet">
+    ///   <item>a user-defined function activation (<c>UdfBinder</c>, ISO §8.4.3.2.4 GR1 — the caller-side
+    ///         <c>BoundCallProgram</c> into the result temp), and an inline method invocation (§8.4.3.4.4 GR1);</item>
+    ///   <item>a function-bearing subscript or reference-modifier segment's §15.4 temporary store
+    ///         (<c>StatementBinder.BindPositionTemporary</c>);</item>
+    ///   <item>a function argument's held value and its object-property GETs, placed at the argument's position by
+    ///         <c>ArgumentOrder</c> (§8.4.3.2.4 GR2; kb/Work PB1423, PB1932).</item>
+    /// </list>
+    /// <para>⛔ ONE QUEUE, NOT TWO, AND THAT IS A CORRECTNESS REQUIREMENT rather than tidiness: the two kinds INTERLEAVE. A
+    /// function subscript inside a user-function argument — <c>FUNCTION F(W-E(FUNCTION INTEGER(3)))</c> — registers the
+    /// subscript temp while F's arguments bind and F's activation after, so only a single queue in registration order
+    /// puts the store before the activation that consumes it.</para>
+    /// <para>Both kinds are UNCONDITIONAL pre-ops with identical hoist rules, because §8.4.3.2.3 SR1 makes a
+    /// function-identifier a non-receiving operand — so unlike <see cref="PropertyOps"/> there is no store-polarity
+    /// classification and there are no post-ops. <c>UdfBinder.Mark</c> is the mark of the mark-on-entry /
+    /// drain-own-suffix protocol at the <c>BindStatement</c> chokepoint, and it covers both queues.</para></summary>
+    public DrainQueue<Bound.BoundStatement> PendingPreOps { get; } = new();
+
+    /// <summary>The unit's un-drained object-property reference ops (§8.4.3.9): statement-scoped like
+    /// <see cref="PendingPreOps"/>, and drained by <c>OoBinder.OoWrapPropertyOps</c> into the GET before and the SET after
+    /// the statement that names the property.</summary>
+    public DrainQueue<DataBinder.OoPendingPropertyOp> PropertyOps { get; } = new();
+
+    /// <summary>How many OPERAND-EVALUATION steps (<see cref="Bound.BoundStatement.OperandEvaluation"/> — a function
+    /// reference, an inline method invocation, an object-property accessor, a §15.4 function-bearing subscript's temporary
+    /// store; kb/Work PB892, PB1432) the statement now binding has drained so far — the test
+    /// <c>StatementBinder.BindStatement</c> uses to wrap that statement in its <c>BoundActivationSite</c>. Entered at zero
+    /// around each statement, so a nested statement's activations count toward the nested statement only (§14.9.33.4 GR2
+    /// a) 3.: "the lowest level statement, not the containing statement").</summary>
+    public Cursor<int> OperandEvaluations { get; } = new(0);
+
+    /// <summary>The name scope of the method whose statements are CURRENTLY being bound — entered per procedure-table entry
+    /// by <c>BinderContext.EnterMethodScope</c>; null while binding program-, object- or factory-level code. A data-name
+    /// lookup made while it is entered answers from the method first (§11.7.4 GR5); the storage-claim resolution
+    /// (<c>DataBinder.ResolveStorageClaimHead</c>) and the migration-flag pass (<c>FlagConformancePass</c>) enter it for
+    /// the one method whose names they resolve.</summary>
+    public Cursor<OoMethodDataScope?> ActiveMethodScope { get; } = new(null);
+
+    /// <summary>The state of a unit whose OPTIONS model is <paramref name="options"/>'s value.</summary>
+    internal ProcedureBindState(Func<OptionsModel> options) => Options = new Scoped<OptionsModel>(options);
+}
+
+/// <summary>A SCOPED OVERRIDE (§8.3 (1)): a value with a root and, over it, the values pushed by the scopes now open.
+/// <see cref="Push"/> returns the scope whose disposal restores the value the push replaced, so an override can only end
+/// where it began.</summary>
+internal sealed class Scoped<T>
+{
+    private readonly Func<T> _root;
+    private T _pushed = default!;
+    private int _depth;
+
+    /// <summary>A value whose root is read from <paramref name="root"/> each time no push is open (the root is the unit's
+    /// own value, which its producer may set after this object exists).</summary>
+    public Scoped(Func<T> root) => _root = root;
+
+    /// <summary>The innermost pushed value, else the root.</summary>
+    public T Current => _depth > 0 ? _pushed : _root();
+
+    /// <summary>Override the value with <paramref name="value"/> until the returned scope is disposed.</summary>
+    public RestoreScope Push(T value)
+    {
+        var scope = new RestoreScope(this, _pushed, _depth);
+        _pushed = value;
+        _depth++;
+        return scope;
+    }
+
+    /// <summary>The scope of one <see cref="Push"/>: disposing it restores the value the push replaced.</summary>
+    public readonly struct RestoreScope(Scoped<T> owner, T previous, int depth) : IDisposable
+    {
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            owner._pushed = previous;
+            owner._depth = depth;
+        }
+    }
+}
+
+/// <summary>A SCOPE CURSOR (§8.3 (1)): a position in the walk that a scope enters and its exit restores.
+/// <see cref="Enter"/> returns the scope whose disposal puts back the value the entry replaced; <see cref="Advance"/>
+/// moves the cursor inside the scope now open (an operand-evaluation count growing as the statement drains its steps),
+/// and that scope's exit discards the move with the rest of the scope.</summary>
+internal sealed class Cursor<T>(T initial)
+{
+    /// <summary>The cursor's value now.</summary>
+    public T Current { get; private set; } = initial;
+
+    /// <summary>Set the cursor to <paramref name="value"/> until the returned scope is disposed.</summary>
+    public RestoreScope Enter(T value)
+    {
+        var scope = new RestoreScope(this, Current);
+        Current = value;
+        return scope;
+    }
+
+    /// <summary>Move the cursor to <paramref name="value"/> within the scope now open; that scope's exit restores the value
+    /// it entered over.</summary>
+    public void Advance(T value) => Current = value;
+
+    /// <summary>The scope of one <see cref="Enter"/>: disposing it restores the value the entry replaced.</summary>
+    public readonly struct RestoreScope(Cursor<T> owner, T previous) : IDisposable
+    {
+        /// <inheritdoc/>
+        public void Dispose() => owner.Current = previous;
+    }
+}
+
+/// <summary>An ORDERED DRAIN QUEUE (§8.3 (1)): entries in registration order, taken by the binder that marked the queue
+/// before they were registered. <see cref="Mark"/> is the position the next entry takes; <see cref="DrainFrom"/> returns and
+/// removes every entry after a mark, in registration order. The queue admits no other removal: an entry leaves only with
+/// the suffix of the mark it was registered after. An entry may be placed at an earlier position of the queue
+/// (<see cref="InsertAt"/>), the evaluation-order placement a freeze needs (§14.6.4: an operand's evaluation precedes a
+/// later operand's).</summary>
+internal sealed class DrainQueue<T>
+{
+    private readonly List<T> _entries = [];
+
+    /// <summary>The position the next registered entry takes — the mark a binder takes before the operands whose entries it
+    /// owns bind.</summary>
+    public int Mark() => _entries.Count;
+
+    /// <summary>True when some entry was registered after <paramref name="mark"/>.</summary>
+    public bool AnyAfter(int mark) => _entries.Count > mark;
+
+    /// <summary>Register <paramref name="entry"/> at the end of the queue.</summary>
+    public void Add(T entry) => _entries.Add(entry);
+
+    /// <summary>Register <paramref name="entries"/>, in their order, at the end of the queue.</summary>
+    public void AddRange(IEnumerable<T> entries) => _entries.AddRange(entries);
+
+    /// <summary>Place <paramref name="entry"/> at <paramref name="position"/>, ahead of the entries registered after that
+    /// position.</summary>
+    public void InsertAt(int position, T entry) => _entries.Insert(position, entry);
+
+    /// <summary>Place <paramref name="entries"/>, in their order, at <paramref name="position"/>.</summary>
+    public void InsertAt(int position, IEnumerable<T> entries) => _entries.InsertRange(position, entries);
+
+    /// <summary>Take every entry registered after <paramref name="mark"/>, in registration order, removing them from the
+    /// queue. Empty when none was.</summary>
+    public List<T> DrainFrom(int mark)
+    {
+        if (_entries.Count <= mark) return [];
+        var taken = _entries.GetRange(mark, _entries.Count - mark);
+        _entries.RemoveRange(mark, taken.Count);
+        return taken;
+    }
+
+    /// <summary>The entries registered after <paramref name="mark"/>, in registration order, left in the queue (a binder
+    /// that reads what an operand registered without taking it).</summary>
+    public ReadOnlySpan<T> Since(int mark) => CollectionsMarshal.AsSpan(_entries)[mark..];
+}

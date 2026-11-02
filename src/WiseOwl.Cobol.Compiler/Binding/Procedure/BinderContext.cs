@@ -45,7 +45,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     public Scope ActiveScope => data.ActiveScope;
 
     /// <summary>Compilation options (arithmetic mode for the composite cap, DEFAULT ROUNDED mode).</summary>
-    public OptionsModel Options => data.Options;
+    public OptionsModel Options => data.Procedure.Options.Current;
 
     /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the intrinsic binder resolves a
     /// function-name synonym / removal through it. <c>Empty</c> when there is no directive.</summary>
@@ -145,13 +145,13 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
 
     /// <summary>Enter a per-pc bind position as ONE scoped operation (10s — replaces the ambient ordered
     /// quadruple mutation): section → method scope → the §11.7 GR5 data shadowing
-    /// (<c>Data.ActiveMethodScope</c>) → cursor, set coherently and restored together on dispose.</summary>
+    /// (<c>Data.Procedure.ActiveMethodScope</c>) → cursor, set coherently and restored together on dispose.</summary>
     public BindPositionScope EnterMethodScope(SectionInfo? section, OoMethodScope? scope, int pc)
     {
-        var token = new BindPositionScope(this, CurrentSection, CurrentMethodScope, Data.ActiveMethodScope, BindCursor);
+        var token = new BindPositionScope(this, CurrentSection, CurrentMethodScope,
+            Data.Procedure.ActiveMethodScope.Enter(scope?.Data), BindCursor);
         CurrentSection = section;
         CurrentMethodScope = scope;
-        Data.ActiveMethodScope = scope?.Data;
         BindCursor = pc;
         return token;
     }
@@ -159,13 +159,14 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// <summary>The restore token of <see cref="EnterMethodScope"/> — disposing re-establishes the PRIOR
     /// quadruple (so sequential per-iteration scopes leave the pre-loop state at loop exit).</summary>
     public readonly struct BindPositionScope(
-        BinderContext ctx, SectionInfo? section, OoMethodScope? scope, OoMethodDataScope? dataScope, int pc) : IDisposable
+        BinderContext ctx, SectionInfo? section, OoMethodScope? scope, Cursor<OoMethodDataScope?>.RestoreScope dataScope, int pc)
+        : IDisposable
     {
         public void Dispose()
         {
             ctx.CurrentSection = section;
             ctx.CurrentMethodScope = scope;
-            ctx.Data.ActiveMethodScope = dataScope;
+            dataScope.Dispose();
             ctx.BindCursor = pc;
         }
     }

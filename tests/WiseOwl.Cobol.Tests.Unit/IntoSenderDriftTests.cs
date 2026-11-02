@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>⛔ <b>THE BUILDER MOVED, AND THIS TEST MOVED WITH IT (kb/Work PB348).</b> It used to name
 /// <c>SequentialIoEmitter.IntoSender</c> and the three EMITTERS. The implicit move of an INTO phrase is now
 /// BOUND, not synthesized at emission — an operand is a bind-time object, and building it downstream of the
-/// binder is what kept the §14.9.25.3 MOVE syntax rules and the <c>MarkImageForced</c> storage facts off it —
+/// binder is what kept the §14.9.25.3 MOVE syntax rules and the <c>DataBindState.ImageForcedItems</c> storage facts off it —
 /// so the one builder is <c>MoveBinder.BindIntoPhrase</c> and the three arms are the three BINDERS. The
 /// invariant is unchanged; only its address is.</para>
 /// <para><b>What this can and cannot see.</b> It counts CONSTRUCTIONS of the operand across the compiler's

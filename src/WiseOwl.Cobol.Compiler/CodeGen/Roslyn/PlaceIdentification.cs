@@ -130,7 +130,7 @@ internal static class PlaceIdentification
 
     /// <summary>The operand with its data reference frozen — a field operand's <see cref="Place"/>; a literal, a
     /// figurative or a function result has no run-time address of its own (a function-identifier's argument
-    /// subscripts were hoisted at bind time, <c>DataBinder.PendingPreOps</c>) and is returned unchanged.</summary>
+    /// subscripts were hoisted at bind time, <c>ProcedureBindState.PendingPreOps</c>) and is returned unchanged.</summary>
     public static BoundOperand? Freeze(BoundOperand? op, Func<string, string> hoist) =>
         op is BoundFieldOperand f ? f with { Place = Freeze(f.Place, hoist) } : op;
 

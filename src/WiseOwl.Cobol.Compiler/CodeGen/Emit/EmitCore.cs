@@ -34,6 +34,12 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// <summary>The bound DATA DIVISION model.</summary>
     public DataBinder Data { get; } = data;
 
+    /// <summary>The OPTIONS model the code now emitted is governed by (ISO §11.9.4 GR1): the unit's own
+    /// (<see cref="DataBinder.Options"/>, the root value), or a METHOD's own OPTIONS model, which
+    /// <c>OoEmitter.EmitMethod</c> pushes over it around the method's LOCAL-STORAGE initializers (kb/Work PB1215) — the
+    /// emitter's own scope, as <see cref="ProcedureBindState.Options"/> is the statement binder's.</summary>
+    public Scoped<OptionsModel> Options { get; } = new(() => data.Options);
+
     /// <summary>⛔ THE LOCAL-STORAGE ROOTS OF THE ACTIVATION BEING INITIALIZED, when it is not the unit's own — an OO
     /// METHOD's (kb/Work PB1215). <see cref="Data"/> is the CLASS half's data model, whose <c>LocalStorageRoots</c>
     /// never list a method's LOCAL-STORAGE (it binds into the method's own <c>Binding.LocalRoots</c>), so the §11.9.10.4

@@ -1535,7 +1535,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// cap through its else-branch. Unreachable today — the mode is declined at bind — but a lane that answers
     /// a question it was never asked is the half of a double defence that rots first.</para></summary>
     private string DigitCapFlag =>
-        ArithmeticModes.NumvalDigitCap(ctx.Data.Options.Arithmetic) is var cap && cap != ArithmeticModes.DefaultDigitCap
+        ArithmeticModes.NumvalDigitCap(ctx.Options.Current.Arithmetic) is var cap && cap != ArithmeticModes.DefaultDigitCap
             ? $", digitCap: {cap}" : "";
 
     /// <summary>The landing form past the Int128 carrier for a quantizer / exact-family parse (kb/Work PB77) — the

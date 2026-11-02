@@ -272,50 +272,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// this binder's element's.</summary>
     private Dictionary<string, DataItem> TypeDeclsOf(Model.Scope scope) => scope.Method?.TypeDecls ?? TypeDecls;
 
-    /// <summary>
-    /// Group items used as a WHOLE character-image operand (MOVE/DISPLAY/compare/ACCEPT/record I-O/whole-group
-    /// CORRESPONDING pair/boundary formal) — collected AFTER binding by <see cref="Passes.UsageCollectionPass"/>'s
-    /// typed walk of the bound tree (+ the structural FILE-record and boundary-formal sources), NOT by
-    /// <see cref="ReferenceResolver"/> mid-resolve (which over-collected every RESOLVED group; PHASE-05 Step 5). The
-    /// <c>StorageFormPass</c> consults this to decide which numeric-DISPLAY leaves must store their character
-    /// image (ISO §14.9.25.4 MOVE GR4 — a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).
-    /// </summary>
-    public HashSet<DataItem> WholeGroupReferenced { get; } = [];
+    /// <summary>The unit's data-binding state (<see cref="DataBindState"/>; docs/rearchitecture/DESIGN-architecture-review.md
+    /// §8.3 (1), kb/Work PB2296): its value slices and its four append-only fact sets. Every reader of those facts reads
+    /// through it.</summary>
+    public DataBindState State { get; } = new();
 
-    /// <summary>ELEMENTARY items a CHARACTER CHANNEL can write — collected after binding by
-    /// <see cref="Passes.UsageCollectionPass"/> beside <see cref="WholeGroupReferenced"/>, and promoted by
-    /// <c>StorageFormPass</c> exactly as a whole-referenced group's leaves are (kb/Work PB992). A channel that
-    /// delivers CHARACTERS rather than a value — §14.9.25.4 GR4's group move into an elementary receiver, and
-    /// §14.2.3 GR8's shared storage between a BY REFERENCE argument and its formal parameter, where §14.8.2.3.2
-    /// rule 1 admits a formal of any description "of the same length", and the CALL RETURNING receiver — can
-    /// deposit content that is not a numeric value, and a native carrier holds only a value.</summary>
-    public HashSet<DataItem> CharacterChannelItems { get; } = [];
+    /// <summary>The state procedure binding keeps on this unit's binder (<see cref="ProcedureBindState"/>; §8.3 (1)): the
+    /// scoped OPTIONS override, the two statement-scoped drain queues and the two scope cursors. Never part of
+    /// <see cref="State"/>.</summary>
+    internal ProcedureBindState Procedure => field ??= new(() => Options);
 
-    /// <summary>The COLLECTED image-storage facts (PHASE-05 Step 7 — the flag-write sites become fact records):
-    /// every elementary item some bind-time rule forces to store its CHARACTER IMAGE, recorded at the exact
-    /// moment the legacy <c>StoreAsImage = true</c> writes fired — Tier-B/CALL-cell REDEFINES leaves (resolve),
-    /// FILE-record leaves (resolve), report print faces (resolve), figurative-fill and ref-mod-store receivers
-    /// (procedure bind). <see cref="Passes.StorageFormPass"/> unions this with the compiler-temp re-sync and the
-    /// whole-group promotion to compute <see cref="DataItem.Storage"/> WITHOUT reading the mutable flag; the
-    /// bind-time <c>NumericImagePlace</c> wrap decision reads it with the same mid-bind timing the flag had.</summary>
-    public IReadOnlySet<DataItem> ImageForcedItems => _imageForcedItems;
-    private readonly HashSet<DataItem> _imageForcedItems = [];
-
-    /// <summary>Record one image-storage fact (the ONE write channel for <see cref="ImageForcedItems"/>).</summary>
-    internal void MarkImageForced(DataItem item) => _imageForcedItems.Add(item);
-
-    /// <summary>The BIND-TIME image-storage query (P5.7): true when <paramref name="item"/> is already known —
-    /// at THIS point of binding — to store its character image. Reads the collected facts with EXACTLY the
-    /// mid-bind timing the deleted mutable flag had (a fact recorded by an earlier statement's bind is visible
-    /// to a later statement's; one recorded later is not — the pre-P5.7 order dependency, preserved verbatim
-    /// and noted for the P7 lazy-place redesign). Post-bind consumers read <see cref="DataItem.StoreAsImage"/>
-    /// (the Storage projection) instead.</summary>
-    internal bool IsImageBackedEarly(DataItem item) => _imageForcedItems.Contains(item);
-
-    /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
-    /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);
-    /// the remaining clauses are captured for the features that will consume them. Defaults when no OPTIONS.</summary>
-    public OptionsModel Options { get; internal set; } = OptionsModel.Default;
+    /// <summary>The unit's OPTIONS model (ISO §11.9): its own OPTIONS paragraph over the baseline its container or class
+    /// definition hands it (§11.9.4 GR1), bound once in <see cref="BindDeclarations"/>; the all-defaults model when there
+    /// is none. A method's own OPTIONS model governs that method only, through <see cref="ProcedureBindState.Options"/>
+    /// while its statements bind and <c>EmitContext.Options</c> while its LOCAL-STORAGE initializers are emitted.</summary>
+    public OptionsModel Options { get; private set; } = OptionsModel.Default;
 
     /// <summary>Hand an OO definition's OPTIONS paragraph to this binder (kb/Work PB135, PB780). An interface, class,
     /// factory or instance definition carries its paragraph on the SKELETON (§10.6.1), outside the synthetic program
@@ -526,18 +497,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="IsRepositoryIntrinsic"/> — the membership that applies GR14's >>COBOL-WORDS clauses and the edition
     /// — which the SR13 user-word prohibition (<see cref="DeclareUserWord"/>) asks too.</summary>
     internal bool RepositoryAllIntrinsic { get; set; }
-
-    /// <summary>The parse nodes (and subscript tokens) the binder RESOLVED to a function activation or an object-property
-    /// accessor invocation although the text carries no syntactic marker of one: a function-identifier written without
-    /// the word FUNCTION (§8.4.3.2.3 SR2 — <c>UPPER-CASE (X)</c> under <c>REPOSITORY. FUNCTION ALL INTRINSIC</c>, an
-    /// ordinary-looking <c>dataReference</c>) and a property reference (§8.4.3.9 — <c>prop OF obj</c>, textually a
-    /// qualified data reference, whose get/set accessor is a METHOD invocation). Only the binder can tell these from a
-    /// subscripted or qualified data item, so it records the decision here once, where it makes it
-    /// (<c>IntrinsicBinder.KeywordOmittedFunction</c>, <c>ReferenceResolver.IsFunctionBearing</c>,
-    /// <c>ReferenceResolver.ResolveObjectProperty</c>), and the migration-flag pass reads it back for ISO §7.3.14.4
-    /// GR4 b ("the source element calls any function, or invokes any method") instead of re-deriving the rule from
-    /// syntax. Identity-keyed: a node is a call site or it is not.</summary>
-    internal HashSet<object> ActivationSites { get; } = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
     /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
@@ -817,7 +776,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var rec in f.Records)
                 if (rec.IsGroup)
                 {
-                    WholeGroupReferenced.Add(rec);
+                    State.WholeGroupReferenced.Add(rec);
                     // Flag the leaves NOW (not at the group-tail whole-group pass): the bind-time
                     // NumericImagePlace wrap decision consults the early image facts (a ref-mod/RENAMES base
                     // under a record area must route through its character image at resolve time; ST102A's
@@ -841,7 +800,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // with the leaf's description leaves it holding §14.6.13.2's value rather than those
                 // characters, which is the same posture every other non-DISPLAY numeric usage already takes.
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    MarkImageForced(child);      // the collected image fact (same rule as the whole-group union, §14.9.25.4 MOVE GR4)
+                    State.ImageForcedItems.Add(child);      // the collected image fact (same rule as the whole-group union, §14.9.25.4 MOVE GR4)
             }
         }
     }
@@ -8146,7 +8105,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 foreach (var leaf in cls.Members.SelectMany(LeavesOf))
                 {
                     if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                        MarkImageForced(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
+                        State.ImageForcedItems.Add(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
                     // A national-form numeric leaf reaches the arm below (kb/Work PB646): its window over the
                     // one backing is Place.NationalWindow's transcoded CHARACTERS, not its bytes, but the
                     // image-forced verdict is the same one and this is the arm that already carried it.
@@ -8160,7 +8119,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         // DISPLAY concern — stays the declared BinaryMinus, which is what DISPLAY of the leaf
                         // must still render. The former rewrite to a trailing-overpunch ZONED image existed only
                         // because the window used to be Digits characters wide.
-                        MarkImageForced(leaf);
+                        State.ImageForcedItems.Add(leaf);
                 }
         }
     }

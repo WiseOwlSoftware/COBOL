@@ -3307,7 +3307,7 @@ public sealed partial class DataBinder
                 // stood here sent `05 COLUMN 1 PIC 9(3) USAGE NATIONAL SOURCE N` to the line as a long, and the
                 // backend refused the generated C# (CS1503) at every edition (kb/Work PB3280).
                 if (pic.IsCharacterFormNumeric)
-                    MarkImageForced(item);
+                    State.ImageForcedItems.Add(item);
                 // THE OPERAND LIST (§13.18.63.2 format 4 / §13.18.53.2 — both clauses write `{ operand } …`).
                 // SUM wins the entry (§13.18.54.4 GR4 — the sum counter acts as the source item); then the
                 // SOURCE operands; then the VALUE operands. There is no fourth arm: §13.15.3 SR10 forbids the

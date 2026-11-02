@@ -1197,7 +1197,7 @@ either INVOKE's written identifier or, for the inline form, the GR1 b)/c) TEMPOR
 typed/interface/universal identifier-1, class-name-1), `OoBindInstanceInvoke`, `OoBindClassInvoke`,
 `OoBindResolvedInvoke` and `OoBindInvocationArg` are shared verbatim; the inline binder adds exactly two things —
 `DataBinder.OoCreateInvocationTemp` (the GR1 b) clone of the method's own RETURNING item, so the delivery is an IDENTITY
-crossing and §14.8.3.3 has nothing to check) and registration of the activation on `DataBinder.PendingPreOps`, the ONE
+crossing and §14.8.3.3 has nothing to check) and registration of the activation on `ProcedureBindState.PendingPreOps`, the ONE
 statement-scoped pre-op list the user-function activation and the function-bearing subscript already use. It hoists
 through `UdfBinder.UdfWrapCalls` / `UdfAttachPerEvaluation` unchanged, because §8.4.3.4.3 SR1 gives the construct the
 same non-receiving property §8.4.3.2.3 SR1 gives a function-identifier: no store polarity, no post-ops. The expression

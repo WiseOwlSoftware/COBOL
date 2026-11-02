@@ -352,7 +352,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
     `BoundStatement.OperandEvaluation`, and `DrainPending` stamps an activation's profile there — a per-evaluation
     window's steps live inside a CONDITION or an OPERAND, where `EcWrap`'s statement-shaped stamp never reaches.
     `StatementBinder.BindStatement` wraps a statement that drained any in `BoundActivationSite` (the
-    `OperandEvaluations` save/zero/restore counter, so a nested statement's steps count only toward it).
+    `ProcedureBindState.OperandEvaluations` cursor, entered at zero per statement, so a nested statement's steps count only toward it).
     `StatementEmitter.EmitStatement` emits a marked step inside `DispatchState`'s operand-evaluation scope, and
     inside it the ONE landing, `DispatchState.ResumeTransfer`, THROWS `RaiseResumeSignal` for RESUME AT
     procedure-name and for RESUME AT NEXT STATEMENT; `EcEmitter.EmitActivationSite` catches it around the statement

@@ -1149,7 +1149,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
     {
-        if (data.Options.Arithmetic != ArithmeticMode.Native) return true;   // §14.7.7 r2 applies to native only
+        if (data.Procedure.Options.Current.Arithmetic != ArithmeticMode.Native) return true;   // §14.7.7 r2 applies to native only
         int maxInt = 0, maxFrac = 0;
         void Shape(int digits, int scale)
         {

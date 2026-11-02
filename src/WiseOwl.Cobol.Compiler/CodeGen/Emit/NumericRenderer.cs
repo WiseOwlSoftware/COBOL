@@ -837,9 +837,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // same CobolDec engine as STANDARD-DECIMAL (DataBinder.BindDeclarations documents the bind-side rationale).
     // ⛔ The SET lives in ONE place — ArithmeticModes.IsDecimalEngine (kb/Work PB194): two other sites had written
     // it out again and both had dropped ARITHMETIC IS STANDARD from it.
-    internal bool StandardDecimal => ArithmeticModes.IsDecimalEngine(ctx.Data.Options.Arithmetic);
+    internal bool StandardDecimal => ArithmeticModes.IsDecimalEngine(ctx.Options.Current.Arithmetic);
 
-    internal string IntermediateMode => $"CobolRounding.{ctx.Data.Options.IntermediateRounding}";
+    internal string IntermediateMode => $"CobolRounding.{ctx.Options.Current.IntermediateRounding}";
 
     /// <summary>Render an operand in SDIDI form: an already-decimal intermediate passes through; a fixed-point
     /// value within <see cref="ExactLiftDigits"/> lifts EXACTLY via <c>CobolDec.From</c>, and one that may hold more (a 16-byte binary

@@ -442,7 +442,7 @@ off-by-one through every later counter check.
   repeating counter — `ReferenceResolver.SumCounterFor` runs the same `ReadScreenedRefMod` / `RefModView` tail every
   identifier does, and the view is the counter's `NumericImagePlace` character image) and every size consumer
   (FUNCTION LENGTH) reads the digit count. A view over engine state answers `Place.OwnsStorageCell` false, so no
-  image-backing fact (`MarkImageForced`) is ever recorded for its register item.
+  image-backing fact (`DataBindState.ImageForcedItems`) is ever recorded for its register item.
 - **EVERY OTHER REPORT SECTION NAME IS A REFUSED REFERENCE, NOT AN UNDEFINED ONE** (kb/Work PB1046). §13.8.6.2.3
   admits two accesses to a report item outside the report section — a sum counter in the procedure division, a DETAIL
   group by GENERATE — and §13.15.3 SR7 closes the list for an entry's data-name ("shall not be referenced in any other
