@@ -179,7 +179,11 @@ public static class SeparatorRule
     /// verdict is read off <c>addOp</c> / <c>mulOp</c> / <c>POWER</c> under <c>additiveExpression</c>,
     /// <c>multiplicativeExpression</c>, <c>powerExpression</c> (binary) and <c>unaryExpression</c> (unary) — every
     /// arithmetic expression of every statement, subscript, reference modifier and function argument at once, with no
-    /// consumer to forget.</para>
+    /// consumer to forget. A hyphen touching a word that the tree did NOT make an operator is no operator at all but the
+    /// edge of the word it touches (§8.3.1, a character-string is delimited by separators), which
+    /// <see cref="WordCharacterScreen"/> names by §8.3.2.1 (kb/Work PB4278). The screen leaves every <c>addOp</c> hyphen
+    /// to this rule, so no boundary draws both reports; a sign in the VALUE clause's literal slot is neither's (the VALUE
+    /// rules refuse <c>-A</c> there as no literal, COBOL1902).</para>
     /// <para>Tokens are judged by their own source indices, so the tree may come from the unit's text or from a
     /// directive operand lexed apart (kb/Work PB1616) — each caller passes the text its tree was lexed from.</para></summary>
     public static IReadOnlyList<Violation> ArithmeticOperatorViolations(string text, IParseTree tree)
