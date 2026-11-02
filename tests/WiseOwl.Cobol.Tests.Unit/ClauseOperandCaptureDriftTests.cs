@@ -77,12 +77,12 @@ public sealed class ClauseOperandCaptureDriftTests
     /// reference-modifier reaches the binder through two carriers frozen at lex time — the parsed <c>refModPart</c>
     /// and the SUBSCRIPT-mode captured group with a depth-0 colon — and a screen that walked the parse tree itself
     /// counted every <c>subscriptPart</c> as a subscript, refusing <c>RECORD KEY IS IX-KEY(1:3)</c> as "written
-    /// with a subscript". Only <c>ReferenceResolver.ReadOperandSuffixes</c> knows both carriers.</summary>
+    /// with a subscript". Only <c>RefModBinder.ReadOperandSuffixes</c> knows both carriers.</summary>
     [Fact]
     public void TheDataNameScreen_ReadsSuffixesThroughTheOneReader()
     {
         string body = MethodBody(DataBinderSource(), "internal static bool ScreenDataNameShape(");
-        Assert.Contains("ReferenceResolver.ReadOperandSuffixes(", body, StringComparison.Ordinal);
+        Assert.Contains("RefModBinder.ReadOperandSuffixes(", body, StringComparison.Ordinal);
         Assert.DoesNotContain(".subscriptPart()", body, StringComparison.Ordinal);
         Assert.DoesNotContain(".refModPart()", body, StringComparison.Ordinal);
     }

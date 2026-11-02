@@ -263,7 +263,7 @@ public sealed partial class DataBinder
         else
         {
             // A Tier-A (Alias) redefiner owns NO member: every reference to it renders its canonical's storage
-            // (ReferenceResolver.PlaceForItem's accessItem), so that is the member a bridge must name — the
+            // (PlaceBuilder.PlaceForItem's accessItem), so that is the member a bridge must name — the
             // redefiner's own name is one the container never declares (CS1061, kb/Work PB1523). §13.18.27.4 GR3:
             // only the SUBJECT of the REDEFINES carries the global attribute, so the canonical need not be global
             // itself; the storage it names is the one both entries share (§13.18.44.4 GR1).
@@ -294,7 +294,7 @@ public sealed partial class DataBinder
 
     /// <summary>The item whose emitted member a reference to <paramref name="item"/> renders: itself, except a Tier-A
     /// (Alias) REDEFINES view, which owns no member and reads its canonical's (ISO §13.18.44.4 GR1 — one storage
-    /// area; the one rule <c>ReferenceResolver.PlaceForItem</c> applies to every reference).</summary>
+    /// area; the one rule <c>PlaceBuilder.PlaceForItem</c> applies to every reference).</summary>
     private static DataItem AnchorOf(DataItem item) =>
         item.Class is { Tier: RedefinesTier.Alias } cls && !item.IsCanonical ? cls.Canonical : item;
 
@@ -547,7 +547,7 @@ public sealed partial class DataBinder
             if (resident)
             {
                 // Every place built over the item starts at the carrier and steps to the caller's storage
-                // (ReferenceResolver.AddRoot, a CarrierValueSegment) — the item keeps its own name, which no member
+                // (PlaceBuilder.AddRoot, a CarrierValueSegment) — the item keeps its own name, which no member
                 // declares (kb/Work PB4320).
                 item.ResidentCarrier = new FormalCarrier.Member(carrier);
                 _callSuppressedRootFields.Add(item.ClrName);
@@ -996,7 +996,7 @@ public sealed partial class DataBinder
     /// <para>⛔ A VARIABLE-LENGTH GROUP RIDES THE CELL TOO (kb/Work PB2094). Its dynamic-length items and dynamic-capacity
     /// tables are the cell's components (<see cref="AssignCellComponents"/>), and an area formal laid over its argument
     /// numbers its components from the area's component ordinal as it displaces its characters by the area's offset
-    /// (<c>CellPointer.DynBase</c>, <c>ReferenceResolver.CellOrdinalBase</c>), so §14.2.3 GR8 — "the activated runtime
+    /// (<c>CellPointer.DynBase</c>, <c>PlaceBuilder.CellOrdinalBase</c>), so §14.2.3 GR8 — "the activated runtime
     /// element operates as if the formal parameter occupies the same storage area as the argument" — holds for it as
     /// for any group. §13.18.5.3 SR2 bars a variable-length group only as the subject of a WRITTEN BASED clause.</para></summary>
     private static bool CellCanCarry(DataItem root)

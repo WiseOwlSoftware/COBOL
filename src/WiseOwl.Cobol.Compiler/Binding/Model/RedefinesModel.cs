@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// in bytes, and a REDEFINES view of a different layout can put a part boundary — or leave an interior byte no other
 /// leaf covers — on the odd byte of a national character (D-N1: two bytes per national position). That byte is no
 /// range of the national item's positions, but it IS a range of its storage, which is what the alias renames: the
-/// resolver addresses every part as a byte slice of its cell's storage image (<c>ReferenceResolver.PlaceForRenames</c>,
+/// resolver addresses every part as a byte slice of its cell's storage image (<c>PlaceBuilder.PlaceForRenames</c>,
 /// <see cref="NationalBytesPlace"/>), so every part the tiling can choose is addressable. Keeping the part in
 /// positions made a half-character part unrepresentable, and legal source drew COBOL1655 "do not tile".</para>
 /// <para><paramref name="Outer"/> is the 1-based occurrence of each OCCURS GROUP the leaf sits under, outermost first
@@ -24,7 +24,7 @@ public sealed record RenamesSpanPart(DataItem Leaf, int? Occurrence, int StartBy
 {
     /// <summary>The subscript of each OCCURS level on the leaf's path, outermost first — the table groups' occurrences
     /// (<see cref="Outer"/>) and then <paramref name="own"/> for the leaf's own OCCURS when it has one: the index list
-    /// <c>ReferenceResolver.PlaceForItem</c> takes for one cell of the leaf.</summary>
+    /// <c>PlaceBuilder.PlaceForItem</c> takes for one cell of the leaf.</summary>
     public IReadOnlyList<Position> SubscriptsFor(Position? own) =>
         [.. Outer.Select(o => new PositionConstant(o)), .. own is { } k ? new Position[] { k } : []];
 
@@ -252,7 +252,7 @@ public sealed class RedefinesClass
     /// activation — its canonical a level-1 method root (<see cref="DataItem.ActivationLocal"/>) and no cell behind it — else
     /// null: the backing of a nested canonical is a member of its root's storage, and a cell-backed class's backing is the
     /// <c>ref</c> bridge over its cell, a member (kb/Work PB956). A path to the backing then starts at a
-    /// <see cref="LocalRootSegment"/> over it (<c>ReferenceResolver.BuildBackingPath</c>), never at the CLR name
+    /// <see cref="LocalRootSegment"/> over it (<c>PlaceBuilder.BuildBackingPath</c>), never at the CLR name
     /// <see cref="BackingClrName"/> (DESIGN-backend-abstraction §1.2, §1.3 L8). Derived, so it answers for the class's FINAL
     /// tier and cell verdict whenever it is asked.</summary>
     public MethodLocal? BackingLocal =>

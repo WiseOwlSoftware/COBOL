@@ -464,7 +464,7 @@ public sealed partial class DataBinder
         // M2-OO-1h step 4: a method table's index cell is a per-activation method local (emitted in OoEmitMethod).
         // LINKAGE + LOCAL-STORAGE roots are LOCALS of the emitted method (their struct types and numeric profiles still
         // emit at class level) — never instance fields — so each root's storage is named by its local's identity, never by
-        // a CLR name (ISO §8.6.4; kb/Work PB4416): every access path to it starts at that local (ReferenceResolver.AddRoot).
+        // a CLR name (ISO §8.6.4; kb/Work PB4416): every access path to it starts at that local (PlaceBuilder.AddRoot).
         foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
         {
             root.ActivationLocal = new MethodDataLocal(root);
@@ -515,7 +515,7 @@ public sealed partial class DataBinder
                 }
                 // ⛔ A RESIDENT formal's every reference reads and writes its argument's storage through the method-local
                 // carrier (ISO §14.2.3 GR8; kb/Work PB2087, the method arm of CallBindLinkage's rule): every place built
-                // over it starts at the carrier's local root (ReferenceResolver.AddRoot; kb/Work PB4320, PB4380), and no
+                // over it starts at the carrier's local root (PlaceBuilder.AddRoot; kb/Work PB4320, PB4380), and no
                 // local of its own is declared — the method's linkage roots were all suppressed above.
                 bool resident = FormalIsCarrierResident(item, m.Binding!.LinkageRoots, addressed);
                 var formal = new OoFormal(item, pos, OoParamName(m, item, pos), optional, byValue, resident);

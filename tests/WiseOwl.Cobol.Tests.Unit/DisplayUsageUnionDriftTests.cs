@@ -130,7 +130,7 @@ public sealed class DisplayUsageUnionDriftTests
             // PicInfo.IsCharacterFormNumeric — before PB646 the view's gate named DISPLAY while the exclusion
             // above it already admitted the pair, so `RM(2:3)` over a national-form numeric passed the
             // exclusion and fell to a Tier-C runtime loud.
-            ["Binding/ReferenceResolver.cs"] = (0, 1),
+            ["Binding/RefModBinder.cs"] = (0, 1),
 
             // (Binding/Passes/StorageFormPass.cs LEFT THE INVENTORY — kb/Work PB1466.) Its last display-only site,
             //      the whole-group / character-channel promotion (IsImagePromotable), now asks
@@ -144,7 +144,7 @@ public sealed class DisplayUsageUnionDriftTests
             //  the figurative pass — a NON-DIGIT figurative fill deposits fill CHARACTERS into the receiver's
             //      cells ("MOVE QUOTE TO PIC 9(3) leaves three quotation marks"); a 2-byte binary carrier has
             //      no character cells to hold them.
-            //  MarkRefModStoreImage — ⛔ NOT the §8.4.3.3.3 SR1 screen (that is ReferenceResolver's, above):
+            //  MarkRefModStoreImage — ⛔ NOT the §8.4.3.3.3 SR1 screen (that is RefModBinder's, above):
             //      this one FORCES the underlying item's carriage to its image so a ref-mod store can write
             //      character cells.
             //  ⛔ WAS 2 DISPLAY-ONLY, one per mark (kb/Work PB442). A usage NATIONAL numeric item is represented

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// item is refused — but the word IS declared, and "no declaration in this source element gives the name … Check the
 /// spelling" sends the user hunting a typo. <c>DataBinder.NonDataDeclarationOf</c> is the one answer to what the word
 /// is declared as, and every site that refuses such a reference asks it: the procedure division's unidentified
-/// reference (<c>ReferenceResolver.ReportUnidentified</c>), a file clause's data-name operand
+/// reference (<c>NameResolution.ReportUnidentified</c>), a file clause's data-name operand
 /// (<c>DataBinder.ResolveClauseOperand</c>), an OCCURS DEPENDING ON object and SET Format 4's "not a condition-name"
 /// arm (<c>StatementValidation.RejectSetConditionName</c>). A type-name drew "not defined" at all
 /// three (§13.18.58.4 GR2: "A type declaration has no storage associated with it"), a type declaration's member at all

@@ -91,7 +91,7 @@ internal sealed partial class OoBinder
                     factory: phrase.FACTORY() is not null, only: phrase.ONLY() is not null,
                     $"the object-view '{written} {phraseText}'", "ISO §8.4.3.5.2",
                     DiagnosticCatalog.ObjectViewInterfacePhrase, "ISO §8.4.3.5.2; §8.4.3.5.4 GR6");
-            if (ctx.Refs.ResolveItem(ctx.Data.OoCreateObjectViewTemp(view)) is not { } temp)
+            if (ctx.Refs.Places.ResolveItem(ctx.Data.OoCreateObjectViewTemp(view)) is not { } temp)
                 return BoundExprError.Unbuilt(ctx.Edition, "the object-view's temporary");
             ctx.Data.PendingPreOps.Add(new BoundObjectView(temp, source, view, $"{written} {phraseText}"));
             source = temp;
@@ -100,7 +100,7 @@ internal sealed partial class OoBinder
         return new BoundNumRef(source!);
     }
 
-    /// <summary>The resolver's view edge (<c>ReferenceResolver.ApplyObjectView</c>): the object-view of a qualified data
+    /// <summary>The resolver's view edge (<c>ObjectPropertyResolver.ApplyObjectView</c>): the object-view of a qualified data
     /// item written as one chain, <c>A OF G AS C</c> (§8.4.3.1.4 GR1 a) before c)), over the item already resolved.
     /// §8.4.3.5.3 SR1 asks identifier-1's class here as it does for every other subject. Null having reported.</summary>
     internal Place? OoApplyObjectView(Place subject, Core.ObjectViewContext ov, string written)

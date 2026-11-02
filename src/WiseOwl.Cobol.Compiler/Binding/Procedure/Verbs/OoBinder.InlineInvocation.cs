@@ -281,7 +281,7 @@ internal sealed partial class OoBinder
         // any other data item.
         foreach (var rm in imi.refModPart())
         {
-            if (ctx.Refs.RefModOf(place, rm, imi.GetText()) is not { } modified)
+            if (ctx.Refs.RefMods.RefModOf(place, rm, imi.GetText()) is not { } modified)
                 return BoundExprError.Refused(ctx.Edition, "reference-modified inline method invocation");
             place = modified;
         }

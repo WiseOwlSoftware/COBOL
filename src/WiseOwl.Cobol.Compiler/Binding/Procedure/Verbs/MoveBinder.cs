@@ -301,10 +301,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     {
         var table = site.Table;
         if (site.Part is { } part)
-            return ctx.Refs.ResolveItemAt(table, part.SubscriptsFor(new PositionLocal(v))) is { } element
-                && OccurrenceCounts.Current(table, null, ctx.Refs) is { } count
+            return ctx.Refs.Places.ResolveItemAt(table, part.SubscriptsFor(new PositionLocal(v))) is { } element
+                && OccurrenceCounts.Current(table, null, ctx.Refs.Places) is { } count
                 ? (element, count) : null;
-        return TableCursor(group, table) is { } cur && OccurrenceCounts.Current(table, cur.StoragePath, ctx.Refs) is { } n
+        return TableCursor(group, table) is { } cur && OccurrenceCounts.Current(table, cur.StoragePath, ctx.Refs.Places) is { } n
             ? (ElementPlace(cur, table, v), n) : null;
     }
 
@@ -427,7 +427,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // §13.18.43.4 GR16 a) reads the DEPENDING item; GR16 b) applies when the phrase is absent. Resolved
         // HERE, once, for all three INTO arms — the sequential READ, the keyed READ and the sort RETURN.
         Place? depending = file is { Varying.DependingName: not null, VaryingDependingItem: { } d }
-            ? ctx.Refs.ResolveItem(d) : null;
+            ? ctx.Refs.Places.ResolveItem(d) : null;
         // A FIXED-length file keeps the plain record-area operand: its current record IS the whole area
         // (§13.18.43.4 GR6 — integer-1 bytes in every record), including the short-final-record '04' case of
         // §14.9.30.4 GR14, where the area right of the last valid character is undefined rather than short.

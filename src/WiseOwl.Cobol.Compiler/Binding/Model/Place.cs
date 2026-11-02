@@ -250,7 +250,7 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
     public bool ReadsCharacterImage => Coding is not SlotWindow;   // a DynSlotWindow / VarGroupWindow reads a string (kb/Work PB1026)
 
     /// <summary>⛔ THE ONE Tier-B window builder (kb/Work PB203). Three sites compose this window — the resolver
-    /// (<c>ReferenceResolver.PlaceForItem</c>), the INITIALIZE receiver cursor and the MOVE CORRESPONDING leaf
+    /// (<c>PlaceBuilder.PlaceForItem</c>), the INITIALIZE receiver cursor and the MOVE CORRESPONDING leaf
     /// cursor — and before this factory each carried its own copy of the offset law, which is exactly how the BIT
     /// unit came to be missing from all three at once.
     /// <para>The law: a member's window starts at <paramref name="byteOffset"/> characters into the class
@@ -489,7 +489,7 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
     /// the allocated storage … to null", and DOC-A.1-216 gives NULL the zero image. <see cref="DataItem.ClassOffset"/>
     /// is the occurrence-1 position, and each fixed OCCURS level on the member's path within its class displaces it
     /// by (occurrence − 1) × that level's per-occurrence storage extent — the stride
-    /// <c>ReferenceResolver.WindowScopeOf</c> applies to a reference, so a seed and a reference cannot disagree.</summary>
+    /// <c>PlaceBuilder.WindowScopeOf</c> applies to a reference, so a seed and a reference cannot disagree.</summary>
     public static IEnumerable<int> PointerImageOffsetsOf(DataItem root)
     {
         foreach (var member in MembersOf(root).Where(CarriesPointerImage))
@@ -1049,7 +1049,7 @@ public sealed record ExceptionObjectPlace(DataItem RegisterItem) : Place
 /// <summary>
 /// One source reference-modification <c>(start : [length])</c>, reduced to its typed positions — the ISO §8.4.3.3.2
 /// general format read off the source, independent of WHAT is being modified. Produced by the ONE reader
-/// (<c>ReferenceResolver.ReadRefMod</c>, over the parsed <c>refModPart</c>) and consumed by the two things a ref-mod
+/// (<c>RefModBinder.ReadRefMod</c>, over the parsed <c>refModPart</c>) and consumed by the two things a ref-mod
 /// can attach to:
 /// <list type="bullet">
 ///   <item>a storage <b>place</b> — <see cref="RefModPlace"/>, readable AND writable (the splice);</item>

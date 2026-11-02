@@ -1645,7 +1645,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // The NEGATIVE side of §13.16.3 SR23 (kb/Work PB567): no condition-name of this spelling is subordinate to
         // the written qualifiers, so this reference names no condition-name. It is not reported HERE because the
         // same word may still be a DATA-name those qualifiers do reach; the caller falls through to the data
-        // resolution, whose one unidentified-reference report (ReferenceResolver.ReportUnidentified) words the
+        // resolution, whose one unidentified-reference report (NameResolution.ReportUnidentified) words the
         // declared-but-misqualified condition-name case — or a caller that admits only a condition-name asks
         // ReportMisqualifiedCondition.
         if (matches.Count == 0) return null;
@@ -1661,7 +1661,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN, SET condition-name-1 TO TRUE/FALSE) resolves through here,
         // so this one screen covers them; the reference still names its level-88, so the caller binds on and the
         // compile fails here, once per source reference (the asker count is not the fact count, as below).
-        if (ReferenceResolver.ReadOperandSuffixes(dref).RefMods > 0 && _refModCondDiagnosed.Add(dref))
+        if (RefModBinder.ReadOperandSuffixes(dref).RefMods > 0 && _refModCondDiagnosed.Add(dref))
         {
             using var _ = ctx.Edition.At(dref);
             ctx.Edition.Error(DiagnosticCatalog.ConditionNameReferenceModified,
@@ -1670,7 +1670,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "modifier (ISO §8.4.4.2; §8.8.4.5.2), and §8.4.3.3.3 SR5 allows reference modification only on an "
                 + "identifier referencing a data item");
         }
-        // ONE report per SOURCE reference (the ReferenceResolver._diagnosed discipline, kb/Work PB70/PB443): a
+        // ONE report per SOURCE reference (the ReferenceResolver.Diagnosed discipline, kb/Work PB70/PB443): a
         // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
         // WHEN operand names BEFORE the condition binds it (§14.9.37.3 SR9/SR11 are about that very 88) — and the
         // ambiguity is one fact about one reference, not one per asker.
@@ -1699,16 +1699,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     + "variable or its containing groups");
         }
         // §13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
-        // is — the same decision the data-name arm asks (ReferenceResolver.ScreenLinkageReference), once per reference.
+        // is — the same decision the data-name arm asks (NameResolution.ScreenLinkageReference), once per reference.
         if (ctx.Data.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
-            ctx.Refs.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
+            ctx.Refs.Names.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
         return matches[0];
     }
 
     /// <summary>For a position that admits ONLY a condition-name (SET Format 4's condition-name-1): when
     /// <paramref name="dref"/>'s word IS a declared level-88 condition-name but <see cref="ConditionOf"/> found
     /// none under the written qualifiers, report that through the ONE wording
-    /// (<see cref="ReferenceResolver.MisqualifiedConditionText"/>) and answer true; otherwise report nothing and
+    /// (<see cref="NameResolution.MisqualifiedConditionText"/>) and answer true; otherwise report nothing and
     /// answer false, leaving the caller's own not-a-condition-name verdict (kb/Work PB567). The word's level-88s
     /// may also be HIDDEN rather than misqualified (ISO §8.4.6.2.1 3) a)): by a nearer data item or a nearer report
     /// entry, and the report then names THAT item.</summary>
@@ -1723,16 +1723,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
         if (NamesHidingDataItem(dref))
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, "a data item"));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, "a data item"));
         // ... and so is a constant-name, index-name, CAPACITY register or file-name of a nearer one (kb/Work PB4432 review
         // R1-1): this position names THAT, not the container's level-88.
         else if (HidingClassPhrase(dref) is { } hider)
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, ReferenceResolver.HiddenConditionText(text, name, hider));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, hider));
         // A report entry of a NEARER source element is the referenced item the same way (kb/Work PB4196), and the
         // report-item refusal names it.
         else if (!ctx.Data.ReportEntryReferenceRefused(default, $"'{text}'", name, qualifiers))
             ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                ReferenceResolver.MisqualifiedConditionText(text, name, qualifiers));
+                NameResolution.MisqualifiedConditionText(text, name, qualifiers));
         return true;
     }
 
@@ -1754,7 +1754,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var qualifiers = QualifiersOf(dref);
         if (ctx.Data.ConditionNameHiddenByNearerNonDataName(name, qualifiers, ctx.ActiveScope) is { } hider) return hider.ClassPhrase;
         return CapacityRegisterHides(dref, ctx.Data.ConditionTier(name, qualifiers, ctx.ActiveScope))
-            ? ReferenceResolver.CapacityRegisterClassPhrase
+            ? NameResolution.CapacityRegisterClassPhrase
             : null;
     }
 

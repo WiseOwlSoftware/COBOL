@@ -73,7 +73,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             bool needGet = op.GetsBefore(kind);
             bool needSet = kind != StoreKind.None;
             string where = $"'{op.PropName}' OF '{op.ReceiverName}'";
-            var tempPlace = ctx.Refs.ResolveItem(op.Temp)!;
+            var tempPlace = ctx.Refs.Places.ResolveItem(op.Temp)!;
 
             // identifier-3's own evaluation first (§8.4.3.1.4 GR1 a)–c) before d)), then the GET — once, whichever
             // accessors the polarity needs.
@@ -90,7 +90,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             var receiver = op.Receiver;
             if (needSet && op.IdentifiedReceiver is { Item.Pic.ObjectRef: { } described } written)
             {
-                var identified = ctx.Refs.ResolveItem(ctx.Data.OoCreateIdentifiedObjectTemp(described))!;
+                var identified = ctx.Refs.Places.ResolveItem(ctx.Data.OoCreateIdentifiedObjectTemp(described))!;
                 open.Add(new BoundSetObjectRef([identified], written, SourceIsNull: false, SourceIsSelf: false));
                 receiver = identified;
             }
@@ -152,7 +152,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     }
 
     private BoundInvoke GetInvoke(DataBinder.OoPendingPropertyOp op, OoMethodSymbol get, Place? receiver) =>
-        new(op.Form, op.ClassClrName, receiver, get.ClrName, ctx.Refs.ResolveItem(op.Temp)!, null, get.Binding!.Returning, op.OwnerClrNameOf(get));
+        new(op.Form, op.ClassClrName, receiver, get.ClrName, ctx.Refs.Places.ResolveItem(op.Temp)!, null, get.Binding!.Returning, op.OwnerClrNameOf(get));
 
     /// <summary>Drain the property references registered since <paramref name="mark"/> for a PER-EVALUATION
     /// window (<c>UdfBinder.UdfAttachPerEvaluation</c> — a PERFORM UNTIL / VARYING condition, a SEARCH WHEN, an
@@ -383,7 +383,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // `object-class-name-1 OF SUPER` is a word chain (`name OF SUPER`) that the resolver reads as the qualified SUPER
         // exactly when the name is a class-name (kb/Work PB1425 — otherwise it is the property of SUPER, an ordinary
         // receiver resolved below); a bare SELF or SUPER is the `selfAndSuper` term.
-        Core.CobolWordContext? superQualifier = target.dataReference() is { } qref ? ctx.Refs.QualifiedSuperClass(qref) : null;
+        Core.CobolWordContext? superQualifier = target.dataReference() is { } qref ? ctx.Refs.ObjectProperties.QualifiedSuperClass(qref) : null;
         if (target.selfAndSuper() is not null || superQualifier is not null)
         {
             // Slice 3b — §8.4.3.8: SELF/SUPER are the predefined object references of the CURRENT method's
@@ -1013,7 +1013,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     + "described with the ACTIVE-CLASS phrase (ISO §8.4.3.4.3 SR4)");
             }
             var temp = ctx.Data.OoCreateInvocationTemp(retModel, m.Name);
-            if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
+            if (ctx.Refs.Places.ResolveItem(temp) is not { } tempPlace)
                 return new BoundUnsupported($"the inline method invocation of \"{m.Name}\" (result temporary)");
             site.ImplicitReturningPlace = tempPlace;
             return new BoundInvoke(form, null, receiver, m.ClrName, tempPlace, args, m.Binding!.Returning,

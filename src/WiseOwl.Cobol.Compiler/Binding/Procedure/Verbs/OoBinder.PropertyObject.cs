@@ -29,7 +29,7 @@ internal sealed partial class OoBinder
     /// <summary>Bind <paramref name="po"/>'s object as a property receiver (see the class summary); null having reported,
     /// or — under a resolver <paramref name="probe"/> — null whenever the answer would need a side effect (a function's
     /// activation) or a diagnostic.</summary>
-    internal ReferenceResolver.PropertyReceiver? OoBindPropertyObject(Core.PropertyObjectContext po,
+    internal PropertyReceiver? OoBindPropertyObject(Core.PropertyObjectContext po,
         Core.CobolWordContext? superQualifier, bool probe)
     {
         if (po.SELF() is not null || po.SUPER() is not null)
@@ -60,14 +60,14 @@ internal sealed partial class OoBinder
             return po.objectView() is { } pv ? DescribedByView(pv)
                 : po.functionCall() is { } fc ? DescribedByFunction(fc) : null;
 
-        BoundExpr bound = po.objectView() is { } ov ? OoBindObjectView(ov) : host.Intrinsic.BindIntrinsic(ReferenceResolver.WithoutResultRefMods(po).functionCall()!);
+        BoundExpr bound = po.objectView() is { } ov ? OoBindObjectView(ov) : host.Intrinsic.BindIntrinsic(ObjectPropertyResolver.WithoutResultRefMods(po).functionCall()!);
         return OoObjectReferenceTemporary(bound, po, DiagnosticCatalog.PropertyObject.Code,
                 "identifier-1 of an object property shall be an object reference (ISO §8.4.3.9.3 SR2)") is { } temp
             ? new(InvokeForm.Instance, temp, null, null, false)
             : null;
 
         // A probe's reading of a view: the roster its LAST phrase describes, looked up without a diagnostic.
-        ReferenceResolver.PropertyReceiver? DescribedByView(Core.ObjectViewContext view)
+        PropertyReceiver? DescribedByView(Core.ObjectViewContext view)
         {
             var last = view.objectViewPhrase()[^1];
             if (last.UNIVERSAL() is not null) return null;
@@ -81,7 +81,7 @@ internal sealed partial class OoBinder
         // the RETURNING phrase" of the function (prototype) — and the resolver reads the roster off it, the same fact
         // the committing arm reads off the bound temporary. An intrinsic function, or one that returns no object
         // reference, answers null: it is no property's object.
-        ReferenceResolver.PropertyReceiver? DescribedByFunction(Core.FunctionCallContext fc) =>
+        PropertyReceiver? DescribedByFunction(Core.FunctionCallContext fc) =>
             host.Intrinsic.ReturningItemOf(fc) is { Pic.Category: PicCategory.ObjectReference } item
                 ? new(InvokeForm.Instance, null, null, null, false, item)
                 : null;

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.CodeGen.Emit;
 
 namespace WiseOwl.Cobol.CodeGen;
@@ -20,7 +21,7 @@ internal sealed class UnitEmitters
     public EmitContext Ctx { get; }
     public NumericRenderer Num { get; }
     public ConditionRenderer Cond { get; }
-    public ReferenceResolver Refs { get; }
+    public PlaceTable Places { get; }
 
     public ReceiverBracketEmitter Brackets { get; }
     public MoveEmitter Move { get; }
@@ -46,11 +47,11 @@ internal sealed class UnitEmitters
     public StatementEmitter Statements { get; }
     public DispatchEmitter Dispatch { get; }
 
-    public UnitEmitters(CodeWriter w, DataBinder data, ReferenceResolver refs, NameAllocator names, GroupAtomTable atoms,
+    public UnitEmitters(CodeWriter w, DataBinder data, PlaceTable places, NameAllocator names, GroupAtomTable atoms,
         DispatchState dispatchState, EcState ecState, CallUnitState callState, OoEmitter oo,
         Lazy<string> whenCompiledStamp)
     {
-        Refs = refs;
+        Places = places;
         Ctx = new EmitContext(w, data, names, atoms, whenCompiledStamp);
         Num = new NumericRenderer(Ctx, ecState);
         Cond = new ConditionRenderer(Num, Ctx);
@@ -58,7 +59,7 @@ internal sealed class UnitEmitters
         // Acyclic construction order (each ctor takes only already-built collaborators); the cycles close
         // via the property wiring below.
         Brackets = new ReceiverBracketEmitter(Ctx);
-        Move = new MoveEmitter(Ctx, Num, Refs, Brackets);
+        Move = new MoveEmitter(Ctx, Num, Places, Brackets);
         Ec = new EcEmitter(Ctx, ecState, dispatchState);
         Arith = new ArithmeticEmitter(Ctx, Num, ecState, Ec, Brackets);
         AlterSwitch = new AlterSwitchEmitter(Ctx, dispatchState);
@@ -71,11 +72,11 @@ internal sealed class UnitEmitters
         Ptr = new PtrEmitter(Ctx, Num, ecState, Ec);
         Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move, Brackets);
         TableHold = new TableHoldEmitter(Ctx, Arith);   // the held form of a table(ALL) function argument (kb/Work PB4162)
-        KeyedIo = new KeyedIoEmitter(Ctx, Num, Refs, Arith, Move);
-        SeqIo = new SequentialIoEmitter(Ctx, Num, Refs, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
-        Transactions = new TransactionEmitter(Ctx, Refs, SeqIo);   // APPLY COMMIT, COMMIT, ROLLBACK (kb/Work PB3338)
-        Sort = new SortEmitter(Ctx, Refs, dispatchState, SeqIo, Move, Arith, Ec);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)
-        ReportWriter = new ReportWriterEmitter(Ctx, Num, Refs, Move, Cond, dispatchState, ecState, Ec);
+        KeyedIo = new KeyedIoEmitter(Ctx, Num, Places, Arith, Move);
+        SeqIo = new SequentialIoEmitter(Ctx, Num, Places, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
+        Transactions = new TransactionEmitter(Ctx, Places, SeqIo);   // APPLY COMMIT, COMMIT, ROLLBACK (kb/Work PB3338)
+        Sort = new SortEmitter(Ctx, Places, dispatchState, SeqIo, Move, Arith, Ec);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)
+        ReportWriter = new ReportWriterEmitter(Ctx, Num, Places, Move, Cond, dispatchState, ecState, Ec);
         ControlFlow = new ControlFlowEmitter(Ctx, Num, Cond, dispatchState, Set, Brackets);
         Call = new CallEmitter(Ctx, Num, ecState, callState, Ec, Move, dispatchState, Ptr, Brackets);
         Statements = new StatementEmitter(this, oo, dispatchState);

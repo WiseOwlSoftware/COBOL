@@ -430,7 +430,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         temp.FunctionDeviceDigits = model.DeviceDigits;   // PB4124: DATE-OF-INTEGER's fixed digits, kept by a held argument
         temp.HoldsApproximation = model.Approximation;   // PB1606: every read of it is the returned value's read
         if (temp.IsDynamicLength) temp.DynMaxSize = model.DynLimit;
-        if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
+        if (ctx.Refs.Places.ResolveItem(temp) is not { } place) return null;
         // The store is a plain BoundMove, NOT a re-entry into MoveBinder.BindMoveOf: the statement's own syntax
         // rules (the SR5 edition gates, the Table-16 legality, SR2's strong-typing check, SR9's §8.5.1.12
         // compatibility screen) are about the operands the PROGRAMMER wrote and have already been applied to
@@ -525,7 +525,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false),
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__SENDTRUTH-", "__sendtruth", tag);
-        if (ctx.Refs.ResolveItem(temp) is not { } place) return truth;
+        if (ctx.Refs.Places.ResolveItem(temp) is not { } place) return truth;
         ctx.Data.PendingPreOps.Add(new BoundIf(truth, [StoreBit(place, "1")], [StoreBit(place, "0")]));
         return new BoundBooleanCondition(new BoundBoolRef(place));
 
@@ -550,7 +550,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: positions, Digits: 0, Scale: 0, Signed: false),
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__SENDBOOL-", "__sendbool", tag);
-        if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
+        if (ctx.Refs.Places.ResolveItem(temp) is not { } place) return null;
         ctx.Data.PendingPreOps.Add(new BoundComputeBoolean(expr, [place]));
         return place;
     }
@@ -568,7 +568,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// compiler temp is minted from data-name-1's own description, a store of data-name-1 into it is registered as
     /// a PRE-op <i>ahead of</i> the group store (<see cref="Materialize"/> adds the group store after this call
     /// returns, so the order is the rule's own: freeze the length, then move the data), and the clone's
-    /// <see cref="OccursSpec.Depending"/> is repointed at it — which is what <c>ReferenceResolver.WrapIfOdoGroup</c>
+    /// <see cref="OccursSpec.Depending"/> is repointed at it — which is what <c>PlaceBuilder.WrapIfOdoGroup</c>
     /// reads to build the GR8 extent slice, so the temp's every use inherits the frozen length with no second
     /// mechanism. The clone's <see cref="OccursSpec.DependingName"/> deliberately stays data-name-1 AS WRITTEN: it
     /// is a description-clause fact (the temp's description IS identifier-1's, §14.9.25.4 GR1), nothing re-resolves
@@ -587,9 +587,9 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     {
         if (model.OccursSpec is { Depending: { } dep } && temp.OccursSpec is { } clonedSpec)
         {
-            if (ctx.Refs.ResolveItem(dep) is not { } depPlace) return false;
+            if (ctx.Refs.Places.ResolveItem(dep) is not { } depPlace) return false;
             var frozen = ctx.Data.CreateCompilerTemp(dep, "__SENDODO-", "__sendodo", tag);
-            if (ctx.Refs.ResolveItem(frozen) is not { } frozenPlace) return false;
+            if (ctx.Refs.Places.ResolveItem(frozen) is not { } frozenPlace) return false;
             ctx.Data.PendingPreOps.Add(new BoundMove(new BoundFieldOperand(depPlace), [frozenPlace]));
             clonedSpec.Depending = frozen;
         }
@@ -637,14 +637,14 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         if (cell.IsDynamicLength) cell.DynMaxSize = model.DynLimit;
         var held = new LocalVector(new StatementLocal(StatementLocalRole.HeldTableAllIndices, table.Uid));
         // A compiler temporary always resolves; a refusal here would quietly leave the argument un-held, the defect this exists to remove.
-        if (ctx.Refs.ResolveItemAt(cell, [new PositionLocalElement(held, 0)]) is not { } heldElement)
+        if (ctx.Refs.Places.ResolveItemAt(cell, [new PositionLocalElement(held, 0)]) is not { } heldElement)
             throw new InvalidOperationException($"SendingValueTemp: the held table(ALL) cell '{cell.CobolName}' did not resolve to a place");
         Place? count = null;
         AllCount heldCount;
         if (dynamic)
         {
             // A dynamic-capacity table's count IS its current capacity, which the holder sets to the number of elements it counted.
-            if (ctx.Refs.CurrentOccurrenceCount(cell, []) is not { } capacityCount)
+            if (ctx.Refs.Places.CurrentOccurrenceCount(cell, []) is not { } capacityCount)
                 throw new InvalidOperationException($"SendingValueTemp: the held dynamic-capacity table '{cell.CobolName}' has no current-capacity count");
             heldCount = capacityCount;
         }
@@ -657,7 +657,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
                 Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 10, Digits: 10, Scale: 0, Signed: false),
             };
             var number = ctx.Data.CreateCompilerTemp(numberModel, "__HELDALLN-", "__heldalln", tag);
-            if (ctx.Refs.ResolveItem(number) is not { } numberPlace)
+            if (ctx.Refs.Places.ResolveItem(number) is not { } numberPlace)
                 throw new InvalidOperationException($"SendingValueTemp: the held table(ALL) count '{number.CobolName}' did not resolve to a place");
             (count, heldCount) = (numberPlace, new AllCount.Odo(numberPlace, 0, (int)capacity));
         }
@@ -825,7 +825,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         var temp = ctx.Data.CreateCompilerTemp(model.Item, "__CONCEPT-", "__concept", tag);
         temp.IsDynamicLength = true;
         temp.DynMaxSize = model.DynLimit;
-        return ctx.Refs.ResolveItem(temp);
+        return ctx.Refs.Places.ResolveItem(temp);
     }
 
     /// <summary>The implementor's maximum length for a §15.4 returned value of a character category — the bound

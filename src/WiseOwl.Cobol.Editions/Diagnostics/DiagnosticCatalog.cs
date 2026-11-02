@@ -6412,7 +6412,7 @@ public static class DiagnosticCatalog
         "ISO §8.4.2.3.2; §8.4.3.3.2; §8.4.3.2.2");
 
     /// <summary>A reference modifier whose leftmost-position is omitted — <c>X (:2)</c> (kb/Work PB1407 / PB1458).
-    /// Reported by the ONE reader of the captured reference-modifier group (<c>ReferenceResolver.ReadRefMod</c>) so
+    /// Reported by the ONE reader of the captured reference-modifier group (<c>RefModBinder.ReadRefMod</c>) so
     /// every surface that reads one — a sending operand, a receiving operand, an ADDRESS OF operand, a function
     /// result — names the rule. Before it, a sending operand drew the COBOL2362 internal-error net and a RECEIVING
     /// operand (<c>MOVE "A" TO X (:2)</c>) was DROPPED from its statement with no diagnostic at all.</summary>

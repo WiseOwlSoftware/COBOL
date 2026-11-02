@@ -14,7 +14,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// identifier-1" was never created, a zero-length slice never raised EC-BOUND-REF-MOD (§7.3.23.3 GR1), and the
 /// §8.4.3.3.3 SR1 screen never ran. The same arm was also the only place a RENAMES place could be built, so the
 /// by-item entries (<c>ResolveItem</c>, <c>ResolveItemRefMod</c>, <c>ResolveByName</c>) built none.
-/// <para>The rule, stated as what these tests hold: inside <c>ReferenceResolver.cs</c> the RENAMES descriptor is
+/// <para>The rule, stated as what these tests hold: inside <c>PlaceBuilder.cs</c> (the model-layer builder, kb/Work
+/// PB2375; the reference-resolution subsystem keeps none) the RENAMES descriptor is
 /// read at exactly ONE code line — <c>PlaceForItem</c>'s dispatch to <c>PlaceForRenames</c> — and a
 /// <c>RenamesPlace</c> is constructed at exactly one site in <c>src/</c>. A second reader in the resolver is a
 /// second arm that can return before the shared tail again.</para>
@@ -28,8 +29,8 @@ public sealed class RenamesPlaceBuilderDriftTests
 {
     private static readonly string SrcRoot = Path.Combine(TestRepo.Root, "src");
 
-    private static readonly string ReferenceResolverPath =
-        Path.Combine(SrcRoot, "WiseOwl.Cobol.Compiler", "Binding", "ReferenceResolver.cs");
+    private static readonly string PlaceBuilderPath =
+        Path.Combine(SrcRoot, "WiseOwl.Cobol.Compiler", "Binding", "Model", "PlaceBuilder.cs");
 
     /// <summary>A read of a data item's RENAMES descriptor (<c>x.Renames</c>, not the owner's <c>Renames66</c>).</summary>
     private static readonly Regex RenamesRead = new(@"\.Renames\b(?!66)", RegexOptions.CultureInvariant);
@@ -45,13 +46,19 @@ public sealed class RenamesPlaceBuilderDriftTests
         }
     }
 
-    /// <summary>The resolver asks "is this a RENAMES entry?" once, in the one builder's dispatch.</summary>
+    /// <summary>The builder asks "is this a RENAMES entry?" once, in its own dispatch - and no part of the
+    /// reference-resolution subsystem asks it at all.</summary>
     [Fact]
     public void TheResolver_ReadsTheRenamesDescriptor_OnlyInThePlaceBuilderDispatch()
     {
-        var sites = CodeLines(ReferenceResolverPath).Where(l => RenamesRead.IsMatch(l.Text)).ToList();
+        var sites = CodeLines(PlaceBuilderPath).Where(l => RenamesRead.IsMatch(l.Text)).ToList();
+        var resolverSites = ResolverSources.Files.SelectMany(CodeLines).Where(l => RenamesRead.IsMatch(l.Text)).ToList();
+        Assert.True(resolverSites.Count == 0,
+            "the reference-resolution subsystem reads a DataItem's RENAMES descriptor itself - that is the one builder's "
+            + "dispatch (kb/Work PB1380, PB2375). Found:\n"
+            + string.Join("\n", resolverSites.Select(s => $"  {Path.GetFileName(s.File)}:{s.Line}: {s.Text}")));
         Assert.True(sites.Count == 1 && sites[0].Text.Contains("PlaceForRenames(", StringComparison.Ordinal),
-            "ReferenceResolver.cs must read a DataItem's RENAMES descriptor at exactly one code line — PlaceForItem's "
+            "PlaceBuilder.cs must read a DataItem's RENAMES descriptor at exactly one code line — PlaceForItem's "
             + "dispatch to PlaceForRenames — so a level-66 entry takes the same reference-modification tail as every "
             + "other item (kb/Work PB1380). Found:\n"
             + string.Join("\n", sites.Select(s => $"  line {s.Line}: {s.Text}")));
@@ -67,8 +74,8 @@ public sealed class RenamesPlaceBuilderDriftTests
             .SelectMany(CodeLines)
             .Where(l => l.Text.Contains("new RenamesPlace(", StringComparison.Ordinal))
             .ToList();
-        Assert.True(sites.Count == 1 && sites[0].File == ReferenceResolverPath,
-            "a RenamesPlace must be built only by ReferenceResolver.PlaceForRenames (kb/Work PB1380). Found:\n"
+        Assert.True(sites.Count == 1 && sites[0].File == PlaceBuilderPath,
+            "a RenamesPlace must be built only by PlaceBuilder.PlaceForRenames (kb/Work PB1380). Found:\n"
             + string.Join("\n", sites.Select(s => $"  {Path.GetRelativePath(SrcRoot, s.File)}:{s.Line}: {s.Text}")));
     }
 }

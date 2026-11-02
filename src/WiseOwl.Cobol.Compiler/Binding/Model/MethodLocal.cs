@@ -66,7 +66,7 @@ public sealed record StatementLocal(StatementLocalRole Role, int Ordinal) : Meth
 /// <paramref name="Root"/> is the root itself, so the identity is the root's and two references to it are equal values
 /// (<see cref="DataItem"/> compares by reference). Set as <see cref="DataItem.ActivationLocal"/> by
 /// <c>DataBinder.OoBindMethodData</c>; every access path to the root's own storage starts at a
-/// <see cref="LocalRootSegment"/> over it (<c>ReferenceResolver.AddRoot</c>).</summary>
+/// <see cref="LocalRootSegment"/> over it (<c>PlaceBuilder.AddRoot</c>).</summary>
 public sealed record MethodDataLocal(DataItem Root) : MethodLocal;
 
 /// <summary>The ONE character-string backing of a METHOD's Tier-B REDEFINES class whose canonical is a level-1 method root

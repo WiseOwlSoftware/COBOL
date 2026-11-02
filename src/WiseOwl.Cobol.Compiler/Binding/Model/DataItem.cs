@@ -566,7 +566,7 @@ public sealed class DataItem
     /// table-RECOGNITION site (is this the table SEARCH iterates) and the wrong one at every
     /// REFERENCE-SHAPE site, where the subject is a reference to a table ELEMENT and every level of the
     /// element's hierarchy counts.
-    /// <para>The half that was missing had a measurable cost: the subscript splitter's (now <c>ReferenceResolver.SegmentsOf</c>)
+    /// <para>The half that was missing had a measurable cost: the subscript splitter's (now <c>SubscriptBinder.SegmentsOf</c>)
     /// declaration-informed <c>'('</c> rule asked <c>IsTable</c>, so <c>X</c> — <c>PIC 9</c> under
     /// <c>02 G2 OCCURS 3</c> — answered "cannot be subscripted", its own <c>'('</c> opened a NEW subscript, and
     /// <c>Y (X(1))</c> was read as TWO subscripts on a one-dimensional reference. §8.4.2.3.2's <c>subscript</c>
@@ -786,7 +786,7 @@ public sealed class DataItem
     /// <c>OoFormal.Carrier</c>) — and null for every other item. ISO §14.2.3 GR8: "the activated runtime element operates
     /// as if the formal parameter occupies the same storage area as the argument", so the item has no storage member of
     /// its own. Every access path rooted here starts at the carrier's root and steps through
-    /// <see cref="CarrierValueSegment"/> (<c>ReferenceResolver.AddRoot</c>), so the access is structure,
+    /// <see cref="CarrierValueSegment"/> (<c>PlaceBuilder.AddRoot</c>), so the access is structure,
     /// <see cref="ClrName"/> stays a name (kb/Work PB4320) and no C# local's name sits on the model (kb/Work PB4380;
     /// DESIGN-backend-abstraction §1.3 L7, L8). Set by <c>DataBinder.CallBindLinkage</c> and
     /// <c>DataBinder.OoBindMethodData</c>.</summary>
@@ -799,7 +799,7 @@ public sealed class DataItem
     /// LOCAL-STORAGE and LINKAGE roots live per activation (ISO §8.6.4: "Their storage is allocated and set to initial state
     /// each time the runtime element containing them is activated"), so they are locals, never members of the class: every
     /// access path to the root's own storage starts at a <see cref="LocalRootSegment"/> over this identity
-    /// (<c>ReferenceResolver.AddRoot</c>), and each backend names it where it declares it (DESIGN-backend-abstraction §1.2,
+    /// (<c>PlaceBuilder.AddRoot</c>), and each backend names it where it declares it (DESIGN-backend-abstraction §1.2,
     /// §1.3 L8). A root whose storage is elsewhere never roots a path here: a carrier-resident formal's is its carrier's
     /// (<see cref="ResidentCarrier"/>, asked first), a Tier-B REDEFINES member's is its class's backing
     /// (<see cref="RedefinesClass.BackingLocal"/>) or cell, and a Tier-A view's is its canonical's. Set by
@@ -1258,11 +1258,11 @@ public sealed class DataItem
     /// when it does not state its own (kb/Work PB2497; <c>PlaceRenderer.WriteVarGroupContiguous</c>).</summary>
     internal static bool HasOdoTableOfVariableLengthElements(DataItem g) =>
         g.IsGroup && g.Children.Any(c => c.RedefinesTargetName is null && c.IsGroup
-            && ((c.OccursSpec?.DependingName is not null && WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(c))
+            && ((c.OccursSpec?.DependingName is not null && DataItem.HasVariableLengthSubordinate(c))
                 || HasOdoTableOfVariableLengthElements(c)));
 
     private bool ComposesCurrentExtent(bool transfer) =>
-        IsGroup && WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(this)
+        IsGroup && DataItem.HasVariableLengthSubordinate(this)
         && Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))
             .All(c => CurrentExtentComposes(c, transfer));
 
@@ -1329,6 +1329,16 @@ public sealed class DataItem
     /// that asks only <see cref="IsImageCapable"/> rejects legal source; every CALL / INVOKE / RETURNING screen
     /// and emit guard asks THIS.</summary>
     public bool BoundaryImageCapable => IsImageCapable || CurrentExtentImageCapable;
+
+    /// <summary>§8.5.1.12 — a variable-length group has a dynamic-length elementary item or a dynamic-capacity table
+    /// as a subordinate (at any depth). THE one walk (kb/Work PB2375 moved it here from the reference resolver, whose
+    /// model-layer readers — this class, <see cref="FileModel"/>, <see cref="RecordLayout"/> — asked a binder type).</summary>
+    internal static bool HasVariableLengthSubordinate(DataItem group)
+    {
+        foreach (var c in group.Children)
+            if (c.IsDynamicLength || c.IsDynamicTable || (c.IsGroup && HasVariableLengthSubordinate(c))) return true;
+        return false;
+    }
 
     /// <summary>An OCCURS DEPENDING clause on <paramref name="c"/> itself or any subordinate — the shape the
     /// current-extent composer must classify (see <see cref="CurrentExtentImageCapable"/>). The composer screens
