@@ -98,7 +98,7 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | Opt | Construct (GR4) | Visible at | Incr | Notes |
 |-----|-----------------|-----------|------|-------|
 | a ALL | fan-out to b–f | directive parse | 0 | |
-| b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in a source element (§3.164) that calls any function or invokes any method | `[B]` DONE — `TurnState.DirectiveLinesNaming` (post-walk) + the SOURCE-ELEMENT model (`_elements`) with calls from `VisitFunctionCall`/`VisitInvokeStatement`/`VisitInlineMethodInvocation` and the binder-recorded `DataBinder.ActivationSites` | 4 | GR4 normative (no Annex-E re-item); CALL of a program is NOT a trigger |
+| b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in a source element (§3.164) that calls any function or invokes any method | `[B]` DONE — `TurnState.DirectiveLinesNaming` (post-walk) + the SOURCE-ELEMENT model (`_elements`) with calls from `VisitFunctionCall`/`VisitInvokeStatement`/`VisitInlineMethodInvocation` and the binder-recorded `DataBindState.ActivationSites` | 4 | GR4 normative (no Annex-E re-item); CALL of a program is NOT a trigger |
 | c I-O-STATUS-07 | a CLOSE with WITH NO REWIND or the UNIT phrase | `[B]` `BoundClose` — **needs a NoRewind model bit** (`BoundCloseKind` has ReelUnit but not NoRewind) | 3 | E.2 item 16. `CobolIO.g4 closeOption` already parses both |
 | d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) the OPERANDS are category alphanumeric-edited (a reference-modified operand is alphanumeric, §8.4.3.3.4 GR6 a), or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` parse-tree visitor + per-unit `ReferenceResolver.FindItem` (same-DDE = `ReferenceEquals`) | 3 | GR4 normative (no Annex-E re-item) |
 | e RANGE-EXCEPTION-FOR-INDEX | an index-assignment/arithmetic SET whose receiver is an **index-name** (NOT a class-index DATA item — §14.9.39.4 Format-1 GR2b copies it unchanged, no range check), when EC-RANGE-INDEX checking is enabled | `[B]` parse-tree visitor: `DataBinder.IndexFields` + `TurnState` | 3 | GR4 normative |
@@ -290,7 +290,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     function inside a subscript) or **invokes a method** (an `invokeStatement` / `inlineMethodInvocation` / a property
     reference §8.4.3.9, whose accessor is a method) — a CALL of a program is deliberately NOT a trigger (GR4 b names
     only function and method). The activations with no syntactic marker are not re-derived from syntax: the BINDER
-    records them where it decides them (`DataBinder.ActivationSites`, identity-keyed parse nodes and subscript
+    records them where it decides them (`DataBindState.ActivationSites`, identity-keyed parse nodes and subscript
     tokens; sites `IntrinsicBinder.KeywordOmittedFunction`, `ReferenceResolver.IsFunctionBearing`,
     `ReferenceResolver.ResolveObjectProperty`) and the pass reads that fact back. Because it flags a DIRECTIVE (a frontend `>>TURN`,
     not a parse node), it runs POST-walk: `TurnState.DirectiveLinesNaming` exposes the `>>TURN` lines naming any

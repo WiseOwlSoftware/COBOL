@@ -2208,7 +2208,7 @@ have the effect of a CONTINUE statement (§14.9.7.4 GR1 / §14.9.36.4 GR1; `conf
   only when the element's own FILE-CONTROL selects it; a word that resolves to no data item but IS a file of a containing
   element is SR11's (a GLOBAL file) or SR1's (any other) violation, and so is a container's GLOBAL record area, written bare
   or with its file-report-qualifier (SR11), found by `ScreenEnclosingFileOperand` from the files
-  `DataBinder.InheritFileNames` records before the unit binds, never an undefined data-name), and the claimed
+  `InheritStep.Seed` records in `InheritedGlobals.Files` before the unit binds, never an undefined data-name), and the claimed
   clauses' antecedent family (LOCK MODE, SAME, OPEN sharing, READ/REWRITE lock phrases, UNLOCK) refuses its forbidden
   shapes in its own right (COBOL2974). The run unit's half of the statements is `TransactionControl`: each element
   instance's activated clause is a PARTICIPANT whose emitted `__CommitSave` / `__CommitRestore` copy its data items (the

@@ -41,9 +41,9 @@ public sealed class GlobalNameClassDriftTests
     /// <summary>Name indexes that are NOT names a GLOBAL data description entry hands to a contained program.</summary>
     private static readonly Dictionary<string, string> NotPerEntryGlobalNames = new()
     {
-        ["TypeDecls"] = "a type-name is inherited BEFORE Bind by InheritGlobalTypeDecls (§13.18.58.4 GR3; kb/Work PB1303), "
+        ["TypeDecls"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§13.18.58.4 GR3; kb/Work PB1303), "
             + "and a template's subordinate names are kept off the name index",
-        ["_inheritedTypeDecls"] = "the inherited half of the type-name index itself (InheritGlobalTypeDecls)",
+        ["InheritedGlobals._typeDecls"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
         ["_lapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §8.4.2.2.1 "
             + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
         ["_debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
@@ -51,6 +51,18 @@ public sealed class GlobalNameClassDriftTests
         ["_constants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
             + "InheritGlobalConstants (§13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
     };
+
+    /// <summary>The types whose instances hold a source element's name indexes: the binder, and every slice of its
+    /// <see cref="DataBindState"/> (kb/Work PB2296), found by reflection so a slice added tomorrow is walked too. A field of a
+    /// slice is named <c>Slice.field</c>.</summary>
+    private static IEnumerable<(Type Owner, string Prefix)> StateOwners()
+    {
+        yield return (typeof(DataBinder), "");
+        yield return (typeof(DataBindState), $"{nameof(DataBindState)}.");
+        foreach (var p in typeof(DataBindState).GetProperties())
+            if (p.PropertyType.IsClass && p.PropertyType.Assembly == typeof(DataBinder).Assembly)
+                yield return (p.PropertyType, $"{p.PropertyType.Name}.");
+    }
 
     private static IEnumerable<string> NameIndexFields(Type owner)
     {
@@ -84,7 +96,8 @@ public sealed class GlobalNameClassDriftTests
     [Fact]
     public void EveryNameIndex_IsInheritedOrExcludedWithItsReason()
     {
-        var found = NameIndexFields(typeof(DataBinder)).ToHashSet(StringComparer.Ordinal);
+        var found = StateOwners().SelectMany(o => NameIndexFields(o.Owner).Select(n => o.Prefix + n))
+            .ToHashSet(StringComparer.Ordinal);
         var unclassified = found.Where(n => !Inherited.ContainsKey(n) && !NotPerEntryGlobalNames.ContainsKey(n)).ToList();
         Assert.True(unclassified.Count == 0,
             "DataBinder gained a name index that neither InheritGlobalSubtree reaches nor this test excludes — decide "

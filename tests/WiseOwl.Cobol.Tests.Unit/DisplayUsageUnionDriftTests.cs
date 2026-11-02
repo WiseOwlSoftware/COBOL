@@ -139,7 +139,7 @@ public sealed class DisplayUsageUnionDriftTests
             //      content its native carrier cannot, and the numeric class condition (§8.8.4.4.4 GR3 n) 1. c.)
             //      must read that content. UnifyCrossing had left with kb/Work PB187 on the same predicate.
 
-            // PAIR (1) — CARRIAGE (MarkImageForced), the ONE eligibility (IsCharacterImageNumeric) of both of
+            // PAIR (1) — CARRIAGE (DataBindState.ImageForcedItems), the ONE eligibility (IsCharacterImageNumeric) of both of
             //      this file's image marks:
             //  the figurative pass — a NON-DIGIT figurative fill deposits fill CHARACTERS into the receiver's
             //      cells ("MOVE QUOTE TO PIC 9(3) leaves three quotation marks"); a 2-byte binary carrier has
