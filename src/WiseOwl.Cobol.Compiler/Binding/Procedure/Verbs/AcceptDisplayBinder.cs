@@ -271,6 +271,12 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         var ops = new List<BoundOperand>();
         foreach (IParseTree child in StatementBinder.Children(display))
         {
+            // Each operand is positioned at its own first token, so the operand screens below (COBOL1637's index-name,
+            // the excluded-class refusal) and a FUNCTION or inline-invocation operand's diagnostics name the operand's
+            // line and column and not the DISPLAY statement's, whatever line of a continued DISPLAY it stands on (kb/Work
+            // PB4383). A data reference positions itself again in ReferenceResolver.ResolveImpl; the other operand forms
+            // have no resolver to do it. The UPON phrase and the NO ADVANCING word are no operand and keep the statement.
+            using var operandAt = ctx.Edition.At(child as Antlr4.Runtime.ParserRuleContext);   // null (a terminal) leaves the position standing
             BoundOperand? op = child switch
             {
                 Core.LiteralContext lit => host.Expr.LiteralOperand(lit),
