@@ -1,4 +1,4 @@
-## PB2103 part 1 (the repository resolver, a callee compiled elsewhere checked at run time, the canonical signature identity), PB4047 reference assemblies, PB4012, PB4340, PB4219, PB4226, PB4306, PB4267
+## Entry 2989 — 2026-11-02 02:00 PST — PB2103 part 1 (the repository resolver, a callee compiled elsewhere checked at run time, the canonical signature identity), PB4047 reference assemblies, PB4012, PB4340, PB4219, PB4226, PB4306, PB4267
 
 Slice 7 of the external repository (DESIGN-external-repository §21 item 7), part 1 of at least two. The slice's
 estimate was one landing; its eleven REPO codes are reported only by compilations that READ a repository entry, so they
@@ -141,3 +141,4 @@ says the reference names a data item; the SEARCH ALL relation's "is a condition-
 `WHEN RELF (IX) = 1` draws SR8 (COBOL1965). Three goldens,
 `cases/8.4.6.2-Local-and-global-names/pb4219_*_names_own_data_item_hiding_container_global_condition_name`, and
 `HiddenConditionNameTests` pin the codes and the wording.
+
