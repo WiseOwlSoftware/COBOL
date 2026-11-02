@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """merge_drivers.py — THE GIT MERGE DRIVERS FOR THE FILES TWO LANDINGS BOTH EDIT, and the one way main is merged in
-(kb/Work PB3610; DESIGN-test-build-ci.md section 3.17.2 step 2).
+(kb/Work PB3610; DESIGN-test-build-ci.md section 3.17.2 step 3).
 
     python scripts/merge_drivers.py merge <ref> [--message M] [--keep] [--repo DIR]   merge <ref> with the drivers, settle the ABI pin
     python scripts/merge_drivers.py driver <name> <base> <ours> <theirs> [<path>]   what git runs per conflicting file
@@ -1266,6 +1266,35 @@ def self_test() -> int:
                and any("names no tracked file" in f for f in found), "; ".join(found))
     finally:
         remove_tree(root)
+
+    # THE REAL TREE (kb/Work PB3825, PB4147, PB4148): this branch adds no driver main's attributes lack, --check holds
+    # both rules, and no driver governs the conformance suite's registries or the traceability inventory.
+    repo = HERE.parent
+    landing, unread = new_driver_files(repo)
+    if unread:
+        print(f"  NOTE  'a new driver lands alone' was NOT CHECKED on this tree: {unread}")
+    expect("real tree: a new driver lands alone (no file of a driver main's .gitattributes does not yet give is changed "
+           "here; where main is absent the rule says NOT CHECKED)", not landing, "; ".join(landing))
+    source = pathlib.Path(__file__).read_text(encoding="utf-8").replace("\r\n", NL)
+    at = source.index(f"{NL}def self_test(")
+    code = source[:at] + source[source.index(f"{NL}def ", at + 1):]
+    expect("--check runs both rules: the registry against .gitattributes, and a new driver lands alone",
+           "findings = check(HERE.parent)" in code and "landing, unread = new_driver_files(HERE.parent)" in code)
+    attributes = [ln.strip() for ln in (repo / ".gitattributes").read_text(encoding="utf-8").splitlines()
+                  if ln.strip() and not ln.lstrip().startswith("#")]
+    entries = list((repo / "conformance-suite" / "wiseowl").iterdir())
+    suite, files = sorted(e.name for e in entries), [e.name for e in entries if e.is_file()]
+    expect("real tree: no registry of the conformance suite is one shared file (wiseowl/ holds only its three "
+           "one-file-per-test directories), and no driver or attribute line governs a conformance-suite path "
+           "(kb/Work PB4147)",
+           suite == ["cases", "diagnostics", "options"] and not files
+           and not [ln for ln in attributes if "merge=cobol-" in ln and ln.startswith("conformance-suite/")]
+           and not [p for d in DRIVERS for p in d.patterns if p.startswith("conformance-suite/")], f"{suite} {files}")
+    named = [ln for ln in attributes if any(w in ln for w in ("tests/version-matrix/inventory", "traceability-inventory",
+                                                                 "cobol-keyed-inventory"))]
+    drivers = [d.name for d in DRIVERS if "inventory" in d.name or any("inventory" in p for p in d.patterns)]
+    expect("real tree: no driver and no attribute line names the traceability inventory: its rows are one file each "
+           "(kb/Work PB4148)", not named and not drivers, f"{named} {drivers}")
     print(f"merge_drivers self-test: {'FAIL' if failures else 'PASS'}")
     return 1 if failures else 0
 

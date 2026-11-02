@@ -7,20 +7,21 @@ A live tool is a script the gates, the loop or a session run against this tree. 
   scripts/temp_names.py    holds every script under ROOTS to no fixed name in the machine-wide temp directory;
   scripts/scratch_repo.py  its audit holds every self-test under ROOTS to the one scratch-repository fixture (PB3584);
   scripts/standard_streams.py  holds every Python file under ROOTS to the one UTF-8 switch for its streams (PB3637);
-  scripts/gate.py          its trx-writer audit reads every live tool (PB3155);
-  scripts/test_population.py  its trx-reader audit reads every live tool for the one trx reader (PB3661).
+  scripts/test_population.py  its trx-writer audit (PB3155) and its trx-reader audit (the one trx reader, PB3661) read every
+                           live tool.
 Each kept its own copy until PB3176: when the conformance suite's harness (conformance-suite/harness/, whose generator is
 a gate audit; kb/Work PB3174) joined the self-test runner and the WRITERS arm, the temp-name audit's copy stayed at
 scripts/ and .claude/, so a fixed temp name committed in the harness passed every gate. A tree added here reaches all
 of them at once. And each kept its own `git ls-files` LISTING of the trees (seven spellings, each with its own suffix
-filter and its own missing-file rule) until PB3821: `tracked` is the one listing, and SelfTestDiscoveryDriftTests holds
-every reader to it.
+filter and its own missing-file rule) until PB3821: `tracked` is the one listing, and `copies` (run over the real tree
+by this file's self-test, kb/Work PB4395) holds every reader to it.
 
 Not live: `docs/**/evidence/**` and `adjudication/**` hold frozen records that never run against the tree, and
 `tools/claude-skills` is a submodule with its own repository and its own checks.
 """
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from collections.abc import Mapping
@@ -36,13 +37,44 @@ def tracked(repo: Path | str, suffixes: tuple[str, ...] | None = None, env: Mapp
     """THE ONE LISTING OF THE LIVE TOOLS (kb/Work PB3821): the sorted repository paths of the files `git ls-files` tracks
     under ROOTS in `repo` that still exist in its working tree (a file deleted there and not yet from the index is no
     tool to read) and, when `suffixes` is given, end with one of them. Every reader of the live trees calls this, and
-    none other spells the `git ls-files` listing (SelfTestDiscoveryDriftTests). `env` is the child's environment, `None`
+    none other spells the `git ls-files` listing (`copies`). `env` is the child's environment, `None`
     for this process's; a reader that may run under a git hook passes `scratch_repo.git_env()`, which drops git's
     repository-selection variables (this module cannot import that one, which imports this)."""
     out = subprocess.run(["git", "-C", str(repo), "ls-files", "-z", "--", *ROOTS], capture_output=True, check=True,
                          env=env).stdout.decode("utf-8")
     root = Path(repo)
     return sorted(p for p in out.split(chr(0)) if p and (suffixes is None or p.endswith(suffixes)) and (root / p).is_file())
+
+
+# ── THE ONE LIST, HELD (kb/Work PB3176, PB3821, PB4395): every reader reads it, and no live script copies it ──────────
+
+THIS = "scripts/live_tools.py"
+#: The scripts that read the live tools' trees: each lists them through `tracked` and declares no tuple of its own.
+READERS = ("scripts/self_tests.py", "scripts/line_endings.py", "scripts/temp_names.py", "scripts/scratch_repo.py",
+           "scripts/standard_streams.py", "scripts/test_population.py")
+#: A reader's own copy of the trees: a module-level `ROOTS = (` or `<PREFIX>_ROOTS = (` tuple.
+OWN_ROOTS = re.compile(r"^\w*ROOTS\s*=\s*\(", re.MULTILINE)
+#: A `git ls-files` argument list that holds the trees' list (`ROOTS`, or the name a reader imported it as): the listing
+#: `tracked` owns, spelled by a reader.
+OWN_LISTING = re.compile(r"ls-files[^\]\)]*(?<!\w)(?:live_tools\.|LIVE_)?ROOTS\b")
+
+
+def copies(repo: Path, readers: tuple[str, ...] = READERS) -> list[str]:
+    """THE AUDIT OF THE ONE LIST over `repo`: every reader that no longer lists the trees through `tracked(` or declares
+    its own tuple, and every live Python file but this one that spells the `git ls-files` listing over the trees itself
+    (the net, so a reader `READERS` does not name is caught too)."""
+    bad: list[str] = []
+    for rel in readers:
+        text = (repo / rel).read_text(encoding="utf-8")
+        if "live_tools.tracked(" not in text:
+            bad.append(f"{rel}: no longer lists the live tools' trees through live_tools.tracked")
+        if OWN_ROOTS.search(text):
+            bad.append(f"{rel}: declares its own copy of the live tools' trees: read live_tools.ROOTS instead")
+    for rel in tracked(repo, (".py",)):
+        if rel != THIS and OWN_LISTING.search((repo / rel).read_text(encoding="utf-8")):
+            bad.append(f"{rel}: lists the live trees (git ls-files over live_tools.ROOTS) itself; call "
+                       "live_tools.tracked(repo, suffixes, env), the one listing (kb/Work PB3821)")
+    return bad
 
 
 # ── the self-test: `tracked`'s listing rules, on a scratch repository ─────────────────────────────────────────────────
@@ -80,8 +112,33 @@ def self_test() -> int:
     expect("the environment is the child's: a leaked GIT_DIR selects another repository, git_env() does not",
            (tracked(repo.path, (".py",), hooked), tracked(repo.path, (".py",), git_env())),
            (["scripts/other.py"], [".claude/hooks/h.py", "conformance-suite/harness/g.py", "scripts/b.py"]))
-    expect("this repository's own tools are listed, this file among them",
-           "scripts/live_tools.py" in tracked(Path(__file__).resolve().parents[1], (".py",)), True)
+    here = Path(__file__).resolve().parents[1]
+    expect("this repository's own tools are listed, this file among them", THIS in tracked(here, (".py",)), True)
+
+    # THE ONE LIST, HELD (kb/Work PB4395: until then SelfTestDiscoveryDriftTests, a compiler test, held it, so a change
+    # to any live script was a compiler change).
+    planted = ScratchRepo.init(base / "copies")
+    planted.commit("readers", {
+        "scripts/good.py": "import live_tools\nfiles = live_tools.tracked(repo)\n",
+        "scripts/copy.py": "import live_tools\nfiles = live_tools.tracked(repo)\nMY_ROOTS = (\"scripts/\",)\n",
+        "scripts/blind.py": "files = []\n",
+        "scripts/spells.py": "from live_tools import ROOTS\nrun([\"git\", \"ls-files\", \"-z\", \"--\", *ROOTS])\n",
+        ".claude/also.py": "run(['git', 'ls-files', '--', *live_tools.ROOTS])\n",
+        THIS: "ROOTS = ()\nrun(['git', 'ls-files', '--', *ROOTS])\n",
+    })
+    expect("the audit names a reader that lists the trees another way, a reader's own tuple, and every live file but "
+           "this one that spells the listing itself, a reader the list does not name included",
+           copies(planted.path, ("scripts/good.py", "scripts/copy.py", "scripts/blind.py")),
+           ["scripts/copy.py: declares its own copy of the live tools' trees: read live_tools.ROOTS instead",
+            "scripts/blind.py: no longer lists the live tools' trees through live_tools.tracked",
+            ".claude/also.py: lists the live trees (git ls-files over live_tools.ROOTS) itself; call "
+            "live_tools.tracked(repo, suffixes, env), the one listing (kb/Work PB3821)",
+            "scripts/spells.py: lists the live trees (git ls-files over live_tools.ROOTS) itself; call "
+            "live_tools.tracked(repo, suffixes, env), the one listing (kb/Work PB3821)"])
+    live = len(tracked(here, (".py",)))
+    expect("THE REAL TREE: every reader lists the live trees through tracked, and no live script spells the listing "
+           f"itself (the net read {live} live Python files; under 100 means it is broken)",
+           (copies(here), live >= 100), ([], True))
     print(f"=== LIVE TOOLS SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 

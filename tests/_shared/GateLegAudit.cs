@@ -70,7 +70,7 @@ internal static class GateLegAudit
 
     /// <summary>Arm (5): no discovered case of <paramref name="assembly"/> carries the repository root in its
     /// display name or in a string argument. A worktree path in a name makes the name differ between the worktree
-    /// the impact map was recorded in and the one a gate runs in, so no plan could ever key on it (evidence
+    /// a case was recorded in and the one a gate runs in, so no record of it could ever key on its name (evidence
     /// <c>b8</c>: 404 Unit rows). Substituting a placeholder is not a fix — xunit truncates a long argument with
     /// <c>···</c> at a fixed length, so the cut moves with the root's length — the test passes a
     /// repository-relative path instead.</summary>
