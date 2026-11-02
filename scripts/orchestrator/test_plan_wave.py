@@ -29,9 +29,9 @@ import plan_wave as pw  # noqa: E402
 # the planner's modules (DESIGN-orchestrator-loop.md section 16.3, kb/Work PB3728)
 from reports import (Report, Review, load_reports, parse_report, parse_review, report_index, same_commit,  # noqa: E402
                      status_line)
-from inflight import (Claim, InFlight, IndexPolicy, SLICE_OWNER, branch_replays, changed_files,  # noqa: E402
-                      classify_inflight, collision, collision_set, declared_sets, file_set_collisions,
-                      inflight_file_sets, inflight_units, slice_reservation, unlanded_branch_notes)
+from inflight import (Claim, InFlight, IndexPolicy, branch_replays, changed_files,  # noqa: E402
+                      classify_inflight, collision, collision_hits, collision_set, declared_sets, hold,
+                      inflight_file_sets, inflight_units, unlanded_branch_notes)
 import inflight as inb  # noqa: E402
 import clusters as clusters_mod  # noqa: E402
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, closed_by_branch,  # noqa: E402
@@ -80,6 +80,11 @@ WORK.mkdir()
 REPORTS = TMP / "reports"
 REPORTS.mkdir()
 fails, checked = [], []
+
+
+def collided(mine, busy):
+    """The whole-file collision hits as text, each '<owner> (<what they share>)'."""
+    return [f"{o} ({h})" for o, h in collision_hits(mine, busy)]
 
 
 def check(name, got, want):
@@ -139,6 +144,16 @@ F_BIND, F_EMIT, F_G4, F_OO = ("src/X/Binder.cs", "src/X/Emitter.cs", "src/F/Gram
 
 def cl(file, *ids, harm=1):
     return {"file": file, "harm": harm, "files": [file], "notes": [{"id": i, "area": "", "harm": 1, "title": ""} for i in ids]}
+
+
+def on_members(file, members, *ids):
+    """A cluster on `file` claiming only `members` of it."""
+    return {**cl(file, *ids), "members": {file: list(members)}}
+
+
+def running(files, branch, members=None, **kw):
+    """RUNNING work that edits `members` ({file: names}) of `files`: a hold needs a member on both sides (inflight.hold)."""
+    return InFlight(set(files), branch, members={f: frozenset(m) for f, m in (members or {}).items()}, **kw)
 
 
 CLUSTERS = [cl(F_BIND, "PB1", "PB2", "PB5"), cl(F_EMIT, "PB6", "PB7", "PB3"), cl(F_EMIT, "PB12"),
@@ -1401,7 +1416,7 @@ for what, budget, cap, head_runs in (("the head runs", 100, None, True), ("the b
 #     = 208.5 turns, under 0.75 x the implementer's cap); when the predicted turns exceed the budget, the group takes what
 #     fits and the rest is its OVERFLOW, which waits for the next wave to plan it ONTO the group's branch, and no two
 #     groups of the wave meet (check_practices.py's rule, with no `after:` exception).
-SEVEN = [cl("src/X/Seven.cs", f"PB{n}") for n in (6, 7, 8, 9, 10, 11, 12)]
+SEVEN = [on_members("src/X/Seven.cs", ["Seven.Run"], f"PB{n}") for n in (6, 7, 8, 9, 10, 11, 12)]
 s7 = pw.plan(notes, SEVEN, [], [], lambda b: "ABSENT", {}, LIVE_RULES, budget_points=100)
 check("PB4396: seven notes on one file are ONE group under the live turn budget",
       ([sorted(g.notes, key=pw.work.id_order) for g in s7["groups"]], s7["waiting"], notes_cap(LIVE_RULES) >= 7,
@@ -1672,11 +1687,11 @@ check("a finisher keeps its own notes and runs", [(g.kind, g.notes) for g in fp_
 free = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9"), after5], [], [], lambda b: "ABSENT", {}, RULES,
                budget_points=100, deps={"PB13": ["PB5"]})
 check("with nothing in flight all three run", [g.notes for g in free["groups"]], [["PB5"], ["PB9"], ["PB13"]])
-bp = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9"), after5], [], [], lambda b: "ABSENT", {}, RULES,
-             budget_points=100, deps={"PB13": ["PB5"]},
-             busy={"worktree-train-a": InFlight({F_BIND, "src/Other.cs"}, "worktree-train-a")})
-check("a group colliding with RUNNING work waits, the collision named",
-      "file-set collision with in-flight work worktree-train-a [RUNNING] (" + F_BIND + ")" in bp["waiting"].get("PB5", ""),
+bp = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5"), cl("src/X/Misc.cs", "PB9"), after5], [], [], lambda b: "ABSENT",
+             {}, RULES, budget_points=100, deps={"PB13": ["PB5"]},
+             busy={"worktree-train-a": running({F_BIND, "src/Other.cs"}, "worktree-train-a", {F_BIND: ["Binder.Bind"]})})
+check("a group holding against RUNNING work (the same member) waits, the hold named",
+      "same-member collision with in-flight work worktree-train-a [RUNNING] (" + F_BIND + "#Binder.Bind)" in bp["waiting"].get("PB5", ""),
       True)
 check("its successor waits for it", "PB5 is not planned" in bp["waiting"].get("PB13", ""), True)
 check("a group that meets nothing runs", [g.notes for g in bp["groups"]], [["PB9"]])
@@ -1685,11 +1700,12 @@ check("a group that meets nothing runs", [g.notes for g in bp["groups"]], [["PB9
 # group's own work never collides (the branch its pred continues; a dispatch of its own notes).
 FIN = Report(TMP / "w1090c-PB66-report.md", 1090, "w1090c", "PB66", "DONE", ["PB66"], False, "worktree-done",
                 "E:/w/done", "abc1234")
-fl = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9"), cl("src/X/Other.cs", "PB11")], [], [],
-             lambda b: "ABSENT", {}, RULES, budget_points=100,
+fl = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9"), on_members("src/X/Other.cs", ["Other.Run"], "PB11")],
+             [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
              busy={"worktree done (worktree-done)": InFlight({F_BIND}, "worktree-done", finished=FIN),
                    "dispatched w1091a (PB9)": InFlight({"src/X/Misc.cs"}, notes={"PB9"}),
-                   "dispatched w1091b (PB40)": InFlight({"src/X/Other.cs"}, notes={"PB40"})})
+                   "dispatched w1091b (PB40)": InFlight({"src/X/Other.cs"}, notes={"PB40"},
+                                                          members={"src/X/Other.cs": frozenset({"Other.Run"})})})
 FG = {tuple(g.notes): g for g in fl["groups"]}
 check("fix lane: a group meeting only a FINISHED branch is planned as its continuation, no after:",
       (("PB5",) in FG, FG.get(("PB5",)) and FG[("PB5",)].after, FG.get(("PB5",)) and FG[("PB5",)].continues),
@@ -1731,14 +1747,13 @@ FND = dataclasses.replace(FIN, path=TMP / "w1090e-PB69-report.md", slug="w1090e"
 # the survey's lifecycle states (prune_worktrees.lifecycle) decide; a branch the survey does not name is running
 CI_STATES = {"worktree-done": "WAITING TO LAND", "worktree-split": "DECISION", "worktree-findings": "DECISION",
              "worktree-live": "IN FLIGHT", "worktree-landed": "LANDED"}
-ci = classify_inflight({o: {"src/A.cs"} for o in CI_META} | {"the open external-repository slices": {"src/S.cs"}},
-                          CI_META, [FIN, SPL, FND], CI_STATES, {"worktree-live": ["PB70"]})
+ci = classify_inflight({o: {"src/A.cs"} for o in CI_META}, CI_META, [FIN, SPL, FND], CI_STATES, {"worktree-live": ["PB70"]})
 check("classify_inflight: WAITING TO LAND continues; DECISION, IN FLIGHT, a dispatch (answered ones never reach it: "
       "inflight_file_sets drops them, PB2795) and an unnamed owner run; LANDED is gone",
       {o: (x.finished.slug if x.finished else x.state) for o, x in ci.items()},
       {"worktree a (worktree-done)": "w1090c", "worktree b (worktree-split)": "DECISION",
        "worktree c (worktree-findings)": "DECISION", "worktree d (worktree-live)": "IN FLIGHT",
-       "dispatched w1092a (PB67)": "DISPATCHED, NO REPORT YET", "the open external-repository slices": "RUNNING"})
+       "dispatched w1092a (PB67)": "DISPATCHED, NO REPORT YET"})
 check("classify_inflight: a branch's notes are its newest report's ids and its commit subjects' ids",
       (ci["worktree b (worktree-split)"].notes, ci["worktree d (worktree-live)"].notes), ({"PB68"}, {"PB70"}))
 own = pw.plan(notes, [cl("src/X/Misc.cs", "PB9")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
@@ -1762,6 +1777,7 @@ OVF_OWNER = "worktree seven (worktree-seven)"
 def next_wave(states):
     busy = classify_inflight({OVF_OWNER: {"src/X/Seven.cs"}}, {OVF_OWNER: {"branch": "worktree-seven", "rev": "x"}},
                              [OVF_REPORT], states, {})
+    busy[OVF_OWNER].members = {"src/X/Seven.cs": frozenset({"Seven.Run"})}   # as inflight_units reads its diff
     return pw.plan(notes, [c for c in SEVEN if c["notes"][0]["id"] in OVF_A.overflow], [], [], lambda b: "ABSENT", {},
                    rules_capped(LIVE_RULES, 3), budget_points=100, busy=busy)
 
@@ -1775,7 +1791,7 @@ check("PB4396 R1-2: ... and the arm can fail: read as the bare IN FLIGHT, every 
       sorted((i for i, w in next_wave({r.name: r.state for r in OVF_ROWS})["waiting"].items() if "worktree-seven" in w),
              key=pw.work.id_order), sorted(OVF_A.overflow, key=pw.work.id_order))
 check("the one collision rule, path separators folded",
-      file_set_collisions(Claim.of(["src" + chr(92) + "A.cs"]),
+      collided(Claim.of(["src" + chr(92) + "A.cs"]),
                              {"t": Claim.of({"src/A.cs"}), "u": Claim.of({"src/B.cs"})}), ["t (src/A.cs)"])
 
 # 9d. the in-flight set reads sources a branch CLASSIFICATION cannot drop (PB2118 Draft 7, the sixth refuter's
@@ -1844,7 +1860,7 @@ check("a dispatched group whose notes all landed is not", "src/Done.cs" in flat,
 check("STATUS.md is never a product file", "STATUS.md" in flat, False)
 check("the harness's settings file is in no owner's set, so a finisher continuing one worktree meets no other on it "
       "(kb/Work PB3465: wave 1134 held PB3337, PB3460 and PB1278 on it)",
-      (SETTINGS_FILE in flat, file_set_collisions(Claim.of([SETTINGS_FILE, "src/Mine.cs"]),
+      (SETTINGS_FILE in flat, collided(Claim.of([SETTINGS_FILE, "src/Mine.cs"]),
                                                     {o: Claim.of(fs) for o, fs in fly.items()})), (False, []))
 check("coord.NEVER_WORK: the settings file, STATUS.md and everything under TestResults/ are never work; a path that "
       "merely contains one of them is",
@@ -1857,7 +1873,7 @@ check("coord.porcelain_work keeps only the work lines of `git status --porcelain
       [" M src/A.cs", "R  STATUS.md -> src/New.cs"])
 check("the planner's own checkout is not in flight", any("main" in k for k in fly), False)
 check("the collision names the dispatched owner",
-      file_set_collisions(Claim.of(["src/Dispatched.cs"]), {o: Claim.of(fs) for o, fs in fly.items()}),
+      collided(Claim.of(["src/Dispatched.cs"]), {o: Claim.of(fs) for o, fs in fly.items()}),
       ["dispatched w1040a (PB70) (src/Dispatched.cs)"])
 
 # 9e. the group's file set (kb/Work PB3242; PB2118 Draft 8, the seventh refuter's J2): its notes' DECLARED sets, the
@@ -1893,7 +1909,7 @@ if fc:
     check("a note's computed callers are in its group's file set", "src/Lib/Caller.cs" in files2["PB951"], True)
     check("callers never steer the clustering (the primary file is a named site)",
           sorted(c["file"] for c in o2), ["src/Lib/Alpha.cs", "src/Lib/Beta.cs"])
-    check("the collision check sees a caller", file_set_collisions(Claim.of(files2["PB951"]),
+    check("the collision check sees a caller", collided(Claim.of(files2["PB951"]),
                                                     {"train t": Claim.of({"src/Lib/Caller.cs"})}),
           ["train t (src/Lib/Caller.cs)"])
 HL = TMP / "coord-hand"
@@ -2194,53 +2210,9 @@ check("... and the refusal names the campaign",
 check("work.campaign_leads: the clusters the register's tier entries name, malformed entries left out",
       work.campaign_leads(CAMP + TIERS), {"K", "C", "D"})
 
-# 11. the slices' file set reads ALL of DESIGN-external-repository §12 (PB2118 Draft 7, the sixth refuter's H4): the
-#     Callers column, every name in a span (`X.Y : Z`), a member mapped to the file that declares it, tests/ and docs/
-#     paths; a parameter list and a one-word name are not sites. A synthetic repository first, then the refuter's
-#     four plants against the real register, each of which must FAIL the register's slice rule.
-SR = TMP / "slicerepo"
-(SR / "docs" / "rearchitecture").mkdir(parents=True)
-(SR / "src" / "B").mkdir(parents=True)
-(SR / "tests" / "T").mkdir(parents=True)
-(SR / "docs" / "rearchitecture" / "DESIGN-external-repository.md").write_text(NL.join([
-    "## 12. Changes", "", "| Today | Change | Callers updated in the same change |", "|---|---|---|",
-    "| `Session.Repo : GroupRepo` | `: Resolver` | `DriverX.Bind`, `CheckPairs` |",
-    "| `Rec(Kind, Name)` | `+ Target` | `Target` |",
-    "| `OldThing` | **landed (kb/Work PB1):** done | `LandedCaller` |",
-    "| tests (`tests/T/HostTests.cs`) | rewritten | `docs/NOTES.md` |",
-    "", "## 13. Next", ""]), encoding="utf-8", newline="\n")
-for rel, text in {"src/B/Session.cs": "public sealed class Session { public GroupRepo Repo { get; } }",
-                  "src/B/GroupRepo.cs": "internal sealed class GroupRepo { }",
-                  "src/B/DriverX.cs": "public static class DriverX { public static void Bind() { } }",
-                  "src/B/Checks.cs": NL.join(["static class Checks", "{", "    private static void CheckPairs(int a) { }", "}"]),
-                  "src/B/Rec.cs": "public sealed record Rec(int K);",
-                  "src/B/Kind.cs": "public enum Kind { A }",
-                  "src/B/Target.cs": NL.join(["class Holder", "{", "    public int Target { get; set; }", "}"]),
-                  "src/B/LandedCaller.cs": "class LandedCaller { }",
-                  "tests/T/HostTests.cs": "public class HostTests { }",
-                  "docs/NOTES.md": "notes"}.items():
-    (SR / rel).write_text(text, encoding="utf-8", newline="\n")
-# a build output and a stray file name the same type: the slice set reads the COMMITTED tree (PB1957, 2026-10-07)
-(SR / "src" / "B" / "Generated").mkdir(parents=True)
-(SR / "src" / "B" / "Generated" / "SessionParser.cs").write_text("class Session { }", encoding="utf-8", newline="\n")
-ScratchRepo.init(SR).git("add", "-A", "--", ":!src/B/Generated")
-(SR / "src" / "B" / "Stray.cs").write_text("class GroupRepo { }", encoding="utf-8", newline="\n")
-um = []
-sset = work.slice_file_set(SR, unmapped=um)
-check("an untracked file declaring a slice name is not in the slice set", "src/B/Stray.cs" in sset, False)
-check("a build output declaring a slice name is not in the slice set", "src/B/Generated/SessionParser.cs" in sset, False)
-check("the Today column's first name", "src/B/Session.cs" in sset, True)
-check("the second name of a `X.Y : Z` span", "src/B/GroupRepo.cs" in sset, True)
-check("the Callers column (a type)", "src/B/DriverX.cs" in sset, True)
-check("the Callers column (a member, mapped to its declaring file)", "src/B/Checks.cs" in sset, True)
-check("a tests/ path and a docs/ path", {"tests/T/HostTests.cs", "docs/NOTES.md"} <= sset, True)
-check("a parameter list names no site", "src/B/Kind.cs" in sset, False)
-check("a one-word member name is prose, reported", ("src/B/Target.cs" in sset, any(u.startswith("Target") for u in um)),
-      (False, True))
-check("a landed row is history", "src/B/LandedCaller.cs" in sset, False)
-
+# 11. the register's R3 check no longer reads DESIGN-external-repository §12 (kb/Work PB4452): whether a wave's edits meet
+#     running work's is the planner's, by member (inflight.hold), recomputed at every plan.
 REAL = work.load()
-REAL_SET = work.slice_file_set()
 
 
 def r3_plant(pid, site):
@@ -2250,34 +2222,25 @@ def r3_plant(pid, site):
             "blocked_by": ["PB2118", "PB2417"], "cluster": ["PB2119"], "_body": body}
 
 
-# The test-file case is drawn from the live slice file set, never typed: a slice that lands takes its rows' files out
-# of the set (NonCobolActivatorReturnTests.cs left it when slice 3 made the test a host of the entries), and a typed
-# path would then test nothing (kb/Work PB1086's 2026-10-27 design pass).
-OPEN_TEST = next((p for p in sorted(REAL_SET) if p.startswith("tests/") and p.endswith(".cs")), None)
-check("an open slice holds a C# test file to plant on", OPEN_TEST is not None, True)
-for pid, site in (("PB9991", "src/WiseOwl.Cobol.Compiler/Binding/BindSession.cs"),
-                  ("PB9992", "src/WiseOwl.Cobol.Compiler/Binding/GroupRepository.cs"),
-                  ("PB9993", "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs"),
-                  ("PB9994", OPEN_TEST or "tests/none.cs")):
-    hit = [m for m in work.r3_program_problems(REAL + [r3_plant(pid, site)], REAL_SET) if m.startswith(pid)]
-    check(f"a planted R3 note on {site.rsplit('/', 1)[-1]} must wait for an open slice", bool(hit), True)
-LANDED_TEST = "tests/WiseOwl.Cobol.Tests.Conformance/NonCobolActivatorReturnTests.cs"   # its design row is landed
-check("a planted R3 note on a LANDED row's file waits for no slice",
-      [m for m in work.r3_program_problems(REAL + [r3_plant("PB9997", LANDED_TEST)], REAL_SET)
-       if m.startswith("PB9997") and "slice" in m], [])
+# kb/Work PB4452: a planted R3 note on a file the slices once reserved (BinderDriver.cs held the whole PB2293 campaign)
+# waits for no slice, and the register says nothing of one.
+check("a planted R3 note on BinderDriver.cs, which an open slice edits, is refused for nothing: the register reads no "
+      "slice file set",
+      [m for m in work.r3_program_problems(REAL + [r3_plant("PB9991", "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs")])
+       if m.startswith("PB9991")], [])
 
 # PB2197 (the R1 landing's CI red): the existence rule reads the COMMITTED tree, so a build output that exists in a built
 # checkout and not in CI's never decides it; a note naming a generated parser file must name the grammar it comes from.
 GEN = "src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs"
 G4 = "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4"
-gen_only = [m for m in work.r3_program_problems(REAL + [r3_plant("PB9995", GEN)], REAL_SET) if m.startswith("PB9995")]
+gen_only = [m for m in work.r3_program_problems(REAL + [r3_plant("PB9995", GEN)]) if m.startswith("PB9995")]
 check("a planted R3 note naming only a generated file is refused (build output, no grammar)",
       any("build output" in m for m in gen_only), True)
 check("a generated file is never reported missing, built checkout or not", any("does not exist" in m for m in gen_only), False)
 with_g4 = r3_plant("PB9996", GEN)
 with_g4["_body"] += "- `" + G4 + "`" + NL
 check("a planted R3 note naming the generated file AND its grammar passes the build-output rule",
-      any("build output" in m for m in work.r3_program_problems(REAL + [with_g4], REAL_SET) if m.startswith("PB9996")), False)
+      any("build output" in m for m in work.r3_program_problems(REAL + [with_g4]) if m.startswith("PB9996")), False)
 check("an untracked path is missing even if a local file has that name",
       work.named_missing_paths("`src/WiseOwl.Cobol.Frontend/obj/project.assets.json`"), ["src/WiseOwl.Cobol.Frontend/obj/project.assets.json"])
 
@@ -2618,11 +2581,6 @@ def unsited(*ids):
     return {"file": "", "harm": 1, "files": [], "notes": [{"id": i, "area": "", "harm": 1, "title": ""} for i in ids]}
 
 
-def on_members(file, members, *ids):
-    """A cluster on `file` claiming only `members` of it."""
-    return {**cl(file, *ids), "members": {file: list(members)}}
-
-
 C = Claim.of
 check("collision: a whole file meets anything on it; different members never meet; one member (qualified or bare) "
       "meets; an empty set meets nothing",
@@ -2685,32 +2643,35 @@ for label, pair, want in (
     held = pw.plan(notes, pair[1:], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
                    busy={"worktree w (worktree-w)": InFlight(set(pair[0]["files"]), "worktree-w", {"PB70"}, state="IN FLIGHT",
                                                                 members={F_BIND: frozenset(pair[0]["members"][F_BIND])})})
-    check(f"... and the in-flight rule reads the same pair the same way (one rule, PB3696): {label}",
+    check(f"... and RUNNING work holds nothing there (PB4452): the pair groups by `collision` (a whole shared file) "
+          f"and holds only on a shared MEMBER, which none of the three shares: {label}",
           (bool(collision(clusters_mod.cluster_claim(pair[0]), clusters_mod.cluster_claim(pair[1]))),
-           bool(held["waiting"])), (meets, meets))
+           bool(hold(clusters_mod.cluster_claim(pair[0]), clusters_mod.cluster_claim(pair[1]))),
+           bool(held["waiting"])), (meets, False, False))
 # kb/Work PB3695: real owner labels carry parentheses too (`worktree <name> (<branch>)`, `dispatched <slug> (PB547)`), so
 # what a hold SHARED is recorded as data (plan()'s `collided`), never parsed back out of its prose: the owners' branch
 # names and note ids are no "most named file"
-mh = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB9"), cl(F_EMIT, "PB6")], [], [], lambda b: "ABSENT", {}, RULES,
-             budget_points=100,
+mh = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB9"), on_members(F_EMIT, ["Emitter.Emit"], "PB6")], [], [],
+             lambda b: "ABSENT", {}, RULES, budget_points=100,
              busy={"worktree wf_x (worktree-wf_x)": InFlight({F_BIND}, "worktree-wf_x", {"PB70"}, state="RUNNING",
                                                                 members={F_BIND: frozenset({"Binder.Bind"})}),
-                   "dispatched w9a (PB547)": InFlight({F_EMIT}, notes={"PB547"}, state="DISPATCHED, NO REPORT YET")})
+                   "dispatched w9a (PB547)": InFlight({F_EMIT}, notes={"PB547"}, state="DISPATCHED, NO REPORT YET",
+                                                         members={F_EMIT: frozenset({"Emitter.Emit"})})})
 check("a hold's plan records what it shared: the file and member per owner, as data (PB3695)",
-      (mh["collided"], sorted(mh["waiting"])), ({"PB9": [F_BIND + "#Binder.Bind"], "PB6": [F_EMIT]}, ["PB6", "PB9"]))
+      (mh["collided"], sorted(mh["waiting"])), ({"PB9": [F_BIND + "#Binder.Bind"], "PB6": [F_EMIT + "#Emitter.Emit"]}, ["PB6", "PB9"]))
 MREC = partition_record("9", mw2["groups"], {**mw2["waiting"], **mh["waiting"]}, mh["collided"], 1_800_000_000.0)
 check("the partition's measurement records the same-file pairs run side by side and every hold with its reason",
       (MREC["groups"], MREC["same_file_parallel"], MREC["held_in_wave"], sorted(MREC["held_by_collision"]),
        MREC["collided_on"]),
       (2, ["A+B on src/X/Binder.cs"], [], ["PB6", "PB9"],
-       {"PB9": [F_BIND + "#Binder.Bind"], "PB6": [F_EMIT]}))
+       {"PB9": [F_BIND + "#Binder.Bind"], "PB6": [F_EMIT + "#Emitter.Emit"]}))
 MCOORD = TMP / "coord-measure"
 MCOORD.mkdir()
 record_partition(MCOORD, MREC)
 check("... and --partition-summary reads it back per day, naming the colliding members and files, never an owner's "
       "branch or note",
       partition_summary(MCOORD), ["2027-01-15: 1 waves, 2 groups, 1 same-file pairs side by side, 2 notes held by a "
-                                     "collision (most named: src/X/Binder.cs#Binder.Bind x1, src/X/Emitter.cs x1)"])
+                                     "collision (most named: src/X/Binder.cs#Binder.Bind x1, src/X/Emitter.cs#Emitter.Emit x1)"])
 uw = pw.plan(notes, [cl(F_BIND, "PB5"), unsited("PB9"), unsited("PB10"), unsited("PB8"), cl("src/X/Misc2.cs", "PB11")],
              [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
 check("in a wave a group with an EMPTY set runs beside every other group: it holds nothing and nothing holds it",
@@ -2751,9 +2712,9 @@ check("a finisher's set is what the branch it continues changes, by the units it
       "with those files and members",
       [(g.kind, g.notes, g.files, g.members) for g in ufin["groups"]],
       [("finisher", ["PB3"], [F_EMIT, "src/X/New.cs"], {F_EMIT: ["Emitter.Emit"]})])
-SLI = classify_inflight({"the open external-repository slices": {"src/S.cs"}},
-                           {"the open external-repository slices": {"notes": ["PB8"]}}, [], {})
-check("an owner's meta notes (the slices' own) are its notes", SLI["the open external-repository slices"].notes, {"PB8"})
+SLI = classify_inflight({"dispatched w1300a (PB8)": {"src/S.cs"}},
+                           {"dispatched w1300a (PB8)": {"notes": ["PB8"], "slug": "w1300a"}}, [], {})
+check("a dispatch's meta notes are its notes", SLI["dispatched w1300a (PB8)"].notes, {"PB8"})
 us = pw.plan(notes, [unsited("PB9"), unsited("PB11")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
              busy=SLI)
 check("... and an EMPTY group never meets it", (sorted(i for g in us["groups"] for i in g.notes), sorted(us["waiting"])),
@@ -2806,10 +2767,15 @@ def failing_git(*args, cwd=None, stdin=None):
 
 
 UFAIL = classify_inflight(URAW, UMETA, [], {})
-inflight_units(UFAIL, UMETA, [C({"src/Binder.cs", "src/New.cs"})], failing_git, urepo.path)
+UERR = io.StringIO()
+with contextlib.redirect_stderr(UERR):
+    inflight_units(UFAIL, UMETA, [C({"src/Binder.cs", "src/New.cs"})], failing_git, urepo.path)
 check("inflight_units: a git failure leaves every file whole, so the owner meets every claim on its files",
       (UFAIL[UOWN].members, collision(C({"src/Binder.cs"}, {"src/Binder.cs": ["Other"]}), UFAIL[UOWN].claim)),
       ({}, "src/Binder.cs"))
+check("... and the unmeasured read is WARNED (a whole file holds nothing, PB4452), never silent",
+      ("units not measured" in UERR.getvalue(), hold(C({"src/Binder.cs"}, {"src/Binder.cs": ["Bind"]}), UFAIL[UOWN].claim)),
+      (True, None))
 
 # kb/Work PB3786: A WORKTREE IN THE MIDDLE OF A MERGE (every file main changed shows as uncommitted and shared) used to put
 # its whole uncommitted shared set on `git diff HEAD`'s command line; one such worktree (3,331 paths) crashed every plan
@@ -2955,7 +2921,8 @@ for slug, lead, branch in (("w2050a", "PB90", "worktree-cb-1"), ("w2050b", "PB94
     (CB_REPORTS / f"{slug}-{lead}-report.md").write_text(
         f"SPLIT\n# {lead} group\n**Status:** SPLIT at the turn cap · **branch:** `{branch}` · **HEAD:** `6060606aa`\n\n"
         "## Reproduced?\n", encoding="utf-8", newline="\n")
-record_dispatch(CB, "2049", [{"letter": "a", "notes": ["PB93"], "files": [F_HELD]}], lambda i: False)
+record_dispatch(CB, "2049", [{"letter": "a", "notes": ["PB93"], "files": [F_HELD], "members": {F_HELD: ["Held.Run"]}}],
+                lambda i: False)
 returned(CB_REPORTS)
 cb_notes = {n: Note(n, "open", area, n, [], "", 8) for n, area in
             (("PB90", "process"), ("PB94", "process"), ("PB91", "tooling"), ("PB92", "tooling"), ("PB93", "process"),
@@ -2967,7 +2934,7 @@ CB_BRANCH = "worktree cb-1 (worktree-cb-1)"
 cb_raw[CB_BRANCH] = {F_CAMP}
 cb_meta[CB_BRANCH] = {"notes": ["PB90"], "branch": "worktree-cb-1"}
 cb_busy = classify_inflight(cb_raw, cb_meta, cb_reports, {CB_BRANCH: "DECISION"}, {})
-cb_plan = pw.plan(cb_notes, [cl(F_CAMP, "PB91"), cl(F_HELD, "PB93", "PB95"), cl(F_FREE, "PB92")], [], cb_reports,
+cb_plan = pw.plan(cb_notes, [cl(F_CAMP, "PB91"), on_members(F_HELD, ["Held.Run"], "PB93", "PB95"), cl(F_FREE, "PB92")], [], cb_reports,
                   lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=cb_busy,
                   held=held_by_dispatch(CB, cb_reports, lambda i: False), locked={"worktree-cb-2"})
 cb_groups = {n: g for g in cb_plan["groups"] for n in g.notes}
@@ -2981,58 +2948,57 @@ check("PB3746: the fix lane's group on the file the campaign branch holds joins 
       (cb_groups["PB91"] is cb_groups["PB90"], cb_groups["PB90"].after, cb_groups["PB92"].after, "PB92" in cb_plan["waiting"]),
       (True, "", "", False))
 
-# kb/Work PB3456: THE SLICES' RESERVATION HOLDS ONLY THE RESTRUCTURING PROGRAM'S GROUPS (R69 §2, "R2 and every R3
-# wave"), whichever campaign plans them, and reads OPEN (RESERVED) while nobody runs a slice. Wave 1132 (campaign
-# PB3353) held PB1278 and the owner's tier-2 chain (PB3337, PB3338, PB3340) on docs/CONFORMANCE.md for four slices no
-# worktree, branch or dispatch held, and printed them RUNNING.
-check("restructuring: a PB1754 or PB2119 note is the program's, also when a fix campaign shares it; no other is",
-      [work.restructuring({"cluster": c}) for c in (["PB1754"], ["PB2119"], ["PB2119", "PB3353"], ["PB3353"], [],
-                                                    "PB2119", None)],
-      [True, True, True, False, False, False, False])
-SLICE_ITEMS = [{"id": "PB2100", "title": "PB2100 — external repository slice 4: open", "status": "open"},
-               {"id": "PB2097", "title": "PB2097 — external repository slice 1: landed", "status": "landed"},
-               {"id": "PB9", "status": "open", "cluster": ["PB2119", "PB3353"]},
-               {"id": "PB11", "status": "open", "cluster": ["PB3353"]},
-               {"id": "PB12", "status": "landed", "cluster": ["PB1754"]}]
-check("open_slices: the open slice notes only, in id order", work.open_slices(SLICE_ITEMS), ["PB2100"])
-
-
-def no_slice_set():
-    raise AssertionError("the slice file set was read for a plan that reserves nothing")
-
-
-RES = slice_reservation(SLICE_ITEMS, "PB3353", lambda: {"docs/CONFORMANCE.md"})
-check("slice_reservation: a campaign's plan reserves the set, naming the open slices and the open restructuring "
-      "notes it holds (never a fix campaign's own, never a landed one)",
-      RES, ({"docs/CONFORMANCE.md"}, {"notes": ["PB2100"], "reserves": ["PB9"]}))
-check("slice_reservation: none (and the set unread) for the fix lane, with no open slice, or with no open "
-      "restructuring note",
-      (slice_reservation(SLICE_ITEMS, None, no_slice_set),
-       slice_reservation([i for i in SLICE_ITEMS if i["id"] != "PB2100"], "PB3353", no_slice_set),
-       slice_reservation([i for i in SLICE_ITEMS if i["id"] != "PB9"], "PB3353", no_slice_set)),
-      (None, None, None))
-RSV = classify_inflight({SLICE_OWNER: RES[0]}, {SLICE_OWNER: RES[1]}, [], {})
-check("classify_inflight: a reservation nobody runs reads OPEN (RESERVED), never RUNNING, and keeps what it reserves",
-      (RSV[SLICE_OWNER].state, RSV[SLICE_OWNER].reserves, RSV[SLICE_OWNER].notes),
-      ("OPEN (RESERVED)", {"PB9"}, {"PB2100"}))
-RSV_RUN = classify_inflight({SLICE_OWNER: RES[0], "dispatched w1200a (PB2100)": {"src/S.cs"}},
-                               {SLICE_OWNER: RES[1],
-                                "dispatched w1200a (PB2100)": {"notes": ["PB2100"], "slug": "w1200a"}}, [], {})
-check("... and RUNNING, naming the work, once in-flight work holds one of its slices",
-      RSV_RUN[SLICE_OWNER].state, "RUNNING (dispatched w1200a (PB2100))")
-
-
-def on_conformance(file, nid):
-    return {**cl(file, nid), "files": [file, "docs/CONFORMANCE.md"]}
-
-
-rp = pw.plan(notes, [on_conformance("src/X/Other.cs", "PB11"), on_conformance("src/X/Misc.cs", "PB9")], [], [],
-             lambda b: "ABSENT", {}, RULES, budget_points=100, busy=RSV)
-check("a fix campaign's group on a reserved file is planned; a restructuring note's group on it waits, the "
-      "reservation named OPEN (RESERVED)",
-      ([g.notes for g in rp["groups"]], sorted(rp["waiting"]),
-       "the open external-repository slices [OPEN (RESERVED)] (docs/CONFORMANCE.md)" in rp["waiting"].get("PB9", "")),
-      ([["PB11"]], ["PB9"], True))
+# kb/Work PB4452: A SHARED FILE HOLDS NOTHING; ONLY AN EDIT TO THE SAME MEMBER DOES (owner 2026-11-02: "Non overlapping
+# edits to the same file typically will merge without conflict"). The open external-repository slices were once reserved
+# WHOLE against every restructuring wave, and held all 22 open steps of the PB2293 campaign behind a file (BinderDriver.cs)
+# the running slices never edited. A group is held by RUNNING work only where a member of one matches a member of the
+# other (inflight.hold); `collision` stays the rule of GROUPING and of joining a finished branch.
+check("hold: only a member of one that matches a member of the other holds; a shared file, a file either side claims "
+      "whole, two whole claims, an empty set and a merge-driver file hold nothing",
+      (hold(C({"a.cs"}, {"a.cs": ["T.M"]}), C({"a.cs"}, {"a.cs": ["T.M"]})),
+       hold(C({"a.cs"}, {"a.cs": ["M"]}), C({"a.cs"}, {"a.cs": ["T.M", "T.N"]})),
+       hold(C({"a.cs"}, {"a.cs": ["T.M"]}), C({"a.cs"}, {"a.cs": ["T.N"]})),
+       hold(C({"a.cs"}, {"a.cs": ["T.M"]}), C({"a.cs"})),
+       hold(C({"a.cs"}), C({"a.cs"}, {"a.cs": ["T.M"]})),
+       hold(C({"a.cs"}), C({"a.cs"})),
+       hold(C(set()), C({"a.cs"}, {"a.cs": ["T.M"]})),
+       hold(C({"tests/version-matrix/constructs.json"}, {"tests/version-matrix/constructs.json": ["T"]}), C({"tests/version-matrix/constructs.json"}, {"tests/version-matrix/constructs.json": ["T"]}))),
+      ("a.cs#T.M", "a.cs#M", None, None, None, None, None, None))
+check("hold: a whole file on one side does not hide a member that meets on another shared file; the first meeting by "
+      "name is the label",
+      hold(C({"a.cs", "b.cs"}, {"b.cs": ["U.X"]}), C({"a.cs", "b.cs"}, {"a.cs": ["T.M"], "b.cs": ["U.X"]})), "b.cs#U.X")
+check("hold vs collision: the same pair meets by collision (one step in a wave) on a whole claim and holds nothing",
+      (collision(C({"a.cs"}, {"a.cs": ["T.M"]}), C({"a.cs"})), hold(C({"a.cs"}, {"a.cs": ["T.M"]}), C({"a.cs"}))),
+      ("a.cs", None))
+check("collision_hits names each owner's meeting by the rule it is given (hold, for the owners that hold a group)",
+      (inb.collision_hits(C({"a.cs"}, {"a.cs": ["T.M"]}), {"o1": C({"a.cs"}), "o2": C({"a.cs"}, {"a.cs": ["T.M"]})}),
+       inb.collision_hits(C({"a.cs"}, {"a.cs": ["T.M"]}), {"o1": C({"a.cs"}), "o2": C({"a.cs"}, {"a.cs": ["T.M"]})}, hold)),
+      ([("o1", "a.cs"), ("o2", "a.cs#T.M")], [("o2", "a.cs#T.M")]))
+RUN_SYNC = {"worktree w (worktree-w)": InFlight({F_BIND}, "worktree-w", {"PB70"}, state="RUNNING",
+                                                   members={F_BIND: frozenset({"Binder.Sync"})})}
+RUN_WHOLE = {"worktree w (worktree-w)": InFlight({F_BIND}, "worktree-w", {"PB70"}, state="RUNNING")}
+for label, group, busy_, held_want in (
+        ("on ANOTHER MEMBER of the file running work edits", on_members(F_BIND, ["Binder.Bind"], "PB5"), RUN_SYNC, False),
+        ("on the SAME MEMBER running work edits", on_members(F_BIND, ["Binder.Sync"], "PB5"), RUN_SYNC, True),
+        ("on the WHOLE file (a site named whole, an index-found caller) beside running work that edits one member",
+         cl(F_BIND, "PB5"), RUN_SYNC, False),
+        ("on one member beside running work whose diff could not be read by member (changed whole)",
+         on_members(F_BIND, ["Binder.Sync"], "PB5"), RUN_WHOLE, False)):
+    hp = pw.plan(notes, [group], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100, busy=busy_)
+    check(f"PB4452: a group {label} is {'HELD, the member named' if held_want else 'planned beside it'}",
+          (sorted(hp["waiting"]), [g.notes for g in hp["groups"]], hp["collided"]),
+          ((["PB5"], [], {"PB5": [F_BIND + "#Binder.Sync"]}) if held_want else ([], [["PB5"]], {})))
+hf = pw.plan(notes, [on_members(F_BIND, ["Binder.Sync"], "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
+             busy={"worktree done (worktree-done)": InFlight({F_BIND}, "worktree-done", finished=FIN)})
+check("PB4452: a FINISHED branch on the file is still the group's to continue, whole file or member (PB4396): "
+      "grouping is `collision`'s, the hold is only for running work",
+      ([(g.notes, g.continues) for g in hf["groups"]], hf["waiting"]), ([(["PB5"], ["worktree-done"])], {}))
+check("PB4452: no reservation exists: no slice_reservation, SLICE_OWNER, InFlight.reserves, work.slice_file_set, "
+      "work.open_slices or work.restructuring to read",
+      ([hasattr(inb, n) for n in ("slice_reservation", "SLICE_OWNER")],
+       [f.name for f in dataclasses.fields(InFlight) if f.name == "reserves"],
+       [hasattr(work, n) for n in ("slice_file_set", "open_slices", "restructuring")]),
+      ([False, False], [], [False, False, False]))
 UL = TMP / "coord-unknown"
 UL.mkdir()
 coord.write_json(UL / coord.DISPATCH_LEDGER, {"groups": [{"wave": "1117", "letter": "c", "notes": ["PB5"], "files": []}]})
@@ -3159,8 +3125,9 @@ check("PB3528: reports tied on wave and mtime are read in name order, whatever o
       (reversed_listing, [r.path.name for r in load_reports(DL_REPORTS)]),
       (["w1141a-PB5-report.md", "w1141b-PB9-report.md"], ["w1141a-PB5-report.md", "w1141b-PB9-report.md"]))
 # ... and a branch no group of this wave finishes still holds a group that meets it (the partition is unchanged)
-pdl2 = pw.plan(notes, [cl(F_BIND, "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
-               busy={"worktree dl-3 (worktree-dl-3)": InFlight({F_BIND}, "worktree-dl-3", {"PB9"}, state="DECISION")})
+pdl2 = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
+               busy={"worktree dl-3 (worktree-dl-3)": running({F_BIND}, "worktree-dl-3", {F_BIND: ["Binder.Bind"]},
+                                                                notes={"PB9"}, state="DECISION")})
 check("PB3528: an undecided branch this wave does not finish still holds a group on its files",
       ([g.notes for g in pdl2["groups"]], "PB5" in pdl2["waiting"]), ([], True))
 # ... and a ONE-SIDED meeting still chains (branch review R1-1): PB5's group meets PB9's branch on a file PB5's notes
@@ -3190,8 +3157,9 @@ check("PB4352: two finishers each meeting a branch the OTHER one's branch carrie
 check("PB4352: a finisher's claim includes what the branch it continues CARRIES (the carried branch's files)",
       sorted(dl4["PB5"].claim.files) if "PB5" in dl4 else None, sorted({F_BIND, "docs/CONFORMANCE.md", "src/X/Misc.cs"}))
 # ... and a carried branch whose carrier no group of this wave finishes still holds a group that meets it
-pdl5 = pw.plan(notes, [cl(F_BIND, "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
-               busy={"worktree dl-3b (worktree-dl-3b)": InFlight({F_BIND}, "worktree-dl-3b", set(), state="IN FLIGHT")},
+pdl5 = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
+               busy={"worktree dl-3b (worktree-dl-3b)": running({F_BIND}, "worktree-dl-3b", {F_BIND: ["Binder.Bind"]},
+                                                                  state="IN FLIGHT")},
                carrier={"worktree-dl-3b": "worktree-dl-3"}.get)
 check("PB4352: a branch carried by one this wave does not finish still holds a group on its files",
       ([g.notes for g in pdl5["groups"]], "worktree-dl-3b" in pdl5["waiting"].get("PB5", "")), ([], True))
@@ -3219,9 +3187,10 @@ def fr_is_ancestor(a: str, c: str) -> bool:
 fr_carrier = inb.branch_carrier(load_reports(FR_REPORTS), fr_classify, fr_is_ancestor)
 check("PB4352 R1-1: a branch on main has no carrier, and git is not asked", (fr_carrier("worktree-fresh"), fr_asked),
       (None, []))
-pfr = pw.plan(notes, [cl(F_BIND, "PB5"), cl(F_BIND, "PB9")], [], load_reports(FR_REPORTS), fr_classify, {}, RULES,
-              budget_points=100, carrier=fr_carrier,
-              busy={"worktree fresh (worktree-fresh)": InFlight({F_BIND}, "worktree-fresh", set(), state="IN FLIGHT")})
+pfr = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5"), on_members(F_BIND, ["Binder.Bind"], "PB9")], [],
+              load_reports(FR_REPORTS), fr_classify, {}, RULES, budget_points=100, carrier=fr_carrier,
+              busy={"worktree fresh (worktree-fresh)": running({F_BIND}, "worktree-fresh", {F_BIND: ["Binder.Bind"]},
+                                                                state="IN FLIGHT")})
 check("PB4352 R1-1: a live worktree on main still holds a finisher on the files it edits",
       ([g.notes for g in pfr["groups"]], sorted(n for n in pfr["waiting"] if n in ("PB5", "PB9"))),
       ([], ["PB5", "PB9"]))

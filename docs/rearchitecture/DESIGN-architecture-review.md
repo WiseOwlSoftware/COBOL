@@ -45,14 +45,14 @@ slices PB2097–PB2104 are in flight; the legacy delete is PB2110), and the owne
 parts that cannot conflict with the fix lane: **R0** (PB2115 census · PB2116 oracle capture · PB2117 performance
 baseline) and **R1** (PB2118) run now, R1 taking the approved `DESIGN-external-repository.md` as given; after R1's
 approval, **R2 and every R3 wave** (the Delete program PB2119 included) run between fix-lane trains, each dispatched
-only when its file set collides with no in-flight train and no open external-repository slice. That **file-set
+only while running work does not edit the same member of a file it edits (§8.7, kb/Work PB4452). That **file-set
 partition is the only gate** between restructuring waves and fix-lane trains: the owner dropped R69 §2's hold on binding and code-generation restructuring on 2026-10-07 (PB2118 question 5, "Drop it"), together with
 R64's zero-GAP hold on the `tests/` layout (PB1754), because the reason recorded for the hold, "the fix lane lives
 there", was R64's residue, and the partition now handles that reason mechanically (a wave declares its file set, the
-dispatcher checks it against the in-flight trains, and a collision defers the wave, never the train). Kept: "leaves
+dispatcher checks it against the in-flight trains, and an edit to the same member defers the wave, never the train). Kept: "leaves
 first" as an ORDERING preference, never a gate; the v1.0 timing of Cut 3 (PB2349, a release decision on the public
-runtime namespaces); the external-repository slice blockers (a note whose files collide with an open slice's names
-that slice in `blocked_by`); PB2417 first (the drift test and the edges file before any Move/rename or Extract);
+runtime namespaces); an external-repository slice whose RESULT a note needs (that note names the slice in `blocked_by`;
+a slice that only shares a file is no gate, PB4452); PB2417 first (the drift test and the edges file before any Move/rename or Extract);
 PB2350 before any grammar wave; PB2118's own approval before any R3 wave (given 2026-10-07 17:42 PDT). Why now: the remaining GAP rows land in the
 god classes (48 in §14.9, 22 in §13.18, 14 in §12.3 at 173 GAP), so every fix landed before the split enlarges the
 extraction, and R1 lets those fixes be written into the target layout.
@@ -305,8 +305,7 @@ Rolling waves, one mechanism per implementer. Each wave is one of:
 **Order.** Leaves first: runtime values, then editions, then the front end, then binding, then code generation.
 Each move then has a stable base, and renames land before extractions in the same area, so extraction diffs stay
 readable. "Leaves first" is the ORDER the planner prefers, never a gate: every R3 wave runs between fix-lane trains
-once R1 is approved, dispatched only when its file set collides with no in-flight train and no open external-repository
-slice (the file-set partition, §8.7; the owner dropped R69 §2's hold on binding and code-generation restructuring on 2026-10-07 (PB2118 question 5, "Drop it")).
+once R1 is approved, held only while running work edits a member of a file it edits (the file-set partition, §8.7; the owner dropped R69 §2's hold on binding and code-generation restructuring on 2026-10-07 (PB2118 question 5, "Drop it")).
 
 **Every wave:**
 - proves the §4 contract;
@@ -975,8 +974,8 @@ The rules (each a drift assertion, listed with the measure that shows today's di
     resolves R0-0220 by itself (`Oo/` under `WiseOwl.Cobol.Compiler` is `WiseOwl.Cobol.Compiler.Oo`). Files (*text scan,
     provisional*): the editions flip edits the `using` lines of 117 binding, code-generation, validation and OO files
     and 48 test files, the front-end flip 113 and 152, the compiler flip every compiler file (288) and about 650 test
-    files. So every flip is a wide wave: it runs between fix-lane trains only when its file set (those files)
-    collides with no in-flight train (the file-set partition, §8.7), which in practice means a quiet fix lane. The oracle: IDENTICAL for these four (no emitted `.g.cs` and no diagnostic stream names a
+    files. So every flip is a wide wave: it runs between fix-lane trains only when no running train edits the same
+    member of those files (the member partition, §8.7), which in practice means a quiet fix lane. The oracle: IDENTICAL for these four (no emitted `.g.cs` and no diagnostic stream names a
     compiler namespace, checked over the 14 characterization snapshots and the oracle blobs). Cut 3: the runtime root's
     flip to `WiseOwl.Cobol.Runtime` (given, v1.0, PB2349) becomes the first of five flips to one spelling. The four waves:
     PB2412 (editions), PB2413 (front end, after it), PB2414 (CLI) and PB2415 (compiler, last; it resolves R0-0220,
@@ -1721,8 +1720,8 @@ the backend's input and for the runtime surface.
 2026-10-07, "Drop it"): every wave is "between fix-lane trains under the file-set partition" unless a NAMED gate holds
 it, and the named gates are the only ones there are — PB2118 (satisfied: the owner approved §8 on 2026-10-07), PB2417
 (the drift test and the edges file land before any Move/rename or Extract), PB2350 (the grammar differential before any
-grammar wave), an open external-repository slice whose file set the wave's files meet (by note: the note names the
-slice in `blocked_by`), PB2151 and PB2129 where a note's sites need them, and v1.0 for Cut 3 (PB2349, with the
+grammar wave), an external-repository slice whose RESULT a note needs (by note: the note names the slice in `blocked_by`;
+a slice that only edits a file the wave's files share is no gate, kb/Work PB4452), PB2151 and PB2129 where a note's sites need them, and v1.0 for Cut 3 (PB2349, with the
 `ExceptionEngine` split PB2309; R69 §1). "Leaves first" stays as the ORDER the planner prefers, never a gate:
 1. **Delete** — the census-measured items already filed (PB2119's notes; the test-only judgment below).
 2. **Move and rename** — PB2417 first (seen failing once); then the runtime's folder-equals-namespace waves (after them
@@ -1798,8 +1797,8 @@ committed record plus a text re-scan of every file changed since it. For PB2296 
 (Draft 8: 66; Draft 9's 73 counted prose sites), and holds every one of `DataBinder.Options`'s six users the refuter
 found outside it (`SetBinder.cs`, `InitialStateBackground.cs`, `PhysicalModel.cs`, `ConditionRenderer.cs`,
 `IntrinsicRenderer.cs`, `NumericRenderer.cs`); PB2249's holds the code-generation files that write the runtime signals
-as text. The dispatcher, `scripts/orchestrator/plan_wave.py` (`collision`, the ONE meeting rule, and
-`file_set_collisions`; for EVERY plan, the fix lane's too since kb/Work PB2807), checks it against (a) the in-flight work,
+as text. The dispatcher, `scripts/orchestrator/plan_wave.py` (`collision`, the meeting rule of grouping, and `hold`, the
+rule of a hold; for EVERY plan, the fix lane's too since kb/Work PB2807), checks it against the in-flight work,
 read from sources a branch classification cannot drop (`inflight_file_sets`): every worktree's changed files, committed
 or not, and every unlanded branch's, each counted only while it still differs from `origin/main`, plus every group of
 the dispatch ledger (`<coord>/inflight-groups.json`, read through `coord.ledger_groups`) whose notes are still
@@ -1814,23 +1813,8 @@ group is in flight from its worktree's first edit, the landing check behind it. 
 owner through the branch survey's lifecycle state (`inflight.classify_inflight`): work WAITING FOR REVIEW, WAITING TO
 LAND or ENQUEUED is finished, and a group meeting it is planned as its CONTINUATION (its pred merges that branch
 first, no `after:`); a dispatched group with no report, and a branch IN FLIGHT, STOPPED, BOUNCED or undecided
-(DECISION) is running, and a group meeting it waits, the collision named; a group's own work (the branch its pred
-continues, a dispatch or branch on its own notes) never collides. Draft 6
-read only the branches `prune_worktrees.classify` called UNLANDED or CHECK, which drops a dispatched branch with no
-commit (MERGED) and one that edits only existing files (LANDED; the sixth refuter's lead); and (b) the open
-external-repository slices' in-flight set (`work.slice_file_set`): every file `DESIGN-external-repository.md` §12
-names for a row not yet landed, in ALL three columns (Draft 6 read only "Today", which missed the twelve caller
-files of "Callers updated in the same change"; H4), from every name in a code span, not only the first (`: GroupRepository`), a type
-mapped to each file declaring it, a member to the file declaring it (a one-word or widely declared name is reported,
-not guessed), and the `tests/` and `docs/` paths the table names. Set (b) is a RESERVATION, not work
-(`inflight.slice_reservation`, kb/Work PB3456): a campaign's plan reads it, and it holds only the restructuring
-program's groups, those holding a note of R69 §2's "R2 and every R3 wave" (`work.restructuring`: a `cluster` list
-naming PB1754 or PB2119), whichever campaign plans them. A fix campaign's group (PB3353, PB2911) and the fix lane are
-never held for a slice, and the held row reads OPEN (RESERVED) until in-flight work holds a slice. A collision defers
-the group, with the collision named (the file, or `file#member`). Two claims MEET only on a file either claims whole, or
-on a member of one that matches a member of the other (`inflight.unit_meet`, `source_units.match`), and never on a
-file a merge driver merges by key (`merge_drivers.covered_by_driver`): two groups on different members of one file run
-side by side, and git's three-way merge combines their branches. An in-flight worktree's or branch's members are the
+(DECISION) is running, and a group HOLDING against it waits, the hold named; a group's own work (the branch its pred
+continues, a dispatch or branch on its own notes) never collides. A group is HELD by running work only where a member of one matches a member of the other (`inflight.hold`, kb/Work PB4452; the owner, 2026-11-02: "Non overlapping edits to the same file typically will merge without conflict"), with the hold named as `file#member`: a file both only SHARE, or that either side claims WHOLE (no member list: a caller the member index found, a site named whole, a diff the unit reader could not read), holds nothing, and no open note reserves a file. Two claims MEET (`inflight.collision`: a file either claims whole, or a member of one that matches a member of the other, `inflight.unit_meet`, `source_units.match`; never a file a merge driver merges by key, `merge_drivers.covered_by_driver`) to GROUP: within a wave, and against a FINISHED branch, where meeting on the file is what makes one step (kb/Work PB4396). Two groups on different members of one file run side by side, and git's three-way merge combines their branches. An in-flight worktree's or branch's members are the
 units its ACTUAL diff touches in each file another claim shares (`inflight.inflight_units`, batched git reads); a
 ledger group's are the members it recorded. An EMPTY set meets NOTHING (kb/Work PB3670, superseding PB3263's "an
 unknown set meets its subsystem"): the group is named UNPARTITIONED and holds nothing, and its implementer adds the
@@ -1844,23 +1828,22 @@ remaining miss must stop a landing, never land silently. `scripts/orchestrator/l
 WORKS ON (the ids leading its commit subjects, ranges expanded, and the notes whose `status` it changes; a commit that
 only mentions a note does not work on it) and compares the landing's ACTUAL diff (`git diff --name-only --no-renames
 origin/main...<rev>`: a moved file counts at its old path too, and the planner's admission reads diffs the same way,
-through one reader, `inflight.changed_files`) with
-(1) its declared file set, for the R3 work it lands: the set the dispatch ledger recorded when the work was planned or
-admitted, read from the FULL ledger (the landing flips its own notes to terminal, and that declaration stays its
-authority), or the set computed now for a note never recorded; a file an R3 commit changed that existed on `main` and
-lies outside it stops the landing; and (2) every other in-flight branch's actual diff and every dispatched group's
-whole declared set, started or not, until its notes are terminal or its report answers it (`inflight_file_sets`;
-a returned group is read through its branch, kb/Work PB2795), when the shared file is R3
-work on either side. R3 work is attributed PER COMMIT (PB2703): a landing can be mixed (a branch that merged a
+through one reader, `inflight.changed_files`) with every other in-flight branch's actual diff and every dispatched
+group's declared set, started or not, until its notes are terminal or its report answers it (`inflight_file_sets`;
+a returned group is read through its branch, kb/Work PB2795): a shared file stops it only when it is R3 work on either
+side and the two EDITS MEET, a member of one matching a member of the other (`inflight.hold`, on the units each diff
+touches, `inflight.inflight_units`; a dispatch's are the members its ledger entry recorded; kb/Work PB4452). The check
+does not compare the landing with its declared file set: a file outside it is the planner's estimate missing a caller,
+and git's merge is the authority on a conflict, so a landing that edits a file nobody else edits lands. R3 work is attributed PER COMMIT (PB2703): a landing can be mixed (a branch that merged a
 predecessor; before kb/Work PB3023, a train of one commit per cluster), so the
 landing's R3 work is the commits that work on an R3 note and the files those commits change; its fix-lane commits
-neither leave the R3 set nor make a shared file R3, and a squashed commit naming both kinds is R3 whole. Each commit
+do not make a shared file R3, and a squashed commit naming both kinds is R3 whole. Each commit
 is charged only with what it introduced (PB3180): a non-merge commit with its diff against its parent, a MERGE commit
 with the files and note statuses that differ from EVERY parent (its conflict resolutions and evil-merge edits, the
 combined-diff set) and the ids leading its own subject, never with its first-parent diff, which carries the other
 parent's whole history (a merged predecessor's commits, which the walk attributes one by one, or `main`'s own landings
 in a `Merge origin/main`); the first-parent reading charged one commit's R3 status flip to every file a merged
-predecessor changed and stopped PB3154's branch on a note whose only commit changed no code. A shared file
+predecessor changed and stopped PB3154's branch on a note whose only commit changed no code. A meeting
 stops the LATER of the two by dispatch time (the ledger's `at`, one millisecond apart per group so a wave never ties,
 else the branch's first commit), which re-plans and rebases onto the earlier once it lands, and the earlier one lands
 with a warning naming the branch that must rebase. An in-flight branch is R3 work because its DISPATCH says so, never
@@ -1876,7 +1859,7 @@ DESCENDS from the landing branch (their merge-base lies beyond `origin/main`: a 
 that merged some head of it, and lands on top of it; wave 1118's successor -326-13 held PB3333's older head and stopped
 PB3333's reviewed branch three times), and a worktree with no commit beyond `origin/main` (its loose files are work in
 progress, a merge or a first edit; its dispatch, when the ledger records one, is read through its declared set). The
-partition orders only INDEPENDENT dispatches on the same file; anything else that shares a file and was dispatched earlier stops it, naming how it was
+partition orders only INDEPENDENT dispatches that edit the same member; anything else whose edits meet and was dispatched earlier stops it, naming how it was
 identified and how to bind work it did not recognise. (The train manifests that once named a train's own members are
 gone with the train, kb/Work PB3023.) An aborted dispatch's entry never expires on a clock; it is released by hand
 (`plan_wave.py --release <wave|group|note>`). Fix-lane work against fix-lane work is never stopped: the merge queue
@@ -1887,11 +1870,11 @@ run on a thread pool, and a branch's register changes are one patch, not two rea
 dispatch ledger to compare with, so the server-side check is `ci-gate` on the merge group, and the ruleset refuses a
 direct push to `main`. The domain is
 the campaign's code roots and extensions (`model_rules.json` `campaign`) without `.md`: a document both sides edit is
-a text merge the rebase resolves. Its self-test (`--self-test`, a CI step, 35 cases) plants an out-of-set edit, a
-two-branch overlap, a rename each way, a `WIP checkpoint:`-only R3 worktree, a landing against its own implementer
+a text merge the rebase resolves. Its self-test (`--self-test`, a CI step) plants a two-branch overlap on one member and on two members of one file, a
+rename (read whole), a dispatch that recorded no members, a `WIP checkpoint:`-only R3 worktree, a landing against its own implementer
 (recorded, unrecorded, re-resolved unbound and merged, and beside a stranger), a fix-lane worktree on a file an R3
 group also declares (bound to the group covering its diff, by coverage and by its report), retired hand entries, a
-started wave's untouched declared file, and a mixed landing (a fix-lane commit outside the R3 set and sharing a file with earlier
+started wave's untouched declared member, and a mixed landing (a fix-lane commit sharing a member with earlier
 fix-lane work, an R3 commit sharing one with earlier work, an R3 commit that lands its own note, and a squashed commit
 of both kinds), in a scratch repository, and fails with the check disabled.
 
