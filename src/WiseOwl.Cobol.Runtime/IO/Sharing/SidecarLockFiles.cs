@@ -246,16 +246,35 @@ internal static class SidecarLockFiles
     {
         private FileStream? _stream = stream;
 
+        /// <summary>The file's current full path: <see cref="Rename"/> moves it.</summary>
+        private string _path = path;
+
         /// <summary>The file's published name — what a tester skips when it asks for holders other than itself.</summary>
-        internal string Name { get; } = Path.GetFileName(path);
+        internal string Name { get; private set; } = Path.GetFileName(path);
+
+        /// <summary>⛔ RENAME THE HOLDER'S FILE IN PLACE, KEEPING ITS LOCK (kb/Work PB4387): a rename keeps the open file description,
+        /// hence the lock, exactly as <see cref="Publish"/>'s own publication does, so a holder that is to be NAMED a holder again and
+        /// again (<see cref="SidecarRegionLocks"/>'s parked entry mutex) costs one rename each way, not a publication and a
+        /// retirement each time. False, the holder unchanged in name, when the host refused the rename or the file is gone (a
+        /// tester retired it, or the directory went): the caller disposes the holder and publishes a new one.</summary>
+        internal bool Rename(string newName)
+        {
+            if (_stream is null) return false;
+            string target = Path.Combine(directory, newName);
+            try { File.Move(_path, target); }
+            catch (IOException) { return false; }
+            catch (UnauthorizedAccessException) { return false; }
+            (_path, Name) = (target, newName);
+            return true;
+        }
 
         public void Dispose()
         {
             if (_stream is not { } held) return;
             _stream = null;
-            Retire(path);    // the name goes first: see the class remarks
+            Retire(_path);    // the name goes first: see the class remarks
             held.Dispose();
-            Retire(path);    // a name the first Retire could not take (the host refused the rename) goes once nothing holds it
+            Retire(_path);    // a name the first Retire could not take (the host refused the rename) goes once nothing holds it
             RetireDirectory(directory);
         }
 
