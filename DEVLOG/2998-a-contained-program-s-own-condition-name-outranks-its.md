@@ -1,4 +1,4 @@
-## A contained program's own condition-name outranks its container's GLOBAL index-name, constant-name and capacity register (PB4432)
+## Entry 2998 — 2026-11-02 08:24 PST — A contained program's own condition-name outranks its container's GLOBAL index-name, constant-name and capacity register (PB4432)
 
 ISO/IEC 1989:2023 8.4.6.2.1 3) a) (`cite.py --check` OK): "If the name is declared in source element B, the item in
 source element B is the referenced item." PB4219 had ranked a file-name against a condition-name by the depth of the
@@ -50,3 +50,4 @@ though ISO 8.4.6.2.1 2) identifies the level-88 as the only item. Both reproduce
 an unreached index-name ranks `int.MaxValue` in `NonConditionDeclarationsOf` and `ConditionBinder.CapacityRegisterHides`
 requires `Reached.Count > 0`. Goldens `pb4432_qualified_condition_name_beside_own_{index_name,capacity_register}`; the
 `NonDataDeclarationOf` comment no longer lists the register among the offered classes.
+
