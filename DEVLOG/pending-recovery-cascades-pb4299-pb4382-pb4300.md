@@ -75,7 +75,13 @@ report of its own, once, and the missing period is still reported. `ClosedFormat
 construct before the token takes it (`ClosedConstructTakes`), and `AdmittedKinds` gained a fifth shape for a reserved word
 where an operand is due, which also gives the predecessor's lead (`DISPLAY WHEN OTHER`, `ADD TO "X"`, `MOVE 1 TO WHEN`)
 a named COBOL5506 where it drew the bare COBOL0001, without discarding the next statement (`DiagnosticHint.LeavesNoTail`).
-It is said only of a set with no punctuation: `NUMVAL(A FROM 1)` has a whole argument and keeps its COBOL0001. i29 (the
+It is said only of a set with no punctuation (`NUMVAL(A FROM 1)` has a whole argument) and only where the construct
+completed just before the token could take nothing the set lacks (`SET ADDRESS OF X UP BY`: the parser has left X, so OF
+and a subscript are missing from its set; `gn1-data-address-receiving-set-up-by` keeps its COBOL0001): both are the
+PB4426 guard against an incomplete "expected" list. The new arm also took over eleven refusals that drew the bare COBOL0001
+or a vague guess (COBOL0312 "check SELECT/ASSIGN TO"), now COBOL5506 naming the operand (`pb333`, `pb2728`, `pb2292`,
+`pb3751`, `l1c24`, `l1c27`, `pb4207` x3, `pb4286`) or the run (`pb2727`: CHANNEL, not the IS after it); their `expect`
+strings changed with them. i29 (the
 unit with another parse error never reaches the pass) is PB4313's trade-off and stays there. Refusals at all four
 editions: `pb4301-misspelled-clause-keyword-is-named`, `pb4301-occurs-to-without-integer-2`,
 `pb4301-misspelled-occurs-before-an-integer`; `pb4300` now expects COBOL5506.

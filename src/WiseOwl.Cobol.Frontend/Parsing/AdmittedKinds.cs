@@ -73,7 +73,9 @@ internal static class AdmittedKinds
     /// whether a general format of the compile edition can print a keyword (kb/Work PB4174), and a keyword it refuses
     /// is not named. <paramref name="aWordChangesNothing"/> says whether a word, written there, leaves the parse
     /// admitting exactly what it admitted without it (the optional word of §8.3.2.4.3, kb/Work PB4225), and such a word
-    /// is no alternative to name. <paramref name="anOperandIsDue"/> is true when the sentence says that the element before
+    /// is no alternative to name. <paramref name="whatTheConstructBeforeCouldTake"/> is what the construct the parser
+    /// completed just before the token could still take, or null where none was (the operand arm says an operand is due
+    /// only where nothing of it is missing from <paramref name="admitted"/>, kb/Work PB4426). <paramref name="anOperandIsDue"/> is true when the sentence says that the element before
     /// the token is incomplete (a reserved word was written where an operand is due): the token is the next element's
     /// opening, which the structure around the fault resumes at, so the fault has no tail to discard.
     /// <para>⛔ <c>ZERO_ARITH</c> IS NAMED "the figurative constant ZERO" WHEREVER THE PARSE EXPECTS IT (kb/Work PB4120). It is
@@ -85,7 +87,7 @@ internal static class AdmittedKinds
     /// the rewrite, not of the name, and went with it.</para></summary>
     public static string? Refusal(IToken token, IntervalSet admitted, IReadOnlyCollection<string> words,
         Func<int, bool> aWordChangesNothing, IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow,
-        Func<string, bool> theEditionPrints, out bool anOperandIsDue)
+        Func<string, bool> theEditionPrints, Func<IntervalSet?> whatTheConstructBeforeCouldTake, out bool anOperandIsDue)
     {
         anOperandIsDue = false;
         if (token.Type == TokenConstants.EOF || admitted.Contains(token.Type) || admitted.Count == 0 && words.Count == 0)
@@ -146,6 +148,13 @@ internal static class AdmittedKinds
                     aWordChangesNothing, statementStart, theEditionPrints)
                 : named;
             if (operand.Symbols.Count > 0) return null;
+            // ⛔ NOT AFTER AN OPERAND THE PARSER HAS ALREADY LEFT (kb/Work PB4426). The parser exits an operand as soon as its
+            // prediction allows, so after `SET ADDRESS OF X UP BY` its set holds the next receiver and TO and lacks what
+            // would lengthen X (OF, IN, a subscript): "expected" would name an incomplete set. The construct completed just
+            // before the token says what it could still take; a token it takes that the set lacks (the user-defined word's
+            // own spellings are no difference) leaves the position unsaid.
+            if (whatTheConstructBeforeCouldTake() is { } more && !more.Subtract(admitted).Subtract(UserWordSpellings).IsNil)
+                return null;
             anOperandIsDue = true;
             return $"{written} is not expected here: expected "
                    + $"{Join([.. takesAWord ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "

@@ -9,7 +9,8 @@
       *> next line opens W-Y's entry at level-number 05. The data division's error production used to
       *> take the integer into its run, so FOO 05 W-Y was ONE foreign clause and W-Y's PICTURE was
       *> reported as W-X's second (COBOL2423). Its run now holds no unsigned integer, since the
-      *> next entry's level-number may follow these lists: the missing period is the diagnosis, at 05.
+      *> next entry's level-number may follow these lists: the missing period is the diagnosis, at 05. FOO is refused
+      *> too, by name, in a report of its own (PB4301: it is no clause whichever way the period goes).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3390LN.
        DATA DIVISION.

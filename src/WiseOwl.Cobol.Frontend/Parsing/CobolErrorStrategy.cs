@@ -1012,9 +1012,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // A word (a reserved word is the candidate) or a literal the production does not open with — in the data
         // division's form, one that begins with an unsigned integer (kb/Work PB3373, PB3390); ClosedFormatResidue
         // decides.
+        // A run the next entry follows with its period forgotten is not the Sync's: the missing period is the report there
+        // (the run is refused beside it, kb/Work PB4301).
+        var at = new OffendingPosition(recognizer, token);
         return (IsLiteral(token) || token.Text is [var first, ..] && char.IsAsciiLetter(first))
                && !atn.NextTokens(state, recognizer.Context).Contains(token.Type)
-               && ClosedFormatResidue(recognizer, new OffendingPosition(recognizer, token), predictionFailedAt: false) is not null;
+               && ClosedFormatResidue(recognizer, at, predictionFailedAt: false) is not null
+               && !at.EndsARunBeforeTheNextSentence;
     }
 
     /// <summary>Per ATN state: does its closure — epsilon edges, every rule call entered, and a call to a rule that can
@@ -1298,7 +1302,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         Func<string, bool> theEditionPrints = recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true;
         if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
-                   at.APeriodLetsTheSentenceFollow, theEditionPrints, out bool anOperandIsDue) is { } kindMsg)
+                   at.APeriodLetsTheSentenceFollow, theEditionPrints, at.ClosedConstructCouldTake, out bool anOperandIsDue) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0, LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
@@ -1306,7 +1310,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
         else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
                  && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
-                        () => false, theEditionPrints, out _) is { } sentenceMsg)
+                        () => false, theEditionPrints, () => null, out _) is { } sentenceMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, sentenceMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -2704,12 +2708,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 if (!ParserIsThere || PredictionFailedAt || Token.Type == TokenConstants.EOF) return null;
                 if (_recognizer.Context is ParserRuleContext inside && ClosedFormats.IsErrorProduction(inside.RuleIndex))
                     return inside.ChildCount > 0 ? inside : null;
+                // The production is a child of its list's alternative (`dataDescriptionClause`), the last thing the list wrote.
                 int i = Token.TokenIndex;
-                return PreviousDefault((ITokenStream)_recognizer.InputStream, ref i) is { } previous
-                       && LastClosedConstruct(_recognizer.Context as ParserRuleContext, previous.TokenIndex) is { } closed
-                       && ClosedFormats.IsErrorProduction(closed.RuleIndex)
-                    ? closed
-                    : null;
+                if (PreviousDefault((ITokenStream)_recognizer.InputStream, ref i) is not { } previous) return null;
+                for (var c = LastClosedConstruct(_recognizer.Context as ParserRuleContext, previous.TokenIndex); c is not null;
+                     c = LastRuleChild(c))
+                    if (ClosedFormats.IsErrorProduction(c.RuleIndex)) return c.Stop?.TokenIndex == previous.TokenIndex ? c : null;
+                return null;
             }
         }
 
@@ -2732,6 +2737,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// <summary>Could the construct the parser completed just before the token have gone on with it
         /// (<see cref="ClosedJustBefore"/>'s re-simulation takes the token)? False where no construct was closed there.</summary>
         public bool ClosedConstructTakes() => ClosedJustBefore() is var (_, _, walk) && walk.Takes(Token.Type);
+
+        /// <summary>Every token the construct the parser completed just before the token could still take (its
+        /// re-simulation's expected set, <see cref="ClosedJustBefore"/>); null where no construct was closed there.</summary>
+        public IntervalSet? ClosedConstructCouldTake() => ClosedJustBefore() is var (_, _, walk) ? walk.Expected() : null;
 
         /// <summary>⛔ COULD A USER-DEFINED WORD STAND AT THE TOKEN (kb/Work PB4132)? The three readings the strategy
         /// already makes of a refused token, each asked of the token read as a user-defined word (<c>IDENTIFIER</c>, the
