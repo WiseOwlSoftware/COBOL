@@ -95,4 +95,4 @@ Rows at 85, 2002, 2014 and 2023 for the selection object and the condition, and 
 Self-review found the terminator pairing too wide in the predecessor's part (narrowed, 2 rows) and, in this part, the
 new operand arm's COBOL5506 orphaning the next statement's tail (the PB4286 rows failed: fixed by `LeavesNoTail`) and its
 list of the parser's full set for `NUMVAL(A FROM` (a continuation set, so now unsaid). semgrep verify passed with no rule
-count risen. 
+count risen. Gate at b980b426d (the code head; two earlier gates went RED on conformance rows that pinned the bare COBOL0001, fixed): `=== BUILD-LOCAL GATE: GREEN — Conformance 20,833/20,833 · Unit 39,311/39,311 · Characterization 37/37 cases ran (skipped 0) ===` (run 000004-20261102T120524Z).
