@@ -480,26 +480,29 @@ public sealed partial class SequentialConnector : IJournalData
     }
 
     private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, EntryMutexUse use, Func<string?>? proceed,
-        out RegionLocks? kept)
+        out IDisposable? kept)
     {
         int? runUnitsOwn = Transactions.Of(HostPath)?.Id;
-        RegionLocks? keep = null;
+        IDisposable? keep = null;
         string status = FileRegistry.RetryLoop(() =>
         {
             var mutex = use switch
             {
                 EntryMutexUse.ForTheAttempt => Transactions.HoldEntryMutex(HostPath),
-                EntryMutexUse.UntilTheRelease => Transactions.TryHoldEntryMutex(HostPath),
+                EntryMutexUse.UntilTheRelease => TryHoldKeptEntryMutex(),
                 _ => null,
             };
+            // What gives the mutex back: the endpoint itself, or — for the kept endpoint, which the connector owns for its life —
+            // the lease that parks the byte (EntryMutexLease).
+            IDisposable? lease = use == EntryMutexUse.UntilTheRelease && mutex is not null ? _entryLease : mutex;
             try
             {
                 if (SequentialJournal.Enter(Medium, HostPath, ownId, mutex).Conflict(held, runUnitsOwn) is { } conflict) return conflict;
                 if (proceed?.Invoke() is { } refused) return RetryAttempt.InRunUnit(refused);   // a refusal that is no conflict: the statement's own status
-                if (use == EntryMutexUse.UntilTheRelease) (keep, mutex) = (mutex, null);
+                if (use == EntryMutexUse.UntilTheRelease) (keep, lease) = (lease, null);
                 return RetryAttempt.InRunUnit(FileStatusCode.Success);
             }
-            finally { mutex?.Dispose(); }   // given back before any wait and on a refusal, so a waiting statement keeps no one out
+            finally { lease?.Dispose(); }   // given back before any wait and on a refusal, so a waiting statement keeps no one out
         }, StatementRetry.Kind, StatementRetry.Amount, waiter: this);
         kept = keep;
         return status == FileStatusCode.Success ? null : status;
@@ -515,11 +518,46 @@ public sealed partial class SequentialConnector : IJournalData
     /// Under the mutex a transaction begins either before the test, which then meets its END holding ('51', the RETRY phrase
     /// applying), or after the release, whose bytes its L then counts. A REWRITE is the same step: a transaction that begins
     /// before its release cannot image the record ahead of this connector's bytes, so its rollback never writes the change away.</summary>
-    private string? UncoveredChangeGuard(Func<SequentialJournal.Holding, bool> held, out IDisposable? release)
+    private string? UncoveredChangeGuard(Func<SequentialJournal.Holding, bool> held, out IDisposable? release) =>
+        JournalLockTest(null, held, EntryMutexUse.UntilTheRelease, proceed: null, out release);
+
+    /// <summary>⛔ THE ENTRY MUTEX OF AN UNCOVERED CHANGE, THROUGH THE ENDPOINT THIS CONNECTOR KEEPS FOR ITS LIFE (kb/Work PB4387;
+    /// DESIGN-runtime-library.md 2.2.2.3). An uncovered sharing writer takes the mutex around EVERY record, and publishing and
+    /// retiring a lock file and its lock directory per record was about ten metadata operations each (SQ214A: 3 s alone, 19-30 s in
+    /// 24 copies on a loaded ReFS volume). The endpoint (<see cref="HostRegionLocks.KeptEntryMutex"/>) parks the byte each
+    /// statement gives back, so the next hold is a rename and a listing; the guarantee is the same one — the byte is held
+    /// exclusively from the lock test through the release of the record, and a parked byte is held by no one — and the CLOSE retires
+    /// the parked file and the lock directory (<see cref="GiveUpEntryMutex"/>). Returns the endpoint with the byte held, or null
+    /// where this host cannot hold it (a lock directory the process may not create): the statement proceeds without it, DOC-A.1-75's
+    /// rule for a waiting hold, and the next statement asks again.</summary>
+    private RegionLocks? TryHoldKeptEntryMutex()
     {
-        string? status = JournalLockTest(null, held, EntryMutexUse.UntilTheRelease, proceed: null, out var kept);
-        release = kept;
-        return status;
+        var endpoint = _keptEntryMutex ??= Medium.KeptEntryMutex(HostPath);
+        if (endpoint.Hold(HostRegionLocks.EntryMutexByte, exclusive: true, wait: true) != RegionLockResult.Ok) return null;
+        _entryLease ??= new EntryMutexLease(endpoint);
+        return endpoint;
+    }
+
+    /// <summary>The endpoint <see cref="TryHoldKeptEntryMutex"/> keeps, created at the first uncovered change of a sharing writer.</summary>
+    private RegionLocks? _keptEntryMutex;
+
+    /// <summary>The lease that gives <see cref="_keptEntryMutex"/>'s byte back (parks it) when disposed.</summary>
+    private EntryMutexLease? _entryLease;
+
+    /// <summary>Close the endpoint kept for the uncovered changes, with its parked file and the lock directory beside the file
+    /// (<see cref="TryHoldKeptEntryMutex"/>): the CLOSE of a connector, or the abandonment of its OPEN.</summary>
+    private void GiveUpEntryMutex()
+    {
+        var endpoint = _keptEntryMutex;
+        (_keptEntryMutex, _entryLease) = (null, null);
+        endpoint?.Dispose();
+    }
+
+    /// <summary>Gives the entry mutex's byte back to its kept endpoint, which parks it; disposing it again, or with the byte not
+    /// held, does nothing.</summary>
+    private sealed class EntryMutexLease(RegionLocks endpoint) : IDisposable
+    {
+        public void Dispose() => endpoint.Release(HostRegionLocks.EntryMutexByte);
     }
 
     // ── What the registry's COMMIT and ROLLBACK ask of the connector (2.2.2.6, 2.2.2.7) ──────────────────────────────

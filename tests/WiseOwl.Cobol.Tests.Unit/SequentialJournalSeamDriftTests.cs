@@ -21,7 +21,7 @@ public sealed class SequentialJournalSeamDriftTests
     private static readonly Regex PastTheMedium = new(
         @"\bHostFile\.(?:OpenConnectorStream|OpenConnectorWriteStream|OpenAuxiliary|OpenTransient|SyncDirectory|OpenLockHolder|CreateLockDirectory)\s*\("
         + @"|\bFile\.(?:Delete|Move|Create|WriteAllBytes)\s*\(|\bDirectory\.(?:Delete|Move|CreateDirectory)\s*\("
-        + @"|\bSidecarLockFiles\.(?:Publish|Retire|RetireDirectory)\s*\(|\bHostRegionLocks\.EntryMutex\s*\(",
+        + @"|\bSidecarLockFiles\.(?:Publish|Retire|RetireDirectory)\s*\(|\bHostRegionLocks\.(?:Kept)?EntryMutex\s*\(",
         RegexOptions.Compiled);
 
     private static IEnumerable<string> Clients()
@@ -50,7 +50,7 @@ public sealed class SequentialJournalSeamDriftTests
         Assert.True(offenders.Count == 0,
             "a host operation past the run unit's IHostMedium (DESIGN-runtime-library.md 2.2.2.12): the fault-injecting medium "
             + "cannot refuse it, die at it or lose it, so no witness holds the journal's rules there. Call the medium "
-            + "(Medium.Open..., Medium.DeleteFile, Medium.SyncDirectory, Medium.PublishHolder, Medium.RetireName, Medium.EntryMutex):\n  "
+            + "(Medium.Open..., Medium.DeleteFile, Medium.SyncDirectory, Medium.PublishHolder, Medium.RetireName, Medium.EntryMutex, Medium.KeptEntryMutex):\n  "
             + string.Join("\n  ", offenders));
     }
 
@@ -61,5 +61,6 @@ public sealed class SequentialJournalSeamDriftTests
     [InlineData("HostFile.SyncDirectory(directory);")]
     [InlineData("var holder = SidecarLockFiles.Publish(directory, _ => name);")]
     [InlineData("var mutex = HostRegionLocks.EntryMutex(hostPath);")]
+    [InlineData("var mutex = HostRegionLocks.KeptEntryMutex(hostPath);")]
     public void TheDetectorStillMatchesEachSpellingItBans(string line) => Assert.Matches(PastTheMedium, line);
 }
