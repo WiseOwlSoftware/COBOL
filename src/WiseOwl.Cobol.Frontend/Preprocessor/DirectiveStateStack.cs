@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -27,8 +26,8 @@ public readonly record struct DirectiveStackOp(int Line, DirectiveStackKind Kind
     {
         op = default;
         DirectiveStackKind kind;
-        if (CobolNames.Same(directive.Word, "PUSH")) kind = DirectiveStackKind.Push;
-        else if (CobolNames.Same(directive.Word, "POP")) kind = DirectiveStackKind.Pop;
+        if (CobolKeywords.Same(directive.Word, "PUSH")) kind = DirectiveStackKind.Push;
+        else if (CobolKeywords.Same(directive.Word, "POP")) kind = DirectiveStackKind.Pop;
         else return false;
         if (!CompilerDirectiveCatalog.TryOperandWord(directive.Word, directive.Operand, out string word)
             || word.Length == 0) return false;

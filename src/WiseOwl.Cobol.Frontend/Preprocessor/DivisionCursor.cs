@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -36,7 +35,7 @@ internal sealed class DivisionCursor(bool startsInIdentificationDivision)
     /// <see cref="CompilationUnitStart.UnitParagraphNames"/> and METHOD-ID. FACTORY and OBJECT begin definitions nested in
     /// a class and hold no comment-entry.</summary>
     private static readonly HashSet<string> IdentificationParagraphNames
-        = new([.. CompilationUnitStart.UnitParagraphNames, "METHOD-ID"], CobolNames.Comparer);
+        = new([.. CompilationUnitStart.UnitParagraphNames, "METHOD-ID"], CobolKeywords.Comparer);
 
     private bool _afterIdentification;   // the previous word was IDENTIFICATION or ID
     private bool _inStatement;           // between a COPY / REPLACE word and its separator period
@@ -162,11 +161,11 @@ internal sealed class DivisionCursor(bool startsInIdentificationDivision)
         }
         // The spelling as written: a separator period glued to the end of the text is not part of the word.
         string spelling = word.Value.TrimEnd('.');
-        if (CobolNames.Same(spelling, "DIVISION"))
+        if (CobolKeywords.Same(spelling, "DIVISION"))
             InIdentificationDivision = _afterIdentification;
         else if (IdentificationParagraphNames.Contains(spelling))
             InIdentificationDivision = true;
-        _afterIdentification = CobolNames.Same(spelling, "IDENTIFICATION") || CobolNames.Same(spelling, "ID");
+        _afterIdentification = CobolKeywords.Same(spelling, "IDENTIFICATION") || CobolKeywords.Same(spelling, "ID");
     }
 
     /// <summary>Read every text-word of <paramref name="text"/> — one logical line.</summary>

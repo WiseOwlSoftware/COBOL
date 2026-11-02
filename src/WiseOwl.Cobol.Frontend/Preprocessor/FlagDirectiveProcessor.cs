@@ -3,7 +3,6 @@
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -75,7 +74,7 @@ public static class FlagDirectiveProcessor
     /// and nothing applied. <paramref name="word"/> is the directive word (<c>FLAG-02</c> / <c>FLAG-14</c>).</summary>
     internal static void CheckOperand(string word, string operand, DiagnosticBag diagnostics, SourceLocation loc)
     {
-        var directive = CobolNames.Same(word, "FLAG-02") ? FlagDirective.Flag02 : FlagDirective.Flag14;
+        var directive = CobolKeywords.Same(word, "FLAG-02") ? FlagDirective.Flag02 : FlagDirective.Flag14;
         if (!FlagDirectiveLine.TryParse(directive, operand, out _, out _, out string? error))
             ReportMalformed(directive, error, diagnostics, loc);
     }

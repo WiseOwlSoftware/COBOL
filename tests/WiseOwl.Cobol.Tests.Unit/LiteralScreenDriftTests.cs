@@ -77,7 +77,8 @@ public sealed class LiteralScreenDriftTests
     /// (kb/Work PB1616), each of which screens it; the descriptors have ONE emit site, and no emit site spells a code as
     /// a bare string. The closing-delimiter rule (COBOL5563, kb/Work PB3245) is asked of the tokens before the parse: its
     /// one question is asked by LiteralScreen alone, and LiteralScreen's one report is called by the two lexings — the
-    /// unit's (Frontend) and each directive fragment's.</summary>
+    /// unit's (Frontend) and each directive fragment's — and by the text-manipulation stage for the literal text-words of a
+    /// COPY or REPLACE statement, which it reads before the lexer runs (CopyProcessor, kb/Work PB4176).</summary>
     [Theory]
     [InlineData("CobolLiteral.SyntaxViolation(", "LiteralScreen.cs")]
     [InlineData("DirectiveExpressionFragment.Parse", "ConditionalCompilationProcessor.cs")]
@@ -92,7 +93,7 @@ public sealed class LiteralScreenDriftTests
     [InlineData("\"COBOL1635\"", "")]
     [InlineData("CobolLiteral.IsUnterminated(", "LiteralScreen.cs")]
     [InlineData("DiagnosticCatalog.LiteralUnterminated", "LiteralScreen.cs")]
-    [InlineData("LiteralScreen.ReportUnterminated(", "ConditionalCompilationProcessor.cs,Frontend.cs")]
+    [InlineData("LiteralScreen.ReportUnterminated(", "ConditionalCompilationProcessor.cs,CopyProcessor.cs,Frontend.cs")]
     [InlineData("\"COBOL5563\"", "")]
     public void LiteralRule_HasOneReportingSite(string needle, string expectedSites)
     {

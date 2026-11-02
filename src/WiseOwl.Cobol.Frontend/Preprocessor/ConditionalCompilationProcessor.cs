@@ -184,7 +184,7 @@ public static partial class ConditionalCompilationProcessor
         {
             _implicitOps = implicitOps;
             _inputs = inputs ?? new CompilationInputs();
-            _leave = leaveDirectives ?? new HashSet<string>(CobolNames.Comparer);
+            _leave = leaveDirectives ?? new HashSet<string>(CobolKeywords.Comparer);
             _dialectLevel = dialectLevel;
             _edition = EditionInfo.Of(dialectLevel, permissive);
             _bag = diagnostics;
@@ -387,7 +387,7 @@ public static partial class ConditionalCompilationProcessor
                             ParentActive = parentActive, Emitting = false, BranchTaken = false,
                             Start = at, EvaluateFlagOn = _flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§7.3.15.4 GR4 c)
                         string subj = rest.TrimSpaces();
-                        if (CobolNames.Same(subj, "TRUE")) f.TruthForm = true;
+                        if (CobolKeywords.Same(subj, "TRUE")) f.TruthForm = true;
                         else if (parentActive) f.Subject = EvaluateOperandText(subj, _evaluator, _diag, ">>EVALUATE");
                         else CheckOperandSyntax(subj, _diag, ">>EVALUATE");   // omitted branch: parsed (§7.2.1), never evaluated
                         _stack.Push(f);
@@ -688,7 +688,7 @@ public static partial class ConditionalCompilationProcessor
             complaint = over ? "OVERRIDE follows no operand" : "no operand follows the compilation-variable-name";
             return false;
         }
-        define = CobolNames.Same(body, "PARAMETER")
+        define = CobolKeywords.Same(body, "PARAMETER")
             ? (name, DefineKind.Parameter, "", over)
             : (name, DefineKind.Value, body, over);
         complaint = "";
@@ -927,7 +927,7 @@ public static partial class ConditionalCompilationProcessor
     private static bool MatchesWordAt(string text, int i, string word)
     {
         if (i + word.Length > text.Length) return false;
-        if (!CobolNames.Same(text.AsSpan(i, word.Length), word)) return false;
+        if (!CobolKeywords.Same(text.AsSpan(i, word.Length), word)) return false;
         int after = i + word.Length;
         return after == text.Length || CobolSpace.IsSeparator(text[after]);
     }
@@ -942,7 +942,7 @@ public static partial class ConditionalCompilationProcessor
         CompilerDirectiveLine.TryParse(trimmed, out var d) ? (d.Word, d.Operand) : ("", "");
 
     private static bool EndsWithWord(string s, string word) =>
-        CobolNames.EndsWith(s, word)
+        CobolKeywords.EndsWith(s, word)
         && (s.Length == word.Length || CobolSpace.IsSeparator(s[s.Length - word.Length - 1]));
 
     /// <summary>The frontend diagnostic gateway: the shared evaluator's code-preserving reports (any

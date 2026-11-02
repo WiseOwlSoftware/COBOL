@@ -68,8 +68,9 @@ public static partial class CobolNames
 
     /// <summary>The word's ONE upper-case spelling: its Annex C <see cref="Fold(string)"/> with the basic letters
     /// a-z then written A-Z (kb/Work PB1965). Two spellings of one COBOL word give one string, so it is the key a
-    /// table compared by ordinal, a derived C# identifier, an externalized name the compiler forms, or a word
-    /// compared with an upper-case keyword reads. It replaces the host's <c>ToUpperInvariant</c>, which is not the
+    /// table compared by ordinal, a derived C# identifier or an externalized name the compiler forms reads (a word
+    /// compared with a KEYWORD is compared on its basic letters alone, by <c>WiseOwl.Cobol.Editions.CobolKeywords</c>:
+    /// §8.1.3.2 4) folds extended letters in user-defined words only, kb/Work PB4240). It replaces the host's <c>ToUpperInvariant</c>, which is not the
     /// standard's mapping: it keeps the Kelvin sign U+212A apart from <c>K</c>, and at COBOL 2023 it writes the
     /// dotless i U+0131 as <c>I</c> and final sigma U+03C2 as sigma's capital, joining words Annex C keeps apart
     /// (Annex E.2 item 14). Only the basic letters are raised, because only their upper case is the standard's
