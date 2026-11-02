@@ -1,0 +1,10 @@
+set ok
+in sub
+ref same ok
+in sub
+content ok
+ref usage exc EC-PROGRAM-ARG-MISMATCH
+ref type exc EC-PROGRAM-ARG-MISMATCH
+in M
+HANDLED=EC-OO-UNIVERSAL
+done

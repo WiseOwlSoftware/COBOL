@@ -768,40 +768,51 @@ of a CALL asks it through `MaySet`. §14.8.3.3 rule 2 describes an ACTIVE-CLASS 
 operand by how the method was INVOKED (2 b) 1.–4.); a universal dispatch is always 2 b) 4. with a universal invoking
 reference, so `ActivationRelations.ActiveClassReturningViolation` asks the table with a universal sender (kb/Work
 PB2985), and the delivery's class narrowing (`CobolObject.NarrowUniversal`) stays the floor for the unchecked
-invocation. A PROGRAM- or FUNCTION-pointer's restriction is its prototype's SIGNATURE
+invocation. What a PROGRAM- or FUNCTION-pointer may CONTAIN is fixed by its prototype's SIGNATURE
 class, not its name (§13.18.60.4 GR25 / GR26; kb/Work PB2464): `PrototypeSignatureClasses` partitions a group's
 prototypes by `PrototypeSignatures.Same`, and `BinderDriver.ResolvePointerRestrictions` stamps each pointer item in two
 passes over every forest — `DataBinder.ResolveRestrictedPrototypes` attaches the prototype its `TO` phrase resolves to
 (`DataItem.RestrictedPrototype`), then `PrototypeSignatureClasses.Classify` its class
 (`DataItem.PointerRestrictionIdentity`) — BEFORE any signature check runs (the §10.6.2 SR2 / SR3 prototype pairs and the
 §9.3.8.2.3 override / implements / interface-inheritance / property-accessor checks run after it, kb/Work PB2495).
-`PrototypeSignatures.SameType` is the one "of the same type" relation over two such pointers: it compares the classes
-(`PrototypeSignatures.RestrictionIdentity`, also the `TO <class>` text of `ActivationDescription.Clauses`, so the §9.3.6
-match, the §14.8.2 / §14.8.3 conformance, rule 6's SET validity and the pair-mode signature relation all agree). The
+`PrototypeSignatures.SameSignatureRestriction` compares the classes (`PrototypeSignatures.SignatureRestriction`, the text
+of `ActivationDescription.ContentRestriction`), which the SET relation and the rules that send to it read (§14.9.39.3
+SR20 / SR22; §14.8.2.3.3; §9.3.6 4 c), 5 c) and rule 6's SET validity), and so does the pair-mode signature relation
+(§9.3.8.2.3 through `ActivationRelations.SignatureDifference`, the relation `PrototypeSignatures.Same`'s graph is built
+on). The identity rules do NOT (kb/Work PB4107; docs/CONFORMANCE.md D-RP1): §9.3.6 3 e), §14.8.2.3.2 and §14.8.3.3
+compare the USAGE clause's TO phrase by the prototype it NAMES (`PrototypeSignatures.NamedRestriction`, the text of
+`ActivationDescription.Clauses`), and §14.8.2.3.2's "of the same type" the item's §8.5.3.1 type as well
+(`ActivationDescription.PointerType`, asked by `ActivationRelations.RestrictedPointerTypeViolation` on the CALL and both
+INVOKE lanes). So a pair of pointers to two prototypes of one signature passes BY CONTENT and is refused BY REFERENCE,
+as a subclass's object reference is. The
 classes are the coarsest stable PARTITION (`PrototypeSignatureClasses.Classify`, kb/Work PB3101): every resolved
 prototype starts in one block per namespace, each round stamps every pointer with its prototype's current block and
 splits each block by `PrototypeSignatures.Same` (`ActivationRelations.SignatureDifference` per formal, through
 `OoConformance.SignatureDifference`), and a round that splits nothing is the greatest fixed point, so prototypes that
 name each other or themselves are classified by what they describe and never by what they are called (kb/Work PB2495). Two differently named prototypes of one signature are therefore one
-type on both lanes, and the class identity is CANONICAL and group-independent (kb/Work PB2103;
+signature class on both lanes, and the class identity is CANONICAL and group-independent (kb/Work PB2103;
 `DESIGN-external-repository.md` §6.4): `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` — the SHA-256 of the class's
 minimized signature graph, its reachable classes numbered in first-visit order and every description written by
 `PrototypeSignatures.DescriptionKey`, the relation `Same` reads as a key — so two separately compiled groups describe one
 signature's pointers with one string, and `SignatureIdentityDriftTests` holds the identity to `Same`. While the partition
 is refined a pointer carries its block's provisional position; the canonical identities are stamped once it is stable. A prototype with NO compile-time signature (§12.3.8.4 GR10 c) / GR11 c)) is a class of its
 own marked as such — `PrototypeSignatures.ExternalIdentity`, `ActivationDescription.ExternalRestrictionPrefix` + its
-name — and the conformance relations (`ActivationRelations.SamePointerRestriction`, read by `MaySet`, the BY REFERENCE
-pointer arm and the RETURNING pair's `ReturningConformance`) let a restricted pointer of that type conform to any restricted pointer of its kind, exactly as
-`PrototypeSignatures.Same` lets an unresolved signature conform on the SET lane, so the SET, the argument and the RETURNING lanes give one
-answer for the pair (kb/Work PB3162, PB3686; §14.8.3.3's "same … USAGE clauses" read the TO phrase as the pointer's type). The §8.5.3.1 equivalence and its key keep comparing the identity exactly, because an
-equivalence (and a key) must stay transitive. The same relation decides a pointer that is a MEMBER of a group (kb/Work PB3120): a
+name — and the SET relation (`ActivationRelations.SamePointerRestriction`, read by `MaySet` alone) lets a restricted
+pointer of that class conform to any restricted pointer of its kind, exactly as `PrototypeSignatures.Same` lets an
+unresolved signature conform (kb/Work PB3162). The identity rules never read the mark: an unresolved prototype is still
+a name, so its pointer passed BY REFERENCE or returned meets a pointer to another prototype as two USAGE clauses (kb/Work
+PB4107, which re-verdicted PB3686's RETURNING reading). The §8.5.3.1 equivalence and its key keep comparing the identity exactly, because an
+equivalence (and a key) must stay transitive. The signature relation also decides a pointer that is a MEMBER of a group (kb/Work PB3120): a
 strongly-typed group formal is compared through §8.5.3.1's type-declaration equivalence
 (`StrongTypeModel.EquivalentTypeDeclarations` / `SameElementaryLayout`), whose per-item profile compare
 (`SameAnalyzedProfile`) elides `PicInfo.RestrictedPrototypeName` and `RestrictedTypeName` from the record equality and
-asks `PrototypeSignatures.SameType` / `StrongTypeModel.SameRestriction` instead, under one private `Comparison` that
+asks `PrototypeSignatures.SameSignatureRestriction` / `StrongTypeModel.SameRestriction` instead, under one private `Comparison` that
 carries the declaration pairs assumed equivalent while compared (so a type whose pointer member is restricted back to it
 terminates); a pointer member restricted to a prototype still being classified carries that prototype's current block. `StrongTypeModel.TypeIdentityKey` keys such a member the same way
-(the signature class, the folded type-name and the key of the declaration it resolves to, `@depth` for a cycle).
+(the signature class, the folded type-name and the key of the declaration it resolves to, `@depth` for a cycle). A
+member is thus compared by its signature class where an elementary pointer's own USAGE clause is compared by the
+prototype it names (D-RP1); §14.8.2.3.2 still refuses a top-level pair of two names whatever its type key says, since it
+compares the USAGE clauses too.
 `PrototypePointerTypeDriftTests` pins that no profile projection leaves either restricted name in the record compare.
 
 ### D12. Parameterized classes and interfaces (§9.3.12 / §9.3.13) are EXPANDED, one ordinary class per expansion — never C# generics; the parameterized definition itself is a skeleton that emits nothing and binds only for its own rules.

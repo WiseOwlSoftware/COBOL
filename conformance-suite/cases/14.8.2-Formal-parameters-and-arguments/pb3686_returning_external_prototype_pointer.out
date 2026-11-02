@@ -1,5 +1,3 @@
-in sub
-proto ok
-in sub
-dyn ok
-unrestricted exc EC-PROGRAM-ARG-MISMATCH        
+proto exc EC-PROGRAM-ARG-MISMATCH
+dyn exc EC-PROGRAM-ARG-MISMATCH
+unrestricted exc EC-PROGRAM-ARG-MISMATCH

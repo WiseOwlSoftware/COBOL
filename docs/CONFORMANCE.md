@@ -2335,6 +2335,39 @@ of an unsupported facility.
   description and ignores the modifier (measured). Witnesses: `conformance:cases/_unassigned/pb480_universal_refmod_evaluated_length`,
   `conformance:cases/_unassigned/pb2077_refmod_argument_both_lanes`, `conformance:cases/_unassigned/pb480_universal_any_length_omitted`,
   `conformance:cases/_unassigned/pb3128_refmod_any_length_argument`, `conformance:cases/_unassigned/pb3128_refmod_dynamic_length_argument`; the CALL and function lanes ask the same relation at bind time (kb/Work PB3101): `conformance:cases/_unassigned/pb3101_activation_lanes_one_relation` and the negatives `pb3101-prototype-call-refmod-by-reference`, `pb3101-function-refmod-by-reference`, `pb3101-nested-refmod-into-any-length`.
+- **D-RP1 — restricted pointers passed BY REFERENCE, matched, and returned: identity, not signature** (kb/Work PB4107;
+  the deciding adjudication of PB3758, 2026-10-30 — the ISO text's reading, no latitude and no owner decision). A
+  restricted data- or program-pointer is a typed item (§13.18.60.3 SR18 / SR19 require the TYPEDEF clause on the entry
+  that restricts it). §14.8.2.3.2's "If either is a restricted pointer, both shall be restricted and of the same type"
+  is §8.5.3.1's relation: the two items are described with TYPE clauses that reference equivalent type declarations —
+  the same type-name, and "the same … USAGE clauses" including the TO phrase. §9.3.6 match rule 3 e), §14.8.2.3.2 rule 2
+  and §14.8.3.3 compare "the same … USAGE clauses", and the TO phrase is compared by the prototype (or type) it NAMES —
+  the prototype's externalized name, folded — never by its signature: the standard lists the clause texts that match on
+  meaning (currency strings, DECIMAL-POINT IS COMMA, the LOCALE phrase) and none for the TO phrase, and a prototype with
+  no compile-time signature (§12.3.8.4 GR10 c)) is as much a name as a resolved one. The signature relation (§8.13;
+  §13.18.60.4 GR25 / GR26: what a restricted pointer may CONTAIN) governs only SET (§14.9.39.3 SR19 / SR20 / SR22),
+  CALL SR14 and the rules that send to SET (§14.8.2.3.3; §9.3.6 4 c), 5 c), 6), and the unknown-signature stance for a
+  prototype only the run unit resolves (kb/Work PB3162) applies to it alone. So two pointers restricted to two prototypes
+  of one signature, or alike under two type-names, are admitted by a SET or a BY CONTENT pass and refused BY REFERENCE
+  (a compile-time COBOL1688 / COBOL0828 when the formal is known, else EC-PROGRAM-ARG-MISMATCH or EC-OO-UNIVERSAL at the
+  activation), and a returning pair of two names is refused by §14.8.3.3 — as an object reference of a subclass is
+  admitted by SET and refused BY REFERENCE (§14.9.39.3 SR12 a) 2. against §14.8.2.3.2 rule 3). One reading the text
+  leaves to the implementor: §8.5.3.1 defines "the same type" for TYPED items only, and two restricted pointers are not
+  always typed — an entry `USAGE FUNCTION-POINTER TO` needs no TYPEDEF, and the unique item an address-identifier creates
+  (§8.4.3.11.4 GR2, "restricted to the type of identifier-1"), which INVOKE passes BY REFERENCE (§14.9.23.3 SR9), has no
+  TYPE clause. Such an item is of the type its USAGE clause states, so opposite it only the USAGE clauses are compared
+  (`ADDRESS OF S`, S of strong type T-REC, conforms to a formal `TYPE PT` with `PT TYPEDEF USAGE POINTER TO T-REC`, as
+  `conformance:cases/_unassigned/pb1408_universal_address_of_subordinate_group` pins); two TYPED items are compared by
+  their type declarations as well. GnuCOBOL, IBM and Micro Focus have no restricted prototype pointer. Implementing site: `ActivationRelations.RestrictedPointerTypeViolation` (BY REFERENCE, both the
+  CALL and the INVOKE lanes), `ActivationRelations.MatchViolation` / `ReturningConformance` over
+  `ActivationDescription.Clauses` (`PrototypeSignatures.NamedRestriction`), `ActivationRelations.MaySet` over
+  `ActivationDescription.ContentRestriction` (`PrototypeSignatures.SignatureRestriction`). Witnesses:
+  `conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb4107_restricted_pointer_identity_and_signature`,
+  `conformance:cases/_unassigned/pb2464_prototype_pointer_signature_type`,
+  `conformance:cases/_unassigned/pb2464_function_pointer_signature_type`,
+  `conformance:cases/14.8.2-Formal-parameters-and-arguments/pb3686_returning_external_prototype_pointer` and the negatives
+  `pb4107-call-byref-pointer-two-types`, `pb4107-invoke-byref-datapointer-two-types`,
+  `pb4107-invoke-returning-same-signature`, `pb4107-invoke-returning-funcptr-same-signature`.
 - **D-N8 — a group sender into a national DYNAMIC LENGTH receiver** (kb/Work PB546; decision PB3099, 2026-10-12).
   §14.9.25.4 GR4 makes the move a byte copy and §8.5.1.10.4 sets the receiver's new length to the content's. An odd
   byte count cannot be national content (D-N1: two bytes per position), so the last position is completed with the

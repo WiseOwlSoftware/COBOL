@@ -594,7 +594,7 @@ public sealed class RepositoryCodecTests
             Assert.True(StrongTypeModel.SameRestriction(StrongTypeModel.PointerRestriction(x), StrongTypeModel.PointerRestriction(y)), $"{at}: SameRestriction");
         if (p.RestrictedPrototypeName is not null)
         {
-            Assert.True(PrototypeSignatures.SameType(x, y), $"{at}: PrototypeSignatures.SameType");
+            Assert.True(PrototypeSignatures.SameSignatureRestriction(x, y), $"{at}: PrototypeSignatures.SameSignatureRestriction");
             Assert.True(x.PointerRestrictionIdentity == y.PointerRestrictionIdentity,
                 $"{at}: restriction identity {x.PointerRestrictionIdentity} vs {y.PointerRestrictionIdentity}");
             Assert.True(PrototypeSignatures.Same(x.RestrictedPrototype?.Signature, y.RestrictedPrototype?.Signature), $"{at}: referenced prototype signature");
