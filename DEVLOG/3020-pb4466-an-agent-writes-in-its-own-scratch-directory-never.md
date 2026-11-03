@@ -1,4 +1,4 @@
-## PB4466: an agent writes in its own scratch directory, never the session scratchpad
+## Entry 3020 — 2026-11-02 23:23 PST — PB4466: an agent writes in its own scratch directory, never the session scratchpad
 
 PB4466 recorded that two concurrent agents of wave 20261834 each wrote a `callers.py` into the one session scratchpad, and the
 PB2359 implementer then ran the other group's copy against its own worktree, which re-applied that group's renames to three source
@@ -26,3 +26,4 @@ reviewers of one wave shared the session scratchpad, since the reviewer prompt n
 `<wave scratch>\review-w<wave>-<letter>\` (`reviewScratch`); the `cobol-reviewer` definition, the review skill's branch form and P16 say
 so; `check_practices.py` pins the prompt text in `wf_rolling_wave.js`; and the rolling-wave self-test checks that each reviewer's prompt
 names its own directory and not another group's. `test_rolling_wave.py` 52/52, `check_practices.py` GREEN.
+
