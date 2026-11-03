@@ -15,9 +15,9 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// elementary item, ONCE, from the COLLECTED image facts (P5.7 — the mutable <c>StoreAsImage</c> flag and its 9
 /// cross-layer write sites are DELETED; <see cref="DataItem.StoreAsImage"/> is a read-only projection of the
 /// Storage computed here). Bind-time rules RECORD facts instead of mutating storage state:
-/// <see cref="DataBinder.ImageForcedItems"/> carries the Tier-B/CALL-cell/file-record/print-item/figurative/ref-mod
+/// <see cref="DataBindState.ImageForcedItems"/> carries the Tier-B/CALL-cell/file-record/print-item/figurative/ref-mod
 /// records at the same instants the legacy writes fired, and the bind-time <c>NumericImagePlace</c> wrap decision
-/// reads it with identical mid-bind timing (<c>DataBinder.IsImageBackedEarly</c>).
+/// reads it with identical mid-bind timing (<c>DataBindState.ImageForcedItems.RecordedSoFar</c>).
 /// <para><b>Prove-then-delete lineage:</b> D0 classified FROM the final flag and <see cref="Verify"/> proved the
 /// derived facts equal corpus-wide; P5.7a re-derived the promotion from the collected facts IN PARALLEL with the
 /// flag and the same corpus gate proved the two equal (identity #1's one real run); P5.7b then deleted the flag
@@ -48,21 +48,21 @@ internal static class StorageFormPass
 
     /// <summary>The P5.7 promoted-leaf union — every elementary item whose storage is its CHARACTER IMAGE,
     /// derived from the COLLECTED facts in the exact legacy write order: (1) the bind-time
-    /// <see cref="DataBinder.ImageForcedItems"/> records (Tier-B/CALL-cell/file-record/print-item at resolve,
+    /// <see cref="DataBindState.ImageForcedItems"/> records (Tier-B/CALL-cell/file-record/print-item at resolve,
     /// figurative-fill + ref-mod-store at procedure bind); (2) the compiler-temp re-sync (a temp mirrors its
     /// model's PRE-whole-group state — the fused pipeline's re-sync ordering); (3) the whole-group promotion
-    /// (§14.9.25.4 MOVE GR4) over <see cref="DataBinder.WholeGroupReferenced"/>.</summary>
+    /// (§14.9.25.4 MOVE GR4) over <see cref="DataBindState.WholeGroupReferenced"/>.</summary>
     private static HashSet<DataItem> ComputePromotedSet(GroupBindContext ctx)
     {
         var promoted = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
         foreach (var d in ctx.AllBindersAndInterfaces())
-            promoted.UnionWith(d.ImageForcedItems);
+            promoted.UnionWith(d.State.ImageForcedItems);
         foreach (var d in ctx.AllBindersAndInterfaces())
             foreach (var (temp, model) in d.CompilerTempClones)
                 if (promoted.Contains(model))
                     promoted.Add(temp);
         foreach (var d in ctx.AllBindersAndInterfaces())
-            foreach (var group in d.WholeGroupReferenced)
+            foreach (var group in d.State.WholeGroupReferenced)
                 AddImagePromotableLeaves(group, promoted);
         // (4) THE ELEMENTARY TWIN of (3) (kb/Work PB992): an elementary item a CHARACTER CHANNEL writes — a group
         //     move's receiver, a BY REFERENCE crossing, a CALL RETURNING receiver (UsageCollectionPass). A native
@@ -73,7 +73,7 @@ internal static class StorageFormPass
         //     to its canonical's promoted form (kb/Work PB3563: a filter here left a REDEFINES-class numeric leaf
         //     native, and a character channel into it converted the characters).
         foreach (var d in ctx.AllBindersAndInterfaces())
-            foreach (var item in d.CharacterChannelItems)
+            foreach (var item in d.State.CharacterChannelItems)
                 if (IsImagePromotable(item))
                     promoted.Add(item);
         // (5) THE §14.6.2.3.2 ACTION-1 BACKGROUND (owner decision kb/Work R53; kb/Work PB1134): an OPTIONS
@@ -240,7 +240,7 @@ internal static class StorageFormPass
         foreach (var root in data.Roots) Walk(root, visited, promoted);
         // Report print items are synthetic DataItems OFF Roots (they carry image promotions too — a Roots-only
         // walk would miss them, a parity trap).
-        foreach (var report in data.Reports)
+        foreach (var report in data.Reports.Declared)
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)
@@ -252,7 +252,7 @@ internal static class StorageFormPass
         // engine's integer register cannot hold one, so the procedure division sees the counter as its character
         // image (CobolReport.SumImage / SetSumImage) and every consumer reads it as any image-carried numeric item —
         // §14.6.13.2 rule 2's checked decode, the class condition's image test, a figurative fill's plain store.
-        foreach (var report in data.Reports)
+        foreach (var report in data.Reports.Declared)
             foreach (var family in report.SumFamilies)
                 family.Register.Storage = new StorageForm.CharImage(family.Register.ImageWidth, PicCategory.Numeric);
     }
@@ -396,7 +396,7 @@ internal static class StorageFormPass
             foreach (var c in item.Children) Check(c);
         }
         foreach (var root in data.Roots) Check(root);
-        foreach (var report in data.Reports)
+        foreach (var report in data.Reports.Declared)
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)

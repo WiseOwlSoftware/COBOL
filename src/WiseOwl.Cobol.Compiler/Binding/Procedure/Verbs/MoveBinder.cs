@@ -27,7 +27,7 @@ using Core = CobolParserCore;
 /// </summary>
 /// <summary>The MOVE verb binder (P7 Step 10e — a real collaborator over <see cref="BinderContext"/>;
 /// absorbs the former <c>StatementBinder.MoveFigurative</c> partial WHOLE: the SR1 class-index errors, the
-/// pre-removal <c>MarkImageForced</c> storage marking, the Table-16 legality arms, and the W2 ref-mod
+/// pre-removal <c>DataBindState.ImageForcedItems</c> storage marking, the Table-16 legality arms, and the W2 ref-mod
 /// image marking fire at the SAME per-statement points — the collected-fact choreography the
 /// <c>StorageFormPass</c> and <c>VersionConformancePass.GateMove</c> depend on is byte-preserved).</summary>
 /// <summary>
@@ -122,7 +122,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         }
         // Identifier-1 is bound; what the receivers register from here on (a function-bearing subscript's temporary,
         // a user-defined function's activation) is THEIR evaluation, which §14.6.4 puts after the sender's.
-        int senderPreOpsEnd = ctx.Data.PendingPreOps.Count;
+        int senderPreOpsEnd = ctx.Data.Procedure.PendingPreOps.Mark();
         var resolved = host.Expr.ResolveTargets(targets.receivingIdentifier());
         return BindMoveOf(source, resolved, senderPreOpsEnd: senderPreOpsEnd);
     }
@@ -138,7 +138,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// facts the emitter's own output depends on. Two consequences, both measured: <c>RELEASE SRT-REC FROM
     /// WS-NUM</c> (a PIC 9(3) sender into a PIC A(8) record) compiled clean where the identical explicit
     /// <c>MOVE</c> drew COBOL0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an unhandled
-    /// <c>NotImplementedCobolFeatureException</c>, because <see cref="MarkImageForced"/> — a fact
+    /// <c>NotImplementedCobolFeatureException</c>, because <see cref="DataBindState.ImageForcedItems"/> — a fact
     /// <c>StorageFormPass</c> consumes — is collected HERE and the emitter-built move never passed through.
     /// §14.9.32.4 GR4 makes <c>RELEASE record-name-1 FROM x</c> exactly <c>MOVE x TO record-name-1</c> followed
     /// by the same RELEASE, so "exactly" has to include the bind.</para>
@@ -215,7 +215,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // SendingValueTemp's dynamic-length carrier, whose length the emitted test reads off a field
         // (kb/Work PB425; MoveClassifier.NeedsLengthFreeze names the shapes).
         bool receiverEvaluationOvertakesSender = senderPreOpsEnd is { } end
-            && (ctx.Data.PendingPreOps.Count > end
+            && (ctx.Data.Procedure.PendingPreOps.AnyAfter(end)
                 || targets.Any(t => ctx.Data.OoReceiverOpensAtRunTime(t, BoundStores.WholeReceiverStore(t))))
             && WiseOwl.Cobol.CodeGen.PlaceIdentification.IdentifiesAtRunTime(source);
         if ((targets.Count > 1 || MoveClassifier.NeedsLengthFreeze(source, targets) || receiverEvaluationOvertakesSender)
@@ -512,7 +512,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             if (move.Stores[i].Kind is not MoveKind.FigurativeToNumericImage
                 && MoveClassifier.ZeroLengthItemRoute(move.Stores[i].Sender, t) is null) continue;
             if (t is not (RedefViewPlace or NumericImagePlace) && t.OwnsStorageCell && IsCharacterImageNumeric(t.Item))
-                ctx.Data.MarkImageForced(t.Item);   // the collected image fact
+                ctx.Data.State.ImageForcedItems.Add(t.Item);   // the collected image fact
         }
     }
 
@@ -637,7 +637,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         foreach (var t in targets)
             if (t is RefModPlace { OwnsStorageCell: true } rm
                 && IsCharacterImageNumeric(rm.Item))
-                ctx.Data.MarkImageForced(rm.Item);   // the collected image fact
+                ctx.Data.State.ImageForcedItems.Add(rm.Item);   // the collected image fact
     }
 
     /// <summary>⛔ THE ONE ELIGIBILITY of both image marks above — a figurative fill and a reference-modified store:

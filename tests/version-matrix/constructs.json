@@ -3581,7 +3581,7 @@
    "description": "The multiple LINE clause (§13.18.35.3 SR10) — more than one operand defines a set of report lines at possibly-unequal vertical intervals. LIVE (kb/Work PB565): §13.18.35.4 GR9 makes it \"functionally equivalent to a LINE clause with a single operand, together with a simple OCCURS clause whose integer is equal to the number of operands of the LINE clause\", so the binder builds exactly that — a simple, STEP-less, VERTICAL repeating entry whose per-repetition operand the LINE clause supplies — and it drives the same subtree replay as §13.18.38 format 3. SR10 a/b/c/d are enforced on COBOL2199. The COBOL-85 LINE clause was the single-operand LINE NUMBER IS, so the multi-operand form AND the LINES / NUMBERS / ARE spellings of §13.18.35.2 Format 1 (kb/Work PB1221: the keyword prefix is the closed brace LINE NUMBER IS | LINE NUMBERS ARE | LINES ARE) are introduction-gated (0900 below 2002).",
    "display": "multiple LINE / the LINES, NUMBERS and ARE spellings (report group description)",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO §13.18.35 Format 1 (§13.18.35.3 SR10 / §13.18.35.4 GR9); edition-gated (ParseArm.VisitReportLineClause), repetition bound as GR9's simple OCCURS (DataBinder.ReportRepetitionOf)",
+   "citation": "ISO §13.18.35 Format 1 (§13.18.35.3 SR10 / §13.18.35.4 GR9); edition-gated (ParseArm.VisitReportLineClause), repetition bound as GR9's simple OCCURS (ReportSectionBinder.ReportRepetitionOf)",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",

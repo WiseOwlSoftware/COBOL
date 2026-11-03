@@ -40,7 +40,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     {
         var operand = s.sortFileName().dataReference();
         string name = SubjectName(s);
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file)) return SortBindTable(s, operand, name);
+        if (!ctx.Data.VisibleFiles.TryGetValue(name, out var file)) return SortBindTable(s, operand, name);
         // The FILE reading of the operand is file-name-1, which is written alone — `SORT S OF X …` named the SD `S`
         // with its qualifier dropped in silence until kb/Work PB2040. The table reading's data-name-2 MAY be
         // qualified and subscripted, which is why the split is decided by the base word and the shape asked after.
@@ -61,7 +61,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// statement" under the FORMAT 1 heading (§14.9.40.3 SR3-SR12) asks THIS, never the node type: §14.9.40.3 SR3's
     /// exception-checking-PERFORM ban bound a legal Format-2 table SORT until kb/Work PB1139.</summary>
     internal static bool IsFileFormat(BinderContext ctx, Core.SortStatementContext s) =>
-        ctx.Data.FilesByName.ContainsKey(SubjectName(s));
+        ctx.Data.VisibleFiles.ContainsKey(SubjectName(s));
 
     /// <summary>⛔ THE DECLARATIVE LEG OF THE SORT/MERGE PLACEMENT RULES (kb/Work PB1139): "A SORT statement shall not
     /// appear in … a declarative procedure" (§14.9.40.3 SR3, FORMAT 1) and a MERGE statement "may appear anywhere in

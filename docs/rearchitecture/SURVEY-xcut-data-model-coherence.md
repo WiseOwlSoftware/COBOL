@@ -238,7 +238,7 @@ Grepped over `src/WiseOwl.Cobol.Compiler`:
 - **Declaration:** `DataItem.cs:169` — `public bool StoreAsImage { get; set; }` (public mutable).
 - **Write sites (≈11, across all three layers):**
   - Binder *data* pass (6): `DataBinder.cs:255`, `:1562`, `:1577`; `DataBinder.Linkage.cs:275`;
-    `DataBinder.Reports.cs:352`; `DataBinder.Oo.cs:373` (compiler-temp clone init).
+    `ReportSectionBinder.cs:352`; `DataBinder.Oo.cs:373` (compiler-temp clone init).
   - Binder *procedure* pass (2): `StatementBinder.MoveFigurative.cs:123`, `:262`.
   - **CodeGen** (3): `CSharpEmitter.cs:65` (`MarkStoreAsImage`); `CSharpEmitter.Call.cs:118` (compiler-temp re-sync);
     `CSharpEmitter.Oo.cs:697` (OO override-harmonize re-sync).

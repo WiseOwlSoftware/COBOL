@@ -117,7 +117,7 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
     public Core.DataReferenceContext? RedefinesTarget => ctx.redefinesClause()?.dataReference();
 
     // (The canonical USAGE keyword text and the VALUE-operand normalization stay in DataBinder's shared
-    // UsageKeyword / ExtractValue helpers — reused by BOTH BindEntry and DataBinder.Reports.cs, so the façade does
+    // UsageKeyword / ExtractValue helpers — reused by BOTH BindEntry and ReportSectionBinder.cs, so the façade does
     // NOT fork a second copy of that computation. This clause façade exposes only the leaf text reads BindEntry
     // migrated in Group C; the report-writer partial migrates in P7.)
 

@@ -466,7 +466,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // is made so the migration-flag pass (§7.3.14.4 GR4 b) need not re-derive it from syntax.
         BoundExpr Activated(BoundExpr result)
         {
-            ctx.Data.ActivationSites.Add(dref);
+            ctx.Data.State.ActivationSites.Add(dref);
             return result;
         }
     }
@@ -951,11 +951,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // description entry at all fails the second half; the resolver used to match on the bare name only, so
         // both compiled clean and answered r2a's two spaces. The clause cited is the function's OWN.
         string clause = sig.Name == "EXCEPTION-FILE" ? "§15.28.3 rule 1" : "§15.29.3 rule 1";
-        // Resolve through FilesByName — the ONE file-name resolution every other site uses (kb/Work PB123:
+        // Resolve through VisibleFiles — the ONE file-name resolution every other site uses (kb/Work PB123:
         // this arm scanned ctx.Data.Files, the program's OWN FD list, so a contained program naming its
-        // container's GLOBAL FD — visible per §13.18.27.4 GR1–2, merged into FilesByName by
-        // BinderDriver — drew "not the name of a file connector" on legal source).
-        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
+        // container's GLOBAL FD — visible per §13.18.27.4 GR1–2 — drew "not the name of a file connector" on legal source).
+        if (!ctx.Data.VisibleFiles.TryGetValue(name, out var file))
         {
             ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
                 + $"is not the name of a file connector specified in an FD statement (ISO {clause})");
@@ -2797,14 +2796,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // is a set that can silently disagree when a member is added (kb/Work PB174).
             bool stdBinaryUsage = UsageFamilies.IsStandardBinaryFloat(pic.Usage);
             bool stdDecimalUsage = UsageFamilies.IsStandardDecimalFloat(pic.Usage);
-            if (ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal && stdBinaryUsage)
+            if (ctx.Options.Arithmetic == ArithmeticMode.StandardDecimal && stdBinaryUsage)
             {
                 ctx.Edition.Error("COBOL1516", $"FUNCTION {sig.Name}: under STANDARD-DECIMAL arithmetic "
                     + "argument-1 shall not specify a standard binary floating-point usage "
                     + $"(ISO §{fsec3} rule 2)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
             }
-            if (ctx.Data.Options.Arithmetic == ArithmeticMode.StandardBinary && stdDecimalUsage)
+            if (ctx.Options.Arithmetic == ArithmeticMode.StandardBinary && stdDecimalUsage)
             {
                 ctx.Edition.Error("COBOL1516", $"FUNCTION {sig.Name}: under STANDARD-BINARY arithmetic "
                     + "argument-1 shall not specify a standard decimal floating-point usage "
@@ -2829,12 +2828,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 // ⛔ THE MODE'S OWN BOUNDS, FROM THE ONE TABLE (kb/Work PB194) — this site used to test
                 // `== StandardDecimal` alone, so ARITHMETIC IS STANDARD screened against binary64 while its
                 // engine was the SDIDI. ArithmeticModes.IntermediateExponentRange is the single home.
-                var (modeFar, modeNear) = ArithmeticModes.IntermediateExponentRange(ctx.Data.Options.Arithmetic);
+                var (modeFar, modeNear) = ArithmeticModes.IntermediateExponentRange(ctx.Options.Arithmetic);
                 if (farthestExp > modeFar || closestExp < modeNear)
                 {
                     ctx.Edition.Error(DiagnosticCatalog.AlgebraicFloatEditedRange, $"FUNCTION {sig.Name}: "
                         + $"argument-1's usage describes values as far from zero as 1E+{farthestExp} and as near "
-                        + $"as 1E{closestExp}, outside the {ArithmeticModes.IntermediateName(ctx.Data.Options.Arithmetic)} "
+                        + $"as 1E{closestExp}, outside the {ArithmeticModes.IntermediateName(ctx.Options.Arithmetic)} "
                         + "intermediate's range — the entry shall be such that its values pass an "
                         + $"IN-ARITHMETIC-RANGE test (ISO §{fsec3[..^2]}.4 rule 1; §8.8.4.4.4 GR3 l)");
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
@@ -2867,12 +2866,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             int closestExp = intDigits - 1 - fm.MaxExp;
             // ⛔ THE SAME ONE TABLE AS THE USAGE ARM ABOVE (kb/Work PB194 — this is the second of the two copies
             // that named StandardDecimal alone; the mode set now lives in exactly one place).
-            var (modeFarthest, modeClosest) = ArithmeticModes.IntermediateExponentRange(ctx.Data.Options.Arithmetic);
+            var (modeFarthest, modeClosest) = ArithmeticModes.IntermediateExponentRange(ctx.Options.Arithmetic);
             if (farthestExp > modeFarthest || closestExp < modeClosest)
             {
                 ctx.Edition.Error(DiagnosticCatalog.AlgebraicFloatEditedRange, $"FUNCTION {sig.Name}: argument-1's picture "
                     + $"{pic.EditMask} describes values as far from zero as 1E+{farthestExp} and as near as 1E{closestExp}, "
-                    + $"outside the {ArithmeticModes.IntermediateName(ctx.Data.Options.Arithmetic)} intermediate's range — the entry "
+                    + $"outside the {ArithmeticModes.IntermediateName(ctx.Options.Arithmetic)} intermediate's range — the entry "
                     + "shall be such that its extreme passes an IN-ARITHMETIC-RANGE test (ISO §15.43.4 r1 / §15.58.4 r1; §8.8.4.4.4 GR3 l)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} floating-point edited argument");
             }

@@ -41,9 +41,9 @@ public sealed class GlobalNameClassDriftTests
     /// <summary>Name indexes that are NOT names a GLOBAL data description entry hands to a contained program.</summary>
     private static readonly Dictionary<string, string> NotPerEntryGlobalNames = new()
     {
-        ["TypeDecls"] = "a type-name is inherited BEFORE Bind by InheritGlobalTypeDecls (§13.18.58.4 GR3; kb/Work PB1303), "
+        ["TypeDecls"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§13.18.58.4 GR3; kb/Work PB1303), "
             + "and a template's subordinate names are kept off the name index",
-        ["_inheritedTypeDecls"] = "the inherited half of the type-name index itself (InheritGlobalTypeDecls)",
+        ["InheritedGlobals._typeDecls"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
         ["_lapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §8.4.2.2.1 "
             + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
         ["_debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
@@ -51,6 +51,18 @@ public sealed class GlobalNameClassDriftTests
         ["_constants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
             + "InheritGlobalConstants (§13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
     };
+
+    /// <summary>The types whose instances hold a source element's name indexes: the binder, and every slice of its
+    /// <see cref="DataBindState"/> (kb/Work PB2296), found by reflection so a slice added tomorrow is walked too. A field of a
+    /// slice is named <c>Slice.field</c>.</summary>
+    private static IEnumerable<(Type Owner, string Prefix)> StateOwners()
+    {
+        yield return (typeof(DataBinder), "");
+        yield return (typeof(DataBindState), $"{nameof(DataBindState)}.");
+        foreach (var p in typeof(DataBindState).GetProperties())
+            if (p.PropertyType.IsClass && p.PropertyType.Assembly == typeof(DataBinder).Assembly)
+                yield return (p.PropertyType, $"{p.PropertyType.Name}.");
+    }
 
     private static IEnumerable<string> NameIndexFields(Type owner)
     {
@@ -84,7 +96,8 @@ public sealed class GlobalNameClassDriftTests
     [Fact]
     public void EveryNameIndex_IsInheritedOrExcludedWithItsReason()
     {
-        var found = NameIndexFields(typeof(DataBinder)).ToHashSet(StringComparer.Ordinal);
+        var found = StateOwners().SelectMany(o => NameIndexFields(o.Owner).Select(n => o.Prefix + n))
+            .ToHashSet(StringComparer.Ordinal);
         var unclassified = found.Where(n => !Inherited.ContainsKey(n) && !NotPerEntryGlobalNames.ContainsKey(n)).ToList();
         Assert.True(unclassified.Count == 0,
             "DataBinder gained a name index that neither InheritGlobalSubtree reaches nor this test excludes — decide "
@@ -136,8 +149,8 @@ public sealed class GlobalNameClassDriftTests
         // The REPORT SECTION sum counters are a name index too, kept off ByName, and they hold a container's GLOBAL
         // report's counters beside this element's own: asked by spelling alone, a FARTHER container's counter hid a
         // NEARER container's constant (kb/Work PB3154 review R3-1). The ask places each counter by its report.
-        Assert.True(m.Groups["body"].Value.Contains("ReportDepth(c.Report) < depth", StringComparison.Ordinal),
-            "DeclaredNearerThan no longer places a sum counter by its report's depth (ReportDepth).");
+        Assert.True(m.Groups["body"].Value.Contains("Reports.Depth(c.Report) < depth", StringComparison.Ordinal),
+            "DeclaredNearerThan no longer places a sum counter by its report's depth (ReportScope.Depth).");
     }
 
     /// <summary>A METHOD's name index → the text <c>OoMethodDataScope.Declares</c> asks it by.</summary>
@@ -204,7 +217,7 @@ public sealed class GlobalNameClassDriftTests
     /// items: a contained program's report entry <c>PV</c> hides its container's GLOBAL <c>PV</c>. The lookup took a lone
     /// GLOBAL data item without asking, so <c>MOVE PV TO W</c> and <c>FILE STATUS IS PV</c> used another program's data.
     /// <c>SymbolTable.NearestDeclaringData</c> and <c>NearestDeclaringConditions</c> are the narrowings every data-name and
-    /// condition-name set goes through (each asks <c>DataBinder.NearerReportEntryHides</c>, the condition one through
+    /// condition-name set goes through (each asks <c>ReportScope.NearerEntryHides</c>, the condition one through
     /// <c>NearerDataNameHides</c>, and each asks the OTHER class's nearer declaration, kb/Work PB4219), so no lookup outside <c>SymbolTable</c> may call the bare
     /// <c>NearestDeclaring</c> (it would skip the entries), and the other-class predicates (<c>NearerDataOrConditionNameHides</c>, over <c>NearerDataNameHides</c>,
     /// for index-names and capacity registers, <c>DeclaredNearerThan</c> for constants) must ask the entries too. The behavioural
@@ -226,12 +239,12 @@ public sealed class GlobalNameClassDriftTests
             + string.Join(", ", bare.Select(Path.GetFileName)));
 
         string table = File.ReadAllText(symbolTable);
-        AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerReportEntryHides(");
+        AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerEntryHides(");
         AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerConditionNameHides(");
         AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NearerDataNameHides(");
-        AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerReportEntryHides(");
+        AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerEntryHides(");
         string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs"));
-        AssertBodyAsks(constants, @"internal bool DeclaredNearerThan\(", "NearerReportEntryHides(");
+        AssertBodyAsks(constants, @"internal bool DeclaredNearerThan\(", "NearerEntryHides(");
 
         // The classes resolved BEFORE the data-name lookup ask the data-name AND the condition-name (kb/Work PB4432): a
         // contained program's own level-88 hides a container's GLOBAL index-name or capacity register as its own data item does.

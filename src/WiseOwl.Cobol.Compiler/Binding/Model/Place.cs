@@ -105,7 +105,7 @@ public abstract record Place
     public bool BoundaryImageCapable => ImageCapable || Item.CurrentExtentImageCapable;
 
     /// <summary>True when this place is a cell of PROGRAM STORAGE, which can be promoted to keep its character
-    /// image (<c>DataBinder.MarkImageForced</c>); false for a VIEW over engine state — a report's sum counter, its
+    /// image (<c>DataBindState.ImageForcedItems</c>); false for a VIEW over engine state — a report's sum counter, its
     /// PAGE-COUNTER, the CAPACITY register and the other implicitly-defined registers — whose value the engine owns
     /// and whose <see cref="Item"/> is a synthetic register profile, not a declared item. The image-backing facts are
     /// keyed by that item, so a fact recorded for a view's register item would describe storage that does not exist

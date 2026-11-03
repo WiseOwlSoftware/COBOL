@@ -101,13 +101,13 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // can write more qualifiers to single out. The report entry is the verdict only when no ambiguity among data items
         // stands in its way: the candidates (QualifiedCandidates) are the ones that rank with the report entries, because
         // the lookup leaves none that a report entry of a NEARER source element hides (§8.4.6.2.1 3) a), kb/Work PB4196,
-        // DataBinder.NearerReportEntryHides), so the refusal still stands when the data items are ambiguous GLOBAL ones of
+        // ReportScope.NearerEntryHides), so the refusal still stands when the data items are ambiguous GLOBAL ones of
         // a farther element (review R1-1) and when there is only one.
         var dataItems = data.QualifiedCandidates(name, qualifiers, data.ActiveScope);
-        if (data.ReportEntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;
+        if (data.ReportSection.ReportEntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;
         // A report entry of the data items' own source element is a data-name §8.4.2.2.3 SR1 counts with them, so the
         // ambiguity's text counts it too (review R1-2).
-        int reportEntries = dataItems.Count > 1 ? data.ReportEntriesInTierOf(dataItems, name, qualifiers) : 0;
+        int reportEntries = dataItems.Count > 1 ? data.ReportSection.ReportEntriesInTierOf(dataItems, name, qualifiers) : 0;
         static string ReportEntriesWording(int count) => count == 0
             ? ""
             : $" (counting {(count == 1 ? "a REPORT SECTION entry" : $"{count} REPORT SECTION entries")} of that spelling)";

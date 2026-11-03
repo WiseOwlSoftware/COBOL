@@ -117,7 +117,7 @@ public sealed class LevelNumberArmDriftTests
     }
 
     /// <summary>The four permitted sets are written ONCE, in the §13.18.33.3 table. Four copies of "is this
-    /// level legal here" spread across DataBinder, DataBinder.Reports and ScreenFacility is precisely the shape
+    /// level legal here" spread across DataBinder, ReportSectionBinder and ScreenFacility is precisely the shape
     /// that carried zero copies for as long as nobody counted (feedback_one_rule_one_place).</summary>
     [Fact]
     public void TheLevelNumberRuleIsWrittenOnce()

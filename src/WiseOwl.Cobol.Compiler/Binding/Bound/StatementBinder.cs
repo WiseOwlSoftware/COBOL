@@ -240,7 +240,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// roster both ask it, so no unit kind can forget the procedure phase of its own reports.</summary>
     private void BindDeclaredReportClauses()
     {
-        if (Ctx.Data.Reports.Count > 0) Rw.BindReportGroupClauses();
+        if (Ctx.Data.Reports.Declared.Count > 0) Rw.BindReportGroupClauses();
     }
 
     /// <summary>Bind a program unit's PROCEDURE DIVISION into a <see cref="BoundProgram"/>.</summary>
@@ -364,10 +364,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // §11.9.4 GR1 (kb/Work PB135): a method's own OPTIONS model governs ITS body only — swapped in
             // for this pc's sentences (the binder reads ctx.Options per statement; statements bind HERE, in
             // the per-pc pass, not in the roster registration loop above) and restored after.
-            var savedOptions = data.Options;
+            Scoped<OptionsModel>.RestoreScope? methodOptions = null;
             if (table.ParaMethods[i] is { } mScope && scopeToMethod.TryGetValue(mScope, out var mSym))
             {
-                if (mSym.MethodOptions is { } mOpt) data.Options = mOpt;
+                if (mSym.MethodOptions is { } mOpt) methodOptions = data.Procedure.Options.Push(mOpt);
                 // A method IS a source element (§14.9.18.3 SR2/SR4, §14.9.14.3 SR3/SR5 — "the procedure division
                 // header of the source element containing this … statement"): ITS OWN header RAISING phrase is
                 // the per-element state while ITS statements bind. ⛔ It is loaded HERE, in the per-pc pass where
@@ -388,7 +388,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                     sentences.Add(sentence.statement().Select(BindStatement).ToList());
                 bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
             }
-            finally { data.Options = savedOptions; }
+            finally { methodOptions?.Dispose(); }
         }
         // Append the exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) above the whole class pc
         // space (ISO §14.9.28.4 GR17; design SSOT §9.10 — the SAME allocation the program path uses in Bind). A class
@@ -447,9 +447,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // The operand-activation scope (kb/Work PB892): THIS statement's line is the one whose §7.3.25 profile an
         // operand activation carries, and THIS statement counts only the activations it drains itself — both are
         // saved around a nested statement's bind and restored after it.
-        int savedLine = StatementLine, savedActivations = data.OperandEvaluations;
+        int savedLine = StatementLine;
         StatementLine = s.Start.Line;
-        data.OperandEvaluations = 0;
+        var evaluations = data.Procedure.OperandEvaluations.Enter(0);
         int errorMark = data.Edition.ErrorsRecorded, refusalMark = data.Edition.RefusalMark;
         int unbuiltMark = data.Edition.UnbuiltMark;
         int deferredMark = data.Edition.ExpansionDeferredMark;
@@ -535,9 +535,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // ISO §14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
         // NEXT STATEMENT for the condition it propagates lands. Through Rewrap like the hoist above, so a
         // multi-operand statement's landing is the implicit statement the activation belongs to.
-        if (data.OperandEvaluations > 0) core = BoundImplicitSeries.Rewrap(core, n => new BoundActivationSite(n));
+        if (data.Procedure.OperandEvaluations.Current > 0) core = BoundImplicitSeries.Rewrap(core, n => new BoundActivationSite(n));
         StatementLine = savedLine;
-        data.OperandEvaluations = savedActivations;
+        evaluations.Dispose();
         return Ec.EcWrap(s, core);
     }
 
@@ -764,10 +764,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 $"{verb} shall not be specified in a recursive source element (ISO {cite}; a function or "
                 + "method is always recursive, §8.6.6)");
         }
-        // The files of a CONTAINER's clause this element names: its GLOBAL file-names, merged into FilesByName and never
-        // into Files (BinderDriver). A refusal of one is told by its describing element, and a TURN directive here that names
-        // it still decides the checking of that refusal (BoundCommitRollback.ForeignFiles).
-        var foreign = Ctx.Data.FilesByName.Values
+        // The files of a CONTAINER's clause this element names: its GLOBAL file-names, visible here (VisibleFiles) and never
+        // in Files. A refusal of one is told by its describing element, and a TURN directive here that names it still
+        // decides the checking of that refusal (BoundCommitRollback.ForeignFiles).
+        var foreign = Ctx.Data.VisibleFiles.Values
             .Where(f => f.SubjectToApplyCommit && !Ctx.Data.Files.Contains(f))
             .Distinct().ToList();
         return new BoundCommitRollback(isCommit, [.. Ctx.Data.ApplyCommit?.Files ?? []], foreign);

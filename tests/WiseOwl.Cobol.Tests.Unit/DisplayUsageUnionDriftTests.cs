@@ -87,7 +87,7 @@ public sealed class DisplayUsageUnionDriftTests
     {
         var expected = new Dictionary<string, (int DisplayOnly, int Pair)>
         {
-            // ⛔ DataBinder.Reports.cs LEFT THIS INVENTORY (kb/Work PB3280). Its printable item's image mark
+            // ⛔ ReportSectionBinder.cs LEFT THIS INVENTORY (kb/Work PB3280). Its printable item's image mark
             // asked the IMAGE-FORM question in the DISPLAY-only spelling, so a numeric printable item of usage
             // NATIONAL (§13.18.60.3 SR7 admits the usage, SR12 the picture) reached the line as a long and the
             // backend refused the generated C# (CS1503). It now reads PicInfo.IsCharacterFormNumeric, and a
@@ -139,7 +139,7 @@ public sealed class DisplayUsageUnionDriftTests
             //      content its native carrier cannot, and the numeric class condition (§8.8.4.4.4 GR3 n) 1. c.)
             //      must read that content. UnifyCrossing had left with kb/Work PB187 on the same predicate.
 
-            // PAIR (1) — CARRIAGE (MarkImageForced), the ONE eligibility (IsCharacterImageNumeric) of both of
+            // PAIR (1) — CARRIAGE (DataBindState.ImageForcedItems), the ONE eligibility (IsCharacterImageNumeric) of both of
             //      this file's image marks:
             //  the figurative pass — a NON-DIGIT figurative fill deposits fill CHARACTERS into the receiver's
             //      cells ("MOVE QUOTE TO PIC 9(3) leaves three quotation marks"); a 2-byte binary carrier has

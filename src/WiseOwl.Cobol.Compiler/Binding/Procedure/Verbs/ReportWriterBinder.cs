@@ -35,14 +35,14 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             // A condition §13.15.3 SR16 refused at data bind was reported there, under its rule; binding it would word
             // the same report-section reference again under §13.8.6.2.3 (kb/Work PB4226).
             if (!memo.TryGetValue(c, out var b))
-                memo[c] = b = ctx.Data.PresentWhenRefused(c)
+                memo[c] = b = ctx.Data.Reports.PresentWhenRefused(c)
                     ? host.Cond.Refused("a PRESENT WHEN condition refused by ISO §13.15.3 SR16")
                     : host.Cond.BindCondition(c);
             return b;
         }
         try
         {
-            var reports = ctx.Data.Reports;
+            var reports = ctx.Data.Reports.Declared;
             foreach (var r in reports)
                 BindReportClauses(r, Bind);
             BindRolledValues(reports);   // after EVERY report's operands are bound: SR4 g) lets a total roll up another report's entry
@@ -50,7 +50,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         finally
         {
             ctx.Refs.VaryingScope = null;
-            ctx.Refs.ReportScope = null;
+            ctx.Refs.EnclosingReport = null;
         }
     }
 
@@ -61,11 +61,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// entry being bound (§13.18.64.3 SR2 — "only within the current entry or a subordinate entry").</summary>
     private void BindReportClauses(ReportModel r, Func<Core.ConditionContext, BoundCondition> Bind)
     {
-        ctx.Refs.ReportScope = r;
+        ctx.Refs.EnclosingReport = r;
         ctx.Refs.VaryingScope = null;
         // The RD CODE clause's identifier-1 (§13.18.12.2): the place the engine reads at each body group (GR3), through
         // the same ONE sending-operand resolution a SOURCE identifier takes. Asked only of a base item the data phase
-        // resolved (DataBinder.ResolveReportCode): an unresolved or ambiguous one was reported there, once (kb/Work PB4226).
+        // resolved (ReportSectionBinder.ResolveReportCode): an unresolved or ambiguous one was reported there, once (kb/Work PB4226).
         if (r.Code is { Reference: { } codeRef, Item: not null } code)
         {
             using var at = ctx.Edition.At(codeRef);
@@ -231,7 +231,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var report = o.Family.Report;
         if (o.Sum is { } counter)
             return new BoundNumRef(new ReportSumCounterPlace(
-                report.CsIndex, counter.Id, counter.Family.Register, ctx.Data.ReportDepth(report)));
+                report.CsIndex, counter.Id, counter.Family.Register, ctx.Data.Reports.Depth(report)));
         BoundExpr? value = o.Source switch
         {
             FieldComputeSource { Value: { } expression } => expression,
@@ -324,7 +324,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // SR1's data-name form, through the ONE funnel: it owns the qualified spelling ("It may be qualified by
         // a report-name") AND the §8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
         string where = $"GENERATE {name}{(qualifier is null ? "" : $" OF {qualifier}")}";
-        if (ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.VisibleReports, name, qualifier, where,
+        if (ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.Reports.Visible, name, qualifier, where,
                 out var report, out var group, ctx.Data) != ReportGroupResolution.Match.None)
         {
             if (group!.Kind != ReportGroupKindModel.Detail)
@@ -379,7 +379,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReportSuppressContext,
                 "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");
         }
-        var report = ctx.Data.VisibleReports.First(r => r.Groups.Contains(group));
+        var report = ctx.Data.Reports.Visible.First(r => r.Groups.Contains(group));
         return new BoundSuppress(report, group);
     }
 
@@ -387,11 +387,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// report-name-1 is defined in a containing program, the file description entry associated with report-name-1
     /// shall contain a GLOBAL clause" — §14.9.21.3 SR2 (INITIATE), §14.9.46.3 SR2 (TERMINATE), §14.9.16.3 SR4
     /// (GENERATE report-name) and the file half of §14.9.16.3 SR3 (GENERATE data-name). The report itself is
-    /// visible only because it is GLOBAL (<see cref="DataBinder.VisibleReports"/>); the statement drives output to
+    /// visible only because it is GLOBAL (<see cref="ReportScope.Visible"/>); the statement drives output to
     /// its FILE, which a contained program may reference only when the FD is GLOBAL too (§13.18.27.3 SR3). Null
     /// when the statement may proceed — the report is this unit's own, or its file is GLOBAL.</summary>
     private BoundStatement? RejectContainedReportFile(ReportModel report, string where, string rule) =>
-        ctx.Data.ReportDepth(report) > 0 && report.File is { IsGlobal: false } file
+        ctx.Data.Reports.Depth(report) > 0 && report.File is { IsGlobal: false } file
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ContainedReportFileNotGlobal,
                 $"{where}: report '{report.Name}' is defined in a containing program and its file description entry "
                 + $"'{file.CobolName}' does not contain a GLOBAL clause; the file description entry associated with a "
@@ -425,7 +425,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     public bool CheckControlDataStores(BoundStatement core)
     {
         List<DataItem>? controls = null;
-        foreach (var r in ctx.Data.VisibleReports)
+        foreach (var r in ctx.Data.Reports.Visible)
             foreach (var c in r.Controls)
                 if (c.Item is { } item) (controls ??= []).Add(item);
         if (controls is null) return false;
@@ -455,7 +455,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     }
 
     private ReportModel? RwFindReport(string name) =>
-        ctx.Data.VisibleReports.FirstOrDefault(r => CobolNames.Same(r.Name, name));
+        ctx.Data.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, name));
 
     /// <summary>Intercept a LINE-COUNTER / PAGE-COUNTER data reference (ISO §8.4.3.15) ahead of normal name
     /// resolution (the LINAGE-COUNTER idiom in <c>FieldOperand</c>/<c>RefExpr</c>). Returns null when the
@@ -468,7 +468,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (!isPage && dref.LINE_COUNTER() is null) return null;
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
         return CounterReportOf(dref, reg) is { } report
-            ? new BoundReportCounterRef(report, isPage, ctx.Data.ReportDepth(report))
+            ? new BoundReportCounterRef(report, isPage, ctx.Data.Reports.Depth(report))
             : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{DataBinder.WrittenText(dref)}'");
     }
 
@@ -480,7 +480,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// the sending side, because BOTH directions ask <see cref="CounterReportOf"/> (kb/Work PB429).</summary>
     public Place? CounterPlace(Core.DataReferenceContext dref) =>
         CounterReportOf(dref, "PAGE-COUNTER") is { } report
-            ? new ReportPageCounterPlace(report.CsIndex, report.PageCounterRegister, ctx.Data.ReportDepth(report))
+            ? new ReportPageCounterPlace(report.CsIndex, report.PageCounterRegister, ctx.Data.Reports.Depth(report))
             : null;
 
     /// <summary>⛔ THE ONE RESOLUTION OF A COUNTER REFERENCE TO ITS REPORT, read by the SENDING
@@ -504,10 +504,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // §8.4.2.2.3 SR9/SR10 — "In the report section, an unqualified reference to the [LINE-COUNTER | PAGE-COUNTER] is
         // qualified implicitly by the name of the report in whose report description entry the reference is made": the
         // enclosing RD answers, whatever number of reports the program has (kb/Work PB1456).
-        if (ctx.Refs.ReportScope is { } enclosing) return enclosing;
+        if (ctx.Refs.EnclosingReport is { } enclosing) return enclosing;
         // §8.4.6.2.5 — the counters of a GLOBAL report are global; §8.4.6.2.1 rule 3 — the nearest declaring
         // source element's reports hide a container's, so "exactly one report" is asked of the nearest ones.
-        var nearest = ctx.Data.NearestInScope(ctx.Data.VisibleReports, r => r);
+        var nearest = ctx.Data.Reports.NearestInScope(ctx.Data.Reports.Visible, r => r);
         if (nearest.Count == 1) return nearest[0];
         ctx.Edition.Error(DiagnosticCatalog.ReportCounterQualification, nearest.Count == 0
             ? $"{reg} referenced, but the program has no report description entry (ISO §8.4.3.15.1 — the "

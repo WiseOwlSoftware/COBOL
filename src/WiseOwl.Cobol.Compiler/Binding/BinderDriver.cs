@@ -119,43 +119,18 @@ internal sealed class BinderDriver
         // deep-dive D12). An expanded one is bound through its expansions only (OoExpansion.Result.ExpandedNames).
         foreach (var iface in table.ParameterizedInterfaces) oo.BindParameterized(iface);
         foreach (var cls in table.ParameterizedClasses) oo.BindParameterized(cls);
-        // §14.9.23.4 GR7 c)'s METHOD-side half, folded once now that every method symbol exists — at the method's
-        // PROCEDURE DIVISION HEADER, the program twin's query point (TurnState.EnabledAtHeader; kb/Work PB1381).
-        // See OoMethodSymbol.OoUniversalCheckingHere for why this is bind-time.
+        // The checking slices of every class half and every method (kb/Work PB2296; CheckingFold), folded once every method
+        // symbol exists and before any body binds: §14.9.23.4 GR7 c)'s METHOD-side half at the method's PROCEDURE
+        // DIVISION HEADER (TurnState.EnabledAtHeader; kb/Work PB1381), §14.8.4.1's activated-method EC-EXTERNAL mask and
+        // §7.3.21.4's automatic propagation; and the group-level Describe gate, which reaches the class halves too (kb/Work
+        // PB1138): a method activation registers its factory's or object's external descriptions (§14.9.23.4 GR7 d)).
         foreach (var cls in table.Classes)
             foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
-                // A PROPERTY accessor SYNTHESIZED from a PROPERTY clause (§13.18.42) has no METHOD-ID in source
-                // and therefore no method context at all — reading `m.Ctx.Start` on one is a NullReferenceException
-                // that takes down the whole bind, which is exactly what it did to oo_property/oo_property_ref.
-                // Its enclosing CLASS-ID line is the right query point: the accessor is part of that definition
-                // and has no source position of its own to disagree with. A written method with no procedure
-                // division answers at its METHOD-ID line (it has no header for a TURN to precede).
-            {
-                m.OoUniversalCheckingHere = turn.EnabledAtHeader(
-                    "EC-OO-UNIVERSAL", m.Ctx?.procedureDivision(), (m.Ctx?.Start ?? cls.Ctx.Start).Line);
-                // §14.8.4.1's ACTIVATED-method half (kb/Work PB1138): the EC-EXTERNAL conditions enabled "before the
-                // Environment division" of the method — its first division after METHOD-ID, the fold a program unit
-                // takes at its own (BindUnitData). A synthesized PROPERTY accessor has no divisions; its CLASS-ID line
-                // stands in, exactly as for the EC-OO-UNIVERSAL half above.
-                int divLine = m.Ctx is { } mc
-                    ? (mc.environmentDivision()?.Start ?? mc.dataDivision()?.Start ?? mc.procedureDivision()?.Start ?? mc.Stop).Line
-                    : cls.Ctx.Start.Line;
-                m.ExternalCheckMaskHere = ExternalMaskAt(turn, divLine);
-                // §7.3.21.4 GR1/GR3 — automatic propagation for the METHOD (kb/Work PB1119), folded at its METHOD-ID
-                // line; §7.3.21.3 SR1 keeps the directive out of the class, so that is also the CLASS-ID's state.
-                m.AutomaticPropagationHere = propagate.IsOnAt((m.Ctx?.Start ?? cls.Ctx.Start).Line);
-            }
-        // The group-level Describe gate reaches the class halves too (kb/Work PB1138): a method activation registers
-        // its factory's or object's external descriptions (§14.9.23.4 GR7 d)), so the same zero-scaffolding switch the
-        // program units carry decides whether a class half emits them at all.
-        bool externalDescribe = Procedure.EcBinder.ExternalNames.Any(turn.AnyEnabledFor);
-        bool odoReferenceChecking = turn.AnyEnabledFor("EC-BOUND-ODO");   // §13.18.38.4 GR7 (kb/Work PB1268)
+                m.Checking = CheckingFold.Method(turn, propagate, m, cls);
         foreach (var cls in classes)
         {
-            cls.Data.ExternalDescribe = externalDescribe;
-            cls.FactoryData.ExternalDescribe = externalDescribe;
-            cls.Data.OdoReferenceChecking = odoReferenceChecking;
-            cls.FactoryData.OdoReferenceChecking = odoReferenceChecking;
+            cls.Data.State.UnitChecking = CheckingFold.ClassHalf(turn);
+            cls.FactoryData.State.UnitChecking = CheckingFold.ClassHalf(turn);
         }
 
         // TWO-PHASE binding (M2-UDF-1 key enabler): EVERY unit's DATA division binds before ANY procedure body
@@ -274,8 +249,8 @@ internal sealed class BinderDriver
         // runtime key is purely a rename. An EXTERNAL FD instead keys by its run-unit EXTERNALIZED name
         // (ISO §13.18.22.4 GR4a: ONE external file connector per run unit, shared by every describer — two units'
         // FileModels with the same external name converge on ONE registry key, hence one connector; GR5: the name
-        // is the FD name). Each FileModel lives in exactly ONE unit's Files list (a fix-E GLOBAL merge shares
-        // references through FilesByName only), so no model is renamed twice.
+        // is the FD name). Each FileModel lives in exactly ONE unit's Files list (a container's GLOBAL file is
+        // reached through the contained unit's VisibleFiles only), so no model is renamed twice.
         foreach (var unit in units)
             foreach (var file in unit.Data.Files)
                 file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
@@ -320,17 +295,6 @@ internal sealed class BinderDriver
     /// each naming the SAME corresponding external data item. Cross-compilation sameness (separately-built assemblies)
     /// is the runtime <c>ExternalTable</c> EC-EXTERNAL-DATA-MISMATCH check's face. (In-group LINAGE consistency,
     /// §13.4.5.4 GR2(c), is a separate longstanding requirement — not this 2023-gated check.)</summary>
-    /// <summary>⛔ THE ONE FOLD of an ACTIVATED element's §14.8.4.1 half — "the EC-EXTERNAL exception conditions to be
-    /// checked shall be enabled in both the activating and activated runtime elements, which for activated runtime
-    /// elements shall be before the Environment division": the <see cref="Runtime.ExternalChecks"/> bits of the
-    /// EC-EXTERNAL conditions the group's TurnState has enabled at <paramref name="divLine"/>, the element's first
-    /// division header after its identification. A program unit (<see cref="BindUnitData"/>) and a method (the
-    /// §14.9.23.4 GR7 d) fold above; kb/Work PB1138) both take it, so the two cannot answer the rule differently.</summary>
-    private static int ExternalMaskAt(TurnState turn, int divLine) =>
-        (turn.Enabled("EC-EXTERNAL-FORMAT-CONFLICT", null, divLine) ? (int)Runtime.ExternalChecks.FormatConflict : 0)
-        | (turn.Enabled("EC-EXTERNAL-DATA-MISMATCH", null, divLine) ? (int)Runtime.ExternalChecks.DataMismatch : 0)
-        | (turn.Enabled("EC-EXTERNAL-FILE-MISMATCH", null, divLine) ? (int)Runtime.ExternalChecks.FileMismatch : 0);
-
     private static void CheckExternalFileConsistency(IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
         var byExternalName = units.SelectMany(u => u.Data.Files)
@@ -710,16 +674,6 @@ internal sealed class BinderDriver
             // registries read too (ContainingDefinitions; kb/Work PB452/PB817, PB3121).
             ContainingDefinitionNames = new HashSet<string>(ContainingDefinitions(unit).Select(u => u.Name), CobolNames.Comparer),
             UnitStaticWs = unit.Recursive && !unit.Initial,
-            // GLOBAL RD inheritance (ISO §13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369): the containers'
-            // GLOBAL reports, nearest container first. They are OFFERED here and inherited by the unit's own data
-            // division at the end of its declaration half (DataBinder.InheritContainerReports), so the unit's own
-            // clauses that name a report item (FILE STATUS, ODO, ASSIGN USING) see them (kb/Work PB3766).
-            ContainerGlobalReports = ContainerGlobalReportsOf(unit),
-            // …and the containers' GLOBAL data roots, offered the same way and inherited at the same point
-            // (DataBinder.InheritContainerGlobalData): FILE STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON and
-            // ASSIGN … USING of the unit's own data division resolve inside data.Bind, so a container's GLOBAL item
-            // they name (§13.18.27.4 GR1/GR2) must already be visible (kb/Work PB3766, review finding R1-1).
-            ContainerGlobalRoots = ContainerGlobalRootsOf(unit).Select(r => (r.Root, r.Depth)).ToList(),
         };
         data.CallSeedUids(session.TakeUidBand());
 
@@ -732,140 +686,25 @@ internal sealed class BinderDriver
         // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0). One level suffices: the container inherited
         // from ITS container before it bound (units bind container-first).
         if (unit.Parent is not null) data.InheritConfiguration(unit.Parent.Data);
-        // The container's GLOBAL constant-names (§13.18.27.4 GR1–GR2; kb/Work PB1009) — compile-time
-        // substitutions, so they join BEFORE this unit binds, and a local data-name shadows them after. EVERY
-        // container, nearest first (the nearest global declaration wins): an intermediate program's own NON-global
-        // declaration of the name hides nothing from the programs it contains.
-        int containerDepth = 0;   // the containment distance, 1 for the parent
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            data.InheritGlobalConstants(anc.Data, ++containerDepth);
-            // …and its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2 — a type-name described with a GLOBAL
-            // clause is a global name; kb/Work PB1303): the same BEFORE-Bind, nearest-first, local-shadows contract —
-            // ExpandTypes runs inside data.Bind, so a TYPE clause here already sees the container's type-name.
-            data.InheritGlobalTypeDecls(anc.Data);
-            // …and its files' names (§13.18.27.4 GR1), the same BEFORE-Bind contract: the data division's own
-            // resolutions ask whether a name that is no data item IS a visible file-name (kb/Work PB3557).
-            data.InheritFileNames(anc.Data, containerDepth);
-        }
-        // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the
-        // bridges are emitted for every global root below, so a LOCAL root spelled like one (the §8.4.6.2.1 3) a)
-        // shadowing case) must take another C# name — its stem too, or a member DERIVED from the stem (a REDEFINES
-        // backing) would re-spell the bridge (DataBinder.InheritedMemberNamesOf).
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var g in anc.Data.CallGlobalRoots)
-                data.ReserveInheritedMemberNames(anc.Data.InheritedMemberNamesOf(g));
-
+        // The inheritance merge's seed half (InheritStep.Seed; ISO §13.18.27.4 GR1–GR2; kb/Work PB2296): every container's
+        // GLOBAL constant-names, type declarations, file-names, reports and data roots, and the C# member names their
+        // GLOBAL roots occupy, nearest container first, BEFORE this unit binds, because its own data division reads them.
+        InheritStep.Seed(unit, data);
         data.Bind(unit.Ctx);
         unit.Data = data;
 
-        // The unit's EC-EXTERNAL enablement facts (ISO §14.8.4.1): the ACTIVATED-element mask is the group
-        // TurnState folded at the unit's first post-Identification division header line ("which for activated
-        // runtime elements shall be before the Environment division"); the group-level Describe gate is any
-        // EC-EXTERNAL enabling event anywhere in the group (a mask-zero unit still registers its descriptions
-        // so a later-enabled element can check against them; no event anywhere ⇒ zero-scaffolding).
-        int divLine = unit.Ctx.environmentDivision()?.Start.Line
-            ?? unit.Ctx.dataDivision()?.Start.Line
-            ?? unit.Ctx.procedureDivision()?.Start.Line
-            ?? int.MaxValue;
-        data.ExternalCheckMask = ExternalMaskAt(session.Turn, divLine);
-        // §14.9.4.4 GR3 d)'s ACTIVATED half (kb/Work PB133 wave C2b) — folded at the unit's PROCEDURE DIVISION
-        // HEADER, never at divLine: the before-Environment-division point above is §14.8.4.1's rule for the
-        // EC-EXTERNAL conditions ALONE, and §7.3.25.4 GR6 / GR8 scope a TURN to the "procedure division headers
-        // that follow" (kb/Work PB1381 — TurnState.EnabledAtHeader, which the METHOD twin asks too).
-        data.ArgMismatchChecking = session.Turn.EnabledAtHeader(
-            "EC-PROGRAM-ARG-MISMATCH", unit.Ctx.procedureDivision(), int.MaxValue);
-        data.ExternalDescribe = Procedure.EcBinder.ExternalNames.Any(session.Turn.AnyEnabledFor);
-        data.OdoReferenceChecking = session.Turn.AnyEnabledFor("EC-BOUND-ODO");   // §13.18.38.4 GR7 (kb/Work PB1268)
-        // §7.3.21.4 GR1/GR3 — automatic propagation for this program or function (kb/Work PB1119), folded at the
-        // unit's first line (§7.3.21.3 SR1: never inside a compilation unit, so a contained program folds to its
-        // container's state). Its IDENTIFICATION DIVISION is the first line: a CONTAINED unit's Ctx is the synthetic
-        // context Reparent builds, whose own Start is null (see NameCtx below).
-        data.AutomaticPropagation = session.Propagate.IsOnAt(unit.Ctx.identificationDivision().Start.Line);
+        // The unit's checking slice (kb/Work PB2296): its EC-EXTERNAL enablement facts (ISO §14.8.4.1), its
+        // EC-PROGRAM-ARG-MISMATCH header fold (§14.9.4.4 GR3 d)), the group-level Describe and EC-BOUND-ODO gates and its
+        // automatic propagation (§7.3.21.4 GR1/GR3), folded after its data phases and before its procedure division binds.
+        data.State.UnitChecking = CheckingFold.Unit(session.Turn, session.Propagate, unit.Ctx);
 
-        // GLOBAL FD inheritance (ISO §13.18.27.4 GR1: the file-name of a GLOBAL FD is a GLOBAL name, visible in every
-        // directly/indirectly contained program; §8.4.6.2.1 3) a)-b) — a local declaration shadows, then the nearest
-        // container's, which TryAdd realizes: local files are already present, and InheritedGlobalFiles is nearest first). Merge into FilesByName ONLY —
-        // never Files: the child must not re-register, re-qualify, or CANCEL-close the owner's connector; its
-        // bound verbs hold the SHARED FileModel reference, so the owner's one-time PROG::FILE qualification
-        // automatically keys the child's verbs to the owner's connector. (EXTERNAL is NOT global — §13.18.22
-        // NOTE 1: an EXTERNAL non-GLOBAL FD's name is not visible in contained programs.) The record-name half
-        // of §13.18.27.4 GR1 rides the standard GLOBAL-root bridges (DataBinder.CallBindExternalAndGlobal adds a
-        // GLOBAL FD's records to CallGlobalRoots).
-        // A container's NON-global FD is recorded too, for one question only: a GLOBAL record under it (§13.18.27.3
-        // SR1 b)) is visible here while its file is not, and WRITE / REWRITE of it is refused by name (kb/Work PB1193).
-        // (The containers' files were recorded BEFORE this unit bound — DataBinder.InheritFileNames — so the data
-        // division could ask what a name is; the merge into FilesByName waits until the unit's own files are in.)
-        foreach (var (name, f) in data.InheritedGlobalFiles)
-            data.FilesByName.TryAdd(name, f);
-
-        // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent
-        // binds before its children), so the GLOBAL bridge below can carry a guarded root's presence member.
-        Procedure.EcBinder.MarkFormals(data.LinkageFormals, SourceElementKindOf(unit), session.Turn);
-
-        var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (anc, g, depth) in ContainerGlobalRootsOf(unit))
-        {
-            // The root's NAMES are inherited already, at the end of the unit's declaration half
-            // (DataBinder.InheritContainerGlobalData, offered through ContainerGlobalRoots above); what is left here
-            // is the C# half. Every container member a reference to the root can render, from the ONE list the
-            // container's binder owns (kb/Work PB1009 — the per-residence arms used to be spelled here, and the
-            // carrier-resident formal and the BASED item's address pointer were missing from them). A local
-            // root never collides with a bridge's member name: ReserveInheritedMemberNames ran before Bind.
-            // A SET keyed on the emitted member (kb/Work PB1523): two global roots can name ONE member — the records of
-            // a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its anchor share one field — and a
-            // member declared twice is CS0102. The member names are unique along the container chain
-            // (ReserveInheritedMemberNames), so equal names are the same member.
-            foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
-                if (bridgedMembers.Add(bridge.MemberClrName)) unit.Bridges.Add(bridge);
-        }
-
-        // Every tier is in place now — this unit's own names and every container's globals — so an inherited
-        // constant a NEARER data-name hides can leave (§8.4.6.2.1 3); kb/Work PB1009 / PB1047).
-        data.DropShadowedConstants();
+        // The inheritance merge's second half (InheritStep.Merge; kb/Work PB2296): the formals' omitted-argument guards,
+        // the GLOBAL bridges and the drop of an inherited constant a nearer data-name hides. A container's GLOBAL FD needs
+        // no merge into FilesByName: every file-name lookup reads the unit's own files first and its containers' GLOBAL
+        // ones after (DataBinder.VisibleFiles), and the child's bound verbs hold the SHARED FileModel, so the owner's
+        // one-time PROG::FILE qualification keys them to the owner's connector.
+        InheritStep.Merge(unit, SourceElementKindOf(unit), session.Turn);
         unit.Refs = new ReferenceResolver(data);
-    }
-
-    /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
-    /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out
-    /// it lives (the nesting distance ISO §8.4.6.2.1 3) selects on). EVERY global root joins, shadowed spelling or not
-    /// (kb/Work PB1047 / PB1243): §8.4.6.2.1 1) puts "all global names that are defined in source element A and in
-    /// any source elements that directly or indirectly contain source element A" in the set, and §8.4.6.2.2 makes
-    /// every data-name subordinate to a global name a global name in its own right — so a local 01 G hides the
-    /// container's G, never its subordinate Y. WHICH candidate a reference names is §8.4.6.2.1 3)'s
-    /// nearest-declaring-element rule, applied after qualification (SymbolTable.NearestDeclaring); the depth is what
-    /// it reads. The names are inherited from it by <c>DataBinder.InheritContainerGlobalData</c>, the C# bridges
-    /// are built from it in <see cref="BindUnitData"/>.</summary>
-    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerGlobalRootsOf(BoundUnit unit)
-    {
-        var roots = new List<(BoundUnit Container, DataItem Root, int Depth)>();
-        int depth = 0;
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            depth++;
-            foreach (var g in anc.Data.CallGlobalRoots)
-                if (g.CobolName is not null)
-                    roots.Add((anc, g, depth));
-        }
-        return roots;
-    }
-
-    /// <summary>The GLOBAL report description entries of every container of <paramref name="unit"/>, nearest container
-    /// first, each with how many containment levels out it lives (the <c>__outer</c> chain length a reference to its
-    /// storage renders through, <see cref="DataBinder.ReportDepth"/>). Like a GLOBAL FD, the report is SHARED, never
-    /// re-declared: the child's verbs hold the container's <see cref="ReportModel"/> (ISO §13.18.27.4 GR1–GR2).</summary>
-    private static List<(ReportModel Report, int Depth)> ContainerGlobalReportsOf(BoundUnit unit)
-    {
-        var reports = new List<(ReportModel Report, int Depth)>();
-        int depth = 0;
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            depth++;
-            foreach (var r in anc.Data.Reports)
-                if (r.IsGlobal)
-                    reports.Add((r, depth));
-        }
-        return reports;
     }
 
     /// <summary>ALWAYS-ON (P6 Step 6): assert <paramref name="pass"/>'s declared prerequisite phase has been

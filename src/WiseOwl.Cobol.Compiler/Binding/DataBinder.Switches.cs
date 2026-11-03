@@ -1985,7 +1985,7 @@ public sealed partial class DataBinder
     /// <c>CLASS C IS N"0" THRU N"9"</c> compiled clean (kb/Work PB976). A §8.8.3.3 concatenation expression is of
     /// the class §8.8.3.3 GR1 folds pairwise — THE ConcatFolder answer, never the leading operand's prefix, which
     /// called <c>SPACE &amp; N"A"</c> alphanumeric (kb/Work PB1406).</summary>
-    private LiteralClass? OperandLiteralClass(Core.LiteralContext lit)
+    internal LiteralClass? OperandLiteralClass(Core.LiteralContext lit)
     {
         if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce)
             return ConcatFolder.ClassOf(ce, LiteralEnvironment.SpecialNames(this, refusesSymbolicCharacters: true)) switch
@@ -2096,7 +2096,7 @@ public sealed partial class DataBinder
     /// <see cref="CurrencyOperandOf"/>), so what reaches here is a quoted literal — hexadecimal included, which
     /// <see cref="CobolLiteral.Decode"/> decodes itself — or a concatenation expression, and anything else is a caller
     /// that skipped its screen: a defect to find at once, never a value to invent.</para></summary>
-    private string LiteralCharsOf(Core.LiteralContext lit, bool sr11)
+    internal string LiteralCharsOf(Core.LiteralContext lit, bool sr11)
     {
         if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce)
             return ConcatFolder.Fold(ce, Edition, LiteralEnvironment.SpecialNames(this, sr11)).Value;

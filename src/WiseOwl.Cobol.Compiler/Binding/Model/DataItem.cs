@@ -633,7 +633,7 @@ public sealed class DataItem
     /// <para>P5.7: a READ-ONLY projection of <see cref="Storage"/> — the mutable flag and its 9 cross-layer write
     /// sites are deleted; <c>StorageFormPass</c> computes the decision ONCE from the collected facts. NULL-Storage
     /// (i.e. pre-group-tail) reads answer <c>false</c>, exactly the flag's early value for every legal read (the
-    /// bind-time early consumers use <see cref="DataBinder.IsImageBackedEarly"/> instead).</para>
+    /// bind-time early consumers use <see cref="IReadsEarly{T}.RecordedSoFar"/> of <see cref="DataBindState.ImageForcedItems"/> instead).</para>
     /// <para>⛔ A PER-OCCURRENCE QUESTION, like <see cref="ElementType"/> (kb/Work PB1939, PB2004): for an OCCURS
     /// DYNAMIC elementary item it asks the ELEMENT's form inside <see cref="Model.StorageForm.DynamicTable"/>, the
     /// same answer a fixed-OCCURS item gives for each of its occurrences — every reader of it (the numeric
