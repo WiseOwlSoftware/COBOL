@@ -3,9 +3,16 @@
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Passes;
 
 /// <summary>
+/// The ResolveTableValues pass: row 21 of the per-unit resolve pipeline (OccursResolved to OccursResolved).
+/// </summary>
+/// <remarks>
+/// <para><b>Placement in the pipeline.</b>
+/// The §13.18.63.3 SR18–SR23 Format-2 (table) VALUE geometry + the §13.18.63.4 GR12–GR16 odometer resolution (kb/Work PB505; Passes/ResolveTableValuesPass.cs). Placed HERE, and no earlier, because every one of those rules is written against the entry's OCCURS ANCESTORS — DataItem.Parent is assigned only after the entry binds — and because the dimension ceilings it measures subscripts against are the ones OdoResolve / DynamicResolve have settled (§8.5.1.8's allocated maximum, the dynamic expected capacity). Nothing later than that: it reads declared shape only, and the emitters read the plan it produces.
+/// </para>
+/// <para>
 /// ⛔ THE FORMAT 2 (table) VALUE GEOMETRY — ISO §13.18.63.3 SR18–SR23 and the §13.18.63.4 GR12–GR16 resolution,
 /// in ONE place, run as the declared <c>ResolveTableValues</c> pass (see <c>BindPipeline</c>).
 ///
@@ -27,26 +34,39 @@ namespace WiseOwl.Cobol.Binding;
 /// property of the literal and the subject's own PICTURE, so it belongs exactly where the Format-1 screen is, and
 /// keeping the two on one timeline is what
 /// <c>ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike</c> pins.</para>
-/// </summary>
-public sealed partial class DataBinder
+/// </para>
+/// </remarks>
+internal sealed class ResolveTableValuesPass : IBindPass
 {
+    /// <inheritdoc/>
+    public string Name => "ResolveTableValues";
+
+    /// <inheritdoc/>
+    public PassPhase Requires => PassPhase.OccursResolved;
+
+    /// <inheritdoc/>
+    public PassPhase Produces => PassPhase.OccursResolved;
+
+    /// <inheritdoc/>
+    public PassViews Views => PassViews.None;
+
     /// <summary>The §13.18.63.3 SR18–SR23 screen plus the §13.18.63.4 GR12–GR16 resolution, once per COMPOSED
     /// entry carrying a Format-2 (table) VALUE.
     ///
-    /// <para>⛔ Runs over <see cref="CompositionForest"/> MINUS the TYPE DECLARATIONS, and the exclusion is the
+    /// <para>⛔ Runs over <see cref="DataBinder.CompositionForest"/> MINUS the TYPE DECLARATIONS, and the exclusion is the
     /// rules' own doing: every dimension count these rules test is a property of where the entry ENDS UP, and a
     /// template has no such place. `01 TT TYPEDEF. 05 X PIC X(2) VALUE "AB" FROM (1).` is an SR18 violation when
     /// read alone and CONFORMING the moment it is referenced from inside an OCCURS entry — §13.18.57.4 GR1 copies
     /// the description into the reference site, and the composed clone (which IS in this forest, once per
     /// reference) is the entry the rule is about. The same reasoning is why the SR13/SR14 group-VALUE screen
     /// reads the composition forest.</para></summary>
-    internal void ResolveTableValues()
+    public void Run(DataBinder binder)
     {
-        foreach (var item in CompositionForest())
+        foreach (var item in binder.CompositionForest())
         {
             if (item.TableValues is not { Count: > 0 } specs) continue;
             if (IsInsideTypeDeclaration(item)) continue;
-            using var _ = Edition.At(item);
+            using var _ = binder.Edition.At(item);
             string where = $"data item '{item.CobolName ?? "FILLER"}'";
 
             // ── §13.18.63.3 SR20/SR21's dimension list: "each OCCURS clause for the subject of the entry or
@@ -58,14 +78,14 @@ public sealed partial class DataBinder
             //    or be subordinate to a data description entry that contains an OCCURS clause."
             if (dims.Count == 0)
             {
-                Edition.Error(DiagnosticCatalog.TableValueWithoutOccurs, $"{where}: a Format 2 (table) VALUE "
+                binder.Edition.Error(DiagnosticCatalog.TableValueWithoutOccurs, $"{where}: a Format 2 (table) VALUE "
                     + "clause is specified, but the entry neither contains an OCCURS clause nor is subordinate "
                     + "to a data description entry that contains one (ISO §13.18.63.3 SR18)");
                 item.TableValues = null;   // nothing to key the literals to — never reaches an emitter
                 continue;
             }
 
-            foreach (var spec in specs) ScreenTableValueGeometry(item, spec, dims, where);
+            foreach (var spec in specs) ScreenTableValueGeometry(binder, item, spec, dims, where);
 
             // ── §13.18.63.4 GR12–GR15: the odometer fill. Built from the phrases that ARE well-formed for these
             //    dimensions (TableValueOdometer.Resolve skips the rest — a mis-shaped phrase has already been
@@ -119,7 +139,7 @@ public sealed partial class DataBinder
     }
 
     /// <summary>True when <paramref name="item"/> lies inside a TYPE DECLARATION (ISO §13.18.58) — a template
-    /// that allocates no storage and has no composed OCCURS chain. See <see cref="ResolveTableValues"/>.</summary>
+    /// that allocates no storage and has no composed OCCURS chain. See <see cref="Run"/>.</summary>
     private static bool IsInsideTypeDeclaration(DataItem item)
     {
         for (DataItem? n = item; n is not null; n = n.Parent)
@@ -130,7 +150,7 @@ public sealed partial class DataBinder
     /// <summary>One phrase's §13.18.63.3 SR20–SR23 screen. Each rule is stated once, and every rule that speaks
     /// about "each OCCURS clause for the subject of the entry or superordinate to that entry" is checked over the
     /// WHOLE tuple rather than over a first dimension.</summary>
-    private void ScreenTableValueGeometry(
+    private static void ScreenTableValueGeometry(DataBinder binder, 
         DataItem item, TableValueSpec spec, IReadOnlyList<TableValueDim> dims, string where)
     {
         string phrase = $"{where}, Format 2 VALUE FROM ({spec.FromText})";
@@ -141,7 +161,7 @@ public sealed partial class DataBinder
         //    A wrong count leaves every following test without a correspondence, so the phrase stops here.
         if (spec.From.Count != dims.Count)
         {
-            Edition.Error(DiagnosticCatalog.TableValueSubscriptCount, $"{phrase}: the FROM phrase specifies "
+            binder.Edition.Error(DiagnosticCatalog.TableValueSubscriptCount, $"{phrase}: the FROM phrase specifies "
                 + $"{spec.From.Count} subscript(s) but the subject of the entry has {dims.Count} dimension(s) "
                 + $"({DimensionList(dims)}) — there shall be one subscript-1 for each OCCURS clause for the "
                 + "subject of the entry or superordinate to that entry, in subscripted-reference order "
@@ -150,7 +170,7 @@ public sealed partial class DataBinder
         }
         if (spec.To is { } toList && toList.Count != dims.Count)
         {
-            Edition.Error(DiagnosticCatalog.TableValueSubscriptCount, $"{phrase}: the TO phrase specifies "
+            binder.Edition.Error(DiagnosticCatalog.TableValueSubscriptCount, $"{phrase}: the TO phrase specifies "
                 + $"{toList.Count} subscript(s) but the subject of the entry has {dims.Count} dimension(s) "
                 + $"({DimensionList(dims)}) — there shall be one subscript-2 for each OCCURS clause for the "
                 + "subject of the entry or superordinate to that entry, in subscripted-reference order "
@@ -164,7 +184,7 @@ public sealed partial class DataBinder
         for (int k = 0; k < dims.Count; k++)
         {
             if (spec.From[k] >= 1 && spec.From[k] <= dims[k].Ceiling) continue;
-            Edition.Error("COBOL1586", $"{phrase}: a Format 2 VALUE FROM subscript ({spec.FromWritten[k]}) is out of "
+            binder.Edition.Error(DiagnosticCatalog.TableValueFromSubscriptOutOfRange, $"{phrase}: a Format 2 VALUE FROM subscript ({spec.FromWritten[k]}) is out of "
                 + $"range 1..{dims[k].Ceiling} for {DimensionName(dims, k)} "
                 + $"(ISO §13.18.63.3 SR20{CeilingProvenance(dims[k])})");
         }
@@ -175,7 +195,7 @@ public sealed partial class DataBinder
             for (int k = 0; k < dims.Count; k++)
             {
                 if (to[k] >= 1 && to[k] <= dims[k].Ceiling) continue;
-                Edition.Error("COBOL1587", $"{phrase}: a Format 2 VALUE TO subscript ({spec.ToWritten![k]}) is out of range "
+                binder.Edition.Error(DiagnosticCatalog.TableValueToSubscriptInvalid, $"{phrase}: a Format 2 VALUE TO subscript ({spec.ToWritten![k]}) is out of range "
                     + $"1..{dims[k].Ceiling} for {DimensionName(dims, k)} "
                     + $"(ISO §13.18.63.3 SR21{CeilingProvenance(dims[k])})");
             }
@@ -187,7 +207,7 @@ public sealed partial class DataBinder
             //    "successive" is the LEXICOGRAPHIC order of the whole tuple — a per-dimension comparison would
             //    reject `FROM (1 3) TO (2 1)`, which is two successive elements of a 2×3 table.
             if (Subscripts.Compare(new Subscripts([.. to]), new Subscripts([.. spec.From])) < 0)
-                Edition.Error("COBOL1587", $"{phrase}: the TO subscripts ({spec.ToText}) identify a "
+                binder.Edition.Error(DiagnosticCatalog.TableValueToSubscriptInvalid, $"{phrase}: the TO subscripts ({spec.ToText}) identify a "
                     + $"table element PRECEDING the one the FROM subscripts ({spec.FromText}) "
                     + "identify — subscript-2 shall be the same occurrence or a successive occurrence of the "
                     + "table element associated with the corresponding subscript-1 (ISO §13.18.63.3 SR21)");
@@ -205,7 +225,7 @@ public sealed partial class DataBinder
             for (int k = 0; k < dims.Count; k++)
             {
                 if (spec.From[k] == to[k] || TableValueOdometer.UnboundedBelow(dims, k) is not { } d) continue;
-                Edition.Error(DiagnosticCatalog.TableValueDynamicSpanLevels, $"{phrase}: subscript-1 "
+                binder.Edition.Error(DiagnosticCatalog.TableValueDynamicSpanLevels, $"{phrase}: subscript-1 "
                     + $"({spec.FromWritten[k]}) and subscript-2 ({spec.ToWritten![k]}) differ for {DimensionName(dims, k)}, "
                     + $"which is more inclusive than {DimensionName(dims, d)} — an OCCURS DYNAMIC clause "
                     + "with no TO phrase; the subscripts corresponding to all levels higher than that "
@@ -217,7 +237,7 @@ public sealed partial class DataBinder
         //    CLAUSE." Both arms, because every dimension in the list is the subject's own OCCURS or one
         //    superordinate to it — the subordinate arm was the missing half.
         else if (dims.FirstOrDefault(d => d.DynamicWithoutTo) is { } unbounded)
-            Edition.Error("COBOL1588", $"{phrase}: a Format 2 VALUE with no TO phrase is not permitted "
+            binder.Edition.Error(DiagnosticCatalog.TableValueWithoutToUnderDynamic, $"{phrase}: a Format 2 VALUE with no TO phrase is not permitted "
                 + $"{(ReferenceEquals(unbounded.Owner, item) ? "in the same entry as" : "in an entry subordinate to")}"
                 + $" the OCCURS DYNAMIC clause on '{unbounded.Owner.CobolName ?? "FILLER"}', which specifies no TO "
                 + "(expected) capacity (ISO §13.18.63.3 SR22)");

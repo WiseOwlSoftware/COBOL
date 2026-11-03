@@ -66,7 +66,7 @@ public sealed class SymbolTable
             }
             if (m.Declares(name)) { items = []; return false; }
         }
-        if (_data.ByName.TryGetValue(name, out var list) && list.Count > 0)
+        if (_data.State.Forest.ByName.TryGetValue(name, out var list) && list.Count > 0)
         {
             items = _data.WithLapsedTypeMembers(name, list, null);
             return true;
@@ -89,19 +89,19 @@ public sealed class SymbolTable
     /// no global data — so the common reference allocates nothing.</summary>
     public List<T> NearestDeclaring<T>(List<T> candidates, Func<T, DataItem> declarationOf)
     {
-        if (candidates.Count < 2 || !_data.InheritsGlobalData) return candidates;
+        if (candidates.Count < 2 || !_data.State.Forest.InheritsGlobalData) return candidates;
         int nearest = int.MaxValue;
         bool mixed = false;
         foreach (var c in candidates)
         {
-            int depth = _data.DeclaringDepth(declarationOf(c));
+            int depth = _data.State.Forest.DeclaringDepth(declarationOf(c));
             if (nearest != int.MaxValue && depth != nearest) mixed = true;
             if (depth < nearest) nearest = depth;
         }
         if (!mixed) return candidates;
         List<T> tier = [];
         foreach (var c in candidates)
-            if (_data.DeclaringDepth(declarationOf(c)) == nearest) tier.Add(c);
+            if (_data.State.Forest.DeclaringDepth(declarationOf(c)) == nearest) tier.Add(c);
         return tier;
     }
 
@@ -125,8 +125,8 @@ public sealed class SymbolTable
     {
         var tier = NearestDeclaring(candidates, static i => i);
         if (tier.Count == 0) return tier;
-        int depth = _data.DeclaringDepth(tier[0]);
-        return _data.Reports.NearerEntryHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
+        int depth = _data.State.Forest.DeclaringDepth(tier[0]);
+        return _data.State.Reports.NearerEntryHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
             ? []
             : tier;
     }
@@ -143,7 +143,7 @@ public sealed class SymbolTable
     {
         var tier = NearestDeclaring(candidates, static c => c.Parent);
         if (tier.Count == 0) return tier;
-        int depth = _data.DeclaringDepth(tier[0].Parent);
+        int depth = _data.State.Forest.DeclaringDepth(tier[0].Parent);
         return NearerDataNameHides(name, qualifiers, depth) || _data.NonConditionDeclarationHides(name, qualifiers, scope, depth)
             ? []
             : tier;
@@ -157,7 +157,7 @@ public sealed class SymbolTable
     public bool NearerDataItemHidesConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
     {
         var tier = NearestDeclaring(candidates, static c => c.Parent);
-        return tier.Count != 0 && NearerDataItemHides(name, qualifiers, _data.DeclaringDepth(tier[0].Parent));
+        return tier.Count != 0 && NearerDataItemHides(name, qualifiers, _data.State.Forest.DeclaringDepth(tier[0].Parent));
     }
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) FOR A DATA-NAME AGAINST A NEARER CONDITION-NAME — does a level-88 of this spelling,
@@ -166,9 +166,9 @@ public sealed class SymbolTable
     /// unit that inherits nothing (every candidate is then depth 0).</summary>
     public bool NearerConditionNameHides(string name, IReadOnlyList<string> qualifiers, int depth)
     {
-        if (depth == 0 || !_data.InheritsGlobalData || !_data.Conditions.TryGetValue(name, out var conditions)) return false;
+        if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_data.State.Forest.Conditions.TryGetValue(name, out var conditions)) return false;
         foreach (var c in conditions)
-            if (_data.DeclaringDepth(c.Parent) < depth && !DataBinder.IsTypeDeclarationCondition(c)
+            if (_data.State.Forest.DeclaringDepth(c.Parent) < depth && !DataBinder.IsTypeDeclarationCondition(c)
                 && _data.ConditionQualifierChainMatches(c, qualifiers))
                 return true;
         return false;
@@ -204,7 +204,7 @@ public sealed class SymbolTable
             }
             if (m.Declares(name)) { conds = []; return false; }
         }
-        if (_data.Conditions.TryGetValue(name, out var list) && list.Count > 0)
+        if (_data.State.Forest.Conditions.TryGetValue(name, out var list) && list.Count > 0)
         {
             conds = _data.WithLapsedTypeConditions(name, list, null);
             return true;
@@ -239,8 +239,8 @@ public sealed class SymbolTable
             // index-name too (GR5 covers every name class; kb/Work PB3165 review R2-1, PB3153 review round 3).
             if (m.Declares(name)) return null;
         }
-        if (!_data.IndexNames.Declares(name)) return null;
-        var indexes = _data.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers),
+        if (!_data.State.Forest.IndexNames.Declares(name)) return null;
+        var indexes = _data.State.Forest.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers),
             out int indexDepth);
         // §8.4.6.2.1 3) across the name classes (kb/Work PB1047): a DATA-name or a CONDITION-name of the spelling that the
         // written qualifiers reach, declared in a NEARER source element than every such index-name, is the referenced
@@ -258,7 +258,7 @@ public sealed class SymbolTable
     /// and they REPLACE the object's; a method-local name of the spelling in any other class
     /// (<see cref="OoMethodDataScope.Declares"/>: a data-name, a condition-name, an index-name, a constant-name) hides an object-level register (the
     /// object's declaration is "inaccessible to this method"); a sibling method's registers are not in the scope at
-    /// all. Else the unit's map, nearest declaring element first (<see cref="DataBinder.CapacityRegisters"/>).</summary>
+    /// all. Else the unit's map, nearest declaring element first (<see cref="ForestSlice.CapacityRegisters"/>).</summary>
     public List<DataItem>? CapacityCandidates(string name, Scope scope)
     {
         if (scope.Method is { } m)
@@ -266,7 +266,7 @@ public sealed class SymbolTable
             if (m.CapacityRegisters.TryGetValue(name, out var own)) return own;
             if (m.Declares(name)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
         }
-        return _data.CapacityRegisters.TryGetValue(name, out var tables) ? tables : null;
+        return _data.State.Forest.CapacityRegisters.TryGetValue(name, out var tables) ? tables : null;
     }
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) ACROSS NAME CLASSES — the ONE answer to "does an ordinary DATA-name of this spelling,
@@ -280,7 +280,7 @@ public sealed class SymbolTable
     /// reference is then the report entry's, refused by the callers' unidentified-reference report (§13.8.6.2.3). Free
     /// for a unit that inherits nothing (every candidate is then depth 0).</summary>
     public bool NearerDataNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
-        NearerDataItemHides(name, qualifiers, depth) || _data.Reports.NearerEntryHides(name, qualifiers, depth);
+        NearerDataItemHides(name, qualifiers, depth) || _data.State.Reports.NearerEntryHides(name, qualifiers, depth);
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
     /// (<see cref="IndexCandidates"/>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>) — against
@@ -299,9 +299,9 @@ public sealed class SymbolTable
     /// <paramref name="depth"/>. Free for a unit that inherits nothing.</summary>
     public bool NearerDataItemHides(string name, IReadOnlyList<string> qualifiers, int depth)
     {
-        if (depth == 0 || !_data.InheritsGlobalData || !_data.ByName.TryGetValue(name, out var dataNames)) return false;
+        if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_data.State.Forest.ByName.TryGetValue(name, out var dataNames)) return false;
         foreach (var item in dataNames)
-            if (_data.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
+            if (_data.State.Forest.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
                 return true;
         return false;
     }

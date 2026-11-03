@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Binding;
 /// producer is <see cref="InheritStep"/> (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296),
 /// which writes it BEFORE the unit's first data phase from its containers, nearest container first. Empty for an outermost
 /// program and for every OO source element.
-/// <para>A lookup reads the unit's own declarations first and this slice after (<see cref="DataBinder.VisibleFiles"/>,
+/// <para>A lookup reads the unit's own declarations first and this slice after (<see cref="DataBindState.VisibleFiles"/>,
 /// <see cref="DataBinder.TryFindTypeDecl"/>), which is the §8.4.6.2.1 3) a) rule — "if the name is declared in source
 /// element B, the item in source element B is the referenced item" — made structural: an own declaration never has to
 /// displace an inherited one.</para>
@@ -24,17 +24,39 @@ public sealed class InheritedGlobals
     private readonly Dictionary<DataItem, FileModel> _recordAreas = new(ReferenceEqualityComparer.Instance);
     private readonly List<FileModel> _containerLocalFiles = [];
     private readonly Dictionary<string, DataItem> _typeDecls = new(CobolNames.Comparer);
+    private readonly Dictionary<string, InheritedConstant> _constants = new(CobolNames.Comparer);
+    private readonly HashSet<string> _shadowedSymbolics = new(CobolNames.Comparer);
+
+    /// <summary>One inherited GLOBAL constant: its folded definition and the containment distance of the container that
+    /// declared it (1 = the direct container) — the tier <see cref="InheritStep.DropShadowed"/> weighs against a
+    /// same-spelled name's (kb/Work PB1047).</summary>
+    public readonly record struct InheritedConstant(ConstantDef Definition, int Depth);
+
+    /// <summary>The GLOBAL constant-names of every containing program, nearest container first (ISO §13.18.27.4 GR1–GR2:
+    /// "A constant-name, data-name, file-name, report-name, or screen-name described using a GLOBAL clause is a global
+    /// name", and a contained program "may reference that name without describing it again"; kb/Work PB1009). A constant
+    /// occupies no storage, so it needs no bridge: the container's folded definition is read here, after the unit's own
+    /// constants (<c>ConstantEntryBinder.FindConstant</c>: a local constant entry of the spelling hides the inherited one, §8.4.6), and
+    /// it leaves this table when a data-name declared NEARER hides it (<see cref="InheritStep.DropShadowed"/>; ISO
+    /// §8.4.6.2.1 3) a)). Written before the unit's first data phase (definition precedes reference, the §13.10.4 GR1
+    /// substitution model).</summary>
+    public IReadOnlyDictionary<string, InheritedConstant> Constants => _constants;
+
+    /// <summary>Does a nearer declaration hide the inherited symbolic-character <paramref name="word"/> (§8.4.6.1; kb/Work
+    /// PB3154 review R1-1)? Such a one is HIDDEN, never removed from the configuration slice's table: a contained unit
+    /// inherits the whole table from this one, and this unit's local data-name hides nothing from it.</summary>
+    public bool HidesSymbolic(string word) => _shadowedSymbolics.Contains(word);
 
     /// <summary>The GLOBAL files of every containing program, by file-name, nearest container first (§13.18.27.4 GR1: the
     /// file-name of a GLOBAL FD is a global name, visible in every directly or indirectly contained program; §8.4.6.2.1 3)
     /// b): the nearest containing element's declaration is the referenced item). Read after the unit's own files
-    /// (<see cref="DataBinder.VisibleFiles"/>): an FD of this unit finds the unit's own SELECT, never an inherited model,
+    /// (<see cref="DataBindState.VisibleFiles"/>): an FD of this unit finds the unit's own SELECT, never an inherited model,
     /// and the shared <see cref="FileModel"/> keys the child's verbs to the owner's connector, so the child never
     /// re-registers, re-qualifies or CANCEL-closes it. (An EXTERNAL non-GLOBAL FD is not here — §13.18.22.4 GR1 NOTE 1.)</summary>
     public IReadOnlyDictionary<string, FileModel> Files => _files;
 
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
-    /// container (<see cref="Files"/>), 0 for any other — the file-name twin of <see cref="DataBinder.DeclaringDepth"/>
+    /// container (<see cref="Files"/>), 0 for any other — the file-name twin of <see cref="ForestSlice.DeclaringDepth"/>
     /// and <see cref="ReportScope.Depth"/>, so a name a container declares as a file and a nearer element declares
     /// as something else resolves to the nearer declaration (§8.4.6.2.1 3); kb/Work PB4219).</summary>
     public int FileDepth(FileModel file) => _fileDepths.GetValueOrDefault(file);
@@ -56,7 +78,7 @@ public sealed class InheritedGlobals
 
     /// <summary>The GLOBAL type declarations of every containing program (§13.18.58.4 GR3; §8.4.6.2.2 — a type-name
     /// described with a GLOBAL clause is a global name; kb/Work PB1303), the nearest container's declaration of a name
-    /// kept. Kept APART from <see cref="DataBinder.TypeDecls"/>, the source element's OWN declarations: an own declaration
+    /// kept. Kept APART from <see cref="ForestSlice.TypeDecls"/>, the source element's OWN declarations: an own declaration
     /// must neither collide with an inherited one (§8.4.6.2.1 3 a) nor be walked, emitted or re-validated as this
     /// unit's. An inherited template is already fully expanded (its container's bind finished first), and cloning it
     /// writes only to the referencing item.</summary>
@@ -102,6 +124,29 @@ public sealed class InheritedGlobals
         foreach (var (name, decl) in typeDecls)
             if (decl.HasGlobalClause)
                 _typeDecls.TryAdd(name, decl);
+    }
+
+    /// <summary>Record one containing program's GLOBAL constants, <paramref name="depth"/> containment levels out, the
+    /// nearer container's kept. <paramref name="visible"/> is what the container's binder offers
+    /// (<c>DataBinder.GlobalConstantsToInherit</c>). <see cref="InheritStep"/> only.</summary>
+    internal void AddContainerConstants(IEnumerable<KeyValuePair<string, ConstantDef>> visible, int depth)
+    {
+        foreach (var (name, def) in visible)
+            if (def.IsGlobal)
+                _constants.TryAdd(name, new(def, depth));
+    }
+
+    /// <summary>Drop the inherited constants, and hide the inherited symbolic-characters (<paramref name="symbolicDepths"/>:
+    /// each with its containment distance), that a declaration in a source element NEARER than their containers' hides
+    /// (<paramref name="declaredNearerThan"/>: the name and the container's distance). <see cref="InheritStep"/> only.</summary>
+    internal void DropShadowed(Func<string, int, bool> declaredNearerThan, IEnumerable<KeyValuePair<string, int>> symbolicDepths)
+    {
+        foreach (var (name, constant) in _constants.ToList())
+            if (declaredNearerThan(name, constant.Depth))
+                _constants.Remove(name);
+        foreach (var (name, depth) in symbolicDepths)
+            if (declaredNearerThan(name, depth))
+                _shadowedSymbolics.Add(name);
     }
 
     /// <summary>Offer the containers' GLOBAL reports and data roots, nearest container first. <see cref="InheritStep"/>

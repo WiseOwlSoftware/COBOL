@@ -6,10 +6,10 @@
  "subject": "BLOCK CONTAINS clause",
  "rule-digest": "fcfef0a2e846",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindBlockContainsClause; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FileClauseSizeRange",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FileClauseSizeRange; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause",
  "test-ref": "conformance:cases/13.18.10-BLOCK-CONTAINS/pb1217-block-contains-inverted-range; conformance:cases/13.18.10-BLOCK-CONTAINS/pb1217-block-contains-equal-bounds; conformance:cases/_unassigned/pb1217_block_contains_ordered_range",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "(kb/Work PB1217) BLOCK CONTAINS integer-1 TO integer-2 with integer-2 not greater than integer-1 is refused COBOL2009, the code the RECORD clause's ordered pairs (13.18.43.3 SR5/SR9) already share.",
+ "notes": "(kb/Work PB1217) BLOCK CONTAINS integer-1 TO integer-2 with integer-2 not greater than integer-1 is refused COBOL2009, the code the RECORD clause's ordered pairs (13.18.43.3 SR5/SR9) already share. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindBlockContainsClause (kb/Work PB2296 M7 moved the member from DataBinder to FileControlBinder (the file binder); the same rule is asked by the same code)",
  "state": "OK"
 }

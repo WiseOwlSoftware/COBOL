@@ -591,7 +591,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// (§14.9.30.4 GR21 c)) for READ and START. The comparison is the §14.9.51 GR35
     /// relation condition under this key's collating sequence; the registered value is already the key's own image (a
     /// figurative or ALL literal repeated to the key's size, a shorter literal space-extended, a national value in national
-    /// spaces — <c>DataBinder.KeySuppressionOf</c>, kb/Work PB1072), because only the compiler knows the literal's form
+    /// spaces — <c>FileControlBinder.KeySuppressionOf</c>, kb/Work PB1072), because only the compiler knows the literal's form
     /// and the key's category. The prime key is NEVER suppressible (GR6 scopes suppression to alternate keys).</summary>
     private byte[]? AlternateValue(string image, RecordExtents? extents, int keyIndex)
     {

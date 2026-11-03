@@ -1671,6 +1671,8 @@ def edges_remover_problems(items: list[dict], edges: dict | None = None) -> list
     return bad
 
 
+
+
 def print_cluster(view: dict, as_json: bool) -> int:
     if as_json:
         print(json.dumps(view, ensure_ascii=False))

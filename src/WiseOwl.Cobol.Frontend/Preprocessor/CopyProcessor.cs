@@ -47,9 +47,9 @@ public sealed class CopyProcessor(
             + "COBOL-2023 (Annex E.2 item 1 bullet 4) — use ==pseudo-text==; first use at line ";
         var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, EditionInfo.Of(dialectLevel, permissive));
         if (severity == EditionSeverity.Error)
-            _diagnostics.ReportError("COBOL0902", msg + line, loc, default);
+            _diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.EditionRemovedConstruct.Code, msg + line, loc, default);
         else
-            _diagnostics.ReportWarning("COBOL0902", msg + line, loc, default);
+            _diagnostics.ReportWarning(Editions.Diagnostics.DiagnosticCatalog.EditionRemovedConstruct.Code, msg + line, loc, default);
     }
     /// <summary>Maximum COPY nesting depth to prevent infinite recursion.</summary>
     private const int MaxCopyDepth = 20;

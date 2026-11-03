@@ -229,7 +229,7 @@ internal sealed record FileControlKeyRule(
 
 /// <summary>
 /// ⛔ THE ONE SCREEN FOR THE FILE CONTROL ENTRY'S KEY SYNTAX RULES (ISO/IEC 1989:2023 §12.4.5), run from
-/// <c>DataBinder.ResolveFiles</c> over EVERY declared file once the data forest is indexed.
+/// <c>FileControlBinder.ResolveFiles</c> over EVERY declared file once the data forest is indexed.
 /// <para>WHY IT EXISTS. These rules were enforced by <c>KeyedIoBinder.KeyedValidateFile</c>, which ran on the
 /// FIRST KEYED VERB that named the file. An entry whose RECORD KEY and ALTERNATE RECORD KEY both sat under an
 /// OCCURS clause therefore compiled with zero diagnostics when the procedure division only OPENed and CLOSEd the
@@ -260,7 +260,7 @@ internal sealed record FileControlKeyRule(
 /// edition would add one, and its gate would ride <c>EditionContext</c> exactly as every other introduction does.</para>
 /// <para>⚖ THE SIBLING SITE. Entry rules that are decidable from the CLAUSES ALONE — §12.4.5.5.2 SR2 (no DYNAMIC
 /// or RANDOM on a sequential file, kb/Work PB692) and the §12.4.5.9.3 SR2 screen beside it — stay inline in
-/// <c>DataBinder.BindFileControl</c>, because they need nothing resolved and can report as the entry is read.
+/// <c>FileControlBinder.BindFileControl</c>, because they need nothing resolved and can report as the entry is read.
 /// This table holds the rules that need a RESOLVED DATA ITEM: a key clause names a data-name whose OCCURS
 /// ancestry, PICTURE and owning record description are unknown until the data forest is indexed. That is the
 /// whole criterion for which of the two a new entry rule joins — `FILES_DESIGN.md` D19.</para>
@@ -287,7 +287,7 @@ internal sealed record FileControlKeyRule(
 /// RECORD KEY (PB1073) after them.</para>
 /// <para>ALSO NOT HERE, and the one place §12.4.5.2 SR8 is written down twice: the COLLATING SEQUENCE clause is a
 /// Format-1 clause too, and a file-level one on a non-indexed file is refused by
-/// <c>DataBinder.ResolveFileCollating</c> (COBOL1582) — because that test is ALSO the guard that stops the
+/// <c>FileControlBinder.ResolveFileCollating</c> (COBOL1582) — because that test is ALSO the guard that stops the
 /// rest of that method, and splitting a guard from its report would leave the resolution running on an entry it
 /// has already refused. Its citation was §12.4.5.7.1, the clause's descriptive General paragraph; it is SR8 and
 /// now says so. The traceability row `SR-12.4.5.2-8` names both sites.</para>
@@ -458,7 +458,7 @@ internal static class FileControlKeyRules
         // SR7 — the SUPPRESS WHEN literal-1 (kb/Work PB1072). ONE numbered rule, THREE obligations, three rows with
         // one rule-id: the operand's KIND, its CATEGORY against data-name-1's, and an ALL literal's length. Nothing
         // screened any of them, so SUPPRESS WHEN 5 / B"1" / ALL "AB" and a national literal on an alphanumeric key
-        // compiled clean. The operand is read ONCE (DataBinder.ReadSuppressWhen, the literal-position chokepoint),
+        // compiled clean. The operand is read ONCE (FileControlBinder.ReadSuppressWhen, the literal-position chokepoint),
         // so a constant-name, a symbolic-character and a concatenation expression arrive here as the literal they
         // stand for. A keyword figurative has no category of its own (§8.3.3.6.4 GR1 — it takes the context's), so
         // the category row asks only a literal.
@@ -635,7 +635,7 @@ internal static class FileControlKeyRules
     // ⚠ A clause carried by MORE THAN ONE format identifies none — ACCESS MODE IS RANDOM appears in Formats 1 and
     // 2 both, and the standard screens it with the ACCESS clause's own rule (§12.4.5.5.2 SR2, DataBinder), not
     // with SR8/SR9. The collating-sequence-clause is likewise screened at its own resolution site
-    // (DataBinder.ResolveFileCollating, COBOL1582), which has to guard on the organization anyway.
+    // (FileControlBinder.ResolveFileCollating, COBOL1582), which has to guard on the organization anyway.
     private const FileFormats Formats123 = FileFormats.Format1 | FileFormats.Format2 | FileFormats.Format3;
     private const FileFormats Formats12 = FileFormats.Format1 | FileFormats.Format2;
 
@@ -777,7 +777,7 @@ internal static class FileControlKeyRules
     internal static IReadOnlyList<FileControlKeyRule> Catalog => Rules;
 
     /// <summary>Screen one file control entry against every rule of its organization. Called once per file from
-    /// <c>DataBinder.ResolveFiles</c>, so a file is reported once however many statements name it — the
+    /// <c>FileControlBinder.ResolveFiles</c>, so a file is reported once however many statements name it — the
     /// one-report-per-file property the old per-verb memo (<c>_keyedCheckedFiles</c>) existed to provide, now a
     /// consequence of WHERE the screen runs rather than a set the screen has to carry.</summary>
     /// <param name="refusedOperands">Key operand names already REFUSED and reported, for which no rule here may

@@ -45,7 +45,7 @@ internal static class PlaceTablePass
         // A report's CONTROL operand is saved and compared as it is written (§13.18.16.4 GR3): a reference-modified
         // operand as its slice (§8.4.3.3.4 GR5), the others as the item. The positions are integer literals (SR4), so the
         // view is the ONE reference-modification view builder reached by item (kb/Work PB205).
-        foreach (var report in data.Reports.Declared)
+        foreach (var report in data.State.Reports.Declared)
             foreach (var control in report.Controls)
                 if (control.Item is { } item)
                     control.Place = control.Operand?.RefModStart is { } start

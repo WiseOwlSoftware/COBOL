@@ -2062,7 +2062,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   union of §13.4.5.2's three formats, and §13.4.5.3 SR5/SR7/SR8 bind each entry to exactly ONE of them. Which one
   is decided once, in `Compiler/Binding/FileDescriptionFormats.cs` (`Of`: a relative or indexed file is Format 2;
   otherwise a REPORT clause anywhere in the entry makes it Format 3; else Format 1), and the same file's table
-  keys each alternative's context type to the formats that print it. `DataBinder.FileDescriptionClauseAdmitted`
+  keys each alternative's context type to the formats that print it. `FileControlBinder.FileDescriptionClauseAdmitted`
   refuses a clause its entry's format does not contain (COBOL2604) and does not bind it; the same table
   carries the five FILE CONTROL ENTRY clauses the grammar superset-parses in the FD position (ORGANIZATION,
   ACCESS MODE, RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS) with no admitting format and a home entry, so they

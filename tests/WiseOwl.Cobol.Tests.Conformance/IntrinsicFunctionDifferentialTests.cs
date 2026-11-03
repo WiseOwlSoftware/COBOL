@@ -1043,7 +1043,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (okInline, _, detailInline) = new WiseOwlCobolCompiler(2023).CompileAndRun(
             Program("01 R PIC 9(4).", "    COMPUTE R = FUNCTION LENGTH(SUPER :: \"M\").\n    DISPLAY R."));
         Assert.False(okInline, "SUPER outside a method definition must not compile (§8.4.3.8)");
-        Assert.Contains("COBOL0827", detailInline);
+        Assert.Contains("COBOL6002", detailInline);
     }
 
     [Fact]

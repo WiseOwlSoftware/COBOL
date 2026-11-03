@@ -33,7 +33,7 @@ internal enum NonDataDeclarationKind
 /// member or condition-name the type-name whose declaration holds it, whether the
 /// declaration itself was REFUSED and reported at its entry (a constant entry that yielded no value), so a reference to
 /// it is that one fault's consequence and its reader reports nothing more, and the <paramref name="Depth"/> of the
-/// source element that declares it (0 = this one, n = its n-th container, <see cref="DataBinder.DeclaringDepth"/>'s
+/// source element that declares it (0 = this one, n = its n-th container, <see cref="ForestSlice.DeclaringDepth"/>'s
 /// measure), the tier ISO §8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).</summary>
 internal readonly record struct NonDataDeclaration(
     NonDataDeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0)
@@ -99,8 +99,8 @@ public sealed partial class DataBinder
     /// rank (APPLY COMMIT's GLOBAL file, <see cref="ScreenEnclosingFileOperand"/>) compares like with like.</para></summary>
     internal NonDataDeclaration? NonDataDeclarationOf(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
-        if (ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
-        if (IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
+        if (State.Forest.ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
+        if (SpecialNames.IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
         // An unqualified reference's data-name answer is the RANKED one (§8.4.6.2.1 3)): a container's GLOBAL data item that
         // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
         // one keeps the raw answer, which the callers word as "declared, but not under the given qualifiers".
@@ -119,7 +119,7 @@ public sealed partial class DataBinder
         foreach (var other in NonConditionDeclarationsOf(name, qualifiers, scope, dataName)) Offer(other);
         // A data-name the ranked lookup leaves standing answers for itself; the condition-name never takes it.
         if (!dataName && Symbols.TryResolveCondition(name, scope, out var conditions))
-            Offer(new(NonDataDeclarationKind.ConditionName, Depth: conditions.Min(c => DeclaringDepth(c.Parent))));
+            Offer(new(NonDataDeclarationKind.ConditionName, Depth: conditions.Min(c => State.Forest.DeclaringDepth(c.Parent))));
         if (nearest is { } answer) return answer;
         if (dataName) return null;
         if (qualifiers.Count == 0 && TryFindTypeDecl(name, scope, out _)) return new(NonDataDeclarationKind.TypeName);
@@ -148,23 +148,23 @@ public sealed partial class DataBinder
     /// <paramref name="dataName"/> is whether the ranked data-name lookup left a data item standing: it answers for
     /// itself, so the constant and the file are not offered beside it (an index-name is, because
     /// <see cref="Model.SymbolTable.IndexCandidates"/> has already weighed it against the data-name). The inherited
-    /// GLOBAL constant is still in the table until the unit's data division has bound (<c>DropShadowedConstants</c>), so
+    /// GLOBAL constant is still in the table until the unit's data division has bound (<c>InheritStep.DropShadowed</c>), so
     /// the data division's own clause operands meet it here, where a contained program's own level-88 of the spelling
     /// must outrank it.</summary>
     private IEnumerable<NonDataDeclaration> NonConditionDeclarationsOf(
         string name, IReadOnlyList<string> qualifiers, Model.Scope scope, bool dataName)
     {
-        if (qualifiers.Count == 0 && !dataName && IsConstantName(name))
-            yield return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name),
-                Depth: _inheritedConstants.GetValueOrDefault(name));
+        if (qualifiers.Count == 0 && !dataName && Constants.IsConstantName(name))
+            yield return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: Constants.IsRefusedConstantName(name),
+                Depth: Constants.InheritedDepthOf(name));
         // An index-name that the written qualifiers reach NONE of is still the declaration a refusal words ("declared, but not
         // under the given qualifiers"), but the reference does not name it: it ranks behind every other class (int.MaxValue),
         // so a qualified `RELF OF X` that only a container's GLOBAL level-88 satisfies is not hidden by an own `INDEXED BY RELF`
         // (§8.4.6.2.1 2): qualification is applied over the whole set before rule 3 ranks it; kb/Work PB4432 review R2-1).
         if (Symbols.IndexCandidates(name, qualifiers, scope) is { } indexes)
             yield return new(NonDataDeclarationKind.IndexName,
-                Depth: indexes.Count > 0 ? indexes.NearestDepth(i => DeclaringDepth(i.Table)) : int.MaxValue);
-        if (!dataName && qualifiers.Count == 0 && VisibleFiles.TryGetValue(name, out var file))
+                Depth: indexes.Count > 0 ? indexes.NearestDepth(i => State.Forest.DeclaringDepth(i.Table)) : int.MaxValue);
+        if (!dataName && qualifiers.Count == 0 && State.VisibleFiles.TryGetValue(name, out var file))
             yield return new(NonDataDeclarationKind.FileName, Depth: State.Inherited.FileDepth(file));
     }
 
@@ -179,7 +179,7 @@ public sealed partial class DataBinder
     internal NonDataDeclaration? NonConditionDeclarationNearerThan(
         string name, IReadOnlyList<string> qualifiers, Model.Scope scope, int depth)
     {
-        if (depth == 0 || !InheritsGlobalData) return null;
+        if (depth == 0 || !State.Forest.InheritsGlobalData) return null;
         NonDataDeclaration? nearest = null;
         foreach (var other in NonConditionDeclarationsOf(name, qualifiers, scope, dataName: false))
             if (other.Depth < depth && (nearest is not { } best || other.Depth < best.Depth)) nearest = other;
@@ -199,14 +199,43 @@ public sealed partial class DataBinder
         string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
         var tier = ConditionTier(name, qualifiers, scope);
-        return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, DeclaringDepth(tier[0].Parent));
+        return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, State.Forest.DeclaringDepth(tier[0].Parent));
     }
 
     /// <summary>The type declarations visible in <paramref name="scope"/>, in <see cref="TryFindTypeDecl"/>'s order: a
     /// method's own, this element's, a container's GLOBAL one.</summary>
     private IEnumerable<DataItem> VisibleTypeDeclarations(Model.Scope scope)
     {
-        IEnumerable<DataItem> visible = TypeDecls.Values.Concat(State.Inherited.TypeDecls.Values);
+        IEnumerable<DataItem> visible = State.Forest.TypeDecls.Values.Concat(State.Inherited.TypeDecls.Values);
         return scope.Method is { } m ? m.TypeDecls.Values.Concat(visible) : visible;
+    }
+
+    /// <summary>⛔ ISO §8.4.6.2.1 3) ACROSS NAME CLASSES for a word that stands for a literal: whether this unit's set
+    /// of names (its own and every container's global ones) declares <paramref name="name"/> as a data-name, a
+    /// condition-name or an index-name in a source element NEARER than <paramref name="depth"/> (the containment
+    /// distance of the element that declared the constant or symbolic-character; 1 = the direct container). "b) 1.
+    /// The item in source element A if the name is declared in source element A. 2. The item in the containing
+    /// source element if the name is not declared in source element A and is declared in the source element
+    /// containing source element A." A condition-name is placed by its conditional variable.
+    /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only <see cref="ForestSlice.ByName"/> (kb/Work PB3154
+    /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§13.18.38.3 SR30) kept off
+    /// <see cref="ForestSlice.ByName"/> in <see cref="ForestSlice.CapacityRegistersSoFar"/>, placed by its table (a METHOD's own register is never
+    /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
+    /// <see cref="OoDataBinder.ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
+    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="ReportScope.SumCounters"/>, placed by its report
+    /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
+    /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
+    /// <c>GlobalNameClassDriftTests</c> holds this predicate to the inherited name-index list, so a name index
+    /// added there is asked here too.</para></summary>
+    internal bool DeclaredNearerThan(string name, int depth)
+    {
+        if (State.Forest.ByName.TryGetValue(name, out var items) && items.Any(i => State.Forest.DeclaringDepth(i) < depth)) return true;
+        if (State.Forest.Conditions.TryGetValue(name, out var conds) && conds.Any(c => State.Forest.DeclaringDepth(c.Parent) < depth)) return true;
+        if (State.Forest.CapacityRegistersSoFar.TryGetValue(name, out var tables) && tables.Any(t => State.Forest.DeclaringDepth(t) < depth)) return true;
+        if (State.Reports.SumCounters.TryGetValue(name, out var counters) && counters.Any(c => State.Reports.Depth(c.Report) < depth)) return true;
+        if (State.Reports.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
+        if (!State.Forest.IndexNames.Declares(name)) return false;
+        State.Forest.IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
+        return indexDepth < depth;
     }
 }

@@ -29,7 +29,7 @@ using Core = CobolParserCore;
 /// ENTRY's own syntax rules on the first keyed verb that named the file, behind a <c>_keyedCheckedFiles</c> memo
 /// that existed only to make that once-per-file — so an entry whose keys break those rules compiled clean when
 /// no keyed verb named it (kb/Work PB699). Those rules moved WHOLE to <see cref="FileControlKeyRules"/>, which
-/// <c>DataBinder.ResolveFiles</c> runs over every declared file. Nothing about a key clause belongs here; a rule
+/// <c>FileControlBinder.ResolveFiles</c> runs over every declared file. Nothing about a key clause belongs here; a rule
 /// belongs here only if the standard states it about a STATEMENT.</para></summary>
 internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, FileLockBinder fileLock)
 {
@@ -130,7 +130,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 {
                     if (use is RecordKeyNameUse.Refused) return BoundRejected.Reported(ctx.Edition);
                     if (use is RecordKeyNameUse.OtherFile)
-                        return BoundRejected.Report(ctx.Edition, "COBOL0864", $"READ KEY IS {keyRef.GetText()} on "
+                        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on "
                             + $"'{file.CobolName}': '{keyRef.GetText()}' is a record-key-name of another file; "
                             + "record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY "
                             + "clause associated with file-name-1 (ISO §14.9.30.3 SR11)");
@@ -146,7 +146,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 else if (keyPlace.DenotedItem is not { } keyItem
                     || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem) is not { } ki)
                 {
-                    return BoundRejected.Report(ctx.Edition, "COBOL0864", $"READ KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                         + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30.3 SR11)");
                 }
                 else keyIndex = ki;
@@ -234,7 +234,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return BoundRejected.Reported(ctx.Edition);   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.IsSequential)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0865", $"DELETE RECORD shall not be specified for sequential-organization "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.DeleteRecordOnSequentialFile, $"DELETE RECORD shall not be specified for sequential-organization "
                 + $"file '{name}' (ISO §14.9.10.3 SR1)");
         }
         // §14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD
@@ -493,7 +493,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         var (word, quals) = DataBinder.KeyReference(dref);
         var names = file.RecordKeyNameCandidates(word, quals);
-        foreach (var other in ctx.Data.VisibleFiles.Values)
+        foreach (var other in ctx.Data.State.VisibleFiles.Values)
             if (!ReferenceEquals(other, file)) names = names.Plus(other.RecordKeyNameCandidates(word, quals));
         if (names.Count == 0)
             return (RecordKeyNameUse.None, 0);
