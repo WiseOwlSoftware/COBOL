@@ -64,3 +64,15 @@ twin, `pb4109-level-01-multiple-line-at-85`, `pb565-report-multiple-line-at-85`)
 construct's `citation` names, `DataBinder.ReportRepetitionOf` before and `ReportSectionBinder.ReportRepetitionOf` after PB2357
 moved the member. Every behavior-neutral branch measured IDENTICAL against its own base; this is the one user-visible text
 a member move reaches (a lead is filed in the report: a citation should name the ISO rule, not a C# member).
+
+Review round 1 (finisher). One blocking finding: the `ConcernOwned` exception in `BindPassBoundaryDriftTests` kept
+`ResolveFiles` waiting for a binder that had already landed (`FileControlBinder` took only the SELECT / I-O-CONTROL half),
+and no open note owned the rest. Fix: kb/Work PB2296 names the next FILE step as M7 (`ResolveFiles` and `BindFileSection` leave
+`DataBinder`, the entry is deleted in the same change); the drift test gained `EveryConcernOwnedRow_IsNamedByAnOpenWorkNote_...`
+so the exception cannot outlive its owner; the test class carries the `Sweep` trait now that it reads `kb/Work`; design §8.3 (1)
+no longer says the test "fails when it lands". Leads fixed in files already touched: nine stale `DataBinder.X` crefs, the
+seed/`InheritConfiguration` names in the design and the `ConfigurationSlice`/`DataBinder.Configuration` summaries,
+`LinkageBinder.SealLinkageRules` in INTERPROGRAM_DESIGN, and `DynamicResolvePass` takes its uid through `TakeUid()` (the
+`_uidCounter` field is private again). Main moved under the branch (PB2103's metadata provider, §12.3.8.3 SR15 skip): the merge
+kept both, and carried `ProgramSpecifier.At` into `DataBinder.Configuration` and `Linkage.Formals/Returning` into
+`RepositoryCheck`. Gate: GREEN, run 000002-20261103T030808Z.
