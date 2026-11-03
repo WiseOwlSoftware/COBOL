@@ -124,6 +124,7 @@ import contextlib
 import dataclasses
 import html
 import io
+import hashlib
 import json
 import os
 import random
@@ -1047,13 +1048,75 @@ class Settings:
     #: The most the Claude writer may spend in this run, in US dollars: no new program starts once fuzz_claude.spent()
     #: reaches it (None: no ceiling; the Ollama writer spends nothing).
     max_usd: float | None = None
+    #: With writer "files": the directory of a collected batch's replies (scripts/fuzz_batch.py, kb/Work PB4506).
+    replies: str | None = None
 
 
-def writer_reply(s: Any, model_options: dict[str, Any], messages: list[dict[str, str]]) -> tuple[str, float, str, int]:
-    """One reply from the run's writer (kb/Work PB4504): the two writers return the same shape, so nothing after the
-    generation knows which one wrote the program."""
+def prompt_plan(prefixes: tuple[str, ...], seed: int, in_order: bool) -> tuple[list[tuple[str, str, str]], int, dict[str, str]]:
+    """(the seed clauses in walk order, how many were declined, the system prompt per family): what every program of a run
+    is written from. ONE builder, read by the run and by scripts/fuzz_batch.py, so a batch's request i and the judge's
+    row i name the same clause (kb/Work PB4506)."""
+    spec_text = SPEC.read_text(encoding="utf-8")
+    conformance_text = CONFORMANCE.read_text(encoding="utf-8")
+    declined = declined_seed_titles(spec_text, conformance_text)
+    every = clauses(spec_text, prefixes)
+    seeds = order_seeds([c for c in every if c[1] not in declined], seed, in_order)
+    facts = PromptFacts.read(spec_text, conformance_text)
+    return seeds, len(every) - len(seeds), {family: system_prompt(facts, family) for family in EXAMPLES}
+
+
+def seed_at(seeds: list[tuple[str, str, str]], variations: int, i: int) -> tuple[str, str, str, int]:
+    """(clause number, title, body, variation) of program i: each clause is asked `variations` times before the walk moves on."""
+    number, title, body = seeds[(i // variations) % len(seeds)]
+    return number, title, body, i % variations
+
+
+def first_messages(system_prompts: dict[str, str], number: str, title: str, body: str, variation: int) -> tuple[str, list[dict[str, str]]]:
+    """(family, the first request's messages) for one program: the system prompt of the clause's family and the seed turn."""
+    family = family_of(number)
+    user = seed_text(number, title, body) + f"\n\nThis is program {variation + 1} for this clause: exercise an aspect the previous programs would not."
+    return family, [{"role": "system", "content": system_prompts[family]}, {"role": "user", "content": user}]
+
+
+def plan_entries(prefixes: tuple[str, ...], seed: int, in_order: bool, variations: int, count: int) -> dict[str, list[str]]:
+    """{program id: [clause number, title, sha256 of its first request]} for programs 0 .. count-1: the plan a batch records
+    (scripts/fuzz_batch.py) and the judge rebuilds and compares before it judges a reply as program i (review R1-1)."""
+    seeds, _declined, system_prompts = prompt_plan(prefixes, seed, in_order)
+    out: dict[str, list[str]] = {}
+    for i in range(count):
+        number, title, body, variation = seed_at(seeds, variations, i)
+        _family, messages = first_messages(system_prompts, number, title, body, variation)
+        digest = hashlib.sha256(json.dumps(messages, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+        out[f"fz{i:05d}"] = [number, title, digest]
+    return out
+
+
+def batch_plan_problems(batch: dict[str, Any]) -> list[str]:
+    """The programs whose clause, title or first request differ between the batch's recorded plan and the plan this tree
+    builds from the same settings (a changed --clauses / --seed, or a seed clause declined since the batch was
+    submitted): empty when every reply is the program the judge will call it."""
+    built = plan_entries(tuple(batch["clauses"]), int(batch["seed"]), bool(batch["in_order"]), int(batch["variations"]),
+                         int(batch["count"]))
+    recorded = batch.get("plan") or {}
+    bad = [f"{k}: recorded {recorded.get(k, ['?', '?'])[:2]}, built {v[:2]}" for k, v in built.items() if recorded.get(k) != v]
+    return bad
+
+
+def writer_reply(s: Any, model_options: dict[str, Any], messages: list[dict[str, str]], name: str = "") -> tuple[str, float, str, int]:
+    """One reply from the run's writer (kb/Work PB4504, PB4506): the writers return the same shape, so nothing after the
+    generation knows which one wrote the program. `files` reads the reply a batch already wrote (scripts/fuzz_batch.py
+    collect: `<replies>/<name>.json`), so a batch's programs are judged by this same path."""
     if s.writer == "claude":
         return fuzz_claude.claude_chat(s.model, messages, s.temperature)
+    if s.writer == "files":
+        path = Path(s.replies) / f"{name}.json"
+        if not path.exists():
+            raise RuntimeError(f"the batch holds no reply for {name} (its request errored, was canceled or expired)")
+        reply = json.loads(path.read_text(encoding="utf-8"))
+        if reply.get("stop_reason") == "refusal":
+            # A refused reply is no program, whatever text preceded the refusal (review R1-2).
+            raise RuntimeError(f"the batch's reply for {name} was a refusal (stop_reason refusal)")
+        return str(reply.get("text") or ""), 0.0, "length" if reply.get("stop_reason") == "max_tokens" else "stop", 0
     return ollama_chat(s.model, messages, s.temperature, options=model_options)
 
 
@@ -1065,14 +1128,7 @@ class Fuzz:
         self.programs.mkdir(parents=True, exist_ok=True)
         self.results_path = self.out / "results.jsonl"
         self.lock = threading.Lock()
-        spec_text = SPEC.read_text(encoding="utf-8")
-        conformance_text = CONFORMANCE.read_text(encoding="utf-8")
-        declined = declined_seed_titles(spec_text, conformance_text)
-        every = clauses(spec_text, s.prefixes)
-        self.seeds = order_seeds([c for c in every if c[1] not in declined], s.seed, s.in_order)
-        self.declined_seeds = len(every) - len(self.seeds)
-        facts = PromptFacts.read(spec_text, conformance_text)
-        self.system_prompts = {family: system_prompt(facts, family) for family in EXAMPLES}
+        self.seeds, self.declined_seeds, self.system_prompts = prompt_plan(s.prefixes, s.seed, s.in_order)
         if not self.seeds:
             raise SystemExit(f"no clauses under {s.prefixes} in {SPEC}")
         work = self.out / "work"
@@ -1088,9 +1144,7 @@ class Fuzz:
         return self.s.max_usd is not None and fuzz_claude.spent() >= self.s.max_usd
 
     def seed_for(self, i: int) -> tuple[str, str, str, int]:
-        n = len(self.seeds)
-        number, title, body = self.seeds[(i // self.s.variations) % n]
-        return number, title, body, i % self.s.variations
+        return seed_at(self.seeds, self.s.variations, i)
 
     def one(self, i: int) -> dict[str, Any]:
         """One program, start to verdict. A harness failure inside it is a RUNNER_ERROR row with the traceback, never the
@@ -1107,9 +1161,7 @@ class Fuzz:
             return rec
 
     def _one(self, i: int, name: str, number: str, title: str, body: str, variation: int, rec: dict[str, Any]) -> dict[str, Any]:
-        user = seed_text(number, title, body) + f"\n\nThis is program {variation + 1} for this clause: exercise an aspect the previous programs would not."
-        rec["family"] = family_of(number)
-        messages = [{"role": "system", "content": self.system_prompts[rec["family"]]}, {"role": "user", "content": user}]
+        rec["family"], messages = first_messages(self.system_prompts, number, title, body, variation)
         src = self.programs / f"{name}.cob"
         rec["source"] = str(src.relative_to(self.out)).replace("\\", "/")
         entry = {"id": name, "source": rec["source"], "files": [], "source-format": SOURCE_FORMAT}
@@ -1149,7 +1201,7 @@ class Fuzz:
                 break
             try:
                 reply, secs, done, thinking = lossless(
-                    self.pause, lambda: writer_reply(self.s, self.model_options, messages),
+                    self.pause, lambda: writer_reply(self.s, self.model_options, messages, name),
                     requeued)
             except MODEL_ERRORS as e:
                 again = (f" (the generation was asked again {'once' if len(this_generation) == 1 else f'{len(this_generation)} times'}, "
@@ -1274,7 +1326,7 @@ def cut_off_reason(done: str, thinking_chars: int, content_chars: int, writer: s
     if thinking_chars and not content_chars:
         return (f"the model spent all {NUM_PREDICT} output tokens thinking ({thinking_chars} characters; think=false was not "
                 "honoured) and wrote no content")
-    if writer == "claude":
+    if writer in ("claude", "files"):
         return "the reply was cut off at the Claude model's output-token limit (stop_reason max_tokens)"   # review R1-6
     return f"the reply was cut off at {NUM_PREDICT} tokens"
 
@@ -2039,7 +2091,7 @@ def self_test() -> int:
     fixed_reply = ("```cobol\nIDENTIFICATION DIVISION.\nPROGRAM-ID. FUZZ.\nPROCEDURE DIVISION.\nDISPLAY WS-X\nSTOP RUN.\n```", 1.0, "stop", 0)
 
     def stubbed_one(sides: dict[str, Any], script: list[Any] | None = None, model_options: dict[str, float | int] | None = None,
-                    ) -> tuple[dict[str, Any], list[str], list[str], list[Any]]:
+                    spent_out: Any = lambda: False) -> tuple[dict[str, Any], list[str], list[str], list[Any]]:
         """Fuzz._one over a stubbed model (one fixed program, line 4 "DISPLAY WS-X") and stubbed compilers: sides[name](k) is
         that compiler's Observation of its k-th compile. `script` is what the model answers, call by call: a reply tuple, an
         exception to raise, or a function of the run's PauseGate returning one of those (it may create the PAUSE file, as the
@@ -2076,7 +2128,7 @@ def self_test() -> int:
             fake = types.SimpleNamespace(s=types.SimpleNamespace(model="m", temperature=0.3, repairs=3, keep=True, writer="ollama"), out=one_dir,
                                          programs=one_dir / "programs", we=types.SimpleNamespace(name="we", work=one_dir / "w"),
                                          they=types.SimpleNamespace(name="they", work=one_dir / "t"), pause=gate,
-                                         model_options=model_options or {}, spent_out=lambda: False,
+                                         model_options=model_options or {}, spent_out=spent_out,
                                          system_prompts={family: f"sys {family}" for family in EXAMPLES})
             row = Fuzz._one(fake, 0, "fz00000", "14.9.25", "MOVE statement", "body", 0, {"id": "fz00000"})  # type: ignore[arg-type]
             row["_pauses"] = read_pauses(one_dir)
@@ -2091,6 +2143,13 @@ def self_test() -> int:
     check("run: a WiseOwl crash on a program GnuCOBOL refused is WE_CRASH after ONE round (review R1-1: it was sent back and lost), and no refusal round is recorded",
           rec_crash["verdict"] == "WE_CRASH" and calls == ["model", "they", "we"] and rec_crash["repairs"] == 0
           and rec_crash["repair_rounds"] == [], (rec_crash.get("verdict"), calls))
+    # --max-usd (kb/Work PB4504 review R1-4, R2-2): a run past its ceiling asks no further correction; the program in flight
+    # keeps the verdict of the last compile and the row says why it stopped.
+    we_refuses = lambda k: Observation(False, 1, f"fz00000.cob(4,1): error COBOL1639: 'WS-Y{k}' is not defined", ["COBOL1639"])  # noqa: E731
+    rec_ceiling, calls, _asked, _options = stubbed_one({"they": gnu_refuses, "we": we_refuses}, spent_out=lambda: True)
+    check("run: a run past --max-usd asks no correction, keeps the first program's verdict and records stopped_at_ceiling",
+          rec_ceiling.get("stopped_at_ceiling") is True and rec_ceiling["verdict"] == "BOTH_REJECT" and rec_ceiling["repairs"] == 0
+          and calls == ["model", "they", "we"], (rec_ceiling.get("verdict"), rec_ceiling.get("stopped_at_ceiling"), calls))
     same = lambda k: Observation(False, 1, "fz00000.cob(4,1): error COBOL1639: 'WS-X' is not defined", ["COBOL1639"])  # noqa: E731
     rec_same, calls, asked, _options = stubbed_one({"they": gnu_refuses, "we": same})
     check("run: a correction that draws the same first diagnostics from both compilers ends the rounds there, BOTH_REJECT and stopped_early, after one correction rather than three (kb/Work PB3523 item 4)",
@@ -2235,11 +2294,25 @@ def self_test() -> int:
           and option_errors["ok"].startswith("2|") and "compiler not found" in option_errors["ok"], option_errors)
     # --writer claude (kb/Work PB4504): one Claude model, no Ollama-only option, and --max-usd only for the writer that spends
     writer_errors: dict[str, str] = {}
+    from scratch_repo import scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture, removed at exit)
+    files_run = scratch_dir("fz-files-")
+    (files_run / "replies").mkdir()
+    (files_run / "batch.json").write_text(json.dumps({
+        "model": "claude-sonnet-5-5", "count": 1, "clauses": list(DEFAULT_CLAUSES), "seed": 20261020, "in_order": False,
+        "variations": Settings.__dataclass_fields__["variations"].default,
+        "plan": plan_entries(tuple(DEFAULT_CLAUSES), 20261020, False, Settings.__dataclass_fields__["variations"].default, 1)}),
+        encoding="utf-8", newline="\n")
     for case, argv in (("bake-off", ["--writer", "claude", "--bake-off", "a,b", "--count", "1"]),
                        ("option", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--model-option", "sonnet:repeat_penalty=1.1"]),
                        ("usd", ["--model", "m", "--count", "1", "--max-usd", "1"]),
                        ("ok", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--max-usd", "2", "--force-open-notes",
-                               "--cobol", "no-such-cobol.exe"])):
+                               "--cobol", "no-such-cobol.exe"]),
+                       ("files-no-record", ["--writer", "files", "--replies", str(REPO), "--force-open-notes",
+                                            "--cobol", "no-such-cobol.exe"]),
+                       ("files-count", ["--writer", "files", "--replies", str(files_run / "replies"), "--count", "5",
+                                        "--seed", "7", "--force-open-notes", "--cobol", "no-such-cobol.exe"]),
+                       ("files", ["--writer", "files", "--replies", str(files_run / "replies"), "--force-open-notes",
+                                  "--cobol", "no-such-cobol.exe"])):
         err = io.StringIO()
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
             try:
@@ -2253,7 +2326,43 @@ def self_test() -> int:
           writer_errors["bake-off"].startswith("2|") and "--writer claude takes one --model" in writer_errors["bake-off"]
           and writer_errors["option"].startswith("2|") and "--writer claude takes one --model" in writer_errors["option"]
           and writer_errors["usd"].startswith("2|") and "--max-usd bounds the Claude writer" in writer_errors["usd"]
-          and writer_errors["ok"].startswith("2|") and "compiler not found" in writer_errors["ok"], writer_errors)
+          and writer_errors["ok"].startswith("2|") and "compiler not found" in writer_errors["ok"]
+          and writer_errors["files-no-record"].startswith("2|") and "needs the batch's record" in writer_errors["files-no-record"]
+          and writer_errors["files-count"].startswith("2|")
+          and "takes the plan from the batch's record: no --count, --seed" in writer_errors["files-count"]
+          and writer_errors["files"].startswith("2|") and "compiler not found" in writer_errors["files"], writer_errors)
+    # review R2-1: the judge runs the plan the guard checked. A batch submitted with other variations than this tree's
+    # default is judged with the batch's, so the Settings the run gets build the same plan batch_plan_problems verified.
+    other = Settings.__dataclass_fields__["variations"].default + 1
+    (files_run / "batch.json").write_text(json.dumps({
+        "model": "claude-sonnet-5-5", "count": 4, "clauses": list(DEFAULT_CLAUSES), "seed": 20261020, "in_order": False,
+        "variations": other, "plan": plan_entries(tuple(DEFAULT_CLAUSES), 20261020, False, other, 4)}),
+        encoding="utf-8", newline="\n")
+    ran: list[Any] = []
+
+    class Capture:
+        def __init__(self, s: Any) -> None:
+            ran.append(s)
+
+        def run(self) -> None:
+            raise SystemExit(0)
+
+    saved_fuzz = globals()["Fuzz"]
+    globals()["Fuzz"] = Capture
+    try:
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            try:
+                main(["--writer", "files", "--replies", str(files_run / "replies"), "--force-open-notes", "--cobol", sys.executable,
+                      "--out", str(files_run / "judged")])
+            except SystemExit:
+                pass
+    finally:
+        globals()["Fuzz"] = saved_fuzz
+    built = (plan_entries(ran[0].prefixes, ran[0].seed, ran[0].in_order, ran[0].variations, ran[0].count) if ran else {})
+    check("writer: a files run's Settings carry the batch's variations, count, clauses, seed and order, so the judge builds "
+          "the plan the guard checked (review R2-1)",
+          bool(ran) and ran[0].variations == other and ran[0].count == 4 and built == plan_entries(tuple(DEFAULT_CLAUSES), 20261020, False, other, 4),
+          [(r.variations, r.count) for r in ran])
     # writer_reply routes to the run's writer and Fuzz.spent_out reads the Claude writer's meter
     probe = Fuzz.__new__(Fuzz)
     probe.model_options = {}
@@ -2312,12 +2421,14 @@ def cadence_gate(work_dir: Path, force: bool) -> bool:
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--model", help="the model that writes the programs: an Ollama tag, or with --writer claude a Claude alias or id")
-    ap.add_argument("--writer", choices=("ollama", "claude"), default="ollama",
+    ap.add_argument("--writer", choices=("ollama", "claude", "files"), default="ollama",
                     help="who writes the programs: a local Ollama model (default), or a Claude model through the Claude Code CLI "
-                         "(kb/Work PB4504: a cloud session's own account pays)")
+                         "(kb/Work PB4504: a cloud session's own account pays), or `files`: judge the replies a batch already wrote "
+                         "(--replies; scripts/fuzz_batch.py, kb/Work PB4506)")
+    ap.add_argument("--replies", help="with --writer files: the batch's replies directory (fuzz_batch.py collect writes it)")
     ap.add_argument("--max-usd", type=float, help="with --writer claude: start no new program, and ask no further correction, once the "
                     "writer has spent this many US dollars (the generations in flight finish: at most --jobs calls past it)")
-    ap.add_argument("--api-key-file", help="with --writer claude: bill the Claude writer to the API key in this file (its first line), "
+    ap.add_argument("--api-key-file", help="with --writer claude: bill the Claude writer to the API key in this file (its first non-empty line), "
                     "passed only in the CLI's environment")
     ap.add_argument("--bake-off", help="comma-separated model tags; each writes --count programs, scored by GnuCOBOL acceptance")
     ap.add_argument("--count", type=int, help="programs to write (per model in a bake-off)")
@@ -2345,12 +2456,39 @@ def main(argv: list[str]) -> int:
     if a.report:
         print(write_report(Path(a.report)))
         return 0
-    if not (a.model or a.bake_off):
+    if not (a.model or a.bake_off or a.writer == "files"):
         ap.error("--model or --bake-off is required")
-    if a.count is None and a.hours is None:
+    if a.count is None and a.hours is None and a.writer != "files":
         ap.error("--count or --hours is required")
     if a.writer == "claude" and (a.bake_off or a.model_option):
         ap.error("--writer claude takes one --model and no --bake-off or --model-option (those are Ollama's)")
+    if a.writer == "files":
+        if not a.replies or not Path(a.replies).is_dir():
+            ap.error("--writer files needs --replies, the directory fuzz_batch.py collect wrote")
+        if a.bake_off or a.model_option or a.max_usd is not None or a.api_key_file or a.hours is not None:
+            ap.error("--writer files judges replies already written: no --bake-off, --model-option, --max-usd, --api-key-file or --hours")
+        # THE PLAN IS THE BATCH'S (review R1-1, R2-1): reply i is program i only under the plan the batch was submitted with,
+        # so a files run takes --count, --clauses, --seed, --in-order and the variations from batch.json (beside the replies),
+        # refuses them on its command line (review R2-3: an explicit value would be silently overridden), and refuses to
+        # start if this tree builds any program's clause, title or first request differently from the SAME values the run's
+        # Settings get.
+        given = [f"--{k.replace('_', '-')}" for k in ("count", "clauses", "seed", "in_order") if getattr(a, k) != ap.get_default(k)]
+        if given:
+            ap.error(f"--writer files takes the plan from the batch's record: no {', '.join(given)}")
+        batch_file = Path(a.replies).parent / "batch.json"
+        if not batch_file.exists():
+            ap.error(f"--writer files needs the batch's record {batch_file} (fuzz_batch.py submit writes it)")
+        batch = json.loads(batch_file.read_text(encoding="utf-8"))
+        problems = batch_plan_problems(batch)
+        if problems:
+            ap.error(f"{len(problems)} of {batch['count']} programs differ from the plan the batch was submitted with, so their "
+                     f"replies would be judged as the wrong program; first: {problems[0]}")
+        a.count, a.clauses, a.seed, a.in_order = int(batch["count"]), ",".join(batch["clauses"]), int(batch["seed"]), bool(batch["in_order"])
+        variations = int(batch["variations"])
+        a.repairs = 0                           # a written reply has no correction round
+        a.model = batch["model"]
+    else:
+        variations = Settings.__dataclass_fields__["variations"].default
     if a.max_usd is not None and a.writer != "claude":
         ap.error("--max-usd bounds the Claude writer's spend; the Ollama writer spends nothing")
     if a.api_key_file and a.writer != "claude":
@@ -2376,7 +2514,7 @@ def main(argv: list[str]) -> int:
     s = Settings(model=a.model or "", out=out, jobs=a.jobs, count=a.count, hours=a.hours,
                  prefixes=tuple(p.strip() for p in a.clauses.split(",") if p.strip()), temperature=a.temperature,
                  cobol_exe=str(Path(a.cobol).resolve()), keep=a.keep, repairs=max(0, a.repairs), seed=a.seed, in_order=a.in_order,
-                 model_options=model_options, writer=a.writer, max_usd=a.max_usd)
+                 model_options=model_options, writer=a.writer, max_usd=a.max_usd, replies=a.replies, variations=variations)
     if a.bake_off:
         bake_off(models, s)
     else:

@@ -137,6 +137,22 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     private string Prefix() =>
         Cursor.IsSet ? LocationOf(Cursor.Line, Cursor.Column) + ": " : "";
 
+    /// <summary>⛔ THE ONE RENDERING OF A DIAGNOSTIC LINE, for the current cursor. A diagnostic about the text of a skeleton read from the
+    /// repository (<see cref="DiagnosticRegion.IsRepositoryText"/>) is positioned at the EXPANDS entry and names the expansion after the
+    /// message, exactly as the report of an expansion's own compilation is (<c>ExpansionAssemblies.AtTheEntry</c>), because the positions of
+    /// its tokens are places in a text this compilation never read as a file (kb/Work PB4469, PB4483).</summary>
+    private string Render(string severity, string code, string message) =>
+        Cursor.Region is { IsRepositoryText: true } region
+            ? $"{LocationOf(region.ReportedAt.Line, region.ReportedAt.Column)}: {severity} {code}: {message} {DiagnosticRegion.InTheExpansion(region.Name)}"
+            : $"{Prefix()}{severity} {code}: {message}";
+
+    /// <summary>What makes two reports of <paramref name="line"/> one fact (<see cref="AddOnce"/>). The rendered line, except for the text of
+    /// a skeleton read from the repository: every diagnostic of it renders at the EXPANDS entry, so two distinct places of the text that raise
+    /// the same words render alike, and the place in the text (the token's own column in the recorded text, which is one line) keeps them two
+    /// (kb/Work PB4483) — as the expansion's own compilation, which reads the text at its own positions, reports them.</summary>
+    private string KeyOf(string line) =>
+        Cursor.Region is { IsRepositoryText: true } ? $"{line}\n{Cursor.Line}:{Cursor.Column}" : line;
+
     /// <summary>The file, physical line and column the user edits for RESULTANT line <paramref name="resultantLine"/>
     /// at 0-based resultant <paramref name="column"/> (kb/Work PB1801) — a fixed-form line's program text keeps the
     /// columns it was written in, and a joined continuation fragment names its own line.</summary>
@@ -147,7 +163,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public void Error(string code, string message)
     {
         ErrorsRecorded++;
-        AddOnce(Diagnostics, $"{Prefix()}error {code}: {message}");
+        AddOnce(Diagnostics, Render("error", code, message));
     }
 
     // ── ⛔ THE REFUSAL LEDGER (kb/Work PB1029) ─────────────────────────────────────────────────────────────────
@@ -251,50 +267,51 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// each EXPANSION re-binds the definition's own source lines (§12.3.8.4 GR5 — the expansion IS the definition
     /// with its formals replaced), so a defect in a line no formal touches is found once per expansion, at the
     /// same position with the same words. A diagnostic that DOES depend on the actual parameters differs in its
-    /// text and is kept for each expansion — which is exactly the per-expansion report a user needs.</summary>
+    /// text and is kept for each expansion — which is exactly the per-expansion report a user needs. The position is
+    /// the one <see cref="KeyOf"/> names, which for the text of a skeleton read from the repository is the place in
+    /// that text, not the EXPANDS entry every such diagnostic is printed at (kb/Work PB4483).</summary>
     private void AddOnce(List<string> into, string line)
     {
-        if (_muted == 0 && _reported.Add(line)) into.Add(line);
+        if (_muted == 0 && _reported.Add(KeyOf(line))) into.Add(line);
     }
     private readonly HashSet<string> _reported = new(StringComparer.Ordinal);
 
-    /// <summary>Record a warning line once (<see cref="AddOnce"/>'s rule), remembering which <see cref="DiagnosticRegion"/>s
-    /// reported it: a line only expansions' text raised is <see cref="WithdrawWarningsOf"/>-able, and one the user's own text (or a
-    /// construct that sits in no region) raised too is not.</summary>
+    /// <summary>Record a warning line once (<see cref="AddOnce"/>'s rule), remembering the ones the text of a skeleton read from the
+    /// repository raised, by region, so <see cref="WithdrawWarningsOf"/> can withdraw them. Such a line is that region's alone: it is
+    /// printed at the region's EXPANDS entry with the expansion's name (<see cref="Render"/>), which no other text's line is.</summary>
     private void AddWarningOnce(string line)
     {
         if (_muted != 0) return;
-        var region = Cursor.Region;
-        if (_reported.Add(line))
+        string key = KeyOf(line);
+        if (!_reported.Add(key)) return;
+        Warnings.Add(line);
+        if (Cursor.Region is { IsRepositoryText: true } region)
         {
-            Warnings.Add(line);
-            if (region is not null) _regionOwners[line] = [region];
-        }
-        else if (_regionOwners.TryGetValue(line, out var owners))
-        {
-            if (region is null) _regionOwners.Remove(line);
-            else if (!owners.Contains(region)) owners.Add(region);
+            if (!_regionWarnings.TryGetValue(region, out var raised)) _regionWarnings[region] = raised = [];
+            raised.Add((key, line));
         }
     }
 
-    /// <summary>The regions that reported each warning line which no text outside a region reported (<see cref="AddWarningOnce"/>).</summary>
-    private readonly Dictionary<string, List<DiagnosticRegion>> _regionOwners = new(StringComparer.Ordinal);
+    /// <summary>The warnings each region of repository text raised (<see cref="AddWarningOnce"/>), as their once-key and line.</summary>
+    private readonly Dictionary<DiagnosticRegion, List<(string Key, string Line)>> _regionWarnings = [];
 
-    /// <summary>⛔ THE GROUP DOES NOT ANSWER FOR AN EXPANSION'S TEXT WHEN ANOTHER COMPILATION DOES (kb/Work PB4469). Withdraw the warnings
-    /// raised while binding the text of <paramref name="region"/> (an expansion), except those the user's own text or another region still
-    /// standing also raised. The expansion placed in an assembly of its own is compiled apart, under the state its skeleton was published
-    /// with, and that compilation reports every warning of the text at the EXPANDS entry (<c>ExpansionAssemblies.Write</c>): the group's
-    /// own bind of the same text, which it needs only to type its callers, would report each a second time, under the group's state.
-    /// Errors are not withdrawn: an error of the group's bind stops the compilation before the other one runs.</summary>
+    /// <summary>⛔ THE GROUP DOES NOT ANSWER FOR AN EXPANSION'S TEXT WHEN ANOTHER COMPILATION DOES (kb/Work PB4469, PB4483). Withdraw the
+    /// warnings raised while binding and screening the text of <paramref name="region"/>, an expansion of a skeleton read from the
+    /// repository that this compilation does not compile: one placed in an assembly of its own, whose own compilation reports every warning
+    /// of the text at the EXPANDS entry under the state the skeleton was published with (<c>ExpansionAssemblies.Write</c>), and one imported
+    /// from the repository, which the compilation that made it reported (<c>ExpansionPlacementPass</c>). The group's bind of that text, which
+    /// it needs only to type its callers, would otherwise report each again, under the group's state. A region of the user's own text (a
+    /// skeleton written in this group, <see cref="DiagnosticRegion.IsRepositoryText"/> false) is never withdrawn: the group reports it where
+    /// the user wrote it, whichever compilation compiles the expansion. Errors are not withdrawn: an error of the group's bind stops the
+    /// compilation before the other one runs.</summary>
     public void WithdrawWarningsOf(DiagnosticRegion region)
     {
-        foreach (var (line, owners) in _regionOwners.ToArray())
-            if (owners.Remove(region) && owners.Count == 0)
-            {
-                _regionOwners.Remove(line);
-                Warnings.Remove(line);
-                _reported.Remove(line);
-            }
+        if (!_regionWarnings.Remove(region, out var raised)) return;
+        foreach (var (key, line) in raised)
+        {
+            Warnings.Remove(line);
+            _reported.Remove(key);
+        }
     }
 
     /// <summary>The depth of open <see cref="Muted"/> scopes: while it is above zero no diagnostic is recorded.</summary>
@@ -334,7 +351,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>Record a non-failing edition diagnostic (the 0903 obsolete/archaic flags; removed constructs
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>
-    public void Warning(string code, string message) => AddWarningOnce($"{Prefix()}warning {code}: {message}");
+    public void Warning(string code, string message) => AddWarningOnce(Render("warning", code, message));
 
     /// <summary>The <see cref="Warning"/> twin of the descriptor-keyed <see cref="Error(DiagnosticDescriptor,string)"/>.
     /// ⛔ ITS ABSENCE WAS A DEFECT, not a gap: a descriptor-carrying site that wanted a warning had no descriptor

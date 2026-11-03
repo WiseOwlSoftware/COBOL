@@ -116,10 +116,12 @@ public static partial class ReferenceFormatProcessor
     /// a comment-entry candidate is carried, not decided (<see cref="CommentEntryCarrier"/>; kb/Work PB4281).</param>
     /// <param name="pins">The candidates an earlier run of the text stages proved to be program text, which this walker then
     /// reads as the program text they are, not as candidates (<see cref="CommentEntryPins"/>); null for none.</param>
+    /// <param name="inclusion">Which text of the run this is (<see cref="CommentEntryPin.Inclusion"/>): the pins it reads
+    /// and the candidates it carries are this inclusion's.</param>
     public static MappedText NormalizeToFreeFormMapped(string sourceText, ReferenceFormatDiagnostics? gates, string sourcePath,
         bool? initialFixed, out ReferenceFormatMap formats, bool ccvsIndicators = false,
         IReadOnlyList<DirectiveStackOp>? implicitOps = null, bool? startsInIdentificationDivision = true,
-        CommentEntryPins? pins = null)
+        CommentEntryPins? pins = null, int inclusion = CommentEntryPins.SourceText)
     {
         // THE line-entry stage (kb/Work PB1800): every line below is read from here — terminators, tabs and (under
         // --nist) archive markers are settled, so no consumer splits, trims or expands anything itself.
@@ -136,7 +138,7 @@ public static partial class ReferenceFormatProcessor
         {
             formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines);
             bool? inIdentificationDivision = startsInIdentificationDivision;
-            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, gatesLineLength: true, ref inIdentificationDivision);
+            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, ref inIdentificationDivision);
             return Mapped(wl, wo, sourcePath);
         }
 
@@ -161,7 +163,7 @@ public static partial class ReferenceFormatProcessor
             int segEnd = s < segments.Count ? segments[s].Index + (keepsLine ? 1 : 0) : lines.Length;   // exclusive
             if (segEnd > segStart)
             {
-                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, gatesLineLength: true, ref inIdentification);
+                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, ref inIdentification);
                 outLines.AddRange(sl);
                 outOrigins.AddRange(so);
             }

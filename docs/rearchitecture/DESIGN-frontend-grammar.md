@@ -426,9 +426,19 @@ token of the word's type is re-read in its own sentence with the word retyped `I
 `procedureName` is a reference (`FREE ptr.`, a statement of the same verb, is not). With a reference the sentence is the
 header, the word is named ONCE with COBOL0901 at the first use in source order (the bound-tree funnel's rule for a gated word,
 `CobolErrorStrategy._procedureWordsNamed` for a verb reserved everywhere), and the header draws nothing of its own; with none
-it is the verb's incomplete statement and keeps the statement's own report (COBOL0001 at the period for a verb the prediction
-carries to it, `cannot parse construct near` the verb for a gated one the paragraph and statement alternatives both refuse),
-inside a paragraph and where a header could stand alike. For a gated word the decision is the grammar's own predicate
+it is the verb's incomplete statement and keeps the statement's own report: COBOL0001 at the PERIOD, the token where the operand
+the verb's general format prints is due, for every such verb (kb/Work PB4494), inside a paragraph and where a header could
+stand alike. A gated verb is the one the prediction does not carry to its period: the paragraph-header reading stays alive
+beside the statement's, the statement dies at the period, and the header, refused by the predicate, is the sole survivor, so
+ANTLR's failure stands at the verb in the paragraph's own rule, whose recovery would discard every sentence after it. The
+error strategy decides that sentence itself, ahead of the prediction, in `CobolErrorStrategy.Sync` (`SkipsBareVerbSentences`):
+it reports at the period (`FaultOfABareVerb` does the same for a failure that still reaches `ReportNoViableAlternative`) and
+consumes the verb and its period, a run of them one after another, so the sentences after it keep their own reports. The one
+decisions, both in `CobolParserCoreBase`: `SentenceIsTheVerbsStatement` (a bare verb that no procedure reference names: the
+sentence is the verb's statement) and `IsIncompleteVerbSentence` (that, and the verb alone is no statement: `FREE.`, `DISPLAY.`,
+but not `GOBACK.`, `COMMIT.`, `ROLLBACK.`, complete with no operand and never faulted or consumed; the grammar answers with one
+parse of `statement` per verb type, `VerbAloneIsAStatement`). The recovery and the report ask the second; the readings below ask
+the first. For a gated word the first is the grammar's own predicate
 (`procedureHeaderHere`: a bare statement verb is not a header without the evidence; a word no statement begins with, `END-DISPLAY`, is
 unchanged) and the error strategy's (`ReservedWordUse` returns no violation); for a verb reserved everywhere it is
 `ReservedProcedureName`'s choice of readings. A word no statement begins with, written as a paragraph header after the
@@ -1185,7 +1195,13 @@ reference formats, and the only place source comments are recognized. Its model:
   program-text case: a candidate that is program text was hidden from the stages that must read it (its COPY and REPLACE
   statements, the replacing over its words, its directives), so `Frontend.RunTextStages` runs the normalizer and
   `Preprocess` again with that candidate's physical line pinned as program text (`CommentEntryPins`, read by the two
-  converters where the division is not known) until a run names no new one. The COPY driver's
+  converters where the division is not known) until a run names none. A run pins ONE candidate, the EARLIEST of the
+  finished text that is program text (kb/Work PB4487): reading it changes only the text after it, so it is settled,
+  while the candidates after it were decided with it hidden (its COPY may bring in the IDENTIFICATION DIVISION a later one
+  stands in) and are decided again by the next run. A pin names the candidate's line in its INCLUSION
+  (`CommentEntryPin`: file, inclusion, line; the source text is inclusion 0 and the COPY driver numbers each library text
+  it normalizes 1, 2, … in text order, the number travelling in the carrier), so a library text two COPY statements bring
+  in is decided per inclusion. The COPY driver's
   cursor reads the text the conditional-compilation stage has already cut and hands a COPY's library text the division it
   finds, or NOT KNOWN. The cursor belongs to a TEXT, not to a block the
   merged driver flushes between directive lines; a spliced library

@@ -60,7 +60,10 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     private readonly EditionContext _edition = edition;
 
     public static void Run(GroupBindContext group, EditionContext edition)
-        => new ClosedFormatPass(edition).VisitPositioned(group.Tree);
+    {
+        var pass = new ClosedFormatPass(edition);
+        foreach (var text in group.Texts) pass.VisitPositioned(text);   // an expansion's text read from the repository too (kb/Work PB4483)
+    }
 
     /// <summary>Do not descend into a PROCEDURE DIVISION: the error production (either form) is reachable only from the
     /// identification division, the environment division and the data division (every row of

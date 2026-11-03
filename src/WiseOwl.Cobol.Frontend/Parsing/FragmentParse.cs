@@ -82,8 +82,11 @@ public static class FragmentParse
     /// each formal parameter-name replaced by its actual. The tokens were lexed, zero-rewritten and
     /// <c>&gt;&gt;COBOL-WORDS</c>-retyped by the frontend's one pass, so none of those steps repeats here; the
     /// parser still takes <paramref name="words"/> because its TEXT predicates (<c>Word</c>) consult the map.
-    /// Each token keeps its original line/column, so a diagnostic raised while binding the result points at the
-    /// definition's own source line.</summary>
+    /// The tokens' positions are the caller's: an expansion of a definition written in this compilation keeps the
+    /// definition's own lines and columns, so a diagnostic raised while binding the result points at the definition's
+    /// own source; one of a definition read from the repository carries the EXPANDS entry's line and the column of the
+    /// token in the recorded text, and its diagnostics are printed at the entry (<c>OoExpansion.SubstitutedTokens</c>,
+    /// <c>DiagnosticRegion</c>; kb/Work PB4483).</summary>
     public static T? ParseTokens<T>(IList<IToken> tokens, EditionInfo edition, CobolWordsMap words,
         System.Func<CobolParserCore, T> rule) where T : class
     {

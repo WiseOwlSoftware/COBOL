@@ -23,9 +23,10 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// debugging line, whose reading the unit's WITH DEBUGGING MODE decides further down the text): a line the conversion
 /// cannot yet classify, kept as an inert slot of the logical text. Layout after <see cref="Prefix"/>:
 /// <c>H|B</c> (the header line of the paragraph, or a line of its entry), <c>F|R</c> (fixed or free reference format),
-/// <c>1|0</c> (the NIST CCVS indicator dialect), the file's own line number, <c>;</c>, the column map of a line that held a
-/// tab or a supplementary-plane character (comma-separated, else empty), <c>;</c>, and the line's text as the line-entry
-/// stage settled it.</para>
+/// <c>1|0</c> (the NIST CCVS indicator dialect), the inclusion of the text the line was read in
+/// (<see cref="CommentEntryPin.Inclusion"/>), <c>:</c>, the file's own line number, <c>;</c>, the column map of a line that
+/// held a tab or a supplementary-plane character (comma-separated, else empty), <c>;</c>, and the line's text as the
+/// line-entry stage settled it.</para>
 /// </summary>
 internal static class CommentEntryCarrier
 {
@@ -38,17 +39,19 @@ internal static class CommentEntryCarrier
     /// a line of the entry.</param>
     /// <param name="IsFixed">The reference format the line was read in.</param>
     /// <param name="CcvsIndicators">Whether the NIST CCVS column-7 conventions were honored reading it.</param>
+    /// <param name="Inclusion">The inclusion of the text the line was read in (<see cref="CommentEntryPin.Inclusion"/>).</param>
     /// <param name="Line">The physical line, as the line-entry stage settled it.</param>
-    public readonly record struct Carried(bool IsHeader, bool IsFixed, bool CcvsIndicators, PhysicalLine Line);
+    public readonly record struct Carried(bool IsHeader, bool IsFixed, bool CcvsIndicators, int Inclusion, PhysicalLine Line);
 
     /// <summary>Whether <paramref name="logicalLine"/> is a carrier.</summary>
     public static bool Is(string logicalLine) => logicalLine.StartsWith(Prefix, StringComparison.Ordinal);
 
-    /// <summary>The carrier of <paramref name="line"/>.</summary>
-    public static string Encode(bool isHeader, bool isFixed, bool ccvsIndicators, in PhysicalLine line)
+    /// <summary>The carrier of <paramref name="line"/>, read in inclusion <paramref name="inclusion"/> of its text.</summary>
+    public static string Encode(bool isHeader, bool isFixed, bool ccvsIndicators, int inclusion, in PhysicalLine line)
     {
         var text = new StringBuilder(Prefix)
             .Append(isHeader ? 'H' : 'B').Append(isFixed ? 'F' : 'R').Append(ccvsIndicators ? '1' : '0')
+            .Append(inclusion.ToString(CultureInfo.InvariantCulture)).Append(':')
             .Append(line.Number.ToString(CultureInfo.InvariantCulture)).Append(';');
         if (line.Columns is { } columns) text.Append(string.Join(',', columns.ToArray()));
         return text.Append(';').Append(line.Text).ToString();
@@ -60,10 +63,12 @@ internal static class CommentEntryCarrier
     {
         if (!Is(logicalLine)) throw Damaged(logicalLine);
         var body = logicalLine.AsSpan(Prefix.Length);
+        int inclusionEnd = body.IndexOf(':');
         int numberEnd = body.IndexOf(';');
-        if (body.Length < 4 || numberEnd < 3
+        if (body.Length < 4 || inclusionEnd < 3 || numberEnd <= inclusionEnd
             || body[0] is not ('H' or 'B') || body[1] is not ('F' or 'R') || body[2] is not ('1' or '0')
-            || !int.TryParse(body[3..numberEnd], NumberStyles.None, CultureInfo.InvariantCulture, out int number))
+            || !int.TryParse(body[3..inclusionEnd], NumberStyles.None, CultureInfo.InvariantCulture, out int inclusion)
+            || !int.TryParse(body[(inclusionEnd + 1)..numberEnd], NumberStyles.None, CultureInfo.InvariantCulture, out int number))
             throw Damaged(logicalLine);
         var rest = body[(numberEnd + 1)..];
         int columnsEnd = rest.IndexOf(';');
@@ -80,7 +85,7 @@ internal static class CommentEntryCarrier
             }
             columns = new ColumnMap([.. positions]);
         }
-        return new Carried(body[0] == 'H', body[1] == 'F', body[2] == '1',
+        return new Carried(body[0] == 'H', body[1] == 'F', body[2] == '1', inclusion,
             new PhysicalLine(number, rest[(columnsEnd + 1)..].ToString(), columns));
     }
 
