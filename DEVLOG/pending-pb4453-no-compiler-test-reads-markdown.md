@@ -9,6 +9,10 @@ All 60,000 tests passed, and the watch reported 167 opened paths.
 Almost all were one test walking every doc (`SortRuntimeDocShapeDriftTests`), so the specific readers came from a static scan of `tests/` as well.
 The watch does not cover the repository root, so `README.md` was found only by that scan.
 A second run found `docs/CONFORMANCE.md` still opened, by `conformance-suite/harness/generate.py --out`, which a Conformance test runs once per process.
+A third still found it opened once, and the watch cannot say by whom, so an `strace -f -e trace=openat,execve` run of the Unit assembly named the thread: it was in the test host itself.
+The reader was `SpecTraceabilityInventoryDriftTests` resolving the 346 inventory anchors of the form `docs/CONFORMANCE.md#DOC-A.1-n` by reading the file.
+That check is now `scripts/docchecks/inventory.py`, and `tests/doc-facts/inventory-anchor-kinds.json` names the document kinds the audit resolves so that the Unit test resolves every other kind.
+The fourth Linux run was GREEN, `inert-watch` included: `=== INERT WATCH: GREEN — no inert or tooling-lane path was opened (105 director(ies) watched; command exit 0) ===` over 39,476 Unit, 21,019 Conformance and 37 Characterization tests.
 
 **The fix has three shapes, one per kind of reader.**
 - A check over the Markdown alone became the `DOC AUDITS` gate audit, `python scripts/doc_audits.py --check`, with one module per subject under `scripts/docchecks/`.
@@ -56,6 +60,17 @@ Six such entries were removed.
 It is a READ entry, so a change to the spec still runs the whole population.
 The other READ entries are the rule catalog, the architecture edges and the census records under docs/, which are JSON.
 Moving the spec tables into audits would be its own campaign, and it is reported rather than taken.
+
+**Gate.** The first gate was RED on one test, `SpecTraceabilityInventoryDriftTests.TheseChecks_ActuallyFail_OnAFabricatedInventory`.
+Its fixture anchors into a `.py` file, and the first version of the kinds file listed the kinds the Unit test resolves instead of the document kinds the audit resolves, so the fixture's anchor stopped being checked.
+The kinds file now names the document kinds, and the Unit test resolves every other kind.
+The second gate (run `000002-20261103T080338Z`, the previously red class first) printed `=== BUILD-LOCAL GATE: GREEN — Conformance 21,019/21,019 · Unit 39,443/39,443 · Characterization 37/37 cases ran (skipped 0) ===`.
+The landing's merge group is the first run of the merged tree, Linux and Release, as always.
+
+**Self-review.** Architecture: one mechanism per job, a facts file for what the compiler holds, an extract for what a test needs from a document, an audit for the rest; no C# text in a bound node was touched.
+Full code: each ported rule was read against the C# it replaces, and the module self-tests plant every violation; the rendered-views audit then found four classes still carrying the `Sweep` trait that no longer sweep, and the strace probe found the last reader.
+Performance: the audit takes about 7 seconds, mostly the ISO text normalized for the VCR citations and the `src/` code scan, and runs beside the build.
+Duplication: the C# twin of the register parser is gone, the untyped-route pattern and the document kinds each live in one data file read by both languages.
 
 **Docs.**
 - DESIGN-test-build-ci §3.18 and the lane text.
