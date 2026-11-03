@@ -194,7 +194,7 @@ public sealed class ExternalRepositoryResolutionTests
     }
 
     [Fact]   // REPO-12 (§9.2): the previous build of the output was compiled by another runtime major, so it is not compared.
-    public void APreviousBuildAnOlderRuntimeCompiled_IsRepo12_AndIsOverwritten()
+    public void APreviousBuildAnotherRuntimeMajorCompiled_IsRepo12_AndIsOverwritten()
     {
         WithDirectory("repo-12", dir =>
         {
@@ -340,29 +340,13 @@ public sealed class ExternalRepositoryResolutionTests
 
     private const string ShadowingClause = " AS \"R2103G\"";
 
-    /// <summary>Makes the entry at <paramref name="dll"/> one an older runtime major compiled: its recorded runtime version
-    /// (the attribute blob's UTF-8 text, which the metadata reader decodes) names another major
-    /// (<see cref="RuntimeVersionSkew.OtherMajor"/>), in the same number of bytes so every offset of the assembly stays
-    /// (REPO-7's input, <c>RuntimeAbi.Skew</c>).</summary>
+    /// <summary>Makes the entry at <paramref name="dll"/> one another runtime major compiled: its recorded runtime version
+    /// (the attribute blob's UTF-8 text, which the metadata reader decodes) names the NEXT major
+    /// (<see cref="RuntimeVersionSkew.OtherMajor"/>; the previous one at an all-nines major, <see cref="RuntimeVersionSkew.OtherMajorOf"/>),
+    /// in the same number of bytes so every offset of the assembly stays. REPO-7 and REPO-12 fire on any major that differs from
+    /// the running runtime's (REPO-7's input, <c>RuntimeAbi.Skew</c>), so the direction is immaterial.</summary>
     private static void MakeStale(string dll) =>
         Assert.True(RuntimeVersionSkew.Patch(dll, System.Text.Encoding.UTF8) > 0, "the library records its runtime version nowhere in UTF-8");
-
-    /// <summary>Replaces every occurrence of <paramref name="from"/> in the file by <paramref name="to"/>, of the same length so
-    /// every offset of the assembly stays; the file must hold at least one, or the fixture damaged nothing.</summary>
-    private static void PatchEvery(string dll, byte[] from, byte[] to, string absent)
-    {
-        Assert.Equal(from.Length, to.Length);
-        Assert.False(from.AsSpan().SequenceEqual(to), "the patch changes nothing");
-        byte[] bytes = File.ReadAllBytes(dll);
-        int replaced = 0;
-        for (int at = bytes.AsSpan().IndexOf(from); at >= 0; at = bytes.AsSpan().IndexOf(from))
-        {
-            to.CopyTo(bytes, at);
-            replaced++;
-        }
-        Assert.True(replaced > 0, absent);
-        File.WriteAllBytes(dll, bytes);
-    }
 
     /// <summary>A custom-attribute blob's SerString for text shorter than 128 bytes: one length byte, then the UTF-8 (ECMA-335
     /// II.23.3). Searching for the length-prefixed form matches a named argument or a value, never a longer text it sits in.</summary>
@@ -380,21 +364,21 @@ public sealed class ExternalRepositoryResolutionTests
     private static void RenameNamedArgument(string dll, string argument)
     {
         string renamed = argument[..^1] + (argument[^1] == 'X' ? 'Y' : 'X');
-        PatchEvery(dll, SerString(argument), SerString(renamed), $"no attribute of the library names the argument {argument}");
+        Assert.True(ByteImage.PatchFile(dll, SerString(argument), SerString(renamed)) > 0, $"no attribute of the library names the argument {argument}");
     }
 
     /// <summary>Damages the description of a library's formal so the reader accepts it and the codec cannot rebuild it: the
     /// redefinition <paramref name="target"/> names (a named argument the reader does not cross-check) is changed to a name no
     /// preceding sibling carries (REPO-5's input). The target's own entry keeps its name.</summary>
     private static void RedirectRedefinition(string dll, string target, string newTarget) =>
-        PatchEvery(dll, [.. SerString("RedefinesTarget"), .. SerString(target)], [.. SerString("RedefinesTarget"), .. SerString(newTarget)],
-            $"no description of the library redefines '{target}'");
+        Assert.True(ByteImage.PatchFile(dll, [.. SerString("RedefinesTarget"), .. SerString(target)],
+            [.. SerString("RedefinesTarget"), .. SerString(newTarget)]) > 0, $"no description of the library redefines '{target}'");
 
     /// <summary>Damages the library's index (the assembly attribute <c>CobolRepositoryAttribute.Units</c>): the separator
     /// after the unit's externalized name becomes a character the row grammar has no use for, so the row has one field instead of
     /// two (<c>RepositoryIndex.TryDecodeUnit</c>, REPO-4's other input).</summary>
     private static void BreakIndexRow(string dll, string unit) =>
-        PatchEvery(dll, System.Text.Encoding.UTF8.GetBytes($":{unit}:{unit}"), System.Text.Encoding.UTF8.GetBytes($":{unit}={unit}"),
+        Assert.True(ByteImage.PatchFile(dll, System.Text.Encoding.UTF8.GetBytes($":{unit}:{unit}"), System.Text.Encoding.UTF8.GetBytes($":{unit}={unit}")) > 0,
             $"the index of the library has no row for {unit}");
 
     [Fact]   // GR11 b): a library built without signatures (REPO-8's entry) beside the group's own prototype of its function.
@@ -412,8 +396,8 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // GR11 b): the same, with an entry an older runtime major compiled (REPO-7's entry).
-    public void AGroupFunctionPrototype_IgnoresAnEntryAnOlderRuntimeCompiled()
+    [Fact]   // GR11 b): the same, with an entry another runtime major compiled (REPO-7's entry).
+    public void AGroupFunctionPrototype_IgnoresAnEntryAnotherRuntimeMajorCompiled()
     {
         WithDirectory("repo-fn-b7", dir =>
         {
