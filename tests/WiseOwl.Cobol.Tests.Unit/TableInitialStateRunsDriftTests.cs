@@ -107,7 +107,7 @@ public sealed class TableInitialStateRunsDriftTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
-            var bound = emitter.Bind(tree!, new EditionContext(2023));
+            var bound = new BinderDriver().Bind(tree!, new EditionContext(2023));
             return emitter.EmitBound(bound, "DRIFTPROBE");
         }
         finally { FileHarness.TryDelete(path); }

@@ -104,7 +104,7 @@ public sealed class Format4UseObjectSelectorDriftTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2002 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
-            var comp = emitter.Bind(tree!, new EditionContext(2002));
+            var comp = new BinderDriver().Bind(tree!, new EditionContext(2002));
             return (emitter.EmitBound(comp, "DRIFTPROBE"), comp.OoClasses);
         }
         finally { FileHarness.TryDelete(path); }

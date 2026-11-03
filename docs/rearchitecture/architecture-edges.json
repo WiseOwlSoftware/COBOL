@@ -1662,27 +1662,12 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Frontend.Generated",
       "uses": 4,
-      "walkUses": 2,
+      "walkUses": 0,
       "removedBy": [
         "PB2398"
       ],
       "plan": "PB2398 (extract: BoundCompilation.Tree and BoundUnit.Ctx, BoundCompilation.cs:34, BoundUnit.cs:34, carry parse contexts across ICodeGenBackend; each reader's fact becomes a bound-node fact, DESIGN-backend-abstraction §1.1 lists no parse context)",
-      "pairs": [
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
-          "to": "WiseOwl.Cobol.Frontend.Generated.CobolParserCore",
-          "removedBy": [
-            "PB2398"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
-          "to": "WiseOwl.Cobol.Frontend.Generated.CobolParserCore",
-          "removedBy": [
-            "PB2398"
-          ]
-        }
-      ]
+      "pairs": []
     },
     {
       "from": "WiseOwl.Cobol.Binding.Passes",
@@ -1759,9 +1744,8 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 149,
+      "walkUses": 147,
       "removedBy": [
-        "PB2290",
         "PB2320",
         "PB2361",
         "PB2399",
@@ -1772,23 +1756,6 @@
       ],
       "plan": "PB2361 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1). PB2375 (landed) removed UnitEmitters.Refs and the emit-time ResolveItem calls: the emitters read the PlaceTable the binder builds (BoundUnit.Places, OoClassUnit.Places)",
       "pairs": [
-        {
-          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
-          "to": "WiseOwl.Cobol.Binding.BinderDriver",
-          "removedBy": [
-            "PB2290",
-            "PB2418",
-            "PB2320"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
-          "to": "WiseOwl.Cobol.Binding.EditionContext",
-          "removedBy": [
-            "PB2290",
-            "PB2420"
-          ]
-        },
         {
           "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
           "to": "WiseOwl.Cobol.Binding.CobolClass",
@@ -3261,39 +3228,23 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Frontend.Generated",
       "uses": 2,
-      "walkUses": 1,
+      "walkUses": 0,
       "removedBy": [
         "PB2398"
       ],
       "plan": "PB2398 (the two code-generation parse-context reads become bound-node facts)",
-      "pairs": [
-        {
-          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
-          "to": "WiseOwl.Cobol.Frontend.Generated.CobolParserCore",
-          "removedBy": [
-            "PB2398"
-          ]
-        }
-      ]
+      "pairs": []
     },
     {
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Frontend.Preprocessor",
       "uses": 1,
-      "walkUses": 1,
+      "walkUses": 0,
       "removedBy": [
         "PB2408"
       ],
       "plan": "PB2408 (extract: the DirectiveResults read, CSharpEmitter.cs:32, moves to bind time)",
-      "pairs": [
-        {
-          "from": "WiseOwl.Cobol.CodeGen.CSharpEmitter",
-          "to": "WiseOwl.Cobol.Frontend.Preprocessor.DirectiveResults",
-          "removedBy": [
-            "PB2408"
-          ]
-        }
-      ]
+      "pairs": []
     },
     {
       "from": "WiseOwl.Cobol.CodeGen.Emit",

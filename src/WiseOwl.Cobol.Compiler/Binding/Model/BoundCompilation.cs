@@ -1,12 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Frontend.Generated;
-
 using WiseOwl.Cobol.Compiler.Oo;
 
 namespace WiseOwl.Cobol.Binding.Model;
-
-using Core = CobolParserCore;
 
 /// <summary>
 /// The immutable result of the Binder phase (rearch PHASE-06 Step 2 — replaces the emitter-owned
@@ -14,12 +10,10 @@ using Core = CobolParserCore;
 /// <see cref="BinderDriver.Bind"/>. The emitter consumes it READ-ONLY — no CodeGen write into the Binding data
 /// model remains (exit criterion #2; the storage-form decision and the file-connector registry-key qualification
 /// both run inside Bind).
-/// <para><paramref name="Tree"/> is the parse-tree ROOT — the conformance pass's parse-tree arm walks it for the
-/// syntactic gates that have no bound-node representation (introduction/removal on RECOGNITION, DEVLOG 724).
-/// Carrying the parse root on this GROUP record does NOT put a parse context on any bound NODE — the
-/// <c>BoundTree.cs</c> "no raw parse context" invariant stands.</para>
+/// <para>⛔ It carries NO parse context (kb/Work PB2398; DESIGN-backend-abstraction §1.1): the conformance pass's parse-tree
+/// arm walks the group's parse root on the binder's own <c>GroupBindContext</c>, and the definition each unit was bound from
+/// is on the bind session's <c>SourceMap</c>, so a backend that consumes this record cannot reach the parser.</para>
 /// </summary>
-/// <param name="Tree">The compilation group's parse root (the conformance pass's parse-arm input).</param>
 /// <param name="Units">Program units in emission order (containers precede containees).</param>
 /// <param name="ClassUnits">CLASS-ID units (each carrying its OBJECT + FACTORY halves).</param>
 /// <param name="OoClasses">The group's pass-1 class symbol table (OO deep-dive D1).</param>
@@ -46,7 +40,6 @@ using Core = CobolParserCore;
 /// <param name="InterfaceRecords">The record of each interface this module emits (ISO §8.13), under
 /// <paramref name="PublishesSignatures"/>; empty otherwise.</param>
 internal sealed record BoundCompilation(
-    Core.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,
     IReadOnlyList<OoClassUnit> ClassUnits,
     OoClassTable OoClasses,

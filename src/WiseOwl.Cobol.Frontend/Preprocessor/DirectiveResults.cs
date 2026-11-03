@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
 /// The frontend's ISO §7.3 directive outputs for one compilation group, as ONE record the binder consumes
-/// (<c>CSharpEmitter.Bind</c> / <c>BinderDriver.Bind</c>): the <c>&gt;&gt;TURN</c> events (§7.3.25 — the group's
+/// (<c>BinderDriver.Bind</c>): the <c>&gt;&gt;TURN</c> events (§7.3.25 — the group's
 /// compile-time TurnState), the <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> events (§7.3.23), the <c>&gt;&gt;FLAG-02</c> /
 /// <c>&gt;&gt;FLAG-14</c> events (§7.3.14 / §7.3.15), the <c>&gt;&gt;PROPAGATE</c> events (§7.3.21 — folded per
 /// source element for automatic propagation, kb/Work PB1119), the <c>&gt;&gt;COBOL-WORDS</c> map (§7.3.10) and the

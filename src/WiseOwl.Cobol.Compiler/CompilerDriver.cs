@@ -204,7 +204,7 @@ public static class CompilerDriver
                 { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
 
         // Phase 2 — BIND under the targeted EDITION, then emit typed-native C#. The Binder phase
-        // (BinderDriver.Bind behind emitter.Bind, P6) runs the DECLARED manifest whose NAMED TERMINAL pass is the
+        // (BinderDriver.Bind, P6) runs the DECLARED manifest whose NAMED TERMINAL pass is the
         // ONE version-conformance funnel (P3's two-arm pass — the SOLE edition gate: its parse-tree arm fires the
         // syntactic introduction/removal/phrase gates + the §8.9 reserved-word funnel on RECOGNITION, its
         // bound-tree arm the genuinely-semantic gates), so the returned BoundCompilation already carries EVERY
@@ -260,7 +260,7 @@ public static class CompilerDriver
         // Phases 2b + 3 — the BACKEND (the ICodeGenBackend seam, P7 Step 1): render the bound tree and compile
         // the result. Everything after Bind sits behind the seam so a second backend (direct CIL, PHASE 16) is a
         // new implementation, not a pipeline fork. Emit is unreachable when any diagnostics exist (above).
-        var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
+        var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter: the Roslyn backend's emit entry
         // Placement (a): an expansion whose code names nothing of this group is compiled apart, into an assembly of its own that the
         // group then names a type of (DESIGN-external-repository §10.5) — so it is written BEFORE the group's module, which references it.
         // kb/Work PB4502 review R1-1, R2-1, R2-2: the write phase is where the file system answers. An output the host refuses

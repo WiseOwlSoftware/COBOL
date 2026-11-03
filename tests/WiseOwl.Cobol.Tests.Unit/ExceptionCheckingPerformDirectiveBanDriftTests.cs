@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
@@ -194,7 +193,7 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(2023);
-            new CSharpEmitter().Bind(tree!, edition, frontend.Directives);
+            new BinderDriver().Bind(tree!, edition, frontend.Directives);
             return edition;
         }
         finally { FileHarness.TryDelete(path); }

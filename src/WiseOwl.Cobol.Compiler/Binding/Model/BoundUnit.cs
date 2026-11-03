@@ -1,12 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Repository;
 
 namespace WiseOwl.Cobol.Binding.Model;
-
-using Core = CobolParserCore;
 
 /// <summary>One program unit of the compilation group: its identity, containment, PROGRAM-ID attributes
 /// (ISO §11.10 / §8.6.6), bound model, and the GLOBAL bridges its class must emit (§13.18.27 GR2).
@@ -32,7 +29,6 @@ internal sealed class BoundUnit
     /// §12.3.8.4 GR10 a)'s program-definition search. kb/Work PB303.</summary>
     public required string ExternalizedName;
     public required string ClassName;
-    public required Core.ProgramUnitContext Ctx;
     /// <summary>Where this unit's source text STARTS in the compilation group — the character offset of its first
     /// token, a total order over every source element of the group (§12.3.8.4 GR10 a) / GR11 a): "a program
     /// definition specified PREVIOUSLY in the same compilation group" means a definition whose position is less

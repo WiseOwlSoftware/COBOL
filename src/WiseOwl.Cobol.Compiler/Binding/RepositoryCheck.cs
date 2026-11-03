@@ -58,7 +58,7 @@ internal static class RepositoryCheck
                     continue;
                 string kind = unit.IsFunction ? "function" : "program";
                 if (previous) space.Inputs.RecordRepositoryRead();
-                using var _ = session.Edition.At(BinderDriver.NameCtx(unit));
+                using var _ = session.Edition.At(session.Sources.NameOf(unit));
                 session.Edition.Warning(DiagnosticCatalog.RepositorySignatureDiffers,
                     $"the {kind}{(unit.IsPrototype ? " prototype" : "")} {unit.Name} AS \"{unit.ExternalizedName}\" differs from "
                     + $"{(record.Kind is RepositoryUnitKind.ProgramPrototype or RepositoryUnitKind.FunctionPrototype ? "the prototype" : "the definition")} "

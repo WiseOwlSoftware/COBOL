@@ -3,7 +3,6 @@
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Passes;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -71,7 +70,7 @@ public sealed class WatermarkTests
             var diags = new DiagnosticBag();
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
-            var comp = new CSharpEmitter().Bind(tree!, new EditionContext(2023));
+            var comp = new BinderDriver().Bind(tree!, new EditionContext(2023));
             Assert.All(comp.Units, u => Assert.Equal(PassPhase.EditionConformanceChecked, u.Data.State.Watermark));
         }
         finally { FileHarness.TryDelete(path); }

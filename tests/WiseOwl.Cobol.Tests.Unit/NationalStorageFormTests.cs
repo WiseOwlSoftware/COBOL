@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -23,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class NationalStorageFormTests
 {
-    /// <summary>Bind a WORKING-STORAGE fragment through the FULL pipeline (frontend → CSharpEmitter.Bind runs
+    /// <summary>Bind a WORKING-STORAGE fragment through the FULL pipeline (frontend → BinderDriver.Bind runs
     /// the StorageFormPass group tail) and return the unit's populated <see cref="DataBinder"/>.</summary>
     private static DataBinder BindWs(string ws)
     {
@@ -46,9 +45,8 @@ public sealed class NationalStorageFormTests
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             Assert.NotNull(tree);
-            var emitter = new CSharpEmitter();
             var edition = new EditionContext(2002, permissive: false);
-            var bound = emitter.Bind(tree!, edition, frontend.Directives);
+            var bound = new BinderDriver().Bind(tree!, edition, frontend.Directives);
             return bound.Units.Single().Data;
         }
         finally { FileHarness.TryDelete(path); }

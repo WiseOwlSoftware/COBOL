@@ -33,8 +33,8 @@ namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 /// <para>
 /// The parse-context half is the layering rule's: <c>docs/rearchitecture/architecture-edges.json</c> may not ALLOW an
 /// edge from the neutral layers to the parse tree or the binder, so its walk (ArchitectureEdgesDriftTests) pins every
-/// such field at its tolerated row (BoundCompilation.Tree and BoundUnit.Ctx, kb/Work PB2398; the binder fields, PB2293's
-/// waves). That walk sees product types only, so this fixture refuses the one parse-tree reference it cannot see, a
+/// such field at its tolerated row (the binder fields, PB2293's waves; BoundCompilation.Tree and BoundUnit.Ctx left with
+/// kb/Work PB2398). That walk sees product types only, so this fixture refuses the one parse-tree reference it cannot see, a
 /// member of an ANTLR runtime type (<see cref="TheBackendInput_HoldsNoParseTree"/>), unless an L6 leak row tolerates it
 /// (the binder <c>StatementBinder</c> still declared in the bound layer, kb/Work PB2347). Assertion 3, two backends producing
 /// byte-identical output, lands with the CIL seam proof (§6, §3.3); until then

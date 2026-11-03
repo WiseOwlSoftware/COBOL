@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -69,7 +68,7 @@ public sealed class ObjectReferenceIdentityDescriptionTests
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(2023);
-            var comp = new CSharpEmitter().Bind(tree!, edition, frontend.Directives);
+            var comp = new BinderDriver().Bind(tree!, edition, frontend.Directives);
             Assert.True(edition.Diagnostics.Count == 0, string.Join("\n", edition.Diagnostics));
             var formals = comp.Units.Single(u => u.Name == "P2104D").Data.Linkage.Formals;
             return (formals[0].Item, formals[1].Item, comp.OoClasses);

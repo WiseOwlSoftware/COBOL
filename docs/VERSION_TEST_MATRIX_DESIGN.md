@@ -254,7 +254,7 @@ untouched); `Program.cs` prints warnings to stderr always.
 - **Walk (parse-tree arm):** NO listener is generated (ANTLR runs `-no-listener -visitor`) — the arm derives from the
   generated `CobolParserCoreBaseVisitor<object?>` (namespace `WiseOwl.Cobol.Frontend.Generated`); overrides return
   `base.VisitChildren(ctx)` to keep descending. Root = the compilation unit produced by `Frontend.Parse`.
-- **Hook:** the pass is the NAMED TERMINAL pass of the binder manifest (run behind `emitter.Bind`), so the returned
+- **Hook:** the pass is the NAMED TERMINAL pass of the binder manifest (run by `BinderDriver.Bind`), so the returned
   `BoundCompilation` already carries EVERY edition diagnostic on the sink — for both a full compile and a CheckOnly
   verdict. `CompilerDriver.Compile` fails fast on `edition.Diagnostics` BEFORE the backend runs (a removed/unintroduced
   construct may have no emit path). Edition errors ride the SAME `EditionContext` → the existing BindError path; no new

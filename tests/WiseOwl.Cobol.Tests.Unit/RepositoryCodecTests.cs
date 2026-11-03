@@ -3,7 +3,6 @@
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -646,7 +645,7 @@ public sealed class RepositoryCodecTests
         var tree = frontend.Parse(path, diags);
         Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
         var context = new EditionContext(edition, permissive) { RepositoryUpdate = repositoryUpdate };
-        var comp = new CSharpEmitter().Bind(tree!, context, frontend.Directives);
+        var comp = new BinderDriver().Bind(tree!, context, frontend.Directives);
         Assert.False(context.HasErrors, string.Join("\n", context.Diagnostics));
         return comp;
     }

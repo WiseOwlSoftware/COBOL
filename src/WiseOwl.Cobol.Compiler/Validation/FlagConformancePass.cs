@@ -129,7 +129,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         // mapped below.
         var unitByIdentification = new Dictionary<CobolParserCore.IdentificationDivisionContext, BoundUnit>();
         foreach (var unit in group.Units)
-            if (unit.Ctx.identificationDivision() is { } identification) unitByIdentification[identification] = unit;
+            if (group.Session.Sources.Of(unit).identificationDivision() is { } identification) unitByIdentification[identification] = unit;
 
         // ⛔ AND EVERY METHOD (kb/Work PB1952): §7.3.14.4 GR4 d) and e) are asked of every source element, and a
         // method's operands resolve in the forest of the OBJECT or FACTORY that holds it, through the method's own

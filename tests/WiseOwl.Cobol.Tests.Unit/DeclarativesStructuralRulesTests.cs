@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -366,7 +365,7 @@ public sealed class DeclarativesStructuralRulesTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = level }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(level);
-            new CSharpEmitter().Bind(tree!, edition);
+            new BinderDriver().Bind(tree!, edition);
             return [.. edition.Diagnostics, .. edition.Warnings];   // SR3 is a WARNING (D-DECLREF)
         }
         finally { FileHarness.TryDelete(path); }
