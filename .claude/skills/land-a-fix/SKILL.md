@@ -79,7 +79,7 @@ Use the `gate` skill. Read the verdict line, then commit as a separate call.
   or deletes one (exit 6, `scripts/devlog.py check`; kb/Work PB3123: a merge group is built on the groups queued ahead
   of it, so the number is never held to the group's base). No landing records or commits an arch-oracle baseline
   (kb/Work PB3107): a restructuring wave compares against its own base commit with `scripts/arch/compare_oracle.py`.
-- Commit message: write it to a scratchpad file and use `git commit -F <file>`. Do NOT inline a PowerShell
+- Commit message: write it to a file under your own scratch directory (MANDATORY-PRACTICES P16; an attended session: its own subdirectory of the session scratchpad) and use `git commit -F <file>`. Do NOT inline a PowerShell
   here-string in the Bash tool — it is POSIX sh and the markers leak into the message.
 - **Update the item's `kb/Work/` note in the SAME commit** — `status: landed`, and `closes_rows:` naming the
   traceability-inventory rows this fix re-verdicted (`closes_rows: []` plus a `closes_rows_reason:` when it

@@ -157,7 +157,7 @@ if os.environ.get("COBOL_COORD_DIR") and any(call.subcommand == "push" for call 
 # the first `<<` (a `<<` inside quotes is no heredoc, and a command after the body is no body)
 if any(re.search(r"\\[nrtuUx0abfvdswDSW\\'\"]", body) for st in STEPS for body in st.heredocs):
     block("this heredoc body contains backslash escape sequences, which have been mangled here repeatedly. Write the "
-          "script or file with the Write tool (into the scratchpad) and run it, or express the character without an "
+          "script or file with the Write tool (into your own scratch directory, MANDATORY-PRACTICES P16) and run it, or express the character without an "
           "escape (chr(10), a character class).")
 
 # 4. dotnet test filters, per `dotnet test` command: its own `--filter` value, and its own redirection or the reader the
