@@ -1,4 +1,4 @@
-## PB4508 — an undeclared NULL in a CALL argument at 85 draws the undefined name alone
+## Entry 3055 — 2026-11-03 15:11 PST — PB4508 — an undeclared NULL in a CALL argument at 85 draws the undefined name alone
 
 **Re-probe (my build, `--std 85`).** `CALL "X" USING NULL`, `USING BY CONTENT NULL` and the pb4155 golden's three CALLs each drew
 COBOL0900 ("a literal or expression as a CALL argument requires COBOL-2002") AND COBOL1639 ("'NULL' is not defined"); the
@@ -22,3 +22,4 @@ the xunit test's); the 2002 half is `pb1630_null_argument_crossing`.
 
 **Rows.** None claimed, none closed. Sweep: the other `IsFreeAt("NULL")` readers (`PredefinedNullRule`, `ExpressionBinder`,
 `SetBinder`) report the undefined reference alone already; INVOKE's argument NULL is a 2002 construct.
+
