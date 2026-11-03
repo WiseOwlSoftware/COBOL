@@ -14,6 +14,26 @@ public readonly record struct DiagnosticCursor(int Line, int Column)
 {
     /// <summary>True when a position is set (a positive line).</summary>
     public bool IsSet => Line > 0;
+
+    /// <summary>The <see cref="DiagnosticRegion"/> the construct sits in, null for the user's own text (kb/Work PB4469). It travels
+    /// with the position, so a diagnostic a post-build pass reports from a captured cursor is attributed exactly as one reported while
+    /// the construct bound.</summary>
+    public DiagnosticRegion? Region { get; init; }
+}
+
+/// <summary>⛔ A SPAN OF TEXT THAT IS NOT THE USER'S OWN, AND WHOSE DIAGNOSTICS BELONG TO IT (kb/Work PB4469). A parameterized class's
+/// expansion is the skeleton's tokens with the formals replaced (ISO §12.3.8.4 GR5), bound by the group that asked for it; where the
+/// expansion is compiled apart, in an assembly of its own, its own compilation reports the same text again. A sink reads the region
+/// of the cursor to know which construct a diagnostic is about, so the group can withdraw the ones another compilation answers for
+/// instead of reporting a fact twice. Identity is the object: two regions of one name are two regions.</summary>
+/// <param name="Name">What the region is, for the reader of a debugger or a message (an expansion's name).</param>
+public sealed class DiagnosticRegion(string name)
+{
+    /// <summary>What the region is (an expansion's name).</summary>
+    public string Name { get; } = name;
+
+    /// <inheritdoc />
+    public override string ToString() => Name;
 }
 
 /// <summary>Restores the sink's previous cursor when disposed — the RAII half of
@@ -38,8 +58,12 @@ public static class DiagnosticCursorExtensions
         return new DiagnosticCursorScope(sink, saved);
     }
 
-    /// <summary>Position at a captured cursor; an UNSET cursor leaves the current position standing (a synthetic
-    /// item reports at whatever construct is being processed, never at "line 0").</summary>
-    public static DiagnosticCursorScope At(this IDiagnosticSink sink, DiagnosticCursor at) =>
-        at.IsSet ? sink.At(at.Line, at.Column) : sink.At(sink.Cursor.Line, sink.Cursor.Column);
+    /// <summary>Position at a captured cursor, its <see cref="DiagnosticCursor.Region"/> with it; an UNSET cursor leaves the current
+    /// position standing (a synthetic item reports at whatever construct is being processed, never at "line 0").</summary>
+    public static DiagnosticCursorScope At(this IDiagnosticSink sink, DiagnosticCursor at)
+    {
+        var saved = sink.Cursor;
+        if (at.IsSet) sink.Cursor = at;
+        return new DiagnosticCursorScope(sink, saved);
+    }
 }

@@ -185,14 +185,15 @@ internal static class OoExpansion
         var expandedNames = new HashSet<string>(CobolNames.Comparer);
         foreach (var x in order)
         {
-            var tokens = SubstitutedTokens(x);
+            var region = new DiagnosticRegion(x.Name);
+            var tokens = SubstitutedTokens(x, region);
             if (x.Of.IsInterface)
             {
                 if (FragmentParse.ParseTokens(tokens, edition.Edition, words, p => p.interfaceDefinition()) is { } ictx)
                 {
                     outInterfaces.Add(ictx);
                     expandedNames.Add(x.Of.Name);
-                    origins[ictx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens));
+                    origins[ictx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens), region);
                 }
                 else ReparseFailed(x);
             }
@@ -200,7 +201,7 @@ internal static class OoExpansion
             {
                 outClasses.Add(cctx);
                 expandedNames.Add(x.Of.Name);
-                origins[cctx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens));
+                origins[cctx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens), region);
             }
             else ReparseFailed(x);
         }
@@ -514,7 +515,7 @@ internal static class OoExpansion
     /// specifier's object-class-name-1 (§12.3.8.4 GR5 "a class object-class-name-1 is created"); and (d) every
     /// user-defined-word occurrence of a formal replaced by its actual (§12.3.8.4 GR5/GR8, sound by §11.3.4 GR6 /
     /// §11.6.4 GR4 — see the type summary).</summary>
-    private static List<IToken> SubstitutedTokens(Expansion x)
+    private static List<IToken> SubstitutedTokens(Expansion x, DiagnosticRegion region)
     {
         var skel = x.Of;
         var map = new Dictionary<string, string>(CobolNames.Comparer);
@@ -526,7 +527,7 @@ internal static class OoExpansion
 
         var drop = new HashSet<IToken>();
         bool published = skel.Source?.From is not null;   // lexed again from another group's text: its lines are that text's
-        int entryLine = x.Entry.Start.Line;
+        int entryLine = x.Entry.Start.Line, entryColumn = x.Entry.Start.Column;
         IToken headerName, endName;
         if (skel.Ctx is Core.ClassDefinitionContext c)
         {
@@ -577,21 +578,28 @@ internal static class OoExpansion
                 else if ((t.Parent is Core.CobolWordContext || tok.Type == CobolLexer.IDENTIFIER)
                          && map.TryGetValue(tok.Text, out var actual))
                     text = actual;
-                var copy = new CommonToken(tok);
+                var copy = new ExpansionToken(tok, region);
                 if (text is not null)
                 {
                     copy.Text = text;
                     // An actual is an ordinary user-defined word wherever its formal stood (§11.3.4 GR6).
                     copy.Type = CobolLexer.IDENTIFIER;
                 }
-                if (published) copy.Line = entryLine;
+                if (published)
+                {
+                    // The text is another group's, recorded; its lines and columns are positions in a file this group never read. A
+                    // diagnostic about it is positioned at the one place the user wrote it down: the EXPANDS entry (kb/Work PB4469) —
+                    // the same position the expansion's own compilation reports at (ExpansionAssemblies.AtTheEntry).
+                    copy.Line = entryLine;
+                    copy.Column = entryColumn;
+                }
                 result.Add(copy);
                 if (text is not null && FormalSpecifierName(t) is { } formalSpecifier && formalSpecifier.externalizedNamePhrase() is null
                     && actualSpecifier.FirstOrDefault(r => CobolNames.Same(DeclaredName(r), text))?.externalizedNamePhrase() is { } actualAs)
-                    foreach (var asToken in Terminals(actualAs)) result.Add(new CommonToken(asToken));
+                    foreach (var asToken in Terminals(actualAs)) result.Add(new ExpansionToken(asToken, region));
                 // (e) the specifier's own `AS literal-1` externalizes the EXPANSION (§12.3.8.4 GR2), right after the name it follows.
                 if (ReferenceEquals(tok, headerName) && x.Entry.externalizedNamePhrase() is { } entryAs)
-                    foreach (var asToken in Terminals(entryAs)) result.Add(new CommonToken(asToken));
+                    foreach (var asToken in Terminals(entryAs)) result.Add(new ExpansionToken(asToken, region));
                 return;
             }
             for (int i = 0; i < n.ChildCount; i++) Walk(n.GetChild(i));
