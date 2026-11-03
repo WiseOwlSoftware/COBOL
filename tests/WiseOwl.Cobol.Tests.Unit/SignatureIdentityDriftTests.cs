@@ -254,8 +254,8 @@ public sealed class SignatureIdentityDriftTests
     /// <summary>The same signatures as <see cref="Perturbations"/>' PBASE and PPTRB, compiled in ANOTHER group under other
     /// names, other data-names and another intermediate grouping (§13.7.3 SR2 matches descriptions, not names; a group's
     /// description is its elementary items, §8.5.3.1): QBASE and this group's own PBASE are PBASE's signature, QPTRB is
-    /// restricted to PBASE as PPTRB is, and QPTRQ to QBASE, ANOTHER prototype of that signature. QODD and QEVEN name each
-    /// other.</summary>
+    /// restricted to PBASE through PPTRB's type-name PT, QPTRT to PBASE through another type-name, and QPTRQ to QBASE, ANOTHER
+    /// prototype of that signature, through PT. QODD and QEVEN name each other.</summary>
     private const string Renamed = """
                IDENTIFICATION DIVISION.
                PROGRAM-ID. QBASE IS PROTOTYPE.
@@ -289,10 +289,22 @@ public sealed class SignatureIdentityDriftTests
                    PROGRAM PBASE.
                DATA DIVISION.
                LINKAGE SECTION.
+               01 PT IS TYPEDEF USAGE PROGRAM-POINTER TO PBASE.
+               01 QP TYPE PT.
+               PROCEDURE DIVISION USING QP.
+               END PROGRAM QPTRB.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. QPTRT IS PROTOTYPE.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY.
+                   PROGRAM PBASE.
+               DATA DIVISION.
+               LINKAGE SECTION.
                01 QPT IS TYPEDEF USAGE PROGRAM-POINTER TO PBASE.
                01 QP TYPE QPT.
                PROCEDURE DIVISION USING QP.
-               END PROGRAM QPTRB.
+               END PROGRAM QPTRT.
                IDENTIFICATION DIVISION.
                PROGRAM-ID. QPTRQ IS PROTOTYPE.
                ENVIRONMENT DIVISION.
@@ -301,8 +313,8 @@ public sealed class SignatureIdentityDriftTests
                    PROGRAM QBASE.
                DATA DIVISION.
                LINKAGE SECTION.
-               01 QPT IS TYPEDEF USAGE PROGRAM-POINTER TO QBASE.
-               01 QP TYPE QPT.
+               01 PT IS TYPEDEF USAGE PROGRAM-POINTER TO QBASE.
+               01 QP TYPE PT.
                PROCEDURE DIVISION USING QP.
                END PROGRAM QPTRQ.
                IDENTIFICATION DIVISION.
@@ -366,7 +378,10 @@ public sealed class SignatureIdentityDriftTests
     /// D-RP1): §13.7.3 SR2 matches "the description of the formal parameters", and a restricted pointer's description is its
     /// USAGE clause, whose TO phrase §14.8.2.3.2 and §8.5.3.1 compare by name. So a pointer restricted to PBASE and one
     /// restricted to QBASE are two signatures although PBASE and QBASE are one, two prototypes that name each other (QODD,
-    /// QEVEN) are two signatures, and neither is the self-referring PSELF.</summary>
+    /// QEVEN) are two signatures, and neither is the self-referring PSELF. The type declaration a typed pointer formal
+    /// references is in the signature too (§8.13: "type declarations required for the description of parameters"), and
+    /// §8.5.3.1 makes two of them equivalent only under one type-name, so TO PBASE through PT and through QPT are two
+    /// signatures (branch review R1-1 of kb/Work PB4491).</summary>
     [Fact]
     public void APointerFormal_IsIdentifiedByThePrototypeItsToPhraseNames()
     {
@@ -376,6 +391,7 @@ public sealed class SignatureIdentityDriftTests
         Assert.NotEqual(p["PPTRB"], p["PSELF"]);
         Assert.Equal(q["PBASE"], q["QBASE"]);       // one signature, two names ...
         Assert.NotEqual(q["QPTRB"], q["QPTRQ"]);   // ... so TO PBASE and TO QBASE are two descriptions
+        Assert.NotEqual(p["PPTRB"], q["QPTRT"]);   // TO PBASE through type PT and through type QPT (§8.13, §8.5.3.1)
         Assert.NotEqual(q["QODD"], q["QEVEN"]);
         Assert.NotEqual(p["PSELF"], q["QODD"]);
         Assert.NotEqual(p["PSELF"], q["QEVEN"]);

@@ -1154,8 +1154,9 @@ the group.
   parameters", §13.7.3 SR2; kb/Work PB4491) — compares the USAGE clause's TO phrase by the prototype it NAMES, its folded
   externalized name (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107). So the §8.5.3.1
   keys two compilations compare (`ActivationDescription.StrongType`, `PointerType`) are the same text whether or not a
-  compilation holds the prototype's signature, and a signature describes its pointer formals by name, which makes it a
-  function of its own text: two prototypes that name each other are two signatures, and no fixed point is computed. The
+  compilation holds the prototype's signature, and a signature describes its pointer formals by name — the TO phrase and,
+  for a typed formal, the type declaration it references (`PointerType`; §8.13 "type declarations required for the
+  description of parameters", branch review R1-1 of kb/Work PB4491) — which makes it a function of its own text: two prototypes that name each other are two signatures, and no fixed point is computed. The
   approved text of this design replaced `PicInfo.RestrictedPrototypeName` by an identity field; the code keeps the written
   name and records the signature beside it, because the SET relation needs the signature and a written word is not an
   identity:

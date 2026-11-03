@@ -31,7 +31,7 @@ pair (§10.6.2 SR3) shares the code and has its own refusal; the member arm (PB4
 read by name. `PrototypeSignatures.SameSignatureRestriction` had no production caller and went too (closes PB4443).
 
 **Goldens.** Accepted at 2002: `10.6-COBOL-compilation-group/pb4491_prototype_pointer_formal_one_prototype` (the
-definition names the prototype through `REPOSITORY PROGRAM QQ AS "Q1"` and another type-name). Refused (COBOL1513):
+definition names the prototype through `REPOSITORY PROGRAM QQ AS "Q1"`, under the prototype's type-name T1). Refused (COBOL1513):
 `pb4491-prototype-pointer-formal-two-names` (2002, 2014, 2023) and `pb4491-function-prototype-pointer-formal-two-names`
 (2014, 2023). Rewritten: `_unassigned/pb2495_recursive_prototype_signature` (one signature because every formal names
 PS3), `pb2495-recursive-prototype-signature-mismatch` (the mutually naming pair, COBOL1959),
@@ -43,3 +43,21 @@ pins the relation and the key off `ContentRestriction`, with a fail proof on the
 
 **Docs.** D-RP1 in docs/CONFORMANCE.md, the two signature paragraphs of docs/OO_DESIGN.md, DESIGN-external-repository §6.4
 and its section 12 row, DESIGN-architecture-review, and the architecture-edges ratchet (two tolerated pairs gone).
+
+**Branch review R1-1: a typed pointer formal's type-name is in the signature.** The reviewer showed the first cut still
+admitted a prototype `USING TYPE T1` for a definition `USING TYPE T9`, both `TO Q1` (the accepted golden pinned it), though
+a direct `CALL PX USING A` with A of type T1 draws COBOL1688 against the T9 formal: the failure this landing fixes for
+`TO Q1` / `TO Q2`, on the other half of D-RP1's "two TYPED items are compared by their type declarations as well". §8.13
+(`cite.py --check 8.13` OK) puts "type declarations required for the description of parameters and returning items" in
+the signature, and §8.5.3.1 (OK) makes two type declarations equivalent only "when they have the same type-name". So
+`PrototypeSignatures.SameDescription` now also compares `ActivationDescription.PointerType` (null for an untyped
+`FUNCTION-POINTER TO` formal, which differs from a typed one) and `DescriptionKey` keys it, so the relation and the
+identity still agree. The pair-mode relation (`ActivationRelations.SignatureDifference`) does not read it: §9.3.8.2.3
+rules 3 / 6 (OK 9.3.8.2.3 3)) list only the clauses. Re-probe after the fix: the reviewer's `direct3.cob` still draws
+COBOL1688, its `control3.cob` prints `px null`, and the T1/T9 pair draws COBOL1513 at (30,20); a definition recompiled
+over its previous build with T9 changed to T1 draws REPO-9 (COBOL5969, "USING formal 1's description"), and recompiled
+unchanged draws nothing, so the decoded type identity agrees with the source one. Goldens: the accepted golden now spells
+T1 on both sides; refusals `pb4491-prototype-pointer-formal-two-type-names` (COBOL1513, 2002/2014/2023) and
+`pb4491-function-prototype-pointer-formal-typed-untyped` (COBOL1513, 2014/2023, the untyped-against-typed arm);
+`_unassigned/pb2495_recursive_prototype_signature`'s PSDEF pair (T3 against T9, found by the corpus round trip) now spells
+T3 on both sides; `SignatureIdentityDriftTests` gains QPTRT (TO PBASE through another type-name: another identity).

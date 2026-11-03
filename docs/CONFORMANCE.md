@@ -2426,7 +2426,13 @@ of an unsupported facility.
   description is its USAGE clause, so `USING TO Q1` and `USING TO Q2` are two signatures whatever Q1's and Q2's — the
   only reading under which a caller checked against a prototype passes its definition a conforming argument, since
   §14.8.2.3.2 refuses a pointer TO Q1 BY REFERENCE into a formal TO Q2. A §10.6.2 SR2 / SR3 prototype / definition pair
-  over two names is therefore refused (COBOL1513), and two prototypes whose formals name each other are two signatures,
+  over two names is therefore refused (COBOL1513). A TYPED pointer formal is described by its type declaration as well:
+  §8.13 puts "type declarations required for the description of parameters and returning items" in the signature, and
+  §14.8.2.3.2's "of the same type" refuses a pointer of type T1 BY REFERENCE into a formal of type T9 (§8.5.3.1: "the same
+  type-name"), so a prototype `USING TYPE T1` and a definition `USING TYPE T9`, both `TO Q1`, are refused too, as are an
+  untyped `FUNCTION-POINTER TO F1` formal and a typed one (`PrototypeSignatures.SameDescription` over
+  `ActivationDescription.PointerType`; branch review R1-1 of kb/Work PB4491) — the pair-mode relation does not ask it,
+  since §9.3.8.2.3 rules 3 / 6 list only the clauses. Two prototypes whose formals name each other are two signatures,
   so §14.9.39.3 SR22 refuses a SET between their pointers (COBOL1959): the signature is compared as TEXT and has no fixed
   point to find. What a pointer may CONTAIN is still its prototype's signature (§13.18.60.4 GR25 / GR26), spelled
   `PrototypeSignatures.Identity`, a hash of that signature's key.
@@ -2451,6 +2457,7 @@ of an unsupported facility.
   `pb4107-set-group-member-pointers-naming-each-other`, `pb4442-override-pointer-two-prototypes`,
   `pb4442-override-returning-pointer-two-prototypes`, `pb4442-implements-pointer-two-prototypes`,
   `pb4491-prototype-pointer-formal-two-names`, `pb4491-function-prototype-pointer-formal-two-names`,
+  `pb4491-prototype-pointer-formal-two-type-names`, `pb4491-function-prototype-pointer-formal-typed-untyped`,
   `pb2495-recursive-prototype-signature-mismatch`.
 - **D-N8 — a group sender into a national DYNAMIC LENGTH receiver** (kb/Work PB546; decision PB3099, 2026-10-12).
   §14.9.25.4 GR4 makes the move a byte copy and §8.5.1.10.4 sets the receiver's new length to the content's. An odd

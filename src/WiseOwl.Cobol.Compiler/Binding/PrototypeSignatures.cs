@@ -37,7 +37,9 @@ namespace WiseOwl.Cobol.Binding;
 /// is the argument a caller passes BY REFERENCE (§14.8.2.3.2: "If either is a restricted pointer, both shall be restricted
 /// and of the same type"). Read any other way, §13.7.3 SR2 would admit a prototype <c>USING TO Q1</c> for a definition
 /// <c>USING TO Q2</c>, and every caller checked against the prototype would pass the definition a pointer its formal
-/// refuses. So "the same signature" is a comparison of TEXT, with no fixed point to find: two prototypes that name each
+/// refuses. A TYPED pointer formal is described by the type declaration it references as well (§8.13's "type declarations
+/// required for the description of parameters", <see cref="PointerTypeOf"/>), for the same reason. So "the same signature"
+/// is a comparison of TEXT, with no fixed point to find: two prototypes that name each
 /// other have two signatures (their formals name two prototypes), and a pointer restricted to one does not take the
 /// address of a program of the other (§14.9.39.3 SR22) — which is what keeps a call through it conforming.</para>
 /// <para><b>Every prototype has a signature.</b> A prototype that took ISO §12.3.8.4 GR10 c) — "the details are taken
@@ -79,7 +81,7 @@ internal static class PrototypeSignatures
 
     /// <summary>ISO §13.7.3 SR2 — a prototype's formal parameter or returning item "shall match the description of
     /// the formal parameters and the returning item in the corresponding function definition or program
-    /// definition", the description §8.13 stores as the signature's "description of the parameters". Two halves:
+    /// definition", the description §8.13 stores as the signature's "description of the parameters". Three parts:
     /// <list type="bullet">
     /// <item>the item's OWN description — <see cref="OoConformance.SignatureDifference"/>, the ONE pair-mode relation
     /// (class and category, the clause identity, ANY LENGTH and the LOCALE identification, the object-reference phrases,
@@ -87,6 +89,9 @@ internal static class PrototypeSignatures
     /// <c>PIC 1(m)</c> / <c>N(m)</c> item §13.18.29.4 GR1 b) / GR2 b) treat it as, and an alphanumeric group is never
     /// an elementary item; a restricted program- or function-pointer is asked its USAGE clause, the TO phrase by the
     /// prototype it names, kb/Work PB4491);</item>
+    /// <item>for a TYPED restricted pointer, the type declaration its TYPE clause references (<see cref="PointerTypeOf"/>):
+    /// §8.13's "type declarations required for the description of parameters", which §14.8.2.3.2's BY REFERENCE "of the
+    /// same type" reads and the pair-mode relation does not;</item>
     /// <item>for two groups that are NOT bit / national groups, their SUBORDINATE entries (kb/Work PB1115, row
     /// SR-13.7.3-2): such a group's data description entry carries no PICTURE, USAGE or length of its own, so what
     /// describes it is the entries subordinate to it.
@@ -108,7 +113,21 @@ internal static class PrototypeSignatures
     /// </list></summary>
     private static bool SameDescription(DataItem a, DataItem b) =>
         OoConformance.SignatureDifference(a, b, "prototype's item", "definition's item") is null
+        && string.Equals(PointerTypeOf(a), PointerTypeOf(b), StringComparison.Ordinal)
         && (!DescribedBySubordinates(a) || !DescribedBySubordinates(b) || StrongTypeModel.SameElementaryLayout(a, b));
+
+    /// <summary>⛔ THE SIGNATURE'S OWN HALF OF A TYPED RESTRICTED POINTER FORMAL (kb/Work PB4491, branch review R1-1): the
+    /// §8.5.3.1 type identity of the type declaration its TYPE clause references (<c>ActivationDescription.PointerType</c>),
+    /// null for an untyped one (a <c>FUNCTION-POINTER TO</c> entry, which no TYPEDEF rule governs). §8.13 puts "type
+    /// declarations required for the description of parameters and returning items" in the signature, and for a restricted
+    /// pointer that declaration is a conformance fact: §14.8.2.3.2 requires an argument passed BY REFERENCE to be "of the
+    /// same type", which §8.5.3.1 makes the same type-name. So a prototype <c>USING TYPE T1</c> and a definition
+    /// <c>USING TYPE T9</c>, both <c>TO Q1</c>, are two signatures: read otherwise, a caller checked against the prototype
+    /// would pass the definition a pointer of type T1 its formal of type T9 refuses (COBOL1688). It is compared here and not
+    /// in the pair-mode relation (<see cref="OoConformance.SignatureDifference"/>), whose §9.3.8.2.3 rules 3 / 6 list only
+    /// the clauses; untyped opposite typed differs too, since a caller checked against an untyped formal may pass any
+    /// type-name.</summary>
+    private static string? PointerTypeOf(DataItem item) => ActivationDescriptions.Of(item, classes: null)?.PointerType;
 
     /// <summary>A group whose description is its subordinate entries' — the "is this a group operation?" test
     /// (<see cref="DataItem.IsAsIfElementary"/>'s remarks): a group that is not a bit / national group.</summary>
@@ -208,8 +227,8 @@ internal static class PrototypeSignatures
     /// <item>a variable-length or an alphanumeric group — its shape and length (with the layout, which settles §8.5.1.12's
     /// compatibility: two identical layouts are compatible);</item>
     /// <item>any other, a restricted class pointer included — ANY LENGTH, the category, the §9.3.6 3 e) clause identity
-    /// (a pointer's TO phrase by the prototype or type it names, never what it may contain: kb/Work PB4491) and the LOCALE
-    /// external identification.</item>
+    /// (a pointer's TO phrase by the prototype or type it names, never what it may contain: kb/Work PB4491), a typed
+    /// restricted pointer's type declaration (<c>PointerTypeOf</c>, §8.13) and the LOCALE external identification.</item>
     /// </list>
     /// Two facts cannot key exactly, and both answer the relation's false of an item even against itself, so no two
     /// prototypes share a class through them: an item with no crossing form, and a group whose items cannot be placed — each
@@ -233,8 +252,10 @@ internal static class PrototypeSignatures
             ActivationShape.VariableLengthGroup => "VARIABLE GROUP",
             ActivationShape.AlphanumericGroup => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"GROUP {d.Positions}"),
             // A restricted class pointer by its USAGE clause's TO phrase (Clauses), as SignatureDifference compares it — never
-            // by ContentRestriction, so a key never reads a stamp and no identity depends on another (kb/Work PB4491).
+            // by ContentRestriction, so a key never reads a stamp and no identity depends on another — and by the type
+            // declaration a typed one references (PointerType, as SameDescription compares it; kb/Work PB4491).
             _ => (d.AnyLength ? "ANY LENGTH " : "") + d.Category + " " + d.Clauses
+                 + (d.PointerType is { } pointerType ? " POINTER-TYPE " + pointerType : "")
                  + (d.LocaleExternal is { } locale ? (d.LocaleFromLiteral ? " LOCALE L:" + locale : " LOCALE W:" + CobolNames.Fold(locale)) : ""),
         };
         return DescribedBySubordinates(item) ? own + " LAYOUT" + StrongTypeModel.ElementaryLayoutKey(item) : own;

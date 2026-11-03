@@ -431,7 +431,13 @@ The procedure-division header's BY phrases parse and CARRY on a method (kb/Work 
    prototype it names, and the same inside a strong group's `StrongType` key (docs/CONFORMANCE.md D-RP1) — for every
    asker, `PrototypeSignatures.Same` included (§8.13: the signature is "the description of the parameters"; §13.7.3 SR2).
    So no description reads another prototype's signature, and "the same signature" needs no fixed point: two prototypes
-   that name each other are two signatures. What a pointer may CONTAIN (`DataItem.PointerRestrictionIdentity`, read as
+   that name each other are two signatures. The signature also holds "type declarations required for the description of
+   parameters" (§8.13), and a TYPED restricted pointer formal's type declaration is a conformance fact (§14.8.2.3.2's BY
+   REFERENCE "of the same type", §8.5.3.1's same type-name), so `PrototypeSignatures.SameDescription` compares its
+   `ActivationDescription.PointerType` too (null for an untyped `FUNCTION-POINTER TO` formal) and `DescriptionKey` keys it:
+   a prototype `USING TYPE T1` and a definition `USING TYPE T9`, both `TO Q1`, are two signatures (branch review R1-1 of
+   kb/Work PB4491). The pair-mode relation does not read it, since §9.3.8.2.3 rules 3 / 6 list only the clauses. What a
+   pointer may CONTAIN (`DataItem.PointerRestrictionIdentity`, read as
    `ActivationDescription.ContentRestriction` by the SET relation alone) is the identity of its prototype's signature,
    `PrototypeSignatures.Identity`, stamped by `PrototypeSignatures.StampContentRestrictions` once every forest's pointers
    name their prototypes. (The partition refinement of waves 1080 / 1082, which made mutually naming prototypes one

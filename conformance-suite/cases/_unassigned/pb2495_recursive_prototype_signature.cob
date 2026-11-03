@@ -18,10 +18,13 @@
       *>   SET B TO A, C TO B, A TO C - 14.9.39.3 SR22 (OK 14.9.39.3
       *>     22)) "the program-prototypes associated with identifier-7
       *>     and identifier-8 shall have the same signature": legal.
-      *>   PSDEF's prototype (USING TO PS3 through type T3) and
-      *>     definition (USING TO PS3 through type T9) - 10.6.2 SR2 (OK
-      *>     10.6.2 2)) "the signatures of these two compilation units
-      *>     shall be the same": they are, one USAGE clause.
+      *>   PSDEF's prototype and definition (each USING TO PS3 through
+      *>     type T3) - 10.6.2 SR2 (OK 10.6.2 2)) "the signatures of
+      *>     these two compilation units shall be the same": they are,
+      *>     one USAGE clause and one type-name (8.13 puts the "type
+      *>     declarations required for the description of parameters"
+      *>     in the signature; 8.5.3.1 "when they have the same
+      *>     type-name").
       *>   CALL PSDEF USING BY CONTENT A - the prototype's formal is
       *>     TO PS3, A is TO PS1; 14.8.2.3.3 (OK 14.8.2.3.3 2)) "the
       *>     conformance rules shall be the same as if a SET
@@ -176,8 +179,8 @@
            PROGRAM PS3.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 T9 IS TYPEDEF USAGE PROGRAM-POINTER TO PS3.
-       01 L-S TYPE T9.
+       01 T3 IS TYPEDEF USAGE PROGRAM-POINTER TO PS3.
+       01 L-S TYPE T3.
        PROCEDURE DIVISION USING L-S.
        PSDEF-P.
            IF L-S = NULL DISPLAY "psdef null"
