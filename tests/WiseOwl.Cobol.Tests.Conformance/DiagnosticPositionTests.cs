@@ -140,6 +140,33 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.DoesNotContain(lines, d => d.Contains("pb4406.cob(12,12): error"));   // the statement's own first token
     }
 
+    /// <summary>kb/Work PB4485: the 2002 Annex F.2 item 108 gate (qualified-index-name-2002) and item 16 gate
+    /// (class-condition-alphabet-name-2002) report at the WRITTEN WORD they gate — the qualified index-name, the
+    /// alphabet-name — never at the SEARCH / SET / PERFORM / IF statement they sit in, which carries several operands
+    /// (ISO §8.4.2.2.3 SR6 names the qualified form; the gate fires once per written reference). Each program is
+    /// compiled at COBOL-85, where the construct is below its edition. The statement under test starts on line 14
+    /// at column 12, so a report at (14,12) is the statement's position and the failure this test pins.</summary>
+    [Theory]
+    [InlineData("           SEARCH E VARYING IX OF T\n               WHEN E (IX) = \"A\" CONTINUE\n           END-SEARCH", 14, 29)]   // the SEARCH VARYING index-name (the note's repro)
+    [InlineData("           SEARCH E VARYING IX\n               WHEN E (IX OF T) = \"A\" CONTINUE\n           END-SEARCH", 15, 24)]   // a subscript's index-name, on the WHEN line
+    [InlineData("           SET IX OF T TO 2", 14, 16)]                                                                       // SET's receiving index-name
+    [InlineData("           MOVE \"A\" TO W\n           DISPLAY E (IX OF T)", 15, 23)]                                        // a subscript of another statement
+    [InlineData("           PERFORM VARYING IX FROM 1 BY 1\n               UNTIL IX OF T > 2 CONTINUE END-PERFORM", 15, 22)]  // a relation condition's operand
+    [InlineData("           IF W = \"A\" AND W IS AL DISPLAY \"Y\" END-IF", 14, 32)]                                              // item 16: the alphabet-name of a class condition
+    public void EditionGateOfAWrittenWord_NamesTheWordNotTheStatement(string statement, int line, int column)
+    {
+        Write("pb4485.cob",
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4485.\n       ENVIRONMENT DIVISION.\n"
+            + "       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           ALPHABET AL IS NATIVE.\n"
+            + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W PIC X.\n"
+            + "       01 T.\n          05 E PIC X OCCURS 3 INDEXED BY IX.\n       PROCEDURE DIVISION.\n       MAIN-P.\n"
+            + statement + "\n           STOP RUN.\n");
+        var (ok, lines) = Compile("pb4485.cob", edition: 85);
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains($"pb4485.cob({line},{column}): error COBOL0900"));
+        Assert.DoesNotContain(lines, d => d.Contains("pb4485.cob(14,12): error"));   // the statement's own first token
+    }
+
     [Fact] // kb/Work PB1728: a PICTURE string's trimmed clause separator (`PIC X, VALUE …`) must not shift the column
     // of every later token on the line — the lexer used to seek back over the ',' without restoring its column, so a
     // diagnostic on the VALUE literal pointed one column right. The two lines differ only in ',' versus ' ', so the
