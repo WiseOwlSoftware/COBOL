@@ -113,7 +113,7 @@ def parser_dependence(config_text: str) -> list[str]:
     for rid, keys in rule_keys(config_text).items():
         extra = sorted(set(keys) - TEXT_RULE_KEYS)
         if extra:
-            refused.append(f"{rid}: carries {', '.join(extra)}, which semgrep evaluates over a parse tree")
+            refused.append(f"{rid}: carries {', '.join(extra)}, which a text rule does not use (the pattern keys are evaluated over a parse tree)")
         elif keys.count("pattern-regex") != 1:
             refused.append(f"{rid}: carries {keys.count('pattern-regex')} `pattern-regex` keys, not exactly one")
     return refused
@@ -134,7 +134,7 @@ def classify_errors(errors: list[dict]) -> tuple[list[str], list[str]]:
             path = str(e.get("path") or "").replace("\\", "/")
             what = (e.get("message") or "").splitlines()[0] if e.get("message") else ""
             fatal.append(f"{path or '(no file)'}  {kind}: {what}")
-    return spans, fatal
+    return sorted(set(spans)), fatal
 
 
 def unreadable_files() -> tuple[set[str], list[str]]:
@@ -146,8 +146,8 @@ def unreadable_files() -> tuple[set[str], list[str]]:
     if not proc.stdout.strip():
         sys.exit(f"semgrep produced no output.\n{proc.stderr[-2000:]}")
     errors = json.loads(proc.stdout)["errors"]
-    spans, fatal = classify_errors(errors)
-    return {line.split("  ")[0] for line in fatal if not line.startswith("(no file)")}, spans
+    whole = {str(e["path"]).replace("\\", "/") for e in errors if not isinstance(e.get("type"), list) and e.get("path")}
+    return whole, classify_errors(errors)[0]
 
 
 def exception_drift(found: set[str], named: dict[str, str]) -> tuple[list[str], list[str]]:
