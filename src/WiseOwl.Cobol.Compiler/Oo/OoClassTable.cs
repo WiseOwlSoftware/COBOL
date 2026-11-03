@@ -151,7 +151,12 @@ public sealed class OoClassTable
             bool found = false;
             foreach (var other in (entry.Parent as Core.RepositoryParagraphContext)?.repositoryEntry() ?? [])
             {
-                if (other.className() is { } cn && other.CLASS() is not null && scope.ClassTarget(cn.GetText(), out var clsExt)
+                // A parameterized definition's own paragraph declares its formals (§11.3.3 SR8): which class or interface each
+                // stands for, and so which property it has, is each expansion's (§9.3.12) — whose re-parsed paragraph this rule asks.
+                if (other.className() is { } formalClass && other.CLASS() is not null && scope.IsFormal(formalClass.GetText())
+                    || other.interfaceName() is { } formalInterface && other.INTERFACE() is not null && scope.IsFormal(formalInterface.GetText()))
+                    found = true;
+                else if (other.className() is { } cn && other.CLASS() is not null && scope.ClassTarget(cn.GetText(), out var clsExt)
                     && (clsExt is null ? Find(cn.GetText()) ?? FindByExternalizedName(cn.GetText()) : FindByExternalizedName(clsExt)) is { } cls && ClassHasProperty(cls, identity))
                     found = true;
                 else if (other.interfaceName() is { } inm && other.INTERFACE() is not null && scope.InterfaceTarget(inm.GetText(), out var ifcExt)

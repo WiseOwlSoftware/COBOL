@@ -421,7 +421,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     private DecodedRecord? Decode(string path, RepositoryRecord record, bool report)
     {
         var unanswered = new List<(bool Interface, string Identity)>();
-        var names = RepositoryCodec.Names(record, Table, unanswered);
+        var names = RepositoryCodec.Names(record, Table, unanswered, import: true);
         if (unanswered.Count > 0)
         {
             if (report)

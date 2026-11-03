@@ -40,7 +40,10 @@ name). An interface specifier no source answers is REPO-1 (SR9, `UnansweredInter
 unless a class or interface of its own REPOSITORY paragraph (group or imported, base chain and implemented interfaces included)
 has an accessor of `literal-4 ?? word` (SR16, `OoClassTable.CheckPropertySpecifiers`, run once every roster is complete). Two
 construct samples of the version matrix (`repository-class-2002`, `repository-interface-2002`, `repository-property-2002`) named
-a class, an interface and a property nothing defined; they now define what they name. Not yet: skeletons and expansions (the
+a class, an interface and a property nothing defined; they now define what they name. A PROPERTY specifier in a parameterized definition's paragraph (whose class and interface entries are its formals) is not asked:
+each expansion's re-parsed paragraph is (found by gate 2 on `pb2937_skeleton_bodies_bind_as_themselves`). `--repository-check`
+decodes a record with `RepositoryCodec.Names(…, import: false)`, so a comparison never makes the compilation reference an assembly
+its source does not name. Not yet: skeletons and expansions (the
 `ExpansionKey`, `CompileState`, the two placements, stale-expansion REPO-9), which are step 2's second half.
 
 **Goldens.** `conformance-suite/wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_interface_and_property` (and its refusal at 85) imports

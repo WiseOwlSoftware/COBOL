@@ -155,9 +155,11 @@ internal static class RepositoryCodec
     /// <c>--repository-check</c>'s comparison both read: each identity's class of the group, else the standard class BASE, else the class
     /// the external repository publishes under it (<see cref="OoClassTable.ImportClass"/>, which imports it), by identity, because the
     /// record keeps the PUBLISHING element's words and a word is per source element. <paramref name="unanswered"/> lists the
-    /// identities no class or interface answers (an identity's name is then the written one, the difference a comparison reports).</summary>
+    /// identities no class or interface answers (an identity's name is then the written one, the difference a comparison reports).
+    /// <paramref name="import"/> false asks only what the group has already imported or defines: a comparison of records
+    /// (<c>--repository-check</c>) must not make the compilation reference an assembly nothing in its source names.</summary>
     public static IReadOnlyDictionary<(bool Interface, string Identity), IdentityName> Names(
-        RepositoryRecord record, OoClassTable table, List<(bool Interface, string Identity)> unanswered)
+        RepositoryRecord record, OoClassTable table, List<(bool Interface, string Identity)> unanswered, bool import)
     {
         var names = new Dictionary<(bool Interface, string Identity), IdentityName>();
         foreach (var pic in ObjectReferences(record))
@@ -166,9 +168,9 @@ internal static class RepositoryCodec
             string identity = pic.ObjectRefIdentity!;
             if (names.ContainsKey((isInterface, identity)) || unanswered.Contains((isInterface, identity))) continue;
             IdentityName? name = isInterface
-                ? table.ImportInterface(identity) is { } iface
+                ? (import ? table.ImportInterface(identity) : table.FindInterfaceByExternalizedName(identity)) is { } iface
                     ? new IdentityName(iface.Name, iface.Origin is OoSymbolOrigin.Imported ? iface.ClrName : null) : null
-                : table.ImportClass(identity) is { } cls
+                : (import ? table.ImportClass(identity) : table.FindByExternalizedName(identity)) is { } cls
                     ? new IdentityName(cls.Name, cls.Origin is OoSymbolOrigin.Imported ? cls.ClrName : null) : null;
             if (name is { } found) names[(isInterface, identity)] = found;
             else unanswered.Add((isInterface, identity));
