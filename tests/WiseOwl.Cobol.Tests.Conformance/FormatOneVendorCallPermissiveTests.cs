@@ -287,4 +287,56 @@ public sealed class FormatOneVendorCallPermissiveTests
         Assert.True(ranOk, detail);
         Assert.Equal(new[] { "A=ABCD B=QRST", "W=ABCD" }, stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }
+
+    // kb/Work PB4508. §8.9 reserves NULL from COBOL-2002 only (reserved-words.json r85 false), so at 85 an undeclared NULL in a
+    // CALL argument is a user word, identifier-2 (a Format 1 spelling) that names nothing: the §8.4.2.1 undefined reference
+    // (COBOL1639) and nothing else. The up-front judgement of PB4503 used to read it as a literal-2 COBOL-85 lacks and draw a
+    // second, COBOL0900, refusal for the bare and BY CONTENT spellings.
+    private const string UndeclaredNull85 = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4508N.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 W PIC X(4) VALUE "ABCD".
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           CALL "PB4508S" USING NULL
+           CALL "PB4508S" USING W NULL
+           CALL "PB4508S" USING BY REFERENCE NULL
+           CALL "PB4508S" USING BY CONTENT NULL
+           STOP RUN.
+       """;
+
+    /// <summary>Each CALL draws the one undefined-name diagnostic of its NULL, in strict and under <c>--permissive</c>.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UndeclaredNull_At85_DrawsTheUndefinedNameAlone(bool permissive)
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull(UndeclaredNull85, 85, permissive);
+        Assert.False(ok);
+        Assert.Equal(4, errors.Count(e => e.Contains("COBOL1639") && e.Contains("'NULL' is not defined")));
+        Assert.Equal(4, errors.Count);
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL0899"));
+    }
+
+    /// <summary>A BY VALUE phrase is the 2002 introduction whatever its operand is, so it keeps its own refusal beside the
+    /// undefined NULL: two true statements, not one misleading one.</summary>
+    [Fact]
+    public void UndeclaredNull_ByValue_At85_KeepsThePhraseRefusalBesideTheUndefinedName()
+    {
+        const string source = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4508V.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           CALL "PB4508S" USING BY VALUE NULL
+           STOP RUN.
+       """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        Assert.False(ok);
+        Assert.Single(errors, e => e.Contains("COBOL0900") && e.Contains("BY VALUE"));
+        Assert.Single(errors, e => e.Contains("COBOL1639") && e.Contains("'NULL' is not defined"));
+        Assert.Equal(2, errors.Count);
+    }
 }
