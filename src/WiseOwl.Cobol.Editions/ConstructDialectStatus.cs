@@ -28,7 +28,10 @@ public enum ConstructAvailability
 /// <param name="ObsoleteIn">First edition marking it obsolete/archaic (null = never; drives 0903).</param>
 /// <param name="DiagnosticCode">The code its gate emits (the TARGET code where surfacing is still a raw
 /// parse error today — the W1.5 upgrade wires it).</param>
-/// <param name="Citation">ISO § / VCR row / roadmap-D citation.</param>
+/// <param name="Citation">The ISO rule (and the VCR row that records the edition change) the row rests on, and nothing
+/// else: the text is copied into the user-visible edition-gate diagnostic, so it names no code member, grammar rule,
+/// wave or implementation status. <c>scripts/spec/audit_code_citations.py</c> (CONSTRUCT-CODE) refuses one that does
+/// (kb/Work PB4467).</param>
 public sealed record ConstructDialectStatus(
     string Id, string Display, int IntroducedIn, int? RemovedIn, int? ObsoleteIn,
     string DiagnosticCode, string Citation)

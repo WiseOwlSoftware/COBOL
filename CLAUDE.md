@@ -124,7 +124,7 @@ comprehensive pass once the design settles (`PROMPT.md` §4).
 ## Testing
 The owner decided on 2026-10-31 (kb/Work PB4323): THE POPULATION IS THE PLAN. **The gate has ONE shape:
 `pwsh scripts/build-local.ps1 -Priority BelowNormal`** (`scripts/gate.py`), run once at a branch's head before it is
-enqueued, and after every fix. It decides a lane from the diff's paths: an **inert** change (`docs/`, `kb/`, `DEVLOG/` and every `*.md`: no compiler test opens a Markdown file, owner 2026-11-02, kb/Work PB4453, and what a document says is the DOC AUDITS audit; `specs/ISO_COBOL.md`, the oracle, is the one READ exception; `inert_lane.py classify`,
+enqueued, and after every fix. It decides a lane from the diff's paths: an **inert** change (`docs/`, `kb/`, `DEVLOG/` and every `*.md`: no compiler test opens a Markdown file, owner 2026-11-02, kb/Work PB4453, and what a document says is the DOC AUDITS audit; the READ entries of `inert_lane.py` (`CLASSIFICATION.read`, the one list: the ISO text, the oracle, and the data files under docs/ that compiler tests read) are code, not inert; `inert_lane.py classify`,
 proven by the inotify watch in CI) runs the tree audits (≈ 40 s); a **tooling** change (`scripts/`, `.github/`, `tools/`,
 `.claude/`, any `*.py`/`*.ps1`/`*.sh`) runs the audits and the self-tests whose recorded inputs it touches, with no build
 (kb/Work PB4395: the tooling a compiler test or the build reads, `inert_lane.py`'s `CODE_READS`, and a script outside

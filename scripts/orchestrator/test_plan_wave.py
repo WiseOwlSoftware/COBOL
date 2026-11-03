@@ -962,6 +962,16 @@ check("... a bare scratchpad line is refused on a surface; the session scratchpa
        check_practices.bare_scratchpad_lines("scripts/hooks/test_x.py", "the scratchpad"),
        check_practices.bare_scratchpad_lines("scripts/spec/x.py", "the scratchpad")),
       ([1, 1, 0], 1, [], []))
+check("... the hook that refuses a call naming the session scratchpad is exempt: it names the folder to refuse it",
+      check_practices.bare_scratchpad_lines("scripts/hooks/own_scratch.py", "names the scratchpad"), [])
+_lane = (coord.REPO / "scripts" / "orchestrator" / "review_lane.py").read_text(encoding="utf-8")
+_lane_pins = check_practices.CODE_PROMPTS["scripts/orchestrator/review_lane.py"]
+check("the review lane's prompts are pinned to the rolling wave's reviewer wording (PB4473): the real source passes, and a lane "
+      "prompt that drops the scratch sentence, or one of its two callers, is refused",
+      [all(re.search(p, t) for p in _lane_pins) for t in
+       (_lane, _lane.replace("YOUR SCRATCH DIRECTORY is", "YOUR FOLDER is"),
+        _lane.replace("+ scratch_line(r) +", "+", 1), _lane.replace("            + scratch_line(r)\n", "", 1))],
+      [True, False, False, False])
 try:
     mds.render({k: v for k, v in CFG77.items() if k != "stop_file"}, gjson[0], FILES(gjson[0]))
     check("no stop_file, no spec", "rendered", "KeyError")
