@@ -1,4 +1,4 @@
-## PB4485 - the qualified-index-name and alphabet-name class-condition edition gates report at the written word, not at the statement
+## Entry 3048 — 2026-11-03 14:10 PST — PB4485 - the qualified-index-name and alphabet-name class-condition edition gates report at the written word, not at the statement
 
 Mechanism (one, in `NameResolution.ResolveIndexName`): the COBOL-2002 gate for a qualified index-name (Annex F.2
 item 108, `qualified-index-name-2002`, PB4305) fired from the shared index-name resolver, which runs inside SET, SEARCH
@@ -23,3 +23,4 @@ SR4 e) linkage refusal (COBOL2746). The cursor now covers the whole of `ResolveI
 return, so every report about a written index-name stands at the word (the data-name's COBOL1639 already did, PB4383).
 Witness: `ResolutionDiagnosticOfAWrittenIndexName_NamesTheWordNotTheStatement` (4 cases) and
 `LinkageIndexNameRefusal_NamesTheWordNotTheStatement`.
+
