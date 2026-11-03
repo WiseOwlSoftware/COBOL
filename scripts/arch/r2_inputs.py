@@ -12,7 +12,8 @@ duplication's whole-codebase clone report is one input for one pass.
 
 WHAT, in `<out>/` (each step cached in `<out>/mech/<step>.json` with the KEY it was made for — the pin, the step's
 STEP_VERSION and what else it depends on — and reused only for the same key, so a re-run resumes):
-  mech/semgrep.json     `scripts/semgrep/invariants.yml` over the pin's src/ (the six §1.2 invariants), hits by file;
+  mech/semgrep.json     `scripts/semgrep/invariants.yml` over the pin's src/ (the nine invariant rules): `{"hits": hits by
+                        file, "unread": the files semgrep cannot parse at all}`; any other scan error stops the step;
   mech/analyzers-<project>.json   `dotnet build <project> -p:AnalysisLevel=latest-all` per C# project, in dependency
                         order, in one detached worktree of the pin (`mech/tree`) whose `.globalconfig` raises the
                         §5.5 IDE/SYSLIB rules (MODERN_RULES) to warning, every analyzer warning by file (the
@@ -21,7 +22,8 @@ STEP_VERSION and what else it depends on — and reused only for the same key, s
   mech/drift.json       `scripts/spec/drift_rules.py <files>`: the specific drift rules that govern each file;
   mech/notes.json       every open kb/Work note and the domain files it names (a finding already tracked is
                         reported as "already PBnnnn", never re-filed);
-  inputs/in-<shard>.json        the shard: its files and lines, and the facts above filtered to its files, plus the
+  inputs/in-<shard>.json        the shard: its files and lines, and the facts above filtered to its files (the semgrep
+                        hits, and `semgrep_unread`: the shard's files no invariant rule could hit), plus the
                         census rows for it (god classes, unreachable and test-only families, folder/namespace
                         disagreements, clone families touching it, its namespaces' measured edges);
   inputs/in-duplication.json    the whole-codebase clone report (every census clone family, each copy mapped to its

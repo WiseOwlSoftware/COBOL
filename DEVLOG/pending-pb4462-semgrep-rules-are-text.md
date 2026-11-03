@@ -57,3 +57,10 @@ self-test covers the three cases. The determination that a `PartialParsing` span
 is now recorded in the PB4462 note for the owner to confirm or overturn. The branch was merged again with main, which had moved
 the OO method symbol's origin to a type (PB4459): its uses in `OoDataBinder.cs`, `PtrBindBasedAndAddressablesPass.cs` and
 `FlagConformancePass.cs` were ported to the extracted binders.
+
+**Merged with the DataBinder extract (#1054).** The reviewed branch was merged with origin/main after the extract landed as one
+folded entry (3024), so the stamped entry 3015 the PB2352 branch carried is not in the tree (its content is 3024). The merge was
+clean; `verify.py` on the merged tree still passes with the counts 3 / 43 / 2 / 237 (the 11 descriptor sites live in
+`DataBinder.cs`, `ProcedureTableBuilder.cs`, `IntrinsicBinder.cs` and `SpecialNamesBinder.Locales.cs`, none of which the extract
+moved), and the build is 0 warnings, 0 errors. The module docstring of `scripts/arch/r2_inputs.py` now describes the semgrep step's
+cached record (`hits` and `unread`) and the shard input's `semgrep_unread` (review lead R2-1).
