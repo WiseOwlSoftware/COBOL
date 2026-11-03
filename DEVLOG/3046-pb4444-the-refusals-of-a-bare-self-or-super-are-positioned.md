@@ -1,4 +1,4 @@
-## PB4444 - the refusals of a bare SELF or SUPER are positioned at the word
+## Entry 3046 — 2026-11-03 13:50 PST — PB4444 - the refusals of a bare SELF or SUPER are positioned at the word
 
 PB4153 made COBOL1639 ("'SELF' is not defined") the verdict for SELF and SUPER at an edition whose section 8.9 leaves them
 free, and said every reader reports at the word. Two readers did not. `OoBinder.OoPredefinedSearchRoot`, which selects the
@@ -20,3 +20,4 @@ takes a token rather than a parse node, so each of its other readers (the OO ide
 Goldens: the two PB4153 negatives that were the defect (`pb4153-invoke-receiver-super-undeclared-at-85`,
 `pb4153-property-of-self-undeclared-at-85`) now pin `(line,column)` in their `expect`, and the new
 `pb4444-invoke-self-outside-method-position` pins COBOL6002 at the word at 2002, 2014 and 2023.
+
