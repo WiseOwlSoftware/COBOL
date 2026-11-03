@@ -10,9 +10,13 @@ Four independent checks, because a rule set can fail in several opposite directi
      over regexes loses a file wholesale. kb/Work PB4462 found 130 of the product's files in that state -- the data binder's
      thousands of lines among them, the raw-code-literal count under-reading 230 of 248 -- while this script read only
      the scan's `results` and never its `errors[]`. A rule that needs the parser is REFUSED here, naming its keys.
-  1. EVERY rule must still FIRE in each file of scripts/semgrep/testdata/: `Violations.cs` (a file semgrep reads) and
-     `Unparsed.cs` (one it reads only in part, the PB4462 case). A rule that silently stops matching reports zero
-     findings and looks green -- strictly worse than no rule. This has already happened once: an invented
+  1. EVERY rule must still FIRE where a test says it must. `testdata/Violations.cs` (a file semgrep reads) holds one
+     violation per rule and LINE CONTROLS: a trailing `FIRES <rule>` marker says that rule hits that line, `QUIET` that no
+     rule does (a `//` inside a string or char literal must not hide a violation, a `//` comment must). `testdata/unparsed/`
+     holds one file per rule, named for it, whose violation sits on a line semgrep's grammar cannot read (a C# 12 primary
+     constructor): the rule must fire ON a line semgrep itself reports as an unread (`PartialParsing`) span, and a file
+     semgrep now reads in full fails as an obsolete control (kb/Work PB4462, PB4474). A rule that silently stops matching
+     reports zero findings and looks green -- strictly worse than no rule. This has already happened once: an invented
      `pattern-not-inside` suppression construct disabled two rules while the scan still said "success". The path-scoped
      rules are re-run with their `paths:` filter stripped, since the testdata lives outside src/.
   2. The scan's `errors[]` is READ, in the testdata and in the greenfield tree. A `PartialParsing` span is counted and
@@ -43,8 +47,18 @@ REPO = HERE.parents[1]
 CONFIG = HERE / "invariants.yml"
 TESTDATA = HERE / "testdata"
 BASELINE = HERE / "baseline.json"
-#: The testdata file semgrep's C# grammar cannot read (check 1's second control, PB4462).
-UNPARSED_CONTROL = TESTDATA / "Unparsed.cs"
+#: Check 1's second control (PB4462, PB4474): one file per rule, `<rule id>.cs`, each with a violation on a line semgrep's
+#: C# grammar cannot read.
+UNPARSED_DIR = TESTDATA / "unparsed"
+#: The text rules that skip a `//` comment all begin with this prefix (kb/Work PB4474): a character that is no part of a
+#: literal, a `/` that does not start a comment, or a WHOLE string / verbatim string / char literal, so a `//` inside a
+#: literal is consumed with it and only a comment's `//` stops the match. invariants.yml cannot share it (YAML has no
+#: interpolation), so `prefix_drift` holds each copy to this text. `\x27` is the apostrophe, which a single-quoted YAML
+#: scalar cannot carry bare.
+CODE_PREFIX = (r'(?:[^\n"\x27/@]|/(?!/)|@(?!")|"(?:[^"\\\n]|\\.)*"|@"(?:[^"\n]|"")*"|'
+               r'\x27(?:[^\x27\\\n]|\\.)*\x27)*?')
+#: A line control in Violations.cs (check 1): the rule that must hit the line, or QUIET (no rule may).
+LINE_FIRES = re.compile(r"\bFIRES\s+(\S+)\s*$")
 
 GREENFIELD = [
     "src/WiseOwl.Cobol.Cli", "src/WiseOwl.Cobol.Compiler", "src/WiseOwl.Cobol.Editions",
@@ -119,6 +133,69 @@ def parser_dependence(config_text: str) -> list[str]:
     return refused
 
 
+def rule_regexes(config_text: str) -> dict[str, str]:
+    """Each rule's `pattern-regex` by rule id, as the regex (a single-quoted YAML scalar, its `''` read as `'`)."""
+    out: dict[str, str] = {}
+    for m in re.finditer(r"^  - id:\s*(\S+)(.*?)(?=^  - id:|\Z)", config_text, re.M | re.S):
+        pm = re.search(r"^    pattern-regex: '(.*)'[ \t]*$", m.group(2), re.M)
+        if pm:
+            out[m.group(1)] = pm.group(1).replace("''", "'")
+    return out
+
+
+def prefix_drift(config_text: str) -> list[str]:
+    """Check 0: a rule whose regex opens `(?m)^(?:` (a prefix that walks the line) must open with `(?m)^` + CODE_PREFIX
+    exactly, and none may use the tempered form `(?:(?!//)[^\\n])*?`, which rules a match out after a `//` inside a string
+    literal (kb/Work PB4474). The rules that skip a comment share one text, which the YAML cannot interpolate."""
+    problems = []
+    for rid, rx in rule_regexes(config_text).items():
+        if "(?!//)" in rx:
+            problems.append(f"{rid}: uses the tempered `(?!//)` prefix, which hides a violation after a `//` inside a "
+                            "string; begin with verify.CODE_PREFIX")
+        elif rx.startswith("(?m)^(?:") and not rx.startswith("(?m)^" + CODE_PREFIX):
+            problems.append(f"{rid}: its line prefix differs from verify.CODE_PREFIX")
+    return problems
+
+
+def unparsed_control_problems(declared: list[str], present: set[str], hits: dict[str, dict[str, set[int]]],
+                              spans: dict[str, list[tuple[int, int]]]) -> list[str]:
+    """Check 1, the unparsed controls: one file `<rule id>.cs` per declared rule (`present`: the names found), the rule
+    firing in it ON a line inside a span semgrep reports unread (`hits`: file name -> rule -> lines; `spans`: file name ->
+    (first, last) lines). A file with no unread span is an obsolete control, which fails (it used to be a NOTE and PASS)."""
+    problems = []
+    for rid in declared:
+        name = f"{rid}.cs"
+        if name not in present:
+            problems.append(f"{rid}: no control file unparsed/{name}")
+            continue
+        lines = hits.get(name, {}).get(rid, set())
+        unread = spans.get(name, [])
+        if not unread:
+            problems.append(f"unparsed/{name}: semgrep reads it in full now, so it no longer proves the rule matches where the "
+                            "grammar fails; use a construct semgrep cannot read")
+        elif not lines:
+            problems.append(f"{rid}: does not fire in unparsed/{name}")
+        elif not any(a <= line <= b for line in lines for a, b in unread):
+            problems.append(f"{rid}: fires in unparsed/{name} only outside the spans semgrep cannot read "
+                            f"(lines {sorted(lines)}, unread {unread})")
+    problems += [f"unparsed/{name}: names no declared rule" for name in sorted(present - {f"{r}.cs" for r in declared})]
+    return problems
+
+
+def line_problems(source: str, hits: dict[str, set[int]]) -> list[str]:
+    """Check 1, the line controls of Violations.cs: a line ending `FIRES <rule>` must be hit by that rule, and one ending
+    `QUIET` by none (`hits`: rule id -> the lines it hit in the file)."""
+    problems = []
+    for n, line in enumerate(source.splitlines(), 1):
+        fires = LINE_FIRES.search(line)
+        if fires and n not in hits.get(fires.group(1), set()):
+            problems.append(f"Violations.cs:{n}: {fires.group(1)} must fire here and does not")
+        elif line.rstrip().endswith("QUIET"):
+            problems += [f"Violations.cs:{n}: {rid} fires on a line that must stay quiet"
+                         for rid in sorted(hits) if n in hits[rid]]
+    return problems
+
+
 def is_partial_parse(e: dict) -> bool:
     kind = e.get("type")
     return isinstance(kind, list) and bool(kind) and kind[0] == "PartialParsing"
@@ -140,15 +217,16 @@ def classify_errors(errors: list[dict]) -> tuple[list[str], list[str]]:
     but a partial parse: a whole-file "Syntax error" (the file is removed from every rule), a timeout, a rule error --
     `file  type: first line of the message`. Every reader of a semgrep scan's `errors[]` reads it through here or through
     `is_partial_parse` / `error_path` / `describe_error` (`scripts/arch/r2_inputs.py`'s `run_semgrep` does: PB4462 review R1-1)."""
-    spans, fatal = [], []
-    for e in errors:
-        if is_partial_parse(e):
-            for span in e["type"][1]:  # ["PartialParsing", [{"path", "start": {"line"}, "end": {"line"}}, ...]]
-                path = str(span["path"]).replace("\\", "/")
-                spans.append(f"{path}:{span['start']['line']}-{span['end']['line']}")
-        else:
-            fatal.append(describe_error(e))
+    spans = [f"{path}:{first}-{last}" for path, first, last in partial_spans(errors)]
+    fatal = [describe_error(e) for e in errors if not is_partial_parse(e)]
     return sorted(set(spans)), fatal
+
+
+def partial_spans(errors: list[dict]) -> list[tuple[str, int, int]]:
+    """Every unread span of the `PartialParsing` entries, as (forward-slashed path, first line, last line)."""
+    return [(str(span["path"]).replace("\\", "/"), span["start"]["line"], span["end"]["line"])
+            for e in errors if is_partial_parse(e)
+            for span in e["type"][1]]   # ["PartialParsing", [{"path", "start": {"line"}, "end": {"line"}}, ...]]
 
 
 def unreadable_files(cwd: pathlib.Path = REPO, targets: list[str] = GREENFIELD) -> tuple[set[str], list[str]]:
@@ -218,39 +296,46 @@ def main() -> int:
     print(f"{len(declared)} rules declared.\n")
 
     # ---- Check 0: no rule needs semgrep's C# parser ----------------------------------------------------------
-    refused = parser_dependence(CONFIG.read_text(encoding="utf-8"))
+    config_text = CONFIG.read_text(encoding="utf-8")
+    refused = parser_dependence(config_text) + prefix_drift(config_text)
     print("CHECK 0 — every rule is text (one `pattern-regex`), so semgrep's C# grammar cannot blind it")
     for line in refused:
         print(f"   REFUSED  {line}")
     if refused:
-        print(f"\nFAIL: {len(refused)} rule(s) need semgrep's parser, which cannot read C# 12+ constructs the product uses")
-        print("      (a primary-constructor class, a collection expression): the rule is blind over every span or file it")
-        print("      fails on, and nothing says so. Write it as one `pattern-regex`, or enforce it with a Roslyn check.")
+        print(f"\nFAIL: {len(refused)} rule problem(s): a rule that needs semgrep's parser is blind over every span or file it")
+        print("      cannot read (C# 12+ constructs the product uses: a primary-constructor class, a collection expression),")
+        print("      and a line prefix that is not CODE_PREFIX hides a violation after a `//` inside a string. Write each rule")
+        print("      as one `pattern-regex`, or enforce it with a Roslyn check.")
         return 1
-    print("   OK    all rules are text\n")
+    print("   OK    all rules are text, and the comment-skipping prefix is the one CODE_PREFIX\n")
 
-    # ---- Check 1: every rule fires in each deliberate-violation file --------------------------------------------
+    # ---- Check 1: every rule fires where a test says it must ----------------------------------------------------
     with tempfile.TemporaryDirectory(prefix="wiseowl-cobol-semgrep-") as tmp:
         scan = run(strip_paths(CONFIG, pathlib.Path(tmp)), [str(TESTDATA)], no_git_ignore=True)
-    fired_in: dict[str, set[str]] = {}
+    hit_lines: dict[str, dict[str, set[int]]] = {}   # file name -> rule -> lines
     for r in scan["results"]:
-        fired_in.setdefault(pathlib.PurePath(r["path"]).name, set()).add(r["check_id"].split(".")[-1])
-    controls = sorted(p.name for p in TESTDATA.glob("*.cs"))
+        hit_lines.setdefault(pathlib.PurePath(r["path"]).name, {}).setdefault(
+            r["check_id"].split(".")[-1], set()).add(r["start"]["line"])
+    unread: dict[str, list[tuple[int, int]]] = {}    # file name -> the spans semgrep reports unread
+    for path, first, last in partial_spans(scan["errors"]):
+        unread.setdefault(pathlib.PurePath(path).name, []).append((first, last))
+    print("CHECK 1 — every rule fires in Violations.cs, on its line controls, and inside an unread span of its own control")
     dead = 0
-    print("CHECK 1 — every rule fires in each testdata file")
-    for name in controls:
-        for r in declared:
-            ok = r in fired_in.get(name, set())
-            dead += not ok
-            print(f"   {'OK  ' if ok else 'DEAD'}  {name}: {r}")
-    if dead:
-        print(f"\nFAIL: {dead} rule/file pair(s) matched nothing. A rule that never fires is worse than no rule —")
+    for r in declared:
+        ok = r in hit_lines.get("Violations.cs", {})
+        dead += not ok
+        print(f"   {'OK  ' if ok else 'DEAD'}  Violations.cs: {r}")
+    problems = line_problems((TESTDATA / "Violations.cs").read_text(encoding="utf-8"), hit_lines.get("Violations.cs", {}))
+    problems += unparsed_control_problems(
+        declared, {p.name for p in UNPARSED_DIR.glob("*.cs")}, hit_lines, unread)
+    for line in problems:
+        print(f"   DEAD  {line}")
+    if dead or problems:
+        print(f"\nFAIL: {dead + len(problems)} control(s) failed. A rule that never fires is worse than no rule —")
         print("      it reports green. Fix the pattern or remove the rule.")
         return 1
-    control_spans, fatal = classify_errors(scan["errors"])
-    if not any(UNPARSED_CONTROL.name in s for s in control_spans):
-        print(f"   NOTE  {UNPARSED_CONTROL.name} is now read in full by this semgrep: it still proves the rules are text, but is")
-        print("         no longer a file the grammar fails on -- pick a construct that does, to keep the control honest.")
+    print(f"   OK    the line controls hold, and all {len(declared)} rules fire inside a span semgrep cannot read")
+    fatal = classify_errors(scan["errors"])[1]
 
     # ---- Check 2: the scan's errors[] are read, not dropped -------------------------------------------------------
     result = run(CONFIG, GREENFIELD)
@@ -334,6 +419,58 @@ def self_test() -> int:
            len(parser_dependence("  - id: empty-rule\n    languages: [csharp]\n    severity: ERROR\n")), 1)
     expect("a rule with two pattern-regex keys is refused",
            len(parser_dependence("  - id: twice\n    pattern-regex: 'a'\n    pattern-regex: 'b'\n")), 1)
+
+    config_text = CONFIG.read_text(encoding="utf-8")
+    expect("the real invariants.yml's comment-skipping rules all open with CODE_PREFIX", prefix_drift(config_text), [])
+    expect("a rule with the tempered `(?!//)` prefix, or a prefix of its own, is refused by id",
+           [r.split(":")[0] for r in prefix_drift(
+               "  - id: old\n    pattern-regex: '(?m)^(?:(?!//)[^\\n])*?decimal'\n"
+               "  - id: own\n    pattern-regex: '(?m)^(?:[^/])*?decimal'\n"
+               "  - id: ok\n    pattern-regex: '(?m)^" + CODE_PREFIX + "decimal'\n")], ["old", "own"])
+    # The line controls of Violations.cs, through the rules' real regexes (Python's `re` reads them as PCRE does here), so
+    # CI's audits, which have no semgrep, still hold the string / char / comment behavior of the prefix.
+    regexes = {rid: re.compile(rx) for rid, rx in rule_regexes(config_text).items()}
+    decimal_rule = regexes["wiseowl-cobol-no-decimal"]
+    for label, line, want in (
+            ("a `//` inside a string literal", 'string url = "http://x"; decimal d = 1;', True),
+            ("a `/` char literal", "char s = '/'; decimal d = 1;", True),
+            ("a `\"` char literal", "char q = '\"'; decimal d = 1;", True),
+            ("a verbatim string ending in a backslash", 'string p = @"C:\\dir\\"; decimal d = 1;', True),
+            ("a verbatim string with a doubled quote and `//`", 'string p = @"a ""// b"" c"; decimal d = 1;', True),
+            ("a divide-assign before the violation", "x /= 2; decimal d = 1;", True),
+            ("the violation alone", "decimal d = 1;", True),
+            ("a trailing `//` comment", "int a = 0; // decimal d = 1;", False),
+            ("a whole-line `//` comment", "// decimal d = 1;", False),
+            ("a `///` doc comment", "/// <c>decimal d = 1;</c>", False),
+            ("a comment after a string", 'string s = "a"; // decimal d = 1;', False),
+            ("a comment with an unbalanced quote", "int a; // it's \"quoted decimal d = 1;", False)):
+        expect(f"no-decimal on {label}", bool(decimal_rule.search(line + "\n")), want)
+    expect("raw-code-literal sees an Emit after a `//` inside a string, and not one in a comment",
+           [bool(regexes["wiseowl-cobol-raw-diagnostic-code-literal"].search(s + "\n")) for s in
+            ('var u = "http://x"; Emit(Severity.Error, "COBOL1234", "m");', '// Emit(Severity.Error, "COBOL1234", "m");')],
+           [True, False])
+    expect("byte-storage sees a field after a `//` inside a string, and not one in a comment",
+           [bool(regexes["wiseowl-cobol-no-persistent-byte-storage"].search(s + "\n")) for s in
+            ('var u = "http://x"; byte[] b = new byte[1];', "int a; // byte[] b;")], [True, False])
+
+    ids = ["r1", "r2"]
+    expect("every rule's control present, fired on an unread line: no problem",
+           unparsed_control_problems(ids, {"r1.cs", "r2.cs"}, {"r1.cs": {"r1": {3}}, "r2.cs": {"r2": {3}}},
+                                     {"r1.cs": [(3, 3)], "r2.cs": [(2, 4)]}), [])
+    expect("a missing control, a stray file, a rule that does not fire, a hit outside the unread span, and a file read in full "
+           "are each a problem naming the rule or file",
+           [p.split(":")[0].split(" ")[0] for p in unparsed_control_problems(
+               ["r1", "r2", "r3", "r4"], {"r2.cs", "r3.cs", "r4.cs", "x.cs"},
+               {"r3.cs": {"r3": {9}}, "r4.cs": {"r4": {3}}}, {"r2.cs": [(1, 1)], "r3.cs": [(3, 3)], "r4.cs": []})],
+           ["r1", "r2", "r3", "unparsed/r4.cs", "unparsed/x.cs"])
+    src = "a\nb  // FIRES r1\nc  QUIET\nd  QUIET\n"
+    expect("a FIRES line the rule misses and a QUIET line any rule hits are problems; the other lines pass",
+           line_problems(src, {"r1": set(), "r2": {3}}), ["Violations.cs:2: r1 must fire here and does not",
+                                                             "Violations.cs:3: r2 fires on a line that must stay quiet"])
+    expect("FIRES and QUIET lines that hold pass", line_problems(src, {"r1": {2}}), [])
+    expect("partial_spans lists each unread span with a forward-slashed path",
+           partial_spans([{"type": ["PartialParsing", [{"path": "a\\b.cs", "start": {"line": 3}, "end": {"line": 5}}]]},
+                          {"type": "Syntax error", "path": "c.cs"}]), [("a/b.cs", 3, 5)])
 
     partial = {"type": ["PartialParsing", [{"path": "src\\A\\B.cs", "start": {"line": 14, "col": 1}, "end": {"line": 4492, "col": 2}},
                                           {"path": "src\\A\\B.cs", "start": {"line": 5747, "col": 1}, "end": {"line": 5768, "col": 2}}]]}
