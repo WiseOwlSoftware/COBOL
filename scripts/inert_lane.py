@@ -82,7 +82,10 @@ the whole repository (the tracer records a read of directory "") is RED, and a s
 the declaration is judged like any other, so its specific reads (merge_drivers.py's ABI pin) are
 TOOLING_READS entries, not a blind spot (review round 2, finding R2-1); (b) the INERT corpora, DEVLOG/ and kb/, which devlog.py and the register's self-tests read as
 fixtures: every landing adds to both, the audits that govern an entry (`devlog.py check`, `work.py check`) run in every
-lane, and a change to how they are read is a script edit; (c) a directory LISTING (`entries:`) records names, which
+lane, and a change to how they are read is a script edit; and, since PB4453, the Markdown under docs/ that four self-tests
+read as data (differential_fuzz.py: the CONFORMANCE.md section 5 table; ci_bounds.py: the DESIGN-test-build-ci.md section its
+docstring cites; landing_measure.py and fuzz_triage.py: the fleet-optimization evidence directory): a docs-only edit to one of those runs none of
+them in the gate, and CI's Linux audits job, which runs every self-test in each merge group, is where it is first seen; (c) a directory LISTING (`entries:`) records names, which
 change when a file is added or removed and not when any listed file is edited, so the proof checks the files a self-test
 read and its `paths:` and `content:` reads of a directory.
 
@@ -763,17 +766,42 @@ DOCS_WALK_RE = re.compile(r"\bTestRepo\s*\.\s*Docs\s*\(\s*\)")
 TREE_SCOPE_RE = re.compile(r"\bnew\s+TreeScope\s*\(|\bTreeScope\s+\w+\s*=\s*new\s*\(")
 
 
+def _blank(piece: str, fill: str) -> str:
+    """`piece` with every character but a newline replaced by `fill`, so an offset and a line keep their meaning."""
+    return re.sub(r"[^\n]", fill, piece)
+
+
 def csharp_parts(text: str) -> tuple[str, list[str]]:
-    """A C# source split into its CODE (every comment and every string or character literal blanked to spaces, so an offset
-    and a line mean what they meant) and the VALUES of its string literals, in order. Regular, verbatim (`@"…"`),
-    interpolated (`$"…"`, its holes not parsed: only the literal text is wanted) and raw (`\"\"\"…\"\"\"`) strings."""
-    code: list[str] = []
+    """A C# source split into its CODE (every comment, preprocessor line and character literal blanked to spaces and every
+    string literal to underscores, so an offset and a line mean what they meant) and the VALUES of its string literals. A
+    string is regular, verbatim (`@"…"`), interpolated (`$"…"`, `$@"…"`) or raw (a run of three or more quotes, with any
+    number of leading `$`). An interpolated string's value is its text outside the holes; its holes are lexed as code in
+    their own right: their string literals are values too (they precede their string's own) and their code stays in the
+    CODE. A character literal's escape (an escaped quote, backslash or `\\u` sequence) is skipped before its closing quote
+    is sought."""
     literals: list[str] = []
-    i, n = 0, len(text)
+    code, _ = _lex(text, 0, literals, 0)
+    return code, literals
+
+
+def _lex(text: str, i: int, literals: list[str], hole_close: int) -> tuple[str, int]:
+    """The CODE of `text` from `i`, appending the string values to `literals`: to the end of `text` (`hole_close` 0) or, inside
+    an interpolation hole, to the run of `hole_close` closing braces that ends it at bracket depth 0 (returned unconsumed).
+    A `:` at depth 0 in a hole starts its format string, which is text."""
+    code: list[str] = []
+    n = len(text)
+    depth = 0
     while i < n:
         ch = text[i]
         pair = text[i:i + 2]
-        if pair == "//":
+        if hole_close and depth == 0 and text.startswith("}" * hole_close, i):
+            break
+        if hole_close and depth == 0 and ch == ":":
+            j = text.find("}" * hole_close, i)
+            j = n if j < 0 else j
+            code.append(_blank(text[i:j], " "))
+            i = j
+        elif pair == "//":
             j = text.find("\n", i)
             j = n if j < 0 else j
             code.append(" " * (j - i))
@@ -781,50 +809,88 @@ def csharp_parts(text: str) -> tuple[str, list[str]]:
         elif pair == "/*":
             j = text.find("*/", i + 2)
             j = n if j < 0 else j + 2
-            code.append(re.sub(r"[^\n]", " ", text[i:j]))
+            code.append(_blank(text[i:j], " "))
             i = j
-        elif ch == "'":
-            j = i + 2 if text[i + 1:i + 2] == chr(92) else i + 1
-            j = text.find("'", j)
-            j = n if j < 0 else j + 1
+        elif ch == "#" and not text[text.rfind("\n", 0, i) + 1:i].strip():  # a preprocessor line may hold an apostrophe
+            j = text.find("\n", i)
+            j = n if j < 0 else j
             code.append(" " * (j - i))
             i = j
-        elif (m := STRING_START_RE.match(text, i)) is not None:
-            prefix = m.group(0).rstrip('"')
-            quotes = len(m.group(0)) - len(prefix)
-            if quotes >= 3:  # raw: closed by the same run of quotes
-                close = text.find('"' * quotes, m.end())
-                j = n if close < 0 else close + quotes
-                literals.append(text[m.end():close if close >= 0 else n])
-            else:
-                if quotes == 2 and "@" not in prefix:  # the empty string
-                    j, value = m.end(), ""
-                else:
-                    k = m.end() if quotes == 1 else m.end() - 1
-                    verbatim = "@" in prefix
-                    buf: list[str] = []
-                    while k < n:
-                        c = text[k]
-                        if verbatim and c == '"' and text[k + 1:k + 2] == '"':
-                            buf.append('"')
-                            k += 2
-                        elif c == '"':
-                            break
-                        elif not verbatim and c == chr(92):
-                            buf.append(text[k + 1:k + 2])
-                            k += 2
-                        else:
-                            buf.append(c)
-                            k += 1
-                    j, value = min(k + 1, n), "".join(buf)
-                literals.append(value)
-            # A literal stays a run of underscores in the code, so a call's argument list is never read as empty.
-            code.append(re.sub(r"[^\n]", "_", text[i:j]))
+        elif ch == "'":
+            j = i + 3 if text[i + 1:i + 2] == chr(92) else i + 1  # past the backslash and the escaped character
+            j = text.find("'", j)
+            j = n if j < 0 else j + 1
+            code.append(_blank(text[i:j], " "))
             i = j
+        elif (m := STRING_START_RE.match(text, i)) is not None:
+            piece, i = _lex_string(text, i, m, literals)
+            code.append(piece)
         else:
+            depth += ch in "([{"
+            depth -= ch in ")]}"
             code.append(ch)
             i += 1
-    return "".join(code), literals
+    return "".join(code), i
+
+
+def _lex_string(text: str, i: int, start: re.Match[str], literals: list[str]) -> tuple[str, int]:
+    """The string literal opening at `i` (`start` matched its opening): its CODE (underscores, but for the code of its
+    interpolation holes), appending its value to `literals`; and the offset after it."""
+    n = len(text)
+    prefix = start.group(0).rstrip('"')
+    quotes = len(start.group(0)) - len(prefix)
+    dollars = prefix.count("$")
+    verbatim = "@" in prefix
+    raw = quotes >= 3 and not verbatim
+    if quotes == 2 and not verbatim:  # the empty string
+        literals.append("")
+        return _blank(text[i:start.end()], "_"), start.end()
+    k = start.end() if (quotes == 1 or raw) else i + len(prefix) + 1
+    close_run = '"' * quotes
+    value: list[str] = []
+    code: list[str] = []
+    seg = i  # the start of the text not yet turned into CODE
+    while k < n:
+        c = text[k]
+        if raw and text.startswith(close_run, k):
+            break
+        if not raw and c == '"':
+            if verbatim and text[k + 1:k + 2] == '"':
+                value.append('"')
+                k += 2
+                continue
+            break
+        if dollars and c == "{":
+            run = len(text[k:]) - len(text[k:].lstrip("{"))
+            if not raw and text[k + 1:k + 2] == "{":  # `{{` is a brace of the text
+                value.append("{")
+                k += 2
+                continue
+            if raw and run < dollars:  # fewer braces than the string's dollars are text
+                value.append("{" * run)
+                k += run
+                continue
+            value.append("{" * (run - dollars if raw else 0))
+            hole_at = k + run
+            hole, end = _lex(text, hole_at, literals, dollars)
+            code.append(_blank(text[seg:hole_at], "_") + hole)
+            seg = end
+            k = min(end + dollars, n)
+            continue
+        if dollars and c == "}" and not raw and text[k + 1:k + 2] == "}":  # `}}` is a brace of the text
+            value.append("}")
+            k += 2
+            continue
+        if not raw and not verbatim and c == chr(92):
+            value.append(text[k + 1:k + 2])
+            k += 2
+            continue
+        value.append(c)
+        k += 1
+    j = n if k >= n else (k + quotes if raw else k + 1)
+    literals.append("".join(value))
+    code.append(_blank(text[seg:j], "_"))
+    return "".join(code), j
 
 
 def _balanced(code: str, open_at: int) -> str:
@@ -1232,6 +1298,26 @@ def self_test() -> int:
     expect("the lexer: comments and character literals hold no literal, a regular, a verbatim and a raw string do, and no "
            "literal's text stays in the code",
            (lexed, "md" in lexed_code), (["x.md", 'a"b.md', "raw.md", ""], False))
+    # The two forms the first lexer misread, each hiding a Markdown path from the pin (review R1-1): an escaped quote or
+    # backslash character literal (the closing quote was sought from the escaped character), and an interpolation hole that
+    # holds a string literal (the hole ended at that literal's first quote); plus the raw interpolated string and a
+    # preprocessor line holding an apostrophe.
+    bs = chr(92)
+    esc_code, esc = csharp_parts("char q = '" + bs + "'';  char b = '" + bs + bs + "'; char u = '" + bs + "u0041';\n"
+                                 'string a = "README.md"; char r = \'x\'; string w = "after";')
+    expect("the lexer: an escaped quote, backslash and unicode character literal each end at their own closing quote, so "
+           "the string after them is still a literal",
+           (esc, "README" in esc_code), (["README.md", "after"], False))
+    hole_code, hole = csharp_parts('var a = $"x{File.ReadAllText(TestRepo.At("README.md"))}y{b}" + "t"; var c = $"{{" + "e.md";')
+    expect("the lexer: an interpolation hole's string literal is a value and its code stays code; the text outside the holes "
+           "is the string's own value; a doubled brace is text",
+           (hole, "TestRepo.At" in hole_code, "README" in hole_code), (["README.md", "xy", "t", "{", "e.md"], True, False))
+    raw_code, raw = csharp_parts('var a = $$"""\n  {{{TestRepo.At("a.md")}}} {{Docs()}} {x}\n  """; var b = "z.md";\n'
+                                 "#region Don't\nvar c = 1;")
+    expect("the lexer: a raw interpolated string's holes (two dollars, two braces) are lexed and a lone brace is text; a "
+           "preprocessor line's apostrophe opens no character literal",
+           (raw, "Docs()" in raw_code, "TestRepo.At" in raw_code, "var c = 1;" in raw_code),
+           (["a.md", "\n  {}  {x}\n  ", "z.md"], True, True, True))
     with tempfile.TemporaryDirectory() as td:
         planted = {
             "tests/T1.cs": 'class T1 { string a = File.ReadAllText(TestRepo.At("README.md")); }\n',

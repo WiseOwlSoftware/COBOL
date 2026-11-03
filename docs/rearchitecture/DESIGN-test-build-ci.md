@@ -1832,7 +1832,7 @@ things, and `classify` prints both. `reads_tooling=true|false`: it touches a pat
 (`Classification.is_tooling`): a path under `scripts/`, `.github/`, `tools/`, `.claude/`, or `.gitattributes` /
 `toolchain.env`, ending `.py`, `.ps1` or `.sh` anywhere, or under a `TOOLING_READS` entry (a path outside the scripts that a
 script self-test reads as data, each entry naming its readers: `tests/_shared/TestRepo.cs`, the grammar,
-`.agent-fleet.json`, `tests/version-matrix/`, ...; the Markdown is inert and no self-test is bound to it, kb/Work PB4453). CI's
+`.agent-fleet.json`, `tests/version-matrix/`, ...; the Markdown is inert, kb/Work PB4453; the three docs a self-test reads as data, CONFORMANCE.md §5 (differential_fuzz.py), the section `ci_bounds.py` cites and the fleet-optimization evidence (landing_measure.py, fuzz_triage.py), are the accepted residue (b) of `inert_lane.py`: a docs-only edit to one is first seen by CI's Linux audits job). CI's
 `windows-self-tests` job runs only then (`needs.changes.outputs.reads_tooling == 'true'`), so the Windows-only self-tests
 (`test_orchestrate_*.ps1`, `test_autostart.ps1`, ...) still run on every change that can turn one red, and the Linux
 self-tests of the `audits` job run in every merge group. `tooling=true|false`: it touches a SCRIPT
