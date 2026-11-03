@@ -276,8 +276,12 @@ national, `'a'` class alphanumeric or national (alphabetic out), `'b'` boolean, 
 all-but-index/object/pointer, `'p'` the MAX/MIN-family negative list, `' '` no arguments) is one predicate among
 several: the position may also carry `ArgPredicate`s — `MinWidth`/`ExactWidth` in character positions (§15.57.3 /
 §15.97.3 / §15.78.3 r1's "at least one character position", §15.70.3 r1's and §15.96.3 r2's "one character",
-decided only on a STATIC width), `DataItemOrLiteralOnly` (§15.37.3 r3's "an integer data item or integer literal",
-narrower than type 6 — an expression or nested function is barred outright), `NotStrongGroup` (§15.59.3 /
+decided only on a STATIC width), `DataItemOrLiteralOnly` (§15.37.3 r3's and §15.12.3 r1's "an integer data item or integer literal",
+narrower than type 6 — an arithmetic expression is barred outright; a nested function-identifier is a data item and
+stays legal when its function is an integer function), `DataItemOnly` (§15.48.3 r3's "shall be a data item": a literal,
+a figurative constant or an expression is refused, a data reference or a function-identifier admitted), both asking the
+ONE `IntrinsicArgumentRules.IsDataItem` — §8.4.3.2.4 GR1 makes a function-identifier "a temporary data item"
+(kb/Work PB4507), `NotStrongGroup` (§15.59.3 /
 §15.63.3 / §15.71.3 / §15.72.3 r1's "nor shall it be a strongly-typed group item"), `CharacterCategory` (the
 CATEGORY-worded rows — NUMVAL §15.67.3, NUMVAL-F §15.69.3, NUMVAL-C §15.68.3 and TEST-NUMVAL-C §15.94.3 r1, ORD
 §15.70.3 r1 — bar the three EDITED categories, which Table 2 folds into the class the kind admits; the CLASS-worded

@@ -134,8 +134,15 @@ internal enum ArgPredicateKind
     /// §15.96.3 r2's "a single character"). Same static-width discipline as <see cref="MinWidth"/>.</summary>
     ExactWidth,
     /// <summary>"shall be an integer data item or integer literal" (§15.37.3 r3) — NARROWER than §15.3 type 6:
-    /// an arithmetic expression or a nested function is barred outright, whatever it evaluates to.</summary>
+    /// an arithmetic expression is barred outright, whatever it evaluates to; a nested function-identifier is a
+    /// data item (<see cref="IntrinsicArgumentRules.IsDataItem"/>, kb/Work PB4507) and its integer-ness is the class
+    /// kind's test.</summary>
     DataItemOrLiteralOnly,
+    /// <summary>"shall be a data item" with no literal alternative (§15.48.3 r3: INTEGER-OF-FORMATTED-DATE's
+    /// argument-2). The ONE question is <see cref="IntrinsicArgumentRules.IsDataItem"/>: a literal, a figurative
+    /// constant, a boolean expression or an arithmetic expression is not one; a data reference, a counter register
+    /// and a function-identifier (§8.4.3.2.4 GR1: "a temporary data item") are.</summary>
+    DataItemOnly,
     /// <summary>"nor shall it be a strongly-typed group item" (§15.59.3 r1 / §15.63.3 r1 / §15.71.3 r1 /
     /// §15.72.3 r1) — a group whose TYPE is STRONG (<c>StrongTypeModel.IsStrongGroup</c>); §15.3 item 2 treats
     /// every OTHER strongly-typed group as an alphanumeric argument, which is why this cannot be a class.</summary>
@@ -159,6 +166,7 @@ internal readonly record struct ArgPredicate(ArgPredicateKind Kind, string Claus
     public static ArgPredicate MinWidth(int n, string clause) => new(ArgPredicateKind.MinWidth, clause, n);
     public static ArgPredicate ExactWidth(int n, string clause) => new(ArgPredicateKind.ExactWidth, clause, n);
     public static ArgPredicate DataItemOrLiteralOnly(string clause) => new(ArgPredicateKind.DataItemOrLiteralOnly, clause);
+    public static ArgPredicate DataItemOnly(string clause) => new(ArgPredicateKind.DataItemOnly, clause);
     public static ArgPredicate NotStrongGroup(string clause) => new(ArgPredicateKind.NotStrongGroup, clause);
     public static ArgPredicate CharacterCategory(string clause) => new(ArgPredicateKind.CharacterCategory, clause);
 }
@@ -893,7 +901,8 @@ internal static class IntrinsicArgumentRules
             // "Argument-2 and argument-3 shall be positive nonzero numeric integer literals or data items" is an
             // ordinary class rule (§15.3 type 6 — Table 21 prints Int2, Int3), so both positions ride the ONE
             // screen: class numeric + the §15.3 integer test, and "literals or data items" bars an arithmetic
-            // expression or nested function as it does FIND-STRING's integer (kb/Work PB2079). The value halves
+            // expression as it does FIND-STRING's integer (kb/Work PB2079); a nested integer function-identifier is a
+            // data item and stays legal (PB4507). The value halves
             // (positive, range 2 to 16, unequal) stay in CheckBaseConvertArgs and the runtime twins.
             ["BASECONVERT"] = Schema("§15.12.3 r1", [UnscreenedKind, 'i', 'i'])
                 .WithPredicate(1, ArgPredicate.DataItemOrLiteralOnly("§15.12.3 r1"))
@@ -955,11 +964,12 @@ internal static class IntrinsicArgumentRules
             // cannot express — the sibling of `AR-15.79.3-3`. This closes the class half, which is the half that
             // was silently accepting a class-numeric argument-2; the cross-argument half stays PARTIAL.
             // …r3's cross-argument half now rides MatchArgument1 (the class reading of "the same type as
-            // argument-1"), and its "shall be a DATA ITEM" half the DataItemOrLiteralOnly predicate's data-item
-            // arm cannot express (it admits literals) — argument-2 as a literal is screened in BindIntrinsicCore's
-            // format arm (PB58).
+            // argument-1"), and its "shall be a DATA ITEM" half the DataItemOnly predicate (PB4507: it was an arm in
+            // BindIntrinsicCore that admitted a field operand ONLY, so it refused the function-identifier that
+            // §8.4.3.2.4 GR1 makes a temporary data item).
             ["INTEGER-OF-FORMATTED-DATE"] = Schema("§15.48.3 r1/r3", ['a', 'a'],
-                cross: CrossArgRule.MatchArgument1, crossClause: "§15.48.3 r3"),
+                cross: CrossArgRule.MatchArgument1, crossClause: "§15.48.3 r3")
+                .WithPredicate(1, ArgPredicate.DataItemOnly("§15.48.3 r3")),
             // ⛔ THE ONE THAT NEEDED PB20 FIRST. §15.45.3 r1 is "Argument-1 shall be of class BOOLEAN" — the only
             // rule in the catalogue that names that class, and `Admissible` had no arm able to say it. It is
             // listed last because it was BLOCKED, not forgotten: until PB20, every reference-modified operand was
@@ -1006,8 +1016,8 @@ internal static class IntrinsicArgumentRules
             // ⛔ THIS ROW IS THE WHOLE ARGUMENT FOR THE SCHEMA. Under one-kind-per-function it would have
             // screened argument-3 as a string and REJECTED the legal `FUNCTION FIND-STRING(a b 2)`.
             // …r3 is NARROWER than §15.3 type 6 — "an integer DATA ITEM or integer LITERAL" — so argument-3 also
-            // carries the operand-shape predicate: an arithmetic expression or a nested function is barred
-            // outright (PB58).
+            // carries the operand-shape predicate: an arithmetic expression is barred outright (PB58); a nested
+            // integer function-identifier is a data item (§8.4.3.2.4 GR1) and is admitted (PB4507).
             ["FIND-STRING"] = Schema("§15.37.3 r1/r2/r3", ['s', 's', 'i'],
                 cross: CrossArgRule.MatchArgument1, crossClause: "§15.37.3 r2")
                 .WithPredicate(2, ArgPredicate.DataItemOrLiteralOnly("§15.37.3 r3")),
@@ -1414,18 +1424,50 @@ internal static class IntrinsicArgumentRules
             $"is {w} character position(s) in length; ISO {p.Clause} requires at least {p.N}",
         ArgPredicateKind.ExactWidth when knownWidth is { } w && w != p.N =>
             $"is {w} character position(s) in length; ISO {p.Clause} requires exactly {p.N}",
-        // "an integer data item or integer literal" — a computed operand is neither, whatever it evaluates to
-        // (a parenthesised bare reference is still written as an expression and §15.37.3 r3 does not admit one).
-        ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
-            $"is FUNCTION {ic.Sig.Name}, not an integer data item or integer literal, which ISO {p.Clause} requires",
-        ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand =>
+        // "an integer data item or integer literal" — an ARITHMETIC EXPRESSION is neither, whatever it evaluates to
+        // (a parenthesised bare reference is still written as an expression and §15.37.3 r3 does not admit one). A
+        // nested FUNCTION-IDENTIFIER is a data item (§8.4.3.2.4 GR1: "a temporary data item"; an integer function's
+        // is an integer one, §15.2 item 5) and so is admitted here; whether its function is INTEGER is the class
+        // kind's integer test, not this predicate's (kb/Work PB4507 — it used to bar the function outright).
+        ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand && !IsDataItem(op) =>
             $"is an arithmetic expression, not an integer data item or integer literal, which ISO {p.Clause} requires",
+        // §15.48.3 r3 "shall be a data item": the literal that rule was written to exclude, and an arithmetic or
+        // boolean expression, are not one; a nested function-identifier IS (§8.4.3.2.4 GR1), kb/Work PB4507.
+        ArgPredicateKind.DataItemOnly when !IsDataItem(op) =>
+            $"is {OperandShapeName(op)}, not a data item, which ISO {p.Clause} requires",
         ArgPredicateKind.NotStrongGroup when op is BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { } it }
                                              && StrongTypeModel.IsStrongGroup(it) =>
             $"is a strongly-typed group item, which ISO {p.Clause} does not admit",
         ArgPredicateKind.CharacterCategory when EditedCategoryOf(op) is { } edited =>
             $"is of an EDITED category ({edited}), which the CATEGORY wording of ISO {p.Clause} does not admit",
         _ => null,
+    };
+
+    /// <summary>⛔ THE ONE "IS THIS OPERAND A DATA ITEM" QUESTION of the argument screens (kb/Work PB4507). A data
+    /// reference (a field operand, its reference-modified view and a user function's synthesized result item included),
+    /// a LINAGE-/LINE-/PAGE-COUNTER register (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1: "a temporary ... data item"), an
+    /// address-identifier (§8.4.3.11.4 GR1: "a unique data item of class pointer") and a FUNCTION-IDENTIFIER
+    /// (§8.4.3.2.4 GR1: "A function-identifier references a temporary data item whose value is determined when the
+    /// function is referenced at runtime"; a nested intrinsic call and a folded one both) are data items. A literal, a
+    /// figurative constant, an ALL literal, a boolean expression and an arithmetic expression are not. A
+    /// <see cref="BoundOperandError"/> already drew its diagnostic, so it answers true: no second report on top.
+    /// ⚠ Only the rules that say "data item" ask it; a class or integer rule decides by the class lattice.</summary>
+    public static bool IsDataItem(BoundOperand op) => op switch
+    {
+        BoundFieldOperand or BoundAddressOperand or BoundOperandError => true,
+        BoundNumericLiteral { FunctionValue: true } => true,
+        BoundComputedOperand { Expr: BoundIntrinsicCall } => true,
+        BoundComputedOperand { Expr: var register } => AlgebraicRanges.CounterRegisterByteLength(register) is not null,
+        _ => false,
+    };
+
+    /// <summary>What a non-data-item operand IS, in the words a diagnostic names it with.</summary>
+    private static string OperandShapeName(BoundOperand op) => op switch
+    {
+        BoundComputedOperand => "an arithmetic expression",
+        BoundBoolOperand => "a boolean expression",
+        BoundFigurative or BoundAllLiteral => "a figurative constant",
+        _ => "a literal",
     };
 
     /// <summary>The EDITED category of a data-item operand — numeric-edited, alphanumeric-edited or national-edited
