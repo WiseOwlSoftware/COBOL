@@ -368,7 +368,7 @@ internal sealed class LinkageBinder(DataBinder data)
             if (item is null)
             {
                 // §14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
-                data.Edition.Error("COBOL0888",
+                data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
                     + "(ISO §14.2.2 SR1)");
                 pos++;
@@ -435,7 +435,7 @@ internal sealed class LinkageBinder(DataBinder data)
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
             Returning = FindLinkageRoot(rref.GetText());
             if (Returning is null)
-                data.Edition.Error("COBOL0888",
+                data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §14.2.2 SR1)");
             else
@@ -464,19 +464,19 @@ internal sealed class LinkageBinder(DataBinder data)
             using var _ = data.Edition.At(root);
             string where = $"data item '{root.CobolName ?? "FILLER"}'";
             if (!_roots.Contains(root))
-                data.Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in an "
+                data.Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: the ANY LENGTH clause may be specified only in an "
                     + "elementary level 1 entry in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
             else if (root.IsGroup)
-                data.Edition.Error("COBOL1542", $"{where}: the subject of an ANY LENGTH clause shall be "
+                data.Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: the subject of an ANY LENGTH clause shall be "
                     + "ELEMENTARY — this entry has subordinate items (ISO §13.18.2.3 SR2)");
             else if (data.Oo.IsClassUnit)
                 // This binder's own LINKAGE is the OBJECT/FACTORY paragraph's, never a method's (method
                 // linkage binds via OoDataBinder.BindMethodData into OoMethodBinding.LinkageRoots, swept there).
-                data.Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in the "
+                data.Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: the ANY LENGTH clause may be specified only in the "
                     + "linkage section of a function, a contained program, or a method that is not a property "
                     + "method — not in a factory or instance definition (ISO §13.18.2.3 SR2)");
             else if (!data.UnitIsContained && !data.UnitIsFunction)
-                data.Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may not be specified in an "
+                data.Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: the ANY LENGTH clause may not be specified in an "
                     + "OUTERMOST program — only in a function, a contained program, or a method "
                     + "(ISO §13.18.2.3 SR2 and its NOTE)");
             else
@@ -486,7 +486,7 @@ internal sealed class LinkageBinder(DataBinder data)
                 bool formal = Formals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue);
                 bool returning = ReferenceEquals(Returning, root);
                 if (data.UnitIsFunction ? !formal : !(formal || returning))
-                    data.Edition.Error("COBOL1542", data.UnitIsFunction
+                    data.Edition.Error(DiagnosticCatalog.AnyLengthSubjectNotInHeader, data.UnitIsFunction
                         ? $"{where}: in a FUNCTION the subject of an ANY LENGTH clause shall be referenced in "
                           + "the procedure division header as a formal parameter with the BY REFERENCE phrase "
                           + "(ISO §13.18.2.3 SR4)"

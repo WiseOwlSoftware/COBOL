@@ -58,7 +58,7 @@ internal static class RaisingPhrase
                     targets.Add(new RaisingTarget(RaisingTargetKind.ExceptionName, up, false));
                 }
                 else
-                    edition.Error("COBOL0858", $"{where} {up}: an exception-name here shall be a level-3 "
+                    edition.Error(DiagnosticCatalog.RaisingPhraseNameInvalid, $"{where} {up}: an exception-name here shall be a level-3 "
                         + "EC-USER name (ISO §14.2.2 SR7)");
                 continue;
             }
@@ -83,14 +83,14 @@ internal static class RaisingPhrase
                 // The interface-name-1 alternative of §14.2.1 carries no FACTORY phrase: `[ FACTORY OF ]` is
                 // printed on the object-class-name-1 line only.
                 if (factory)
-                    edition.Error("COBOL0858", $"{where} FACTORY OF {up}: '{up}' is an interface, and the "
+                    edition.Error(DiagnosticCatalog.RaisingPhraseNameInvalid, $"{where} FACTORY OF {up}: '{up}' is an interface, and the "
                         + "FACTORY phrase belongs to the object-class-name-1 alternative only (ISO §14.2.1 general "
                         + "format; §14.2.2 SR8)");
                 else
                     targets.Add(new RaisingTarget(RaisingTargetKind.Interface, up, false));
                 continue;
             }
-            edition.Error("COBOL0858", factory
+            edition.Error(DiagnosticCatalog.RaisingPhraseNameInvalid, factory
                 ? $"{where} FACTORY OF {up}: not a class this source element may reference (ISO §14.2.2 SR8 / "
                   + "§8.4.6.4)"
                 : $"{where} {up}: not an exception-name, and not a class or interface this source element may "

@@ -20,7 +20,8 @@ public sealed class CopyProcessor(
     CompilationInputs? inputs = null,
     bool ccvsIndicators = false,   // the --nist column-7 conventions for library text too (kb/Work PB1494)
     ImplicitFormatOps? implicitFormatOps = null,   // §14.9.28.4 GR14's implicit PUSH/POP ALL written in library text (kb/Work PB1066)
-    ReferenceFormatDiagnostics? referenceFormatGates = null)   // the compilation's ONE reference-format diagnostics, shared with the main source (kb/Work PB1640)
+    ReferenceFormatDiagnostics? referenceFormatGates = null,   // the compilation's ONE reference-format diagnostics, shared with the main source (kb/Work PB1640)
+    CommentEntryPins? commentEntryPins = null)   // the comment-entry candidates a previous run of the text stages proved to be program text (kb/Work PB4281)
 {
     /// <summary>The compilation's ambient-input gateway (kb/Work PB985): every copybook probe and read below goes
     /// through it, so the record names each library text the group incorporated AND each candidate that was not
@@ -46,9 +47,9 @@ public sealed class CopyProcessor(
             + "COBOL-2023 (Annex E.2 item 1 bullet 4) — use ==pseudo-text==; first use at line ";
         var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, EditionInfo.Of(dialectLevel, permissive));
         if (severity == EditionSeverity.Error)
-            _diagnostics.ReportError("COBOL0902", msg + line, loc, default);
+            _diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.EditionRemovedConstruct.Code, msg + line, loc, default);
         else
-            _diagnostics.ReportWarning("COBOL0902", msg + line, loc, default);
+            _diagnostics.ReportWarning(Editions.Diagnostics.DiagnosticCatalog.EditionRemovedConstruct.Code, msg + line, loc, default);
     }
     /// <summary>Maximum COPY nesting depth to prevent infinite recursion.</summary>
     private const int MaxCopyDepth = 20;
@@ -433,7 +434,7 @@ public sealed class CopyProcessor(
     /// copybook, and return its NormalizeCopybook+ApplyReplacements text (NOT recursively expanded — the caller
     /// recurses: <see cref="ExpandCopiesOneLevel"/> hands the text to the merged CC+COPY driver).</summary>
     internal OneCopyResult ResolveOneCopy(MappedText mapped, int copyIdx, HashSet<string> alreadyIncluded, bool inLibraryText,
-        bool standsInIdentificationDivision, out int afterCopy)
+        bool? standsInIdentificationDivision, out int afterCopy)
     {
         string text = mapped.Text;
         var at = mapped.LocateAt(copyIdx);   // the COPY statement's SOURCE position (kb/Work PB82, PB1801)
@@ -756,7 +757,7 @@ public sealed class CopyProcessor(
             w.AppendSlice(mapped, pos, copyIdx - pos);
             var copyLine = mapped.PointAt(copyIdx);   // the COPY statement's own position: where an unexpanded one stays
 
-            bool standsInIdentification = division.InIdentificationDivisionAt(text, copyIdx);
+            bool? standsInIdentification = division.InIdentificationDivisionAt(text, copyIdx);
             var one = ResolveOneCopy(mapped, copyIdx, alreadyIncluded, inLibraryText: depth > 0, standsInIdentification, out int afterCopy);
             if (one.Outcome == CopyOutcome.Found)
             {
@@ -785,7 +786,7 @@ public sealed class CopyProcessor(
     /// when that is unknown, and then detected as the compilation group's is). The text's own &gt;&gt;SOURCE FORMAT
     /// directives switch it (1), 5)); the resulting map is registered so a COPY inside this library text starts its
     /// library text in the format in effect THERE. Per line: the copybook's path and physical line.</summary>
-    private MappedText NormalizeCopybookMapped(string text, string copybookPath, bool? copyFixed, bool inIdentificationDivision)
+    private MappedText NormalizeCopybookMapped(string text, string copybookPath, bool? copyFixed, bool? inIdentificationDivision)
     {
         // Library text is read by the same §6.5 walker WITH the compilation's reference-format diagnostics (§6.5: the rules
         // of logical conversion apply to lines "of source text and library text"), sited at the copybook's own file and
@@ -793,7 +794,8 @@ public sealed class CopyProcessor(
         var mapped = ReferenceFormatProcessor.NormalizeToFreeFormMapped(text, referenceFormatGates,
             copybookPath, copyFixed, out var formats, ccvsIndicators,
             implicitOps: implicitFormatOps?.For(copybookPath),   // GR14's implicit ops written IN this library text
-            startsInIdentificationDivision: inIdentificationDivision);
+            startsInIdentificationDivision: inIdentificationDivision,
+            pins: commentEntryPins);   // a candidate of this library text a previous run proved to be program text (kb/Work PB4281)
         _referenceFormats[copybookPath] = formats;
         return mapped;
     }

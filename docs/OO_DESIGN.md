@@ -1055,7 +1055,7 @@ THE OO IDENTIFIERS IN THE EXPRESSION TIER (§8.4.3.1.3 SR1; live — kb/Work PB1
   rules NAME SELF keep it by name, never as the temporary: SET Format 5 (`SetSender.Predefined` → SR10 d), SR12 c),
   SR14 b), SR9 for SUPER) and the INVOKE argument (`InvocationArg.Self`, the SET rules of §14.8.2.3.3). SUPER
   anywhere but an invocation's receiver (`OoBindByReceiver`) is §8.4.3.8.3 SR3 — COBOL2900; outside a method,
-  SR1 — COBOL0827. In an arithmetic expression an object reference is §8.8.1.1's COBOL0844 under every
+  SR1 — COBOL6002. In an arithmetic expression an object reference is §8.8.1.1's COBOL0844 under every
   dialect: `--permissive`'s digit decoding reads characters, which class object and class pointer do not have
   (`IntrinsicArgumentRules.IsDigitDecodable`).
   The object of an object-property identifier (`BAL OF SELF`, `BAL OF [K OF] SUPER`, `BAL OF U AS C`) is Format 7's

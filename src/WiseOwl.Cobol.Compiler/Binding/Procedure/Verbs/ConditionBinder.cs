@@ -72,7 +72,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                  : suf.B_SHIFT_L() is not null ? BoolShiftKind.Left
                  : BoolShiftKind.Right;
         if (operand is BoundBoolAll { IsAllLiteral: true })   // NOT figurative ZERO — a disjoint §8.8.2 operand (kb/Work PB157)
-            ctx.Edition.Error("COBOL1511", "the first operand of a boolean shift operation shall not be the "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "the first operand of a boolean shift operation shall not be the "
                 + "figurative constant ALL literal (ISO §8.8.2 rule 5)");
         var count = host.Expr.BindExpr(suf.arithmeticExpression());
         if (count is not BoundExprError && ArithmeticFormationRules.ShiftCountNotSoleOperand(suf) is null
@@ -91,7 +91,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (left is BoundBoolAll { IsAllLiteral: true } && right is BoundBoolAll { IsAllLiteral: true })
             // Rule 4 restricts the Format-6 ALL literal, not figurative ZERO — `ZERO B-AND ALL B"1"` has ONE
             // ALL-literal operand and is legal (kb/Work PB157).
-            ctx.Edition.Error("COBOL1511", "both operands of a boolean operator shall not be ALL literals "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "both operands of a boolean operator shall not be ALL literals "
                 + "(ISO §8.8.2 rule 4)");
         return new BoundBoolBinary(left, op, right);
     }
@@ -125,7 +125,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 return new BoundBoolAll(literal1.Value, IsAllLiteral: true);   // the ONE Format-6 construction site (kb/Work PB157)
             // kb/Work PB1029 — this refusal carried no diagnostic (`COMPUTE B = B B-AND SPACE` compiled clean and
             // aborted the run unit); it is the §8.8.2 operand list's figurative half, reported as its siblings are.
-            ctx.Edition.Error("COBOL1511", $"'{ConcatFolder.Spelling(fig)}' is not a valid boolean operand — the only figurative "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"'{ConcatFolder.Spelling(fig)}' is not a valid boolean operand — the only figurative "
                 + "constants a boolean expression admits are ZERO (ZEROS, ZEROES) and ALL literal where the literal is a "
                 + "boolean literal (ISO §8.8.2)");
             return BoundBoolError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}' in a boolean expression "
@@ -134,7 +134,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A sole data reference or sole function reference — through the enclosing parentheses, as the routing
         // predicate IsBooleanValueOperand reads it (§8.8.2; kb/Work PB1464).
         if (BindSoleBooleanOperand(vo.arithmeticExpression()) is { } sole) return sole;
-        ctx.Edition.Error("COBOL1511", $"'{DataBinder.WrittenText(vo)}' is not a valid boolean operand — a boolean "
+        ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"'{DataBinder.WrittenText(vo)}' is not a valid boolean operand — a boolean "
             + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
             + "(ISO §8.8.2)");
         return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{DataBinder.WrittenText(vo)}'");
@@ -174,7 +174,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
                 if (cat is PicCategory.Boolean) return new BoundBoolRef(p);
             }
-            ctx.Edition.Error("COBOL1511", $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is "
                 + (alias is null ? "not a boolean data item" : $"{alias.Described}, not a boolean literal")
                 + " (ISO §8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, alias is null ? $"non-boolean operand '{DataBinder.WrittenText(dref)}'"
@@ -194,7 +194,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (bound is BoundNumRef { Place: var resultTemp } && resultTemp.Item.OperandPic?.Category is PicCategory.Boolean)
                 return new BoundBoolRef(resultTemp);
             if (bound is BoundExprError err) return BoundBoolError.Carry(err.Feature, err.IsUnbuilt);   // already loud
-            ctx.Edition.Error("COBOL1511", $"operand '{DataBinder.WrittenText(fc)}' in a boolean expression is not a "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{DataBinder.WrittenText(fc)}' in a boolean expression is not a "
                 + "boolean function — its result is not class boolean (ISO §8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{DataBinder.WrittenText(fc)}'");
         }
@@ -320,7 +320,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundCondition BindSimpleBooleanCondition(BoundBoolExpr expr)
     {
         if (!BoolExprAllLengthOne(expr))
-            ctx.Edition.Error("COBOL1511", "a simple boolean condition shall reference only boolean items "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "a simple boolean condition shall reference only boolean items "
                 + "and literals of length 1 (ISO §8.8.4.3.3 SR1)");
         return new BoundBooleanCondition(expr);
     }
@@ -365,10 +365,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (left is BoundBoolOperand || right is BoundBoolOperand)
             {
                 if (op is not ("==" or "!="))
-                    ctx.Edition.Error("COBOL1511", "a boolean relation admits only [NOT] EQUAL / '=' / '<>' "
+                    ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "a boolean relation admits only [NOT] EQUAL / '=' / '<>' "
                         + "(ISO §8.8.4.2.2 Format 2 — no ordering is defined for boolean values)");
                 else if (!BoolValued(left) || !BoolValued(right))
-                    ctx.Edition.Error("COBOL1511", "both operands of a boolean relation shall be "
+                    ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "both operands of a boolean relation shall be "
                         + "boolean-valued (ISO §8.8.4.2.2)");
             }
             return WrittenRelational(left, op, right);

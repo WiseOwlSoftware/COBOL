@@ -248,7 +248,8 @@ internal sealed class VersionConformancePass
             {
                 if (s is BoundMerge m && InProcedure(paraPc))
                 {
-                    _sink.Report(new EditionDiagnostic("COBOL1572", mergeSeverity, "merge-in-sort-merge-proc",
+                    _sink.Report(new EditionDiagnostic(DiagnosticCatalog.MergeInSortMergeProc.Code, mergeSeverity,
+                        DiagnosticCatalog.MergeInSortMergeProc.Id,
                         $"MERGE '{m.File.CobolName}' is prohibited in the output procedure of another MERGE or the input "
                         + "or output procedure of a file SORT (ISO §14.9.24; COBOL-2023, Annex E.2 item 20)",
                         $"MERGE '{m.File.CobolName}'", "ISO §14.9.24; Annex E.2 item 20"));

@@ -500,6 +500,9 @@ public static partial class ConditionalCompilationProcessor
                                     changesState = true;
                                 }
                             }
+                            // §7.3.10.4 GR2-GR4: the directive may respell a word the division cursor reads, and the line
+                            // never reaches the blocks the COPY driver reads, so the cursor is told here (kb/Work PB4281).
+                            if (keyword == "COBOL-WORDS") division.NoteCobolWordsDirective(rest);
                             emit = line;
                         }
                         // A recognized ISO §7.3 directive with no downstream stage: CONSUME it (the program
@@ -1017,7 +1020,8 @@ public static partial class ConditionalCompilationProcessor
 
         public void Report(CtDiagCode code, string message) => Emit(
             code == CtDiagCode.DirectiveWordAsName
-                ? Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code : "COBOL1619", message);
+                ? Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code
+                : Editions.Diagnostics.DiagnosticCatalog.DirectiveExpressionViolation.Code, message);
 
         /// <summary>COBOL2650 — a compilation-variable-name that is a §8.12 compiler-directive word (kb/Work PB1366).</summary>
         public void DirectiveWordAsName(string name, string where, string rule) =>
@@ -1048,7 +1052,7 @@ public static partial class ConditionalCompilationProcessor
                     + "partial-word-1, or partial-word-2\""
                     : ""));
 
-        public void Report1618(string name) => Emit("COBOL1618",
+        public void Report1618(string name) => Emit(Editions.Diagnostics.DiagnosticCatalog.DefineNoOverrideRedefinition.Code,
             $">>DEFINE: compilation variable '{name}' is redefined to a different value without the OVERRIDE "
             + "phrase (ISO §7.3.11.3 SR2)");
 
@@ -1057,7 +1061,7 @@ public static partial class ConditionalCompilationProcessor
         public void Structure(string message) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveStructureViolation.Code, message);
 
-        public void Malformed(string where, string text) => Emit("COBOL1619",
+        public void Malformed(string where, string text) => Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveExpressionViolation.Code,
             $"{where}: malformed compile-time expression '{text}' (ISO §7.3.6 / §7.3.7 / §7.3.8)");
 
         /// <summary>Emit a migration-flag WARNING for a frontend-inline FLAG option (b / c) at

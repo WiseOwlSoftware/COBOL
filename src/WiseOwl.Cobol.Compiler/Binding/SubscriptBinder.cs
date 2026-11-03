@@ -980,12 +980,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // dialect-gated): --permissive keeps the CobolTable.Occ(string) digit decode, which is the leniency
         // already implemented by that overload, and the emitted text is unchanged either way.
         if (data.Edition.Permissive)
-            data.Edition.Warning("COBOL0844", $"{what} is not a numeric operand — {where}, and ISO §8.8.1.1 "
+            data.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand — {where}, and ISO §8.8.1.1 "
                 + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
                 + "figurative constant ZERO; accepted under --permissive, decoding its digit characters as an "
                 + "unsigned integer");
         else
-            data.Edition.Error("COBOL0844", $"{what} is not a numeric operand: {where}, and ISO §8.8.1.1 "
+            data.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: {where}, and ISO §8.8.1.1 "
                 + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
                 + "figurative constant ZERO. --permissive accepts it as a digit-decoding extension");
     }

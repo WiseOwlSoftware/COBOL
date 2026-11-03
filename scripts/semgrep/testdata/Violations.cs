@@ -28,10 +28,14 @@ public class Violations
         // TODO: this is the silent-no-op shape the loud-failure invariant forbids  <- wiseowl-cobol-no-silent-todo
         // The bypass shape is a bare code literal passed to an emit API, not merely the string existing:
         Emit(Severity.Error, "COBOL1999", "bypasses the catalog");   // wiseowl-cobol-raw-diagnostic-code-literal
+        Rejected.Report(edition, "COBOL1998", "bypasses the catalog behind an edition argument");   // wiseowl-cobol-raw-diagnostic-code-literal
     }
 
     private enum Severity { Error }
     private static void Emit(Severity severity, string code, string message) { }
+    private static readonly Rejecter Rejected = new();
+    private static readonly object edition = new();
+    private sealed class Rejecter { public void Report(object edition, string code, string message) { } }
 
     // A raw picture read where the operand's CATEGORY is being decided - null for every group, so a bit /
     // national group silently takes the alphanumeric branch.

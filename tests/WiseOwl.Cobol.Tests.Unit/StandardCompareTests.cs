@@ -317,16 +317,16 @@ public sealed class StandardCompareTests
     /// <summary>§12.3.7.3 SR10 — "Literal-4 and literal-9 shall be alphanumeric or national literals" — and
     /// SR11's zero-length half. A national literal IS admitted; a numeric or boolean one is not.</summary>
     [Theory]
-    [InlineData("N\"ISO 14651_2020_TABLE1\"", true, "")]
-    [InlineData("42", false, "SR10")]
-    [InlineData("B\"01\"", false, "SR10")]
-    [InlineData("\"\"", false, "SR11")]
-    public void Literal9_ObeysSr10AndSr11(string literal, bool expectOk, string rule)
+    [InlineData("N\"ISO 14651_2020_TABLE1\"", true, "", "")]
+    [InlineData("42", false, "SR10", "COBOL5987")]
+    [InlineData("B\"01\"", false, "SR10", "COBOL5987")]
+    [InlineData("\"\"", false, "SR11", "COBOL5988")]
+    public void Literal9_ObeysSr10AndSr11(string literal, bool expectOk, string rule, string code)
     {
         var (ok, errors, _) = Compile($"           ORDER TABLE OT1 IS {literal}.\n", Move);
         Assert.Equal(expectOk, ok);
         if (!expectOk)
-            Assert.Contains(errors, e => e.Contains("COBOL0898") && e.Contains(rule));
+            Assert.Contains(errors, e => e.Contains(code) && e.Contains(rule));
     }
 
     /// <summary>The §12.3.7.2 general format brackets the ORDER TABLE clause WITHOUT the ellipsis its repeatable
@@ -338,7 +338,7 @@ public sealed class StandardCompareTests
         var (ok, errors, _) = Compile(
             Ot1 + "           ORDER TABLE OT2 IS \"es-ES\".\n", Move);
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOL0898") && e.Contains("only once"));
+        Assert.Contains(errors, e => e.Contains("COBOL5990") && e.Contains("only once"));
     }
 
     /// <summary>§15.85.3 r5 / §15.3 argument type 12: with four arguments written the third position IS

@@ -322,6 +322,13 @@ AUDITS = (
     ("LINE ENDINGS", ["scripts/line_endings.py", "--check"]),
     # kb/Work PB735, PB2878: a byte-level fact about the committed tree, an audit so that no test reads every path.
     ("CONFLICT MARKERS", ["scripts/conflict_markers.py", "--check"]),
+    # kb/Work PB4453: no compiler test reads a Markdown file (owner 2026-11-02), so what a document says about the compiler
+    # or about another document is checked HERE, in every lane: the documentation audits (scripts/doc_audits.py), and the two
+    # register audits that were Unit tests running these scripts to read docs/CONFORMANCE.md.
+    ("DOC AUDITS", ["scripts/doc_audits.py", "--check"]),
+    ("ARCH SUBSYSTEMS", ["scripts/arch/r2_subsystems.py", "--check"]),
+    ("ANNEX A.1 REGISTER", ["scripts/spec/audit_annex_a1.py", "--check"]),
+    ("DERIVATION REGISTER", ["scripts/spec/audit_derivations.py", "--check"]),
     # kb/Work PB2878, PB4395: THE lanes' classification against the tree (every entry names a tracked path; every script
     # the build or a compiler test is seen to read is CODE_READS), a question over the committed tree, so an audit.
     ("INERT LANE", ["scripts/inert_lane.py", "check"]),

@@ -372,15 +372,9 @@ public sealed class CobolWordsDriftTests
         Assert.True(badExt.Count == 0,
             $"extensionReserved word(s) that are ISO words, not lexer tokens, or admitted anyway: [{string.Join(",", badExt)}]");
 
-        // §4.2.10: "Documentation … shall specify any reserved words added for nonstandard extensions."
-        string conformance = File.ReadAllText(TestRepo.Docs("CONFORMANCE.md"));
-        var d = Regex.Match(conformance, @"\*\*D-RW1 .*?\r?\n\r?\n", RegexOptions.Singleline);   // a CR never hides the block
-        Assert.True(d.Success, "docs/CONFORMANCE.md lost its D-RW1 determination (§4.2.10 documentation)");
-        // The bold list wraps across lines, so the separator is a comma plus ANY whitespace.
-        var documented = Regex.Matches(d.Value, @"\*\*([A-Z][A-Z0-9-]*(?:,\s+[A-Z][A-Z0-9-]*)+)\*\*")
-            .SelectMany(m => Regex.Split(m.Groups[1].Value, @",\s+")).ToHashSet(StringComparer.Ordinal);
-        Assert.True(documented.SetEquals(extension),
-            $"CONFORMANCE.md D-RW1 lists {documented.Count} word(s), cobol-words.json extensionReserved {extension.Count} — §4.2.10 requires the two to agree");
+        // §4.2.10: "Documentation … shall specify any reserved words added for nonstandard extensions." CONFORMANCE.md's D-RW1
+        // determination lists exactly cobol-words.json's extensionReserved words: held by scripts/docchecks/facts.py
+        // (reserved_word_findings), so no compiler test opens the Markdown (kb/Work PB4453).
     }
 
     private static HashSet<string> LoadExtensionReserved()

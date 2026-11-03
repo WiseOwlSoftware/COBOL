@@ -36,10 +36,10 @@ public sealed partial class SpecialNamesBinder
         text = "";
         if (written is Core.CobolWordContext word)
         {
-            if (_host.SpecialNamesConstant(word, Report, what, operand) is not { } constant) return false;
+            if (_host.SpecialNamesConstant(word, ReportClass, what, operand) is not { } constant) return false;
             if (constant.Category is not (PicCategory.Alphanumeric or PicCategory.National))
             {
-                Report($"{what}: {operand} shall be an alphanumeric or national literal (ISO "
+                ReportClass($"{what}: {operand} shall be an alphanumeric or national literal (ISO "
                     + $"§12.3.7.3 SR10); the constant-name '{word.GetText()}' stands for {constant.StandsFor}, of "
                     + $"class {constant.Category} (§13.10.4 GR1/GR2)");
                 return false;
@@ -57,7 +57,7 @@ public sealed partial class SpecialNamesBinder
         }
         if (nn?.figurativeConstant() is { } fig)
         {
-            var slot = new FigurativeSlot(what, Report,
+            var slot = new FigurativeSlot(what, DiagnosticCatalog.SpecialNamesLiteralClass, DiagnosticCatalog.SpecialNamesLiteralEmpty,
                 $"{operand} shall be an alphanumeric or national literal", "SR10",
                 category => category is PicCategory.Alphanumeric or PicCategory.National,
                 $"{operand} shall specify neither a symbolic-character figurative constant nor a zero-length literal");
@@ -79,7 +79,7 @@ public sealed partial class SpecialNamesBinder
         var literalClass = OperandLiteralClass(lit);
         if (literalClass is not (LiteralClass.Alphanumeric or LiteralClass.National))
         {
-            Report($"{what}: {operand} shall be an alphanumeric or national literal (ISO §12.3.7.3 SR10)"
+            ReportClass($"{what}: {operand} shall be an alphanumeric or national literal (ISO §12.3.7.3 SR10)"
                 + (nn?.concatenationExpression() is not null
                     ? $"; this concatenation expression is class {literalClass} (§8.8.3.3 GR1/GR3)" : ""));
             return false;
@@ -91,13 +91,14 @@ public sealed partial class SpecialNamesBinder
         bool Sr11ZeroLength(bool zeroLength)
         {
             if (!zeroLength) return true;
-            Report($"{what}: {operand} shall specify neither a "
+            ReportEmpty($"{what}: {operand} shall specify neither a "
                 + "symbolic-character figurative constant nor a zero-length literal (ISO §12.3.7.3 SR11)");
             return false;
         }
 
-        // The clause's one report: the pre-catalog COBOL0898 band of SPECIAL-NAMES literal rules.
-        void Report(string message) => Edition.Error("COBOL0898", message);
+        // The clause's two reports, one per rule: SR10 (the operand's class) and SR11 (not symbolic-character, not empty).
+        void ReportClass(string message) => Edition.Error(DiagnosticCatalog.SpecialNamesLiteralClass, message);
+        void ReportEmpty(string message) => Edition.Error(DiagnosticCatalog.SpecialNamesLiteralEmpty, message);
     }
 
     /// <summary>One decoded operand of a literal phrase: the characters it stands for AND the parse node it was
@@ -327,17 +328,17 @@ public sealed partial class SpecialNamesBinder
     /// <see cref="SpecialNamesFigurative"/>, which had been written only for the first two — the third screen refused
     /// EVERY figurative constant under a rule that bars only one kind of them.</summary>
     /// <param name="What">The clause, for the message ("ALPHABET AL", "ORDER TABLE T1 IS SPACE").</param>
-    /// <param name="Refuse">Reports one refusal under the slot's own diagnostic.</param>
+    /// <param name="ClassCode">The diagnostic of a refusal of the operand's class or character (§12.3.7.3 SR10 / the clause's class rule).</param>
+    /// <param name="SymbolicCode">The diagnostic of the SR11 symbolic-character refusal.</param>
     /// <param name="ClassClause">The slot's class rule in its own words (appended to the operand).</param>
     /// <param name="ClassRule">The syntax rule it is, e.g. "SR14 b2".</param>
     /// <param name="Admits">Whether an <c>ALL literal-1</c> of that category is admitted.</param>
     /// <param name="SymbolicClause">The SR11 sentence for a symbolic-character operand.</param>
-    private readonly record struct FigurativeSlot(string What, Action<string> Refuse, string ClassClause,
+    private readonly record struct FigurativeSlot(string What, DiagnosticDescriptor ClassCode, DiagnosticDescriptor SymbolicCode, string ClassClause,
         string ClassRule, Func<PicCategory, bool> Admits, string SymbolicClause);
 
     /// <summary>The ALPHABET / CLASS clause's figurative slot (§12.3.7.3 SR14 b2/c2, SR17 b3/c3, SR11).</summary>
-    private FigurativeSlot FigurativeSlotOf(LiteralPhraseRules r) => new(r.What,
-        message => Edition.Error(r.Code, message),
+    private FigurativeSlot FigurativeSlotOf(LiteralPhraseRules r) => new(r.What, r.Code, r.Code,
         $"each noninteger literal shall be {(r.National ? "a NATIONAL literal (N\"…\")" : "an alphanumeric literal")}",
         r.Rule(r.ClassItem),
         category => category == (r.National ? PicCategory.National : PicCategory.Alphanumeric),
@@ -358,7 +359,7 @@ public sealed partial class SpecialNamesBinder
         if (fig.ALL() is null) return AlphabetFigurative(fig.GetText()) ?? FigurativeNotACharacter(fig, slot);
         if (fig.cobolWord() is { } word && IsSymbolicCharacterName(word.GetText()))
         {
-            slot.Refuse($"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.SymbolicClause} (ISO §12.3.7.3 SR11)");
+            Edition.Error(slot.SymbolicCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.SymbolicClause} (ISO §12.3.7.3 SR11)");
             return null;
         }
         return ConcatFolder.FoldAllLiteral(fig, LiteralEnvironment.SpecialNames(_host, refusesSymbolicCharacters: true),
@@ -371,9 +372,9 @@ public sealed partial class SpecialNamesBinder
     /// a constant) — never an operand of these clauses: §12.3.7.4 GR10 maps HIGH-VALUE and LOW-VALUE, §8.3.3.6.4 GR1
     /// SPACE, QUOTE and ZERO, and nothing maps the rest. (The predefined NULL is no figurative constant at all —
     /// §8.4.3.10.3 SR1, <see cref="PredefinedNullRule"/>.)</summary>
-    private static string? FigurativeNotACharacter(Core.FigurativeConstantContext fig, FigurativeSlot slot)
+    private string? FigurativeNotACharacter(Core.FigurativeConstantContext fig, FigurativeSlot slot)
     {
-        slot.Refuse($"{slot.What}: {ConcatFolder.Spelling(fig)} — the figurative constant is not a character of the native "
+        Edition.Error(slot.ClassCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — the figurative constant is not a character of the native "
             + "character set, so it cannot be an operand of this clause (ISO §12.3.7.4 GR10 names HIGH-VALUE and "
             + "LOW-VALUE; §8.3.3.6.4 GR1 SPACE, QUOTE and ZERO)");
         return null;
@@ -384,11 +385,11 @@ public sealed partial class SpecialNamesBinder
     /// (<see cref="ConcatFolder.FoldAllLiteral"/> — a quoted literal, a concatenation expression classed by the
     /// pairwise §8.8.3.3 GR1 fold, or a constant-name) and held to the slot's class rule as ONE literal: a
     /// concatenation expression is "equivalent to a literal of the same class and value" (§8.8.3.3 GR3).</summary>
-    private static string? AllLiteralCharacters(Core.FigurativeConstantContext fig, ConcatFolder.Folded literal1,
+    private string? AllLiteralCharacters(Core.FigurativeConstantContext fig, ConcatFolder.Folded literal1,
         FigurativeSlot slot)
     {
         if (slot.Admits(literal1.Category)) return literal1.Value;
-        slot.Refuse($"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.ClassClause} (ISO §12.3.7.3 {slot.ClassRule})");
+        Edition.Error(slot.ClassCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.ClassClause} (ISO §12.3.7.3 {slot.ClassRule})");
         return null;
     }
 

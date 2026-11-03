@@ -46,7 +46,7 @@ public sealed class NulByteDriftTests
     /// <c>.out</c>/<c>.err</c> fixtures (expected output is text: a program whose output holds a control character is
     /// asserted through a relation, not by pinning the raw byte).</summary>
     private static readonly TreeScope TextKinds = new(Under: ["src/", "tests/", "conformance-suite/"],
-        Kinds: [".cs", ".cob", ".cbl", ".cpy", ".g4", ".json", ".md", ".txt", ".csproj", ".props", ".ps1", ".tsv", ".out", ".err"]);
+        Kinds: [".cs", ".cob", ".cbl", ".cpy", ".g4", ".json", ".txt", ".csproj", ".props", ".ps1", ".tsv", ".out", ".err"]);
 
     /// <summary>The one sweep of the committed tree the three tree tests judge, read once per test assembly (a read of
     /// the text tree costs 15-60 s under a gate's load, and the gate runs this class in every run).</summary>
@@ -163,13 +163,13 @@ public sealed class NulByteDriftTests
             Directory.CreateDirectory(Path.Combine(scratch, "conformance-suite", "cases", "_unassigned"));
             Directory.CreateDirectory(Path.Combine(scratch, "docs"));
             File.WriteAllBytes(Path.Combine(scratch, "conformance-suite", "cases", "_unassigned", "lowvalue.out"), [0x41, 0x00]);
-            File.WriteAllBytes(Path.Combine(scratch, "docs", "Outside.md"), [0x41, 0x00]);
+            File.WriteAllBytes(Path.Combine(scratch, "docs", "Outside.txt"), [0x41, 0x00]);
 
             // The planted tree goes through the class's one scope, as the tracked tree does (TrackedTree.Files).
             string[] planted =
                 ["src/Planted.cs", "src/Clean.cs", "src/Wide.cpy", "src/Asset.bin", "src/Gone.cs", "tests/nist/valid/NC107A.txt",
                  "tests/nist/valid-files/IX101A/tf024.txt", "tests/nist/valid-files/IX101A/tf025.txt",
-                 "tests/nist/valid-files-x/tf024.txt", "conformance-suite/cases/_unassigned/lowvalue.out", "docs/Outside.md"];
+                 "tests/nist/valid-files-x/tf024.txt", "conformance-suite/cases/_unassigned/lowvalue.out", "docs/Outside.txt"];
             SweepResult r = Sweep(scratch, planted.Where(TextKinds.Holds));
 
             Assert.Equal(

@@ -272,12 +272,9 @@ public sealed class DynamicLengthTests
     [Fact]
     public void ImplementorMaximum_IsTheNumberPublishedInConformanceSection7()
     {
-        string register = File.ReadAllText(TestRepo.Docs("CONFORMANCE.md"));
-        string row = register.Split('\n').SingleOrDefault(l => l.StartsWith("| DOC-A.1-62 |", StringComparison.Ordinal))
-            ?? throw new Xunit.Sdk.XunitException(
-                "docs/CONFORMANCE.md §7 carries no `| DOC-A.1-62 |` row: Annex A.1 item 62 (dynamic-length "
-                + "elementary items, maximum length) is a REQUIRED and DOCUMENTED implementor-defined element.");
-        Assert.Contains(CobolDynString.MaxLength.ToString("N0", CultureInfo.InvariantCulture), row, StringComparison.Ordinal);
-        Assert.Contains("0x" + CobolDynString.MaxLength.ToString("X", CultureInfo.InvariantCulture), row, StringComparison.Ordinal);
+        // The row's two spellings of the number are held to the facts file by scripts/docchecks/facts.py
+        // (maximum_findings), and the facts file to the compiler by DocumentedFactsDriftTests: no compiler test opens
+        // the Markdown (kb/Work PB4453).
+        Assert.Equal((long)CobolDynString.MaxLength, DocFacts.Number("dynamicLengthMaximum"));
     }
 }

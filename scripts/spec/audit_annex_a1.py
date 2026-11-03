@@ -363,6 +363,17 @@ def self_test() -> int:
             ('a citation of a lettered determination that is a row passes',
              sweep_lettered_citations({'DOC-A.1-92', 'DOC-A.1-92b'}, lettered), None),
         ]
+        doc_rows = [{'kind': 'DOC', 'rule-id': 'DOC-A.1-5', 'verdict': 'CONFORMS'},
+                    {'kind': 'DOC', 'rule-id': 'DOC-A.1-6', 'verdict': ''},
+                    {'kind': 'GR', 'rule-id': 'GR-1.2-3', 'verdict': 'CONFORMS'}]
+        sweep_cases += [
+            ('a verdicted DOC row with no §7 row and no withdrawal is caught',
+             orphan_verdicts(doc_rows, set(), set()), 'carry an inventory verdict'),
+            ('a verdicted DOC row with a §7 row passes', orphan_verdicts(doc_rows, {5}, set()), None),
+            ('a verdicted DOC row a declined module withdraws passes', orphan_verdicts(doc_rows, set(), {5}), None),
+            ('no verdicted DOC row at all measures nothing and is caught',
+             orphan_verdicts([doc_rows[1], doc_rows[2]], {5}, set()), 'measured nothing'),
+        ]
         for name, got, want in sweep_cases:
             ok = (not got) if want is None else any(want in f for f in got)
             if ok:
@@ -455,6 +466,27 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
 # carries. The pattern deliberately catches both spellings used in the tree ("implementor item 171",
 # "A.1 item 180", "Annex A.1 item 29" is E.3's numbering and is NOT matched — only A.1-anchored forms).
 CITATION_RX = re.compile(r'(?:implementor item|A\.1 item)\s+(\d+)')
+
+
+def orphan_verdicts(inventory: list[dict], filed: set[int], withdrawn: set[int]) -> list[str]:
+    """Every A.1 item the INVENTORY records a verdict for has a §7 row filed for it (kb/Work PB4453: this was the Unit test
+    AnnexA1RegisterDriftTests.EveryVerdictedDocRow_HasItsRegisterDetermination, which ran this audit to read the register).
+    The two artifacts are the same claim from opposite ends: a DOC row's whole evidence is its determination, so a verdict
+    recorded against an item the register does not document would be a claim with nothing behind it.
+
+    ⚠ EXCEPT an item a DECLINED module withdraws (`unreachable_items`, DERIVED from the `derived-verdicts` selectors, never
+    listed here): A.1's preamble makes an item "not required if the optional or processor-dependent feature is not
+    implemented", so such a row has no determination to file and must not be expected to have one.
+
+    POPULATION BEFORE VERDICT: no kind-DOC row carrying a verdict would make this vacuous, and the A.1 back-fill is what changed.
+    """
+    verdicted = sorted(int(r['rule-id'].rsplit('-', 1)[1]) for r in inventory if r.get('kind') == 'DOC' and (r.get('verdict') or ''))
+    if not verdicted:
+        return ['no kind-DOC inventory row carries a verdict, so the orphan check measured nothing: the A.1 back-fill is what changed']
+    orphan = [n for n in verdicted if n not in filed and n not in withdrawn]
+    return [f'{len(orphan)} A.1 item(s) carry an inventory verdict with no docs/CONFORMANCE.md §7 row: {orphan[:20]} (a DOC '
+            "row's evidence IS its determination, so the verdict rests on nothing; an item a declined module withdraws is "
+            'exempt and is reported as unreachable)'] if orphan else []
 
 
 def sweep_source_citations(register: dict[int, dict], numbered: dict[int, str], src_root: pathlib.Path) -> list[str]:
@@ -815,6 +847,13 @@ def main(argv: list[str]) -> int:
     from inventory_store import load_inventory
     findings.extend(check_pins(pinned, load_inventory(), load_schema()))
     findings.extend(check_pin_resolution(pinned, load_schema(), ROOT))
+    # kb/Work PB4453 — population before verdict (the register loaded, §7 filed something), then the orphan check.
+    if len(register) <= 200:
+        findings.append(f'the A.1 catalog parsed {len(register)} items: the register did not load')
+    if not numbered:
+        findings.append('the audit filed ZERO §7 determinations, so "no findings" is a statement about nothing: the §7 table '
+                        'or its parser is what changed')
+    findings.extend(orphan_verdicts(load_inventory(), set(numbered), set(unreachable)))
     # kb/Work PB593 — no Annex A.1 element is grounded on §4.2.7, which its own first sentence scopes to Annex A.4.
     findings.extend(sweep_inherited_grounds(text, load_inventory(), json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))))
 

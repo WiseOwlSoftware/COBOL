@@ -265,7 +265,7 @@ public sealed partial class FileControlBinder
             // copy of the enum pair that a future organization would have to be added to twice.
             if (file.LockMode is { Multiple: true }
                 && (file.AccessMode is FileAccessMode.Sequential || file.IsSequential))
-                Edition.Error("COBOL1512", $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
+                Edition.Error(DiagnosticCatalog.LockMultipleOnSequentialFile, $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
                     + "not be specified for a sequential-access or sequential-organization file (ISO §12.4.5.9.3 SR2)");
             // ⛔ §14.9.27.3 SR8 IS **NOT** CHECKED HERE, AND MUST NEVER BE RE-ADDED. It is a syntax rule of the
             // OPEN STATEMENT about file-name-1, which §14.9.27.2's general format defines as the OPEN

@@ -167,7 +167,7 @@ the `EveryEmittedCode_IsACatalogDescriptor` drift test is satisfied). Severity i
 **D6 — VCR anchoring.** The directive-WORD rows (11/64/91/96/115) anchor to the new `constructs.json` rows
 `Flag14Directive2023` / `Flag02DirectiveObsolete2023` (`<!-- gate:… -->`, genuine edition gates). The per-OPTION
 rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-- ref-only -->` pointing at
-`FlagConformancePass` once their detector lands (confirm against `VcrDriftTests`; do NOT invent a
+`FlagConformancePass` once their detector lands (confirm against the DOC AUDITS gate audit, `scripts/docchecks/vcr.py`; do NOT invent a
 `constructs.json` edition row for a non-edition-gated behavior).
 
 ## 3. The three seams (each an exact copy of a proven template)

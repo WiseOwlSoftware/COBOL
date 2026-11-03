@@ -249,7 +249,7 @@ which absorbs and replaces `EditionValidator`:
 ### 2.10 The version-gating audit as a first-class workstream (fixes P7/P8)
 
 - **Make the harness the single source of VCR status.** Generate `docs/VERSION_CHANGE_REFERENCE.md`
-  from `constructs.json` + the harness result (a `scripts/gen-vcr.ps1` + a `--emit-status` mode of
+  from `constructs.json` + the harness result (a `python scripts/doc_audits.py --write-vcr` + a `--emit-status` mode of
   `VersionMatrixTests`), so a row's status is *derived* from a passing (construct × edition) fixture,
   never hand-ticked. A stale ledger becomes structurally impossible.
 - **Every VCR row needs a positive + negative fixture** in `constructs.json` (the schema already
@@ -300,7 +300,7 @@ unconditionally through `EditionContext.Removed`) and implementor latitude (`--s
 | refactor (×5) | inline gates `StatementBinder.Accept.cs:45` (0816), `StatementBinder.cs:1229` (0803), `AlterSwitches.cs:119/137` (0811/0810), `Call.cs:176` (0882) | `constructs.json` rows (pinned codes) + `ConstructRegistry.Check` call sites | Kill the parallel gating mechanism; put them in the matrix (P4). |
 | absorb + delete | `Validation/EditionValidator.cs` | the `VersionConformancePass` (its §8.9 reserved-word funnel moves into the pass) | One edition-gating funnel; shared metadata + sink (P9). |
 | rename | generated ns `legacy-root.Generated` (in assembly `WiseOwl.Cobol.Frontend`) | `WiseOwl.Cobol.Frontend.Generated` (the Frontend csproj's one `<AntlrNamespace>` property, passed to `Invoke-Antlr4CSharp.ps1`) | Remove the stale legacy namespace/alias (adjacent cleanup; enables clean `Editions`/`Frontend` refs). |
-| create | — | `scripts/gen-vcr.ps1` + `VersionBehaviorMatrixTests` | Harness-driven VCR status + behavior-variant gating (P8). |
+| create | — | `scripts/doc_audits.py` (`docchecks/vcr.py`) + `VersionBehaviorMatrixTests` | Harness-driven VCR status + behavior-variant gating (P8). |
 | update | `docs/VERSION_CHANGE_REFERENCE.md` | generated output; `docs/DOC_INDEX.md` row | Ledger can no longer go stale (P7/P8). |
 | delete/quarantine | `CobolParserJsonXml.g4`, `CobolExtensionsJsonXml.g4` (jsonStatement/xmlStatement) | vendor axis (out of ISO scope) | Non-ISO; the edition framework must never map them to the 0900 band (already handled as `COBOL0313` — keep that, don't regress). |
 
