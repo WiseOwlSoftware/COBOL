@@ -70,8 +70,8 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
     /// ("same syntax-rule verdicts, same diagnostics").</para></summary>
     public void Run(DataBinder binder)
     {
-        foreach (var root in binder.Roots) Walk(root);
-        foreach (var list in binder.Conditions.Values)
+        foreach (var root in binder.State.Forest.Roots) Walk(root);
+        foreach (var list in binder.State.Forest.Conditions.Values)
             foreach (var cond in list)
             {
                 if (cond.Parent.OperandPic is not { } cp) continue;

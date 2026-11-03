@@ -23,35 +23,13 @@ public sealed partial class DataBinder
     /// test construction) walks for itself.</summary>
     internal StorageClaimScan ClaimScans { get; init; } = new();
 
-    /// <summary>The per-instance cell backings the emitter renders for ADDRESS-OF-taken records:
-    /// <c>private readonly StorageCell {CellField} = new StorageCell {{ Ref = «ImageInitOf(Canonical)» }};</c> +
-    /// <c>private ref string {Backing} =&gt; ref {CellField}.Ref;</c>. The seed honors the record's VALUE
-    /// clauses exactly like the Tier-B stored-backing initializer (the emitter computes it via the ONE
-    /// <c>FieldEmitter.ImageInitOf</c> — the based_pointer first-run lesson: a default image loses VALUE).
-    /// (READ-ONLY view — P6 Step 5.)</summary>
-    internal IReadOnlyList<(string Backing, string CellField, DataItem Canonical, int Width)> PtrAddressableBackings => _ptrAddressableBackings;
-    private readonly List<(string Backing, string CellField, DataItem Canonical, int Width)> _ptrAddressableBackings = [];
-
-    /// <summary>The BASED bridges the emitter renders: the implicit data-address pointer field
-    /// (<c>private ManagedPointer {AddrField} = ManagedPointer.Null;</c> — initially NULL, §13.18.5 GR2) +
-    /// the deref bridge (<c>private ref string {Backing} =&gt; ref CobolPtr.Deref({AddrField}, {Width}).Ref;</c>
-    /// — GR3/GR4 loud at every reference). (READ-ONLY view — P6 Step 5.)</summary>
-    internal IReadOnlyList<(string Backing, string CellProp, string AddrField, int Width)> PtrBasedBridges => _ptrBasedBridges;
-    internal readonly List<(string Backing, string CellProp, string AddrField, int Width)> _ptrBasedBridges = [];
-
-    /// <summary>ADDRESS-OF-forced classes → their cell FIELD name (the emitter's
-    /// <c>ManagedPointer.At({cell}, {offset})</c> source; bind-time validation checks membership).
-    /// (READ-ONLY view — P6 Step 5.)</summary>
-    internal IReadOnlyDictionary<RedefinesClass, string> PtrAddressableCellOf => _ptrAddressableCellOf;
-    private readonly Dictionary<RedefinesClass, string> _ptrAddressableCellOf = [];
-
     /// <summary>⛔ WHO ENDS A CELL'S LIFE, ONE CLASSIFICATION (kb/Work PB1216). ISO §13.18.5.4 GR4 raises EC-BOUND-PTR for a
     /// reference through an address that is "not a valid address of storage", and §8.6.5 says the association "may cease
     /// to exist because the actual data no longer exists, as specified 8.6.4" — so every cell-backed record's storage
     /// duration (§8.6.4) decides which event ENDS the cell, and this is the one place the three are told apart:
     /// <list type="bullet">
     /// <item><see cref="CellLifetime.Static"/> — a RECURSIVE unit's static WORKING-STORAGE and a method's WORKING-STORAGE
-    /// (<see cref="StaticAddressableCells"/>): one copy, re-seeded IN PLACE by <c>__ResetStatics</c> at a CANCEL, which
+    /// (<see cref="StorageTierSlice.StaticAddressableCells"/>): one copy, re-seeded IN PLACE by <c>__ResetStatics</c> at a CANCEL, which
     /// ends the old life (<c>StorageCell.Reinitialize</c>).</item>
     /// <item><see cref="CellLifetime.Activation"/> — LOCAL-STORAGE and non-formal LINKAGE (a program's, a method's):
     /// "persists while that instance of the runtime element is in active state", so the cell ends at the activation's exit
@@ -60,19 +38,19 @@ public sealed partial class DataBinder
     /// program's items end at its activation's exit, any other program's at the CANCEL that drops the instance, both
     /// through the emitted <c>EndStorage</c> (<c>ICobolProgram.EndStorage</c>).</item>
     /// </list>
-    /// A cell added to <see cref="PtrAddressableBackings"/> tomorrow is classified here and so ended by the matching
+    /// A cell added to <see cref="StorageTierSlice.AddressableBackings"/> tomorrow is classified here and so ended by the matching
     /// event without an edit elsewhere; <c>CellLifetimeDriftTests</c> reads the generated program and fails if a cell
     /// field is named by none of them.</summary>
     internal CellLifetime LifetimeOfCell(string cellField, DataItem canonical) =>
-        StaticAddressableCells.Contains(cellField) ? CellLifetime.Static
-        : Oo.MethodScopedRoots.Contains(canonical) || LocalStorageRoots.Contains(canonical)
+        State.StorageTier.StaticAddressableCells.Contains(cellField) ? CellLifetime.Static
+        : Oo.MethodScopedRoots.Contains(canonical) || State.Forest.LocalStorageRoots.Contains(canonical)
           || Linkage.Roots.Contains(canonical) ? CellLifetime.Activation
         : CellLifetime.Instance;
 
-    /// <summary>The cell fields of <see cref="PtrAddressableBackings"/> whose life ends with <paramref name="lifetime"/>'s
+    /// <summary>The cell fields of <see cref="StorageTierSlice.AddressableBackings"/> whose life ends with <paramref name="lifetime"/>'s
     /// event, in declaration order.</summary>
     internal IEnumerable<string> CellFieldsOf(CellLifetime lifetime) =>
-        _ptrAddressableBackings.Where(b => LifetimeOfCell(b.CellField, b.Canonical) == lifetime).Select(b => b.CellField);
+        State.StorageTier.AddressableBackings.Where(b => LifetimeOfCell(b.CellField, b.Canonical) == lifetime).Select(b => b.CellField);
 
     /// <summary>Claim <paramref name="root"/> onto a cell when it is a group whose values ride managed slots (a
     /// strongly-typed group with an object-reference or pointer leaf), which a program activation carries only as a cell
@@ -82,7 +60,7 @@ public sealed partial class DataBinder
     {
         if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(root) && !AlreadyInACell(root) && CellCanCarry(root)
             && ForceStringCanonical(root, what) is { } cls)
-            ClaimAddressableCell(cls);
+            State.StorageTier.ClaimAddressableCell(cls);
     }
 
     /// <summary>True when <paramref name="root"/>'s storage is ALREADY a cell (or the pointer-routed window over one), so
@@ -91,19 +69,8 @@ public sealed partial class DataBinder
     internal bool AlreadyInACell(DataItem root) =>
         root.IsBased
         || root.Class is { BasedPointerField: not null }
-        || root.Class is { } existing && PtrAddressableCellOf.ContainsKey(existing)
+        || root.Class is { } existing && State.StorageTier.AddressableCellOf.ContainsKey(existing)
         || root.Class is { Tier: RedefinesTier.StringCanonical } ext && Linkage.ExternalBackings.Any(b => b.BackingClrName == ext.BackingClrName);
-
-    /// <summary>Record a forced class's per-instance cell. ⛔ THE CLASS NAMES ITS OWN CELL (kb/Work PB231): the field used
-    /// to carry an ad-hoc <c>_cell_{NAME}</c> spelling that only this list knew, so a place builder could not reach the
-    /// cell to address the area's MANAGED SLOTS. It is now <see cref="RedefinesClass.BackingCellClrName"/>, the ONE name
-    /// every cell surface uses and <c>PlaceBuilder.BuildCellPath</c> resolves.</summary>
-    internal void ClaimAddressableCell(RedefinesClass cls)
-    {
-        string cell = cls.BackingCellClrName;
-        _ptrAddressableCellOf[cls] = cell;
-        _ptrAddressableBackings.Add((cls.BackingClrName, cell, cls.Canonical, cls.Width));
-    }
 
     /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
     /// feedback_one_mechanism_per_job): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
@@ -121,7 +88,7 @@ public sealed partial class DataBinder
         // container's GLOBAL item "without describing it again"). An inherited item's class is the container's, already
         // classified and emitted there; re-basing it from here would re-classify the container's storage and declare its
         // cell a second time in this unit's type (merge group 41183181188). Every caller asks with storage it owns.
-        if (DeclaringDepth(item) != 0)
+        if (State.Forest.DeclaringDepth(item) != 0)
             throw new InvalidOperationException($"{what} '{item.CobolName}': a container's GLOBAL item reached the "
                 + "cell-backing forcer of a contained unit; only its declaring element may re-base its storage");
         var cls = item.Class;

@@ -33,7 +33,7 @@ internal enum NonDataDeclarationKind
 /// member or condition-name the type-name whose declaration holds it, whether the
 /// declaration itself was REFUSED and reported at its entry (a constant entry that yielded no value), so a reference to
 /// it is that one fault's consequence and its reader reports nothing more, and the <paramref name="Depth"/> of the
-/// source element that declares it (0 = this one, n = its n-th container, <see cref="DataBinder.DeclaringDepth"/>'s
+/// source element that declares it (0 = this one, n = its n-th container, <see cref="ForestSlice.DeclaringDepth"/>'s
 /// measure), the tier ISO §8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).</summary>
 internal readonly record struct NonDataDeclaration(
     NonDataDeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0)
@@ -99,7 +99,7 @@ public sealed partial class DataBinder
     /// rank (APPLY COMMIT's GLOBAL file, <see cref="ScreenEnclosingFileOperand"/>) compares like with like.</para></summary>
     internal NonDataDeclaration? NonDataDeclarationOf(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
-        if (ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
+        if (State.Forest.ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
         if (SpecialNames.IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
         // An unqualified reference's data-name answer is the RANKED one (§8.4.6.2.1 3)): a container's GLOBAL data item that
         // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
@@ -119,7 +119,7 @@ public sealed partial class DataBinder
         foreach (var other in NonConditionDeclarationsOf(name, qualifiers, scope, dataName)) Offer(other);
         // A data-name the ranked lookup leaves standing answers for itself; the condition-name never takes it.
         if (!dataName && Symbols.TryResolveCondition(name, scope, out var conditions))
-            Offer(new(NonDataDeclarationKind.ConditionName, Depth: conditions.Min(c => DeclaringDepth(c.Parent))));
+            Offer(new(NonDataDeclarationKind.ConditionName, Depth: conditions.Min(c => State.Forest.DeclaringDepth(c.Parent))));
         if (nearest is { } answer) return answer;
         if (dataName) return null;
         if (qualifiers.Count == 0 && TryFindTypeDecl(name, scope, out _)) return new(NonDataDeclarationKind.TypeName);
@@ -163,8 +163,8 @@ public sealed partial class DataBinder
         // (§8.4.6.2.1 2): qualification is applied over the whole set before rule 3 ranks it; kb/Work PB4432 review R2-1).
         if (Symbols.IndexCandidates(name, qualifiers, scope) is { } indexes)
             yield return new(NonDataDeclarationKind.IndexName,
-                Depth: indexes.Count > 0 ? indexes.NearestDepth(i => DeclaringDepth(i.Table)) : int.MaxValue);
-        if (!dataName && qualifiers.Count == 0 && VisibleFiles.TryGetValue(name, out var file))
+                Depth: indexes.Count > 0 ? indexes.NearestDepth(i => State.Forest.DeclaringDepth(i.Table)) : int.MaxValue);
+        if (!dataName && qualifiers.Count == 0 && State.VisibleFiles.TryGetValue(name, out var file))
             yield return new(NonDataDeclarationKind.FileName, Depth: State.Inherited.FileDepth(file));
     }
 
@@ -179,7 +179,7 @@ public sealed partial class DataBinder
     internal NonDataDeclaration? NonConditionDeclarationNearerThan(
         string name, IReadOnlyList<string> qualifiers, Model.Scope scope, int depth)
     {
-        if (depth == 0 || !InheritsGlobalData) return null;
+        if (depth == 0 || !State.Forest.InheritsGlobalData) return null;
         NonDataDeclaration? nearest = null;
         foreach (var other in NonConditionDeclarationsOf(name, qualifiers, scope, dataName: false))
             if (other.Depth < depth && (nearest is not { } best || other.Depth < best.Depth)) nearest = other;
@@ -199,14 +199,14 @@ public sealed partial class DataBinder
         string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
         var tier = ConditionTier(name, qualifiers, scope);
-        return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, DeclaringDepth(tier[0].Parent));
+        return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, State.Forest.DeclaringDepth(tier[0].Parent));
     }
 
     /// <summary>The type declarations visible in <paramref name="scope"/>, in <see cref="TryFindTypeDecl"/>'s order: a
     /// method's own, this element's, a container's GLOBAL one.</summary>
     private IEnumerable<DataItem> VisibleTypeDeclarations(Model.Scope scope)
     {
-        IEnumerable<DataItem> visible = TypeDecls.Values.Concat(State.Inherited.TypeDecls.Values);
+        IEnumerable<DataItem> visible = State.Forest.TypeDecls.Values.Concat(State.Inherited.TypeDecls.Values);
         return scope.Method is { } m ? m.TypeDecls.Values.Concat(visible) : visible;
     }
 
@@ -217,9 +217,9 @@ public sealed partial class DataBinder
     /// The item in source element A if the name is declared in source element A. 2. The item in the containing
     /// source element if the name is not declared in source element A and is declared in the source element
     /// containing source element A." A condition-name is placed by its conditional variable.
-    /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only <see cref="ByName"/> (kb/Work PB3154
+    /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only <see cref="ForestSlice.ByName"/> (kb/Work PB3154
     /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§13.18.38.3 SR30) kept off
-    /// <see cref="ByName"/> in <see cref="_capacityRegisters"/>, placed by its table (a METHOD's own register is never
+    /// <see cref="ForestSlice.ByName"/> in <see cref="ForestSlice.CapacityRegistersSoFar"/>, placed by its table (a METHOD's own register is never
     /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
     /// <see cref="ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
     /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="_sumCounters"/>, placed by its report
@@ -229,13 +229,13 @@ public sealed partial class DataBinder
     /// added there is asked here too.</para></summary>
     internal bool DeclaredNearerThan(string name, int depth)
     {
-        if (ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) < depth)) return true;
-        if (Conditions.TryGetValue(name, out var conds) && conds.Any(c => DeclaringDepth(c.Parent) < depth)) return true;
-        if (_capacityRegisters.TryGetValue(name, out var tables) && tables.Any(t => DeclaringDepth(t) < depth)) return true;
-        if (Reports.SumCounters.TryGetValue(name, out var counters) && counters.Any(c => Reports.Depth(c.Report) < depth)) return true;
-        if (Reports.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
-        if (!IndexNames.Declares(name)) return false;
-        IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
+        if (State.Forest.ByName.TryGetValue(name, out var items) && items.Any(i => State.Forest.DeclaringDepth(i) < depth)) return true;
+        if (State.Forest.Conditions.TryGetValue(name, out var conds) && conds.Any(c => State.Forest.DeclaringDepth(c.Parent) < depth)) return true;
+        if (State.Forest.CapacityRegistersSoFar.TryGetValue(name, out var tables) && tables.Any(t => State.Forest.DeclaringDepth(t) < depth)) return true;
+        if (State.Reports.SumCounters.TryGetValue(name, out var counters) && counters.Any(c => State.Reports.Depth(c.Report) < depth)) return true;
+        if (State.Reports.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
+        if (!State.Forest.IndexNames.Declares(name)) return false;
+        State.Forest.IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
         return indexDepth < depth;
     }
 }

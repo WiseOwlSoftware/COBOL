@@ -505,7 +505,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // The section body is collected below (an ordinary pc range invoked by the emitted __RunDebug, not a
             // BoundDeclarative — scope stays null); FinalizeDebug records the subjects once every procedure is in.
             if (!ctx.Data.State.Configuration.DebuggingModeDeclared) return;
-            ctx.Data.ActivateDebugRegisters();   // make DEBUG-* references resolvable while this section binds
+            ctx.Data.State.Implicit.ActivateDebugRegisters(ctx.Data.TakeUid);   // make DEBUG-* references resolvable while this section binds
             _pendingDebug.Add((info, use));      // info.EndPc is filled after the body is collected below
             // fall through to collect the section body into the pc space (scope stays null — no BoundDeclarative)
         }
@@ -697,7 +697,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
     private bool NamesFile(Core.DataReferenceContext operand) =>
         operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
-        && ctx.Data.VisibleFiles.ContainsKey(word.GetText());
+        && ctx.Data.State.VisibleFiles.ContainsKey(word.GetText());
 
     /// <summary>An operand that is no procedure, data item or file is told why. A qualified word whose HEAD is a
     /// paragraph or section the program declares (<c>P1 OF NOSEC</c>) is a procedure-name that identifies nothing,
@@ -810,7 +810,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // (§8.4.2.2.1 / §8.4.2.2.3 SR1) where this arm used to `return` inside the loop on the first match
             // and therefore could never observe a second (kb/Work PB365).
             var (head, qualifier) = ReportGroupResolution.Parts(use.reportGroupReference());
-            var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.Reports.Visible, head, qualifier,
+            var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.State.Reports.Visible, head, qualifier,
                 $"declarative section '{sectionName}': USE BEFORE REPORTING", out _, out var group, ctx.Data);
             if (match == ReportGroupResolution.Match.None || group is null)
             {
@@ -852,7 +852,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         foreach (var fn in target.fileName())
         {
             string fname = fn.GetText();
-            if (!ctx.Data.VisibleFiles.TryGetValue(fname, out var file))
+            if (!ctx.Data.State.VisibleFiles.TryGetValue(fname, out var file))
             {
                 ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE names unknown "
                     + $"file '{fname}' (ISO §14.9.49)");
@@ -924,7 +924,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             foreach (var fn in fileNames)
             {
                 string fname = fn.GetText();
-                if (!ctx.Data.VisibleFiles.TryGetValue(fname, out var file))
+                if (!ctx.Data.State.VisibleFiles.TryGetValue(fname, out var file))
                 {
                     ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE names unknown "
                         + $"file '{fname}' (ISO §14.9.49)");

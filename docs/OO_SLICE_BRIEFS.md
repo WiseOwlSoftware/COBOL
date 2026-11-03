@@ -1188,7 +1188,7 @@ and subscripts reject on the OCCURS-less temp);
 (4) the drain is `StatementBinder.OoWrapPropertyOps` at the ONE BindStatement chokepoint with
 mark-on-entry/drain-own-suffix discipline (a reference in an IF condition belongs to the IF, not an arm);
 (5) `prop OF Class-name` → the FACTORY accessors via the Factory call form (LIVE);
-(6) the temp joins `DataBinder.Roots` post-resolve (FieldEmitter declares it; uid from the unit band;
+(6) the temp joins `ForestSlice.Roots` post-resolve (FieldEmitter declares it; uid from the unit band;
 `__prop<uid>_<PROP>`); a GROUP-valued property's temp is the accessor's whole group description, deep-cloned by
 `CreateCompilerTemp` (kb/Work PB1448);
 (7) invocation-count semantics are GOLDEN-proven: oo_property_explicit_ref's side-effecting accessors

@@ -185,7 +185,7 @@ internal sealed class BinderDriver
         {
             RequireAll(ctx, pass);      // watermark gate: the prerequisite RAN on every binder (P6 Step 6)
             pass.Run(ctx);
-            foreach (var d in ctx.AllBinders()) d.MarkProduced(pass.Produces);
+            foreach (var d in ctx.AllBinders()) d.State.MarkProduced(pass.Produces);
         }
 
         // The migration-flagging pass (ISO §7.3.14 FLAG-02 / §7.3.15 FLAG-14) — a SIBLING to the terminal
@@ -252,7 +252,7 @@ internal sealed class BinderDriver
         // is the FD name). Each FileModel lives in exactly ONE unit's Files list (a container's GLOBAL file is
         // reached through the contained unit's VisibleFiles only), so no model is renamed twice.
         foreach (var unit in units)
-            foreach (var file in unit.Data.Files)
+            foreach (var file in unit.Data.State.Files.Declared)
                 file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
                     ? NamingConvention.ExternalFileBand + ext
                     : unit.RegistryKey + "::" + file.CobolName;
@@ -277,10 +277,10 @@ internal sealed class BinderDriver
         // import (CS0103). So does a file-less unit whose statements carry EC-I-O checking: its __IoCheckEc reads
         // CobolFile too, and a COMMIT or ROLLBACK raises EC-I-O-PERMANENT-ERROR for a refused file of ANOTHER element's
         // APPLY COMMIT clause in an element that describes no file (kb/Work PB3338, review finding w1154a R1-3).
-        bool anyFiles = units.Any(u => u.Data.Files.Count > 0)
+        bool anyFiles = units.Any(u => u.Data.State.Files.Declared.Count > 0)
             || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
             || units.Any(u => u.Bound.Ec is { HasIoChecked: true })
-            || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0)
+            || classes.Any(c => c.Data.State.Files.Declared.Count > 0 || c.FactoryData.State.Files.Declared.Count > 0)
             // a METHOD's own declaratives emit the same __IoCheck (kb/Work PB1010)
             || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
 
@@ -297,7 +297,7 @@ internal sealed class BinderDriver
     /// §13.4.5.4 GR2(c), is a separate longstanding requirement — not this 2023-gated check.)</summary>
     private static void CheckExternalFileConsistency(IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
-        var byExternalName = units.SelectMany(u => u.Data.Files)
+        var byExternalName = units.SelectMany(u => u.Data.State.Files.Declared)
             .Where(f => f is { IsExternal: true, ExternalName: not null })
             .GroupBy(f => f.ExternalName!, CobolNames.Comparer);
         // The 2023 requirement REMOVES a prior-edition freedom (corresponding external-file SELECTs could name
@@ -714,7 +714,7 @@ internal sealed class BinderDriver
     /// was Debug-only until CI's Release leg exposed the divergence, DEVLOG 774).</summary>
     private static void RequireAll(GroupBindContext ctx, GroupBindPass pass)
     {
-        foreach (var d in ctx.AllBinders()) d.Require(pass.Requires, pass.Name);
+        foreach (var d in ctx.AllBinders()) d.State.Require(pass.Requires, pass.Name);
     }
 
     /// <summary>The <c>ProcedureBinding</c> GROUP pass body (P6 Step 3 — <c>BindPipeline.GroupTail</c>, Requires
@@ -1256,7 +1256,7 @@ internal sealed class BinderDriver
         // OBJECT (instance) files: one connector per object (§9.1.4). A non-EXTERNAL file keeps a class-qualified
         // BASE key (the seed MintInstanceKey suffixes with a per-object #N) and a minted-key FIELD; an EXTERNAL
         // instance file keys by its run-unit external name like any describer (§13.18.22.4 GR4a — inc 5).
-        foreach (var f in cls.Data.Files)
+        foreach (var f in cls.Data.State.Files.Declared)
             if (f is { IsExternal: true, ExternalName: { } ext })
                 f.CobolName = NamingConvention.ExternalFileBand + ext;
             else if (f.IsSortMerge)
@@ -1271,7 +1271,7 @@ internal sealed class BinderDriver
                 f.CobolName = cls.Symbol.RunUnitPath + NamingConvention.InstanceFileBand + f.CobolName;
             }
         // FACTORY files: the class singleton (§9.3.14.2) — a static class-qualified key (no per-object field).
-        foreach (var f in cls.FactoryData.Files)
+        foreach (var f in cls.FactoryData.State.Files.Declared)
             f.CobolName = f is { IsExternal: true, ExternalName: { } ext }
                 ? NamingConvention.ExternalFileBand + ext
                 : cls.Symbol.RunUnitPath + NamingConvention.FactoryFileBand + f.CobolName;

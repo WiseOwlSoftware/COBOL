@@ -91,7 +91,7 @@ public sealed class ImpliedRecordDescriptionDriftTests
 
     // ── harness ─────────────────────────────────────────────────────────────────────────────────────────────
 
-    private static FileModel Single(DataBinder data) => Assert.Single(data.Files);
+    private static FileModel Single(DataBinder data) => Assert.Single(data.State.Files.Declared);
 
     private static DataBinder Bind(string organization, string recordClause, string records = "")
     {

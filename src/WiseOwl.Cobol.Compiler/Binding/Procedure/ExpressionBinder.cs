@@ -173,7 +173,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>The C# <c>long</c> index cell when <paramref name="dref"/> is an INDEXED BY index-name reference
     /// — bare or QUALIFIED (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — <c>SET IX OF T TO 1</c>) — else
-    /// <see langword="null"/>. Index-names are a separate name class (<see cref="DataBinder.IndexNames"/>), not the
+    /// <see langword="null"/>. Index-names are a separate name class (<see cref="ForestSlice.IndexNames"/>), not the
     /// data-item tree; the ONE resolution <see cref="NameResolution.ResolveIndexName"/> counts the candidates, so
     /// a duplicated spelling written without the qualifiers that settle it is §8.4.2.2.3 SR1's error — reported
     /// there, and still answered with an (inert) cell so the caller keeps the index-name shape instead of
@@ -760,7 +760,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         }
         if (dref.cobolWord() is { } q)   // qualified: LINAGE-COUNTER OF/IN file-name
         {
-            if (ctx.Data.VisibleFiles.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
+            if (ctx.Data.State.VisibleFiles.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
             ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
                 + "file whose file description entry contains a LINAGE clause (ISO §8.4.3.14 / §13.18.34.4 GR7a)");
             return null;
@@ -769,7 +769,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // containers' GLOBAL FDs too (§13.18.27.4 GR1), so a contained program whose only LINAGE file is the
         // container's GLOBAL one resolves the unqualified register instead of drawing COBOL0864; two
         // visible LINAGE files — own plus inherited — still require qualification (§8.4.3.14 SR3).
-        var linageFiles = ctx.Data.VisibleFiles.Values.Where(f => f.Linage is not null).Distinct().ToList();
+        var linageFiles = ctx.Data.State.VisibleFiles.Values.Where(f => f.Linage is not null).Distinct().ToList();
         if (linageFiles.Count == 1) return linageFiles[0];
         ctx.Edition.Error("COBOL0864", linageFiles.Count == 0
             ? "LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause (ISO §8.4.3.14 — "

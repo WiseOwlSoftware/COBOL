@@ -29,7 +29,7 @@ internal sealed class MarkFileRecordImageLeavesPass : IBindPass
     /// after binding.</summary>
     public void Run(DataBinder binder)
     {
-        foreach (var f in binder.Files)
+        foreach (var f in binder.State.Files.Declared)
             foreach (var rec in f.Records)
                 if (rec.IsGroup)
                 {

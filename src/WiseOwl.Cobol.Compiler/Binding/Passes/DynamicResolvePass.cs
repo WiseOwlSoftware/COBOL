@@ -39,7 +39,7 @@ internal sealed class DynamicResolvePass : IBindPass
     public void Run(DataBinder binder)
     {
         // §8.5.1.9.1 item 3 (:8195) — the roots of every FILE SECTION record, so a dynamic table in one is rejected.
-        var fileRecordRoots = new HashSet<DataItem>(binder.Files.SelectMany(f => f.Records));
+        var fileRecordRoots = new HashSet<DataItem>(binder.State.Files.Declared.SelectMany(f => f.Records));
 
         foreach (var item in binder.ClauseResolutionForest())
         {
@@ -173,10 +173,10 @@ internal sealed class DynamicResolvePass : IBindPass
             // and registers only — never against the object's, which §11.7.4 GR5 makes inaccessible to the method when a
             // word is declared in both, and never against a sibling method's. The name lands in the same scope.
             var methodScope = binder.ScopeOf(item.Root).Method;
-            var registers = methodScope?.CapacityRegisters ?? binder._capacityRegisters;
-            if ((methodScope is null ? binder.DeclaresOwnDataName(capName) : methodScope.ByName.ContainsKey(capName))
+            var registers = methodScope?.CapacityRegisters ?? binder.State.Forest.CapacityRegistersSoFar;
+            if ((methodScope is null ? binder.State.Forest.DeclaresOwnDataName(capName) : methodScope.ByName.ContainsKey(capName))
                 || (registers.TryGetValue(capName, out var sameName)
-                    && !sameName.TrueForAll(t => binder.DeclaringDepth(t) != 0
+                    && !sameName.TrueForAll(t => binder.State.Forest.DeclaringDepth(t) != 0
                                                  || ReferenceEquals(t.WrittenDefinition, item.WrittenDefinition))))
             {
                 binder.Edition.Error("COBOL1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
@@ -193,7 +193,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // (A method's word lands in the method's own census — the funnel reads it off the declaration scope.)
             if (methodScope is null) binder.DeclareUserWord(capName, UserWordKind.DataName);
             else using (binder.Oo.EnterMethodDeclarations(methodScope)) binder.DeclareUserWord(capName, UserWordKind.DataName);
-            binder.AddCapacityRegister(registers, capName, item);
+            binder.State.Forest.AddCapacityRegister(methodScope, capName, item);
         }
     }
 }

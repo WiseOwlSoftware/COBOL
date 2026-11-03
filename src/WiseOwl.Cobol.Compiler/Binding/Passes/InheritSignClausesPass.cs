@@ -35,7 +35,7 @@ internal sealed class InheritSignClausesPass : IBindPass
     /// already walked re-applies the same clause to the same profile.</para></summary>
     public void Run(DataBinder binder)
     {
-        foreach (var root in binder.Roots) binder.InheritSignWalk(root, null);
+        foreach (var root in binder.State.Forest.Roots) binder.InheritSignWalk(root, null);
         foreach (var declaration in binder.AllTypeDecls().ToList()) binder.InheritSignWalk(declaration, null);
     }
 }

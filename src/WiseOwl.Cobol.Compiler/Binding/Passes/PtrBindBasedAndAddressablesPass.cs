@@ -33,7 +33,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
     /// data pass must decide storage BEFORE any statement binds (emission shape is per-class).</summary>
     public void Run(DataBinder binder)
     {
-        foreach (var root in binder.Roots.Where(r => r.IsBased))
+        foreach (var root in binder.State.Forest.Roots.Where(r => r.IsBased))
         {
             // A rejected class keeps its RejectReason — and the rejection is a BIND-TIME diagnostic now
             // (kb/Work PB151): the bare continue left BasedPointerField null and every ALLOCATE/ADDRESS
@@ -52,7 +52,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             }
             string addr = NamingConvention.AddressCarrierName(root.ClrName);
             cls.BasedPointerField = addr;
-            binder._ptrBasedBridges.Add((cls.BackingClrName, cls.BackingCellClrName, addr, cls.Width));
+            binder.State.StorageTier.AddBasedBridge(cls.BackingClrName, cls.BackingCellClrName, addr, cls.Width);
         }
 
         // ⛔ A FORMAL WHOSE STORAGE IS AN AREA IS LAID OVER ITS ARGUMENT'S CELL (kb/Work PB2087). ISO §14.2.3 GR8: "If the
@@ -73,7 +73,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             if (!DataBinder.CellCanCarry(item)) continue;
             if (binder.ForceStringCanonical(item, "LINKAGE formal parameter") is not { } cls) continue;
             cls.BasedPointerField = pointer;
-            binder._ptrBasedBridges.Add((cls.BackingClrName, cls.BackingCellClrName, pointer, cls.Width));
+            binder.State.StorageTier.AddBasedBridge(cls.BackingClrName, cls.BackingCellClrName, pointer, cls.Width);
         }
 
         // The addressed names: this unit's own procedure division(s), plus — kb/Work PB1009 — every CONTAINED
@@ -106,7 +106,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             if (contained && !binder.Linkage.GlobalRoots.Contains(root)) continue;   // not a global name — not this unit's to force
             if (binder.AlreadyInACell(root)) continue;
             if (binder.ForceStringCanonical(root, "ADDRESS OF target record") is not { } cls) continue;   // rejected → loud
-            binder.ClaimAddressableCell(cls);
+            binder.State.StorageTier.ClaimAddressableCell(cls);
         }
 
         // ⛔ AN ITEM PASSED BY REFERENCE LIVES IN A CELL (kb/Work PB2087, PB2089) — the activating half of §14.2.3 GR8.
@@ -151,7 +151,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             // item defined in the file or working-storage section of a factory or instance object"), so a bare one is
             // passed BY CONTENT (GR6 a) 2.) and needs no cell.
             if (invoke && binder.Oo.IsObjectData(root)) continue;
-            if (binder.ForceStringCanonical(root, "BY REFERENCE operand") is { } cls) binder.ClaimAddressableCell(cls);
+            if (binder.ForceStringCanonical(root, "BY REFERENCE operand") is { } cls) binder.State.StorageTier.ClaimAddressableCell(cls);
         }
 
         // ⛔ THE ACTIVATED HALF FOR A RETURNING ITEM WHOSE VALUES RIDE MANAGED SLOTS (kb/Work PB1940): a strongly-typed
@@ -181,7 +181,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
     /// its own scan of its contained programs (the <c>contained</c> arm above). Claiming it here as well declared the
     /// record's cell and backing a second time in this unit's C# type beside the GLOBAL bridge to the container's
     /// (CS0102 on <c>_scell_R2</c> / <c>_redef_R2</c>, merge group 41183181188), so the answer is the head's own
-    /// element only: <see cref="DataBinder.DeclaringDepth"/> 0.</para></summary>
+    /// element only: <see cref="ForestSlice.DeclaringDepth"/> 0.</para></summary>
     private static DataItem? ResolveStorageClaimHead(DataBinder binder, string name, List<string> quals, OoMethodSymbol? method, bool contained,
         bool firstOfSeveral)
     {
@@ -198,7 +198,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             using (binder.Procedure.ActiveMethodScope.Enter(method?.DataScope))
                 hit = new ReferenceResolver(binder).Names.FindItem(name, quals);
         }
-        return hit is not null && binder.DeclaringDepth(hit) == 0 ? hit : null;
+        return hit is not null && binder.State.Forest.DeclaringDepth(hit) == 0 ? hit : null;
     }
 
     /// <summary>The data-names taken by every §8.4.3.11 DATA-ADDRESS-IDENTIFIER in the unit's own procedure division(s)

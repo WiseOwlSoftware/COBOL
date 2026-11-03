@@ -72,7 +72,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // STATIC — one registration per run unit, §14.6.2.3.3 last-used across recursive activations,
             // reset only on the initial-state cases via __ResetStatics (kb/Work PB168). Run-unit CloseAll
             // lives in the runtime RunMain boundary.
-            if (ctx.Data.Files.Count > 0)
+            if (ctx.Data.State.Files.Declared.Count > 0)
             {
                 // ⛔ ONE GUARD PER SCOPE (kb/Work PB168 — the review fleet caught all three riding one flag):
                 // connector REGISTRATION is run-unit-scoped for a UnitStaticWs unit (the flag is static
@@ -88,7 +88,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // Report engines construct AFTER the registration block (hazard: the report FD must be
                 // registered before the engine's first write — REPORT_WRITER_DESIGN §4; ordering
                 // holds on every path: a skipped registration block means an EARLIER activation registered).
-                if (ctx.Data.Reports.Declared.Count > 0)
+                if (ctx.Data.State.Reports.Declared.Count > 0)
                     using (w.Block("if (!__reportsConstructed)"))
                     {
                         w.Line("__reportsConstructed = true;");

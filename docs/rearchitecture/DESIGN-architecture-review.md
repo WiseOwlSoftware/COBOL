@@ -1228,7 +1228,7 @@ container and inherits nothing), which receives the containers nearest first (a 
 their `DataBindResult`s once step 11 makes one), and writes one slice of its own, never a data phase's:
 `InheritedGlobals` (`DataBindState.Inherited`: the inherited GLOBAL files with their depth, their GLOBAL record areas,
 the container-local files, the inherited type declarations, and the offers of the containers' GLOBAL reports and data
-roots; a lookup reads the child's own declarations first and this slice after — `DataBinder.VisibleFiles`,
+roots; a lookup reads the child's own declarations first and this slice after — `DataBindState.VisibleFiles`,
 `TryFindTypeDecl` — which is `TryAdd`'s local-shadows rule made structural: the merge of the inherited files into
 `FilesByName` is gone, and `FilesByName` holds the unit's own files only), carried into `DataBindResult`.
 `InheritStep.Seed` writes the seed part at a phase before the first data phase, `GlobalsSeeded`; `InheritStep.Merge`
@@ -1307,6 +1307,37 @@ immutable record that replaces `DataBinder` on `BoundUnit.Data`, `BoundCompilati
 `EmitContext.Data` (§8.1's largest refusal). `DataBinder` keeps only the orchestration that builds the state, runs the
 pipeline and returns the result (`DESIGN-module-topology.md` §2.5's "thin orchestrator + named passes", with the
 slices and fact sets as the seam it lacked).
+**The data binder's own value slices (PB2296 M6, as built).** *The estimate above was wrong about what is left:* the usage facts,
+the sign facts, the REDEFINES classes and the OCCURS facts are fields of the `DataItem` forest (`item.Pic`, `item.OwnSign`,
+`item.Class`, `item.OccursSpec`), which the ordered pass list writes and which no binder field holds (the paragraph above); the
+tables the binder DID hold were the type forest's roots and name tables, the file tables, the storage-tier channels, the clause
+memories the entry walk leaves for the screening passes, and the two implicit registers. They are five more slices of
+`DataBindState`, each field in exactly one, each with `internal` mutators and read-only views, and every reader reads them
+through `State` (`DataBinder` keeps no forwarder; `DataBindStateBoundaryDriftTests` fails when `DataBinder` declares a
+public or internal collection of its own and when a slice's mutator is called from a file that is not its writer):
+- `ForestSlice` (`State.Forest`): `Roots`, `WorkingStorageRoots`, `LocalStorageRoots`, the name tables `ByName`,
+  `Conditions`, `IndexNames`, `CapacityRegisters` (gated: a read before `OccursResolved` throws; `CapacityRegistersSoFar` is the
+  ungated read of the declaration funnel and of the pass that mints them), `TypeDecls` and `ScreenNames`, and the inheritance
+  tier of a container's GLOBAL names (`DeclaringDepth`, `InheritsGlobalData`, `DeclaresOwnDataName`, which read the tier and
+  so live beside it). Its writers are the declaration walk (`DataBinder.RegisterName`, `RegisterCondition`, `BindEntries`,
+  `InheritGlobalSubtree`, the post-build TYPE copies through the same funnel), `CompilerTemps` and `DynamicResolvePass`; every
+  insert takes the method scope that owns the record (§11.7.4 GR5; kb/Work PB3192), so a name still joins the index of the
+  source element that owns it.
+- `FileSlice` (`State.Files`): `Declared` and `FilesByName`, written by `Declare(name, file)` from the SELECT entry
+  (`FileControlBinder`) and from an FD or SD that no SELECT specified (§13.4.5.3 SR1, §13.4.6.3 SR1); `DataBindState.VisibleFiles`
+  reads it with `InheritedGlobals.Files`.
+- `StorageTierSlice` (`State.StorageTier`): the four static channels and `IsStaticMember` (§13.5.4 GR1), and the pointer pass's
+  cell backings, BASED bridges and `AddressableCellOf` (§13.18.5); written by `PtrBindBasedAndAddressablesPass` and
+  `RouteStaticUnitStoragePass`.
+- `ClauseFacts` (`State.Clauses`): the entries that WROTE a SIGN or a VALUE clause (§13.18.52.3 SR1/SR2, §13.16.3 SR10), the
+  clause operands the capture already refused, the written level-88s in source order (§13.16.3 SR24) and `LapsedTypeMembers`
+  (§8.4.2.2.1 rule 4, written once by `ExpandTypesPass`).
+- `ImplicitRegisters` (`State.Implicit`): the X3.23-1985 DEBUG-ITEM family and `EXCEPTION-OBJECT` (§8.4.3.6.3 SR2).
+And `DataBindState` now holds `Reports` (the `ReportScope` of step 7), `SumCounters` (the `FilesResolved`-gated view of it) and the
+pass-completion watermark (`Watermark`, `MarkProduced`, `Require`, the P6 Step-6 gate), which the gated reads of the slices
+consult. What stays private to `DataBinder` is the entry walk's WORKING MEMORY (the not-yet-bound and bound-ahead entry maps of
+`DataBinder.EntryOrder.cs`, the description-completion memos, the VALUE-operand and report-description caches, the
+once-reported sets): no other phase can read a private field, so none of it is a fact; step 11 (PB2361) deletes it with the walk.
 **The report section (step 7, PB2357).** The `Reports` partial (5,341 lines, of which the first thousand were the report
 model types) is three files and two classes. `ReportModel.cs` holds the model types, unchanged. `ReportSectionBinder`
 (`Binding/ReportSectionBinder.cs`, `DataBinder.ReportSection`) is the binder: it binds the RD entries
@@ -1314,10 +1345,10 @@ model types) is three files and two classes. `ReportModel.cs` holds the model ty
 name), makes a container's GLOBAL reports visible (`InheritContainerReports`) and answers the report-item refusal
 (`ReportEntryReferenceRefused`, §13.8.6.2.3); it reaches the data binder's shared helpers (the clause-operand resolvers,
 the picture screens, the unique-id counter) through the `DataBinder` it is built with, which the later steps that extract
-those helpers replace one by one. `ReportScope` (`Binding/ReportScope.cs`, `DataBinder.Reports`) is the read side the binder
+those helpers replace one by one. `ReportScope` (`Binding/ReportScope.cs`, `DataBindState.Reports`) is the read side the binder
 writes: `Declared`, `Visible`, `Depth`, the sum counters, the refused PRESENT WHEN conditions and the three name lookups over
 them (`EntriesNamed`, `NearerEntryHides`, `NearestInScope`); it holds no binder, so it is what `DataBindResult` carries
-at step 11. `DataBinder.SumCounters` stays the gated view of `ReportScope.SumCounters` (the `FilesResolved` watermark).
+at step 11. `DataBindState.SumCounters` stays the gated view of `ReportScope.SumCounters` (the `FilesResolved` watermark).
 The code generator, the symbol table and `StatementBinder` read `ReportScope`, a type in `WiseOwl.Cobol.Binding` beside
 `ReportModel`, so their new pairs are tolerated in `architecture-edges.json`, and PB2420 removes them: it names
 `ReportScope.cs` in its Sites and moves the type to compiler.model with the report model types it holds (after PB2416 cuts

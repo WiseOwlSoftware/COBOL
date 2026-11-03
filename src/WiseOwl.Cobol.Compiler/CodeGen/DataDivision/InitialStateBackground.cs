@@ -101,9 +101,9 @@ internal sealed class InitialStateBackground(EmitContext ctx)
         // The section predicate is OptionsInitialize.Governs — shared with the bind-time storage decision.
         var root = item;
         while (root.Parent is { } p) root = p;
-        _wsRoots ??= [.. ctx.Data.WorkingStorageRoots];
+        _wsRoots ??= [.. ctx.Data.State.Forest.WorkingStorageRoots];
         // The unit's own LOCAL-STORAGE roots — or, inside an OO method's initializers, the METHOD's (kb/Work PB1215).
-        IReadOnlyList<DataItem> lsSource = ctx.ActivationLocalRoots ?? ctx.Data.LocalStorageRoots;
+        IReadOnlyList<DataItem> lsSource = ctx.ActivationLocalRoots ?? ctx.Data.State.Forest.LocalStorageRoots;
         if (!ReferenceEquals(_lsSource, lsSource)) { _lsRoots = [.. lsSource]; _lsSource = lsSource; }
         return init.Governs(root, _wsRoots.Contains(root), _lsRoots!.Contains(root)) ? fill : null;
     }

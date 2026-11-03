@@ -530,7 +530,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     {
         bool own = true;
         for (var unit = _currentUnit; unit is not null; unit = unit.Parent, own = false)
-            foreach (var file in unit.Data.Files)
+            foreach (var file in unit.Data.State.Files.Declared)
                 if (own || file.IsGlobal) yield return file;
     }
 
@@ -555,7 +555,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitTerminateStatement(CobolParserCore.TerminateStatementContext ctx)
     {
         foreach (var report in ctx.reportName())
-            if (_currentData?.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, report.GetText())) is { HasVarying: true })
+            if (_currentData?.State.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, report.GetText())) is { HasVarying: true })
             {
                 Flag(FlagOption.Flag02TerminateWithVarying, ctx.Start.Line,
                     "the TERMINATE of a report whose description contains a VARYING clause");

@@ -43,7 +43,7 @@ internal sealed class GateFileRecordByteSurfacePass : IBindPass
     /// representation.</para></summary>
     public void Run(DataBinder binder)
     {
-        foreach (var f in binder.Files)
+        foreach (var f in binder.State.Files.Declared)
             foreach (var rec in f.Records)
                 foreach (var leaf in DataBinder.LeavesOf(rec))
                     if (DataBinder.ByteWindowResidueOf(leaf) is { } residue)

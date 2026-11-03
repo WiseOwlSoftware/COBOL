@@ -28,7 +28,7 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
     public PassViews Views => PassViews.None;
 
     /// <summary>Route a RECURSIVE unit's WORKING-STORAGE onto the ONE static-field channel (the mechanism the
-    /// method-WS D3 pattern established — <see cref="DataBinder.StaticRootFields"/> / <see cref="DataBinder.StaticIndexCells"/>,
+    /// method-WS D3 pattern established — <see cref="StorageTierSlice.StaticRootFields"/> / <see cref="StorageTierSlice.StaticIndexCells"/>,
     /// consumed by <c>RecordStructEmitter</c>): a no-op unless <see cref="DataBinder.UnitStaticWs"/>. ISO basis on the
     /// flag's doc — §13.5.4 GR1 (a non-initial program's / a function's WS is STATIC data) + §14.6.2.3.3 (static
     /// data is in LAST-USED state: one copy shared across all activations), while the per-activation instance
@@ -44,14 +44,14 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
     /// <item>a WS table's INDEXED BY cell goes static with its table (the M2-OO-1h step-4 mirror — a
     ///   last-used table with per-activation indexes would silently lose SET positions);</item>
     /// <item>a BASED WS root / an ADDRESS-OF-taken WS record stages LOUD (0899) — their cell/bridge storage
-    ///   is per-instance (<see cref="DataBinder.PtrAddressableBackings"/>/<see cref="DataBinder.PtrBasedBridges"/> emit instance
+    ///   is per-instance (<see cref="StorageTierSlice.AddressableBackings"/>/<see cref="StorageTierSlice.BasedBridges"/> emit instance
     ///   members), and §14.6.2.3.2 #5 makes a based item's address part of the unit's static state; a silent
     ///   instance-resident cell would re-initialize per activation (§1.4 — never silent-wrong).</item>
     /// </list></summary>
     public void Run(DataBinder binder)
     {
         if (!binder.UnitStaticWs) return;
-        foreach (var root in binder._workingStorageRoots)
+        foreach (var root in binder.State.Forest.WorkingStorageRoots)
             RouteStaticRoot(binder, root, "WORKING-STORAGE");
         // THE FILE SECTION ROUTES WITH IT (kb/Work PB168 — the review fleet's §8.6.4 finding): "Data items
         // and file connectors defined in the working-storage or file section of a source element that is not
@@ -62,7 +62,7 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
         // ONE area). EXTERNAL files stay off the channel (run-unit ExternalStore, §8.6.7); a REPORT FD has
         // no record description to route (§13.18.46). ⚠ __ResetStatics deliberately does NOT re-seed these:
         // §14.6.2.3.2 action 2 names only the working-storage and local-storage sections.
-        foreach (var file in binder.Files)
+        foreach (var file in binder.State.Files.Declared)
             if (!file.IsExternal)
                 foreach (var record in file.Records)
                     RouteStaticRoot(binder, record, "FILE SECTION");
@@ -83,16 +83,16 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
             // REJECTED this legal source). The DATA lives in the allocated cell, so no static root field
             // joins the value-reset set. A based root whose class the substrate screen rejected
             // (COBOL1695) was already diagnosed — skip quietly.
-            if (root.Class?.BasedPointerField is { } bp && !binder.PtrAddressableCellOf.ContainsKey(root.Class))
-                binder._staticBasedBridgeAddrs.Add(bp);
+            if (root.Class?.BasedPointerField is { } bp && !binder.State.StorageTier.AddressableCellOf.ContainsKey(root.Class))
+                binder.State.StorageTier.AddStaticBasedBridgeAddr(bp);
             // An INDEXED BY cell under a BASED table is an ordinary emitted field (allocated in
             // RegisterIndexes regardless of BASED-ness) and §13.5.4 GR1 makes it static like the rest of
             // the unit's WS — the bridge routes the ADDRESS, the index cells still route themselves.
             foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
-                binder._staticIndexCells.Add(idx.Cell);
+                binder.State.StorageTier.AddStaticIndexCell(idx.Cell);
             return;
         }
-        if (root.Class is { } ac && binder.PtrAddressableCellOf.TryGetValue(ac, out var addrCell))
+        if (root.Class is { } ac && binder.State.StorageTier.AddressableCellOf.TryGetValue(ac, out var addrCell))
         {
             // kb/Work PB234 — an ADDRESS-OF-taken record of a RECURSIVE unit's static WS. §13.5.4 GR1 makes the
             // data STATIC — one copy shared by every activation — and its storage IS the forced StorageCell (the
@@ -100,9 +100,9 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
             // re-seeds it in place from __ResetStatics. Nothing in §8.4.3.11, §11.10.4 or §14.9.5.4 forbids the
             // source this used to refuse (COBOL0899): a static item's address is simply the one copy's.
             // Every root of the class (the canonical and each REDEFINES view) names the ONE cell.
-            binder._staticAddressableCells.Add(addrCell);
+            binder.State.StorageTier.AddStaticAddressableCell(addrCell);
             foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
-                binder._staticIndexCells.Add(idx.Cell);
+                binder.State.StorageTier.AddStaticIndexCell(idx.Cell);
             return;
         }
         if (root.Class is { } c && c.BasedPointerField is not null)
@@ -113,13 +113,13 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
             // has no storage of its own to route; only its index cells do (kb/Work PB234 — this arm used to
             // refuse the source with the same COBOL0899 as the ADDRESS OF arm).
             foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
-                binder._staticIndexCells.Add(idx.Cell);
+                binder.State.StorageTier.AddStaticIndexCell(idx.Cell);
             return;
         }
         if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
-            binder._staticRootFields.Add(c2.BackingClrName);   // Tier-B: the ONE string backing IS the storage
-        binder._staticRootFields.Add(root.ClrName);
+            binder.State.StorageTier.AddStaticRootField(c2.BackingClrName);   // Tier-B: the ONE string backing IS the storage
+        binder.State.StorageTier.AddStaticRootField(root.ClrName);
         foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
-            binder._staticIndexCells.Add(idx.Cell);
+            binder.State.StorageTier.AddStaticIndexCell(idx.Cell);
     }
 }

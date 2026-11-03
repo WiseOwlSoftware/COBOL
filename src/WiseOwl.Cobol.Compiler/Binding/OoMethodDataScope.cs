@@ -17,11 +17,11 @@ public sealed class OoMethodDataScope
 
     /// <summary>The method's own INDEX-NAME declarations (M2-OO-1h step 4; §11.7.4 GR5 — index-names are
     /// method-private: two methods each with <c>INDEXED BY IX</c> get DISTINCT cells, and a method IX shadows an
-    /// object IX with its OWN cell — never one of the unit's <see cref="DataBinder.IndexNames"/>).</summary>
+    /// object IX with its OWN cell — never one of the unit's <see cref="ForestSlice.IndexNames"/>).</summary>
     public IndexNameRegistry IndexNames { get; } = new();
 
     /// <summary>The method's own OCCURS DYNAMIC <c>CAPACITY IN data-name-3</c> register-names → the method's dynamic
-    /// tables that declare them (the method twin of <see cref="DataBinder.CapacityRegisters"/>; kb/Work PB3165). The
+    /// tables that declare them (the method twin of <see cref="ForestSlice.CapacityRegisters"/>; kb/Work PB3165). The
     /// register is "treated as though implicitly defined at the same level as the entry containing the OCCURS
     /// clause" (§13.18.38.3 SR30), so it is a name of the SAME source element and scope as that entry's data-names:
     /// method-private, shadowing an object-level name of the spelling and invisible to a sibling method (§11.7.4

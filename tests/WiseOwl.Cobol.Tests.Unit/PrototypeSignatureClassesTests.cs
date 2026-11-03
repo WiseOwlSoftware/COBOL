@@ -100,7 +100,7 @@ public sealed class PrototypeSignatureClassesTests
                 return new CalleeSignature(data.Linkage.Formals, data.Linkage.Returning);
             }
             return new Fixture(Of("SIGA"), Of("SIGB"), Of("SIGC"), Of("SIGD"), Of("SIGE"),
-                comp.Units.Single(u => u.Name == "HOLD").Data.WorkingStorageRoots);
+                comp.Units.Single(u => u.Name == "HOLD").Data.State.Forest.WorkingStorageRoots);
         }
         finally { FileHarness.TryDelete(path); }
     }

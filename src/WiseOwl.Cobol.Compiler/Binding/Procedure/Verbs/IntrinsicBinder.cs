@@ -954,7 +954,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // Resolve through VisibleFiles — the ONE file-name resolution every other site uses (kb/Work PB123:
         // this arm scanned ctx.Data.Files, the program's OWN FD list, so a contained program naming its
         // container's GLOBAL FD — visible per §13.18.27.4 GR1–2 — drew "not the name of a file connector" on legal source).
-        if (!ctx.Data.VisibleFiles.TryGetValue(name, out var file))
+        if (!ctx.Data.State.VisibleFiles.TryGetValue(name, out var file))
         {
             ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
                 + $"is not the name of a file connector specified in an FD statement (ISO {clause})");

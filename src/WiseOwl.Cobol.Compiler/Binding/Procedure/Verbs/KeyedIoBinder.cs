@@ -493,7 +493,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         var (word, quals) = DataBinder.KeyReference(dref);
         var names = file.RecordKeyNameCandidates(word, quals);
-        foreach (var other in ctx.Data.VisibleFiles.Values)
+        foreach (var other in ctx.Data.State.VisibleFiles.Values)
             if (!ReferenceEquals(other, file)) names = names.Plus(other.RecordKeyNameCandidates(word, quals));
         if (names.Count == 0)
             return (RecordKeyNameUse.None, 0);

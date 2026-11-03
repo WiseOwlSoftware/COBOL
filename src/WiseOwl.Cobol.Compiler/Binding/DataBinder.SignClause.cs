@@ -41,10 +41,6 @@ using Core = CobolParserCore;
 /// </summary>
 public sealed partial class DataBinder
 {
-    /// <summary>The data description entries whose OWN source wrote a SIGN clause — the subjects §13.18.52.3 SR1/SR2
-    /// speak about. Filled at entry bind; read once by <see cref="CheckSignClausesPass.Run"/>.</summary>
-    internal readonly HashSet<DataItem> _signClauseWritten = [];
-
     /// <summary>⛔ THE COBOL-85 REPORT GROUP DESCRIPTION ENTRY'S SIGN CLAUSE IS NARROWER (kb/Work PB3683) — the report twin
     /// of <see cref="CheckSignClausesPass.GateGroupSignSubordinates"/>. The 2023 text lets a report group description entry carry the clause
     /// with SEPARATE CHARACTER optional (§13.18.52.3 SR1 admits "a numeric report group description entry whose picture

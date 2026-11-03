@@ -27,7 +27,7 @@ public sealed partial class DataBinder
     public SpecialNamesBinder SpecialNames => field ??= new(this, Edition);
 
     /// <summary>The unit's INPUT-OUTPUT SECTION binder (ISO §12.4): the FILE-CONTROL entries it captures into
-    /// <see cref="Files"/> and the I-O-CONTROL paragraph (the APPLY COMMIT clause, the SAME clauses) bound against them.
+    /// <see cref="FileSlice.Declared"/> and the I-O-CONTROL paragraph (the APPLY COMMIT clause, the SAME clauses) bound against them.
     /// One per binder, made with it.</summary>
     public FileControlBinder FileControl => field ??= new(this, Edition);
 

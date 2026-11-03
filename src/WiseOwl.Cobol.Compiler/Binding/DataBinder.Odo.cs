@@ -43,7 +43,7 @@ public sealed partial class DataBinder
             foreach (var k in kc.dataReference())
             {
                 var (keyName, keyQuals) = ClauseDataName(k, $"{where}: OCCURS KEY IS");
-                if (!_refusedClauseOperands.Contains(keyName)) keys.Add(new OccursKey(keyName, keyQuals, descending));
+                if (!State.Clauses.RefusedClauseOperands.Contains(keyName)) keys.Add(new OccursKey(keyName, keyQuals, descending));
             }
         }
 
@@ -201,7 +201,7 @@ public sealed partial class DataBinder
     private string? CapacityRegisterName(Core.DataReferenceContext capRef, string where)
     {
         var (name, quals) = ClauseDataName(capRef, $"{where}: OCCURS DYNAMIC CAPACITY IN");
-        if (_refusedClauseOperands.Contains(name)) return null;
+        if (State.Clauses.RefusedClauseOperands.Contains(name)) return null;
         if (quals.Count == 0) return name;
         using var _ = Edition.At(capRef);
         Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName, $"{where}: OCCURS DYNAMIC CAPACITY IN "
@@ -253,22 +253,8 @@ public sealed partial class DataBinder
     /// GLOBAL clause is a global name. All data-names and screen-names subordinate to a global name are global
     /// names" — the record's own GLOBAL clause, or its file description's (§13.18.27.3 SR1 b) and d)).</summary>
     internal bool IsGlobalRecord(DataItem record) =>
-        record.HasGlobalClause || Files.Any(f => f.IsGlobal && f.Records.Contains(record));
+        record.HasGlobalClause || State.Files.Declared.Any(f => f.IsGlobal && f.Records.Contains(record));
 
-    /// <summary>The ONE insert into <see cref="CapacityRegisters"/>: this element's own register (from
-    /// <see cref="DynamicResolvePass.Run"/>) and each container's GLOBAL one (from <see cref="InheritGlobalSubtree"/>, nearest
-    /// container first). ⛔ THE LIST IS KEPT IN NEAREST-DECLARING-ELEMENT ORDER BY THE INSERT, NOT BY THE ORDER OF THE
-    /// CALLS (kb/Work PB1674; PB3766 review R2-1): the containers' names are inherited before this element's registers
-    /// are minted, so a register goes after the last one at its own depth or nearer — the order
-    /// <c>ReferenceResolver.CapacityRegisterFor</c> reads (<c>tables[0]</c> is the nearest).</summary>
-    internal void AddCapacityRegister(Dictionary<string, List<DataItem>> registers, string name, DataItem table)
-    {
-        if (!registers.TryGetValue(name, out var tables)) registers[name] = tables = [];
-        int depth = DeclaringDepth(table);
-        int at = tables.Count;
-        while (at > 0 && DeclaringDepth(tables[at - 1]) > depth) at--;
-        tables.Insert(at, table);
-    }
 }
 
 /// <summary>⛔ THE ONE ADMISSION OF AN OCCURS DEPENDING ON OBJECT (ISO §13.18.38.3 SR17: "Data-name-1 shall describe an

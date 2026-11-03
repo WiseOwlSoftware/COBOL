@@ -74,7 +74,7 @@ internal sealed class CompilerTemps(DataBinder data)
 
     /// <summary>The ONE synthesized-compiler-temp constructor (property-reference temps, user-function result
     /// temps): a level-1 item cloned from <paramref name="model"/>'s description, appended to
-    /// <see cref="DataBinder.Roots"/> so the FieldEmitter declares it like any other item. A GROUP model deep-clones its
+    /// <see cref="ForestSlice.Roots"/> so the FieldEmitter declares it like any other item. A GROUP model deep-clones its
     /// subtree (the §8.4.3.2.4 GR1 "description … is that specified by the description in the linkage
     /// section" for a group RETURNING item) via <see cref="CloneNode"/> — structurally like the TYPEDEF
     /// <c>CloneItem</c> but UNREGISTERED: a temp's subordinates are never referenceable (a function result is
@@ -106,7 +106,7 @@ internal sealed class CompilerTemps(DataBinder data)
         if (model.IsGroup)
             foreach (var child in model.Children)
                 t.AddMember(CloneNode(child, t));
-        data.AddRoot(t);
+        data.State.Forest.AddRoot(t);
         Clones.Add((t, model));
         return t;
     }

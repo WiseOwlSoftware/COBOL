@@ -87,10 +87,10 @@ internal static class StorageFormPass
         foreach (var d in ctx.AllBindersAndInterfaces())
             if (d.State.Configuration.Options.Initialize is { HasFill: true } init)
             {
-                foreach (var root in d.WorkingStorageRoots)
+                foreach (var root in d.State.Forest.WorkingStorageRoots)
                     if (init.Governs(root, workingStorageRoot: true, localStorageRoot: false))
                         AddBackgroundFilled(root, promoted);
-                foreach (var root in d.LocalStorageRoots)
+                foreach (var root in d.State.Forest.LocalStorageRoots)
                     if (init.Governs(root, workingStorageRoot: false, localStorageRoot: true))
                         AddBackgroundFilled(root, promoted);
             }
@@ -237,10 +237,10 @@ internal static class StorageFormPass
     private static void Compute(DataBinder data, HashSet<DataItem> promoted)
     {
         var visited = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        foreach (var root in data.Roots) Walk(root, visited, promoted);
+        foreach (var root in data.State.Forest.Roots) Walk(root, visited, promoted);
         // Report print items are synthetic DataItems OFF Roots (they carry image promotions too — a Roots-only
         // walk would miss them, a parity trap).
-        foreach (var report in data.Reports.Declared)
+        foreach (var report in data.State.Reports.Declared)
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)
@@ -252,7 +252,7 @@ internal static class StorageFormPass
         // engine's integer register cannot hold one, so the procedure division sees the counter as its character
         // image (CobolReport.SumImage / SetSumImage) and every consumer reads it as any image-carried numeric item —
         // §14.6.13.2 rule 2's checked decode, the class condition's image test, a figurative fill's plain store.
-        foreach (var report in data.Reports.Declared)
+        foreach (var report in data.State.Reports.Declared)
             foreach (var family in report.SumFamilies)
                 family.Register.Storage = new StorageForm.CharImage(family.Register.ImageWidth, PicCategory.Numeric);
     }
@@ -395,8 +395,8 @@ internal static class StorageFormPass
             //  duplicate copy is deleted; RecordLayout is the single width/offset authority.)
             foreach (var c in item.Children) Check(c);
         }
-        foreach (var root in data.Roots) Check(root);
-        foreach (var report in data.Reports.Declared)
+        foreach (var root in data.State.Forest.Roots) Check(root);
+        foreach (var report in data.State.Reports.Declared)
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)

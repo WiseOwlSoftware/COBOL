@@ -1343,7 +1343,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     private BoundStatement OperandUnresolved(Core.DataReferenceContext dref, string role, RefResolution? answer = null)
     {
         string text = dref.GetText();
-        if (ctx.Data.ScreenNames.Contains(text))
+        if (ctx.Data.State.Forest.ScreenNames.Contains(text))
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
                 $"CALL {role} '{text}' names a SCREEN SECTION entry; ISO §14.9.4.3 "

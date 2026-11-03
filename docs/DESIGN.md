@@ -1277,7 +1277,7 @@ metadata** (and is kept distinct from LENGTH OF / BYTE-LENGTH, which count *byte
 
 ### 12.2 Special-register registry
 
-Model every special register as a SYNTHESIZED `DataItem` registered in `DataBinder.ByName` — so a register read/store
+Model every special register as a SYNTHESIZED `DataItem` registered in `ForestSlice.ByName` — so a register read/store
 reuses the EXACT `CobolNum`/`CobolString` paths (zero special-case in the verb emitters). RETURN-CODE/TALLY/
 SORT-RETURN → static `long`; WHEN-COMPILED → a compile-time constant string (timestamp injectable for determinism);
 LENGTH OF/BYTE-LENGTH → a folded `long` byte-size from PIC+USAGE; ADDRESS OF → `ManagedPointer`; LINAGE-COUNTER/

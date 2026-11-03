@@ -150,7 +150,7 @@ off-by-one through every later counter check.
 - **Three types, one concern (kb/Work PB2357).** `ReportSectionBinder` (`Binding/ReportSectionBinder.cs`, one per
   `DataBinder`, `DataBinder.ReportSection`) binds and resolves the RD entries and answers the report-item refusal
   (`ReportEntryReferenceRefused`, §13.8.6.2.3). The facts it produces are `ReportScope` (`Binding/ReportScope.cs`,
-  `DataBinder.Reports`): the reports a unit `Declared`, the `Visible` ones (its own, then its containers' GLOBAL ones),
+  `DataBindState.Reports`): the reports a unit `Declared`, the `Visible` ones (its own, then its containers' GLOBAL ones),
   each report's `Depth`, the sum counters, the refused PRESENT WHEN conditions, and the name lookups over them
   (`EntriesNamed`, `NearerEntryHides`, `NearestInScope`). The report model types (`ReportModel` and what it holds) are
   `Binding/ReportModel.cs`. The binder is the only writer of the scope; every later phase reads the scope.
@@ -429,7 +429,7 @@ off-by-one through every later counter check.
   sharing a data-name shared one counter and the second registration destroyed the first — `0022  0022` printed
   where the standard owes `0011  0022`.) GR5 also puts that name in the source element's name space, because
   GR12 permits procedure division statements to "alter the content of sum counters" and altering presupposes
-  referencing: `DataBinder.SumCounters` (name → EVERY counter carrying it, a list because the collision is legal
+  referencing: `DataBindState.SumCounters` (name → EVERY counter carrying it, a list because the collision is legal
   to DECLARE) feeds `CounterResolver.SumCounterFor`, which builds a `ReportSumCounterPlace` — the CAPACITY /
   DEBUG register pattern, a VIEW over engine state whose read and write `PlaceRenderer` maps to
   `CobolReport.SumImage` / `SetSumImage` (the counter's character image under its GR1 profile: the register is

@@ -90,11 +90,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     public Frontend.Preprocessor.DirectiveTimeline<Frontend.Preprocessor.CompilationVariableEvent> CompilationVariables { get; init; } =
         Frontend.Preprocessor.DirectiveTimeline<Frontend.Preprocessor.CompilationVariableEvent>.Empty;
 
-    /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order. (READ-ONLY view — P6 Step 5:
-    /// the emitter consumes the bound model without a write channel; the binder populates the private backing.)</summary>
-    public IReadOnlyList<DataItem> Roots => _roots;
-    private readonly List<DataItem> _roots = [];
-
     /// <summary>True when this binder binds a RECURSIVE-and-not-INITIAL PROGRAM unit or a FUNCTION unit
     /// (functions "are always recursive", ISO §8.6.6 :8821 / §9.4 :12529), contained programs or not — the
     /// unit whose WORKING-STORAGE and FILE SECTION emit STATIC (set once by <c>BinderDriver.BindUnitData</c>,
@@ -137,40 +132,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// unit-kind conjunct. (A class's METHOD had a second producer until kb/Work PB1308: a method owns no
     /// WORKING-STORAGE at any edition, §13.5.3 SR1.)</para></summary>
     public bool EmitsStaticReset =>
-        StaticRootFields.Count > 0 || StaticBasedBridgeAddrs.Count > 0
-        || StaticAddressableCells.Count > 0 || StaticIndexCells.Count > 0
-        || (UnitStaticWs && Files.Count > 0);
-
-    /// <summary>The unit's WORKING-STORAGE SECTION roots, in source order — the subset of <see cref="Roots"/>
-    /// whose storage class is decided by §13.5.4 (static/initial data), captured at bind so the static-WS
-    /// routing (<see cref="RouteStaticUnitStoragePass.Run"/>) and the emitter's <c>__ResetStatics</c> never guess from
-    /// the mixed forest (FILE records and compiler temps share <see cref="Roots"/>). The ONE walk
-    /// <c>__ResetStatics</c> emits from; each arm there is gated on the static-channel membership, so an
-    /// automatic-storage root in this list contributes nothing.</summary>
-    public IReadOnlyList<DataItem> WorkingStorageRoots => _workingStorageRoots;
-    internal readonly List<DataItem> _workingStorageRoots = [];
-
-    /// <summary>The unit's LOCAL-STORAGE SECTION roots, in source order (ISO §13.6 — automatic data,
-    /// §13.6.4 GR1). Emitted as ordinary INSTANCE fields: for an INITIAL or RECURSIVE unit the fresh instance
-    /// per activation IS the §14.6.2.3.2 per-activation initial state; for a cached-singleton unit the emitted
-    /// <c>Call</c> entry re-initializes them (ProgramEmitter) — automatic data is in initial state on EVERY
-    /// activation regardless of the unit's attributes.</summary>
-    public IReadOnlyList<DataItem> LocalStorageRoots => _localStorageRoots;
-    private readonly List<DataItem> _localStorageRoots = [];
-
-    /// <summary>
-    /// Every named item, keyed by COBOL name (case-insensitive) → the list of items with that name. COBOL permits
-    /// duplicate data-names disambiguated only by qualification (OF/IN), so this is a MULTIMAP — a single-valued
-    /// dictionary would silently drop all but the last (a latent wrong-item bug; DESIGN §3.5).
-    /// </summary>
-    public Dictionary<string, List<DataItem>> ByName { get; } = new(CobolNames.Comparer);
-
-    /// <summary>THE UNIT'S INDEX-NAME NAMESPACE (kb/Work PB919): every INDEXED BY declaration of this unit's own
-    /// data division (<see cref="IndexNameRegistry.Own"/> — the <c>long</c> cells it emits, 1-based occurrence
-    /// numbers, DESIGN §3.5), plus the GLOBAL tables' declarations of every containing program
-    /// (§8.4.6.2.3), registered beside their tables' data-names by the GLOBAL-root inheritance. A reference resolves
-    /// through <see cref="Model.SymbolTable.IndexCandidates"/> — counted, never keyed by spelling alone.</summary>
-    public IndexNameRegistry IndexNames { get; } = new();
+        State.StorageTier.HasStaticMembers
+        || (UnitStaticWs && State.Files.Declared.Count > 0);
 
     /// <summary>Declare the index-names of <paramref name="item"/>'s INDEXED BY phrase in the scope that owns its record —
     /// the method overlay for a METHOD's item (<see cref="NameScopeOf"/>; §11.7.4 GR5 privacy, a post-build TYPE copy
@@ -185,36 +148,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             var decl = new IndexDeclaration(item.IndexNames[k], item, $"_IX_{item.Uid}" + (k == 0 ? "" : $"_{k}"));
             item.Indexes.Add(decl);
-            (NameScopeOf(item)?.IndexNames ?? IndexNames).Declare(decl);
+            State.Forest.DeclareIndex(decl, NameScopeOf(item));
         }
     }
-
-    /// <summary>Level-88 condition-names (case-insensitive) → the conditions with that name (a list, since names
-    /// may be duplicated under different parents and disambiguated by qualification).</summary>
-    public Dictionary<string, List<Condition88>> Conditions { get; } = new(CobolNames.Comparer);
-
-    /// <summary>OCCURS DYNAMIC <c>CAPACITY IN data-name-3</c> register-names (case-insensitive) → the owning
-    /// dynamic-table <see cref="DataItem"/> (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9). The register is
-    /// IMPLICITLY defined at the OCCURS entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults
-    /// this map to build a <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated
-    /// by the post-build <see cref="DynamicResolvePass.Run"/> pass. (READ-ONLY view — P6 Step 5; the getter carries the
-    /// P6 Step-6 watermark gate — a read before <see cref="Passes.PassPhase.OccursResolved"/> throws loud, the
-    /// "read a null CapacityRegister" silent-miscompile class made structural.)
-    /// <para>⛔ A LIST PER NAME, NEAREST DECLARING SOURCE ELEMENT FIRST (kb/Work PB1674). The register of a dynamic
-    /// table in a GLOBAL record is subordinate to a global name — SR30 places it "at the same level as the entry
-    /// containing the OCCURS clause" — so it is a global name too (§8.4.6.2.2: "All data-names and screen-names
-    /// subordinate to a global name are global names"), and a contained program inherits it with the rest of the
-    /// record (<see cref="InheritGlobalSubtree"/>). This element's own registers come first (one written definition
-    /// per spelling: SR30's "shall not be defined elsewhere in the source element", reproduced once per TYPE / SAME AS
-    /// copy of its entry, kb/Work PB2988), then each container's, so
-    /// <c>ReferenceResolver.CapacityRegisterFor</c> can apply §8.4.6.2.1 3)'s nearest-element rule. The one reader of a
-    /// name in this map is <see cref="Model.SymbolTable.CapacityCandidates"/>. The OWN registers alone are
-    /// <see cref="DeclaredCapacityRegisterTables"/>.</para></summary>
-    public IReadOnlyDictionary<string, List<DataItem>> CapacityRegisters
-    {
-        get { Require(PassPhase.OccursResolved, "CapacityRegisters"); return _capacityRegisters; }
-    }
-    internal readonly Dictionary<string, List<DataItem>> _capacityRegisters = new(CobolNames.Comparer);
 
     /// <summary>The dynamic tables whose named CAPACITY register THIS source element declares — the registers its
     /// own class emits a profile for. An inherited register's profile is its container's (the contained class is
@@ -222,34 +158,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// method's own scope holds the NAME (<see cref="OoMethodDataScope.CapacityRegisters"/>, kb/Work PB3165), the
     /// class still emits the profile, as it does for the method's other numeric items.</summary>
     public IEnumerable<DataItem> DeclaredCapacityRegisterTables =>
-        CapacityRegisters.Values.SelectMany(static t => t).Where(t => DeclaringDepth(t) == 0)
+        State.Forest.CapacityRegisters.Values.SelectMany(static t => t).Where(t => State.Forest.DeclaringDepth(t) == 0)
             .Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t));
-
-    /// <summary>⛔ THE NESTING DISTANCE OF EVERY INHERITED GLOBAL DECLARATION (kb/Work PB1047 / PB1243) — the tier
-    /// ISO §8.4.6.2.1 3) selects on. Absent = 0: the item is this source element's own. n = the item is a global
-    /// name of the n-th containing program. Keyed by identity, because the SAME container item is inherited into
-    /// every contained program at a different distance.</summary>
-    private readonly Dictionary<DataItem, int> _inheritedGlobalDepth = new(ReferenceEqualityComparer.Instance);
-
-    /// <summary>How many containment levels out <paramref name="item"/> is declared: 0 for an item this source
-    /// element declares (or any item of a unit that inherits nothing), n for a GLOBAL item of its n-th container.</summary>
-    internal int DeclaringDepth(DataItem item) =>
-        _inheritedGlobalDepth.Count != 0 && _inheritedGlobalDepth.TryGetValue(item, out int depth) ? depth : 0;
-
-    /// <summary>True when this unit inherits any container's global data — the only case in which a candidate set
-    /// can span tiers, so the nearest-tier filter is free for every other unit.</summary>
-    internal bool InheritsGlobalData => _inheritedGlobalDepth.Count != 0;
-
-    /// <summary>⛔ THE ONE QUESTION "IS THIS WORD A DATA-NAME THIS SOURCE ELEMENT ITSELF DEFINES?" — the test behind
-    /// every rule that reads "shall not be defined elsewhere in the source element" (§13.18.38.3 SR30 for a CAPACITY
-    /// register, §13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in
-    /// ordinary storage" screens (§8.4.2.1). A container's GLOBAL data-name is inherited into <see cref="ByName"/>
-    /// before the resolve passes run (<see cref="InheritContainerGlobalData"/>), but it is defined in ANOTHER source
-    /// element: this element's own declaration of the spelling hides it (§8.4.6.2.1 3), so it can neither duplicate
-    /// nor be duplicated by it. Asking <c>ByName.ContainsKey</c> instead refuses a legal program (kb/Work PB3766,
-    /// review finding R2-1).</summary>
-    internal bool DeclaresOwnDataName(string name) =>
-        ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
 
     /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2),
     /// beside <see cref="ReportSectionBinder.InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
@@ -281,53 +191,15 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and never emits them.</summary>
     internal void InheritGlobalSubtree(DataItem item, int depth)
     {
-        _inheritedGlobalDepth[item] = depth;
-        if (item.CobolName is { } name)
-        {
-            if (!ByName.TryGetValue(name, out var list)) ByName[name] = list = [];
-            list.Add(item);
-        }
-        foreach (var cond in item.Own88s)
-        {
-            if (!Conditions.TryGetValue(cond.Name, out var conds)) Conditions[cond.Name] = conds = [];
-            conds.Add(cond);
-        }
-        foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
-        // Placed by depth (AddCapacityRegister): this element's own registers, minted later by DynamicResolve, sort
-        // in before it, a nearer container's before a farther one's — the order
-        // ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
-        // failed that compile and has no CapacityRegister view to inherit.
-        if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) AddCapacityRegister(_capacityRegisters, cap, item);
+        State.Forest.Inherit(item, depth);
         foreach (var child in item.Children) InheritGlobalSubtree(child, depth);
         foreach (var ren in item.Renames66) InheritGlobalSubtree(ren, depth);
     }
 
-    /// <summary>The report description entries this unit declares and the GLOBAL ones it inherits, with the sum counters
-    /// and the name lookups over them (<see cref="ReportScope"/>; kb/Work PB2357): written by <see cref="ReportSection"/>
-    /// alone, read by every later phase.</summary>
-    public ReportScope Reports { get; } = new();
-
     /// <summary>The REPORT SECTION's binder (<see cref="ReportSectionBinder"/>; kb/Work PB2357, step 7 of the DataBinder
-    /// extract): binds the RD entries into <see cref="Reports"/>, resolves them after the data division is built, and
+    /// extract): binds the RD entries into <see cref="DataBindState.Reports"/>, resolves them after the data division is built, and
     /// answers the report-item refusal (ISO §13.8.6.2.3) every other section's name lookup asks.</summary>
-    internal ReportSectionBinder ReportSection => field ??= new(this, Reports);
-
-    /// <summary>REPORT SECTION sum counter names → their SUM entries (<see cref="ReportScope.SumCounters"/>), behind the
-    /// P6 Step-6 watermark gate: the counters exist once <see cref="PassPhase.FilesResolved"/> has run.</summary>
-    public IReadOnlyDictionary<string, List<(ReportModel Report, ReportSumFamily Family)>> SumCounters
-    {
-        get { Require(PassPhase.FilesResolved, "SumCounters"); return Reports.SumCounters; }
-    }
-
-    /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO
-    /// §13.18.58; data-model D17) — THIS source element's own: a METHOD's declarations are its own source element's,
-    /// in <see cref="OoMethodDataScope.TypeDecls"/> (kb/Work PB3192), and <see cref="AllTypeDecls"/> walks both. The
-    /// template is built by <see cref="BindEntries"/> but kept OFF <see cref="Roots"/>
-    /// and <see cref="ByName"/> (it allocates no storage; its subordinate names are not globally referenceable,
-    /// GR1/GR2). A <c>TYPE IS type-name</c> reference clones this subtree into the referencing entry in the post-build
-    /// <see cref="ExpandTypesPass.Run"/> pass — which runs before <see cref="BindResolve"/>, so every resolution pass sees the
-    /// clone (the invariant the OO compiler-temp clone already relies on).</summary>
-    public Dictionary<string, DataItem> TypeDecls { get; } = new(CobolNames.Comparer);
+    internal ReportSectionBinder ReportSection => field ??= new(this, State.Reports);
 
     /// <summary>⛔ THE ONE TYPE-NAME LOOKUP, in the source element <paramref name="scope"/> names: a METHOD's own
     /// declaration first (kb/Work PB3192) — and none of its object's when the method declares the word as anything
@@ -343,19 +215,16 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             if (m.TypeDecls.TryGetValue(typeName, out decl!)) return true;
             if (m.Declares(typeName)) return false;
         }
-        return TypeDecls.TryGetValue(typeName, out decl!) || State.Inherited.TypeDecls.TryGetValue(typeName, out decl!);
+        return State.Forest.TypeDecls.TryGetValue(typeName, out decl!) || State.Inherited.TypeDecls.TryGetValue(typeName, out decl!);
     }
 
-    /// <summary>Every TYPE DECLARATION this binder's forest holds: its own element's (<see cref="TypeDecls"/>) and each
+    /// <summary>Every TYPE DECLARATION this binder's forest holds: its own element's (<see cref="ForestSlice.TypeDecls"/>) and each
     /// of its methods' (<see cref="OoMethodDataScope.TypeDecls"/>, kb/Work PB3192), in that order — what a pass over
     /// the WHOLE forest walks (the completion of every declaration, the clause-resolution and declared forests). A
     /// lookup BY NAME never reads it: it reads the declaring element's own table (<see cref="TryFindTypeDecl"/>).</summary>
     internal IEnumerable<DataItem> AllTypeDecls() =>
-        TypeDecls.Values.Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
+        State.Forest.TypeDecls.Values.Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
 
-    /// <summary>The own type-declaration table of the source element <paramref name="scope"/> names: the method's, else
-    /// this binder's element's.</summary>
-    private Dictionary<string, DataItem> TypeDeclsOf(Model.Scope scope) => scope.Method?.TypeDecls ?? TypeDecls;
 
     /// <summary>The unit's data-binding state (<see cref="DataBindState"/>; docs/rearchitecture/DESIGN-architecture-review.md
     /// §8.3 (1), kb/Work PB2296): its value slices and its four append-only fact sets. Every reader of those facts reads
@@ -383,102 +252,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// slice (<see cref="UnitChecking.OdoReferenceChecking"/>, written once by <see cref="CheckingFold"/>).</summary>
     public bool OdoReferenceChecking => State.UnitChecking.OdoReferenceChecking;
 
-    /// <summary>All SELECTed files (the SELECT clause joined with its FD records), in source order.
-    /// (READ-ONLY view — P6 Step 5. The bind-phase file-connector qualification mutates the FileModel ELEMENTS,
-    /// which a read-only list does not prevent — element immutability is a later data-model-track item.)</summary>
-    public IReadOnlyList<FileModel> Files => _files;
-    internal readonly List<FileModel> _files = [];
-
-    /// <summary>Append a file this unit declares (a SELECT entry's, an FD's or an SD's) to <see cref="Files"/>.</summary>
-    internal void AddFile(FileModel file) => _files.Add(file);
-
-    /// <summary>The files keyed by COBOL file-name (case-insensitive), for the binder to resolve OPEN/READ/CLOSE
-    /// targets and to map a WRITE/REWRITE record-name back to its owning file.</summary>
-    public Dictionary<string, FileModel> FilesByName { get; } = new(CobolNames.Comparer);
-
-
-    /// <summary>⛔ THE ONE LOOKUP OF A FILE-NAME VISIBLE IN THIS SOURCE ELEMENT, at any point of the bind: its own file
-    /// (<see cref="FilesByName"/>), which hides a container's of the same spelling (§8.4.6.2.1 3) a)), else the nearest
-    /// container's GLOBAL file (§13.18.27.4 GR1; <see cref="InheritedGlobals.Files"/>, known before the unit binds). A
-    /// container's GLOBAL record qualified by its file (§8.4.2.2.2 Format 1's file-report-qualifier) resolves through it
-    /// too (kb/Work PB3557 review R2-1).</summary>
-    public FileNameScope VisibleFiles => new(FilesByName, State.Inherited.Files);
-
-    /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
-    /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
-    /// <list type="number">
-    /// <item>kb/Work R32 — a reference to such a name is exempt from the §8.4.2.1 UNDEFINED diagnostic
-    /// (COBOL1639). The compile already fails on the section; adding "SG is not defined" on top would send
-    /// the user hunting a declaration that is right there. "Not defined" and "declared in a refused section"
-    /// are different verdicts, and only the second is true.</item>
-    /// <item>It is how <c>ACCEPT screen-name-1</c> / <c>DISPLAY screen-name-1</c> are told apart from their
-    /// token-identical DEVICE formats (AcceptDisplayBinder.ScreenFormatOf) — the operand's DECLARATION is the
-    /// only thing that distinguishes them.</item></list>
-    /// ⚠ The posture used to be compile-ACCEPT with a staged runtime loud; kb/Work PB260 measured what that
-    /// actually did (a screen record printed to standard output) and made it a refusal.</summary>
-    public HashSet<string> ScreenNames { get; } = new(CobolNames.Comparer);
-
-    /// <summary>The X3.23-1985 <c>DEBUG-ITEM</c> special register and its members (DEBUG-LINE / DEBUG-NAME /
-    /// DEBUG-SUB-1/2/3 / DEBUG-CONTENTS), keyed by COBOL name (case-insensitive) → the synthesized alphanumeric
-    /// <see cref="DataItem"/> VIEW + its read-only runtime read expression. The register is IMPLICITLY described
-    /// (no DATA DIVISION entry, §ISO absent — 1985 debug module, VCR Table 7 row 7.17) — kept OFF <see cref="ByName"/>
-    /// / <see cref="Roots"/>; the resolver consults this to build a <see cref="DebugRegisterPlace"/>. Populated by
-    /// <see cref="ActivateDebugRegisters"/> when a procedure-subject debugging declarative is collected under
-    /// WITH DEBUGGING MODE (empty otherwise — a non-debug program's resolution is unchanged).</summary>
-    public IReadOnlyDictionary<string, (DataItem Item, DebugRegisterMember Member)> DebugRegisters => _debugRegisters;
-    private readonly Dictionary<string, (DataItem, DebugRegisterMember)> _debugRegisters = new(CobolNames.Comparer);
-
-    /// <summary>The implicit description of the predefined object reference <c>EXCEPTION-OBJECT</c>
-    /// (ISO §8.4.3.6.3 SR2 — "EXCEPTION-OBJECT is implicitly described as class object and category object
-    /// reference, as an external data item, and as a universal object reference"; kb/Work PB922), synthesized on
-    /// first reference and shared thereafter: §8.4.3.6.4 GR2 gives the run unit ONE instance of it.
-    /// <para>Kept OFF <see cref="ByName"/> / <see cref="Roots"/>, exactly like <see cref="DebugRegisters"/> and
-    /// the CAPACITY register — it is not storage this program declares or emits; the resolver builds an
-    /// <see cref="ExceptionObjectPlace"/> VIEW over the runtime's one instance. It is a DESCRIPTION carrier only,
-    /// so every class/category screen (§14.9.25.3 SR1's "shall not be … object", a relation condition's operand
-    /// class, an argument's class) reads it as the object-reference item SR2 says it is.</para></summary>
-    public DataItem ExceptionObjectRegister => _exceptionObjectRegister ??= new DataItem
-    {
-        Level = 1,
-        CobolName = "EXCEPTION-OBJECT",
-        ClrName = "__exceptionObject",
-        Pic = PicInfo.ObjectReferenceItem(ObjectRefDescriptor.Universal),
-        // ⚠ SR2's "as an external data item" is NOT carried as HasExternalClause: that flag drives the
-        // §13.18.22 EXTERNAL-store re-basing of a DECLARED record, and this item is never declared, laid out or
-        // emitted. What the phrase asserts — one instance shared by the whole run unit (§8.4.3.6.4 GR2) — is
-        // already realized by the runtime's single ExceptionState, which is what the place reads.
-    };
-    private DataItem? _exceptionObjectRegister;
-
-    /// <summary>Register the X3.23-1985 DEBUG-ITEM special-register family (idempotent) — called by the procedure
-    /// table builder when it collects a <c>USE FOR DEBUGGING</c> procedure-subject declarative under WITH DEBUGGING
-    /// MODE, BEFORE statement binding resolves the DEBUG-* references inside the debugging section. Each member is a
-    /// synthesized elementary VIEW of its fixed 1985 width over the program-instance <c>__dbgItem</c>
-    /// (<see cref="WiseOwl.Cobol.Runtime.DebugItem"/>) — carried as a STRUCTURAL <see cref="DebugRegisterMember"/> selector
-    /// (the C# read text lives in the renderer); the whole-group DEBUG-ITEM reads the concatenated image. DEBUG-SUB-n
-    /// carries the S9(4) SIGN LEADING SEPARATE image WIDTH (5) but as an alphanumeric character-image view: the
-    /// procedure-trigger leg only ever renders it SPACES, and the subscripted numeric-value population + the
-    /// §14.9.25.4 GR6a "sign not moved" MOVE semantics ride the staged data-name leg (COBOL1571).</summary>
-    internal void ActivateDebugRegisters()
-    {
-        if (_debugRegisters.Count > 0) return;
-        void Reg(string name, int width, DebugRegisterMember member) =>
-            _debugRegisters[name] = (new DataItem
-            {
-                Level = 49,
-                ClrName = NamingConvention.DebugRegisterName(name),
-                CobolName = name,
-                Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: width, Digits: 0, Scale: 0, Signed: false),
-                Uid = _uidCounter++,
-            }, member);
-        Reg("DEBUG-ITEM", Runtime.DebugItem.GroupWidth, DebugRegisterMember.Item);
-        Reg("DEBUG-LINE", Runtime.DebugItem.LineWidth, DebugRegisterMember.Line);
-        Reg("DEBUG-NAME", Runtime.DebugItem.NameWidth, DebugRegisterMember.Name);
-        Reg("DEBUG-SUB-1", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub1);
-        Reg("DEBUG-SUB-2", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub2);
-        Reg("DEBUG-SUB-3", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub3);
-        Reg("DEBUG-CONTENTS", Runtime.DebugItem.ContentsWidth, DebugRegisterMember.Contents);
-    }
 
     /// <summary>The compilation group's pass-1 class symbol table (OO deep-dive D1) — set by the run-unit
     /// emitter BEFORE <see cref="Bind"/> so a typed <c>USAGE OBJECT REFERENCE class-name</c> validates its
@@ -511,54 +284,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Take the next uid of this binder's band (StructName / ProfileName ride on it): the ONE advancing counter for every item this binder creates, a report's page counter and a sum counter's register included.</summary>
     internal int TakeUid() => _uidCounter++;
 
-    /// <summary>Append a synthesized level-1 item to the forest, so the FieldEmitter declares it like any other root.</summary>
-    internal void AddRoot(DataItem root) => _roots.Add(root);
-
     /// <summary>The class-level C# member names of this binder's roots (<see cref="BindEntries"/> allocates a root's name in it).</summary>
     internal CsNameScope RootNames => _rootNames;
-
-    /// <summary>The STATIC-field channel: every emitted root field name whose storage is ONE per-class copy —
-    /// consumed by <c>RecordStructEmitter</c> to add the <c>static</c> modifier. ONE producer: a RECURSIVE-and-not-INITIAL
-    /// unit's (incl. every FUNCTION's, §8.6.6) WORKING-STORAGE roots + Tier-B backings
-    /// (<see cref="RouteStaticUnitStoragePass.Run"/> — §13.5.4 GR1 static data, ONE last-used copy across all activations,
-    /// §14.6.2.3.3). A method has no WORKING-STORAGE to put here (§13.5.3 SR1, kb/Work PB1308).
-    /// (READ-ONLY view — P6 Step 5.)</summary>
-    public IReadOnlySet<string> StaticRootFields => _staticRootFields;
-    internal readonly HashSet<string> _staticRootFields = new(StringComparer.Ordinal);
-
-    /// <summary>The BASED bridge address fields of a RECURSIVE unit's static WORKING-STORAGE (kb/Work PB154 —
-    /// §14.6.2.3.2 action 5): the `__addr_X` field emits STATIC and `__ResetStatics` sets it back to NULL,
-    /// where the old routing REJECTED legal `01 X BASED.` in a RECURSIVE program outright.</summary>
-    public IReadOnlySet<string> StaticBasedBridgeAddrs => _staticBasedBridgeAddrs;
-    internal readonly HashSet<string> _staticBasedBridgeAddrs = new(StringComparer.Ordinal);
-
-    /// <summary>The ADDRESS-OF cell fields of a RECURSIVE unit's static WORKING-STORAGE (kb/Work PB234): the
-    /// record's <c>StorageCell</c> — its ONE storage, which <c>ManagedPointer.At</c> aliases — emits STATIC
-    /// (§13.5.4 GR1: one copy shared by every activation) and <c>__ResetStatics</c> re-seeds it IN PLACE
-    /// (§14.6.2.3.2 action 2), where the old routing REJECTED `ADDRESS OF` a static item outright
-    /// (COBOL0899 — legal source refused).</summary>
-    public IReadOnlySet<string> StaticAddressableCells => _staticAddressableCells;
-    internal readonly HashSet<string> _staticAddressableCells = new(StringComparer.Ordinal);
-
-    /// <summary>The STATIC index-cell channel — INDEXED BY cells emitted as class-level STATIC <c>long</c>
-    /// fields because their table's storage is static: a RECURSIVE unit's WS table cells
-    /// (<see cref="RouteStaticUnitStoragePass.Run"/> — the cell rides its table's §13.5.4 GR1 static storage; these DO also
-    /// appear in <see cref="IndexNames"/>, so the emitter's instance-cell loop consults this set for the modifier).
-    /// A method table's cell is instead a per-activation method local, emitted in <c>OoEmitMethod</c>, and never
-    /// appears here. (READ-ONLY view — P6 Step 5.)</summary>
-    public IReadOnlySet<string> StaticIndexCells => _staticIndexCells;
-    internal readonly HashSet<string> _staticIndexCells = new(StringComparer.Ordinal);
-
-    /// <summary>⛔ THE ONE QUESTION "IS THIS CLASS MEMBER STATIC?" — true when <paramref name="csMember"/> is on any of
-    /// the four static channels (<see cref="StaticRootFields"/>, <see cref="StaticBasedBridgeAddrs"/>,
-    /// <see cref="StaticAddressableCells"/>, <see cref="StaticIndexCells"/>), i.e. it is ONE copy per class
-    /// (§13.5.4 GR1) and C# reaches it through the CLASS name, never through an instance (CS0176). A contained
-    /// program's reference to a container's member asks it, through <c>BoundUnit.AnchorOf</c>, so a container with
-    /// static working-storage composes with its containees' GLOBAL bridges (kb/Work PB1133). A new static channel
-    /// joins THIS predicate and nothing else.</summary>
-    internal bool IsStaticMember(string csMember) =>
-        _staticRootFields.Contains(csMember) || _staticBasedBridgeAddrs.Contains(csMember)
-        || _staticAddressableCells.Contains(csMember) || _staticIndexCells.Contains(csMember);
 
     /// <summary>Every INDEX-NAME declaration under a root (its subtree's <c>INDEXED BY</c> declarations, each with
     /// its own cell — kb/Work PB919). The ONE subtree walk every cell router, bridge and emitter reads.</summary>
@@ -770,9 +497,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // and a DISPLAY of the screen record printed its characters — a declined facility that produced output.
         if (program.dataDivision()?.screenSection() is { } scr)
         {
-            ScreenFacility.ReportSection(Edition, scr, ScreenNames);
+            var screenNames = new HashSet<string>(CobolNames.Comparer);
+            ScreenFacility.ReportSection(Edition, scr, screenNames);
+            State.Forest.AddScreenNames(screenNames);
             // The section is refused, but its screen-names are declared all the same (§8.3.2.2; kb/Work PB1083).
-            foreach (var sn in ScreenNames) DeclareUserWord(sn, UserWordKind.ScreenName);
+            foreach (var sn in screenNames) DeclareUserWord(sn, UserWordKind.ScreenName);
             // A constant entry among the screen entries (§13.9.2, kb/Work PB4306) is a constant of this source element
             // like any other (§13.10), bound as the report section binds its own (BindReportSectionEntries).
             foreach (var constant in scr.constantEntry())
@@ -783,7 +512,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
-            _workingStorageRoots.AddRange(BindEntries(ws.dataDescriptionEntry(), _rootNames));
+            State.Forest.AddWorkingStorageRoots(BindEntries(ws.dataDescriptionEntry(), _rootNames));
 
         // LOCAL-STORAGE SECTION (ISO §13.6 — automatic data, legal in a program or function definition per
         // §13.6.3 SR1; the method leg binds in Oo.BindMethodData): the SAME BindEntries path as WS, so VALUE
@@ -791,7 +520,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // identically; only the ACTIVATION-STATE model differs (§13.6.4 GR1 automatic → §14.6.2.3.2 initial
         // state on every activation — realized at emit, see LocalStorageRoots).
         if (program.dataDivision()?.localStorageSection() is { } ls)
-            _localStorageRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), _rootNames, EntrySection.LocalStorage));
+            State.Forest.AddLocalStorageRoots(BindEntries(ls.dataDescriptionEntry(), _rootNames, EntrySection.LocalStorage));
 
         // LINKAGE SECTION roots + the PROCEDURE DIVISION header's USING/RETURNING formals (ISO §13.7 / §14.2.2;
         // INTERPROGRAM_DESIGN D1/D3 — bound into the same forest so every verb works unchanged).
@@ -841,9 +570,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         BindPipeline.ValidateFullChainOnce();
         foreach (var pass in BindPipeline.Build(program))
         {
-            Require(pass.Requires, pass.Name);   // watermark gate: the declared prerequisite actually RAN (P6 Step 6)
+            State.Require(pass.Requires, pass.Name);   // watermark gate: the declared prerequisite actually RAN (P6 Step 6)
             using (State.Gate.Running(pass)) pass.Run(this);   // the pass appends only to the fact sets its Views declare (PB2352)
-            MarkProduced(pass.Produces);
+            State.MarkProduced(pass.Produces);
         }
     }
 
@@ -851,31 +580,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     //    (BindPipeline.ValidateFullChainOnce) guards the declared LIST order; the watermark guards what actually
     //    RAN on THIS binder — "read a fact before its producing pass" becomes a loud, located error rather than
     //    a silent miscompile (a null Tier / missing CapacityRegister / unset StorageForm). ──
-
-    /// <summary>The highest <see cref="PassPhase"/> whose producing pass has COMPLETED on this binder's forest.
-    /// Advanced by <see cref="BindResolve"/> (the per-unit prefix) and by <c>BinderDriver.Bind</c> (the group
-    /// tail, which marks every binder of the group after each group pass).</summary>
-    internal PassPhase Watermark { get; private set; }
-
-    /// <summary>Advance the watermark to <paramref name="produced"/> (never regresses).</summary>
-    internal void MarkProduced(PassPhase produced)
-    {
-        if (produced > Watermark) Watermark = produced;
-    }
-
-    /// <summary>The ALWAYS-ON completion gate: assert <paramref name="required"/> has been produced on this
-    /// binder before <paramref name="fact"/> is read/run — a mis-ordered pass in a production compiler is a
-    /// silent miscompile, exactly when the loud throw matters most. Cost is a per-pass-entry integer compare
-    /// (immaterial). Was <c>[Conditional("DEBUG")]</c> at first landing — CI's RELEASE test leg stripped the
-    /// call sites and failed the throw-expecting WatermarkTests ("no exception was thrown"), proving the
-    /// Debug-only design created a whole Release-divergence class for zero real saving (DEVLOG 774).</summary>
-    internal void Require(PassPhase required, string fact)
-    {
-        if (Watermark < required)
-            throw new InvalidOperationException(
-                $"BindPipeline watermark violation: '{fact}' requires phase {required}, but this binder has only "
-                + $"reached {Watermark} — a consumer ran before the producing pass (P6 Step 6 gate).");
-    }
 
     /// <summary>Bind a run of data-description entries (a WORKING-STORAGE section or one FD's records) into the
     /// storage forest: a level-number stack attaches each entry under the nearest open item of a lower level; level-88
@@ -949,7 +653,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             {
                 foreach (var root in parked ?? [])
                 {
-                    _roots.Add(root);
+                    State.Forest.AddRoot(root);
                     newRoots.Add(root);
                     _lastRoot = root;
                 }
@@ -1135,7 +839,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // A 01/77 emits as a Program-level static field — its C# name must be unique across every root
                     // (FILE SECTION records and WORKING-STORAGE alike), so record it in the shared scope.
                     item.ClrName = CsNames.Allocate(item.ClrName, rootNames);
-                    if (!outOfOrder) _roots.Add(item);   // an out-of-order record joins the forest at its source position
+                    if (!outOfOrder) State.Forest.AddRoot(item);   // an out-of-order record joins the forest at its source position
                     newRoots.Add(item);
                     openRecord = item;
                     _lastRoot = item;
@@ -1208,7 +912,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         DeclareUserWord(item.CobolName, UserWordKind.TypeName);   // the template is off ByName, so RegisterName never sees it
         // The declaring element's own table: a method's type-name is local to the method (§8.4.6.2.2; kb/Work PB3192),
         // so it neither collides with nor replaces its object's of the spelling.
-        if (!TypeDeclsOf(ScopeOf(item)).TryAdd(item.CobolName, item))
+        if (!State.Forest.TryDeclareType(item, item.CobolName, ScopeOf(item)))
             Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"duplicate type-name '{item.CobolName}' — a type-name shall be unique "
                 + "(ISO §13.18.58)");
     }
@@ -1256,17 +960,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // ReportUnidentified precedent). A written reference always contains a space or a parenthesis where a
         // data-name cannot, so the key can never collide with a real one.
         string written = WrittenText(dref);
-        _refusedClauseOperands.Add(written);
+        State.Clauses.RecordRefusedClauseOperand(written);
         return (written, []);
     }
-
-    /// <summary>Clause operands whose written shape <see cref="ScreenClauseOperandShape"/> already refused, keyed
-    /// by their source text — read by <see cref="ResolveClauseOperand"/> so one fault draws one verdict.</summary>
-    internal readonly HashSet<string> _refusedClauseOperands = new(StringComparer.Ordinal);
-
-    /// <summary>The refused clause operands, read-only: the FILE-CONTROL binder's key-level COLLATING SEQUENCE operands
-    /// skip one the capture already refused.</summary>
-    internal IReadOnlySet<string> RefusedClauseOperands => _refusedClauseOperands;
 
     /// <summary>A reference AS THE PROGRAMMER WROTE IT. <c>GetText()</c> concatenates tokens with no separators
     /// (<c>LINAGE-COUNTEROFLPF</c>), which is unreadable in a diagnostic about the spelling itself.
@@ -1460,7 +1156,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             using var _ = Edition.At(fd);
             if (fd.fileName()?.GetText() is not { } name) continue;
             var records = BindEntries(fd.dataDescriptionEntry(), rootNames, EntrySection.File);
-            if (!FilesByName.TryGetValue(name, out var file))
+            if (!State.Files.FilesByName.TryGetValue(name, out var file))
             {
                 // ISO §13.4.5.3 SR1 — "File-name-1 shall be specified in a file control entry." The model is still
                 // built, so the entry's records resolve and the compile reports this one error rather than a
@@ -1470,8 +1166,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     + "a file that no file control entry specifies; ISO §13.4.5.3 SR1: \"File-name-1 shall be "
                     + "specified in a file control entry.\"");
                 file = new FileModel { CobolName = name, SelectName = name };
-                _files.Add(file);
-                FilesByName[name] = file;
+                State.Files.Declare(name, file);
             }
             file.HasFd = true;
             file.Records.AddRange(records);
@@ -1563,15 +1258,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             using var _ = Edition.At(sd);
             if (sd.fileName()?.GetText() is not { } sdName) continue;
             var sdRecords = BindEntries(sd.dataDescriptionEntry(), rootNames, EntrySection.File);
-            if (!FilesByName.TryGetValue(sdName, out var sdFile))
+            if (!State.Files.FilesByName.TryGetValue(sdName, out var sdFile))
             {
                 // ISO §13.4.6.3 SR1 — the SD twin of the FD arm above (kb/Work PB1290).
                 Edition.Error(DiagnosticCatalog.FileDescriptionWithoutSelect, $"sort-merge file description entry "
                     + $"'{sdName}' names a file that no file control entry specifies; ISO §13.4.6.3 SR1: \"File-name-1 "
                     + "shall be specified in a file control entry.\"");
                 sdFile = new FileModel { CobolName = sdName, SelectName = sdName };
-                _files.Add(sdFile);
-                FilesByName[sdName] = sdFile;
+                State.Files.Declare(sdName, sdFile);
             }
             sdFile.HasFd = true;
             sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§13.4.6 SR3/SR4)
@@ -1663,9 +1357,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <para>A GROUP and not an elementary PIC X(n): the distinction is observable. §14.9.25.4 makes a MOVE whose
     /// sending operand is a group item a group (alphanumeric) move, so <c>READ … INTO</c> a numeric receiver copies
     /// bytes; an elementary alphanumeric sender would instead convert. GR6 says "group item", so a group it is.</para>
-    /// <para>The record is kept OFF <see cref="ByName"/>: the entry is IMPLIED, so it has no record-name and the
+    /// <para>The record is kept OFF <see cref="ForestSlice.ByName"/>: the entry is IMPLIED, so it has no record-name and the
     /// program cannot reference it (which is also why §13.4.5.3 SR3 b/c require the FILE … FROM and INTO phrases on
-    /// the verbs). It IS on <see cref="Roots"/>, because it is real storage that has to emit.</para></summary>
+    /// the verbs). It IS on <see cref="ForestSlice.Roots"/>, because it is real storage that has to emit.</para></summary>
     private void MaterializeImpliedRecord(FileModel file, string fdName, CsNameScope rootNames)
     {
         // §13.4.5.3 SR8: "No record description entries or constant entries shall be associated with the file
@@ -1720,7 +1414,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         };
         area.Uid = _uidCounter++;
         record.AddMember(area);
-        _roots.Add(record);
+        State.Forest.AddRoot(record);
         file.Records.Add(record);
         file.ImpliedRecord = record;   // real storage, but no record description entry: WrittenRecords leaves it out (kb/Work PB1219)
     }
@@ -1847,7 +1541,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// ISO §8.4.2.2 resolution, never a per-clause first-match lookup (kb/Work PB489).</summary>
     internal void ResolveFiles()
     {
-        foreach (var file in Files)
+        foreach (var file in State.Files.Declared)
         {
             if (file.FileStatusName is { } sn)
             {
@@ -1876,7 +1570,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // second verdict about an operand whose only fault is its shape. The RELATIVE KEY arm below never
                 // had the cascade because ResolveClauseOperand already asks this set; the two record-key arms
                 // resolve through their own SR2 selection and now ask it too (feedback_two_arm_dispatch).
-                if (_refusedClauseOperands.Contains(keyName)) { refusedKeys.Add(keyName); return null; }
+                if (State.Clauses.RefusedClauseOperands.Contains(keyName)) { refusedKeys.Add(keyName); return null; }
                 var cands = QualifiedCandidates(keyName, quals, Model.Scope.Program);
                 var inFile = cands.Where(i => RecordLayout.IsInRecordOfFile(file, i));
                 using var __ = Edition.At(at);
@@ -1969,7 +1663,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         var survivors = QualifiedCandidates(name, quals, Model.Scope.Program);
         if (survivors.Single is { } one) return one;
-        if (_refusedClauseOperands.Contains(name)) return null;   // already refused at capture — one fault, one verdict
+        if (State.Clauses.RefusedClauseOperands.Contains(name)) return null;   // already refused at capture — one fault, one verdict
         using var __ = Edition.At(at);
         string written = WrittenQualified(name, quals);
         // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars every clause of a data
@@ -2837,15 +2531,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private DataItem? _lastRoot;
 
     /// <summary>Index a named item in the by-name multimap of the source element that owns its record
-    /// (<see cref="NameScopeOf"/>: a METHOD's own, else <see cref="ByName"/>; kb/Work PB3192) — COBOL allows duplicate
+    /// (<see cref="NameScopeOf"/>: a METHOD's own, else <see cref="ForestSlice.ByName"/>; kb/Work PB3192) — COBOL allows duplicate
     /// names disambiguated only by qualification.</summary>
     private void RegisterName(DataItem item)
     {
         RegisterIndexes(item);   // before the name test: a FILLER table's index-names are referenceable (PB919)
         if (item.CobolName is not { } name) return;
-        var byName = NameScopeOf(item)?.ByName ?? ByName;
-        if (!byName.TryGetValue(name, out var list)) byName[name] = list = [];
-        list.Add(item);
+        State.Forest.DeclareName(item, name, NameScopeOf(item));
     }
 
     /// <summary>Index a level-88 condition-name in the condition multimap of the source element that owns its
@@ -2853,9 +2545,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// a TYPE copy alike.</summary>
     private void RegisterCondition(Condition88 cond)
     {
-        var conditions = NameScopeOf(cond.Parent)?.Conditions ?? Conditions;
-        if (!conditions.TryGetValue(cond.Name, out var list)) conditions[cond.Name] = list = [];
-        list.Add(cond);
+        State.Forest.DeclareCondition(cond, NameScopeOf(cond.Parent));
     }
 
     private readonly HashSet<string> _repositoryNameReported = new(CobolNames.Comparer);
@@ -3138,7 +2828,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>01 T TYPEDEF STRONG PIC X(3).</c> is, and the check that ran at registration saw no PICTURE yet.</para></summary>
     internal bool ExpandTemplate(DataItem template)
     {
-        if (!TypeDeclsOf(ScopeOf(template)).TryGetValue(template.CobolName!, out var own) || !ReferenceEquals(own, template))
+        if (!State.Forest.TypeDeclsOf(ScopeOf(template)).TryGetValue(template.CobolName!, out var own) || !ReferenceEquals(own, template))
             return true;
         if (_templateComplete.TryGetValue(template, out bool complete)) return complete;
         _templateComplete[template] = false;
@@ -3919,7 +3609,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         var root = item;
         while (root.Parent is { } p) root = p;
-        return Files.Any(f => f.Records.Contains(root));
+        return State.Files.Declared.Any(f => f.Records.Contains(root));
     }
 
     /// <summary>Whether the RECORD an item belongs to is an external item (ISO §13.18.22.3 SR5; §13.18.22.4 GR4 b)):
@@ -3929,7 +3619,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         var root = item;
         while (root.Parent is { } p) root = p;
-        return root.HasExternalClause || root.ExternalFromType || Files.Any(f => f.IsExternal && f.Records.Contains(root));
+        return root.HasExternalClause || root.ExternalFromType || State.Files.Declared.Any(f => f.IsExternal && f.Records.Contains(root));
     }
 
     /// <summary>True when the item's description (subordinates included) contains a USAGE OBJECT REFERENCE
@@ -5320,10 +5010,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
         // §13.18.52.3 SR1/SR2 speak about the entry that WROTE the SIGN clause — screened post-forest by
         // CheckSignClauses (DataBinder.SignClause.cs), where group-ness and the inherited usage are known.
-        if (ownSign is not null) _signClauseWritten.Add(item);
+        if (ownSign is not null) State.Clauses.RecordSignClauseWritten(item);
         // §13.16.3 SR10 for the ACQUIRED usage (the post-forest arm below) asks the same question the own-usage arm
         // asks — was a VALUE clause written on this entry — so it reads this set, never the value (kb/Work PB1427).
-        if (valueClauseWritten) _valueClauseWritten.Add(item);
+        if (valueClauseWritten) State.Clauses.RecordValueClauseWritten(item);
         // The Format 2 (table) VALUE's ALL-FORMATS literal screen (§13.18.63.3 SR2/SR3 + SR16's pull-in). The
         // clause's GEOMETRY (SR18–SR23) and its §13.18.63.4 GR12–GR16 resolution are the post-forest
         // ResolveTableValues pass — they read the entry's OCCURS ANCESTORS, which do not exist yet here.
@@ -5856,12 +5546,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// shape.</summary>
     private readonly HashSet<Core.ValueClauseOperandContext> _valueOperandDiagnosed = [];
 
-    /// <summary>The entries that WROTE a VALUE clause (data-item formats 1 and 2) — the subject of §13.16.3 SR10, "The
-    /// VALUE clause shall not be specified for data items of class index, message-tag, object, or pointer". Kept apart
-    /// from <see cref="DataItem.RawValue"/> because a refused operand (`VALUE NULL`, COBOL2576) stores no value
-    /// while the clause is still specified, and the acquired-usage arm is asked after the forest is built.</summary>
-    private readonly HashSet<DataItem> _valueClauseWritten = [];
-
     /// <summary>THE report for a VALUE operand that occupies a literal position and is not a literal (kb/Work
     /// PB732) — the data-division arm of the R30 "a word that names nothing" chokepoint, which
     /// <c>ReferenceResolver.Resolve</c> closes for the PROCEDURE DIVISION and which the VALUE clause never
@@ -5918,7 +5602,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // A POSITIVE hint only: ByName carries the data items bound SO FAR, so its silence is not evidence
             // that the name is undeclared (a later sibling is not registered yet) — the verdict above never
             // depends on it (feedback_verdict_evidence_invariant).
-            string hint = ByName.ContainsKey(word)
+            string hint = State.Forest.ByName.ContainsKey(word)
                 ? $" ('{word}' is declared as a data item; a data item is not a literal.)" : "";
             Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: {position.Operand} '{word}' is not a "
                 + $"literal — {position.Format}, and the only "
@@ -6435,7 +6119,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // with the same diagnostic BindEntry reports for the written clause (kb/Work PB515: the acquired spelling
         // compiled clean and seeded the index item). The value is dropped after the report, as there.
         if (acquired && UsageFamilies.AdmitsNoValueLiteral(effective)
-            && (_valueClauseWritten.Contains(item) || item.RawValue is not null || item.TableValues is not null))
+            && (State.Clauses.ValueClauseWritten.Contains(item) || item.RawValue is not null || item.TableValues is not null))
         {
             Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"data item '{name}': the VALUE clause shall not "
                 + $"be specified with USAGE {UsageFamilies.UsageWord(effective)}, inherited from its group "
@@ -6795,7 +6479,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// TYPEDEF with RENAMES clauses to (<see cref="CloneRenamesOnto"/>, kb/Work PB1304). The ONE enumeration the
     /// RENAMES passes walk, so an alias on a group inside a record is resolved and screened like a record's. A TYPEDEF
     /// template's own aliases (<c>01 U TYPEDEF. … 66 R RENAMES x.</c>) are owned by the template, which is off
-    /// <see cref="Roots"/>: <see cref="ClauseResolutionForest"/> reaches it (kb/Work PB2548).</summary>
+    /// <see cref="ForestSlice.Roots"/>: <see cref="ClauseResolutionForest"/> reaches it (kb/Work PB2548).</summary>
     internal List<DataItem> RenamesOwners() => ClauseResolutionForest().Where(i => i.Renames66.Count > 0).ToList();
 
     /// <summary>⛔ THE FOREST A POST-BUILD CLAUSE RESOLVER WALKS (kb/Work PB2548, PB2071): the WORKING-STORAGE forest
@@ -6811,11 +6495,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal IEnumerable<DataItem> ClauseResolutionForest() => AllItems().Concat(AllTypeDecls()).Concat(TemplateItems());
 
     /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>
-    internal IEnumerable<DataItem> AllItems() => Roots.SelectMany(DataItem.SelfAndDescendantsOf);
+    internal IEnumerable<DataItem> AllItems() => State.Forest.Roots.SelectMany(DataItem.SelfAndDescendantsOf);
 
     /// <summary>Every data item a consumer may ask a <see cref="Place"/> of by item (<c>PlaceTablePass</c>, kb/Work PB2375): the
     /// forest, and the LINKAGE formals and the RETURNING item with their subordinates - a formal a method declares can sit
-    /// outside <see cref="Roots"/>. Each item once.</summary>
+    /// outside <see cref="ForestSlice.Roots"/>. Each item once.</summary>
     internal IEnumerable<DataItem> PlaceableItems() => AllItems()
         .Concat(Linkage.Formals.Select(f => f.Item).Concat(Linkage.Returning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
         .Distinct(ReferenceEqualityComparer.Instance).Cast<DataItem>();
@@ -6827,7 +6511,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal IEnumerable<DataItem> GlobalPlaceableItems() => PlaceableItems().Where(i => IsGlobalRecord(i.Root));
 
     /// <summary>The SUBORDINATE items of this forest's own TYPEDEF templates (<see cref="AllTypeDecls"/>, kept
-    /// off <see cref="Roots"/>), pre-order in declaration order: the members the programmer wrote and the clones
+    /// off <see cref="ForestSlice.Roots"/>), pre-order in declaration order: the members the programmer wrote and the clones
     /// <c>ExpandTypes</c> composed inside a template for a member's TYPE clause (kb/Work PB1302). A type declaration
     /// has no storage (ISO §13.18.58.4 GR2), so no storage pass walks it, but the syntax rules of a clause written in
     /// it hold of the declaration as written (§4.3): the REDEFINES passes ask them here (kb/Work PB2071). A template's
@@ -6837,9 +6521,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>
     /// Every SOURCE-DECLARED data item this unit binds, for the post-bind <c>VersionConformancePass</c> data-attribute
-    /// gates (Step 14g): the WS + LS + FILE-record + LINKAGE + OO-method forest (<see cref="Roots"/> — the LINKAGE 01/77
+    /// gates (Step 14g): the WS + LS + FILE-record + LINKAGE + OO-method forest (<see cref="ForestSlice.Roots"/> — the LINKAGE 01/77
     /// items bind into it too, so <see cref="LinkageBinder.Roots"/> is a SUBSET of it and is not walked again) and the TYPEDEF
-    /// templates (<see cref="TypeDecls"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
+    /// templates (<see cref="ForestSlice.TypeDecls"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
     /// never re-analyzed and so never gated: a <c>TYPE IS type-name</c> clone subtree (its items carry a non-null
     /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <c>TypeDecls</c>) and the
     /// OO/UDF compiler temps (recorded in <see cref="CompilerTemps.Clones"/>; both share the source item's <c>PicInfo</c> by
@@ -6879,10 +6563,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// </summary>
     public IEnumerable<DataItem> CompositionForest() => DeclaredForest();
 
-    /// <summary>The shared spine of the two forests: <see cref="Roots"/> + <see cref="TypeDecls"/> templates, pre-order
+    /// <summary>The shared spine of the two forests: <see cref="ForestSlice.Roots"/> + <see cref="ForestSlice.TypeDecls"/> templates, pre-order
     /// DFS in declaration order, pruning the OO/UDF compiler temps recorded in <see cref="CompilerTemps.Clones"/>.
     /// ⛔ <see cref="LinkageBinder.Roots"/> is NOT concatenated: <c>BindEntries</c> puts every LINKAGE 01/77 on
-    /// <see cref="Roots"/> as well (LinkageBinder.cs: "LINKAGE 01/77 items bind into the ordinary storage
+    /// <see cref="ForestSlice.Roots"/> as well (LinkageBinder.cs: "LINKAGE 01/77 items bind into the ordinary storage
     /// forest"), so walking both yielded every linkage item TWICE to every per-item pass (measured on a two-root
     /// LINKAGE SECTION: four items; found by kb/Work PB516's drift test).</summary>
     internal IEnumerable<DataItem> DeclaredForest()
@@ -6899,7 +6583,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             foreach (var c in d.Children)
                 foreach (var x in Walk(c)) yield return x;
         }
-        return Roots.SelectMany(Walk).Concat(AllTypeDecls().SelectMany(Walk));
+        return State.Forest.Roots.SelectMany(Walk).Concat(AllTypeDecls().SelectMany(Walk));
     }
 
     /// <summary>The elementary leaves of an item (itself if elementary), in source order.</summary>
@@ -6981,7 +6665,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal NameCandidates<IndexDeclaration> WithLapsedTypeIndexes(string name, NameCandidates<IndexDeclaration> declared,
                                                                    Func<IndexDeclaration, bool> qualifies, OoMethodDataScope? method)
     {
-        var declarations = method?.TypeDecls ?? TypeDecls;
+        var declarations = method?.TypeDecls ?? State.Forest.TypeDecls;
         if (declared.Count == 0 || declarations.Count == 0) return declared;
         List<IndexDeclaration> lapsed = [];
         foreach (var decl in declarations.Values)
@@ -7010,16 +6694,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<paramref name="method"/>, kb/Work PB3192) are few and always walked live.</summary>
     private IEnumerable<DataItem> LapsedTypeMembers(string name, OoMethodDataScope? method)
     {
-        var declarations = method?.TypeDecls ?? TypeDecls;
+        var declarations = method?.TypeDecls ?? State.Forest.TypeDecls;
         if (declarations.Count == 0) return [];
-        if (method is null && _lapsedTypeMembers is { } index)
+        if (method is null && State.Clauses.LapsedTypeMembers is { } index)
             return index.TryGetValue(name, out var hits) ? hits : [];
         return declarations.Values.Where(d => d.ReferencedByTypeClause)
             .SelectMany(DataItem.DescendantsOf).Where(m => CobolNames.Same(m.CobolName, name));
     }
-
-    /// <summary>The once-built index behind <see cref="LapsedTypeMembers"/>; null until <see cref="ExpandTypesPass.Run"/> ends.</summary>
-    internal Dictionary<string, List<DataItem>>? _lapsedTypeMembers;
 
     /// <summary>The CONDITION-NAME arm of <see cref="WithLapsedTypeMembers"/> — §8.4.2.2.1 rule 4 is about "the
     /// name" of any user-defined word, and a type declaration's level-88 entries are "part of the type declaration
@@ -7031,7 +6712,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal List<Condition88> WithLapsedTypeConditions(string name, List<Condition88> registered, OoMethodDataScope? method)
     {
         List<Condition88>? merged = null;
-        foreach (var decl in (method?.TypeDecls ?? TypeDecls).Values)
+        foreach (var decl in (method?.TypeDecls ?? State.Forest.TypeDecls).Values)
         {
             if (!decl.ReferencedByTypeClause) continue;
             foreach (var holder in DataItem.DescendantsOf(decl).Prepend(decl))
@@ -7209,7 +6890,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// spelling" (§8.4.2.2.1 1). The switch condition-name has no hierarchy and takes no qualifier (§8.8.4.6.2), so only
     /// a reference with NO suffix at all — no qualifier, subscript or reference modifier — can mean it, and such a
     /// reference counts it as one more candidate beside the level-88s (§8.4.2.2.3 SR1).
-    /// <para>"Same source element" is a TIER comparison (§8.4.6.2.1 3): <see cref="DeclaringDepth"/> places the 88
+    /// <para>"Same source element" is a TIER comparison (§8.4.6.2.1 3): <see cref="ForestSlice.DeclaringDepth"/> places the 88
     /// (this element's own, or a container's GLOBAL one n levels out) and
     /// <see cref="ConfigurationNames{T}.ContainmentDepth"/> places the switch, so a container's switch beside a
     /// container's GLOBAL 88 is the same pair, and an 88 NEARER than the switch is the item the reference names
@@ -7219,7 +6900,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal bool SwitchConditionCompetes(Core.DataReferenceContext dref, IReadOnlyList<Condition88> matches) =>
         matches.Count != 0 && dref.dataReferenceSuffix().Length == 0
         && dref.cobolWord()?.GetText() is { } name
-        && State.Configuration.SwitchConditions.ContainmentDepth(name) == DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
+        && State.Configuration.SwitchConditions.ContainmentDepth(name) == State.Forest.DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
 
     /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
     /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>
@@ -7230,7 +6911,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             // Data ancestors exhausted: the OUTERMOST remaining qualifier may be the file name — any file-name visible
             // here, a container's GLOBAL one included (VisibleFiles; kb/Work PB3557 review R2-1).
-            if (!VisibleFiles.TryGetValue(q, out var file)) return false;
+            if (!State.VisibleFiles.TryGetValue(q, out var file)) return false;
             DataItem root = member;
             while (root.Parent is { } p) root = p;
             return file.Records.Contains(root);

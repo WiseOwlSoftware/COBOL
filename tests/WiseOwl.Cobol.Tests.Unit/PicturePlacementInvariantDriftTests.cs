@@ -67,7 +67,7 @@ public sealed class PicturePlacementInvariantDriftTests
     public void EveryBoundItem_IsAGroupOrElementary_NeverBothAndNeverNeither(string label, string ws)
     {
         var binder = Bind(label, ws);
-        foreach (var item in Walk(binder.Roots))
+        foreach (var item in Walk(binder.State.Forest.Roots))
         {
             // Levels 66 and 88 are not Format-1 data description entries (§13.16.2 formats 2 and 3): a
             // condition-name has no storage of its own (§13.16.4 GR3) and a RENAMES entry is a re-description.
@@ -93,7 +93,7 @@ public sealed class PicturePlacementInvariantDriftTests
     {
         var binder = Bind("SR1", ws, out var diags);
         Assert.Contains(diags, d => d.Contains("COBOL2191", StringComparison.Ordinal));
-        foreach (var item in Walk(binder.Roots))
+        foreach (var item in Walk(binder.State.Forest.Roots))
             Assert.False(item.Pic is not null && item.Children.Count > 0,
                 $"'{item.CobolName ?? "FILLER"}' still carries BOTH a PICTURE and {item.Children.Count} "
                 + "subordinate entries after the §13.18.40.3 SR1 screen ran — the recovery did not repair the model.");

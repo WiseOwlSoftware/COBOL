@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Passes;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -11,7 +12,11 @@ namespace WiseOwl.Cobol.Binding;
 /// <item>A VALUE SLICE is a record of the facts ONE producer writes, frozen when its producer is done and read only after
 /// it: the unit's checking flags (<see cref="UnitChecking"/>, written by <see cref="CheckingFold"/>), what it inherits from its
 /// containers (<see cref="InheritedGlobals"/>, <see cref="InheritStep"/>) and its configuration
-/// (<see cref="ConfigurationSlice"/>, <see cref="ConfigurationStep"/>).</item>
+/// (<see cref="ConfigurationSlice"/>, <see cref="ConfigurationStep"/>), and the facts the data binder's own phases declare:
+/// the type forest and its name tables (<see cref="Forest"/>), the files (<see cref="Files"/>), the clause facts the entry
+/// walk records for the screening passes (<see cref="Clauses"/>), the storage tier (<see cref="StorageTier"/>), the implicit
+/// registers (<see cref="Implicit"/>) and the report scope (<see cref="Reports"/>), each with the one writer its summary names
+/// and read-only views for everyone else.</item>
 /// <item>A FACT SET (<see cref="FactSet{T}"/>) accumulates across phases and is append-only, with an ordered read: the
 /// four below, each with its declared appending phases.</item>
 /// </list>
@@ -29,6 +34,66 @@ public sealed class DataBindState
     /// <summary>What the unit inherits from the programs that contain it (<see cref="InheritedGlobals"/>), written by
     /// <see cref="InheritStep"/> before the unit's first data phase; empty for an outermost program and an OO element.</summary>
     public InheritedGlobals Inherited { get; } = new();
+
+    /// <summary>The type forest and its name tables (<see cref="ForestSlice"/>): roots, data-names, condition-names,
+    /// index-names, CAPACITY registers, type declarations, screen-names and the inheritance tier of a container's GLOBAL names.</summary>
+    public ForestSlice Forest { get; }
+
+    /// <summary>The files the unit declares (<see cref="FileSlice"/>); a container's GLOBAL files are <see cref="Inherited"/>'s.</summary>
+    public FileSlice Files { get; } = new();
+
+    /// <summary>What the entry walk recorded about the clauses each entry wrote (<see cref="ClauseFacts"/>).</summary>
+    public ClauseFacts Clauses { get; } = new();
+
+    /// <summary>The STATIC channels and the cell backings and bridges of the pointer pass (<see cref="StorageTierSlice"/>).</summary>
+    public StorageTierSlice StorageTier { get; } = new();
+
+    /// <summary>The DEBUG-ITEM family and EXCEPTION-OBJECT, which no entry declares (<see cref="ImplicitRegisters"/>).</summary>
+    public ImplicitRegisters Implicit { get; } = new();
+
+    /// <summary>The report description entries this unit declares and the GLOBAL ones it inherits, with the sum counters and
+    /// the name lookups over them (<see cref="ReportScope"/>; kb/Work PB2357): written by <see cref="ReportSectionBinder"/>
+    /// alone, read by every later phase.</summary>
+    public ReportScope Reports { get; } = new();
+
+    /// <summary>REPORT SECTION sum counter names → their SUM entries (<see cref="ReportScope.SumCounters"/>), behind the P6
+    /// Step-6 watermark gate: the counters exist once <see cref="PassPhase.FilesResolved"/> has run.</summary>
+    public IReadOnlyDictionary<string, List<(ReportModel Report, ReportSumFamily Family)>> SumCounters
+    {
+        get { Require(PassPhase.FilesResolved, "SumCounters"); return Reports.SumCounters; }
+    }
+
+    /// <summary>⛔ THE ONE LOOKUP OF A FILE-NAME VISIBLE IN THIS SOURCE ELEMENT, at any point of the bind: its own file
+    /// (<see cref="FileSlice.FilesByName"/>), which hides a container's of the same spelling (§8.4.6.2.1 3) a)), else the
+    /// nearest container's GLOBAL file (§13.18.27.4 GR1; <see cref="InheritedGlobals.Files"/>, known before the unit binds). A
+    /// container's GLOBAL record qualified by its file (§8.4.2.2.2 Format 1's file-report-qualifier) resolves through it
+    /// too (kb/Work PB3557 review R2-1).</summary>
+    public FileNameScope VisibleFiles => new(Files.FilesByName, Inherited.Files);
+
+    /// <summary>The highest <see cref="PassPhase"/> whose producing pass has COMPLETED on this unit's forest (the P6 Step-6
+    /// completion gate). Advanced by <c>DataBinder.BindResolve</c> (the per-unit prefix) and by <c>BinderDriver.Bind</c> (the
+    /// group tail, which marks every binder of the group after each group pass); never regresses.</summary>
+    internal PassPhase Watermark { get; private set; }
+
+    /// <summary>Advance the watermark to <paramref name="produced"/> (never regresses).</summary>
+    internal void MarkProduced(PassPhase produced)
+    {
+        if (produced > Watermark) Watermark = produced;
+    }
+
+    /// <summary>The ALWAYS-ON completion gate: assert <paramref name="required"/> has been produced on this unit before
+    /// <paramref name="fact"/> is read/run — a mis-ordered pass in a production compiler is a silent miscompile, exactly when
+    /// the loud throw matters most. Cost is a per-pass-entry integer compare (immaterial). Was
+    /// <c>[Conditional("DEBUG")]</c> at first landing — CI's RELEASE test leg stripped the call sites and failed the
+    /// throw-expecting WatermarkTests ("no exception was thrown"), proving the Debug-only design created a whole
+    /// Release-divergence class for zero real saving (DEVLOG 774).</summary>
+    internal void Require(PassPhase required, string fact)
+    {
+        if (Watermark < required)
+            throw new InvalidOperationException(
+                $"BindPipeline watermark violation: '{fact}' requires phase {required}, but this binder has only "
+                + $"reached {Watermark} — a consumer ran before the producing pass (P6 Step 6 gate).");
+    }
 
     /// <summary>The check that a per-unit resolve pass appends only to the fact sets it declared
     /// (<see cref="Passes.PassViews"/>); opened by <c>DataBinder.BindResolve</c> around each pass.</summary>
@@ -86,6 +151,7 @@ public sealed class DataBindState
     public DataBindState(Action<Antlr4.Runtime.RuleContext?, string, UserWordKind> recordConfigurationNameUse)
     {
         Configuration = new(recordConfigurationNameUse);
+        Forest = new(Require);
         WholeGroupReferenced = new(FactSetKind.WholeGroupReferenced, Gate);
         ImageForcedItems = new(FactSetKind.ImageForcedItems, Gate);
         CharacterChannelItems = new(FactSetKind.CharacterChannelItems, Gate);

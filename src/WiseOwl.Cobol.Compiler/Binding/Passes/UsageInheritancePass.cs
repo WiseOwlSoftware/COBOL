@@ -52,7 +52,7 @@ internal sealed class UsageInheritancePass : IBindPass
     /// regardless of any inherited SIGN clause (§13.18.52 applies only to usage-display items).</para>
     ///
     /// <para><b>⛔ EVERY WRITTEN TREE, THE TYPE DECLARATIONS TOO (kb/Work PB3682).</b> A TYPEDEF template is off
-    /// <see cref="DataBinder.Roots"/> but its clauses are source (§4.3), and §13.18.57.4 GR1 makes a TYPE subject's description
+    /// <see cref="ForestSlice.Roots"/> but its clauses are source (§4.3), and §13.18.57.4 GR1 makes a TYPE subject's description
     /// "as though the data description identified by type-name-1 had been coded in place", so the rules this walk asks
     /// of a group's USAGE and GROUP-USAGE hold of the declaration whether or not anything references it. Walked over
     /// the roots alone, an unused template's <c>GROUP-USAGE NATIONAL</c> over a <c>GROUP-USAGE BIT</c> subgroup
@@ -67,7 +67,7 @@ internal sealed class UsageInheritancePass : IBindPass
     /// </summary>
     public void Run(DataBinder binder)
     {
-        foreach (var root in binder.Roots) binder.UsageInheritanceWalk(root, default);
+        foreach (var root in binder.State.Forest.Roots) binder.UsageInheritanceWalk(root, default);
         foreach (var declaration in binder.AllTypeDecls().ToList()) binder.UsageInheritanceWalk(declaration, default);
     }
 }

@@ -27,7 +27,7 @@ internal sealed class ExpandTypesPass : IBindPass
 
     /// <summary>Post-build TYPE-expansion pass: every <c>TYPE IS type-name</c> reference (a real item in the forest)
     /// gets the referenced type declaration's subtree cloned in. Runs at the top of <see cref="DataBinder.BindResolve"/> — AFTER
-    /// all <see cref="DataBinder.BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="DataBinder.TypeDecls"/>),
+    /// all <see cref="DataBinder.BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="ForestSlice.TypeDecls"/>),
     /// AFTER <see cref="SynthesizeImpliedPicturesPass.Run"/> (so a template's §13.16.3 SR9 VALUE-implied PICTURE is part of
     /// the description it hands over — §13.18.57.4 GR3; kb/Work PB1300) and BEFORE the resolution passes (so the
     /// clone is a normal part of the forest they walk).</summary>
@@ -62,7 +62,7 @@ internal sealed class ExpandTypesPass : IBindPass
             binder.ExpandSameAs(item, []);
         // §13.18.55.4 GR1 over the composed storage forest — a TYPE subject or SAME AS subject that writes the clause
         // reaches the leaves it copied (DataBinder.SynchronizedClause.cs; the templates took it in ExpandTemplate).
-        foreach (var root in binder.Roots) binder.InheritSynchronized(root);
+        foreach (var root in binder.State.Forest.Roots) binder.InheritSynchronized(root);
         ResolveRestrictedTypes(binder);
         IndexLapsedTypeMembers(binder);
     }
@@ -93,13 +93,13 @@ internal sealed class ExpandTypesPass : IBindPass
     private static void IndexLapsedTypeMembers(DataBinder binder)
     {
         var index = new Dictionary<string, List<DataItem>>(CobolNames.Comparer);
-        foreach (var decl in binder.TypeDecls.Values.Where(d => d.ReferencedByTypeClause))
+        foreach (var decl in binder.State.Forest.TypeDecls.Values.Where(d => d.ReferencedByTypeClause))
             foreach (var member in DataItem.DescendantsOf(decl))
                 if (member.CobolName is { } n)
                 {
                     if (!index.TryGetValue(n, out var list)) index[n] = list = [];
                     list.Add(member);
                 }
-        binder._lapsedTypeMembers = index;
+        binder.State.Clauses.LapsedTypeMembers = index;
     }
 }

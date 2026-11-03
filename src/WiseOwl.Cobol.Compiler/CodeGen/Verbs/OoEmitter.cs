@@ -167,7 +167,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// re-seeds it on entry (<see cref="ActivationPointerSeeds"/>) and restores the activator's on exit.</para></summary>
     public void EmitPointerBackings(DataBinder data, CodeWriter w)
     {
-        foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
+        foreach (var (backing, cellField, canonical, cellWidth) in data.State.StorageTier.AddressableBackings)
         {
             // The storage duration (§8.6.4) is classified ONCE, by DataBinder.LifetimeOfCell — the same answer decides who
             // ENDS the cell's life (kb/Work PB1216). A method's LOCAL-STORAGE / LINKAGE cell and a program's LOCAL-STORAGE
@@ -180,12 +180,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"{mod} StorageCell {cellField} = {AddressableCellInit(canonical, cellWidth)};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
             w.Line($"{rmod} ref string {backing} => ref {cellField}.Ref;");
         }
-        foreach (var (backing, cellProp, addrField, width) in data.PtrBasedBridges)
+        foreach (var (backing, cellProp, addrField, width) in data.State.StorageTier.BasedBridges)
         {
             // A RECURSIVE unit's static-WS based root — and a method WORKING-STORAGE based root — emits its bridge
             // STATIC (§13.5.4 GR1 / §8.6.4 static items — one copy on the class); the RECURSIVE one is reset to NULL by
             // __ResetStatics (§14.6.2.3.2 action 5; kb/Work PB154).
-            string mod = data.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
+            string mod = data.State.StorageTier.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
             w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5.4 GR2 — initially NULL)");
             // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the addressed area's
             // MANAGED SLOTS are two halves of ONE StorageCell, and the GR3/GR4 loud deref happens once, on
@@ -219,7 +219,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             if (root.Class is not { IsCellBacked: true } cls || !ReferenceEquals(cls.Canonical, root)) continue;
             if (cls.BasedPointerField is { } addr)
                 yield return (addr, "ManagedPointer", "ManagedPointer.Null", null);
-            else if (data.PtrAddressableCellOf.TryGetValue(cls, out var cell))
+            else if (data.State.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell))
                 // End = the statement that ends THIS activation's life of the cell at its exit (§8.6.4: LOCAL-STORAGE "persists
                 // while that instance of the runtime element is in active state"; kb/Work PB1216). A BASED pointer owns no
                 // storage, so it has none.
@@ -232,7 +232,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// unit describes any external record or external file connector. False keeps the generated source
     /// byte-identical to a pre-VCR-15 build (zero-scaffolding).</summary>
     public static bool WantsExternalDescribes(DataBinder data) =>
-        data.State.UnitChecking.ExternalDescribe && (data.Linkage.ExternalBackings.Count > 0 || data.Files.Any(f => f.IsExternal));
+        data.State.UnitChecking.ExternalDescribe && (data.Linkage.ExternalBackings.Count > 0 || data.State.Files.Declared.Any(f => f.IsExternal));
 
     // ⛔ THE VALUE-IDENTITY KEY OF A RECORD NAME'S VALUE CLAUSE (kb/Work PB1236). §13.18.22.4 GR6 compares the
     // specification, and a literal's CHARACTERS are its content: "ABCD" and "abcd" are two different VALUE clauses.
@@ -283,7 +283,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     + $"StrongTypeKey: {strongKey}, ConstantRecord: {(ext.Record.IsConstantRecord ? "true" : "false")}), "
                     + $"{selfMask});   // §14.8.4.3 / §13.18.22.4 GR6");
             }
-            foreach (var f in data.Files.Where(f => f.IsExternal))
+            foreach (var f in data.State.Files.Declared.Where(f => f.IsExternal))
             {
                 string ItemRef(string? clauseName, DataItem? item) => clauseName is null ? "null"
                     : CsLiteral(BinderDriver.ExternalItemIdentity(item) ?? "!");   // "!" = present but NOT an external item (§14.8.4.2 violation face)
@@ -363,7 +363,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     private void EmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)
     {
-        var hostFiles = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the runtime's sort work, never a host connector
+        var hostFiles = data.State.Files.Declared.Where(f => !f.IsSortMerge).ToList();   // an SD is the runtime's sort work, never a host connector
         if (hostFiles.Count == 0) return;
         w.Line();
         // A per-object minted-key field for each instance file (§9.1.4 — one connector per object): initialized once

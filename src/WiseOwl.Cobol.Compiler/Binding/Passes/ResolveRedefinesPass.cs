@@ -42,7 +42,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
     /// classification pass walks <see cref="DataItem.RedefinesTarget"/> transitively to the anchor (SR11).
     /// <para>⛔ A REDEFINES clause written in a TYPEDEF template is resolved and screened TOO (kb/Work PB2071): the
     /// §13.18.44.3 syntax rules hold of the source as written (§4.3), and a type declaration nothing instantiates is
-    /// still source. Walking <see cref="DataBinder.Roots"/> alone, an unused template's `REDEFINES NOSUCH`, its oversized
+    /// still source. Walking <see cref="ForestSlice.Roots"/> alone, an unused template's `REDEFINES NOSUCH`, its oversized
     /// redefinition (SR8) or its redefinition of a table (SR5) compiled clean, and a used one was reported only through
     /// the copies its TYPE subjects hold. The walk is the <see cref="DataBinder.CompositionForest"/> (the template members are on it;
     /// kb/Work PB2518) and only WRITTEN entries are screened, so a type is diagnosed once, at its declaration; a template
@@ -75,7 +75,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     scope = mm.Binding!.LocalRoots.Contains(item) ? mm.Binding!.LocalRoots
                           : mm.Binding!.LinkageRoots;
                 else
-                    scope = binder.Roots;
+                    scope = binder.State.Forest.Roots;
                 // §13.18.44.3 SR4/SR7 + NOTE 1: data-name-2 is a PRECEDING entry at the same level, and when the name is
                 // not unique "no ambiguity of reference exists because of the required placement" — the NEAREST preceding
                 // same-named sibling. The former whole-scope FirstOrDefault admitted a LATER sibling (illegal source, kb/Work
@@ -140,8 +140,8 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 // SR4 confines both operands to THIS record, so the candidate set is the record's; it is COUNTED
                 // (kb/Work PB978) — two same-named items there are §8.4.2.2.3 SR1's ambiguity, not the first found.
                 // An operand the capture REFUSED (§13.18.45.3 SR7 / §8.4.2.2.2) was reported there — one fault, one verdict.
-                if (binder._refusedClauseOperands.Contains(info.FromName)
-                    || (info.ThruName is { } rt && binder._refusedClauseOperands.Contains(rt))) continue;
+                if (binder.State.Clauses.RefusedClauseOperands.Contains(info.FromName)
+                    || (info.ThruName is { } rt && binder.State.Clauses.RefusedClauseOperands.Contains(rt))) continue;
                 using var __q = binder.Edition.At(ren);
                 string face = $"'{ren.CobolName ?? "FILLER"}' RENAMES";
                 info.From = binder.UniqueOrReportAmbiguous(binder.SubtreeCandidates(root, info.FromName, info.FromQualifiers), face,

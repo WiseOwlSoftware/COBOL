@@ -59,7 +59,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // A sum counter is a data-name subordinate to the report (GR1). A LOCAL declaration of the same name
             // hides it; a same-named counter of this unit's own reports is a homonym the report-name qualifier
             // resolves, exactly as between two reports of one program (kb/Work PB882).
-            if (family.Name is not { } sn || _d.ByName.ContainsKey(sn)) continue;
+            if (family.Name is not { } sn || _d.State.Forest.ByName.ContainsKey(sn)) continue;
             _scope.AddSumCounter(sn, report, family);
         }
         return true;
@@ -3115,7 +3115,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         var rdNames = new HashSet<string>(_scope.Declared.Select(r => r.Name), CobolNames.Comparer);
         var firstClause = new Dictionary<string, FileModel>(CobolNames.Comparer);
-        foreach (var file in _d.Files)
+        foreach (var file in _d.State.Files.Declared)
             foreach (var (name, at) in file.ReportNames)
             {
                 using var _ = Edition.At(at);   // each rule is about the report-name as written (kb/Work PB2034)
@@ -3138,7 +3138,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// apart. Asked of the reports each FD's REPORT clause names (§13.18.46), over what was WRITTEN.</summary>
     private void ScreenReportCodeAgreement()
     {
-        foreach (var file in _d.Files)
+        foreach (var file in _d.State.Files.Declared)
         {
             if (file.ReportNames.Count < 2) continue;
             var members = _scope.Declared.Where(r => file.ReportNames.Any(n => CobolNames.Same(n.Name, r.Name))).ToList();
@@ -3172,7 +3172,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // The owning file: the FD whose REPORT(S) clause names this report (§13.14.3 SR1 — one and only one such
             // clause; a name in none is reported here, a name in several by ScreenReportClauseNames). A report may
             // share its file with others (§13.18.46.4 GR1 — each has its own engine over the one connector).
-            model.File = _d.Files.FirstOrDefault(f =>
+            model.File = _d.State.Files.Declared.FirstOrDefault(f =>
                 f.ReportNames.Any(rn => CobolNames.Same(rn.Name, model.Name)));
             if (model.File is null)
                 Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"RD '{model.Name}' is not named in any file description "
@@ -3319,7 +3319,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // item or constant is in ByName; a report group entry, printable item or sum counter is a report section
             // name of some report of the source element, all of which are described by now.
             foreach (var name in model.VaryingNames)
-                if (_d.DeclaresOwnDataName(name) || IsReportSectionOnlyName(name))
+                if (_d.State.Forest.DeclaresOwnDataName(name) || IsReportSectionOnlyName(name))
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' VARYING '{name}': the counter "
                         + "data-name shall not be defined elsewhere in the source element (ISO §13.18.64.3 SR2)");
 
@@ -3544,7 +3544,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the outermost qualifier of the entry (§8.4.2.2.2 Format 1).</item>
     /// <item>SR5's <c>identifier-1</c> — "it shall specify a numeric data item NOT defined in the report
     /// section". Both halves of that sentence are screened: resolution against ordinary storage (report-section
-    /// names never enter <see cref="DataBinder.ByName"/>) and the CATEGORY, which nothing checked before —
+    /// names never enter <see cref="ForestSlice.ByName"/>) and the CATEGORY, which nothing checked before —
     /// <c>SUM WS-TXT</c> over a <c>PIC X(6)</c> holding "123456" totalled 123456 per GENERATE, silently.</item>
     /// </list>
     /// The SUBSCRIPT is deliberately absent from this method: the arm choice is about the base name, and the
@@ -4015,7 +4015,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// are not subscripts (§8.4.3.2.3 SR2) — and a reference modification (<c>refModPart</c>) has none.</summary>
     private IEnumerable<string> SubscriptWordsOfReference(Core.DataReferenceContext dref)
     {
-        if (dref.cobolWord()?.GetText() is not { } baseWord || !(_d.DeclaresOwnDataName(baseWord) || IsReportSectionOnlyName(baseWord)))
+        if (dref.cobolWord()?.GetText() is not { } baseWord || !(_d.State.Forest.DeclaresOwnDataName(baseWord) || IsReportSectionOnlyName(baseWord)))
             yield break;
         foreach (var suffix in dref.dataReferenceSuffix())
         {
@@ -4037,7 +4037,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private bool IsReportSubscriptCounter(string word) =>
         CobolNames.Same(word, "LINE-COUNTER")
         || CobolNames.Same(word, "PAGE-COUNTER")
-        || (!_d.DeclaresOwnDataName(word) && _scope.Declared.Any(r => r.NamedEntries.Any(e =>
+        || (!_d.State.Forest.DeclaresOwnDataName(word) && _scope.Declared.Any(r => r.NamedEntries.Any(e =>
             e.IsSumCounter && CobolNames.Same(e.Name, word))));
 
     /// <summary>⛔ ISO §8.4.2.3.3 SR8 (kb/Work PB1474) — "In the report section, neither a sum counter nor the LINE-COUNTER
@@ -4072,7 +4072,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>The report-section-exclusive names of one report: the data-name of EVERY report group description
     /// entry it writes — the group's own, an intermediate group entry's, a printable entry's, a sum counter's, an
-    /// unprintable SOURCE entry's — each only when <see cref="DataBinder.ByName"/> does not also carry it (see
+    /// unprintable SOURCE entry's — each only when <see cref="ForestSlice.ByName"/> does not also carry it (see
     /// <see cref="IsReportSectionOnlyName"/> for why). Read off the WRITTEN entries (<see cref="ReportModel.WrittenEntries"/>):
     /// the set is about NAMES the programmer declared, and the bound products (lines, fields, counters) exist only
     /// for the entries that make one, so a name on any other entry was invisible to the §13.18.16.3 SR2 and
@@ -4081,7 +4081,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         var names = new List<string>();
         foreach (var entry in model.NamedEntries)
-            if (!_d.DeclaresOwnDataName(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
+            if (!_d.State.Forest.DeclaresOwnDataName(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
                 names.Add(entry.Name);
         return names;
     }
@@ -4093,7 +4093,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
         var entries = _scope.EntriesNamed(name, qualifiers);
-        return entries.Count != 0 && dataItems.Any(item => _d.DeclaringDepth(item) == _scope.Depth(entries[0].Report))
+        return entries.Count != 0 && dataItems.Any(item => _d.State.Forest.DeclaringDepth(item) == _scope.Depth(entries[0].Report))
             ? entries.Count
             : 0;
     }

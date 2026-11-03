@@ -40,7 +40,7 @@ internal sealed class CheckSignClausesPass : IBindPass
     {
         foreach (var item in binder.ConformanceForest())
         {
-            if (item.OwnSign is null || !binder._signClauseWritten.Contains(item)) continue;
+            if (item.OwnSign is null || !binder.State.Clauses.SignClauseWritten.Contains(item)) continue;
             string? defect = item.IsGroup
                 ? SignClauseGroupDefect(ItemCategory.GroupKindsOf(item))
                 : DataBinder.SignClauseElementaryDefect(item.Pic, item.PictureText, "data description entry");

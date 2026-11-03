@@ -44,10 +44,10 @@ internal static class InheritStep
             inherited.AddContainerConstants(anc.Data.Constants.GlobalConstantsToInherit(), ++depth);
             // …its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
             // unit's first data phase, so a TYPE clause there already sees the container's type-name.
-            inherited.AddContainerTypeDecls(anc.Data.TypeDecls);
+            inherited.AddContainerTypeDecls(anc.Data.State.Forest.TypeDecls);
             // …and its files' names (§13.18.27.4 GR1): the data division's own resolutions ask whether a name that is no
             // data item IS a visible file-name (kb/Work PB3557).
-            inherited.AddContainerFiles(anc.Data.Files, anc.Data.Linkage.GlobalRoots, depth);
+            inherited.AddContainerFiles(anc.Data.State.Files.Declared, anc.Data.Linkage.GlobalRoots, depth);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the bridges are
         // emitted for every global root (Merge), so a LOCAL root spelled like one (the §8.4.6.2.1 3) a) shadowing case)
@@ -139,7 +139,7 @@ internal static class InheritStep
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             depth++;
-            foreach (var r in anc.Data.Reports.Declared)
+            foreach (var r in anc.Data.State.Reports.Declared)
                 if (r.IsGlobal)
                     reports.Add((r, depth));
         }

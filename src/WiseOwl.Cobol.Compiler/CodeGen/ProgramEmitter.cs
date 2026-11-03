@@ -319,7 +319,7 @@ internal sealed class ProgramEmitter
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             statusDepth++;
-            foreach (var f in anc.Data.Files)
+            foreach (var f in anc.Data.State.Files.Declared)
                 if (f.IsGlobal && f.FileStatusItem is { } si && !_callState.InheritedStatusPlace.ContainsKey(f)
                     && anc.Places.Of(si) is { } sp
                     && AnchorPlace(sp, member => anc.AnchorOf(member, statusDepth)) is { } pp)
@@ -347,7 +347,7 @@ internal sealed class ProgramEmitter
                 using (w.Block($"public {unit.ClassName}({parent.ClassName} __o)")) w.Line("__outer = __o;");
             }
             w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14.4 GR2)");
-            if (data.Files.Count > 0)
+            if (data.State.Files.Declared.Count > 0)
                 // The guard's storage duration IS the connector's scope (kb/Work PB168): §14.6.2.3.2
                 // action 3 puts internal connectors in no open mode only when data enters the INITIAL
                 // state — for a non-INITIAL unit's static data that is cases 1–3 — and §14.6.2.3.3 keeps
@@ -360,7 +360,7 @@ internal sealed class ProgramEmitter
             // The report ENGINES are per-INSTANCE objects and get their own per-INSTANCE guard — the PB168
             // review fleet caught them riding the (now sometimes static) registration guard: a RECURSIVE
             // unit's second activation skipped the block and NRE'd on a null __RPT_n. One guard per scope.
-            if (data.Reports.Declared.Count > 0)
+            if (data.State.Reports.Declared.Count > 0)
                 w.Line("private bool __reportsConstructed;   // report engines construct once per INSTANCE (kb/Work PB168 — never behind the run-unit registration guard)");
             // The OBJECT-COMPUTER members — __COLLATE / __COLLATE_NAT / the __CLASSIFY field — from the ONE helper the OO
             // emitter shares (kb/Work PB111: a CLASS-ID with either clause used to be a CS0103 on its emitted methods).
@@ -491,7 +491,7 @@ internal sealed class ProgramEmitter
                 }
             Current.Transactions.EmitMembers(w);
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
-                foreach (var file in data.Files)
+                foreach (var file in data.State.Files.Declared)
                     // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists
                     // (GR8 / §13.18.22.4 GR4a). An SD is not a file connector at all — it never registers
                     // (the same skip every registration/IO loop takes), so closing it would Require() a
@@ -646,14 +646,14 @@ internal sealed class ProgramEmitter
             // with none — NULL, the method arm's answer (a formal's storage is the activator's, adopted below, and the
             // RETURNING item keeps the last-used state every other program RETURNING item keeps).
             if (!unit.Initial && !unit.Recursive)
-                foreach (var (member, _, fresh, _) in _oo.ActivationPointerSeeds(unit.Data, unit.Data.LocalStorageRoots
+                foreach (var (member, _, fresh, _) in _oo.ActivationPointerSeeds(unit.Data, unit.Data.State.Forest.LocalStorageRoots
                              .Concat(unit.Data.Linkage.Roots.Where(r => !ReferenceEquals(r, unit.Data.Linkage.Returning)
                                  && !unit.Data.Linkage.Formals.Any(f => ReferenceEquals(f.Item, r))))))
                     w.Line($"{member} = {fresh};   // per-activation data-pointer storage (ISO §14.6.2.3.2 action 5; §8.6.4; §8.6.5)");
-            if (!unit.Initial && !unit.Recursive && unit.Data.LocalStorageRoots.Count > 0)
+            if (!unit.Initial && !unit.Recursive && unit.Data.State.Forest.LocalStorageRoots.Count > 0)
             {
                 var fields = new DataEmitter(Current.Ctx);
-                foreach (var root in unit.Data.LocalStorageRoots)
+                foreach (var root in unit.Data.State.Forest.LocalStorageRoots)
                 {
                     if (unit.Data.Linkage.SuppressedRootFields.Contains(root.ClrName)) continue;
                     if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view — no field

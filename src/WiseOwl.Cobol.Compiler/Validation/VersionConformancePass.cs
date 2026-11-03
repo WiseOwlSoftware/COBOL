@@ -440,7 +440,7 @@ internal sealed class VersionConformancePass
             GateDataItem(item, $"data item '{item.CobolName ?? "FILLER"}'");
         // Report printable items are SYNTHETIC DataItems in the RD model (off the forest) — their national/boolean
         // PICTURE gates fired in Analyze with the report where-string (ReportSectionBinder.cs); reproduce that here.
-        foreach (var report in data.Reports.Declared)
+        foreach (var report in data.State.Reports.Declared)
         {
             foreach (var grp in report.Groups)
                 foreach (var line in grp.Lines)

@@ -32,7 +32,7 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
     /// and that item is not one of the eight shapes the rule excludes.</summary>
     public void Run(DataBinder binder)
     {
-        foreach (var (name, variable, at) in binder._conditionAssociations)
+        foreach (var (name, variable, at) in binder.State.Clauses.ConditionAssociations)
         {
             using var _ = binder.Edition.At(at);
             if (variable is null)

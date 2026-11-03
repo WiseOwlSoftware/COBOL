@@ -67,16 +67,9 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 public sealed partial class DataBinder
 {
-    /// <summary>One WRITTEN level-88 entry and the entry it immediately follows (ISO §13.16.3 SR24's own
-    /// subject), captured at bind time because SOURCE ORDER is a fact only <c>BindEntries</c> has.
-    /// <paramref name="Variable"/> null = the 88 follows no entry describing a data item.</summary>
-    internal readonly record struct ConditionAssociation(string Name, DataItem? Variable, DiagnosticCursor At);
-
-    internal readonly List<ConditionAssociation> _conditionAssociations = [];
-
     /// <summary>Record one condition-name → conditional-variable association for
     /// <see cref="CheckConditionNameAssociationsPass.Run"/>. Called from <c>BindEntries</c>' level-88 arm for EVERY
     /// written 88, including the ones it cannot bind.</summary>
     private void RecordConditionAssociation(string name, DataItem? variable) =>
-        _conditionAssociations.Add(new ConditionAssociation(name, variable, Edition.Cursor));
+        State.Clauses.RecordConditionAssociation(new ConditionAssociation(name, variable, Edition.Cursor));
 }

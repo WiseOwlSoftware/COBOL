@@ -485,6 +485,6 @@ internal sealed class ValueInitializer(EmitContext ctx)
     {
         var root = item;
         while (root.Parent is { } p) root = p;
-        return ctx.Data.Files.Any(f => f.Records.Contains(root));
+        return ctx.Data.State.Files.Declared.Any(f => f.Records.Contains(root));
     }
 }

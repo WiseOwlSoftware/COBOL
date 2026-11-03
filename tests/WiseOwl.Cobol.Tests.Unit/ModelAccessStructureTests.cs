@@ -75,7 +75,7 @@ public sealed class ModelAccessStructureTests
 
         // Every data item of every unit keeps a NAME — the carrier-resident formal included.
         var notNames = comp.Units
-            .SelectMany(u => u.Data.Roots.Concat(u.Data.Linkage.Roots))
+            .SelectMany(u => u.Data.State.Forest.Roots.Concat(u.Data.Linkage.Roots))
             .SelectMany(DataItem.SelfAndDescendantsOf)
             .Where(d => !Identifier.IsMatch(d.ClrName))
             .Select(d => $"{d.CobolName}: '{d.ClrName}'")
@@ -231,7 +231,7 @@ public sealed class ModelAccessStructureTests
             Assert.IsType<RootFieldSegment>(Assert.Single(areaView.Backing.Segments)).MemberClrName);
 
         // Object data is a member of the class, so it keeps its member root and carries no local.
-        var objectRoot = cls.Data.Roots.Single(r => r.CobolName == "OBJ-N");
+        var objectRoot = cls.Data.State.Forest.Roots.Single(r => r.CobolName == "OBJ-N");
         Assert.Null(objectRoot.ActivationLocal);
         var objectPlace = Assert.IsType<MemberPlace>(cls.Refs.Places.ResolveItem(objectRoot));
         Assert.Equal(objectRoot.ClrName, Assert.IsType<RootFieldSegment>(Assert.Single(objectPlace.Path.Segments)).MemberClrName);

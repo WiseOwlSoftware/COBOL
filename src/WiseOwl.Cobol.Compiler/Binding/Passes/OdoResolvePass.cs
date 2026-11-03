@@ -89,7 +89,7 @@ internal sealed class OdoResolvePass : IBindPass
             // method's scope first (§11.7.4 GR5), then a visible object/program item.
             // A data-name-1 the capture REFUSED (§13.18.38.3 SR2 — subscripted, or not a data-name at all) was
             // reported there; one fault, one verdict (kb/Work PB885).
-            if (binder._refusedClauseOperands.Contains(depName)) continue;
+            if (binder.State.Clauses.RefusedClauseOperands.Contains(depName)) continue;
             // ⛔ THE SET IS COUNTED (kb/Work PB978) — one survivor, or §8.4.2.2.3 SR1's ambiguity through the ONE
             // verdict; never the first declared, which the unqualified fallback here used to take (`cands[0]`): with
             // CNT declared under two groups `OCCURS 1 TO 9 DEPENDING ON CNT` compiled clean and ran on the first.
@@ -285,5 +285,5 @@ internal sealed class OdoResolvePass : IBindPass
     /// by an EXTERNAL type, §13.18.22.4 GR3), and "If the EXTERNAL clause is included in the file description entry,
     /// its records and their subordinate data items attain the external attribute".</summary>
     private static bool HasExternalAttribute(DataBinder binder, DataItem record) =>
-        record.HasExternalClause || record.ExternalFromType || binder.Files.Any(f => f.IsExternal && f.Records.Contains(record));
+        record.HasExternalClause || record.ExternalFromType || binder.State.Files.Declared.Any(f => f.IsExternal && f.Records.Contains(record));
 }

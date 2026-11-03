@@ -36,7 +36,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     private EditionContext Edition => data.Edition;
     private OptionsModel Options => data.State.Configuration.Options;
     private OoClassTable? OoClasses => data.OoClasses;
-    private IReadOnlyList<DataItem> Roots => data.Roots;
+    private IReadOnlyList<DataItem> Roots => data.State.Forest.Roots;
 
     /// <summary>The unit's OO role, set ONCE by <c>Oo/OoDriver</c> when it makes the binder (null for a program or a
     /// function unit); the binder's <see cref="DataBinder.OoRole"/> is where it is read.</summary>

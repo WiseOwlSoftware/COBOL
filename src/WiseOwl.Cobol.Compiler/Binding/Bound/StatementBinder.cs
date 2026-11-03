@@ -240,7 +240,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// roster both ask it, so no unit kind can forget the procedure phase of its own reports.</summary>
     private void BindDeclaredReportClauses()
     {
-        if (Ctx.Data.Reports.Declared.Count > 0) Rw.BindReportGroupClauses();
+        if (Ctx.Data.State.Reports.Declared.Count > 0) Rw.BindReportGroupClauses();
     }
 
     /// <summary>Bind a program unit's PROCEDURE DIVISION into a <see cref="BoundProgram"/>.</summary>
@@ -767,8 +767,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // The files of a CONTAINER's clause this element names: its GLOBAL file-names, visible here (VisibleFiles) and never
         // in Files. A refusal of one is told by its describing element, and a TURN directive here that names it still
         // decides the checking of that refusal (BoundCommitRollback.ForeignFiles).
-        var foreign = Ctx.Data.VisibleFiles.Values
-            .Where(f => f.SubjectToApplyCommit && !Ctx.Data.Files.Contains(f))
+        var foreign = Ctx.Data.State.VisibleFiles.Values
+            .Where(f => f.SubjectToApplyCommit && !Ctx.Data.State.Files.Declared.Contains(f))
             .Distinct().ToList();
         return new BoundCommitRollback(isCommit, [.. Ctx.Data.FileControl.ApplyCommit?.Files ?? []], foreign);
     }

@@ -69,7 +69,7 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
     /// programmer has to change).</summary>
     public void Run(DataBinder binder)
     {
-        foreach (var file in binder._files)
+        foreach (var file in binder.State.Files.Declared)
         {
             if (file.CodeSetRecordClass is not { } wantNational) continue;
             // SR3's antecedent — "If there are record description entries associated with the file" — is about the

@@ -204,7 +204,7 @@ internal sealed class StatementValidation(DataBinder data)
     private bool ResolveFileWord(string name, string verb, [NotNullWhen(true)] out FileModel? file,
                                  bool admitsReportFile, string? statementRule)
     {
-        if (data.VisibleFiles.TryGetValue(name, out file))
+        if (data.State.VisibleFiles.TryGetValue(name, out file))
             return admitsReportFile || ScreenReportFileReference(file, verb, statementRule);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
@@ -691,9 +691,9 @@ internal sealed class StatementValidation(DataBinder data)
     /// second mapping mechanism).</summary>
     private FileModel? FileWhoseRecordIs(DataItem item)
     {
-        foreach (var f in data.Files)
+        foreach (var f in data.State.Files.Declared)
             if (f.Records.Contains(item)) return f;
-        foreach (var f in data.VisibleFiles.Values)
+        foreach (var f in data.State.VisibleFiles.Values)
             if (f.Records.Contains(item)) return f;
         return null;
     }

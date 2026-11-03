@@ -458,7 +458,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// ordinary one-character shape under an already-failed compile — never a half-varying state).</summary>
     private void AnyLengthValidateUnit()
     {
-        foreach (var root in data.Roots)
+        foreach (var root in data.State.Forest.Roots)
         {
             if (!root.IsAnyLength) continue;
             using var _ = data.Edition.At(root);
@@ -580,8 +580,8 @@ internal sealed class LinkageBinder(DataBinder data)
         // SECTION, so a GLOBAL record there (legal per SR1 b)) was UNDEFINED in every containee; and it re-based
         // an EXTERNAL REDEFINES entry, folding the redefines ANCHOR onto the external cell and discarding its VALUE.
         // The population is every residence SR1 b) admits: working-storage, local-storage, linkage and file.
-        foreach (var item in data.WorkingStorageRoots.Concat(data.LocalStorageRoots).Concat(_roots)
-                     .Concat(data.Files.SelectMany(f => f.Records)))
+        foreach (var item in data.State.Forest.WorkingStorageRoots.Concat(data.State.Forest.LocalStorageRoots).Concat(_roots)
+                     .Concat(data.State.Files.Declared.SelectMany(f => f.Records)))
         {
             if (item.HasGlobalClause && !_globalRoots.Contains(item)) _globalRoots.Add(item);
             if (!item.HasExternalClause) continue;
@@ -599,7 +599,7 @@ internal sealed class LinkageBinder(DataBinder data)
         // (the record's own entry carries no EXTERNAL clause, so the parse-tree scan above cannot see it).
         // Re-based through the SAME cell mechanism, keyed by the record's own name (GR5). An entry that ALSO
         // carries its own EXTERNAL clause was already re-based by the scan above — skip the double registration.
-        foreach (var item in data.Roots)
+        foreach (var item in data.State.Forest.Roots)
             if (item is { ExternalFromType: true, HasExternalClause: false, CobolName: not null })
                 CallMakeExternal(item);
 
@@ -616,7 +616,7 @@ internal sealed class LinkageBinder(DataBinder data)
         // record's content and its dynamic-length items (StorageCell.DynAt) or its pointer value (SlotAt), so GR4 b)'s
         // "the data contained in all record description entries" is ONE copy per run unit. It used to be staged
         // loud as COBOL0899: the character half alone would have split the area in two.
-        foreach (var file in data.Files)
+        foreach (var file in data.State.Files.Declared)
             if (file is { IsExternal: true, ExternalName: { } extName } && file.Records.Count > 0)
             {
                 if (file.CharacterAnchor is { } anchor) CallMakeExternal(anchor, "FD::" + extName);
@@ -630,7 +630,7 @@ internal sealed class LinkageBinder(DataBinder data)
         // contained programs reach the OWNER's record area through the standard containment bridges
         // (§13.18.27 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
         // contained unit's VisibleFiles lookup (InheritedGlobals.Files).
-        foreach (var file in data.Files)
+        foreach (var file in data.State.Files.Declared)
             if (file.IsGlobal)
                 foreach (var rec in file.Records)
                     if (!GlobalRoots.Contains(rec))
@@ -666,7 +666,7 @@ internal sealed class LinkageBinder(DataBinder data)
     {
         // Almost every source element declares no EXTERNAL subject at all; this pass runs once per unit,
         // so it costs nothing when there is nothing to compare.
-        if (_externalBackings.Count == 0 && !data.Files.Any(f => f.IsExternal)) return;
+        if (_externalBackings.Count == 0 && !data.State.Files.Declared.Any(f => f.IsExternal)) return;
         var seen = new Dictionary<string, string>(CobolNames.Comparer);   // the ExternalTable's own comparer
         void Claim(string externalized, string where, DiagnosticCursor at)
         {
@@ -701,7 +701,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// externalized … shall identify the same kind of entity or item"), whose list item 1 already feeds it.</summary>
     internal IEnumerable<ExternalizedSubject> ExternalizedSubjects()
     {
-        foreach (var file in data.Files)
+        foreach (var file in data.State.Files.Declared)
             if (file is { IsExternal: true, ExternalName: { } extName })
                 yield return new ExternalizedSubject(ExternalizedSubjectKind.File, extName,
                     file.CobolName ?? extName, $"file '{file.CobolName}'", file.EntryAt);

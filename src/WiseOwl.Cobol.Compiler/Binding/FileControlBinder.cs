@@ -18,7 +18,7 @@ using Core = CobolParserCore;
 /// paragraph (§12.4.6; <c>FileControlBinder.IoControl.cs</c>), bound against those files (DESIGN-architecture-review
 /// §8.3 (1), the census's R0-0001 target "FileControlBinder"). The data binder constructs one per unit
 /// (<see cref="DataBinder.FileControl"/>) and drives it from the top of its declaration half; the files it declares live
-/// on the data binder (<see cref="DataBinder.Files"/>, <see cref="DataBinder.FilesByName"/>), where the FD, the report
+/// on the data binder (<see cref="FileSlice.Declared"/>, <see cref="FileSlice.FilesByName"/>), where the FD, the report
 /// section and the file resolution reach them, and it asks the data binder for what is not a file concern: the §8.3.2.2
 /// declaration funnel, the clause-operand screens, the constant readings and the data-item resolution.
 /// </summary>
@@ -36,7 +36,7 @@ public sealed partial class FileControlBinder
 
     /// <summary>The files this unit's OWN file control entries select, by file-name — the subjects of ISO §12.4.5.2
     /// SR2 ("A given file-name may be specified in only one SELECT clause within a factory, function, object, or
-    /// program") and SR3 (each needs an FD or SD in the same file section). It is not <see cref="FilesByName"/>,
+    /// program") and SR3 (each needs an FD or SD in the same file section). It is not <see cref="FileSlice.FilesByName"/>,
     /// which also holds the models an FD or SD synthesizes, and it leaves out a class-level FILE-CONTROL, which
     /// §12.4.3 SR1 forbids outright (kb/Work PB1076) and which belongs to no factory or object (kb/Work PB1077).</summary>
     internal Dictionary<string, FileModel> SelectedFiles { get; } = new(CobolNames.Comparer);
@@ -281,9 +281,8 @@ public sealed partial class FileControlBinder
             // for programs that DO violate it. THE ONE HOME IS StatementValidation.CheckOpenSharingAllOther,
             // called from SequentialIoBinder.BindOpen per file-name (kb/Work PB319, feedback_one_rule_one_place;
             // conformance:OpenSharingLockModeTests pins the single-diagnostic count).
-            _host.AddFile(file);
             _host.DeclareUserWord(name, UserWordKind.FileName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-            _host.FilesByName[name] = file;
+            _host.State.Files.Declare(name, file);
             if (screened) SelectedFiles[name] = file;
         }
     }
@@ -400,7 +399,7 @@ public sealed partial class FileControlBinder
             foreach (var k in keys)
             {
                 string written = DataBinder.WrittenQualified(k.Name, k.Qualifiers);
-                if (_host.RefusedClauseOperands.Contains(k.Name)) continue;   // SR6 / shape — refused at capture
+                if (_host.State.Clauses.RefusedClauseOperands.Contains(k.Name)) continue;   // SR6 / shape — refused at capture
                 k.Key = CollatingKeyNamed(file, k, fileKeys, written);
                 if (k.Key is null) continue;
                 if (namedIn.Register(k.Key) is ConstructOperand.Duplicate)   // an EARLIER clause named it

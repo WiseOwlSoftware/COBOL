@@ -121,7 +121,7 @@ public sealed partial class FileControlBinder
         {
             using var at = Edition.At(operand);
             if (operand.cobolWord() is { } word && operand.dataReferenceSuffix().Length == 0
-                && _host.FilesByName.TryGetValue(word.GetText(), out var file))
+                && _host.State.Files.FilesByName.TryGetValue(word.GetText(), out var file))
             {
                 if (file.IsSortMerge || file.IsReportFile)
                 {
@@ -181,7 +181,7 @@ public sealed partial class FileControlBinder
         // SR8 — "Where there is a dependency of one data item upon another, the 01 or 77 level data items that contain or
         // refer to them shall each either or neither be specified in the list of identifiers": the dependency the data
         // division can state between two 01/77 items is an OCCURS DEPENDING ON whose object lies in another record.
-        foreach (var root in _host.Roots.Where(r => r.Section is EntrySection.WorkingStorage or EntrySection.LocalStorage
+        foreach (var root in _host.State.Forest.Roots.Where(r => r.Section is EntrySection.WorkingStorage or EntrySection.LocalStorage
                      or EntrySection.Linkage))
             foreach (var table in DataItem.DescendantsOf(root).Prepend(root))
                 if (table.OccursSpec?.Depending is { } obj && !ReferenceEquals(obj.Root, root)
@@ -265,7 +265,7 @@ public sealed partial class FileControlBinder
     private bool ScreenEnclosingFileOperand(string name, IReadOnlyList<string> quals, Editions.DiagnosticCursor at)
     {
         var dataItems = _host.QualifiedCandidates(name, quals, Model.Scope.Program);
-        if (dataItems.Any(i => _host.DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
+        if (dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
         FileModel? global = quals.Count == 0 && _host.State.Inherited.Files.TryGetValue(name, out var g) ? g : null;
         int fileDepth = global is null ? int.MaxValue : _host.State.Inherited.FileDepth(global);
         // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§8.4.6.2.1 3)), and
@@ -275,10 +275,10 @@ public sealed partial class FileControlBinder
             && declared.Kind != NonDataDeclarationKind.FileName && declared.Depth <= fileDepth) return false;
         string written = DataBinder.WrittenQualified(name, quals);
         using var reportAt = Edition.At(at);
-        if (_host.Reports.EntriesNamed(name, quals) is [var (report, _), ..] && _host.Reports.Depth(report) < fileDepth
-            && !dataItems.Any(i => _host.DeclaringDepth(i) <= _host.Reports.Depth(report)))
+        if (_host.State.Reports.EntriesNamed(name, quals) is [var (report, _), ..] && _host.State.Reports.Depth(report) < fileDepth
+            && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) <= _host.State.Reports.Depth(report)))
             return _host.ReportSection.ReportEntryReferenceRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals);
-        if (global is not null && !dataItems.Any(i => _host.DeclaringDepth(i) < fileDepth))
+        if (global is not null && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) < fileDepth))
         {
             ApplyCommitRule($"'{global.CobolName}' is a file of a containing source element declared with the GLOBAL clause, "
                 + "and it is not specified in the FILE-CONTROL paragraph of this source element either (SR1)", "SR11", Sr11Text);
@@ -400,7 +400,7 @@ public sealed partial class FileControlBinder
     /// REQUIRING a file-name-2, and §12.4.6.4.4 GR1/GR2 define the clause over "two or more files referenced by
     /// file-name-1, file-name-2" — so a clause naming fewer than two distinct files is not a legal form (the
     /// grammar admits it, superset-parse / bind-narrow). SR2: each operand "shall be specified in the FILE-CONTROL
-    /// paragraph of the source element that contains this SAME clause" — <see cref="FilesByName"/> holds exactly
+    /// paragraph of the source element that contains this SAME clause" — <see cref="FileSlice.FilesByName"/> holds exactly
     /// this unit's own files here (a containing program's GLOBAL files merge in after the unit's data binds, so a
     /// SAME clause cannot name one) — so a name that is no file, or a data-name, is refused rather than dropped.
     /// SR3: the operands "shall not reference an external file connector".</para></summary>
@@ -414,7 +414,7 @@ public sealed partial class FileControlBinder
             string name = fn.GetText();
             seenNames.Add(name);
             using var _ = Edition.At(fn);
-            if (!_host.FilesByName.TryGetValue(name, out var file))
+            if (!_host.State.Files.FilesByName.TryGetValue(name, out var file))
             {
                 complete = false;
                 Edition.Error(DiagnosticCatalog.SameClauseRule,

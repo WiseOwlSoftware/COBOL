@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Binding;
 /// producer is <see cref="InheritStep"/> (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296),
 /// which writes it BEFORE the unit's first data phase from its containers, nearest container first. Empty for an outermost
 /// program and for every OO source element.
-/// <para>A lookup reads the unit's own declarations first and this slice after (<see cref="DataBinder.VisibleFiles"/>,
+/// <para>A lookup reads the unit's own declarations first and this slice after (<see cref="DataBindState.VisibleFiles"/>,
 /// <see cref="DataBinder.TryFindTypeDecl"/>), which is the §8.4.6.2.1 3) a) rule — "if the name is declared in source
 /// element B, the item in source element B is the referenced item" — made structural: an own declaration never has to
 /// displace an inherited one.</para>
@@ -50,13 +50,13 @@ public sealed class InheritedGlobals
     /// <summary>The GLOBAL files of every containing program, by file-name, nearest container first (§13.18.27.4 GR1: the
     /// file-name of a GLOBAL FD is a global name, visible in every directly or indirectly contained program; §8.4.6.2.1 3)
     /// b): the nearest containing element's declaration is the referenced item). Read after the unit's own files
-    /// (<see cref="DataBinder.VisibleFiles"/>): an FD of this unit finds the unit's own SELECT, never an inherited model,
+    /// (<see cref="DataBindState.VisibleFiles"/>): an FD of this unit finds the unit's own SELECT, never an inherited model,
     /// and the shared <see cref="FileModel"/> keys the child's verbs to the owner's connector, so the child never
     /// re-registers, re-qualifies or CANCEL-closes it. (An EXTERNAL non-GLOBAL FD is not here — §13.18.22.4 GR1 NOTE 1.)</summary>
     public IReadOnlyDictionary<string, FileModel> Files => _files;
 
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
-    /// container (<see cref="Files"/>), 0 for any other — the file-name twin of <see cref="DataBinder.DeclaringDepth"/>
+    /// container (<see cref="Files"/>), 0 for any other — the file-name twin of <see cref="ForestSlice.DeclaringDepth"/>
     /// and <see cref="ReportScope.Depth"/>, so a name a container declares as a file and a nearer element declares
     /// as something else resolves to the nearer declaration (§8.4.6.2.1 3); kb/Work PB4219).</summary>
     public int FileDepth(FileModel file) => _fileDepths.GetValueOrDefault(file);
@@ -78,7 +78,7 @@ public sealed class InheritedGlobals
 
     /// <summary>The GLOBAL type declarations of every containing program (§13.18.58.4 GR3; §8.4.6.2.2 — a type-name
     /// described with a GLOBAL clause is a global name; kb/Work PB1303), the nearest container's declaration of a name
-    /// kept. Kept APART from <see cref="DataBinder.TypeDecls"/>, the source element's OWN declarations: an own declaration
+    /// kept. Kept APART from <see cref="ForestSlice.TypeDecls"/>, the source element's OWN declarations: an own declaration
     /// must neither collide with an inherited one (§8.4.6.2.1 3 a) nor be walked, emitted or re-validated as this
     /// unit's. An inherited template is already fully expanded (its container's bind finished first), and cloning it
     /// writes only to the referencing item.</summary>

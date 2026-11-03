@@ -1767,7 +1767,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// set before rule 3 ranks it; kb/Work PB4432 review R2-2).</summary>
     private bool CapacityRegisterHides(Core.DataReferenceContext dref, List<Condition88> tier) =>
         tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref) is { Reached.Count: > 0 } cap
-        && ctx.Data.DeclaringDepth(cap.Table) < ctx.Data.DeclaringDepth(tier[0].Parent);
+        && ctx.Data.State.Forest.DeclaringDepth(cap.Table) < ctx.Data.State.Forest.DeclaringDepth(tier[0].Parent);
 
     private static string WrittenWord(Core.DataReferenceContext dref) => dref.cobolWord()?.GetText() ?? dref.GetText();
 
