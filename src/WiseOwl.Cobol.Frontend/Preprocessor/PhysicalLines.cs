@@ -139,6 +139,9 @@ public sealed class ColumnMap
 
     internal ColumnMap(int[] toPhysical) => _toPhysical = toPhysical;
 
+    /// <summary>The map as the array it was built from — what <see cref="CommentEntryCarrier"/> carries a line's columns in.</summary>
+    internal int[] ToArray() => _toPhysical;
+
     /// <summary>The 0-based character position, in the physical line, of the character that produced the 0-based expanded
     /// index <paramref name="expanded"/> (the expanded length maps to the physical length in positions, and an index past
     /// it continues the line one for one — the program-text area of a short fixed-form line is read as space-filled to
