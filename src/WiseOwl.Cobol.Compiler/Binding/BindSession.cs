@@ -73,8 +73,9 @@ internal sealed class BindSession
     /// <see cref="RepositoryResolver"/>'s metadata provider searches and what <c>RepositoryCheck</c> compares against.</summary>
     public RepositorySearchSpace SearchSpace { get; init; } = RepositorySearchSpace.None;
 
-    /// <summary>The parse context each unit was bound from (kb/Work PB2398): the bound compilation carries none, so the
-    /// binders and the bind-time validation passes read a unit's definition here.</summary>
+    /// <summary>The parse context each unit, class, interface and method was built from (kb/Work PB2398, PB2401): neither the bound
+    /// compilation nor a symbol of the class table carries one, so the binders and the bind-time validation passes read a definition
+    /// here.</summary>
     public required SourceMap Sources { get; init; }
 
     /// <summary>The provider that reads <see cref="SearchSpace"/> (DESIGN-external-repository §8.0): the resolver's second

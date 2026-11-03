@@ -567,7 +567,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
             w.Line();
             for (int i = 0; i < roster.Count; i++)
-                EmitMethod(bound, roster[i], fields, w, methodRecords?[i]);
+                EmitMethod(bound, roster[i], bound.Methods![i], fields, w, methodRecords?[i]);
             EmitCobolInvoke(cobolName, roster, w);   // D10: the universal-dispatch switch (BOTH halves —
                                                        // a universal reference can hold a factory object)
         }
@@ -1064,7 +1064,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// the RETURNING local is the C# return value (§14.9.23.4 GR8). D7: <c>virtual</c> by default. The exit-bounded
     /// slice is the trap-#4 guard.
     /// </summary>
-    private void EmitMethod(BoundProgram bound, OoMethodSymbol m, DataEmitter fields, CodeWriter w, MethodRecord? record)
+    private void EmitMethod(BoundProgram bound, OoMethodSymbol m, BoundMethod boundMethod, DataEmitter fields, CodeWriter w, MethodRecord? record)
     {
         var (retType, sig) = OoSignatureOf(m, record);
         EmitMethodRecord(record, w);
@@ -1153,7 +1153,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // condition raised at a RUNTIME site while this method executes selects over THIS method's declaratives
             // (§14.9.49.4 GR4 a)), never its invoker's. Saved here, installed where the method's own selection is in
             // scope (below), restored in the activation's finally. Only an EC-model group raises through it.
-            bool nfInstall = ecState.Active && (m.Binding!.EntryPc <= m.Binding!.EndPc || m.Binding!.Declaratives.Count > 0);
+            bool nfInstall = ecState.Active && (m.Binding!.EntryPc <= m.Binding!.EndPc || boundMethod.Declaratives.Count > 0);
             if (nfInstall)
                 w.Line("var __nfM = ExceptionState.NonfatalDispatcher;   // the invoker's selector (ISO §14.6.13.1.4 #3)");
             w.Line("try");
@@ -1314,7 +1314,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // definition) and/or its Format-3 PERFORM handlers (whose pc-ranges were appended to the class pc space;
             // F3HandlerBasePc is the CLASS handler base, HandlerUseId = DeclCount + (pc − base)). A method with
             // neither keeps no selection machinery and is byte-identical.
-            var mDecls = m.Binding!.Declaratives;
+            var mDecls = boundMethod.Declaratives;
             bool methodF3 = m.Binding!.HandlerCount > 0;
             bool methodSelects = methodF3 || mDecls.Count > 0;
             var savedSel = (ecState.UnitHasF3Perform, ecState.UnitHasF3, ecState.UnitHasF4, dispatch.UseDecls,

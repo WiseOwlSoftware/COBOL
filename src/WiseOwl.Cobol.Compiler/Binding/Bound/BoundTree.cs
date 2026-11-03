@@ -61,8 +61,13 @@ public sealed record BoundDebugSubject(
 /// is the implicit method return, never a run into a sibling method's paragraphs (the legacy trap-#4 guard,
 /// ported from CilEmitter's exit-bounded ranges). <paramref name="EntryPc"/> &gt; <paramref name="EndPc"/> ⇔
 /// an empty method body (emitted as an empty C# method — no dispatch call at all). <paramref name="ClrName"/> is the
-/// method's allocated CLR name (<c>OoMethodSymbol.ClrName</c>), the same for every backend (kb/Work PB4265).</summary>
-public sealed record BoundMethod(string CobolName, string ClrName, int EntryPc, int EndPc);
+/// method's allocated CLR name (<c>OoMethodSymbol.ClrName</c>), the same for every backend (kb/Work PB4265).
+/// <paramref name="Declaratives"/> are the method's own USE declaratives in source order (kb/Work PB1010; ISO §14.2.2 SR10 admits
+/// Format 1 in a method definition): §14.9.49.4 GR3 selects over "the USE statements in the source element", and GR4 a) makes the
+/// method the source element for its statements; a method is contained in no source element with a procedure division of its own
+/// (§14.2.2 SR12, SR13), so no GR4 b) GLOBAL walk exists. They sit on the bound method, beside its statements, never on the method's
+/// signature record (kb/Work PB2401).</summary>
+public sealed record BoundMethod(string CobolName, string ClrName, int EntryPc, int EndPc, IReadOnlyList<BoundDeclarative> Declaratives);
 
 /// <summary>What of the EC exception-condition model (ISO §14.6.13; CONDITIONS_EXCEPTIONS_DESIGN) a
 /// bound program actually USES — the emitter's gating summary: every piece of EC machinery (the int-returning

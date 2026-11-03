@@ -59,12 +59,6 @@ public sealed class OoMethodBinding
     /// <c>[EntryPc .. EndPc]</c> (kb/Work PB1010).</summary>
     public int DeclStartPc { get; set; } = -1;
 
-    /// <summary>The method's own USE declaratives in source order (kb/Work PB1010; ISO §14.2.2 SR10 admits
-    /// Format 1 in a method definition). §14.9.49.4 GR3 selects over "the USE statements in the source element",
-    /// and GR4 a) makes the method the source element for its statements; a method is contained in no source
-    /// element with a procedure division of its own (§14.2.2 SR12/SR13), so no GR4 b) GLOBAL walk exists.</summary>
-    public IReadOnlyList<WiseOwl.Cobol.Binding.Bound.BoundDeclarative> Declaratives { get; set; } = [];
-
     /// <summary>The method's contiguous sub-range of the class's appended Format-3 (exception-checking) PERFORM
     /// handler pc-space (ISO §14.9.28.4 GR17; design SSOT §9.10). The class's handler pcs
     /// <c>[F3HandlerBasePc .. F3HandlerBasePc+H−1]</c> partition into per-method sub-ranges in method order — a

@@ -307,6 +307,10 @@ public sealed class OoClassTable
     /// (<see cref="RecordReferenceUse"/>). Null only for a table no <see cref="Build"/> made.</summary>
     private EditionContext? _edition;
 
+    /// <summary>The bind session's source map, which <see cref="Build"/> records each symbol's definition in (kb/Work PB2401): what the
+    /// table's own later questions about a definition (<see cref="MethodAt"/>, <see cref="ResolveOverrides"/>) read.</summary>
+    private SourceMap _sources = null!;
+
     /// <summary>⛔ §8.3.2.2 at a REFERENCE (kb/Work PB3132): "Within a source element, a given user-defined word may be
     /// used as only one type of user-defined word". The object-class-names, interface-names and parameter-names a
     /// source element references are often declared by ANOTHER element: a method's by its CLASS (the CLASS-ID, the
@@ -364,7 +368,7 @@ public sealed class OoClassTable
         if (_methodsByDefinition.TryGetValue(md, out var known)) return known;
         var found = _classes.Concat(_parameterizedClasses).SelectMany(c => c.Methods.Concat(c.FactoryMethods))
             .Concat(_interfaces.Concat(_parameterizedInterfaces).SelectMany(i => i.Prototypes))
-            .FirstOrDefault(m => m.Origin is OoSymbolOrigin.Source && ReferenceEquals(m.Ctx, md));
+            .FirstOrDefault(m => m.Origin is OoSymbolOrigin.Source && ReferenceEquals(_sources.Of(m), md));
         if (found is not null) _methodsByDefinition[md] = found;
         return found;
     }
@@ -574,7 +578,7 @@ public sealed class OoClassTable
     /// "Parametric polymorphism (9.3.5.3)". The CLAUDE.md rule-1 inherited-citation failure, caught at the
     /// point the rows it covers were being witnessed.</para>
     /// </summary>
-    internal static OoClassTable Build(OoExpansion.Result expanded, EditionContext edition,
+    internal static OoClassTable Build(OoExpansion.Result expanded, SourceMap sources, EditionContext edition,
         DirectiveTimeline<CompilationVariableEvent> variables, IOoImporter? importer = null)
     {
         var classes = expanded.Classes;
@@ -585,7 +589,7 @@ public sealed class OoClassTable
         var table = new OoClassTable
         {
             _parameterized = expanded.ParameterizedNames, _variables = variables,
-            _dialectLevel = edition.Edition.Year, _edition = edition, _importer = importer,
+            _dialectLevel = edition.Edition.Year, _edition = edition, _importer = importer, _sources = sources,
             Skeletons = expanded.Skeletons,
         };
         var usedCsNames = new HashSet<string>(StringComparer.Ordinal);
@@ -648,19 +652,20 @@ public sealed class OoClassTable
         OoInterfaceSymbol NewInterfaceSymbol(Core.InterfaceDefinitionContext ictx)
         {
             string iname = ictx.interfaceName(0).GetText();
-            return new OoInterfaceSymbol(iname, DataItem.WordIdentifier(iname), ictx)
+            var isym = new OoInterfaceSymbol(iname, DataItem.WordIdentifier(iname), OoSymbolOrigin.Source)
             {
-                Expansion = expanded.Origins.GetValueOrDefault(ictx),
                 ExternalizedName = Externalized(ictx.externalizedNamePhrase(), iname,
                     "INTERFACE-ID", "ISO §11.6.3 SR1"),
             };
+            sources.Add(isym, ictx, expanded.Origins.GetValueOrDefault(ictx));
+            return isym;
         }
 
         // PROTOTYPES (§10.6.2 SR4): a header + optional LINKAGE-only data division, NO procedure body,
         // NO OVERRIDE/FINAL attributes (§11.7 SR2/SR8 — the OVERRIDE/FINAL wave's forward obligation).
         void AddPrototypes(OoInterfaceSymbol isym)
         {
-            var ictx = isym.Ctx;
+            var ictx = sources.Of(isym);
             string iname = isym.Name;
             foreach (var m in ictx.methodDefinition())
             {
@@ -693,7 +698,7 @@ public sealed class OoClassTable
                     protoName,
                     hasUsing: pd?.usingClause() is not null,
                     hasReturning: pd?.returningClause() is not null,
-                    m)
+                    OoSymbolOrigin.Source)
                 {
                     ClrName = psel is null ? DataItem.WordIdentifier(pname) : protoName,
                     Accessor = psel is null ? '\0' : psel.GET() is not null ? 'G' : 'S',
@@ -702,6 +707,7 @@ public sealed class OoClassTable
                     ExternalizedName = Externalized(m.externalizedNamePhrase(), protoName,
                         "METHOD-ID", "ISO §11.7.3 SR1"),
                 };
+                sources.Add(proto, m);
                 if (!isym.TryAddPrototype(proto))
                     edition.Declined(DiagnosticCatalog.ParametricPolymorphismDeclined,
                         $"interface '{iname}': a second method prototype named '{pname}'");
@@ -718,7 +724,7 @@ public sealed class OoClassTable
             // INTERFACE R6Y AS "E") are two interface-names, which no sentence of the standard forbids, so both are
             // legal and name ONE base (docs/CONFORMANCE.md D-INH1; kb/Work PB1502, following the PB946 determination).
             var writtenNames = new HashSet<string>(CobolNames.Comparer);
-            foreach (var inhCtx in isym.Ctx.interfaceName().Skip(1).Take(isym.Ctx.interfaceName().Length - 2))
+            foreach (var inhCtx in sources.Of(isym).interfaceName().Skip(1).Take(sources.Of(isym).interfaceName().Length - 2))
             {
                 string inh = inhCtx.GetText();
                 using var atInherits = edition.At(inhCtx);
@@ -733,7 +739,7 @@ public sealed class OoClassTable
                 }
                 // §11.6.3 SR2: "Interface-name-2 shall be the name of an interface specified in the REPOSITORY
                 // paragraph of this source element" — the class-INHERITS rule's twin, same funnel (PB365).
-                if (OoNameResolution.Resolve(table, edition, isym.Ctx, inh, OoNameResolution.Want.Interface,
+                if (OoNameResolution.Resolve(table, edition, sources.Of(isym), inh, OoNameResolution.Want.Interface,
                         $"interface '{isym.Name}': INHERITS FROM", DiagnosticCatalog.InterfaceNameNotInScope.Code,
                         "ISO §11.6.3 SR2").Interface is { } b
                     && !isym.Inherits.Contains(b))
@@ -742,7 +748,7 @@ public sealed class OoClassTable
         }
         foreach (var isym in table._interfaces)
         {
-            using var atInterface = edition.At(isym.Ctx.interfaceName(0));
+            using var atInterface = edition.At(sources.Of(isym).interfaceName(0));
             var seenI = new HashSet<OoInterfaceSymbol>();
             var stack = new Stack<OoInterfaceSymbol>([isym]);
             while (stack.Count > 0)
@@ -775,7 +781,7 @@ public sealed class OoClassTable
                 foreach (var inherited in isym.InheritedClosure())
                     if (inherited.FindOwnPrototype(own.ExternalizedName) is not null)
                     {
-                        using var atPrototype = edition.At(own.Ctx);
+                        using var atPrototype = edition.At(sources.Of(own));
                         edition.Error(DiagnosticCatalog.InterfacePrototypeRedeclaresInherited,
                             $"interface '{isym.Name}', method '{own.Name}': the method prototype has the same method "
                             + $"resolution signature as one inherited from interface '{inherited.Name}' (ISO §11.7.3 SR4 b); "
@@ -829,9 +835,8 @@ public sealed class OoClassTable
             string name = id.className(0).GetText();
             string csName = DataItem.WordIdentifier(name);   // MUST match PicInfo.ClrType's mapping
             var bases = id.className().Skip(1).Select(c => c.GetText()).ToList();
-            return new OoClassSymbol(name, csName, ctx)
+            var sym = new OoClassSymbol(name, csName, OoSymbolOrigin.Source)
             {
-                Expansion = expanded.Origins.GetValueOrDefault(ctx),
                 // §11.3.3 SR1 alone omits the zero-length exclusion (verified on the printed page).
                 ExternalizedName = Externalized(id.externalizedNamePhrase(), name,
                     "CLASS-ID", "ISO §11.3.3 SR1", rejectZeroLength: false),
@@ -839,12 +844,14 @@ public sealed class OoClassTable
                 BaseName = bases.Count >= 1 ? bases[0] : null,
                 IsFinal = id.FINAL() is not null,
             };
+            sources.Add(sym, ctx, expanded.Origins.GetValueOrDefault(ctx));
+            return sym;
         }
 
         // The instance and factory method rosters of one class definition (the table's and the parameterized ones).
         void AddMethods(OoClassSymbol sym)
         {
-            var ctx = sym.Ctx;
+            var ctx = sources.Of(sym);
             string name = sym.Name;
             foreach (var m in ctx.objectParagraph()?.methodDefinition() ?? [])
             {
@@ -863,7 +870,7 @@ public sealed class OoClassTable
                     methodName,
                     hasUsing: pd?.usingClause() is not null,
                     hasReturning: pd?.returningClause() is not null,
-                    m)
+                    OoSymbolOrigin.Source)
                 { ClrName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
                   Accessor = sel is null ? '\0' : sel.GET() is not null ? 'G' : 'S',
                   PropertyName = sel?.propertyName().GetText(),
@@ -871,6 +878,7 @@ public sealed class OoClassTable
                   // method's name is implementor-defined (§11.7.4 GR1 a), so `sel` never has one.
                   ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
                       "METHOD-ID", "ISO §11.7.3 SR1") };
+                sources.Add(method, m);
                 // §11.7.3 SR6/SR7 (the accessor's header shape) are asked of the BOUND header, by
                 // OoDataBinder.BindMethodData — the parameter count and the ACTIVE-CLASS descriptor (kb/Work PB1503).
                 if (!sym.TryAddMethod(method))
@@ -900,13 +908,14 @@ public sealed class OoClassTable
                     methodName,
                     hasUsing: pd?.usingClause() is not null,
                     hasReturning: pd?.returningClause() is not null,
-                    m)
+                    OoSymbolOrigin.Source)
                 { ClrName = fcs, Owner = sym, IsFactory = true,
                   HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
                   Accessor = fsel is null ? '\0' : fsel.GET() is not null ? 'G' : 'S',
                   PropertyName = fsel?.propertyName().GetText(),
                   ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
                       "METHOD-ID", "ISO §11.7.3 SR1") };
+                sources.Add(method, m);
                 if (!sym.TryAddFactoryMethod(method))
                     edition.Declined(DiagnosticCatalog.ParametricPolymorphismDeclined,
                         $"class '{name}': a second factory method named '{methodName}' (OO deep-dive D9)");
@@ -917,11 +926,11 @@ public sealed class OoClassTable
         foreach (var sym in table._classes)
         {
             if (sym.BaseName is not { } baseName) continue;
-            using var atBase = edition.At(sym.Ctx.classIdParagraph().className(1));
+            using var atBase = edition.At(sources.Of(sym).classIdParagraph().className(1));
             // §11.3.3 SR2: "Object-class-name-2 shall be the name of a class specified in the REPOSITORY
             // paragraph of this source element" — an INSTANCE of §8.4.6.4, so it resolves through the ONE
             // funnel and NOT through this table's group-wide Find (kb/Work PB365).
-            if (OoNameResolution.Resolve(table, edition, sym.Ctx, baseName, OoNameResolution.Want.Class,
+            if (OoNameResolution.Resolve(table, edition, sources.Of(sym), baseName, OoNameResolution.Want.Class,
                     $"class '{sym.Name}': INHERITS FROM", DiagnosticCatalog.InheritedClassNotInScope.Code,
                     "ISO §11.3.3 SR2").Class
                 is { } baseSym)
@@ -954,7 +963,7 @@ public sealed class OoClassTable
         }
         foreach (var (sym, chain) in onCycle)
         {
-            using var atClass = edition.At(sym.Ctx.classIdParagraph().className(1));   // the INHERITS name (a linked class has one)
+            using var atClass = edition.At(sources.Of(sym).classIdParagraph().className(1));   // the INHERITS name (a linked class has one)
             edition.Error(DiagnosticCatalog.InheritsClauseRule, chain.Count == 1
                 ? $"class '{sym.Name}': INHERITS FROM '{sym.BaseName}' names the class itself; object-class-name-2 "
                   + "shall not be the name of the class declared by this class definition (ISO §11.3.3 SR3)"
@@ -1030,9 +1039,9 @@ public sealed class OoClassTable
         // formal, and conformance to whatever it names is each expansion's (§9.3.8.2.4).
         foreach (var sym in table._classes.Concat(table._parameterizedClasses))
         {
-            CaptureImplements(sym.Ctx.objectParagraph()?.implementsClause(), sym.Implements,
+            CaptureImplements(sources.Of(sym).objectParagraph()?.implementsClause(), sym.Implements,
                 "OBJECT", "ISO §11.8.3 SR1");
-            CaptureImplements(sym.Ctx.factoryParagraph()?.implementsClause(), sym.FactoryImplements,
+            CaptureImplements(sources.Of(sym).factoryParagraph()?.implementsClause(), sym.FactoryImplements,
                 "FACTORY", "ISO §11.4.3 SR1");
 
             void CaptureImplements(Core.ImplementsClauseContext? impl, List<OoInterfaceSymbol> into,
@@ -1044,7 +1053,7 @@ public sealed class OoClassTable
                     // The site is the CLASS definition (§11.8.3 SR1 says "of the containing class
                     // definition"), which is also where the OBJECT/FACTORY paragraph's own scope comes from:
                     // §12.3.3 SR3 forbids a REPOSITORY inside either paragraph.
-                    if (OoNameResolution.Resolve(table, edition, sym.Ctx, iref.GetText(),
+                    if (OoNameResolution.Resolve(table, edition, sources.Of(sym), iref.GetText(),
                             OoNameResolution.Want.Interface, $"class '{sym.Name}' ({where}): IMPLEMENTS",
                             DiagnosticCatalog.InterfaceNameNotInScope.Code, citation).Interface is { } isym)
                     {
@@ -1119,9 +1128,9 @@ public sealed class OoClassTable
     {
         foreach (var sym in _classes)
         {
-            MarkRoster(sym, sym.Methods, sym.Base is null ? null : (n => sym.Base!.FindMethod(n)), "", edition);
+            MarkRoster(sym, sym.Methods, sym.Base is null ? null : (n => sym.Base!.FindMethod(n)), "", _sources, edition);
             MarkRoster(sym, sym.FactoryMethods, sym.Base is null ? null : (n => sym.Base!.FindFactoryMethod(n)),
-                "factory ", edition);
+                "factory ", _sources, edition);
             ScreenInheritedPropertyNames(sym, factory: false, edition);
             ScreenInheritedPropertyNames(sym, factory: true, edition);
         }
@@ -1153,14 +1162,14 @@ public sealed class OoClassTable
     }
 
     private static void MarkRoster(OoClassSymbol sym, IReadOnlyList<OoMethodSymbol> roster,
-        Func<string, OoMethodSymbol?>? findInBase, string kind, EditionContext edition)
+        Func<string, OoMethodSymbol?>? findInBase, string kind, SourceMap sources, EditionContext edition)
     {
         foreach (var m in roster)
         {
             // A PROPERTY clause's accessor (no METHOD-ID of its own) is never an override: §13.18.42.3 SR4 above
             // refuses the only way one can meet a superclass method of its name.
             if (m.PropertySubject is not null) continue;
-            using var atMethod = edition.At(m.Ctx);
+            using var atMethod = edition.At(sources.Of(m));
             var baseM = findInBase?.Invoke(m.ExternalizedName);   // the roster key (PB303)
             if (baseM is null)
             {

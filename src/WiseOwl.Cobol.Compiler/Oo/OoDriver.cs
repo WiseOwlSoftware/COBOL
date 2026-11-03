@@ -71,21 +71,22 @@ internal sealed class OoDriver(BindSession session)
 
     private DataBinder BindInterface(OoInterfaceSymbol iface)
     {
-        var data = ElementBinder(iface.Ctx, iface.Ctx, ownerClassName: null);
+        var definition = session.Sources.Of(iface);
+        var data = ElementBinder(definition, definition, ownerClassName: null);
         data.CallSeedUids(session.TakeUidBand());
         // §10.6.1 / §11.9.4 GR1: the INTERFACE skeleton carries its own OPTIONS paragraph, and nothing bound it
         // — so its clauses had no effect on the prototypes AND, because OptionsBinder is where the
         // processor-dependence screens live, an interface could select a declined arithmetic mode in silence
         // (kb/Work PB197: the second hollow arm, found by sweeping all six optionsParagraph-bearing productions
         // rather than only the METHOD one the finding named). BindDeclarations binds it (kb/Work PB780).
-        ConfigurationStep.Produce(new ConfigurationSource.Own(iface.Ctx.optionsParagraph()), data.State.Configuration);
+        ConfigurationStep.Produce(new ConfigurationSource.Own(definition.optionsParagraph()), data.State.Configuration);
         OoEnvironmentRules.Screen(OoDefinition.Interface, $"interface '{iface.Name}'",
-            iface.Ctx.environmentDivision(), session.Edition);
-        var synthetic = OoReparent(iface.Ctx.environmentDivision(), dataDivision: null);
+            definition.environmentDivision(), session.Edition);
+        var synthetic = OoReparent(definition.environmentDivision(), dataDivision: null);
         data.BindDeclarations(synthetic);
-        using (session.Edition.At(iface.Ctx)) data.DeclareUserWord(iface.Name, UserWordKind.InterfaceName);
+        using (session.Edition.At(definition)) data.DeclareUserWord(iface.Name, UserWordKind.InterfaceName);
         foreach (var proto in iface.Prototypes)
-            data.Oo.BindMethodData(proto);
+            data.Oo.BindMethodData(proto, session.Sources.Of(proto));
         data.BindResolve(synthetic);
         return data;
     }
@@ -101,7 +102,7 @@ internal sealed class OoDriver(BindSession session)
     {
         var edition = session.Edition;
         // The environment-division placement of each definition of the class, judged once (kb/Work PB1076 + PB813).
-        var classCtx = cls.Symbol.Ctx;
+        var classCtx = session.Sources.Of(cls.Symbol);
         OoEnvironmentRules.Screen(OoDefinition.Class, $"class '{cls.Name}'", classCtx.environmentDivision(), edition);
         OoEnvironmentRules.Screen(OoDefinition.Factory, $"class '{cls.Name}' FACTORY paragraph",
             classCtx.factoryParagraph()?.environmentDivision(), edition);
@@ -147,7 +148,7 @@ internal sealed class OoDriver(BindSession session)
         data.Oo.ReserveClassMemberNames(cls.Symbol.ClrName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
         data.BindDeclarations(synthetic);
         foreach (var m in cls.Symbol.Methods.ToList())   // snapshot — property synthesis appends accessors
-            data.Oo.BindMethodData(m);
+            data.Oo.BindMethodData(m, session.Sources.Of(m));
         data.Oo.BindPropertyClauses(cls.Symbol, factory: false);
         data.BindResolve(synthetic);
         // The class's symbolic-characters an OBJECT data-name of the spelling hides (§8.4.6.1; kb/Work PB3154 R1-1).
@@ -167,7 +168,7 @@ internal sealed class OoDriver(BindSession session)
         fdata.Oo.ReserveClassMemberNames(cls.Symbol.FactoryClrName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
         fdata.BindDeclarations(fsynthetic);
         foreach (var m in cls.Symbol.FactoryMethods.ToList())
-            fdata.Oo.BindMethodData(m);
+            fdata.Oo.BindMethodData(m, session.Sources.Of(m));
         fdata.Oo.BindPropertyClauses(cls.Symbol, factory: true);
         fdata.BindResolve(fsynthetic);
         InheritStep.DropShadowed(fdata);   // …and a FACTORY data-name, likewise
@@ -187,7 +188,7 @@ internal sealed class OoDriver(BindSession session)
         var repository = session.Repository;
         // §12.3.8.4 GR10 a) / GR11 a): "specified PREVIOUSLY" is relative to the class definition whose REPOSITORY
         // paragraph holds the specifier (kb/Work PB989) — an expansion's text starts where its skeleton does.
-        int position = cls.Symbol.Ctx.Start.StartIndex;
+        int position = session.Sources.Of(cls.Symbol).Start.StartIndex;
         var binder = new StatementBinder(cls.Data, cls.Refs)
         {
             OoClasses = session.OoClasses,

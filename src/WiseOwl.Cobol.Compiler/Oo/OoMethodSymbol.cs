@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
 
@@ -12,22 +11,12 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// resolved formal list, RETURNING item, and data roots (port slice 2, deep-dive D3/D6).</summary>
 public sealed record OoMethodSymbol
 {
-    private readonly CobolParserCore.MethodDefinitionContext? _definition;
-
-    /// <summary>A method this group's source wrote: <see cref="OoSymbolOrigin.Source"/>, with the METHOD-ID definition it was written as.</summary>
-    public OoMethodSymbol(string name, bool hasUsing, bool hasReturning, CobolParserCore.MethodDefinitionContext definition)
-    {
-        (Name, HasUsing, HasReturning, _definition, Origin) = (name, hasUsing, hasReturning, definition, OoSymbolOrigin.Source);
-    }
-
-    /// <summary>A method no METHOD-ID of this group wrote: <see cref="OoSymbolOrigin.Standard"/> (the standard class BASE's, ISO §16.2),
-    /// <see cref="OoSymbolOrigin.Imported"/> (read from an assembly of the external repository, DESIGN-external-repository §10.1) or
-    /// <see cref="OoSymbolOrigin.Generated"/> (a PROPERTY clause's accessor, ISO §13.18.42). A source method has a definition, so asking for
-    /// <see cref="OoSymbolOrigin.Source"/> here is a compiler fault.</summary>
+    /// <summary>A method of origin <paramref name="origin"/>: <see cref="OoSymbolOrigin.Source"/> (a METHOD-ID of this group, whose
+    /// definition the bind session's source map holds, kb/Work PB2401), <see cref="OoSymbolOrigin.Standard"/> (the standard class BASE's,
+    /// ISO §16.2), <see cref="OoSymbolOrigin.Imported"/> (read from an assembly of the external repository, DESIGN-external-repository
+    /// §10.1) or <see cref="OoSymbolOrigin.Generated"/> (a PROPERTY clause's accessor, ISO §13.18.42).</summary>
     public OoMethodSymbol(string name, bool hasUsing, bool hasReturning, OoSymbolOrigin origin)
     {
-        if (origin is OoSymbolOrigin.Source)
-            throw new ArgumentException($"method '{name}': a Source method is built from its METHOD-ID definition", nameof(origin));
         (Name, HasUsing, HasReturning, Origin) = (name, hasUsing, hasReturning, origin);
     }
 
@@ -40,17 +29,11 @@ public sealed record OoMethodSymbol
     /// <summary>Whether the PROCEDURE DIVISION header has a RETURNING phrase (an accessor's result for a GET).</summary>
     public bool HasReturning { get; }
 
-    /// <summary>Where this method came from (<see cref="OoSymbolOrigin"/>) — the ONE question every consumer asks, never "is its
-    /// <see cref="Ctx"/> null" (kb/Work PB4459). It pairs <see cref="OoClassSymbol.Origin"/>: a method is <see cref="OoSymbolOrigin.Source"/>
-    /// exactly when it has a METHOD-ID definition.</summary>
+    /// <summary>Where this method came from (<see cref="OoSymbolOrigin"/>) — the ONE question every consumer asks, never "has it a
+    /// definition" (kb/Work PB4459). It pairs <see cref="OoClassSymbol.Origin"/>: a method is <see cref="OoSymbolOrigin.Source"/> exactly
+    /// when it has a METHOD-ID definition, which the bind session's <c>SourceMap.Of</c> answers (kb/Work PB2401); a standard, a generated
+    /// and an imported method have no body to bind and no position of their own, so asking for one is a loud internal error.</summary>
     public OoSymbolOrigin Origin { get; }
-
-    /// <summary>The METHOD-ID definition this method was written as: what binding its data and body reads, and the position a diagnostic
-    /// about it stands at. Only a <see cref="OoSymbolOrigin.Source"/> method has one; a standard, a generated and an imported method have
-    /// no body to bind and no position of their own, so reading this on one is a loud internal error rather than a null the caller forgot
-    /// to test (as <see cref="OoClassSymbol.Ctx"/> does). A reader that may meet either asks <see cref="Origin"/> first.</summary>
-    public CobolParserCore.MethodDefinitionContext Ctx => _definition
-        ?? throw new InvalidOperationException($"method '{Name}' is {Origin.ToString().ToLowerInvariant()} and has no source definition");
 
     /// <summary>The name this method is externalized under (ISO §11.7.4 GR1 b): "the name is
     /// method-name-1. However, literal-1, if specified, is the name of method that is externalized to the

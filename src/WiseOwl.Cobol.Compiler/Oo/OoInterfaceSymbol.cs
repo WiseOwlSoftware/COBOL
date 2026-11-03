@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
@@ -13,20 +12,11 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// restriction, SSOT §18.18), and the emitted C# interface name.</summary>
 public sealed class OoInterfaceSymbol
 {
-    private readonly CobolParserCore.InterfaceDefinitionContext? _definition;
-
-    /// <summary>An interface this group's source wrote: <see cref="OoSymbolOrigin.Source"/>, with the INTERFACE-ID definition it was built from.</summary>
-    public OoInterfaceSymbol(string name, string clrName, CobolParserCore.InterfaceDefinitionContext definition)
-    {
-        (Name, ExternalizedName, ClrName, _definition, Origin) = (name, name, clrName, definition, OoSymbolOrigin.Source);
-    }
-
-    /// <summary>An interface no INTERFACE-ID of this group wrote: <see cref="OoSymbolOrigin.Imported"/> (ISO §16 defines no standard
-    /// interface). A source interface has a definition, so asking for <see cref="OoSymbolOrigin.Source"/> here is a compiler fault (kb/Work PB4459).</summary>
+    /// <summary>An interface of origin <paramref name="origin"/>: <see cref="OoSymbolOrigin.Source"/> (an INTERFACE-ID of this group,
+    /// whose definition the bind session's source map holds, kb/Work PB2401) or <see cref="OoSymbolOrigin.Imported"/> (ISO §16 defines
+    /// no standard interface).</summary>
     public OoInterfaceSymbol(string name, string clrName, OoSymbolOrigin origin)
     {
-        if (origin is OoSymbolOrigin.Source)
-            throw new ArgumentException($"interface '{name}': a Source interface is built from its INTERFACE-ID definition", nameof(origin));
         (Name, ExternalizedName, ClrName, Origin) = (name, name, clrName, origin);
     }
 
@@ -39,24 +29,14 @@ public sealed class OoInterfaceSymbol
     /// PB303).</summary>
     public string ExternalizedName { get; init; }
 
-    /// <summary>What made this interface an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR8); null for an interface written
-    /// as an interface and for an imported one.</summary>
-    internal ExpansionOrigin? Expansion { get; init; }
-
     /// <summary>The repository record an IMPORTED interface was decoded from (null for an interface of this group).</summary>
     internal Binding.Model.RepositoryRecord? Record { get; init; }
     /// <summary>The CLR type name of the interface — the module's ABI, the same for every backend (kb/Work
     /// PB4265).</summary>
     public string ClrName { get; }
-    /// <summary>The INTERFACE-ID definition this symbol was built from. Every interface of the compilation group has one
-    /// (<see cref="OoSymbolOrigin.Source"/>); an IMPORTED one does not, and reading this on it is a loud internal error rather
-    /// than a null the caller forgot to test — it is in no emission list and no pass over the group's definitions.</summary>
-    public CobolParserCore.InterfaceDefinitionContext Ctx => _definition
-        ?? throw new InvalidOperationException(
-            $"interface '{Name}' is imported from the external repository and has no source definition");
-
-    /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>): <see cref="OoSymbolOrigin.Source"/> or
-    /// <see cref="OoSymbolOrigin.Imported"/>; ISO §16 defines no standard interface.</summary>
+    /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>): <see cref="OoSymbolOrigin.Source"/> (its INTERFACE-ID
+    /// definition and what made it an expansion are in the bind session's <c>SourceMap</c>) or <see cref="OoSymbolOrigin.Imported"/>;
+    /// ISO §16 defines no standard interface.</summary>
     public OoSymbolOrigin Origin { get; }
 
     /// <summary>The assembly an <see cref="OoSymbolOrigin.Imported"/> interface was taken from (DESIGN-external-repository §10.6);

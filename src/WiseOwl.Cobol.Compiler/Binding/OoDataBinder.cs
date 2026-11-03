@@ -62,6 +62,15 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     internal IReadOnlyList<OoMethodSymbol> BoundMethods => _boundMethods;
     private readonly List<OoMethodSymbol> _boundMethods = [];
 
+    /// <summary>The PROCEDURE DIVISION of the method <paramref name="m"/> this binder bound (<see cref="BindMethodData"/>), or null for a
+    /// method written with none: what the data-pointer pre-scan walks for a class unit (kb/Work PB956) and what the class body binds
+    /// (<c>StatementBinder.BindMethodRoster</c>). Kept here, from the definition the binder was handed, because the method symbol carries
+    /// no parse context (kb/Work PB2401); asking about a method this binder never bound is a compiler fault, never a body-less method.</summary>
+    internal Core.ProcedureDivisionContext? BodyOf(OoMethodSymbol m) => _bodies.TryGetValue(m, out var body)
+        ? body
+        : throw new InvalidOperationException($"method '{m.Name}': its data was not bound by this binder, so its body is not known here");
+    private readonly Dictionary<OoMethodSymbol, Core.ProcedureDivisionContext?> _bodies = new(ReferenceEqualityComparer.Instance);
+
     /// <summary>Every method-scoped root of the class (union over all methods) — the SR 10 discriminator:
     /// an item whose 01/77 root is NOT in this set, in a class unit, is object data.</summary>
     public HashSet<DataItem> MethodScopedRoots { get; } = [];
@@ -281,17 +290,18 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// <see cref="OoDefinitionRules.Screen"/>; an EXTERNAL clause by the clause-placement screen (§13.18.22.3 SR1
     /// admits it only in file description entries, level 1 working-storage entries and level 1 type declarations).
     /// </summary>
-    internal void BindMethodData(OoMethodSymbol m)
+    internal void BindMethodData(OoMethodSymbol m, Core.MethodDefinitionContext definition)
     {
         string where = $"method '{m.Name}'";
         m.Binding ??= new OoMethodBinding();   // the after-data-bind half attaches HERE (P9 R7 — phase-explicit)
         _boundMethods.Add(m);
+        _bodies[m] = definition.procedureDivision();
         // A method's environment division may not carry the configuration section (§12.3.3 SR2) or the
         // input-output section (§12.4.3 SR1) — a bare header is legal (§10.6.1, §12.2.1). One placement table
         // for every OO definition kind (kb/Work PB1076). A method references the class's files via §11.7.4 GR5.
-        OoEnvironmentRules.Screen(OoDefinition.Method, where, m.Ctx.environmentDivision(), Edition);
+        OoEnvironmentRules.Screen(OoDefinition.Method, where, definition.environmentDivision(), Edition);
 
-        var dd = m.Ctx.dataDivision();
+        var dd = definition.dataDivision();
         BindingMethod = m;
         using (EnterMethodDeclarations(m.DataScope))
         {
@@ -299,7 +309,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             // declared in the METHOD-ID paragraph"), not its class's, so a METHOD-ID spelled like its CLASS-ID is legal
             // (§8.4.6.1; kb/Work PB2921): a method-name, or for a GET/SET PROPERTY method the property-name it names.
             // The accessors a PROPERTY clause synthesizes carry no METHOD-ID and never come here.
-            using (Edition.At(m.Ctx))
+            using (Edition.At(definition))
                 data.DeclareUserWord(m.PropertyName ?? m.Name,
                     m.PropertyName is null ? UserWordKind.MethodName : UserWordKind.PropertyName);
             // The method's constant entries are declared before its OPTIONS paragraph and its sections bind, so one may be
@@ -310,7 +320,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind. Bound inside the
             // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
             // its constant-names, or one of its object's (§13.10.3 SR2, §8.4.6.2.2; kb/Work PB780).
-            if (m.Ctx.optionsParagraph() is { } mo)
+            if (definition.optionsParagraph() is { } mo)
                 m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, data.Constants.FindConstant);
             if (dd is not null)
             {
@@ -361,7 +371,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // formal records it, and the method ABI pairs every formal with its omitted-presence parameter
         // (OoFormal.OmittedFlag) — the method arm of the one presence fact the program arm's null carrier realizes
         // (kb/Work PB133 wave C).
-        var pd = m.Ctx.procedureDivision();
+        var pd = definition.procedureDivision();
         int pos = 0;
         bool byValue = false;
         // The formals whose ADDRESS OF the body takes are AREA formals (FormalIsCarrierResident — the program arm's test).
@@ -416,7 +426,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             else
                 header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
         }
-        ScreenPropertyMethodHeader(m, pd?.usingClause()?.usingParameter().Length ?? 0,
+        ScreenPropertyMethodHeader(m, definition, pd?.usingClause()?.usingParameter().Length ?? 0,
             m.Owner is { } owner ? $"class '{owner.Name}'{(m.IsFactory ? " (FACTORY)" : "")}: " : "");
         // §13.7.3 SR4: which of the method's linkage records its procedure division may reference — the ONE decision
         // the program/function arm takes at the same point (SR5 bars a FUNCTION's formals, so a method has none).
@@ -476,7 +486,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// procedure division header and no RETURNING phrase. The USING parameter shall not be an object reference
     /// described with the ACTIVE-CLASS phrase." <paramref name="usingCount"/> counts the parameters WRITTEN (a formal
     /// the header screen refused still counts), so the emitter's "the setter's one formal" is an invariant.</summary>
-    private void ScreenPropertyMethodHeader(OoMethodSymbol m, int usingCount, string owner)
+    private void ScreenPropertyMethodHeader(OoMethodSymbol m, Core.MethodDefinitionContext definition, int usingCount, string owner)
     {
         if (m.Accessor == '\0') return;
         var b = m.Binding!;
@@ -499,7 +509,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
               : null;
         if (fault is not null)
         {
-            using var _ = Edition.At(m.Ctx);
+            using var _ = Edition.At(definition);
             Edition.Error(DiagnosticCatalog.PropertyMethodRule,
                 $"{owner}METHOD-ID {(get ? "GET" : "SET")} PROPERTY {m.PropertyName}: {fault}");
         }

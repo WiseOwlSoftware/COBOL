@@ -139,7 +139,7 @@ internal sealed class BinderDriver
         // PB1138): a method activation registers its factory's or object's external descriptions (§14.9.23.4 GR7 d)).
         foreach (var cls in table.Classes)
             foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
-                m.Checking = CheckingFold.Method(turn, propagate, m, cls);
+                m.Checking = CheckingFold.Method(turn, propagate, m, cls, sources);
         foreach (var cls in classes)
         {
             cls.Data.State.UnitChecking = CheckingFold.ClassHalf(turn);
@@ -188,10 +188,10 @@ internal sealed class BinderDriver
         // the external repository" (--repository-check, REPO-9 / REPO-12; DESIGN-external-repository §9.2) — after the
         // pointer types exist, as every signature comparison is.
         RepositoryCheck.Run(units, session);
-        OoConformance.ValidateInterfaceInheritance(table, edition);   // §11.6.3 SR5 — an inheriting interface conforms to all it inherits (kb/Work PB1502)
-        OoConformance.ValidateOverrideSignatures(table, edition);   // §9.3.8.2 — after all formals resolve (slice 3a)
-        OoConformance.ValidatePropertyAccessorPairs(table, edition);   // §8.4.3.9.3 SR7 — get RETURNING = set USING, over the formals just resolved
-        var ooAdapters = OoConformance.ValidateImplements(table, edition);   // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority; returns the covariant adapters)
+        OoConformance.ValidateInterfaceInheritance(table, sources, edition);   // §11.6.3 SR5 — an inheriting interface conforms to all it inherits (kb/Work PB1502)
+        OoConformance.ValidateOverrideSignatures(table, sources, edition);   // §9.3.8.2 — after all formals resolve (slice 3a)
+        OoConformance.ValidatePropertyAccessorPairs(table, sources, edition);   // §8.4.3.9.3 SR7 — get RETURNING = set USING, over the formals just resolved
+        var ooAdapters = OoConformance.ValidateImplements(table, sources, edition);   // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority; returns the covariant adapters)
         foreach (var cls in classes) oo.BindClassBody(cls);
         // The method BODIES of a parameterized definition nothing expands bind as themselves too, after every emitted
         // class's (kb/Work PB2937; OO deep-dive D12 determination 6): every rule of their text is asked, and a statement
@@ -306,10 +306,10 @@ internal sealed class BinderDriver
             || units.Any(u => u.Bound.Ec is { HasIoChecked: true })
             || classes.Any(c => c.Data.State.Files.Declared.Count > 0 || c.FactoryData.State.Files.Declared.Count > 0)
             // a METHOD's own declaratives emit the same __IoCheck (kb/Work PB1010)
-            || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
+            || classes.Any(c => (c.Bound.Methods ?? []).Concat(c.FactoryBound.Methods ?? []).Any(m => m.Declaratives.Count > 0));
 
         // The group is bound: what it publishes for its parameterized definitions, and where each expansion lives (§10.5).
-        var expansions = ExpansionPlacementPass.Run(table, classes, oo.InterfaceData, external, edition, compileInputs, publishAs);
+        var expansions = ExpansionPlacementPass.Run(table, sources, classes, oo.InterfaceData, external, edition, compileInputs, publishAs);
         // What the module publishes (ISO §8.13; DESIGN-external-repository §7.2, §9.1; kb/Work PB4319): the entry units always, and
         // under --repository-update on each published unit's record, encoded LAST, over the finished bound data, so the backend
         // carries a value across the seam and never runs the encoder. A group the binder refused is never emitted (the driver
@@ -477,7 +477,7 @@ internal sealed class BinderDriver
         // §9.3.12 / §9.3.13 (kb/Work PB759): a parameterized definition is a SKELETON, never a class; each
         // REPOSITORY EXPANDS phrase creates one, and from here on an expansion is an ordinary definition.
         var expanded = OoExpansion.Expand(tree, classDefs, ifaceDefs, edition, inputs.Words, importer, inputs);
-        var table = OoClassTable.Build(expanded, edition, variables, importer);
+        var table = OoClassTable.Build(expanded, sources, edition, variables, importer);
         var classes = table.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
         // The texts this compilation screens (GroupBindContext.Texts, kb/Work PB4483): the written tree, then each expansion of a skeleton
         // read from the repository whose recorded state binds as this group's at the entry. Under another state the group's screens of the
@@ -811,11 +811,11 @@ internal sealed class BinderDriver
         foreach (var unit in units) forests.Add((unit.Data, unit, unit.SourcePosition));
         foreach (var cls in classes)
         {
-            int position = cls.Symbol.Ctx.Start.StartIndex;   // the position OoDriver.BindClassBody searches the group at
+            int position = session.Sources.Of(cls.Symbol).Start.StartIndex;   // the position OoDriver.BindClassBody searches the group at
             forests.Add((cls.Data, null, position));
             forests.Add((cls.FactoryData, null, position));
         }
-        foreach (var (iface, data) in interfaces) forests.Add((data, null, iface.Ctx.Start.StartIndex));
+        foreach (var (iface, data) in interfaces) forests.Add((data, null, session.Sources.Of(iface).Start.StartIndex));
         foreach (var (data, unit, position) in forests)
             data.ResolveRestrictedPrototypes(
                 ProgramPrototypesOf(data, unit, repository, position), UserFunctionsOf(data, unit, repository, position));
@@ -1022,10 +1022,10 @@ internal sealed class BinderDriver
             }
             foreach (var c in oo.Classes)
                 yield return ("CLASS-ID", Spell("CLASS-ID", c.Name, c.ExternalizedName), c.Name,
-                              c.ExternalizedName, CursorOf(c.Ctx), false);
+                              c.ExternalizedName, CursorOf(sources.Of(c)), false);
             foreach (var i in oo.Interfaces)
                 yield return ("INTERFACE-ID", Spell("INTERFACE-ID", i.Name, i.ExternalizedName), i.Name,
-                              i.ExternalizedName, CursorOf(i.Ctx), false);
+                              i.ExternalizedName, CursorOf(sources.Of(i)), false);
             // §8.3.2.2 list item 2 — the EXTERNAL data items, records and files of EVERY source element: a
             // contained program's and a class's (object and factory halves) included, since the clause names the
             // item, not the unit that holds it (kb/Work PB1404). ONE producer per source element

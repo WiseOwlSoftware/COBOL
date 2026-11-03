@@ -826,7 +826,8 @@ GR4 b) GLOBAL walk exists for it. Binding: `StatementBinder.BindMethodRoster` co
 sections through `ProcedureTableBuilder.CollectMethodDeclaratives` — the SAME `DeclCollectSection` a program's take,
 with the SR7/SR8/SR9/SR14 registers re-made per method procedure division and the sections declared in the method
 scope — at the head of the method's pc slice (`OoMethodBinding.DeclStartPc .. EntryPc−1`, §14.2.3 GR1), onto
-`OoMethodBinding.Declaratives`. Emission: `OoEmitter.EmitMethod` points the per-unit selection state
+the class's bound program beside the method's statements (`BoundMethod.Declaratives`; the signature record carries no bound node,
+kb/Work PB2401). Emission: `OoEmitter.EmitMethod` points the per-unit selection state
 (`UnitHasF3`/`UnitHasF4`/`UnitHasF3Perform`, `UseDecls`, `DeclCount`, `F3HandlerBasePc`) at the method for its
 body and calls the ONE `DispatchEmitter.EmitUseMachinery` with `asLocal` — `__useActive`, `__RunUse`, `__IoCheck`,
 `__IoCheckEc`, `__EcDispatch`, `__EcObjDispatch`, `__EcPerform`, `__RunF3` become LOCAL FUNCTIONS that capture the

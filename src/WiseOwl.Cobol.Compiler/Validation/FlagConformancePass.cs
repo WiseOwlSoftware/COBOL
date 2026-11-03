@@ -139,7 +139,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         foreach (var cls in group.Classes)
             foreach (var (data, refs) in new[] { (cls.Data, cls.Refs), (cls.FactoryData, cls.FactoryRefs) })
                 foreach (var m in data.Oo.BoundMethods)
-                    if (m.Origin is OoSymbolOrigin.Source) methodScopes[m.Ctx] = new MethodNameScope(data, refs, m.DataScope);
+                    if (m.Origin is OoSymbolOrigin.Source) methodScopes[group.Session.Sources.Of(m)] = new MethodNameScope(data, refs, m.DataScope);
 
         // The binder's record of the function activations and property references that look like data references
         // (DataBindState.ActivationSites) — every forest of the group, class and program alike.

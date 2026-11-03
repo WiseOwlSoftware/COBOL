@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
@@ -23,7 +22,7 @@ public enum OoSymbolOrigin
     Imported,
 
     /// <summary>A METHOD the compiler built from other source of the group — a PROPERTY clause's accessor (ISO §13.18.42): emitted like a
-    /// source method, but with no METHOD-ID of its own (<see cref="OoMethodSymbol.Ctx"/> throws). No class is generated.</summary>
+    /// source method, but with no METHOD-ID of its own (<c>SourceMap.Of</c> throws for it). No class is generated.</summary>
     Generated,
 
     /// <summary>A plain .NET type the CLR type provider answers (DESIGN-external-repository §4.6) — named so the origin set is
@@ -41,20 +40,11 @@ public sealed record ImportedFrom(string Path, Guid Mvid, string ClrNamespace);
 /// <c>PicInfo.ClrType</c> applies to a typed object reference's declared class (Sanitize + uppercase).</summary>
 public sealed class OoClassSymbol
 {
-    private readonly CobolParserCore.ClassDefinitionContext? _definition;
-
-    /// <summary>A class this group's source wrote: <see cref="OoSymbolOrigin.Source"/>, with the CLASS-ID definition it was built from.</summary>
-    public OoClassSymbol(string name, string clrName, CobolParserCore.ClassDefinitionContext definition)
-    {
-        (Name, ExternalizedName, ClrName, _definition, Origin) = (name, name, clrName, definition, OoSymbolOrigin.Source);
-    }
-
-    /// <summary>A class no CLASS-ID of this group wrote: <see cref="OoSymbolOrigin.Standard"/> (BASE) or <see cref="OoSymbolOrigin.Imported"/>.
-    /// A source class has a definition, so asking for <see cref="OoSymbolOrigin.Source"/> here is a compiler fault (kb/Work PB4459).</summary>
+    /// <summary>A class of origin <paramref name="origin"/>: <see cref="OoSymbolOrigin.Source"/> (a CLASS-ID of this group, whose definition
+    /// the bind session's source map holds, kb/Work PB2401), <see cref="OoSymbolOrigin.Standard"/> (BASE) or
+    /// <see cref="OoSymbolOrigin.Imported"/>.</summary>
     public OoClassSymbol(string name, string clrName, OoSymbolOrigin origin)
     {
-        if (origin is OoSymbolOrigin.Source)
-            throw new ArgumentException($"class '{name}': a Source class is built from its CLASS-ID definition", nameof(origin));
         (Name, ExternalizedName, ClrName, Origin) = (name, name, clrName, origin);
     }
 
@@ -68,11 +58,6 @@ public sealed class OoClassSymbol
     /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
     public string ExternalizedName { get; init; }
 
-    /// <summary>What made this class an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR5): the skeleton, the REPOSITORY entry
-    /// and the actuals; null for a class written as a class and for an imported one. The repository publishes it as the class's
-    /// expansion identity (DESIGN-external-repository §10.5).</summary>
-    internal ExpansionOrigin? Expansion { get; init; }
-
     /// <summary>The repository record an IMPORTED class was decoded from (null for a class of this group and for the standard class):
     /// what an expansion that names the class is keyed on (<c>ExpansionKey</c>, DESIGN-external-repository §10.5).</summary>
     internal Binding.Model.RepositoryRecord? Record { get; init; }
@@ -80,17 +65,9 @@ public sealed class OoClassSymbol
     /// (kb/Work PB4265): <see cref="DataItem.WordIdentifier"/> of the class-name, an upper-case fold, so never a C#
     /// keyword.</summary>
     public string ClrName { get; }
-    /// <summary>The CLASS-ID definition this symbol was built from. Every class of the compilation group has one
-    /// (<see cref="OoSymbolOrigin.Source"/>); the STANDARD class and an IMPORTED one do not, and reading this on
-    /// either is a loud internal error rather than a null the caller forgot to test — no consumer of a group class's
-    /// source should ever reach one, because neither is in <see cref="OoClassTable.Classes"/>.</summary>
-    public CobolParserCore.ClassDefinitionContext Ctx => _definition
-        ?? throw new InvalidOperationException(Origin is OoSymbolOrigin.Standard
-            ? $"class '{Name}' is the standard class of ISO §16 and has no source definition"
-            : $"class '{Name}' is {Origin.ToString().ToLowerInvariant()} from the external repository and has no source definition");
-
-    /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>). A symbol with a <see cref="Ctx"/> is
-    /// <see cref="OoSymbolOrigin.Source"/>; the others are built by <see cref="OoStandardClasses"/> and
+    /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>). A <see cref="OoSymbolOrigin.Source"/> class is built by
+    /// <c>OoClassTable.Build</c>, which records its CLASS-ID definition and what made it an expansion in the bind session's
+    /// <c>SourceMap</c> (kb/Work PB2401: no parse context rides a symbol); the others are built by <see cref="OoStandardClasses"/> and
     /// <c>MetadataRepositoryProvider</c>.</summary>
     public OoSymbolOrigin Origin { get; }
 

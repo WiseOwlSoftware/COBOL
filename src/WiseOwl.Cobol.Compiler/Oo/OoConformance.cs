@@ -36,13 +36,13 @@ public static class OoConformance
     /// every class's data has bound (formals resolve at data-bind time, not pass-1). A violation is COBOL0829 —
     /// a COBOL-worded bind diagnostic, never a Roslyn CS0508/CS0115 on user source (the G4 rule), positioned at
     /// the overriding method.</summary>
-    public static void ValidateOverrideSignatures(OoClassTable table, EditionContext edition)
+    internal static void ValidateOverrideSignatures(OoClassTable table, SourceMap sources, EditionContext edition)
     {
         foreach (var cls in table.Classes)
             foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
             {
                 if (m.OverrideOf is not { } baseM) continue;
-                using var atMethod = edition.At(m.Ctx);
+                using var atMethod = edition.At(sources.Of(m));
                 string where = $"class '{cls.Name}', method '{m.Name}' overriding '{baseM.Owner.Name}'.'{baseM.Name}'";
                 foreach (var err in MethodConformanceMismatches(table, m, baseM,
                              $"the overridden method of class '{baseM.Owner.Name}'", cls.Name, baseM.Owner.Name))
@@ -61,7 +61,7 @@ public static class OoConformance
     /// subclass form a pair at the subclass, and a pair already complete in a superclass is the superclass's own.
     /// Runs AFTER every class's data has bound (the formals resolve at data-bind time). The instance and the
     /// FACTORY roster are separate interfaces (§11.4), so each is its own pairing.</summary>
-    public static void ValidatePropertyAccessorPairs(OoClassTable table, EditionContext edition)
+    internal static void ValidatePropertyAccessorPairs(OoClassTable table, SourceMap sources, EditionContext edition)
     {
         foreach (var cls in table.Classes)
         {
@@ -82,9 +82,9 @@ public static class OoConformance
                         "USING parameter of the set property method") is not { } why) continue;
                 // The diagnostic stands at the METHOD-ID THIS class wrote, the later of the pair when it wrote both; a PROPERTY clause's
                 // generated accessor has no METHOD-ID (PB4459), so a class that wrote neither as source is positioned at its own name.
-                using var at = edition.At(set.Owner == cls && set.Origin is OoSymbolOrigin.Source ? set.Ctx
-                    : get.Owner == cls && get.Origin is OoSymbolOrigin.Source ? get.Ctx
-                    : cls.Ctx.classIdParagraph().className(0));
+                using var at = edition.At(set.Owner == cls && set.Origin is OoSymbolOrigin.Source ? sources.Of(set)
+                    : get.Owner == cls && get.Origin is OoSymbolOrigin.Source ? sources.Of(get)
+                    : sources.Of(cls).classIdParagraph().className(0));
                 edition.Error(DiagnosticCatalog.PropertyAccessorDescriptionMismatch,
                     $"class '{cls.Name}', property '{prop}' (get property method of '{get.Owner.Name}', set property "
                     + $"method of '{set.Owner.Name}'): {why} (ISO §8.4.3.9.3 SR7)");
@@ -101,7 +101,7 @@ public static class OoConformance
     /// + interface-INHERITed + class-INHERITed) per class; each violation is COBOL0841 citing the
     /// numbered rule. RETURNS the covariant-return <see cref="AdapterPair"/>s (P9 R3 — a validation pass
     /// reports its findings; it does not mutate the symbol table).</summary>
-    public static IReadOnlyList<AdapterPair> ValidateImplements(OoClassTable table, EditionContext edition)
+    internal static IReadOnlyList<AdapterPair> ValidateImplements(OoClassTable table, SourceMap sources, EditionContext edition)
     {
         var adapters = new List<AdapterPair>();
         foreach (var cls in table.Classes)
@@ -120,7 +120,7 @@ public static class OoConformance
                     var impl = factory ? cls.FindFactoryMethod(proto.ExternalizedName) : cls.FindMethod(proto.ExternalizedName);   // the roster key (PB303)
                     if (impl is null)
                     {
-                        using var atClass = edition.At(cls.Ctx.classIdParagraph().className(0));
+                        using var atClass = edition.At(sources.Of(cls).classIdParagraph().className(0));
                         edition.Error(DiagnosticCatalog.InterfaceNotImplemented,
                             $"class '{cls.Name}': the {side}interface '{iface.Name}' requires a method "
                             + $"'{proto.SourceName}' and none is defined or inherited (ISO §9.3.11 — a class "
@@ -132,7 +132,7 @@ public static class OoConformance
                     // The implementation is found through INHERITS, so it may be no METHOD-ID of the group — the standard class BASE's,
                     // one imported from the external repository, or a PROPERTY clause's accessor (PB4459): the diagnostic about it stands
                     // at the class that must implement the prototype, as the not-implemented one above does.
-                    ParserRuleContext at = impl.Origin is OoSymbolOrigin.Source ? impl.Ctx : cls.Ctx.classIdParagraph().className(0);
+                    ParserRuleContext at = impl.Origin is OoSymbolOrigin.Source ? sources.Of(impl) : sources.Of(cls).classIdParagraph().className(0);
                     using (edition.At(at))
                         foreach (var err in MethodConformanceMismatches(table, impl, proto,
                                      $"the '{iface.Name}' prototype", cls.Name, iface.Name))
@@ -417,7 +417,7 @@ public static class OoConformance
     /// IMPLEMENTS pass and <see cref="InterfaceConformsTo"/> all read the conforming one. A violation is COBOL2762 on
     /// the INHERITING interface — before this pass it surfaced only when some class implemented the interface (COBOL0841
     /// at the class), and an unimplemented interface was accepted. Runs after every interface's prototype formals bound.</summary>
-    public static void ValidateInterfaceInheritance(OoClassTable table, EditionContext edition)
+    internal static void ValidateInterfaceInheritance(OoClassTable table, SourceMap sources, EditionContext edition)
     {
         foreach (var isym in table.Interfaces)
         {
@@ -443,7 +443,7 @@ public static class OoConformance
                     continue;
                 }
                 var (first, second) = (protos[0], protos.Skip(1).First(o => Mismatches(protos[0], o).Any()));
-                using var atInterface = edition.At(isym.Ctx.interfaceName(0));
+                using var atInterface = edition.At(sources.Of(isym).interfaceName(0));
                 edition.Error(DiagnosticCatalog.InterfaceInheritedPrototypesConflict,
                     $"interface '{isym.Name}': method '{first.Proto.Name}' is inherited from interfaces "
                     + $"{string.Join(", ", protos.Select(p => $"'{p.Iface.Name}'"))} whose prototypes do not all conform "

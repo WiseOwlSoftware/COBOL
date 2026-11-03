@@ -32,7 +32,7 @@ using Core = CobolParserCore;
 /// </summary>
 internal static class ExpansionPlacementPass
 {
-    public static ExpansionPlacements Run(OoClassTable table, IReadOnlyList<OoClassUnit> classes,
+    public static ExpansionPlacements Run(OoClassTable table, SourceMap sources, IReadOnlyList<OoClassUnit> classes,
         IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> interfaceData, MetadataRepositoryProvider external, EditionContext edition,
         CompileInputs inputs, ExpansionIdentity? publishAs)
     {
@@ -48,7 +48,7 @@ internal static class ExpansionPlacementPass
                 _ => ExpansionPlacements.None,
             };
         }
-        if (table.Skeletons.Count == 0 && !classes.Any(c => c.Symbol.Expansion is not null) && !table.Interfaces.Any(i => i.Expansion is not null))
+        if (table.Skeletons.Count == 0 && !classes.Any(c => sources.ExpansionOf(c.Symbol) is not null) && !table.Interfaces.Any(i => sources.ExpansionOf(i) is not null))
             return ExpansionPlacements.None;
 
         var records = new Dictionary<object, RepositoryRecord>(ReferenceEqualityComparer.Instance);
@@ -102,7 +102,7 @@ internal static class ExpansionPlacementPass
         // One expansion's placement, after the placement of every expansion it names (an actual may itself be an expansion).
         ExpansionPlacement? Place(object symbol)
         {
-            var origin = symbol is OoClassSymbol cs ? cs.Expansion : ((OoInterfaceSymbol)symbol).Expansion;
+            var origin = symbol is OoClassSymbol cs ? sources.ExpansionOf(cs) : sources.ExpansionOf((OoInterfaceSymbol)symbol);
             if (origin is null) return null;
             if (placements.TryGetValue(symbol, out var done)) return done;
             if (!inProgress.Add(symbol)) return null;   // an expansion that names itself: its text is refused elsewhere
