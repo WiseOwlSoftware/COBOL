@@ -912,13 +912,13 @@
   {
    "key": "DRV-GR-13.18.10.4-3",
    "arm": "unpopulatable-antecedent",
-   "names": "the set of run-time consumers of a physical-record size is empty: BLOCK CONTAINS is claimed inert under A.3 item 5 (DataBinder.BindBlockContainsClause screens SR1 and models nothing), and the minimum and maximum physical record size is outside the A.1 item 129 OPEN-validated fixed-attribute set",
+   "names": "the set of run-time consumers of a physical-record size is empty: BLOCK CONTAINS is claimed inert under A.3 item 5 (FileControlBinder.BindBlockContainsClause screens SR1 and models nothing), and the minimum and maximum physical record size is outside the A.1 item 129 OPEN-validated fixed-attribute set",
    "signature": "owner: 2026-10-08"
   },
   {
    "key": "DRV-GR-13.18.10.4-4",
    "arm": "unpopulatable-antecedent",
-   "names": "the set of run-time consumers of a physical-record size is empty: BLOCK CONTAINS is claimed inert under A.3 item 5 (DataBinder.BindBlockContainsClause screens SR1 and models nothing), and the minimum and maximum physical record size is outside the A.1 item 129 OPEN-validated fixed-attribute set",
+   "names": "the set of run-time consumers of a physical-record size is empty: BLOCK CONTAINS is claimed inert under A.3 item 5 (FileControlBinder.BindBlockContainsClause screens SR1 and models nothing), and the minimum and maximum physical record size is outside the A.1 item 129 OPEN-validated fixed-attribute set",
    "signature": "owner: 2026-10-08"
   },
   {
