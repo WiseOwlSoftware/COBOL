@@ -1,4 +1,4 @@
-## PB1086 discharged: eleven external-repository inventory rows re-verdicted against the landed slices; PB4185's Problem annotations
+## Entry 3035 — 2026-11-03 06:59 PST — PB1086 discharged: eleven external-repository inventory rows re-verdicted against the landed slices; PB4185's Problem annotations
 
 **What the re-probe showed.** The umbrella note PB1086 (no section 8.13 external repository; each consumer reading 12.3.8 its own way) had been
 blocked on PB2099-PB2104 and stayed open after they landed. On this branch's build the note's own repros no longer reproduce: `sr10.cob` (six
@@ -41,3 +41,4 @@ its static key (its store is one SORT statement's in-memory buffer, never a host
 other `CsLiteral(...CobolName)` consumer). New golden `pb1086_inherited_factory_file_is_distinct` (2002/2014/2023): two factories name different files
 through their own FNAME, both OPEN/WRITE/CLOSE answer 00 and each reads back its own record. GR-11.3.4-2's notes and witnesses were restated by a
 `record_verdicts` batch.
+
