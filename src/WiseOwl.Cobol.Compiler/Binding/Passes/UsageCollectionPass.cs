@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// PHASE-05 Step 5 (DESIGN-data-model §2.5 step 9): the single owner of the "which groups are referenced as a WHOLE
 /// character-image operand" fact — the input to the numeric-DISPLAY-leaf image promotion (§14.9.25.4 MOVE GR4). It is
 /// collected here, AFTER binding, by an explicit walk of the bound tree, replacing <see cref="ReferenceResolver"/>'s
-/// mid-resolve mutation of <see cref="DataBinder.WholeGroupReferenced"/>.
+/// mid-resolve mutation of <see cref="DataBindState.WholeGroupReferenced"/>.
 /// <para><b>Correctness (owner-directed redesign, 2026-07-10):</b> the bound tree is the CORRECT oracle — a group has
 /// a <see cref="Place"/> in the tree EXACTLY where it is used as a whole operand (MOVE/DISPLAY/compare/ACCEPT/record
 /// I-O/whole-group CORRESPONDING pair/boundary formal). The legacy resolver over-collected: it added ANY resolved
@@ -66,11 +66,11 @@ internal static class UsageCollectionPass
             // property subject, a direct field body (OoEmitter.EmitMethod's PropertySubject arm), never a boundary.
             foreach (var m in methods.Where(m => m.PropertySubject is null))
                 foreach (var f in m.Binding!.Formals)
-                    if (!f.Item.IsGroup) data.CharacterChannelItems.Add(f.Item);
+                    if (!f.Item.IsGroup) data.State.CharacterChannelItems.Add(f.Item);
         }
     }
 
-    /// <summary>Fill <paramref name="data"/>'s <see cref="DataBinder.WholeGroupReferenced"/> from the whole-group
+    /// <summary>Fill <paramref name="data"/>'s <see cref="DataBindState.WholeGroupReferenced"/> from the whole-group
     /// operands of the bound <paramref name="programs"/> + the boundary-copied program/OO formals
     /// (<paramref name="extraFormalGroups"/> is the OO method USING/RETURNING group items). FILE record areas are
     /// added earlier, at bind time, by <c>DataBinder.MarkFileRecordImageLeaves</c>. Runs once per binder, after
@@ -78,8 +78,8 @@ internal static class UsageCollectionPass
     public static void Collect(DataBinder data, IEnumerable<BoundProgram?> programs,
         IEnumerable<DataItem>? extraFormalGroups = null)
     {
-        var set = data.WholeGroupReferenced;
-        var channels = data.CharacterChannelItems;
+        IAppends<DataItem> set = data.State.WholeGroupReferenced;
+        IAppends<DataItem> channels = data.State.CharacterChannelItems;
 
         // Boundary-copied program formals — a group formal crosses as its character image (§14.2.3 GR8).
         foreach (var lf in data.LinkageFormals)
@@ -121,7 +121,7 @@ internal static class UsageCollectionPass
     /// <see cref="BoundStatementTree.StatementChildren"/>. The per-leaf <c>Visit</c> collects ONLY the node's direct
     /// operands/conditions/init-actions — nested statements are the recursion's job, so containers whose only
     /// group-bearing content is nested statements have an empty <c>Visit</c>.</summary>
-    private sealed class Visitor(HashSet<DataItem> set, HashSet<DataItem> channels) : IBoundStatementVisitor<bool>
+    private sealed class Visitor(IAppends<DataItem> set, IAppends<DataItem> channels) : IBoundStatementVisitor<bool>
     {
         public void Walk(BoundStatement s)
         {

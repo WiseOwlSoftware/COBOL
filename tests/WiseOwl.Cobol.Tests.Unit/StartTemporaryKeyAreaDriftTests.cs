@@ -77,7 +77,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
             StringComparison.Ordinal);
 
     /// <summary>True when the emitter hands <c>FileStartIndexed</c> the RECORD AREA (through
-    /// <c>ReferenceResolver.RecordArea</c> and the ONE <c>OperandText.RecordSendImage</c> channel) rather than a
+    /// <c>PlaceTable.RecordArea</c> and the ONE <c>OperandText.RecordSendImage</c> channel) rather than a
     /// rendering of the START operand.</summary>
     internal static bool EmitStartSendsTheRecordArea(string source)
     {
@@ -88,7 +88,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
         string site = source[call..end];
         return !site.Contains("OperandText.AsStorageImage", StringComparison.Ordinal)
             && !site.Contains("OperandText.AsString", StringComparison.Ordinal)
-            && source.Contains("refs.RecordArea(file) is { } ar", StringComparison.Ordinal)
+            && source.Contains("places.RecordArea(file) is { } ar", StringComparison.Ordinal)
             && source.Contains("OperandText.RecordSendImage(ar)", StringComparison.Ordinal);
     }
 
@@ -126,7 +126,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
     public void EmitStart_SendsTheRecordArea_NotTheOperand()
     {
         Assert.True(EmitStartSendsTheRecordArea(KeyedIoEmitterSource()),
-            "KeyedIoEmitter.EmitStart must pass OperandText.RecordSendImage of ReferenceResolver.RecordArea(file) "
+            "KeyedIoEmitter.EmitStart must pass OperandText.RecordSendImage of PlaceTable.RecordArea(file) "
             + "to RuntimeApi.FileStartIndexed. Sending OperandText.AsStorageImage(sta.Operand) makes the record-area "
             + "slice §14.9.41.4 GR17 a) names unavailable to the connector at all (kb/Work PB355).");
     }
@@ -165,7 +165,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
         // The emitter half of the defect: the area resolved for something else while the call still sends the
         // operand — the two-arm shape this repository reproduces most often.
         const string defectiveEmitter = """
-                Place? area = refs.RecordArea(file) is { } ar ? ar : null;
+                Place? area = places.RecordArea(file) is { } ar ? ar : null;
                 w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), OperandText.AsStorageImage(sta.Operand!, "START key operand"), len)};");
             """;
         Assert.False(EmitStartSendsTheRecordArea(defectiveEmitter));

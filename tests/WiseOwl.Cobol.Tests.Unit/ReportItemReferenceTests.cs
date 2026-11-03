@@ -17,8 +17,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// be inspected or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE
 /// statement", and §13.15.3 SR7: "The data-name shall not be referenced in any other way." The reference is refused
 /// (COBOL5092), under THAT rule — it used to be told COBOL1639 "no declaration gives the name", false about a
-/// name the report section declares. One lookup (<c>DataBinder.ReportEntriesNamed</c>) and one refusal
-/// (<c>DataBinder.ReportEntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
+/// name the report section declares. One lookup (<c>ReportScope.EntriesNamed</c>) and one refusal
+/// (<c>ReportSectionBinder.ReportEntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
 /// test names the arms so a fourth cannot be added without asking.
 /// </summary>
 public sealed class ReportItemReferenceTests
@@ -228,7 +228,7 @@ public sealed class ReportItemReferenceTests
         string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
         foreach (string rel in new[]
                  {
-                     Path.Combine("Binding", "ReferenceResolver.cs"),   // procedure division: ReportUnidentified
+                     Path.Combine("Binding", "NameResolution.cs"),       // procedure division: ReportUnidentified
                      Path.Combine("Binding", "DataBinder.Odo.cs"),      // OCCURS … DEPENDING ON
                  })
             Assert.Contains("ReportEntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
@@ -236,7 +236,7 @@ public sealed class ReportItemReferenceTests
         string dataBinder = Path.Combine(root, "Binding", "DataBinder.cs");
         foreach (string arm in new[]
                  {
-                     "private DataItem? ResolveClauseOperand(",   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
+                     "internal DataItem? ResolveClauseOperand(",   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
                      "private void ResolveAssignUsing(",          // ASSIGN … USING (kb/Work PB3768)
                      "DataItem? InRecords(",                      // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
                  })
@@ -247,7 +247,7 @@ public sealed class ReportItemReferenceTests
             .Where(f => File.ReadAllText(f).Contains("DiagnosticCatalog.ReportItemReference", StringComparison.Ordinal))
             .Select(Path.GetFileName)
             .ToList();
-        Assert.Equal(["DataBinder.Reports.cs"], reporters);
+        Assert.Equal(["ReportSectionBinder.cs"], reporters);
     }
 
     /// <summary>kb/Work PB4226: a SEARCH ALL Format 2 condition-name operand the written reference does not reach is the

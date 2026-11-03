@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <c>ReferenceResolver.PositionRead</c> emits <c>CobolTable.Occ(&lt;field&gt;, _P_n)</c> for a NUMERIC subscript,
+/// <c>SubscriptBinder.PositionRead</c> emits <c>CobolTable.Occ(&lt;field&gt;, _P_n)</c> for a NUMERIC subscript,
 /// <c>CobolString.RefModPosition(&lt;field&gt;, _P_n)</c> for a NUMERIC reference-modification bound (the item's own
 /// profile carries its scale, its sign and the byte form §14.6.13.2 rule 2's check reads — kb/Work PB1117), and
 /// the profile-less <c>CobolTable.Occ(&lt;field&gt;)</c> only for a NON-numeric <c>--permissive</c> operand. That is a
@@ -74,10 +74,10 @@ public sealed class PositionCarrierOverloadDriftTests
     [Fact]
     public void NumericCarriers_AreExactlyTheProfileArityOccOverloads()
     {
-        var declared = new SortedSet<string>(ReferenceResolver.NumericPositionCarriers);
+        var declared = new SortedSet<string>(SubscriptBinder.NumericPositionCarriers);
         var actual = ProfileArityCarriers(typeof(CobolTable), nameof(CobolTable.Occ));
         Assert.True(declared.SetEquals(actual),
-            $"ReferenceResolver.NumericPositionCarriers = [{string.Join(", ", declared)}] but "
+            $"SubscriptBinder.NumericPositionCarriers = [{string.Join(", ", declared)}] but "
             + $"CobolTable.Occ(x, in NumProfile) accepts [{string.Join(", ", actual)}]. A carrier declared here with "
             + "no overload puts the CS1503 back (kb/Work PB201); an overload with no entry here leaves the fast path "
             + "routing work it could now render.");
@@ -88,10 +88,10 @@ public sealed class PositionCarrierOverloadDriftTests
     [Fact]
     public void NonNumericCarriers_AreExactlyTheOneArgumentOccOverloads()
     {
-        var declared = new SortedSet<string>(ReferenceResolver.NonNumericPositionCarriers);
+        var declared = new SortedSet<string>(SubscriptBinder.NonNumericPositionCarriers);
         var actual = OneArgumentCarriers(typeof(CobolTable), nameof(CobolTable.Occ));
         Assert.True(declared.SetEquals(actual),
-            $"ReferenceResolver.NonNumericPositionCarriers = [{string.Join(", ", declared)}] but "
+            $"SubscriptBinder.NonNumericPositionCarriers = [{string.Join(", ", declared)}] but "
             + $"CobolTable.Occ(x) accepts [{string.Join(", ", actual)}].");
     }
 
@@ -129,8 +129,8 @@ public sealed class PositionCarrierOverloadDriftTests
             Assert.DoesNotContain("double", set);
             Assert.DoesNotContain("float", set);
         }
-        Assert.DoesNotContain("double", ReferenceResolver.NumericPositionCarriers);
-        Assert.DoesNotContain("double", ReferenceResolver.NonNumericPositionCarriers);
+        Assert.DoesNotContain("double", SubscriptBinder.NumericPositionCarriers);
+        Assert.DoesNotContain("double", SubscriptBinder.NonNumericPositionCarriers);
     }
 
     /// <summary>⛔ THE TWO-ARM ASSERTION. <c>PositionRead</c> asks ONE question — "may the fast path name this
@@ -145,6 +145,6 @@ public sealed class PositionCarrierOverloadDriftTests
         Assert.True(occ.SetEquals(refmod),
             $"CobolTable.Occ(x, in NumProfile) accepts [{string.Join(", ", occ)}] but "
             + $"CobolString.RefModPosition(x, in NumProfile) accepts [{string.Join(", ", refmod)}]. "
-            + "ReferenceResolver.PositionRead screens both arms with ONE list, so they must not diverge.");
+            + "SubscriptBinder.PositionRead screens both arms with ONE list, so they must not diverge.");
     }
 }

@@ -6,10 +6,10 @@
  "subject": "PAGE clause",
  "rule-digest": "cfce8cfea96d",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers",
  "test-ref": "conformance:cases/13.18.39-PAGE/pb1270-page-heading-after-first-detail; conformance:cases/13.18.39-PAGE/pb1270-page-footing-over-limit; conformance:cases/13.18.39-PAGE/pb1270-page-last-detail-after-footing; conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1270 landed 2026-10-04: the written integers in ascending order with equality allowed (COBOL2744); greater-than-zero is COBOL2386.",
+ "notes": "kb/Work PB1270 landed 2026-10-04: the written integers in ascending order with equality allowed (COBOL2744); greater-than-zero is COBOL2386. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportPageIntegers (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
  "state": "OK"
 }

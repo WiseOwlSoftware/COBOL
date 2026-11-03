@@ -23,7 +23,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// pattern.
 /// </summary>
 internal sealed class ReportWriterEmitter(
-    EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move, ConditionRenderer cond,
+    EmitContext ctx, NumericRenderer num, PlaceTable places, MoveEmitter move, ConditionRenderer cond,
     DispatchState dispatch, EcState ecState, EcEmitter ec)
 {
     /// <summary>The DATA DIVISION emitter of THIS unit, built once on first use — the report lane reaches it for
@@ -38,7 +38,7 @@ internal sealed class ReportWriterEmitter(
     /// never sees them), and the per-line compose methods.</summary>
     public void EmitReportMembers(CodeWriter w)
     {
-        var reports = ctx.Data.Reports;
+        var reports = ctx.Data.Reports.Declared;
         if (reports.Count == 0) return;
         w.Line();
         foreach (var r in reports)
@@ -270,7 +270,7 @@ internal sealed class ReportWriterEmitter(
     /// first LINE clause of the report group" — and every placement of the group sees that one value.</summary>
     private string RepetitionTest(ReportRepetitionGuard g)
     {
-        if (g.Spec.DependingItem is not { } dn || refs.ResolveItem(dn) is not { } place) return "true";
+        if (g.Spec.DependingItem is not { } dn || places.Of(dn) is not { } place) return "true";
         // The GR13 count through the ONE occurrence-count renderer (AllCount.ReportDepending), which a table(ALL)
         // argument over a repeating sum counter reads too (kb/Work PB1271).
         return $"{g.Ordinal} < {PlaceRenderer.OccurrenceCount(new AllCount.ReportDepending(place, g.Spec.Min, g.Spec.Max))}";
@@ -550,7 +550,7 @@ internal sealed class ReportWriterEmitter(
     /// SUM counters (§13.18.54), and the USE BEFORE REPORTING hooks (§14.9.49 Format 2 GR8).</summary>
     public void EmitReportConstruction(CodeWriter w)
     {
-        var reports = ctx.Data.Reports;
+        var reports = ctx.Data.Reports.Declared;
         if (reports.Count == 0) return;
         foreach (var r in reports)
         {
@@ -626,10 +626,7 @@ internal sealed class ReportWriterEmitter(
                 // for a reference-modified operand is the §8.4.3.3.4 GR5 unique data item, the slice. The
                 // positions are integer literals (SR4), so the view needs no expression machinery: it is the ONE
                 // ref-mod view builder, reached by item instead of by parse context.
-                if (ctl.Item is not { } item
-                    || (ctl.Operand?.RefModStart is { } start
-                            ? refs.ResolveItemRefMod(item, start, ctl.Operand.RefModLength)
-                            : refs.ResolveItem(item)) is not { } place)
+                if (ctl.Place is not { } place)
                 {
                     w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Display}' does not resolve to a place "
                         + "this backend can save and restore as the prior control value (ISO §13.18.16.4 GR3)"));
@@ -879,12 +876,12 @@ internal sealed class ReportWriterEmitter(
     /// program: no program outside it can name the report's groups (§13.18.27.4 GR2).</summary>
     public static bool ChainSelects(BoundUnit? unit, ReportModel r, bool globalOnly)
     {
-        for (; unit is not null && unit.Data.VisibleReports.Contains(r); unit = unit.Parent, globalOnly = true)
+        for (; unit is not null && unit.Data.Reports.Visible.Contains(r); unit = unit.Parent, globalOnly = true)
         {
             if (unit.Bound.Declaratives is { } ds
                 && ds.Any(d => d.ReportGroup is { } g && r.Groups.Contains(g) && (!globalOnly || d.Global)))
                 return true;
-            if (unit.Data.ReportDepth(r) == 0) break;   // the declaring program — GR4 b)'s walk ends here
+            if (unit.Data.Reports.Depth(r) == 0) break;   // the declaring program — GR4 b)'s walk ends here
         }
         return false;
     }
@@ -898,9 +895,9 @@ internal sealed class ReportWriterEmitter(
     public void EmitBeforeReportingSelectors(BoundUnit unit, CodeWriter w)
     {
         dispatch.BeforeReportingSelectors.Clear();
-        EmitSelectors(unit.Bound.Declaratives ?? [], unit.Data.VisibleReports,
+        EmitSelectors(unit.Bound.Declaratives ?? [], unit.Data.Reports.Visible,
             r => ChainSelects(unit, r, globalOnly: false),
-            r => unit.Data.ReportDepth(r) > 0 && ChainSelects(unit.Parent, r, globalOnly: true)
+            r => unit.Data.Reports.Depth(r) > 0 && ChainSelects(unit.Parent, r, globalOnly: true)
                 ? $"return __outer.{SelectorName(r)}(__gi, true);   // GR4 b) — the next directly containing source element"
                 : "return false;   // no qualifying declarative — the group is produced with none (GR4 b) exhausted)",
             asLocal: false, w);
@@ -915,7 +912,7 @@ internal sealed class ReportWriterEmitter(
     public void EmitMethodBeforeReportingSelectors(IReadOnlyList<BoundDeclarative> decls, CodeWriter w)
     {
         dispatch.BeforeReportingSelectors.Clear();
-        EmitSelectors(decls, ctx.Data.VisibleReports,
+        EmitSelectors(decls, ctx.Data.Reports.Visible,
             r => decls.Any(d => d.ReportGroup is { } g && r.Groups.Contains(g)),
             _ => "return false;   // a method has no containing source element (GR4 b) exhausted)",
             asLocal: true, w);
@@ -959,7 +956,7 @@ internal sealed class ReportWriterEmitter(
 
     /// <summary>The engine of <paramref name="r"/> as THIS unit reaches it — its own field, or the declaring
     /// container's through the <c>__outer</c> chain for an inherited GLOBAL report (§13.18.27.4 GR2).</summary>
-    private string Engine(ReportModel r) => RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.ReportDepth(r));
+    private string Engine(ReportModel r) => RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.Reports.Depth(r));
 
     // ── Verb emission (ISO §14.9.21 / §14.9.16 / §14.9.46) ───────────────────────────────────────────────────
 

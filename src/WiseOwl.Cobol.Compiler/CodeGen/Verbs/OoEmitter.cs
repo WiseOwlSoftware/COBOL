@@ -109,7 +109,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         : PlaceRenderer.Write(MethodCellPlace(root), value);
 
     private Place MethodCellPlace(DataItem root) =>
-        Refs.ResolveItem(root) ?? throw new InvalidOperationException(
+        Places.Of(root) ?? throw new InvalidOperationException(
             $"OO method: the ADDRESS-OF-taken LINKAGE root '{root.CobolName}' resolved to no place");
 
     private UnitEmitters U => program.Current;
@@ -119,7 +119,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private string Atoms(GroupAtom[] shape) => Ctx.Atoms.Ref(shape);
     private NumericRenderer Num => U.Num;
     private ConditionRenderer Cond => U.Cond;
-    private ReferenceResolver Refs => U.Refs;
+    private PlaceTable Places => U.Places;
 
     /// <summary>Emit the EXTERNAL record-area backings for a data forest (ISO §13.18.22.4 GR4b / §8.6.7): each
     /// <c>FD … IS EXTERNAL</c> record 01 re-bases onto a run-unit <c>ExternalStore</c> cell keyed by the FD name, so
@@ -232,7 +232,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// unit describes any external record or external file connector. False keeps the generated source
     /// byte-identical to a pre-VCR-15 build (zero-scaffolding).</summary>
     public static bool WantsExternalDescribes(DataBinder data) =>
-        data.ExternalDescribe && (data.CallExternalBackings.Count > 0 || data.Files.Any(f => f.IsExternal));
+        data.State.UnitChecking.ExternalDescribe && (data.CallExternalBackings.Count > 0 || data.Files.Any(f => f.IsExternal));
 
     // ⛔ THE VALUE-IDENTITY KEY OF A RECORD NAME'S VALUE CLAUSE (kb/Work PB1236). §13.18.22.4 GR6 compares the
     // specification, and a literal's CHARACTERS are its content: "ABCD" and "abcd" are two different VALUE clauses.
@@ -443,7 +443,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             instAttributes.AddRange(RepositoryAttributeRenderer.TableRecords(record)
                 .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)));
         EmitTypeHalf(cls.Name, cls.Symbol.ClrName, cls.Symbol.HalfPath(factory: false), instBase,
-            cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w,
+            cls.Data, cls.Places, cls.Bound, cls.Symbol.Methods, w,
             headerExtras: instExtras.Count > 0 ? instExtras : null,
             sealedType: cls.Symbol.IsFinal,
             typeAttributes: instAttributes,
@@ -487,7 +487,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             extras.Add("protected override void __AdoptRunUnitStorage(RunUnit runUnit) { base.__AdoptRunUnitStorage(runUnit); "
                 + string.Join(" ", adopt) + " }   // method WORKING-STORAGE → this run unit (ISO §14.6.2.3.2 / §14.6.11)");
         EmitTypeHalf(cls.Name, cls.Symbol.FactoryClrName, cls.Symbol.HalfPath(factory: true), facBase,
-            cls.FactoryData, cls.FactoryRefs, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
+            cls.FactoryData, cls.FactoryPlaces, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
             sealedType: cls.Symbol.IsFinal,
             typeAttributes: record is null ? [] : [.. RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: true)],
             methodRecords: methodRecords?.Skip(cls.Symbol.Methods.Count).ToList());
@@ -499,13 +499,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// extras differ). <paramref name="typeAttributes"/> are the type's repository attributes and
     /// <paramref name="methodRecords"/>, when the module carries signatures, the roster's method records in roster order.</summary>
     private void EmitTypeHalf(string cobolName, string csName, string describerPath, string baseCsName,
-        DataBinder data, ReferenceResolver refs, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
+        DataBinder data, PlaceTable places, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
         CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType,
         IReadOnlyList<string> typeAttributes, IReadOnlyList<MethodRecord>? methodRecords)
     {
         if (methodRecords is not null && methodRecords.Count != roster.Count)
             throw new InvalidOperationException($"OoEmitter: {csName} has {roster.Count} methods and {methodRecords.Count} method records");
-        program.BeginUnit(w, data, refs);
+        program.BeginUnit(w, data, places);
         callState.SelfPath = CallUnitState.NoProgramPath;   // a method is contained in no program (§8.4.6.3; kb/Work PB2843)
         callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
         callState.Formals = [];               // a class has no program-ABI formals — clear the last program's (GR1c recognition)
@@ -558,7 +558,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // here (it serves GOBACK … RAISING LAST and the INVOKE pickup, which are emitted inside each method with
             // that method's own header).
             var savedPropagation = ecState.Propagation;
-            ecState.Propagation = AutomaticPropagation.Of(roster.Any(m => m.AutomaticPropagationHere), inMethod: true);
+            ecState.Propagation = AutomaticPropagation.Of(roster.Any(m => m.Checking.AutomaticPropagation), inMethod: true);
             if (bound.Ec is { HasIoChecked: true }) U.Ec.EmitIoCheckEc([], w, asLocal: false);
             if (classHasF3Perform) U.Ec.EmitEcPerformMember(w);   // the raise-site funnel, once per class (§9.10.1-C1)
             ecState.UnitHasF3Perform = savedUnitF3P;
@@ -585,7 +585,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <para>GR7c sets EC-OO-UNIVERSAL "if checking for it is enabled in BOTH the activated method and the
     /// activating runtime element". The activator's half is <c>ExceptionState.OoUniversalChecking</c>, set by the
     /// emitted statement guard around the INVOKE; the METHOD's half is a compile-time literal folded at bind time
-    /// (<see cref="OoMethodSymbol.OoUniversalCheckingHere"/>) — it is a property of the callee's SOURCE, not of
+    /// (<see cref="MethodChecking.OoUniversalChecking"/>) — it is a property of the callee's SOURCE, not of
     /// run-unit state, so it cannot be a flag.</para>
     ///
     /// <para>When it is not enabled in both, no exception condition exists and none may be attributed — but a
@@ -599,7 +599,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// the arguments (an ANY LENGTH formal or returning item, §14.9.23.4 GR7 c)).</summary>
     private static string OoUnivThrow(OoMethodSymbol m, string detailExpr)
     {
-        string both = m.OoUniversalCheckingHere ? "ExceptionState.OoUniversalChecking" : "false";
+        string both = m.Checking.OoUniversalChecking ? "ExceptionState.OoUniversalChecking" : "false";
         return $"if ({both}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", {detailExpr}); "
             + $"throw new CobolImplementorFatalException({detailExpr});";
     }
@@ -738,7 +738,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // a __viol term: unchecked, the invocation proceeds and the delivery's class narrowing is the floor.
         if (returning is not null && ActivationDescriptions.Of(returning, ecState.OoClasses)
                 is { ObjectKind: ObjectReferenceKind.ActiveClass })
-            w.Line(RuntimeApi.ObjCheckActiveClassReturning(m.OoUniversalCheckingHere ? "true" : "false",
+            w.Line(RuntimeApi.ObjCheckActiveClassReturning(m.Checking.OoUniversalChecking ? "true" : "false",
                 $"INVOKE '{cobolName}' '{m.Name}'", "__ret!.Description", CaseDescription(c, -1)) + ";");
         // ⛔ AN ACTIVE-CLASS FORMAL IS HANDED ITS ARGUMENT BY A UNIVERSAL INVOCATION (§14.8.2.3.2 rule 4; kb/Work PB2985): the
         // invoking reference is neither SELF, SUPER, ACTIVE-CLASS nor an object-class-name, so the argument cannot conform.
@@ -749,7 +749,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             if (ActivationDescriptions.OfFormal(formalsList[i], ecState.OoClasses)
                     is { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass })
                 w.Line((i < minArgs ? "" : $"if (__a.Length > {i}) ")
-                    + RuntimeApi.ObjCheckActiveClassFormal(m.OoUniversalCheckingHere ? "true" : "false",
+                    + RuntimeApi.ObjCheckActiveClassFormal(m.Checking.OoUniversalChecking ? "true" : "false",
                         $"INVOKE '{cobolName}' '{m.Name}'", $"__a[{i}].Description", CaseDescription(c, i)) + ";");
         // An ANY LENGTH formal or returning item is a violation whatever the arguments (GR7 c) bans the DESCRIPTION) —
         // including an OPTIONAL one whose argument is OMITTED or trailing-omitted, which no relation is asked about — so
@@ -1080,7 +1080,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // cell-backed (an ADDRESS OF target) or a Tier-B REDEFINES window has NO field of its own — its storage
             // is a window over the class backing — so `=> {ClrName}` was a CS0103 on legal source. A plain field's
             // place renders as its name, so the ordinary accessor is unchanged.
-            var subjPlace = Refs.ResolveItem(subject);
+            var subjPlace = Places.Of(subject);
             string getExpr = subjPlace is null ? subject.ClrName : PlaceRenderer.Read(subjPlace);
             // An accessor is a method activation too (§14.9.23.4 GR7 d) — its external-item check precedes its body.
             string check = MethodExternalCheck(m) is { } mx ? mx + " " : "";
@@ -1286,9 +1286,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // element — this method's own OPTIONS paragraph, else the class's (§11.9.4 GR1) — to "the storage allocated
             // for" the sections it names. The class half's data model carries the class-level clause only and no method
             // roots, so both are swapped in for these initializers and restored after.
-            var savedOptions = Ctx.Data.Options;
+            var methodOptions = m.MethodOptions is { } own ? Ctx.Options.Push(own) : (Scoped<OptionsModel>.RestoreScope?)null;
             var savedActivationRoots = Ctx.ActivationLocalRoots;
-            if (m.MethodOptions is { } methodOptions) Ctx.Data.Options = methodOptions;
             Ctx.ActivationLocalRoots = m.Binding!.LocalRoots;
             foreach (var root in m.Binding!.LocalRoots)
             {
@@ -1302,7 +1301,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 var (type, init) = fields.RootDecl(root);
                 w.Line($"{type} {LocalNames.Of(ActivationLocalOf(root))} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§8.6.4)");
             }
-            Ctx.Data.Options = savedOptions;   // an emission error abandons the whole compile, so no finally is owed
+            methodOptions?.Dispose();   // an emission error abandons the whole compile, so no finally is owed
             Ctx.ActivationLocalRoots = savedActivationRoots;
             // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§8.6.4; M2-OO-1h step 4) —
             // the method's own cell (§11.7.4 GR5), reset to 1 each activation, never the shared class index field.
@@ -1330,7 +1329,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // propagation and ITS header's RAISING classes drive the fatal default and the INVOKE pickup in its body.
             var savedPropagation = ecState.Propagation;
             var savedRaisingTypes = ecState.PdRaisingObjectCsTypes;
-            ecState.Propagation = AutomaticPropagation.Of(m.AutomaticPropagationHere, inMethod: true);
+            ecState.Propagation = AutomaticPropagation.Of(m.Checking.AutomaticPropagation, inMethod: true);
             ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(m.Raising, ecState.OoClasses);   // §14.6.13.1.5 items 1 and 3 (kb/Work PB1121)
             if (methodSelects)
             {
@@ -1459,7 +1458,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <see cref="WantsExternalDescribes"/> test) run by the activation boundary with THIS method's §14.8.4.1 mask. Null
     /// when the half describes nothing — a group with no EC-EXTERNAL TURN, or a half with no external items.</summary>
     private string? MethodExternalCheck(OoMethodSymbol m) => WantsExternalDescribes(Ctx.Data)
-        ? $"ExternalStore.DescribeAtMethodActivation(__DescribeExternals, {m.ExternalCheckMaskHere});"
+        ? $"ExternalStore.DescribeAtMethodActivation(__DescribeExternals, {m.Checking.ExternalCheckMask});"
         : null;
 
     /// <summary>The C# (return-type, parameter-list) of a method or prototype — ONE builder shared by class

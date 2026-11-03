@@ -6,10 +6,10 @@
  "subject": "PAGE clause",
  "rule-digest": "82ef257ca4e1",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MinimumLastLine",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine",
  "test-ref": "conformance:cases/13.18.39-PAGE/pb1270-report-heading-above-heading; conformance:cases/13.18.39-PAGE/pb1270-report-heading-after-page-heading; conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries; conformance:cases/13.18.39-PAGE/pb1270-report-footing-relative-past-page-limit; conformance:cases/13.18.39-PAGE/pb1270_report_relative_first_boundaries",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1270 landed 2026-10-04 (wave 1012 G): a report footing on a page by itself (the bare ON NEXT PAGE, started at the HEADING integer, GR7 f) or not is confined to HEADING through the page limit, or as a page footing is, relative extents included.",
+ "notes": "kb/Work PB1270 landed 2026-10-04 (wave 1012 G): a report footing on a page by itself (the bare ON NEXT PAGE, started at the HEADING integer, GR7 f) or not is confined to HEADING through the page limit, or as a page footing is, relative extents included. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupLimits (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#MinimumLastLine (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportGroupLines (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
  "state": "OK"
 }

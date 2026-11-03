@@ -95,7 +95,7 @@ internal static class PlaceIdentification
     /// the number of positions is the item's current one, so <c>MOVE DL(1:5) TO T(I)</c> with DL holding two
     /// characters failed the sender's test only after the receiver's subscript, and over a fixed-size item a literal
     /// out of range binds (with its warning) where EC-BOUND-REF-MOD checking is on
-    /// (<c>ReferenceResolver.LiteralRefModRangeViolation</c>). Answering "can this test fail?" would restate that
+    /// (<c>RefModBinder.LiteralRefModRangeViolation</c>). Answering "can this test fail?" would restate that
     /// screen here; a test that cannot fail costs the hoist one block-scoped local, so the answer is the rule's,
     /// true.</para></summary>
     public static bool IdentifiesAtRunTime(Place place)
@@ -130,7 +130,7 @@ internal static class PlaceIdentification
 
     /// <summary>The operand with its data reference frozen — a field operand's <see cref="Place"/>; a literal, a
     /// figurative or a function result has no run-time address of its own (a function-identifier's argument
-    /// subscripts were hoisted at bind time, <c>DataBinder.PendingPreOps</c>) and is returned unchanged.</summary>
+    /// subscripts were hoisted at bind time, <c>ProcedureBindState.PendingPreOps</c>) and is returned unchanged.</summary>
     public static BoundOperand? Freeze(BoundOperand? op, Func<string, string> hoist) =>
         op is BoundFieldOperand f ? f with { Place = Freeze(f.Place, hoist) } : op;
 

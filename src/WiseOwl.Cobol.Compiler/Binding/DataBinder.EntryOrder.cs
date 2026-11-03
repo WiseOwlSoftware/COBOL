@@ -298,10 +298,10 @@ public sealed partial class DataBinder
     // ── The REPORT SECTION's entries (kb/Work PB1226, §13.10.3 SR11) ─────────────────────────────────────────────
 
     /// <summary>Where one report group description entry stands: its RD's entry list, its index there and the
-    /// report-name. A report entry is no <see cref="DataItem"/> that <see cref="ReferenceResolver.FindItem"/> sees, so
+    /// report-name. A report entry is no <see cref="DataItem"/> that <see cref="NameResolution.FindItem"/> sees, so
     /// a constant's length phrase finds it here, and its description is read from here
     /// (<see cref="DescribeReportItem"/>) by the report walk and the length phrase alike.</summary>
-    private sealed record ReportEntryLocation(Core.ReportGroupEntryContext[] Entries, int Index, string ReportName)
+    internal sealed record ReportEntryLocation(Core.ReportGroupEntryContext[] Entries, int Index, string ReportName)
     {
         public Core.ReportGroupEntryContext Entry => Entries[Index];
 

@@ -16,7 +16,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// the file-I/O common services every I/O verb shares — the post-status USE-declarative hook, the FILE STATUS
 /// store (incl. the §12.4.5.8.4 GR1 NOTE 1 inherited-GLOBAL routing via <see cref="CallUnitState"/>), the
 /// record-area image splice, and the RETRY/lock renders KeyedIo consumes.</summary>
-internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs,
+internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, PlaceTable places,
     DispatchState dispatch, EcState ecState, CallUnitState callState, KeyedIoEmitter keyedIo,
     ArithmeticEmitter arith, EcEmitter ec, MoveEmitter move)
 {
@@ -375,7 +375,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             {
                 if (file.IsReportFile)
                 {
-                    int width = Math.Max(1, ctx.Data.Reports
+                    int width = Math.Max(1, ctx.Data.Reports.Declared
                         .Where(r => ReferenceEquals(r.File, file))
                         .Select(r => r.LineWidth).DefaultIfEmpty(1).Max());
                     // The width is the widest RD's LINE WIDTH, not a record length: the connector is registered as a
@@ -443,7 +443,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// operand differently.</summary>
     internal (string Assign, bool Dynamic) ExecutingAssignment(FileModel file)
     {
-        if (file.AssignUsingItem is { } item && refs.ResolveItem(item) is { } p)
+        if (file.AssignUsingItem is { } item && places.Of(item) is { } p)
             // OperandText.FieldImage is THE operand-to-character-image renderer for every shape — an elementary
             // alphanumeric leaf reads its carrier, an alphanumeric group its generated AsImage(). No second arm.
             return (OperandText.FieldImage(p), true);
@@ -575,7 +575,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         if (op is null) return absent;
         if (op.Literal is { } lit) return lit.ToString();
-        if (op.Item is { } item && refs.ResolveItem(item) is { } p)
+        if (op.Item is { } item && places.Of(item) is { } p)
             // The integer landing (a P-scaled or unsigned-wide item by VALUE), then the ONE saturating narrowing
             // (kb/Work PB1033) — a bare `(int)` wrapped a 10-digit LINAGE value back into a small page.
             return RuntimeApi.HostInt32(NumericRenderer.Align(num.FieldNum(p), 0));
@@ -709,10 +709,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // The checking state is the statement's enabled set (EcBinder.NodeKindRaises declares the name on BoundClose).
             string? active = null;
             if (ec.Enabled("EC-REPORT-NOT-TERMINATED")
-                && ctx.Data.VisibleReports.Where(r => ReferenceEquals(r.File, file)).ToList() is { Count: > 0 } reports)
+                && ctx.Data.Reports.Visible.Where(r => ReferenceEquals(r.File, file)).ToList() is { Count: > 0 } reports)
             {
                 active = $"__rptAct{ctx.Names.NextEc()}";
-                w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"{RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.ReportDepth(r))}.IsActive"))};   // read BEFORE the close (§14.9.6.4 GR5)");
+                w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"{RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.Reports.Depth(r))}.IsActive"))};   // read BEFORE the close (§14.9.6.4 GR5)");
             }
             w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
             EmitStoreFileStatus(file);
@@ -887,7 +887,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// (the length WRITTEN), GR15 (the length READ BACK) and GR16 a) (the INTO sending size) are three rules over
     /// the SAME data item, and they were re-spelling the same four-part pattern independently.</summary>
     public Place? VaryingDepending(FileModel file) =>
-        file is { Varying.DependingName: not null, VaryingDependingItem: { } d } ? refs.ResolveItem(d) : null;
+        file is { Varying.DependingName: not null, VaryingDependingItem: { } d } ? places.Of(d) : null;
 
     /// <summary>The record-length argument for a WRITE/REWRITE on a RECORD VARYING … DEPENDING file (ISO
     /// §13.18.43 GR13a — the DEPENDING item's content names the record length), or null when the statement
@@ -945,9 +945,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         string name = FileKeyExpr(rd.File);
         string tmp = $"__rd{ctx.Names.NextRead()}";
         // The read record is made available in the WHOLE record area — store through the LARGEST record's view
-        // (ReferenceResolver.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
+        // (PlaceTable.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
         // splice (ST111A).
-        Place? area = refs.RecordArea(rd.File);
+        Place? area = places.RecordArea(rd.File);
         // §9.1.16 record locking on the sequential organization (P10 Step 8): EVERY READ routes through the
         // governed runtime entry — the next ordinal's pre-read conflict check (§14.9.30 GR9, FPI unchanged on a
         // 51 per GR10a), the GR11 lock discipline, and the GR22 ADVANCING ON LOCK skip-scan. Unconditional
@@ -1076,7 +1076,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             else EmitImageInto(area, areaImage, storesIntoOwnItem: file.AreaHasOneDescription);
         }
         foreach (var record in file.OutOfLineRecords)
-            if (refs.ResolveItem(record) is { } place)
+            if (places.Of(record) is { } place)
                 EmitOutOfLineInto(place, currentRecord, currentExtents, fixedForm);
     }
 
@@ -1147,7 +1147,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (file.Records.Count != 1) return null;
         var record = file.Records[0];
         if (OdoModel.TableUnder(record) is not { OccursSpec: { } spec } table || spec.Depending is not { } depItem
-            || refs.ResolveItem(depItem) is not { } dep)
+            || places.Of(depItem) is not { } dep)
             return null;
         int max = table.Occurs ?? spec.Max;
         bool bits = record.HasBitDescendant && BitLayout.StartBitOf(record, table) >= 0;
@@ -1170,7 +1170,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     internal void EmitImplicitReadLanding(FileModel file, string areaImage)
     {
         string name = FileKeyExpr(file);
-        EmitRecordAreaStore(file, refs.RecordArea(file), areaImage, RuntimeApi.FileCurrentRecord(name),
+        EmitRecordAreaStore(file, places.RecordArea(file), areaImage, RuntimeApi.FileCurrentRecord(name),
             RuntimeApi.FileCurrentRecordExtents(name));
     }
 
@@ -1185,7 +1185,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         Place? widest = null;
         int width = -1;
         foreach (var f in file.AreaFiles)
-            if (refs.RecordArea(f) is { } view && !FileModel.IsOutOfLineRecord(view.Item)
+            if (places.RecordArea(f) is { } view && !FileModel.IsOutOfLineRecord(view.Item)
                 && RecordLayout.PhysicalWidth(view.Item) > width)
                 (widest, width) = (view, RecordLayout.PhysicalWidth(view.Item));
         return widest;
@@ -1196,12 +1196,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// than record-name-1 holds (<see cref="FileModel.TransfersPastRecord"/>): §14.9.51.4 GR13 and §14.9.35.4 GR15
     /// leave the content of those bytes undefined (Annex A.2 items 64 and 49), and the compiler's determination is
     /// the record area's content at those positions — so the statement sends the image of the area
-    /// (<c>ReferenceResolver.RecordArea</c>, the widest record's view over the one shared backing,
+    /// (<c>PlaceTable.RecordArea</c>, the widest record's view over the one shared backing,
     /// §13.18.33.4 GR3), whose leading positions ARE record-name-1. The runtime's <c>Stored</c> then cuts it to the
     /// transferred length or pads it past the backing with spaces, unchanged. The FROM phrase needs no case of its
     /// own: its implicit MOVE into record-name-1 has already run when this is asked (§14.9.51.4 GR5 a)).</summary>
     internal string SentRecordImage(FileModel file, Place record) =>
-        file.TransfersPastRecord(record.Item) && refs.RecordArea(file) is { } area
+        file.TransfersPastRecord(record.Item) && places.RecordArea(file) is { } area
             ? OperandText.RecordSendImage(area)
             : OperandText.RecordSendImage(record);
 
@@ -1257,7 +1257,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         if (AreaCharacterViewFor(file, released.Item) is { } chars) EmitImageInto(chars, releasedRecord, storesIntoOwnItem: false);
         foreach (var record in file.OutOfLineRecordsOfArea(released.Item))
-            if (refs.ResolveItem(record) is { } place)
+            if (places.Of(record) is { } place)
                 EmitOutOfLineInto(place, releasedRecord, extents ?? "null");
     }
 
@@ -1321,7 +1321,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // file-name even though it is a LOCAL name of the owner; map built per unit in ProgramEmitter.EmitProgramClass).
         Place? place = callState.InheritedStatusPlace.TryGetValue(file, out var inherited)
             ? inherited
-            : file.FileStatusItem is { } own ? refs.ResolveItem(own) : null;
+            : file.FileStatusItem is { } own ? places.Of(own) : null;
         if (file.FileStatusItem is not { } item || place is null)
         {
             // §1.4 loud-guard doctrine: a DECLARED FILE STATUS name that did not resolve is never silent.

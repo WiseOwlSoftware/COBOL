@@ -503,18 +503,18 @@ to offer, and `dialect_two_axes` constrains the leniencies this compiler impleme
 | PERFORM VARYING FROM/BY · D18 **subscript** segment | §8.8.1.1 + r7 window; SR10 does NOT list them, so an index **data item** takes axis A (PB215) | `BindIndexNameWindowOperandExpr` / `BindIndexNameWindowExpr` | exempt (r7 lists them) |
 | RW VARYING FROM/BY | §13.18.64.2 → §8.8.1.1; on neither index list (PB215) | `BindExpr` | arithmetic: warn+coerce |
 | D18 **ref-mod** segment | §8.4.3.3.3 SR4 → §8.8.1.1; **r7 does NOT list a ref-mod position** | `BindExpr` (PB170/PB172) | arithmetic: warn+coerce |
-| simple/compound subscript name · ref-mod bound name (the token renderer's fast path) | §8.4.2.3.2 / §8.4.3.3.3 SR4 → §8.8.1.1 | axis A: `ReferenceResolver.ScreenPositionOperandClass`; axis B: `ResolveSubscriptName`'s index arm → `IndexNameInPositionError` (a SEPARATE site — the table used to leave this row's axis B undeclared) | arithmetic: warn+coerce (PB219) |
+| simple/compound subscript name · ref-mod bound name (the token renderer's fast path) | §8.4.2.3.2 / §8.4.3.3.3 SR4 → §8.8.1.1 | axis A: `SubscriptBinder.ScreenPositionOperandClass`; axis B: `ResolveSubscriptName`'s index arm → `IndexNameInPositionError` (a SEPARATE site — the table used to leave this row's axis B undeclared) | arithmetic: warn+coerce (PB219) |
 | sign-condition operand | §8.8.4.7.3 SR1 → §8.8.1.1 | `BindOperandExpr` — reached by a **wrapper WALK**, not `BindExprCore` (PB171) | arithmetic: warn+coerce |
 | **SOLE** relation / EVALUATE comparand | §8.8.4.2.1 + §15.2 — **exempt**; the operand is a sending item of its own class | `ConditionBinder.ComparisonOperandOf` short-circuits (PB172) — **one body**: EVALUATE's `BindValueOperand` calls it, since §14.9.13.4 GR4 a) 6. makes each subject/object pair a relation (PB224 aligned two copies by hand; PB1935 made them one). A COMPOUND comparand (an operator, a sign, or enclosing parentheses) is the computed operand of an arithmetic expression (`CompoundOperand`), never the item or literal it encloses (PB1935) | exempt (r7 lists a relation operand) |
 | CALL … USING BY VALUE | §14.9.4.3 SR22 — **exempt** | `BindByValueExpr` + COBOL1628 | exempt |
 | intrinsic-function argument | the function's §15.x argument rule — **exempt** | `BindFunctionArgumentExpr` + COBOL1627 | arithmetic: warn+coerce |
 | PERFORM … TIMES count | §14.9.28.3 SR2 — **exempt** | `ControlFlowBinder.CountOperand` | n/a |
 | OCCURS DEPENDING ON data-name-1 | §13.18.38.3 SR17 — **exempt** | `DataBinder.Odo` | n/a |
-| ref-mod SUBJECT identifier-1 | §8.4.3.3.3 SR1 — **exempt** | `ReferenceResolver.RefModExclusion` | n/a |
+| ref-mod SUBJECT identifier-1 | §8.4.3.3.3 SR1 — **exempt** | `RefModBinder.RefModExclusion` | n/a |
 | STOP RUN / GOBACK … STATUS | §14.9.42.3 SR2/SR3/SR4 · §14.9.18.3 SR6/SR7/SR8 (SR6 over **identifier-2**) — **exempt**; the format is `{identifier-1 \| literal-1}`, so the screen is keyed on the BOUND SHAPE and reaches both parse arms — a constant-name substitutes literal-1 under §13.10.4 GR1 (PB216). The USAGE alternative asks `ItemCategory.UsageOf`, the ONE §8.5.2.1 usage reader, so an alphanumeric group (*"treated as though it had a usage of display"*) is admitted and a strongly-typed / variable-length one is not (PB411) | `ControlFlowBinder.ScreenStatusOperand` + COBOL1704 (PB169/PB216/PB217/PB411) | identifier slot: reject in BOTH lanes |
 | arithmetic RESULTANTS | each verb's resultant SR — **exempt**; NOT a fourth copy of the §8.8.1.1 sending question — a resultant turns on an axis §8.8.1.1 does not have (numeric-edited is admitted at GIVING/REMAINDER/COMPUTE and barred at the in-place receivers) | `ExpressionBinder.ScreenResultant` | n/a |
 | GO TO … DEPENDING ON identifier-1 | §14.9.17.3 SR1 — **exempt**; "a numeric elementary data item that is an integer" | `OperandPositions.GoToDependingSelector` → `OperandClassScreen` + COBOL2324 (PB210) | identifier slot: reject in BOTH lanes |
-| SEARCH … VARYING identifier-2 | §14.9.37.3 SR5 — **exempt**; "a data item whose usage is index or a data item that is an integer", and not subscripted by identifier-1's first index-name (`ReferenceResolver.SubscriptNamesIndex`, shared with SR10) | `OperandPositions.SearchVaryingIdentifier` → `OperandClassScreen` + COBOL2325 (PB211) | identifier slot: reject in BOTH lanes |
+| SEARCH … VARYING identifier-2 | §14.9.37.3 SR5 — **exempt**; "a data item whose usage is index or a data item that is an integer", and not subscripted by identifier-1's first index-name (`SubscriptBinder.SubscriptNamesIndex`, shared with SR10) | `OperandPositions.SearchVaryingIdentifier` → `OperandClassScreen` + COBOL2325 (PB211) | identifier slot: reject in BOTH lanes |
 | SET Format-1 receiving identifier-1 | §14.9.39.3 SR1 — **exempt**; "a data item of class index or an integer data item". SR2–SR4 are the sender relation, asked once per statement in `SetBinder.ScreenIndexAssignmentReceiver` | `OperandPositions.SetIndexAssignmentReceiver` → `OperandClassScreen` + COBOL2326 (PB212) | SR1/SR2: reject in BOTH lanes · SR3/SR4: `Removed` seam (strict rejects, `--permissive` warns and stores) |
 | PERFORM VARYING / AFTER varied identifier | §14.9.28.3 SR2 ("a numeric elementary item") and SR5 a) ("an integer data item" when the FROM phrase holds an index-name) | `OperandPositions.PerformVaryingIdentifier` / `OperandPositions.PerformVaryingIdentifierFromIndex` → `OperandClassScreen` + COBOL2120 | identifier slot: reject in BOTH lanes |
 | WRITE … ADVANCING identifier-2 / integer-1 | §14.9.51.3 SR14 ("an integer data item") and SR15 ("Integer-1 shall be positive or zero"); keyed on the BOUND shape so a constant-name is integer-1 (§13.10.4 GR1) | `OperandPositions.WriteAdvancingIdentifier` → `OperandClassScreen`; integer-1 beside it in `SequentialIoBinder.ScreenAdvancingCount` — both COBOL2365 (PB1023) | reject in BOTH lanes |
@@ -585,7 +585,7 @@ and the pre-bind reader (`PreBindConstants`) follows the same chain for an AS ph
 
 Several general rules say a value is computed **once, before the statement's effect**, and then used several
 times. The bound tree expresses that with a statement-scoped **pre-op**: a binder appends a `BoundStatement` to
-the shared `DataBinder.PendingPreOps`, and the `StatementBinder.BindStatement` chokepoint drains its own suffix
+the shared `ProcedureBindState.PendingPreOps`, and the `StatementBinder.BindStatement` chokepoint drains its own suffix
 into a `BoundSequence` placed ahead of the carrying statement (mark on entry, drain the suffix — the same
 protocol a hoisted user-function activation and a §15.4 function-bearing subscript temp already use). Registration
 ORDER is evaluation order, so a nested materialization precedes its consumer without extra wiring.
@@ -945,7 +945,7 @@ this node. The ORIGIN is any position: the static in-class offset or ordinal (a 
 displaced by a BASED pointer (`PositionPointerOffset + c`), or an enclosing window's own offset — so a member window a
 cursor builds from a group window is the group's offset displaced again, `PositionOffset(group offset [+ delta], terms)`.
 A component ordinal in a class laid over storage through its data-address pointer (a BASED item, an AREA formal, kb/Work
-PB2094) has the origin `c + PositionPointerDynBase` (`ReferenceResolver.OrdinalOrigin` over `CellOrdinalBase`), carried
+PB2094) has the origin `c + PositionPointerDynBase` (`PlaceBuilder.OrdinalOrigin` over `CellOrdinalBase`), carried
 by the window walk's scope and by a whole-table cursor until a dynamic-capacity table's element cell opens its own scope.
 (The first design wrote the origin as a fixed `Displacement` plus a `long Constant`; the cursors' and CORRESPONDING's
 origins — `k + (o) − e`, `L − e + c` — are not of that shape, and a general origin renders every one of them exactly.)
@@ -976,7 +976,7 @@ one — what the evaluate-once identification asks before it hoists).
 
 #### 3.9.2 The binder: the position walk
 
-`ReferenceResolver.BindPosition(node, kind, indexNames)` walks the `functionArgument` PARSE NODE — never its tokens
+`SubscriptBinder.BindPosition(node, kind, indexNames)` walks the `functionArgument` PARSE NODE — never its tokens
 — through the arithmetic grammar (`additiveExpression` → `multiplicativeExpression` → `powerExpression` →
 `unaryExpression` → `primaryExpression`):
 
@@ -1008,7 +1008,7 @@ following subscripts, each a `PositionGroup` of its item. A cut list that does n
 (`T (A + X (- Y) + 1)`, where the tree joins `+ 1` to `X (- Y)`) has no subscript reading the tree can give; it is
 refused by name (COBOL2363).
 
-The place model's producers build the offsets as nodes: `ReferenceResolver.WindowScopeOf` (the ONE walk of a Tier-B
+The place model's producers build the offsets as nodes: `PlaceBuilder.WindowScopeOf` (the ONE walk of a Tier-B
 reference's levels, its byte, bit and ordinal terms side by side), the ADDRESS OF displacement, the `ViewCursor` that
 INITIALIZE and the strongly-typed group comparison walk (`Base`, `OccursTerms`, `OccursBitTerms`, `EntryOrdinal`,
 `OrdinalTerms`), the CORRESPONDING view access, and the cell walk of `IntrinsicBinder`'s length composer. Every view

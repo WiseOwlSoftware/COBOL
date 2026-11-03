@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// description entry containing that OCCURS clause."
 /// <para><b>The defect.</b> <c>DataBinder.OdoResolve</c> recorded the resolved data-name-1 first and reported the rules
 /// after, so a GROUP data-name-1 reached every consumer. The §13.18.38.4 GR8 group-operand slice
-/// (<c>ReferenceResolver.WrapIfOdoGroup</c>) resolves data-name-1's own place, and resolving a GROUP holding an
+/// (<c>PlaceBuilder.WrapIfOdoGroup</c>) resolves data-name-1's own place, and resolving a GROUP holding an
 /// occurs-depending table wraps it again: <c>DEPENDING ON</c> the record that holds the table (fuzz program fz01530),
 /// or two records each depending on the other, recursed without end and the compiler died of a stack overflow before
 /// COBOL0852 or COBOL0857 reached the user. The SR20 test also looked for a group data-name-1 among the record's

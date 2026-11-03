@@ -1159,7 +1159,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // item, the same item ProgramEmitter hands the activation result from. It used to be built by
         // CallEmitter.EmitGoback, after every bind-time MOVE screen and storage fact had already run.
         BoundMove? returningMove = source is not null && ctx.Data.LinkageReturning is { } retItem
-                                   && ctx.Refs.ResolveItem(retItem) is { } retPlace
+                                   && ctx.Refs.Places.ResolveItem(retItem) is { } retPlace
             ? host.Move.BindMoveOf(new BoundFieldOperand(source), [retPlace], ImplicitMovePhrase.GobackReturning)
             : null;
         // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass). The emit passes
@@ -1419,7 +1419,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // the §8.5.1.12 walk ActivationRelations.VariableLengthViolation asks at all three Format-2 / INVOKE
         // boundaries, with the crossing carried by CobolVarGroup (kb/Work PB204, PB3101) — so this gate stays
         // exactly as narrow as SR12's own sentence.
-        if (!isReturning && !formatTwo && item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))
+        if (!isReturning && !formatTwo && item.IsGroup && DataItem.HasVariableLengthSubordinate(item))
             ctx.Edition.Error(DiagnosticCatalog.CallVariableLengthGroup,
                 $"CALL USING argument '{name}' references a variable-length group (a DYNAMIC LENGTH item or "
                 + "dynamic-capacity table is subordinate to it) — ISO §14.9.4.3 SR12");

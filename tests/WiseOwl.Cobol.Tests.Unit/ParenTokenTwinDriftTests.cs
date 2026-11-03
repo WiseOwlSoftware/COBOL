@@ -127,7 +127,7 @@ public sealed class ParenTokenTwinDriftTests
         // The sites the PB48 sweep enumerated. Each must still be REACHED by the theory above; if one is
         // renamed the list is wrong and this says so, rather than the theory silently covering less.
         foreach (string expected in new[]
-                 { "Parsing/ZeroTokenRewriter.cs", "Parsing/CobolParserCoreBase.cs", "Binding/ReferenceResolver.cs" })
+                 { "Parsing/ZeroTokenRewriter.cs", "Parsing/CobolParserCoreBase.cs", "Binding/SubscriptBinder.cs" })
         {
             Assert.True(seen.Any(s => s.EndsWith(expected, StringComparison.Ordinal)),
                 $"the paren-twin guard no longer inspects {expected} — it was one of the sites the PB48 "

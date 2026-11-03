@@ -770,7 +770,7 @@ occursClause
     // printed once-each, CAPACITY-FROM-TO-INITIALIZED order (§13.18.38.2 with §5.2.1) is enforced at bind time
     // (DataBinder.Odo.cs#NarrowToDataDivisionFormats, COBOL2789; kb/Work PB1265), as is SR28 (COBOL1522).
     // The Format 1/2 alternative above is likewise the union of Formats 1, 2 and 3; the same binder site narrows a
-    // data description entry to Formats 1 and 2, and DataBinder.Reports.cs#ReportOccursOf a report group entry to
+    // data description entry to Formats 1 and 2, and ReportSectionBinder.cs#ReportOccursOf a report group entry to
     // Format 3. Edition-gated so a pre-2014 probe upgrades to COBOL0900.
     | OCCURS DYNAMIC occursDynamicPhrase* occursKeyClause* (INDEXED BY? indexNameList)?   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitOccursClause (rearch 14g.3)
     ;

@@ -1176,7 +1176,7 @@ connector and the first I-O verb aborted the run unit — and repairing registra
 the crash into a silent no-op, because the READ record-area store and the implicit INTO move were separately
 guarded on the same null. Five null arms for one absent fact is four too many (`feedback_one_rule_one_place`).
 *Synthesize at emit time instead* — the record has to exist for the binder's own record-area resolution
-(`ReferenceResolver.ResolveItem`), not just for the registration call.
+(`PlaceBuilder.ResolveItem`), not just for the registration call.
 
 ### D19. A syntax rule of a FILE CONTROL ENTRY clause is enforced ON THE ENTRY — in `DataBinder.BindFileControl` when the clauses alone decide it, in `DataBinder.ResolveFiles` when it needs a resolved data item — never on a verb. It is the converse of D13, and the two together decide where every I-O syntax rule goes.
 
@@ -1738,7 +1738,7 @@ it for WRITE and REWRITE; §14.9.30.4 GR4 b) and §14.9.34.4 GR5 b) are the same
 has to include the bind. Measured, before the fix: `RELEASE SRT-REC FROM WS-NUM` (a `PIC 9(3)` sender into a
 `PIC A(8)` record) compiled clean where the identical explicit MOVE drew COBOL0819; and
 `RELEASE SRT-NUM FROM QUOTE` **aborted the run** with an unhandled `NotImplementedCobolFeatureException` before
-the record was released, because `MarkImageForced` — a fact `StorageFormPass` consumes — is collected by the
+the record was released, because `DataBindState.ImageForcedItems` — a fact `StorageFormPass` consumes — is collected by the
 binder and the emitter-built move never passed through it (kb/Work PB348).
 
 **The decision:** `MoveBinder.BindMoveOf(source, targets, implicitOf)` is THE one application of the MOVE
@@ -1818,7 +1818,7 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
 
 **Rejected alternatives.** *Fix the RELEASE call site* — the smallest diff and the wrong shape: eight call sites
 carry the same rule, and the next FROM phrase would re-derive it a ninth time. *Re-run the MOVE screens over the
-emitter-built node* — the screens COLLECT (`MarkImageForced`, `MarkRefModStoreImage`) as well as diagnose, and
+emitter-built node* — the screens COLLECT (`DataBindState.ImageForcedItems`, `MarkRefModStoreImage`) as well as diagnose, and
 `StorageFormPass` has already run by then; a screen that runs after its consumer is not a screen. *Give each verb
 its own copy of its phrase rules at its binder* — three copies of one rule, which is what `WriteSource` was, and
 the reason none of them existed.
@@ -2059,7 +2059,7 @@ file name as the clause's data-name and died at OPEN naming a word the programme
 - **`QualifiedCandidates(name, quals, scope)`** — THE §8.4.2.2 matcher: every in-scope declaration whose ancestor
   chain carries the qualifiers inner → outer with gaps allowed (§8.4.2.2.3 SR4), the outermost qualifier
   optionally the owning FILE (Format 1's `file-report-qualifier`). It returns the SET, because the count is the
-  standard's answer. `ReferenceResolver.ResolveQualified` — which used to own the only complete copy, while the
+  standard's answer. `NameResolution.ResolveQualified` — which used to own the only complete copy, while the
   binder carried a weaker private twin that knew neither the file-name qualifier nor uniqueness — now calls it.
   **The set is a `DataNameCandidates` and has no indexer (kb/Work PB978):** it can be counted, narrowed
   (`Where`) and read only as `Single`, so no caller can take "the first". Its record-confined twin
@@ -2079,7 +2079,7 @@ file name as the clause's data-name and died at OPEN naming a word the programme
   REFERENCE-MODIFIER (§8.4.3.3.3's NOTE). A refused operand is recorded AS WRITTEN and its later resolution stays
   silent — one fault, one verdict, including the RECORD KEY / ALTERNATE RECORD KEY selection and the
   `FileControlKeyRules` SR2 row, which take the refused names with the ambiguous ones (kb/Work PB481). The screen
-  reads the operand's suffixes through `ReferenceResolver.ReadOperandSuffixes`, the one reader of a reference's
+  reads the operand's suffixes through `RefModBinder.ReadOperandSuffixes`, the one reader of a reference's
   subscript lists and reference modifiers; while a ref-mod written after a name was a SUBSCRIPT-mode capture
   (before kb/Work PB2113), counting every `subscriptPart` as a subscript called `IX-KEY(1:3)` "a subscript".
 - **`ScreenDataNameShape(dref, face, edition)`** — the same screen, static, for a PROCEDURE-DIVISION operand
@@ -2442,7 +2442,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   the key of reference"*), the KEY. data-name-1's whole role is to name that key and, through GR17 b) (*"the
   length specified in the LENGTH clause, if specified, or else the length of record-key-name-1, if specified, or
   else the length of data-name-1"*), to supply a default length; it is never itself the source. So
-  `KeyedIoEmitter.EmitStart` sends `OperandText.RecordSendImage` of `ReferenceResolver.RecordArea(file)` and
+  `KeyedIoEmitter.EmitStart` sends `OperandText.RecordSendImage` of `PlaceBuilder.RecordArea(file)` and
   `IndexedConnector.Start` slices the key of reference out of it with `KeyOf(Fit(image), keyIndex)` truncated to
   the GR17 b) count — **the same extraction the random READ (14.9.30.4 GR32) and DELETE (14.9.10.4 GR3) already
   make from the same image**, which is what makes a SOURCE-phrase key's several *parts* (12.4.5.12.4 GR2) fall
@@ -2472,7 +2472,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   the bounded integer. The former int narrowing of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1,
   so the connector's bound test ran on a value already forced into range. Golden
   `conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb357_start_length_not_integer`; structure + failure proof `unit:StartKeyLengthTests`.
-- **The record area is resolved in ONE place** — `ReferenceResolver.RecordArea(FileModel)`, the
+- **The record area is resolved in ONE place** — `PlaceBuilder.RecordArea(FileModel)`, the
   `FileModel.AreaRecord` lookup plus the `ResolveItem` step that five consumers each used to write out (the two
   keyed emitter sites, the sequential READ emitter, the two READ/RETURN `INTO` binders). 13.18.33.4 GR3 makes the
   FD's level-1 entries redefinitions of one area and 13.18.43.4 GR5 a) sizes it as *"the record size of the

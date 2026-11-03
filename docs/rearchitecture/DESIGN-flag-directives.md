@@ -98,9 +98,9 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | Opt | Construct (GR4) | Visible at | Incr | Notes |
 |-----|-----------------|-----------|------|-------|
 | a ALL | fan-out to b–f | directive parse | 0 | |
-| b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in a source element (§3.164) that calls any function or invokes any method | `[B]` DONE — `TurnState.DirectiveLinesNaming` (post-walk) + the SOURCE-ELEMENT model (`_elements`) with calls from `VisitFunctionCall`/`VisitInvokeStatement`/`VisitInlineMethodInvocation` and the binder-recorded `DataBinder.ActivationSites` | 4 | GR4 normative (no Annex-E re-item); CALL of a program is NOT a trigger |
+| b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in a source element (§3.164) that calls any function or invokes any method | `[B]` DONE — `TurnState.DirectiveLinesNaming` (post-walk) + the SOURCE-ELEMENT model (`_elements`) with calls from `VisitFunctionCall`/`VisitInvokeStatement`/`VisitInlineMethodInvocation` and the binder-recorded `DataBindState.ActivationSites` | 4 | GR4 normative (no Annex-E re-item); CALL of a program is NOT a trigger |
 | c I-O-STATUS-07 | a CLOSE with WITH NO REWIND or the UNIT phrase | `[B]` `BoundClose` — **needs a NoRewind model bit** (`BoundCloseKind` has ReelUnit but not NoRewind) | 3 | E.2 item 16. `CobolIO.g4 closeOption` already parses both |
-| d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) the OPERANDS are category alphanumeric-edited (a reference-modified operand is alphanumeric, §8.4.3.3.4 GR6 a), or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` parse-tree visitor + per-unit `ReferenceResolver.FindItem` (same-DDE = `ReferenceEquals`) | 3 | GR4 normative (no Annex-E re-item) |
+| d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) the OPERANDS are category alphanumeric-edited (a reference-modified operand is alphanumeric, §8.4.3.3.4 GR6 a), or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` parse-tree visitor + per-unit `NameResolution.FindItem` (same-DDE = `ReferenceEquals`) | 3 | GR4 normative (no Annex-E re-item) |
 | e RANGE-EXCEPTION-FOR-INDEX | an index-assignment/arithmetic SET whose receiver is an **index-name** (NOT a class-index DATA item — §14.9.39.4 Format-1 GR2b copies it unchanged, no range check), when EC-RANGE-INDEX checking is enabled | `[B]` parse-tree visitor: `DataBinder.IndexFields` + `TurnState` | 3 | GR4 normative |
 | f TERMINATE-WITH-VARYING | a TERMINATE of a report whose RD contains a VARYING clause | `[B]` `ReportWriterBinder` BindTerminate + ReportModel `Varyings` | 1 | GR4 normative |
 
@@ -210,7 +210,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     TERMINATE-WITH-VARYING (TERMINATE + a report whose fields carry `Varyings`) — scope-exact (kb/Work PB3288): the
     WRITE's record-name (qualified or not, through `ResolveItem`) or `FILE file-name` resolves to a file among
     `VisibleFiles()` (the unit's own, then its containers' GLOBAL ones, §13.18.27.4 GR1), and each TERMINATE report-name
-    to a report among `DataBinder.VisibleReports`; `Run` builds no lookup.
+    to a report among `ReportScope.Visible`; `Run` builds no lookup.
   * **1b (DONE for j)** j VALUE-EDITING — a numeric-edited VALUE that is a LITERAL (not figurative) with no
     editing symbols (§13.18.63 SR6/SR11 + E.2 item 29: numeric literals get editing auto-supplied, alphanumeric/
     national literals now require it). The literal is read as its VALUE (`CobolLiteral.Decode`, the one literal
@@ -236,7 +236,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 * **Incr 3 — the state-coupled options (COMPLETE).**
   * **i REF-MOD-ZERO-LENGTH** — tri-state `RefModZeroLengthState` extension + EC-BOUND-REF-MOD `TurnState` read.
   * **d MOVE-TO-SAME-NAME** — same-DDE by **exact `ReferenceEquals`** of the two operands resolved with
-    `ReferenceResolver.FindItem` (the description entry — subscript/ref-mod-agnostic), then (1) alphanumeric-edited
+    `NameResolution.FindItem` (the description entry — subscript/ref-mod-agnostic), then (1) alphanumeric-edited
     `{ Category: PicCategory.Alphanumeric, EditMask: not null }` (there is **no** `PicCategory.AlphanumericEdited`
     member) or (2) `OdoModel.TableUnder(item) is { OccursSpec.Depending: {} dep } && OdoModel.IsWithin(dep, item)`.
     Both MOVE forms; a literal/function sender is skipped. Introduced **per-unit name resolution** to the pass — a
@@ -290,9 +290,9 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     function inside a subscript) or **invokes a method** (an `invokeStatement` / `inlineMethodInvocation` / a property
     reference §8.4.3.9, whose accessor is a method) — a CALL of a program is deliberately NOT a trigger (GR4 b names
     only function and method). The activations with no syntactic marker are not re-derived from syntax: the BINDER
-    records them where it decides them (`DataBinder.ActivationSites`, identity-keyed parse nodes and subscript
-    tokens; sites `IntrinsicBinder.KeywordOmittedFunction`, `ReferenceResolver.IsFunctionBearing`,
-    `ReferenceResolver.ResolveObjectProperty`) and the pass reads that fact back. Because it flags a DIRECTIVE (a frontend `>>TURN`,
+    records them where it decides them (`DataBindState.ActivationSites`, identity-keyed parse nodes and subscript
+    tokens; sites `IntrinsicBinder.KeywordOmittedFunction`, `SubscriptBinder.IsFunctionBearing`,
+    `ObjectPropertyResolver.ResolveObjectProperty`) and the pass reads that fact back. Because it flags a DIRECTIVE (a frontend `>>TURN`,
     not a parse node), it runs POST-walk: `TurnState.DirectiveLinesNaming` exposes the `>>TURN` lines naming any
     family name (ON/OFF alike; the raw events store the canonical name as-written, so a level-2 `EC-PROGRAM` matches
     without expansion); the walk opens a `SourceElement` (its own line span + whether it calls/invokes) per source unit

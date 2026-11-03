@@ -23,7 +23,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// in at the COMMIT (§14.9.36.4 GR3), so a boolean item is not re-converted (kb/Work PB3697). The usage pass makes each such group take the image round
 /// trip and each elementary item a character channel (<c>UsageCollectionPass.Collect</c>).</para>
 /// </summary>
-internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs, SequentialIoEmitter seqIo)
+internal sealed class TransactionEmitter(EmitContext ctx, PlaceTable places, SequentialIoEmitter seqIo)
 {
     private ApplyCommitModel? Clause => ctx.Data.ApplyCommit;
 
@@ -37,11 +37,11 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
             w.Line($"private string __commitImage{i} = \"\";   // '{clause.Items[i].CobolName}' as of the last COMMIT (§14.9.7.4 GR5)");
         using (w.Block("private void __CommitSave()   // ISO §14.9.7.4 GR5: the data items are saved"))
             for (int i = 0; i < clause.Items.Count; i++)
-                if (refs.ResolveItem(clause.Items[i]) is { } place)
+                if (places.Of(clause.Items[i]) is { } place)
                     w.Line($"__commitImage{i} = {OperandText.RecordAreaImage(place)};");
         using (w.Block("private void __CommitRestore()   // ISO §14.9.36.4 GR3: the data items are restored"))
             for (int i = 0; i < clause.Items.Count; i++)
-                if (refs.ResolveItem(clause.Items[i]) is { } place)
+                if (places.Of(clause.Items[i]) is { } place)
                     seqIo.EmitImageInto(place, $"__commitImage{i}", storesIntoOwnItem: false);
         // The refused file of a COMMIT or ROLLBACK is told to the program by its I-O status in the element that describes
         // it (DESIGN-runtime-library.md 2.2.1.10, "What the program is told"): true when this element stored it.

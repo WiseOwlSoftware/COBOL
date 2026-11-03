@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The sharing is what makes the 2014 <c>MODE IS</c> introduction gate reach a report clause at all (the pass
 /// fires on RECOGNITION of <c>roundedPhrase</c>, wherever it appears), and it is what stops the next operand
 /// form from being added to one clause and forgotten in the other — this repo's most reproducible defect shape.
-/// The FORM decision likewise lives in ONE classifier, <c>DataBinder.Reports.BareReferenceOf</c>.</para>
+/// The FORM decision likewise lives in ONE classifier, <c>ReportSectionBinder.BareReferenceOf</c>.</para>
 ///
 /// <para>⭐ IT READS THE GRAMMAR, NOT A REMEMBERED SHAPE: the assertions are regexes over
 /// <c>CobolReportWriter.g4</c>, so a future edit that gives either clause its own operand rule fails here
@@ -95,6 +95,6 @@ public sealed class ReportValueOperandDriftTests
             .Select(Path.GetFileName)
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToList();
-        Assert.Equal(new[] { "DataBinder.Reports.cs" }, callers);
+        Assert.Equal(new[] { "ReportSectionBinder.cs" }, callers);
     }
 }

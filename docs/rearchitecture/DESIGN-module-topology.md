@@ -300,7 +300,7 @@ the renderer switches route through it so a missing arm is a **compile error**. 
 `SubscriptTokenParser` (Split/Render/Interpret/CollectLeaf), `NameResolver` (unqualified/qualified/descendant/
 file-qualifier), and `ScopeResolver` (the ONE scoped lookup that understands OO method shadowing — collapses the
 `LookupData`/`LookupDataInScopeOf`/`TryGetVisibleIndexField`/`IndexFieldFor` quadruple). OO property binding
-(`ReferenceResolver.ResolveObjectProperty`) moves to `Oo/OoStatementBinder.cs`. The hand-rolled intrinsic-arg expression parser is
+(`ObjectPropertyResolver.ResolveObjectProperty`) moves to `Oo/OoStatementBinder.cs`. The hand-rolled intrinsic-arg expression parser is
 deleted — FUNCTION args parse as real grammar `arithmeticExpression` (edition-gated) and bind through
 `ExpressionBinder` (removes the 3rd parallel numeric evaluator).
 
@@ -388,7 +388,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 |---|---|---|---|---|
 | 9 | S | `Binding/DataBinder.cs` (1723) | `Binding/DataDivision/DataBinder.cs` (thin) + `EntryTreeBuilder.cs` + `Passes/*Pass.cs` | Orchestrator vs builder vs passes |
 | 10 | S/M | `Binding/DataBinder.Switches.cs` | `Binding/DataDivision/SpecialNamesBinder.cs` | ENV-division concern, not DATA |
-| 11 | S/M | `DataBinder.Reports.cs` | `Binding/DataDivision/ReportSectionBinder.cs` | Self-contained |
+| 11 | S/M | `DataBinder.Reports.cs` | `Binding/ReportSectionBinder.cs` + `Binding/ReportScope.cs` + `Binding/ReportModel.cs` (kb/Work PB2357; the binders sit flat in `Binding/`, as `InheritStep.cs` and `DataBindState.cs` do) | Self-contained |
 | 12 | S/M | `DataBinder.Linkage.cs` | `Binding/DataDivision/LinkageBinder.cs` | |
 | 13 | S/M | `DataBinder.Ptr.cs` | `Binding/DataDivision/PointerBinder.cs` | |
 | 14 | S/M | `DataBinder.Oo.cs` | `Oo/OoMethodDataBinder.cs` | One OO home |

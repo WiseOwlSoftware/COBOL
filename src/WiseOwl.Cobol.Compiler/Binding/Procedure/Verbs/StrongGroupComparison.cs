@@ -157,7 +157,7 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
     /// one outside it is the item itself. Null when the item sits under an OCCURS within the group.</summary>
     private Place? CountPlace(DataItem dep, PlaceCursor root)
     {
-        if (!OdoModel.IsWithin(dep, root.Item)) return ctx.Refs.ResolveItem(dep);
+        if (!OdoModel.IsWithin(dep, root.Item)) return ctx.Refs.Places.ResolveItem(dep);
         var chain = new List<DataItem>();
         for (DataItem? n = dep; n is not null && !ReferenceEquals(n, root.Item); n = n.Parent) chain.Add(n);
         chain.Reverse();

@@ -41,7 +41,7 @@ individual elementary items", so the leaf can receive spaces a `long` cannot hol
 PROCEDURE DIVISION binding**. Today it is realized by mutating `DataItem.StoreAsImage` (`DataItem.cs:169`, a public
 `get; set;`) from **7+ sites across three layers**:
 
-- binder data pass — `DataBinder.cs:255,1562,1577`, `DataBinder.Linkage.cs:275`, `DataBinder.Reports.cs:352`
+- binder data pass — `DataBinder.cs:255,1562,1577`, `DataBinder.Linkage.cs:275`, `ReportSectionBinder.cs:352`
 - binder procedure pass — `StatementBinder.MoveFigurative.cs:123,262`
 - **the emitter writes the binder's data model** — `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`),
   driven from `WholeGroupReferenced`, which `ReferenceResolver` itself mutates *during* procedure resolution
@@ -259,7 +259,7 @@ build; there was a predicate that stopped short.
   return is a name the next reader has to re-derive. There is **no** `RedefinesClassifier` type; classification
   lives in `DataBinder.ClassifyRedefinesClasses` + `ComputeTier`, applied through the ONE
   `RedefinesClass.Classify` mutator, with the reason threaded to references by `ExpressionBinder.RefFailure`.
-  The de-facto loud backstop is `ReferenceResolver.PlaceForItem` returning null → the caller fails loud.
+  The de-facto loud backstop is `PlaceBuilder.PlaceForItem` returning null → the caller fails loud.
   - **What P11 Step C consolidated** is the SEPARATE *classless* mixed-usage-GROUP image island — a plain group
     (not a REDEFINES pun) whose leaves are not uniformly character-imageable (a float/COMP-5/INDEX/BINARY-* leaf
     under `DataItem.IsImageCapable`, or a COMP/binary leaf under the stricter `DataItem.IsCharacterImage`) has no
@@ -297,7 +297,7 @@ build; there was a predicate that stopped short.
      the dissolve loop (a per-class screen lets a nested entry's violation escape into the outer class's
      staged-loud arm). "Variable-length group" is §8.5.1.12.1's defined term — a group with a dynamic-length
      elementary item or a dynamic-CAPACITY table subordinate — so the predicate is
-     `ReferenceResolver.HasVariableLengthSubordinate`, the standard's own definition, not a second walk.
+     `RefModBinder.HasVariableLengthSubordinate`, the standard's own definition, not a second walk.
      COBOL1698, two negative fixtures (one per side), and the class TIER is set Rejected as well as the
      diagnostic raised. The underlying defect was not merely an under-rejection: `StorageFormPass.Classify`
      returns `DynamicString` for an `IsDynamicLength` item BEFORE reaching its Tier-B view arm, so such a view
@@ -517,7 +517,7 @@ a read). The size that range test measures is identifier-1's CURRENT one (§8.4.
 DEPENDING ON table that is the run-time extent §13.18.38.4 GR8 gives it, carried as `AddressRefMod.CurrentExtent` (the
 `OdoGroupPlace` the resolver built) and rendered by `PlaceRenderer.CurrentPositionsExpr`, whose three arms are the channels
 `SendingGroupValue` reads (kb/Work PB1969), so the address and a read of the same reference cannot disagree. A reference
-modifier with no leftmost-position is refused COBOL2876 by `ReferenceResolver.ReadRefMod`, the one reader of the captured
+modifier with no leftmost-position is refused COBOL2876 by `RefModBinder.ReadRefMod`, the one reader of the captured
 form, on every surface (§8.4.3.3.2: only the length is bracketed); the receiving chokepoint records any unreported resolver
 refusal on the refusal ledger, so a dropped receiver cannot compile clean (kb/Work PB1407).
 

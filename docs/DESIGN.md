@@ -327,7 +327,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   (the unit, a method's §11.7.4 GR5 overlay, and — by §8.4.6.2.3 — a containing program's GLOBAL tables, tagged
   with their nesting depth for §8.4.6.2.1 3)). A WRITTEN index-name, bare or qualified through its table
   (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — `IX OF T`), resolves through ONE resolution
-  (`ReferenceResolver.ResolveIndexName` over `SymbolTable.IndexCandidates`) whose candidate count meets the same
+  (`NameResolution.ResolveIndexName` over `SymbolTable.IndexCandidates`) whose candidate count meets the same
   §8.4.2.2.3 SR1 verdict as a data-name (`DataBinder.UniqueOrReportAmbiguous<T>` over `NameCandidates<T>`,
   COBOL1639). A table's OWN index (SEARCH's first index-name) is read off `DataItem.Indexes` — a declaration,
   not a reference. *(Rejected: a `name → cell` map de-duplicated on insert — two tables' `INDEXED BY IX` silently
@@ -924,7 +924,7 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   (a national position is two of those bytes — §13.18.60.4 GR8, D-N1). Format-2 in-place table SORT operates on the
   typed array directly (the one place the two SORT forms diverge — a typed comparer), over the table's CURRENT
   occurrences only (§14.9.40.4 GR20): `CobolTable.SortInPlace` receives the span the one
-  `ReferenceResolver.CurrentOccurrenceCount` model names — an OCCURS DEPENDING data-name-1's count, a
+  `PlaceBuilder.CurrentOccurrenceCount` model names — an OCCURS DEPENDING data-name-1's count, a
   dynamic-capacity table's `CurrentOccurrences`, a fixed table's whole array (kb/Work PB1174). **The subject's
   STORAGE FORM is decided once, by the binder, as `BoundTableSort.Storage`** (kb/Work PB1175, PB1055): a table with
   its own element array is `TableSortStorage.TypedArray` (the structural whole-table path `BuildTablePath(table,

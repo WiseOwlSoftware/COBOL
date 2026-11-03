@@ -237,7 +237,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// the renderer flags every such value <c>NumX.Approximate</c>), so the intermediate that holds it says so
     /// (<see cref="DataItem.HoldsApproximation"/>, kb/Work PB1606).</summary>
     private bool IsBinary64Approximation(BoundOperand c) =>
-        c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Data.Options.Arithmetic);
+        c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Options.Arithmetic);
 
     /// <summary>The widest floating-point numeric-edited PICTURE (kb/Work PB370): §13.18.40.3 SR15's 36 significand
     /// digits and §13.18.40.4 GR13 b)'s four exponent digits, the point after the first digit.</summary>
@@ -393,7 +393,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// return the <see cref="Place"/> holding it, or <see langword="null"/> when the operand needs no
     /// materialization (a literal / figurative constant) or carries a description this clone cannot freeze (a
     /// variable-length group). The store registers as a statement-scoped PRE-op on the shared
-    /// <c>DataBinder.PendingPreOps</c>, which the <c>BindStatement</c> chokepoint drains into a
+    /// <c>ProcedureBindState.PendingPreOps</c>, which the <c>BindStatement</c> chokepoint drains into a
     /// <c>BoundSequence</c> ahead of the carrying statement — "immediately before data is moved to the first of
     /// the receiving operands" (§14.9.25.4 GR1) and "at the beginning of the execution of the EVALUATE
     /// statement" (§14.9.13.4 GR3) are the same position in the generated code.</summary>
@@ -430,7 +430,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         temp.FunctionDeviceDigits = model.DeviceDigits;   // PB4124: DATE-OF-INTEGER's fixed digits, kept by a held argument
         temp.HoldsApproximation = model.Approximation;   // PB1606: every read of it is the returned value's read
         if (temp.IsDynamicLength) temp.DynMaxSize = model.DynLimit;
-        if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
+        if (ctx.Refs.Places.ResolveItem(temp) is not { } place) return null;
         // The store is a plain BoundMove, NOT a re-entry into MoveBinder.BindMoveOf: the statement's own syntax
         // rules (the SR5 edition gates, the Table-16 legality, SR2's strong-typing check, SR9's §8.5.1.12
         // compatibility screen) are about the operands the PROGRAMMER wrote and have already been applied to
@@ -443,7 +443,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // store — `EVALUATE IDA WHEN I2 WHEN I1` materialized its subject into an index clone through a MOVE and
         // then compared a value that never arrived, so it took WHEN OTHER. The identity copy of an index data item into
         // its own class-index clone is the SET it names.
-        ctx.Data.PendingPreOps.Add(IdentityStore(op, model.Item, place));
+        ctx.Data.Procedure.PendingPreOps.Add(IdentityStore(op, model.Item, place));
         return place;
     }
 
@@ -456,15 +456,11 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// were registered; a freeze that answers <see langword="null"/> moves nothing.</summary>
     private Place? Positioned(int? at, Func<Place?> register)
     {
-        var pending = ctx.Data.PendingPreOps;
-        int mark = pending.Count;
+        var pending = ctx.Data.Procedure.PendingPreOps;
+        int mark = pending.Mark();
         var place = register();
         if (place is not null && at is { } position && position < mark)
-        {
-            var steps = pending.GetRange(mark, pending.Count - mark);
-            pending.RemoveRange(mark, steps.Count);
-            pending.InsertRange(position, steps);
-        }
+            pending.InsertAt(position, pending.DrainFrom(mark));
         return place;
     }
 
@@ -506,7 +502,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <para>The intermediate result item for a truth value is a ONE-POSITION BOOLEAN item: §8.8.4.3.4 GR1 —
     /// "Boolean-expression-1 evaluates true if the result of the expression is 1" — reads exactly such an item, so
     /// the store (<c>IF condition-1 → B"1" ELSE B"0"</c>, a statement-scoped PRE-op on the same
-    /// <c>DataBinder.PendingPreOps</c> list, so it lands at the same "beginning of the execution" position as a
+    /// <c>ProcedureBindState.PendingPreOps</c> list, so it lands at the same "beginning of the execution" position as a
     /// value subject's store) and the read-back (<see cref="BoundBooleanCondition"/> over
     /// <see cref="BoundBoolRef"/>) are both ordinary nodes the emitter already renders. No new bound leaf.</para>
     /// <para>User-defined-function activations inside the condition stay on the pending list AHEAD of this
@@ -525,8 +521,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false),
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__SENDTRUTH-", "__sendtruth", tag);
-        if (ctx.Refs.ResolveItem(temp) is not { } place) return truth;
-        ctx.Data.PendingPreOps.Add(new BoundIf(truth, [StoreBit(place, "1")], [StoreBit(place, "0")]));
+        if (ctx.Refs.Places.ResolveItem(temp) is not { } place) return truth;
+        ctx.Data.Procedure.PendingPreOps.Add(new BoundIf(truth, [StoreBit(place, "1")], [StoreBit(place, "0")]));
         return new BoundBooleanCondition(new BoundBoolRef(place));
 
         static BoundStatement StoreBit(Place p, string bit) => new BoundComputeBoolean(new BoundBoolLiteral(bit), [p]);
@@ -535,7 +531,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <summary>The BOOLEAN-EXPRESSION arm (kb/Work PB1423): store a boolean expression's value, of
     /// <paramref name="positions"/> boolean positions (§8.8.2 rule 10 — "the number of boolean positions of the
     /// larger item referenced"), into an intermediate boolean item, as a PRE-op on the same
-    /// <c>DataBinder.PendingPreOps</c> — so a function argument that IS a boolean expression is evaluated at its place
+    /// <c>ProcedureBindState.PendingPreOps</c> — so a function argument that IS a boolean expression is evaluated at its place
     /// in the argument list (§8.4.3.2.4 GR2) and not after a later argument's activation changed an item it reads.
     /// The store is COMPUTE Format 2's own (<see cref="BoundComputeBoolean"/>), the channel a boolean expression has
     /// and <see cref="Materialize"/> deliberately does not reach. Null when the item cannot be resolved.</summary>
@@ -550,8 +546,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: positions, Digits: 0, Scale: 0, Signed: false),
         };
         var temp = ctx.Data.CreateCompilerTemp(model, "__SENDBOOL-", "__sendbool", tag);
-        if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
-        ctx.Data.PendingPreOps.Add(new BoundComputeBoolean(expr, [place]));
+        if (ctx.Refs.Places.ResolveItem(temp) is not { } place) return null;
+        ctx.Data.Procedure.PendingPreOps.Add(new BoundComputeBoolean(expr, [place]));
         return place;
     }
 
@@ -568,7 +564,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// compiler temp is minted from data-name-1's own description, a store of data-name-1 into it is registered as
     /// a PRE-op <i>ahead of</i> the group store (<see cref="Materialize"/> adds the group store after this call
     /// returns, so the order is the rule's own: freeze the length, then move the data), and the clone's
-    /// <see cref="OccursSpec.Depending"/> is repointed at it — which is what <c>ReferenceResolver.WrapIfOdoGroup</c>
+    /// <see cref="OccursSpec.Depending"/> is repointed at it — which is what <c>PlaceBuilder.WrapIfOdoGroup</c>
     /// reads to build the GR8 extent slice, so the temp's every use inherits the frozen length with no second
     /// mechanism. The clone's <see cref="OccursSpec.DependingName"/> deliberately stays data-name-1 AS WRITTEN: it
     /// is a description-clause fact (the temp's description IS identifier-1's, §14.9.25.4 GR1), nothing re-resolves
@@ -587,10 +583,10 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     {
         if (model.OccursSpec is { Depending: { } dep } && temp.OccursSpec is { } clonedSpec)
         {
-            if (ctx.Refs.ResolveItem(dep) is not { } depPlace) return false;
+            if (ctx.Refs.Places.ResolveItem(dep) is not { } depPlace) return false;
             var frozen = ctx.Data.CreateCompilerTemp(dep, "__SENDODO-", "__sendodo", tag);
-            if (ctx.Refs.ResolveItem(frozen) is not { } frozenPlace) return false;
-            ctx.Data.PendingPreOps.Add(new BoundMove(new BoundFieldOperand(depPlace), [frozenPlace]));
+            if (ctx.Refs.Places.ResolveItem(frozen) is not { } frozenPlace) return false;
+            ctx.Data.Procedure.PendingPreOps.Add(new BoundMove(new BoundFieldOperand(depPlace), [frozenPlace]));
             clonedSpec.Depending = frozen;
         }
         // The clone is node-for-node the model's (DataBinder.CloneTempNode walks Children in order), so the
@@ -637,14 +633,14 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         if (cell.IsDynamicLength) cell.DynMaxSize = model.DynLimit;
         var held = new LocalVector(new StatementLocal(StatementLocalRole.HeldTableAllIndices, table.Uid));
         // A compiler temporary always resolves; a refusal here would quietly leave the argument un-held, the defect this exists to remove.
-        if (ctx.Refs.ResolveItemAt(cell, [new PositionLocalElement(held, 0)]) is not { } heldElement)
+        if (ctx.Refs.Places.ResolveItemAt(cell, [new PositionLocalElement(held, 0)]) is not { } heldElement)
             throw new InvalidOperationException($"SendingValueTemp: the held table(ALL) cell '{cell.CobolName}' did not resolve to a place");
         Place? count = null;
         AllCount heldCount;
         if (dynamic)
         {
             // A dynamic-capacity table's count IS its current capacity, which the holder sets to the number of elements it counted.
-            if (ctx.Refs.CurrentOccurrenceCount(cell, []) is not { } capacityCount)
+            if (ctx.Refs.Places.CurrentOccurrenceCount(cell, []) is not { } capacityCount)
                 throw new InvalidOperationException($"SendingValueTemp: the held dynamic-capacity table '{cell.CobolName}' has no current-capacity count");
             heldCount = capacityCount;
         }
@@ -657,12 +653,12 @@ internal sealed class SendingValueTemp(BinderContext ctx)
                 Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 10, Digits: 10, Scale: 0, Signed: false),
             };
             var number = ctx.Data.CreateCompilerTemp(numberModel, "__HELDALLN-", "__heldalln", tag);
-            if (ctx.Refs.ResolveItem(number) is not { } numberPlace)
+            if (ctx.Refs.Places.ResolveItem(number) is not { } numberPlace)
                 throw new InvalidOperationException($"SendingValueTemp: the held table(ALL) count '{number.CobolName}' did not resolve to a place");
             (count, heldCount) = (numberPlace, new AllCount.Odo(numberPlace, 0, (int)capacity));
         }
         var heldAll = new TableAllPlace(heldElement, held, [heldCount]);
-        ctx.Data.PendingPreOps.Add(new BoundHoldTableAll(all, heldAll, count, IdentityStore(element, model.Item, heldElement)));
+        ctx.Data.Procedure.PendingPreOps.Add(new BoundHoldTableAll(all, heldAll, count, IdentityStore(element, model.Item, heldElement)));
         return heldAll;
     }
 
@@ -825,7 +821,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         var temp = ctx.Data.CreateCompilerTemp(model.Item, "__CONCEPT-", "__concept", tag);
         temp.IsDynamicLength = true;
         temp.DynMaxSize = model.DynLimit;
-        return ctx.Refs.ResolveItem(temp);
+        return ctx.Refs.Places.ResolveItem(temp);
     }
 
     /// <summary>The implementor's maximum length for a §15.4 returned value of a character category — the bound

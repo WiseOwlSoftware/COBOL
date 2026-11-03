@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// reference-modifier offsets"), so a USER-defined function, a nested function, and a keyword-omitted reference
 /// all fall out of the same route. The value lands in a compiler temp via <c>DataBinder.CreateCompilerTemp</c> —
 /// "THE ONE synthesized-compiler-temp constructor" — whose store registers as a statement-scoped pending PRE-op on
-/// the shared <c>DataBinder.PendingPreOps</c>, drained at the <c>BindStatement</c> chokepoint by the mark-on-entry /
+/// the shared <c>ProcedureBindState.PendingPreOps</c>, drained at the <c>BindStatement</c> chokepoint by the mark-on-entry /
 /// drain-own-suffix protocol that already served the UDF and object-property clients.</para>
 ///
 /// <para>⛔ <b>One parse, one tree (kb/Work PB2151, D10's second half).</b> Until PB2151 the route recovered the
@@ -61,14 +61,14 @@ public sealed partial class StatementBinder
     /// detail for <c>EL(A + 5)</c> with <c>A PIC 9(21)</c> holding 10^20: the narrowing to <c>long</c> now happens only
     /// at the subscript read (<c>CobolTable.Occ</c>, which carries the exact value to the diagnostic). The item takes
     /// the <c>Int128</c> wide tier (<c>PicInfo.IsWide</c>, &gt;18 digits), which the position
-    /// read accepts (<see cref="ReferenceResolver.NumericPositionCarriers"/>). The temp is synthetic and never enters
+    /// read accepts (<see cref="SubscriptBinder.NumericPositionCarriers"/>). The temp is synthetic and never enters
     /// <c>DataBinder.ConformanceForest</c>, so the edition digit-capacity gates do not apply to it.</para></summary>
     private static readonly PicInfo SegmentTempPic =
         new(PicCategory.Numeric, Usage.Display, Length: 38, Digits: 38, Scale: 0, Signed: true);
 
     /// <summary>Materialize one position the resolver's direct walk cannot read — a function-bearing subscript or
     /// ref-mod bound, a division, an exponentiation, a decimal literal (the D18 route; the
-    /// <c>ReferenceResolver.MaterializeSegment</c> hook), given the position's own <c>arithmeticExpression</c> parse
+    /// <c>SubscriptBinder.MaterializeSegment</c> hook), given the position's own <c>arithmeticExpression</c> parse
     /// node (kb/Work PB2151: the node is bound where the grammar parsed it). Returns the §15.4 temporary the value
     /// lands in, or <see langword="null"/> to leave the caller's loud posture untouched. A position that is not an
     /// arithmetic expression never arrives: the resolver refuses it by name (COBOL2363, kb/Work PB1030).
@@ -110,9 +110,9 @@ public sealed partial class StatementBinder
         var model = new DataItem { Level = 1, CobolName = "__SUBEXPR-MODEL", ClrName = "__subexprModel",
                                   Pic = SegmentTempPic };
         var temp = data.CreateCompilerTemp(model, "__SUBEXPR-", "__subexpr", $"L{line}");
-        if (Ctx.Refs.ResolveItem(temp) is not { } place) return null;
+        if (Ctx.Refs.Places.ResolveItem(temp) is not { } place) return null;
 
-        data.PendingPreOps.Add(new BoundPositionValue(value, place, RefMod: position == SegmentPosition.RefMod));
+        data.Procedure.PendingPreOps.Add(new BoundPositionValue(value, place, RefMod: position == SegmentPosition.RefMod));
         return temp;
     }
 
@@ -126,8 +126,8 @@ public sealed partial class StatementBinder
     private Place FreezeOdoExtentBeforeRefMod(OdoGroupPlace odo, int preOpMark, int line)
     {
         var temp = data.CreateCompilerTemp(odo.Depending.Item, "__REFODO-", "__refodo", $"L{line}");
-        if (Ctx.Refs.ResolveItem(temp) is not { } frozen) return odo;
-        data.PendingPreOps.Insert(preOpMark, new BoundMove(new BoundFieldOperand(odo.Depending), [frozen]));
+        if (Ctx.Refs.Places.ResolveItem(temp) is not { } frozen) return odo;
+        data.Procedure.PendingPreOps.InsertAt(preOpMark, new BoundMove(new BoundFieldOperand(odo.Depending), [frozen]));
         return odo with { Depending = frozen };
     }
 }

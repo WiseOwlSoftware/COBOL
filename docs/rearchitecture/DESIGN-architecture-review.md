@@ -148,9 +148,9 @@ is tracked tooling with a self-test, so the next batch is a command, never a bri
 | preprocessor (`preprocessor`) | `src/WiseOwl.Cobol.Frontend/Preprocessor/**` | — |
 | lexer and grammar (`lexer-grammar`) | `src/WiseOwl.Cobol.Frontend/Grammar/**` `src/WiseOwl.Cobol.Frontend/*.ps1` | — |
 | parser drivers and the syntax tree (`parser-tree`) | `src/WiseOwl.Cobol.Frontend/{Parsing,Cst,Expressions,Pipeline,Common}/**` `src/WiseOwl.Cobol.Frontend/*.csproj` | — |
-| data binding (`data-binding`) | `src/WiseOwl.Cobol.Compiler/Binding/*.cs` `src/WiseOwl.Cobol.Compiler/Binding/Model/**` `src/WiseOwl.Cobol.Compiler/Binding/Passes/**` `src/WiseOwl.Cobol.Compiler/Binding/Repository/**` | `src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver*.cs` `src/WiseOwl.Cobol.Compiler/Binding/RefResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/QualifiedNameClasses.cs` `src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/Oo*.cs` `src/WiseOwl.Cobol.Compiler/Binding/Prototype*.cs` |
+| data binding (`data-binding`) | `src/WiseOwl.Cobol.Compiler/Binding/*.cs` `src/WiseOwl.Cobol.Compiler/Binding/Model/**` `src/WiseOwl.Cobol.Compiler/Binding/Passes/**` `src/WiseOwl.Cobol.Compiler/Binding/Repository/**` | `src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver*.cs` `src/WiseOwl.Cobol.Compiler/Binding/{CounterResolver,NameResolution,RefModBinder,SubscriptBinder,ObjectPropertyResolver}.cs` `src/WiseOwl.Cobol.Compiler/Binding/RefResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/QualifiedNameClasses.cs` `src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/Oo*.cs` `src/WiseOwl.Cobol.Compiler/Binding/Prototype*.cs` |
 | procedure binding (`procedure-binding`) | `src/WiseOwl.Cobol.Compiler/Binding/Procedure/**` | — |
-| reference resolution (`reference-resolution`) | `src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver*.cs` `src/WiseOwl.Cobol.Compiler/Binding/RefResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/QualifiedNameClasses.cs` `src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs` | — |
+| reference resolution (`reference-resolution`) | `src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver*.cs` `src/WiseOwl.Cobol.Compiler/Binding/{CounterResolver,NameResolution,RefModBinder,SubscriptBinder,ObjectPropertyResolver}.cs` `src/WiseOwl.Cobol.Compiler/Binding/RefResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/QualifiedNameClasses.cs` `src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs` | — |
 | validation and edition gating (`validation`) | `src/WiseOwl.Cobol.Compiler/Validation/**` `src/WiseOwl.Cobol.Compiler/Binding/Validation/**` | — |
 | lowering and the bound tree (`bound-tree`) | `src/WiseOwl.Cobol.Compiler/Binding/Bound/**` `src/WiseOwl.Cobol.Compiler.SourceGen/**` | — |
 | Roslyn code generation (`codegen`) | `src/WiseOwl.Cobol.Compiler/CodeGen/**` `src/WiseOwl.Cobol.Compiler/*.{cs,csproj}` | — |
@@ -571,9 +571,9 @@ context is on that list. The input that crosses `ICodeGenBackend` carries both t
 `Core.CompilationUnitContext Tree` and `IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> InterfaceData`
 (`Binding/Model/BoundCompilation.cs:34,38`); each `BoundUnit` holds `Core.ProgramUnitContext Ctx`, `DataBinder Data`
 and `ReferenceResolver Refs` (`Binding/Model/BoundUnit.cs:34,48-49`); `EmitContext` exposes `DataBinder Data`
-(`CodeGen/Emit/EmitCore.cs:19,34`), `UnitEmitters` holds `ReferenceResolver Refs`, emitters call
-`ReferenceResolver.ResolveItem` (the `Place` builder) 24 times at emit time, and `OoEmitter`, `ProgramEmitter` and
-`CSharpEmitter` call `BinderDriver`. Those are the facts §8.1's refusals rest on (kb/Work PB2293 records the leak
+(`CodeGen/Emit/EmitCore.cs:19,34`), and `OoEmitter`, `ProgramEmitter` and `CSharpEmitter` call `BinderDriver`. (The emit-time
+`Place` calls this paragraph used to count are gone: `UnitEmitters.Refs` and the 24 `ResolveItem` calls ended with kb/Work PB2375,
+which builds every item's `Place` at bind time into `BoundUnit.Places` and `OoClassUnit.Places`.) Those are the facts §8.1's refusals rest on (kb/Work PB2293 records the leak
 against backend-abstraction §1.3, whose table does not list it), and the wave kind that removes them is an Extract
 (§8.3 (1) and (4): the binder hands the backend an immutable `DataBindResult`, and `PlaceBuilder` moves to
 `compiler.model` and runs at bind time), not a Move.
@@ -652,7 +652,7 @@ the assemblies contain that the file does not place fails the test. The file's c
     { "from": "WiseOwl.Cobol.Binding", "to": "WiseOwl.Cobol.CodeGen.Emit", "uses": 1, "removedBy": "PB2396 (move: EmitText.RepeatToWidth to frontend.common — DataBinder.cs:2970)" },
     { "from": "WiseOwl.Cobol.Binding.Procedure", "to": "WiseOwl.Cobol.CodeGen", "uses": 2, "removedBy": "PB2395 (the same extract — InitializeBinder.cs:869)" },
     { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.CodeGen", "uses": 1, "removedBy": "PB2397 (extract: the C# member chain leaves the model — BoundUnit.cs:67, RuntimeApi.OuterChain)" },
-    { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Binding", "uses": 20, "removedBy": "PB2361 (DataBindResult: BoundUnit.Data and .Refs, BoundCompilation.InterfaceData, OoClassUnit's binder), PB2375 (PlaceBuilder at bind time: OdoModel.SearchDepending's resolver, OdoModel.cs:188), PB2402 (OoMethodDataScope and OptionsModel.cs's types move with the OO symbols) and PB2399 (the rest: SymbolTable's binder, the binder statics the model calls, BoundCompilation.Turn, LinkageFormal, Table16Operand, the alphabet family); PB2399 also ends DataItem and FileModel -> ReferenceResolver (HasVariableLengthSubordinate, DataItem.cs:956, FileModel.cs:566,627) and moves NationalAlphabetDef with the alphabet family (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Binding", "uses": 20, "removedBy": "PB2361 (DataBindResult: BoundUnit.Data and .Refs, BoundCompilation.InterfaceData, OoClassUnit's binder), PB2402 (OoMethodDataScope and OptionsModel.cs's types move with the OO symbols) and PB2399 (the rest: SymbolTable's binder, the binder statics the model calls, BoundCompilation.Turn, LinkageFormal, Table16Operand, the alphabet family); PB2399 moves NationalAlphabetDef with the alphabet family (Draft 6, G1); PB2375 (landed) built the PlaceBuilder in this layer, so OdoModel.SearchDepending, DataItem, FileModel and RecordLayout name no resolver" },
     { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Binding.Bound", "uses": 2, "removedBy": "PB2400 (move: BoundUnit, OoClassUnit and BoundCompilation to compiler.bound, once they hold no binder, C# chain, parse context or OO-layer answer)" },
     { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Compiler.Oo", "uses": 5, "removedBy": "PB2402 (move: the OO symbols with the closure they name, to compiler.model; 5 -> 2) and PB2403 (AdapterPair to compiler.model; the OoClassTable answers become BoundCompilation data; 2 -> 0)" },
     { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 4, "removedBy": "PB2398 (extract: BoundCompilation.Tree and BoundUnit.Ctx, BoundCompilation.cs:34, BoundUnit.cs:34, carry parse contexts across ICodeGenBackend; each reader's fact becomes a bound-node fact, DESIGN-backend-abstraction §1.1 lists no parse context)" },
@@ -663,12 +663,12 @@ the assemblies contain that the file does not place fails the test. The file's c
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2347 (the StatementBinder move)" },
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 18, "removedBy": "PB2347 (StatementBinder, the parse-context reader, out of Bound/) and PB2398 (BoundOo.cs's parse-context use becomes a bound-node fact)" },
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Parsing", "uses": 1, "removedBy": "PB2347 and PB2398 (the StatementBinder move and the parse-context extract)" },
-    { "from": "WiseOwl.Cobol.Binding", "to": "WiseOwl.Cobol.Validation", "uses": 15, "removedBy": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, DataBinder.Reports.cs:3777), the pair no move of BinderDriver removes (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.Binding", "to": "WiseOwl.Cobol.Validation", "uses": 15, "removedBy": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends ReportSectionBinder -> VersionConformancePass (PictureConstructId to PicInfo, ReportSectionBinder.cs, the SUM clause PICTURE screen), the pair no move of BinderDriver removes (Draft 6, G1)" },
     { "from": "WiseOwl.Cobol.Binding.Passes", "to": "WiseOwl.Cobol.Validation", "uses": 1, "removedBy": "PB2320 (BindPipeline's VersionConformancePass row, BindPipeline.cs:163, goes with the driver's pass schedule)" },
     { "from": "WiseOwl.Cobol.Binding.Procedure", "to": "WiseOwl.Cobol.Validation", "uses": 2, "removedBy": "PB2320 and PB2404 (the same moves)" },
-    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding", "uses": 93, "removedBy": "PB2361 and PB2375 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs; PlaceBuilder runs at bind time, so UnitEmitters.Refs and the 24 emit-time ReferenceResolver.ResolveItem calls go), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1)" },
-    { "from": "WiseOwl.Cobol.CodeGen.Emit", "to": "WiseOwl.Cobol.Binding", "uses": 33, "removedBy": "PB2361, PB2375, PB2402, PB2399 and PB2405 (the same extracts and moves); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1)" },
-    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding.Procedure", "uses": 4, "removedBy": "PB2406 (the four cursor records of Binding/Procedure/PlaceCursor.cs and ReferenceResolver.BuildCellPath to compiler.model; EcBinder.ExternalNames to the model, IntrinsicBinder.CompileClock read at bind time)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding", "uses": 93, "removedBy": "PB2361 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs; PB2375, landed, removed UnitEmitters.Refs and the emit-time ResolveItem calls), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.CodeGen.Emit", "to": "WiseOwl.Cobol.Binding", "uses": 33, "removedBy": "PB2361, PB2402, PB2399 and PB2405 (the same extracts and moves); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding.Procedure", "uses": 4, "removedBy": "PB2406 (the four cursor records of Binding/Procedure/PlaceCursor.cs and PlaceBuilder.BuildCellPath to compiler.model; EcBinder.ExternalNames to the model, IntrinsicBinder.CompileClock read at bind time)" },
     { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Compiler.Oo", "uses": 19, "removedBy": "PB2402 (the OO symbols to compiler.model) and PB2403 (AdapterPair to compiler.model; the OoClassTable, ActivationDescriptions and OoStandardClasses answers reach the backend as BoundCompilation data); PB2403's sites include ProgramEmitter's OoClassTable read (Draft 6, G1)" },
     { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Frontend", "uses": 3, "removedBy": "PB2407 (move: CompilationInputs with the InputProbe and EnvironmentRead it names, Pipeline/CompilationInputs.cs, to frontend.common)" },
     { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 2, "removedBy": "PB2398 (the two code-generation parse-context reads become bound-node facts)" },
@@ -729,7 +729,7 @@ model; PB2405 sends `CobolClass` (an enum the model's `RecordLayout` names) to `
 `BoundStores`, because `MoveClassifier` and `MoveOverlap` are the bound-tree computations of point (1) above, which a
 bound node calls and an emitter reads; PB2404 moves `IntegerOperandRules` with `IntegerSlot` to `compiler.binding`, which
 may read the parse contexts its table is keyed on; PB2406 moves all four cursor records with
-`ReferenceResolver.BuildCellPath`; PB2407 moves `CompilationInputs` with `InputProbe` and `EnvironmentRead`. Draft 5's
+`PlaceBuilder.BuildCellPath`; PB2407 moves `CompilationInputs` with `InputProbe` and `EnvironmentRead`. Draft 5's
 sequence left out the Extract notes that move a member across a layer (the fifth refuter, G1), so Draft 6 runs the
 what-if over EVERY note that does (26 steps, PB2118 Draft 6): PB2320 moves `BinderDriver` to `compiler.pipeline` only
 after PB2418 takes out the three members other layers call (`BindProcedures`, `UserFunctionsOf` and
@@ -1068,7 +1068,7 @@ know which of them has run. And four facts ACCUMULATE across phases, which no si
   (`DataBinder.cs:718`), and `UsageCollectionPass.Collect` adds the boundary formals and the whole-group operands at
   UsageCollected (`Passes/UsageCollectionPass.cs:73-110`); `StorageFormPass` reads the union (`StorageFormPass.cs:65`).
 - `ImageForcedItems` is appended at resolve time (Tier-B and CALL-cell REDEFINES leaves, FILE record leaves, report
-  print faces: `DataBinder.cs:742,7567,7581`, `DataBinder.Linkage.cs:868`, `DataBinder.Reports.cs:3210`) and during
+  print faces: `DataBinder.cs:742,7567,7581`, `DataBinder.Linkage.cs:868`, `ReportSectionBinder.cs`) and during
   procedure binding (`MoveBinder`'s figurative-fill and ref-mod-store receivers, `Procedure/Verbs/MoveBinder.cs:458,551`),
   and it is read MID-BIND in statement order (`IsImageBackedEarly`, `ReferenceResolver.cs:651,1057`: "a fact recorded
   by an earlier statement's bind is visible to a later statement's; one recorded later is not", `DataBinder.cs:278-284`),
@@ -1146,14 +1146,29 @@ statement-order visibility is today's exactly because the binder appends and rea
 are the four fact sets, each with its declared appending phases (`WholeGroupReferenced`: FilesResolved and
 UsageCollected; `ImageForcedItems`: FilesResolved and ProcedureBound, read early by the resolver;
 `CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule).
-The procedure-bind state is NOT in `DataBindState`: it is `BindSession`'s `ProcedureBindState`, which exists only while
-procedure binding runs and is never in `DataBindResult`, in its three shapes: a **scoped override** (`Scoped<T>`:
-`Push(value)` returns the scope whose disposal restores the previous value, the `using` shape `EnterMethodScope`
-already has at `StatementBinder.cs:350`; it holds `Options`, whose pushed value is the method symbol's own
-`MethodOptions`); an **ordered drain queue** (`DrainQueue<T>`: `Add`, `Mark()` and `DrainFrom(mark)`, which returns and
-removes the entries after the mark in registration order; it holds `PendingPreOps` and `OoPendingPropertyOps`); and a
-**scope cursor** (`Cursor<T>`: `Enter(value)` returns the restoring scope; it holds `OperandEvaluations`, entered at
-zero per statement, and `ActiveMethodScope`). The three kinds `BinderDriver` writes around the data phases take
+The procedure-bind state is NOT in `DataBindState`: it is `ProcedureBindState` (`Binding/ProcedureBindState.cs`), which
+no data pass reads and which is never in `DataBindResult`, in its three shapes: a **scoped override** (`Scoped<T>`:
+`Push(value)` returns the scope whose disposal restores the previous value, and `Over(root)` reads the innermost pushed
+value, else the root its reader passes, so the override holds no reference to the state it overrides; it holds
+`Options`, whose root is the unit's OPTIONS slice and whose pushed value is the method symbol's own `MethodOptions`, pushed by
+`StatementBinder.BindClassBody`); an **ordered drain queue** (`DrainQueue<T>`: `Add`, `Mark()` and `DrainFrom(mark)`,
+which returns and removes the entries after the mark in registration order, plus the two operations the binders
+proved they need: `InsertAt(position, …)`, the evaluation-order placement a freeze makes ahead of a later operand's
+entries (`SendingValueTemp.Positioned`, `StatementBinder.FreezeOdoExtentBeforeRefMod`; §14.6.4), and `Since(mark)`,
+the read of an operand's entries without taking them (the reference resolver's enclosing-occurrence capture); it holds
+`PendingPreOps` and `PropertyOps`, the former `OoPendingPropertyOps`); and a **scope cursor** (`Cursor<T>`:
+`Enter(value)` returns the restoring scope, and `Advance(value)` moves the cursor inside the open scope, which the
+operand-evaluation count needs as the statement drains its steps; it holds `OperandEvaluations`, entered at zero per
+statement, and `ActiveMethodScope`). It is held per unit binder (`DataBinder.Procedure`), not on `BindSession`: the
+statement walk, the reference resolver and the binder's own name lookup reach it through the unit's binder (a class's
+methods bind through their half's binder), and the method-scope cursor is also entered, for the one method whose
+names they resolve, by the storage-claim resolution (`DataBinder.ResolveStorageClaimHead`, a data pass) and by the
+migration-flag pass (`FlagConformancePass`, after binding). Code generation has its own scoped override,
+`EmitContext.Options`: `OoEmitter.EmitMethod` pushes the method's OPTIONS model around the method's LOCAL-STORAGE
+initializers (kb/Work PB1215), which used to assign `DataBinder.Options` and restore it. The three shapes hold no
+binder type, so they live in compiler.model (`Binding/Model/RestoringScopes.cs`), below both of their users; so do
+the checking slices' records (`UnitChecking`, `MethodChecking`, `Binding/Model/CheckingSlices.cs`) and the
+visible-file view (`FileNameScope`), which code generation and the statement binder read. The three kinds `BinderDriver` writes around the data phases take
 three shapes. The **configuration slice** is a value slice with ONE producer per bound unit, `ConfigurationStep`, at
 the environment phase, before every data phase that reads it (today's literal and PICTURE reads), and its source is a
 closed union with three arms, one per kind of unit the standard gives a configuration: **Own** — an outermost program,
@@ -1186,14 +1201,23 @@ writes them today) and before ProcedureBound; and `MethodChecking` (`OoUniversal
 `BinderDriver.cs:112-135` does today, after `ResolveOverrides` and before any body binds, read through the method
 symbol as today. `OoUniversalCheckingHere` is a binder-state kind of this shape, not a sixth one: a `TurnState` fold the
 binder writes once and code generation reads (`OoEmitter.cs:539`). The
-**inheritance merge** is `BindSession`'s `InheritStep`, run once per contained program, which receives the containers
-as their `DataBindResult`s, nearest first (a parent binds before its children), and writes only one slice of its own,
-never a data phase's: `InheritedGlobals` (the inherited files, container-local files, reports, subtree tiers with their
-depth, bridges, and the shadowed-constant drop list; a lookup reads the child's own slice first and this one after,
-which is `TryAdd`'s local-shadows rule made structural), carried into `DataBindResult`. `InheritStep.Seed` writes the
-seed part at a phase before the first data phase, `GlobalsSeeded`; `InheritStep.Merge` writes the rest at
-`GlobalsInherited`, after the last data phase and before ProcedureBound; `MarkFormals` stays a write to the formals'
-items, ordered by the step as today.
+**inheritance merge** is `InheritStep` (`Binding/InheritStep.cs`), run for every program unit (an outermost one has no
+container and inherits nothing), which receives the containers nearest first (a parent binds before its children; as
+their `DataBindResult`s once step 11 makes one), and writes one slice of its own, never a data phase's:
+`InheritedGlobals` (`DataBindState.Inherited`: the inherited GLOBAL files with their depth, their GLOBAL record areas,
+the container-local files, the inherited type declarations, and the offers of the containers' GLOBAL reports and data
+roots; a lookup reads the child's own declarations first and this slice after — `DataBinder.VisibleFiles`,
+`TryFindTypeDecl` — which is `TryAdd`'s local-shadows rule made structural: the merge of the inherited files into
+`FilesByName` is gone, and `FilesByName` holds the unit's own files only), carried into `DataBindResult`.
+`InheritStep.Seed` writes the seed part at a phase before the first data phase, `GlobalsSeeded`; `InheritStep.Merge`
+writes the rest at `GlobalsInherited`, after the last data phase and before ProcedureBound: the formals'
+omitted-argument guards (`MarkFormals`, a write to the formals' items, ordered by the step as today), the GLOBAL
+bridges and the drop of an inherited constant a nearer data-name hides. A container's GLOBAL reports and GLOBAL data
+subtrees are made visible INSIDE the unit's declaration half (`ReportSectionBinder.InheritContainerReports`,
+`InheritContainerGlobalData`; kb/Work PB3766, PB4199), because the unit's own FILE STATUS, KEY, DEPENDING ON and ASSIGN
+USING clauses name them, so the step offers them in its seed half rather than merging them after the data phases. The
+inherited constant-names still join the unit's own constant table (`InheritGlobalConstants`, called by the seed half,
+and `DropShadowedConstants`, by the merge half), and the inherited subtrees its own name indexes with their depth.
 A pass declares its views on its `IBindPass` class, and `ValidateDag` checks
 the declarations against the phase order at startup: a value slice is written only in its phase and read only after
 it; a fact set is appended only in a phase that declares it, read early only by a pass that says so, and read whole
@@ -1213,9 +1237,11 @@ neither can write one. Neither checks the merge's order (nearest
 container first, a local name shadowing), which stays the step's loop, as today, and the oracle proves it.
 `ValidateDag` checks nothing about the three procedure-bind shapes, because they live inside ONE phase
 (ProcedureBound), where order is the statement walk's, not the pass list's; what holds them is the type: no
-`IBindPass` can receive `ProcedureBindState` (`BindSession` constructs it when procedure binding starts, after the
-pipeline's last data pass), a scoped override and a cursor change only through a restoring scope, and a drain queue
-admits no removal but `DrainFrom` its own mark. That a statement drains exactly its own suffix stays the statement
+`IBindPass` declares `ProcedureBindState` among its views, a scoped override and a cursor change only through a
+restoring scope (a cursor's `Advance` moves it inside the open scope only), and a drain queue admits no removal but
+`DrainFrom` its own mark. Who writes a value slice, which the types cannot say, is pinned by
+`DataBindStateBoundaryDriftTests` (the checking slices are written only with `CheckingFold`'s answer;
+`InheritedGlobals` only by `InheritStep`). That a statement drains exactly its own suffix stays the statement
 walk's duty, as today, and the oracle proves it. Most of a data pass's output is mutation of the `DataItem` forest
 (`UsageInheritancePass` writes `item.Pic`, `DataBinder.cs:6752,6775,6816`), which no slice declaration covers: those
 writes stay ordered by the explicit pass list, exactly as today, and the oracle proves the order; the type system takes
@@ -1230,6 +1256,23 @@ immutable record that replaces `DataBinder` on `BoundUnit.Data`, `BoundCompilati
 `EmitContext.Data` (§8.1's largest refusal). `DataBinder` keeps only the orchestration that builds the state, runs the
 pipeline and returns the result (`DESIGN-module-topology.md` §2.5's "thin orchestrator + named passes", with the
 slices and fact sets as the seam it lacked).
+**The report section (step 7, PB2357).** The `Reports` partial (5,341 lines, of which the first thousand were the report
+model types) is three files and two classes. `ReportModel.cs` holds the model types, unchanged. `ReportSectionBinder`
+(`Binding/ReportSectionBinder.cs`, `DataBinder.ReportSection`) is the binder: it binds the RD entries
+(`BindReportSection`), resolves them after the data division is built (`ResolveReports`, the `FilesResolved` pass of that
+name), makes a container's GLOBAL reports visible (`InheritContainerReports`) and answers the report-item refusal
+(`ReportEntryReferenceRefused`, §13.8.6.2.3); it reaches the data binder's shared helpers (the clause-operand resolvers,
+the picture screens, the unique-id counter) through the `DataBinder` it is built with, which the later steps that extract
+those helpers replace one by one. `ReportScope` (`Binding/ReportScope.cs`, `DataBinder.Reports`) is the read side the binder
+writes: `Declared`, `Visible`, `Depth`, the sum counters, the refused PRESENT WHEN conditions and the three name lookups over
+them (`EntriesNamed`, `NearerEntryHides`, `NearestInScope`); it holds no binder, so it is what `DataBindResult` carries
+at step 11. `DataBinder.SumCounters` stays the gated view of `ReportScope.SumCounters` (the `FilesResolved` watermark).
+The code generator, the symbol table and `StatementBinder` read `ReportScope`, a type in `WiseOwl.Cobol.Binding` beside
+`ReportModel`, so their new pairs are tolerated in `architecture-edges.json`, and PB2420 removes them: it names
+`ReportScope.cs` in its Sites and moves the type to compiler.model with the report model types it holds (after PB2416 cuts
+the parse-context key of its refused PRESENT WHEN set into a verdict on the report model, and PB2399 moves `DataBinder.QualifierWalk`, the one SR4 qualifier walk it calls, down to the model layer), while PB2361 makes `DataBindResult` the
+carrier and leaves the type where it is; the `StatementBinder` pair keeps PB2347 beside PB2420. `ReportSectionBinder` replaces `DataBinder` as the owner of the two `Validation` pairs
+(`VersionConformancePass`, `IntegerOperandRules`).
 *Seam:* `IBindPass` over its declared views (value slices and fact sets), `ProcedureBindState`'s three shapes, and
 `DataBindResult`; step 1 (PB2296) carries every field named above. *Steps:* PB2296,
 PB2352–PB2361.
@@ -1299,22 +1342,31 @@ adjacent behind one entry per function; the shared argument coercions become `Nu
 entry per function on its family type, reached by emitted code through a `RuntimeMembers` handle (9); every rename
 lands as one explained oracle difference (§4 item 1). *Steps:* PB2298, PB2365–PB2370.
 
-**(4) `WiseOwl.Cobol.Binding.ReferenceResolver`** — R0-0004 (its partial and nested types).
-*Responsibilities, from the members.* Qualification ("Qualification is the specification of superordinate names
-from the hierarchy to which a user-defined name belongs", §8.4.2.2.1); subscripts ("Subscripts are used when
-reference is made to an individual element within a table of like elements", §8.4.2.3.1) including ALL and index-name
-subscripts and the D10 residue that still renders a C# segment at bind time (`RenderSegment`, PB2151); reference
-modification ("Reference modification defines a unique data item by specifying an identifier, a leftmost position,
-and a length", §8.4.3.3.1); the item-to-`Place` construction (the ONE builder, `RenamesPlaceBuilderDriftTests`),
-which the backend calls today (`ResolveItem`, 24 emit-time calls); the special counters (LINAGE-COUNTER, PAGE-COUNTER,
-LINE-COUNTER); table positions; object properties (the partial); and the closed answer `RefResolution`
-(`RefResolutionDriftTests`).
-*Target types:* `NameResolution` (§8.4.2.2 over `SymbolTable`, candidates in, uniqueness decided), `SubscriptBinder`
-(§8.4.2.3 → `BoundExpr` positions: PB2151's landing place), `RefModBinder` (§8.4.3.3), `PlaceBuilder` (item +
-positions + window → `Place`), placed in `compiler.model` and run at bind time, so every `Place` the backend needs is
-already in the bound tree and the backend never calls it, `CounterResolver`, `ObjectPropertyResolver`;
-`ReferenceResolver` stays the funnel that composes them and answers `RefResolution`. *Seams:* `RefResolution` and
-`PlaceBuilder.Build(…) → Place`. *Steps:* PB2299, PB2371–PB2375.
+**(4) `WiseOwl.Cobol.Binding.ReferenceResolver`** — R0-0004 (its partial and nested types). **LANDED (wave 20261827; steps
+PB2299, PB2371–PB2375 ran as one group, one checkpoint commit per step, each proven by `compare_oracle.py` IDENTICAL).**
+*Responsibilities, from the members.* Qualification ("Qualification is the specification of superordinate names from the
+hierarchy to which a user-defined name belongs", §8.4.2.2.1); subscripts ("Subscripts are used when reference is made to an
+individual element within a table of like elements", §8.4.2.3.1) including ALL and index-name subscripts; reference
+modification ("Reference modification defines a unique data item by specifying an identifier, a leftmost position, and a
+length", §8.4.3.3.1); the item-to-`Place` construction (the ONE builder, `RenamesPlaceBuilderDriftTests`), whose boundary with the code generator `PlaceTableBoundaryDriftTests` pins; the report
+counters; object properties; and the closed answer `RefResolution` (`RefResolutionDriftTests`).
+*Target types, as built* (each `internal sealed class X(ReferenceResolver refs, DataBinder data)`, composed lazily by the
+funnel; the source-scan drift tests read the subsystem through `ResolverSources`, found by what a file declares):
+`NameResolution` (`Binding/NameResolution.cs`: §8.4.2.2 over `SymbolTable`, candidates in, uniqueness decided, the COBOL1639
+report, the index-name lookup, the §13.7.3 SR4 LINKAGE screens), `SubscriptBinder` (`Binding/SubscriptBinder.cs`: §8.4.2.3 to
+typed `Position`s, PB2151's landing place, with the position binder reference modification shares), `RefModBinder`
+(`Binding/RefModBinder.cs`: §8.4.3.3), `ObjectPropertyResolver` (`Binding/ObjectPropertyResolver.cs`: §8.4.3.1.2 Format 7 and the
+object views), `CounterResolver` (`Binding/CounterResolver.cs`) and `PlaceBuilder` (`Binding/Model/PlaceBuilder.cs`, in
+`compiler.model` over `IPlaceFacts`, with `PlaceTable`, `OccurrenceCounts` and `DeferredShape`), whose places `PlaceTablePass`
+builds at bind time so the backend reads finished `Place`s. *Estimate corrected:* the design text named LINAGE-COUNTER,
+PAGE-COUNTER and LINE-COUNTER for `CounterResolver`, but the resolver holds no arm for those three (the identification step
+stops at `SpecialRegister` and the statement binder routes them to `BoundLinageCounterRef` / `BoundReportCounterRef`); the code that
+was a counter in the resolver is the REPORT SECTION SUM counter (§13.18.54.4 GR5), which is what the type owns.
+`ReferenceResolver` stays the funnel (`Identify`, the three `RefResolution` entries, the CAPACITY, EXCEPTION-OBJECT and DEBUG-ITEM
+register views, and the per-resolution state `Probing`, `Diagnosed`, `SegmentDeferred`). *Seams:* `RefResolution` and
+`PlaceBuilder` / `PlaceTable`. The Format-2 table SORT of shared storage still asks `PlaceTable.Window` and
+`.CurrentOccurrenceCount` at its comparator's run-time element numbers (three `SortEmitter` sites): bound-tree data when SortBinder
+builds those windows over `StatementLocal` positions. *Steps:* PB2299, PB2371–PB2375 (landed).
 
 **(5) `WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder`** — R0-0005 (one file; its hand `case Bound…` arms are counted
 in PB2300); with `IntrinsicArgumentRules` (R0-0020) and `IntrinsicCatalog` (a table written as

@@ -132,7 +132,7 @@ internal static class BindPipeline
         new BindPass("CheckValueLiteralClasses", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.CheckValueLiteralClasses()),
         new BindPass("ResolveFiles", PassPhase.OccursResolved, PassPhase.FilesResolved, d => d.ResolveFiles()),
         new BindPass("GateFileRecordByteSurface", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.GateFileRecordByteSurface()),
-        new BindPass("ResolveReports", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.ResolveReports()),
+        new BindPass("ResolveReports", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.ReportSection.ResolveReports()),
         new BindPass("CallBindExternalAndGlobal", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.CallBindExternalAndGlobal(program)),
         new BindPass("PtrBindBasedAndAddressables", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.PtrBindBasedAndAddressables(program)),
         // A RECURSIVE unit's WS → the static-field channel (§13.5.4 GR1 / §14.6.2.3.3; no-op unless the binder's
@@ -156,6 +156,9 @@ internal static class BindPipeline
         new("UsageCollectionPass", PassPhase.ProcedureBound, PassPhase.UsageCollected, UsageCollectionPass.Run),
         // Settle every StoreAsImage flag (temp re-sync → image marking → OO harmonize), then classify StorageForm.
         new("StorageFormPass", PassPhase.UsageCollected, PassPhase.StorageComputed, StorageFormPass.Run),
+        // Every Place the backend asks of an ITEM (not of a written reference) is built here, once, in the model layer
+        // (kb/Work PB2375): the storage-form pass settled the early-image facts the builder reads.
+        new("PlaceTablePass", PassPhase.StorageComputed, PassPhase.PlacesBuilt, PlaceTablePass.Run),
         // THE edition gate (P3's two-arm pass, now the NAMED terminal pass — P6 Step 4): the parse-tree arm fires
         // every syntactic introduction/removal/phrase gate on RECOGNITION; the bound-tree arm fires the
         // genuinely-semantic gates. Reports through the session's edition sink, so the Bind result carries every

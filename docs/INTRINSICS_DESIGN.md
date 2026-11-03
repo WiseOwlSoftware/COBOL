@@ -804,7 +804,7 @@ specifier words (declared after the paragraph, so a specifier written before `FU
 and the OO words (object-class-, interface-, method- and property-names); `UserWordDeclarationDriftTests` parses
 §8.3.2.2's list and fails on a type neither declared nor exempted with its reason. The membership is ONE function,
 `DataBinder.IsRepositoryIntrinsic`, asked by the screen, `IntrinsicBinder.KeywordOmittedFunction` (and its
-reserved-name arm) and `ReferenceResolver.IsFunctionBearing`; its intrinsic half,
+reserved-name arm) and `SubscriptBinder.IsFunctionBearing`; its intrinsic half,
 `DataBinder.TryIntrinsicOfThisCompilation`, is also what `KeywordOmittedFunction` asks for "is this word an intrinsic
 at all", and a named specifier is stored by its CANONICAL name, so every spelling of one function answers alike. The
 word goes through `CobolWordsMap.Resolve` (GR14 —

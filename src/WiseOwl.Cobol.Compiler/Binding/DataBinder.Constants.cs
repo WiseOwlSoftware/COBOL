@@ -25,7 +25,7 @@ using WiseOwl.Cobol.Runtime;
 /// <list type="bullet">
 /// <item><c>ExpressionBinder.FieldOperand</c> / <c>RefExpr</c> — the ONE dataReference→operand/expression
 /// mappings every verb consumes (MOVE/DISPLAY sources, relations, PERFORM TIMES, arithmetic);</item>
-/// <item><c>ReferenceResolver.ResolveSubscriptName</c> — subscript positions (§13.10.3 SR2: an integer
+/// <item><c>SubscriptBinder.ResolveSubscriptName</c> — subscript positions (§13.10.3 SR2: an integer
 /// constant-name stands where the format specifies an integer);</item>
 /// <item><see cref="IntegerOperandValue"/> — every integer-n position (the OCCURS bounds, the report-writer LINE, COLUMN,
 /// NEXT GROUP, PAGE and STEP integers, RESERVE, BLOCK CONTAINS, RECORD CONTAINS, DYNAMIC LENGTH LIMIT, PICTURE LOCALE
@@ -143,7 +143,7 @@ public sealed partial class DataBinder
     private readonly ConstantScope _constants = new();
 
     /// <summary>The METHOD whose constants a reference made now reads first: the method whose data division is being
-    /// bound, else the method whose statements are (<see cref="ActiveMethodScope"/>); null at program, object,
+    /// bound, else the method whose statements are (<see cref="ProcedureBindState.ActiveMethodScope"/>); null at program, object,
     /// factory and interface level.</summary>
     private ConstantScope? MethodConstants => CurrentMethodScope?.Constants;
 
@@ -249,8 +249,8 @@ public sealed partial class DataBinder
     /// <see cref="ByName"/> in <see cref="_capacityRegisters"/>, placed by its table (a METHOD's own register is never
     /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
     /// <see cref="ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
-    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="_sumCounters"/>, placed by its report
-    /// (<see cref="ReportDepth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
+    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="Reports.SumCounters"/>, placed by its report
+    /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
     /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
     /// <c>GlobalNameClassDriftTests</c> holds this predicate to the inherited name-index list, so a name index
     /// added there is asked here too.</para></summary>
@@ -259,8 +259,8 @@ public sealed partial class DataBinder
         if (ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) < depth)) return true;
         if (Conditions.TryGetValue(name, out var conds) && conds.Any(c => DeclaringDepth(c.Parent) < depth)) return true;
         if (_capacityRegisters.TryGetValue(name, out var tables) && tables.Any(t => DeclaringDepth(t) < depth)) return true;
-        if (_sumCounters.TryGetValue(name, out var counters) && counters.Any(c => ReportDepth(c.Report) < depth)) return true;
-        if (NearerReportEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
+        if (Reports.SumCounters.TryGetValue(name, out var counters) && counters.Any(c => Reports.Depth(c.Report) < depth)) return true;
+        if (Reports.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
         if (!IndexNames.Declares(name)) return false;
         IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
         return indexDepth < depth;
@@ -288,7 +288,7 @@ public sealed partial class DataBinder
 
     /// <summary>Whether a constant, bound or still to bind, is visible here — this unit's own, or the method's being
     /// bound — the guard the PICTURE expansion takes so a constant-free program's PICTURE pipeline is untouched.</summary>
-    private bool UnitHasConstants => _constants.Any || MethodConstants?.Any == true;
+    internal bool UnitHasConstants => _constants.Any || MethodConstants?.Any == true;
 
     // ── Declaration before binding (kb/Work PB1231) ──────────────────────────────────────────────────────────────
 
@@ -566,7 +566,7 @@ public sealed partial class DataBinder
     /// operand described later (<see cref="BindDeclaredConstant"/>, kb/Work PB1231). Produces NO <see cref="DataItem"/> (§13.10.4 GR1/GR3 — a constant is a substitution, not storage). The
     /// COBOL-2002 introduction gate is the VersionConformancePass parse arm (<c>VisitConstantEntryBody</c> →
     /// constant-entry-2002 → COBOL0900 below 2002), NOT here (the binder stays edition-agnostic — Step E).</summary>
-    private void BindConstantEntry(
+    internal void BindConstantEntry(
         Antlr4.Runtime.ParserRuleContext entry, Core.LevelNumberContext level, Core.DataNameContext? nameCtx,
         Core.ConstantEntryBodyContext body)
     {
@@ -621,7 +621,7 @@ public sealed partial class DataBinder
     private static string WrittenSpecification(Core.ConstantValueContext cv)
     {
         var tokens = new List<Antlr4.Runtime.IToken>();
-        ReferenceResolver.CollectLeafTokens(cv.dataReference() ?? (IParseTree)cv, tokens);
+        SubscriptBinder.CollectLeafTokens(cv.dataReference() ?? (IParseTree)cv, tokens);
         string written = string.Join(' ', tokens.Select(t => t.Text));
         return cv.LENGTH() is not null ? "LENGTH OF " + written
             : cv.constantByteLengthWord() is not null ? "BYTE-LENGTH OF " + written
@@ -807,7 +807,7 @@ public sealed partial class DataBinder
     /// size of the data item is used" — holds by construction. Every syntax rule of §13.10.3 names data-name-1 and
     /// data-name-2 TOGETHER, so the two operands take the same screens: SR3 all subscripts shall be literals; §8.4.2.3.3
     /// SR2/SR3/SR5 the subscript count against the item's OCCURS depth, through
-    /// <see cref="ReferenceResolver.ScreenSubscriptArity"/> (kb/Work PB1016); SR10 no ANY LENGTH operand; SR12 no
+    /// <see cref="SubscriptBinder.ScreenSubscriptArity"/> (kb/Work PB1016); SR10 no ANY LENGTH operand; SR12 no
     /// dynamic-length elementary item or variable-length group operand, through
     /// <see cref="VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup"/>. The operand may be described AFTER
     /// the entry (kb/Work PB1231 — §13.10.3 SR4 forbids only a length that depends on the constant): see
@@ -841,10 +841,10 @@ public sealed partial class DataBinder
         int subscripts = 0;   // the subscripts as written — §8.4.2.3.3 SR2/SR3/SR5's operand, screened below
         if (w.SubscriptGroup is { } sub)
         {
-            if (ReferenceResolver.IsEmptyGroup(sub))
+            if (SubscriptBinder.IsEmptyGroup(sub))
             {
                 Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
-                    $"{where}: {phrase} '{written}': " + ReferenceResolver.EmptyParenthesesMessage);
+                    $"{where}: {phrase} '{written}': " + SubscriptBinder.EmptyParenthesesMessage);
                 return null;
             }
             // §13.10.3 SR3: all subscripts of data-name-1 and data-name-2 shall be literals. (A subscript never
@@ -852,20 +852,20 @@ public sealed partial class DataBinder
             // A subscript is an integer position, and SR2 lets an INTEGER constant-name stand "anywhere that a format
             // specifies a literal of the class and category of constant-name-1" — GR1/GR3 make it that integer
             // literal — so `LENGTH OF E (KI)` with `01 KI CONSTANT AS 2` is a literal subscript (kb/Work PB1232; the
-            // procedure-division twin is ReferenceResolver.ResolveSubscriptName's constant arm).
+            // procedure-division twin is SubscriptBinder.ResolveSubscriptName's constant arm).
             var toks = new List<Antlr4.Runtime.IToken>();
-            ReferenceResolver.CollectLeafTokens(sub, toks);
+            SubscriptBinder.CollectLeafTokens(sub, toks);
             // GROUPING-PAREN-ONLY beside the list's own REF_ parens: a nested paren inside the list is a group (no
             // FNARG_ paren can occur without a FUNCTION, which is no literal).
             if (toks.Any(t => t.Type is not (Core.INTEGERLIT or Core.REF_LPAREN or Core.REF_RPAREN
                     or Core.LPAREN or Core.RPAREN or Core.FNARG_SEPARATOR or Core.COMMA)
-                && !(ReferenceResolver.IsNameToken(t) && IsIntegerConstant(t.Text))))
+                && !(SubscriptBinder.IsNameToken(t) && IsIntegerConstant(t.Text))))
             {
                 Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: all subscripts of the {phrase} "
                     + "operand shall be literals (ISO §13.10.3 SR3)");
                 return null;
             }
-            subscripts = resolver.SubscriptSegments(dref)?.Count ?? 0;
+            subscripts = resolver.Subscripts.SubscriptSegments(dref)?.Count ?? 0;
         }
         if (LengthOperandItem(resolver, baseName, w.Qualifiers, name, phrase, written, where, demanded, out waits)
             is not { } item)
@@ -875,7 +875,7 @@ public sealed partial class DataBinder
         // subscript ("All subscripts of data-name-1 and data-name-2 shall be literals"); whether one may be
         // written at all, and how many, is §8.4.2.3.3's, and a constant entry is not among SR5's seven
         // exemptions. `CONSTANT AS LENGTH OF PLAIN (1)` over a non-table item compiled and yielded 7.
-        if (resolver.ScreenSubscriptArity(dref, item, subscripts)) return null;
+        if (resolver.Subscripts.ScreenSubscriptArity(dref, item, subscripts)) return null;
         // §13.10.4 GR5/GR6 measure the item AS DESCRIBED — its implied PICTURE, TYPE / SAME AS composition, group USAGE
         // and group SIGN applied — and the pipeline that applies them has not run yet (kb/Work PB2465): the operand's
         // description is completed now, by the same passes, before anything below reads it.
@@ -937,8 +937,8 @@ public sealed partial class DataBinder
         waits = false;
         // A subordinate a TYPE or SAME AS clause supplies exists once its subject is composed (kb/Work PB2844):
         // `M OF V` with `01 V TYPE T.` names T's M, copied under V only when V's clause is expanded.
-        DataItem? FindComposed() => resolver.FindItem(baseName, qualifiers)
-            ?? (ComposePendingSubjectsAhead() ? resolver.FindItem(baseName, qualifiers) : null);
+        DataItem? FindComposed() => resolver.Names.FindItem(baseName, qualifiers)
+            ?? (ComposePendingSubjectsAhead() ? resolver.Names.FindItem(baseName, qualifiers) : null);
         DataItem? item = FindComposed();
         if (item is null && ReportEntryCandidates(baseName, qualifiers) is { Count: > 0 } reportEntries)
             return ReportLengthOperand(reportEntries, baseName, phrase, written, where);
@@ -994,7 +994,7 @@ public sealed partial class DataBinder
     /// and data-name-2, if defined in the report section, shall reference elementary report items" — so a report
     /// group (an entry with subordinates) is refused by that rule, and an elementary report item is measured as its
     /// printable item's description (§15.50 / §15.14 over its PICTURE). A report entry is not a <see cref="DataItem"/>
-    /// <see cref="ReferenceResolver.FindItem"/> sees; <see cref="ReportEntryCandidates"/> resolves it, and more than
+    /// <see cref="NameResolution.FindItem"/> sees; <see cref="ReportEntryCandidates"/> resolves it, and more than
     /// one candidate is §8.4.2.2.3 SR1's ambiguity. The item's description is read from its entry
     /// (<see cref="DescribeReportItem"/>, kb/Work PB1941), never from the report walk, so it is measured the same
     /// wherever the constant is evaluated — before the REPORT SECTION binds, or in a group, or an entry, that the walk
@@ -1068,7 +1068,7 @@ public sealed partial class DataBinder
     /// where-nonzero, an over-limit or an unknown constant-name.</summary>
     /// <param name="operand">The operand node of the clause that prints the <c>integer-n</c>.</param>
     /// <param name="where">The construct as the calling site names it, for a diagnostic.</param>
-    private int? IntegerOperandValue(Core.IntegerOperandContext operand, string where) =>
+    internal int? IntegerOperandValue(Core.IntegerOperandContext operand, string where) =>
         IntegerOperandText(operand, where) is { } text ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(text) : null;
 
     /// <summary>The same reader for a clause whose <c>integer-n</c> is read at FULL width, not as an
@@ -1167,7 +1167,7 @@ public sealed partial class DataBinder
     /// <param name="where">The entry named in a diagnostic.</param>
     /// <param name="diagnose">False for a MEASURING caller that reads the expanded string only for its width and
     /// leaves the diagnosis to the binder of the same entry, so one bad repetition word is reported once.</param>
-    private string ExpandPicConstants(string pictureText, string where, bool diagnose = true)
+    internal string ExpandPicConstants(string pictureText, string where, bool diagnose = true)
     {
         return System.Text.RegularExpressions.Regex.Replace(pictureText,
             @"\(\s*([A-Za-z][A-Za-z0-9-]*)\s*\)",

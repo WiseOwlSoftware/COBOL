@@ -20,7 +20,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// IS the GR11/GR14 compiler-inserted return mechanism. Format 2 sorts the typed element array in place with a
 /// typed comparer (DESIGN §8.2).
 /// </summary>
-internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, DispatchState dispatch,
+internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchState dispatch,
     SequentialIoEmitter seqIo, MoveEmitter move, ArithmeticEmitter arith, EcEmitter ec)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the RETURN AT END /
@@ -329,7 +329,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
     private void EmitRelativeKeyStore(FileModel file)
     {
         if (file.Organization == FileOrganization.Relative && file.RelativeKeyItem is { } rk
-            && refs.ResolveItem(rk) is { } rkPlace)
+            && places.Of(rk) is { } rkPlace)
             arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(FileKeyExpr(file)), 0), CobolRounding.Truncation);
     }
 
@@ -382,7 +382,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
             if (rn is not null)
             {
                 w.Line($"{rn}++;   // GR15 b) — the n-th record returned is relative record n");
-                if (output.RelativeKeyItem is { } rkn && refs.ResolveItem(rkn) is { } rknPlace)
+                if (output.RelativeKeyItem is { } rkn && places.Of(rkn) is { } rknPlace)
                     arith.StoreArith(rknPlace, new NumX(rn, 0), CobolRounding.Truncation);
                 w.Line($"{RuntimeApi.FileSetRelativeKey(f, rn)};");
             }
@@ -834,7 +834,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
             w.Line($"global::System.Comparison<int> __tc{id} = (__a, __b) =>");
             EmitKeyComparer(ts, weightsArg,
                 (key, v) => PlaceRenderer.Read(
-                    refs.ResolveItemAt(key.Key, [.. outer, PositionRenderer.OneBased(v)])
+                    places.Window(key.Key, [.. outer, PositionRenderer.OneBased(v)])
                     ?? throw new InvalidOperationException(
                         $"SORT table '{ts.Table.CobolName}': no window for '{key.Key.CobolName}' — the binder checked it (kb/Work PB599)")),
                 shared: true);
@@ -867,7 +867,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
         // One window per element or key: the item at a 1-based occurrence, an index expression for each enclosing
         // table and then the element's own — through the ONE place builder, so the offset law is the class's.
         Place At(DataItem item, Position occurrence, params IEnumerable<Position> inner) =>
-            refs.ResolveItemAt(item, [.. shared.OuterIndexExprs, occurrence, .. inner])
+            places.Window(item, [.. shared.OuterIndexExprs, occurrence, .. inner])
                 ?? throw new InvalidOperationException(
                     $"SORT table '{ts.Table.CobolName}': no window for '{item.CobolName}' — the binder checked it (kb/Work PB1175)");
         string n = $"__n{id}", ix = $"__ix{id}", im = $"__im{id}", at = $"__e{id}";
@@ -944,7 +944,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
         // address.
         string LevelCount(DataItem level, Position element, List<Position> inner) =>
             level.Occurs is { } fixedCount ? fixedCount.ToString(System.Globalization.CultureInfo.InvariantCulture)
-            : $"(int)({PlaceRenderer.OccurrenceCount(refs.CurrentOccurrenceCount(level, [.. shared.OuterIndexExprs, element, .. inner])
+            : $"(int)({PlaceRenderer.OccurrenceCount(places.CurrentOccurrenceCount(level, [.. shared.OuterIndexExprs, element, .. inner])
                 ?? throw new InvalidOperationException(
                     $"SORT table '{ts.Table.CobolName}': no current capacity for '{level.CobolName}' — the binder checked it (kb/Work PB1951)"))})";
     }

@@ -117,7 +117,7 @@ public sealed partial class DataBinder
     /// <summary>⛔ THE DATA DIVISION'S OCCURS CLAUSE IS FORMAT 1, 2 OR 4 — NARROWED HERE FROM THE GRAMMAR'S SUPERSET
     /// (kb/Work PB1265). <c>occursClause</c> parses every phrase of every format optionally and Format 4's phrases in
     /// any order and number, so that the refusal can name the rule; the report section narrows the same parse to
-    /// Format 3 (<c>DataBinder.Reports.cs#ReportOccursOf</c>), and this is the other arm. ISO §13.18.38.2:
+    /// Format 3 (<c>ReportSectionBinder.cs#ReportOccursOf</c>), and this is the other arm. ISO §13.18.38.2:
     /// <list type="bullet">
     /// <item>Format 2 prints <c>integer-1 TO integer-2 TIMES DEPENDING ON data-name-1</c> with nothing bracketed, so a
     /// TO without DEPENDING and a DEPENDING without TO are each in no data-division format (the bracketed
@@ -409,7 +409,7 @@ public sealed partial class DataBinder
             // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's order, kept by the lookup itself since PB4196,
             // ISO §8.4.6.2.1 3) a)).
             if (!declaration && tier.Count != 1
-                && ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
+                && ReportSection.ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
                 continue;
             if (tier.Count == 0)
             {
@@ -439,7 +439,7 @@ public sealed partial class DataBinder
             // ⛔ THE LINK IS RECORDED ONLY WHEN data-name-1 IS WHAT §13.18.38.3 REQUIRES OF IT (kb/Work PB3510): an
             // integer (SR17), not subscripted (SR2), and outside the range from the table's first byte to its record's
             // last (SR20). Every OccursSpec.Depending consumer — the GR8 group-operand slice
-            // (ReferenceResolver.WrapIfOdoGroup), the extent freeze (SendingValueTemp), the GR7 counts — resolves
+            // (PlaceBuilder.WrapIfOdoGroup), the extent freeze (SendingValueTemp), the GR7 counts — resolves
             // data-name-1's own place, and that resolution wraps a GROUP holding an occurs-depending table again. A
             // group data-name-1 that contains its table (DEPENDING ON the record that holds it) therefore resolved
             // itself without end: the binder died of a stack overflow before these diagnostics reached the user. An
@@ -608,7 +608,7 @@ public sealed partial class DataBinder
     /// §8.4.6.2.2: "A constant-name, file-name, record-name, report-name, screen-name, or type-name described with a
     /// GLOBAL clause is a global name. All data-names and screen-names subordinate to a global name are global
     /// names" — the record's own GLOBAL clause, or its file description's (§13.18.27.3 SR1 b) and d)).</summary>
-    private bool IsGlobalRecord(DataItem record) =>
+    internal bool IsGlobalRecord(DataItem record) =>
         record.HasGlobalClause || Files.Any(f => f.IsGlobal && f.Records.Contains(record));
 
     /// <summary>Does <paramref name="record"/> possess the external attribute? ISO §8.6.3: a working-storage record

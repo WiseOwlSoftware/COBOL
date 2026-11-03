@@ -521,7 +521,7 @@ public sealed class FileModel
 
     /// <summary>The report-names of the FD's REPORT(S) clause (ISO §13.18.46), in written order — a report file
     /// is exactly an FD with a non-empty list (§9.1.22; it legally has NO record description entries). The
-    /// names resolve to <see cref="ReportModel"/>s post-build (<c>DataBinder.ResolveReports</c>).</summary>
+    /// names resolve to <see cref="ReportModel"/>s post-build (<c>ReportSectionBinder.ResolveReports</c>).</summary>
     public List<ReportClauseName> ReportNames { get; } = [];
 
     /// <summary>True for a REPORT FILE — an FD whose REPORT clause names at least one report (§9.1.22,
@@ -804,7 +804,7 @@ public sealed class FileModel
     /// variable-length group (§8.5.1.12.1). The subset of <see cref="IsOutOfLineRecord"/> that makes the implied
     /// RECORD clause Format 2 (<see cref="ImpliesVariableFormat"/>).</summary>
     public static bool IsVariableLengthRecord(DataItem record) =>
-        record.IsDynamicLength || (record.IsGroup && WiseOwl.Cobol.Binding.ReferenceResolver.HasVariableLengthSubordinate(record));
+        record.IsDynamicLength || (record.IsGroup && DataItem.HasVariableLengthSubordinate(record));
 
     /// <summary>The records of this file's area that ride OUT OF LINE (<see cref="IsOutOfLineRecord"/>) and are
     /// not <see cref="AreaRecord"/> itself, together with those of every file that shares the area through a

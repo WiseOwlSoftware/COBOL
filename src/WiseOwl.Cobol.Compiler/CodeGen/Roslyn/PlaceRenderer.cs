@@ -79,7 +79,7 @@ internal static class PlaceRenderer
         // national twin of the bit arm above, through THE ONE national reader.
         NatImagePlace n => SendingNat(n.Inner),
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' STORAGE images — each leaf is its
-        // cell's bytes or a byte slice of them (ReferenceResolver.SpanLeafPlace), the alias being "an alphanumeric
+        // cell's bytes or a byte slice of them (PlaceBuilder.SpanLeafPlace), the alias being "an alphanumeric
         // group item" over the record's storage (§13.18.45.4 GR2).
         RenamesPlace n => n.Leaves.Count == 1
             ? Read(n.Leaves[0])
@@ -298,7 +298,7 @@ internal static class PlaceRenderer
     /// <summary>The scope argument of <see cref="Received"/>: empty for a store into the area's own cell, else the
     /// collection of (component ordinal, one-based occurrence number) pairs, outermost first, that the window's cell path
     /// takes into the element cell it lies in — every cell path is the area's root then one <see cref="CellTableSegment"/>
-    /// and <see cref="DynTableSegment"/> per dynamic-capacity level (<c>ReferenceResolver.WindowScopeOf</c>,
+    /// and <see cref="DynTableSegment"/> per dynamic-capacity level (<c>PlaceBuilder.WindowScopeOf</c>,
     /// <c>PlaceCursor.ElementCell</c>), so any other shape is an internal fault, raised loudly.</summary>
     private static string ReceivedScope(IReadOnlyList<AccessSegment> cell)
     {
@@ -495,7 +495,7 @@ internal static class PlaceRenderer
     /// renamed item and vice versa — no second storage).</summary>
     private static string WriteRenames(RenamesPlace n, string rhs)
     {
-        // Every leaf is already its cell's STORAGE image, or a byte slice of it (ReferenceResolver.SpanLeafPlace:
+        // Every leaf is already its cell's STORAGE image, or a byte slice of it (PlaceBuilder.SpanLeafPlace:
         // NumericImagePlace / NationalBytesPlace), so each slice of the alias's image is stored as it stands.
         if (n.Leaves.Count == 1) return Write(n.Leaves[0], rhs);
         int width = n.Widths.Sum();   // each part's width — a partial part's is its slice, not the item's (kb/Work PB96)

@@ -56,7 +56,7 @@ public sealed class ClauseOperandCaptureDriftTests
     /// dropped by a new clause simply repeating the idiom — which is how FILE STATUS, RELATIVE KEY,
     /// RECORD … DEPENDING ON and all four LINAGE operands each acquired their own copy of it.
     /// <para>⚠ THE SCOPE IS <c>DataBinder.cs</c>, AND THAT IS STATED RATHER THAN IMPLIED. The idiom is measured
-    /// in ten files of <c>src/WiseOwl.Cobol.Compiler</c> — the report-writer captures (<c>DataBinder.Reports.cs</c>,
+    /// in ten files of <c>src/WiseOwl.Cobol.Compiler</c> — the report-writer captures (<c>ReportSectionBinder.cs</c>,
     /// the SUM UPON detail-names), the OCCURS DEPENDING capture, and seven procedure-division sites where the
     /// full reference is bound elsewhere and the base word is taken only as a lookup key. Whether each of those
     /// is a defect is a question per subsystem, not this guard's; asserting ONE across the tree would be a claim
@@ -77,12 +77,12 @@ public sealed class ClauseOperandCaptureDriftTests
     /// reference-modifier reaches the binder through two carriers frozen at lex time — the parsed <c>refModPart</c>
     /// and the SUBSCRIPT-mode captured group with a depth-0 colon — and a screen that walked the parse tree itself
     /// counted every <c>subscriptPart</c> as a subscript, refusing <c>RECORD KEY IS IX-KEY(1:3)</c> as "written
-    /// with a subscript". Only <c>ReferenceResolver.ReadOperandSuffixes</c> knows both carriers.</summary>
+    /// with a subscript". Only <c>RefModBinder.ReadOperandSuffixes</c> knows both carriers.</summary>
     [Fact]
     public void TheDataNameScreen_ReadsSuffixesThroughTheOneReader()
     {
         string body = MethodBody(DataBinderSource(), "internal static bool ScreenDataNameShape(");
-        Assert.Contains("ReferenceResolver.ReadOperandSuffixes(", body, StringComparison.Ordinal);
+        Assert.Contains("RefModBinder.ReadOperandSuffixes(", body, StringComparison.Ordinal);
         Assert.DoesNotContain(".subscriptPart()", body, StringComparison.Ordinal);
         Assert.DoesNotContain(".refModPart()", body, StringComparison.Ordinal);
     }
@@ -90,7 +90,7 @@ public sealed class ClauseOperandCaptureDriftTests
     /// <summary>⛔ EVERY <c>KeyReference</c> CAPTURE OUTSIDE THE REPORT SECTION IS SCREENED (kb/Work PB481).
     /// <c>KeyReference</c> keeps the qualifiers and DROPS a subscript or reference-modifier, so a data-name-n
     /// operand that reaches it unscreened binds as if unmodified — the SORT table key did, and sorted on the whole
-    /// item. The report-section callers (<c>DataBinder.Reports.cs</c>) are the principled exceptions: §13.18.16.3
+    /// item. The report-section callers (<c>ReportSectionBinder.cs</c>) are the principled exceptions: §13.18.16.3
     /// SR4 and its twins PERMIT a reference-modifier there and read it through <c>ReadOperandSuffixes</c>. Any
     /// other file that calls <c>KeyReference</c> must also call the screen, so a new key-naming caller cannot
     /// re-open the drop by repeating the idiom.</summary>
@@ -103,7 +103,7 @@ public sealed class ClauseOperandCaptureDriftTests
         {
             if (path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                 || path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
-                || Path.GetFileName(path) == "DataBinder.Reports.cs")
+                || Path.GetFileName(path) == "ReportSectionBinder.cs")
                 continue;
             string src = File.ReadAllText(path);
             if (!Regex.IsMatch(src, @"KeyReference\((?!Core\.)")) continue;   // a call, not the definition

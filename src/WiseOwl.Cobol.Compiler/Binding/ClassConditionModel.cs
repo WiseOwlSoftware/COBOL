@@ -162,7 +162,7 @@ internal static class ClassConditionModel
             var item = f.Place.Item;
             if (ItemCategory.IsIndexMessageTagObjectOrPointer(item))
                 return "a data item of class index, message-tag, object, or pointer";
-            if (item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item))
+            if (item.IsGroup && DataItem.HasVariableLengthSubordinate(item))
                 return "a variable-length group";
         }
         return IntrinsicArgumentRules.ClassOf(op) is CobolClass.Index or CobolClass.Object or CobolClass.Pointer

@@ -6,10 +6,10 @@
  "subject": "OCCURS clause",
  "rule-digest": "7fe6674d9fa1",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportOccursOf",
  "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB565 (2026-09-13). 'The TO and DEPENDING phrases shall either be both absent or both present' - ReportOccursOf compares oc.TO() against the DEPENDING dataReference and raises COBOL2021 when exactly one is written, before any repetition is bound. Format 3 is a COBOL-2002 introduction (construct report-occurs-2002; the COBOL-85 report group description entry has no OCCURS clause), so the rule's editions are 2002 onward. The positive golden writes the legal both-present shape (OCCURS 1 TO 4 TIMES DEPENDING ON WS-N STEP 4).",
+ "notes": "kb/Work PB565 (2026-09-13). 'The TO and DEPENDING phrases shall either be both absent or both present' - ReportOccursOf compares oc.TO() against the DEPENDING dataReference and raises COBOL2021 when exactly one is written, before any repetition is bound. Format 3 is a COBOL-2002 introduction (construct report-occurs-2002; the COBOL-85 report group description entry has no OCCURS clause), so the rule's editions are 2002 onward. The positive golden writes the legal both-present shape (OCCURS 1 TO 4 TIMES DEPENDING ON WS-N STEP 4). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
  "state": "OK"
 }
