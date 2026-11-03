@@ -1,4 +1,4 @@
-## PB4494: a verb alone in its sentence is faulted at its period, whichever verb, and a gated one no longer discards the sentences after it
+## Entry 3051 — 2026-11-03 14:25 PST — PB4494: a verb alone in its sentence is faulted at its period, whichever verb, and a gated one no longer discards the sentences after it
 
 **Re-probe.** At `--std 2023`, a paragraph holding `FREE.` drew `cannot parse construct near 'FREE'` at the verb; `DISPLAY.`,
 `READ.`, `MOVE.`, `ADD.` and `STOP.` drew theirs at the period. The note called it cosmetic and blamed `BuildMessage`.
@@ -22,3 +22,4 @@ paragraph describes both.
 `ABareVerbSentence_IsAnIncompleteStatement_NeverNamedCobol0901`; `ARunOfBareVerbSentences_IsFaultedEachAtItsPeriod` (three
 sentences, three COBOL0001, each at its own period, gated and ungated mixed); the PB4283 refusal golden's `expect` reads `near '.'`.
 No inventory row closes.
+
