@@ -138,20 +138,20 @@ def self_test() -> int:
 
     with tempfile.TemporaryDirectory() as tmp:
         stub = Path(tmp) / "claude_stub.py"
-        stub.write_text(_STUB, encoding="utf-8")
+        stub.write_text(_STUB, encoding="utf-8", newline="\n")
         mode = Path(str(stub) + ".mode")
         launcher = Path(tmp) / ("claude.cmd" if os.name == "nt" else "claude")
         if os.name == "nt":
-            launcher.write_text(f'@"{sys.executable}" "{stub}" %*\n', encoding="utf-8")
+            launcher.write_text(f'@"{sys.executable}" "{stub}" %*\n', encoding="utf-8", newline="\n")
         else:
-            launcher.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{stub}" "$@"\n', encoding="utf-8")
+            launcher.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{stub}" "$@"\n', encoding="utf-8", newline="\n")
             launcher.chmod(0o755)
         saved = os.environ.get(EXE_ENV)
         os.environ[EXE_ENV] = str(launcher)
         try:
             msgs = [{"role": "system", "content": "SYS"}, {"role": "user", "content": "write a program"},
                     {"role": "assistant", "content": "PROGRAM-1"}, {"role": "user", "content": "both refused: fix it"}]
-            mode.write_text("ok", encoding="utf-8")
+            mode.write_text("ok", encoding="utf-8", newline="\n")
             before = spent()
             reply, secs, done, thinking = claude_chat("sonnet", msgs, 0.3)
             args = json.loads(reply.split(" PROMPT=")[0][len("ARGS="):])
@@ -165,10 +165,10 @@ def self_test() -> int:
             check("the exchange is one labelled turn on stdin", prompt.startswith("write a program")
                   and "Your earlier reply was:\n\nPROGRAM-1" in prompt and "The answer to that reply:\n\nboth refused: fix it" in prompt)
             check("the call's cost is metered", abs(spent() - before - 0.25) < 1e-9)
-            mode.write_text("cut", encoding="utf-8")
+            mode.write_text("cut", encoding="utf-8", newline="\n")
             check("max_tokens is a reply cut short (length)", claude_chat("sonnet", msgs[:2], 0.3)[2] == "length")
             for bad in ("error", "garbage"):
-                mode.write_text(bad, encoding="utf-8")
+                mode.write_text(bad, encoding="utf-8", newline="\n")
                 try:
                     claude_chat("sonnet", msgs[:2], 0.3)
                     check(f"a {bad} reply raises RuntimeError", False)
