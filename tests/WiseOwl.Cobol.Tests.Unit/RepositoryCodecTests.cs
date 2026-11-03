@@ -20,9 +20,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// are optional or not" as the unit's signature, so a record is right exactly when <c>Decode(Of(unit))</c>, bound in the
 /// publishing element's own scope, answers every question the binder asks of a description as the bound unit does: the
 /// activation description both ways (<see cref="OoConformance.SignatureDifference"/>), the §8.5.3.1 layout and type tests,
-/// the widths, the host types, the normalized <c>PicInfo</c> equality and a restricted pointer's signature class — the last
-/// after the decoded prototypes were ADMITTED as members of their own (§6.4), so equal identities mean "same signature",
-/// never "same name". <see cref="RoundTrip"/> is that check, shared with the corpus enumeration
+/// the widths, the host types, the normalized <c>PicInfo</c> equality and a restricted pointer's two restrictions — its TO
+/// phrase and what it may contain, the identity of its decoded prototype's signature (§6.4), so equal identities mean
+/// "same signature", never "same name". <see cref="RoundTrip"/> is that check, shared with the corpus enumeration
 /// (<see cref="RepositoryRoundTripCorpusTests"/>).
 /// </summary>
 public sealed class RepositoryCodecTests
@@ -311,7 +311,7 @@ public sealed class RepositoryCodecTests
         var unit = comp.Units.Single(u => u.Name == "RTQUAL");
         var record = RepositoryCodec.Of(unit);
         Assert.Equal(4, record.Formals[0].Description.Children[2].Table!.DependingEntry);   // REC 0, A 1, N 2, B 3, N 4
-        var decoded = RepositoryCodec.Decode(record, comp.SignatureClasses);
+        var decoded = RepositoryCodec.Decode(record);
         var t = decoded.Formals[0].Item.Children[2];
         Assert.Same(decoded.Formals[0].Item.Children[1].Children[0], t.OccursSpec!.Depending);
         var rdf = decoded.Formals[1].Item;
@@ -343,7 +343,7 @@ public sealed class RepositoryCodecTests
                """, 2023, permissive: true);
         var bound = comp.Units.Single(u => u.Name == "RCHAIN").Data.Linkage.Formals[0].Item;
         Assert.Same(bound.Children[1], bound.Children[2].RedefinesTarget);
-        var decoded = RepositoryCodec.Decode(RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RCHAIN")), comp.SignatureClasses);
+        var decoded = RepositoryCodec.Decode(RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RCHAIN")));
         var rec = decoded.Formals[0].Item;
         Assert.Same(rec.Children[0], rec.Children[1].RedefinesTarget);
         Assert.Same(rec.Children[1], rec.Children[2].RedefinesTarget);
@@ -356,7 +356,7 @@ public sealed class RepositoryCodecTests
         {
             Formals = new([record.Formals[0] with { Description = d with { Children = new([d.Children[0], d.Children[1], d.Children[2] with { RedefinesTarget = "Z" }]) } }]),
         };
-        var e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(unnamed, comp.SignatureClasses));
+        var e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(unnamed));
         Assert.Contains("'C' REDEFINES 'Z', which names no preceding sibling", e.Message);
     }
 
@@ -369,7 +369,7 @@ public sealed class RepositoryCodecTests
     }
 
     /// <summary>§6.4 part 3 and §17.2's perturbation: a record whose referenced prototype lost a formal no longer has its
-    /// original's signature, so its decoded pointer founds a block of its own and its identity differs.</summary>
+    /// original's signature, so what its decoded pointer may contain, the identity of that signature, differs.</summary>
     [Fact]
     public void ARecordThatDroppedAReferencedPrototypesFormal_FailsTheRoundTrip()
     {
@@ -381,7 +381,7 @@ public sealed class RepositoryCodecTests
         {
             ReferencedPrototypes = new([row with { Formals = new([row.Formals[0]]) }]),
         };
-        var decoded = RepositoryCodec.Decode(perturbed, comp.SignatureClasses);
+        var decoded = RepositoryCodec.Decode(perturbed);
         var original = unit.Data.Linkage.Formals[3].Item;
         Assert.False(PrototypeSignatures.Same(original.RestrictedPrototype!.Signature, decoded.Prototypes[0].Signature));
         Assert.NotEqual(original.PointerRestrictionIdentity, decoded.Formals[3].Item.PointerRestrictionIdentity);
@@ -403,7 +403,7 @@ public sealed class RepositoryCodecTests
                 ? f with { Name = "OTHER", Description = f.Description with { Name = "OTHER", Children = new([.. f.Description.Children.Select(c => c with { Name = c.Name + "-X", RedefinesTarget = c.RedefinesTarget is { } t ? t + "-X" : null })]) } }
                 : f)]),
         };
-        var decoded = RepositoryCodec.Decode(renamed, comp.SignatureClasses);
+        var decoded = RepositoryCodec.Decode(renamed);
         Assert.True(PrototypeSignatures.Same(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning), decoded.Signature));
 
         var f3 = record.Formals[2];
@@ -411,7 +411,7 @@ public sealed class RepositoryCodecTests
         {
             Formals = new([.. record.Formals.Select(f => f == f3 ? f with { Description = f.Description with { TypeName = "T2" } } : f)]),
         };
-        var decodedRetyped = RepositoryCodec.Decode(retyped, comp.SignatureClasses);
+        var decodedRetyped = RepositoryCodec.Decode(retyped);
         Assert.False(StrongTypeModel.SameType(unit.Data.Linkage.Formals[2].Item, decodedRetyped.Formals[2].Item));
         Assert.False(PrototypeSignatures.Same(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning), decodedRetyped.Signature));
     }
@@ -432,7 +432,7 @@ public sealed class RepositoryCodecTests
                 ? f with { Description = f.Description with { Pic = f.Description.Pic! with { RestrictedPrototype = 7 } } }
                 : f)]),
         };
-        var e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(pastTheTable, comp.SignatureClasses));
+        var e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(pastTheTable));
         Assert.Contains("RTONE", e.Message);
         Assert.Contains("index 7", e.Message);
 
@@ -444,7 +444,7 @@ public sealed class RepositoryCodecTests
                 ? f with { Description = f.Description with { Children = new([f.Description.Children[0], table with { Table = table.Table! with { Depending = "G1", DependingEntry = 0 } }]) } }
                 : f)]),
         };
-        e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(cyclic, comp.SignatureClasses));
+        e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(cyclic));
         Assert.Contains("DEPENDING ON 'G1'", e.Message);
         Assert.Contains("SR17", e.Message);
 
@@ -464,7 +464,7 @@ public sealed class RepositoryCodecTests
                     ? f with { Description = f.Description with { Children = new([f.Description.Children[0], table with { Table = occurs }]) } }
                     : f)]),
             };
-            e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(malformed, comp.SignatureClasses));
+            e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(malformed));
             Assert.Contains(detail, e.Message);
         }
     }
@@ -478,12 +478,12 @@ public sealed class RepositoryCodecTests
         var names = new List<string>();
         foreach (var unit in comp.Units.Where(u => u.Parent is null))
         {
-            RoundTrip(unit, comp.SignatureClasses);
+            RoundTrip(unit);
             names.Add(unit.Name);
         }
         foreach (var (record, methods) in OoRecordsOf(comp))
         {
-            var decoded = RepositoryCodec.Decode(record, comp.SignatureClasses);
+            var decoded = RepositoryCodec.Decode(record);
             Assert.Equal(methods.Count, decoded.Methods.Count);
             for (int i = 0; i < methods.Count; i++)
                 RoundTrip($"{record.Name} {methods[i].SourceName}", methods[i].Binding!.Formals.Select(f => (f.Item, f.Position, f.ByValue, f.Optional)).ToList(),
@@ -514,11 +514,11 @@ public sealed class RepositoryCodecTests
 
     /// <summary>§6.3's invariant for one unit: <c>Decode(Of(unit))</c> is indistinguishable from the unit's LINKAGE to every
     /// comparator and derived quantity.</summary>
-    internal static void RoundTrip(BoundUnit unit, PrototypeSignatureClasses classes)
+    internal static void RoundTrip(BoundUnit unit)
     {
         var record = RepositoryCodec.Of(unit);
         Assert.Equal(record, RepositoryCodec.Of(unit));
-        var decoded = RepositoryCodec.Decode(record, classes);
+        var decoded = RepositoryCodec.Decode(record);
         var formals = unit.Data.Linkage.Formals;
         RoundTrip(unit.Name, formals.Select(f => (f.Item, f.Position, f.ByValue, f.Optional)).ToList(), unit.Data.Linkage.Returning,
             decoded.Formals, decoded.Returning);
@@ -594,7 +594,6 @@ public sealed class RepositoryCodecTests
             Assert.True(StrongTypeModel.SameRestriction(StrongTypeModel.PointerRestriction(x), StrongTypeModel.PointerRestriction(y)), $"{at}: SameRestriction");
         if (p.RestrictedPrototypeName is not null)
         {
-            Assert.True(PrototypeSignatures.SameSignatureRestriction(x, y), $"{at}: PrototypeSignatures.SameSignatureRestriction");
             // The USAGE clause's TO phrase, which §8.5.3.1 and the identity rules compare (kb/Work PB4107).
             Assert.True(PrototypeSignatures.NamedRestriction(x) == PrototypeSignatures.NamedRestriction(y),
                 $"{at}: NamedRestriction {PrototypeSignatures.NamedRestriction(x)} vs {PrototypeSignatures.NamedRestriction(y)}");

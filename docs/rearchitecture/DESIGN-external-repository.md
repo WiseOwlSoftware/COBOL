@@ -1050,14 +1050,14 @@ Comparators (as the tree has them since kb/Work PB3101, PB3120, PB2463 and PB316
 runtime's ONE pair-mode relation, `ActivationRelations.SignatureDifference`; the description builder reads
 `ActivationDescriptions.ElementaryClauses` (its pointer clause is `PrototypeSignatures.NamedRestriction`, the TO phrase
 by the prototype it names, PB4107; the description's content restriction is `PrototypeSignatures.SignatureRestriction`,
-the signature class, PB2464, which the pair-mode relation reads only under `pointersBySignature`, set by `PrototypeSignatures.SameDescription` alone; every other pair-mode check compares the TO phrase by the prototype it names, PB4442), `AnyLengthClausesOf`, `OfAddress`, `TypeIdentityKey`, `VariableLengthCompatibility.*` →
+the identity of the prototype's signature, PB2464, which the pair-mode relation never reads: every pair-mode check and the signature graph compare the TO phrase by the prototype it names, PB4442, PB4491), `AnyLengthClausesOf`, `OfAddress`, `TypeIdentityKey`, `VariableLengthCompatibility.*` →
 `Atoms`, `TierCIsland`, `OoClassTable.LeafCarried`, `PictureClauseIdentity.*`; §8.5.3.1: `StrongTypeModel.SameType` →
 `EquivalentTypeDeclarations` → `SameElementaryLayout` → `SameEssentialCharacteristics` →
 `DescriptionClauses.AlignedOrDynamicLengthMismatch` + `SameAnalyzedProfile` — `PicInfo` record equality with
 `EditingRules`, `RestrictedTypeName`, `RestrictedTypeDecl` and `RestrictedPrototypeName` set aside, then `EditingRules`
 element-wise, then a restricted data-pointer by `StrongTypeModel.SameRestriction` (the declaration it names, GR23) and a
 restricted program- or function-pointer by its USAGE clause's TO phrase, `PrototypeSignatures.NamedRestriction` (the prototype
-it names, folded; never its signature class, which only a compilation holding the signature computes: kb/Work PB4107), under the
+it names, folded; never its signature's identity, which only a compilation holding the signature computes: kb/Work PB4107), under the
 enclosing comparison's `Comparison` assumption set (PB3120); `BitLayout.*`; `DataItem.ImageWidth`/`ByteWidth`.
 | Member read | Read by | Schema field |
 |---|---|---|
@@ -1070,7 +1070,7 @@ enclosing comparison's `Comparison` assumption set (PB3120); `BitLayout.*`; `Dat
 | `GroupUsage`, `IsAsIfElementary`, `AsIfPic` | `ActivationDescriptions.Of` (as-if-elementary arm) | `GroupUsage` |
 | `HasBitDescendant`, bit positions; `IsImageCapable`, `BoundaryImageCapable`, `CurrentExtentImageCapable` | `ByteWidth`, `SameType`, `SameElementaryLayout`; Tier-C arms, `ActivationDescriptions.Of`, `LeafCarried` | derived at decode from the recorded tree |
 | `Pic` — every member, including `ObjectRef` (`Kind, Name, Factory, Only, Formal`), `RestrictedTypeName/Decl`, `RestrictedPrototypeName`, `_digitPositions`, `EditingRules`, `LocaleEdit`, `Clause` | `SameAnalyzedProfile`, `ActivationDescriptions.ElementaryClauses` arms (the object-reference and pointer clauses included), `ClrTypeName` | `PicRecord`: every member; the restriction names as written beside `RestrictedTypeDeclaration` and `RestrictedPrototype` (indexes, §6.2 rule 4); `ObjectRefName` beside `ObjectRefIdentity` (§6.4); `DigitPositions` nullable so the backing round-trips |
-| `DataItem.RestrictedPrototype`, `PointerRestrictionIdentity` (a restricted program- / function-pointer's resolved prototype and its signature class, PB2464 / PB2495) | `PrototypeSignatures.SignatureRestriction` / `SameSignatureRestriction`, `PrototypeSignatureClasses` | not recorded as such: rebuilt at decode from `RestrictedPrototype` → `ReferencedPrototypes` (§6.4) |
+| `DataItem.RestrictedPrototype`, `PointerRestrictionIdentity` (a restricted program- / function-pointer's resolved prototype and the identity of its signature, PB2464 / PB2495 / PB4491) | `PrototypeSignatures.NamedRestriction`, `SignatureRestriction`, `StampContentRestrictions` | not recorded as such: rebuilt at decode from `RestrictedPrototype` → `ReferencedPrototypes` and stamped (§6.4) |
 | `Renames` | `AtomsOf` | not applicable (a formal is level 01/77, §14.2.2 SR1) |
 | `CobolName` | diagnostics; REDEFINES/ODO targets inside the record | `Name` |
 Not recorded (emitter facts): `ClrName`, `Uid`, carrier field names, `StoreAsImage`, `RedefinesClass` tiers, VALUEs,
@@ -1083,7 +1083,7 @@ and decoded for ANOTHER element the restriction names are that element's words (
 normalization `SameAnalyzedProfile` already applies — the four restriction members set aside, every other member
 record-equal (so `_digitPositions` and every future member are seen), `EditingRules` element-wise, and the
 restrictions equal by their relations (`SameRestriction`, `PrototypeSignatures.NamedRestriction` and
-`PrototypeSignatures.SameSignatureRestriction`) — plus, for the activation
+the two pointers' `PrototypeSignatures.SignatureRestriction`s equal) — plus, for the activation
 description, `ActivationRelations.SignatureDifference` null in both directions (an `ActivationDescription` holds arrays,
 so record `==` is reference equality on them). **Data-names and intermediate grouping are recorded and never
 compared:** `Name` fields serve diagnostics, the host surface and the REDEFINES/ODO targets inside one record;
@@ -1123,14 +1123,14 @@ the group.
   another word, conform. **Correction (layering):** `Target` cannot be the symbol — `ObjectRefDescriptor` is in
   `Binding.Model`, which may not reference `Compiler.Oo` (architecture-edges.json) — so it is the resolved IDENTITY
   (the class's or interface's externalized name, set where `OoDataBinder.DescribeNamedReference` resolves the word),
-  which also lets the readers that build a description with no class table (`PrototypeSignatures.CanonicalIdentity`'s
+  which also lets the readers that build a description with no class table (`PrototypeSignatures.Identity`'s
   `ActivationDescriptions.Of(item, classes: null)`) spell the identity. **Landed, slice 8 step 1 part 2 (kb/Work PB2104,
   wave 20261835):** `ObjectRefDescriptor` gains `Identity` (the resolved class's or interface's externalized name, set in
   `OoDataBinder.DescribeNamedReference` and by the decoder from the record) and `ClrName` (null for a class of the group;
   the full name under `global::` for an imported one, so `ClrTypeName` — and the factory beside it,
   `NamingConvention.FactoryClassName` putting its prefix on the last segment — names the imported type). Both are functions of
   `Name` over the one class table, so they are excluded from the description's equality; `ActivationDescriptions.Of(item, null)`
-  spells `Identity`, so a prototype's `SIG` identity (`PrototypeSignatures.CanonicalIdentity`) is the same text in every group.
+  spells `Identity`, so a prototype's `SIG` identity (`PrototypeSignatures.Identity`) is the same text in every group.
   **Correction (§8.7, names in descriptions):** a description's `Name` is already the RESOLVED definition's name in the group's
   one class table, not the word written (`OoDataBinder.DescribeNamedReference`, kb/Work PB974), so the importer needs no
   per-element word to decode a record into: an imported class's `Name` is its table key `class "<identity>"`
@@ -1138,7 +1138,7 @@ the group.
   identity's), and `RepositoryCodec.Names` is the ONE derivation of what the importing group calls each identity a record names
   (the resolver's provider and `--repository-check` both read it). `IdentityScope` (the renamed `OoRepositoryScope`) therefore
   maps a written word to an identity only; the reverse map and the program-prototype and structure rows this section's first
-  text gave it have no reader — a restricted pointer's prototype is identified by its signature class (§6.4, slice 7), a
+  text gave it have no reader — a restricted pointer's prototype is identified by its signature's identity (§6.4, slice 7), a
   structure by its definition — so they are not built.
 - **Restricted data-pointers**: `POINTER TO type` → `RestrictedTypeName` (the word as written) and the type
   DECLARATION it resolves to (`RestrictedTypeDeclaration`, an index into `TypeDeclarations`); the decoder sets
@@ -1148,115 +1148,59 @@ the group.
   §13.18.60.4 GR25: "A restricted program-pointer shall contain only the predefined address NULL or the address of a
   program with the same signature as that identified by the specified program-prototype-name" (`cite.py --check` OK,
   25)), and GR26 is its function-pointer twin, so the SET relation (and the rules that send to it) admits two pointers
-  restricted to two differently named prototypes of one signature (kb/Work PB2464 / PB2495 / PB3101 / PB3162). The
-  identity rules — §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3 and §8.5.3.1's type-declaration equivalence —
-  compare the USAGE clause's TO phrase by the prototype it NAMES, its folded externalized name
-  (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107) — and so does the pair-mode
-  conformance of §9.3.8.2.3 rules 3 and 6 (an override, an IMPLEMENTS pair; kb/Work PB4442), the signature graph alone
-  reading an elementary pointer formal by its class — so the §8.5.3.1 keys two
-  compilations compare (`ActivationDescription.StrongType`, `PointerType`) are the same text whether or not a compilation
-  holds the prototype's signature. The approved text of this design replaced `PicInfo.RestrictedPrototypeName` by an
-  identity field; the code keeps the written name and records the signature beside it, because the SET relation needs
-  the signature and a written word is not an identity:
+  restricted to two differently named prototypes of one signature (kb/Work PB2464 / PB3162). Every other relation —
+  §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3, §8.5.3.1's type-declaration equivalence, the pair-mode
+  conformance of §9.3.8.2.3 rules 3 and 6 (kb/Work PB4442) and the signature itself (§8.13 "the description of the
+  parameters", §13.7.3 SR2; kb/Work PB4491) — compares the USAGE clause's TO phrase by the prototype it NAMES, its folded
+  externalized name (`PrototypeSignatures.NamedRestriction`; docs/CONFORMANCE.md D-RP1, kb/Work PB4107). So the §8.5.3.1
+  keys two compilations compare (`ActivationDescription.StrongType`, `PointerType`) are the same text whether or not a
+  compilation holds the prototype's signature, and a signature describes its pointer formals by name — the TO phrase and,
+  for a typed formal, the type declaration it references (`PointerType`; §8.13 "type declarations required for the
+  description of parameters", branch review R1-1 of kb/Work PB4491) — which makes it a function of its own text: two prototypes that name each other are two signatures, and no fixed point is computed. The
+  approved text of this design replaced `PicInfo.RestrictedPrototypeName` by an identity field; the code keeps the written
+  name and records the signature beside it, because the SET relation needs the signature and a written word is not an
+  identity:
   - The record keeps the restriction NAME (`RestrictedPrototypeName`, the publisher's word, for diagnostics and
     `IdentityScope` mapping; the code keeps it on `PicInfo` deliberately, because a new `PicInfo` field would change the
     strong-type key text) and the prototype's FULL signature (`RestrictedPrototype` → a `PrototypeRecord` in
     `ReferencedPrototypes`, whose own restricted-pointer formals index other `ReferencedPrototypes` rows, so a recursive
-    prototype records as a finite graph).
+    prototype records as a finite graph). The encoder writes one row per prototype and ORIGIN
+    (`RestrictedPrototype.Origin`, a `PrototypeOrigin` per decoded row, null for a group prototype), so two records'
+    prototypes of one name, or a decoded prototype and the group's, never share a row.
   - The decoder rebuilds what the binder builds: `DataItem.RestrictedPrototype` =
-    `RestrictedPrototype(Function, ExternalizedName, the decoded CalleeSignature)`. It may NOT then stamp through
-    `PrototypeSignatureClasses.Identity` as the class stands in the tree: `Namespace.Identity`
-    (`PrototypeSignatureClasses.cs`, the `_members.TryGetValue(externalizedName, …)` arm) answers a name it has already
-    classified with that name's class WITHOUT consulting the signature it is handed, so a decoded prototype `P` meets the
-    group's `P` and takes its class whatever its decoded signature — typing the pointer by NAME, which GR25 forbids, and
-    making a round trip that dropped or changed a `ReferencedPrototypes` formal pass unseen. The key is right inside one
-    group (§8.3.2.2: one externalized name, one program) and wrong the moment a second source of prototypes exists.
-    **Slice 4 changes the class (kb/Work PB2100), in three parts:**
-    1. *Members are keyed by origin and name.* `Namespace._members` is keyed by `PrototypeKey(Origin, ExternalizedName)`:
-       a group prototype's origin is the group (so a group name is still classified once), a decoded prototype's is its
-       record and `ReferencedPrototypes` index. A decoded `P` is a member of its own, placed by `PrototypeSignatures.Same`
-       over its DECODED signature, never by the group's `P`.
-    2. *Decoded members join the refinement, not a one-shot lookup.* `Classify` gains `Admit(decodedPointers)`: it adds
-       every decoded prototype those pointers reach (the whole `ReferencedPrototypes` graph, so a recursive record is
-       classified as the coarsest stable partition, PB3101) and then RE-RUNS the refinement over ALL members of the
-       namespace from ONE starting block, group members first in their original order, until a round splits nothing,
-       re-stamping every pointer it holds. It never appends the new members to the blocks the group's run left: today's
-       `Present` only adds to the first block and `Refine` only splits, so an incremental admit would give a decoded `B`
-       whose signature is `Same` as the group's `B` a block of its own (`DECODED <k> TO B` beside `TO B`), two types for one signature, against
-       §13.18.60.4 GR25 (kb/Work PB1086 review R2-1). Because the re-run starts from one block with the group members
-       first, each block a group member founds keeps its founder and so its spelling, and no group pointer's identity
-       moves; a decoded member lands in the block of every member whose signature is `Same` as its own.
-    3. *Identities are unique by construction, not by collision rules.* A block founded by a group member is spelled
-       `TO <founder>` as today, so no group pointer's identity changes. A block founded by a decoded member is spelled
-       `DECODED <k> TO <name>`, `k` the founder's ADMISSION number (its position in the order `Admit` added decoded
-       members, unique across the namespace and fixed before the re-run, so it does not depend on the round a block
-       splits off in or on any name). The two kinds cannot meet: every group spelling begins `TO `, every decoded one
-       begins `DECODED `, whatever an `AS` literal holds (an externalized name may contain spaces and `#`,
-       `ExternalizedName.Screen`, so any spelling that only appended a marker to `TO <name>` could be forged by a group
-       prototype `AS "B #1"`: kb/Work PB1086 review R4-1). Two decoded spellings differ in `k`; two group spellings
-       differ in their founder's externalized name, which names one program in the group (§8.3.2.2). So two blocks
-       never share an identity string and `PrototypeSignatures.SameSignatureRestriction` (string equality of identities) stays "same
-       block". The rules this replaces (reserving names, numbering collisions) each needed a new case per collision
-       found (review R3-1, R4-1). (Slice 7's canonical identity replaces the spelling, and this part with it.)
-    So a decoded pointer and a group pointer share an identity exactly when their prototypes' signatures are `Same`.
-    Nothing compares the name. `PrototypePointerTypeDriftTests` gains the cases: a decoded prototype named like a group
-    prototype of another signature gets another identity, including when its block is founded in an earlier round than
-    the group block of that name (the R3-1 shape); a group prototype `AS "DECODED 1 TO B"` or `AS "B #1"` never shares
-    an identity with a decoded block (the R4-1 shape); two decoded prototypes of one name and different signatures
-    get two identities.
-  - *Slice 7 replaces the group-local founder name by a canonical, group-independent signature identity, and keeps the
-    class.* The founder's name (`TO <founder>`) is comparable only between descriptions compiled in one group (PB2464's
-    residue): group A describes a method's `RETURNING PROGRAM-POINTER TO P1` as `TO P1`, a separately compiled group B
-    its receiver `TO P2` for one signature, and the run-time relations (`ActivationRelations.MaySet`, match rule 3 e),
-    GR3 d)'s argument check) refuse a pair GR25 makes one type. Running the partition over the importer's prototypes
-    plus every decoded record cannot fix that, because a universal INVOKE and a dynamic CALL import nothing: the identity
-    itself must be the same in every group. So `PrototypeSignatureClasses` stays the ONE place a signature class is
-    formed — its partition refinement is what minimizes a recursive signature graph (two prototypes that name each other
-    are one class when the coarsest stable partition says so, PB3101) — over the group's prototypes AND every
-    `ReferencedPrototypes` record the group decodes AND every prototype the resolver took from the repository; and a
-    class's identity becomes `SIG <hex>`: SHA-256 over the canonical encoding of the class's minimized signature graph
-    (the classes reachable from it numbered in first-visit order, formals by position, each formal written as its
-    mode, OPTIONAL and the canonical text of its description with every nested restricted pointer written as the number
-    of its class; data-names and intermediate grouping omitted, §13.7.3 SR2). `PrototypeSignatures.CanonicalIdentity`
-    is that ONE function, and `PrototypeSignatures.Same` (an equivalence since PB3101) is what it must agree with:
-    `SignatureIdentityDriftTests` asserts `Same(a, b) == (CanonicalIdentity(a) == CanonicalIdentity(b))` over every pair
-    of prototypes in §17.2's corpus and over a perturbation fixture (one per description property `Same` reads, each of
-    which must change the identity, and one per data-name and grouping change, none of which may).
-    The run-time description's pointer clause (`ActivationDescription.Clauses`, through `ElementaryClauses`) carries
-    the identity, as it carries the founder's name today, so `MaySet`, match rule 3 e) and `ReturningViolation` change no
-    code; a message that names the restriction reads the prototype's externalized name from a display-only member the
-    same slice adds (never compared), because a hash names nothing a user wrote.
-    **Landed (kb/Work PB2103, slice 7 part 1).** `PrototypeSignatures.CanonicalIdentity` numbers the classes reachable
-    from a class in first-visit order (each formal by position, then the RETURNING item; within an item, the item, its
-    subordinates in document order, and through a restricted data-pointer the declaration it is restricted to), stamps
-    each pointer of the graph with its number while it writes the class, restores the stamps, and hashes
-    `PrototypeSignatures.SignatureKey`: the mode, OPTIONAL and `DescriptionKey` of each formal and the RETURNING item's
-    presence and key. `DescriptionKey` is `Same`'s description half as a key, read by the arm
-    `ActivationRelations.SignatureDifference` takes and, for a group that is not a bit or national group,
-    `StrongTypeModel.ElementaryLayoutKey` (the leaf key `TypeIdentityKey` already wrote). Two facts the relation answers
-    false of even against themselves (an item with no crossing form, a group whose items cannot be placed) are keyed by
-    name, and the LOCALE identification is keyed as written, as `TypeIdentityKey` keys it. `PrototypeSignatureClasses`
-    refines with PROVISIONAL identities (a block's position in its round, `P#n` / `F#n`), which replaced the founder
-    spelling and the decoded admission numbers of part 3 (no spelling a group's AS literal can forge remains), and stamps
-    the canonical identity once the partition is stable. The display-only member is the existing
+    `RestrictedPrototype(Function, ExternalizedName, the decoded CalleeSignature, a PrototypeOrigin of its own)`, and
+    stamps each decoded pointer with what it may contain (`PrototypeSignatures.StampContentRestrictions`), the identity
+    of its DECODED signature, never of the group prototype of that name: a decoded `P` whose signature differs from the
+    group's `P` has another identity, and a round trip that dropped or changed a `ReferencedPrototypes` formal does not
+    pass unseen (`RepositoryCodecTests.ARecordThatDroppedAReferencedPrototypesFormal_FailsTheRoundTrip`,
+    `PrototypePointerTypeDriftTests.ADecodedPointer_MayContainWhatItsPrototypesSignatureAllows_NeverWhatItsNameDoes`).
+  - *The identity is canonical and group-independent (kb/Work PB2103, PB4491).* What a pointer may contain is
+    `PrototypeSignatures.Identity`, `SIG <hex>`: the SHA-256 of the prototype's namespace and its
+    `PrototypeSignatures.SignatureKey` — the mode, OPTIONAL and `DescriptionKey` of each formal and the RETURNING item's
+    presence and key, a restricted pointer formal written as its TO phrase (the folded externalized name of the prototype
+    it names; §8.3.2.2: one name, one program in the run unit), data-names and intermediate grouping omitted (§13.7.3
+    SR2). `DescriptionKey` is `Same`'s description half as a key, read by the arm `ActivationRelations.SignatureDifference`
+    takes and, for a group that is not a bit or national group, `StrongTypeModel.ElementaryLayoutKey`. Two facts the
+    relation answers false of even against themselves (an item with no crossing form, a group whose items cannot be
+    placed) are keyed by name, and the LOCALE identification is keyed as written, as `TypeIdentityKey` keys it. A group
+    describes a method's `RETURNING PROGRAM-POINTER TO P1` and a separately compiled group its receiver `TO P2` of one
+    signature with ONE content identity, so the run-time relations (`ActivationRelations.MaySet`, rule 6's SET validity,
+    GR3 d)'s argument check) admit the pair GR25 admits, a universal INVOKE and a dynamic CALL included, which import
+    nothing. `SignatureIdentityDriftTests`: every prototype of the corpus against a representative of each identity met
+    (most pairs cross compilation groups), that no key holds another identity (`SIG `), ten perturbations that must change
+    the identity, renamed and regrouped twins compiled in another group that must not, and pointer formals naming two
+    prototypes of one signature, or each other, that must. The display-only member is
     `ActivationDescription.ClausePhrases`: a pointer's phrase spells `TO` and the prototype as written (an address
-    identifier's through `BoundProgramAddress.Prototype`), so no new member was needed. `SignatureIdentityDriftTests`:
-    every prototype of the corpus against a representative of each identity met (most pairs cross compilation groups),
-    ten perturbations that must change the identity, and renamed, regrouped and differently recursive twins compiled in
-    another group that must not. The bump is `RuntimeAbi.CallAbi` 3; the member became a property, because a `const`'s
-    value is in `PublicAPI.Shipped.txt`, so a call-ABI bump moved the runtime's public-API hash too
-    (`scripts/abi_pin.py`'s `_CALL_ABI` and its self-test fixtures follow the new form).
-  - *Slice 7 deletes the null-signature state everywhere it has spread (PB3162).* Every prototype then resolves with a
-    signature or draws REPO-1 (§8.2 step 4), so `PrototypeSignatures.ExternalIdentity` and its `EXTERNAL TO` text,
-    `UnclassifiedIdentity`'s external arm, `RestrictedPrototype(…, CalleeSignature? Signature)`'s nullability,
-    `ActivationRelations.SamePointerRestriction`'s external arm, `StatementBinder.ProgramRestrictionOf`'s
-    external arm and `PrototypeSignatures.FormalCount`'s unresolved zero go with `Same`'s null arm. The run-time screen
+    identifier's through `BoundProgramAddress.Prototype`), never compared.
+  - *Every prototype has a signature (kb/Work PB2103, PB3162).* Every prototype resolves with a signature or draws REPO-1
+    (§8.2 step 4), so there is no "unknown signature" state: no external restriction prefix, no nullable
+    `RestrictedPrototype.Signature`, no unresolved arm of `ActivationRelations.SamePointerRestriction`. The run-time screen
     `ProgramTable.FunctionSignatureMatches` stays: its question is the target a function-pointer holds at run time.
-  - **ABI.** The restriction text every module's descriptions carry changes (`TO <founder>` / `EXTERNAL TO <name>` →
-    `SIG <hex>`), and the runtime's public `ActivationDescription.ExternalRestrictionPrefix` and
-    `IsExternalRestriction` are removed: slice 7 makes a call-ABI bump AND a runtime-major bump
-    (`scripts/abi_pin.py bump --call-abi` and `--runtime-major`, §15.4), so a module compiled before it is refused by
-    REPO-7 at compile time and by the probe and `RegisterModule` at run time, never misread.
+  - **ABI.** The content restriction every module's descriptions carry is the identity above, so a change to what the
+    key writes is a call-ABI bump (`scripts/abi_pin.py bump --call-abi`, §15.4): 3 introduced `SIG <hex>` (kb/Work
+    PB2103, with a runtime-major bump for the deleted external-restriction members), 6 wrote a pointer formal by the
+    prototype it names (kb/Work PB4491). A module compiled before a bump is refused by REPO-7 at compile time and by the
+    probe and `RegisterModule` at run time, never misread.
 - **Dynamic-length structures**: compared by DEFINITION (`StructureRecord` minus name) in `DescriptionClauses` AND in
   the activation description `ActivationDescriptions.Of` builds (the definition's canonical text replaces
   `DynStructure?.Name`), which `SignatureDifference` reads, so the compile-time and run-time answers stay one. The tree
@@ -1569,7 +1513,7 @@ table's keys, not per-element words (a description names the RESOLVED definition
 an imported symbol's `Name` is the key `class "<identity>"` (`OoClassTable.ImportedKey`) and decoding a record for any
 element needs no per-element word: `RepositoryCodec.Names` maps every identity a record names to the table's name for it
 (importing the class on the way). The reverse map this section first gave the scope, and the program-prototype and
-structure rows, have no reader (a restricted pointer's prototype is identified by its signature class, a structure by its
+structure rows, have no reader (a restricted pointer's prototype is identified by its signature's identity, a structure by its
 definition, §6.4) and are not built.
 
 ### 8.8 Nesting, COMMON and §8.4.6
@@ -2134,7 +2078,7 @@ still changes (the planner holds a group only where running work edits the same 
 | `BoundCallProgram.CalleeSignatureKnown` (one flag for "checked at bind time" and "cannot differ at run time"; `CallEmitter.DescribesOperands` / `LandsAtRunTime`) | **landed, slice 7 part 1 (kb/Work PB2103), §4.2's landed paragraph:** split into `CalleeSignatureKnown` and `CalleeCompiledHere`; a site whose callee is compiled elsewhere describes its operands for GR3 d) (§4.2) | `CallBinder`, `UdfBinder`, `CallEmitter` |
 | `ObjectRefDescriptor(Kind, Name, Factory, Only, Formal)`; `ActivationDescriptions.Of`'s `ObjectName` / `ObjectClasses` / `ObjectInterfaces` as folded WORDS (PB2463) | slice 8: `+ Target`; `ClrTypeName` over `Target`; the description's class facts become folded EXTERNALIZED names (a call-ABI bump, §6.4) | `PictureAnalyzer`/`DataBinder` (sets `Target`), `OoClassTable.SetOperand`, `OoEmitter.OoReturnClrType`, `OoConformance`, `SetBinder` Format 5 |
 | `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 8: `RaisingTarget.Target`. **Landed, slice 7 part 1 (kb/Work PB2103):** the structure DEFINITION key (§6.4, `DynamicLengthStructure.DefinitionKey`), inside slice 7's call-ABI bump | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
-| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.SignatureRestriction` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4, **the classes part landed (kb/Work PB2100):** `PrototypeSignatureClasses` keys members by origin and name (`PrototypeKey`, `RestrictedPrototype.Origin`, `PrototypeOrigin`), admits decoded prototypes into its refinement (`Admit`: a re-run from one block, group members first) and spells a decoded founder's block `DECODED k TO name`, so a decoded pointer is classified by its decoded SIGNATURE (§6.4); and the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row and calls `Admit` (BoundCompilation.SignatureClasses is the group's instance). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype (the repository-resolved ones with the metadata provider); runtime-major bump with the null-signature deletion. **Landed, slice 7 part 1 (kb/Work PB2103):** a class's identity is `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`, under call-ABI 3 (§6.4's landed paragraph). (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
+| **landed (kb/Work PB2464, PB2495, PB3120, PB3162, PB4491):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (attached by `DataBinder.ResolveRestrictedPrototypes` and stamped by `PrototypeSignatures.StampContentRestrictions` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.NamedRestriction`, `SignatureRestriction` and `Identity`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms — what a restricted program- or function-pointer may CONTAIN is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.ContentRestriction` by the SET relation alone; every other relation, the signature itself included, reads the TO phrase by name through `ActivationDescription.Clauses`; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4 (kb/Work PB2100): the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row, so a decoded pointer may contain what its decoded SIGNATURE allows (§6.4). **Slice 7 part 1 (kb/Work PB2103):** the content identity is canonical, `SIG <hex>`, group-independent, held to `Same` by `SignatureIdentityDriftTests`, under call-ABI 3. **PB4491:** a signature describes a pointer formal by the prototype it names, so the identity is a hash of the signature's own key and the partition refinement that minimized recursive signature graphs (`PrototypeSignatureClasses`, its decoded admission and `BindSession` / `BoundCompilation.SignatureClasses`) is deleted, under call-ABI 6 (§6.4). | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
 | `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope`. **Landed, step 1 (kb/Work PB2104):** `OoClassTable.ImportClass` / `ImportedClasses` / `ImportedAssemblies`, `OoSymbolOrigin`, `IdentityScope` (words → identities only, §8.7), `IOoImporter`; `IsParameterized` for imported skeletons is step 2's | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
 | `OoExpansion.Expand(tree, classes, interfaces, edition, words)` | slice 8: resolver-driven; imported skeletons re-parsed under their recorded `CompileState` with recorded resolutions; the `ExpansionKey`; import by key; placement (4a)/(4b); stale detection (REPO-9 with the referencing assemblies); publishes keys and skeleton records (§10.5) | `BinderDriver`, `FragmentParse.ParseTokens` (a `CompileState` parameter), the binder's option-dependent arms, `CompilerDriver`, `RepositoryIndex` (`AssemblyRef` listing) |
 | `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | **landed differently, slice 7 part 2 (kb/Work PB2103):** every PROGRAM and FUNCTION specifier resolves in `BinderDriver.ProgramPrototypesOf` / `UserFunctionsOf`, which `ResolvePointerRestrictions` asks for every forest before any signature is compared or any body binds, and REPO-1 is reported once per specifier (`RepositoryResolver.ReportUnanswered`, keyed by the specifier a contained program inherits); a separate `ResolveRepositorySpecifiers` pass would have been a second walk of the same tables. `ProgramSpecifier` carries its entry (`At`) as `FunctionSpecifier` does. Class and interface specifiers are slice 8's | `BinderDriver`, `OoDriver.BindClassData` |
@@ -2147,7 +2091,7 @@ still changes (the planner holds a group only where running work edits the same 
 | Tests naming the global-namespace registrar: `NonCobolActivatorReturnTests`, `FunctionLocateResourceWitnessTests`, `InterProgramFileDifferentialTests` | **landed:** slice 1 reaches the module through `EnsureRegistered` named by `[CobolRepository(Registrar)]` (the witness fixture carries the record and a throwing `EnsureRegistered`); slice 3 made the activator test a host of the generated entries (`Cobol.L1HSTGB.L1HSTGB.Call()` inside `RunUnit.Run`) | — |
 | `docs/CONFORMANCE.md` DOC-A.1-65, -116, -141, -167 (the host route through `__CobolModule.Register()`, `ProgramRegistry.CallProgram`, `ICobolProgram.Call`) | **landed, slice 3:** rewritten to the host entry (§9.4's DOC-A.1-141 text; the other three name the entry, `EnsureRegistered` and the exception contract) | — |
 | Goldens pinning function resolution (§8.3 D-R3) | unchanged source and expectations; slice 6 added the in-group REPO-13 (COBOL2969) goldens; slice 7 adds REPO-13 across the repository, the word reaching a later-compiled unit, as WiseOwl multi-unit cases (§17.1) | — |
-| `OoStandardClasses` comment; XML remarks in `PrototypeSignatures`, `PrototypeSignatureClasses`, `BinderDriver`, `ProgramPrototype`, `GroupRepository`, `BoundCallProgram`, `ProgramTable` describing the registry-as-repository or the group-local signature class | rewritten to this design by the slice that changes the code they describe (7, and 5 for `ProgramTable`) | — |
+| `OoStandardClasses` comment; XML remarks in `PrototypeSignatures`, `RestrictedPrototype`, `BinderDriver`, `ProgramPrototype`, `GroupRepository`, `BoundCallProgram`, `ProgramTable` describing the registry-as-repository or the group-local signature class | rewritten to this design by the slice that changes the code they describe (7, and 5 for `ProgramTable`) | — |
 Nothing is wrapped or forwarded: `GroupRepository` (renamed, not kept), the null-signature state, the order-blind and word-keyed tables,
 `DataBinder.Unique`, the public `Register()`, the global-namespace registrar lookup and the documented untyped host
 route are deleted in the slice that lands their replacements.
@@ -2408,9 +2352,9 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   `SameAnalyzedProfile` normalization of `PicInfo` (§6.3): record equality with `EditingRules`, `RestrictedTypeName`,
   `RestrictedTypeDecl` and `RestrictedPrototypeName` set aside (the synthesized `==`, so `_digitPositions` and every
   future member are seen), `EditingRules` element-wise, the two restriction names equal as written (one scope), and
-  `SameRestriction` / `PrototypeSignatures.SameSignatureRestriction` true; and the decoded pointer's `PointerRestrictionIdentity` equals
-  the original's — after the decoded prototypes were ADMITTED as members of their own (§6.4, keyed by origin), so the
-  identity says "same block by signature", never "same name". Beside it, for every `ReferencedPrototypes` row,
+  `SameRestriction` true and the two `PrototypeSignatures.SignatureRestriction`s equal, so the decoded pointer's `PointerRestrictionIdentity` equals
+  the original's — the identity of the DECODED signature (§6.4), so equal identities say "same signature", never "same
+  name". Beside it, for every `ReferencedPrototypes` row,
   `PrototypeSignatures.Same(original prototype's signature, decoded signature)` holds. A record that dropped, reordered
   or changed a formal of a referenced prototype FAILS both: `Same` compares the formal count, modes and descriptions,
   and the decoded prototype founds a block of its own whose identity differs (part 3). The perturbation test pins it:
@@ -2452,9 +2396,10 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   before any body binds (slice 7).
 - `PrototypeSignatures.Same` and `ProgramPrototype.Signature` have no nullable path (slice 7).
 - **The signature identity** (slice 7, `SignatureIdentityDriftTests`, §6.4): `Same(a, b)` iff
-  `CanonicalIdentity(a) == CanonicalIdentity(b)` over every pair of prototypes in §17.2's corpus and over a perturbation
+  `Identity(a) == Identity(b)` over every pair of prototypes in §17.2's corpus and over a perturbation
   fixture; two separately compiled groups that restrict pointers to differently named prototypes of one signature emit
-  one restriction text; `PrototypePointerTypeDriftTests` keeps every relation on `RestrictionIdentity`.
+  one content restriction; no key holds another identity (kb/Work PB4491); `PrototypePointerTypeDriftTests` keeps every
+  relation off the written name and every signature description off the content restriction.
 - Identity tests (slice 8 for classes, slice 7 for structures): two descriptions with different words and one identity
   compare equal through `OoConformance.SignatureDifference`, `ClassRaisingCovered` and `DescriptionClauses`; one word
   and two identities do not.
@@ -2776,8 +2721,8 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    OO classes, their factory types, methods (the carrier of PB2087's triple), accessors and interfaces, and
    `RepositoryReader` (§7.4's compiler half), whose failures are typed outcomes (REPO-3/-4/-5/-7's conditions,
    allocated by slice 7, §14). The restricted-pointer and object-reference records of §6.4 (the decoder rebuilds
-   `DataItem.RestrictedPrototype`; `PrototypeSignatureClasses` keyed by origin and name, with `Admit` and unique block
-   identities, so a decoded pointer is typed by its decoded signature).
+   `DataItem.RestrictedPrototype` with a `PrototypeOrigin` per row, so a decoded pointer may contain what its decoded
+   signature allows).
    `HostEntryEmitter`: `EntryUnits` pairs by `ExternalizedNames.Same` (kb/Work PB3872) and `Published` is deleted, a
    `Renders` refusal an internal error (§7.2). `--repository-update on|off` (`Options.RepositoryUpdate`,
    `BackendOptions.RepositoryUpdate`; `HasSignatures`), with the `BackendOptions.AssemblyName` remark corrected. Tests:
@@ -2811,7 +2756,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    in the resolver, `FunctionResolution.Shadowed` a `FunctionAnswer`), `ResolveRepositorySpecifiers`,
    `FunctionByWord`; the null-signature state deleted everywhere it has spread (§6.4, §12), because with the metadata
    provider every prototype resolves with a signature or draws REPO-1; the canonical signature identity
-   (`PrototypeSignatures.CanonicalIdentity` over `PrototypeSignatureClasses`' minimized graph, `SignatureIdentityDriftTests`)
+   (`PrototypeSignatures.Identity`, a hash of the signature's key since kb/Work PB4491, `SignatureIdentityDriftTests`)
    and the dynamic-length structure's definition key, under ONE call-ABI bump and ONE runtime-major bump
    (`scripts/abi_pin.py`); the `CalleeSignatureKnown` / `CalleeCompiledHere` split (§4.2); REPO-1, -2, -3, -4, -5, -7,
    -8, -9, -10, -11, -12 allocated and reported (§14); `--repository` / `--reference` / `--repository-check` (REPO-9 by

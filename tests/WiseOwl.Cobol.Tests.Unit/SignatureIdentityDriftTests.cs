@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE CANONICAL SIGNATURE IDENTITY AGREES WITH THE ONE SAME-SIGNATURE RELATION (DESIGN-external-repository §6.4, §17.2;
-/// kb/Work PB2103). A restricted program- or function-pointer's TYPE is its prototype's signature (ISO §13.18.60.4 GR25: "the
-/// address of a program with the same signature as that identified by the specified program-prototype-name"; GR26 its
-/// function twin), and the run-time relations compare the identity a description carries, so
-/// <c>PrototypeSignatures.CanonicalIdentity</c> must name two prototypes alike exactly when
+/// kb/Work PB2103, PB4491). What a restricted program- or function-pointer may CONTAIN is bounded by its prototype's
+/// signature (ISO §13.18.60.4 GR25: "the address of a program with the same signature as that identified by the specified
+/// program-prototype-name"; GR26 its function twin), and the run-time relations compare the identity a description carries,
+/// so <c>PrototypeSignatures.Identity</c> must name two prototypes alike exactly when
 /// <c>PrototypeSignatures.Same</c> says they are the same — across compilation groups, because two separately compiled
 /// modules' descriptions meet at run time. Two halves: every prototype of §17.2's corpus against every other (each corpus
 /// case is its own compilation group, so most pairs cross groups), and a perturbation fixture — one variant per description
@@ -24,7 +24,7 @@ public sealed class SignatureIdentityDriftTests
     private sealed record Seen(string Case, string Name, bool Function, CalleeSignature Signature, string Identity);
 
     private static string IdentityOf(BoundCompilation comp, BoundUnit u, CalleeSignature signature) =>
-        comp.SignatureClasses.Identity(new RestrictedPrototype(u.IsFunction, u.ExternalizedName, signature));
+        PrototypeSignatures.Identity(u.IsFunction, signature);
 
     private static CalleeSignature SignatureOf(BoundUnit u) => new(u.Data.Linkage.Formals, u.Data.Linkage.Returning);
 
@@ -64,6 +64,9 @@ public sealed class SignatureIdentityDriftTests
         foreach (var s in seen.OrderBy(s => s.Case, StringComparer.Ordinal).ThenBy(s => s.Name, StringComparer.Ordinal))
         {
             Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, s.Identity, StringComparison.Ordinal);
+            // The key describes a pointer formal by its TO phrase, never by another identity, so an identity is a function
+            // of the signature's text alone and the order the pointers are stamped in changes none (kb/Work PB4491).
+            Assert.DoesNotContain(PrototypeSignatures.CanonicalPrefix, PrototypeSignatures.SignatureKey(s.Signature), StringComparison.Ordinal);
             var bucketKey = (s.Function, s.Signature.Formals.Count, s.Signature.Returning is null);
             if (!representatives.TryGetValue(bucketKey, out var bucket)) representatives[bucketKey] = bucket = [];
             bool joined = false;
@@ -248,9 +251,11 @@ public sealed class SignatureIdentityDriftTests
                END PROGRAM PHOLD.
                """;
 
-    /// <summary>The same signatures as <see cref="Perturbations"/>' PBASE, PPTRB and PSELF, compiled in ANOTHER group under
-    /// other names, other data-names and another intermediate grouping (§13.7.3 SR2 matches descriptions, not names; a
-    /// group's description is its elementary items, §8.5.3.1), and with the recursion through a second prototype.</summary>
+    /// <summary>The same signatures as <see cref="Perturbations"/>' PBASE and PPTRB, compiled in ANOTHER group under other
+    /// names, other data-names and another intermediate grouping (§13.7.3 SR2 matches descriptions, not names; a group's
+    /// description is its elementary items, §8.5.3.1): QBASE and this group's own PBASE are PBASE's signature, QPTRB is
+    /// restricted to PBASE through PPTRB's type-name PT, QPTRT to PBASE through another type-name, and QPTRQ to QBASE, ANOTHER
+    /// prototype of that signature, through PT. QODD and QEVEN name each other.</summary>
     private const string Renamed = """
                IDENTIFICATION DIVISION.
                PROGRAM-ID. QBASE IS PROTOTYPE.
@@ -265,17 +270,53 @@ public sealed class SignatureIdentityDriftTests
                PROCEDURE DIVISION USING QA QG RETURNING QR.
                END PROGRAM QBASE.
                IDENTIFICATION DIVISION.
+               PROGRAM-ID. PBASE IS PROTOTYPE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 ZA PIC 9(4).
+               01 ZG.
+                  05 ZG1 PIC X(2).
+                  05 ZH.
+                     10 ZG2 PIC 9(2).
+               01 ZR PIC X(2).
+               PROCEDURE DIVISION USING ZA ZG RETURNING ZR.
+               END PROGRAM PBASE.
+               IDENTIFICATION DIVISION.
                PROGRAM-ID. QPTRB IS PROTOTYPE.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY.
+                   PROGRAM PBASE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 PT IS TYPEDEF USAGE PROGRAM-POINTER TO PBASE.
+               01 QP TYPE PT.
+               PROCEDURE DIVISION USING QP.
+               END PROGRAM QPTRB.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. QPTRT IS PROTOTYPE.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY.
+                   PROGRAM PBASE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 QPT IS TYPEDEF USAGE PROGRAM-POINTER TO PBASE.
+               01 QP TYPE QPT.
+               PROCEDURE DIVISION USING QP.
+               END PROGRAM QPTRT.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. QPTRQ IS PROTOTYPE.
                ENVIRONMENT DIVISION.
                CONFIGURATION SECTION.
                REPOSITORY.
                    PROGRAM QBASE.
                DATA DIVISION.
                LINKAGE SECTION.
-               01 QPT IS TYPEDEF USAGE PROGRAM-POINTER TO QBASE.
-               01 QP TYPE QPT.
+               01 PT IS TYPEDEF USAGE PROGRAM-POINTER TO QBASE.
+               01 QP TYPE PT.
                PROCEDURE DIVISION USING QP.
-               END PROGRAM QPTRB.
+               END PROGRAM QPTRQ.
                IDENTIFICATION DIVISION.
                PROGRAM-ID. QODD IS PROTOTYPE.
                ENVIRONMENT DIVISION.
@@ -314,8 +355,8 @@ public sealed class SignatureIdentityDriftTests
     }
 
     /// <summary>Each property <c>Same</c> reads — a formal's mode, OPTIONAL, PICTURE, USAGE, SIGN, a returning item's
-    /// JUSTIFIED and PICTURE, a group's elementary layout, the RETURNING item's presence, the formal count, and the signature
-    /// a restricted pointer formal is typed by — changes the identity.</summary>
+    /// JUSTIFIED and PICTURE, a group's elementary layout, the RETURNING item's presence, the formal count, and the prototype
+    /// a restricted pointer formal's TO phrase names — changes the identity.</summary>
     [Theory]
     [InlineData("PMODE")]
     [InlineData("POPT")]
@@ -333,25 +374,38 @@ public sealed class SignatureIdentityDriftTests
         Assert.NotEqual(ids["PBASE"], ids[variant]);
     }
 
+    /// <summary>⛔ A POINTER FORMAL IS DESCRIBED BY THE PROTOTYPE ITS TO PHRASE NAMES (kb/Work PB4491; docs/CONFORMANCE.md
+    /// D-RP1): §13.7.3 SR2 matches "the description of the formal parameters", and a restricted pointer's description is its
+    /// USAGE clause, whose TO phrase §14.8.2.3.2 and §8.5.3.1 compare by name. So a pointer restricted to PBASE and one
+    /// restricted to QBASE are two signatures although PBASE and QBASE are one, two prototypes that name each other (QODD,
+    /// QEVEN) are two signatures, and neither is the self-referring PSELF. The type declaration a typed pointer formal
+    /// references is in the signature too (§8.13: "type declarations required for the description of parameters"), and
+    /// §8.5.3.1 makes two of them equivalent only under one type-name, so TO PBASE through PT and through QPT are two
+    /// signatures (branch review R1-1 of kb/Work PB4491).</summary>
     [Fact]
-    public void APointerFormal_IsIdentifiedByTheSignatureItIsTypedBy_NeverByItsPrototypesName()
+    public void APointerFormal_IsIdentifiedByThePrototypeItsToPhraseNames()
     {
-        var ids = Identities(Perturbations);
-        Assert.NotEqual(ids["PPTRB"], ids["PPTRM"]);   // TO PBASE and TO PMODE: two signatures
-        Assert.NotEqual(ids["PPTRB"], ids["PSELF"]);
+        var p = Identities(Perturbations);
+        var q = Identities(Renamed);
+        Assert.NotEqual(p["PPTRB"], p["PPTRM"]);   // TO PBASE and TO PMODE
+        Assert.NotEqual(p["PPTRB"], p["PSELF"]);
+        Assert.Equal(q["PBASE"], q["QBASE"]);       // one signature, two names ...
+        Assert.NotEqual(q["QPTRB"], q["QPTRQ"]);   // ... so TO PBASE and TO QBASE are two descriptions
+        Assert.NotEqual(p["PPTRB"], q["QPTRT"]);   // TO PBASE through type PT and through type QPT (§8.13, §8.5.3.1)
+        Assert.NotEqual(q["QODD"], q["QEVEN"]);
+        Assert.NotEqual(p["PSELF"], q["QODD"]);
+        Assert.NotEqual(p["PSELF"], q["QEVEN"]);
     }
 
-    /// <summary>Data-names, intermediate grouping, prototype names and the group that compiled them change nothing: QBASE is
-    /// PBASE, QPTRB (restricted to QBASE) is PPTRB (restricted to PBASE), and a pointer recursion through two prototypes
-    /// that the coarsest stable partition makes one class is the self-recursive PSELF.</summary>
+    /// <summary>Data-names, intermediate grouping, the prototype's OWN name and the group that compiled it change nothing:
+    /// QBASE and the other group's PBASE are PBASE, and QPTRB, restricted to PBASE in another group, is PPTRB.</summary>
     [Fact]
     public void NamesGroupingAndTheCompilingGroup_DoNotChangeTheIdentity()
     {
         var p = Identities(Perturbations);
         var q = Identities(Renamed);
         Assert.Equal(p["PBASE"], q["QBASE"]);
+        Assert.Equal(p["PBASE"], q["PBASE"]);
         Assert.Equal(p["PPTRB"], q["QPTRB"]);
-        Assert.Equal(p["PSELF"], q["QODD"]);
-        Assert.Equal(p["PSELF"], q["QEVEN"]);
     }
 }

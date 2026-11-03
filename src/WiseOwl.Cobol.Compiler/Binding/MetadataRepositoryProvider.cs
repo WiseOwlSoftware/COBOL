@@ -63,8 +63,8 @@ internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryU
 /// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER (ISO §12.3.8.4 GR10 c) / GR11 c), §8.13; DESIGN-external-repository §8.0, §8.2 step
 /// 3, §8.3, §8.6): what the compiled assemblies of the search space publish, read through the runtime's
 /// <see cref="RepositoryLocator"/> (which file publishes a unit) and the compiler's <see cref="RepositoryReader"/> (its record),
-/// and bound into the throw-away forest by <see cref="RepositoryCodec.Decode"/>, which admits the record's prototypes into the
-/// group's <see cref="PrototypeSignatureClasses"/> (§6.4). Nothing is loaded: the reads are prefetched metadata (§15.1).
+/// and bound into the throw-away forest by <see cref="RepositoryCodec.Decode"/>, which gives each decoded restricted pointer
+/// the identity of its prototype's signature (§6.4). Nothing is loaded: the reads are prefetched metadata (§15.1).
 /// <list type="bullet">
 /// <item><b>Search order (§8.6).</b> Every location in order; in a location the definition before the prototype of the name.
 /// The FIRST entry wins. A later entry from another build (another module version id) whose signature differs is REPO-2;
@@ -85,7 +85,6 @@ internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryU
 internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImporter
 {
     private readonly RepositorySearchSpace _space;
-    private readonly PrototypeSignatureClasses _classes;
     private OoClassTable? _table;
     private readonly EditionContext _edition;
     private readonly string? _output;
@@ -100,12 +99,10 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     private readonly Dictionary<(string Path, RepositoryUnitKind Kind, string Name), Hit?> _answers = [];
 
     /// <param name="space">The search space.</param>
-    /// <param name="classes">The group's signature classes, which every decoded record's prototypes join (§6.4).</param>
     /// <param name="edition">Where the findings are reported.</param>
-    public MetadataRepositoryProvider(RepositorySearchSpace space, PrototypeSignatureClasses classes, EditionContext edition)
+    public MetadataRepositoryProvider(RepositorySearchSpace space, EditionContext edition)
     {
         _space = space;
-        _classes = classes;
         _edition = edition;
         _output = space.OutputPath is { } output ? Path.GetFullPath(output) : null;
         // REPO-10 is a fault of the command line, stated before any source position: an existence probe per named place (no
@@ -467,7 +464,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
                     Unanswered($"the repository entry '{path}' describes {record.ExternalizedName}'s object reference to", isInterface, identity);
             return null;
         }
-        try { return RepositoryCodec.Decode(record, _classes, names); }
+        try { return RepositoryCodec.Decode(record, names); }
         catch (RepositoryRecordException e)
         {
             if (report)

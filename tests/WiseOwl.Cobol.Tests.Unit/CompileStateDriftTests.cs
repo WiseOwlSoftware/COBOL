@@ -66,7 +66,6 @@ public sealed class CompileStateDriftTests
         ["Retypes"] = "re-derived from the edition and the words map by the re-parse (FragmentParse.ParseUnit)",
         ["OoClasses"] = "the group's class table: bound, not an input",
         ["Repository"] = "the group's resolver: bound, not an input",
-        ["SignatureClasses"] = "the group's signature partition: bound, not an input",
         ["SearchSpace"] = "where the build reads the repository, not what the source means",
         ["External"] = "the group's repository provider: bound, not an input",
         ["ClaimScans"] = "a scan cache of the binder",

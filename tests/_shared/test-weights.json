@@ -825,7 +825,6 @@
       "WiseOwl.Cobol.Tests.Unit.ProgramActivationMaskTests": 0.0,
       "WiseOwl.Cobol.Tests.Unit.ProgramNameScopeDriftTests": 0.0,
       "WiseOwl.Cobol.Tests.Unit.PrototypePointerTypeDriftTests": 0.7,
-      "WiseOwl.Cobol.Tests.Unit.PrototypeSignatureClassesTests": 0.0,
       "WiseOwl.Cobol.Tests.Unit.PushPopAllPlacementTests": 0.0,
       "WiseOwl.Cobol.Tests.Unit.PythonInterpreterDriftTests": 0.0,
       "WiseOwl.Cobol.Tests.Unit.QualifiedNameClassDriftTests": 0.0,
