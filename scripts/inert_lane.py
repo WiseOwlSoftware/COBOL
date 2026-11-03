@@ -394,6 +394,8 @@ CLASSIFICATION = Classification(inert={
                                   "test_population.py",
        "scripts/ci_workflow.py": "imported by scripts/test_population.py",
        "scripts/rendered_views.py": "imported by scripts/spec/work.py (scripts/arch/r2_inputs.py, ArchReviewFleetDriftTests)",
+       "scripts/semgrep/verify.py": "imported by scripts/arch/r2_inputs.py (its semgrep step reads errors[] through verify's "
+                                    "helpers, kb/Work PB4462 review R1-1; ArchReviewFleetDriftTests runs the self-test)",
        "scripts/detached.py": "imported by scripts/orchestrator/coord.py",
        "scripts/sharedfile.py": "imported by scripts/orchestrator/coord.py",
        "scripts/orchestrator/coord.py": "imported by scripts/arch/r2_inputs.py, r2_cost.py and scripts/spec/work.py "

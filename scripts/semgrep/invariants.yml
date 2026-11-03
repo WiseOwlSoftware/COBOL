@@ -9,6 +9,17 @@
 # The scan names the product projects (here and in scripts/semgrep/verify.py) rather than excluding paths, so a
 # new directory is scanned only once it is named on purpose.
 #
+# EVERY RULE IS TEXT (kb/Work PB4462): one `pattern-regex`, never `pattern` / `patterns` / `pattern-either` / `pattern-inside`.
+# semgrep's C# grammar predates C# 12 (primary-constructor classes, `extension` members, list patterns with a slice
+# designation, raw interpolated strings) and SKIPS a span it cannot read: an AST rule is blind there while the scan says
+# "success" (213 product files are read only in part, the data binder's thousands of lines among them; the
+# raw-code-literal count read 230 of 248). A `patterns:` block makes semgrep parse the file first, and a file it cannot
+# read AT ALL is dropped from every rule. `scripts/semgrep/verify.py` refuses a rule that is not one `pattern-regex`,
+# fire-tests each rule in testdata/Unparsed.cs (a file semgrep reads only in part), reads the scan's `errors[]` and fails
+# on any whole-file one, and names the five product files semgrep cannot read at all (WHOLE_FILE_UNREADABLE). A regex
+# cannot tell code from a comment: the tempered prefix `^(?:(?!//)[^\n])*?` rules a `//` line comment out of a match on
+# the same line.
+#
 # SUPPRESSION: use semgrep's built-in `// nosemgrep: <rule-id>` on the line (or the line above), WITH a reason:
 #     byte[] _scratch = ...;  // nosemgrep: wiseowl-cobol-no-persistent-byte-storage - CODE-SET file boundary, §9.1
 # Do NOT invent a project-local suppression convention. An earlier draft used a `pattern-not-inside` on a
@@ -34,10 +45,11 @@ rules:
       include:
         - "src/WiseOwl.Cobol.Runtime/**"
         - "src/WiseOwl.Cobol.Compiler/Binding/Model/**"
-    pattern-either:
-      - pattern: decimal $X;
-      - pattern: decimal $X = ...;
-      - pattern: System.Decimal
+    # TEXT, not AST (kb/Work PB4462): semgrep's C# grammar cannot read C# 12+ constructs (a primary-constructor
+    # class header, a collection expression with a spread, a list pattern, a raw interpolated string), and it then
+    # skips the span silently: an AST pattern is blind there. This was `decimal $X;` / `decimal $X = ...;` /
+    # `System.Decimal`; the regex matches the same declarations, a `//` line comment ruled out by the tempered prefix.
+    pattern-regex: '(?m)^(?:(?!//)[^\n])*?(?<![A-Za-z0-9_.])(?:decimal\s+[A-Za-z_]\w*\s*(?:;|=(?![=>]))|System\.Decimal\b)'
 
   - id: wiseowl-cobol-no-biginteger
     languages: [csharp]
@@ -67,11 +79,10 @@ rules:
       include:
         - "src/WiseOwl.Cobol.Compiler/Binding/**"
         - "src/WiseOwl.Cobol.Runtime/Values/**"
-    patterns:
-      - pattern-either:
-          - pattern: byte[] $NAME;
-          - pattern: byte[] $NAME = ...;
-      - pattern-inside: "class $C { ... }"
+    # TEXT, not AST (kb/Work PB4462; see wiseowl-cobol-no-decimal): this was `byte[] $NAME;` / `byte[] $NAME = ...;`
+    # inside `class $C { ... }`. A struct or record field is as much a persisted byte substrate as a class field, so the
+    # regex does not ask for the enclosing class.
+    pattern-regex: '(?m)^(?:(?!//)[^\n])*?(?<![A-Za-z0-9_.])byte\[\]\s+[A-Za-z_]\w*\s*(?:;|=(?![=>]))'
 
   # ── Loud-failure invariant §1.4 ────────────────────────────────────────────────────────────────────────────
   - id: wiseowl-cobol-no-silent-todo
@@ -101,16 +112,13 @@ rules:
       exclude:
         - "**/DiagnosticCatalog.cs"   # the definition site — the literal is the point there
         - "**/*.g.cs"                 # generated; regenerate the generator, not the output
-    patterns:
-      - pattern-either:
-          - pattern: Emit($SEV, $CODE, ...)
-          - pattern: $X.Error($CODE, ...)
-          - pattern: $X.Warning($CODE, ...)
-          - pattern: $X.Report($CODE, ...)
-          - pattern: $X.Report($EDITION, $CODE, ...)   # BoundRejected.Report(ctx.Edition, "COBOL####", message)
-      - metavariable-regex:
-          metavariable: $CODE
-          regex: '^"COBOL\d{4}"$'
+    # TEXT, not AST (kb/Work PB4462): this was `Emit($SEV, $CODE, ...)` / `$X.Error($CODE, ...)` / `$X.Warning(...)` /
+    # `$X.Report(...)` / `$X.Report($EDITION, $CODE, ...)` with `$CODE` a "COBOL####" literal, and semgrep's C# grammar
+    # skipped 130 files' worth of spans (a primary-constructor class header and everything it swallowed), so the count
+    # under-read. The regex matches the same calls — a bare `Emit(<severity>, "COBOL####"` (not `x.Emit(`), `.Error(` /
+    # `.Warning(` / `.Report(` with the literal first, or `.Report(<edition>, "COBOL####"` (the BoundRejected shape of
+    # PB4463) — over any whitespace, a `//` line comment ruled out by the tempered prefix. PB4463 took the count to zero.
+    pattern-regex: '(?m)^(?:(?!//)[^\n])*?(?:(?<![A-Za-z0-9_.])Emit\(\s*[^,;()]*(?:\([^()]*\)[^,;()]*)*,|\.(?:Error|Warning|Report)\(|\.Report\(\s*[^,;()]*(?:\([^()]*\)[^,;()]*)*,)\s*"COBOL\d{4}"'
 
   # ── Backend neutrality (G4 / DESIGN §1.3) ──────────────────────────────────────────────────────────────────
   - id: wiseowl-cobol-bound-node-carries-rendered-text
@@ -174,9 +182,10 @@ rules:
     # another spelling, held "by review" - which is how they survived. A level-number is not a literal (a one- or
     # two-digit word the lexer bounds), so its parse is exempt. A value first copied into a local is still
     # invisible to a regex; the reader's own summary names that residue.
-    patterns:
-      - pattern-regex: '\b(?:int|long)\.(?:Try)?Parse\([^;\n]*(?:\.GetText\(\)|\.Text\b)'
-      - pattern-not-regex: '\b(?:int|long)\.(?:Try)?Parse\([^;\n]*levelNumber\(\)'
+    # ONE `pattern-regex`, with the level-number exemption a lookahead rather than a `pattern-not-regex` (kb/Work PB4462):
+    # a `patterns:` block makes semgrep PARSE the file first, and a file its C# grammar cannot read then gets no result
+    # from any rule in it (ReportSectionBinder.cs, a whole-file "Syntax error", was scanned by nothing).
+    pattern-regex: '\b(?:int|long)\.(?:Try)?Parse\((?![^;\n]*levelNumber\(\))[^;\n]*(?:\.GetText\(\)|\.Text\b)'
   # -- One narrowing of a COBOL integer value to a host int / long (kb/Work PB1033) ----------------------------
   - id: wiseowl-cobol-integer-value-cast-narrowed
     languages: [csharp]
