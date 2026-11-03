@@ -1,4 +1,4 @@
-## PB4506: the differential fuzz can write all its programs as one Message Batch, then judge them locally
+## Entry 3050 — 2026-11-03 14:22 PST — PB4506: the differential fuzz can write all its programs as one Message Batch, then judge them locally
 
 The fuzz wrote, compiled and corrected one program at a time, because its local model often needed correction rounds.
 A Claude writer needed none in the 20-program calibration, so the owner asked for stages: write the programs, then
@@ -12,3 +12,4 @@ read from a file.
 
 Validity, the owner's measure of what the Claude writer gains over the local model, is counted as programs WiseOwl
 compiles: 47.1 % (3,225 of 6,851) for the local model on 2026-10-29 (its WiseOwl-only refusals were all WiseOwl-correct at triage).
+
