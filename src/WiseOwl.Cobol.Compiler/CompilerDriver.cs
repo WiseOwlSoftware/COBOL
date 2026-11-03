@@ -89,23 +89,26 @@ public static class CompilerDriver
         /// is the expansion's text and so cannot state the specifier that asked for it. Null for every compilation a user asks for.</summary>
         internal Binding.Model.ExpansionIdentity? PublishAs { get; init; }
 
+        // The three below are METHODS, not properties: they are derived from the options, never options themselves, and every
+        // public property of this record is an input the compiled-program cache keys on and CompileStateDriftTests classifies.
+
         /// <summary>The assembly this compilation writes: <see cref="OutputPath"/>, else the source path with a <c>.dll</c>
         /// extension.</summary>
-        public string OutputDll => OutputPath ?? Path.ChangeExtension(SourcePath, ".dll");
+        public string OutputDll() => OutputPath ?? Path.ChangeExtension(SourcePath, ".dll");
 
         /// <summary>The directory <see cref="OutputDll"/> is written in, where the runtime is deployed beside it and the default
         /// external repository is (DESIGN-external-repository §9.3). Null when the path names no file in a directory: a device
         /// such as <c>NUL</c> (which a POSIX shell's <c>/dev/null</c> becomes on Windows), a volume root, or an empty path.
-        /// <see cref="Compile"/> refuses such an output before anything reads this (kb/Work PB4502).</summary>
-        public string? OutputDirectory =>
-            string.IsNullOrWhiteSpace(OutputDll) ? null : Path.GetDirectoryName(Path.GetFullPath(OutputDll));
+        /// <see cref="Compile"/> refuses such an output before anything else reads this (kb/Work PB4502).</summary>
+        public string? OutputDirectory() =>
+            OutputDll() is { } dll && !string.IsNullOrWhiteSpace(dll) ? Path.GetDirectoryName(Path.GetFullPath(dll)) : null;
 
         /// <summary>The external repository's directories in search order: <see cref="RepositoryPaths"/>, else the output
         /// directory (DESIGN-external-repository §9.3). The ONE place that default is written: the compilation and each
         /// expansion's own compilation read it here.</summary>
-        internal IReadOnlyList<string> RepositoryDirectories =>
-            RepositoryPaths ?? [OutputDirectory ?? throw new InvalidOperationException(
-                $"the output '{OutputDll}' names no directory; Compile refuses it before the repository is searched")];
+        internal IReadOnlyList<string> RepositoryDirectories() =>
+            RepositoryPaths ?? [OutputDirectory() ?? throw new InvalidOperationException(
+                $"the output '{OutputDll()}' names no directory; Compile refuses it before the repository is searched")];
     }
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
@@ -162,9 +165,9 @@ public static class CompilerDriver
         // kb/Work PB4502: the output must be a file in a directory, since the runtime is deployed beside it and the default
         // external repository is that directory. A device (`-o NUL`, or `/dev/null` from a POSIX shell on Windows) or a
         // volume root names none, and is refused here as a fault of the command line rather than failing deep in the bind.
-        if (options.OutputDirectory is null)
+        if (options.OutputDirectory() is null)
             return new Result(Outcome.OutputNotWritable, "", null,
-                [$"output path '{options.OutputDll}' names no file in a directory (a device such as NUL, or a volume root): "
+                [$"output path '{options.OutputDll()}' names no file in a directory (a device such as NUL, or a volume root): "
                  + "write the assembly to a file path (`cobol check-batch` checks sources without writing one)"], [])
                 { Inputs = inputs };
 
@@ -233,9 +236,9 @@ public static class CompilerDriver
         var emitter = new CSharpEmitter();
         // The external repository (ISO §8.13; DESIGN-external-repository §9.3): the --repository directories, else the
         // output directory, then the --reference assemblies; the output itself is never resolved against.
-        string outputDll = options.OutputDll;
+        string outputDll = options.OutputDll();
         var repository = new Binding.RepositorySearchSpace(
-            options.RepositoryDirectories,
+            options.RepositoryDirectories(),
             DirectoriesNamed: options.RepositoryPaths is not null,
             options.ReferencePaths ?? [], outputDll, options.RepositoryCheck, inputs);
         var bound = new Binding.BinderDriver().Bind(tree, edition, frontend.Directives, repository, options.PublishAs);   // Phase 2a — BIND (terminal = conformance pass)

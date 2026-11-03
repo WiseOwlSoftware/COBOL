@@ -56,7 +56,7 @@ internal static class ExpansionAssemblies
                     temp, target, NistTestName: null, DialectLevel: state.Edition, CopyPaths: null, Permissive: state.Permissive,
                     CheckOnly: false, SignEncoding: state.SignEncoding, SourceFormat: Frontend.Preprocessor.InitialReferenceFormat.Free,
                     FlagExtensions: state.FlagExtensions, NumericDisplay: RepositoryVocabulary.FromPersisted(state.NumericDisplay),
-                    RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryDirectories,
+                    RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryDirectories(),
                     ReferencePaths: references, RepositoryCheck: false) { PublishAs = placement.Identity });
                 warnings.AddRange(result.Warnings.Select(w => AtTheEntry(w, temp, name, requestedAt)));
                 edition.WithdrawWarningsOf(region);   // this compilation has now reported the text's warnings: the group's bind of it does not report them again
