@@ -54,3 +54,16 @@ one inherited wording ("rule 4's other definitions") was not in the standard and
 no hot path changed (a property chain `State.Forest.X`). Duplication: `AddCapacityRegister` and `DeclaringDepth` have one home. Left for
 step 11: the entry walk's private working memory, and the members widened to `internal` for the file binder (`LiteralPosition`,
 `RawValueOperandText`).
+
+**Review round 1 (R1-1, blocking, answered).** The branch review found that two of the new slices are not frozen when the data
+phases end, against the contract the change had written ("frozen when its producer is done", design §8.3 (1) "binders read the frozen
+value slices"): the PROCEDURE binders append compiler temporaries to `ForestSlice.Roots` (`CompilerTemps.Create`, called by the
+subscript, sending-value, ACCEPT/DISPLAY and function-result temporaries) and a user-defined function's result temporary claims a cell
+on `StorageTierSlice` (`UdfBinder`), both after `RouteStaticUnitStoragePass`. The drift test pinned writers by FILE, so a procedure-phase
+call through an allowed file passed unseen. The fix names the doors instead of hiding them: `ForestSlice.AddTemporaryRoot`,
+`StorageTierSlice.ClaimTemporaryCell` and `DataBinder.ClaimTemporarySlotCarriedCell` (the shared test of the two cell claims is
+`SlotCarriedCellClass`), each pinned by member and by its one caller in `TheDataBindersSlices_AreWrittenOnlyByTheirWriters` (seen red
+with `CompilerTemps` writing `AddRoot` again); the slice summaries, `DataBindState` and the design §8.3 (1) now say the two slices are
+frozen only when the procedure binders are done, and PB2361 is told to build `DataBindResult` after the group tail. The merge with
+main took PB2104's changes into `OoDataBinder`, `DataBinder.Ptr` and `RepositoryCodec` (`m.Definition`, `FormalName`, the
+`ExpansionIdentity` records).

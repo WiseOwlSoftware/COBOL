@@ -1304,7 +1304,7 @@ walk (`BindEntries`) and the VALUE-literal readers. The COLLATING SEQUENCE alpha
 question and lives with the alphabets, `SpecialNamesBinder.CollatingAlphabetFault`. `ConfigurationBindersBoundaryDriftTests`
 pins both binders: the data binder declares no member a binder declares (no forwarder), and each binder is made in one place. During
 procedure binding the
-binders read the frozen value slices, append and early-read the fact sets, and use `ProcedureBindState`'s three
+binders read the value slices (frozen, but for the two late doors of `ForestSlice` and `StorageTierSlice` named below), append and early-read the fact sets, and use `ProcedureBindState`'s three
 shapes, all through `BindSession`; after the group
 tail (StorageComputed), when every slice is frozen and every fact set complete, the output is `DataBindResult`, the
 immutable record that replaces `DataBinder` on `BoundUnit.Data`, `BoundCompilation.InterfaceData` and
@@ -1324,7 +1324,8 @@ public or internal collection of its own and when a slice's mutator is called fr
   ungated read of the declaration funnel and of the pass that mints them), `TypeDecls` and `ScreenNames`, and the inheritance
   tier of a container's GLOBAL names (`DeclaringDepth`, `InheritsGlobalData`, `DeclaresOwnDataName`, which read the tier and
   so live beside it). Its writers are the declaration walk (`DataBinder.RegisterName`, `RegisterCondition`, `BindEntries`,
-  `InheritGlobalSubtree`, the post-build TYPE copies through the same funnel), `CompilerTemps` and `DynamicResolvePass`; every
+  `InheritGlobalSubtree`, the post-build TYPE copies through the same funnel) and `DynamicResolvePass`, and one LATE door,
+  `AddTemporaryRoot`, which `CompilerTemps` uses for the temporaries the PROCEDURE binders mint (see below); every
   insert takes the method scope that owns the record (§11.7.4 GR5; kb/Work PB3192), so a name still joins the index of the
   source element that owns it.
 - `FileSlice` (`State.Files`): `Declared` and `FilesByName`, written by `Declare(name, file)` from the SELECT entry
@@ -1332,7 +1333,20 @@ public or internal collection of its own and when a slice's mutator is called fr
   reads it with `InheritedGlobals.Files`.
 - `StorageTierSlice` (`State.StorageTier`): the four static channels and `IsStaticMember` (§13.5.4 GR1), and the pointer pass's
   cell backings, BASED bridges and `AddressableCellOf` (§13.18.5); written by `PtrBindBasedAndAddressablesPass` and
-  `RouteStaticUnitStoragePass`.
+  `RouteStaticUnitStoragePass`, and through one LATE door, `ClaimTemporaryCell` (see below).
+- **The two slices that are not frozen when the data phases end (review round 1, R1-1; the estimate "the binders read the frozen
+  value slices" was wrong for them).** The PROCEDURE binders mint compiler temporaries, and a temporary is a root of the forest:
+  `CompilerTemps.Create` appends it to `ForestSlice.Roots` (`AddTemporaryRoot`; the subscript, sending-value, ACCEPT and
+  function-result temporaries), and the function-result temporary of a user-defined function whose RETURNING group rides managed
+  slots claims a cell (`DataBinder.ClaimTemporarySlotCarriedCell` from `UdfBinder`, §8.4.3.2.4 GR1 → `StorageTierSlice.ClaimTemporaryCell`),
+  both after `RouteStaticUnitStoragePass` read the claims. A temporary is per-activation, so neither reaches a static channel.
+  These are the slices' two LATE doors, each a method of its own so a drift test pins it by member and by caller
+  (`DataBindStateBoundaryDriftTests.TheDataBindersSlices_AreWrittenOnlyByTheirWriters`: `AddTemporaryRoot` from `CompilerTemps` only,
+  `ClaimTemporaryCell` from `DataBinder.Ptr.cs` only, `ClaimTemporarySlotCarriedCell` from `UdfBinder` only, and the data-phase
+  `ClaimSlotCarriedCell` from `PtrBindBasedAndAddressablesPass` only), and `ForestSlice.Roots` / `StorageTierSlice.AddressableBackings`
+  are complete only when the procedure binders are done. **For PB2361 (step 11):** `DataBindResult` is built after the group tail, not
+  before procedure binding, or these two doors move onto a procedure-side collection that the result merges; the result may not
+  freeze the forest roots and the cell backings at the end of the data phases.
 - `ClauseFacts` (`State.Clauses`): the entries that WROTE a SIGN or a VALUE clause (§13.18.52.3 SR1/SR2, §13.16.3 SR10), the
   clause operands the capture already refused, the written level-88s in source order (§13.16.3 SR24) and `LapsedTypeMembers`
   (§8.4.2.2.1 rule 4, written once by `ExpandTypesPass`).

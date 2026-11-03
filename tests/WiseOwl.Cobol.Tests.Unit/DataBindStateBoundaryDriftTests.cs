@@ -157,7 +157,21 @@ public sealed class DataBindStateBoundaryDriftTests
         {
             ("ForestSlice (the type forest and its name tables)",
                 new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|TryDeclareType|AddScreenNames|Inherit|AddCapacityRegister)\("),
-                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CompilerTemps.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
+                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
+            // The LATE doors (design §8.3 (1)): the PROCEDURE binders mint compiler temporaries after every data phase, so a slice
+            // that takes them is frozen only when those binders are done. Each door has the one caller that names its phase.
+            ("ForestSlice's late door (a compiler temporary's root, procedure phase)",
+                new(@"\.Forest\.AddTemporaryRoot\("),
+                ["/Binding/CompilerTemps.cs"]),
+            ("StorageTierSlice's late door (a function result temporary's cell, procedure phase)",
+                new(@"\.StorageTier\.ClaimTemporaryCell\("),
+                ["/Binding/DataBinder.Ptr.cs"]),
+            ("DataBinder.ClaimTemporarySlotCarriedCell (the late cell claim, procedure phase)",
+                new(@"\.ClaimTemporarySlotCarriedCell\("),
+                ["/Binding/Procedure/Verbs/UdfBinder.cs"]),
+            ("DataBinder.ClaimSlotCarriedCell (the data-phase cell claim of a program's RETURNING item)",
+                new(@"\.ClaimSlotCarriedCell\("),
+                ["/Binding/Passes/PtrBindBasedAndAddressablesPass.cs"]),
             ("FileSlice (the files the unit declares)",
                 new(@"\.Files\.Declare\("),
                 ["/Binding/FileControlBinder.cs", "/Binding/FileControlBinder.FileSection.cs"]),

@@ -50,19 +50,35 @@ public sealed partial class DataBinder
     /// <summary>The cell fields of <see cref="StorageTierSlice.AddressableBackings"/> whose life ends with <paramref name="lifetime"/>'s
     /// event, in declaration order.</summary>
     internal IEnumerable<string> CellFieldsOf(CellLifetime lifetime) =>
-
         State.StorageTier.AddressableBackings.Where(b => LifetimeOfCell(b.CellField, b.Canonical) == lifetime).Select(b => b.CellField);
 
     /// <summary>Claim <paramref name="root"/> onto a cell when it is a group whose values ride managed slots (a
     /// strongly-typed group with an object-reference or pointer leaf), which a program activation carries only as a cell
-    /// AREA (kb/Work PB1940): a program's RETURNING item, and a user-defined function's caller-side result temporary
-    /// (§8.4.3.2.4 GR1 — the receiver of the function's RETURNING delivery, created as the function-identifier binds).</summary>
+    /// AREA (kb/Work PB1940): a program's RETURNING item, claimed by <c>PtrBindBasedAndAddressablesPass</c> with the other cell
+    /// claims, in the data phase. The user-defined function's result temporary is the same claim made LATE, by
+    /// <see cref="ClaimTemporarySlotCarriedCell"/>.</summary>
     internal void ClaimSlotCarriedCell(DataItem root, string what)
     {
-        if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(root) && !AlreadyInACell(root) && CellCanCarry(root)
-            && ForceStringCanonical(root, what) is { } cls)
+        if (SlotCarriedCellClass(root, what) is { } cls)
             State.StorageTier.ClaimAddressableCell(cls);
     }
+
+    /// <summary>⛔ THE LATE DOOR OF <see cref="StorageTierSlice"/> (design §8.3 (1)): the same claim for a user-defined
+    /// function's caller-side result temporary (§8.4.3.2.4 GR1 — the receiver of the function's RETURNING delivery), which
+    /// exists only once the function-identifier binds, in the PROCEDURE phase, after the cell claims were made and the static
+    /// channels routed. The temporary is the procedure binders' own and per-activation, so the claim never reaches a static
+    /// channel; <see cref="StorageTierSlice.ClaimTemporaryCell"/> says so, and <c>UdfBinder</c> is its one caller.</summary>
+    internal void ClaimTemporarySlotCarriedCell(DataItem temp, string what)
+    {
+        if (SlotCarriedCellClass(temp, what) is { } cls)
+            State.StorageTier.ClaimTemporaryCell(cls);
+    }
+
+    /// <summary>The class <paramref name="root"/> is forced onto a cell as when it is a slot-carried group no cell holds yet and
+    /// one can carry; null otherwise (the common test of both claims above).</summary>
+    private RedefinesClass? SlotCarriedCellClass(DataItem root, string what) =>
+        WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(root) && !AlreadyInACell(root) && CellCanCarry(root)
+            ? ForceStringCanonical(root, what) : null;
 
     /// <summary>True when <paramref name="root"/>'s storage is ALREADY a cell (or the pointer-routed window over one), so
     /// no claim may re-base it: a BASED item or an area formal (its implicit data-address pointer — §8.6.5), a record

@@ -12,6 +12,8 @@ namespace WiseOwl.Cobol.Binding;
 /// slice of <see cref="DataBindState"/> with two producers, each in its own phase and neither reading the other's output
 /// before it is done: <see cref="PtrBindBasedAndAddressablesPass"/> (the BASED bridges, the ADDRESS-OF cell claims) and
 /// <see cref="RouteStaticUnitStoragePass"/> (the static channels, which read the claims so a claimed class is routed once).
+/// Its one LATE writer is <see cref="ClaimTemporaryCell"/>: the cell of a user-defined function's result temporary, minted by
+/// the PROCEDURE binders, so the slice is frozen only when they are done. <c>DataBindStateBoundaryDriftTests</c> pins each door.
 /// </summary>
 public sealed class StorageTierSlice
 {
@@ -93,7 +95,17 @@ public sealed class StorageTierSlice
     /// carry an ad-hoc <c>_cell_{NAME}</c> spelling that only this list knew, so a place builder could not reach the cell to
     /// address the area's MANAGED SLOTS. It is now <see cref="RedefinesClass.BackingCellClrName"/>, the ONE name every cell
     /// surface uses and <c>PlaceBuilder.BuildCellPath</c> resolves.</summary>
-    internal void ClaimAddressableCell(RedefinesClass cls)
+    internal void ClaimAddressableCell(RedefinesClass cls) => Claim(cls);
+
+    /// <summary>⛔ THE LATE DOOR: record the cell of a compiler temporary a PROCEDURE binder minted (a user-defined function's
+    /// result temporary, <c>DataBinder.ClaimTemporarySlotCarriedCell</c>) after the claims of
+    /// <see cref="PtrBindBasedAndAddressablesPass"/> were made and <see cref="RouteStaticUnitStoragePass"/> routed the static
+    /// channels. A temporary is per-activation and never static, so it joins <see cref="AddressableBackings"/> and
+    /// <see cref="AddressableCellOf"/> without a channel; the slice is complete only when the procedure binders are done (the
+    /// group tail, when <c>DataBindResult</c> is built).</summary>
+    internal void ClaimTemporaryCell(RedefinesClass cls) => Claim(cls);
+
+    private void Claim(RedefinesClass cls)
     {
         string cell = cls.BackingCellClrName;
         _addressableCellOf[cls] = cell;

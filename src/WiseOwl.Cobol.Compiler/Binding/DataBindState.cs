@@ -10,7 +10,10 @@ namespace WiseOwl.Cobol.Binding;
 /// step 1 of the <see cref="DataBinder"/> extract): the facts the data pipeline produces, in the two shapes the code has.
 /// <list type="bullet">
 /// <item>A VALUE SLICE is a record of the facts ONE producer writes, frozen when its producer is done and read only after
-/// it: the unit's checking flags (<see cref="UnitChecking"/>, written by <see cref="CheckingFold"/>), what it inherits from its
+/// it. Two slices have a second, LATE door that the PROCEDURE binders use for the compiler temporaries they mint
+/// (<see cref="ForestSlice.AddTemporaryRoot"/>, <see cref="StorageTierSlice.ClaimTemporaryCell"/>); they are frozen when the
+/// procedure binders are done, which is the group tail. The slices are the unit's checking flags (<see cref="UnitChecking"/>,
+/// written by <see cref="CheckingFold"/>), what it inherits from its
 /// containers (<see cref="InheritedGlobals"/>, <see cref="InheritStep"/>) and its configuration
 /// (<see cref="ConfigurationSlice"/>, <see cref="ConfigurationStep"/>), and the facts the data binder's own phases declare:
 /// the type forest and its name tables (<see cref="Forest"/>), the files (<see cref="Files"/>), the clause facts the entry

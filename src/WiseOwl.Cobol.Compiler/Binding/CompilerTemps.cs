@@ -106,7 +106,7 @@ internal sealed class CompilerTemps(DataBinder data)
         if (model.IsGroup)
             foreach (var child in model.Children)
                 t.AddMember(CloneNode(child, t));
-        data.State.Forest.AddRoot(t);
+        data.State.Forest.AddTemporaryRoot(t);
         Clones.Add((t, model));
         return t;
     }

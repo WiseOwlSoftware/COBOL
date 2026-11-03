@@ -13,7 +13,8 @@ namespace WiseOwl.Cobol.Binding;
 /// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296, step 1 of the <see cref="DataBinder"/>
 /// extract, M6). A value slice of <see cref="DataBindState"/>: its one writer is the data binder's declaration walk
 /// (<c>DataBinder.RegisterName</c>, <c>RegisterCondition</c>, <c>BindEntries</c> and the post-build TYPE copies, which
-/// register through the same funnel) and its inheritance of a container's GLOBAL subtree; everyone else reads the
+/// register through the same funnel) and its inheritance of a container's GLOBAL subtree, plus the one late door
+/// <see cref="AddTemporaryRoot"/> that the procedure binders' compiler temporaries use; everyone else reads the
 /// read-only views below. <c>DataBindStateBoundaryDriftTests</c> pins the writers.
 /// <para>A lookup that must see a METHOD's own names first asks the method's <see cref="OoMethodDataScope"/> before it asks
 /// this slice (<see cref="Model.SymbolTable"/>); the mutators here take that scope, because a name joins the index of the
@@ -147,6 +148,13 @@ public sealed class ForestSlice(Action<PassPhase, string> require)
 
     /// <summary>Append a top-level item to the forest, in source order.</summary>
     internal void AddRoot(DataItem root) => _roots.Add(root);
+
+    /// <summary>⛔ THE LATE DOOR: append the root of a compiler temporary (<see cref="DataItem.IsCompilerTemp"/>) a PROCEDURE
+    /// binder minted (<c>CompilerTemps.Create</c>: a subscript, sending-value or function-result temporary, an ACCEPT or DISPLAY
+    /// operand), after the declaration walk and every data pass. The temporary joins <see cref="Roots"/> and no name table (its
+    /// name is never referenceable), and the slice is complete only when the procedure binders are done (the group tail, when
+    /// <c>DataBindResult</c> is built). <c>CompilerTemps</c> is its one caller.</summary>
+    internal void AddTemporaryRoot(DataItem temp) => _roots.Add(temp);
 
     /// <summary>Record the roots a WORKING-STORAGE SECTION bound.</summary>
     internal void AddWorkingStorageRoots(IEnumerable<DataItem> roots) => _workingStorageRoots.AddRange(roots);
