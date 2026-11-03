@@ -540,7 +540,7 @@ internal static class OoExpansion
         var actualSpecifier = ((Core.RepositoryParagraphContext)x.Entry.Parent).repositoryEntry();
 
         var drop = new HashSet<IToken>();
-        bool published = region.IsRepositoryText;   // lexed again from another group's text: its lines are that text's
+        bool published = region.IsRepositoryText;   // lexed again from the text another group recorded: one line, a file this group never read
         int entryLine = x.Entry.Start.Line;
         IToken headerName, endName;
         if (skel.Ctx is Core.ClassDefinitionContext c)

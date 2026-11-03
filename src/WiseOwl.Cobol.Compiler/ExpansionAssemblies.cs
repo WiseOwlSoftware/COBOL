@@ -28,7 +28,8 @@ internal static class ExpansionAssemblies
     /// generated C# of that compilation, null when it reached none, and <paramref name="Failure"/>, the outcome that compilation
     /// reached, which the group's result takes as its own: an expansion whose assembly the host refuses is OutputNotWritable, not a
     /// backend error; kb/Work PB4502 review R2-1) or none (<paramref name="Failure"/> is then Success), with the warnings of every
-    /// compilation that ran.</summary>
+    /// compilation that ran of the text of a skeleton read from the repository (one of a skeleton written in the group is the group's to
+    /// report, <see cref="Write"/>).</summary>
     public sealed record Written(IReadOnlyList<string> Files, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings, string? GeneratedCsPath,
         CompilerDriver.Outcome Failure);
 
