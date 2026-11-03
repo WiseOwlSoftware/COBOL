@@ -1,4 +1,4 @@
-## PB4502: an output path with no directory is refused (exit 73) instead of crashing the compiler
+## Entry 3042 — 2026-11-03 12:24 PST — PB4502: an output path with no directory is refused (exit 73) instead of crashing the compiler
 
 `cobol prog.cob -o NUL`, and `-o /dev/null` from Git Bash (which passes it as `NUL`), crashed every compile with an
 unhandled `ArgumentNullException`. `Path.GetDirectoryName` of the NUL device path (or of a volume root) is null, and
@@ -16,3 +16,4 @@ ran clean.
 Found while writing the minimal repros for the upstream records PB4499-PB4501.
 
 The branch review (round 1) found the refusal too narrow: `-o /dev/null` on Linux, or a directory the user may not write, still threw from the `.g.cs` write. The write phase is now one guarded block, and an `IOException` or `UnauthorizedAccessException` from it is `OutputNotWritable` with the host's message, exit 73. Round 2 found the expansion arm still reported as a backend error: an expansion's nested compilation now hands its outcome back (`ExpansionAssemblies.Written.Failure`), and the refusal keeps the warnings and files the phase had gathered.
+
