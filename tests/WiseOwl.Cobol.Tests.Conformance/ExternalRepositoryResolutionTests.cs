@@ -341,24 +341,62 @@ public sealed class ExternalRepositoryResolutionTests
     private const string ShadowingClause = " AS \"R2103G\"";
 
     /// <summary>Makes the entry at <paramref name="dll"/> one an older runtime major compiled: its recorded runtime version
-    /// (the attribute blob's UTF-8 text, which the metadata reader decodes) names the previous major, in the same number of
-    /// bytes so every offset of the assembly stays (REPO-7's input, <c>RuntimeAbi.Skew</c>).</summary>
-    private static void MakeStale(string dll)
+    /// (the attribute blob's UTF-8 text, which the metadata reader decodes) names another major
+    /// (<see cref="RuntimeVersionSkew.OtherMajor"/>), in the same number of bytes so every offset of the assembly stays
+    /// (REPO-7's input, <c>RuntimeAbi.Skew</c>).</summary>
+    private static void MakeStale(string dll) =>
+        PatchEvery(dll, System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.Current), System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.OtherMajor),
+            "the library records its runtime version nowhere in UTF-8");
+
+    /// <summary>Replaces every occurrence of <paramref name="from"/> in the file by <paramref name="to"/>, of the same length so
+    /// every offset of the assembly stays; the file must hold at least one, or the fixture damaged nothing.</summary>
+    private static void PatchEvery(string dll, byte[] from, byte[] to, string absent)
     {
+        Assert.Equal(from.Length, to.Length);
+        Assert.False(from.AsSpan().SequenceEqual(to), "the patch changes nothing");
         byte[] bytes = File.ReadAllBytes(dll);
-        var runtime = WiseOwl.Cobol.Runtime.RuntimeAbi.Version;
-        var current = System.Text.Encoding.UTF8.GetBytes(runtime.ToString());
-        var previous = System.Text.Encoding.UTF8.GetBytes(new Version(runtime.Major - 1, runtime.Minor, runtime.Build, runtime.Revision).ToString());
-        Assert.Equal(current.Length, previous.Length);
         int replaced = 0;
-        for (int at = bytes.AsSpan().IndexOf(current); at >= 0; at = bytes.AsSpan().IndexOf(current))
+        for (int at = bytes.AsSpan().IndexOf(from); at >= 0; at = bytes.AsSpan().IndexOf(from))
         {
-            previous.CopyTo(bytes, at);
+            to.CopyTo(bytes, at);
             replaced++;
         }
-        Assert.True(replaced > 0, "the library records its runtime version nowhere in UTF-8");
+        Assert.True(replaced > 0, absent);
         File.WriteAllBytes(dll, bytes);
     }
+
+    /// <summary>A custom-attribute blob's SerString for text shorter than 128 bytes: one length byte, then the UTF-8 (ECMA-335
+    /// II.23.3). Searching for the length-prefixed form matches a named argument or a value, never a longer text it sits in.</summary>
+    private static byte[] SerString(string text)
+    {
+        var utf8 = System.Text.Encoding.UTF8.GetBytes(text);
+        Assert.True(utf8.Length < 128);
+        return [(byte)utf8.Length, .. utf8];
+    }
+
+    /// <summary>Damages ONE kind of record of the compiled library at <paramref name="dll"/>: every attribute blob's named argument
+    /// <paramref name="argument"/> is renamed (the last character changed, so the blob keeps its length), which the reader meets
+    /// as the argument being absent. The elementary entries' <c>SignKind</c> is mandatory (<c>RepositoryReader</c> refuses an
+    /// elementary entry that states none), so the entry is malformed at its record (REPO-4's input).</summary>
+    private static void RenameNamedArgument(string dll, string argument)
+    {
+        string renamed = argument[..^1] + (argument[^1] == 'X' ? 'Y' : 'X');
+        PatchEvery(dll, SerString(argument), SerString(renamed), $"no attribute of the library names the argument {argument}");
+    }
+
+    /// <summary>Damages the description of a library's formal so the reader accepts it and the codec cannot rebuild it: the
+    /// redefinition <paramref name="target"/> names (a named argument the reader does not cross-check) is changed to a name no
+    /// preceding sibling carries (REPO-5's input). The target's own entry keeps its name.</summary>
+    private static void RedirectRedefinition(string dll, string target, string newTarget) =>
+        PatchEvery(dll, [.. SerString("RedefinesTarget"), .. SerString(target)], [.. SerString("RedefinesTarget"), .. SerString(newTarget)],
+            $"no description of the library redefines '{target}'");
+
+    /// <summary>Damages the library's index (the assembly attribute <c>CobolRepositoryAttribute.Units</c>): the separator
+    /// after the unit's externalized name becomes a character the row grammar has no use for, so the row has one field instead of
+    /// two (<c>RepositoryIndex.TryDecodeUnit</c>, REPO-4's other input).</summary>
+    private static void BreakIndexRow(string dll, string unit) =>
+        PatchEvery(dll, System.Text.Encoding.UTF8.GetBytes($":{unit}:{unit}"), System.Text.Encoding.UTF8.GetBytes($":{unit}={unit}"),
+            $"the index of the library has no row for {unit}");
 
     [Fact]   // GR11 b): a library built without signatures (REPO-8's entry) beside the group's own prototype of its function.
     public void AGroupFunctionPrototype_IgnoresAnEntryBuiltWithoutSignatures()
@@ -446,6 +484,86 @@ public sealed class ExternalRepositoryResolutionTests
             var stale = Compile(dir, "R2103FM", FunctionPrototypeCaller);
             Assert.True(stale.Success, Codes(stale));
             Assert.Empty(stale.Warnings);
+        });
+    }
+
+    // REPO-4 and REPO-5 (ISO §8.13: the information in the external repository is what the compilation reads; DESIGN-external-repository
+    // §14, §15.3 "nothing an entry holds is trusted"): a compiled library with ONE record damaged in a way the reader or the codec
+    // detects. Each case asserts the code, and that no REPO-1 (COBOL5962) follows it: the entry was found, it is the entry that cannot answer.
+
+    private const string RedefiningLibrary = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. R2103R.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 G.
+           05 RDFBASEA PIC X.
+           05 RDFOVERA REDEFINES RDFBASEA PIC X.
+        PROCEDURE DIVISION USING G.
+            GOBACK.
+        END PROGRAM R2103R.
+        """;
+
+    private const string RedefiningCaller = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. R2103RC.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            PROGRAM R2103R.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 G.
+           05 A PIC X.
+        PROCEDURE DIVISION.
+            CALL R2103R USING G
+            GOBACK.
+        END PROGRAM R2103RC.
+        """;
+
+    [Fact]   // REPO-4, the reader's half: an elementary entry of a formal states no SignKind (RepositoryReader.Read -> Malformed).
+    public void AnEntryWhoseRecordIsMalformed_IsRepo4()
+    {
+        WithDirectory("repo-4-record", dir =>
+        {
+            Assert.True(Compile(dir, "R2103P", Callee).Success);
+            RenameNamedArgument(Path.Combine(dir, "R2103P.dll"), "SignKind");
+            var r = Compile(dir, "R2103C", Caller("A"));
+            Assert.False(r.Success);
+            Assert.Contains(r.Errors, e => e.Contains("COBOL5965", StringComparison.Ordinal) && e.Contains("R2103P.dll", StringComparison.Ordinal)
+                && e.Contains("SignKind", StringComparison.Ordinal));
+            Assert.DoesNotContain("COBOL5962", Codes(r), StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]   // REPO-4, the index's half: a row of the units index with one field (RepositoryIndex.TryDecodeUnit refuses it).
+    public void AnEntryWhoseIndexIsMalformed_IsRepo4()
+    {
+        WithDirectory("repo-4-index", dir =>
+        {
+            Assert.True(Compile(dir, "R2103P", Callee).Success);
+            BreakIndexRow(Path.Combine(dir, "R2103P.dll"), "R2103P");
+            var r = Compile(dir, "R2103C", Caller("A"));
+            Assert.False(r.Success);
+            Assert.Contains(r.Errors, e => e.Contains("COBOL5965", StringComparison.Ordinal) && e.Contains("R2103P.dll", StringComparison.Ordinal));
+            Assert.DoesNotContain("COBOL5962", Codes(r), StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]   // REPO-5: the reader accepts the record and the codec cannot rebuild it (a REDEFINES naming no preceding sibling).
+    public void AnEntryWhoseDescriptionTheCodecCannotRebuild_IsRepo5()
+    {
+        WithDirectory("repo-5", dir =>
+        {
+            Assert.True(Compile(dir, "R2103R", RedefiningLibrary).Success);
+            var intact = Compile(dir, "R2103RC", RedefiningCaller);
+            Assert.True(intact.Success, Codes(intact));   // the undamaged entry is readable, so the damage is the only difference
+            RedirectRedefinition(Path.Combine(dir, "R2103R.dll"), "RDFBASEA", "RDFBASEB");
+            var r = Compile(dir, "R2103RC", RedefiningCaller);
+            Assert.False(r.Success);
+            Assert.Contains(r.Errors, e => e.Contains("COBOL5966", StringComparison.Ordinal) && e.Contains("RDFBASEB", StringComparison.Ordinal));
+            Assert.DoesNotContain("COBOL5962", Codes(r), StringComparison.Ordinal);
+            Assert.DoesNotContain("COBOL5965", Codes(r), StringComparison.Ordinal);   // not the reader's finding
         });
     }
 }
