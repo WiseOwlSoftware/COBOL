@@ -51,6 +51,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// programs.</summary>
     private (int From, int Through) _lastReported = (-1, -2);
 
+    /// <summary>The §8.9 messages already given for a reserved word named as a procedure (<see cref="Report"/>): one word, one
+    /// violation (kb/Work PB4283).</summary>
+    private HashSet<string>? _procedureWordsNamed;
+
     /// <summary>The token index of the opening word of the last foreign word run refused in a report of its own (kb/Work
     /// PB4301); a run's end met by a second report is not a second refusal.</summary>
     private int _lastRunRefused = -1;
@@ -115,6 +119,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         _orphansItsTail = OrphansItsTail(hints, kind);
         string? violation = ReservedWordUse(recognizer, at);
         var named = at.Token;
+        bool repeatedProcedureWord = false;
         // A word reserved at every edition, written as a procedure-name the parse read as its keyword (kb/Work PB4229):
         // the report names the word, wherever the misreading died. Where it died AFTER the word, the rest of the sentence
         // is the tail of the reading the parse took (the inline PERFORM's END-PERFORM, the READ statement's phrases): the
@@ -129,12 +134,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 _lastReported = (_lastReported.From, Math.Max(_lastReported.Through, word.Through));
                 _orphansItsTail = true;
             }
+            // ⛔ ONE WORD, ONE VIOLATION (kb/Work PB4283): a reserved word named as a procedure is §8.3.2.1 1)'s one violation
+            // however many sentences name it, and the bound-tree funnel of a word the gate reads (`reservedGatedWord`) says it once,
+            // at the first. So a verb reserved at every edition (`PERFORM READ.` and its paragraph header `READ.`) is said once too:
+            // the first sentence in source order names it, and the others are recovered silently, as the funnel's are accepted.
+            repeatedProcedureWord = !(_procedureWordsNamed ??= []).Add(violation);
         }
         // The recovery consumes the named token as the operand it stood for only when it is the offending token itself.
         _reportedReservedWordUse = violation is not null && named == at.Token;
         // A refusal about an earlier token stands at that token (DiagnosticHint.Subject, kb/Work PB4301).
         var subject = violation is null ? hints.OrderBy(h => h.Priority).FirstOrDefault().Subject : null;
-        if (subject is null || NoteRunRefused(subject))
+        if (!repeatedProcedureWord && (subject is null || NoteRunRefused(subject)))
             recognizer.NotifyErrorListeners(subject ?? named,
                 violation is not null ? $"[{EditionCodes.ReservedWord}] {violation}" : BuildMessage(subject ?? at.Token, kind, hints), e);
         if (violation is not null && ReadsAsTheNameAhead(recognizer, at, kind))
@@ -689,6 +699,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (recognizer is not CobolParserCoreBase parser || parser.ReservedUserWordViolation(at.Token) is not { } violation)
             return null;
         if (UnownedScopeTerminator(recognizer, at.Token.Type, at.OpenRules()) is not null && at.AStatementMayEndBefore())
+            return null;
+        // A verb that is its sentence's only word (`FREE.`) is a use of the word as a name only where a procedure reference
+        // elsewhere shows one; with none it is the verb's statement lacking its operand, whose own report stands
+        // (kb/Work PB4283, the rule ReservedProcedureName applies to a verb reserved at every edition).
+        if (parser.IsBareVerbSentence(at.Token) && !parser.NamedAsAProcedureElsewhere(at.Token))
             return null;
         // A word where a closed format's clause list stands is a clause the format does not print, which that format's own
         // refusal names (hint 0g, COBOL1941 and its twins, kb/Work PB2533): it is not used as a name, whatever the value

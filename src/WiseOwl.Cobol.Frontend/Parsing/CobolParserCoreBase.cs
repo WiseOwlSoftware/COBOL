@@ -466,10 +466,18 @@ public abstract class CobolParserCoreBase : Parser
     /// only reading the prediction had left, so the header was taken and the parse died at the next token with
     /// "a period may be missing" — and the period it advised turned the terminator into a paragraph-name.
     /// <para>Only a reservation-gated word §8.9 reserves here (<see cref="ReservedGatedWord"/>): a free gated word is the
-    /// user-defined word the reservation gate retypes, and every other word's header reading is untouched. Read-only,
-    /// so safe in prediction.</para></summary>
+    /// user-defined word the reservation gate retypes, and every other word's header reading is untouched. A statement VERB
+    /// alone before the period (<c>FREE.</c>, <see cref="IsBareVerbSentence"/>) is a header only where the program names the
+    /// word as a procedure elsewhere (<see cref="NamedAsAProcedureElsewhere"/>, kb/Work PB4283): with none the sentence is
+    /// the verb's statement lacking its operand. Read-only, so safe in prediction.</para></summary>
     protected bool procedureHeaderHere(int follower)
-        => TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null || TokenStream.LA(2) == follower;
+        => TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null
+           || (TokenStream.LA(2) == follower
+               // ⛔ A BARE VERB IS A HEADER ONLY WHERE THE PROGRAM NAMES IT AS ONE (kb/Work PB4283): `FREE.` is the paragraph
+               // header of a reserved name only when a procedure reference elsewhere uses the word; with none it is the verb's
+               // statement lacking its operand, whose own report the sentence gets (the always-reserved verbs' rule,
+               // ReservedProcedureName). A word no statement begins with (END-DISPLAY) has no statement reading to yield to.
+               && (follower != CobolLexer.DOT || !IsBareVerbSentence(word) || NamedAsAProcedureElsewhere(word)));
 
     /// <summary>What the tokens from a verb say about the statement that verb would begin
     /// (<see cref="ReadStatementAt"/>).</summary>
@@ -659,8 +667,9 @@ public abstract class CobolParserCoreBase : Parser
     /// statement and header reading it is one of. So the question is asked after the fact, and only of an error: the
     /// candidates are the offending token and the first token of every open rule and of the rule each matched last (the
     /// misread statement begins at the word), each re-read with the word retyped to <c>IDENTIFIER</c>, from the sentence's first token through its
-    /// separator period, as a <c>sentence</c> and — when the word begins the sentence and the sentence is not an
-    /// incomplete statement of that verb (<see cref="IsIncompleteStatement"/>) — as a <c>sectionDefinition</c> and a <c>paragraphDefinition</c>, whose
+    /// separator period, as a <c>sentence</c> and — when the word begins the sentence and the sentence is not a bare verb
+    /// (<see cref="IsBareVerbSentence"/>) that no other sentence names as a procedure (<see cref="NamedAsAProcedureElsewhere"/>,
+    /// kb/Work PB4283) — as a <c>sectionDefinition</c> and a <c>paragraphDefinition</c>, whose
     /// header it then names. A reading that parses the whole span with the word under <c>procedureName</c> is the one the
     /// source means; a genuine fault elsewhere fails every re-read, and its own report stands. <c>Through</c> is the stream
     /// index of the span's last token (its separator period): the one fault covers the sentence the re-read judged.
@@ -712,31 +721,87 @@ public abstract class CobolParserCoreBase : Parser
         {
             int at = span.IndexOf(word);
             if (at < 0) continue;   // not a default-channel token of the span
-            var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
-            var asName = (CommonToken)copies[at];
-            asName.Type = CobolLexer.IDENTIFIER;
-            int[] readings = word == first && !IsIncompleteStatement(span, word, offending)
+            int[] readings = word == first && !(IsBareVerbSentence(word) && !NamedAsAProcedureElsewhere(word))
                 ? [CobolParserCore.RULE_sentence, CobolParserCore.RULE_sectionDefinition, CobolParserCore.RULE_paragraphDefinition]   // a header names it too
                 : [CobolParserCore.RULE_sentence];
             foreach (int rule in readings)
-                if (Reading(copies, rule, out _) is { Next: TokenConstants.EOF } reading && NamesAProcedure(reading.Tree, asName))
+                if (ReadsWithTheWordAsAProcedureName(span, at, rule))
                     return (word, ReservedWordSet.UserWordViolationMessage(ReservedWordHere(word)!, Edition.Year),
                         span[^1].TokenIndex);
         }
         return null;
     }
 
-    /// <summary>Whether the sentence <paramref name="span"/> is a statement verb and its separator period alone, which the
-    /// parse took as that statement and refused at the period (branch review R1-1): <c>STOP.</c>, <c>DISPLAY.</c>,
-    /// <c>MOVE.</c>, <c>PERFORM.</c>, <c>READ.</c>. That text is ALSO a paragraph header (§14.4.3: "A paragraph consists of a
-    /// paragraph-name followed by a separator period"), and no token of it says which the source meant: §8.3.2.1 1) is broken only by a
-    /// USE as a user-defined word, and nothing written here shows that use, while the operand the statement lacks is a
-    /// fault the source certainly holds. So the header reading is not asked, and the incomplete statement keeps its own
-    /// report, as every other incomplete statement does. A section header (<c>DISPLAY SECTION.</c>) has no such twin: the
-    /// misreading died at SECTION, a word, not at the period. Where the parse refused the word ITSELF (no statement
-    /// begins with it) the header is its only reading, and it is asked.</summary>
-    private static bool IsIncompleteStatement(List<IToken> span, IToken word, IToken offending)
-        => span.Count == 2 && span[0] == word && span[1].Type == CobolLexer.DOT && offending != word;
+    /// <summary>Whether <paramref name="span"/>, the tokens of one sentence, reads completely as <paramref name="rule"/> with its
+    /// token <paramref name="at"/> taken as a user-defined word (the token is retyped <c>IDENTIFIER</c> in a copy) and that
+    /// word then stands in a <c>procedureName</c> (<see cref="NamesAProcedure"/>): the one question "is this reserved word
+    /// used as a procedure name here" that <see cref="ReservedProcedureName"/> and <see cref="NamedAsAProcedureElsewhere"/>
+    /// both ask. Read-only.</summary>
+    private bool ReadsWithTheWordAsAProcedureName(IReadOnlyList<IToken> span, int at, int rule)
+    {
+        var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
+        var asName = (CommonToken)copies[at];
+        asName.Type = CobolLexer.IDENTIFIER;
+        return Reading(copies, rule, out _) is { Next: TokenConstants.EOF } reading && NamesAProcedure(reading.Tree, asName);
+    }
+
+    /// <summary>⛔ IS THE RESERVED WORD NAMED AS A PROCEDURE BY ANOTHER SENTENCE OF THE PROGRAM (kb/Work PB4283)? The one piece
+    /// of evidence that decides a bare <c>VERB.</c> sentence (<see cref="IsBareVerbSentence"/>): ISO §8.3.2.1 1) ("Reserved
+    /// words shall not be used as user-defined words or system-names") is broken by a USE of the word as a name, and a
+    /// procedure reference (<c>PERFORM VERB.</c>, <c>GO TO VERB.</c>) elsewhere is what shows the sentence is that name's
+    /// paragraph header. With none, nothing written shows a use, and the sentence is the verb's statement lacking its operand.
+    /// Every other token of the word's type is asked, by the grammar, never by a list of procedure-name positions: the sentence
+    /// it stands in, read with the word as a user-defined word, names a procedure with it
+    /// (<see cref="ReadsWithTheWordAsAProcedureName"/>), so <c>FREE ptr.</c>, a statement of the same verb, is no reference.
+    /// The token stream is complete when the parser runs (the rewriters fill it), so the whole program is read; the answer is
+    /// kept per token, and a new pass forgets it (<see cref="Reset"/>). Read-only.</summary>
+    internal bool NamedAsAProcedureElsewhere(IToken word)
+    {
+        if ((_namedElsewhere ??= []).TryGetValue(word.TokenIndex, out bool known)) return known;
+        bool named = false;
+        for (int i = 0; i < TokenStream.Size && !named; i++)
+        {
+            if (i == word.TokenIndex || TokenStream.Get(i) is not { } other || other.Type != word.Type) continue;
+            int start = i;
+            while (start > 0 && TokenStream.Get(start - 1).Type != CobolLexer.DOT) start--;
+            var sentence = new List<IToken>();
+            for (int j = start; j < TokenStream.Size && TokenStream.Get(j) is { Type: not TokenConstants.EOF } t; j++)
+            {
+                if (t.Channel != Lexer.DefaultTokenChannel) continue;
+                sentence.Add(t);
+                if (t.Type == CobolLexer.DOT && j >= i) break;
+            }
+            int at = sentence.IndexOf(other);
+            named = at >= 0 && ReadsWithTheWordAsAProcedureName(sentence, at, CobolParserCore.RULE_sentence);
+        }
+        _namedElsewhere[word.TokenIndex] = named;
+        return named;
+    }
+
+    private Dictionary<int, bool>? _namedElsewhere;
+
+    /// <summary>Whether <paramref name="word"/> is a statement verb that is its sentence's only word: the separator period
+    /// stands before it and after it (<c>STOP.</c>, <c>DISPLAY.</c>, <c>MOVE.</c>, <c>PERFORM.</c>, <c>READ.</c>, <c>FREE.</c>),
+    /// which the parse took as that statement and refused at the period (branch review R1-1) or at the word (a reservation-gated
+    /// verb, kb/Work PB4283). That text is ALSO a paragraph header (§14.4.3: "A paragraph consists of a paragraph-name followed
+    /// by a separator period"), and no token of it says which the source meant. The evidence is elsewhere in the program
+    /// (<see cref="NamedAsAProcedureElsewhere"/>): a reference makes it the header of a reserved paragraph-name (COBOL0901), and
+    /// none leaves the operand the statement lacks, a fault the source certainly holds, with its own report, as every other
+    /// incomplete statement has. A section header (<c>DISPLAY SECTION.</c>) has no such twin: the misreading died at SECTION, a
+    /// word, not at the period. A word no statement begins with has no statement reading: the header is its only reading.</summary>
+    internal bool IsBareVerbSentence(IToken word)
+        => StatementOpeners(Atn).Contains(word.Type)
+           && DefaultNeighbour(word, -1) is { Type: CobolLexer.DOT }
+           && DefaultNeighbour(word, +1) is { Type: CobolLexer.DOT };
+
+    /// <summary>The default-channel token next to <paramref name="token"/> in the direction <paramref name="step"/> (-1 or +1), or
+    /// null at the stream's end.</summary>
+    private IToken? DefaultNeighbour(IToken token, int step)
+    {
+        for (int i = token.TokenIndex + step; i >= 0 && i < TokenStream.Size; i += step)
+            if (TokenStream.Get(i) is { Type: not TokenConstants.EOF } t && t.Channel == Lexer.DefaultTokenChannel) return t;
+        return null;
+    }
 
     /// <summary>Whether the last construct <paramref name="ctx"/> matched (its last rule child, and that child's, down the
     /// chain) is a procedure division: the parse completed the division just before the fault (kb/Work PB4284).</summary>
@@ -784,6 +849,7 @@ public abstract class CobolParserCoreBase : Parser
         _freeGatedDeclarations = null;
         _declaredNames = null;
         _entryClauseProbe = null;
+        _namedElsewhere = null;
     }
 
     /// <summary>⛔ WHICH READING WINS WHEN A WORD COULD BE EITHER (kb/Work PB805 + PB655) — true when the lookahead

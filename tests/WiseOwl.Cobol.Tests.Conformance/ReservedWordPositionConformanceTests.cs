@@ -545,6 +545,49 @@ public sealed class ReservedWordPositionConformanceTests
             $"expected the refusal at '{word}' on line 11 and the statement's own ({secondFault}), no COBOL0901, got:\n{string.Join("\n", diags)}");
     }
 
+    /// <summary>⛔ A BARE VERB SENTENCE IS A PARAGRAPH HEADER ONLY WHERE THE PROGRAM NAMES THE WORD AS A PROCEDURE (kb/Work PB4283),
+    /// the same decision for a verb reserved at every edition (DISPLAY, READ, STOP) and one the edition gates (FREE, VALIDATE,
+    /// RAISE, INVOKE). ISO §8.3.2.1 1) ("Reserved words shall not be used as user-defined words or system-names") is broken by a USE
+    /// of the word as a name, and <c>FREE.</c> alone shows none: it is the verb's statement lacking its operand, whose own report
+    /// stands (a COBOL0001 that names the statement, never COBOL0901 "reserved word used as a user-defined word"). A procedure
+    /// reference elsewhere (<c>PERFORM FREE.</c>) is the use: the sentence is that name's paragraph header, and the word is
+    /// named ONCE (COBOL0901), at the first use in source order, however many sentences write it.</summary>
+    [Theory]
+    [InlineData("FREE", false)]
+    [InlineData("VALIDATE", false)]
+    [InlineData("ALLOCATE", false)]
+    [InlineData("RAISE", false)]
+    [InlineData("INVOKE", false)]
+    [InlineData("DISPLAY", false)]
+    [InlineData("READ", false)]
+    [InlineData("FREE", true)]
+    [InlineData("VALIDATE", true)]
+    [InlineData("RAISE", true)]
+    [InlineData("DISPLAY", true)]
+    [InlineData("READ", true)]
+    public void ABareVerbSentence_IsTheHeaderOnlyWhereAProcedureReferenceNamesIt(string verb, bool referenced)
+    {
+        var (ok, diags) = EditionHarness.Compile($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4283B.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       {(referenced ? $"PERFORM {verb}." : "DISPLAY \"A\".")}
+                       STOP RUN.
+                   {verb}.
+                       EXIT.
+
+               """, 2023);
+        Assert.False(ok);
+        int violations = diags.Count(d => d.Contains("COBOL0901", StringComparison.Ordinal));
+        if (referenced)
+            Assert.True(violations == 1 && diags.Count == 1 && diags[0].Contains($"'{verb}'", StringComparison.Ordinal),
+                $"a procedure reference names '{verb}': exactly the one COBOL0901, got:\n{string.Join("\n", diags)}");
+        else
+            Assert.True(violations == 0 && diags.Count >= 1 && diags[0].Contains("COBOL0001", StringComparison.Ordinal),
+                $"no procedure reference names '{verb}': the bare verb is the statement's own refusal, got:\n{string.Join("\n", diags)}");
+    }
+
     /// <summary>⛔ OF TWO READINGS OF THE WORD THE ONE THAT GOES FURTHER IS THE ONE THE REPORT NAMES (kb/Work PB4207, review
     /// R3-1). A reserved verb written as the receiving operand of a MOVE (RECEIVE, SEND: ISO §8.3.2.1 1), "Reserved words
     /// shall not be used as user-defined words or system-names") also begins a statement, and that statement is refused

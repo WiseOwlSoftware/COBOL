@@ -417,11 +417,21 @@ word under `procedureName` is what the source means, and `CobolErrorStrategy.Rep
 the word, covering the sentence through its period as the one fault and discarding the misreading's tail as orphaned:
 `PERFORM READ.`, `PERFORM READ THRU P1.`, `GO TO READ.`, `GO TO P1 READ DEPENDING ON N.`, `ALTER READ TO P1.`,
 `DISPLAY SECTION.` — each one diagnostic. A genuine fault elsewhere fails every re-read (`PERFORM DISPLAY X.`
-without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A verb and its period alone (`STOP.`,
-`DISPLAY.`, `READ.`) is not asked the header reading (`IsIncompleteStatement`, branch review R1-1): the same text is an
-incomplete statement and a paragraph header (§14.4.3), nothing in it shows a USE as a user-defined word (§8.3.2.1 1)),
-and the missing operand is a fault the source certainly holds, so it keeps its COBOL0001 at the period, inside a
-paragraph and where a header could stand alike. A word no statement begins with, written as a paragraph header after the
+without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. **A VERB AND ITS PERIOD ALONE (`STOP.`,
+`DISPLAY.`, `READ.`, `FREE.`, `VALIDATE.`) IS A HEADER ONLY WHERE THE PROGRAM NAMES THE WORD AS A PROCEDURE (kb/Work PB4283, both
+arms, one decision: `CobolParserCoreBase.IsBareVerbSentence` and `NamedAsAProcedureElsewhere`; branch review R1-1 had decided the
+always-reserved arm without it).** The same text is an incomplete statement and a paragraph header (§14.4.3), and the only
+evidence the source USES the word as a user-defined word (§8.3.2.1 1)) is a procedure reference to it elsewhere: every other
+token of the word's type is re-read in its own sentence with the word retyped `IDENTIFIER`, and a reading that puts it under
+`procedureName` is a reference (`FREE ptr.`, a statement of the same verb, is not). With a reference the sentence is the
+header, the word is named ONCE with COBOL0901 at the first use in source order (the bound-tree funnel's rule for a gated word,
+`CobolErrorStrategy._procedureWordsNamed` for a verb reserved everywhere), and the header draws nothing of its own; with none
+it is the verb's incomplete statement and keeps the statement's own report (COBOL0001 at the period for a verb the prediction
+carries to it, `cannot parse construct near` the verb for a gated one the paragraph and statement alternatives both refuse),
+inside a paragraph and where a header could stand alike. For a gated word the decision is the grammar's own predicate
+(`procedureHeaderHere`: a bare statement verb is not a header without the evidence; a word no statement begins with, `END-DISPLAY`, is
+unchanged) and the error strategy's (`ReservedWordUse` returns no violation); for a verb reserved everywhere it is
+`ReservedProcedureName`'s choice of readings. A word no statement begins with, written as a paragraph header after the
 division's last sentence (`ZERO.`, `FILLER.`, `TALLYING.`), ends the division's paragraph list before the error is read,
 so "in the procedure division" is also read from the division the parse completed last (`EndsWithAProcedureDivision`,
 kb/Work PB4284), and the word draws COBOL0901 as every other reserved header does. A reserved word in a DATA reference slot
