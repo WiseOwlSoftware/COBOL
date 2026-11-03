@@ -41,3 +41,18 @@ the binder shares are the single copies.
 carries a `superseded_by` marker). Run 000002-20261102T221759Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit
 39,398/39,398 · Characterization 37/37 cases ran (skipped 0) ===`; `ReportScopeBoundaryDriftTests` 3/3 passed in its Unit.trx;
 `semgrep/verify.py` PASS (no count rose). Linux: not part of the per-change gate (PB4327).
+
+**Merge with main and review round 1 (finisher).** The reviewed branch (6175b548c) was cut before main's PB2371-PB2375
+split of `ReferenceResolver` and carried PB2296 step 1; merging them needed a semantic resolution, not a textual one.
+`DataBinder` keeps `IPlaceFacts` (main's PB2375) by answering it from `State` (`IsImageBackedEarly` reads the
+`ImageForcedItems` mid-bind view, `OdoReferenceChecking` the unit's checking slice); the `PendingPreOps`, `PropertyOps`
+and `ActivationSites` call sites in `SubscriptBinder`, `ReferenceResolver` and `CounterResolver` read `Procedure` and `State`;
+main's edits to `DataBinder.Reports.cs` (`RefModBinder`, `SubscriptBinder`, `DataItem.HasVariableLengthSubordinate`,
+`ReportControlModel.Place`) were carried to `ReportSectionBinder.cs`, `ReportModel.cs` and `ReportScope.cs`. R1-2 (blocking):
+the six tolerated pairs onto `ReportScope` named removers that never planned to remove them; PB2420 now names `ReportScope.cs`
+in its Sites and its Removes line (the type moves to compiler.model with the report model types) and the `SymbolTable` pair
+names PB2420 instead of PB2361. Leads fixed in the files this change touches: crefs requalified (R1-1), the property
+`ReferenceResolver.ReportScope` renamed `EnclosingReport` so it no longer shares a name with the type (R1-3), the one-writer
+drift test matches any receiver of the unambiguous mutators and any scope- or reports-named receiver of `Declare`/`Inherit`
+(R1-4), the report section is cited as 13.8 (R1-5; `cite.py --check 13.8 "Report section"` OK), and `ReportScope.SumCounters`
+is `internal` with a drift fact that only the two `DataBinder` files read it (R1-6).
