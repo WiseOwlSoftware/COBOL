@@ -41,7 +41,7 @@ public sealed class ImplicitRecordRedefinitionTests
     public void StrongRecord_InAMultiRecordFd_IsSr4_NeverAClauseRule(string records)
     {
         var (_, ed) = Compile(Fd(records, Strong));
-        var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL1532", StringComparison.Ordinal));
+        var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL5991", StringComparison.Ordinal));
         Assert.Contains("'F-BIG' is a strongly-typed item", sr4);
         Assert.Contains("§13.18.33.4 GR3", sr4);
         Assert.Contains("§13.18.57.3 SR4", sr4);
@@ -76,7 +76,7 @@ public sealed class ImplicitRecordRedefinitionTests
             """;
         var (d, ed) = Compile(src);
         Assert.Equal(RedefinitionKind.SameRecordArea, d.State.Forest.ByName["R2"][0].RedefinesKind);
-        var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL1532", StringComparison.Ordinal));
+        var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL5991", StringComparison.Ordinal));
         Assert.Contains("§12.4.6.4.4 GR2", sr4);
         Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§13.18.44", StringComparison.Ordinal));
     }

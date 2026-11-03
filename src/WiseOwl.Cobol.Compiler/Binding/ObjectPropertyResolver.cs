@@ -273,7 +273,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         data.State.ActivationSites.Add(dref);
 
         if (!data.State.Configuration.OoRepositoryProperties.ContainsKey(name))
-            data.Edition.Error("COBOL0843",
+            data.Edition.Error(DiagnosticCatalog.ObjectPropertyReferenceRule,
                 $"the object-property reference '{name}' OF '{objWritten}' requires a PROPERTY specifier in the "
                 + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");
 

@@ -130,7 +130,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 {
                     if (use is RecordKeyNameUse.Refused) return BoundRejected.Reported(ctx.Edition);
                     if (use is RecordKeyNameUse.OtherFile)
-                        return BoundRejected.Report(ctx.Edition, "COBOL0864", $"READ KEY IS {keyRef.GetText()} on "
+                        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on "
                             + $"'{file.CobolName}': '{keyRef.GetText()}' is a record-key-name of another file; "
                             + "record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY "
                             + "clause associated with file-name-1 (ISO §14.9.30.3 SR11)");
@@ -146,7 +146,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 else if (keyPlace.DenotedItem is not { } keyItem
                     || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem) is not { } ki)
                 {
-                    return BoundRejected.Report(ctx.Edition, "COBOL0864", $"READ KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                         + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30.3 SR11)");
                 }
                 else keyIndex = ki;
@@ -234,7 +234,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return BoundRejected.Reported(ctx.Edition);   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.IsSequential)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0865", $"DELETE RECORD shall not be specified for sequential-organization "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.DeleteRecordOnSequentialFile, $"DELETE RECORD shall not be specified for sequential-organization "
                 + $"file '{name}' (ISO §14.9.10.3 SR1)");
         }
         // §14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD

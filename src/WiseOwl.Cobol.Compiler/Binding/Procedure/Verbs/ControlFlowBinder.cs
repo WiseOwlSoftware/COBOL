@@ -373,7 +373,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // PERFORM there is no such END-PERFORM, so the statement has no meaning to carry.
             if (!where.InPerform)
             {
-                return BoundRejected.Report(ctx.Edition, "COBOL0827",
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitStatementPlacement,
                     "EXIT PERFORM may be specified only in an inline or exception-checking PERFORM statement "
                     + "(ISO §14.9.14.3 SR8)");
             }
@@ -398,7 +398,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             var element = ctx.Enclosing.SourceElement;
             if (!ctx.Enclosing.InProgramProcedureDivision)   // §14.9.14.3 SR7
             {
-                return BoundRejected.Report(ctx.Edition, "COBOL0827",
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitStatementPlacement,
                     $"EXIT PROGRAM may be specified only in a program procedure division, not in "
                     + $"{ElementNoun(element)} (ISO §14.9.14.3 SR7; the five source elements that may "
                     + "carry this procedure division are §14.2.2 SR10's — a function, function prototype or "
@@ -419,7 +419,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         {
             if (ctx.CurrentSection is not { } sec)   // §14.9.14.3 SR9 — EXIT SECTION may be specified only in a section
             {
-                return BoundRejected.Report(ctx.Edition, "COBOL0827",
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitStatementPlacement,
                     "EXIT SECTION may be specified only in a section (ISO §14.9.14.3 SR9)");
             }
             return new BoundExitSection(sec.EndPc, ctx.SourceLine(e));
