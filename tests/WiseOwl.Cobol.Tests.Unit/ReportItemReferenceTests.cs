@@ -229,18 +229,20 @@ public sealed class ReportItemReferenceTests
         foreach (string rel in new[]
                  {
                      Path.Combine("Binding", "NameResolution.cs"),       // procedure division: ReportUnidentified
-                     Path.Combine("Binding", "DataBinder.Odo.cs"),      // OCCURS … DEPENDING ON
+                     Path.Combine("Binding", "Passes", "OdoResolvePass.cs"),   // OCCURS … DEPENDING ON
                  })
             Assert.Contains("ReportEntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
 
         string dataBinder = Path.Combine(root, "Binding", "DataBinder.cs");
+        Assert.Contains("ReportEntryReferenceRefused(",
+            MethodText(dataBinder, "internal DataItem? ResolveClauseOperand("));   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
+        string fileResolve = Path.Combine(root, "Binding", "FileControlBinder.Resolve.cs");   // the file binder's post-build half (kb/Work PB2296 M7)
         foreach (string arm in new[]
                  {
-                     "internal DataItem? ResolveClauseOperand(",   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
                      "private void ResolveAssignUsing(",          // ASSIGN … USING (kb/Work PB3768)
                      "DataItem? InRecords(",                      // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
                  })
-            Assert.Contains("ReportEntryReferenceRefused(", MethodText(dataBinder, arm));
+            Assert.Contains("ReportEntryReferenceRefused(", MethodText(fileResolve, arm));
 
         var reporters = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains("Generated", StringComparison.Ordinal) && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))

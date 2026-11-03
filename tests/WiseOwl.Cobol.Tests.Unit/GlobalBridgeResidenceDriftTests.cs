@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// to be spelled per residence at its one call site, and two residences were missing — the carrier-resident formal
 /// (the bridge wrote the accessor text <c>__lnkp0.Value</c> where a member name belongs: CS0106 on legal source)
 /// and the BASED item's address pointer (CS0120). It is now ONE list,
-/// <c>DataBinder.GlobalBridgesOf</c>, and this matrix is the drift pin: a residence a future change adds belongs
+/// <c>LinkageBinder.GlobalBridgesOf</c>, and this matrix is the drift pin: a residence a future change adds belongs
 /// here as a row, and a row whose members the list forgets fails to compile.
 /// Every row: the contained program has its OWN first formal (the container's carrier must not alias it), reads the
 /// global (<c>INIT</c>) and stores through it (<c>NEWV</c>), and the container then sees the store.

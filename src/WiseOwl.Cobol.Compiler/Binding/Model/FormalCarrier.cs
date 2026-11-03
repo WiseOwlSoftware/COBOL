@@ -21,7 +21,7 @@ public abstract record FormalCarrier
     public abstract RootSegment Root(OmittedFormalGuard? guard);
 
     /// <summary>The PROGRAM arm: the program class's carrier member, <paramref name="MemberClrName"/>
-    /// (<c>LinkageFormal.CarrierField</c>, set by <c>DataBinder.CallBindLinkage</c>).</summary>
+    /// (<c>LinkageFormal.CarrierField</c>, set by <c>LinkageBinder.CallBindLinkage</c>).</summary>
     public sealed record Member(string MemberClrName) : FormalCarrier
     {
         /// <inheritdoc/>
@@ -29,7 +29,7 @@ public abstract record FormalCarrier
     }
 
     /// <summary>The METHOD arm: the method's carrier local, <paramref name="Carrier"/> (<c>OoFormal.Carrier</c>, a
-    /// <see cref="StatementLocalRole.MethodFormalCarrier"/> local set by <c>DataBinder.OoBindMethodData</c>).</summary>
+    /// <see cref="StatementLocalRole.MethodFormalCarrier"/> local set by <c>OoDataBinder.BindMethodData</c>).</summary>
     public sealed record Local(MethodLocal Carrier) : FormalCarrier
     {
         /// <inheritdoc/>

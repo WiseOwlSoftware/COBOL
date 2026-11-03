@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// The APPLY COMMIT antecedent family (kb/Work PB666, PB3338): the syntax rules of the clauses and statements whose
 /// antecedent is "a file subject to an APPLY COMMIT clause" are enforced in their own right (COBOL2974,
-/// <c>DataBinder.ScreenApplyCommitSubject</c>) in BOTH lanes.
+/// <c>FileControlBinder.ScreenApplyCommitSubject</c>) in BOTH lanes.
 /// </summary>
 /// <remarks>
 /// <para>⛔ WHY THIS EXISTS. Until kb/Work PB3338 the APPLY COMMIT clause was declined (Annex A.4.3 item 2),

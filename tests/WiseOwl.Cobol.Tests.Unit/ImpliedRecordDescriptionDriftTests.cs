@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// §13.4.5.3 SR3 lets you write with NO record description entries. §14.9.30.4 GR6 says what that area is: a READ
 /// INTO on such a file "proceeds as though there were one record description entry describing an alphanumeric
 /// group item of the maximum size established by the RECORD clause", and
-/// <c>DataBinder.MaterializeImpliedRecord</c> makes that entry real at bind time
+/// <c>FileControlBinder.MaterializeImpliedRecord</c> makes that entry real at bind time
 /// (<c>FILES_DESIGN</c> D17).
 /// <para>kb/Work PB345: before it, <see cref="FileModel.AreaRecord"/> answered null for such an FD and FIVE
 /// consumers each carried their own null arm — registration on the sequential emitter (which served REPORT files
@@ -91,7 +91,7 @@ public sealed class ImpliedRecordDescriptionDriftTests
 
     // ── harness ─────────────────────────────────────────────────────────────────────────────────────────────
 
-    private static FileModel Single(DataBinder data) => Assert.Single(data.Files);
+    private static FileModel Single(DataBinder data) => Assert.Single(data.State.Files.Declared);
 
     private static DataBinder Bind(string organization, string recordClause, string records = "")
     {

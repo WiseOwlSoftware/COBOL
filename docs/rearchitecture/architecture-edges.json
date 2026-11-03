@@ -404,14 +404,14 @@
         },
         {
           "from": "WiseOwl.Cobol.Binding.DataBinder",
-          "to": "WiseOwl.Cobol.CodeGen.PlaceIdentification",
+          "to": "WiseOwl.Cobol.CodeGen.ValueInitializer",
           "removedBy": [
             "PB2395"
           ]
         },
         {
-          "from": "WiseOwl.Cobol.Binding.DataBinder",
-          "to": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "from": "WiseOwl.Cobol.Binding.FileControlBinder",
+          "to": "WiseOwl.Cobol.CodeGen.FigurativeConstants",
           "removedBy": [
             "PB2395"
           ]
@@ -441,7 +441,7 @@
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.Validation",
       "uses": 15,
-      "walkUses": 16,
+      "walkUses": 19,
       "removedBy": [
         "PB2320",
         "PB2404",
@@ -529,14 +529,6 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.Binding.DataBinder",
-          "to": "WiseOwl.Cobol.Validation.IntegerSlot",
-          "removedBy": [
-            "PB2404",
-            "PB2421"
-          ]
-        },
-        {
           "from": "WiseOwl.Cobol.Binding.RefModBinder",
           "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
           "removedBy": [
@@ -569,6 +561,37 @@
             "PB2404",
             "PB2421"
           ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2404"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.ConstantEntryBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.ConstantEntryBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerSlot",
+          "removedBy": [
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.FileControlBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2404",
+            "PB2421"
+          ]
         }
       ]
     },
@@ -576,13 +599,14 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 44,
+      "walkUses": 49,
       "removedBy": [
         "PB2347",
+        "PB2361",
         "PB2419",
         "PB2420"
       ],
-      "plan": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1)",
+      "plan": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1); and PB2361 (extract: DataBindResult carries the data binder's value slices — ForestSlice, FileSlice, DataBindState — so StatementBinder reads them from the result, not through the binder; PB2296 M6 made them slices)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.Bound.BoundAllLiteral",
@@ -917,6 +941,42 @@
           "removedBy": [
             "PB2347",
             "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.FileControlBinder",
+          "removedBy": [
+            "PB2347",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.CompilerTemps",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.OoDataBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.FileSlice",
+          "removedBy": [
+            "PB2361"
           ]
         }
       ]
@@ -1336,7 +1396,7 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 24,
-      "walkUses": 21,
+      "walkUses": 25,
       "removedBy": [
         "PB2361",
         "PB2399",
@@ -1506,6 +1566,34 @@
           "to": "WiseOwl.Cobol.Binding.ReportScope",
           "removedBy": [
             "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
+          "to": "WiseOwl.Cobol.Binding.StorageTierSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
+          "to": "WiseOwl.Cobol.Binding.ForestSlice",
+          "removedBy": [
+            "PB2361"
           ]
         }
       ]
@@ -1686,7 +1774,7 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 107,
+      "walkUses": 149,
       "removedBy": [
         "PB2290",
         "PB2320",
@@ -2579,6 +2667,306 @@
           "removedBy": [
             "PB2420"
           ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.TransactionEmitter",
+          "to": "WiseOwl.Cobol.Binding.FileControlBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageBinder",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageBinder",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageBinder",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
+          "to": "WiseOwl.Cobol.Binding.LinkageBinder",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.GroupValueSlicer",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.GroupValueSlicer",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InitialStateBackground",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InitialStateBackground",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.KeyedIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.KeyedIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InitialStateBackground",
+          "to": "WiseOwl.Cobol.Binding.ForestSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.PhysicalModel",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.PhysicalModel",
+          "to": "WiseOwl.Cobol.Binding.ForestSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
+          "to": "WiseOwl.Cobol.Binding.ForestSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
+          "to": "WiseOwl.Cobol.Binding.StorageTierSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
+          "to": "WiseOwl.Cobol.Binding.FileSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "to": "WiseOwl.Cobol.Binding.FileSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.FileSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.FileSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.ForestSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.StorageTierSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.FileSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.FileSlice",
+          "removedBy": [
+            "PB2361"
+          ]
         }
       ]
     },
@@ -3109,7 +3497,7 @@
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 38,
-      "walkUses": 35,
+      "walkUses": 44,
       "removedBy": [
         "PB2361",
         "PB2399",
@@ -3426,6 +3814,73 @@
           "to": "WiseOwl.Cobol.Binding.OptionsModel",
           "removedBy": [
             "PB2402"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.ConfigurationSlice",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
           ]
         }
       ]

@@ -331,7 +331,7 @@ public sealed class PrototypePointerTypeDriftTests
     public void ADecodedPointer_IsTypedByItsPrototypesSignature_NeverByItsName()
     {
         var importer = RepositoryCodecTests.Bind(Importer, 2023);
-        var held = importer.Units.Single(u => u.Name == "GHOLD").Data.WorkingStorageRoots.Single(r => r.CobolName == "P");
+        var held = importer.Units.Single(u => u.Name == "GHOLD").Data.State.Forest.WorkingStorageRoots.Single(r => r.CobolName == "P");
         DataItem DecodedPointer(string prototype, string picture)
         {
             var publisher = RepositoryCodecTests.Bind(Publisher(prototype, picture), 2023);

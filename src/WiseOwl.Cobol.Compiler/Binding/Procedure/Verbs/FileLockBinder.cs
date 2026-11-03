@@ -35,7 +35,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
         // SR1 is the ONE sort-merge screen's (kb/Work PB700): §14.9.47.3 SR1 restates §13.4.6.3 SR3 in UNLOCK's own
         // words, so the shared screen reports it (COBOL1692) and names the verb's own clause too.
         ctx.Validation.ScreenSortMergeFile(file, "UNLOCK", "§14.9.47.3 SR1");
-        ctx.Data.ScreenApplyCommitSubject(file, true, "UNLOCK", "ISO §14.9.47.3 SR2: \"File-name-1 shall not be a "
+        ctx.Data.FileControl.ScreenApplyCommitSubject(file, true, "UNLOCK", "ISO §14.9.47.3 SR2: \"File-name-1 shall not be a "
             + "file specified in an APPLY COMMIT clause\"");   // kb/Work PB666
         return new BoundUnlock(file, ul.RECORDS() is not null || ul.RECORD() is not null);
     }
@@ -107,7 +107,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
             _ => null,
         };
         if (applyCommitRule is not null)
-            ctx.Data.ScreenApplyCommitSubject(file, true, $"{verb} with the {phrase} phrase", applyCommitRule);
+            ctx.Data.FileControl.ScreenApplyCommitSubject(file, true, $"{verb} with the {phrase} phrase", applyCommitRule);
     }
 
     /// <summary>Bind a RETRY phrase on a verb (READ/WRITE/REWRITE/DELETE) — the same shape as OPEN's, and the

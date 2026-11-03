@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.CodeGen;
 
 /// <summary>
 /// ⛔ <b>THE ONE PLACE A RECEIVER'S OBJECT-PROPERTY ACCESSORS ARE PLACED</b> (kb/Work PB2078). A statement whose binder
-/// CLAIMED its receivers (<c>DataBinder.OoClaimInterleavedReceiver</c>) places each claimed receiver's
+/// CLAIMED its receivers (<c>ProcedureBindState.ClaimInterleavedReceiver</c>) places each claimed receiver's
 /// <see cref="ReceiverBracket"/> — identifier-3's evaluation into the identified-object temporary and the §8.4.3.9.4 GR1
 /// GET (the OPEN steps), the GR2 SET (the CLOSE steps) — where the statement's own rules identify and store that receiver,
 /// and nowhere else. Two timings exist, and each statement's emitter states which is its own:

@@ -273,11 +273,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // The caller-side result temporary (§8.4.3.2.4 GR1 :6963 — "the description, class, and category of
         // the temporary data item is that specified by the description in the linkage section of the item
         // specified in the RETURNING phrase"), declared like any other item via the Roots pipeline. A GROUP
-        // model deep-clones its subtree (CreateCompilerTemp's group leg) so the FieldEmitter declares the
+        // model deep-clones its subtree (CompilerTemps.Create's group leg) so the FieldEmitter declares the
         // struct with its AsImage/FromImage codec — the CALL boundary's group crossing form.
-        var temp = ctx.Data.CreateCompilerTemp(fn.Returning, "__FNRES-", "__fnres", name);
+        var temp = ctx.Data.Temps.Create(fn.Returning, "__FNRES-", "__fnres", name);
         // A result whose values ride managed slots is delivered into the temporary's AREA (kb/Work PB1940).
-        ctx.Data.ClaimSlotCarriedCell(temp, "FUNCTION result temporary");
+        ctx.Data.ClaimTemporarySlotCarriedCell(temp, "FUNCTION result temporary");
         if (ctx.Refs.Places.ResolveItem(temp) is not { } tempPlace)
             return BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {name} result temporary");
 
@@ -368,7 +368,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         WiseOwl.Cobol.Frontend.Expressions.SoleOperand.DataRef(a.arithmeticExpression()) is { } dref
         && ctx.Refs.Probe(dref) is not null
         && !ctx.Refs.ObjectProperties.IsObjectPropertyReference(dref)
-        && !ctx.Data.OoIsObjectData(place.Item)
+        && !ctx.Data.Oo.IsObjectData(place.Item)
         && host.Expr.PermitsReceiving(dref, place);
 
     /// <summary>⛔ THE ONE DRAIN OF THE PENDING PRE-OP SUFFIX, and the only place the list is mutated on the way

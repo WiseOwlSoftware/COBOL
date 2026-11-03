@@ -3,9 +3,16 @@
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Passes;
 
 /// <summary>
+/// The CheckAlignedClauses pass: row 6 of the per-unit resolve pipeline (UsageResolved to UsageResolved).
+/// </summary>
+/// <remarks>
+/// <para><b>Placement in the pipeline.</b>
+/// The §13.18.1.3 SR1 ALIGNED subject screen (kb/Work PB487). Placed HERE for the SAME reason as the pass above: SR1 asks whether the entry is "a bit group item or an elementary bit data item", and a group becomes a bit group by §13.16.4 GR1 INHERITANCE, which UsageInheritancePass settles. Nothing later than that — it reads only declared shape, and BitLayout must not lay out an item whose ALIGNED clause was never adjudicated.
+/// </para>
+/// <para>
 /// The ALIGNED clause's one syntax rule — <b>ISO §13.18.1.3 SR1</b>: "The ALIGNED clause may be specified only
 /// for a bit group item or an elementary bit data item."
 ///
@@ -23,7 +30,7 @@ namespace WiseOwl.Cobol.Binding;
 /// is not specified, a GROUP-USAGE BIT clause is implied for the subject of the entry" — which
 /// <c>UsageInheritancePass</c> settles, so a check inside <c>BindEntry</c> would reject the legal
 /// <c>05 INNER ALIGNED.</c> under a <c>GROUP-USAGE BIT</c> parent. This is the identical placement argument
-/// <see cref="CheckUsageDeclarations"/> records for §13.18.60.3 SR14, and the pass sits immediately after it.</para>
+/// <see cref="CheckUsageDeclarationsPass.Run"/> records for §13.18.60.3 SR14, and the pass sits immediately after it.</para>
 ///
 /// <para><b>The subject predicate is <see cref="BitLayout.IsBitItem"/>, not a second spelling of it.</b> That
 /// method already answers §8.5.1.6.3's own question — "an elementary bit data item or bit group item" — for the
@@ -35,24 +42,37 @@ namespace WiseOwl.Cobol.Binding;
 /// gate on <c>cobolWord</c>/<c>reservedGatedWord</c> routes it to the §8.9 funnel instead. The 2002 introduction
 /// gate for the CLAUSE is <c>VersionConformancePass ParseArm.VisitAlignedClause</c>; this pass is a plain syntax
 /// rule and is edition-agnostic, per the design's binder-is-edition-agnostic invariant.</para>
-/// </summary>
-public sealed partial class DataBinder
+/// </para>
+/// </remarks>
+internal sealed class CheckAlignedClausesPass : IBindPass
 {
+    /// <inheritdoc/>
+    public string Name => "CheckAlignedClauses";
+
+    /// <inheritdoc/>
+    public PassPhase Requires => PassPhase.UsageResolved;
+
+    /// <inheritdoc/>
+    public PassPhase Produces => PassPhase.UsageResolved;
+
+    /// <inheritdoc/>
+    public PassViews Views => PassViews.None;
+
     /// <summary>§13.18.1.3 SR1 — one verdict per offending WRITTEN entry. A violation CLEARS
     /// <see cref="DataItem.IsAligned"/> so the item lays out by the default §8.5.1.6.3 rules under an
     /// already-failed compile (the <c>IsBased</c> discipline: never a half-shaped item).
-    /// <para>⛔ Runs over <see cref="ConformanceForest"/>, not <see cref="CompositionForest"/> — this is a
+    /// <para>⛔ Runs over <see cref="DataBinder.ConformanceForest"/>, not <see cref="DataBinder.CompositionForest"/> — this is a
     /// property of the entry the programmer WROTE, so a TYPEDEF template is judged once at the template rather
     /// than once per <c>TYPE</c> reference site, which is the entry the programmer would have to change.</para></summary>
-    internal void CheckAlignedClauses()
+    public void Run(DataBinder binder)
     {
-        foreach (var item in ConformanceForest())
+        foreach (var item in binder.ConformanceForest())
         {
             if (!item.IsAligned) continue;
             if (BitLayout.IsBitItem(item)) continue;
 
-            using var _ = Edition.At(item);
-            Edition.Error(DiagnosticCatalog.AlignedClauseSubject,
+            using var _ = binder.Edition.At(item);
+            binder.Edition.Error(DiagnosticCatalog.AlignedClauseSubject,
                 $"data item '{item.CobolName ?? "FILLER"}': the ALIGNED clause may be specified only for a bit "
                 + "group item or an elementary bit data item (ISO §13.18.1.3 SR1) — this entry is "
                 + $"{DescribeAlignedSubject(item)}");

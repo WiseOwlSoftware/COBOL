@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System;
+using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Passes;
 using Xunit;
 
@@ -37,10 +38,10 @@ public sealed class BindPipelineTests
     {
         var passes = new IPassInfo[]
         {
-            new BindPass("a", PassPhase.None, PassPhase.TypesExpanded, _ => { }),
-            new BindPass("b", PassPhase.TypesExpanded, PassPhase.UsageResolved, _ => { }),
-            new BindPass("c", PassPhase.UsageResolved, PassPhase.UsageResolved, _ => { }),   // intermediate, no new milestone
-            new BindPass("d", PassPhase.UsageResolved, PassPhase.StorageComputed, _ => { }),
+            new TestPass("a", PassPhase.None, PassPhase.TypesExpanded),
+            new TestPass("b", PassPhase.TypesExpanded, PassPhase.UsageResolved),
+            new TestPass("c", PassPhase.UsageResolved, PassPhase.UsageResolved),   // intermediate, no new milestone
+            new TestPass("d", PassPhase.UsageResolved, PassPhase.StorageComputed),
         };
         BindPipeline.ValidateDag(passes);   // must not throw
     }
@@ -66,8 +67,8 @@ public sealed class BindPipelineTests
     {
         var passes = new IPassInfo[]
         {
-            new BindPass("a", PassPhase.None, PassPhase.FilesResolved, _ => { }),
-            new BindPass("b", PassPhase.None, PassPhase.UsageResolved, _ => { }),   // regresses below FilesResolved
+            new TestPass("a", PassPhase.None, PassPhase.FilesResolved),
+            new TestPass("b", PassPhase.None, PassPhase.UsageResolved),   // regresses below FilesResolved
         };
         Assert.Throws<InvalidOperationException>(() => BindPipeline.ValidateDag(passes));
     }
@@ -80,4 +81,49 @@ public sealed class BindPipelineTests
         IPassInfo[] chain = [.. BindPipeline.GroupTail(), .. BindPipeline.Build(program: null!)];
         Assert.Throws<InvalidOperationException>(() => BindPipeline.ValidateDag(chain));
     }
+
+    /// <summary>A pass appending to a fact set in a phase the set does not admit is rejected: the Tier-B REDEFINES leaves
+    /// are image-forced at RedefinesClassified or later, never while the types are still being expanded
+    /// (<see cref="FactSetContract"/>; kb/Work PB2352).</summary>
+    [Fact]
+    public void ValidateDag_AppendInAPhaseTheSetDoesNotAdmit_Throws()
+    {
+        var passes = new IPassInfo[]
+        {
+            new TestPass("early", PassPhase.None, PassPhase.TypesExpanded, PassViews.Appends(FactSetKind.ImageForcedItems)),
+        };
+        var ex = Assert.Throws<InvalidOperationException>(() => BindPipeline.ValidateDag(passes));
+        Assert.Contains("early", ex.Message);
+        Assert.Contains("ImageForcedItems", ex.Message);
+    }
+
+    /// <summary>A pass reading a fact set whole in or before the phase of its last appender is rejected (§8.3 (1): a whole
+    /// read is legal only after the last phase that appends).</summary>
+    [Fact]
+    public void ValidateDag_WholeReadNotAfterTheLastAppender_Throws()
+    {
+        var passes = new IPassInfo[]
+        {
+            new TestPass("collect", PassPhase.None, PassPhase.UsageCollected, PassViews.Appends(FactSetKind.CharacterChannelItems)),
+            new TestPass("read", PassPhase.UsageCollected, PassPhase.UsageCollected,
+                PassViews.Of([], [], [FactSetKind.CharacterChannelItems])),
+        };
+        var ex = Assert.Throws<InvalidOperationException>(() => BindPipeline.ValidateDag(passes));
+        Assert.Contains("read", ex.Message);
+    }
+
+    /// <summary>The same reader one phase later validates, and so does an append in an admitted phase.</summary>
+    [Fact]
+    public void ValidateDag_DeclaredViewsInTheirPhases_DoNotThrow()
+    {
+        var passes = new IPassInfo[]
+        {
+            new TestPass("collect", PassPhase.None, PassPhase.UsageCollected, PassViews.Appends(FactSetKind.CharacterChannelItems)),
+            new TestPass("read", PassPhase.UsageCollected, PassPhase.StorageComputed,
+                PassViews.Of([], [FactSetKind.CharacterChannelItems], [FactSetKind.CharacterChannelItems])),
+        };
+        BindPipeline.ValidateDag(passes);   // must not throw
+    }
+
+    private sealed record TestPass(string Name, PassPhase Requires, PassPhase Produces, PassViews Views = default) : IPassInfo;
 }

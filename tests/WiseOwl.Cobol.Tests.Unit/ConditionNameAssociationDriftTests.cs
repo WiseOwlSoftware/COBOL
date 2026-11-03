@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Passes;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -68,12 +69,12 @@ public sealed class ConditionNameAssociationDriftTests
     [Fact]
     public void TheTableIsExactlyTheStandardsEightLetteredExclusionsInOrder()
     {
-        Assert.Equal(TheStandardsList.Length, DataBinder.Sr24Exclusions.Count);
+        Assert.Equal(TheStandardsList.Length, CheckConditionNameAssociationsPass.Sr24Exclusions.Count);
         for (int i = 0; i < TheStandardsList.Length; i++)
         {
-            Assert.Equal(TheStandardsList[i].Letter, DataBinder.Sr24Exclusions[i].Letter);
-            Assert.Equal(TheStandardsList[i].Text, DataBinder.Sr24Exclusions[i].Text);
-            Assert.False(string.IsNullOrWhiteSpace(DataBinder.Sr24Exclusions[i].Article),
+            Assert.Equal(TheStandardsList[i].Letter, CheckConditionNameAssociationsPass.Sr24Exclusions[i].Letter);
+            Assert.Equal(TheStandardsList[i].Text, CheckConditionNameAssociationsPass.Sr24Exclusions[i].Text);
+            Assert.False(string.IsNullOrWhiteSpace(CheckConditionNameAssociationsPass.Sr24Exclusions[i].Article),
                 $"exclusion {TheStandardsList[i].Letter}) has no message phrasing — the diagnostic would name "
                 + "the rule without naming what the entry actually is.");
         }
@@ -110,7 +111,7 @@ public sealed class ConditionNameAssociationDriftTests
         // item described with the clause, so d) does not fire on the group's own flag.
         var unreached = Group("G", 1, Elem("B", Alnum(), 5));
         unreached.Synchronized = SynchronizedPhrase.Unqualified;
-        Assert.Null(DataBinder.ConditionalVariableExclusion(unreached));
+        Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(unreached));
 
         Assert.Equal('e', Excl(Elem("IX", PicInfo.IndexItem)));
         var anyLen = Elem("AL", Alnum());
@@ -140,10 +141,10 @@ public sealed class ConditionNameAssociationDriftTests
     public void ShapesTheRuleDoesNotExcludeAreNotExcluded()
     {
         // A plain elementary DISPLAY item — the overwhelmingly common conditional variable.
-        Assert.Null(DataBinder.ConditionalVariableExclusion(Elem("P", Alnum())));
+        Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(Elem("P", Alnum())));
 
         // c) reaches only a group "containing items with a usage other than display".
-        Assert.Null(DataBinder.ConditionalVariableExclusion(
+        Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(
             Group("AG", 1, Elem("X", Alnum(), 5), Elem("Y", Alnum(), 5))));
 
         // c) reaches only an ALPHANUMERIC group. §13.18.29.4 GR2 makes a national group "an elementary item of
@@ -151,17 +152,17 @@ public sealed class ConditionNameAssociationDriftTests
         var natGroup = Group("NG", 1,
             Elem("NF", new PicInfo(PicCategory.National, Usage.National, 2, 0, 0, false), 5));
         natGroup.GroupUsage = GroupUsage.National;
-        Assert.Null(DataBinder.ConditionalVariableExclusion(natGroup));
+        Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(natGroup));
 
         // g)'s second arm is "a GROUP item subordinate to such a type declaration" — an elementary member is
         // not one.
         var strongDecl = new DataItem { Level = 1, CobolName = "T", ClrName = "T", IsTypedef = true, TypedefStrong = true };
         var member = Elem("F1", Alnum(), 5);
         member.Parent = strongDecl;
-        Assert.Null(DataBinder.ConditionalVariableExclusion(member));
+        Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(member));
 
         // A WEAK type declaration is not excluded at all — g) names the STRONG phrase.
-        Assert.Null(DataBinder.ConditionalVariableExclusion(
+        Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(
             new DataItem { Level = 1, CobolName = "W", ClrName = "W", IsTypedef = true }));
     }
 
@@ -193,7 +194,7 @@ public sealed class ConditionNameAssociationDriftTests
         // g) is the declaration's letter, so SR24 excludes it by no letter; COBOL1537 owns the instance.
         var strongInstance = Group("SG", 1, Comp("P1"));
         strongInstance.StrongType = true;
-        Assert.Null(DataBinder.ConditionalVariableExclusion(strongInstance));
+        Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(strongInstance));
 
         // The plain alphanumeric group keeps c).
         Assert.Equal('c', Excl(Group("AG", 1, Comp("X2"))));
@@ -214,7 +215,7 @@ public sealed class ConditionNameAssociationDriftTests
             OccursSpec = new OccursSpec { Min = 1, Max = 3, DependingName = "N" },
         };
         var g = Group("G", 1, Elem("N", new PicInfo(PicCategory.Numeric, Usage.Display, 1, 1, 0, false), 5), odo);
-        Assert.Null(DataBinder.ConditionalVariableExclusion(g));
+        Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(g));
     }
 
     /// <summary>SR24 e) names the CLASSES index, message-tag, object and pointer; §13.18.60.3 SR4 names the SIX
@@ -242,14 +243,14 @@ public sealed class ConditionNameAssociationDriftTests
     [Fact]
     public void ExclusionERowCitesSr11AsWell()
     {
-        var e = DataBinder.Sr24Exclusions.Single(r => r.Letter == 'e');
+        var e = CheckConditionNameAssociationsPass.Sr24Exclusions.Single(r => r.Letter == 'e');
         Assert.Contains("13.18.60.3 SR11", e.Also);
-        foreach (var other in DataBinder.Sr24Exclusions.Where(r => r.Letter != 'e'))
+        foreach (var other in CheckConditionNameAssociationsPass.Sr24Exclusions.Where(r => r.Letter != 'e'))
             Assert.Equal("", other.Also);
     }
 
     private static char Excl(DataItem d) =>
-        DataBinder.ConditionalVariableExclusion(d) is { } row
+        CheckConditionNameAssociationsPass.ConditionalVariableExclusion(d) is { } row
             ? row.Letter
             : throw new InvalidOperationException(
                 $"ISO §13.16.3 SR24 excludes '{d.CobolName}' and the screen admitted it.");
