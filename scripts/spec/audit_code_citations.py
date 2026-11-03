@@ -1053,7 +1053,7 @@ CONSTRUCT_HISTORY = (
     ("a phase / wave / step marker", re.compile(r"\bPhase\b|\bPHASE-\d+|\bwave\b|\bStep\b|\bP1\d\b|\bM2-|\bUDF-\d|\bW[123](?:\.\d)?\b")),
     ("an emit-site or gate pointer", re.compile(r"emit site|\bgate\b|\bgated\b|-gated")),
     ("a decision or review id", re.compile(r"\bD\d+\b|\bD-[A-Z]\d|\bR\d+\b")),
-    ("a line pointer into the spec", re.compile(r"@\d{3,}|(?<!\w) :\d{3,}")),
+    ("a line pointer into the spec", re.compile(r"@\d{3,}|\s:\d{3,}")),
 )
 
 
@@ -1318,6 +1318,9 @@ CONSTRUCT_SELF_TEST = [
     ("a line pointer into the spec",
      "obsolete '85 other-language entry deleted by ISO 2002 (§8.9 absence @10459-10460)",
      "obsolete '85 other-language entry deleted by ISO 2002 (§8.9 absence)"),
+    ("a line pointer into the spec",
+     "obsolete 2014, removed 2023 (Annex E :49036)",
+     "obsolete 2014, removed 2023 (Annex E)"),
     ("a generated name",
      "ISO §11.7.4 GR1a; the accessors are named __GET_P and __SET_P",
      "ISO §11.7.4 GR1a"),
