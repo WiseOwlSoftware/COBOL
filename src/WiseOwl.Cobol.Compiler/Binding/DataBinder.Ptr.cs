@@ -183,8 +183,8 @@ public sealed partial class DataBinder
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
         bool IsUserFunction(string fn) => UserFunctionNames.Contains(fn) || UnitIsFunction && ContainingDefinitionNames.Contains(fn);
         var own = OoIsClassUnit
-            ? OoBoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
-                .SelectMany(m => ClaimScans.ByReferenceOperands(m.Definition.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
+            ? OoBoundMethods.Where(m => m.Origin is OoSymbolOrigin.Source && m.Ctx.procedureDivision() is not null)
+                .SelectMany(m => ClaimScans.ByReferenceOperands(m.Ctx.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
             : program.procedureDivision() is { } opd
                 ? ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
                 : [];
@@ -306,7 +306,7 @@ public sealed partial class DataBinder
         if (OoIsClassUnit)
         {
             foreach (var m in OoBoundMethods)
-                if (m.Ctx?.procedureDivision() is { } mpd)
+                if (m.Origin is OoSymbolOrigin.Source && m.Ctx.procedureDivision() is { } mpd)
                     foreach (var (n, q) in ClaimScans.AddressTargets(mpd))
                         yield return (n, q, m);
             yield break;

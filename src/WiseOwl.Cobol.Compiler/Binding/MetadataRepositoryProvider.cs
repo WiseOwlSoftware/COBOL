@@ -498,9 +498,8 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         if (Locate(RepositoryFamily.Class, identity, table) is not { } located) return null;
         var (hit, module) = located;
         var facts = hit.Record.Class!;
-        var symbol = new OoClassSymbol(OoClassTable.ImportedKey(identity), NamingConvention.ImportedTypeName(module, facts.ClrName), ctx: null)
+        var symbol = new OoClassSymbol(OoClassTable.ImportedKey(identity), NamingConvention.ImportedTypeName(module, facts.ClrName), OoSymbolOrigin.Imported)
         {
-            Origin = OoSymbolOrigin.Imported,
             Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName),
             ExternalizedName = hit.Record.ExternalizedName,
             IsFinal = facts.Final,
@@ -593,9 +592,8 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         if (Locate(RepositoryFamily.Interface, identity, table) is not { } located) return null;
         var (hit, module) = located;
         var symbol = new OoInterfaceSymbol(OoClassTable.ImportedInterfaceKey(identity),
-            NamingConvention.ImportedTypeName(module, hit.Record.Class!.ClrName), ctx: null)
+            NamingConvention.ImportedTypeName(module, hit.Record.Class!.ClrName), OoSymbolOrigin.Imported)
         {
-            Origin = OoSymbolOrigin.Imported,
             Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName),
             ExternalizedName = hit.Record.ExternalizedName,
             Record = hit.Record,
@@ -709,9 +707,9 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     {
         var r = dm.Record;
         char accessor = r.Accessor switch { RepositoryAccessor.Get => 'G', RepositoryAccessor.Set => 'S', _ => '\0' };
-        var m = new OoMethodSymbol(r.Name, HasUsing: dm.Formals.Count > 0, HasReturning: dm.Returning is not null, Ctx: null)
+        var m = new OoMethodSymbol(r.Name, hasUsing: dm.Formals.Count > 0, hasReturning: dm.Returning is not null, OoSymbolOrigin.Imported)
         {
-            ClrName = r.ClrName, Owner = owner!, Imported = true, IsFactory = r.IsFactory, HasOverride = r.Override, IsFinal = r.Final,
+            ClrName = r.ClrName, Owner = owner!, IsFactory = r.IsFactory, HasOverride = r.Override, IsFinal = r.Final,
             Accessor = accessor, PropertyName = r.PropertyName,
             ExternalizedName = accessor == '\0' ? r.ExternalizedName : r.Name,
         };

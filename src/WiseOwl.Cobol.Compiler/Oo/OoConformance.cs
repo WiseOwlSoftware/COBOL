@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
@@ -125,7 +126,11 @@ public static class OoConformance
                         continue;
                     }
                     bool conforms = true;
-                    using (edition.At(impl.Ctx))
+                    // The implementation is found through INHERITS, so it may be no METHOD-ID of the group — the standard class BASE's,
+                    // one imported from the external repository, or a PROPERTY clause's accessor (PB4459): the diagnostic about it stands
+                    // at the class that must implement the prototype, as the not-implemented one above does.
+                    ParserRuleContext at = impl.Origin is OoSymbolOrigin.Source ? impl.Ctx : cls.Ctx.classIdParagraph().className(0);
+                    using (edition.At(at))
                         foreach (var err in MethodConformanceMismatches(table, impl, proto,
                                      $"the '{iface.Name}' prototype", cls.Name, iface.Name))
                         {

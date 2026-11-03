@@ -1704,9 +1704,10 @@ and identity and otherwise creates the class." **DOC-A.1-162:** the same for int
 
 ### 10.1 Importing a class
 `MetadataRepositoryProvider.Class(identity)` decodes the TypeDef's attributes into a `ClassRecord` and builds an
-`OoClassSymbol { Origin = Imported(path, simpleName, fullName) }` (`OoSymbolOrigin { Source, Standard, Imported, Clr }`
+`OoClassSymbol { Origin = Imported(path, simpleName, fullName) }` (`OoSymbolOrigin { Source, Standard, Imported, Generated, Clr }`
 replaces `OoClassSymbol.IsStandard`, today `ctx is null`, and every reader of it; `Ctx` already throws on the standard
-class and throws on an imported one too): `ClrName` = the TypeDef's full name (namespace included); `FactoryClrName`; `IsFinal`;
+class and throws on an imported one too; `Generated` is the origin of a PROPERTY clause's accessor, a method symbol's only —
+`OoMethodSymbol.Origin` pairs the class symbol's and its `Ctx` throws on every origin but `Source`, kb/Work PB4459): `ClrName` = the TypeDef's full name (namespace included); `FactoryClrName`; `IsFinal`;
 `Base`/`Implements` resolved by identity through the same provider (transitively; the standard class → `StandardBase`;
 unreachable → REPO-11); one `OoMethodSymbol` per `[CobolMethod]` over decoded `DataItem`s; `OverrideOf` re-linked;
 accessors; `Raising`. `OoClassTable.Import(symbol)` registers by IDENTITY (§8.7). Downstream — INVOKE binding,
