@@ -193,6 +193,20 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
+    [Fact]   // REPO-12 (§9.2): the previous build of the output was compiled by another runtime major, so it is not compared.
+    public void APreviousBuildAnOlderRuntimeCompiled_IsRepo12_AndIsOverwritten()
+    {
+        WithDirectory("repo-12", dir =>
+        {
+            Assert.True(Compile(dir, "R2103P", Callee).Success);
+            MakeStale(Path.Combine(dir, "R2103P.dll"));
+            var rebuilt = Compile(dir, "R2103P", CalleeChanged);
+            Assert.True(rebuilt.Success, Codes(rebuilt));
+            Assert.Contains(rebuilt.Warnings, w => w.Contains("COBOL5972", StringComparison.Ordinal));
+            Assert.DoesNotContain(rebuilt.Warnings, w => w.Contains("COBOL5969", StringComparison.Ordinal));   // not compared: no REPO-9
+        });
+    }
+
     [Fact]   // §9.3: the output being produced is never resolved against, even when its previous build publishes the name.
     public void TheOutputsOwnPreviousBuild_AnswersNoSpecifier()
     {
@@ -264,6 +278,174 @@ public sealed class ExternalRepositoryResolutionTests
                 """, repositories: [programs]);
             Assert.False(r.Success);
             Assert.Contains(r.Errors, e => e.Contains("COBOL5971", StringComparison.Ordinal) && e.Contains("R2103K", StringComparison.Ordinal));
+        });
+    }
+
+    // ISO §12.3.8.4 GR11 b): a function prototype definition of the group supplies the details and "the details in the
+    // external repository are ignored" (cite.py --check 12.3.8.4 "the details in the external repository are ignored").
+    // So an entry the group's prototype makes irrelevant is never a fault of the compilation, whatever is wrong with it.
+
+    private static string FunctionLibrary(string asClause) => $"""
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. R2103F{asClause}.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 X PIC 9(4).
+        01 R PIC 9(4).
+        PROCEDURE DIVISION USING X RETURNING R.
+            COMPUTE R = X * 2
+            GOBACK.
+        END FUNCTION R2103F.
+        """;
+
+    private const string FunctionPrototypeCaller = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. R2103F IS PROTOTYPE.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 X PIC 9(4).
+        01 R PIC 9(4).
+        PROCEDURE DIVISION USING X RETURNING R.
+        END FUNCTION R2103F.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. R2103FM.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            FUNCTION R2103F.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 N PIC 9(4) VALUE 21.
+        PROCEDURE DIVISION.
+            DISPLAY FUNCTION R2103F(N)
+            GOBACK.
+        END PROGRAM R2103FM.
+        """;
+
+    private const string FunctionSpecifierCaller = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. R2103FM.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            FUNCTION R2103F.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 N PIC 9(4) VALUE 21.
+        PROCEDURE DIVISION.
+            DISPLAY FUNCTION R2103F(N)
+            GOBACK.
+        END PROGRAM R2103FM.
+        """;
+
+    private const string ShadowingClause = " AS \"R2103G\"";
+
+    /// <summary>Makes the entry at <paramref name="dll"/> one an older runtime major compiled: its recorded runtime version
+    /// (the attribute blob's UTF-8 text, which the metadata reader decodes) names the previous major, in the same number of
+    /// bytes so every offset of the assembly stays (REPO-7's input, <c>RuntimeAbi.Skew</c>).</summary>
+    private static void MakeStale(string dll)
+    {
+        byte[] bytes = File.ReadAllBytes(dll);
+        var runtime = WiseOwl.Cobol.Runtime.RuntimeAbi.Version;
+        var current = System.Text.Encoding.UTF8.GetBytes(runtime.ToString());
+        var previous = System.Text.Encoding.UTF8.GetBytes(new Version(runtime.Major - 1, runtime.Minor, runtime.Build, runtime.Revision).ToString());
+        Assert.Equal(current.Length, previous.Length);
+        int replaced = 0;
+        for (int at = bytes.AsSpan().IndexOf(current); at >= 0; at = bytes.AsSpan().IndexOf(current))
+        {
+            previous.CopyTo(bytes, at);
+            replaced++;
+        }
+        Assert.True(replaced > 0, "the library records its runtime version nowhere in UTF-8");
+        File.WriteAllBytes(dll, bytes);
+    }
+
+    [Fact]   // GR11 b): a library built without signatures (REPO-8's entry) beside the group's own prototype of its function.
+    public void AGroupFunctionPrototype_IgnoresAnEntryBuiltWithoutSignatures()
+    {
+        WithDirectory("repo-fn-b8", dir =>
+        {
+            Assert.True(Compile(dir, "R2103F", FunctionLibrary(""), update: false).Success);
+            var r = Compile(dir, "R2103FM", FunctionPrototypeCaller);
+            Assert.True(r.Success, Codes(r));
+            Assert.Empty(r.Warnings);
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "R2103FM.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("0042", stdout);   // the function activated is the one externalized R2103F: 21 * 2
+        });
+    }
+
+    [Fact]   // GR11 b): the same, with an entry an older runtime major compiled (REPO-7's entry).
+    public void AGroupFunctionPrototype_IgnoresAnEntryAnOlderRuntimeCompiled()
+    {
+        WithDirectory("repo-fn-b7", dir =>
+        {
+            Assert.True(Compile(dir, "R2103F", FunctionLibrary("")).Success);
+            MakeStale(Path.Combine(dir, "R2103F.dll"));
+            var r = Compile(dir, "R2103FM", FunctionPrototypeCaller);
+            Assert.True(r.Success, Codes(r));
+            Assert.Empty(r.Warnings);
+        });
+    }
+
+    [Fact]   // GR11 c) is still asked when the group has no prototype: the same two entries are REPO-8 and REPO-7.
+    public void AFunctionSpecifierTheGroupDoesNotAnswer_ReportsTheEntrysFault()
+    {
+        WithDirectory("repo-fn-c", dir =>
+        {
+            Assert.True(Compile(dir, "R2103F", FunctionLibrary(""), update: false).Success);
+            var unsigned = Compile(dir, "R2103FM", FunctionSpecifierCaller);
+            Assert.False(unsigned.Success);
+            Assert.Contains("COBOL5968", Codes(unsigned), StringComparison.Ordinal);
+            Assert.DoesNotContain("COBOL5962", Codes(unsigned), StringComparison.Ordinal);
+            Assert.True(Compile(dir, "R2103F", FunctionLibrary("")).Success);
+            MakeStale(Path.Combine(dir, "R2103F.dll"));
+            var stale = Compile(dir, "R2103FM", FunctionSpecifierCaller);
+            Assert.False(stale.Success);
+            Assert.Contains("COBOL5967", Codes(stale), StringComparison.Ordinal);
+            Assert.DoesNotContain("COBOL5962", Codes(stale), StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]   // D-R3 step 2: the first entry carrying the word is the answer; an unreadable one is its own finding (no REPO-1 beside it), a later one nobody's.
+    public void AWordAnsweredByTheFirstEntry_ReportsOnlyThatEntrysFault()
+    {
+        WithDirectory("repo-fn-word", dir =>
+        {
+            string first = Path.Combine(dir, "first"), second = Path.Combine(dir, "second"), app = Path.Combine(dir, "app");
+            Assert.True(Compile(first, "R2103G", FunctionLibrary(ShadowingClause)).Success);
+            Assert.True(Compile(second, "R2103H", FunctionLibrary(" AS \"R2103H\"")).Success);
+            MakeStale(Path.Combine(second, "R2103H.dll"));
+            var answered = Compile(app, "R2103FM", FunctionSpecifierCaller, repositories: [first, second]);
+            Assert.True(answered.Success, Codes(answered));   // R2103G answers; R2103H also carries the word R2103F but is no one's answer
+            MakeStale(Path.Combine(first, "R2103G.dll"));
+            var refused = Compile(app, "R2103FM", FunctionSpecifierCaller, repositories: [first, second]);
+            Assert.False(refused.Success);
+            Assert.Contains("COBOL5967", Codes(refused), StringComparison.Ordinal);
+            Assert.DoesNotContain("COBOL5962", Codes(refused), StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]   // D-R3 step 3: a repository function carrying the word shadows the group's prototype and warns; one that cannot be read is no fault.
+    public void AShadowingRepositoryFunction_WarnsWhenReadable_AndIsQuietWhenNot()
+    {
+        WithDirectory("repo-fn-shadow", dir =>
+        {
+            // R2103F AS "R2103G": the user-function-name R2103F, externalized R2103G (§8.4.6.7). The group's prototype is
+            // externalized R2103F, so GR11 b) selects it and the repository function shadows it by word.
+            Assert.True(Compile(dir, "R2103G", FunctionLibrary(ShadowingClause)).Success);
+            var warned = Compile(dir, "R2103FM", FunctionPrototypeCaller);
+            Assert.True(warned.Success, Codes(warned));
+            Assert.Contains(warned.Warnings, w => w.Contains("COBOL2969", StringComparison.Ordinal) && w.Contains("R2103G", StringComparison.Ordinal));
+            Assert.True(Compile(dir, "R2103G", FunctionLibrary(ShadowingClause), update: false).Success);
+            var unsigned = Compile(dir, "R2103FM", FunctionPrototypeCaller);
+            Assert.True(unsigned.Success, Codes(unsigned));
+            Assert.Empty(unsigned.Warnings);
+            Assert.True(Compile(dir, "R2103G", FunctionLibrary(ShadowingClause)).Success);
+            MakeStale(Path.Combine(dir, "R2103G.dll"));
+            var stale = Compile(dir, "R2103FM", FunctionPrototypeCaller);
+            Assert.True(stale.Success, Codes(stale));
+            Assert.Empty(stale.Warnings);
         });
     }
 }

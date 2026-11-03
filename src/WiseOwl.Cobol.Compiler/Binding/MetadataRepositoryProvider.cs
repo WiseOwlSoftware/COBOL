@@ -75,8 +75,9 @@ internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryU
 /// <see cref="Refused"/> says so, so the resolver does not add REPO-1. Each finding is reported once, at the specifier that
 /// first asked (every answer is cached).</item>
 /// <item><b>Zero cost when unused (§16).</b> Nothing is listed or opened until the first question; a group whose specifiers the
-/// group answers asks none. The first question marks the compilation's input record
-/// (<see cref="Frontend.CompilationInputs.ReadsRepository"/>).</item>
+/// group answers asks none, except that a FUNCTION specifier the group answers still asks for a shadow (D-R3 step 3), which
+/// opens only an entry of ANOTHER externalized name and reports nothing of it. The first question marks the compilation's
+/// input record (<see cref="Frontend.CompilationInputs.ReadsRepository"/>).</item>
 /// </list>
 /// The repository has no source order, so <c>position</c> is ignored (§8.0).
 /// </summary>
@@ -91,9 +92,10 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     private bool _consulted;
     private readonly Dictionary<(string Path, Guid Mvid), Loaded?> _loaded = [];
     private readonly Dictionary<(RepositoryFamily Family, string Name), Hit?> _byName = [];
-    private readonly Dictionary<string, IReadOnlyList<Hit>> _byWord = new(StringComparer.Ordinal);
+    private readonly Dictionary<(string Word, string? OtherThan), IReadOnlyList<Hit>> _byWord = [];
     private readonly Dictionary<(RepositoryFamily Family, string Name), IReadOnlyList<string>> _reasons = [];
     private readonly HashSet<(RepositoryFamily Family, string Name)> _refused = [];
+    private readonly HashSet<string> _refusedWords = new(StringComparer.Ordinal);
     private readonly Dictionary<(string Path, RepositoryUnitKind Kind, string Name), Hit?> _answers = [];
 
     /// <param name="space">The search space.</param>
@@ -162,12 +164,17 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         ByName(RepositoryFamily.Function, externalizedName) is { } hit ? FunctionAnswerOf(hit) : null;
 
     /// <inheritdoc/>
-    public IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position) =>
-        ByWord(userFunctionName).Select(FunctionAnswerOf);
+    public IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan) =>
+        ByWord(userFunctionName, otherThan).Select(FunctionAnswerOf);
 
-    /// <summary>True when the question for <paramref name="externalizedName"/> drew a finding of its own (REPO-3, -4, -5, -7, -8,
-    /// -10, -11), so the resolver reports no REPO-1 beside it.</summary>
-    public bool Refused(RepositoryFamily family, string externalizedName) => _refused.Contains(Key(family, externalizedName));
+    /// <summary>True when the questions for a specifier — <paramref name="externalizedName"/> by name (D-R3 step 1) and, for a
+    /// function, <paramref name="word"/> by word (step 2) — drew a finding of their own (REPO-3, -4, -5, -7, -8, -10, -11), so
+    /// the resolver reports no REPO-1 beside it.</summary>
+    public bool Refused(RepositoryFamily family, string word, string externalizedName) =>
+        RefusedByName(family, externalizedName) || (family == RepositoryFamily.Function && _refusedWords.Contains(CobolNames.Fold(word)));
+
+    /// <summary>True when the by-name question for <paramref name="externalizedName"/> drew a finding of its own.</summary>
+    private bool RefusedByName(RepositoryFamily family, string externalizedName) => _refused.Contains(Key(family, externalizedName));
 
     /// <summary>What REPO-1 says was searched for <paramref name="externalizedName"/>: every location in order, why a file named
     /// after the unit was no answer, and the files the directory index skipped for their size (§15.2).</summary>
@@ -270,23 +277,37 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         }
     }
 
-    /// <summary>D-R3 step 2's repository arm (§8.3): every function — definition or prototype — whose recorded WORD is
-    /// <paramref name="word"/>, in search order, decoded. A word is how a later-compiled unit names a function
-    /// (§8.4.6.7), so an entry that cannot be read here is reported as the by-name search reports it.</summary>
-    private IReadOnlyList<Hit> ByWord(string word)
+    /// <summary>D-R3's repository arms (§8.3): every function — definition or prototype — whose recorded WORD is
+    /// <paramref name="word"/>, in search order, decoded.
+    /// <list type="bullet">
+    /// <item><paramref name="otherThan"/> null — step 2. A word is how a later-compiled unit names a function (§8.4.6.7), so
+    /// the entry is the specifier's answer and one that cannot be read here is reported as the by-name search reports it.</item>
+    /// <item><paramref name="otherThan"/> set — step 3's shadow look, after GR11 selected the function externalized
+    /// <paramref name="otherThan"/>. An entry externalized <paramref name="otherThan"/> is that function again (or a stale copy of
+    /// it) and is skipped BEFORE it is opened; the rest are decoded quietly, because GR11 b) ignores what the repository holds
+    /// for a function the group answered, and an unreadable entry that merely might shadow it is no fault of this compilation.</item>
+    /// </list></summary>
+    private IReadOnlyList<Hit> ByWord(string word, string? otherThan)
     {
-        string key = CobolNames.Fold(word);
+        var key = (CobolNames.Fold(word), otherThan);
         if (_byWord.TryGetValue(key, out var cached)) return cached;
         if (_locations.Count == 0) return _byWord[key] = [];
         Consult();
+        bool report = otherThan is null;
         var hits = new List<Hit>();
         var seen = new HashSet<Guid>();
+        bool asked = false;   // the first entry in search order is the specifier's answer, as in ByName: only its faults are the specifier's
         foreach (var location in _locations)
         {
             var find = location.ByWord(word, _output);
             foreach (var entry in new[] { find.Entry, find.Collision is { } c ? RepositoryLocator.FunctionByWordInFile(c, word).Entry : null })
-                if (entry is not null && seen.Add(entry.Mvid) && Answer(entry, report: true) is { } hit)
-                    hits.Add(hit);
+            {
+                if (entry is null || (!report && ExternalizedNames.Same(entry.Unit.ExternalizedName, otherThan!)) || !seen.Add(entry.Mvid)) continue;
+                bool answer = report && !asked;
+                asked = true;
+                if (Answer(entry, answer) is { } hit) hits.Add(hit);
+                else if (answer) _refusedWords.Add(CobolNames.Fold(word));
+            }
         }
         return _byWord[key] = hits;
     }
@@ -396,7 +417,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
 
     /// <inheritdoc/>
     bool IOoImporter.Refused(string identity, bool isInterface) =>
-        Refused(isInterface ? RepositoryFamily.Interface : RepositoryFamily.Class, identity);
+        RefusedByName(isInterface ? RepositoryFamily.Interface : RepositoryFamily.Class, identity);
 
     /// <inheritdoc/>
     string IOoImporter.Searched(string identity, bool isInterface) =>

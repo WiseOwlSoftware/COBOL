@@ -59,11 +59,10 @@ public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand
     /// (<see cref="BoundCallProgram.CalleeSignatureKnown"/> false): §14.2.3 GR9's FIRST branch — "a program for which
     /// there is no program-specifier in the REPOSITORY paragraph of the activating runtime element and there is no
     /// NESTED phrase specified on the CALL statement", whose argument "is moved to this allocated record without
-    /// conversion" — but ALSO a COMPUTE crossing the call site cannot see: a program-prototype whose details
-    /// §12.3.8.4 GR10 c) takes from the external repository, and a CALL by data-name or through a program-pointer
-    /// that reaches a program the element has a program-specifier for. Those are landed at the activation boundary
-    /// through the formal's registered carrier instead (<c>ProgramTable.CallProgram</c>; kb/Work PB2549).</para>
-    /// <para>Set for a Format-2 CALL (AS NESTED or a program prototype with a §12.3.8.4 GR10 a) definition) and
+    /// conversion" — but ALSO a COMPUTE crossing the call site cannot see: a CALL by data-name or through a
+    /// program-pointer that reaches a program the element has a program-specifier for. Those are landed at the activation
+    /// boundary through the formal's registered carrier instead (<c>ProgramTable.CallProgram</c>; kb/Work PB2549).</para>
+    /// <para>Set for a Format-2 CALL (AS NESTED or a program prototype whose §12.3.8.4 GR10 details the group or the repository supplies) and
     /// for a user-defined FUNCTION reference. <c>CallEmitter.ArgText</c> reads it to perform GR9/GR10's COMPUTE
     /// (kb/Work PB640) and GR9's MOVE into a non-numeric formal's record (kb/Work PB2587) on the ACTIVATING side, where
     /// those rules put them; when it is null the site states the MOVE's sending half instead (<c>CobolArg.Sending</c>).</para></summary>
@@ -127,10 +126,10 @@ public sealed record BoundCallProgram(
 
     /// <summary>True when the ACTIVATING element held the activated element's formal parameters and RETURNING item when it
     /// was compiled — an AS NESTED call, a program-prototype whose details §12.3.8.4 GR10 a) / b) took from this
-    /// compilation group, a user-defined function (§12.3.8.4 GR11) — so §14.8.2 / §14.8.3 were checked at bind time and
-    /// every argument carries its <see cref="BoundCallArg.Formal"/>. False for the lanes whose activated program is located
-    /// by name at run time with no compile-time signature: a dynamic Format-1 CALL, and a program-prototype whose details
-    /// GR10 c) takes from the external repository. It decides whether the site lands its arguments itself
+    /// compilation group or GR10 c) from the external repository, a user-defined function (§12.3.8.4 GR11) — so §14.8.2 /
+    /// §14.8.3 were checked at bind time and every argument carries its <see cref="BoundCallArg.Formal"/>. False for the
+    /// lane whose activated program is located by name at run time with no compile-time signature: a dynamic Format-1 CALL.
+    /// It decides whether the site lands its arguments itself
     /// (<c>CallEmitter.LandsAtRunTime</c>); whether it describes them is <see cref="CalleeCompiledHere"/>'s question.</summary>
     public bool CalleeSignatureKnown { get; init; }
 

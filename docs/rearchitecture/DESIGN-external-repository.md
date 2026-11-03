@@ -865,8 +865,8 @@ internal sealed record FormalRecord(int Position, string Name, PassingMode Mode,
 internal sealed record StructureRecord(int Index, string Name, RepositoryPrefix Prefix, bool Delimited, string? PhysicalStructureName);
 /// A prototype a restricted program- or function-pointer of this record names: its FULL signature, so the importer
 /// types the pointer by signature (§6.4). Recursive references between referenced prototypes are by Index.
-/// HasSignature is false for a GR10 c) / GR11 c) prototype (no compile-time signature; slice 7 deletes the state).
-internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName, bool HasSignature,
+/// Every prototype carries its signature: none is resolved without one (§8).
+internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName,
     RecordList<FormalRecord> Formals, DescriptionRecord? Returning);
 public sealed record ExpansionIdentity(string DefinitionIdentity, ImmutableArray<string> ActualIdentities, string Key, bool OwnAssembly);
 public sealed record SkeletonRecord(ImmutableArray<string> Formals, ImmutableArray<bool?> FormalIsInterface, string Source,
@@ -965,7 +965,7 @@ re-parse) and `>>FLAG-02` / `>>FLAG-14` (`FlagState`: they add warnings and chan
 | `CobolDescriptionAttribute` | parameter / return value, `AllowMultiple` | `(int ordinal, int parent)` | every `DescriptionRecord` + `PicRecord` field |
 | `CobolTypeDeclarationAttribute` | the host-entry class / OO class, `AllowMultiple` | `(int declaration, int ordinal, int parent)` | the description fields |
 | `CobolStructureAttribute` | the same | `(int index, string name)` | `Prefix`, `Delimited`, `PhysicalStructureName` |
-| `CobolPrototypeAttribute` | the same | `(int index, RepositoryUnitKind kind, string externalizedName)` | `HasSignature` |
+| `CobolPrototypeAttribute` | the same | `(int index, RepositoryUnitKind kind, string externalizedName)` | — |
 | `CobolPrototypeFormalAttribute` | the same | `(int prototype, int position, string name)` | `Mode`, `Optional` |
 | `CobolPrototypeDescriptionAttribute` | the same | `(int prototype, int formal, int ordinal, int parent)`: `formal` is the formal's POSITION, `ReturningItem` (-1) for the returning item | the description fields |
 | `CobolMethodAttribute` | method | `(string name, string externalizedName)` | `IsFactory`, `Accessor` (`RepositoryAccessor`), `PropertyName`, `Override`, `Final`, `EntryConvention`, the RAISING phrase as `RaisingKind` / `RaisingIdentity` / `RaisingFactory` (parallel arrays, rule 3) |
@@ -1189,7 +1189,7 @@ the group.
        `DECODED <k> TO <name>`, `k` the founder's ADMISSION number (its position in the order `Admit` added decoded
        members, unique across the namespace and fixed before the re-run, so it does not depend on the round a block
        splits off in or on any name). The two kinds cannot meet: every group spelling begins `TO `, every decoded one
-       begins `DECODED `, and neither is the runtime's reserved `EXTERNAL TO ` (`ActivationDescription.ExternalRestrictionPrefix`, until slice 7 deletes it), whatever an `AS` literal holds (an externalized name may contain spaces and `#`,
+       begins `DECODED `, whatever an `AS` literal holds (an externalized name may contain spaces and `#`,
        `ExternalizedName.Screen`, so any spelling that only appended a marker to `TO <name>` could be forged by a group
        prototype `AS "B #1"`: kb/Work PB1086 review R4-1). Two decoded spellings differ in `k`; two group spellings
        differ in their founder's externalized name, which names one program in the group (§8.3.2.2). So two blocks
@@ -1405,7 +1405,7 @@ internal interface IRepositoryProvider
     // previously", PB989); the metadata provider ignores it — the repository has no source order.
     ProgramAnswer? Program(string externalizedName, int position);                 // GR10 a) / b) in the group; c) in metadata
     FunctionAnswer? Function(string externalizedName, int position);               // GR11 a) / b); c)
-    IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position); // D-R3 steps 2 and 3, §8.4.6.7: the WORD (§8.3)
+    IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan); // D-R3 steps 2 and 3, §8.4.6.7: the WORD (§8.3)
     OoClassSymbol? Class(string identity, out RepositoryOrigin origin);
     OoInterfaceSymbol? Interface(string identity, out RepositoryOrigin origin);
     SkeletonSymbol? Skeleton(string identity, out RepositoryOrigin origin);
@@ -1439,9 +1439,11 @@ counterpart, and `UserFunctionsOf` reads it from `resolver.Group` (no resolver m
 **Landed (kb/Work PB2103, slice 7 part 1):** `GroupRepositoryProvider` (`Binding/GroupRepositoryProvider.cs`, the rename,
 every caller changed) answers `Program`, `Function` and `FunctionsByWord` — the word's candidates in the rule's own order
 (every definition before the position, then every prototype: the one ordered `Candidates` enumeration `Find` takes the
-first of), so D-R3 step 2 takes the first and step 3 the first of another externalized name, and no provider has a
-second word method; `RepositoryResolver` (`Binding/RepositoryResolver.cs`) holds its providers in search order
-(`IRepositoryProvider`; the group's alone until the metadata provider lands) and is `BindSession.Repository`;
+first of), so D-R3 step 2 takes the first (`otherThan` null) and step 3 the first of another externalized name (`otherThan`
+the externalized name step 1 selected: the provider skips that name, and a metadata entry it cannot read is no finding —
+GR11 b) ignores the repository's details once the group answered by externalized name, and a function that merely might
+shadow the selected one is advice for REPO-13, never a fault), and no provider has a second word method; `RepositoryResolver` (`Binding/RepositoryResolver.cs`) holds its providers in search order
+(`IRepositoryProvider`: the group, then the metadata provider) and is `BindSession.Repository`;
 `RepositoryOrigin` is a closed hierarchy whose one member so far is `GroupUnitOrigin(BoundUnit)`, with
 `IsDefinitionCompiledHere` (§4.2) and `Describe` (the REPO-13 wording, COBOL2969); `FunctionResolution.Shadowed` is a
 `FunctionAnswer`. The class, interface, skeleton and expansion members of the interface are slice 8's, added with their
@@ -1480,7 +1482,7 @@ IS the externalized name under `ExternalizedNames`' fold (DOC-A.1-68).
 3. GR10 c): `MetadataRepositoryProvider.Program(externalizedName)` → the first entry of `P:name` in the search order,
    its signature decoded from that entry's host-entry `Call` method (§5.3).
 4. None → REPO-1; the prototype is not registered (a CALL through it is COBOL1760).
-`ProgramPrototype.Signature` is non-nullable from slice 7 on (today it is `CalleeSignature?`, null for c)). The CALL it
+`ProgramPrototype.Signature` is non-nullable (every prototype is resolved with a signature, c) included). The CALL it
 binds is the existing one (§4.2), describing its operands when the callee is compiled elsewhere.
 
 ### 8.3 Function specifier (SR10, GR11) — determination D-R3

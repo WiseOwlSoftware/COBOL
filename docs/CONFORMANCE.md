@@ -2343,11 +2343,11 @@ of an unsupported facility.
   the same type-name, and "the same … USAGE clauses" including the TO phrase. §9.3.6 match rule 3 e), §14.8.2.3.2 rule 2
   and §14.8.3.3 compare "the same … USAGE clauses", and the TO phrase is compared by the prototype (or type) it NAMES —
   the prototype's externalized name, folded — never by its signature: the standard lists the clause texts that match on
-  meaning (currency strings, DECIMAL-POINT IS COMMA, the LOCALE phrase) and none for the TO phrase, and a prototype with
-  no compile-time signature (§12.3.8.4 GR10 c)) is as much a name as a resolved one. The signature relation (§8.13;
+  meaning (currency strings, DECIMAL-POINT IS COMMA, the LOCALE phrase) and none for the TO phrase, and a prototype
+  whose details the external repository supplies (§12.3.8.4 GR10 c)) is as much a name as one whose details the group
+  does. The signature relation (§8.13;
   §13.18.60.4 GR25 / GR26: what a restricted pointer may CONTAIN) governs only SET (§14.9.39.3 SR19 / SR20 / SR22),
-  CALL SR14 and the rules that send to SET (§14.8.2.3.3; §9.3.6 4 c), 5 c), 6), and the unknown-signature stance for a
-  prototype only the run unit resolves (kb/Work PB3162) applies to it alone. So two pointers restricted to two prototypes
+  CALL SR14 and the rules that send to SET (§14.8.2.3.3; §9.3.6 4 c), 5 c), 6). So two pointers restricted to two prototypes
   of one signature, or alike under two type-names, are admitted by a SET or a BY CONTENT pass and refused BY REFERENCE
   (a compile-time COBOL1688 / COBOL0828 when the formal is known, else EC-PROGRAM-ARG-MISMATCH or EC-OO-UNIVERSAL at the
   activation), and a returning pair of two names is refused by §14.8.3.3 — as an object reference of a subclass is
