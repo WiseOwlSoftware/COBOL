@@ -1196,8 +1196,8 @@ clause by the half's own SPECIAL-NAMES, the one configuration paragraph §12.3.3
 binds no data, so it has no `DataBindResult`: its arm's source is a `ClassConfiguration` value, bound once per class by
 the same step from the class's own section and OPTIONS paragraph and handed to both halves (`ConfigurationStep.ForClass`
 returns it, `ClassHalf` takes it; the halves hold the VALUE, never the class's binder). The class definition's own binder
-still binds the class's section until `SpecialNamesBinder` (PB2355) moves the section's binding behind the step, so for
-now the class's `Own` arm is that binder's slice. A method is not a configuration unit (§12.3.3 SR2): it reads its
+still binds the class's section (`SpecialNamesBinder` declares into that binder's slice, PB2355), so the class's `Own` arm
+is that binder's slice. A method is not a configuration unit (§12.3.3 SR2): it reads its
 half's slice. The OPTIONS slice is produced by the same step and the same three arms from the baseline the arm names
 (none for Own; the container's for Contained; the class definition's for ClassHalf: `ConfigurationSlice.InheritedOptions`)
 overlaid by the unit's own OPTIONS paragraph clause by clause (§11.9.4 GR1; the OO skeleton's paragraph is
@@ -1280,14 +1280,14 @@ configuration section), `ReportSectionBinder` (`Reports`), `ConstantEntryBinder`
 *`SpecialNamesBinder` as built (PB2355).* One sealed class per unit, `DataBinder.SpecialNames` (made with the data binder, from the
 binder and its `EditionContext`), over six partial files by clause family (the switches, ORDER TABLE and DYNAMIC LENGTH STRUCTURE and the
 `Bind` walk in `SpecialNamesBinder.cs`; `.Alphabets`, `.Literals`, `.Classes` for CLASS and SYMBOLIC CHARACTERS, `.Currency`, `.Locales`). It
-owns the state it declares (the `ConfigurationNames` tables, the program collating sequences and classification, the decimal point, the
-currency set) and asks the data binder only for what is not SPECIAL-NAMES: the §8.3.2.2 declaration funnel, the constant-name
-readings, the method tier of a name lookup. Every reader of those facts (picture analysis, the literal binders, the procedure binders and
-the emitters) reads `Data.SpecialNames`; a contained unit's is seeded from its container's by `SpecialNamesBinder.InheritFrom` inside the one
-`DataBinder.InheritConfiguration`, which with the REPOSITORY specifier screens and the configuration-literal readings is
-`DataBinder.Configuration.cs`. The emitters' reads of it are tolerated edge pairs onto `SpecialNamesBinder` in
-`architecture-edges.json`, removed by PB2361 and the configuration slice of PB2296 (the facts become a value slice in
-`DataBindResult`, and the binder's state stops being read through the binder).
+declares the facts into the unit's `ConfigurationSlice` (`DataBindState.Configuration`: the `ConfigurationNames` tables, the program
+collating sequences and classification, the decimal point, the currency set, the mnemonic-names) and holds none of them, and it asks the data
+binder only for what is not SPECIAL-NAMES: the §8.3.2.2 declaration funnel, the constant-name readings, the method tier of a name lookup.
+Every reader of those facts (picture analysis, the literal binders, the procedure binders and the emitters) reads
+`Data.State.Configuration`; a contained unit's slice is seeded from its container's by `ConfigurationStep` (the one producer, step 5 of the
+extract, PB2296 M5), so the binder carries no `InheritFrom` and the data binder no `InheritConfiguration`. The REPOSITORY specifier
+screens and the configuration-literal readings are `DataBinder.Configuration.cs`. The emitters' reads of the slice are tolerated edge pairs
+onto `ConfigurationSlice` in `architecture-edges.json`, removed by PB2361 (the facts become a value slice in `DataBindResult`).
 *`FileControlBinder` as built (PB2356).* The same shape, `DataBinder.FileControl`, over two files: `FileControlBinder.cs` (the SELECT
 entries, `BindFileControl`; the RECORD KEY and ALTERNATE RECORD KEY source phrase; the key-level and file-level COLLATING SEQUENCE
 clauses and their post-build resolution, `ResolveFileCollating`; the ORGANIZATION, ACCESS MODE, SHARING and LOCK MODE mappers) and

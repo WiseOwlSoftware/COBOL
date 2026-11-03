@@ -49,7 +49,7 @@ public sealed partial class FileControlBinder
     /// organization, access mode, OPTIONAL, FILE STATUS). The FD records attach in <see cref="BindFileSection"/>.
     /// A unit carries at most ONE environment division: an OO definition's synthetic unit (<c>OoDriver.OoReparent</c>)
     /// carries only its own, and a class definition's configuration reaches its factory and instance definitions by
-    /// inheritance (<see cref="InheritConfiguration"/>; kb/Work PB3154), never as a second division.</summary>
+    /// inheritance (<see cref="ConfigurationStep"/>; kb/Work PB3154), never as a second division.</summary>
     internal void BindFileControl(Core.ProgramUnitContext program)
     {
         if (program.environmentDivision() is not { } env

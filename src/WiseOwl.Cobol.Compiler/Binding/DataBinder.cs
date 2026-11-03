@@ -6838,7 +6838,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>
     /// Every SOURCE-DECLARED data item this unit binds, for the post-bind <c>VersionConformancePass</c> data-attribute
     /// gates (Step 14g): the WS + LS + FILE-record + LINKAGE + OO-method forest (<see cref="Roots"/> — the LINKAGE 01/77
-    /// items bind into it too, so <see cref="LinkageRoots"/> is a SUBSET of it and is not walked again) and the TYPEDEF
+    /// items bind into it too, so <see cref="LinkageBinder.Roots"/> is a SUBSET of it and is not walked again) and the TYPEDEF
     /// templates (<see cref="TypeDecls"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
     /// never re-analyzed and so never gated: a <c>TYPE IS type-name</c> clone subtree (its items carry a non-null
     /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <c>TypeDecls</c>) and the
@@ -6881,7 +6881,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The shared spine of the two forests: <see cref="Roots"/> + <see cref="TypeDecls"/> templates, pre-order
     /// DFS in declaration order, pruning the OO/UDF compiler temps recorded in <see cref="CompilerTemps.Clones"/>.
-    /// ⛔ <see cref="LinkageRoots"/> is NOT concatenated: <c>BindEntries</c> puts every LINKAGE 01/77 on
+    /// ⛔ <see cref="LinkageBinder.Roots"/> is NOT concatenated: <c>BindEntries</c> puts every LINKAGE 01/77 on
     /// <see cref="Roots"/> as well (LinkageBinder.cs: "LINKAGE 01/77 items bind into the ordinary storage
     /// forest"), so walking both yielded every linkage item TWICE to every per-item pass (measured on a two-root
     /// LINKAGE SECTION: four items; found by kb/Work PB516's drift test).</summary>

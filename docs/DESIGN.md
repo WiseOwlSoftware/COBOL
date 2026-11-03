@@ -1055,7 +1055,7 @@ keyed `"FD::" + externalized-name` via the same Tier-B string-canonical machiner
 cross-describer check is §14.8.4 EC-band work (documented-deferred). GLOBAL FD inheritance — **IMPLEMENTED
 (IC233A/IC234A; §13.18.27.4 GR1)**: ancestors' GLOBAL FileModels merge into a contained unit's `FilesByName`
 ONLY (never `Files` — no re-registration/re-qualification/CANCEL-close; the shared FileModel reference keys the
-child's verbs to the owner's connector), the GLOBAL FD's records join `CallGlobalRoots` (record-names are global
+child's verbs to the owner's connector), the GLOBAL FD's records join `LinkageBinder.GlobalRoots` (record-names are global
 names → the standard `__outer` ref-bridges), `StatementValidation.ResolveRecordName` — the ONE `record-name-1`
 operand rule, shared by WRITE §14.9.51.3 SR5, REWRITE §14.9.35.3 SR1 and RELEASE §14.9.32.3 SR1, and the
 successor to `SequentialIoBinder.FileOfRecord`, which tested CONTAINMENT where the rule says IDENTITY

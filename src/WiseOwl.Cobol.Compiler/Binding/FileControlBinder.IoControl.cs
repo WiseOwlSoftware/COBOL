@@ -13,7 +13,7 @@ using Core = CobolParserCore;
 /// <summary>
 /// The I-O-CONTROL paragraph (ISO §12.4.6): the SAME clause's membership model, its syntax rules
 /// (§12.4.6.4.3 SR2-SR10) and the record-area sharing it links (§12.4.6.4.4 GR2). A partial of
-/// <see cref="FileControlBinder"/>: the paragraph is the input-output section's second half (§12.4.1), bound against the
+/// <see cref="FileControlBinder"/>: the paragraph is the input-output section's second half (§12.4), bound against the
 /// files the FILE-CONTROL paragraph declared.
 /// </summary>
 public sealed partial class FileControlBinder

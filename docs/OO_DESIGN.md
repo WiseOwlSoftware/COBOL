@@ -81,7 +81,7 @@ A factory or object data item spelled like a class the REPOSITORY names, an alph
 declares, or the CLASS-ID is therefore legal (§8.4.6.1), until that half itself references the class-name
 (kb/Work PB3154; PB3132's reference census). A half's data-name or named CAPACITY register (or a method's own data-, condition- or
 index-name or register) spelled like a SYMBOLIC CHARACTERS name of the class is the item a reference there names (§8.4.6.1): the half hides
-the inherited symbolic after it binds (`DataBinder.DropShadowedConstants`), and a method's names hide it, and an
+the inherited symbolic after it binds (`InheritStep.DropShadowed`), and a method's names hide it, and an
 object constant-name, at reference time (`OoDataBinder.ActiveMethodDeclares`; kb/Work PB3154 review R1-1). That method tier is
 `OoMethodDataScope.Declares`, which asks EVERY name index the method's scope holds (`ByName`, `Conditions`, `IndexNames`,
 `CapacityRegisters`, the method's type declarations, `TypeDecls`, kb/Work PB3192, and the method's constant entries, `Constants`,

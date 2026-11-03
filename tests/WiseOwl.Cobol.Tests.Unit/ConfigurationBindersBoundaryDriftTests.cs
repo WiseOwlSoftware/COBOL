@@ -9,7 +9,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE SPECIAL-NAMES BINDER AND THE FILE-CONTROL BINDER OWN WHAT THEY DECLARE, AND THE DATA BINDER KEEPS NO SECOND
+/// ⛔ THE SPECIAL-NAMES BINDER (WHICH DECLARES INTO THE CONFIGURATION SLICE) AND THE FILE-CONTROL BINDER OWN WHAT THEY BIND, AND THE DATA BINDER KEEPS NO SECOND
 /// DOOR TO IT (kb/Work PB2355, PB2356; docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1)).
 /// <para><c>SpecialNamesBinder</c> (the SPECIAL-NAMES facts, ISO §12.3.6-§12.3.7) and <c>FileControlBinder</c> (the
 /// FILE-CONTROL entries and the I-O-CONTROL paragraph, §12.4.5-§12.4.6) were partials of <c>DataBinder</c>. Each is now a
@@ -61,6 +61,21 @@ public sealed class ConfigurationBindersBoundaryDriftTests
         Assert.True(shared.Count == 0,
             $"DataBinder still declares members {binder.Name} declares ({string.Join(", ", shared)}): a moved member has ONE home — "
             + "change its callers to ask the binder (Data.SpecialNames / Data.FileControl) and delete the old one (CLAUDE.md rule 4)");
+    }
+
+    /// <summary>The SPECIAL-NAMES binder DECLARES into the unit's <see cref="ConfigurationSlice"/> and holds none of its
+    /// facts (kb/Work PB2296 M5 with PB2355): a member of the same name and parameter types on both would be a second
+    /// owner of a configuration fact, and a reader could then ask either.</summary>
+    [Fact]
+    public void TheSpecialNamesBinder_DeclaresNoMemberOf_TheConfigurationSlice()
+    {
+        var binder = Signatures(typeof(SpecialNamesBinder)).ToHashSet();
+        var slice = Signatures(typeof(ConfigurationSlice)).ToHashSet();
+        Assert.True(slice.Count >= 20, $"ConfigurationSlice reflects only {slice.Count} members — the scan lost them");
+        var shared = binder.Intersect(slice).Order().ToList();
+        Assert.True(shared.Count == 0,
+            $"SpecialNamesBinder declares members the ConfigurationSlice declares ({string.Join(", ", shared)}): the fact has ONE home, "
+            + "the slice; the binder writes it through State.Configuration (CLAUDE.md rule 4)");
     }
 
     [Theory]
