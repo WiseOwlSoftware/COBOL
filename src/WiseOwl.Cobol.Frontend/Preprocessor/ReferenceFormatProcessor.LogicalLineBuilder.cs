@@ -112,6 +112,16 @@ public static partial class ReferenceFormatProcessor
             _origins.Add([site.Span(file, 0, 0)]);
         }
 
+        /// <summary>One physical line of a CANDIDATE comment-entry paragraph (<see cref="CommentEntryCarrier"/>): a slot of the
+        /// logical text that every later stage reads as a comment, holding the line until
+        /// <see cref="CommentEntryResolver"/> knows the division. It touches neither the latest logical line nor the literal
+        /// state, as a discarded line does: the line is read for what it is only once that is decided.</summary>
+        public void AddCarrier(string carrier, TextSite site)
+        {
+            _lines.Add(carrier);
+            _origins.Add([site.Span(file, 0, 0)]);
+        }
+
         /// <summary>A new logical line the classifier built itself (a comment-entry paragraph header) from the program text
         /// at <paramref name="site"/>: the §6.5 6) join target from now on, outside any literal.</summary>
         public void Emit(string text, TextSite site) => Emit(text, site.Spans(file, 0, 0, text.Length), LiteralState.Outside, isDirective: false);

@@ -112,10 +112,14 @@ public static partial class ReferenceFormatProcessor
     /// directive in a handler.</param>
     /// <param name="startsInIdentificationDivision">Whether the text starts in an IDENTIFICATION DIVISION — the only
     /// division with comment-entry paragraphs (kb/Work PB1494): true for a source text, which begins with one; for library
-    /// text, whether its COPY statement stands in one (<see cref="DivisionCursor"/>).</param>
+    /// text, whether its COPY statement stands in one (<see cref="DivisionCursor"/>), or null when that is not known — then
+    /// a comment-entry candidate is carried, not decided (<see cref="CommentEntryCarrier"/>; kb/Work PB4281).</param>
+    /// <param name="pins">The candidates an earlier run of the text stages proved to be program text, which this walker then
+    /// reads as the program text they are, not as candidates (<see cref="CommentEntryPins"/>); null for none.</param>
     public static MappedText NormalizeToFreeFormMapped(string sourceText, ReferenceFormatDiagnostics? gates, string sourcePath,
         bool? initialFixed, out ReferenceFormatMap formats, bool ccvsIndicators = false,
-        IReadOnlyList<DirectiveStackOp>? implicitOps = null, bool startsInIdentificationDivision = true)
+        IReadOnlyList<DirectiveStackOp>? implicitOps = null, bool? startsInIdentificationDivision = true,
+        CommentEntryPins? pins = null)
     {
         // THE line-entry stage (kb/Work PB1800): every line below is read from here — terminators, tabs and (under
         // --nist) archive markers are settled, so no consumer splits, trims or expands anything itself.
@@ -131,8 +135,8 @@ public static partial class ReferenceFormatProcessor
         if (segments.Count == 0)
         {
             formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines);
-            bool inIdentificationDivision = startsInIdentificationDivision;
-            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, ref inIdentificationDivision);
+            bool? inIdentificationDivision = startsInIdentificationDivision;
+            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, ref inIdentificationDivision);
             return Mapped(wl, wo, sourcePath);
         }
 
@@ -147,7 +151,7 @@ public static partial class ReferenceFormatProcessor
         var outLines = new List<string>();
         var outOrigins = new List<LineOrigin>();   // where each output line came from (kb/Work PB82, PB1801)
         bool segFixed = firstFixed;
-        bool inIdentification = startsInIdentificationDivision;   // carried across the text's segments, in either format
+        bool? inIdentification = startsInIdentificationDivision;   // carried across the text's segments, in either format
         int segStart = 0;
         for (int s = 0; s <= segments.Count; s++)
         {
@@ -157,7 +161,7 @@ public static partial class ReferenceFormatProcessor
             int segEnd = s < segments.Count ? segments[s].Index + (keepsLine ? 1 : 0) : lines.Length;   // exclusive
             if (segEnd > segStart)
             {
-                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, ref inIdentification);
+                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, ref inIdentification);
                 outLines.AddRange(sl);
                 outOrigins.AddRange(so);
             }
