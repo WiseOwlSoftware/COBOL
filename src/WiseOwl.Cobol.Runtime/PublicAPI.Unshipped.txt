@@ -822,3 +822,48 @@ WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.TooLarge = 8 -> WiseOwl.C
 WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.Unreadable = 7 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
 static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FindInFile(string! path, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
 static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FunctionByWordInFile(string! path, string! word) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FindAll(string! directory, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName, string? excluding = null) -> System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Runtime.Repository.RepositoryEntry!>!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FindAllInFile(string! path, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName) -> System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Runtime.Repository.RepositoryEntry!>!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.ReferencersOf(string! directory, string! assemblyName, string? excluding = null) -> System.Collections.Generic.IReadOnlyList<string!>!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.ReferencesIn(string! path, string! assemblyName) -> bool
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.Source.get -> string!
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.CobolSkeletonAttribute(string! source) -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.Formals.get -> string![]?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.Formals.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.FormalIsInterface.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.FormalIsInterface.get -> bool[]?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.ResolutionWord.get -> string![]?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.ResolutionWord.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.ResolutionIsInterface.get -> bool[]?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.ResolutionIsInterface.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.ResolutionIdentity.get -> string![]?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.ResolutionIdentity.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.Edition.get -> int
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.Edition.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.Permissive.get -> bool
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.Permissive.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.SignEncoding.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.FlagExtensions.get -> bool
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.FlagExtensions.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.NumericDisplay.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryNumericDisplay
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.NumericDisplay.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.CobolWordsMap.get -> string?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.DirectiveFolds.get -> string?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.CobolWordsMap.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.DirectiveFolds.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.CompilationVariables.get -> string?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.CompilationVariables.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpandsDefinition.get -> string?
+WiseOwl.Cobol.Runtime.Repository.CobolSkeletonAttribute.SignEncoding.get -> WiseOwl.Cobol.Runtime.SignEncoding
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpandsDefinition.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpandsActuals.get -> string![]?
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpandsActuals.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpansionKey.get -> string?
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpansionOwnAssembly.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpansionKey.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpansionOwnAssembly.get -> bool
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.AssemblyName.get -> string!
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.AssemblyName.get -> string!
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpansionParts.get -> string![]?
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpansionParts.set -> void

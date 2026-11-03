@@ -7,6 +7,30 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
 
+/// <summary>Where a class symbol came from (DESIGN-external-repository §10.1) — the ONE question every consumer used to ask as
+/// "has it a source definition?" (<c>IsStandard</c> was <c>ctx is null</c>).</summary>
+public enum OoSymbolOrigin
+{
+    /// <summary>A CLASS-ID definition of the compilation group (it has a parse context and is emitted).</summary>
+    Source,
+
+    /// <summary>The standard class BASE (ISO §16.1), implemented by the runtime (<see cref="OoStandardClasses"/>).</summary>
+    Standard,
+
+    /// <summary>A class another compilation group published in an assembly of the external repository (ISO §8.13), built by
+    /// <c>MetadataRepositoryProvider.Class</c> from its record: reached by identity, never emitted.</summary>
+    Imported,
+
+    /// <summary>A plain .NET type the CLR type provider answers (DESIGN-external-repository §4.6) — named so the origin set is
+    /// closed; nothing builds one until that provider exists.</summary>
+    Clr,
+}
+
+/// <summary>The assembly an imported class or interface was taken from (DESIGN-external-repository §10.1): its file, its
+/// module version id and the CLR namespace its types live in (<c>Cobol.&lt;assembly&gt;</c>, §4.5), which is how
+/// <c>OoClassTable.ImportedAssemblies</c> finds two assemblies a compilation needs that share a namespace (REPO-6).</summary>
+public sealed record ImportedFrom(string Path, Guid Mvid, string ClrNamespace);
+
 /// <summary>One class of the pass-1 table: identity, base link, and the method roster (name → symbol,
 /// case-insensitive per §8.3.2.2). <see cref="ClrName"/> is the emitted C# type name — the SAME mapping
 /// <c>PicInfo.ClrType</c> applies to a typed object reference's declared class (Sanitize + uppercase).</summary>
@@ -21,21 +45,38 @@ public sealed class OoClassSymbol(string name, string clrName, CobolParserCore.C
     /// emitted type name is a WIRE CONTRACT with <c>PicInfo.ClrType</c>, which maps a declared
     /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
     public string ExternalizedName { get; init; } = name;
+
+    /// <summary>What made this class an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR5): the skeleton, the REPOSITORY entry
+    /// and the actuals; null for a class written as a class and for an imported one. The repository publishes it as the class's
+    /// expansion identity (DESIGN-external-repository §10.5).</summary>
+    internal ExpansionOrigin? Expansion { get; init; }
+
+    /// <summary>The repository record an IMPORTED class was decoded from (null for a class of this group and for the standard class):
+    /// what an expansion that names the class is keyed on (<c>ExpansionKey</c>, DESIGN-external-repository §10.5).</summary>
+    internal Binding.Repository.RepositoryRecord? Record { get; init; }
     /// <summary>The CLR type name of the class's OBJECT half — the module's ABI, the same for every backend
     /// (kb/Work PB4265): <see cref="DataItem.WordIdentifier"/> of the class-name, an upper-case fold, so never a C#
     /// keyword.</summary>
     public string ClrName { get; } = clrName;
-    /// <summary>The CLASS-ID definition this symbol was built from. Every class of the compilation group has one;
-    /// the STANDARD class (<see cref="IsStandard"/>) does not, and reading this on it is a loud internal error rather
-    /// than a null the caller forgot to test — no consumer of a group class's source should ever reach the standard
-    /// class, because it is never in <see cref="OoClassTable.Classes"/>.</summary>
+    /// <summary>The CLASS-ID definition this symbol was built from. Every class of the compilation group has one
+    /// (<see cref="OoSymbolOrigin.Source"/>); the STANDARD class and an IMPORTED one do not, and reading this on
+    /// either is a loud internal error rather than a null the caller forgot to test — no consumer of a group class's
+    /// source should ever reach one, because neither is in <see cref="OoClassTable.Classes"/>.</summary>
     public CobolParserCore.ClassDefinitionContext Ctx => ctx
-        ?? throw new InvalidOperationException(
-            $"class '{Name}' is the standard class of ISO §16 and has no source definition");
+        ?? throw new InvalidOperationException(Origin is OoSymbolOrigin.Standard
+            ? $"class '{Name}' is the standard class of ISO §16 and has no source definition"
+            : $"class '{Name}' is {Origin.ToString().ToLowerInvariant()} from the external repository and has no source definition");
 
-    /// <summary>True for the standard class BASE (ISO/IEC 1989:2023 §16.1: "A standard class BASE shall be provided
-    /// by the implementation"), built by <see cref="OoStandardClasses"/> and never for a CLASS-ID of the group.</summary>
-    public bool IsStandard => ctx is null;
+    /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>). A symbol with a <see cref="Ctx"/> is
+    /// <see cref="OoSymbolOrigin.Source"/>; the others are built by <see cref="OoStandardClasses"/> and
+    /// <c>MetadataRepositoryProvider</c>.</summary>
+    public OoSymbolOrigin Origin { get; init; } = OoSymbolOrigin.Source;
+
+    /// <summary>The assembly an <see cref="OoSymbolOrigin.Imported"/> class was taken from (DESIGN-external-repository
+    /// §10.1); null for every other origin. Its <see cref="ClrName"/> is the type's full name under <c>global::</c>, so the
+    /// generated code reaches the type without a source declaration of it, and the backend references the assembly
+    /// (<c>BackendOptions.RepositoryReferences</c>).</summary>
+    public ImportedFrom? Imported { get; init; }
     /// <summary>The FIRST (and, in v1, only permitted) INHERITS base-class name — null for a root class.</summary>
     public string? BaseName { get; init; }
 
@@ -160,7 +201,7 @@ public sealed class OoClassSymbol(string name, string clrName, CobolParserCore.C
         {
             var seen = new HashSet<OoClassSymbol>();
             for (OoClassSymbol? c = this; c is not null && seen.Add(c); c = c.Base)
-                if (c.IsStandard)
+                if (c.Origin is OoSymbolOrigin.Standard)
                     return true;
             return false;
         }

@@ -2626,7 +2626,7 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding.Repository",
       "uses": 26,
-      "walkUses": 29,
+      "walkUses": 26,
       "removedBy": [
         "PB4319"
       ],
@@ -2642,13 +2642,6 @@
         {
           "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.FormalRecord",
-          "removedBy": [
-            "PB4319"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.HostEntryEmitter",
-          "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
           "removedBy": [
             "PB4319"
           ]
@@ -2691,13 +2684,6 @@
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Binding.Repository.MethodRecord",
-          "removedBy": [
-            "PB4319"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
-          "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
           "removedBy": [
             "PB4319"
           ]
@@ -2803,13 +2789,6 @@
         {
           "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
           "to": "WiseOwl.Cobol.Binding.Repository.RaisingRecord",
-          "removedBy": [
-            "PB4319"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer",
-          "to": "WiseOwl.Cobol.Binding.Repository.RecordList`1",
           "removedBy": [
             "PB4319"
           ]

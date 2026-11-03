@@ -82,7 +82,13 @@ public static class CompilerDriver
         bool RepositoryUpdate = true,
         IReadOnlyList<string>? RepositoryPaths = null,
         IReadOnlyList<string>? ReferencePaths = null,
-        bool RepositoryCheck = true);
+        bool RepositoryCheck = true)
+    {
+        /// <summary>The identity this compilation's one class or interface PUBLISHES as an expansion of a parameterized definition: set by
+        /// the compilation of an expansion's own assembly (<see cref="ExpansionAssemblies"/>, DESIGN-external-repository §10.5), whose source
+        /// is the expansion's text and so cannot state the specifier that asked for it. Null for every compilation a user asks for.</summary>
+        internal Binding.Model.ExpansionIdentity? PublishAs { get; init; }
+    }
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
     public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
@@ -206,7 +212,7 @@ public static class CompilerDriver
             options.RepositoryPaths ?? [Path.GetDirectoryName(Path.GetFullPath(outputDll))!],
             DirectoriesNamed: options.RepositoryPaths is not null,
             options.ReferencePaths ?? [], outputDll, options.RepositoryCheck, inputs);
-        var bound = new Binding.BinderDriver().Bind(tree, edition, frontend.Directives, repository);   // Phase 2a — BIND (terminal = conformance pass)
+        var bound = new Binding.BinderDriver().Bind(tree, edition, frontend.Directives, repository, options.PublishAs);   // Phase 2a — BIND (terminal = conformance pass)
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings])
                 { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
@@ -223,17 +229,24 @@ public static class CompilerDriver
         // the result. Everything after Bind sits behind the seam so a second backend (direct CIL, PHASE 16) is a
         // new implementation, not a pipeline fork. Emit is unreachable when any diagnostics exist (above).
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
+        // Placement (a): an expansion whose code names nothing of this group is compiled apart, into an assembly of its own that the
+        // group then names a type of (DESIGN-external-repository §10.5) — so it is written BEFORE the group's module, which references it.
+        var (expansionFiles, expansionErrors) = ExpansionAssemblies.Write(bound.Expansions, options, outputDll);
+        if (expansionErrors.Count > 0)
+            return new Result(Outcome.BackendError, outputDll, null, expansionErrors, [.. feWarnings, .. edition.Warnings])
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansionFiles };
         var artifact = backend.Emit(bound, new BackendOptions(
             outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
-            RepositoryUpdate: options.RepositoryUpdate));
+            RepositoryUpdate: options.RepositoryUpdate,
+            RepositoryReferences: [.. bound.OoClasses.ImportedAssemblies, .. bound.Expansions.ReferencedAssemblies]));
         if (!artifact.Success)
             return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                 artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(),
                 [.. feWarnings, .. edition.Warnings])
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = artifact.OutputFiles };
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansionFiles, .. artifact.OutputFiles] };
 
         return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [],
             [.. feWarnings, .. edition.Warnings])
-            { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = artifact.OutputFiles, Library = artifact.Library };
+            { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansionFiles, .. artifact.OutputFiles], Library = artifact.Library };
     }
 }

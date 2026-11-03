@@ -109,7 +109,9 @@ public static class ActivationDescriptions
                 ObjectKind = d.RuntimeKind,
                 // The containing class of an ACTIVE-CLASS description is not part of its identity (§9.3.8.2.3 rule 2
                 // d)); the SET table reads it from the class facts (ObjectClasses' first entry).
-                ObjectName = d.IsActiveClass || (facts?.Name ?? d.Name) is not { } named ? null : CobolNames.Fold(named),
+                // A reader with no class table (classes: null — the signature identity of a prototype, which hashes this
+                // text) spells the identity the description was resolved to, as the table does.
+                ObjectName = d.IsActiveClass || (facts?.Name ?? d.Identity ?? d.Name) is not { } named ? null : CobolNames.Fold(named),
                 Factory = d.Factory,
                 Only = d.Only,
                 ObjectNameIsParameter = d.Formal,
