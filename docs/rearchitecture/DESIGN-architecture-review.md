@@ -1181,7 +1181,10 @@ statement, and `ActiveMethodScope`). It is held per unit binder (`DataBinder.Pro
 statement walk, the reference resolver and the binder's own name lookup reach it through the unit's binder (a class's
 methods bind through their half's binder), and the method-scope cursor is also entered, for the one method whose
 names they resolve, by the storage-claim resolution (`PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`, a data pass) and by the
-migration-flag pass (`FlagConformancePass`, after binding). Code generation has its own scoped override,
+migration-flag pass (`FlagConformancePass`, after binding). The data phase has no scoped override: the method whose entries bind
+is already the data binder's cursor (`OoDataBinder.BindingMethod`), and `OoDataBinder.EntryOptions` (that method's
+`MethodOptions`, else the unit's slice) is the one answer for every OPTIONS fact an entry's description reads (the FLOAT-BINARY
+endianness, `BindEntry`; §11.9.4 GR1, kb/Work PB4464), pinned by `EntryOptionsReaderDriftTests`. Code generation has its own scoped override,
 `EmitContext.Options`: `OoEmitter.EmitMethod` pushes the method's OPTIONS model around the method's LOCAL-STORAGE
 initializers (kb/Work PB1215), which used to assign `DataBinder.Options` and restore it. The three shapes hold no
 binder type, so they live in compiler.model (`Binding/Model/RestoringScopes.cs`), below both of their users; so do

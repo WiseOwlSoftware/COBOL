@@ -84,6 +84,17 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// method's scope as they are declared.</summary>
     internal OoMethodSymbol? BindingMethod { get; private set; }
 
+    /// <summary>⛔ THE OPTIONS MODEL THE DATA ENTRIES NOW BINDING ARE GOVERNED BY (ISO §11.9.4 GR1: the clauses of an OPTIONS
+    /// paragraph "apply to the source element in which they are specified", and a method is a source element of its own, so
+    /// its own paragraph overrides its class's for the method's whole source element, its LOCAL-STORAGE and LINKAGE entries
+    /// included; kb/Work PB4464): the model of the method whose data division is being bound
+    /// (<see cref="BindingMethod"/>, folded over the class's by <see cref="BindMethodData"/>), else the unit's own. THE one
+    /// answer every OPTIONS fact an entry's description reads comes from (<see cref="DataBinder.BindEntry"/>: the
+    /// FLOAT-BINARY endianness a standard binary floating-point item without an endianness-phrase takes, §11.9.8.3 SR2/SR3);
+    /// the statement half of the same override is <see cref="ProcedureBindState.Options"/>, the emission half
+    /// <c>EmitContext.Options</c>.</summary>
+    internal OptionsModel EntryOptions => BindingMethod?.MethodOptions ?? Options;
+
     /// <summary>Declare into <paramref name="scope"/>'s method until the returned token is disposed: its data entries
     /// and METHOD-ID (<see cref="BindMethodData"/>) and its procedure-names (the class-body collection,
     /// <c>StatementBinder.BindClassBody</c>). One method source element at a time, so no scope nests.</summary>
