@@ -29,3 +29,10 @@ own endianness-phrase under the method's clause, and the object's own data read 
 clause). Every clause is written, so no leg rests on SR1's implementor choice. Its refusal below 2014 is
 `pb4464_method_options_float_binary_below_2014` (COBOL0900 at 2002). The witness-only inventory batch adds the case and the code site to
 SR-11.9.8.3-2, SR-11.9.8.3-3 and GR-11.9.4-1; no row changes verdict (all CONFORMED), so `closes_rows` is empty with its reason.
+
+**Merge onto the extracted DataBinder (wave 20261845).** The branch was built on the pre-#1054 integration branch; merging main (the
+DataBinder extract, DEVLOG 3024) conflicted in `OoDataBinder.cs` and `PtrBindBasedAndAddressablesPass.cs` only, where main had renamed the
+method definition accessor to `m.Ctx`; main's structure was kept around the `EntryOptions` property. The branch's own stamped entry (3015)
+is folded into main's 3024 and is not carried. The review's lead R1-1 is fixed: `EntryOptionsReaderDriftTests` scanned only
+`DataBinder.cs`, and now scans every `DataBinder*.cs` partial plus `LinkageBinder.cs` and `ConstantEntryBinder.cs`. The merged build
+prints the golden's six expected lines (`cobol --source-format free --run`).
