@@ -804,7 +804,7 @@ public sealed partial class DataBinder
         // A rejected literal-3 registers NO prototype (the PB237 posture — a CALL through it then draws the
         // undeclared-prototype diagnostic rather than silently activating the declared word).
         if (BindSpecifierExternalizedName(re, "PROGRAM", name, "literal-3") is { } externalized)
-            ProgramSpecifiers.TryAdd(name, new ProgramSpecifier(name, externalized));
+            ProgramSpecifiers.TryAdd(name, new ProgramSpecifier(name, externalized, re));
     }
 
     /// <summary>⛔ THE ONE SCREEN OF A REPOSITORY SPECIFIER'S <c>[ AS literal-n ]</c> — class (literal-1), interface

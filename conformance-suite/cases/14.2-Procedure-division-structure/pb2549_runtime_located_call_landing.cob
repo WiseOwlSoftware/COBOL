@@ -19,14 +19,47 @@
       *> statement without the ROUNDED phrase" fills it (cases 1-5, 7).
       *> 14.2.3 GR10, BY VALUE: "a data item of the same description
       *> as the formal parameter", filled by the same COMPUTE (case 8).
-      *> Every PROGRAM specifier names a definition that FOLLOWS it,
-      *> so 12.3.8.4 GR10 c) takes its details "from the external
-      *> repository"; a CALL by data-name has no compile-time
-      *> signature either. 14.7.5: the COMPUTE has no SIZE ERROR
+      *> A CALL by data-name holds no compile-time signature, so its
+      *> argument lands at run time; a CALL of a program-prototype-name
+      *> lands by the prototype's details, which the prototype
+      *> definitions below supply (12.3.8.4 GR10 b)); the two lanes
+      *> state one rule, so each case's value is the same either way.
+      *> 14.7.5: the COMPUTE has no SIZE ERROR
       *> phrase, so with EC-SIZE-TRUNCATION checking off the low-order
       *> digits are stored (CONFORMANCE DOC-A.1-70: 1234 into 9(3) is
       *> 234), and with it on the activating element's condition is
       *> raised before the program is entered (K1, E1).
+      *> kb/Work PB2103 - 12.3.8.3 SR14: P2549N3, P2549N4, P2549S5, P2549V4 are defined AFTER the REPOSITORY
+      *> paragraph that names them, so no definition was "specified previously"; the program prototype
+      *> definitions ahead of every unit (10.6.2 SR1) supply 12.3.8.4 GR10 b)'s details.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2549N3 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC 9(3).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P2549N3.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2549N4 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC 9(4).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P2549N4.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2549S5 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC S9(5)V9 SIGN LEADING SEPARATE.
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P2549S5.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2549V4 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC 9(4).
+       PROCEDURE DIVISION USING BY VALUE L.
+       END PROGRAM P2549V4.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P2549M.
        ENVIRONMENT DIVISION.

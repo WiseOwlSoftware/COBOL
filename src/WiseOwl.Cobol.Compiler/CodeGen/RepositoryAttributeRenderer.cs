@@ -179,9 +179,7 @@ internal static class RepositoryAttributeRenderer
         }
         foreach (var p in record.ReferencedPrototypes)
         {
-            var named = new Arguments();
-            named.Flag(nameof(CobolPrototypeAttribute.HasSignature), p.HasSignature);
-            yield return Application<CobolPrototypeAttribute>(named, p.Index, Defined(p.Kind), p.ExternalizedName);
+            yield return Application<CobolPrototypeAttribute>(new Arguments(), p.Index, Defined(p.Kind), p.ExternalizedName);
             foreach (var f in p.Formals)
             {
                 yield return Application<CobolPrototypeFormalAttribute>(FormalArguments(f), p.Index, f.Position, f.Name);

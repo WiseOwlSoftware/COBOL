@@ -88,6 +88,39 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
     }
 
     [Fact]
+    public void APreviousBuildWithAnotherSignature_IsNeverReplayedOver()
+    {
+        // --repository-check compares the group with the previous build at the output path (DESIGN-external-repository §9.2
+        // (a)): a cold compile of X over the build of N warns REPO-9, so the entry X stored over no previous build must not
+        // replay its silence there; and the compile that warned is never stored.
+        static string Callee(string picture) => $"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB2103PREV.
+                   DATA DIVISION.
+                   LINKAGE SECTION.
+                   01 L-A PIC {picture}.
+                   PROCEDURE DIVISION USING L-A.
+                       GOBACK.
+            """;
+        string src = Write("src/prog.cob", Callee("X(4)"));
+        var first = Through(Options(src));
+        Assert.True(first.Result.Success, string.Join("\n", first.Result.Errors));
+        Assert.DoesNotContain(first.Result.Warnings, w => w.Contains("COBOL5969", StringComparison.Ordinal));
+
+        File.WriteAllText(src, Callee("9(4)"));
+        var numeric = Through(Options(src));
+        Assert.False(numeric.Hit);
+        Assert.Contains(numeric.Result.Warnings, w => w.Contains("COBOL5969", StringComparison.Ordinal));
+        Assert.False(Through(Options(src, runDir: "fresh")).Hit, "a compile that reported a previous-build difference is never stored");
+
+        File.WriteAllText(src, Callee("X(4)"));
+        var back = Through(Options(src));
+        Assert.False(back.Hit, "the stored X(4) entry must not replay over the previous build of 9(4)");
+        Assert.Contains(back.Result.Warnings, w => w.Contains("COBOL5969", StringComparison.Ordinal));
+        Assert.True(Through(Options(src)).Hit, "over its own output byte for byte, the entry replays");
+    }
+
+    [Fact]
     public void TheSourceText_IsKeyed()
     {
         string src = Write("src/prog.cob", Plain);

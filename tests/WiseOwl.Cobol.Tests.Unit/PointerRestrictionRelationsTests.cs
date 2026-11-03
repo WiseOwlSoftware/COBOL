@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <list type="bullet">
 /// <item>The SET relation — §14.9.39.3 SR19 ("restricted to the same type"), SR20 / SR22 ("the same signature") — over
 /// what each pointer may CONTAIN (<see cref="ActivationDescription.ContentRestriction"/>: a prototype pointer's signature
-/// class), with the unknown-signature stance for a prototype only the run unit resolves (§12.3.8.4 GR10 c)): a SET of the
+/// class; every prototype has one, the external repository entry's for §12.3.8.4 GR10 c), kb/Work PB2103): a SET of the
 /// pair (<see cref="ActivationRelations.ReturningMatches"/>, §9.3.6 rule 6) and a BY CONTENT argument (§14.8.2.3.3).</item>
 /// <item>The identity rules — "both shall be restricted and of the same type" (§14.8.2.3.2, read through §8.5.3.1: the
 /// TYPE clause's declaration, <see cref="ActivationDescription.PointerType"/>, and its USAGE clause) for a BY REFERENCE argument, and
@@ -33,8 +33,6 @@ public sealed class PointerRestrictionRelationsTests
         ContentRestriction = content, PointerType = type, ClausePhrases = [named],
     };
 
-    private static string External(string prototype) => ActivationDescription.ExternalRestrictionPrefix + prototype;
-
     private static bool Set(ActivationDescription receiving, ActivationDescription sending) =>
         ActivationRelations.ReturningMatches(receiving, sending);
 
@@ -48,7 +46,7 @@ public sealed class PointerRestrictionRelationsTests
         ActivationRelations.CallReturningViolation(receiving, sending) is null;
 
     /// <summary>(receiving / formal pointer, sending / argument pointer, does the SET admit, do the identity rules admit).
-    /// Each pointer is (TO phrase, signature class or external identity, type).</summary>
+    /// Each pointer is (TO phrase, signature class, type).</summary>
     public static TheoryData<string, string, string?, string, string, string?, bool, bool> Pairs => new()
     {
         // One prototype, one type: every relation admits.
@@ -57,12 +55,11 @@ public sealed class PointerRestrictionRelationsTests
         { "TO p2", "SIG s", "tb", "TO p1", "SIG s", "ta", true, false },
         // Two prototypes of two signatures: neither admits.
         { "TO p2", "SIG t", "tb", "TO p1", "SIG s", "ta", false, false },
-        // Two prototypes only the run unit resolves: the SET's stance admits; the names still differ.
-        { "TO x2", External("X2"), "tb", "TO x1", External("X1"), "ta", true, false },
-        // One prototype, resolved in one compilation and not in the other: one type declaration is one type in both (the
-        // real builder's PointerType is the same text on each side,
-        // TheTypeOfATypedRestrictedPointer_IsTheSameText_WhetherOrNotItsPrototypeResolved).
-        { "TO x1", External("X1"), "ta", "TO x1", "SIG s", "ta", true, true },
+        // One prototype NAME whose signature two compilations saw differently (a callee rebuilt between them): one type
+        // declaration is one type in both (the real builder's PointerType is the same text on each side,
+        // TheTypeOfATypedRestrictedPointer_IsTheSameText_WhateverItsPrototypesSignature), and the SET refuses the pair —
+        // there is no "unknown signature" that conforms to every other (kb/Work PB2103 deleted it).
+        { "TO x1", "SIG t", "ta", "TO x1", "SIG s", "ta", false, true },
     };
 
     private const string ResolvingGroup = """
@@ -96,12 +93,12 @@ public sealed class PointerRestrictionRelationsTests
         """;
 
     /// <summary>⛔ The run-time "of the same type" compares two compilations' §8.5.3.1 keys (kb/Work PB4107, branch review
-    /// R1-1): a key built from a prototype's signature class differed between a compilation that holds P4107X's signature
-    /// and one that only names it (ISO §12.3.8.4 GR10 c)), and refused one type declaration against itself. The key reads
-    /// the TO phrase by the prototype it names, so both compilations spell the pointer's type and the strong group's type
-    /// with one string, while what the pointer may CONTAIN still differs as the SET relation needs it to.</summary>
+    /// R1-1): a key built from a prototype's signature class differs between two compilations that saw P4107X with two
+    /// signatures (a callee rebuilt between them), and would refuse one type declaration against itself. The key reads the
+    /// TO phrase by the prototype it names, so both compilations spell the pointer's type and the strong group's type with
+    /// one string, while what the pointer may CONTAIN differs as the SET relation needs it to.</summary>
     [Fact]
-    public void TheTypeOfATypedRestrictedPointer_IsTheSameText_WhetherOrNotItsPrototypeResolved()
+    public void TheTypeOfATypedRestrictedPointer_IsTheSameText_WhateverItsPrototypesSignature()
     {
         (ActivationDescription Pointer, ActivationDescription Group) Describe(string source)
         {
@@ -111,14 +108,16 @@ public sealed class PointerRestrictionRelationsTests
         }
 
         var resolved = Describe(ResolvingGroup + Holder);
-        var external = Describe(Holder);
+        var external = Describe(ResolvingGroup.Replace("PIC 9(4)", "PIC X(2)", StringComparison.Ordinal) + Holder);
         Assert.NotNull(resolved.Pointer.PointerType);
         Assert.Equal(resolved.Pointer.PointerType, external.Pointer.PointerType);
         Assert.Equal(resolved.Pointer.Clauses, external.Pointer.Clauses);
         Assert.NotNull(resolved.Group.StrongType);
         Assert.Equal(resolved.Group.StrongType, external.Group.StrongType);
         Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, resolved.Pointer.ContentRestriction, StringComparison.Ordinal);
-        Assert.True(ActivationDescription.IsExternalRestriction(external.Pointer.ContentRestriction));
+        Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, external.Pointer.ContentRestriction, StringComparison.Ordinal);
+        Assert.NotEqual(resolved.Pointer.ContentRestriction, external.Pointer.ContentRestriction);
+        Assert.False(Set(resolved.Pointer, external.Pointer));
         Assert.True(ByReference(resolved.Pointer, external.Pointer));
         Assert.True(ByReference(external.Pointer, resolved.Pointer));
     }
@@ -175,7 +174,7 @@ public sealed class PointerRestrictionRelationsTests
     {
         var u = Pointer(ActivationCategory.ProgramPointer, ActivationDescription.Unrestricted, ActivationDescription.Unrestricted);
         foreach (var r in new[] { Pointer(ActivationCategory.ProgramPointer, "TO p1", "SIG s", "ta"),
-                     Pointer(ActivationCategory.ProgramPointer, "TO x1", External("X1"), "ta") })
+                     Pointer(ActivationCategory.ProgramPointer, "TO x1", "SIG t") })
             foreach (var (receiving, sending) in new[] { (r, u), (u, r) })
             {
                 Assert.False(ByReference(receiving, sending));
@@ -202,8 +201,8 @@ public sealed class PointerRestrictionRelationsTests
     [Fact]
     public void TwoPointersOfDifferentCategoriesNeverConform()
     {
-        var program = Pointer(ActivationCategory.ProgramPointer, "TO x1", External("X1"));
-        var function = Pointer(ActivationCategory.FunctionPointer, "TO x1", External("X1"));
+        var program = Pointer(ActivationCategory.ProgramPointer, "TO x1", "SIG s");
+        var function = Pointer(ActivationCategory.FunctionPointer, "TO x1", "SIG s");
         Assert.False(Returning(program, function));
         Assert.False(ByReference(program, function));
         Assert.False(Set(program, function));

@@ -130,16 +130,13 @@ internal sealed class RoslynBackend : ICodeGenBackend
                 // /deterministic since VS2017; only the Roslyn API's back-compat default is false).
                 deterministic: true));
 
-        EmitResult emit = compilation.Emit(outputDllPath);
-        if (!emit.Success)
-        {
-            // A failed Emit leaves a partial/0-byte output file behind; running it dies with the misleading
-            // "hostpolicy.dll required" error (the swept phantom-RUNERR class — ST133A/ST134A/SQ203A were
-            // misread as environmental flakes). The output file exists only when the compile SUCCEEDED.
-            try { if (File.Exists(outputDllPath)) File.Delete(outputDllPath); } catch (IOException) { }   // not a compilation input: cleanup of this compile's own output
-        }
-
-        return new Result(emit.Success, emit.Diagnostics);
+        // §7.5's file protocol: the assembly is emitted to a temporary beside the output and renamed over it, so a
+        // compilation or a running program reading the output directory (a repository directory, §7.4) never sees a
+        // partial assembly, and a failed Emit — which leaves a partial/0-byte file, the swept phantom-RUNERR class
+        // (ST133A/ST134A/SQ203A) — deletes only its temporary and leaves the previous build in place.
+        EmitResult? emit = null;
+        OutputFileProtocol.Replace(outputDllPath, temporary => (emit = compilation.Emit(temporary)).Success);
+        return new Result(emit!.Success, emit.Diagnostics);
     }
 
     /// <summary>

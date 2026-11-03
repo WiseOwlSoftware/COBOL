@@ -36,6 +36,16 @@
       *>   P2096G02 stores "XY" through LE-B2 -> LE-A = "ABXY"; then
       *>   "QRST" through LE-A -> LE-B1 LE-B2 = "QR" "ST", G = "QRST".
       *>   The OMITTED argument forwarded twice is still omitted.
+      *> kb/Work PB2103 - 12.3.8.3 SR14: P2096O02 is defined AFTER the REPOSITORY
+      *> paragraph that names it, so no definition was "specified previously"; the program prototype
+      *> definitions ahead of every unit (10.6.2 SR1) supply 12.3.8.4 GR10 b)'s details.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2096O02 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LO PIC X(4) GLOBAL.
+       PROCEDURE DIVISION USING OPTIONAL LO.
+       END PROGRAM P2096O02.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P2096M02.
        ENVIRONMENT DIVISION.

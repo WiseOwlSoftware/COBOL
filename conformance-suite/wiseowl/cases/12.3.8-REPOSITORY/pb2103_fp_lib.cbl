@@ -1,0 +1,11 @@
+       IDENTIFICATION DIVISION.
+       FUNCTION-ID. P2103FP.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L-X PIC 9(4).
+       01 L-R PIC 9(4).
+       PROCEDURE DIVISION USING L-X RETURNING L-R.
+       P.
+           COMPUTE L-R = L-X * 2
+           GOBACK.
+       END FUNCTION P2103FP.

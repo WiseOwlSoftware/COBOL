@@ -29,6 +29,11 @@ namespace WiseOwl.Cobol.Cli;
 /// <see cref="WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal"/> — the decimal point and a leading sign.</param>
 /// <param name="RepositoryUpdate">Whether the compilation updates the external repository (<c>--repository-update on|off</c>;
 /// ISO §8.13, DESIGN-external-repository §9.1). Defaults to on.</param>
+/// <param name="RepositoryPaths">The external repository directories (<c>--repository</c>, in order); null for the output
+/// directory (DESIGN-external-repository §9.3).</param>
+/// <param name="ReferencePaths">The assemblies searched after them (<c>--reference</c>, in order).</param>
+/// <param name="RepositoryCheck">Whether a signature differing from the repository's is flagged (<c>--repository-check
+/// on|off</c>; ISO §8.13, DESIGN-external-repository §9.2). Defaults to on.</param>
 internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,
@@ -42,4 +47,7 @@ internal sealed record CliOptions(
         WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Fixed,
     bool FlagExtensions = false,
     WiseOwl.Cobol.Binding.NumericDisplayForm NumericDisplay = WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal,
-    bool RepositoryUpdate = true);
+    bool RepositoryUpdate = true,
+    IReadOnlyList<string>? RepositoryPaths = null,
+    IReadOnlyList<string>? ReferencePaths = null,
+    bool RepositoryCheck = true);

@@ -23,7 +23,20 @@
       *> A genuinely OMITTED argument is the OTHER case (GR11): the call
       *> succeeds and the omitted-argument condition is true.
       *> Derived: MISMATCH-CAUGHT, then OMITTED-SEEN, then NOT-EXC.
+      *> kb/Work PB2103 - 12.3.8.3 SR14: PB615SUB02's definition follows the
+      *> REPOSITORY paragraph, so the program prototype definition ahead of
+      *> every unit (10.6.2 SR1) supplies GR10 b)'s details, and the
+      *> OMITTED argument's formal is OPTIONAL as 14.9.4.3 SR24 requires
+      *> once those details are known at compile time.
       >>TURN EC-PROGRAM-ARG-MISMATCH CHECKING ON
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB615SUB02 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L-N PIC 9(3).
+       PROCEDURE DIVISION USING OPTIONAL L-N.
+       END PROGRAM PB615SUB02.
+
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB615MAIN02.
        ENVIRONMENT DIVISION.
@@ -51,7 +64,7 @@
        DATA DIVISION.
        LINKAGE SECTION.
        01 L-N PIC 9(3).
-       PROCEDURE DIVISION USING L-N.
+       PROCEDURE DIVISION USING OPTIONAL L-N.
        SUB-PARA.
            IF L-N IS OMITTED
                DISPLAY "OMITTED-SEEN"

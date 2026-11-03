@@ -8,10 +8,18 @@
       *> kb/Work PB165 - a CALL whose activated program the activating
       *> element holds no signature for checks every argument against
       *> the activated program's formal parameter at run time.
-      *> PROGRAM P165Q4 (below) names no definition that precedes it
-      *> and no prototype, so 12.3.8.4 GR10 c): "the details are taken
-      *> from the external repository for the program with the same
-      *> name as the externalized name of the program prototype".
+      *> Each CALL names its program by LITERAL (Format 1), so the
+      *> activating element holds no signature for the program it
+      *> activates; the REPOSITORY paragraph still has a
+      *> program-specifier for each, whose details are the program
+      *> prototype definitions ahead of every unit (12.3.8.4 GR10 b);
+      *> kb/Work PB2103: the specifiers used to name programs defined
+      *> AFTER the paragraph with no prototype, which 12.3.8.3 SR14
+      *> does not admit). A literal argument can be passed only by the
+      *> program-prototype CALL (14.9.4.2 Format 2), whose details are
+      *> now known when it is compiled: cases 11 and 12 are such CALLs
+      *> and conform; the literal cases that do not ('ABC' and SPACE
+      *> into 9(3)) are compile-time refusals and are not run here.
       *> 14.9.4.4 GR3 d): "the rules for conformance specified in
       *> 14.8.2, Parameters and 14.8.3, Returning items apply. If a
       *> violation of these rules is detected, the
@@ -24,7 +32,7 @@
       *> BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and
       *> USAGE clauses" (cases 1-3); and 14.8.2.3.3 rule 2 BY CONTENT:
       *> a numeric formal is "the same as for a COMPUTE statement"
-      *> (cases 6, 7, 10-13), any other "the same as for a MOVE
+      *> (cases 6, 7, 11, 12), any other "the same as for a MOVE
       *> statement" (cases 8, 9; Table 16: numeric noninteger to
       *> alphanumeric is "No"). 14.8.2.2 1): a group formal "shall be
       *> described with the same number or a smaller number of bytes
@@ -36,6 +44,62 @@
       *> 14.8.3.3: "the receiving operand shall have the same ALIGN,
       *> BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and
       *> USAGE clauses" (cases 16-18). Each case prints EXC or OK.
+      *> kb/Work PB2103 - 12.3.8.3 SR14: P165Q4, P165Q3, P165QX6, P165QG10, P165QG8, P165QRN, P165QRX are defined AFTER the REPOSITORY
+      *> paragraph that names them, so no definition was "specified previously"; the program prototype
+      *> definitions ahead of every unit (10.6.2 SR1) supply 12.3.8.4 GR10 b)'s details.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P165Q4 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC 9(4).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P165Q4.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P165Q3 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC 9(3).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P165Q3.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P165QX6 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC X(6).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P165QX6.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P165QG10 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L.
+          05 LA PIC X(5).
+          05 LB PIC X(5).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P165QG10.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P165QG8 IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L.
+          05 LA PIC X(4).
+          05 LB PIC X(4).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P165QG8.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P165QRN IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LR PIC 9(4).
+       PROCEDURE DIVISION RETURNING LR.
+       END PROGRAM P165QRN.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P165QRX IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LR PIC X(4).
+       PROCEDURE DIVISION RETURNING LR.
+       END PROGRAM P165QRX.
        >>TURN EC-PROGRAM-ARG-MISMATCH CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P165QM.
@@ -65,45 +129,41 @@
        01 RA4 PIC A(4).
        01 RN4 PIC 9(4) VALUE 7.
        PROCEDURE DIVISION.
-           CALL P165Q4 USING BY REFERENCE A4
+           CALL "P165Q4" USING BY REFERENCE A4
                ON EXCEPTION DISPLAY "01 X4->94 REF EXC"
                NOT ON EXCEPTION DISPLAY "01 X4->94 REF OK"
            END-CALL
-           CALL P165Q4 USING BY REFERENCE N4
+           CALL "P165Q4" USING BY REFERENCE N4
                ON EXCEPTION DISPLAY "02 94->94 REF EXC"
                NOT ON EXCEPTION DISPLAY "02 94->94 REF OK"
            END-CALL
-           CALL P165QX6 USING BY REFERENCE A4
+           CALL "P165QX6" USING BY REFERENCE A4
                ON EXCEPTION DISPLAY "03 X4->X6 REF EXC"
                NOT ON EXCEPTION DISPLAY "03 X4->X6 REF OK"
            END-CALL
-           CALL P165QG10 USING BY REFERENCE G8
+           CALL "P165QG10" USING BY REFERENCE G8
                ON EXCEPTION DISPLAY "04 G8->G10 REF EXC"
                NOT ON EXCEPTION DISPLAY "04 G8->G10 REF OK"
            END-CALL
-           CALL P165QG8 USING BY REFERENCE G10
+           CALL "P165QG8" USING BY REFERENCE G10
                ON EXCEPTION DISPLAY "05 G10->G8 REF EXC"
                NOT ON EXCEPTION DISPLAY "05 G10->G8 REF OK"
            END-CALL
-           CALL P165Q4 USING BY CONTENT A4
+           CALL "P165Q4" USING BY CONTENT A4
                ON EXCEPTION DISPLAY "06 X4->94 CONTENT EXC"
                NOT ON EXCEPTION DISPLAY "06 X4->94 CONTENT OK"
            END-CALL
-           CALL P165Q3 USING BY CONTENT N4
+           CALL "P165Q3" USING BY CONTENT N4
                ON EXCEPTION DISPLAY "07 94->93 CONTENT EXC"
                NOT ON EXCEPTION DISPLAY "07 94->93 CONTENT OK"
            END-CALL
-           CALL P165QX6 USING BY CONTENT A4
+           CALL "P165QX6" USING BY CONTENT A4
                ON EXCEPTION DISPLAY "08 X4->X6 CONTENT EXC"
                NOT ON EXCEPTION DISPLAY "08 X4->X6 CONTENT OK"
            END-CALL
-           CALL P165QX6 USING BY CONTENT D2
+           CALL "P165QX6" USING BY CONTENT D2
                ON EXCEPTION DISPLAY "09 9V9->X6 CONTENT EXC"
                NOT ON EXCEPTION DISPLAY "09 9V9->X6 CONTENT OK"
-           END-CALL
-           CALL P165Q3 USING BY CONTENT "ABC"
-               ON EXCEPTION DISPLAY "10 'ABC'->93 CONTENT EXC"
-               NOT ON EXCEPTION DISPLAY "10 'ABC'->93 CONTENT OK"
            END-CALL
            CALL P165Q3 USING BY CONTENT 12
                ON EXCEPTION DISPLAY "11 12->93 CONTENT EXC"
@@ -112,10 +172,6 @@
            CALL P165Q3 USING BY CONTENT ZERO
                ON EXCEPTION DISPLAY "12 ZERO->93 CONTENT EXC"
                NOT ON EXCEPTION DISPLAY "12 ZERO->93 CONTENT OK"
-           END-CALL
-           CALL P165Q3 USING BY CONTENT SPACE
-               ON EXCEPTION DISPLAY "13 SPACE->93 CONTENT EXC"
-               NOT ON EXCEPTION DISPLAY "13 SPACE->93 CONTENT OK"
            END-CALL
            MOVE "P165Q3" TO TGT
            CALL TGT USING BY CONTENT N4
@@ -127,15 +183,15 @@
                ON EXCEPTION DISPLAY "15 TGT=P165QU3 94->93 EXC"
                NOT ON EXCEPTION DISPLAY "15 TGT=P165QU3 94->93 OK"
            END-CALL
-           CALL P165QRN RETURNING RX4
+           CALL "P165QRN" RETURNING RX4
                ON EXCEPTION DISPLAY "16 RET 94->X4 EXC"
                NOT ON EXCEPTION DISPLAY "16 RET 94->X4 OK"
            END-CALL
-           CALL P165QRX RETURNING RA4
+           CALL "P165QRX" RETURNING RA4
                ON EXCEPTION DISPLAY "17 RET X4->A4 EXC"
                NOT ON EXCEPTION DISPLAY "17 RET X4->A4 OK"
            END-CALL
-           CALL P165QRN RETURNING RN4
+           CALL "P165QRN" RETURNING RN4
                ON EXCEPTION DISPLAY "18 RET 94->94 EXC"
                NOT ON EXCEPTION DISPLAY "18 RET 94->94 OK " RN4
            END-CALL
