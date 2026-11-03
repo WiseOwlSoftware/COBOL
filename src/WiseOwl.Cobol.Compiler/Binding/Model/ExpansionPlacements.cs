@@ -42,7 +42,7 @@ internal sealed record PublishedSkeleton(string Name, string ExternalizedName, b
 /// <param name="Text">The expansion's source text (the skeleton's tokens with the header renamed and each formal replaced by its actual).</param>
 /// <param name="State">The compile state of the skeleton it is made from.</param>
 /// <param name="Placement">Where it goes.</param>
-/// <param name="RequestedAt">The EXPANDS entry that asked for it, as the user's source names it (file, line, column: the position an expansion made in the group is diagnosed at), which a diagnostic of its compilation is reported at.</param>
+/// <param name="RequestedAt">The EXPANDS entry that asked for it, as the user's source names it (file, line, column), which a diagnostic of its compilation is reported at. It is the position the group's bind gives a diagnostic about the text of an expansion of a skeleton it read from the repository too, so the two placements agree on all three (kb/Work PB4469).</param>
 internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement, SourceLocation RequestedAt);
 
 /// <summary>What the group publishes for its parameterized definitions and where each of its expansions lives (§10.5): produced by

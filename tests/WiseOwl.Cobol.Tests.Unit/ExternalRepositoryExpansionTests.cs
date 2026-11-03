@@ -658,6 +658,45 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    /// <summary>A skeleton whose text raises a warning at every edition: a relation of two literals (COBOL3146, ISO §8.8.4.2.1 — "A relation
+    /// condition shall contain at least one reference to an operand that is not a literal"), which the BIND raises, so the group's bind of the
+    /// expansion's text and the expansion's own compilation both do.</summary>
+    private const string RelationOfLiterals = "IF 1 = 1 DISPLAY \"A\".\n        INVOKE ITEM \"SHOW\".";
+
+    [Fact]   // kb/Work PB4469: the group binds an own-assembly expansion's text to type its callers and the expansion's compilation binds it again; one report.
+    public void AWarningBothTheGroupAndTheExpansionRaise_IsReportedOnce_AtTheExpandsEntry()
+    {
+        WithDirectory("expansion-warning-once", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold(RelationOfLiterals), level: 2023).Success);
+            var r = Compile(dir, "CLIENT1", Client("CLIENT1"), level: 2023);
+            Assert.True(r.Success, Codes(r));
+            Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));   // placement (a): the expansion's compilation owns the text's warnings
+            string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL3146", StringComparison.Ordinal));
+            Assert.StartsWith($"{Path.Combine(dir, "CLIENT1.cob")}(8,5): warning COBOL3146:", warning, StringComparison.Ordinal);
+            Assert.EndsWith("[in the expansion 'HOLD-BOX']", warning, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]   // kb/Work PB4469: the same text in the group's own assembly (arm b) is reported once, at the same column as arm (a) reports it.
+    public void AWarningOfAnExpansionInTheGroupsAssembly_IsReportedOnce_AtTheExpandsEntrysColumn()
+    {
+        WithDirectory("expansion-warning-in-group", dir =>
+        {
+            Assert.True(Compile(dir, "LIBH", Hold(RelationOfLiterals), level: 2023).Success);
+            string own = Box.Replace("BOX", "LBOX");
+            var client = Client("CLIENT3").Replace("CLASS BOX", "CLASS LBOX").Replace("REFERENCE BOX", "REFERENCE LBOX")
+                .Replace("INVOKE BOX", "INVOKE LBOX").Replace("USING BOX", "USING LBOX");
+            string source = own + client;
+            var r = Compile(dir, "CLIENT3", source, level: 2023);
+            Assert.True(r.Success, Codes(r));
+            Assert.False(File.Exists(Path.Combine(dir, "HOLD-LBOX.dll")));   // placement (b): the group's bind is the only one that sees the text
+            int entryLine = source.Split('\n').ToList().FindIndex(l => l.Contains("EXPANDS HOLD", StringComparison.Ordinal)) + 1;   // the entry begins at column 5
+            string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL3146", StringComparison.Ordinal));
+            Assert.StartsWith($"{Path.Combine(dir, "CLIENT3.cob")}({entryLine},5): warning COBOL3146:", warning, StringComparison.Ordinal);
+        });
+    }
+
     [Fact]   // PB4457: an error of the sub-compilation is reported at the EXPANDS entry whatever shape the position takes.
     public void ADiagnosticOfAnExpansionText_IsRelabelledToTheExpandsEntry()
     {

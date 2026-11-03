@@ -168,7 +168,14 @@ internal static class ExpansionPlacementPass
                 }
             }
             placements[symbol] = placement;
-            if (placement.Where is ExpansionWhere.OwnAssembly) order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement, edition.LocationOf(origin.Entry.Start.Line, origin.Entry.Start.Column)));
+            if (placement.Where is ExpansionWhere.OwnAssembly)
+            {
+                order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement, edition.LocationOf(origin.Entry.Start.Line, origin.Entry.Start.Column)));
+                // One owner for the text's warnings (kb/Work PB4469): the compilation that makes the expansion, under the state its
+                // skeleton was published with, reports them at the entry (ExpansionAssemblies.Write). The group bound the same text to type
+                // its callers and reported them too, under its own state: those are withdrawn.
+                edition.WithdrawWarningsOf(origin.Region);
+            }
             inProgress.Remove(symbol);
             return placement;
         }

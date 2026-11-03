@@ -1015,8 +1015,7 @@ internal sealed class BinderDriver
         }
 
         // A parse node's first token as a diagnostic position (an unset cursor leaves the current one standing).
-        static DiagnosticCursor CursorOf(ParserRuleContext? ctx) =>
-            ctx?.Start is { } t ? new DiagnosticCursor(t.Line, t.Column) : default;
+        static DiagnosticCursor CursorOf(ParserRuleContext? ctx) => DiagnosticCursorAt.CursorOf(ctx?.Start);
 
         // How a KIND reads in the cross-kind sentence: a definition of the unit kinds, or the EXTERNAL item itself.
         static string Noun(string kind) => kind.StartsWith("EXTERNAL", StringComparison.Ordinal) ? $"an {kind}" : $"a {kind} definition";
