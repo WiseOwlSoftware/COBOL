@@ -1,4 +1,4 @@
-## PB2104 step 1: a class another compilation group defines is imported by identity (external repository slice 8)
+## PB2104: OO across assemblies — classes, interfaces and properties are imported by identity; parameterized classes and interfaces are published as skeletons and expanded across assemblies (external repository slice 8)
 
 **What was wrong.** A REPOSITORY `CLASS` specifier could name only a class the compilation group defined: a class compiled in
 another group (an assembly of the §8.13 external repository) could never be named, an unreferenced specifier no source answered
@@ -60,3 +60,42 @@ class apart.
 **Self-review.** Architecture: one derivation of the names (`RepositoryCodec.Names`), one rule for a method formal's channel
 (`UsageCollectionPass.MethodFormalChannels`, read by the class forests and the importer), no C# text in a bound node beyond the
 CLR name the contract already classes.
+**Step 2's second half: parameterized classes and interfaces across assemblies (D3).** *Re-probe before the work:* a group that wrote
+`CLASS HOLD-BOX EXPANDS HOLD USING BOX` with HOLD defined by another group got COBOL2240 ("no definition of that name is in this
+compilation group"), and a library's parameterized class left nothing in the repository (the definition "emits nothing"). *After:*
+`lib.cbl` (BOX and the skeleton HOLD USING ELEM) and a client that expands HOLD over BOX compile apart and print `BOX 042`.
+- **Published.** `CompileState` (edition, `--permissive`, `--sign-encoding`, `--numeric-display`, `--flag-extensions`, and the
+  `>>COBOL-WORDS`, directive-fold and `>>DEFINE` lines as directive text, so the one directive processor reads them again) is produced by
+  one `CompileInputs.At(line)` and held exhaustive by `CompileStateDriftTests` over `CompilerDriver.Options` and `BindSession`. A
+  parameterized definition is a `public static class` carrying `[CobolUnit(ParameterizedClass|Interface)]` and `[CobolSkeleton]`
+  (source text from `SkeletonText`, formals and kinds, the identity each specifier of its own REPOSITORY stands for, the state); an
+  expansion is `[CobolUnit(Kind = Expansion, ExpandsDefinition, ExpandsActuals, ExpansionKey, ExpansionParts, ExpansionOwnAssembly)]`.
+  The model records the emitter writes (`CompileState`, `SkeletonRecord`, `ExpansionIdentity`, `ExpansionPlacements`, `RecordList`) moved
+  to `Binding.Model`, because the layering ratchet (`ArchitectureEdgesDriftTests`) forbids the emitter a new pair into `Binding.Repository`.
+- **Expanded.** `MetadataRepositoryProvider.Skeleton` reads the record; `FragmentParse.ParseUnit` lexes the recorded text again under the
+  recorded edition and words map (the whole-group parse in miniature, with the reservation-gate fixpoint); `OoExpansion.ImportedSkeleton`
+  makes it a skeleton and expansion goes on exactly as for a written one. Two defects of the in-group expansion surfaced and are fixed: a
+  `CLASS N AS "lit" EXPANDS …` entry lost its `AS` literal (GR2), and the formal's own specifier did not take the actual's `AS`
+  literal, so an expansion over an actual known by another word named the wrong class.
+- **Placed (`ExpansionPlacementPass`).** The key (`ExpansionKey`: SHA-256 over the canonical text of the skeleton and the surface of
+  everything named) needs bound surfaces, so the design's "import before expand" is import before EMIT: the group binds its copy, the pass
+  finds an entry of that name, definition, actuals, key and surface (`MetadataRepositoryProvider.ExpansionsNamed`) and the module names the
+  existing types by `using` aliases instead of emitting its own (including the skeleton's own group importing the expansion whose
+  assembly references its previous build); otherwise an expansion that names no class of the group is compiled apart
+  (`ExpansionAssemblies` through `CompilerDriver.Compile` with the internal `Options.PublishAs`), one that does is emitted in the group;
+  a stale expansion is REPO-9 naming the first changed component (`ExpansionParts`) and its referencers (`RepositoryLocator.ReferencersOf`
+  over the `AssemblyRef` tables); REPO-2, REPO-12 and COBOL2240 for what is not ours to overwrite. The key's first run found that a decoded
+  imported class names itself `class "BOX"` where the group's says `BOX`: `ObjectRefName` is a word that only names and is not in the key.
+  Found on the way and fixed: a numeric literal argument of a method of an IMPORTED class named the callee's internal `_P_n` profile
+  (CS0117); the profile is spelled out. Residual (design 10.5): a skeleton published under another compile state whose expansion names a
+  class of the expanding group is COBOL2240, and its surface is bound under the expanding group's state.
+- **Goldens and tests.** `pb2104_expand_skeleton_from_repository` (BOX 042) and `pb2104_expansion_is_one_class_across_groups` (two groups
+  expand one triple; the object crosses a CALL under EC-PROGRAM-ARG-MISMATCH checking: BOX 007 / 02 CONFORMS), each 2002/2014/2023, and the
+  refusal `pb2104_expand_skeleton_refused_at_85`; `ExternalRepositoryExpansionTests` (skeleton record, own assembly, import by key without
+  rewrite, the reference cycle, stale REPO-9 with its referencers, in-group, byte-identical assemblies across directories and groups
+  with one key, AS literal, the interface arm, a foreign file, REPO-1) and `CompileStateDriftTests`.
+- **Rows.** SR-12.3.8.3-6/-9/-16, GR-12.3.8.4-6/-9, DOC-A.1-161/-162 DIVERGES|PARTIAL → CONFORMS (GAP 19 → 12) with witnesses added to
+  GR-12.3.8.4-5 and DOC-A.1-138; PB1086 keeps the program and function rows.
+- **Gate 1** (6ef43bb, before the model-layer move): RED on five drift tests (layering ratchet, name-fold marker, edition-read inventory,
+  host-entry shape for the new unit kinds, the ambient-read recorder), all fixed; the Conformance population was otherwise green
+  (21,012 of 21,013).

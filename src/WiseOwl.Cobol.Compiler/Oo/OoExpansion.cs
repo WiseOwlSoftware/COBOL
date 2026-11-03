@@ -53,6 +53,14 @@ using WiseOwl.Cobol.Runtime;
 /// <see cref="OoNameResolution.Resolve"/> can name GR1 when some other position writes it. It is still a class or
 /// interface definition, so it BINDS as itself for its own rules — its data, environment and method headers, with each
 /// formal resolving as a formal (kb/Work PB2051; <c>OoDriver.BindParameterized</c>).</para>
+///
+/// <para><b>It is published, and another group's is expanded.</b> A group built with <c>--repository-update on</c> publishes each
+/// definition as a SKELETON (<see cref="SkeletonSource"/>; <c>OoEmitter.EmitSkeletonUnit</c>): its text after text manipulation, its
+/// formals, what its REPOSITORY paragraph names and the compile state it was written under. An EXPANDS target this group does not define
+/// is read from the external repository (<see cref="IOoImporter.Skeleton"/>) and lexed again from that recorded text
+/// (<c>FragmentParse.ParseUnit</c>), then expanded exactly as a written skeleton is. Which assembly an expansion lives in, and whether
+/// one that already exists is the class, is decided once the group is bound (<c>ExpansionPlacementPass</c>): an expansion's meaning is
+/// the published surface of everything it names, which exists only then (DESIGN-external-repository §10.5; kb/Work PB2104).</para>
 /// </summary>
 internal static class OoExpansion
 {
@@ -564,7 +572,7 @@ internal static class OoExpansion
                 if (tok.Type == TokenConstants.EOF || drop.Contains(tok)) return;
                 string? text = null;
                 if (ReferenceEquals(tok, headerName)
-                    || (ReferenceEquals(tok, endName) && CobolNames.Same(tok.Text, skel.Name)))
+                    || (ReferenceEquals(tok, endName) && CobolNames.Same(tok.Text, headerName.Text)))
                     text = x.Name;
                 else if ((t.Parent is Core.CobolWordContext || tok.Type == CobolLexer.IDENTIFIER)
                          && map.TryGetValue(tok.Text, out var actual))

@@ -574,7 +574,12 @@ public static class DiagnosticCatalog
         + "flag differences in prototypes and definitions in the compilation group from the information in the external "
         + "repository\" — WiseOwl COBOL's is --repository-check on (the default) and off. Callers compiled against that entry "
         + "are checked at run time by ISO §14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments "
-        + "positionally otherwise; recompile them.",
+        + "positionally otherwise; recompile them. The same code reports a STALE EXPANSION of a parameterized class or "
+        + "interface (ISO §9.3.12, §9.3.13): the search space holds an expansion of the same name, definition and actuals "
+        + "under another expansion key, because the skeleton's source or compile state, or the published surface of a class it "
+        + "names, changed since it was made; it is not imported, the expansion is made again, and the message names the first "
+        + "component of the key that changed and every assembly that references the stale one (compiled against the earlier "
+        + "class, to be recompiled).",
         "ISO §8.13");
 
     /// <summary>COBOL5970 — REPO-10: a <c>--repository</c> directory or <c>--reference</c> file that does not exist or cannot
@@ -604,7 +609,8 @@ public static class DiagnosticCatalog
         "The previous build of this compilation's output was written for another repository schema, runtime major version or "
         + "call ABI, so --repository-check does not compare this group's signatures against it (ISO §8.13's \"flag "
         + "differences\" mechanism has nothing it can read). Every caller compiled against that build must be recompiled with "
-        + "this compiler in any case.",
+        + "this compiler in any case. The same code reports an expansion's own assembly (DESIGN-external-repository §10.5) "
+        + "that is replaced because it was written for another schema, runtime major version or call ABI.",
         "ISO §8.13");
 
     /// <summary>COBOL5976 — REPO-6: two assemblies the compilation needs hold types in one module namespace, or an imported

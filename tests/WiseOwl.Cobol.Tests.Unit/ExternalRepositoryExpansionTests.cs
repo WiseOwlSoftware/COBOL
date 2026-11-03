@@ -309,6 +309,107 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    [Fact]   // §12.3.8.4 GR2: the expansion specifier's own AS literal externalizes the EXPANSION (the file, the unit, the identity).
+    public void TheExpansionSpecifiersAsLiteral_IsTheExpansionsExternalizedName()
+    {
+        WithDirectory("expansion-as", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold()).Success);
+            var r = Compile(dir, "CLIENT1", Client("CLIENT1").Replace("CLASS HOLD-BOX EXPANDS", "CLASS HOLD-BOX AS \"Boxed-Holder\" EXPANDS"));
+            Assert.True(r.Success, Codes(r));
+            var own = Records(Path.Combine(dir, "Boxed-Holder.dll")).Single();
+            Assert.Equal("Boxed-Holder", own.ExternalizedName);
+            Assert.Equal("HOLD-BOX", own.Name);
+            Assert.False(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT1.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("BOX 042", stdout);
+        });
+    }
+
+    [Fact]   // §9.3.13: the interface arm — a parameterized INTERFACE is a skeleton too, and its expansion an assembly of its own that a class of the group implements.
+    public void AParameterizedInterface_IsPublished_ExpandedFromTheRepository_AndImplementedByAGroupClass()
+    {
+        const string iput = """
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. IPUT USING T.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS T.
+            PROCEDURE DIVISION.
+            METHOD-ID. PUT.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 X USAGE OBJECT REFERENCE T.
+            PROCEDURE DIVISION USING X.
+            END METHOD PUT.
+            END INTERFACE IPUT.
+
+            """;
+        const string client = """
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PUTTER INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE
+                CLASS BOX
+                INTERFACE IPUT
+                INTERFACE IPUT-BOX EXPANDS IPUT USING BOX.
+            OBJECT.
+                IMPLEMENTS IPUT-BOX.
+            PROCEDURE DIVISION.
+            METHOD-ID. PUT.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 X USAGE OBJECT REFERENCE BOX.
+            PROCEDURE DIVISION USING X.
+                DISPLAY "PUTTER PUT".
+                INVOKE X "SHOW".
+            END METHOD PUT.
+            END OBJECT.
+            END CLASS PUTTER.
+
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFMAIN.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BOX
+                CLASS PUTTER
+                INTERFACE IPUT
+                INTERFACE IPUT-BOX EXPANDS IPUT USING BOX.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 B USAGE OBJECT REFERENCE BOX.
+            01 P USAGE OBJECT REFERENCE PUTTER.
+            01 I USAGE OBJECT REFERENCE IPUT-BOX.
+            PROCEDURE DIVISION.
+                INVOKE BOX "NEW" RETURNING B
+                INVOKE B "SETV" USING 5
+                INVOKE PUTTER "NEW" RETURNING P
+                SET I TO P
+                INVOKE I "PUT" USING B
+                STOP RUN.
+            END PROGRAM IFMAIN.
+            """;
+        WithDirectory("interface-skeleton", dir =>
+        {
+            var lib = Compile(dir, "LIBX", Box + iput);
+            Assert.True(lib.Success, Codes(lib));
+            Assert.Contains(Records(Path.Combine(dir, "LIBX.dll")), x => x.Kind is RepositoryUnitKind.ParameterizedInterface && x.ExternalizedName == "IPUT");
+            var r = Compile(dir, "CLIENT1", client);
+            Assert.True(r.Success, Codes(r));
+            var own = Records(Path.Combine(dir, "IPUT-BOX.dll")).Single();
+            Assert.Equal(RepositoryUnitKind.Expansion, own.Kind);
+            Assert.Null(own.Class!.FactoryType);   // an interface expansion
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT1.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("PUTTER PUT\nBOX 005", stdout);
+        });
+    }
+
     [Fact]   // A repository with no skeleton of the name: REPO-1 at the specifier, as for any class the repository does not answer.
     public void ASkeletonNothingAnswers_IsRepo1()
     {
