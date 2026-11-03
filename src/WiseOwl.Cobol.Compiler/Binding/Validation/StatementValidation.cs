@@ -1149,7 +1149,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
     {
-        if (data.Procedure.Options.Over(data.Options).Arithmetic != ArithmeticMode.Native) return true;   // §14.7.7 r2 applies to native only
+        if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §14.7.7 r2 applies to native only
         int maxInt = 0, maxFrac = 0;
         void Shape(int digits, int scale)
         {
@@ -1405,7 +1405,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// enforced on one arm only (kb/Work PB334). ⚠ On the SEQUENTIAL-organization arm it is now
     /// DEFENCE IN DEPTH, not the only guard: §12.4.5.5.2 SR2 ("The DYNAMIC and RANDOM phrases shall not be
     /// specified for a sequential file") is screened at the FILE CONTROL ENTRY as of kb/Work PB692
-    /// (<c>DataBinder.BindFileControl</c>, COBOL1858), so <c>IsSequential &amp;&amp; AccessMode is Random</c>
+    /// (<c>FileControlBinder.BindFileControl</c>, COBOL1858), so <c>IsSequential &amp;&amp; AccessMode is Random</c>
     /// no longer reaches a statement at all. It stays because it is the STATEMENT's own rule and costs a
     /// field test — never because the entry rule might be missing.
     /// <para>The message names EVERY phrase the statement actually wrote — the at-end bracket carries choice

@@ -6,10 +6,10 @@
  "subject": "Procedure division structure",
  "rule-digest": "e64492710e2c",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindLinkage",
  "test-ref": "",
  "derivation": "docs/CONFORMANCE.md#DRV-GR-14.2.3-7",
  "editions": "2002,2014,2023",
- "notes": "§14.2.3 GR7 (cite.py --check 14.2.3 \"The initial value of the returning item, data-name-2, is undefined\" -> OK §14.2.3 7)). Undefined behaviour imposes no requirement; the returning item binds as an ordinary LINKAGE item without a VALUE-driven initial state, and nothing observable can contradict it. No test can be spec-derived for an undefined value.",
+ "notes": "§14.2.3 GR7 (cite.py --check 14.2.3 \"The initial value of the returning item, data-name-2, is undefined\" -> OK §14.2.3 7)). Undefined behaviour imposes no requirement; the returning item binds as an ordinary LINKAGE item without a VALUE-driven initial state, and nothing observable can contradict it. No test can be spec-derived for an undefined value. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage (kb/Work PB2359 moved the member, unchanged, out of the DataBinder.Linkage.cs partial: the LINKAGE / EXTERNAL / GLOBAL binder is LinkageBinder, and the cell-backing forcer and the inherited-name tier went to the data binder files that own the name tables)",
  "state": "OK"
 }

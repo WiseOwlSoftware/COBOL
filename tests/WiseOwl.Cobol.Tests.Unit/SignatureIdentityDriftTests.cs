@@ -26,7 +26,7 @@ public sealed class SignatureIdentityDriftTests
     private static string IdentityOf(BoundCompilation comp, BoundUnit u, CalleeSignature signature) =>
         comp.SignatureClasses.Identity(new RestrictedPrototype(u.IsFunction, u.ExternalizedName, signature));
 
-    private static CalleeSignature SignatureOf(BoundUnit u) => new(u.Data.LinkageFormals, u.Data.LinkageReturning);
+    private static CalleeSignature SignatureOf(BoundUnit u) => new(u.Data.Linkage.Formals, u.Data.Linkage.Returning);
 
     /// <summary>Every prototype definition of the corpus (each case's group bound at every edition it is accepted at, the
     /// enumeration §17.2's round trip reads) against a representative of every identity met so far with its formal count

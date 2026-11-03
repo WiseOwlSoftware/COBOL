@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (2) the table's section list is exactly the grammar's <c>dataDivision</c> alternatives; (3) the table's verdicts are
 /// the standard's (§13.4.3, §13.5.3, §13.6.3, §13.7.3, §13.8.3, §13.9.3 SR1 — each citation run through
 /// <c>cite.py --check</c>); (4) no site spells a placement refusal of its own: the method arm of
-/// <c>DataBinder.OoBindMethodData</c> and the class driver ask the table, and nothing raises
+/// <c>OoDataBinder.BindMethodData</c> and the class driver ask the table, and nothing raises
 /// <c>COBOL1519</c> by literal code; (5) the same screen's GLOBAL-clause walk (§13.18.27.3 SR4, kb/Work PB1045)
 /// knows every grammar rule that carries the clause, and is the only reporter of <c>COBOL1520</c>.
 /// </summary>
@@ -79,7 +79,7 @@ public sealed class OoDefinitionRulesDriftTests
     [Fact]
     public void NoSiteSpellsAPlacementRefusalOfItsOwn()
     {
-        string oo = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Oo.cs"));
+        string oo = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoDataBinder.cs"));
         Assert.Contains("OoDefinitionRules.Screen(OoDefinition.Method", oo);
         string driver = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Oo", "OoDriver.cs"));
         Assert.Contains("OoDefinitionRules.Screen(OoDefinition.Factory", driver);
@@ -117,7 +117,7 @@ public sealed class OoDefinitionRulesDriftTests
     }
 
     /// <summary>The GLOBAL clause's SR4 refusal has ONE reporter (kb/Work PB1045): the class arm in <c>OoDriver</c> and
-    /// the method arm in <c>DataBinder.OoBindMethodData</c> each spelled it, and each missed a different entry kind.</summary>
+    /// the method arm in <c>OoDataBinder.BindMethodData</c> each spelled it, and each missed a different entry kind.</summary>
     [Fact]
     public void NoSiteSpellsTheGlobalRefusalOfItsOwn()
     {

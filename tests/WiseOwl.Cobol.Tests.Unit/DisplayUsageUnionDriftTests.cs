@@ -95,14 +95,16 @@ public sealed class DisplayUsageUnionDriftTests
             // keeps MarkImageLeaves DISPLAY-only does not reach it.
 
             // DISPLAY-ONLY (2) — both are the CARRIAGE question, and deliberately NOT
-            // PicInfo.IsCharacterFormNumeric's IMAGE-FORM one (kb/Work PB646; each site says so):
+            // PicInfo.IsCharacterFormNumeric's IMAGE-FORM one (kb/Work PB646; each site says so). They moved out of
+            // DataBinder.cs with their passes (kb/Work PB2352, PB2353) and are listed below:
             //  MarkImageLeaves — which leaves must be STORED AS their image. Promotion pins the carrier at
             //        ImageWidth CHARACTER positions, a DISPLAY leaf's whole storage and HALF a national one's
             //        (D-N1), and promoting a national-form numeric leaf was MEASURED to corrupt a plain
-            //        group-to-group MOVE between two of them.
+            //        group-to-group MOVE between two of them. (Passes/MarkFileRecordImageLeavesPass.cs)
             //  the Tier-B StringCanonical split — the DISPLAY arm marks through the CHARACTER pipeline and the
             //        very next arm takes the national-form leaf through Place.NationalWindow. Both arms
             //        present: the deliberate two-lane split, not a missing lane.
+            //        (Passes/ClassifyRedefinesClassesPass.cs)
             // PAIR (1) — WithInheritedSign, the ONE rule by which an item acquires an ancestor's SIGN clause
             //        (§13.18.52.4 GR1 inheritance and the §13.18.49.4 GR5 SAME-AS transform both reach it through
             //        ApplyEffectiveSign, and a report group entry's inherited clause through
@@ -120,7 +122,9 @@ public sealed class DisplayUsageUnionDriftTests
             // pair landed, so `01 TN USAGE NATIONAL SIGN IS LEADING SEPARATE. 05 TNE PIC S9(3). 01 SNX SAME AS
             // TNE.` MEASURED LENGTH 3 / BYTE-LENGTH 6 / [04N] against the inheritance route's 4 / 8 / [-045].
             // One method (WithInheritedSign), one guard, and that is the remaining PAIR count below.
-            ["Binding/DataBinder.cs"] = (2, 1),
+            ["Binding/DataBinder.cs"] = (0, 1),
+            ["Binding/Passes/MarkFileRecordImageLeavesPass.cs"] = (1, 0),
+            ["Binding/Passes/ClassifyRedefinesClassesPass.cs"] = (1, 0),
 
             // PAIR — SPEC-REQUIRED, and it is the spec's own pair. §8.4.3.3.3 SR1 admits reference modification
             // of "a numeric data item of usage display or national that is not subordinate to a strongly-typed

@@ -1046,13 +1046,22 @@ gone (the owner dropped R69 §2's hold on binding and code-generation restructur
 name the type; this document keeps no count of it.
 
 **(1) `WiseOwl.Cobol.Binding.DataBinder`** — R0-0001.
-*Responsibilities, from the partials and the pass list.* The data-description pipeline whose pass BODIES are its
-methods: `BindPipeline.Build` (`Binding/Passes/BindPipeline.cs:49-142`) registers its `BindPass` rows as lambdas over
-the binder (`d => d.ExpandTypes()`), from `SynthesizeImpliedPictures` to `MarkFileRecordImageLeaves`, under the
+*Responsibilities, from the partials and the pass list.* The data-description pipeline whose pass BODIES were its
+methods (at the census, `BindPipeline.Build` registered its `BindPass` rows as lambdas over the binder,
+`d => d.ExpandTypes()`). Steps 2-4 (PB2352, PB2353, PB2354) made each row one `IBindPass` class,
+`Binding/Passes/<Name>Pass.cs`, from `SynthesizeImpliedPicturesPass` to `MarkFileRecordImageLeavesPass`, listed in order by
+`BindPipeline.Build`; a pass class holds its name, its phase contract, its `PassViews` and the rule code only it asks (its
+exclusive call closure on the binder moved with it; the rule code another asker shares stays on the binder until that asker's
+concern binder lands). One row keeps its rule code on `DataBinder` and only schedules it
+(`ResolveFiles`, the post-build half of the FILE concern that `FileControlBinder` did not take; `BindPassBoundaryDriftTests`
+names it and fails when it leaves `DataBinder` without the entry going; `work.py check` fails when no open kb/Work note names it (PB2296 M7; no compiler test reads kb/Work, PB4453); the rows
+`ResolveReports`, `CallBindExternalAndGlobal` and `OoRouteMethodRedefinesBackings` left that list when `ReportSectionBinder`,
+`LinkageBinder` and `OoDataBinder` landed, and now call them). The rows run under the
 `PassPhase` watermark (`Passes/IBindPass.cs:23`: None, TypesExpanded, UsageResolved, SignResolved,
 RedefinesClassified, StrongTypeChecked, OccursResolved, FilesResolved, ProcedureBound, UsageCollected, StorageComputed,
 EditionConformanceChecked); §12.3's configuration facts ("The configuration section specifies aspects of the data
-processing system that are dependent on the specific system", §12.3.1) in `Switches` and `IoControl`; §13.18's clauses
+processing system that are dependent on the specific system", §12.3.1) in `Switches` (now `SpecialNamesBinder`) and the I-O-CONTROL
+paragraph's (§12.4.6, the input-output section, not §12.3) in `IoControl` (now `FileControlBinder`); §13.18's clauses
 one partial each (`Aligned`, `SignClause`, `UsageDeclaration`, `ValuePlacement`, `TableValue`, `GroupValue`, `Odo`,
 `RedefinesEntry`, `RenamesEntry`, `ConditionName`, `ConstantRecord`/`Constants`, `ImpliedPicture`, `PictureRequired`,
 `Ptr`, `CodeSetRecords`, `Linkage`, `ClausePlacement`, `EntryOrder`); the report section (`Reports`); OO data (`Oo`);
@@ -1067,8 +1076,9 @@ know which of them has run. And four facts ACCUMULATE across phases, which no si
 - `WholeGroupReferenced` has two producers: `MarkFileRecordImageLeaves` adds the FILE record areas at FilesResolved
   (`DataBinder.cs:718`), and `UsageCollectionPass.Collect` adds the boundary formals and the whole-group operands at
   UsageCollected (`Passes/UsageCollectionPass.cs:73-110`); `StorageFormPass` reads the union (`StorageFormPass.cs:65`).
-- `ImageForcedItems` is appended at resolve time (Tier-B and CALL-cell REDEFINES leaves, FILE record leaves, report
-  print faces: `DataBinder.cs:742,7567,7581`, `DataBinder.Linkage.cs:868`, `ReportSectionBinder.cs`) and during
+- `ImageForcedItems` is appended at resolve time (Tier-B REDEFINES leaves at RedefinesClassified, by
+  `ClassifyRedefinesClassesPass`; CALL-cell REDEFINES leaves, FILE record leaves, report print faces and the pointer pass's
+  claimed cells at FilesResolved: `DataBinder.cs:742,7567,7581`, `DataBinder.Ptr.cs` (`ForceStringCanonical`), `ReportSectionBinder.cs`) and during
   procedure binding (`MoveBinder`'s figurative-fill and ref-mod-store receivers, `Procedure/Verbs/MoveBinder.cs:458,551`),
   and it is read MID-BIND in statement order (`IsImageBackedEarly`, `ReferenceResolver.cs:651,1057`: "a fact recorded
   by an earlier statement's bind is visible to a later statement's; one recorded later is not", `DataBinder.cs:278-284`),
@@ -1084,16 +1094,16 @@ no word for:
   sentences and restored after (`Bound/StatementBinder.cs:350-374`; §11.9.4 GR1, kb/Work PB135), and read per
   statement (`ExpressionBinder.cs:703`, the default rounding; `IntrinsicBinder.cs:2598`, the arithmetic mode). Frozen
   as a value slice, a method's bare ROUNDED would take the class's mode: different emitted C#, and a wrong answer;
-- an **ordered drain queue**: `PendingPreOps` and `OoPendingPropertyOps` (`DataBinder.Oo.cs:583,609`) are
+- an **ordered drain queue**: `PendingPreOps` and `PropertyOps` (`Binding/OoPendingPropertyOp.cs`, the queue's entry type) are
   statement-scoped, mark-on-entry and drain-own-suffix: a statement marks the count when it starts binding and takes
   only the entries registered after its mark, removing them (`ReferenceResolver.ObjectProperty.cs:266`, `RemoveRange`),
   so a reference in an IF condition belongs to the IF, not to an arm that binds later; neither append-only nor frozen;
 - a **scope cursor**: `OperandEvaluations` is saved, zeroed and restored around each statement
-  (`StatementBinder.cs:432-498`), and `ActiveMethodScope` is set per procedure-table entry (`DataBinder.Oo.cs:44`,
+  (`StatementBinder.cs:432-498`), and `ActiveMethodScope` is set per procedure-table entry (`Binding/OoMethodDataScope.cs`, the scope it holds;
   `BinderContext.cs:150`).
 And around a unit's data phases `BinderDriver` writes three more kinds of state, none of them an `IBindPass` (R1
 Draft 6 re-modelled them from the code after the fifth refuter, G2):
-- a **configuration seed** (`BinderDriver.cs:634` → `DataBinder.InheritConfiguration`, `DataBinder.Switches.cs:449-484`):
+- a **configuration seed** (`BinderDriver.cs` → `ConfigurationStep.Produce`, `Binding/ConfigurationStep.cs`, the one producer, over a `ConfigurationSource` of `Own | Contained | ClassHalf`; PB2296 M5):
   BEFORE a contained unit binds, the container's whole configuration-derived state (SPECIAL-NAMES: decimal point,
   currency signs, switches, classes, alphabets, order tables, structures, locales; the OBJECT-COMPUTER collating
   sequences and classification; DEBUGGING MODE; the REPOSITORY specifiers) is copied into the child's OWN
@@ -1108,11 +1118,11 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   SR3: "The SOURCE-COMPUTER, OBJECT-COMPUTER, and REPOSITORY paragraphs shall not be specified in a factory definition
   or an instance definition"), and its own OPTIONS paragraph. `OoDriver.BindClassData` binds the class definition's
   own ENVIRONMENT DIVISION once, in a binder of the class's own source element (§10.5), and seeds each half from it
-  through the same `InheritConfiguration` before the half binds its own division (`OoDriver.OoReparent` hands a binder
+  through the same `ConfigurationStep` (`ClassHalf`) before the half binds its own division (`OoDriver.OoReparent` hands a binder
   only its own element's divisions; kb/Work PB3154, which made the class's names inherited by the halves rather than
   declared in their §8.3.2.2 censuses); it hands each binder its definition's skeleton OPTIONS paragraph
-  (`DataBinder.UseSkeletonOptions`: the class, the OBJECT and FACTORY halves, an INTERFACE), and every binder binds
-  that paragraph in `BindDeclarations`, over the `_inheritedOptions` baseline only `InheritConfiguration` writes,
+  (`ConfigurationSource.Own.SkeletonOptions`: the class, the OBJECT and FACTORY halves, an INTERFACE), and every binder binds
+  that paragraph in `BindDeclarations`, over the `ConfigurationSlice.InheritedOptions` baseline only `ConfigurationStep` writes,
   after the element's constant entries are declared (kb/Work PB780: the INITIALIZE clause's literal-1 may be a
   constant-name, §13.10.3 SR2). A method declares no configuration section (§12.3.3 SR2: "The configuration
   section shall not be specified in a method definition") and binds through its half's binder, so it reads the half's
@@ -1132,7 +1142,7 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   data phases have frozen (`BinderDriver.cs:685-751`): it adds the containers' GLOBAL files to `FilesByName` by
   `TryAdd` (a local declaration shadows) and their other files to `ContainerLocalFiles`; inherits their GLOBAL reports
   (`InheritGlobalReport`) and GLOBAL subtrees with their depth (`InheritGlobalSubtree`: `ByName`, `Conditions`,
-  `IndexNames`, `DataBinder.Linkage.cs:285`) and bridges; marks the formals' omitted-argument guards (`MarkFormals`);
+  `IndexNames`, `_capacityRegisters`) and bridges; marks the formals' omitted-argument guards (`MarkFormals`);
   and drops the inherited constants a nearer name hides (`DropShadowedConstants`), nearest container first. Its seed
   half runs before `data.Bind` (`InheritGlobalConstants`, `InheritGlobalTypeDecls`, `ReserveInheritedMemberNames`,
   `BinderDriver.cs:640-654`), because the child's first phase reads it.
@@ -1144,8 +1154,16 @@ of that phase, frozen when the phase ends, read only after it. A **fact set** is
 statement-order visibility is today's exactly because the binder appends and reads in the order it binds;
 `IReads<TFacts>` answers the complete set and is legal only after the last phase that appends. The four accumulators
 are the four fact sets, each with its declared appending phases (`WholeGroupReferenced`: FilesResolved and
-UsageCollected; `ImageForcedItems`: FilesResolved and ProcedureBound, read early by the resolver;
-`CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule).
+UsageCollected; `ImageForcedItems`: RedefinesClassified, FilesResolved and ProcedureBound, read early by the resolver;
+`CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule). The
+declaration is code (PB2352): `FactSetKind` names the four, `FactSetContract` holds each one's appending phases (the last of
+them is the phase after which a whole read is legal), every pass states its `PassViews` (`IPassInfo.Views`: what it appends
+to, reads early, reads whole), and `BindPipeline.ValidateDag` refuses an append in a phase the set does not admit and a
+whole read that is not after the last appender. The declaration is checked against what a per-unit resolve pass does,
+not only against the phase order: `DataBinder.BindResolve` opens `AppendGate` around each pass, and a `FactSet.Add` while
+a pass that did not declare it runs throws (the binder code a pass calls is covered, which is why the rows whose code lives
+with a concern binder declare their sets too). The group-tail rows declare theirs in `BindPipeline.GroupTail`, checked by
+`ValidateDag` alone.
 The procedure-bind state is NOT in `DataBindState`: it is `ProcedureBindState` (`Binding/ProcedureBindState.cs`), which
 no data pass reads and which is never in `DataBindResult`, in its three shapes: a **scoped override** (`Scoped<T>`:
 `Push(value)` returns the scope whose disposal restores the previous value, and `Over(root)` reads the innermost pushed
@@ -1162,7 +1180,7 @@ operand-evaluation count needs as the statement drains its steps; it holds `Oper
 statement, and `ActiveMethodScope`). It is held per unit binder (`DataBinder.Procedure`), not on `BindSession`: the
 statement walk, the reference resolver and the binder's own name lookup reach it through the unit's binder (a class's
 methods bind through their half's binder), and the method-scope cursor is also entered, for the one method whose
-names they resolve, by the storage-claim resolution (`DataBinder.ResolveStorageClaimHead`, a data pass) and by the
+names they resolve, by the storage-claim resolution (`PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`, a data pass) and by the
 migration-flag pass (`FlagConformancePass`, after binding). Code generation has its own scoped override,
 `EmitContext.Options`: `OoEmitter.EmitMethod` pushes the method's OPTIONS model around the method's LOCAL-STORAGE
 initializers (kb/Work PB1215), which used to assign `DataBinder.Options` and restore it. The three shapes hold no
@@ -1177,24 +1195,28 @@ none (§12.3.3 SR1) and takes the container's frozen `DataBindResult` (§12.3.4 
 FACTORY half takes its class definition's configuration (§12.3.4 GR1: the class contains the half) overlaid clause by
 clause by the half's own SPECIAL-NAMES, the one configuration paragraph §12.3.3 SR3 leaves it. The class definition
 binds no data, so it has no `DataBindResult`: its arm's source is a `ClassConfiguration` value, bound once per class by
-the same step from the class's own section and OPTIONS paragraph and handed to both halves, which replaces the class
-binder `OoDriver.BindClassData` builds for the purpose today (kb/Work PB3154) (the seed becomes the arm's overlay, written
-once). A method is not a configuration unit (§12.3.3 SR2): it reads its half's slice. The OPTIONS slice is produced by
-the same step and the same three arms from the baseline the arm names (none for Own; the container's for Contained;
-the class definition's for ClassHalf) overlaid by the unit's own OPTIONS paragraph clause by clause (§11.9.4 GR1), so
-`InheritConfiguration`'s baseline copy and `BindDeclarations`' overlay of the unit's own paragraph (one bind point for
-every unit since kb/Work PB780) become the slice's single write; a method's own OPTIONS stay the procedure-bind scoped override below. `MnemonicRegistry.Of`'s
-parent walk becomes a reader of the slice (the device map is a configuration entry like the switch map), and so does
-`OoRepositoryScope.Build` (`Oo/OoNameResolution.cs:167-190`), a fourth reader with its own ancestor walk over the
-REPOSITORY paragraphs (the seventh refuter, J2): the REPOSITORY specifiers are a slice entry the same three arms produce
-(an outermost program, function, class or interface declares its own; a contained unit's come from its container,
-§12.3.4 GR1; a half's are its class definition's, since §12.3.3 SR3 forbids the paragraph in a factory or instance
-definition), so no reader re-derives the scope. The given external-repository design widens `OoRepositoryScope` into
-the per-source-element `IdentityScope` (its §8.7, slice 8): that is not a second owner. The slice owns the specifiers
-(the DATA: each word, its kind and its AS phrase); `IdentityScope` owns the word ↔ identity resolution (the
-BEHAVIOR), built from the unit's slice plus the definition's own name (§12.3.8.3 SR5: a specifier naming the
-containing class definition "is ignored"), and it replaces `OoRepositoryScope` in slice 8, which PB2296 waits for.
-The given says what `IdentityScope` maps and when, not where its entries come from, so it is not reopened. The **checking fold** is two value slices with ONE producer, `CheckingFold`: `UnitChecking`
+the same step from the class's own section and OPTIONS paragraph and handed to both halves (`ConfigurationStep.ForClass`
+returns it, `ClassHalf` takes it; the halves hold the VALUE, never the class's binder). The class definition's own binder
+still binds the class's section (`SpecialNamesBinder` declares into that binder's slice, PB2355), so the class's `Own` arm
+is that binder's slice. A method is not a configuration unit (§12.3.3 SR2): it reads its
+half's slice. The OPTIONS slice is produced by the same step and the same three arms from the baseline the arm names
+(none for Own; the container's for Contained; the class definition's for ClassHalf: `ConfigurationSlice.InheritedOptions`)
+overlaid by the unit's own OPTIONS paragraph clause by clause (§11.9.4 GR1; the OO skeleton's paragraph is
+`ConfigurationSlice.OptionsParagraph`, carried by the `Own` and `ClassHalf` arms), so `BindDeclarations`' overlay of the
+unit's own paragraph (one bind point for every unit since kb/Work PB780) is the slice's single write of `Options`; a
+method's own OPTIONS stay the procedure-bind scoped override below, and the emitter's scoped override covers the method's
+whole body, not only its LOCAL-STORAGE initializers. `MnemonicRegistry` is a reader of the slice
+(`ConfigurationSlice.TryGetMnemonic`: the unit's own mnemonic-names, then its container's; the device map is a
+configuration entry like the switch map), and its parse-tree ancestor walk is gone. `OoRepositoryScope.Build`
+(`Oo/OoNameResolution.cs`), the fourth reader with its own ancestor walk over the REPOSITORY paragraphs (the seventh
+refuter, J2), is NOT a reader of the binder-side slice, and the estimate above was wrong about it: the class table
+resolves names in pass 1 (`OoClassTable.RepositoryScopeFor`: base classes, INHERITS and IMPLEMENTS), before any binder
+exists, so its REPOSITORY class- and interface-specifiers (each word and its AS phrase) are a pre-bind product of the
+source elements' parse trees, memoized per source element. They stay with `OoRepositoryScope` until the external-repository
+design widens it into the per-source-element `IdentityScope` (its §8.7, slice 8): the slice owns the specifiers the binders
+read (user functions, program and function specifiers, intrinsics, properties), `IdentityScope` owns the word ↔ identity
+resolution (§12.3.8.3 SR5: a specifier naming the containing class definition "is ignored"), and it replaces
+`OoRepositoryScope` in slice 8, which PB2296 waits for. The **checking fold** is two value slices with ONE producer, `CheckingFold`: `UnitChecking`
 (the five unit flags) for every program unit and every class half, after the unit's data phases (where `BindUnitData`
 writes them today) and before ProcedureBound; and `MethodChecking` (`OoUniversalChecking`, `ExternalCheckMask`,
 `AutomaticPropagation`) for every method, folded from the group's `TurnState` at the method's own lines as
@@ -1216,8 +1238,13 @@ bridges and the drop of an inherited constant a nearer data-name hides. A contai
 subtrees are made visible INSIDE the unit's declaration half (`ReportSectionBinder.InheritContainerReports`,
 `InheritContainerGlobalData`; kb/Work PB3766, PB4199), because the unit's own FILE STATUS, KEY, DEPENDING ON and ASSIGN
 USING clauses name them, so the step offers them in its seed half rather than merging them after the data phases. The
-inherited constant-names still join the unit's own constant table (`InheritGlobalConstants`, called by the seed half,
-and `DropShadowedConstants`, by the merge half), and the inherited subtrees its own name indexes with their depth.
+inherited constant-names are `InheritedGlobals.Constants`, each with its container's depth (offered by the seed half from
+the container's `ConstantEntryBinder.GlobalConstantsToInherit` and read by `ConstantEntryBinder.FindConstant` after the
+unit's own entries, a declared local entry hiding them structurally), and `InheritStep.DropShadowed` (the merge half, and
+`OoDriver` for a class half) drops those a nearer name hides and hides the inherited symbolic-characters; the inherited
+subtrees join its own name indexes with their depth. `ConstantEntryBinder` (`DataBinder.Constants`, PB2358) owns the unit's
+constant tables and every reader of a constant-name; the CONSTANT RECORD predicates stay with the data binder
+(`DataBinder.ConstantRecord.cs`) and `DeclaredNearerThan` lives with the name classes (`DataBinder.NonDataNames.cs`).
 A pass declares its views on its `IBindPass` class, and `ValidateDag` checks
 the declarations against the phase order at startup: a value slice is written only in its phase and read only after
 it; a fact set is appended only in a phase that declares it, read early only by a pass that says so, and read whole
@@ -1246,9 +1273,33 @@ walk's duty, as today, and the oracle proves it. Most of a data pass's output is
 (`UsageInheritancePass` writes `item.Pic`, `DataBinder.cs:6752,6775,6816`), which no slice declaration covers: those
 writes stay ordered by the explicit pass list, exactly as today, and the oracle proves the order; the type system takes
 over where binding ends, because `DataBindResult` hands out the forest with `DataItem` immutable (R0-0028's row). One
-class per pass implements `IBindPass` (the lambda rows become an explicit ordered list of those classes; no
-reflection); one binder per non-pass concern: `SpecialNamesBinder` (`Switches`, `IoControl`), `FileControlBinder`,
-`ReportSectionBinder` (`Reports`), `ConstantEntryBinder`, `LinkageBinder`, `OoDataBinder`. During procedure binding the
+class per pass implements `IBindPass` (done, PB2352-PB2354: `BindPipeline.Build` is the explicit ordered list of those
+classes; no reflection; a pass still takes the binder in `Run` until step 11 gives it only its views); one binder per non-pass concern: `SpecialNamesBinder` (the former `Switches` partial: SPECIAL-NAMES and the
+OBJECT-COMPUTER alphabets and classification, §12.3.6–§12.3.7), `FileControlBinder` (FILE-CONTROL and I-O-CONTROL, §12.4.5–§12.4.6: the
+former `IoControl` partial belongs to the input-output section with FILE-CONTROL, as `DESIGN-module-topology.md` §2 and §3 row 15 had it, not to the
+configuration section), `ReportSectionBinder` (`Reports`), `ConstantEntryBinder`, `LinkageBinder`, `OoDataBinder`.
+*`SpecialNamesBinder` as built (PB2355).* One sealed class per unit, `DataBinder.SpecialNames` (made with the data binder, from the
+binder and its `EditionContext`), over six partial files by clause family (the switches, ORDER TABLE and DYNAMIC LENGTH STRUCTURE and the
+`Bind` walk in `SpecialNamesBinder.cs`; `.Alphabets`, `.Literals`, `.Classes` for CLASS and SYMBOLIC CHARACTERS, `.Currency`, `.Locales`). It
+declares the facts into the unit's `ConfigurationSlice` (`DataBindState.Configuration`: the `ConfigurationNames` tables, the program
+collating sequences and classification, the decimal point, the currency set, the mnemonic-names) and holds none of them, and it asks the data
+binder only for what is not SPECIAL-NAMES: the §8.3.2.2 declaration funnel, the constant-name readings, the method tier of a name lookup.
+Every reader of those facts (picture analysis, the literal binders, the procedure binders and the emitters) reads
+`Data.State.Configuration`; a contained unit's slice is seeded from its container's by `ConfigurationStep` (the one producer, step 5 of the
+extract, PB2296 M5), so the binder carries no `InheritFrom` and the data binder no `InheritConfiguration`. The REPOSITORY specifier
+screens and the configuration-literal readings are `DataBinder.Configuration.cs`. The emitters' reads of the slice are tolerated edge pairs
+onto `ConfigurationSlice` in `architecture-edges.json`, removed by PB2361 (the facts become a value slice in `DataBindResult`).
+*`FileControlBinder` as built (PB2356).* The same shape, `DataBinder.FileControl`, over two files: `FileControlBinder.cs` (the SELECT
+entries, `BindFileControl`; the RECORD KEY and ALTERNATE RECORD KEY source phrase; the key-level and file-level COLLATING SEQUENCE
+clauses and their post-build resolution, `ResolveFileCollating`; the ORGANIZATION, ACCESS MODE, SHARING and LOCK MODE mappers) and
+`FileControlBinder.IoControl.cs` (the I-O-CONTROL paragraph: the SAME clauses' membership model and syntax rules, APPLY COMMIT and the
+record-area link). It owns `SelectedFiles` (the SELECT-declared files, §12.4.5.2 SR2/SR3), `SuppressWhenOperands` and `ApplyCommit`; the
+files themselves stay on the data binder (`Files`, `FilesByName`), where the FD, the report section and the file resolution reach
+them. The COLLATING SEQUENCE alphabet class test, shared by the file clause, PROGRAM COLLATING SEQUENCE and SORT/MERGE, is an alphabet
+question and lives with the alphabets, `SpecialNamesBinder.CollatingAlphabetFault`. What stays for the next FILE step is the post-build
+half: `ResolveFiles` and its FILE STATUS, LINAGE, ASSIGN USING and key resolutions, and the FD/SD binding. `ConfigurationBindersBoundaryDriftTests`
+pins both binders: the data binder declares no member a binder declares (no forwarder), and each binder is made in one place. During
+procedure binding the
 binders read the frozen value slices, append and early-read the fact sets, and use `ProcedureBindState`'s three
 shapes, all through `BindSession`; after the group
 tail (StorageComputed), when every slice is frozen and every fact set complete, the output is `DataBindResult`, the
@@ -1273,8 +1324,37 @@ The code generator, the symbol table and `StatementBinder` read `ReportScope`, a
 the parse-context key of its refused PRESENT WHEN set into a verdict on the report model, and PB2399 moves `DataBinder.QualifierWalk`, the one SR4 qualifier walk it calls, down to the model layer), while PB2361 makes `DataBindResult` the
 carrier and leaves the type where it is; the `StatementBinder` pair keeps PB2347 beside PB2420. `ReportSectionBinder` replaces `DataBinder` as the owner of the two `Validation` pairs
 (`VersionConformancePass`, `IntegerOperandRules`).
+*`LinkageBinder` (step 9, PB2359).* `Binding/LinkageBinder.cs`, reached as `DataBinder.Linkage`, owns the LINKAGE /
+EXTERNAL / GLOBAL facts (the linkage roots, the USING formals, the RETURNING item, the EXTERNAL backings, the GLOBAL roots,
+the root fields the emitter must not declare, and the §13.7.3 SR4/SR5 referenceability sets) and every writer of them; it
+hands them out as read-only views and the emitter and the repository read them there. It binds over the forest its
+`DataBinder` owns, so it takes that binder as `SymbolTable` does (the name tables, `BindEntries` and the unit-kind facts
+stay the binder's). The old partial also held two concerns that were never the linkage binder's, and each went where its
+neighbours are: the inherited-depth tier of the name tables (`DeclaringDepth`, `InheritsGlobalData`, `DeclaresOwnDataName`,
+`InheritGlobalSubtree`) is in `DataBinder.cs` beside `ByName`, `Conditions` and the capacity registers it orders, and
+the cell-backing forcer (`ForceStringCanonical`, `CellCanCarry`, `AssignCellComponents`) is in `DataBinder.Ptr.cs`
+beside the BASED / ADDRESS OF claims that are its other callers. `LinkageBinderBoundaryDriftTests` pins that the views
+are read-only and that the data binder declares no member of a linkage fact type.
 *Seam:* `IBindPass` over its declared views (value slices and fact sets), `ProcedureBindState`'s three shapes, and
-`DataBindResult`; step 1 (PB2296) carries every field named above. *Steps:* PB2296,
+`DataBindResult`; step 1 (PB2296) carries every field named above.
+*Step 10 (PB2360), `OoDataBinder`, as built.* `DataBinder.Oo.cs` is gone. `Binding/OoDataBinder.cs` holds a class unit's
+OO half, one per binder (`DataBinder.Oo`, made from the init-only `DataBinder.OoRole` the driver sets): the method roster
+(`BoundMethods`), the method-scoped roots, the root-to-method owner map (`RootOwner`), the method declaration context
+(`BindingMethodScope`, `BindingMethod`, `EnterMethodDeclarations`), `BindMethodData` (a method's LINKAGE and
+LOCAL-STORAGE, its header formals), `BindPropertyClauses`, `BindObjectRefDescriptor` and the class-member-name
+reservation. It asks the binder for the entry binding every element kind shares (`BindEntries`, `DeclareDataEntries`,
+`BindRemainingConstants`, `CompleteDescriptionAhead`, `SealLinkageRules`, now `internal`). What the partial held that is
+not OO went to its own home: `Binding/OoMethodDataScope.cs` (the per-method name scope), `Binding/CompilerTemps.cs`
+(`DataBinder.Temps`: THE ONE constructor of a compiler temporary, the object-reference families that go through it, and
+the clone pairs `StorageFormPass` re-syncs), `Binding/OoPendingPropertyOp.cs` (the entry type of
+`ProcedureBindState.PropertyOps`), `ProcedureBindState.ClaimInterleavedReceiver` and `MoveBinder.ReceiverOpensAtRunTime`
+(the receiver claims, whose one asker is MOVE). The scope-aware resolver's four accessors (`Symbols`, `ActiveScope`,
+`ScopeOf`, `NameScopeOf`), the four static-storage channels (`StaticRootFields` and its three siblings, with
+`IsStaticMember`) and `IndexDeclarationsUnder` moved, text unchanged, into `DataBinder.cs`: the static channels are
+written by `RouteStaticUnitStorage`, a FilesResolved pass (PB2354), which takes them with it.
+`OoDataBinderBoundaryDriftTests` pins the boundary (no `DataBinder.Oo*` partial or member beyond the door; one maker of
+the OO binder; one constructor of a compiler temporary). The tolerated edge row `Bound -> Binding` grew two pairs
+(`StatementBinder -> OoDataBinder`, `-> CompilerTemps`), removed by PB2347 with the rest of its pairs. *Steps:* PB2296,
 PB2352–PB2361.
 
 **(2) `WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog`** — R0-0002: `public static readonly DiagnosticDescriptor`

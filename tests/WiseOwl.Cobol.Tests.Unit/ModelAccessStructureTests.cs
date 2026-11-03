@@ -75,7 +75,7 @@ public sealed class ModelAccessStructureTests
 
         // Every data item of every unit keeps a NAME — the carrier-resident formal included.
         var notNames = comp.Units
-            .SelectMany(u => u.Data.Roots.Concat(u.Data.LinkageRoots))
+            .SelectMany(u => u.Data.Roots.Concat(u.Data.Linkage.Roots))
             .SelectMany(DataItem.SelfAndDescendantsOf)
             .Where(d => !Identifier.IsMatch(d.ClrName))
             .Select(d => $"{d.CobolName}: '{d.ClrName}'")
@@ -84,7 +84,7 @@ public sealed class ModelAccessStructureTests
         Assert.True(notNames.Count == 0, "A DataItem.ClrName holds access text, not a name: " + string.Join(", ", notNames));
 
         // The carrier-resident formal: its storage is reached through its carrier, a structural step.
-        var formal = Unit("PB4320A").Data.LinkageFormals.Single();
+        var formal = Unit("PB4320A").Data.Linkage.Formals.Single();
         Assert.True(formal.CarrierResident);
         Assert.Equal(new FormalCarrier.Member(formal.CarrierField), formal.Item.ResidentCarrier);
         var place = Assert.IsType<MemberPlace>(Unit("PB4320A").Refs.Places.ResolveItem(formal.Item));
@@ -135,7 +135,7 @@ public sealed class ModelAccessStructureTests
     {
         var comp = RepositoryCodecTests.Bind(MethodSource, 2023);
         var cls = comp.ClassUnits.Single(c => c.Name == "PB4380K");
-        var formal = cls.Data.OoBoundMethods.Single().Binding!.Formals.Single();
+        var formal = cls.Data.Oo.BoundMethods.Single().Binding!.Formals.Single();
         Assert.True(formal.CarrierResident);
         var carrier = new StatementLocal(StatementLocalRole.MethodFormalCarrier, formal.Item.Uid);
         Assert.Equal(new FormalCarrier.Local(carrier), formal.Item.ResidentCarrier);
@@ -190,7 +190,7 @@ public sealed class ModelAccessStructureTests
     {
         var comp = RepositoryCodecTests.Bind(MethodDataSource, 2023);
         var cls = comp.ClassUnits.Single(c => c.Name == "PB4416K");
-        var method = cls.Data.OoBoundMethods.Single().Binding!;
+        var method = cls.Data.Oo.BoundMethods.Single().Binding!;
         var roots = method.LocalRoots.Concat(method.LinkageRoots).ToList();
         Assert.Equal(["LS-G", "LS-R", "LS-V", "L-F", "L-U", "L-R"], roots.Select(r => r.CobolName));
         Assert.All(roots, r => Assert.Equal(new MethodDataLocal(r), r.ActivationLocal));

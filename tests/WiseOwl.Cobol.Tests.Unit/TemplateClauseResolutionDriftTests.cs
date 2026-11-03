@@ -21,11 +21,11 @@ public sealed class TemplateClauseResolutionDriftTests
     /// <summary>(file, method) — each one's body must walk <c>ClauseResolutionForest()</c> and never <c>AllItems()</c>.</summary>
     public static TheoryData<string, string> Resolvers => new()
     {
-        { "DataBinder.Odo.cs", "OccursKeyResolve" },
-        { "DataBinder.Odo.cs", "OdoResolve" },
-        { "DataBinder.Odo.cs", "DynamicResolve" },
+        { "Passes/OccursKeyResolvePass.cs", "Run" },
+        { "Passes/OdoResolvePass.cs", "Run" },
+        { "Passes/DynamicResolvePass.cs", "Run" },
         { "DataBinder.cs", "RenamesOwners" },
-        { "DataBinder.cs", "ResolveRestrictedTypes" },
+        { "Passes/ExpandTypesPass.cs", "ResolveRestrictedTypes" },
         { "DataBinder.cs", "ResolveRestrictedPrototypes" },
         { "DataBinder.cs", "RestrictedPrototypePointers" },
     };
@@ -55,10 +55,10 @@ public sealed class TemplateClauseResolutionDriftTests
     [Fact]
     public void TheRulesThatReadPlacement_AskWhetherTheEntryIsInATypeDeclaration()
     {
-        string odo = BodyOf("DataBinder.Odo.cs", "OdoResolve");
-        Assert.Contains("InTypeDeclaration(item)", odo);
+        string odo = BodyOf("Passes/OdoResolvePass.cs", "Run");
+        Assert.Contains("DataBinder.InTypeDeclaration(item)", odo);
         Assert.Contains("if (declaration) continue;", odo);
-        Assert.Contains("!declaration && DependingAttributeFault", odo);
-        Assert.Contains("if (InTypeDeclaration(item)) continue;", BodyOf("DataBinder.Odo.cs", "DynamicResolve"));
+        Assert.Contains("!declaration && DependingAttributeFault(binder, item, dep)", odo);
+        Assert.Contains("if (DataBinder.InTypeDeclaration(item)) continue;", BodyOf("Passes/DynamicResolvePass.cs", "Run"));
     }
 }

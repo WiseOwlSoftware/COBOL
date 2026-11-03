@@ -343,7 +343,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   **Format 2 (table) VALUE** (§13.18.63.2 — literals keyed to occurrence ranges by a mandatory `FROM (subscript)`
   phrase). Its resolution (GR12's odometer over the whole subscript tuple, GR13 cyclic reuse under TO, GR14 no-TO =
   fill to the maximum, GR15 later-FROM-wins, GR16's dynamic initial capacity) is done in the BINDER —
-  `DataBinder.ResolveTableValues`, a post-forest pass that also enforces §13.18.63.3 SR18–SR23 — and stored as a
+  `ResolveTableValuesPass`, a post-forest pass that also enforces §13.18.63.3 SR18–SR23 — and stored as a
   `TableValuePlan` on the entry: its well-formed PHRASES, never an element map (kb/Work PB1722).
   **⛔ A table's initial state is emitted from its OCCURRENCE RUNS, never element by element** (kb/Work PB1722):
   `TableValueRuns.Of` answers which occurrences of a level initialize alike (one uniform run without a table VALUE
@@ -406,7 +406,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   the members' widths — a member whose LEVEL NUMBER differs from its predecessor's is not "of the same level" and
   starts at the next byte.
 - **The group-level VALUE SYNTAX rules are screened at bind time, in one place**
-  (`DataBinder.CheckGroupValueDeclarations` → COBOL1702 / COBOL1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
+  (`CheckGroupValueDeclarationsPass` → COBOL1702 / COBOL1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
   SR16 extends SR13/SR14 to the format 2 table VALUE). SR1 bars a strongly-typed group item or a variable-length
   group from BEING the subject; SR14 forbids a JUSTIFIED or SYNCHRONIZED subordinate **and** requires every data
   item subordinate to an *alphanumeric* group item carrying a VALUE to be explicitly or implicitly usage DISPLAY;
@@ -1051,11 +1051,11 @@ the run-unit registry by `"::EXT::" + externalized-name` (= the FD name, GR5) in
 existing `::EXT::` key — a later describer's activation never clobbers the live connector; CANCEL's `CloseFiles`
 skips external connectors, §14.9.5 GR8/GR9), and the record area re-bases onto ONE run-unit `ExternalStore` cell
 keyed `"FD::" + externalized-name` via the same Tier-B string-canonical machinery WS EXTERNAL 01s use
-(`DataBinder.Linkage.cs::CallBindExternalAndGlobal`); FILE STATUS items stay per-program; the GR6 same-byte-count
+(`LinkageBinder.cs::CallBindExternalAndGlobal`); FILE STATUS items stay per-program; the GR6 same-byte-count
 cross-describer check is §14.8.4 EC-band work (documented-deferred). GLOBAL FD inheritance — **IMPLEMENTED
 (IC233A/IC234A; §13.18.27.4 GR1)**: ancestors' GLOBAL FileModels merge into a contained unit's `FilesByName`
 ONLY (never `Files` — no re-registration/re-qualification/CANCEL-close; the shared FileModel reference keys the
-child's verbs to the owner's connector), the GLOBAL FD's records join `CallGlobalRoots` (record-names are global
+child's verbs to the owner's connector), the GLOBAL FD's records join `LinkageBinder.GlobalRoots` (record-names are global
 names → the standard `__outer` ref-bridges), `StatementValidation.ResolveRecordName` — the ONE `record-name-1`
 operand rule, shared by WRITE §14.9.51.3 SR5, REWRITE §14.9.35.3 SR1 and RELEASE §14.9.32.3 SR1, and the
 successor to `SequentialIoBinder.FileOfRecord`, which tested CONTAINMENT where the rule says IDENTITY
@@ -2103,7 +2103,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       six sub-rules ONCE, "where the native coded character set is the type of coded character set or collating
       sequence being defined, either alphanumeric or national", and both native sets are the 65,536 UTF-16 code units
       here (implementor item 188 / D-N1) — so `CollatingTable` (binder), `LiteralPhraseCollation` (runtime, with
-      `AlphanumericCollation` / `NationalCollation` as its two named arms) and `DataBinder.Switches`'s
+      `AlphanumericCollation` / `NationalCollation` as its two named arms) and `SpecialNamesBinder`'s
       `AlphabetLiteralPhrase` / `AlphabetOperands` each exist exactly once and take a `national` flag that reaches
       only the diagnostics and the per-operand literal CLASS. The arms drifted for as long as they were separate:
       the alphanumeric one implemented NONE of §12.3.7.3 SR14 (duplicates, the ordinal range, the literal class, the
@@ -2116,7 +2116,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       "Any characters of the native collating sequence that are not specified in the literal phrase shall assume a
       position in the collating sequence that is greater than that of the highest character specified in this
       literal phrase. The relative order within the set of these unspecified characters is unchanged from the
-      native collating sequence."), built in `DataBinder.Switches` (`Alphabets`/`Collating`), rendered as
+      native collating sequence."), built in `SpecialNamesBinder` (`Alphabets`/`Collating`), rendered as
       the generated `__COLLATE` field (declared by `ObjectComputerEmit.EmitMembers` for EVERY runtime-module
       type — a program class and a CLASS-ID's instance/factory classes alike, kb/Work PB111, beside the
       `__COLLATE_NAT` and `__CLASSIFY` members), consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
@@ -2140,7 +2140,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     arms** (kb/Work PB793). SR15 says "The implementor shall specify the names supported for code-name-1 and
     code-name-2 in the ALPHABET clause, if any", and the answer is one row per supported name carrying everything
     §12.3.7.4 GR7 i/j obliges the implementor to supply for it — the coded character set's ordinal count, the
-    collating positions, and the correspondence with the native set. `DataBinder.AlphabetCodeName` is a LOOKUP
+    collating positions, and the correspondence with the native set. `SpecialNamesBinder.AlphabetCodeName` is a LOOKUP
     keyed by (spelling, class) with the refusal on miss, so **the next supported code-name is a row and no code
     path at all**, and the diagnostic names the supported set FROM the table. The set (owner decision, PB793;
     `follow_gnucobol_on_split_latitude`): code-name-1 = **`ASCII`** (ISO/IEC 646 IRV — 128 ordinals, the identity
@@ -2178,7 +2178,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     sites that reference the CODED CHARACTER SET — "*the class condition, the CLASS clause …, a SYMBOLIC CHARACTERS
     clause, or the CODE-SET clause*" — and Table 6 which phrases define one (every phrase but LOCALE). ONE model
     serves all four: `Binding/CodedCharacterSet.cs` — `CodedCharacterSet.Of(AlphabetDef)` / `Of(NationalAlphabetDef)`
-    (null for a LOCALE alphabet, and the ONE refusal `DataBinder.CodedCharacterSetOf(name, site, rule)` → COBOL1669
+    (null for a LOCALE alphabet, and the ONE refusal `SpecialNamesBinder.CodedCharacterSetOf(name, site, rule)` → COBOL1669
     at every site — §8.8.4.4.3 SR2, §12.3.7.3 SR16g / SR17d, §13.18.13.3 SR1/SR2), with `CharAt(ordinal)` (the
     character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §8.8.4.4.4 GR3 a) and
     `Medium` + `MediumCorrespondence` (the medium codec, §13.18.13.4 GR2/GR6 — the ONE classifier that says whether
@@ -2209,7 +2209,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     `OrdinalCount` (the SR16 e/f and SR17 b2 range bound) and `Medium` come from the table and not from a switch on
     the phrase name. **Consumers:** (a) `SYMBOLIC CHARACTERS` — each symbolic-character-1 defines a FIGURATIVE CONSTANT
     (GR11 a) whose value is the character at ordinal integer-1 in the native set or the `IN` alphabet's set (GR11 b/c;
-    SR16 a/c/e/f/g checked); it is carried as `DataBinder.SymbolicCharacters` (name → the one-character literal and
+    SR16 a/c/e/f/g checked); it is carried as `SpecialNamesBinder.SymbolicCharacters` (name → the one-character literal and
     its class) and SUBSTITUTED where a figurative constant may stand (§8.3.3.6.2 Format 7 `[ALL] symbolic-character-1`;
     §8.3.3.6.4 GR2 — it FILLS a fixed-length receiver / VALUE like SPACE, GR3 b — one character in DISPLAY / STRING):
     the substituted form IS the ALL-literal NODE of that one character (`BoundAllLiteral` — the fill semantics of

@@ -260,7 +260,7 @@ internal sealed record FileControlKeyRule(
 /// edition would add one, and its gate would ride <c>EditionContext</c> exactly as every other introduction does.</para>
 /// <para>⚖ THE SIBLING SITE. Entry rules that are decidable from the CLAUSES ALONE — §12.4.5.5.2 SR2 (no DYNAMIC
 /// or RANDOM on a sequential file, kb/Work PB692) and the §12.4.5.9.3 SR2 screen beside it — stay inline in
-/// <c>DataBinder.BindFileControl</c>, because they need nothing resolved and can report as the entry is read.
+/// <c>FileControlBinder.BindFileControl</c>, because they need nothing resolved and can report as the entry is read.
 /// This table holds the rules that need a RESOLVED DATA ITEM: a key clause names a data-name whose OCCURS
 /// ancestry, PICTURE and owning record description are unknown until the data forest is indexed. That is the
 /// whole criterion for which of the two a new entry rule joins — `FILES_DESIGN.md` D19.</para>
@@ -287,7 +287,7 @@ internal sealed record FileControlKeyRule(
 /// RECORD KEY (PB1073) after them.</para>
 /// <para>ALSO NOT HERE, and the one place §12.4.5.2 SR8 is written down twice: the COLLATING SEQUENCE clause is a
 /// Format-1 clause too, and a file-level one on a non-indexed file is refused by
-/// <c>DataBinder.ResolveFileCollating</c> (COBOL1582) — because that test is ALSO the guard that stops the
+/// <c>FileControlBinder.ResolveFileCollating</c> (COBOL1582) — because that test is ALSO the guard that stops the
 /// rest of that method, and splitting a guard from its report would leave the resolution running on an entry it
 /// has already refused. Its citation was §12.4.5.7.1, the clause's descriptive General paragraph; it is SR8 and
 /// now says so. The traceability row `SR-12.4.5.2-8` names both sites.</para>
@@ -635,7 +635,7 @@ internal static class FileControlKeyRules
     // ⚠ A clause carried by MORE THAN ONE format identifies none — ACCESS MODE IS RANDOM appears in Formats 1 and
     // 2 both, and the standard screens it with the ACCESS clause's own rule (§12.4.5.5.2 SR2, DataBinder), not
     // with SR8/SR9. The collating-sequence-clause is likewise screened at its own resolution site
-    // (DataBinder.ResolveFileCollating, COBOL1582), which has to guard on the organization anyway.
+    // (FileControlBinder.ResolveFileCollating, COBOL1582), which has to guard on the organization anyway.
     private const FileFormats Formats123 = FileFormats.Format1 | FileFormats.Format2 | FileFormats.Format3;
     private const FileFormats Formats12 = FileFormats.Format1 | FileFormats.Format2;
 

@@ -70,7 +70,7 @@ public sealed class DataClausePlacementDriftTests
 
     /// <summary>A written sample of each clause that can be the subject of an <see cref="ClausePlacementKind.ElementaryOnly"/>
     /// row. ⛔ A clause joining such a row without a sample here fails <see cref="EveryElementaryOnlySubject_IsRefusedOnAGroup"/>
-    /// — add the sample, and the arm in <c>DataBinder.ElementaryOnlyClausesOn</c> that makes the screen see it.</summary>
+    /// — add the sample, and the arm in <c>CheckPictureRequiredPass.ElementaryOnlyClausesOn</c> that makes the screen see it.</summary>
     private static readonly Dictionary<DataClauseKind, string> ElementaryOnlySample = new()
     {
         [DataClauseKind.Picture] = "PIC X(3)",
@@ -109,8 +109,8 @@ public sealed class DataClausePlacementDriftTests
     {
         var binder = Bind(label, "WORKING-STORAGE", ws, out var diags);
         Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
-        Assert.Empty(binder.CallGlobalRoots);
-        Assert.Empty(binder.CallExternalBackings);
+        Assert.Empty(binder.Linkage.GlobalRoots);
+        Assert.Empty(binder.Linkage.ExternalBackings);
     }
 
     [Theory]
@@ -131,7 +131,7 @@ public sealed class DataClausePlacementDriftTests
     {
         var binder = Bind("GLB" + section, section, "       01  H IS GLOBAL PIC X(4).\r\n", out var diags);
         Assert.DoesNotContain(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
-        Assert.Contains(binder.CallGlobalRoots, g => g.CobolName == "H");
+        Assert.Contains(binder.Linkage.GlobalRoots, g => g.CobolName == "H");
     }
 
     /// <summary>kb/Work PB519's RUNTIME arm: an EXTERNAL clause on the redefinER used to re-base the redefines
@@ -142,8 +142,8 @@ public sealed class DataClausePlacementDriftTests
         var binder = Bind("ANCHOR", "WORKING-STORAGE",
             "       01  A IS EXTERNAL PIC X(4).\r\n       01  B REDEFINES A PIC X(4).\r\n", out var diags);
         Assert.DoesNotContain(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
-        Assert.Single(binder.CallExternalBackings);
-        Assert.Equal("A", binder.CallExternalBackings[0].Record.CobolName);
+        Assert.Single(binder.Linkage.ExternalBackings);
+        Assert.Equal("A", binder.Linkage.ExternalBackings[0].Record.CobolName);
     }
 
     /// <summary>§13.18.38.3 SR1 a) (kb/Work PB1260) — "The OCCURS clause shall not be specified in a data description

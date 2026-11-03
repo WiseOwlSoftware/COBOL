@@ -6,10 +6,10 @@
  "subject": "COLLATING SEQUENCE clause",
  "rule-digest": "bde31a217823",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveKeyCollating",
  "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074_file_collating_key_class",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.4 'the native national collating sequence applies to any record keys of class national' -> OK GR5. A national key under a file-level alphanumeric alphabet with no alphabet-name-2 orders and compares natively: golden file G (COLLATING SEQUENCE IS EQV, 'A' ALSO 'B') writes N\"A\" and N\"B\" -> 00 00 (was 22); probe gr1na now GW2 00.",
+ "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.4 'the native national collating sequence applies to any record keys of class national' -> OK GR5. A national key under a file-level alphanumeric alphabet with no alphabet-name-2 orders and compares natively: golden file G (COLLATING SEQUENCE IS EQV, 'A' ALSO 'B') writes N\"A\" and N\"B\" -> 00 00 (was 22); probe gr1na now GW2 00. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating (kb/Work PB2356 extracted the FILE-CONTROL entry binding and the I-O-CONTROL paragraph out of DataBinder.cs and DataBinder.IoControl.cs into the FileControlBinder class (and the COLLATING SEQUENCE alphabet test into SpecialNamesBinder); each member is the same rule, moved with its body unchanged)",
  "state": "OK"
 }

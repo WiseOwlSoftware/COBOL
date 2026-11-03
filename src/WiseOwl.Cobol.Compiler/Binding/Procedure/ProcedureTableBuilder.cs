@@ -504,7 +504,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // its ON procedure-name / ALL PROCEDURES triggers fire (the DEBUG-ITEM register family is modeled).
             // The section body is collected below (an ordinary pc range invoked by the emitted __RunDebug, not a
             // BoundDeclarative — scope stays null); FinalizeDebug records the subjects once every procedure is in.
-            if (!ctx.Data.DebuggingModeDeclared) return;
+            if (!ctx.Data.State.Configuration.DebuggingModeDeclared) return;
             ctx.Data.ActivateDebugRegisters();   // make DEBUG-* references resolvable while this section binds
             _pendingDebug.Add((info, use));      // info.EndPc is filled after the body is collected below
             // fall through to collect the section body into the pc space (scope stays null — no BoundDeclarative)
@@ -608,7 +608,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         }
                         if (ReportUnresolvedDebugOperand(adr, section)) continue;
                     }
-                    ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
+                    ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING "
                         + $"ON ALL REFERENCES OF '{anm}' (the data-item subject: the after-statement data trigger with "
                         + "DEBUG-CONTENTS/DEBUG-SUB rendering) is recognized but not modeled — only ON procedure-name / ALL "
                         + "PROCEDURES is implemented (X3.23-1985 debug module; VCR Table 7 row 7.17)");
@@ -629,7 +629,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         for (int pc = drange.Start; pc <= drange.End; pc++)
                             AddDebugSubject(pc, section);
                     else if (NamesDataItem(dr) || NamesFile(dr) || !ReportUnresolvedDebugOperand(dr, section))
-                        ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
+                        ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING "
                             + $"ON '{nm}' names a file-name, cd-name, or data item (not a procedure-name of this "
                             + "program) — only the ON procedure-name / ALL PROCEDURES leg is modeled; the file / "
                             + "data / communication debug triggers are not (X3.23-1985 debug module; VCR Table 7 row 7.17)");
@@ -647,7 +647,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 if (Enumerable.Range(rng.Start, rng.End - rng.Start + 1).Any(subjectPcs.Contains))
                 {
                     using var _ = ctx.Edition.At(phrase);   // the INPUT/OUTPUT PROCEDURE phrase (kb/Work PB2034)
-                    ctx.Edition.Error("COBOL1571", $"the SORT/MERGE {name} PROCEDURE is also a USE FOR "
+                    ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"the SORT/MERGE {name} PROCEDURE is also a USE FOR "
                         + "DEBUGGING subject: the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not "
                         + "modeled (only the plain-transfer / fall-through / PERFORM-loop / START-PROGRAM causes "
                         + "are) — X3.23-1985 debug module; VCR Table 7 row 7.17");

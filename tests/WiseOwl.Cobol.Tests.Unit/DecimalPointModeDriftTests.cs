@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class DecimalPointModeDriftTests
 {
     private static readonly Regex UnitModeRead =
-        new(@"\b(?:ctx\.Data|Data|_currentData)\??\.(?:DecimalPointIsComma|DecimalSeparator)\b", RegexOptions.Compiled);
+        new(@"\b(?:ctx\.Data|Data|_currentData)\??\.State\.Configuration\.(?:DecimalPointIsComma|DecimalSeparator)\b", RegexOptions.Compiled);
 
     /// <summary>The unit-mode readers that are NOT about an item's PICTURE: (file, expected count, why).</summary>
     private static readonly (string File, int Count, string Why)[] Allowed =
