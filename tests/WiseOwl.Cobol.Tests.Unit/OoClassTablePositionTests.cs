@@ -152,6 +152,138 @@ public sealed class OoClassTablePositionTests
             END OBJECT.
             END CLASS PC3.
             """ },
+        // kb/Work PB4459: the implementation of an interface prototype is found through the roster key, so it may be a method NO METHOD-ID
+        // of the group wrote — a PROPERTY clause's accessor (ISO §13.18.42), the standard class BASE's New (ISO §16.2). The §9.3.8.2.3
+        // conformance error about it (COBOL0841) stands at the class that must implement the prototype, not at a stale cursor.
+        { "IMPLEMENTS-GENERATED-ACCESSOR", """
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. PG0.
+            PROCEDURE DIVISION.
+            METHOD-ID. GET PROPERTY BAL.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-R PIC 9(5).
+            PROCEDURE DIVISION RETURNING LK-R.
+            END METHOD.
+            END INTERFACE PG0.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PG1 INHERITS FROM BASE. *> @0841
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE
+                INTERFACE PG0.
+            IDENTIFICATION DIVISION.
+            OBJECT. IMPLEMENTS PG0.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(3) PROPERTY WITH NO SET.
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS PG1.
+            """ },
+        // kb/Work PB4459 (review R1-1): the §8.4.3.9.3 SR7 accessor-pair error stands at the METHOD-ID the class wrote; a pair whose class-owned
+        // half is a PROPERTY clause's generated accessor (no METHOD-ID) stands at the class name, for a generated GET over an inherited SET ...
+        { "PAIR-GENERATED-GET-INHERITED-SET", """
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PA1 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 W-BAL PIC 9(3).
+            PROCEDURE DIVISION.
+            METHOD-ID. SET PROPERTY BAL.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-V PIC 9(3).
+            PROCEDURE DIVISION USING LK-V.
+            MAIN.
+                MOVE LK-V TO W-BAL.
+            END METHOD.
+            END OBJECT.
+            END CLASS PA1.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PA2 INHERITS FROM PA1. *> @2727
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS PA1.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(5) PROPERTY WITH NO SET. *> @2563
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS PA2.
+            """ },
+        // ... and for a generated SET over an inherited GET.
+        { "PAIR-GENERATED-SET-INHERITED-GET", """
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PA3 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 W-BAL PIC 9(3).
+            PROCEDURE DIVISION.
+            METHOD-ID. GET PROPERTY BAL.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-R PIC 9(3).
+            PROCEDURE DIVISION RETURNING LK-R.
+            MAIN.
+                MOVE W-BAL TO LK-R.
+            END METHOD.
+            END OBJECT.
+            END CLASS PA3.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PA4 INHERITS FROM PA3. *> @2727
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS PA3.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(5) PROPERTY WITH NO GET. *> @2563
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS PA4.
+            """ },
+        { "IMPLEMENTS-STANDARD-METHOD", """
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. PG2.
+            PROCEDURE DIVISION.
+            METHOD-ID. NEW.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-P PIC 9(5).
+            PROCEDURE DIVISION USING LK-P.
+            END METHOD.
+            END INTERFACE PG2.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PG3 INHERITS FROM BASE. *> @0841
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE
+                INTERFACE PG2.
+            IDENTIFICATION DIVISION.
+            FACTORY. IMPLEMENTS PG2.
+            END FACTORY.
+            END CLASS PG3.
+            """ },
     };
 
     [Theory]

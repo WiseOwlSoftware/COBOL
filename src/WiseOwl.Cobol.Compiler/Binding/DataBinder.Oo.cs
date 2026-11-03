@@ -409,9 +409,9 @@ public sealed partial class DataBinder
         // A method's environment division may not carry the configuration section (§12.3.3 SR2) or the
         // input-output section (§12.4.3 SR1) — a bare header is legal (§10.6.1, §12.2.1). One placement table
         // for every OO definition kind (kb/Work PB1076). A method references the class's files via §11.7.4 GR5.
-        OoEnvironmentRules.Screen(OoDefinition.Method, where, m.Definition.environmentDivision(), Edition);
+        OoEnvironmentRules.Screen(OoDefinition.Method, where, m.Ctx.environmentDivision(), Edition);
 
-        var dd = m.Definition.dataDivision();
+        var dd = m.Ctx.dataDivision();
         _bindingMethod = m;
         using (EnterMethodDeclarations(m.DataScope))
         {
@@ -430,7 +430,7 @@ public sealed partial class DataBinder
             // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind. Bound inside the
             // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
             // its constant-names, or one of its object's (§13.10.3 SR2, §8.4.6.2.2; kb/Work PB780).
-            if (m.Definition.optionsParagraph() is { } mo)
+            if (m.Ctx.optionsParagraph() is { } mo)
                 m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, FindConstant);
             if (dd is not null)
             {
@@ -481,7 +481,7 @@ public sealed partial class DataBinder
         // formal records it, and the method ABI pairs every formal with its omitted-presence parameter
         // (OoFormal.OmittedFlag) — the method arm of the one presence fact the program arm's null carrier realizes
         // (kb/Work PB133 wave C).
-        var pd = m.Definition.procedureDivision();
+        var pd = m.Ctx.procedureDivision();
         int pos = 0;
         bool byValue = false;
         // The formals whose ADDRESS OF the body takes are AREA formals (FormalIsCarrierResident — the program arm's test).
@@ -937,7 +937,7 @@ public sealed partial class DataBinder
             // NO GET + explicit GET pair, which synthesizes no colliding accessor, compiled). The clause then defines no
             // accessor: the explicit method keeps the property.
             if ((factory ? cls.FactoryMethods : cls.Methods).FirstOrDefault(m =>
-                    m.Ctx is not null && CobolNames.Same(m.PropertyName, subjName)) is { } explicitAccessor)
+                    m.Origin is OoSymbolOrigin.Source && CobolNames.Same(m.PropertyName, subjName)) is { } explicitAccessor)
             {
                 Edition.Error(DiagnosticCatalog.PropertyMethodRule, $"{where}: METHOD-ID "
                     + $"{(explicitAccessor.Accessor == 'G' ? "GET" : "SET")} PROPERTY {subjName} names a data-name of the "
@@ -956,8 +956,8 @@ public sealed partial class DataBinder
             void AddAccessor(char kind, string csName)
             {
                 var m = new OoMethodSymbol(csName,
-                    HasUsing: kind == 'S', HasReturning: kind == 'G',
-                    Ctx: null)
+                    hasUsing: kind == 'S', hasReturning: kind == 'G',
+                    OoSymbolOrigin.Generated)
                 {
                     ClrName = csName, Owner = cls, IsFactory = factory,
                     Accessor = kind, PropertyName = subjName, PropertySubject = subject,

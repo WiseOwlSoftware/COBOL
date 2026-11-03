@@ -10,17 +10,47 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// USING/RETURNING presence recorded at pass-1, and — filled by <c>DataBinder.OoBindMethodData</c> at class
 /// bind time (BEFORE any statement binds, so every INVOKE site in the group sees the full signature) — the
 /// resolved formal list, RETURNING item, and data roots (port slice 2, deep-dive D3/D6).</summary>
-/// <param name="Ctx">The METHOD-ID definition this method was written as, or NULL for a method no source of this group wrote: the standard
-/// class BASE's, one generated for a property accessor, and one IMPORTED from the external repository (DESIGN-external-repository §10.1).
-/// A reader that binds the method's data or body asks <see cref="Definition"/>.</param>
-public sealed record OoMethodSymbol(
-    string Name, bool HasUsing, bool HasReturning,
-    CobolParserCore.MethodDefinitionContext? Ctx)
+public sealed record OoMethodSymbol
 {
-    /// <summary>The METHOD-ID definition of a method this group's source wrote (<see cref="Ctx"/>): what binding its data and body reads.
-    /// A method without one has no body to bind, so asking is a compiler fault.</summary>
-    public CobolParserCore.MethodDefinitionContext Definition =>
-        Ctx ?? throw new InvalidOperationException($"method '{Name}' has no source definition (it is a standard, generated or imported method)");
+    private readonly CobolParserCore.MethodDefinitionContext? _definition;
+
+    /// <summary>A method this group's source wrote: <see cref="OoSymbolOrigin.Source"/>, with the METHOD-ID definition it was written as.</summary>
+    public OoMethodSymbol(string name, bool hasUsing, bool hasReturning, CobolParserCore.MethodDefinitionContext definition)
+    {
+        (Name, HasUsing, HasReturning, _definition, Origin) = (name, hasUsing, hasReturning, definition, OoSymbolOrigin.Source);
+    }
+
+    /// <summary>A method no METHOD-ID of this group wrote: <see cref="OoSymbolOrigin.Standard"/> (the standard class BASE's, ISO §16.2),
+    /// <see cref="OoSymbolOrigin.Imported"/> (read from an assembly of the external repository, DESIGN-external-repository §10.1) or
+    /// <see cref="OoSymbolOrigin.Generated"/> (a PROPERTY clause's accessor, ISO §13.18.42). A source method has a definition, so asking for
+    /// <see cref="OoSymbolOrigin.Source"/> here is a compiler fault.</summary>
+    public OoMethodSymbol(string name, bool hasUsing, bool hasReturning, OoSymbolOrigin origin)
+    {
+        if (origin is OoSymbolOrigin.Source)
+            throw new ArgumentException($"method '{name}': a Source method is built from its METHOD-ID definition", nameof(origin));
+        (Name, HasUsing, HasReturning, Origin) = (name, hasUsing, hasReturning, origin);
+    }
+
+    /// <summary>The COBOL method name (an accessor's is its pinned GET/SET family name, ISO §11.7.4 GR1 a).</summary>
+    public string Name { get; }
+
+    /// <summary>Whether the PROCEDURE DIVISION header has a USING phrase (an accessor's formal for a SET).</summary>
+    public bool HasUsing { get; }
+
+    /// <summary>Whether the PROCEDURE DIVISION header has a RETURNING phrase (an accessor's result for a GET).</summary>
+    public bool HasReturning { get; }
+
+    /// <summary>Where this method came from (<see cref="OoSymbolOrigin"/>) — the ONE question every consumer asks, never "is its
+    /// <see cref="Ctx"/> null" (kb/Work PB4459). It pairs <see cref="OoClassSymbol.Origin"/>: a method is <see cref="OoSymbolOrigin.Source"/>
+    /// exactly when it has a METHOD-ID definition.</summary>
+    public OoSymbolOrigin Origin { get; }
+
+    /// <summary>The METHOD-ID definition this method was written as: what binding its data and body reads, and the position a diagnostic
+    /// about it stands at. Only a <see cref="OoSymbolOrigin.Source"/> method has one; a standard, a generated and an imported method have
+    /// no body to bind and no position of their own, so reading this on one is a loud internal error rather than a null the caller forgot
+    /// to test (as <see cref="OoClassSymbol.Ctx"/> does). A reader that may meet either asks <see cref="Origin"/> first.</summary>
+    public CobolParserCore.MethodDefinitionContext Ctx => _definition
+        ?? throw new InvalidOperationException($"method '{Name}' is {Origin.ToString().ToLowerInvariant()} and has no source definition");
 
     /// <summary>The name this method is externalized under (ISO §11.7.4 GR1 b): "the name is
     /// method-name-1. However, literal-1, if specified, is the name of method that is externalized to the
@@ -30,7 +60,8 @@ public sealed record OoMethodSymbol(
     /// externalized name. Keying the roster here also realizes §11.7.3 SR9's "if method-name-1 OR
     /// literal-1 is the same as a method-name inherited or implemented" without a second lookup path
     /// (kb/Work PB303).</summary>
-    public string ExternalizedName { get; init; } = Name;
+    public string ExternalizedName { get => _externalizedName ?? Name; init => _externalizedName = value; }
+    private readonly string? _externalizedName;
 
     /// <summary>The key a UNIVERSAL dispatch selects this method by (kb/Work PB1405): §8.3.2.2 1) treats a universal
     /// INVOKE's method-name "as a COBOL word that maps to the externalized name of the method to be invoked", so the
@@ -94,20 +125,15 @@ public sealed record OoMethodSymbol(
 
     /// <summary>Which method of the standard class BASE this is (ISO §16.2 — its factory interface's New, its
     /// object interface's FactoryObject), or <see cref="StandardMethod.None"/> for every method written in the
-    /// compilation group. A standard method has no METHOD-ID in source (its <see cref="Ctx"/> is null, like a
-    /// synthesized PROPERTY accessor's) and no COBOL body: the runtime class <c>WiseOwl.Cobol.Runtime.BASE</c> is its
+    /// compilation group. Set exactly when <see cref="Origin"/> is <see cref="OoSymbolOrigin.Standard"/>: such a method has no METHOD-ID in
+    /// source and no COBOL body: the runtime class <c>WiseOwl.Cobol.Runtime.BASE</c> is its
     /// implementation, so an invocation site binds it through its own form rather than the user-method tail.</summary>
     public StandardMethod Standard { get; init; }
 
-    /// <summary>True for a method (or interface prototype) read from an assembly of the external repository
-    /// (DESIGN-external-repository §10.1, §10.6): it has no <see cref="Ctx"/> and its <see cref="ClrName"/> is a fact of the
-    /// assembly already built, as a standard method's is the runtime's.</summary>
-    public bool Imported { get; init; }
-
     /// <summary>True when <see cref="ClrName"/> is a fact no compilation of this group may change — a standard method's (the
-    /// runtime's member) or an imported one's (the built assembly's) — so <c>OoClassTable.NameMethodSlots</c> names a slot after it
-    /// and never renames it.</summary>
-    public bool HasFixedClrName => Standard is not StandardMethod.None || Imported;
+    /// runtime's member) or an imported one's (the built assembly's, DESIGN-external-repository §10.1, §10.6) — so
+    /// <c>OoClassTable.NameMethodSlots</c> names a slot after it and never renames it.</summary>
+    public bool HasFixedClrName => Origin is OoSymbolOrigin.Standard or OoSymbolOrigin.Imported;
 
     /// <summary>The method's own OPTIONS paragraph folded over the class channel's model (§10.6.1 method
     /// skeleton / §11.9.4 GR1; kb/Work PB135) — null when the method writes none. BindMethodRoster swaps it

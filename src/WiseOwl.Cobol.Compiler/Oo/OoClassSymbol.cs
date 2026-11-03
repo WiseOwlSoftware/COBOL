@@ -7,11 +7,12 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
 
-/// <summary>Where a class symbol came from (DESIGN-external-repository §10.1) — the ONE question every consumer used to ask as
-/// "has it a source definition?" (<c>IsStandard</c> was <c>ctx is null</c>).</summary>
+/// <summary>Where a class, interface or method symbol came from (DESIGN-external-repository §10.1) — the ONE question every consumer used
+/// to ask as "has it a source definition?" (<c>IsStandard</c> was <c>ctx is null</c>; kb/Work PB4459 did the same for
+/// <see cref="OoMethodSymbol"/>).</summary>
 public enum OoSymbolOrigin
 {
-    /// <summary>A CLASS-ID definition of the compilation group (it has a parse context and is emitted).</summary>
+    /// <summary>A CLASS-ID, INTERFACE-ID or METHOD-ID definition of the compilation group (it has a parse context and is emitted).</summary>
     Source,
 
     /// <summary>The standard class BASE (ISO §16.1), implemented by the runtime (<see cref="OoStandardClasses"/>).</summary>
@@ -20,6 +21,10 @@ public enum OoSymbolOrigin
     /// <summary>A class another compilation group published in an assembly of the external repository (ISO §8.13), built by
     /// <c>MetadataRepositoryProvider.Class</c> from its record: reached by identity, never emitted.</summary>
     Imported,
+
+    /// <summary>A METHOD the compiler built from other source of the group — a PROPERTY clause's accessor (ISO §13.18.42): emitted like a
+    /// source method, but with no METHOD-ID of its own (<see cref="OoMethodSymbol.Ctx"/> throws). No class is generated.</summary>
+    Generated,
 
     /// <summary>A plain .NET type the CLR type provider answers (DESIGN-external-repository §4.6) — named so the origin set is
     /// closed; nothing builds one until that provider exists.</summary>
@@ -34,9 +39,26 @@ public sealed record ImportedFrom(string Path, Guid Mvid, string ClrNamespace);
 /// <summary>One class of the pass-1 table: identity, base link, and the method roster (name → symbol,
 /// case-insensitive per §8.3.2.2). <see cref="ClrName"/> is the emitted C# type name — the SAME mapping
 /// <c>PicInfo.ClrType</c> applies to a typed object reference's declared class (Sanitize + uppercase).</summary>
-public sealed class OoClassSymbol(string name, string clrName, CobolParserCore.ClassDefinitionContext? ctx)
+public sealed class OoClassSymbol
 {
-    public string Name { get; } = name;
+    private readonly CobolParserCore.ClassDefinitionContext? _definition;
+
+    /// <summary>A class this group's source wrote: <see cref="OoSymbolOrigin.Source"/>, with the CLASS-ID definition it was built from.</summary>
+    public OoClassSymbol(string name, string clrName, CobolParserCore.ClassDefinitionContext definition)
+    {
+        (Name, ExternalizedName, ClrName, _definition, Origin) = (name, name, clrName, definition, OoSymbolOrigin.Source);
+    }
+
+    /// <summary>A class no CLASS-ID of this group wrote: <see cref="OoSymbolOrigin.Standard"/> (BASE) or <see cref="OoSymbolOrigin.Imported"/>.
+    /// A source class has a definition, so asking for <see cref="OoSymbolOrigin.Source"/> here is a compiler fault (kb/Work PB4459).</summary>
+    public OoClassSymbol(string name, string clrName, OoSymbolOrigin origin)
+    {
+        if (origin is OoSymbolOrigin.Source)
+            throw new ArgumentException($"class '{name}': a Source class is built from its CLASS-ID definition", nameof(origin));
+        (Name, ExternalizedName, ClrName, Origin) = (name, name, clrName, origin);
+    }
+
+    public string Name { get; }
     /// <summary>The name externalized to the operating environment (ISO §11.3.4 GR1: "literal-1, if
     /// specified, is the name of the class that is externalized to the operating environment"), from the
     /// CLASS-ID <c>AS literal-1</c>; else <see cref="Name"/>. An object-class-name is only ever referenced
@@ -44,7 +66,7 @@ public sealed class OoClassSymbol(string name, string clrName, CobolParserCore.C
     /// in COBOL resolves against this, and <see cref="ClrName"/> deliberately does NOT derive from it: the
     /// emitted type name is a WIRE CONTRACT with <c>PicInfo.ClrType</c>, which maps a declared
     /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
-    public string ExternalizedName { get; init; } = name;
+    public string ExternalizedName { get; init; }
 
     /// <summary>What made this class an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR5): the skeleton, the REPOSITORY entry
     /// and the actuals; null for a class written as a class and for an imported one. The repository publishes it as the class's
@@ -57,12 +79,12 @@ public sealed class OoClassSymbol(string name, string clrName, CobolParserCore.C
     /// <summary>The CLR type name of the class's OBJECT half — the module's ABI, the same for every backend
     /// (kb/Work PB4265): <see cref="DataItem.WordIdentifier"/> of the class-name, an upper-case fold, so never a C#
     /// keyword.</summary>
-    public string ClrName { get; } = clrName;
+    public string ClrName { get; }
     /// <summary>The CLASS-ID definition this symbol was built from. Every class of the compilation group has one
     /// (<see cref="OoSymbolOrigin.Source"/>); the STANDARD class and an IMPORTED one do not, and reading this on
     /// either is a loud internal error rather than a null the caller forgot to test — no consumer of a group class's
     /// source should ever reach one, because neither is in <see cref="OoClassTable.Classes"/>.</summary>
-    public CobolParserCore.ClassDefinitionContext Ctx => ctx
+    public CobolParserCore.ClassDefinitionContext Ctx => _definition
         ?? throw new InvalidOperationException(Origin is OoSymbolOrigin.Standard
             ? $"class '{Name}' is the standard class of ISO §16 and has no source definition"
             : $"class '{Name}' is {Origin.ToString().ToLowerInvariant()} from the external repository and has no source definition");
@@ -70,7 +92,7 @@ public sealed class OoClassSymbol(string name, string clrName, CobolParserCore.C
     /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>). A symbol with a <see cref="Ctx"/> is
     /// <see cref="OoSymbolOrigin.Source"/>; the others are built by <see cref="OoStandardClasses"/> and
     /// <c>MetadataRepositoryProvider</c>.</summary>
-    public OoSymbolOrigin Origin { get; init; } = OoSymbolOrigin.Source;
+    public OoSymbolOrigin Origin { get; }
 
     /// <summary>The assembly an <see cref="OoSymbolOrigin.Imported"/> class was taken from (DESIGN-external-repository
     /// §10.1); null for every other origin. Its <see cref="ClrName"/> is the type's full name under <c>global::</c>, so the

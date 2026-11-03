@@ -53,12 +53,13 @@ internal static class CheckingFold
     /// line (it has no header for a TURN to precede).</summary>
     public static MethodChecking Method(TurnState turn, PropagateState propagate, OoMethodSymbol method, OoClassSymbol cls)
     {
-        int idLine = (method.Ctx?.Start ?? cls.Ctx.Start).Line;
-        int divLine = method.Ctx is { } mc
+        var written = method.Origin is OoSymbolOrigin.Source ? method.Ctx : null;   // only a written method has a METHOD-ID to ask
+        int idLine = (written?.Start ?? cls.Ctx.Start).Line;
+        int divLine = written is { } mc
             ? (mc.environmentDivision()?.Start ?? mc.dataDivision()?.Start ?? mc.procedureDivision()?.Start ?? mc.Stop).Line
             : cls.Ctx.Start.Line;
         return new MethodChecking(
-            OoUniversalChecking: turn.EnabledAtHeader("EC-OO-UNIVERSAL", method.Ctx?.procedureDivision(), idLine),
+            OoUniversalChecking: turn.EnabledAtHeader("EC-OO-UNIVERSAL", written?.procedureDivision(), idLine),
             ExternalCheckMask: ExternalMaskAt(turn, divLine),
             AutomaticPropagation: propagate.IsOnAt(idLine));
     }
