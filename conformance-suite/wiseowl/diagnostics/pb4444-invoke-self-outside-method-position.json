@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "(22,19): error COBOL6002: INVOKE SELF may be specified only within a method definition"}

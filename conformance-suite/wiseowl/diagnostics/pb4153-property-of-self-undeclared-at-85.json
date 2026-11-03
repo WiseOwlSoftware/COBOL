@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "'SELF' is not defined"}
+{"refuse-at": ["85"], "expect": "(23,22): error COBOL1639: 'SELF' is not defined"}
