@@ -1208,9 +1208,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// loads one. Only §8.4.3.13.4 GR3's prototype arm gives a program-address-identifier a restriction, so an
     /// identifier-1 or literal-1 sender is an UNRESTRICTED program-pointer: SR22 requires "the program-prototypes
     /// associated with identifier-7 and identifier-8" to have the same signature, and an unrestricted pointer is
-    /// associated with none. Distinct from a prototype with no compile-time signature, which
-    /// <c>PrototypeSignatures.Same</c> deliberately lets through — the same reading
-    /// <see cref="BindSetProgramPointer"/> enforces. Returns true having reported.
+    /// associated with none — the same reading <see cref="BindSetProgramPointer"/> enforces.
+    /// Returns true having reported.
     /// <para>⚠ BOTH SPELLINGS REACH IT (kb/Work PB935). The ISO literal-1 / identifier-1 arms of
     /// <see cref="BindSetProgramAddress"/> pass the SR22 / GR3 wording; the vendor <c>SET pp TO ENTRY</c> form
     /// (<see cref="BindSetEntry"/>) passes §13.18.60.4 GR25's, because its words are in no ISO general format and so

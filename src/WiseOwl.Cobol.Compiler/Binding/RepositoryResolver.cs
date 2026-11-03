@@ -27,8 +27,13 @@ internal interface IRepositoryProvider
     /// <summary>Every function this provider holds whose user-function-name is <paramref name="userFunctionName"/> and
     /// that a source element at <paramref name="position"/> may name by it (§8.4.6.7: a definition "that follows that
     /// function definition within the compilation group", or one in the external repository), in the order the
-    /// provider prefers them — D-R3 step 2 takes the first, step 3 the first of another externalized name.</summary>
-    IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position);
+    /// provider prefers them.
+    /// <para>With <paramref name="otherThan"/> null this is D-R3 step 2: the first function is the specifier's answer, so a
+    /// repository entry that cannot be read is a finding of the compilation. With <paramref name="otherThan"/> set it is step
+    /// 3's look for a DIFFERENT function: a function externalized <paramref name="otherThan"/> is not listed, and what the
+    /// provider cannot read is no finding at all — the function GR11 selected supplies the details (GR11 b) ignores the
+    /// repository's), so the function that shadows it is advice for REPO-13, never a fault of this compilation.</para></summary>
+    IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan);
 }
 
 /// <summary>Where a repository answer's details come from (DESIGN-external-repository §8.0): a unit of the compilation
@@ -92,7 +97,7 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
     /// when the external repository refused it with a finding of its own.</summary>
     public void ReportUnanswered(object specifier, bool function, string word, string externalizedName, EditionContext edition)
     {
-        if (!_reported.Add(specifier) || External.Refused(function, externalizedName)) return;
+        if (!_reported.Add(specifier) || External.Refused(function, word, externalizedName)) return;
         string kind = function ? "function" : "program";
         string written = ExternalizedNames.Same(word, externalizedName) ? word : $"{word} AS \"{externalizedName}\"";
         string alternatives = function
@@ -135,15 +140,15 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
         FunctionAnswer? byName = null;
         foreach (var provider in _providers)
             if ((byName = provider.Function(externalizedName, position)) is not null) break;
-        var details = byName ?? _providers.SelectMany(p => p.FunctionsByWord(word, position)).FirstOrDefault();
+        var details = byName ?? _providers.SelectMany(p => p.FunctionsByWord(word, position, otherThan: null)).FirstOrDefault();
         if (details is null) return null;
         // Step 3: another function — another externalized name — that the element can see under the same word; "can
         // see" is the one rule each provider's FunctionsByWord states, so the warning never names a function the
-        // search itself ignores.
+        // search itself ignores. Asked only of a step 1 hit: a step 2 answer IS the function the word names.
         var shadowed = byName is null
             ? null
-            : _providers.SelectMany(p => p.FunctionsByWord(word, position))
-                .FirstOrDefault(f => !ExternalizedNames.Same(f.Signature.Externalized, details.Signature.Externalized));
+            : _providers.SelectMany(p => p.FunctionsByWord(word, position, otherThan: details.Signature.Externalized))
+                .FirstOrDefault();
         return new FunctionResolution(details.Signature with { Name = word }, details.Origin, shadowed);
     }
 }

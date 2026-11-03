@@ -81,8 +81,10 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
         Find(_functions, Externalized(externalizedName), position) is { } u ? AnswerOf(u) : null;
 
     /// <inheritdoc/>
-    public IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position) =>
-        Candidates(_functions, u => CobolNames.Same(u.Name, userFunctionName), position).Select(AnswerOf);
+    public IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan) =>
+        Candidates(_functions, u => CobolNames.Same(u.Name, userFunctionName)
+                                    && (otherThan is null || !ExternalizedNames.Same(u.ExternalizedName, otherThan)), position)
+            .Select(AnswerOf);
 
     /// <summary>The user-defined functions a source element at <paramref name="position"/> can see by WORD, without a
     /// REPOSITORY entry resolving them: each word's definition specified before the element, else its prototype (D-R3
@@ -95,7 +97,7 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
         if (_functions.Count == 0) return NoFunctions;
         var table = new Dictionary<string, UserFunctionSignature>(CobolNames.Comparer);
         foreach (var u in _functions)
-            if (!table.ContainsKey(u.Name) && FunctionsByWord(u.Name, position).FirstOrDefault() is { } details)
+            if (!table.ContainsKey(u.Name) && FunctionsByWord(u.Name, position, otherThan: null).FirstOrDefault() is { } details)
                 table[u.Name] = details.Signature;
         return table;
     }
