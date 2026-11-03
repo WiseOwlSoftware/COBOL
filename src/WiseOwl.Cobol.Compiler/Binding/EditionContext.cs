@@ -488,11 +488,11 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         }
         if (digits <= MaxDigits) return;
         if (digits > 31)
-            Error("COBOL0801", $"{what} has {digits} digit positions; ISO/IEC 1989 limits a numeric item to 31 "
+            Error(DiagnosticCatalog.DigitCapacityOver31, $"{what} has {digits} digit positions; ISO/IEC 1989 limits a numeric item to 31 "
                 + "digit positions (ISO §13.18.40.3 SR14) and this compiler limits a fixed-point literal to the 31 "
                 + "digits §8.3.3.3.2 requires an implementor to allow");
         else
-            Error("COBOL0802", $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
+            Error(DiagnosticCatalog.DigitCapacityOver18Pre2002, $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
                 + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})");
     }
 }

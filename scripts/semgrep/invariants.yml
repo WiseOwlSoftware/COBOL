@@ -107,6 +107,7 @@ rules:
           - pattern: $X.Error($CODE, ...)
           - pattern: $X.Warning($CODE, ...)
           - pattern: $X.Report($CODE, ...)
+          - pattern: $X.Report($EDITION, $CODE, ...)   # BoundRejected.Report(ctx.Edition, "COBOL####", message)
       - metavariable-regex:
           metavariable: $CODE
           regex: '^"COBOL\d{4}"$'

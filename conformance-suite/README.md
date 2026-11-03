@@ -82,7 +82,7 @@ the tests pin.
 
 ```
 python conformance-suite/harness/generate.py            # refuse, or write suites/ and print the completeness report
-python conformance-suite/harness/generate.py --out DIR  # the same, written to DIR instead of suites/ (DIR new, empty or a previous run's output)
+python conformance-suite/harness/generate.py --out DIR  # the manifests only, written to DIR instead of suites/ (DIR new, empty or a previous run's output); --report adds the completeness report
 python conformance-suite/harness/generate.py --check    # the refusals only, writing nothing
 python conformance-suite/harness/generate.py --self-test
 ```

@@ -84,6 +84,17 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// method's scope as they are declared.</summary>
     internal OoMethodSymbol? BindingMethod { get; private set; }
 
+    /// <summary>⛔ THE OPTIONS MODEL THE DATA ENTRIES NOW BINDING ARE GOVERNED BY (ISO §11.9.4 GR1: the clauses of an OPTIONS
+    /// paragraph "apply to the source element in which they are specified", and a method is a source element of its own, so
+    /// its own paragraph overrides its class's for the method's whole source element, its LOCAL-STORAGE and LINKAGE entries
+    /// included; kb/Work PB4464): the model of the method whose data division is being bound
+    /// (<see cref="BindingMethod"/>, folded over the class's by <see cref="BindMethodData"/>), else the unit's own. THE one
+    /// answer every OPTIONS fact an entry's description reads comes from (<see cref="DataBinder.BindEntry"/>: the
+    /// FLOAT-BINARY endianness a standard binary floating-point item without an endianness-phrase takes, §11.9.8.3 SR2/SR3);
+    /// the statement half of the same override is <see cref="ProcedureBindState.Options"/>, the emission half
+    /// <c>EmitContext.Options</c>.</summary>
+    internal OptionsModel EntryOptions => BindingMethod?.MethodOptions ?? Options;
+
     /// <summary>Declare into <paramref name="scope"/>'s method until the returned token is disposed: its data entries
     /// and METHOD-ID (<see cref="BindMethodData"/>) and its procedure-names (the class-body collection,
     /// <c>StatementBinder.BindClassBody</c>). One method source element at a time, so no scope nests.</summary>
@@ -225,7 +236,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // funnel, is what makes that scope travel with the descriptor: `oru` is the reference site the
         // ancestor walk starts from.
         var resolved = Compiler.Oo.OoNameResolution.Resolve(OoClasses, Edition, site, name,
-            Compiler.Oo.OoNameResolution.Want.Either, where, "COBOL0813", resolveRule);
+            Compiler.Oo.OoNameResolution.Want.Either, where, DiagnosticCatalog.ObjectClassNameNotResolvable.Code, resolveRule);
         // A PARAMETER-NAME of the parameterized definition being bound as itself (kb/Work PB2051, PB2937): it stands where
         // an object-class-name or an interface-name is permitted (§11.3.4 GR6), so the description takes the alternative
         // its own REPOSITORY specifier declares — an interface formal is the bare-name alternative — marked FORMAL: what it
@@ -373,7 +384,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             var item = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, pname));
             if (item is null)
-                Edition.Error("COBOL0888", $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else if (header.AdmitFormal(pname, item))
             {
@@ -400,7 +411,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             m.Binding!.Returning = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, rref.GetText()));
             if (m.Binding!.Returning is null)
-                Edition.Error("COBOL0888", $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else
                 header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
@@ -429,7 +440,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             if (root.IsAnyLength)
             {
                 using var localAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
-                Edition.Error("COBOL1542", $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
                     + "LENGTH clause may be specified only in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
                 root.IsAnyLength = false;
             }
@@ -439,14 +450,14 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             using var linkageAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
             string rw = $"{where}: data item '{root.CobolName ?? "FILLER"}'";
             if (root.IsGroup)
-                Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
                     + "— this entry has subordinate items (ISO §13.18.2.3 SR2)");
             else if (m.Accessor != '\0')
-                Edition.Error("COBOL1542", $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
                     + "method (ISO §13.18.2.3 SR2 — a method that is not a property method)");
             else if (!m.Binding!.Formals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue)   // SR3 a): a BY VALUE formal does not qualify
                 && !ReferenceEquals(m.Binding!.Returning, root))
-                Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
+                Edition.Error(DiagnosticCatalog.AnyLengthSubjectNotInHeader, $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
                     + "in the method's procedure division header as a BY REFERENCE formal parameter or as the "
                     + "RETURNING item (ISO §13.18.2.3 SR3)");
             else
@@ -495,7 +506,6 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
 
         static bool IsActiveClassReference(DataItem? item) => item?.Pic?.ObjectRef is { Kind: ObjectRefKind.ActiveClass };
     }
-
 
     /// <summary>SYNTHESIZE the accessor method symbols (D-P1 — the PINNED §11.7.4 GR1a implementor naming
     /// <c>__GET_&lt;P&gt;</c>/<c>__SET_&lt;P&gt;</c>) for every OBJECT/FACTORY working-storage item that carries a

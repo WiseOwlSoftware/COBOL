@@ -1046,17 +1046,6 @@ public sealed record BoundRejected : BoundStatement
         edition.Error(rule, message);
         return new BoundRejected(rule.Code);
     }
-
-    /// <summary>The same refusal for a code the site still writes as a bare <c>COBOLnnnn</c> literal (kb/Work
-    /// PB1029 — the report-then-<see cref="BoundNop"/> sites migrated here keep their codes verbatim). A code the
-    /// catalogue DOES carry is held to its descriptor's severity, exactly as the descriptor overload is.</summary>
-    public static BoundRejected Report(EditionContext edition, string code, string message)
-    {
-        if (Editions.Diagnostics.DiagnosticCatalog.All.FirstOrDefault(d => d.Code == code) is { } rule)
-            return Report(edition, rule, message);
-        edition.Error(code, message);
-        return new BoundRejected(code);
-    }
 }
 
 /// <summary>The STOP RUN / GOBACK termination status phrase (ISO §14.9.42 / §14.9.18.2 — COBOL-2002 on STOP,

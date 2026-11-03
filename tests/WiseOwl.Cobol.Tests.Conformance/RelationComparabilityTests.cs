@@ -282,8 +282,8 @@ public sealed class RelationComparabilityTests
     [InlineData("RCMPN1", "IF XA = NULL CONTINUE END-IF", "COBOL0869")]
     [InlineData("RCMPN2", "IF ND = NULL CONTINUE END-IF", "COBOL0869")]
     [InlineData("RCMPN3", "EVALUATE XA WHEN NULL CONTINUE END-EVALUATE", "COBOL0869")]
-    [InlineData("RCMPN4", "IF B1 = SPACE CONTINUE END-IF", "COBOL0844")]
-    [InlineData("RCMPN5", "IF B1 = IDA CONTINUE END-IF", "COBOL0844")]
+    [InlineData("RCMPN4", "IF B1 = SPACE CONTINUE END-IF", "COBOL5995")]
+    [InlineData("RCMPN5", "IF B1 = IDA CONTINUE END-IF", "COBOL5995")]
     public void NullAndBoolean_OutsideTheirRelation_Rejected(string pid, string statement, string code)
     {
         var errors = CheckOnly($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {pid}.\n"

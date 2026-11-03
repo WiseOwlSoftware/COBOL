@@ -1,0 +1,11 @@
+{
+ "comment": "THE USER MANUAL'S EXIT STATUS EXAMPLES ARE THE PRODUCT'S (kb/Work PB1610, PB4453). docs/manual/user-guide/run-units.md once said --run exits with 'the value of STOP RUN WITH ERROR STATUS n, 1 for an abnormal termination, 0 otherwise', which is wrong for WITH NORMAL STATUS 4 (exit 4) and for WITH ERROR alone (exit 1). The Conformance test StopGobackExitCodeTests.TheManualsExitStatusExamples_AreWhatTheProgramExitsWith runs each `proc` and expects its `exit` (DOC-A.1-192's mapping); scripts/docchecks/manual.py requires the page to print each `pageSpan`, so neither the page nor the mapping can move without the other.",
+ "examples": [
+  {"proc": "STOP RUN WITH ERROR STATUS 0.", "pageSpan": "`STOP RUN WITH ERROR STATUS 0`", "exit": 0},
+  {"proc": "STOP RUN WITH NORMAL STATUS 7.", "pageSpan": "`STOP RUN WITH NORMAL STATUS 7`", "exit": 7},
+  {"proc": "STOP RUN WITH ERROR.", "pageSpan": "`STOP RUN WITH ERROR`, with no status", "exit": 1},
+  {"proc": "STOP RUN WITH ERROR STATUS \"007\".", "pageSpan": "`STATUS \"007\"` is 7", "exit": 7},
+  {"proc": "STOP RUN WITH ERROR STATUS \"ABEND\".", "pageSpan": "`STATUS \"ABEND\"` is 0", "exit": 0},
+  {"proc": "GOBACK WITH NORMAL STATUS 4.", "pageSpan": "A main program's `GOBACK` takes the same phrases in COBOL 2023", "exit": 4}
+ ]
+}
