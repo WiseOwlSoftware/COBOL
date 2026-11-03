@@ -43,6 +43,7 @@
        COPY pb1355b OF pb1355lib.
        COPY pb1355d IN pb1355lib.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "[" PB1355A-V "]"
            DISPLAY "[" PB1355B-V "]"
            DISPLAY "[" PB1355D-V "]"

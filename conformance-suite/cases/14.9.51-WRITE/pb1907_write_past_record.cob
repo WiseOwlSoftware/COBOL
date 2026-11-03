@@ -81,6 +81,7 @@
        01  WS-SRC            PIC X(20) VALUE "0123456789ABCDEFGHIJ".
        01  WS-GF             PIC X(20).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            OPEN OUTPUT VF FF GF IF1.
       *> V1 - variable: DEPENDING ON asks for 12 bytes, VF-SHORT has 5.
            MOVE ALL "Z" TO VF-LONG

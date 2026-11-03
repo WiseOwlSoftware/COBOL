@@ -47,6 +47,7 @@
           05 H-1 PIC X(2) VALUE "ZZ".
           05 H-2 PIC X(2) VALUE "ZZ".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            SET A-STAR TO TRUE
            DISPLAY "A=[" WS-A "]"
            IF A-STAR DISPLAY "A-TRUE" ELSE DISPLAY "A-FALSE" END-IF

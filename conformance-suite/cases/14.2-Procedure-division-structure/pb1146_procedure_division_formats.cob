@@ -39,6 +39,7 @@
            DISPLAY "IN-DECLARATIVES".
        END DECLARATIVES.
        MAIN-S SECTION.
+       PB4305-LEAD.
            DISPLAY "S-LEAD".
        MAIN-P.
            DISPLAY "S-PARA".
@@ -50,6 +51,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1146Q.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "Q-LEAD".
        Q-PARA.
            DISPLAY "Q-PARA".

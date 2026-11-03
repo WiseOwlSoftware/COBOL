@@ -21,7 +21,7 @@ public sealed class NonstandardExtensionWarningTests
     private static string Prog(string data, string procedure) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. NSX" + Guid.NewGuid().ToString("N")[..8] + ".\n"
         + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n" + data
-        + "       PROCEDURE DIVISION.\n" + procedure + "           STOP RUN.\n";
+        + "       PROCEDURE DIVISION.\n       MAIN-P.\n" + procedure + "           STOP RUN.\n";
 
     private static IReadOnlyList<string> Warnings(string source, int edition, bool flag)
     {

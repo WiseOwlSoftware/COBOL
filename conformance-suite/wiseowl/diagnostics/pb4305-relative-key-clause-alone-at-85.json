@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause requires COBOL-2002"}

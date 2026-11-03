@@ -30,7 +30,7 @@ public sealed class ConditionNameValueSizeTests
 {
     private static string Program(string decls, string body) =>
         "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB598T.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n"
-        + decls + "\nPROCEDURE DIVISION.\n" + body + "\n    STOP RUN.\n";
+        + decls + "\nPROCEDURE DIVISION.\nMAIN-P.\n" + body + "\n    STOP RUN.\n";
 
     private const string Alnum = "01 XV PIC X.\n   88 XC VALUE \"cd\".\n   88 XR VALUE \"aa\" THRU \"zz\".";
     private const string National = "01 NV PIC N(2).\n   88 NC VALUE N\"ABC\".";

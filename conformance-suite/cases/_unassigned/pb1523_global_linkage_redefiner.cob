@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1523_global_linkage_redefiner
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -18,6 +18,8 @@
       *> DERIVATION: A = "INIT". PB1523L2 DISPLAYs XR => INIT, MOVEs
       *>   "NEWV" TO XR, which is the caller's A; the main program then
       *>   DISPLAYs A                                    => NEWV
+      *> GLOBAL in the linkage section is a COBOL-2002 relaxation (2002
+      *>   Annex F.2 item 61, kb/Work PB4305), so the test runs from 2002.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1523L1.
        DATA DIVISION.

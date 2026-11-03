@@ -440,7 +440,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         string unit(string clause) =>
             "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB2490C.\n       ENVIRONMENT DIVISION.\n"
             + "       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. IBM-PC" + clause + ".\n       DATA DIVISION.\n"
-            + "       WORKING-STORAGE SECTION.\n       01 W PIC X(80).\n       PROCEDURE DIVISION.\n"
+            + "       WORKING-STORAGE SECTION.\n       01 W PIC X(80).\n       PROCEDURE DIVISION.\n       MAIN-P.\n"
             + "           COPY DBG.\n           STOP RUN.\n";
         Write("dbgon.cob", unit(" WITH DEBUGGING MODE"));
         var (ok, lines) = Compile("dbgon.cob", edition: 85, format: InitialReferenceFormat.Fixed);

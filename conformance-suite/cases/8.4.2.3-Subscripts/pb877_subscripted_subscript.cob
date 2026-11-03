@@ -54,6 +54,7 @@
       *> 1. The differential's own shape: a literal subscript and a subscripted-identifier subscript,
       *>    on the SAME receiving operand, in one program. G is 36 positions: three 12-position G2
       *>    occurrences of X(1) + Y(10) + Z(1).
+       PB4305-LEAD.
            MOVE ALL "A" TO G2(1)
            MOVE ALL "B" TO G2(2)
            MOVE ALL "C" TO G2(3)

@@ -20,6 +20,7 @@
        01 WS-B PIC X(6) VALUE "AB  CD".
        01 WS-N PIC 9(4) VALUE 0.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            STRING "AB" DELIMITED BY SIZE
                   SPACE DELIMITED BY SIZE
                   "CD" DELIMITED BY SIZE

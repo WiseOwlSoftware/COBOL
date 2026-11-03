@@ -28,6 +28,7 @@
           88 C4 VALUE ALL ZERO.
        01 N PIC 9(3) VALUE 5.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY V6
            IF V7 = ZERO
                DISPLAY "V7 ZERO"

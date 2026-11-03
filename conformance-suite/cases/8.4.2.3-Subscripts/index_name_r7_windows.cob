@@ -20,6 +20,7 @@
           05 T PIC 9 OCCURS 5 TIMES INDEXED BY IX.
        01 V PIC 9(4).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            SET IX TO 2
            MOVE 7 TO T(IX + 1)
            DISPLAY T(IX + 1)

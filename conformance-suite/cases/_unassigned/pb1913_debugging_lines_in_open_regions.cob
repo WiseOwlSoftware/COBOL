@@ -12,9 +12,10 @@
       *> the lexer used to skip it as a comment in those two modes. Each
       *> leg fails on its own: with the D line of the PICTURE dropped the
       *> compiler reads VALUE as the PICTURE string, and with the D line
-      *> of a subscript dropped W-E(1) answers 1 where W-E(1 + 2) is 3.
-      *> The second subscript is a general expression, which is re-read
-      *> by the fragment parser (the D18 route) from the region's text.
+      *> of a subscript dropped W-E(W-I) answers 1 where W-E(W-I + 2)
+      *> is 3. Both subscripts are the COBOL-85 form data-name + integer:
+      *> a general arithmetic-expression subscript is a COBOL-2002
+      *> relaxation (2002 Annex F.2 item 133, kb/Work PB4305).
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB1913A.
 000300 ENVIRONMENT DIVISION.
@@ -31,7 +32,8 @@
 001400 01  W-I PIC 9 VALUE 1.
 001500 01  W-R PIC 9.
 001600 PROCEDURE DIVISION.
-001700     MOVE W-E(1
+       PB4305-LEAD.
+001700     MOVE W-E(W-I
 001800D        + 2
 001900         ) TO W-R.
 002000     DISPLAY W-R.

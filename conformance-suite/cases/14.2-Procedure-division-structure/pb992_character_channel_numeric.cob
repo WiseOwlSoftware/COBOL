@@ -41,6 +41,7 @@
        01 C PIC X(3) VALUE "ABC".
        01 K PIC 9(4) VALUE 10.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE G TO H
            DISPLAY "H=[" H "]"
            MOVE G2 TO S
@@ -65,6 +66,7 @@
        LINKAGE SECTION.
        01 F PIC X(3).
        PROCEDURE DIVISION USING F.
+       PB4305-LEAD.
            MOVE SPACES TO F
            EXIT PROGRAM.
        END PROGRAM PB992SP.
@@ -74,6 +76,7 @@
        LINKAGE SECTION.
        01 N PIC 9(3).
        PROCEDURE DIVISION USING N.
+       PB4305-LEAD.
            DISPLAY "N=[" N "]"
            EXIT PROGRAM.
        END PROGRAM PB992RD.
@@ -83,6 +86,7 @@
        LINKAGE SECTION.
        01 M PIC 9(4).
        PROCEDURE DIVISION USING M.
+       PB4305-LEAD.
            ADD 5 TO M
            EXIT PROGRAM.
        END PROGRAM PB992AD.

@@ -36,6 +36,7 @@
           88 GV-ZR     VALUE ZERO.
           05 GE PIC X OCCURS 1 TO 5 DEPENDING ON N.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE ALL "Y" TO GV.
            MOVE 2 TO N.
            MOVE ALL "X" TO GV.

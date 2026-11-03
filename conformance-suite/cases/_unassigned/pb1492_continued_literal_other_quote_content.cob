@@ -23,6 +23,7 @@
 000700 01 Y PIC X(80) VALUE 'SAY "HI                                    
 000800-    'THERE'.
 000900 PROCEDURE DIVISION.
+       PB4305-LEAD.
 001000     DISPLAY "[" X "]".
 001100     DISPLAY "[" Y "]".
 001200     STOP RUN.

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1643_display_literal_decimal_comma
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -21,6 +21,9 @@
       *> EXPECTED, by the rule: the literal as written, one line each:
       *>   1,5  -1,5  +0,25  1,50  7 (an integer has no separator)
       *> then the nested program's 9,75.
+      *> A signed numeric literal as a DISPLAY operand is a COBOL-2002
+      *> relaxation (2002 Annex F.2 item 46, kb/Work PB4305), so the test
+      *> runs from 2002.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1643A.
        ENVIRONMENT DIVISION.

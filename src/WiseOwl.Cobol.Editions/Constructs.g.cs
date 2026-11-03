@@ -297,4 +297,18 @@ public static class Constructs
     public const string SetNumericContent2014 = "set-numeric-content-2014";
     public const string FixedFormAreaAItemOutsideAreaA2002 = "fixed-form-area-a-item-outside-area-a-2002";
     public const string FixedFormTextInAreaA2002 = "fixed-form-text-in-area-a-2002";
+    public const string CallUsingGroupAnyLevel2002 = "call-using-group-any-level-2002";
+    public const string ClassConditionAlphabetName2002 = "class-condition-alphabet-name-2002";
+    public const string DisplaySignedNumericLiteral2002 = "display-signed-numeric-literal-2002";
+    public const string ExitProgramNotLast2002 = "exit-program-not-last-2002";
+    public const string LinkageGlobal2002 = "linkage-global-2002";
+    public const string InspectConvertingToAll2002 = "inspect-converting-to-all-2002";
+    public const string ProcedureWithoutLeadingParagraph2002 = "procedure-without-leading-paragraph-2002";
+    public const string InlinePerformAfter2002 = "inline-perform-after-2002";
+    public const string QualifiedIndexName2002 = "qualified-index-name-2002";
+    public const string RelativeKeyClauseAlone2002 = "relative-key-clause-alone-2002";
+    public const string SubscriptArithmeticExpression2002 = "subscript-arithmetic-expression-2002";
+    public const string UnstringSenderReferenceModified2002 = "unstring-sender-reference-modified-2002";
+    public const string UseWithoutProcedure2002 = "use-without-procedure-2002";
+    public const string ValueClauseLinkageFileExternal2002 = "value-clause-linkage-file-external-2002";
 }

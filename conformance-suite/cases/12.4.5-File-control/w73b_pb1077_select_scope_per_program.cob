@@ -27,6 +27,7 @@
        SD S.
        01 SR PIC X(8).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            OPEN OUTPUT F.
            MOVE "OUTER" TO FR.
            WRITE FR.
@@ -48,6 +49,7 @@
        FD F.
        01 FR PIC X(8).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            OPEN OUTPUT F.
            MOVE "INNER" TO FR.
            WRITE FR.

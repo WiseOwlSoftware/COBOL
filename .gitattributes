@@ -25,6 +25,8 @@ tests/WiseOwl.Cobol.Tests.Unit/TestData/segmentation/*.txt -text
 # A conformance fixture whose BYTES are its subject: CR LF terminates a free-form line, and a CR not followed by a LINE
 # FEED is a character of the line (DOC-A.1-156, kb/Work PB1496), so it keeps its CR LF terminators and its lone CRs.
 conformance-suite/cases/6.5-Logical-conversion/pb1496_lone_cr_is_a_character.cob -text
+# ... and so does the directive line that ends in a lone CR (kb/Work PB4310): its operand is the word and that CR.
+conformance-suite/cases/6.5-Logical-conversion/pb4310-lone-cr-ends-a-directive-line.cob -text
 
 # The NIST differential's written-file goldens (tests/nist/valid-files/<TEST>/<file>, kb/Work PB804) are what a CCVS
 # program WROTE, compared byte for byte: a sequential or relative file's records carry no line terminator and an
