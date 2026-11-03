@@ -140,6 +140,13 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         public RepositoryFind ByWord(string word, string? excluding) =>
             IsDirectory ? RepositoryLocator.FunctionByWord(Path, word, excluding) : RepositoryLocator.FunctionByWordInFile(Path, word);
 
+        public IReadOnlyList<RepositoryEntry> FindAll(RepositoryUnitKind kind, string name, string? excluding) =>
+            IsDirectory ? RepositoryLocator.FindAll(Path, kind, name, excluding) : RepositoryLocator.FindAllInFile(Path, kind, name);
+
+        public IReadOnlyList<string> ReferencersOf(string assemblyName, string? excluding) =>
+            IsDirectory ? RepositoryLocator.ReferencersOf(Path, assemblyName, excluding)
+            : RepositoryLocator.ReferencesIn(Path, assemblyName) ? [Path] : [];
+
         public string Describe => IsDirectory ? $"the directory '{Path}'" : $"the assembly '{Path}'";
     }
 
@@ -500,6 +507,75 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             Record = hit.Record,
         };
         return new ImportedClass(symbol, () => Complete(symbol, hit, Table));
+    }
+
+    /// <summary>An expansion some assembly of the search space publishes (DESIGN-external-repository §10.5): its record (the class facts and
+    /// the <see cref="ExpansionIdentity"/> with its key) and the assembly that holds it, with the namespace its types live in.</summary>
+    internal sealed record PublishedExpansion(RepositoryRecord Record, ImportedFrom From, string AssemblyName)
+    {
+        /// <summary>The expansion's identity (kind <see cref="RepositoryUnitKind.Expansion"/> records always have one).</summary>
+        public ExpansionIdentity Identity => Record.Expansion!;
+    }
+
+    /// <summary>EVERY expansion of the search space published under the externalized name <paramref name="externalizedName"/>, in search
+    /// order, one build in two places once (§8.6): the fresh copy, the stale copies and a same-name expansion of another definition or
+    /// other actuals alike, because telling them apart is the caller's (the key, then the identities). An entry that cannot be read is
+    /// skipped quietly: what an expansion whose assembly is unreadable would have said, the expansion made here replaces (§10.5).</summary>
+    internal IReadOnlyList<PublishedExpansion> ExpansionsNamed(string externalizedName)
+    {
+        Consult();
+        var found = new List<PublishedExpansion>();
+        foreach (var location in _locations)
+            foreach (var entry in location.FindAll(RepositoryUnitKind.Expansion, externalizedName, _output))
+                if (!found.Exists(e => e.From.Mvid == entry.Mvid) && Answer(entry, report: false) is { Record.Expansion: not null } hit
+                    && ModuleOf(hit.Registrar) is { } module)
+                    found.Add(new PublishedExpansion(hit.Record, new ImportedFrom(entry.Path, entry.Mvid, module.ClrName), entry.AssemblyName));
+        return found;
+    }
+
+    /// <summary>What a file an expansion's own assembly would be written to holds (§10.5).</summary>
+    internal enum TargetFile
+    {
+        /// <summary>Nothing: the file does not exist.</summary>
+        Absent,
+        /// <summary>An expansion of that name this compiler can read (stale or fresh): the compilation that finds it fresh imports it, and
+        /// one that finds it stale replaces it under REPO-9.</summary>
+        Expansion,
+        /// <summary>An assembly of this family of another repository schema, runtime major or call ABI: replaced under REPO-12.</summary>
+        Skewed,
+        /// <summary>Anything else — another unit, or no WiseOwl COBOL module at all: not ours to overwrite.</summary>
+        Foreign,
+    }
+
+    /// <summary>The directory the compilation's output lives in, where an expansion's own assembly is written (§10.5).</summary>
+    internal string OutputDirectory => Path.GetDirectoryName(_output ?? Path.GetFullPath("x.dll"))!;
+
+    /// <summary>What <paramref name="path"/>, the file an expansion externalized <paramref name="externalizedName"/> would be written to, holds,
+    /// with the reason in words for <see cref="TargetFile.Skewed"/> and <see cref="TargetFile.Foreign"/>.</summary>
+    internal (TargetFile State, string? Why) StateOfExpansionFile(string path, string externalizedName)
+    {
+        _space.Inputs.RecordRepositoryRead();
+        if (!File.Exists(path)) return (TargetFile.Absent, null);
+        var find = RepositoryLocator.FindInFile(path, RepositoryUnitKind.Expansion, externalizedName);
+        if (find.Entry is { } entry)
+            return RuntimeAbi.Skew(entry.RuntimeVersion, entry.CallAbi) is { } skew ? (TargetFile.Skewed, skew) : (TargetFile.Expansion, null);
+        return find.Failure is RepositoryReadFailure.OtherSchemaVersion ? (TargetFile.Skewed, find.Reason)
+            : (TargetFile.Foreign, find.Reason is { } reason ? $"is no expansion of that name ({reason})" : "is no expansion of that name");
+    }
+
+    /// <summary>The assemblies of the search space that REFERENCE the assembly named <paramref name="assemblyName"/>, read from each
+    /// file's <c>AssemblyRef</c> table (nothing is loaded): the groups compiled against it (§10.5's stale-expansion scan), each once.</summary>
+    internal IReadOnlyList<string> ReferencersOf(string assemblyName)
+    {
+        Consult();
+        return [.. _locations.SelectMany(l => l.ReferencersOf(assemblyName, _output)).Distinct(StringComparer.OrdinalIgnoreCase)];   // file paths, not COBOL words
+    }
+
+    /// <summary>The namespace the types of the module whose registrar type is <paramref name="registrar"/> live in (§4.5), or null.</summary>
+    private static ModuleNamespace? ModuleOf(string? registrar)
+    {
+        string suffix = "." + ModuleNamespace.RegistrarClass;
+        return registrar is not null && registrar.EndsWith(suffix, StringComparison.Ordinal) ? new ModuleNamespace(registrar[..^suffix.Length]) : null;
     }
 
     /// <inheritdoc/>

@@ -64,6 +64,15 @@ internal static class ExpansionKey
 
     private static object Surface(Named n) => (n.Identity, n.Record is null ? null : Normalized(n.Record));
 
+    /// <summary>The canonical text of <paramref name="record"/>'s surface (<see cref="Normalized"/>, no word that only names): two records with
+    /// one surface text are the same class to everything that is generated against it.</summary>
+    public static string SurfaceText(RepositoryRecord record)
+    {
+        var text = new StringBuilder();
+        Canonical.Write(text, Normalized(record));
+        return text.ToString();
+    }
+
     /// <summary>The surface form of a named class's or interface's record: no expansion identity, a class's kind.</summary>
     internal static RepositoryRecord Normalized(RepositoryRecord record) => record with
     {
@@ -74,7 +83,7 @@ internal static class ExpansionKey
     };
 
     /// <summary>The canonical text of a record graph: positional records in the order their members are declared, lists in order, strings
-    /// quoted with their length, no member named <c>Name</c> (a word that only names).</summary>
+    /// quoted with their length, no member named <c>Name</c> or <c>ObjectRefName</c> (words that only name).</summary>
     private static class Canonical
     {
         private static readonly Dictionary<Type, PropertyInfo[]> Members = [];
@@ -112,7 +121,7 @@ internal static class ExpansionKey
             {
                 if (!Members.TryGetValue(type, out var members))
                     Members[type] = members = [.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                        .Where(p => p.Name != "Name" && p.GetIndexParameters().Length == 0 && p.GetMethod is not null)];
+                        .Where(p => p.Name is not ("Name" or "ObjectRefName") && p.GetIndexParameters().Length == 0 && p.GetMethod is not null)];
                 return members;
             }
         }

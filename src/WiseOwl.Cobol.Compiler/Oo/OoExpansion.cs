@@ -184,7 +184,7 @@ internal static class OoExpansion
                 {
                     outInterfaces.Add(ictx);
                     expandedNames.Add(x.Of.Name);
-                    origins[ictx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals);
+                    origins[ictx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens));
                 }
                 else ReparseFailed(x);
             }
@@ -192,7 +192,7 @@ internal static class OoExpansion
             {
                 outClasses.Add(cctx);
                 expandedNames.Add(x.Of.Name);
-                origins[cctx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals);
+                origins[cctx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens));
             }
             else ReparseFailed(x);
         }
@@ -417,6 +417,11 @@ internal static class OoExpansion
 
     private static string Kind(Skeleton s) => s.IsInterface ? "interface" : "class";
 
+    /// <summary>The REPOSITORY entry whose declared class-name or interface-name is the terminal <paramref name="t"/>, or null.</summary>
+    private static Core.RepositoryEntryContext? FormalSpecifierName(ITerminalNode t) =>
+        t.Parent?.Parent is Core.ClassNameContext or Core.InterfaceNameContext && t.Parent.Parent.Parent is Core.RepositoryEntryContext entry
+            && entry.expandsPhrase() is null ? entry : null;
+
     /// <summary>The terminal tokens of <paramref name="rule"/>, in order.</summary>
     private static IEnumerable<IToken> Terminals(IParseTree rule)
     {
@@ -506,6 +511,10 @@ internal static class OoExpansion
         var skel = x.Of;
         var map = new Dictionary<string, string>(CobolNames.Comparer);
         for (int i = 0; i < skel.Formals.Count; i++) map[skel.Formals[i].GetText()] = x.Actuals[i];
+        // The identity an actual stands for is its specifier's (`AS literal-1`, ISO §12.3.8.4 GR2), not its word: the formal's own
+        // specifier in the definition's REPOSITORY paragraph becomes the actual's, so the expansion names the class the actual
+        // names wherever it is made (DESIGN-external-repository §10.5: "substitutes the ACTUALS' identities (not the importer's words)").
+        var actualSpecifier = ((Core.RepositoryParagraphContext)x.Entry.Parent).repositoryEntry();
 
         var drop = new HashSet<IToken>();
         bool published = skel.Source?.From is not null;   // lexed again from another group's text: its lines are that text's
@@ -569,6 +578,9 @@ internal static class OoExpansion
                 }
                 if (published) copy.Line = entryLine;
                 result.Add(copy);
+                if (text is not null && FormalSpecifierName(t) is { } formalSpecifier && formalSpecifier.externalizedNamePhrase() is null
+                    && actualSpecifier.FirstOrDefault(r => CobolNames.Same(DeclaredName(r), text))?.externalizedNamePhrase() is { } actualAs)
+                    foreach (var asToken in Terminals(actualAs)) result.Add(new CommonToken(asToken));
                 // (e) the specifier's own `AS literal-1` externalizes the EXPANSION (§12.3.8.4 GR2), right after the name it follows.
                 if (ReferenceEquals(tok, headerName) && x.Entry.externalizedNamePhrase() is { } entryAs)
                     foreach (var asToken in Terminals(entryAs)) result.Add(new CommonToken(asToken));

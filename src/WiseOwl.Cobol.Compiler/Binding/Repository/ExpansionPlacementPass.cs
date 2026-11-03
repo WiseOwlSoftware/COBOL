@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
@@ -18,7 +19,8 @@ internal enum ExpansionWhere
     /// <summary>In an assembly of the search space that already holds an expansion of this name and key: the group emits nothing for it
     /// and names its types through <see cref="ExpansionPlacement.From"/>.</summary>
     Imported,
-    /// <summary>In an assembly of its own, written beside the group's output (placement (a)).</summary>
+    /// <summary>In an assembly of its own, written beside the group's output by a compilation of its own (placement (a)); the group
+    /// names its types through <see cref="ExpansionPlacement.From"/> as it does an imported expansion's.</summary>
     OwnAssembly,
 }
 
@@ -26,7 +28,10 @@ internal enum ExpansionWhere
 /// <param name="Identity">The identity the expansion publishes.</param>
 /// <param name="Where">Where it lives.</param>
 /// <param name="From">The assembly it is imported from or written to (null for an expansion in the group's own assembly).</param>
-internal sealed record ExpansionPlacement(ExpansionIdentity Identity, ExpansionWhere Where, ImportedFrom? From = null);
+/// <param name="TypeName">The simple name of its CLR type in that assembly (<see cref="From"/> non-null).</param>
+/// <param name="FactoryTypeName">The simple name of its factory type there; null for an interface.</param>
+internal sealed record ExpansionPlacement(ExpansionIdentity Identity, ExpansionWhere Where, ImportedFrom? From = null, string? TypeName = null,
+    string? FactoryTypeName = null);
 
 /// <summary>A skeleton the group publishes: its source and its record.</summary>
 internal sealed record PublishedSkeleton(SkeletonSource Source, RepositoryRecord Record)
@@ -36,13 +41,22 @@ internal sealed record PublishedSkeleton(SkeletonSource Source, RepositoryRecord
 }
 
 /// <summary>What the group publishes for its parameterized definitions and where each of its expansions lives (§10.5): produced by
-/// <see cref="ExpansionPlacementPass"/> once the group is bound, carried on the <see cref="BoundCompilation"/>, read by the emitter.</summary>
+/// <see cref="ExpansionPlacementPass"/> once the group is bound, carried on the <see cref="BoundCompilation"/>, read by the emitter and the
+/// driver.</summary>
 /// <param name="Expansions">Each expansion's class or interface symbol → its placement.</param>
 /// <param name="Skeletons">The group's skeletons, in source order.</param>
 internal sealed record ExpansionPlacements(IReadOnlyDictionary<object, ExpansionPlacement> Expansions, IReadOnlyList<PublishedSkeleton> Skeletons)
 {
     /// <summary>A group with no parameterized definition and no expansion — nearly every group.</summary>
     public static readonly ExpansionPlacements None = new(new Dictionary<object, ExpansionPlacement>(ReferenceEqualityComparer.Instance), []);
+
+    /// <summary>The expansions to be written to assemblies of their own (placement (a)), in dependency order — an expansion before any
+    /// expansion that names it — each with the symbol it is the placement of.</summary>
+    public IReadOnlyList<(object Symbol, ExpansionPlacement Placement)> ToWrite { get; init; } = [];
+
+    /// <summary>Every assembly the group's own module names a type of for an expansion: the imported ones and the ones written for it.</summary>
+    public IReadOnlyList<string> ReferencedAssemblies =>
+        [.. Expansions.Values.Where(p => p.From is not null).Select(p => p.From!.Path).Distinct(StringComparer.OrdinalIgnoreCase)];   // file paths, not COBOL words
 
     /// <summary>The placement of the class or interface <paramref name="symbol"/>, or null when it is no expansion.</summary>
     public ExpansionPlacement? Of(object symbol) => Expansions.GetValueOrDefault(symbol);
@@ -56,13 +70,36 @@ internal sealed record ExpansionPlacements(IReadOnlyDictionary<object, Expansion
 /// DESIGN-external-repository §10.5; kb/Work PB2104). It runs once the group is bound — a class's record is its surface, which exists only
 /// then — and does three things in order: it states each skeleton the group writes (its source, formals, the identity every specifier of
 /// its own REPOSITORY paragraph stands for, and the <see cref="CompileState"/> it was compiled under); it computes each expansion's
-/// <see cref="ExpansionKey"/> from the records of everything the expansion names; and it places the expansion.
+/// <see cref="ExpansionKey"/> from the records of everything the expansion names; and it places the expansion:
+/// <list type="number">
+/// <item><b>Import before expand.</b> An expansion of its name and key that the search space already holds is the class: the group
+/// emits nothing for its own copy and names the existing types (the copy it bound is the same text over the same surfaces, which is
+/// what the key says). That holds when the existing assembly references this group's own previous build — a reference cycle the CLR and
+/// Roslyn accept.</item>
+/// <item><b>Otherwise (a) an assembly of its own</b> when its code names no class or interface of THIS group — every actual and every
+/// resolution lies outside it: the driver compiles the expansion's text under the skeleton's recorded state into
+/// <c>&lt;externalized name&gt;.dll</c> beside the output; <b>or (b) this group's assembly</b>, because an assembly of its own would need
+/// the group's NEW assembly.</item>
+/// <item><b>A stale expansion</b> — the same name and the same definition and actuals under another key — is never imported: it is named
+/// by REPO-9 with the first component of its key that changed and every assembly of the search space that references it, and replaced.</item>
+/// </list>
 /// </summary>
 internal static class ExpansionPlacementPass
 {
     public static ExpansionPlacements Run(OoClassTable table, IReadOnlyList<OoClassUnit> classes,
-        IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> interfaceData)
+        IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> interfaceData, MetadataRepositoryProvider external, EditionContext edition,
+        CompileInputs inputs, ExpansionIdentity? publishAs)
     {
+        // The compilation of an expansion's own assembly: its text is the expansion's, so the one class or interface it defines IS the
+        // expansion the parent asked for, published under the identity and key the parent computed.
+        if (publishAs is not null)
+        {
+            object[] defined = [.. classes.Select(c => (object)c.Symbol), .. table.Interfaces];
+            return defined.Length == 1
+                ? new ExpansionPlacements(new Dictionary<object, ExpansionPlacement>(ReferenceEqualityComparer.Instance)
+                    { [defined[0]] = new ExpansionPlacement(publishAs, ExpansionWhere.InGroup) }, [])
+                : ExpansionPlacements.None;
+        }
         if (table.Skeletons.Count == 0 && !classes.Any(c => c.Symbol.Expansion is not null) && !table.Interfaces.Any(i => i.Expansion is not null))
             return ExpansionPlacements.None;
 
@@ -111,22 +148,137 @@ internal static class ExpansionPlacementPass
         }
 
         var placements = new Dictionary<object, ExpansionPlacement>(ReferenceEqualityComparer.Instance);
+        var order = new List<(object Symbol, ExpansionPlacement Placement)>();
+        var inProgress = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        var reportedStale = new HashSet<Guid>();
         foreach (object symbol in classes.Select(c => (object)c.Symbol).Concat(table.Interfaces))
+            Place(symbol);
+        return new ExpansionPlacements(placements, skeletons) { ToWrite = order };
+
+        // One expansion's placement, after the placement of every expansion it names (an actual may itself be an expansion).
+        ExpansionPlacement? Place(object symbol)
         {
             var origin = symbol is OoClassSymbol cs ? cs.Expansion : ((OoInterfaceSymbol)symbol).Expansion;
-            if (origin is null) continue;
+            if (origin is null) return null;
+            if (placements.TryGetValue(symbol, out var done)) return done;
+            if (!inProgress.Add(symbol)) return null;   // an expansion that names itself: its text is refused elsewhere
+
             var skeleton = origin.Skeleton.ToRecord(Resolution);
-            var resolutions = origin.Skeleton.ResolutionEntries.Select(NamedBy).ToList();
+            var resolutionEntries = origin.Skeleton.ResolutionEntries;
             var paragraph = ((Core.RepositoryParagraphContext)origin.Entry.Parent).repositoryEntry();
-            var actuals = origin.ActualWords
-                .Select(w => NamedBy(paragraph.First(r => CobolNames.Same(r.className()?.GetText() ?? r.interfaceName()?.GetText(), w)))).ToList();
+            var actualEntries = origin.ActualWords
+                .Select(w => paragraph.First(r => CobolNames.Same(r.className()?.GetText() ?? r.interfaceName()?.GetText(), w))).ToList();
+            bool namesGroup = false;
+            foreach (var entry in resolutionEntries.Concat(actualEntries))
+            {
+                var (c, i) = table.ResolveSpecifier(entry);
+                object? named = c is not null ? c : i;
+                if (named is OoClassSymbol { Origin: OoSymbolOrigin.Source } or OoInterfaceSymbol { Origin: OoSymbolOrigin.Source })
+                    namesGroup |= Place(named) is not { Where: ExpansionWhere.Imported or ExpansionWhere.OwnAssembly };
+            }
+            var resolutions = resolutionEntries.Select(NamedBy).ToList();
+            var actuals = actualEntries.Select(NamedBy).ToList();
             var (key, parts) = ExpansionKey.Of(origin.Skeleton.Identity, skeleton, resolutions, actuals);
+            string externalized = symbol is OoClassSymbol c0 ? c0.ExternalizedName : ((OoInterfaceSymbol)symbol).ExternalizedName;
             var identity = new ExpansionIdentity(origin.Skeleton.Identity, new RecordList<string>([.. actuals.Select(a => a.Identity)]), key,
                 new RecordList<string>([.. parts]), OwnAssembly: false);
-            placements[symbol] = new ExpansionPlacement(identity, ExpansionWhere.InGroup);
+            string mine = ExpansionKey.SurfaceText(RecordOf(symbol));
+
+            // Import before expand; a stale copy is named and replaced; a same-name expansion of another definition or other actuals is
+            // another class under the same name, which §9.3.12 forbids to share a run unit.
+            ExpansionPlacement? placement = null;
+            foreach (var other in external.ExpansionsNamed(externalized))
+            {
+                var theirs = other.Identity;
+                bool sameTriple = ExternalizedNames.Same(theirs.DefinitionIdentity, identity.DefinitionIdentity)
+                    && theirs.ActualIdentities.SequenceEqual(identity.ActualIdentities, ExternalizedNames.Comparer);
+                if (sameTriple && theirs.Key == key && ExpansionKey.SurfaceText(other.Record) == mine)
+                    placement ??= new ExpansionPlacement(identity, ExpansionWhere.Imported, other.From, other.Record.Class!.ClrName, other.Record.Class.FactoryType);
+                else if (sameTriple)
+                {                    if (reportedStale.Add(other.From.Mvid)) ReportStale(origin, externalized, other, identity, theirs.Key == key);
+                }
+                else ReportSameName(origin, externalized, other);
+            }
+            if (placement is null)
+            {
+                if (!namesGroup) placement = WillWrite(symbol, origin, externalized, identity);
+                else
+                {
+                    if (origin.Skeleton.From is not null && !SameState(origin.Skeleton.State, inputs.At(origin.Entry.Start.Line)))
+                        ReportForeignState(origin, externalized);
+                    placement = new ExpansionPlacement(identity, ExpansionWhere.InGroup);
+                }
+            }
+            placements[symbol] = placement;
+            if (placement.Where is ExpansionWhere.OwnAssembly) order.Add((symbol, placement));
+            inProgress.Remove(symbol);
+            return placement;
         }
-        return new ExpansionPlacements(placements, skeletons);
+
+        // Placement (a): the file <externalized name>.dll beside the output. Whatever is there is replaced only when it is an expansion of
+        // this name (stale, REPO-9) or an assembly of another schema or version (REPO-12); anything else is not ours to overwrite.
+        ExpansionPlacement WillWrite(object symbol, ExpansionOrigin origin, string externalized, ExpansionIdentity identity)
+        {
+            string simple = ExternalizedNames.Form(externalized);
+            string path = Path.Combine(external.OutputDirectory, simple + ".dll");
+            var (state, why) = external.StateOfExpansionFile(path, externalized);
+            switch (state)
+            {
+                case MetadataRepositoryProvider.TargetFile.Skewed:
+                    edition.Warning(DiagnosticCatalog.RepositoryPreviousBuildSkew,
+                        $"the expansion assembly '{path}' for \"{externalized}\" is replaced: {why} (ISO §8.13; DESIGN-external-repository §10.5)");
+                    break;
+                case MetadataRepositoryProvider.TargetFile.Foreign:
+                    using (edition.At(origin.Entry))
+                        edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
+                            $"REPOSITORY {(symbol is OoInterfaceSymbol ? "INTERFACE" : "CLASS")} '{externalized}' EXPANDS {origin.Skeleton.Name}: the expansion's own "
+                            + $"assembly would be '{path}', which {why}; two classes with the same externalized name that are not expansions of one definition "
+                            + "with the same actuals shall not share a run unit (ISO §9.3.12, §9.3.13)");
+                    break;
+            }
+            var from = new ImportedFrom(path, Guid.Empty, CsNames.ModuleNamespaceOf(simple).ClrName);
+            var own = identity with { OwnAssembly = true };
+            return new ExpansionPlacement(own, ExpansionWhere.OwnAssembly, from,
+                symbol is OoClassSymbol c ? c.ClrName : ((OoInterfaceSymbol)symbol).ClrName, symbol is OoClassSymbol cf ? cf.FactoryClrName : null);
+        }
+
+        void ReportStale(ExpansionOrigin origin, string externalized, MetadataRepositoryProvider.PublishedExpansion stale, ExpansionIdentity mine,
+            bool sameKey)
+        {
+            string changed = sameKey ? "members" : ExpansionKey.FirstDifference(mine.Parts, stale.Identity.Parts);
+            var referencers = external.ReferencersOf(stale.AssemblyName);
+            using var at = edition.At(origin.Entry);
+            edition.Warning(DiagnosticCatalog.RepositorySignatureDiffers,
+                $"the expansion \"{externalized}\" of {stale.Identity.DefinitionIdentity} USING {string.Join(" ", stale.Identity.ActualIdentities)} in '{stale.From.Path}' is stale: "
+                + $"its {changed} changed since it was made, so it is not imported and this compilation makes the expansion. "
+                + (referencers.Count == 0 ? "No assembly of the search space references it."
+                    : $"These were compiled against the earlier class and are its stale callers, to be recompiled: {string.Join(", ", referencers.Select(r => $"'{r}'"))}.")
+                + " (ISO §9.3.12, §8.13; DESIGN-external-repository §10.5)");
+        }
+
+        void ReportSameName(ExpansionOrigin origin, string externalized, MetadataRepositoryProvider.PublishedExpansion other)
+        {
+            using var at = edition.At(origin.Entry);
+            edition.Warning(DiagnosticCatalog.RepositoryEntryShadowedDiffers,
+                $"the expansion \"{externalized}\" in '{other.From.Path}' expands {other.Identity.DefinitionIdentity} USING "
+                + $"{string.Join(" ", other.Identity.ActualIdentities)}, which is not what this compilation's expansion of that name is: two classes "
+                + "with different actual parameters are not the same class instance and shall not have the same externalized object-class-name "
+                + "within a run unit (ISO §9.3.12, §9.3.13; DESIGN-external-repository §10.5)");
+        }
+
+        void ReportForeignState(ExpansionOrigin origin, string externalized)
+        {
+            using var at = edition.At(origin.Entry);
+            edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
+                $"REPOSITORY CLASS '{externalized}' EXPANDS {origin.Skeleton.Name}: the skeleton was compiled under another compile state than this "
+                + "compilation's, so its expansion must be compiled apart under that state, in an assembly of its own; but its code names a class "
+                + "or interface of this compilation group, which an assembly of its own cannot reference (ISO §9.3.12, §12.3.8.4 GR5; "
+                + "DESIGN-external-repository §10.5)");
+        }
     }
+
+    /// <summary>Do two states bind a source the same way? Every member but <c>FlagExtensions</c>, which only adds warnings.</summary>
+    private static bool SameState(CompileState a, CompileState b) => a with { FlagExtensions = false } == b with { FlagExtensions = false };
 
     /// <summary>The identity a specifier states when nothing answers it: its AS literal, else its word (ISO §12.3.8.4 GR2).</summary>
     private static string WrittenIdentity(OoClassTable table, Core.RepositoryEntryContext specifier)

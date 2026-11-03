@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 
@@ -120,6 +121,15 @@ internal sealed class ProgramEmitter
             // A CHARACTER CLASSIFICATION clause anywhere in the compilation group — a program, or a CLASS-ID whose methods
             // carry it as an activation local: the Globalization types (kb/Work PB64 T5 / PB111). Zero-scaffolding otherwise.
             w.Line("using global::WiseOwl.Cobol.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");
+        // An expansion that lives in another assembly (imported, or written to one of its own; DESIGN-external-repository §10.5) is named
+        // here by its simple name, as one of this module's classes is, so the code bound against it needs no second spelling.
+        foreach (var (symbol, placement) in comp.Expansions.Expansions.Where(e => e.Value.Where is not Binding.Repository.ExpansionWhere.InGroup))
+        {
+            string at = $"global::{CsNames.CSharpNamespace(new ModuleNamespace(placement.From!.ClrNamespace))}";
+            w.Line($"using {(symbol is OoClassSymbol c ? c.ClrName : ((OoInterfaceSymbol)symbol).ClrName)} = {at}.{placement.TypeName};");
+            if (symbol is OoClassSymbol factoryOwner)
+                w.Line($"using {factoryOwner.FactoryClrName} = {at}.{placement.FactoryTypeName};");
+        }
         w.Line();
 
         // Interfaces first (readability only — Roslyn needs no ordering), then classes (source order), then

@@ -41,7 +41,8 @@ internal sealed class BinderDriver
     /// <param name="repository">The external repository the group's specifiers resolve against when the group cannot
     /// answer them (ISO §12.3.8.4 GR10 c) / GR11 c); DESIGN-external-repository §8.6, §9.3); none when null.</param>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
-        Frontend.Preprocessor.DirectiveResults? directives = null, RepositorySearchSpace? repository = null)
+        Frontend.Preprocessor.DirectiveResults? directives = null, RepositorySearchSpace? repository = null,
+        ExpansionIdentity? publishAs = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
         // The frontend's directive outputs travel as ONE record (kb/Work PB65); absent ⇒ every directive's default.
@@ -307,7 +308,7 @@ internal sealed class BinderDriver
             || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
 
         // The group is bound: what it publishes for its parameterized definitions, and where each expansion lives (§10.5).
-        var expansions = ExpansionPlacementPass.Run(table, classes, oo.InterfaceData);
+        var expansions = ExpansionPlacementPass.Run(table, classes, oo.InterfaceData, external, edition, compileInputs, publishAs);
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
             anyFiles, edition.DialectLevel, session.SignatureClasses, edition.SignEncoding, expansions);
     }

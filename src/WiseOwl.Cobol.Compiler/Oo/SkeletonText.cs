@@ -21,23 +21,28 @@ internal static class SkeletonText
     /// <summary>The text of every on-channel token of <paramref name="definition"/>, in order.</summary>
     public static string Of(ParserRuleContext definition)
     {
+        var tokens = new List<IToken>();
+        Collect(definition);
+        return OfTokens(tokens);
+
+        void Collect(IParseTree node)
+        {
+            if (node is ITerminalNode terminal) { if (terminal.Symbol.Type != TokenConstants.EOF) tokens.Add(terminal.Symbol); return; }
+            for (int i = 0; i < node.ChildCount; i++) Collect(node.GetChild(i));
+        }
+    }
+
+    /// <summary>The text of <paramref name="tokens"/>: touching tokens touch, every other pair is one space apart.</summary>
+    public static string OfTokens(IEnumerable<IToken> tokens)
+    {
         var text = new StringBuilder();
         IToken? previous = null;
-        Visit(definition);
-        return text.ToString();
-
-        void Visit(IParseTree node)
+        foreach (var token in tokens)
         {
-            if (node is ITerminalNode terminal)
-            {
-                var token = terminal.Symbol;
-                if (token.Type == TokenConstants.EOF) return;
-                if (previous is not null && !(previous.StopIndex >= 0 && token.StartIndex == previous.StopIndex + 1)) text.Append(' ');
-                text.Append(token.Text);
-                previous = token;
-                return;
-            }
-            for (int i = 0; i < node.ChildCount; i++) Visit(node.GetChild(i));
+            if (previous is not null && !(previous.StopIndex >= 0 && token.StartIndex == previous.StopIndex + 1)) text.Append(' ');
+            text.Append(token.Text);
+            previous = token;
         }
+        return text.ToString();
     }
 }

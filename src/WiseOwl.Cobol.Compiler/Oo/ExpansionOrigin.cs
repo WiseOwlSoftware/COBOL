@@ -49,4 +49,6 @@ internal sealed record SkeletonSource(string Name, string Identity, bool IsInter
 /// <param name="Skeleton">The skeleton it was made from.</param>
 /// <param name="Entry">The REPOSITORY entry that declares the expansion.</param>
 /// <param name="ActualWords">The actual parameters, in USING order, as written.</param>
-internal sealed record ExpansionOrigin(SkeletonSource Skeleton, Core.RepositoryEntryContext Entry, IReadOnlyList<string> ActualWords);
+/// <param name="Text">The expansion's own source text: the skeleton's tokens with the header renamed, the USING clause dropped and each
+/// formal replaced by its actual (<see cref="OoExpansion"/>), which an expansion made in an assembly of its own is compiled from.</param>
+internal sealed record ExpansionOrigin(SkeletonSource Skeleton, Core.RepositoryEntryContext Entry, IReadOnlyList<string> ActualWords, string Text);
