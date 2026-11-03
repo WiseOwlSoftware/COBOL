@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb4454_global_file_operand_under_unnamed_root
-      *> rules: [GR-13.18.27.4-2, GR-12.4.5.13.4-2, GR-14.9.51.4-29]
+      *> rules: [GR-13.18.27.4-2, GR-12.4.5.13.4-2, GR-14.9.51.4-29,
+      *>    GR-14.9.51.4-32]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
@@ -23,13 +24,24 @@
       *>   key data item associated with the execution of an
       *>   input-output statement is the data item referenced by
       *>   data-name-1"            -> OK  12.4.5.13.4 2)
-      *>   python scripts/spec/cite.py --check 14.9.51.4 "the relative
-      *>   record number of the record being released is moved into
-      *>   the relative key data item by the operating environment
-      *>   during execution of the WRITE statement"
-      *>                           -> OK  14.9.51.4 29) a)
-      *> INNERG writes RFL once with RK = 2 set by the owner: record 2
-      *> is released, status 00, RK stays 0002. INNERS writes SFL once:
+      *> RFL is ACCESS MODE RANDOM and is opened I-O, so the governing
+      *> rules are the random-access branch of the WRITE rule and the
+      *> I-O insert rule, not the sequential branch (29) a), where the
+      *> operating environment moves the record number into the key):
+      *>   python scripts/spec/cite.py --check 14.9.51.4 "If the access
+      *>   mode of the write file connector is random or dynamic, prior
+      *>   to the execution of the WRITE statement the value of the
+      *>   relative key data item shall be initialized by the runtime
+      *>   element with the relative record number to be associated
+      *>   with the record that is to be written"
+      *>                           -> OK  14.9.51.4 29) b)
+      *>   python scripts/spec/cite.py --check 14.9.51.4 "That record is
+      *>   then released to the operating environment by the execution
+      *>   of the WRITE statement"
+      *>                           -> OK  14.9.51.4 32)
+      *> INNERG writes RFL once with RK = 2 set by the owner: the key is
+      *> the caller's input and is not overwritten, so record 2 is
+      *> released, status 00, RK stays 0002. INNERS writes SFL once:
       *> status 00 reaches SFS in the container.
       *>
       *> EXPECTED OUTPUT, LINE BY LINE:
