@@ -253,13 +253,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// literals to represent the decimal separator", so `DISPLAY 1,5` under DECIMAL-POINT IS COMMA shows `1,5`
     /// (DOC-A.1-56; kb/Work PB1643 — it showed `1.5`, because one text field was both the value and the image).</summary>
     public BoundNumericLiteral NumericLiteralOperand(string asWritten) =>
-        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.DecimalSeparator };
+        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.State.Configuration.DecimalSeparator };
 
     /// <summary>The arithmetic-expression-tier twin of <see cref="NumericLiteralOperand"/>: the same literal, the same
     /// separator, as a <see cref="BoundNumLiteral"/> (it reaches a character image through
     /// <c>IntrinsicBinder.OperandOf</c>, e.g. a numeric literal argument of a function).</summary>
     private BoundNumLiteral NumericLiteralExpr(string asWritten) =>
-        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.DecimalSeparator };
+        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.State.Configuration.DecimalSeparator };
 
     /// <summary>⛔ THE ONE PRODUCER OF <see cref="BoundPredefinedNull"/> — the operand slot of a §8.4.3.10.3 SR1
     /// context, which the predefined NULL may occupy: "it may be used only as a sending operand in an INITIALIZE or
@@ -355,7 +355,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // GR10's "one or more of the character" IS the fill semantics BoundAllLiteral carries in every context).
         if (fig.cobolWord() is { } symWord)
         {
-            if (ctx.Data.SymbolicOf(symWord, symWord.GetText()) is { } sym)
+            if (ctx.Data.SpecialNames.SymbolicOf(symWord, symWord.GetText()) is { } sym)
                 return SymbolicOperand(sym) is BoundAllLiteral al7
                     ? al7 with { BeginsWithAll = true }   // the EXPLICIT ALL form — the word is written
                     : SymbolicOperand(sym);
@@ -464,7 +464,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// whenever 'literal' appears in a format" (§8.3.3.6.3 SR1). Exactly one of <paramref name="Constant"/> and
     /// <paramref name="Symbolic"/> is set.</summary>
     /// <param name="Word">The word as written, for diagnostics.</param>
-    internal sealed record LiteralAlias(string Word, DataBinder.ConstantDef? Constant, (string Value, bool National)? Symbolic)
+    internal sealed record LiteralAlias(string Word, ConstantDef? Constant, (string Value, bool National)? Symbolic)
     {
         /// <summary>A numeric constant-name: the one alias a numeric-literal position admits (a symbolic-character is
         /// never numeric — §8.3.3.6.3 SR1 a) admits only ZERO where a literal is restricted to numeric).</summary>
@@ -484,14 +484,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// VALUE argument and INVOKE had neither half, or only the constant half, and refused conforming source.
     /// <c>LiteralAliasResolutionDriftTests</c> fails when a procedure binder reads either table itself.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>
-        ctx.Data.ConstantOf(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
+        ctx.Data.Constants.ConstantOf(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
         // A symbolic-character a CONTAINING element declares yields to the referring element's own item of the same
         // spelling: "a source element's reference to such a name, even when it is a different type of user-defined
         // word, is to the item which that source element describes" (§8.4.6.1, kb/Work PB3153). Asked BEFORE the
         // resolution, which records the word as used as a symbolic-character (§8.3.2.2). In one element the two
         // cannot coexist (COBOL2692 at the second declaration), so the own-item test changes no own-element answer.
-        : ctx.Data.NamesSymbolic(dref) && !ctx.Refs.DescribesOwnItem(dref)
-          && ctx.Data.SymbolicOf(dref) is { } s ? new(DataBinder.WrittenText(dref), null, s)
+        : ctx.Data.SpecialNames.NamesSymbolic(dref) && !ctx.Refs.DescribesOwnItem(dref)
+          && ctx.Data.SpecialNames.SymbolicOf(dref) is { } s ? new(DataBinder.WrittenText(dref), null, s)
         : null;
 
     /// <summary>The literal-alias a BARE WORD spells where the grammar writes <c>literal | cobolWord</c> — a position no
@@ -499,8 +499,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// data item for the word to yield to and the §8.4.6.1 own-item test of the data-reference overload does not arise.
     /// The same two tables in the same order: a constant-name, then a symbolic-character.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>
-        word.GetText() is var w && ctx.Data.FindConstant(w) is { } k ? new(w, k, null)
-        : ctx.Data.NamesSymbolic(w) && ctx.Data.SymbolicOf(word, w) is { } s ? new(w, null, s)
+        word.GetText() is var w && ctx.Data.Constants.FindConstant(w) is { } k ? new(w, k, null)
+        : ctx.Data.SpecialNames.NamesSymbolic(w) && ctx.Data.SpecialNames.SymbolicOf(word, w) is { } s ? new(w, null, s)
         : null;
 
     /// <summary>The bound operand <paramref name="alias"/> stands for: the SAME shape the equivalent written literal
@@ -1022,7 +1022,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // BY-CONTENT choice for an argument — inherits it. The parameter in any reference form (whole or
         // reference-modified) is barred; an item subordinate to a group parameter is not "a formal parameter" (SR4 b)
         // of the same clause says "subordinate to" when it means it), and the RETURNING item is no formal parameter.
-        if (ctx.Data.IsFunctionFormal(place.Item))
+        if (ctx.Data.Linkage.IsFunctionFormal(place.Item))
             return new(DiagnosticCatalog.FunctionFormalReceiving.Code,
                 $"'{DataBinder.WrittenText(dref)}' is a formal parameter of this function and shall not be used as a "
                 + "receiving operand (ISO §13.7.3 SR5); store into the RETURNING item or a WORKING-STORAGE copy");
@@ -1089,7 +1089,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// receiver list is built, and nowhere else.</summary>
     private Receiver ReceiverOf(Place resolved, Core.RoundedPhraseContext? rounded)
     {
-        ctx.Data.OoClaimInterleavedReceiver(resolved);
+        ctx.Data.Procedure.ClaimInterleavedReceiver(resolved);
         return new Receiver(resolved, RoundingOf(rounded));
     }
 
@@ -1309,7 +1309,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// (ISO §8.3.3.3.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
     public string CheckLiteral(string text)
     {
-        text = ctx.Data.NormalizeNumericLiteral(text);
+        text = ctx.Data.SpecialNames.NormalizeNumericLiteral(text);
         // A floating-point literal's digits are not the fixed-point 31/18 cap's subject (§8.3.3.3.3 SR2/SR3 —
         // checked by the normalizer); what it owes is r3's "The maximum permitted value and minimum permitted value
         // of the exponent is implementor-defined" (kb/Work PB99 — beyond the range the generated C# double literal

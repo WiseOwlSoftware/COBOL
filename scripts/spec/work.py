@@ -715,6 +715,7 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
         bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
         bad += r3_program_problems(items)
         bad += edges_remover_problems(items)
+        bad += concern_owned_problems(items)
     return items, bad
 
 
@@ -1668,6 +1669,44 @@ def edges_remover_problems(items: list[dict], edges: dict | None = None) -> list
         for n in dict.fromkeys(_NOTE_ID.findall(row.get("plan") or "")):
             if n not in by_id:
                 bad.append(f"{name}: its plan names {n}, which kb/Work does not hold")
+    return bad
+
+
+
+CONCERN_OWNED_FILE = "tests/WiseOwl.Cobol.Tests.Unit/BindPassBoundaryDriftTests.cs"
+_CONCERN_OWNED_START = re.compile(r"\bConcernOwned\s*=\s*\[")
+_CS_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
+_CS_STRING = re.compile(r'^"([^"\\]+)"$')
+
+
+def concern_owned_problems(items: list[dict], source: str | None = None) -> list[str]:
+    """The register's side of BindPassBoundaryDriftTests.ConcernOwned (kb/Work PB2352-PB2354): each pipeline row whose rule
+    code still lives on DataBinder is named by an OPEN note, so the exception has an owner and an end. The drift test holds
+    the list against the code; this holds it against the register, here because no compiler test reads `kb/Work/`
+    (scripts/inert_lane.py, kb/Work PB4453). `source` is the test file's text (read from the tree when None).
+    It never passes what it cannot read: a missing file, a missing list, or an element that is not a plain string literal
+    (a nameof, a const, an interpolation) is a problem, so a reshaped list cannot silently empty the check."""
+    fix = "update work.concern_owned_problems together with the test"
+    if source is None:
+        path = REPO / CONCERN_OWNED_FILE
+        if not path.exists():
+            return [f"{CONCERN_OWNED_FILE} is missing, so the ConcernOwned owners cannot be checked: {fix}"]
+        source = path.read_text(encoding="utf-8")
+    m = _CONCERN_OWNED_START.search(source)
+    end = source.find("];", m.end()) if m else -1
+    if m is None or end < 0:
+        return [f"{CONCERN_OWNED_FILE}: no `ConcernOwned = [...];` list found, so its owners cannot be checked: {fix}"]
+    body = _CS_COMMENT.sub("", source[m.end():end])
+    elements = [e.strip() for e in body.split(",") if e.strip()]
+    bad = [f"{CONCERN_OWNED_FILE}: ConcernOwned element {e} is not a plain string literal, so its owner cannot be "
+           f"checked: spell the row as a string literal ({fix})" for e in elements if not _CS_STRING.match(e)]
+    open_bodies = [it.get("_body", "") for it in items if it.get("status") == "open"]
+    for e in elements:
+        lit = _CS_STRING.match(e)
+        if lit and not any(lit.group(1) in body_ for body_ in open_bodies):
+            bad.append(f"{CONCERN_OWNED_FILE}: ConcernOwned row {lit.group(1)} (rule code left on DataBinder) is named by no "
+                       f"open kb/Work note: the move off DataBinder has no owner; name it in the open extract note that "
+                       f"owns it or finish the move")
     return bad
 
 

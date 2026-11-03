@@ -872,7 +872,7 @@ public sealed class OoClassTable
                   ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
                       "METHOD-ID", "ISO §11.7.3 SR1") };
                 // §11.7.3 SR6/SR7 (the accessor's header shape) are asked of the BOUND header, by
-                // DataBinder.OoBindMethodData — the parameter count and the ACTIVE-CLASS descriptor (kb/Work PB1503).
+                // OoDataBinder.BindMethodData — the parameter count and the ACTIVE-CLASS descriptor (kb/Work PB1503).
                 if (!sym.TryAddMethod(method))
                     edition.Declined(DiagnosticCatalog.ParametricPolymorphismDeclined,
                         $"class '{name}': a second method named '{methodName}' (OO deep-dive D9)");

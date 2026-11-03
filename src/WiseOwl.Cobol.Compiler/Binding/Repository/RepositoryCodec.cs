@@ -65,10 +65,10 @@ internal static class RepositoryCodec
     {
         var data = unit.Data;
         var encoder = new Encoder(data.OoClasses);
-        var formals = List(data.LinkageFormals.Select(f => encoder.Formal(f.Item, f.Position, f.ByValue, f.Optional)));
-        var returning = data.LinkageReturning is { } r ? encoder.Describe(r, r) : null;
+        var formals = List(data.Linkage.Formals.Select(f => encoder.Formal(f.Item, f.Position, f.ByValue, f.Optional)));
+        var returning = data.Linkage.Returning is { } r ? encoder.Describe(r, r) : null;
         return new RepositoryRecord(KindOf(unit), unit.Name, unit.ExternalizedName, CobolEntryConvention,
-            data.DecimalPointIsComma, Currencies(data), encoder.Raising(unit.Bound?.Raising ?? []), formals, returning,
+            data.State.Configuration.DecimalPointIsComma, Currencies(data), encoder.Raising(unit.Bound?.Raising ?? []), formals, returning,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes);
     }
 
@@ -85,7 +85,7 @@ internal static class RepositoryCodec
         var facts = new ClassRecord(symbol.IsFinal, symbol.Base?.ExternalizedName, List(symbol.Implements.Select(i => i.ExternalizedName)),
             List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryClrName, PropertiesOf(methods), methods, symbol.ClrName);
         return new RepositoryRecord(expansion is null ? RepositoryUnitKind.Class : RepositoryUnitKind.Expansion, symbol.Name, symbol.ExternalizedName,
-            CobolEntryConvention, cls.Data.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            CobolEntryConvention, cls.Data.State.Configuration.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
 
@@ -98,7 +98,7 @@ internal static class RepositoryCodec
         var facts = new ClassRecord(Final: false, BaseIdentity: null, List(iface.Inherits.Select(i => i.ExternalizedName)),
             RecordList<string>.Empty, FactoryType: null, PropertiesOf(methods), methods, iface.ClrName);
         return new RepositoryRecord(expansion is null ? RepositoryUnitKind.Interface : RepositoryUnitKind.Expansion, iface.Name, iface.ExternalizedName,
-            CobolEntryConvention, data.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            CobolEntryConvention, data.State.Configuration.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
 
@@ -111,7 +111,7 @@ internal static class RepositoryCodec
         RecordList<StructureRecord>.Empty, RecordList<PrototypeRecord>.Empty, Skeleton: skeleton);
 
     /// <summary>The currency symbols the source unit defines and their currency strings (ISO §8.13), ordered by symbol.</summary>
-    private static RecordList<CurrencyRecord> Currencies(DataBinder data) => List(data.CurrencySigns.OrderBy(c => c.Key)
+    private static RecordList<CurrencyRecord> Currencies(DataBinder data) => List(data.State.Configuration.CurrencySigns.OrderBy(c => c.Key)
         .Select(c => new CurrencyRecord(c.Key, c.Value.Text, Persisted(c.Value.LiteralClass))));
 
     /// <summary>The object properties of a class or an interface (ISO §8.13; §13.18.42), each the accessors of one property

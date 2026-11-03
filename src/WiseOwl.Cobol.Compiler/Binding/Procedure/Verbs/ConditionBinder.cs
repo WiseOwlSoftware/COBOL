@@ -920,7 +920,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
         // class condition could test membership of (kb/Work PB64 T5; the same rule family as §12.3.7.3 SR16g/SR17d
         // — DataBinder.IsLocaleAlphabet is the one predicate, over BOTH classes of alphabet).
-        if (ctx.Data.IsLocaleAlphabet(word))
+        if (ctx.Data.SpecialNames.IsLocaleAlphabet(word))
         {
             ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{word}': "
                 + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §8.8.4.4.3 SR2) — "
@@ -928,7 +928,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return Refused($"class condition '{word}'");
         }
         // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
-        if (ctx.Data.UserClasses.TryUse(at, word, out var userClass))
+        if (ctx.Data.State.Configuration.UserClasses.TryUse(at, word, out var userClass))
         {
             var opnd = operand();
             CheckClassConditionOperand(opnd, ClassConditionModel.ClassName);   // SR3 + SR4 name class-name-1
@@ -937,8 +937,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
         // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the
         // loud staged BoundConditionError.
-        if ((ctx.Data.Alphabets.TryUse(at, word, out var aDef) && aDef.CodedSet is { } aSet
-                ? aSet : ctx.Data.NationalAlphabets.TryUse(at, word, out var nDef) ? nDef.CodedSet : null) is { } set)
+        if ((ctx.Data.State.Configuration.Alphabets.TryUse(at, word, out var aDef) && aDef.CodedSet is { } aSet
+                ? aSet : ctx.Data.State.Configuration.NationalAlphabets.TryUse(at, word, out var nDef) ? nDef.CodedSet : null) is { } set)
         {
             var opnd = operand();
             // ⛔ ITS OWN KIND, NOT THE CLASS-NAME'S. SR3 names alphabet-name-1 beside class-name-1, but SR4 —
@@ -1015,7 +1015,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     if (CobolNames.Same(f.Item.CobolName, fname)) { formal = f.Probe; break; }
             }
             else
-                foreach (var f in ctx.Data.LinkageFormals)
+                foreach (var f in ctx.Data.Linkage.Formals)
                     if (CobolNames.Same(f.Item.CobolName, fname)) { formal = f.Probe; break; }
             if (formal is null)
             {
@@ -1140,13 +1140,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (dref is { } ad && ad.dataReferenceSuffix().Length == 0 && host.Expr.LiteralAliasOf(ad) is { } alias)
             what = $"{alias.Described}, which is none of the conditions";
         else if (BareClassWord(vo) is { } classWord)
-            what = ctx.Data.IsAlphabetName(classWord)
+            what = ctx.Data.SpecialNames.IsAlphabetName(classWord)
                 ? $"alphabet-name '{classWord}', which forms a class condition only after the identifier it tests — "
                   + "\"identifier-1 IS [NOT] alphabet-name-1\" (ISO §8.8.4.4.2)"
                 : $"class-name '{classWord}', which forms a class condition only after the identifier it tests — "
                   + "\"identifier-1 IS [NOT] class-name-1\" (ISO §8.8.4.4.2)";
         else if (dref is { } d && d.dataReferenceSuffix().Length == 0 && d.cobolWord()?.GetText() is { } word
-                 && ctx.Mnemonics.TryPeek(d, word, out var mnemonicRow) && mnemonicRow.Kind == SystemNameKind.Switch)
+                 && ctx.Mnemonics.TryPeek(word, out var mnemonicRow) && mnemonicRow.Kind == SystemNameKind.Switch)
             what = $"the mnemonic-name '{word}' of a switch; a switch-status condition is written with a condition-name "
                 + "the SPECIAL-NAMES paragraph associates with the switch's ON or OFF status (ISO §8.8.4.6.1; the §8.8.4.6.2 format is condition-name-1)";
         else if (dref is { } dd && ctx.Refs.Probe(dd) is { } probe)
@@ -1303,7 +1303,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// classifier may ask it before anything is bound.</summary>
     public string? BareClassWord(Core.ValueOperandContext? vo) =>
         vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && dref.dataReferenceSuffix().Length == 0
-            && dref.cobolWord() is { } word && ctx.Data.IsClassConditionWord(word.GetText()) && !ctx.Refs.DescribesOwnItem(dref)
+            && dref.cobolWord() is { } word && ctx.Data.SpecialNames.IsClassConditionWord(word.GetText()) && !ctx.Refs.DescribesOwnItem(dref)
             ? word.GetText() : null;
 
     /// <summary>§14.9.13.3 SR5 over a selection object the grammar parsed as a whole <c>condition</c>: the
@@ -1700,7 +1700,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
         // §13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (NameResolution.ScreenLinkageReference), once per reference.
-        if (ctx.Data.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
+        if (ctx.Data.Linkage.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
             ctx.Refs.Names.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
         return matches[0];
     }

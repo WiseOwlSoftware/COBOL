@@ -100,7 +100,7 @@ public sealed partial class DataBinder
     internal NonDataDeclaration? NonDataDeclarationOf(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {
         if (ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
-        if (IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
+        if (SpecialNames.IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
         // An unqualified reference's data-name answer is the RANKED one (§8.4.6.2.1 3)): a container's GLOBAL data item that
         // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
         // one keeps the raw answer, which the callers word as "declared, but not under the given qualifiers".
@@ -148,15 +148,15 @@ public sealed partial class DataBinder
     /// <paramref name="dataName"/> is whether the ranked data-name lookup left a data item standing: it answers for
     /// itself, so the constant and the file are not offered beside it (an index-name is, because
     /// <see cref="Model.SymbolTable.IndexCandidates"/> has already weighed it against the data-name). The inherited
-    /// GLOBAL constant is still in the table until the unit's data division has bound (<c>DropShadowedConstants</c>), so
+    /// GLOBAL constant is still in the table until the unit's data division has bound (<c>InheritStep.DropShadowed</c>), so
     /// the data division's own clause operands meet it here, where a contained program's own level-88 of the spelling
     /// must outrank it.</summary>
     private IEnumerable<NonDataDeclaration> NonConditionDeclarationsOf(
         string name, IReadOnlyList<string> qualifiers, Model.Scope scope, bool dataName)
     {
-        if (qualifiers.Count == 0 && !dataName && IsConstantName(name))
-            yield return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: IsRefusedConstantName(name),
-                Depth: _inheritedConstants.GetValueOrDefault(name));
+        if (qualifiers.Count == 0 && !dataName && Constants.IsConstantName(name))
+            yield return new(NonDataDeclarationKind.ConstantName, DeclarationRefused: Constants.IsRefusedConstantName(name),
+                Depth: Constants.InheritedDepthOf(name));
         // An index-name that the written qualifiers reach NONE of is still the declaration a refusal words ("declared, but not
         // under the given qualifiers"), but the reference does not name it: it ranks behind every other class (int.MaxValue),
         // so a qualified `RELF OF X` that only a container's GLOBAL level-88 satisfies is not hidden by an own `INDEXED BY RELF`
@@ -208,5 +208,34 @@ public sealed partial class DataBinder
     {
         IEnumerable<DataItem> visible = TypeDecls.Values.Concat(State.Inherited.TypeDecls.Values);
         return scope.Method is { } m ? m.TypeDecls.Values.Concat(visible) : visible;
+    }
+
+    /// <summary>⛔ ISO §8.4.6.2.1 3) ACROSS NAME CLASSES for a word that stands for a literal: whether this unit's set
+    /// of names (its own and every container's global ones) declares <paramref name="name"/> as a data-name, a
+    /// condition-name or an index-name in a source element NEARER than <paramref name="depth"/> (the containment
+    /// distance of the element that declared the constant or symbolic-character; 1 = the direct container). "b) 1.
+    /// The item in source element A if the name is declared in source element A. 2. The item in the containing
+    /// source element if the name is not declared in source element A and is declared in the source element
+    /// containing source element A." A condition-name is placed by its conditional variable.
+    /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only <see cref="ByName"/> (kb/Work PB3154
+    /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§13.18.38.3 SR30) kept off
+    /// <see cref="ByName"/> in <see cref="_capacityRegisters"/>, placed by its table (a METHOD's own register is never
+    /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
+    /// <see cref="ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
+    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="_sumCounters"/>, placed by its report
+    /// (<see cref="ReportDepth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
+    /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
+    /// <c>GlobalNameClassDriftTests</c> holds this predicate to the inherited name-index list, so a name index
+    /// added there is asked here too.</para></summary>
+    internal bool DeclaredNearerThan(string name, int depth)
+    {
+        if (ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) < depth)) return true;
+        if (Conditions.TryGetValue(name, out var conds) && conds.Any(c => DeclaringDepth(c.Parent) < depth)) return true;
+        if (_capacityRegisters.TryGetValue(name, out var tables) && tables.Any(t => DeclaringDepth(t) < depth)) return true;
+        if (Reports.SumCounters.TryGetValue(name, out var counters) && counters.Any(c => Reports.Depth(c.Report) < depth)) return true;
+        if (Reports.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
+        if (!IndexNames.Declares(name)) return false;
+        IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
+        return indexDepth < depth;
     }
 }

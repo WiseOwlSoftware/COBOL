@@ -49,10 +49,47 @@ public sealed class DataBindStateBoundaryDriftTests
             + "(codegen owns no TurnState, and one fold per element is the rule):\n  " + string.Join("\n  ", offenders));
     }
 
+    /// <summary>The configuration slice is SEEDED in one place (kb/Work PB2296 M5; ISO §12.3.4 GR1, §11.9.4 GR1): what a
+    /// container hands a contained unit or a class hands its halves (<c>ConfigurationNames.InheritFrom</c>, the OPTIONS
+    /// baseline and skeleton paragraph, the mnemonic container) is written only by <c>ConfigurationStep</c>, and the step is
+    /// run only by the two drivers that bind units (<c>BinderDriver</c>, <c>OoDriver</c>).</summary>
+    [Fact]
+    public void TheConfigurationSlice_IsSeededOnlyByConfigurationStep()
+    {
+        var seeding = new Regex(@"\.(InheritFrom|InheritMnemonicsFrom)\(|\.(InheritedOptions|OptionsParagraph)\s*=(?!=)");
+        var producers = new Regex(@"ConfigurationStep\.Produce\(");
+        var offenders = new List<string>();
+        int seeds = 0, produced = 0;
+        foreach (var (file, text) in CompilerSources())
+        {
+            if (file.EndsWith("/Binding/ConfigurationNames.cs", StringComparison.Ordinal)
+                || file.EndsWith("/Binding/ConfigurationSlice.cs", StringComparison.Ordinal)) continue;
+            foreach (Match m in seeding.Matches(text))
+            {
+                seeds++;
+                if (!file.EndsWith("/Binding/ConfigurationStep.cs", StringComparison.Ordinal))
+                    offenders.Add($"{file}: {m.Value}");
+            }
+            foreach (Match m in producers.Matches(text))
+            {
+                if (file.EndsWith("/Binding/ConfigurationStep.cs", StringComparison.Ordinal)) continue;
+                produced++;
+                if (!file.EndsWith("/Binding/BinderDriver.cs", StringComparison.Ordinal)
+                    && !file.EndsWith("/Oo/OoDriver.cs", StringComparison.Ordinal))
+                    offenders.Add($"{file}: {m.Value}");
+            }
+        }
+        Assert.True(seeds >= 10 && produced >= 5,
+            $"the scan found {seeds} seeding writes and {produced} step runs — the patterns no longer match the code");
+        Assert.True(offenders.Count == 0,
+            "A unit's configuration slice is seeded outside ConfigurationStep — a contained program's and a class half's "
+            + "configuration has ONE producer (ISO §12.3.4 GR1):\n  " + string.Join("\n  ", offenders));
+    }
+
     [Fact]
     public void TheInheritedGlobalsSlice_IsWrittenOnlyByInheritStep()
     {
-        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|OfferContainerGlobals)\(");
+        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|AddContainerConstants|OfferContainerGlobals)\(|Inherited\.DropShadowed\(");
         var offenders = new List<string>();
         int found = 0;
         foreach (var (file, text) in CompilerSources())

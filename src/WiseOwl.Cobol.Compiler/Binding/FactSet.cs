@@ -24,7 +24,7 @@ public interface IReadsEarly<in T>
 
 /// <summary>The WHOLE read of a <see cref="FactSet{T}"/>: every fact the set will ever hold. It is legal only after the
 /// last phase that appends to the set (§8.3 (1); <c>BindPipeline.ValidateDag</c> checks a pass's declared views against
-/// the phase order once the passes declare them, kb/Work PB2352).</summary>
+/// the phase order, kb/Work PB2352).</summary>
 public interface IReads<T> : IReadOnlyCollection<T>
 {
     /// <summary>True when <paramref name="fact"/> is in the set.</summary>
@@ -38,12 +38,24 @@ public interface IReads<T> : IReadOnlyCollection<T>
 public sealed class FactSet<T> : IAppends<T>, IReadsEarly<T>, IReads<T>
 {
     private readonly HashSet<T> _facts;
+    private readonly FactSetKind _kind;
+    private readonly AppendGate _gate;
 
-    /// <summary>An empty set whose facts are equal under <paramref name="comparer"/> (the type's own equality when null).</summary>
-    public FactSet(IEqualityComparer<T>? comparer = null) => _facts = new HashSet<T>(comparer);
+    /// <summary>An empty set of <paramref name="kind"/> whose appends <paramref name="gate"/> checks, and whose facts are
+    /// equal under <paramref name="comparer"/> (the type's own equality when null).</summary>
+    public FactSet(FactSetKind kind, AppendGate gate, IEqualityComparer<T>? comparer = null)
+    {
+        _kind = kind;
+        _gate = gate;
+        _facts = new HashSet<T>(comparer);
+    }
 
     /// <inheritdoc/>
-    public void Add(T fact) => _facts.Add(fact);
+    public void Add(T fact)
+    {
+        _gate.Require(_kind);
+        _facts.Add(fact);
+    }
 
     /// <inheritdoc/>
     public bool RecordedSoFar(T fact) => _facts.Contains(fact);

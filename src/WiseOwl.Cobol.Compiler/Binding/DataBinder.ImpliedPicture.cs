@@ -92,74 +92,6 @@ internal readonly record struct ImpliedPicture(LiteralClass Class, int Length)
 /// </summary>
 public sealed partial class DataBinder
 {
-    /// <summary>§13.16.3 SR9 — give every picture-less elementary item whose VALUE clause supplies an
-    /// alphanumeric, boolean or national literal the PICTURE the rule implies.</summary>
-    internal void SynthesizeImpliedPictures()
-    {
-        // The WRITTEN entries — the pass runs before ExpandTypes, so there are no clones to exclude yet; the forest
-        // is named for what the rule is about (see the class remarks).
-        foreach (var item in ConformanceForest()) SynthesizeImpliedPicture(item);
-    }
-
-    /// <summary>The same synthesis over one subtree's WRITTEN entries — what <see cref="CompleteDescriptionAhead"/>
-    /// runs for an operand a constant's length phrase measures before the pipeline reaches it (kb/Work PB2465). The
-    /// pass is idempotent (an entry with a PICTURE fails <see cref="IsPictureLessLeaf"/>), so the pipeline's own run
-    /// later passes over these entries.</summary>
-    private void SynthesizeImpliedPicturesUnder(DataItem root)
-    {
-        foreach (var item in DataItem.SelfAndDescendantsOf(root))
-            if (IsWrittenEntry(item)) SynthesizeImpliedPicture(item);
-    }
-
-    /// <summary>§13.16.3 SR9 for one entry: the body of <see cref="SynthesizeImpliedPictures"/>.</summary>
-    private void SynthesizeImpliedPicture(DataItem item)
-    {
-        // ⛔ THE SAME PREDICATE THE SR8 GUARD USES, and deliberately so: SR9's subject is precisely the
-        // population SR8 would otherwise reject, so the two rules must never disagree about which entries
-        // they are looking at. It also excludes an entry whose description is a still-pending TYPE / SAME AS
-        // reference (its PICTURE is the referenced description's — §13.18.57.4 GR3, §13.18.49.4 GR1), and it
-        // is what makes this pass IDEMPOTENT: an entry that already has a PICTURE (written or
-        // usage-synthesized) fails it.
-        if (!IsPictureLessLeaf(item)) return;
-        // ⛔ FORMAT 1 ONLY. SR9's grant is worded "specified in the DATA-ITEM FORMAT of the VALUE clause",
-        // which is §13.18.63.2 Format 1 (`VALUE IS literal-1`) — DataItem.RawValue. The Format-2 (table)
-        // carrier, DataItem.TableValues, is a different format and SR9 does not reach it, so a picture-less
-        // `OCCURS … VALUES ARE "AB" FROM (1)` stays SR8's rejection.
-        if (item.RawValue is not { } raw) return;
-        if (Sr9ImpliedFor(raw, Sr9EffectiveUsage(item)) is not { } implied) return;
-
-        using var _ = Edition.At(item);
-        string where = $"data item '{item.CobolName ?? "FILLER"}'";
-        // The edition gate, through the ONE canonical funnel (ConstructRegistry.Check), once per SOURCE entry
-        // (every entry visited here is one — no clone exists yet): COBOL-85 required a PICTURE for every
-        // elementary item bar an index data item and the subject of a RENAMES clause, and had no
-        // VALUE-implied PICTURE at all. Its boolean and national arms are gated a second time and
-        // independently by `boolean-data-2002` / `national-data-2002`, which is why this row carries the
-        // alphanumeric arm's introduction.
-        ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ValueImpliedPicture2002, where);
-
-        // ⛔ THE SAME CALL BindEntry MAKES FOR A WRITTEN PICTURE, argument for argument — the entry's OWN
-        // usage and its own SIGN clause, `explicitUsage` = "this entry wrote a USAGE clause". A usage the
-        // entry acquires from a GROUP is applied ONCE, by UsageInheritancePass's ApplyEffectiveUsage, exactly
-        // as it is for a written PICTURE; passing the inherited usage here as well would screen it twice and
-        // report the §13.18.60.3 SR3/SR5/SR12/SR20 violation twice.
-        item.PictureText = implied.Text;
-        item.PicIsValueImplied = true;   // an IMPLICIT clause: no SR4/SR5/SR10 size bound (see the property)
-        item.Pic = PictureAnalyzer.Analyze(implied.Text, item.OwnUsage ?? Usage.Display, Edition, where,
-            item.OwnSign, currencies: CurrencySigns, blankWhenZero: item.BlankWhenZero,
-            explicitUsage: item.OwnUsage is not null, decimalPointIsComma: DecimalPointIsComma);
-        // The entry is no longer picture-less, so the deferred §13.18.60.3 SR5/SR12 adjudication a
-        // PICTURE-less USAGE NATIONAL / BIT entry carries is ANSWERED — by the picture SR9 supplies. The
-        // screen above is the one that judges it (`01 A USAGE NATIONAL VALUE "AB".` is SR12's alphanumeric
-        // refusal; `01 A USAGE NATIONAL VALUE N"AB".` conforms).
-        item.Pending = PicPending.None;
-
-        // ⚠ The VALUE literal is NOT re-screened through ScreenValueLiteral, and that is the rule's own
-        // doing: §13.18.63.3 SR4/SR5/SR10's size sentences bound the literal by "the size indicated by an
-        // EXPLICIT PICTURE clause", and this one is implied; their class sentences cannot bite because the
-        // implied picture's category IS the literal's class by construction; and SR2's numeric-range arm is
-        // unreachable, SR9 admitting only the three character categories.
-    }
 
     /// <summary>The §13.15.3 SR14 arm of the same synthesis — the REPORT GROUP description entry's VALUE-implied
     /// PICTURE. SR14 is §13.16.3 SR9 restated for the report section, so it shares the classifier and the
@@ -173,24 +105,7 @@ public sealed partial class DataBinder
     {
         ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ValueImpliedPicture2002, where);
         return PictureAnalyzer.Analyze(implied.Text, itemUsage, Edition, where, ownSign,
-            currencies: CurrencySigns, explicitUsage: explicitUsage, decimalPointIsComma: DecimalPointIsComma);
-    }
-
-    /// <summary>The usage that applies to <paramref name="item"/> by §13.18.60.4 GR1 — its own clause (or the one
-    /// a GROUP-USAGE clause implies), else the NEAREST ENCLOSING entry's, else §13.18.60.3 SR13 b)'s implied
-    /// DISPLAY. It is the CONTEXT §8.3.3.6.4 GR1 and GR4 ask about, and nothing else: a written literal carries
-    /// its own class, so only a figurative constant consults it.
-    /// <para><see cref="DeclaredUsageOf"/> is the "own or implied" half, shared verbatim with
-    /// <c>UsageInheritanceWalk</c>, which PUSHES the same derivation down the forest; the loop is GR1's "nearest
-    /// enclosing" half asked PULL-style, because this pass runs before that walk and the walk's own result does
-    /// not yet exist. The two agreeing is pinned end-to-end by
-    /// <c>ImpliedPictureTests.Sr9_FigurativeContext_TravelsTheWholeAncestorChain</c>, which nests the usage two
-    /// levels above the entry so a one-level or self-only reading fails.</para></summary>
-    private static Usage Sr9EffectiveUsage(DataItem item)
-    {
-        for (DataItem? d = item; d is not null; d = d.Parent)
-            if (DeclaredUsageOf(d) is { } u) return u;
-        return Usage.Display;
+            currencies: State.Configuration.CurrencySigns, explicitUsage: explicitUsage, decimalPointIsComma: State.Configuration.DecimalPointIsComma);
     }
 
     /// <summary>⛔ THE SR9 CLASSIFIER — which of §13.16.3 SR9's three arms a VALUE operand selects, and the length
@@ -207,7 +122,7 @@ public sealed partial class DataBinder
     /// <c>01 F VALUE 42.</c> falls to SR8, and so does the class-pointer figurative NULL / NULLS, which is neither
     /// alphanumeric, boolean nor national (§13.16.3 SR10 forbids a VALUE clause on the pointer items it belongs
     /// to).</para>
-    /// <param name="context">The usage that applies to the entry (<see cref="Sr9EffectiveUsage"/>) — §8.3.3.6.4
+    /// <param name="context">The usage that applies to the entry (<see cref="SynthesizeImpliedPicturesPass.Sr9EffectiveUsage"/>) — §8.3.3.6.4
     /// GR1's "context requiring national characters" and GR4's boolean one. Consulted for a FIGURATIVE constant
     /// only; a written literal's class is its own.</param></summary>
     internal static ImpliedPicture? Sr9ImpliedFor(string raw, Usage context)

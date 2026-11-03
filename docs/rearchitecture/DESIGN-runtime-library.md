@@ -2203,7 +2203,7 @@ have the effect of a CONTINUE statement (§14.9.7.4 GR1 / §14.9.36.4 GR1; `conf
   covered connectors changed, which is what D.2.5's *"components of the same run unit where the files are also accessed by
   independent file connectors that are not specified in APPLY COMMIT clauses"* describes.
 - **The compiler half** (PB3338), as built. The binder accepts the clause for a RELATIVE or INDEXED file
-  (`DataBinder.BindApplyCommitClause`, then `ResolveApplyCommit` once the data division is bound: §12.4.6.3.3 SR1-SR11,
+  (`FileControlBinder.BindApplyCommitClause`, then `ResolveApplyCommit` once the data division is bound: §12.4.6.3.3 SR1-SR11,
   one diagnostic, COBOL4709; SR6 for a factory or instance definition is `OoEnvironmentRules`'. A bare word is file-name-1
   only when the element's own FILE-CONTROL selects it; a word that resolves to no data item but IS a file of a containing
   element is SR11's (a GLOBAL file) or SR1's (any other) violation, and so is a container's GLOBAL record area, written bare

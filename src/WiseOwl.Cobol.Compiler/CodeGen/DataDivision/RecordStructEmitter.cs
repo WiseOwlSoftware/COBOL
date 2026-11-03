@@ -35,14 +35,14 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // is never among the unit's OWN declarations — the container emits it and a ref-bridge reaches it
         // (§13.18.27 GR2; kb/Work PB919).
         foreach (var idx in ctx.Data.IndexNames.Own)
-            if (!ctx.Data.CallSuppressedRootFields.Contains(idx.Cell))
+            if (!ctx.Data.Linkage.SuppressedRootFields.Contains(idx.Cell))
                 // A RECURSIVE unit's WS table cell rides its table's static storage (RouteStaticUnitStorage —
                 // a last-used table with per-activation indexes would silently lose SET positions).
                 w.Line($"private {(ctx.Data.StaticIndexCells.Contains(idx.Cell) ? "static " : "")}long {idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
         // (A METHOD's table cells are never here: a method owns no WORKING-STORAGE, §13.5.3 SR1, and its LOCAL/LINKAGE
         // table cells are per-activation method locals, emitted in OoEmitMethod.)
         foreach (var f in phys.RootPhysicals())
-            if (!ctx.Data.CallSuppressedRootFields.Contains(f.Name))
+            if (!ctx.Data.Linkage.SuppressedRootFields.Contains(f.Name))
                 // A static-channel root is a STATIC field: a RECURSIVE unit's WS (§13.5.4 GR1 — see
                 // RouteStaticUnitStorage).
                 w.Line($"private {(ctx.Data.StaticRootFields.Contains(f.Name) ? "static " : "")}{f.Type} {f.Name} = {f.Init};   // {f.Comment}");

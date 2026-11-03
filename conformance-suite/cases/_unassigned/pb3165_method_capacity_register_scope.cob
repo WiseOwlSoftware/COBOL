@@ -17,7 +17,7 @@
       *>   cite.py --check 11.7.4 "The declaration in the containing object definition is inaccessible to
       *>     this method" -> OK  11.7.4 5)
       *> SHOWA and SHOWB both declare Q2 (legal: two source elements, each its own SR30 scope; the SR30
-      *> duplicate test in DataBinder.DynamicResolve judges each register against its own method's names
+      *> duplicate test in DynamicResolvePass judges each register against its own method's names
       *> only, kb/Work PB3153 review R1-2); SHOWC
       *> declares QO, shadowing the object's QO, while SHOWB (which declares no QO) reads the object's.
       *> SHOWD declares an INDEX-name QO that hides the object's QO register the same way (11.7.4 GR5 is about the

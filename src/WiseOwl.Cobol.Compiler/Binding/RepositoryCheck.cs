@@ -55,7 +55,7 @@ internal static class RepositoryCheck
                 DecodedRecord decoded;
                 try { decoded = RepositoryCodec.Decode(record, classes, RepositoryCodec.Names(record, session.OoClasses, [], import: false)); }
                 catch (RepositoryRecordException) { continue; }   // the resolver's REPO-5 names an entry it uses; this one is only compared
-                if (PrototypeSignatures.FirstDifference(new CalleeSignature(unit.Data.LinkageFormals, unit.Data.LinkageReturning),
+                if (PrototypeSignatures.FirstDifference(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning),
                         decoded.Signature) is not { } difference)
                     continue;
                 string kind = unit.IsFunction ? "function" : "program";

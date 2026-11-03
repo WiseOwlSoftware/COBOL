@@ -9,7 +9,9 @@ namespace WiseOwl.Cobol.Binding;
 /// step 1 of the <see cref="DataBinder"/> extract): the facts the data pipeline produces, in the two shapes the code has.
 /// <list type="bullet">
 /// <item>A VALUE SLICE is a record of the facts ONE producer writes, frozen when its producer is done and read only after
-/// it: the unit's checking flags (<see cref="UnitChecking"/>, written by <see cref="CheckingFold"/>).</item>
+/// it: the unit's checking flags (<see cref="UnitChecking"/>, written by <see cref="CheckingFold"/>), what it inherits from its
+/// containers (<see cref="InheritedGlobals"/>, <see cref="InheritStep"/>) and its configuration
+/// (<see cref="ConfigurationSlice"/>, <see cref="ConfigurationStep"/>).</item>
 /// <item>A FACT SET (<see cref="FactSet{T}"/>) accumulates across phases and is append-only, with an ordered read: the
 /// four below, each with its declared appending phases.</item>
 /// </list>
@@ -18,9 +20,19 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 public sealed class DataBindState
 {
+    /// <summary>The unit's configuration slice (<see cref="Binding.ConfigurationSlice"/>): SPECIAL-NAMES, the collating
+    /// sequences, DEBUGGING MODE, the REPOSITORY specifiers and the OPTIONS model. Seeded before the unit's first data phase
+    /// by <see cref="ConfigurationStep"/>, its one producer per unit, then overlaid by the unit's own CONFIGURATION SECTION
+    /// and OPTIONS paragraph in <c>DataBinder.BindDeclarations</c>.</summary>
+    public ConfigurationSlice Configuration { get; }
+
     /// <summary>What the unit inherits from the programs that contain it (<see cref="InheritedGlobals"/>), written by
     /// <see cref="InheritStep"/> before the unit's first data phase; empty for an outermost program and an OO element.</summary>
     public InheritedGlobals Inherited { get; } = new();
+
+    /// <summary>The check that a per-unit resolve pass appends only to the fact sets it declared
+    /// (<see cref="Passes.PassViews"/>); opened by <c>DataBinder.BindResolve</c> around each pass.</summary>
+    internal AppendGate Gate { get; } = new();
 
     /// <summary>The unit's checking slice (<see cref="Binding.UnitChecking"/>): <see cref="UnitChecking.None"/> until
     /// <see cref="CheckingFold"/> writes it, once, after the unit's data phases; read by the reference resolver while the
@@ -34,20 +46,21 @@ public sealed class DataBindState
 
     /// <summary>Group items used as a WHOLE character-image operand (MOVE / DISPLAY / compare / ACCEPT / record I-O /
     /// whole-group CORRESPONDING pair / boundary formal). Appended at FilesResolved by
-    /// <c>DataBinder.MarkFileRecordImageLeaves</c> (the FILE record areas) and at UsageCollected by
+    /// <c>MarkFileRecordImageLeavesPass</c> (the FILE record areas) and at UsageCollected by
     /// <see cref="Passes.UsageCollectionPass"/> (the boundary formals and the whole-group operands of the bound tree);
     /// read whole by <c>StorageFormPass</c>, which promotes the leaves of each group to their character image (ISO
     /// §14.9.25.4 GR4: a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).</summary>
-    public FactSet<DataItem> WholeGroupReferenced { get; } = new();
+    public FactSet<DataItem> WholeGroupReferenced { get; }
 
-    /// <summary>Every elementary item some bind-time rule forces to store its CHARACTER IMAGE: Tier-B and CALL-cell
-    /// REDEFINES leaves, FILE record leaves and report print faces (appended at FilesResolved), figurative-fill and
+    /// <summary>Every elementary item some bind-time rule forces to store its CHARACTER IMAGE: Tier-B REDEFINES leaves
+    /// (appended at RedefinesClassified, <c>ClassifyRedefinesClassesPass</c>), CALL-cell REDEFINES leaves, FILE record leaves
+    /// and report print faces (appended at FilesResolved; <see cref="FactSetContract"/> holds the phases), figurative-fill and
     /// ref-mod-store receivers (appended at ProcedureBound, <c>MoveBinder</c>). Read EARLY by
     /// <see cref="ReferenceResolver"/>'s <c>NumericImagePlace</c> wrap decision (<see cref="IReadsEarly{T}"/>: a fact an
     /// earlier statement's bind recorded is visible to a later statement's), and read whole by <c>StorageFormPass</c>,
     /// which unions it with the compiler-temp re-sync and the whole-group promotion to compute
     /// <see cref="DataItem.Storage"/>.</summary>
-    public FactSet<DataItem> ImageForcedItems { get; } = new();
+    public FactSet<DataItem> ImageForcedItems { get; }
 
     /// <summary>ELEMENTARY items a CHARACTER CHANNEL can write (kb/Work PB992), appended at UsageCollected by
     /// <see cref="Passes.UsageCollectionPass"/> beside <see cref="WholeGroupReferenced"/> and promoted by
@@ -56,7 +69,7 @@ public sealed class DataBindState
     /// BY REFERENCE argument and its formal parameter, where §14.8.2.3.2 rule 1 admits a formal of any description "of
     /// the same length", and the CALL RETURNING receiver — can deposit content that is not a numeric value, and a native
     /// carrier holds only a value.</summary>
-    public FactSet<DataItem> CharacterChannelItems { get; } = new();
+    public FactSet<DataItem> CharacterChannelItems { get; }
 
     /// <summary>The parse nodes (and subscript tokens) the binder RESOLVED to a function activation or an object-property
     /// accessor invocation although the text carries no syntactic marker of one: a function-identifier written without
@@ -67,5 +80,15 @@ public sealed class DataBindState
     /// <see cref="Validation.FlagConformancePass"/> for ISO §7.3.14.4 GR4 b ("the source element calls any function, or
     /// invokes any method") instead of re-deriving the rule from syntax. Identity-keyed: a node is a call site or it is
     /// not.</summary>
-    public FactSet<object> ActivationSites { get; } = new(ReferenceEqualityComparer.Instance);
+    public FactSet<object> ActivationSites { get; }
+
+    /// <summary>An empty state: every fact set empty, each checking its appends through <see cref="Gate"/>.</summary>
+    public DataBindState(Action<Antlr4.Runtime.RuleContext?, string, UserWordKind> recordConfigurationNameUse)
+    {
+        Configuration = new(recordConfigurationNameUse);
+        WholeGroupReferenced = new(FactSetKind.WholeGroupReferenced, Gate);
+        ImageForcedItems = new(FactSetKind.ImageForcedItems, Gate);
+        CharacterChannelItems = new(FactSetKind.CharacterChannelItems, Gate);
+        ActivationSites = new(FactSetKind.ActivationSites, Gate, ReferenceEqualityComparer.Instance);
+    }
 }

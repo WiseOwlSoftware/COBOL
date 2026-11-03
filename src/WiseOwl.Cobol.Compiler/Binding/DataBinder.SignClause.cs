@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -43,59 +42,11 @@ using Core = CobolParserCore;
 public sealed partial class DataBinder
 {
     /// <summary>The data description entries whose OWN source wrote a SIGN clause — the subjects §13.18.52.3 SR1/SR2
-    /// speak about. Filled at entry bind; read once by <see cref="CheckSignClauses"/>.</summary>
-    private readonly HashSet<DataItem> _signClauseWritten = [];
-
-    /// <summary>The group kinds §13.18.52.3 SR1's third bullet admits.</summary>
-    private const GroupKinds SignClauseGroupKinds =
-        GroupKinds.Alphanumeric | GroupKinds.National | GroupKinds.StronglyTyped;
-
-    /// <summary>§13.18.52.3 SR1/SR2 over every data description entry that wrote a SIGN clause. A violation
-    /// CLEARS the clause, so the item binds under an already-failed compile exactly as if it had not been written
-    /// (the <c>CheckAlignedClauses</c> discipline).</summary>
-    internal void CheckSignClauses()
-    {
-        foreach (var item in ConformanceForest())
-        {
-            if (item.OwnSign is null || !_signClauseWritten.Contains(item)) continue;
-            string? defect = item.IsGroup
-                ? SignClauseGroupDefect(ItemCategory.GroupKindsOf(item))
-                : SignClauseElementaryDefect(item.Pic, item.PictureText, "data description entry");
-            if (defect is not null)
-            {
-                using var _ = Edition.At(item);
-                Edition.Error(DiagnosticCatalog.SignClauseSubject,
-                    $"data item '{item.CobolName ?? "FILLER"}': {defect}");
-                item.OwnSign = null;
-            }
-            else if (item.IsGroup)
-                GateGroupSignSubordinates(item);
-        }
-    }
-
-    /// <summary>⛔ THE COBOL-85 GROUP SUBJECT IS NARROWER (kb/Work PB1319). ANSI X3.23-1985 admitted the clause on "a
-    /// numeric data description entry whose PICTURE contains the character S, or a group item containing at least one
-    /// such numeric data description entry", and required "The numeric data description entries to which the SIGN clause
-    /// applies" to be "described … as USAGE IS DISPLAY". The 2023 §13.18.52.3 keeps neither: SR1 admits any alphanumeric,
-    /// national or strongly-typed group and SR2 restricts only "an elementary item for which the SIGN clause is
-    /// specified". Each relaxation is a construct row introduced at 2002 (the derived edge, VCR row 7.40), so the 85
-    /// compiler refuses what the 85 text refuses through the canonical funnel, and later editions take the 2023 rules.
-    /// A subordinate that writes its own SIGN clause is the subject of that clause (§13.18.52.4 GR2/GR3), so the group's
-    /// clause applies neither to it nor below it.</summary>
-    private void GateGroupSignSubordinates(DataItem group)
-    {
-        if (Edition.DialectLevel >= 2002) return;
-        string where = $"data item '{group.CobolName ?? "FILLER"}'";
-        using var _ = Edition.At(group);
-        if (!DataItem.DescendantsOf(group).Any(IsSignedNumericEntry))
-            ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SignGroupUnsignedSubordinates2002, where);
-        if (SignedSubordinatesTheClauseReaches(group).FirstOrDefault(d => d.Pic!.Usage is not Usage.Display) is { } other)
-            ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SignGroupNondisplaySubordinate2002,
-                $"{where} over '{other.CobolName ?? "FILLER"}' (USAGE {UsageFamilies.UsageWord(other.Pic!.Usage)})");
-    }
+    /// speak about. Filled at entry bind; read once by <see cref="CheckSignClausesPass.Run"/>.</summary>
+    internal readonly HashSet<DataItem> _signClauseWritten = [];
 
     /// <summary>⛔ THE COBOL-85 REPORT GROUP DESCRIPTION ENTRY'S SIGN CLAUSE IS NARROWER (kb/Work PB3683) — the report twin
-    /// of <see cref="GateGroupSignSubordinates"/>. The 2023 text lets a report group description entry carry the clause
+    /// of <see cref="CheckSignClausesPass.GateGroupSignSubordinates"/>. The 2023 text lets a report group description entry carry the clause
     /// with SEPARATE CHARACTER optional (§13.18.52.3 SR1 admits "a numeric report group description entry whose picture
     /// character-string contains the symbol 'S'" and §13.18.52.4 GR5 gives the clause without SEPARATE an
     /// implementor-defined representation) and on a group entry ("an alphanumeric group item, national group item, or
@@ -124,33 +75,8 @@ public sealed partial class DataBinder
         }
     }
 
-    /// <summary>A numeric data description entry whose WRITTEN picture character-string contains the symbol 'S' — the
-    /// entry both editions' SIGN rules name.</summary>
-    private static bool IsSignedNumericEntry(DataItem d) =>
-        d.IsElementary && d.Pic is { Category: PicCategory.Numeric, Signed: true, IsRecovery: false }
-        && d.PictureText is not null;
-
-    /// <summary>The signed numeric items below <paramref name="group"/> that its own clause applies to: every one not
-    /// at or under a subordinate entry that writes its own SIGN clause (§13.18.52.4 GR2/GR3).</summary>
-    private static IEnumerable<DataItem> SignedSubordinatesTheClauseReaches(DataItem group)
-    {
-        foreach (var c in group.Children)
-        {
-            if (c.OwnSign is not null) continue;
-            if (IsSignedNumericEntry(c)) yield return c;
-            foreach (var d in SignedSubordinatesTheClauseReaches(c)) yield return d;
-        }
-    }
-
-    /// <summary>SR1's group bullet — null when <paramref name="kinds"/> is one it admits.</summary>
-    private static string? SignClauseGroupDefect(GroupKinds kinds) =>
-        (kinds & SignClauseGroupKinds) != 0 ? null
-            : "the SIGN clause may be specified for a group item only when it is an alphanumeric group item, "
-              + $"national group item, or strongly-typed group item (ISO §13.18.52.3 SR1) — this entry is one of the "
-              + $"{ItemCategory.Spell(kinds)}";
-
     /// <summary>⛔ THE ONE ELEMENTARY-SUBJECT TEST for the SIGN clause, read by the data description entry
-    /// (<see cref="CheckSignClauses"/>) and the report group description entry (<c>BindReportEntry</c>) alike:
+    /// (<see cref="CheckSignClausesPass.Run"/>) and the report group description entry (<c>BindReportEntry</c>) alike:
     /// SR1's first two bullets are one test — "a numeric … entry whose picture character-string contains the
     /// symbol 'S'" — and SR2 names "an elementary item" of either kind. Null when legal, or when the entry's
     /// PICTURE was itself refused (a recovery profile answers no question about the source).</summary>

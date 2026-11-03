@@ -25,7 +25,7 @@ public enum NumericSeparatorIssue
 /// <see cref="NumericSeparatorIssue"/>, not by emitting anything itself — whether the source used the wrong
 /// separator for the active mode.
 ///
-/// This is the algorithm that used to live inline in <c>DataBinder.NormalizeNumericLiteral</c>; it is lifted to
+/// This is the algorithm that used to live inline in <c>SpecialNamesBinder.NormalizeNumericLiteral</c>; it is lifted to
 /// the Frontend so BOTH the compiler binder (which keeps emitting COBOL0895 with its own descriptor) AND the
 /// compile-time expression evaluator (which routes the issue to a frontend code) share ONE normalization rule —
 /// no second, drifting normalizer (singular-pattern).

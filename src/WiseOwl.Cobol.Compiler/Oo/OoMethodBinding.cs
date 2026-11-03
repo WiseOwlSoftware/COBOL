@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// <summary>
 /// The AFTER-DATA-BIND half of a method's description (P9 R7 — phase-explicit): the resolved formal list,
 /// RETURNING item, data roots, and (stamped later still, at class-BODY bind) the pc range. Attached to
-/// <see cref="OoMethodSymbol.Binding"/> by <c>DataBinder.OoBindMethodData</c> once the method's data has
+/// <see cref="OoMethodSymbol.Binding"/> by <c>OoDataBinder.BindMethodData</c> once the method's data has
 /// bound — reading it earlier is a null-deref (a TYPE-level ordering fact), never a silent <c>-1</c>
 /// sentinel mis-read. (<c>OverrideOf</c> stays on the SYMBOL: it is an identity fact of the roster, which
 /// <c>OoClassTable.ResolveOverrides</c> marks — with the ClrName adoption — once every roster is complete, before any
