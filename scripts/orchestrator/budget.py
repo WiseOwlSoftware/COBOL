@@ -165,6 +165,37 @@ def estimate(now: dt.datetime, readings: list[dict[str, Any]], all_events_for, r
     }
 
 
+#: How long ago the status line's live reading may have been MEASURED and still anchor an estimate (kb/Work PB4505): a working
+#: session's figures change with every response, so an older one is a session that went idle or ended, and the estimate
+#: falls back to the stored readings.
+LIVE_MAX_AGE = dt.timedelta(minutes=30)
+#: The file scripts/statusline_tap.py writes in the account's config dir.
+LIVE_FILE = "rate-limits.json"
+
+
+def live_reading(acct: accounts.Account, now: dt.datetime) -> dict[str, Any] | None:
+    """The account's live meter reading, from the `rate_limits` its own Claude Code sessions hand the status line
+    (scripts/statusline_tap.py writes `<config dir>/rate-limits.json`), as a reading in readings.json's shape, or None when
+    the file is missing, unreadable, MEASURED longer than LIVE_MAX_AGE ago or carries no weekly row. The reading's time is
+    `measured_at`, when the figures last changed, never when the status line last ran: an idle session repeats old figures
+    every refresh (review R1-1), and the estimate counts the telemetry spent after the measurement. The weekly row is `seven_day`; an
+    Ultra plan has no five-hour window (owner 2026-11-03), so a missing `five_hour` reads as 0."""
+    try:
+        rec = json.loads((acct.config_dir / LIVE_FILE).read_text(encoding="utf-8"))
+        seen = parse_ts(rec["measured_at"])
+        weekly = rec["rate_limits"]["seven_day"]["used_percentage"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    if weekly is None or not (dt.timedelta(0) <= now - seen <= LIVE_MAX_AGE):
+        return None
+    five = (rec["rate_limits"].get("five_hour") or {})
+    reset = five.get("resets_at")
+    return {"noted_at": seen.isoformat(), "account": acct.name, "weekly_pct": float(weekly),
+            "session_pct": float(five.get("used_percentage") or 0.0),
+            "session_reset": dt.datetime.fromtimestamp(reset, dt.timezone.utc).isoformat() if reset else None,
+            "source": "statusline rate_limits (kb/Work PB4505)"}
+
+
 def current(account: str | None = None, borrow_days: int = 0, now: dt.datetime | None = None,
             coord_dir: str | None = None, telemetry_dir: str | pathlib.Path = usage_report.DIR) -> dict[str, Any]:
     """The estimate for the account `account` names (None: the one CLAUDE_CONFIG_DIR selects) at `now` (None: now),
@@ -174,8 +205,10 @@ def current(account: str | None = None, borrow_days: int = 0, now: dt.datetime |
     rules = coord.rules()
     acct = accounts.resolve(account, rules)
     tdir = pathlib.Path(telemetry_dir)
-    return estimate(now, coord.read_json(coord.coord_dir(coord_dir) / "readings.json", []),
-                    lambda s, u: telemetry_events(tdir, s, u), rules, acct, borrow_days)
+    readings = coord.read_json(coord.coord_dir(coord_dir) / "readings.json", [])
+    if (live := live_reading(acct, now)) is not None:
+        readings = [*readings, live]     # the newest reading, so the estimate anchors on the meter itself
+    return estimate(now, readings, lambda s, u: telemetry_events(tdir, s, u), rules, acct, borrow_days)
 
 
 def record(cdir: pathlib.Path, acct_name: str, weekly: float, session: float, session_reset: str | None,

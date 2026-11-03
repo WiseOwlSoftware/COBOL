@@ -35,7 +35,8 @@ internal sealed partial class OoBinder
         if (po.SELF() is not null || po.SUPER() is not null)
         {
             bool isSuper = po.SUPER() is not null;
-            if (OoPredefinedSearchRoot(isSuper, superQualifier, "the object-property object", report: !probe) is not { } root)
+            if (OoPredefinedSearchRoot(isSuper, (po.SELF() ?? po.SUPER()).Symbol, superQualifier, "the object-property object",
+                    report: !probe) is not { } root)
                 return null;
             // SUPER over a formal superclass: the accessor is the actual's (kb/Work PB2937), each expansion's question.
             if (root.SearchRoot is null)

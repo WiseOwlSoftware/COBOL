@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "'SUPER' is not defined"}
+{"refuse-at": ["85"], "expect": "(23,19): error COBOL1639: 'SUPER' is not defined"}

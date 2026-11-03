@@ -388,7 +388,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // Slice 3b — §8.4.3.8: SELF/SUPER are the predefined object references of the CURRENT method's
             // object; legal only within a method body.
             bool isSuper = superQualifier is not null || target.selfAndSuper()!.SUPER() is not null;
-            if (OoPredefinedSearchRoot(isSuper, superQualifier, "INVOKE") is not { } root)
+            // The word's own token: the bare SELF / SUPER term, or the SUPER that ends `object-class-name-1 OF SUPER`.
+            var word = target.selfAndSuper()?.Start ?? target.dataReference()!.dataReferenceSuffix()[0].propertyObject().SUPER().Symbol;
+            if (OoPredefinedSearchRoot(isSuper, word, superQualifier, "INVOKE") is not { } root)
                 return BoundRejected.Reported(ctx.Edition);
             var (cur, searchRoot) = root;
             string predefined = superQualifier is not null ? $"{DataBinder.WrittenText(superQualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
@@ -517,7 +519,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return host.Ptr.BindAddressIdentifier(addrCtx, "INVOKE USING") is not null;
         if (arg.Self)
         {
-            if (RefuseUnreservedPredefinedObject(arg.Arith, isSuper: false)) return false;   // kb/Work PB4153
+            if (RefuseUnreservedPredefinedObject(arg.Arith?.Start, isSuper: false)) return false;   // kb/Work PB4153
             if (host.OoCurrentClass is not null) return true;
             _ = RefusePredefinedObjectOutsideMethod($"{subject} SELF");
             return false;
@@ -639,14 +641,18 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// reported: SR1 outside a method (COBOL6002), SR4 (COBOL2777), SUPER in a class that inherits nothing —
     /// reported unless <paramref name="report"/> is false (a resolver PROBE, which never diagnoses).
     /// <paramref name="position"/> names the construct for the message ("INVOKE", "the object-property reference …").
+    /// <paramref name="word"/> is the SELF or SUPER token the program wrote, where every refusal here is positioned — the
+    /// PB4153 unreserved word, SR1, SR4 and a root class's SUPER (the qualifier of <c>object-class-name-1 OF SUPER</c> is a
+    /// different word, and a bare SELF or SUPER has none; kb/Work PB4444).
     /// <para>A null <c>SearchRoot</c> is SUPER (or <c>parameter-name OF SUPER</c>) in a parameterized definition bound
     /// as itself whose INHERITS clause names a parameter-name (<see cref="OoClassSymbol.FormalBaseName"/>): the search
     /// starts in each expansion's actual (kb/Work PB2937), so the caller defers what it selects.</para></summary>
-    internal (OoClassSymbol Current, OoClassSymbol? SearchRoot)? OoPredefinedSearchRoot(bool isSuper,
+    internal (OoClassSymbol Current, OoClassSymbol? SearchRoot)? OoPredefinedSearchRoot(bool isSuper, Antlr4.Runtime.IToken word,
         Core.CobolWordContext? qualifier, string position, bool report = true)
     {
         string written = qualifier is not null ? $"{DataBinder.WrittenText(qualifier)} OF SUPER" : isSuper ? "SUPER" : "SELF";
-        if (RefuseUnreservedPredefinedObject(qualifier, isSuper, report)) return null;   // kb/Work PB4153
+        if (RefuseUnreservedPredefinedObject(word, isSuper, report)) return null;   // kb/Work PB4153, PB4444
+        using var at = ctx.Edition.At(word);   // every refusal below is about the SELF / SUPER word too (kb/Work PB4444)
         if (!host.InMethod || host.OoCurrentClass is not { } cur)
         {
             if (report) _ = RefusePredefinedObjectOutsideMethod($"{position} {written}");
@@ -703,7 +709,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// object property (<see cref="OoPredefinedSearchRoot"/>), an object-view's identifier-1 and RAISE.
     /// <para>True having reported, and the caller stops: the reference is as refused as any other undeclared name
     /// (<paramref name="report"/> false is a resolver probe, which never diagnoses).</para></summary>
-    internal bool RefuseUnreservedPredefinedObject(Antlr4.Runtime.ParserRuleContext? at, bool isSuper, bool report = true)
+    internal bool RefuseUnreservedPredefinedObject(Antlr4.Runtime.IToken? at, bool isSuper, bool report = true)
     {
         string word = isSuper ? "SUPER" : "SELF";
         if (!UnreservedKeywordReference.IsFreeAt(word, ctx.Edition)) return false;
@@ -715,11 +721,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         return true;
     }
 
-    /// <summary><see cref="RefuseUnreservedPredefinedObject(Antlr4.Runtime.ParserRuleContext?, bool, bool)"/> for a parsed
+    /// <summary><see cref="RefuseUnreservedPredefinedObject(Antlr4.Runtime.IToken?, bool, bool)"/> for a parsed
     /// <c>selfAndSuper</c> node, which names its own word, as the refused expression an operand channel carries on
     /// (null: the edition reserves the word, and the caller reads it as the predefined object reference).</summary>
     internal BoundExprError? UnreservedPredefinedObjectRefusal(Core.SelfAndSuperContext s) =>
-        RefuseUnreservedPredefinedObject(s, s.SUPER() is not null)
+        RefuseUnreservedPredefinedObject(s.Start, s.SUPER() is not null)
             ? BoundExprError.Refused(ctx.Edition, $"{DataBinder.WrittenText(s)}, a word §8.9 does not reserve at this edition")
             : null;
 
@@ -1194,7 +1200,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // (SelfSenderRefusals). It used to be a parse error.
         if (arg.Self)
         {
-            if (RefuseUnreservedPredefinedObject(arg.Arith, isSuper: false)) return null;   // kb/Work PB4153
+            if (RefuseUnreservedPredefinedObject(arg.Arith?.Start, isSuper: false)) return null;   // kb/Work PB4153
             if (host.OoCurrentClass is not { } selfClass)
             {
                 Err("SELF is defined only within a method definition (ISO §8.4.3.8.3 SR1)");
