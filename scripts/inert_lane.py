@@ -134,7 +134,10 @@ REPO = Path(__file__).resolve().parents[1]
 def _under(path: str, entry: str) -> bool:
     """`path` lies under `entry`: a directory prefix ending in `/`, one exact path (and anything below it), or a
     LISTING PATTERN (`scripts/guard*.sh`: `*` and `?` within one directory, case-insensitive as a .NET listing matches),
-    which covers every path it matches, a file added later included, and the pattern itself (`code_readers`)."""
+    which covers every path it matches, a file added later included, and the pattern itself (`code_readers`). An entry
+    that begins `**/` is a pattern over a file NAME at any depth (`**/*.md` is every Markdown file in the repository)."""
+    if entry.startswith("**/"):
+        return path == entry or _listing_glob(entry[3:], True).fullmatch(path) is not None
     if "*" in entry or "?" in entry:
         return path == entry or _listing_glob(entry, False).fullmatch(path) is not None
     return path.startswith(entry) if entry.endswith("/") else path == entry or path.startswith(entry + "/")
@@ -319,6 +322,17 @@ CLASSIFICATION = Classification(inert={
            "gate's WORK REGISTER audit, CI's audits job: the register against the inventory), the audits that cite a "
            "note, and by people; no test reads it since kb/Work PB2878 (the register drift tests became "
            "work_inventory.py; the retired-name sweep and the activation-boundary registry stopped reading it)",
+    "docs/": "the documentation tree: read by people and by the doc audits (scripts/, run in every lane); no compiler "
+             "test reads a Markdown file (kb/Work PB4453), and the data files a compiler test reads are READ entries",
+    "**/*.md": "every Markdown file: a note, a design, a brief, a skill, a README; read by people, the harness and the "
+               "audits (scripts/, run in every lane), never by a compiler test (kb/Work PB4453; the one exception is the "
+               "ISO text, a READ entry)",
+}, read={
+    "specs/ISO_COBOL.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "
+                          "expected tables from it",
+    "docs/rearchitecture/spec-rule-catalog.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests",
+    "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
+    "docs/rearchitecture/evidence/arch-census/": "ArchCensusDriftTests (CensusRecord)",
 }, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),
    tooling_suffixes=(".py", ".ps1", ".sh"),
    # ⛔ TOOLING_READS: what the script self-tests read outside the scripts (module docstring), measured from the PASS store's
