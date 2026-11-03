@@ -1,4 +1,4 @@
-## PB4507: a function-identifier is a data item to the intrinsic argument screens
+## Entry 3057 — 2026-11-03 15:38 PST — PB4507: a function-identifier is a data item to the intrinsic argument screens
 
 **The defect.** `FUNCTION INTEGER-OF-FORMATTED-DATE("YYYY-MM-DD", FUNCTION UPPER-CASE(WS-D))` was refused with COBOL1627, "argument-2
 shall be a DATA ITEM". The fuzz smoke batch of 2026-11-03 found it (kb/Work PB4506, adjudicator slice C1). Re-probed on this wave's
@@ -40,3 +40,4 @@ expression") and `FIND-STRING(X "ABC" (FUNCTION ABS(I2)))` was newly admitted. T
 (26 and 7, from 15.12.4 and 15.37.4 r2) and `pb4507-findstr-parenthesized-function` is refused (COBOL1627). Still open, reported as a
 lead and not decided here: a parenthesized bare data reference `(I2)` is bound as the item it encloses by the argument binder
 (`BindArgOperandCore`), so a data-item-or-literal position admits it, which 8.8.1.1 does not.
+
