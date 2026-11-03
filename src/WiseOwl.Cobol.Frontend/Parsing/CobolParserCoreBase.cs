@@ -477,7 +477,7 @@ public abstract class CobolParserCoreBase : Parser
                // header of a reserved name only when a procedure reference elsewhere uses the word; with none it is the verb's
                // statement lacking its operand, whose own report the sentence gets (the always-reserved verbs' rule,
                // ReservedProcedureName). A word no statement begins with (END-DISPLAY) has no statement reading to yield to.
-               && (follower != CobolLexer.DOT || !IsBareVerbSentence(word) || NamedAsAProcedureElsewhere(word)));
+               && (follower != CobolLexer.DOT || !IsIncompleteVerbSentence(word)));
 
     /// <summary>What the tokens from a verb say about the statement that verb would begin
     /// (<see cref="ReadStatementAt"/>).</summary>
@@ -721,7 +721,7 @@ public abstract class CobolParserCoreBase : Parser
         {
             int at = span.IndexOf(word);
             if (at < 0) continue;   // not a default-channel token of the span
-            int[] readings = word == first && !(IsBareVerbSentence(word) && !NamedAsAProcedureElsewhere(word))
+            int[] readings = word == first && !IsIncompleteVerbSentence(word)
                 ? [CobolParserCore.RULE_sentence, CobolParserCore.RULE_sectionDefinition, CobolParserCore.RULE_paragraphDefinition]   // a header names it too
                 : [CobolParserCore.RULE_sentence];
             foreach (int rule in readings)
@@ -800,7 +800,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>Whether <paramref name="word"/> is a statement verb that is its sentence's only word: the separator period
     /// stands before it and after it (<c>STOP.</c>, <c>DISPLAY.</c>, <c>MOVE.</c>, <c>PERFORM.</c>, <c>READ.</c>, <c>FREE.</c>),
     /// which the parse took as that statement and refused at the period (branch review R1-1) or at the word (a reservation-gated
-    /// verb, kb/Work PB4283). That text is ALSO a paragraph header (§14.4.3: "A paragraph consists of a paragraph-name followed
+    /// verb, kb/Work PB4283), the error strategy reporting both at the period (kb/Work PB4494). That text is ALSO a paragraph header (§14.4.3: "A paragraph consists of a paragraph-name followed
     /// by a separator period"), and no token of it says which the source meant. The evidence is elsewhere in the program
     /// (<see cref="NamedAsAProcedureElsewhere"/>): a reference makes it the header of a reserved paragraph-name (COBOL0901), and
     /// none leaves the operand the statement lacks, a fault the source certainly holds, with its own report, as every other
@@ -810,6 +810,26 @@ public abstract class CobolParserCoreBase : Parser
         => StatementOpeners(Atn).Contains(word.Type)
            && DefaultNeighbour(word, -1) is { Type: CobolLexer.DOT }
            && DefaultNeighbour(word, +1) is { Type: CobolLexer.DOT };
+
+    /// <summary>⛔ ONE DECISION FOR A BARE VERB (kb/Work PB4283, PB4494): is <paramref name="word"/> a verb that is its sentence's
+    /// only word (<see cref="IsBareVerbSentence"/>) with no procedure reference elsewhere to make it a header
+    /// (<see cref="NamedAsAProcedureElsewhere"/>)? Then the sentence is the verb's statement lacking its operand, and the header
+    /// reading, the reserved-procedure-name reading and the reserved-word report each yield to it.</summary>
+    internal bool IsIncompleteVerbSentence(IToken word)
+        => IsBareVerbSentence(word) && !NamedAsAProcedureElsewhere(word);
+
+    /// <summary>Is <paramref name="word"/> an incomplete bare-verb sentence (<see cref="IsIncompleteVerbSentence"/>) whose verb
+    /// is reservation-gated, so that <see cref="procedureHeaderHere"/> refuses the paragraph-header reading the prediction
+    /// would otherwise keep alive beside the statement's (kb/Work PB4494)? A verb reserved at every edition has no such
+    /// second reading, and its sentence is predicted as the statement it is.</summary>
+    internal bool HeaderReadingRefused(IToken word)
+        => ReservedGatedWord(word) is not null && IsIncompleteVerbSentence(word);
+
+    /// <summary>The separator period that ends the incomplete bare-verb sentence <paramref name="word"/> begins
+    /// (<see cref="IsIncompleteVerbSentence"/>), else null: the token where the statement's missing operand is due, and where
+    /// its fault is reported (kb/Work PB4494).</summary>
+    internal IToken? PeriodOfAnIncompleteVerbSentence(IToken word)
+        => IsIncompleteVerbSentence(word) ? DefaultNeighbour(word, +1) : null;
 
     /// <summary>The default-channel token next to <paramref name="token"/> in the direction <paramref name="step"/> (-1 or +1), or
     /// null at the stream's end.</summary>

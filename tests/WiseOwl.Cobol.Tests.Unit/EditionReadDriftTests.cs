@@ -106,7 +106,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedGatedWord",
+            "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
@@ -183,6 +183,11 @@ public sealed class EditionReadDriftTests
         // read it as its keyword (kb/Work PB4229): whether the word is reserved at the edition decides only whether it is
         // a candidate for that report (COBOL0901). It refuses nothing the error had not refused and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.Report | ReservedProcedureName"] = (1, Verdict.WordStatus),
+        // ... and the sentence that is a reservation-gated verb alone (`FREE.`) is reported at its period and skipped whole where a
+        // sentence may begin, because the paragraph-header reading procedureHeaderHere refuses for it is what the prediction keeps
+        // alive beside the statement's (kb/Work PB4494): whether the verb is reserved at the edition decides only where the
+        // report stands and that the sentences after it keep theirs. It refuses nothing the parse had not refused.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.SkipsBareVerbSentences | HeaderReadingRefused"] = (1, Verdict.DiagnosisOnly),
         // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, leaving out each one a
         // general format of the compile edition cannot print (kb/Work PB4174, PrintsKeyword): a word the §8.9 table proves
         // a LATER edition introduced, or a §8.10 context-sensitive word first listed at a LATER edition
