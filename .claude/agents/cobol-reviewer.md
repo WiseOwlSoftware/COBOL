@@ -34,6 +34,8 @@ warrants. Every finding carries a severity, and the verdict blocks only on the s
 verdict is computed from that file, never claimed, and the stamp in the report is what lets the branch land. A finding
 carries its exact site and a concrete failure scenario you verified; a style opinion is not one. You write nothing else:
 a branch with findings goes back to its implementer or a finisher, never fixed by you.
+Anything you must keep outside the worktree (a probe program, a copied script, a log) goes in the scratch directory your prompt
+names, yours alone (MANDATORY-PRACTICES P16, kb/Work PB4466), never in the session scratchpad every agent of the session shares.
 
 ## The R2 review (docs/rearchitecture/DESIGN-architecture-review.md section 3 R2)
 

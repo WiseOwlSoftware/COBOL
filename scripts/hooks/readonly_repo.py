@@ -4,7 +4,7 @@ Write/Edit/NotebookEdit whose target lies inside a git working tree (the main ch
 
 Owner decision 2026-09-25 (tooling recommendations 4 + 9): "the repo is read-only to you" was a sentence in every
 refuter/adjudicator brief, and a sentence is forgotten; this makes it structural. The roles still need Write for their
-checkpoint files (`<out>/<stage>-<slug>.jsonl`, reports) — those live in the scratchpad, which is not a git tree, so
+checkpoint files (`<out>/<stage>-<slug>.jsonl`, reports) — those live in the agent's own scratch directory (MANDATORY-PRACTICES P16), which is not a git tree, so
 they pass. Anything unparseable passes (a hook must never wedge an agent), but a git that does not ANSWER in time
 REFUSES the write (kb/Work PB3536): it used to pass it, so under a loaded host a read-only role could write inside a
 tree; dispatch_guard.py's practices check failed open the same way. A refusal wedges nothing: the write is re-issued.
@@ -50,7 +50,7 @@ except Exception:  # noqa: BLE001 — no git to ask at all: the environment is b
     sys.exit(0)
 if top.returncode == 0 and top.stdout.strip():
     sys.stderr.write(f"BLOCKED by scripts/hooks/readonly_repo.py: this role is READ-ONLY — {target} is inside the git "
-                     f"working tree {top.stdout.strip()}. Write only your checkpoint/report files, under the scratchpad "
-                     "path your brief names. Report proposed changes in your result instead of making them.\n")
+                     f"working tree {top.stdout.strip()}. Write only your checkpoint/report files, under the scratch "
+                     "directory your brief names (never the session scratchpad). Report proposed changes in your result instead of making them.\n")
     sys.exit(2)
 sys.exit(0)

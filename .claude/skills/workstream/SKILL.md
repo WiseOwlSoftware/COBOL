@@ -22,7 +22,7 @@ description: Use BEFORE dispatching any fleet, finisher, implementer or adjudica
 > ⛔ **THE MANDATORY PRACTICES ARE IN ONE FILE — `templates/MANDATORY-PRACTICES.md` — AND ARE ENFORCED.** Owner
 > 2026-09-23: "All these best practices must be durably recorded for all future to must use." Every brief points at
 > it; implementer/finisher dispatch specs are RENDERED by `make_dispatch_specs.py <groups.json>` from
-> `templates/dispatch-spec-implementer.md` (never hand-written in a scratchpad); `check_practices.py` must print
+> `templates/dispatch-spec-implementer.md` (never hand-written in a scratch directory); `check_practices.py` must print
 > `=== PRACTICES CHECK: GREEN ===` over the briefs and over every rendered spec before a Workflow call. A new
 > practice is added THERE, with its reason and measurement, and to `check_practices.py` — nowhere else.
 
