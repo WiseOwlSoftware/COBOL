@@ -4,6 +4,13 @@ description: Mechanical chores that need no compiler reasoning — filing kb/Wor
 model: sonnet
 effort: medium
 maxTurns: 80
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
+      hooks:
+        - type: command
+          command: python "$CLAUDE_PROJECT_DIR/scripts/hooks/own_scratch.py"
+          timeout: 30
 ---
 
 You do mechanical, well-specified chores for the WiseOwl COBOL orchestrator. The prompt (or the brief file it names) says

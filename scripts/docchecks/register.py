@@ -34,7 +34,11 @@ A3_ITEM = re.compile(r"[0-9]+(?:–[0-9]+)?")
 A4_REFERENCE = re.compile(r"A\.4\.[0-9]+")
 #: Annex A.3 lists 46 numbered items (ISO Annex A.3), and §2 documents every one (§4.2.6).
 A3_ITEMS = range(1, 47)
-#: The characters of a §7 determination the extract keeps: every schema `determination-prefix` is shorter.
+#: The characters of a §7 determination the extract keeps. The C# selector (`DerivedVerdictDriftTests`, `said.StartsWith(p)`)
+#: reads this lead while the Python engine (`inventory_schema.DerivedSelector`) reads the whole determination, so a schema
+#: `determination-prefix` longer than the lead would leave the C# half testing nothing, with no failure:
+#: `lead_covers_schema_prefixes` fails the audit instead (kb/Work PB4475). The test files' own `StartsWith` literals bind the
+#: same way and fail in their own test.
 LEAD_LENGTH = 64
 
 
@@ -114,6 +118,26 @@ def current_extract(root: Path) -> str:
 
 def write_extract(root: Path) -> None:
     (root / EXTRACT_PATH).write_text(current_extract(root), encoding="utf-8", newline="\n")
+
+
+def schema_prefixes(node: object) -> list[str]:
+    """Every `determination-prefix` entry anywhere in the inventory schema (a selector's arm names them)."""
+    if isinstance(node, dict):
+        return [p for key, value in node.items()
+                for p in (value if key == "determination-prefix" else schema_prefixes(value))]
+    if isinstance(node, list):
+        return [p for value in node for p in schema_prefixes(value)]
+    return []
+
+
+def prefixes_over_lead(prefixes: list[str], lead_length: int = LEAD_LENGTH) -> list[str]:
+    return [f"{SCHEMA_PATH}: the determination-prefix '{p}' is {len(p)} characters, over the extract's LEAD_LENGTH {lead_length} "
+            f"({EXTRACT_PATH} keeps only that many of each §7 determination, so the C# selector would test nothing for it): "
+            "raise LEAD_LENGTH in scripts/docchecks/register.py and regenerate the extract" for p in prefixes if len(p) > lead_length]
+
+
+def lead_covers_schema_prefixes(root: Path) -> list[str]:
+    return prefixes_over_lead(schema_prefixes(json.loads(common.text(root, SCHEMA_PATH))))
 
 
 def register_extract_fresh(root: Path) -> list[str]:
@@ -265,6 +289,7 @@ CHECKS = (
     Check("README STATUS against §2/§5", _readme),
     Check("CONFORMANCE SUITE PROFILE against §2/§5", _profile),
     Check("CONFORMANCE REGISTER EXTRACT is fresh", register_extract_fresh),
+    Check("CONFORMANCE REGISTER EXTRACT lead covers every schema determination-prefix", lead_covers_schema_prefixes),
 )
 
 
@@ -320,6 +345,13 @@ def self_test() -> list[str]:
         ("an escaped pipe stays inside its cell",
          [r.determination for r in schema.section7_rows("## 7. Annex A.1\n| DOC-A.1-82 | E | rounds \\|v\\| away from zero | — |\n")],
          ["rounds |v| away from zero"]),
+        ("every determination-prefix the real schema carries fits the extract's lead",
+         prefixes_over_lead(schema_prefixes(json.loads((Path(__file__).resolve().parents[2] / SCHEMA_PATH).read_text(encoding="utf-8")))), []),
+        ("the prefixes are found in nested selector arms and in a list of arms, and only those",
+         schema_prefixes({"a": [{"arms": [{"determination-prefix": ["P1", "P2"], "kinds": ["DOC"]}]}], "determination-prefix": ["P3"],
+                          "b": "determination-prefix"}), ["P1", "P2", "P3"]),
+        ("a prefix over the lead is a finding naming it", ["x" * 65 in f for f in prefixes_over_lead(["x" * 65, "y" * 64])], [True]),
+        ("a prefix exactly at the lead is not", prefixes_over_lead(["y" * 64]), []),
         ("the extract keeps each §7 key with the determination's lead, emphasis stripped",
          build_extract("## 7. Annex A.1\n| DOC-A.1-9 | E | **Not provided.** because | — |\n", "## 8.", "Rule")["annexA1"],
          [{"key": "DOC-A.1-9", "lead": "Not provided.** because"}]),
