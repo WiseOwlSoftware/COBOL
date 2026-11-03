@@ -54,3 +54,5 @@ verbatim; the license header of 22 files was dropped by the unused-using pruner 
 `BindPipeline.Build` allocates 29 small objects per unit as it allocated 29 lambdas; `AppendGate` costs one reference test per
 `FactSet.Add`. Duplication: none added; the group tail's view declarations are the only second statement of a fact set's
 phases, and `ValidateDag` checks them against `FactSetContract`.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,428/39,428 · Characterization 37/37 cases ran (skipped 0) …` (run 000006-20261102T235249Z at 6cdfa8113006); earlier reds were found and fixed on the way: the line-ending audit (a script wrote CRLF into four files), the rendered-views audit (a `Sweep` trait on a test that is no tree-wide sweep), and three text-scan tests that still read the partials (`UsageInheritanceDriftTests`, `EditionMutedDriftTests`, `ReportItemReferenceTests`). The oracle at that head: `=== ARCH-ORACLE: IDENTICAL — 16143 cases (baseline 2e1a4eed8377, new 6cdfa8113006) ===`.
