@@ -23,10 +23,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// "shall contain only … the address of a program with the same signature as that identified by the specified
 /// program-prototype-name"), so §14.9.39.3 SR20 / SR22 admit a SET between pointers restricted to two differently named
 /// prototypes of one signature, and so do the rules that send to SET (§14.8.2.3.3; §9.3.6 4 c), 5 c), 6). Those ask
-/// <c>PrototypeSignatures.SignatureRestriction</c> (the signature class <c>PrototypeSignatureClasses.Classify</c>
-/// attached; while the classes are refined it is the prototype's current block, kb/Work PB2495 / PB3101) or, with the
-/// unit's prototype tables in hand, <c>PrototypeSignatures.Same</c>. The identity rules — §9.3.6 3 e), §14.8.2.3.2's "of
-/// the same type", §14.8.3.3 — compare the USAGE clause's TO phrase by the prototype it NAMES, which is
+/// <c>PrototypeSignatures.SignatureRestriction</c> (the identity of the prototype's signature
+/// <c>PrototypeSignatures.StampContentRestrictions</c> attached) or, with the unit's prototype tables in hand,
+/// <c>PrototypeSignatures.Same</c>. The identity rules — §9.3.6 3 e), §14.8.2.3.2's "of the same type", §14.8.3.3, the
+/// pair-mode checks of §9.3.8.2.3 and the signature graph itself (§13.7.3 SR2, kb/Work PB4491) — compare the USAGE clause's
+/// TO phrase by the prototype it NAMES, which is
 /// <c>PrototypeSignatures.NamedRestriction</c>: the folded EXTERNALIZED name, so neither a spelling's case nor a
 /// prototype's local word decides (kb/Work PB4107). A comparison of <c>PicInfo.RestrictedPrototypeName</c> itself is
 /// neither relation: it once refused two prototypes of one signature in a SET-governed relation (kb/Work PB2464), and
@@ -36,7 +37,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb4107_restricted_pointer_identity_and_signature</c>
 /// and the negatives <c>pb2464-typed-pointer-signature-mismatch</c> and <c>pb4107-*</c>.</para>
 /// <para>A pointer decoded from another group's repository record is held to the same rule end to end
-/// (<see cref="ADecodedPointer_IsTypedByItsPrototypesSignature_NeverByItsName"/>; DESIGN-external-repository §6.4).</para>
+/// (<see cref="ADecodedPointer_MayContainWhatItsPrototypesSignatureAllows_NeverWhatItsNameDoes"/>; DESIGN-external-repository §6.4).</para>
 /// <para>Proven to FAIL before it was trusted: <see cref="ThePatternThisTestKeysOn_FiresOnThePB2464Defect"/> feeds the
 /// matcher the exact line the tree carried and asserts it is caught, and feeds it the repaired line and the signature
 /// readers and asserts they are not.</para>
@@ -127,19 +128,20 @@ public sealed class PrototypePointerTypeDriftTests
             "x with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null }"));
     }
 
-    /// <summary>⛔ EVERY GROUP-LEVEL SIGNATURE CHECK RUNS AFTER THE POINTER TYPES EXIST (kb/Work PB2495). A restricted
-    /// program- or function-pointer formal is typed by the signature class <c>BinderDriver.ResolvePointerRestrictions</c>
-    /// attaches; a check that runs before it reads an unstamped pointer, whose identity is its prototype's own NAME, and so
-    /// refuses an override, an implementation or a §10.6.2 SR2 prototype / definition pair restricted to two differently
-    /// named prototypes of one signature. Being after the program units' DATA phase is not enough: the four OO checks
-    /// once ran ahead of that phase, but <c>CheckPrototypeSignaturePairs</c> ran inside the REPOSITORY resolver's builder —
-    /// after it, and still ahead of <c>ResolvePointerRestrictions</c> — and refused the same pairs.
+    /// <summary>⛔ EVERY GROUP-LEVEL SIGNATURE CHECK RUNS AFTER THE POINTER RESTRICTIONS ARE RESOLVED (kb/Work PB2495). A
+    /// restricted program- or function-pointer formal is described by the EXTERNALIZED name of the prototype its TO phrase
+    /// names (kb/Work PB4107, PB4491), which <c>BinderDriver.ResolvePointerRestrictions</c> attaches; a check that runs before
+    /// it reads the word as written, so it refuses an override, an implementation or a §10.6.2 SR2 prototype / definition
+    /// pair whose two units name ONE prototype by two words (a REPOSITORY specifier's AS phrase, §12.3.8.2). Being after the
+    /// program units' DATA phase is not enough: the four OO checks once ran ahead of that phase, but
+    /// <c>CheckPrototypeSignaturePairs</c> ran inside the REPOSITORY resolver's builder — after it, and still ahead of
+    /// <c>ResolvePointerRestrictions</c> — and refused pairs it had to admit.
     /// <para>The pin is EXECUTION order, not text order: a helper defined below <c>Bind</c> can run before a call written
     /// above it, which is exactly where <c>CheckPrototypeSignaturePairs</c> sat. So each check is invoked ONCE in the
     /// compiler, as a top-level statement of <c>BinderDriver.Bind</c>'s body (no loop, branch, lambda or helper between),
     /// as is <c>ResolvePointerRestrictions</c>, and the check's statement follows it. Proven to fail on the pre-repair
     /// shape by <see cref="TheOrderPin_FiresOnThePB2495Defect"/>. Behaviour is pinned by
-    /// <c>conformance:cases/_unassigned/pb2495_pointer_type_in_signature_checks</c>.</para></summary>
+    /// <c>conformance:cases/10.6-COBOL-compilation-group/pb4491_prototype_pointer_formal_one_prototype</c>.</para></summary>
     [Theory]
     [InlineData("CheckPrototypeSignaturePairs")]
     [InlineData("ValidateInterfaceInheritance")]
@@ -256,9 +258,9 @@ public sealed class PrototypePointerTypeDriftTests
         if (Place(Resolver, out int resolved) is { } unresolved) return unresolved;
         if (Place(check, out int at) is { } unplaced) return unplaced;
         return at > resolved ? null
-            : $"'{check}' runs BEFORE ResolvePointerRestrictions, so it compares restricted prototype-pointers by the prototype's "
-              + "NAME (an unstamped pointer's identity) and refuses two differently named prototypes of one signature "
-              + "(ISO §13.18.60.4 GR25 / GR26; kb/Work PB2495)";
+            : $"'{check}' runs BEFORE ResolvePointerRestrictions, so it compares restricted prototype-pointers by the word "
+              + "each TO phrase WRITES, not by the externalized name of the prototype it names, and refuses two words for one "
+              + "prototype (ISO §12.3.8.2; kb/Work PB2495, PB4491)";
     }
 
     private static string? CalledName(InvocationExpressionSyntax call) => call.Expression switch
@@ -321,14 +323,14 @@ public sealed class PrototypePointerTypeDriftTests
                """;
 
     /// <summary>A pointer read from ANOTHER group's published record (rendered into a module and read back,
-    /// <c>RepositoryReader</c>) and decoded into the importing group (<c>RepositoryCodec.Decode</c>, which admits its
-    /// prototype into the group's signature classes) is typed by its prototype's SIGNATURE, never by its name (ISO
-    /// §13.18.60.4 GR25: "the address of a program with the same signature as that identified by the specified
-    /// program-prototype-name"): a prototype named otherwise with the group's signature shares the group pointer's identity,
-    /// one named like the group's prototype with another signature gets another, and two such records decoded in turn keep
-    /// one identity each.</summary>
+    /// <c>RepositoryReader</c>) and decoded into the importing group (<c>RepositoryCodec.Decode</c>, which stamps it with
+    /// the identity of its prototype's decoded signature) may contain what its prototype's SIGNATURE allows, never what its
+    /// name does (ISO §13.18.60.4 GR25: "the address of a program with the same signature as that identified by the
+    /// specified program-prototype-name"): a prototype named otherwise with the group's signature shares the group
+    /// pointer's content restriction, one named like the group's prototype with another signature gets another, and two
+    /// such records decoded in turn keep one each.</summary>
     [Fact]
-    public void ADecodedPointer_IsTypedByItsPrototypesSignature_NeverByItsName()
+    public void ADecodedPointer_MayContainWhatItsPrototypesSignatureAllows_NeverWhatItsNameDoes()
     {
         var importer = RepositoryCodecTests.Bind(Importer, 2023);
         var held = importer.Units.Single(u => u.Name == "GHOLD").Data.State.Forest.WorkingStorageRoots.Single(r => r.CobolName == "P");
@@ -336,42 +338,66 @@ public sealed class PrototypePointerTypeDriftTests
         {
             var publisher = RepositoryCodecTests.Bind(Publisher(prototype, picture), 2023);
             var record = RepositoryReaderTests.ReadLibrary([RepositoryCodec.Of(publisher.Units.Single(u => u.Name == "PUB"))]).Single();
-            return RepositoryCodec.Decode(record, importer.SignatureClasses).Formals.Single().Item;
+            return RepositoryCodec.Decode(record).Formals.Single().Item;
         }
 
+        string groupContent = PrototypeSignatures.SignatureRestriction(held)!;
+        Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, groupContent, StringComparison.Ordinal);
+
         var sameSignature = DecodedPointer("PB", "9(4)");
-        Assert.Equal(held.PointerRestrictionIdentity, sameSignature.PointerRestrictionIdentity);
-        Assert.True(PrototypeSignatures.SameSignatureRestriction(held, sameSignature), "a decoded pointer of the group's signature is not the group pointer's type");
+        Assert.Equal(groupContent, PrototypeSignatures.SignatureRestriction(sameSignature));
 
         var sameName = DecodedPointer("PA", "X(2)");
-        Assert.NotEqual(held.PointerRestrictionIdentity, sameName.PointerRestrictionIdentity);
-        Assert.False(PrototypeSignatures.SameSignatureRestriction(held, sameName), "a decoded pointer named like the group's prototype took its type");
-        Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, sameName.PointerRestrictionIdentity, StringComparison.Ordinal);
+        Assert.NotEqual(groupContent, PrototypeSignatures.SignatureRestriction(sameName));
+        Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, PrototypeSignatures.SignatureRestriction(sameName), StringComparison.Ordinal);
 
         var again = DecodedPointer("PA", "S9(3)");
-        Assert.NotEqual(sameName.PointerRestrictionIdentity, again.PointerRestrictionIdentity);
-        Assert.NotEqual(held.PointerRestrictionIdentity, again.PointerRestrictionIdentity);
-        Assert.Equal(held.PointerRestrictionIdentity, sameSignature.PointerRestrictionIdentity);   // no admission moved a group identity
+        Assert.NotEqual(PrototypeSignatures.SignatureRestriction(sameName), PrototypeSignatures.SignatureRestriction(again));
+        Assert.NotEqual(groupContent, PrototypeSignatures.SignatureRestriction(again));
+        Assert.Equal(groupContent, PrototypeSignatures.SignatureRestriction(held));   // decoding moved no group pointer
     }
 
-    /// <summary>⛔ ONLY THE SIGNATURE GRAPH ASKS A POINTER FORMAL'S SIGNATURE CLASS OF THE PAIR-MODE RELATION (kb/Work PB4442).
-    /// §9.3.8.2.3 rules 3 and 6 ask "the same … USAGE clauses", so an override, an IMPLEMENTS pair, an interface pair and a
-    /// property accessor pair compare a restricted program- or function-pointer by the prototype its TO phrase names; the
-    /// relation's <c>pointersBySignature</c> arm (what each pointer may contain) belongs to <c>PrototypeSignatures.Same</c>
-    /// alone. A second asker that set it would make pair mode admit two prototypes of one signature again.</summary>
-    [Fact]
-    public void OnlyThePrototypeSignatureGraphAsksTheSignatureClassOfAPairModePointer()
+    /// <summary>⛔ NO DESCRIPTION OF A SIGNATURE READS WHAT A POINTER MAY CONTAIN (kb/Work PB4442, PB4491). The pair-mode
+    /// relation (<c>ActivationRelations.SignatureDifference</c>: an override, IMPLEMENTS, an interface pair, a property
+    /// accessor pair AND §13.7.3 SR2's prototype / definition pair) compares a restricted pointer's USAGE clause, its TO
+    /// phrase by the prototype it names, and the signature's key (<c>PrototypeSignatures.SignatureKey</c> /
+    /// <c>DescriptionKey</c>) writes the same; <c>ActivationDescription.ContentRestriction</c> is the SET relation's alone.
+    /// Were either to read it again, two prototypes that name each other would need a fixed point to compare, and a
+    /// prototype <c>USING TO Q1</c> would be admitted for a definition <c>USING TO Q2</c> — every caller checked against the
+    /// prototype then passing the definition a pointer its formal refuses (§14.8.2.3.2).</summary>
+    [Theory]
+    [InlineData("WiseOwl.Cobol.Runtime", "ActivationRelations", "SignatureDifference")]
+    [InlineData("WiseOwl.Cobol.Compiler", "PrototypeSignatures", "SignatureKey")]
+    [InlineData("WiseOwl.Cobol.Compiler", "PrototypeSignatures", "DescriptionKey")]
+    [InlineData("WiseOwl.Cobol.Compiler", "PrototypeSignatures", "SameDescription")]
+    public void NoSignatureDescriptionReadsWhatAPointerMayContain(string project, string type, string method)
     {
-        string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
-        var askers = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)
-                        && !f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar))
-            .Where(f => File.ReadLines(f).Any(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)
-                                                  && Regex.IsMatch(l, @"pointersBySignature\s*:\s*(?!false)")))
-            .Select(f => Path.GetFileName(f))
-            .Order(StringComparer.Ordinal)
+        var bodies = Directory.EnumerateFiles(TestRepo.Src(project), type + ".cs", SearchOption.AllDirectories)
+            .SelectMany(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f)).GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+            .Where(m => m.Identifier.Text == method && m.Parent is ClassDeclarationSyntax c && c.Identifier.Text == type)
             .ToList();
-        Assert.Equal(["PrototypeSignatures.cs"], askers);
+        Assert.True(bodies.Count > 0, $"{type}.{method} was not found in {project} — the pin measured nothing");
+        foreach (var body in bodies) Assert.Null(ContentRead(body));
+    }
+
+    /// <summary>The first identifier of <paramref name="method"/>'s body that reads what a pointer may contain, or null.</summary>
+    private static string? ContentRead(MethodDeclarationSyntax method) =>
+        ((SyntaxNode?)method.Body ?? method.ExpressionBody)?.DescendantNodes().OfType<IdentifierNameSyntax>()
+            .Select(i => i.Identifier.Text)
+            .FirstOrDefault(n => n is "ContentRestriction" or "PointerRestrictionIdentity" or "SignatureRestriction");
+
+    /// <summary>The pin, proven to fail on the arm PB4442 left and PB4491 removed: the pair-mode relation's
+    /// <c>pointersBySignature</c> arm compared two pointers' <c>ContentRestriction</c>s; the repaired arm, which compares the
+    /// clauses, passes.</summary>
+    [Fact]
+    public void TheContentPin_FiresOnThePB4491Defect()
+    {
+        static MethodDeclarationSyntax Method(string body) => CSharpSyntaxTree.ParseText(
+                "static class ActivationRelations { static string? SignatureDifference(ActivationDescription first, ActivationDescription second) { " + body + " } }")
+            .GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+        Assert.Equal("ContentRestriction", ContentRead(Method(
+            "return (pointersBySignature && IsPointerClass(first) && IsPointerClass(second) ? string.Equals(first.ContentRestriction, second.ContentRestriction, StringComparison.Ordinal) : SameElementaryClauses(first, second)) ? null : \"differ\";")));
+        Assert.Null(ContentRead(Method("return first.AnyLength == second.AnyLength && SameElementaryClauses(first, second) ? null : \"differ\";")));
     }
 
     [Fact]
@@ -384,7 +410,6 @@ public sealed class PrototypePointerTypeDriftTests
         // The repaired line, and the readers that legitimately name the property, are not caught.
         Assert.DoesNotMatch(NameComparison,
             "if (!string.Equals(PrototypeSignatures.SignatureRestriction(formal), PrototypeSignatures.SignatureRestriction(arg), StringComparison.Ordinal))");
-        Assert.DoesNotMatch(NameComparison, "&& !PrototypeSignatures.SameSignatureRestriction(a, b)) return false;");
         Assert.DoesNotMatch(NameComparison,
             "? NamedRestriction(pointer.RestrictedPrototype?.ExternalizedName ?? name)");
         Assert.DoesNotMatch(NameComparison, "string? targetProto = receiver.Pic.RestrictedPrototypeName;");

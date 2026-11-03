@@ -18,9 +18,10 @@
       *> DERIVATION:
       *>   PS1 / PS2 - each a PROTOTYPE whose formal is a restricted
       *>     program-pointer TO ITSELF, no REPOSITORY entry: legal by
-      *>     8.4.6.8. Their signatures are one (13.18.60.4 GR25, no
-      *>     finite path reaches a difference), so SET B TO A meets
-      *>     14.9.39.3 SR22: legal; MAIN-OK.
+      *>     8.4.6.8. Each formal's USAGE clause names its own
+      *>     prototype, so the two signatures differ (kb/Work PB4491)
+      *>     and 14.9.39.3 SR22 admits no SET between A and B; each is
+      *>     SET to NULL, which SR22 admits: MAIN-OK.
       *>   RSELF (RECURSIVE) - CALL RSELF names its own program
       *>     definition as program-prototype-name-1; 11.10.4 GR4 "may
       *>     call itself". N is working storage, shared by the three
@@ -62,8 +63,8 @@
        PROCEDURE DIVISION.
        MAIN-P.
            SET A TO NULL
-           SET B TO A
-           IF B = NULL
+           SET B TO NULL
+           IF A = NULL AND B = NULL
                DISPLAY "MAIN-OK"
            END-IF
            CALL "RSELF"

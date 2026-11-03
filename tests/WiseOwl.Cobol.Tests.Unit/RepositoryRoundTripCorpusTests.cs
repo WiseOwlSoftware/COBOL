@@ -128,8 +128,8 @@ public sealed class RepositoryRoundTripCorpusTests
             {
                 bool bound = PrototypeSignatures.Same(new CalleeSignature(prototype.Data.Linkage.Formals, prototype.Data.Linkage.Returning),
                     new CalleeSignature(definition.Data.Linkage.Formals, definition.Data.Linkage.Returning));
-                bool decoded = PrototypeSignatures.Same(RepositoryCodec.Decode(RepositoryCodec.Of(prototype), comp.SignatureClasses).Signature,
-                    RepositoryCodec.Decode(RepositoryCodec.Of(definition), comp.SignatureClasses).Signature);
+                bool decoded = PrototypeSignatures.Same(RepositoryCodec.Decode(RepositoryCodec.Of(prototype)).Signature,
+                    RepositoryCodec.Decode(RepositoryCodec.Of(definition)).Signature);
                 if (!bound || !decoded)
                     failures.Add($"{at}: the prototype {prototype.Name} and the definition {definition.Name} are Same {bound} bound and {decoded} decoded");
                 pairs++;

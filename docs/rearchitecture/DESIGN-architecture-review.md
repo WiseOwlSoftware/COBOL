@@ -916,7 +916,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   repository records and call its codec) are removed by kb/Work PB4319: the record family (`RepositoryRecord.cs`)
   moves to compiler.model, and the encode leaves the backend (the binder writes each unit's record at bind time,
   and `RepositoryCodec.KindOf` becomes a `BoundUnit` fact); the codec stays in compiler.binding, because its encoder
-  and decoder read the binder (`DataBinder`, `OoClassTable`, `PrototypeSignatureClasses`).
+  and decoder read the binder (`DataBinder`, `OoClassTable`, `PrototypeSignatures`).
 
 One rule, one file, two observers at two cadences — the per-gate metadata walk and the per-wave census — which is the
 oracle's own shape (§4.1: a hash manifest per gate, the battery per batch).

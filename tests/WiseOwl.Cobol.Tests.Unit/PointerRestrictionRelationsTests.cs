@@ -207,18 +207,17 @@ public sealed class PointerRestrictionRelationsTests
         Assert.False(ByReference(program, function));
         Assert.False(Set(program, function));
         Assert.NotNull(ActivationRelations.SignatureDifference(program, function));
-        Assert.NotNull(ActivationRelations.SignatureDifference(program, function, pointersBySignature: true));
     }
 
-    /// <summary>⛔ THE PAIR-MODE IDENTITY ASKS THE TO PHRASE'S NAME (kb/Work PB4442). §9.3.8.2.3 rules 3 and 6 — an override,
-    /// an IMPLEMENTS pair, an interface pair, a property accessor pair — ask "the same ... USAGE clauses", so two
+    /// <summary>⛔ THE DESCRIPTION OF A RESTRICTED POINTER IS ITS TO PHRASE, FOR EVERY ASKER (kb/Work PB4442, PB4491). §9.3.8.2.3
+    /// rules 3 and 6 — an override, an IMPLEMENTS pair, an interface pair, a property accessor pair — and §13.7.3 SR2 /
+    /// §10.6.2 SR2 — a prototype and its definition — ask "the same ... USAGE clauses" of the formals, so two
     /// program-pointers restricted to two prototypes of ONE signature are two descriptions, as the same pair is as members of
-    /// a strongly-typed group (rule 7). Only the signature graph (<c>pointersBySignature</c>, <c>PrototypeSignatures.Same</c>)
-    /// asks what each may contain, and it merges them.</summary>
+    /// a strongly-typed group (rule 7). What each may contain is the SET relation's question alone, and it admits them.</summary>
     [Theory]
     [InlineData(ActivationCategory.ProgramPointer)]
     [InlineData(ActivationCategory.FunctionPointer)]
-    public void PairMode_TwoPrototypesOfOneSignature_AreTwoDescriptions_TheSignatureGraphMergesThem(string category)
+    public void TwoPrototypesOfOneSignature_AreTwoDescriptions_AndOneSetClass(string category)
     {
         var q1 = Pointer(category, "TO q1", "SIG s");
         var q2 = Pointer(category, "TO q2", "SIG s");
@@ -226,11 +225,10 @@ public sealed class PointerRestrictionRelationsTests
         Assert.NotNull(ActivationRelations.SignatureDifference(q1, q2));
         Assert.NotNull(ActivationRelations.SignatureDifference(q2, q1));
         Assert.Null(ActivationRelations.SignatureDifference(q1, q1 with { }));
-        Assert.Null(ActivationRelations.SignatureDifference(q1, q2, pointersBySignature: true));
-        Assert.NotNull(ActivationRelations.SignatureDifference(q1, other, pointersBySignature: true));
-        // An unrestricted pointer is a third description in both.
+        Assert.True(Set(q1, q2));
+        Assert.False(Set(q1, other));
+        // An unrestricted pointer is a third description.
         var unrestricted = Pointer(category, ActivationDescription.Unrestricted, ActivationDescription.Unrestricted);
         Assert.NotNull(ActivationRelations.SignatureDifference(q1, unrestricted));
-        Assert.NotNull(ActivationRelations.SignatureDifference(q1, unrestricted, pointersBySignature: true));
     }
 }

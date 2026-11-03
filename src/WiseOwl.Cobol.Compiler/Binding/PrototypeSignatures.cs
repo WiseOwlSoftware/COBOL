@@ -28,10 +28,20 @@ namespace WiseOwl.Cobol.Binding;
 /// conformance fact — "if and only if"). So this compares exactly those, position by position, through
 /// <see cref="OoConformance.SignatureDifference"/> — the ONE pair-mode relation over two descriptions
 /// (<c>ActivationRelations.SignatureDifference</c>) that the override, IMPLEMENTS, interface and property-accessor
-/// checks ask too, so a description rule cannot mean one thing here and another there (kb/Work PB3101) — except that a
-/// restricted program- or function-pointer formal is asked by what it may CONTAIN, its prototype's signature class,
-/// where the pair-mode checks ask the TO phrase's name (<c>pointersBySignature</c>, kb/Work PB4442) — and, for an
+/// checks ask too, so a description rule cannot mean one thing here and another there (kb/Work PB3101) — and, for an
 /// alphanumeric group, through its subordinate entries as well (<c>SameDescription</c>).</para>
+/// <para><b>A restricted pointer formal is described by the prototype its TO phrase NAMES (kb/Work PB4491).</b> §8.13 makes
+/// the signature "the description of the parameters", and the description of a formal <c>USAGE PROGRAM-POINTER TO Q1</c>
+/// is that USAGE clause, whose TO phrase is compared by the prototype it names wherever the standard asks "the same …
+/// USAGE clauses" (docs/CONFORMANCE.md D-RP1): a strong-group member of the same formal is compared so (§8.5.3.1), and so
+/// is the argument a caller passes BY REFERENCE (§14.8.2.3.2: "If either is a restricted pointer, both shall be restricted
+/// and of the same type"). Read any other way, §13.7.3 SR2 would admit a prototype <c>USING TO Q1</c> for a definition
+/// <c>USING TO Q2</c>, and every caller checked against the prototype would pass the definition a pointer its formal
+/// refuses. A TYPED pointer formal is described by the type declaration it references as well (§8.13's "type declarations
+/// required for the description of parameters", <see cref="PointerTypeOf"/>), for the same reason. So "the same signature"
+/// is a comparison of TEXT, with no fixed point to find: two prototypes that name each
+/// other have two signatures (their formals name two prototypes), and a pointer restricted to one does not take the
+/// address of a program of the other (§14.9.39.3 SR22) — which is what keeps a call through it conforming.</para>
 /// <para><b>Every prototype has a signature.</b> A prototype that took ISO §12.3.8.4 GR10 c) — "the details are taken
 /// from the external repository" — has the signature the repository entry records, decoded from the assembly that
 /// publishes it (<c>MetadataRepositoryProvider</c>, DESIGN-external-repository §8.2), and a specifier no provider answers is
@@ -41,12 +51,9 @@ namespace WiseOwl.Cobol.Binding;
 internal static class PrototypeSignatures
 {
     /// <summary>True when the two prototypes have the same signature (see the type remarks for the derivation). A formal
-    /// that is itself a
-    /// restricted program- or function-pointer is compared by the signature class its prototype belongs to
-    /// (<see cref="SignatureRestriction"/>), which its description carries as its content restriction; while the classes are being computed that is
-    /// the class of the current round of <see cref="PrototypeSignatureClasses"/>' partition refinement, so two prototypes
-    /// that name each other or themselves compare by what they describe and never by what they are called (kb/Work
-    /// PB2495, PB3101).</summary>
+    /// that is itself a restricted program- or function-pointer is compared by the prototype its TO phrase names
+    /// (<see cref="NamedRestriction(DataItem)"/>, kb/Work PB4491), never by that prototype's own signature, so the
+    /// comparison never recurses.</summary>
     public static bool Same(CalleeSignature a, CalleeSignature b) => FirstDifference(a, b) is null;
 
     /// <summary>Where two signatures first differ, in the words a diagnostic names it with (<c>the number of USING
@@ -74,14 +81,17 @@ internal static class PrototypeSignatures
 
     /// <summary>ISO §13.7.3 SR2 — a prototype's formal parameter or returning item "shall match the description of
     /// the formal parameters and the returning item in the corresponding function definition or program
-    /// definition", the description §8.13 stores as the signature's "description of the parameters". Two halves:
+    /// definition", the description §8.13 stores as the signature's "description of the parameters". Three parts:
     /// <list type="bullet">
     /// <item>the item's OWN description — <see cref="OoConformance.SignatureDifference"/>, the ONE pair-mode relation
     /// (class and category, the clause identity, ANY LENGTH and the LOCALE identification, the object-reference phrases,
     /// the strong type, a variable-length group's matching information; a bit / national group is the elementary
     /// <c>PIC 1(m)</c> / <c>N(m)</c> item §13.18.29.4 GR1 b) / GR2 b) treat it as, and an alphanumeric group is never
-    /// an elementary item; an elementary program- or function-pointer pair is asked by its prototypes' signature class,
-    /// <c>pointersBySignature</c>);</item>
+    /// an elementary item; a restricted program- or function-pointer is asked its USAGE clause, the TO phrase by the
+    /// prototype it names, kb/Work PB4491);</item>
+    /// <item>for a TYPED restricted pointer, the type declaration its TYPE clause references (<see cref="PointerTypeOf"/>):
+    /// §8.13's "type declarations required for the description of parameters", which §14.8.2.3.2's BY REFERENCE "of the
+    /// same type" reads and the pair-mode relation does not;</item>
     /// <item>for two groups that are NOT bit / national groups, their SUBORDINATE entries (kb/Work PB1115, row
     /// SR-13.7.3-2): such a group's data description entry carries no PICTURE, USAGE or length of its own, so what
     /// describes it is the entries subordinate to it.
@@ -95,43 +105,63 @@ internal static class PrototypeSignatures
     /// another bit / national group: §13.18.29.4 GR1 b) / GR2 b) make it the elementary <c>PIC 1(m)</c> /
     /// <c>N(m)</c> item and §13.7.3 states nothing otherwise, so the first half's elementary pair is its whole
     /// description. ⛔ That is also what keeps this relation an EQUIVALENCE, which "the same signature" is (§13.18.60.4
-    /// GR25 types a restricted pointer by it) and which <see cref="PrototypeSignatureClasses"/>' founder-based
-    /// refinement relies on: were two bit groups of one length still compared by their subordinate split, the
+    /// GR25 bounds a restricted pointer's contents by it) and which its key, <see cref="SignatureKey"/>, relies on: were
+    /// two bit groups of one length still compared by their subordinate split, the
     /// elementary <c>PIC 1(8)</c> would equal both a 4+4 and a 2+6 bit group while those two differed, and a SET
     /// between the 4+4 and the 2+6 pointer would be refused although two SETs through a <c>PIC 1(8)</c> pointer
     /// carry the same address there (kb/Work PB3101, review finding R1-1).</item>
     /// </list></summary>
     private static bool SameDescription(DataItem a, DataItem b) =>
-        OoConformance.SignatureDifference(a, b, "prototype's item", "definition's item", pointersBySignature: true) is null
+        OoConformance.SignatureDifference(a, b, "prototype's item", "definition's item") is null
+        && string.Equals(PointerTypeOf(a), PointerTypeOf(b), StringComparison.Ordinal)
         && (!DescribedBySubordinates(a) || !DescribedBySubordinates(b) || StrongTypeModel.SameElementaryLayout(a, b));
+
+    /// <summary>⛔ THE SIGNATURE'S OWN HALF OF A TYPED RESTRICTED POINTER FORMAL (kb/Work PB4491, branch review R1-1): the
+    /// §8.5.3.1 type identity of the type declaration its TYPE clause references (<c>ActivationDescription.PointerType</c>),
+    /// null for an untyped one (a <c>FUNCTION-POINTER TO</c> entry, which no TYPEDEF rule governs). §8.13 puts "type
+    /// declarations required for the description of parameters and returning items" in the signature, and for a restricted
+    /// pointer that declaration is a conformance fact: §14.8.2.3.2 requires an argument passed BY REFERENCE to be "of the
+    /// same type", which §8.5.3.1 makes the same type-name. So a prototype <c>USING TYPE T1</c> and a definition
+    /// <c>USING TYPE T9</c>, both <c>TO Q1</c>, are two signatures: read otherwise, a caller checked against the prototype
+    /// would pass the definition a pointer of type T1 its formal of type T9 refuses (COBOL1688). It is compared here and not
+    /// in the pair-mode relation (<see cref="OoConformance.SignatureDifference"/>), whose §9.3.8.2.3 rules 3 / 6 list only
+    /// the clauses; untyped opposite typed differs too, since a caller checked against an untyped formal may pass any
+    /// type-name.</summary>
+    private static string? PointerTypeOf(DataItem item) => ActivationDescriptions.Of(item, classes: null)?.PointerType;
 
     /// <summary>A group whose description is its subordinate entries' — the "is this a group operation?" test
     /// (<see cref="DataItem.IsAsIfElementary"/>'s remarks): a group that is not a bit / national group.</summary>
     private static bool DescribedBySubordinates(DataItem item) => item.IsPlainGroup;
 
     /// <summary>⛔ WHAT A RESTRICTED PROGRAM- OR FUNCTION-POINTER ITEM MAY CONTAIN (kb/Work PB2464) — the one reader of
-    /// <see cref="DataItem.PointerRestrictionIdentity"/>: the canonical identity (<see cref="CanonicalIdentity"/>) of the
-    /// signature class (<see cref="PrototypeSignatureClasses"/>) the item's prototype belongs to, so two pointers restricted
-    /// to differently named prototypes of ONE signature have equal identities (ISO §13.18.60.4 GR25 / GR26: the pointer
-    /// "shall contain only the predefined address NULL or the address of a program with the same signature"). A pointer the
-    /// partition has not stamped names a prototype its unit's tables do not hold — refused where it was declared — and its
-    /// identity is its TO phrase (<see cref="NamedRestriction(DataItem)"/>), which no canonical identity
-    /// (<see cref="CanonicalPrefix"/>) can equal. Null for an unrestricted pointer and for any other item. ⛔ It answers the SIGNATURE question only — the SET relation (§14.9.39.3 SR20 / SR22, through
-    /// <c>ActivationDescription.ContentRestriction</c>), the rules that send to it, and the signature graph's elementary
-    /// pointer formal (<see cref="Same"/> through <c>ActivationRelations.SignatureDifference</c>'s <c>pointersBySignature</c>
-    /// arm; the pair-mode checks of §9.3.8.2.3 ask the TO phrase by name, kb/Work PB4442). It is NOT the pointer's
-    /// type and not its USAGE clause: §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3 and §8.5.3.1's
-    /// type-declaration equivalence (a strongly-typed or group formal's member, <c>StrongTypeModel</c>) compare the TO
-    /// phrase by the prototype it names (<see cref="NamedRestriction"/>; kb/Work PB3758 / PB4107).</summary>
+    /// <see cref="DataItem.PointerRestrictionIdentity"/>: the identity of its prototype's signature
+    /// (<see cref="Identity(RestrictedPrototype)"/>, stamped by <see cref="StampContentRestrictions"/>), so two pointers
+    /// restricted to differently named prototypes of ONE signature have equal identities (ISO §13.18.60.4 GR25 / GR26: the
+    /// pointer "shall contain only the predefined address NULL or the address of a program with the same signature"). A
+    /// pointer no stamp reached names a prototype its unit's tables do not hold — refused where it was declared — and its
+    /// identity is its TO phrase (<see cref="NamedRestriction(DataItem)"/>), which no signature identity
+    /// (<see cref="CanonicalPrefix"/>) can equal. Null for an unrestricted pointer and for any other item. ⛔ It answers the
+    /// SET relation's question only — §14.9.39.3 SR20 / SR22, through <c>ActivationDescription.ContentRestriction</c>, and
+    /// the rules that send to it. It is NOT the pointer's type, not its USAGE clause and not its description in a signature:
+    /// §14.8.2.3.2's "of the same type", §9.3.6 3 e), §14.8.3.3, the pair-mode checks of §9.3.8.2.3, §8.5.3.1's
+    /// type-declaration equivalence and the signature graph itself (<see cref="Same"/>, §13.7.3 SR2) compare the TO phrase by
+    /// the prototype it names (<see cref="NamedRestriction(DataItem)"/>; kb/Work PB3758, PB4107, PB4442, PB4491).</summary>
     public static string? SignatureRestriction(DataItem pointer) =>
         pointer.PointerRestrictionIdentity ?? NamedRestriction(pointer);
 
-    /// <summary>The signature relation over two program- or function-pointer items: their <see cref="SignatureRestriction"/>
-    /// values are equal. While <see cref="PrototypeSignatureClasses"/> refines its partition each restricted pointer carries
-    /// its prototype's CURRENT class, so this question asked inside the classification is the refinement's own question,
-    /// and the greatest fixed point needs no assumption set (kb/Work PB2495, PB3101).</summary>
-    public static bool SameSignatureRestriction(DataItem a, DataItem b) =>
-        string.Equals(SignatureRestriction(a), SignatureRestriction(b), StringComparison.Ordinal);
+    /// <summary>Stamp each restricted program- or function-pointer of <paramref name="pointers"/> with what it may contain,
+    /// the identity of the signature of the prototype it names (<see cref="DataItem.PointerRestrictionIdentity"/>, read by
+    /// <see cref="SignatureRestriction"/>). Called once every pointer the identities read has its
+    /// <see cref="DataItem.RestrictedPrototype"/> — by <c>BinderDriver.ResolvePointerRestrictions</c> for the group's forests
+    /// and by <c>RepositoryCodec.Decode</c> for a decoded record's. The order the pointers are stamped in changes nothing:
+    /// an identity reads its signature's <see cref="SignatureKey"/>, which describes a pointer formal by its TO phrase and
+    /// never by a stamp (kb/Work PB4491; <c>SignatureIdentityDriftTests</c>).</summary>
+    public static void StampContentRestrictions(IEnumerable<DataItem> pointers)
+    {
+        foreach (var pointer in pointers)
+            if (pointer.RestrictedPrototype is { } prototype)
+                pointer.PointerRestrictionIdentity = Identity(prototype);
+    }
 
     /// <summary>⛔ THE TO PHRASE OF A RESTRICTED PROGRAM- OR FUNCTION-POINTER'S USAGE CLAUSE, AS AN IDENTITY (kb/Work
     /// PB4107): <c>TO</c> and the folded externalized name of the prototype it names — the written name for one the unit's
@@ -150,68 +180,29 @@ internal static class PrototypeSignatures
 
     /// <summary>The two restrictions of a pointer to a named program prototype: <paramref name="Named"/>, its USAGE clause's
     /// TO phrase (<see cref="NamedRestriction(string)"/>, the identity rules'), and <paramref name="Content"/>, what it may
-    /// contain (<see cref="SignatureRestriction"/>'s signature class, the SET relation's) — for the unique program-pointer a
+    /// contain (<see cref="SignatureRestriction"/>'s signature identity, the SET relation's) — for the unique program-pointer a
     /// program-address-identifier creates (§8.4.3.13.4 GR3), which has no item to read them from.</summary>
     internal readonly record struct PrototypeRestriction(string Named, string Content);
 
-    /// <summary>⛔ THE CANONICAL, GROUP-INDEPENDENT IDENTITY OF A SIGNATURE CLASS (DESIGN-external-repository §6.4; kb/Work
-    /// PB2103): <c>SIG &lt;hex&gt;</c>, the SHA-256 of the canonical encoding of the class's minimized signature graph — the
-    /// classes reachable from <paramref name="root"/> numbered in first-visit order, each written as its namespace and its
-    /// signature (<see cref="SignatureKey"/>), with every restricted program- or function-pointer inside a signature written
-    /// as the number of its class. Two separately compiled groups that describe one signature therefore spell its pointers'
-    /// type with ONE string, which the run-time relations compare (§13.18.60.4 GR25: "the address of a program with the same
-    /// signature as that identified by the specified program-prototype-name"; GR26 its function twin) — the founder's name
-    /// a group's own partition picks is comparable only inside that group. It must agree with <see cref="Same"/>: equal
-    /// identities exactly when the signatures are the same, held by <c>SignatureIdentityDriftTests</c>.
-    /// <para>The graph is the one <see cref="PrototypeSignatureClasses"/> minimized (its coarsest stable partition, so two
-    /// prototypes that name each other are one class when no finite path tells them apart, kb/Work PB3101):
-    /// <paramref name="founder"/> gives a class's namespace and a representative signature (every member of a class has the
-    /// same signature, so any member describes it), <paramref name="classOf"/> the class of a restricted pointer's
-    /// prototype (null for a prototype no class holds). While a class is written, every pointer its signature holds is
-    /// stamped with its number (<see cref="DataItem.PointerRestrictionIdentity"/>, the field every description reads) and
-    /// restored after.</para></summary>
-    public static string CanonicalIdentity<TClass>(TClass root, Func<TClass, (bool Function, CalleeSignature Signature)> founder,
-        Func<DataItem, TClass?> classOf) where TClass : class
-    {
-        var order = new List<TClass> { root };
-        var number = new Dictionary<TClass, int>(ReferenceEqualityComparer.Instance) { [root] = 0 };
-        var saved = new Dictionary<DataItem, string?>(ReferenceEqualityComparer.Instance);
-        var text = new System.Text.StringBuilder();
-        try
-        {
-            for (int i = 0; i < order.Count; i++)
-            {
-                var (function, signature) = founder(order[i]);
-                foreach (var pointer in RestrictedPointersOf(signature))
-                {
-                    if (classOf(pointer) is not { } cls) continue;
-                    if (!number.TryGetValue(cls, out int k)) { number[cls] = k = order.Count; order.Add(cls); }
-                    saved.TryAdd(pointer, pointer.PointerRestrictionIdentity);
-                    pointer.PointerRestrictionIdentity = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"#{k}");
-                }
-                text.Append(System.Globalization.CultureInfo.InvariantCulture, $"[{i}:{(function ? "FUNCTION" : "PROGRAM")}{SignatureKey(signature)}]");
-            }
-        }
-        finally
-        {
-            foreach (var (pointer, identity) in saved) pointer.PointerRestrictionIdentity = identity;
-        }
-        return CanonicalPrefix + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text.ToString())));
-    }
+    /// <summary>⛔ THE CANONICAL, GROUP-INDEPENDENT IDENTITY OF A PROTOTYPE'S SIGNATURE (DESIGN-external-repository §6.4;
+    /// kb/Work PB2103, PB4491): <c>SIG &lt;hex&gt;</c>, the SHA-256 of the prototype's namespace and its
+    /// <see cref="SignatureKey"/>. Two separately compiled groups that describe one signature therefore spell a pointer's
+    /// content restriction with ONE string, which the run-time relations compare (§13.18.60.4 GR25: "the address of a
+    /// program with the same signature as that identified by the specified program-prototype-name"; GR26 its function
+    /// twin). A pointer formal is written as its TO phrase, the prototype's folded externalized name (§8.3.2.2: one name,
+    /// one program in the run unit), so the key is a function of the signature's text alone and needs no graph. It must
+    /// agree with <see cref="Same"/>: equal identities exactly when the signatures are the same, held by
+    /// <c>SignatureIdentityDriftTests</c>.</summary>
+    public static string Identity(RestrictedPrototype prototype) => Identity(prototype.Function, prototype.Signature);
 
-    /// <summary>The spelling every canonical identity begins with (<see cref="CanonicalIdentity"/>).</summary>
+    /// <summary><see cref="Identity(RestrictedPrototype)"/> of a program (<paramref name="function"/> false) or function
+    /// prototype whose signature is <paramref name="signature"/>.</summary>
+    public static string Identity(bool function, CalleeSignature signature) =>
+        CanonicalPrefix + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(
+            (function ? "FUNCTION" : "PROGRAM") + SignatureKey(signature))));
+
+    /// <summary>The spelling every signature identity begins with (<see cref="Identity(bool, CalleeSignature)"/>).</summary>
     public const string CanonicalPrefix = "SIG ";
-
-    /// <summary>Every restricted program- or function-pointer whose signature class a signature's descriptions read, in the
-    /// order a description is written: each formal by position, then the RETURNING item — those that ARE such a pointer
-    /// (<see cref="DescriptionKey"/>'s class-pointer arm reads <c>ActivationDescription.ContentRestriction</c>). A pointer
-    /// SUBORDINATE to a formal, or inside a declaration a restricted data-pointer names, is not one: the §8.5.3.1 keys
-    /// (<c>StrongTypeModel.TypeIdentityKey</c>, <c>ElementaryLayoutKey</c>) read its USAGE clause by the prototype it names
-    /// (kb/Work PB4107), so numbering its class would make the identity depend on a signature <see cref="Same"/> never
-    /// asks.</summary>
-    private static IEnumerable<DataItem> RestrictedPointersOf(CalleeSignature signature) =>
-        signature.Formals.Select(f => f.Item).Concat(signature.Returning is { } r ? [r] : [])
-            .Where(item => item.RestrictedPrototype is not null);
 
     /// <summary>⛔ <see cref="Same"/> AS A KEY: the text two signatures share exactly when they are the same — the formal
     /// count, each formal's mode (BY VALUE), OPTIONAL phrase and <see cref="DescriptionKey"/> by position, and the RETURNING
@@ -226,8 +217,7 @@ internal static class PrototypeSignatures
     }
 
     /// <summary>⛔ <see cref="SameDescription"/> AS A KEY, read from what the relation reads — the item's activation
-    /// description (<c>ActivationDescriptions.Of</c>) by the arm <c>ActivationRelations.SignatureDifference</c> takes for it
-    /// under <c>pointersBySignature</c>,
+    /// description (<c>ActivationDescriptions.Of</c>) by the arm <c>ActivationRelations.SignatureDifference</c> takes for it,
     /// and for a group that is not a bit or national group its elementary layout
     /// (<see cref="StrongTypeModel.ElementaryLayoutKey"/>):
     /// <list type="bullet">
@@ -236,10 +226,9 @@ internal static class PrototypeSignatures
     /// <item>a strongly-typed group — its §8.5.3.1 type identity;</item>
     /// <item>a variable-length or an alphanumeric group — its shape and length (with the layout, which settles §8.5.1.12's
     /// compatibility: two identical layouts are compatible);</item>
-    /// <item>a class pointer — the category and its content restriction (a prototype pointer's signature class), as the
-    /// relation compares it;</item>
-    /// <item>any other — ANY LENGTH, the category, the §9.3.6 3 e) clause identity and the LOCALE external
-    /// identification.</item>
+    /// <item>any other, a restricted class pointer included — ANY LENGTH, the category, the §9.3.6 3 e) clause identity
+    /// (a pointer's TO phrase by the prototype or type it names, never what it may contain: kb/Work PB4491), a typed
+    /// restricted pointer's type declaration (<c>PointerTypeOf</c>, §8.13) and the LOCALE external identification.</item>
     /// </list>
     /// Two facts cannot key exactly, and both answer the relation's false of an item even against itself, so no two
     /// prototypes share a class through them: an item with no crossing form, and a group whose items cannot be placed — each
@@ -262,9 +251,11 @@ internal static class PrototypeSignatures
             ActivationShape.StrongGroup => "TYPE " + d.StrongType,
             ActivationShape.VariableLengthGroup => "VARIABLE GROUP",
             ActivationShape.AlphanumericGroup => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"GROUP {d.Positions}"),
-            // A class pointer by what it may CONTAIN, the signature class SignatureDifference compares under pointersBySignature
-            // (kb/Work PB4442).
-            _ => (d.AnyLength ? "ANY LENGTH " : "") + d.Category + " " + (d.ContentRestriction.Length > 0 ? d.ContentRestriction : d.Clauses)
+            // A restricted class pointer by its USAGE clause's TO phrase (Clauses), as SignatureDifference compares it — never
+            // by ContentRestriction, so a key never reads a stamp and no identity depends on another — and by the type
+            // declaration a typed one references (PointerType, as SameDescription compares it; kb/Work PB4491).
+            _ => (d.AnyLength ? "ANY LENGTH " : "") + d.Category + " " + d.Clauses
+                 + (d.PointerType is { } pointerType ? " POINTER-TYPE " + pointerType : "")
                  + (d.LocaleExternal is { } locale ? (d.LocaleFromLiteral ? " LOCALE L:" + locale : " LOCALE W:" + CobolNames.Fold(locale)) : ""),
         };
         return DescribedBySubordinates(item) ? own + " LAYOUT" + StrongTypeModel.ElementaryLayoutKey(item) : own;

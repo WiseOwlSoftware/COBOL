@@ -2007,18 +2007,19 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     }
 
     /// <summary>⛔ Attach to every restricted PROGRAM- or FUNCTION-pointer this forest declares the prototype its
-    /// <c>TO prototype-name-1</c> names (<see cref="DataItem.RestrictedPrototype"/>; kb/Work PB2495): ISO §13.18.60.4
-    /// GR25 / GR26 type the pointer by that prototype's SIGNATURE, not its name. The prototype tables exist only once the
+    /// <c>TO prototype-name-1</c> names (<see cref="DataItem.RestrictedPrototype"/>; kb/Work PB2495): its USAGE clause's TO
+    /// phrase is that prototype's externalized name, and ISO §13.18.60.4 GR25 / GR26 bound what it may contain by that
+    /// prototype's SIGNATURE. The prototype tables exist only once the
     /// group's REPOSITORY has resolved (<c>BinderDriver.ProgramPrototypesOf</c> / <c>UserFunctionsOf</c>, after every
     /// unit's DATA has bound), so this is the prototype twin of <see cref="ExpandTypesPass.ResolveRestrictedTypes"/> run at the point
     /// those tables are built — <c>BinderDriver.ResolvePointerRestrictions</c>, over every forest that declares pointers
     /// (a method's LINKAGE roots are on its class's). A name the table does not hold resolves to nothing, and the pointer
     /// keeps its own name as its identity (<see cref="PrototypeSignatures.SignatureRestriction"/>). The first of two
-    /// passes: <see cref="PrototypeSignatureClasses.Classify"/> runs only once EVERY forest has been through this one, because
-    /// classifying a prototype follows its formals' restrictions into other forests. Both passes walk
-    /// <see cref="ClauseResolutionForest"/>, the TYPEDEF templates too: a data-pointer restricted to a type is compared
-    /// through that type's TEMPLATE, whose own program-pointer members must be typed by their prototype's signature
-    /// exactly as the TYPE subjects cloned from it are (kb/Work PB3120).</summary>
+    /// passes: <see cref="PrototypeSignatures.StampContentRestrictions"/> runs only once EVERY forest has been through this
+    /// one, because a prototype's signature identity describes its formals, whose own restrictions may be declared in other
+    /// forests. Both passes walk <see cref="ClauseResolutionForest"/>, the TYPEDEF templates too: a data-pointer restricted
+    /// to a type is compared through that type's TEMPLATE, whose own program-pointer members must name their prototype
+    /// exactly as the TYPE subjects cloned from it do (kb/Work PB3120).</summary>
     internal void ResolveRestrictedPrototypes(
         IReadOnlyDictionary<string, ProgramPrototype> programs, IReadOnlyDictionary<string, UserFunctionSignature> functions)
     {
@@ -2034,9 +2035,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>⛔ Every restricted PROGRAM- or FUNCTION-pointer this forest declares whose prototype resolved, for the
     /// second pass of <c>BinderDriver.ResolvePointerRestrictions</c> after <see cref="ResolveRestrictedPrototypes"/> has
-    /// run over every forest: <see cref="PrototypeSignatureClasses.Classify"/> partitions their prototypes into signature
-    /// classes and gives each pointer the TYPE its prototype's class is (<see cref="DataItem.PointerRestrictionIdentity"/>;
-    /// kb/Work PB2464, PB3101).</summary>
+    /// run over every forest: <see cref="PrototypeSignatures.StampContentRestrictions"/> gives each pointer what it may
+    /// contain, the identity of its prototype's signature (<see cref="DataItem.PointerRestrictionIdentity"/>; kb/Work PB2464,
+    /// PB4491).</summary>
     internal IEnumerable<DataItem> RestrictedPrototypePointers()
     {
         foreach (var item in ClauseResolutionForest())

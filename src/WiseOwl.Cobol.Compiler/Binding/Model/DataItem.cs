@@ -90,18 +90,18 @@ public sealed class DataItem
 
     /// <summary>The prototype a restricted program- or function-pointer's <see cref="PicInfo.RestrictedPrototypeName"/>
     /// resolves to through the unit's prototype tables — its namespace, externalized name and signature (kb/Work
-    /// PB2495) — set post-build by <c>DataBinder.ResolveRestrictedPrototypes</c>, for EVERY forest of the group before
-    /// any is classified, so a signature comparison can follow a formal's restriction to the signature it names
-    /// (<c>PrototypeSignatures.SignatureRestriction</c>) instead of to the class that comparison is still building. Null for a name
-    /// the tables do not hold, for an unrestricted pointer and for every other item.</summary>
+    /// PB2495) — set post-build by <c>DataBinder.ResolveRestrictedPrototypes</c>, for EVERY forest of the group before any
+    /// pointer is stamped with what it may contain (<see cref="PointerRestrictionIdentity"/>), because a signature's identity
+    /// describes its pointer formals by the externalized names of the prototypes THEY name. Null for a name the tables do
+    /// not hold, for an unrestricted pointer and for every other item.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "resolved post-build by DataBinder.ResolveRestrictedPrototypes in the copy's OWN scope (the prototype names resolve through the unit that declares the copy), after every clone exists")]
     internal RestrictedPrototype? RestrictedPrototype { get; set; }
 
-    /// <summary>⛔ WHAT A RESTRICTED PROGRAM- OR FUNCTION-POINTER MAY CONTAIN (kb/Work PB2464): the signature class its
-    /// <see cref="RestrictedPrototype"/> belongs to, set post-build by <c>PrototypeSignatureClasses.Classify</c>
-    /// once every forest's <see cref="RestrictedPrototype"/> is resolved
-    /// (<c>PrototypeSignatureClasses</c>). ISO §13.18.60.4 GR25 / GR26 bound such a pointer's contents by SIGNATURE
+    /// <summary>⛔ WHAT A RESTRICTED PROGRAM- OR FUNCTION-POINTER MAY CONTAIN (kb/Work PB2464): the identity of its
+    /// <see cref="RestrictedPrototype"/>'s signature, set post-build by <c>PrototypeSignatures.StampContentRestrictions</c>
+    /// once every forest's <see cref="RestrictedPrototype"/> is resolved. ISO §13.18.60.4 GR25 / GR26 bound such a pointer's
+    /// contents by SIGNATURE
     /// ("shall contain only … the address of a program with the same signature as that identified by the specified
     /// program-prototype-name"), so two pointers restricted to two differently NAMED prototypes of one signature hold the
     /// same set of values and a SET between them is valid (§14.9.39.3 SR20 / SR22). It is not the pointer's type: §14.8.2.3.2's
@@ -111,7 +111,7 @@ public sealed class DataItem
     /// so that the PICTURE profile's record text (the §8.5.3.1 same-type key) does not change with the stamping
     /// state. Null before resolution, for an unrestricted pointer and for every non-pointer item.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
-        "classified post-build by PrototypeSignatureClasses.Classify from the copy's OWN RestrictedPrototype (resolved in the copy's own scope), after every clone exists")]
+        "stamped post-build by PrototypeSignatures.StampContentRestrictions from the copy's OWN RestrictedPrototype (resolved in the copy's own scope), after every clone exists")]
     public string? PointerRestrictionIdentity { get; set; }
 
     /// <summary>GROUP-USAGE (ISO §13.18.29; data-model design D20; kb/Work PB79) — <see cref="Model.GroupUsage.None"/>
