@@ -2211,7 +2211,7 @@
   },
   {
    "id": "call-by-value-2002",
-   "description": "CALL ... USING BY VALUE argument phrase, ISO 14.9.4 - introduced 2002 (BY REFERENCE/BY CONTENT are 85). Grammar-gated (callByValue {is2002()}?); W1.5 parse-layer 0900 mapping below 2002. Probe spelled as FORMAT 2 (AS NESTED, contained callee with a BY VALUE formal): Format 1 prints no BY VALUE arm and is rejected at every edition since kb/Work PB130/PB132.",
+   "description": "CALL ... USING BY VALUE argument phrase, ISO 14.9.4 - introduced 2002 (BY REFERENCE/BY CONTENT are 85). Gated in ONE place, CallBinder.Format1Narrowing (kb/Work PB4503): below 2002 a Format 1 CALL BY VALUE is this COBOL0900, and under --permissive the vendor extension. Probe spelled as FORMAT 2 (AS NESTED, contained callee with a BY VALUE formal): Format 1 prints no BY VALUE arm and is rejected at every edition since kb/Work PB130/PB132.",
    "display": "the CALL BY VALUE phrase",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.4",
@@ -2222,8 +2222,20 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15Q.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4) VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"SUB1\" AS NESTED USING BY VALUE W.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. SUB1.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LV PIC 9(4).\nPROCEDURE DIVISION USING BY VALUE LV.\nP.\n    GOBACK.\nEND PROGRAM SUB1.\nEND PROGRAM W15Q.\n"
   },
   {
+   "id": "call-literal-expression-argument-2002",
+   "description": "A literal or an arithmetic or boolean expression as a CALL USING argument (BY CONTENT or keyword-less) - a COBOL-2002 introduction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 15: \"CALL statement. Arithmetic expressions and literals may be used as arguments of the CALL statement.\" In 2002 and later they belong to the program-prototype CALL only (2002 §14.8.4.1 Format 3; 2023 §14.9.4.2 Format 2). Gated in ONE place, CallBinder.Format1Narrowing, with OMITTED and BY VALUE (kb/Work PB4503): below 2002 a Format 1 CALL argument so spelled is this COBOL0900, and under --permissive the vendor extension (owner decision 2026-11-03). VCR row 7.47 (item 15).",
+   "display": "a literal or expression as a CALL argument",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 item 15; ISO §14.9.4.2 Format 2",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 15)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCLL.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"VMCLLSUB\" AS NESTED USING BY CONTENT \"ABCD\".\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. VMCLLSUB.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X(4).\nPROCEDURE DIVISION USING L.\nP.\n    EXIT PROGRAM.\nEND PROGRAM VMCLLSUB.\nEND PROGRAM VMCLL.\n"
+  },
+  {
    "id": "omitted-arguments-2002",
-   "description": "The OMITTED-argument facility (ISO 14.9.4.4 GR11-12, 14.2.2 OPTIONAL, 8.8.4.8 omitted-argument condition): the OMITTED phrase in a CALL's USING list, the OPTIONAL phrase on a procedure-division-header formal, and the IS [NOT] OMITTED condition - all COBOL-2002 introductions (the 85 CALL general format has none of the three). Gated at the VersionConformancePass parse arms (kb/Work PB133 wave C).",
+   "description": "The OMITTED-argument facility (ISO 14.9.4.4 GR11-12, 14.2.2 OPTIONAL, 8.8.4.8 omitted-argument condition): the OMITTED phrase in a CALL's USING list, the OPTIONAL phrase on a procedure-division-header formal, and the IS [NOT] OMITTED condition - all COBOL-2002 introductions (the 85 CALL general format has none of the three). The CALL argument is gated in CallBinder.Format1Narrowing with BY VALUE and the literal arguments (kb/Work PB4503; under --permissive at 85 the vendor extension); OPTIONAL, the condition and INVOKE's OMITTED at the VersionConformancePass parse arms (kb/Work PB133 wave C).",
    "display": "the omitted-argument facility (OMITTED / OPTIONAL / IS OMITTED)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO 14.9.4.2 Format 2 / 14.2.2 / 8.8.4.8 - COBOL-2002 introductions",

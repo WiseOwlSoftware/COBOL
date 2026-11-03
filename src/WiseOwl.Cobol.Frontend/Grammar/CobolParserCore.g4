@@ -1480,7 +1480,7 @@ callByReference
 // arms need no alternative at all — the spine subsumes both, and CallBinder RECOVERS them before it binds
 // (the GR8 reduction, `ConditionBinder.ReduceArgument`), which is `callByContent`'s discipline rather than its alternation.
 callByValue
-    : BY? VALUE (addressIdentifier | arithmeticExpression | literal)   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
+    : BY? VALUE (addressIdentifier | arithmeticExpression | literal)   // introduction-gated at BIND time (CallBinder.Format1Narrowing → ConstructRegistry.Check(CallByValue2002); kb/Work PB4503)
     ;
 
 // ⛔ THE TWO FORMATS' BY CONTENT OPERAND SETS DIFFER, AND ONE RULE CANNOT BE BOTH (fix-queue PB46, CALL half).
