@@ -1,4 +1,4 @@
-## PB4468, PB4470, PB4471: the DataBinder extract's stale names get a drift test, the byte-patch loop has one home, and a golden cites the random-access WRITE rule
+## Entry 3037 — 2026-11-03 07:16 PST — PB4468, PB4470, PB4471: the DataBinder extract's stale names get a drift test, the byte-patch loop has one home, and a golden cites the random-access WRITE rule
 
 Three process-only notes from the PB2296 / PB4454 / PB4455 reviews, one commit each.
 
@@ -38,3 +38,4 @@ sweep is the only mapping, and the drift test is the structure that keeps it tru
 declaration; the three message strings (`IntrinsicArgumentRules`, `IntegerOperandPass`) changed text only in the type prefix. Performance:
 none reached. Duplication: one patch loop. **Gate:** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,280/21,280 · Unit 39,566/39,566 ·
 Characterization 37/37 cases ran (skipped 0)` (run `000001-20261103T123720Z`); `semgrep verify` PASS.
+
