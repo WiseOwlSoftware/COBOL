@@ -8076,7 +8076,7 @@ public static class DiagnosticCatalog
         + "procedure-name, or with every procedure by ALL PROCEDURES.",
         "ISO §14.4.1; ISO §8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
 
-    // ── COBOL RAW-LITERAL MIGRATION, PHASE A (kb/Work PB4463) — one descriptor per rule ─────────────────────
+    // ── One descriptor per rule (kb/Work PB4463): OCCURS, REDEFINES, ANY LENGTH, VALUE, TYPE, SPECIAL-NAMES collating, file locking ──
 
     /// <summary>COBOL0850 — occurs depending bounds invalid (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OccursDependingBoundsInvalid = new(
@@ -8380,6 +8380,563 @@ public static class DiagnosticCatalog
         + "the file control entry for file-name-1 or if the ALL phrase is specified on the OPEN statement, the LOCK MODE "
         + "clause shall be specified in the file control entry for file-name-1.\"",
         "ISO §14.9.27.3 SR8");
+
+    // ── One descriptor per rule (kb/Work PB4463): SPECIAL-NAMES, declaratives, MOVE, INITIALIZE, WRITE, READ, OO, expressions ──
+
+    /// <summary>COBOL0710 — raised exception name not level 3 (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor RaisedExceptionNameNotLevel3 = new(
+        "COBOL0710", "raised-exception-name-not-level-3", EditionSeverity.Error,
+        "The exception-name of a RAISE, GOBACK, EXIT or STOP statement is not a level-3 exception-name. §14.9.29.3 SR1: "
+        + "\"Exception-name-1 shall be a level-3 exception-name as specified in 14.6.13.1, Exception conditions.\" The "
+        + "statements GOBACK, EXIT and STOP carry the same rule in their own syntax rules.",
+        "ISO §14.9.29.3 SR1");
+
+    /// <summary>COBOL0715 — use file exception name not io (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor UseFileExceptionNameNotIo = new(
+        "COBOL0715", "use-file-exception-name-not-io", EditionSeverity.Error,
+        "A USE statement's FILE phrase names an exception-name that does not begin with EC-I-O. §14.9.49.3 SR13: "
+        + "\"Exception-name-2 shall be an exception-name beginning with 'EC-I-O'.\"",
+        "ISO §14.9.49.3 SR13");
+
+    /// <summary>COBOL0716 — use exception file pair repeated (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor UseExceptionFilePairRepeated = new(
+        "COBOL0716", "use-exception-file-pair-repeated", EditionSeverity.Error,
+        "The same exception-name and file-name pair is specified in more than one USE statement of a procedure division. "
+        + "§14.9.49.3 SR14: \"The same pair of exception-name-2 and file-name-2 shall not be specified in more than one USE "
+        + "statement within the same procedure division.\"",
+        "ISO §14.9.49.3 SR14");
+
+    /// <summary>COBOL0717 — ec user not specified in raising (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor EcUserNotSpecifiedInRaising = new(
+        "COBOL0717", "ec-user-not-specified-in-raising", EditionSeverity.Error,
+        "A level-3 EC-USER exception-name used by a GOBACK, RAISE, EXIT or STOP statement is not specified in the RAISING "
+        + "phrase of the procedure division header. §14.9.18.3 SR2: \"If exception-name-1 is a level-3 exception-name for "
+        + "EC-USER, exception-name-1 shall be specified in the RAISING phrase of the procedure division header of the "
+        + "source element in which this GOBACK statement is contained.\"",
+        "ISO §14.9.18.3 SR2");
+
+    /// <summary>COBOL0805 — arithmetic composite too wide (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ArithmeticCompositeTooWide = new(
+        "COBOL0805", "arithmetic-composite-too-wide", EditionSeverity.Error,
+        "The composite of the operands of an arithmetic statement spans more than 31 digits. §14.7.7 rule 2 a): \"the "
+        + "composite of operands shall not contain more than 31 digits.\" The cap is 31 at every edition.",
+        "ISO §14.7.7 rule 2 a)");
+
+    /// <summary>COBOL0806 — arithmetic standard binary unsupported (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ArithmeticStandardBinaryUnsupported = new(
+        "COBOL0806", "arithmetic-standard-binary-unsupported", EditionSeverity.Error,
+        "ARITHMETIC IS STANDARD-BINARY is a processor-dependent language element (Annex A.3 item 2) for which support is "
+        + "not claimed (§4.2.6), and it is obsolete (§8.8.1.4.1 NOTE 1; Annex F.2 item 3). NATIVE and STANDARD-DECIMAL are "
+        + "the supported modes.",
+        "ISO §4.2.6 / Annex A.3 item 2 / §8.8.1.4.1");
+
+    /// <summary>COBOL0809 — move operand class not allowed (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor MoveOperandClassNotAllowed = new(
+        "COBOL0809", "move-operand-class-not-allowed", EditionSeverity.Error,
+        "A MOVE operand is of class index, message-tag, object or pointer. §14.9.25.3 SR1: \"The class of identifier-1 or "
+        + "identifier-2 shall not be index, message-tag, object, or pointer.\"",
+        "ISO §14.9.25.3 SR1");
+
+    /// <summary>COBOL0817 — mnemonic name not device (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor MnemonicNameNotDevice = new(
+        "COBOL0817", "mnemonic-name-not-device", EditionSeverity.Error,
+        "The mnemonic-name of an ACCEPT or DISPLAY statement is not declared in SPECIAL-NAMES, names something other than "
+        + "a device-name, or names a device that cannot do what the statement asks. §14.9.1.3 SR2: \"Mnemonic-name-1 shall "
+        + "be specified in the SPECIAL-NAMES paragraph of the environment division and shall be associated with an "
+        + "implementor-defined device-name\"; DISPLAY's syntax rules say the same.",
+        "ISO §14.9.1.3 SR2; §12.3.7.3 SR7");
+
+    /// <summary>COBOL0819 — move shape invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor MoveShapeInvalid = new(
+        "COBOL0819", "move-shape-invalid", EditionSeverity.Error,
+        "A MOVE statement moves between operand shapes that §14.9.25.3 SR10 and its Table 16 do not permit: \"For all "
+        + "other cases not described in Syntax rules 8 and 9, table 16, Validity of types of MOVE statements, specifies the "
+        + "validity of the move.\"",
+        "ISO §14.9.25.3 SR10 / Table 16");
+
+    /// <summary>COBOL0827 — super without inherited class (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor SuperWithoutInheritedClass = new(
+        "COBOL0827", "super-without-inherited-class", EditionSeverity.Error,
+        "SUPER is referenced in a class that inherits from no class. SUPER (§8.4.3.8) references the object that invoked "
+        + "the method, resolved among the inherited class's methods; a class with no INHERITS phrase has none.",
+        "ISO §8.4.3.8");
+
+    /// <summary>COBOL0828 — invoke argument not conforming (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InvokeArgumentNotConforming = new(
+        "COBOL0828", "invoke-argument-not-conforming", EditionSeverity.Error,
+        "An argument of an INVOKE statement does not conform to the formal parameter of the invoked method: its "
+        + "description, passing mode or presence is not the one the method's procedure division header declares (§14.8.2).",
+        "ISO §14.8.2; §14.9.23");
+
+    /// <summary>COBOL0834 — initialize category repeated (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InitializeCategoryRepeated = new(
+        "COBOL0834", "initialize-category-repeated", EditionSeverity.Error,
+        "An INITIALIZE statement's REPLACING phrase repeats a category. §14.9.20.3 SR6: \"The same category shall not be "
+        + "repeated in a REPLACING phrase.\"",
+        "ISO §14.9.20.3 SR6");
+
+    /// <summary>COBOL0835 — initialize renames item (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InitializeRenamesItem = new(
+        "COBOL0835", "initialize-renames-item", EditionSeverity.Error,
+        "An INITIALIZE statement names an item whose data description entry contains a RENAMES clause. §14.9.20.3 SR5: "
+        + "\"The data description entry for the data item referenced by identifier-1 shall not contain a RENAMES clause.\"",
+        "ISO §14.9.20.3 SR5");
+
+    /// <summary>COBOL0843 — object property reference rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ObjectPropertyReferenceRule = new(
+        "COBOL0843", "object-property-reference-rule", EditionSeverity.Error,
+        "An object-property reference breaks a rule of §8.4.3.9.3: SR1 \"Property-name-1 shall be an object property "
+        + "specified in the REPOSITORY paragraph\"; SR3, as a sending item, needs a get property method; SR4: \"If the object "
+        + "property is used as a receiving item, a set property method shall exist for property-name-1\".",
+        "ISO §8.4.3.9.3 SR1, SR3, SR4");
+
+    /// <summary>COBOL0844 — arithmetic operand not numeric (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ArithmeticOperandNotNumeric = new(
+        "COBOL0844", "arithmetic-operand-not-numeric", EditionSeverity.Error,
+        "An operand of an arithmetic expression, a subscript or an arithmetic function argument is not numeric. §8.8.1.1: "
+        + "\"An arithmetic expression may be an identifier referencing a numeric data item, a numeric literal, the "
+        + "figurative constant ZERO (ZEROS, ZEROES)\"; a concatenation expression, an alphanumeric, national or boolean "
+        + "literal, an object reference or any other figurative constant is not one.",
+        "ISO §8.8.1.1");
+
+    /// <summary>COBOL5995 — boolean relation form (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor BooleanRelationForm = new(
+        "COBOL5995", "boolean-relation-form", EditionSeverity.Error,
+        "A relation condition over boolean operands is not one the general format defines: a boolean operand compares "
+        + "only with another boolean operand or the figurative constant ZERO, and only for equality. §8.8.4.2.3 SR2: \"All "
+        + "identifiers shall be of class alphabetic, alphanumeric, index, national, or numeric or shall be strongly-typed "
+        + "group items.\"",
+        "ISO §8.8.4.2.2; §8.8.4.2.3 SR2");
+
+    /// <summary>COBOL5996 — char function argument not integer (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor CharFunctionArgumentNotInteger = new(
+        "COBOL5996", "char-function-argument-not-integer", EditionSeverity.Error,
+        "The argument of FUNCTION CHAR is not an integer. §15.15.3 rule 1: \"Argument-1 shall be an integer.\" FUNCTION "
+        + "CHAR-NATIONAL is the national program-collating-sequence form.",
+        "ISO §15.15.3 rule 1");
+
+    /// <summary>COBOL0846 — inspect literal size (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InspectLiteralSize = new(
+        "COBOL0846", "inspect-literal-size", EditionSeverity.Error,
+        "An INSPECT literal is of the wrong size: §14.9.22.3 SR7 \"When the CHARACTERS phrase is specified, literal-3 "
+        + "shall be one character in length\", and SR9 \"When both literal-4 and literal-5 are specified they shall be the "
+        + "same size except when literal-5 is a figurative constant.\"",
+        "ISO §14.9.22.3 SR7, SR9");
+
+    /// <summary>COBOL0858 — raising phrase name invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor RaisingPhraseNameInvalid = new(
+        "COBOL0858", "raising-phrase-name-invalid", EditionSeverity.Error,
+        "A name in a RAISING phrase is not what §14.2.2 allows. SR7: \"Exception-name-1 shall be a level-3 exception-name "
+        + "for EC-USER.\"; SR8: \"Object-class-name-1 shall be the name of a class specified in the REPOSITORY paragraph.\"; "
+        + "SR9: \"Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph.\"",
+        "ISO §14.2.2 SR7, SR8, SR9");
+
+    /// <summary>COBOL0860 — write end of page without linage (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor WriteEndOfPageWithoutLinage = new(
+        "COBOL0860", "write-end-of-page-without-linage", EditionSeverity.Error,
+        "A WRITE statement specifies END-OF-PAGE or NOT END-OF-PAGE for a file whose description has no LINAGE clause. "
+        + "§14.9.51.3 SR19: \"If the END-OF-PAGE or the NOT END-OF-PAGE phrase is specified, the LINAGE clause shall be "
+        + "specified in the file description entry associated with the write file.\"",
+        "ISO §14.9.51.3 SR19");
+
+    /// <summary>COBOL0861 — write advancing page with end of page (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor WriteAdvancingPageWithEndOfPage = new(
+        "COBOL0861", "write-advancing-page-with-end-of-page", EditionSeverity.Error,
+        "A WRITE statement specifies both ADVANCING PAGE and END-OF-PAGE. §14.9.51.3 SR18: \"The phrases ADVANCING PAGE "
+        + "and END-OF-PAGE shall not both be specified in a single WRITE statement.\"",
+        "ISO §14.9.51.3 SR18");
+
+    /// <summary>COBOL0864 — read key on non indexed file (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ReadKeyOnNonIndexedFile = new(
+        "COBOL0864", "read-key-on-non-indexed-file", EditionSeverity.Error,
+        "A READ statement's KEY phrase is specified for a file that is not indexed, or names a key the file does not "
+        + "define. §14.9.30.3 SR10: \"The KEY phrase may be specified only if ORGANIZATION IS INDEXED is specified in the "
+        + "file control entry for file-name-1.\"",
+        "ISO §14.9.30.3 SR10");
+
+    /// <summary>COBOL5997 — linage counter without linage (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor LinageCounterWithoutLinage = new(
+        "COBOL5997", "linage-counter-without-linage", EditionSeverity.Error,
+        "LINAGE-COUNTER is referenced although no file description entry contains a LINAGE clause, or unqualified "
+        + "although more than one does. §8.4.3.14.1: \"The LINAGE-COUNTER identifier is generated by the presence of a LINAGE clause in a file "
+        + "description entry.\"",
+        "ISO §8.4.3.14.1; §8.4.3.14.4 GR1");
+
+    /// <summary>COBOL0867 — object reference assignment not conforming (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ObjectReferenceAssignmentNotConforming = new(
+        "COBOL0867", "object-reference-assignment-not-conforming", EditionSeverity.Error,
+        "An object-reference assignment, SET ... TO SELF or comparison pairs a sender and a receiver whose "
+        + "object-reference descriptions do not conform: the receiver's class or interface is not the sender's or one it "
+        + "inherits.",
+        "ISO §14.9.39.3 (SET Format 17); §8.5.2.2");
+
+    /// <summary>COBOL0874 — sort key beyond minimum record (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor SortKeyBeyondMinimumRecord = new(
+        "COBOL0874", "sort-key-beyond-minimum-record", EditionSeverity.Error,
+        "A SORT or MERGE key can reach past the minimum record size of a file with variable-length records. §14.9.40.3 "
+        + "SR6 g): all key data items shall be contained within the first minimum-size bytes of the record.",
+        "ISO §14.9.40.3 SR6; §14.9.24.3 SR4");
+
+    /// <summary>COBOL0886 — program initial recursive exclusive (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ProgramInitialRecursiveExclusive = new(
+        "COBOL0886", "program-initial-recursive-exclusive", EditionSeverity.Error,
+        "A PROGRAM-ID paragraph specifies both INITIAL and RECURSIVE. The §11.10.2 general format prints them as the "
+        + "alternatives of one brace.",
+        "ISO §11.10.2");
+
+    /// <summary>COBOL0887 — common program not contained (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor CommonProgramNotContained = new(
+        "COBOL0887", "common-program-not-contained", EditionSeverity.Error,
+        "The COMMON clause is specified for a program that is not contained within another program. §11.10.3 SR4: \"The "
+        + "COMMON clause may be specified only if the program is contained within another program.\"",
+        "ISO §11.10.3 SR4");
+
+    /// <summary>COBOL0888 — procedure header item not linkage root (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ProcedureHeaderItemNotLinkageRoot = new(
+        "COBOL0888", "procedure-header-item-not-linkage-root", EditionSeverity.Error,
+        "A PROCEDURE DIVISION USING or RETURNING item is not a level 01 or 77 linkage section entry. §14.2.2 SR1: "
+        + "\"Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section.\"",
+        "ISO §14.2.2 SR1");
+
+    /// <summary>COBOL0897 — declarative use rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor DeclarativeUseRule = new(
+        "COBOL0897", "declarative-use-rule", EditionSeverity.Error,
+        "A declarative section's USE statement breaks a rule of §14.9.49.3: SR1 \"A USE statement, when present, shall "
+        + "immediately follow a section header in the declaratives portion of the procedure division and shall appear in a "
+        + "sentence by itself\"; SR2 \"File-name-1 or file-name-2 shall not be a sort or a merge file.\"; SR7 each open mode "
+        + "once; SR8 \"The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same "
+        + "procedure division.\"; SR9 \"Identifier-1 shall reference a report group.\"",
+        "ISO §14.9.49.3 SR1, SR2, SR7, SR8, SR9");
+
+    /// <summary>COBOL5998 — perform when file unknown (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PerformWhenFileUnknown = new(
+        "COBOL5998", "perform-when-file-unknown", EditionSeverity.Error,
+        "A WHEN phrase of an exception-checking PERFORM names a file the program does not define. The Format 3 general "
+        + "format (§14.9.28.2) takes a file-name there.",
+        "ISO §14.9.28.2 Format 3");
+
+    /// <summary>COBOL0890 — currency sign literal rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor CurrencySignLiteralRule = new(
+        "COBOL0890", "currency-sign-literal-rule", EditionSeverity.Error,
+        "The literal of a CURRENCY SIGN clause breaks a rule of §12.3.7.3: SR19 a hexadecimal literal needs the PICTURE "
+        + "SYMBOL phrase; SR22 without it the literal is one character that is not a digit, a picture letter or one of the "
+        + "excluded punctuation characters; SR23 \"Literal-7 may have any length\" but shall contain at least one non-space "
+        + "character and none of the digits 0 through 9 or the characters + - , . *.",
+        "ISO §12.3.7.3 SR19, SR22, SR23");
+
+    /// <summary>COBOL0891 — currency symbol rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor CurrencySymbolRule = new(
+        "COBOL0891", "currency-symbol-rule", EditionSeverity.Error,
+        "A currency symbol is invalid or is bound twice. §12.3.7.3 SR21: \"No two CURRENCY SIGN clauses within a single "
+        + "source unit shall specify equivalent currency symbols unless they specify identical currency strings.\"; SR27 "
+        + "limits literal-8 to characters other than the digits, the picture letters, the space and the excluded "
+        + "punctuation.",
+        "ISO §12.3.7.3 SR21, SR27");
+
+    /// <summary>COBOL0892 — currency sign clause form (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor CurrencySignClauseForm = new(
+        "COBOL0892", "currency-sign-clause-form", EditionSeverity.Error,
+        "The CURRENCY SIGN clause is malformed: the PICTURE SYMBOL phrase is misspelled, or its literal is not a single "
+        + "character. §12.3.7.3 SR26: \"Literal-8 shall be an alphanumeric or national literal consisting of a single "
+        + "character from the computer's compile-time coded character set. It shall be neither a figurative constant nor a "
+        + "hexadecimal literal.\"",
+        "ISO §12.3.7.3 SR26; §12.3.7.2");
+
+    /// <summary>COBOL0894 — decimal point form invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor DecimalPointFormInvalid = new(
+        "COBOL0894", "decimal-point-form-invalid", EditionSeverity.Error,
+        "The DECIMAL-POINT clause names something other than COMMA. The §12.3.7.2 general format is DECIMAL-POINT IS "
+        + "COMMA.",
+        "ISO §12.3.7.2");
+
+    // ── One descriptor per rule (kb/Work PB4463): intrinsic functions, boolean expressions, TYPE, PICTURE EDITING, VALUE ──
+
+    /// <summary>COBOL0808 — picture string invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureStringInvalid = new(
+        "COBOL0808", "picture-string-invalid", EditionSeverity.Error,
+        "A PICTURE character-string is not one the standard defines. §13.18.40.4 GR8: \"To define an item as boolean, "
+        + "character-string-1 shall contain only one or more occurrences of the symbol '1'.\"; GR9: \"To define an item as "
+        + "national, character-string-1 shall contain only one or more occurrences of the symbol 'N'.\"; GR11 requires at "
+        + "least one symbol '9' of a fixed-point numeric string; GR6 and GR7 define the alphanumeric and "
+        + "alphanumeric-edited strings, and §13.18.40.3 SR2 limits the string to the allowable picture symbols.",
+        "ISO §13.18.40.3 SR2; §13.18.40.4 GR6-GR11");
+
+    /// <summary>COBOL1501 — intrinsic function unknown (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor IntrinsicFunctionUnknown = new(
+        "COBOL1501", "intrinsic-function-unknown", EditionSeverity.Error,
+        "FUNCTION names a word that is not an intrinsic function of ISO/IEC 1989. §15.6 summarizes the intrinsic "
+        + "functions; a user-defined function is named by a REPOSITORY entry instead.",
+        "ISO §15.6");
+
+    /// <summary>COBOL1502 — intrinsic function not yet introduced (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor IntrinsicFunctionNotYetIntroduced = new(
+        "COBOL1502", "intrinsic-function-not-yet-introduced", EditionSeverity.Error,
+        "An intrinsic function, or a form of one, is used below the edition that introduced it (ISO §15; Annex E). The "
+        + "edition is raised with --std, and a function the later edition added is not a word of the earlier one.",
+        "ISO §15; Annex E");
+
+    /// <summary>COBOL1503 — intrinsic function removed (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor IntrinsicFunctionRemoved = new(
+        "COBOL1503", "intrinsic-function-removed", EditionSeverity.Error,
+        "An intrinsic function is used at an edition that removed it (ISO §15; Annex E). The function is available at the "
+        + "earlier editions and under --permissive.",
+        "ISO §15; Annex E");
+
+    /// <summary>COBOL1504 — intrinsic function form invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor IntrinsicFunctionFormInvalid = new(
+        "COBOL1504", "intrinsic-function-form-invalid", EditionSeverity.Error,
+        "The arguments of an intrinsic function do not follow its general format: the count is outside the format's "
+        + "range, or the keyword phrases (LEADING, TRAILING, ANYCASE, LOCALE, PHYSICAL, START AFTER, FIRST, LAST, the "
+        + "CONVERT, MODULE-NAME and SUBSTITUTE keywords) are repeated, misplaced or exclusive of each other. Each "
+        + "function's general format is the .2 subclause of its own clause of §15.",
+        "ISO §15.14.2; §15.19.2; §15.37.2; §15.50.2; §15.65.2; §15.87.2; §15.96.2");
+
+    /// <summary>COBOL1505 — user function prototype unresolved (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor UserFunctionPrototypeUnresolved = new(
+        "COBOL1505", "user-function-prototype-unresolved", EditionSeverity.Error,
+        "A user-defined function is declared in the REPOSITORY paragraph but the compilation group holds neither a "
+        + "FUNCTION-ID definition specified before the source element nor a function prototype for it (§12.3.8.4 GR11), so "
+        + "the activation has no signature to bind to.",
+        "ISO §12.3.8.4 GR11; §12.3.8.3 SR10");
+
+    /// <summary>COBOL1506 — user function argument rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor UserFunctionArgumentRule = new(
+        "COBOL1506", "user-function-argument-rule", EditionSeverity.Error,
+        "The arguments of a user-defined function activation do not match its formal parameters: the count differs, or an "
+        + "argument form is not supported for user-defined function activation (§14.8.2, Parameters).",
+        "ISO §14.8.2");
+
+    /// <summary>COBOL1507 — function id returning required (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor FunctionIdReturningRequired = new(
+        "COBOL1507", "function-id-returning-required", EditionSeverity.Error,
+        "A function definition or prototype specifies no RETURNING phrase in its procedure division header. A function "
+        + "delivers its result through the RETURNING item (§14.2).",
+        "ISO §14.2");
+
+    /// <summary>COBOL1508 — function id duplicated (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor FunctionIdDuplicated = new(
+        "COBOL1508", "function-id-duplicated", EditionSeverity.Error,
+        "Two function definitions, or two function prototypes, of one compilation group share a user-function-name, which "
+        + "a REPOSITORY paragraph entry could no longer name unambiguously (§8.4.6.7, scope of user-function-names).",
+        "ISO §8.4.6.7");
+
+    /// <summary>COBOL1511 — boolean expression rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor BooleanExpressionRule = new(
+        "COBOL1511", "boolean-expression-rule", EditionSeverity.Error,
+        "A boolean expression, boolean COMPUTE or boolean relation breaks a rule of §8.8.2, §14.9.8.3 Format 2 or "
+        + "§8.8.4.3.3. §8.8.2 rule 4: \"The two operands in a binary boolean operation shall not both be the figurative "
+        + "constant ALL literal.\"; §14.9.8.3 SR2: \"Identifier-2 shall reference an elementary boolean data item.\"; "
+        + "§8.8.4.3.3 SR1: \"Boolean-expression-1 shall reference only boolean items of length 1.\"",
+        "ISO §8.8.2; §8.8.4.2.2; §8.8.4.3.3 SR1; §14.9.8.3 SR2, SR3");
+
+    /// <summary>COBOL1513 — prototype definition signature mismatch (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PrototypeDefinitionSignatureMismatch = new(
+        "COBOL1513", "prototype-definition-signature-mismatch", EditionSeverity.Error,
+        "A function or program prototype and its definition share an externalized name but not a signature: the USING "
+        + "formals (count, BY REFERENCE or BY VALUE, OPTIONAL, description) or the RETURNING item differ. §10.6.2 requires "
+        + "the signatures of the two compilation units to be the same.",
+        "ISO §10.6.2 SR2, SR3; §13.7.3 SR2");
+
+    /// <summary>COBOL1514 — convert function rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ConvertFunctionRule = new(
+        "COBOL1514", "convert-function-rule", EditionSeverity.Error,
+        "FUNCTION CONVERT breaks one of its argument rules. §15.19.3 rule 3: \"The source-format shall be different from "
+        + "the destination-format.\"; rule 8: \"When the source-format is ANY, the destination-format shall be ANUM HEX or "
+        + "NAT HEX.\"; rule 9: \"When the destination-format is BYTE, the source-format shall be HEX.\"; rules 1, 4, 5, 6 and "
+        + "7 constrain argument-1.",
+        "ISO §15.19.2; §15.19.3 rules 1, 3-9");
+
+    /// <summary>COBOL1515 — module name nested outside nested program (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ModuleNameNestedOutsideNestedProgram = new(
+        "COBOL1515", "module-name-nested-outside-nested-program", EditionSeverity.Error,
+        "FUNCTION MODULE-NAME specifies NESTED outside a nested program. §15.65.3 rule 1: \"The NESTED keyword shall be "
+        + "specified only if the function is specified within a nested program.\"",
+        "ISO §15.65.3 rule 1");
+
+    /// <summary>COBOL1516 — intrinsic argument data item rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor IntrinsicArgumentDataItemRule = new(
+        "COBOL1516", "intrinsic-argument-data-item-rule", EditionSeverity.Error,
+        "The argument of an intrinsic function that takes a data item is not one: a FUNCTION RESULT, a literal, an "
+        + "arithmetic expression, a group item or a reference-modified item, or a floating-point usage the current "
+        + "ARITHMETIC mode excludes. §15.14.3: \"Argument-1 shall be an alphanumeric or national literal, a based entry, a "
+        + "type-name, or a data item of any class or category.\"",
+        "ISO §15.14.3; §15.50.3");
+
+    /// <summary>COBOL1517 — formatted date format not literal (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor FormattedDateFormatNotLiteral = new(
+        "COBOL1517", "formatted-date-format-not-literal", EditionSeverity.Error,
+        "The format argument of a formatted date or time function (FORMATTED-*, INTEGER-OF-FORMATTED-DATE, "
+        + "SECONDS-FROM-FORMATTED-TIME, TEST-FORMATTED-DATETIME) is not a literal (§15).",
+        "ISO §15");
+
+    /// <summary>COBOL5999 — type name undefined (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor TypeNameUndefined = new(
+        "COBOL5999", "type-name-undefined", EditionSeverity.Error,
+        "The type-name of a TYPE clause is defined by no TYPEDEF entry (§13.18.57, §13.18.58).",
+        "ISO §13.18.57; §13.18.58");
+
+    /// <summary>COBOL1530 — type declaration self reference (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor TypeDeclarationSelfReference = new(
+        "COBOL1530", "type-declaration-self-reference", EditionSeverity.Error,
+        "A type declaration references itself, directly or indirectly. §13.18.58.3 SR2: \"The description of the subject "
+        + "of the entry, including its subordinate items, shall not contain a TYPE clause that directly or indirectly "
+        + "references this type definition.\"",
+        "ISO §13.18.58.3 SR2");
+
+    /// <summary>COBOL1536 — type level 77 not elementary (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor TypeLevel77NotElementary = new(
+        "COBOL1536", "type-level-77-not-elementary", EditionSeverity.Error,
+        "A level 77 item references a type that is not elementary. §13.18.57.3 SR7: \"If the subject of the entry is a "
+        + "level 77 item, type-name-1 shall be an elementary item.\"",
+        "ISO §13.18.57.3 SR7");
+
+    /// <summary>COBOL1537 — type entry followed by subordinate (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor TypeEntryFollowedBySubordinate = new(
+        "COBOL1537", "type-entry-followed-by-subordinate", EditionSeverity.Error,
+        "A data description entry that specifies a TYPE clause is followed immediately by a subordinate entry or a level "
+        + "88 entry. §13.18.57.3 SR2: \"A data description entry in which a TYPE clause is specified shall not be followed "
+        + "immediately by a subordinate data description entry or a level 88 entry.\"",
+        "ISO §13.18.57.3 SR2");
+
+    /// <summary>COBOL1538 — type superordinate usage clause (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor TypeSuperordinateUsageClause = new(
+        "COBOL1538", "type-superordinate-usage-clause", EditionSeverity.Error,
+        "A group item to which a TYPE entry is subordinate contains a GROUP-USAGE, SIGN or USAGE clause. §13.18.57.3 SR5: "
+        + "\"No group item to which the subject of the entry is subordinate shall contain a GROUP-USAGE, SIGN, or USAGE "
+        + "clause.\"",
+        "ISO §13.18.57.3 SR5");
+
+    /// <summary>COBOL1543 — function keyword or argument list form (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor FunctionKeywordOrArgumentListForm = new(
+        "COBOL1543", "function-keyword-or-argument-list-form", EditionSeverity.Error,
+        "A function reference breaks a rule of §8.4.3.2.3: SR2 the word FUNCTION may be omitted only for an intrinsic or "
+        + "prototype the REPOSITORY paragraph names; SR6 \"If a function's definition permits arguments and a left "
+        + "parenthesis immediately follows function-prototype-name-1 or intrinsic-function-name-1, the left parenthesis is "
+        + "always treated as the left parenthesis of that function's arguments.\"; SR8 \"Argument-1 shall be an identifier, a "
+        + "literal, a boolean expression, or an arithmetic expression.\"",
+        "ISO §8.4.3.2.3 SR2, SR6, SR8");
+
+    /// <summary>COBOL1544 — omitted intrinsic argument (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OmittedIntrinsicArgument = new(
+        "COBOL1544", "omitted-intrinsic-argument", EditionSeverity.Error,
+        "OMITTED is specified as an intrinsic-function argument. §8.4.3.2.3 SR7: \"The word OMITTED shall not be specified "
+        + "if intrinsic-function-name-1 is specified.\"",
+        "ISO §8.4.3.2.3 SR7");
+
+    /// <summary>COBOL1546 — national conversion argument rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor NationalConversionArgumentRule = new(
+        "COBOL1546", "national-conversion-argument-rule", EditionSeverity.Error,
+        "An argument of FUNCTION NATIONAL-OF or DISPLAY-OF breaks its argument rules. §15.66.3 rule 1: \"Argument-1 shall "
+        + "be of class alphabetic or class alphanumeric.\"; rule 2: \"Argument-2 shall be of category national and shall be "
+        + "one character in length.\"; §15.26.3 rule 1: \"Argument-1 shall be of class national.\"",
+        "ISO §15.66.3 rules 1-3; §15.26.3 rules 1, 2");
+
+    /// <summary>COBOL1553 — by value formal class (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ByValueFormalClass = new(
+        "COBOL1553", "by-value-formal-class", EditionSeverity.Error,
+        "A BY VALUE formal parameter is not of class numeric, message-tag, object or pointer. §14.2.2 SR2: \"Each "
+        + "data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, "
+        + "object, or pointer.\"",
+        "ISO §14.2.2 SR2");
+
+    /// <summary>COBOL1554 — by value argument class (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ByValueArgumentClass = new(
+        "COBOL1554", "by-value-argument-class", EditionSeverity.Error,
+        "An argument passed to a BY VALUE formal parameter of a user-defined function is not of class numeric, object or "
+        + "pointer. §8.4.3.2.3 SR10: \"argument-1 shall be of class numeric, object, or pointer.\"",
+        "ISO §8.4.3.2.3 SR10");
+
+    /// <summary>COBOL1561 — dynamic length picture form (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor DynamicLengthPictureForm = new(
+        "COBOL1561", "dynamic-length-picture-form", EditionSeverity.Error,
+        "The subject of a DYNAMIC LENGTH clause has no PICTURE clause, or its PICTURE is not one instance of N or X. "
+        + "§13.18.19.3 SR1: \"A PICTURE clause shall be specified for the subject of the entry. The character-string "
+        + "specified in that PICTURE clause shall be one instance of the picture symbol 'N', or 'X'.\"",
+        "ISO §13.18.19.3 SR1");
+
+    /// <summary>COBOL1563 — dynamic length other clauses (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor DynamicLengthOtherClauses = new(
+        "COBOL1563", "dynamic-length-other-clauses", EditionSeverity.Error,
+        "An entry with a DYNAMIC LENGTH clause specifies a clause the combination does not allow. §13.16.3 SR18: \"If a "
+        + "DYNAMIC LENGTH clause is specified, the only other clauses permitted are level-number, entry-name, PICTURE, "
+        + "USAGE, and VALUE.\"",
+        "ISO §13.16.3 SR18");
+
+    /// <summary>COBOL1564 — float usage unsupported (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor FloatUsageUnsupported = new(
+        "COBOL1564", "float-usage-unsupported", EditionSeverity.Error,
+        "USAGE FLOAT-BINARY-128, FLOAT-DECIMAL-16 or FLOAT-DECIMAL-34 (ISO/IEC 60559:2020 binary128, decimal64, "
+        + "decimal128; §13.18.60.4 GR16, GR17, GR18) is a processor-dependent language element (Annex A.3 items 17 and 19, "
+        + "§4.2.6) that this implementation does not support: .NET provides no such IEEE 754 type.",
+        "ISO §4.2.6 / Annex A.3 items 17, 19 / §13.18.60.4 GR16-GR18");
+
+    /// <summary>COBOL1566 — packed decimal no sign with signed picture (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PackedDecimalNoSignWithSignedPicture = new(
+        "COBOL1566", "packed-decimal-no-sign-with-signed-picture", EditionSeverity.Error,
+        "A PICTURE containing S is specified with PACKED-DECIMAL WITH NO SIGN. §13.18.40.3 SR31: \"The symbol 'S' shall "
+        + "not be specified in character-string-1 when the NO SIGN phrase of the USAGE Clause is specified for the subject "
+        + "of the entry.\"",
+        "ISO §13.18.40.3 SR31");
+
+    /// <summary>COBOL1585 — value format 1 single literal (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ValueFormat1SingleLiteral = new(
+        "COBOL1585", "value-format-1-single-literal", EditionSeverity.Error,
+        "A Format 1 VALUE clause lists more than one literal; a list of literals needs the Format 2 table form's FROM "
+        + "(subscript) phrase (§13.18.63.2).",
+        "ISO §13.18.63.2");
+
+    /// <summary>COBOL1591 — picture editing character invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingCharacterInvalid = new(
+        "COBOL1591", "picture-editing-character-invalid", EditionSeverity.Error,
+        "The character-1 of a PICTURE EDITING phrase is not a usable editing sign control symbol. §13.18.40.3 SR8: "
+        + "\"Character-1 shall be any basic letter in the COBOL character set except those specified in a CURRENCY-SIGN "
+        + "clause or a basic letter character A, B, C, D, E, N, P, R, S, V, X, Z or their lowercase equivalents.\"",
+        "ISO §13.18.40.3 SR8");
+
+    /// <summary>COBOL1592 — picture editing character repeated (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingCharacterRepeated = new(
+        "COBOL1592", "picture-editing-character-repeated", EditionSeverity.Error,
+        "Two EDITING phrases of one PICTURE clause specify the same character-1. §13.18.40.3 SR11: \"If more than one "
+        + "EDITING phrase is specified in one PICTURE clause, no two instances of character-1 shall be the same character.\"",
+        "ISO §13.18.40.3 SR11");
+
+    /// <summary>COBOL1593 — picture editing character absent (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingCharacterAbsent = new(
+        "COBOL1593", "picture-editing-character-absent", EditionSeverity.Error,
+        "The character-1 of an EDITING phrase does not appear in the PICTURE character-string. §13.18.40.3 SR10: \"If the "
+        + "EDITING phrase is specified, the character identified by character-1 shall appear at least once in "
+        + "character-string-1.\"",
+        "ISO §13.18.40.3 SR10");
+
+    /// <summary>COBOL1594 — picture editing literal too long (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingLiteralTooLong = new(
+        "COBOL1594", "picture-editing-literal-too-long", EditionSeverity.Error,
+        "A literal of a PICTURE EDITING phrase exceeds 50 characters. §13.18.40.3 SR9: \"The total number of characters in "
+        + "literal-1, literal-2, or literal-3 shall not exceed 50.\"",
+        "ISO §13.18.40.3 SR9");
+
+    /// <summary>COBOL1595 — picture editing sign literals differ (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingSignLiteralsDiffer = new(
+        "COBOL1595", "picture-editing-sign-literals-differ", EditionSeverity.Error,
+        "The POSITIVE and NEGATIVE literals of a FOR EDITING phrase differ in size. §13.18.40.3 SR12 a): \"Literal-2 and "
+        + "literal-3 shall occupy the same number of character positions.\"",
+        "ISO §13.18.40.3 SR12 a)");
+
+    /// <summary>COBOL1596 — picture editing for symbols (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingForSymbols = new(
+        "COBOL1596", "picture-editing-for-symbols", EditionSeverity.Error,
+        "With a FOR (extended editing sign control) EDITING phrase the PICTURE character-string holds a symbol other than "
+        + "character-1, 9, the decimal point, the currency symbol, P, V or Z. §13.18.40.3 SR12 b): \"Character-string-1 "
+        + "shall contain character-1 and only the symbols '9', '.', the currency symbol, 'P', 'V', or 'Z'.\"",
+        "ISO §13.18.40.3 SR12 b)");
+
+    /// <summary>COBOL1642 — base convert argument rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor BaseConvertArgumentRule = new(
+        "COBOL1642", "base-convert-argument-rule", EditionSeverity.Error,
+        "An argument of FUNCTION BASECONVERT breaks §15.12.3 rule 1: argument-1 \"shall be a usage display or national "
+        + "data item or literal, and, if the base specified in argument-2 is less than 11, shall also be an unsigned "
+        + "integer data item or literal\"; the bases are positive nonzero integers in the range 2 to 16 and unequal.",
+        "ISO §15.12.3 rule 1");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

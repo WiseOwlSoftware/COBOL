@@ -275,7 +275,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // shall appear in the PD-header RAISING phrase — the statically detectable half binds as an error; the
         // runtime condition is EC-RAISING-NOT-SPECIFIED.
         if (info.Level2Parent is "EC-USER" && !ctx.EcState.PdRaising.Contains(info.Name))
-            ctx.Edition.Error("COBOL0717", $"{site.Context} {info.Name}: an EC-USER exception-name shall be "
+            ctx.Edition.Error(DiagnosticCatalog.EcUserNotSpecifiedInRaising, $"{site.Context} {info.Name}: an EC-USER exception-name shall be "
                 + "specified in the RAISING phrase of the procedure division header "
                 + $"({site.Cite(site.Level3Rule)} — otherwise EC-RAISING-NOT-SPECIFIED, Table 13)");
         // kb/Work R07: the location operands travel like BoundRaise's — WITH LOCATION per THIS name at THIS

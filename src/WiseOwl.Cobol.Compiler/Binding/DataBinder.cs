@@ -1019,7 +1019,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // §13.18.57.3 SR2 (review DEVLOG 664 fix #2): a TYPE-clause entry shall not be followed
                     // immediately by a level-88 entry.
                     if (condVar.TypeRefName is not null)
-                        Edition.Error("COBOL1537", $"condition-name '{condName}': a data "
+                        Edition.Error(DiagnosticCatalog.TypeEntryFollowedBySubordinate, $"condition-name '{condName}': a data "
                             + "description entry that specifies a TYPE clause shall not be followed immediately by a "
                             + "level-88 entry (ISO §13.18.57.3 SR2)");
                     // A TYPEDEF template's condition-names are NOT globally referenceable (§13.18.58.4 GR1) — bind
@@ -1178,7 +1178,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // subordinate merges ahead of the cloned members (a silent-wrong record image for a group type; a
                 // member-on-a-string CS1061 leak for an elementary type).
                 if (parent.TypeRefName is not null)
-                    Edition.Error("COBOL1537", $"'{item.CobolName ?? "FILLER"}': a data description entry that "
+                    Edition.Error(DiagnosticCatalog.TypeEntryFollowedBySubordinate, $"'{item.CobolName ?? "FILLER"}': a data description entry that "
                         + "specifies a TYPE clause shall not be followed immediately by a subordinate entry "
                         + "(ISO §13.18.57.3 SR2)");
                 // A member name need only be unique within its containing struct — AddMember allocates it there,
@@ -2769,7 +2769,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             : pic.Signed;
         if (signedLiteral && !signBearing)
         {
-            Edition.Error("COBOL1625", $"{where}: a signed numeric literal in the VALUE clause "
+            Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: a signed numeric literal in the VALUE clause "
                 + $"requires a signed numeric or sign-bearing numeric-edited subject ('{raw.Trim()}'; ISO §13.18.63.3 SR3)");
             return;
         }
@@ -2793,7 +2793,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             int run = lastNonZero - firstNonZero + 1;
             int normExp = highLitExp + 1 - (fm.SigDigits - fm.SigScale);
             if (run > fm.SigDigits || normExp > fm.MaxExp || normExp < -fm.MaxExp)
-                Edition.Error("COBOL1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not "
+                Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not "
                     + $"representable in the floating-point numeric-edited PICTURE {mask} without truncation — the "
                     + $"significand holds {fm.SigDigits} digit(s) (the literal has {run} significant digits) and the "
                     + $"exponent ranges over -{fm.MaxExp}..+{fm.MaxExp} (the normalized exponent is {normExp:+0;-0}) (ISO §13.18.63.3 SR6)");
@@ -2815,7 +2815,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // PICTURE's high exponent first refused `PIC 9(4) COMP-5 VALUE 65535`, a value MOVE, arithmetic and SET store.
         var band = !edited && pic.Truncation == WiseOwl.Cobol.Runtime.NumericTruncation.BinaryCapacity ? AlgebraicRanges.Of(pic) : null;
         if (lowLitExp < lowStoredExp || (band is null && highLitExp > highStoredExp))
-            Edition.Error("COBOL1625", edited
+            Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, edited
                 ? $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not representable in the numeric-edited "
                     + $"PICTURE {mask} without truncation of leading or trailing nonzero digits (ISO §13.18.63.3 SR6)"
                 : $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
@@ -2828,7 +2828,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // a band the PICTURE's digit span cannot see (BINARY-CHAR's three digits admit 255; `PIC 9(4) COMP-5` holds
             // 65535). The band is read from AlgebraicRanges.Of, the one statement the runtime store bound and the
             // HIGHEST/LOWEST-ALGEBRAIC fold agree on (kb/Work PB3997).
-            Edition.Error("COBOL1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
+            Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                 + $"permissible value in the range the USAGE clause indicates — {(usageBand.FarthestNegative ?? "0")} through "
                 + $"{usageBand.Farthest} (ISO §13.18.63.3 SR2)");
     }
@@ -3215,7 +3215,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (!TryFindTypeDecl(typeName, scope, out var template)
             && !(BindLaterTypeDeclaration(typeName, scope) && TryFindTypeDecl(typeName, scope, out template)))
         {
-            Edition.Error("COBOL1530", $"TYPE '{typeName}' on '{subject}': the type-name is not defined by any "
+            Edition.Error(DiagnosticCatalog.TypeNameUndefined, $"TYPE '{typeName}' on '{subject}': the type-name is not defined by any "
                 + "TYPEDEF entry (ISO §13.18.57 / §13.18.58)");
             AbandonComposition(item);
             return;
@@ -3226,7 +3226,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // PROGRESS is the one whose own description holds this clause: §13.18.58.3 SR2.
         if (!ExpandTemplate(template))
         {
-            Edition.Error("COBOL1530", $"TYPE '{typeName}' on '{subject}': a type declaration shall not directly "
+            Edition.Error(DiagnosticCatalog.TypeDeclarationSelfReference, $"TYPE '{typeName}' on '{subject}': a type declaration shall not directly "
                 + "or indirectly reference itself — 'The description of the subject of the entry, including its "
                 + "subordinate items, shall not contain a TYPE clause that directly or indirectly references this "
                 + "type definition' (ISO §13.18.58.3 SR2)");
@@ -3292,14 +3292,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // independent elementary item (§13.18.38). Version- AND strength-invariant (this applies to WEAK types too;
         // the old SR6 branch caught only the STRONG case).
         if (item.Level == 77 && template.HasSubordinates)
-            Edition.Error("COBOL1536", $"'{subject}': a level-77 item referencing TYPE '{typeName}' requires an "
+            Edition.Error(DiagnosticCatalog.TypeLevel77NotElementary, $"'{subject}': a level-77 item referencing TYPE '{typeName}' requires an "
                 + "elementary type — a level-77 item is an independent elementary item (ISO §13.18.57.3 SR7)");
 
         // §13.18.57.3 SR5: "No group item to which the subject of the entry is subordinate shall contain a
         // GROUP-USAGE, SIGN, or USAGE clause" — any of the three would override the type declaration's fixed
         // representation. The set is the ONE predicate SAME AS's SR9 twin reads (kb/Work PB889).
         if (SuperordinateWithRepresentationClause(item) is { } tp)
-            Edition.Error("COBOL1538", $"'{subject}': a group item to which a TYPE entry is subordinate shall "
+            Edition.Error(DiagnosticCatalog.TypeSuperordinateUsageClause, $"'{subject}': a group item to which a TYPE entry is subordinate shall "
                 + $"not contain a GROUP-USAGE, SIGN, or USAGE clause — '{tp.CobolName ?? "FILLER"}' does "
                 + "(ISO §13.18.57.3 SR5)");
 
@@ -4904,7 +4904,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // one corrupt value for the life of the tree — reject it loud, binding nothing.
         if (gluedMultiLiteral)
         {
-            Edition.Error("COBOL1585", $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
+            Edition.Error(DiagnosticCatalog.ValueFormat1SingleLiteral, $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
                 + "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase "
                 + "(ISO §13.18.63.2)");
             rawValue = null;
@@ -5434,7 +5434,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // picture symbol determines the class", §13.18.19.4 GR1).
             if (!PictureAnalyzer.IsSingleInstance(pictureText, "NX"))
             {
-                Edition.Error("COBOL1561", $"{entryWhere}: the DYNAMIC LENGTH clause requires a PICTURE whose "
+                Edition.Error(DiagnosticCatalog.DynamicLengthPictureForm, $"{entryWhere}: the DYNAMIC LENGTH clause requires a PICTURE whose "
                     + "character-string is exactly one instance of the picture symbol 'N' or 'X' "
                     + $"(ISO §13.18.19.3 SR1{(pictureText is null ? "; no PICTURE clause is specified" : $"; PICTURE {pictureText}")})");
                 isDynamicLength = false;
@@ -5474,7 +5474,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             else if ((written & ~(DataClauseKind.DynamicLength | DataClauseKinds.LengthClauseCoPermitted))
                      is var dlBad && dlBad != DataClauseKind.None)
             {
-                Edition.Error("COBOL1563", $"{entryWhere}: with the DYNAMIC LENGTH clause the only other clauses "
+                Edition.Error(DiagnosticCatalog.DynamicLengthOtherClauses, $"{entryWhere}: with the DYNAMIC LENGTH clause the only other clauses "
                     + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR18); "
                     + $"this entry also specifies {DataClauseKinds.Name(dlBad)}");
                 isDynamicLength = false;
@@ -6566,7 +6566,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             : $" — the phrase is the one written for the group item '{fromGroupName}', whose USAGE clause applies "
               + "to each elementary item in the group (ISO §13.18.60.4 GR1)";
         if (pic.Signed)
-            Edition.Error("COBOL1566", $"data item '{item.CobolName ?? "FILLER"}': a PICTURE containing 'S' shall "
+            Edition.Error(DiagnosticCatalog.PackedDecimalNoSignWithSignedPicture, $"data item '{item.CobolName ?? "FILLER"}': a PICTURE containing 'S' shall "
                 + "not be specified with PACKED-DECIMAL WITH NO SIGN (ISO §13.18.40.3 SR31 — an unsigned "
                 + $"representation){gr1}");
         else

@@ -368,7 +368,7 @@ internal sealed class LinkageBinder(DataBinder data)
             if (item is null)
             {
                 // §14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
-                data.Edition.Error("COBOL0888",
+                data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
                     + "(ISO §14.2.2 SR1)");
                 pos++;
@@ -435,7 +435,7 @@ internal sealed class LinkageBinder(DataBinder data)
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
             Returning = FindLinkageRoot(rref.GetText());
             if (Returning is null)
-                data.Edition.Error("COBOL0888",
+                data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §14.2.2 SR1)");
             else

@@ -373,7 +373,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             var item = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, pname));
             if (item is null)
-                Edition.Error("COBOL0888", $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else if (header.AdmitFormal(pname, item))
             {
@@ -400,7 +400,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             m.Binding!.Returning = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, rref.GetText()));
             if (m.Binding!.Returning is null)
-                Edition.Error("COBOL0888", $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else
                 header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here

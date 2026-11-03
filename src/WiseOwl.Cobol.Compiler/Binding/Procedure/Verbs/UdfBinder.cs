@@ -92,7 +92,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(name, out var fn))
         {
-            ctx.Edition.Error("COBOL1505",
+            ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
                 $"FUNCTION {name.ToUpperInvariant()} is declared in the REPOSITORY paragraph but the compilation "
                 + "group contains neither a FUNCTION-ID definition specified BEFORE this source element nor a "
                 + "FUNCTION-ID … IS PROTOTYPE for it (ISO §12.3.8.4 GR11 a) / b): a definition that follows this "
@@ -126,7 +126,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(proto, out var fn))
         {
-            ctx.Edition.Error("COBOL1505",
+            ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
                 $"FUNCTION {name.ToUpperInvariant()}: function-pointer '{name}' is restricted to function-prototype "
                 + $"'{proto.ToUpperInvariant()}', but the compilation group contains neither a FUNCTION-ID "
                 + "definition specified before this source element nor a FUNCTION-ID … IS PROTOTYPE for it (ISO "
@@ -182,7 +182,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // missing trailing slot as the omitted carrier (§8.4.3.2.4 GR7), exactly as they do for CALL.
         if (operands.Count > fn.Formals.Count || fn.Formals.Skip(operands.Count).Any(f => !f.Optional))
         {
-            ctx.Edition.Error("COBOL1506",
+            ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
                 $"FUNCTION {name.ToUpperInvariant()} takes {fn.Formals.Count} argument(s); {operands.Count} "
                 + "given — arguments correspond positionally to the function's PROCEDURE DIVISION USING "
                 + "formals, and only trailing OPTIONAL formals may be omitted (ISO §14.8.2.1)");
@@ -228,7 +228,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             if (formal.ByValue && ParameterConformance.ValueArgumentClass(operand)
                     is { } cls and not (CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer))
             {
-                ctx.Edition.Error("COBOL1554",
+                ctx.Edition.Error(DiagnosticCatalog.ByValueArgumentClass,
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1} is of class "
                     + $"{IntrinsicArgumentRules.ClassNameOf(operand, cls)}; an argument passed to a BY VALUE formal parameter "
                     + "shall be of class numeric, object, or pointer (ISO §8.4.3.2.3 SR10)");
@@ -243,7 +243,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                     ? err.Feature
                     : "this argument form (ISO §8.4.3.2.3 SR8 admits an identifier, a literal, a boolean "
                       + "expression, or an arithmetic expression)";
-                ctx.Edition.Error("COBOL1506",
+                ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: {what} is not yet supported for "
                     + "user-defined function activation");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1}");

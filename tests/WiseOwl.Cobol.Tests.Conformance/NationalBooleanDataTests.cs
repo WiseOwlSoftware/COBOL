@@ -235,7 +235,7 @@ public sealed class NationalBooleanDataTests
             """);
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "an ordering relation on boolean operands must be rejected (ISO §8.8.4.2.2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL5995");
     }
 
     /// <summary>A boolean operand may compare only with another boolean operand (F2 — both operands of class
@@ -248,7 +248,7 @@ public sealed class NationalBooleanDataTests
             """);
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "a boolean-vs-alphanumeric relation must be rejected (ISO §8.8.4.2 F2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL5995");
     }
 
     // ── Positive facts ──────────────────────────────────────────────────────────────────────────────────────

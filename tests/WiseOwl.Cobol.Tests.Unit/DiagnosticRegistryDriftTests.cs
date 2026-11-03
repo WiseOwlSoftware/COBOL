@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The P2.10 diagnostic-registry drift check (mirrors <c>ConstructRegistryDriftTests</c> /
 /// <c>ReservedWordsDriftTests</c>): the first-class <see cref="DiagnosticCatalog"/> is THE source, so
-/// (a) every descriptor's stable <see cref="DiagnosticDescriptor.Id"/> is unique, (b) no compiler emit site
-/// still uses a BARE split-code string literal where a descriptor now exists (the <c>COBOL0899</c> catch-all
-/// and the reused <c>COBOL1533</c>), and (c) <c>docs/DIAGNOSTICS.md</c> is a RENDERED VIEW of the catalogue
+/// (a) every descriptor's stable <see cref="DiagnosticDescriptor.Id"/> is unique and its code is unique outside the
+/// deliberate split families, (b) no emit call anywhere in <c>src/</c> passes a <c>"COBOLnnnn"</c> literal instead of a
+/// descriptor, and (c) <c>docs/DIAGNOSTICS.md</c> is a RENDERED VIEW of the catalogue
 /// (kb/Work PB3026, <c>scripts/rendered_views.py</c>): gitignored and never committed, because two pull requests that each
 /// add a diagnostic would both rewrite it. This test is that view's render check: the catalogue must render one row per
 /// descriptor. Render it: <c>pwsh scripts/gen-diagnostics-doc.ps1</c> (or run this test with
@@ -21,10 +21,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class DiagnosticRegistryDriftTests
 {
-    /// <summary>The split codes the 0899/1533 migration moved onto descriptors — no bare
-    /// <c>.Error("&lt;code&gt;"</c> literal for these may survive in the compiler.</summary>
-    private static readonly string[] SplitCodes = ["COBOL0899", "COBOL1533"];
-
     /// <summary>Codes DELIBERATELY shared by multiple descriptors: the split families. Any other shared code is a
     /// collision — COBOL1535 was once listed here, its second descriptor (the staged RENAMES-in-TYPEDEF stage) having
     /// been a collision nobody had registered; the stage was implemented and the descriptor deleted (kb/Work PB1304,
@@ -58,60 +54,40 @@ public sealed class DiagnosticRegistryDriftTests
         Assert.True(dupes.Count == 0, $"descriptor code collision(s): {string.Join("; ", dupes)}");
     }
 
+    /// <summary>⛔ NO EMIT CALL TAKES A CODE LITERAL (kb/Work PB4463, PB294, PB310): every call of an emit API
+    /// (<c>Error</c>, <c>Warning</c>, <c>Report</c>, <c>ReportError</c>, <c>ReportWarning</c>, <c>Emit</c>), qualified or not,
+    /// names a <see cref="DiagnosticCatalog"/> descriptor, never a <c>"COBOLnnnn"</c> string. A literal is invisible to the
+    /// next-free allocation scan's catalog half, to <c>docs/DIAGNOSTICS.md</c>, to <c>--suppress</c> and to the code-uniqueness
+    /// fact above, which is how the COBOL1573 two-meanings collision shipped and how COBOL1512 came to mean three
+    /// unrelated rules. The first form of this fact had a look-behind that skipped every qualified call
+    /// (<c>edition.Error(...)</c>, the way nearly every site is written), so it read 2% of its subject (PB294); this
+    /// one reads the call shapes the semgrep rule <c>wiseowl-cobol-raw-diagnostic-code-literal</c> reads, whose baseline
+    /// is zero. A code a program computes at run time goes through a descriptor's <see cref="DiagnosticDescriptor.Code"/>.</summary>
     [Fact]
-    public void SplitCodes_HaveNoBareEmitLiteral_InCompiler()
+    public void NoEmitCall_TakesACodeLiteral()
     {
-        string compiler = TestRepo.Src("WiseOwl.Cobol.Compiler");
-        var offenders = new List<string>();
-        foreach (var file in Directory.EnumerateFiles(compiler, "*.cs", SearchOption.AllDirectories))
-        {
-            var lines = File.ReadAllLines(file);
-            for (int i = 0; i < lines.Length; i++)
-                foreach (var code in SplitCodes)
-                    if (lines[i].Contains($"Error(\"{code}\"", StringComparison.Ordinal))
-                        offenders.Add($"{Path.GetFileName(file)}:{i + 1}");
-        }
-        Assert.True(offenders.Count == 0,
-            $"bare split-code emit literal(s) — route through DiagnosticCatalog.Error(descriptor, …): "
-            + string.Join(", ", offenders));
-    }
-
-    /// <summary>Every COBOLnnnn id string EMITTED anywhere in src (compiler, frontend, editions, runtime)
-    /// must exist as a catalog descriptor — a bare literal outside the catalog is invisible to the next-free
-    /// allocation scan and to DIAGNOSTICS.md, which is exactly how the shipped COBOL1573 two-meanings
-    /// collision happened (the P13 plan-vs-spec review finding C1: the frontend's REF-MOD-ZERO-LENGTH
-    /// malformed-operand emit bypassed the catalog, and Wave E's catalog-only scan re-allocated 1573).</summary>
-    [Fact]
-    public void EveryEmittedCode_IsACatalogDescriptor()
-    {
-        var known = DiagnosticCatalog.All.Select(d => d.Code).ToHashSet(StringComparer.Ordinal);
-        var offenders = new List<string>();
-        string src = TestRepo.Src();
         var emitRx = new System.Text.RegularExpressions.Regex(
-            "Report(?:Error|Warning)\\(\\s*\"(COBOL\\d{4})\"|(?<![\\w.])(?:Error|Warning)\\(\\s*\"(COBOL\\d{4})\"");
-        foreach (var file in Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories))
+            "(?:\\bEmit\\(\\s*[\\w.]+\\s*,\\s*|\\.(?:Error|Warning|Report|ReportError|ReportWarning)\\(\\s*|(?<![\\w.])(?:Error|Warning|ReportError|ReportWarning)\\(\\s*)\"(COBOL\\d{4})\"");
+        var offenders = new List<string>();
+        foreach (var file in Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories))
         {
-            if (file.Contains("Generated", StringComparison.OrdinalIgnoreCase)
+            if (file.EndsWith("DiagnosticCatalog.cs", StringComparison.Ordinal)
+                || file.EndsWith(".g.cs", StringComparison.Ordinal)
+                || file.Contains("Generated", StringComparison.OrdinalIgnoreCase)
                 || file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
                 || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
-            var lines = File.ReadAllLines(file);
-            for (int i = 0; i < lines.Length; i++)
-                foreach (System.Text.RegularExpressions.Match match in emitRx.Matches(lines[i]))
-                {
-                    string code = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
-                    if (!known.Contains(code))
-                        offenders.Add($"{Path.GetFileName(file)}:{i + 1} {code}");
-                }
+            string text = File.ReadAllText(file);
+            foreach (System.Text.RegularExpressions.Match match in emitRx.Matches(text))
+                offenders.Add($"{Path.GetFileName(file)}:{text.Take(match.Index).Count(c => c == '\n') + 1} {match.Groups[1].Value}");
         }
         Assert.True(offenders.Count == 0,
-            "emitted diagnostic code(s) with NO DiagnosticCatalog descriptor — register a descriptor (allocation "
-            + "and DIAGNOSTICS.md are catalog-driven; a bare literal is how the 1573 collision shipped): "
-            + string.Join(", ", offenders));
+            "emit call(s) passing a COBOLnnnn string literal - register a DiagnosticCatalog descriptor for the rule and pass it "
+            + "(one code, one rule): " + string.Join(", ", offenders));
     }
 
     /// <summary>⛔ THE EXCEPTION-CHECKING (FORMAT-3) PERFORM'S CODES ARE ALL CATALOG DESCRIPTORS (kb/Work PB1154). The
     /// family COBOL1597-1617 was written as bare string literals at <c>ctx.Edition.Error("COBOL16nn", …)</c>, a
-    /// shape <see cref="EveryEmittedCode_IsACatalogDescriptor"/>'s regex cannot see (its look-behind skips a dotted
+    /// shape the first form of <see cref="NoEmitCall_TakesACodeLiteral"/> could not see (its look-behind skipped a dotted
     /// call), so the whole family had no catalogue row, no DIAGNOSTICS.md entry and no suppress key. This pins the
     /// family two ways: no source file outside the catalogue writes one of its codes as a quoted literal, and every
     /// code the binder emits has a descriptor (1598, 1602, 1603 and 1609 are reserved numbers no rule emits).</summary>

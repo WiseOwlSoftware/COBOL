@@ -128,7 +128,7 @@ public sealed partial class SpecialNamesBinder
         if (dp.IDENTIFIER()?.GetText() is { } word && CobolNames.Same(word, "COMMA"))
             Cfg.DecimalPointIsComma = true;
         else
-            Edition.Error("COBOL0894", $"DECIMAL-POINT IS {dp.IDENTIFIER()?.GetText()}: the only form is "
+            Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {dp.IDENTIFIER()?.GetText()}: the only form is "
                 + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
     }
 

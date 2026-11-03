@@ -641,7 +641,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // every file whose records vary, including the implied Format 2 of a variable-length record (D-FRA);
             // it used to fire only when a RECORD clause wrote integer-2.
             if (file.RecordSizeVaries && file.VaryMin is var min && win.MaxEnd > min)
-                ctx.Edition.Error("COBOL0874", $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
+                ctx.Edition.Error(DiagnosticCatalog.SortKeyBeyondMinimumRecord, $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
                     + (win.FollowsVariable
                         ? $"follows a variable-length member of record '{root.CobolName}' and can reach byte {win.MaxEnd}"
                         : $"occupies character positions {win.Offset + 1}..{win.MaxEnd}")
