@@ -129,7 +129,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         bool IsUserFunction(string fn) => binder.State.Configuration.UserFunctionNames.Contains(fn) || binder.UnitIsFunction && binder.ContainingDefinitionNames.Contains(fn);
         var own = binder.Oo.IsClassUnit
             ? binder.Oo.BoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
-                .SelectMany(m => binder.ClaimScans.ByReferenceOperands(m.Ctx!.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
+                .SelectMany(m => binder.ClaimScans.ByReferenceOperands(m.Definition.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
             : program.procedureDivision() is { } opd
                 ? binder.ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
                 : [];
