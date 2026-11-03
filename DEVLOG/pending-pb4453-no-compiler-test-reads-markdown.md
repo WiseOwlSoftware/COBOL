@@ -79,3 +79,7 @@ Duplication: the C# twin of the register parser is gone, the untyped-route patte
 - DOC_INDEX.
 - The `inert_lane.py` docstring.
 - Every document that named a deleted test.
+
+**Finish.** The finisher merged the stalled branch into a fresh worktree, re-ran `inert_lane.py check` and `doc_audits.py --check` (both GREEN), and gated the merged tree, because a gate record belongs to its worktree.
+That gate (run `000001-20261103T090332Z`) printed `=== BUILD-LOCAL GATE: GREEN — Conformance 21,041/21,041 · Unit 39,456/39,456 · Characterization 37/37 cases ran (skipped 0) ===`.
+`inert_lane.py check` also printed a `SyntaxWarning` for the docstring of `.claude/skills/workstream/make_dispatch_specs.py` (a bare `\<` escape); that docstring now doubles its backslashes.
