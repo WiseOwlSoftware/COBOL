@@ -10,7 +10,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// associated, as well as any name by which that table may be qualified") for INDEX-NAMES. Before: two tables'
 /// <c>INDEXED BY IX</c> shared one cell, a bare <c>IX</c> compiled clean, and <c>IX OF EA</c> was "not defined".
 /// The run-verified positive is the <c>pb919_index_name_qualified</c> golden; the ambiguous negative is
-/// <c>negative/pb919-index-name-ambiguous</c>.</summary>
+/// <c>negative/pb919-index-name-ambiguous</c>. A qualified index-name is a COBOL-2002 relaxation (2002 Annex F.2 item
+/// 108, kb/Work PB4305), so every case that writes one compiles at <see cref="Qualified"/>; the bare-reference SR1
+/// refusals stay at COBOL-85.</summary>
 public sealed class IndexNameUniquenessTests
 {
     private const string Head = """
@@ -26,6 +28,9 @@ public sealed class IndexNameUniquenessTests
         PROCEDURE DIVISION.
 
         """;
+
+    /// <summary>The edition a case that writes a qualified index-name compiles at: the first that admits one.</summary>
+    private const int Qualified = 2002;
 
     private static (bool Ok, IReadOnlyList<string> Diags) Compile(string id, string body, int edition = 85) =>
         EditionHarness.Compile(string.Format(Head, id) + body + "\n    STOP RUN.\n", edition);
@@ -49,14 +54,14 @@ public sealed class IndexNameUniquenessTests
     [InlineData("G", "    SET IX OF EA TO 1. SEARCH EA VARYING IX OF EA WHEN EA(IX OF EA) = 1 CONTINUE END-SEARCH.")]
     public void DuplicatedIndexName_QualifiedThroughItsTable_IsSR6(string id, string body)
     {
-        var (ok, diags) = Compile(id, body);
+        var (ok, diags) = Compile(id, body, Qualified);
         Assert.True(ok, "IX OF <table> / IX OF <record> is §8.4.2.2.3 SR6's form: " + string.Join("; ", diags));
     }
 
     [Fact]
     public void QualifierNamingNoDeclaringTable_IsNotDefined()
     {
-        var (ok, diags) = Compile("H", "    SET IX OF W TO 1.");
+        var (ok, diags) = Compile("H", "    SET IX OF W TO 1.", Qualified);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(diags, "COBOL1639");
         EditionHarness.AssertHasDiagnostic(diags, "SR6");
@@ -67,7 +72,7 @@ public sealed class IndexNameUniquenessTests
     [Fact]
     public void OtherTablesQualifiedIndex_AsSubscript_IsSR4()
     {
-        var (ok, diags) = Compile("I", "    MOVE EB(IX OF EA) TO W.");
+        var (ok, diags) = Compile("I", "    MOVE EB(IX OF EA) TO W.", Qualified);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(diags, "COBOL1961");
     }
@@ -93,9 +98,9 @@ public sealed class IndexNameUniquenessTests
                 END-SEARCH
                 STOP RUN.
             """;
-        var (ok, diags) = EditionHarness.Compile(string.Format(src, "A", "IX OF EA"), 85);
+        var (ok, diags) = EditionHarness.Compile(string.Format(src, "A", "IX OF EA"), Qualified);
         Assert.True(ok, "the qualified first index-name satisfies SR8: " + string.Join("; ", diags));
-        var (ok2, diags2) = EditionHarness.Compile(string.Format(src, "B", "IX OF EB"), 85);
+        var (ok2, diags2) = EditionHarness.Compile(string.Format(src, "B", "IX OF EB"), Qualified);
         Assert.False(ok2, "the other table's IX is not identifier-1's first index-name");
         EditionHarness.AssertHasDiagnostic(diags2, "first index-name");
     }
@@ -109,7 +114,7 @@ public sealed class IndexNameUniquenessTests
                 SET IX OF EA TO 2
                 DISPLAY EA(IX OF EA) " " EB(IX OF EB).
                 STOP RUN.
-            """, 85);
+            """, Qualified);
         Assert.True(ok, detail);
         Assert.Equal("12 21", stdout.Trim());
     }
@@ -146,7 +151,7 @@ public sealed class IndexNameUniquenessTests
                 EXIT PROGRAM.
             END PROGRAM W57IXKIN.
             END PROGRAM W57IXK.
-            """, 85);
+            """, Qualified);
         Assert.True(ok, detail);
         Assert.Equal("LOCAL=44 GLOBAL=33\nOUTER=22", stdout.Replace("\r\n", "\n").Trim());
     }

@@ -41,6 +41,7 @@
        01 S1   PIC X(12).
        01 S2   PIC X(12).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 5 TO ED.
            MOVE ED TO EDX.
            DISPLAY "ED=[" EDX "]".

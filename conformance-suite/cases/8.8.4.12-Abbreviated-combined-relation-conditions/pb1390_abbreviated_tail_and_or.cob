@@ -21,6 +21,8 @@
       *>                                  relation C = 1 ends the insertion
       *>   E4, E5 two of the GR1 NOTE examples (a > b AND NOT < c OR d; NOT (a NOT > b AND c AND NOT d))
       *>   E6 A > B OR < C AND < D OR = C;  E7 A = B OR = C AND D AND NOT = B
+      *> Each walk nests four inline PERFORM VARYINGs, the COBOL-85 form: an inline PERFORM's AFTER phrase is a
+      *> COBOL-2002 relaxation (2002 Annex F.2 item 91, kb/Work PB4305).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W68ABT.
        DATA DIVISION.
@@ -35,9 +37,9 @@
        MAIN.
            MOVE 0 TO N-TRUE N-BAD
            PERFORM VARYING A FROM 1 BY 1 UNTIL A > 3
-            AFTER B FROM 1 BY 1 UNTIL B > 3
-            AFTER C FROM 1 BY 1 UNTIL C > 3
-            AFTER D FROM 1 BY 1 UNTIL D > 3
+            PERFORM VARYING B FROM 1 BY 1 UNTIL B > 3
+            PERFORM VARYING C FROM 1 BY 1 UNTIL C > 3
+            PERFORM VARYING D FROM 1 BY 1 UNTIL D > 3
              IF
                 A = B OR < C AND D
                 ADD 1 TO N-TRUE
@@ -50,12 +52,15 @@
                    ADD 1 TO N-BAD END-IF
              END-IF
            END-PERFORM
+           END-PERFORM
+           END-PERFORM
+           END-PERFORM
            DISPLAY "E1 " N-TRUE " " N-BAD
            MOVE 0 TO N-TRUE N-BAD
            PERFORM VARYING A FROM 1 BY 1 UNTIL A > 3
-            AFTER B FROM 1 BY 1 UNTIL B > 3
-            AFTER C FROM 1 BY 1 UNTIL C > 3
-            AFTER D FROM 1 BY 1 UNTIL D > 3
+            PERFORM VARYING B FROM 1 BY 1 UNTIL B > 3
+            PERFORM VARYING C FROM 1 BY 1 UNTIL C > 3
+            PERFORM VARYING D FROM 1 BY 1 UNTIL D > 3
              IF
                 A = B OR < C AND NOT D
                 ADD 1 TO N-TRUE
@@ -68,12 +73,15 @@
                    ADD 1 TO N-BAD END-IF
              END-IF
            END-PERFORM
+           END-PERFORM
+           END-PERFORM
+           END-PERFORM
            DISPLAY "E2 " N-TRUE " " N-BAD
            MOVE 0 TO N-TRUE N-BAD
            PERFORM VARYING A FROM 1 BY 1 UNTIL A > 3
-            AFTER B FROM 1 BY 1 UNTIL B > 3
-            AFTER C FROM 1 BY 1 UNTIL C > 3
-            AFTER D FROM 1 BY 1 UNTIL D > 3
+            PERFORM VARYING B FROM 1 BY 1 UNTIL B > 3
+            PERFORM VARYING C FROM 1 BY 1 UNTIL C > 3
+            PERFORM VARYING D FROM 1 BY 1 UNTIL D > 3
              IF
                 A = B OR < D AND C = 1
                 ADD 1 TO N-TRUE
@@ -86,12 +94,15 @@
                    ADD 1 TO N-BAD END-IF
              END-IF
            END-PERFORM
+           END-PERFORM
+           END-PERFORM
+           END-PERFORM
            DISPLAY "E3 " N-TRUE " " N-BAD
            MOVE 0 TO N-TRUE N-BAD
            PERFORM VARYING A FROM 1 BY 1 UNTIL A > 3
-            AFTER B FROM 1 BY 1 UNTIL B > 3
-            AFTER C FROM 1 BY 1 UNTIL C > 3
-            AFTER D FROM 1 BY 1 UNTIL D > 3
+            PERFORM VARYING B FROM 1 BY 1 UNTIL B > 3
+            PERFORM VARYING C FROM 1 BY 1 UNTIL C > 3
+            PERFORM VARYING D FROM 1 BY 1 UNTIL D > 3
              IF
                 A > B AND NOT < C OR D
                 ADD 1 TO N-TRUE
@@ -104,12 +115,15 @@
                    ADD 1 TO N-BAD END-IF
              END-IF
            END-PERFORM
+           END-PERFORM
+           END-PERFORM
+           END-PERFORM
            DISPLAY "E4 " N-TRUE " " N-BAD
            MOVE 0 TO N-TRUE N-BAD
            PERFORM VARYING A FROM 1 BY 1 UNTIL A > 3
-            AFTER B FROM 1 BY 1 UNTIL B > 3
-            AFTER C FROM 1 BY 1 UNTIL C > 3
-            AFTER D FROM 1 BY 1 UNTIL D > 3
+            PERFORM VARYING B FROM 1 BY 1 UNTIL B > 3
+            PERFORM VARYING C FROM 1 BY 1 UNTIL C > 3
+            PERFORM VARYING D FROM 1 BY 1 UNTIL D > 3
              IF
                 NOT (A NOT > B AND C AND NOT D)
                 ADD 1 TO N-TRUE
@@ -124,12 +138,15 @@
                    ADD 1 TO N-BAD END-IF
              END-IF
            END-PERFORM
+           END-PERFORM
+           END-PERFORM
+           END-PERFORM
            DISPLAY "E5 " N-TRUE " " N-BAD
            MOVE 0 TO N-TRUE N-BAD
            PERFORM VARYING A FROM 1 BY 1 UNTIL A > 3
-            AFTER B FROM 1 BY 1 UNTIL B > 3
-            AFTER C FROM 1 BY 1 UNTIL C > 3
-            AFTER D FROM 1 BY 1 UNTIL D > 3
+            PERFORM VARYING B FROM 1 BY 1 UNTIL B > 3
+            PERFORM VARYING C FROM 1 BY 1 UNTIL C > 3
+            PERFORM VARYING D FROM 1 BY 1 UNTIL D > 3
              IF
                 A > B OR < C AND < D OR = C
                 ADD 1 TO N-TRUE
@@ -142,12 +159,15 @@
                    ADD 1 TO N-BAD END-IF
              END-IF
            END-PERFORM
+           END-PERFORM
+           END-PERFORM
+           END-PERFORM
            DISPLAY "E6 " N-TRUE " " N-BAD
            MOVE 0 TO N-TRUE N-BAD
            PERFORM VARYING A FROM 1 BY 1 UNTIL A > 3
-            AFTER B FROM 1 BY 1 UNTIL B > 3
-            AFTER C FROM 1 BY 1 UNTIL C > 3
-            AFTER D FROM 1 BY 1 UNTIL D > 3
+            PERFORM VARYING B FROM 1 BY 1 UNTIL B > 3
+            PERFORM VARYING C FROM 1 BY 1 UNTIL C > 3
+            PERFORM VARYING D FROM 1 BY 1 UNTIL D > 3
              IF
                 A = B OR = C AND D AND NOT = B
                 ADD 1 TO N-TRUE
@@ -159,6 +179,9 @@
                   (A = B) OR ((A = C) AND (A = D) AND (A NOT = B))
                    ADD 1 TO N-BAD END-IF
              END-IF
+           END-PERFORM
+           END-PERFORM
+           END-PERFORM
            END-PERFORM
            DISPLAY "E7 " N-TRUE " " N-BAD
            STOP RUN.

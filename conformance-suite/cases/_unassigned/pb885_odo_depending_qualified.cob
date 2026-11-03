@@ -28,6 +28,7 @@
        01 T1.
           05 E1 PIC X OCCURS 1 TO 5 DEPENDING ON CNT OF G1.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE ALL "A" TO T1
            DISPLAY "[" T1 "]"
            STOP RUN.

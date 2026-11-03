@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a USE AFTER STANDARD EXCEPTION/ERROR statement without the word PROCEDURE requires COBOL-2002"}

@@ -12,7 +12,7 @@ using WiseOwl.Cobol.Frontend.Common;        // CobolWordRule — the ONE §8.3.2
 using WiseOwl.Cobol.Frontend.Cst;            // SetToStatementCst — the one reading of SET Format 7's spelling (kb/Work PB4231)
 using WiseOwl.Cobol.Frontend.Expressions;    // BooleanOperatorGate — the ONE boolean-operator introduction gate (both lanes)
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
-using WiseOwl.Cobol.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category)
+using WiseOwl.Cobol.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category); WrittenSource
 using WiseOwl.Cobol.Runtime;                // CobolNames — the ONE Annex C word fold (kb/Work PB1402)
 
 using WiseOwl.Cobol.Compiler.Oo;
@@ -321,6 +321,15 @@ internal sealed class VersionConformancePass
             // the receiving operand is category program-pointer in both (§14.9.39.3 SR21).
             case BoundSetProgramPointer or BoundSetEntry:
                 Check(Constructs.SetProgramPointer2002, "the SET … TO program-pointer statement (Format 9)"); break;
+            // ISO/IEC 1989:2002 Annex F.2 item 10: "CALL arguments may be elementary or groups with any level number.
+            // Formerly, they had to be elementary or have a level number of 1 or 77" (call-using-group-any-level-2002;
+            // kb/Work PB4305). Bound arm: a USING operand's level and group-ness are facts of the item it resolves to.
+            case BoundCallProgram call:
+                foreach (var arg in call.Args)
+                    if (arg.Place?.Item is { IsGroup: true, Level: not (1 or 77) } item)
+                        Check(Constructs.CallUsingGroupAnyLevel2002,
+                            $"the CALL USING argument '{item.CobolName}', a group item at level {item.Level:00}");
+                break;
             case BoundSetSize:
                 // SET [SIZE OF] dynamic-length-item TO n (§14.9.39 Format 16) — a 2023 introduction. Semantic (the
                 // target must be dynamic-length), so it stays a bound-tree gate — one arm covers the explicit SIZE
@@ -864,7 +873,130 @@ internal sealed class VersionConformancePass
                 using var _ = Sink.At(ctx);
                 _p.Check(Constructs.PerformVaryingByOmitted2002, "an AFTER phrase with no BY phrase");
             }
+            // ISO/IEC 1989:2002 Annex F.2 item 91: "The AFTER phrase is allowed in an inline PERFORM" — a COBOL-85
+            // inline PERFORM varied one identifier (inline-perform-after-2002; kb/Work PB4305). An inline PERFORM's
+            // options hang under its performInlineHead; an out-of-line PERFORM's under the statement itself.
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null and not CobolParserCore.PerformStatementContext; a = a.Parent)
+                if (a is CobolParserCore.PerformInlineHeadContext)
+                {
+                    using var _ = Sink.At(ctx);
+                    _p.Check(Constructs.InlinePerformAfter2002, "an AFTER phrase in an inline PERFORM");
+                    break;
+                }
             return base.VisitChildren(ctx);
+        }
+
+        // ── The ISO/IEC 1989:2002 Annex F.2 relaxations of COBOL-85 restrictions (kb/Work PB4305; VCR row 7.47) ─────
+        // The owner's decision of 2026-10-31 makes each F.2 "formerly" statement the rule for the 85 edge. The four
+        // whose identity is a resolved fact (a CALL operand's level, a class condition's alphabet-name, a qualified
+        // index-name) gate in the binder; the rest are syntax, recognised here.
+
+        /// <summary>F.2 item 90: "A paragraph-name is not required at the beginning of the procedure division or a
+        /// section" — at COBOL-85 the first sentence of the procedure division follows a paragraph-name.</summary>
+        public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx)
+        {
+            GateLeadingSentences(ctx.sentence(), "the procedure division");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>F.2 item 90's one test, asked of the procedure division and of each section
+        /// (<see cref="VisitSectionDefinition"/>). A declarative section is not asked: its sentences begin with the USE
+        /// statement, which no paragraph-name precedes at any edition.</summary>
+        private void GateLeadingSentences(CobolParserCore.SentenceContext[] sentences, string where)
+        {
+            if (sentences.Length == 0) return;
+            using var _ = Sink.At(sentences[0]);
+            _p.Check(Constructs.ProcedureWithoutLeadingParagraph2002, $"a sentence before the first paragraph-name of {where}");
+        }
+
+        /// <summary>F.2 item 61: "The GLOBAL clause may be specified in level 1 data description entries in the linkage
+        /// section."</summary>
+        public override object? VisitGlobalClause(CobolParserCore.GlobalClauseContext ctx)
+        {
+            if (HasAncestor<CobolParserCore.LinkageSectionContext>(ctx))
+                _p.Check(Constructs.LinkageGlobal2002, "the GLOBAL clause in the linkage section");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>F.2 item 75: "A figurative constant beginning with ALL may be specified as the TO literal in the
+        /// INSPECT CONVERTING statement."</summary>
+        public override object? VisitInspectConvertingPhrase(CobolParserCore.InspectConvertingPhraseContext ctx)
+        {
+            if (ctx.sendingOperand() is [_, var to, ..] && to.Start.Type == CobolLexer.ALL)
+            {
+                using var _ = Sink.At(to);
+                _p.Check(Constructs.InspectConvertingToAll2002, $"the INSPECT CONVERTING operand TO {WrittenSource.Of(to)}");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>F.2 item 112: "A RELATIVE KEY clause may be specified by itself in a file control entry. Previously,
+        /// RELATIVE KEY was required to be specified as a phrase of the ACCESS MODE clause" — so at COBOL-85 it follows
+        /// the ACCESS MODE clause directly.</summary>
+        public override object? VisitRelativeKeyClause(CobolParserCore.RelativeKeyClauseContext ctx)
+        {
+            if (ctx.Parent is CobolParserCore.FileControlClausesContext clause
+                && clause.Parent is CobolParserCore.FileControlClauseGroupContext entry)
+            {
+                var clauses = entry.fileControlClauses();
+                int at = Array.IndexOf(clauses, clause);
+                if (at <= 0 || clauses[at - 1].accessModeClause() is null)
+                    _p.Check(Constructs.RelativeKeyClauseAlone2002, "a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>F.2 item 133: "An arithmetic expression may now be used as a subscript, not just the forms
+        /// data-name + integer and data-name - integer." A COBOL-85 subscript is an integer, or a data-name or
+        /// index-name optionally followed by + or - and an integer; any other expression is the 2002 form. Only a
+        /// data reference's own subscripts are asked: a function's argument list is the same rule's node.</summary>
+        public override object? VisitSubscriptPart(CobolParserCore.SubscriptPartContext ctx)
+        {
+            if (ctx.Parent is CobolParserCore.DataReferenceSuffixContext or CobolParserCore.QualificationContext
+                && ctx.subscriptList() is { } list)
+                foreach (var item in list.subscriptItem())
+                    if (!IsCobol85Subscript(item))
+                    {
+                        using var _ = Sink.At(item);
+                        _p.Check(Constructs.SubscriptArithmeticExpression2002, $"the arithmetic-expression subscript {WrittenSource.Of(item)}");
+                    }
+            return base.VisitChildren(ctx);
+        }
+
+        private static bool IsCobol85Subscript(CobolParserCore.SubscriptItemContext item)
+        {
+            if (item.functionArgument()?.arithmeticExpression() is not { } arith) return true;   // ALL / a non-arithmetic operand: another rule's
+            var terms = arith.additiveExpression().multiplicativeExpression();
+            var first = SolePrimary(terms[0]);
+            return terms.Length switch
+            {
+                1 => first?.numericLiteral() is not null || first?.dataReference() is not null,
+                2 => first?.dataReference() is not null && SolePrimary(terms[1])?.numericLiteral() is not null,
+                _ => false,
+            };
+        }
+
+        /// <summary>The primary a multiplicative term is when it is nothing more: no operator, no unary sign.</summary>
+        private static CobolParserCore.PrimaryExpressionContext? SolePrimary(CobolParserCore.MultiplicativeExpressionContext term) =>
+            term.powerExpression() is [var power] && power.unaryExpression() is [var unary] ? unary.primaryExpression() : null;
+
+        /// <summary>F.2 item 139: "The sending operand [of UNSTRING] may be reference modified."</summary>
+        public override object? VisitUnstringStatement(CobolParserCore.UnstringStatementContext ctx)
+        {
+            if (ctx.strUnstrSender()?.dataReference() is { } sender
+                && sender.dataReferenceSuffix().Any(s => s.refModPart() is not null || s.qualification()?.refModPart().Length > 0))
+            {
+                using var _ = Sink.At(sender);
+                _p.Check(Constructs.UnstringSenderReferenceModified2002, "a reference-modified UNSTRING sending operand");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        private static bool HasAncestor<T>(Antlr4.Runtime.RuleContext ctx) where T : Antlr4.Runtime.RuleContext
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is T) return true;
+            return false;
         }
 
         /// <summary>The Format-3 (exception-checking) PERFORM (ISO §14.9.28.2 Format 3) — a COBOL-2023 addition.
@@ -906,7 +1038,15 @@ internal sealed class VersionConformancePass
             else if (ctx.FUNCTION() is not null)
                 _p.Check(Constructs.ExitFunctionWindow, "the EXIT FUNCTION statement");
             else if (ctx.PROGRAM() is not null)
+            {
                 _p.Check(Constructs.ExitProgramArchaic2023, "the EXIT PROGRAM statement");
+                // ISO/IEC 1989:2002 Annex F.2 item 50: "EXIT PROGRAM is allowed to appear as other than the last
+                // statement in a consecutive sequence of imperative statements" (exit-program-not-last-2002; kb/Work
+                // PB4305). A sequence is a sentence or a statement block, so a statement after it in its parent is one.
+                if (ctx.Parent is CobolParserCore.StatementContext stmt && stmt.Parent is Antlr4.Runtime.ParserRuleContext sequence
+                    && sequence.children.SkipWhile(c => !ReferenceEquals(c, stmt)).Skip(1).Any(c => c is CobolParserCore.StatementContext))
+                    _p.Check(Constructs.ExitProgramNotLast2002, "an EXIT PROGRAM statement that another statement of its sequence follows");
+            }
             else if (ctx.SECTION() is not null)   // §14.9.14 Format 4 — a COBOL-2002 structured-exit introduction
                 _p.Check(Constructs.ExitSection2002, "the EXIT SECTION statement");
             else if (ctx.PARAGRAPH() is not null)   // §14.9.14.2 Format 4 — the COBOL-2002 EXIT PARAGRAPH twin of EXIT SECTION
@@ -956,6 +1096,10 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.UseAfterExceptionObject2002, "USE AFTER EXCEPTION OBJECT (Format 4)");
             else if (ctx.CONDITION() is not null || ctx.EC() is not null)
                 _p.Check(Constructs.UseAfterExceptionCondition2002, "USE AFTER EXCEPTION CONDITION (Format 3)");
+            // ISO/IEC 1989:2002 Annex F.2 item 141: "The word PROCEDURE, previously required, is optional" — Format 1,
+            // the one format that writes it (use-without-procedure-2002; kb/Work PB4305).
+            else if (ctx.useOnTarget() is not null && ctx.PROCEDURE() is null)
+                _p.Check(Constructs.UseWithoutProcedure2002, "a USE AFTER EXCEPTION/ERROR statement without the word PROCEDURE");
             return base.VisitChildren(ctx);
         }
 
@@ -966,6 +1110,7 @@ internal sealed class VersionConformancePass
             if (ctx.integerLiteral() is not null)
                 _p.Check(Constructs.SegmentNumbersRemoved2002,
                     $"the segment-number on section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
+            GateLeadingSentences(ctx.sentence(), $"section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
             return base.VisitChildren(ctx);
         }
 
@@ -1086,6 +1231,18 @@ internal sealed class VersionConformancePass
         public override object? VisitValueClause(CobolParserCore.ValueClauseContext ctx)
         {
             if (ctx.valueClauseTablePhrase().Length > 0) _p.Check(Constructs.ValueTableFormat2002, "the Format 2 (table) VALUE clause");
+            // ISO/IEC 1989:2002 Annex F.2 item 145: the data-item and table formats of the VALUE clause "may be specified
+            // in data descriptions in the linkage section and in the file section and for items described with the
+            // EXTERNAL clause" (value-clause-linkage-file-external-2002; kb/Work PB4305). A condition-name entry's
+            // VALUE (level 88) is another format, outside InGatedDataEntry.
+            if (InGatedDataEntry(ctx))
+            {
+                string? where = HasAncestor<CobolParserCore.LinkageSectionContext>(ctx) ? "the linkage section"
+                    : HasAncestor<CobolParserCore.FileSectionContext>(ctx) ? "the file section"
+                    : EntryHasExternal(ctx) ? "an EXTERNAL data item" : null;
+                if (where is not null)
+                    _p.Check(Constructs.ValueClauseLinkageFileExternal2002, $"a VALUE clause in {where}");
+            }
             return base.VisitChildren(ctx);
         }
 
@@ -1219,12 +1376,21 @@ internal sealed class VersionConformancePass
         /// externalClause and typedefClause are both <c>dataDescriptionClause</c> alternatives under the entry's
         /// <c>dataDescriptionClauses</c> list, so the sibling scan is over that list; <c>typedefClause.STRONG()</c> is
         /// the STRONG phrase (the same test <c>DataBinder</c> uses at its typedef bind, §13.18.58.2).</summary>
-        private static bool EntryHasStrongTypedef(Antlr4.Runtime.RuleContext ctx)
+        private static bool EntryHasStrongTypedef(Antlr4.Runtime.RuleContext ctx) =>
+            EntryHasClause(ctx, c => c.typedefClause()?.STRONG() is not null);
+
+        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> writes the EXTERNAL clause (F.2 item
+        /// 145's third subject).</summary>
+        private static bool EntryHasExternal(Antlr4.Runtime.RuleContext ctx) =>
+            EntryHasClause(ctx, c => c.externalClause() is not null);
+
+        /// <summary>The one sibling scan over the enclosing entry's <c>dataDescriptionClauses</c> list.</summary>
+        private static bool EntryHasClause(Antlr4.Runtime.RuleContext ctx, Func<CobolParserCore.DataDescriptionClauseContext, bool> test)
         {
             for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
                 if (a is CobolParserCore.DataDescriptionEntryContext e)
                     return e.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
-                        ?.Any(c => c.typedefClause()?.STRONG() is not null) ?? false;
+                        ?.Any(test) ?? false;
             return false;
         }
 
@@ -1863,6 +2029,15 @@ internal sealed class VersionConformancePass
                 {
                     _p.Check(Constructs.EndDisplay2002, "the DISPLAY statement");
                     break;
+                }
+            // ISO/IEC 1989:2002 Annex F.2 item 46: "If the literal in a DISPLAY statement is numeric, it may be signed"
+            // (display-signed-numeric-literal-2002; kb/Work PB4305).
+            foreach (var literal in ctx.literal())
+                if (literal.numericLiteral()?.signedNumericLiteral() is { } n
+                    && (n.PLUS() ?? n.MINUS() ?? n.numericLiteralCore().SIGNED_INTEGERLIT() ?? n.numericLiteralCore().SIGNED_DECIMALLIT()) is not null)
+                {
+                    using var _ = Sink.At(literal);
+                    _p.Check(Constructs.DisplaySignedNumericLiteral2002, $"the signed numeric literal {WrittenSource.Of(literal)} as a DISPLAY operand");
                 }
             return base.VisitChildren(ctx);
         }
@@ -2753,7 +2928,7 @@ internal sealed class VersionConformancePass
             // resolves it to a DebugRegisterPlace, so ACCEPT it here (no §8.9 violation, no not-implemented note).
             if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
                 return base.VisitChildren(ctx);
-            FlagReservedUserWord(word);
+            FlagReservedUserWord(word, CobolKeywords.Spelling(ctx.Start.Text));
             return base.VisitChildren(ctx);
         }
 
@@ -2767,13 +2942,17 @@ internal sealed class VersionConformancePass
         /// communication module reserves it and no conforming '85 program could contain one — a
         /// not-yet-introduced construct getting the migration mode's leniency (CA14's policy; these two were
         /// found by the introduction-axis theory the fix added).</para></summary>
-        private void FlagReservedUserWord(string word)
+        /// <para><paramref name="word"/> is the Annex C fold the reservation is looked up by and the once-per-word key;
+        /// <paramref name="written"/> is the word's spelling (<c>CobolKeywords.Spelling</c>: the letters the source writes, the
+        /// basic ones upper-cased), which the message names (kb/Work PB4312: a word
+        /// a <c>&gt;&gt;COBOL-WORDS RESERVE</c> made reserved, written <c>CAFÉ</c>, was named by its fold, <c>'CAFé'</c>).</para>
+        private void FlagReservedUserWord(string word, string written)
         {
             if (!_reservedWords.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
             _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
                 EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
                 "edition-reserved-word",
-                ReservedWordSet.UserWordViolationMessage(word, _p._edition.Year), "", "ISO §8.9"));
+                ReservedWordSet.UserWordViolationMessage(written, _p._edition.Year), "", "ISO §8.9"));
         }
 
         /// <summary>kb/Work PB137/PB300/PB693/PB4206: the generated <c>reservedGatedWord</c> rule keeps a reservation-gated
@@ -2793,7 +2972,7 @@ internal sealed class VersionConformancePass
         /// it, and FILLER is not a user-defined word at all.</para></summary>
         public override object? VisitReservedGatedWord(CobolParserCore.ReservedGatedWordContext ctx)
         {
-            FlagReservedUserWord(CobolNames.UpperFold(ctx.GetText()));
+            FlagReservedUserWord(CobolNames.UpperFold(ctx.GetText()), CobolKeywords.Spelling(ctx.GetText()));
             return base.VisitChildren(ctx);
         }
     }

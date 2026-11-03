@@ -421,7 +421,10 @@ without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A
 `DISPLAY.`, `READ.`) is not asked the header reading (`IsIncompleteStatement`, branch review R1-1): the same text is an
 incomplete statement and a paragraph header (§14.4.3), nothing in it shows a USE as a user-defined word (§8.3.2.1 1)),
 and the missing operand is a fault the source certainly holds, so it keeps its COBOL0001 at the period, inside a
-paragraph and where a header could stand alike. A reserved word in a DATA reference slot
+paragraph and where a header could stand alike. A word no statement begins with, written as a paragraph header after the
+division's last sentence (`ZERO.`, `FILLER.`, `TALLYING.`), ends the division's paragraph list before the error is read,
+so "in the procedure division" is also read from the division the parse completed last (`EndsWithAProcedureDivision`,
+kb/Work PB4284), and the word draws COBOL0901 as every other reserved header does. A reserved word in a DATA reference slot
 (`MOVE READ TO X`) is not this rule's: its error falls at the word and is still the strategy's own report.
 
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
@@ -1945,7 +1948,13 @@ joined the table the same way, which is the table doing its job: a tenth format 
   `theEditionPrints` test, `CobolParserCoreBase.PrintsKeyword`, and names a keyword unless a table shows a LATER
   edition introduced it (`ReservedWords.AdmitsAsKeyword`: the §8.9 flags, or a §8.10 row's `Introduced` edition; §8.3.2.1
   1: a word not yet reserved or listed is a user-defined word) — `(1 + 2.` expects B-AND, B-OR and B-XOR from 2002 and
-  the shift operators from 2023, none at 85, and `ROUNDED MODE IS FOO` names the eight mode names from 2014 only. An
+  the shift operators from 2023, none at 85, and `ROUNDED MODE IS FOO` names the eight mode names from 2014 only. **So
+  is the user-defined word (kb/Work PB4435):** where every configuration that takes one takes it in a position a format
+  specifies a literal (`integerOperand`, `valueTableSubscript`; `ResimulationWalk.EveryWordStandsForALiteral`, read into
+  `Admitted.WordsStandForLiterals`), the word is a constant-name (§13.10.3 SR2), and `CobolParserCoreBase.PrintsConstantName`
+  says whether the edition has one (constant-entry-2002): `OCCURS 0 TO TIMES` expects "an integer literal" at 85 and "a
+  user-defined word or an integer literal" from 2002. The binder's refusal of a word there (COBOL1547,
+  `DataBinder.ConstantIntegerOperand`, the PICTURE repetition count) says the same by edition. An
   older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
   `gen-cobol-words.ps1`) are named whatever the table says. A §8.10 word's `Introduced` edition is generated
   (`gen-reserved-words.ps1` step 7c) from the 2002 list (`tests/version-matrix/context-sensitive-words-2002.json`) and
@@ -2495,8 +2504,13 @@ lowercase with Annex C. Three pieces, each in one place:
   to I and S) in any `.cs` or `.g4` under `src`, no `Resolve(CobolNames.UpperFold(…))` anywhere, and no `CobolNames`
   comparison in the Frontend or Editions with an upper-case keyword literal (`"DISPLAY"`, `"LC_"`, `"IDENTIFICATION
   DIVISION"`) or a parameter named `keyword` or `word` (a deliberate fold says `// Annex C: <why>`: the `>>TURN`
-  exception-name prefixes, compared as `ExceptionCatalog` compares the names). The diagnostics still print the folded
-  spelling of a user word (`'DISPLAY' is a reserved word`): kb/Work PB4312.
+  exception-name prefixes, compared as `ExceptionCatalog` compares the names). **The fold decides a user word's identity,
+  never its spelling (kb/Work PB4312).** A diagnostic names a word in its `CobolKeywords.Spelling` — the letters the source
+  writes, the basic ones raised — and never in its fold, which lowercases an upper-case extended letter: the
+  `>>COBOL-WORDS` fresh word (literal-2/5/6) is kept in that spelling (`CobolWordsDirectiveProcessor.Spelled`; the map's sets,
+  SR5's set and the §8.9 / §8.10 tables compare it through their fold comparers), and the §8.9 funnel
+  (`VersionConformancePass.FlagReservedUserWord`) looks the word up by its fold and names its spelling, so `RESERVE "café"`
+  then `01 CAFÉ` reads `'CAFÉ' is a reserved word`, never `'CAFé'`.
 - **The encoding of the grammar itself** (kb/Work PB1944) — ANTLR reads a `.g4` in the JVM's default charset (UTF-8 on
   Java 18+ and on Linux, Cp1252 on Windows CI's JVM), so `Invoke-Antlr4CSharp.ps1` passes `-encoding UTF-8` and every
   grammar file is valid UTF-8 without a byte-order mark (`GrammarEncodingDriftTests`). The encoding is declared, so

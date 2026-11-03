@@ -60,6 +60,7 @@
        01 P  PIC 99.
        01 T  PIC 9.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            PERFORM PRESET
            UNSTRING S DELIMITED BY "," INTO R1 R2
                WITH POINTER P TALLYING IN T

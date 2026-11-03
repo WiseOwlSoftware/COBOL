@@ -39,6 +39,7 @@
        88  IND-ON VALUE 1.
        1   ONEV PIC X VALUE "Z".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY L9
            DISPLAY H49
            DISPLAY R-ALL

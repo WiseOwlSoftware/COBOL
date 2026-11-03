@@ -597,6 +597,23 @@ public sealed class CopyProcessor(
             construct, what);
     }
 
+    /// <summary>⛔ TEXT-NAME-1 AND LIBRARY-NAME-1 ARE COBOL WORDS (kb/Work PB4279): each is a system-name (§8.3.2.3.1 lists
+    /// text-name and library-name) and §8.3.2.1 makes a system-name a COBOL word, so its characters and its length obey
+    /// §8.3.2.1 as every other word's do. The lexer never reads the COPY statement, so the token walk that asks the rule
+    /// of every other word (<see cref="Parsing.WordCharacterScreen"/>) cannot see these two; they are asked of the SAME
+    /// rule here (<see cref="Parsing.WordCharacterScreen.CheckWord"/> and <see cref="CobolWordRule.LengthViolation"/>),
+    /// at the word's SOURCE position. A name written as a literal is no word, and its value is the library's business.</summary>
+    private void ScreenCopyWord(MappedText mapped, string word, int at)
+    {
+        if (_diagnostics is null) return;
+        var sink = new BagSink(_diagnostics, mapped.LocateAt(at));
+        Parsing.WordCharacterScreen.CheckWord(word, EditionInfo.Of(dialectLevel, permissive), sink);
+        if (CobolWordRule.LengthViolation(word, dialectLevel) is { } length)
+            sink.Report(new EditionDiagnostic(Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Code,
+                EditionSeverity.Error, Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Id, length, "",
+                "ISO §8.3.2.1"));
+    }
+
     /// <summary>The reserved words of the COPY statement's own general format — never a text-name or library-name
     /// where they stand (COPY itself is §7.2.3.3 SR1's business).</summary>
     private static bool IsCopyPhraseWord(in TextWord w)
@@ -666,7 +683,10 @@ public sealed class CopyProcessor(
             name = null;
         }
         else
+        {
             name = w.Value;
+            ScreenCopyWord(mapped, w.Value, w.Start);
+        }
 
         if (c.TryPeek(out var amp) && amp.IsWord("&"))
         {

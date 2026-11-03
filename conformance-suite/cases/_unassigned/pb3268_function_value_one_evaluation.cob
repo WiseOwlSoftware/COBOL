@@ -50,6 +50,7 @@
        01 R1 PIC 9V9(9).
        01 R2 PIC 9V9(9).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE FUNCTION SQRT(2) TO Q1 Q2
            MOVE FUNCTION SQRT(2) TO Q3
            DISPLAY "M1=" Q1 " " Q2 " " Q3

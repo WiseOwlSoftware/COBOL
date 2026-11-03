@@ -39,6 +39,7 @@
        01 R4 PIC X(30000).
        01 R5 PIC 9(1).
        PROCEDURE DIVISION.
+           PB4305-LEAD.
            MOVE "ABC" TO R1.
            DISPLAY "R1=[" R1 "] SIZE=" FUNCTION LENGTH(R1).
            MOVE 12345.67 TO R2.
