@@ -39,7 +39,7 @@ from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 #: The modules of scripts/docchecks/, in the order the audit reports them.
-MODULES = ("register", "design", "facts", "vcr", "manual", "tree")
+MODULES = ("register", "design", "facts", "vcr", "manual", "inventory", "tree")
 VERDICT = "=== DOC AUDITS: "
 
 
@@ -61,7 +61,7 @@ def check(root: Path) -> int:
                     print(f"       {p}")
                 if len(problems) > 40:
                     print(f"       … and {len(problems) - 40} more")
-    if ran < 20:
+    if ran < 29:
         print(f"{VERDICT}RED — only {ran} checks ran: a module lost its checks, and a missing observation is not a negative one ===")
         return 1
     if findings:

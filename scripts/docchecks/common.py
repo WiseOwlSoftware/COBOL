@@ -79,5 +79,10 @@ def self_test_arms(arms: Iterable[tuple[str, object, object]]) -> list[str]:
     return [f"{name}: got {got!r}, wanted {want!r}" for name, got, want in arms if got != want]
 
 
+def split_locations(value: str, sep: str) -> list[str]:
+    """A code-location field's entries: the schema's `Schema.split` rule (split on the stripped separator, entries stripped)."""
+    return [p for p in (p.strip() for p in value.split(sep.strip())) if p]
+
+
 def words(pattern: str, body: str) -> set[str]:
     return set(re.findall(pattern, body))

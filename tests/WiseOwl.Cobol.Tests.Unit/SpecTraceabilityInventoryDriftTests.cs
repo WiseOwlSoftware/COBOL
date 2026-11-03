@@ -848,6 +848,16 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// <summary>The pattern for <paramref name="name"/> as a whole identifier: no identifier character on either side.</summary>
     private static string WholeWord(string name) => $@"(?<![A-Za-z0-9_]){Regex.Escape(name)}(?![A-Za-z0-9_])";
 
+    /// <summary>The file kinds this test resolves an anchor into (<c>tests/doc-facts/inventory-anchor-kinds.json</c>: C#
+    /// declarations, grammar rules, a data file). An anchor into any other file is a document's
+    /// (<c>docs/CONFORMANCE.md#DOC-A.1-n</c>, today) and is resolved by <c>scripts/docchecks/inventory.py</c>, because no compiler
+    /// test opens a Markdown file (kb/Work PB4453).</summary>
+    private static readonly Lazy<string[]> CompilerResolved = new(() =>
+        [.. DocFacts.Load("inventory-anchor-kinds.json").GetProperty("compilerResolved").EnumerateArray().Select(e => e.GetString()!)]);
+
+    private static bool ResolvedHere(string file) =>
+        CompilerResolved.Value.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase);
+
     private static List<string> UnresolvedCodeLocations(IEnumerable<Row> rows, Schema s, string root)
     {
         var bad = new List<string>();
@@ -868,7 +878,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
                     bad.Add($"{r.RuleId}: code-location '{loc}' — no such file");
                     continue;
                 }
-                if (parts.Length == 1) continue;
+                if (parts.Length == 1 || !ResolvedHere(file)) continue;
 
                 if (!SymbolResolves(file, parts[1]))
                     bad.Add($"{r.RuleId}: code-location '{loc}' — '{parts[1]}' is no longer in that file's code");
@@ -907,7 +917,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 string file = Path.Combine(root, path.Replace('/', Path.DirectorySeparatorChar));
                 if (!File.Exists(file))
                     bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — no such file");
-                else if (!SymbolResolves(file, symbol))
+                else if (ResolvedHere(file) && !SymbolResolves(file, symbol))
                     bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — '{symbol}' is no longer in that file's code "
                             + "(rewrite the sentence, or retire the witness so the history sits behind a retired-witness mark)");
             }
