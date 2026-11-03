@@ -51,17 +51,17 @@ internal static class RepositoryAttributeRenderer
     /// records cannot name different units.</summary>
     internal static IReadOnlyList<RepositoryUnitRow> IndexOf(IEnumerable<OoInterfaceSymbol> interfaces, IEnumerable<OoClassUnit> classes,
         ExpansionPlacements expansions, IEnumerable<BoundUnit> entryUnits) =>
-        [.. interfaces.Where(i => EmittedHere(expansions, i))
-                .Select(i => new RepositoryUnitRow(expansions.KindOf(i, RepositoryUnitKind.Interface), i.ExternalizedName, i.Name))
-            .Concat(classes.Where(c => EmittedHere(expansions, c.Symbol))
-                .Select(c => new RepositoryUnitRow(expansions.KindOf(c.Symbol, RepositoryUnitKind.Class), c.Symbol.ExternalizedName, c.Name)))
+        [.. interfaces.Where(i => EmittedHere(expansions, i.ClrName))
+                .Select(i => new RepositoryUnitRow(expansions.KindOf(i.ClrName, RepositoryUnitKind.Interface), i.ExternalizedName, i.Name))
+            .Concat(classes.Where(c => EmittedHere(expansions, c.Symbol.ClrName))
+                .Select(c => new RepositoryUnitRow(expansions.KindOf(c.Symbol.ClrName, RepositoryUnitKind.Class), c.Symbol.ExternalizedName, c.Name)))
             .Concat(expansions.Skeletons.Select(s => new RepositoryUnitRow(s.Kind, s.ExternalizedName, s.Name)))
             .Concat(entryUnits.Select(u => new RepositoryUnitRow(RepositoryCodec.KindOf(u), u.ExternalizedName, u.Name)))];
 
-    /// <summary>Whether this module emits the class or interface <paramref name="symbol"/>: every one but an expansion placed in another
+    /// <summary>Whether this module emits the class or interface it names <paramref name="clrName"/>: every one but an expansion placed in another
     /// assembly (§10.5).</summary>
-    internal static bool EmittedHere(ExpansionPlacements expansions, object symbol) =>
-        expansions.Of(symbol) is not { Where: ExpansionWhere.Imported or ExpansionWhere.OwnAssembly };
+    internal static bool EmittedHere(ExpansionPlacements expansions, string clrName) =>
+        expansions.Of(clrName) is not { Where: ExpansionWhere.Imported or ExpansionWhere.OwnAssembly };
 
     /// <summary>The module's assembly-level record, <c>[assembly: CobolRepository(schema, runtimeVersion, callAbi, …)]</c>
     /// (§6.2, §7.1): the versions it was compiled against (so a run unit can refuse a module whose runtime major or call ABI

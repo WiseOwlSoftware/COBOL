@@ -123,7 +123,7 @@ internal sealed class ProgramEmitter
             w.Line("using global::WiseOwl.Cobol.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");
         // An expansion that lives in another assembly (imported, or written to one of its own; DESIGN-external-repository §10.5) is named
         // here by its simple name, as one of this module's classes is, so the code bound against it needs no second spelling.
-        foreach (var placement in comp.Expansions.Expansions.Values.Where(e => e.Where is not ExpansionWhere.InGroup))
+        foreach (var placement in comp.Expansions.All.Where(e => e.Where is not ExpansionWhere.InGroup))
         {
             string at = $"global::{CsNames.CSharpNamespace(new ModuleNamespace(placement.ClrNamespace!))}";
             w.Line($"using {placement.LocalName} = {at}.{placement.TypeName};");
@@ -137,9 +137,9 @@ internal sealed class ProgramEmitter
         // legal (§10.6) — its module emits the types, a registrar with nothing to register (the record names it), and an
         // empty Main.
         foreach (var iface in comp.OoClasses.Interfaces)
-            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, iface)) _oo.EmitInterfaceUnit(iface, w);
+            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, iface.ClrName)) _oo.EmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
-            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, cls.Symbol)) _oo.EmitClassUnit(cls, w);
+            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, cls.Symbol.ClrName)) _oo.EmitClassUnit(cls, w);
         foreach (var skeleton in comp.Expansions.Skeletons)
             _oo.EmitSkeletonUnit(skeleton, w);
         if (units.Count == 0)

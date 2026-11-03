@@ -437,10 +437,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // The class's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts and tables on this type, each method's on its CLR method, each property's on the
         // type of its accessors. The record's methods are the object roster, then the factory roster (RepositoryCodec.Of).
-        var placement = expansions.Of(cls.Symbol);
+        var placement = expansions.Of(cls.Symbol.ClrName);
         var record = repositoryUpdate ? RepositoryCodec.Of(cls, placement?.Identity) : null;
         var methodRecords = record?.Class!.Methods;
-        List<string> instAttributes = [RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(cls.Symbol, RepositoryUnitKind.Class), cls.Name, cls.Symbol.ExternalizedName, record)];
+        List<string> instAttributes = [RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(cls.Symbol.ClrName, RepositoryUnitKind.Class), cls.Name, cls.Symbol.ExternalizedName, record)];
         if (record is not null)
             instAttributes.AddRange(RepositoryAttributeRenderer.TableRecords(record)
                 .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)));
@@ -1562,8 +1562,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : "";
         // The interface's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts, tables and properties here and each prototype's on its CLR method.
-        var record = repositoryUpdate ? RepositoryCodec.Of(iface, data, expansions.Of(iface)?.Identity) : null;
-        w.Line(RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(iface, RepositoryUnitKind.Interface), iface.Name, iface.ExternalizedName, record));
+        var record = repositoryUpdate ? RepositoryCodec.Of(iface, data, expansions.Of(iface.ClrName)?.Identity) : null;
+        w.Line(RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(iface.ClrName, RepositoryUnitKind.Interface), iface.Name, iface.ExternalizedName, record));
         if (record is not null)
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record)
                          .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)))

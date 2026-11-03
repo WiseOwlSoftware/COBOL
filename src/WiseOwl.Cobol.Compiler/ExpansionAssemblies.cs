@@ -28,16 +28,14 @@ internal static class ExpansionAssemblies
     {
         var files = new List<string>();
         var references = new List<string>(options.ReferencePaths ?? []);
-        foreach (var (symbol, placement) in expansions.ToWrite)
+        foreach (var (text, state, placement) in expansions.ToWrite)
         {
-            var origin = symbol is OoClassSymbol c ? c.Expansion! : ((OoInterfaceSymbol)symbol).Expansion!;
-            var state = origin.Skeleton.State;
-            string source = state.CobolWordsMap + state.DirectiveFolds + state.CompilationVariables + FreeForm(origin.Text) + "\n";
+            string source = state.CobolWordsMap + state.DirectiveFolds + state.CompilationVariables + FreeForm(text) + "\n";
             string temp = Path.Combine(Path.GetTempPath(), $"expansion-{Guid.NewGuid():N}.cob");
             File.WriteAllText(temp, source);
             try
             {
-                string target = placement.AssemblyPath!;
+                string target = placement.HoldingFile!;
                 var result = CompilerDriver.Compile(new CompilerDriver.Options(
                     temp, target, NistTestName: null, DialectLevel: state.Edition, CopyPaths: null, Permissive: state.Permissive,
                     CheckOnly: false, SignEncoding: state.SignEncoding, SourceFormat: Frontend.Preprocessor.InitialReferenceFormat.Free,

@@ -54,9 +54,16 @@ internal static class BackendContract
             "Model.RenamesInfo.FromName", "Model.RenamesInfo.FromQualifiers",
             "Model.RenamesInfo.ThruName", "Model.RenamesInfo.ThruQualifiers", "Model.ReportClauseName.Name",
             "Model.VaryingRecordInfo.DependingName", "Model.VaryingRecordInfo.DependingQualifiers",
+            // a parameterized definition's published skeleton and an expansion's identity: externalized names and words (kb/Work PB2104)
+            "Model.ExpansionIdentity.ActualIdentities", "Model.ExpansionIdentity.DefinitionIdentity",
+            "Model.PublishedSkeleton.ExternalizedName", "Model.PublishedSkeleton.Name",
+            "Model.ResolutionRecord.Identity", "Model.ResolutionRecord.Word", "Model.SkeletonRecord.Formals",
         ]),
         new(NeutralKind.ClrName,
         [
+            // where an expansion's types live and what this module calls them (kb/Work PB2104)
+            "Model.ExpansionPlacement.ClrNamespace", "Model.ExpansionPlacement.FactoryTypeName", "Model.ExpansionPlacement.LocalFactoryName",
+            "Model.ExpansionPlacement.LocalName", "Model.ExpansionPlacement.TypeName", "Model.ExpansionPlacements.ByName",
             "Model.BoundUnit.ClassName", "Model.DataItem.StructName", "Model.DataItem.ProfileName",
             "Model.BitLayout.FillerClrNameStem", "Model.ModuleNamespace.RegistrarClass",
             "Model.CsNameScope._claimed", "Model.CsNameScope._reserved", "Model.CsNameScope.EveryScopeReserved",
@@ -83,6 +90,10 @@ internal static class BackendContract
             "Model.PictureClauseIdentity.Editing", "Model.PictureClauseIdentity.EditingText()",
             "Model.PictureClauseIdentity.Spelled()",
             "Model.SuppressWhenOperand.Characters", "Model.TableValuePhrase.Literals", "Model.TableValuePlan.LiteralAt()",
+            // a skeleton's recorded source and the directive lines of the state it was compiled under: COBOL source text, which both backends
+            // write as an attribute string alike (kb/Work PB2104)
+            "Model.CompileState.CobolWordsMap", "Model.CompileState.CompilationVariables", "Model.CompileState.DirectiveFolds",
+            "Model.SkeletonRecord.Source", "Model.ExpansionToWrite.Text",
             "Model.TableValueSpec.FromText", "Model.TableValueSpec.FromWritten", "Model.TableValueSpec.Literals",
             "Model.TableValueSpec.ToText", "Model.TableValueSpec.ToWritten",
         ]),
@@ -96,6 +107,8 @@ internal static class BackendContract
             "Model.BoundUnit.RegistryKey", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
             "Model.LocalePhrase.Tag", "Model.LocaleRef.Tag", "Model.LocaleSymbol.External", "Model.LocaleSymbol.Tag",
             "Model.ObjectRefDescriptor.Spelled",
+            // the assemblies an expansion is imported from or written to: file paths the backend references (kb/Work PB2104)
+            "Model.ExpansionPlacement.HoldingFile", "Model.ExpansionPlacements.ReferencedAssemblies",
         ]),
         new(NeutralKind.DiagnosticText,
         [
@@ -123,6 +136,8 @@ internal static class BackendContract
         new(NeutralKind.IdentityKey,
         [
             "Model.DataItem.PointerRestrictionIdentity", "Model.PictureClauseIdentity.Key",
+            // an expansion's key and the labeled digests it is made of: compared for identity, written as attribute strings (kb/Work PB2104)
+            "Model.ExpansionIdentity.Key", "Model.ExpansionIdentity.Parts",
             "Model.StrongTypeModel.EssentialCharacteristicsKey()", "Model.StrongTypeModel.InvariantRecordText()",
             "Model.StrongTypeModel.TypeIdentityKey()", "Model.StrongTypeModel+TypeRestriction.Key",
             "Model.StrongTypeModel.ElementaryLayoutKey()", "Model.DynamicLengthStructure.DefinitionKey",

@@ -40,11 +40,13 @@ internal static class ExpansionPlacementPass
         // expansion the parent asked for, published under the identity and key the parent computed.
         if (publishAs is not null)
         {
-            object[] defined = [.. classes.Select(c => (object)c.Symbol), .. table.Interfaces];
-            return defined.Length == 1
-                ? new ExpansionPlacements(new Dictionary<object, ExpansionPlacement>(ReferenceEqualityComparer.Instance)
-                    { [defined[0]] = new ExpansionPlacement(publishAs, ExpansionWhere.InGroup) }, [])
-                : ExpansionPlacements.None;
+            var only = new ExpansionPlacement(publishAs, ExpansionWhere.InGroup);
+            return (classes.Count, table.Interfaces.Count) switch
+            {
+                (1, 0) => new ExpansionPlacements(new Dictionary<string, ExpansionPlacement> { [classes[0].Symbol.ClrName] = only }, []),
+                (0, 1) => new ExpansionPlacements(new Dictionary<string, ExpansionPlacement> { [table.Interfaces[0].ClrName] = only }, []),
+                _ => ExpansionPlacements.None,
+            };
         }
         if (table.Skeletons.Count == 0 && !classes.Any(c => c.Symbol.Expansion is not null) && !table.Interfaces.Any(i => i.Expansion is not null))
             return ExpansionPlacements.None;
@@ -90,12 +92,12 @@ internal static class ExpansionPlacementPass
             DataItem.WordIdentifier(source.Name), source.ToRecord(Resolution))).ToList();
 
         var placements = new Dictionary<object, ExpansionPlacement>(ReferenceEqualityComparer.Instance);
-        var order = new List<(object Symbol, ExpansionPlacement Placement)>();
+        var order = new List<ExpansionToWrite>();
         var inProgress = new HashSet<object>(ReferenceEqualityComparer.Instance);
         var reportedStale = new HashSet<Guid>();
         foreach (object symbol in classes.Select(c => (object)c.Symbol).Concat(table.Interfaces))
             Place(symbol);
-        return new ExpansionPlacements(placements, skeletons) { ToWrite = order };
+        return new ExpansionPlacements(placements.ToDictionary(e => LocalNameOf(e.Key), e => e.Value, StringComparer.Ordinal), skeletons) { ToWrite = order };
 
         // One expansion's placement, after the placement of every expansion it names (an actual may itself be an expansion).
         ExpansionPlacement? Place(object symbol)
@@ -153,7 +155,7 @@ internal static class ExpansionPlacementPass
                 }
             }
             placements[symbol] = placement;
-            if (placement.Where is ExpansionWhere.OwnAssembly) order.Add((symbol, placement));
+            if (placement.Where is ExpansionWhere.OwnAssembly) order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement));
             inProgress.Remove(symbol);
             return placement;
         }
