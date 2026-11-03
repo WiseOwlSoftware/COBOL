@@ -703,7 +703,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // A verb that is its sentence's only word (`FREE.`) is a use of the word as a name only where a procedure reference
         // elsewhere shows one; with none it is the verb's statement lacking its operand, whose own report stands
         // (kb/Work PB4283, the rule ReservedProcedureName applies to a verb reserved at every edition).
-        if (parser.IsIncompleteVerbSentence(at.Token))
+        if (parser.SentenceIsTheVerbsStatement(at.Token))
             return null;
         // A word where a closed format's clause list stands is a clause the format does not print, which that format's own
         // refusal names (hint 0g, COBOL1941 and its twins, kb/Work PB2533): it is not used as a name, whatever the value
@@ -798,7 +798,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// more; §14.9.15.2: FREE data-name-1 …), so the prediction runs through the verb and dies at the period, and that is
     /// where the fault is reported. <c>FREE.</c> at an edition that reserves the verb has a second reading, a paragraph header
     /// (<see cref="CobolParserCoreBase.procedureHeaderHere"/>), whose semantic predicate refuses it where no procedure
-    /// reference elsewhere names the word (<see cref="CobolParserCoreBase.IsIncompleteVerbSentence"/>): the statement
+    /// reference elsewhere names the word (<see cref="CobolParserCoreBase.SentenceIsTheVerbsStatement"/>): the statement
     /// alternative dies at the period and the sole survivor, the header, is refused at the start token, so ANTLR's
     /// exception stands at the verb (<see cref="IsPredictionFailedAt"/>). The two are one fault of one shape, the
     /// missing operand, and are reported at one token: the period, where the exception of a verb whose only reading is

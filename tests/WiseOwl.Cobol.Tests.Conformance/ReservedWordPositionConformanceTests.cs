@@ -888,6 +888,45 @@ public sealed class ReservedWordPositionConformanceTests
             $"expected three COBOL0001, at {string.Join(" ", expected)}, got:\n{string.Join("\n", diags)}");
     }
 
+    /// <summary>⛔ A VERB THAT IS COMPLETE ALONE IS NEVER FAULTED, NOR CONSUMED, BESIDE ANOTHER FAULT (kb/Work PB4494, branch
+    /// review R1-1). <c>GOBACK.</c> (ISO §14.9.18), <c>COMMIT.</c> (§14.9.7) and <c>ROLLBACK.</c> (§14.9.36) are statements
+    /// with no operand to lack; they are gated verbs like <c>FREE.</c>, and the error-recovering parse that a fault elsewhere
+    /// starts must leave them be, while the verb that does lack its operand (<c>FREE.</c>, §14.9.15.2) keeps its report.
+    /// Each row is one real fault (<c>ADD 1 TO.</c>, a missing receiver) followed by the legal sentences, and the diagnostics
+    /// are exactly those of the faulted sentences.</summary>
+    [Theory]
+    [InlineData(2023, "GOBACK.", 1)]
+    [InlineData(2023, "COMMIT.\n       ROLLBACK.", 1)]
+    [InlineData(2023, "GOBACK.\n       COMMIT.\n       ROLLBACK.", 1)]
+    [InlineData(2023, "FREE.\n       GOBACK.\n       FREE.\n       COMMIT.", 3)]       // the legal ones between two faulted
+    [InlineData(2002, "GOBACK.", 1)]
+    [InlineData(2014, "GOBACK.\n       FREE.", 2)]
+    public void ACompleteVerbAlone_BesideAFault_DrawsNoDiagnostic(int edition, string sentences, int expectedFaults)
+    {
+        string source = $"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4494G.
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 W-X PIC 9 VALUE 1.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       ADD 1 TO.
+                       {sentences}
+                   P-2.
+                       STOP RUN.
+
+               """;
+        var (ok, diags) = EditionHarness.Compile(source, edition);
+        Assert.False(ok);
+        string[] lines = source.Split('\n');
+        int[] legalLines = lines.Select((text, i) => (text: text.Trim(), line: i + 1))
+            .Where(l => l.text is "GOBACK." or "COMMIT." or "ROLLBACK.").Select(l => l.line).ToArray();
+        Assert.True(diags.Count == expectedFaults
+                    && diags.All(d => legalLines.All(n => !d.Contains($"({n},", StringComparison.Ordinal))),
+            $"expected {expectedFaults} diagnostics, none on a line of {string.Join(",", legalLines)}, got:\n{string.Join("\n", diags)}");
+    }
+
     // ── A reserved word where no user-defined word stands is its keyword, misplaced (kb/Work PB4132) ──────────────
 
     /// <summary>⛔ §8.3.2.1 1) IS BROKEN BY A USE AS A USER-DEFINED WORD, SO COBOL0901 NAMES ONLY SUCH A USE (kb/Work

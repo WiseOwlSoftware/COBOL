@@ -477,7 +477,7 @@ public abstract class CobolParserCoreBase : Parser
                // header of a reserved name only when a procedure reference elsewhere uses the word; with none it is the verb's
                // statement lacking its operand, whose own report the sentence gets (the always-reserved verbs' rule,
                // ReservedProcedureName). A word no statement begins with (END-DISPLAY) has no statement reading to yield to.
-               && (follower != CobolLexer.DOT || !IsIncompleteVerbSentence(word)));
+               && (follower != CobolLexer.DOT || !SentenceIsTheVerbsStatement(word)));
 
     /// <summary>What the tokens from a verb say about the statement that verb would begin
     /// (<see cref="ReadStatementAt"/>).</summary>
@@ -721,7 +721,7 @@ public abstract class CobolParserCoreBase : Parser
         {
             int at = span.IndexOf(word);
             if (at < 0) continue;   // not a default-channel token of the span
-            int[] readings = word == first && !IsIncompleteVerbSentence(word)
+            int[] readings = word == first && !SentenceIsTheVerbsStatement(word)
                 ? [CobolParserCore.RULE_sentence, CobolParserCore.RULE_sectionDefinition, CobolParserCore.RULE_paragraphDefinition]   // a header names it too
                 : [CobolParserCore.RULE_sentence];
             foreach (int rule in readings)
@@ -813,10 +813,30 @@ public abstract class CobolParserCoreBase : Parser
 
     /// <summary>⛔ ONE DECISION FOR A BARE VERB (kb/Work PB4283, PB4494): is <paramref name="word"/> a verb that is its sentence's
     /// only word (<see cref="IsBareVerbSentence"/>) with no procedure reference elsewhere to make it a header
-    /// (<see cref="NamedAsAProcedureElsewhere"/>)? Then the sentence is the verb's statement lacking its operand, and the header
-    /// reading, the reserved-procedure-name reading and the reserved-word report each yield to it.</summary>
-    internal bool IsIncompleteVerbSentence(IToken word)
+    /// (<see cref="NamedAsAProcedureElsewhere"/>)? Then the sentence is the verb's STATEMENT, whole or lacking its operand, and
+    /// the header reading, the reserved-procedure-name reading and the reserved-word report each yield to it.</summary>
+    internal bool SentenceIsTheVerbsStatement(IToken word)
         => IsBareVerbSentence(word) && !NamedAsAProcedureElsewhere(word);
+
+    /// <summary>⛔ THE VERB'S STATEMENT LACKING ITS OPERAND, NEVER A COMPLETE ONE (kb/Work PB4494, branch review R1-1):
+    /// <see cref="SentenceIsTheVerbsStatement"/> and the verb alone is no statement. <c>FREE.</c> lacks the data-name §14.9.15.2
+    /// prints and <c>DISPLAY.</c> the operand of §14.9.11.2 Format 1, but <c>GOBACK.</c> (§14.9.18), <c>COMMIT.</c> (§14.9.7) and
+    /// <c>ROLLBACK.</c> (§14.9.36) are complete with none, and a legal sentence is never faulted. Asked of the grammar
+    /// (<see cref="VerbAloneIsAStatement"/>), never of a list of verbs.</summary>
+    internal bool IsIncompleteVerbSentence(IToken word)
+        => SentenceIsTheVerbsStatement(word) && !VerbAloneIsAStatement(word);
+
+    /// <summary>Does the <c>statement</c> rule accept <paramref name="word"/> by itself? A function of the verb's token type
+    /// alone (the tokens are the verb, and the interpreter reads every predicate as true, <see cref="Reading"/>), so it is
+    /// answered once per type for the process: a program of <c>GOBACK.</c> sentences costs one parse, never one each.</summary>
+    private bool VerbAloneIsAStatement(IToken word)
+    {
+        if (s_verbAloneIsAStatement.TryGetValue(word.Type, out bool alone)) return alone;
+        alone = Reading([new CommonToken(word)], CobolParserCore.RULE_statement, out _) is { Next: TokenConstants.EOF };
+        return s_verbAloneIsAStatement[word.Type] = alone;
+    }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, bool> s_verbAloneIsAStatement = new();
 
     /// <summary>Is <paramref name="word"/> an incomplete bare-verb sentence (<see cref="IsIncompleteVerbSentence"/>) whose verb
     /// is reservation-gated, so that <see cref="procedureHeaderHere"/> refuses the paragraph-header reading the prediction

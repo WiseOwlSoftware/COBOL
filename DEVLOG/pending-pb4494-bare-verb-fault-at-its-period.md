@@ -10,8 +10,10 @@ verb reserved at every edition has no header reading, the prediction commits to 
 at the period. The same failure had a second effect nobody had named: it is caught in the paragraph's rule, whose recovery resumes
 past the paragraph, so `FREE.` followed by `MOVE.` and `MOVE.` reported one fault in place of three.
 
-**Fix.** `CobolParserCoreBase.IsIncompleteVerbSentence` is the one decision (three copies of `IsBareVerbSentence &&
-!NamedAsAProcedureElsewhere` became calls to it). `CobolErrorStrategy.Sync` reports a gated bare-verb sentence at its period and
+**Fix.** `CobolParserCoreBase.SentenceIsTheVerbsStatement` is the one decision (three copies of `IsBareVerbSentence &&
+!NamedAsAProcedureElsewhere` became calls to it), and `IsIncompleteVerbSentence` adds that the verb alone is no statement
+(`VerbAloneIsAStatement`, one parse of `statement` per verb type). Branch review R1-1 found the recovery faulting and consuming a
+legal `GOBACK.`, `COMMIT.` or `ROLLBACK.` beside any other fault; `ACompleteVerbAlone_BesideAFault_DrawsNoDiagnostic` pins it. `CobolErrorStrategy.Sync` reports a gated bare-verb sentence at its period and
 consumes the verb and the period, each of a run of them, ahead of the failing prediction; `ReportNoViableAlternative` moves the
 report to the period for a failure that still reaches it. Both ask the same decision. `DESIGN-frontend-grammar.md`'s bare-verb
 paragraph describes both.

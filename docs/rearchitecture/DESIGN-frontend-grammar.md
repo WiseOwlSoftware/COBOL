@@ -434,8 +434,11 @@ ANTLR's failure stands at the verb in the paragraph's own rule, whose recovery w
 error strategy decides that sentence itself, ahead of the prediction, in `CobolErrorStrategy.Sync` (`SkipsBareVerbSentences`):
 it reports at the period (`FaultOfABareVerb` does the same for a failure that still reaches `ReportNoViableAlternative`) and
 consumes the verb and its period, a run of them one after another, so the sentences after it keep their own reports. The one
-decision, `CobolParserCoreBase.IsIncompleteVerbSentence` (a bare verb that no procedure reference names), is asked by all of
-them. For a gated word the decision is the grammar's own predicate
+decisions, both in `CobolParserCoreBase`: `SentenceIsTheVerbsStatement` (a bare verb that no procedure reference names: the
+sentence is the verb's statement) and `IsIncompleteVerbSentence` (that, and the verb alone is no statement: `FREE.`, `DISPLAY.`,
+but not `GOBACK.`, `COMMIT.`, `ROLLBACK.`, complete with no operand and never faulted or consumed; the grammar answers with one
+parse of `statement` per verb type, `VerbAloneIsAStatement`). The recovery and the report ask the second; the readings below ask
+the first. For a gated word the first is the grammar's own predicate
 (`procedureHeaderHere`: a bare statement verb is not a header without the evidence; a word no statement begins with, `END-DISPLAY`, is
 unchanged) and the error strategy's (`ReservedWordUse` returns no violation); for a verb reserved everywhere it is
 `ReservedProcedureName`'s choice of readings. A word no statement begins with, written as a paragraph header after the
