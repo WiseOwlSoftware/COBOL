@@ -62,6 +62,9 @@ R1-2: F.2 item 90's gate skipped declarative sections on the ground that they be
 Format 1 prints `use-statement. [ sentence ] … [ paragraph-name-1. …]`: the sentences AFTER the USE statement and before the
 first paragraph are the same COBOL-85 restriction. `VisitDeclarativeSection` now asks the gate of them (`--std 85` draws
 COBOL0900 at the second sentence). Goldens: `pb4305_declarative_sentence_before_first_paragraph_2002` (2002/2014/2023, "D1 35"
-then "DONE") and `pb4305-declarative-sentence-before-first-paragraph-at-85`. R1-3 (a lead: the item-108 gate reports at the
+then "DONE") and `pb4305-declarative-sentence-before-first-paragraph-at-85`. The whole-population gate found the one corpus
+program that wrote the form at 85, `pb990_user_word_types_one_per_word` (its H section has a sentence after the USE sentence,
+`accept: [85]`; it also failed `RepositoryRoundTripCorpusTests` and `HostEntryShapeDriftTests`): the form is the 2002 relaxation,
+so the golden is now accepted from 2002 on. R1-3 (a lead: the item-108 gate reports at the
 SEARCH statement, not at the qualified index-name of VARYING) is left for the clerk, `NameResolution.cs` not being a file this
 round changes.
