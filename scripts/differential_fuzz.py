@@ -2287,7 +2287,8 @@ def self_test() -> int:
           and option_errors["ok"].startswith("2|") and "compiler not found" in option_errors["ok"], option_errors)
     # --writer claude (kb/Work PB4504): one Claude model, no Ollama-only option, and --max-usd only for the writer that spends
     writer_errors: dict[str, str] = {}
-    files_run = Path(tempfile.mkdtemp(prefix="fz-files-"))
+    from scratch_repo import scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture, removed at exit)
+    files_run = scratch_dir("fz-files-")
     (files_run / "replies").mkdir()
     (files_run / "batch.json").write_text(json.dumps({
         "model": "claude-sonnet-5-5", "count": 1, "clauses": list(DEFAULT_CLAUSES), "seed": 20261020, "in_order": False,
@@ -2319,7 +2320,6 @@ def self_test() -> int:
           and writer_errors["ok"].startswith("2|") and "compiler not found" in writer_errors["ok"]
           and writer_errors["files-no-record"].startswith("2|") and "needs the batch's record" in writer_errors["files-no-record"]
           and writer_errors["files"].startswith("2|") and "compiler not found" in writer_errors["files"], writer_errors)
-    shutil.rmtree(files_run, ignore_errors=True)
     # writer_reply routes to the run's writer and Fuzz.spent_out reads the Claude writer's meter
     probe = Fuzz.__new__(Fuzz)
     probe.model_options = {}
