@@ -30,7 +30,16 @@ public sealed class PhysicalLinesDriftTests
             if (Path.GetFileName(f) != "PhysicalLines.cs") yield return f;
         yield return TestRepo.Src("WiseOwl.Cobol.Frontend", "Parsing", "SeparatorRule.cs");
         yield return TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolLexer.g4");
+        // The WiseOwl.Cobol.Editions assembly reads the lines too: CompilerDirectiveLine.TryParse and the directive
+        // catalogue take line text the line-entry stage produced (kb/Work PB4310 — the file carried a dead tab rule
+        // and a live CR trim here, outside this population).
+        foreach (string f in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Editions"), "*.cs", SearchOption.AllDirectories))
+            if (!IsBuildOutput(f)) yield return f;
     }
+
+    private static bool IsBuildOutput(string file) =>
+        file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+        || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}");
 
     private static IEnumerable<(string File, int Line, string Text)> CodeLines(string file)
     {
@@ -43,7 +52,7 @@ public sealed class PhysicalLinesDriftTests
         }
     }
 
-    [Fact] // No stage after the line-entry stage has a tab or a CR rule: none survives it.
+    [Fact] // No stage after the line-entry stage (the Editions assembly's directive parse included) has a tab or a CR rule: none survives it.
     public void NoPipelineStage_SpellsATabOrACarriageReturn()
     {
         var offenders = PipelineFiles().SelectMany(CodeLines).Where(l => TabOrCr.IsMatch(l.Text))
@@ -75,10 +84,7 @@ public sealed class PhysicalLinesDriftTests
         var callers = new List<string>();
         foreach (string file in Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories))
         {
-            string rel = Path.GetRelativePath(TestRepo.Src(), file);
-            if (rel.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-                || rel.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
-                || Path.GetFileName(file) == "PhysicalLines.cs") continue;
+            if (IsBuildOutput(Path.GetRelativePath(TestRepo.Src(), file)) || Path.GetFileName(file) == "PhysicalLines.cs") continue;
             callers.AddRange(CodeLines(file).Where(l => l.Text.Contains("PhysicalLines.Read(", StringComparison.Ordinal))
                 .Select(l => $"{l.File}:{l.Line}"));
         }

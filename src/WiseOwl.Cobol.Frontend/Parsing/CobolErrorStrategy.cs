@@ -699,8 +699,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>⛔ DOES THE REFUSED VERB BEGIN THE NEXT STATEMENT, NOT STAND FOR AN OPERAND (kb/Work PB4207)? Where the
     /// statement it would begin is complete (<see cref="CobolParserCoreBase.ReadStatementAt"/>) it does. Where that statement
-    /// is cut short, by the sentence's end or by the token after it (<c>MOVE W-X TO</c> then <c>ADD 1 TO.</c>,
-    /// <c>DISPLAY W-Y UPON.</c>, <c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>), the two readings of the word are both faults, and
+    /// is faulted (<see cref="CobolParserCoreBase.StatementReading.Faulted"/>), stopped by the sentence's end, by the token
+    /// after it or by a token no statement is followed by (<c>MOVE W-X TO</c> then <c>ADD 1 TO.</c>,
+    /// <c>DISPLAY W-Y UPON.</c>, <c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>, <c>ADD 1 FROM W-Y.</c>, kb/Work PB4285 item 3), the two readings of the word are both faults, and
     /// OF THE TWO THE ONE THAT GOES FURTHER IS THE ONE THE REPORT NAMES (review R3-1): the statement reading when it took
     /// more of the source than the word read as the user-defined word it would stand for
     /// (<see cref="OffendingPosition.NameReach"/>: <c>ADD 1</c> is no receiver list, so the name reading stops at the 1,
@@ -712,7 +713,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         => parser.ReadStatementAt(at.Token, out int statementReach) switch
         {
             CobolParserCoreBase.StatementReading.Complete => true,
-            CobolParserCoreBase.StatementReading.CutShort => at.NameReach() < statementReach,
+            CobolParserCoreBase.StatementReading.Faulted => at.NameReach() < statementReach,
             _ => false,
         };
 

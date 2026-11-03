@@ -457,12 +457,15 @@ ends at the period or at a token of the rule's context-free `FollowSet`, read of
 pins the two facts of the grammar that carry it: TO, '=', GIVING and FROM never follow a statement, the next verb and the scope
 terminators do). Where it parses the report is the
 ordinary one and the recovery resumes at the verb, the statement read as written; where it does not (`GOBACK` in `MOVE GOBACK TO
-W-X`, a prefix that stops at a token no statement is followed by) the word is the operand. A statement the sentence's end cuts short
-(`StatementReading.CutShort`: the verb and one token or more, then the period or a token a statement may be followed by, the next
+W-X`, a prefix that stops at a token no statement is followed by AND that the sentence itself needs: it reads whole with the statement's
+tokens taken as ONE operand, `MOVE X TO W-Y.`, `ADD X TO W-N.`) the word is the operand. A statement that stops before it is whole
+(`StatementReading.Faulted`: the verb and one token or more, then the period or a token a statement may be followed by, the next
 statement's verb, a scope terminator or a phrase of the enclosing statement: `MOVE W-X TO` then `ADD 1 TO.` or `ADD 1 TO DISPLAY W-Y.`,
-`DISPLAY W-Y UPON.`, `ADD 1 TO END-IF`, a statement with an operand missing of its own, reviews R1-1 and R2-1) is also the next statement, unless the word read as a user-defined
+`DISPLAY W-Y UPON.`, `ADD 1 TO END-IF`, a statement with an operand missing of its own, reviews R1-1 and R2-1; or a token no statement is followed by that
+no reading of the sentence has a place for, `ADD 1 FROM W-Y.`: `ADD 1` parses, FROM follows no statement and `MOVE W-X TO X FROM W-Y.` is refused,
+so the FROM is the ADD's own stray word, kb/Work PB4285 item 3 — `CobolParserCoreBase.SentenceReadsWithOneOperandFor`) is also the next statement, unless the word read as a user-defined
 word goes at least as far (`OffendingPosition.NameReach`, the tokens from the word on that the parse takes with an `IDENTIFIER` at it,
-against the tokens the statement reading took before it was refused): of two readings of the tokens, the one that goes further is the
+against the tokens the statement reading took before it stopped): of two readings of the tokens, the one that goes further is the
 one the report names (review R3-1), and on a tie the name reading is the one §8.3.2.1 1) forbids. So `DISPLAY RECEIVE W-X.` and `MOVE
 W-X TO MOVE W-Y.` are names (the name carries the sentence), `MOVE W-X TO RECEIVE W-Y` then `DISPLAY W-Z UPON.` too (the RECEIVE
 statement stops at the DISPLAY after two tokens, the name reading carries on to the fault in the sentence: COBOL0901, then that
@@ -1066,7 +1069,7 @@ reference formats, and the only place source comments are recognized. Its model:
   `IsFixedForm` and the per-segment re-join are deleted. The free-form 255-position limit (§6.1 3) a); COBOL2653) is
   asked in the free-form arm (`FreeFormConverter.Convert`) on the expanded line — never on a fixed-form line, which may run past
   margin R (§6.1 2) b)). Nothing after the stage has a tab or CR rule: the lexer's `WS` set is `[ \n]`, `TextWordScanner`
-  and `SeparatorRule` agree, and `PhysicalLinesDriftTests` fails if a pipeline stage spells `\t` or `\r`, if a
+  and `SeparatorRule` agree, and `PhysicalLinesDriftTests` fails if a pipeline stage (the `WiseOwl.Cobol.Editions` assembly's `CompilerDirectiveLine` among them: a lone trailing CR on a directive line is an ordinary character as on a source line, owner 2026-10-31, kb/Work PB4310) spells `\t` or `\r`, if a
   reference-format walker splits text itself, or if `PhysicalLines.Read` gains a second production caller.
   ⚠ The stage's scope estimate ("five consumers, one slot") held; what the estimate missed is that the lexer and the
   text-word scanner each carried a private copy of the tab and CR rules (nine lexer sites, `TextWord`, `SeparatorRule`,

@@ -475,19 +475,22 @@ public abstract class CobolParserCoreBase : Parser
     /// (<see cref="ReadStatementAt"/>).</summary>
     internal enum StatementReading
     {
-        /// <summary>No statement was written there: the token begins none, the grammar refuses the reading at the token
-        /// after the verb or mid-sentence, or only a PREFIX of it parses and the token after the prefix is one no
-        /// statement is followed by.</summary>
+        /// <summary>No statement was written there: the token begins none, or the reading stops at the very token after
+        /// the verb (<c>ADD TO W-X</c>, <c>GOBACK TO W-X</c>), which shows nothing was written beyond the word.</summary>
         None,
 
         /// <summary>A complete statement, followed by the period, a statement, a scope terminator or a phrase of the
         /// enclosing statement.</summary>
         Complete,
 
-        /// <summary>The verb and at least one more token, and the statement ends before it is whole, at the sentence's end or
-        /// at a token a statement may be followed by (the next statement's verb, a scope terminator): a statement written
-        /// with an operand missing (<c>ADD 1 TO.</c>, <c>DISPLAY W-Y UPON.</c>, <c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>).</summary>
-        CutShort,
+        /// <summary>The verb and at least one more token, and the statement stops before it is whole, wherever that is
+        /// (kb/Work PB4285 item 3): at the sentence's end or at a token a statement may be followed by (the next
+        /// statement's verb, a scope terminator), a statement written with an operand missing (<c>ADD 1 TO.</c>,
+        /// <c>DISPLAY W-Y UPON.</c>, <c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>); or at a token no statement is followed by,
+        /// whether the grammar refuses it there or the tokens before it already parse as a statement (<c>ADD 1 FROM W-Y.</c>:
+        /// <c>ADD 1</c> parses, and FROM follows no statement), a statement with a stray word of its own. How far it went
+        /// is the one measure the caller weighs, not where it stopped.</summary>
+        Faulted,
     }
 
     /// <summary>⛔ WHAT STATEMENT DOES THE WORD <paramref name="from"/> BEGIN, AS WRITTEN (kb/Work PB3248, PB4207;
@@ -495,30 +498,65 @@ public abstract class CobolParserCoreBase : Parser
     /// correctly begins the NEXT statement after an incomplete one (<c>MOVE W-X TO</c> then <c>RECEIVE FROM W-X GIVING W-Y
     /// W-N</c>): the syntax error falls AT the verb either way, and only the statement reading tells them apart. A COMPLETE
     /// reading (<see cref="ReadingParses(int, IToken?)"/>) is the next statement, read as written, and the error is the
-    /// missing receiver. A reading <see cref="StatementReading.CutShort"/> by the end of the sentence, or by a token a
-    /// statement may be followed by (the NEXT statement's verb or a scope terminator, review R2-1), is a statement with an
-    /// operand missing of its own (<c>ADD 1 TO.</c>, <c>ADD 1 TO DISPLAY W-Y.</c>): the caller weighs it against the word
-    /// read as a name, which a statement that merely lacks its tail does not exclude (<c>DISPLAY RECEIVE W-X.</c> is a
-    /// DISPLAY of two operands). A reading refused at the token after the verb (<c>ADD TO W-X</c> in <c>MOVE ADD TO
-    /// W-X.</c>), or at any token no statement is followed by, shows nothing was written beyond the word, and it stood for
-    /// the operand the report names. A statement that merely
-    /// parses as a PREFIX is not enough (review R2-1 of PB3248): GOBACK alone, or VALIDATE, RAISE and FREE with one
-    /// operand, parse in <c>MOVE GOBACK TO W-X</c> and <c>ADD VALIDATE W-N TO W-N</c>, and only the token after them (TO,
-    /// which no statement is ever followed by) shows the word was an operand. <paramref name="from"/> is the OFFENDING
+    /// missing receiver. A reading <see cref="StatementReading.Faulted"/> (the verb and one token or more, then the sentence's
+    /// end, a token a statement may be followed by, or a token no statement is followed by) is a statement with a fault
+    /// of its own (<c>ADD 1 TO.</c>, <c>ADD 1 TO DISPLAY W-Y.</c>, <c>ADD 1 FROM W-Y.</c>): the caller weighs it against the
+    /// word read as a name, which a statement that merely lacks its tail does not exclude (<c>DISPLAY RECEIVE W-X.</c> is a
+    /// DISPLAY of two operands) and which a statement that merely parses as a PREFIX does not either (review R2-1 of
+    /// PB3248): GOBACK alone, or VALIDATE, RAISE and FREE with one operand, parse in <c>MOVE GOBACK TO W-X</c> and
+    /// <c>ADD VALIDATE W-N TO W-N</c>, and it is the extent that shows the word was an operand there: the name reading takes
+    /// the whole sentence, the statement reading two tokens (kb/Work PB4285 item 3). A reading that stops at the very token
+    /// after the verb (<c>ADD TO W-X</c> in <c>MOVE ADD TO W-X.</c>) shows nothing was written beyond the word, and it stood
+    /// for the operand the report names. <paramref name="from"/> is the OFFENDING
     /// token, never the parser's lookahead: a failed prediction reports a token the parser has not reached
     /// (<c>MOVE CONTINUE TO W-X</c> fails at CONTINUE while the parser stands at MOVE). A token no statement begins with
     /// answers <see cref="StatementReading.None"/> without a parse. <paramref name="tokensTaken"/> is how far a
-    /// <see cref="StatementReading.CutShort"/> reading went (the verb and the tokens after it that it took, up to the one
-    /// it was refused at), the extent the caller weighs against the extent of the other reading of the word (review R3-1);
+    /// <see cref="StatementReading.Faulted"/> reading went (the verb and the tokens after it that it took, up to the one
+    /// it stopped at), the extent the caller weighs against the extent of the other reading of the word (review R3-1);
     /// 0 for every other answer. Read-only.</summary>
     internal StatementReading ReadStatementAt(IToken from, out int tokensTaken)
     {
         tokensTaken = 0;
         if (!StatementOpeners(Atn).Contains(from.Type)) return StatementReading.None;
-        if (ReadingParses(CobolParserCore.RULE_statement, from, out int endedAfter)) return StatementReading.Complete;
-        if (endedAfter < 2) return StatementReading.None;
-        tokensTaken = endedAfter;
-        return StatementReading.CutShort;
+        if (ReadingParses(CobolParserCore.RULE_statement, from, out int stoppedAfter, out bool stray)) return StatementReading.Complete;
+        if (stoppedAfter < 2) return StatementReading.None;
+        // A stop at a token no statement is followed by is evidence for the operand reading ONLY where that token is the
+        // sentence's own continuation (below); otherwise it is the statement's stray word.
+        if (stray && SentenceReadsWithOneOperandFor(from, stoppedAfter)) return StatementReading.None;
+        tokensTaken = stoppedAfter;
+        return StatementReading.Faulted;
+    }
+
+    /// <summary>⛔ DOES THE SENTENCE NEED THE TOKEN A STATEMENT READING STOPPED AT (kb/Work PB4285 item 3)? A statement
+    /// reading whose tokens parse as a prefix of a statement and stop at a token no statement is followed by shows the
+    /// statement's own fault only when that token belongs to nothing else the sentence writes. <c>MOVE FREE W-X TO W-Y.</c>:
+    /// <c>FREE W-X</c> is a statement, and TO is the MOVE's own phrase, so the sentence reads whole with the statement's
+    /// <paramref name="taken"/> tokens as ONE operand (<c>MOVE X TO W-Y.</c>): FREE is the operand that stood there
+    /// (review R2-1 of PB3248, and <c>ADD VALIDATE W-N TO W-N.</c>, <c>IF VALIDATE W-N = 1 …</c>). <c>MOVE W-X TO ADD 1 FROM
+    /// W-Y.</c>: no reading of the sentence has a place for the FROM — <c>MOVE W-X TO X FROM W-Y.</c> is refused — so the
+    /// stray word is the ADD statement's, and the ADD begins the next statement. A sentence the parse cannot place
+    /// (<paramref name="from"/> is outside any sentence) keeps the operand reading, the one this question was added to
+    /// narrow. Read-only.</summary>
+    private bool SentenceReadsWithOneOperandFor(IToken from, int taken)
+    {
+        IToken? first = null;
+        for (var ctx = Context; ctx is not null; ctx = ctx.Parent as ParserRuleContext)
+            if (ctx.RuleIndex == CobolParserCore.RULE_sentence) { first = ctx.Start; break; }
+        if (first is null || first.TokenIndex > from.TokenIndex) return true;
+        var span = new List<IToken>();
+        for (int i = first.TokenIndex; TokenStream.Get(i) is { } t && t.Type != TokenConstants.EOF; i++)
+        {
+            if (t.Channel != Lexer.DefaultTokenChannel) continue;
+            span.Add(new CommonToken(t));
+            if (t.Type == CobolLexer.DOT && i > from.TokenIndex) break;
+        }
+        // The copies keep the originals' stream indexes until the interpreter's stream renumbers them.
+        int at = span.FindIndex(t => t.TokenIndex == from.TokenIndex);
+        if (at < 0 || at + taken > span.Count) return true;
+        // the statement reading's tokens collapse to the one operand they may stand for
+        ((CommonToken)span[at]).Type = CobolLexer.IDENTIFIER;
+        span.RemoveRange(at + 1, taken - 1);
+        return Reading(span, CobolParserCore.RULE_sentence, out _) is { Next: TokenConstants.EOF };
     }
 
     /// <summary>⛔ THE TOKEN TYPES A <c>statement</c> CAN BEGIN WITH — THE VERBS — read off the generated ATN (kb/Work
@@ -549,32 +587,44 @@ public abstract class CobolParserCoreBase : Parser
     /// parse's stream, prediction and actions are untouched. The interpreter evaluates every semantic predicate as
     /// true, which only ever widens the reading — the authoritative parse that follows still applies them.
     /// Read-only.</summary>
-    private bool ReadingParses(int rule, IToken? from = null) => ReadingParses(rule, from, out _);
+    private bool ReadingParses(int rule, IToken? from = null) => ReadingParses(rule, from, out _, out _);
 
-    /// <summary><see cref="ReadingParses(int, IToken?)"/>, and where the speculative parse is refused ONLY BY WHAT FOLLOWS THE
-    /// RULE (the reading took every token written up to the end of the sentence, or up to a token the rule may be followed
-    /// by, the next statement's verb or a scope terminator, and wanted more), how many tokens from <paramref name="from"/> it
-    /// took (<paramref name="endedAfter"/>); -1 where it parsed, parsed only a prefix, or was refused at any other token.</summary>
-    private bool ReadingParses(int rule, IToken? from, out int endedAfter)
+    /// <summary><see cref="ReadingParses(int, IToken?)"/>, and where the reading does NOT parse completely, how many tokens
+    /// from <paramref name="from"/> it took before it stopped (<paramref name="stoppedAfter"/>): the refused token's
+    /// position when the grammar refuses the tokens there (at the end of the sentence or at any token), or the length of the
+    /// prefix that parsed when the token after it is one the rule is never followed by (<c>ADD 1</c> in <c>ADD 1 FROM
+    /// W-Y</c>, kb/Work PB4285 item 3); -1 where it parsed, or the refusal names no token. The caller judges what the extent
+    /// means (<see cref="ReadStatementAt"/>). <paramref name="stray"/> is true where it stopped at a token that follows
+    /// the rule nowhere in the grammar (not the end of the sentence, not a token of the rule's <see cref="FollowSet"/>).</summary>
+    private bool ReadingParses(int rule, IToken? from, out int stoppedAfter, out bool stray)
     {
-        endedAfter = -1;
+        stoppedAfter = -1;
+        stray = false;
         var tokens = new List<IToken>();
         for (int i = (from ?? TokenStream.LT(1)).TokenIndex; TokenStream.Get(i) is { } t && t.Type != TokenConstants.EOF && t.Type != CobolLexer.DOT; i++)
             if (t.Channel == Lexer.DefaultTokenChannel) tokens.Add(new CommonToken(t));
         if (Reading(tokens, rule, out var refusedAt) is { } reading)
-            return reading.Next == TokenConstants.EOF || FollowSet(Atn, rule).Contains(reading.Next);
+        {
+            if (reading.Next == TokenConstants.EOF || FollowSet(Atn, rule).Contains(reading.Next)) return true;
+            stoppedAfter = reading.Taken;
+            stray = true;
+            return false;
+        }
         // The token stream numbers the copies as it fetches them, so the refused token's index is its position.
-        if (refusedAt is { } at && (at.Type == TokenConstants.EOF || FollowSet(Atn, rule).Contains(at.Type)))
-            endedAfter = at.TokenIndex;
+        if (refusedAt is { } at)
+        {
+            stoppedAfter = at.TokenIndex;
+            stray = at.Type != TokenConstants.EOF && !FollowSet(Atn, rule).Contains(at.Type);
+        }
         return false;
     }
 
     /// <summary>A speculative parse of <paramref name="tokens"/> (copies, never the outer parse's own) as
-    /// <paramref name="rule"/> by a <see cref="ParserInterpreter"/> over this grammar's ATN: the tree and the type of the
-    /// token after it, or null where the tokens do not begin the rule (<paramref name="refusedAt"/> then the token the
+    /// <paramref name="rule"/> by a <see cref="ParserInterpreter"/> over this grammar's ATN: the tree, the type of the
+    /// token after it and how many tokens it took, or null where the tokens do not begin the rule (<paramref name="refusedAt"/> then the token the
     /// parse was refused at, when it names one). Every semantic predicate is evaluated as true, which only widens the
     /// reading. Read-only.</summary>
-    private (ParserRuleContext Tree, int Next)? Reading(IList<IToken> tokens, int rule, out IToken? refusedAt)
+    private (ParserRuleContext Tree, int Next, int Taken)? Reading(IList<IToken> tokens, int rule, out IToken? refusedAt)
     {
         refusedAt = null;
         var stream = new CommonTokenStream(new ListTokenSource(tokens));
@@ -586,7 +636,7 @@ public abstract class CobolParserCoreBase : Parser
         try
         {
             var tree = probe.Parse(rule);
-            return (tree, stream.LA(1));
+            return (tree, stream.LA(1), stream.Index);
         }
         catch (Antlr4.Runtime.Misc.ParseCanceledException refused)
         {

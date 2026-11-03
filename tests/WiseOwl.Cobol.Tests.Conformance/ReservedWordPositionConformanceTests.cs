@@ -513,6 +513,11 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "END-IF.", "ADD", "COBOL0306")]
     [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "ELSE DISPLAY W-Y.", "ADD", "COBOL5506: unexpected 'ELSE'")]
     [InlineData("PERFORM UNTIL W-N = 1 MOVE W-X TO", "ADD 1 TO", "END-PERFORM.", "ADD", "COBOL0001: unexpected 'END-PERFORM'")]
+    // A stray word of the statement's own: ADD 1 parses as a prefix and FROM follows no statement, and no reading of the sentence
+    // has a place for it (the MOVE's receiver list takes no FROM), so the ADD is a statement with a fault of its own, not the
+    // receiver (kb/Work PB4285 item 3). The same sentence with the stray word the MOVE itself prints (TO) is the operand rows above.
+    [InlineData("MOVE W-X TO", "ADD 1 FROM W-Y.", "DISPLAY W-Y.", "ADD", "COBOL2269: unexpected 'FROM'")]
+    [InlineData("MOVE W-X TO", "ADD 1 TO W-N FROM W-Y.", "DISPLAY W-Y.", "ADD", "COBOL2269: unexpected 'FROM'")]
     public void AReservedVerbBeginningAnIncompleteNextStatement_IsNotCalledAMisusedName(
         string incomplete, string statement, string after, string word, string secondFault)
     {
