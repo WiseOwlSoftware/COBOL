@@ -27,3 +27,17 @@ typo and stays. `DESIGN-external-repository.md` no longer says there is no repos
 
 **PB4185.** `repository_inputs()` and `generate()` in `conformance-suite/harness/generate.py` are annotated with `Problem`. The README half had landed
 with PB4455; the sweep found a stray duplicated fragment at the end of the `build` row of `DESIGN-conformance-suite.md`, removed.
+
+**Branch review round 1 (finding R1-1): a subclass's factory shared its base factory's file connector.** The reviewer showed that GR-11.3.4-2 was
+re-verdicted with "file-definition inheritance is not probed", and that 9.3.9 ("The subclass inherits all the file definitions in the same way as the data
+definitions"; "Each factory object has its own copy of inherited data, distinct from the copy belonging to a factory object of an inherited class") was
+violated for files: `BinderDriver.QualifyClassFiles` keyed a FACTORY file by a static literal (`Class::FACT::name`), and a subclass factory inherits the
+base factory's constructor, so its creation re-registered the SAME key and replaced the base's open connector (base OPEN 00, subclass OPEN 00 and a
+WRITE that answered 00 lost; the subclass's CLOSE 42). Re-probed on this build: it reproduced. Fix at the root: a non-EXTERNAL, non-SD factory file now
+takes the instance-file mechanism (a class-qualified base key plus a minted `__fkey_` field, one `FileModel.InstanceKeyField`, one `FileKeyExpr` funnel),
+so each factory object mints its own connector key; the same probe now answers base OPEN 00, subclass OPEN 61 (the plain-program two-FD answer), subclass
+WRITE 48, CLOSE 00 / 42. The sweep: the OBJECT half already minted per object; EXTERNAL files stay one connector per run unit (13.18.22.4 GR4a); an SD keeps
+its static key (its store is one SORT statement's in-memory buffer, never a host connector); every connector-key site reads `FileKeyExpr` (grep showed no
+other `CsLiteral(...CobolName)` consumer). New golden `pb1086_inherited_factory_file_is_distinct` (2002/2014/2023): two factories name different files
+through their own FNAME, both OPEN/WRITE/CLOSE answer 00 and each reads back its own record. GR-11.3.4-2's notes and witnesses were restated by a
+`record_verdicts` batch.
