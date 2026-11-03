@@ -488,23 +488,13 @@ public sealed class ExternalRepositoryExpansionTests
             Assert.True(Compile(dir, "LIBX", Box + Hold()).Success);
             Assert.True(Compile(dir, "CLIENT1", Client("CLIENT1")).Success);
             string file = Path.Combine(dir, "HOLD-BOX.dll");
-            byte[] bytes = File.ReadAllBytes(file);
-            var current = System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.Current);
-            var other = System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.OtherMajor);
-            Assert.Equal(current.Length, other.Length);
-            int replaced = 0;
-            for (int at = bytes.AsSpan().IndexOf(current); at >= 0; at = bytes.AsSpan().IndexOf(current))
-            {
-                other.CopyTo(bytes, at);
-                replaced++;
-            }
-            Assert.True(replaced > 0, "the expansion records its runtime version nowhere in UTF-8");
-            File.WriteAllBytes(file, bytes);
+            Assert.True(RuntimeVersionSkew.Patch(file, System.Text.Encoding.UTF8) > 0, "the expansion records its runtime version nowhere in UTF-8");
+            byte[] skewed = File.ReadAllBytes(file);
             var r = Compile(dir, "CLIENT2", Client("CLIENT2", 7));
             Assert.True(r.Success, Codes(r));
             string skew = Assert.Single(r.Warnings, w => w.Contains("COBOL5972"));
             Assert.Contains("is replaced", skew);
-            Assert.NotEqual(bytes, File.ReadAllBytes(file));
+            Assert.NotEqual(skewed, File.ReadAllBytes(file));
             var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT2.dll"), dir);
             Assert.True(exit == 0, stderr);
             Assert.Equal("BOX 007", stdout);

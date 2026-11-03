@@ -2282,7 +2282,7 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   repository search space (D1, §9.3: the output directory) and the run unit's application directory (§11.4), so no
   repository option is written per case; a step that needs one (`--repository-update off`; `--repository-check off` and a
   second directory with slice 7) takes it from `wiseowl/options/<id>.<step file>.json` (`repository-update` is
-  landed). An expected compile refusal of a step (REPO-1, REPO-9, …) is `wiseowl/diagnostics/`'s under the same file name:
+  landed; so is `std`, the edition that one unit compiles at, for a program of an older edition called through a newer one's prototype). An expected compile refusal of a step (REPO-1, REPO-9, …) is `wiseowl/diagnostics/`'s under the same file name:
   its first consumer is slice 7's first refusal case, and the key lands with it, as the readers of that directory take a
   test's own file today (kb/Work PB2103; one file per test, kb/Work PB4147).
   **Slice 5 lands the shape**, because its run-time cases are the first that need two separately compiled groups (a
@@ -2793,9 +2793,10 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    CONFORMANCE DOC-A.1-66/-67 and D-R3. `ResolveRepositorySpecifiers` is not a pass of its own (§12's row). Found on the
    way: nineteen corpus cases named a definition that FOLLOWS the paragraph, a contained program or nothing (SR14 / SR10),
    which the deleted state had let through; each now states its details (a prototype ahead, or the callee as a build step).
-   Not yet witnessed by a case: REPO-4, -5, -7 and -12 (they need a patched or older entry; the reader's typed outcomes are
-   pinned by `RepositoryReaderTests`), the cross-repository REPO-13 and word cases, and the pb1115 split; they are in the
-   PB2103 report's leads.
+   Witnessed after the landing (kb/Work PB4455, PB4460): REPO-4 (a damaged record and a damaged index), REPO-5, -7 and -12 are
+   `ExternalRepositoryResolutionTests` Facts over a same-length byte patch of a compiled library (`RuntimeVersionSkew.Patch`,
+   `RenameNamedArgument`, `RedirectRedefinition`, `BreakIndexRow`), and the cross-repository REPO-13, the word reaching a
+   later-compiled unit, the pb1115 split and an 85 program called through a prototype are `wiseowl/cases/12.3.8-REPOSITORY/pb2103_*`.
 8. **OO across assemblies, in two steps** (kb/Work PB2104): `Origin` (replacing `OoClassSymbol.IsStandard`),
    `IdentityScope`, class import, `ObjectRefDescriptor.Target` and the run-time description's class facts as
    externalized names (a call-ABI bump, §6.4), REPO-6 and REPO-11's class arms, `BackendOptions.RepositoryReferences`
