@@ -22,11 +22,12 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// <c>CommentEntryResolutionOrderDriftTests</c> keeps it there.</para>
 /// <para>A candidate that proves to be PROGRAM TEXT was hidden from exactly the stages that should have read it (its COPY and
 /// REPLACE statements, the replacing over its words, its directives), so the resolver does not leave it converted late: it
-/// NAMES it (<see cref="Resolution.ProgramText"/>) and <c>Frontend</c> runs the text stages again with the candidate read as
-/// the program text it is (<see cref="CommentEntryPins"/>), to a fixed point. What the resolver returns for a run that is
-/// about to be repeated is written the way the conversion would have written it only so that the cursor reads on through
-/// the candidate; the one case in which such a candidate stays late-converted in the answer is a library text that two COPY
-/// statements bring in and the two decide differently (<see cref="Resolve"/>).</para>
+/// NAMES the EARLIEST such candidate of the text (<see cref="Resolution.ProgramText"/>) and <c>Frontend</c> runs the text
+/// stages again with that candidate read as the program text it is (<see cref="CommentEntryPins"/>), to a fixed point. Only
+/// the earliest is named because only it was decided on a text no pin still to come can change: the candidates after it
+/// were decided with it hidden, and a COPY statement in its paragraph may bring in the IDENTIFICATION DIVISION a later one
+/// stands in (kb/Work PB4487). What the resolver returns for a run that is about to be repeated is written the way the
+/// conversion would have written it only so that the cursor reads on through the candidates.</para>
 /// <para>A text with no carrier passes through untouched, at the cost of one search.</para>
 /// </summary>
 internal static class CommentEntryResolver
@@ -39,17 +40,16 @@ internal static class CommentEntryResolver
         public List<CommentEntryCarrier.Carried> Lines { get; } = [];
     }
 
-    /// <summary>The decision: the text, and the candidates that proved to be program text.</summary>
+    /// <summary>The decision: the text, and the earliest candidate that proved to be program text.</summary>
     /// <param name="Text">The text with every carried candidate written as the conversion would have written it, had it known
     /// the division.</param>
-    /// <param name="ProgramText">The physical line (file, number) that opens each candidate that is program text in EVERY
-    /// inclusion of its library text: a line that two COPY statements bring in, one of which is a comment-entry, is not named,
-    /// because the two cannot share a pin. Empty when no candidate is — the fixed point <c>Frontend</c> iterates to.</param>
-    public readonly record struct Resolution(MappedText Text, IReadOnlyList<(string File, int Line)> ProgramText);
+    /// <param name="ProgramText">The line, in its inclusion, that opens the EARLIEST candidate of the text that is program text;
+    /// null when none is — the fixed point <c>Frontend</c> iterates to.</param>
+    public readonly record struct Resolution(MappedText Text, CommentEntryPin? ProgramText);
 
     /// <summary>Decide every carried candidate of <paramref name="text"/> and write it as the conversion would have, had it
     /// known the division: a comment-entry paragraph in an IDENTIFICATION DIVISION (the header, then its entry discarded),
-    /// program text elsewhere (converted so that the division is read on, and named in
+    /// program text elsewhere (converted so that the division is read on, and the earliest named in
     /// <see cref="Resolution.ProgramText"/>). The line count and every other line are untouched.</summary>
     /// <param name="words">The compilation group's <c>&gt;&gt;COBOL-WORDS</c> map (<see cref="CobolWordsMap.Empty"/> when
     /// there is none), through which the division words of the finished text are read.</param>
@@ -57,12 +57,12 @@ internal static class CommentEntryResolver
     /// through as every ordinary line does.</param>
     public static Resolution Resolve(MappedText text, CobolWordsMap words, ReferenceFormatDiagnostics? gates)
     {
-        if (!text.Text.Contains(CommentEntryCarrier.Prefix, StringComparison.Ordinal)) return new Resolution(text, []);
+        if (!text.Text.Contains(CommentEntryCarrier.Prefix, StringComparison.Ordinal)) return new Resolution(text, null);
         string[] lines = text.Text.Split('\n');
         var origins = (LineOrigin[])text.Lines.Clone();
         var cursor = new DivisionCursor(startsInIdentificationDivision: true, words);   // a source text begins in an IDENTIFICATION DIVISION
         Candidate? candidate = null;
-        var programText = new Dictionary<(string File, int Line), bool>();   // per header line: was every inclusion program text?
+        CommentEntryPin? programText = null;   // the earliest candidate that is program text
 
         void Finish()
         {
@@ -70,8 +70,9 @@ internal static class CommentEntryResolver
             string file = origins[candidate.Slots[0]].Origin.File;
             var (resolved, resolvedOrigins) = ReferenceFormatProcessor.ConvertCommentEntryCandidate(
                 candidate.Lines, file, candidate.InIdentificationDivision, gates);
-            var key = (file, candidate.Lines[0].Line.Number);
-            programText[key] = !candidate.InIdentificationDivision && programText.GetValueOrDefault(key, true);
+            // A converter pins the line that OPENS a paragraph, so only a candidate its header opens can be named.
+            if (!candidate.InIdentificationDivision && candidate.Lines[0].IsHeader)
+                programText ??= new CommentEntryPin(file, candidate.Lines[0].Inclusion, candidate.Lines[0].Line.Number);
             for (int k = 0; k < candidate.Slots.Count; k++)
             {
                 int slot = candidate.Slots[k];
@@ -110,7 +111,7 @@ internal static class CommentEntryResolver
         }
         Finish();
         return new Resolution(new MappedText(string.Join('\n', lines), origins),
-            [.. programText.Where(p => p.Value).Select(p => p.Key)]);
+            programText);
     }
 
     /// <summary>A line the division is not read from and that does not end a candidate: blank, or a fixed-form debugging

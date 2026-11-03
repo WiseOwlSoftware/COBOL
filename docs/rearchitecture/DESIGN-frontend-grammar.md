@@ -1185,7 +1185,13 @@ reference formats, and the only place source comments are recognized. Its model:
   program-text case: a candidate that is program text was hidden from the stages that must read it (its COPY and REPLACE
   statements, the replacing over its words, its directives), so `Frontend.RunTextStages` runs the normalizer and
   `Preprocess` again with that candidate's physical line pinned as program text (`CommentEntryPins`, read by the two
-  converters where the division is not known) until a run names no new one. The COPY driver's
+  converters where the division is not known) until a run names none. A run pins ONE candidate, the EARLIEST of the
+  finished text that is program text (kb/Work PB4487): reading it changes only the text after it, so it is settled,
+  while the candidates after it were decided with it hidden (its COPY may bring in the IDENTIFICATION DIVISION a later one
+  stands in) and are decided again by the next run. A pin names the candidate's line in its INCLUSION
+  (`CommentEntryPin`: file, inclusion, line; the source text is inclusion 0 and the COPY driver numbers each library text
+  it normalizes 1, 2, … in text order, the number travelling in the carrier), so a library text two COPY statements bring
+  in is decided per inclusion. The COPY driver's
   cursor reads the text the conditional-compilation stage has already cut and hands a COPY's library text the division it
   finds, or NOT KNOWN. The cursor belongs to a TEXT, not to a block the
   merged driver flushes between directive lines; a spliced library
