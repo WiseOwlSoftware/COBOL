@@ -15,4 +15,4 @@ ran clean.
 
 Found while writing the minimal repros for the upstream records PB4499-PB4501.
 
-The branch review (round 1) found the refusal too narrow: `-o /dev/null` on Linux, or a directory the user may not write, still threw from the `.g.cs` write. The write phase is now one method, and an `IOException` or `UnauthorizedAccessException` from it is `OutputNotWritable` with the host's message, exit 73.
+The branch review (round 1) found the refusal too narrow: `-o /dev/null` on Linux, or a directory the user may not write, still threw from the `.g.cs` write. The write phase is now one guarded block, and an `IOException` or `UnauthorizedAccessException` from it is `OutputNotWritable` with the host's message, exit 73. Round 2 found the expansion arm still reported as a backend error: an expansion's nested compilation now hands its outcome back (`ExpansionAssemblies.Written.Failure`), and the refusal keeps the warnings and files the phase had gathered.

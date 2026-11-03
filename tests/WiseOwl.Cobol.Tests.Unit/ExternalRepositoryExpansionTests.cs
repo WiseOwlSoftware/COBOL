@@ -189,6 +189,24 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    /// <summary>kb/Work PB4502 review R2-1: the expansion's own assembly is written by a nested compilation, and a write the host
+    /// refuses there (a directory standing where its `.g.cs` goes) is the group's OutputNotWritable, exit 73, never a BackendError
+    /// (exit 70, Roslyn refusing generated C#). Nothing of the group's own module is written.</summary>
+    [Fact]
+    public void AnExpansionAssemblyTheHostRefuses_IsOutputNotWritable_NotABackendError()
+    {
+        WithDirectory("expansion-refused", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold()).Success);
+            Directory.CreateDirectory(Path.Combine(dir, "HOLD-BOX.g.cs"));
+            var r = Compile(dir, "CLIENT1", Client("CLIENT1"));
+            Assert.Equal(CompilerDriver.Outcome.OutputNotWritable, r.Status);
+            Assert.Contains(r.Errors, e => e.Contains("cannot write the output of", StringComparison.Ordinal)
+                && e.Contains("HOLD-BOX", StringComparison.Ordinal));
+            Assert.False(File.Exists(Path.Combine(dir, "CLIENT1.dll")));
+        });
+    }
+
     [Fact]   // §9.3.12: a second group expanding the same triple imports the first's class — one file, written once, one class.
     public void ASecondGroupExpandingTheSameTriple_ImportsTheExistingExpansion_AndDoesNotRewriteIt()
     {

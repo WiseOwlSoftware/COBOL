@@ -25,11 +25,15 @@ namespace WiseOwl.Cobol;
 internal static class ExpansionAssemblies
 {
     /// <summary>What <see cref="Write"/> produced: the files written, and either the errors of the compilation that failed (with the
-    /// generated C# of that compilation, null when it reached none) or none, with the warnings of every compilation that ran.</summary>
-    public sealed record Written(IReadOnlyList<string> Files, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings, string? GeneratedCsPath);
+    /// generated C# of that compilation, null when it reached none, and <paramref name="Failure"/>, the outcome that compilation
+    /// reached, which the group's result takes as its own: an expansion whose assembly the host refuses is OutputNotWritable, not a
+    /// backend error; kb/Work PB4502 review R2-1) or none (<paramref name="Failure"/> is then Success), with the warnings of every
+    /// compilation that ran.</summary>
+    public sealed record Written(IReadOnlyList<string> Files, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings, string? GeneratedCsPath,
+        CompilerDriver.Outcome Failure);
 
     /// <summary>Compile every expansion <paramref name="expansions"/> places in an assembly of its own, dependency order, and return the files
-    /// written; the first failure stops the run and is returned as the group's backend error, with the generated C# of the compilation that
+    /// written; the first failure stops the run and is returned as the group's result, under the outcome that compilation reached (`Written.Failure`), with the generated C# of the compilation that
     /// failed. Every diagnostic of such a compilation, error or warning, is reported where the expansion was asked for — the EXPANDS entry's
     /// file, line and column (<see cref="AtTheEntry"/>), the position the group's own bind gives the text of an expansion of a skeleton it read
     /// from the repository (<c>OoExpansion.SubstitutedTokens</c>) — and never at the throw-away file its text was compiled from, which is gone
@@ -62,7 +66,7 @@ internal static class ExpansionAssemblies
                 edition.WithdrawWarningsOf(region);   // this compilation has now reported the text's warnings: the group's bind of it does not report them again
                 if (!result.Success)
                     return new(files, [$"the expansion assembly '{target}' (ISO §9.3.12; DESIGN-external-repository §10.5):",
-                        .. result.Errors.Select(e => AtTheEntry(e, temp, name, requestedAt))], warnings, result.GeneratedCsPath);
+                        .. result.Errors.Select(e => AtTheEntry(e, temp, name, requestedAt))], warnings, result.GeneratedCsPath, result.Status);
                 files.AddRange(result.OutputFiles);
                 references.Add(target);
             }
@@ -71,7 +75,7 @@ internal static class ExpansionAssemblies
                 File.Delete(temp);
             }
         }
-        return new(files, [], warnings, null);
+        return new(files, [], warnings, null, CompilerDriver.Outcome.Success);
     }
 
     /// <summary>A diagnostic line of the compilation of the text of expansion <paramref name="expansion"/>, reported where the expansion

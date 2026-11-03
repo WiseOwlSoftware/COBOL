@@ -260,43 +260,40 @@ public static class CompilerDriver
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         // Placement (a): an expansion whose code names nothing of this group is compiled apart, into an assembly of its own that the
         // group then names a type of (DESIGN-external-repository §10.5) — so it is written BEFORE the group's module, which references it.
-        // kb/Work PB4502 review R1-1: the write phase is where the file system answers. An output the host refuses (`-o /dev/null`
-        // on Linux, whose `.g.cs` sibling cannot be created; a directory the user may not write) is a fault of the command
-        // line, OutputNotWritable with the host's own words, never an unhandled exception. Only the two exception types
-        // the file system raises are taken; anything else is the compiler's own failure and still propagates.
+        // kb/Work PB4502 review R1-1, R2-1, R2-2: the write phase is where the file system answers. An output the host refuses
+        // (`-o /dev/null` on Linux, whose `.g.cs` sibling cannot be created; a directory the user may not write) is a fault of
+        // the command line, OutputNotWritable with the host's own words, never an unhandled exception. Only the two exception
+        // types the file system raises are taken; anything else is the compiler's own failure and still propagates. An
+        // expansion's own assembly is written by a nested Compile, which answers the same way: its Outcome travels back in
+        // Written.Failure, so a refused write there is OutputNotWritable too and never a BackendError. What the phase gathered
+        // before the host refused (the expansions' warnings, which the group's report has withdrawn, and the files already
+        // written) stays in the result.
+        ExpansionAssemblies.Written? expansion = null;
         try
         {
-            return WriteOutputs(options, bound, backend, edition, outputDll, feWarnings, inputs, diagnostics);
+            expansion = ExpansionAssemblies.Write(bound.Expansions, options, edition);
+            string[] warnings = [.. feWarnings, .. edition.Warnings, .. expansion.Warnings];
+            if (expansion.Errors.Count > 0)
+                return new Result(expansion.Failure, outputDll, expansion.GeneratedCsPath, expansion.Errors, warnings)
+                    { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files };
+            var artifact = backend.Emit(bound, new BackendOptions(
+                outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
+                RepositoryUpdate: options.RepositoryUpdate,
+                RepositoryReferences: [.. bound.OoClasses.ImportedAssemblies, .. bound.Expansions.ReferencedAssemblies]));
+            if (!artifact.Success)
+                return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
+                    artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)
+                    { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles] };
+
+            return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [], warnings)
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles], Library = artifact.Library };
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             return new Result(Outcome.OutputNotWritable, outputDll, null,
-                [$"cannot write the output of '{outputDll}': {e.Message}"], [.. feWarnings, .. edition.Warnings])
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
+                [$"cannot write the output of '{outputDll}': {e.Message}"],
+                [.. feWarnings, .. edition.Warnings, .. expansion?.Warnings ?? []])
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion?.Files ?? [] };
         }
-    }
-
-    /// <summary>The write phase of <see cref="Compile"/>: each expansion's own assembly, then the group's module through the
-    /// backend. Every file this compilation creates is created here, so <see cref="Compile"/>'s one handler covers them all.</summary>
-    private static Result WriteOutputs(Options options, Binding.Model.BoundCompilation bound, ICodeGenBackend backend,
-        Binding.EditionContext edition, string outputDll, IReadOnlyList<string> feWarnings, Frontend.CompilationInputs inputs,
-        DiagnosticBag diagnostics)
-    {
-        var expansion = ExpansionAssemblies.Write(bound.Expansions, options, edition);
-        string[] warnings = [.. feWarnings, .. edition.Warnings, .. expansion.Warnings];
-        if (expansion.Errors.Count > 0)
-            return new Result(Outcome.BackendError, outputDll, expansion.GeneratedCsPath, expansion.Errors, warnings)
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files };
-        var artifact = backend.Emit(bound, new BackendOptions(
-            outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
-            RepositoryUpdate: options.RepositoryUpdate,
-            RepositoryReferences: [.. bound.OoClasses.ImportedAssemblies, .. bound.Expansions.ReferencedAssemblies]));
-        if (!artifact.Success)
-            return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
-                artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles] };
-
-        return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [], warnings)
-            { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles], Library = artifact.Library };
     }
 }
