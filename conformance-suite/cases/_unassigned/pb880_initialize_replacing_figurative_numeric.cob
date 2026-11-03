@@ -27,6 +27,7 @@
           05 A2 PIC X(3) VALUE "XYZ".
        01 N3 PIC 9(3) VALUE 456.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            INITIALIZE G REPLACING NUMERIC DATA BY ALL "X"
            DISPLAY "N2=[" N2 "] A2=[" A2 "]"
            MOVE ALL "X" TO N3

@@ -34,6 +34,7 @@
        01 M02 PIC ZZ.ZZZ.ZZZ,99.
        01 M03 PIC 99,99.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 1234567,89 TO M01
            MOVE 1234,5 TO M02
            MOVE 12,34 TO M03

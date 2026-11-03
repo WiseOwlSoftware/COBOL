@@ -37,20 +37,20 @@ public sealed class CapacityRegisterReferenceDriftTests
     private static readonly string SymbolTablePath =
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "SymbolTable.cs");
 
-    /// <summary>⛔ ONE lookup path. The register name tables are <c>DataBinder.CapacityRegisters</c> (the unit's) and
+    /// <summary>⛔ ONE lookup path. The register name tables are <c>ForestSlice.CapacityRegisters</c> (the unit's) and
     /// <c>OoMethodDataScope.CapacityRegisters</c> (a method's own, kb/Work PB3165). Only
     /// <c>SymbolTable.CapacityCandidates</c> — the one scope-aware name resolver, where §11.7.4 GR5's
     /// method-over-object visibility is applied — reads a name in them
     /// (<see cref="TheOneLookup_HoldsEveryRead_AndHasOneCaller"/>). A reader in any file other than
-    /// <c>DataBinder.Odo.cs</c> (the maps' owner: the SR30 duplicate-name screen and the one insert) and
+    /// <c>ForestSlice.cs</c> (the maps' owner: the one insert) and
     /// <c>SymbolTable.cs</c> — the codegen profile emitter enumerates the VALUES, never a name — is the two-arm
     /// dispatch this rule already produced once.</summary>
     [Fact]
     public void TheCapacityRegisterNameLookup_IsWrittenInExactlyOnePlace()
     {
-        // DataBinder.Odo.cs owns the maps (the SR30 duplicate-name screen + the insert); SymbolTable.cs is the ONE
-        // reader that answers a name with them; the SHADOWING predicates only ask whether the word is declared.
-        string[] expected = ["DataBinder.Odo.cs", "SymbolTable.cs", .. ShadowingPredicates.Select(static p => p.File)];
+        // ForestSlice.cs owns the maps (the insert); SymbolTable.cs is the ONE reader that answers a name with them; the
+        // SHADOWING predicates only ask whether the word is declared.
+        string[] expected = ["ForestSlice.cs", "SymbolTable.cs", .. ShadowingPredicates.Select(static p => p.File)];
         var unexpected = SrcScan.Value.Sites
             .Where(s => !expected.Any(e => s.StartsWith(e + ":", StringComparison.Ordinal))).ToList();
         Assert.True(unexpected.Count == 0,
@@ -65,8 +65,8 @@ public sealed class CapacityRegisterReferenceDriftTests
     /// reference. Their files may read a register map only inside them.</summary>
     private static readonly (string File, string Method, string Path)[] ShadowingPredicates =
     [
-        ("DataBinder.Constants.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs")),
-        ("DataBinder.Oo.cs", "Declares", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Oo.cs")),
+        ("DataBinder.NonDataNames.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs")),
+        ("OoMethodDataScope.cs", "Declares", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoMethodDataScope.cs")),
     ];
 
     /// <summary>⛔ A shadowing predicate's file reads a register map ONLY inside the predicate, so a reference lookup
@@ -131,8 +131,8 @@ public sealed class CapacityRegisterReferenceDriftTests
 
     private static bool IsNameLookup(string line) =>
         line.Contains("CapacityRegisters", StringComparison.OrdinalIgnoreCase)
-        && (Regex.IsMatch(line, @"CapacityRegisters\s*\.\s*(TryGetValue|ContainsKey)\b", RegexOptions.IgnoreCase)
-            || Regex.IsMatch(line, @"CapacityRegisters\s*\[", RegexOptions.IgnoreCase));
+        && (Regex.IsMatch(line, @"CapacityRegisters\w*\s*\.\s*(TryGetValue|ContainsKey)\b", RegexOptions.IgnoreCase)
+            || Regex.IsMatch(line, @"CapacityRegisters\w*\s*\[", RegexOptions.IgnoreCase));
 
     /// <summary>⛔ The hook judges the WRITTEN reference, never the parse shape. A read of
     /// <c>dataReferenceSuffix()</c> back in <c>CapacityRegisterFor</c> (the old façade <c>HasNoSuffix</c> test,
@@ -176,9 +176,9 @@ public sealed class CapacityRegisterReferenceDriftTests
     [Fact]
     public void TheCapacityRegister_IsMintedWithItsSr30Parent()
     {
-        string odo = File.ReadAllText(OdoBinderPath);
+        string odo = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Passes", "DynamicResolvePass.cs"));
         var mint = Regex.Match(odo, @"var reg = new DataItem\s*\{(?<body>.*?)\};", RegexOptions.Singleline);
-        Assert.True(mint.Success, "The CAPACITY register minting site was not found in DataBinder.Odo.cs");
+        Assert.True(mint.Success, "The CAPACITY register minting site was not found in DynamicResolvePass.cs");
         Assert.Contains("Parent = item.Parent,", mint.Groups["body"].Value, StringComparison.Ordinal);
     }
 

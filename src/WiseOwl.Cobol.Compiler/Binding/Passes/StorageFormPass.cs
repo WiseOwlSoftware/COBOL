@@ -58,7 +58,7 @@ internal static class StorageFormPass
         foreach (var d in ctx.AllBindersAndInterfaces())
             promoted.UnionWith(d.State.ImageForcedItems);
         foreach (var d in ctx.AllBindersAndInterfaces())
-            foreach (var (temp, model) in d.CompilerTempClones)
+            foreach (var (temp, model) in d.Temps.Clones)
                 if (promoted.Contains(model))
                     promoted.Add(temp);
         foreach (var d in ctx.AllBindersAndInterfaces())
@@ -85,12 +85,12 @@ internal static class StorageFormPass
         //     class member is NOT excluded (kb/Work PB3563): InitialStateBackground.Seed seeds a class member's
         //     image, so the promotion must give the leaf image storage as arms (3) and (4) do.
         foreach (var d in ctx.AllBindersAndInterfaces())
-            if (d.Options.Initialize is { HasFill: true } init)
+            if (d.State.Configuration.Options.Initialize is { HasFill: true } init)
             {
-                foreach (var root in d.WorkingStorageRoots)
+                foreach (var root in d.State.Forest.WorkingStorageRoots)
                     if (init.Governs(root, workingStorageRoot: true, localStorageRoot: false))
                         AddBackgroundFilled(root, promoted);
-                foreach (var root in d.LocalStorageRoots)
+                foreach (var root in d.State.Forest.LocalStorageRoots)
                     if (init.Governs(root, workingStorageRoot: false, localStorageRoot: true))
                         AddBackgroundFilled(root, promoted);
             }
@@ -100,9 +100,9 @@ internal static class StorageFormPass
         //      The method's EFFECTIVE clause is the one the emitter seeds with (OoEmitter: MethodOptions, else the
         //      unit's), so the promotion decision and the seed read the same clause.
         foreach (var d in ctx.AllBindersAndInterfaces())
-            foreach (var root in d.OoMethodScopedRoots)
-                if (root.RootSection == EntrySection.LocalStorage && d.OoRootOwner.TryGetValue(root, out var method)
-                    && (method.MethodOptions ?? d.Options).Initialize is { HasFill: true } methodInit
+            foreach (var root in d.Oo.MethodScopedRoots)
+                if (root.RootSection == EntrySection.LocalStorage && d.Oo.RootOwner.TryGetValue(root, out var method)
+                    && (method.MethodOptions ?? d.State.Configuration.Options).Initialize is { HasFill: true } methodInit
                     && methodInit.Governs(root, workingStorageRoot: false, localStorageRoot: true))
                     AddBackgroundFilled(root, promoted);
         // (6) THE TIER-A ALIAS CLOSURE (review round 1, R1-1 of PB4089): a Tier-A REDEFINES alias owns no storage of
@@ -261,10 +261,10 @@ internal static class StorageFormPass
     private static void Compute(DataBinder data, HashSet<DataItem> promoted)
     {
         var visited = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        foreach (var root in data.Roots) Walk(root, visited, promoted);
+        foreach (var root in data.State.Forest.Roots) Walk(root, visited, promoted);
         // Report print items are synthetic DataItems OFF Roots (they carry image promotions too — a Roots-only
         // walk would miss them, a parity trap).
-        foreach (var report in data.Reports.Declared)
+        foreach (var report in data.State.Reports.Declared)
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)
@@ -276,7 +276,7 @@ internal static class StorageFormPass
         // engine's integer register cannot hold one, so the procedure division sees the counter as its character
         // image (CobolReport.SumImage / SetSumImage) and every consumer reads it as any image-carried numeric item —
         // §14.6.13.2 rule 2's checked decode, the class condition's image test, a figurative fill's plain store.
-        foreach (var report in data.Reports.Declared)
+        foreach (var report in data.State.Reports.Declared)
             foreach (var family in report.SumFamilies)
                 family.Register.Storage = new StorageForm.CharImage(family.Register.ImageWidth, PicCategory.Numeric);
     }
@@ -419,8 +419,8 @@ internal static class StorageFormPass
             //  duplicate copy is deleted; RecordLayout is the single width/offset authority.)
             foreach (var c in item.Children) Check(c);
         }
-        foreach (var root in data.Roots) Check(root);
-        foreach (var report in data.Reports.Declared)
+        foreach (var root in data.State.Forest.Roots) Check(root);
+        foreach (var report in data.State.Reports.Declared)
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)

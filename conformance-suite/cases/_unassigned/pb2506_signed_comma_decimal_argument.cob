@@ -33,6 +33,7 @@
        01 E PIC -9,9.
        01 N PIC 9.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE FUNCTION MIN(-1,5 2) TO E
            DISPLAY E
            MOVE FUNCTION MAX(2 -1,5) TO E

@@ -37,6 +37,7 @@
        01 W2 REDEFINES W PIC XX.
        01 W3 REDEFINES W PIC X.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "L1=" B1 " " B2
            IF AX
               DISPLAY "L2=" C " yes"

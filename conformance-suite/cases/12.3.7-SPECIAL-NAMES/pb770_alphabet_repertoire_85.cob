@@ -30,6 +30,7 @@
        01 C-ZERO     PIC X VALUE "0".
        01 C-A        PIC X VALUE "A".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            IF C-ZERO < C-PLUS
                DISPLAY "ORDER=REVERSED"
            ELSE

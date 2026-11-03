@@ -35,6 +35,7 @@
        01 N5 PIC S9(3) VALUE -5.
        01 N5X REDEFINES N5 PIC X(3).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            INSPECT N1 REPLACING ALL "5" BY "0"
            DISPLAY "S1=" N1
            INSPECT N2 REPLACING ALL "5" BY "0"

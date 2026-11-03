@@ -691,7 +691,7 @@ public static class DiagnosticCatalog
         "ISO §13.18.38.3 SR29");
 
     /// <summary>COBOL2646 — a table is nested under seven others, so a reference to it would need eight
-    /// subscripts (kb/Work PB1260). <c>DataBinder.OdoResolve</c> is its only reporter.</summary>
+    /// subscripts (kb/Work PB1260). <c>OdoResolvePass</c> is its only reporter.</summary>
     public static readonly DiagnosticDescriptor TableNestingTooDeep = new(
         "COBOL2646", "table-nesting-too-deep", EditionSeverity.Error,
         "An OCCURS entry is subordinate to seven other OCCURS entries, so a reference to it requires eight subscripts. "
@@ -983,7 +983,7 @@ public static class DiagnosticCatalog
     // kb/Work PB666: the APPLY COMMIT antecedent family had no code anywhere — its rows were CONFORMS "witnessed by the
     // refusal of the antecedent" (the since-retired COBOL1709 refusing APPLY COMMIT, kb/Work PB371), which was
     // PermissiveInert, so under --permissive every forbidden shape compiled with zero errors.
-    // DataBinder.ScreenApplyCommitSubject is the ONE report.
+    // FileControlBinder.ScreenApplyCommitSubject is the ONE report.
     public static readonly DiagnosticDescriptor ApplyCommitSubjectRule = new(
         "COBOL2974", "apply-commit-subject-rule", EditionSeverity.Error,
         "A clause or statement that a syntax rule forbids for a file subject to an I-O-CONTROL APPLY COMMIT clause is "
@@ -1456,7 +1456,7 @@ public static class DiagnosticCatalog
     // shape this descriptor was written for is LIVE: the category and the national-edited form (PB492), the
     // byte surfaces (PB231 + PB327), the SORT/MERGE keys (PB678), and — with PB646 — §13.18.60.3 SR12's
     // national-form numeric, numeric-edited and boolean. ONE caller remains,
-    // DataBinder.GateFileRecordByteSurface, and its residue clause now names only what
+    // GateFileRecordByteSurfacePass, and its residue clause now names only what
     // DataBinder.ByteWindowResidueOf still refuses: a leaf with no bound representation (the staged §13.18.60
     // USAGE band — USAGE FUNCTION-POINTER / MESSAGE-TAG, which gain no PicInfo at all). The id stays
     // "national-data" because it is a PUBLISHED diagnostic key; the TEXT says what it reports.
@@ -1848,7 +1848,7 @@ public static class DiagnosticCatalog
         + "a variable-length group.\" (A variable-length group is §8.5.1.12.1's — a group with a dynamic-length "
         + "elementary item or a dynamic-capacity table subordinate to it.)",
         "ISO §13.18.63.3 SR1");
-    // ── The FORMAT 2 (table) VALUE GEOMETRY band (kb/Work PB505; DataBinder.ResolveTableValues). SR18, SR20's
+    // ── The FORMAT 2 (table) VALUE GEOMETRY band (kb/Work PB505; ResolveTableValuesPass). SR18, SR20's
     //    and SR21's count sentences, and SR23 had NO site at all: one staged "not implemented" refusal stood in
     //    for the whole population, so the shapes SR18 expressly PERMITS were rejected alongside the ones SR20/
     //    SR22/SR23 forbid, and a user reading the diagnostic was told the compiler was incomplete rather than
@@ -2600,7 +2600,7 @@ public static class DiagnosticCatalog
     // as partial-words explicitly. Emitted by CopyProcessor.ApplyReplaceStatements via the same
     // NoteNonPseudoText hook the COPY gate rides — one detector, two rules, each cited at its own site.
     // §12.3.3 SR1 — a contained program has NO configuration section of its own: the container's applies to it
-    // (§12.3.4 GR1), which is why DataBinder.InheritConfiguration copies the whole configuration-derived state
+    // (§12.3.4 GR1), which is why ConfigurationStep.Produce copies the whole configuration-derived state
     // into every containee before it binds (kb/Work PB60 / AR-15.67.3-5 — a contained program under
     // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0 and NUMVAL("123.45") as 123.45).
     // §15.68.3 r3 — NUMVAL-C / TEST-NUMVAL-C without argument-2 in a unit whose SPECIAL-NAMES paragraph specifies
@@ -4073,7 +4073,7 @@ public static class DiagnosticCatalog
         "ISO §13.4.5.3 SR7 / §13.4.6.3 SR2");
 
     /// <summary>COBOL3983 — the READ half of the record-less entry's verb rules (kb/Work PB694). The implied record
-    /// <c>DataBinder.MaterializeImpliedRecord</c> builds has no record-name, so a READ without INTO would fill an
+    /// <c>FileControlBinder.MaterializeImpliedRecord</c> builds has no record-name, so a READ without INTO would fill an
     /// area the program can never name; the standard gives that READ no meaning, because §14.9.30.4 GR6 defines the
     /// implied record only for the INTO form. SR3 b), the WRITE/REWRITE half, needs no code of its own: the
     /// record-name-1 alternative cannot name a record-less file (§14.9.51.3 SR5, §14.9.35.3 SR1), and the
@@ -4133,7 +4133,7 @@ public static class DiagnosticCatalog
     /// the SAME OCCURS ban in the same words, which is why they share one code: a rule set with one member written
     /// down is where the missing members hide (kb/Work PB354).
     /// <para>⛔ THE KEY-CLAUSE ARM IS ONE TABLE, <c>FileControlKeyRules</c>, run from
-    /// <c>DataBinder.ResolveFiles</c> over EVERY declared file. It used to run from <c>KeyedIoBinder</c> on the
+    /// <c>FileControlBinder.ResolveFiles</c> over EVERY declared file. It used to run from <c>KeyedIoBinder</c> on the
     /// first keyed VERB naming the file, so these entry rules were silent for a file the program only OPENed and
     /// CLOSEd (kb/Work PB699). Two citations were repaired in the same move: the required-clause rule is
     /// §12.4.5.2 SR10, not §12.4.5.13 (which has no syntax rules at all — they live in §12.4.5.13.3), and the
@@ -4921,7 +4921,7 @@ public static class DiagnosticCatalog
     // ⛔ TWO CODES, BECAUSE THE TWO KINDS OF VIOLATION HAVE DIFFERENT SUBJECTS AND DIFFERENT REMEDIES. SR5 and
     // SR9 are about the CLAUSE's own pair of integers and are repaired by editing the clause; SR3 and SR4 are
     // about a RECORD DESCRIPTION ENTRY disagreeing with the clause and may be repaired at either end. Both arms
-    // are rows of ONE table, `Binding.RecordClauseRules`, run from `DataBinder.ResolveFiles` (kb/Work PB721).
+    // are rows of ONE table, `Binding.RecordClauseRules`, run from `FileControlBinder.ResolveFiles` (kb/Work PB721).
 
     /// <summary>COBOL2009 — the RECORD clause's own integer pair is inconsistent: ISO §13.18.43.3 SR5
     /// ("Integer-3 shall be greater than integer-2") for Format 2, SR9 ("Integer-5 shall be greater than
@@ -6202,7 +6202,7 @@ public static class DiagnosticCatalog
     /// the clause is illegal on it at every edition (the rule is 85-era and unchanged in all four).
     /// <para>This is §13.16.3 SR8's CONVERSE, and the two together are the whole picture-PLACEMENT rule:
     /// COBOL0881 says "elementary ⇒ has a PICTURE", this says "has a PICTURE ⇒ elementary". Both are
-    /// screened by one pass over the finished forest (<c>DataBinder.CheckPictureRequired</c>), because neither
+    /// screened by one pass over the finished forest (<c>CheckPictureRequiredPass</c>), because neither
     /// question can be asked at entry bind — the subordinate entries are not parsed yet.</para>
     /// <para>It had no screen at all, and the shape it admits has NO REPRESENTATION in the bound data model:
     /// <c>DataItem.IsElementary</c> is <c>Pic is not null</c> and <c>IsGroup</c> is <c>Pic is null &amp;&amp;
@@ -7052,7 +7052,7 @@ public static class DiagnosticCatalog
     /// (kb/Work PB1080). None was screened: an OCCURS item compiled and died at OPEN, a PIC 99 item crashed the C#
     /// backend, a BASED item died EC-DATA-PTR-NULL at OPEN, and a one-, three-character, national, FD-record,
     /// dynamic-length or variable-length item ran with a truncated, padded or wrong-category status. The site names
-    /// the rule it caught; <c>DataBinder.ScreenFileStatusItem</c> is the one screen.</summary>
+    /// the rule it caught; <c>FileControlBinder.ScreenFileStatusItem</c> is the one screen.</summary>
     public static readonly DiagnosticDescriptor FileStatusItemRule = new(
         "COBOL2455", "file-status-item-rule", EditionSeverity.Error,
         "The FILE STATUS clause's data-name-1 breaks one of the clause's syntax rules (ISO §12.4.5.8.3): SR1 — it "
@@ -7081,7 +7081,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2560 — the subject of a BASED entry is a dynamic-length elementary item or a variable-length
     /// group (kb/Work PB1213). The twin of COBOL1797 (SR1, class object); the shape is asked through
     /// <c>VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup</c>, the one screen of that pair, and
-    /// never through the BASED cell's carriage gates. <c>DataBinder.CheckUsageDeclarations</c> is the one site.</summary>
+    /// never through the BASED cell's carriage gates. <c>CheckUsageDeclarationsPass</c> is the one site.</summary>
     public static readonly DiagnosticDescriptor BasedSubjectVariableLength = new(
         "COBOL2560", "based-subject-variable-length", EditionSeverity.Error,
         "ISO §13.18.5.3 syntax rule 2: \"The subject of the entry shall not be a dynamic-length elementary item or "
@@ -7091,7 +7091,7 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL2561 — an item within a level-66 RENAMES range has a shape §13.18.45.3 SR8 bars (kb/Work
     /// PB1284). The range is enumerated over the declaration tree (§13.18.45.4 GR1/GR2) by
-    /// <c>DataBinder.RenamesRangeFault</c>; the strongly-typed arms of the same rule are COBOL1532's.</summary>
+    /// <c>ResolveRedefinesPass.RenamesRangeFault</c>; the strongly-typed arms of the same rule are COBOL1532's.</summary>
     public static readonly DiagnosticDescriptor RenamesRangeContent = new(
         "COBOL2561", "renames-range-content", EditionSeverity.Error,
         "ISO §13.18.45.3 syntax rule 8: \"None of the items within the range, including data-name-2 and data-name-3, "
@@ -7113,7 +7113,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2563 — a PROPERTY clause breaks one of §13.18.42.3's syntax rules (kb/Work PB1273): SR1 (only in
     /// the working-storage section of a factory or instance definition — <c>DataBinder.BindEntry</c>), SR3's elementary
     /// half (the clause-placement table's ElementaryOnly row), and SR2 / SR3's qualification half / SR5 / SR6, asked of
-    /// the item that carries the clause by <c>DataBinder.OoBindPropertyClauses</c>, and SR4 (the subject's data-name is
+    /// the item that carries the clause by <c>OoDataBinder.BindPropertyClauses</c>, and SR4 (the subject's data-name is
     /// a property-name defined in a superclass), asked once every roster of the group is complete by
     /// <c>OoClassTable.ResolveOverrides</c> (kb/Work PB1274 — source-order free). The site names the rule it caught.
     /// §13.16.3 SR21 keeps COBOL2333.</summary>
@@ -7228,7 +7228,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2634 — a file-name is specified in a second SELECT clause of the same factory, function, object
     /// or program (ISO §12.4.5.2 SR2; kb/Work PB1077). The second entry used to replace the first in the binder's name
     /// map, so the program ran against whichever ASSIGN target came last. Reported by
-    /// <c>DataBinder.BindFileControl</c> at the second SELECT.</summary>
+    /// <c>FileControlBinder.BindFileControl</c> at the second SELECT.</summary>
     public static readonly DiagnosticDescriptor FileNameSelectedTwice = new(
         "COBOL2634", "file-name-selected-twice", EditionSeverity.Error,
         "A file-name is specified in more than one SELECT clause. ISO §12.4.5.2 SR2: \"A given file-name may be "
@@ -7237,7 +7237,7 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL2635 — a SELECT clause names a file-name that has no file description entry and no sort-merge
     /// file description entry in the file section (ISO §12.4.5.2 SR3; kb/Work PB1077). Such a file compiled clean and
-    /// its first OPEN aborted the run unit as a "compiler defect". Reported by <c>DataBinder.BindFileSection</c> at
+    /// its first OPEN aborted the run unit as a "compiler defect". Reported by <c>FileControlBinder.BindFileSection</c> at
     /// the file control entry.</summary>
     public static readonly DiagnosticDescriptor SelectWithoutFileDescription = new(
         "COBOL2635", "select-without-file-description", EditionSeverity.Error,
@@ -7250,7 +7250,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2636 — a file description entry or a sort-merge file description entry names a file-name that
     /// no file control entry specifies (ISO §13.4.5.3 SR1 for an FD, §13.4.6.3 SR1 for an SD; kb/Work PB1237,
     /// PB1290 — the other arm of kb/Work PB1077's pairing). The binder used to synthesize a file with an empty
-    /// assignment, so the program compiled and even ran I-O against it. Reported by <c>DataBinder.BindFileSection</c>
+    /// assignment, so the program compiled and even ran I-O against it. Reported by <c>FileControlBinder.BindFileSection</c>
     /// at the entry.</summary>
     public static readonly DiagnosticDescriptor FileDescriptionWithoutSelect = new(
         "COBOL2636", "file-description-without-select", EditionSeverity.Error,
@@ -7481,7 +7481,7 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL2787 — an OCCURS KEY data-name-2 resolves within the table but is an item the KEY phrase may
     /// not name (kb/Work PB1263): under a nested table (SR4), itself a table (SR6), of class boolean, message-tag,
-    /// object or pointer (SR8), or a variable-length group (SR9). Bound in <c>DataBinder.OccursKeyResolve</c>, beside
+    /// object or pointer (SR8), or a variable-length group (SR9). Bound in <c>OccursKeyResolvePass</c>, beside
     /// SR3's COBOL2353.</summary>
     public static readonly DiagnosticDescriptor OccursKeyItemNotAdmitted = new(
         "COBOL2787", "occurs-key-item-not-admitted", EditionSeverity.Error,
@@ -7493,7 +7493,7 @@ public static class DiagnosticCatalog
         "ISO §13.18.38.3 SR4, SR6, SR8, SR9");
 
     /// <summary>COBOL2788 — an OCCURS DEPENDING ON data-name-1 lacks the GLOBAL or EXTERNAL attribute the table's
-    /// record has (kb/Work PB1261; §13.18.38.3 SR18 / SR21). Bound in <c>DataBinder.OdoResolve</c>.</summary>
+    /// record has (kb/Work PB1261; §13.18.38.3 SR18 / SR21). Bound in <c>OdoResolvePass</c>.</summary>
     public static readonly DiagnosticDescriptor OccursDependingAttributeMismatch = new(
         "COBOL2788", "occurs-depending-attribute-mismatch", EditionSeverity.Error,
         "The object of an OCCURS DEPENDING ON phrase does not share its table record's GLOBAL or EXTERNAL attribute. "
@@ -7521,9 +7521,9 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2790 — a GET or SET PROPERTY method (an explicit METHOD-ID, or an interface's prototype) breaks
     /// one of §11.7.3's property-method syntax rules (kb/Work PB1503): SR5, an explicit accessor for a data-name of the
     /// containing object's working storage that carries a PROPERTY clause (ANY PROPERTY clause, WITH NO GET / WITH NO SET
-    /// included — asked by <c>DataBinder.OoBindPropertyClauses</c>); SR6 / SR7, the accessor's BOUND procedure division
+    /// included — asked by <c>OoDataBinder.BindPropertyClauses</c>); SR6 / SR7, the accessor's BOUND procedure division
     /// header — the number of USING parameters, the RETURNING phrase, and an ACTIVE-CLASS formal or returning item
-    /// (asked by <c>DataBinder.OoBindMethodData</c>, the first point where the header is resolved). The site names the
+    /// (asked by <c>OoDataBinder.BindMethodData</c>, the first point where the header is resolved). The site names the
     /// rule it caught.</summary>
     public static readonly DiagnosticDescriptor PropertyMethodRule = new(
         "COBOL2790", "property-method-rule", EditionSeverity.Error,
@@ -8075,6 +8075,19 @@ public static class DiagnosticCatalog
         + "data item (ISO §8.4.2.1). A procedure is a debug subject by the plain operand, USE FOR DEBUGGING ON "
         + "procedure-name, or with every procedure by ALL PROCEDURES.",
         "ISO §14.4.1; ISO §8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
+
+    // kb/Work PB4307: `MULTIPLE FILE TAPE.` and `MULTIPLE FILE.` compiled clean at --std 85, where `TAPE CONTAINS.`
+    // drew COBOL0001. Emitted by DataBinder.BindIoControl, the I-O-CONTROL clauses' own syntax rules, at every edition:
+    // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its files is malformed too.
+    public static readonly DiagnosticDescriptor MultipleFileNamesNoFile = new(
+        "COBOL5944", "multiple-file-names-no-file", EditionSeverity.Error,
+        "The X3.23-1985 MULTIPLE FILE clause of the I-O-CONTROL paragraph names no file. Its format is MULTIPLE FILE "
+        + "[TAPE] [CONTAINS] {file-name [POSITION integer]} ..., with the file list in braces and followed by an "
+        + "ellipsis, so at least one file-name is required: the clause states which files share one reel. The format "
+        + "is DERIVED, not quoted: ISO/IEC 1989:2002 Annex F.1 removes the clause and ISO/IEC 1989:2023 prints no "
+        + "format for it, and GnuCOBOL refuses the clause with no file-name under its cobol85, ibm and mf "
+        + "dialects.",
+        "VCR Table 7 row 7.6 (X3.23-1985 MULTIPLE FILE TAPE clause)");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

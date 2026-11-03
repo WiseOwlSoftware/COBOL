@@ -35,6 +35,7 @@
        01 V PIC X(6) VALUE "ABCABC".
        01 W PIC X(6) VALUE "ABCABC".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            INSPECT X REPLACING ALL SPACE BY "Q".
            DISPLAY "X=[" X "]".
            INSPECT Y CONVERTING SPACE TO "R".

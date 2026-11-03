@@ -120,7 +120,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// <summary>The memoized physical fields of the top-level (01/77) forest.</summary>
     public IReadOnlyList<Physical> RootPhysicals()
     {
-        if (_rootPhysCache is null) { ListBuilds++; _rootPhysCache = BuildPhysicals(ctx.Data.Roots, default, SeedRecipe.InitialState).ToList(); }
+        if (_rootPhysCache is null) { ListBuilds++; _rootPhysCache = BuildPhysicals(ctx.Data.State.Forest.Roots, default, SeedRecipe.InitialState).ToList(); }
         return _rootPhysCache;
     }
 

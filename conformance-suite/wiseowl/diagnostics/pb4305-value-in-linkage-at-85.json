@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a data-item or table VALUE clause in the linkage or file section or on an EXTERNAL item requires COBOL-2002"}

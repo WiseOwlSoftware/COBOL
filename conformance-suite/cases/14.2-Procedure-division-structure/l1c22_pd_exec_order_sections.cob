@@ -42,6 +42,7 @@
        END DECLARATIVES.
        E-SEC SECTION.
        Z-SEC SECTION.
+       PB4305-LEAD.
            DISPLAY "1 Z-SEC".
        Y-PARA.
            DISPLAY "2 Y-PARA".

@@ -261,7 +261,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
             + "       01  DE-1 TYPE DE LINE PLUS 1.\n           03  COLUMN 1 PIC 99 SOURCE WS-K.\n"
             + "       01  TYPE CF FINAL LINE PLUS 1.\n"
             + (sumEntry.Contains("COLUMN") ? "" : "           03  COLUMN 1 PIC 99 SOURCE WS-K.\n") + sumEntry
-            + "       PROCEDURE DIVISION.\n           OPEN OUTPUT PRT\n           INITIATE R-1\n"
+            + "       PROCEDURE DIVISION.\n       MAIN-P.\n           OPEN OUTPUT PRT\n           INITIATE R-1\n"
             + "           GENERATE DE-1\n           TERMINATE R-1\n           CLOSE PRT\n           STOP RUN.\n";
         string name = "r" + Guid.NewGuid().ToString("N")[..6] + ".cob";
         File.WriteAllText(Path.Combine(_dir, name), text);

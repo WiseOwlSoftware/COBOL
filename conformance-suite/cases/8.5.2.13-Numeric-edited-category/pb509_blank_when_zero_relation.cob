@@ -47,6 +47,7 @@
        01 WS-NEG3    PIC S9(5) VALUE -3.
        01 WS-TWELVE  PIC 9(5)  VALUE 12.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 0 TO WS-PLAIN
            MOVE 0 TO WS-EDIT
            MOVE 0 TO WS-OTHER

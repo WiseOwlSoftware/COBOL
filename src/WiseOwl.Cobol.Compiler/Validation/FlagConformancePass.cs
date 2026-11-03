@@ -138,7 +138,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         var methodScopes = new Dictionary<CobolParserCore.MethodDefinitionContext, MethodNameScope>();
         foreach (var cls in group.Classes)
             foreach (var (data, refs) in new[] { (cls.Data, cls.Refs), (cls.FactoryData, cls.FactoryRefs) })
-                foreach (var m in data.OoBoundMethods)
+                foreach (var m in data.Oo.BoundMethods)
                     if (m.Origin is OoSymbolOrigin.Source) methodScopes[m.Ctx] = new MethodNameScope(data, refs, m.DataScope);
 
         // The binder's record of the function activations and property references that look like data references
@@ -531,7 +531,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     {
         bool own = true;
         for (var unit = _currentUnit; unit is not null; unit = unit.Parent, own = false)
-            foreach (var file in unit.Data.Files)
+            foreach (var file in unit.Data.State.Files.Declared)
                 if (own || file.IsGlobal) yield return file;
     }
 
@@ -556,7 +556,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitTerminateStatement(CobolParserCore.TerminateStatementContext ctx)
     {
         foreach (var report in ctx.reportName())
-            if (_currentData?.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, report.GetText())) is { HasVarying: true })
+            if (_currentData?.State.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, report.GetText())) is { HasVarying: true })
             {
                 Flag(FlagOption.Flag02TerminateWithVarying, ctx.Start.Line,
                     "the TERMINATE of a report whose description contains a VARYING clause");
@@ -728,8 +728,8 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// classifier's answer from a rare false-negative into a systematic one (ISO §13.18.40.3 SR13).</summary>
     private bool IsNumericEditedPicture(string picture, bool blankWhenZero)
         => PictureAnalyzer.Analyze(picture, Usage.Display, _discard, "a flagged VALUE clause",
-                currencies: _currentData?.CurrencySigns, blankWhenZero: blankWhenZero,
-                decimalPointIsComma: _currentData?.DecimalPointIsComma ?? false).Category
+                currencies: _currentData?.State.Configuration.CurrencySigns, blankWhenZero: blankWhenZero,
+                decimalPointIsComma: _currentData?.State.Configuration.DecimalPointIsComma ?? false).Category
             == PicCategory.NumericEdited;
 
     /// <summary>Whether an item with NO PICTURE has no length from its USAGE either: DISPLAY (explicit or absent —

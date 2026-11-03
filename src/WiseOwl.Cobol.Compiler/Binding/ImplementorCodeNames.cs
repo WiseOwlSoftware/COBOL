@@ -48,7 +48,7 @@ public sealed record ImplementorCodeName(string Name, bool National, int Ordinal
 /// ⛔ THE ONE IMPLEMENTOR CODE-NAME TABLE — this implementation's whole answer to ISO §12.3.7.3 SR15,
 /// "<i>The implementor shall specify the names supported for code-name-1 and code-name-2 in the ALPHABET clause,
 /// if any.</i>" Adding the next supported code-name is A ROW HERE and nothing else: the binder looks the word up
-/// (<c>DataBinder.AlphabetCodeName</c>), the coded-character-set reference sites read the row's ordinal count and
+/// (<c>SpecialNamesBinder.AlphabetCodeName</c>), the coded-character-set reference sites read the row's ordinal count and
 /// correspondence through <see cref="CodedCharacterSet"/>, the collating-sequence reference sites read its
 /// <see cref="ImplementorCodeName.Table"/> through <see cref="AlphabetDef"/>/<see cref="NationalAlphabetDef"/>,
 /// and the CODE-SET clause reads its <see cref="ImplementorCodeName.MediumCorrespondence"/>. There is no second

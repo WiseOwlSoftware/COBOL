@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Passes;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -31,9 +32,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class UsageDeclarationPlacementDriftTests
 {
+    /// <summary>The screen's helpers live on the two pass classes that own them (kb/Work PB2352, PB2353): the SR14/SR4
+    /// screens on <c>CheckUsageDeclarationsPass</c>, the pointer-object class predicate on
+    /// <c>ClassifyRedefinesClassesPass</c>.</summary>
     private static MethodInfo M(string name) =>
-        typeof(DataBinder).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)
-        ?? throw new InvalidOperationException($"DataBinder.{name} is gone — the §13.18.60.3 screen was "
+        new[] { typeof(CheckUsageDeclarationsPass), typeof(ClassifyRedefinesClassesPass), typeof(DataBinder) }
+            .Select(t => t.GetMethod(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static))
+            .FirstOrDefault(m => m is not null)
+        ?? throw new InvalidOperationException($"{name} is gone — the §13.18.60.3 screen was "
             + "restructured without updating its drift test. Re-derive the rule before re-shaping the test.");
 
     // ⛔ THE TWO PHRASE READERS LIVE ON ItemCategory (kb/Work PB391), not on DataBinder: SR4's population is
@@ -197,7 +203,7 @@ public sealed class UsageDeclarationPlacementDriftTests
         Assert.Equal(permitted, (bool)m.Invoke(null, [level])!);
     }
 
-    /// <summary>The first-loop arms of <c>DataBinder.CheckUsageDeclarations</c> that the TYPE-entry loop does NOT
+    /// <summary>The first-loop arms of <c>CheckUsageDeclarationsPass</c> that the TYPE-entry loop does NOT
     /// ask, each with the reason it needs no TYPE twin there. Keyed by the arm's diagnostic, because those arms
     /// report inline rather than through a <c>Screen…</c> helper.</summary>
     private static readonly Dictionary<string, string> WrittenOnlyArms = new()
@@ -219,24 +225,24 @@ public sealed class UsageDeclarationPlacementDriftTests
     [Fact]
     public void EveryWrittenEntryScreenIsAskedOfTheTypeEntryToo()
     {
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.UsageDeclaration.cs"))
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Passes", "CheckUsageDeclarationsPass.cs"))
             .ReplaceLineEndings("\n");
-        int start = text.IndexOf("internal void CheckUsageDeclarations()", StringComparison.Ordinal);
-        Assert.True(start >= 0, "DataBinder.CheckUsageDeclarations is gone: re-derive this test from its successor");
+        int start = text.IndexOf("public void Run(DataBinder binder)", StringComparison.Ordinal);
+        Assert.True(start >= 0, "CheckUsageDeclarationsPass.Run is gone: re-derive this test from its successor");
         int end = text.IndexOf("\n    }\n", start, StringComparison.Ordinal);
         string body = text[start..end];
-        int split = body.IndexOf("foreach (var item in CompositionForest()", StringComparison.Ordinal);
-        Assert.True(split > 0, "the composed-entry (TYPE) loop of CheckUsageDeclarations is gone");
+        int split = body.IndexOf("foreach (var item in binder.CompositionForest()", StringComparison.Ordinal);
+        Assert.True(split > 0, "the composed-entry (TYPE) loop of CheckUsageDeclarationsPass.Run is gone");
         string written = body[..split], composed = body[split..];
 
         static List<string> Screens(string loop) => Regex
-            .Matches(loop, @"\b(Screen\w+)\(item\b").Select(m => m.Groups[1].Value).ToList();
+            .Matches(loop, @"\b(Screen\w+)\(binder, item\b").Select(m => m.Groups[1].Value).ToList();
         var writtenScreens = Screens(written);
         Assert.NotEmpty(writtenScreens);
         Assert.Equal(writtenScreens, Screens(composed));
 
         var inlineArms = Regex
-            .Matches(written, @"Edition\.Error\(DiagnosticCatalog\.(\w+)").Select(m => m.Groups[1].Value).ToHashSet();
+            .Matches(written, @"binder\.Edition\.Error\(DiagnosticCatalog\.(\w+)").Select(m => m.Groups[1].Value).ToHashSet();
         Assert.Equal(WrittenOnlyArms.Keys.ToHashSet(), inlineArms);
     }
 }

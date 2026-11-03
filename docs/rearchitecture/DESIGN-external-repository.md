@@ -1403,7 +1403,7 @@ documented order).
 ```csharp
 internal interface IRepositoryProvider
 {
-    // `position` is BoundUnit.SourcePosition, the character offset GroupRepository.Find already takes ("specified
+    // `position` is BoundUnit.SourcePosition, the character offset the group provider's private search (`GroupRepositoryProvider.Candidates` / `Find`) takes ("specified
     // previously", PB989); the metadata provider ignores it — the repository has no source order.
     ProgramAnswer? Program(string externalizedName, int position);                 // GR10 a) / b) in the group; c) in metadata
     FunctionAnswer? Function(string externalizedName, int position);               // GR11 a) / b); c)
@@ -1461,7 +1461,7 @@ IS the externalized name under `ExternalizedNames`' fold (DOC-A.1-68).
 
 ### 8.2 Program specifier (SR14, GR10)
 1. GR10 a): an outermost program DEFINITION whose EXTERNALIZED name equals the specifier's and whose source element
-   PRECEDES the specifier's → its `CalleeSignature`. (LANDED with slice 6, kb/Work PB989 / PB2102: `GroupRepository.Find`
+   PRECEDES the specifier's → its `CalleeSignature`. (LANDED with slice 6, kb/Work PB989 / PB2102: the group provider's `Candidates` / `Find` (the class was `GroupRepository`)
    replaced the order-blind `BuildProgramDetailsTable`. A later definition is neither a) nor c), because the output being produced is never in the search space
    (§9.3); a specifier naming only a later definition with no prototype is REPO-1 — SR14.) Derivation: SR14 admits
    "the name of a program definition specified previously in this compilation group" and a program "for which
@@ -2763,7 +2763,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    the per-step diagnostic key waits for slice 7's first refusal case) and the run-time cases of §17.1. Docs: INTERPROGRAM's probe paragraph (index-based);
    the manual's trimmed/AOT paragraph, into §9.4 and recorded in kb/Work PB1610. Depends on 4 (the `Units` index and
    `RepositoryIndex`) and, through it, 3 (the composed application activates its main through a host entry).
-6. **The group provider's corrections — kb/Work PB989 (LANDED with PB2102; the order-blind tables are `GroupRepository`'s one `Find`, REPO-13 is COBOL2969).** Inside the existing group tables: externalized-name keys and
+6. **The group provider's corrections — kb/Work PB989 (LANDED with PB2102; the order-blind tables are `GroupRepositoryProvider`'s one `Find`, REPO-13 is COBOL2969).** Inside the existing group tables: externalized-name keys and
    source order for GR10/GR11 a)/b), the word → definition map, D-R3 step 2's group arm and step 3's in-group REPO-13,
    with their goldens; and in the same change the corpus programs that name a later program definition with no
    prototype (§8.2's list) gain a prototype of the callee, so no golden depends on the order-blind table this slice

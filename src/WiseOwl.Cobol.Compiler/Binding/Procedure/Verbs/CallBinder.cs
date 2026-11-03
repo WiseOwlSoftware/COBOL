@@ -152,7 +152,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
             else if (prototype is null && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } declaredWord
-                     && ctx.Data.ProgramSpecifiers.ContainsKey(declaredWord))
+                     && ctx.Data.State.Configuration.ProgramSpecifiers.ContainsKey(declaredWord))
                 // The word is a PROGRAM specifier no provider answered (REPO-1 at the specifier, DESIGN-external-repository
                 // §8.2 step 4): it registered no prototype, so this is SR16's undeclared prototype — never a data name.
             {
@@ -436,7 +436,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // §14.9.4.3 SR22 over the RESOLVED item — the same screen the keyword-less BY VALUE
                     // argument runs. It no longer has to unwrap a BoundComputedOperand to recover the
                     // identifier-ness GR8 says was never lost.
-                    ValueClassScreen(new BoundFieldOperand(vp), vdref.GetText());
+                    ValueClassScreen(new BoundFieldOperand(vp), DataBinder.WrittenText(vdref));
                     args.Add(new BoundCallArg(CobolPassMode.Value, vp, null));
                 }
                 else if (vArith is { } vsole && IsSoleIdentifierExpression(vsole))
@@ -465,7 +465,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // arithmetic expressions and a "digit-decoding extension" — the right verdict quoting the
                     // wrong rule.
                     var byValueOperand = new BoundComputedOperand(host.Expr.BindByValueExpr(vax));
-                    ValueClassScreen(byValueOperand, vax.GetText());
+                    ValueClassScreen(byValueOperand, DataBinder.WrittenText(vax));
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
                 }
                 else
@@ -556,7 +556,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // PARAMETER is specified with a BY VALUE phrase" — the formal-derived Value mode (GR9 b))
                 // must meet the same class screen the explicit BY VALUE arm runs.
                 if (bareMode is CobolPassMode.Value)
-                    ValueClassScreen(new BoundFieldOperand(bp), bare.GetText());
+                    ValueClassScreen(new BoundFieldOperand(bp), DataBinder.WrittenText(bare));
                 args.Add(new BoundCallArg(bareMode, bp, null));
             }
             // §14.9.4.2 Format 2's keyword-less non-identifier arguments (kb/Work PB130): literal-2,
@@ -620,14 +620,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     if (AddBareTemporaryArg(ExpressionOperand(bArith), DataBinder.WrittenText(bArith)) is { } refusal) return refusal;
                     continue;
                 }
-                AddBareExpressionArg(ExpressionOperand(bArith), bArith.GetText());
+                AddBareExpressionArg(ExpressionOperand(bArith), DataBinder.WrittenText(bArith));
             }
             // `(3)` or `(N)` an operator-free boolean node held inside its grouping parentheses: arithmetic-expression-1,
             // never the literal or identifier it encloses (§14.9.4.4 GR8, §8.8.1.1; kb/Work PB3760 review R1-1). Bound as
             // the expression it is, it takes GR9 a)2's BY CONTENT, so a callee's store never reaches N.
             else if (bareArg.Grouped is { } bGrouped)
             {
-                AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), a.GetText());
+                AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), DataBinder.WrittenText(a));
             }
             else
                 return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(a)}'");
@@ -854,7 +854,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // The CALL's receivers -- each BY REFERENCE argument and the RETURNING item -- are identified at its start
         // (§14.9.4.4 GR3 a)) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
         // object-property receiver's accessors there (kb/Work PB2078).
-        ctx.Data.OoClaimInterleavedReceiver(BoundCallProgram.Receivers(args, returning));
+        ctx.Data.Procedure.ClaimInterleavedReceiver(BoundCallProgram.Receivers(args, returning));
         return new BoundCallProgram(literalName, dynamicName, args, returning, onExc, notOnExc)
         {
             UsedOverflowSpelling = usedOverflow,
@@ -1167,7 +1167,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // ⛔ The RETURNING move is BOUND here (kb/Work PB880) — into the program's procedure-division RETURNING
         // item, the same item ProgramEmitter hands the activation result from. It used to be built by
         // CallEmitter.EmitGoback, after every bind-time MOVE screen and storage fact had already run.
-        BoundMove? returningMove = source is not null && ctx.Data.LinkageReturning is { } retItem
+        BoundMove? returningMove = source is not null && ctx.Data.Linkage.Returning is { } retItem
                                    && ctx.Refs.Places.ResolveItem(retItem) is { } retPlace
             ? host.Move.BindMoveOf(new BoundFieldOperand(source), [retPlace], ImplicitMovePhrase.GobackReturning)
             : null;
@@ -1342,9 +1342,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// whose chokepoint (<see cref="ExpressionBinder.ResolveReceiving"/>) reports every null it returns.</param>
     private BoundStatement OperandUnresolved(Core.DataReferenceContext dref, string role, RefResolution? answer = null)
     {
-        string text = dref.GetText();
-        if (ctx.Data.ScreenNames.Contains(text))
+        if (dref.cobolWord() is { } screenWord && ctx.Data.State.Forest.ScreenNames.Contains(screenWord.GetText()))
         {
+            string text = DataBinder.WrittenText(dref);
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
                 $"CALL {role} '{text}' names a SCREEN SECTION entry; ISO §14.9.4.3 "
                 + (role.StartsWith("RETURNING") ? "SR7" : "SR3")
@@ -1394,7 +1394,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 + (formatTwo ? "(ISO §14.9.4.3 SR18)" : "(ISO §14.9.4.3 SR11)"));
 
         // SR3 sentence 2: BY REFERENCE (specified or implied) shall not carry factory/instance object data.
-        if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.OoIsObjectData(item))
+        if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.Oo.IsObjectData(item))
             ctx.Edition.Error(DiagnosticCatalog.CallByReferenceObjectData,
                 $"CALL USING BY REFERENCE '{name}': identifier-2 shall not be defined in the working-storage "
                 + "or file section of a factory or an instance object (ISO §14.9.4.3 SR3)");

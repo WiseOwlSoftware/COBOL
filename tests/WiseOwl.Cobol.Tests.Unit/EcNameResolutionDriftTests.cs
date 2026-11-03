@@ -33,7 +33,7 @@ public sealed class EcNameResolutionDriftTests
     {
         [Path.Combine("Binding", "TurnState.cs")] =
             (1, "NameMatches — level-2 coverage of names the front end's >>TURN stage ALREADY resolved (SR2, kb/Work PB2740)", false),
-        // kb/Work PB815/PB814: the PD-header arm (EcBinder) and the METHOD-ID arm (DataBinder.Oo) were two
+        // kb/Work PB815/PB814: the PD-header arm (EcBinder) and the METHOD-ID arm (OoDataBinder) were two
         // verbatim copies of this partition; both now call RaisingPhrase.Partition, so ONE adjudicated site.
         [Path.Combine("Binding", "RaisingPhrase.cs")] =
             (1, "the ONE procedure-division-header RAISING partition (§14.2.2 SR7–SR9); an unresolved word may "

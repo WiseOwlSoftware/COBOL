@@ -26,5 +26,6 @@
        01  CA PIC X VALUE "A".
        01  CB PIC X VALUE "B".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            IF CA > CB DISPLAY "REV-GT" ELSE DISPLAY "REV-LE" END-IF
            STOP RUN.

@@ -42,18 +42,20 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
     /// <param name="line">The PROGRAM-TEXT AREA of one line — the whole line in free form, character positions 8 to
     /// margin R in fixed form (§7.3.3 SR3), which the reference-format stage extracts in the format in effect before
     /// asking (kb/Work PB1361) and every later stage already holds. Only spaces may precede the indicator (§7.3.3
-    /// SR2). A trailing carriage return is tolerated (the text may still be CRLF).</param>
+    /// SR2). The line is one the line-entry stage produced, so it holds no tab and no CR LF terminator; a lone
+    /// carriage return is an ORDINARY character of it (docs/CONFORMANCE.md DOC-A.1-156) and stays in the operand, where
+    /// the directive's operand check refuses it as it refuses it on a source line (kb/Work PB4310).</param>
     /// <param name="directive">The word and its operand, on success.</param>
     public static bool TryParse(string line, out CompilerDirectiveLine directive)
     {
         directive = default;
         if (line.Length == 0) return false;
-        ReadOnlySpan<char> s = line.AsSpan().TrimEnd('\r');
+        ReadOnlySpan<char> s = line;
 
         int i = IndicatorIndex(s);
         if (i + 1 >= s.Length || s[i] != '>' || s[i + 1] != '>') return false;
         i += 2;
-        while (i < s.Length && (s[i] == ' ' || s[i] == '\t')) i++;   // SR5: the space after the indicator is optional
+        while (i < s.Length && s[i] == ' ') i++;   // SR5: the space after the indicator is optional
 
         int wordStart = i;
         while (i < s.Length && CobolCharacterRepertoire.IsWordCharacter(s[i])) i++;   // the ONE lexical word class (PB1402)
@@ -82,7 +84,7 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
     public static int IndicatorIndex(ReadOnlySpan<char> line)
     {
         int i = 0;
-        while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) i++;
+        while (i < line.Length && line[i] == ' ') i++;
         return i;
     }
 

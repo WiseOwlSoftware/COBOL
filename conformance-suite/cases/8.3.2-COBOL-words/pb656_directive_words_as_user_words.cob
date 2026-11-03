@@ -13,9 +13,9 @@
       *>   computer-name (a system-name, 8.3.2.3), a data-name, a
       *>   condition-name, a section-name and a paragraph-name - in the
       *>   same compilation as the directives that spell them. COBOL is
-      *>   one of them at 2023 only: through 2014 it is a reserved word
-      *>   (negative/pb656-cobol-reserved-through-2014; docs/CONFORMANCE
-      *>   D-RW3).
+      *>   a reserved word at 85 only: neither the 2002 8.9 list nor the
+      *>   2009 draft's holds it (kb/Work PB4297; conformance:pb4297_
+      *>   1985_words_user_defined_from_2002; docs/CONFORMANCE D-RW3).
        >>DEFINE PB656V AS 5
        >>TURN EC-SIZE CHECKING ON
        IDENTIFICATION DIVISION.

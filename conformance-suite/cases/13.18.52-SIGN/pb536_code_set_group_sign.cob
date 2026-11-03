@@ -56,6 +56,7 @@
        WORKING-STORAGE SECTION.
        01  DONE PIC X VALUE "N".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            OPEN OUTPUT F
            MOVE -12 TO N
            MOVE "ZZ" TO T

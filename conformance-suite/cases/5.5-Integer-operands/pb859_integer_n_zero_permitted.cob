@@ -45,6 +45,7 @@
        01  T.
            05 E               PIC X OCCURS 0 TO 3 TIMES DEPENDING ON N.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "N=" N
            MOVE 2 TO N
            MOVE "A" TO E (1)

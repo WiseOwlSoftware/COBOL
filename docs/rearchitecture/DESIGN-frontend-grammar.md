@@ -417,11 +417,24 @@ word under `procedureName` is what the source means, and `CobolErrorStrategy.Rep
 the word, covering the sentence through its period as the one fault and discarding the misreading's tail as orphaned:
 `PERFORM READ.`, `PERFORM READ THRU P1.`, `GO TO READ.`, `GO TO P1 READ DEPENDING ON N.`, `ALTER READ TO P1.`,
 `DISPLAY SECTION.` — each one diagnostic. A genuine fault elsewhere fails every re-read (`PERFORM DISPLAY X.`
-without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A verb and its period alone (`STOP.`,
-`DISPLAY.`, `READ.`) is not asked the header reading (`IsIncompleteStatement`, branch review R1-1): the same text is an
-incomplete statement and a paragraph header (§14.4.3), nothing in it shows a USE as a user-defined word (§8.3.2.1 1)),
-and the missing operand is a fault the source certainly holds, so it keeps its COBOL0001 at the period, inside a
-paragraph and where a header could stand alike. A reserved word in a DATA reference slot
+without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. **A VERB AND ITS PERIOD ALONE (`STOP.`,
+`DISPLAY.`, `READ.`, `FREE.`, `VALIDATE.`) IS A HEADER ONLY WHERE THE PROGRAM NAMES THE WORD AS A PROCEDURE (kb/Work PB4283, both
+arms, one decision: `CobolParserCoreBase.IsBareVerbSentence` and `NamedAsAProcedureElsewhere`; branch review R1-1 had decided the
+always-reserved arm without it).** The same text is an incomplete statement and a paragraph header (§14.4.3), and the only
+evidence the source USES the word as a user-defined word (§8.3.2.1 1)) is a procedure reference to it elsewhere: every other
+token of the word's type is re-read in its own sentence with the word retyped `IDENTIFIER`, and a reading that puts it under
+`procedureName` is a reference (`FREE ptr.`, a statement of the same verb, is not). With a reference the sentence is the
+header, the word is named ONCE with COBOL0901 at the first use in source order (the bound-tree funnel's rule for a gated word,
+`CobolErrorStrategy._procedureWordsNamed` for a verb reserved everywhere), and the header draws nothing of its own; with none
+it is the verb's incomplete statement and keeps the statement's own report (COBOL0001 at the period for a verb the prediction
+carries to it, `cannot parse construct near` the verb for a gated one the paragraph and statement alternatives both refuse),
+inside a paragraph and where a header could stand alike. For a gated word the decision is the grammar's own predicate
+(`procedureHeaderHere`: a bare statement verb is not a header without the evidence; a word no statement begins with, `END-DISPLAY`, is
+unchanged) and the error strategy's (`ReservedWordUse` returns no violation); for a verb reserved everywhere it is
+`ReservedProcedureName`'s choice of readings. A word no statement begins with, written as a paragraph header after the
+division's last sentence (`ZERO.`, `FILLER.`, `TALLYING.`), ends the division's paragraph list before the error is read,
+so "in the procedure division" is also read from the division the parse completed last (`EndsWithAProcedureDivision`,
+kb/Work PB4284), and the word draws COBOL0901 as every other reserved header does. A reserved word in a DATA reference slot
 (`MOVE READ TO X`) is not this rule's: its error falls at the word and is still the strategy's own report.
 
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
@@ -454,12 +467,15 @@ ends at the period or at a token of the rule's context-free `FollowSet`, read of
 pins the two facts of the grammar that carry it: TO, '=', GIVING and FROM never follow a statement, the next verb and the scope
 terminators do). Where it parses the report is the
 ordinary one and the recovery resumes at the verb, the statement read as written; where it does not (`GOBACK` in `MOVE GOBACK TO
-W-X`, a prefix that stops at a token no statement is followed by) the word is the operand. A statement the sentence's end cuts short
-(`StatementReading.CutShort`: the verb and one token or more, then the period or a token a statement may be followed by, the next
+W-X`, a prefix that stops at a token no statement is followed by AND that the sentence itself needs: it reads whole with the statement's
+tokens taken as ONE operand, `MOVE X TO W-Y.`, `ADD X TO W-N.`) the word is the operand. A statement that stops before it is whole
+(`StatementReading.Faulted`: the verb and one token or more, then the period or a token a statement may be followed by, the next
 statement's verb, a scope terminator or a phrase of the enclosing statement: `MOVE W-X TO` then `ADD 1 TO.` or `ADD 1 TO DISPLAY W-Y.`,
-`DISPLAY W-Y UPON.`, `ADD 1 TO END-IF`, a statement with an operand missing of its own, reviews R1-1 and R2-1) is also the next statement, unless the word read as a user-defined
+`DISPLAY W-Y UPON.`, `ADD 1 TO END-IF`, a statement with an operand missing of its own, reviews R1-1 and R2-1; or a token no statement is followed by that
+no reading of the sentence has a place for, `ADD 1 FROM W-Y.`: `ADD 1` parses, FROM follows no statement and `MOVE W-X TO X FROM W-Y.` is refused,
+so the FROM is the ADD's own stray word, kb/Work PB4285 item 3 — `CobolParserCoreBase.SentenceReadsWithOneOperandFor`) is also the next statement, unless the word read as a user-defined
 word goes at least as far (`OffendingPosition.NameReach`, the tokens from the word on that the parse takes with an `IDENTIFIER` at it,
-against the tokens the statement reading took before it was refused): of two readings of the tokens, the one that goes further is the
+against the tokens the statement reading took before it stopped): of two readings of the tokens, the one that goes further is the
 one the report names (review R3-1), and on a tie the name reading is the one §8.3.2.1 1) forbids. So `DISPLAY RECEIVE W-X.` and `MOVE
 W-X TO MOVE W-Y.` are names (the name carries the sentence), `MOVE W-X TO RECEIVE W-Y` then `DISPLAY W-Z UPON.` too (the RECEIVE
 statement stops at the DISPLAY after two tokens, the name reading carries on to the fault in the sentence: COBOL0901, then that
@@ -1063,7 +1079,7 @@ reference formats, and the only place source comments are recognized. Its model:
   `IsFixedForm` and the per-segment re-join are deleted. The free-form 255-position limit (§6.1 3) a); COBOL2653) is
   asked in the free-form arm (`FreeFormConverter.Convert`) on the expanded line — never on a fixed-form line, which may run past
   margin R (§6.1 2) b)). Nothing after the stage has a tab or CR rule: the lexer's `WS` set is `[ \n]`, `TextWordScanner`
-  and `SeparatorRule` agree, and `PhysicalLinesDriftTests` fails if a pipeline stage spells `\t` or `\r`, if a
+  and `SeparatorRule` agree, and `PhysicalLinesDriftTests` fails if a pipeline stage (the `WiseOwl.Cobol.Editions` assembly's `CompilerDirectiveLine` among them: a lone trailing CR on a directive line is an ordinary character as on a source line, owner 2026-10-31, kb/Work PB4310) spells `\t` or `\r`, if a
   reference-format walker splits text itself, or if `PhysicalLines.Read` gains a second production caller.
   ⚠ The stage's scope estimate ("five consumers, one slot") held; what the estimate missed is that the lexer and the
   text-word scanner each carried a private copy of the tab and CR rules (nine lexer sites, `TextWord`, `SeparatorRule`,
@@ -1945,7 +1961,13 @@ joined the table the same way, which is the table doing its job: a tenth format 
   `theEditionPrints` test, `CobolParserCoreBase.PrintsKeyword`, and names a keyword unless a table shows a LATER
   edition introduced it (`ReservedWords.AdmitsAsKeyword`: the §8.9 flags, or a §8.10 row's `Introduced` edition; §8.3.2.1
   1: a word not yet reserved or listed is a user-defined word) — `(1 + 2.` expects B-AND, B-OR and B-XOR from 2002 and
-  the shift operators from 2023, none at 85, and `ROUNDED MODE IS FOO` names the eight mode names from 2014 only. An
+  the shift operators from 2023, none at 85, and `ROUNDED MODE IS FOO` names the eight mode names from 2014 only. **So
+  is the user-defined word (kb/Work PB4435):** where every configuration that takes one takes it in a position a format
+  specifies a literal (`integerOperand`, `valueTableSubscript`; `ResimulationWalk.EveryWordStandsForALiteral`, read into
+  `Admitted.WordsStandForLiterals`), the word is a constant-name (§13.10.3 SR2), and `CobolParserCoreBase.PrintsConstantName`
+  says whether the edition has one (constant-entry-2002): `OCCURS 0 TO TIMES` expects "an integer literal" at 85 and "a
+  user-defined word or an integer literal" from 2002. The binder's refusal of a word there (COBOL1547,
+  `DataBinder.ConstantIntegerOperand`, the PICTURE repetition count) says the same by edition. An
   older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
   `gen-cobol-words.ps1`) are named whatever the table says. A §8.10 word's `Introduced` edition is generated
   (`gen-reserved-words.ps1` step 7c) from the 2002 list (`tests/version-matrix/context-sensitive-words-2002.json`) and
@@ -2027,7 +2049,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   union of §13.4.5.2's three formats, and §13.4.5.3 SR5/SR7/SR8 bind each entry to exactly ONE of them. Which one
   is decided once, in `Compiler/Binding/FileDescriptionFormats.cs` (`Of`: a relative or indexed file is Format 2;
   otherwise a REPORT clause anywhere in the entry makes it Format 3; else Format 1), and the same file's table
-  keys each alternative's context type to the formats that print it. `DataBinder.FileDescriptionClauseAdmitted`
+  keys each alternative's context type to the formats that print it. `FileControlBinder.FileDescriptionClauseAdmitted`
   refuses a clause its entry's format does not contain (COBOL2604) and does not bind it; the same table
   carries the five FILE CONTROL ENTRY clauses the grammar superset-parses in the FD position (ORGANIZATION,
   ACCESS MODE, RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS) with no admitting format and a home entry, so they
@@ -2495,8 +2517,13 @@ lowercase with Annex C. Three pieces, each in one place:
   to I and S) in any `.cs` or `.g4` under `src`, no `Resolve(CobolNames.UpperFold(…))` anywhere, and no `CobolNames`
   comparison in the Frontend or Editions with an upper-case keyword literal (`"DISPLAY"`, `"LC_"`, `"IDENTIFICATION
   DIVISION"`) or a parameter named `keyword` or `word` (a deliberate fold says `// Annex C: <why>`: the `>>TURN`
-  exception-name prefixes, compared as `ExceptionCatalog` compares the names). The diagnostics still print the folded
-  spelling of a user word (`'DISPLAY' is a reserved word`): kb/Work PB4312.
+  exception-name prefixes, compared as `ExceptionCatalog` compares the names). **The fold decides a user word's identity,
+  never its spelling (kb/Work PB4312).** A diagnostic names a word in its `CobolKeywords.Spelling` — the letters the source
+  writes, the basic ones raised — and never in its fold, which lowercases an upper-case extended letter: the
+  `>>COBOL-WORDS` fresh word (literal-2/5/6) is kept in that spelling (`CobolWordsDirectiveProcessor.Spelled`; the map's sets,
+  SR5's set and the §8.9 / §8.10 tables compare it through their fold comparers), and the §8.9 funnel
+  (`VersionConformancePass.FlagReservedUserWord`) looks the word up by its fold and names its spelling, so `RESERVE "café"`
+  then `01 CAFÉ` reads `'CAFÉ' is a reserved word`, never `'CAFé'`.
 - **The encoding of the grammar itself** (kb/Work PB1944) — ANTLR reads a `.g4` in the JVM's default charset (UTF-8 on
   Java 18+ and on Linux, Cp1252 on Windows CI's JVM), so `Invoke-Antlr4CSharp.ps1` passes `-encoding UTF-8` and every
   grammar file is valid UTF-8 without a byte-order mark (`GrammarEncodingDriftTests`). The encoding is declared, so

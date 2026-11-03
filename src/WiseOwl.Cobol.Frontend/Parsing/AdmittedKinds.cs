@@ -71,7 +71,9 @@ internal static class AdmittedKinds
     /// <paramref name="words"/>; null when the token is taken (the fault lies further on) or no shape applies.
     /// <paramref name="statementStart"/> is FIRST(<c>statementBlock</c>); <paramref name="theEditionPrints"/> says
     /// whether a general format of the compile edition can print a keyword (kb/Work PB4174), and a keyword it refuses
-    /// is not named. <paramref name="aWordChangesNothing"/> says whether a word, written there, leaves the parse
+    /// is not named. <paramref name="aUserWordIsPrinted"/> is false where every user-defined word the position takes stands
+    /// where a format specifies a literal and the compile edition has no constant-name to write there (kb/Work PB4435):
+    /// the word is then no alternative to name. <paramref name="aWordChangesNothing"/> says whether a word, written there, leaves the parse
     /// admitting exactly what it admitted without it (the optional word of §8.3.2.4.3, kb/Work PB4225), and such a word
     /// is no alternative to name. <paramref name="whatTheConstructBeforeCouldTake"/> is what the construct the parser
     /// completed just before the token could still take, or null where none was (the operand arm says an operand is due
@@ -87,7 +89,8 @@ internal static class AdmittedKinds
     /// the rewrite, not of the name, and went with it.</para></summary>
     public static string? Refusal(IToken token, IntervalSet admitted, IReadOnlyCollection<string> words,
         Func<int, bool> aWordChangesNothing, IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow,
-        Func<string, bool> theEditionPrints, Func<IntervalSet?> whatTheConstructBeforeCouldTake, out bool anOperandIsDue)
+        Func<string, bool> theEditionPrints, bool aUserWordIsPrinted, Func<IntervalSet?> whatTheConstructBeforeCouldTake,
+        out bool anOperandIsDue)
     {
         anOperandIsDue = false;
         if (token.Type == TokenConstants.EOF || admitted.Contains(token.Type) || admitted.Count == 0 && words.Count == 0)
@@ -143,7 +146,8 @@ internal static class AdmittedKinds
         // position where a statement may begin, which the arm above words, and said only when the position takes an
         // operand at all (a keyword where nothing but words are due is the phrase out of its sequence, not a missing one).
         // The user-defined word is ONE element: the context-sensitive words `cobolWord` also takes (§8.10: a user-defined
-        // word at the position) are spellings of it, not alternatives to list.
+        // word at the position) are spellings of it, not alternatives to list. Where it can only be a constant-name and the
+        // edition has none (COBOL-85, kb/Work PB4435), it is not named at all.
         // ⛔ SAID ONLY OF A POSITION THAT TAKES NOTHING BUT AN OPERAND (kb/Work PB4426). A punctuation mark or an operator in
         // the set ( ')' , '(' , '*' ) means the element before the token is COMPLETE and goes on with it
         // (`FUNCTION NUMVAL(A FROM 1)`: the argument is whole, the ')' or a qualifier OF may follow), so "an operand is
@@ -167,7 +171,7 @@ internal static class AdmittedKinds
                 return null;
             anOperandIsDue = true;
             return $"{written} is not expected here: expected "
-                   + $"{Join([.. takesAWord ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
+                   + $"{Join([.. takesAWord && aUserWordIsPrinted ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
                    + "(ISO §5.2.1).";
         }
         return null;

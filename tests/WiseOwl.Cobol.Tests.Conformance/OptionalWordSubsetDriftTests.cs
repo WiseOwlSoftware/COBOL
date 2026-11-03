@@ -93,6 +93,15 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                STOP RUN.
     """;
 
+    // ── USE Format 1 at COBOL-85: PROCEDURE is written ────────────────────────────────────────────────────────
+    // ISO/IEC 1989:2002 Annex F.2 item 141: "USE statement syntax. The word PROCEDURE, previously required, is
+    // optional." So the format printed above, PROCEDURE plain, is the 2002 format (row use-format-1 compiles at 2002),
+    // and at COBOL-85 PROCEDURE is a required word (kb/Work PB4305): this row sweeps AFTER, STANDARD and ON with
+    // PROCEDURE always written. Allocated in textual order before Formats, which reads it.
+    private static readonly string UseFormat1Cobol85 = UseFormat1
+        .Replace("PROGRAM-ID. OPWA.", "PROGRAM-ID. OPWW.", StringComparison.Ordinal)
+        .Replace("ERROR {2} {3} F1.", "ERROR PROCEDURE {2} F1.", StringComparison.Ordinal);
+
     // ── USE Format 3 (§14.9.49.2): USE AFTER {EXCEPTION CONDITION | EC} … ─────────────────────────────────────
     // Only AFTER is plain. EC is synonymous with EXCEPTION CONDITION (§14.9.49.3 SR12), so the two spellings of
     // the keyword pair are covered by the two rows below rather than by the subset sweep.
@@ -904,7 +913,9 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
 
     private static readonly FormatCase[] Formats =
     [
-        new("use-format-1", "14.9.49.2 Format 1", 85, ["AFTER", "STANDARD", "PROCEDURE", "ON"], "OPWA", UseFormat1),
+        new("use-format-1", "14.9.49.2 Format 1", 2002, ["AFTER", "STANDARD", "PROCEDURE", "ON"], "OPWA", UseFormat1),
+        new("use-format-1-85", "14.9.49.2 Format 1 (COBOL-85: PROCEDURE required, 2002 Annex F.2 item 141)", 85,
+            ["AFTER", "STANDARD", "ON"], "OPWW", UseFormat1Cobol85),
         new("use-format-3", "14.9.49.2 Format 3", 2023, ["AFTER"], "OPWB", UseFormat3),
         new("use-format-3-ec", "14.9.49.2 Format 3 (EC)", 2023, ["AFTER"], "OPWC", UseFormat3Ec),
         new("start-with-length", "14.9.41.2", 2002, ["WITH"], "OPWD", StartWithLength),

@@ -26,5 +26,6 @@ DATE-COMPILED. X"ZZ" B"12".
 SECURITY. J. Smith.
 REMARKS no period after the paragraph word.
 PROCEDURE DIVISION.
+    PB4305-LEAD.
     DISPLAY "OK".
     STOP RUN.

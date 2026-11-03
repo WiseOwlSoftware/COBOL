@@ -19,9 +19,9 @@ public sealed class StorageClaimHeadDriftTests
     [Fact]
     public void BothClaimArms_AskTheOneResolver_WithTheirContainedFlag()
     {
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Ptr.cs"));
-        Assert.Contains("ResolveStorageClaimHead(name, quals, method, contained, firstOfSeveral: true)", text);
-        Assert.Contains("ResolveStorageClaimHead(name, quals, method, contained, firstOfSeveral: false)", text);
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Passes", "PtrBindBasedAndAddressablesPass.cs"));
+        Assert.Contains("ResolveStorageClaimHead(binder, name, quals, method, contained, firstOfSeveral: true)", text);
+        Assert.Contains("ResolveStorageClaimHead(binder, name, quals, method, contained, firstOfSeveral: false)", text);
         Assert.DoesNotContain("ResolveByReferenceOperand(", text);
         Assert.DoesNotContain("PtrResolveAddressOfTarget(", text);
     }
@@ -29,9 +29,9 @@ public sealed class StorageClaimHeadDriftTests
     [Fact]
     public void TheResolver_FiltersAContainedHeadToTheGlobalRoots()
     {
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Ptr.cs"));
-        int at = text.IndexOf("private DataItem? ResolveStorageClaimHead(", StringComparison.Ordinal);
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Passes", "PtrBindBasedAndAddressablesPass.cs"));
+        int at = text.IndexOf("private static DataItem? ResolveStorageClaimHead(", StringComparison.Ordinal);
         Assert.True(at > 0, "ResolveStorageClaimHead is gone");
-        Assert.Contains("CallGlobalRoots.Contains(c.Root)", text[at..Math.Min(text.Length, at + 1500)]);
+        Assert.Contains("binder.Linkage.GlobalRoots.Contains(c.Root)", text[at..Math.Min(text.Length, at + 1500)]);
     }
 }

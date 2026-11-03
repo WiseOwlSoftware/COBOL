@@ -46,7 +46,7 @@ internal sealed partial class FlagConformancePass
         get
         {
             for (var unit = _currentUnit; unit is not null; unit = unit.Parent)
-                if (unit.Data.Files.Any(f => f.FileStatusItem is not null)) return true;
+                if (unit.Data.State.Files.Declared.Any(f => f.FileStatusItem is not null)) return true;
             return false;
         }
     }
@@ -58,7 +58,7 @@ internal sealed partial class FlagConformancePass
     private bool IsFileStatusItem(DataItem item)
     {
         for (var unit = _currentUnit; unit is not null; unit = unit.Parent)
-            foreach (var file in unit.Data.Files)
+            foreach (var file in unit.Data.State.Files.Declared)
                 if (ReferenceEquals(file.FileStatusItem, item)) return true;
         return false;
     }
