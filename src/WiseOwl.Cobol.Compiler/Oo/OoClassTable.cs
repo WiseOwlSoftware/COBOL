@@ -364,7 +364,7 @@ public sealed class OoClassTable
         if (_methodsByDefinition.TryGetValue(md, out var known)) return known;
         var found = _classes.Concat(_parameterizedClasses).SelectMany(c => c.Methods.Concat(c.FactoryMethods))
             .Concat(_interfaces.Concat(_parameterizedInterfaces).SelectMany(i => i.Prototypes))
-            .FirstOrDefault(m => ReferenceEquals(m.Ctx, md));
+            .FirstOrDefault(m => m.Origin is OoSymbolOrigin.Source && ReferenceEquals(m.Ctx, md));
         if (found is not null) _methodsByDefinition[md] = found;
         return found;
     }
@@ -691,8 +691,8 @@ public sealed class OoClassTable
                     : NamingConvention.SetAccessorName(pname);
                 var proto = new OoMethodSymbol(
                     protoName,
-                    HasUsing: pd?.usingClause() is not null,
-                    HasReturning: pd?.returningClause() is not null,
+                    hasUsing: pd?.usingClause() is not null,
+                    hasReturning: pd?.returningClause() is not null,
                     m)
                 {
                     ClrName = psel is null ? DataItem.WordIdentifier(pname) : protoName,
@@ -861,8 +861,8 @@ public sealed class OoClassTable
                 string mcs = sel is not null ? methodName : DataItem.WordIdentifier(methodName);
                 var method = new OoMethodSymbol(
                     methodName,
-                    HasUsing: pd?.usingClause() is not null,
-                    HasReturning: pd?.returningClause() is not null,
+                    hasUsing: pd?.usingClause() is not null,
+                    hasReturning: pd?.returningClause() is not null,
                     m)
                 { ClrName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
                   Accessor = sel is null ? '\0' : sel.GET() is not null ? 'G' : 'S',
@@ -898,8 +898,8 @@ public sealed class OoClassTable
                 // method-name or accessor name spells (kb/Work PB2921).
                 var method = new OoMethodSymbol(
                     methodName,
-                    HasUsing: pd?.usingClause() is not null,
-                    HasReturning: pd?.returningClause() is not null,
+                    hasUsing: pd?.usingClause() is not null,
+                    hasReturning: pd?.returningClause() is not null,
                     m)
                 { ClrName = fcs, Owner = sym, IsFactory = true,
                   HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
@@ -1244,7 +1244,7 @@ public sealed class OoClassTable
                     {
                         // An imported interface's prototype is in no roster above; it joins the slot of the method that implements it,
                         // under the name the built assembly gave it.
-                        if (proto.Imported) Add(proto, "");
+                        if (proto.Origin is OoSymbolOrigin.Imported) Add(proto, "");
                         if (parent.ContainsKey(impl) && parent.ContainsKey(proto)) Join(impl, proto);
                     }
 

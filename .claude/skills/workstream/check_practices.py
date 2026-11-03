@@ -26,6 +26,10 @@ POINTER = 'MANDATORY-PRACTICES.md'
 # a permission refusal of it is handed off as READY-TO-LAND, never retried or routed around (PB2601, L13).
 LANDS = [r'enqueue\.py land', r'READY-TO-LAND <this worktree> <branch>|READY-TO-LAND <worktree> <branch>']
 
+# The implementer template's `Scratch:` line (kb/Work PB4466, MANDATORY-PRACTICES P16): the wave's scratch plus the group's
+# slug, which the agent alone writes to. A rendered spec carries the same line with the paths filled (RENDERED_SCRATCH).
+TEMPLATE_SCRATCH = r'(?m)^Scratch:  \{S\}\\\{slug\}\\ +\(YOURS ALONE, MANDATORY-PRACTICES P16'
+
 # role → (file, required patterns). Every brief must point at the practices file; the patterns are the practices
 # that are cheapest to lose silently.
 BRIEFS = {
@@ -60,6 +64,7 @@ BRIEFS = {
     # PB1721: the gate is the ORDERED gate — `build-local.ps1 -Priority BelowNormal`; PB4328: the whole population; PB3022: one shape.
     'dispatch-spec-implementer.md': [r'claude-skills', POINTER, r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'\{global_stop\}', r'\{stop_file\}',
                                      r'\{reports\}',  # PB2980: the report goes in coord.reports_dir(), never the wave's scratch
+                                     TEMPLATE_SCRATCH,  # PB4466: the agent's own directory, written to and nowhere else
                                      r'until grep -q', r'where\.py', r'orient\.py', r'semgrep/verify\.py', r'cite\.py --check',
                                      r'Turn cap \{turn_cap\}',  # PB3701: read from the agent's maxTurns, never typed
                                      r'code site', r'build-local/<run>/Conformance\.trx', r'drift_rules\.py', r'STATUS-AT:',
@@ -94,7 +99,9 @@ BRIEFS = {
                            r"agentType: 'cobol-reviewer'", r'review_findings\.py', r"r\.review === 'CLEAN'",
                            r'REVIEW FINISHER', r'REVIEW_FIX_ROUNDS',
                            # PB3359: a campaign's standing requirements and the group's dispatch spec reach the reviewer
-                           r'g\.requirements', r'reviewerRequirements\(g\)', r'msg-w\$\{W\}-\$\{g\.letter\.toLowerCase\(\)\}\.txt: read it'],
+                           r'g\.requirements', r'reviewerRequirements\(g\)', r'msg-w\$\{W\}-\$\{g\.letter\.toLowerCase\(\)\}\.txt: read it',
+                           # PB4466 (P16): each branch reviewer writes in its own scratch directory, never the shared scratchpad
+                           r'YOUR SCRATCH DIRECTORY is \$\{reviewScratch\(g\)\} \(MANDATORY-PRACTICES P16'],
     # O8: every fleet workflow runs with the stall watchdog beside it (PB1704).
     'MANDATORY-PRACTICES.md': [r'stall_watch\.py', r'linux-gate\.sh', r'I9', r'dispatch_guard\.py', r'prune_worktrees\.py',  # O8; PB1732; I9, O9, O10
                                r'STOP-<scope>',  # P3, PB2483: the scoped stop
@@ -114,11 +121,14 @@ RENDERED_STOPS = [r'scratch[\\/]STOP(?![-\w])', r'[\\/]STOP-' + coord.STOP_SCOPE
 # A RENDERED spec's report path is in THE reports directory (coord.reports_dir(), kb/Work PB2980), the only one the land
 # unit and prune_worktrees.py read: wave 1055's scratch was its own folder, and its six reports were never seen.
 RENDERED_REPORT = re.escape(str(coord.reports_dir())) + r'\\w\d+[a-z]\d*-PB\d+-report\.md'
+# A RENDERED spec's `Scratch:` line names the agent's OWN directory, the wave's scratch plus the group's slug (kb/Work PB4466,
+# MANDATORY-PRACTICES P16): a bare wave scratch, like the session's, is shared by every agent that writes a `callers.py` there.
+RENDERED_SCRATCH = r'(?m)^Scratch:  \S[^\n]*\\w\d+[a-z]\d*\\ +\(YOURS ALONE, MANDATORY-PRACTICES P16'
 # A RENDERED spec's `Turn cap` is the implementer's maxTurns (kb/Work PB3701), the number the harness enforces.
 RENDERED_TURN_CAP = rf'Turn cap {coord.agent_turn_cap("cobol-implementer")} —'
 SPEC = [p for p in BRIEFS['dispatch-spec-implementer.md']
-        if p not in (r'\{global_stop\}', r'\{stop_file\}', r'\{reports\}', r'\{linux_gate\}', r'Turn cap \{turn_cap\}')] + \
-    RENDERED_STOPS + [RENDERED_REPORT, RENDERED_TURN_CAP, r'LINUX GATE \(I8, PB1732', r'linux-gate\.sh']
+        if p not in (r'\{global_stop\}', r'\{stop_file\}', r'\{reports\}', r'\{linux_gate\}', r'Turn cap \{turn_cap\}', TEMPLATE_SCRATCH)] + \
+    RENDERED_STOPS + [RENDERED_SCRATCH, RENDERED_REPORT, RENDERED_TURN_CAP, r'LINUX GATE \(I8, PB1732', r'linux-gate\.sh']
 
 # kb/Work PB3701: a role's turn cap has ONE home, the `maxTurns` of `.claude/agents/<role>.md` (coord.agent_turn_cap), and
 # every other statement of a cap is read from it or checked here. Each entry: (file, a regex whose one group is the
@@ -352,6 +362,26 @@ def retired_gating_lines(rel, text):
             if RETIRED_GATING.search(line) and GATING_HISTORY not in line]
 
 
+# kb/Work PB4466 (MANDATORY-PRACTICES P16): an agent's files go in ITS OWN scratch directory, never the harness's session
+# scratchpad, the one folder every agent of a session shares (two agents' `callers.py` collided there in wave 20261834, and one
+# ran the other's copy against its own worktree). The surfaces an agent is told what to do by may name the scratchpad only
+# as "the session scratchpad", the folder they forbid; any other mention is an instruction to write there.
+SCRATCHPAD_SURFACES = ('.claude/', 'scripts/hooks/')
+BARE_SCRATCHPAD = re.compile(r'(?<!session )scratchpad', re.IGNORECASE)
+
+
+def bare_scratchpad_lines(rel, text):
+    """The lines of the instruction surface `rel` that name the scratchpad other than as "the session scratchpad", as
+    `rel:line: text` messages. This module names the word, and `.claude/settings*.json` holds permission paths, so neither is a
+    surface; a hook's self-test may quote the message it pins."""
+    if not rel.startswith(SCRATCHPAD_SURFACES) or rel == '.claude/skills/workstream/check_practices.py' \
+            or rel.startswith('.claude/settings') or re.search(r'(?:^|/)test_[^/]*\.py$', rel):
+        return []
+    return [f'{rel}:{n}: {line.strip()[:100]} (an agent writes under its own scratch directory, MANDATORY-PRACTICES P16, '
+            f'kb/Work PB4466; name the shared folder only as "the session scratchpad")'
+            for n, line in enumerate(text.splitlines(), 1) if BARE_SCRATCHPAD.search(line)]
+
+
 def fleet_tooling():
     plugin = SKILLS / '.claude-plugin' / 'plugin.json'
     if not plugin.exists():
@@ -386,6 +416,7 @@ def fleet_tooling():
         except (OSError, UnicodeDecodeError):
             continue
         found += retired_gating_lines(rel, text)
+        found += bare_scratchpad_lines(rel, text)
         if RETIRED.search(text):
             found.append(f'{rel} still calls a retired project copy (use the tools/claude-skills path)')
         found += [f'{rel} names tools/claude-skills/{m}, which the pinned submodule does not have'

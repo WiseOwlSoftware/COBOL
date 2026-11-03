@@ -4,6 +4,7 @@ using Antlr4.Runtime;                // ParserRuleContext — the source-element
 using WiseOwl.Cobol.Binding;              // FlagState / PictureAnalyzer / EditionContext
 using WiseOwl.Cobol.Binding.Model;        // Usage / PicCategory / PicInfo
 using WiseOwl.Cobol.Binding.Passes;       // GroupBindContext
+using WiseOwl.Cobol.Compiler.Oo;          // OoSymbolOrigin (a method symbol's origin)
 using WiseOwl.Cobol.Common;               // CobolLiteral (the one literal decoder)
 using WiseOwl.Cobol.Editions;             // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
@@ -138,7 +139,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         foreach (var cls in group.Classes)
             foreach (var (data, refs) in new[] { (cls.Data, cls.Refs), (cls.FactoryData, cls.FactoryRefs) })
                 foreach (var m in data.Oo.BoundMethods)
-                    if (m.Ctx is { } mctx) methodScopes[mctx] = new MethodNameScope(data, refs, m.DataScope);
+                    if (m.Origin is OoSymbolOrigin.Source) methodScopes[m.Ctx] = new MethodNameScope(data, refs, m.DataScope);
 
         // The binder's record of the function activations and property references that look like data references
         // (DataBindState.ActivationSites) — every forest of the group, class and program alike.

@@ -128,8 +128,8 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
         bool IsUserFunction(string fn) => binder.State.Configuration.UserFunctionNames.Contains(fn) || binder.UnitIsFunction && binder.ContainingDefinitionNames.Contains(fn);
         var own = binder.Oo.IsClassUnit
-            ? binder.Oo.BoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
-                .SelectMany(m => binder.ClaimScans.ByReferenceOperands(m.Definition.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
+            ? binder.Oo.BoundMethods.Where(m => m.Origin is OoSymbolOrigin.Source && m.Ctx.procedureDivision() is not null)
+                .SelectMany(m => binder.ClaimScans.ByReferenceOperands(m.Ctx.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
             : program.procedureDivision() is { } opd
                 ? binder.ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
                 : [];
@@ -220,7 +220,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         if (binder.Oo.IsClassUnit)
         {
             foreach (var m in binder.Oo.BoundMethods)
-                if (m.Ctx?.procedureDivision() is { } mpd)
+                if (m.Origin is OoSymbolOrigin.Source && m.Ctx.procedureDivision() is { } mpd)
                     foreach (var (n, q) in binder.ClaimScans.AddressTargets(mpd))
                         yield return (n, q, m);
             yield break;

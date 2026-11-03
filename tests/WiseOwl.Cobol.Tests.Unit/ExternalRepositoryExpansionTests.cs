@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
+using WiseOwl.Cobol.Cli;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime.Repository;
 using WiseOwl.Cobol.Tests.Shared;
@@ -488,23 +489,13 @@ public sealed class ExternalRepositoryExpansionTests
             Assert.True(Compile(dir, "LIBX", Box + Hold()).Success);
             Assert.True(Compile(dir, "CLIENT1", Client("CLIENT1")).Success);
             string file = Path.Combine(dir, "HOLD-BOX.dll");
-            byte[] bytes = File.ReadAllBytes(file);
-            var current = System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.Current);
-            var other = System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.OtherMajor);
-            Assert.Equal(current.Length, other.Length);
-            int replaced = 0;
-            for (int at = bytes.AsSpan().IndexOf(current); at >= 0; at = bytes.AsSpan().IndexOf(current))
-            {
-                other.CopyTo(bytes, at);
-                replaced++;
-            }
-            Assert.True(replaced > 0, "the expansion records its runtime version nowhere in UTF-8");
-            File.WriteAllBytes(file, bytes);
+            Assert.True(RuntimeVersionSkew.Patch(file, System.Text.Encoding.UTF8) > 0, "the expansion records its runtime version nowhere in UTF-8");
+            byte[] skewed = File.ReadAllBytes(file);
             var r = Compile(dir, "CLIENT2", Client("CLIENT2", 7));
             Assert.True(r.Success, Codes(r));
             string skew = Assert.Single(r.Warnings, w => w.Contains("COBOL5972"));
             Assert.Contains("is replaced", skew);
-            Assert.NotEqual(bytes, File.ReadAllBytes(file));
+            Assert.NotEqual(skewed, File.ReadAllBytes(file));
             var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT2.dll"), dir);
             Assert.True(exit == 0, stderr);
             Assert.Equal("BOX 007", stdout);
@@ -644,6 +635,62 @@ public sealed class ExternalRepositoryExpansionTests
             var r = Compile(dir, "CLIENT1", Client("CLIENT1"));
             Assert.False(r.Success);
             Assert.Contains("COBOL5962", Codes(r));
+        });
+    }
+
+    [Fact]   // §9.3.12, §10.5 (kb/Work PB4457): the warnings of an expansion compiled in an assembly of its own are kept, at the EXPANDS entry.
+    public void AWarningOfAnExpansionInAnAssemblyOfItsOwn_IsCarriedAndReportedAtTheExpandsEntry()
+    {
+        // NEXT SENTENCE is obsolete at COBOL-2023 (COBOL0903, a warning, Annex F.1): the skeleton's text carries it into the expansion.
+        string show = "IF 1 = 1 NEXT SENTENCE ELSE DISPLAY \"A\".\n        INVOKE ITEM \"SHOW\".";
+        WithDirectory("expansion-warning", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold(show), level: 2023).Success);
+            var r = Compile(dir, "CLIENT1", Client("CLIENT1"), level: 2023);
+            Assert.True(r.Success, Codes(r));
+            Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));   // placement (a): the warning is the sub-compilation's
+            // The EXPANDS entry is `CLASS HOLD-BOX EXPANDS HOLD USING BOX.` on line 8 of the client, column 5; the expansion is named.
+            string entry = Path.Combine(dir, "CLIENT1.cob") + "(8,5)";
+            string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL0903", StringComparison.Ordinal));
+            Assert.StartsWith($"{entry}: warning COBOL0903:", warning, StringComparison.Ordinal);
+            Assert.EndsWith("[in the expansion 'HOLD-BOX']", warning, StringComparison.Ordinal);
+            Assert.DoesNotContain(r.Warnings, w => System.Text.RegularExpressions.Regex.IsMatch(w, "expansion-[0-9a-f]{32}\\.cob"));   // none names the throw-away file
+        });
+    }
+
+    [Fact]   // PB4457: an error of the sub-compilation is reported at the EXPANDS entry whatever shape the position takes.
+    public void ADiagnosticOfAnExpansionText_IsRelabelledToTheExpandsEntry()
+    {
+        string temp = Path.Combine(Path.GetTempPath(), "expansion-0123456789abcdef.cob");
+        var entry = new WiseOwl.Cobol.Frontend.Common.SourceLocation("client.cob", 0, 7, 4);   // line 8, column 5 as a user reads it
+        string At(string diagnostic) => ExpansionAssemblies.AtTheEntry(diagnostic, temp, "HOLD-BOX", entry);
+
+        // A positioned diagnostic: the throw-away file and its line are replaced; the expansion is named.
+        Assert.Equal("client.cob(8,5): error COBOL2690: boom (ISO §6.4.2) [in the expansion 'HOLD-BOX']",
+            At($"{temp}(41,9): error COBOL2690: boom (ISO §6.4.2)"));
+        Assert.Equal("client.cob(8,5): warning COBOL0903: obsolete [in the expansion 'HOLD-BOX']", At($"{temp}(3,1): warning COBOL0903: obsolete"));
+        // A diagnostic that names no position takes the entry's.
+        Assert.Equal("client.cob(8,5): error COBOL5962: nothing [in the expansion 'HOLD-BOX']", At("error COBOL5962: nothing"));
+        // A mention of the file inside a message is not left pointing at a file that is gone.
+        string mention = At($"error COBOL0001: cannot read {temp}");
+        Assert.DoesNotContain("expansion-0123456789abcdef", mention, StringComparison.Ordinal);
+        Assert.Contains("the text of the expansion 'HOLD-BOX'", mention, StringComparison.Ordinal);
+        // The header line and the Roslyn diagnostics of the generated C# are not positions in the text.
+        Assert.Equal("the expansion assembly 'HOLD-BOX.dll' (ISO §9.3.12):", At("the expansion assembly 'HOLD-BOX.dll' (ISO §9.3.12):"));
+        Assert.Equal("HOLD-BOX.g.cs(12,3): error CS0103: no", At("HOLD-BOX.g.cs(12,3): error CS0103: no"));
+    }
+
+    [Fact]   // PB4457: the CLI names the generated C# only when there is a file to open.
+    public void TheBackendFailureHeadline_NamesTheGeneratedCSharp_OnlyWhenItExists()
+    {
+        Assert.Equal("error: backend compilation failed:", Program.BackendFailureHeadline(null));
+        Assert.Equal("error: backend compilation failed:", Program.BackendFailureHeadline(""));
+        Assert.Equal("error: backend compilation failed:", Program.BackendFailureHeadline(Path.Combine(Path.GetTempPath(), "no-such-file.g.cs")));
+        WithDirectory("headline", dir =>
+        {
+            string cs = Path.Combine(dir, "X.g.cs");
+            File.WriteAllText(cs, "// generated");
+            Assert.Equal($"error: backend compilation failed (generated C# at {cs}):", Program.BackendFailureHeadline(cs));
         });
     }
 }

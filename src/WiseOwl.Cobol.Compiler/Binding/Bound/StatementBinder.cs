@@ -337,7 +337,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             using var declaring = Ctx.Data.Oo.EnterMethodDeclarations(m.DataScope);
             m.Binding!.DeclStartPc = table.Paragraphs.Count;
             m.Binding!.EntryPc = table.Paragraphs.Count;
-            if (m.Definition.procedureDivision() is { } pd)
+            if (m.Ctx.procedureDivision() is { } pd)
             {
                 // The method's declaratives portion (§14.2.1 Format 1; §14.2.2 SR10): the declarative sections take
                 // the pcs BELOW the method's entry, reached only through its USE selection or an explicit PERFORM

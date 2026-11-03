@@ -1704,9 +1704,10 @@ and identity and otherwise creates the class." **DOC-A.1-162:** the same for int
 
 ### 10.1 Importing a class
 `MetadataRepositoryProvider.Class(identity)` decodes the TypeDef's attributes into a `ClassRecord` and builds an
-`OoClassSymbol { Origin = Imported(path, simpleName, fullName) }` (`OoSymbolOrigin { Source, Standard, Imported, Clr }`
+`OoClassSymbol { Origin = Imported(path, simpleName, fullName) }` (`OoSymbolOrigin { Source, Standard, Imported, Generated, Clr }`
 replaces `OoClassSymbol.IsStandard`, today `ctx is null`, and every reader of it; `Ctx` already throws on the standard
-class and throws on an imported one too): `ClrName` = the TypeDef's full name (namespace included); `FactoryClrName`; `IsFinal`;
+class and throws on an imported one too; `Generated` is the origin of a PROPERTY clause's accessor, a method symbol's only —
+`OoMethodSymbol.Origin` pairs the class symbol's and its `Ctx` throws on every origin but `Source`, kb/Work PB4459): `ClrName` = the TypeDef's full name (namespace included); `FactoryClrName`; `IsFinal`;
 `Base`/`Implements` resolved by identity through the same provider (transitively; the standard class → `StandardBase`;
 unreachable → REPO-11); one `OoMethodSymbol` per `[CobolMethod]` over decoded `DataItem`s; `OverrideOf` re-linked;
 accessors; `Raising`. `OoClassTable.Import(symbol)` registers by IDENTITY (§8.7). Downstream — INVOKE binding,
@@ -1869,7 +1870,16 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   file is written, so the existing `<name>.dll` stays as it was.
 - *Placement (a)'s text is written as free-form lines* (`ExpansionAssemblies.FreeForm`): a line breaks at a space BETWEEN words, never at
   one inside a literal, and a literal too long for the rest of a line is continued with the floating literal continuation indicator
-  (§6.2.3.1, §6.5 8)).
+  (§6.2.3.1, §6.5 8)). §6.4.2 requires "at least one alphanumeric character, national character, or hexadecimal digit of the literal
+  content ... on the continued line and on each continuation line" and a doubled quotation symbol "on the same line", so the indicator
+  never follows the opening delimiter: a continuation line opens with the quotation symbol and a whole content unit, and a literal
+  whose FIRST unit does not fit the line it opens on (delimiter at position 197 and a doubled symbol, at 198 and any unit) moves, prefix
+  letters included, to a line of its own (kb/Work PB4456; `ExpansionFreeFormTests` sweeps every kind at every column).
+- *Placement (a) reports where the expansion was asked for* (kb/Work PB4457): every diagnostic of the sub-compilation, error and warning
+  alike, is returned by `ExpansionAssemblies.Write` relabelled by `AtTheEntry` to the EXPANDS entry (`ExpansionToWrite.RequestedAt`, the
+  file, line and column the user's source names, as an expansion made in the group is positioned) with `[in the expansion 'NAME']`
+  after the message, never to the throw-away file the text was compiled from. The warnings ride `CompilerDriver.Result.Warnings` on
+  every outcome, and the CLI names the generated C# of a backend failure only when that file exists.
 - *Residual, stated:* an expansion of a skeleton published under another `CompileState` than this group's whose code also names a class of
   this group can live neither in an assembly of its own nor, bound under this group's state, in the group's module: it is COBOL2240. And
   an expansion of such a skeleton is BOUND in the group under the group's state (its surface — method names and descriptions — is a
@@ -2282,7 +2292,7 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   repository search space (D1, §9.3: the output directory) and the run unit's application directory (§11.4), so no
   repository option is written per case; a step that needs one (`--repository-update off`; `--repository-check off` and a
   second directory with slice 7) takes it from `wiseowl/options/<id>.<step file>.json` (`repository-update` is
-  landed). An expected compile refusal of a step (REPO-1, REPO-9, …) is `wiseowl/diagnostics/`'s under the same file name:
+  landed; so is `std`, the edition that one unit compiles at, for a program of an older edition called through a newer one's prototype). An expected compile refusal of a step (REPO-1, REPO-9, …) is `wiseowl/diagnostics/`'s under the same file name:
   its first consumer is slice 7's first refusal case, and the key lands with it, as the readers of that directory take a
   test's own file today (kb/Work PB2103; one file per test, kb/Work PB4147).
   **Slice 5 lands the shape**, because its run-time cases are the first that need two separately compiled groups (a
@@ -2793,9 +2803,10 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    CONFORMANCE DOC-A.1-66/-67 and D-R3. `ResolveRepositorySpecifiers` is not a pass of its own (§12's row). Found on the
    way: nineteen corpus cases named a definition that FOLLOWS the paragraph, a contained program or nothing (SR14 / SR10),
    which the deleted state had let through; each now states its details (a prototype ahead, or the callee as a build step).
-   Not yet witnessed by a case: REPO-4, -5, -7 and -12 (they need a patched or older entry; the reader's typed outcomes are
-   pinned by `RepositoryReaderTests`), the cross-repository REPO-13 and word cases, and the pb1115 split; they are in the
-   PB2103 report's leads.
+   Witnessed after the landing (kb/Work PB4455, PB4460): REPO-4 (a damaged record and a damaged index), REPO-5, -7 and -12 are
+   `ExternalRepositoryResolutionTests` Facts over a same-length byte patch of a compiled library (`RuntimeVersionSkew.Patch`,
+   `RenameNamedArgument`, `RedirectRedefinition`, `BreakIndexRow`), and the cross-repository REPO-13, the word reaching a
+   later-compiled unit, the pb1115 split and an 85 program called through a prototype are `wiseowl/cases/12.3.8-REPOSITORY/pb2103_*`.
 8. **OO across assemblies, in two steps** (kb/Work PB2104): `Origin` (replacing `OoClassSymbol.IsStandard`),
    `IdentityScope`, class import, `ObjectRefDescriptor.Target` and the run-time description's class facts as
    externalized names (a call-ABI bump, §6.4), REPO-6 and REPO-11's class arms, `BackendOptions.RepositoryReferences`

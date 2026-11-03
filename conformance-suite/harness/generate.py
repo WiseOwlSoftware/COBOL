@@ -84,9 +84,14 @@ Problem = tuple[str, str]
 #: A `build` step's output base name: the assembly's file name without `.dll`.
 OUTPUT_BASE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._ -]*$")
 #: wiseowl/options/ (§4): the WiseOwl compile options a WiseOwl test may need, and each one's values (the `cobol`
-#: command's --sign-encoding, --numeric-display and --flag-extensions). Only a test of the wiseowl tree may name one.
+#: command's --sign-encoding, --numeric-display, --flag-extensions and --repository-update). Only a test of the wiseowl
+#: tree may name one.
 WISEOWL_OPTIONS = {"sign-encoding": ("ibm", "ascii"), "numeric-display": ("decimal", "digits"), "flag-extensions": ("on", "off"),
                    "repository-update": ("on", "off")}
+#: The option a build STEP alone may name (the `cobol` command's --std): the edition that unit is compiled at, where the test's
+#: own edition is the one every other unit and the test's source compile at. Its values are the schema's editions. A whole
+#: test never names it: the test runs once per `accept` edition, and an edition fixed for it would contradict that list.
+STEP_EDITION_OPTION = "std"
 OUT = SUITE / "suites"
 #: The corpus slice S2 moved into the suite (kb/Work PB3177). A file there is a test a branch cut before the move
 #: added, which no runner would ever run: refused, so the branch is red in seconds (§13 S2).
@@ -828,10 +833,13 @@ def check_cases(reader: Reader) -> None:
         elif not isinstance(entry, dict) or not entry:
             reader.refuse(where, 1, f"{test_id}: an entry maps each option to its value")
         else:
+            options = dict(WISEOWL_OPTIONS)
+            if "/" in test_id:   # a build step's file
+                options[STEP_EDITION_OPTION] = tuple(inputs.editions)
             for key, value in entry.items():
-                if value not in WISEOWL_OPTIONS.get(key, ()):
+                if value not in options.get(key, ()):
                     reader.refuse(where, 1, f"{test_id}: {key}={value!r} is not a WiseOwl compile option ("
-                                            + "; ".join(f"{k}: {', '.join(v)}" for k, v in WISEOWL_OPTIONS.items())
+                                            + "; ".join(f"{k}: {', '.join(v)}" for k, v in options.items())
                                             + ")")
     for case in reader.cases:
         if case.flag is not None and case.test_id not in inputs.diagnostics:
@@ -1367,7 +1375,7 @@ def self_test() -> int:
         root = Path(d)
         _plant(root, good)
         inputs = _planted_inputs()
-        inputs.options = {"multi/U1.cbl": {"repository-update": "off"}}
+        inputs.options = {"multi/U1.cbl": {"repository-update": "off", "std": "85"}}
         rc_gen, reader = generate(root, inputs, [], root / "suites")
         check("arm: a well-formed tree is GREEN", rc_gen == 0, [str(r) for r in reader.refusals])
         if rc_gen == 0:
@@ -1411,10 +1419,10 @@ def self_test() -> int:
             check("arm: a multi-unit test's manifest entry lists its steps in order, the test's own source where the "
                   "list puts it, each step's output base name and options (an output defaults to the file's stem)",
                   w2023["multi"]["build"] == [
-                      {"file": unit + "U1.cbl", "output": "Lib", "options": {"repository-update": "off"}},
+                      {"file": unit + "U1.cbl", "output": "Lib", "options": {"repository-update": "off", "std": "85"}},
                       {"file": unit + "U2.cbl", "output": "U2", "options": {}},
                       {"file": None, "output": None, "options": {}},
-                      {"file": unit + "U1.cbl", "output": "Lib", "options": {"repository-update": "off"}}],
+                      {"file": unit + "U1.cbl", "output": "Lib", "options": {"repository-update": "off", "std": "85"}}],
                   w2023["multi"].get("build"))
             check("arm: ... {self} is appended last when the list omits it, and a test with no build has no key",
                   w2023["multi-tail"]["build"] == [{"file": unit + "U1.cbl", "output": "U1", "options": {}},
@@ -1439,6 +1447,13 @@ def self_test() -> int:
         remove_tree(root / "suites")
         rc_check, _ = generate(root, inputs, [], None)
         check("arm: --check writes nothing", rc_check == 0 and not (root / "suites").exists())
+        stray = _planted_inputs()
+        stray.options = {"multi": {"std": "85"}, "multi/U1.cbl": {"std": "1999"}}
+        rc_std, std_reader = generate(root, stray, [], None, echo=False)
+        std_refused = [str(r) for r in std_reader.refusals]
+        check("arm: std is a build step's option alone (a whole test runs once per accepted edition) and one of the editions",
+              rc_std == 1 and any("multi: std='85' is not a WiseOwl compile option" in r for r in std_refused)
+              and any("multi/U1.cbl: std='1999' is not a WiseOwl compile option" in r for r in std_refused), std_refused)
         # --out DIR names a directory the user chose: only what a previous run wrote there is ever removed (R1-1).
         mine = root / "mine"
         (mine / "precious").mkdir(parents=True)
