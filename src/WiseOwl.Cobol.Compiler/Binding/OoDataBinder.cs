@@ -236,7 +236,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // funnel, is what makes that scope travel with the descriptor: `oru` is the reference site the
         // ancestor walk starts from.
         var resolved = Compiler.Oo.OoNameResolution.Resolve(OoClasses, Edition, site, name,
-            Compiler.Oo.OoNameResolution.Want.Either, where, "COBOL0813", resolveRule);
+            Compiler.Oo.OoNameResolution.Want.Either, where, DiagnosticCatalog.ObjectClassNameNotResolvable.Code, resolveRule);
         // A PARAMETER-NAME of the parameterized definition being bound as itself (kb/Work PB2051, PB2937): it stands where
         // an object-class-name or an interface-name is permitted (§11.3.4 GR6), so the description takes the alternative
         // its own REPOSITORY specifier declares — an interface formal is the bare-name alternative — marked FORMAL: what it
@@ -384,7 +384,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             var item = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, pname));
             if (item is null)
-                Edition.Error("COBOL0888", $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else if (header.AdmitFormal(pname, item))
             {
@@ -411,7 +411,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             m.Binding!.Returning = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, rref.GetText()));
             if (m.Binding!.Returning is null)
-                Edition.Error("COBOL0888", $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else
                 header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
@@ -440,7 +440,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             if (root.IsAnyLength)
             {
                 using var localAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
-                Edition.Error("COBOL1542", $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
                     + "LENGTH clause may be specified only in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
                 root.IsAnyLength = false;
             }
@@ -450,14 +450,14 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             using var linkageAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
             string rw = $"{where}: data item '{root.CobolName ?? "FILLER"}'";
             if (root.IsGroup)
-                Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
                     + "— this entry has subordinate items (ISO §13.18.2.3 SR2)");
             else if (m.Accessor != '\0')
-                Edition.Error("COBOL1542", $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
                     + "method (ISO §13.18.2.3 SR2 — a method that is not a property method)");
             else if (!m.Binding!.Formals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue)   // SR3 a): a BY VALUE formal does not qualify
                 && !ReferenceEquals(m.Binding!.Returning, root))
-                Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
+                Edition.Error(DiagnosticCatalog.AnyLengthSubjectNotInHeader, $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
                     + "in the method's procedure division header as a BY REFERENCE formal parameter or as the "
                     + "RETURNING item (ISO §13.18.2.3 SR3)");
             else

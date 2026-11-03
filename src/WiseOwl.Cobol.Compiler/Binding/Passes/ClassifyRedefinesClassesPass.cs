@@ -175,7 +175,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                 && cls.Members.FirstOrDefault(m => !ReferenceEquals(m, cls.Canonical) && m.IsDynamicTable) is { } dynSubject)
             {
                 using var dynamicSubjectAt = binder.Edition.At(dynSubject);   // the REDEFINES entry as written; this pass runs post-build (kb/Work PB2034)
-                binder.Edition.Error("COBOL1525", $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.ClrName}' is "
+                binder.Edition.Error(DiagnosticCatalog.RedefinesSubjectIsDynamicTable, $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.ClrName}' is "
                     + "itself a dynamic-capacity table: its capacity \"may vary during execution\" (ISO "
                     + "§8.5.1.9.1), so it has no fixed area for the storage association §13.18.44.4 GR1 requires; "
                     + "it shall not be the subject of a REDEFINES");

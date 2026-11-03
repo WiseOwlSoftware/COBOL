@@ -641,7 +641,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // every file whose records vary, including the implied Format 2 of a variable-length record (D-FRA);
             // it used to fire only when a RECORD clause wrote integer-2.
             if (file.RecordSizeVaries && file.VaryMin is var min && win.MaxEnd > min)
-                ctx.Edition.Error("COBOL0874", $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
+                ctx.Edition.Error(DiagnosticCatalog.SortKeyBeyondMinimumRecord, $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
                     + (win.FollowsVariable
                         ? $"follows a variable-length member of record '{root.CobolName}' and can reach byte {win.MaxEnd}"
                         : $"occupies character positions {win.Offset + 1}..{win.MaxEnd}")
@@ -705,7 +705,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (natName is not null)
         {
             if (ctx.Data.SpecialNames.CollatingAlphabetFault(natName, national: true) is { } natFault)
-                ctx.Edition.Error("COBOL0898", SpecialNamesBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
+                ctx.Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, SpecialNamesBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
                     natName, national: true, natFault, clauses.National));
             else if (ctx.Data.State.Configuration.NationalAlphabets.TryPeek(natName, out var def))
                 nat = def.IsIdentity ? null : def;   // GR5a — an identity national alphabet (NATIVE/UCS-4) ⇒ native
@@ -717,7 +717,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!ctx.Data.State.Configuration.Alphabets.TryPeek(alnumName, out var alnumDef))
         {
             if (ctx.Data.SpecialNames.CollatingAlphabetFault(alnumName, national: false) is { } fault)
-                ctx.Edition.Error("COBOL0898", SpecialNamesBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
+                ctx.Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, SpecialNamesBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
                     alnumName, national: false, fault, clauses.Alphanumeric));
             // A FOR NATIONAL alphabet in the slot leaves the statement bindable (the alphanumeric keys fall to the
             // native order); any other word is no alphabet at all and the statement is rejected (PB236).

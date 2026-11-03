@@ -57,7 +57,7 @@ internal static class EcNameResolution
         // When the screen module is ever claimed, delete its row exactly as PB64 T1 deleted this one — one rule.
         if (level3 is { } site && info.Level != 3)
         {
-            edition.Error("COBOL0710", $"{where}: exception-name '{info.Name}' is a level-{info.Level} "
+            edition.Error(DiagnosticCatalog.RaisedExceptionNameNotLevel3, $"{where}: exception-name '{info.Name}' is a level-{info.Level} "
                 + $"name; only a LEVEL-3 exception-name may be raised ({site.Cite(site.Level3Rule)})");
             return false;
         }

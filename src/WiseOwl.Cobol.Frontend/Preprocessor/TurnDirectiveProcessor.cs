@@ -109,7 +109,7 @@ public static class TurnDirectiveProcessor
         void AddPair(string ec, string? file)
         {
             if (!seen.Add(ec + "|" + (file ?? "")))
-                diagnostics.ReportError("COBOL0718",
+                diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
                     $">>TURN: the exception-name/file-name combination '{ec}{(file is null ? "" : " " + file)}' is "
                     + "specified more than once in this directive (ISO §7.3.25.3 SR3)", loc, default);
             else if (currentEcResolved)   // the catalog's canonical spelling: the binder's fold matches on it
@@ -184,7 +184,7 @@ public static class TurnDirectiveProcessor
                 // ALL… can never be file-name-1, so the directive matches no format (kb/Work PB1365).
                 if (CompilerDirectiveWords.IsReserved(w))
                 {
-                    diagnostics.ReportError("COBOL0718",
+                    diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
                         $">>TURN: '{w}' duplicates a compiler-directive word, so it is interpreted as that directive "
                         + "word and not as file-name-1, and the directive matches no format (ISO §7.3.25.3 SR1; §8.12)",
                         loc, default);
@@ -192,7 +192,7 @@ public static class TurnDirectiveProcessor
                 }
                 // SR4 — a file-name only with an EC-I-O… name.
                 if (!CobolNames.StartsWith(currentEc, "EC-I-O"))   // Annex C: an exception-name, as ExceptionCatalog folds it
-                    diagnostics.ReportError("COBOL0719",
+                    diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnFileNameNonIo.Code,
                         $">>TURN: file-name '{w}' specified with exception-name '{currentEc}', which does not begin "
                         + "with 'EC-I-O' (ISO §7.3.25.3 SR4)", loc, default);
                 else
@@ -204,7 +204,7 @@ public static class TurnDirectiveProcessor
             }
             else
             {
-                diagnostics.ReportError("COBOL0718",
+                diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
                     $">>TURN: unexpected word '{w}' — expected an exception-name (a word beginning 'EC-', "
                     + "ISO §7.3.25.3 SR1)", loc, default);
                 return null;
@@ -217,7 +217,7 @@ public static class TurnDirectiveProcessor
         // so a word after ON / OFF [WITH LOCATION] was never looked at (`>>TURN EC-ALL CHECKING OFF JUNK` took effect).
         if (checkingEnd >= 0 && checkingEnd < words.Length)
         {
-            diagnostics.ReportError("COBOL0718",
+            diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
                 $">>TURN: unexpected word '{words[checkingEnd]}' after the CHECKING phrase — the directive ends at "
                 + "CHECKING {ON [WITH LOCATION] | OFF} (ISO §7.3.25.2), and may be followed only by space characters "
                 + "and an optional inline comment (ISO §7.3.3 SR3)", loc, default);
@@ -227,7 +227,7 @@ public static class TurnDirectiveProcessor
         if (on is not null && names.Count == 0 && anyUnresolved) return null;   // every name was refused by SR2 above
         if (on is null || names.Count == 0)
         {
-            diagnostics.ReportError("COBOL0718",
+            diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
                 ">>TURN: malformed directive — the format is '>>TURN {exception-name [file-name]…}… CHECKING "
                 + "{ON [WITH LOCATION] | OFF}' (ISO §7.3.25.2)", loc, default);
             return null;
