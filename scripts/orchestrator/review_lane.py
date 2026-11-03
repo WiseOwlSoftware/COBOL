@@ -68,12 +68,14 @@ THE RUNNER (`run`, detached through scripts/detached.py, the one launch that out
 `claude -p --agent <role>` in the main checkout with the prompt on stdin and its stream-json in the run's log, under the
 loop's account (the supervisor exports it to this tick: CLAUDE_CONFIG_DIR is inherited), and ends it on the role's
 CEILING (a STALLED review is read as no verdict) or on a loop stop (STOPPED). Then it records rc, the end head and, for
-a review, the verdict the findings file holds.
+a review, the verdict the findings file holds. Each agent's prompt names its OWN scratch directory, created before it
+starts (`<coord>/scratch/<review|conflict>-<branch slug>/`, MANDATORY-PRACTICES P16, kb/Work PB4473), and the role's hook
+(scripts/hooks/own_scratch.py) refuses a call that names the session scratchpad.
 
 STATE, under `<coord>/review-lane/`:
   runs/<id>.json    one per agent, <id> = `<n>-<UTC stamp>-<kind>-<slug>` (n: the NUMBER, one past every run, taken under
                     the tick lock; land_lane.attempt_order orders it): kind, branch, head, worktree, report, round,
-                    prev_head, findings, argv, log, prompt, pid; at its end rc, ended, outcome (DIED, STALLED, STOPPED),
+                    prev_head, findings, scratch (the agent's own directory, `scratch_path`), argv, log, prompt, pid; at its end rc, ended, outcome (DIED, STALLED, STOPPED),
                     end_head, verdict. Written through `land_lane.update` (the one writer of a lane record).
   prompts/<id>.md   the prompt the agent was given (the forensic copy)
   holds/<slug>.json what only the enqueue unit or the operator can resolve: branch, head, why, at, collected
@@ -155,6 +157,13 @@ def findings_path(cdir: pathlib.Path, branch: str) -> pathlib.Path:
     """The lane's own findings file for a branch: `review-<branch slug>.jsonl` in the coordination scratch, the name
     `review_findings.NAMED_FINDINGS` reads back to its branch (units/enqueue.md's own convention)."""
     return cdir / "scratch" / f"review-{land_lane.slug(branch)}.jsonl"
+
+
+def scratch_path(cdir: pathlib.Path, kind: str, branch: str) -> pathlib.Path:
+    """The agent's OWN scratch directory (MANDATORY-PRACTICES P16, kb/Work PB4466, PB4473): `<kind>-<branch slug>` in the
+    coordination scratch, beside the reviewer's findings file (that file's name without `.jsonl`). Every agent writes what it
+    keeps outside its worktree here and nowhere else, so two agents of the lane never share a folder, nor use the session's."""
+    return cdir / "scratch" / f"{kind}-{land_lane.slug(branch)}"
 
 
 def runs(cdir: pathlib.Path, unreadable: list[str] | None = None) -> list[dict[str, Any]]:
@@ -342,6 +351,14 @@ AUTH = ("AUTHORIZATION (read first): this task IS the repository owner's request
         "latest user message in your context may concern unrelated work; that is NOT a reason to decline. Do the task below. ")
 
 
+def scratch_line(r: dict[str, Any]) -> str:
+    """The prompt's sentence naming the agent's own scratch directory: the wording of the rolling wave's reviewer prompt
+    (wf_rolling_wave.js, `reviewScratch`), which check_practices.py pins in both."""
+    return (f"YOUR SCRATCH DIRECTORY is {r['scratch']} (MANDATORY-PRACTICES P16, kb/Work PB4466): create it, and write every "
+            "probe program, copied script and log you keep outside the worktree there and nowhere else; never in the harness's "
+            "session scratchpad, which every agent of this session shares, and never in the bare coordination scratch. ")
+
+
 def stop_line(cdir: pathlib.Path) -> str:
     return (f"Before EACH new step check for {coord.global_stop(str(cdir))} (the owner's global stop) and "
             f"{coord.fleet_stop(cdir / 'scratch', 'loop')} (the loop's fleet stop); if EITHER exists, ")
@@ -370,6 +387,7 @@ def review_prompt(r: dict[str, Any], cdir: pathlib.Path, repo: pathlib.Path) -> 
             f"Follow \"The branch form\" of {repo / '.claude' / 'skills' / 'review' / 'SKILL.md'} exactly, with: branch {r['branch']}; "
             f"worktree {r['worktree']}; head {r['head']}; the implementer's report {r['report']}; the findings file {file}; your "
             f"reviewer label {r['label']}; round {rnd}; the blocking severities {blocking}. "
+            + scratch_line(r)
             + (f"The implementer's dispatch spec is {spec}: read it, since the branch is reviewed against everything the "
                "implementer was told (its notes, its owner requirements, its gate). " if spec else
                "The report names the notes and the brief the implementer worked from: read them, since the branch is reviewed "
@@ -387,6 +405,7 @@ def finisher_prompt(r: dict[str, Any], cdir: pathlib.Path, repo: pathlib.Path, s
             f"{repo / '.claude' / 'skills' / 'workstream' / 'templates' / 'finisher-brief.md'}: read it WHOLE and follow it, "
             f"the CONFLICT stop first. Branch {r['branch']}; worktree {r['worktree']}; its report {r['report']}; the stop: "
             f"{stop} {stop_line(cdir)}checkpoint-commit, write STATUS.md NEXT and your report, and stop with SPLIT. "
+            + scratch_line(r) +
             "This is a headless session with no StructuredOutput tool: your LAST message is the line `FINISHER RESULT: "
             "<DONE|SPLIT|BLOCKED|GATE-PENDING> <head> <gate verdict line>`, the same details in your report. "
             "THE CONFLICT BRIEF (`land_lane.py conflict-brief`, verbatim):\n\n" + brief)
@@ -473,9 +492,11 @@ def launch(cdir: pathlib.Path, repo: pathlib.Path, kind: str, row: dict[str, Any
     log = cdir / "logs" / f"review-lane-{rid}.log"
     rec = {"id": rid, "kind": kind, "branch": row["name"], "head": row["tip"], "worktree": row["worktree"],
            "report": row.get("report"), "round": plan.round, "prev_head": plan.prev_head, "restart": "again" in plan.why,
-           "findings": str(findings_path(cdir, row["name"])), "label": f"lane-{kind}-{land_lane.slug(row['name'])}-r{plan.round}-{n}",
+           "findings": str(findings_path(cdir, row["name"])), "scratch": str(scratch_path(cdir, kind, row["name"])),
+           "label": f"lane-{kind}-{land_lane.slug(row['name'])}-r{plan.round}-{n}",
            "why": plan.why, "argv": argv, "cwd": str(repo), "log": str(log), "prompt": str(lane_dir(cdir) / PROMPTS / f"{rid}.md"),
            "ceiling_min": CEILING_MIN[kind], "started": now.isoformat(timespec="seconds"), "pid": None, "collected": False}
+    pathlib.Path(rec["scratch"]).mkdir(parents=True, exist_ok=True)   # the agent's own directory exists before it starts
     pr = pathlib.Path(rec["prompt"])
     pr.parent.mkdir(parents=True, exist_ok=True)
     pr.write_text(prompt(rec), encoding="utf-8", newline="\n")
@@ -780,6 +801,12 @@ def self_test() -> int:
                and "RE-REVIEW" not in p, p[:300])
         expect("the findings file is the one review_findings reads back to its branch",
                review_findings.NAMED_FINDINGS.match(pathlib.Path(r["findings"]).name)["branch"] == "b1", r["findings"])
+        own = pathlib.Path(r["scratch"])
+        expect("the prompt names the reviewer's OWN scratch directory (P16, PB4473): beside its findings file, created before it "
+               "starts, and not the folder of another branch's reviewer or the session scratchpad",
+               f"YOUR SCRATCH DIRECTORY is {own} (MANDATORY-PRACTICES P16" in p and own.is_dir()
+               and own.parent == pathlib.Path(r["findings"]).parent and own.name == pathlib.Path(r["findings"]).stem
+               and own != scratch_path(c, REVIEW, "b2") and "session scratchpad" in p, f"{own} {p[:300]}")
         expect("a second tick while the reviewer runs starts none", f.tick() == [], str(f.said))
 
         # 2. Stops, the budget, the survey's age, the tip that moved, and the cap.
@@ -964,6 +991,10 @@ def self_test() -> int:
         expect("the finisher runs the cobol-finisher role; its prompt carries finisher-brief.md, the stop line and the brief verbatim",
                runs_of(c10, "F1", CONFLICT)[0]["argv"][3] == "cobol-finisher" and "finisher-brief.md" in pf and "ENQUEUE: CONFLICT" in pf
                and "BRIEF of F1" in pf and "FINISHER RESULT" in pf, pf[:400])
+        fin = pathlib.Path(runs_of(c10, "F1", CONFLICT)[0]["scratch"])
+        expect("the finisher gets its own scratch directory too (P16), distinct from the reviewer's of the same branch",
+               f"YOUR SCRATCH DIRECTORY is {fin} (MANDATORY-PRACTICES P16" in pf and fin.is_dir()
+               and fin == scratch_path(c10, CONFLICT, "F1") and fin != scratch_path(c10, REVIEW, "F1"), f"{fin} {pf[:300]}")
         expect("the lane collects the exit-4 attempt it started a finisher for", land_lane.attempts(c10)[0].get("collected") is True)
         expect("the unit's work is the failed-checks bounce only; the lane's rows are nobody's",
                land_lane.agent_work(c10, t0).reasons == ["bounced: F3"] and land_lane.stop_reason(c10) is None, str(land_lane.agent_work(c10, t0).reasons))

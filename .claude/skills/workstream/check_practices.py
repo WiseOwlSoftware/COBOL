@@ -39,7 +39,9 @@ BRIEFS = {
                           r'BUILD-LOCAL GATE: ', r'FIX WHAT YOU FIND', r'=== ENQUEUE: ', r'DO NOT LAND IT YOURSELF',
                           r'exit 11',
                           # the owner's exception-path test rule: a POINTER to its one home, never a second case list
-                          r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11', r'the I11 row of `templates/MANDATORY-PRACTICES\.md`'],
+                          r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11', r'the I11 row of `templates/MANDATORY-PRACTICES\.md`',
+                          # PB4473 (P16): the finisher writes in its own scratch directory, never the session scratchpad
+                          r'YOUR SCRATCH DIRECTORY is the one your prompt names \(MANDATORY-PRACTICES P16'],
     # I11: the report records the exception-path tests, so the reviewer has one place to read them
     'implementer-report-template.md': [r'## Owner test requirement \(MANDATORY-PRACTICES I11\)'],
     # the lanes MANDATORY-PRACTICES I10 does not review name themselves at the landing (enqueue.py UNREVIEWED_LANES)
@@ -112,6 +114,13 @@ BRIEFS = {
                                r'READY-TO-LAND <worktree> <branch>', r'enqueue\.py land',  # PB3023
                                r'I10', r'review_findings\.py', r'WAITING FOR REVIEW',  # PB3027: review on the branch
                                r'\| I11 \|'],  # the owner's SORT and file I/O exception-path test rule (2026-10-17)
+}
+# Prompts that live in code, not in a template (kb/Work PB4473): the loop's review lane builds its agents' prompts in
+# review_lane.py (its reviewer and conflict finisher), and each must tell the agent its own scratch directory in the rolling
+# wave's reviewer wording (the BRIEFS pin above), so the two reviewers are bound by one rule. Path (from the repo root) -> patterns.
+CODE_PROMPTS = {
+    'scripts/orchestrator/review_lane.py': [r'YOUR SCRATCH DIRECTORY is \{r\[\'scratch\'\]\} \(MANDATORY-PRACTICES P16',
+                                            r'(?s)def review_prompt.*?scratch_line\(r\).*?def finisher_prompt.*?scratch_line\(r\).*?def claude_argv'],
 }
 # The group slug is w<wave><letter>, optionally followed by a successor ordinal (w68v2 = the second link of a dependency
 # chain, after group V), so the report path stays wave-and-group prefixed.
@@ -367,6 +376,8 @@ def retired_gating_lines(rel, text):
 # ran the other's copy against its own worktree). The surfaces an agent is told what to do by may name the scratchpad only
 # as "the session scratchpad", the folder they forbid; any other mention is an instruction to write there.
 SCRATCHPAD_SURFACES = ('.claude/', 'scripts/hooks/')
+# The two files that exist to NAME the folder: this check and the hook that refuses a call naming it (kb/Work PB4473).
+SCRATCHPAD_NAMERS = ('.claude/skills/workstream/check_practices.py', 'scripts/hooks/own_scratch.py')
 BARE_SCRATCHPAD = re.compile(r'(?<!session )scratchpad', re.IGNORECASE)
 
 
@@ -374,7 +385,7 @@ def bare_scratchpad_lines(rel, text):
     """The lines of the instruction surface `rel` that name the scratchpad other than as "the session scratchpad", as
     `rel:line: text` messages. This module names the word, and `.claude/settings*.json` holds permission paths, so neither is a
     surface; a hook's self-test may quote the message it pins."""
-    if not rel.startswith(SCRATCHPAD_SURFACES) or rel == '.claude/skills/workstream/check_practices.py' \
+    if not rel.startswith(SCRATCHPAD_SURFACES) or rel in SCRATCHPAD_NAMERS \
             or rel.startswith('.claude/settings') or re.search(r'(?:^|/)test_[^/]*\.py$', rel):
         return []
     return [f'{rel}:{n}: {line.strip()[:100]} (an agent writes under its own scratch directory, MANDATORY-PRACTICES P16, '
@@ -473,7 +484,7 @@ def main():
     if len(sys.argv) > 1:
         targets = [(pathlib.Path(a), SPEC) for a in specs]
     else:
-        targets = [(T / f, pats) for f, pats in BRIEFS.items()]
+        targets = [(T / f, pats) for f, pats in BRIEFS.items()] + [(REPO / f, pats) for f, pats in CODE_PROMPTS.items()]
     for path, pats in targets:
         if not path.exists():
             print(f'MISSING  {path}'); bad += 1; continue

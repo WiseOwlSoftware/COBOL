@@ -4,6 +4,13 @@ description: WiseOwl COBOL finisher — takes ONE finished branch that did not l
 model: opus
 effort: high
 maxTurns: 160
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
+      hooks:
+        - type: command
+          command: python "$CLAUDE_PROJECT_DIR/scripts/hooks/own_scratch.py"
+          timeout: 30
 experimental:
   cacheTtl: 1h
 ---

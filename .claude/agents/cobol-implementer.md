@@ -4,6 +4,13 @@ description: WiseOwl COBOL fix-lane implementer — fixes one kb/Work group at i
 model: sonnet
 effort: high
 maxTurns: 400
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
+      hooks:
+        - type: command
+          command: python "$CLAUDE_PROJECT_DIR/scripts/hooks/own_scratch.py"
+          timeout: 30
 experimental:
   cacheTtl: 1h
 ---
