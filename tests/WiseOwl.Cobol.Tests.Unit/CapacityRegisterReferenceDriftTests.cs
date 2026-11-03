@@ -65,7 +65,7 @@ public sealed class CapacityRegisterReferenceDriftTests
     /// reference. Their files may read a register map only inside them.</summary>
     private static readonly (string File, string Method, string Path)[] ShadowingPredicates =
     [
-        ("DataBinder.Constants.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs")),
+        ("DataBinder.NonDataNames.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs")),
         ("OoMethodDataScope.cs", "Declares", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoMethodDataScope.cs")),
     ];
 

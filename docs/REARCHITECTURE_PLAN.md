@@ -231,7 +231,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   **✅ PB60's RV-15.69.4-2 LANDED (DEVLOG 1292)** — native NUMVAL-F joins the float family (binary64 where no
   scale governs; the exact parse for a fixed receiver or a MOVE sender — new `ReceiverContext.MoveSender`);
   PB60 at 13 of 15 listed rows; PB77 registered (the MOVE sentinel leak, float family too).
-  **✅ PB60's AR-15.67.3-5 LANDED (DEVLOG 1293)** — `DataBinder.InheritConfiguration` (the whole configuration
+  **✅ PB60's AR-15.67.3-5 LANDED (DEVLOG 1293)** — `ConfigurationStep` (the whole configuration
   + OPTIONS baseline into every containee, §12.3.4 GR1 / §11.9.4 GR1; COBOL1643 for §12.3.3 SR1); PB60 at
   14 of 15; GAP 4138. PB78 registered (OBJECT-COMPUTER's optional computer-name — an edition question).
   **✅ PB60 CLOSED (DEVLOG 1294)** — the CURRENCY SIGN SET + multi-character currency string landed

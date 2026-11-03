@@ -845,7 +845,7 @@ resolves through `TryUse(site, name)`, which records the use through the ONE rec
 `DataBinder.RecordConfigurationNameUse` (into `OoClassTable.RecordReferenceUse`), and a predicate, a declaration's
 duplicate check or a second read of an already-resolved name asks `Declares` / `TryPeek`, which record nothing; the
 mnemonic-names keep their parse-tree registry (`Procedure.MnemonicRegistry`), whose `TryUse` records the same way.
-`InheritConfiguration` hands every table down (`InheritFrom`; the symbolic characters were not handed down at all
+`ConfigurationStep` hands every table down (`InheritFrom`; the symbolic characters were not handed down at all
 before PB3153, so a contained program's use of one was COBOL1639). Where a format admits both an inherited name and
 another reading of the same word, the referring element's own item of the same spelling is asked first — §8.4.6.1: "a
 source element's reference to such a name, even when it is a different type of user-defined word, is to the item which

@@ -64,11 +64,11 @@ public sealed partial class DataBinder
                 else if (ph.INITIALIZED() is not null) initialized = true;
                 else if (ph.FROM() is not null && ph.integerOperand() is { } fl)
                 {
-                    if (IntegerOperandValue(fl, where) is { } from) fromCap = DynamicBoundWithinMaximum(ph, "FROM", from);
+                    if (Constants.IntegerOperandValue(fl, where) is { } from) fromCap = DynamicBoundWithinMaximum(ph, "FROM", from);
                 }
                 else if (ph.TO() is not null && ph.integerOperand() is { } tl)
                 {
-                    if (IntegerOperandValue(tl, where) is { } to) toCap = DynamicBoundWithinMaximum(ph, "TO", to);
+                    if (Constants.IntegerOperandValue(tl, where) is { } to) toCap = DynamicBoundWithinMaximum(ph, "TO", to);
                 }
             }
             var dyn = new OccursSpec
@@ -91,7 +91,7 @@ public sealed partial class DataBinder
         // that failed compile, with minimum 1 only so the rest of the entry still binds. Min feeds only the SR16
         // check and the later EC-BOUND-ODO bounds — allocation is ALWAYS Max (§8.5.1.8).
         int min = !depending ? max
-            : bounds.Length > 1 ? IntegerOperandValue(bounds[0], where) ?? 1
+            : bounds.Length > 1 ? Constants.IntegerOperandValue(bounds[0], where) ?? 1
             : 1;
         // data-name-1 — a QUALIFIED-DATA-NAME through the ONE data-name-n capture (kb/Work PB885). The whole
         // reference's GetText() stood here: `DEPENDING ON CNT OF G1` became the undefined name `CNTOFG1` (legal

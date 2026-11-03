@@ -17,8 +17,8 @@ using Core = CobolParserCore;
 /// the class table (CLASS-ID, INTERFACE-ID, METHOD-ID, a prototype method, <c>OoClassTable.Build</c>) and the OO
 /// repository scope (a REPOSITORY class- or interface-specifier, <c>OoRepositoryScope</c>). They read the constant
 /// entry from the parse tree here; the readers inside the data bind ask <c>DataBinder.ReadConstant</c>, which binds the
-/// same entry. Both decode through the same two functions (<see cref="DataBinder.LiteralTokenValue"/>,
-/// <see cref="DataBinder.VariableStringValue"/>), so they agree on every constant they both can see.
+/// same entry. Both decode through the same two functions (<see cref="ConstantEntryBinder.LiteralTokenValue"/>,
+/// <see cref="ConstantEntryBinder.VariableStringValue"/>), so they agree on every constant they both can see.
 /// <para>The SCOPE is the source element whose paragraph carries the word (§13.10.3 SR2 names the constant-name the
 /// element declares): its own DATA DIVISION, and for a method definition the containing factory or object definition's
 /// too — §11.7.4 GR5, "If a given user-defined word is defined in the data division of this method definition and in
@@ -114,7 +114,7 @@ internal static class PreBindConstants
                 return ConstantReading.Refused;   // §13.10.3 SR8, reported at the entry
             return ConstantReading.Of(value.Category == CtCategory.Numeric
                 ? new ConcatFolder.Folded(PicCategory.Numeric, value.Text)
-                : DataBinder.VariableStringValue(value, where));
+                : ConstantEntryBinder.VariableStringValue(value, where));
         }
         // An operand written as ONE constant-name is that constant's literal-1 (§13.10.3 SR2, §13.10.4 GR1), whatever its
         // class - the data bind's DataBinder.ConstantLiteralOperand reading, so the two agree (kb/Work PB780).
@@ -136,6 +136,6 @@ internal static class PreBindConstants
             var folded = ConcatFolder.Fold(ce, sink, LiteralEnvironment.Unscoped);
             return sink.HasErrors ? ConstantReading.Refused : ConstantReading.Of(folded);
         }
-        return ConstantReading.Of(DataBinder.LiteralTokenValue(nn, where));
+        return ConstantReading.Of(ConstantEntryBinder.LiteralTokenValue(nn, where));
     }
 }

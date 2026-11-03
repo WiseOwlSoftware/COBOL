@@ -9,7 +9,9 @@ namespace WiseOwl.Cobol.Binding;
 /// step 1 of the <see cref="DataBinder"/> extract): the facts the data pipeline produces, in the two shapes the code has.
 /// <list type="bullet">
 /// <item>A VALUE SLICE is a record of the facts ONE producer writes, frozen when its producer is done and read only after
-/// it: the unit's checking flags (<see cref="UnitChecking"/>, written by <see cref="CheckingFold"/>).</item>
+/// it: the unit's checking flags (<see cref="UnitChecking"/>, written by <see cref="CheckingFold"/>), what it inherits from its
+/// containers (<see cref="InheritedGlobals"/>, <see cref="InheritStep"/>) and its configuration
+/// (<see cref="ConfigurationSlice"/>, <see cref="ConfigurationStep"/>).</item>
 /// <item>A FACT SET (<see cref="FactSet{T}"/>) accumulates across phases and is append-only, with an ordered read: the
 /// four below, each with its declared appending phases.</item>
 /// </list>
@@ -18,6 +20,12 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 public sealed class DataBindState
 {
+    /// <summary>The unit's configuration slice (<see cref="Binding.ConfigurationSlice"/>): SPECIAL-NAMES, the collating
+    /// sequences, DEBUGGING MODE, the REPOSITORY specifiers and the OPTIONS model. Seeded before the unit's first data phase
+    /// by <see cref="ConfigurationStep"/>, its one producer per unit, then overlaid by the unit's own CONFIGURATION SECTION
+    /// and OPTIONS paragraph in <c>DataBinder.BindDeclarations</c>.</summary>
+    public ConfigurationSlice Configuration { get; }
+
     /// <summary>What the unit inherits from the programs that contain it (<see cref="InheritedGlobals"/>), written by
     /// <see cref="InheritStep"/> before the unit's first data phase; empty for an outermost program and an OO element.</summary>
     public InheritedGlobals Inherited { get; } = new();
@@ -75,8 +83,9 @@ public sealed class DataBindState
     public FactSet<object> ActivationSites { get; }
 
     /// <summary>An empty state: every fact set empty, each checking its appends through <see cref="Gate"/>.</summary>
-    public DataBindState()
+    public DataBindState(Action<Antlr4.Runtime.RuleContext?, string, UserWordKind> recordConfigurationNameUse)
     {
+        Configuration = new(recordConfigurationNameUse);
         WholeGroupReferenced = new(FactSetKind.WholeGroupReferenced, Gate);
         ImageForcedItems = new(FactSetKind.ImageForcedItems, Gate);
         CharacterChannelItems = new(FactSetKind.CharacterChannelItems, Gate);

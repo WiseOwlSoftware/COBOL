@@ -286,7 +286,7 @@ never the bare `integerLiteral`. `IntegerOperandRules.LiteralOnlySlots` is the s
 spell the bare one, each with the argument (an '85 element deleted at 2002, the edition constants first exist; a vendor
 extension; the declined SCREEN SECTION; a "data-name-1 or integer-1" format whose constant-name parses as the data-name
 arm), and `IntegerOperandSlotDriftTests` derives the rules that DO spell it from the generated parser and holds them to
-that list both ways, so the clause added next is either an `integerOperand` or argued. `DataBinder.IntegerOperandValue`
+that list both ways, so the clause added next is either an `integerOperand` or argued. `ConstantEntryBinder.IntegerOperandValue`
 is the one reader (`IntegerOperandText` for the full-width DYNAMIC LENGTH LIMIT, which has no host limit): the literal as
 written, or the constant's integer asked what the written literal is asked — §5.5 1)'s unsigned and nonzero default with
 the owning clause's zero permission (`IntegerOperandRules.Slots`, by OWNER, never by the carrier rule), the host limit

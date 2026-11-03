@@ -40,11 +40,11 @@ public sealed partial class SpecialNamesBinder
     /// and silently reinstates the very default the phrase overrides — measured, while these two cases returned
     /// early instead of recording themselves.</para>
     public void RegisterRangeCollation(string name, AlphabetDef def)
-        => Register(name, ReferenceEquals(def, Collating) ? "__COLLATE" : null, def.Table, def.Locale, National: false);
+        => Register(name, ReferenceEquals(def, Cfg.Collating) ? "__COLLATE" : null, def.Table, def.Locale, National: false);
 
     /// <inheritdoc cref="RegisterRangeCollation(string,AlphabetDef)"/>
     public void RegisterRangeCollation(string name, NationalAlphabetDef def)
-        => Register(name, ReferenceEquals(def, NationalCollating) ? "__COLLATE_NAT" : null,
+        => Register(name, ReferenceEquals(def, Cfg.NationalCollating) ? "__COLLATE_NAT" : null,
             def.Table, def.Locale, National: true);
 
     /// <summary>⛔ THE ONE resolution of a THROUGH range's <c>IN alphabet-name-1</c> phrase, for EVERY clause that
@@ -104,7 +104,7 @@ public sealed partial class SpecialNamesBinder
         bool national = rangeClass is CollatingClass.National;
         if (national)
         {
-            if (NationalAlphabets.TryUse(site, alphabetName, out var nd))
+            if (Cfg.NationalAlphabets.TryUse(site, alphabetName, out var nd))
             {
                 // §12.3.7.4 Table 6 — UTF-8 / UTF-16 name a coded character set only; their collating-sequence
                 // column is empty, so they define no sequence this phrase could use.
@@ -119,7 +119,7 @@ public sealed partial class SpecialNamesBinder
                 return true;
             }
         }
-        else if (Alphabets.TryUse(site, alphabetName, out var ad))
+        else if (Cfg.Alphabets.TryUse(site, alphabetName, out var ad))
         {
             RegisterRangeCollation(alphabetName, ad);
             return true;
@@ -150,15 +150,15 @@ public sealed partial class SpecialNamesBinder
 
     /// <summary>Is <paramref name="alphabetName"/> an alphabet "associated with a locale" (ISO §8.8.4.4.3 SR2) /
     /// "specified with the LOCALE phrase" (§12.3.7.3 SR16g / SR17d) — of EITHER class (<c>ALPHABET … IS LOCALE</c>
-    /// registers in <see cref="Alphabets"/>, <c>ALPHABET … FOR NATIONAL IS LOCALE</c> in <see cref="NationalAlphabets"/>)?
+    /// registers in <see cref="ConfigurationSlice.Alphabets"/>, <c>ALPHABET … FOR NATIONAL IS LOCALE</c> in <see cref="ConfigurationSlice.NationalAlphabets"/>)?
     /// Such an alphabet defines a collating sequence only (§12.3.7.4 GR7, Table 6: the LOCALE row names no coded
     /// character set), so the ONE question every site that needs a CODED CHARACTER SET asks is this one (kb/Work PB64
     /// T5 — the class condition's alphabet-name-1 today; the CLASS / SYMBOLIC CHARACTERS <c>IN</c> phrases and CODE-SET
     /// when they bind, kb/Work PB110). An undeclared name is not a locale alphabet — its own diagnostic is elsewhere.
     /// A predicate, recording no §8.3.2.2 use (kb/Work PB3153): a true answer is a refusal at every asker.</summary>
     public bool IsLocaleAlphabet(string alphabetName)
-        => (Alphabets.TryPeek(alphabetName, out var a) && a.Locale is not null)
-        || (NationalAlphabets.TryPeek(alphabetName, out var n) && n.Locale is not null);
+        => (Cfg.Alphabets.TryPeek(alphabetName, out var a) && a.Locale is not null)
+        || (Cfg.NationalAlphabets.TryPeek(alphabetName, out var n) && n.Locale is not null);
 
     /// <summary>⛔ THE ONE resolver of an alphabet-name referenced where a CODED CHARACTER SET is required (ISO
     /// §12.3.7.4 GR7 Table 6; kb/Work PB110 — the class condition's alphabet-name-1, SYMBOLIC CHARACTERS … IN,
@@ -169,8 +169,8 @@ public sealed partial class SpecialNamesBinder
     internal CodedCharacterSet? CodedCharacterSetOf(Antlr4.Runtime.RuleContext at, string alphabetName, string site,
         string rule)
     {
-        AlphabetDef? a = Alphabets.TryUse(at, alphabetName, out var av) ? av : null;
-        NationalAlphabetDef? n = a is null && NationalAlphabets.TryUse(at, alphabetName, out var nv) ? nv : null;
+        AlphabetDef? a = Cfg.Alphabets.TryUse(at, alphabetName, out var av) ? av : null;
+        NationalAlphabetDef? n = a is null && Cfg.NationalAlphabets.TryUse(at, alphabetName, out var nv) ? nv : null;
         if (a is null && n is null)
         {
             Edition.Error("COBOL0898", $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
@@ -231,8 +231,8 @@ public sealed partial class SpecialNamesBinder
                     "ISO §12.3.7.3 SR24 — locale-name-2 shall be a locale-name defined by the LOCALE clause");
                 if (sym is not null) locale = new LocaleCollatingSpec(new LocaleRef(sym));
             }
-            if (national) NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, locale, HasCollatingSequence: true, "LOCALE"));
-            else Alphabets.TryAdd(name, new AlphabetDef(null, locale, "LOCALE"));
+            if (national) Cfg.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, locale, HasCollatingSequence: true, "LOCALE"));
+            else Cfg.Alphabets.TryAdd(name, new AlphabetDef(null, locale, "LOCALE"));
             return;
         }
         if (national)
@@ -256,7 +256,7 @@ public sealed partial class SpecialNamesBinder
             // One identity COLLATING SEQUENCE, three distinct CODED CHARACTER SETS (Table 6 + GR7 c/d: STANDARD-1/2
             // are the 128 ISO/IEC 646 IRV characters; NATIVE is the whole native set) — the Phrase carries which
             // (kb/Work PB110); IsIdentity stays true, so no runtime carrier is emitted either way.
-            Alphabets.TryAdd(name, def.NATIVE() is not null ? AlphabetDef.Native
+            Cfg.Alphabets.TryAdd(name, def.NATIVE() is not null ? AlphabetDef.Native
                 : new AlphabetDef(null, null, def.STANDARD_1() is not null ? "STANDARD-1" : "STANDARD-2"));
             return;
         }
@@ -270,12 +270,12 @@ public sealed partial class SpecialNamesBinder
         {
             case CodeNameOutcome.Refused: return;
             case CodeNameOutcome.Bound:
-                Alphabets.TryAdd(name, new AlphabetDef(codeName!.Table, null, codeName.Name, codeName));
+                Cfg.Alphabets.TryAdd(name, new AlphabetDef(codeName!.Table, null, codeName.Name, codeName));
                 return;
         }
 
         if (AlphabetLiteralPhrase(name, def, national: false) is { } table)
-            Alphabets.TryAdd(name, new AlphabetDef(table, null, "literal-phrase"));
+            Cfg.Alphabets.TryAdd(name, new AlphabetDef(table, null, "literal-phrase"));
     }
 
     /// <summary>What a bare-word alphabet definition turned out to be once <see cref="AlphabetCodeName"/> asked
@@ -468,7 +468,7 @@ public sealed partial class SpecialNamesBinder
     {
         if (def.NATIVE() is not null)
         {
-            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
+            Cfg.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
             return;
         }
         if (def.STANDARD_1() is not null || def.STANDARD_2() is not null)
@@ -483,7 +483,7 @@ public sealed partial class SpecialNamesBinder
             // UCS-4 references BOTH a coded set and a collating sequence; UTF-8/UTF-16 a coded set ONLY
             // (§12.3.7 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the
             // difference is only WHERE the name may legally be referenced.
-            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
+            Cfg.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
             return;
         }
         // A single non-figurative bare word that is not a coded-set name is code-name-2 (§12.3.7.3 SR15 —
@@ -495,12 +495,12 @@ public sealed partial class SpecialNamesBinder
         {
             case CodeNameOutcome.Refused: return;
             case CodeNameOutcome.Bound:
-                NationalAlphabets.TryAdd(name, new NationalAlphabetDef(codeName!.Table, null,
+                Cfg.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(codeName!.Table, null,
                     HasCollatingSequence: true, codeName.Name, codeName));
                 return;
         }
         if (AlphabetLiteralPhrase(name, def, national: true) is { } table)
-            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(table, HasCollatingSequence: true, "literal-phrase"));
+            Cfg.NationalAlphabets.TryAdd(name, new NationalAlphabetDef(table, HasCollatingSequence: true, "literal-phrase"));
     }
 
     /// <summary>The ALPHABET clause's view of <see cref="LiteralPhraseOperand"/>: the operands of one alphabet
@@ -557,13 +557,13 @@ public sealed partial class SpecialNamesBinder
             && _host.OwnWords.IsDeclaredAs(alphabet, UserWordKind.AlphabetName))   // SPECIAL-NAMES: never a method's (§12.3.3 SR2)
             return null;
         if (national)
-            return NationalAlphabets.TryPeek(alphabet, out var nd)
+            return Cfg.NationalAlphabets.TryPeek(alphabet, out var nd)
                 ? nd.HasCollatingSequence ? null
                     : $"'{alphabet}' ({nd.Phrase}) names a national coded character set only (ISO §12.3.7.4 Table 6)"
-                : Alphabets.Declares(alphabet) ? $"'{alphabet}' is an alphanumeric alphabet"
+                : Cfg.Alphabets.Declares(alphabet) ? $"'{alphabet}' is an alphanumeric alphabet"
                 : $"'{alphabet}' is not an alphabet declared in SPECIAL-NAMES";
-        return Alphabets.Declares(alphabet) ? null
-            : NationalAlphabets.Declares(alphabet) ? $"'{alphabet}' is defined FOR NATIONAL"
+        return Cfg.Alphabets.Declares(alphabet) ? null
+            : Cfg.NationalAlphabets.Declares(alphabet) ? $"'{alphabet}' is defined FOR NATIONAL"
             : $"'{alphabet}' is not an alphabet declared in SPECIAL-NAMES";
     }
 

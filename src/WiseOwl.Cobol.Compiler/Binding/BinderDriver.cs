@@ -670,15 +670,17 @@ internal sealed class BinderDriver
         };
         data.CallSeedUids(session.TakeUidBand());
 
-        // Configuration-section + OPTIONS inheritance (ISO §12.3.4 GR1 / §11.9.4 GR1; §12.3.3 SR1 — a contained
-        // program cannot have its own configuration section): the WHOLE configuration-derived state of the
-        // container — SPECIAL-NAMES (DECIMAL-POINT, CURRENCY, classes, alphabets, switches), the PROGRAM
-        // COLLATING SEQUENCE, DEBUGGING MODE, the REPOSITORY specifiers — and the OPTIONS baseline, copied in
-        // BEFORE this unit binds so its first literal and PICTURE already see them (kb/Work PB60 /
+        // The configuration slice (ISO §12.3.4 GR1 / §11.9.4 GR1; §12.3.3 SR1 — a contained program cannot have its own
+        // configuration section; kb/Work PB2296): ConfigurationStep, the slice's one producer, takes the WHOLE
+        // configuration-derived state of the container — SPECIAL-NAMES (DECIMAL-POINT, CURRENCY, classes, alphabets,
+        // switches, mnemonic-names), the PROGRAM COLLATING SEQUENCE, DEBUGGING MODE, the REPOSITORY specifiers — and the
+        // OPTIONS baseline, BEFORE this unit binds so its first literal and PICTURE already see them (kb/Work PB60 /
         // AR-15.67.3-5: only the REPOSITORY sets were inherited, after Bind, and a contained program under
         // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0). One level suffices: the container inherited
         // from ITS container before it bound (units bind container-first).
-        if (unit.Parent is not null) data.InheritConfiguration(unit.Parent.Data);
+        ConfigurationStep.Produce(unit.Parent is { } container
+            ? new ConfigurationSource.Contained(container.Data.State.Configuration)
+            : new ConfigurationSource.Own(), data.State.Configuration);
         // The inheritance merge's seed half (InheritStep.Seed; ISO §13.18.27.4 GR1–GR2; kb/Work PB2296): every container's
         // GLOBAL constant-names, type declarations, file-names, reports and data roots, and the C# member names their
         // GLOBAL roots occupy, nearest container first, BEFORE this unit binds, because its own data division reads them.
@@ -1054,7 +1056,7 @@ internal sealed class BinderDriver
         DataBinder data, BoundUnit? unit, RepositoryResolver repository, int position)
     {
         var map = new Dictionary<string, ProgramPrototype>(CobolNames.Comparer);
-        foreach (var (name, spec) in data.ProgramSpecifiers)
+        foreach (var (name, spec) in data.State.Configuration.ProgramSpecifiers)
             // GR10 a) / b): the in-group definition SPECIFIED PREVIOUSLY — else the in-group program PROTOTYPE
             // definition (kb/Work PB894) — supplies the details (RepositoryResolver.ResolveProgram, the one search).
             // Otherwise GR10 c) — the external repository, i.e. this implementation's run-unit program registry,
@@ -1128,7 +1130,7 @@ internal sealed class BinderDriver
         // §8.4.6.6's no-specifier leg — the containing function definition, i.e. the element's own when it is one.
         var selves = ContainingDefinitions(unit).Where(u => u.IsFunction).ToList();
         Dictionary<string, UserFunctionSignature>? own = null;
-        foreach (var (name, specifier) in data.FunctionSpecifiers)
+        foreach (var (name, specifier) in data.State.Configuration.FunctionSpecifiers)
         {
             // §12.3.8.3 SR11: "If the specified function-prototype-name-1 is the name of the function definition in
             // which this REPOSITORY paragraph is specified, references to function-prototype-name-1 are to that

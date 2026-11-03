@@ -78,7 +78,7 @@ internal sealed class OoDriver(BindSession session)
         // processor-dependence screens live, an interface could select a declined arithmetic mode in silence
         // (kb/Work PB197: the second hollow arm, found by sweeping all six optionsParagraph-bearing productions
         // rather than only the METHOD one the finding named). BindDeclarations binds it (kb/Work PB780).
-        data.UseSkeletonOptions(iface.Ctx.optionsParagraph());
+        ConfigurationStep.Produce(new ConfigurationSource.Own(iface.Ctx.optionsParagraph()), data.State.Configuration);
         OoEnvironmentRules.Screen(OoDefinition.Interface, $"interface '{iface.Name}'",
             iface.Ctx.environmentDivision(), session.Edition);
         var synthetic = OoReparent(iface.Ctx.environmentDivision(), dataDivision: null);
@@ -119,7 +119,7 @@ internal sealed class OoDriver(BindSession session)
         // class definition contains (§3.165). So the words of the class definition's environment division (its
         // REPOSITORY specifiers, its SPECIAL-NAMES names) and its CLASS-ID are declared ONCE, here, in the class's
         // §8.3.2.2 census, and the factory and instance binders INHERIT the configuration they establish (§12.3.4
-        // GR1; DataBinder.InheritConfiguration, the contained-program model of kb/Work PB990) without declaring a word
+        // GR1; ConfigurationStep.Produce, the contained-program model of kb/Work PB990) without declaring a word
         // of it: §8.4.6.1 lets a contained source element "use identical user-defined words to name items independent
         // of the use of these user-defined words by other source elements". Both halves used to bind the class's
         // environment division as their own, so a factory or object data item spelled like a class the REPOSITORY
@@ -127,21 +127,22 @@ internal sealed class OoDriver(BindSession session)
         // Nothing here draws a uid (the division declares names, never data items), so it takes no uid band.
         var classData = ElementBinder(classCtx, classCtx, cls.Name);
         // §10.6.1 / §11.9.4 GR1 (kb/Work PB135): the class skeleton's OPTIONS paragraph is the contained
-        // definitions' baseline (InheritConfiguration carries classData.Options to them); the OBJECT and FACTORY
+        // definitions' baseline (ConfigurationStep carries the class OPTIONS model to them); the OBJECT and FACTORY
         // paragraphs' own override it clause by clause. Each binds in its binder's BindDeclarations, after the
         // definition's constant entries are declared (kb/Work PB780).
-        classData.UseSkeletonOptions(classCtx.optionsParagraph());
+        ConfigurationStep.Produce(new ConfigurationSource.Own(classCtx.optionsParagraph()), classData.State.Configuration);
         var classSynthetic = OoReparent(classCtx.environmentDivision(), dataDivision: null);
         classData.BindDeclarations(classSynthetic);
         using (edition.At(classCtx)) classData.DeclareUserWord(cls.Name, UserWordKind.ObjectClassName);
         classData.BindResolve(classSynthetic);
+        var classConfiguration = ConfigurationStep.ForClass(classData.State.Configuration);   // what both halves inherit
 
         // The INSTANCE half: the OBJECT paragraph's own source element.
         var obj = classCtx.objectParagraph();
         var data = ElementBinder(obj, classCtx, cls.Name);
         data.CallSeedUids(session.TakeUidBand());
-        data.InheritConfiguration(classData);   // carries the class's OPTIONS model, the §11.9.4 GR1 baseline
-        data.UseSkeletonOptions(obj?.optionsParagraph());
+        // The class's configuration and OPTIONS model (the §11.9.4 GR1 baseline), then the half's own OPTIONS paragraph.
+        ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, obj?.optionsParagraph()), data.State.Configuration);
         var synthetic = OoReparent(obj?.environmentDivision(), obj?.dataDivision());
         data.Oo.ReserveClassMemberNames(cls.Symbol.ClrName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
         data.BindDeclarations(synthetic);
@@ -150,7 +151,7 @@ internal sealed class OoDriver(BindSession session)
         data.Oo.BindPropertyClauses(cls.Symbol, factory: false);
         data.BindResolve(synthetic);
         // The class's symbolic-characters an OBJECT data-name of the spelling hides (§8.4.6.1; kb/Work PB3154 R1-1).
-        data.DropShadowedConstants();
+        InheritStep.DropShadowed(data);
         cls.Data = data;
         cls.Refs = new ReferenceResolver(data);
 
@@ -161,8 +162,7 @@ internal sealed class OoDriver(BindSession session)
         var fac = classCtx.factoryParagraph();
         var fdata = ElementBinder(fac, classCtx, cls.Name);
         fdata.CallSeedUids(session.TakeUidBand());
-        fdata.InheritConfiguration(classData);
-        fdata.UseSkeletonOptions(fac?.optionsParagraph());   // §11.9.4 GR1 (kb/Work PB135)
+        ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, fac?.optionsParagraph()), fdata.State.Configuration);   // §11.9.4 GR1 (kb/Work PB135)
         var fsynthetic = OoReparent(fac?.environmentDivision(), fac?.dataDivision());
         fdata.Oo.ReserveClassMemberNames(cls.Symbol.FactoryClrName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
         fdata.BindDeclarations(fsynthetic);
@@ -170,7 +170,7 @@ internal sealed class OoDriver(BindSession session)
             fdata.Oo.BindMethodData(m);
         fdata.Oo.BindPropertyClauses(cls.Symbol, factory: true);
         fdata.BindResolve(fsynthetic);
-        fdata.DropShadowedConstants();   // …and a FACTORY data-name, likewise
+        InheritStep.DropShadowed(fdata);   // …and a FACTORY data-name, likewise
         cls.FactoryData = fdata;
         cls.FactoryRefs = new ReferenceResolver(fdata);
     }
@@ -221,7 +221,7 @@ internal sealed class OoDriver(BindSession session)
     /// per-element DataBinder (the CallReparent pattern — the generated accessors scan DIRECT children only, so the
     /// binder sees exactly this element's environment and data divisions): a class, factory, instance or interface
     /// definition. A containing definition's environment division is never one of them: its configuration reaches
-    /// the element through <c>DataBinder.InheritConfiguration</c> (§12.3.4 GR1; kb/Work PB3154).</summary>
+    /// the element through <c>ConfigurationStep.Produce</c> (§12.3.4 GR1; kb/Work PB3154).</summary>
     private static Core.ProgramUnitContext OoReparent(Core.EnvironmentDivisionContext? environmentDivision,
         Core.DataDivisionContext? dataDivision)
     {

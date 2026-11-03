@@ -366,8 +366,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // the same spelling — "a source element's reference to such a name, even when it is a different type of
         // user-defined word, is to the item which that source element describes" (§8.4.6.1; kb/Work PB3153) — so
         // the own-item test is asked first, and only the locale-name reading records the §8.3.2.2 use.
-        if (to.ChildCount == 1 && ctx.Data.SpecialNames.Locales.Declares(toText) && !ctx.Refs.DescribesOwnItem(to)
-            && ctx.Data.SpecialNames.Locales.TryUse(to, toText, out var symbol))
+        if (to.ChildCount == 1 && ctx.Data.State.Configuration.Locales.Declares(toText) && !ctx.Refs.DescribesOwnItem(to)
+            && ctx.Data.State.Configuration.Locales.TryUse(to, toText, out var symbol))
             return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.LocaleName, symbol, null);
         // identifier-10: an elementary data item of category data-pointer (SR27).
         if (ctx.Refs.Probe(to) is { } probe)
@@ -845,7 +845,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         string word = operand.GetText();
         // The PROTOTYPE arm (§8.4.3.12.3 SR2 + §8.4.6.6): a REPOSITORY function-specifier, or the containing
         // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves.
-        bool isPrototypeName = ctx.Data.UserFunctionNames.Contains(word)
+        bool isPrototypeName = ctx.Data.State.Configuration.UserFunctionNames.Contains(word)
             || CobolNames.Same(host.UdfSelfName, word);
         if (isPrototypeName)
         {

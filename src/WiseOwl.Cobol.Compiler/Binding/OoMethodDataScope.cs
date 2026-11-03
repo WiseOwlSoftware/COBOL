@@ -46,7 +46,7 @@ public sealed class OoMethodDataScope
     /// condition-name, an index-name, a named CAPACITY register (§13.18.38.3 SR30 makes the register a data-name of
     /// the method that declares its table), a type-name (<see cref="TypeDecls"/>, kb/Work PB3192) or a constant-name
     /// (kb/Work PB3164: the method's constant entries live in <see cref="Constants"/>) — or names it in a data
-    /// description entry whose bind has not begun yet (<see cref="DataBinder.ConstantScope.OtherWords"/>, declared
+    /// description entry whose bind has not begun yet (<see cref="ConstantEntryBinder.ConstantScope.OtherWords"/>, declared
     /// before any entry binds): while the method's data division binds, a later entry's word already hides the
     /// object's declaration of it, so a reference to it waits for the method's own entry (kb/Work PB3192: a method
     /// constant's <c>LENGTH OF W</c> measured the object's <c>W</c> when the method's <c>W</c> followed it). ⛔ EVERY NAME INDEX OF THIS SCOPE, asked here beside the indexes themselves: when the
@@ -68,5 +68,5 @@ public sealed class OoMethodDataScope
     /// of the containing object or factory definition (§11.7.4 GR5; kb/Work PB3164): read first by
     /// <see cref="DataBinder.FindConstant"/> while the method's data or statements bind, and invisible to every other
     /// element.</summary>
-    internal DataBinder.ConstantScope Constants { get; } = new();
+    internal ConstantEntryBinder.ConstantScope Constants { get; } = new();
 }

@@ -360,18 +360,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The unit's data-binding state (<see cref="DataBindState"/>; docs/rearchitecture/DESIGN-architecture-review.md
     /// §8.3 (1), kb/Work PB2296): its value slices and its four append-only fact sets. Every reader of those facts reads
     /// through it.</summary>
-    public DataBindState State { get; } = new();
+    public DataBindState State => field ??= new DataBindState(RecordConfigurationNameUse);
 
     /// <summary>The state procedure binding keeps on this unit's binder (<see cref="ProcedureBindState"/>; §8.3 (1)): the
     /// scoped OPTIONS override, the two statement-scoped drain queues and the two scope cursors. Never part of
     /// <see cref="State"/>.</summary>
     internal ProcedureBindState Procedure { get; } = new();
 
-    /// <summary>The unit's OPTIONS model (ISO §11.9): its own OPTIONS paragraph over the baseline its container or class
-    /// definition hands it (§11.9.4 GR1), bound once in <see cref="BindDeclarations"/>; the all-defaults model when there
-    /// is none. A method's own OPTIONS model governs that method only, through <see cref="ProcedureBindState.Options"/>
-    /// while its statements bind and <c>EmitContext.Options</c> while its LOCAL-STORAGE initializers are emitted.</summary>
-    public OptionsModel Options { get; private set; } = OptionsModel.Default;
+    /// <summary>The unit's CONSTANT-entry binder (<see cref="ConstantEntryBinder"/>; ISO §13.10, kb/Work PB2358): its
+    /// constant tables and the readers of a constant-name — the substitution lookup, the integer positions, the PICTURE
+    /// repetition and the VALUE operand.</summary>
+    internal ConstantEntryBinder Constants => field ??= new ConstantEntryBinder(this);
 
     /// <summary><see cref="IPlaceFacts"/>: the BIND-TIME image-storage query (kb/Work PB2375): true when
     /// <paramref name="item"/> is already known - at THIS point of binding - to store its character image. It reads the
@@ -383,18 +382,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary><see cref="IPlaceFacts"/>: whether the compilation group can enable EC-BOUND-ODO at all - the unit's checking
     /// slice (<see cref="UnitChecking.OdoReferenceChecking"/>, written once by <see cref="CheckingFold"/>).</summary>
     public bool OdoReferenceChecking => State.UnitChecking.OdoReferenceChecking;
-
-    /// <summary>Hand an OO definition's OPTIONS paragraph to this binder (kb/Work PB135, PB780). An interface, class,
-    /// factory or instance definition carries its paragraph on the SKELETON (§10.6.1), outside the synthetic program
-    /// unit <see cref="BindDeclarations"/> walks, so OoDriver names it here and BindDeclarations binds it at the ONE
-    /// point every source element's OPTIONS paragraph binds: after the element's constant entries are declared,
-    /// because literal-1 of the INITIALIZE clause may be a constant-name (§13.10.3 SR2). The §11.9.4 GR1 baseline is
-    /// the containing definition's model (<see cref="InheritConfiguration"/>), or the all-defaults model.</summary>
-    internal void UseSkeletonOptions(Core.OptionsParagraphContext? paragraph) => _skeletonOptions = paragraph;
-
-    /// <summary>The OO skeleton's OPTIONS paragraph (<see cref="UseSkeletonOptions"/>); null for a program unit, whose
-    /// paragraph is in its identification division.</summary>
-    private Core.OptionsParagraphContext? _skeletonOptions;
 
     /// <summary>All SELECTed files (the SELECT clause joined with its FD records), in source order.
     /// (READ-ONLY view — P6 Step 5. The bind-phase file-connector qualification mutates the FileModel ELEMENTS,
@@ -430,12 +417,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// ⚠ The posture used to be compile-ACCEPT with a staged runtime loud; kb/Work PB260 measured what that
     /// actually did (a screen record printed to standard output) and made it a refusal.</summary>
     public HashSet<string> ScreenNames { get; } = new(CobolNames.Comparer);
-
-    /// <summary>True when SOURCE-COMPUTER declares WITH DEBUGGING MODE (the X3.23-1985 compile-time debug
-    /// switch) — consumed by the declaratives binder to decide the USE FOR DEBUGGING posture: with the switch the
-    /// debugging section is compiled AND its procedure-trigger leg is modeled (fires; the DEBUG-ITEM register
-    /// resolves), without it the section is comment-treated (VCR Table 7 rows 7.9/7.17).</summary>
-    public bool DebuggingModeDeclared { get; private set; }
 
     /// <summary>The X3.23-1985 <c>DEBUG-ITEM</c> special register and its members (DEBUG-LINE / DEBUG-NAME /
     /// DEBUG-SUB-1/2/3 / DEBUG-CONTENTS), keyed by COBOL name (case-insensitive) → the synthesized alphanumeric
@@ -620,45 +601,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     // (P6 Step 7b) — every consumer resolves through Symbols.TryResolve/IndexCandidates with an
     // EXPLICIT Scope (ActiveScope at statement-bind sites; ScopeOf(anchorRoot) at post-build-pass sites).
 
-    /// <summary>The unit's REPOSITORY PROPERTY specifier names (§12.3.8) — the §8.4.3.9.3 SR1 gate for
-    /// object-property references (case-insensitive per §8.3.2).</summary>
-    /// <para>Keyed by property-name-1 → the name the property is known by in the declared classes: literal-4 when
-    /// the specifier writes <c>AS literal-4</c> (§12.3.8.2, kb/Work PB974), otherwise property-name-1 itself.</para>
-    internal Dictionary<string, string> OoRepositoryProperties { get; } = new(CobolNames.Comparer);
-
-    /// <summary>The unit's REPOSITORY PROGRAM specifiers (ISO §12.3.8.2's program-specifier, <c>PROGRAM
-    /// program-prototype-name-1 [AS literal-3]</c>) keyed by program-prototype-name — the ONE declaration surface
-    /// for a program-prototype-name, and therefore the §14.9.4.3 SR16 / §14.9.5.3 SR3 precondition for every
-    /// Format-2 CALL and prototype CANCEL (kb/Work PB237). §8.3.2 case-insensitive. The SPECIFIER is collected
-    /// here (syntax); §12.3.8.3 SR15's self/containing-program ignore and §12.3.8.4 GR10's resolution against the
-    /// compilation group need the unit's identity and its siblings, so they run in
-    /// <c>BinderDriver.ProgramPrototypesOf</c>, exactly as the function twin resolves in <c>BinderDriver.UserFunctionsOf</c>.</summary>
-    internal Dictionary<string, ProgramSpecifier> ProgramSpecifiers { get; } = new(CobolNames.Comparer);
-
-    /// <summary>The unit's REPOSITORY user-function specifiers (§12.3.8 — <c>FUNCTION function-prototype-name</c>
-    /// WITHOUT the INTRINSIC phrase): the precondition for a user-function reference, and per §12.3.8.4 GR12
-    /// (:14885) the declaration that makes the name refer to the USER-DEFINED function "and not to an intrinsic
-    /// function of the same name" — so the binder's user-function dispatch precedes the intrinsic catalog.</summary>
-    internal HashSet<string> UserFunctionNames { get; } = new(CobolNames.Comparer);
-
-    /// <summary>The unit's user-defined-function specifiers by function-prototype-name-1 (<see cref="FunctionSpecifier"/>):
-    /// its EXTERNALIZED name is literal-5 when <c>AS literal-5</c> is written (§12.3.8.4 GR11 NOTE 2 — "Literal-5, if
-    /// specified, is the externalized name of the function prototype; otherwise, the externalized name is
-    /// function-prototype-name-1"), otherwise the name itself. GR11's search of the compilation group runs in
-    /// <c>BinderDriver.UserFunctionsOf</c>, the twin of <c>ProgramPrototypesOf</c> (kb/Work PB974).</summary>
-    internal Dictionary<string, FunctionSpecifier> FunctionSpecifiers { get; } = new(CobolNames.Comparer);
-
-    /// <summary>The unit's REPOSITORY intrinsic-function specifiers by name (§12.3.8 —
-    /// <c>FUNCTION intrinsic-function-name INTRINSIC</c>): the §8.4.3.2 SR2 precondition that lets the word
-    /// FUNCTION be OMITTED when referencing that intrinsic (GR13). §8.3.2 case-insensitive.</summary>
-    internal HashSet<string> RepositoryIntrinsics { get; } = new(CobolNames.Comparer);
-
-    /// <summary>True when the unit's REPOSITORY specifies <c>FUNCTION ALL INTRINSIC</c> (§12.3.8 GR14): the word
-    /// FUNCTION may be omitted for EVERY §8.11 intrinsic-function-name in this scope (SR2/GR13). Read only through
-    /// <see cref="IsRepositoryIntrinsic"/> — the membership that applies GR14's >>COBOL-WORDS clauses and the edition
-    /// — which the SR13 user-word prohibition (<see cref="DeclareUserWord"/>) asks too.</summary>
-    internal bool RepositoryAllIntrinsic { get; set; }
-
     /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
     /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
     /// fields), and WORKING-STORAGE; then classify the shared-storage (REDEFINES) classes over the whole forest and
@@ -681,17 +623,18 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // reference may name a constant entry that follows it — in SPECIAL-NAMES, in an earlier section, or earlier in
         // the same one (kb/Work PB1231; §13.10.3 SR4/SR5 forbid only a circular dependence). FindConstant binds an
         // entry on demand; BindRemainingConstants, after the last section, binds the rest.
-        DeclareDataEntries(program.dataDivision());
+        Constants.DeclareDataEntries(program.dataDivision());
 
         // §11.9.4 GR1: a contained program's OPTIONS start from its container's model and override clause by
-        // clause (InheritConfiguration set the baseline); an outermost unit starts from the all-defaults model.
+        // clause (ConfigurationStep set the baseline); an outermost unit starts from the all-defaults model.
         // Bound AFTER DeclareDataEntries: the INITIALIZE clause's literal-1 may be a constant-name of this element
         // (§13.10.3 SR2), and FindConstant binds one on demand (kb/Work PB780).
-        Options = OptionsBinder.BindParagraph(_skeletonOptions ?? OptionsBinder.ParagraphOf(program), Edition,
-            _inheritedOptions, FindConstant);   // captured even when there is no WORKING-STORAGE
+        var configuration = State.Configuration;
+        configuration.Options = OptionsBinder.BindParagraph(configuration.OptionsParagraph ?? OptionsBinder.ParagraphOf(program), Edition,
+            configuration.InheritedOptions, Constants.FindConstant);   // captured even when there is no WORKING-STORAGE
 
         // §12.3.3 SR1: "The configuration section shall not be specified in a program that is contained within
-        // another program" — the container's applies (§12.3.4 GR1, InheritConfiguration). Diagnosed, then the
+        // another program" — the container's applies (§12.3.4 GR1, ConfigurationStep). Diagnosed, then the
         // section is still walked below so a second diagnostic never masks this one.
         if (UnitIsContained && program.environmentDivision()?.configurationSection() is { } containedConfiguration)
         {
@@ -724,12 +667,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // here, so it never triggers) or treated as comment lines (switch absent — the '85 rule). It
         // reads the MODELLED clause (kb/Work PB830 — it used to be a token-text scan of the computerAttributes sink; VCR
         // Table 7 rows 7.9/7.17).
-        // ⛔ OR-ed into the value InheritConfiguration copied, never assigned over it: §12.3.5.4 GR1 "All clauses of
+        // ⛔ OR-ed into the value ConfigurationStep copied, never assigned over it: §12.3.5.4 GR1 "All clauses of
         // the SOURCE-COMPUTER paragraph apply to the source unit in which they are explicitly or implicitly specified
         // and to any source unit contained within that source unit", and a contained program cannot restate the
         // clause (§12.3.3 SR1), so inheritance is its only route. An assignment here reset every contained unit to
         // false and compiled its USE FOR DEBUGGING section as comment lines (kb/Work PB1088).
-        DebuggingModeDeclared |= program.environmentDivision()?.configurationSection()?.configurationParagraph()
+        State.Configuration.DebuggingModeDeclared |= program.environmentDivision()?.configurationSection()?.configurationParagraph()
             .Any(p => p.sourceComputerParagraph()?.debuggingModeClause() is not null)
             ?? false;
 
@@ -757,7 +700,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             if (re.PROPERTY() is not null && re.propertyName() is { } pn)
             {
                 specifierWords.Add((re, pn.GetText(), UserWordKind.PropertyName));
-                OoRepositoryProperties[pn.GetText()] =
+                State.Configuration.OoRepositoryProperties[pn.GetText()] =
                     BindSpecifierExternalizedName(re, "PROPERTY", pn.GetText(), "literal-4") ?? pn.GetText();
             }
             // §12.3.8.2's program-specifier (kb/Work PB237): `PROGRAM program-prototype-name-1 [AS literal-3]`.
@@ -780,8 +723,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is [var fn])
             {
                 specifierWords.Add((re, fn.GetText(), UserWordKind.FunctionPrototypeName));
-                UserFunctionNames.Add(fn.GetText());
-                FunctionSpecifiers[fn.GetText()] = new FunctionSpecifier(fn.GetText(),
+                State.Configuration.UserFunctionNames.Add(fn.GetText());
+                State.Configuration.FunctionSpecifiers[fn.GetText()] = new FunctionSpecifier(fn.GetText(),
                     BindSpecifierExternalizedName(re, "FUNCTION", fn.GetText(), "literal-5") ?? fn.GetText(), re);
             }
             // FUNCTION … INTRINSIC (§12.3.8): `ALL` (GR14) or a LIST of intrinsic-function-names (§12.3.8.2's
@@ -835,7 +778,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             foreach (var constant in scr.constantEntry())
             {
                 using var _ = Edition.At(constant);
-                BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
+                Constants.BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
             }
         }
 
@@ -856,7 +799,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
         // The constant entries nothing has needed yet — a length phrase waiting for an operand described after it
         // binds here, with its operand bound (kb/Work PB1231).
-        BindRemainingConstants();
+        Constants.BindRemainingConstants();
 
         // The containers' GLOBAL data and reports (§13.18.27.4 GR1/GR2), now that this unit's own names are all
         // declared and before any clause of this data division resolves the names it uses (BindResolve).
@@ -1021,7 +964,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // condition-name misbind. (P10 Step 15; DataBinder.Constants.cs.)
             if (entry.dataDescriptionBody().constantEntryBody() is { } constBody)
             {
-                BindConstantEntry(entry, entry.levelNumber(), entry.dataName(), constBody);
+                Constants.BindConstantEntry(entry, entry.levelNumber(), entry.dataName(), constBody);
                 // A constant entry describes NO data item, so a level-88 entry written after one has no
                 // conditional variable to associate with (ISO §13.16.3 SR24 — "the entry describing the item"); and
                 // it ends the record description before it, so nothing stays open for a 02-49 or 66 entry to join.
@@ -1806,12 +1749,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // A constant-name stands for integer-1 (§13.10.3 SR2) and is read by the ONE integer-n reader; a refused
             // one is reported there and leaves the width unset, so it cascades into no size diagnostic.
             if (rc.integerOperand() is { Length: > 0 } fixedOps)
-                file.RecordContains = IntegerOperandValue(fixedOps[0], recWhere);
+                file.RecordContains = Constants.IntegerOperandValue(fixedOps[0], recWhere);
             return;
         }
         var lits = rc.integerOperand();
-        int? lo = lits.Length > 0 ? IntegerOperandValue(lits[0], recWhere) : null;
-        int? hi = lits.Length > 1 ? IntegerOperandValue(lits[1], recWhere) : null;
+        int? lo = lits.Length > 0 ? Constants.IntegerOperandValue(lits[0], recWhere) : null;
+        int? hi = lits.Length > 1 ? Constants.IntegerOperandValue(lits[1], recWhere) : null;
         if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
         string? dep = null;
         IReadOnlyList<string> depQuals = [];
@@ -1842,7 +1785,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         using var _ = Edition.At(bc);
         var values = new List<long?>();
         foreach (var operand in bc.integerOperand())
-            values.Add(IntegerOperandValue(operand, $"file '{fileName}' BLOCK CONTAINS clause"));
+            values.Add(Constants.IntegerOperandValue(operand, $"file '{fileName}' BLOCK CONTAINS clause"));
         // ⛔ §13.18.10.3 SR1 — "If integer-1 is specified, integer-2 shall be greater than integer-1." The ORDERED-PAIR
         // rule RECORD CONTAINS / RECORD IS VARYING already states for their pairs (RecordClauseRules, SR5 / SR9), under
         // the same code: equal bounds break it as surely as inverted ones (kb/Work PB1217). An operand whose reading was
@@ -1880,11 +1823,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // "data-name-1 or integer-1": a bare word that names a CONSTANT is the integer-1 arm — the parse cannot tell
             // it from a data-name (§13.10.3 SR2; kb/Work PB1948) — and the constant's integer is a literal operand
             // from here on (§13.18.34.3 SR3 and GR6a read it as the written literal).
-            if (ConstantOf(d!) is not null)
+            if (Constants.ConstantOf(d!) is not null)
             {
                 using var cst = Edition.At(d!);
                 return new LinageOperand(
-                    ConstantOperandValue(d!, "LINAGE clause operand") ?? RecoveredIntegerOperand, null) { At = Edition.Cursor };
+                    Constants.ConstantOperandValue(d!, "LINAGE clause operand") ?? ConstantEntryBinder.RecoveredIntegerOperand, null) { At = Edition.Cursor };
             }
             var (name, quals) = ClauseDataName(d!, "LINAGE clause operand");
             using var _ = Edition.At(d!);
@@ -2178,7 +2121,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string value = operand.Form switch
         {
             SuppressWhenForm.Figurative => new string(WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar(
-                operand.FigurativeKind!.Value, SpecialNames.Collating, category, SpecialNames.NationalCollating), positions),
+                operand.FigurativeKind!.Value, State.Configuration.Collating, category, State.Configuration.NationalCollating), positions),
             SuppressWhenForm.AllLiteral when operand.Characters.Length > 0 =>
                 string.Concat(Enumerable.Repeat(operand.Characters, positions / operand.Characters.Length + 1))[..positions],
             _ when operand.Characters.Length <= positions => operand.Characters.PadRight(positions),
@@ -2953,9 +2896,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// parameterized definition's (<see cref="DeclareParameterNames"/>) both come here.</summary>
     private void AddRepositoryIntrinsics(Core.RepositoryEntryContext re)
     {
-        if (re.ALL() is not null) RepositoryAllIntrinsic = true;
+        if (re.ALL() is not null) State.Configuration.RepositoryAllIntrinsic = true;
         else foreach (var inf in re.functionName())
-            RepositoryIntrinsics.Add(FunctionWord.OfToken(inf.Start, CobolWords).Name);
+            State.Configuration.RepositoryIntrinsics.Add(FunctionWord.OfToken(inf.Start, CobolWords).Name);
     }
 
     /// <summary>Declare a PARAMETERIZED class or interface definition's parameter-names (§11.3.2 / §11.6.2
@@ -3066,7 +3009,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Declare the unit's OWN name — the program-name of a PROGRAM-ID paragraph or the user-function-name of
     /// a FUNCTION-ID paragraph (§8.3.2.2) — once the REPOSITORY in scope is known: the unit's own paragraph and, for a
-    /// contained program, its container's (inherited by <c>InheritConfiguration</c>; §12.3.4 GR1 — "the entries
+    /// contained program, its container's (inherited by <c>ConfigurationStep</c>; §12.3.4 GR1 — "the entries
     /// explicitly or implicitly specified in the configuration section of a source unit that contains other source
     /// units apply to each directly or indirectly contained source unit"). A class or interface is declared by the OO
     /// driver (<c>OoDriver.BindClassData</c> / <c>BindInterface</c>), a method's METHOD-ID by <see cref="OoDataBinder.BindMethodData"/>
@@ -3122,10 +3065,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// name, so every spelling of one function answers alike.</summary>
     private string? RepositoryIntrinsicSpecifier(FunctionWord word)
     {
-        if (!RepositoryAllIntrinsic && RepositoryIntrinsics.Count == 0) return null;   // no intrinsic specifier in scope
+        if (!State.Configuration.RepositoryAllIntrinsic && State.Configuration.RepositoryIntrinsics.Count == 0) return null;   // no intrinsic specifier in scope
         if (!TryIntrinsicOfThisCompilation(word, out var sig)) return null;
-        if (RepositoryIntrinsics.Contains(sig.Name)) return sig.Name;
-        return RepositoryAllIntrinsic ? AllIntrinsics : null;
+        if (State.Configuration.RepositoryIntrinsics.Contains(sig.Name)) return sig.Name;
+        return State.Configuration.RepositoryAllIntrinsic ? AllIntrinsics : null;
     }
 
     /// <summary>Is <paramref name="word"/> an intrinsic-function-name OF THIS COMPILATION — through &gt;&gt;COBOL-WORDS
@@ -4283,7 +4226,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // container's alphabet-names, and "a source element's reference to such a name, even when it is a
         // different type of user-defined word, is to the item which that source element describes" (§8.4.6.1;
         // kb/Work PB3153), so the element's own constant-name of the spelling keeps its literal-2 reading.
-        return dref.GetText() is var word && SpecialNames.IsAlphabetName(word) && ConstantOf(dref) is null
+        return dref.GetText() is var word && SpecialNames.IsAlphabetName(word) && Constants.ConstantOf(dref) is null
             ? (word, last) : (null, null);
     }
 
@@ -4583,17 +4526,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (alphabetName is not null)
         {
             // TryResolveRangeAlphabet resolved (and recorded) the reference; this reads its definition again.
-            if (national && SpecialNames.NationalAlphabets.TryPeek(alphabetName, out var nd))
+            if (national && State.Configuration.NationalAlphabets.TryPeek(alphabetName, out var nd))
                 return nd.Locale is not null ? (null, false) : (nd.Table?.Collation(true), true);
-            if (!national && SpecialNames.Alphabets.TryPeek(alphabetName, out var ad))
+            if (!national && State.Configuration.Alphabets.TryPeek(alphabetName, out var ad))
                 return ad.Locale is not null ? (null, false) : (ad.Table?.Collation(false), true);
             return (null, true);       // unresolved: TryResolveRangeAlphabet already reported it; native order
         }
         if (national)
-            return SpecialNames.NationalCollating is { } pn
+            return State.Configuration.NationalCollating is { } pn
                 ? pn.Locale is not null ? (null, false) : (pn.Table?.Collation(true), true)
                 : (null, true);
-        return SpecialNames.Collating is { } pa
+        return State.Configuration.Collating is { } pa
             ? pa.Locale is not null ? (null, false) : (pa.Table?.Collation(false), true)
             : (null, true);
     }
@@ -4696,8 +4639,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         // asks the value the §5.5 1) questions: a ZERO or over-limit literal was reported pre-bind by
                         // the one integer-n screen (Validation/IntegerOperandPass, COBOL2386 — kb/Work PB859), a
                         // constant is judged here (kb/Work PB1948).
-                        int size = IntegerOperandValue(lp.integerOperand(),
-                            $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE SIZE") ?? RecoveredIntegerOperand;
+                        int size = Constants.IntegerOperandValue(lp.integerOperand(),
+                            $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE SIZE") ?? ConstantEntryBinder.RecoveredIntegerOperand;
                         pictureLocale = new LocaleEditSpec(locale, Math.Max(1, size), "");
                     }
                 }
@@ -4733,7 +4676,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // is not also judged against an invented bound.
                     if (dl.integerOperand() is { } lim)
                     {
-                        string? limText = IntegerOperandText(lim, $"data item '{cobolName ?? "FILLER"}' DYNAMIC LENGTH LIMIT");
+                        string? limText = Constants.IntegerOperandText(lim, $"data item '{cobolName ?? "FILLER"}' DYNAMIC LENGTH LIMIT");
                         if (limText is not null)
                         {
                             dynLengthLimitText = limText;
@@ -4950,8 +4893,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // An integer constant-name may specify repetition in a PICTURE character-string (ISO §13.10.3 SR2 second
         // sentence → §13.18.40): expand `PIC X(K)` to `PIC X(5)` BEFORE Analyze reads the string. Guarded on the
         // unit actually defining constants, so a constant-free program's PICTURE pipeline is untouched.
-        if (pictureText is not null && UnitHasConstants)
-            pictureText = ExpandPicConstants(pictureText, entryWhere);
+        if (pictureText is not null && Constants.UnitHasConstants)
+            pictureText = Constants.ExpandPicConstants(pictureText, entryWhere);
         // The WRITTEN character-string, kept for the screens that cannot run until the forest is complete
         // (§13.18.60.4 GR1's inherited usage — DataItem.PictureText). Captured HERE, before the §13.16.3 SR8
         // recovery below clears `pictureText`.
@@ -5100,8 +5043,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (restrictedPrototypeName is not null
             && !(UnitIsFunction == isFunctionPointer && ContainingDefinitionNames.Contains(restrictedPrototypeName))
             && !(isFunctionPointer
-                 ? UserFunctionNames.Contains(restrictedPrototypeName)
-                 : ProgramSpecifiers.ContainsKey(restrictedPrototypeName)))
+                 ? State.Configuration.UserFunctionNames.Contains(restrictedPrototypeName)
+                 : State.Configuration.ProgramSpecifiers.ContainsKey(restrictedPrototypeName)))
         {
             Edition.Error(DiagnosticCatalog.PrototypePointerRestriction, $"{entryWhere}: USAGE "
                 + $"{(isFunctionPointer ? "FUNCTION" : "PROGRAM")}-POINTER TO {restrictedPrototypeName} — "
@@ -5123,9 +5066,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         var usagePhrases = ScreenUsagePhrases(usageCtx, entryUsage, usageText, entryWhere);
 
         var pic = pictureText is not null
-            ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, currencies: SpecialNames.CurrencySigns,
+            ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, currencies: State.Configuration.CurrencySigns,
                 blankWhenZero: blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs,
-                localeFormat2: pictureLocale, decimalPointIsComma: SpecialNames.DecimalPointIsComma)
+                localeFormat2: pictureLocale, decimalPointIsComma: State.Configuration.DecimalPointIsComma)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem(restrictedTypeName)
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem(restrictedPrototypeName)   // §13.18.60.4 GR24/GR25 (P10 Step 7; kb/Work PB817)
@@ -5162,7 +5105,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
                 or Usage.FloatDecimal16 or Usage.FloatDecimal34
                 ? PicInfo.FloatItem(entryUsage, usagePhrases.Endianness is FloatEndianness.Unspecified
-                    ? Options.FloatBinaryEndianness : usagePhrases.Endianness)
+                    ? State.Configuration.Options.FloatBinaryEndianness : usagePhrases.Endianness)
             : null;   // incl. a PICTURE-less USAGE NATIONAL/BIT entry — Pending (below) carries its adjudication
 
         // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to subordinates,
@@ -5478,11 +5421,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             }
             // §13.18.19.3 SR2: "If dynamic-length-structure-name-1 is specified, it shall correspond to a
             // dynamic-length-structure-name specified in the DYNAMIC LENGTH STRUCTURE clause in the SPECIAL-NAMES
-            // paragraph" — this source element's, or a containing one's (§8.4.6.1; InheritConfiguration). The name
+            // paragraph" — this source element's, or a containing one's (§8.4.6.1; ConfigurationStep). The name
             // used to be refused outright as "not yet supported" (COBOL1562, retired): the clause it names had no
             // grammar at all (kb/Work PB829).
             else if (dynLengthStructureName is not null
-                     && !SpecialNames.DynamicLengthStructures.TryUse(dynLengthStructureAt, dynLengthStructureName, out dynStructure))
+                     && !State.Configuration.DynamicLengthStructures.TryUse(dynLengthStructureAt, dynLengthStructureName, out dynStructure))
             {
                 Edition.Error(DiagnosticCatalog.DynamicLengthStructureReference, $"{entryWhere}: the DYNAMIC LENGTH "
                     + $"clause names '{dynLengthStructureName}', which is not a dynamic-length-structure-name "
@@ -5828,7 +5771,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // ExpressionBinder.LiteralAliasOf): a symbolic-character a CONTAINING element declares yields to the
             // element's own constant-name of the spelling (§8.4.6.1; kb/Work PB3153), and its resolution records
             // a §8.3.2.2 use. In one element the two cannot coexist (COBOL2692), so the order decides nothing there.
-            : ConstantValueRawText(op) is { } constantRaw ? SpecialNames.NormalizeIfNumericLiteral(constantRaw)
+            : Constants.ConstantValueRawText(op) is { } constantRaw ? SpecialNames.NormalizeIfNumericLiteral(constantRaw)
             : SymbolicValueRawText(op) is { } rawBare ? rawBare
             : SpecialNames.NormalizeIfNumericLiteral(op.GetText());
     }
@@ -5860,7 +5803,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // counted a literal here, `PIC X VALUE NULL` stored LOW-VALUE).
             return nn.predefinedNull() is null
                 && (nn.figurativeConstant()?.cobolWord()?.GetText() is not { } symWord
-                || SpecialNames.NamesSymbolic(symWord) || FindConstant(symWord) is not null);
+                || SpecialNames.NamesSymbolic(symWord) || Constants.FindConstant(symWord) is not null);
         // §8.3.3.3.2 rule 2 makes a written sign part of the numeric literal — ONE sign, as its leftmost
         // character — so `VALUE -9999` is literal-1, while `--5`, `+-5` and `- 5` are no literal at all (kb/Work
         // PB1445: this arm used to strip ANY number of signs, and `VALUE --5` reached the C# backend as a
@@ -5877,7 +5820,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // sign-stripping lookup here would have called it a literal while ConstantValueRawText, which does not
         // strip, still fell through — re-opening the very sink PB732 closed, on `-K` instead of `K`.
         return BareValueOperandWord(op) is { } dref
-            && (ConstantOf(dref) is not null || SpecialNames.NamesSymbolic(dref));
+            && (Constants.ConstantOf(dref) is not null || SpecialNames.NamesSymbolic(dref));
     }
 
     /// <summary>The BARE (unqualified, unsubscripted, UNSIGNED) word reference a VALUE operand reduces to, or
@@ -5889,7 +5832,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <para>An operand whose trailing <c>IN alphabet-name-1</c> the parser took as a qualifier answers with the
     /// reference WITHOUT that suffix (<see cref="_alphabetPeeledOperands"/>, kb/Work PB983), so every reader sees
     /// the word the symbol decided.</para></summary>
-    private Core.DataReferenceContext? BareValueOperandWord(Core.ValueClauseOperandContext op) =>
+    internal Core.DataReferenceContext? BareValueOperandWord(Core.ValueClauseOperandContext op) =>
         _alphabetPeeledOperands.TryGetValue(op, out var peeled) ? peeled : WrittenValueOperandWord(op);
 
     /// <summary>The sole-child walk <see cref="BareValueOperandWord"/> answers with when no phrase was peeled.</summary>
@@ -6157,8 +6100,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return (literal, literal);
         }
         string word = sub.cobolWord().GetText();
-        if (FindConstant(word) is { Category: PicCategory.Numeric, IntegerText: { } integer }) return (integer, word);
-        if (IsFailedConstant(word)) return null;   // its own entry was reported
+        if (Constants.FindConstant(word) is { Category: PicCategory.Numeric, IntegerText: { } integer }) return (integer, word);
+        if (Constants.IsFailedConstant(word)) return null;   // its own entry was reported
         using var at = Edition.At(sub);
         Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the subscript '{word}' is not an integer "
             + "constant-name — subscript-1 and subscript-2 shall be integer numeric literals (ISO §13.18.63.3 SR19), and "
@@ -7276,7 +7219,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal bool SwitchConditionCompetes(Core.DataReferenceContext dref, IReadOnlyList<Condition88> matches) =>
         matches.Count != 0 && dref.dataReferenceSuffix().Length == 0
         && dref.cobolWord()?.GetText() is { } name
-        && SpecialNames.SwitchConditions.ContainmentDepth(name) == DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
+        && State.Configuration.SwitchConditions.ContainmentDepth(name) == DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
 
     /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
     /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>

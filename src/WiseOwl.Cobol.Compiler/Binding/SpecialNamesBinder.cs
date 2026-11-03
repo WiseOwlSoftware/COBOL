@@ -16,21 +16,24 @@ using WiseOwl.Cobol.Runtime;
 /// <summary>
 /// The binder of one source element's SPECIAL-NAMES paragraph and the OBJECT-COMPUTER clauses that name its
 /// alphabets and locales (ISO §12.3.6, §12.3.7; the census's R0-0001 target "SpecialNamesBinder", DESIGN-architecture-review
-/// §8.3 (1)). It owns the configuration-derived state it declares: the external-switch registry (§12.3.7 — a
+/// §8.3 (1)). It declares the configuration-derived state of the unit's <see cref="ConfigurationSlice"/>: the external-switch registry (§12.3.7 — a
 /// switch-name associates an implementor-defined external switch with an optional mnemonic-name and/or ON/OFF status
 /// condition-names; the mnemonic is referenced only in SET [SR5], the condition-names are interrogated as switch-status
 /// conditions [GR2 / §8.8.4.6], SET alters the status [GR3 / §14.9.39 F3]), the CLASS, ALPHABET, SYMBOLIC CHARACTERS,
 /// LOCALE, ORDER TABLE and DYNAMIC LENGTH STRUCTURE names, the PROGRAM COLLATING SEQUENCE and CHARACTER CLASSIFICATION,
 /// DECIMAL-POINT IS COMMA and the CURRENCY SIGN set. The data binder constructs one per unit
 /// (<see cref="DataBinder.SpecialNames"/>), walks the configuration section through <see cref="BindSpecialNames"/> at the top of its
-/// declaration half, and hands the facts to every reader through that one member; a contained unit's binder is seeded
-/// from its container's by <see cref="InheritFrom"/> (§12.3.4 GR1).
+/// declaration half, and writes what it declares into the unit's <see cref="ConfigurationSlice"/> (<c>DataBindState.Configuration</c>),
+/// which every reader reads; a contained unit's slice is seeded from its container's by <see cref="ConfigurationStep"/> (§12.3.4 GR1).
 /// </summary>
 public sealed partial class SpecialNamesBinder
 {
     private readonly DataBinder _host;
 
     private EditionContext Edition { get; }
+
+    /// <summary>The unit's configuration slice: the state this binder declares and every reader reads (kb/Work PB2296 M5).</summary>
+    private ConfigurationSlice Cfg => _host.State.Configuration;
 
     internal SpecialNamesBinder(DataBinder host, EditionContext edition)
     {
@@ -44,109 +47,24 @@ public sealed partial class SpecialNamesBinder
     // to keep a second, switch-only map built by a second walk of the same entries — the walk in which an Option-2
     // entry (status phrases, no mnemonic) entered the switch-NAME itself as a mnemonic.
 
-    /// <summary>Switch-status condition-names (case-insensitive) → (implementor switch-name, posited-ON) (ISO
-    /// §12.3.7 GR2; §8.4.4.2 Format 1 SR1 — the condition-name shall be associated with a switch-name in
-    /// SPECIAL-NAMES). Consulted by the condition binder AFTER level-88 resolution: a switch name declared in the
-    /// same source element as a level-88 of the spelling counts as one more candidate of an unqualified reference, and a
-    /// nearer 88 hides it (<see cref="DataBinder.SwitchConditionCompetes"/>, §8.4.2.2.1, §8.4.6.1; kb/Work PB3347).</summary>
-    internal ConfigurationNames<(string ImplementorName, bool IsOn)> SwitchConditions =>
-        field ??= new(UserWordKind.ConditionName, _host.RecordConfigurationNameUse);
-
-    /// <summary>User-defined CLASS names (case-insensitive) → the EXPANDED member-character set (ISO §12.3.7
-    /// class-name clause: each literal lists its characters; a THRU pair contributes every character between the
-    /// two ordinals in the NATIVE collating sequence, in either order). Consulted by the class-condition binder
-    /// (§8.8.4.4 — true when the operand consists entirely of members).
-    /// <para>Each entry carries the CLASS of its characters (kb/Work PB976): a <c>FOR NATIONAL</c> class is a set of
-    /// national characters, and "the relevant native character set" of §12.3.7.4 GR12 is the national one. Both
-    /// native sets are the same UTF-16 repertoire today (implementor item 188), so the members coincide — the flag
-    /// is recorded so that a native alphanumeric set that is ever NOT that repertoire cannot silently resolve a
-    /// national class's ordinals in the wrong set.</para></summary>
-    internal ConfigurationNames<UserClassDef> UserClasses =>
-        field ??= new(UserWordKind.ClassName, _host.RecordConfigurationNameUse);
-
-    /// <summary>ALPHANUMERIC alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7): the
-    /// built collating table of a literal phrase, the LOCALE arm of an <c>IS LOCALE</c> phrase, the identity
-    /// (<see cref="AlphabetDef.Native"/>) for NATIVE/STANDARD-1/STANDARD-2 (ISO/IEC 646 order IS the Latin-1 native
-    /// order — no table), or an implementor code-name's row (§12.3.7.3 SR15 / §12.3.7.4 GR7 i —
-    /// <see cref="ImplementorCodeNames"/>: ASCII, identity like STANDARD-1; EBCDIC, whose 256-entry table the row
-    /// carries). An <c>ALPHABET … FOR NATIONAL</c> clause registers in <see cref="NationalAlphabets"/>
-    /// instead — the two classes are disjoint reference domains (§12.3.6 SR1/SR2, §14.9.40 GR5).</summary>
-    internal ConfigurationNames<AlphabetDef> Alphabets =>
-        field ??= new(UserWordKind.AlphabetName, _host.RecordConfigurationNameUse);
-
-    /// <summary>NATIONAL alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7 b/d2/f/g/h/k
-    /// + Table 6): a null-table identity for NATIVE and the coded-set names (UCS-4 collates in ISO 10646 order,
-    /// which on the D-N1 one-code-unit-per-position substrate IS the native code-unit order — see
-    /// <see cref="NationalAlphabetDef"/> for the §8.5.1.4 derivation; UTF-8/UTF-16 name coded character sets ONLY),
-    /// or the sparse <see cref="CollatingTable"/> of a literal phrase (the SAME record the alphanumeric arm
-    /// builds - one §12.3.7.4 GR7 k model for both classes).</summary>
-    internal ConfigurationNames<NationalAlphabetDef> NationalAlphabets =>
-        field ??= new(UserWordKind.AlphabetName, _host.RecordConfigurationNameUse);
-
     /// <summary>Is <paramref name="name"/> an alphabet-name of EITHER class (ISO §12.3.7 ALPHABET clause)? The
     /// question a trailing <c>IN word</c> after a THROUGH range's identifier asks (kb/Work PB843): §8.3.2.2 makes an
     /// alphabet-name a different type of user-defined word from every name a qualifier can be, so a declared
     /// alphabet-name there is §14.9.13.2's <c>IN alphabet-name-1</c> phrase and never a qualifier. A predicate, so
     /// it records no §8.3.2.2 use: the caller that takes the word as an alphabet-name resolves it through
     /// <see cref="ConfigurationNames{T}.TryUse"/> (kb/Work PB3153).</summary>
-    public bool IsAlphabetName(string name) => Alphabets.Declares(name) || NationalAlphabets.Declares(name);
+    public bool IsAlphabetName(string name) => Cfg.Alphabets.Declares(name) || Cfg.NationalAlphabets.Declares(name);
 
     /// <summary>Take <paramref name="name"/>, written at <paramref name="site"/>, as a REFERENCE to an alphabet-name of
     /// either class, recording the §8.3.2.2 use (kb/Work PB3153) — the site that names an alphabet whose definition a
     /// later screen or resolver reads (a COLLATING SEQUENCE phrase). False when no alphabet is named so.</summary>
     internal bool UseAlphabetName(Antlr4.Runtime.RuleContext site, string name) =>
-        Alphabets.TryUse(site, name, out _) || NationalAlphabets.TryUse(site, name, out _);
+        Cfg.Alphabets.TryUse(site, name, out _) || Cfg.NationalAlphabets.TryUse(site, name, out _);
 
     /// <summary>Is <paramref name="name"/> one of the class condition's user-defined-word alternatives — a
     /// class-name-1 or an alphabet-name-1 (ISO §8.8.4.4.2)? The symbol test that separates a bare EVALUATE object
     /// naming a class from identifier-2 (kb/Work PB843).</summary>
-    public bool IsClassConditionWord(string name) => UserClasses.Declares(name) || IsAlphabetName(name);
-
-    /// <summary>SPECIAL-NAMES <c>ORDER TABLE</c> ordering-names (case-insensitive) → the DECODED literal-9 that
-    /// identifies the cultural ordering table (ISO §12.3.7.2's last clause; §12.3.7.4 GR17 — "When ORDER TABLE is
-    /// specified, ordering-name-1 shall reference a cultural ordering table that is identified by literal-9 and
-    /// constructed in accordance with ISO/IEC 14651:2020, Annex A. The implementor specifies the allowable content
-    /// of literal-9"). Read by exactly one consumer, §12.3.7.3 SR9's only legal reference site —
-    /// <c>IntrinsicBinder.BindStandardCompare</c> (§15.85.3 r5 / §15.3 argument type 12), which copies the literal
-    /// onto the bound call so the backend never has to ask the SPECIAL-NAMES model anything.
-    /// <para>⚠ The literal is stored DECODED, not as source text: §12.3.7.3 SR10 admits a national literal
-    /// (<c>N"…"</c>) as well as an alphanumeric one, and the runtime resolver matches ordering-table NAMES, not
-    /// COBOL literal spellings.</para></summary>
-    internal ConfigurationNames<string> OrderTables =>
-        field ??= new(UserWordKind.OrderingName, _host.RecordConfigurationNameUse);
-
-    /// <summary>SPECIAL-NAMES <c>DYNAMIC LENGTH STRUCTURE</c> declarations (case-insensitive
-    /// dynamic-length-structure-name → its layout; ISO §12.3.7.2; kb/Work PB829), read by the DYNAMIC LENGTH clause's
-    /// dynamic-length-structure-name-1 (§13.18.19.3 SR2 / SR4). Configuration-section names reach contained source
-    /// elements (§8.4.6.1), so the dictionary inherits with its siblings.</summary>
-    internal ConfigurationNames<DynamicLengthStructure> DynamicLengthStructures =>
-        field ??= new(UserWordKind.DynamicLengthStructureName, _host.RecordConfigurationNameUse);
-
-    /// <summary>The resolved ALPHANUMERIC PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9–GR11) — a literal-phrase table
-    /// or a LOCALE sequence — or null when none is specified / the named alphabet is the native order. Drives
-    /// relation, condition-name and SORT/MERGE-key comparisons (GR11/GR13), MAX/MIN, ORD/CHAR, and the HIGH-/LOW-VALUE
-    /// characters (§8.3.3.6 GR6/GR7). The emitter renders it ONCE as the program's <c>__COLLATE</c> carrier.</summary>
-    public AlphabetDef? Collating { get; private set; }
-
-    /// <summary>The resolved NATIONAL PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9 — alphabet-name-2 / the FOR
-    /// NATIONAL form), or null when none is specified / the named alphabet is an identity sequence (NATIVE, UCS-4 —
-    /// the native UTF-16 code-unit order, D-N3). Drives NATIONAL relation and condition-name comparisons (GR11 /
-    /// §8.8.4.2.9), CHAR-NATIONAL/ORD-over-national (§15.16.4 / §15.70.4 r2), and the national HIGH-/LOW-VALUE
-    /// characters (§12.3.7 GR8/GR9). National SORT/MERGE keys (GR13 / §14.9.40 GR5b) cannot yet EXIST — D-N2
-    /// refuses national leaves in FD/SD records and the table-sort national key is staged loud — so no key
-    /// consumer reads this yet.</summary>
-    public NationalAlphabetDef? NationalCollating { get; private set; }
-
-    /// <summary>DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14 — the decimal and grouping separator characters EXCHANGE
-    /// functionality in numeric literals [GR14a] and PICTURE character-strings / edited insertion [GR14b]).
-    /// Version-invariant 85→2023 (no VERSION_CHANGE_REFERENCE row). Set BEFORE any literal or PICTURE binds —
-    /// SPECIAL-NAMES is walked at the top of <see cref="DataBinder.Bind"/>.</summary>
-    public bool DecimalPointIsComma { get; private set; }
-
-    /// <summary>The character a numeric literal of this program writes its decimal separator with (ISO §12.3.7.4 GR14 a):
-    /// ',' under DECIMAL-POINT IS COMMA, else '.'. A contained program inherits the container's
-    /// (<see cref="DataBinder.InheritConfiguration"/>, §12.3.4 GR1).</summary>
-    public char DecimalSeparator => DecimalPointIsComma ? ',' : '.';
+    public bool IsClassConditionWord(string name) => Cfg.UserClasses.Declares(name) || IsAlphabetName(name);
 
     /// <summary>Normalize a NUMERIC literal's source text to the canonical dot-decimal form the whole emit-side
     /// decode pipeline consumes (ISO §12.3.7.4 GR14 a): under DECIMAL-POINT IS COMMA "the character written in
@@ -160,7 +78,7 @@ public sealed partial class SpecialNamesBinder
         // The normalization ALGORITHM is the ONE shared WiseOwl.Cobol.Common.NumericLiteral.Normalize (Frontend), so the
         // compile-time expression evaluator applies the identical §12.3.7.4 GR14 a) rule; the binder retains ownership
         // of the COBOL0895 diagnostic (its own channel/descriptor), routing the returned issue to it verbatim.
-        string norm = Common.NumericLiteral.Normalize(text, DecimalPointIsComma, out var issue);
+        string norm = Common.NumericLiteral.Normalize(text, Cfg.DecimalPointIsComma, out var issue);
         switch (issue)
         {
             case Common.NumericSeparatorIssue.DecimalPointUnderCommaMode:
@@ -203,38 +121,12 @@ public sealed partial class SpecialNamesBinder
         return anyDigit ? NormalizeNumericLiteral(text) : text;
     }
 
-    /// <summary>⛔ ISO §12.3.4 GR1 — "The entries explicitly or implicitly specified in the configuration section of a
-    /// source unit that contains other source units apply to each directly or indirectly contained source unit" —
-    /// seeds this binder with the WHOLE configuration-derived state of <paramref name="container"/>: DECIMAL-POINT IS
-    /// COMMA, the currency signs, every name table of §8.4.6.1's list (each with its containment distance,
-    /// <see cref="ConfigurationNames{T}.InheritedDepths"/>, so a nearer declaration of the spelling hides it), and the
-    /// OBJECT-COMPUTER collating sequences and classification (§12.3.6 GR9–GR11, GR1). Called by
-    /// <see cref="DataBinder.InheritConfiguration"/>, the one seed, before this binder's first literal or PICTURE binds.</summary>
-    internal void InheritFrom(SpecialNamesBinder container)
-    {
-        DecimalPointIsComma = container.DecimalPointIsComma;
-        foreach (var (k, v) in container._currencySigns) _currencySigns.TryAdd(k, v);
-        _explicitCurrencyStrings.UnionWith(container._explicitCurrencyStrings);
-        _dollarSpecified = container._dollarSpecified;
-        SwitchConditions.InheritFrom(container.SwitchConditions);
-        UserClasses.InheritFrom(container.UserClasses);
-        Alphabets.InheritFrom(container.Alphabets);
-        NationalAlphabets.InheritFrom(container.NationalAlphabets);
-        SymbolicCharacters.InheritFrom(container.SymbolicCharacters);   // §8.4.6.1 (kb/Work PB3154), each with its tier
-        OrderTables.InheritFrom(container.OrderTables);
-        DynamicLengthStructures.InheritFrom(container.DynamicLengthStructures);
-        Locales.InheritFrom(container.Locales);   // §12.3.7.4 GR1 — locale-names reach contained units
-        Collating = container.Collating;
-        Classification = container.Classification;
-        NationalCollating = container.NationalCollating;
-    }
-
     /// <summary>Bind <c>DECIMAL-POINT IS COMMA</c> (ISO §12.3.7 — the only word the format admits after IS is
     /// COMMA; the grammar carries it as a generic IDENTIFIER).</summary>
     private void SwitchBindDecimalPoint(Core.DecimalPointClauseContext dp)
     {
         if (dp.IDENTIFIER()?.GetText() is { } word && CobolNames.Same(word, "COMMA"))
-            DecimalPointIsComma = true;
+            Cfg.DecimalPointIsComma = true;
         else
             Edition.Error("COBOL0894", $"DECIMAL-POINT IS {dp.IDENTIFIER()?.GetText()}: the only form is "
                 + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
@@ -346,7 +238,7 @@ public sealed partial class SpecialNamesBinder
             using var _ = Edition.At(cur);
             SwitchBindCurrency(cur);
         }
-        FinalizeCurrencySigns();   // §12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
+        Cfg.FinalizeCurrencySigns();   // §12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
     }
 
     /// <summary>One switch-name / feature-name / device-name entry (ISO §12.3.7.2). §12.3.7.3 SR8 — "<i>The implementor
@@ -378,10 +270,13 @@ public sealed partial class SpecialNamesBinder
             Edition.Error(DiagnosticCatalog.UnavailableImplementorName, why);
             return;
         }
+        // The mnemonic-name's row, for the one procedure-side reader (ConfigurationSlice.TryGetMnemonic): the first declaration
+        // of a spelling wins, and a container's entries come after this unit's own (ConfigurationStep).
+        if (e.Mnemonic is { } mnemonicName) Cfg.DeclareMnemonic(mnemonicName, e.Row!);
         if (e.Row!.Kind != SystemNameKind.Switch) return;
         string switchName = e.Row.Name;
-        if (e.OnCondition is { } on) SwitchConditions.TryAdd(on, (switchName, true));
-        if (e.OffCondition is { } off) SwitchConditions.TryAdd(off, (switchName, false));
+        if (e.OnCondition is { } on) Cfg.SwitchConditions.TryAdd(on, (switchName, true));
+        if (e.OffCondition is { } off) Cfg.SwitchConditions.TryAdd(off, (switchName, false));
     }
 
     /// <summary>Resolve the PROGRAM COLLATING SEQUENCE clause (ISO §12.3.6): the IS form's alphabet-name-1
@@ -407,15 +302,15 @@ public sealed partial class SpecialNamesBinder
             if (CollatingAlphabetFault(alnumName, national: false) is { } fault)
                 Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
                     national: false, fault, "ISO §12.3.6.3 SR1"));
-            else if (Alphabets.TryUse(pcs, alnumName, out var def)) Collating = def.IsIdentity ? null : def;
+            else if (Cfg.Alphabets.TryUse(pcs, alnumName, out var def)) Cfg.Collating = def.IsIdentity ? null : def;
         }
         if (natName is not null)
         {
             if (CollatingAlphabetFault(natName, national: true) is { } fault)
                 Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
                     natName, national: true, fault, "ISO §12.3.6.3 SR2"));
-            else if (NationalAlphabets.TryUse(pcs, natName, out var def))
-                NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
+            else if (Cfg.NationalAlphabets.TryUse(pcs, natName, out var def))
+                Cfg.NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
         }
     }
 
@@ -463,7 +358,7 @@ public sealed partial class SpecialNamesBinder
         // PB3216): the first stands, so a repeat sets nothing — and an INHERITED same-named structure is still replaced
         // by this element's first (§8.4.6.1), since the census counts this element's own declarations alone.
         if (_host.WordCensus.UnqualifiedDeclarations(name, UserWordKind.DynamicLengthStructureName) > 1) return;
-        DynamicLengthStructures.Set(name, declared);   // replaces an INHERITED same-named structure (§8.4.6.1)
+        Cfg.DynamicLengthStructures.Set(name, declared);   // replaces an INHERITED same-named structure (§8.4.6.1)
     }
 
     private void OrderTableBind(Core.OrderTableClauseContext ot)
@@ -484,14 +379,14 @@ public sealed partial class SpecialNamesBinder
         // ellipsis, where the repeatable clauses beside it (CLASS, CURRENCY, LOCALE, the switch entry, SYMBOLIC
         // CHARACTERS) each print one. A second clause is therefore a form violation, and so — as a consequence
         // rather than as a second rule — is a second ordering-name.
-        if (OrderTables.Count > 0)
+        if (Cfg.OrderTables.Count > 0)
         {
             Edition.Error("COBOL0898", $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
                 + "in a SPECIAL-NAMES paragraph — its general format brackets it without an ellipsis, unlike the "
-                + $"repeatable clauses (ISO §12.3.7.2); '{OrderTables.Names.First()}' is already declared");
+                + $"repeatable clauses (ISO §12.3.7.2); '{Cfg.OrderTables.Names.First()}' is already declared");
             return;
         }
-        OrderTables.Set(name, text);
+        Cfg.OrderTables.Set(name, text);
         // GR17's implementor half, checked against the ONE resolver the runtime uses (§15.85.4 r2 owns the outcome).
         // A site collation file that cannot be used is that resolver's typed failure, named here with its file, never
         // a crash of the compile (kb/Work PB2773).

@@ -76,7 +76,7 @@ public sealed partial class DataBinder
     /// the section runs exactly as <see cref="BindFileSection"/>, the WORKING-STORAGE / LOCAL-STORAGE walks and
     /// <see cref="CallBindLinkage"/> hand them to <see cref="BindEntries"/>. (An FD or SD with no file-name binds no
     /// records, so it contributes none.)</summary>
-    private void DeclareDataEntryRuns(Core.DataDivisionContext scope)
+    internal void DeclareDataEntryRuns(Core.DataDivisionContext scope)
     {
         if (scope.fileSection() is { } fs)
         {
@@ -105,7 +105,7 @@ public sealed partial class DataBinder
     }
 
     /// <summary>The entry's level-number, or -1 when it is unreadable (LevelNumberPass has reported it).</summary>
-    private static int EntryLevel(Core.DataDescriptionEntryContext e) =>
+    internal static int EntryLevel(Core.DataDescriptionEntryContext e) =>
         int.TryParse(e.levelNumber()?.GetText(), out int level) ? level : -1;
 
     /// <summary>Does the entry open a record — a level-01 or level-77 data description entry (a constant entry is
@@ -117,16 +117,16 @@ public sealed partial class DataBinder
         EntryLevel(e) is 1 or 77;
 
     /// <summary>Is <paramref name="name"/> declared by a data description entry whose bind has not begun?</summary>
-    private bool IsDescribedLater(string name) =>
+    internal bool IsDescribedLater(string name) =>
         _dataEntryLocations.TryGetValue(name, out var locs) && locs.Any(l => !_entriesBound.Contains(l.Run[l.Index]));
 
     /// <summary>Is <paramref name="name"/> declared by an entry whose own description is being bound right now?</summary>
-    private bool IsBeingDescribed(string name) =>
+    internal bool IsBeingDescribed(string name) =>
         _openDescriptions.Any(d => CobolNames.Same(d.Entry.dataName()?.GetText(), name));
 
     /// <summary>Is <paramref name="item"/>'s description still open — the item of the entry being bound, or an ancestor
     /// of it, so a group whose subordinates are still being described?</summary>
-    private bool IsDescriptionOpen(DataItem item) =>
+    internal bool IsDescriptionOpen(DataItem item) =>
         _openDescriptions.Any(d => ReferenceEquals(d.Item, item)) || HasSubordinatesBeingDescribed(item);
 
     /// <summary>Is <paramref name="item"/> an ANCESTOR of an entry being bound — a group whose subordinate entries are
@@ -156,7 +156,7 @@ public sealed partial class DataBinder
         if (!_pendingTableBounds.Remove(item, out var occ)) return;
         description.Item = item;
         string where = $"data item '{item.CobolName ?? "FILLER"}'";
-        int? occurs = occ.integerOperand() is { Length: > 0 } bounds && IntegerOperandValue(bounds[^1], where) is { } n
+        int? occurs = occ.integerOperand() is { Length: > 0 } bounds && Constants.IntegerOperandValue(bounds[^1], where) is { } n
             ? n : null;
         item.BindTableBounds(occurs, OdoBindOccursSpec(occ, where, occurs));
     }
@@ -165,7 +165,7 @@ public sealed partial class DataBinder
     /// not begun; true when one was bound. The roots are parked for the section walk to place
     /// (<see cref="TakePreboundRecord"/>). A record whose first entry has begun binding is skipped: it is bound
     /// already, or open — and an item later in an open record cannot be measured yet.</summary>
-    private bool BindLaterRecords(string name)
+    internal bool BindLaterRecords(string name)
     {
         if (!_dataEntryLocations.TryGetValue(name, out var locs)) return false;
         bool any = false;
@@ -205,7 +205,7 @@ public sealed partial class DataBinder
     /// (PICTURE, VALUE, DYNAMIC LENGTH), so there an entry with a subordinate has no ancestor to link to and its own
     /// clause rule reports the source.</para></summary>
     /// <returns>True when at least one entry was bound.</returns>
-    private bool BindLaterEntriesOfOpenRecord(string name)
+    internal bool BindLaterEntriesOfOpenRecord(string name)
     {
         if (!_dataEntryLocations.TryGetValue(name, out var locs)) return false;
         bool any = false;
@@ -242,7 +242,7 @@ public sealed partial class DataBinder
     /// whole. The walk then skips those entries and attaches the group itself where it stands. A subordinate whose
     /// description depends on the constant being evaluated meets that constant's cycle check — §13.10.3 SR4, since the
     /// group's length then depends on it.</summary>
-    private void CompletePreboundGroup(DataItem group)
+    internal void CompletePreboundGroup(DataItem group)
     {
         if (!_preboundGroups.Remove(group, out var at)) return;
         int end = SubordinateRunEnd(at.Run, at.Index);
@@ -328,13 +328,13 @@ public sealed partial class DataBinder
         }
     }
 
-    private static int ReportEntryLevel(Core.ReportGroupEntryContext e) =>
+    internal static int ReportEntryLevel(Core.ReportGroupEntryContext e) =>
         int.TryParse(e.levelNumber()?.GetText(), out int level) ? level : -1;
 
     /// <summary>Every named report group description entry of this unit, by name.</summary>
     private readonly Dictionary<string, List<ReportEntryLocation>> _reportEntryLocations = new(CobolNames.Comparer);
 
-    private void DeclareReportEntries(Core.ReportDescriptionEntryContext rd)
+    internal void DeclareReportEntries(Core.ReportDescriptionEntryContext rd)
     {
         if (rd.reportName()?.GetText() is not { } report) return;
         var entries = rd.reportGroupEntry();
@@ -349,7 +349,7 @@ public sealed partial class DataBinder
 
     /// <summary>The report group description entries <paramref name="name"/> OF/IN <paramref name="qualifiers"/>
     /// names: each qualifier, in the order written, is a name the entry is subordinate to (§8.4.2.2.3 SR4).</summary>
-    private List<ReportEntryLocation> ReportEntryCandidates(string name, IReadOnlyList<string> qualifiers)
+    internal List<ReportEntryLocation> ReportEntryCandidates(string name, IReadOnlyList<string> qualifiers)
     {
         if (!_reportEntryLocations.TryGetValue(name, out var locs)) return [];
         return [.. locs.Where(l =>

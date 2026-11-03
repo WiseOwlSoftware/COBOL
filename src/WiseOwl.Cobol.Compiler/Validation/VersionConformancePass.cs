@@ -1146,7 +1146,7 @@ internal sealed class VersionConformancePass
         /// into the compile-time constant table and produces NO DataItem (a bound-arm gate would have no node
         /// to key on), and a §13.10 SR violation abandons the fold — so recognition is the drop-proof home
         /// (the TYPEDEF lesson). Fires once per written entry; the §13.10 SRs stay bind-time
-        /// (DataBinder.Constants.cs, COBOL1547).</summary>
+        /// (ConstantEntryBinder.cs, COBOL1547).</summary>
         public override object? VisitConstantEntryBody(CobolParserCore.ConstantEntryBodyContext ctx)
         {
             // The body has two hosts: a data description entry (through its body rule) and a report-section

@@ -181,8 +181,8 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     {
         if (dref.dataReferenceSuffix().Length != 0) return null;   // a status condition-name takes no subscript/qualifier
         // A special register's cobolWord is its qualifier, never a switch-status name (ReferenceResolver.WrittenWordOf).
-        return ReferenceResolver.WrittenWordOf(dref) is { } name && ctx.Data.SpecialNames.SwitchConditions.Declares(name)
-            && !ctx.Refs.DescribesOwnItem(dref) && ctx.Data.SpecialNames.SwitchConditions.TryUse(dref, name, out var sc)
+        return ReferenceResolver.WrittenWordOf(dref) is { } name && ctx.Data.State.Configuration.SwitchConditions.Declares(name)
+            && !ctx.Refs.DescribesOwnItem(dref) && ctx.Data.State.Configuration.SwitchConditions.TryUse(dref, name, out var sc)
             ? new BoundSwitchCondition(sc.ImplementorName, sc.IsOn)
             : null;
     }

@@ -432,14 +432,14 @@ public sealed partial class SpecialNamesBinder
     /// written" (§13.10.4 GR1), so a nonnumeric constant whose literal-1 is zero-length is the zero-length literal SR11
     /// bars. The same structural test <c>ConcatFolder</c> takes of a constant operand (its re-quoted
     /// <see cref="ConstantDef.RawText"/>).</summary>
-    private static bool IsZeroLengthConstant(DataBinder.ConstantDef constant) =>
+    private static bool IsZeroLengthConstant(ConstantDef constant) =>
         constant.Category is not PicCategory.Numeric && CobolLiteral.IsZeroLength(constant.RawText);
 
     /// <summary>Whether <paramref name="word"/> is a symbolic-character name of this paragraph — declared by any
     /// SYMBOLIC CHARACTERS clause, read syntactically because the clauses are order-free (kb/Work PB226), or already
     /// bound. The ONE recognition §12.3.7.3 SR11 asks, of a bare operand and of a concatenation operand alike.</summary>
     internal bool IsSymbolicCharacterName(string word) =>
-        _paragraphSymbolicNames.Contains(word) || SymbolicCharacters.Declares(word);
+        _paragraphSymbolicNames.Contains(word) || Cfg.SymbolicCharacters.Declares(word);
 
     /// <summary>The characters of an alphabet-entry string literal: a §8.8.3.3 GR3 concatenation folded first — in
     /// the SPECIAL-NAMES environment (§12.3.7.4 GR10's native extremes), with §12.3.7.3 SR11's

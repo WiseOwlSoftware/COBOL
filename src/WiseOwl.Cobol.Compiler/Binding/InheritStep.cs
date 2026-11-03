@@ -41,7 +41,7 @@ internal static class InheritStep
             // this unit binds, and a local data-name shadows them after (Merge). EVERY container, nearest first (the
             // nearest global declaration wins): an intermediate program's own NON-global declaration of the name hides
             // nothing from the programs it contains.
-            data.InheritGlobalConstants(anc.Data, ++depth);
+            inherited.AddContainerConstants(anc.Data.Constants.GlobalConstantsToInherit(), ++depth);
             // …its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
             // unit's first data phase, so a TYPE clause there already sees the container's type-name.
             inherited.AddContainerTypeDecls(anc.Data.TypeDecls);
@@ -86,8 +86,24 @@ internal static class InheritStep
 
         // Every tier is in place now — this unit's own names and every container's globals — so an inherited constant a
         // NEARER data-name hides can leave (§8.4.6.2.1 3); kb/Work PB1009 / PB1047).
-        data.DropShadowedConstants();
+        DropShadowed(data);
     }
+
+    /// <summary>Once <paramref name="data"/>'s DATA DIVISION is bound AND every container's global data is inherited, an
+    /// inherited GLOBAL constant, and an inherited symbolic-character (§12.3.7.4 GR11 a), is SHADOWED by a data-name,
+    /// condition-name or index-name of the same spelling declared in a NEARER source element — this unit's own, or a nearer
+    /// container's global one — by ISO §8.4.6.2.1 3) ("a) If the name is declared in source element B, the item in source
+    /// element B is the referenced item. b) … 1. The item in source element A if the name is declared in source element
+    /// A"), so a shadowed constant leaves <see cref="InheritedGlobals.Constants"/> before any procedure reference can
+    /// substitute it (kb/Work PB1009; the nearer-container half kb/Work PB1047 — an outer program's constant used to beat
+    /// the middle program's global data-name) and a shadowed symbolic-character is hidden (kb/Work PB3154 review R1-1:
+    /// <c>MOVE S1 TO Y</c> moved the container's figurative instead of the local <c>01 S1</c>, with no diagnostic). Run by
+    /// <see cref="Merge"/> for a program unit and by <c>OoDriver</c> for an OBJECT or FACTORY half, whose class definition
+    /// hands it symbolic-characters (§8.4.6.1) and no constants.
+    /// <para>Every tier a name can be declared at is asked by <c>DataBinder.DeclaredNearerThan</c>; a METHOD's own names
+    /// are the one tier nearer still, asked at reference time (<c>DataBinder.ActiveMethodDeclares</c>).</para></summary>
+    internal static void DropShadowed(DataBinder data) =>
+        data.State.Inherited.DropShadowed(data.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
 
     /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
     /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out it

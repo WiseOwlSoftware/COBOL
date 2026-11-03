@@ -564,7 +564,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// ⛔ No width here by construction: sizing is <c>CobolString.CompareFig</c>'s (kb/Work PB297).</summary>
     private string FigSeed(BoundOperand op, PicCategory? anchorCat) => op switch
     {
-        BoundFigurative f => FigurativeConstants.FillText(f.Kind, ctx.Data.SpecialNames.Collating, anchorCat, ctx.Data.SpecialNames.NationalCollating),
+        BoundFigurative f => FigurativeConstants.FillText(f.Kind, ctx.Data.State.Configuration.Collating, anchorCat, ctx.Data.State.Configuration.NationalCollating),
         BoundAllLiteral a => EmitText.CsLiteral(a.Literal),
         // Unreachable by construction — both call sites select an operand that already satisfied IsFig. Loud
         // rather than a silent fall-through to the operand's own text, which would look like a working
@@ -695,7 +695,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // coded-character-set rule (b2/c2/d2 — the closed Latin set) stands, exactly as before.
         // WHICH of the two classifications (§12.3.6.4 GR5 a)–e) alphanumeric, f)–j) national) is asked of the
         // ONE selector GR7 a)'s consumer, UPPER-CASE / LOWER-CASE, also calls (kb/Work PB760) — never a local test.
-        string classify = ctx.Data.SpecialNames.Classification is not null ? ObjectComputerEmit.ClassificationArg(c.Operand) : "";
+        string classify = ctx.Data.State.Configuration.Classification is not null ? ObjectComputerEmit.ClassificationArg(c.Operand) : "";
         string test = c.ClassKind switch
         {
             'N' => numericTest,
@@ -1069,7 +1069,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // ODO group's CURRENT extent — which is the one quantity GR2 names (kb/Work PB1477).
         var op = FigurativeConstants.Classify(raw);
         return op.AllLiteral is { } lit ? new(EmitText.CsLiteral(CobolLiteral.Decode(lit)), IsFigSeed: true)
-            : op.Kind is { } k ? new(FigurativeConstants.FillText(k, ctx.Data.SpecialNames.Collating, cat, ctx.Data.SpecialNames.NationalCollating), IsFigSeed: true)
+            : op.Kind is { } k ? new(FigurativeConstants.FillText(k, ctx.Data.State.Configuration.Collating, cat, ctx.Data.State.Configuration.NationalCollating), IsFigSeed: true)
             : new(EmitText.CsLiteral(CobolLiteral.Decode(raw)), IsFigSeed: false);
     }
 

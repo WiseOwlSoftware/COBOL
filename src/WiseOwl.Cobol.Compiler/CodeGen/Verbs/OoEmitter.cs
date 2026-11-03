@@ -1158,7 +1158,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line("var __nfM = ExceptionState.NonfatalDispatcher;   // the invoker's selector (ISO §14.6.13.1.4 #3)");
             w.Line("try");
             w.Line("{");
-            if (Ctx.Data.SpecialNames.Classification is { } cls)
+            if (Ctx.Data.State.Configuration.Classification is { } cls)
                 // The class's CHARACTER CLASSIFICATION, resolved at THIS method's activation (ISO §12.3.6.4 GR8; §14.6.6 r2 —
                 // a method is a runtime element) into a local the method's dispatch local function captures (kb/Work PB111).
                 w.Line(ObjectComputerEmit.ClassificationLocal(cls));
@@ -1285,7 +1285,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // §13.6.4 GR2 sends LOCAL-STORAGE to §11.9.10, whose GR2 applies the OPTIONS INITIALIZE clause of the source
             // element — this method's own OPTIONS paragraph, else the class's (§11.9.4 GR1) — to "the storage allocated
             // for" the sections it names. The class half's data model carries the class-level clause only and no method
-            // roots, so both are swapped in for these initializers and restored after.
+            // roots, so both are swapped in for these initializers, and stay in for the method body, and are restored after it.
             var methodOptions = m.MethodOptions is { } own ? Ctx.Options.Push(own) : (Scoped<OptionsModel>.RestoreScope?)null;
             var savedActivationRoots = Ctx.ActivationLocalRoots;
             Ctx.ActivationLocalRoots = m.Binding!.LocalRoots;
@@ -1301,7 +1301,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 var (type, init) = fields.RootDecl(root);
                 w.Line($"{type} {LocalNames.Of(ActivationLocalOf(root))} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§8.6.4)");
             }
-            methodOptions?.Dispose();   // an emission error abandons the whole compile, so no finally is owed
             Ctx.ActivationLocalRoots = savedActivationRoots;
             // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§8.6.4; M2-OO-1h step 4) —
             // the method's own cell (§11.7.4 GR5), reset to 1 each activation, never the shared class index field.
@@ -1426,6 +1425,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     copyOut.Clear();   // stored back above, whichever way the activation ended
                 }
             }
+            // The method's own OPTIONS govern its WHOLE body, not only its LOCAL-STORAGE initializers (ISO §11.9.4 GR1: the
+            // clauses of a method's OPTIONS paragraph apply to that source element; kb/Work PB2296): the renderers read the
+            // arithmetic mode and the intermediate rounding from the emitter's scoped override while the dispatch above
+            // renders the statements. An emission error abandons the whole compile, so no finally is owed.
+            methodOptions?.Dispose();
             (ecState.UnitHasF3Perform, ecState.UnitHasF3, ecState.UnitHasF4, dispatch.UseDecls,
                 dispatch.DeclCount, dispatch.F3HandlerBasePc) = savedSel;
             dispatch.GlobalDeclIds = savedGlobalDecls;

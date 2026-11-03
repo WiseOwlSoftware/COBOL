@@ -124,7 +124,7 @@ public sealed partial class DataBinder
     /// (§13.10.3 SR4). V's item exists with every clause but its bounds applied, so its composition is complete; only a
     /// group whose subordinate ENTRIES are still being described is not (<see cref="HasSubordinatesBeingDescribed"/>),
     /// and measuring V itself stays the SR4 cycle (<see cref="LengthOperandItem"/>).</para></summary>
-    private bool ComposePendingSubjectsAhead()
+    internal bool ComposePendingSubjectsAhead()
     {
         var pending = _entryItems.Values
             .Where(i => (i.TypeRefName is not null || i.SameAsName is not null)

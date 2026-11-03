@@ -169,7 +169,7 @@ public sealed class UserWordDeclarationDriftTests
 
         var sources = CompilerSources();
         var tabled = sources.SelectMany(s => Regex.Matches(s.Text,
-                @"ConfigurationNames<[^>]+>\s+\w+\s*=>\s*field\s*\?\?=\s*new\(UserWordKind\.(\w+),\s*(?:_host\.)?RecordConfigurationNameUse\)")
+                @"ConfigurationNames<[^>]+>\s+\w+\s*=>\s*field\s*\?\?=\s*new\(UserWordKind\.(\w+),\s*(?:_host\.)?recordUse\)")
             .Select(m => Enum.Parse<UserWordKind>(m.Groups[1].Value)));
         string registry = sources.Single(s => s.Name == "MnemonicRegistry.cs").Text;
         Assert.Contains("data.RecordConfigurationNameUse(at, name, UserWordKind.MnemonicName)", registry);
@@ -200,7 +200,7 @@ public sealed class UserWordDeclarationDriftTests
             + "own constant-name (" + string.Join(", ", raw) + "): ask ReferenceResolver.DescribesOwnItem (§8.4.6.1, kb/Work PB3153)");
         string resolver = sources.Single(s => s.Name == "ReferenceResolver.cs").Text;
         Assert.Matches(@"public bool DescribesOwnItem\(Core\.DataReferenceContext dref\) =>\s+"
-            + @"data\.ConstantOf\(dref\) is not null \|\| Probe\(dref\) is not null;", resolver);
+            + @"data.Constants.ConstantOf\(dref\) is not null \|\| Probe\(dref\) is not null;", resolver);
     }
 
     /// <summary>⛔ A PROCEDURE-DIVISION MEMBER THAT TAKES A DATA REFERENCE AS AN INHERITABLE CONFIGURATION-SECTION NAME

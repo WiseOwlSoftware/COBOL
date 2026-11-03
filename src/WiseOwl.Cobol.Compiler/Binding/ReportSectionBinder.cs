@@ -212,12 +212,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (page.integerOperand() is { } limit)
                 {
                     model.Paged = true;
-                    writtenLimit = _d.IntegerOperandValue(limit, rdWhere);
-                    model.PageLimit = writtenLimit ?? DataBinder.RecoveredIntegerOperand;
+                    writtenLimit = _d.Constants.IntegerOperandValue(limit, rdWhere);
+                    model.PageLimit = writtenLimit ?? ConstantEntryBinder.RecoveredIntegerOperand;
                 }
                 if (page.reportPageWidth() is { } width)
                 {
-                    model.PageWidth = _d.IntegerOperandValue(width.integerOperand(), rdWhere) ?? DataBinder.RecoveredIntegerOperand;
+                    model.PageWidth = _d.Constants.IntegerOperandValue(width.integerOperand(), rdWhere) ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     model.PageWidthWritten = true;
                 }
                 // §13.18.39.2 prints each phrase in its own bracket with no ellipsis; SR4 licenses any ORDER,
@@ -237,8 +237,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 var writtenPhrases = new List<(PagePhrase Phrase, int Value, Core.ReportPageSubclauseContext Ctx)>();
                 foreach (var sub in subs)
                 {
-                    int? written = _d.IntegerOperandValue(sub.integerOperand(), rdWhere);
-                    int v = written ?? DataBinder.RecoveredIntegerOperand;
+                    int? written = _d.Constants.IntegerOperandValue(sub.integerOperand(), rdWhere);
+                    int v = written ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     if (written is { } w) writtenPhrases.Add((PagePhraseOf(sub), w, sub));
                     switch (PagePhraseOf(sub))
                     {
@@ -331,7 +331,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             return new ReportCodeModel { Literal = _d.SpecialNames.LiteralCharsOf(lit, sr11: false), Written = lit.GetText() };
         }
         var dref = cc.dataReference();
-        if (_d.ConstantOf(dref) is { } k)
+        if (_d.Constants.ConstantOf(dref) is { } k)
         {
             if (k.Category != PicCategory.Alphanumeric)
             {
@@ -625,7 +625,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             BindReportEntries(entries, start, end, model, st);
             if (constant is null) continue;
             using var _ = Edition.At(constant);
-            _d.BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
+            _d.Constants.BindConstantEntry(constant, constant.levelNumber(), constant.dataName(), constant.constantEntryBody());
             st.Group = null;
         }
         SealSumCounters(model);
@@ -693,7 +693,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 ? new ReportNextGroup(ReportNextGroupKind.NextPage, 0, ngc.RESET() is not null)
                 : new ReportNextGroup(ngc.reportRelativeSign() is not null
                     ? ReportNextGroupKind.Relative : ReportNextGroupKind.Absolute,
-                    _d.IntegerOperandValue(ngc.integerOperand(), $"RD '{model.Name}' group '{g.Name ?? "FILLER"}'") ?? DataBinder.RecoveredIntegerOperand);
+                    _d.Constants.IntegerOperandValue(ngc.integerOperand(), $"RD '{model.Name}' group '{g.Name ?? "FILLER"}'") ?? ConstantEntryBinder.RecoveredIntegerOperand);
             g.NextGroup = ng;
             string where = $"RD '{model.Name}' group '{g.Name ?? "FILLER"}' ({ReportGroupTypeWords(g.Kind)})";
             void Violation(string rule) =>
@@ -1133,7 +1133,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     bool absolute = op.integerOperand() is not null && op.reportRelativeSign() is null;
                     if (op.integerOperand() is { } lit)
                     {
-                        if ((_d.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? DataBinder.RecoveredIntegerOperand) > model.VerticalLimit)
+                        if ((_d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand) > model.VerticalLimit)
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
                                 + "is not divided into pages (ISO §13.18.35.3 SR3)");
@@ -1186,7 +1186,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 foreach (var op in cc.reportColumnOperand())
                 {
                     if (op.reportRelativeSign() is not null || op.integerOperand() is not { } lit) continue;
-                    if (_d.IntegerOperandValue(lit, where) is not { } v) continue;
+                    if (_d.Constants.IntegerOperandValue(lit, where) is not { } v) continue;
                     if (last is { } previous && v <= previous)
                         Edition.Error(DiagnosticCatalog.ReportColumnClauseRule, $"{where}: in a multiple COLUMN clause all the "
                             + $"occurrences of integer-1 shall be in increasing order of magnitude — {v} follows {previous} "
@@ -1609,7 +1609,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 continue;
             }
             // c) "The occurrences of integer-1, if present, shall be in ascending numerical order."
-            int v = _d.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? DataBinder.RecoveredIntegerOperand;
+            int v = _d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand;
             if (lastAbsolute > int.MinValue && v <= lastAbsolute)
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
                     + $"occurrences of integer-1 shall be in ascending numerical order — {v} follows "
@@ -1660,9 +1660,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         var bounds = oc.integerOperand();
         bool hasTo = oc.TO() is not null;
         var depending = oc.dataReference();
-        int? step = oc.occursStepPhrase() is { } sp ? _d.IntegerOperandValue(sp.integerOperand(), where) ?? DataBinder.RecoveredIntegerOperand : null;
-        int max = _d.IntegerOperandValue(bounds[^1], where) ?? 0;
-        int min = hasTo ? _d.IntegerOperandValue(bounds[0], where) ?? 0 : 0;
+        int? step = oc.occursStepPhrase() is { } sp ? _d.Constants.IntegerOperandValue(sp.integerOperand(), where) ?? ConstantEntryBinder.RecoveredIntegerOperand : null;
+        int max = _d.Constants.IntegerOperandValue(bounds[^1], where) ?? 0;
+        int min = hasTo ? _d.Constants.IntegerOperandValue(bounds[0], where) ?? 0 : 0;
 
         // SR24 — "The TO and DEPENDING phrases shall either be both absent or both present."
         if (hasTo != (depending is not null))
@@ -1819,10 +1819,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (clause.pictureClause()?.PIC_STRING() is { } pic)
                 // The SAME character-position count the print columns use (§13.18.14.4 GR9), through the ONE rule.
                 return PictureAnalyzer.Analyze(
-                    _d.UnitHasConstants ? _d.ExpandPicConstants(pic.GetText(), "", diagnose: false) : pic.GetText(),
+                    _d.Constants.UnitHasConstants ? _d.Constants.ExpandPicConstants(pic.GetText(), "", diagnose: false) : pic.GetText(),
                     Usage.Display, Edition,
-                    $"RD '{model.Name}' repeating entry", null, currencies: _d.SpecialNames.CurrencySigns,
-                    decimalPointIsComma: _d.SpecialNames.DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;
+                    $"RD '{model.Name}' repeating entry", null, currencies: _d.State.Configuration.CurrencySigns,
+                    decimalPointIsComma: _d.State.Configuration.DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;
         return null;
     }
 
@@ -1952,8 +1952,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     foreach (var op in cc.reportColumnOperand())
                     {
                         bool relative = op.reportRelativeSign() is not null;
-                        int column = _d.IntegerOperandValue(op.integerOperand(), $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'")
-                            ?? DataBinder.RecoveredIntegerOperand;
+                        int column = _d.Constants.IntegerOperandValue(op.integerOperand(), $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'")
+                            ?? ConstantEntryBinder.RecoveredIntegerOperand;
                         // §13.18.14.3 SR6 — "Neither integer-1 nor integer-2 shall exceed the page width": the
                         // absolute column and the relative offset are both written integers, so the rule is
                         // decidable here against ReportModel.PageWidth (the PAGE clause's integer-2, else GR5's 999).
@@ -2386,7 +2386,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         bool nextPage = groupFirstLine && op.NEXT() is not null;
         bool relative = op.reportRelativeSign() is not null || op.integerOperand() is null;
-        int value = op.integerOperand() is { } lit ? _d.IntegerOperandValue(lit, "a report group description entry") ?? DataBinder.RecoveredIntegerOperand : BareNextPageInterval;
+        int value = op.integerOperand() is { } lit ? _d.Constants.IntegerOperandValue(lit, "a report group description entry") ?? ConstantEntryBinder.RecoveredIntegerOperand : BareNextPageInterval;
         int shift = st.Shift(ReportRepetitionAxis.Vertical);
         bool anchored = st.Repetitions.Exists(
             r => r.Spec.Axis == ReportRepetitionAxis.Vertical && r.Spec.Step is not null);
@@ -2486,7 +2486,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 foreach (var op in lc.reportLineOperand())
                 {
                     if (op.integerOperand() is not { } lit) continue;
-                    int v = _d.IntegerOperandValue(lit, "a report group description entry") ?? DataBinder.RecoveredIntegerOperand;
+                    int v = _d.Constants.IntegerOperandValue(lit, "a report group description entry") ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     if (op.reportRelativeSign() is not null)
                     {
                         anyRelative = true;
@@ -2711,7 +2711,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// (SR3 then asks the entry for a numeric item, a non-numeric constant is §8.8.1.1's refusal), never an
     /// identifier that fails to resolve in storage. SOURCE and SUM both ask it here, so neither can drift.</summary>
     private Core.DataReferenceContext? IdentifierOperandOf(Core.ReportValueOperandContext op) =>
-        BareReferenceOf(op) is { } dref && _d.ConstantOf(dref) is null ? dref : null;
+        BareReferenceOf(op) is { } dref && _d.Constants.ConstantOf(dref) is null ? dref : null;
 
     /// <summary>Bind ONE SOURCE clause operand (ISO §13.18.53.2 — the clause writes
     /// `{ identifier-1 | arithmetic-expression-1 } …`). identifier-1 is §13.18.53.4 GR1's implicit MOVE sender; an
@@ -2782,8 +2782,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
         string sumWhere = $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'";
         var pic = picText is not null
-            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: _d.SpecialNames.CurrencySigns,
-                decimalPointIsComma: _d.SpecialNames.DecimalPointIsComma)
+            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: _d.State.Configuration.CurrencySigns,
+                decimalPointIsComma: _d.State.Configuration.DecimalPointIsComma)
             : null;
         ScreenReportEntryPicture(ge, pic, picText, sumWhere, summed: true);   // §13.18.40.3 SR14, §13.18.54.3 SR2
         // ⛔ THE COUNTER'S SCALE IS THE ENTRY PICTURE'S RECEIVER SCALE, NOT `pic.Scale` (kb/Work PB1685). §13.18.54.4 GR1
@@ -2940,8 +2940,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (picText is null) return null;
         var usage = PictureAnalyzer.ParseUsage(usageText, Edition, where);
-        var pic = PictureAnalyzer.Analyze(picText, usage, Edition, where, ownSign, currencies: _d.SpecialNames.CurrencySigns,
-            editing: editing, localeFormat2: locale, decimalPointIsComma: _d.SpecialNames.DecimalPointIsComma);
+        var pic = PictureAnalyzer.Analyze(picText, usage, Edition, where, ownSign, currencies: _d.State.Configuration.CurrencySigns,
+            editing: editing, localeFormat2: locale, decimalPointIsComma: _d.State.Configuration.DecimalPointIsComma);
         ScreenReportEntryPicture(ge, pic, picText, where, summed: false);
         return pic?.Category;
     }

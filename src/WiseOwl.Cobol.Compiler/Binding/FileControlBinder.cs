@@ -180,14 +180,14 @@ public sealed partial class FileControlBinder
                 {
                     using var rsv = Edition.At(res);
                     reserveAt = res;
-                    file.ReserveAreas = _host.IntegerOperandValue(res.integerOperand(), $"file '{name}' RESERVE clause")
-                        ?? DataBinder.RecoveredIntegerOperand;
+                    file.ReserveAreas = _host.Constants.IntegerOperandValue(res.integerOperand(), $"file '{name}' RESERVE clause")
+                        ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     if (file.ReserveAreas > WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas)
                     {
                         Edition.Error(DiagnosticCatalog.ReserveAreasBeyondLimit,
                             $"file '{name}': RESERVE {file.ReserveAreas} AREAS exceeds this implementation's limit of "
                             + $"{WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas} input-output areas (ISO §4.2.15)");
-                        file.ReserveAreas = DataBinder.RecoveredIntegerOperand;
+                        file.ReserveAreas = ConstantEntryBinder.RecoveredIntegerOperand;
                     }
                 }
                 // RECORD DELIMITER clause (ISO §12.4.5.11) — DECLINED, ACCEPT-INERT, and diagnosed by name at
@@ -518,9 +518,9 @@ public sealed partial class FileControlBinder
         if (alphabet is null) return null;                                                       // GR5 / GR4
 
         if (!national)
-            return _host.SpecialNames.Alphabets.TryPeek(alphabet, out var def) && !def.IsIdentity ? def : null;   // used at capture
+            return _host.State.Configuration.Alphabets.TryPeek(alphabet, out var def) && !def.IsIdentity ? def : null;   // used at capture
         using var _ = Edition.At(where);
-        if (_host.SpecialNames.NationalAlphabets.TryPeek(alphabet, out var nd) && nd.HasCollatingSequence && !nd.IsIdentity)
+        if (_host.State.Configuration.NationalAlphabets.TryPeek(alphabet, out var nd) && nd.HasCollatingSequence && !nd.IsIdentity)
             Edition.Declined(DiagnosticCatalog.FileCollatingNationalUnsupported, $"file '{file.CobolName}': national "
                 + $"record key '{key.Face}' under COLLATING SEQUENCE '{alphabet}' ({nd.Phrase})");
         return null;

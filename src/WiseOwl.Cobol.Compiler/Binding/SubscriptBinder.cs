@@ -766,7 +766,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             // (DataBinder.IsRepositoryIntrinsic — >>COBOL-WORDS and the edition window included; kb/Work PB1083).
             // An IDENTIFIER keeps its WRITTEN word (the lexer retypes only keyword-token words), so the directive is
             // applied to it once, here.
-            if (data.UserFunctionNames.Contains(w)
+            if (data.State.Configuration.UserFunctionNames.Contains(w)
                 || data.IsRepositoryIntrinsic(FunctionWord.OfWrittenWord(w, data.CobolWords)))
                 return Activation(tokens[i]);
         }
@@ -874,7 +874,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // §13.10.4 GR1/GR3 — a subscript is a literal position, §8.4.2.3.2) — its VALUE is the position, read by THE ONE
         // integer-literal reader (kb/Work PB1579).
         if (qualifiers.Count == 0
-            && data.FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: { } integer })
+            && data.Constants.FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: { } integer })
             return HostPosition(integer);
         // A report VARYING counter in scope (§13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
         // data item") is the compose-local integer the placement declares; it is no data item and has no scale.

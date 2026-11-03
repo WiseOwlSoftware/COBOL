@@ -65,14 +65,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// context materializes the runtime-collating extreme (§8.3.3.6.4 GR6/GR7), not the native pin. Null when no
     /// non-native sequence is declared, in which case <c>FigurativeConstants.Fill</c> returns the native pin
     /// (the byte-stable common case). The MOVE and relation paths already thread the same tables.</summary>
-    internal AlphabetDef? Collating => ctx.Data.SpecialNames.Collating;
-    internal NationalAlphabetDef? NationalCollating => ctx.Data.SpecialNames.NationalCollating;
+    internal AlphabetDef? Collating => ctx.Data.State.Configuration.Collating;
+    internal NationalAlphabetDef? NationalCollating => ctx.Data.State.Configuration.NationalCollating;
 
     /// <summary>The EMITTING unit's own DECIMAL-POINT IS COMMA mode (§12.3.7.4 GR14 a; a contained program inherits it,
     /// §12.3.4 GR1) — for what the unit ITSELF evaluates and spells, never for an item's PICTURE (that is
     /// <c>PicInfo.DecimalPointIsComma</c>, kb/Work PB2554, and <c>DecimalPointModeDriftTests</c> holds the line): the
     /// literal-form text image of a numeric function's returned value (kb/Work PB2507).</summary>
-    internal bool UnitDecimalPointIsComma => ctx.Data.SpecialNames.DecimalPointIsComma;
+    internal bool UnitDecimalPointIsComma => ctx.Data.State.Configuration.DecimalPointIsComma;
 
     // Render/AsNum dispatch through the generated exhaustive visitors (PHASE-07 Step 6d): every BoundExpr / BoundOperand
     // leaf has a Visit below, so a new leaf is a COMPILE error here — the former loud `_ =>` defaults are gone.

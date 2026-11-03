@@ -34,7 +34,7 @@ internal sealed record OoUnitRole(string? OwnerClassName);
 internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
 {
     private EditionContext Edition => data.Edition;
-    private OptionsModel Options => data.Options;
+    private OptionsModel Options => data.State.Configuration.Options;
     private OoClassTable? OoClasses => data.OoClasses;
     private IReadOnlyList<DataItem> Roots => data.Roots;
 
@@ -289,13 +289,13 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             // The method's constant entries are declared before its OPTIONS paragraph and its sections bind, so one may be
             // referenced before the entry that defines it (kb/Work PB1231); BindRemainingConstants below binds what
             // nothing needed.
-            if (dd is not null) data.DeclareDataEntries(dd);
+            if (dd is not null) data.Constants.DeclareDataEntries(dd);
             // §10.6.1's method skeleton prints [options-paragraph] (kb/Work PB135): fold it over the class
             // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind. Bound inside the
             // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
             // its constant-names, or one of its object's (§13.10.3 SR2, §8.4.6.2.2; kb/Work PB780).
             if (m.Ctx.optionsParagraph() is { } mo)
-                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, data.FindConstant);
+                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, data.Constants.FindConstant);
             if (dd is not null)
             {
                 // The sections a method definition may not carry — FILE, WORKING-STORAGE, REPORT, SCREEN (§13.4.3,
@@ -318,7 +318,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                     m.Binding!.LocalRoots.AddRange(data.BindEntries(ls.dataDescriptionEntry(), data.RootNames, EntrySection.LocalStorage));
                 if (dd.linkageSection() is { } lk)
                     m.Binding!.LinkageRoots.AddRange(data.BindEntries(lk.dataDescriptionEntry(), data.RootNames, EntrySection.Linkage));
-                data.BindRemainingConstants();
+                data.Constants.BindRemainingConstants();
             }
         }
 

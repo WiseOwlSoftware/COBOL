@@ -48,8 +48,8 @@ public sealed class GlobalNameClassDriftTests
             + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
         ["_debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
             + "never declared by a data description entry",
-        ["_constants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
-            + "InheritGlobalConstants (§13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
+        ["ConstantEntryBinder._constants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
+            + "InheritStep.Seed (InheritedGlobals.Constants; §13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
     };
 
     /// <summary>The types whose instances hold a source element's name indexes: the binder, and every slice of its
@@ -59,6 +59,7 @@ public sealed class GlobalNameClassDriftTests
     {
         yield return (typeof(DataBinder), "");
         yield return (typeof(DataBindState), $"{nameof(DataBindState)}.");
+        yield return (typeof(ConstantEntryBinder), $"{nameof(ConstantEntryBinder)}.");   // the unit's constant entries (kb/Work PB2358)
         foreach (var p in typeof(DataBindState).GetProperties())
             if (p.PropertyType.IsClass && p.PropertyType.Assembly == typeof(DataBinder).Assembly)
                 yield return (p.PropertyType, $"{p.PropertyType.Name}.");
@@ -71,7 +72,7 @@ public sealed class GlobalNameClassDriftTests
             // A registry type that is itself a name index: the index-names, and an element's constant entries (a
             // constant-name is a user-defined word its element declares, so it hides a same-spelled word of a
             // containing element; kb/Work PB3164, PB3153 review round 3).
-            if (f.FieldType == typeof(IndexNameRegistry) || f.FieldType == typeof(DataBinder.ConstantScope))
+            if (f.FieldType == typeof(IndexNameRegistry) || f.FieldType == typeof(ConstantEntryBinder.ConstantScope))
             {
                 yield return MemberName(f);
                 continue;
@@ -139,10 +140,10 @@ public sealed class GlobalNameClassDriftTests
     public void DeclaredNearerThan_AsksEveryInheritedNameIndex()
     {
         Assert.Equal(Inherited.Keys.Order(StringComparer.Ordinal), AskedByShadowing.Keys.Order(StringComparer.Ordinal));
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs"));
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs"));
         var m = Regex.Match(text, @"internal bool DeclaredNearerThan\(string name, int depth\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
-        Assert.True(m.Success, "DeclaredNearerThan not found in DataBinder.Constants.cs");
+        Assert.True(m.Success, "DeclaredNearerThan not found in DataBinder.NonDataNames.cs");
         foreach (var (index, ask) in AskedByShadowing)
             Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
                 $"DeclaredNearerThan no longer asks the name index '{index}' (expected '{ask}').");
@@ -243,7 +244,7 @@ public sealed class GlobalNameClassDriftTests
         AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerConditionNameHides(");
         AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NearerDataNameHides(");
         AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerEntryHides(");
-        string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs"));
+        string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs"));
         AssertBodyAsks(constants, @"internal bool DeclaredNearerThan\(", "NearerEntryHides(");
 
         // The classes resolved BEFORE the data-name lookup ask the data-name AND the condition-name (kb/Work PB4432): a

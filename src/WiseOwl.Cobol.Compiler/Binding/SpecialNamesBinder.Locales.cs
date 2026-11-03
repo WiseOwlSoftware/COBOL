@@ -16,22 +16,6 @@ using WiseOwl.Cobol.Runtime;
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
 public sealed partial class SpecialNamesBinder
 {
-    /// <summary>SPECIAL-NAMES <c>LOCALE locale-name-1 IS {external-locale-name-1 | literal-4}</c> declarations
-    /// (case-insensitive locale-name → the symbol; ISO §12.3.7.2; DESIGN-locale-facility seam S1, T1): the locale-name
-    /// is a user-defined word (§8.3.2.2) referenced by <c>ALPHABET … IS LOCALE locale-name-2</c> (§12.3.7.3 SR24), SET
-    /// LOCALE (§14.9.39.3 SR26), and — in later increments — the LOCALE phrases of PICTURE format 2, LOCALE-COMPARE /
-    /// -DATE / -TIME, UPPER-CASE / LOWER-CASE and CHARACTER CLASSIFICATION. The symbol holds the EXTERNAL IDENTIFICATION
-    /// only (§8.1.5 — the locale is "determined at runtime"); it inherits into contained units (§12.3.7.4 GR1).</summary>
-    internal ConfigurationNames<LocaleSymbol> Locales =>
-        field ??= new(UserWordKind.LocaleName, _host.RecordConfigurationNameUse);
-
-    /// <summary>The OBJECT-COMPUTER <c>CHARACTER CLASSIFICATION</c> clause (ISO §12.3.6.2; §12.3.6.4 GR5–GR8; kb/Work PB64
-    /// T5), or null when none is specified and no containing unit specifies one (GR6 — the coded character set's
-    /// classification). Inherited per §12.3.6.4 GR1; consumed by the emitter (resolved at each activation —
-    /// <c>__CLASSIFY</c>), by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§15.97.4 r3 / §15.57.4 r3) and by the
-    /// ALPHABETIC class tests (§8.8.4.4.4 GR3).</summary>
-    public ClassificationSpec? Classification { get; private set; }
-
     /// <summary>Bind the OBJECT-COMPUTER <c>CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC
     /// IS locale-phrase-1 | FOR NATIONAL IS locale-phrase-2}…}</c> clause (ISO §12.3.6.2; kb/Work PB64 T5): each phrase is
     /// LOCALE (the current locale at activation), SYSTEM-DEFAULT, USER-DEFAULT, or a locale-name of the SPECIAL-NAMES
@@ -64,7 +48,7 @@ public sealed partial class SpecialNamesBinder
                 if (national is null) return;
             }
         }
-        Classification = new ClassificationSpec(alphanumeric, national);
+        Cfg.Classification = new ClassificationSpec(alphanumeric, national);
     }
 
     private LocalePhrase? ClassificationPhrase(Antlr4.Runtime.RuleContext at, string word, bool national)
@@ -131,7 +115,7 @@ public sealed partial class SpecialNamesBinder
         else external = words[1].GetText();
         // A second LOCALE of one name was refused by the declaration funnel (DeclareUserWord, ISO §8.4.2.1; kb/Work
         // PB3216); the first stands, as every registry keeps it.
-        Locales.TryAdd(name, new LocaleSymbol(name, external, fromLiteral));
+        Cfg.Locales.TryAdd(name, new LocaleSymbol(name, external, fromLiteral));
     }
 
     /// <summary>Resolve a locale-name reference (ISO §12.3.7.3 SR24 for the ALPHABET clause; §14.9.39.3 SR26 for SET
@@ -140,9 +124,9 @@ public sealed partial class SpecialNamesBinder
     /// <param name="at">The reference, whose source element's §8.3.2.2 census records the use (kb/Work PB3153).</param>
     internal LocaleSymbol? ResolveLocaleName(Antlr4.Runtime.RuleContext at, string name, string site, string rule)
     {
-        if (Locales.TryUse(at, name, out var sym)) return sym;
+        if (Cfg.Locales.TryUse(at, name, out var sym)) return sym;
         Edition.Error("COBOL1664", $"{site}: '{name}' is not a locale-name declared by a SPECIAL-NAMES LOCALE clause ({rule})"
-            + (Locales.Count == 0 ? "; no LOCALE clause is in scope" : $"; declared: {string.Join(", ", Locales.Names)}"));
+            + (Cfg.Locales.Count == 0 ? "; no LOCALE clause is in scope" : $"; declared: {string.Join(", ", Cfg.Locales.Names)}"));
         return null;
     }
 }

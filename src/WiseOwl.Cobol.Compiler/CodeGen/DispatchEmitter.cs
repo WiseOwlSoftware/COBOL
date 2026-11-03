@@ -63,7 +63,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         w.Line();
         using (w.Block("public void __Activate()"))
         {
-            if (ctx.Data.SpecialNames.Classification is { } cls)
+            if (ctx.Data.State.Configuration.Classification is { } cls)
                 // ISO §12.3.6.4 GR8 / §14.6.6 r2 — the classification is established at the module's activation.
                 w.Line(ObjectComputerEmit.ClassificationPrologue(cls));
             // Register this program's SELECTed files at FIRST ACTIVATION (the IC114A lesson: connectors

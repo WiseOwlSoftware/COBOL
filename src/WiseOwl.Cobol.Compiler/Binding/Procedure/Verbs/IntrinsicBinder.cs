@@ -124,7 +124,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // PB1372). A name the directive REMOVED (UNDEFINE literal-3 / SUBSTITUTE literal-4) is no longer a function
         // name, so its definition permits nothing — the '(' that follows is a ref-mod, not an argument list.
         if (word.Canonical is not { } name) return false;
-        if (ctx.Data.UserFunctionNames.Contains(name)
+        if (ctx.Data.State.Configuration.UserFunctionNames.Contains(name)
             || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName))
             return host.UserFunctions is { } fns && fns.TryGetValue(name, out var fn) && fn.Formals.Count > 0;
         return IntrinsicCatalog.TryGet(name, out var sig) && sig.MaxArgs > 0;
@@ -286,7 +286,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// function first (§12.3.8.4 GR12), the function-pointer second.</summary>
     internal DataItem? ReturningItemOf(string name)
     {
-        string? prototype = ctx.Data.UserFunctionNames.Contains(name) || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName)
+        string? prototype = ctx.Data.State.Configuration.UserFunctionNames.Contains(name) || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName)
             ? name
             : FunctionPointerItemNamed(name)?.Pic?.RestrictedPrototypeName;
         return prototype is not null && host.UserFunctions is { } functions && functions.TryGetValue(prototype, out var fn)
@@ -377,7 +377,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the one membership the declaration screen asks too (kb/Work PB1083).
         bool catalogued = ctx.Data.TryIntrinsicOfThisCompilation(functionWord, out var sig);
         bool repositoryIntrinsic = ctx.Data.IsRepositoryIntrinsic(functionWord);
-        bool declaredFn = ctx.Data.UserFunctionNames.Contains(name)
+        bool declaredFn = ctx.Data.State.Configuration.UserFunctionNames.Contains(name)
             || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName)
             || repositoryIntrinsic;
         if (!declaredFn && !catalogued) return null;
@@ -432,7 +432,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // prototype machinery owns the zero-vs-N arity verdict — a bare reference to a declared
             // 2-argument function is an ARITY error about a function, never an undefined name: the user
             // DECLARED it a function, so there is no coincidental-collision reading to protect.
-            if (ctx.Data.UserFunctionNames.Contains(name)
+            if (ctx.Data.State.Configuration.UserFunctionNames.Contains(name)
                 || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName))
             {
                 var udfBare = host.Udf.UdfBindCall(name, []);
@@ -570,7 +570,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A folded result's CHARACTER image is the literal form of the value, spelled with the unit's decimal separator
         // (§12.3.7.4 GR14 a; kb/Work PB2507): HIGHEST-ALGEBRAIC of a PIC 9V99 item displays 9,99 under DECIMAL-POINT IS COMMA.
         return result is BoundNumLiteral folded
-            ? folded with { FunctionValue = true, DecimalSeparator = ctx.Data.SpecialNames.DecimalSeparator }
+            ? folded with { FunctionValue = true, DecimalSeparator = ctx.Data.State.Configuration.DecimalSeparator }
             : result;
     }
 
@@ -605,7 +605,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the same name" (the spec's own factorial-override example, :43651) — so the user-function
         // dispatch PRECEDES the catalog. §8.4.6.6 adds the CONTAINING function definition's own name with
         // no repository declaration (self-recursion; a present self-entry is ignored, §12.3.8 GR11).
-        if (ctx.Data.UserFunctionNames.Contains(name)
+        if (ctx.Data.State.Configuration.UserFunctionNames.Contains(name)
             || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName))
             return host.Udf.UdfBindCall(name, argCtxs);
 
@@ -792,7 +792,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // Before this the argument bound cleanly and was then SILENTLY DISCARDED by a local format.
         if (args.Count > 0 && args[0] is BoundStringLiteral zoneFmt
             && OffsetArgumentIndex(sig.Name) is { } offIx && args.Count > offIx
-            && DateTimeFormatGrammar.Describe(zoneFmt.Value, ctx.Data.SpecialNames.DecimalPointIsComma) is { } zoneInfo
+            && DateTimeFormatGrammar.Describe(zoneFmt.Value, ctx.Data.State.Configuration.DecimalPointIsComma) is { } zoneInfo
             && zoneInfo.Zone is DateTimeZone.Local)
             ctx.Edition.Error(DiagnosticCatalog.DateTimeOffsetArgumentNotPermitted,
                 $"FUNCTION {sig.Name} is given an offset-from-UTC argument (argument-{offIx + 1}), but its format "
@@ -804,7 +804,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (args.Count > 0 && args[0] is BoundStringLiteral fmt
             && FormatKindsAdmittedBy(sig.Name) is { } admitted)
         {
-            var actual = DateTimeFormatGrammar.Classify(fmt.Value, ctx.Data.SpecialNames.DecimalPointIsComma);
+            var actual = DateTimeFormatGrammar.Classify(fmt.Value, ctx.Data.State.Configuration.DecimalPointIsComma);
             if (actual is null || Array.IndexOf(admitted, actual.Value) < 0)
                 ctx.Edition.Error(DiagnosticCatalog.DateTimeFormatKindMismatch,
                     $"FUNCTION {sig.Name} argument-1 is '{fmt.Value}', which is "
@@ -881,8 +881,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // alphanumeric / §8.8.4.2.9 national) — flag the STRING form (resolved above) so the backend passes __COLLATE /
         // __COLLATE_NAT, else it silently uses the native ordinal and disagrees with the program's relation conditions. (CA23.)
         bool maxMinStr = resolved.RuntimeMethod is "MaxString" or "MinString" or "OrdMaxString" or "OrdMinString";
-        bool collate = (sig.Name is "CHAR" or "ORD" || maxMinStr) && ctx.Data.SpecialNames.Collating is not null && !nationalArg;
-        bool collateNat = ctx.Data.SpecialNames.NationalCollating is not null
+        bool collate = (sig.Name is "CHAR" or "ORD" || maxMinStr) && ctx.Data.State.Configuration.Collating is not null && !nationalArg;
+        bool collateNat = ctx.Data.State.Configuration.NationalCollating is not null
             && (sig.Name is "CHAR-NATIONAL" || ((sig.Name is "ORD" || maxMinStr) && nationalArg));
 
         // CHAR takes an INTEGER argument (§15.15.3 r1) — a national operand is a category violation; the
@@ -1029,7 +1029,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // An argument-4 position: the element's own item of the word's spelling is the referent (§8.4.6.1).
             bool ownItem = !mustBeName && SoleDataReference(a) is { } own && ctx.Refs.DescribesOwnItem(own);
             if (at == 2 && !ownItem && KeywordWordOf(a) is { } word
-                && ctx.Data.SpecialNames.OrderTables.TryUse(a, word, out string? literal9))
+                && ctx.Data.State.Configuration.OrderTables.TryUse(a, word, out string? literal9))
             {
                 orderingTable = literal9;
                 continue;
@@ -1039,12 +1039,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
                     + "§15.85.2 general format's third position IS ordering-name-1 (ISO §15.85.3 r5; §15.3 "
                     + "argument type 12)"
-                    + (ctx.Data.SpecialNames.OrderTables.Count == 0
+                    + (ctx.Data.State.Configuration.OrderTables.Count == 0
                         ? "; this compilation unit declares no ORDER TABLE clause"
-                        : $"; declared: {string.Join(", ", ctx.Data.SpecialNames.OrderTables.Names)}"));
+                        : $"; declared: {string.Join(", ", ctx.Data.State.Configuration.OrderTables.Names)}"));
             // A SECOND ordering-name where argument-4 belongs. Reachable, and worth its own message: the operand
             // path would otherwise report it as an unresolved data-name, which is true and useless.
-            if (!ownItem && KeywordWordOf(a) is { } second && ctx.Data.SpecialNames.OrderTables.Declares(second))
+            if (!ownItem && KeywordWordOf(a) is { } second && ctx.Data.State.Configuration.OrderTables.Declares(second))
                 return Malformed($"is given the ordering-name '{second}' in the argument-4 position — the "
                     + "§15.85.2 general format admits ONE [ ordering-name-1 ], and the fourth position is "
                     + "argument-4, the ordering level (ISO §15.85.3 r6)");
@@ -1930,11 +1930,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // illegal (kb/Work PB60 / AR-15.68.3-3 — the former scalar injected whichever clause bound last, so
             // NUMVAL-C("#1,234.56") silently returned 0 in a '#'-then-'@' unit). Under LOCALE nothing is
             // injected — the currency strings are the locale's (r5b.3; PB64 T6).
-            if (ctx.Data.SpecialNames.SoleCurrencyString is { } sole)
+            if (ctx.Data.State.Configuration.SoleCurrencyString is { } sole)
                 operands.Add(new BoundStringLiteral(sole));
             else
                 ctx.Edition.Error(DiagnosticCatalog.NumvalCAmbiguousCurrency, $"FUNCTION {sig.Name} without "
-                    + $"argument-2: the compilation unit specifies {ctx.Data.SpecialNames.ExplicitCurrencyStringCount} distinct "
+                    + $"argument-2: the compilation unit specifies {ctx.Data.State.Configuration.ExplicitCurrencyStringCount} distinct "
                     + "currency strings in its SPECIAL-NAMES paragraph; when neither argument-2 nor LOCALE is "
                     + "specified there shall be only one currency string for the compilation unit (ISO §15.68.3 "
                     + "rule 3) — name the currency string as argument-2");

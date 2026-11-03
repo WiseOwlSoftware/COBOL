@@ -72,7 +72,7 @@ public sealed partial class DataBinder
                 // §13.15.4 GR2 imports the PICTURE clause, and §13.10.3 SR2 lets an integer constant-name specify
                 // repetition in a picture character-string: expanded before the analyzer reads it, exactly as BindEntry
                 // does for a data description entry (kb/Work PB1226's sibling sweep).
-                if (UnitHasConstants) picText = ExpandPicConstants(picText, where);
+                if (Constants.UnitHasConstants) picText = Constants.ExpandPicConstants(picText, where);
                 editing = BuildEditingSpecs(pc, $"report group entry '{entryName ?? "FILLER"}'");
                 // PICTURE format 2 in a REPORT GROUP entry (§13.15.4 GR2 imports the PICTURE clause's own rules, so
                 // format 2 is LEGAL here; kb/Work PB113 — this arm used to ignore the phrase and analyze the picture as
@@ -87,8 +87,8 @@ public sealed partial class DataBinder
                             "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph")
                             is { } sym)
                         localeRef = new LocaleRef(sym);
-                    int size = Math.Max(1, IntegerOperandValue(rlp.integerOperand(), $"{where} PICTURE LOCALE SIZE")
-                        ?? RecoveredIntegerOperand);
+                    int size = Math.Max(1, Constants.IntegerOperandValue(rlp.integerOperand(), $"{where} PICTURE LOCALE SIZE")
+                        ?? ConstantEntryBinder.RecoveredIntegerOperand);
                     locale = new LocaleEditSpec(localeRef, size, "");
                 }
             }
@@ -165,9 +165,9 @@ public sealed partial class DataBinder
         string itemWhere = $"RD '{reportName}' printable item '{entryName ?? "FILLER"}'";
         Usage itemUsage = PictureAnalyzer.ParseUsage(d.UsageText ?? d.InheritedUsage, Edition, itemWhere);
         var pic = d.PicText is not null
-            ? PictureAnalyzer.Analyze(d.PicText, itemUsage, Edition, itemWhere, d.OwnSign, currencies: SpecialNames.CurrencySigns,
+            ? PictureAnalyzer.Analyze(d.PicText, itemUsage, Edition, itemWhere, d.OwnSign, currencies: State.Configuration.CurrencySigns,
                 blankWhenZero: d.BlankWhenZero, editing: d.Editing, localeFormat2: d.Locale,
-                decimalPointIsComma: SpecialNames.DecimalPointIsComma)
+                decimalPointIsComma: State.Configuration.DecimalPointIsComma)
             // ⛔ ISO §13.15.3 SR14 — THE REPORT GROUP ENTRY'S OWN VALUE-IMPLIED PICTURE, word for word the §13.16.3 SR9
             // rule this compiler synthesizes for a data description entry: "The PICTURE clause may be omitted for an
             // elementary item when an alphanumeric, boolean or national literal that is not a zero-length literal is

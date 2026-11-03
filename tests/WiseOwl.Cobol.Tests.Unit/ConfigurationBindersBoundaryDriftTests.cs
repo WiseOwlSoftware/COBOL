@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// they cannot say, which this test says:</para>
 /// <list type="bullet">
 /// <item>the data binder declares no member that has the NAME AND PARAMETER TYPES of one a binder declares, so no
-/// forwarding property or method (<c>DataBinder.Alphabets =&gt; SpecialNames.Alphabets</c>) can reappear beside the
+/// forwarding property or method (<c>DataBinder.Alphabets =&gt; State.Configuration.Alphabets</c>) can reappear beside the
 /// moved member;</item>
 /// <item>each binder is made in one place, the data binder's own <c>DataBinder.Configuration.cs</c>, from the data binder
 /// and its edition, so a unit has exactly one of each and a reader never holds a second copy of its state.</item>

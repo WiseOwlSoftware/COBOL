@@ -727,8 +727,8 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// classifier's answer from a rare false-negative into a systematic one (ISO §13.18.40.3 SR13).</summary>
     private bool IsNumericEditedPicture(string picture, bool blankWhenZero)
         => PictureAnalyzer.Analyze(picture, Usage.Display, _discard, "a flagged VALUE clause",
-                currencies: _currentData?.SpecialNames.CurrencySigns, blankWhenZero: blankWhenZero,
-                decimalPointIsComma: _currentData?.SpecialNames.DecimalPointIsComma ?? false).Category
+                currencies: _currentData?.State.Configuration.CurrencySigns, blankWhenZero: blankWhenZero,
+                decimalPointIsComma: _currentData?.State.Configuration.DecimalPointIsComma ?? false).Category
             == PicCategory.NumericEdited;
 
     /// <summary>Whether an item with NO PICTURE has no length from its USAGE either: DISPLAY (explicit or absent —

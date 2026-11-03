@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Binding;
 /// specifies a literal of its class and category, and §12.3.7.4 GR11 a) makes a symbolic-character a figurative
 /// constant — the §8.8.3.1 format writes literal-1 / literal-2, so both are operands. They resolve through the
 /// program's own tables: a symbolic-character as the table stands at the fold, a constant-name through
-/// <c>DataBinder.FindConstant</c>, which binds a constant entry written LATER on demand (kb/Work PB1231 — no clause
+/// <c>ConstantEntryBinder.FindConstant</c>, which binds a constant entry written LATER on demand (kb/Work PB1231 — no clause
 /// orders a constant entry before its references; §13.10.3 SR4/SR5 forbid only circular dependence).</item>
 /// </list>
 /// ⛔ The constructor is private: an environment is obtained from one of the three NAMED contexts below, so a
@@ -56,7 +56,7 @@ internal sealed class LiteralEnvironment
     /// environment-division clauses bound after SPECIAL-NAMES): the program collating sequences and the program's
     /// constant-name and symbolic-character tables.</summary>
     public static LiteralEnvironment Program(DataBinder data) =>
-        new(data, data.SpecialNames.Collating, data.SpecialNames.NationalCollating, false, false);
+        new(data, data.State.Configuration.Collating, data.State.Configuration.NationalCollating, false, false);
 
     /// <summary>A literal written INSIDE the SPECIAL-NAMES paragraph (§12.3.7.4 GR10's native extremes — see
     /// <see cref="_inSpecialNames"/>); <paramref name="refusesSymbolicCharacters"/>
@@ -85,7 +85,7 @@ internal sealed class LiteralEnvironment
         : '\0';
 
     /// <summary>The constant-name <paramref name="word"/> names here, or null (§13.10.3 SR2).</summary>
-    public DataBinder.ConstantDef? Constant(string word) => _data?.FindConstant(word);
+    public ConstantDef? Constant(string word) => _data?.Constants.FindConstant(word);
 
     /// <summary>What <paramref name="word"/> stands for at a position that admits BOTH a literal and a system-name
     /// (§13.10.3 SR2; ASSIGN's device-name-1 / literal-1, kb/Work PB2500): the constant it names, a refused constant

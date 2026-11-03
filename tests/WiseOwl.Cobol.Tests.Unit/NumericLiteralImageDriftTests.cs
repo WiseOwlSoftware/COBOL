@@ -42,7 +42,7 @@ public sealed class NumericLiteralImageDriftTests
         {
             int at = src.IndexOf(producer, StringComparison.Ordinal);
             Assert.True(at >= 0, $"{producer} is gone");
-            Assert.Contains("new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.SpecialNames.DecimalSeparator }",
+            Assert.Contains("new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.State.Configuration.DecimalSeparator }",
                 src.Substring(at, Math.Min(200, src.Length - at)));
         }
     }

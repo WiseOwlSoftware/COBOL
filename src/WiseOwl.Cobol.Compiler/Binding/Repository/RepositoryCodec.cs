@@ -68,7 +68,7 @@ internal static class RepositoryCodec
         var formals = List(data.Linkage.Formals.Select(f => encoder.Formal(f.Item, f.Position, f.ByValue, f.Optional)));
         var returning = data.Linkage.Returning is { } r ? encoder.Describe(r, r) : null;
         return new RepositoryRecord(KindOf(unit), unit.Name, unit.ExternalizedName, CobolEntryConvention,
-            data.SpecialNames.DecimalPointIsComma, Currencies(data), encoder.Raising(unit.Bound?.Raising ?? []), formals, returning,
+            data.State.Configuration.DecimalPointIsComma, Currencies(data), encoder.Raising(unit.Bound?.Raising ?? []), formals, returning,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes);
     }
 
@@ -84,7 +84,7 @@ internal static class RepositoryCodec
         var facts = new ClassRecord(symbol.IsFinal, symbol.Base?.ExternalizedName, List(symbol.Implements.Select(i => i.ExternalizedName)),
             List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryClrName, PropertiesOf(methods), methods);
         return new RepositoryRecord(RepositoryUnitKind.Class, symbol.Name, symbol.ExternalizedName, CobolEntryConvention,
-            cls.Data.SpecialNames.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            cls.Data.State.Configuration.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
     }
 
@@ -97,12 +97,12 @@ internal static class RepositoryCodec
         var facts = new ClassRecord(Final: false, BaseIdentity: null, List(iface.Inherits.Select(i => i.ExternalizedName)),
             RecordList<string>.Empty, FactoryType: null, PropertiesOf(methods), methods);
         return new RepositoryRecord(RepositoryUnitKind.Interface, iface.Name, iface.ExternalizedName, CobolEntryConvention,
-            data.SpecialNames.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            data.State.Configuration.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
     }
 
     /// <summary>The currency symbols the source unit defines and their currency strings (ISO §8.13), ordered by symbol.</summary>
-    private static RecordList<CurrencyRecord> Currencies(DataBinder data) => List(data.SpecialNames.CurrencySigns.OrderBy(c => c.Key)
+    private static RecordList<CurrencyRecord> Currencies(DataBinder data) => List(data.State.Configuration.CurrencySigns.OrderBy(c => c.Key)
         .Select(c => new CurrencyRecord(c.Key, c.Value.Text, Persisted(c.Value.LiteralClass))));
 
     /// <summary>The object properties of a class or an interface (ISO §8.13; §13.18.42), each the accessors of one property

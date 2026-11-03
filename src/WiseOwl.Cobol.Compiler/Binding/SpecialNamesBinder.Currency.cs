@@ -15,61 +15,6 @@ using WiseOwl.Cobol.Runtime;
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
 public sealed partial class SpecialNamesBinder
 {
-    /// <summary>
-    /// The unit's CURRENCY SIGN SET (ISO §12.3.7): every currency PICTURE SYMBOL (uppercase-keyed — §12.3.7.3
-    /// r20 / §8.1.3 GR3 make the letter cases equivalent) → the currency STRING it stands for (GR13) AND the CLASS
-    /// of the literal-7 that gave it (<see cref="CurrencyDefinition"/>; §12.3.7.3 SR28 confines an alphanumeric
-    /// literal-7's symbol to usage-display numeric-edited items and a national one's to usage-national ones, and a set
-    /// of symbol → string alone cannot ask it — kb/Work PB1089). A bare
-    /// <c>CURRENCY SIGN IS literal-7</c> makes literal-7 both string and symbol (r22, one character); the 2002+
-    /// <c>WITH PICTURE SYMBOL literal-8</c> form names the one-character symbol (r26/r27) for a string "of any
-    /// length" (r23). r25 IMPLIES <c>CURRENCY SIGN '$' PICTURE SYMBOL '$'</c> unless a clause specifies '$' as
-    /// literal-7 or literal-8 — so <c>PIC $$9</c> stays legal beside a declared '#', and the set is never empty.
-    /// r21: two clauses may not bind equivalent symbols to different strings. Completed by
-    /// <see cref="FinalizeCurrencySigns"/> at the end of the SPECIAL-NAMES walk; a contained program inherits the
-    /// container's set whole (<see cref="DataBinder.InheritConfiguration"/>, §12.3.4 GR1).
-    /// ⛔ THIS REPLACED A SCALAR PAIR (kb/Work PB60 / AR-15.68.3-3): <c>CurrencyPicSymbol</c>/<c>CurrencyString</c>
-    /// held ONE symbol and ONE string per unit — a second clause silently overwrote the first, the implied '$'
-    /// died the moment any clause bound another symbol (a legal <c>PIC $$,$$9.99</c> under <c>CURRENCY SIGN "#"</c>
-    /// was COBOL0808), and a multi-character string was refused outright (COBOL0896, "not yet supported" —
-    /// deferral debt). Every PICTURE consumer now asks this set which symbol a mask uses (<c>PictureAnalyzer</c>
-    /// records it on <c>PicInfo.CurrencyString</c> after canonicalizing the mask's symbol to '$'), and NUMVAL-C's
-    /// §15.68.3 r3 default is <see cref="SoleCurrencyString"/>.
-    /// </summary>
-    public IReadOnlyDictionary<char, CurrencyDefinition> CurrencySigns => _currencySigns;
-
-    private readonly Dictionary<char, CurrencyDefinition> _currencySigns = new();
-
-    /// <summary>The DISTINCT currency strings the unit's EXPLICIT CURRENCY SIGN clauses specify (r3 of §15.68.3
-    /// counts these: "there shall be only one currency string for the compilation unit, either the default
-    /// currency sign or a currency string specified in the SPECIAL-NAMES paragraph" — the implied '$' clause of
-    /// r25 is the picture-symbol default, not a competing string).</summary>
-    private readonly HashSet<string> _explicitCurrencyStrings = new(StringComparer.Ordinal);
-
-    /// <summary>True once a clause named '$' as literal-7 or literal-8 (r25 — the implied clause is then NOT added).</summary>
-    private bool _dollarSpecified;
-
-    /// <summary>The ONE currency string NUMVAL-C / TEST-NUMVAL-C use when argument-2 (and LOCALE) is absent
-    /// (§15.68.3 r3): the single explicitly specified string, or the default "$" when the unit has no CURRENCY
-    /// SIGN clause; NULL when the unit specifies two or more distinct strings — r3's "there shall be only one" is
-    /// then violated and the reference is diagnosed at bind (COBOL1644).</summary>
-    public string? SoleCurrencyString => _explicitCurrencyStrings.Count switch
-    {
-        0 => "$",
-        1 => _explicitCurrencyStrings.First(),
-        _ => null,
-    };
-
-    /// <summary>The number of distinct explicitly specified currency strings (for the r3 diagnostic's text).</summary>
-    public int ExplicitCurrencyStringCount => _explicitCurrencyStrings.Count;
-
-    /// <summary>r25's implied clause: after the SPECIAL-NAMES walk, '$' → "$" joins the set unless a clause
-    /// specified '$' as literal-7 or literal-8. Idempotent (a re-walk cannot double it).</summary>
-    private void FinalizeCurrencySigns()
-    {
-        if (!_dollarSpecified) _currencySigns.TryAdd('$', CurrencyDefinition.ImpliedDollar);
-    }
-
     /// <summary>⛔ THE SYNTAX RULES A CURRENCY SIGN LITERAL IS HELD TO, as data — one value per operand, the way
     /// <see cref="LiteralPhraseRules"/> does it for the ALPHABET / CLASS clauses (kb/Work PB791; it used to be a
     /// <c>rule</c> number glued onto one message, which could not say that the two operands carry DIFFERENT
@@ -260,11 +205,11 @@ public sealed partial class SpecialNamesBinder
         // characters are equivalent exactly when they have the same invariant-culture upper-case mapping. A COBOL character
         // folds by §8.1.3.2 GR3 b), which the same mapping gives (kb/Work PB1092). Change the key and that row together.
         char key = char.ToUpperInvariant(symbol);
-        if (key == '$') _dollarSpecified = true;   // r25 — a clause named '$' as literal-8: no implied clause
-        bool isBound = _currencySigns.TryGetValue(key, out var bound);
+        if (key == '$') Cfg.DollarSpecified = true;   // r25 — a clause named '$' as literal-8: no implied clause
+        bool isBound = Cfg.DeclaredCurrencySigns.TryGetValue(key, out var bound);
         if (definition is not { } defined)
         {
-            if (!isBound) _currencySigns[key] = CurrencyDefinition.OfRefusedClause(symbol);
+            if (!isBound) Cfg.DeclaredCurrencySigns[key] = CurrencyDefinition.OfRefusedClause(symbol);
             return;
         }
         // §12.3.7.3 SR28's input: the CLASS of literal-7 — alphanumeric (a plain or X"…" literal) or national (N"…" /
@@ -280,9 +225,9 @@ public sealed partial class SpecialNamesBinder
                 + $"(ISO §12.3.7.3 r21; SR28)");
             return;
         }
-        _currencySigns[key] = defined;
-        _explicitCurrencyStrings.Add(defined.Text);
-        if (defined.Text == "$") _dollarSpecified = true;   // r25 — a clause named '$' as literal-7
+        Cfg.DeclaredCurrencySigns[key] = defined;
+        Cfg.ExplicitCurrencyStrings.Add(defined.Text);
+        if (defined.Text == "$") Cfg.DollarSpecified = true;   // r25 — a clause named '$' as literal-7
     }
 
     /// <summary>The ISO §12.3.7.3 SR22/SR27 forbidden currency-symbol set: digits; A B C D E N P R S V X Z (either

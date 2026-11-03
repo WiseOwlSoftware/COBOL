@@ -45,7 +45,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     public Scope ActiveScope => data.ActiveScope;
 
     /// <summary>Compilation options (arithmetic mode for the composite cap, DEFAULT ROUNDED mode).</summary>
-    public OptionsModel Options => data.Procedure.Options.Over(data.Options);
+    public OptionsModel Options => data.Procedure.Options.Over(data.State.Configuration.Options);
 
     /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the intrinsic binder resolves a
     /// function-name synonym / removal through it. <c>Empty</c> when there is no directive.</summary>

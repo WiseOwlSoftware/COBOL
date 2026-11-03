@@ -17,14 +17,6 @@ using WiseOwl.Cobol.Runtime;
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
 public sealed partial class SpecialNamesBinder
 {
-    /// <summary>SYMBOLIC CHARACTERS figurative constants (ISO §12.3.7.4 GR11 a — "Symbolic-character-1 defines a
-    /// figurative constant"; kb/Work PB110): name → the ONE-character value (GR11 b/c — the character at ordinal
-    /// integer-1 of the native or IN-alphabet coded character set) and its class. Substituted wherever a figurative
-    /// constant may stand — the reference seams consult <see cref="SymbolicOf"/> exactly as they consult the
-    /// §13.10 constant table, and the value fills like every figurative (§8.3.3.6.4 GR2 / GR10).</summary>
-    internal ConfigurationNames<(string Value, bool National)> SymbolicCharacters =>
-        field ??= new(UserWordKind.SymbolicCharacter, _host.RecordConfigurationNameUse);
-
     /// <summary>The symbolic character a BARE (unqualified, unsubscripted) data reference names, or null — the
     /// twin of <c>ConstantOf</c> (one shape for "a word that stands for a literal"). A resolution: the word is
     /// recorded as used as a symbolic-character (§8.3.2.2; kb/Work PB3153).</summary>
@@ -39,7 +31,7 @@ public sealed partial class SpecialNamesBinder
     /// <summary>Does the bare word <paramref name="word"/> name a symbolic character visible here (one
     /// <see cref="HidesSymbolic"/> does not hide)? The predicate twin of
     /// <see cref="SymbolicOf(Antlr4.Runtime.RuleContext, string)"/>, recording no use.</summary>
-    internal bool NamesSymbolic(string word) => SymbolicCharacters.Declares(word) && !HidesSymbolic(word);
+    internal bool NamesSymbolic(string word) => Cfg.SymbolicCharacters.Declares(word) && !HidesSymbolic(word);
 
     /// <summary>The symbolic character the word <paramref name="word"/> written at <paramref name="site"/> names, or
     /// null (the FigurativeOperand ALL-form lookup, a concatenation operand). A resolution, recorded as a use
@@ -47,28 +39,14 @@ public sealed partial class SpecialNamesBinder
     /// spelling hides (<see cref="HidesSymbolic"/>) is not what the word references, so it is neither resolved nor
     /// recorded.</summary>
     internal (string Value, bool National)? SymbolicOf(Antlr4.Runtime.RuleContext site, string word) =>
-        !HidesSymbolic(word) && SymbolicCharacters.TryUse(site, word, out var def) ? def : null;
+        !HidesSymbolic(word) && Cfg.SymbolicCharacters.TryUse(site, word, out var def) ? def : null;
 
     /// <summary>Whether a nearer declaration of <paramref name="word"/> hides the symbolic-character of that spelling
     /// (§8.4.6.1, §8.4.6.2.1 3); kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
-    /// condition- or index-name hides (<see cref="DataBinder.DropShadowedConstants"/>), or any one the method being bound
+    /// condition- or index-name hides (<see cref="InheritStep.DropShadowed"/>), or any one the method being bound
     /// declares a name of (<see cref="OoDataBinder.ActiveMethodDeclares"/>). Asked by every symbolic lookup, the resolving and the
     /// predicate alike, so they cannot disagree.</summary>
-    private bool HidesSymbolic(string word) => _shadowedSymbolics.Contains(word) || _host.Oo.ActiveMethodDeclares(word);
-
-    /// <summary>The inherited symbolic-characters a nearer declaration hides (<see cref="DataBinder.DropShadowedConstants"/>).
-    /// Hidden by <see cref="HidesSymbolic"/>, never removed from <see cref="SymbolicCharacters"/>: a contained
-    /// unit inherits the whole table from this one, and this unit's local name hides nothing from it.</summary>
-    private readonly HashSet<string> _shadowedSymbolics = new(CobolNames.Comparer);
-
-    /// <summary>Hide every inherited symbolic-character a nearer declaration of its spelling hides (§8.4.6.2.1 3);
-    /// the symbolic-character half of <see cref="DataBinder.DropShadowedConstants"/>, which owns the question
-    /// (<see cref="DataBinder.DeclaredNearerThan"/>) and asks it of each inherited name at its containment distance.</summary>
-    internal void HideShadowedSymbolics()
-    {
-        foreach (var (name, depth) in SymbolicCharacters.InheritedDepths)
-            if (_host.DeclaredNearerThan(name, depth)) _shadowedSymbolics.Add(name);
-    }
+    private bool HidesSymbolic(string word) => _host.State.Inherited.HidesSymbolic(word) || _host.Oo.ActiveMethodDeclares(word);
 
     /// <summary>One <c>CLASS class-name-1 [FOR {ALPHANUMERIC | NATIONAL}] IS {literal-5 [THROUGH literal-6]}…
     /// [IN alphabet-name-4]</c> clause (ISO §12.3.7.2): expand each value item to its member characters — a
@@ -147,7 +125,7 @@ public sealed partial class SpecialNamesBinder
                     + $"{distinct} characters are specified — more than the {inSet.OrdinalCount} characters of the "
                     + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO §12.3.7.3 {rules.Rule('5')})");
         }
-        UserClasses.TryAdd(name, new UserClassDef(set, national));
+        Cfg.UserClasses.TryAdd(name, new UserClassDef(set, national));
     }
 
     /// <summary>⛔ THE ONE READING OF A SPECIAL-NAMES FOR PHRASE, for all three clauses that print it (ALPHABET,
@@ -205,7 +183,7 @@ public sealed partial class SpecialNamesBinder
             foreach (var name in names)
             {
                 _host.DeclareUserWord(name.GetText(), UserWordKind.SymbolicCharacter);
-                SymbolicCharacters.TryAdd(name.GetText(), ("\0", national));
+                Cfg.SymbolicCharacters.TryAdd(name.GetText(), ("\0", national));
             }
             return;
         }
@@ -239,10 +217,10 @@ public sealed partial class SpecialNamesBinder
                 // not defined") for a name the program did write. The placeholder value is never observed — the
                 // clause already failed, so the compilation produces no program (the posture LiteralPhraseOperand's
                 // class-rule recovery takes for an operand of the wrong class). kb/Work PB1091.
-                SymbolicCharacters.TryAdd(symName, ("\0", national));
+                Cfg.SymbolicCharacters.TryAdd(symName, ("\0", national));
                 continue;
             }
-            if (!SymbolicCharacters.TryAdd(symName, (value, national)))
+            if (!Cfg.SymbolicCharacters.TryAdd(symName, (value, national)))
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: '{symName}' is "
                     + "already defined — a given symbolic-character-1 may be specified only once within the SYMBOLIC "
                     + "CHARACTER clauses of this SPECIAL-NAMES paragraph (ISO §12.3.7.3 SR16 a)");
@@ -293,7 +271,7 @@ public sealed partial class SpecialNamesBinder
                     Core.IntegerOperandContext io when io.integerLiteral() is null => io.cobolWord(),
                     _ => null,
                 };
-                if (word is not null && !afterIs && _host.FindConstant(word.GetText()) is null && !_host.IsFailedConstant(word.GetText()))
+                if (word is not null && !afterIs && _host.Constants.FindConstant(word.GetText()) is null && !_host.Constants.IsFailedConstant(word.GetText()))
                 {
                     names.Add(word);
                     firstIsName ??= true;
@@ -307,8 +285,8 @@ public sealed partial class SpecialNamesBinder
                 {
                     Core.IntegerLiteralContext il => (il.GetText(),
                         (int?)WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(il)),
-                    Core.IntegerOperandContext io => (io.GetText(), _host.IntegerOperandValue(io, where)),
-                    _ => (word!.GetText(), _host.ConstantIntegerText(word, word.GetText(), where) is { } digits
+                    Core.IntegerOperandContext io => (io.GetText(), _host.Constants.IntegerOperandValue(io, where)),
+                    _ => (word!.GetText(), _host.Constants.ConstantIntegerText(word, word.GetText(), where) is { } digits
                         ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(digits) : null),
                 });
             }
