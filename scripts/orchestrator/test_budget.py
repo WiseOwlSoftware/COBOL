@@ -226,7 +226,7 @@ check("the 2026-10-04 constants held it (the defect)", r["decision"], "hold-sess
 # kb/Work PB4505: the status line's live reading. Each account reads its OWN config dir's rate-limits.json; a file older
 # than LIVE_MAX_AGE, unreadable or without a weekly row anchors nothing; a missing five_hour row (an Ultra plan) is 0.
 now = at(2026, 11, 3, 12, 30)
-tap = {"captured_at": (now - dt.timedelta(minutes=2)).astimezone(dt.timezone.utc).isoformat(), "session_id": "s",
+tap = {"measured_at": (now - dt.timedelta(minutes=2)).astimezone(dt.timezone.utc).isoformat(), "session_id": "s",
        "rate_limits": {"seven_day": {"used_percentage": 29, "resets_at": 1762596000}}}
 (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(tap), encoding="utf-8", newline="\n")
 live = budget.live_reading(A1, now)
@@ -240,6 +240,32 @@ check("live: an unreadable file anchors nothing", budget.live_reading(A1, now), 
                                               encoding="utf-8", newline="\n")
 check("live: a file with no seven_day row anchors nothing", budget.live_reading(A1, now), None)
 (A1.config_dir / budget.LIVE_FILE).unlink()
+
+# review R1-5: current() takes a fresh live reading as the newest anchor, and only the estimated account's file.
+cdir = TMP / "coord-live"
+cdir.mkdir(exist_ok=True)
+(cdir / "readings.json").write_text(json.dumps([{"noted_at": at(2026, 11, 2, 9, 0).isoformat(), "account": "account1",
+                                                  "weekly_pct": 10.0, "session_pct": 0.0, "session_reset": None}]),
+                                    encoding="utf-8", newline="\n")
+tdir = TMP / "telemetry-empty"
+tdir.mkdir(exist_ok=True)
+saved_resolve = accounts.resolve
+accounts.resolve = lambda name=None, rules=None, **_k: A1 if name in (None, "account1") else A2
+try:
+    base = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
+    (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(tap), encoding="utf-8", newline="\n")
+    anchored = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
+    other = budget.current("account2", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
+    stale = dict(tap, measured_at=(at(2026, 10, 20, 9, 0)).astimezone(dt.timezone.utc).isoformat())
+    (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(stale), encoding="utf-8", newline="\n")
+    old = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
+finally:
+    accounts.resolve = saved_resolve
+    (A1.config_dir / budget.LIVE_FILE).unlink(missing_ok=True)
+check("current: without the live file the stored reading anchors (10 %)", base["weekly_est_pct"], 10.0)
+check("current: a fresh live reading is the newest anchor (29 %)", anchored["weekly_est_pct"], 29.0)
+check("current: another account's file anchors nothing for account 2", other["anchor"] is None or other["anchor"].get("account") == "account2", True)
+check("current: a live reading measured before the week (or past LIVE_MAX_AGE) anchors nothing", old["weekly_est_pct"], 10.0)
 
 for f in fails:
     print("FAIL:", f)
