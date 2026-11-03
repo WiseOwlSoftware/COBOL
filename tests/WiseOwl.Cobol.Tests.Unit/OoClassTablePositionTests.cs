@@ -152,6 +152,59 @@ public sealed class OoClassTablePositionTests
             END OBJECT.
             END CLASS PC3.
             """ },
+        // kb/Work PB4459: the implementation of an interface prototype is found through the roster key, so it may be a method NO METHOD-ID
+        // of the group wrote — a PROPERTY clause's accessor (ISO §13.18.42), the standard class BASE's New (ISO §16.2). The §9.3.8.2.3
+        // conformance error about it (COBOL0841) stands at the class that must implement the prototype, not at a stale cursor.
+        { "IMPLEMENTS-GENERATED-ACCESSOR", """
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. PG0.
+            PROCEDURE DIVISION.
+            METHOD-ID. GET PROPERTY BAL.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-R PIC 9(5).
+            PROCEDURE DIVISION RETURNING LK-R.
+            END METHOD.
+            END INTERFACE PG0.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PG1 INHERITS FROM BASE. *> @0841
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE
+                INTERFACE PG0.
+            IDENTIFICATION DIVISION.
+            OBJECT. IMPLEMENTS PG0.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(3) PROPERTY WITH NO SET.
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS PG1.
+            """ },
+        { "IMPLEMENTS-STANDARD-METHOD", """
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. PG2.
+            PROCEDURE DIVISION.
+            METHOD-ID. NEW.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-P PIC 9(5).
+            PROCEDURE DIVISION USING LK-P.
+            END METHOD.
+            END INTERFACE PG2.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. PG3 INHERITS FROM BASE. *> @0841
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE
+                INTERFACE PG2.
+            IDENTIFICATION DIVISION.
+            FACTORY. IMPLEMENTS PG2.
+            END FACTORY.
+            END CLASS PG3.
+            """ },
     };
 
     [Theory]
