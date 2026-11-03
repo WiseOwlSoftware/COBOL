@@ -12,9 +12,9 @@ PB2878, PB4395; docs/rearchitecture/DESIGN-test-build-ci.md §3.18).
 ⛔ WHY (owner 2026-10-09, on a one-change landing that edited a practices file and two briefs: "Should this require a
 full CI run? I would think not"). Measured over the 300 landings of 2026-10-16..23, 137 changed only files the CI
 matrix's old doc-only list named, and each paid the local gate (median ~14 min: audits, a slot, a build, the tests) and
-the landing's four Linux legs; but that list was not a classification at all: `docs/` and `kb/Work/` are test INPUTS
-(kb/Work PB3603: a kb/Work-only branch went RED on the Linux gate), so CI skipping the matrix for them broke the CI
-invariant (kb/Work PB1957) silently. THIS MODULE IS THE ONE CLASSIFICATION, used by every runner: CI's `changes` job,
+the landing's four Linux legs; but that list was not a classification at all: `docs/` and `kb/Work/` were test INPUTS
+then (kb/Work PB3603: a kb/Work-only branch went RED on the Linux gate), so CI skipping the matrix for them broke the CI
+invariant (kb/Work PB1957) silently; the fix made them non-inputs (kb/Work PB2878, PB4453), never a list. THIS MODULE IS THE ONE CLASSIFICATION, used by every runner: CI's `changes` job,
 the local gate (scripts/gate.py) and the Linux gate (scripts/linux-gate.sh).
 
 THE RULE. A path is INERT when it lies under an INERT entry and under no READ entry. A change is in the INERT LANE when
@@ -29,7 +29,7 @@ it touches a path a script self-test reads, which is TOOLING (`is_tooling`): a p
 `toolchain.env`), ending in a `TOOLING_SUFFIXES` extension (.py, .ps1, .sh) anywhere, or under a `TOOLING_READS` entry: a
 path outside the scripts that a script self-test reads AS DATA, each entry naming its readers (tests/_shared/TestRepo.cs
 for scripts/spec/drift_rules.py, the .g4 grammar for scripts/spec/grammar_source.py, .agent-fleet.json for the
-orchestrator's self-tests, docs/CONFORMANCE.md for the witness-loss audit, ...). The script self-tests
+orchestrator's self-tests, the rule catalog for the register audits, ...). The script self-tests
 (scripts/self_tests.py) read tooling and those entries, so only such a change can turn a self-test red, and CI's
 `windows-self-tests` job runs only then. `tooling`: it touches a SCRIPT (`is_script_tree`: the trees and suffixes, never a
 TOOLING_READS data file), and only then does the LOCAL gate run the self-tests (its SELF-TESTS audit and the one self-test
@@ -49,7 +49,7 @@ its readers): the scripts a csproj `Exec` runs, a generator or extractor whose o
 whose self-test reads the built assemblies (`SELF-TEST-NEEDS: build`), and `.gitattributes` and `toolchain.env` (new
 checkout bytes or a new SDK change what every compiler test runs on). A change to one of them is a compiler change, so it
 is the FULL (code) lane, with the self-tests beside it. A script file outside the tooling trees (conformance-suite/harness/,
-a `.sh` under tests/, docs/…/evidence/) and a `TOOLING_READS` entry (the grammar, a csproj, docs/CONFORMANCE.md,
+a `.sh` under tests/, docs/…/evidence/) and a `TOOLING_READS` entry (the grammar, a csproj, the rule catalog,
 tests/_shared/TestRepo.cs) lie in trees the compiler's tests and build read, so they are never tooling-lane paths.
 THE PROOF OF THE TOOLING LANE is the same watch as the inert lane's (below): every Linux test run also watches every
 tooling-lane path, so a compiler test that opens one, directly or through a script it runs, is RED naming it, until the
@@ -79,10 +79,13 @@ lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a p
 test_dispatch_guard.py walk every markdown file), so no set of paths bounds it and the proof
 does not apply to it. The declaration is checked against the trace (scripts/self_tests.py): one that ran no git command over
 the whole repository (the tracer records a read of directory "") is RED, and a self-test that ran such a command WITHOUT
-the declaration is judged like any other, so its specific reads (work.py's docs/DESIGN.md, merge_drivers.py's ABI pin) are
+the declaration is judged like any other, so its specific reads (merge_drivers.py's ABI pin) are
 TOOLING_READS entries, not a blind spot (review round 2, finding R2-1); (b) the INERT corpora, DEVLOG/ and kb/, which devlog.py and the register's self-tests read as
 fixtures: every landing adds to both, the audits that govern an entry (`devlog.py check`, `work.py check`) run in every
-lane, and a change to how they are read is a script edit; (c) a directory LISTING (`entries:`) records names, which
+lane, and a change to how they are read is a script edit; and, since PB4453, the Markdown under docs/ that four self-tests
+read as data (differential_fuzz.py: the CONFORMANCE.md section 5 table; ci_bounds.py: the DESIGN-test-build-ci.md section its
+docstring cites; landing_measure.py and fuzz_triage.py: the fleet-optimization evidence directory): a docs-only edit to one of those runs none of
+them in the gate, and CI's Linux audits job, which runs every self-test in each merge group, is where it is first seen; (c) a directory LISTING (`entries:`) records names, which
 change when a file is added or removed and not when any listed file is edited, so the proof checks the files a self-test
 read and its `paths:` and `content:` reads of a directory.
 
@@ -97,17 +100,23 @@ Python bytecode cache (`PYTHONPYCACHEPREFIX`), so a script a test runs is opened
 served unseen from a `__pycache__` an earlier run left. A watch that overflows its queue proves nothing and is RED. The watch has no Windows twin (Windows has no open events); the
 Linux runs are the whole population on every code change (the Linux gate and CI's merge group).
 
-What is NOT inert, and why, measured 2026-10-23 (deleting each candidate and running the three assemblies on Windows;
-then the watch over the whole Linux population): `docs/` (SortRuntimeDocShapeDriftTests reads every doc;
-twenty-odd Unit and Conformance classes read CONFORMANCE.md, the rule catalog, VERSION_CHANGE_REFERENCE.md);
-`.claude/` and the root `*.md` files (ArchReviewFleetDriftTests reads the briefs, and until kb/Work PB4395 SelfTestDiscoveryDriftTests
-classified the scripts there; GateLegDriftTests' mode sweep, which walked every one, is the ONE SHAPE audit since kb/Work PB4395);
-the `tools/claude-skills` pin. The conflict-marker
-sweep, which read every tracked file, became an audit (scripts/conflict_markers.py) so that it no longer made every
-path a test input; and `kb/` became inert once the register drift tests (which read every `kb/Work/`
-note through a C# twin of `work.py`'s reader) became the audit `scripts/spec/work_inventory.py`, the retired-name sweep
-(then LandingPipelineDriftTests, now landing_rules.py --self-test) set the vault aside as its siblings do, and EcRaiseSiteRegistryDriftTests stopped reading
-a note.
+What is inert, and what is NOT, and how each came to be (the watch over the whole Linux population decides). Inert:
+`DEVLOG/`; `kb/`, once the register drift tests (which read every `kb/Work/` note through a C# twin of `work.py`'s
+reader) became the audit `scripts/spec/work_inventory.py`, the retired-name sweep (then LandingPipelineDriftTests, now
+landing_rules.py --self-test) set the vault aside as its siblings do, and EcRaiseSiteRegistryDriftTests stopped reading a
+note; and, since kb/Work PB4453 (owner 2026-11-02: "There is no compelling reason a compiler change needs to read an
+markdown note"), `docs/` and EVERY `*.md` (`MARKDOWN_ENTRY`, a pattern over a file name at any depth): the thirty-odd
+Unit and Conformance classes that read CONFORMANCE.md, the rule catalog's prose, VERSION_CHANGE_REFERENCE.md, the user manual,
+the README and the design docs became the DOC AUDITS gate audit (scripts/doc_audits.py: what a document says is checked
+there, against the compiler's facts in tests/doc-facts/compiler-facts.json, never by a test), two register audits
+(audit_annex_a1.py, audit_derivations.py) and ARCH SUBSYSTEMS; a datum a test needs that a document also states is an
+extract the document is held to (tests/version-matrix/conformance-register.json, tests/doc-facts/). `check` holds every
+compiler test to opening no Markdown file (`markdown_readers`), and the watch proves it. NOT inert, as READ entries: the
+ISO text (specs/ISO_COBOL.md, the oracle ~45 classes derive expected tables from: CLAUDE.md rule 1) and the data files a test
+reads under docs/ (the rule catalog, the architecture edges, the census records). NOT inert, by being code: the
+`tools/claude-skills` pin, and everything under `src/`, `tests/`, `conformance-suite/` that is not Markdown. The
+conflict-marker sweep, which read every tracked file, became an audit (scripts/conflict_markers.py) so that it no
+longer made every path a test input.
 """
 from __future__ import annotations
 
@@ -134,12 +143,18 @@ REPO = Path(__file__).resolve().parents[1]
 def _under(path: str, entry: str) -> bool:
     """`path` lies under `entry`: a directory prefix ending in `/`, one exact path (and anything below it), or a
     LISTING PATTERN (`scripts/guard*.sh`: `*` and `?` within one directory, case-insensitive as a .NET listing matches),
-    which covers every path it matches, a file added later included, and the pattern itself (`code_readers`)."""
+    which covers every path it matches, a file added later included, and the pattern itself (`code_readers`). An entry
+    that begins `**/` is a pattern over a file NAME at any depth (`**/*.md` is every Markdown file in the repository)."""
+    if entry.startswith("**/"):
+        return path == entry or _listing_glob(entry[3:], True).fullmatch(path) is not None
     if "*" in entry or "?" in entry:
         return path == entry or _listing_glob(entry, False).fullmatch(path) is not None
     return path.startswith(entry) if entry.endswith("/") else path == entry or path.startswith(entry + "/")
 
 
+#: The INERT entry that makes every Markdown file inert (kb/Work PB4453), and the one `Classification.check` holds the
+#: compiler tests to (`markdown_readers`).
+MARKDOWN_ENTRY = "**/*.md"
 #: ⛔ THE LANES, cheapest first (module docstring): `inert` runs the audits; `tooling` the audits with the script
 #: self-tests; `full` (the code lane) the build and the three whole populations beside the audits.
 LANES = ("inert", "tooling", "full")
@@ -258,7 +273,7 @@ class Classification:
         # ⛔ A COMPILER CHANGE RUNS NO SCRIPT SELF-TESTS LOCALLY (owner 2026-11-01: "I see no reason why a compiler change
         # should need to run script self-tests"). In the full lane `tooling` counts only a changed SCRIPT (a TOOLING_UNDER
         # tree or a TOOLING_SUFFIXES file: the change's own tooling half), never a TOOLING_READS data file a self-test
-        # happens to read (docs/CONFORMANCE.md, the grammar, TestRepo.cs): compiler fixes change those routinely, and their
+        # happens to read (the rule catalog, the grammar, TestRepo.cs): compiler fixes change those routinely, and their
         # self-tests then cost the compiler gate 10 to 38 minutes. `reads_tooling` counts both, so CI's merge group still
         # runs the Windows self-tests such a data file reaches: their first run (CLAUDE.md "Testing", THE RULE (d)).
         scripts = [p for p in paths if self.is_script_tree(p)]
@@ -306,6 +321,14 @@ class Classification:
                 bad.append(f"{reader} reads {path}, which is in the tooling lane: a change to it would gate with no build "
                            "and no compiler test; give it a CODE_READS entry naming that reader, or make the reader a "
                            "script's self-test (kb/Work PB4395)")
+        # A TOOLING_READS or CODE_READS entry that is itself INERT never changes a lane (`classify` asks `is_inert` first), so
+        # it is dead; and the Markdown inert entry stands only while no compiler test opens a Markdown file (kb/Work PB4453).
+        bad += [f"the {kind} entry {e!r} is inert (an INERT entry covers it), so it changes no lane: remove it"
+                for kind, entries in (("TOOLING_READS", self.tooling_reads), ("CODE_READS", self.code_reads))
+                for e in entries if self.is_inert(e)]
+        if MARKDOWN_ENTRY in self.inert:
+            allowed = {posixpath.basename(e): "a READ entry" for e in self.read if e.lower().endswith(".md")}
+            bad += markdown_readers(root, paths, allowed | TESTS_MAY_NAME_MARKDOWN)
         return bad
 
 
@@ -319,6 +342,17 @@ CLASSIFICATION = Classification(inert={
            "gate's WORK REGISTER audit, CI's audits job: the register against the inventory), the audits that cite a "
            "note, and by people; no test reads it since kb/Work PB2878 (the register drift tests became "
            "work_inventory.py; the retired-name sweep and the activation-boundary registry stopped reading it)",
+    "docs/": "the documentation tree: read by people and by the doc audits (scripts/, run in every lane); no compiler "
+             "test reads a Markdown file (kb/Work PB4453), and the data files a compiler test reads are READ entries",
+    MARKDOWN_ENTRY: "every Markdown file: a note, a design, a brief, a skill, a README; read by people, the harness and the "
+               "audits (scripts/, run in every lane), never by a compiler test (kb/Work PB4453; the one exception is the "
+               "ISO text, a READ entry)",
+}, read={
+    "specs/ISO_COBOL.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "
+                          "expected tables from it",
+    "docs/rearchitecture/spec-rule-catalog.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests",
+    "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
+    "docs/rearchitecture/evidence/arch-census/": "ArchCensusDriftTests (CensusRecord)",
 }, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),
    tooling_suffixes=(".py", ".ps1", ".sh"),
    # ⛔ TOOLING_READS: what the script self-tests read outside the scripts (module docstring), measured from the PASS store's
@@ -332,18 +366,12 @@ CLASSIFICATION = Classification(inert={
        "Directory.Build.props": "scripts/merge_drivers.py (settling the ABI pin)",
        "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/merge_drivers.py (settling the ABI pin)",
        "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/merge_drivers.py (settling the ABI pin)",
-       "docs/DESIGN.md": "scripts/spec/work.py (the site rule: a Markdown file named by its section number)",
-       "docs/REARCHITECTURE_PLAN.md": "scripts/orchestrator/test_orchestrate_steer.ps1 and test_orchestrate_stop.ps1",
        ".gitmodules":"scripts/devlog.py, scripts/orchestrator/landing_devlog.py, scripts/hooks/test_forbidden_commands.py",
        ".agent-fleet.json": "scripts/spec/ledger_plan.py, scripts/orchestrator/test_orchestrate_adopt.ps1 and _ledger.ps1",
        "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files)",
        "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py and the harness self-tests (the "
                                      "names of the harness files)",
-       "docs/CONFORMANCE.md": "scripts/spec/audit_witness_loss.py, scripts/differential_fuzz.py",
-       "docs/VERSION_CHANGE_REFERENCE.md": "scripts/orchestrator/test_orchestrate_account.ps1",
-       "docs/rearchitecture/DESIGN-test-build-ci.md": "scripts/ci_bounds.py (the section its docstring cites, kb/Work PB4349)",
        "docs/rearchitecture/spec-rule-catalog.json": "scripts/spec/audit_annex_a1.py, audit_code_citations.py",
-       "docs/rearchitecture/evidence/fleet-optimization/": "scripts/orchestrator/landing_measure.py, scripts/test_fuzz_triage.py",
        "specs/ISO_COBOL.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "
                              "scripts/differential_fuzz.py",
        "src/WiseOwl.Cobol.Cli/WiseOwl.Cobol.Cli.csproj": "scripts/guard-compiler.sh, guard-verify.sh, linux-gate.sh",
@@ -371,7 +399,7 @@ CLASSIFICATION = Classification(inert={
        ".gitattributes": "every compiler test: the checkout's bytes (line endings) of every file it reads",
        "toolchain.env": "every compiler test and the build: the SDK they run on (the toolchain manifest, kb/Work PB4007)",
        "scripts/spec/": "the spec extractors and audits a compiler test runs or reads (SpecTraceabilityInventoryDriftTests, "
-                      "AnnexA1RegisterDriftTests, AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, "
+                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, "
                       "TrackedTreeScopeDriftTests, CatalogCoverageDriftTests, TestRepoDriftTests)",
        "scripts/arch/": "ArchCensusDriftTests (census.py), ArchReviewFleetDriftTests (the R2 review workflow scripts)",
        "scripts/gen-reserved-words.ps1": "a generator whose output a compiler drift test checks",
@@ -728,6 +756,193 @@ def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[t
     return sorted({(p, r) for p, r in read if any(_under(p, t) for t in trees)})
 
 
+#: ⛔ NO COMPILER TEST OPENS A MARKDOWN FILE (owner 2026-11-02, kb/Work PB4453: "There is no compelling reason a compiler
+#: change needs to read an markdown note"). The Markdown names a compiler test may spell, each with why: the ISO text is a
+#: READ entry (`Classification.read`, derived, not listed here), and this is the rest.
+TESTS_MAY_NAME_MARKDOWN = {
+    "DIAGNOSTICS.md": "the gitignored rendered view DiagnosticRegistryDriftTests WRITES when WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1 "
+                      "(scripts/gen-diagnostics-doc.ps1); no test reads it",
+}
+STRING_START_RE = re.compile(r'[$@]*"{1,}')
+DOCS_WALK_RE = re.compile(r"\bTestRepo\s*\.\s*Docs\s*\(\s*\)")
+TREE_SCOPE_RE = re.compile(r"\bnew\s+TreeScope\s*\(|\bTreeScope\s+\w+\s*=\s*new\s*\(")
+
+
+def _blank(piece: str, fill: str) -> str:
+    """`piece` with every character but a newline replaced by `fill`, so an offset and a line keep their meaning."""
+    return re.sub(r"[^\n]", fill, piece)
+
+
+def csharp_parts(text: str) -> tuple[str, list[str]]:
+    """A C# source split into its CODE (every comment, preprocessor line and character literal blanked to spaces and every
+    string literal to underscores, so an offset and a line mean what they meant) and the VALUES of its string literals. A
+    string is regular, verbatim (`@"…"`), interpolated (`$"…"`, `$@"…"`) or raw (a run of three or more quotes, with any
+    number of leading `$`). An interpolated string's value is its text outside the holes; its holes are lexed as code in
+    their own right: their string literals are values too (they precede their string's own) and their code stays in the
+    CODE. A character literal's escape (an escaped quote, backslash or `\\u` sequence) is skipped before its closing quote
+    is sought."""
+    literals: list[str] = []
+    code, _ = _lex(text, 0, literals, 0)
+    return code, literals
+
+
+def _lex(text: str, i: int, literals: list[str], hole_close: int) -> tuple[str, int]:
+    """The CODE of `text` from `i`, appending the string values to `literals`: to the end of `text` (`hole_close` 0) or, inside
+    an interpolation hole, to the run of `hole_close` closing braces that ends it at bracket depth 0 (returned unconsumed).
+    A `:` at depth 0 in a hole starts its format string, which is text."""
+    code: list[str] = []
+    n = len(text)
+    depth = 0
+    while i < n:
+        ch = text[i]
+        pair = text[i:i + 2]
+        if hole_close and depth == 0 and text.startswith("}" * hole_close, i):
+            break
+        if hole_close and depth == 0 and ch == ":":
+            j = text.find("}" * hole_close, i)
+            j = n if j < 0 else j
+            code.append(_blank(text[i:j], " "))
+            i = j
+        elif pair == "//":
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            code.append(" " * (j - i))
+            i = j
+        elif pair == "/*":
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            code.append(_blank(text[i:j], " "))
+            i = j
+        elif ch == "#" and not text[text.rfind("\n", 0, i) + 1:i].strip():  # a preprocessor line may hold an apostrophe
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            code.append(" " * (j - i))
+            i = j
+        elif ch == "'":
+            j = i + 3 if text[i + 1:i + 2] == chr(92) else i + 1  # past the backslash and the escaped character
+            j = text.find("'", j)
+            j = n if j < 0 else j + 1
+            code.append(_blank(text[i:j], " "))
+            i = j
+        elif (m := STRING_START_RE.match(text, i)) is not None:
+            piece, i = _lex_string(text, i, m, literals)
+            code.append(piece)
+        else:
+            depth += ch in "([{"
+            depth -= ch in ")]}"
+            code.append(ch)
+            i += 1
+    return "".join(code), i
+
+
+def _lex_string(text: str, i: int, start: re.Match[str], literals: list[str]) -> tuple[str, int]:
+    """The string literal opening at `i` (`start` matched its opening): its CODE (underscores, but for the code of its
+    interpolation holes), appending its value to `literals`; and the offset after it."""
+    n = len(text)
+    prefix = start.group(0).rstrip('"')
+    quotes = len(start.group(0)) - len(prefix)
+    dollars = prefix.count("$")
+    verbatim = "@" in prefix
+    raw = quotes >= 3 and not verbatim
+    if quotes == 2 and not verbatim:  # the empty string
+        literals.append("")
+        return _blank(text[i:start.end()], "_"), start.end()
+    k = start.end() if (quotes == 1 or raw) else i + len(prefix) + 1
+    close_run = '"' * quotes
+    value: list[str] = []
+    code: list[str] = []
+    seg = i  # the start of the text not yet turned into CODE
+    while k < n:
+        c = text[k]
+        if raw and text.startswith(close_run, k):
+            break
+        if not raw and c == '"':
+            if verbatim and text[k + 1:k + 2] == '"':
+                value.append('"')
+                k += 2
+                continue
+            break
+        if dollars and c == "{":
+            run = len(text[k:]) - len(text[k:].lstrip("{"))
+            if not raw and text[k + 1:k + 2] == "{":  # `{{` is a brace of the text
+                value.append("{")
+                k += 2
+                continue
+            if raw and run < dollars:  # fewer braces than the string's dollars are text
+                value.append("{" * run)
+                k += run
+                continue
+            value.append("{" * (run - dollars if raw else 0))
+            hole_at = k + run
+            hole, end = _lex(text, hole_at, literals, dollars)
+            code.append(_blank(text[seg:hole_at], "_") + hole)
+            seg = end
+            k = min(end + dollars, n)
+            continue
+        if dollars and c == "}" and not raw and text[k + 1:k + 2] == "}":  # `}}` is a brace of the text
+            value.append("}")
+            k += 2
+            continue
+        if not raw and not verbatim and c == chr(92):
+            value.append(text[k + 1:k + 2])
+            k += 2
+            continue
+        value.append(c)
+        k += 1
+    j = n if k >= n else (k + quotes if raw else k + 1)
+    literals.append("".join(value))
+    code.append(_blank(text[seg:j], "_"))
+    return "".join(code), j
+
+
+def _balanced(code: str, open_at: int) -> str:
+    """The text between the parenthesis at `open_at` and its partner (code only: no literal can hide a bracket)."""
+    depth = 0
+    for k in range(open_at, len(code)):
+        depth += code[k] == "("
+        depth -= code[k] == ")"
+        if depth == 0:
+            return code[open_at:k + 1]
+    return code[open_at:]
+
+
+def markdown_readers(root: Path, paths: list[str], names_allowed: dict[str, str]) -> list[str]:
+    """THE DRIFT TEST THAT NO TEST PROJECT OPENS A MARKDOWN FILE (kb/Work PB4453), static and on every host; the Linux inotify
+    watch is its dynamic twin. Of every compiler test source (a `.cs` under tests/): a string literal that ends `.md` (a
+    `TestRepo.At("README.md")`, a `"*.md"` listing, a `Kinds: [".md"]`) unless its file name is one a test may name
+    (`names_allowed`: the ISO text, which is a READ entry, and the gitignored view a test writes); `TestRepo.Docs()` with no
+    argument, which walks the documentation tree; and a `TreeScope` that names no `Kinds`, which reads every tracked file
+    under its roots, Markdown included. A name allowed that no test spells any more is stale, and a finding."""
+    findings: list[str] = []
+    spelled: set[str] = set()
+    for rel in paths:
+        if not (rel.startswith("tests/") and rel.endswith(".cs")):
+            continue
+        try:
+            code, literals = csharp_parts((root / rel).read_text(encoding="utf-8"))
+        except OSError:
+            continue
+        for lit in literals:
+            value = lit.strip()
+            if re.search(r"\.md$", value, re.IGNORECASE):
+                name = posixpath.basename(value.replace("\\", "/"))
+                spelled.add(name)
+                if name not in names_allowed:
+                    findings.append(f"{rel} spells the Markdown path {value!r}: no compiler test opens a Markdown file (owner "
+                                    "2026-11-02, kb/Work PB4453); make the check an audit (scripts/doc_audits.py), or move "
+                                    "the datum it needs into a non-Markdown file the Markdown documents")
+        if DOCS_WALK_RE.search(code):
+            findings.append(f"{rel} calls TestRepo.Docs() with no argument, which walks the documentation tree (Markdown): "
+                            "no compiler test opens a Markdown file (kb/Work PB4453)")
+        for m in TREE_SCOPE_RE.finditer(code):
+            if "Kinds" not in _balanced(code, m.end() - 1):
+                findings.append(f"{rel} declares a TreeScope with no Kinds, which reads every tracked file under its roots, "
+                                "Markdown included: name the kinds it reads (kb/Work PB4453)")
+    findings += [f"the Markdown name {n!r} is allowed to a compiler test and none spells it any more: remove it"
+                 for n in sorted(names_allowed) if n not in spelled]
+    return findings
+
+
 def changed(root: Path, base: str, head: str = "HEAD") -> list[str]:
     """The paths `head` (a commit or a tree) changes against `base`, both names of a rename. Raises CalledProcessError."""
     out = subprocess.run(["git", "-C", str(root), "diff", "--name-only", "--no-renames", "-z", base, head],
@@ -944,13 +1159,21 @@ def self_test() -> int:
             failures.append(label)
 
     real = CLASSIFICATION
-    expect("the classification: a DEVLOG entry and a note of the knowledge base (the register included) are "
-           "inert; code, tests, docs, briefs, the root files, the skills pin and a name that only starts "
-           "like an inert directory are not",
-           [real.is_inert(p) for p in ("DEVLOG/2428-x.md", "kb/Work/PB1.md", "kb/Compiler/Pipeline.md",
-                                        "src/a.cs", "tests/b.cs", "docs/CONFORMANCE.md", ".claude/skills/x/SKILL.md",
-                                        "CLAUDE.md", "tools/claude-skills", "DEVLOG", "DEVLOGX/a.md", "kb", "kbx/a.md")],
-           [True] * 3 + [False] * 10)
+    expect("the classification (kb/Work PB4453): a DEVLOG entry, a note of the knowledge base (the register included), the "
+           "documentation tree, a brief, a skill, a README and every other Markdown file are inert, wherever they lie; code, "
+           "tests, the skills pin, a name that only starts like an inert directory, the ISO text (a READ entry) and the "
+           "data files a compiler test reads under docs/ are not",
+           [real.is_inert(p) for p in ("DEVLOG/2428-x.md", "kb/Work/PB1.md", "kb/Compiler/Pipeline.md", "docs/CONFORMANCE.md",
+                                        ".claude/skills/x/SKILL.md", "CLAUDE.md", "src/WiseOwl.Cobol.Runtime/README.md",
+                                        "docs/rearchitecture/evidence/x.json", "docs/manual/user-guide/files.md",
+                                        "src/a.cs", "tests/b.cs", "tools/claude-skills", "DEVLOG", "DEVLOGX/a.cs", "kb",
+                                        "kbx/a.cs", "specs/ISO_COBOL.md", "docs/rearchitecture/spec-rule-catalog.json",
+                                        "docs/rearchitecture/architecture-edges.json",
+                                        "docs/rearchitecture/evidence/arch-census/a.json")],
+           [True] * 9 + [False] * 11)
+    expect("a `**/` entry is a pattern over a file NAME at any depth, case-insensitively, and never a longer name",
+           [_under(p, MARKDOWN_ENTRY) for p in ("a.md", "d/e/f.md", "d/E.MD", "d/e.mdx", "d/e.md/x", "d/md", MARKDOWN_ENTRY)],
+           [True, True, True, False, False, False, True])
     # The mechanics, on a planted classification with a READ entry.
     c = Classification(inert={"DEVLOG/": "", "kb/": "", "tools/pin": ""}, read={"kb/Work/": ""})
     expect("a path under an INERT entry is inert; under a READ entry it is not, nor its directory",
@@ -964,20 +1187,21 @@ def self_test() -> int:
     # The tooling flag (PB4326), on the real classification.
     expect("tooling: scripts, workflows, tools, the agent definitions, the two root files the self-tests read, any "
            "Python, PowerShell or shell file anywhere, and the data the self-tests read (TOOLING_READS: the test helper "
-           "TestRepo.cs, the grammar, the agent-fleet settings, the inventory, docs/CONFORMANCE.md, docs/DESIGN.md) are tooling; "
-           "code, tests, the other docs and a name that only starts like a tooling directory or a read file are not",
+           "TestRepo.cs, the grammar, the agent-fleet settings, the inventory) are tooling; code, tests, the documents (inert "
+           "since kb/Work PB4453, so no script self-test is bound to one) and a name that only starts like a tooling "
+           "directory or a read file are not",
            [real.is_tooling(p) for p in ("scripts/gate_slot.py", ".github/workflows/build-and-test.yml", "tools/claude-skills",
                                          ".claude/agents/x.md", ".gitattributes", "toolchain.env", "conformance-suite/harness/x.py",
                                          "tests/x/run.sh", "tests/_shared/TestRepo.cs",
                                          "src/WiseOwl.Cobol.Frontend/Grammar/Core/Data.g4", ".agent-fleet.json",
-                                         "tests/version-matrix/inventory/GR-4.4-1.json", "docs/CONFORMANCE.md",
-                                         "docs/DESIGN.md", "docs/REARCHITECTURE_PLAN.md",
+                                         "tests/version-matrix/inventory/GR-4.4-1.json",
                                          "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin",
+                                         "docs/CONFORMANCE.md", "docs/DESIGN.md", "docs/REARCHITECTURE_PLAN.md",
                                          "src/a.cs", "tests/b.cs", "docs/DOC_INDEX.md", "scriptsx/a.md", "toolchain.env.bak",
                                          "tests/_shared/TestRepoX.cs", ".agent-fleet.json.bak", "tests/_shared/Other.cs")],
-           [True] * 16 + [False] * 8)
+           [True] * 13 + [False] * 11)
     expect("a full-lane change that touches a SCRIPT says so, one that does not says so, and an inert one never does; "
-           "a compiler change to only a file a script self-test reads (TestRepo.cs, CONFORMANCE.md) runs no script "
+           "a compiler change to only a file a script self-test reads (TestRepo.cs) runs no script "
            "self-test (owner 2026-11-01)",
            [real.classify(["src/a.cs", "scripts/x.py"]).tooling, real.classify(["src/a.cs", "docs/x.md"]).tooling,
             real.classify(["kb/x.py", "DEVLOG/a.md"]).tooling, real.classify(["kb/x.py", "DEVLOG/a.md"]).inert,
@@ -993,13 +1217,16 @@ def self_test() -> int:
            ["docs/z.md", "other/", "src/q.cs"])
     expect("the proof of the flag finds nothing in what a self-test read when every path is classified",
            tc.unclassified_reads(["scripts/a.py", "data/a.json"], ["paths:scripts", "content:lib"]), [])
-    expect("THE TWO FLAGS (owner 2026-11-01, kb/Work PB4409): a compiler change to a file a script self-test reads "
-           "(CONFORMANCE.md, TestRepo.cs, REARCHITECTURE_PLAN.md) sets `reads_tooling` (CI's Windows self-tests) and never "
-           "`tooling` (the local gate's); a script sets both; plain code and an inert change set neither",
+    expect("THE TWO FLAGS (owner 2026-11-01, kb/Work PB4409; the documents inert since kb/Work PB4453): a compiler change to a "
+           "file a script self-test reads (TestRepo.cs) sets `reads_tooling` (CI's Windows self-tests) and never `tooling` "
+           "(the local gate's); a script sets both; plain code, a document beside code and an inert change set neither; a "
+           "document alone, however many a self-test reads, is the inert lane (the audits run, no test does)",
            [(real.classify(p).name, real.classify(p).tooling, real.classify(p).reads_tooling) for p in
-            (["src/a.cs", "docs/CONFORMANCE.md"], ["tests/_shared/TestRepo.cs"], ["src/a.cs", "docs/REARCHITECTURE_PLAN.md"],
-             ["src/a.cs", "scripts/x.py"], ["src/a.cs", "tests/b.cs"], ["DEVLOG/a.md"])],
-           [("full", False, True)] * 3 + [("full", True, True), ("full", False, False), ("inert", False, False)])
+            (["tests/_shared/TestRepo.cs"], ["src/a.cs", "scripts/x.py"], ["src/a.cs", "tests/b.cs"],
+             ["src/a.cs", "docs/CONFORMANCE.md"], ["docs/CONFORMANCE.md"], ["docs/REARCHITECTURE_PLAN.md", "README.md"],
+             ["DEVLOG/a.md"], ["specs/ISO_COBOL.md"], ["docs/rearchitecture/spec-rule-catalog.json"])],
+           [("full", False, True), ("full", True, True), ("full", False, False), ("full", False, False), ("inert", False, False),
+            ("inert", False, False), ("inert", False, False), ("full", False, True), ("full", False, True)])
     expect("an empty change touches tooling and what a self-test reads: nothing proves it does not",
            (real.classify([]).tooling, real.classify([]).reads_tooling), (True, True))
     expect("a lane whose `tooling` is set without `reads_tooling`, an inert lane that reads tooling, and a tooling lane "
@@ -1056,7 +1283,7 @@ def self_test() -> int:
            wiring(REPO), [])
     expect("the data the self-tests are known to read are TOOLING_READS entries (PB4326 R1-1, R2-1)",
            [e for e in ("tests/_shared/TestRepo.cs", "src/WiseOwl.Cobol.Frontend/Grammar/", ".agent-fleet.json",
-                        "tests/version-matrix/", "docs/CONFORMANCE.md", "docs/DESIGN.md", "docs/REARCHITECTURE_PLAN.md",
+                        "tests/version-matrix/",
                         "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin") if e not in real.tooling_reads], [])
     expect("the real classification: the build's and the compiler tests' tooling is CODE_READS (.gitattributes, "
            "toolchain.env, the generators under scripts/), while a tool no compiler test names is the tooling lane "
@@ -1066,6 +1293,54 @@ def self_test() -> int:
                                               "scripts/guard-a-new-guard.sh", "tools/a-new-tool.py",
                                               "scripts/orchestrator/steer.ps1")],
            ["full", "full", "full", "full", "full", "full", "tooling", "tooling"])
+    # THE PIN THAT NO COMPILER TEST OPENS A MARKDOWN FILE (kb/Work PB4453), on planted test sources.
+    quote = chr(34)
+    lexed_code, lexed = csharp_parts(
+        'string a = "x.md"; // "y.md"\n/* "z.md" */ var c = \'' + quote + '\'; var v = @"a""b.md"; var r = """raw.md"""; var e = "";')
+    expect("the lexer: comments and character literals hold no literal, a regular, a verbatim and a raw string do, and no "
+           "literal's text stays in the code",
+           (lexed, "md" in lexed_code), (["x.md", 'a"b.md', "raw.md", ""], False))
+    # The two forms the first lexer misread, each hiding a Markdown path from the pin (review R1-1): an escaped quote or
+    # backslash character literal (the closing quote was sought from the escaped character), and an interpolation hole that
+    # holds a string literal (the hole ended at that literal's first quote); plus the raw interpolated string and a
+    # preprocessor line holding an apostrophe.
+    bs = chr(92)
+    esc_code, esc = csharp_parts("char q = '" + bs + "'';  char b = '" + bs + bs + "'; char u = '" + bs + "u0041';\n"
+                                 'string a = "README.md"; char r = \'x\'; string w = "after";')
+    expect("the lexer: an escaped quote, backslash and unicode character literal each end at their own closing quote, so "
+           "the string after them is still a literal",
+           (esc, "README" in esc_code), (["README.md", "after"], False))
+    hole_code, hole = csharp_parts('var a = $"x{File.ReadAllText(TestRepo.At("README.md"))}y{b}" + "t"; var c = $"{{" + "e.md";')
+    expect("the lexer: an interpolation hole's string literal is a value and its code stays code; the text outside the holes "
+           "is the string's own value; a doubled brace is text",
+           (hole, "TestRepo.At" in hole_code, "README" in hole_code), (["README.md", "xy", "t", "{", "e.md"], True, False))
+    raw_code, raw = csharp_parts('var a = $$"""\n  {{{TestRepo.At("a.md")}}} {{Docs()}} {x}\n  """; var b = "z.md";\n'
+                                 "#region Don't\nvar c = 1;")
+    expect("the lexer: a raw interpolated string's holes (two dollars, two braces) are lexed and a lone brace is text; a "
+           "preprocessor line's apostrophe opens no character literal",
+           (raw, "Docs()" in raw_code, "TestRepo.At" in raw_code, "var c = 1;" in raw_code),
+           (["a.md", "\n  {}  {x}\n  ", "z.md"], True, True, True))
+    with tempfile.TemporaryDirectory() as td:
+        planted = {
+            "tests/T1.cs": 'class T1 { string a = File.ReadAllText(TestRepo.At("README.md")); }\n',
+            "tests/T2.cs": 'class T2 { string a = TestRepo.Docs(); string b = TestRepo.Docs("rearchitecture", "a.json"); }\n',
+            "tests/T3.cs": 'class T3 { static readonly TreeScope A = new(Under: ["src/"]);\n'
+                           '  static readonly TreeScope B = new(Under: ["src/", "tests/"],\n    Kinds: [".cs"]); }\n',
+            "tests/T4.cs": 'class T4 { string a = TestRepo.Specs("ISO_COBOL.md"); /* TestRepo.At("c.md") */ // "d.md"\n'
+                           '  string m = "see docs/CONFORMANCE.md rows"; }\n',
+            "src/Program.cs": 'class P { string a = "README.md"; }\n',
+        }
+        for rel, body in planted.items():
+            (Path(td) / rel).parent.mkdir(parents=True, exist_ok=True)
+            (Path(td) / rel).write_text(body, encoding="utf-8", newline="\n")
+        found = markdown_readers(Path(td), sorted(planted), {"ISO_COBOL.md": "the oracle"})
+        expect("markdown_readers: a Markdown path a test spells, a docs walk and a TreeScope with no Kinds are each one "
+               "finding; an allowed name, a comment, a message that merely mentions a Markdown file and a non-test file are none",
+               sorted(f.split(" ", 1)[0] for f in found), ["tests/T1.cs", "tests/T2.cs", "tests/T3.cs"])
+        expect("markdown_readers: an allowed name no test spells any more is stale",
+               [f for f in markdown_readers(Path(td), ["tests/T3.cs"], {"GONE.md": "why"})
+                if "none spells it any more" in f], ["the Markdown name 'GONE.md' is allowed to a compiler test and none spells "
+                                                     "it any more: remove it"])
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
 
     root = scratch_dir("inert-lane-")

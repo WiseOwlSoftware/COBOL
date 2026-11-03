@@ -92,13 +92,15 @@ public sealed class OperandClassScreenDriftTests
                 $"OperandPositions.{name} is declared and no binder asks it — the rule is written down and enforced nowhere");
     }
 
+    /// <summary>The design doc's entry-point table names every row: the document's side is
+    /// <c>scripts/docchecks/design.py</c> (<c>operand_position_findings</c>), which reads the row names from the facts file;
+    /// this test holds the facts file to the compiler's rows, so it opens no Markdown (kb/Work PB4453).</summary>
     [Fact]
     public void EveryRow_IsNamedInTheDesignDocEntryPointTable()
     {
-        string doc = File.ReadAllText(TestRepo.At("docs/rearchitecture/DESIGN-binder-bound-tree.md"));
-        foreach (var name in RowNames())
-            Assert.True(doc.Contains($"OperandPositions.{name}", StringComparison.Ordinal),
-                $"DESIGN-binder-bound-tree.md §3.6 does not name OperandPositions.{name}");
+        var facts = DocFacts.Load("compiler-facts.json").GetProperty("operandPositionRows").EnumerateArray()
+            .Select(e => e.GetString()!).Order(StringComparer.Ordinal).ToList();
+        Assert.Equal(RowNames().Order(StringComparer.Ordinal).ToList(), facts);
     }
 
     [Fact]

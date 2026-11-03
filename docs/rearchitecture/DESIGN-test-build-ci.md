@@ -1770,11 +1770,41 @@ very tests that read them (kb/Work PB3603).
 **The classification — ONE module, `scripts/inert_lane.py`.** A path is INERT when it lies under an `INERT` entry and under no
 `READ` entry; each entry names who reads it (an audit, a person; a READ entry names the tests that read it). A change is in the
 inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into an inert directory shows
-its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/` and `kb/` (the knowledge base, THE work register
-`kb/Work/` among it). NOT inert, measured on 2026-10-23 by deleting each candidate and running the three assemblies, then by the
-watch below over the whole Linux population: `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every doc, and
-twenty-odd classes read CONFORMANCE.md, the rule catalog or VERSION_CHANGE_REFERENCE.md); `.claude/` and the root `*.md` files;
-the `tools/claude-skills` pin, which the self-tests initialize. Two sweeps moved to make `kb/` inert:
+its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/`, `kb/` (the knowledge base, THE work register
+`kb/Work/` among it), `docs/` and **every `*.md`** (`MARKDOWN_ENTRY`, a pattern over a file name at any depth: a note, a design,
+a brief, a skill, a README), and the READ entries under them are the ISO text (`specs/ISO_COBOL.md`) and the data files a compiler
+test reads under `docs/` (the rule catalog, the architecture edges, the census records). NOT inert: the `tools/claude-skills`
+pin, which the self-tests initialize, and any file under `src/`, `tests/` or `conformance-suite/` that is not Markdown.
+
+**No compiler test opens a Markdown file (owner 2026-11-02, kb/Work PB4453: "There is no compelling reason a compiler change
+needs to read an markdown note").** Until then `docs/` and the Markdown files were code: `SortRuntimeDocShapeDriftTests` read every
+doc and some thirty Unit and Conformance classes read CONFORMANCE.md, VERSION_CHANGE_REFERENCE.md, the user manual, the
+README and the design docs, so a one-word edit to a document ran the build and the three whole populations (the test phase's
+median over 61 gates: 12.7 minutes) to learn nothing about the compiler. A document cannot change what the compiler does; it
+can only disagree with a fact it states. Each reader became one of three things:
+- **A check over the Markdown alone** (a README against a register, the VCR against `constructs.json` and the ISO text, the user
+  manual's frontmatter and links, the boolean-store determination carried word for word in three places): the **DOC AUDITS**
+  gate audit, `scripts/doc_audits.py --check` with one module per subject under `scripts/docchecks/`, run in every lane and in
+  every merge group, each check a pure function of the text it judges and a self-test that plants every violation.
+- **A check of a document against a fact the COMPILER holds** (the dynamic-length maximum, the implementor-defined
+  exception-names, the command line's options and exit statuses, the dialect-behavior registry, the `CobolSort` members, the
+  `OperandPositions` rows): `tests/doc-facts/compiler-facts.json`, written from the compiler by the Unit test
+  `DocumentedFactsDriftTests` (regenerate with `WISEOWL_COBOL_WRITE_DOC_FACTS=1`) and held equal to it there; the audit holds
+  the Markdown to that FILE. A compiler change that moves a documented fact turns that test red, and the regeneration, a code
+  change, is what makes the audit judge the document.
+- **A datum a test needs that a document also states**: an EXTRACT the tests read and the audit holds fresh, so a change to the
+  datum reaches the tests and a change to the prose around it does not: the register rows
+  (`tests/version-matrix/conformance-register.json`, written by `doc_audits.py --write-register`), the complete programs the
+  manual prints (`tests/doc-facts/manual-programs/*.cob`, `--write-manual`), the exit-status examples
+  (`tests/doc-facts/manual-exit-examples.json`), the declined exception-name sites (`declined-raise-sites.json`) and the
+  untyped activation routes (`untyped-host-routes.json`, one pattern for the test sources and the user documents).
+Two Unit tests that ran a register audit to read CONFORMANCE.md became gate audits (`ANNEX A.1 REGISTER`, `DERIVATION REGISTER`),
+and `r2_subsystems.py --check` the `ARCH SUBSYSTEMS` audit. **The pin:** `inert_lane.py check` (an audit in every lane) holds every
+compiler test source to spelling no Markdown path, calling no `TestRepo.Docs()` walk and declaring no `TreeScope` without
+`Kinds` (`markdown_readers`); the inotify watch below is its dynamic twin, over the Markdown it can see. The one Markdown file a
+test reads is the ISO text itself, the oracle (CLAUDE.md rule 1): a READ entry, ~45 Unit and Conformance classes derive their
+expected tables from it, and a change to it is a spec reconciliation that runs the whole population. Two sweeps moved to make
+`kb/` inert:
 - **The conflict-marker sweep**, which read EVERY tracked file, became an audit (`scripts/conflict_markers.py --check`), which
   also closes the hole that it never ran in CI on a change whose matrix was skipped.
 - **The register's cross-checks against the inventory** (every defective-verdict row claimed by a live note; every landed
@@ -1802,7 +1832,7 @@ things, and `classify` prints both. `reads_tooling=true|false`: it touches a pat
 (`Classification.is_tooling`): a path under `scripts/`, `.github/`, `tools/`, `.claude/`, or `.gitattributes` /
 `toolchain.env`, ending `.py`, `.ps1` or `.sh` anywhere, or under a `TOOLING_READS` entry (a path outside the scripts that a
 script self-test reads as data, each entry naming its readers: `tests/_shared/TestRepo.cs`, the grammar,
-`.agent-fleet.json`, `docs/CONFORMANCE.md`, `docs/REARCHITECTURE_PLAN.md`, `tests/version-matrix/`, ...). CI's
+`.agent-fleet.json`, `tests/version-matrix/`, ...; the Markdown is inert, kb/Work PB4453; the three docs a self-test reads as data, CONFORMANCE.md §5 (differential_fuzz.py), the section `ci_bounds.py` cites and the fleet-optimization evidence (landing_measure.py, fuzz_triage.py), are the accepted residue (b) of `inert_lane.py`: a docs-only edit to one is first seen by CI's Linux audits job). CI's
 `windows-self-tests` job runs only then (`needs.changes.outputs.reads_tooling == 'true'`), so the Windows-only self-tests
 (`test_orchestrate_*.ps1`, `test_autostart.ps1`, ...) still run on every change that can turn one red, and the Linux
 self-tests of the `audits` job run in every merge group. `tooling=true|false`: it touches a SCRIPT
@@ -1890,9 +1920,9 @@ the self-test runner in every gate that touches tooling and in CI (the inotify a
 `self_tests.py --self-test` holds both self-test legs of the Linux tool to the audit clone.
 
 **What the lane covers.** A notes landing changes `DEVLOG/` and `kb/Work/` (107 of the 137 landings above changed only those),
-so it is the inert lane: the audits and nothing else. A change to `docs/`, a skill or a brief is still the full lane until its
-readers become audits or gain READ entries, one measured path at a time (an INERT entry is added only with a GREEN Linux watch
-run: `bash scripts/linux-gate.sh --nice`, its `inert-watch` leg).
+so it is the inert lane: the audits and nothing else. Since kb/Work PB4453 so is a change to `docs/` or to any Markdown file (a
+skill, a brief, a README, a design, the user manual): their readers became audits (§3.18, "No compiler test opens a Markdown
+file"). An INERT entry is added only with a GREEN Linux watch run: `bash scripts/linux-gate.sh --nice`, its `inert-watch` leg.
 
 ---
 
