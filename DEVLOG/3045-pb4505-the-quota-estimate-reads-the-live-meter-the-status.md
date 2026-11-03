@@ -1,4 +1,4 @@
-## PB4505: the quota estimate reads the live meter the status line already receives, for each account
+## Entry 3045 — 2026-11-03 13:32 PST — PB4505: the quota estimate reads the live meter the status line already receives, for each account
 
 Before a dispatch the orchestrator anchored its quota estimate on a month-old reading, or opened the claude.ai usage
 page in Chrome. On 2026-11-03 the estimate said 19 % of the week and the page 29 %. Yet every Claude Code session hands
@@ -9,3 +9,4 @@ own config dir (`rate-limits.json`, one per account) and passes stdin through un
 skipped, so the status line always renders. `budget.py` takes that account's file, when it is under 30 minutes old, as
 the newest meter reading. Both accounts are on Ultra, which has no five-hour window, so a missing `five_hour` row is
 session 0. Both accounts' `settings.json` point their status line at the tap.
+
