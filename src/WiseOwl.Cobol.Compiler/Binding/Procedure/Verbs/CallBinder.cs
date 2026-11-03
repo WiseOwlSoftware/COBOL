@@ -43,6 +43,24 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         //       program-name of the program being called").
         // Spelling (b) is resolved AFTER the data-reference attempt, below, so no program that binds today
         // changes meaning: a word that names a data item stays identifier-1.
+        // ⛔ BELOW THE EDITION THAT INTRODUCED THE PROGRAM-PROTOTYPE CALL THERE IS ONE CALL FORMAT (kb/Work PB4503 review R1-1).
+        // COBOL-85 has no AS phrase and no program prototypes (`call-as-phrase-2002`), so every argument's spelling is judged
+        // HERE, each one, before the target or any operand resolves: a CALL whose bind fails on an undefined name, or on an
+        // earlier refused argument, still reports every spelling COBOL-85 lacks. From 2002 on the format depends on what the
+        // target resolves to (a program-prototype-name is Format 2), so the judgement stays in the argument loop below.
+        var refusedUpFront = new HashSet<Core.CallArgumentContext>();
+        bool judgedUpFront = call.callAsPhrase() is null && !ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.CallAsPhrase2002);
+        if (judgedUpFront)
+        {
+            var carried = CobolPassMode.Reference;
+            foreach (var a in call.callUsingPhrase()?.callArgument() ?? [])
+            {
+                var reduced = ConditionBinder.ReduceArgument(a.literal(), null, a.booleanExpression(), a.arithmeticExpression());
+                if (Format2OnlySpellingOf(a, reduced, carried) is { } spelling && !Format1Narrowing(spelling))
+                    refusedUpFront.Add(a);
+                carried = CarriedModeAfter(a, carried);
+            }
+        }
         bool asNested = false;
         ProgramPrototype? prototype = null;
         // literal-1, as written or spelled by a constant-name (ISO §13.10.3 SR2), asked ONCE: §14.9.4.3 SR15's
@@ -262,11 +280,19 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 UnreservedKeywordReference.Report(ctx.Edition, "NULL");
                 return BoundRejected.Reported(ctx.Edition);
             }
-            if (!formatTwo && Format2OnlySpellingOf(a, bareArg, mode) is { } format2Only && !Format1Narrowing(format2Only))
+            if (judgedUpFront)
+            {
+                if (refusedUpFront.Contains(a))
+                {
+                    mode = CarriedModeAfter(a, mode);
+                    continue;
+                }
+            }
+            else if (!formatTwo && Format2OnlySpellingOf(a, bareArg, mode) is { } format2Only && !Format1Narrowing(format2Only))
                 return BoundRejected.Reported(ctx.Edition);
+            mode = CarriedModeAfter(a, mode);
             if (a.callByReference() is { } byRef)
             {
-                mode = CobolPassMode.Reference;
                 // §14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130); Format 1 reaches
                 // this arm with OMITTED only under the --permissive vendor lane Format1Narrowing admitted it by
                 // (kb/Work PB3996, PB4012), and binds it with this same Format-2 meaning.
@@ -319,7 +345,6 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else if (a.callByContent() is { } byContent)
             {
-                mode = CobolPassMode.Content;
                 // Format 1's `{ identifier-2 } …` includes the address-identifier SR3 names (kb/Work PB239).
                 if (byContent.addressIdentifier() is { } contentAddr)
                 {
@@ -377,9 +402,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (a.callByValue() is { } byValue)
             {
                 // (§14.9.4.2 Format 1 has no BY VALUE arm: Format2OnlySpellingOf refused it before this arm, kb/Work PB130.)
-                // BY VALUE (§14.9.4) is a COBOL-2002 introduction; the edition gate moved to the post-bind
-                // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
-                mode = CobolPassMode.Value;
+                // BY VALUE (§14.9.4) is a COBOL-2002 introduction, judged with the other Format 1 spellings in
+                // Format1Narrowing (kb/Work PB4503).
                 // identifier-4 as an address-identifier: §14.9.4.3 SR22 admits class pointer BY VALUE, and
                 // §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1 make each arm "a unique data item of class pointer"
                 // (kb/Work PB239).
@@ -632,6 +656,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else
                 return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(a)}'");
         }
+        // An argument the up-front judgement refused was skipped above, so the rest bound and reported their own faults;
+        // the statement itself is refused (kb/Work PB4503 review R1-1).
+        if (refusedUpFront.Count > 0)
+            return BoundRejected.Reported(ctx.Edition);
 
         // ⛔ ONE BOOLEAN VALUE CHANNEL for the CALL side, mirroring BoundInvokeArg.ContentBool exactly
         // (kb/Work PB46 landed the INVOKE half and left this one; PB238 closes it). §14.9.4.3 SR17 makes every
@@ -926,6 +954,15 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         return bare.NonNumericLiteral?.predefinedNull();
     }
 
+    /// <summary>§14.9.4.4 GR5's TRANSITIVE pass mode after argument <paramref name="a"/>: an explicit BY REFERENCE, BY CONTENT or
+    /// BY VALUE phrase sets it, and a bare argument keeps the one carried in (<paramref name="carried"/>). The ONE writer of the
+    /// carried mode, read by the up-front judgement below 2002 and by the argument loop.</summary>
+    private static CobolPassMode CarriedModeAfter(Core.CallArgumentContext a, CobolPassMode carried) =>
+        a.callByReference() is not null ? CobolPassMode.Reference
+        : a.callByContent() is not null ? CobolPassMode.Content
+        : a.callByValue() is not null ? CobolPassMode.Value
+        : carried;
+
     /// <summary>⛔ THE ONE QUESTION "IS THIS ARGUMENT SPELLING FORMAT 2's?" (kb/Work PB130, PB162, PB3996), asked once per
     /// argument before any arm binds it. §14.9.4.2 prints Format 1's USING as <c>[ BY REFERENCE ] { identifier-2 } …</c>
     /// or <c>BY CONTENT { identifier-2 } …</c>; Format 2 alone prints BY VALUE, OMITTED, arithmetic-expression-1,
@@ -1011,7 +1048,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     + "Focus) and bound with the meaning ISO/IEC 1989:2002 gives it");
             return true;
         }
-        if (!introduced)
+        // A spelling no edition admits (an OMITTED that BY CONTENT or BY VALUE carries over: not a vendor spelling) keeps its own
+        // refusal below 2002 too, because "requires COBOL-2002" would promise an edition that refuses it (review R1-2).
+        if (!introduced && spelling.VendorLane)
             ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, spelling.Construct, spelling.Written);
         else
             ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat, spelling.Refusal);

@@ -214,6 +214,34 @@ public sealed class FormatOneVendorCallPermissiveTests
         Assert.Equal(6, errors.Count);
     }
 
+    /// <summary>kb/Work PB4503 review R1-1: at 85 every argument is judged before anything resolves, so a CALL whose bind fails
+    /// on an undefined name (an earlier operand, or the target) and a CALL with several such spellings report each of them.</summary>
+    [Fact]
+    public void VendorSpellings_At85_AreReportedWhateverElseTheCallGetsWrong()
+    {
+        const string source = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB4503U.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 N PIC 9(4) VALUE 2.
+       01 T PIC X(8) VALUE "SUB2".
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           CALL "SUB2" USING NOSUCH BY VALUE N
+           CALL "SUB2" USING NOSUCH OMITTED
+           CALL NOSUCHT USING BY VALUE N
+           CALL "SUB2" USING BY VALUE N OMITTED "LIT"
+           STOP RUN.
+       """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        Assert.False(ok);
+        // one per spelling: BY VALUE, OMITTED, BY VALUE, then BY VALUE, OMITTED (BY VALUE carried: not a vendor spelling) and "LIT"
+        Assert.Equal(5, errors.Count(e => e.Contains("COBOL0900") && e.Contains("COBOL-2002")));
+        Assert.Single(errors, e => e.Contains("COBOL0899") && e.Contains("OMITTED (after BY VALUE)"));
+        Assert.True(errors.Count(e => e.Contains("NOSUCH")) >= 3, string.Join("\n", errors));
+    }
+
     /// <summary><c>--permissive</c> at 85: the vendor extension, one warning per spelling naming COBOL-85, no error.</summary>
     [Fact]
     public void VendorSpellings_At85_UnderPermissive_WarnOnceAndCompile()
