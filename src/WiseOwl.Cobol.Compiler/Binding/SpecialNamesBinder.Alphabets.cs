@@ -173,7 +173,7 @@ public sealed partial class SpecialNamesBinder
         NationalAlphabetDef? n = a is null && Cfg.NationalAlphabets.TryUse(at, alphabetName, out var nv) ? nv : null;
         if (a is null && n is null)
         {
-            Edition.Error("COBOL0898", $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
+            Edition.Error(DiagnosticCatalog.AlphabetNameNotDeclared, $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
                 + $"SPECIAL-NAMES ALPHABET clause ({rule}; §12.3.7)");
             return null;
         }
@@ -246,7 +246,7 @@ public sealed partial class SpecialNamesBinder
         // intercept them rather than mis-binding their letters as literal characters.
         if (CodeSetNameOf(def, _host.CobolWords) is { } wrongBranch)
         {
-            Edition.Error("COBOL0898", $"ALPHABET {name} IS {wrongBranch}: the {wrongBranch} coded character "
+            Edition.Error(DiagnosticCatalog.AlphabetCodeSetBranch, $"ALPHABET {name} IS {wrongBranch}: the {wrongBranch} coded character "
                 + "set may be referenced only in the FOR NATIONAL branch of the ALPHABET clause "
                 + "(ISO §12.3.7.2 general format)");
             return;
@@ -473,7 +473,7 @@ public sealed partial class SpecialNamesBinder
         }
         if (def.STANDARD_1() is not null || def.STANDARD_2() is not null)
         {
-            Edition.Error("COBOL0898", $"ALPHABET {name} FOR NATIONAL: STANDARD-1/STANDARD-2 name the "
+            Edition.Error(DiagnosticCatalog.AlphabetCodeSetBranch, $"ALPHABET {name} FOR NATIONAL: STANDARD-1/STANDARD-2 name the "
                 + "ISO/IEC 646 ALPHANUMERIC coded character set and may be referenced only in the FOR "
                 + "ALPHANUMERIC branch (ISO §12.3.7.2 general format)");
             return;

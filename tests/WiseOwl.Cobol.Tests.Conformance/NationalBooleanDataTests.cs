@@ -57,29 +57,29 @@ public sealed class NationalBooleanDataTests
 
     // ── COBOL0898 — VALUE clause category mismatches (ISO §13.18.63 SR5/SR10, both directions) ──────────
 
-    public static TheoryData<string, string, string> IllegalValueShapes() => new()
+    public static TheoryData<string, string, string, string> IllegalValueShapes() => new()
     {
         // SR5 (:23232): a national item's VALUE literal shall be a national literal (or a legal figurative).
-        { "NBDAT06", "01 WS-F PIC N(4) VALUE \"AB\".", "alphanumeric VALUE literal on a national item (SR5)" },
+        { "NBDAT06", "01 WS-F PIC N(4) VALUE \"AB\".", "alphanumeric VALUE literal on a national item (SR5)", "COBOL0898" },
         // ...and an N"…" literal is only for national receivers.
-        { "NBDAT07", "01 WS-G PIC X(4) VALUE N\"AB\".", "national VALUE literal on an alphanumeric item (SR5)" },
+        { "NBDAT07", "01 WS-G PIC X(4) VALUE N\"AB\".", "national VALUE literal on an alphanumeric item (SR5)", "COBOL0898" },
         // SR10 (:23254): a boolean item's VALUE literal shall be a boolean literal.
-        { "NBDAT08", "01 WS-H PIC 1(2) VALUE \"01\".", "quoted-alphanumeric VALUE on a boolean item (SR10)" },
-        { "NBDAT09", "01 WS-I PIC X(4) VALUE B\"01\".", "boolean VALUE literal on an alphanumeric item (SR10)" },
+        { "NBDAT08", "01 WS-H PIC 1(2) VALUE \"01\".", "quoted-alphanumeric VALUE on a boolean item (SR10)", "COBOL5982" },
+        { "NBDAT09", "01 WS-I PIC X(4) VALUE B\"01\".", "boolean VALUE literal on an alphanumeric item (SR10)", "COBOL5982" },
         // SR10: length shall not exceed the item's size.
-        { "NBDAT10", "01 WS-J PIC 1(2) VALUE B\"0101\".", "boolean VALUE longer than the item (SR10)" },
+        { "NBDAT10", "01 WS-J PIC 1(2) VALUE B\"0101\".", "boolean VALUE longer than the item (SR10)", "COBOL5982" },
         // SR29 (:23327): THROUGH phrases shall not be specified for boolean values (level-88).
         { "NBDAT11", "01 WS-K PIC 1(2).\n   88 WS-K-RANGE VALUE B\"00\" THRU B\"11\".",
-          "boolean level-88 VALUE THRU (SR29)" },
+          "boolean level-88 VALUE THRU (SR29)", "COBOL5983" },
     };
 
     [Theory]
     [MemberData(nameof(IllegalValueShapes))]
-    public void IllegalValueShape_Rejects0898(string pid, string wsEntry, string shape)
+    public void IllegalValueShape_Rejects0898(string pid, string wsEntry, string shape, string code)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, wsEntry), 2002);
         Assert.False(ok, $"{shape} must be rejected (ISO §13.18.63)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOL0898");
+        EditionHarness.AssertHasDiagnostic(errors, code);
     }
 
     // ── §13.18.60.3 SR12 — ALL FIVE PICTURE SHAPES COMPILE at every national-bearing edition ─────────

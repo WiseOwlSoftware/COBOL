@@ -300,14 +300,14 @@ public sealed partial class SpecialNamesBinder
         if (alnumName is not null)
         {
             if (CollatingAlphabetFault(alnumName, national: false) is { } fault)
-                Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
+                Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
                     national: false, fault, "ISO §12.3.6.3 SR1"));
             else if (Cfg.Alphabets.TryUse(pcs, alnumName, out var def)) Cfg.Collating = def.IsIdentity ? null : def;
         }
         if (natName is not null)
         {
             if (CollatingAlphabetFault(natName, national: true) is { } fault)
-                Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
+                Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
                     natName, national: true, fault, "ISO §12.3.6.3 SR2"));
             else if (Cfg.NationalAlphabets.TryUse(pcs, natName, out var def))
                 Cfg.NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
@@ -381,7 +381,7 @@ public sealed partial class SpecialNamesBinder
         // rather than as a second rule — is a second ordering-name.
         if (Cfg.OrderTables.Count > 0)
         {
-            Edition.Error("COBOL0898", $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
+            Edition.Error(DiagnosticCatalog.OrderTableRepeated, $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
                 + "in a SPECIAL-NAMES paragraph — its general format brackets it without an ellipsis, unlike the "
                 + $"repeatable clauses (ISO §12.3.7.2); '{Cfg.OrderTables.Names.First()}' is already declared");
             return;

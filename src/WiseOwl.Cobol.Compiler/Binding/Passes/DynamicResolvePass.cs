@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Passes;
 using WiseOwl.Cobol.Compiler.Oo;
@@ -58,14 +59,14 @@ internal sealed class DynamicResolvePass : IBindPass
             if (fileRecordRoots.Contains(root))
             {
                 using var __ = binder.Edition.At(item.ReferenceSite);
-                binder.Edition.Error("COBOL1526", $"OCCURS DYNAMIC on '{subject}': a dynamic-capacity table shall not be "
+                binder.Edition.Error(DiagnosticCatalog.DynamicCapacityTableInFileSection, $"OCCURS DYNAMIC on '{subject}': a dynamic-capacity table shall not be "
                     + "defined in the FILE SECTION (ISO §8.5.1.9.1)" + DataBinder.ViaReference(item));
             }
 
             // SR28 (:19987): integer-4 (FROM) shall be nonnegative and integer-5 (TO), if both present, shall be
             // GREATER THAN integer-4. (FROM<0 cannot be written — the grammar takes an unsigned integerLiteral.)
             if (spec.InitialCap is { } from && spec.ExpectedMax is { } to && to <= from)
-                binder.Edition.Error("COBOL1522", $"OCCURS DYNAMIC FROM {from} TO {to} on '{subject}': the expected "
+                binder.Edition.Error(DiagnosticCatalog.DynamicCapacityBoundsInvalid, $"OCCURS DYNAMIC FROM {from} TO {to} on '{subject}': the expected "
                     + $"capacity (TO integer-5) shall be greater than the minimum capacity (FROM integer-4) "
                     + "(ISO §13.18.38.3 SR28)");
 
@@ -179,7 +180,7 @@ internal sealed class DynamicResolvePass : IBindPass
                     && !sameName.TrueForAll(t => binder.DeclaringDepth(t) != 0
                                                  || ReferenceEquals(t.WrittenDefinition, item.WrittenDefinition))))
             {
-                binder.Edition.Error("COBOL1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
+                binder.Edition.Error(DiagnosticCatalog.CapacityRegisterNameDuplicated, $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
                     + "defined by the OCCURS DYNAMIC entry and shall not duplicate another data-name or "
                     + "CAPACITY register (ISO §13.18.38.3 SR30)");
                 continue;

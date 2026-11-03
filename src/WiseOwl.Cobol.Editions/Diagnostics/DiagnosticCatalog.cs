@@ -8076,6 +8076,311 @@ public static class DiagnosticCatalog
         + "procedure-name, or with every procedure by ALL PROCEDURES.",
         "ISO §14.4.1; ISO §8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
 
+    // ── COBOL RAW-LITERAL MIGRATION, PHASE A (kb/Work PB4463) — one descriptor per rule ─────────────────────
+
+    /// <summary>COBOL0850 — occurs depending bounds invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OccursDependingBoundsInvalid = new(
+        "COBOL0850", "occurs-depending-bounds-invalid", EditionSeverity.Error,
+        "The bounds of an OCCURS integer-1 TO integer-2 phrase (formats 2 and 3) are out of order. §13.18.38.3 SR16: "
+        + "\"Integer-1 shall be greater than or equal to zero and integer-2 shall be greater than integer-1.\"",
+        "ISO §13.18.38.3 SR16");
+
+    /// <summary>COBOL0851 — occurs depending object undefined (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OccursDependingObjectUndefined = new(
+        "COBOL0851", "occurs-depending-object-undefined", EditionSeverity.Error,
+        "The data-name-1 of an OCCURS DEPENDING ON phrase names no data item that the reference uniquely identifies: it "
+        + "is not defined (or not under the given qualifiers), or it is declared as something other than a data item. "
+        + "§8.4.2.1: a statement \"shall contain a reference that uniquely identifies that resource\"; §13.18.38.2 format 2 "
+        + "names data-name-1 as the object of DEPENDING ON.",
+        "ISO §8.4.2.1; §13.18.38.2 Format 2");
+
+    /// <summary>COBOL0852 — occurs depending object not integer (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OccursDependingObjectNotInteger = new(
+        "COBOL0852", "occurs-depending-object-not-integer", EditionSeverity.Error,
+        "The data-name-1 of an OCCURS DEPENDING ON phrase does not describe an integer. §13.18.38.3 SR17: \"Data-name-1 "
+        + "shall describe an integer.\" (An index item is not an integer data item; a trailing-P item is.)",
+        "ISO §13.18.38.3 SR17");
+
+    /// <summary>COBOL0853 — occurs depending object subscripted (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OccursDependingObjectSubscripted = new(
+        "COBOL0853", "occurs-depending-object-subscripted", EditionSeverity.Error,
+        "The data-name-1 of an OCCURS DEPENDING ON phrase is subscripted, or is or lies within a table. §13.18.38.3 SR2: "
+        + "\"Data-name-1 and data-name-2 shall not be subscripted.\"",
+        "ISO §13.18.38.3 SR2");
+
+    /// <summary>COBOL0854 — occurs depending table nested (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OccursDependingTableNested = new(
+        "COBOL0854", "occurs-depending-table-nested", EditionSeverity.Error,
+        "An occurs-depending table is subordinate to another OCCURS item. §13.18.38.3 SR1 b): the OCCURS clause shall not "
+        + "be specified in an entry that \"Has an occurs-depending table subordinate to it\"; SR10: an OCCURS clause may be "
+        + "subordinate to another OCCURS entry only \"if the DEPENDING ON phrase is not specified\".",
+        "ISO §13.18.38.3 SR1 b), SR10");
+
+    /// <summary>COBOL0855 — occurs depending table in redefines area (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OccursDependingTableInRedefinesArea = new(
+        "COBOL0855", "occurs-depending-table-in-redefines-area", EditionSeverity.Error,
+        "An occurs-depending table lies within a REDEFINES area. §13.18.44.3 SR5: \"Neither the original definition nor "
+        + "the redefinition shall include an occurs-depending table.\"",
+        "ISO §13.18.44.3 SR5");
+
+    /// <summary>COBOL0856 — occurs depending table not last (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OccursDependingTableNotLast = new(
+        "COBOL0856", "occurs-depending-table-not-last", EditionSeverity.Error,
+        "The subject of an OCCURS DEPENDING ON entry is followed, within its record, by an entry that is not subordinate "
+        + "to it. §13.18.38.3 SR22: \"The subject of the entry may be followed within that record description only by data "
+        + "description entries that are subordinate to it.\"",
+        "ISO §13.18.38.3 SR22");
+
+    /// <summary>COBOL0857 — occurs depending object in table range (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OccursDependingObjectInTableRange = new(
+        "COBOL0857", "occurs-depending-object-in-table-range", EditionSeverity.Error,
+        "The data item of an OCCURS DEPENDING ON phrase occupies a byte position within its own table's record range. "
+        + "§13.18.38.3 SR20: \"The data item defined by data-name-1 shall not occupy a byte position within the range of the "
+        + "first byte position defined by the data description entry containing the OCCURS clause and the last byte "
+        + "position defined by the record description entry containing that OCCURS clause.\"",
+        "ISO §13.18.38.3 SR20");
+
+    /// <summary>COBOL1526 — dynamic capacity table in file section (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor DynamicCapacityTableInFileSection = new(
+        "COBOL1526", "dynamic-capacity-table-in-file-section", EditionSeverity.Error,
+        "An OCCURS DYNAMIC table is defined in the file section. §8.5.1.9.1: a dynamic-capacity table \"may be defined in "
+        + "any place, other than the file section, in which a fixed-capacity table may be defined\".",
+        "ISO §8.5.1.9.1");
+
+    /// <summary>COBOL1522 — dynamic capacity bounds invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor DynamicCapacityBoundsInvalid = new(
+        "COBOL1522", "dynamic-capacity-bounds-invalid", EditionSeverity.Error,
+        "The FROM and TO capacities of an OCCURS DYNAMIC phrase are out of order. §13.18.38.3 SR28: \"Integer-4 shall be "
+        + "nonnegative and integer-5, if both are present, shall be greater than integer-4.\"",
+        "ISO §13.18.38.3 SR28");
+
+    /// <summary>COBOL1523 — capacity register name duplicated (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor CapacityRegisterNameDuplicated = new(
+        "COBOL1523", "capacity-register-name-duplicated", EditionSeverity.Error,
+        "The data-name-3 of a CAPACITY IN phrase duplicates another data-name or capacity register. §13.18.38.3 SR30: "
+        + "\"Data-name-3 shall not be defined elsewhere in the source element.\"",
+        "ISO §13.18.38.3 SR30");
+
+    /// <summary>COBOL1525 — redefines subject is dynamic table (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor RedefinesSubjectIsDynamicTable = new(
+        "COBOL1525", "redefines-subject-is-dynamic-table", EditionSeverity.Error,
+        "The subject of a REDEFINES clause is itself a dynamic-capacity table. Its capacity \"may vary during execution\" "
+        + "(§8.5.1.9.1), so it has no fixed area for the storage association §13.18.44.4 GR1 requires: \"Storage association "
+        + "for the subject of the entry starts at the first bit of the data item referenced by data-name-2 and continues "
+        + "over an area sufficient to contain the number of bits required by the data item referenced by the subject of the "
+        + "entry.\"",
+        "ISO §13.18.44.4 GR1; §8.5.1.9.1");
+
+    /// <summary>COBOL1539 — redefines storage larger than target (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor RedefinesStorageLargerThanTarget = new(
+        "COBOL1539", "redefines-storage-larger-than-target", EditionSeverity.Error,
+        "The storage area of a REDEFINES subject is larger than that of the redefined item, which is not a level-1 item "
+        + "without the EXTERNAL clause. §13.18.44.3 SR8: \"The storage area required for the subject of the entry shall not "
+        + "be larger than the storage area required for the data item referenced by data-name-2, unless the data item "
+        + "referenced by data-name-2 has been specified with level number 1 and without the EXTERNAL clause.\"",
+        "ISO §13.18.44.3 SR8");
+
+    /// <summary>COBOL1542 — any length placement (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AnyLengthPlacement = new(
+        "COBOL1542", "any-length-placement", EditionSeverity.Error,
+        "An ANY LENGTH clause is written where it may not be. §13.18.2.3 SR2: it \"may be specified only in an elementary "
+        + "level 1 entry in the linkage section of a function, of a contained program, or of a method that is not a "
+        + "property method\"; an outermost program is excluded.",
+        "ISO §13.18.2.3 SR2");
+
+    /// <summary>COBOL5977 — any length picture form (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AnyLengthPictureForm = new(
+        "COBOL5977", "any-length-picture-form", EditionSeverity.Error,
+        "The subject of an ANY LENGTH clause has no PICTURE clause, or its PICTURE is not exactly one instance of N, X or "
+        + "1. §13.18.2.3 SR1: \"A PICTURE clause shall be specified for the subject of the entry. The character-string "
+        + "specified in that PICTURE clause shall be one instance of the picture symbol 'N', 'X', or '1'.\"",
+        "ISO §13.18.2.3 SR1");
+
+    /// <summary>COBOL5978 — any length other clauses (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AnyLengthOtherClauses = new(
+        "COBOL5978", "any-length-other-clauses", EditionSeverity.Error,
+        "An entry with an ANY LENGTH clause specifies a clause the combination does not allow. §13.16.3 SR17: \"If the ANY "
+        + "LENGTH clause is specified, the only other clauses permitted are level-number, entry-name, PICTURE, USAGE, and "
+        + "VALUE.\"",
+        "ISO §13.16.3 SR17");
+
+    /// <summary>COBOL5979 — any length subject not in header (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AnyLengthSubjectNotInHeader = new(
+        "COBOL5979", "any-length-subject-not-in-header", EditionSeverity.Error,
+        "The subject of an ANY LENGTH clause is not referenced in the procedure division header as the rule requires. "
+        + "§13.18.2.3 SR3 (contained program or method): \"a formal parameter with the BY REFERENCE phrase\", or \"the "
+        + "returning item\"; SR4 (function): \"a formal parameter with the BY REFERENCE phrase\".",
+        "ISO §13.18.2.3 SR3, SR4");
+
+    /// <summary>COBOL5980 — any length redefined item (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AnyLengthRedefinedItem = new(
+        "COBOL5980", "any-length-redefined-item", EditionSeverity.Error,
+        "The item a REDEFINES clause redefines is described with the ANY LENGTH clause. §13.18.44.3 SR16: \"Data-name-2 "
+        + "shall not be described with the ANY LENGTH clause.\"",
+        "ISO §13.18.44.3 SR16");
+
+    /// <summary>COBOL5981 — any length call argument (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AnyLengthCallArgument = new(
+        "COBOL5981", "any-length-call-argument", EditionSeverity.Error,
+        "A CALL statement's argument or returning item is described with the ANY LENGTH clause. §14.9.4.3 SR11: "
+        + "\"Identifier-2 and identifier-3 shall not be described with the ANY LENGTH clause.\"; SR18: \"Identifier-4 shall "
+        + "not be described with the ANY LENGTH clause.\"",
+        "ISO §14.9.4.3 SR11, SR18");
+
+    /// <summary>COBOL0898 — value national literal rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ValueNationalLiteralRule = new(
+        "COBOL0898", "value-national-literal-rule", EditionSeverity.Error,
+        "The VALUE of a national or national-edited item is not a national literal, the literal exceeds the item's "
+        + "size, or a national literal seeds an item of another category. §13.18.63.3 SR5: \"If the item is of category "
+        + "national or national-edited, literals in the VALUE clause "
+        + "shall be national literals. National literals in the VALUE clause of an elementary item shall not exceed the "
+        + "size indicated by an explicit PICTURE clause.\"",
+        "ISO §13.18.63.3 SR5");
+
+    /// <summary>COBOL5982 — value boolean literal rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ValueBooleanLiteralRule = new(
+        "COBOL5982", "value-boolean-literal-rule", EditionSeverity.Error,
+        "The VALUE of a boolean item is not a boolean literal, the literal exceeds the item's size, or a boolean literal seeds an item of another category. §13.18.63.3 SR10: "
+        + "\"If the category of the subject of the entry is boolean, literals in the VALUE clause shall be boolean literals. "
+        + "Boolean literals in the VALUE clause of an elementary item shall not exceed the size indicated by an explicit "
+        + "PICTURE clause.\"",
+        "ISO §13.18.63.3 SR10");
+
+    /// <summary>COBOL5983 — boolean condition name through (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor BooleanConditionNameThrough = new(
+        "COBOL5983", "boolean-condition-name-through", EditionSeverity.Error,
+        "A condition-name entry whose conditional variable is boolean specifies THROUGH. §13.18.63.3 SR29: \"If the "
+        + "category of the subject of the entry is boolean, the THROUGH phrase shall not be specified.\"",
+        "ISO §13.18.63.3 SR29");
+
+    /// <summary>COBOL5984 — value literal class numeric edited (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ValueLiteralClassNumericEdited = new(
+        "COBOL5984", "value-literal-class-numeric-edited", EditionSeverity.Error,
+        "The VALUE literal of a numeric-edited item is of the wrong class. §13.18.63.3 SR7: \"If the item is of category "
+        + "numeric-edited and the literal is of class alphanumeric or national, the class of the literal shall conform to "
+        + "that of the data item\".",
+        "ISO §13.18.63.3 SR7");
+
+    /// <summary>COBOL5985 — alphabet name not declared (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AlphabetNameNotDeclared = new(
+        "COBOL5985", "alphabet-name-not-declared", EditionSeverity.Error,
+        "An alphabet-name referenced where a coded character set is required is not declared by a SPECIAL-NAMES ALPHABET "
+        + "clause. §12.3.7.4 GR7 and its Table 6 relate each alphabet-name to the coded character set or collating sequence "
+        + "it references.",
+        "ISO §12.3.7.4 GR7");
+
+    /// <summary>COBOL5986 — alphabet code set branch (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AlphabetCodeSetBranch = new(
+        "COBOL5986", "alphabet-code-set-branch", EditionSeverity.Error,
+        "A coded character set is named in the wrong branch of the ALPHABET clause: the national coded character sets "
+        + "only after FOR NATIONAL, STANDARD-1 and STANDARD-2 (ISO/IEC 646) only in the FOR ALPHANUMERIC branch.",
+        "ISO §12.3.7.2 general format");
+
+    /// <summary>COBOL5987 — special names literal class (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor SpecialNamesLiteralClass = new(
+        "COBOL5987", "special-names-literal-class", EditionSeverity.Error,
+        "An operand of a SPECIAL-NAMES clause that takes literal-4 or literal-9 is not an alphanumeric or national "
+        + "literal. §12.3.7.3 SR10: \"Literal-4 and literal-9 shall be alphanumeric or national literals.\"",
+        "ISO §12.3.7.3 SR10");
+
+    /// <summary>COBOL5988 — special names literal empty (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor SpecialNamesLiteralEmpty = new(
+        "COBOL5988", "special-names-literal-empty", EditionSeverity.Error,
+        "An operand of a SPECIAL-NAMES clause is a symbolic-character figurative constant or a zero-length literal. "
+        + "§12.3.7.3 SR11: \"Literal-1, literal-2, literal-3, literal-4, literal-5, literal-6, and literal-9 shall specify "
+        + "neither a symbolic-character figurative constant nor a zero-length literal.\"",
+        "ISO §12.3.7.3 SR11");
+
+    /// <summary>COBOL5989 — collating sequence alphabet kind (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor CollatingSequenceAlphabetKind = new(
+        "COBOL5989", "collating-sequence-alphabet-kind", EditionSeverity.Error,
+        "The alphabet-name of a PROGRAM COLLATING SEQUENCE clause, or of the COLLATING SEQUENCE phrase of a SORT or MERGE "
+        + "statement, does not reference an alphabet of the required kind. §12.3.6.3 SR1: \"Alphabet-name-1 shall reference "
+        + "an alphabet that defines an alphanumeric collating sequence.\"; SR2: \"Alphabet-name-2 shall reference an alphabet "
+        + "that defines a national collating sequence.\"",
+        "ISO §12.3.6.3 SR1, SR2");
+
+    /// <summary>COBOL5990 — order table repeated (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OrderTableRepeated = new(
+        "COBOL5990", "order-table-repeated", EditionSeverity.Error,
+        "The ORDER TABLE clause is specified more than once in a SPECIAL-NAMES paragraph. The general format of §12.3.7.2 "
+        + "brackets the clause without an ellipsis, unlike the repeatable clauses beside it.",
+        "ISO §12.3.7.2 general format");
+
+    /// <summary>COBOL1532 — strong type level rule (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor StrongTypeLevelRule = new(
+        "COBOL1532", "strong-type-level-rule", EditionSeverity.Error,
+        "A strongly-typed item is specified at a level other than 1 outside a STRONG type declaration. §13.18.57.3 SR6: "
+        + "\"If type-name-1 is described with the STRONG phrase, the subject of the entry shall be specified only with level "
+        + "number 1 or be subordinate to a type declaration that includes the STRONG phrase.\"",
+        "ISO §13.18.57.3 SR6");
+
+    /// <summary>COBOL5991 — strong type redefined (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor StrongTypeRedefined = new(
+        "COBOL5991", "strong-type-redefined", EditionSeverity.Error,
+        "A strongly-typed item is redefined, explicitly or implicitly (a record-area SAME clause, or the multiple level 1 "
+        + "entries of an FD or SD). §13.18.57.3 SR4: \"If type-name-1 is described with the STRONG phrase, the subject of "
+        + "the entry shall not be implicitly or explicitly redefined in whole or in part.\"",
+        "ISO §13.18.57.3 SR4");
+
+    /// <summary>COBOL5992 — strong type renamed (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor StrongTypeRenamed = new(
+        "COBOL5992", "strong-type-renamed", EditionSeverity.Error,
+        "A strongly-typed item is renamed in whole or in part. §13.18.57.3 SR3: \"If type-name-1 is described with the "
+        + "STRONG phrase, the subject of the entry shall not be renamed in whole or in part.\"",
+        "ISO §13.18.57.3 SR3");
+
+    /// <summary>COBOL1586 — table value from subscript out of range (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor TableValueFromSubscriptOutOfRange = new(
+        "COBOL1586", "table-value-from-subscript-out-of-range", EditionSeverity.Error,
+        "A subscript-1 of a Format 2 VALUE FROM phrase exceeds the maximum number of occurrences of its OCCURS clause. "
+        + "§13.18.63.3 SR20: \"Each instance of subscript-1 shall not exceed the maximum number of occurrences specified in "
+        + "the OCCURS clause associated with that instance.\"",
+        "ISO §13.18.63.3 SR20");
+
+    /// <summary>COBOL1587 — table value to subscript invalid (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor TableValueToSubscriptInvalid = new(
+        "COBOL1587", "table-value-to-subscript-invalid", EditionSeverity.Error,
+        "A subscript-2 of a Format 2 VALUE TO phrase exceeds the maximum number of occurrences of its OCCURS clause, or "
+        + "names a table element before the one subscript-1 names. §13.18.63.3 SR21: \"The specification of subscript-2 in "
+        + "one TO phrase shall be such that the table element associated with subscript-2 is the same occurrence or a "
+        + "successive occurrence of the table element associated with the corresponding subscript-1.\"",
+        "ISO §13.18.63.3 SR21");
+
+    /// <summary>COBOL1588 — table value without to under dynamic (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor TableValueWithoutToUnderDynamic = new(
+        "COBOL1588", "table-value-without-to-under-dynamic", EditionSeverity.Error,
+        "A Format 2 VALUE clause without the TO phrase is specified in, or subordinate to, an OCCURS DYNAMIC entry that "
+        + "has no TO phrase. §13.18.63.3 SR22: \"A VALUE clause without the TO phrase shall not be specified in the same "
+        + "entry as an OCCURS clause with a DYNAMIC phrase but no TO phrase, or in any entry subordinate to such an OCCURS "
+        + "clause.\"",
+        "ISO §13.18.63.3 SR22");
+
+    /// <summary>COBOL1512 — lock multiple on sequential file (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor LockMultipleOnSequentialFile = new(
+        "COBOL1512", "lock-multiple-on-sequential-file", EditionSeverity.Error,
+        "The LOCK MODE clause specifies the MULTIPLE phrase for a file with sequential organization or sequential access. "
+        + "§12.4.5.9.3 SR2: \"The MULTIPLE phrase shall not be specified for a file described with sequential organization "
+        + "or sequential access mode.\"",
+        "ISO §12.4.5.9.3 SR2");
+
+    /// <summary>COBOL5993 — lock phrase under automatic locking (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor LockPhraseUnderAutomaticLocking = new(
+        "COBOL5993", "lock-phrase-under-automatic-locking", EditionSeverity.Error,
+        "A READ, REWRITE or WRITE statement specifies a lock phrase for a file whose locking is automatic. §14.9.30.3 "
+        + "SR4: \"If automatic locking has been specified for file-name-1, none of the phrases IGNORING LOCK, WITH LOCK, or "
+        + "WITH NO LOCK shall be specified.\"; §14.9.35.3 SR4 and §14.9.51.3 SR22 say the same of REWRITE and WRITE.",
+        "ISO §14.9.30.3 SR4; §14.9.35.3 SR4; §14.9.51.3 SR22");
+
+    /// <summary>COBOL5994 — open sharing all requires lock mode (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor OpenSharingAllRequiresLockMode = new(
+        "COBOL5994", "open-sharing-all-requires-lock-mode", EditionSeverity.Error,
+        "An OPEN statement shares a file with all others although the file has no LOCK MODE clause. §14.9.27.3 SR8: \"if "
+        + "the sharing phrase is omitted from the OPEN statement and the ALL phrase is specified in the SHARING clause of "
+        + "the file control entry for file-name-1 or if the ALL phrase is specified on the OPEN statement, the LOCK MODE "
+        + "clause shall be specified in the file control entry for file-name-1.\"",
+        "ISO §14.9.27.3 SR8");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

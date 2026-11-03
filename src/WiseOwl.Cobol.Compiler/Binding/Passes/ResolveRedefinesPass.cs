@@ -121,7 +121,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 // §13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY
                 // LENGTH clause — a runtime-length item has no fixed storage area a redefiner could overlay.
                 if (written && item.RedefinesTarget is { IsAnyLength: true })
-                    binder.Edition.Error("COBOL1542", $"'{item.CobolName ?? "FILLER"}' REDEFINES "
+                    binder.Edition.Error(DiagnosticCatalog.AnyLengthRedefinedItem, $"'{item.CobolName ?? "FILLER"}' REDEFINES "
                         + $"'{tname}': the redefined item is described with the ANY LENGTH clause "
                         + "(ISO §13.18.44.3 SR16 — data-name-2 shall not be ANY LENGTH)");
                 // §13.18.44.3 SR1-SR3, SR8, SR10, SR13, SR15 — the entry-level rules over the resolved pair
@@ -436,7 +436,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
         // redefiner would run past it.
         bool exempt = target.Level == 1 && !target.HasExternalClause;
         if (!exempt && StorageBitsOf(item) is var itemBits && StorageBitsOf(target) is var targetBits && itemBits > targetBits)
-            binder.Edition.Error("COBOL1539", $"'{name}' REDEFINES '{tname}': the redefining storage area "
+            binder.Edition.Error(DiagnosticCatalog.RedefinesStorageLargerThanTarget, $"'{name}' REDEFINES '{tname}': the redefining storage area "
                 + $"({itemBits} bits) is larger than the redefined ({targetBits}) — permitted only when the redefined "
                 + "item is level 1 and not EXTERNAL (ISO §13.18.44.3 SR8)");
 

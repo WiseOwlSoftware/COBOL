@@ -54,7 +54,7 @@ Deep, decision-complete design for the WiseOwl COBOL FILES subsystem (typed reco
 > `RedefinesTarget` through `DataItem.SetRedefinition`. The §13.18.44.3 REDEFINES-clause syntax rules (SR5, SR8,
 > SR12, SR14, SR16, SR17) screen `Clause` members only — an implicit redefinition has no clause and no
 > data-name-2. What DOES reach the implicit case is §13.18.57.3 SR4 ("shall not be implicitly or explicitly
-> redefined"): a strongly-typed item anywhere in a record that shares its area is COBOL1532, tested on BOTH
+> redefined"): a strongly-typed item anywhere in a record that shares its area is COBOL5991, tested on BOTH
 > sides of the pair because the sharing is symmetric. A dynamic-length, variable-length-group or pointer-class
 > record never joins the class at all — it is an OUT-OF-LINE record (D27). What can still be staged loud as
 > COBOL0899 (`implicit-record-area-shape`) is a character-window record with a byte-window residue — never

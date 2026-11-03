@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Passes;
 
@@ -52,7 +53,7 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
         bool isAlnumLit = lit is LiteralClass.Alphanumeric || allLit is LiteralClass.Alphanumeric;
         if (!isNatLit && !isAlnumLit) return;   // a numeric literal, a boolean literal or a figurative — not SR7's
         if (isNatLit == (pic.Usage is Usage.National)) return;
-        binder.Edition.Error("COBOL0898", $"{where}: the VALUE literal {raw} is of class "
+        binder.Edition.Error(DiagnosticCatalog.ValueLiteralClassNumericEdited, $"{where}: the VALUE literal {raw} is of class "
             + $"{(isNatLit ? "national" : "alphanumeric")}, but the numeric-edited item is of usage "
             + $"{(pic.Usage is Usage.National ? "NATIONAL and therefore of class national" : "DISPLAY and therefore of class alphanumeric")}"
             + " — the class of the literal shall conform to that of the data item (ISO §13.18.63.3 SR7; "

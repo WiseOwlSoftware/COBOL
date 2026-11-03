@@ -1591,7 +1591,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.SubjectToApplyCommit) return true;   // SR8's leading conjunct — cf. §12.4.5.9.3 SR1
         if (!(effectiveSharing is SharingMode.AllOther && file.LockMode is null)) return true;
-        data.Edition.Error("COBOL1512", $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
+        data.Edition.Error(DiagnosticCatalog.OpenSharingAllRequiresLockMode, $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
             + "requires the file to have a LOCK MODE clause (ISO §14.9.27.3 SR8)");
         return false;
     }

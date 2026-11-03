@@ -75,7 +75,7 @@ internal sealed class OdoResolvePass : IBindPass
 
             // SR16: 0 ≤ integer-1 < integer-2.
             if (spec.Min < 0 || spec.Min >= spec.Max)
-                binder.Edition.Error("COBOL0850", $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
+                binder.Edition.Error(DiagnosticCatalog.OccursDependingBoundsInvalid, $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
                     + "be greater than or equal to zero and less than integer-2 (ISO §13.18.38.3 SR16)");
 
             // data-name-1 resolution. A counter under a group the table is ALSO subordinate to is found first:
@@ -132,7 +132,7 @@ internal sealed class OdoResolvePass : IBindPass
                 // A refused declaration was reported at its entry.
                 var nonData = binder.NonDataDeclarationOf(depName, spec.DependingQualifiers, binder.ScopeOf(item.Root));
                 if (nonData is { DeclarationRefused: true }) continue;
-                binder.Edition.Error("COBOL0851", $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
+                binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectUndefined, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (nonData is { } declared
                         ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} (ISO §8.4.2.1: \"a statement "
                           + "shall contain a reference that uniquely identifies that resource\")"
@@ -168,7 +168,7 @@ internal sealed class OdoResolvePass : IBindPass
             // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
             if (notInteger && !DeclarationFact(dep))
-                binder.Edition.Error("COBOL0852", $"OCCURS DEPENDING ON '{depName}' on '{subject}': data-name-1 "
+                binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectNotInteger, $"OCCURS DEPENDING ON '{depName}' on '{subject}': data-name-1 "
                     + "shall describe an integer (ISO §13.18.38.3 SR17)" + via);
 
             // SR18 / SR21 (kb/Work PB1261): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
@@ -187,7 +187,7 @@ internal sealed class OdoResolvePass : IBindPass
             // DataItem.SubscriptArity (a walk written nowhere else: SubscriptAdmissionDriftTests); the fault involves
             // data-name-1 and the innermost table that makes it subscripted.
             if (subscripted && !DeclarationFact(dep, dep.SubscriptLevels()[^1]))
-                binder.Edition.Error("COBOL0853", $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
+                binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectSubscripted, $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)" + via);
 
             // SR1(b)/SR10: "complex ODO" is illegal at every edition — tables may be nested only when the
@@ -195,7 +195,7 @@ internal sealed class OdoResolvePass : IBindPass
             // nearest enclosing table (DYNAMIC included — `Occurs is not null` let an ODO table nest under OCCURS
             // DYNAMIC, kb/Work PB1260) is the last of the parent's subscript levels.
             if (item.Parent is { SubscriptArity: > 0 } enclosing && !DeclarationFact(enclosing.SubscriptLevels()[^1]))
-                binder.Edition.Error("COBOL0854", $"occurs-depending table '{subject}' is subordinate to the "
+                binder.Edition.Error(DiagnosticCatalog.OccursDependingTableNested, $"occurs-depending table '{subject}' is subordinate to the "
                     + $"OCCURS item '{enclosing.SubscriptLevels()[^1].CobolName}': tables may be nested only when the "
                     + "DEPENDING phrase is "
                     + "absent (ISO §13.18.38.3 SR1(b)/SR10)" + via);
@@ -213,7 +213,7 @@ internal sealed class OdoResolvePass : IBindPass
                     if (item.IsCopiedUnder(placedAt) && a.IsCopiedUnder(placedAt) && a.ClonedFrom is { } source
                         && InRedefinesArea(source))
                         continue;
-                    binder.Edition.Error("COBOL0855", $"occurs-depending table '{subject}' lies within a REDEFINES "
+                    binder.Edition.Error(DiagnosticCatalog.OccursDependingTableInRedefinesArea, $"occurs-depending table '{subject}' lies within a REDEFINES "
                         + "area: neither the original nor a redefinition may include an OCCURS DEPENDING ON "
                         + "table (ISO §13.18.44.3 SR5)" + via);
                     break;
@@ -229,7 +229,7 @@ internal sealed class OdoResolvePass : IBindPass
                     // Followed inside the copy (the table and its follower are both copied members): the declaration's
                     // fact, reported there. The climb goes on, for the entries above the copy are the placement's.
                     if (DeclarationFact(n)) continue;
-                    binder.Edition.Error("COBOL0856", $"occurs-depending table '{subject}' is followed by a "
+                    binder.Edition.Error(DiagnosticCatalog.OccursDependingTableNotLast, $"occurs-depending table '{subject}' is followed by a "
                         + "non-subordinate entry in its record: the subject of an OCCURS DEPENDING ON entry may "
                         + "be followed, within that record, only by data items subordinate to it "
                         + "(ISO §13.18.38.3 SR22)" + via);
@@ -241,7 +241,7 @@ internal sealed class OdoResolvePass : IBindPass
             // first byte position defined by the data description entry containing the OCCURS clause and the last
             // byte position defined by the record description entry containing that OCCURS clause."
             if (inTableRange && !DeclarationFact(dep))
-                binder.Edition.Error("COBOL0857", $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
+                binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectInTableRange, $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
                     + "position to the last byte position of its record (ISO §13.18.38.3 SR20)"
                     + (ReferenceEquals(dep.Root, item.Root) ? ""

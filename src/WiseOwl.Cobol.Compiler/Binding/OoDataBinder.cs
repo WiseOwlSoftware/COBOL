@@ -429,7 +429,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             if (root.IsAnyLength)
             {
                 using var localAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
-                Edition.Error("COBOL1542", $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
                     + "LENGTH clause may be specified only in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
                 root.IsAnyLength = false;
             }
@@ -439,14 +439,14 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             using var linkageAt = Edition.At(root);   // the entry's own position, as AnyLengthValidateUnit's (kb/Work PB2034)
             string rw = $"{where}: data item '{root.CobolName ?? "FILLER"}'";
             if (root.IsGroup)
-                Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
                     + "— this entry has subordinate items (ISO §13.18.2.3 SR2)");
             else if (m.Accessor != '\0')
-                Edition.Error("COBOL1542", $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
+                Edition.Error(DiagnosticCatalog.AnyLengthPlacement, $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
                     + "method (ISO §13.18.2.3 SR2 — a method that is not a property method)");
             else if (!m.Binding!.Formals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue)   // SR3 a): a BY VALUE formal does not qualify
                 && !ReferenceEquals(m.Binding!.Returning, root))
-                Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
+                Edition.Error(DiagnosticCatalog.AnyLengthSubjectNotInHeader, $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
                     + "in the method's procedure division header as a BY REFERENCE formal parameter or as the "
                     + "RETURNING item (ISO §13.18.2.3 SR3)");
             else

@@ -1390,7 +1390,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // (§13.18.2.3 SR2/SR3 make such a formal exist only in a contained program, function or method).
         bool anyLengthBanned = !formatTwo || (!isReturning && mode is CobolPassMode.Content or CobolPassMode.Value);
         if (item.IsAnyLength && anyLengthBanned)
-            ctx.Edition.Error("COBOL1542", $"CALL {role} '{name}' is described with the ANY LENGTH clause "
+            ctx.Edition.Error(DiagnosticCatalog.AnyLengthCallArgument, $"CALL {role} '{name}' is described with the ANY LENGTH clause "
                 + (formatTwo ? "(ISO §14.9.4.3 SR18)" : "(ISO §14.9.4.3 SR11)"));
 
         // SR3 sentence 2: BY REFERENCE (specified or implied) shall not carry factory/instance object data.

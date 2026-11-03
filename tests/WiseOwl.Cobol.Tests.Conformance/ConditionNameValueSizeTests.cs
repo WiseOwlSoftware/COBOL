@@ -139,7 +139,7 @@ public sealed class ConditionNameValueSizeTests
         var (bok, berrors, _) = EditionHarness.CompileFull(
             Program("01 B1 PIC 1(2) USAGE BIT VALUE B\"101\".", "    DISPLAY B1"), edition);
         Assert.False(bok);
-        EditionHarness.AssertHasDiagnostic(berrors, "COBOL0898");
+        EditionHarness.AssertHasDiagnostic(berrors, "COBOL5982");
     }
 
     /// <summary>The CLASS half of SR4 / SR5 / SR10 is untouched and still binds a condition-name: SR4 and SR5 are
@@ -147,14 +147,14 @@ public sealed class ConditionNameValueSizeTests
     /// half was withheld — a fix that dropped the whole subject would pass every test above and this one is what
     /// catches it.</summary>
     [Theory]
-    [InlineData(2023, "01 XV PIC X.\n   88 XC VALUE N\"AB\".")]
-    [InlineData(2023, "01 NV PIC N(2).\n   88 NC VALUE \"ab\".")]
-    [InlineData(2023, "01 BV PIC 1(2) USAGE BIT.\n   88 BC VALUE \"ab\".")]
-    [InlineData(2002, "01 NV PIC N(2).\n   88 NC VALUE B\"10\".")]
-    public void TheClassHalfStillBindsAConditionName(int edition, string decls)
+    [InlineData(2023, "01 XV PIC X.\n   88 XC VALUE N\"AB\".", "COBOL0898")]
+    [InlineData(2023, "01 NV PIC N(2).\n   88 NC VALUE \"ab\".", "COBOL0898")]
+    [InlineData(2023, "01 BV PIC 1(2) USAGE BIT.\n   88 BC VALUE \"ab\".", "COBOL5982")]
+    [InlineData(2002, "01 NV PIC N(2).\n   88 NC VALUE B\"10\".", "COBOL0898")]
+    public void TheClassHalfStillBindsAConditionName(int edition, string decls, string code)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program(decls, "    CONTINUE"), edition);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOL0898");
+        EditionHarness.AssertHasDiagnostic(errors, code);
     }
 }
