@@ -223,6 +223,24 @@ check("live calibration: the 14:54 reading does not hold the loop", r["decision"
 r = budget.estimate(meter, [r0], source(spend), FIXTURE, A2)
 check("the 2026-10-04 constants held it (the defect)", r["decision"], "hold-session")
 
+# kb/Work PB4505: the status line's live reading. Each account reads its OWN config dir's rate-limits.json; a file older
+# than LIVE_MAX_AGE, unreadable or without a weekly row anchors nothing; a missing five_hour row (an Ultra plan) is 0.
+now = at(2026, 11, 3, 12, 30)
+tap = {"captured_at": (now - dt.timedelta(minutes=2)).astimezone(dt.timezone.utc).isoformat(), "session_id": "s",
+       "rate_limits": {"seven_day": {"used_percentage": 29, "resets_at": 1762596000}}}
+(A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(tap), encoding="utf-8", newline="\n")
+live = budget.live_reading(A1, now)
+check("live: account 1 reads its own file's weekly percent", live and (live["account"], live["weekly_pct"]), ("account1", 29.0))
+check("live: no five_hour row (Ultra) reads as session 0 with no reset", live and (live["session_pct"], live["session_reset"]), (0.0, None))
+check("live: account 2 has no file, so no live reading", budget.live_reading(A2, now), None)
+check("live: a reading older than LIVE_MAX_AGE anchors nothing", budget.live_reading(A1, now + budget.LIVE_MAX_AGE), None)
+(A1.config_dir / budget.LIVE_FILE).write_text("{oops", encoding="utf-8", newline="\n")
+check("live: an unreadable file anchors nothing", budget.live_reading(A1, now), None)
+(A1.config_dir / budget.LIVE_FILE).write_text(json.dumps({**tap, "rate_limits": {"five_hour": {"used_percentage": 3}}}),
+                                              encoding="utf-8", newline="\n")
+check("live: a file with no seven_day row anchors nothing", budget.live_reading(A1, now), None)
+(A1.config_dir / budget.LIVE_FILE).unlink()
+
 for f in fails:
     print("FAIL:", f)
 print(f"budget self-test: {len(checked) - len(fails)}/{len(checked)} checks OK")
