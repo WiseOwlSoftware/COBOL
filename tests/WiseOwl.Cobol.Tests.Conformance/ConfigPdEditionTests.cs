@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// EXACT-COUNT witnesses for the Step-14g.4 gates — the file-control SHARING (§12.4.5.15) and LOCK MODE (§12.4.5.9)
 /// clauses, the SPECIAL-NAMES FOR ALPHANUMERIC/NATIONAL phrase (§12.3.7), and the PROCEDURE DIVISION RETURNING (§14.2)
 /// and RAISING (§14.2.2) phrases — all COBOL-2002 introductions relocated from their bind-time Checks
-/// (DataBinder.BindFileControl / SwitchBindSpecialNames / CallBindLinkage) to the post-bind <c>VersionConformancePass</c>
+/// (FileControlBinder.BindFileControl / SpecialNamesBinder.BindSpecialNames / CallBindLinkage) to the post-bind <c>VersionConformancePass</c>
 /// parse-arm on RECOGNITION. The version matrix + the contains-based conformance suite verify PRESENCE; these pin the
 /// FIRING COUNT. The load-bearing case is <see cref="MethodReturning_At85_NotGated"/>: the procedureDivision rule is
 /// SHARED by program and method PDs, but CallBindLinkage gated program units only — so a method's RETURNING must NOT

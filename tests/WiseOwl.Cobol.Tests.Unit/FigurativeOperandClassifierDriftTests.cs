@@ -121,7 +121,7 @@ public sealed class FigurativeOperandClassifierDriftTests
     private static readonly Dictionary<string, string> SanctionedWordMaps = new(StringComparer.OrdinalIgnoreCase)
     {
         ["FigurativeConstants.cs"] = "THE vocabulary — FigurativeConstants.KindOf, which every other reader asks",
-        ["DataBinder.Switches.cs"] = "AlphabetFigurative — §12.3.7.4 GR10's SPECIAL-NAMES mapping, a DIFFERENT "
+        ["SpecialNamesBinder.Alphabets.cs"] = "AlphabetFigurative — §12.3.7.4 GR10's SPECIAL-NAMES mapping, a DIFFERENT "
             + "rule with different values (HIGH-/LOW-VALUE are the NATIVE extremes there, never the sequence "
             + "being defined); it still respells the vocabulary and is REGISTERED FOR FOLDING, not justified",
     };

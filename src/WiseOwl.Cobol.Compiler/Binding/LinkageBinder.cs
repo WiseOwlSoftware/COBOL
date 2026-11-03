@@ -39,7 +39,7 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
     /// field IS that item's implicit data-address pointer, set at activation to the argument's own storage area
     /// (<c>CobolArgAdapt.Area</c>) — ISO §14.2.3 GR8, "the activated runtime element operates as if the formal
     /// parameter occupies the same storage area as the argument". Derived from the class the binder claimed
-    /// (<c>DataBinder.PtrBindBasedAndAddressables</c>), so the emitter and the binder cannot disagree about which
+    /// (<c>PtrBindBasedAndAddressablesPass</c>), so the emitter and the binder cannot disagree about which
     /// formals are areas.</summary>
     public bool IsArea => !CarrierResident && Item.Class?.BasedPointerField == CarrierField;
 
@@ -81,7 +81,7 @@ public sealed record CallExternalBacking(string BackingClrName, string CellClrNa
 internal enum ExternalizedSubjectKind { DataItem, File }
 
 /// <summary>One EXTERNAL file connector or record of a source element, as the externalized-name namespace sees it
-/// (<see cref="DataBinder.ExternalizedSubjects"/>). <paramref name="Name"/> is the externalized name (§13.18.22.4
+/// (<see cref="LinkageBinder.ExternalizedSubjects"/>). <paramref name="Name"/> is the externalized name (§13.18.22.4
 /// GR5); <paramref name="Word"/> the entry's own user-defined word; <paramref name="Spelling"/> how a diagnostic
 /// names the entry back to the user.</summary>
 internal readonly record struct ExternalizedSubject(
@@ -153,64 +153,55 @@ internal sealed record ProgramPrototype(string Name, string ExternalizedName, Pr
 }
 
 /// <summary>
-/// The LINKAGE SECTION / EXTERNAL / GLOBAL half of the data binder (INTERPROGRAM_DESIGN D1–D5).
+/// The LINKAGE SECTION / EXTERNAL / GLOBAL binder of one source element (INTERPROGRAM_DESIGN D1–D5;
+/// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2359). It owns the LINKAGE facts (the roots,
+/// the PROCEDURE DIVISION USING formals and RETURNING item, the §13.7.3 SR4/SR5 referenceability sets), the EXTERNAL
+/// records' backings, the GLOBAL roots and the fields the emitter must not declare, and every writer of them; the rest
+/// of the data binder reaches it through <see cref="DataBinder.Linkage"/>, and the emitter reads the facts from there.
 /// LINKAGE 01/77 items bind into the ordinary storage forest (so every verb, REDEFINES tier, level-88, and
 /// OCCURS path works unchanged — ISO §13.7: linkage entries are ordinary record descriptions whose STORAGE
 /// belongs to the caller); the PROCEDURE DIVISION header's USING/RETURNING operands then designate which roots
 /// are formal parameters (§14.2.2 SR1) and how each is carried. EXTERNAL level-01/77 records become Tier-B
 /// string windows over a run-unit <c>ExternalStore</c> cell (§8.6.7 — one storage copy per name per run unit);
 /// GLOBAL level-01/77 roots are collected for the emitter's containment inheritance (§13.18.27 GR1–2).
+/// <para>It binds INSIDE the data binder's passes, over the forest <paramref name="data"/> owns: the name tables, the
+/// entry binder and the cell-backing forcer are the binder's, the linkage facts are this type's.</para>
 /// </summary>
-public sealed partial class DataBinder
+internal sealed class LinkageBinder(DataBinder data)
 {
     /// <summary>The LINKAGE SECTION's top-level (01/77) items, in source order (ISO §13.7).</summary>
-    public List<DataItem> LinkageRoots { get; } = [];
+    public IReadOnlyList<DataItem> Roots => _roots;
+    private readonly List<DataItem> _roots = [];
 
-    /// <summary>True when this binder binds a CONTAINED program unit (ISO §13.18.2.3 SR2/SR3 — the ANY LENGTH
-    /// placement rules differ per unit kind). Set by <c>BinderDriver.BindUnitData</c> from the unit's Parent.</summary>
-    public bool UnitIsContained { get; init; }
-
-    /// <summary>True when this binder binds a FUNCTION-ID unit (ISO §13.18.2.3 SR2/SR4). Set by
-    /// <c>BinderDriver.BindUnitData</c> from <c>BoundUnit.IsFunction</c>.</summary>
-    public bool UnitIsFunction { get; init; }
-
-    /// <summary>The names of the definitions CONTAINING this source element — its own and, for a contained program,
-    /// every program containing it; all of the unit's own kind (<see cref="UnitIsFunction"/>) — the no-specifier leg
-    /// of the two prototype-name scope rules: ISO §8.4.6.6 admits "the user-function-name of the containing function
-    /// definition" as a function-prototype-name and §8.4.6.8 "the program-name of a containing program definition"
-    /// as a program-prototype-name, so a <c>USAGE {FUNCTION|PROGRAM}-POINTER TO</c> naming one is conforming without
-    /// a REPOSITORY entry. This is the DATA-phase copy of the ONE set the registries read
-    /// (<c>BinderDriver.ContainingDefinitions</c>, which seeds it from <c>BindUnitData</c>), so the TO-phrase screen
-    /// and the signature the restriction resolves to cannot disagree (kb/Work PB3121). Empty for a class, factory or
-    /// interface forest: a class is neither definition kind. kb/Work PB452/PB817.</summary>
-    public IReadOnlySet<string> ContainingDefinitionNames { get; init; } = EmptyNames;
-    private static readonly IReadOnlySet<string> EmptyNames = new HashSet<string>(CobolNames.Comparer);
-
-    /// <summary>The PROCEDURE DIVISION USING formals, positional (ISO §14.2.3 GR2). (READ-ONLY view — P6 Step 5.)</summary>
-    public IReadOnlyList<LinkageFormal> LinkageFormals => _linkageFormals;
-    private readonly List<LinkageFormal> _linkageFormals = [];
+    /// <summary>The PROCEDURE DIVISION USING formals, positional (ISO §14.2.3 GR2).</summary>
+    public IReadOnlyList<LinkageFormal> Formals => _formals;
+    private readonly List<LinkageFormal> _formals = [];
 
     /// <summary>The PROCEDURE DIVISION RETURNING item (a LINKAGE 01/77; ISO §14.2.3 GR6 — its storage is
     /// allocated in the activated element), or null. COBOL-2002+ (the grammar gates the clause).</summary>
-    public DataItem? LinkageReturning { get; private set; }
+    public DataItem? Returning { get; private set; }
 
     /// <summary>The C# names of class-level fields the <c>FieldEmitter</c> must NOT declare because another
     /// mechanism provides the member: a carrier-resident LINKAGE formal has no field, because its storage is reached
     /// through its carrier (<see cref="DataItem.ResidentCarrier"/> — the caller owns the storage, ISO §13.7.1 /
     /// §14.2.3 GR8), and an inherited
     /// GLOBAL table's index field is a <c>ref</c>-bridge to the containing instance (ISO §13.18.27 GR2 —
-    /// global index-names are shared, never duplicated). (READ-ONLY view — P6 Step 5; written by the LINKAGE and
-    /// OO binders. The inherited-index seeding member this comment once named was deleted by kb/Work PB919, whose
-    /// per-table index declarations now carry an inherited GLOBAL index-name.)</summary>
-    public IReadOnlySet<string> CallSuppressedRootFields => _callSuppressedRootFields;
-    private readonly HashSet<string> _callSuppressedRootFields = new(StringComparer.Ordinal);
+    /// global index-names are shared, never duplicated). Written by this binder and by the OO binder
+    /// (<see cref="SuppressRootField"/>). The inherited-index seeding member this comment once named was deleted by
+    /// kb/Work PB919, whose per-table index declarations now carry an inherited GLOBAL index-name.</summary>
+    public IReadOnlySet<string> SuppressedRootFields => _suppressedRootFields;
+    private readonly HashSet<string> _suppressedRootFields = new(StringComparer.Ordinal);
+
+    /// <summary>Declare that the member <paramref name="clrName"/> is provided by another mechanism, so the
+    /// <c>FieldEmitter</c> must not declare it (<see cref="SuppressedRootFields"/>).</summary>
+    internal void SuppressRootField(string clrName) => _suppressedRootFields.Add(clrName);
 
     /// <summary>Level-1 roots carrying an ADMITTED GLOBAL clause (ISO §13.18.27.3 SR1 b) — file, working-storage,
     /// local-storage or linkage section), plus the records of a GLOBAL FD (§13.18.27.4 GR1) — visible to every
     /// directly/indirectly contained program (GR1–2); the emitter injects them into contained units' binders and
-    /// bridges their fields into the nested classes. (READ-ONLY view — P6 Step 5.)</summary>
-    public IReadOnlyList<DataItem> CallGlobalRoots => _callGlobalRoots;
-    private readonly List<DataItem> _callGlobalRoots = [];
+    /// bridges their fields into the nested classes.</summary>
+    public IReadOnlyList<DataItem> GlobalRoots => _globalRoots;
+    private readonly List<DataItem> _globalRoots = [];
 
     /// <summary>⛔ THE ONE LIST OF THIS UNIT'S MEMBERS THAT A REFERENCE TO GLOBAL ROOT <paramref name="g"/> CAN
     /// RENDER (kb/Work PB1009) — each becomes a bridge in a contained program, re-anchored by
@@ -256,7 +247,7 @@ public sealed partial class DataBinder
             // An AREA formal's carrier IS this pointer (LinkageFormal.IsArea), so the bridge names the formal too.
             if (cls.BasedPointerField is { } addr)
                 yield return new(addr, CallBridgeKind.Address, null,
-                    _linkageFormals.FirstOrDefault(f => f.IsArea && f.CarrierField == addr));
+                    _formals.FirstOrDefault(f => f.IsArea && f.CarrierField == addr));
         }
         else
         {
@@ -266,7 +257,7 @@ public sealed partial class DataBinder
             // only the SUBJECT of the REDEFINES carries the global attribute, so the canonical need not be global
             // itself; the storage it names is the one both entries share (§13.18.44.4 GR1).
             var anchor = AnchorOf(g);
-            if (_linkageFormals.FirstOrDefault(f => f.CarrierResident && ReferenceEquals(f.Item, anchor)) is { } rf)
+            if (_formals.FirstOrDefault(f => f.CarrierResident && ReferenceEquals(f.Item, anchor)) is { } rf)
             {
                 yield return new(rf.CarrierField, CallBridgeKind.Carrier, anchor, rf);
                 // Its argument area (kb/Work PB2096): a contained program's BY REFERENCE forward of this formal passes
@@ -277,7 +268,7 @@ public sealed partial class DataBinder
             else
                 yield return new(anchor.ClrName, CallBridgeKind.Field, anchor);
             if (!ReferenceEquals(anchor, g))
-                foreach (var idx in IndexDeclarationsUnder(anchor))
+                foreach (var idx in DataBinder.IndexDeclarationsUnder(anchor))
                     yield return new(idx.Cell, CallBridgeKind.Index, null);
             if (anchor.OmittedGuard is { } ag && !ReferenceEquals(anchor, g))
                 yield return new(ag.Presence, CallBridgeKind.Presence, anchor);
@@ -286,7 +277,7 @@ public sealed partial class DataBinder
         // container's presence member under the same Uid-keyed name (kb/Work PB971).
         if (g.OmittedGuard is { } og)
             yield return new(og.Presence, CallBridgeKind.Presence, g);
-        foreach (var idx in IndexDeclarationsUnder(g))
+        foreach (var idx in DataBinder.IndexDeclarationsUnder(g))
             yield return new(idx.Cell, CallBridgeKind.Index, null);
     }
 
@@ -296,83 +287,6 @@ public sealed partial class DataBinder
     private static DataItem AnchorOf(DataItem item) =>
         item.Class is { Tier: RedefinesTier.Alias } cls && !item.IsCanonical ? cls.Canonical : item;
 
-    /// <summary>⛔ THE NESTING DISTANCE OF EVERY INHERITED GLOBAL DECLARATION (kb/Work PB1047 / PB1243) — the tier
-    /// ISO §8.4.6.2.1 3) selects on. Absent = 0: the item is this source element's own. n = the item is a global
-    /// name of the n-th containing program. Keyed by identity, because the SAME container item is inherited into
-    /// every contained program at a different distance.</summary>
-    private readonly Dictionary<DataItem, int> _inheritedGlobalDepth = new(ReferenceEqualityComparer.Instance);
-
-    /// <summary>How many containment levels out <paramref name="item"/> is declared: 0 for an item this source
-    /// element declares (or any item of a unit that inherits nothing), n for a GLOBAL item of its n-th container.</summary>
-    internal int DeclaringDepth(DataItem item) =>
-        _inheritedGlobalDepth.Count != 0 && _inheritedGlobalDepth.TryGetValue(item, out int depth) ? depth : 0;
-
-    /// <summary>True when this unit inherits any container's global data — the only case in which a candidate set
-    /// can span tiers, so the nearest-tier filter is free for every other unit.</summary>
-    internal bool InheritsGlobalData => _inheritedGlobalDepth.Count != 0;
-
-    /// <summary>⛔ THE ONE QUESTION "IS THIS WORD A DATA-NAME THIS SOURCE ELEMENT ITSELF DEFINES?" — the test behind
-    /// every rule that reads "shall not be defined elsewhere in the source element" (§13.18.38.3 SR30 for a CAPACITY
-    /// register, §13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in
-    /// ordinary storage" screens (§8.4.2.1). A container's GLOBAL data-name is inherited into <see cref="ByName"/>
-    /// before the resolve passes run (<see cref="InheritContainerGlobalData"/>), but it is defined in ANOTHER source
-    /// element: this element's own declaration of the spelling hides it (§8.4.6.2.1 3), so it can neither duplicate
-    /// nor be duplicated by it. Asking <c>ByName.ContainsKey</c> instead refuses a legal program (kb/Work PB3766,
-    /// review finding R2-1).</summary>
-    internal bool DeclaresOwnDataName(string name) =>
-        ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
-
-
-    /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2),
-    /// beside <see cref="ReportSectionBinder.InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
-    /// names are declared, so a name it declares hides the container's (§8.4.6.2.1 3), and BEFORE
-    /// <see cref="BindResolve"/>, so every clause of this unit's own data division that names a data item (FILE
-    /// STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) finds the container's GLOBAL item.
-    /// Inheriting after the whole <c>Bind</c> told a programmer that a name the container declares GLOBAL "is not
-    /// defined" (the data-item twin of kb/Work PB3766's report case).</summary>
-    private void InheritContainerGlobalData()
-    {
-        foreach (var (root, depth) in State.Inherited.DataRoots)
-            InheritGlobalSubtree(root, depth);
-    }
-
-    /// <summary>Make one container GLOBAL root's whole subtree visible here, <paramref name="depth"/> containment
-    /// levels out (ISO §13.18.27.4 GR2 — "may reference that name without describing it again"): every data-name
-    /// (§8.4.6.2.2: "All data-names and screen-names subordinate to a global name are global names"), every
-    /// condition-name associated with one ("All condition-names associated with a global name are global names"),
-    /// every level-66 RENAMES of the record, and — by §8.4.6.2.3, "the scope of an index-name is identical to that
-    /// of the data-name that names the table" — every index-name (kb/Work PB919), and every named OCCURS DYNAMIC
-    /// CAPACITY register, which §13.18.38.3 SR30 treats "as though implicitly defined at the same level as the entry
-    /// containing the OCCURS clause" — subordinate to the global record, so a global name (kb/Work PB1674). ⛔ THESE
-    /// ARE EVERY NAME CLASS A DATA DESCRIPTION ENTRY DECLARES, and <c>GlobalNameClassDriftTests</c> keeps the list
-    /// total: a name index this binder gains is inherited here or excluded there with its reason. Each item carries its depth, so
-    /// a nearer declaration of the same spelling wins by §8.4.6.2.1 3) at REFERENCE time
-    /// (<see cref="Model.SymbolTable.NearestDeclaring{T}"/>), not by being left out here. Called nearest container
-    /// first, after this unit's own names are declared (the end of <see cref="BindDeclarations"/>), so each
-    /// ByName list stays in nearest-first order. The cells stay the container's: this unit reaches them through the GLOBAL bridge
-    /// (<see cref="GlobalBridgesOf"/>) and never emits them.</summary>
-    internal void InheritGlobalSubtree(DataItem item, int depth)
-    {
-        _inheritedGlobalDepth[item] = depth;
-        if (item.CobolName is { } name)
-        {
-            if (!ByName.TryGetValue(name, out var list)) ByName[name] = list = [];
-            list.Add(item);
-        }
-        foreach (var cond in item.Own88s)
-        {
-            if (!Conditions.TryGetValue(cond.Name, out var conds)) Conditions[cond.Name] = conds = [];
-            conds.Add(cond);
-        }
-        foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
-        // Placed by depth (AddCapacityRegister): this element's own registers, minted later by DynamicResolve, sort
-        // in before it, a nearer container's before a farther one's — the order
-        // ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
-        // failed that compile and has no CapacityRegister view to inherit.
-        if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) AddCapacityRegister(_capacityRegisters, cap, item);
-        foreach (var child in item.Children) InheritGlobalSubtree(child, depth);
-        foreach (var ren in item.Renames66) InheritGlobalSubtree(ren, depth);
-    }
 
     /// <summary>⛔ EVERY C# MEMBER NAME THIS UNIT'S GLOBAL ROOT <paramref name="g"/> OCCUPIES IN A CONTAINED UNIT'S
     /// CLASS — the bridge members <see cref="GlobalBridgesOf"/> emits AND the root's own C# name (with its REDEFINES
@@ -392,18 +306,11 @@ public sealed partial class DataBinder
         if (g.Class is { } cls) yield return cls.Canonical.ClrName;
     }
 
-    /// <summary>Reserve the C# member names a container's GLOBAL roots occupy in this unit's class
-    /// (<see cref="InheritedMemberNamesOf"/>), BEFORE this unit's data division binds, so a local root spelled like
-    /// a container's global root takes a distinct field name (<c>G_2</c>) — and every member derived from it a
-    /// distinct name — instead of colliding with a bridge (kb/Work PB1047 — every global root is bridged now,
-    /// including one a local declaration hides by §8.4.6.2.1 3) a), because its subordinate names remain
-    /// visible).</summary>
-    internal void ReserveInheritedMemberNames(IEnumerable<string> names) => _rootNames.Reserve(names);
 
     /// <summary>The EXTERNAL records' synthesized run-unit backings (ISO §13.18.22; emitted as
     /// <c>ref</c>-properties over <c>ExternalStore</c>). (READ-ONLY view — P6 Step 5.)</summary>
-    public IReadOnlyList<CallExternalBacking> CallExternalBackings => _callExternalBackings;
-    private readonly List<CallExternalBacking> _callExternalBackings = [];
+    public IReadOnlyList<CallExternalBacking> ExternalBackings => _externalBackings;
+    private readonly List<CallExternalBacking> _externalBackings = [];
 
     /// <summary>
     /// Bind the LINKAGE SECTION and the PROCEDURE DIVISION header's USING/RETURNING operands. Runs inside
@@ -413,11 +320,11 @@ public sealed partial class DataBinder
     internal void CallBindLinkage(Core.ProgramUnitContext program, CsNameScope rootNames)
     {
         if (program.dataDivision()?.linkageSection() is { } ls)
-            LinkageRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), rootNames, EntrySection.Linkage));
+            _roots.AddRange(data.BindEntries(ls.dataDescriptionEntry(), rootNames, EntrySection.Linkage));
 
         if (program.procedureDivision() is not { } pd)
         {
-            SealLinkageRules(LinkageRoots, [], null, UnitIsFunction);
+            SealLinkageRules(_roots, [], null, data.UnitIsFunction);
             AnyLengthValidateUnit();
             return;
         }
@@ -428,7 +335,7 @@ public sealed partial class DataBinder
         // grammar's one-parameter-per-node shape (the CALL callArgument precedent).
         int pos = 0;
         bool byValue = false;
-        var header = new ProcedureHeaderScreen(Edition, "PROCEDURE DIVISION");   // §14.2.2 SR1/SR5/SR6 — the ONE screen (kb/Work PB1145)
+        var header = new ProcedureHeaderScreen(data.Edition, "PROCEDURE DIVISION");   // §14.2.2 SR1/SR5/SR6 — the ONE screen (kb/Work PB1145)
         // The names any ADDRESS OF in this unit or a contained one takes (the SAME scan the pointer pass forces
         // cells from — a GLOBAL formal can be addressed from a contained program, kb/Work PB1009/PB1019).
         // Asked only of a unit that has formals to classify (kb/Work PB4302): the set is read per formal, and a procedure
@@ -436,12 +343,12 @@ public sealed partial class DataBinder
         var formals = pd.usingClause()?.usingParameter() ?? [];
         var addressed = formals.Length == 0
             ? new HashSet<string>(CobolNames.Comparer)
-            : ClaimScans.AddressTargets(pd)
-                .Concat(program.nestedProgram().SelectMany(ClaimScans.AddressTargets))
+            : data.ClaimScans.AddressTargets(pd)
+                .Concat(program.nestedProgram().SelectMany(data.ClaimScans.AddressTargets))
                 .Select(t => t.Name).ToHashSet(CobolNames.Comparer);
         foreach (var prm in formals)
         {
-            using var _ = Edition.At(prm);
+            using var _ = data.Edition.At(prm);
             Core.DataReferenceContext dref;
             bool optional = false;
             if (prm.usingByValue() is { } vb) { byValue = true; dref = vb.dataReference(); }
@@ -461,7 +368,7 @@ public sealed partial class DataBinder
             if (item is null)
             {
                 // §14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
-                Edition.Error("COBOL0888",
+                data.Edition.Error("COBOL0888",
                     $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
                     + "(ISO §14.2.2 SR1)");
                 pos++;
@@ -485,7 +392,7 @@ public sealed partial class DataBinder
                 // reference copy CobolArgAdapt.SlotValue performs (kb/Work PB663). The FLOATING-POINT usage is the
                 // same COMPUTE on the float lane — landed by FloatResultant into a detached float cell
                 // (CobolArgAdapt.NumValue; kb/Work PB1114).
-                CompleteDescriptionAhead(item);   // a TYPE-typed formal has no class until its subject is composed (kb/Work PB3222)
+                data.CompleteDescriptionAhead(item);   // a TYPE-typed formal has no class until its subject is composed (kb/Work PB3222)
                 header.ByValueClass(pname, item);   // the class set is the header screen's, shared with the method arm (PB1051)
             }
 
@@ -504,16 +411,16 @@ public sealed partial class DataBinder
             // (LinkageFormal.IsArea; PtrBindBasedAndAddressables claims the class — kb/Work PB2087). A BY VALUE
             // formal is carrier-resident over its DETACHED value-copy cell (§14.2.3 GR10 — same per-access
             // mechanism, different carrier: CobolArgAdapt.NumValue instead of the aliasing Num view).
-            bool resident = FormalIsCarrierResident(item, LinkageRoots, addressed);
+            bool resident = FormalIsCarrierResident(item, _roots, addressed);
             if (resident)
             {
                 // Every place built over the item starts at the carrier and steps to the caller's storage
                 // (PlaceBuilder.AddRoot, a CarrierValueSegment) — the item keeps its own name, which no member
                 // declares (kb/Work PB4320).
                 item.ResidentCarrier = new FormalCarrier.Member(carrier);
-                _callSuppressedRootFields.Add(item.ClrName);
+                _suppressedRootFields.Add(item.ClrName);
             }
-            _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident, byValue, optional));
+            _formals.Add(new LinkageFormal(item, pos, carrier, resident, byValue, optional));
             pos++;
         }
 
@@ -523,25 +430,25 @@ public sealed partial class DataBinder
         // RETURNING §14.2.3 GR6/SR1 resolution + the RAISING EC semantics (StatementBinder.Exceptions) stay bind-time.
         if (pd.returningClause()?.dataReference() is { } rref)
         {
-            using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
+            using var returningAt = data.Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             // §14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
-            LinkageReturning = FindLinkageRoot(rref.GetText());
-            if (LinkageReturning is null)
-                Edition.Error("COBOL0888",
+            Returning = FindLinkageRoot(rref.GetText());
+            if (Returning is null)
+                data.Edition.Error("COBOL0888",
                     $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §14.2.2 SR1)");
             else
-                header.CheckReturning(rref.GetText(), LinkageReturning);
+                header.CheckReturning(rref.GetText(), Returning);
         }
 
-        SealLinkageRules(LinkageRoots, _linkageFormals.ConvertAll(f => f.Item), LinkageReturning, UnitIsFunction);
+        SealLinkageRules(_roots, _formals.ConvertAll(f => f.Item), Returning, data.UnitIsFunction);
         AnyLengthValidateUnit();
     }
 
     /// <summary>The ANY LENGTH placement sweep of this unit's forest (ISO §13.18.2.3 SR2/SR3/SR4) — runs at the
     /// end of <see cref="CallBindLinkage"/>, when the unit's sections AND its PD-header formals are bound but no
-    /// method data has (methods sweep in <c>OoBindMethodData</c>). SR2: an elementary level-1 LINKAGE entry of a
+    /// method data has (methods sweep in <c>OoDataBinder.BindMethodData</c>). SR2: an elementary level-1 LINKAGE entry of a
     /// FUNCTION or a CONTAINED program — never an outermost program (the §13.18.2.3 NOTE: a prototype-less CALL
     /// cannot associate arguments with an ANY LENGTH formal) and never the object/factory paragraph of a class.
     /// SR3 (contained program): referenced in the PD header as a formal WITH THE BY REFERENCE PHRASE (stated
@@ -551,35 +458,35 @@ public sealed partial class DataBinder
     /// ordinary one-character shape under an already-failed compile — never a half-varying state).</summary>
     private void AnyLengthValidateUnit()
     {
-        foreach (var root in Roots)
+        foreach (var root in data.State.Forest.Roots)
         {
             if (!root.IsAnyLength) continue;
-            using var _ = Edition.At(root);
+            using var _ = data.Edition.At(root);
             string where = $"data item '{root.CobolName ?? "FILLER"}'";
-            if (!LinkageRoots.Contains(root))
-                Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in an "
+            if (!_roots.Contains(root))
+                data.Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in an "
                     + "elementary level 1 entry in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
             else if (root.IsGroup)
-                Edition.Error("COBOL1542", $"{where}: the subject of an ANY LENGTH clause shall be "
+                data.Edition.Error("COBOL1542", $"{where}: the subject of an ANY LENGTH clause shall be "
                     + "ELEMENTARY — this entry has subordinate items (ISO §13.18.2.3 SR2)");
-            else if (OoIsClassUnit)
+            else if (data.Oo.IsClassUnit)
                 // This binder's own LINKAGE is the OBJECT/FACTORY paragraph's, never a method's (method
-                // linkage binds via OoBindMethodData into OoMethodBinding.LinkageRoots, swept there).
-                Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in the "
+                // linkage binds via OoDataBinder.BindMethodData into OoMethodBinding.LinkageRoots, swept there).
+                data.Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in the "
                     + "linkage section of a function, a contained program, or a method that is not a property "
                     + "method — not in a factory or instance definition (ISO §13.18.2.3 SR2)");
-            else if (!UnitIsContained && !UnitIsFunction)
-                Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may not be specified in an "
+            else if (!data.UnitIsContained && !data.UnitIsFunction)
+                data.Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may not be specified in an "
                     + "OUTERMOST program — only in a function, a contained program, or a method "
                     + "(ISO §13.18.2.3 SR2 and its NOTE)");
             else
             {
                 // SR3a/SR4 require the BY REFERENCE phrase (stated or implied) — a BY VALUE formal never
                 // qualifies (its length is fixed by the value copy, not the caller's argument).
-                bool formal = LinkageFormals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue);
-                bool returning = ReferenceEquals(LinkageReturning, root);
-                if (UnitIsFunction ? !formal : !(formal || returning))
-                    Edition.Error("COBOL1542", UnitIsFunction
+                bool formal = Formals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue);
+                bool returning = ReferenceEquals(Returning, root);
+                if (data.UnitIsFunction ? !formal : !(formal || returning))
+                    data.Edition.Error("COBOL1542", data.UnitIsFunction
                         ? $"{where}: in a FUNCTION the subject of an ANY LENGTH clause shall be referenced in "
                           + "the procedure division header as a formal parameter with the BY REFERENCE phrase "
                           + "(ISO §13.18.2.3 SR4)"
@@ -597,7 +504,7 @@ public sealed partial class DataBinder
     /// <summary>The LINKAGE records the procedure division may NOT reference (ISO §13.7.3 SR4), keyed by identity — the
     /// roots left over once every a)–e) leg has been asked. Empty for a unit whose linkage is all referenceable, so
     /// the per-reference question is one count test. Sealed by <see cref="SealLinkageRules"/> for a program or
-    /// function (<see cref="CallBindLinkage"/>) and for each method (<c>OoBindMethodData</c>).</summary>
+    /// function (<see cref="CallBindLinkage"/>) and for each method (<c>OoDataBinder.BindMethodData</c>).</summary>
     private readonly HashSet<DataItem> _unreferenceableLinkageRoots = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>A FUNCTION's formal parameters (ISO §13.7.3 SR5), keyed by identity.</summary>
@@ -606,13 +513,13 @@ public sealed partial class DataBinder
     /// <summary>⛔ THE ONE PLACE §13.7.3 SR4 AND SR5 ARE DECIDED (kb/Work PB1249 / PB1250), from the facts every header
     /// arm knows once its USING and RETURNING phrases are bound: the unit's linkage roots, its formal operands and its
     /// RETURNING item. Called by the program/function arm (<see cref="CallBindLinkage"/>) and the method arm
-    /// (<c>OoBindMethodData</c>), so the two cannot disagree.
+    /// (<c>OoDataBinder.BindMethodData</c>), so the two cannot disagree.
     /// <para>SR4 is per RECORD, because a), b) and d) are all "is, or is under, X": a root is referenceable when it is a
     /// header operand (a)), BASED ("a based data item may be referenced as described in 13.18.5"), or defined with a
     /// REDEFINES whose object is referenceable (c)); everything beneath it (b), d)), its RENAMES entries (c)) and its
     /// condition-names and index-names (e)) follow its record.</para>
     /// <para>SR5 bars a function's FORMAL PARAMETERS as receivers; its RETURNING item is not a formal parameter.</para></summary>
-    private void SealLinkageRules(IReadOnlyList<DataItem> roots, IReadOnlyList<DataItem> formalItems,
+    internal void SealLinkageRules(IReadOnlyList<DataItem> roots, IReadOnlyList<DataItem> formalItems,
         DataItem? returning, bool function)
     {
         bool Satisfied(DataItem root) =>
@@ -645,7 +552,7 @@ public sealed partial class DataBinder
         _functionFormals.Count != 0 && _functionFormals.Contains(item);
 
     private DataItem? FindLinkageRoot(string name) =>
-        LinkageRoots.FirstOrDefault(r => CobolNames.Same(r.CobolName, name));
+        _roots.FirstOrDefault(r => CobolNames.Same(r.CobolName, name));
 
     /// <summary>
     /// Collect the roots whose EXTERNAL / GLOBAL clause the clause-placement screen ADMITTED
@@ -673,10 +580,10 @@ public sealed partial class DataBinder
         // SECTION, so a GLOBAL record there (legal per SR1 b)) was UNDEFINED in every containee; and it re-based
         // an EXTERNAL REDEFINES entry, folding the redefines ANCHOR onto the external cell and discarding its VALUE.
         // The population is every residence SR1 b) admits: working-storage, local-storage, linkage and file.
-        foreach (var item in WorkingStorageRoots.Concat(LocalStorageRoots).Concat(LinkageRoots)
-                     .Concat(Files.SelectMany(f => f.Records)))
+        foreach (var item in data.State.Forest.WorkingStorageRoots.Concat(data.State.Forest.LocalStorageRoots).Concat(_roots)
+                     .Concat(data.State.Files.Declared.SelectMany(f => f.Records)))
         {
-            if (item.HasGlobalClause && !_callGlobalRoots.Contains(item)) _callGlobalRoots.Add(item);
+            if (item.HasGlobalClause && !_globalRoots.Contains(item)) _globalRoots.Add(item);
             if (!item.HasExternalClause) continue;
             // §13.16.3 SR5 makes this unreachable (the screen refuses EXTERNAL beside REDEFINES), and it must STAY
             // unreachable: re-basing a redefinER re-homes its whole class — the anchor included — onto the cell.
@@ -692,7 +599,7 @@ public sealed partial class DataBinder
         // (the record's own entry carries no EXTERNAL clause, so the parse-tree scan above cannot see it).
         // Re-based through the SAME cell mechanism, keyed by the record's own name (GR5). An entry that ALSO
         // carries its own EXTERNAL clause was already re-based by the scan above — skip the double registration.
-        foreach (var item in Roots)
+        foreach (var item in data.State.Forest.Roots)
             if (item is { ExternalFromType: true, HasExternalClause: false, CobolName: not null })
                 CallMakeExternal(item);
 
@@ -709,7 +616,7 @@ public sealed partial class DataBinder
         // record's content and its dynamic-length items (StorageCell.DynAt) or its pointer value (SlotAt), so GR4 b)'s
         // "the data contained in all record description entries" is ONE copy per run unit. It used to be staged
         // loud as COBOL0899: the character half alone would have split the area in two.
-        foreach (var file in Files)
+        foreach (var file in data.State.Files.Declared)
             if (file is { IsExternal: true, ExternalName: { } extName } && file.Records.Count > 0)
             {
                 if (file.CharacterAnchor is { } anchor) CallMakeExternal(anchor, "FD::" + extName);
@@ -723,11 +630,11 @@ public sealed partial class DataBinder
         // contained programs reach the OWNER's record area through the standard containment bridges
         // (§13.18.27 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
         // contained unit's VisibleFiles lookup (InheritedGlobals.Files).
-        foreach (var file in Files)
+        foreach (var file in data.State.Files.Declared)
             if (file.IsGlobal)
                 foreach (var rec in file.Records)
-                    if (!CallGlobalRoots.Contains(rec))
-                        _callGlobalRoots.Add(rec);
+                    if (!GlobalRoots.Contains(rec))
+                        _globalRoots.Add(rec);
 
         CheckExternalizedNameUniqueness();
     }
@@ -759,14 +666,14 @@ public sealed partial class DataBinder
     {
         // Almost every source element declares no EXTERNAL subject at all; this pass runs once per unit,
         // so it costs nothing when there is nothing to compare.
-        if (_callExternalBackings.Count == 0 && !Files.Any(f => f.IsExternal)) return;
+        if (_externalBackings.Count == 0 && !data.State.Files.Declared.Any(f => f.IsExternal)) return;
         var seen = new Dictionary<string, string>(CobolNames.Comparer);   // the ExternalTable's own comparer
         void Claim(string externalized, string where, DiagnosticCursor at)
         {
             if (seen.TryGetValue(externalized, out var prior))
             {
-                using var _ = Edition.At(at);   // an unset cursor leaves the current position standing
-                Edition.Error(DiagnosticCatalog.ExternalizedNameNotUnique,
+                using var _ = data.Edition.At(at);   // an unset cursor leaves the current position standing
+                data.Edition.Error(DiagnosticCatalog.ExternalizedNameNotUnique,
                     $"{where}: the externalized name '{externalized}' is already the externalized name of "
                     + $"{prior} in this source element; \"In the same source element, the externalized name of "
                     + "the subject of the entry that includes the EXTERNAL clause shall not be the same as the "
@@ -794,11 +701,11 @@ public sealed partial class DataBinder
     /// externalized … shall identify the same kind of entity or item"), whose list item 1 already feeds it.</summary>
     internal IEnumerable<ExternalizedSubject> ExternalizedSubjects()
     {
-        foreach (var file in Files)
+        foreach (var file in data.State.Files.Declared)
             if (file is { IsExternal: true, ExternalName: { } extName })
                 yield return new ExternalizedSubject(ExternalizedSubjectKind.File, extName,
                     file.CobolName ?? extName, $"file '{file.CobolName}'", file.EntryAt);
-        foreach (var backing in _callExternalBackings)
+        foreach (var backing in _externalBackings)
             if (!backing.ExternalName.StartsWith("FD::", StringComparison.Ordinal))
                 yield return new ExternalizedSubject(ExternalizedSubjectKind.DataItem, backing.ExternalName,
                     backing.Record.CobolName ?? backing.ExternalName, $"data item '{backing.Record.CobolName}'",
@@ -811,16 +718,16 @@ public sealed partial class DataBinder
     /// A record with a national or pointer-class leaf cannot be carried by the shared byte cell — rejected
     /// loud, conformant-but-unimplemented. Every NUMERIC leaf rides it on its pinned byte form (kb/Work
     /// PB164) and every BOOLEAN leaf, USAGE BIT included, rides it on the §8.5.1.6.3 packing (kb/Work
-    /// PB231). The population is <see cref="ByteWindowResidueOf"/>'s, never a second list.</summary>
+    /// PB231). The population is <see cref="DataBinder.ByteWindowResidueOf"/>'s, never a second list.</summary>
     private void CallMakeExternal(DataItem item, string? externalName = null)
     {
-        if (ForceStringCanonical(item, "EXTERNAL record") is not { } cls)
+        if (data.ForceStringCanonical(item, "EXTERNAL record") is not { } cls)
         {
             // The silent-skip left the record as ORDINARY storage — the program ran with its EXTERNAL
             // sharing semantics silently dropped (the W1-test finding, Phase 4a). Loud at bind: the
             // interpolated reason names the actual leaf (the RESIDUE-11 national layout, the bit-packing
             // residue, or a pointer-class leaf with no byte form).
-            Edition.Error(DiagnosticCatalog.ExternalRecordNotCellBacked, $"EXTERNAL record '{item.CobolName}' cannot be cell-backed — "
+            data.Edition.Error(DiagnosticCatalog.ExternalRecordNotCellBacked, $"EXTERNAL record '{item.CobolName}' cannot be cell-backed — "
                 + $"{item.Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented");
             return;
         }
@@ -828,100 +735,12 @@ public sealed partial class DataBinder
         // literal-1 when the entry's EXTERNAL clause writes `AS literal-1`, and the record's own data-name
         // otherwise. `externalName` overrides both — it is the FD-record case, whose key is the FILE
         // connector's externalized name (GR4b/GR5's first alternative), already resolved at the FD entry.
-        _callExternalBackings.Add(new CallExternalBacking(
+        _externalBackings.Add(new CallExternalBacking(
             cls.BackingClrName, cls.BackingCellClrName,
             externalName ?? item.ExternalizedAs ?? CobolNames.UpperFold(item.CobolName!),
             cls.Width, item));
     }
 
-    /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
-    /// feedback_one_mechanism_per_job): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
-    /// member, so a heap-cell-backed <c>ref</c>-property with the class's <see cref="RedefinesClass.BackingClrName"/>
-    /// can supply the storage (EXTERNAL records → the run-unit <c>ExternalStore</c> cell; ADDRESS-OF-taken items →
-    /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). Every byte-form numeric
-    /// leaf rides the cell since the Step D arm-1 dissolution (the gate reads THE ONE image predicate);
-    /// a national or pointer-class leaf fails it — the class goes Rejected and every reference fails loud
-    /// (the caller skips its bridge registration). Returns the forced class, or null on rejection.
-    /// <para>The admitted/refused population is <see cref="ByteWindowResidueOf"/>'s — THE ONE byte-window
-    /// carriage gate, shared with the REDEFINES classifier (kb/Work PB231).</para></summary>
-    internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
-    {
-        // ⛔ ONLY THE DECLARING ELEMENT DECIDES WHERE ITS STORAGE LIVES (§13.18.27.4 GR2: a contained program references a
-        // container's GLOBAL item "without describing it again"). An inherited item's class is the container's, already
-        // classified and emitted there; re-basing it from here would re-classify the container's storage and declare its
-        // cell a second time in this unit's type (merge group 41183181188). Every caller asks with storage it owns.
-        if (DeclaringDepth(item) != 0)
-            throw new InvalidOperationException($"{what} '{item.CobolName}': a container's GLOBAL item reached the "
-                + "cell-backing forcer of a contained unit; only its declaring element may re-base its storage");
-        var cls = item.Class;
-        if (cls is null)
-        {
-            cls = new RedefinesClass { Canonical = item };
-            cls.Members.Add(item);
-            item.Class = cls;
-        }
-
-        var leaves = cls.Members.SelectMany(LeavesOf).ToList();
-        // ⛔ THE SAME gate as the main classifier — literally, now: ByteWindowResidueOf, ONE predicate for
-        // both surfaces (kb/Work PB231). This site was a hand-written ALLOW-list facing ComputeTier's
-        // hand-written DENY-list, and every widening had to be applied twice. It was not: the Step D arm-1
-        // dissolution widened both (the eighth two-arm instance — ComputeTier admitted COMP/PACKED while this
-        // gate refused every non-DISPLAY leaf), but PB203's USAGE BIT widening reached only ComputeTier, so a
-        // BASED / EXTERNAL / ADDRESS-OF record with a bit leaf still rejected while its REDEFINES twin ran.
-        // §13.18.5.3 SR1/SR2 restrict a BASED subject to "shall not be of class object" and "shall not be a
-        // dynamic-length elementary item or a variable-length group"; §14.9.3.3 SR1 asks only for the BASED
-        // clause; §13.18.22 conditions EXTERNAL on nothing subordinate at all. A bit leaf is admitted by all
-        // three, so the reject was rejects-legal-source — the same argument that retired the negative fixture
-        // pb151-based-comp-leaf at the PB164 landing. Its residue clause now names the ACTUAL leaf.
-        if (CellResidueOf(leaves) is { } residue)
-        {
-            cls.Classify(RedefinesTier.Rejected, cls.Width,
-                $"{what} '{item.CobolName}' has {residue} — the shared byte cell cannot carry it");
-            return null;
-        }
-
-        // The sanctioned RE-classification (see RedefinesClass.Classify): the cell re-base overrides any prior
-        // stored-member verdict with the cell-backed Tier-B form (§13.18.22.4 GR5).
-        // The cell's area is the members' maximum STORAGE extent, in BYTES — §14.9.3.4 GR3's "the amount of
-        // storage to be allocated is the number of BYTES required to hold an item as described by data-name-1",
-        // and §13.18.44.4 GR1's larger-of-the-two for a multi-member class. Character positions are NOT that
-        // number for a NATIONAL leaf (two bytes per position, §13.18.60.4 GR8 / D-N1) — kb/Work PB231.
-        cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)),
-            rejectReason: null);
-        // ⛔ THE CELL CLAIM, made HERE because this method IS the one cell-backing forcer and its three callers
-        // ARE the three cell surfaces: from now on the class has a StorageCell behind its backing
-        // (RedefinesClass.BackingCellClrName), which is what a pointer-class member's MANAGED SLOT addresses
-        // (kb/Work PB231 — the pointer third; §14.9.3.4 GR9). A REDEFINES class never reaches this line and
-        // never gets one, which is exactly why ComputeTier still refuses a pointer leaf.
-        cls.IsCellBacked = true;
-        foreach (var member in cls.Members)
-        {
-            AssignClassOffsets(member, 0, cls);
-            member.IsCanonical = false;   // NO local stored field — the backing is the cell bridge
-        }
-        // ⛔ THE CELL'S VARIABLE-LENGTH HALF (kb/Work PB1026, PB1042): each COMPONENT — a dynamic-length item or a
-        // dynamic-capacity table (Place.CellComponents) — rides a managed slot of the cell numbered in storage order,
-        // one per occurrence of every enclosing fixed table, and a table's element is a scope of its own
-        // (AssignCellComponents). A dynamic-length item occupies zero bytes of the backing — its ByteWidth — and a
-        // table reserves its one-element ByteWidth, so the class walk above has already laid out the FIXED RUN every
-        // variable-length group view of the class composes over. §8.5.1.9.1 3) — "it may be defined in any place,
-        // other than the file section, in which a fixed-capacity table may be defined" — is why an EXTERNAL or
-        // ADDRESS-OF-taken record carries the table rather than refusing it.
-        int dynOrdinal = 0;
-        foreach (var member in cls.Members) dynOrdinal = AssignCellComponents(member, dynOrdinal);
-        // ⛔ EVERY byte-form numeric leaf windowed over the string backing decodes/encodes its IMAGE — the
-        // same rule ClassifyRedefinesClasses applies to a Tier-B class, applied here for the synth class.
-        // The predicate MUST be the one CellCapable admits above (THE ONE image predicate): the Step D
-        // widening opened the GATE to COMP/PACKED/COMP-5/float/INDEX leaves while this consequence still
-        // read the pre-wave DISPLAY-only union, so an admitted non-DISPLAY leaf got a NATIVE storage form
-        // over a STRING window — the accessors then spliced a raw long/float into the cell and read window
-        // TEXT back into CobolNum.Store, i.e. UNCOMPILABLE generated C# (CS1503/CS0019) on legal source,
-        // strictly worse than the bind diagnostic it replaced. The two-arm shape, nine lines apart.
-        foreach (var leaf in leaves)
-            if (leaf.Pic is { Category: PicCategory.Numeric, HasImageByteForm: true })
-                State.ImageForcedItems.Add(leaf);   // the collected image fact
-        return cls;
-    }
 
     /// <summary>⛔ THE ONE CARRIER-RESIDENCY TEST of a USING formal, for a program, a function AND a method (kb/Work
     /// PB2087): carrier-resident = per-access aliasing of the caller's storage through the formal's carrier (design D1:
@@ -943,62 +762,4 @@ public sealed partial class DataBinder
         && !addressed.Contains(item.CobolName ?? "")
         && !linkageRoots.Any(r => !ReferenceEquals(r, item) && r.RedefinesTargetName is { } t && CobolNames.Same(t, item.CobolName));
 
-    /// <summary>The first leaf of <paramref name="leaves"/> the shared byte cell cannot carry, as its residue clause, or
-    /// null — <see cref="ByteWindowResidueOf"/> over a whole storage area, the ONE gate <see cref="ForceStringCanonical"/>
-    /// applies.</summary>
-    private static string? CellResidueOf(IEnumerable<DataItem> leaves) =>
-        leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null);
-
-    /// <summary>⛔ CAN <paramref name="root"/>'s STORAGE AREA MOVE ONTO A CELL WITHOUT A DIAGNOSTIC (kb/Work PB2087)? The
-    /// question an OPTIONAL claim asks before calling <see cref="ForceStringCanonical"/>, which classifies a refused
-    /// class Rejected (every reference then fails loud) — right for a surface that cannot exist without the cell
-    /// (EXTERNAL, BASED, ADDRESS OF), wrong for one that only gains aliasing from it (a boundary-aliased area). True
-    /// when every leaf of the area rides the cell.
-    /// <para>⛔ A VARIABLE-LENGTH GROUP RIDES THE CELL TOO (kb/Work PB2094). Its dynamic-length items and dynamic-capacity
-    /// tables are the cell's components (<see cref="AssignCellComponents"/>), and an area formal laid over its argument
-    /// numbers its components from the area's component ordinal as it displaces its characters by the area's offset
-    /// (<c>CellPointer.DynBase</c>, <c>PlaceBuilder.CellOrdinalBase</c>), so §14.2.3 GR8 — "the activated runtime
-    /// element operates as if the formal parameter occupies the same storage area as the argument" — holds for it as
-    /// for any group. §13.18.5.3 SR2 bars a variable-length group only as the subject of a WRITTEN BASED clause.</para></summary>
-    private static bool CellCanCarry(DataItem root)
-    {
-        var members = root.Class?.Members ?? [root];
-        return CellResidueOf(members.SelectMany(LeavesOf)) is null;
-    }
-
-    /// <summary>Number <paramref name="node"/>'s variable-length COMPONENTS in its scope from ordinal
-    /// <paramref name="next"/> and return the next free ordinal (kb/Work PB1042) — the ONE writer of
-    /// <see cref="DataItem.ClassDynOrdinal"/>, walking exactly the order <see cref="CellComponents.Of"/> enumerates: a
-    /// component takes one ordinal; a group's children follow in storage order, a fixed table's occurrence k taking
-    /// the k-th run of its per-occurrence components (so a subscript displaces an ordinal by
-    /// <see cref="CellComponents.PerOccurrence"/>); a non-component's ordinal is that of its first component. A
-    /// dynamic-capacity table's ELEMENT is a scope of its own — each occurrence is an element cell
-    /// (<c>StorageCell.DynTableAt</c>) — so the element's members are re-laid out from offset zero and numbered from
-    /// zero, which is what makes a table, or a dynamic-length item, inside a table element the same mechanism one
-    /// level down (§8.5.1.9.1 3): "may be nested in any combination to the same number of levels as a fixed-capacity
-    /// table").</summary>
-    private static int AssignCellComponents(DataItem node, int next)
-    {
-        node.ClassDynOrdinal = next;
-        if (node.IsDynamicTable)
-        {
-            (int at, int bit) = (node.ClassOffset, node.ClassBitOffset);
-            AssignClassOffsets(node, 0, node.Class!);   // the element's own layout, relative to its element cell
-            (node.ClassOffset, node.ClassBitOffset) = (at, bit);   // the table keeps its reservation in its parent scope
-            int inner = 0;
-            foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
-                inner = AssignCellComponents(c, inner);
-            return next + 1;
-        }
-        if (DynSlotWindow.CarriedBySlot(node)) return next + 1;
-        int k = next;
-        foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
-            k += (AssignCellComponents(c, k) - k) * (c.Occurs ?? 1);
-        return k;
-    }
-
-    /// <summary>Seed the unique-id counter so every unit of a multi-program compilation gets a disjoint
-    /// <c>_T_n</c> / <c>_P_n</c> band — a nested program class would otherwise SHADOW its container's struct and
-    /// profile names, silently re-typing inherited GLOBAL references (the emitter seeds one band per unit).</summary>
-    internal void CallSeedUids(int start) => _uidCounter = start;
 }

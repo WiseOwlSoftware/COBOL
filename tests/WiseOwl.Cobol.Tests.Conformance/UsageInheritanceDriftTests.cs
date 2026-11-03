@@ -306,7 +306,7 @@ public sealed class UsageInheritanceDriftTests
     public void TheDescriptionCopies_AskTheEntry_NotTheCompletedForm(string method)
     {
         string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
-        var start = Regex.Match(text, $@"^    private (?:bool|void) {method}\(", RegexOptions.Multiline);
+        var start = Regex.Match(text, $@"^    (?:private|internal) (?:bool|void) {method}\(", RegexOptions.Multiline);
         Assert.True(start.Success, $"{method} not found — the pin measured nothing");
         var end = Regex.Match(text[start.Index..], @"^    \}\s*$", RegexOptions.Multiline);
         string body = text.Substring(start.Index, end.Index + end.Length);

@@ -366,8 +366,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // the same spelling — "a source element's reference to such a name, even when it is a different type of
         // user-defined word, is to the item which that source element describes" (§8.4.6.1; kb/Work PB3153) — so
         // the own-item test is asked first, and only the locale-name reading records the §8.3.2.2 use.
-        if (to.ChildCount == 1 && ctx.Data.Locales.Declares(toText) && !ctx.Refs.DescribesOwnItem(to)
-            && ctx.Data.Locales.TryUse(to, toText, out var symbol))
+        if (to.ChildCount == 1 && ctx.Data.State.Configuration.Locales.Declares(toText) && !ctx.Refs.DescribesOwnItem(to)
+            && ctx.Data.State.Configuration.Locales.TryUse(to, toText, out var symbol))
             return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.LocaleName, symbol, null);
         // identifier-10: an elementary data item of category data-pointer (SR27).
         if (ctx.Refs.Probe(to) is { } probe)
@@ -382,7 +382,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.SavedPointer, null, place);
         }
         // Neither: the ONE undeclared-locale-name diagnostic, with this site named (SR26).
-        ctx.Data.ResolveLocaleName(to, toText, $"{first} TO {toText}",
+        ctx.Data.SpecialNames.ResolveLocaleName(to, toText, $"{first} TO {toText}",
             "ISO §14.9.39.3 SR26 — locale-name-1 shall be specified in the LOCALE clause of the SPECIAL-NAMES paragraph; "
             + "or SR27 — identifier-10 shall reference an elementary data item of category data-pointer, and no such item is declared");
         return BoundRejected.Reported(ctx.Edition);
@@ -845,7 +845,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         string word = operand.GetText();
         // The PROTOTYPE arm (§8.4.3.12.3 SR2 + §8.4.6.6): a REPOSITORY function-specifier, or the containing
         // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves.
-        bool isPrototypeName = ctx.Data.UserFunctionNames.Contains(word)
+        bool isPrototypeName = ctx.Data.State.Configuration.UserFunctionNames.Contains(word)
             || CobolNames.Same(host.UdfSelfName, word);
         if (isPrototypeName)
         {
@@ -1361,7 +1361,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // §14.9.39.4 GR2: "item identification of the data item referenced by identifier-1 is done immediately before the
         // value of that data item is changed", so SetEmitter places an object-property receiver's accessors around ITS
         // store (kb/Work PB2078): `SET IX, BAL OF AR(IX) TO 2` reaches AR(2).
-        ctx.Data.OoClaimInterleavedReceiver(targets.OfType<SetPlaceTarget>().Select(t => t.Place));
+        ctx.Data.Procedure.ClaimInterleavedReceiver(targets.OfType<SetPlaceTarget>().Select(t => t.Place));
         return new BoundSetTo(targets, FormatOneValueOf(sender, amount));
     }
 

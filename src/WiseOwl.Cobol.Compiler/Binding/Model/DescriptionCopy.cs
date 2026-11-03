@@ -83,7 +83,7 @@ public enum DescriptionCopyScope
 
 /// <summary>⛔ REQUIRED ON EVERY STORED <see cref="DataItem"/> PROPERTY. Declares what the field is to the
 /// ONE description copy (<c>DataBinder.CopyEntryDescription</c>, and the <c>DataBinder.CloneItem</c>,
-/// <c>DataBinder.CreateCompilerTemp</c> and <c>DataBinder.CloneTempNode</c> that funnel through it) and WHY, so the classification is made where the field is declared rather than
+/// <c>CompilerTemps.Create</c> and <c>CompilerTemps.CloneNode</c> that funnel through it) and WHY, so the classification is made where the field is declared rather than
 /// inferred from a list somewhere else.
 /// <para><c>DescriptionCopyCompletenessDriftTests</c> (Unit) fails when a stored property has no attribute,
 /// when a <see cref="DescriptionCopyKind.Clause"/> / <see cref="DescriptionCopyKind.Alignment"/> field is not

@@ -258,7 +258,7 @@ public sealed class GlobalReportScopeTests
             {
                 int n = File.ReadLines(file)
                     .Count(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)
-                                && Regex.IsMatch(l, @"\bData\.Reports\.Declared\b"));
+                                && Regex.IsMatch(l, @"\bData\.State\.Reports\.Declared\b"));
                 if (n > 0) found[Path.GetFileName(file)] = n;
             }
         Assert.Equal(owners.OrderBy(k => k.Key), found.OrderBy(k => k.Key));

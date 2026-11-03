@@ -58,7 +58,7 @@ public sealed class OccursSpec
     /// glued <c>CNT OF G1</c> into the undefined name <c>CNTOFG1</c> and rejected legal source.</summary>
     public IReadOnlyList<string> DependingQualifiers { get; init; } = [];
 
-    /// <summary>The resolved data-name-1 item — set by the post-build <c>DataBinder.OdoResolve</c> pass
+    /// <summary>The resolved data-name-1 item — set by the post-build <c>OdoResolvePass</c> pass
     /// (data-name-1 may legally be declared anywhere outside the span the table starts, §13.18.38 SR20, so
     /// resolution must wait for the complete forest).
     /// <para>⛔ ONLY AN ADMITTED data-name-1 IS RECORDED (kb/Work PB3510): an integer (§13.18.38.3 SR17), so an
@@ -80,7 +80,7 @@ public sealed class OccursSpec
     public List<OccursKey> Keys { get; } = [];
 
     /// <summary>The KEY phrase RESOLVED, one entry per <see cref="Keys"/> entry in the same order — set by the
-    /// post-build <c>DataBinder.OccursKeyResolve</c> pass through the ONE §8.4.2.2 resolver (a TYPEDEF clone gets its
+    /// post-build <c>OccursKeyResolvePass</c> pass through the ONE §8.4.2.2 resolver (a TYPEDEF clone gets its
     /// own spec and is resolved against its own subtree, like <see cref="Depending"/>). An entry is
     /// <see langword="null"/> where the key identifies no unique item within the table — reported there, once.</summary>
     public List<DataItem?> ResolvedKeys { get; } = [];
@@ -96,7 +96,7 @@ public sealed class OccursSpec
 
     /// <summary>The synthetic CAPACITY register item — a view over the table's Capacity, minted for EVERY dynamic
     /// table (FUNCTION LENGTH's §15.50.4 r7c reads it; kb/Work PB61) and NAMED only under CAPACITY IN; set by the post-build
-    /// <c>DataBinder.DynamicResolve</c> pass (data-name-3 is implicitly defined at the OCCURS entry, SR30).</summary>
+    /// <c>DynamicResolvePass</c> pass (data-name-3 is implicitly defined at the OCCURS entry, SR30).</summary>
     public DataItem? CapacityRegister { get; set; }
 
     /// <summary><c>FROM integer-4</c> — the minimum / initial current capacity (§13.18.38 GR16); null ⇒ 0.</summary>
@@ -132,7 +132,7 @@ public static class OdoModel
     /// (ISO §13.18.38.4 GR3) — one entry per <see cref="OccursSpec.Keys"/> entry, <see langword="null"/> where the
     /// key data-name identifies no unique item within the table. Empty for a table with no KEY phrase, which is
     /// exactly the §14.9.37.3 SR7 condition ("The OCCURS clause associated with identifier-1 shall contain the KEY
-    /// phrase"). The resolution itself is <c>DataBinder.OccursKeyResolve</c>'s, done ONCE after the forest is
+    /// phrase"). The resolution itself is <c>OccursKeyResolvePass</c>'s, done ONCE after the forest is
     /// built (kb/Work PB1018); every consumer — SEARCH ALL and the table SORT — reads it here.</summary>
     public static List<DataItem?> KeyItems(DataItem table) =>
         table.OccursSpec is { } spec
@@ -154,7 +154,7 @@ public static class OdoModel
     /// <summary>The occurs-depending table among <paramref name="group"/>'s STRICT descendants, or
     /// <see langword="null"/>. At most one exists in a legal program: §13.18.38 SR22 makes it the unique trailing
     /// variable part of its record, and SR1(b)/SR10 forbid nesting it under another OCCURS — both validated by
-    /// <c>DataBinder.OdoResolve</c>, so a first-match scan is exact.</summary>
+    /// <c>OdoResolvePass</c>, so a first-match scan is exact.</summary>
     public static DataItem? TableUnder(DataItem group)
     {
         foreach (var c in group.Children)

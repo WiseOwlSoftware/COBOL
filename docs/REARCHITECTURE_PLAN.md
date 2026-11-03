@@ -231,11 +231,11 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   **✅ PB60's RV-15.69.4-2 LANDED (DEVLOG 1292)** — native NUMVAL-F joins the float family (binary64 where no
   scale governs; the exact parse for a fixed receiver or a MOVE sender — new `ReceiverContext.MoveSender`);
   PB60 at 13 of 15 listed rows; PB77 registered (the MOVE sentinel leak, float family too).
-  **✅ PB60's AR-15.67.3-5 LANDED (DEVLOG 1293)** — `DataBinder.InheritConfiguration` (the whole configuration
+  **✅ PB60's AR-15.67.3-5 LANDED (DEVLOG 1293)** — `ConfigurationStep` (the whole configuration
   + OPTIONS baseline into every containee, §12.3.4 GR1 / §11.9.4 GR1; COBOL1643 for §12.3.3 SR1); PB60 at
   14 of 15; GAP 4138. PB78 registered (OBJECT-COMPUTER's optional computer-name — an edition question).
   **✅ PB60 CLOSED (DEVLOG 1294)** — the CURRENCY SIGN SET + multi-character currency string landed
-  (`DataBinder.CurrencySigns`, `PicInfo.CurrencyString`, `CobolEdit`'s expand/collapse, COBOL1644 for
+  (`SpecialNamesBinder.CurrencySigns`, `PicInfo.CurrencyString`, `CobolEdit`'s expand/collapse, COBOL1644 for
   §15.68.3 r3); 15 of 15 rows CONFORMS; nine inventory rows flipped (GAP 4129).
   **✅ PB58 CLOSED (DEVLOG 1295)** — the argument screen's predicate list (`ArgPredicate`: MinWidth/ExactWidth/
   DataItemOrLiteralOnly/NotStrongGroup), CONCAT's usage arm, the absent rows, the every-function-has-a-row drift
@@ -541,7 +541,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   the ONE renderer of a type's OBJECT-COMPUTER members (program, instance, factory); a method's classification is an
   activation LOCAL. Battery #26 covers it (ALL GREEN, 2026-08-28).
   ④ ✅ **PB110 + PB109 LANDED (2026-08-19, DEVLOG 1336)** — the CODED CHARACTER SET family (§12.3.7.4 GR7 Table 6's
-  four reference sites): ONE `CodedCharacterSet` model + ONE resolver (`DataBinder.CodedCharacterSetOf` — 1669 for a
+  four reference sites): ONE `CodedCharacterSet` model + ONE resolver (`SpecialNamesBinder.CodedCharacterSetOf` — 1669 for a
   LOCALE alphabet everywhere); SYMBOLIC CHARACTERS binds (the figurative substitutes at the constant-name seams +
   the `ALL cobolWord` grammar arm; `BoundAllLiteral.BeginsWithAll` separates the WORD the STRING/UNSTRING/INSPECT
   screens bar from the fill semantics — SR16 → COBOL1670); CLASS … IN resolves ordinals in the NAMED set (the
@@ -2822,7 +2822,7 @@ result. Run the long legs ONE AT A TIME.
   syntax — legal source made to look illegal. Never derive a general format from prose alone, and treat any
   grammar rule, diagnostic or conformance expectation derived from a FIGURE before 2026-07-19 as suspect.
 - **Open GAPs carried into P14** (each a live COBOL0899 staging or a named gap — none is a silent hole):
-  PICTURE-EDITING multi-char-literal + floating render · national-key INDEXED-FILE collating (§12.4.5.7 — `DataBinder.ResolveKeyCollating` declines a literal/LOCALE national alphabet on a national key BY NAME and refuses it, COBOL1584 (Annex A.3 item 41; kb/Work PB1074); the SORT/MERGE half of this GAP closed with kb/Work PB678) · `>>SOURCE FORMAT`/free-form not rejected at
+  PICTURE-EDITING multi-char-literal + floating render · national-key INDEXED-FILE collating (§12.4.5.7 — `FileControlBinder.ResolveKeyCollating` declines a literal/LOCALE national alphabet on a national key BY NAME and refuses it, COBOL1584 (Annex A.3 item 41; kb/Work PB1074); the SORT/MERGE half of this GAP closed with kb/Work PB678) · `>>SOURCE FORMAT`/free-form not rejected at
   `--std cobol85` (a VERSION-matrix/VCR gap). ⛔ Do NOT assert that out-of-range table occurrences default to
   spaces/zero — §13.18.63.4 leaves them UNDEFINED.
 - **Known-unenforced syntax rules, scheduled to P14 Step 0b** (the SR census, §11 A2): `OCCURS` on a level

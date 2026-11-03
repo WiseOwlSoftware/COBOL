@@ -12,9 +12,11 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// The I-O-CONTROL paragraph (ISO §12.4.6): the SAME clause's membership model, its syntax rules
-/// (§12.4.6.4.3 SR2-SR10) and the record-area sharing it links (§12.4.6.4.4 GR2).
+/// (§12.4.6.4.3 SR2-SR10) and the record-area sharing it links (§12.4.6.4.4 GR2). A partial of
+/// <see cref="FileControlBinder"/>: the paragraph is the input-output section's second half (§12.4), bound against the
+/// files the FILE-CONTROL paragraph declared.
 /// </summary>
-public sealed partial class DataBinder
+public sealed partial class FileControlBinder
 {
     /// <summary>Bind the I-O-CONTROL paragraph (ISO §12.4.6). A record-area SAME clause (Format 2) makes the listed
     /// files "share a memory area for processing the current logical record … equivalent to an implicit redefinition
@@ -36,7 +38,7 @@ public sealed partial class DataBinder
     /// §14.9.40.3 SR10 / §14.9.24.3 SR11 (<c>SortBinder.ScreenSameClauses</c>). The clause's OWN syntax rules —
     /// the arity its format prints and §12.4.6.4.3 SR2, SR3 and SR5-SR10 — are <see cref="ScreenSameOperands"/> and
     /// <see cref="ScreenSameClauses"/> (kb/Work PB1087).</summary>
-    private void BindIoControl(Core.ProgramUnitContext program)
+    internal void BindIoControl(Core.ProgramUnitContext program)
     {
         var io = program.environmentDivision()?.inputOutputSection()?.ioControlParagraph();
         if (io is null) return;
@@ -86,10 +88,6 @@ public sealed partial class DataBinder
     /// paragraph writes none. The code generator registers it at the runtime element's activation (§12.4.6.3.4 GR5).</summary>
     public ApplyCommitModel? ApplyCommit { get; private set; }
 
-    /// <summary>Whether the source element carries the RECURSIVE attribute (§11.10) — §12.4.6.3.3 SR5's antecedent (a
-    /// function is always recursive, §8.6.6, and is asked through <see cref="UnitIsFunction"/>).</summary>
-    public bool UnitIsRecursive { get; init; }
-
     /// <summary>Bind one APPLY COMMIT clause (ISO §12.4.6.3.2: <c>APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] …</c>)
     /// and the syntax rules that need no data division: SR1/SR2 (the files), SR4 (an operand at all), SR5 (a recursive
     /// source element). SR6 (a factory or instance definition, the only class-side definitions with an I-O-CONTROL
@@ -110,9 +108,9 @@ public sealed partial class DataBinder
     private void BindApplyCommitClause(Core.ApplyCommitClauseContext apply)
     {
         var clause = ApplyCommit ??= new ApplyCommitModel { At = Edition.Cursor };
-        if (UnitIsRecursive || UnitIsFunction)
+        if (_host.UnitIsRecursive || _host.UnitIsFunction)
             ApplyCommitRule("the clause is written in a recursive source element"
-                + (UnitIsFunction ? " (a function is always recursive, ISO §8.6.6)" : ""),
+                + (_host.UnitIsFunction ? " (a function is always recursive, ISO §8.6.6)" : ""),
                 "SR5", "This clause shall not be specified in a recursive source element.");
         // SR6 (a class, factory or interface definition) is OoEnvironmentRules', which sees the definition's kind: one
         // violation, one diagnostic.
@@ -123,7 +121,7 @@ public sealed partial class DataBinder
         {
             using var at = Edition.At(operand);
             if (operand.cobolWord() is { } word && operand.dataReferenceSuffix().Length == 0
-                && FilesByName.TryGetValue(word.GetText(), out var file))
+                && _host.State.Files.FilesByName.TryGetValue(word.GetText(), out var file))
             {
                 if (file.IsSortMerge || file.IsReportFile)
                 {
@@ -141,7 +139,7 @@ public sealed partial class DataBinder
                     + "MULTIPLE RECORDS applied automatically\"");
                 continue;
             }
-            var (name, quals) = ClauseDataName(operand, "APPLY COMMIT identifier-1");
+            var (name, quals) = _host.ClauseDataName(operand, "APPLY COMMIT identifier-1");
             clause.Identifiers.Add((name, quals, Edition.Cursor));
         }
     }
@@ -149,7 +147,7 @@ public sealed partial class DataBinder
     /// <summary>Post-build (the data division is bound and indexed), resolve the APPLY COMMIT clause's identifier-1
     /// operands and collect what §12.4.6.3.3 SR9 makes subject to it, asking the syntax rules that need a resolved
     /// item: SR3 (an unreferenced-modified, distinct, non-overlapping 01 or 77 item of the LINKAGE, WORKING-STORAGE or
-    /// LOCAL-STORAGE SECTION; the reference-modified shape is already refused by <see cref="ClauseDataName"/>), SR7 (no
+    /// LOCAL-STORAGE SECTION; the reference-modified shape is already refused by <see cref="DataBinder.ClauseDataName"/>), SR7 (no
     /// object reference), SR8 (both or neither of two 01/77 items one of which depends on the other), SR9 (the
     /// implicit items' sections) and SR10 (no BASED item). Called at the end of <see cref="ResolveFiles"/>, whose FILE
     /// STATUS, LINAGE and RECORD DEPENDING resolutions SR9 reads.</summary>
@@ -160,7 +158,7 @@ public sealed partial class DataBinder
         foreach (var (name, quals, at) in clause.Identifiers)
         {
             if (ScreenEnclosingFileOperand(name, quals, at)) continue;
-            if (ResolveClauseOperand(name, quals, "APPLY COMMIT identifier-1", at) is not { } item) continue;
+            if (_host.ResolveClauseOperand(name, quals, "APPLY COMMIT identifier-1", at) is not { } item) continue;
             using var _ = Edition.At(at);
             if (item.Level is not (1 or 77) || item.Section is not (EntrySection.WorkingStorage
                     or EntrySection.LocalStorage or EntrySection.Linkage))
@@ -183,7 +181,7 @@ public sealed partial class DataBinder
         // SR8 — "Where there is a dependency of one data item upon another, the 01 or 77 level data items that contain or
         // refer to them shall each either or neither be specified in the list of identifiers": the dependency the data
         // division can state between two 01/77 items is an OCCURS DEPENDING ON whose object lies in another record.
-        foreach (var root in Roots.Where(r => r.Section is EntrySection.WorkingStorage or EntrySection.LocalStorage
+        foreach (var root in _host.State.Forest.Roots.Where(r => r.Section is EntrySection.WorkingStorage or EntrySection.LocalStorage
                      or EntrySection.Linkage))
             foreach (var table in DataItem.DescendantsOf(root).Prepend(root))
                 if (table.OccursSpec?.Depending is { } obj && !ReferenceEquals(obj.Root, root)
@@ -239,8 +237,8 @@ public sealed partial class DataBinder
     /// name" — false: it is visible here (§13.18.27.4 GR1) — and the clause's own rule went unreported.
     /// <para>⛔ THE OPERAND IS DECIDED BY THE ELEMENT THAT DECLARES WHAT IT NAMES, never by whether a name table holds it
     /// (review R2-1): a container's GLOBAL record is inherited into this unit's data-name index with its depth
-    /// (<see cref="InheritContainerGlobalData"/>), so "the lookup found it" no longer means "declared here". The one
-    /// data-name lookup (<see cref="QualifiedCandidates"/>, qualification first, then the nearest declaring element) and the
+    /// (<see cref="DataBinder.InheritContainerGlobalData"/>), so "the lookup found it" no longer means "declared here". The one
+    /// data-name lookup (<see cref="DataBinder.QualifiedCandidates"/>, qualification first, then the nearest declaring element) and the
     /// depths of the other declarations the word can name are set side by side, and the NEAREST is the referenced item
     /// (§8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
     /// item"; b): otherwise the nearest containing element's):</para>
@@ -262,38 +260,38 @@ public sealed partial class DataBinder
     /// shall be specified in the FILE-CONTROL paragraph of the source element that contains this clause"</i>.</item>
     /// </list>
     /// Anything else (a container's GLOBAL working-storage item, an ambiguous or undefined reference) resolves as written
-    /// (<see cref="ResolveClauseOperand"/>).</summary>
+    /// (<see cref="DataBinder.ResolveClauseOperand"/>).</summary>
     /// <returns>true after reporting — the operand is refused and goes no further.</returns>
     private bool ScreenEnclosingFileOperand(string name, IReadOnlyList<string> quals, Editions.DiagnosticCursor at)
     {
-        var dataItems = QualifiedCandidates(name, quals, Model.Scope.Program);
-        if (dataItems.Any(i => DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
-        FileModel? global = quals.Count == 0 && State.Inherited.Files.TryGetValue(name, out var g) ? g : null;
-        int fileDepth = global is null ? int.MaxValue : State.Inherited.FileDepth(global);
+        var dataItems = _host.QualifiedCandidates(name, quals, Model.Scope.Program);
+        if (dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
+        FileModel? global = quals.Count == 0 && _host.State.Inherited.Files.TryGetValue(name, out var g) ? g : null;
+        int fileDepth = global is null ? int.MaxValue : _host.State.Inherited.FileDepth(global);
         // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§8.4.6.2.1 3)), and
         // the operand resolves as written to its own refusal; a farther one does not hide the file (kb/Work PB4219: a
         // container's GLOBAL table's INDEXED BY RELF used to beat a nearer container's GLOBAL file RELF).
-        if (NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
+        if (_host.NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
             && declared.Kind != NonDataDeclarationKind.FileName && declared.Depth <= fileDepth) return false;
-        string written = WrittenQualified(name, quals);
+        string written = DataBinder.WrittenQualified(name, quals);
         using var reportAt = Edition.At(at);
-        if (Reports.EntriesNamed(name, quals) is [var (report, _), ..] && Reports.Depth(report) < fileDepth
-            && !dataItems.Any(i => DeclaringDepth(i) <= Reports.Depth(report)))
-            return ReportSection.ReportEntryReferenceRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals);
-        if (global is not null && !dataItems.Any(i => DeclaringDepth(i) < fileDepth))
+        if (_host.State.Reports.EntriesNamed(name, quals) is [var (report, _), ..] && _host.State.Reports.Depth(report) < fileDepth
+            && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) <= _host.State.Reports.Depth(report)))
+            return _host.ReportSection.ReportEntryReferenceRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals);
+        if (global is not null && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) < fileDepth))
         {
             ApplyCommitRule($"'{global.CobolName}' is a file of a containing source element declared with the GLOBAL clause, "
                 + "and it is not specified in the FILE-CONTROL paragraph of this source element either (SR1)", "SR11", Sr11Text);
             return true;
         }
-        if (dataItems.Single is { } item && State.Inherited.RecordAreas.TryGetValue(item, out var owner))
+        if (dataItems.Single is { } item && _host.State.Inherited.RecordAreas.TryGetValue(item, out var owner))
         {
             ApplyCommitRule($"'{written}' is a record area of file '{owner.CobolName}' declared with the GLOBAL clause in a "
                 + "containing source element", "SR11", Sr11Text);
             return true;
         }
         if (dataItems.Count == 0 && quals.Count == 0
-            && State.Inherited.ContainerLocalFiles.FirstOrDefault(f => CobolNames.Same(f.CobolName, name)) is { } local)
+            && _host.State.Inherited.ContainerLocalFiles.FirstOrDefault(f => CobolNames.Same(f.CobolName, name)) is { } local)
         {
             ApplyCommitRule($"'{local.CobolName}' is a file of a containing source element, not specified in the "
                 + "FILE-CONTROL paragraph of this one (it has no GLOBAL clause, so it is not visible here)", "SR1",
@@ -402,7 +400,7 @@ public sealed partial class DataBinder
     /// REQUIRING a file-name-2, and §12.4.6.4.4 GR1/GR2 define the clause over "two or more files referenced by
     /// file-name-1, file-name-2" — so a clause naming fewer than two distinct files is not a legal form (the
     /// grammar admits it, superset-parse / bind-narrow). SR2: each operand "shall be specified in the FILE-CONTROL
-    /// paragraph of the source element that contains this SAME clause" — <see cref="FilesByName"/> holds exactly
+    /// paragraph of the source element that contains this SAME clause" — <see cref="FileSlice.FilesByName"/> holds exactly
     /// this unit's own files here (a containing program's GLOBAL files merge in after the unit's data binds, so a
     /// SAME clause cannot name one) — so a name that is no file, or a data-name, is refused rather than dropped.
     /// SR3: the operands "shall not reference an external file connector".</para></summary>
@@ -416,7 +414,7 @@ public sealed partial class DataBinder
             string name = fn.GetText();
             seenNames.Add(name);
             using var _ = Edition.At(fn);
-            if (!FilesByName.TryGetValue(name, out var file))
+            if (!_host.State.Files.FilesByName.TryGetValue(name, out var file))
             {
                 complete = false;
                 Edition.Error(DiagnosticCatalog.SameClauseRule,

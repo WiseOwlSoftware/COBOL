@@ -37,7 +37,7 @@ public sealed class ReportScope
     /// report (ISO §13.18.54.4 GR5 — "If a data-name immediately follows the level number in the
     /// entry containing the SUM clause, the data-name is the name of the sum counter, not the name of the
     /// associated printable item"). The counter is IMPLICITLY defined by its entry and is NOT in
-    /// <see cref="DataBinder.ByName"/>; <see cref="ReferenceResolver"/> consults this map to build a
+    /// <see cref="ForestSlice.ByName"/>; <see cref="ReferenceResolver"/> consults this map to build a
     /// <see cref="Model.ReportSumCounterPlace"/> so §13.18.54.4 GR12 — "It is permissible for procedure division
     /// statements to alter the content of sum counters" — has somewhere to land (kb/Work PB840).
     /// <para>⛔ A LIST PER NAME, NOT ONE ENTRY (kb/Work PB882). GR1 gives every ENTRY its own counter and nothing
@@ -45,7 +45,7 @@ public sealed class ReportScope
     /// declaration nobody names. A scalar column here would be the same last-write-wins defect the runtime just
     /// shed; instead a duplicated name is legal to DECLARE and, unless a report-name qualifier resolves it,
     /// diagnosed where it is REFERENCED.</para>
-    /// (READ-ONLY view; <see cref="DataBinder.SumCounters"/> carries the P6 Step-6 watermark gate.)</summary>
+    /// (READ-ONLY view; <see cref="DataBindState.SumCounters"/> carries the P6 Step-6 watermark gate.)</summary>
     internal IReadOnlyDictionary<string, List<(ReportModel Report, ReportSumFamily Family)>> SumCounters => _sumCounters;
     private readonly Dictionary<string, List<(ReportModel Report, ReportSumFamily Family)>> _sumCounters
         = new(CobolNames.Comparer);
@@ -125,7 +125,7 @@ public sealed class ReportScope
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) a)-b) FOR A REPORT ENTRY AGAINST THE DATA ITEMS OF A FARTHER SOURCE ELEMENT (kb/Work
     /// PB4196): true when the written reference reaches a report entry declared in a source element NEARER than
-    /// <paramref name="declaringDepth"/>, the depth (<see cref="DataBinder.DeclaringDepth"/>) of the data items it also reaches. "If
+    /// <paramref name="declaringDepth"/>, the depth (<see cref="ForestSlice.DeclaringDepth"/>) of the data items it also reaches. "If
     /// the name is declared in source element B, the item in source element B is the referenced item" (a), otherwise "the
     /// item in the containing source element" (b): the report entry is the referenced item and the container's GLOBAL data
     /// item of the spelling is not, however many of them there are. A report entry is a data-name of the source element

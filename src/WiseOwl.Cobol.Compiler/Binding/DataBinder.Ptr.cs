@@ -1,17 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using Antlr4.Runtime.Tree;
-using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Compiler.Oo;
 
 namespace WiseOwl.Cobol.Binding;
-
-using Core = CobolParserCore;
-using WiseOwl.Cobol.Compiler.Oo;
 
 /// <summary>
 /// The data-pointer half of the data binder (Phase-4b increment 2 — ISO §13.18.5 BASED / §8.4.3.11 ADDRESS OF;
@@ -30,35 +23,13 @@ public sealed partial class DataBinder
     /// test construction) walks for itself.</summary>
     internal StorageClaimScan ClaimScans { get; init; } = new();
 
-    /// <summary>The per-instance cell backings the emitter renders for ADDRESS-OF-taken records:
-    /// <c>private readonly StorageCell {CellField} = new StorageCell {{ Ref = «ImageInitOf(Canonical)» }};</c> +
-    /// <c>private ref string {Backing} =&gt; ref {CellField}.Ref;</c>. The seed honors the record's VALUE
-    /// clauses exactly like the Tier-B stored-backing initializer (the emitter computes it via the ONE
-    /// <c>FieldEmitter.ImageInitOf</c> — the based_pointer first-run lesson: a default image loses VALUE).
-    /// (READ-ONLY view — P6 Step 5.)</summary>
-    internal IReadOnlyList<(string Backing, string CellField, DataItem Canonical, int Width)> PtrAddressableBackings => _ptrAddressableBackings;
-    private readonly List<(string Backing, string CellField, DataItem Canonical, int Width)> _ptrAddressableBackings = [];
-
-    /// <summary>The BASED bridges the emitter renders: the implicit data-address pointer field
-    /// (<c>private ManagedPointer {AddrField} = ManagedPointer.Null;</c> — initially NULL, §13.18.5 GR2) +
-    /// the deref bridge (<c>private ref string {Backing} =&gt; ref CobolPtr.Deref({AddrField}, {Width}).Ref;</c>
-    /// — GR3/GR4 loud at every reference). (READ-ONLY view — P6 Step 5.)</summary>
-    internal IReadOnlyList<(string Backing, string CellProp, string AddrField, int Width)> PtrBasedBridges => _ptrBasedBridges;
-    private readonly List<(string Backing, string CellProp, string AddrField, int Width)> _ptrBasedBridges = [];
-
-    /// <summary>ADDRESS-OF-forced classes → their cell FIELD name (the emitter's
-    /// <c>ManagedPointer.At({cell}, {offset})</c> source; bind-time validation checks membership).
-    /// (READ-ONLY view — P6 Step 5.)</summary>
-    internal IReadOnlyDictionary<RedefinesClass, string> PtrAddressableCellOf => _ptrAddressableCellOf;
-    private readonly Dictionary<RedefinesClass, string> _ptrAddressableCellOf = [];
-
     /// <summary>⛔ WHO ENDS A CELL'S LIFE, ONE CLASSIFICATION (kb/Work PB1216). ISO §13.18.5.4 GR4 raises EC-BOUND-PTR for a
     /// reference through an address that is "not a valid address of storage", and §8.6.5 says the association "may cease
     /// to exist because the actual data no longer exists, as specified 8.6.4" — so every cell-backed record's storage
     /// duration (§8.6.4) decides which event ENDS the cell, and this is the one place the three are told apart:
     /// <list type="bullet">
     /// <item><see cref="CellLifetime.Static"/> — a RECURSIVE unit's static WORKING-STORAGE and a method's WORKING-STORAGE
-    /// (<see cref="StaticAddressableCells"/>): one copy, re-seeded IN PLACE by <c>__ResetStatics</c> at a CANCEL, which
+    /// (<see cref="StorageTierSlice.StaticAddressableCells"/>): one copy, re-seeded IN PLACE by <c>__ResetStatics</c> at a CANCEL, which
     /// ends the old life (<c>StorageCell.Reinitialize</c>).</item>
     /// <item><see cref="CellLifetime.Activation"/> — LOCAL-STORAGE and non-formal LINKAGE (a program's, a method's):
     /// "persists while that instance of the runtime element is in active state", so the cell ends at the activation's exit
@@ -67,155 +38,20 @@ public sealed partial class DataBinder
     /// program's items end at its activation's exit, any other program's at the CANCEL that drops the instance, both
     /// through the emitted <c>EndStorage</c> (<c>ICobolProgram.EndStorage</c>).</item>
     /// </list>
-    /// A cell added to <see cref="PtrAddressableBackings"/> tomorrow is classified here and so ended by the matching
+    /// A cell added to <see cref="StorageTierSlice.AddressableBackings"/> tomorrow is classified here and so ended by the matching
     /// event without an edit elsewhere; <c>CellLifetimeDriftTests</c> reads the generated program and fails if a cell
     /// field is named by none of them.</summary>
     internal CellLifetime LifetimeOfCell(string cellField, DataItem canonical) =>
-        StaticAddressableCells.Contains(cellField) ? CellLifetime.Static
-        : OoMethodScopedRoots.Contains(canonical) || LocalStorageRoots.Contains(canonical)
-          || LinkageRoots.Contains(canonical) ? CellLifetime.Activation
+        State.StorageTier.StaticAddressableCells.Contains(cellField) ? CellLifetime.Static
+        : Oo.MethodScopedRoots.Contains(canonical) || State.Forest.LocalStorageRoots.Contains(canonical)
+          || Linkage.Roots.Contains(canonical) ? CellLifetime.Activation
         : CellLifetime.Instance;
 
-    /// <summary>The cell fields of <see cref="PtrAddressableBackings"/> whose life ends with <paramref name="lifetime"/>'s
+    /// <summary>The cell fields of <see cref="StorageTierSlice.AddressableBackings"/> whose life ends with <paramref name="lifetime"/>'s
     /// event, in declaration order.</summary>
     internal IEnumerable<string> CellFieldsOf(CellLifetime lifetime) =>
-        _ptrAddressableBackings.Where(b => LifetimeOfCell(b.CellField, b.Canonical) == lifetime).Select(b => b.CellField);
 
-    /// <summary>The post-build data-pointer pass (runs beside <see cref="CallBindExternalAndGlobal"/> — the
-    /// proven post-classification tier-overwrite seam): (1) every BASED root becomes a pointer-routed
-    /// StringCanonical template; (2) every plain record named by a data-address-identifier (<c>ADDRESS OF x</c> — a SET sender or a CALL argument) is
-    /// forced onto a per-instance cell so its address is takeable. The pre-scan is a parse-tree walk — the
-    /// data pass must decide storage BEFORE any statement binds (emission shape is per-class).</summary>
-    internal void PtrBindBasedAndAddressables(Core.ProgramUnitContext program)
-    {
-        foreach (var root in Roots.Where(r => r.IsBased))
-        {
-            // A rejected class keeps its RejectReason — and the rejection is a BIND-TIME diagnostic now
-            // (kb/Work PB151): the bare continue left BasedPointerField null and every ALLOCATE/ADDRESS
-            // reference crashed at RUN time on a program that compiled clean, while the EXTERNAL twin
-            // (CallMakeExternal) always diagnosed the identical failure at bind — the two-arm shape. What the
-            // shared byte cell still cannot carry is a national or pointer-class leaf; every numeric byte form
-            // rides it (kb/Work PB164) and so does every boolean position, USAGE BIT packing included
-            // (kb/Work PB231 — the interpolated RejectReason names the actual leaf).
-            if (ForceStringCanonical(root, "BASED item") is not { } cls)
-            {
-                Edition.Error(DiagnosticCatalog.BasedRecordSubstrate,
-                    $"BASED item '{root.CobolName}' has a subordinate the shared byte cell cannot carry "
-                    + $"({root.Class?.RejectReason ?? "unclassified"}) — ALLOCATE/ADDRESS bridging for it "
-                    + "is recognized but not yet implemented (kb/Work PB164; ISO §13.18.5 / §14.9.3)");
-                continue;
-            }
-            string addr = NamingConvention.AddressCarrierName(root.ClrName);
-            cls.BasedPointerField = addr;
-            _ptrBasedBridges.Add((cls.BackingClrName, cls.BackingCellClrName, addr, cls.Width));
-        }
-
-        // ⛔ A FORMAL WHOSE STORAGE IS AN AREA IS LAID OVER ITS ARGUMENT'S CELL (kb/Work PB2087). ISO §14.2.3 GR8: "If the
-        // argument is passed by reference, the activated runtime element operates as if the formal parameter occupies the
-        // same storage area as the argument." A non-resident formal — a group, a formal another LINKAGE entry REDEFINES,
-        // a formal whose ADDRESS OF is taken (CallBindLinkage) — is therefore described exactly as a BASED item is: its
-        // class moves onto a cell through the ONE forcer, and the cell is the one its implicit data-address pointer
-        // addresses, which the activation sets to the argument's area (CobolArgAdapt.Area). The pointer IS the formal's
-        // carrier field, so the omitted-argument condition, the GLOBAL bridge and ADDRESS OF all read the one member.
-        // A formal whose area the cell cannot carry keeps the image round trip at the boundary (CellCanCarry).
-        // A METHOD's formals take the same rule (the method arm, kb/Work PB2087): the pointer is the formal's per-activation
-        // data-address member (OoFormal.AreaPointerClrName), set at each activation to the argument's area.
-        var areaFormals = _linkageFormals.Where(f => !f.CarrierResident).Select(f => (f.Item, Pointer: f.CarrierField))
-            .Concat(OoBoundMethods.SelectMany(m => m.Binding?.Formals ?? []).Where(f => !f.CarrierResident)
-                .Select(f => (f.Item, Pointer: f.AreaPointerClrName)));
-        foreach (var (item, pointer) in areaFormals)
-        {
-            if (!CellCanCarry(item)) continue;
-            if (ForceStringCanonical(item, "LINKAGE formal parameter") is not { } cls) continue;
-            cls.BasedPointerField = pointer;
-            _ptrBasedBridges.Add((cls.BackingClrName, cls.BackingCellClrName, pointer, cls.Width));
-        }
-
-        // The addressed names: this unit's own procedure division(s), plus — kb/Work PB1009 — every CONTAINED
-        // program's, restricted to this unit's GLOBAL names (ResolveStorageClaimHead resolves a contained head among
-        // them alone, kb/Work PB3286). §13.18.27.4 GR2 lets a contained program reference
-        // a global name "without describing it again", and the storage it references is THIS unit's, so the
-        // decision that the storage must be addressable belongs here, where the storage is declared. (A name the
-        // contained program also declares locally shadows the global one; forcing the global's cell anyway is
-        // harmless — it changes where the value lives, never what it is.)
-        // ⛔ A UNIT WITH NO GLOBAL NAME HAS NO CONTAINED PROGRAM TO ASK ABOUT (kb/Work PB4302): both claim loops below keep a
-        // contained head only when it resolves among this unit's GLOBAL roots (ResolveStorageClaimHead's contained arm, then
-        // `CallGlobalRoots.Contains(root)`), so a unit that declares none can claim nothing from any program it contains — and
-        // the question is not asked of them, instead of resolving every contained operand to throw it away.
-        Core.NestedProgramContext[] containedPrograms = CallGlobalRoots.Count == 0 ? [] : program.nestedProgram();
-        var targets = PtrScanAddressOfTargets(program).Select(t => (t.Name, t.Qualifiers, t.Method, Contained: false))
-            .Concat(containedPrograms.SelectMany(ClaimScans.AddressTargets)
-                .Select(t => (t.Name, t.Qualifiers, Method: (OoMethodSymbol?)null, Contained: true)));
-        foreach (var (name, quals, method, contained) in targets)
-        {
-            // An unqualified head keeps the historical first-candidate pick (a duplicate-name mis-force is
-            // loud-caught at the SET bind's cell check); a QUALIFIED head resolves through the ONE §8.4.2.2
-            // qualification machinery so the RIGHT record is forced. Inside a METHOD both lookups run in the
-            // method's own scope (§11.7.4 GR5 — a method-local name shadows object data and was never in the
-            // unit-wide maps, kb/Work PB3192), exactly as the SET bind will resolve it.
-            DataItem? hit = ResolveStorageClaimHead(name, quals, method, contained, firstOfSeveral: true);
-            if (hit is null)
-                continue;   // unresolved or ambiguous (the SET bind reports 0869 with the source text), or a container's GLOBAL item (declined, the container claims it; no 0869 follows)
-            DataItem root = hit;
-            while (root.Parent is { } p) root = p;
-            if (contained && !CallGlobalRoots.Contains(root)) continue;   // not a global name — not this unit's to force
-            if (AlreadyInACell(root)) continue;
-            if (ForceStringCanonical(root, "ADDRESS OF target record") is not { } cls) continue;   // rejected → loud
-            ClaimAddressableCell(cls);
-        }
-
-        // ⛔ AN ITEM PASSED BY REFERENCE LIVES IN A CELL (kb/Work PB2087, PB2089) — the activating half of §14.2.3 GR8.
-        // An argument whose storage is a cell crosses with its AREA (CobolArg.Area: the cell and the offset the argument
-        // begins at), and an area formal is laid over exactly those positions, so the two elements share ONE storage
-        // area for the whole activation. EVERY item named as a BY REFERENCE operand is claimed by the same forcer ADDRESS
-        // OF uses — a group, a character item AND a native numeric or pointer item alike, because the activating element
-        // cannot know the formal's description: the activated element may lay a group, a REDEFINED or an addressed
-        // formal over the argument, and then only a shared cell is "the same storage area" (a native field cannot hold
-        // the characters a redefinition stores — kb/Work PB2089: with N native, `CALL "S" USING N N` against a REDEFINED
-        // LK-1 and an elementary LK-2 gave LK-1 a private copy whose copy-back undid LK-2's store). Nothing else changes
-        // storage, so a program that passes nothing by reference pays nothing. An operand whose area the cell cannot
-        // carry, or that is ambiguous here (the CALL bind reports it), keeps its ordinary storage and crosses through its
-        // carrier alone — an area formal then holds a copy, stored back at return.
-        // A CLASS unit's statements live in its METHODS' procedure divisions, each resolved in its own method's scope
-        // (§11.7.4 GR5) — the ADDRESS OF scan's rule (PtrScanAddressOfTargets); the INVOKE operands are scanned with the
-        // CALL ones (the INVOKE arm of the same rule, kb/Work PB2087).
-        // §8.4.6.6: a REPOSITORY function-prototype-name or the containing FUNCTION definition's own name — a program's
-        // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
-        bool IsUserFunction(string fn) => UserFunctionNames.Contains(fn) || UnitIsFunction && ContainingDefinitionNames.Contains(fn);
-        var own = OoIsClassUnit
-            ? OoBoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
-                .SelectMany(m => ClaimScans.ByReferenceOperands(m.Definition.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
-            : program.procedureDivision() is { } opd
-                ? ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
-                : [];
-        var operands = own.Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, t.Method, Contained: false))
-            .Concat(containedPrograms.SelectMany(n => ClaimScans.ByReferenceOperands(n, IsUserFunction))
-                .Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null, Contained: true)));
-        foreach (var (name, quals, invoke, slotsOnly, method, contained) in operands)
-        {
-            if (ResolveStorageClaimHead(name, quals, method, contained, firstOfSeveral: false) is not { } hit) continue;
-            // ⛔ A GROUP WHOSE VALUES RIDE MANAGED SLOTS CROSSES ONLY AS AN AREA (kb/Work PB1940): a strongly-typed group
-            // with an object-reference or pointer leaf has no character image, so its BY CONTENT record (§14.2.3 GR9) is
-            // a detached copy of its area and a CALL's RETURNING delivery (§14.6.5) is a store into its receiver's area.
-            // Either needs the operand in a cell; every other BY CONTENT operand or RETURNING receiver crosses as a value.
-            if (slotsOnly && !WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(hit)) continue;
-            DataItem root = hit.Root;
-            if (contained && !CallGlobalRoots.Contains(root)) continue;
-            if (AlreadyInACell(root) || root.Section is EntrySection.Linkage || !CellCanCarry(root)) continue;
-            // Object data never crosses an INVOKE BY REFERENCE (§14.9.23.3 SR10: "Identifier-3 shall not reference a data
-            // item defined in the file or working-storage section of a factory or instance object"), so a bare one is
-            // passed BY CONTENT (GR6 a) 2.) and needs no cell.
-            if (invoke && OoIsObjectData(root)) continue;
-            if (ForceStringCanonical(root, "BY REFERENCE operand") is { } cls) ClaimAddressableCell(cls);
-        }
-
-        // ⛔ THE ACTIVATED HALF FOR A RETURNING ITEM WHOSE VALUES RIDE MANAGED SLOTS (kb/Work PB1940): a strongly-typed
-        // group with an object-reference or pointer leaf is delivered as its AREA (§14.6.5 — "the content of the data item
-        // referenced by that RETURNING phrase"; CobolArgAdapt.StoreReturnArea), its characters and its references into the
-        // receiver's area, so the item itself lives in a cell.
-        if (!OoIsClassUnit && LinkageReturning is { } ret)
-            ClaimSlotCarriedCell(ret, "RETURNING item");
-    }
+        State.StorageTier.AddressableBackings.Where(b => LifetimeOfCell(b.CellField, b.Canonical) == lifetime).Select(b => b.CellField);
 
     /// <summary>Claim <paramref name="root"/> onto a cell when it is a group whose values ride managed slots (a
     /// strongly-typed group with an object-reference or pointer leaf), which a program activation carries only as a cell
@@ -225,94 +61,158 @@ public sealed partial class DataBinder
     {
         if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(root) && !AlreadyInACell(root) && CellCanCarry(root)
             && ForceStringCanonical(root, what) is { } cls)
-            ClaimAddressableCell(cls);
+            State.StorageTier.ClaimAddressableCell(cls);
     }
 
     /// <summary>True when <paramref name="root"/>'s storage is ALREADY a cell (or the pointer-routed window over one), so
     /// no claim may re-base it: a BASED item or an area formal (its implicit data-address pointer — §8.6.5), a record
     /// another claim already put on a per-instance cell, or an EXTERNAL record (the run-unit <c>ExternalStore</c> cell).</summary>
-    private bool AlreadyInACell(DataItem root) =>
+    internal bool AlreadyInACell(DataItem root) =>
         root.IsBased
         || root.Class is { BasedPointerField: not null }
-        || root.Class is { } existing && PtrAddressableCellOf.ContainsKey(existing)
-        || root.Class is { Tier: RedefinesTier.StringCanonical } ext && CallExternalBackings.Any(b => b.BackingClrName == ext.BackingClrName);
+        || root.Class is { } existing && State.StorageTier.AddressableCellOf.ContainsKey(existing)
+        || root.Class is { Tier: RedefinesTier.StringCanonical } ext && Linkage.ExternalBackings.Any(b => b.BackingClrName == ext.BackingClrName);
 
-    /// <summary>Record a forced class's per-instance cell. ⛔ THE CLASS NAMES ITS OWN CELL (kb/Work PB231): the field used
-    /// to carry an ad-hoc <c>_cell_{NAME}</c> spelling that only this list knew, so a place builder could not reach the
-    /// cell to address the area's MANAGED SLOTS. It is now <see cref="RedefinesClass.BackingCellClrName"/>, the ONE name
-    /// every cell surface uses and <c>PlaceBuilder.BuildCellPath</c> resolves.</summary>
-    private void ClaimAddressableCell(RedefinesClass cls)
+    /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
+    /// feedback_one_mechanism_per_job): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
+    /// member, so a heap-cell-backed <c>ref</c>-property with the class's <see cref="RedefinesClass.BackingClrName"/>
+    /// can supply the storage (EXTERNAL records → the run-unit <c>ExternalStore</c> cell; ADDRESS-OF-taken items →
+    /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). Every byte-form numeric
+    /// leaf rides the cell since the Step D arm-1 dissolution (the gate reads THE ONE image predicate);
+    /// a national or pointer-class leaf fails it — the class goes Rejected and every reference fails loud
+    /// (the caller skips its bridge registration). Returns the forced class, or null on rejection.
+    /// <para>The admitted/refused population is <see cref="ByteWindowResidueOf"/>'s — THE ONE byte-window
+    /// carriage gate, shared with the REDEFINES classifier (kb/Work PB231).</para></summary>
+    internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
     {
-        string cell = cls.BackingCellClrName;
-        _ptrAddressableCellOf[cls] = cell;
-        _ptrAddressableBackings.Add((cls.BackingClrName, cell, cls.Canonical, cls.Width));
+        // ⛔ ONLY THE DECLARING ELEMENT DECIDES WHERE ITS STORAGE LIVES (§13.18.27.4 GR2: a contained program references a
+        // container's GLOBAL item "without describing it again"). An inherited item's class is the container's, already
+        // classified and emitted there; re-basing it from here would re-classify the container's storage and declare its
+        // cell a second time in this unit's type (merge group 41183181188). Every caller asks with storage it owns.
+        if (State.Forest.DeclaringDepth(item) != 0)
+            throw new InvalidOperationException($"{what} '{item.CobolName}': a container's GLOBAL item reached the "
+                + "cell-backing forcer of a contained unit; only its declaring element may re-base its storage");
+        var cls = item.Class;
+        if (cls is null)
+        {
+            cls = new RedefinesClass { Canonical = item };
+            cls.Members.Add(item);
+            item.Class = cls;
+        }
+
+        var leaves = cls.Members.SelectMany(LeavesOf).ToList();
+        // ⛔ THE SAME gate as the main classifier — literally, now: ByteWindowResidueOf, ONE predicate for
+        // both surfaces (kb/Work PB231). This site was a hand-written ALLOW-list facing ComputeTier's
+        // hand-written DENY-list, and every widening had to be applied twice. It was not: the Step D arm-1
+        // dissolution widened both (the eighth two-arm instance — ComputeTier admitted COMP/PACKED while this
+        // gate refused every non-DISPLAY leaf), but PB203's USAGE BIT widening reached only ComputeTier, so a
+        // BASED / EXTERNAL / ADDRESS-OF record with a bit leaf still rejected while its REDEFINES twin ran.
+        // §13.18.5.3 SR1/SR2 restrict a BASED subject to "shall not be of class object" and "shall not be a
+        // dynamic-length elementary item or a variable-length group"; §14.9.3.3 SR1 asks only for the BASED
+        // clause; §13.18.22 conditions EXTERNAL on nothing subordinate at all. A bit leaf is admitted by all
+        // three, so the reject was rejects-legal-source — the same argument that retired the negative fixture
+        // pb151-based-comp-leaf at the PB164 landing. Its residue clause now names the ACTUAL leaf.
+        if (CellResidueOf(leaves) is { } residue)
+        {
+            cls.Classify(RedefinesTier.Rejected, cls.Width,
+                $"{what} '{item.CobolName}' has {residue} — the shared byte cell cannot carry it");
+            return null;
+        }
+
+        // The sanctioned RE-classification (see RedefinesClass.Classify): the cell re-base overrides any prior
+        // stored-member verdict with the cell-backed Tier-B form (§13.18.22.4 GR5).
+        // The cell's area is the members' maximum STORAGE extent, in BYTES — §14.9.3.4 GR3's "the amount of
+        // storage to be allocated is the number of BYTES required to hold an item as described by data-name-1",
+        // and §13.18.44.4 GR1's larger-of-the-two for a multi-member class. Character positions are NOT that
+        // number for a NATIONAL leaf (two bytes per position, §13.18.60.4 GR8 / D-N1) — kb/Work PB231.
+        cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)),
+            rejectReason: null);
+        // ⛔ THE CELL CLAIM, made HERE because this method IS the one cell-backing forcer and its three callers
+        // ARE the three cell surfaces: from now on the class has a StorageCell behind its backing
+        // (RedefinesClass.BackingCellClrName), which is what a pointer-class member's MANAGED SLOT addresses
+        // (kb/Work PB231 — the pointer third; §14.9.3.4 GR9). A REDEFINES class never reaches this line and
+        // never gets one, which is exactly why ComputeTier still refuses a pointer leaf.
+        cls.IsCellBacked = true;
+        foreach (var member in cls.Members)
+        {
+            AssignClassOffsets(member, 0, cls);
+            member.IsCanonical = false;   // NO local stored field — the backing is the cell bridge
+        }
+        // ⛔ THE CELL'S VARIABLE-LENGTH HALF (kb/Work PB1026, PB1042): each COMPONENT — a dynamic-length item or a
+        // dynamic-capacity table (Place.CellComponents) — rides a managed slot of the cell numbered in storage order,
+        // one per occurrence of every enclosing fixed table, and a table's element is a scope of its own
+        // (AssignCellComponents). A dynamic-length item occupies zero bytes of the backing — its ByteWidth — and a
+        // table reserves its one-element ByteWidth, so the class walk above has already laid out the FIXED RUN every
+        // variable-length group view of the class composes over. §8.5.1.9.1 3) — "it may be defined in any place,
+        // other than the file section, in which a fixed-capacity table may be defined" — is why an EXTERNAL or
+        // ADDRESS-OF-taken record carries the table rather than refusing it.
+        int dynOrdinal = 0;
+        foreach (var member in cls.Members) dynOrdinal = AssignCellComponents(member, dynOrdinal);
+        // ⛔ EVERY byte-form numeric leaf windowed over the string backing decodes/encodes its IMAGE — the
+        // same rule ClassifyRedefinesClasses applies to a Tier-B class, applied here for the synth class.
+        // The predicate MUST be the one CellCapable admits above (THE ONE image predicate): the Step D
+        // widening opened the GATE to COMP/PACKED/COMP-5/float/INDEX leaves while this consequence still
+        // read the pre-wave DISPLAY-only union, so an admitted non-DISPLAY leaf got a NATIVE storage form
+        // over a STRING window — the accessors then spliced a raw long/float into the cell and read window
+        // TEXT back into CobolNum.Store, i.e. UNCOMPILABLE generated C# (CS1503/CS0019) on legal source,
+        // strictly worse than the bind diagnostic it replaced. The two-arm shape, nine lines apart.
+        foreach (var leaf in leaves)
+            if (leaf.Pic is { Category: PicCategory.Numeric, HasImageByteForm: true })
+                State.ImageForcedItems.Add(leaf);   // the collected image fact
+        return cls;
     }
 
-    /// <summary>⛔ THE ONE RESOLUTION OF A SCANNED STORAGE-CLAIM HEAD (an <c>ADDRESS OF</c> head or a BY REFERENCE operand;
-    /// kb/Work PB3286) in the scope its statement will bind in: the owning METHOD's (§11.7.4 GR5) when
-    /// <paramref name="method"/> is set, else the unit's. Null when it names nothing, or is ambiguous and
-    /// <paramref name="firstOfSeveral"/> is false: the statement's bind reports both (§8.4.2.2.3 SR1), and a storage
-    /// claim never guesses between candidates — except where the SET bind's own permissive reading takes the first
-    /// declared survivor (the ADDRESS OF arm, whose mis-force is loud-caught at that bind's cell check).
-    /// <para>⛔ A CONTAINED program's head is resolved among this unit's GLOBAL names alone. §13.18.27.4 GR2 lets it
-    /// "reference that name without describing it again", and §8.4.6.2.1 admits a local name only in the source element
-    /// that declares it, so a container's LOCAL record that shares a name with a GLOBAL one is not a candidate: asking
-    /// the whole container scope took the local one (candidate 0, or one of two) and dropped it as not global, so the
-    /// global record was never put on a cell and the contained <c>SET P TO ADDRESS OF X</c> was refused with a reason
-    /// that was false. A qualified head resolves through the one §8.4.2.2 qualification machinery, which the written
-    /// qualifiers already narrow to the record they name.</para>
-    /// <para>⛔ A HEAD THAT NAMES A CONTAINER'S GLOBAL ITEM IS NOT THIS UNIT'S TO CLAIM. The containers' GLOBAL names are
-    /// visible here before this pass runs (<see cref="InheritContainerGlobalData"/>, at the end of the declaration half,
-    /// kb/Work PB3766), but the storage they name is the container's (§13.18.27.4 GR2), and the container claims it from
-    /// its own scan of its contained programs (the <c>contained</c> arm above). Claiming it here as well declared the
-    /// record's cell and backing a second time in this unit's C# type beside the GLOBAL bridge to the container's
-    /// (CS0102 on <c>_scell_R2</c> / <c>_redef_R2</c>, merge group 41183181188), so the answer is the head's own
-    /// element only: <see cref="DeclaringDepth"/> 0.</para></summary>
-    private DataItem? ResolveStorageClaimHead(string name, List<string> quals, OoMethodSymbol? method, bool contained,
-        bool firstOfSeveral)
+    /// <summary>The first leaf of <paramref name="leaves"/> the shared byte cell cannot carry, as its residue clause, or
+    /// null — <see cref="ByteWindowResidueOf"/> over a whole storage area, the ONE gate <see cref="ForceStringCanonical"/>
+    /// applies.</summary>
+    private static string? CellResidueOf(IEnumerable<DataItem> leaves) =>
+        leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null);
+
+    /// <summary>⛔ CAN <paramref name="root"/>'s STORAGE AREA MOVE ONTO A CELL WITHOUT A DIAGNOSTIC (kb/Work PB2087)? The
+    /// question an OPTIONAL claim asks before calling <see cref="ForceStringCanonical"/>, which classifies a refused
+    /// class Rejected (every reference then fails loud) — right for a surface that cannot exist without the cell
+    /// (EXTERNAL, BASED, ADDRESS OF), wrong for one that only gains aliasing from it (a boundary-aliased area). True
+    /// when every leaf of the area rides the cell.
+    /// <para>⛔ A VARIABLE-LENGTH GROUP RIDES THE CELL TOO (kb/Work PB2094). Its dynamic-length items and dynamic-capacity
+    /// tables are the cell's components (<see cref="AssignCellComponents"/>), and an area formal laid over its argument
+    /// numbers its components from the area's component ordinal as it displaces its characters by the area's offset
+    /// (<c>CellPointer.DynBase</c>, <c>PlaceBuilder.CellOrdinalBase</c>), so §14.2.3 GR8 — "the activated runtime
+    /// element operates as if the formal parameter occupies the same storage area as the argument" — holds for it as
+    /// for any group. §13.18.5.3 SR2 bars a variable-length group only as the subject of a WRITTEN BASED clause.</para></summary>
+    internal static bool CellCanCarry(DataItem root)
     {
-        var scope = method is null ? Model.Scope.Program : new Model.Scope(method.DataScope);
-        DataItem? hit;
-        if (quals.Count == 0)
-        {
-            if (!Symbols.TryResolveUnqualified(name, scope, out var candidates)) return null;
-            if (contained) candidates = candidates.FindAll(c => CallGlobalRoots.Contains(c.Root));
-            hit = candidates.Count == 1 || (firstOfSeveral && candidates.Count > 0) ? candidates[0] : null;
-        }
-        else
-        {
-            using (Procedure.ActiveMethodScope.Enter(method?.DataScope))
-                hit = new ReferenceResolver(this).Names.FindItem(name, quals);
-        }
-        return hit is not null && DeclaringDepth(hit) == 0 ? hit : null;
+        var members = root.Class?.Members ?? [root];
+        return CellResidueOf(members.SelectMany(LeavesOf)) is null;
     }
 
-    /// <summary>The data-names taken by every §8.4.3.11 DATA-ADDRESS-IDENTIFIER in the unit's own procedure division(s)
-    /// (<see cref="StorageClaimScan.AddressTargets"/> — the head name + its OF/IN qualifiers, for EVERY operand shape: a
-    /// subscripted operand forces the same containing record, the occurrence displacement being a bind-time offset over
-    /// the ONE cell, never separate storage).
-    /// <para>⛔ IT ASKS THE IDENTIFIER'S OWN RULE, NOT A STATEMENT (kb/Work PB239). It used to recognize only a
-    /// SET Format-7 sender, so the day a second surface took the identifier — the CALL argument §14.9.4.3
-    /// SR3/SR4 name — its record would have been left off cell storage and the bind would have refused it.
-    /// Every surface now spells the identifier through the ONE <c>dataAddressIdentifier</c> rule, so every one
-    /// of them is forced here by construction. The receiving <c>ADDRESS OF data-name-1</c> of SET Format 7 is a
-    /// different rule (<c>setToReceiver</c>) and is never forced: it names a BASED item (kb/Work PB450).
-    /// </para></summary>
-    private IEnumerable<(string Name, List<string> Qualifiers, OoMethodSymbol? Method)> PtrScanAddressOfTargets(Core.ProgramUnitContext program)
+    /// <summary>Number <paramref name="node"/>'s variable-length COMPONENTS in its scope from ordinal
+    /// <paramref name="next"/> and return the next free ordinal (kb/Work PB1042) — the ONE writer of
+    /// <see cref="DataItem.ClassDynOrdinal"/>, walking exactly the order <see cref="CellComponents.Of"/> enumerates: a
+    /// component takes one ordinal; a group's children follow in storage order, a fixed table's occurrence k taking
+    /// the k-th run of its per-occurrence components (so a subscript displaces an ordinal by
+    /// <see cref="CellComponents.PerOccurrence"/>); a non-component's ordinal is that of its first component. A
+    /// dynamic-capacity table's ELEMENT is a scope of its own — each occurrence is an element cell
+    /// (<c>StorageCell.DynTableAt</c>) — so the element's members are re-laid out from offset zero and numbered from
+    /// zero, which is what makes a table, or a dynamic-length item, inside a table element the same mechanism one
+    /// level down (§8.5.1.9.1 3): "may be nested in any combination to the same number of levels as a fixed-capacity
+    /// table").</summary>
+    private static int AssignCellComponents(DataItem node, int next)
     {
-        // A CLASS unit's statements live in its METHODS' procedure divisions — the synthetic unit OoDriver
-        // binds carries the data divisions only — so each method body is scanned and its targets carry the
-        // method whose scope resolves them (kb/Work PB956).
-        if (OoIsClassUnit)
+        node.ClassDynOrdinal = next;
+        if (node.IsDynamicTable)
         {
-            foreach (var m in OoBoundMethods)
-                if (m.Ctx?.procedureDivision() is { } mpd)
-                    foreach (var (n, q) in ClaimScans.AddressTargets(mpd))
-                        yield return (n, q, m);
-            yield break;
+            (int at, int bit) = (node.ClassOffset, node.ClassBitOffset);
+            AssignClassOffsets(node, 0, node.Class!);   // the element's own layout, relative to its element cell
+            (node.ClassOffset, node.ClassBitOffset) = (at, bit);   // the table keeps its reservation in its parent scope
+            int inner = 0;
+            foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
+                inner = AssignCellComponents(c, inner);
+            return next + 1;
         }
-        if (program.procedureDivision() is not { } pd) yield break;
-        foreach (var (n, q) in ClaimScans.AddressTargets(pd))
-            yield return (n, q, null);
+        if (DynSlotWindow.CarriedBySlot(node)) return next + 1;
+        int k = next;
+        foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
+            k += (AssignCellComponents(c, k) - k) * (c.Occurs ?? 1);
+        return k;
     }
 }

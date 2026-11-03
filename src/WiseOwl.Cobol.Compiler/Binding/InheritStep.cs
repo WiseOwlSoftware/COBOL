@@ -41,21 +41,21 @@ internal static class InheritStep
             // this unit binds, and a local data-name shadows them after (Merge). EVERY container, nearest first (the
             // nearest global declaration wins): an intermediate program's own NON-global declaration of the name hides
             // nothing from the programs it contains.
-            data.InheritGlobalConstants(anc.Data, ++depth);
+            inherited.AddContainerConstants(anc.Data.Constants.GlobalConstantsToInherit(), ++depth);
             // …its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
             // unit's first data phase, so a TYPE clause there already sees the container's type-name.
-            inherited.AddContainerTypeDecls(anc.Data.TypeDecls);
+            inherited.AddContainerTypeDecls(anc.Data.State.Forest.TypeDecls);
             // …and its files' names (§13.18.27.4 GR1): the data division's own resolutions ask whether a name that is no
             // data item IS a visible file-name (kb/Work PB3557).
-            inherited.AddContainerFiles(anc.Data.Files, anc.Data.CallGlobalRoots, depth);
+            inherited.AddContainerFiles(anc.Data.State.Files.Declared, anc.Data.Linkage.GlobalRoots, depth);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the bridges are
         // emitted for every global root (Merge), so a LOCAL root spelled like one (the §8.4.6.2.1 3) a) shadowing case)
         // must take another C# name — its stem too, or a member DERIVED from the stem (a REDEFINES backing) would re-spell
-        // the bridge (DataBinder.InheritedMemberNamesOf).
+        // the bridge (LinkageBinder.InheritedMemberNamesOf).
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var g in anc.Data.CallGlobalRoots)
-                data.ReserveInheritedMemberNames(anc.Data.InheritedMemberNamesOf(g));
+            foreach (var g in anc.Data.Linkage.GlobalRoots)
+                data.ReserveInheritedMemberNames(anc.Data.Linkage.InheritedMemberNamesOf(g));
     }
 
     /// <summary>Write the merge half of <paramref name="unit"/>'s inheritance, after its data phases: its binder is
@@ -66,7 +66,7 @@ internal static class InheritStep
         var data = unit.Data;
         // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent binds before
         // its children), so the GLOBAL bridge below can carry a guarded root's presence member.
-        EcBinder.MarkFormals(data.LinkageFormals, kind, turn);
+        EcBinder.MarkFormals(data.Linkage.Formals, kind, turn);
 
         var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (anc, g, depth) in ContainerGlobalRootsOf(unit))
@@ -80,14 +80,30 @@ internal static class InheritStep
             // can name ONE member — the records of a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its
             // anchor share one field — and a member declared twice is CS0102. The member names are unique along the
             // container chain (ReserveInheritedMemberNames), so equal names are the same member.
-            foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
+            foreach (var bridge in anc.Data.Linkage.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
                 if (bridgedMembers.Add(bridge.MemberClrName)) unit.Bridges.Add(bridge);
         }
 
         // Every tier is in place now — this unit's own names and every container's globals — so an inherited constant a
         // NEARER data-name hides can leave (§8.4.6.2.1 3); kb/Work PB1009 / PB1047).
-        data.DropShadowedConstants();
+        DropShadowed(data);
     }
+
+    /// <summary>Once <paramref name="data"/>'s DATA DIVISION is bound AND every container's global data is inherited, an
+    /// inherited GLOBAL constant, and an inherited symbolic-character (§12.3.7.4 GR11 a), is SHADOWED by a data-name,
+    /// condition-name or index-name of the same spelling declared in a NEARER source element — this unit's own, or a nearer
+    /// container's global one — by ISO §8.4.6.2.1 3) ("a) If the name is declared in source element B, the item in source
+    /// element B is the referenced item. b) … 1. The item in source element A if the name is declared in source element
+    /// A"), so a shadowed constant leaves <see cref="InheritedGlobals.Constants"/> before any procedure reference can
+    /// substitute it (kb/Work PB1009; the nearer-container half kb/Work PB1047 — an outer program's constant used to beat
+    /// the middle program's global data-name) and a shadowed symbolic-character is hidden (kb/Work PB3154 review R1-1:
+    /// <c>MOVE S1 TO Y</c> moved the container's figurative instead of the local <c>01 S1</c>, with no diagnostic). Run by
+    /// <see cref="Merge"/> for a program unit and by <c>OoDriver</c> for an OBJECT or FACTORY half, whose class definition
+    /// hands it symbolic-characters (§8.4.6.1) and no constants.
+    /// <para>Every tier a name can be declared at is asked by <c>DataBinder.DeclaredNearerThan</c>; a METHOD's own names
+    /// are the one tier nearer still, asked at reference time (<c>DataBinder.ActiveMethodDeclares</c>).</para></summary>
+    internal static void DropShadowed(DataBinder data) =>
+        data.State.Inherited.DropShadowed(data.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
 
     /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
     /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out it
@@ -105,7 +121,7 @@ internal static class InheritStep
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             depth++;
-            foreach (var g in anc.Data.CallGlobalRoots)
+            foreach (var g in anc.Data.Linkage.GlobalRoots)
                 if (g.CobolName is not null)
                     roots.Add((anc, g, depth));
         }
@@ -123,7 +139,7 @@ internal static class InheritStep
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             depth++;
-            foreach (var r in anc.Data.Reports.Declared)
+            foreach (var r in anc.Data.State.Reports.Declared)
                 if (r.IsGlobal)
                     reports.Add((r, depth));
         }

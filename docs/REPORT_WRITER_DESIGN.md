@@ -150,7 +150,7 @@ off-by-one through every later counter check.
 - **Three types, one concern (kb/Work PB2357).** `ReportSectionBinder` (`Binding/ReportSectionBinder.cs`, one per
   `DataBinder`, `DataBinder.ReportSection`) binds and resolves the RD entries and answers the report-item refusal
   (`ReportEntryReferenceRefused`, §13.8.6.2.3). The facts it produces are `ReportScope` (`Binding/ReportScope.cs`,
-  `DataBinder.Reports`): the reports a unit `Declared`, the `Visible` ones (its own, then its containers' GLOBAL ones),
+  `DataBindState.Reports`): the reports a unit `Declared`, the `Visible` ones (its own, then its containers' GLOBAL ones),
   each report's `Depth`, the sum counters, the refused PRESENT WHEN conditions, and the name lookups over them
   (`EntriesNamed`, `NearerEntryHides`, `NearestInScope`). The report model types (`ReportModel` and what it holds) are
   `Binding/ReportModel.cs`. The binder is the only writer of the scope; every later phase reads the scope.
@@ -171,7 +171,7 @@ off-by-one through every later counter check.
   `integerOperand : integerLiteral | cobolWord` (`CobolExpressions.g4`, beside `integerLiteral`) — the rule the OCCURS
   bounds wrote privately as `occursBound` before — and `IntegerOperandSlotDriftTests.EveryRuleWritingABareIntegerLiteral_IsAnArguedLiteralOnlySlot`
   keeps a bare `integerLiteral` out of the report-writer grammar (and every other), so the clause added next admits a
-  constant without anyone remembering to. The binder reads every one through the ONE `DataBinder.IntegerOperandValue` (the OCCURS reader,
+  constant without anyone remembering to. The binder reads every one through the ONE `ConstantEntryBinder.IntegerOperandValue` (the OCCURS reader,
   generalised): the integer as written, or the integer constant's value, which §13.10.4 GR1 makes "as if the literal
   were written" and therefore meets what the written literal meets — §5.5 1)'s unsigned/nonzero default with each
   clause's own zero permission (`IntegerOperandRules.Slots`, classified by the CLAUSE that owns the operand, not by
@@ -429,7 +429,7 @@ off-by-one through every later counter check.
   sharing a data-name shared one counter and the second registration destroyed the first — `0022  0022` printed
   where the standard owes `0011  0022`.) GR5 also puts that name in the source element's name space, because
   GR12 permits procedure division statements to "alter the content of sum counters" and altering presupposes
-  referencing: `DataBinder.SumCounters` (name → EVERY counter carrying it, a list because the collision is legal
+  referencing: `DataBindState.SumCounters` (name → EVERY counter carrying it, a list because the collision is legal
   to DECLARE) feeds `CounterResolver.SumCounterFor`, which builds a `ReportSumCounterPlace` — the CAPACITY /
   DEBUG register pattern, a VIEW over engine state whose read and write `PlaceRenderer` maps to
   `CobolReport.SumImage` / `SetSumImage` (the counter's character image under its GR1 profile: the register is
@@ -461,7 +461,7 @@ off-by-one through every later counter check.
   reports **COBOL5092**. Five arms ask it before they say "not defined" (or "nothing described"):
   `NameResolution.ReportUnidentified` (every procedure division identifier), `DataBinder.ResolveClauseOperand`
   (FILE STATUS, RELATIVE KEY, LINAGE, APPLY COMMIT), the data-division OCCURS … DEPENDING ON lookup,
-  `DataBinder.ResolveAssignUsing` (ASSIGN … USING, kb/Work PB3768) and the record-key resolver `InRecords` inside
+  `FileControlBinder.ResolveAssignUsing` (ASSIGN … USING, kb/Work PB3768) and the record-key resolver `InRecords` inside
   `ResolveFiles` (RECORD KEY / ALTERNATE RECORD KEY, which would otherwise draw SR2's COBOL0863 "references nothing
   described"); `ReportItemReferenceTests.EveryUndefinedNameArm_AsksTheOneRefusal` names each arm by member. A report
   section clause whose operand names an entry breaks §13.15.3 SR7 ("The data-name shall not be referenced in any other
