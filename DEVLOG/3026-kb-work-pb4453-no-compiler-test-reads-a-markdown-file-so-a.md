@@ -1,4 +1,4 @@
-## kb/Work PB4453: no compiler test reads a Markdown file, so a document edit is the inert lane
+## Entry 3026 — 2026-11-03 02:29 PST — kb/Work PB4453: no compiler test reads a Markdown file, so a document edit is the inert lane
 
 A one-word edit to any file under docs/ ran the build and the three whole populations, because some thirty Unit and Conformance classes read Markdown.
 The test phase's median over the last 61 gates was 12.7 minutes, and the tooling lane takes about 40 seconds.
@@ -89,3 +89,4 @@ The lexer is now two small functions, `_lex` (code, with the hole mode: bracket 
 A hole's string literals are values and its code stays code, so `TestRepo.Docs()` in a hole is still found.
 The self-test plants each form (an escaped quote, backslash and unicode character literal, a hole with a literal, doubled braces, a `$$` raw string, a preprocessor apostrophe) and `check` is still GREEN over the real tests, so no test spells a Markdown file the old lexer hid.
 R1-2 is corrected in the docstring and in DESIGN-test-build-ci: four self-tests read three docs as data, the accepted residue (b), first seen by CI's Linux audits job on a docs-only edit.
+
