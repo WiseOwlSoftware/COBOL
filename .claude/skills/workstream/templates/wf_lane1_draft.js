@@ -1,6 +1,6 @@
 export const meta = {
   name: 'lane1-golden-draft',
-  description: 'Golden lane stage 1: one Opus writer per input file derives spec-derived goldens for CONFORMS-untested and DNS-witness rows into the lane's scratch directory; an independent refuter re-derives every expected value; a fixer applies upheld corrections',
+  description: 'Golden lane stage 1: one Opus writer per input file derives spec-derived goldens for CONFORMS-untested and DNS-witness rows into the lane scratch directory; an independent refuter re-derives every expected value; a fixer applies upheld corrections',
   phases: [
     { title: 'Write', detail: 'one agent per family file: existing-golden reuse or a new spec-derived .cob/.out draft' },
     { title: 'Refute', detail: 'independent re-derivation of every expected value; default to refuted when uncertain' },
@@ -108,7 +108,7 @@ YOUR JOB, per row, in this order:
    opening with its metadata header (id, rules, accept: the row's editions, source-format; conformance-suite/
    README.md 'Adding a test'), then "*> ISO §<clause> <rule> — <what is exercised>"; a per-edition
    <id>.<edition>.out where behaviour differs across the row's editions. Negative (a rule that must be REJECTED):
-   the same folder, the header with NO accept, and its refusal returned under `refusals` (refuse-at: the editions,
+   the same folder, the header with NO accept, and its refusal returned under \`refusals\` (refuse-at: the editions,
    expect: the diagnostic code); a DNS witness that must DIAGNOSE goes in conformance-suite/wiseowl/cases/
    <clause>-<Name>/ the same way. Several rows may share one program when
    the same output pins them all — say which lines pin which rule.

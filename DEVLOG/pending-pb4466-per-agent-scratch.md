@@ -16,3 +16,13 @@ Tests: the 7c1 arms of `scripts/orchestrator/test_plan_wave.py` (the rendered li
 scratch, a line without P16 and a missing line are refused; the real tree has no bare mention; each surface arm is refused on a plant).
 Self-tests run: `test_plan_wave.py` 530/530, `test_dispatch_guard.py` 25/25, `test_readonly_repo.py` 5/5, `test_forbidden_commands.py`
 232/232, `check_practices.py` GREEN. Rows re-verdicted: none (a process note).
+
+Branch review round 1 found two blocking defects. R1-1: the reworded `meta.description` of `wf_lane1_draft.js` carried an unescaped
+apostrophe, so the golden lane's stage-1 workflow no longer parsed; no audit parsed the workflow templates. Fixed (the word reworded),
+and a new arm of `scripts/orchestrator/test_rolling_wave.py` runs `node --check` on every `wf_*.js` wrapped as the Workflow runtime loads
+it (the body of an async function). That arm found two parse errors already on main, unescaped backticks around `refusals` inside the
+prompt template literals of `wf_lane1_draft.js` and `wf_lane1_validate.js`, which are escaped in the same change. R1-2: the branch
+reviewers of one wave shared the session scratchpad, since the reviewer prompt named no directory. `reviewBranch` now names
+`<wave scratch>\review-w<wave>-<letter>\` (`reviewScratch`); the `cobol-reviewer` definition, the review skill's branch form and P16 say
+so; `check_practices.py` pins the prompt text in `wf_rolling_wave.js`; and the rolling-wave self-test checks that each reviewer's prompt
+names its own directory and not another group's. `test_rolling_wave.py` 52/52, `check_practices.py` GREEN.

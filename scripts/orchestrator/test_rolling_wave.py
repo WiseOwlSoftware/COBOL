@@ -32,6 +32,8 @@ references/rolling-wave.md), never from what the script does:
      GREEN continues as DONE (the finished test, then the review), RED goes to a gate finisher whose branch is then
      reviewed, a run that never writes a verdict ends STALLED after the await windows, and a review finisher's
      GATE-PENDING settles the same way before the next review round.
+  6. each branch reviewer is told its own scratch directory (kb/Work PB4466), and every workflow template (`wf_*.js`) parses
+     as an ES module under `node --check`.
 No clock decides anything: each stub agent yields to the event loop once and returns its scripted result.
 """
 import json
@@ -200,6 +202,30 @@ def main() -> int:
               at(ev, "log:A: DONE; 1 branch(es) reviewed CLEAN") < at(ev, "start:impl-B-PB2"), ev)
         check("1: both branches are ready, the predecessor first",
               [x["branch"] for x in r["out"]["ready"]] == ["bA", "bB"], r["out"]["ready"])
+
+        # EACH BRANCH REVIEWER WRITES IN ITS OWN DIRECTORY (kb/Work PB4466, MANDATORY-PRACTICES P16; review R1-2). Expected from
+        # the rule: up to `concurrency` reviewers share one workflow session, so each reviewer's prompt names
+        # <wave scratch>\review-w<wave>-<letter>\ (distinct per group) and forbids the shared session scratchpad.
+        scratch1 = str(tmp / "clean")
+        rev_a, rev_b = ((r["prompts"].get(f"w9{x}-review-r1") or [""])[0] for x in "ab")
+        dir_a, dir_b = f"{scratch1}\\review-w9-a\\", f"{scratch1}\\review-w9-b\\"
+        check("PB4466: each branch reviewer is told its own scratch directory, one per group, and the shared scratchpad is forbidden",
+              (f"YOUR SCRATCH DIRECTORY is {dir_a} (MANDATORY-PRACTICES P16" in rev_a, dir_b in rev_a,
+               f"YOUR SCRATCH DIRECTORY is {dir_b} (MANDATORY-PRACTICES P16" in rev_b, dir_a in rev_b,
+               "never in the harness's session scratchpad" in rev_a),
+              (True, False, True, False, True))
+
+        # EVERY WORKFLOW TEMPLATE PARSES (review R1-1). Expected from the runtime's contract (the HARNESS above): a template is the
+        # body of an async function of `args`, `agent`, `parallel`, `log` and `phase`, its `export const meta` read as a constant,
+        # so `node --check` of that wrapper must exit 0. A reworded string literal once carried an unescaped apostrophe that no
+        # audit saw (wf_lane1_draft.js on 633ce9389), and every dispatch of that workflow failed before any agent ran.
+        for template in sorted(WAVE.parent.glob("wf_*.js")):
+            module = tmp / (template.stem + ".mjs")
+            body = re.sub(r"^export const meta", "const meta", template.read_text(encoding="utf-8"), flags=re.M)
+            module.write_text("async function workflow(args, agent, parallel, log, phase) {\n" + body + "\n}\n",
+                              encoding="utf-8", newline="\n")
+            syntax = subprocess.run(["node", "--check", str(module)], capture_output=True, text=True, encoding="utf-8")
+            check(f"{template.name} parses as an ES module", syntax.returncode == 0, syntax.stderr.strip()[-400:])
 
         # THE IMPLEMENTER'S MODEL (kb/Work PB3868). Expected from the rule (MANDATORY-PRACTICES P1): a group's own `model`
         # (the planner's routing) is passed to its implementer; a group without one passes NO model, so the harness runs

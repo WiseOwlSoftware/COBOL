@@ -99,7 +99,9 @@ BRIEFS = {
                            r"agentType: 'cobol-reviewer'", r'review_findings\.py', r"r\.review === 'CLEAN'",
                            r'REVIEW FINISHER', r'REVIEW_FIX_ROUNDS',
                            # PB3359: a campaign's standing requirements and the group's dispatch spec reach the reviewer
-                           r'g\.requirements', r'reviewerRequirements\(g\)', r'msg-w\$\{W\}-\$\{g\.letter\.toLowerCase\(\)\}\.txt: read it'],
+                           r'g\.requirements', r'reviewerRequirements\(g\)', r'msg-w\$\{W\}-\$\{g\.letter\.toLowerCase\(\)\}\.txt: read it',
+                           # PB4466 (P16): each branch reviewer writes in its own scratch directory, never the shared scratchpad
+                           r'YOUR SCRATCH DIRECTORY is \$\{reviewScratch\(g\)\} \(MANDATORY-PRACTICES P16'],
     # O8: every fleet workflow runs with the stall watchdog beside it (PB1704).
     'MANDATORY-PRACTICES.md': [r'stall_watch\.py', r'linux-gate\.sh', r'I9', r'dispatch_guard\.py', r'prune_worktrees\.py',  # O8; PB1732; I9, O9, O10
                                r'STOP-<scope>',  # P3, PB2483: the scoped stop
