@@ -178,6 +178,7 @@ public static partial class ConstructRegistry
         new("standard-compare-2002", "FUNCTION STANDARD-COMPARE (cultural ordering)", 2002, null, null, "COBOL1502", "ISO §15.85 STANDARD-COMPARE; §12.3.7.2 ORDER TABLE; §A.3 item 25 (dependent on an ISO/IEC 14651:2020 implementation - support IS now claimed); provisional 2002 edge"),
         new("program-collating-national-2002", "the PROGRAM COLLATING SEQUENCE national surface (alphabet-name-2 / FOR forms)", 2002, null, null, "COBOL0900", "ISO §12.3.6.2 (PROGRAM COLLATING SEQUENCE second alternative + alphabet-name-2)"),
         new("call-by-value-2002", "the CALL BY VALUE phrase", 2002, null, null, "COBOL0900", "ISO §14.9.4"),
+        new("call-literal-expression-argument-2002", "a literal or expression as a CALL argument", 2002, null, null, "COBOL0900", "ISO/IEC 1989:2002 Annex F.2 item 15; ISO §14.9.4.2 Format 2"),
         new("omitted-arguments-2002", "the omitted-argument facility (OMITTED / OPTIONAL / IS OMITTED)", 2002, null, null, "COBOL0900", "ISO 14.9.4.2 Format 2 / 14.2.2 / 8.8.4.8 - COBOL-2002 introductions"),
         new("pd-header-by-value-2002", "the PROCEDURE DIVISION USING BY VALUE phrase", 2002, null, null, "COBOL0900", "ISO §14.2.2 using-phrase / §14.2.3 GR4/GR10 / §8.4.3.2.4 GR5c"),
         new("local-storage-section-2002", "the LOCAL-STORAGE SECTION", 2002, null, null, "COBOL0900", "ISO §13.6 / §13.6.4 GR1 / §14.6.2.3.2"),
