@@ -1054,7 +1054,7 @@ methods (at the census, `BindPipeline.Build` registered its `BindPass` rows as l
 exclusive call closure on the binder moved with it; the rule code another asker shares stays on the binder until that asker's
 concern binder lands). One row keeps its rule code on `DataBinder` and only schedules it
 (`ResolveFiles`, the post-build half of the FILE concern that `FileControlBinder` did not take; `BindPassBoundaryDriftTests`
-names it, fails when it leaves `DataBinder` without the entry going, and fails when no open kb/Work note names it (PB2296 M7); the rows
+names it and fails when it leaves `DataBinder` without the entry going; `work.py check` fails when no open kb/Work note names it (PB2296 M7; no compiler test reads kb/Work, PB4453); the rows
 `ResolveReports`, `CallBindExternalAndGlobal` and `OoRouteMethodRedefinesBackings` left that list when `ReportSectionBinder`,
 `LinkageBinder` and `OoDataBinder` landed, and now call them). The rows run under the
 `PassPhase` watermark (`Passes/IBindPass.cs:23`: None, TypesExpanded, UsageResolved, SignResolved,

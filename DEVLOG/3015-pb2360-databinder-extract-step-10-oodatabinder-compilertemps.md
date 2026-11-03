@@ -291,8 +291,9 @@ a member move reaches (a lead is filed in the report: a citation should name the
 Review round 1 (finisher). One blocking finding: the `ConcernOwned` exception in `BindPassBoundaryDriftTests` kept
 `ResolveFiles` waiting for a binder that had already landed (`FileControlBinder` took only the SELECT / I-O-CONTROL half),
 and no open note owned the rest. Fix: kb/Work PB2296 names the next FILE step as M7 (`ResolveFiles` and `BindFileSection` leave
-`DataBinder`, the entry is deleted in the same change); the drift test gained `EveryConcernOwnedRow_IsNamedByAnOpenWorkNote_...`
-so the exception cannot outlive its owner; the test class carries the `Sweep` trait now that it reads `kb/Work`; design §8.3 (1)
+`DataBinder`, the entry is deleted in the same change); the register check `work.concern_owned_problems` (run by `work.py check`)
+holds that every `ConcernOwned` row has an open owner, so the exception cannot outlive it (the merge group of #1045 refused a
+first version that put this in the drift test: a compiler test may not read `kb/Work`, PB4453); design §8.3 (1)
 no longer says the test "fails when it lands". Leads fixed in files already touched: nine stale `DataBinder.X` crefs, the
 seed/`InheritConfiguration` names in the design and the `ConfigurationSlice`/`DataBinder.Configuration` summaries,
 `LinkageBinder.SealLinkageRules` in INTERPROGRAM_DESIGN, and `DynamicResolvePass` takes its uid through `TakeUid()` (the
