@@ -17,7 +17,9 @@ and would still have kept the group's report of the text under the group's state
   `DiagnosticCursorExtensions.At(DiagnosticCursor)`, so a post-build pass that replays a captured cursor attributes as the bind did and no binder
   pass had to be touched.
 - `EditionContext.Warning` remembers which regions raised each warning line (a line the user's own text, or a second expansion still standing, also
-  raised is not withdrawable); `ExpansionPlacementPass` calls `WithdrawWarningsOf` for each `OwnAssembly` expansion. Errors are never withdrawn.
+  raised is not withdrawable); `ExpansionAssemblies.Write` calls `WithdrawWarningsOf` for each `OwnAssembly` expansion once its sub-compilation has reported (a first draft
+  withdrew in `ExpansionPlacementPass`, which dropped the text's warnings from a `CheckOnly` compile, where no sub-compilation runs; found in the
+  self-review and pinned by a test). Errors are never withdrawn.
 - One column rule: the tokens of an expansion of a skeleton read from the repository take the EXPANDS entry's line and column, the position
   `ExpansionAssemblies.AtTheEntry` relabels the sub-compilation to. `ExpansionAssemblies.Write`, `ExpansionToWrite.RequestedAt` and
   DESIGN-external-repository §10.5 now say what the code does.

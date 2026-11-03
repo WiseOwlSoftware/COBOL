@@ -678,6 +678,23 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    [Fact]   // kb/Work PB4469: a check-only compilation runs no sub-compilation, so the group's bind of the text is the one report there is.
+    public void ACheckOnlyCompilation_StillReportsAnOwnAssemblyExpansionsWarning_Once()
+    {
+        WithDirectory("expansion-warning-check-only", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold(RelationOfLiterals), level: 2023).Success);
+            string src = Path.Combine(dir, "CLIENT1.cob");
+            File.WriteAllText(src, Client("CLIENT1"));
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "CLIENT1.dll"), DialectLevel: 2023,
+                SourceFormat: InitialReferenceFormat.Free, CheckOnly: true));
+            Assert.True(r.Success, Codes(r));
+            Assert.False(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
+            string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL3146", StringComparison.Ordinal));
+            Assert.StartsWith($"{src}(8,5): warning COBOL3146:", warning, StringComparison.Ordinal);
+        });
+    }
+
     [Fact]   // kb/Work PB4469: the same text in the group's own assembly (arm b) is reported once, at the same column as arm (a) reports it.
     public void AWarningOfAnExpansionInTheGroupsAssembly_IsReportedOnce_AtTheExpandsEntrysColumn()
     {

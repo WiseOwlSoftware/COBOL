@@ -1885,9 +1885,10 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   group's state and once by the sub-compilation under the state its skeleton was published with. The sub-compilation owns the text's
   warnings: every token of an expansion's text is an `ExpansionToken` naming the expansion's `DiagnosticRegion`; the diagnostic cursor
   (`DiagnosticCursor.Region`, set by `DiagnosticCursorAt.At`, kept by every pass that replays a captured cursor) carries it to
-  `EditionContext.Warning`, which remembers which regions raised each warning line; `ExpansionPlacementPass` calls
-  `EditionContext.WithdrawWarningsOf` for each `OwnAssembly` expansion, which drops the lines no text outside the region (the user's own
-  text, a placement-(b) or imported expansion) also raised. Errors are never withdrawn (an error of the group's bind stops the compilation
+  `EditionContext.Warning`, which remembers which regions raised each warning line; `ExpansionAssemblies.Write` calls
+  `EditionContext.WithdrawWarningsOf` for each `OwnAssembly` expansion once its sub-compilation has reported (a `CheckOnly` compilation
+  runs none and keeps the group's report), which drops the lines no text outside the region (the user's own text, a placement-(b) or
+  imported expansion) also raised. Errors are never withdrawn (an error of the group's bind stops the compilation
   before any sub-compilation runs). The position is one rule for both placements: the text of an expansion of a skeleton read from the
   repository (`SkeletonSource.From`) has the positions of a file this group never read, so `OoExpansion.SubstitutedTokens` gives each of its
   tokens the EXPANDS entry's line AND column, the position `AtTheEntry` relabels the sub-compilation's diagnostics to. An expansion of a
