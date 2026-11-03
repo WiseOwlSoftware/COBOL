@@ -1047,7 +1047,7 @@ internal sealed class BinderDriver
     /// containing program definition or a program-prototype-name declared in the REPOSITORY paragraph").
     /// Both spellings register here, so §14.9.4.3 SR16 and §14.9.5.3 SR3 are ONE lookup:
     /// <list type="number">
-    /// <item>every §12.3.8.2 program-specifier visible to the element (<c>DataBinder.ProgramSpecifiers</c>, which
+    /// <item>every §12.3.8.2 program-specifier visible to the element (<c>ConfigurationSlice.ProgramSpecifiers</c>, which
     /// already inherits its container's — §12.3.8.4 GR10's "scope of the containing environment division"; for a
     /// CLASS's OBJECT or FACTORY forest, the class-level REPOSITORY, which §12.3.4 GR1 applies to every method —
     /// kb/Work PB1100), resolved through GR10 by <paramref name="repository"/> AS OF

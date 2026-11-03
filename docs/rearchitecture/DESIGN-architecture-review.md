@@ -1052,8 +1052,9 @@ methods (at the census, `BindPipeline.Build` registered its `BindPass` rows as l
 `Binding/Passes/<Name>Pass.cs`, from `SynthesizeImpliedPicturesPass` to `MarkFileRecordImageLeavesPass`, listed in order by
 `BindPipeline.Build`; a pass class holds its name, its phase contract, its `PassViews` and the rule code only it asks (its
 exclusive call closure on the binder moved with it; the rule code another asker shares stays on the binder until that asker's
-concern binder lands). One row keeps its rule code with a concern binder that has not landed yet and only schedules it
-(`ResolveFiles` for `FileControlBinder`; `BindPassBoundaryDriftTests` names it and fails when it lands; the rows
+concern binder lands). One row keeps its rule code on `DataBinder` and only schedules it
+(`ResolveFiles`, the post-build half of the FILE concern that `FileControlBinder` did not take; `BindPassBoundaryDriftTests`
+names it, fails when it leaves `DataBinder` without the entry going, and fails when no open kb/Work note names it (PB2296 M7); the rows
 `ResolveReports`, `CallBindExternalAndGlobal` and `OoRouteMethodRedefinesBackings` left that list when `ReportSectionBinder`,
 `LinkageBinder` and `OoDataBinder` landed, and now call them). The rows run under the
 `PassPhase` watermark (`Passes/IBindPass.cs:23`: None, TypesExpanded, UsageResolved, SignResolved,
@@ -1102,7 +1103,7 @@ no word for:
   `BinderContext.cs:150`).
 And around a unit's data phases `BinderDriver` writes three more kinds of state, none of them an `IBindPass` (R1
 Draft 6 re-modelled them from the code after the fifth refuter, G2):
-- a **configuration seed** (`BinderDriver.cs:634` → `DataBinder.InheritConfiguration`, `DataBinder.Configuration.cs`, which asks `SpecialNamesBinder.InheritFrom` for the SPECIAL-NAMES half):
+- a **configuration seed** (`BinderDriver.cs` → `ConfigurationStep.Produce`, `Binding/ConfigurationStep.cs`, the one producer, over a `ConfigurationSource` of `Own | Contained | ClassHalf`; PB2296 M5):
   BEFORE a contained unit binds, the container's whole configuration-derived state (SPECIAL-NAMES: decimal point,
   currency signs, switches, classes, alphabets, order tables, structures, locales; the OBJECT-COMPUTER collating
   sequences and classification; DEBUGGING MODE; the REPOSITORY specifiers) is copied into the child's OWN
@@ -1117,11 +1118,11 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   SR3: "The SOURCE-COMPUTER, OBJECT-COMPUTER, and REPOSITORY paragraphs shall not be specified in a factory definition
   or an instance definition"), and its own OPTIONS paragraph. `OoDriver.BindClassData` binds the class definition's
   own ENVIRONMENT DIVISION once, in a binder of the class's own source element (§10.5), and seeds each half from it
-  through the same `InheritConfiguration` before the half binds its own division (`OoDriver.OoReparent` hands a binder
+  through the same `ConfigurationStep` (`ClassHalf`) before the half binds its own division (`OoDriver.OoReparent` hands a binder
   only its own element's divisions; kb/Work PB3154, which made the class's names inherited by the halves rather than
   declared in their §8.3.2.2 censuses); it hands each binder its definition's skeleton OPTIONS paragraph
-  (`DataBinder.UseSkeletonOptions`: the class, the OBJECT and FACTORY halves, an INTERFACE), and every binder binds
-  that paragraph in `BindDeclarations`, over the `_inheritedOptions` baseline only `InheritConfiguration` writes,
+  (`ConfigurationSource.Own.SkeletonOptions`: the class, the OBJECT and FACTORY halves, an INTERFACE), and every binder binds
+  that paragraph in `BindDeclarations`, over the `ConfigurationSlice.InheritedOptions` baseline only `ConfigurationStep` writes,
   after the element's constant entries are declared (kb/Work PB780: the INITIALIZE clause's literal-1 may be a
   constant-name, §13.10.3 SR2). A method declares no configuration section (§12.3.3 SR2: "The configuration
   section shall not be specified in a method definition") and binds through its half's binder, so it reads the half's

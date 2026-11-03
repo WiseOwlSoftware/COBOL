@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// The OoRouteMethodRedefinesBackings pass: row 16 of the per-unit resolve pipeline (RedefinesClassified to
 /// StrongTypeChecked), which routes the string backing of a METHOD's Tier-B REDEFINES class to the class's field channel.
 /// <para>The rule code lives with the concern it belongs to, not with the pass: the OO data rules are
-/// <see cref="DataBinder.OoRouteMethodRedefinesBackings"/> and its neighbours (the <c>OoDataBinder</c> concern of
+/// <see cref="OoDataBinder.RouteMethodRedefinesBackings"/> and its neighbours (the <c>OoDataBinder</c> concern of
 /// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2360), so this row only schedules it.</para>
 /// </summary>
 internal sealed class OoRouteMethodRedefinesBackingsPass : IBindPass

@@ -114,7 +114,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// symbolic-character of the spelling the class's binder holds (ISO §8.4.6.2.1 3) a) "If the name is declared in
     /// source element B, the item in source element B is the referenced item"; §8.4.6.1 "even when it is a different
     /// type of user-defined word"; kb/Work PB3154 review R1-1). Asked by the two literal-alias lookups,
-    /// <see cref="DataBinder.FindConstant"/> and <see cref="DataBinder.SymbolicOf(string)"/>; always false outside a method.</summary>
+    /// <see cref="ConstantEntryBinder.FindConstant"/> and <c>SpecialNamesBinder.SymbolicOf</c>; always false outside a method.</summary>
     internal bool ActiveMethodDeclares(string word) => CurrentMethodScope?.Declares(word) == true;
 
     /// <summary>Reserve the names the C# class this binder's data is emitted into already holds, BEFORE the data

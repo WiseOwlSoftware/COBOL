@@ -309,7 +309,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>Capture the RD's CODE clause (ISO §13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>; kb/Work
     /// PB1129). literal-1 is screened here (SR1 — "Literal-1 shall be an alphanumeric literal": a numeric, national or
     /// boolean literal and a figurative constant are not one) and decoded through the ONE literal readers
-    /// (<see cref="DataBinder.OperandLiteralClass"/> / <see cref="DataBinder.LiteralCharsOf"/> — a §8.8.3.3 concatenation folds, a
+    /// (<see cref="SpecialNamesBinder.OperandLiteralClass"/> / <see cref="SpecialNamesBinder.LiteralCharsOf"/> — a §8.8.3.3 concatenation folds, a
     /// hexadecimal format decodes). identifier-1 is kept as the WRITTEN reference, exactly as the SOURCE clause's
     /// identifier operand is (<see cref="FieldReferenceSource"/>): its base item is screened post-build with SR2's shape
     /// rules (<see cref="ResolveReportCode"/>) and its value is bound in the procedure phase. A constant-name written
@@ -610,7 +610,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>⛔ THE REPORT SECTION'S ENTRIES IN SOURCE ORDER (ISO §13.8.2: <c>{ constant-entry |
     /// report-group-description-entry } …</c>; kb/Work PB1226). A constant entry binds into the compile-time
     /// constant table at the point it stands, unless a reference bound it earlier on demand (a reference may precede
-    /// the entry it names, kb/Work PB1231, <see cref="DataBinder.FindConstant"/>); the report group entries between two constants bind as
+    /// the entry it names, kb/Work PB1231, <see cref="ConstantEntryBinder.FindConstant"/>); the report group entries between two constants bind as
     /// one run (<see cref="ReportEntryRuns"/>) through <see cref="BindReportEntries"/>, which takes an index range for
     /// exactly this. A constant is a level-01 entry (§13.10.2), so it ends the group before it: the entries after it
     /// have no 01 entry to belong to, and the builder's group is dropped so

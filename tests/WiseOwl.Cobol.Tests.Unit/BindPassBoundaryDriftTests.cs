@@ -22,8 +22,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// classes, is a red test);</item>
 /// <item>a pass that owns its body leaves no method of its entry's name on <c>DataBinder</c> (a forwarder would be a second
 /// way to run the pass); the row whose rule code belongs to a concern binder still to come
-/// (<see cref="ConcernOwned"/>) is the named exception, and the list is closed: a row leaves it when its concern binder
-/// lands, and a stale entry fails here;</item>
+/// (<see cref="ConcernOwned"/>) is the named exception, and the list is closed: a row leaves it when its rule code leaves
+/// <c>DataBinder</c> (a stale entry fails here), and while it stays an OPEN <c>kb/Work</c> note must name it, so the exception
+/// always has an owner and an end condition;</item>
 /// <item>a pass's own source never appends to a fact set its <see cref="IPassInfo.Views"/> does not declare, and while a
 /// pass runs <see cref="AppendGate"/> refuses an append it did not declare, so the declaration cannot drift from what the
 /// pass, or the binder code it calls, does.</item>
@@ -31,9 +32,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class BindPassBoundaryDriftTests
 {
-    /// <summary>The rows whose rule code lives with a concern binder that has not landed yet: the pass only schedules it
-    /// (<c>DataBinder.ResolveFiles</c> is the <c>FileControlBinder</c> concern, PB2356).
-    /// <c>ResolveReports</c> left the list when <c>ReportSectionBinder</c> landed (PB2357), <c>CallBindExternalAndGlobal</c>
+    /// <summary>The rows whose rule code still lives on <c>DataBinder</c>: the pass only schedules it.
+    /// <c>DataBinder.ResolveFiles</c> (with <c>BindFileSection</c>) is the post-build half of the FILE concern: PB2356 moved the
+    /// SELECT / I-O-CONTROL half into <c>FileControlBinder</c> and left this half for the next FILE step, which kb/Work
+    /// PB2296 (Remaining, M7) owns and which ends this entry. <c>ResolveReports</c> left the list when <c>ReportSectionBinder</c> landed (PB2357), <c>CallBindExternalAndGlobal</c>
     /// when <c>LinkageBinder</c> did (PB2359), <c>OoRouteMethodRedefinesBackings</c> when <c>OoDataBinder</c> did (PB2360).</summary>
     private static readonly string[] ConcernOwned = ["ResolveFiles"];
 
@@ -82,6 +84,21 @@ public sealed class BindPassBoundaryDriftTests
                     ? $"{row.Name} is listed as concern-owned but DataBinder no longer has it: its concern binder landed, so delete it from ConcernOwned and let the pass own the call"
                     : $"DataBinder still has a method {row.Name}, the entry of the pass that owns the rule: a second way to run it (move the body into {row.GetType().Name}, or list the row in ConcernOwned with the concern binder that will take it)");
         }
+    }
+
+    [Fact]
+    public void EveryConcernOwnedRow_IsNamedByAnOpenWorkNote_SoTheExceptionHasAnOwnerAndAnEnd()
+    {
+        // The list is closed, not a parking place: a row stays only while an OPEN note owns the move of its rule code off
+        // DataBinder (CLAUDE.md rule 8: work left in prose is work no view can see).
+        var open = Directory.EnumerateFiles(TestRepo.At("kb", "Work"), "*.md")
+            .Select(File.ReadAllText)
+            .Where(text => Regex.IsMatch(text, @"^status:\s*open\s*$", RegexOptions.Multiline))
+            .ToList();
+        foreach (string row in ConcernOwned)
+            Assert.True(open.Exists(text => text.Contains(row, StringComparison.Ordinal)),
+                $"{row} is concern-owned (rule code left on DataBinder) but no open kb/Work note names it: the move off DataBinder " +
+                "has no owner. Name it in the open extract note that owns it (PB2296 Remaining) or finish the move and delete the entry.");
     }
 
     [Fact]

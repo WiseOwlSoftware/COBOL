@@ -71,7 +71,7 @@ public sealed class ObjectReferenceIdentityDescriptionTests
             var edition = new EditionContext(2023);
             var comp = new CSharpEmitter().Bind(tree!, edition, frontend.Directives);
             Assert.True(edition.Diagnostics.Count == 0, string.Join("\n", edition.Diagnostics));
-            var formals = comp.Units.Single(u => u.Name == "P2104D").Data.LinkageFormals;
+            var formals = comp.Units.Single(u => u.Name == "P2104D").Data.Linkage.Formals;
             return (formals[0].Item, formals[1].Item, comp.OoClasses);
         }
         finally { FileHarness.TryDelete(path); }

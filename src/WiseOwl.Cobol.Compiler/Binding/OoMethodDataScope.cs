@@ -66,7 +66,7 @@ public sealed class OoMethodDataScope
 
     /// <summary>The method's own CONSTANT entries, and the other words its data division defines, which hide a constant
     /// of the containing object or factory definition (§11.7.4 GR5; kb/Work PB3164): read first by
-    /// <see cref="DataBinder.FindConstant"/> while the method's data or statements bind, and invisible to every other
+    /// <see cref="ConstantEntryBinder.FindConstant"/> while the method's data or statements bind, and invisible to every other
     /// element.</summary>
     internal ConstantEntryBinder.ConstantScope Constants { get; } = new();
 }

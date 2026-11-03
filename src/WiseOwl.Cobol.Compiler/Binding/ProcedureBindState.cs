@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 internal sealed class ProcedureBindState
 {
-    /// <summary>The OPTIONS model the statement now binding is governed by: the unit's own (<see cref="DataBinder.Options"/>,
+    /// <summary>The OPTIONS model the statement now binding is governed by: the unit's own (<see cref="ConfigurationSlice.Options"/>,
     /// the root the reader passes to <see cref="Scoped{T}.Over"/>), or, while a method's sentences bind, the method's own
     /// OPTIONS model pushed over it
     /// (<c>StatementBinder.BindClassBody</c>; §11.9.4 GR1). Read per statement: the default rounding

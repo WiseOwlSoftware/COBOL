@@ -239,7 +239,7 @@ public sealed partial class SpecialNamesBinder
     /// literal, so a constant-name ordinal after a literal one opens a NEW entry). The entry is therefore NOT a unit of
     /// the rule: this walk reads the entries' tokens as one stream in SOURCE ORDER whatever the parse called them and
     /// decides each WORD by the one fact only the binder has — whether the compilation unit defines it as a constant
-    /// (<see cref="DataBinder.FindConstant"/>): a literal is an ordinal; a word that names a constant is an ordinal; the first word
+    /// (<see cref="ConstantEntryBinder.FindConstant"/>): a literal is an ordinal; a word that names a constant is an ordinal; the first word
     /// after IS/ARE is an ordinal whatever it names (so an undefined one is reported by the reader as "not a defined
     /// constant-name"); any other word is a symbolic-character-1. An ordinal whose value is null was refused by the
     /// reader and is already reported.</para></summary>

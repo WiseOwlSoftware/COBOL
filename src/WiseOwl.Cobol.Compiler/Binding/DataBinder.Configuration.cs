@@ -14,10 +14,10 @@ using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The configuration-section services the data binder keeps for itself: the seed that makes a contained unit's
-/// configuration its container's (§12.3.4 GR1), the REPOSITORY paragraph's specifier screens (§12.3.8.3) and the
-/// constant-name readings a configuration literal asks (§13.10.3 SR2). The SPECIAL-NAMES state and its binding are
-/// <see cref="SpecialNamesBinder"/>'s.
+/// The configuration-section services the data binder keeps for itself: the REPOSITORY paragraph's specifier screens
+/// (§12.3.8.3) and the constant-name readings a configuration literal asks (§13.10.3 SR2). The seed that makes a contained
+/// unit's configuration its container's (§12.3.4 GR1) is <see cref="ConfigurationStep"/>'s; the SPECIAL-NAMES state and its
+/// binding are <see cref="SpecialNamesBinder"/>'s.
 /// </summary>
 public sealed partial class DataBinder
 {

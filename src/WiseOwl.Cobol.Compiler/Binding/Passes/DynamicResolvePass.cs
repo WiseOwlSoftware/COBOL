@@ -148,7 +148,7 @@ internal sealed class DynamicResolvePass : IBindPass
                 CobolName = spec.CapacityName,
                 Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
                 Parent = item.Parent,
-                Uid = binder._uidCounter++,
+                Uid = binder.TakeUid(),
             };
             spec.CapacityRegister = reg;
 

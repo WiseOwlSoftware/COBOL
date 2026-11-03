@@ -25,7 +25,7 @@ using WiseOwl.Cobol.Runtime;
 public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceFacts
 {
     private int _fillerCounter;
-    internal int _uidCounter;
+    private int _uidCounter;
 
     /// <summary>Seed the unique-id counter so every unit of a multi-program compilation gets a disjoint
     /// <c>_T_n</c> / <c>_P_n</c> band — a nested program class would otherwise SHADOW its container's struct and
@@ -961,7 +961,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // A CONSTANT entry (ISO §13.10; the constantEntryBody alternative) is a COMPILE-TIME substitution,
             // not storage: fold it into the constant table and produce NO DataItem. Checked BEFORE the 66/88
             // early-outs so a mis-leveled constant entry gets its §13.10.2 level diagnostic, never a RENAMES/
-            // condition-name misbind. (P10 Step 15; DataBinder.Constants.cs.)
+            // condition-name misbind. (P10 Step 15; ConstantEntryBinder.cs.)
             if (entry.dataDescriptionBody().constantEntryBody() is { } constBody)
             {
                 Constants.BindConstantEntry(entry, entry.levelNumber(), entry.dataName(), constBody);

@@ -152,7 +152,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
             else if (prototype is null && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } declaredWord
-                     && ctx.Data.ProgramSpecifiers.ContainsKey(declaredWord))
+                     && ctx.Data.State.Configuration.ProgramSpecifiers.ContainsKey(declaredWord))
                 // The word is a PROGRAM specifier no provider answered (REPO-1 at the specifier, DESIGN-external-repository
                 // §8.2 step 4): it registered no prototype, so this is SR16's undeclared prototype — never a data name.
             {

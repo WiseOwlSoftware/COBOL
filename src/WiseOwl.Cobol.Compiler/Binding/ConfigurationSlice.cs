@@ -20,8 +20,7 @@ using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
 /// program, function, class definition or interface binds its own section (<c>Own</c>), a contained program takes its
 /// container's slice (<c>Contained</c>; §12.3.3 SR1, §12.3.4 GR1), an OBJECT or FACTORY half takes its class definition's
 /// (<c>ClassHalf</c>; §12.3.3 SR3) — and the unit's own CONFIGURATION SECTION and OPTIONS paragraph then overlay it in
-/// <c>DataBinder.BindDeclarations</c> (the section's binding moves behind the step with <c>SpecialNamesBinder</c>,
-/// kb/Work PB2355). The slice is read by the data phases, the procedure binders and code generation through
+/// <c>DataBinder.BindDeclarations</c> (the section's state is bound by <c>SpecialNamesBinder</c>, kb/Work PB2355). The slice is read by the data phases, the procedure binders and code generation through
 /// <see cref="DataBindState.Configuration"/>; a method reads its half's (§12.3.3 SR2).</para>
 /// </summary>
 public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, string, UserWordKind> recordUse)
@@ -109,7 +108,7 @@ public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, strin
     /// <summary>SYMBOLIC CHARACTERS figurative constants (ISO §12.3.7.4 GR11 a — "Symbolic-character-1 defines a
     /// figurative constant"; kb/Work PB110): name → the ONE-character value (GR11 b/c — the character at ordinal
     /// integer-1 of the native or IN-alphabet coded character set) and its class. Substituted wherever a figurative
-    /// constant may stand — the reference seams consult <c>DataBinder.SymbolicOf</c> exactly as they consult the
+    /// constant may stand — the reference seams consult <c>SpecialNamesBinder.SymbolicOf</c> exactly as they consult the
     /// §13.10 constant table, and the value fills like every figurative (§8.3.3.6.4 GR2 / GR10).</summary>
     internal ConfigurationNames<(string Value, bool National)> SymbolicCharacters =>
         field ??= new(UserWordKind.SymbolicCharacter, recordUse);
