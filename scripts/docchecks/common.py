@@ -26,6 +26,11 @@ CONFORMANCE = "docs/CONFORMANCE.md"
 VCR = "docs/VERSION_CHANGE_REFERENCE.md"
 README = "README.md"
 
+#: A row of docs/VERSION_CHANGE_REFERENCE.md starts with its number: `28`, `130e` (Tables 1-6) or `7.20` / `7.20a` (Table 7's
+#: dotted per-table numbering, which kb/Work PB300 once found missing). The ONE grammar of it: `facts.py` and `vcr.py` both
+#: read the table, and each used to carry its own copy (kb/Work PB4475).
+ROW_NUMBER = re.compile(r"^\|\s*([0-9]+(?:\.[0-9]+)?[a-z]?)\s*\|")
+
 
 @dataclass(frozen=True)
 class Check:

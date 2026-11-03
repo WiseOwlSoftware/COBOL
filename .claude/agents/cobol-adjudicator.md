@@ -12,6 +12,11 @@ hooks:
         - type: command
           command: python "$CLAUDE_PROJECT_DIR/scripts/hooks/readonly_repo.py"
           timeout: 30
+    - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
+      hooks:
+        - type: command
+          command: python "$CLAUDE_PROJECT_DIR/scripts/hooks/own_scratch.py"
+          timeout: 30
 experimental:
   cacheTtl: 1h
 ---

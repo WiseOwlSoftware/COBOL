@@ -20,8 +20,6 @@ CONSTRUCTS = "tests/version-matrix/constructs.json"
 SPEC = "specs/ISO_COBOL.md"
 START, END = "<!-- GEN:VCR-STATUS START -->", "<!-- GEN:VCR-STATUS END -->"
 GATE_ANCHOR = re.compile(r"<!--\s*((?:gate:[^\s>]+\s*)+)-->")
-# A VCR row number is `28`, `130e` (Tables 1-6) or `7.20` / `7.20a` (Table 7's dotted per-table numbering).
-ROW_NUMBER = re.compile(r"^\|\s*([0-9]+(?:\.[0-9]+)?[a-z]?)\s*\|")
 # A clause number is either the body's dotted decimal (14.9.39.4) or an annex's letter-headed form (E.2, A.4.14); the
 # title is optional because all 178 headings of clause 3 are a bare number. Same grammar as scripts/spec/cite.py.
 SPEC_HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+.*?)?\s*$")
@@ -35,7 +33,7 @@ def gate_anchors(vcr_lines: list[str]) -> list[tuple[str, list[str]]]:
     `<!-- gate:CONSTRUCT-ID -->` as an EXAMPLE is not parsed as a gate. EVERY anchor comment on the row counts (kb/Work PB725)."""
     out = []
     for ln in vcr_lines:
-        rm = ROW_NUMBER.match(ln)
+        rm = common.ROW_NUMBER.match(ln)
         if not rm:
             continue
         ids = [t[len("gate:"):] for m in GATE_ANCHOR.finditer(ln) for t in m.group(1).split() if t.startswith("gate:")]

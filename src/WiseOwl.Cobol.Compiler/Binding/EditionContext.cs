@@ -258,6 +258,45 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     }
     private readonly HashSet<string> _reported = new(StringComparer.Ordinal);
 
+    /// <summary>Record a warning line once (<see cref="AddOnce"/>'s rule), remembering which <see cref="DiagnosticRegion"/>s
+    /// reported it: a line only expansions' text raised is <see cref="WithdrawWarningsOf"/>-able, and one the user's own text (or a
+    /// construct that sits in no region) raised too is not.</summary>
+    private void AddWarningOnce(string line)
+    {
+        if (_muted != 0) return;
+        var region = Cursor.Region;
+        if (_reported.Add(line))
+        {
+            Warnings.Add(line);
+            if (region is not null) _regionOwners[line] = [region];
+        }
+        else if (_regionOwners.TryGetValue(line, out var owners))
+        {
+            if (region is null) _regionOwners.Remove(line);
+            else if (!owners.Contains(region)) owners.Add(region);
+        }
+    }
+
+    /// <summary>The regions that reported each warning line which no text outside a region reported (<see cref="AddWarningOnce"/>).</summary>
+    private readonly Dictionary<string, List<DiagnosticRegion>> _regionOwners = new(StringComparer.Ordinal);
+
+    /// <summary>⛔ THE GROUP DOES NOT ANSWER FOR AN EXPANSION'S TEXT WHEN ANOTHER COMPILATION DOES (kb/Work PB4469). Withdraw the warnings
+    /// raised while binding the text of <paramref name="region"/> (an expansion), except those the user's own text or another region still
+    /// standing also raised. The expansion placed in an assembly of its own is compiled apart, under the state its skeleton was published
+    /// with, and that compilation reports every warning of the text at the EXPANDS entry (<c>ExpansionAssemblies.Write</c>): the group's
+    /// own bind of the same text, which it needs only to type its callers, would report each a second time, under the group's state.
+    /// Errors are not withdrawn: an error of the group's bind stops the compilation before the other one runs.</summary>
+    public void WithdrawWarningsOf(DiagnosticRegion region)
+    {
+        foreach (var (line, owners) in _regionOwners.ToArray())
+            if (owners.Remove(region) && owners.Count == 0)
+            {
+                _regionOwners.Remove(line);
+                Warnings.Remove(line);
+                _reported.Remove(line);
+            }
+    }
+
     /// <summary>The depth of open <see cref="Muted"/> scopes: while it is above zero no diagnostic is recorded.</summary>
     private int _muted;
 
@@ -295,7 +334,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>Record a non-failing edition diagnostic (the 0903 obsolete/archaic flags; removed constructs
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>
-    public void Warning(string code, string message) => AddOnce(Warnings, $"{Prefix()}warning {code}: {message}");
+    public void Warning(string code, string message) => AddWarningOnce($"{Prefix()}warning {code}: {message}");
 
     /// <summary>The <see cref="Warning"/> twin of the descriptor-keyed <see cref="Error(DiagnosticDescriptor,string)"/>.
     /// ⛔ ITS ABSENCE WAS A DEFECT, not a gap: a descriptor-carrying site that wanted a warning had no descriptor
