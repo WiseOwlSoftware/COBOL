@@ -1,4 +1,4 @@
-## PB2296 — the DataBinder extract lands as one: steps 1-10 (PB2352-PB2360, PB2296 M5, PB2358) and M6/M7, the value slices of DataBindState
+## Entry 3024 — 2026-11-03 00:50 PST — PB2296 — the DataBinder extract lands as one: steps 1-10 (PB2352-PB2360, PB2296 M5, PB2358) and M6/M7, the value slices of DataBindState
 
 One landing carries the whole wave-20261834 extract (integrated by wave 20261837 A, first queued as #1045, which the merge group bounced and this landing supersedes) and its last step, M6 and M7 (wave 20261837 B).
 
