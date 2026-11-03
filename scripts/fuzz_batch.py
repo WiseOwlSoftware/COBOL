@@ -115,19 +115,22 @@ def submit(a: argparse.Namespace, client: Any = None) -> int:
               "plan": df.plan_entries(prefixes, a.seed, a.in_order, VARIATIONS, a.count)}
     # The directory and the record exist BEFORE the billed batch does, and the id is written and printed the moment it
     # exists, so a failure after the create cannot lose the paid batch's id (review R1-3). The client is built first, so
-    # a key that cannot be read leaves no record; a create the API ANSWERED with an error (the SDK's APIStatusError, which
-    # carries the response's status_code: a 401, a bad model) created no batch, so its record is removed and a retry can
-    # start (review R2-2). Any other failure (a dropped connection, a timeout) may have created one: the record stays.
+    # a key that cannot be read leaves no record; a create the API REFUSED (the SDK's APIStatusError with a 4xx
+    # status_code: a 401, a bad model, a malformed request) created no batch, so its record is removed and a retry can
+    # start (review R2-2). Every other failure may have created one, and its record stays: a dropped connection, a
+    # timeout, and a 5xx answer (review R3-1: a 504 or 529 arrives after the SDK has already retried the create, with
+    # no idempotency key, so a batch may exist although the last answer was an error).
     client = client or client_for(a.api_key_file)
     out.mkdir(parents=True, exist_ok=True)
     (out / "batch.json").write_text(json.dumps(record, indent=1), encoding="utf-8", newline="\n")
     try:
         batch = client.messages.batches.create(requests=requests)
     except Exception as e:
-        if getattr(e, "status_code", None) is not None:
+        status = getattr(e, "status_code", None)
+        if isinstance(status, int) and 400 <= status < 500:
             (out / "batch.json").unlink()
             raise SystemExit(f"fuzz_batch: the API refused the batch ({e.status_code}): {e}; no batch was created") from None
-        raise SystemExit(f"fuzz_batch: the create failed with no answer from the API ({type(e).__name__}: {e}); a batch may "
+        raise SystemExit(f"fuzz_batch: the create failed with no refusal from the API ({type(e).__name__}: {e}); a batch may "
                          f"exist, so {out / 'batch.json'} stays: find it in the console before submitting again") from None
     print(f"submitted batch {batch.id}: {a.count} requests, model {a.model}, status {batch.processing_status}", flush=True)
     record.update(batch_id=batch.id, submitted_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
@@ -245,9 +248,13 @@ def self_test() -> int:
         class Refused(Exception):
             status_code = 401
 
-        for name, failure, stays in (("an answered refusal (401)", Refused("invalid x-api-key"), False),
-                                     ("no answer (a dropped connection)", ConnectionError("reset"), True)):
-            run = Path(tmp) / f"run-{int(stays)}"
+        class Overloaded(Exception):
+            status_code = 504
+
+        for i, (name, failure, stays) in enumerate((("an answered refusal (401)", Refused("invalid x-api-key"), False),
+                                                    ("no answer (a dropped connection)", ConnectionError("reset"), True),
+                                                    ("a 5xx answer after the SDK's retries (review R3-1)", Overloaded("gateway timeout"), True))):
+            run = Path(tmp) / f"run-fail-{i}"
             failing = Obj(messages=Obj(batches=Obj(create=lambda requests, f=failure: (_ for _ in ()).throw(f))))
             try:
                 submit(types_ns(**{**vars(args), "out": str(run)}), client=failing)
