@@ -318,7 +318,7 @@ public sealed partial class FileControlBinder
     /// <c>RECORD IS VARYING [FROM m] [TO n] [DEPENDING ON d]</c> and <c>RECORD CONTAINS m TO n</c> describe
     /// variable-length records; the fixed Format-1 <c>RECORD CONTAINS n</c> leaves it null). Shared by the FD and
     /// SD loops — ONE binding for the clause. The DEPENDING operand is a qualified-data-name like every other
-    /// clause operand (<see cref="ClauseDataName"/>) and resolves post-build in <see cref="ResolveFiles"/>; it
+    /// clause operand (<see cref="DataBinder.ClauseDataName"/>) and resolves post-build in <see cref="ResolveFiles"/>; it
     /// kept only the base word until kb/Work PB489, so a qualified one bound another item of that name.</summary>
     private void BindRecordClause(Core.RecordClauseContext rc, FileModel file)
     {
@@ -398,7 +398,7 @@ public sealed partial class FileControlBinder
     /// logical page was then built on another item's value with no diagnostic at any stage (kb/Work PB489,
     /// measured: EOP / LINAGE-COUNTER 1 where the standard requires NO-EOP / 5). For the special-register
     /// alternative the first cobolWord is the FILE-NAME QUALIFIER, so the clause recorded the file name as its
-    /// data-name; <see cref="KeyReference"/> refuses that spelling outright.</para></summary>
+    /// data-name; <see cref="DataBinder.KeyReference"/> refuses that spelling outright.</para></summary>
     private void BindLinageClause(Core.LinageClauseContext lc, FileModel file)
     {
         LinageOperand Operand(Core.DataReferenceContext? d, Core.IntegerLiteralContext? i)

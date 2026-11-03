@@ -22,7 +22,7 @@ public sealed partial class FileControlBinder
     /// <summary>Post-build (once the forest is indexed), resolve every file's data-name clause operands — FILE
     /// STATUS, the keys, ASSIGN … USING, RECORD … DEPENDING ON and the LINAGE operands — and run the syntax
     /// rules of the file control entry and of the LINAGE clause that need a RESOLVED data item (design D19/D25).
-    /// Every operand goes through <see cref="ResolveClauseOperand"/> or <see cref="QualifiedCandidates"/>: ONE
+    /// Every operand goes through <see cref="DataBinder.ResolveClauseOperand"/> or <see cref="DataBinder.QualifiedCandidates"/>: ONE
     /// ISO §8.4.2.2 resolution, never a per-clause first-match lookup (kb/Work PB489).</summary>
     internal void ResolveFiles()
     {
@@ -201,10 +201,10 @@ public sealed partial class FileControlBinder
     /// read as <c>CobolLiteral.Decode(literal.GetText())</c>, which returns a figurative constant or an ALL literal
     /// UNCHANGED as its source spelling: <c>SUPPRESS WHEN SPACES</c> suppressed the six-letter word "SPACES" and
     /// indexed every blank key, and a constant-name or symbolic-character — both legal literal-1 spellings
-    /// (§13.10.3 SR2; §8.3.3.6.3 SR1 with §8.3.3.6.2 Format 7) — did not parse at all. <see cref="RawValueOperandText"/>
+    /// (§13.10.3 SR2; §8.3.3.6.3 SR1 with §8.3.3.6.2 Format 7) — did not parse at all. <see cref="DataBinder.RawValueOperandText"/>
     /// is the VALUE clause's and the EDITING phrase's own reader: it screens the literal position, substitutes a
     /// constant-name's and a symbolic-character's literal, and folds a concatenation expression (§8.8.3.3 GR3), so
-    /// what reaches <see cref="FigurativeConstants.Classify"/> here is always ONE literal's raw text.</para>
+    /// what reaches <see cref="WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify"/> here is always ONE literal's raw text.</para>
     /// <para>What is recorded is the operand's SHAPE, which is what §12.4.5.6.3 SR7 screens
     /// (<c>FileControlKeyRules</c>); the key-sized value is <see cref="KeySuppressionOf"/>'s.</para></summary>
     private SuppressWhenOperand? ReadSuppressWhen(AlternateKeyClause clause)
@@ -232,7 +232,7 @@ public sealed partial class FileControlBinder
     /// <list type="bullet">
     /// <item>A keyword figurative is repeated to the key's size (§8.3.3.6.4 GR2 — a figurative "compared with" a
     /// fixed-length data item is associated with it, NOTE 1), its character taken in the key's category through
-    /// <see cref="FigurativeConstants.FillChar"/> — the fill a <c>MOVE</c> of the same figurative into the key
+    /// <see cref="WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar"/> — the fill a <c>MOVE</c> of the same figurative into the key
     /// stores, so a program that moves SPACES into the key is exactly the program that suppressed it.</item>
     /// <item>ALL literal-1 is repeated the same way (GR2 again).</item>
     /// <item>A literal SHORTER than the key is extended with spaces (§8.8.4.2.7 2) — national spaces for a national

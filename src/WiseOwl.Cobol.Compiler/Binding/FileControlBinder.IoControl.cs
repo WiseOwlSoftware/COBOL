@@ -147,7 +147,7 @@ public sealed partial class FileControlBinder
     /// <summary>Post-build (the data division is bound and indexed), resolve the APPLY COMMIT clause's identifier-1
     /// operands and collect what §12.4.6.3.3 SR9 makes subject to it, asking the syntax rules that need a resolved
     /// item: SR3 (an unreferenced-modified, distinct, non-overlapping 01 or 77 item of the LINKAGE, WORKING-STORAGE or
-    /// LOCAL-STORAGE SECTION; the reference-modified shape is already refused by <see cref="ClauseDataName"/>), SR7 (no
+    /// LOCAL-STORAGE SECTION; the reference-modified shape is already refused by <see cref="DataBinder.ClauseDataName"/>), SR7 (no
     /// object reference), SR8 (both or neither of two 01/77 items one of which depends on the other), SR9 (the
     /// implicit items' sections) and SR10 (no BASED item). Called at the end of <see cref="ResolveFiles"/>, whose FILE
     /// STATUS, LINAGE and RECORD DEPENDING resolutions SR9 reads.</summary>
@@ -237,8 +237,8 @@ public sealed partial class FileControlBinder
     /// name" — false: it is visible here (§13.18.27.4 GR1) — and the clause's own rule went unreported.
     /// <para>⛔ THE OPERAND IS DECIDED BY THE ELEMENT THAT DECLARES WHAT IT NAMES, never by whether a name table holds it
     /// (review R2-1): a container's GLOBAL record is inherited into this unit's data-name index with its depth
-    /// (<see cref="InheritContainerGlobalData"/>), so "the lookup found it" no longer means "declared here". The one
-    /// data-name lookup (<see cref="QualifiedCandidates"/>, qualification first, then the nearest declaring element) and the
+    /// (<see cref="DataBinder.InheritContainerGlobalData"/>), so "the lookup found it" no longer means "declared here". The one
+    /// data-name lookup (<see cref="DataBinder.QualifiedCandidates"/>, qualification first, then the nearest declaring element) and the
     /// depths of the other declarations the word can name are set side by side, and the NEAREST is the referenced item
     /// (§8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
     /// item"; b): otherwise the nearest containing element's):</para>
@@ -260,7 +260,7 @@ public sealed partial class FileControlBinder
     /// shall be specified in the FILE-CONTROL paragraph of the source element that contains this clause"</i>.</item>
     /// </list>
     /// Anything else (a container's GLOBAL working-storage item, an ambiguous or undefined reference) resolves as written
-    /// (<see cref="ResolveClauseOperand"/>).</summary>
+    /// (<see cref="DataBinder.ResolveClauseOperand"/>).</summary>
     /// <returns>true after reporting — the operand is refused and goes no further.</returns>
     private bool ScreenEnclosingFileOperand(string name, IReadOnlyList<string> quals, Editions.DiagnosticCursor at)
     {

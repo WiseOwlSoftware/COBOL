@@ -291,7 +291,7 @@ public sealed partial class FileControlBinder
 
     /// <summary>Capture the SOURCE phrase of a RECORD KEY (ISO §12.4.5.12.2) or ALTERNATE RECORD KEY (§12.4.5.6.2)
     /// clause AS WRITTEN — record-key-name-1 and its data-name-2 operands in the order specified, each operand
-    /// through the ONE file-clause capture (<see cref="ClauseDataName"/>, which refuses the shapes a data-name-n
+    /// through the ONE file-clause capture (<see cref="DataBinder.ClauseDataName"/>, which refuses the shapes a data-name-n
     /// position does not admit) with the cursor its post-build rules report at. The key is resolved in
     /// <see cref="ResolveFiles"/>, as data-name-1's is: "Record-key-name-1 defines a record key consisting of the
     /// concatenation of all occurrences of data-name-2 in the order specified" (§12.4.5.12.4 GR2 / §12.4.5.6.4

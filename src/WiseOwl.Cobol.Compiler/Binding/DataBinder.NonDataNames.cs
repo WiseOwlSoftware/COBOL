@@ -221,9 +221,9 @@ public sealed partial class DataBinder
     /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§13.18.38.3 SR30) kept off
     /// <see cref="ForestSlice.ByName"/> in <see cref="ForestSlice.CapacityRegistersSoFar"/>, placed by its table (a METHOD's own register is never
     /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
-    /// <see cref="ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
-    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="_sumCounters"/>, placed by its report
-    /// (<see cref="ReportDepth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
+    /// <see cref="OoDataBinder.ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
+    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="ReportScope.SumCounters"/>, placed by its report
+    /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
     /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
     /// <c>GlobalNameClassDriftTests</c> holds this predicate to the inherited name-index list, so a name index
     /// added there is asked here too.</para></summary>
