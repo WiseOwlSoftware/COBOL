@@ -1755,7 +1755,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // ⛔ `#7`: the fragment five live rows carried, which the resolver satisfies against the digit 7 anywhere
         // in the file. And the bare path, which is the same defect resolving on File.Exists alone.
         Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md#7" }], s));
-        Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md" }], s));
+        Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor[..Anchor.IndexOf('#')] }], s));
         // The controls: every anchor space the document really has stays legal — §7's item rows, §1's §4.2.16
         // summary, §5's Annex A.4 rows — and a file that is not anchored is not policed.
         Assert.Empty(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor }], s));
