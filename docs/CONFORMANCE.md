@@ -2159,7 +2159,7 @@ of an unsupported facility.
   comment-entry's removal), so the standard is silent on the mixed text. **Determination (CLAUDE.md rule 1: the standard
   is silent, so GnuCOBOL decides):** the paragraph is decided on the COMPILED text. GnuCOBOL 3.2 preprocesses (COPY,
   REPLACE, `>>IF`) and only then scans the identification division's paragraphs; measured, it accepts the
-  `AUTHOR. Pat O'Brien.` that follows a `>>IF` group whose compiled branch is the PROGRAM-ID paragraph. §7.2.4.4 1) agrees
+  `AUTHOR. Pat O'Brien.` that follows a `>>IF` group whose compiled branch is the PROGRAM-ID paragraph, and the `REMARKS.` paragraph that follows `PD.` after `REPLACE ==PD== BY ==PROCEDURE DIVISION==.`. §7.2.4.4 1) agrees
   about where replacing looks: the REPLACE statement's "source text" is "the conditionally-processed compilation group"
   (cite-checked). **Mechanism: a three-valued division and a stage after the others.** `DivisionCursor` reports the
   division the text stands in as yes, no or NOT KNOWN. The converter is exact where it can be: a certain IDENTIFICATION
