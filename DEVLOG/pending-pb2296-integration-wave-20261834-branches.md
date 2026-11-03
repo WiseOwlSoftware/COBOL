@@ -53,4 +53,14 @@ passes call binders, no C# text in a bound node. Full code: the cited rule (the 
 a text merge dropped). Performance: no hot-path allocation changed (the slice is one object per unit). Duplication: the uid
 takers and the suppressed-root-field door above.
 
-**Gate.** Filled in at the head by the next commit.
+**Gate and oracle.** The code head 53683769c: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,976/20,976 · Unit 39,472/39,472 ·
+Characterization 37/37 cases ran (skipped 0) ... (run 000001-20261103T015321Z) ===`, first run, no red on the way; the integration
+fixes above were found by the compiler's error list and by `DecidedRuleStageDriftTests`, `HostEntryShapeDriftTests`,
+`DecimalPointModeDriftTests`, `ReportScopeBoundaryDriftTests`, `ArchitectureEdgesDriftTests` and
+`SpecTraceabilityInventoryDriftTests` run by hand before it. `compare_oracle.py --base 1f60f2503` (main): DIFFERENT, 5 of 16144
+cases, and all five are accounted for: the ADDED golden `suite/2023/pb2296_method_options_arithmetic_reaches_body` (A's defect
+fix, `UnitTestResult` Passed in `Conformance.trx`), and four DIAGNOSTICS cases (`report-multi-line-2002@85`, its `+permissive`
+twin, `pb4109-level-01-multiple-line-at-85`, `pb565-report-multiple-line-at-85`) whose message differs only in the C# site the
+construct's `citation` names, `DataBinder.ReportRepetitionOf` before and `ReportSectionBinder.ReportRepetitionOf` after PB2357
+moved the member. Every behavior-neutral branch measured IDENTICAL against its own base; this is the one user-visible text
+a member move reaches (a lead is filed in the report: a citation should name the ISO rule, not a C# member).
