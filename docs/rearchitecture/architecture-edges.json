@@ -595,7 +595,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 50,
-      "walkUses": 49,
+      "walkUses": 48,
       "removedBy": [
         "PB2347",
         "PB2361",
