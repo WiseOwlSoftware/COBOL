@@ -59,7 +59,7 @@ internal sealed partial class OoBinder
         }
         if (ctx.Refs.Places.ResolveItem(ctx.Data.OoCreateSelfTemp(cur.Name, host.OoInFactory)) is not { } temp)
             return BoundExprError.Unbuilt(ctx.Edition, "SELF's temporary");
-        ctx.Data.PendingPreOps.Add(new BoundSelfReference(temp));
+        ctx.Data.Procedure.PendingPreOps.Add(new BoundSelfReference(temp));
         return new BoundNumRef(temp);
     }
 }

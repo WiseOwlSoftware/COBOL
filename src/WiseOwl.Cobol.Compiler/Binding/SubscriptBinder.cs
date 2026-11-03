@@ -67,7 +67,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// one — the hook refuses it by name, COBOL2363), its written text for that message and its line, it binds the
     /// expression through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes the §15.4 temporary via
     /// <c>DataBinder.CreateCompilerTemp</c>, registers the store as a statement-scoped pending PRE-op on
-    /// <see cref="DataBinder.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
+    /// <see cref="ProcedureBindState.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
     /// position (<see cref="PositionRead"/>).
     /// <para>⛔ IT IS A HOOK, NOT A COLLABORATOR REFERENCE, because the binder dependency is ONE-WAY:
     /// <c>StatementBinder(DataBinder, ReferenceResolver)</c>. StatementBinder installs it in its constructor (the
@@ -110,8 +110,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (ScreenEmptyParentheses(dref, subCtx))   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         List<IndexUse> ixNames = [];
-        int preOpMark = data.PendingPreOps.Count;   // the subscripts' own pre-ops (D18 temp stores, activations) start here
-        int propertyMark = data.OoPendingPropertyOps.Count;   // ... and their object-property references (the other pending list)
+        int preOpMark = data.Procedure.PendingPreOps.Mark();   // the subscripts' own pre-ops (D18 temp stores, activations) start here
+        int propertyMark = data.Procedure.PropertyOps.Mark();   // ... and their object-property references (the other pending list)
         var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
         if (e is null) return refs.SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
@@ -123,7 +123,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             })
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
-        if (!refs.Probing) _enclosingCapture?.Offer(item, e, data.PendingPreOps.Skip(preOpMark), data.OoPendingPropertyOps.Skip(propertyMark));
+        if (!refs.Probing) _enclosingCapture?.Offer(item, e, data.Procedure.PendingPreOps.Since(preOpMark), data.Procedure.PropertyOps.Since(propertyMark));
         return null;
     }
 
@@ -145,7 +145,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// execution's value, silently the wrong occurrence). The occurrence's pre-ops are therefore captured too
     /// (<see cref="EnclosingOccurrence.PreOps"/>) and the SEARCH runs them once ahead of the scan to determine the
     /// occurrence it bounds (§14.9.37.4 GR1); the WHEN condition still evaluates its own copy each time it is tried.
-    /// An OBJECT-PROPERTY subscript is the same shape on the OTHER pending list (<c>DataBinder.OoPendingPropertyOps</c>,
+    /// An OBJECT-PROPERTY subscript is the same shape on the OTHER pending list (<c>ProcedureBindState.PropertyOps</c>,
     /// which the per-evaluation wrapper drains alongside the pre-ops), so its pending GET is captured as well
     /// (<see cref="EnclosingOccurrence.PropertyOps"/>; kb/Work PB3365 review R2-1).</para></summary>
     internal EnclosingOccurrence? CaptureEnclosingSubscripts(DataItem table, Action bindWhile)
@@ -166,8 +166,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         /// <summary>A committed subscript reading of <paramref name="item"/>: the first one that is <c>table</c> or lies
         /// within it, fully subscripted (a reference the arity screen refused never reaches here), keeps the leading
         /// positions that belong to the tables ENCLOSING <c>table</c>.</summary>
-        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, IEnumerable<Bound.BoundStatement> preOps,
-            IEnumerable<DataBinder.OoPendingPropertyOp> propertyOps)
+        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, ReadOnlySpan<Bound.BoundStatement> preOps,
+            ReadOnlySpan<DataBinder.OoPendingPropertyOp> propertyOps)
         {
             if (Enclosing is not null) return;
             for (DataItem? n = item; n is not null; n = n.Parent)
@@ -773,10 +773,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         return false;
 
         // The function-identifier's head token IS an activation site (ISO §7.3.14.4 GR4 b reads it back from
-        // DataBinder.ActivationSites — the subscript has no FunctionCall parse node of its own).
+        // DataBindState.ActivationSites — the subscript has no FunctionCall parse node of its own).
         bool Activation(IToken head)
         {
-            data.ActivationSites.Add(head);
+            data.State.ActivationSites.Add(head);
             return true;
         }
     }

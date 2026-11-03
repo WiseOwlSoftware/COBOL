@@ -441,13 +441,13 @@
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.Validation",
       "uses": 15,
-      "walkUses": 15,
+      "walkUses": 16,
       "removedBy": [
         "PB2320",
         "PB2404",
         "PB2421"
       ],
-      "plan": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, DataBinder.Reports.cs:3777), the pair no move of BinderDriver removes (Draft 6, G1)",
+      "plan": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, ReportSectionBinder.cs, the SUM clause's PICTURE screen), the pair no move of BinderDriver removes (Draft 6, G1)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.BinderDriver",
@@ -537,14 +537,6 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.Binding.DataBinder",
-          "to": "WiseOwl.Cobol.Validation.VersionConformancePass",
-          "removedBy": [
-            "PB2404",
-            "PB2421"
-          ]
-        },
-        {
           "from": "WiseOwl.Cobol.Binding.RefModBinder",
           "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
           "removedBy": [
@@ -561,6 +553,22 @@
             "PB2404",
             "PB2421"
           ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.ReportSectionBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.ReportSectionBinder",
+          "to": "WiseOwl.Cobol.Validation.VersionConformancePass",
+          "removedBy": [
+            "PB2404",
+            "PB2421"
+          ]
         }
       ]
     },
@@ -568,7 +576,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 42,
+      "walkUses": 44,
       "removedBy": [
         "PB2347",
         "PB2419",
@@ -891,6 +899,21 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.UserFunctionSignature",
+          "removedBy": [
+            "PB2347",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.ProcedureBindState",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
           "removedBy": [
             "PB2347",
             "PB2420"
@@ -1313,11 +1336,12 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 24,
-      "walkUses": 20,
+      "walkUses": 21,
       "removedBy": [
         "PB2361",
         "PB2399",
-        "PB2402"
+        "PB2402",
+        "PB2420"
       ],
       "plan": "PB2361 (DataBindResult: BoundUnit.Data and .Refs, BoundCompilation.InterfaceData, OoClassUnit's binder), PB2402 (OoMethodDataScope and OptionsModel.cs's types move with the OO symbols) and PB2399 (the rest: SymbolTable's binder, the binder statics the model calls, BoundCompilation.Turn, LinkageFormal, Table16Operand, the alphabet family); PB2399 moves NationalAlphabetDef with the alphabet family (Draft 6, G1). PB2375 (landed) built the PlaceBuilder in this layer (Binding/Model/PlaceBuilder.cs, over IPlaceFacts), so OdoModel.SearchDepending and DataItem, FileModel and RecordLayout no longer name a resolver (HasVariableLengthSubordinate is DataItem's)",
       "pairs": [
@@ -1475,6 +1499,13 @@
           "removedBy": [
             "PB2402",
             "PB2399"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2420"
           ]
         }
       ]
@@ -1655,7 +1686,7 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 101,
+      "walkUses": 107,
       "removedBy": [
         "PB2290",
         "PB2320",
@@ -2506,6 +2537,48 @@
             "PB2405",
             "PB2420"
           ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.DataBindState",
+          "removedBy": [
+            "PB2361"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ReportWriterEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2420"
+          ]
         }
       ]
     },
@@ -3057,7 +3130,7 @@
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 38,
-      "walkUses": 34,
+      "walkUses": 35,
       "removedBy": [
         "PB2361",
         "PB2399",
@@ -3367,6 +3440,13 @@
             "PB2399",
             "PB2405",
             "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.OptionsModel",
+          "removedBy": [
+            "PB2402"
           ]
         }
       ]

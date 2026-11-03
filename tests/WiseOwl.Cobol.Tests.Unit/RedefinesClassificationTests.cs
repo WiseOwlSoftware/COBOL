@@ -291,7 +291,7 @@ public sealed class RedefinesClassificationTests
         // P5.7: the classifier RECORDS the image fact (ImageForcedItems) instead of mutating a flag; the final
         // StoreAsImage/Storage is computed once by the group-tail StorageFormPass, which this bare resolve-only
         // harness never runs — so assert the resolve-time COLLECTED FACT, the exact thing the classifier owns.
-        Assert.Contains(b, d.ImageForcedItems);
+        Assert.Contains(b, d.State.ImageForcedItems);
         Assert.Equal("BinaryMinus", b.Pic!.SignKind);   // untouched: the sign lives in the two's-complement bytes
     }
 
@@ -308,13 +308,13 @@ public sealed class RedefinesClassificationTests
         var b = Item(d, "WS-B");
         Assert.Equal(RedefinesTier.StringCanonical, b.Class!.Tier);
         Assert.Equal(4, b.ImageWidth);            // the IEEE binary32 window
-        Assert.Contains(b, d.ImageForcedItems);   // image-forced onto the one backing
+        Assert.Contains(b, d.State.ImageForcedItems);   // image-forced onto the one backing
 
         var d5 = Bind("01 WS-C PIC X(4).\n01 WS-D REDEFINES WS-C PIC 9(4) COMP-5.");
         var w5 = Item(d5, "WS-D");
         Assert.Equal(RedefinesTier.StringCanonical, w5.Class!.Tier);
         Assert.Equal(2, w5.ImageWidth);           // the full-container radix-2 window
-        Assert.Contains(w5, d5.ImageForcedItems);
+        Assert.Contains(w5, d5.State.ImageForcedItems);
     }
 
     [Fact]

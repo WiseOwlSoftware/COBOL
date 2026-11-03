@@ -259,7 +259,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// and then it bites without anyone having to remember it.</para></summary>
     private string ClampToArithmeticRange(string value, bool farthest)
     {
-        var (modeFarthest, modeNearest) = ArithmeticModes.IntermediateExtremes(ctx.Data.Options.Arithmetic);
+        var (modeFarthest, modeNearest) = ArithmeticModes.IntermediateExtremes(ctx.Options.Arithmetic);
         string bound = farthest ? modeFarthest : modeNearest;
         int cmp = AlgebraicRanges.CompareMagnitude(value, bound);
         // FARTHEST: take the smaller magnitude. NEAREST: take the larger.

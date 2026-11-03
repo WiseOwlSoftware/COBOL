@@ -876,7 +876,7 @@ public sealed record PicInfo(
     /// §13.18.40.3 SR14) keeps its full GR1 digit count. This used to clamp at 18 — the old <c>long</c> carrier's
     /// ceiling — so a PIC 9(20) SUM entry reported a false size error past 9.2·10^18 and printed spaces. The only
     /// counter still bounded is an alphanumeric or national PICTURE of more than 38 positions (one digit per
-    /// character position, <c>DataBinder.SumCounterDigits</c>), capped at the 38 digits the carrier holds.</para></summary>
+    /// character position, <c>ReportSectionBinder.SumCounterDigits</c>), capped at the 38 digits the carrier holds.</para></summary>
     public static PicInfo SumCounterItem(int digits, int scale)
     {
         int d = System.Math.Clamp(digits, 1, 38);
@@ -1047,7 +1047,7 @@ public sealed record PicInfo(
     /// <c>NumericImagePlace</c> (§13.18.45). (A STRING receiver is not such a site: it is a CHARACTER CHANNEL, so
     /// its numeric DISPLAY item is promoted to its image, kb/Work PB4089.) Do NOT read it where the
     /// question is whether the leaf's carrier may be REPLACED by that character string
-    /// (<c>DataBinder.MarkImageForced</c> / <c>StorageFormPass</c>'s promotion): promotion pins the carrier at
+    /// (<c>DataBindState.ImageForcedItems</c> / <c>StorageFormPass</c>'s promotion): promotion pins the carrier at
     /// <c>ImageWidth</c> CHARACTER positions, which for usage DISPLAY is the leaf's whole storage and for usage
     /// NATIONAL is half of it (D-N1), and promoting a national-form numeric leaf was MEASURED to corrupt a plain
     /// group-to-group MOVE between two of them. Each such site says so in its own comment. The carriage sites

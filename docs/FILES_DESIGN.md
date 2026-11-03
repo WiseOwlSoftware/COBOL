@@ -1738,7 +1738,7 @@ it for WRITE and REWRITE; §14.9.30.4 GR4 b) and §14.9.34.4 GR5 b) are the same
 has to include the bind. Measured, before the fix: `RELEASE SRT-REC FROM WS-NUM` (a `PIC 9(3)` sender into a
 `PIC A(8)` record) compiled clean where the identical explicit MOVE drew COBOL0819; and
 `RELEASE SRT-NUM FROM QUOTE` **aborted the run** with an unhandled `NotImplementedCobolFeatureException` before
-the record was released, because `MarkImageForced` — a fact `StorageFormPass` consumes — is collected by the
+the record was released, because `DataBindState.ImageForcedItems` — a fact `StorageFormPass` consumes — is collected by the
 binder and the emitter-built move never passed through it (kb/Work PB348).
 
 **The decision:** `MoveBinder.BindMoveOf(source, targets, implicitOf)` is THE one application of the MOVE
@@ -1818,7 +1818,7 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
 
 **Rejected alternatives.** *Fix the RELEASE call site* — the smallest diff and the wrong shape: eight call sites
 carry the same rule, and the next FROM phrase would re-derive it a ninth time. *Re-run the MOVE screens over the
-emitter-built node* — the screens COLLECT (`MarkImageForced`, `MarkRefModStoreImage`) as well as diagnose, and
+emitter-built node* — the screens COLLECT (`DataBindState.ImageForcedItems`, `MarkRefModStoreImage`) as well as diagnose, and
 `StorageFormPass` has already run by then; a screen that runs after its consumer is not a screen. *Give each verb
 its own copy of its phrase rules at its binder* — three copies of one rule, which is what `WriteSource` was, and
 the reason none of them existed.

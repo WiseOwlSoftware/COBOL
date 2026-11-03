@@ -6,10 +6,10 @@
  "subject": "COLUMN clause",
  "rule-digest": "962d2e5b9455",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportColumnArrangement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#NominalPlacements",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportColumnArrangement; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#NominalPlacements",
  "test-ref": "conformance:cases/13.18.14-COLUMN/pb1222-column-overlap; conformance:cases/13.18.14-COLUMN/pb1222-column-past-page-width; conformance:cases/13.18.14-COLUMN/pb1222-relative-tail-past-page-width; conformance:cases/13.18.14-COLUMN/pb1222-relative-tail-largest-past-page-width; conformance:cases/13.18.14-COLUMN/pb1059_page_columns_width; conformance:cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1222 landed 2026-10-04: a) overlap, b) an absolute item past the page width, c) a relative tail past it, judged whole unless each item carries a different PRESENT WHEN clause and then by the largest alone (COBOL2745). || editions corrected from '85' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the rule is stated in terms of the PRESENT WHEN clause, a COBOL-2002 report-writer introduction (PRESENT first reserved at 2002).",
+ "notes": "kb/Work PB1222 landed 2026-10-04: a) overlap, b) an absolute item past the page width, c) a relative tail past it, judged whole unless each item carries a different PRESENT WHEN clause and then by the largest alone (COBOL2745). || editions corrected from '85' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the rule is stated in terms of the PRESENT WHEN clause, a COBOL-2002 report-writer introduction (PRESENT first reserved at 2002). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#NominalPlacements (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportColumnArrangement (kb/Work PB2357 split DataBinder.Reports.cs: the same code, unchanged, now lives in ReportSectionBinder.cs (the binder), ReportModel.cs (the model types) and ReportScope.cs (the visible-report lookups))",
  "state": "OK"
 }

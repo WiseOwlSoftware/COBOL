@@ -176,7 +176,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// everywhere else. Set only by <c>ReportWriterBinder</c>, for the span of its own clause binding; it narrows the
     /// candidates of a sum-counter reference to that report, so a name two reports share is unambiguous there
     /// (kb/Work PB1292).</summary>
-    internal ReportModel? ReportScope { get; set; }
+    internal ReportModel? EnclosingReport { get; set; }
 
     /// <summary>The VARYING counters the report-section expression being bound may name, by data-name (ISO §13.18.64.3
     /// SR2 — a counter "may be referenced only within the current entry or a subordinate entry"), or null outside a
@@ -310,12 +310,12 @@ public sealed class ReferenceResolver(DataBinder data)
         // are the same item. The syntactic path, the data-division path (ResolveItemRefMod) and the resolved-place
         // path (RefModOf) all read it this way, so SR1 and the view are asked of one description.
         DataItem described = inner.Item;
-        int preOpMark = data.PendingPreOps.Count;   // the reference modifier's own pre-ops (function activations) start here
+        int preOpMark = data.Procedure.PendingPreOps.Mark();   // the reference modifier's own pre-ops (function activations) start here
         if (RefMods.ReadScreenedRefMod(dref, written, described, out var refusal) is not { } spec) return refusal!;
         // §14.6.4 steps 6 → 7: an occurs-depending group's length is evaluated BEFORE the reference modifier, so when
         // the modifier registered pre-ops (a function whose side effect may change the DEPENDING ON object) the length
         // is pinned ahead of them (kb/Work PB1123).
-        if (inner is OdoGroupPlace odo && data.PendingPreOps.Count > preOpMark && FreezeOdoExtent is { } freeze)
+        if (inner is OdoGroupPlace odo && data.Procedure.PendingPreOps.AnyAfter(preOpMark) && FreezeOdoExtent is { } freeze)
             inner = freeze(odo, preOpMark, dref.Start.Line);
         return RefMods.RefModView(described, inner, spec) is { } view
             ? RefResolution.Resolved(view, "")

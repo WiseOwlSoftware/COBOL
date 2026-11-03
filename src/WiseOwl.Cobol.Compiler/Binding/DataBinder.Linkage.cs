@@ -324,13 +324,9 @@ public sealed partial class DataBinder
     internal bool DeclaresOwnDataName(string name) =>
         ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
 
-    /// <summary>The containers' named GLOBAL data roots (ISO §13.18.27.4 GR1/GR2), nearest container first, each with
-    /// its containment distance; set by <c>BinderDriver.BindUnitData</c> before the unit binds and inherited by
-    /// <see cref="InheritContainerGlobalData"/> (kb/Work PB3766, review finding R1-1).</summary>
-    internal IReadOnlyList<(DataItem Root, int Depth)> ContainerGlobalRoots { get; init; } = [];
 
     /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2),
-    /// beside <see cref="InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
+    /// beside <see cref="ReportSectionBinder.InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
     /// names are declared, so a name it declares hides the container's (§8.4.6.2.1 3), and BEFORE
     /// <see cref="BindResolve"/>, so every clause of this unit's own data division that names a data item (FILE
     /// STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) finds the container's GLOBAL item.
@@ -338,7 +334,7 @@ public sealed partial class DataBinder
     /// defined" (the data-item twin of kb/Work PB3766's report case).</summary>
     private void InheritContainerGlobalData()
     {
-        foreach (var (root, depth) in ContainerGlobalRoots)
+        foreach (var (root, depth) in State.Inherited.DataRoots)
             InheritGlobalSubtree(root, depth);
     }
 
@@ -410,39 +406,6 @@ public sealed partial class DataBinder
     /// <c>ref</c>-properties over <c>ExternalStore</c>). (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlyList<CallExternalBacking> CallExternalBackings => _callExternalBackings;
     private readonly List<CallExternalBacking> _callExternalBackings = [];
-
-    /// <summary>§14.9.4.4 GR3 d)'s ACTIVATED half (kb/Work PB133 wave C2b): this unit's EC-PROGRAM-ARG-MISMATCH
-    /// enablement at its PROCEDURE DIVISION header (§7.3.25.4 GR6 / GR8; <c>TurnState.EnabledAtHeader</c>, kb/Work
-    /// PB1381) — registered with the program table so a dynamic CALL's count check can apply the enabled-in-both
-    /// gate.</summary>
-    public bool ArgMismatchChecking { get; set; }
-
-    /// <summary>Is automatic propagation of exception conditions enabled for this program or function unit (ISO
-    /// §7.3.21.4 GR1/GR3; kb/Work PB1119)? Folded by <c>BinderDriver.BindUnitData</c> from the group's
-    /// <see cref="PropagateState"/> at the unit's first line; read by <c>ProgramEmitter</c> into the emitter's
-    /// per-element propagation state, which <c>EcEmitter.EmitSelection</c> applies (§14.6.13.1.3 6)).</summary>
-    public bool AutomaticPropagation { get; set; }
-
-    /// <summary>This unit's before-Environment-division EC-EXTERNAL enablement mask (ISO §14.8.4.1 — the
-    /// ACTIVATED-element half of the both-elements rule; <c>ExternalChecks</c> bits). Computed by
-    /// <c>BinderDriver.BindUnitData</c> from the group TurnState folded at the unit's first
-    /// post-Identification division header; emitted as the selfMask of the activation-entry
-    /// <c>ExternalStore.Describe</c> registrations.</summary>
-    public int ExternalCheckMask { get; set; }
-
-    /// <summary>True when any enabling <c>&gt;&gt;TURN</c> event anywhere in the compilation group covers an
-    /// EC-EXTERNAL condition — the group-level gate for emitting the activation-entry
-    /// <c>ExternalStore.Describe</c> registrations at all (an element with a zero
-    /// <see cref="ExternalCheckMask"/> must still REGISTER its descriptions so a later-enabled element can
-    /// check against them, §14.8.4; a group with no EC-EXTERNAL TURN emits nothing — zero-scaffolding).</summary>
-    public bool ExternalDescribe { get; set; }
-
-    /// <summary>True when any enabling <c>&gt;&gt;TURN</c> event anywhere in the compilation group covers
-    /// EC-BOUND-ODO — the gate for attaching §13.18.38.4 GR7's element-reference check
-    /// (<see cref="Model.OdoReferenceCheck"/>) to a subscripted OCCURS DEPENDING level. The run-time
-    /// <c>BoundOdoChecking</c> flag still decides per statement; this only keeps a group that can never enable the
-    /// condition free of the data-name-1 read at every element reference (zero-scaffolding).</summary>
-    public bool OdoReferenceChecking { get; set; }
 
     /// <summary>
     /// Bind the LINKAGE SECTION and the PROCEDURE DIVISION header's USING/RETURNING operands. Runs inside
@@ -761,7 +724,7 @@ public sealed partial class DataBinder
         // record-names described subordinate to the FD are global names): the records join the GLOBAL roots so
         // contained programs reach the OWNER's record area through the standard containment bridges
         // (§13.18.27 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
-        // emitter's FilesByName containment merge (CallBindUnit).
+        // contained unit's VisibleFiles lookup (InheritedGlobals.Files).
         foreach (var file in Files)
             if (file.IsGlobal)
                 foreach (var rec in file.Records)
@@ -958,7 +921,7 @@ public sealed partial class DataBinder
         // strictly worse than the bind diagnostic it replaced. The two-arm shape, nine lines apart.
         foreach (var leaf in leaves)
             if (leaf.Pic is { Category: PicCategory.Numeric, HasImageByteForm: true })
-                MarkImageForced(leaf);   // the collected image fact
+                State.ImageForcedItems.Add(leaf);   // the collected image fact
         return cls;
     }
 

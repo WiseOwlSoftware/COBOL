@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// reference-modifier offsets"), so a USER-defined function, a nested function, and a keyword-omitted reference
 /// all fall out of the same route. The value lands in a compiler temp via <c>DataBinder.CreateCompilerTemp</c> —
 /// "THE ONE synthesized-compiler-temp constructor" — whose store registers as a statement-scoped pending PRE-op on
-/// the shared <c>DataBinder.PendingPreOps</c>, drained at the <c>BindStatement</c> chokepoint by the mark-on-entry /
+/// the shared <c>ProcedureBindState.PendingPreOps</c>, drained at the <c>BindStatement</c> chokepoint by the mark-on-entry /
 /// drain-own-suffix protocol that already served the UDF and object-property clients.</para>
 ///
 /// <para>⛔ <b>One parse, one tree (kb/Work PB2151, D10's second half).</b> Until PB2151 the route recovered the
@@ -112,7 +112,7 @@ public sealed partial class StatementBinder
         var temp = data.CreateCompilerTemp(model, "__SUBEXPR-", "__subexpr", $"L{line}");
         if (Ctx.Refs.Places.ResolveItem(temp) is not { } place) return null;
 
-        data.PendingPreOps.Add(new BoundPositionValue(value, place, RefMod: position == SegmentPosition.RefMod));
+        data.Procedure.PendingPreOps.Add(new BoundPositionValue(value, place, RefMod: position == SegmentPosition.RefMod));
         return temp;
     }
 
@@ -127,7 +127,7 @@ public sealed partial class StatementBinder
     {
         var temp = data.CreateCompilerTemp(odo.Depending.Item, "__REFODO-", "__refodo", $"L{line}");
         if (Ctx.Refs.Places.ResolveItem(temp) is not { } frozen) return odo;
-        data.PendingPreOps.Insert(preOpMark, new BoundMove(new BoundFieldOperand(odo.Depending), [frozen]));
+        data.Procedure.PendingPreOps.InsertAt(preOpMark, new BoundMove(new BoundFieldOperand(odo.Depending), [frozen]));
         return odo with { Depending = frozen };
     }
 }
