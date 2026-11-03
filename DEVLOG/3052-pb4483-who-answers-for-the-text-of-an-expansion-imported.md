@@ -1,4 +1,4 @@
-## PB4483: who answers for the text of an expansion (imported, placement (b), two places of one text)
+## Entry 3052 — 2026-11-03 14:35 PST — PB4483: who answers for the text of an expansion (imported, placement (b), two places of one text)
 
 PB4469 made a placement-(a) expansion report its text's warnings once, from its own compilation. Three siblings of the same root stayed
 open, and the re-probe on `11c6abfb1` reproduced all three with the CLI. (1) An IMPORTED expansion: CLIENT1 wrote `HOLD-BOX.dll`, and a
@@ -49,3 +49,4 @@ now prints `CLIENT.cob(28,5): warning COBOL0901 ... [in the expansion 'KEEP-LBOX
 `VersionConformancePass.Run` walks each text with a walker of its own, so every per-walk state is per text by construction; the other
 three screens over `Texts` keep no state across texts. Witness: `AReservedWordOfAWithdrawnExpansionText_DoesNotHideTheSameWordInAnotherText`,
 with and without the word in the written tree, red on the shared walker and green on the fix.
+
