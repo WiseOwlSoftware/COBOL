@@ -1,4 +1,4 @@
-## PB4454: a contained program's I-O on a GLOBAL file reaches the file's own clause operands (RELATIVE KEY, ASSIGN USING, VARYING DEPENDING ON, LINAGE, FILE STATUS) through one list, bridged like a global root
+## Entry 3023 — 2026-11-03 00:42 PST — PB4454: a contained program's I-O on a GLOBAL file reaches the file's own clause operands (RELATIVE KEY, ASSIGN USING, VARYING DEPENDING ON, LINAGE, FILE STATUS) through one list, bridged like a global root
 
 **What was wrong.** A program contained in the one that describes a GLOBAL file runs input-output statements on it whose
 operands are not global: the file's own clauses name them in the container (ISO §8.4.5: an implicit reference resolves in the
@@ -58,3 +58,4 @@ the compiler stopped with the `no Place was built` exception for RELATIVE KEY, a
 `AnchorPlace` path. The name filter belonged to the inherited-NAME list (`ContainerGlobalRootsOf`), not to this one, which is read
 by I-O statements and offers no name; it is gone. Golden `pb4454_global_file_operand_under_unnamed_root` (2002-2023): RELATIVE KEY
 and FILE STATUS under one FILLER 01, a sequential FILE STATUS under another, a contained program with its own FILLER 01.
+
