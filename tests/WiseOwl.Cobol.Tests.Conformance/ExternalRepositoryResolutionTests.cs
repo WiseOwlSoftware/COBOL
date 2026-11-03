@@ -285,9 +285,9 @@ public sealed class ExternalRepositoryResolutionTests
     // external repository are ignored" (cite.py --check 12.3.8.4 "the details in the external repository are ignored").
     // So an entry the group's prototype makes irrelevant is never a fault of the compilation, whatever is wrong with it.
 
-    private static string FunctionLibrary(string asClause) => $"""
+    private static string FunctionLibrary(string asClause, string name = "R2103F") => $"""
         IDENTIFICATION DIVISION.
-        FUNCTION-ID. R2103F{asClause}.
+        FUNCTION-ID. {name}{asClause}.
         DATA DIVISION.
         LINKAGE SECTION.
         01 X PIC 9(4).
@@ -295,7 +295,7 @@ public sealed class ExternalRepositoryResolutionTests
         PROCEDURE DIVISION USING X RETURNING R.
             COMPUTE R = X * 2
             GOBACK.
-        END FUNCTION R2103F.
+        END FUNCTION {name}.
         """;
 
     private const string FunctionPrototypeCaller = """
@@ -345,8 +345,7 @@ public sealed class ExternalRepositoryResolutionTests
     /// (<see cref="RuntimeVersionSkew.OtherMajor"/>), in the same number of bytes so every offset of the assembly stays
     /// (REPO-7's input, <c>RuntimeAbi.Skew</c>).</summary>
     private static void MakeStale(string dll) =>
-        PatchEvery(dll, System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.Current), System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.OtherMajor),
-            "the library records its runtime version nowhere in UTF-8");
+        Assert.True(RuntimeVersionSkew.Patch(dll, System.Text.Encoding.UTF8) > 0, "the library records its runtime version nowhere in UTF-8");
 
     /// <summary>Replaces every occurrence of <paramref name="from"/> in the file by <paramref name="to"/>, of the same length so
     /// every offset of the assembly stays; the file must hold at least one, or the fixture damaged nothing.</summary>
@@ -484,6 +483,78 @@ public sealed class ExternalRepositoryResolutionTests
             var stale = Compile(dir, "R2103FM", FunctionPrototypeCaller);
             Assert.True(stale.Success, Codes(stale));
             Assert.Empty(stale.Warnings);
+        });
+    }
+
+    [Fact]   // REPO-13 across the repository (D-R3 step 3): the externalized name wins, and the function only the word names is reported. The case pb2103_repo13_across_repository runs it.
+    public void AFunctionExternalizedAsTheWord_AndAnotherNamedByIt_BothInTheRepository_IsRepo13()
+    {
+        WithDirectory("repo-13", dir =>
+        {
+            Assert.True(Compile(dir, "R2103G", FunctionLibrary(ShadowingClause)).Success);   // F AS "R2103G": the word R2103F, externalized R2103G
+            Assert.True(Compile(dir, "R2103F", FunctionLibrary(" AS \"R2103F\"", "R2103X")).Success);   // X AS "R2103F": externalized R2103F
+            var r = Compile(dir, "R2103FM", FunctionSpecifierCaller);
+            Assert.True(r.Success, Codes(r));
+            Assert.Contains(r.Warnings, w => w.Contains("COBOL2969", StringComparison.Ordinal) && w.Contains("R2103G", StringComparison.Ordinal));
+            Assert.DoesNotContain("COBOL5962", Codes(r), StringComparison.Ordinal);
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "R2103FM.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("0042", stdout);   // the program activated, whichever function it was, ran: 21 * 2
+        });
+    }
+
+    private const string SplitDefinition = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. R2103SD AS "R2103S".
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 D-G.
+           03 D-S.
+              05 D-A PIC 9(2).
+           03 D-B PIC X(2).
+        PROCEDURE DIVISION USING D-G.
+            GOBACK.
+        END PROGRAM R2103SD.
+        """;
+
+    private static string SplitPrototypeCaller(string secondField) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. R2103S IS PROTOTYPE.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 L-G.
+           05 L-A PIC 9(2).
+           05 L-B {secondField}.
+        PROCEDURE DIVISION USING L-G.
+        END PROGRAM R2103S.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. R2103SM.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            PROGRAM R2103S.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 W-G.
+           05 W-A PIC 9(2) VALUE 7.
+           05 W-B PIC X(2) VALUE "XY".
+        PROCEDURE DIVISION.
+            CALL R2103S USING W-G
+            GOBACK.
+        END PROGRAM R2103SM.
+        """;
+
+    [Fact]   // §13.7.3 SR2 over two groups: a prototype that groups and names its fields otherwise than the definition draws no REPO-9; one that lays them out otherwise does.
+    public void APrototypeAndItsDefinitionInTwoUnits_AreComparedByLayout_NotByGroupingOrNames()
+    {
+        WithDirectory("repo-split", dir =>
+        {
+            Assert.True(Compile(dir, "R2103S", SplitDefinition).Success);
+            var same = Compile(dir, "R2103SM", SplitPrototypeCaller("PIC X(2)"));
+            Assert.True(same.Success, Codes(same));
+            Assert.DoesNotContain("COBOL5969", Codes(same), StringComparison.Ordinal);
+            var other = Compile(dir, "R2103SM", SplitPrototypeCaller("PIC X(3)"));
+            Assert.Contains(other.Warnings, w => w.Contains("COBOL5969", StringComparison.Ordinal));   // the control: a layout that differs is reported
         });
     }
 
