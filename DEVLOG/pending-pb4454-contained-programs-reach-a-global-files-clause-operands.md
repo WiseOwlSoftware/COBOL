@@ -47,3 +47,7 @@ Full code: ODO DEPENDING ON of a global record is refused for a non-global item 
 are read in the container (probed), so no sibling operand remains; `SD ... IS GLOBAL` is refused. Performance: one list per
 container per contained unit at bind time. Duplication: the root-bridge enumeration had two copies of `foreach CallGlobalRoots`
 (Seed reservation, Merge bridges); both now read `ContainerBridgedRootsOf`.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,032/21,032 · Unit 39,468/39,468 · Characterization 37/37 cases ran (skipped 0)`,
+run `TestResults/build-local/000001-20261103T052821Z`; the nine new golden cases (three tests at 2002, 2014, 2023) are `Passed` in its
+`Conformance.trx`. `scripts/semgrep/verify.py`: PASS, no rule count increased.
