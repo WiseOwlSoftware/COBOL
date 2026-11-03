@@ -260,6 +260,28 @@ public static class CompilerDriver
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         // Placement (a): an expansion whose code names nothing of this group is compiled apart, into an assembly of its own that the
         // group then names a type of (DESIGN-external-repository §10.5) — so it is written BEFORE the group's module, which references it.
+        // kb/Work PB4502 review R1-1: the write phase is where the file system answers. An output the host refuses (`-o /dev/null`
+        // on Linux, whose `.g.cs` sibling cannot be created; a directory the user may not write) is a fault of the command
+        // line, OutputNotWritable with the host's own words, never an unhandled exception. Only the two exception types
+        // the file system raises are taken; anything else is the compiler's own failure and still propagates.
+        try
+        {
+            return WriteOutputs(options, bound, backend, edition, outputDll, feWarnings, inputs, diagnostics);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return new Result(Outcome.OutputNotWritable, outputDll, null,
+                [$"cannot write the output of '{outputDll}': {e.Message}"], [.. feWarnings, .. edition.Warnings])
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
+        }
+    }
+
+    /// <summary>The write phase of <see cref="Compile"/>: each expansion's own assembly, then the group's module through the
+    /// backend. Every file this compilation creates is created here, so <see cref="Compile"/>'s one handler covers them all.</summary>
+    private static Result WriteOutputs(Options options, Binding.Model.BoundCompilation bound, ICodeGenBackend backend,
+        Binding.EditionContext edition, string outputDll, IReadOnlyList<string> feWarnings, Frontend.CompilationInputs inputs,
+        DiagnosticBag diagnostics)
+    {
         var expansion = ExpansionAssemblies.Write(bound.Expansions, options, edition);
         string[] warnings = [.. feWarnings, .. edition.Warnings, .. expansion.Warnings];
         if (expansion.Errors.Count > 0)

@@ -82,6 +82,28 @@ public sealed class CompilerDriverTests : WiseOwlCobolTestBase
         }
     }
 
+    /// <summary>kb/Work PB4502 review R1-1: an output the file system refuses AFTER the path checks pass is OutputNotWritable
+    /// with the host's message, not an unhandled exception. A directory standing where the `.g.cs` is written makes the
+    /// write fail the same way on every host (`-o /dev/null` on Linux fails at that write for the same reason).</summary>
+    [Fact]
+    public void CompilerDriver_ReportsAnOutputTheFileSystemRefuses()
+    {
+        string source = Path.Combine(TempDir, "pb4502w.cob");
+        File.WriteAllText(source, """
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4502W.
+                   PROCEDURE DIVISION.
+                   MAIN-PARA.
+                       STOP RUN.
+            """);
+        string output = Path.Combine(TempDir, "pb4502w-out", "prog.dll");
+        Directory.CreateDirectory(Path.ChangeExtension(output, ".g.cs"));
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(source, output, SourceFormat: InitialReferenceFormat.Auto));
+        Assert.Equal(CompilerDriver.Outcome.OutputNotWritable, result.Status);
+        Assert.StartsWith($"cannot write the output of '{output}': ", Assert.Single(result.Errors));
+        Assert.False(File.Exists(output));
+    }
+
     [Fact]
     // Owner decision (DEVLOG 519 / VERSION_TEST_MATRIX_DESIGN §10 #2): an unspecified target edition defaults to the
     // LATEST standard (2023), not 85. Edition-specific callers (the NIST harness, the differential harness, per-edition

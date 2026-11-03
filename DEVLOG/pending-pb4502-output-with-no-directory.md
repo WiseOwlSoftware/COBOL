@@ -14,3 +14,5 @@ and the runtime's six take a user file's path, where a probe of `ASSIGN TO "NUL"
 ran clean.
 
 Found while writing the minimal repros for the upstream records PB4499-PB4501.
+
+The branch review (round 1) found the refusal too narrow: `-o /dev/null` on Linux, or a directory the user may not write, still threw from the `.g.cs` write. The write phase is now one method, and an `IOException` or `UnauthorizedAccessException` from it is `OutputNotWritable` with the host's message, exit 73.
