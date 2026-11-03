@@ -105,13 +105,13 @@ public sealed class ExternalRepositoryExpansionTests
         END PROGRAM {id}.
         """;
 
-    private static CompilerDriver.Result Compile(string dir, string name, string source, int level = 2014)
+    private static CompilerDriver.Result Compile(string dir, string name, string source, int level = 2014, bool permissive = false)
     {
         Directory.CreateDirectory(dir);
         string src = Path.Combine(dir, name + ".cob");
         File.WriteAllText(src, source);
         return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: level,
-            SourceFormat: InitialReferenceFormat.Free));
+            SourceFormat: InitialReferenceFormat.Free, Permissive: permissive));
     }
 
     /// <summary>Run the compiled program <paramref name="dll"/> in <paramref name="dir"/> (the repository directory is the run unit's
@@ -282,7 +282,7 @@ public sealed class ExternalRepositoryExpansionTests
                 .Replace("INVOKE BOX", "INVOKE LBOX").Replace("USING BOX", "USING LBOX");
             var r = Compile(dir, "CLIENT3", own + client);
             Assert.True(r.Success, Codes(r));
-            Assert.False(File.Exists(Path.Combine(dir, "HOLD-LBOX.dll")));
+            Assert.False(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
             var inGroup = Records(Path.Combine(dir, "CLIENT3.dll")).Single(x => x.Kind is RepositoryUnitKind.Expansion);
             Assert.False(inGroup.Expansion!.OwnAssembly);
             Assert.Equal(["LBOX"], inGroup.Expansion.ActualIdentities.ToList());
@@ -743,10 +743,194 @@ public sealed class ExternalRepositoryExpansionTests
             string source = own + client;
             var r = Compile(dir, "CLIENT3", source, level: 2023);
             Assert.True(r.Success, Codes(r));
-            Assert.False(File.Exists(Path.Combine(dir, "HOLD-LBOX.dll")));   // placement (b): the group's bind is the only one that sees the text
+            Assert.False(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));   // placement (b): the group's bind is the only one that sees the text
             int entryLine = source.Split('\n').ToList().FindIndex(l => l.Contains("EXPANDS HOLD", StringComparison.Ordinal)) + 1;   // the entry begins at column 5
             string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL3146", StringComparison.Ordinal));
             Assert.StartsWith($"{Path.Combine(dir, "CLIENT3.cob")}({entryLine},5): warning COBOL3146:", warning, StringComparison.Ordinal);
+        });
+    }
+
+    /// <summary>A skeleton text that raises two warnings of two kinds at COBOL-2023: COBOL3146 (the BIND's, ISO §8.8.4.2.1: "A relation
+    /// condition shall contain at least one reference to an operand that is not a literal") and COBOL0903 (the parse-tree arm of the edition
+    /// pass: NEXT SENTENCE is archaic, Annex F.1), so a placement that reports one kind and not the other shows.</summary>
+    private const string BindAndEditionWarnings = "IF 1 = 1 NEXT SENTENCE ELSE DISPLAY \"A\".\n        INVOKE ITEM \"SHOW\".";
+
+    /// <summary>Two places of one skeleton text that raise the same words (COBOL3146 twice, ISO §8.8.4.2.1).</summary>
+    private const string TwoRelationsOfLiterals = "IF 1 = 1 DISPLAY \"A\".\n        IF 1 = 1 DISPLAY \"B\".\n        INVOKE ITEM \"SHOW\".";
+
+    /// <summary>The client of <see cref="Client"/> with its own class LBOX as the actual: the expansion names a class of the group, so it
+    /// lives in the group's assembly (placement (b)).</summary>
+    private static string InGroupClient(string id) => Box.Replace("BOX", "LBOX") + Client(id).Replace("CLASS BOX", "CLASS LBOX")
+        .Replace("REFERENCE BOX", "REFERENCE LBOX").Replace("INVOKE BOX", "INVOKE LBOX").Replace("USING BOX", "USING LBOX");
+
+    /// <summary>The 1-based line of <paramref name="source"/> that holds the EXPANDS entry (which begins at column 5).</summary>
+    private static int EntryLine(string source) =>
+        source.Split('\n').ToList().FindIndex(l => l.Contains("EXPANDS HOLD", StringComparison.Ordinal)) + 1;
+
+    private static string[] WithCode(CompilerDriver.Result r, string code) => [.. r.Warnings.Where(w => w.Contains(code, StringComparison.Ordinal))];
+
+    [Theory]   // kb/Work PB4483, ISO §9.3.12: an imported expansion is a class this compilation compiles nothing of; the client that made it reported its text.
+    [InlineData("CLIENT1", "CLIENT2")]
+    [InlineData("CLIENT2", "CLIENT1")]
+    public void AnImportedExpansion_ReportsNoWarningOfItsText_WhicheverClientMadeIt(string first, string second)
+    {
+        WithDirectory("expansion-warning-imported", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold(BindAndEditionWarnings), level: 2023).Success);
+            var made = Compile(dir, first, Client(first), level: 2023);
+            Assert.True(made.Success, Codes(made));
+            foreach (string code in new[] { "COBOL3146", "COBOL0903" })
+            {
+                string once = Assert.Single(WithCode(made, code));
+                Assert.StartsWith($"{Path.Combine(dir, first + ".cob")}(8,5): warning {code}:", once, StringComparison.Ordinal);
+                Assert.EndsWith("[in the expansion 'HOLD-BOX']", once, StringComparison.Ordinal);
+            }
+            var written = File.GetLastWriteTimeUtc(Path.Combine(dir, "HOLD-BOX.dll"));
+            var imported = Compile(dir, second, Client(second, 7), level: 2023);
+            Assert.True(imported.Success, Codes(imported));
+            Assert.Equal(written, File.GetLastWriteTimeUtc(Path.Combine(dir, "HOLD-BOX.dll")));   // imported, not made again
+            Assert.Empty(WithCode(imported, "COBOL3146"));
+            Assert.Empty(WithCode(imported, "COBOL0903"));
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, second + ".dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("BOX 007", stdout);
+        });
+    }
+
+    [Fact]   // kb/Work PB4483: the text of a repository skeleton expanded in the group's assembly gets the edition pass's parse-tree arm too.
+    public void AnExpansionInTheGroupsAssembly_ReportsItsTextsEditionWarning_AtTheEntry_AsItsOwnAssemblyWould()
+    {
+        WithDirectory("expansion-edition-in-group", dir =>
+        {
+            Assert.True(Compile(dir, "LIBH", Hold(BindAndEditionWarnings), level: 2023).Success);
+            string source = InGroupClient("CLIENT3");
+            var r = Compile(dir, "CLIENT3", source, level: 2023);
+            Assert.True(r.Success, Codes(r));
+            Assert.False(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));   // placement (b)
+            string entry = $"{Path.Combine(dir, "CLIENT3.cob")}({EntryLine(source)},5)";
+            foreach (string code in new[] { "COBOL3146", "COBOL0903" })
+            {
+                string once = Assert.Single(WithCode(r, code));
+                Assert.StartsWith($"{entry}: warning {code}:", once, StringComparison.Ordinal);
+                Assert.EndsWith("[in the expansion 'HOLD-BOX']", once, StringComparison.Ordinal);
+            }
+        });
+    }
+
+    [Fact]   // kb/Work PB4483: two places of a repository text that raise the same words are two reports, in each placement and in a check-only compile.
+    public void TwoPlacesOfARepositoryTextRaisingOneWarning_AreTwoReports_InEveryPlacement()
+    {
+        WithDirectory("expansion-two-places", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold(TwoRelationsOfLiterals), level: 2023).Success);
+            string src = Path.Combine(dir, "CLIENT1.cob");
+            File.WriteAllText(src, Client("CLIENT1"));
+            var checkOnly = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "CLIENT1.dll"), DialectLevel: 2023,
+                SourceFormat: InitialReferenceFormat.Free, CheckOnly: true));   // the group's bind is the only report
+            var ownAssembly = Compile(dir, "CLIENT1", Client("CLIENT1"), level: 2023);   // the expansion's own compilation reports
+            Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
+            string apart = Path.Combine(dir, "in-group");   // a search space of its own: one skeleton HOLD in each
+            Assert.True(Compile(apart, "LIBH", Hold(TwoRelationsOfLiterals), level: 2023).Success);
+            string inGroupSource = InGroupClient("CLIENT3");
+            var inGroup = Compile(apart, "CLIENT3", inGroupSource, level: 2023);   // the group's bind compiles the text
+            Assert.False(File.Exists(Path.Combine(apart, "HOLD-BOX.dll")));
+            foreach (var (r, file, line, name) in new[] { (checkOnly, src, 8, "HOLD-BOX"), (ownAssembly, src, 8, "HOLD-BOX"),
+                (inGroup, Path.Combine(apart, "CLIENT3.cob"), EntryLine(inGroupSource), "HOLD-BOX") })
+            {
+                Assert.True(r.Success, Codes(r));
+                var two = WithCode(r, "COBOL3146");
+                Assert.Equal(2, two.Length);
+                Assert.All(two, w => Assert.StartsWith($"{file}({line},5): warning COBOL3146:", w, StringComparison.Ordinal));
+                Assert.All(two, w => Assert.EndsWith($"[in the expansion '{name}']", w, StringComparison.Ordinal));
+            }
+        });
+    }
+
+    /// <summary>A client with its own class LBOX that expands two repository skeletons whose texts declare the same reserved word: HOLD
+    /// over LIBX's BOX (placement (a): an assembly of its own, then an import) and KEEP over LBOX (placement (b): the group's assembly),
+    /// and, when <paramref name="declares"/>, declares the word in its own WORKING-STORAGE too.</summary>
+    private static string TwoExpansionsClient(bool declares) => Box.Replace("BOX", "LBOX") + $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. CLIENTW.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BOX
+            CLASS LBOX
+            CLASS HOLD
+            CLASS KEEP
+            CLASS HOLD-BOX EXPANDS HOLD USING BOX
+            CLASS KEEP-LBOX EXPANDS KEEP USING LBOX.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 HB USAGE OBJECT REFERENCE HOLD-BOX.
+        01 KL USAGE OBJECT REFERENCE KEEP-LBOX.
+        {(declares ? "01 EDITING PIC X." : "")}
+        PROCEDURE DIVISION.
+            INVOKE HOLD-BOX "NEW" RETURNING HB
+            INVOKE KEEP-LBOX "NEW" RETURNING KL
+            STOP RUN.
+        END PROGRAM CLIENTW.
+        """;
+
+    [Theory]   // kb/Work PB4483 review R1-1, ISO §8.9: the once-per-word COBOL0901 belongs to each text; a report the group withdraws hides none.
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AReservedWordOfAWithdrawnExpansionText_DoesNotHideTheSameWordInAnotherText(bool declares)
+    {
+        WithDirectory("expansion-word-per-text", dir =>
+        {
+            string hold = Hold().Replace("01 ITEM USAGE OBJECT REFERENCE ELEM.", "01 ITEM USAGE OBJECT REFERENCE ELEM. 01 EDITING PIC X.");
+            var library = Compile(dir, "LIBX", Box + hold + "\n" + hold.Replace("HOLD", "KEEP"), level: 2023, permissive: true);
+            Assert.True(library.Success, Codes(library));
+            string source = TwoExpansionsClient(declares);
+            var lines = source.Split('\n').ToList();
+            string file = Path.Combine(dir, "CLIENTW.cob");
+            string At(string text) => $"{file}({lines.FindIndex(l => l.Contains(text, StringComparison.Ordinal)) + 1},";
+            var apart = Compile(dir, "CLIENTW", source, level: 2023, permissive: true);   // writes HOLD-BOX.dll: its own compilation reports
+            Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
+            var written = File.GetLastWriteTimeUtc(Path.Combine(dir, "HOLD-BOX.dll"));
+            var imported = Compile(dir, "CLIENTW", source, level: 2023, permissive: true);   // the same key: HOLD-BOX.dll is imported
+            Assert.Equal(written, File.GetLastWriteTimeUtc(Path.Combine(dir, "HOLD-BOX.dll")));
+            foreach (var (r, holdReports) in new[] { (apart, 1), (imported, 0) })
+            {
+                Assert.True(r.Success, Codes(r));
+                var reports = WithCode(r, "COBOL0901");
+                Assert.All(reports, w => Assert.Contains("'EDITING'", w, StringComparison.Ordinal));
+                string keep = Assert.Single(reports, w => w.EndsWith("[in the expansion 'KEEP-LBOX']", StringComparison.Ordinal));
+                Assert.StartsWith($"{At("EXPANDS KEEP")}5): warning COBOL0901:", keep, StringComparison.Ordinal);
+                var holdBox = reports.Where(w => w.EndsWith("[in the expansion 'HOLD-BOX']", StringComparison.Ordinal)).ToArray();
+                Assert.Equal(holdReports, holdBox.Length);
+                Assert.All(holdBox, w => Assert.StartsWith($"{At("EXPANDS HOLD")}5): warning COBOL0901:", w, StringComparison.Ordinal));
+                var own = reports.Where(w => !w.Contains("[in the expansion", StringComparison.Ordinal)).ToArray();
+                Assert.Equal(declares ? 1 : 0, own.Length);
+                Assert.All(own, w => Assert.StartsWith(At("01 EDITING PIC X."), w, StringComparison.Ordinal));
+                Assert.Equal(1 + holdReports + own.Length, reports.Length);
+            }
+        });
+    }
+
+    [Fact]   // kb/Work PB4483: a skeleton written in the group is the user's own text, reported where it is written, wherever its expansion is placed.
+    public void ASkeletonWrittenInTheGroup_IsReportedWhereItIsWritten_WhetherItsExpansionIsWrittenApartOrImported()
+    {
+        WithDirectory("expansion-own-skeleton", dir =>
+        {
+            Assert.True(Compile(dir, "LIBB", Box).Success);
+            string source = Hold(BindAndEditionWarnings) + "\n" + Client("HCLIENT");
+            int ifLine = source.Split('\n').ToList().FindIndex(l => l.Contains("IF 1 = 1", StringComparison.Ordinal)) + 1;
+            string at = $"{Path.Combine(dir, "LIBH.cob")}({ifLine},";
+            var apart = Compile(dir, "LIBH", source, level: 2023);   // BOX is LIBB's: placement (a) writes HOLD-BOX.dll
+            Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
+            var written = File.GetLastWriteTimeUtc(Path.Combine(dir, "HOLD-BOX.dll"));
+            var imported = Compile(dir, "LIBH", source, level: 2023);   // the same key: HOLD-BOX.dll is the class
+            Assert.Equal(written, File.GetLastWriteTimeUtc(Path.Combine(dir, "HOLD-BOX.dll")));
+            foreach (var r in new[] { apart, imported })
+            {
+                Assert.True(r.Success, Codes(r));
+                Assert.StartsWith($"{at}5): warning COBOL3146:", Assert.Single(WithCode(r, "COBOL3146")), StringComparison.Ordinal);
+                Assert.StartsWith($"{at}14): warning COBOL0903:", Assert.Single(WithCode(r, "COBOL0903")), StringComparison.Ordinal);
+                Assert.DoesNotContain(r.Warnings, w => w.Contains("[in the expansion", StringComparison.Ordinal));
+            }
         });
     }
 

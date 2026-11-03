@@ -81,7 +81,18 @@ internal static class OoExpansion
         IReadOnlyList<Core.InterfaceDefinitionContext> ParameterizedInterfaces,
         IReadOnlySet<string> ExpandedNames,
         IReadOnlyList<SkeletonSource> Skeletons,
-        IReadOnlyDictionary<ParserRuleContext, ExpansionOrigin> Origins);
+        IReadOnlyDictionary<ParserRuleContext, ExpansionOrigin> Origins)
+    {
+        /// <summary>⛔ THE EXPANSIONS WHOSE TEXT THE WRITTEN TREE DOES NOT HOLD (kb/Work PB4483): each made from a skeleton read from the
+        /// repository, in the order the expansions were made (classes, then interfaces), with what it was made from. An expansion of a
+        /// skeleton written in this group is the skeleton's own text with the formals replaced, at the skeleton's own positions, so the
+        /// screens of the written tree have asked it already; these are the texts they have not seen.</summary>
+        public IEnumerable<(ParserRuleContext Text, ExpansionOrigin Origin)> RepositoryTexts() => Origins.Count == 0 ? [] :
+            Classes.Cast<ParserRuleContext>().Concat(Interfaces)
+                .Select(d => (Text: d, Origin: Origins.GetValueOrDefault(d)))
+                .Where(e => e.Origin is { Region.IsRepositoryText: true })
+                .Select(e => (e.Text, e.Origin!));
+    }
 
     /// <summary>One parameterized definition: its context, its formals in USING order, and the kind each formal's
     /// REPOSITORY specifier declares it as (null when undeclared — already COBOL2239). <paramref name="Source"/> is what the
@@ -185,7 +196,10 @@ internal static class OoExpansion
         var expandedNames = new HashSet<string>(CobolNames.Comparer);
         foreach (var x in order)
         {
-            var region = new DiagnosticRegion(x.Name);
+            // Who answers for the expansion's text (DiagnosticRegion; kb/Work PB4469, PB4483): a skeleton written in this group is the
+            // user's text, reported where the user wrote it; one read from the repository is reported at the EXPANDS entry.
+            var region = x.Of.Source?.From is null ? new DiagnosticRegion(x.Name)
+                : new DiagnosticRegion(x.Name, new DiagnosticCursor(x.Entry.Start.Line, x.Entry.Start.Column));
             var tokens = SubstitutedTokens(x, region);
             if (x.Of.IsInterface)
             {
@@ -526,8 +540,8 @@ internal static class OoExpansion
         var actualSpecifier = ((Core.RepositoryParagraphContext)x.Entry.Parent).repositoryEntry();
 
         var drop = new HashSet<IToken>();
-        bool published = skel.Source?.From is not null;   // lexed again from another group's text: its lines are that text's
-        int entryLine = x.Entry.Start.Line, entryColumn = x.Entry.Start.Column;
+        bool published = region.IsRepositoryText;   // lexed again from the text another group recorded: one line, a file this group never read
+        int entryLine = x.Entry.Start.Line;
         IToken headerName, endName;
         if (skel.Ctx is Core.ClassDefinitionContext c)
         {
@@ -585,14 +599,12 @@ internal static class OoExpansion
                     // An actual is an ordinary user-defined word wherever its formal stood (§11.3.4 GR6).
                     copy.Type = CobolLexer.IDENTIFIER;
                 }
-                if (published)
-                {
-                    // The text is another group's, recorded; its lines and columns are positions in a file this group never read. A
-                    // diagnostic about it is positioned at the one place the user wrote it down: the EXPANDS entry (kb/Work PB4469) —
-                    // the same position the expansion's own compilation reports at (ExpansionAssemblies.AtTheEntry).
-                    copy.Line = entryLine;
-                    copy.Column = entryColumn;
-                }
+                // The text is another group's, recorded as one line; its positions are places in a text this group never read as a file.
+                // The LINE becomes the EXPANDS entry's, which is the line every directive fold of the group reads (the expansion is asked for
+                // there); the COLUMN stays the token's own in the recorded text, so two places of the text stay two (kb/Work PB4483). Where
+                // a diagnostic about it is printed is the region's (DiagnosticRegion.ReportedAt, the entry), as the expansion's own
+                // compilation prints it (ExpansionAssemblies.AtTheEntry).
+                if (published) copy.Line = entryLine;
                 result.Add(copy);
                 if (text is not null && FormalSpecifierName(t) is { } formalSpecifier && formalSpecifier.externalizedNamePhrase() is null
                     && actualSpecifier.FirstOrDefault(r => CobolNames.Same(DeclaredName(r), text))?.externalizedNamePhrase() is { } actualAs)

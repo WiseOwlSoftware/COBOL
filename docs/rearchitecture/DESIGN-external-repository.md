@@ -1833,8 +1833,8 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   The importer re-lexes the recorded text through `FragmentParse.ParseUnit` (a miniature of the frontend's whole-group parse: the lexer
   primed with the recorded words map, the reservation-gate and ZERO-sign fixpoint, the re-lex when a declaration changes a subscript
   trigger), NOT through `ParseTokens` — token types are not recorded, since the same lexer and the same decisions produce them again.
-  Every token of the expansion carries the line of the EXPANDS entry, so a directive fold and a diagnostic read the place the expansion
-  was asked for.
+  Every token of the expansion carries the line of the EXPANDS entry, so a directive fold reads the place the expansion was asked for;
+  its column stays the token's own in the recorded text (one line), and a diagnostic about it is printed at the entry (below).
 - *The actual's identity rides into the expansion's text.* The formal's own specifier in the definition's REPOSITORY paragraph
   becomes the actual's (`CLASS ELEM` → `CLASS BOX AS "lit"` when the actual's specifier states `AS "lit"`), so the expansion names the
   class the actual names wherever it is made, and the specifier's own `AS literal-1` externalizes the EXPANSION (§12.3.8.4 GR2: a
@@ -1880,20 +1880,42 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   file, line and column the user's source names) with `[in the expansion 'NAME']` after the message, never to the throw-away file the
   text was compiled from. The warnings ride `CompilerDriver.Result.Warnings` on every outcome, and the CLI names the generated C# of a
   backend failure only when that file exists.
-- *Placement (a)'s warnings are reported once, and where an expansion made in the group reports them* (kb/Work PB4469). The group binds
-  the text of every expansion to type its callers, so a placement-(a) expansion's text is bound twice, once by the group under the
-  group's state and once by the sub-compilation under the state its skeleton was published with. The sub-compilation owns the text's
-  warnings: every token of an expansion's text is an `ExpansionToken` naming the expansion's `DiagnosticRegion`; the diagnostic cursor
-  (`DiagnosticCursor.Region`, set by `DiagnosticCursorAt.At`, kept by every pass that replays a captured cursor) carries it to
-  `EditionContext.Warning`, which remembers which regions raised each warning line; `ExpansionAssemblies.Write` calls
-  `EditionContext.WithdrawWarningsOf` for each `OwnAssembly` expansion once its sub-compilation has reported (a `CheckOnly` compilation
-  runs none and keeps the group's report), which drops the lines no text outside the region (the user's own text, a placement-(b) or
-  imported expansion) also raised. Errors are never withdrawn (an error of the group's bind stops the compilation
-  before any sub-compilation runs). The position is one rule for both placements: the text of an expansion of a skeleton read from the
-  repository (`SkeletonSource.From`) has the positions of a file this group never read, so `OoExpansion.SubstitutedTokens` gives each of its
-  tokens the EXPANDS entry's line AND column, the position `AtTheEntry` relabels the sub-compilation's diagnostics to. An expansion of a
-  skeleton written in this group keeps the skeleton's own positions in the group's bind (the user's own text, found once for all
-  expansions, `EditionContext.AddOnce`), and an own-assembly expansion of it is reported by its sub-compilation at the entry.
+- *Who answers for the text of an expansion* (kb/Work PB4469, PB4483). The group binds the text of every expansion it makes, to type
+  its callers, wherever the expansion is placed; so a text that another compilation also compiles, or already compiled, is bound twice.
+  The rule is ONE, and it is a property of the TEXT, carried by the `DiagnosticRegion` every token of the expansion's text names
+  (`ExpansionToken`; the diagnostic cursor carries it, `DiagnosticCursor.Region`, set by `DiagnosticCursorAt.At` and kept by every pass
+  that replays a captured cursor):
+  - *A skeleton written in this group* is the user's own text. The expansion's tokens keep the skeleton's positions, the group reports a
+    diagnostic of it where the user wrote it, once for all its expansions (`EditionContext.AddOnce`, one fact per position), and the parse-
+    tree screens of the written tree have already asked it. That holds wherever the expansion lives: an own-assembly expansion's
+    compilation reports the same facts under the same state, so `ExpansionAssemblies.Write` keeps its errors and drops its warnings, and an
+    imported expansion of it leaves the group's report standing.
+  - *A skeleton read from the repository* (`SkeletonSource.From`) is a text this compilation never read as a file. Its region carries the
+    EXPANDS entry (`DiagnosticRegion.ReportedAt`), and `EditionContext.Render` prints every diagnostic of it there, with
+    `[in the expansion 'NAME']` after the message (`DiagnosticRegion.InTheExpansion`, the one spelling, which `ExpansionAssemblies.AtTheEntry`
+    uses for the sub-compilation's report too). The once-key is the place in the text (`EditionContext.KeyOf`: the token's own column in the
+    recorded line), so two places that raise the same words are two reports in every placement, as the expansion's own compilation, which
+    reads the text at its own positions, reports them. Only the compilation that COMPILES the text answers for its warnings: the group for
+    placement (b); the sub-compilation for placement (a), after which `ExpansionAssemblies.Write` calls `EditionContext.WithdrawWarningsOf`
+    (a `CheckOnly` compilation runs none and keeps the group's report); and, for an expansion imported from the repository, the
+    compilation that made it, so `ExpansionPlacementPass` withdraws the group's report as it places the import (§9.3.12: an expansion "is
+    treated in all respects the same as if it were a class that is not a parameterized class", and a compilation reports nothing of a class
+    it imports). Errors are never withdrawn (an error of the group's bind stops the compilation before any sub-compilation runs).
+  - *The text of a repository skeleton is screened as the written tree is* (`GroupBindContext.Texts`, built by `BinderDriver.CollectUnits`:
+    the written tree, then each such expansion whose recorded state binds as the group's at the entry, `CompileState.BindsAs`). The
+    edition pass's parse-tree arm (COBOL0903 for NEXT SENTENCE), the expression-formation, declined-facility and closed-format screens walk
+    every member, so placement (b) reports what placement (a)'s own compilation reports; under another state the group's screens would not
+    say what the skeleton's own compilation said, and such an expansion is never compiled here (its own assembly, an import, or COBOL2240).
+    A screen's state belongs to ONE text: the parse-tree arm walks each member with a walker of its own, so its once-per-word reports
+    (COBOL0901, COBOL1567) are once per text, as each text's own compilation makes them; a set shared across `Texts` let a report the group
+    later withdraws (an expansion compiled apart or imported) hide the same word in the written tree or in a placement-(b) text.
+    The `>>FLAG` walk stays on the written tree (the directives bracket lines the user wrote, and `CompileState` does not carry them), and
+    the pre-bind screens (level numbers, integer operands, procedure formats, end markers, areas, directive placement) run before any
+    expansion exists; they are error-only, and the published skeleton passed them under the same state. `GroupTextScreenDriftTests` keeps
+    every other walk on `Texts`. The frontend's two token screens (`LiteralScreen`, `WordCharacterScreen`) walk the written tree alone:
+    they position by line and column, with no region, so they cannot yet print a repository text's report at its entry. Their gates are
+    introductions, which the published skeleton passed under the same state, except the COBOL-2023 removal of a word character, a warning
+    under `--permissive` that an expansion in the group's assembly does not repeat while its own assembly's compilation does.
   *Representation:* `CompilerDriver.Result.Errors` and `Warnings` stay strings; the duplicate was two owners of one text, not the
   string form, so ownership is decided where the diagnostic is raised and the strings need no structure to be de-duplicated.
 - *Residual, stated:* an expansion of a skeleton published under another `CompileState` than this group's whose code also names a class of

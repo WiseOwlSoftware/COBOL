@@ -62,7 +62,8 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
         // there is not an optimization that could hide a diagnostic — it is the same fact the predicates state, and
         // it keeps a pure COBOL-85 compile byte-for-byte free of this pass.
         if (edition.DialectLevel < 2002) return;
-        new DeclinedFacilityPass(edition).VisitPositioned(group.Tree);
+        var pass = new DeclinedFacilityPass(edition);
+        foreach (var text in group.Texts) pass.VisitPositioned(text);   // an expansion's text read from the repository too (kb/Work PB4483)
     }
 
     /// <summary>Do not descend into a PROCEDURE DIVISION: every declined construct this pass refuses is a DATA
