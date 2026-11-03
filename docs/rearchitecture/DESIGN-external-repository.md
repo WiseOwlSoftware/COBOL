@@ -1050,7 +1050,7 @@ Comparators (as the tree has them since kb/Work PB3101, PB3120, PB2463 and PB316
 runtime's ONE pair-mode relation, `ActivationRelations.SignatureDifference`; the description builder reads
 `ActivationDescriptions.ElementaryClauses` (its pointer clause is `PrototypeSignatures.NamedRestriction`, the TO phrase
 by the prototype it names, PB4107; the description's content restriction is `PrototypeSignatures.SignatureRestriction`,
-the signature class, PB2464, which the pair-mode relation compares for two class pointers), `AnyLengthClausesOf`, `OfAddress`, `TypeIdentityKey`, `VariableLengthCompatibility.*` →
+the signature class, PB2464, which the pair-mode relation reads only under `pointersBySignature`, set by `PrototypeSignatures.SameDescription` alone; every other pair-mode check compares the TO phrase by the prototype it names, PB4442), `AnyLengthClausesOf`, `OfAddress`, `TypeIdentityKey`, `VariableLengthCompatibility.*` →
 `Atoms`, `TierCIsland`, `OoClassTable.LeafCarried`, `PictureClauseIdentity.*`; §8.5.3.1: `StrongTypeModel.SameType` →
 `EquivalentTypeDeclarations` → `SameElementaryLayout` → `SameEssentialCharacteristics` →
 `DescriptionClauses.AlignedOrDynamicLengthMismatch` + `SameAnalyzedProfile` — `PicInfo` record equality with

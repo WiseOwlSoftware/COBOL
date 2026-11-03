@@ -1690,7 +1690,7 @@ target:
   fault re-met, not a tail to discard: the recovery goes on, so a genuine later fault in the sentence is still reported.
   Not covered: the paired conditional phrases (`NOT ON SIZE ERROR` twice after a left ADD, READ, …) are one
   `conditionalPhrases` loop whose occurrences a PREDICATE counts (`ConditionalPhraseAssociation`), which a walk does not
-  evaluate, so a repeat of one after a left statement is still silent.
+  evaluate, so a repeat of one after a left statement is still silent (kb/Work PB4489).
 - ⛔ **COBOL2073 names a WHEN OTHER phrase only where it IS misplaced** (kb/Work PB4300; ISO §14.9.13.2, §14.9.28.2
   Format 3, §5.2.7). Hint 0b decides from the construct around the parser (`WhenOtherPlacement`: the innermost rule that
   calls a WHEN OTHER rule, both read from the ATN): a phrase is misplaced where the construct already holds one (the
