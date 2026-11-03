@@ -1,4 +1,4 @@
-## PB4509: COBOL-85 has no program-prototype-names, so a bare word after CALL or CANCEL is identifier-1
+## Entry 3056 — 2026-11-03 15:31 PST — PB4509: COBOL-85 has no program-prototype-names, so a bare word after CALL or CANCEL is identifier-1
 
 **The defect.** PB4503's branch review (lead R2-2) found that at `--std 85` the compiler still took a bare word naming
 the program's own or a containing program definition as a program-prototype-name. `BinderDriver.ProgramPrototypesOf`
@@ -39,3 +39,4 @@ classes' partition refinement.
 
 **Rows.** No inventory change. FMT-14.9.4.2, FMT-14.9.5.2, SR-14.9.4.3-1 and SR-14.9.5.3-1 were already CONFORMS.
 PB4509 is landed with `closes_rows: []` and a reason.
+
