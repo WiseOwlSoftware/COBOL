@@ -1,0 +1,11 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2103L85.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L-N PIC 9(4).
+       PROCEDURE DIVISION USING L-N.
+       P-MAIN.
+           DISPLAY "LEGACY " L-N
+           ADD 1 TO L-N
+           EXIT PROGRAM.
+       END PROGRAM P2103L85.
