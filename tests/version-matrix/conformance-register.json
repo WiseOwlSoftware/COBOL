@@ -1,0 +1,1167 @@
+{
+ "comment": "GENERATED from docs/CONFORMANCE.md by `python scripts/doc_audits.py --write-register`; held fresh by the DOC AUDITS gate audit. Do not edit: edit the register and regenerate (kb/Work PB4453). annexA1 carries each §7 row's key and the first 64 characters of its determination, enough for every schema determination-prefix; the prose behind it is not data and is not here.",
+ "annexA1": [
+  {
+   "key": "DOC-A.1-1",
+   "lead": "The device delivers characters of the UTF-16 repertoire (the tra"
+  },
+  {
+   "key": "DOC-A.1-2",
+   "lead": "The implementor default ACCEPT device is the process **standard "
+  },
+  {
+   "key": "DOC-A.1-5",
+   "lead": "One 80-character card-image record** per transfer, for every inp"
+  },
+  {
+   "key": "DOC-A.1-18",
+   "lead": "The program is **not canceled and the run unit terminates** with"
+  },
+  {
+   "key": "DOC-A.1-19",
+   "lead": "No effect** (kb/Work PB154). A name that does not resolve to a r"
+  },
+  {
+   "key": "DOC-A.1-56",
+   "lead": "Each operand converts to its character image (kb/Work PB148 comp"
+  },
+  {
+   "key": "DOC-A.1-58",
+   "lead": "Unbounded, for every output device.** GR2 asks for the size \"for"
+  },
+  {
+   "key": "DOC-A.1-59",
+   "lead": "When the UPON phrase is omitted the standard display device is t"
+  },
+  {
+   "key": "DOC-A.1-62",
+   "lead": "1,073,741,791 characters** (`0x3FFFFFDF`) for every dynamic-leng"
+  },
+  {
+   "key": "DOC-A.1-64",
+   "lead": "Not provided.** WiseOwl COBOL defines NO entry-convention-name-1"
+  },
+  {
+   "key": "DOC-A.1-158",
+   "lead": "Margin R is immediately to the right of character position 72**,"
+  },
+  {
+   "key": "DOC-A.1-48",
+   "lead": "When no OPTIONS **FLOAT-BINARY** clause is specified, the implie"
+  },
+  {
+   "key": "DOC-A.1-57",
+   "lead": "A variable-length group (§8.5.1.12 — a dynamic-length elementary"
+  },
+  {
+   "key": "DOC-A.1-205",
+   "lead": "A BINARY item is a **two's-complement integer of the item's UNSC"
+  },
+  {
+   "key": "DOC-A.1-206",
+   "lead": "Provided, the native range.** GR12's MINIMUM bands are asymmetri"
+  },
+  {
+   "key": "DOC-A.1-207",
+   "lead": "BINARY-CHAR **1** byte, BINARY-SHORT **2**, BINARY-LONG **4**, B"
+  },
+  {
+   "key": "DOC-A.1-208",
+   "lead": "COMPUTATIONAL (and its COMP / COMP-4 synonyms) is **identical to"
+  },
+  {
+   "key": "DOC-A.1-211",
+   "lead": "An index item is a **64-bit managed integer occurrence number** "
+  },
+  {
+   "key": "DOC-A.1-216",
+   "lead": "A data-pointer item is **one managed `ManagedPointer` reference "
+  },
+  {
+   "key": "DOC-A.1-214",
+   "lead": "8 bytes — one .NET managed reference on the 64-bit runtime this "
+  },
+  {
+   "key": "DOC-A.1-135",
+   "lead": "Names.** A program element is reported by its PROGRAM-ID / FUNCT"
+  },
+  {
+   "key": "DOC-A.1-134",
+   "lead": "A single space.** The only non-COBOL runtime elements WiseOwl CO"
+  },
+  {
+   "key": "DOC-A.1-136",
+   "lead": "The main program is the element the run unit was started with** "
+  },
+  {
+   "key": "DOC-A.1-137",
+   "lead": "The nested (contained) program's OWN name**, i.e. the runtime el"
+  },
+  {
+   "key": "DOC-A.1-140",
+   "lead": "A compile-time WARNING, COBOL2297, on the POP line; the compilat"
+  },
+  {
+   "key": "DOC-A.1-133",
+   "lead": "A dynamic-length alphanumeric item with no trailing spaces**, r1"
+  },
+  {
+   "key": "DOC-A.1-209",
+   "lead": "One byte per character position, uniform at every length.** GR7 "
+  },
+  {
+   "key": "DOC-A.1-215",
+   "lead": "A PACKED-DECIMAL item is **binary-coded decimal, two digits per "
+  },
+  {
+   "key": "DOC-A.1-82",
+   "lead": "The FORM is the standard's (SR2/SR3: a 1–36-digit significand wi"
+  },
+  {
+   "key": "DOC-A.1-87",
+   "lead": "The run unit's clock TICK — 100 ns, i.e. 7 significant fraction "
+  },
+  {
+   "key": "DOC-A.1-144",
+   "lead": "Per-process OS entropy — sequences are deliberately NOT reproduc"
+  },
+  {
+   "key": "DOC-A.1-145",
+   "lead": "Every seed 0 through 2,147,483,647 selects its own generator sta"
+  },
+  {
+   "key": "DOC-A.1-151",
+   "lead": "Two methods, chosen by the file’s ORGANIZATION — and this determ"
+  },
+  {
+   "key": "DOC-A.1-115",
+   "lead": "A line sequential file with no CODE-SET clause is UTF-8 text (ow"
+  },
+  {
+   "key": "DOC-A.1-150",
+   "lead": "Not provided.** No name is available for use as feature-name-1. "
+  },
+  {
+   "key": "DOC-A.1-112",
+   "lead": "NO — never.** The determination §15.80.3 r4 requires (\"The imple"
+  },
+  {
+   "key": "DOC-A.1-171",
+   "lead": "100 nanoseconds — 7 fraction digits**, the .NET `DateTime` tick "
+  },
+  {
+   "key": "DOC-A.1-176",
+   "lead": "Quiet NaN: payload ZERO. Signaling NaN: payload ONE.** GR34/GR35"
+  },
+  {
+   "key": "DOC-A.1-174",
+   "lead": "NONE. Storing a function's address does nothing whatever to the "
+  },
+  {
+   "key": "DOC-A.1-175",
+   "lead": "NONE. Storing a program's address does nothing whatever to the p"
+  },
+  {
+   "key": "DOC-A.1-210",
+   "lead": "GR26 leaves four things to the implementor and this determinatio"
+  },
+  {
+   "key": "DOC-A.1-177",
+   "lead": "The operational sign is FUSED onto the TRAILING digit position, "
+  },
+  {
+   "key": "DOC-A.1-178",
+   "lead": "At the SIGN POSITION: a plain digit `0`–`9`, plus both tables of"
+  },
+  {
+   "key": "DOC-A.1-22",
+   "lead": "§15.16.4 r2 has TWO branches and only the second is an implement"
+  },
+  {
+   "key": "DOC-A.1-180",
+   "lead": "No restriction beyond the standard's own rules 2 and 3** (kb/Wor"
+  },
+  {
+   "key": "DOC-A.1-183",
+   "lead": "Two code-names exist, so this item is LIVE** (it was vacuous unt"
+  },
+  {
+   "key": "DOC-A.1-184",
+   "lead": "code-name-1: `ASCII` and `EBCDIC`. code-name-2: NONE.** SR15 - \""
+  },
+  {
+   "key": "DOC-A.1-185",
+   "lead": "VACUOUS - there is no code-name-2.** A.1 conditions this item \"u"
+  },
+  {
+   "key": "DOC-A.1-188",
+   "lead": "The native alphanumeric and national repertoires are **UTF-16, o"
+  },
+  {
+   "key": "DOC-A.1-189",
+   "lead": "Provided. The device-names are `CONSOLE`, `SYSIN`, `SYSOUT` and "
+  },
+  {
+   "key": "DOC-A.1-190",
+   "lead": "Provided. The feature-names are `C01` and `CSP`**, and their onl"
+  },
+  {
+   "key": "DOC-A.1-191",
+   "lead": "Provided. The switch-names are `SWITCH-0` through `SWITCH-36` (G"
+  },
+  {
+   "key": "DOC-A.1-221",
+   "lead": "Provided.** A WRITE's ADVANCING operand may be a mnemonic-name a"
+  },
+  {
+   "key": "DOC-A.1-222",
+   "lead": "Item **221** provides mnemonic-name-1, so this item is LIVE. The"
+  },
+  {
+   "key": "DOC-A.1-123",
+   "lead": "The native intermediate data item is a scaled `Int128`** — a 128"
+  },
+  {
+   "key": "DOC-A.1-70",
+   "lead": "Execution continues with the next statement, and the resultant i"
+  },
+  {
+   "key": "DOC-A.1-127",
+   "lead": "Not provided.** `computer-name-1` (ISO §12.3.6.2 — optional sinc"
+  },
+  {
+   "key": "DOC-A.1-128",
+   "lead": "The full signed 64-bit interval, −9 223 372 036 854 775 808 thro"
+  },
+  {
+   "key": "DOC-A.1-179",
+   "lead": "Checked, in five places.** (1) Whenever size-error checking is E"
+  },
+  {
+   "key": "DOC-A.1-202",
+   "lead": "18.** §15.3.3.2 requires the implementor to define this maximum "
+  },
+  {
+   "key": "DOC-A.1-92",
+   "lead": "§15.4 places a function's returned value in a **temporary elemen"
+  },
+  {
+   "key": "DOC-A.1-92b",
+   "lead": "§15.4.1 makes the characteristics and representation of a return"
+  },
+  {
+   "key": "DOC-A.1-33",
+   "lead": "Both native repertoires are **UTF-16, one code unit per characte"
+  },
+  {
+   "key": "DOC-A.1-93",
+   "lead": "The maximum length of a returned value is **1,073,741,791 charac"
+  },
+  {
+   "key": "DOC-A.1-50",
+   "lead": "The validated set is EMPTY.** GR19 requires the implementor to *"
+  },
+  {
+   "key": "DOC-A.1-71",
+   "lead": "§12.4.5.1 prints the TO phrase as a LIST — `ASSIGN [TO] {device-"
+  },
+  {
+   "key": "DOC-A.1-72",
+   "lead": "§12.4.5.3 GR1 b) requires the file control entries that referenc"
+  },
+  {
+   "key": "DOC-A.1-73",
+   "lead": "The content of data-name-1, with leading and trailing SPACES rem"
+  },
+  {
+   "key": "DOC-A.1-10",
+   "lead": "There are NONE.** §12.4.5.3 GR4's second sentence asks for \"the "
+  },
+  {
+   "key": "DOC-A.1-129",
+   "lead": "The validated set is exactly what each organization's PHYSICAL F"
+  },
+  {
+   "key": "DOC-A.1-90",
+   "lead": "§15.3 rule 14: “If the EC-ARGUMENT-FUNCTION exception condition "
+  },
+  {
+   "key": "DOC-A.1-195",
+   "lead": "WiseOwl COBOL performs NO physical alignment for SYNCHRONIZED an"
+  },
+  {
+   "key": "DOC-A.1-204",
+   "lead": "§7.3.25.4 GR7: “If the LOCATION phrase is specified, all informa"
+  },
+  {
+   "key": "DOC-A.1-163",
+   "lead": "The AS phrase is never required.** Every specifier that prints `"
+  },
+  {
+   "key": "DOC-A.1-165",
+   "lead": "100 milliseconds before a re-attempt against a holder outside th"
+  },
+  {
+   "key": "DOC-A.1-166",
+   "lead": "Internal representation: `9(1)V9(0)` — n = 1, m = 0** (GR2 requi"
+  },
+  {
+   "key": "DOC-A.1-109",
+   "lead": "A deadlock is detected in exactly one circumstance: a `RETRY FOR"
+  },
+  {
+   "key": "DOC-A.1-110",
+   "lead": "WiseOwl COBOL defines two implementor-defined I-O statuses. `'90"
+  },
+  {
+   "key": "DOC-A.1-24",
+   "lead": "Every physical file WiseOwl COBOL supports is §14.9.6.4 GR2 cate"
+  },
+  {
+   "key": "DOC-A.1-6",
+   "lead": "Always coincident.** Every alphanumeric group item, and every st"
+  },
+  {
+   "key": "DOC-A.1-7",
+   "lead": "Not provided.** WiseOwl COBOL provides no special type of alignm"
+  },
+  {
+   "key": "DOC-A.1-8",
+   "lead": "Code-unit order: the ordinal position of a native character is i"
+  },
+  {
+   "key": "DOC-A.1-9",
+   "lead": "Two.** Each pair of hexadecimal digits in a hexadecimal alphanum"
+  },
+  {
+   "key": "DOC-A.1-12",
+   "lead": "Eight**, on every supported computer (WiseOwl COBOL's one target"
+  },
+  {
+   "key": "DOC-A.1-16",
+   "lead": "Not possible: WiseOwl COBOL executes no non-COBOL program throug"
+  },
+  {
+   "key": "DOC-A.1-17",
+   "lead": "None beyond the transfer of control.** GR3h item 2 applies when "
+  },
+  {
+   "key": "DOC-A.1-21",
+   "lead": "The alphanumeric twin of item 22. §15.15.4 r2 has two branches a"
+  },
+  {
+   "key": "DOC-A.1-26",
+   "lead": "Provided, per FILE, by byte-order mark; there are no control fun"
+  },
+  {
+   "key": "DOC-A.1-29",
+   "lead": "A mode unique to compile-time arithmetic: .NET `System.Decimal`*"
+  },
+  {
+   "key": "DOC-A.1-32",
+   "lead": "Fixed at compile time; the same UTF-16 code unit in the alphanum"
+  },
+  {
+   "key": "DOC-A.1-35",
+   "lead": "When neither the LOCALE phrase (r2) nor a CHARACTER CLASSIFICATI"
+  },
+  {
+   "key": "DOC-A.1-42",
+   "lead": "literal-9 (an alphanumeric or national literal, or a concatenati"
+  },
+  {
+   "key": "DOC-A.1-43",
+   "lead": "A currency symbol outside the COBOL character repertoire is equi"
+  },
+  {
+   "key": "DOC-A.1-44",
+   "lead": "The compile-time coded character set is UTF-16, so it contains e"
+  },
+  {
+   "key": "DOC-A.1-51",
+   "lead": "A successful DELETE FILE removes **exactly one host file — the c"
+  },
+  {
+   "key": "DOC-A.1-61",
+   "lead": "Each `OCCURS DYNAMIC` table is **one managed array of its own, s"
+  },
+  {
+   "key": "DOC-A.1-65",
+   "lead": "An ordinary managed return: the host's call returns normally and"
+  },
+  {
+   "key": "DOC-A.1-69",
+   "lead": "Two fatal exception conditions are detected at compile time: EC-"
+  },
+  {
+   "key": "DOC-A.1-74",
+   "lead": "Each has ONE representation, the same code unit in both coded ch"
+  },
+  {
+   "key": "DOC-A.1-76",
+   "lead": "All of them.** Every physical file is a path in the host file sy"
+  },
+  {
+   "key": "DOC-A.1-78",
+   "lead": "No.** A physical file records nothing about sharing. The sharing"
+  },
+  {
+   "key": "DOC-A.1-79",
+   "lead": "A compile-time warning, COBOL1620, for each flagged construct. T"
+  },
+  {
+   "key": "DOC-A.1-80",
+   "lead": "A compile-time warning, COBOL1621, for each flagged construct. T"
+  },
+  {
+   "key": "DOC-A.1-94",
+   "lead": "No value is refused. The STATUS operand becomes the process exit"
+  },
+  {
+   "key": "DOC-A.1-95",
+   "lead": "The case does not arise: every hex-character-sequence has a corr"
+  },
+  {
+   "key": "DOC-A.1-97",
+   "lead": "A hexadecimal national literal takes FOUR hexadecimal digits per"
+  },
+  {
+   "key": "DOC-A.1-100",
+   "lead": "Provided: 20 of Table 13's 22 EC-level-2-IMP names are valid exc"
+  },
+  {
+   "key": "DOC-A.1-101",
+   "lead": "A non-COBOL method is never invoked: WiseOwl COBOL provides no w"
+  },
+  {
+   "key": "DOC-A.1-104",
+   "lead": "Exactly one I-O status value is placed per execution of an input"
+  },
+  {
+   "key": "DOC-A.1-106",
+   "lead": "Not provided.** No input-output statement ever sets an I-O statu"
+  },
+  {
+   "key": "DOC-A.1-111",
+   "lead": "NO — the seconds position never holds a value greater than 59, w"
+  },
+  {
+   "key": "DOC-A.1-117",
+   "lead": "The compiler NEVER produces a source listing**, in any edition a"
+  },
+  {
+   "key": "DOC-A.1-118",
+   "lead": "Both defaults are decided **once per run unit, when the run unit"
+  },
+  {
+   "key": "DOC-A.1-119",
+   "lead": "A locale is named by a BCP 47 / CLDR language tag**, and POSIX-s"
+  },
+  {
+   "key": "DOC-A.1-120",
+   "lead": "No, for every category.** WiseOwl COBOL never activates a non-CO"
+  },
+  {
+   "key": "DOC-A.1-122",
+   "lead": "FOUR.** Each group of four hexadecimal digits in an `NX\"…\"` (or "
+  },
+  {
+   "key": "DOC-A.1-125",
+   "lead": "Object reference:** NULL is the .NET null reference, which never"
+  },
+  {
+   "key": "DOC-A.1-126",
+   "lead": "The default object computer is the .NET runtime the program is c"
+  },
+  {
+   "key": "DOC-A.1-130",
+   "lead": "Physical pages have meaning for a **sequential-organization** fi"
+  },
+  {
+   "key": "DOC-A.1-132",
+   "lead": "WiseOwl COBOL supports more than one type of dynamic-length elem"
+  },
+  {
+   "key": "DOC-A.1-138",
+   "lead": "Time:** a parameterized class or interface is expanded at compil"
+  },
+  {
+   "key": "DOC-A.1-139",
+   "lead": "Not available.** An exception-checking PERFORM (Format 3, `PERFO"
+  },
+  {
+   "key": "DOC-A.1-141",
+   "lead": "Supported non-COBOL language products: any .NET language, and on"
+  },
+  {
+   "key": "DOC-A.1-143",
+   "lead": "Not provided.** WiseOwl COBOL gives no program-name a non-COBOL "
+  },
+  {
+   "key": "DOC-A.1-148",
+   "lead": "Variable-length.** A file whose RECORD clause is format 3 has va"
+  },
+  {
+   "key": "DOC-A.1-153",
+   "lead": "No record locking** — the third option GR1 b) 2. names. A file c"
+  },
+  {
+   "key": "DOC-A.1-154",
+   "lead": "255** — the standard's minimum (`PhysicalFileTable.RunUnitLockMa"
+  },
+  {
+   "key": "DOC-A.1-155",
+   "lead": "15** — the standard's minimum (`PhysicalFileTable.ConnectorLockM"
+  },
+  {
+   "key": "DOC-A.1-160",
+   "lead": "One column per national character position** — the same one-to-o"
+  },
+  {
+   "key": "DOC-A.1-169",
+   "lead": "The extent is NONE.** A non-sort file named in a sort-merge-area"
+  },
+  {
+   "key": "DOC-A.1-170",
+   "lead": "A forward scan in occurrence order.** The initial setting of the"
+  },
+  {
+   "key": "DOC-A.1-181",
+   "lead": "Provided (2002 and later).** `LOCALE locale-name-1 IS {external-"
+  },
+  {
+   "key": "DOC-A.1-182",
+   "lead": "STANDARD-2 always references the ISO/IEC 646 International Refer"
+  },
+  {
+   "key": "DOC-A.1-186",
+   "lead": "The ordinal number of every character is its position in the alp"
+  },
+  {
+   "key": "DOC-A.1-187",
+   "lead": "The identity on U+0000–U+007F.** Both phrases reference ISO/IEC "
+  },
+  {
+   "key": "DOC-A.1-193",
+   "lead": "Not provided.** No implementor-defined mechanism can mark a run "
+  },
+  {
+   "key": "DOC-A.1-194",
+   "lead": "The identity.** An index holds its 1-based occurrence number dir"
+  },
+  {
+   "key": "DOC-A.1-196",
+   "lead": "Not provided.** WiseOwl COBOL has no rule for synchronizing the "
+  },
+  {
+   "key": "DOC-A.1-197",
+   "lead": "The item is positioned exactly where it would be without the cla"
+  },
+  {
+   "key": "DOC-A.1-198",
+   "lead": "Provided — one restriction.** A system-name is formed as any COB"
+  },
+  {
+   "key": "DOC-A.1-201",
+   "lead": "At compile time, after all text manipulation.** WiseOwl COBOL ex"
+  },
+  {
+   "key": "DOC-A.1-203",
+   "lead": "The PROGRAM COLLATING SEQUENCE of the range's class — the same s"
+  },
+  {
+   "key": "DOC-A.1-213",
+   "lead": "Two bytes per national character position, uniform at every leng"
+  },
+  {
+   "key": "DOC-A.1-220",
+   "lead": "Whenever the .NET garbage collector reclaims them — a time the p"
+  },
+  {
+   "key": "DOC-A.1-13",
+   "lead": "Condition absent.** WiseOwl COBOL supports calling no non-COBOL "
+  },
+  {
+   "key": "DOC-A.1-15",
+   "lead": "Condition absent.** No non-COBOL program can be called (item 13)"
+  },
+  {
+   "key": "DOC-A.1-30",
+   "lead": "Condition absent.** WiseOwl COBOL defines no IMP directive. §7.3"
+  },
+  {
+   "key": "DOC-A.1-34",
+   "lead": "Condition absent: the two sets are the same, so no conversion ta"
+  },
+  {
+   "key": "DOC-A.1-37",
+   "lead": "Condition absent: exactly one encoding is supported.** The compu"
+  },
+  {
+   "key": "DOC-A.1-88",
+   "lead": "Condition absent.** WiseOwl COBOL supports calling no non-COBOL "
+  },
+  {
+   "key": "DOC-A.1-96",
+   "lead": "Condition absent.** §8.3.3.2.4 GR5 defers \"the mapping of each h"
+  },
+  {
+   "key": "DOC-A.1-98",
+   "lead": "Condition absent.** A national character is taken from exactly F"
+  },
+  {
+   "key": "DOC-A.1-142",
+   "lead": "Condition absent.** §8.4.3.13.4 GR2 admits a program \"written in"
+  },
+  {
+   "key": "DOC-A.1-149",
+   "lead": "Condition absent.** §12.4.5.3 GR1 c) asks for \"a consistent valu"
+  },
+  {
+   "key": "DOC-A.1-152",
+   "lead": "Provided: one circumstance, a transaction's HOLDING (kb/Work PB3"
+  },
+  {
+   "key": "DOC-A.1-28",
+   "lead": "Provided for every file §9.1.18.2 admits** (§5, A.4.3: Claimed; "
+  },
+  {
+   "key": "DOC-A.1-200",
+   "lead": "Condition absent.** The compiler never produces a source listing"
+  },
+  {
+   "key": "DOC-A.1-14",
+   "lead": "One runtime resource is checked: the stack the activation needs."
+  },
+  {
+   "key": "DOC-A.1-20",
+   "lead": "WiseOwl COBOL's compile-time case mapping IS Annex C (C.2 Genera"
+  },
+  {
+   "key": "DOC-A.1-23",
+   "lead": "NONE — WiseOwl COBOL prohibits no character in, or as, a text-wo"
+  },
+  {
+   "key": "DOC-A.1-25",
+   "lead": "Mapping:** every basic letter, basic digit, basic special charac"
+  },
+  {
+   "key": "DOC-A.1-31",
+   "lead": "ONE coded character set serves both classes: the UTF-16 Basic Mu"
+  },
+  {
+   "key": "DOC-A.1-36",
+   "lead": "Every character maps into BOTH sets: the alphanumeric and the na"
+  },
+  {
+   "key": "DOC-A.1-38",
+   "lead": "Not provided — and no character needs it.** Every UTF-16 BMP cha"
+  },
+  {
+   "key": "DOC-A.1-39",
+   "lead": "m = 0, n = 5, and the maximum meaningful value is 86,400 seconds"
+  },
+  {
+   "key": "DOC-A.1-40",
+   "lead": "The default COBOL library is an ordered list of places, searched"
+  },
+  {
+   "key": "DOC-A.1-46",
+   "lead": "The complete specification is the USAGE clause's: ONE fixed repr"
+  },
+  {
+   "key": "DOC-A.1-49",
+   "lead": "The compiler process's environment variable whose name is the co"
+  },
+  {
+   "key": "DOC-A.1-52",
+   "lead": "All of them — the same determination as item 76, which answers t"
+  },
+  {
+   "key": "DOC-A.1-53",
+   "lead": "Each operand is converted to a character image and the images of"
+  },
+  {
+   "key": "DOC-A.1-54",
+   "lead": "compile-time-device-1 is one of the OUTPUT-capable device-names "
+  },
+  {
+   "key": "DOC-A.1-55",
+   "lead": "The same mechanism as the DEFINE directive's PARAMETER phrase (i"
+  },
+  {
+   "key": "DOC-A.1-60",
+   "lead": "The SMALLER of 1,073,741,823 (`0x3FFFFFFF`, `CobolDynTable.MaxOc"
+  },
+  {
+   "key": "DOC-A.1-63",
+   "lead": "A native .NET `System.String` holding the item's current content"
+  },
+  {
+   "key": "DOC-A.1-66",
+   "lead": "The external repository is the metadata of compiled WiseOwl COBO"
+  },
+  {
+   "key": "DOC-A.1-67",
+   "lead": "Provided** (owner decision kb/Work R44; DESIGN-external-reposito"
+  },
+  {
+   "key": "DOC-A.1-68",
+   "lead": "Formation.** An externalized name is a string of characters. For"
+  },
+  {
+   "key": "DOC-A.1-75",
+   "lead": "Provided: other facilities see COBOL file sharing only as a host"
+  },
+  {
+   "key": "DOC-A.1-77",
+   "lead": "It depends on the open mode.** When neither the OPEN statement's"
+  },
+  {
+   "key": "DOC-A.1-81",
+   "lead": "One correctly rounded conversion to the receiver's own format.**"
+  },
+  {
+   "key": "DOC-A.1-89",
+   "lead": "One runtime resource is checked: the stack the activation needs*"
+  },
+  {
+   "key": "DOC-A.1-99",
+   "lead": "Not provided.** WiseOwl COBOL specifies no EC-IMP-*suffix* excep"
+  },
+  {
+   "key": "DOC-A.1-102",
+   "lead": "Two resources are checked: the stack the activation needs, and t"
+  },
+  {
+   "key": "DOC-A.1-103",
+   "lead": "Continue only when the program is equipped to see the failure; o"
+  },
+  {
+   "key": "DOC-A.1-105",
+   "lead": "Provided: the technique is CLOSE.** A permanent error condition "
+  },
+  {
+   "key": "DOC-A.1-107",
+   "lead": "The keyed store engine, both organizations (kb/Work PB3333 RELAT"
+  },
+  {
+   "key": "DOC-A.1-108",
+   "lead": "The boundary of a physical sequential file (record sequential or"
+  },
+  {
+   "key": "DOC-A.1-113",
+   "lead": "Reachability, decided by the .NET garbage collector.** An instan"
+  },
+  {
+   "key": "DOC-A.1-114",
+   "lead": "The line delimiter is the host platform's newline:** CR LF (U+00"
+  },
+  {
+   "key": "DOC-A.1-116",
+   "lead": "The only non-COBOL activator is a .NET host (item 141), and its "
+  },
+  {
+   "key": "DOC-A.1-121",
+   "lead": "`__GET_<P>` for a GET PROPERTY method and `__SET_<P>` for a SET "
+  },
+  {
+   "key": "DOC-A.1-124",
+   "lead": "An operand represents an integer exactly when its value has no n"
+  },
+  {
+   "key": "DOC-A.1-131",
+   "lead": "The default sharing mode depends on the open mode.** OPEN INPUT "
+  },
+  {
+   "key": "DOC-A.1-146",
+   "lead": "Start from the record size in bytes (GR1/GR3/GR8)**: every alpha"
+  },
+  {
+   "key": "DOC-A.1-147",
+   "lead": "One rule for every file description entry, FD and SD alike** (§3"
+  },
+  {
+   "key": "DOC-A.1-156",
+   "lead": "Exactly one terminator: LINE FEED (U+000A).** A CARRIAGE RETURN "
+  },
+  {
+   "key": "DOC-A.1-157",
+   "lead": "A character position is ONE CHARACTER of the decoded source text"
+  },
+  {
+   "key": "DOC-A.1-159",
+   "lead": "One print line is one record: the line's character positions wri"
+  },
+  {
+   "key": "DOC-A.1-161",
+   "lead": "The §8.13 external repository is the metadata of compiled WiseOw"
+  },
+  {
+   "key": "DOC-A.1-162",
+   "lead": "The item 161 determination, for interfaces** (owner decision kb/"
+  },
+  {
+   "key": "DOC-A.1-164",
+   "lead": "One input-output area per file connector, separate from its reco"
+  },
+  {
+   "key": "DOC-A.1-167",
+   "lead": "The only non-COBOL component a run unit can contain is .NET code"
+  },
+  {
+   "key": "DOC-A.1-168",
+   "lead": "Yes — always, because a run unit's locale never leaves the run u"
+  },
+  {
+   "key": "DOC-A.1-192",
+   "lead": "No value is refused; the STATUS operand becomes the process exit"
+  },
+  {
+   "key": "DOC-A.1-217",
+   "lead": "GR24 leaves four things to the implementor and this determinatio"
+  },
+  {
+   "key": "DOC-A.1-218",
+   "lead": "WiseOwl COBOL CONTINUES the run unit.** §9.1.13.1 offers two act"
+  },
+  {
+   "key": "DOC-A.1-219",
+   "lead": "Yes.** From COBOL 2002 on, an extended letter (§8.1.3.2 GR4: the"
+  }
+ ],
+ "derivations": [
+  {
+   "key": "DRV-GR-14.9.5.4-11",
+   "arm": "undefined-A.2",
+   "names": "A.2 item 4",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-14.9.30.4-3",
+   "arm": "undefined-A.2",
+   "names": "A.2 item 41",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-14.9.34.4-2",
+   "arm": "undefined-A.2",
+   "names": "A.2 item 46",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-14.9.11.4-11",
+   "arm": "unpopulatable-antecedent",
+   "names": "the DISPLAY device set is closed at two members — System.Console and System.Console.Error, admitted by the output-capable device rows of ImplementorNames (read by AcceptDisplayBinder.MnemonicDevice) and emitted by a two-valued ternary in AcceptDisplayEmitter.EmitDisplay",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-14.9.30.4-20",
+   "arm": "unpopulatable-antecedent",
+   "names": "the physical-file set is closed at one host path per connector — FileConnector.HostPath resolves exactly one, on a mass-storage medium with no reel or unit model, and FileRegistry.CloseReelUnit is the matching no-op",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-RV-15.50.4-9",
+   "arm": "indistinguishable-consequent",
+   "names": "RV-15.50.4-5",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-DOC-A.1-19",
+   "arm": "indistinguishable-consequent",
+   "names": "GR-14.9.5.4-7",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-14.9.27.4-12",
+   "arm": "unpopulatable-antecedent",
+   "names": "the physical-file category set is closed at the two `PhysicalFileCategory` values any connector can report — `SequentialConnector` answers (a) Non-unit and `RelativeConnector`/`IndexedConnector` answer (d), so no medium permits rewinding",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-14.9.20.4-9",
+   "arm": "undefined-A.2",
+   "names": "A.2 item 20",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-4.4-1",
+   "arm": "definitional",
+   "names": "defines the conforming run unit — a property of the USER's run unit (that each of its runtime modules results from a successful compilation of a conforming compilation unit), not an obligation of the implementation",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-4.4-2",
+   "arm": "definitional",
+   "names": "defines the conforming run unit's runtime-behaviour half and the standing of undefined results — properties of the USER's run unit, not obligations of the implementation",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-14.9.28.4-2",
+   "arm": "undefined-A.2",
+   "names": "A.2 item 37",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-RV-15.4.1-4",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set item 4 governs is CLOSED by the standard itself and is EMPTY: the functions that have an equivalent arithmetic expression are exactly §15.7 ABS, §15.9 ANNUITY, §15.17 COMBINED-DATETIME, §15.23 DATE-TO-YYYYMMDD, §15.25 DAY-TO-YYYYDDD, §15.36 FACTORIAL, §15.60 MEAN, §15.74 PRESENT-VALUE, §15.79 SECONDS-FROM-FORMATTED-TIME, §15.81 SIGN, §15.86 STANDARD-DEVIATION, §15.88 SUM, §15.98 VARIANCE and §15.100 YEAR-TO-YYYY — the fourteen clauses containing “The equivalent arithmetic expression is as follows” — and NOT ONE of those fourteen function clauses contains the words “implementor-defined”, “implementor defines” or “defined by the implementor” anywhere in it",
+   "signature": "owner: 2026-09-03"
+  },
+  {
+   "key": "DRV-GR-13.18.10.4-3",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of run-time consumers of a physical-record size is empty: BLOCK CONTAINS is claimed inert under A.3 item 5 (DataBinder.BindBlockContainsClause screens SR1 and models nothing), and the minimum and maximum physical record size is outside the A.1 item 129 OPEN-validated fixed-attribute set",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-13.18.10.4-4",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of run-time consumers of a physical-record size is empty: BLOCK CONTAINS is claimed inert under A.3 item 5 (DataBinder.BindBlockContainsClause screens SR1 and models nothing), and the minimum and maximum physical record size is outside the A.1 item 129 OPEN-validated fixed-attribute set",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.3.9.3-3",
+   "arm": "unpopulatable-antecedent",
+   "names": "the call-convention set is closed at one member, COBOL: CompilerDirectiveCatalog admits only >>CALL-CONVENTION COBOL, and any call-convention-name-1 is refused (COBOL1911; owner 2026-10-03, kb/Work PB1383/PB1945), so the directive has no second value whose other details could differ from the default's",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-8.1.3.2-5",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of COBOL-repertoire characters this implementation cannot represent graphically is empty: source text and every alphanumeric and national item are held as UTF-16 (ISO/IEC 10646), which encodes every Table 1 basic character and every Annex B extended letter (§7's A.1 item 25)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-13.18.16.4-6",
+   "arm": "definitional",
+   "names": "defines a constraint on the USER's run unit (a CONTROL operand shall not reference a group whose length at run time is zero), and no rule gives its violation a consequence, so §4.4 2) leaves the result undefined and obliges the implementation to nothing",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.2.3.4-4",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.2.3.4-5",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.3.4-4",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of implementor-defined IMP directives is empty: CompilerDirectiveCatalog has no IMP row (§7's A.1 item 30, condition absent), and a >>IMP line is refused at every edition",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-11.9.7.4-4",
+   "arm": "unpopulatable-antecedent",
+   "names": "the entry-convention set is closed at one member, COBOL: OptionsBinder.ScreenEntryConvention refuses every other entry-convention-name (COBOL2385, A.1 item 64), and an INHERITS clause names only classes and interfaces of the compilation group (COBOL0821), so no parent can carry a convention other than the COBOL that arm c) gives",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-9.1.13.3-1",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of 0x I-O status values this implementation provides is empty: FileStatus defines the successful values 00, 02, 04, 05, 06, 07 and 09 only, and no runtime site produces a 0 followed by a letter (§7's A.1 item 106, not provided)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.3.18.3-2",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.3.18.3-3",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.3.18.3-4",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.3.18.3-5",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-14.9.24.4-10",
+   "arm": "definitional",
+   "names": "defines a constraint on the USER's run unit (no statement executed in a MERGE output procedure may manipulate file-name-2 or file-name-3 or access their record areas), with no exception condition and no result, so §4.4 2) leaves a violation undefined and obliges the implementation to nothing",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-14.9.24.4-11",
+   "arm": "definitional",
+   "names": "defines a constraint on the USER's run unit (no statement executed in a USE procedure invoked during a MERGE may manipulate file-name-2, file-name-3 or file-name-4 or access their record areas), with no exception condition and no result, so §4.4 2) leaves a violation undefined and obliges the implementation to nothing",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-9.3.6-L3.2",
+   "arm": "unpopulatable-antecedent",
+   "names": "the calling-convention set is closed at one member, COBOL, on both sides of an invocation: >>CALL-CONVENTION admits only COBOL (COBOL1911) and ENTRY-CONVENTION admits only COBOL (COBOL2385), so an invocation and its method can never be under different conventions",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-7.3.19.4-2",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-14.2.3-7",
+   "arm": "undefined-A.2",
+   "names": "A.2 item 39",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-14.9.35.4-8",
+   "arm": "indistinguishable-consequent",
+   "names": "GR-14.9.35.4-7",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-13.18.49.4-4",
+   "arm": "unpopulatable-antecedent",
+   "names": "the antecedent is EMPTY by the standard: SR7 restricts data-name-1 to an elementary item or a level 1 group item, so a data-name-1 subordinate to a group is elementary and gives an elementary subject, while a group subject needs a level 1 data-name-1 that is subordinate to nothing",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-DOC-A.1-169",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of statements that may reference a non-sort file's storage while a SORT or MERGE may hold it is empty by the standard: §12.4.6.4.4 GR5 requires every non-sort file of the clause to be closed for the whole SORT or MERGE, and a closed file's record area is unavailable (§14.9.6.4 GR7)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-14.9.40.4-4",
+   "arm": "undefined-A.2",
+   "names": "A.2 item 52",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-12.3.5.4-2",
+   "arm": "definitional",
+   "names": "defines the source computer of the USER's source unit (the computer on which the user compiles it when the paragraph is absent), a term no other rule of the standard reads, so it obliges the implementation to nothing",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-12.3.5.4-3",
+   "arm": "definitional",
+   "names": "defines the source computer of the USER's source unit (the computer on which the user compiles it when the paragraph names no computer), a term no other rule of the standard reads, so it obliges the implementation to nothing",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-SR-8.4.2.3.3-7",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of contexts that admit both the subscript ALL and a condition-name is EMPTY by the standard: SR6 admits ALL only in an intrinsic function argument and as a table subscript in the SORT table format, no AR-15.3 argument type (1 to 14) is a condition-name, and the SORT table operand is a data-name",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-8.5.1.11.3-1",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of statements that can reference a data item of a destroyed instance object is EMPTY by the standard: §9.3.14.3 destroys an instance only when it cannot take part in the continued execution of the run unit, or when the run unit terminates",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-8.5.1.11.3-3",
+   "arm": "indistinguishable-consequent",
+   "names": "GR-14.9.42.4-6",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-DOC-A.1-220",
+   "arm": "indistinguishable-consequent",
+   "names": "GR-8.5.1.11.3-7",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-14.9.51.4-16",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of resources a WRITE needs that another run unit can hold locked is empty: the record being written does not yet exist, so no connector holds its lock (the invalid key condition for an existing key is decided regardless of locks, §14.9.51.4 GR33 and GR42); file-level contention is decided at OPEN by Table 19; and the implementor defines no other locked-record circumstance (§7's A.1 item 152, condition absent)",
+   "signature": "owner: 2026-10-08"
+  },
+  {
+   "key": "DRV-GR-12.4.6.4.4-3",
+   "arm": "definitional",
+   "names": "defines a constraint on the USER's run unit (which files one SAME RECORD AREA clause may name while an APPLY COMMIT clause names them), with no consequence given for a violation, so §4.4 2) leaves the result undefined and obliges the implementation to nothing",
+   "signature": "owner: 2026-10-23"
+  },
+  {
+   "key": "DRV-GR-12.4.5.9.4-2",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of file connectors for which this processor does not support record locking is empty: every organization (sequential, the LINE SEQUENTIAL extension among them, relative and indexed) sets and honours record locks through PhysicalFileTable.LockRecord and PhysicalFileTable.HolderOf, answering '51' to another connector in the same run unit and in a different one, and every host carries the cross-run-unit half (HostRegionLocks.HostOfThisProcess: HandleRegionLocks on Windows and Linux, SidecarRegionLocks on every other host)",
+   "signature": "owner: 2026-10-23"
+  }
+ ],
+ "declinedCodes": {
+  "A3": [
+   "COBOL0806",
+   "COBOL0900",
+   "COBOL1564",
+   "COBOL1578",
+   "COBOL1582",
+   "COBOL1583",
+   "COBOL1584",
+   "COBOL1662",
+   "COBOL1669",
+   "COBOL1672",
+   "COBOL1716",
+   "COBOL1718",
+   "COBOL1778",
+   "COBOL1802",
+   "COBOL1803",
+   "COBOL1943",
+   "COBOL1954",
+   "COBOL2424"
+  ],
+  "A4": [
+   "COBOL0822",
+   "COBOL0840",
+   "COBOL0849",
+   "COBOL0899",
+   "COBOL0900",
+   "COBOL0901",
+   "COBOL0902",
+   "COBOL1559",
+   "COBOL1560",
+   "COBOL1580",
+   "COBOL1581",
+   "COBOL1630",
+   "COBOL1690",
+   "COBOL1705",
+   "COBOL1706",
+   "COBOL1707",
+   "COBOL1708",
+   "COBOL1710",
+   "COBOL2021",
+   "COBOL2197",
+   "COBOL2198",
+   "COBOL2199",
+   "COBOL2284",
+   "COBOL2604",
+   "COBOL2708",
+   "COBOL2709",
+   "COBOL2710",
+   "COBOL2711",
+   "COBOL2712",
+   "COBOL2713",
+   "COBOL2714",
+   "COBOL2729",
+   "COBOL2730",
+   "COBOL2731",
+   "COBOL2773",
+   "COBOL2791",
+   "COBOL3983",
+   "COBOL4709"
+  ]
+ }
+}

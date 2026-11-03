@@ -30,15 +30,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// wrong silently — these facts are what make "derived" true rather than aspirational (CLAUDE.md rule 5: prefer
 /// the shape that makes the NEXT case automatic, and pair it with a drift test so it stays true).</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class DeclinedFacilityAnnexDriftTests
 {
-    /// <summary>The §2 register — one row per Annex A.3 processor-dependent item.</summary>
-    private const string AnnexA3Heading = "## 2. Annex A.3";
-
-    /// <summary>The §5 register — one row per Annex A.4 optional module.</summary>
-    private const string AnnexA4Heading = "## 5. Annex A.4";
-
     /// <summary>A citation of ISO §4.2.6 or §4.2.7 that is the WHOLE clause number: the trailing lookahead keeps
     /// <c>§4.2.6</c> from matching inside a longer path, and keeps <c>§4.2.16</c> (the conformance-claim clause,
     /// which several of these Titles legitimately mention) out of the §4.2.1 family entirely.</summary>
@@ -50,23 +43,12 @@ public sealed class DeclinedFacilityAnnexDriftTests
     private static IReadOnlyList<DiagnosticDescriptor> Declined() =>
         DiagnosticCatalog.All.Where(d => d.Annex != DeclinedAnnex.None).ToList();
 
-    /// <summary>Every <c>COBOL####</c> code named inside one section of <c>docs/CONFORMANCE.md</c>, read from
-    /// the heading up to the next <c>## </c>. The registers are markdown, so this is a scan and not a parse —
-    /// but it is a scan of the DOCUMENT, which is what §4.2.6 and §4.2.7 make the normative artifact.</summary>
-    private static HashSet<string> CodesUnder(string heading)
-    {
-        var codes = new HashSet<string>(StringComparer.Ordinal);
-        bool inSection = false;
-        foreach (string line in File.ReadAllLines(TestRepo.Docs("CONFORMANCE.md")))
-        {
-            if (line.StartsWith(heading, StringComparison.Ordinal)) { inSection = true; continue; }
-            if (!inSection) continue;
-            if (line.StartsWith("## ", StringComparison.Ordinal)) break;
-            foreach (Match m in Regex.Matches(line, @"COBOL[0-9]{4}"))
-                codes.Add(m.Value);
-        }
-        return codes;
-    }
+    /// <summary>Every <c>COBOL####</c> code the Annex A.3 register (<c>docs/CONFORMANCE.md</c> §2, <c>"A3"</c>) or the
+    /// Annex A.4 register (§5, <c>"A4"</c>) names, from the register extract
+    /// (<c>tests/version-matrix/conformance-register.json</c>, written from the document by
+    /// <c>scripts/doc_audits.py --write-register</c> and held fresh by the DOC AUDITS gate audit): no compiler test opens a
+    /// Markdown file (kb/Work PB4453), and the document is still what §4.2.6 and §4.2.7 make the normative artifact.</summary>
+    private static HashSet<string> CodesUnder(string annex) => ConformanceRegister.DeclinedCodes(annex);
 
     /// <summary>The population assertion (feedback_verdict_evidence_invariant). A decline band that parsed to
     /// nothing — a renamed heading, a descriptor set that lost its annex argument — would make every obligation
@@ -79,8 +61,8 @@ public sealed class DeclinedFacilityAnnexDriftTests
         Assert.True(Declined().Count >= 11,
             $"only {Declined().Count} descriptor(s) carry a DeclinedAnnex — the declined band has lost its annex "
             + "datum and every check in this class would pass without looking at anything");
-        Assert.NotEmpty(CodesUnder(AnnexA3Heading));
-        Assert.NotEmpty(CodesUnder(AnnexA4Heading));
+        Assert.NotEmpty(CodesUnder("A3"));
+        Assert.NotEmpty(CodesUnder("A4"));
     }
 
     /// <summary>⛔ THE OBLIGATION, ARM 1. A descriptor's own text cites the clause of an annex it is not in.
@@ -135,8 +117,8 @@ public sealed class DeclinedFacilityAnnexDriftTests
     [Fact]
     public void EveryDeclinedDescriptor_AgreesWithTheConformanceRegisters()
     {
-        var a3 = CodesUnder(AnnexA3Heading);
-        var a4 = CodesUnder(AnnexA4Heading);
+        var a3 = CodesUnder("A3");
+        var a4 = CodesUnder("A4");
         var disagree = new List<string>();
         foreach (var d in Declined())
         {

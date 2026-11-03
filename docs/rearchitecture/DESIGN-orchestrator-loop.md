@@ -1826,7 +1826,7 @@ D-KEY` (77), `#DRV-ID` (70, plus the 46 inventory rows whose `derivation` field 
 `§5`, `§7`, `§4`, `§2`. Four readers parse its text: `scripts/spec/inventory_schema.py` (`register_section*`, THE
 parser of §7/§8 rows, with its C# twin `tests/_shared/ConformanceRegister.cs`), `audit_annex_a1.py` (§7),
 `audit_derivations.py` (§8), `gen_ledger.py` (§2/§4/§5 posture by heading number); `impacted_tests.py` maps the path
-to `AnnexA1RegisterDriftTests`.
+to the ANNEX A.1 REGISTER gate audit.
 
 **The target.** `docs/CONFORMANCE.md` becomes a RENDERED VIEW (§3.17.4; one row in `rendered_views.VIEWS`:
 `View("conformance", "docs/CONFORMANCE.md", _py("scripts/spec/conformance_doc.py", "--out", "{out}"),
@@ -1852,7 +1852,7 @@ its file name, or a table whose first-cell keys repeat. **One reader**, `scripts
 (`load() -> Conformance` with `.determinations`, `.facilities`, `.table(section)` and `.render()`), is what the four
 Python readers and the renderer call; `inventory_schema.REGISTER_PATH` and `ConformanceRegister.Path` name
 `docs/conformance/7-a1-register.md` and `8-derivations.md`, and `register_section*` keeps parsing table rows as it
-does. `impacted_tests.py` maps `docs/conformance/` to `AnnexA1RegisterDriftTests`. `audit_code_citations.py`'s doc
+does. `impacted_tests.py` maps `docs/conformance/` to the ANNEX A.1 REGISTER gate audit. `audit_code_citations.py`'s doc
 token adds `docs/conformance/`.
 
 **Citations do not move.** A citation names the rendered document by its stable section and anchor

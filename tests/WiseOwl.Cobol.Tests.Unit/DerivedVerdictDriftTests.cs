@@ -812,12 +812,8 @@ public sealed class DerivedVerdictDriftTests
         // A row key is the item's rule-id, plus a letter on a FURTHER determination of one item (DOC-A.1-92b), and unique.
         Assert.All(ConformanceRegister.Rows, r => Assert.Matches(@"^DOC-A\.1-\d+[a-z]?$", r.Key));
         Assert.Equal(ConformanceRegister.Rows.Count, ConformanceRegister.Rows.Select(r => r.Key).Distinct(StringComparer.Ordinal).Count());
-
-        // The escaped-pipe case, which is why the split is not `Split('|')`: item 82's determination writes an
-        // absolute value as \|v\|, and a naive split gives that row two extra cells and mis-places the rest.
-        var escaped = ConformanceRegister.Parse(
-            "## 7. Annex A.1\n| DOC-A.1-82 | E | rounds \\|v\\| away from zero | — |\n");
-        Assert.Equal("rounds |v| away from zero", Assert.Single(escaped).Determination);
+        // (The escaped-pipe case, item 82's determination written as \|v\|, is the Python parser's: it is the one parser of
+        // the register now, and scripts/docchecks/register.py's self-test plants it — kb/Work PB4453.)
     }
 
     /// <summary>
