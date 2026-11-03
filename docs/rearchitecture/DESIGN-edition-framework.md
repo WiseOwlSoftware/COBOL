@@ -190,6 +190,12 @@ consts, and (unchanged) `ReservedWords.Table` are **generated**, not hand-mainta
 - The `Display`, `DiagnosticCode`, and `Citation` fields — today only in the C# — move **into
   `constructs.json`** (`display`, `expectDiagnostic`, `vcr`/`citation` already partly there) so the
   generator has everything. This deletes the hand-written 110-row `Entries` array.
+- **A row's `citation` names the ISO rule (and the VCR row that records the edition change) and nothing else.**
+  `ConstructRegistry.Check` interpolates it into the edition-gate message and passes it as the diagnostic's
+  citation, so a C# member, grammar rule, file, "LIVE"/wave status or DEVLOG/register id in it is text a user reads
+  and a refactor silently edits. Where the code that gates a construct lives is found from the row's id and
+  diagnostic code. `scripts/spec/audit_code_citations.py` (CONSTRUCT-CODE, in the gate's CITATIONS audit) refuses a
+  `citation` of any row or directive block that names code or project history (kb/Work PB4467).
 - Magic-string ids at call sites become `Constructs.LabelRecordsRemoved2002` (compile-checked;
   greppable to one definition). `Check(ed, sink, Constructs.DeleteFile2023, where)`.
 - The existing `ConstructRegistryDriftTests` becomes redundant for json↔registry (they are now the

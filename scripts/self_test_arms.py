@@ -232,6 +232,12 @@ DECLARED: dict[str, tuple[str, ...]] = {
         '("FORMAT-RULE",',
         '("QUOTE-RULE",',  # a QUOTATION resolved to its own top-level rule (kb/Work PB597)
         '("DIAG-NO-RULE",', '("DIAG-UNQUALIFIED",',  # the DIAGNOSTIC-STRING family (kb/Work PB838)
+        # CONSTRUCT-CODE (kb/Work PB4467): a construct citation names the ISO rule only. One arm per kind of token it refuses.
+        '("a C# member",', '("a source file",', '("a call",', '("a generated name",', '("a PascalCase identifier",',
+        '("a camelCase identifier",', '("a SCREAMING_SNAKE identifier",', '("a generic type",',
+        '("a leading-underscore identifier",', '("an implementation-status word",', '("a DEVLOG / register pointer",',
+        '("a phase / wave / step marker",', '("an emit-site or gate pointer",', '("a decision or review id",',
+        '("a line pointer into the spec",',
         'silent on the REPAIRED', 'silent calibration',
     ),
     'scripts/spec/audit_doc_citations.py': (

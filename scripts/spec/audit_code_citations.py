@@ -75,6 +75,18 @@ THE CHECKS, each narrow on purpose:
               message the user is sent to look up. It arrived with 160 sites and joined the measured backlog;
               kb/Work PB388's sweep qualified every one of them (wave 47), so it GATES under `--check` now.
 
+  CONSTRUCT-CODE — (kb/Work PB4467) a `citation` of `tests/version-matrix/constructs.json` NAMES CODE OR PROJECT
+              HISTORY: a C# member (`CopyProcessor.GateCopyPhrase`), a grammar rule (`repositoryEntry`), a file
+              (`CobolParserCore.g4:487`), an emit-site or gate pointer, a "LIVE as of the Phase-3 spine" status, a
+              DEVLOG or kb/Work id. `ConstructRegistry` interpolates `({citation})` into the edition-gate diagnostic
+              ("... requires COBOL-2002 (targeting COBOL-85) - ... (ISO 14.9.13.2 ...; bind-site gate
+              (DataBinder.TryResolveRangeAlphabet))"), so a member moved by a refactor edited a message a user reads,
+              and a deleted member left a citation pointing nowhere. A construct citation names the standard's rule
+              (and the VCR row that records the edition change) and nothing else; where the code that gates the
+              construct lives is found by the construct's id and its diagnostic code, never by a pointer in a message.
+              Unlike the checks above this one reads DATA, not comment text: the `citation` field of every row and of
+              its `directiveOperand` / `directivePlacement` blocks.
+
 ⛔ THE ORDINAL FAMILY IS LINE-BASED, LIKE PHANTOM, AND THAT IS THE POINT. The checks above read only COMMENT
 text, so a citation inside a DIAGNOSTIC MESSAGE STRING — the citation a user actually reads — was covered by
 nothing. Both of PB388's user-visible defects lived there. An ordinal check needs no comment convention, so it
@@ -1015,10 +1027,81 @@ def ordinal_scan(data, tops=None):
     return findings
 
 
+CONSTRUCTS = REPO / "tests" / "version-matrix" / "constructs.json"
+
+#: ⛔ CONSTRUCT-CODE (kb/Work PB4467): what a construct citation may not NAME. Each entry is a kind of token that is
+#: the implementation, never the standard's rule. They are shapes, not a list of members, so the next member a refactor
+#: moves is refused without an edit here. `GnuCOBOL` and `WiseOwl` are product names, not identifiers.
+CONSTRUCT_CODE = (
+    ("a C# member", re.compile(r"\b[A-Z][A-Za-z0-9]*\.[A-Za-z_]\w*")),
+    ("a source file", re.compile(r"\b[\w-]+\.(?:cs|g4|json|md|txt|ps1|py)\b")),
+    ("a call", re.compile(r"\w\(\)")),
+    ("a generated name", re.compile(r"__[A-Z]")),
+    ("a PascalCase identifier", re.compile(r"\b[A-Z][a-z0-9]+(?:[A-Z][A-Za-z0-9]*)+\b")),
+    ("a camelCase identifier", re.compile(r"\b[a-z]+[A-Z]\w*")),
+    ("a SCREAMING_SNAKE identifier", re.compile(r"\b[A-Z]+_[A-Z_]+\b")),
+    ("a generic type", re.compile(r"\w<\w+>")),
+    ("a leading-underscore identifier", re.compile(r"(?<!\w)_[a-z]")),
+)
+CONSTRUCT_PRODUCT_WORDS = frozenset({"GnuCOBOL", "WiseOwl"})
+
+#: What a construct citation may not SAY about the project: where the construct is gated, how far it is built, which
+#: wave or decision made it so. That is the DEVLOG's and the work register's, and it goes stale in a message.
+CONSTRUCT_HISTORY = (
+    ("an implementation-status word", re.compile(r"\bLIVE\b")),
+    ("a DEVLOG / register pointer", re.compile(r"\bDEVLOG\b|kb/Work|\bPB\d+")),
+    ("a phase / wave / step marker", re.compile(r"\bPhase\b|\bPHASE-\d+|\bwave\b|\bStep\b|\bP1\d\b|\bM2-|\bUDF-\d|\bW[123](?:\.\d)?\b")),
+    ("an emit-site or gate pointer", re.compile(r"emit site|\bgate\b|\bgated\b|-gated")),
+    ("a decision or review id", re.compile(r"\bD\d+\b|\bD-[A-Z]\d|\bR\d+\b")),
+    ("a line pointer into the spec", re.compile(r"@\d{3,}|\s:\d{3,}")),
+)
+
+
+def construct_citation_defects(text: str) -> list[str]:
+    """Why `text` is not a rule citation: each token naming code or project history, with the kind it is.
+    The ONE implementation, shared by the audit and the self-test."""
+    out: list[str] = []
+    for label, rx in CONSTRUCT_CODE:
+        for m in rx.finditer(text):
+            if m.group(0) not in CONSTRUCT_PRODUCT_WORDS:
+                out.append(f"{label} `{m.group(0)}`")
+    for label, rx in CONSTRUCT_HISTORY:
+        for m in rx.finditer(text):
+            out.append(f"{label} `{m.group(0)}`")
+    return out
+
+
+def construct_citation_scan(path: pathlib.Path = CONSTRUCTS):
+    """CONSTRUCT-CODE over every citation `ConstructRegistry` and `CompilerDirectiveCatalog` put in front of a user:
+    a row's `citation` and the `citation` of its directive blocks."""
+    findings: list[tuple[str, str, str, str]] = []
+    try:
+        raw = path.read_text(encoding="utf-8")
+        rows = json.loads(raw)["constructs"]
+    except (OSError, ValueError, KeyError) as e:
+        return [("CONSTRUCT-CODE", path.relative_to(REPO).as_posix(), "", f"constructs.json cannot be read: {e}")]
+    rel = path.relative_to(REPO).as_posix()
+    at = {}
+    for n, ln in enumerate(raw.splitlines(), 1):
+        if (m := re.match(r'\s*"id":\s*"([^"]+)"', ln)):
+            at[m.group(1)] = n
+    for row in rows:
+        blocks_ = [("citation", row.get("citation"))] + [
+            (f"{k}.citation", (row.get(k) or {}).get("citation")) for k in ("directiveOperand", "directivePlacement")]
+        for key, text in blocks_:
+            if not text:
+                continue
+            for defect in construct_citation_defects(text):
+                findings.append(("CONSTRUCT-CODE", f"{rel}:{at.get(row['id'], 1)}", row["id"],
+                                 f"row {row['id']} {key} names {defect}; a construct citation names the standard's rule "
+                                 f"only (kb/Work PB4467), because ConstructRegistry copies it into the diagnostic"))
+    return findings
+
+
 def audit(subjects: dict[str, str], own: dict[str, str], universe: set[str] | None, ordinals=None,
           tops=None, direct=None):
     findings: list[tuple[str, str, str, str]] = (phantom_scan(universe) + ordinal_scan(ordinals, tops)
-                                                 + diagnostic_scan(direct))
+                                                 + diagnostic_scan(direct) + construct_citation_scan())
     for path in citation_corpus.declaration_files():
         rel = path.relative_to(REPO).as_posix()
         for lineno, parts, context, window, label, head in blocks(path):
@@ -1208,6 +1291,76 @@ def diagnostic_self_test(direct) -> bool:
     return ok
 
 
+#: CONSTRUCT-CODE: (the kind that must fire, a citation as shipped before kb/Work PB4467, its repaired twin). Each defect
+#: is a citation `constructs.json` carried; each twin is what the row says now.
+CONSTRUCT_SELF_TEST = [
+    ("a C# member",
+     "ISO 14.9.13.2 (range-expression); a COBOL-2002 addition; bind-site gate (DataBinder.TryResolveRangeAlphabet)",
+     "ISO 14.9.13.2 (range-expression); a COBOL-2002 addition"),
+    ("an emit-site or gate pointer",
+     "ISO §7.2.4.2 / §7.2.4.4 GR4-GR7 — emit site: the frontend",
+     "ISO §7.2.4.2 / §7.2.4.4 GR4-GR7"),
+    ("a camelCase identifier",
+     "ISO §12.3.8 (OO); the repositoryEntry rule",
+     "ISO §12.3.8 (OO)"),
+    ("a source file",
+     "ISO 14.2.2 (RAISING phrase, introduced 2002); grammar CobolParserCore.g4:487",
+     "ISO 14.2.2 (RAISING phrase, introduced 2002)"),
+    ("a call",
+     "ISO §13.18.42; the dialect predicate is2002() gates it",
+     "ISO §13.18.42"),
+    ("an implementation-status word",
+     "ISO §13.18.60.4 GR13 (USAGE clause; the implementor-defined float trio); LIVE",
+     "ISO §13.18.60.4 GR13 (USAGE clause; the implementor-defined float trio)"),
+    ("a DEVLOG / register pointer",
+     "§8.9 interval encoding: user-definable at 85, reserved since 2002 (the EC family, DEVLOG 585 correction)",
+     "§8.9 interval encoding: user-definable at 85, reserved since 2002"),
+    ("a line pointer into the spec",
+     "obsolete '85 other-language entry deleted by ISO 2002 (§8.9 absence @10459-10460)",
+     "obsolete '85 other-language entry deleted by ISO 2002 (§8.9 absence)"),
+    ("a line pointer into the spec",
+     "obsolete 2014, removed 2023 (Annex E :49036)",
+     "obsolete 2014, removed 2023 (Annex E)"),
+    ("a generated name",
+     "ISO §11.7.4 GR1a; the accessors are named __GET_P and __SET_P",
+     "ISO §11.7.4 GR1a"),
+    ("a PascalCase identifier",
+     "ISO §15.94.3 r1; the one BindNumvalCFamily bind",
+     "ISO §15.94.3 r1"),
+    ("a SCREAMING_SNAKE identifier",
+     "ISO §15.14 BYTE-LENGTH; pinned implementor widths, INTRINSICS_DESIGN",
+     "ISO §15.14 BYTE-LENGTH"),
+    ("a generic type",
+     "ISO §13.18.38 Format 4; the CobolDynTable<T> substrate",
+     "ISO §13.18.38 Format 4"),
+    ("a leading-underscore identifier",
+     "ISO §8.9; cobolWord and _dataNameTokens admit it",
+     "ISO §8.9"),
+    ("a phase / wave / step marker",
+     "ISO §14.9.47; releases all record locks (Phase 4d)",
+     "ISO §14.9.47"),
+    ("a decision or review id",
+     "ISO §15.51 LOCALE-COMPARE; D8 window 1502 below 2002",
+     "ISO §15.51 LOCALE-COMPARE"),
+    (None,
+     "GnuCOBOL 3.2 cobol2002.conf: obsolete 2002, removed 2014; VCR Table 7 row 7.20; Annex E.3.3 item 14; X3.23-1985 Format 2",
+     "GnuCOBOL 3.2 cobol2002.conf: obsolete 2002, removed 2014; VCR Table 7 row 7.20; Annex E.3.3 item 14; X3.23-1985 Format 2"),
+]
+
+
+def construct_self_test() -> bool:
+    ok = True
+    for want, defect, repaired in CONSTRUCT_SELF_TEST:
+        fires = {d.split(" `")[0] for d in construct_citation_defects(defect)}
+        quiet = construct_citation_defects(repaired)
+        good = (want in fires if want else not fires) and not quiet
+        ok &= good
+        label = f"fires {want}" if want else "silent calibration"
+        print(f"  {'ok  ' if good else 'FAIL'} {label:34s} on {defect[:52]}"
+              + ("" if good else f"   (fired {sorted(fires)}, repaired twin fired {quiet})"))
+    return ok
+
+
 def ordinal_self_test(ordinals, tops) -> bool:
     if ordinals is None:
         print("  ⚠ THE ORDINAL CHECKS could not be self-tested — specs/ISO_COBOL.md is absent")
@@ -1251,6 +1404,7 @@ def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) ->
         print("  ⚠ PHANTOM could not be self-tested — specs/ISO_COBOL.md is absent")
     ok &= ordinal_self_test(ordinals, tops)
     ok &= diagnostic_self_test(direct)
+    ok &= construct_self_test()
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
