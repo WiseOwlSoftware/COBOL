@@ -294,7 +294,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // PB1673). §8.9 reserves NULL from COBOL-2002 only, so at 85 the token names no declared item and the verdict is
             // the §8.4.2.1 undefined reference every other NULL position draws — asked BEFORE the Format-1 narrowing and the
             // BY REFERENCE NULL screen below, which word a predefined address the edition does not have.
-            if (NullSpellingOf(a, bareArg) is not null && UnreservedKeywordReference.IsFreeAt("NULL", ctx.Edition))
+            if (IsUndeclaredNullWord(a, bareArg))
             {
                 UnreservedKeywordReference.Report(ctx.Edition, "NULL");
                 return BoundRejected.Reported(ctx.Edition);
@@ -973,6 +973,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         return bare.NonNumericLiteral?.predefinedNull();
     }
 
+    /// <summary>True when the argument's NULL is an undeclared user word at this edition: §8.9 reserves NULL from COBOL-2002 only
+    /// (kb/Work PB1673), so below it <see cref="NullSpellingOf"/> names a token that is no predefined address, no literal-2 and no
+    /// BY REFERENCE address, but identifier-2 (a Format 1 spelling) whose reference §8.4.2.1 refuses. The ONE reader of that
+    /// verdict: the argument loop reports it, and <see cref="Format2OnlySpellingOf"/> reads it so no pass judges the word as a
+    /// literal the edition lacks, in whichever order the passes run (kb/Work PB4155, PB4508).</summary>
+    private bool IsUndeclaredNullWord(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare) =>
+        NullSpellingOf(a, bare) is not null && UnreservedKeywordReference.IsFreeAt("NULL", ctx.Edition);
+
     /// <summary>§14.9.4.4 GR5's TRANSITIVE pass mode after argument <paramref name="a"/>: an explicit BY REFERENCE, BY CONTENT or
     /// BY VALUE phrase sets it, and a bare argument keeps the one carried in (<paramref name="carried"/>). The ONE writer of the
     /// carried mode, read by the up-front judgement below 2002 and by the argument loop.</summary>
@@ -992,7 +1000,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// <c>callByValue</c> is read here.
     /// <para>Null = Format 1 prints the spelling (identifier-2, an address-identifier, a function-identifier, which
     /// §14.9.4.4 GR8 makes an identifier). A literal and a parenthesized expression an operator-free boolean node held
-    /// are literal-2 and arithmetic-expression-1 exactly as their written spellings are (kb/Work PB3760 review R1-1).</para></summary>
+    /// are literal-2 and arithmetic-expression-1 exactly as their written spellings are (kb/Work PB3760 review R1-1). A NULL the
+    /// edition leaves free is none of those but an undeclared identifier-2 (<see cref="IsUndeclaredNullWord"/>), so it is null
+    /// here and the argument draws the undefined reference alone (kb/Work PB4508).</para></summary>
     private Format2OnlySpelling? Format2OnlySpellingOf(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare,
         CobolPassMode carriedMode)
     {
@@ -1005,7 +1015,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             return byRef.OMITTED() is not null ? OmittedSpelling("BY REFERENCE OMITTED", vendorLane: true) : null;
         if (a.callByContent() is { } byContent)
         {
-            if (byContent.addressIdentifier() is not null) return null;
+            if (byContent.addressIdentifier() is not null || IsUndeclaredNullWord(a, bare)) return null;
             var (cLit, cBareLit, _, cDref, cBool, cArith, cGrouped) = ConditionBinder.ReduceArgument(
                 byContent.literal(), null, byContent.booleanExpression(), byContent.arithmeticExpression());
             bool expressionOperand = cBool is not null || cLit is not null || cBareLit is not null || cGrouped is not null
@@ -1017,7 +1027,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                       + "Format 1's BY CONTENT admits `{ identifier-2 } …` only", true, Constructs.CallLiteralExpressionArgument2002)
                 : null;
         }
-        if (a.addressIdentifier() is not null || bare.Reference is not null) return null;
+        if (a.addressIdentifier() is not null || bare.Reference is not null || IsUndeclaredNullWord(a, bare)) return null;
         // A bare OMITTED takes the mode the last BY phrase carries (GR5): BY REFERENCE (the default) is the vendor
         // spelling; after BY CONTENT or BY VALUE it is an omitted argument passed by a mode that has none.
         if (a.OMITTED() is not null)
