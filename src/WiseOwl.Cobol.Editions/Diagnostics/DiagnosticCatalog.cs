@@ -8467,12 +8467,27 @@ public static class DiagnosticCatalog
         + "validity of the move.\"",
         "ISO §14.9.25.3 SR10 / Table 16");
 
-    /// <summary>COBOL0827 — super without inherited class (kb/Work PB4463).</summary>
-    public static readonly DiagnosticDescriptor SuperWithoutInheritedClass = new(
-        "COBOL0827", "super-without-inherited-class", EditionSeverity.Error,
-        "SUPER is referenced in a class that inherits from no class. SUPER (§8.4.3.8) references the object that invoked "
-        + "the method, resolved among the inherited class's methods; a class with no INHERITS phrase has none.",
-        "ISO §8.4.3.8");
+    /// <summary>COBOL0827 — the EXIT statement's PLACEMENT family (kb/Work PB4463, review round 1 R1-1): EXIT PROGRAM,
+    /// EXIT PERFORM, EXIT SECTION and the method and function forms, each a rule about WHERE the statement may stand.
+    /// <c>ExitPlacementContextDriftTests</c> pins the family as one code. SELF and SUPER placement is COBOL6002.</summary>
+    public static readonly DiagnosticDescriptor ExitStatementPlacement = new(
+        "COBOL0827", "exit-statement-placement", EditionSeverity.Error,
+        "An EXIT statement stands where its form is not permitted. §14.9.14.3 SR7: \"An EXIT PROGRAM statement may be "
+        + "specified only in a program procedure division.\" SR8: \"The EXIT PERFORM statement may be specified only in an "
+        + "inline or exception-checking PERFORM statement.\" SR9: \"The EXIT statement with the SECTION phrase may be "
+        + "specified only in a section.\" The method and function forms of the statement are likewise refused outside a "
+        + "method definition and a function definition.",
+        "ISO §14.9.14.3 SR7, SR8, SR9");
+
+    /// <summary>COBOL6002 — the placement of the predefined object references SELF and SUPER (kb/Work PB4463, review
+    /// round 1 R1-1; split from COBOL0827, which is the EXIT statement's rule).</summary>
+    public static readonly DiagnosticDescriptor PredefinedObjectReferencePlacement = new(
+        "COBOL6002", "predefined-object-reference-placement", EditionSeverity.Error,
+        "SELF or SUPER stands where it has no object to reference: outside a method definition, or SUPER in a class that "
+        + "inherits from no class. §8.4.3.8.1: \"SELF and SUPER are predefined object references that reference the object "
+        + "on which the current method is executing.\" §8.4.3.8.3 SR1: \"This identifier format may be specified only in a "
+        + "method definition.\"",
+        "ISO §8.4.3.8.1; §8.4.3.8.3 SR1");
 
     /// <summary>COBOL0828 — invoke argument not conforming (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor InvokeArgumentNotConforming = new(
@@ -8950,6 +8965,174 @@ public static class DiagnosticCatalog
         + "data item or literal, and, if the base specified in argument-2 is less than 11, shall also be an unsigned "
         + "integer data item or literal\"; the bases are positive nonzero integers in the range 2 to 16 and unequal.",
         "ISO §15.12.3 rule 1");
+
+    // ── Review round 1 of PB4463 (R1-1, R1-2): the report-then-refuse sites that named their code as a bare literal ──
+    // (BoundRejected.Report(ctx.Edition, "COBOLnnnn", …) and the code tuples). One descriptor per code, and where a code
+    // carried unrelated rules the minority got its own (COBOL6000-6003): a family that is one verb's operand rules shares
+    // its code, and its title names every clause.
+
+    /// <summary>The PICTURE-less usages' rule, shared by the three picture-less usage families below.</summary>
+    private const string PicturelessUsageQuotation = "The PICTURE clause shall not be specified for the subject of a RENAMES "
+        + "clause or for an item whose usage is binary-char, binary-short, binary-long, binary-double, float-short, "
+        + "float-long, float-extended, index, message-tag, object reference, pointer, function-pointer, or program-pointer.";
+
+    /// <summary>COBOL0712 — RESUME outside a declarative or a WHEN phrase (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ResumeOutsideDeclarativeOrWhen = new(
+        "COBOL0712", "resume-outside-declarative-or-when", EditionSeverity.Error,
+        "A RESUME statement is neither in a declarative nor in an imperative statement of a WHEN phrase of an "
+        + "exception-checking PERFORM. §14.9.33.3 SR1: \"The RESUME statement may be specified only in a declarative or in "
+        + "an imperative statement in a WHEN phrase of an exception-checking PERFORM statement.\"",
+        "ISO §14.9.33.3 SR1");
+
+    /// <summary>COBOL0713 — RESUME in a GLOBAL declarative (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ResumeInGlobalDeclarative = new(
+        "COBOL0713", "resume-in-global-declarative", EditionSeverity.Error,
+        "A RESUME statement stands in a declarative procedure whose USE statement carries the GLOBAL phrase. §14.9.33.3 "
+        + "SR2: \"The RESUME statement shall not be specified in a declarative procedure for which the GLOBAL phrase is "
+        + "specified in the associated USE statement.\"",
+        "ISO §14.9.33.3 SR2");
+
+    /// <summary>COBOL0714 — RESUME AT a procedure in the declarative portion (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ResumeAtDeclarativeProcedure = new(
+        "COBOL0714", "resume-at-declarative-procedure", EditionSeverity.Error,
+        "The procedure-name of a RESUME AT phrase is not in the nondeclarative portion of the program. §14.9.33.3 SR3: "
+        + "\"Procedure-name-1 shall be a procedure-name in the nondeclarative portion of the function, method, or "
+        + "program.\"",
+        "ISO §14.9.33.3 SR3");
+
+    /// <summary>COBOL0812 — PICTURE beside USAGE OBJECT REFERENCE (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureWithObjectReferenceUsage = new(
+        "COBOL0812", "picture-with-object-reference-usage", EditionSeverity.Error,
+        "A PICTURE clause is written for an item of USAGE OBJECT REFERENCE, which is picture-less. §13.16.3 SR8: \""
+        + PicturelessUsageQuotation + "\"",
+        "ISO §13.16.3 SR8");
+
+    /// <summary>COBOL0813 — an object-class-name or interface-name the source element may not reference (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor ObjectClassNameNotResolvable = new(
+        "COBOL0813", "object-class-name-not-resolvable", EditionSeverity.Error,
+        "The class or interface a USAGE OBJECT REFERENCE description names, or the declared class of an INVOKE receiver, "
+        + "is not one the source element may reference. §8.4.6.4: \"The object-class-name of an object class referenced "
+        + "within a source element shall be either the name of the containing object class definition or declared in the "
+        + "REPOSITORY paragraph of that or a containing source element.\"",
+        "ISO §8.4.6.4");
+
+    /// <summary>COBOL0818 — an ACCEPT receiver its format excludes (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor AcceptReceiverExcluded = new(
+        "COBOL0818", "accept-receiver-excluded", EditionSeverity.Error,
+        "The receiver of an ACCEPT statement is a data item the format excludes. §14.9.1.3 SR1: \"Identifier-1 shall "
+        + "reference neither a strongly-typed group item nor a data item of class index, message-tag, object, or "
+        + "pointer.\" §14.9.1.3 SR3: \"Identifier-2 shall not reference a data item of class alphabetic, boolean, index, "
+        + "message-tag, object, or pointer.\"",
+        "ISO §14.9.1.3 SR1, SR3");
+
+    /// <summary>COBOL0823 — the method name or target of an INVOKE (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InvokeMethodNameInvalid = new(
+        "COBOL0823", "invoke-method-name-invalid", EditionSeverity.Error,
+        "The method name literal of an INVOKE statement is not an alphanumeric or national literal, is zero-length, or "
+        + "the invoked operand is neither a data item nor a class the source element may reference. §14.9.23.3 SR2: "
+        + "\"Literal-1 shall be of class alphanumeric or national and shall not be a zero-length literal.\"",
+        "ISO §14.9.23.3 SR2");
+
+    /// <summary>COBOL0824 — the receiver of an INVOKE is not an object reference (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InvokeReceiverNotObjectReference = new(
+        "COBOL0824", "invoke-receiver-not-object-reference", EditionSeverity.Error,
+        "The identifier-1 of an INVOKE statement is not an object reference. §14.9.23.3 SR1: \"Identifier-1 shall be an "
+        + "object reference.\"",
+        "ISO §14.9.23.3 SR1");
+
+    /// <summary>COBOL0825 — the invoked class or interface defines no such method (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InvokeMethodNotDefined = new(
+        "COBOL0825", "invoke-method-not-defined", EditionSeverity.Error,
+        "The literal-1 of an INVOKE statement names no method of the class or interface the receiver references. "
+        + "§14.9.23.3 SR3: \"The value of literal-1 shall be the name of a method defined in the factory interface of "
+        + "object-class-name-1.\" SR4 e): \"If identifier-1 references an object reference described with an "
+        + "interface-name, literal-1 shall be the name of a method contained in the interface referenced by that "
+        + "interface-name.\"",
+        "ISO §14.9.23.3 SR3, SR4");
+
+    /// <summary>COBOL0826 — an INVOKE of a method of the standard class BASE (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InvokeBaseClassMethodRule = new(
+        "COBOL0826", "invoke-base-class-method-rule", EditionSeverity.Error,
+        "An INVOKE of a method of the standard class BASE passes arguments the method does not take, omits the RETURNING "
+        + "item the method requires, or names a RETURNING item of the wrong kind. §16.2 specifies the formal interfaces of the standard BASE class, and §14.9.23.4 GR8: "
+        + "\"If a RETURNING phrase is specified, the result of the activated method is placed into identifier-4.\"",
+        "ISO §16.2; §14.9.23.4 GR8");
+
+    /// <summary>COBOL0848 — the operand of a RAISE statement (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor RaiseOperandRule = new(
+        "COBOL0848", "raise-operand-rule", EditionSeverity.Error,
+        "The operand of a RAISE statement is not an object reference, or is the predefined NULL or SUPER, or SELF outside "
+        + "a method. §14.9.29.3 SR2: \"Identifier-1 shall be an object reference; the predefined object references NULL "
+        + "and SUPER shall not be specified.\" §8.4.3.8.3 SR1: \"This identifier format may be specified only in a method "
+        + "definition.\"",
+        "ISO §14.9.29.3 SR2; §8.4.3.8.3 SR1");
+
+    /// <summary>COBOL0865 — DELETE RECORD on a sequential file (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor DeleteRecordOnSequentialFile = new(
+        "COBOL0865", "delete-record-on-sequential-file", EditionSeverity.Error,
+        "A DELETE statement names a file of sequential organization. §14.9.10.3 SR1: \"The DELETE RECORD statement shall "
+        + "not be specified for a file with sequential organization.\"",
+        "ISO §14.9.10.3 SR1");
+
+    /// <summary>COBOL0866 — an INVOKE through a universal object reference, or by a dynamic method name (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor InvokeUniversalReferenceRule = new(
+        "COBOL0866", "invoke-universal-reference-rule", EditionSeverity.Error,
+        "An INVOKE breaks a rule of the universal object reference and the data-name method name. §14.9.23.3 SR6: \"If "
+        + "identifier-1 references a universal object reference, neither the BY CONTENT nor the BY VALUE phrase shall be "
+        + "specified and the BY REFERENCE phrase, if not specified explicitly, is assumed implicitly.\" SR7: \"Identifier-2 "
+        + "may be specified only when identifier-1 is a universal object reference.\" SR8: \"Identifier-2 shall reference "
+        + "an alphanumeric or national data item.\" An argument or returning item with no crossing form is refused with "
+        + "them.",
+        "ISO §14.9.23.3 SR6, SR7, SR8");
+
+    /// <summary>COBOL0870 — PICTURE beside a fixed-width binary usage (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureWithFixedWidthBinaryUsage = new(
+        "COBOL0870", "picture-with-fixed-width-binary-usage", EditionSeverity.Error,
+        "A PICTURE clause is written for an item of USAGE BINARY-CHAR, BINARY-SHORT, BINARY-LONG or BINARY-DOUBLE, which "
+        + "is picture-less. §13.16.3 SR8: \"" + PicturelessUsageQuotation + "\"",
+        "ISO §13.16.3 SR8");
+
+    /// <summary>COBOL1521 — PICTURE beside a floating-point usage (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor PictureWithFloatingPointUsage = new(
+        "COBOL1521", "picture-with-floating-point-usage", EditionSeverity.Error,
+        "A PICTURE clause is written for an item of a floating-point usage, which is picture-less. §13.16.3 SR8: \""
+        + PicturelessUsageQuotation + "\"",
+        "ISO §13.16.3 SR8");
+
+    /// <summary>COBOL1568 — SET SIZE OF a data item that is not dynamic-length (kb/Work PB4463).</summary>
+    public static readonly DiagnosticDescriptor SetSizeTargetNotDynamicLength = new(
+        "COBOL1568", "set-size-target-not-dynamic-length", EditionSeverity.Error,
+        "The data-name-3 of a SET SIZE OF statement is not a dynamic-length elementary item. §14.9.39.3 SR33: "
+        + "\"Data-name-3 shall reference a dynamic-length elementary data item.\"",
+        "ISO §14.9.39.3 SR33");
+
+    /// <summary>COBOL6000 — the ALPHABETIC / class-name class condition over a boolean, numeric or numeric-edited item;
+    /// split from COBOL0844 (kb/Work PB4463, review round 1 R1-1).</summary>
+    public static readonly DiagnosticDescriptor ClassConditionAlphabeticCategory = new(
+        "COBOL6000", "class-condition-alphabetic-category", EditionSeverity.Error,
+        "A class condition naming ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER or class-name-1 is written over a "
+        + "boolean, numeric or numeric-edited item. §8.8.4.4.3 SR4: \"ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or "
+        + "class-name-1 shall not be specified if the category of the data item referenced by identifier-1 is boolean, "
+        + "numeric, or numeric-edited.\"",
+        "ISO §8.8.4.4.3 SR4");
+
+    /// <summary>COBOL6001 — the CAPACITY register as a receiving operand; split from COBOL1523 (kb/Work PB4463, review
+    /// round 1 R1-1).</summary>
+    public static readonly DiagnosticDescriptor CapacityRegisterReceiving = new(
+        "COBOL6001", "capacity-register-receiving", EditionSeverity.Error,
+        "The CAPACITY register data-name-3 of an OCCURS DYNAMIC CAPACITY clause is a receiving operand other than of a "
+        + "variable-table SET statement. §13.18.38.3 SR32: \"Data-name-3 shall not be referenced as a receiving item, "
+        + "except as the operand of a variable-table format SET statement.\"",
+        "ISO §13.18.38.3 SR32");
+
+    /// <summary>COBOL6003 — the NUMERIC class condition over an operand of the wrong usage and category; split from
+    /// COBOL0844 (kb/Work PB4463, review round 1 R1-1).</summary>
+    public static readonly DiagnosticDescriptor ClassConditionNumericOperandUsage = new(
+        "COBOL6003", "class-condition-numeric-operand-usage", EditionSeverity.Error,
+        "A NUMERIC class condition is written over a data item whose usage is neither display nor national and whose "
+        + "category is not numeric. §8.8.4.4.3 SR8: \"If the NUMERIC phrase is specified, identifier-1 shall reference a "
+        + "data item whose usage is display or national or whose category is numeric.\"",
+        "ISO §8.8.4.4.3 SR8");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

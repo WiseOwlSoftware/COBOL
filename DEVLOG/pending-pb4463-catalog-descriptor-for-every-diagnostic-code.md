@@ -39,3 +39,13 @@ dead `FUNCTION CHAR` arm (COBOL5996 is reached only after COBOL1627 refuses the 
 (COBOL1503: no catalog function carries a `RemovedIn`); COBOL0806 and COBOL1564 are declined facilities (Annex A.3) that should flow
 through `EditionContext.Refuses` with `Annex: DeclinedAnnex.A3`; a band descriptor splits into its rules when a rule needs its own
 code.
+
+**Review round 1 (R1-1, R1-2).** The branch review found that "every emitted code is a descriptor" was not yet true: the
+`BoundRejected.Report(ctx.Edition, "COBOLnnnn", ...)` overload (50 sites), the code tuples of `Sr8PicturelessVerdict` and
+`ClassConditionModel.Wording`, a `ReceivingBar` constructor, `OoNameResolution.Resolve`'s code argument and five `EditionDiagnostic`
+constructors still wrote a literal, and both the unit fact and the semgrep rule needed the literal to be an emit call's first argument.
+The string overload is deleted, every site names a descriptor, 17 descriptors are new (COBOL0712-0714, 0812, 0813, 0818, 0823-0826, 0848,
+0865, 0866, 0870, 1521, 1568), and the unit fact is now `NoSourceLine_WritesACodeLiteral`, which reads every line of `src/` outside the
+catalogue, so the next shape is caught whatever it is. COBOL0827, COBOL0844 and COBOL1523 each named one rule while others emitted them;
+the minority rules took COBOL6000 (class condition SR4), COBOL6003 (SR8), COBOL6001 (CAPACITY register as a receiving operand) and COBOL6002
+(SELF/SUPER placement), and the refusal goldens and tests that asserted the old codes moved with them.

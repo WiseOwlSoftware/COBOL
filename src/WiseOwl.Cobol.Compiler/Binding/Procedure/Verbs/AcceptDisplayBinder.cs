@@ -86,7 +86,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             : null;
         if (excluded is not null)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0818", $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
                 + (temporal ? "the temporal format excludes (ISO §14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §14.9.25.3 SR2 via §14.9.1.4 GR6" : "") + ")"
                             : "the device format excludes (ISO §14.9.1.3 SR1)"));
         }
@@ -137,7 +137,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // here under ACCEPT's own rule. ImplicitMovePhrase.AcceptTemporal tells BindMoveOf not to ask it twice.
         if (MoveTable16.Validity(sender, target) is { } refusal)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0818", $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
                 + $"stores by the MOVE rules (ISO §14.9.1.4 GR6 / §14.9.1.3 SR3) and this move is invalid — {refusal.Reason}");
         }
         return new BoundAccept(target, kind)

@@ -1015,8 +1015,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // (which reroutes BEFORE this chokepoint). Any other receiving use — MOVE/arithmetic resultant/ordinary SET
         // receiver — is illegal; reject it here rather than reach CapacityRegisterPlace.Write (an internal throw).
         if (place is CapacityRegisterPlace cap)
-            return new("COBOL1523", $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
-                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38.3 SR30–32)");
+            return new(DiagnosticCatalog.CapacityRegisterReceiving.Code, $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
+                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38.3 SR32)");
         // ISO §13.7.3 SR5 (kb/Work PB1250): "A formal parameter of a function shall not be used as a receiving operand."
         // A rule over the operand ROLE, so it is asked HERE and every statement's receiver — and §8.4.3.2.4 GR5's
         // BY-CONTENT choice for an argument — inherits it. The parameter in any reference form (whole or

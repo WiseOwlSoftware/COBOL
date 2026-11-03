@@ -1309,8 +1309,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (pic is { Category: PicCategory.NumericEdited } && Edition.DialectLevel >= 2023
             && raw.StartsWith('"') && subject.SizePositions is { } editedWidth
             && CobolLiteral.Decode(raw).Length > editedWidth)
-            Edition.Sink.Report(new EditionDiagnostic("COBOL1570",
-                EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), "value-numeric-edited-oversize",
+            Edition.Sink.Report(new EditionDiagnostic(DiagnosticCatalog.ValueNumericEditedOversize.Code,
+                EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), DiagnosticCatalog.ValueNumericEditedOversize.Id,
                 $"{where}: the VALUE literal ({CobolLiteral.Decode(raw).Length} characters) exceeds the "
                 + $"numeric-edited item's {editedWidth}-character edited size (ISO §13.18.63.3 SR4/SR5; COBOL-2023, "
                 + "Annex E.2 item 27)", where, "ISO §13.18.63.3 SR4/SR5; Annex E.2 item 27"));
@@ -3847,8 +3847,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // carried, and the message names the family the programmer actually wrote.
         if (pictureText is not null && UsageFamilies.IsPictureless(entryUsage))
         {
-            (string sr8Code, string sr8Text) = Sr8PicturelessVerdict(entryUsage);
-            Edition.Error(sr8Code, $"{entryWhere}: {sr8Text}");
+            (DiagnosticDescriptor sr8Rule, string sr8Text) = Sr8PicturelessVerdict(entryUsage);
+            Edition.Error(sr8Rule, $"{entryWhere}: {sr8Text}");
             pictureText = null;
         }
         // The §13.18.60.2 description, adjudicated ONCE: which alternative was written, whether the name
@@ -4993,42 +4993,42 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     }
 
     /// <summary>ISO §13.16.3 SR8's verdict on a PICTURE written beside a PICTURE-LESS usage: the diagnostic
-    /// code that usage family has always carried, and the message that names the family the programmer wrote.
+    /// rule that usage family is refused under, and the message that names the family the programmer wrote.
     ///
     /// <para>⛔ ONE method for BOTH ways an item can acquire the usage — its own USAGE clause
     /// (<c>BindEntry</c>) and §13.18.60.4 GR1 group inheritance (<c>UsageInheritanceElementary</c>). The two
     /// call sites differ only in WHOSE clause they name, never in the verdict, which is what GR1 requires: the
     /// two spellings describe one item. Guard every call with <see cref="UsageFamilies.IsPictureless"/> — the
     /// fall-through arm is the FLOAT family, so a usage outside the set would be misreported as one.</para></summary>
-    private static (string Code, string Text) Sr8PicturelessVerdict(Usage usage) => usage switch
+    private static (DiagnosticDescriptor Rule, string Text) Sr8PicturelessVerdict(Usage usage) => usage switch
     {
-        Usage.ObjectReference => ("COBOL0812",
+        Usage.ObjectReference => (DiagnosticCatalog.PictureWithObjectReferenceUsage,
             "PICTURE may not be specified with USAGE OBJECT REFERENCE (ISO §13.16.3 SR8 — an "
             + "object-reference item is picture-less)"),
-        _ when UsageFamilies.IsFixedWidthBinary(usage) => ("COBOL0870",
+        _ when UsageFamilies.IsFixedWidthBinary(usage) => (DiagnosticCatalog.PictureWithFixedWidthBinaryUsage,
             "PICTURE may not be specified with a fixed-width binary usage "
             + "(BINARY-CHAR/-SHORT/-LONG/-DOUBLE) — the item is picture-less (ISO §13.16.3 SR8)"),
-        Usage.ProgramPointer or Usage.FunctionPointer => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+        Usage.ProgramPointer or Usage.FunctionPointer => (DiagnosticCatalog.UsageClauseCompatibility,
             "PICTURE may not be specified with USAGE PROGRAM-POINTER or FUNCTION-POINTER — the item "
             + "is picture-less (ISO §13.16.3 SR8)"),
-        Usage.Pointer => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+        Usage.Pointer => (DiagnosticCatalog.UsageClauseCompatibility,
             "PICTURE may not be specified with USAGE POINTER — a data-pointer item is picture-less "
             + "(ISO §13.16.3 SR8)"),
-        Usage.Index => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+        Usage.Index => (DiagnosticCatalog.UsageClauseCompatibility,
             "PICTURE may not be specified with USAGE INDEX — an index data item is picture-less, and "
             + "its content is an occurrence number rather than a pictured value (ISO §13.16.3 SR8; "
             + "§13.18.60.4 GR10)"),
         // §13.16.3 SR8 names message-tag in the same sentence as the float usages, so it reaches this screen on
         // BOTH paths (its own clause, and the usage a group hands down — §13.18.60.4 GR1), and before this arm the
         // fall-through below told the programmer their message-tag item was floating-point (kb/Work PB916).
-        Usage.MessageTag => (DiagnosticCatalog.UsageClauseCompatibility.Code,
+        Usage.MessageTag => (DiagnosticCatalog.UsageClauseCompatibility,
             "PICTURE may not be specified with USAGE MESSAGE-TAG — a message-tag item is picture-less "
             + "(ISO §13.16.3 SR8; §13.18.60.4 GR9)"),
         // The float family is a NAMED arm and the fall-through refuses, so a picture-less usage added tomorrow
         // is a crash in the drift test that enumerates Usage, never a message naming the wrong family.
         Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
             or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
-            or Usage.FloatDecimal16 or Usage.FloatDecimal34 => ("COBOL1521",
+            or Usage.FloatDecimal16 or Usage.FloatDecimal34 => (DiagnosticCatalog.PictureWithFloatingPointUsage,
             "PICTURE may not be specified with a floating-point usage "
             + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED/FLOAT-BINARY-*/FLOAT-DECIMAL-*) — a "
             + "floating-point item is picture-less (ISO §13.16.3 SR8; §13.18.60.2)"),
@@ -5339,8 +5339,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // is that the two spellings differ.
             if (UsageFamilies.IsPictureless(effective))
             {
-                (string sr8Code, string sr8Text) = Sr8PicturelessVerdict(effective);
-                Edition.Error(sr8Code, $"data item '{name}': {sr8Text} — the usage is the one written for the group "
+                (DiagnosticDescriptor sr8Rule, string sr8Text) = Sr8PicturelessVerdict(effective);
+                Edition.Error(sr8Rule, $"data item '{name}': {sr8Text} — the usage is the one written for the group "
                     + $"item '{fromGroup.FromName ?? "FILLER"}' and applies to each elementary item in it "
                     + "(ISO §13.18.60.4 GR1)");
                 item.Pic = fromGroup.Pictureless ?? PicInfo.Recovery();

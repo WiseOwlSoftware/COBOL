@@ -61,7 +61,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             if (atom?.predefinedNull() is not null || atom?.selfAndSuper()?.SUPER() is not null)
             {
-                return BoundRejected.Report(ctx.Edition, "COBOL0848",
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
                     $"RAISE {(atom.predefinedNull() is not null ? "NULL" : "SUPER")}: NULL and SUPER shall not be "
                     + "specified as the raised object (ISO §14.9.29.3 SR2)");
             }
@@ -69,14 +69,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // identifier-1 written as an inline invocation or a function-identifier (kb/Work PB1197, PB1425): SR2 asks
             // the CLASS of the item it references, so the temporary is the raised object when it is one.
             if (host.Oo.OoBindComputedObjectReference(oref) is { } computed)
-                return host.Oo.OoObjectReferenceTemporary(computed, oref, "COBOL0848",
+                return host.Oo.OoObjectReferenceTemporary(computed, oref, DiagnosticCatalog.RaiseOperandRule.Code,
                         "identifier-1 shall be an object reference (ISO §14.9.29.3 SR2)") is { } raised
                     ? new BoundRaiseObject(raised) : BoundRejected.Reported(ctx.Edition);
             if (atom!.selfAndSuper()?.SELF() is not null)
             {
                 if (!host.InMethod)
                 {
-                    return BoundRejected.Report(ctx.Edition, "COBOL0848",
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
                         "RAISE SELF may be specified only within a method definition (ISO §8.4.3.8.3 SR1)");
                 }
                 return new BoundRaiseObject(null);
@@ -86,7 +86,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             if (op.Item.Pic?.Category is not PicCategory.ObjectReference)
             {
-                return BoundRejected.Report(ctx.Edition, "COBOL0848",
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
                     $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
                     + "(ISO §14.9.29.3 SR2)");
             }
@@ -142,7 +142,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // EcEmitter.EmitResume; this is the STATIC case, which rejects.)
         if (where.Declarative is { Global: true })
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0713", "RESUME shall not be specified in a declarative procedure whose "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ResumeInGlobalDeclarative, "RESUME shall not be specified in a declarative procedure whose "
                 + "USE statement carries the GLOBAL phrase (ISO §14.9.33.3 SR2)");
         }
         if (where.InPerformWhen)
@@ -156,7 +156,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         {
             // XS-RESUME-PLACEMENT (§14.9.28.3): a RESUME in imperative-statement-1 or FINALLY of an F3 PERFORM
             // (neither a declarative nor a WHEN phrase) lands here too — the same "declarative or WHEN only" rule.
-            return BoundRejected.Report(ctx.Edition, "COBOL0712", "RESUME may be specified only in a declarative or a WHEN phrase of "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ResumeOutsideDeclarativeOrWhen, "RESUME may be specified only in a declarative or a WHEN phrase of "
                 + "an exception-checking PERFORM (ISO §14.9.33.3 SR1)");
         }
         ctx.EcState.Resume = true;
@@ -175,7 +175,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // declaratives portion consists of sections), and that is now what the resolution hands over.
         if (target.IsDeclarative)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0714", $"RESUME AT '{ProcedureNameShape.AsWritten(pn)}': the procedure shall be in the "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ResumeAtDeclarativeProcedure, $"RESUME AT '{ProcedureNameShape.AsWritten(pn)}': the procedure shall be in the "
                 + "nondeclarative portion of the program (ISO §14.9.33.3 SR3)");
         }
         return new BoundResume(target.Range.Start);   // GR3 — as if GO TO procedure-name-1

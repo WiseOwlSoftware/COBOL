@@ -336,7 +336,7 @@ internal sealed class BinderDriver
         // (the §14.8.4.2 sentence names all three items together); the E.2-item-9 conformance-checking mechanism is
         // the 2023 addition, so it inherits the same Removed-freedom severity as the 1573/1575 consistency siblings.
         EditionDiagnostic Externality(string ext, string clause, string name) =>
-            new("COBOL1624", severity, "external-file-item-not-external",
+            new(DiagnosticCatalog.ExternalFileItemNotExternal.Code, severity, DiagnosticCatalog.ExternalFileItemNotExternal.Id,
                 $"external file '{ext}': the {clause} data item '{name}' shall be an external data item "
                 + "(ISO §14.8.4.2; Annex E.2 item 9)",
                 $"external file '{ext}'", "ISO §14.8.4.2 / Annex E.2 item 9");
@@ -378,7 +378,8 @@ internal sealed class BinderDriver
                 {
                     var odd = conns[DeviatingDescriber(ids)];
                     using (edition.At(odd.ClauseOrEntryAt(odd.FileStatusAt)))
-                        edition.Report(new EditionDiagnostic("COBOL1573", severity, "external-file-status-consistency",
+                        edition.Report(new EditionDiagnostic(DiagnosticCatalog.ExternalFileStatusConsistency.Code, severity,
+                            DiagnosticCatalog.ExternalFileStatusConsistency.Id,
                             $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
                             + "specify FILE STATUS naming the same corresponding external data item "
                             + "(ISO §12.4.5.3 GR1(i); Annex E.2 item 12)",
@@ -396,7 +397,8 @@ internal sealed class BinderDriver
                 {
                     var odd = conns[DeviatingDescriber(ids)];
                     using (edition.At(odd.ClauseOrEntryAt(odd.RelativeKeyAt)))
-                        edition.Report(new EditionDiagnostic("COBOL1575", severity, "external-relative-key-consistency",
+                        edition.Report(new EditionDiagnostic(DiagnosticCatalog.ExternalRelativeKeyConsistency.Code, severity,
+                            DiagnosticCatalog.ExternalRelativeKeyConsistency.Id,
                             $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                             + "shall specify RELATIVE KEY naming the same corresponding external data item "
                             + "(ISO §12.4.5.3 GR1(h); Annex E.2 item 24)",

@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The P2.10 diagnostic-registry drift check (mirrors <c>ConstructRegistryDriftTests</c> /
 /// <c>ReservedWordsDriftTests</c>): the first-class <see cref="DiagnosticCatalog"/> is THE source, so
 /// (a) every descriptor's stable <see cref="DiagnosticDescriptor.Id"/> is unique and its code is unique outside the
-/// deliberate split families, (b) no emit call anywhere in <c>src/</c> passes a <c>"COBOLnnnn"</c> literal instead of a
+/// deliberate split families, (b) no line anywhere in <c>src/</c> writes a <c>"COBOLnnnn"</c> literal instead of naming a
 /// descriptor, and (c) <c>docs/DIAGNOSTICS.md</c> is a RENDERED VIEW of the catalogue
 /// (kb/Work PB3026, <c>scripts/rendered_views.py</c>): gitignored and never committed, because two pull requests that each
 /// add a diagnostic would both rewrite it. This test is that view's render check: the catalogue must render one row per
@@ -54,63 +54,68 @@ public sealed class DiagnosticRegistryDriftTests
         Assert.True(dupes.Count == 0, $"descriptor code collision(s): {string.Join("; ", dupes)}");
     }
 
-    /// <summary>⛔ NO EMIT CALL TAKES A CODE LITERAL (kb/Work PB4463, PB294, PB310): every call of an emit API
-    /// (<c>Error</c>, <c>Warning</c>, <c>Report</c>, <c>ReportError</c>, <c>ReportWarning</c>, <c>Emit</c>), qualified or not,
-    /// names a <see cref="DiagnosticCatalog"/> descriptor, never a <c>"COBOLnnnn"</c> string. A literal is invisible to the
-    /// next-free allocation scan's catalog half, to <c>docs/DIAGNOSTICS.md</c>, to <c>--suppress</c> and to the code-uniqueness
-    /// fact above, which is how the COBOL1573 two-meanings collision shipped and how COBOL1512 came to mean three
-    /// unrelated rules. The first form of this fact had a look-behind that skipped every qualified call
-    /// (<c>edition.Error(...)</c>, the way nearly every site is written), so it read 2% of its subject (PB294); this
-    /// one reads the call shapes the semgrep rule <c>wiseowl-cobol-raw-diagnostic-code-literal</c> reads, whose baseline
-    /// is zero. A code a program computes at run time goes through a descriptor's <see cref="DiagnosticDescriptor.Code"/>.</summary>
+    /// <summary>Files that may write a <c>"COBOLnnnn"</c> literal: the catalogue itself (the definition site), generated
+    /// code, the edition band's named constants, and the frontend's parse-hint registry
+    /// (<c>Frontend/Diagnostics/DiagnosticDescriptors.cs</c>, whose header says why it is a registry of its own).</summary>
+    private static readonly string[] CodeLiteralFiles =
+        ["DiagnosticCatalog.cs", "EditionCodes.cs", "DiagnosticDescriptors.cs", "ConstructRegistry.g.cs"];
+
+    /// <summary>⛔ NO CODE IS EVER WRITTEN AS A LITERAL (kb/Work PB4463, PB294, PB310): outside the files of
+    /// <see cref="CodeLiteralFiles"/>, no line of <c>src/</c> holds a <c>"COBOLnnnn"</c> string literal, whatever the call
+    /// shape around it. A code goes through a <see cref="DiagnosticCatalog"/> descriptor
+    /// (<see cref="DiagnosticDescriptor.Code"/>), because a literal is invisible to the next-free allocation scan's catalog
+    /// half, to <c>docs/DIAGNOSTICS.md</c>, to <c>--suppress</c> and to the code-uniqueness fact above, which is how the
+    /// COBOL1573 two-meanings collision shipped and how COBOL1512 came to mean three unrelated rules.
+    /// <para>This fact reads the LITERAL, not the emit call around it. Its first form had a look-behind that skipped every
+    /// qualified call (PB294), its second read the call shapes the semgrep rule
+    /// <c>wiseowl-cobol-raw-diagnostic-code-literal</c> reads and so could not see
+    /// <c>BoundRejected.Report(ctx.Edition, "COBOLnnnn", …)</c>, a code tuple, a constructor argument or a parameter
+    /// (review round 1 of PB4463, R1-2: 43 codes at 50 sites), so a new shape is caught here whatever it is.</para></summary>
     [Fact]
-    public void NoEmitCall_TakesACodeLiteral()
+    public void NoSourceLine_WritesACodeLiteral()
     {
-        var emitRx = new System.Text.RegularExpressions.Regex(
-            "(?:\\bEmit\\(\\s*[\\w.]+\\s*,\\s*|\\.(?:Error|Warning|Report|ReportError|ReportWarning)\\(\\s*|(?<![\\w.])(?:Error|Warning|ReportError|ReportWarning)\\(\\s*)\"(COBOL\\d{4})\"");
+        var literalRx = new System.Text.RegularExpressions.Regex("\"(COBOL\\d{4})\"");
         var offenders = new List<string>();
         foreach (var file in Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories))
         {
-            if (file.EndsWith("DiagnosticCatalog.cs", StringComparison.Ordinal)
-                || file.EndsWith(".g.cs", StringComparison.Ordinal)
-                || file.Contains("Generated", StringComparison.OrdinalIgnoreCase)
+            if (CodeLiteralFiles.Contains(Path.GetFileName(file), StringComparer.Ordinal)
                 || file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
                 || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
-            string text = File.ReadAllText(file);
-            foreach (System.Text.RegularExpressions.Match match in emitRx.Matches(text))
-                offenders.Add($"{Path.GetFileName(file)}:{text.Take(match.Index).Count(c => c == '\n') + 1} {match.Groups[1].Value}");
+            string[] lines = File.ReadAllLines(file);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string code = CodeOf(lines[i]);
+                foreach (System.Text.RegularExpressions.Match match in literalRx.Matches(code))
+                    offenders.Add($"{Path.GetFileName(file)}:{i + 1} {match.Groups[1].Value}");
+            }
         }
         Assert.True(offenders.Count == 0,
-            "emit call(s) passing a COBOLnnnn string literal - register a DiagnosticCatalog descriptor for the rule and pass it "
-            + "(one code, one rule): " + string.Join(", ", offenders));
+            "COBOLnnnn string literal(s) outside the catalogue - register a DiagnosticCatalog descriptor for the rule and "
+            + "pass its Code (one code, one rule): " + string.Join(", ", offenders));
+    }
+
+    /// <summary>The part of <paramref name="line"/> that is code: everything before a <c>//</c> that is outside a string
+    /// literal (a comment, XML documentation included, may discuss a past code).</summary>
+    private static string CodeOf(string line)
+    {
+        bool inString = false;
+        for (int i = 0; i < line.Length - 1; i++)
+        {
+            if (line[i] == '\\' && inString) { i++; continue; }
+            if (line[i] == '"') inString = !inString;
+            else if (!inString && line[i] == '/' && line[i + 1] == '/') return line[..i];
+        }
+        return line;
     }
 
     /// <summary>⛔ THE EXCEPTION-CHECKING (FORMAT-3) PERFORM'S CODES ARE ALL CATALOG DESCRIPTORS (kb/Work PB1154). The
     /// family COBOL1597-1617 was written as bare string literals at <c>ctx.Edition.Error("COBOL16nn", …)</c>, a
-    /// shape the first form of <see cref="NoEmitCall_TakesACodeLiteral"/> could not see (its look-behind skipped a dotted
-    /// call), so the whole family had no catalogue row, no DIAGNOSTICS.md entry and no suppress key. This pins the
-    /// family two ways: no source file outside the catalogue writes one of its codes as a quoted literal, and every
-    /// code the binder emits has a descriptor (1598, 1602, 1603 and 1609 are reserved numbers no rule emits).</summary>
+    /// shape the first form of the literal fact (<see cref="NoSourceLine_WritesACodeLiteral"/> reads every line now) could
+    /// not see, so the whole family had no catalogue row, no DIAGNOSTICS.md entry and no suppress key. Every code the
+    /// binder emits has a descriptor (1598, 1602, 1603 and 1609 are reserved numbers no rule emits).</summary>
     [Fact]
     public void ExceptionCheckingPerformCodes_AreCatalogDescriptors()
     {
-        var literal = new System.Text.RegularExpressions.Regex("\"COBOL(159[7-9]|160\\d|161[0-7])\"");
-        var offenders = new List<string>();
-        foreach (var file in Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories))
-        {
-            if (file.EndsWith("DiagnosticCatalog.cs", StringComparison.Ordinal)
-                || file.EndsWith(".g.cs", StringComparison.Ordinal)
-                || file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-                || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
-            var lines = File.ReadAllLines(file);
-            for (int i = 0; i < lines.Length; i++)
-                if (!lines[i].TrimStart().StartsWith("//", StringComparison.Ordinal) && literal.IsMatch(lines[i]))
-                    offenders.Add($"{Path.GetFileName(file)}:{i + 1}");
-        }
-        Assert.True(offenders.Count == 0,
-            "bare COBOL1597-1617 literal(s) — reference the DiagnosticCatalog descriptor (kb/Work PB1154): "
-            + string.Join(", ", offenders));
-
         string[] emitted =
         [
             "COBOL1597", "COBOL1599", "COBOL1600", "COBOL1601", "COBOL1604", "COBOL1605", "COBOL1606",

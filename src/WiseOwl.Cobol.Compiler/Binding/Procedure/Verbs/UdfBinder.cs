@@ -482,7 +482,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // means "return from this function", and the prototype's procedure division is one.
         if (ctx.Enclosing.SourceElement is not (SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype))
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0827",
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitStatementPlacement,
                 "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §14.9.14 "
                 + "function form of the EXIT statement; this is not a function procedure division)");
         }

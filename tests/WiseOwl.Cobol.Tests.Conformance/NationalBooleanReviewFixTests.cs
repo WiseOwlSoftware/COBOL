@@ -103,14 +103,14 @@ public sealed class NationalBooleanReviewFixTests
     }
 
     [Theory]
-    [InlineData("IF B-BIT IS NUMERIC CONTINUE.")]      // SR8 — USAGE BIT is not display/national/numeric
-    [InlineData("IF B-BIT IS ALPHABETIC CONTINUE.")]   // SR4 — no ALPHABETIC on a boolean operand
-    public void ClassCondition_OnBooleanOperand_Rejected0844(string proc)
+    [InlineData("IF B-BIT IS NUMERIC CONTINUE.", "COBOL6003")]      // SR8 — USAGE BIT is not display/national/numeric
+    [InlineData("IF B-BIT IS ALPHABETIC CONTINUE.", "COBOL6000")]   // SR4 — no ALPHABETIC on a boolean operand
+    public void ClassCondition_OnBooleanOperand_RejectedUnderItsOwnRule(string proc, string code)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("NBRF06", "01 B-BIT PIC 1(4) USAGE BIT VALUE B\"0101\".", proc), 2002);
         Assert.False(ok, "a class condition on a boolean operand must be rejected (ISO §8.8.4.4.3 SR8/SR4)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
+        EditionHarness.AssertHasDiagnostic(errors, code);
     }
 
     [Fact]

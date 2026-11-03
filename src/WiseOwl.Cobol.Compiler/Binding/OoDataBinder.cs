@@ -225,7 +225,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // funnel, is what makes that scope travel with the descriptor: `oru` is the reference site the
         // ancestor walk starts from.
         var resolved = Compiler.Oo.OoNameResolution.Resolve(OoClasses, Edition, site, name,
-            Compiler.Oo.OoNameResolution.Want.Either, where, "COBOL0813", resolveRule);
+            Compiler.Oo.OoNameResolution.Want.Either, where, DiagnosticCatalog.ObjectClassNameNotResolvable.Code, resolveRule);
         // A PARAMETER-NAME of the parameterized definition being bound as itself (kb/Work PB2051, PB2937): it stands where
         // an object-class-name or an interface-name is permitted (§11.3.4 GR6), so the description takes the alternative
         // its own REPOSITORY specifier declares — an interface formal is the bare-name alternative — marked FORMAL: what it
