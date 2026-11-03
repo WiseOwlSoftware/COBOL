@@ -86,7 +86,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             : null;
         if (excluded is not null)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0818", $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
                 + (temporal ? "the temporal format excludes (ISO §14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §14.9.25.3 SR2 via §14.9.1.4 GR6" : "") + ")"
                             : "the device format excludes (ISO §14.9.1.3 SR1)"));
         }
@@ -137,7 +137,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // here under ACCEPT's own rule. ImplicitMovePhrase.AcceptTemporal tells BindMoveOf not to ask it twice.
         if (MoveTable16.Validity(sender, target) is { } refusal)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0818", $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
                 + $"stores by the MOVE rules (ISO §14.9.1.4 GR6 / §14.9.1.3 SR3) and this move is invalid — {refusal.Reason}");
         }
         return new BoundAccept(target, kind)
@@ -333,14 +333,14 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     {
         if (!ctx.Mnemonics.TryUse(at, name, out var row))
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
                 + $"(ISO §{sr2} SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
                 + "§12.3.7.2 'device-name-1 IS mnemonic-name-3')");
             return null;
         }
         if (row.Kind != SystemNameKind.Device)
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': '{name}' is the mnemonic-name of the "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': '{name}' is the mnemonic-name of the "
                 + $"{ImplementorNames.KindWord(row.Kind)} '{row.Name}', not of a device-name — only a device-name's "
                 + "mnemonic-name-3 may be specified in the ACCEPT and DISPLAY statements (ISO §12.3.7.3 SR7; "
                 + $"§{sr2} SR2)");
@@ -348,7 +348,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         }
         if (!row.Device.HasFlag(need))
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO §{sr2} "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO §{sr2} "
                 + "SR2; the available device-names and their capabilities are this implementation's §12.3.7.3 SR7/SR8 "
                 + $"specification: {ImplementorNames.DescribeDevices()})");
             return null;

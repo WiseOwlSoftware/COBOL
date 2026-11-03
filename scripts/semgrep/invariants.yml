@@ -113,11 +113,12 @@ rules:
         - "**/DiagnosticCatalog.cs"   # the definition site — the literal is the point there
         - "**/*.g.cs"                 # generated; regenerate the generator, not the output
     # TEXT, not AST (kb/Work PB4462): this was `Emit($SEV, $CODE, ...)` / `$X.Error($CODE, ...)` / `$X.Warning(...)` /
-    # `$X.Report(...)` with `$CODE` a "COBOL####" literal, and semgrep's C# grammar skipped 130 files' worth of spans
-    # (a primary-constructor class header and everything it swallowed), so the count under-read: 230 of 248. The regex
-    # matches the same calls — a bare `Emit(<severity>, "COBOL####"` (not `x.Emit(`) or `.Error(` / `.Warning(` /
-    # `.Report(` with the literal first — over any whitespace, a `//` line comment ruled out by the tempered prefix.
-    pattern-regex: '(?m)^(?:(?!//)[^\n])*?(?:(?<![A-Za-z0-9_.])Emit\(\s*[^,;()]*(?:\([^()]*\)[^,;()]*)*,|\.(?:Error|Warning|Report)\()\s*"COBOL\d{4}"'
+    # `$X.Report(...)` / `$X.Report($EDITION, $CODE, ...)` with `$CODE` a "COBOL####" literal, and semgrep's C# grammar
+    # skipped 130 files' worth of spans (a primary-constructor class header and everything it swallowed), so the count
+    # under-read. The regex matches the same calls — a bare `Emit(<severity>, "COBOL####"` (not `x.Emit(`), `.Error(` /
+    # `.Warning(` / `.Report(` with the literal first, or `.Report(<edition>, "COBOL####"` (the BoundRejected shape of
+    # PB4463) — over any whitespace, a `//` line comment ruled out by the tempered prefix. PB4463 took the count to zero.
+    pattern-regex: '(?m)^(?:(?!//)[^\n])*?(?:(?<![A-Za-z0-9_.])Emit\(\s*[^,;()]*(?:\([^()]*\)[^,;()]*)*,|\.(?:Error|Warning|Report)\(|\.Report\(\s*[^,;()]*(?:\([^()]*\)[^,;()]*)*,)\s*"COBOL\d{4}"'
 
   # ── Backend neutrality (G4 / DESIGN §1.3) ──────────────────────────────────────────────────────────────────
   - id: wiseowl-cobol-bound-node-carries-rendered-text

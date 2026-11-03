@@ -1212,9 +1212,9 @@ public sealed class OoSpineTests
 
     /// <summary>§9.3.8.2 — an override whose SIGNATURE does not conform to the overridden method is the
     /// compile-time COBOL0829 (never a Roslyn CS error on user source); trap #7 — SUPER in a root class
-    /// and SELF outside any method are clean 0827 placement diagnostics; an INHERITS cycle is ISO §11.3.3 SR4 (COBOL2791, kb/Work PB1505).</summary>
+    /// and SELF outside any method are clean COBOL6002 placement diagnostics; an INHERITS cycle is ISO §11.3.3 SR4 (COBOL2791, kb/Work PB1505).</summary>
     [Fact]
-    public void InheritanceDiagnostics_0829_0827_2791()
+    public void InheritanceDiagnostics_0829_6002_2791()
     {
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
@@ -1275,7 +1275,7 @@ public sealed class OoSpineTests
             END METHOD M1.
             END OBJECT.
             END CLASS OSPC28.
-            """), "COBOL0827");
+            """), "COBOL6002");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP29.
@@ -1745,7 +1745,7 @@ public sealed class OoSpineTests
     /// dispatch, no collision. A factory METHOD-ID named NEW in a BASE subclass without OVERRIDE is the §11.7.3
     /// SR4 a) 0837 (kb/Work PB1582); INVOKE class-name
     /// of a method in NEITHER factory roster is the SR3 0825; SUPER in a ROOT class's factory method is the
-    /// trap-#7 0827 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (COBOL4269).</summary>
+    /// trap-#7 COBOL6002 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (COBOL4269).</summary>
     [Fact]
     public void Factory_DualRoster_AndDiagnosticBand()
     {
@@ -1841,7 +1841,7 @@ public sealed class OoSpineTests
             END METHOD M.
             END FACTORY.
             END CLASS OSPC39.
-            """), "COBOL0827");
+            """), "COBOL6002");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP40.

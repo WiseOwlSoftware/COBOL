@@ -2,11 +2,11 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Collation;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
 

@@ -1,1 +1,1 @@
-{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL1512: REWRITE on file 'X-FILE': the WITH NO LOCK phrase may not be specified when the file's LOCK MODE is AUTOMATIC"}
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL5993: REWRITE on file 'X-FILE': the WITH NO LOCK phrase may not be specified when the file's LOCK MODE is AUTOMATIC"}

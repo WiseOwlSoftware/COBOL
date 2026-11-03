@@ -60,7 +60,11 @@ the OO method symbol's origin to a type (PB4459): its uses in `OoDataBinder.cs`,
 
 **Merged with the DataBinder extract (#1054).** The reviewed branch was merged with origin/main after the extract landed as one
 folded entry (3024), so the stamped entry 3015 the PB2352 branch carried is not in the tree (its content is 3024). The merge was
-clean; `verify.py` on the merged tree still passes with the counts 3 / 43 / 2 / 237 (the 11 descriptor sites live in
-`DataBinder.cs`, `ProcedureTableBuilder.cs`, `IntrinsicBinder.cs` and `SpecialNamesBinder.Locales.cs`, none of which the extract
-moved), and the build is 0 warnings, 0 errors. The module docstring of `scripts/arch/r2_inputs.py` now describes the semgrep step's
+clean. Main then moved again: PB4463 (#1058) gave every emitted code a catalog descriptor, took the raw-code-literal rule's count to
+zero and dropped its `baseline.json` key, and added a `$X.Report($EDITION, $CODE, ...)` arm (BoundRejected) to the then-AST rule.
+Merging that conflicted in `invariants.yml` and `baseline.json`: the text rule keeps this branch's form and gains the same arm as a
+regex alternative (`.Report(<edition>, "COBOL####"`; `Violations.cs`, which main extended, fires it at both lines 30 and 31), and
+the baseline has no key for the rule, as on main. The 11 descriptor edits this branch made are the ones PB4463 made too, so the
+merged tree has no `src/` difference from main (a duplicated `using` in `SpecialNamesBinder.Locales.cs` was dropped). `verify.py`
+passes with the counts 3 / 43 / 2 (a scan of `src/` finds no raw-literal hit), and the build is 0 warnings, 0 errors. The module docstring of `scripts/arch/r2_inputs.py` now describes the semgrep step's
 cached record (`hits` and `unread`) and the shard input's `semgrep_unread` (review lead R2-1).
