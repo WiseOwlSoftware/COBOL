@@ -89,7 +89,7 @@ internal sealed class ExpandTypesPass : IBindPass
                 item.Pic = item.Pic with { RestrictedTypeDecl = decl };
     }
 
-    /// <summary>Build <see cref="DataBinder._lapsedTypeMembers"/> — the tail of <see cref="Run"/>.</summary>
+    /// <summary>Build <see cref="ClauseFacts.LapsedTypeMembers"/> — the tail of <see cref="Run"/>.</summary>
     private static void IndexLapsedTypeMembers(DataBinder binder)
     {
         var index = new Dictionary<string, List<DataItem>>(CobolNames.Comparer);

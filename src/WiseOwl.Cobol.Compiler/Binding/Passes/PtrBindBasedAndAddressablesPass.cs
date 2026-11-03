@@ -26,7 +26,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
     /// <inheritdoc/>
     public PassViews Views => PassViews.Appends(FactSetKind.ImageForcedItems);
 
-    /// <summary>The post-build data-pointer pass (runs beside <see cref="DataBinder.CallBindExternalAndGlobal"/> — the
+    /// <summary>The post-build data-pointer pass (runs beside <see cref="LinkageBinder.CallBindExternalAndGlobal"/> — the
     /// proven post-classification tier-overwrite seam): (1) every BASED root becomes a pointer-routed
     /// StringCanonical template; (2) every plain record named by a data-address-identifier (<c>ADDRESS OF x</c> — a SET sender or a CALL argument) is
     /// forced onto a per-instance cell so its address is takeable. The pre-scan is a parse-tree walk — the

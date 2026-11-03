@@ -112,7 +112,7 @@ internal static class IntegerOperandRules
         [typeof(Core.RerunEveryContext)] = Nonzero,            // I-O-CONTROL RERUN EVERY integer RECORDS (1985)
         [typeof(Core.SymbolicCharacterEntryContext)] = All(IntegerSlot.Not(
             "SYMBOLIC CHARACTERS integer-1 is an ORDINAL whose range, one through the size of the character set, is "
-            + "§12.3.7.3 SR16's own rule, reported by DataBinder.SwitchBindSymbolic")),
+            + "§12.3.7.3 SR16's own rule, reported by SpecialNamesBinder.SwitchBindSymbolic")),
 
         // ── PROCEDURE DIVISION HEADERS ──────────────────────────────────────────────────────────────────────
         [typeof(Core.SectionDefinitionContext)] = All(IntegerSlot.Not(
@@ -206,7 +206,7 @@ internal static class IntegerOperandRules
         [typeof(Core.SymbolicCharacterEntryContext)] =
             "the entry's FIRST alternative, the literal ordinals every program wrote before constant entries existed, listed "
             + "first so that such a program parses exactly as it did; its second and third alternatives write integerOperand "
-            + "and bare words (DataBinder.SymbolicClauseOperands), because a constant-name ordinal is the same kind of token as "
+            + "and bare words (SpecialNamesBinder.SymbolicClauseOperands), because a constant-name ordinal is the same kind of token as "
             + "the next symbolic-character-1 and only the constant table tells them apart",
         [typeof(Core.SectionDefinitionContext)] = "the 1985 Segmentation module's priority-number, not an integer-n; deleted at 2002",
         [typeof(Core.DeclarativeSectionContext)] = "the 1985 Segmentation module's priority-number, not an integer-n; deleted at 2002",
@@ -232,7 +232,7 @@ internal static class IntegerOperandRules
 
     private const string DataNameOrInteger =
         "the format prints 'data-name-1 or integer-1': a constant-name parses as the dataReference arm and the binder reads "
-        + "the constant's integer there (LINAGE: DataBinder.ConstantOperandValue; PERFORM TIMES and WRITE ADVANCING: "
+        + "the constant's integer there (LINAGE: ConstantEntryBinder.ConstantOperandValue; PERFORM TIMES and WRITE ADVANCING: "
         + "ExpressionBinder's constant substitution)";
 
     /// <summary>The largest <c>integer-n</c> value the compiler binds into its own model — an <see cref="int"/>,
@@ -293,10 +293,10 @@ internal static class IntegerOperandRules
     /// <summary>⛔ THE ONE READER of a SPECIAL-NAMES ORDINAL too (ISO §12.3.7.3 SR14 b1/c1, SR16 e/f, SR17 b2/c2 — kb/Work
     /// PB1091): an unsigned integer literal naming a 1-based position in a character set is read through THIS, whether
     /// it is written as an <c>integerLiteral</c> (SYMBOLIC CHARACTERS integer-1) or as a numeric literal of an ALPHABET
-    /// or CLASS literal phrase (whose digits <c>DataBinder.IntegerLiteralDigits</c> extracts). The value SATURATES at
+    /// or CLASS literal phrase (whose digits <c>SpecialNamesBinder.IntegerLiteralDigits</c> extracts). The value SATURATES at
     /// <see cref="HostLimit"/>, which no character set reaches (UCS-4, the largest, has 0x110000 − 0x800), so a
     /// saturated ordinal is out of range exactly when the literal is and the clause's range rule — never a "not an
-    /// integer" answer — reports it. <c>DataBinder.Switches.cs</c> had a second, private saturating reader for the
+    /// integer" answer — reports it. The former Switches partial of <c>DataBinder</c> had a second, private saturating reader for the
     /// literal phrases and an <c>int.TryParse</c> before it (two decoders for one rule, the two-arm shape);
     /// <c>SpecialNamesOrdinalReaderDriftTests</c> holds it to this one.</summary>
     /// <param name="integerText">The literal's text: decimal digits, optionally signed.</param>

@@ -501,7 +501,7 @@ internal sealed class VersionConformancePass
 
     /// <summary>The 2002-introduction USAGE / PICTURE-category of a resolved item, or null when version-invariant.
     /// Keyed on the resolved <c>(OwnUsage, Pic.Category, Pic.Usage)</c>: <see cref="DataItem.OwnUsage"/> is mandatory
-    /// because a group-header USAGE sheds <c>Pic</c> to null (<c>DataBinder.ResolveIndexItems</c>), leaving only the
+    /// because a group-header USAGE sheds <c>Pic</c> to null (<c>DataBinder.UsageInheritanceWalk</c>), leaving only the
     /// own keyword; the <c>Pic.Usage</c> member (never <c>IsFloat</c>/<c>ClrType</c>) carries the identity for the
     /// picture-less usages — <c>FloatLong</c>/<c>FloatExtended</c> share a <c>double</c> ClrType with COMP-2.</summary>
     private static string? UsageConstructId(DataItem item)
@@ -1849,7 +1849,7 @@ internal sealed class VersionConformancePass
         /// alike — a method occurrence below 2002 is already inside the gated class construct; the extra 0900 only
         /// sharpens the report, the VisitUsingByValue posture). The §13.6.4 GR1 activation-state semantics
         /// (automatic data — initial state on every activation, §14.6.2.3.2) stay bind/emit-time
-        /// (<c>DataBinder.LocalStorageRoots</c> + the P10 RECURSIVE-WS activation-state model).</summary>
+        /// (<c>ForestSlice.LocalStorageRoots</c> + the P10 RECURSIVE-WS activation-state model).</summary>
         public override object? VisitLocalStorageSection(CobolParserCore.LocalStorageSectionContext ctx)
         {
             _p.Check(Constructs.LocalStorageSection2002, "the LOCAL-STORAGE SECTION");

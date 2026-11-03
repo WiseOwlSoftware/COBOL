@@ -938,7 +938,7 @@ public static class DiagnosticCatalog
         + "output procedure of a MERGE or file SORT statement\"; ISO §14.9.36.3 SR2 states the same rule for "
         + "ROLLBACK, with SORT unqualified.",
         "ISO §14.9.7.3 / §14.9.36.3");
-    // kb/Work PB3338: the APPLY COMMIT clause's OWN syntax rules — DataBinder.BindApplyCommitClause is the one report
+    // kb/Work PB3338: the APPLY COMMIT clause's OWN syntax rules — FileControlBinder.BindApplyCommitClause is the one report
     // (OoEnvironmentRules reports SR6 for the factory and instance definitions, whose I-O-CONTROL no program binder reads).
     public static readonly DiagnosticDescriptor ApplyCommitClauseRule = new(
         "COBOL4709", "apply-commit-clause-rule", EditionSeverity.Error,
@@ -2232,7 +2232,7 @@ public static class DiagnosticCatalog
     // before removal: no `.err` fixture in the corpus expected it, so no green test was pinning the gap open.)
     // (RecursiveWsPointerBacked — `recursive-working-storage-pointer-backed` — was DELETED by kb/Work PB234, which
     // implemented the model it deferred: an ADDRESS-OF-taken record of a RECURSIVE unit's static WS routes its
-    // StorageCell onto the static channel (DataBinder.StaticAddressableCells) and __ResetStatics re-seeds it in
+    // StorageCell onto the static channel (StorageTierSlice.StaticAddressableCells) and __ResetStatics re-seeds it in
     // place; a level-01 REDEFINES of a BASED record rides the based root's static bridge. It carried the shared
     // 0899 recognized-not-implemented code, so no number is freed and none is reallocated. Verified before
     // removal: no `.err` fixture in the corpus expected it.)
@@ -8077,7 +8077,7 @@ public static class DiagnosticCatalog
         "ISO §14.4.1; ISO §8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
 
     // kb/Work PB4307: `MULTIPLE FILE TAPE.` and `MULTIPLE FILE.` compiled clean at --std 85, where `TAPE CONTAINS.`
-    // drew COBOL0001. Emitted by DataBinder.BindIoControl, the I-O-CONTROL clauses' own syntax rules, at every edition:
+    // drew COBOL0001. Emitted by FileControlBinder.BindIoControl, the I-O-CONTROL clauses' own syntax rules, at every edition:
     // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its files is malformed too.
     public static readonly DiagnosticDescriptor MultipleFileNamesNoFile = new(
         "COBOL5944", "multiple-file-names-no-file", EditionSeverity.Error,

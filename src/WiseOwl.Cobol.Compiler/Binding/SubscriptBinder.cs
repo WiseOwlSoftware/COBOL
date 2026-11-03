@@ -269,7 +269,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// through the SORT binder's own data-description walk, and REDEFINES / OCCURS KEY / SUM through the data
     /// binder — never through <see cref="Resolve"/> or <see cref="ResolveForItem"/>, the procedure-division callers
     /// of this screen. (The third caller is the data division's constant entry, <c>CONSTANT AS LENGTH OF
-    /// data-name-2</c> — DataBinder.BindConstantLength, kb/Work PB1016 — which is not an SR5 context either.)
+    /// data-name-2</c> — ConstantEntryBinder.BindConstantLength, kb/Work PB1016 — which is not an SR5 context either.)
     /// Before PB681 the omitted case was left to <see cref="PlaceForItem"/>, whose null NOBODY reported:
     /// <c>MOVE E TO B</c> over a table element compiled clean and aborted the run unit at the MOVE.</para></summary>
     internal bool ScreenSubscriptArity(Core.DataReferenceContext dref, DataItem item, int written)

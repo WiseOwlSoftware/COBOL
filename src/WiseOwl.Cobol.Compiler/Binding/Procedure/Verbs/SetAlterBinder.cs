@@ -204,7 +204,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     /// <para>Every receiver must name a settable external switch's mnemonic (SR5) — an unresolvable name fails
     /// loud, never a silent skip.</para>
     /// <para>⛔ THE OPERAND IS LOOKED UP IN THE ONE MNEMONIC REGISTRY and its row's KIND decides (kb/Work PB454).
-    /// This used to read a second, switch-only map (<c>DataBinder.SwitchMnemonics</c>) built by a second walk of
+    /// This used to read a second, switch-only map (the former <c>SwitchMnemonics</c>) built by a second walk of
     /// the same SPECIAL-NAMES entries, and that second walk is where an Option-2 switch clause (status phrases,
     /// no mnemonic) once entered the switch-NAME itself as a mnemonic, so <c>SET SWITCH-1 TO ON</c> bound. One
     /// walk (<see cref="MnemonicRegistry"/>, which also carries the §12.3.4 GR1 inheritance into contained units

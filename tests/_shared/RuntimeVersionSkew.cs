@@ -37,15 +37,7 @@ internal static class RuntimeVersionSkew
         byte[] recorded = encoding.GetBytes(Current), skewed = encoding.GetBytes(OtherMajor);
         if (recorded.Length != skewed.Length)
             throw new InvalidOperationException($"the skewed version '{OtherMajor}' is not as long as '{Current}' in {encoding.WebName}");
-        byte[] image = File.ReadAllBytes(dll);
-        int replaced = 0;
-        for (int at = image.AsSpan().IndexOf(recorded); at >= 0; at = image.AsSpan().IndexOf(recorded))
-        {
-            skewed.CopyTo(image, at);
-            replaced++;
-        }
-        if (replaced > 0) File.WriteAllBytes(dll, image);
-        return replaced;
+        return ByteImage.PatchFile(dll, recorded, skewed);
     }
 
     /// <summary><paramref name="versionText"/> with its major replaced by the next major, or by the previous one when

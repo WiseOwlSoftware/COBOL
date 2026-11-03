@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>ONE switch-name / feature-name / device-name entry of a SPECIAL-NAMES paragraph, read off its parse node
 /// and classified against <see cref="ImplementorNames"/> — the ONE reading both walkers of the entry share (the
-/// program's switch registry, <c>DataBinder.BindImplementorNameEntry</c>, and the per-unit mnemonic registry
+/// program's switch registry, <c>SpecialNamesBinder.BindImplementorNameEntry</c>, and the per-unit mnemonic registry
 /// <c>Procedure.MnemonicRegistry</c>, which also reads enclosing OO scopes), so the two can never classify a name
 /// differently.</summary>
 /// <param name="Written">The name as written (the entry's first word).</param>

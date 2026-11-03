@@ -92,7 +92,7 @@ localeClause
 // same word pair by text only because ORDER had no token.
 // literal-9 names the cultural ordering table (§12.3.7.4 GR17 — "The implementor specifies the allowable content
 // of literal-9"); ordering-name-1 "may be specified only in the STANDARD-COMPARE intrinsic function"
-// (§12.3.7.3 SR9). The binder (DataBinder.OrderTableBind) enforces SR10/SR11 and registers the name.
+// (§12.3.7.3 SR9). The binder (SpecialNamesBinder.OrderTableBind) enforces SR10/SR11 and registers the name.
 // ⚠ NOT edition-gated, unlike localeClause: TABLE is reserved at EVERY edition, so the pair ORDER + TABLE has no
 // competing COBOL-85 reading (nothing else in a SPECIAL-NAMES paragraph can be followed by, or begin with, TABLE)
 // — and at 85, where §8.9 leaves ORDER user-definable, the word still reaches `implementorSwitchEntry` through
@@ -277,7 +277,7 @@ symbolicCharactersClause
 //      parses exactly as it always did (an ambiguity resolves to the lowest alternative);
 //   2. `IS|ARE` then `integerOperand+` — the ordinals may be constant-names;
 //   3. words only — the optional IS/ARE omitted with constant-name ordinals: `SYMBOLIC CHARACTERS SOH K1`.
-// Whichever alternative parsed, the BINDER (DataBinder.SymbolicClauseOperands) re-reads the clause's tokens, all entries, in source
+// Whichever alternative parsed, the BINDER (SpecialNamesBinder.SymbolicClauseOperands) re-reads the clause's tokens, all entries, in source
 // order and decides each WORD by whether the compilation unit defines it as a constant — the only fact that
 // separates a name from an ordinal — so a greedy parse that folded a following IS-less group into the previous
 // group's ordinals (`SC-A IS K1 SC-B K2`) is regrouped correctly.
@@ -345,7 +345,7 @@ alphabetLocalePhrase
 // literal-1 [ {THROUGH|THRU} literal-2 | {ALSO literal-3}… ] — ⚠ A DELIBERATE SUPERSET (kb/Work PB790). The printed
 // figure (RENDERED — PDF p321 / folio 291) stacks the two phrases in ONE bracket with no choice indicators, so an
 // entry carries at most one of them (§5.2.6.2). The rule still admits both so the binder can refuse the pair BY NAME
-// (COBOL2242, DataBinder.AlphabetLiteralPhrase) instead of a parse error at ALSO that names no rule.
+// (COBOL2242, SpecialNamesBinder.AlphabetLiteralPhrase) instead of a parse error at ALSO that names no rule.
 alphabetEntry
     : (cobolWord | literal) ((THRU | THROUGH) (cobolWord | literal))?
       (ALSO (cobolWord | literal))*

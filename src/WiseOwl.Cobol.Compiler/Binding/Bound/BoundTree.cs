@@ -868,7 +868,7 @@ public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool 
 /// evaluation is the collating sequence defined by that alphabet" — so it OVERRIDES the implementor default, which
 /// for this compiler is the PROGRAM COLLATING SEQUENCE: a range under <c>IN STANDARD-1</c> collates natively even
 /// inside a program whose PCS reorders the alphabet. A COBOL NAME rides here, never a generated field: the renderer
-/// maps it through <c>DataBinder.RangeCollations</c>.</para>
+/// maps it through <c>SpecialNamesBinder.RangeCollations</c>.</para>
 /// <para>⛔ A RANGE WITH AN <c>IN</c> PHRASE ALWAYS BINDS TO THIS NODE, checked or not, because the alternative
 /// lowering — a pair of <c>BoundRelational</c>s — has nowhere to put a per-range collating sequence: a relation's
 /// sequence is derived from its operands' categories, which is exactly the rule the IN phrase overrides. The
@@ -1573,7 +1573,7 @@ public sealed record BoundImplicitSeries(IReadOnlyList<BoundStatement> Members) 
 /// and checking enabled for one of them reaches the statement's exception processing (kb/Work PB3338, review finding
 /// w1154a R1-3: with no entry there the mask was always 0, PB1036's shape).
 /// <para><paramref name="ForeignFiles"/>: the files of ANOTHER element's clause that this element can name — the
-/// GLOBAL file-names of its containers (§13.18.27.4 GR1, <c>DataBinder.VisibleFiles</c>) under commit control there. Their refusal
+/// GLOBAL file-names of its containers (§13.18.27.4 GR1, <c>DataBindState.VisibleFiles</c>) under commit control there. Their refusal
 /// is told by the describing element, but a TURN directive of THIS element that names one enables checking "only for
 /// exception conditions associated with that file-name" (§7.3.25.4 GR6, GR8), so each is an I-O file of the statement
 /// for <c>EcBinder.IoFilesOf</c> too (kb/Work PB3554, review finding w20261712a R1-1).</para></summary>

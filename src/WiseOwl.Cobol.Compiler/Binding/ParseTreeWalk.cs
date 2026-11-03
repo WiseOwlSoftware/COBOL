@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>⛔ THE ONE DEPTH-FIRST WALK OF A PARSE SUBTREE THE BINDER ASKS FOR BY NODE (kb/Work PB4302). A recursive
 /// <c>yield</c> iterator (<c>foreach (var d in Walk(child)) yield return d;</c>) hands every node up through one
 /// <c>MoveNext</c> per level above it and allocates one iterator per interior node: O(nodes x depth) calls and, over the
-/// corpus, a fifth of the binder's allocation (<c>DataBinder.PtrDescendants</c> alone was 22.7%). This walk keeps its own
+/// corpus, a fifth of the binder's allocation (the former pointer-scan walk, <c>PtrDescendants</c>, alone was 22.7%). This walk keeps its own
 /// stack, so a node costs one push and one pop whatever its depth, and the tree under a node is not touched until the
 /// walk reaches it.
 /// <para>Document (pre-)order, as the source reads: a node before its children, children left to right. A walk that must

@@ -91,7 +91,7 @@ public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, strin
     /// built collating table of a literal phrase, the LOCALE arm of an <c>IS LOCALE</c> phrase, the identity
     /// (<see cref="AlphabetDef.Native"/>) for NATIVE/STANDARD-1/STANDARD-2 (ISO/IEC 646 order IS the Latin-1 native
     /// order — no table), or an implementor code-name's row (§12.3.7.3 SR15 / §12.3.7.4 GR7 i —
-    /// <c>DataBinder.ImplementorCodeNames</c>: ASCII, identity like STANDARD-1; EBCDIC, whose 256-entry table the row
+    /// <c>ImplementorCodeNames</c>: ASCII, identity like STANDARD-1; EBCDIC, whose 256-entry table the row
     /// carries). An <c>ALPHABET … FOR NATIONAL</c> clause registers in <see cref="NationalAlphabets"/>
     /// instead — the two classes are disjoint reference domains (§12.3.6 SR1/SR2, §14.9.40 GR5).</summary>
     internal ConfigurationNames<AlphabetDef> Alphabets =>

@@ -481,7 +481,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // REPO-12: an existing <name>.dll that an older runtime major wrote is replaced, with the warning; never silently.
+    [Fact]   // REPO-12: an existing <name>.dll that another runtime major wrote is replaced, with the warning; never silently.
     public void AnExpansionFileAnOtherRuntimeMajorWrote_IsReplacedUnderRepo12()
     {
         WithDirectory("expansion-skewed-target", dir =>

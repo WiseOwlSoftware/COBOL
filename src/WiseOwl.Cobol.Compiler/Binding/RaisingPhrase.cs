@@ -15,7 +15,7 @@ using WiseOwl.Cobol.Runtime;
 /// ⛔ THE ONE PARTITION OF A PROCEDURE-DIVISION-HEADER RAISING PHRASE (ISO §14.2.1 / §14.2.2 SR7–SR9;
 /// kb/Work PB815 + PB814). Every source element whose header can carry the phrase — program, function, program
 /// and function prototypes (<c>EcBinder.EcCollectPdRaising</c>), method definitions and method prototypes
-/// (<c>DataBinder.OoBindMethodSignature</c>) — calls THIS, and gets back the tuples
+/// (<c>OoDataBinder.BindMethodData</c>) — calls THIS, and gets back the tuples
 /// (<see cref="RaisingTarget"/>) the consuming rules compare against.
 /// <para><b>What it replaced.</b> Two verbatim copies — the PD-header arm and the METHOD-ID arm — each
 /// partitioning a bare word list into "EC name" and "class name", each carrying the same comment that SR9's

@@ -729,7 +729,7 @@ internal sealed class BinderDriver
         // The inheritance merge's second half (InheritStep.Merge; kb/Work PB2296): the formals' omitted-argument guards,
         // the GLOBAL bridges and the drop of an inherited constant a nearer data-name hides. A container's GLOBAL FD needs
         // no merge into FilesByName: every file-name lookup reads the unit's own files first and its containers' GLOBAL
-        // ones after (DataBinder.VisibleFiles), and the child's bound verbs hold the SHARED FileModel, so the owner's
+        // ones after (DataBindState.VisibleFiles), and the child's bound verbs hold the SHARED FileModel, so the owner's
         // one-time PROG::FILE qualification keys them to the owner's connector.
         InheritStep.Merge(unit, SourceElementKindOf(unit), session.Turn);
         unit.Refs = new ReferenceResolver(data);

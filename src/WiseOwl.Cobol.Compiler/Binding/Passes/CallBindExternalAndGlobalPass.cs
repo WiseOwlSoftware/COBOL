@@ -10,7 +10,7 @@ using Core = CobolParserCore;
 /// The CallBindExternalAndGlobal pass: row 26 of the per-unit resolve pipeline (FilesResolved to FilesResolved), the
 /// EXTERNAL and GLOBAL record bindings and the CALL cells of the unit (§13.18.27.4 GR1).
 /// <para>The rule code lives with the concern it belongs to, not with the pass: the linkage rules are
-/// <see cref="DataBinder.CallBindExternalAndGlobal"/> and its helpers (the <c>LinkageBinder</c> concern of
+/// <see cref="LinkageBinder.CallBindExternalAndGlobal"/> and its helpers (the <c>LinkageBinder</c> concern of
 /// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2359), so this row only schedules it. The pass
 /// forces a CALL cell's leaves to their character image, so it declares an append to
 /// <see cref="FactSetKind.ImageForcedItems"/>.</para>

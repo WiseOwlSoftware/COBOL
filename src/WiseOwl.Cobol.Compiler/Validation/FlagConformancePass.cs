@@ -647,7 +647,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     //    checking is enabled. **Only an index-NAME receiver range-checks** (§14.9.39.4 Format-1 GR2a / Format-2 GR4a):
     //    a class-index DATA item (USAGE INDEX) receiver copies its value UNCHANGED (Format-1 GR2b) and never raises
     //    EC-RANGE-INDEX, so it is NOT flagged. A receiver is an index-name iff its base name is in the current unit's
-    //    INDEXED BY registry (DataBinder.IndexNames); a data-name / pointer / capacity / dynamic-length receiver of
+    //    INDEXED BY registry (ForestSlice.IndexNames); a data-name / pointer / capacity / dynamic-length receiver of
     //    the SHARED SET-TO / SET-UP/DOWN grammar (Formats 5/10/14/16) is intrinsically excluded (never an index-name). ──
     //    The one setToStatement rule carries every SET … TO shape (kb/Work PB4231); Format 1's is the one whose sender is
     //    the arithmetic arm and which spells no ADDRESS phrase (a NULL sender and Format 7's spelling are never Format 1).

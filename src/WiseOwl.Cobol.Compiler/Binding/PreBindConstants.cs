@@ -117,7 +117,7 @@ internal static class PreBindConstants
                 : ConstantEntryBinder.VariableStringValue(value, where));
         }
         // An operand written as ONE constant-name is that constant's literal-1 (§13.10.3 SR2, §13.10.4 GR1), whatever its
-        // class - the data bind's DataBinder.ConstantLiteralOperand reading, so the two agree (kb/Work PB780).
+        // class - the data bind's ConstantEntryBinder.ConstantLiteralOperand reading, so the two agree (kb/Work PB780).
         if (SoleOperand.DataRef(body.constantValue()?.arithmeticExpression()) is { } word
             && word.dataReferenceSuffix().Length == 0 && word.cobolWord() is { } spelled)
         {

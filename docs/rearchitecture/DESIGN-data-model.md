@@ -161,7 +161,7 @@ the largest integer the PREFIXED length field of its dynamic-length-structure-na
 maximum (`docs/CONFORMANCE.md` §7 DOC-A.1-62) — computed by the ONE producer `CobolDynString.MaxSizeOf` and carried
 as `DataItem.DynMaxSize` to every store, SET SIZE and argument adapter. The structure the DYNAMIC LENGTH clause names
 is a SPECIAL-NAMES declaration (§12.3.7.2 dynamic-length-structure-clause; kb/Work PB829), bound into
-`DataBinder.DynamicLengthStructures` (inherited by contained source elements, §8.4.6.1) as a
+`ConfigurationSlice.DynamicLengthStructures` (inherited by contained source elements, §8.4.6.1) as a
 `Model/DynamicLengthStructure` and linked from the item as `DataItem.DynStructure`: it decides the PREFIXED candidate
 (§12.3.7.4 GR18 — SHORT PREFIXED 65535, SIGNED SHORT PREFIXED 32767, the 32-bit fields past the implementor
 maximum), §13.18.19.3 SR4's bound on the LIMIT phrase, and — as part of the DYNAMIC LENGTH clause — §8.5.3.1's
@@ -850,7 +850,7 @@ elementary / group / `ALL 'x'` / Report-Writer SOURCE VALUEs. This closes the co
 | delete | ~10 inline Tier-C guards + `RedefinesTier.ByteCanonical` + `StorageForm.TierCWindow` | *(nothing)* | **LANDED (Step D, kb/Work PB164):** the tier dissolved into Tier B rather than being single-sourced — a mixed-USAGE pun needed no separate representation (§2.3). |
 | split | `PicInfo.Analyze` (`PicInfo.cs:333-562`) | `PictureAnalyzer.Analyze` | PicInfo becomes a pure value record (§2.7). |
 | delete | `PicInfo` skeleton scaffolding (`:175,216,691-705`) | `PicAnalysis` result discriminant | Removes dead sentinels/branches (§2.7). |
-| rename | `DataBinder.ResolveIndexItems` | folded into `UsageInheritancePass` | Name matched actual scope (USAGE markers, not index-only) (§2.5/§2.7). |
+| rename | `DataBinder.UsageInheritanceWalk` | folded into `UsageInheritancePass` | Name matched actual scope (USAGE markers, not index-only) (§2.5/§2.7). |
 | delete | `DecodeCobolString` × 3 + hard-coded `"` delimiter tests | `CobolLiteral.Decode` | One decoder; fixes apostrophe VALUE bug (§2.8). |
 | refactor | `DataBinder` 9+ public mutable collections (`DataBinder.cs:26-77`) | read-only `BindModel` result object with explicit mutation methods | Encapsulate the blackboard so passes own their writes (§2.4/§2.5). |
 

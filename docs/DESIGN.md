@@ -1062,7 +1062,7 @@ successor to `SequentialIoBinder.FileOfRecord`, which tested CONTAINMENT where t
 (`FILES_DESIGN.md` §"The `record-name-1` operand") — resolves a contained WRITE/REWRITE of the owner's
 record through the merge, and the I-O status routes to the owner's local status item (§12.4.5.8.4 GR1 NOTE 1). The owner's FILE STATUS, RELATIVE KEY, ASSIGN USING, RECORD VARYING DEPENDING ON and LINAGE items are the FILE's operands, not names the contained program writes (§8.4.5: an implicit reference resolves in the element that holds the clause; §13.18.27.4 GR2 lets a contained program name only the global names): `FileModel.ClauseOperandItems` is the one list, and the roots on it (`DataBinder.GlobalFileOperandRoots`) are bridged and placed in the contained unit like a global root and offered as no name (`InheritStep.ContainerBridgedRootsOf`; kb/Work PB4454; `FileClauseOperandDriftTests`).
 A record may be GLOBAL when its FD is not (§13.18.27.3 SR1 b)): the record-name is visible in a contained program
-and its FILE is not, so the container's non-global FileModels are kept in `DataBinder.ContainerLocalFiles` for ONE
+and its FILE is not, so the container's non-global FileModels are kept in `InheritedGlobals.ContainerLocalFiles` for ONE
 question — `ResolveRecordName` refuses a contained WRITE / REWRITE of such a record by WRITE §14.9.51.3 SR21 /
 REWRITE §14.9.35.3 SR3 (COBOL1757; kb/Work PB1193), never by the false "not a logical record" arm;
 OPTIONAL files (OPEN INPUT missing → 05 + EOF; non-optional missing → 35);
@@ -1378,7 +1378,7 @@ result does not feed it — decision 20.
 - **SPECIAL-NAMES implementor system-names** (§12.3.7.3 SR8; A.1 items 189/190/191) = ONE table,
   `WiseOwl.Cobol.Editions/ImplementorNames.cs` (kb/Work PB862): each row is a name, its ONE type (§8.3.2.3.1 — device / feature /
   switch), a device's input/output capability and a feature's WRITE ADVANCING rule. Both walkers of the
-  switch-name/feature-name/device-name entry — `DataBinder.BindImplementorNameEntry` (switch mnemonics + status
+  switch-name/feature-name/device-name entry — `SpecialNamesBinder.BindImplementorNameEntry` (switch mnemonics + status
   condition-names) and `Procedure.MnemonicRegistry` (the per-unit mnemonic map, OO scopes included) — classify
   through ONE reader, `ImplementorNameEntry`; an unavailable name is COBOL2241 at the declaration. The mnemonic
   map's value is the ROW, so every use is decided by the name's KIND: ACCEPT/DISPLAY (`MnemonicDevice`, SR7 +
@@ -2093,7 +2093,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     (COBOL2315) for ALPHABET, CLASS and SYMBOLIC CHARACTERS alike in `ClosedFormatPass`, kb/Work PB977):
     - **⛔ ONE literal-operand decoder for the ALPHABET and CLASS clauses** (kb/Work PB976). §12.3.7.3 states the
       same operand rules twice — SR14 b/c for the ALPHABET literal phrase, SR17 b/c for the CLASS clause, under
-      different item numbers — so `DataBinder.LiteralPhraseOperand` decodes every operand of both, held to a
+      different item numbers — so `SpecialNamesBinder.LiteralPhraseOperand` decodes every operand of both, held to a
       per-clause `LiteralPhraseRules` value (the clause's descriptor, rule number and item numbers, its class, and
       the CLASS clause's IN alphabet). The CLASS clause had its own copy that ignored the FOR phrase entirely, so
       SR17's class-dependent half (the IN alphabet's class, each literal's class, one character under THROUGH) went

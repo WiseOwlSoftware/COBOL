@@ -185,7 +185,7 @@ paddingCharacterClause
 // ⛔ PARSED AND *DIAGNOSED*, NOT PARSED AND IGNORED (kb/Work PB292). Until 2026-09-05 nothing anywhere read
 // this rule and the clause compiled clean at every edition on BOTH arms, which left docs/CONFORMANCE.md §2
 // row 26's "Not claimed" unobservable and §4.2.6 ¶3's MANDATORY compile-time warning mechanism unbuilt. The
-// decline now lands at DataBinder.BindFileControl as COBOL1778 (accept-inert Warning) — Annex A.3 item 26
+// decline now lands at FileControlBinder.BindFileControl as COBOL1778 (accept-inert Warning) — Annex A.3 item 26
 // for STANDARD-1, Annex A.1 item 150 for feature-name-1. Variable-length records keep the §12.4.5.11.4 GR5
 // implementor framing (4-byte length prefix, Annex A.1 item 151), which §12.4.5.11.4 GR1 keeps invisible to
 // the record area and the record size.
@@ -243,7 +243,7 @@ accessMode
 // GR2 / §12.4.5.6.4 GR2 say what the repetition MEANS: "Record-key-name-1 defines a record key consisting of
 // the concatenation of all occurrences of data-name-2 in the order specified." Annex A.3 item 40 makes the
 // capability processor-dependent and this implementation provides it (docs/CONFORMANCE.md §2 row 40): the
-// binder's DataBinder.CaptureRecordKeySource reads the phrase and the key is a list of byte windows end to end
+// binder's FileControlBinder.CaptureRecordKeySource reads the phrase and the key is a list of byte windows end to end
 // (docs/FILES_DESIGN.md, "THE SECOND KEY FORM"). It is a post-1985 form, gated once on this shared
 // rule (VersionConformancePass.VisitRecordKeySourcePhrase, record-key-source-2002).
 // ⛔ ONE RULE, USED BY BOTH CLAUSES. A.3 item 40 names RECORD KEY and ALTERNATE RECORD KEY in ONE sentence and
@@ -330,7 +330,7 @@ ioControlParagraph
 // (96.8%), while ON's box 228.49–243.51 has NO horizontal rule in its band at all.
 // ⛔ THE OPERAND LIST MAY BE EMPTY IN THE GRAMMAR (kb/Work PB1096). The format repeats an ALL-OPTIONAL pair, so
 // `APPLY COMMIT.` is a spelling of the format; §12.4.6.3.3 SR4 ("At least one file or data-item shall be
-// specified") is a SYNTAX RULE, checked at bind (DataBinder.BindIoControl), so the empty clause is refused by name
+// specified") is a SYNTAX RULE, checked at bind (FileControlBinder.BindIoControl), so the empty clause is refused by name
 // rather than by a parse error. file-name-1 and identifier-1 both arrive as dataReference: only the symbol table
 // tells them apart (SR1 vs SR3), so the binder classifies each operand. COMMIT stays the required anchor, so the
 // clause can never match on APPLY alone.
@@ -369,7 +369,7 @@ sameClause
 // one physical reel — irrelevant to disk storage, so parsed and ignored.
 // The file list is optional HERE ON PURPOSE (kb/Work PB4307): a required list would send `MULTIPLE FILE TAPE.` to
 // the I-O-CONTROL error production (COBOL1970 "not a clause", false) and lose the clause's COBOL0902 from 2002 on;
-// DataBinder.ScreenMultipleFileClause refuses the empty list by name (COBOL5944).
+// FileControlBinder.ScreenMultipleFileClause refuses the empty list by name (COBOL5944).
 multipleFileClause
     : multipleKeyword FILE TAPE? (CONTAINS? multipleFileTapeEntry (COMMA? multipleFileTapeEntry)*)?
     ;
