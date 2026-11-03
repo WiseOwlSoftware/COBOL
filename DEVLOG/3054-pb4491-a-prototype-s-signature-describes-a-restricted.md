@@ -1,4 +1,4 @@
-## PB4491: a prototype's signature describes a restricted pointer formal by the prototype it names
+## Entry 3054 — 2026-11-03 14:55 PST — PB4491: a prototype's signature describes a restricted pointer formal by the prototype it names
 
 **Mechanism.** The signature graph (`PrototypeSignatures.Same`, asked by §10.6.2 SR2 / SR3 and §13.7.3 SR2) compared an
 ELEMENTARY restricted program- or function-pointer formal by its prototype's signature class, through the
@@ -61,3 +61,4 @@ T1 on both sides; refusals `pb4491-prototype-pointer-formal-two-type-names` (COB
 `pb4491-function-prototype-pointer-formal-typed-untyped` (COBOL1513, 2014/2023, the untyped-against-typed arm);
 `_unassigned/pb2495_recursive_prototype_signature`'s PSDEF pair (T3 against T9, found by the corpus round trip) now spells
 T3 on both sides; `SignatureIdentityDriftTests` gains QPTRT (TO PBASE through another type-name: another identity).
+
