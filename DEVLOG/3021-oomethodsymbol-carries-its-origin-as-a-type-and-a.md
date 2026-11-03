@@ -1,4 +1,4 @@
-## OoMethodSymbol carries its origin as a type, and a conformance error about a method no METHOD-ID wrote is positioned (PB4459)
+## Entry 3021 — 2026-11-02 23:42 PST — OoMethodSymbol carries its origin as a type, and a conformance error about a method no METHOD-ID wrote is positioned (PB4459)
 
 **Why.** The PB2104 branch review found `OoMethodSymbol.Ctx` null for three kinds of method (the standard class BASE's, a PROPERTY
 clause's generated accessor, one imported from the external repository) while `OoClassSymbol` modelled the same question as an explicit
@@ -24,3 +24,4 @@ have goldens and a diagnostic's position is not a conformance-suite property. No
 **Review round 1.** The reviewer found `OoConformance.ValidatePropertyAccessorPairs` still positioned its SR7 (COBOL2727) error through `(set.Owner == cls ? set : get).Ctx ?? accessor.Ctx`, a null-fallback the sweep had missed: with `Ctx` throwing off `Source`, a class whose own half of the pair is a PROPERTY clause's generated accessor (a generated GET over an inherited SET, or the reverse) crashed the compiler with an `InvalidOperationException` instead of reporting COBOL2727 (on `main` the error printed with no position). The error now stands at the METHOD-ID the class wrote (the later of the pair when it wrote both), else at the class name, as `ValidateImplements` does. `OoClassTablePositionTests` gains PAIR-GENERATED-GET-INHERITED-SET and PAIR-GENERATED-SET-INHERITED-GET (every error positioned, COBOL2727 on the CLASS-ID line). The remaining `.Ctx` readers over a method symbol (`ValidateOverrideSignatures`, `MarkRoster`, which skips PROPERTY subjects, and the Source-guarded binder readers) were re-checked: none can meet a generated method.
 
 **Oracle.** `compare_oracle.py` against the base `b126084cc9f3`: `=== ARCH-ORACLE: IDENTICAL — 16164 cases (baseline b126084cc9f3, new 7ebf4c64e9cc) ===`. The stream carries each diagnostic's line and column, so no corpus program's emitted C# or diagnostics changed; the positioned COBOL0841 and COBOL2727 cases are the unit witnesses above.
+
