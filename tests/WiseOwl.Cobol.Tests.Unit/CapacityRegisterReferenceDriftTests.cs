@@ -65,8 +65,8 @@ public sealed class CapacityRegisterReferenceDriftTests
     /// reference. Their files may read a register map only inside them.</summary>
     private static readonly (string File, string Method, string Path)[] ShadowingPredicates =
     [
-        ("DataBinder.Constants.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs")),
-        ("DataBinder.Oo.cs", "Declares", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Oo.cs")),
+        ("DataBinder.NonDataNames.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs")),
+        ("OoMethodDataScope.cs", "Declares", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoMethodDataScope.cs")),
     ];
 
     /// <summary>⛔ A shadowing predicate's file reads a register map ONLY inside the predicate, so a reference lookup
@@ -176,9 +176,9 @@ public sealed class CapacityRegisterReferenceDriftTests
     [Fact]
     public void TheCapacityRegister_IsMintedWithItsSr30Parent()
     {
-        string odo = File.ReadAllText(OdoBinderPath);
+        string odo = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Passes", "DynamicResolvePass.cs"));
         var mint = Regex.Match(odo, @"var reg = new DataItem\s*\{(?<body>.*?)\};", RegexOptions.Singleline);
-        Assert.True(mint.Success, "The CAPACITY register minting site was not found in DataBinder.Odo.cs");
+        Assert.True(mint.Success, "The CAPACITY register minting site was not found in DynamicResolvePass.cs");
         Assert.Contains("Parent = item.Parent,", mint.Groups["body"].Value, StringComparison.Ordinal);
     }
 

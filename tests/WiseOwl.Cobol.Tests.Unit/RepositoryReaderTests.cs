@@ -46,7 +46,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         {
             var decoded = RepositoryCodec.Decode(record, comp.SignatureClasses);
             var unit = comp.Units.Single(u => u.Parent is null && u.Name == record.Name);
-            Assert.True(PrototypeSignatures.Same(new CalleeSignature(unit.Data.LinkageFormals, unit.Data.LinkageReturning), decoded.Signature),
+            Assert.True(PrototypeSignatures.Same(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning), decoded.Signature),
                 $"{record.Name}: the record read from the module is not the unit's signature");
         }
 

@@ -204,7 +204,7 @@ public sealed class DataItem
     /// / ISO §13.16.3 SR8), whose representation the usage alone fixes.
     /// <para>⛔ The flag exists because §13.18.60.4 GR1 gives that representation to the ELEMENTARY ITEMS, "not to
     /// the group itself": entry bind cannot yet tell a picture-less elementary item from a group header (the
-    /// subordinates are not parsed), so it synthesizes optimistically and <c>DataBinder.UsageInheritancePass</c>
+    /// subordinates are not parsed), so it synthesizes optimistically and <c>UsageInheritancePass</c>
     /// moves the profile DOWN to each picture-less leaf and sheds it from the header once the forest is complete.
     /// Before kb/Work PB495 that pass tested for the synthesized shapes by reference identity and by
     /// category/usage patterns — two hand-written lists that disagreed, so a group-level BINARY-SHORT or FLOAT-LONG
@@ -215,7 +215,7 @@ public sealed class DataItem
     public bool PicIsUsageSynthesized { get; set; }
 
     /// <summary>True when <see cref="Pic"/> is the PICTURE clause ISO §13.16.3 SR9 IMPLIES from the entry's VALUE
-    /// literal (<c>DataBinder.SynthesizeImpliedPictures</c>) rather than one the source wrote. The provenance
+    /// literal (<c>SynthesizeImpliedPicturesPass</c>) rather than one the source wrote. The provenance
     /// matters to exactly one family of rules: the §13.18.63.3 SR4/SR5/SR10 size sentences bound a VALUE literal
     /// by "the size indicated by an EXPLICIT PICTURE clause", so an implicit picture sets no such bound. It
     /// travels with the PICTURE through a TYPE copy — §13.18.57.4 GR3: "that implicit PICTURE clause becomes part
@@ -252,12 +252,12 @@ public sealed class DataItem
     public IReadOnlyList<TableValueSpec>? TableValues { get; set; }
 
     /// <summary>The RESOLVED Format 2 (table) VALUE — the §13.18.63.4 GR12–GR15 subscript-tuple → literal map plus
-    /// the OCCURS chain it is keyed by (§13.18.63.3 SR20's order). Set by the <c>DataBinder.ResolveTableValues</c>
+    /// the OCCURS chain it is keyed by (§13.18.63.3 SR20's order). Set by the <c>ResolveTableValuesPass</c>
     /// pass, which needs the COMPLETE forest: an entry's dimensions include every OCCURS clause SUPERORDINATE to
     /// it (SR18/SR20), and <see cref="Parent"/> is still null while the entry itself binds. Null when the entry
     /// carries no table VALUE or its clause was rejected.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
-        "resolved post-build by DataBinder.ResolveTableValues, which needs the COMPLETE forest (ISO §13.18.63.3 SR18/SR20 dimensions), in the copy's OWN scope")]
+        "resolved post-build by ResolveTableValuesPass, which needs the COMPLETE forest (ISO §13.18.63.3 SR18/SR20 dimensions), in the copy's OWN scope")]
     public TableValuePlan? TableValuePlan { get; set; }
 
     /// <summary>True for this item OR ANY ITEM IN ITS SUBTREE carrying a resolved <see cref="TableValuePlan"/> —
@@ -304,7 +304,7 @@ public sealed class DataItem
     /// be a strongly-typed group item") is false of a TYPEDEF STRONG template's group — a template is not a typed
     /// item (§8.5.3.1) — and becomes true only when a TYPE reference composes it. A flag could only suppress the
     /// screen for every copy; the source lets the screen suppress exactly the copies whose source was already in
-    /// violation (<c>DataBinder.CheckGroupValueDeclarations</c>).</para></summary>
+    /// violation (<c>CheckGroupValueDeclarationsPass</c>).</para></summary>
     [DescriptionCopy(DescriptionCopyKind.CopyWritten,
         "the copy itself WRITES it — the ISO §13.18.63.3 SR13/SR14 screens' subject is the entry that WROTE the VALUE, never a composed copy")]
     public DataItem? ValueCopiedFrom { get; set; }
@@ -408,7 +408,7 @@ public sealed class DataItem
     /// <summary>True when THIS entry carries a GLOBAL clause (ISO §13.18.27) that the clause-placement screen
     /// ADMITTED (§13.16.3 SR6/SR7, §13.18.27.3 SR1 b) — level 1, data-name format, in the file, working-storage,
     /// local-storage or linkage section). The ONE input of the global-name registration
-    /// (<c>CallBindExternalAndGlobal</c> → <c>CallGlobalRoots</c>) — kb/Work PB518: the parse-tree scan it
+    /// (<c>CallBindExternalAndGlobal</c> → <c>LinkageBinder.GlobalRoots</c>) — kb/Work PB518: the parse-tree scan it
     /// replaces skipped a misplaced clause with a <c>continue</c> and never read the FILE SECTION at all.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "ISO §13.18.49.4 GR1 and §13.18.57.4 GR1 both exclude GLOBAL by name — a SAME AS / TYPE subject never inherits it")]
@@ -449,7 +449,7 @@ public sealed class DataItem
     public bool IsConstantRecord { get; init; }
 
     /// <summary>The type-name of a <c>TYPE IS type-name</c> reference (ISO §13.18.57), or null. The referencing entry
-    /// is CLONED from that type declaration's subtree by the post-build <c>DataBinder.ExpandTypes</c> pass (D17), which
+    /// is CLONED from that type declaration's subtree by the post-build <c>ExpandTypesPass</c> pass (D17), which
     /// clears this once expanded.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a reference is expanded in its OWN declaration before anything copies it (DataBinder.ExpandTemplate / ExpandSameAs complete the source first, kb/Work PB1302), so no copy carries a pending one")]
@@ -788,8 +788,8 @@ public sealed class DataItem
     /// its own. Every access path rooted here starts at the carrier's root and steps through
     /// <see cref="CarrierValueSegment"/> (<c>PlaceBuilder.AddRoot</c>), so the access is structure,
     /// <see cref="ClrName"/> stays a name (kb/Work PB4320) and no C# local's name sits on the model (kb/Work PB4380;
-    /// DESIGN-backend-abstraction §1.3 L7, L8). Set by <c>DataBinder.CallBindLinkage</c> and
-    /// <c>DataBinder.OoBindMethodData</c>.</summary>
+    /// DESIGN-backend-abstraction §1.3 L7, L8). Set by <c>LinkageBinder.CallBindLinkage</c> and
+    /// <c>OoDataBinder.BindMethodData</c>.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
     public FormalCarrier? ResidentCarrier { get; set; }
@@ -803,7 +803,7 @@ public sealed class DataItem
     /// §1.3 L8). A root whose storage is elsewhere never roots a path here: a carrier-resident formal's is its carrier's
     /// (<see cref="ResidentCarrier"/>, asked first), a Tier-B REDEFINES member's is its class's backing
     /// (<see cref="RedefinesClass.BackingLocal"/>) or cell, and a Tier-A view's is its canonical's. Set by
-    /// <c>DataBinder.OoBindMethodData</c>.</summary>
+    /// <c>OoDataBinder.BindMethodData</c>.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a fact of the method that declares the root (where its storage lives), not of the data description")]
     public MethodLocal? ActivationLocal { get; set; }
@@ -854,7 +854,7 @@ public sealed class DataItem
     /// <summary>The PROPERTY clause as written on this entry (ISO §13.18.42), or null (kb/Work PB1273). Set by
     /// <c>DataBinder.BindEntry</c>, which also asks §13.18.42.3 SR1's placement; the clause's other syntax rules are
     /// asked of THIS item — never of a name lookup — by the clause-placement table (SR3's elementary half, §13.16.3
-    /// SR21) and <c>DataBinder.OoBindPropertyClauses</c> (SR2, SR3's qualification half, SR4, SR5, SR6), which then
+    /// SR21) and <c>OoDataBinder.BindPropertyClauses</c> (SR2, SR3's qualification half, SR4, SR5, SR6), which then
     /// synthesizes the accessors (§13.18.42.4 GR1/GR2).</summary>
     [DescriptionCopy(DescriptionCopyKind.EntryOnly,
         "PROPERTY (ISO §13.18.42) is in neither GR-1 exclusion list (§13.18.57.4 GR1, §13.18.49.4 GR1), so a TYPE / SAME AS subject or a reproduced TYPEDEF member written in an object's working storage defines the property its own entry would; §13.18.42.3 then judges the copy at its own site. Not onto a compiler temporary: a temporary is never object data and defines no accessor method")]
@@ -863,7 +863,7 @@ public sealed class DataItem
     /// <summary>True for an ANY LENGTH elementary level-1 LINKAGE entry (ISO §13.18.2 — the item's length varies
     /// at runtime and is the length of the corresponding argument of the activating element, GR1; PICTURE is
     /// exactly one 'X', 'N', or '1', SR1). Set by <c>DataBinder.BindEntry</c> after the SR1/§13.16.3-SR17 shape
-    /// checks; CLEARED by the placement sweeps (<c>CallBindLinkage</c> / <c>OoBindMethodData</c>) on an SR2/SR3/SR4
+    /// checks; CLEARED by the placement sweeps (<c>CallBindLinkage</c> / <c>OoDataBinder.BindMethodData</c>) on an SR2/SR3/SR4
     /// violation so the item binds as ordinary storage under an already-failed compile (the IsBased pattern).
     /// Emit-side: every width-sensitive render of the item uses the CARRIER's runtime length, never Pic.Length.</summary>
     [DescriptionCopy(DescriptionCopyKind.EntryOnly,
@@ -1037,7 +1037,7 @@ public sealed class DataItem
     public EntrySection? RootSection { get; set; }
 
     /// <summary>True for a SYNTHESIZED compiler temp (a user-function result temp or an object-property temp —
-    /// <c>DataBinder.CreateCompilerTemp</c>, THE ONE constructor, sets it). A temp wears the same bound shapes
+    /// <c>CompilerTemps.Create</c>, THE ONE constructor, sets it). A temp wears the same bound shapes
     /// as declared data, so a rule whose text admits "a data item" and excludes functions (§15.43.3 r1's shape —
     /// §8.5.2.12 items 6/7 make FUNCTIONS category numeric too, which is why the exclusion must be written)
     /// needs this positive is-a-declared-item discrimination (kb/Work R26).</summary>
@@ -1086,7 +1086,7 @@ public sealed class DataItem
     /// <summary>True for a group item (has children, no PICTURE).
     /// <para>⛔ THIS IS THE COMPLETED FORM. Entry bind synthesizes a picture-less usage's profile onto an entry before its
     /// subordinates are parsed (<see cref="PicIsUsageSynthesized"/>), so `01 G USAGE BINARY-LONG. 05 A.` holds a PICTURE
-    /// profile on its header until <c>DataBinder.UsageInheritancePass</c> sheds it (§13.18.60.4 GR1, "and not to the
+    /// profile on its header until <c>UsageInheritancePass</c> sheds it (§13.18.60.4 GR1, "and not to the
     /// group itself") — and a pass that runs BEFORE it and asks "is this a group?" gets false. The description copies
     /// (TYPE, SAME AS) run first and ask <see cref="HasSubordinates"/>, which is true of the entry whatever header it
     /// still carries (kb/Work PB3682).</para></summary>

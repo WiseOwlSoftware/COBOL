@@ -58,7 +58,7 @@ internal static class StorageFormPass
         foreach (var d in ctx.AllBindersAndInterfaces())
             promoted.UnionWith(d.State.ImageForcedItems);
         foreach (var d in ctx.AllBindersAndInterfaces())
-            foreach (var (temp, model) in d.CompilerTempClones)
+            foreach (var (temp, model) in d.Temps.Clones)
                 if (promoted.Contains(model))
                     promoted.Add(temp);
         foreach (var d in ctx.AllBindersAndInterfaces())
@@ -85,7 +85,7 @@ internal static class StorageFormPass
         //     class member is NOT excluded (kb/Work PB3563): InitialStateBackground.Seed seeds a class member's
         //     image, so the promotion must give the leaf image storage as arms (3) and (4) do.
         foreach (var d in ctx.AllBindersAndInterfaces())
-            if (d.Options.Initialize is { HasFill: true } init)
+            if (d.State.Configuration.Options.Initialize is { HasFill: true } init)
             {
                 foreach (var root in d.WorkingStorageRoots)
                     if (init.Governs(root, workingStorageRoot: true, localStorageRoot: false))
@@ -100,9 +100,9 @@ internal static class StorageFormPass
         //      The method's EFFECTIVE clause is the one the emitter seeds with (OoEmitter: MethodOptions, else the
         //      unit's), so the promotion decision and the seed read the same clause.
         foreach (var d in ctx.AllBindersAndInterfaces())
-            foreach (var root in d.OoMethodScopedRoots)
-                if (root.RootSection == EntrySection.LocalStorage && d.OoRootOwner.TryGetValue(root, out var method)
-                    && (method.MethodOptions ?? d.Options).Initialize is { HasFill: true } methodInit
+            foreach (var root in d.Oo.MethodScopedRoots)
+                if (root.RootSection == EntrySection.LocalStorage && d.Oo.RootOwner.TryGetValue(root, out var method)
+                    && (method.MethodOptions ?? d.State.Configuration.Options).Initialize is { HasFill: true } methodInit
                     && methodInit.Governs(root, workingStorageRoot: false, localStorageRoot: true))
                     AddBackgroundFilled(root, promoted);
         // (6) THE TIER-A ALIAS CLOSURE (review round 1, R1-1 of PB4089): a Tier-A REDEFINES alias owns no storage of

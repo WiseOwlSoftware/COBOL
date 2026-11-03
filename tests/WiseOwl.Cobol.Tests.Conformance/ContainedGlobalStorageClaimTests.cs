@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// again"; §14.2.3 GR8: "If the argument is passed by reference, the activated runtime element operates as if the formal
 /// parameter occupies the same storage area as the argument"). A contained program's <c>ADDRESS OF</c> head or BY
 /// REFERENCE operand that names a container's GLOBAL item is claimed by the CONTAINER, which scans its contained programs
-/// (<c>DataBinder.PtrBindBasedAndAddressables</c>); the contained program reaches the cell through its GLOBAL bridge.
+/// (<c>PtrBindBasedAndAddressablesPass</c>); the contained program reaches the cell through its GLOBAL bridge.
 /// Once the containers' GLOBAL names became visible before the contained unit's own storage pass (kb/Work PB3766's
 /// <c>InheritContainerGlobalData</c>), that pass resolved the head to the inherited item and claimed the cell a second
 /// time, so the contained program's C# type declared <c>_scell_R2</c> and <c>_redef_R2</c> beside the bridge's (CS0102;

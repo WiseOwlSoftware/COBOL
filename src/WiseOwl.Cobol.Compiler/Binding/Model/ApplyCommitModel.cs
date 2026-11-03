@@ -22,7 +22,7 @@ public sealed class ApplyCommitModel
     /// and the EC binding read this list.</summary>
     public List<FileModel> Files { get; } = [];
 
-    /// <summary>The identifier-1 operands as written, resolved post-build (<c>DataBinder.ResolveApplyCommit</c>): the
+    /// <summary>The identifier-1 operands as written, resolved post-build (<c>FileControlBinder.ResolveApplyCommit</c>): the
     /// data division is not bound when the I-O-CONTROL paragraph is.</summary>
     internal List<(string Name, IReadOnlyList<string> Qualifiers, WiseOwl.Cobol.Editions.DiagnosticCursor At)> Identifiers { get; } = [];
 
