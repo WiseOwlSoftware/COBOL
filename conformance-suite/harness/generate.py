@@ -1170,7 +1170,7 @@ def suite_ids(cases: list[Case], editions: list[str]) -> dict[str, set[str]]:
             for e in editions}
 
 
-def repository_inputs() -> tuple[Inputs, list[str]]:
+def repository_inputs() -> tuple[Inputs, list[Problem]]:
     schema = inventory_schema.load_schema()
     rows = {r["rule-id"]: r for r in inventory_store.load_inventory()}
     constructs = {c["id"]: (int(c["introducedIn"]), int(c["removedIn"]) if c.get("removedIn") else None)
@@ -1204,7 +1204,7 @@ def removed_corpus_files(repo: Path) -> list[str]:
     return sorted(f.relative_to(repo).as_posix() for f in old.rglob("*") if f.is_file()) if old.is_dir() else []
 
 
-def generate(root: Path, inputs: Inputs, problems: list[str], out: Path | None,
+def generate(root: Path, inputs: Inputs, problems: list[Problem], out: Path | None,
              echo: bool = True, report: bool = True) -> tuple[int, Reader]:
     """Read and refuse; when nothing is refused and `out` is given, write the manifests there, and with `report` the
     completeness report beside them (it reads docs/CONFORMANCE.md's registers; the manifests do not, so a compiler test

@@ -11,7 +11,7 @@ refused); and the two standing directives: **COBOL semantics are honored
 regardless of cost**, and **otherwise the surface stays as close to .NET as possible** (strongly typed host calls,
 ECMA-335 metadata and attributes, no bespoke formats). This is the "R44 design doc" that `docs/CONFORMANCE.md` rows
 DOC-A.1-66/-67/-138/-161/-162 defer to; §9 carries the text those rows take. **Implementation:** slices 1 (kb/Work PB2097),
-2 (kb/Work PB2098), 3 (kb/Work PB2099), 4 (kb/Work PB2100), 5 (kb/Work PB2101) and 6 (kb/Work PB989 / PB2102) of §21 have landed; 7 and 8 are open.
+2 (kb/Work PB2098), 3 (kb/Work PB2099), 4 (kb/Work PB2100), 5 (kb/Work PB2101), 6 (kb/Work PB989 / PB2102), 7 (kb/Work PB2103) and 8 (kb/Work PB2104) of §21 have landed.
 **Currency (2026-10-27, kb/Work PB1086):** re-verified against the tree after PB2464, PB2463, PB3101, PB3120, PB3162,
 PB3273 and PB3505 reshaped the code under it. Where the code settled a point differently and correctly the design now
 adopts the code and says so; where following the approved text would have regressed a rule (the type of a restricted
@@ -126,13 +126,13 @@ symptom of PB2087 and closes when PB2087 lands (§21).
 ### 1.1 Purpose
 ISO §8.13 says the external repository "contains all information required for activating programs, functions, or
 methods and for checking conformance", and §12.3.8 makes it the third source every REPOSITORY specifier may resolve
-against. Today (kb/Work PB1086) there is none: `REPOSITORY. PROGRAM NOSUCHPG. FUNCTION NOSUCHFN. CLASS NOSUCHCL.`
-compiles clean; a program prototype that misses the group resolves with a null signature that
-`PrototypeSignatures.Same` treats as conforming; a function that misses it draws COBOL1505 at a use; a class that
-misses it draws COBOL0813/0821/0859 at a use; a property misses silently. And a .NET program can reach a COBOL
-program only through the untyped `ProgramRegistry.CallProgram(name, callerPath, CobolArg[])`, which
-`docs/CONFORMANCE.md` DOC-A.1-65/-116/-141/-167 document as the host API. This design gives the clause one reading and
-every program a typed .NET entry over the one boundary, and makes that entry the only host surface.
+against. Without one, `REPOSITORY. PROGRAM NOSUCHPG. FUNCTION NOSUCHFN. CLASS NOSUCHCL.` would compile clean (it is
+REPO-1, COBOL5962, at each specifier since kb/Work PB2103 / PB2104: re-verified 2026-11-03, kb/Work PB1086): each consumer
+would read the clause its own way (a program prototype with a null signature, COBOL1505 at a function's use,
+COBOL0813/0821/0859 at a class's use, a silent property). And a .NET program could reach a COBOL program only through
+the untyped `ProgramRegistry.CallProgram(name, callerPath, CobolArg[])`, which `docs/CONFORMANCE.md`
+DOC-A.1-65/-116/-141/-167 document as the host API. This design gives the clause one reading and every program a typed
+.NET entry over the one boundary, and makes that entry the only host surface.
 
 ### 1.2 Scope
 - The REPOSITORY paragraph's five externally-resolvable specifier kinds (§12.3.8.1 "allows specification of program

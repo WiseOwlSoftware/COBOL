@@ -823,7 +823,7 @@ internal sealed class ProgramEmitter
             using (w.Block("private static void Register()"))
             foreach (var u in units)
             {
-                if (u.IsPrototype) continue;   // a prototype registers no runtime module — the separately-compiled definition does (§10.6.3 GR1)
+                if (u.IsPrototype) continue;   // a prototype has no body to register as a runtime module; the information §10.6.3 GR1 requires of its compilation is its host entry (HostEntryEmitter.EntryUnits)
                 string parentPath = u.Parent is { } p ? CsLiteral(p.RegistryKey) : "null";
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {ClassRef(u)}(({ClassRef(pp)})__o!)"
