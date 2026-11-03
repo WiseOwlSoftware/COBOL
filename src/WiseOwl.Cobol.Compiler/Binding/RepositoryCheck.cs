@@ -43,17 +43,15 @@ internal static class RepositoryCheck
         records.AddRange(session.Repository.External.OpenedRecords().Select(e => ($"the repository entry '{e.Path}'", e.Record, false)));
         if (records.Count == 0) return;
 
-        // The records are decoded into a partition of their own: what they describe is compared, never admitted into the
-        // group's types (the identities are canonical, so a decoded pointer and a group pointer of one signature compare
-        // equal across the two instances, §6.4).
-        var classes = new PrototypeSignatureClasses();
+        // What the records describe is compared, never joined to the group's types (a signature identity is a function of
+        // the signature alone, so a decoded pointer and a group pointer of one signature compare equal, §6.4).
         foreach (var unit in outermost)
             foreach (var (source, record, previous) in records)
             {
                 if (IsFunction(record.Kind) != unit.IsFunction || !ExternalizedNames.Same(record.ExternalizedName, unit.ExternalizedName))
                     continue;
                 DecodedRecord decoded;
-                try { decoded = RepositoryCodec.Decode(record, classes, RepositoryCodec.Names(record, session.OoClasses, [], import: false)); }
+                try { decoded = RepositoryCodec.Decode(record, RepositoryCodec.Names(record, session.OoClasses, [], import: false)); }
                 catch (RepositoryRecordException) { continue; }   // the resolver's REPO-5 names an entry it uses; this one is only compared
                 if (PrototypeSignatures.FirstDifference(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning),
                         decoded.Signature) is not { } difference)

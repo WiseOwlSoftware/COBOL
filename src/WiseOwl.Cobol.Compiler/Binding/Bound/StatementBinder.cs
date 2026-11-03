@@ -129,19 +129,15 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// direct construction.</summary>
     internal IReadOnlyDictionary<string, ProgramPrototype>? ProgramPrototypes { get; set; }
 
-    /// <summary>The group's prototype signature classes (kb/Work PB2464), beside the tables that name the prototypes
-    /// they classify; null in unit-test direct construction.</summary>
-    internal PrototypeSignatureClasses? SignatureClasses { get; init; }
-
     /// <summary>The two restrictions of a pointer restricted to program-prototype <paramref name="prototypeName"/>, which a
     /// program-address-identifier argument is described with: its TO phrase by the prototype's externalized name
-    /// (<see cref="PrototypeSignatures.NamedRestriction(string)"/>) and what it may contain, the prototype's signature class
-    /// (<see cref="PrototypeSignatureClasses"/>). A name the unit's table does not hold was refused where it was declared
-    /// (a specifier no provider answers is REPO-1), and both its restrictions are its TO phrase as written (kb/Work PB4107),
-    /// which no signature class can equal.</summary>
+    /// (<see cref="PrototypeSignatures.NamedRestriction(string)"/>) and what it may contain, the identity of the prototype's
+    /// signature (<see cref="PrototypeSignatures.Identity(RestrictedPrototype)"/>). A name the unit's table does not hold
+    /// was refused where it was declared (a specifier no provider answers is REPO-1), and both its restrictions are its TO
+    /// phrase as written (kb/Work PB4107), which no signature identity can equal.</summary>
     internal PrototypeSignatures.PrototypeRestriction ProgramRestrictionOf(string prototypeName) =>
-        ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true && SignatureClasses is { } classes
-            ? new(PrototypeSignatures.NamedRestriction(p.ExternalizedName), classes.Identity(RestrictedPrototype.Of(p)))
+        ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true
+            ? new(PrototypeSignatures.NamedRestriction(p.ExternalizedName), PrototypeSignatures.Identity(RestrictedPrototype.Of(p)))
             : new(PrototypeSignatures.NamedRestriction(prototypeName), PrototypeSignatures.NamedRestriction(prototypeName));
 
     /// <summary>A program-prototype-name's bound signature, through the §8.4.6.8 scope table

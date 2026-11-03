@@ -44,7 +44,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         // Each decoded record still answers as the unit does (§6.3's invariant), so the published record is the unit's.
         foreach (var record in outcome.Records)
         {
-            var decoded = RepositoryCodec.Decode(record, comp.SignatureClasses);
+            var decoded = RepositoryCodec.Decode(record);
             var unit = comp.Units.Single(u => u.Parent is null && u.Name == record.Name);
             Assert.True(PrototypeSignatures.Same(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning), decoded.Signature),
                 $"{record.Name}: the record read from the module is not the unit's signature");
@@ -54,7 +54,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         var tree = CSharpSyntaxTree.ParseText(File.ReadAllText(generated));
         foreach (var record in outcome.Records)
         {
-            var decoded = RepositoryCodec.Decode(record, comp.SignatureClasses);
+            var decoded = RepositoryCodec.Decode(record);
             var entry = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()
                 .Single(c => c.AttributeLists.SelectMany(l => l.Attributes).Any(a => a.Name.ToString().EndsWith("CobolUnitAttribute", StringComparison.Ordinal)
                     && a.ArgumentList!.Arguments[2].Expression.ToString() == SymbolDisplay.FormatLiteral(record.ExternalizedName, quote: true)));
@@ -87,7 +87,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         // Each decoded method still answers as the bound method does (§6.3's invariant).
         foreach (var (record, methods) in RepositoryCodecTests.OoRecordsOf(comp))
         {
-            var decoded = RepositoryCodec.Decode(outcome.Records.Single(r => r.Kind == record.Kind && r.Name == record.Name), comp.SignatureClasses);
+            var decoded = RepositoryCodec.Decode(outcome.Records.Single(r => r.Kind == record.Kind && r.Name == record.Name));
             for (int i = 0; i < methods.Count; i++)
                 Assert.True(PrototypeSignatures.Same(new CalleeSignature([.. methods[i].Binding!.Formals.Select(f =>
                         new LinkageFormal(f.Item, f.Position, f.ParamName, CarrierResident: true, ByValue: f.ByValue, Optional: f.Optional))],

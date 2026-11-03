@@ -599,7 +599,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 49,
+      "walkUses": 48,
       "removedBy": [
         "PB2347",
         "PB2361",
@@ -852,13 +852,6 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.PropertyReceiver",
-          "removedBy": [
-            "PB2347"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
-          "to": "WiseOwl.Cobol.Binding.PrototypeSignatureClasses",
           "removedBy": [
             "PB2347"
           ]
@@ -1396,7 +1389,7 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 24,
-      "walkUses": 25,
+      "walkUses": 24,
       "removedBy": [
         "PB2361",
         "PB2399",
@@ -1411,14 +1404,6 @@
           "removedBy": [
             "PB2361",
             "PB2402",
-            "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
-          "to": "WiseOwl.Cobol.Binding.PrototypeSignatureClasses",
-          "removedBy": [
-            "PB2361",
             "PB2399"
           ]
         },

@@ -5,28 +5,25 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB2495 - "the same signature" over prototypes whose
-      *> formals are restricted program-pointers naming each other.
-      *> 13.18.60.4 GR25 (cite.py --check 13.18.60.4 -> OK 13.18.60.4
-      *> 25)): "A restricted program-pointer shall contain only the
-      *> predefined address NULL or the address of a program with the
-      *> same signature as that identified by the specified
-      *> program-prototype-name." So a formal TO PS2 is typed by PS2's
-      *> signature, and PS1 (USING pointer TO PS2), PS2 (USING pointer
-      *> TO PS1) and PS3 (USING pointer TO PS3) have ONE signature: no
-      *> finite path through their formals reaches a difference (the
-      *> greatest fixed point). DX1 (USING pointer TO DX2), DX2 (USING
-      *> pointer TO DX3), DX3 (USING 9(4)) is another: two steps
-      *> down, DX3's 9(4) meets PS1's pointer.
+      *> kb/Work PB2495, PB4491 - "the same signature" over prototypes
+      *> whose formals are restricted program-pointers. 8.13 (cite.py
+      *> --check 8.13 -> OK) makes the signature "the description of
+      *> the parameters", and a pointer formal's description is its
+      *> USAGE clause, whose TO phrase is compared by the prototype it
+      *> names (docs/CONFORMANCE.md D-RP1). PS3 (USING pointer TO PS3)
+      *> names itself; PS1 and PS2 (each USING pointer TO PS3) have
+      *> PS3's very description, so the three are ONE signature. DX1
+      *> (USING pointer TO DX2) names another prototype: another.
       *> DERIVATION:
       *>   SET B TO A, C TO B, A TO C - 14.9.39.3 SR22 (OK 14.9.39.3
       *>     22)) "the program-prototypes associated with identifier-7
       *>     and identifier-8 shall have the same signature": legal.
-      *>   PSDEF's prototype (USING TO PS2) and definition (USING TO
-      *>     PS1) - 10.6.2 SR2 (OK 10.6.2 2)) "the signatures of these
-      *>     two compilation units shall be the same": they are.
+      *>   PSDEF's prototype (USING TO PS3 through type T3) and
+      *>     definition (USING TO PS3 through type T9) - 10.6.2 SR2 (OK
+      *>     10.6.2 2)) "the signatures of these two compilation units
+      *>     shall be the same": they are, one USAGE clause.
       *>   CALL PSDEF USING BY CONTENT A - the prototype's formal is
-      *>     TO PS2, A is TO PS1; 14.8.2.3.3 (OK 14.8.2.3.3 2)) "the
+      *>     TO PS3, A is TO PS1; 14.8.2.3.3 (OK 14.8.2.3.3 2)) "the
       *>     conformance rules shall be the same as if a SET
       *>     statement were performed": SR22, one signature, legal;
       *>     PSDEF sees NULL. BY REFERENCE it is refused: 14.8.2.3.2
@@ -42,17 +39,19 @@
       *>   UNIVERSAL ... RETURNING D (TO DX1) - SR22 refuses the SET, no
       *>     match, "otherwise, the EC-OO-METHOD exception condition is
       *>     set to exist" (OK 9.3.6 6)): HANDLED=EC-OO-METHOD.
+      *> Two prototypes that name EACH OTHER are two signatures: the
+      *> refusal pb2495-recursive-prototype-signature-mismatch.
        >>TURN EC-OO CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PS1 IS PROTOTYPE.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           PROGRAM PS2.
+           PROGRAM PS3.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 T2 IS TYPEDEF USAGE PROGRAM-POINTER TO PS2.
-       01 L-P TYPE T2.
+       01 T3 IS TYPEDEF USAGE PROGRAM-POINTER TO PS3.
+       01 L-P TYPE T3.
        PROCEDURE DIVISION USING L-P.
        END PROGRAM PS1.
        IDENTIFICATION DIVISION.
@@ -60,11 +59,11 @@
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           PROGRAM PS1.
+           PROGRAM PS3.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 T1 IS TYPEDEF USAGE PROGRAM-POINTER TO PS1.
-       01 L-Q TYPE T1.
+       01 T3 IS TYPEDEF USAGE PROGRAM-POINTER TO PS3.
+       01 L-Q TYPE T3.
        PROCEDURE DIVISION USING L-Q.
        END PROGRAM PS2.
        IDENTIFICATION DIVISION.
@@ -115,11 +114,11 @@
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           PROGRAM PS2.
+           PROGRAM PS3.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 T2 IS TYPEDEF USAGE PROGRAM-POINTER TO PS2.
-       01 L-S TYPE T2.
+       01 T3 IS TYPEDEF USAGE PROGRAM-POINTER TO PS3.
+       01 L-S TYPE T3.
        PROCEDURE DIVISION USING L-S.
        END PROGRAM PSDEF.
        IDENTIFICATION DIVISION.
@@ -174,11 +173,11 @@
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           PROGRAM PS1.
+           PROGRAM PS3.
        DATA DIVISION.
        LINKAGE SECTION.
-       01 T1 IS TYPEDEF USAGE PROGRAM-POINTER TO PS1.
-       01 L-S TYPE T1.
+       01 T9 IS TYPEDEF USAGE PROGRAM-POINTER TO PS3.
+       01 L-S TYPE T9.
        PROCEDURE DIVISION USING L-S.
        PSDEF-P.
            IF L-S = NULL DISPLAY "psdef null"

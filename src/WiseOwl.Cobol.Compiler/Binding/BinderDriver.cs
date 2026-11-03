@@ -102,8 +102,7 @@ internal sealed class BinderDriver
         // names that no definition of the group claims (ISO §12.3.8.3 SR6 b; DESIGN-external-repository §8.4 step 3), while it
         // resolves INHERITS and IMPLEMENTS in pass 1. Zero cost when unused: nothing is listed or opened until a question.
         var searchSpace = repository ?? RepositorySearchSpace.None;
-        var signatureClasses = new PrototypeSignatureClasses();
-        var external = new MetadataRepositoryProvider(searchSpace, signatureClasses, edition);
+        var external = new MetadataRepositoryProvider(searchSpace, edition);
         var words = cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty;
         var leapSecond = LeapSecondState.Build(directives.LeapSecondEvents);
         // The compile-time inputs a skeleton is published under and an expansion of one is made under (CompileState, DESIGN-external-repository §6.1).
@@ -112,7 +111,7 @@ internal sealed class BinderDriver
         external.UseClassTable(table);
         var session = new BindSession
         {
-            SignatureClasses = signatureClasses, External = external,
+            External = external,
             Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl, Propagate = propagate,
             DirectiveSites = directives.DirectiveSites,
             CobolWords = words,
@@ -310,7 +309,7 @@ internal sealed class BinderDriver
         // The group is bound: what it publishes for its parameterized definitions, and where each expansion lives (§10.5).
         var expansions = ExpansionPlacementPass.Run(table, classes, oo.InterfaceData, external, edition, compileInputs, publishAs);
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
-            anyFiles, edition.DialectLevel, session.SignatureClasses, edition.SignEncoding, expansions);
+            anyFiles, edition.DialectLevel, edition.SignEncoding, expansions);
     }
 
     /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
@@ -769,18 +768,20 @@ internal sealed class BinderDriver
         return new RepositoryResolver(new GroupRepositoryProvider(units), session.External);
     }
 
-    /// <summary>⛔ Give every restricted program- or function-pointer in the group the signature class its prototype's
-    /// signature bounds its contents by (kb/Work PB2464; ISO §13.18.60.4 GR25 / GR26 — <see cref="DataBinder.ResolveRestrictedPrototypes"/>), once
-    /// the REPOSITORY tables exist and BEFORE any signature is compared, any body binds or any description is built
-    /// (the §10.6.2 SR2 / SR3 prototype pairs and the §9.3.8.2.3 method conformance checks run after it, kb/Work PB2495).
-    /// It covers EVERY forest that declares one — each program unit's, each class's OBJECT and FACTORY forests and each
-    /// interface's prototype formals — through the same per-forest tables the procedure binders read, so that two items
-    /// compared by the typed comparator or by a universal INVOKE's descriptions are never one stamped and one not (which
-    /// would make an item and its twin disagree when their prototype is not its own signature class's founder).
-    /// <para>TWO passes over the forests (kb/Work PB2495): the first attaches each pointer's resolved prototype, the
-    /// second classifies it. Classifying a prototype compares its formals, and a formal that is itself a restricted
-    /// pointer is compared by the signature class of the prototype IT names (<see cref="PrototypeSignatures.SignatureRestriction"/>) — which may be declared
-    /// in a forest later in the group, so every forest is resolved before any is classified.</para></summary>
+    /// <summary>⛔ Give every restricted program- or function-pointer in the group its two restrictions — the prototype its
+    /// TO phrase names (<see cref="DataBinder.ResolveRestrictedPrototypes"/>; the identity rules read its externalized
+    /// name) and what it may contain, the identity of that prototype's signature (kb/Work PB2464; ISO §13.18.60.4 GR25 /
+    /// GR26; <see cref="PrototypeSignatures.StampContentRestrictions"/>) — once the REPOSITORY tables exist and BEFORE any
+    /// signature is compared, any body binds or any description is built (the §10.6.2 SR2 / SR3 prototype pairs and the
+    /// §9.3.8.2.3 method conformance checks run after it, kb/Work PB2495: before it, a TO phrase is the word as written,
+    /// not the externalized name of the prototype it names). It covers EVERY forest that declares one — each program
+    /// unit's, each class's OBJECT and FACTORY forests and each interface's prototype formals — through the same
+    /// per-forest tables the procedure binders read, so that two items compared by the typed comparator or by a universal
+    /// INVOKE's descriptions are never one resolved and one not.
+    /// <para>TWO passes over the forests: the first attaches each pointer's resolved prototype, the second stamps what it
+    /// may contain. A signature's identity describes its formals, and a formal that is itself a restricted pointer is
+    /// described by the externalized name of the prototype IT names (kb/Work PB4491) — which may be declared in a forest
+    /// later in the group, so every forest is resolved before any is stamped.</para></summary>
     private static void ResolvePointerRestrictions(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes,
         IReadOnlyList<KeyValuePair<OoInterfaceSymbol, DataBinder>> interfaces, BindSession session)
     {
@@ -797,7 +798,7 @@ internal sealed class BinderDriver
         foreach (var (data, unit, position) in forests)
             data.ResolveRestrictedPrototypes(
                 ProgramPrototypesOf(data, unit, repository, position), UserFunctionsOf(data, unit, repository, position));
-        session.SignatureClasses.Classify([.. forests.SelectMany(f => f.Data.RestrictedPrototypePointers())]);
+        PrototypeSignatures.StampContentRestrictions(forests.SelectMany(f => f.Data.RestrictedPrototypePointers()));
     }
 
     /// <summary>The PROCEDURE half of unit binding (phase 2): every unit's DATA is already bound
@@ -829,7 +830,6 @@ internal sealed class BinderDriver
             // kb/Work PB237 — the unit's visible program prototypes (§12.3.8.2 specifiers resolved through
             // §12.3.8.4 GR10, plus §8.4.6.8's containing-program spelling).
             ProgramPrototypes = ProgramPrototypesOf(data, unit, session.Repository, unit.SourcePosition),
-            SignatureClasses = session.SignatureClasses,   // kb/Work PB2464 — the pointer types ResolvePointerRestrictions stamped
             UnitRecursive = unit.Recursive,   // §14.9.7.3 SR1 / §14.9.36.3 SR1 (kb/Work PB137)
         };
         binder.ConfigureEc(session.Turn, session.DirectiveSites, unit.Name);   // the EC bind context (TURN fold + directive sites + §15.30 location element)

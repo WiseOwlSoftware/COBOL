@@ -28,9 +28,9 @@ namespace WiseOwl.Cobol.Binding.Repository;
 /// that identified by the specified program-prototype-name", and GR26 its function-pointer twin). The record keeps the
 /// restriction's written NAME and the prototype's full signature (<see cref="PrototypeRecord"/>); the decoder rebuilds
 /// <see cref="DataItem.RestrictedPrototype"/> with a <see cref="PrototypeOrigin"/> of its own for every referenced
-/// prototype and ADMITS the decoded pointers into the group's signature classes
-/// (<see cref="PrototypeSignatureClasses.Admit"/>), so a decoded pointer shares an identity with a group pointer exactly
-/// when their prototypes' signatures are the same — never by name (§6.4 parts 1-3).</para>
+/// prototype and stamps each decoded pointer with the identity of that signature
+/// (<see cref="PrototypeSignatures.StampContentRestrictions"/>), so a decoded pointer shares what it may contain with a
+/// group pointer exactly when their prototypes' signatures are the same — never by name (§6.4; kb/Work PB4491).</para>
 /// <para><b>Data-names are recorded and never compared</b> (ISO §13.7.3 SR2: "The description of the formal parameters and
 /// the returning item that appear in the linkage section of a function prototype or a program prototype shall match the
 /// description of the formal parameters and the returning item in the corresponding function definition or program
@@ -123,18 +123,18 @@ internal static class RepositoryCodec
         .Select(g => new PropertyRecord(g.First().PropertyName!, g.First().ExternalizedName, g.Key.IsFactory,
             g.Any(m => m.Accessor is RepositoryAccessor.Get), g.Any(m => m.Accessor is RepositoryAccessor.Set))));
 
-    /// <summary>Bind <paramref name="record"/> into a throw-away forest (§6.3) and admit its referenced prototypes into
-    /// <paramref name="classes"/> (§6.4 part 2), so every decoded restricted pointer carries the identity of its
-    /// signature's class. With no <paramref name="words"/> the record is decoded in the publishing element's own scope
+    /// <summary>Bind <paramref name="record"/> into a throw-away forest (§6.3) and stamp every decoded restricted pointer
+    /// with the identity of its referenced prototype's signature (§6.4). With no <paramref name="words"/> the record is
+    /// decoded in the publishing element's own scope
     /// (slice 4's round trip): its object references keep their written words. An importing group passes the word it gives
     /// each class or interface identity the record names (<c>MetadataRepositoryProvider</c>, §8.7), so the decoded object
     /// references are compared in ITS word space; an identity absent from <paramref name="words"/> keeps the written word.</summary>
-    public static DecodedRecord Decode(RepositoryRecord record, PrototypeSignatureClasses classes,
+    public static DecodedRecord Decode(RepositoryRecord record,
         IReadOnlyDictionary<(bool Interface, string Identity), IdentityName>? words = null)
     {
         var decoder = new Decoder(record, words);
         var decoded = decoder.Run();
-        classes.Admit(decoder.RestrictedPointers);
+        PrototypeSignatures.StampContentRestrictions(decoder.RestrictedPointers);
         return decoded;
     }
 
@@ -371,7 +371,7 @@ internal static class RepositoryCodec
         private readonly List<(DataItem Pointer, int Prototype)> _prototypeReferences = [];
         private DynamicLengthStructure[] _structures = [];
 
-        /// <summary>Every decoded restricted program- or function-pointer, for <see cref="PrototypeSignatureClasses.Admit"/>.</summary>
+        /// <summary>Every decoded restricted program- or function-pointer, for <see cref="PrototypeSignatures.StampContentRestrictions"/>.</summary>
         public List<DataItem> RestrictedPointers { get; } = [];
 
         public DecodedRecord Run()
@@ -393,7 +393,7 @@ internal static class RepositoryCodec
             RestrictedPrototype[] restricted = [.. prototypes.Select(p => new RestrictedPrototype(
                 p.Record.Kind is RepositoryUnitKind.FunctionPrototype or RepositoryUnitKind.Function, p.Record.ExternalizedName,
                 new CalleeSignature(p.Formals, p.Returning),
-                new PrototypeOrigin($"{record.ExternalizedName} ReferencedPrototypes[{p.Record.Index}]")))];
+                new PrototypeOrigin()))];
             foreach (var (pointer, prototype) in _prototypeReferences)
             {
                 pointer.RestrictedPrototype = At(restricted, prototype, "a RestrictedPrototype");

@@ -9,5 +9,5 @@
 # read UNMEASURED and are measured on the merged tree before the merge commit.
 runtime-major 22
 runtime-hash E028449E4F0C14FF
-call-abi 5
+call-abi 6
 boundary-hash 110D13CC647FE8B3
