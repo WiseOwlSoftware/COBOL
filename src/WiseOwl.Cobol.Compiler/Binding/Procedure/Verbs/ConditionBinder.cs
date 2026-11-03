@@ -905,7 +905,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// one word. <see cref="AnalyzeBareOperand"/> has already resolved the word to a class-name or alphabet-name
     /// (<see cref="BareOperandForm.ClassName"/>); SR8 then splices the selection subject in, exactly as for the
     /// <c>IS</c>-led spelling, and the ONE user-word class body binds it (kb/Work PB843).</summary>
-    public BoundCondition BindPartialClassName(Antlr4.Runtime.RuleContext at, string word, PartialSubjectOperand subject) =>
+    public BoundCondition BindPartialClassName(Antlr4.Runtime.ParserRuleContext at, string word, PartialSubjectOperand subject) =>
         BindUserWordClassCondition(at, word, not: false, () => subject.Content);
 
     /// <summary>The §8.8.4.4.2 alternatives that are USER-DEFINED WORDS — alphabet-name-1 and class-name-1 — over
@@ -913,7 +913,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// object (kb/Work PB843), so the LOCALE refusal, the operand screens and the undeclared-name diagnostic
     /// cannot drift between them. <paramref name="at"/> is where the word is written: the class-name or alphabet-name
     /// it resolves to is a §8.3.2.2 use in that source element (kb/Work PB3153).</summary>
-    private BoundCondition BindUserWordClassCondition(Antlr4.Runtime.RuleContext at, string word, bool not,
+    private BoundCondition BindUserWordClassCondition(Antlr4.Runtime.ParserRuleContext at, string word, bool not,
         System.Func<BoundOperand> operand)
     {
         // §8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
@@ -942,9 +942,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             // ISO/IEC 1989:2002 Annex F.2 item 16: "The content of a data item can be tested against the coded
             // character set named as alphabet-name" — a COBOL-2002 introduction (class-condition-alphabet-name-2002;
-            // kb/Work PB4305).
-            ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.ClassConditionAlphabetName2002,
-                $"the class condition testing the alphabet-name '{word}'");
+            // kb/Work PB4305). The gate stands at the alphabet-name's own word, not at the enclosing IF / WHEN
+            // statement (kb/Work PB4485).
+            using (ctx.Edition.At(at))
+                ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.ClassConditionAlphabetName2002,
+                    $"the class condition testing the alphabet-name '{word}'");
             var opnd = operand();
             // ⛔ ITS OWN KIND, NOT THE CLASS-NAME'S. SR3 names alphabet-name-1 beside class-name-1, but SR4 —
             // "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified if the
