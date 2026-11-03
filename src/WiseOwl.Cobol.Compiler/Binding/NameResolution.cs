@@ -345,17 +345,17 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     {
         if (data.Symbols.IndexCandidates(name, qualifiers, data.ActiveScope) is not { } cands)
             return new IndexRef(IndexRefOutcome.NotAnIndexName, null);
+        // Every report about this written reference — the edition gate, the SR6 "not defined", the SR1 ambiguity, the
+        // §13.7.3 SR4 e) linkage refusal — stands AT the written index-name (kb/Work PB4485), not at the SET / SEARCH /
+        // PERFORM / relation statement whose operand it is: the statement can carry several references, and the user
+        // edits this one (the data-name's COBOL1639 already stands at its reference, PB4383).
+        using var at = data.Edition.At(WrittenStart(writtenAt));
         // ISO/IEC 1989:2002 Annex F.2 item 108: "Index-names may be qualified in the same manner as data and
         // condition-names" — a COBOL-2002 relaxation (qualified-index-name-2002; kb/Work PB4305). Once per written
         // reference, never from a probe (R30).
-        // The gate stands AT the written index-name (kb/Work PB4485), not at the SET / SEARCH / PERFORM / relation
-        // statement whose operand it is: the statement can carry several references, and the user edits this one.
         if (qualifiers.Count > 0 && !refs.Probing && _qualifiedIndexGated.Add(writtenAt))
-        {
-            using var at = data.Edition.At(WrittenStart(writtenAt));
             ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.QualifiedIndexName2002,
                 $"the qualified index-name '{DataBinder.WrittenQualified(name, qualifiers)}'");
-        }
         if (cands.Single is { } one)
         {
             ScreenLinkageIndex(one, name, qualifiers, writtenAt);

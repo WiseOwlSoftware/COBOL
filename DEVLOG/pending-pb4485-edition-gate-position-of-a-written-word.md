@@ -16,3 +16,10 @@ gate, which PB1925 deliberately positions at the statement; `BoundCallArg` has n
 Witness: six cases of `DiagnosticPositionTests.EditionGateOfAWrittenWord_NamesTheWordNotTheStatement`. No golden or
 manifest change: `pb4305_qualified_index_name_2002` and `pb4305-qualified-index-name-at-85` already carry the rule, and
 a refusal file has no column. No inventory row claimed or closed.
+
+Review round 1 (R1-1, blocking): the first fix scoped the written-word cursor around the edition gate alone, leaving the resolver's
+other three reports from the same call at the statement: the SR6 "not defined", the SR1 ambiguity (both COBOL1639) and the
+SR4 e) linkage refusal (COBOL2746). The cursor now covers the whole of `ResolveIndexName` after the not-an-index-name probe
+return, so every report about a written index-name stands at the word (the data-name's COBOL1639 already did, PB4383).
+Witness: `ResolutionDiagnosticOfAWrittenIndexName_NamesTheWordNotTheStatement` (4 cases) and
+`LinkageIndexNameRefusal_NamesTheWordNotTheStatement`.

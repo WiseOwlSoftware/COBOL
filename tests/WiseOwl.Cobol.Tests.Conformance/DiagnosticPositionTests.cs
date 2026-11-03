@@ -167,6 +167,43 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.DoesNotContain(lines, d => d.Contains("pb4485.cob(14,12): error"));   // the statement's own first token
     }
 
+    /// <summary>kb/Work PB4485 (review R1-1): EVERY report <c>NameResolution.ResolveIndexName</c> makes about a written
+    /// index-name reference stands at that word, not only the edition gate — the ISO §8.4.2.2.3 SR6 "not defined"
+    /// (the qualifier names no table declaring the index-name), the SR1 ambiguity (two tables declare the same index-name,
+    /// the bare reference names neither), and the §13.7.3 SR4 e) refusal of a linkage table's index-name. Default
+    /// edition, so the 2002 gate is silent and the position under test is the resolution diagnostic's own. The statement
+    /// under test starts on line 13 at column 12, so a report at (13,12) is the statement's position.</summary>
+    [Theory]
+    [InlineData("           SET IX OF W TO 2", 13, 16, "is not defined")]                                      // SR6: the qualifier names no table of IX
+    [InlineData("           SEARCH E VARYING IX OF W\n               WHEN E (1) = \"A\" CONTINUE\n           END-SEARCH", 13, 29, "is not defined")]
+    [InlineData("           SET IX TO 2", 13, 16, "does not uniquely identify")]                              // SR1: T and T2 both declare IX
+    [InlineData("           MOVE \"A\" TO W\n           DISPLAY E (IX)", 14, 23, "does not uniquely identify")]
+    public void ResolutionDiagnosticOfAWrittenIndexName_NamesTheWordNotTheStatement(string statement, int line, int column, string text)
+    {
+        Write("pb4485r.cob",
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4485R.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n"
+            + "       01 W PIC X.\n       01 T.\n          05 E PIC X OCCURS 3 INDEXED BY IX.\n"
+            + "       01 T2.\n          05 E2 PIC X OCCURS 3 INDEXED BY IX.\n       PROCEDURE DIVISION.\n       MAIN-P.\n"
+            + "           CONTINUE\n" + statement + "\n           STOP RUN.\n");
+        var (ok, lines) = Compile("pb4485r.cob");
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains($"pb4485r.cob({line},{column}): error COBOL1639") && d.Contains(text));
+        Assert.DoesNotContain(lines, d => d.Contains("pb4485r.cob(13,12): error COBOL1639"));   // the statement first token
+    }
+
+    [Fact] // kb/Work PB4485 (review R1-1): the §13.7.3 SR4 e) refusal of a linkage table's index-name stands at the word
+    public void LinkageIndexNameRefusal_NamesTheWordNotTheStatement()
+    {
+        Write("pb4485l.cob",
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4485L.\n       DATA DIVISION.\n       LINKAGE SECTION.\n"
+            + "       01 T.\n          05 E PIC X OCCURS 3 INDEXED BY IX.\n       PROCEDURE DIVISION.\n       MAIN-P.\n"
+            + "           CONTINUE\n           SET IX TO 2\n           STOP RUN.\n");
+        var (ok, lines) = Compile("pb4485l.cob");
+        Assert.False(ok);
+        Assert.Contains(lines, d => d.Contains("pb4485l.cob(10,16): error COBOL2746"));
+        Assert.DoesNotContain(lines, d => d.Contains("pb4485l.cob(10,12): error"));
+    }
+
     [Fact] // kb/Work PB1728: a PICTURE string's trimmed clause separator (`PIC X, VALUE …`) must not shift the column
     // of every later token on the line — the lexer used to seek back over the ',' without restoring its column, so a
     // diagnostic on the VALUE literal pointed one column right. The two lines differ only in ',' versus ' ', so the
