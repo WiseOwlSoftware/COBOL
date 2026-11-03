@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Runtime.Repository;
 
 namespace WiseOwl.Cobol.Binding.Model;
@@ -41,8 +42,8 @@ internal sealed record PublishedSkeleton(string Name, string ExternalizedName, b
 /// <param name="Text">The expansion's source text (the skeleton's tokens with the header renamed and each formal replaced by its actual).</param>
 /// <param name="State">The compile state of the skeleton it is made from.</param>
 /// <param name="Placement">Where it goes.</param>
-/// <param name="RequestedAtLine">The line of the EXPANDS entry that asked for it, which a diagnostic of its compilation is reported at.</param>
-internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement, int RequestedAtLine);
+/// <param name="RequestedAt">The EXPANDS entry that asked for it, as the user's source names it (file, line, column: the position an expansion made in the group is diagnosed at), which a diagnostic of its compilation is reported at.</param>
+internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement, SourceLocation RequestedAt);
 
 /// <summary>What the group publishes for its parameterized definitions and where each of its expansions lives (§10.5): produced by
 /// <c>ExpansionPlacementPass</c> once the group is bound, carried on the <see cref="BoundCompilation"/>, read by the emitter and the

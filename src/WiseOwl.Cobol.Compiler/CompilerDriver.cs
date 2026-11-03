@@ -231,22 +231,21 @@ public static class CompilerDriver
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         // Placement (a): an expansion whose code names nothing of this group is compiled apart, into an assembly of its own that the
         // group then names a type of (DESIGN-external-repository §10.5) — so it is written BEFORE the group's module, which references it.
-        var (expansionFiles, expansionErrors, expansionCs) = ExpansionAssemblies.Write(bound.Expansions, options, outputDll);
-        if (expansionErrors.Count > 0)
-            return new Result(Outcome.BackendError, outputDll, expansionCs, expansionErrors, [.. feWarnings, .. edition.Warnings])
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansionFiles };
+        var expansion = ExpansionAssemblies.Write(bound.Expansions, options, outputDll);
+        string[] warnings = [.. feWarnings, .. edition.Warnings, .. expansion.Warnings];
+        if (expansion.Errors.Count > 0)
+            return new Result(Outcome.BackendError, outputDll, expansion.GeneratedCsPath, expansion.Errors, warnings)
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files };
         var artifact = backend.Emit(bound, new BackendOptions(
             outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
             RepositoryUpdate: options.RepositoryUpdate,
             RepositoryReferences: [.. bound.OoClasses.ImportedAssemblies, .. bound.Expansions.ReferencedAssemblies]));
         if (!artifact.Success)
             return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
-                artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(),
-                [.. feWarnings, .. edition.Warnings])
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansionFiles, .. artifact.OutputFiles] };
+                artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles] };
 
-        return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [],
-            [.. feWarnings, .. edition.Warnings])
-            { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansionFiles, .. artifact.OutputFiles], Library = artifact.Library };
+        return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [], warnings)
+            { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles], Library = artifact.Library };
     }
 }
