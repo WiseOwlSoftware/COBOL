@@ -1,4 +1,4 @@
-## kb/Work PB4463, PB294, PB310: every emitted diagnostic code is a DiagnosticCatalog descriptor, and COBOL1512, COBOL0898, COBOL1542, COBOL1532, COBOL0844, COBOL0864, COBOL0897 and COBOL1530 split one code per rule
+## Entry 3028 — 2026-11-03 03:34 PST — kb/Work PB4463, PB294, PB310: every emitted diagnostic code is a DiagnosticCatalog descriptor, and COBOL1512, COBOL0898, COBOL1542, COBOL1532, COBOL0844, COBOL0864, COBOL0897 and COBOL1530 split one code per rule
 
 **What the note said and what the tree held.** PB4463 named 19 codes with no catalog row (0850-0857, 0898, 1522, 1523, 1525, 1526, 1532,
 1539, 1542, 1586-1588) and COBOL1512 shared by three rules. Re-probing on the merged PB2296/PB2352/PB2355 head showed the population is
@@ -49,3 +49,4 @@ The string overload is deleted, every site names a descriptor, 17 descriptors ar
 catalogue, so the next shape is caught whatever it is. COBOL0827, COBOL0844 and COBOL1523 each named one rule while others emitted them;
 the minority rules took COBOL6000 (class condition SR4), COBOL6003 (SR8), COBOL6001 (CAPACITY register as a receiving operand) and COBOL6002
 (SELF/SUPER placement), and the refusal goldens and tests that asserted the old codes moved with them.
+
