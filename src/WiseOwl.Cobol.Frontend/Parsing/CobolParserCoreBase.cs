@@ -739,6 +739,7 @@ public abstract class CobolParserCoreBase : Parser
     /// both ask. Read-only.</summary>
     private bool ReadsWithTheWordAsAProcedureName(IReadOnlyList<IToken> span, int at, int rule)
     {
+        ProcedureNameReadsMade++;
         var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
         var asName = (CommonToken)copies[at];
         asName.Type = CobolLexer.IDENTIFIER;
@@ -753,15 +754,28 @@ public abstract class CobolParserCoreBase : Parser
     /// Every other token of the word's type is asked, by the grammar, never by a list of procedure-name positions: the sentence
     /// it stands in, read with the word as a user-defined word, names a procedure with it
     /// (<see cref="ReadsWithTheWordAsAProcedureName"/>), so <c>FREE ptr.</c>, a statement of the same verb, is no reference.
-    /// The token stream is complete when the parser runs (the rewriters fill it), so the whole program is read; the answer is
-    /// kept per token, and a new pass forgets it (<see cref="Reset"/>). Read-only.</summary>
+    /// The token stream is complete when the parser runs (the rewriters fill it), so the whole program is read; the references
+    /// are gathered once per word type (<see cref="ProcedureReferencesToTheWord"/>), and a new pass forgets them
+    /// (<see cref="Reset"/>). Read-only.</summary>
     internal bool NamedAsAProcedureElsewhere(IToken word)
     {
-        if ((_namedElsewhere ??= []).TryGetValue(word.TokenIndex, out bool known)) return known;
-        bool named = false;
-        for (int i = 0; i < TokenStream.Size && !named; i++)
+        if (!(_procedureReferences ??= []).TryGetValue(word.Type, out var references))
+            _procedureReferences[word.Type] = references = ProcedureReferencesToTheWord(word.Type);
+        return references.Exists(i => i != word.TokenIndex);
+    }
+
+    /// <summary>The stream index of every token of <paramref name="type"/> whose sentence, read with that token as a user-defined
+    /// word, names a procedure with it: the evidence <see cref="NamedAsAProcedureElsewhere"/> asks, gathered ONCE per word
+    /// (branch review round 1, R1-1: a legal <c>GOBACK.</c> reaches the question at every <c>GOBACK.</c> sentence, so a
+    /// per-token scan of the whole stream was quadratic in them). A token that is itself a bare verb sentence
+    /// (<see cref="IsBareVerbSentence"/>) is no reference without a read: <c>VERB.</c> is no <c>sentence</c> when the word is
+    /// a user-defined one, so the commonest legal case costs two neighbour lookups per sentence, never a parse.</summary>
+    private List<int> ProcedureReferencesToTheWord(int type)
+    {
+        var references = new List<int>();
+        for (int i = 0; i < TokenStream.Size; i++)
         {
-            if (i == word.TokenIndex || TokenStream.Get(i) is not { } other || other.Type != word.Type) continue;
+            if (TokenStream.Get(i) is not { } other || other.Type != type || IsBareVerbSentence(other)) continue;
             int start = i;
             while (start > 0 && TokenStream.Get(start - 1).Type != CobolLexer.DOT) start--;
             var sentence = new List<IToken>();
@@ -772,13 +786,16 @@ public abstract class CobolParserCoreBase : Parser
                 if (t.Type == CobolLexer.DOT && j >= i) break;
             }
             int at = sentence.IndexOf(other);
-            named = at >= 0 && ReadsWithTheWordAsAProcedureName(sentence, at, CobolParserCore.RULE_sentence);
+            if (at >= 0 && ReadsWithTheWordAsAProcedureName(sentence, at, CobolParserCore.RULE_sentence)) references.Add(i);
         }
-        _namedElsewhere[word.TokenIndex] = named;
-        return named;
+        return references;
     }
 
-    private Dictionary<int, bool>? _namedElsewhere;
+    private Dictionary<int, List<int>>? _procedureReferences;
+
+    /// <summary>How many speculative sentence reads <see cref="ReadsWithTheWordAsAProcedureName"/> has made: the witness the
+    /// unit tests read, so that conforming source (a program of <c>GOBACK.</c> paragraphs) is shown to cost no read (R1-1).</summary>
+    internal int ProcedureNameReadsMade { get; private set; }
 
     /// <summary>Whether <paramref name="word"/> is a statement verb that is its sentence's only word: the separator period
     /// stands before it and after it (<c>STOP.</c>, <c>DISPLAY.</c>, <c>MOVE.</c>, <c>PERFORM.</c>, <c>READ.</c>, <c>FREE.</c>),
@@ -849,7 +866,7 @@ public abstract class CobolParserCoreBase : Parser
         _freeGatedDeclarations = null;
         _declaredNames = null;
         _entryClauseProbe = null;
-        _namedElsewhere = null;
+        _procedureReferences = null;
     }
 
     /// <summary>⛔ WHICH READING WINS WHEN A WORD COULD BE EITHER (kb/Work PB805 + PB655) — true when the lookahead

@@ -900,8 +900,9 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>F.2 item 90's one test, asked of the procedure division and of each section
-        /// (<see cref="VisitSectionDefinition"/>). A declarative section is not asked: its sentences begin with the USE
-        /// statement, which no paragraph-name precedes at any edition.</summary>
+        /// (<see cref="VisitSectionDefinition"/>) and of each declarative section (<see cref="VisitDeclarativeSection"/>),
+        /// which asks it of the sentences AFTER its USE statement: the USE statement itself is the section's first
+        /// sentence at every edition (ISO §14.2.1 Format 1, "use-statement.").</summary>
         private void GateLeadingSentences(CobolParserCore.SentenceContext[] sentences, string where)
         {
             if (sentences.Length == 0) return;
@@ -1132,6 +1133,10 @@ internal sealed class VersionConformancePass
                 Visit(use);
                 return null;
             }
+            // The sentences after the USE statement are F.2 item 90's too (ISO §14.2.1 Format 1 prints
+            // "use-statement. [ sentence ] … [ paragraph-name-1. …]": branch review round 1, R1-2).
+            if (ctx.sentence() is { Length: > 1 } declared)
+                GateLeadingSentences(declared[1..], $"declarative section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
             return base.VisitChildren(ctx);
         }
 

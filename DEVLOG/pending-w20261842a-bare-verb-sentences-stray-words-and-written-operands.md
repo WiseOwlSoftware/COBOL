@@ -47,3 +47,21 @@ population. CallBinder quoted five operand nodes by `GetText()` (`AOFG`, a glued
 messages, and looked a qualified SCREEN SECTION name up by its glued text, so it never matched; all quote `WrittenText` now. The
 other binders still hold about ninety such messages (PB4252's analysis). PB4434's stale `GroupRepository.Find` prose in
 `DESIGN-external-repository.md` names `GroupRepositoryProvider`; the `SearchAllFormat2Rules` comment was already current.
+
+### Branch review round 1 (R1-1, R1-2)
+
+R1-1: the bare-verb question was quadratic on conforming source. A legal `GOBACK.` (a reservation-gated verb alone in its
+sentence) reaches `procedureHeaderHere(DOT)` at every such sentence, and `NamedAsAProcedureElsewhere` scanned the whole stream
+and ran a speculative sentence read of every OTHER GOBACK for each: 800 `Pn. GOBACK.` paragraphs took 36 s (main 3 s). The
+evidence is now gathered once per word type (`ProcedureReferencesToTheWord`), and a token that is itself a bare verb sentence
+is no reference without a read (`VERB.` is no sentence when the word is a user-defined one), so the 800 paragraphs compile in
+2 s with no read at all. The guard is a count, never a clock: `CobolParserCoreBase.ProcedureNameReadsMade`, asserted 0 for
+60 GOBACK paragraphs and 1 for a program with one `PERFORM GOBACK.` (`BareVerbSentenceEvidenceTests`).
+
+R1-2: F.2 item 90's gate skipped declarative sections on the ground that they begin with the USE statement, but ISO §14.2.1
+Format 1 prints `use-statement. [ sentence ] … [ paragraph-name-1. …]`: the sentences AFTER the USE statement and before the
+first paragraph are the same COBOL-85 restriction. `VisitDeclarativeSection` now asks the gate of them (`--std 85` draws
+COBOL0900 at the second sentence). Goldens: `pb4305_declarative_sentence_before_first_paragraph_2002` (2002/2014/2023, "D1 35"
+then "DONE") and `pb4305-declarative-sentence-before-first-paragraph-at-85`. R1-3 (a lead: the item-108 gate reports at the
+SEARCH statement, not at the qualified index-name of VARYING) is left for the clerk, `NameResolution.cs` not being a file this
+round changes.
