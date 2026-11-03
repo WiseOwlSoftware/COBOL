@@ -1,4 +1,4 @@
-## The GnuCOBOL differential's six flips are adjudicated and its baseline is re-recorded
+## Entry 3040 — 2026-11-03 11:07 PST — The GnuCOBOL differential's six flips are adjudicated and its baseline is re-recorded
 
 The nightly differential had been red since 2026-11-01 (run 41679939118 on 11-03): six per-case flips against the
 baseline, three of them kb/Work PB4346's. A local run at main 3e62b1816 reproduced exactly the six. Each was adjudicated
@@ -18,3 +18,4 @@ owner approves.
 
 The six superseded branches the probe listed as DECISION are recorded ABANDONED in their notes (PB4453, PB4462, PB4297,
 PB4432, PB4464, PB4467): each one's work is on main.
+
