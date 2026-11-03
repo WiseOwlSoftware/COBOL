@@ -1270,7 +1270,7 @@ at step 11. `DataBinder.SumCounters` stays the gated view of `ReportScope.SumCou
 The code generator, the symbol table and `StatementBinder` read `ReportScope`, a type in `WiseOwl.Cobol.Binding` beside
 `ReportModel`, so their new pairs are tolerated in `architecture-edges.json`, and PB2420 removes them: it names
 `ReportScope.cs` in its Sites and moves the type to compiler.model with the report model types it holds (after PB2416 cuts
-its parse-context member and `DataBinder.QualifierWalk` moves down beside it), while PB2361 makes `DataBindResult` the
+the parse-context key of its refused PRESENT WHEN set into a verdict on the report model, and PB2399 moves `DataBinder.QualifierWalk`, the one SR4 qualifier walk it calls, down to the model layer), while PB2361 makes `DataBindResult` the
 carrier and leaves the type where it is; the `StatementBinder` pair keeps PB2347 beside PB2420. `ReportSectionBinder` replaces `DataBinder` as the owner of the two `Validation` pairs
 (`VersionConformancePass`, `IntegerOperandRules`).
 *Seam:* `IBindPass` over its declared views (value slices and fact sets), `ProcedureBindState`'s three shapes, and

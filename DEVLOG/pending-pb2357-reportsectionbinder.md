@@ -58,3 +58,11 @@ drift test matches any receiver of the unambiguous mutators and any scope- or re
 is `internal` with a drift fact that only the two `DataBinder` files read it (R1-6).
 
 **Gate after the merge.** Run 000001-20261103T002112Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,411/39,411 · Characterization 37/37 cases ran (skipped 0) ===`; `ReportScopeBoundaryDriftTests` now 4 facts; `semgrep/verify.py` PASS.
+
+**Review round 2.** R2-1 (blocking): R1-2 was half fixed, because PB2420's move of `ReportScope.cs` waited on two cuts no note planned.
+`ReportScope` holds a `Core.ConditionContext` set (`PresentWhenRefused`/`RefusePresentWhen`) and calls the static
+`DataBinder.QualifierWalk`. PB2416, the cut of the report models' parse contexts, now names `ReportScope.cs:103-105`, its two
+writers and its one reader in its title, Sites and target: the SR16 verdict becomes a fact on the model's PRESENT WHEN member.
+PB2399, which ends the model's remaining binder reads, now names `QualifierWalk` (a stateless static, four callers) beside
+`WrittenQualified`. PB2420's Removes line and DESIGN-architecture-review §8.3 (1) name both notes, and both are already in PB2420's
+`blocked_by`. No code changed in this round: the cuts belong to those waves, whose Sites now carry them. `work.py check` clean.
