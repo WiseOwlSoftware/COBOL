@@ -1997,15 +1997,13 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>CALL phrases: BY VALUE (§14.9.4, a 2002 introduction) then ON OVERFLOW (the COBOL-74 synonym for
-        /// ON EXCEPTION, REMOVED at 2023) — both from the one CALL statement, in the binder's order (arguments bind
-        /// before the exception phrases). BY VALUE fires ONCE per statement (Any over callArgument — the binder
-        /// collapsed the per-argument checks); OVERFLOW fires on the ON OVERFLOW phrase (matching
-        /// BoundCallProgram.UsedOverflowSpelling).</summary>
+        /// <summary>CALL phrases: ON OVERFLOW (the COBOL-74 synonym for ON EXCEPTION, REMOVED at 2023), RETURNING and the AS
+        /// phrase. OVERFLOW fires on the ON OVERFLOW phrase (matching BoundCallProgram.UsedOverflowSpelling). An ARGUMENT's
+        /// spelling (BY VALUE, OMITTED, a literal or expression) is judged in ONE place at every edition,
+        /// CallBinder.Format1Narrowing, which reports the 2002 introduction below 2002 and the vendor extension under
+        /// --permissive (kb/Work PB4503): gating it here too reported it twice and contradicted the permissive verdict.</summary>
         public override object? VisitCallStatement(CobolParserCore.CallStatementContext ctx)
         {
-            if (ctx.callUsingPhrase()?.callArgument().Any(a => a.callByValue() is not null) == true)
-                _p.Check(Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
             // The phrases are the ONE conditionalPhrases rule (kb/Work PB3830).
             if (ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.Overflow))
                 _p.Check(Constructs.CallOnOverflowRemoved2023, "the CALL statement");
@@ -2598,21 +2596,12 @@ internal sealed class VersionConformancePass
         public override object? VisitCallArgument(CobolParserCore.CallArgumentContext ctx)
         {
             GateBooleanOperators(ctx.booleanExpression());
-            if (ctx.OMITTED() is not null)
-                _p.Check(Constructs.OmittedArguments2002, "the OMITTED argument");
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>The omitted-argument facility's other three surfaces (kb/Work PB133 wave C) — all
-        /// COBOL-2002 introductions on one construct row: the BY REFERENCE OMITTED spelling, the OPTIONAL
-        /// formal-parameter phrase (§14.2.2), and the §8.8.4.8 omitted-argument condition.</summary>
-        public override object? VisitCallByReference(CobolParserCore.CallByReferenceContext ctx)
-        {
-            if (ctx.OMITTED() is not null)
-                _p.Check(Constructs.OmittedArguments2002, "the OMITTED argument");
-            return base.VisitChildren(ctx);
-        }
-
+        /// <summary>The omitted-argument facility's callee surfaces (kb/Work PB133 wave C) — COBOL-2002 introductions on
+        /// one construct row: the OPTIONAL formal-parameter phrase (§14.2.2) and the §8.8.4.8 omitted-argument condition.
+        /// The CALL's OMITTED argument is CallBinder.Format1Narrowing's (kb/Work PB4503).</summary>
         public override object? VisitUsingParameter(CobolParserCore.UsingParameterContext ctx)
         {
             if (ctx.OPTIONAL() is not null)

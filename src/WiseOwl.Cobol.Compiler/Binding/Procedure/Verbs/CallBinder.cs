@@ -903,8 +903,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// dialect axis admits under <c>--permissive</c> (kb/Work PB162): the five literal / expression / BY VALUE
     /// spellings, and OMITTED passed BY REFERENCE (kb/Work PB4012, owner decision 2026-10-28). It is false for an
     /// OMITTED a BY CONTENT or BY VALUE phrase carries over (§14.9.4.4 GR5's transitivity), which GnuCOBOL refuses
-    /// too (cobc 3.2, kb/Work PB3996's probe).</summary>
-    private readonly record struct Format2OnlySpelling(string Refusal, bool VendorLane);
+    /// too (cobc 3.2, kb/Work PB3996's probe). <paramref name="Written"/> is the argument as written
+    /// (<c>CALL USING BY VALUE N</c>), and <paramref name="Construct"/> the construct row of the edition that introduced the
+    /// spelling: below it (COBOL-85, which has one CALL format and neither the AS phrase nor program prototypes) the spelling
+    /// is not a Format-2 spelling in the wrong format but a construct the edition lacks (kb/Work PB4503).</summary>
+    private readonly record struct Format2OnlySpelling(string Written, string Refusal, bool VendorLane, string Construct);
 
     /// <summary>The predefined NULL an argument writes as its operand, in any of the four places the grammar lets an
     /// argument carry one: BY REFERENCE <c>NULL</c>, and the operand ConditionBinder.ReduceArgument reduces BY CONTENT,
@@ -939,7 +942,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     {
         const string Shared = " belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects";
         if (a.callByValue() is { } byValue)
-            return new($"CALL USING {DataBinder.WrittenText(byValue)}{Shared} — Format 1’s USING admits BY REFERENCE and BY CONTENT only", true);
+            return new($"CALL USING {DataBinder.WrittenText(byValue)}",
+                $"CALL USING {DataBinder.WrittenText(byValue)}{Shared} — Format 1’s USING admits BY REFERENCE and BY CONTENT only", true,
+                Constructs.CallByValue2002);
         if (a.callByReference() is { } byRef)
             return byRef.OMITTED() is not null ? OmittedSpelling("BY REFERENCE OMITTED", vendorLane: true) : null;
         if (a.callByContent() is { } byContent)
@@ -951,8 +956,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 || (cDref is not null && host.Expr.LiteralAliasOf(cDref) is not null)
                 || (cArith is not null && cDref is null && !IsSoleIdentifierExpression(cArith));
             return expressionOperand
-                ? new($"CALL USING {DataBinder.WrittenText(byContent)}: an expression operand{Shared}. "
-                      + "Format 1's BY CONTENT admits `{ identifier-2 } …` only", true)
+                ? new($"CALL USING {DataBinder.WrittenText(byContent)}",
+                      $"CALL USING {DataBinder.WrittenText(byContent)}: an expression operand{Shared}. "
+                      + "Format 1's BY CONTENT admits `{ identifier-2 } …` only", true, Constructs.CallLiteralExpressionArgument2002)
                 : null;
         }
         if (a.addressIdentifier() is not null || bare.Reference is not null) return null;
@@ -966,15 +972,16 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             || bare.SoleNumericLiteral is not null || bare.Grouped is not null
             || (bare.Arith is { } arith && !IsSoleIdentifierExpression(arith));
         return bareNonIdentifier
-            ? new($"CALL USING {DataBinder.WrittenText(a)}: a keyword-less literal or expression argument{Shared} — Format 1's "
-                  + "bare argument is identifier-2 only", true)
+            ? new($"CALL USING {DataBinder.WrittenText(a)}",
+                  $"CALL USING {DataBinder.WrittenText(a)}: a keyword-less literal or expression argument{Shared} — Format 1's "
+                  + "bare argument is identifier-2 only", true, Constructs.CallLiteralExpressionArgument2002)
             : null;
 
         static Format2OnlySpelling OmittedSpelling(string spelling, bool vendorLane) =>
-            new($"CALL USING {spelling}: the OMITTED phrase belongs to the program-prototype CALL (ISO §14.9.4.2 "
+            new($"CALL USING {spelling}", $"CALL USING {spelling}: the OMITTED phrase belongs to the program-prototype CALL (ISO §14.9.4.2 "
                 + "Format 2), which the AS phrase selects — Format 1's USING prints `{ identifier-2 } …` only"
                 + (vendorLane ? "" : "; an omitted argument is passed BY REFERENCE, never by the BY CONTENT or BY VALUE "
-                    + "phrase that precedes it, so no --permissive vendor spelling admits it"), vendorLane);
+                    + "phrase that precedes it, so no --permissive vendor spelling admits it"), vendorLane, Constructs.OmittedArguments2002);
     }
 
     /// <summary>⛔ THE ONE FRAMING OF §14.9.4.2 FORMAT 1'S NARROWING (kb/Work PB162), for every spelling
@@ -989,14 +996,25 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// PB4012) and binds as §14.9.4.4 GR11's omitted argument. True = bind on.</summary>
     private bool Format1Narrowing(Format2OnlySpelling spelling)
     {
+        // Below the edition that introduced the spelling (COBOL-85) there is one CALL format and no program-prototype CALL
+        // to point to: strict reports the construct the edition lacks, COBOL0900 through its row, once; --permissive takes
+        // the vendor spelling as it does from 2002 on (owner decision 2026-11-03, kb/Work PB4503). This is the ONE place
+        // a CALL argument's spelling is judged at every edition, so the edition-conformance pass gates none of them.
+        bool introduced = ConstructRegistry.IsAvailable(ctx.Edition.Edition, spelling.Construct);
         if (spelling.VendorLane && ctx.Edition.Permissive)
         {
-            ctx.Edition.Warning(DiagnosticCatalog.CallContentOperandFormat, spelling.Refusal
-                + "; accepted under --permissive as the vendor extension (GnuCOBOL, IBM, Micro Focus) and bound "
-                + "with the Format-2 semantics it spells");
+            ctx.Edition.Warning(DiagnosticCatalog.CallContentOperandFormat, introduced
+                ? spelling.Refusal + "; accepted under --permissive as the vendor extension (GnuCOBOL, IBM, Micro Focus) and "
+                    + "bound with the Format-2 semantics it spells"
+                : spelling.Written + ": not in the COBOL-85 CALL statement (ISO/IEC 1989:2002 introduced it, in the "
+                    + "program-prototype CALL only); accepted under --permissive as the vendor extension (GnuCOBOL, IBM, Micro "
+                    + "Focus) and bound with the meaning ISO/IEC 1989:2002 gives it");
             return true;
         }
-        ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat, spelling.Refusal);
+        if (!introduced)
+            ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, spelling.Construct, spelling.Written);
+        else
+            ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat, spelling.Refusal);
         return false;
     }
 

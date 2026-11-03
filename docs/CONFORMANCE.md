@@ -2019,9 +2019,15 @@ of an unsupported facility.
   REFERENCE OMITTED for callable services) and Micro Focus accept. Asked by the owner whether `--permissive` accepts
   OMITTED there, the owner answered on 2026-10-28: "Yes, permissive accepts". An OMITTED that a BY CONTENT phrase
   carries over by §14.9.4.4 GR5's transitivity (`USING BY CONTENT W OMITTED`) is refused under both modes: an omitted
-  argument has no BY CONTENT value, and cobc 3.2 refuses that spelling too. Implemented once, in
+  argument has no BY CONTENT value, and cobc 3.2 refuses that spelling too. **At `--std 85`** there is one CALL
+  format and no program-prototype CALL to point to, and each of the six spellings is a COBOL-2002 introduction (BY VALUE
+  `call-by-value-2002`, OMITTED `omitted-arguments-2002`, a literal or expression `call-literal-expression-argument-2002`,
+  the last QUOTED from ISO/IEC 1989:2002 Annex F.2 item 15): strict reports that COBOL0900, once, and `--permissive`
+  accepts the vendor spelling there too. IBM Enterprise COBOL lists OMITTED and BY VALUE in CALL among its extensions
+  over its ISO 1989:1985 baseline, and HP documents both as HP extensions; asked whether `--std 85 --permissive` accepts
+  OMITTED, the owner answered on 2026-11-03: "permissive accepts it at 85 too" (kb/Work PB4503). Implemented once, in
   `CallBinder.Format2OnlySpellingOf` (which spellings, reading the carried mode) and `CallBinder.Format1Narrowing`
-  (the framing); pinned by `conformance-test:FormatOneVendorCallPermissiveTests` and the strict refusals
+  (the framing, at every edition: the edition-conformance pass gates no CALL argument spelling); pinned by `conformance-test:FormatOneVendorCallPermissiveTests` and the strict refusals
   `conformance:cases/14.9.4-CALL/pb3996-call-format1-omitted-*`.
 
 - **D-DEBUG — the COBOL-85 debug facility's debugging lines (indicator `D`) and `WITH DEBUGGING MODE`** (kb/Work

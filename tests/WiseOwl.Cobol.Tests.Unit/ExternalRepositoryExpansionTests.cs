@@ -678,6 +678,24 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    /// <summary>kb/Work PB4502 review R3-1: when the host refuses the GROUP's own `.g.cs` after the expansion's assembly is written,
+    /// the OutputNotWritable result keeps what the write phase had gathered: the expansion's warning, which the group's report has
+    /// already withdrawn (PB4469), and the expansion's files.</summary>
+    [Fact]
+    public void AGroupOutputTheHostRefuses_KeepsTheExpansionsWarningAndFiles()
+    {
+        WithDirectory("expansion-warning-refused", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold(RelationOfLiterals), level: 2023).Success);
+            Directory.CreateDirectory(Path.Combine(dir, "CLIENT1.g.cs"));
+            var r = Compile(dir, "CLIENT1", Client("CLIENT1"), level: 2023);
+            Assert.Equal(CompilerDriver.Outcome.OutputNotWritable, r.Status);
+            string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL3146", StringComparison.Ordinal));
+            Assert.EndsWith("[in the expansion 'HOLD-BOX']", warning, StringComparison.Ordinal);
+            Assert.Contains(r.OutputFiles, f => Path.GetFileName(f) == "HOLD-BOX.dll");
+        });
+    }
+
     [Fact]   // kb/Work PB4469: a check-only compilation runs no sub-compilation, so the group's bind of the text is the one report there is.
     public void ACheckOnlyCompilation_StillReportsAnOwnAssemblyExpansionsWarning_Once()
     {
