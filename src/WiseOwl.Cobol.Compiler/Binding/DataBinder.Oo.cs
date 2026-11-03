@@ -247,7 +247,8 @@ public sealed partial class DataBinder
             // says what the programmer wrote.
             return ObjectRefDescriptor.ObjectClass(name, factory, only);
         if (isInterface)
-            return ObjectRefDescriptor.Interface(resolved.Interface!.Name).Resolved(resolved.Interface.ExternalizedName, null);
+            return ObjectRefDescriptor.Interface(resolved.Interface!.Name).Resolved(resolved.Interface.ExternalizedName,
+                resolved.Interface.Origin is Compiler.Oo.OoSymbolOrigin.Imported ? resolved.Interface.ClrName : null);
         // ⛔ The descriptor carries the RESOLVED definition's name, not the word written: a REPOSITORY specifier's
         // `AS literal-1` makes the local word (BOXY) name the class whose externalized name is the literal
         // (§12.3.8.4 GR2, kb/Work PB974), and every downstream reader of the descriptor looks the class up by

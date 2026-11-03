@@ -80,7 +80,7 @@ internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryU
 /// </list>
 /// The repository has no source order, so <c>position</c> is ignored (§8.0).
 /// </summary>
-internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IClassImporter
+internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImporter
 {
     private readonly RepositorySearchSpace _space;
     private readonly PrototypeSignatureClasses _classes;
@@ -395,10 +395,12 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IClassIm
     }
 
     /// <inheritdoc/>
-    bool IClassImporter.ClassRefused(string identity) => Refused(RepositoryFamily.Class, identity);
+    bool IOoImporter.Refused(string identity, bool isInterface) =>
+        Refused(isInterface ? RepositoryFamily.Interface : RepositoryFamily.Class, identity);
 
     /// <inheritdoc/>
-    string IClassImporter.ClassSearched(string identity) => Searched(RepositoryFamily.Class, identity);
+    string IOoImporter.Searched(string identity, bool isInterface) =>
+        Searched(isInterface ? RepositoryFamily.Interface : RepositoryFamily.Class, identity);
 
     private static string? FirstDifference(Hit chosen, Hit shadowed) =>
         chosen.Decoded is not null && shadowed.Decoded is not null
@@ -455,29 +457,8 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IClassIm
     /// is another imported module's or this compilation's own).</summary>
     public ImportedClass? Class(string identity, OoClassTable table)
     {
-        UseClassTable(table);
-        if (ByName(RepositoryFamily.Class, identity) is not { } hit) return null;
-        var key = Key(RepositoryFamily.Class, identity);
-        string registrar = hit.Registrar ?? "";
-        string suffix = "." + ModuleNamespace.RegistrarClass;
-        if (!registrar.EndsWith(suffix, StringComparison.Ordinal))
-        {
-            _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
-                $"the repository entry '{hit.Origin.Path}' publishes the class \"{hit.Record.ExternalizedName}\" and names no registrar type, "
-                + "so the namespace its types live in is unknown (ISO §8.13; DESIGN-external-repository §4.5)");
-            _refused.Add(key);
-            return null;
-        }
-        var module = new ModuleNamespace(registrar[..^suffix.Length]);
-        if (NamespaceCollision(hit, module) is { } collision)
-        {
-            _edition.Error(DiagnosticCatalog.RepositoryAssemblyNamespaceCollision,
-                $"the repository entry '{hit.Origin.Path}' publishes the class \"{hit.Record.ExternalizedName}\" in the namespace "
-                + $"{module.ClrName}, which {collision}; one assembly simple name names one assembly per load context (ISO §8.13; "
-                + "DESIGN-external-repository §8.6)");
-            _refused.Add(key);
-            return null;
-        }
+        if (Locate(RepositoryFamily.Class, identity, table) is not { } located) return null;
+        var (hit, module) = located;
         var facts = hit.Record.Class!;
         var symbol = new OoClassSymbol(OoClassTable.ImportedKey(identity), NamingConvention.ImportedTypeName(module, facts.ClrName), ctx: null)
         {
@@ -489,12 +470,62 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IClassIm
         return new ImportedClass(symbol, () => Complete(symbol, hit, Table));
     }
 
+    /// <summary>⛔ THE INTERFACE IMPORT (ISO §12.3.8.3 SR9, §12.3.8.4 GR9; DESIGN-external-repository §10.6): the twin of
+    /// <see cref="Class"/> — <c>[CobolUnit(Kind = Interface)]</c> on the public CLR interface, its INHERITS list resolved by identity
+    /// (transitively), one prototype per recorded method over the decoded forest.</summary>
+    public ImportedInterface? Interface(string identity, OoClassTable table)
+    {
+        if (Locate(RepositoryFamily.Interface, identity, table) is not { } located) return null;
+        var (hit, module) = located;
+        var symbol = new OoInterfaceSymbol(OoClassTable.ImportedInterfaceKey(identity),
+            NamingConvention.ImportedTypeName(module, hit.Record.Class!.ClrName), ctx: null)
+        {
+            Origin = OoSymbolOrigin.Imported,
+            Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName),
+            ExternalizedName = hit.Record.ExternalizedName,
+        };
+        return new ImportedInterface(symbol, () => Complete(symbol, hit, Table));
+    }
+
+    /// <summary>The first entry of the search space publishing the class or interface <paramref name="identity"/> (§8.6) and the
+    /// namespace its types live in (the registrar type's, §4.5): null — with the finding reported and the question remembered as
+    /// refused — when nothing answers, the entry names no registrar (REPO-4), or its namespace is another needed module's or this
+    /// compilation's own (REPO-6).</summary>
+    private (Hit Hit, ModuleNamespace Module)? Locate(RepositoryFamily family, string identity, OoClassTable table)
+    {
+        UseClassTable(table);
+        if (ByName(family, identity) is not { } hit) return null;
+        var key = Key(family, identity);
+        string kind = KindWord(family);
+        string registrar = hit.Registrar ?? "";
+        string suffix = "." + ModuleNamespace.RegistrarClass;
+        if (!registrar.EndsWith(suffix, StringComparison.Ordinal))
+        {
+            _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
+                $"the repository entry '{hit.Origin.Path}' publishes the {kind} \"{hit.Record.ExternalizedName}\" and names no registrar type, "
+                + "so the namespace its types live in is unknown (ISO §8.13; DESIGN-external-repository §4.5)");
+            _refused.Add(key);
+            return null;
+        }
+        var module = new ModuleNamespace(registrar[..^suffix.Length]);
+        if (NamespaceCollision(hit, module) is { } collision)
+        {
+            _edition.Error(DiagnosticCatalog.RepositoryAssemblyNamespaceCollision,
+                $"the repository entry '{hit.Origin.Path}' publishes the {kind} \"{hit.Record.ExternalizedName}\" in the namespace "
+                + $"{module.ClrName}, which {collision}; one assembly simple name names one assembly per load context (ISO §8.13; "
+                + "DESIGN-external-repository §8.6)");
+            _refused.Add(key);
+            return null;
+        }
+        return (hit, module);
+    }
+
     /// <summary>What the other module or this compilation's own output already holds that <paramref name="module"/> collides with
     /// (REPO-6), or null.</summary>
     private string? NamespaceCollision(Hit hit, ModuleNamespace module)
     {
-        foreach (var other in Table.ImportedClasses)
-            if (other.Imported is { } from && from.ClrNamespace == module.ClrName && from.Mvid != hit.Origin.Mvid)
+        foreach (var from in Table.ImportedClasses.Select(c => c.Imported!).Concat(Table.ImportedInterfaces.Select(i => i.Imported!)))
+            if (from.ClrNamespace == module.ClrName && from.Mvid != hit.Origin.Mvid)
                 return $"the entry '{from.Path}' (another build) already holds";
         if (_output is not null && CsNames.ModuleNamespaceOf(Path.GetFileNameWithoutExtension(_output)).ClrName == module.ClrName)
             return "this compilation's own output assembly holds";
@@ -529,8 +560,28 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IClassIm
         void Implemented(List<OoInterfaceSymbol> into, RecordList<string> identities)
         {
             foreach (var identity in identities)
-                if (table.FindInterfaceByExternalizedName(identity) is { } iface) into.Add(iface);
+                if (table.ImportInterface(identity) is { } iface) into.Add(iface);
                 else Unanswered($"{what} an implemented interface", isInterface: true, identity);
+        }
+    }
+
+    /// <summary>The second half of an interface import: the interfaces it INHERITS by identity (a record's <c>Implements</c> is an
+    /// interface's INHERITS list, ISO §11.6.2) and its method prototypes over the decoded forest.</summary>
+    private void Complete(OoInterfaceSymbol symbol, Hit hit, OoClassTable table)
+    {
+        var facts = hit.Record.Class!;
+        string what = $"the repository entry '{hit.Origin.Path}', interface \"{hit.Record.ExternalizedName}\", names";
+        foreach (var identity in facts.Implements)
+            if (table.ImportInterface(identity) is { } inherited) symbol.Inherits.Add(inherited);
+            else Unanswered($"{what} an inherited interface", isInterface: true, identity);
+        if (Decode(hit.Origin.Path, hit.Record, report: true) is not { } decoded) return;
+        foreach (var dm in decoded.Methods)
+        {
+            var proto = MethodOf(owner: null, dm, what);
+            if (!symbol.TryAddPrototype(proto))
+                _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
+                    $"{hit.Origin.Path}: the interface \"{hit.Record.ExternalizedName}\" records two methods externalized "
+                    + $"\"{proto.ExternalizedName}\" (ISO §8.13)");
         }
     }
 
@@ -538,13 +589,13 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IClassIm
     /// shape <c>OoStandardClasses</c> gives the standard class's methods, so every consumer that reads a method's signature —
     /// override conformance, the activation descriptions, the universal dispatch — reads it as it reads a method written in COBOL.
     /// An accessor is rostered under the pinned name its record carries (§11.7.4 GR1 a)); its externalized name is its property's.</summary>
-    private OoMethodSymbol MethodOf(OoClassSymbol owner, DecodedMethod dm, string what)
+    private OoMethodSymbol MethodOf(OoClassSymbol? owner, DecodedMethod dm, string what)
     {
         var r = dm.Record;
         char accessor = r.Accessor switch { RepositoryAccessor.Get => 'G', RepositoryAccessor.Set => 'S', _ => '\0' };
         var m = new OoMethodSymbol(r.Name, HasUsing: dm.Formals.Count > 0, HasReturning: dm.Returning is not null, Ctx: null!)
         {
-            ClrName = r.ClrName, Owner = owner, IsFactory = r.IsFactory, HasOverride = r.Override, IsFinal = r.Final,
+            ClrName = r.ClrName, Owner = owner!, Imported = true, IsFactory = r.IsFactory, HasOverride = r.Override, IsFinal = r.Final,
             Accessor = accessor, PropertyName = r.PropertyName,
             ExternalizedName = accessor == '\0' ? r.ExternalizedName : r.Name,
         };
@@ -565,7 +616,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IClassIm
                     else Unanswered($"{what} RAISING", isInterface: false, raised.Identity);
                     break;
                 default:
-                    if (Table.FindInterfaceByExternalizedName(raised.Identity) is { } iface) m.Raising.Add(new RaisingTarget(RaisingTargetKind.Interface, iface.Name, Factory: false));
+                    if (Table.ImportInterface(raised.Identity) is { } iface) m.Raising.Add(new RaisingTarget(RaisingTargetKind.Interface, iface.Name, Factory: false));
                     else Unanswered($"{what} RAISING", isInterface: true, raised.Identity);
                     break;
             }

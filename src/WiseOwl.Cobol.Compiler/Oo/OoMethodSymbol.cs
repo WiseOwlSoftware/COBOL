@@ -114,6 +114,16 @@ public sealed record OoMethodSymbol(
     /// implementation, so an invocation site binds it through its own form rather than the user-method tail.</summary>
     public StandardMethod Standard { get; init; }
 
+    /// <summary>True for a method (or interface prototype) read from an assembly of the external repository
+    /// (DESIGN-external-repository §10.1, §10.6): it has no <see cref="Ctx"/> and its <see cref="ClrName"/> is a fact of the
+    /// assembly already built, as a standard method's is the runtime's.</summary>
+    public bool Imported { get; init; }
+
+    /// <summary>True when <see cref="ClrName"/> is a fact no compilation of this group may change — a standard method's (the
+    /// runtime's member) or an imported one's (the built assembly's) — so <c>OoClassTable.NameMethodSlots</c> names a slot after it
+    /// and never renames it.</summary>
+    public bool HasFixedClrName => Standard is not StandardMethod.None || Imported;
+
     /// <summary>The method's own OPTIONS paragraph folded over the class channel's model (§10.6.1 method
     /// skeleton / §11.9.4 GR1; kb/Work PB135) — null when the method writes none. BindMethodRoster swaps it
     /// in around THIS method's body bind.</summary>

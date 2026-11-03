@@ -192,6 +192,50 @@ public sealed class ExternalRepositoryClassImportTests
         });
     }
 
+    [Fact]   // SR9: no information for the interface is REPO-1 at the specifier, as SR6's is for a class.
+    public void AnInterfaceSpecifierNothingAnswers_IsRepo1()
+    {
+        WithDirectory("iface-repo1", dir =>
+        {
+            var r = Compile(dir, "P2104U", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. P2104U.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    INTERFACE P2104NOIF.
+                PROCEDURE DIVISION.
+                    GOBACK.
+                END PROGRAM P2104U.
+                """);
+            Assert.False(r.Success);
+            Assert.Contains(r.Errors, e => e.Contains("COBOL5962", StringComparison.Ordinal) && e.Contains("REPOSITORY INTERFACE P2104NOIF", StringComparison.Ordinal));
+        });
+    }
+
+    [Fact]   // SR16: a PROPERTY specifier needs a property of the classes and interfaces declared in its own REPOSITORY paragraph.
+    public void APropertySpecifierNoClassOfItsParagraphHas_IsRepo1()
+    {
+        WithDirectory("property-repo1", dir =>
+        {
+            Assert.True(Compile(dir, "P2104LEDGER", Base("LEDGER", "P2104-Ledger")).Success);
+            var r = Compile(dir, "P2104U", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. P2104U.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    CLASS ACCT AS "P2104-Ledger"
+                    PROPERTY P2104NOPROP.
+                PROCEDURE DIVISION.
+                    GOBACK.
+                END PROGRAM P2104U.
+                """);
+            Assert.False(r.Success);
+            Assert.Contains(r.Errors, e => e.Contains("COBOL5962", StringComparison.Ordinal) && e.Contains("REPOSITORY PROPERTY P2104NOPROP", StringComparison.Ordinal));
+        });
+    }
+
     [Fact]   // The standard class BASE and a class the group defines need no repository entry (SR6 reads the group's own definitions too).
     public void TheStandardClassAndAGroupClass_AreInformationEnough()
     {

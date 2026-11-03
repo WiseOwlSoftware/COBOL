@@ -79,10 +79,19 @@ public sealed class OoClassTable
     /// <summary>The assemblies of the external repository this compilation imported a class from, once each, in the order they
     /// were first needed: what the backend references to name an imported type (<c>BackendOptions.RepositoryReferences</c>,
     /// DESIGN-external-repository §10.2).</summary>
-    public IReadOnlyList<string> ImportedAssemblies => [.. _importedList.Select(c => c.Imported!.Path).Distinct(StringComparer.OrdinalIgnoreCase)];
+    public IReadOnlyList<string> ImportedAssemblies =>
+        [.. _importedList.Select(c => c.Imported!.Path).Concat(_importedInterfaceList.Select(i => i.Imported!.Path)).Distinct(StringComparer.Ordinal)];
+
+    /// <summary>The interfaces this compilation IMPORTED from the external repository (the twin of <see cref="ImportedClasses"/>),
+    /// in the order they were first asked for: in no emission list, reached by identity (<see cref="ImportInterface"/>) or by their
+    /// table key (<see cref="FindInterface"/>, <see cref="ImportedInterfaceKey"/>).</summary>
+    public IReadOnlyList<OoInterfaceSymbol> ImportedInterfaces => _importedInterfaceList;
+    private readonly List<OoInterfaceSymbol> _importedInterfaceList = [];
+    private readonly Dictionary<string, OoInterfaceSymbol> _importedInterfaces = new(CobolNames.Comparer);
+    private readonly HashSet<string> _importInterfaceAsked = new(CobolNames.Comparer);
     private readonly Dictionary<string, OoClassSymbol> _imported = new(CobolNames.Comparer);
     private readonly HashSet<string> _importAsked = new(CobolNames.Comparer);
-    private IClassImporter? _importer;
+    private IOoImporter? _importer;
 
     /// <summary>The key an imported class has in this table and in every object-reference description naming it
     /// (<see cref="OoClassSymbol.Name"/>): <c>class "&lt;identity&gt;"</c>, the spelling DESIGN-external-repository §8.7 gives an
@@ -90,6 +99,9 @@ public sealed class OoClassTable
     /// identity two words or two identities one word; the key is group-wide and — a quote and a space are in no COBOL word —
     /// can be neither a group class's word nor another identity's.</summary>
     public static string ImportedKey(string identity) => $"class \"{identity}\"";
+
+    /// <summary>The interface twin of <see cref="ImportedKey"/>: <c>interface "&lt;identity&gt;"</c>.</summary>
+    public static string ImportedInterfaceKey(string identity) => $"interface \"{identity}\"";
 
     /// <summary>⛔ ISO §12.3.8.3 SR6 FOR ONE CLASS-SPECIFIER WITHOUT EXPANDS (DESIGN-external-repository §8.4): "there shall be
     /// information in the external repository for the class" the specifier names — a class the group defines, the standard class
@@ -104,12 +116,63 @@ public sealed class OoClassTable
         string identity = externalized ?? word;
         if ((externalized is null ? Find(word) : FindByExternalizedName(externalized)) is not null
             || IsParameterized(word) || RepositoryScopeFor(specifier).IsFormal(word) || ImportClass(identity) is not null
-            || _importer?.ClassRefused(identity) == true)
+            || _importer?.Refused(identity, isInterface: false) == true)
             return null;
-        return _importer?.ClassSearched(identity) ?? "no external repository is named";
+        return _importer?.Searched(identity, isInterface: false) ?? "no external repository is named";
     }
 
     private readonly HashSet<Antlr4.Runtime.ParserRuleContext> _specifiersAsked = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>The PROPERTY specifiers awaiting <see cref="CheckPropertySpecifiers"/>, each once: a property is "part of one of the
+    /// classes or interfaces that are declared in this REPOSITORY paragraph" (§12.3.8.3 SR16), and a class's accessors — a
+    /// PROPERTY clause's synthesized pair included — exist only once its data has bound (kb/Work PB1274), so the question is asked
+    /// when every roster is complete.</summary>
+    private readonly List<(Core.RepositoryEntryContext Entry, string Word, string? Externalized)> _propertySpecifiers = [];
+
+    /// <summary>Record a REPOSITORY <c>PROPERTY</c> specifier for <see cref="CheckPropertySpecifiers"/>; the same entry, seen by
+    /// the source elements that inherit it (§12.3.4 GR1), is recorded once.</summary>
+    internal void DeferPropertySpecifier(Core.RepositoryEntryContext entry, string word, string? externalized)
+    {
+        if (_propertySpecifiers.All(p => !ReferenceEquals(p.Entry, entry))) _propertySpecifiers.Add((entry, word, externalized));
+    }
+
+    /// <summary>⛔ ISO §12.3.8.3 SR16, for every PROPERTY specifier recorded: "a) If literal-4 is specified, there shall be information
+    /// in the external repository for the property literal-5 that is part of one of the classes or interfaces that are declared in this
+    /// REPOSITORY paragraph" and "b) … for the property property-name-1" otherwise — a class (a definition of the group or an import,
+    /// base chain and implemented interfaces included) or an interface (its inherited ones included) of THIS paragraph with an accessor
+    /// of the property <c>literal-4 ?? word</c> (DESIGN-external-repository §8.5, determination D-R5). None is REPO-1 at the specifier,
+    /// reported through <paramref name="report"/>, which is handed the text of what was searched.</summary>
+    internal void CheckPropertySpecifiers(Action<Core.RepositoryEntryContext, string, string?> report)
+    {
+        foreach (var (entry, word, externalized) in _propertySpecifiers)
+        {
+            string identity = externalized ?? word;
+            var scope = RepositoryScopeFor(entry);
+            bool found = false;
+            foreach (var other in (entry.Parent as Core.RepositoryParagraphContext)?.repositoryEntry() ?? [])
+            {
+                if (other.className() is { } cn && other.CLASS() is not null && scope.ClassTarget(cn.GetText(), out var clsExt)
+                    && (clsExt is null ? Find(cn.GetText()) ?? FindByExternalizedName(cn.GetText()) : FindByExternalizedName(clsExt)) is { } cls && ClassHasProperty(cls, identity))
+                    found = true;
+                else if (other.interfaceName() is { } inm && other.INTERFACE() is not null && scope.InterfaceTarget(inm.GetText(), out var ifcExt)
+                    && (ifcExt is null ? FindInterface(inm.GetText()) ?? FindInterfaceByExternalizedName(inm.GetText()) : FindInterfaceByExternalizedName(ifcExt)) is { } ifc
+                    && ifc.AllPrototypes().Any(p => IsAccessorOf(p, identity)))
+                    found = true;
+            }
+            if (!found) report(entry, word, externalized);
+        }
+    }
+
+    private static bool IsAccessorOf(OoMethodSymbol m, string property) =>
+        m.Accessor != '\0' && CobolNames.Same(m.PropertyName, property);
+
+    private bool ClassHasProperty(OoClassSymbol cls, string property)
+    {
+        foreach (var c in ClassLineage(cls))
+            if (c.Methods.Concat(c.FactoryMethods).Any(m => IsAccessorOf(m, property))) return true;
+        return ImplementsClosure(cls, factory: false).Concat(ImplementsClosure(cls, factory: true))
+            .Any(i => i.AllPrototypes().Any(p => IsAccessorOf(p, property)));
+    }
 
     /// <summary>⛔ THE IMPORT (DESIGN-external-repository §8.4 step 3, §10.1): the class whose EXTERNALIZED name is
     /// <paramref name="identity"/> — the group's own definition, else the standard class BASE, else one already imported —
@@ -132,13 +195,47 @@ public sealed class OoClassTable
         return symbol;
     }
 
+    /// <summary>The interface twin of <see cref="ImportClass"/> (ISO §12.3.8.3 SR9; DESIGN-external-repository §10.6): the interface
+    /// whose externalized name is <paramref name="identity"/> — the group's definition, else one already imported, else the one the
+    /// external repository publishes, registered here by identity and BEFORE it is completed (its INHERITS list and its prototypes
+    /// name other interfaces, and a prototype may name its own). §16 defines no standard interface, so there is no BASE step.</summary>
+    public OoInterfaceSymbol? ImportInterface(string identity)
+    {
+        if (FindInterfaceByExternalizedName(identity) is { } known) return known;
+        if (_importer is null || !_importInterfaceAsked.Add(identity)) return null;
+        if (_importer.Interface(identity, this) is not { } found) return null;
+        var symbol = found.Symbol;
+        _importedInterfaces[symbol.ExternalizedName] = symbol;
+        _importedInterfaceList.Add(symbol);
+        _ifaceByName[symbol.Name] = symbol;
+        found.Complete();
+        return symbol;
+    }
+
+    /// <summary>ISO §12.3.8.3 SR9 for one interface-specifier without EXPANDS (the twin of
+    /// <see cref="UnansweredClassSpecifier"/>): "there shall be information in the external repository for the interface" — one the
+    /// group defines, a parameterized definition (an EXPANDS operand), the formal of the definition the specifier lies in, or one the
+    /// external repository publishes under <c>literal-2 ?? word</c>. Null when one answers or the importer has reported a finding of
+    /// its own; otherwise the text REPO-1 says was searched. Asked once per specifier.</summary>
+    public string? UnansweredInterfaceSpecifier(Antlr4.Runtime.ParserRuleContext specifier, string word, string? externalized)
+    {
+        if (!_specifiersAsked.Add(specifier)) return null;
+        string identity = externalized ?? word;
+        if ((externalized is null ? FindInterface(word) : FindInterfaceByExternalizedName(externalized)) is not null
+            || IsParameterized(word) || RepositoryScopeFor(specifier).IsFormal(word) || ImportInterface(identity) is not null
+            || _importer?.Refused(identity, isInterface: true) == true)
+            return null;
+        return _importer?.Searched(identity, isInterface: true) ?? "no external repository is named";
+    }
+
     /// <summary>This compilation group's symbol for the standard class BASE (ISO §16; <see cref="OoStandardClasses"/>).
     /// Never in <see cref="Classes"/>: it has no source, binds nothing and emits nothing.</summary>
     public OoClassSymbol StandardBase { get; } = OoStandardClasses.BuildBase();
 
     /// <summary>The interface twin of <see cref="FindByExternalizedName"/> (literal-2).</summary>
     public OoInterfaceSymbol? FindInterfaceByExternalizedName(string externalized) =>
-        _interfaces.FirstOrDefault(i => CobolNames.Same(i.ExternalizedName, externalized));
+        _interfaces.FirstOrDefault(i => CobolNames.Same(i.ExternalizedName, externalized))
+        ?? _importedInterfaces.GetValueOrDefault(externalized);
 
     /// <summary>True when <paramref name="name"/> names a PARAMETERIZED class or interface definition of the group
     /// (kb/Work PB759). Such a definition is a skeleton (§9.3.12 / §9.3.13) and is deliberately NOT in this table
@@ -453,7 +550,7 @@ public sealed class OoClassTable
         IReadOnlyList<Core.InterfaceDefinitionContext>? parameterizedInterfaces,
         IReadOnlySet<string>? expandedNames,
         DirectiveTimeline<CompilationVariableEvent> variables,
-        IClassImporter? importer = null)
+        IOoImporter? importer = null)
     {
         var table = new OoClassTable
         {
@@ -1110,18 +1207,23 @@ public sealed class OoClassTable
         foreach (var cls in _classes)
             foreach (bool factory in new[] { false, true })
                 foreach (var proto in ImplementsClosure(cls, factory).SelectMany(i => i.AllPrototypes()))
-                    if ((factory ? cls.FindFactoryMethod(proto.ExternalizedName) : cls.FindMethod(proto.ExternalizedName)) is { } impl
-                        && parent.ContainsKey(impl) && parent.ContainsKey(proto))
-                        Join(impl, proto);
+                    if ((factory ? cls.FindFactoryMethod(proto.ExternalizedName) : cls.FindMethod(proto.ExternalizedName)) is { } impl)
+                    {
+                        // An imported interface's prototype is in no roster above; it joins the slot of the method that implements it,
+                        // under the name the built assembly gave it.
+                        if (proto.Imported) Add(proto, "");
+                        if (parent.ContainsKey(impl) && parent.ContainsKey(proto)) Join(impl, proto);
+                    }
 
         foreach (var slot in order.GroupBy(Root, ReferenceEqualityComparer.Instance))
         {
             var members = slot.ToList();
-            string name = members.FirstOrDefault(m => m.Standard is not StandardMethod.None)?.ClrName
+            // A fixed name (a standard method's, an imported method's) is a fact the slot takes, not one it may change.
+            string name = members.FirstOrDefault(m => m.HasFixedClrName)?.ClrName
                 ?? members.First(m => m.OverrideOf is null).ClrName;
-            if (members.Any(m => enclosing[m] == name)) name = NamingConvention.ClassNamedMethodName(name);
+            if (members.Any(m => enclosing[m] == name && !m.HasFixedClrName)) name = NamingConvention.ClassNamedMethodName(name);
             foreach (var m in members)
-                if (m.Standard is StandardMethod.None) m.ClrName = name;
+                if (!m.HasFixedClrName) m.ClrName = name;
         }
     }
 }

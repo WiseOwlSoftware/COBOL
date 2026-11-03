@@ -166,7 +166,8 @@ internal static class RepositoryCodec
             string identity = pic.ObjectRefIdentity!;
             if (names.ContainsKey((isInterface, identity)) || unanswered.Contains((isInterface, identity))) continue;
             IdentityName? name = isInterface
-                ? table.FindInterfaceByExternalizedName(identity) is { } iface ? new IdentityName(iface.Name, null) : null
+                ? table.ImportInterface(identity) is { } iface
+                    ? new IdentityName(iface.Name, iface.Origin is OoSymbolOrigin.Imported ? iface.ClrName : null) : null
                 : table.ImportClass(identity) is { } cls
                     ? new IdentityName(cls.Name, cls.Origin is OoSymbolOrigin.Imported ? cls.ClrName : null) : null;
             if (name is { } found) names[(isInterface, identity)] = found;

@@ -175,6 +175,16 @@ internal sealed class BinderDriver
         // rule, not this phase's: a definition that FOLLOWS the element is not "specified previously" and a
         // prototype ahead of it stands in (GroupRepositoryProvider, kb/Work PB989).
         foreach (var unit in units) BindUnitData(unit, session);
+        // §12.3.8.3 SR16, once every roster is complete (the classes' data bound above, ResolveOverrides run) and every REPOSITORY
+        // paragraph seen: a PROPERTY specifier needs a property of the classes and interfaces of its own paragraph (kb/Work PB2104).
+        table.CheckPropertySpecifiers((entry, word, externalized) =>
+        {
+            using var at = edition.At(entry);
+            edition.Error(DiagnosticCatalog.RepositorySpecifierUnanswered,
+                $"REPOSITORY PROPERTY {word}{(externalized is null ? "" : $" AS \"{externalized}\"")} names no property: no class or interface "
+                + $"declared in the same REPOSITORY paragraph has an accessor of the property \"{externalized ?? word}\", in the compilation group "
+                + "or in the external repository — ISO §12.3.8.3 SR16");
+        });
         // The group's REPOSITORY resolution tables (§12.3.8.4 GR10 / GR11), built once every DATA division is
         // bound and BEFORE the first body: a CLASS definition's REPOSITORY reaches its methods (§12.3.4 GR1 — "apply
         // to each directly or indirectly contained source unit"), and until kb/Work PB1100 the class bodies bound
@@ -464,7 +474,7 @@ internal sealed class BinderDriver
     /// context type.</summary>
     private static (List<BoundUnit> Programs, List<OoClassUnit> Classes, OoClassTable Table) CollectUnits(
         Core.CompilationUnitContext tree, EditionContext edition, DirectiveTimeline<CompilationVariableEvent> variables,
-        WiseOwl.Cobol.Editions.CobolWordsMap words, IClassImporter importer)
+        WiseOwl.Cobol.Editions.CobolWordsMap words, IOoImporter importer)
     {
         var all = new List<BoundUnit>();
         var usedClassNames = new HashSet<string>(StringComparer.Ordinal);

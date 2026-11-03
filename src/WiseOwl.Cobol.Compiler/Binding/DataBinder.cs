@@ -639,6 +639,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 specifierWords.Add((re, pn.GetText(), UserWordKind.PropertyName));
                 OoRepositoryProperties[pn.GetText()] =
                     BindSpecifierExternalizedName(re, "PROPERTY", pn.GetText(), "literal-4") ?? pn.GetText();
+                // §12.3.8.3 SR16: checked once every class's roster is complete (OoClassTable.CheckPropertySpecifiers, run by BinderDriver).
+                OoClasses?.DeferPropertySpecifier(re, pn.GetText(), re.externalizedNamePhrase() is null ? null : OoRepositoryProperties[pn.GetText()]);
             }
             // §12.3.8.2's program-specifier (kb/Work PB237): `PROGRAM program-prototype-name-1 [AS literal-3]`.
             else if (re.PROGRAM() is not null && re.programPrototypeName() is { } ppn)
@@ -663,7 +665,15 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             else if (re.INTERFACE() is not null && re.interfaceName() is { } inm)
             {
                 specifierWords.Add((re, inm.GetText(), UserWordKind.InterfaceName));
-                BindSpecifierExternalizedName(re, "INTERFACE", inm.GetText(), "literal-2");
+                string? interfaceExternalized = BindSpecifierExternalizedName(re, "INTERFACE", inm.GetText(), "literal-2");
+                if (re.externalizedNamePhrase() is null) interfaceExternalized = null;   // the declared word is the identity (§12.3.8.4 GR2)
+                // §12.3.8.3 SR9: the interface twin of SR6 — REPO-1 at the specifier when nothing answers (kb/Work PB2104).
+                if (re.expandsPhrase() is null && OoClasses?.UnansweredInterfaceSpecifier(re, inm.GetText(), interfaceExternalized) is { } searched)
+                    using (Edition.At(re))
+                        Edition.Error(DiagnosticCatalog.RepositorySpecifierUnanswered,
+                            $"REPOSITORY INTERFACE {inm.GetText()}{(interfaceExternalized is null ? "" : $" AS \"{interfaceExternalized}\"")} names no interface: no "
+                            + $"interface definition of this compilation group is named or externalized \"{interfaceExternalized ?? inm.GetText()}\", and no information "
+                            + $"exists for it in the external repository ({searched}) — ISO §12.3.8.3 SR9");
             }
             // §12.3.8.2 user-defined-function-specifier `FUNCTION function-prototype-name-1 [AS literal-5]`.
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is [var fn])

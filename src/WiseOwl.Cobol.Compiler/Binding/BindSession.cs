@@ -80,7 +80,7 @@ internal sealed class BindSession
     public RepositorySearchSpace SearchSpace { get; init; } = RepositorySearchSpace.None;
 
     /// <summary>The provider that reads <see cref="SearchSpace"/> (DESIGN-external-repository §8.0): the resolver's second
-    /// provider and the class table's importer (<see cref="Compiler.Oo.IClassImporter"/>). Built by <c>BinderDriver.Bind</c>
+    /// provider and the class table's importer (<see cref="Compiler.Oo.IOoImporter"/>). Built by <c>BinderDriver.Bind</c>
     /// BEFORE the class table, which asks it for a class a specifier names that the group does not define (§8.4 step 3), over
     /// the same <see cref="SignatureClasses"/> every record it decodes joins.</summary>
     internal required MetadataRepositoryProvider External { get; init; }

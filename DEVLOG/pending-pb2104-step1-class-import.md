@@ -30,7 +30,22 @@ COBOL0813 at the first reference and silent when unreferenced.
   CS0435/CS0436/CS0437 are errors on generated code. `ModuleNamespace`'s C# spelling moved to `CsNames.CSharpNamespace`,
   `NamingConvention.FactoryClassName` puts its prefix on the last segment of a qualified name.
 
-**Goldens.** `conformance-suite/wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_class_under_another_word` (2002+; a build step
+**Interfaces and properties (step 2's first half, same mechanism).** The importer is `IOoImporter` (renamed from the class-only
+interface); `OoClassTable.ImportInterface` / `ImportedInterfaces` / `ImportedInterfaceKey` mirror the class arm,
+`OoInterfaceSymbol` gained `Origin` / `Imported` and a nullable `Ctx`, `MetadataRepositoryProvider.Interface` shares
+`Locate` (entry, registrar namespace, REPO-6) with `Class`, an imported class's `IMPLEMENTS` and an imported interface's `INHERITS`
+resolve by identity, and a method's `CLR` name is a fixed fact when it is imported (`OoMethodSymbol.HasFixedClrName`;
+`NameMethodSlots` names a slot after it, so a group class that implements an imported interface takes the built interface's member
+name). An interface specifier no source answers is REPO-1 (SR9, `UnansweredInterfaceSpecifier`); a PROPERTY specifier is REPO-1
+unless a class or interface of its own REPOSITORY paragraph (group or imported, base chain and implemented interfaces included)
+has an accessor of `literal-4 ?? word` (SR16, `OoClassTable.CheckPropertySpecifiers`, run once every roster is complete). Two
+construct samples of the version matrix (`repository-class-2002`, `repository-interface-2002`, `repository-property-2002`) named
+a class, an interface and a property nothing defined; they now define what they name. Not yet: skeletons and expansions (the
+`ExpansionKey`, `CompileState`, the two placements, stale-expansion REPO-9), which are step 2's second half.
+
+**Goldens.** `conformance-suite/wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_interface_and_property` (and its refusal at 85) imports
+an interface, a class that implements it and a class with a property, passes an imported and a group object through the imported
+interface and sets and gets the property through the imported accessors; `.../pb2104_import_class_under_another_word` (2002+; a build step
 compiles the class and a program that takes it, the main imports the class as ACCT through `AS`, runs NEW/DEPOSIT/BALANCE and
 passes the object to the other group's program with EC-PROGRAM-ARG-MISMATCH checking on: values 0050 and "CONFORMS", derived from
 §11.7 method semantics and §14.8.2.3.2 rule 3) and its refusal at 85 (`pb2104_import_class_refused_at_85`, COBOL0900);

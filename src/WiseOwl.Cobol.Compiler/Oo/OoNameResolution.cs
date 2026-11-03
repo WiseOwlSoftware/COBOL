@@ -157,7 +157,8 @@ public static class OoNameResolution
                 is { } cls)
             return new Result(cls, null);
         if (want is Want.Interface or Want.Either && scope.InterfaceTarget(name, out var ifcExt)
-            && (ifcExt is null ? table.FindInterface(name) : table.FindInterfaceByExternalizedName(ifcExt)) is { } ifc)
+            && (ifcExt is null ? table.FindInterface(name) ?? table.ImportInterface(name)
+                : table.FindInterfaceByExternalizedName(ifcExt) ?? table.ImportInterface(ifcExt)) is { } ifc)
             return new Result(null, ifc);
         return default;
     }
