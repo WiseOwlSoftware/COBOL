@@ -20,22 +20,6 @@ public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
     /// <summary>Extend the path with one trailing segment (used by the cursor walks in the binder).</summary>
     public AccessPath Add(AccessSegment seg) => new([.. Segments, seg]);
 
-    /// <summary>Re-anchor the path in a containing program (ISO §12.4.5.8.4 GR1 NOTE 1 — an inherited GLOBAL file's
-    /// FILE STATUS item, resolved in the container that declares it): the ROOT segment gains the
-    /// <see cref="ContainerAnchor"/> <paramref name="anchorOf"/> gives for its member. The anchor is asked PER ROOT because
-    /// a container's static member is reached through its class and an instance member through its instance
-    /// (<c>BoundUnit.AnchorOf</c>; kb/Work PB1133). The member name is unchanged: the anchor is structure each backend
-    /// spells, never text joined onto the name (kb/Work PB4320).</summary>
-    public AccessPath Reroot(Func<string, ContainerAnchor> anchorOf)
-    {
-        if (Segments.Count == 0 || Segments[0] is not RootFieldSegment root) return this;
-        // The guard's presence member is Uid-keyed and bridged under the same name (kb/Work PB971), so only the
-        // storage is re-anchored; the guard travels unchanged.
-        var segs = new List<AccessSegment>(Segments.Count) { root with { Anchor = anchorOf(root.MemberClrName) } };
-        for (int i = 1; i < Segments.Count; i++) segs.Add(Segments[i]);
-        return new AccessPath(segs);
-    }
-
     /// <summary>True when any segment evaluates a subscript (a table access) — the structural replacement for the
     /// former <c>path.Contains("CobolTable.At(")</c> string-sniff (CORRESPONDING ref-vs-value anchoring).</summary>
     public bool HasIndex => Segments.Any(s => s is FixedTableSegment or DynTableSegment or CellTableSegment);
@@ -58,9 +42,10 @@ public abstract record RootSegment(OmittedFormalGuard? Guard) : AccessSegment;
 /// <paramref name="MemberClrName"/> is never an access expression (kb/Work PB4320) and never the name of a local of the
 /// generated method: a statement's local, a method's carrier and a METHOD's data root or Tier-B backing are each a
 /// <see cref="LocalRootSegment"/> (kb/Work PB4321, PB4380, PB4416).
-/// <paramref name="Anchor"/> is non-null when the member belongs to a CONTAINING program (<see cref="AccessPath.Reroot"/>)
-/// and says how the referencing program reaches it; null for the referencing program's own member.</summary>
-public sealed record RootFieldSegment(string MemberClrName, OmittedFormalGuard? Guard = null, ContainerAnchor? Anchor = null)
+/// A containing program's member is the contained program's own by a GLOBAL bridge of the same name
+/// (<see cref="CallBridge"/>, which carries the <see cref="ContainerAnchor"/> that says how the program reaches it), so a
+/// root never names which program holds it.</summary>
+public sealed record RootFieldSegment(string MemberClrName, OmittedFormalGuard? Guard = null)
     : RootSegment(Guard);
 
 /// <summary>The storage a reference-type CARRIER designates: the step from a carrier-resident formal parameter's
@@ -90,7 +75,7 @@ public sealed record CellBackingSegment : AccessSegment
 /// <summary>⛔ HOW A CONTAINED PROGRAM REACHES A MEMBER OF A CONTAINING PROGRAM. ISO §13.18.27.4 GR2: "A statement in a
 /// program contained directly or indirectly within a program that describes a global name may reference that name
 /// without describing it again" — the storage stays the container's. Decided once per member by
-/// <c>BoundUnit.AnchorOf</c> (kb/Work PB1133) and carried as structure on a root segment and on a GLOBAL bridge
+/// <c>BoundUnit.AnchorOf</c> (kb/Work PB1133) and carried as structure on a GLOBAL bridge
 /// (<c>CallBridge</c>), so no model string holds the access text (kb/Work PB4320; DESIGN-backend-abstraction §1.3
 /// L7); each backend spells it.</summary>
 public abstract record ContainerAnchor
@@ -113,8 +98,7 @@ public abstract record ContainerAnchor
 /// operands is done at the start of the execution of the statement containing the CORRESPONDING phrase"), a METHOD's
 /// carrier-resident formal's carrier (<see cref="FormalCarrier.Local"/>), a METHOD's level-1 data root
 /// (<see cref="MethodDataLocal"/>, ISO §8.6.4) and its Tier-B class backing (<see cref="MethodRedefinesBackingLocal"/>;
-/// kb/Work PB4416), and the backend's own cell locals (a hoisted cell, a recreated dynamic table's element cell). A local is never a containing program's member, so
-/// <see cref="AccessPath.Reroot"/>, which anchors only a <see cref="RootFieldSegment"/>, leaves it as it is.</summary>
+/// kb/Work PB4416), and the backend's own cell locals (a hoisted cell, a recreated dynamic table's element cell). A local is never a containing program's member.</summary>
 public sealed record LocalRootSegment(MethodLocal Local, OmittedFormalGuard? Guard = null) : RootSegment(Guard);
 
 /// <summary>A <c>.Member</c> access on the accumulated path: <paramref name="MemberClrName"/> is the CLR name of a

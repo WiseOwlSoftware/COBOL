@@ -73,7 +73,7 @@ internal sealed class UnitEmitters
         Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move, Brackets);
         TableHold = new TableHoldEmitter(Ctx, Arith);   // the held form of a table(ALL) function argument (kb/Work PB4162)
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Places, Arith, Move);
-        SeqIo = new SequentialIoEmitter(Ctx, Num, Places, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
+        SeqIo = new SequentialIoEmitter(Ctx, Num, Places, dispatchState, ecState, KeyedIo, Arith, Ec, Move);
         Transactions = new TransactionEmitter(Ctx, Places, SeqIo);   // APPLY COMMIT, COMMIT, ROLLBACK (kb/Work PB3338)
         Sort = new SortEmitter(Ctx, Places, dispatchState, SeqIo, Move, Arith, Ec);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)
         ReportWriter = new ReportWriterEmitter(Ctx, Num, Places, Move, Cond, dispatchState, ecState, Ec);

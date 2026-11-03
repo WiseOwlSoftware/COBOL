@@ -414,9 +414,9 @@ public sealed record NationalWindow(int Positions) : WindowCoding
 
 /// <summary>A window coding whose value lives (wholly or partly) on the class's backing <c>StorageCell</c> rather
 /// than in its byte image — so it carries a SECOND structural path, the cell (<see cref="Cell"/>), beside
-/// <see cref="RedefViewPlace.Backing"/>. ⛔ ONE BASE, so every consumer that re-anchors a place (the containment
-/// anchor, <c>ProgramEmitter.AnchorPlace</c>) re-anchors EVERY cell-carrying coding with one expression — a coding
-/// added later cannot be forgotten there (kb/Work PB1026 added two).</summary>
+/// <see cref="RedefViewPlace.Backing"/>. ⛔ ONE BASE, so every consumer that rewrites the cell path of a place (the
+/// statement-local hoist, <c>PlaceIdentification.FreezeView</c>) rewrites EVERY cell-carrying coding with one expression
+/// — a coding added later cannot be forgotten there (kb/Work PB1026 added two).</summary>
 public abstract record CellWindowCoding(AccessPath Cell) : WindowCoding;
 
 /// <summary>A <see cref="RedefViewPlace"/>'s MANAGED-SLOT window (kb/Work PB231 — the pointer third): the member
