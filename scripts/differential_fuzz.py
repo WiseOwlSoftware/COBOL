@@ -124,6 +124,7 @@ import contextlib
 import dataclasses
 import html
 import io
+import hashlib
 import json
 import os
 import random
@@ -1077,6 +1078,30 @@ def first_messages(system_prompts: dict[str, str], number: str, title: str, body
     return family, [{"role": "system", "content": system_prompts[family]}, {"role": "user", "content": user}]
 
 
+def plan_entries(prefixes: tuple[str, ...], seed: int, in_order: bool, variations: int, count: int) -> dict[str, list[str]]:
+    """{program id: [clause number, title, sha256 of its first request]} for programs 0 .. count-1: the plan a batch records
+    (scripts/fuzz_batch.py) and the judge rebuilds and compares before it judges a reply as program i (review R1-1)."""
+    seeds, _declined, system_prompts = prompt_plan(prefixes, seed, in_order)
+    out: dict[str, list[str]] = {}
+    for i in range(count):
+        number, title, body, variation = seed_at(seeds, variations, i)
+        _family, messages = first_messages(system_prompts, number, title, body, variation)
+        digest = hashlib.sha256(json.dumps(messages, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+        out[f"fz{i:05d}"] = [number, title, digest]
+    return out
+
+
+def batch_plan_problems(batch: dict[str, Any]) -> list[str]:
+    """The programs whose clause, title or first request differ between the batch's recorded plan and the plan this tree
+    builds from the same settings (a changed --clauses / --seed, or a seed clause declined since the batch was
+    submitted): empty when every reply is the program the judge will call it."""
+    built = plan_entries(tuple(batch["clauses"]), int(batch["seed"]), bool(batch["in_order"]), int(batch["variations"]),
+                         int(batch["count"]))
+    recorded = batch.get("plan") or {}
+    bad = [f"{k}: recorded {recorded.get(k, ['?', '?'])[:2]}, built {v[:2]}" for k, v in built.items() if recorded.get(k) != v]
+    return bad
+
+
 def writer_reply(s: Any, model_options: dict[str, Any], messages: list[dict[str, str]], name: str = "") -> tuple[str, float, str, int]:
     """One reply from the run's writer (kb/Work PB4504, PB4506): the writers return the same shape, so nothing after the
     generation knows which one wrote the program. `files` reads the reply a batch already wrote (scripts/fuzz_batch.py
@@ -1088,6 +1113,9 @@ def writer_reply(s: Any, model_options: dict[str, Any], messages: list[dict[str,
         if not path.exists():
             raise RuntimeError(f"the batch holds no reply for {name} (its request errored, was canceled or expired)")
         reply = json.loads(path.read_text(encoding="utf-8"))
+        if reply.get("stop_reason") == "refusal":
+            # A refused reply is no program, whatever text preceded the refusal (review R1-2).
+            raise RuntimeError(f"the batch's reply for {name} was a refusal (stop_reason refusal)")
         return str(reply.get("text") or ""), 0.0, "length" if reply.get("stop_reason") == "max_tokens" else "stop", 0
     return ollama_chat(s.model, messages, s.temperature, options=model_options)
 
@@ -1298,7 +1326,7 @@ def cut_off_reason(done: str, thinking_chars: int, content_chars: int, writer: s
     if thinking_chars and not content_chars:
         return (f"the model spent all {NUM_PREDICT} output tokens thinking ({thinking_chars} characters; think=false was not "
                 "honoured) and wrote no content")
-    if writer == "claude":
+    if writer in ("claude", "files"):
         return "the reply was cut off at the Claude model's output-token limit (stop_reason max_tokens)"   # review R1-6
     return f"the reply was cut off at {NUM_PREDICT} tokens"
 
@@ -2259,12 +2287,21 @@ def self_test() -> int:
           and option_errors["ok"].startswith("2|") and "compiler not found" in option_errors["ok"], option_errors)
     # --writer claude (kb/Work PB4504): one Claude model, no Ollama-only option, and --max-usd only for the writer that spends
     writer_errors: dict[str, str] = {}
+    files_run = Path(tempfile.mkdtemp(prefix="fz-files-"))
+    (files_run / "replies").mkdir()
+    (files_run / "batch.json").write_text(json.dumps({
+        "model": "claude-sonnet-5-5", "count": 1, "clauses": list(DEFAULT_CLAUSES), "seed": 20261020, "in_order": False,
+        "variations": Settings.__dataclass_fields__["variations"].default,
+        "plan": plan_entries(tuple(DEFAULT_CLAUSES), 20261020, False, Settings.__dataclass_fields__["variations"].default, 1)}),
+        encoding="utf-8", newline="\n")
     for case, argv in (("bake-off", ["--writer", "claude", "--bake-off", "a,b", "--count", "1"]),
                        ("option", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--model-option", "sonnet:repeat_penalty=1.1"]),
                        ("usd", ["--model", "m", "--count", "1", "--max-usd", "1"]),
                        ("ok", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--max-usd", "2", "--force-open-notes",
                                "--cobol", "no-such-cobol.exe"]),
-                       ("files", ["--writer", "files", "--replies", str(REPO), "--count", "1", "--force-open-notes",
+                       ("files-no-record", ["--writer", "files", "--replies", str(REPO), "--force-open-notes",
+                                            "--cobol", "no-such-cobol.exe"]),
+                       ("files", ["--writer", "files", "--replies", str(files_run / "replies"), "--force-open-notes",
                                   "--cobol", "no-such-cobol.exe"])):
         err = io.StringIO()
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
@@ -2280,7 +2317,9 @@ def self_test() -> int:
           and writer_errors["option"].startswith("2|") and "--writer claude takes one --model" in writer_errors["option"]
           and writer_errors["usd"].startswith("2|") and "--max-usd bounds the Claude writer" in writer_errors["usd"]
           and writer_errors["ok"].startswith("2|") and "compiler not found" in writer_errors["ok"]
+          and writer_errors["files-no-record"].startswith("2|") and "needs the batch's record" in writer_errors["files-no-record"]
           and writer_errors["files"].startswith("2|") and "compiler not found" in writer_errors["files"], writer_errors)
+    shutil.rmtree(files_run, ignore_errors=True)
     # writer_reply routes to the run's writer and Fuzz.spent_out reads the Claude writer's meter
     probe = Fuzz.__new__(Fuzz)
     probe.model_options = {}
@@ -2376,17 +2415,29 @@ def main(argv: list[str]) -> int:
         return 0
     if not (a.model or a.bake_off or a.writer == "files"):
         ap.error("--model or --bake-off is required")
-    if a.count is None and a.hours is None:
+    if a.count is None and a.hours is None and a.writer != "files":
         ap.error("--count or --hours is required")
     if a.writer == "claude" and (a.bake_off or a.model_option):
         ap.error("--writer claude takes one --model and no --bake-off or --model-option (those are Ollama's)")
     if a.writer == "files":
         if not a.replies or not Path(a.replies).is_dir():
             ap.error("--writer files needs --replies, the directory fuzz_batch.py collect wrote")
-        if a.bake_off or a.model_option or a.max_usd is not None or a.api_key_file:
-            ap.error("--writer files judges replies already written: no --bake-off, --model-option, --max-usd or --api-key-file")
+        if a.bake_off or a.model_option or a.max_usd is not None or a.api_key_file or a.hours is not None:
+            ap.error("--writer files judges replies already written: no --bake-off, --model-option, --max-usd, --api-key-file or --hours")
+        # THE PLAN IS THE BATCH'S (review R1-1): reply i is program i only under the plan the batch was submitted with, so a
+        # files run takes --count, --clauses, --seed and --in-order from batch.json (beside the replies) and refuses to start
+        # if this tree builds any program's clause, title or first request differently.
+        batch_file = Path(a.replies).parent / "batch.json"
+        if not batch_file.exists():
+            ap.error(f"--writer files needs the batch's record {batch_file} (fuzz_batch.py submit writes it)")
+        batch = json.loads(batch_file.read_text(encoding="utf-8"))
+        problems = batch_plan_problems(batch)
+        if problems:
+            ap.error(f"{len(problems)} of {batch['count']} programs differ from the plan the batch was submitted with, so their "
+                     f"replies would be judged as the wrong program; first: {problems[0]}")
+        a.count, a.clauses, a.seed, a.in_order = int(batch["count"]), ",".join(batch["clauses"]), int(batch["seed"]), bool(batch["in_order"])
         a.repairs = 0                           # a written reply has no correction round
-        a.model = a.model or "batch"
+        a.model = batch["model"]
     if a.max_usd is not None and a.writer != "claude":
         ap.error("--max-usd bounds the Claude writer's spend; the Ollama writer spends nothing")
     if a.api_key_file and a.writer != "claude":

@@ -106,32 +106,38 @@ def client_for(key_file: str) -> Any:
     return anthropic.Anthropic(api_key=read_key(key_file))
 
 
-def submit(a: argparse.Namespace) -> int:
+def submit(a: argparse.Namespace, client: Any = None) -> int:
     out = Path(a.out)
     if (out / "batch.json").exists():
         raise SystemExit(f"fuzz_batch: {out / 'batch.json'} exists: one batch per run directory")
     prefixes = tuple(p.strip() for p in a.clauses.split(",") if p.strip())
     requests = build_requests(a.count, a.model, prefixes, a.seed, a.in_order)
-    batch = client_for(a.api_key_file).messages.batches.create(requests=requests)
-    out.mkdir(parents=True, exist_ok=True)
-    record = {"batch_id": batch.id, "model": a.model, "count": a.count, "clauses": list(prefixes), "seed": a.seed,
+    record = {"batch_id": None, "model": a.model, "count": a.count, "clauses": list(prefixes), "seed": a.seed,
               "in_order": a.in_order, "variations": VARIATIONS, "max_tokens": MAX_TOKENS,
-              "submitted_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+              "plan": df.plan_entries(prefixes, a.seed, a.in_order, VARIATIONS, a.count)}
+    # The directory and the record exist BEFORE the billed batch does, and the id is written and printed the moment it
+    # exists, so a failure after the create cannot lose the paid batch's id (review R1-3).
+    out.mkdir(parents=True, exist_ok=True)
     (out / "batch.json").write_text(json.dumps(record, indent=1), encoding="utf-8", newline="\n")
-    print(f"submitted batch {batch.id}: {a.count} requests, model {a.model}, status {batch.processing_status}; record {out / 'batch.json'}")
+    batch = (client or client_for(a.api_key_file)).messages.batches.create(requests=requests)
+    print(f"submitted batch {batch.id}: {a.count} requests, model {a.model}, status {batch.processing_status}", flush=True)
+    record.update(batch_id=batch.id, submitted_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
+    (out / "batch.json").write_text(json.dumps(record, indent=1), encoding="utf-8", newline="\n")
+    print(f"record {out / 'batch.json'}")
     return 0
 
 
-def judge_command(out: Path, rec: dict[str, Any]) -> str:
-    order = " --in-order" if rec["in_order"] else ""
-    return (f"python scripts/differential_fuzz.py --writer files --replies \"{out / 'replies'}\" --count {rec['count']} "
-            f"--clauses {','.join(rec['clauses'])} --seed {rec['seed']}{order} --out \"{out / 'judged'}\" --cobol <judge>")
+def judge_command(out: Path) -> str:
+    """The judge's command line: the plan (count, clauses, seed, order) comes from batch.json, never from the command."""
+    return f"python scripts/differential_fuzz.py --writer files --replies \"{out / 'replies'}\" --out \"{out / 'judged'}\" --cobol <judge>"
 
 
-def collect(a: argparse.Namespace, sleep: Callable[[float], None] = time.sleep) -> int:
+def collect(a: argparse.Namespace, sleep: Callable[[float], None] = time.sleep, client: Any = None) -> int:
     out = Path(a.out)
     rec = json.loads((out / "batch.json").read_text(encoding="utf-8"))
-    client = client_for(a.api_key_file)
+    if not rec.get("batch_id"):
+        raise SystemExit(f"fuzz_batch: {out / 'batch.json'} names no batch: its submit did not reach the API")
+    client = client or client_for(a.api_key_file)
     while True:
         batch = client.messages.batches.retrieve(rec["batch_id"])
         c = batch.request_counts
@@ -146,7 +152,7 @@ def collect(a: argparse.Namespace, sleep: Callable[[float], None] = time.sleep) 
     summary["collected_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     (out / "collect.json").write_text(json.dumps(summary, indent=1), encoding="utf-8", newline="\n")
     print(f"collected: {summary['counts']}; tokens {summary['tokens']}")
-    print("judge it with:\n  " + judge_command(out, rec))
+    print("judge it with:\n  " + judge_command(out))
     return 0
 
 
@@ -196,6 +202,45 @@ def self_test() -> int:
             check("a request with no reply is a RuntimeError for the judge", False)
         except RuntimeError:
             check("a request with no reply is a RuntimeError for the judge", True)
+        class FakeBatches:
+            def __init__(self) -> None:
+                self.polls = 0
+
+            def create(self, requests: list[Any]) -> Any:
+                assert (Path(tmp) / "run" / "batch.json").exists(), "the record exists before the billed batch"
+                return Obj(id="msgbatch_test", processing_status="in_progress")
+
+            def retrieve(self, _id: str) -> Any:
+                self.polls += 1
+                done = self.polls >= 2
+                return Obj(id=_id, processing_status="ended" if done else "in_progress",
+                           request_counts=Obj(processing=0 if done else 2, succeeded=1 if done else 0, errored=1 if done else 0,
+                                              canceled=0, expired=0))
+
+            def results(self, _id: str) -> list[Any]:
+                return [ok, bad]
+
+        fake = Obj(messages=Obj(batches=FakeBatches()))
+        args = types_ns(out=str(Path(tmp) / "run"), count=2, model=DEFAULT_MODEL, clauses=",".join(df.DEFAULT_CLAUSES),
+                        seed=20261020, in_order=False, api_key_file="unused", no_wait=False)
+        submit(args, client=fake)
+        rec = json.loads((Path(tmp) / "run" / "batch.json").read_text(encoding="utf-8"))
+        check("submit records the batch id and every program's plan entry", rec["batch_id"] == "msgbatch_test"
+              and sorted(rec["plan"]) == ["fz00000", "fz00001"] and not df.batch_plan_problems(rec))
+        slept: list[float] = []
+        check("collect polls until the batch ends, then writes the replies and the summary",
+              collect(args, sleep=slept.append, client=fake) == 0 and slept == [POLL_SECONDS]
+              and (Path(tmp) / "run" / "replies" / "fz00000.json").exists() and (Path(tmp) / "run" / "collect.json").exists())
+        moved = dict(rec, seed=rec["seed"] + 1)
+        check("a plan this tree builds differently is named (the judge refuses to start on it)", bool(df.batch_plan_problems(moved)))
+        check("the judge command carries no plan of its own", "--seed" not in judge_command(Path(tmp)) and "--clauses" not in judge_command(Path(tmp)))
+        refusal = Path(tmp) / "run" / "replies" / "fz00009.json"
+        refusal.write_text(json.dumps({"text": "IDENTIFICATION DIVISION.", "stop_reason": "refusal"}), encoding="utf-8", newline="\n")
+        try:
+            df.writer_reply(types_ns(writer="files", replies=str(refusal.parent)), {}, [], "fz00009")
+            check("a refused reply is no program", False)
+        except RuntimeError:
+            check("a refused reply is no program", True)
         keyfile = Path(tmp) / "k.txt"
         keyfile.write_bytes("﻿\n  sk-x  \n".encode("utf-8"))
         check("the key file's first non-empty line is read, a byte-order mark dropped", read_key(str(keyfile)) == "sk-x")
