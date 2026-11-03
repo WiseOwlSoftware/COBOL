@@ -20,7 +20,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// accepted in the arm its kind allows (a closed table that rejected one of its own names would be green on every
 /// negative golden), and the legal spellings the old grammar refused (OFF before ON; FOR before IS) now compile.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class ImplementorNamesDriftTests
 {
     private static (bool Ok, IReadOnlyList<string> Errors) Compile(string special, string procedure, int edition)
@@ -52,7 +51,7 @@ public sealed class ImplementorNamesDriftTests
     /// <summary>The elements a reader must find for each kind: every non-numbered name, and both ENDS of each
     /// numbered run (<c>SWITCH-0</c> … <c>SWITCH-36</c>) — the same compaction <see cref="ImplementorNames.Describe"/>
     /// prints, derived here from the table rather than copied from it.</summary>
-    private static IEnumerable<string> Elements(SystemNameKind kind) =>
+    internal static IEnumerable<string> Elements(SystemNameKind kind) =>
         ImplementorNames.All.Values.Where(r => r.Kind == kind)
             .GroupBy(r => Regex.Replace(r.Name, "[0-9]+$", ""))
             .SelectMany(g => g.Count() == 1
@@ -60,29 +59,22 @@ public sealed class ImplementorNamesDriftTests
                 : new[] { g.MinBy(r => int.Parse(r.Name[g.Key.Length..]))!.Name,
                           g.MaxBy(r => int.Parse(r.Name[g.Key.Length..]))!.Name });
 
-    private static string Row(string key)
-    {
-        string doc = File.ReadAllText(TestRepo.Docs("CONFORMANCE.md"));
-        var m = Regex.Match(doc, $@"^\| {Regex.Escape(key)} \|.*$", RegexOptions.Multiline);
-        Assert.True(m.Success, $"docs/CONFORMANCE.md §7 has no {key} row");
-        return m.Value;
-    }
-
-    /// <summary>⛔ THE DRIFT GATE: each kind's Annex A.1 row in docs/CONFORMANCE.md §7 names every element of that
-    /// kind's table rows, and the COBOL2241 catalog text names every element of every kind.</summary>
+    /// <summary>⛔ THE DRIFT GATE: the COBOL2241 catalog text names every element of every kind, and each kind's elements are
+    /// the facts file's <c>implementorNameElements</c>, which <c>scripts/docchecks/facts.py</c> holds each kind's Annex A.1
+    /// row in docs/CONFORMANCE.md §7 (DOC-A.1-189, -190, -191) to: no compiler test opens a Markdown file (kb/Work PB4453).</summary>
     [Theory]
     [InlineData(SystemNameKind.Device, "DOC-A.1-189")]
     [InlineData(SystemNameKind.Feature, "DOC-A.1-190")]
     [InlineData(SystemNameKind.Switch, "DOC-A.1-191")]
     public void EveryTableName_IsDocumented_AndNamedByTheDiagnostic(SystemNameKind kind, string key)
     {
-        string row = Row(key);
+        var documented = DocFacts.Load("compiler-facts.json").GetProperty("implementorNameElements").GetProperty(kind.ToString())
+            .EnumerateArray().Select(e => e.GetString()!).Order(StringComparer.Ordinal).ToList();
+        Assert.Equal(Elements(kind).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList(), documented);
+        Assert.True(documented.Count > 0, $"{key}: the kind holds no names");
         string catalog = DiagnosticCatalog.UnavailableImplementorName.Title;
-        foreach (string e in Elements(kind))
-        {
-            Assert.True(row.Contains($"`{e}`", StringComparison.Ordinal), $"{key} does not name `{e}`");
+        foreach (string e in documented)
             Assert.True(catalog.Contains(e, StringComparison.Ordinal), $"COBOL2241's text does not name {e}");
-        }
     }
 
     /// <summary>§8.3.2.3.1 — "a given system-name shall not belong to more than one of the following types of

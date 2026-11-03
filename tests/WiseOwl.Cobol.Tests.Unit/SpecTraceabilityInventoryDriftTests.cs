@@ -285,7 +285,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         return new DerivationRule(
             Str(d, "field"), Str(d, "anchor-template"), heading, signatures, arms,
-            ConformanceRegister.Derivations(heading, Str(d, "register-header-cell")), undefined);
+            ConformanceRegister.Derivations(), undefined);
     }
 
     /// <summary>
@@ -848,6 +848,15 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// <summary>The pattern for <paramref name="name"/> as a whole identifier: no identifier character on either side.</summary>
     private static string WholeWord(string name) => $@"(?<![A-Za-z0-9_]){Regex.Escape(name)}(?![A-Za-z0-9_])";
 
+    /// <summary>The file kinds that are DOCUMENTS (<c>tests/doc-facts/inventory-anchor-kinds.json</c>): an anchor into one
+    /// (<c>docs/CONFORMANCE.md#DOC-A.1-n</c>, today) is resolved by <c>scripts/docchecks/inventory.py</c>, because no compiler
+    /// test opens a Markdown file (kb/Work PB4453). An anchor into any other file is resolved here.</summary>
+    private static readonly Lazy<string[]> DocumentKinds = new(() =>
+        [.. DocFacts.Load("inventory-anchor-kinds.json").GetProperty("documentKinds").EnumerateArray().Select(e => e.GetString()!)]);
+
+    private static bool ResolvedHere(string file) =>
+        !DocumentKinds.Value.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase);
+
     private static List<string> UnresolvedCodeLocations(IEnumerable<Row> rows, Schema s, string root)
     {
         var bad = new List<string>();
@@ -868,7 +877,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
                     bad.Add($"{r.RuleId}: code-location '{loc}' — no such file");
                     continue;
                 }
-                if (parts.Length == 1) continue;
+                if (parts.Length == 1 || !ResolvedHere(file)) continue;
 
                 if (!SymbolResolves(file, parts[1]))
                     bad.Add($"{r.RuleId}: code-location '{loc}' — '{parts[1]}' is no longer in that file's code");
@@ -907,7 +916,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 string file = Path.Combine(root, path.Replace('/', Path.DirectorySeparatorChar));
                 if (!File.Exists(file))
                     bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — no such file");
-                else if (!SymbolResolves(file, symbol))
+                else if (ResolvedHere(file) && !SymbolResolves(file, symbol))
                     bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — '{symbol}' is no longer in that file's code "
                             + "(rewrite the sentence, or retire the witness so the history sits behind a retired-witness mark)");
             }
@@ -1755,7 +1764,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // ⛔ `#7`: the fragment five live rows carried, which the resolver satisfies against the digit 7 anywhere
         // in the file. And the bare path, which is the same defect resolving on File.Exists alone.
         Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md#7" }], s));
-        Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md" }], s));
+        Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor[..Anchor.IndexOf('#')] }], s));
         // The controls: every anchor space the document really has stays legal — §7's item rows, §1's §4.2.16
         // summary, §5's Annex A.4 rows — and a file that is not anchored is not policed.
         Assert.Empty(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor }], s));

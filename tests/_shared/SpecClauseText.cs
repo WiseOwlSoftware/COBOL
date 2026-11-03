@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// copies inside <c>FileControlKeyRuleDriftTests</c>; the second table to need them
 /// (<c>RecordClauseRuleDriftTests</c>) is the moment to extract rather than to copy, because the copy is the one
 /// that would not learn about the next heading form the transcription grows.</para>
-/// <para>⚖ NOT the same query as <c>VcrDriftTests.SpecClauseRegions</c>, which builds a normalized region map
+/// <para>⚖ NOT the same query as <c>scripts/docchecks/vcr.py clause_regions</c>, which builds a normalized region map
 /// for EVERY clause at once to answer "does this citation resolve anywhere in the standard". That one is a
 /// whole-document index; this one is a per-clause reader that keeps the RAW lines, because a syntax-diagram
 /// assertion has to see the punctuation the normalizer removes.</para>

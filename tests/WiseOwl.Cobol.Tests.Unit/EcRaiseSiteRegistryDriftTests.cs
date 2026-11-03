@@ -31,8 +31,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// sat in this state for months).</item>
 /// </list>
 /// A name that is deliberately neither is on <see cref="DeclinedRaiseSites"/>, and every entry names the
-/// <c>docs/CONFORMANCE.md</c> row or section that says why — the test reads that text and fails when the anchor does not
-/// mention the name.
+/// <c>docs/CONFORMANCE.md</c> row or section that says why. The list is data (<c>tests/doc-facts/declined-raise-sites.json</c>),
+/// and <c>scripts/docchecks/facts.py</c> (<c>raise_site_findings</c>) reads the document and fails when the anchor does not
+/// mention the name: no compiler test opens a Markdown file (kb/Work PB4453).
 ///
 /// <para>⚠ <b>WHAT "RAISED" MEANS HERE, stated because the honest boundary matters.</b> A raise site is a string literal
 /// that IS the name (or a quoted copy of it, in text an emitter writes) in <c>src/WiseOwl.Cobol.Runtime</c> or in the code
@@ -53,34 +54,17 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class EcRaiseSiteRegistryDriftTests
 {
-    private const string Conformance = "docs/CONFORMANCE.md";
-
-    /// <summary>The names no statement declares and no code raises, each with the CONFORMANCE.md row or section that says why.
-    /// An anchor <c>DOC-A.1-n</c> is that Annex A.1 row (it must quote the name); <c>§4</c> is "Documented non-support
-    /// facilities" (it must quote the name or its level-2 family); <c>§3:D-x</c> is the §3 determination bullet that begins
-    /// <c>- **D-x</c> (it must quote the name).</summary>
-    private static readonly (string[] Names, string Anchor)[] DeclinedRaiseSites =
+    /// <summary>The names no statement declares and no code raises, each with the CONFORMANCE.md row or section that says why,
+    /// read from <c>tests/doc-facts/declined-raise-sites.json</c> (which holds the reasons). An anchor <c>DOC-A.1-n</c> is
+    /// that Annex A.1 row; <c>§4</c> is "Documented non-support facilities" (the entry's <c>family</c> is the level-2 name
+    /// the section may quote instead); <c>§3:D-x</c> is the §3 determination bullet that begins <c>- **D-x</c>. The
+    /// document's side, that the anchor quotes each name, is <c>scripts/docchecks/facts.py</c> (kb/Work PB4453).</summary>
+    private static readonly (string[] Names, string Anchor, string? Family)[] DeclinedRaiseSites =
     [
-        // Table 13's implementor-defined level-2 names (§14.6.13.1.1, "the '-IMP' suffix type"). DOC-A.1-100: "the
-        // implementation itself sets only EC-PROGRAM-IMP … The implementation never sets any of the others, so a program
-        // sees them only when it raises them itself" (RAISE EXCEPTION); EC-SCREEN-IMP and EC-VALIDATE-IMP belong to modules
-        // that are not provided and are refused wherever they are written. EC-PROGRAM-IMP and EC-I-O-IMP are NOT here: the
-        // first is raised by ProgramTable.ParentInstance and the second is the status map's '9x' row.
-        (["EC-ARGUMENT-IMP", "EC-BOUND-IMP", "EC-CONTINUE-IMP", "EC-DATA-IMP", "EC-EXTERNAL-IMP", "EC-FLOW-IMP",
-          "EC-FUNCTION-IMP", "EC-LOCALE-IMP", "EC-MCS-IMP", "EC-OO-IMP", "EC-ORDER-IMP", "EC-OVERFLOW-IMP", "EC-RAISING-IMP",
-          "EC-RANGE-IMP", "EC-REPORT-IMP", "EC-SCREEN-IMP", "EC-SIZE-IMP", "EC-SORT-MERGE-IMP", "EC-STORAGE-IMP",
-          "EC-VALIDATE-IMP"], "DOC-A.1-100"),
-        // The facilities CONFORMANCE.md §4 declines: the Message Control System (item 1), the
-        // VALIDATE facility (item 3) and screen handling (item 4). Each name is refused or has no setting site.
-        (["EC-MCS-ABNORMAL-TERMINATION", "EC-MCS-INVALID-TAG", "EC-MCS-MESSAGE-LENGTH", "EC-MCS-NO-REQUESTER",
-          "EC-MCS-NO-SERVER", "EC-MCS-NORMAL-TERMINATION", "EC-MCS-REQUESTOR-FAILED"], "§4"),
-        (["EC-SCREEN-FIELD-OVERLAP", "EC-SCREEN-ITEM-TRUNCATED", "EC-SCREEN-LINE-NUMBER", "EC-SCREEN-STARTING-COLUMN"], "§4"),
-        (["EC-VALIDATE-CONTENT", "EC-VALIDATE-FORMAT", "EC-VALIDATE-RELATION", "EC-VALIDATE-VARYING"], "§4"),
-        // §15.65.4 r2: MODULE-NAME's returned item is dynamic-length, so "does not fit" cannot happen (DOC-A.1-133).
-        (["EC-BOUND-FUNC-RET-VALUE"], "DOC-A.1-133"),
-        // Table 13 names it ("EXIT PROGRAM in a global Declarative") and no general rule sets it (§14.9.14.4 GR3 imports
-        // GOBACK's GR3 and GR4, not GR6, which sets EC-FLOW-GLOBAL-GOBACK).
-        (["EC-FLOW-GLOBAL-EXIT"], "§3:D-GLOBAL-EXIT"),
+        .. DocFacts.Load("declined-raise-sites.json").GetProperty("sites").EnumerateArray().Select(e => (
+            Names: e.GetProperty("names").EnumerateArray().Select(n => n.GetString()!).ToArray(),
+            Anchor: e.GetProperty("anchor").GetString()!,
+            Family: e.TryGetProperty("family", out var f) ? f.GetString() : null)),
     ];
 
     /// <summary>The names raised at the ACTIVATION BOUNDARY, in the ACTIVATING element, for a name the propagation machinery
@@ -172,7 +156,6 @@ public sealed class EcRaiseSiteRegistryDriftTests
         return raised;
     });
 
-    private static string ConformanceText => File.ReadAllText(TestRepo.At(Conformance.Split('/')));
 
     [Fact]
     public void EveryCataloguedLevel3Name_IsDeclaredAndRaised_OrDeclinedWithAReason()
@@ -212,47 +195,20 @@ public sealed class EcRaiseSiteRegistryDriftTests
     [Fact]
     public void EveryDeclinedEntry_NamesACataloguedName_AndItsAnchorQuotesIt()
     {
-        string doc = ConformanceText;
+        // The anchor's quoting each name is the audit's (scripts/docchecks/facts.py, raise_site_findings): no compiler
+        // test opens a Markdown file (kb/Work PB4453). What is the compiler's is checked here.
         var names = Level3Names.ToHashSet(StringComparer.Ordinal);
-        string section4 = doc[doc.IndexOf("\n## 4. ", StringComparison.Ordinal)..doc.IndexOf("\n## 5. ", StringComparison.Ordinal)];
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var problems = new List<string>();
-        foreach (var (entryNames, anchor) in DeclinedRaiseSites)
+        foreach (var (entryNames, anchor, family) in DeclinedRaiseSites)
         {
+            if (anchor == "§4" && family is null) problems.Add("a §4 entry names no level-2 family the section may quote instead");
             foreach (string name in entryNames)
             {
                 if (!names.Contains(name)) problems.Add($"{name}: not a catalogued level-3 name");
                 if (!seen.Add(name)) problems.Add($"{name}: listed twice");
-                if (anchor == "§4")
-                {
-                    string family = ExceptionCatalog.Level2OfName(name) ?? "";
-                    if (!section4.Contains(name, StringComparison.Ordinal) && !section4.Contains(family, StringComparison.Ordinal))
-                        problems.Add($"{name}: {Conformance} §4 quotes neither the name nor its family {family}");
-                }
-                else if (anchor.StartsWith("§3:", StringComparison.Ordinal))
-                {
-                    string bullet = "- **" + anchor["§3:".Length..];
-                    int at = doc.IndexOf(bullet, StringComparison.Ordinal);
-                    if (at < 0) problems.Add($"{name}: {Conformance} has no determination bullet beginning '{bullet}'");
-                    else
-                    {
-                        int end = doc.IndexOf("\n- **", at + bullet.Length, StringComparison.Ordinal);
-                        if (!doc[at..(end < 0 ? doc.Length : end)].Contains(name, StringComparison.Ordinal))
-                            problems.Add($"{name}: the {anchor} determination of {Conformance} does not quote the name");
-                    }
-                }
-                else
-                {
-                    string rowStart = $"| {anchor} |";
-                    int at = doc.IndexOf(rowStart, StringComparison.Ordinal);
-                    if (at < 0) problems.Add($"{name}: {Conformance} has no row {anchor}");
-                    else
-                    {
-                        int end = doc.IndexOf('\n', at);
-                        if (!doc[at..end].Contains(name, StringComparison.Ordinal))
-                            problems.Add($"{name}: the {anchor} row of {Conformance} does not quote the name");
-                    }
-                }
+                if (anchor == "§4" && family != ExceptionCatalog.Level2OfName(name))
+                    problems.Add($"{name}: its level-2 family is {ExceptionCatalog.Level2OfName(name)}, the entry says {family}");
             }
         }
         foreach (string name in RaisedAtTheActivationBoundary)

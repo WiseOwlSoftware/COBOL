@@ -1,0 +1,4 @@
+{
+ "comment": "THE UNTYPED ACTIVATION ROUTES (kb/Work PB4453). One regular expression, in the syntax .NET and Python share, read by the Unit test OneHostSurfaceDriftTests (no test .cs names a route) and by scripts/docchecks/design.py (no user document does): the rule lives here once. A member access on the facade, on the run unit's program table, on the program interface, or the module's registrar; GetMethod(\"Register\") is the same registrar reached by reflection.",
+ "pattern": "\\bProgramRegistry\\s*\\.\\s*(?:CallProgram|Cancel|RunMain|RunModule)\\b|\\.Programs\\s*\\.\\s*(?:CallProgram|Cancel|RunMain|RunModule)\\b|\\bICobolProgram\\s*\\.\\s*(?:Call|Activate)\\b|\\b__CobolModule\\s*\\.\\s*Register\\b|GetMethod\\(\\s*\"Register\""
+}

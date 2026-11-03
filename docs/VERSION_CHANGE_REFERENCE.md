@@ -64,7 +64,7 @@ carries a machine-readable **anchor** in its `Compiler gating action` cell:
 
 The **Gating status index** below is GENERATED from those anchors + the catalogue's per-construct `status`
 (`active`→`done` / `pending`→`pending` — itself fixture-gated by `VersionMatrixTests`, so `active` means the
-construct's (construct × edition) cells actually pass). Regenerate: `pwsh scripts/gen-vcr.ps1`. `VcrDriftTests` fails
+construct's (construct × edition) cells actually pass). Regenerate: `python scripts/doc_audits.py --write-vcr`. The DOC AUDITS gate audit (`scripts/doc_audits.py --check`) fails
 CI if the index drifts from the anchors+catalogue, if an anchor names a construct that doesn't exist, or if a cited
 `§` doesn't resolve in the spec (unknown clause, or an appendix fragment that is no longer inside the clause it
 names), or if a spec LINE number reappears anywhere in this file — so the ledger can no longer go stale.
@@ -81,8 +81,8 @@ names), or if a spec LINE number reappears anywhere in this file — so the ledg
 
 ## Gating status index (generated)
 
-> **GENERATED — do not hand-edit.** Regenerate: `pwsh scripts/gen-vcr.ps1` (renders from `constructs.json` + the VCR
-> `<!-- gate:id -->` anchors; `VcrDriftTests` guards it). One row per VCR-anchored construct with its derived status.
+> **GENERATED — do not hand-edit.** Regenerate: `python scripts/doc_audits.py --write-vcr` (renders from `constructs.json` + the VCR
+> `<!-- gate:id -->` anchors; the DOC AUDITS gate audit guards it). One row per VCR-anchored construct with its derived status.
 > Constructs not yet narrated in a VCR row live only in `constructs.json` — the VCR does not yet carry the full
 > 85→2002 / 2002→2014 row sets (see the scope limit above); they enter as Step 5 backfills each delta.
 
@@ -418,7 +418,7 @@ them dangled the moment the transcription was repaired, figures were regenerated
 references reaching line 50,407 in a file that now has 47,195 lines, all of them silently pointing at the wrong
 sentence long before they pointed past the end. A clause number is the STANDARD's own identifier and does not
 move; the quoted fragment is what pins the reference INSIDE the clause. Both halves are checked mechanically —
-`VcrDriftTests.EverySpecCitation_ResolvesInTheSpec` applies the same contract as
+the DOC AUDITS gate audit (`scripts/docchecks/vcr.py`, `citation_findings`) applies the same contract as
 `python scripts/spec/cite.py --check <clause> "<text>"`, so a citation cannot rot without the battery going red.
 
 Annex E is the 2014→2023 substantive-changes list, Annex F the archaic/obsolete lists; a body clause beside them
