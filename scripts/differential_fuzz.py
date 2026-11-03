@@ -1139,6 +1139,14 @@ class Fuzz:
             # PAUSE loses no program (kb/Work PB3561). A failure that is neither, or the second runner failure, is the row's
             # RUNNER_ERROR.
             this_generation.clear()
+            if attempt and self.spent_out():
+                # The run reached --max-usd while this program was in flight: no further correction is asked, so the
+                # ceiling bounds the run to the generations already started (review R1-4). The verdict is the last program's.
+                rec["stopped_at_ceiling"] = True
+                if program is None:
+                    rec.update(verdict="NO_PROGRAM", reason="the run's --max-usd was reached before the writer produced a program")
+                    return rec
+                break
             try:
                 reply, secs, done, thinking = lossless(
                     self.pause, lambda: writer_reply(self.s, self.model_options, messages),
@@ -1156,7 +1164,7 @@ class Fuzz:
             # A reply cut short (the token cap, or an enumeration the watch ended) never yields a program: what precedes the cut
             # may hold a PROCEDURE DIVISION, but it is the front of a program the model did not finish.
             if program is None or done == "length" or done in DEGENERATE_REASONS:
-                why = cut_off_reason(done, thinking, len(reply))
+                why = cut_off_reason(done, thinking, len(reply), self.s.writer)
                 if attempt == self.s.repairs:
                     rec.update(verdict="NO_PROGRAM", reason=why, truncated=done == "length")
                     return rec
@@ -1211,11 +1219,11 @@ class Fuzz:
 
     def record(self, rec: dict[str, Any]) -> None:
         with self.lock:
+            if self.s.writer == "claude":
+                rec["spent_usd"] = round(fuzz_claude.spent(), 4)    # the run's spend when this row closed (review R1-1)
             with self.results_path.open("a", encoding="utf-8", newline="\n") as f:
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
             self.done += 1
-            if self.s.writer == "claude":
-                rec["spent_usd"] = round(fuzz_claude.spent(), 4)
             print(f"[{self.done}] {rec['id']} {rec['clause']:<10} {rec['verdict']:<14} "
                   f"{rec.get('signature', rec.get('reason', ''))[:70]}", flush=True)
             if self.done % REPORT_EVERY == 0:
@@ -1251,7 +1259,7 @@ class Fuzz:
             write_report(self.out)
 
 
-def cut_off_reason(done: str, thinking_chars: int, content_chars: int) -> str:
+def cut_off_reason(done: str, thinking_chars: int, content_chars: int, writer: str = "ollama") -> str:
     """Why a reply yielded no program: cut off at the output cap, with the thinking that spent the cap named when the content
     is empty (a model that ignores `think: false`), or simply no program in it. An enumeration loop is named as its own
     shape (kb/Work PB3537), whoever ended it: the harness's watch or Ollama's repeat limit."""
@@ -1266,6 +1274,8 @@ def cut_off_reason(done: str, thinking_chars: int, content_chars: int) -> str:
     if thinking_chars and not content_chars:
         return (f"the model spent all {NUM_PREDICT} output tokens thinking ({thinking_chars} characters; think=false was not "
                 "honoured) and wrote no content")
+    if writer == "claude":
+        return "the reply was cut off at the Claude model's output-token limit (stop_reason max_tokens)"   # review R1-6
     return f"the reply was cut off at {NUM_PREDICT} tokens"
 
 
@@ -1660,7 +1670,8 @@ def self_test() -> int:
           "spent all" in cut_off_reason("length", 28259, 0) and "think=false" in cut_off_reason("length", 28259, 0)
           and cut_off_reason("length", 0, 500) == f"the reply was cut off at {NUM_PREDICT} tokens"
           and cut_off_reason("length", 900, 500) == f"the reply was cut off at {NUM_PREDICT} tokens"
-          and cut_off_reason("stop", 0, 0) == "no COBOL program in the reply")
+          and cut_off_reason("stop", 0, 0) == "no COBOL program in the reply"
+          and "Claude model's output-token limit" in cut_off_reason("length", 0, 500, "claude"))
     many = [(f"14.9.{k}", f"S{k}", "b") for k in range(1, 41)]
     check("seeds: the walk is shuffled deterministically by the seed (same seed, same order; a different seed, a different one) and in_order keeps the spec's",
           order_seeds(many, 1, False) == order_seeds(many, 1, False) and order_seeds(many, 1, False) != many
@@ -2065,7 +2076,7 @@ def self_test() -> int:
             fake = types.SimpleNamespace(s=types.SimpleNamespace(model="m", temperature=0.3, repairs=3, keep=True, writer="ollama"), out=one_dir,
                                          programs=one_dir / "programs", we=types.SimpleNamespace(name="we", work=one_dir / "w"),
                                          they=types.SimpleNamespace(name="they", work=one_dir / "t"), pause=gate,
-                                         model_options=model_options or {},
+                                         model_options=model_options or {}, spent_out=lambda: False,
                                          system_prompts={family: f"sys {family}" for family in EXAMPLES})
             row = Fuzz._one(fake, 0, "fz00000", "14.9.25", "MOVE statement", "body", 0, {"id": "fz00000"})  # type: ignore[arg-type]
             row["_pauses"] = read_pauses(one_dir)
@@ -2304,7 +2315,10 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--writer", choices=("ollama", "claude"), default="ollama",
                     help="who writes the programs: a local Ollama model (default), or a Claude model through the Claude Code CLI "
                          "(kb/Work PB4504: a cloud session's own account pays)")
-    ap.add_argument("--max-usd", type=float, help="with --writer claude: start no new program once the writer has spent this many US dollars")
+    ap.add_argument("--max-usd", type=float, help="with --writer claude: start no new program, and ask no further correction, once the "
+                    "writer has spent this many US dollars (the generations in flight finish: at most --jobs calls past it)")
+    ap.add_argument("--api-key-file", help="with --writer claude: bill the Claude writer to the API key in this file (its first line), "
+                    "passed only in the CLI's environment")
     ap.add_argument("--bake-off", help="comma-separated model tags; each writes --count programs, scored by GnuCOBOL acceptance")
     ap.add_argument("--count", type=int, help="programs to write (per model in a bake-off)")
     ap.add_argument("--hours", type=float, help="stop starting new programs after this many hours")
@@ -2339,6 +2353,13 @@ def main(argv: list[str]) -> int:
         ap.error("--writer claude takes one --model and no --bake-off or --model-option (those are Ollama's)")
     if a.max_usd is not None and a.writer != "claude":
         ap.error("--max-usd bounds the Claude writer's spend; the Ollama writer spends nothing")
+    if a.api_key_file and a.writer != "claude":
+        ap.error("--api-key-file bills the Claude writer; the Ollama writer needs no key")
+    if a.api_key_file:
+        try:
+            fuzz_claude.use_api_key_file(a.api_key_file)
+        except (OSError, RuntimeError) as e:
+            ap.error(str(e))
     models = [m.strip() for m in a.bake_off.split(",") if m.strip()] if a.bake_off else [a.model]
     try:
         model_options = parse_model_options(a.model_option)
