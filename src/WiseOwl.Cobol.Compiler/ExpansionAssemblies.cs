@@ -35,13 +35,15 @@ internal static class ExpansionAssemblies
     /// <summary>Compile every expansion <paramref name="expansions"/> places in an assembly of its own, dependency order, and return the files
     /// written; the first failure stops the run and is returned as the group's result, under the outcome that compilation reached (`Written.Failure`), with the generated C# of the compilation that
     /// failed. Every diagnostic of such a compilation, error or warning, is reported where the expansion was asked for — the EXPANDS entry's
-    /// file, line and column (<see cref="AtTheEntry"/>), the position the group's own bind gives the text of an expansion of a skeleton it read
-    /// from the repository (<c>OoExpansion.SubstitutedTokens</c>) — and never at the throw-away file its text was compiled from, which is gone
-    /// by the time the user reads it (kb/Work PB4457). The warnings are those of the skeleton's text under the state it was published with, and
-    /// they are the ONLY report of them (kb/Work PB4469): the group bound the same text to type its callers, and once this compilation has
-    /// reported the text <paramref name="edition"/> withdraws what the group raised then (<c>EditionContext.WithdrawWarningsOf</c>), so this
-    /// compilation answers for the text alone. A <c>CheckOnly</c> compilation never gets here and keeps the group's report of the text. They
-    /// are reported for each expansion made, and name it (<c>[in the expansion 'NAME']</c>).</summary>
+    /// file, line and column (<see cref="AtTheEntry"/>), where the group's own report prints a diagnostic about the text of an expansion of a
+    /// skeleton it read from the repository (<c>DiagnosticRegion.ReportedAt</c>) — and never at the throw-away file its text was compiled from,
+    /// which is gone by the time the user reads it (kb/Work PB4457). Who answers for the text's WARNINGS is the region's rule
+    /// (<c>DiagnosticRegion</c>; kb/Work PB4469, PB4483): for a skeleton read from the repository this compilation does, under the state the
+    /// skeleton was published with, and once it has reported <paramref name="edition"/> withdraws what the group's bind of the same text raised
+    /// (<c>EditionContext.WithdrawWarningsOf</c>); for a skeleton written in the group the group does, where the user wrote it, under the same
+    /// state, and this compilation's warnings are those facts a second time, so they are not reported. Errors are always reported. A
+    /// <c>CheckOnly</c> compilation never gets here and keeps the group's report of the text. They are reported for each expansion made, and
+    /// name it (<see cref="DiagnosticRegion.InTheExpansion"/>).</summary>
     public static Written Write(ExpansionPlacements expansions, CompilerDriver.Options options, EditionContext edition)
     {
         var files = new List<string>();
@@ -62,8 +64,15 @@ internal static class ExpansionAssemblies
                     FlagExtensions: state.FlagExtensions, NumericDisplay: RepositoryVocabulary.FromPersisted(state.NumericDisplay),
                     RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryDirectories(),
                     ReferencePaths: references, RepositoryCheck: false) { PublishAs = placement.Identity });
-                warnings.AddRange(result.Warnings.Select(w => AtTheEntry(w, temp, name, requestedAt)));
-                edition.WithdrawWarningsOf(region);   // this compilation has now reported the text's warnings: the group's bind of it does not report them again
+                // Who answers for the text's warnings (DiagnosticRegion; kb/Work PB4469, PB4483): the text of a skeleton read from the
+                // repository is this compilation's, reported at the entry, and the group's bind of it withdraws what it raised; the text
+                // of a skeleton written in the group is the user's own, which the group has reported where the user wrote it, under the
+                // same state, so this compilation's report of it would be the same facts a second time.
+                if (region.IsRepositoryText)
+                {
+                    warnings.AddRange(result.Warnings.Select(w => AtTheEntry(w, temp, name, requestedAt)));
+                    edition.WithdrawWarningsOf(region);
+                }
                 if (!result.Success)
                     return new(files, [$"the expansion assembly '{target}' (ISO §9.3.12; DESIGN-external-repository §10.5):",
                         .. result.Errors.Select(e => AtTheEntry(e, temp, name, requestedAt))], warnings, result.GeneratedCsPath, result.Status);
@@ -85,7 +94,7 @@ internal static class ExpansionAssemblies
     /// that a remaining mention of <paramref name="temp"/> becomes the expansion's name.</summary>
     internal static string AtTheEntry(string diagnostic, string temp, string expansion, SourceLocation requestedAt)
     {
-        string named = $"[in the expansion '{expansion}']";
+        string named = DiagnosticRegion.InTheExpansion(expansion);
         if (diagnostic.StartsWith(temp + "(", StringComparison.Ordinal) && diagnostic.IndexOf("): ", temp.Length, StringComparison.Ordinal) is var end and >= 0)
             diagnostic = $"{requestedAt}: {diagnostic[(end + 3)..]} {named}";
         else if (diagnostic.StartsWith("error ", StringComparison.Ordinal) || diagnostic.StartsWith("warning ", StringComparison.Ordinal)

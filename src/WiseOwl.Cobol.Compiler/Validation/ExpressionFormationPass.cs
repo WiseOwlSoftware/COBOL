@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnost
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Expressions;   // ArithmeticFormationRules — the SHARED rule
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
+using WiseOwl.Cobol.Binding.Passes;          // GroupBindContext — the texts the pass screens (kb/Work PB4483)
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -40,9 +41,13 @@ namespace WiseOwl.Cobol.Validation;
 /// </summary>
 internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
 {
-    /// <summary>Screen the group's raw parse tree for §8.8.1.2 Table 3 / §8.8.2 Table 4 invalid symbol pairs.</summary>
-    internal static void Run(CobolParserCore.CompilationUnitContext tree, IDiagnosticSink sink) =>
-        new ExpressionFormationPass(sink).VisitPositioned(tree);
+    /// <summary>Screen every text of the group (<see cref="GroupBindContext.Texts"/>: the written tree and the text of each expansion of a
+    /// skeleton read from the repository, kb/Work PB4483) for §8.8.1.2 Table 3 / §8.8.2 Table 4 invalid symbol pairs.</summary>
+    internal static void Run(GroupBindContext group, IDiagnosticSink sink)
+    {
+        var pass = new ExpressionFormationPass(sink);
+        foreach (var text in group.Texts) pass.VisitPositioned(text);
+    }
 
     /// <summary>§8.8.1.2 Table 3, row "Unary + or −" × column "Unary + or −" = '—'.</summary>
     public override object? VisitUnaryExpression(CobolParserCore.UnaryExpressionContext ctx)

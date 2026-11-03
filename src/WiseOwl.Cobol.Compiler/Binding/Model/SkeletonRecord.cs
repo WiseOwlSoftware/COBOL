@@ -30,7 +30,14 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <param name="CompilationVariables"><c>BindSession.CompilationVariables</c> as of the definition, as <c>&gt;&gt;DEFINE</c>
 /// lines (a constant's FROM reads one).</param>
 internal sealed record CompileState(int Edition, bool Permissive, SignEncoding SignEncoding, bool FlagExtensions,
-    RepositoryNumericDisplay NumericDisplay, string CobolWordsMap, string DirectiveFolds, string CompilationVariables);
+    RepositoryNumericDisplay NumericDisplay, string CobolWordsMap, string DirectiveFolds, string CompilationVariables)
+{
+    /// <summary>Does <paramref name="other"/> bind a source the way this state does? Every member but <see cref="FlagExtensions"/>, which
+    /// only adds warnings. The ONE answer for both questions that need it: whether an expansion of a skeleton read from the repository may
+    /// be compiled in a group's own assembly (<c>ExpansionPlacementPass</c>), and whether the group's screens of that text say what the
+    /// skeleton's own compilation said (<c>BinderDriver.Bind</c>, kb/Work PB4483).</summary>
+    public bool BindsAs(CompileState other) => this with { FlagExtensions = false } == other with { FlagExtensions = false };
+}
 
 /// <summary>One class-specifier or interface-specifier of a skeleton's OWN REPOSITORY paragraph that is not a formal: the word
 /// it declares and the identity it stands for (ISO §12.3.8.4 GR2: the literal, else the word). The expansion binds the skeleton's

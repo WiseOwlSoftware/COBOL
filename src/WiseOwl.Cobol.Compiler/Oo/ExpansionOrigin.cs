@@ -54,7 +54,8 @@ internal sealed record SkeletonSource(string Name, string Identity, bool IsInter
 /// <param name="Text">The expansion's own source text: the skeleton's tokens with the header renamed, the USING clause dropped and each
 /// formal replaced by its actual (<see cref="OoExpansion"/>), which an expansion made in an assembly of its own is compiled from.</param>
 /// <param name="Region">The region every token of the expansion's text names (<see cref="ExpansionToken"/>): what a diagnostic raised
-/// while the group binds the text is attributed to, so the group can withdraw the ones the expansion's own compilation reports
-/// (<c>EditionContext.WithdrawWarningsOf</c>, kb/Work PB4469).</param>
+/// while the group binds the text is attributed to, where it is printed and who answers for it — the group withdraws the ones of a
+/// repository text that the expansion's own compilation, or the one that made an imported expansion, reports
+/// (<c>EditionContext.WithdrawWarningsOf</c>, kb/Work PB4469, PB4483).</param>
 internal sealed record ExpansionOrigin(SkeletonSource Skeleton, Core.RepositoryEntryContext Entry, IReadOnlyList<string> ActualWords, string Text,
     DiagnosticRegion Region);
