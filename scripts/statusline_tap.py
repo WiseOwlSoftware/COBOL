@@ -32,6 +32,8 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from standard_streams import ensure_utf8  # noqa: E402  (scripts/: UTF-8 standard streams)
+
 #: The file name, in the session's config dir.
 FILE_NAME = "rate-limits.json"
 
@@ -126,4 +128,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))
