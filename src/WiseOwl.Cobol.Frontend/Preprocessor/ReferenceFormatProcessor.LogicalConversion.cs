@@ -30,7 +30,7 @@ public static partial class ReferenceFormatProcessor
     /// </list>
     /// </summary>
     private sealed class FixedFormConverter(ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators,
-        bool? startsInIdentificationDivision, CommentEntryPins? pins)
+        bool? startsInIdentificationDivision, CommentEntryPins? pins, int inclusion)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: true);
 
@@ -96,10 +96,10 @@ public static partial class ReferenceFormatProcessor
                 // The division is not known here (DivisionCursor), so the line is CARRIED for CommentEntryResolver to decide
                 // on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
                 case CommentEntryText.CandidateHeader:
-                    _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: true, ccvsIndicators, line), site);
+                    _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: true, ccvsIndicators, inclusion, line), site);
                     return;
                 case CommentEntryText.CandidateBody:
-                    _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators, line), site);
+                    _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators, inclusion, line), site);
                     return;
                 case CommentEntryText.Header:
                     // The paragraph HEADER stays program text — the parser and the one removal gate
@@ -229,9 +229,9 @@ public static partial class ReferenceFormatProcessor
             return CommentEntryText.None;
         }
 
-        /// <summary>Whether the candidate opening at physical line <paramref name="lineNumber"/> is known to be program text
-        /// (<see cref="CommentEntryPins"/>); asked only where the division is not known.</summary>
-        private bool IsPinned(int lineNumber) => _division.InIdentificationDivision is null && pins?.Contains(file, lineNumber) == true;
+        /// <summary>Whether the candidate opening at physical line <paramref name="lineNumber"/> of this inclusion is known to be
+        /// program text (<see cref="CommentEntryPins"/>); asked only where the division is not known.</summary>
+        private bool IsPinned(int lineNumber) => _division.InIdentificationDivision is null && pins?.Contains(file, inclusion, lineNumber) == true;
 
         private CommentEntryText BodyOfParagraph() => _carryingCommentEntry ? CommentEntryText.CandidateBody : CommentEntryText.Body;
     }
@@ -242,17 +242,17 @@ public static partial class ReferenceFormatProcessor
     /// there, whatever its format. <paramref name="gatesLineLength"/> is false only for the lines of a carried comment-entry
     /// candidate (<see cref="ConvertCommentEntryCandidate"/>), which the conversion that carried them has gated already.</summary>
     private static (List<string> Lines, List<LineOrigin> Origins) ConvertSegment(ReadOnlySpan<PhysicalLine> lines, bool isFixed,
-        ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, bool gatesLineLength,
+        ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, int inclusion, bool gatesLineLength,
         ref bool? inIdentificationDivision)
     {
         if (isFixed)
         {
-            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision, pins);
+            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision, pins, inclusion);
             var converted = fixedForm.Convert(lines);
             inIdentificationDivision = fixedForm.InIdentificationDivision;
             return converted;
         }
-        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, gatesLineLength);
+        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, inclusion, gatesLineLength);
         var result = freeForm.Convert(lines);
         inIdentificationDivision = freeForm.InIdentificationDivision;
         return result;
@@ -282,7 +282,7 @@ public static partial class ReferenceFormatProcessor
     /// reading: the paragraph word first on its line, the entry the rest of that line, the next line program text.</para>
     /// </summary>
     private sealed class FreeFormConverter(ReferenceFormatDiagnostics? gates, string file, bool? startsInIdentificationDivision,
-        CommentEntryPins? pins, bool gatesLineLength)
+        CommentEntryPins? pins, int inclusion, bool gatesLineLength)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: false);
 
@@ -313,7 +313,7 @@ public static partial class ReferenceFormatProcessor
                     // The division is not known (DivisionCursor) for a candidate: the line is CARRIED for CommentEntryResolver
                     // to decide on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
                     if (entry == CommentEntryText.Header) _builder.Emit(CommentEntryHeader(line.Text), site);
-                    else _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, line), site);
+                    else _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, inclusion, line), site);
                     continue;
                 }
                 // The floating debugging indicator >>D heads a debugging line in free form too (2002 clause 6.1.2).
@@ -337,7 +337,7 @@ public static partial class ReferenceFormatProcessor
             return _division.InIdentificationDivision switch
             {
                 true => CommentEntryText.Header,
-                null when pins?.Contains(file, lineNumber) != true => CommentEntryText.CandidateHeader,   // unless a run proved it program text (CommentEntryPins)
+                null when pins?.Contains(file, inclusion, lineNumber) != true => CommentEntryText.CandidateHeader,   // unless a run proved it program text (CommentEntryPins)
                 _ => CommentEntryText.None,
             };
         }

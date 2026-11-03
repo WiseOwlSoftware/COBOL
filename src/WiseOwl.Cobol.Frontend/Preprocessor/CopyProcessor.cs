@@ -70,6 +70,11 @@ public sealed class CopyProcessor(
     /// COPY statement's format is known wherever it is written.</summary>
     private readonly Dictionary<string, ReferenceFormatMap> _referenceFormats = new(StringComparer.Ordinal);
 
+    /// <summary>How many library texts this run has brought in: each inclusion is numbered as it is normalized, in the
+    /// order the merged driver reaches its COPY statement, which is text order (<see cref="CommentEntryPin.Inclusion"/>;
+    /// kb/Work PB4487). The source text is <see cref="CommentEntryPins.SourceText"/>.</summary>
+    private int _inclusions = CommentEntryPins.SourceText;
+
     /// <summary>Record the reference format <paramref name="file"/> was read in — the normalizer's
     /// <see cref="ReferenceFormatMap"/> for the compilation group — so library text copied from it starts in the format
     /// in effect for its COPY statement (§7.3.24.3 3)). A text with no registered map (a caller that normalized
@@ -781,7 +786,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>Normalize library text to logical free form (kb/Work PB82 / PB1067) through the ONE §6.5 walker the
-    /// source text uses — <see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp})"/>
+    /// source text uses — <see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int)"/>
     /// — starting in <paramref name="copyFixed"/>, the format in effect for the COPY statement (§7.3.24.3 3); null
     /// when that is unknown, and then detected as the compilation group's is). The text's own &gt;&gt;SOURCE FORMAT
     /// directives switch it (1), 5)); the resulting map is registered so a COPY inside this library text starts its
@@ -795,7 +800,8 @@ public sealed class CopyProcessor(
             copybookPath, copyFixed, out var formats, ccvsIndicators,
             implicitOps: implicitFormatOps?.For(copybookPath),   // GR14's implicit ops written IN this library text
             startsInIdentificationDivision: inIdentificationDivision,
-            pins: commentEntryPins);   // a candidate of this library text a previous run proved to be program text (kb/Work PB4281)
+            pins: commentEntryPins,   // a candidate of this library text a previous run proved to be program text (kb/Work PB4281)
+            inclusion: ++_inclusions);   // … in THIS inclusion of it (kb/Work PB4487)
         _referenceFormats[copybookPath] = formats;
         return mapped;
     }
