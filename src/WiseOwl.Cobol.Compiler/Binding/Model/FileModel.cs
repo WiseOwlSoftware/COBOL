@@ -590,6 +590,27 @@ public sealed class FileModel
     /// <c>DataBinder.ResolveFiles</c> (the <see cref="VaryingDependingItem"/> pattern).</summary>
     public LinageInfo? Linage { get; set; }
 
+    /// <summary>⛔ THE ONE LIST OF THE DATA ITEMS THIS FILE'S OWN CLAUSES NAME OUTSIDE ITS RECORD AREA (kb/Work PB4454):
+    /// the ASSIGN … USING item (ISO §12.4.5.3), the FILE STATUS item (§12.4.5.8), the RELATIVE KEY item (§12.4.5.13), the
+    /// RECORD VARYING … DEPENDING ON item (§13.18.43) and the LINAGE operands' items (§13.18.34). Each is an operand
+    /// of the FILE, not a name a statement writes, so every input-output statement on the file reads it - including a
+    /// statement of a program CONTAINED in the one that declares a GLOBAL file, which may not name the item
+    /// (§13.18.27.4 GR2: only a global name is referenced without being described again) and still reaches its storage
+    /// through the file. <c>DataBinder.GlobalFileOperandRoots</c> reads this list, and <c>FileClauseOperandDriftTests</c>
+    /// is red until a new data-item operand of this class is on it or is named there as a record-resident one.</summary>
+    public IEnumerable<DataItem> ClauseOperandItems
+    {
+        get
+        {
+            if (AssignUsingItem is { } assign) yield return assign;
+            if (FileStatusItem is { } status) yield return status;
+            if (RelativeKeyItem is { } relative) yield return relative;
+            if (VaryingDependingItem is { } depending) yield return depending;
+            foreach (var op in Linage?.Operands ?? [])
+                if (op.Item is { } linage) yield return linage;
+        }
+    }
+
     /// <summary>The variable-length minimum record size in BYTES — integer-2 when the clause states it, else
     /// ISO §13.18.43.4 GR9's "the least number of bytes described for a record in that file" (each record by
     /// <see cref="MinRecordSize"/>, GR8 a); −1 for fixed-length records.

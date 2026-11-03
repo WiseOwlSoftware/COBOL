@@ -14,10 +14,10 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// <summary>The sequential file-I/O emitter (P7 Step 9j — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>): registration (incl. LINAGE/SHARING), OPEN/CLOSE/UNLOCK/WRITE/READ/REWRITE, and
 /// the file-I/O common services every I/O verb shares — the post-status USE-declarative hook, the FILE STATUS
-/// store (incl. the §12.4.5.8.4 GR1 NOTE 1 inherited-GLOBAL routing via <see cref="CallUnitState"/>), the
+/// store (§12.4.5.8.4 GR1 NOTE 1: an inherited GLOBAL file stores into its owner's item, one of the file's clause operands), the
 /// record-area image splice, and the RETRY/lock renders KeyedIo consumes.</summary>
 internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, PlaceTable places,
-    DispatchState dispatch, EcState ecState, CallUnitState callState, KeyedIoEmitter keyedIo,
+    DispatchState dispatch, EcState ecState, KeyedIoEmitter keyedIo,
     ArithmeticEmitter arith, EcEmitter ec, MoveEmitter move)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the AT END / AT EOP /
@@ -1316,12 +1316,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // ISO §12.4.5.8 / §9.1.13.1 — the two-character status is stored into the FILE STATUS item as part of
         // the I/O statement's execution, BEFORE any exception processing.
         if (file.FileStatusName is null) return;   // no FILE STATUS clause — nothing to store
-        // An INHERITED GLOBAL file stores into the OWNER's status item through the __outer chain
-        // (§12.4.5.8.4 GR1 NOTE 1 — the item is updated by contained-program references to the global
-        // file-name even though it is a LOCAL name of the owner; map built per unit in ProgramEmitter.EmitProgramClass).
-        Place? place = callState.InheritedStatusPlace.TryGetValue(file, out var inherited)
-            ? inherited
-            : file.FileStatusItem is { } own ? places.Of(own) : null;
+        // An INHERITED GLOBAL file stores into the OWNER's status item (§12.4.5.8.4 GR1 NOTE 1 - the item is updated by
+        // contained-program references to the global file-name even though it is a LOCAL name of the owner): the item
+        // is one of the file's clause operands, which the contained unit's table holds like every other (kb/Work PB4454).
+        Place? place = file.FileStatusItem is { } own ? places.Of(own) : null;
         if (file.FileStatusItem is not { } item || place is null)
         {
             // §1.4 loud-guard doctrine: a DECLARED FILE STATUS name that did not resolve is never silent.

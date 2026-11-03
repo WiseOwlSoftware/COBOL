@@ -552,14 +552,6 @@ internal sealed class CallUnitState
             if (ReferenceEquals(f.Item, p.Item)) return f.Probe;
         return null;
     }
-
-    /// <summary>For each GLOBAL file INHERITED from a container (ISO §13.18.27.4 GR1), the place of the OWNER's FILE
-    /// STATUS item reached through the <c>__outer</c> instance chain. §12.4.5.8.4 GR1 NOTE 1: "In the case where
-    /// a file-name is global and data-name-1 is not, data-name-1 is updated by references to file-name in
-    /// contained programs even though data-name-1 is a local name" — the contained program's after-verb status
-    /// store must write the OWNER's storage although the NAME is not visible to it. Rebuilt per emitted unit
-    /// (nearest container first); consumed by the after-verb FILE STATUS store.</summary>
-    public Dictionary<FileModel, Place> InheritedStatusPlace { get; } = [];
 }
 
 /// <summary>How an element compiled under <c>&gt;&gt;PROPAGATE ON</c> performs the "as if a GOBACK statement with the
