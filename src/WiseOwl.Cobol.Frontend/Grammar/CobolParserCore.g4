@@ -483,7 +483,7 @@ configurationParagraph
 // interface specifiers' EXPANDS phrase). §12.3.8.4 GR2: "literal-1, literal-2, literal-3, or literal-5 is the
 // externalized name by which the class, interface, function, or program, respectively, is known to the operating
 // environment", and the property specifier's literal-4 names the property the declared classes implement. The local
-// name stays the word the source element writes; what it RESOLVES to is found by the literal — OoRepositoryScope
+// name stays the word the source element writes; what it RESOLVES to is found by the literal — IdentityScope
 // (class / interface), BinderDriver.UserFunctionsOf (function), BinderDriver.ProgramPrototypesOf (program) and
 // ReferenceResolver.ResolveObjectProperty (property). The PROGRAM specifier had it alone (kb/Work PB237) and the
 // other four refused `CLASS BOXY AS "R11BOX"` with COBOL0901 (AS reserved).
@@ -510,7 +510,7 @@ repositoryEntry
 // EXPANDS is a §8.10 CONTEXT-SENSITIVE word ("class-specifier and interface-specifier of the REPOSITORY
 // paragraph"), never reserved, so it is read by TEXT at the left edge (expandsAhead) rather than tokenized — the
 // LOCALE / STEP discipline. The phrase is its own rule so `repositoryEntry.className()` stays the ONE declared
-// name OoRepositoryScope collects: the parameterized name and the actuals are REFERENCES, each of which §12.3.8.3
+// name IdentityScope collects: the parameterized name and the actuals are REFERENCES, each of which §12.3.8.3
 // SR4/SR7 requires to be declared by its own specifier in the same paragraph. The specifier itself is already
 // introduction-gated (RepositoryClass2002 / RepositoryInterface2002), so the phrase needs no gate of its own.
 expandsPhrase

@@ -88,9 +88,33 @@ public enum ObjectRefKind
 /// and ONLY axes, the identity of two references to one parameter-name) is asked of the skeleton. Only a skeleton's own
 /// binders produce one: an expansion's re-parsed text has every formal replaced (kb/Work PB759), and nothing emits a
 /// skeleton.</param>
+/// <param name="Identity">The EXTERNALIZED name of the class or interface <paramref name="Name"/> resolved to where the
+/// description was written (ISO §11.3.4 GR1, §11.6.4 GR1: the name "that is externalized to the operating environment";
+/// DESIGN-external-repository §6.4) — null for a universal description, a FORMAL one, and one whose name resolved to
+/// nothing. A word is per source element and a class's emitted name per group, so what two separately compiled groups
+/// agree on is this identity: the readers that hold no class table
+/// (<c>PrototypeSignatures.CanonicalIdentity</c> over <c>ActivationDescriptions.Of(item, null)</c>) spell it. It is a
+/// function of <paramref name="Name"/> over the group's one class table, so it is NOT part of the description's equality
+/// (<see cref="Equals(ObjectRefDescriptor)"/>): two descriptions of one class are one description whoever built them. The
+/// descriptor names the class by identity and never holds its symbol, because <c>Binding.Model</c> may not reference
+/// <c>Compiler.Oo</c> (architecture-edges.json).</param>
+/// <param name="ClrName">The emitted CLR type name of the class or interface (<c>OoClassSymbol.ClrName</c>): the word's
+/// upper-case fold (<c>DataItem.WordIdentifier</c>) for a class of the compilation group, so null stands for it, and the FULL
+/// name under <c>global::</c> for one IMPORTED from another assembly (DESIGN-external-repository §10.1). Like
+/// <paramref name="Identity"/> a function of <paramref name="Name"/> over the class table, so not part of the equality.</param>
 public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Name, bool Factory, bool Only,
-    bool Formal = false)
+    bool Formal = false, string? Identity = null, string? ClrName = null)
 {
+    /// <summary>Equality over the four ISO axes and the formal marker; <see cref="Identity"/> is excluded (see its parameter).</summary>
+    public bool Equals(ObjectRefDescriptor other) =>
+        Kind == other.Kind && Name == other.Name && Factory == other.Factory && Only == other.Only && Formal == other.Formal;
+
+    public override int GetHashCode() => HashCode.Combine(Kind, Name, Factory, Only, Formal);
+
+    /// <summary>This description with the class or interface its name resolved to (<see cref="Identity"/>,
+    /// <see cref="ClrName"/>); <paramref name="clrName"/> is null for a symbol of the compilation group.</summary>
+    public ObjectRefDescriptor Resolved(string identity, string? clrName) => this with { Identity = identity, ClrName = clrName };
+
     /// <summary>The bare <c>USAGE OBJECT REFERENCE</c> — §13.18.60.4 GR22 b).</summary>
     public static ObjectRefDescriptor Universal { get; } = new(ObjectRefKind.Universal, null, false, false);
 
@@ -142,7 +166,7 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
     /// which are assignable to it, so the containing class is the sound static bound.</summary>
     public string ClrTypeName => Kind is ObjectRefKind.Universal || Name is null
         ? UniversalClrName
-        : Factory ? NamingConvention.FactoryClassName(DataItem.WordIdentifier(Name)) : DataItem.WordIdentifier(Name);
+        : Factory ? NamingConvention.FactoryClassName(ClrName ?? DataItem.WordIdentifier(Name)) : ClrName ?? DataItem.WordIdentifier(Name);
 
     /// <summary>The emitted C# type of a universal object reference (D-U1) — the runtime root every emitted class derives
     /// from. The ONE spelling <see cref="ClrTypeName"/> and the method ABI's return-type projection

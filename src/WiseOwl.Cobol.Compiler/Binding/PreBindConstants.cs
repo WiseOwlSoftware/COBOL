@@ -15,7 +15,7 @@ using Core = CobolParserCore;
 /// literal (§8.3.2.2; <c>externalizedNamePhrase</c>) may be a constant-name (§13.10.3 SR2), and three of its readers run
 /// before the constant entry it names is bound: the unit builder (PROGRAM-ID / FUNCTION-ID, <c>BinderDriver.MakeUnit</c>),
 /// the class table (CLASS-ID, INTERFACE-ID, METHOD-ID, a prototype method, <c>OoClassTable.Build</c>) and the OO
-/// repository scope (a REPOSITORY class- or interface-specifier, <c>OoRepositoryScope</c>). They read the constant
+/// repository scope (a REPOSITORY class- or interface-specifier, <c>IdentityScope</c>). They read the constant
 /// entry from the parse tree here; the readers inside the data bind ask <c>DataBinder.ReadConstant</c>, which binds the
 /// same entry. Both decode through the same two functions (<see cref="DataBinder.LiteralTokenValue"/>,
 /// <see cref="DataBinder.VariableStringValue"/>), so they agree on every constant they both can see.

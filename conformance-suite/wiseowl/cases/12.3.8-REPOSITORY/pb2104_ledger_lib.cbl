@@ -1,0 +1,46 @@
+      *> kb/Work PB2104: the library of pb2104_import_class_under_another_word, compiled apart (its build
+      *> step). One class and one program that takes an object of it, in an assembly of their own.
+       IDENTIFICATION DIVISION.
+       CLASS-ID. P2104LEDGER AS "P2104-Ledger" INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
+       OBJECT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 BAL PIC 9(4) VALUE 0.
+       PROCEDURE DIVISION.
+       METHOD-ID. DEPOSIT.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 AMT PIC 9(4).
+       PROCEDURE DIVISION USING AMT.
+           ADD AMT TO BAL.
+       END METHOD DEPOSIT.
+       METHOD-ID. BALANCE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 OUT-BAL PIC 9(4).
+       PROCEDURE DIVISION RETURNING OUT-BAL.
+           MOVE BAL TO OUT-BAL.
+       END METHOD BALANCE.
+       END OBJECT.
+       END CLASS P2104LEDGER.
+
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2104SB.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS P2104LEDGER AS "P2104-Ledger".
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 B PIC 9(4).
+       LINKAGE SECTION.
+       01 L OBJECT REFERENCE P2104LEDGER.
+       PROCEDURE DIVISION USING L.
+           INVOKE L "BALANCE" RETURNING B
+           DISPLAY "   P2104SB BALANCE " B
+           GOBACK.
+       END PROGRAM P2104SB.

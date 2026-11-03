@@ -171,7 +171,7 @@ Each quotation was run through `cite.py --check`. **(group)** marks a row the in
 | §12.3.8.3 SR1 | "all the specifications for that name shall be identical" | (group) `DataBinder.CheckRepositorySpecification` |
 | §12.3.8.3 SR2 | literals "shall be alphanumeric literals or national literals and shall be neither figurative constants nor zero-length literals" | (group) `ExternalizedName.Screen` |
 | §12.3.8.3 SR3, SR4/SR7 | EXPANDS placement; operands declared in the same REPOSITORY | (group) `OoExpansion`; across assemblies §10.5 |
-| §12.3.8.3 SR5/SR8 | "references to object-class-name-1 are to that class definition and this class-specifier is ignored" | (group) `OoRepositoryScope.Build`; the group is asked first |
+| §12.3.8.3 SR5/SR8 | "references to object-class-name-1 are to that class definition and this class-specifier is ignored" | (group) `IdentityScope.Build`; the group is asked first |
 | §12.3.8.3 SR6 | "If literal-1 is specified, there shall be information in the external repository for the class literal-1"; "If literal-1 is not specified, there shall be information in the external repository for the class object-class-name-1" | §8.4; REPO-1 |
 | §12.3.8.3 SR9 | "If literal-2 is specified, there shall be information in the external repository for the interface literal-2" (and the twin) | §8.4; REPO-1 |
 | §12.3.8.3 SR10 | the name shall be a prototype in the group, "the name of a function definition specified previously in this compilation group", or "the name of a function for which information exists in the external repository" | §8.3 (legality: all three alternatives honored), REPO-1 |
@@ -696,7 +696,7 @@ Every emitted type lives in the namespace `Cobol.<S>`, where `<S>` is the assemb
 `DataItem.Sanitize` (each character a C# identifier cannot hold, `.` and `_` included, written `_uXXXX_`; a hyphen
 written `_`; a leading digit prefixed with `_` — an INJECTIVE mapping, `DataItem.IdentifierCharacters`, kb/Work
 PB2839), `CsNames.ModuleNamespaceOf`; a segment that is a C# keyword stays bare in metadata (`Cobol.class`) and the
-Roslyn backend writes it `@`-escaped in the source (`ProgramEmitter.CSharpNamespace`, kb/Work PB4265), so
+Roslyn backend writes it `@`-escaped in the source (`CsNames.CSharpNamespace`, kb/Work PB4265), so
 `PAY.V2.dll` is `Cobol.PAY_u002E_V2` and never meets a type `V2` in `Cobol.PAY` (r7-ns: the dotted form is CS0434 in
 a host and CS0437 in a group), and `PAY-ROLL.dll` (`Cobol.PAY_ROLL`) and `PAY_ROLL.dll` (`Cobol.PAY_u005F_ROLL`) are
 two namespaces and two registrars. No emitted type lives directly in `Cobol`, so a namespace never meets a type, and two
@@ -848,7 +848,7 @@ internal sealed record RepositoryRecord(
     RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals, DescriptionRecord? Returning,
     RecordList<DescriptionRecord> TypeDeclarations, RecordList<StructureRecord> DynamicLengthStructures,
     RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null);
-    // + SkeletonRecord? Skeleton, ExpansionIdentity? Expansion (slice 8)
+    // + SkeletonRecord? Skeleton, ExpansionIdentity? Expansion (slice 8; landed, kb/Work PB2104)
 /// A class's or an interface's own facts (null for a program, a function, a prototype); an interface's Implements is its
 /// INHERITS list. A class's or an interface's record has no formals, returning item or RAISING phrase of its own, and its
 /// tables are the ones its methods' descriptions index (one encoder per record).
@@ -868,16 +868,18 @@ internal sealed record StructureRecord(int Index, string Name, RepositoryPrefix 
 /// Every prototype carries its signature: none is resolved without one (§8).
 internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName,
     RecordList<FormalRecord> Formals, DescriptionRecord? Returning);
-public sealed record ExpansionIdentity(string DefinitionIdentity, ImmutableArray<string> ActualIdentities, string Key, bool OwnAssembly);
-public sealed record SkeletonRecord(ImmutableArray<string> Formals, ImmutableArray<bool?> FormalIsInterface, string Source,
-    ImmutableArray<(string Word, string Kind, string Identity)> Resolutions, CompileState State);
-/// EVERY compile-time input that changes what the skeleton's source MEANS (§10.5): the importer re-parses and re-binds
-/// under it. Produced and consumed by slice 8 only (a skeleton is its only carrier).
-public sealed record CompileState(int Edition /* Options.DialectLevel */, bool Permissive, SignEncoding SignEncoding,
+internal sealed record ExpansionIdentity(string DefinitionIdentity, RecordList<string> ActualIdentities, string Key, RecordList<string> Parts, bool OwnAssembly);
+internal sealed record ResolutionRecord(string Word, bool IsInterface, string Identity);
+internal sealed record SkeletonRecord(RecordList<string> Formals, RecordList<bool> FormalIsInterface, string Source,
+    RecordList<ResolutionRecord> Resolutions, CompileState State);
+/// EVERY compile-time input that changes what the skeleton's source MEANS (§10.5): the importer re-parses and re-binds under it.
+/// The three text members are DIRECTIVE LINES (free-form source), so the one directive processor that read them the first time reads
+/// them again (CompileInputs.At(line) is the one producer; CobolWordsMap.DirectiveText / FromDirectiveText its words half).
+internal sealed record CompileState(int Edition /* Options.DialectLevel */, bool Permissive, SignEncoding SignEncoding,
     bool FlagExtensions, RepositoryNumericDisplay NumericDisplay /* Options.NumericDisplay, PB3505: DISPLAY / ACCEPT's numeric form */,
-    string CobolWordsMap /* >>COBOL-WORDS, BindSession.CobolWords */,
-    string DirectiveFolds /* at the definition: >>TURN, >>PROPAGATE, >>REF-MOD-ZERO-LENGTH, >>LEAP-SECOND */,
-    string CompilationVariables /* >>DEFINE as of the definition (BindSession.CompilationVariables): a constant's FROM */);
+    string CobolWordsMap /* >>COBOL-WORDS lines, BindSession.CobolWords */,
+    string DirectiveFolds /* the >>TURN, >>PROPAGATE, >>REF-MOD-ZERO-LENGTH and >>LEAP-SECOND lines in force at the definition's first line */,
+    string CompilationVariables /* >>DEFINE lines as of the definition (BindSession.CompilationVariables): a constant's FROM */);
 internal sealed record DescriptionRecord(
     int Level, string? Name, string? RedefinesTarget, int? Occurs, OccursRecord? Table,
     bool Justified, bool BlankWhenZero, RepositorySynchronized Synchronized, bool Aligned, bool AlignedAsLevelOne, bool AnyLength, bool Based,
@@ -958,8 +960,8 @@ re-parse) and `>>FLAG-02` / `>>FLAG-14` (`FlagState`: they add warnings and chan
 | Attribute | Target | Constructor | Named properties |
 |---|---|---|---|
 | `CobolRepositoryAttribute` | assembly | `(int schemaVersion, string runtimeVersion, int callAbi)` | `CompilerVersion`, `Edition`, `Units`, `Registrar`, `HasSignatures` |
-| `CobolUnitAttribute` | host-entry class (programs, functions, prototypes) / OO class / interface | `(RepositoryUnitKind, string name, string externalizedName)` | `EntryConvention`, `DecimalPointIsComma`, the currencies as `CurrencySymbol` / `CurrencyText` / `CurrencyClass` and the RAISING phrase as `RaisingKind` / `RaisingIdentity` / `RaisingFactory` (parallel arrays, rule 3), `Final`, `BaseIdentity`, `Implements`, `FactoryImplements`, `FactoryType` (landed), `ExpandsDefinition`, `ExpandsActuals`, `ExpansionKey`, `ExpansionOwnAssembly` (slice 8) |
-| `CobolSkeletonAttribute` | class | `(string source)` | `Formals`, `FormalIsInterface`, `Resolutions`, `Edition`, `Permissive`, `SignEncoding`, `FlagExtensions`, `NumericDisplay`, `CobolWordsMap`, `DirectiveFolds`, `CompilationVariables` |
+| `CobolUnitAttribute` | host-entry class (programs, functions, prototypes) / OO class / interface | `(RepositoryUnitKind, string name, string externalizedName)` | `EntryConvention`, `DecimalPointIsComma`, the currencies as `CurrencySymbol` / `CurrencyText` / `CurrencyClass` and the RAISING phrase as `RaisingKind` / `RaisingIdentity` / `RaisingFactory` (parallel arrays, rule 3), `Final`, `BaseIdentity`, `Implements`, `FactoryImplements`, `FactoryType` (landed), `ExpandsDefinition`, `ExpandsActuals`, `ExpansionKey`, `ExpansionParts`, `ExpansionOwnAssembly` (slice 8, landed) |
+| `CobolSkeletonAttribute` | the `public static class` of a parameterized definition | `(string source)` | `Formals`, `FormalIsInterface`, `ResolutionWord` / `ResolutionIsInterface` / `ResolutionIdentity` (parallel arrays, rule 3), `Edition`, `Permissive`, `SignEncoding`, `FlagExtensions`, `NumericDisplay`, `CobolWordsMap`, `DirectiveFolds`, `CompilationVariables` |
 | `CobolFormalAttribute` | parameter | `(int position, string name)` | `Mode`, `Optional` (with the position and the name, `CobolFormalFieldsAttribute`'s) |
 | `CobolReturningAttribute` | return value | `()` | — |
 | `CobolDescriptionAttribute` | parameter / return value, `AllowMultiple` | `(int ordinal, int parent)` | every `DescriptionRecord` + `PicRecord` field |
@@ -1122,8 +1124,22 @@ the group.
   `Binding.Model`, which may not reference `Compiler.Oo` (architecture-edges.json) — so it is the resolved IDENTITY
   (the class's or interface's externalized name, set where `DataBinder.OoDescribeNamedReference` resolves the word),
   which also lets the readers that build a description with no class table (`PrototypeSignatures.CanonicalIdentity`'s
-  `ActivationDescriptions.Of(item, classes: null)`, which still spells the word) spell the identity; that and
-  `ClrTypeName` over an imported class's full name are step 1's next part.
+  `ActivationDescriptions.Of(item, classes: null)`) spell the identity. **Landed, slice 8 step 1 part 2 (kb/Work PB2104,
+  wave 20261835):** `ObjectRefDescriptor` gains `Identity` (the resolved class's or interface's externalized name, set in
+  `DataBinder.OoDescribeNamedReference` and by the decoder from the record) and `ClrName` (null for a class of the group;
+  the full name under `global::` for an imported one, so `ClrTypeName` — and the factory beside it,
+  `NamingConvention.FactoryClassName` putting its prefix on the last segment — names the imported type). Both are functions of
+  `Name` over the one class table, so they are excluded from the description's equality; `ActivationDescriptions.Of(item, null)`
+  spells `Identity`, so a prototype's `SIG` identity (`PrototypeSignatures.CanonicalIdentity`) is the same text in every group.
+  **Correction (§8.7, names in descriptions):** a description's `Name` is already the RESOLVED definition's name in the group's
+  one class table, not the word written (`DataBinder.OoDescribeNamedReference`, kb/Work PB974), so the importer needs no
+  per-element word to decode a record into: an imported class's `Name` is its table key `class "<identity>"`
+  (`OoClassTable.ImportedKey`; a quote and a space are in no COBOL word, so it is neither a group class's word nor another
+  identity's), and `RepositoryCodec.Names` is the ONE derivation of what the importing group calls each identity a record names
+  (the resolver's provider and `--repository-check` both read it). `IdentityScope` (the renamed `OoRepositoryScope`) therefore
+  maps a written word to an identity only; the reverse map and the program-prototype and structure rows this section's first
+  text gave it have no reader — a restricted pointer's prototype is identified by its signature class (§6.4, slice 7), a
+  structure by its definition — so they are not built.
 - **Restricted data-pointers**: `POINTER TO type` → `RestrictedTypeName` (the word as written) and the type
   DECLARATION it resolves to (`RestrictedTypeDeclaration`, an index into `TypeDeclarations`); the decoder sets
   `PicInfo.RestrictedTypeDecl` to the decoded declaration, and the type is compared by `StrongTypeModel.SameRestriction`
@@ -1543,16 +1559,18 @@ specifier finds only its kinds. Two NEEDED class/interface/expansion assemblies 
 REPO-6 (one assembly per simple name per load context). Comparisons: `ExternalizedNames.Same`; file-system case is
 irrelevant (the locator compares folded names over the listing).
 
-### 8.7 Decoding into the importer's word space — the `IdentityScope`
+### 8.7 Decoding into the importer's name space — the `IdentityScope`
 Words are per source element (§8.4.6.4): P1 `CLASS ACCT AS "BankAccount"` and P2 `CLASS ACCT AS "Ledger"` are two
 words for two identities. `OoClassTable` therefore stores IMPORTED symbols by IDENTITY only (group-wide, one symbol per
-identity), and each source element's `IdentityScope` — `OoRepositoryScope` extended to program prototypes, function
-prototypes and dynamic-length structures — maps word → identity and identity → word. Decoding a record for element E
-maps every identity through E's scope: the first word whose identity it is becomes the symbol's `Name` IN E (the
-`OoClassSymbol` keeps one `ClrName`; its word is scope-dependent and `OoNameResolution.Lookup` composes scope + table
-as today). An identity E has no word for is imported anonymously (reachable from descriptors, never from `Find(word)`,
-spelled `class "<identity>"` in diagnostics). A prototype identity a signature mentions (a restricted program-pointer)
-maps through the same scope to E's program-prototype word, else stays anonymous.
+identity: `ImportClass`, `ImportedClasses`), and each source element's `IdentityScope` (the renamed `OoRepositoryScope`,
+built by the ancestor walk of its REPOSITORY paragraphs) maps a written word to the identity its specifier states
+(`literal ?? word`, §12.3.8.4 GR2). **Landed (kb/Work PB2104), and corrected:** the names a description carries are the class
+table's keys, not per-element words (a description names the RESOLVED definition, `DataBinder.OoDescribeNamedReference`), so
+an imported symbol's `Name` is the key `class "<identity>"` (`OoClassTable.ImportedKey`) and decoding a record for any
+element needs no per-element word: `RepositoryCodec.Names` maps every identity a record names to the table's name for it
+(importing the class on the way). The reverse map this section first gave the scope, and the program-prototype and
+structure rows, have no reader (a restricted pointer's prototype is identified by its signature class, a structure by its
+definition, §6.4) and are not built.
 
 ### 8.8 Nesting, COMMON and §8.4.6
 Unchanged: a REPOSITORY paragraph lives only in an outermost program, a function, a class or an interface
@@ -1694,6 +1712,21 @@ unreachable → REPO-11); one `OoMethodSymbol` per `[CobolMethod]` over decoded 
 accessors; `Raising`. `OoClassTable.Import(symbol)` registers by IDENTITY (§8.7). Downstream — INVOKE binding,
 `ActivationDescriptions.Of`, `__CobolInvoke` (virtual on `CobolObject`), typed `OBJECT REFERENCE`, IMPLEMENTS and override
 checks — reads the symbol as a source one.
+**Landed, slice 8 step 1 (kb/Work PB2104, waves 20261830/20261835), as built.** `OoSymbolOrigin` replaced `IsStandard`
+(`OoClassSymbol.Origin`; `Imported` carries `ImportedFrom(path, mvid, module namespace)`). The class table asks an
+`IOoImporter` (implemented by `MetadataRepositoryProvider`, built by `BinderDriver.Bind` BEFORE the table and handed to
+`OoClassTable.Build`) for an identity no group definition, no BASE and no earlier import claims: `ImportClass` registers the
+symbol before `Complete` decodes it (a method that takes its own class names the identity being imported), so the import
+is transitive and recursive-safe. The module namespace is the registrar type's (`Cobol.<S>.__CobolModule`, §4.5), the class's
+type name `ClassRecord.ClrName` (the TypeDef's metadata name, like `MethodRecord.ClrName`), so `ClrName` is
+`global::Cobol.<S>.<TYPE>` (`NamingConvention.ImportedTypeName`, the namespace spelled by `CsNames.CSharpNamespace`, which
+`ProgramEmitter` uses for the declaration). Formals are classified as the publishing compilation classified them
+(`StorageFormPass.ClassifyImportedMethod`: an elementary method formal is a character channel and a group formal is a
+whole-group operand, so a numeric DISPLAY formal crosses as `ManagedPointer<string>`, a fact of the CLR signature, not of the
+importer). A class specifier no entry answers is REPO-1 at the specifier (§12.3.8.3 SR6, `OoClassTable.UnansweredClassSpecifier`;
+an interface specifier's twin is step 2's, with the interface import); REPO-6 is COBOL5976, two imports whose module
+namespaces coincide or one equal to the compilation's own output's. Interfaces an imported class implements are REPO-11
+until step 2 imports them.
 
 ### 10.2 References and Roslyn diagnostics
 `BackendOptions` gains `RepositoryReferences` (every assembly a class, interface, skeleton or expansion was taken from;
@@ -1709,7 +1742,10 @@ property a test can assert. Three warnings are escalated to errors on generated 
 **CS0435, CS0436, CS0437** — a source namespace or type meeting an imported type or namespace of the same full name
 (r6-warn), each meaning the compile silently chose one of two declarations, which in this design is a repository
 defect that must stop the compile. Collisions the C# compiler already reports as errors (an ambiguous imported type,
-CS0433) stay errors. No `.diag.txt` changes.
+CS0433) stay errors. No `.diag.txt` changes. **Landed (kb/Work PB2104):** `BackendOptions.RepositoryReferences` is
+`OoClassTable.ImportedAssemblies`, which `CompilerDriver` passes and `RoslynBackend.Emit` hands to `Compile`; the three
+escalations are `RoslynBackend`'s `SpecificDiagnosticOptions` (`ImportedTypeCollisionTests`). A run needs the imported
+assembly beside the application (§11.4: the CLR loads it by simple name).
 
 ### 10.3 What crosses
 An inter-assembly INVOKE emits what an in-group one emits (the method convention of `OO_DESIGN.md`); strong
@@ -1785,6 +1821,59 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   expansion that is merely elsewhere in the search space is REPO-2 (a warning), as every other same-name difference
   is (§8.6).
 - An imported skeleton is `IsParameterized` in the importer's table (GR1's message applies to a misuse).
+
+**Landed, slice 8 step 2 second half (kb/Work PB2104), as built, and where the implementation corrected this section.**
+- *The skeleton* is `SkeletonSource` (`Oo/ExpansionOrigin.cs`): the definition's context, its identity (the AS literal, else the name),
+  its text (`SkeletonText.Of`: the on-channel token text with touching tokens touching and every other pair one space apart, because a
+  picture string and a subscript are lexed by adjacency), its `CompileState` (`CompileInputs.At(ctx.Start.Line)`, the one producer) and the
+  specifiers of its own REPOSITORY paragraph that are not formals. `OoExpansion` collects one for each parameterized definition of the
+  group; `ExpansionPlacementPass` states it (`RepositoryCodec.Of(name, identity, isInterface, skeleton)`: kind `ParameterizedClass` /
+  `ParameterizedInterface`, the identity every specifier resolves to) and `OoEmitter.EmitSkeletonUnit` emits its `public static class`.
+  The importer re-lexes the recorded text through `FragmentParse.ParseUnit` (a miniature of the frontend's whole-group parse: the lexer
+  primed with the recorded words map, the reservation-gate and ZERO-sign fixpoint, the re-lex when a declaration changes a subscript
+  trigger), NOT through `ParseTokens` — token types are not recorded, since the same lexer and the same decisions produce them again.
+  Every token of the expansion carries the line of the EXPANDS entry, so a directive fold and a diagnostic read the place the expansion
+  was asked for.
+- *The actual's identity rides into the expansion's text.* The formal's own specifier in the definition's REPOSITORY paragraph
+  becomes the actual's (`CLASS ELEM` → `CLASS BOX AS "lit"` when the actual's specifier states `AS "lit"`), so the expansion names the
+  class the actual names wherever it is made, and the specifier's own `AS literal-1` externalizes the EXPANSION (§12.3.8.4 GR2: a
+  `CLASS N AS "lit" EXPANDS …` entry used to lose its literal).
+- *The key is computed after the group is bound, not before it is expanded.* A class's record is its surface, which exists only once its
+  data and method headers are bound, and an actual may be a class of this group. So the group expands and binds every expansion as before,
+  and `ExpansionPlacementPass` then computes `ExpansionKey.Of(definition, skeleton, resolutions, actuals)` — a SHA-256 over the canonical
+  text of the records (`ExpansionKey`: positional records in member order, no member named `Name` or `ObjectRefName`, a named class's
+  record in its surface form: `Expansion` removed, an expansion's kind read as a class's, so the record a group computes for its own class
+  equals the one read back from the assembly that published it). The labeled digest of each component (`definition`, `skeleton source`,
+  `compile state`, `resolution <word>`, `actual <identity>`) is published beside the key as `ExpansionParts`, which is how a later
+  compilation names the first component that changed (REPO-9).
+- *Import before expand is import before EMIT.* An entry of the search space with the expansion's name, the same definition and actuals,
+  the same key and the same surface (`MetadataRepositoryProvider.ExpansionsNamed`, every entry, not the first) is the class: the group's
+  module emits nothing for its own bound copy and names the existing types by a `using` alias of the symbol's simple names
+  (`using HOLD_BOX = global::Cobol.<S>.<TYPE>;` and the factory's), so everything already bound against the symbol needs no second
+  spelling, and the existing assembly is a `RepositoryReferences` entry. That includes an assembly that references this group's own
+  previous build (the reference cycle). A copy whose surface differs under one key (a later compiler naming members differently) is stale
+  by "members".
+- *Placement (a) is a compilation of its own* (`ExpansionAssemblies`): the expansion's text (`ExpansionOrigin.Text`), preceded by the
+  directive lines of its `CompileState`, goes through `CompilerDriver.Compile` as a source of its own, in free form, against the group's
+  search space plus each expansion written before it; `CompilerDriver.Options.PublishAs` (internal; the one member the drift test names
+  as changing no meaning) tells that compilation the identity and key its one class or interface publishes under, since the text cannot
+  state the specifier that asked for it. The file is `<externalized name>.dll` beside the output and is written BEFORE the group's module,
+  which references it. A file of that name that is an expansion (stale: REPO-9) or of another schema, runtime major or call ABI (REPO-12)
+  is replaced; anything else is COBOL2240, never overwritten. Placement (b) is the group's module, with the identity and key published
+  on the class (`[CobolUnit(Kind = Expansion, …)]`).
+- *Stale expansions* (`ExpansionPlacementPass.ReportStale`): REPO-9 names the stale entry, the first component of its key that changed and
+  every assembly of the search space whose `AssemblyRef` table names it (`RepositoryLocator.ReferencersOf`, nothing loaded). A same-name
+  expansion of another definition or other actuals (`ReportSameName`) is COBOL2240 where it is an assembly this group references (the
+  definition's, an actual's or a resolution's) or the `<name>.dll` placement (a) would overwrite with a different class, and REPO-2
+  anywhere else in the search space (the expansion is then made as usual). The COBOL2240 refusal stops the compilation before any
+  file is written, so the existing `<name>.dll` stays as it was.
+- *Placement (a)'s text is written as free-form lines* (`ExpansionAssemblies.FreeForm`): a line breaks at a space BETWEEN words, never at
+  one inside a literal, and a literal too long for the rest of a line is continued with the floating literal continuation indicator
+  (§6.2.3.1, §6.5 8)).
+- *Residual, stated:* an expansion of a skeleton published under another `CompileState` than this group's whose code also names a class of
+  this group can live neither in an assembly of its own nor, bound under this group's state, in the group's module: it is COBOL2240. And
+  an expansion of such a skeleton is BOUND in the group under the group's state (its surface — method names and descriptions — is a
+  function of the text) while its code is compiled under the recorded state in its own assembly.
 
 ### 10.6 Interfaces
 `[CobolUnit(Kind = Interface)]` on the public CLR interface; `Prototypes` from `[CobolMethod]`s; `Inherits` from
@@ -1998,7 +2087,7 @@ still changes (the planner holds a group only where running work edits the same 
 | `ObjectRefDescriptor(Kind, Name, Factory, Only, Formal)`; `ActivationDescriptions.Of`'s `ObjectName` / `ObjectClasses` / `ObjectInterfaces` as folded WORDS (PB2463) | slice 8: `+ Target`; `ClrTypeName` over `Target`; the description's class facts become folded EXTERNALIZED names (a call-ABI bump, §6.4) | `PictureAnalyzer`/`DataBinder` (sets `Target`), `OoClassTable.SetOperand`, `OoEmitter.OoReturnClrType`, `OoConformance`, `SetBinder` Format 5 |
 | `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 8: `RaisingTarget.Target`. **Landed, slice 7 part 1 (kb/Work PB2103):** the structure DEFINITION key (§6.4, `DynamicLengthStructure.DefinitionKey`), inside slice 7's call-ABI bump | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
 | **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.SignatureRestriction` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4, **the classes part landed (kb/Work PB2100):** `PrototypeSignatureClasses` keys members by origin and name (`PrototypeKey`, `RestrictedPrototype.Origin`, `PrototypeOrigin`), admits decoded prototypes into its refinement (`Admit`: a re-run from one block, group members first) and spells a decoded founder's block `DECODED k TO name`, so a decoded pointer is classified by its decoded SIGNATURE (§6.4); and the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row and calls `Admit` (BoundCompilation.SignatureClasses is the group's instance). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype (the repository-resolved ones with the metadata provider); runtime-major bump with the null-signature deletion. **Landed, slice 7 part 1 (kb/Work PB2103):** a class's identity is `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`, under call-ABI 3 (§6.4's landed paragraph). (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
-| `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope` (+ prototypes, structures; reverse map) | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
+| `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope`. **Landed, step 1 (kb/Work PB2104):** `OoClassTable.ImportClass` / `ImportedClasses` / `ImportedAssemblies`, `OoSymbolOrigin`, `IdentityScope` (words → identities only, §8.7), `IOoImporter`; `IsParameterized` for imported skeletons is step 2's | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
 | `OoExpansion.Expand(tree, classes, interfaces, edition, words)` | slice 8: resolver-driven; imported skeletons re-parsed under their recorded `CompileState` with recorded resolutions; the `ExpansionKey`; import by key; placement (4a)/(4b); stale detection (REPO-9 with the referencing assemblies); publishes keys and skeleton records (§10.5) | `BinderDriver`, `FragmentParse.ParseTokens` (a `CompileState` parameter), the binder's option-dependent arms, `CompilerDriver`, `RepositoryIndex` (`AssemblyRef` listing) |
 | `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | **landed differently, slice 7 part 2 (kb/Work PB2103):** every PROGRAM and FUNCTION specifier resolves in `BinderDriver.ProgramPrototypesOf` / `UserFunctionsOf`, which `ResolvePointerRestrictions` asks for every forest before any signature is compared or any body binds, and REPO-1 is reported once per specifier (`RepositoryResolver.ReportUnanswered`, keyed by the specifier a contained program inherits); a separate `ResolveRepositorySpecifiers` pass would have been a second walk of the same tables. `ProgramSpecifier` carries its entry (`At`) as `FunctionSpecifier` does. Class and interface specifiers are slice 8's | `BinderDriver`, `OoDriver.BindClassData` |
 | `OoNameResolution.Resolve` message "no … is defined in this compilation group" | slice 8: adds "and no information exists for it in the external repository" | — |
@@ -2035,8 +2124,8 @@ first compilations that READ an entry are the resolver's and §9.2's. Slice 4's 
 conditions (an unreadable PE, a malformed or oversized record or index under §15.2's caps, a description the codec
 cannot rebuild) and REPO-7's (another schema, runtime major or call ABI) as typed outcomes of `RepositoryReader` /
 `RepositoryIndex.Read` that its tests pin; slice 7 maps each outcome to its code, so no code exists before a compilation
-can report it. **Slice 8** allocates REPO-6 and widens REPO-11 to imported bases, implemented interfaces and skeleton
-resolutions. REPO-13 is COBOL2969 (slice 6). **Allocated by slice 7 (kb/Work PB2103):** REPO-1 COBOL5962, REPO-2
+can report it. **Slice 8** allocates REPO-6 (**COBOL5976**, landed in step 1) and widens REPO-11 to imported bases, implemented interfaces and skeleton
+resolutions (the class arms landed in step 1: an imported class's superclass, its methods' object references and RAISING elements). REPO-13 is COBOL2969 (slice 6). **Allocated by slice 7 (kb/Work PB2103):** REPO-1 COBOL5962, REPO-2
 COBOL5963, REPO-3 COBOL5964, REPO-4 COBOL5965, REPO-5 COBOL5966, REPO-7 COBOL5967, REPO-8 COBOL5968, REPO-9 COBOL5969,
 REPO-10 COBOL5970, REPO-11 COBOL5971, REPO-12 COBOL5972 (`DiagnosticCatalog`). REPO-12's "Info" is a warning: the compiler
 reports errors and warnings only, and a warning never fails a compilation. REPO-10 is reported before any source position,
@@ -2044,7 +2133,7 @@ when the provider is built (an existence probe per named place, no listing).
 
 | Placeholder | Severity | Condition | Clause |
 |---|---|---|---|
-| REPO-1 | Error | a specifier (or an EXPANDS definition) that neither the group, the repository nor the CLR provider answers — "… names no {kind}: not {group alternatives}, and no information exists for it in the external repository (searched: …)" | §12.3.8.3 SR6/SR9/SR14/SR16; SR10 only when none of its three alternatives nor §8.4.6.7's word holds (§8.3) |
+| REPO-1 | Error | a specifier (or an EXPANDS definition; a CLASS specifier since slice 8 step 1) that neither the group, the repository nor the CLR provider answers — "… names no {kind}: not {group alternatives}, and no information exists for it in the external repository (searched: …)" | §12.3.8.3 SR6/SR9/SR14/SR16; SR10 only when none of its three alternatives nor §8.4.6.7's word holds (§8.3) |
 | REPO-2 | Warning | a later different entry of the chosen `kind:name` whose record differs; a same-name different-triple expansion elsewhere in the search space | §8.13 ¶4; §9.3.12 |
 | REPO-3 | Error | a named or scanned entry unreadable as a managed PE | §8.13 |
 | REPO-4 | Error | a malformed or oversized record / index | §8.13 |
@@ -2714,4 +2803,5 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    drift test (§6.1, §17.2), the `ExpansionKey`, import by key (with the reference cycle), the two placements with the
    second emission, and stale-expansion REPO-9 over the `AssemblyRef` scan (`RepositoryIndex`); §17.7's OO arms.
    Docs: OO design (import, identity, D3); CONFORMANCE DOC-A.1-138/-161/-162; codegen-backend (the expansion emission).
+   **Landed (kb/Work PB2104, waves 20261830-20261838): both steps; §10.5 records the shape.**
    Depends on 7.

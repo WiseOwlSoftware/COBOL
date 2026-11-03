@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 
@@ -66,13 +67,6 @@ internal sealed class ProgramEmitter
         => Current = new UnitEmitters(w, data, places, _names, _atoms, _dispatchState, _ecState, _callState, _oo,
             _whenCompiledStamp);
 
-    /// <summary>The C# spelling of a module namespace (kb/Work PB4265): its CLR name with every segment that is a C#
-    /// reserved keyword written <c>@</c>-escaped (<c>Cobol.class</c> is declared <c>namespace Cobol.@class;</c>). The
-    /// namespace is the one emitted name not allocated in a scope that refuses a keyword
-    /// (<see cref="CsNames.ModuleNamespaceOf"/>), so its C# spelling is formed here, by the Roslyn backend.</summary>
-    internal static string CSharpNamespace(ModuleNamespace ns) =>
-        string.Join('.', ns.ClrName.Split('.').Select(static s => CsNames.CSharpReservedKeywords.Contains(s) ? "@" + s : s));
-
     /// <summary>The EMIT half (rearch PHASE-03 Step 14a / PHASE-06 Step 2): render the run unit's C# from an
     /// already-bound immutable <see cref="BoundCompilation"/> — reached ONLY after the driver confirmed the edition
     /// sink is clean, so codegen never runs on an errored tree (exit criterion 9). Reads the compilation
@@ -88,7 +82,7 @@ internal sealed class ProgramEmitter
     {
         _ecState.Active = comp.EcActive;
         _ecState.OoClasses = comp.OoClasses;
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters, repositoryUpdate);
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters, repositoryUpdate, comp.Expansions);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -107,9 +101,9 @@ internal sealed class ProgramEmitter
         // (CS0234 / CS0118 on legal source otherwise). The assembly attribute precedes the namespace (C# requires it).
         var ns = CsNames.ModuleNamespaceOf(assemblySimpleName);
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
-            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, HostEntryEmitter.EntryUnits(units)), comp.Edition,
+            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, comp.Expansions, HostEntryEmitter.EntryUnits(units)), comp.Edition,
             hasSignatures: repositoryUpdate));
-        w.Line($"namespace {CSharpNamespace(ns)};");
+        w.Line($"namespace {CsNames.CSharpNamespace(ns)};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name
         // generated from a COBOL word may spell (kb/Work PB3270); ImportedTypeNameDriftTests is red on a directive not listed.
@@ -127,6 +121,15 @@ internal sealed class ProgramEmitter
             // A CHARACTER CLASSIFICATION clause anywhere in the compilation group — a program, or a CLASS-ID whose methods
             // carry it as an activation local: the Globalization types (kb/Work PB64 T5 / PB111). Zero-scaffolding otherwise.
             w.Line("using global::WiseOwl.Cobol.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");
+        // An expansion that lives in another assembly (imported, or written to one of its own; DESIGN-external-repository §10.5) is named
+        // here by its simple name, as one of this module's classes is, so the code bound against it needs no second spelling.
+        foreach (var placement in comp.Expansions.All.Where(e => e.Where is not ExpansionWhere.InGroup))
+        {
+            string at = $"global::{CsNames.CSharpNamespace(new ModuleNamespace(placement.ClrNamespace!))}";
+            w.Line($"using {placement.LocalName} = {at}.{placement.TypeName};");
+            if (placement.LocalFactoryName is not null)
+                w.Line($"using {placement.LocalFactoryName} = {at}.{placement.FactoryTypeName};");
+        }
         w.Line();
 
         // Interfaces first (readability only — Roslyn needs no ordering), then classes (source order), then
@@ -134,9 +137,11 @@ internal sealed class ProgramEmitter
         // legal (§10.6) — its module emits the types, a registrar with nothing to register (the record names it), and an
         // empty Main.
         foreach (var iface in comp.OoClasses.Interfaces)
-            _oo.EmitInterfaceUnit(iface, w);
+            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, iface.ClrName)) _oo.EmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
-            _oo.EmitClassUnit(cls, w);
+            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, cls.Symbol.ClrName)) _oo.EmitClassUnit(cls, w);
+        foreach (var skeleton in comp.Expansions.Skeletons)
+            _oo.EmitSkeletonUnit(skeleton, w);
         if (units.Count == 0)
         {
             EmitModuleRegistrar(units, w, ns);
@@ -159,6 +164,7 @@ internal sealed class ProgramEmitter
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
                 .Concat(comp.OoClasses.Interfaces.Select(i => i.ClrName))
+                .Concat(comp.Expansions.Skeletons.Select(s => s.ClrName))
                 .Append(ModuleNamespace.RegistrarClass).Append("Program").Append(GroupAtomTable.ClassName), w);
         EmitEntryWrapper(units, w, anyFiles, ns);
         _atoms.Emit(w);   // every §8.5.1.12 atom array a unit named, once (kb/Work PB2690)

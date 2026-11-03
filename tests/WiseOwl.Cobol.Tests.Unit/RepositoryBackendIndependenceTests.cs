@@ -60,7 +60,7 @@ public sealed class RepositoryBackendIndependenceTests
                 .. RepositoryAttributeRenderer.TableAttributes(r)];
             if (r.Class is { } c)
             {
-                w.Type($"U{n}", [.. typeAttributes, .. RepositoryAttributeRenderer.PropertyAttributes(c, factory: false)],
+                w.Type(c.ClrName, [.. typeAttributes, .. RepositoryAttributeRenderer.PropertyAttributes(c, factory: false)],
                     c.Methods.Where(m => !m.IsFactory).Select(Method));
                 if (c.FactoryType is { } factoryType)
                     w.Type(factoryType, [.. RepositoryAttributeRenderer.PropertyAttributes(c, factory: true)], c.Methods.Where(m => m.IsFactory).Select(Method));

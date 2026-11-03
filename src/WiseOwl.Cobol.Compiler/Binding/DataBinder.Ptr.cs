@@ -184,7 +184,7 @@ public sealed partial class DataBinder
         bool IsUserFunction(string fn) => UserFunctionNames.Contains(fn) || UnitIsFunction && ContainingDefinitionNames.Contains(fn);
         var own = OoIsClassUnit
             ? OoBoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
-                .SelectMany(m => ClaimScans.ByReferenceOperands(m.Ctx!.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
+                .SelectMany(m => ClaimScans.ByReferenceOperands(m.Definition.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
             : program.procedureDivision() is { } opd
                 ? ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
                 : [];

@@ -44,14 +44,24 @@ namespace WiseOwl.Cobol.CodeGen;
 internal static class RepositoryAttributeRenderer
 {
     /// <summary>The rows of the assembly's <c>Units</c> index, in the order the module emits the units (§6.5): every
-    /// interface, every class, then one per host entry <paramref name="entryUnits"/> publishes (§7.2). The
+    /// interface, every class, each skeleton the group publishes, then one per host entry <paramref name="entryUnits"/> publishes (§7.2).
+    /// An expansion (<paramref name="expansions"/>) is published under kind <see cref="RepositoryUnitKind.Expansion"/>, and one placed in
+    /// another assembly (imported, or written to an assembly of its own) is no unit of this module at all. The
     /// <c>[CobolUnit]</c> of each unit is written from the same lists by <see cref="UnitRecord"/>, so the index and the
     /// records cannot name different units.</summary>
     internal static IReadOnlyList<RepositoryUnitRow> IndexOf(IEnumerable<OoInterfaceSymbol> interfaces, IEnumerable<OoClassUnit> classes,
-        IEnumerable<BoundUnit> entryUnits) =>
-        [.. interfaces.Select(i => new RepositoryUnitRow(RepositoryUnitKind.Interface, i.ExternalizedName, i.Name))
-            .Concat(classes.Select(c => new RepositoryUnitRow(RepositoryUnitKind.Class, c.Symbol.ExternalizedName, c.Name)))
+        ExpansionPlacements expansions, IEnumerable<BoundUnit> entryUnits) =>
+        [.. interfaces.Where(i => EmittedHere(expansions, i.ClrName))
+                .Select(i => new RepositoryUnitRow(expansions.KindOf(i.ClrName, RepositoryUnitKind.Interface), i.ExternalizedName, i.Name))
+            .Concat(classes.Where(c => EmittedHere(expansions, c.Symbol.ClrName))
+                .Select(c => new RepositoryUnitRow(expansions.KindOf(c.Symbol.ClrName, RepositoryUnitKind.Class), c.Symbol.ExternalizedName, c.Name)))
+            .Concat(expansions.Skeletons.Select(s => new RepositoryUnitRow(s.Kind, s.ExternalizedName, s.Name)))
             .Concat(entryUnits.Select(u => new RepositoryUnitRow(RepositoryCodec.KindOf(u), u.ExternalizedName, u.Name)))];
+
+    /// <summary>Whether this module emits the class or interface it names <paramref name="clrName"/>: every one but an expansion placed in another
+    /// assembly (§10.5).</summary>
+    internal static bool EmittedHere(ExpansionPlacements expansions, string clrName) =>
+        expansions.Of(clrName) is not { Where: ExpansionWhere.Imported or ExpansionWhere.OwnAssembly };
 
     /// <summary>The module's assembly-level record, <c>[assembly: CobolRepository(schema, runtimeVersion, callAbi, …)]</c>
     /// (§6.2, §7.1): the versions it was compiled against (so a run unit can refuse a module whose runtime major or call ABI
@@ -113,8 +123,50 @@ internal static class RepositoryAttributeRenderer
                 if (c.FactoryImplements.Count > 0) named.Texts(nameof(CobolUnitAttribute.FactoryImplements), c.FactoryImplements);
                 named.Text(nameof(CobolUnitAttribute.FactoryType), c.FactoryType);
             }
+            if (r.Expansion is { } x)
+            {
+                named.Text(nameof(CobolUnitAttribute.ExpandsDefinition), x.DefinitionIdentity);
+                named.Texts(nameof(CobolUnitAttribute.ExpandsActuals), x.ActualIdentities);
+                named.Text(nameof(CobolUnitAttribute.ExpansionKey), x.Key);
+                named.Texts(nameof(CobolUnitAttribute.ExpansionParts), x.Parts);
+                named.Flag(nameof(CobolUnitAttribute.ExpansionOwnAssembly), x.OwnAssembly);
+            }
         }
         return Application<CobolUnitAttribute>(named, Defined(kind), name, externalizedName);
+    }
+
+    /// <summary>A skeleton's <c>[CobolSkeleton(source, …)]</c> (§6.2, §10.5), written on the <c>public static class</c> that carries
+    /// the parameterized definition's <c>[CobolUnit]</c>, with the formals, the specifier resolutions and the
+    /// <see cref="CompileState"/> it was compiled under (a module built with <c>--repository-update on</c>).</summary>
+    internal static string SkeletonRecord(SkeletonRecord s) => $"[{CSharp(SkeletonAttribute(s))}]";
+
+    /// <summary>A skeleton's <c>[CobolUnit]</c> (§6.2): its kind, word and externalized name, and — with signatures — the entry
+    /// convention every unit states (the reader requires it of every unit).</summary>
+    internal static string SkeletonUnitRecord(PublishedSkeleton skeleton, bool signatures)
+    {
+        var named = new Arguments();
+        if (signatures) named.Text(nameof(CobolUnitAttribute.EntryConvention), RepositoryCodec.CobolEntryConvention);
+        return $"[{CSharp(Application<CobolUnitAttribute>(named, Defined(skeleton.Kind), skeleton.Name, skeleton.ExternalizedName))}]";
+    }
+
+    /// <summary>A skeleton's <c>[CobolSkeleton]</c> as values (<see cref="SkeletonRecord"/>'s first layer).</summary>
+    internal static AttributeApplication SkeletonAttribute(SkeletonRecord s)
+    {
+        var named = new Arguments();
+        named.Texts(nameof(CobolSkeletonAttribute.Formals), s.Formals);
+        named.Flags(nameof(CobolSkeletonAttribute.FormalIsInterface), s.FormalIsInterface);
+        named.Texts(nameof(CobolSkeletonAttribute.ResolutionWord), s.Resolutions.Select(r => r.Word));
+        named.Flags(nameof(CobolSkeletonAttribute.ResolutionIsInterface), s.Resolutions.Select(r => r.IsInterface));
+        named.Texts(nameof(CobolSkeletonAttribute.ResolutionIdentity), s.Resolutions.Select(r => r.Identity));
+        named.Number(nameof(CobolSkeletonAttribute.Edition), s.State.Edition);
+        named.Flag(nameof(CobolSkeletonAttribute.Permissive), s.State.Permissive);
+        named.Kind(nameof(CobolSkeletonAttribute.SignEncoding), s.State.SignEncoding);
+        named.Flag(nameof(CobolSkeletonAttribute.FlagExtensions), s.State.FlagExtensions);
+        named.Kind(nameof(CobolSkeletonAttribute.NumericDisplay), s.State.NumericDisplay);
+        named.Text(nameof(CobolSkeletonAttribute.CobolWordsMap), s.State.CobolWordsMap);
+        named.Text(nameof(CobolSkeletonAttribute.DirectiveFolds), s.State.DirectiveFolds);
+        named.Text(nameof(CobolSkeletonAttribute.CompilationVariables), s.State.CompilationVariables);
+        return Application<CobolSkeletonAttribute>(named, s.Source);
     }
 
     /// <summary>A method's <c>[CobolMethod(name, externalizedName, …)]</c> (§6.2), written before the CLR method that
