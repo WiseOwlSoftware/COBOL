@@ -29,24 +29,25 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class GlobalNameClassDriftTests
 {
-    /// <summary>Name index → the text <c>InheritGlobalSubtree</c> reaches it by.</summary>
+    /// <summary>Name index → the text <c>ForestSlice.Inherit</c> (which <c>DataBinder.InheritGlobalSubtree</c> calls for every
+    /// item of a GLOBAL subtree) reaches it by.</summary>
     private static readonly Dictionary<string, string> Inherited = new()
     {
-        ["ByName"] = "ByName",                                  // data-names and RENAMES (§8.4.6.2.2)
-        ["Conditions"] = "Conditions",                          // condition-names (§8.4.6.2.2)
-        ["IndexNames"] = "IndexNames.Inherit(",                 // index-names (§8.4.6.2.3)
-        ["_capacityRegisters"] = "AddCapacityRegister(",        // CAPACITY registers (§13.18.38.3 SR30, PB1674)
+        ["ForestSlice._byName"] = "_byName",                    // data-names and RENAMES (§8.4.6.2.2)
+        ["ForestSlice._conditions"] = "_conditions",            // condition-names (§8.4.6.2.2)
+        ["ForestSlice.IndexNames"] = "IndexNames.Inherit(",     // index-names (§8.4.6.2.3)
+        ["ForestSlice._capacityRegisters"] = "AddCapacityRegister(",   // CAPACITY registers (§13.18.38.3 SR30, PB1674)
     };
 
     /// <summary>Name indexes that are NOT names a GLOBAL data description entry hands to a contained program.</summary>
     private static readonly Dictionary<string, string> NotPerEntryGlobalNames = new()
     {
-        ["TypeDecls"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§13.18.58.4 GR3; kb/Work PB1303), "
+        ["ForestSlice._typeDecls"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§13.18.58.4 GR3; kb/Work PB1303), "
             + "and a template's subordinate names are kept off the name index",
         ["InheritedGlobals._typeDecls"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
-        ["_lapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §8.4.2.2.1 "
+        ["ClauseFacts.LapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §8.4.2.2.1 "
             + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
-        ["_debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
+        ["ImplicitRegisters._debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
             + "never declared by a data description entry",
         ["ConstantEntryBinder._constants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
             + "InheritStep.Seed (InheritedGlobals.Constants; §13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
@@ -79,8 +80,9 @@ public sealed class GlobalNameClassDriftTests
             }
             if (!f.FieldType.IsGenericType) continue;
             var args = f.FieldType.GetGenericArguments();
-            if (f.FieldType.GetInterfaces().Any(i => i.IsGenericType
-                    && i.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+            // A slice hands out a name index as a read-only view, so the view's own type counts as one too.
+            if (new[] { f.FieldType }.Concat(f.FieldType.GetInterfaces()).Any(i => i.IsGenericType
+                    && (i.GetGenericTypeDefinition() == typeof(IDictionary<,>) || i.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)))
                 && args[0] == typeof(string) && Mentions(args[1]))
                 yield return MemberName(f);
         }
@@ -111,22 +113,28 @@ public sealed class GlobalNameClassDriftTests
     [Fact]
     public void InheritGlobalSubtree_ReachesEveryInheritedNameIndex()
     {
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
-        var m = Regex.Match(text, @"internal void InheritGlobalSubtree\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
+        string binder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
+        var walk = Regex.Match(binder, @"internal void InheritGlobalSubtree\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
-        Assert.True(m.Success, "InheritGlobalSubtree not found in DataBinder.cs");
+        Assert.True(walk.Success, "InheritGlobalSubtree not found in DataBinder.cs");
+        Assert.True(walk.Groups["body"].Value.Contains("State.Forest.Inherit(item, depth)", StringComparison.Ordinal),
+            "InheritGlobalSubtree no longer hands each item of the subtree to ForestSlice.Inherit.");
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ForestSlice.cs"));
+        var m = Regex.Match(text, @"internal void Inherit\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
+            RegexOptions.Singleline);
+        Assert.True(m.Success, "Inherit not found in ForestSlice.cs");
         foreach (var (index, reach) in Inherited)
             Assert.True(m.Groups["body"].Value.Contains(reach, StringComparison.Ordinal),
-                $"InheritGlobalSubtree no longer reaches the name index '{index}' (expected '{reach}').");
+                $"ForestSlice.Inherit no longer reaches the name index '{index}' (expected '{reach}').");
     }
 
     /// <summary>Inherited name index → the text <c>DataBinder.DeclaredNearerThan</c> asks it by.</summary>
     private static readonly Dictionary<string, string> AskedByShadowing = new()
     {
-        ["ByName"] = "ByName.TryGetValue(",
-        ["Conditions"] = "Conditions.TryGetValue(",
-        ["IndexNames"] = "IndexNames.Declares(",
-        ["_capacityRegisters"] = "_capacityRegisters.TryGetValue(",
+        ["ForestSlice._byName"] = "Forest.ByName.TryGetValue(",
+        ["ForestSlice._conditions"] = "Forest.Conditions.TryGetValue(",
+        ["ForestSlice.IndexNames"] = "Forest.IndexNames.Declares(",
+        ["ForestSlice._capacityRegisters"] = "Forest.CapacityRegistersSoFar.TryGetValue(",
     };
 
     /// <summary>⛔ THE SAME LIST DECIDES SHADOWING (kb/Work PB3154 review R2-1). An inherited constant-name or
@@ -150,7 +158,7 @@ public sealed class GlobalNameClassDriftTests
         // The REPORT SECTION sum counters are a name index too, kept off ByName, and they hold a container's GLOBAL
         // report's counters beside this element's own: asked by spelling alone, a FARTHER container's counter hid a
         // NEARER container's constant (kb/Work PB3154 review R3-1). The ask places each counter by its report.
-        Assert.True(m.Groups["body"].Value.Contains("Reports.Depth(c.Report) < depth", StringComparison.Ordinal),
+        Assert.True(m.Groups["body"].Value.Contains("State.Reports.Depth(c.Report) < depth", StringComparison.Ordinal),
             "DeclaredNearerThan no longer places a sum counter by its report's depth (ReportScope.Depth).");
     }
 
