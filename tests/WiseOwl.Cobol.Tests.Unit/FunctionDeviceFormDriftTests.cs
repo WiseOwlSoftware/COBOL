@@ -18,7 +18,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// the set of them against the three places that must agree: the renderer that builds the arguments' fields
 /// (<c>FunctionDeviceText</c>), the binder that folds, and the documented determination.
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class FunctionDeviceFormDriftTests
 {
     private static readonly Regex Row = new("^\\s*Add\\(new\\(\"(?<name>[A-Z0-9-]+)\",.*$", RegexOptions.Multiline | RegexOptions.Compiled);

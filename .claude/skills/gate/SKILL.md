@@ -38,7 +38,7 @@ pwsh scripts/build-local.ps1 -Priority BelowNormal *> <log>
 
 The driver, `scripts/gate.py` (DESIGN-test-build-ci.md §3.13, §3.14; kb/Work PB4328), holds the worktree's GATE LOCK (a
 second gate in the same worktree is refused), decides the change's LANE (`python scripts/inert_lane.py classify --base
-<rev>`: a change no test reads is the INERT LANE, which runs the audits alone, kb/Work PB2878; a change whose every other path
+<rev>`: a change no test reads is the INERT LANE, which runs the audits alone, kb/Work PB2878 — `docs/`, `kb/`, `DEVLOG/` and EVERY `*.md` since kb/Work PB4453: what a document says is the DOC AUDITS audit, never a test; a change whose every other path
 is tooling in `scripts/`, `.github/`, `tools/` or `.claude/` that no compiler test or the build reads — not under
 `inert_lane.py`'s `CODE_READS` — is the TOOLING LANE, which runs the audits with the script self-tests and no slot, build or
 test host, its verdict `TOOLING LANE (kb/Work PB4395)`), starts the audits BESIDE

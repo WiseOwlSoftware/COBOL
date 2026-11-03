@@ -30,7 +30,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// wrong silently — these facts are what make "derived" true rather than aspirational (CLAUDE.md rule 5: prefer
 /// the shape that makes the NEXT case automatic, and pair it with a drift test so it stays true).</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class DeclinedFacilityAnnexDriftTests
 {
     /// <summary>A citation of ISO §4.2.6 or §4.2.7 that is the WHOLE clause number: the trailing lookahead keeps

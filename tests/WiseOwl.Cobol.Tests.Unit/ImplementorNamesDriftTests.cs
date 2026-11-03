@@ -20,7 +20,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// accepted in the arm its kind allows (a closed table that rejected one of its own names would be green on every
 /// negative golden), and the legal spellings the old grammar refused (OFF before ON; FOR before IS) now compile.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class ImplementorNamesDriftTests
 {
     private static (bool Ok, IReadOnlyList<string> Errors) Compile(string special, string procedure, int edition)
