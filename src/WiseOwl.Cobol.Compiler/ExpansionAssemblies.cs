@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol;
@@ -168,7 +169,7 @@ internal static class ExpansionAssemblies
         int length = 0;
         if (at >= 1 && "NBXnbx".Contains(word[at - 1])) length = 1;
         if (length == 1 && at >= 2 && word[at - 1] is 'X' or 'x' && word[at - 2] is 'N' or 'n' or 'B' or 'b') length = 2;
-        return length < at && (char.IsLetterOrDigit(word[at - length - 1]) || word[at - length - 1] is '-' or '_') ? 0 : length;
+        return length < at && CobolCharacterRepertoire.IsWordCharacter(word[at - length - 1]) ? 0 : length;
     }
 
     /// <summary>The words of <paramref name="text"/>: the runs of characters between the spaces that lie outside a literal.</summary>
