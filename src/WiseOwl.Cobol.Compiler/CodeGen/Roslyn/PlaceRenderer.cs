@@ -422,11 +422,11 @@ internal static class PlaceRenderer
             : $"{nameof(OmittedFormal)}.{nameof(OmittedFormal.Ref)}(ref {rootText}, {tail}";
     }
 
-    /// <summary>⛔ THE ONE SPELLING OF A ROOT MEMBER'S STORAGE, unguarded: the member's name, reached through its
-    /// <see cref="ContainerAnchor"/> when it belongs to a containing program (ISO §13.18.27.4 GR2; kb/Work PB4320). The
-    /// path renderer's root and the statement-local hoist of a cell root (<c>PlaceIdentification.FreezeView</c>) both
-    /// read it, so the two cannot reach different storage.</summary>
-    internal static string RootStorage(RootFieldSegment root) => Anchored(root.Anchor, root.MemberClrName);
+    /// <summary>⛔ THE ONE SPELLING OF A ROOT MEMBER'S STORAGE, unguarded: the member's name (a containing program's member
+    /// is the contained class's own by its bridge, ISO §13.18.27.4 GR2; kb/Work PB4320). The path renderer's root and the
+    /// statement-local hoist of a cell root (<c>PlaceIdentification.FreezeView</c>) both read it, so the two cannot reach
+    /// different storage.</summary>
+    internal static string RootStorage(RootFieldSegment root) => root.MemberClrName;
 
     /// <summary>The storage of any root, unguarded: a member's (<see cref="RootStorage(RootFieldSegment)"/>), or a method
     /// local's, spelled from its identity (<see cref="LocalNames.Of"/>; kb/Work PB4321, PB4380).</summary>
@@ -439,11 +439,9 @@ internal static class PlaceRenderer
 
     /// <summary>⛔ THE ONE SPELLING OF A <see cref="ContainerAnchor"/> (kb/Work PB1133, PB4320): <paramref name="member"/>
     /// reached through the chain of containing instances (<see cref="RuntimeApi.OuterChain"/>) or through a containing
-    /// program's class; the bare member when <paramref name="anchor"/> is null (the referencing program's own). The
-    /// root of a re-anchored path and every GLOBAL bridge (<c>ProgramEmitter</c>) are spelled here.</summary>
-    internal static string Anchored(ContainerAnchor? anchor, string member) => anchor switch
+    /// program's class. Every GLOBAL bridge (<c>ProgramEmitter</c>) is spelled here.</summary>
+    internal static string Anchored(ContainerAnchor anchor, string member) => anchor switch
     {
-        null => member,
         ContainerAnchor.Instance i => RuntimeApi.OuterChain(i.Depth) + member,
         ContainerAnchor.Static s => $"{s.ClassClrName}.{member}",
         _ => throw new System.InvalidOperationException($"unknown container anchor {anchor}"),

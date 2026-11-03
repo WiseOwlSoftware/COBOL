@@ -1060,7 +1060,7 @@ names → the standard `__outer` ref-bridges), `StatementValidation.ResolveRecor
 operand rule, shared by WRITE §14.9.51.3 SR5, REWRITE §14.9.35.3 SR1 and RELEASE §14.9.32.3 SR1, and the
 successor to `SequentialIoBinder.FileOfRecord`, which tested CONTAINMENT where the rule says IDENTITY
 (`FILES_DESIGN.md` §"The `record-name-1` operand") — resolves a contained WRITE/REWRITE of the owner's
-record through the merge, and the I-O status routes to the owner's local status item (§12.4.5.8.4 GR1 NOTE 1).
+record through the merge, and the I-O status routes to the owner's local status item (§12.4.5.8.4 GR1 NOTE 1). The owner's FILE STATUS, RELATIVE KEY, ASSIGN USING, RECORD VARYING DEPENDING ON and LINAGE items are the FILE's operands, not names the contained program writes (§8.4.5: an implicit reference resolves in the element that holds the clause; §13.18.27.4 GR2 lets a contained program name only the global names): `FileModel.ClauseOperandItems` is the one list, and the roots on it (`DataBinder.GlobalFileOperandRoots`) are bridged and placed in the contained unit like a global root and offered as no name (`InheritStep.ContainerBridgedRootsOf`; kb/Work PB4454; `FileClauseOperandDriftTests`).
 A record may be GLOBAL when its FD is not (§13.18.27.3 SR1 b)): the record-name is visible in a contained program
 and its FILE is not, so the container's non-global FileModels are kept in `DataBinder.ContainerLocalFiles` for ONE
 question — `ResolveRecordName` refuses a contained WRITE / REWRITE of such a record by WRITE §14.9.51.3 SR21 /
@@ -1575,8 +1575,8 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   higher directly containing source element", GR4b) or stops at the outermost. A contained program with NO local
   declaratives still emits `__IoCheck` + hooks when an ancestor has GLOBAL ones. The §12.4.5.8.4 GR1 NOTE-1
   corollary is implemented with it: a contained program's I-O on an inherited GLOBAL file stores the I-O status
-  into the OWNER's (local-name) FILE STATUS item through the `__outer` chain
-  (`EmitterState.InheritedStatusPlace`).
+  into the OWNER's (local-name) FILE STATUS item through the `__outer` chain (the item is one of the file's clause
+  operands, `FileModel.ClauseOperandItems`, bridged like a global root; kb/Work PB4454).
 - **EXIT family is pure pc moves** (§5.2): EXIT PARAGRAPH/SECTION set pc; EXIT PERFORM/CYCLE map to break/continue in
   the inline-PERFORM loop; bare EXIT/CONTINUE are no-ops. They never touch the termination exceptions.
 

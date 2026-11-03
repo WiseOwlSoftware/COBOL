@@ -318,20 +318,6 @@ internal sealed class ProgramEmitter
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
         _dispatchState.OuterGlobalUse = ChainHasGlobalUse(unit.Parent);
 
-        // Inherited GLOBAL files' FILE STATUS routing (§12.4.5.8.4 GR1 NOTE 1 — see the field doc): resolve each
-        // ancestor's status item with the ANCESTOR's resolver, then re-anchor the place behind the __outer chain.
-        _callState.InheritedStatusPlace.Clear();
-        int statusDepth = 0;
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            statusDepth++;
-            foreach (var f in anc.Data.Files)
-                if (f.IsGlobal && f.FileStatusItem is { } si && !_callState.InheritedStatusPlace.ContainsKey(f)
-                    && anc.Places.Of(si) is { } sp
-                    && AnchorPlace(sp, member => anc.AnchorOf(member, statusDepth)) is { } pp)
-                    _callState.InheritedStatusPlace[f] = pp;
-        }
-
         // Per-formal carrier shape, resolved once: a carrier-resident formal aliases per access; an AREA formal (a
         // group / redefined / addressed one) is laid over its argument's cell, and its crossing names the carrier it
         // is FILLED from when the argument has no cell (kb/Work PB2087) — a variable-length group formal's is its
@@ -551,31 +537,6 @@ internal sealed class ProgramEmitter
     /// contained program's class is nested in its container's (factory construction). The C# spelling of the nesting,
     /// so the Roslyn backend forms it from the units' class names (kb/Work PB4320; it was a model property).</summary>
     private static string ClassRef(BoundUnit u) => u.Parent is { } p ? $"{ClassRef(p)}.{u.ClassName}" : u.ClassName;
-
-    /// <summary>Re-anchor a CONTAINER-resolved place in the containing program (the §12.4.5.8.4 GR1 NOTE 1 status
-    /// routing): each path the place carries gains its root's <see cref="ContainerAnchor"/> (<see cref="AccessPath.Reroot"/>;
-    /// kb/Work PB4320). An unexpected place shape returns null — the caller then falls back to the loud-guard path,
-    /// never a silent wrong-storage store (§1.4).</summary>
-    private static Place? AnchorPlace(Place p, Func<string, ContainerAnchor> anchorOf) => p switch
-    {
-        MemberPlace m => new MemberPlace(m.Path.Reroot(anchorOf), m.MemberItem),
-        // `with` rather than a fresh construction: the window's CODING (kb/Work PB203, PB231) is part of the
-        // place's identity and re-anchoring changes only WHERE the storage lives, never which positions the
-        // member holds.
-        // ⛔ EVERY PATH THE PLACE CARRIES IS RE-ANCHORED, NOT JUST THE BACKING. A SlotWindow coding carries a
-        // SECOND structural path — the class's StorageCell, which holds the area's managed slots beside its byte
-        // image (kb/Work PB231) — and re-anchoring one path and not the other would name storage in two
-        // different classes. It is the same re-anchoring, so it is applied by the same expression; a coding that
-        // carries no path is unaffected. (Unreachable today: this method exists for a container-resolved FILE
-        // STATUS item, which §12.4.5.8.3 SR1 makes a two-character alphanumeric item — never a pointer. Written
-        // as the rule anyway, because the next caller of AnchorPlace will not know that.)
-        RedefViewPlace r => r with
-        {
-            Backing = r.Backing.Reroot(anchorOf),
-            Coding = r.Coding is CellWindowCoding c ? c with { Cell = c.Cell.Reroot(anchorOf) } : r.Coding,
-        },
-        _ => null,
-    };
 
     /// <summary>True when <paramref name="u"/> or any of its containers declares a FORMAT 1 <c>USE GLOBAL AFTER …</c>
     /// declarative (ISO §14.9.49.4 GR4b — the containment chain a contained program's I-O check walks outward). A
