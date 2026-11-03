@@ -17,8 +17,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>ICobolProgram.Call</c> or <c>Activate</c>, or a module's <c>__CobolModule.Register</c> — so a host built from them
 /// cannot grow back beside the entry.
 /// <para><b>What it scans.</b> Every test <c>.cs</c> file's CODE, read as Roslyn tokens so comments are not scanned and
-/// string literals (the C# hosts a test compiles) are; and the documents a user reads — <c>README.md</c>,
-/// <c>docs/CONFORMANCE.md</c>, <c>docs/manual/</c> and <c>samples/</c> — whole. The generated code and the runtime are the
+/// string literals (the C# hosts a test compiles) are. The documents a user reads — <c>README.md</c>,
+/// <c>docs/CONFORMANCE.md</c>, <c>docs/manual/</c> and <c>samples/</c> — are held to the same pattern (the one rule,
+/// <c>tests/doc-facts/untyped-host-routes.json</c>) by <c>scripts/docchecks/design.py</c>, because no compiler test opens a
+/// Markdown file (kb/Work PB4453). The generated code and the runtime are the
 /// ABI's own home and are not scanned, and neither are the maintainer design documents, which describe that ABI, nor
 /// the history (<c>DEVLOG/</c>, <c>kb/</c>, <c>adjudication/</c>). The ABI's own tests — the classes that assert what
 /// generated code emits or that pin the boundary — are listed in <see cref="AbiTests"/>, each with its reason.</para>
@@ -30,12 +32,7 @@ public sealed class OneHostSurfaceDriftTests
     /// program interface, or the module's registrar; <c>GetMethod("Register")</c> is the same registrar reached by
     /// reflection.</summary>
     private static readonly Regex Route = new(
-        @"\bProgramRegistry\s*\.\s*(?:CallProgram|Cancel|RunMain|RunModule)\b"
-        + @"|\.Programs\s*\.\s*(?:CallProgram|Cancel|RunMain|RunModule)\b"
-        + @"|\bICobolProgram\s*\.\s*(?:Call|Activate)\b"
-        + @"|\b__CobolModule\s*\.\s*Register\b"
-        + @"|GetMethod\(\s*""Register""",
-        RegexOptions.CultureInvariant);
+        DocFacts.Load("untyped-host-routes.json").GetProperty("pattern").GetString()!, RegexOptions.CultureInvariant);
 
     /// <summary>The ABI's own tests: each names a route because its subject is the generated code that calls it.</summary>
     private static readonly Dictionary<string, string> AbiTests = new(StringComparer.Ordinal)
@@ -80,23 +77,5 @@ public sealed class OneHostSurfaceDriftTests
             .Where(name => TestSources().Where(f => Path.GetFileName(f) == name).All(f => !Route.IsMatch(Code(f))))
             .ToList();
         Assert.True(stale.Count == 0, "listed as ABI tests but naming no route (remove them): " + string.Join(", ", stale));
-    }
-
-    [Fact]
-    public void NoUserDocument_NamesAnUntypedRoute()
-    {
-        var documents = new[] { TestRepo.At("README.md"), TestRepo.Docs("CONFORMANCE.md") }
-            .Concat(new[] { TestRepo.Docs("manual"), TestRepo.At("samples") }
-                .Where(Directory.Exists)
-                .SelectMany(d => Directory.EnumerateFiles(d, "*", SearchOption.AllDirectories)))
-            .Where(f => Path.GetExtension(f) is ".md" or ".cs" or ".cob" or ".cbl" or ".txt");
-        var offenders = documents
-            .SelectMany(f => File.ReadLines(f).Select((line, i) => (File: f, Line: i + 1, Hit: Route.Match(line))))
-            .Where(x => x.Hit.Success)
-            .Select(x => $"{Path.GetRelativePath(TestRepo.Root, x.File)}:{x.Line}: {x.Hit.Value}")
-            .ToList();
-        Assert.True(offenders.Count == 0,
-            "the user documentation describes one host interface, the generated host entry (DESIGN-external-repository "
-            + "§4.4, §9.4); these lines name an untyped route:\n" + string.Join("\n", offenders));
     }
 }

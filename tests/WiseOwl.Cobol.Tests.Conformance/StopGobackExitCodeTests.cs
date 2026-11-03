@@ -213,23 +213,25 @@ public sealed class StopGobackExitCodeTests
         Assert.Equal(expectedExit, exit);
     }
 
+    /// <summary>The manual's exit-status examples (<c>tests/doc-facts/manual-exit-examples.json</c>): the program tail, the
+    /// span the run-units page prints, and the exit the program must have.</summary>
+    public static IEnumerable<object[]> ManualExitExamples() =>
+        DocFacts.Load("manual-exit-examples.json").GetProperty("examples").EnumerateArray()
+            .Select(e => new object[] { e.GetProperty("proc").GetString()!, e.GetProperty("pageSpan").GetString()!, e.GetProperty("exit").GetInt32() });
+
     /// <summary>⛔ THE USER MANUAL'S EXIT STATUS EXAMPLES ARE THE PRODUCT'S (kb/Work PB1610, review round 1 R1-1).
     /// <c>docs/manual/user-guide/run-units.md</c> once said <c>--run</c> exits with "the value of STOP RUN WITH ERROR
     /// STATUS n, 1 for an abnormal termination, 0 otherwise", which is wrong for <c>WITH NORMAL STATUS 4</c> (exit 4)
     /// and for <c>WITH ERROR</c> alone (exit 1). Each example the page prints is run here and must also be on the
     /// page, so neither the page nor DOC-A.1-192's mapping can move without the other.</summary>
     [Theory]
-    [InlineData("STOP RUN WITH ERROR STATUS 0.", "`STOP RUN WITH ERROR STATUS 0`", 0)]
-    [InlineData("STOP RUN WITH NORMAL STATUS 7.", "`STOP RUN WITH NORMAL STATUS 7`", 7)]
-    [InlineData("STOP RUN WITH ERROR.", "`STOP RUN WITH ERROR`, with no status", 1)]
-    [InlineData("STOP RUN WITH ERROR STATUS \"007\".", "`STATUS \"007\"` is 7", 7)]
-    [InlineData("STOP RUN WITH ERROR STATUS \"ABEND\".", "`STATUS \"ABEND\"` is 0", 0)]
-    [InlineData("GOBACK WITH NORMAL STATUS 4.", "A main program's `GOBACK` takes the same phrases in COBOL 2023", 4)]
+    [MemberData(nameof(ManualExitExamples))]
     public void TheManualsExitStatusExamples_AreWhatTheProgramExitsWith(string proc, string pageSpan, int expectedExit)
     {
-        string page = File.ReadAllText(TestRepo.Docs(Path.Combine("manual", "user-guide", "run-units.md"))).ReplaceLineEndings(" ");
-        Assert.Contains(pageSpan, page.Replace("  ", " "), StringComparison.Ordinal);
-        var (exit, stdout, _) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(Prog("PB1610EXIT", proc));
+        // The page's side (it prints each pageSpan) is scripts/docchecks/manual.py (exit_example_findings): no compiler
+        // test opens the Markdown (kb/Work PB4453). The examples are tests/doc-facts/manual-exit-examples.json.
+        Assert.NotEmpty(pageSpan);
+        var (exit, stdout, _) =new WiseOwlCobolCompiler(2023).CompileAndRunExit(Prog("PB1610EXIT", proc));
         Assert.Equal("ran", stdout);
         Assert.Equal(expectedExit, exit);
     }

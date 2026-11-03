@@ -285,7 +285,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         return new DerivationRule(
             Str(d, "field"), Str(d, "anchor-template"), heading, signatures, arms,
-            ConformanceRegister.Derivations(heading, Str(d, "register-header-cell")), undefined);
+            ConformanceRegister.Derivations(), undefined);
     }
 
     /// <summary>

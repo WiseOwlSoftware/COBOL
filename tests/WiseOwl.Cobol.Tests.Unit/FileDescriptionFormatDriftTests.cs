@@ -86,11 +86,8 @@ public sealed class FileDescriptionFormatDriftTests
     [Fact]
     public void TheLinageClaim_AgreesWithTheFileDescriptionFormatTable()
     {
-        string row = File.ReadAllLines(TestRepo.Docs("CONFORMANCE.md"))
-            .Single(l => l.StartsWith("| A.4.11 |", StringComparison.Ordinal));
-        Assert.Contains("The LINAGE clause (item 10, §13.18.34) is CLAIMED", row, StringComparison.Ordinal);
-        Assert.Contains("a LINAGE clause on a Format 2 (relative or indexed) or Format 3 (report) entry is refused COBOL2604",
-            row, StringComparison.Ordinal);
+        // A.4.11's two sentences are held by scripts/docchecks/facts.py (linage_claim_findings); the table's side is here,
+        // so no compiler test opens the Markdown (kb/Work PB4453).
         Assert.Equal(FileDescriptionFormat.Sequential,
             FileDescriptionFormats.ByContext[typeof(Core.LinageClauseContext)].Formats);
     }
