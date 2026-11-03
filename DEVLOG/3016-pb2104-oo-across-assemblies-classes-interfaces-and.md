@@ -1,4 +1,4 @@
-## PB2104: OO across assemblies — classes, interfaces and properties are imported by identity; parameterized classes and interfaces are published as skeletons and expanded across assemblies (external repository slice 8)
+## Entry 3016 — 2026-11-02 20:22 PST — PB2104: OO across assemblies — classes, interfaces and properties are imported by identity; parameterized classes and interfaces are published as skeletons and expanded across assemblies (external repository slice 8)
 
 **What was wrong.** A REPOSITORY `CLASS` specifier could name only a class the compilation group defined: a class compiled in
 another group (an assembly of the §8.13 external repository) could never be named, an unreferenced specifier no source answered
@@ -131,3 +131,4 @@ compilation group"), and a library's parameterized class left nothing in the rep
   refusal for a class and an interface, and both COBOL2240 arms. Not fixed (stay leads): `FragmentParse.ParseUnit` repeats
   `Frontend.LexAndParse`'s steps with no drift test tying them (R1-8); an own-assembly expansion's sub-compilation error position has no
   test because every error reachable there is reported first by the expanding group's own bind.
+
