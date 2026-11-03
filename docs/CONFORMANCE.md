@@ -2420,14 +2420,19 @@ of an unsupported facility.
   program- or function-pointer's USAGE clause is `USAGE PROGRAM-POINTER TO program-prototype-name`, so an override
   (§11.7.3 SR9, COBOL0829), an IMPLEMENTS pair (§9.3.11, COBOL0841), an interface-to-interface pair and a property
   accessor pair (§8.4.3.9.3 SR7) conform exactly when both name the same prototype, whatever the two prototypes'
-  signatures, as the same pair does as strong-group members (rule 7). The signature graph alone keeps asking what a
-  prototype pointer formal may CONTAIN (`ActivationRelations.SignatureDifference` with `pointersBySignature`, set by
-  `PrototypeSignatures.SameDescription`: §13.7.3 SR2 and §10.6.2 SR2 compare two prototypes' formals through the signature
-  classes of PB2464 / PB2495); whether that arm should itself read the TO phrase by name, as the strong-group member arm of
-  the same graph does, is a separate question of the signature relation, not of §9.3.8.2.3 (kb/Work PB4442's report).
+  signatures, as the same pair does as strong-group members (rule 7). The SIGNATURE itself reads a restricted pointer
+  formal the same way (kb/Work PB4491): §8.13 makes the signature "the description of the parameters", §13.7.3 SR2 asks
+  that the prototype's formals "match the description of the formal parameters" of the definition, and a pointer formal's
+  description is its USAGE clause, so `USING TO Q1` and `USING TO Q2` are two signatures whatever Q1's and Q2's — the
+  only reading under which a caller checked against a prototype passes its definition a conforming argument, since
+  §14.8.2.3.2 refuses a pointer TO Q1 BY REFERENCE into a formal TO Q2. A §10.6.2 SR2 / SR3 prototype / definition pair
+  over two names is therefore refused (COBOL1513), and two prototypes whose formals name each other are two signatures,
+  so §14.9.39.3 SR22 refuses a SET between their pointers (COBOL1959): the signature is compared as TEXT and has no fixed
+  point to find. What a pointer may CONTAIN is still its prototype's signature (§13.18.60.4 GR25 / GR26), spelled
+  `PrototypeSignatures.Identity`, a hash of that signature's key.
   GnuCOBOL, IBM and Micro Focus have no restricted prototype pointer. Implementing site: `ActivationRelations.RestrictedPointerTypeViolation` (BY REFERENCE, both the
   CALL and the INVOKE lanes), `ActivationRelations.MatchViolation` / `ReturningConformance` over
-  `ActivationDescription.Clauses` (`PrototypeSignatures.NamedRestriction`), `ActivationRelations.SignatureDifference` (pair mode, over `Clauses`), `ActivationRelations.MaySet` over
+  `ActivationDescription.Clauses` (`PrototypeSignatures.NamedRestriction`), `ActivationRelations.SignatureDifference` (pair mode and the signature graph, over `Clauses`), `PrototypeSignatures.Identity` / `StampContentRestrictions`, `ActivationRelations.MaySet` over
   `ActivationDescription.ContentRestriction` (`PrototypeSignatures.SignatureRestriction`), `StrongTypeModel.SameAnalyzedProfile`
   / `EssentialCharacteristicsKey` (`PrototypeSignatures.NamedRestriction`). Witnesses:
   `conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb4107_restricted_pointer_identity_and_signature`,
@@ -2436,13 +2441,17 @@ of an unsupported facility.
   `conformance:cases/14.8.2-Formal-parameters-and-arguments/pb3686_returning_external_prototype_pointer`,
   `conformance:cases/_unassigned/pb3120_group_formal_pointer_type`,
   `conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb4442_override_pointer_same_prototype_two_type_names`,
+  `conformance:cases/10.6-COBOL-compilation-group/pb4491_prototype_pointer_formal_one_prototype`,
+  `conformance:cases/_unassigned/pb2495_recursive_prototype_signature`,
   `conformance-test:TypedPointerAcrossCompilationsTests`,
   `unit:PointerRestrictionRelationsTests.TheTypeOfATypedRestrictedPointer_IsTheSameText_WhetherOrNotItsPrototypeResolved`
   and the negatives `pb4107-call-byref-pointer-two-types`, `pb4107-invoke-byref-datapointer-two-types`,
   `pb4107-invoke-returning-same-signature`, `pb4107-invoke-returning-funcptr-same-signature`,
   `pb4107-group-formal-pointer-two-names`, `pb4107-group-formal-template-pointer-two-names`,
   `pb4107-set-group-member-pointers-naming-each-other`, `pb4442-override-pointer-two-prototypes`,
-  `pb4442-override-returning-pointer-two-prototypes`, `pb4442-implements-pointer-two-prototypes`.
+  `pb4442-override-returning-pointer-two-prototypes`, `pb4442-implements-pointer-two-prototypes`,
+  `pb4491-prototype-pointer-formal-two-names`, `pb4491-function-prototype-pointer-formal-two-names`,
+  `pb2495-recursive-prototype-signature-mismatch`.
 - **D-N8 — a group sender into a national DYNAMIC LENGTH receiver** (kb/Work PB546; decision PB3099, 2026-10-12).
   §14.9.25.4 GR4 makes the move a byte copy and §8.5.1.10.4 sets the receiver's new length to the content's. An odd
   byte count cannot be national content (D-N1: two bytes per position), so the last position is completed with the
