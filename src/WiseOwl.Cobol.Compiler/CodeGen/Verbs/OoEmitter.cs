@@ -368,8 +368,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (hostFiles.Count == 0) return;
         w.Line();
         // A per-object minted-key field for each instance file (§9.1.4 — one connector per object): initialized once
-        // per object (field initializers run before the ctor body), so the ctor's Register/track see it live. A
-        // factory / EXTERNAL file has a static literal key (InstanceKeyField null) and emits no field.
+        // per object (field initializers run before the ctor body), so the ctor's Register/track see it live. An
+        // EXTERNAL file has a static literal key (InstanceKeyField null) and emits no field.
         foreach (var f in hostFiles.Where(f => f.InstanceKeyField is not null))
             w.Line($"private readonly string {f.InstanceKeyField} = {RuntimeApi.FileMintInstanceKey(CsLiteral(f.CobolName))};");
         using (w.Block($"public {csName}()"))

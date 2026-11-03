@@ -288,8 +288,8 @@ internal sealed class BinderDriver
         // EC-EXTERNAL-DATA-MISMATCH descriptor check.
         if (edition.DialectLevel >= 2023) CheckExternalFileConsistency(units, edition);
         // The OO analogue (M2-OO-1i): an OBJECT/FACTORY file connector is scoped to its class, not a program unit,
-        // so the program loop above never sees it. A factory file (singleton) keys by class; an instance file keys
-        // per object (a minted key held in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys
+        // so the program loop above never sees it. A factory or instance file keys per object (a minted key held
+        // in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys
         // by its run-unit external name, exactly like a program's.
         foreach (var cls in classes) QualifyClassFiles(cls);
 
@@ -1267,12 +1267,13 @@ internal sealed class BinderDriver
     }
 
     /// <summary>Qualify a class's OBJECT/FACTORY file connectors into the run-unit registry namespace (M2-OO-1i —
-    /// the OO analogue of the per-program qualification in <see cref="Bind"/>). A FACTORY file (the class
-    /// singleton, §9.3.14.2) keys by class — <c>Class::FACT::name</c>, where <c>Class</c> is the class's run-unit root
-    /// (<see cref="OoClassSymbol.RunUnitPath"/>: its EXTERNALIZED name, §8.3.2.2 2), never the declared C# name — kb/Work
-    /// PB2920); an EXTERNAL class file keys by its run-unit
-    /// external name (§13.18.22.4 GR4a — one connector shared by every describer, inc 5). An OBJECT (instance) file
-    /// is per-object (inc 4): a class-qualified BASE key plus a minted per-object <c>__fkey</c> field. Name
+    /// the OO analogue of the per-program qualification in <see cref="Bind"/>). Both halves key a file
+    /// per OBJECT (§9.3.9: a subclass's factory object has its own copy of the inherited file definitions, as an
+    /// instance object does): a class-qualified BASE key — <c>Class::INST::name</c> / <c>Class::FACT::name</c>, where
+    /// <c>Class</c> is the class's run-unit root (<see cref="OoClassSymbol.RunUnitPath"/>: its EXTERNALIZED name,
+    /// §8.3.2.2 2), never the declared C# name — kb/Work PB2920) — plus a minted per-object <c>__fkey</c> field
+    /// (inc 4; the FACTORY half, PB1086). An EXTERNAL class file keys by its run-unit
+    /// external name (§13.18.22.4 GR4a — one connector shared by every describer, inc 5). Name
     /// resolution is done (bound nodes hold FileModel references), so this is a pure rename. (Relocated from the
     /// emitter, P6 Step 5 — a Bind-phase FileModel mutation.)</summary>
     private static void QualifyClassFiles(OoClassUnit cls)
@@ -1294,10 +1295,23 @@ internal sealed class BinderDriver
                 f.InstanceKeyField = NamingConvention.InstanceFileKeyName(f.CobolName);
                 f.CobolName = cls.Symbol.RunUnitPath + NamingConvention.InstanceFileBand + f.CobolName;
             }
-        // FACTORY files: the class singleton (§9.3.14.2) — a static class-qualified key (no per-object field).
+        // FACTORY files: a factory object is an object too (§9.3.14.2). §9.3.9: "Each factory object has its own copy
+        // of inherited data, distinct from the copy belonging to a factory object of an inherited class", and "The
+        // subclass inherits all the file definitions in the same way as the data definitions". So a non-EXTERNAL
+        // factory file keeps a class-qualified
+        // BASE key (::FACT::) plus a minted-key FIELD, exactly as an instance file does: a subclass factory inherits
+        // the base's constructor and field initializers and runs them on its OWN factory object, so its connector is
+        // a second one (a static literal made it re-register, and so replace, the base factory's). An EXTERNAL factory
+        // file keys by its run-unit external name; an SD keeps a STATIC key, as in the OBJECT loop above.
         foreach (var f in cls.FactoryData.State.Files.Declared)
-            f.CobolName = f is { IsExternal: true, ExternalName: { } ext }
-                ? NamingConvention.ExternalFileBand + ext
-                : cls.Symbol.RunUnitPath + NamingConvention.FactoryFileBand + f.CobolName;
+            if (f is { IsExternal: true, ExternalName: { } ext })
+                f.CobolName = NamingConvention.ExternalFileBand + ext;
+            else if (f.IsSortMerge)
+                f.CobolName = cls.Symbol.RunUnitPath + NamingConvention.FactoryFileBand + f.CobolName;
+            else
+            {
+                f.InstanceKeyField = NamingConvention.InstanceFileKeyName(f.CobolName);
+                f.CobolName = cls.Symbol.RunUnitPath + NamingConvention.FactoryFileBand + f.CobolName;
+            }
     }
 }

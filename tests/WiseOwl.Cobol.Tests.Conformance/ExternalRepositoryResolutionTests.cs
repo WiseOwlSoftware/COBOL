@@ -558,6 +558,58 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
+    private const string ProgramPrototypeOnly = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. R2103P IS PROTOTYPE.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 N PIC 9(4).
+        PROCEDURE DIVISION USING N.
+        END PROGRAM R2103P.
+        """;
+
+    private const string FunctionPrototypeOnly = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. R2103F IS PROTOTYPE.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 X PIC 9(4).
+        01 R PIC 9(4).
+        PROCEDURE DIVISION USING X RETURNING R.
+        END FUNCTION R2103F.
+        """;
+
+    [Fact]   // §10.6.3 GR1: compiling a program prototype ALONE generates the external-repository information a later compilation reads (GR10 c)).
+    public void AProgramPrototypeCompiledAlone_PublishesItsSignature_AndACallerIsCheckedAgainstIt()
+    {
+        WithDirectory("repo-proto-alone", dir =>
+        {
+            Assert.True(Compile(dir, "R2103P", ProgramPrototypeOnly).Success);
+            var refused = Compile(dir, "R2103C", Caller("X"));
+            Assert.False(refused.Success);
+            Assert.Contains("COBOL1688", Codes(refused), StringComparison.Ordinal);   // the formal is PIC 9(4); the argument PIC X(10)
+            var bound = Compile(dir, "R2103C", Caller("A"));
+            Assert.True(bound.Success, Codes(bound));
+            Assert.True(bound.Inputs.ReadsRepository);
+        });
+    }
+
+    [Fact]   // §10.6.3 GR1, the function prototype's half: the entry it publishes answers a later FUNCTION specifier (GR11 c)) — and with update off it does not.
+    public void AFunctionPrototypeCompiledAlone_PublishesItsSignature_UnlessUpdateIsOff()
+    {
+        WithDirectory("repo-fn-proto-alone", dir =>
+        {
+            Assert.True(Compile(dir, "R2103F", FunctionPrototypeOnly).Success);
+            var bound = Compile(dir, "R2103FM", FunctionSpecifierCaller);
+            Assert.True(bound.Success, Codes(bound));
+            Assert.True(bound.Inputs.ReadsRepository);
+            Assert.True(Compile(dir, "R2103F", FunctionPrototypeOnly, update: false).Success);
+            var silent = Compile(dir, "R2103FM", FunctionSpecifierCaller);
+            Assert.False(silent.Success);   // built without signatures: the entry is found, and cannot answer (REPO-8)
+            Assert.Contains("COBOL5968", Codes(silent), StringComparison.Ordinal);
+        });
+    }
+
     // REPO-4 and REPO-5 (ISO §8.13: the information in the external repository is what the compilation reads; DESIGN-external-repository
     // §14, §15.3 "nothing an entry holds is trusted"): a compiled library with ONE record damaged in a way the reader or the codec
     // detects. Each case asserts the code, and that no REPO-1 (COBOL5962) follows it: the entry was found, it is the entry that cannot answer.

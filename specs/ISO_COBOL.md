@@ -13010,7 +13010,9 @@ The interface interface-name-2 is created from the parameterized interface inter
 
        NOTE 2   Literal-5, if specified, is the externalized name of the function prototype; otherwise, the externalized name is function-prototype-name-1.
 
-   b) if the externalized name of the function prototype is the externalized name of a function prototype definition specified in the same compilation group, the details are taken from that function prototype definition and the details in the external repository are ignored. The function that will be activated is the one with the same externalized name as the externalized name of the function prototype; otherwise, c) the details are taken from the external repository for the function with the same name as the externalized name of the function prototype. That function is the one that will be activated.
+   b) if the externalized name of the function prototype is the externalized name of a function prototype definition specified in the same compilation group, the details are taken from that function prototype definition and the details in the external repository are ignored. The function that will be activated is the one with the same externalized name as the externalized name of the function prototype; otherwise,
+
+   c) the details are taken from the external repository for the function with the same name as the externalized name of the function prototype. That function is the one that will be activated.
 
 
 12\) Within the scope of the containing environment division, a reference to function-prototype-name-1 is a reference to a user-defined function, and not to an intrinsic function of the same name.

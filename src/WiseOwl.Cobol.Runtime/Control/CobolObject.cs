@@ -165,7 +165,7 @@ public abstract class CobolObject
     }
 
     // ── Per-object instance-file connectors (M2-OO-1i, ISO §9.1.4) ──────────────────────────────────────────
-    // An OBJECT-paragraph (non-EXTERNAL) file connector belongs to the object instance: it is minted per object
+    // An OBJECT- or FACTORY-paragraph (non-EXTERNAL) file connector belongs to its object (an instance, or a factory object, §9.3.9): it is minted per object
     // (CobolFile.MintInstanceKey), registered in the emitted ctor, tracked here, and implicitly CLOSED when the
     // object is deleted (§9.1.4 — the runtime executes an implicit CLOSE "for file connectors in an object when
     // the object is deleted"; the §9.1.4 NOTE licenses this happening during garbage collection). The run-unit
