@@ -4019,15 +4019,16 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // (binary128/decimal, rejected COBOL1564) still synthesize a Pic so the errored compile does not NRE.
             // The item's effective endianness rides in, resolved by ONE null-coalesce over the two-level
             // derivation §11.9.8.3 SR2/SR3 legislates: the ITEM's own endianness-phrase (§13.18.60.2, captured
-            // above) where it stated one, else the unit's OPTIONS FLOAT-BINARY model (§11.9.8 — Options is bound
-            // at the top of BindDeclarations, before any entry), whose clause is implied only "for … any data
+            // above) where it stated one, else the OPTIONS FLOAT-BINARY model of the source element the entry is
+            // in (§11.9.8; Oo.EntryOptions: a METHOD's own model while its data division binds, else the unit's, bound at
+            // the top of BindDeclarations before any entry; kb/Work PB4464), whose clause is implied only "for … any data
             // item … IN WHICH AN ENDIANNESS-PHRASE IS NOT SPECIFIED". FloatItem then applies GR19a/b ONCE, for
             // the standard binary float usages only (kb/Work PB164 wave 2 + PB174).
             : entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
                 or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
                 or Usage.FloatDecimal16 or Usage.FloatDecimal34
                 ? PicInfo.FloatItem(entryUsage, usagePhrases.Endianness is FloatEndianness.Unspecified
-                    ? State.Configuration.Options.FloatBinaryEndianness : usagePhrases.Endianness)
+                    ? Oo.EntryOptions.FloatBinaryEndianness : usagePhrases.Endianness)
             : null;   // incl. a PICTURE-less USAGE NATIONAL/BIT entry — Pending (below) carries its adjudication
 
         // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to subordinates,

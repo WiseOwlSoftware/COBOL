@@ -27,8 +27,9 @@ public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, strin
 {
     /// <summary>The unit's OPTIONS model (ISO §11.9): its own OPTIONS paragraph over <see cref="InheritedOptions"/> (§11.9.4
     /// GR1), bound once in <c>DataBinder.BindDeclarations</c>; the all-defaults model until then and when there is none. A
-    /// method's own OPTIONS model governs that method only, through <see cref="ProcedureBindState.Options"/> while its
-    /// statements bind and <c>EmitContext.Options</c> while its LOCAL-STORAGE initializers are emitted.</summary>
+    /// method's own OPTIONS model governs that method only, through <c>OoDataBinder.EntryOptions</c> while its data entries
+    /// are described (kb/Work PB4464), <see cref="ProcedureBindState.Options"/> while its statements bind and
+    /// <c>EmitContext.Options</c> while its LOCAL-STORAGE initializers are emitted.</summary>
     public OptionsModel Options { get; internal set; } = OptionsModel.Default;
 
     /// <summary>The OPTIONS baseline the unit starts from — its container's model (ISO §11.9.4 GR1: "The clauses in the
