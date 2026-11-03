@@ -108,6 +108,19 @@ MARKS=$?
 note "$(printf '%-16s %s' 'conflicts:' "$(grep -E '^=== CONFLICT MARKERS' "$OUT/citations.log" | tail -1)")"
 [ "$MARKS" -eq 0 ] || { note "conflicts:       ⛔ an unresolved merge-conflict marker — see $OUT/citations.log"; RC=1; }
 
+# ⛔ AND THE DOCUMENTATION AUDITS (kb/Work PB4453), the gate driver's DOC AUDITS, ANNEX A.1 REGISTER and DERIVATION REGISTER:
+# no compiler test reads a Markdown file, so what a document says is checked here.
+"$PY" scripts/doc_audits.py --check >> "$OUT/citations.log" 2>&1
+DOCS=$?
+note "$(printf '%-16s %s' 'doc audits:' "$(grep -E '^=== DOC AUDITS' "$OUT/citations.log" | tail -1)")"
+[ "$DOCS" -eq 0 ] || { note "doc audits:      ⛔ a document disagrees with the fact it states — see $OUT/citations.log"; RC=1; }
+"$PY" scripts/arch/r2_subsystems.py --check >> "$OUT/citations.log" 2>&1
+[ "$?" -eq 0 ] || { note "arch subsystems: ⛔ the R2 subsystem table — see $OUT/citations.log"; RC=1; }
+"$PY" scripts/spec/audit_annex_a1.py --check >> "$OUT/citations.log" 2>&1
+[ "$?" -eq 0 ] || { note "annex a.1:       ⛔ the Annex A.1 register audit — see $OUT/citations.log"; RC=1; }
+"$PY" scripts/spec/audit_derivations.py --check >> "$OUT/citations.log" 2>&1
+[ "$?" -eq 0 ] || { note "derivations:     ⛔ the derivation register audit — see $OUT/citations.log"; RC=1; }
+
 # ⛔ AND ONE DIAGNOSTIC PREFIX, COBOL#### (kb/Work PB3575), the gate driver's DIAGNOSTIC PREFIX audit.
 "$PY" scripts/rename_diagnostic_prefix.py --check >> "$OUT/citations.log" 2>&1
 PREFIX=$?

@@ -18,7 +18,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// the set of them against the three places that must agree: the renderer that builds the arguments' fields
 /// (<c>FunctionDeviceText</c>), the binder that folds, and the documented determination.
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class FunctionDeviceFormDriftTests
 {
     private static readonly Regex Row = new("^\\s*Add\\(new\\(\"(?<name>[A-Z0-9-]+)\",.*$", RegexOptions.Multiline | RegexOptions.Compiled);
@@ -33,7 +32,7 @@ public sealed class FunctionDeviceFormDriftTests
         return rows;
     }
 
-    private static List<string> RowsDeclaring(FunctionDeviceForm form) =>
+    internal static List<string> RowsDeclaring(FunctionDeviceForm form) =>
         [.. Rows().Where(r => r.Value.Contains($"DeviceForm: FunctionDeviceForm.{form}", StringComparison.Ordinal)).Select(r => r.Key).Order(StringComparer.Ordinal)];
 
     [Fact]
@@ -110,14 +109,18 @@ public sealed class FunctionDeviceFormDriftTests
             "the length arm runs BEFORE the float-lane routing: a binary64 argument (SQRT) is no reason to leave it");
     }
 
-    /// <summary>The determination is documented: DOC-A.1-92 names every function whose row says otherwise.</summary>
+    /// <summary>The determination is documented: DOC-A.1-92 names every function whose row says otherwise. The compiler's
+    /// side is the facts file's <c>functionDeviceFormRowNames</c> (<c>DocumentedFactsDriftTests</c> holds it equal to
+    /// <see cref="RowsDeclaring"/>); the document's side is <c>scripts/docchecks/facts.py</c> (<c>device_form_findings</c>),
+    /// so this test opens no Markdown (kb/Work PB4453).</summary>
     [Fact]
     public void TheDeterminationNamesEveryFunctionThatSaysOtherwise()
     {
-        string doc = File.ReadAllText(TestRepo.Docs("CONFORMANCE.md"));
-        string row = string.Join("\n", doc.Split('\n').Where(l => l.StartsWith("| DOC-A.1-92 |", StringComparison.Ordinal)));
-        Assert.False(row.Length == 0, "DOC-A.1-92 is gone from docs/CONFORMANCE.md");
-        foreach (string name in new[] { "Argument", "FixedDigits", "Literal" }.SelectMany(f => RowsDeclaring(Enum.Parse<FunctionDeviceForm>(f))))
-            Assert.True(row.Contains(name, StringComparison.Ordinal), $"DOC-A.1-92 does not name {name}, whose catalog row gives its returned value a description of its own (kb/Work PB3514)");
+        var names = new[] { FunctionDeviceForm.Argument, FunctionDeviceForm.FixedDigits, FunctionDeviceForm.Literal }.SelectMany(RowsDeclaring)
+            .Order(StringComparer.Ordinal).ToList();
+        var facts = DocFacts.Load("compiler-facts.json").GetProperty("functionDeviceFormRowNames").EnumerateArray()
+            .Select(e => e.GetString()!).Order(StringComparer.Ordinal).ToList();
+        Assert.Equal(names, facts);
+        Assert.NotEmpty(names);
     }
 }

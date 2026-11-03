@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// and in both CI unit jobs.
 /// </para>
 /// <para>
-/// ⛔ THE INTERPRETER PROBE IS WRITTEN ONCE. It was private to <c>AnnexA1RegisterDriftTests</c>; the second gate
+/// ⛔ THE INTERPRETER PROBE IS WRITTEN ONCE. It was private to the Unit test that shelled the Annex A.1 register audit; the second gate
 /// that needed it would have copied it, and two probes disagreeing about which interpreter launches is a
 /// difference nobody would ever see reported — <c>feedback_one_rule_one_place</c>.
 /// </para>

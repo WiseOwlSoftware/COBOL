@@ -408,7 +408,7 @@ retirement, and the rows that predate the rule are a measured residue (kb/Work P
 | the writer | `scripts/spec/record_verdicts.py` | validating a batch's SHAPE and merging it all-or-nothing — witnesses by union (PB959) |
 | the witness-count gate | `scripts/spec/audit_witness_loss.py` | that no row LOSES a witness without a retirement or a re-site (PB959) |
 | the battery gate | `tests/WiseOwl.Cobol.Tests.Unit/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
-| the register audit | `scripts/spec/audit_annex_a1.py`, run by `AnnexA1RegisterDriftTests` | that `docs/CONFORMANCE.md` §7 is internally sound and agrees with the inventory |
+| the register audit | `scripts/spec/audit_annex_a1.py`, a gate audit (ANNEX A.1 REGISTER) | that `docs/CONFORMANCE.md` §7 is internally sound and agrees with the inventory |
 
 - **`kinds` is orthogonal to `verdicts`, and that is the point.** `verdicts` says what a VERDICT costs; `kinds`
   says what a ROW OF THIS KIND costs. Before it existed the schema described only one kind of claim — a
@@ -569,7 +569,7 @@ file's space — an anchored file being cited bare included.
 
 **And the register audit runs every build.** `audit_annex_a1.py --check --json` was wired into nothing until
 2026-09-02 — not `battery.sh`, not the CI workflow, not `build-local.*` — so the A.1 register's own correctness
-was enforced when a human remembered. `AnnexA1RegisterDriftTests` now shells it from the Unit project, following
+was enforced when a human remembered. it is now a gate audit (`audit_annex_a1.py --check`, kb/Work PB4453), run in every lane, following
 the precedent of a Unit class that shells a Python gate, which puts it in the per-commit wave-local
 gate, battery phase 1 and both CI unit jobs at once. It asserts its POPULATION (a run that filed nothing is not a
 pass), that every §7 row is filed under the item A.1 names, that no `DOC-A.1-<n>` token occurs outside a row key,
@@ -608,7 +608,7 @@ row, cross-checked against a register PARSED by one reader per language.
   design spends its whole length avoiding, and re-parsing 66 items per row would put a 1.3 MB read on the path
   `EveryRowState_IsDerived_NotAsserted` walks 4,311 times. `extract_annex_a2.py --check` regenerates and diffs, so
   the artifact cannot go stale silently; `AnnexA2UndefinedListDriftTests` runs it every build, the
-  `AnnexA1RegisterDriftTests` precedent.
+  gate-audit precedent of `audit_annex_a1.py` (kb/Work PB4453).
 - **Adding an A.2-arm row costs one register row.** The item→rule-id resolution is mechanical, so the next rule
   the standard declares undefined needs no edit to any list — only the determination and its `A.2 item <n>`.
 - **⛔ §7's `DOC-A.1-<n>` token invariant had to learn the second register.** `audit_annex_a1.py` asserts the
