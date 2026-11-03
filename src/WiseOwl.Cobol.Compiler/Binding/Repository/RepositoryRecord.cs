@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Collections;
-using System.Collections.Immutable;
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 
@@ -47,12 +46,18 @@ namespace WiseOwl.Cobol.Binding.Repository;
 /// returning item, and entry convention"); null for a program, a function and a prototype. A class's or an interface's
 /// record has no formals, returning item or RAISING phrase of its own (its methods have them), and its tables are the ones
 /// its methods' descriptions index.</param>
+/// <param name="Skeleton">The skeleton of a parameterized class or interface (kind <see cref="RepositoryUnitKind.ParameterizedClass"/>
+/// or <see cref="RepositoryUnitKind.ParameterizedInterface"/>, §5.2); null for every other unit. Such a unit has no class facts
+/// and no formals: its expansions are the classes.</param>
+/// <param name="Expansion">What an expansion of a parameterized definition adds to its <paramref name="Class"/> (kind
+/// <see cref="RepositoryUnitKind.Expansion"/>, §10.5); null for every other unit.</param>
 internal sealed record RepositoryRecord(
     RepositoryUnitKind Kind, string Name, string ExternalizedName,
     string EntryConvention, bool DecimalPointIsComma, RecordList<CurrencyRecord> Currencies,
     RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals, DescriptionRecord? Returning,
     RecordList<DescriptionRecord> TypeDeclarations, RecordList<StructureRecord> DynamicLengthStructures,
-    RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null);
+    RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null, SkeletonRecord? Skeleton = null,
+    ExpansionIdentity? Expansion = null);
 
 /// <summary>What a class or an interface publishes beside its unit facts (§6.1; ISO §8.13): its place in the inheritance
 /// graph as externalized identities (§6.4), its object properties and its methods. For an interface, <paramref name="Implements"/>
@@ -65,8 +70,10 @@ internal sealed record RepositoryRecord(
 /// null for an interface.</param>
 /// <param name="Properties">The object and factory properties, each from its accessors (ISO §13.18.42; §11.7.2).</param>
 /// <param name="Methods">The methods: the object methods, then the factory methods, each in roster order.</param>
+/// <param name="ClrName">The simple name of the CLR type that carries the unit (its metadata name, never an attribute argument, like
+/// <see cref="MethodRecord.ClrName"/>): the type an importer names in its generated code, in the module's namespace (§4.5).</param>
 internal sealed record ClassRecord(bool Final, string? BaseIdentity, RecordList<string> Implements, RecordList<string> FactoryImplements,
-    string? FactoryType, RecordList<PropertyRecord> Properties, RecordList<MethodRecord> Methods);
+    string? FactoryType, RecordList<PropertyRecord> Properties, RecordList<MethodRecord> Methods, string ClrName);
 
 /// <summary>One object property (ISO §8.13 "the object properties of the source unit"; §13.18.42): its name, the externalized
 /// name its accessors carry (ISO §12.3.8.4 GR2), the half it belongs to and which accessors it has.</summary>
@@ -192,39 +199,3 @@ internal sealed record EditRuleRecord(char Char1, string Neg, string Pos, bool S
 /// current at each use (<c>LocaleRef.Current</c>), else the named locale's external identification with the name as
 /// written.</summary>
 internal sealed record LocaleEditRecord(string? LocaleName, string? External, bool FromLiteral, int Size, string Picture);
-
-/// <summary>
-/// An immutable list that compares by its ELEMENTS, so a record holding one is a value (§17.4, §17.7). An
-/// <see cref="ImmutableArray{T}"/> compares by reference, which would make two encodings of one unit unequal.
-/// </summary>
-internal readonly struct RecordList<T>(ImmutableArray<T> items) : IReadOnlyList<T>, IEquatable<RecordList<T>>
-{
-    private readonly ImmutableArray<T> _items = items.IsDefault ? [] : items;
-
-    /// <summary>The empty list.</summary>
-    public static RecordList<T> Empty { get; } = new([]);
-
-    public T this[int index] => _items[index];
-
-    public int Count => _items.IsDefault ? 0 : _items.Length;
-
-    public bool Equals(RecordList<T> other) =>
-        Count == other.Count && (Count == 0 || _items.SequenceEqual(other._items, EqualityComparer<T>.Default));
-
-    public override bool Equals(object? obj) => obj is RecordList<T> other && Equals(other);
-
-    public override int GetHashCode()
-    {
-        var hash = new HashCode();
-        foreach (var item in this) hash.Add(item);
-        return hash.ToHashCode();
-    }
-
-    public static bool operator ==(RecordList<T> left, RecordList<T> right) => left.Equals(right);
-
-    public static bool operator !=(RecordList<T> left, RecordList<T> right) => !left.Equals(right);
-
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)(_items.IsDefault ? [] : _items)).GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}

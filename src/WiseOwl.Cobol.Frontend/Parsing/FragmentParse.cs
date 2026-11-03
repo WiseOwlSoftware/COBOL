@@ -99,6 +99,53 @@ public static class FragmentParse
         return flag.HasError ? null : tree;
     }
 
+    /// <summary>⛔ Re-parse SOURCE TEXT that already went through text manipulation as a COMPILATION UNIT, under the words map and
+    /// the edition it was written under — the entry for a parameterized definition a skeleton published to the external repository
+    /// (DESIGN-external-repository §10.5; kb/Work PB2104). It is the whole-group parse of the frontend in miniature: the lexer is
+    /// primed with the <c>&gt;&gt;COBOL-WORDS</c> decisions, the figurative ZERO next to a sign is settled, and the §8.9 reservation
+    /// gate and the ZERO-sign round run to their fixpoint (<see cref="ReservationGateRewriter.ParseToFixpoint"/>), after which the
+    /// text is lexed again if the declarations the parse found change which '(' open a subscript (<see cref="TokenRetypes.LexesDifferentlyFrom"/>)
+    /// — so the tokens are the ones the defining group's parse produced. Null on any lexical or syntax error: a recorded skeleton
+    /// parsed once, so a failure here is a damaged record, which the caller reports.</summary>
+    /// <param name="text">The source text, in free form.</param>
+    /// <param name="edition">The edition (both axes) the text was written under.</param>
+    /// <param name="words">The <c>&gt;&gt;COBOL-WORDS</c> map it was written under.</param>
+    public static CobolParserCore.CompilationUnitContext? ParseUnit(string text, EditionInfo edition, CobolWordsMap words)
+    {
+        var retypes = TokenRetypes.None with { CobolWords = words };
+        while (true)
+        {
+            var flag = new SyntaxErrorFlag();
+            var lexer = new CobolLexer(new AntlrInputStream(text));
+            retypes.PrimeLexer(lexer, edition);
+            lexer.RemoveErrorListeners();
+            lexer.AddErrorListener(flag);
+            var tokens = new CommonTokenStream(lexer);
+            ZeroTokenRewriter.Rewrite(tokens);
+            retypes.Rewrite(tokens);
+            var parser = new CobolParserCore(tokens) { Edition = edition, CobolWords = words };
+            bool parseFailed = false;
+            var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, new Diagnostics.DiagnosticBag(), (_, witness) =>
+            {
+                var passFlag = new SyntaxErrorFlag();
+                tokens.Seek(0);
+                parser.Reset();
+                parser.RemoveErrorListeners();
+                parser.AddErrorListener(passFlag);
+                parser.AddErrorListener(witness);
+                var unit = parser.compilationUnit();
+                parseFailed = passFlag.HasError;
+                return unit;
+            });
+            if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
+            {
+                retypes = tree.TokenRetypes;
+                continue;
+            }
+            return flag.HasError || parseFailed ? null : tree;
+        }
+    }
+
     /// <summary>Error-presence flag for BOTH recognizers — the parser's token errors and the lexer's character
     /// errors. It was copied verbatim into all three fragment parsers; this is the one copy.</summary>
     private sealed class SyntaxErrorFlag : BaseErrorListener, IAntlrErrorListener<int>

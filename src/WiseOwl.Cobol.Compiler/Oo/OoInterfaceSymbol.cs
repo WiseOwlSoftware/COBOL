@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// <see cref="OoMethodSymbol"/> — headers + LINKAGE formals, no bodies), the INHERITS list (repetition
 /// SUPPORTED — C# interface lists are native; the deliberate asymmetry with the class-side single-base
 /// restriction, SSOT §18.18), and the emitted C# interface name.</summary>
-public sealed class OoInterfaceSymbol(string name, string clrName, CobolParserCore.InterfaceDefinitionContext ctx)
+public sealed class OoInterfaceSymbol(string name, string clrName, CobolParserCore.InterfaceDefinitionContext? ctx)
 {
     public string Name { get; } = name;
     /// <summary>The name externalized to the operating environment (ISO §11.6.4 GR1: "literal-1, if
@@ -21,10 +21,30 @@ public sealed class OoInterfaceSymbol(string name, string clrName, CobolParserCo
     /// the operating-environment identity this implementation records for the definition (kb/Work
     /// PB303).</summary>
     public string ExternalizedName { get; init; } = name;
+
+    /// <summary>What made this interface an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR8); null for an interface written
+    /// as an interface and for an imported one.</summary>
+    internal ExpansionOrigin? Expansion { get; init; }
+
+    /// <summary>The repository record an IMPORTED interface was decoded from (null for an interface of this group).</summary>
+    internal Binding.Repository.RepositoryRecord? Record { get; init; }
     /// <summary>The CLR type name of the interface — the module's ABI, the same for every backend (kb/Work
     /// PB4265).</summary>
     public string ClrName { get; } = clrName;
-    public CobolParserCore.InterfaceDefinitionContext Ctx { get; } = ctx;
+    /// <summary>The INTERFACE-ID definition this symbol was built from. Every interface of the compilation group has one
+    /// (<see cref="OoSymbolOrigin.Source"/>); an IMPORTED one does not, and reading this on it is a loud internal error rather
+    /// than a null the caller forgot to test — it is in no emission list and no pass over the group's definitions.</summary>
+    public CobolParserCore.InterfaceDefinitionContext Ctx => ctx
+        ?? throw new InvalidOperationException(
+            $"interface '{Name}' is imported from the external repository and has no source definition");
+
+    /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>): <see cref="OoSymbolOrigin.Source"/> or
+    /// <see cref="OoSymbolOrigin.Imported"/>; ISO §16 defines no standard interface.</summary>
+    public OoSymbolOrigin Origin { get; init; } = OoSymbolOrigin.Source;
+
+    /// <summary>The assembly an <see cref="OoSymbolOrigin.Imported"/> interface was taken from (DESIGN-external-repository §10.6);
+    /// null for a source one. Its <see cref="ClrName"/> is the type's full name under <c>global::</c>.</summary>
+    public ImportedFrom? Imported { get; init; }
     public List<OoInterfaceSymbol> Inherits { get; } = [];
 
     /// <summary>The emitted C# types a COBOL reference to THIS interface selects when the rule asks whether an

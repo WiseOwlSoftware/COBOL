@@ -242,12 +242,17 @@ public sealed partial class DataBinder
             // of scope vs. defined nowhere). Keep the name so every later diagnostic about this item still
             // says what the programmer wrote.
             return ObjectRefDescriptor.ObjectClass(name, factory, only);
-        if (isInterface) return ObjectRefDescriptor.Interface(resolved.Interface!.Name);
+        if (isInterface)
+            return ObjectRefDescriptor.Interface(resolved.Interface!.Name).Resolved(resolved.Interface.ExternalizedName,
+                resolved.Interface.Origin is Compiler.Oo.OoSymbolOrigin.Imported ? resolved.Interface.ClrName : null);
         // ⛔ The descriptor carries the RESOLVED definition's name, not the word written: a REPOSITORY specifier's
         // `AS literal-1` makes the local word (BOXY) name the class whose externalized name is the literal
         // (§12.3.8.4 GR2, kb/Work PB974), and every downstream reader of the descriptor looks the class up by
-        // this name in the group's table.
-        return ObjectRefDescriptor.ObjectClass(resolved.Class!.Name, factory, only);
+        // this name in the group's table. It also carries the class's IDENTITY — its externalized name — and, for a
+        // class imported from another assembly, its full CLR name (DESIGN-external-repository §6.4, §10.1).
+        var cls = resolved.Class!;
+        return ObjectRefDescriptor.ObjectClass(cls.Name, factory, only)
+            .Resolved(cls.ExternalizedName, cls.Origin is Compiler.Oo.OoSymbolOrigin.Imported ? cls.ClrName : null);
     }
 
     /// <summary>The STATIC-field channel: every emitted root field name whose storage is ONE per-class copy —
@@ -404,9 +409,9 @@ public sealed partial class DataBinder
         // A method's environment division may not carry the configuration section (§12.3.3 SR2) or the
         // input-output section (§12.4.3 SR1) — a bare header is legal (§10.6.1, §12.2.1). One placement table
         // for every OO definition kind (kb/Work PB1076). A method references the class's files via §11.7.4 GR5.
-        OoEnvironmentRules.Screen(OoDefinition.Method, where, m.Ctx.environmentDivision(), Edition);
+        OoEnvironmentRules.Screen(OoDefinition.Method, where, m.Definition.environmentDivision(), Edition);
 
-        var dd = m.Ctx.dataDivision();
+        var dd = m.Definition.dataDivision();
         _bindingMethod = m;
         using (EnterMethodDeclarations(m.DataScope))
         {
@@ -425,7 +430,7 @@ public sealed partial class DataBinder
             // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind. Bound inside the
             // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
             // its constant-names, or one of its object's (§13.10.3 SR2, §8.4.6.2.2; kb/Work PB780).
-            if (m.Ctx.optionsParagraph() is { } mo)
+            if (m.Definition.optionsParagraph() is { } mo)
                 m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, FindConstant);
             if (dd is not null)
             {
@@ -476,7 +481,7 @@ public sealed partial class DataBinder
         // formal records it, and the method ABI pairs every formal with its omitted-presence parameter
         // (OoFormal.OmittedFlag) — the method arm of the one presence fact the program arm's null carrier realizes
         // (kb/Work PB133 wave C).
-        var pd = m.Ctx.procedureDivision();
+        var pd = m.Definition.procedureDivision();
         int pos = 0;
         bool byValue = false;
         // The formals whose ADDRESS OF the body takes are AREA formals (FormalIsCarrierResident — the program arm's test).
@@ -514,7 +519,7 @@ public sealed partial class DataBinder
                 // over it starts at the carrier's local root (PlaceBuilder.AddRoot; kb/Work PB4320, PB4380), and no
                 // local of its own is declared — the method's linkage roots were all suppressed above.
                 bool resident = FormalIsCarrierResident(item, m.Binding!.LinkageRoots, addressed);
-                var formal = new OoFormal(item, pos, OoParamName(m, item, pos), optional, byValue, resident);
+                var formal = new OoFormal(item, pos, m.Binding!.FormalName(item, pos), optional, byValue, resident);
                 if (resident) item.ResidentCarrier = new FormalCarrier.Local(formal.Carrier);
                 m.Binding!.Formals.Add(formal);
             }
@@ -620,19 +625,6 @@ public sealed partial class DataBinder
         }
 
         static bool IsActiveClassReference(DataItem? item) => item?.Pic?.ObjectRef is { Kind: ObjectRefKind.ActiveClass };
-    }
-
-    /// <summary>The C# parameter name for a formal: the TAGGED family <see cref="NamingConvention.FormalParameterName"/>
-    /// (<c>__formal_</c> + the sanitized COBOL name), uniquified within the method. The <c>__</c> head keeps it
-    /// off the item's own <see cref="DataItem.ClrName"/> (a user word never sanitizes to a leading <c>__</c>), which
-    /// becomes the capturable LOCAL the body reads and writes (a C# local may not shadow a parameter — CS0136);
-    /// the non-empty TAG keeps it off the emitter's fixed <c>__X</c> members — the untagged <c>"__" + word</c>
-    /// shape turned a formal named N into <c>__N</c>, the paragraph-count constant (kb/Work PB973).</summary>
-    private static string OoParamName(OoMethodSymbol m, DataItem item, int pos)
-    {
-        string name = NamingConvention.FormalParameterName(item.CobolName ?? $"P{pos}");
-        while (m.Binding!.Formals.Any(f => f.ParamName == name)) name += "_";
-        return name;
     }
 
     /// <summary>One RESOLVED object-property reference awaiting its statement-level desugar (deep-dive
@@ -965,7 +957,7 @@ public sealed partial class DataBinder
             {
                 var m = new OoMethodSymbol(csName,
                     HasUsing: kind == 'S', HasReturning: kind == 'G',
-                    Ctx: null!)
+                    Ctx: null)
                 {
                     ClrName = csName, Owner = cls, IsFactory = factory,
                     Accessor = kind, PropertyName = subjName, PropertySubject = subject,

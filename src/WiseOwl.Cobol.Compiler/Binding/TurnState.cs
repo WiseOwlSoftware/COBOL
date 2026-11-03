@@ -141,6 +141,14 @@ public sealed class TurnState
     public IEnumerable<int> DirectiveLinesNaming(IReadOnlySet<string> ecNames)
         => _events.Where(e => ecNames.Contains(e.Ec)).Select(e => e.Line);
 
+    /// <summary>The <c>&gt;&gt;TURN</c> directives in force for a source element whose first line is <paramref name="elementLine"/>, as
+    /// the (exception-name, file, ON, WITH LOCATION) toggles written before it and not undone by a <c>&gt;&gt;POP</c>, in the order
+    /// written: replayed in that order they leave exactly the checking state the fold (<c>Enabled</c>) answers at that line, whatever
+    /// the hierarchy expansion makes of each name. A skeleton publishes this replay (<c>CompileState.DirectiveFolds</c>,
+    /// DESIGN-external-repository §6.1), so an expansion made elsewhere is bound under the checking it was written under.</summary>
+    public IEnumerable<(string Ec, string? File, bool On, bool WithLocation)> DirectivesInForceAt(int elementLine) =>
+        _events.Where(e => !e.Inclusive && e.Line < elementLine && !e.RevokedFor(elementLine)).Select(e => (e.Ec, e.File, e.On, e.WithLocation));
+
     /// <summary>True when ANY enabling event exists — the group-level EC-machinery gate (a compilation group
     /// with no enabling TURN, no F3, no RAISE/RESUME emits byte-identical code to a pre-EC build).</summary>
     public bool AnyEnabled => _events.Any(e => e.On);

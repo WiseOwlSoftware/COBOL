@@ -20,6 +20,20 @@ public sealed class OoMethodBinding
     /// BY REFERENCE, the header BY VALUE phrase being an unparsed grammar extension).</summary>
     public List<OoFormal> Formals { get; } = [];
 
+    /// <summary>The C# parameter name for the formal <paramref name="item"/> at <paramref name="position"/>: the TAGGED family
+    /// <see cref="NamingConvention.FormalParameterName"/> (<c>__formal_</c> + the sanitized COBOL name), uniquified among the
+    /// formals already added. The <c>__</c> head keeps it off the item's own <see cref="DataItem.ClrName"/> (a user word never
+    /// sanitizes to a leading <c>__</c>), which becomes the capturable LOCAL the body reads and writes (a C# local may not
+    /// shadow a parameter — CS0136); the non-empty TAG keeps it off the emitter's fixed <c>__X</c> members — the untagged
+    /// <c>"__" + word</c> shape turned a formal named N into <c>__N</c>, the paragraph-count constant (kb/Work PB973). The one
+    /// naming of a method's formals: the binder names a method written in COBOL's, the repository importer an imported one's.</summary>
+    public string FormalName(DataItem item, int position)
+    {
+        string name = NamingConvention.FormalParameterName(item.CobolName ?? $"P{position}");
+        while (Formals.Any(f => f.ParamName == name)) name += "_";
+        return name;
+    }
+
     /// <summary>The PD RETURNING item (a LINKAGE 01/77 — §14.2.3 GR6: callee-allocated; the method's C# return
     /// value delivers it, §14.9.23.4 GR8), or null for a void method.</summary>
     public DataItem? Returning { get; set; }

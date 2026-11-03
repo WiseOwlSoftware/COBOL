@@ -215,6 +215,14 @@ public sealed record BackendArtifact(
   `HostEntryEmitter` and `OoEmitter`), while a `CilBackend` would encode the same values with `MetadataBuilder` and the
   ECMA-335 custom-attribute encoders; `RepositoryReader` reads either back to an equal record
   (`RepositoryBackendIndependenceTests`, §17.4).
+  **The expansion emission (kb/Work PB2104; DESIGN-external-repository §10.5).** What the backend is handed for a parameterized
+  definition is `BoundCompilation.Expansions` (`ExpansionPlacements`, a model-layer value): each skeleton to publish (a
+  `public static class` with `[CobolUnit]` + `[CobolSkeleton]`) and, per expansion, where it lives. An expansion placed in
+  another assembly (imported, or written to one of its own) is emitted NOWHERE in this module: the module names its types by
+  `using` aliases of the symbol's simple names and its `BackendOptions.RepositoryReferences` carry the assembly. The SECOND
+  EMISSION of an own-assembly expansion is not a second code path in the backend: the driver (`ExpansionAssemblies`) calls
+  `CompilerDriver.Compile` on the expansion's text, so the same bind, the same `Emit` and the same `AssemblyPackager` produce
+  `<externalized name>.dll` beside the output, before the group's own `Emit` (which references it).
 - The driver selects by `--backend` (default Roslyn): `ICodeGenBackend backend = BackendFactory.For(options.Backend);`
 
 **Hard boundary:** the backend's `Emit` receives a `BoundCompilation` and produces an artifact. It performs **no

@@ -118,6 +118,9 @@ public sealed class RepositoryIndex : IDisposable
     /// <summary>The simple names of the assemblies this one references, in <c>AssemblyRef</c> table order.</summary>
     public IReadOnlyList<string> AssemblyReferences { get; private init; } = [];
 
+    /// <summary>The assembly's own simple name (what an <c>AssemblyRef</c> of another assembly names it by).</summary>
+    public string AssemblyName { get; private init; } = "";
+
     /// <summary>Open the repository entry at <paramref name="path"/>: the file is read into memory and closed.</summary>
     /// <param name="path">The assembly file.</param>
     public static RepositoryIndexOutcome Open(string path)
@@ -190,6 +193,7 @@ public sealed class RepositoryIndex : IDisposable
             {
                 Mvid = md.GetGuid(md.GetModuleDefinition().Mvid), SchemaVersion = schema, RuntimeVersion = runtimeVersion, CallAbi = callAbi, Registrar = registrar,
                 CompilerVersion = compiler, Edition = edition, HasSignatures = signatures, Units = units, AssemblyReferences = references,
+                AssemblyName = md.GetString(md.GetAssemblyDefinition().Name),
             }, RepositoryReadFailure.None, null);
         }
         catch (Exception e) when (e is BadImageFormatException or InvalidOperationException or ArgumentException or IOException)

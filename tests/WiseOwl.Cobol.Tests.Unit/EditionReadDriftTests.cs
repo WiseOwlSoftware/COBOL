@@ -199,6 +199,13 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseTokens | Edition="] = (1, Verdict.Carrier),
         ["src/WiseOwl.Cobol.Frontend/Parsing/DirectiveExpressionFragment.cs | DirectiveExpressionFragment.Parse | FragmentParse.Parse"] = (1, Verdict.Carrier),
         ["src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs | OoExpansion.Expand | FragmentParse.ParseTokens"] = (2, Verdict.Carrier),
+        // A parameterized definition another group published is lexed again from the text it recorded, at the edition and under the
+        // words map it recorded (kb/Work PB2104): the whole-group parse in miniature, primed and settled exactly as the front end's
+        // is, handing the recorded edition on and nothing more.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseUnit | PrimeLexer"] = (1, Verdict.Carrier),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseUnit | Edition="] = (1, Verdict.Carrier),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/FragmentParse.cs | FragmentParse.ParseUnit | LexesDifferentlyFrom"] = (1, Verdict.WordStatus),
+        ["src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs | OoExpansion.Expand | FragmentParse.ParseUnit"] = (1, Verdict.Carrier),
     };
 
     // ── The rule, applied ─────────────────────────────────────────────────────────────────────────────────────────

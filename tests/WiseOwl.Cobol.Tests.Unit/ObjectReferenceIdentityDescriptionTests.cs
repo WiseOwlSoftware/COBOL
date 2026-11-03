@@ -96,6 +96,16 @@ public sealed class ObjectReferenceIdentityDescriptionTests
         Assert.Equal([CobolNames.Fold("PB2104-SPEAKER")], d.ObjectInterfaces!);
     }
 
+    [Fact]   // The readers that hold no class table (a prototype's signature identity) spell the same name: the description carries it.
+    public void ADescriptionWithNoClassTable_SpellsTheIdentityTheDescriptorCarries()
+    {
+        var (klass, iface, _) = Bind();
+        Assert.Equal("PB2104-ACCOUNT", klass.Pic!.ObjectRef!.Value.Identity);
+        Assert.Equal("PB2104-SPEAKER", iface.Pic!.ObjectRef!.Value.Identity);
+        Assert.Equal(CobolNames.Fold("PB2104-ACCOUNT"), ActivationDescriptions.Of(klass, classes: null)!.ObjectName);
+        Assert.Equal(CobolNames.Fold("PB2104-SPEAKER"), ActivationDescriptions.Of(iface, classes: null)!.ObjectName);
+    }
+
     [Fact]
     public void TheCompileTimeSetOperand_KeepsTheWords()
     {

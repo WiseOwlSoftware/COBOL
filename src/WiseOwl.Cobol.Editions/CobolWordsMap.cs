@@ -92,6 +92,44 @@ public sealed class CobolWordsMap
     /// <summary>The parsed operations, in source order (SR3/SR4 validation + the token rewriter walk these).</summary>
     public IReadOnlyList<CobolWordsOp> Ops { get; }
 
+    /// <summary>The map that <paramref name="text"/> (<see cref="DirectiveText"/>'s lines) states: the operations back, in order, with no
+    /// source position. Null when a line is not one <see cref="DirectiveText"/> writes — a damaged record, which the caller reports.</summary>
+    public static CobolWordsMap? FromDirectiveText(string text)
+    {
+        var ops = new List<CobolWordsOp>();
+        foreach (string line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var quoted = line.Split('"');   // ">>COBOL-WORDS EQUATE ", existing, " WITH ", new, ""
+            const string Head = ">>COBOL-WORDS ";
+            if (!line.StartsWith(Head, StringComparison.Ordinal)) return null;
+            string verb = line[Head.Length..].Split(' ')[0];
+            CobolWordsOp? op = (verb, quoted.Length) switch
+            {
+                ("EQUATE", 5) => new CobolWordsOp(CobolWordsAction.Equate, quoted[1], quoted[3], default),
+                ("SUBSTITUTE", 5) => new CobolWordsOp(CobolWordsAction.Substitute, quoted[1], quoted[3], default),
+                ("UNDEFINE", 3) => new CobolWordsOp(CobolWordsAction.Undefine, quoted[1], null, default),
+                ("RESERVE", 3) => new CobolWordsOp(CobolWordsAction.Reserve, null, quoted[1], default),
+                _ => null,
+            };
+            if (op is null) return null;
+            ops.Add(op);
+        }
+        return ops.Count == 0 ? Empty : new CobolWordsMap(ops);
+    }
+
+    /// <summary>The map as the <c>&gt;&gt;COBOL-WORDS</c> directive lines that state it (ISO §7.3.10.2), one per operation in source
+    /// order, each ending in a line feed; empty for <see cref="Empty"/>. A skeleton publishes it (<c>CompileState.CobolWordsMap</c>,
+    /// DESIGN-external-repository §6.1) and a compilation that expands the skeleton elsewhere reads it with the one directive
+    /// processor, so the words mean the same there.</summary>
+    public string DirectiveText => string.Concat(Ops.Select(op => op.Action switch
+    {
+        CobolWordsAction.Equate => $">>COBOL-WORDS EQUATE \"{op.Existing}\" WITH \"{op.New}\"\n",
+        CobolWordsAction.Undefine => $">>COBOL-WORDS UNDEFINE \"{op.Existing}\"\n",
+        CobolWordsAction.Substitute => $">>COBOL-WORDS SUBSTITUTE \"{op.Existing}\" BY \"{op.New}\"\n",
+        CobolWordsAction.Reserve => $">>COBOL-WORDS RESERVE \"{op.New}\"\n",
+        _ => throw new InvalidOperationException($"CobolWordsAction {op.Action} has no directive spelling"),
+    }));
+
     /// <summary>True when no <c>&gt;&gt;COBOL-WORDS</c> directive was present — every consumer short-circuits.</summary>
     public bool IsEmpty => Ops.Count == 0;
 
