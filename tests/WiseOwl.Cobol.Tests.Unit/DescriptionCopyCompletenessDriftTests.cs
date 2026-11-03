@@ -181,7 +181,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
     /// <summary>⛔ No COPIER spells a data description clause of its own. The defect was not that one list was
     /// wrong — it was that there were several, so a clause could be present in one and absent from another with
     /// nothing to contradict it: <c>CloneItem</c> lost GROUP-USAGE, SYNCHRONIZED and ALIGNED (kb/Work PB522), and
-    /// the compiler-temp pair <c>CreateCompilerTemp</c> / <c>CloneTempNode</c> — the third and fourth hand lists —
+    /// the compiler-temp pair <c>CompilerTemps.Create</c> / <c>CompilerTemps.CloneNode</c> — the third and fourth hand lists —
     /// lost them again (kb/Work PB888: ISO §8.4.3.2.4 GR1 gives a function result's temporary "the description,
     /// class, and category" of the RETURNING item, and a GROUP-USAGE NATIONAL result measured 8 national-less
     /// positions where the working-storage twin measured 4). Each copier's own initializer may carry identity, the
@@ -191,8 +191,8 @@ public sealed class DescriptionCopyCompletenessDriftTests
     /// (feedback_measure_the_selectors_complement).</summary>
     [Theory]
     [InlineData("DataBinder.cs", "private DataItem CloneItem(", nameof(DataItem.RedefinesTargetName))]
-    [InlineData("DataBinder.Oo.cs", "internal DataItem CreateCompilerTemp(", nameof(DataItem.IsCompilerTemp))]
-    [InlineData("DataBinder.Oo.cs", "private DataItem CloneTempNode(", nameof(DataItem.OccursSpec))]
+    [InlineData("CompilerTemps.cs", "internal DataItem Create(", nameof(DataItem.IsCompilerTemp))]
+    [InlineData("CompilerTemps.cs", "private DataItem CloneNode(", nameof(DataItem.OccursSpec))]
     public void TheCopiers_SpellNoDescriptionClauseOfTheirOwn(string file, string signature, string anchor)
     {
         var clauses = ClauseFieldNames();
@@ -235,7 +235,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
         foreach (var f in files)
         {
             string text = File.ReadAllText(f);
-            if (f.EndsWith("DataBinder.cs", StringComparison.Ordinal))
+            if (Path.GetFileName(f) == "DataBinder.cs")
                 text = text.Replace(MethodBody(text, "private static void CopyEntryDescription("), "{}");
             // The repository codec's decoder builds an entry from a PERSISTED record (DescriptionRecord), not from another
             // DataItem: it copies no description, it translates one, and its completeness is the round trip's and the
@@ -252,7 +252,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
     }
 
     /// <summary>Prove the scan's failure branch (feedback_green_gates_arent_evidence): the exact pre-PB888
-    /// <c>CreateCompilerTemp</c> initializer must be reported.</summary>
+    /// <c>CompilerTemps.Create</c> initializer must be reported.</summary>
     [Fact]
     public void TheHandCopyScan_ActuallyFails_OnThePb888Initializer()
     {

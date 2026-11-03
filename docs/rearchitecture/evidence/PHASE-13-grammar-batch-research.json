@@ -3206,6 +3206,11 @@
      }
     ],
     "currentState": {
+     "superseded_by": {
+      "note": "PB2355",
+      "date": "2026-11-02",
+      "why": "MOVED — the one path claim of this object whose file is gone: the REUSABLE MACHINERY item cites the SPECIAL-NAMES partial of the data binder (src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs:44,51, the Alphabets / NationalAlphabets registries). kb/Work PB2355 extracted that partial into the SpecialNamesBinder class (src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs, reached as DataBinder.SpecialNames); the registries are SpecialNamesBinder.Alphabets and .NationalAlphabets, unchanged. The object's other claims (the clause was ABSENT end to end when written) are history and not this marker's subject."
+     },
      "summary": "ABSENT end to end — the clause has ZERO grammar surface and therefore no bind, no emit, no runtime. It is a hard generic parse error at every --std (probe-verified at HEAD). The VF2 ledger entry is ACCURATE. However the ledger's scope narrowing ('the mandatory core residue = the uniform file-level Format 1 clause naming a STANDARD-phrase alphabet') is a TEST-SCOPED narrowing that the project rule forbids adopting: every piece of machinery the FULL clause needs already exists and is proven — CollatingTable/NationalAlphabetDef (the SPECIAL-NAMES alphabet registry), the shared collatingForPhrase subrule, the CollatingTable->ushort[] weights emission path, CobolString.Compare(left,right,ushort[] weights), and an IndexedConnector whose keys are already addressed by a keyIndex (-1 prime, i alternate) — so per-key (Format 2) collation is a small extension, not a new subsystem. IndexedConnector today compares EVERY key ordinally and its own header comment names §12.4.5.7 as an unimplemented seam.",
      "evidence": [
       "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4:46-71 — fileControlClauses has no collating alternative; the last arm is vendorFileControlClause -> genericClause, which is IDENTIFIER-led and cannot match the reserved COLLATING token",

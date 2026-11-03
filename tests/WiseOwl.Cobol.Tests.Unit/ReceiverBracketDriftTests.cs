@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// pair of facts that makes that automatic for the next arithmetic statement is structural, and this pins it:
 /// <list type="number">
 ///   <item>a binder that builds a receiver list the emitter loops over CLAIMS its property receivers
-///     (<c>OoClaimInterleavedReceiver</c>) — arithmetic receivers in the ONE <c>ExpressionBinder.ReceiverOf</c>, never a
+///     (<c>ProcedureBindState.ClaimInterleavedReceiver</c>) — arithmetic receivers in the ONE <c>ExpressionBinder.ReceiverOf</c>, never a
 ///     bare <c>new Receiver(</c>;</item>
 ///   <item>an emitter that loops over claimed receivers stores each through <c>ReceiverBracketEmitter.Receive</c> — every
 ///     <c>ArithmeticEmitter.GuardedStore</c> call names the receiver place it stores, and <c>MoveEmitter.Emit</c> routes
@@ -44,7 +44,7 @@ public sealed class ReceiverBracketDriftTests
         int home = src.IndexOf("private Receiver ReceiverOf(", StringComparison.Ordinal);
         Assert.True(home >= 0 && src.IndexOf("new Receiver(", home, StringComparison.Ordinal) is var at && at > home && at < home + 400,
             "the one `new Receiver(` is not inside ReceiverOf");
-        Assert.Contains("OoClaimInterleavedReceiver(resolved)", src[home..]);
+        Assert.Contains("ClaimInterleavedReceiver(resolved)", src[home..]);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public sealed class ReceiverBracketDriftTests
         // REFERENCE and RETURNING receivers, SET Format 1, the PERFORM VARYING and SEARCH VARYING items.
         var claimants = new List<string>();
         foreach (var file in Directory.EnumerateFiles(Binding(), "*.cs", SearchOption.AllDirectories))
-            if (File.ReadAllText(file).Contains("OoClaimInterleavedReceiver(") && Path.GetFileName(file) != "DataBinder.Oo.cs")
+            if (File.ReadAllText(file).Contains("ClaimInterleavedReceiver(") && Path.GetFileName(file) != "ProcedureBindState.cs")
                 claimants.Add(Path.GetFileName(file));
         claimants.Sort(StringComparer.Ordinal);
         Assert.Equal(["ArithmeticBinder.cs", "CallBinder.cs", "ControlFlowBinder.PerformVarying.cs", "ExpressionBinder.cs",
@@ -69,9 +69,9 @@ public sealed class ReceiverBracketDriftTests
         // BindMoveOf is the one constructor of a MOVE (the written statement and every implicit move a phrase defines), so the
         // claim lives there and not in the written MOVE's binder: a phrase added tomorrow inherits it by construction.
         string src = File.ReadAllText(Binding("Procedure", "Verbs", "MoveBinder.cs"));
-        Assert.Single(Regex.Matches(src, @"OoClaimInterleavedReceiver\("));
+        Assert.Single(Regex.Matches(src, @"ClaimInterleavedReceiver\("));
         int ctor = src.IndexOf("public BoundMove BindMoveOf(", StringComparison.Ordinal);
-        int claim = src.IndexOf("OoClaimInterleavedReceiver(", StringComparison.Ordinal);
+        int claim = src.IndexOf("ClaimInterleavedReceiver(", StringComparison.Ordinal);
         Assert.True(ctor >= 0 && claim > ctor && claim < src.IndexOf("new BoundMove(", ctor, StringComparison.Ordinal),
             "the one claim is not inside BindMoveOf before the BoundMove is built");
     }
@@ -106,7 +106,7 @@ public sealed class ReceiverBracketDriftTests
         // §14.6.4 / §8.4.3.9.4 GR3: identifier-3 of a receiving property is evaluated once, into the identified-object
         // temporary, and the GET and SET invoke on it -- never on identifier-3 rendered again.
         string src = File.ReadAllText(Binding("Procedure", "Verbs", "OoBinder.cs"));
-        Assert.Contains("ctx.Data.OoCreateIdentifiedObjectTemp(described)", src);
+        Assert.Contains("ctx.Data.Temps.ForIdentifiedObject(described)", src);
         Assert.Contains("PropertyGet(op, receiver)", src);
         Assert.Contains("close.Add(new BoundInvoke(op.Form, op.ClassClrName, receiver, op.Set.ClrName", src);
     }

@@ -25,7 +25,7 @@ public sealed class WatermarkTests
     public void Require_BeforeProducingPassRan_Throws()
     {
         var db = new DataBinder();
-        var ex = Assert.Throws<InvalidOperationException>(() => db.Require(PassPhase.OccursResolved, "test-fact"));
+        var ex = Assert.Throws<InvalidOperationException>(() => db.State.Require(PassPhase.OccursResolved, "test-fact"));
         Assert.Contains("test-fact", ex.Message);
         Assert.Contains("OccursResolved", ex.Message);
     }
@@ -34,9 +34,9 @@ public sealed class WatermarkTests
     public void Require_AfterProduced_Passes()
     {
         var db = new DataBinder();
-        db.MarkProduced(PassPhase.OccursResolved);
-        db.Require(PassPhase.OccursResolved, "test-fact");   // must not throw (exact)
-        db.Require(PassPhase.TypesExpanded, "test-fact");    // must not throw (earlier phase)
+        db.State.MarkProduced(PassPhase.OccursResolved);
+        db.State.Require(PassPhase.OccursResolved, "test-fact");   // must not throw (exact)
+        db.State.Require(PassPhase.TypesExpanded, "test-fact");    // must not throw (earlier phase)
     }
 
     /// <summary>The flagged late-fact read point: a <c>CapacityRegisters</c> read before <c>DynamicResolve</c>
@@ -45,7 +45,7 @@ public sealed class WatermarkTests
     public void CapacityRegisters_ReadBeforeOccursResolved_Trips()
     {
         var db = new DataBinder();
-        Assert.Throws<InvalidOperationException>(() => _ = db.CapacityRegisters.Count);
+        Assert.Throws<InvalidOperationException>(() => _ = db.State.Forest.CapacityRegisters.Count);
     }
 
     /// <summary>End-to-end: a real group bind advances every unit binder's watermark to the manifest's TERMINAL
@@ -72,7 +72,7 @@ public sealed class WatermarkTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var comp = new CSharpEmitter().Bind(tree!, new EditionContext(2023));
-            Assert.All(comp.Units, u => Assert.Equal(PassPhase.EditionConformanceChecked, u.Data.Watermark));
+            Assert.All(comp.Units, u => Assert.Equal(PassPhase.EditionConformanceChecked, u.Data.State.Watermark));
         }
         finally { FileHarness.TryDelete(path); }
     }

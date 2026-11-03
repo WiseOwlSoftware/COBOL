@@ -55,7 +55,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     /// a declaration.</para></summary>
     internal RefResolution? SumCounterFor(Core.DataReferenceContext dref, string name, bool report)
     {
-        if (!data.SumCounters.ContainsKey(name)) return null;
+        if (!data.State.SumCounters.ContainsKey(name)) return null;
         var written = ReferenceResolver.ReadWritten(dref);
         if (SumCounterFamilyFor(dref, name, written.Qualifiers, report) is not ({ } rep, { } family)) return null;
         // §8.4.3.3.3 SR3 — the count screen every identifier entry runs (ScreenRefModCount), asked of the counter too.
@@ -82,7 +82,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     /// The ONE construction of a procedure-division sum counter place — the ordinary reference and the table(ALL)
     /// intrinsic argument (§15.3) both build through it.</summary>
     internal ReportSumCounterPlace SumCounterPlace(ReportModel report, ReportSumFamily family, IReadOnlyList<Position> indexExprs) =>
-        new(report.CsIndex, family.BaseId, family.Register, data.Reports.Depth(report), indexExprs);
+        new(report.CsIndex, family.BaseId, family.Register, data.State.Reports.Depth(report), indexExprs);
 
     /// <summary>The CURRENT range of level <paramref name="level"/> (outermost first) of a repeating sum counter, for
     /// a table(ALL) argument (ISO §15.3): an enclosing repetition with the DEPENDING phrase ranges over
@@ -104,7 +104,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     internal (ReportModel Report, ReportSumFamily Family)? SumCounterFamilyFor(
         Core.DataReferenceContext dref, string name, List<string> qualifiers, bool report)
     {
-        if (!data.SumCounters.TryGetValue(name, out var homonyms)) return null;
+        if (!data.State.SumCounters.TryGetValue(name, out var homonyms)) return null;
         // §13.18.53.3 SR4 — inside a report's own clauses the only sum counters a SOURCE operand may name are those "defined in
         // the current report", so a homonym of another report is no candidate: the reference is unambiguous by the rule
         // and never needs a qualifier to say so (kb/Work PB1292).
@@ -112,7 +112,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         if (homonyms.Count == 0) return null;
         // §8.4.6.2.1 rule 3 — a counter of a report this source element declares hides a same-named counter of a
         // container's GLOBAL report; only candidates of the NEAREST declaring element can be ambiguous.
-        var matches = data.Reports.NearestInScope(
+        var matches = data.State.Reports.NearestInScope(
             homonyms.Where(h => DataBinder.QualifierWalk(h.Family.Qualification, qualifiers,
                 q => CobolNames.Same(q, h.Report.Name))),
             h => h.Report);
@@ -135,11 +135,11 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // declares — a nearer container's GLOBAL data item, condition-name or index-name — is the referenced item, and
         // ordinary resolution takes it. (This element's own declarations never reach here: InheritGlobalReport keeps
         // a counter its own data hides out of SumCounters.) Every candidate left shares one report depth.
-        int counterDepth = data.Reports.Depth(matches[0].Report);
+        int counterDepth = data.State.Reports.Depth(matches[0].Report);
         if (counterDepth > 0
             && (qualifiers.Count == 0
                 ? data.DeclaredNearerThan(name, counterDepth)
-                : refs.Names.ResolveQualified(name, qualifiers) is { } nearer && data.DeclaringDepth(nearer) < counterDepth))
+                : refs.Names.ResolveQualified(name, qualifiers) is { } nearer && data.State.Forest.DeclaringDepth(nearer) < counterDepth))
             return null;
         // ⛔ THE COUNTER IS ONE CANDIDATE AMONG ALL THE DATA-NAMES OF ITS SPELLING (kb/Work PB3232). §13.18.54.4 GR5 makes a
         // SUM entry's data-name the name of its sum counter, so the counter is a data-name like the ordinary data items
@@ -151,7 +151,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // Asking only the counters, as this method did, let the counter win every collision with a WORKING-STORAGE item
         // that had no qualifier to tell them apart: a MOVE to the name altered the report total, silently.
         int sameSpelling = matches.Count + data.QualifiedCandidates(name, qualifiers, data.ActiveScope)
-            .Where(item => data.DeclaringDepth(item) == counterDepth).Count;
+            .Where(item => data.State.Forest.DeclaringDepth(item) == counterDepth).Count;
         if (sameSpelling > 1)
         {
             if (report && refs.Diagnosed.Add(dref))

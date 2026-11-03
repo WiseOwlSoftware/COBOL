@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -51,46 +50,6 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 public sealed partial class DataBinder
 {
-    /// <summary>§13.16.3 SR8 — every elementary item has a PICTURE or a synthesized profile by now.
-    /// <para>Runs immediately after <c>UsageInheritancePass</c>, which is the last pass that can legitimately
-    /// FILL a null <c>Pic</c> (a group header shedding its usage to leaves, §13.18.60.4 GR1; a PICTURE-less
-    /// INDEX or OBJECT REFERENCE leaf taking the inherited profile). Anything still null at this point is a
-    /// declaration defect, not a pending adjudication.</para></summary>
-    internal void CheckPictureRequired()
-    {
-        CheckElementaryOnlyClauses();   // §13.18.40.3 SR1 + §13.16.3 SR11 — the table's ElementaryOnly rows
-        foreach (var item in ConformanceForest())
-        {
-            if (!IsPictureLessLeaf(item)) continue;
-            // ⛔ NO CARVE-OUT, AND THE ABSENCE IS THE POINT (kb/Work PB504/PB831). SR8 defers to SR9 in its own
-            // words — "except as indicated in Syntax rule 9" — and SR9 is APPLIED, not excused: the
-            // SynthesizeImpliedPictures pass gives every entry inside SR9's grant the PICTURE the rule implies
-            // (DataBinder.ImpliedPicture.cs), so such an entry is no longer a picture-less leaf and this guard
-            // never sees it. The FIGURATIVE case rides the same synthesis (§8.3.3.1 makes a figurative constant a
-            // literal; §8.3.3.6.4 GR3 b/c supply the length SR9 takes "as specified in 8.3.3"), so the former
-            // exemption — which let `01 G VALUE ALL "AB".` fall to the ONE-CHARACTER recovery item and store "A",
-            // a silent wrong answer — is gone rather than widened. What remains here is exactly SR8's own
-            // population: a numeric literal VALUE (`01 F VALUE 42.`), the class-pointer figurative NULL, a
-            // zero-length literal (SR9 excludes it by name), a Format-2 table VALUE (SR9 grants only the
-            // data-item format), and an entry with no VALUE clause at all.
-            using var _ = Edition.At(item);
-            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility,
-                $"data item '{item.CobolName ?? "FILLER"}': a PICTURE clause shall be specified for an elementary "
-                + "item (ISO §13.16.3 SR8) — it may be omitted only for an item whose usage is "
-                + "binary-char, binary-short, binary-long, binary-double, float-short, float-long, "
-                + "float-extended, index, message-tag, object reference, pointer, function-pointer or "
-                + "program-pointer, or when a VALUE clause supplies an alphanumeric, boolean or national "
-                + "literal (SR9)");
-        }
-
-        // The recovery shape, over the COMPOSED forest so a TYPE/SAME AS clone of a defective template cannot
-        // carry a null Pic into the emitter behind an already-reported diagnostic. Errors have been raised, so
-        // the compile HALTS before codegen either way — this is the belt to that braces, and it is what makes
-        // "no elementary item reaches the emitter without a Pic" an INVARIANT rather than a hope.
-        foreach (var item in CompositionForest())
-            if (IsPictureLessLeaf(item))
-                item.Pic = PicInfo.Recovery();
-    }
 
     /// <summary>An entry that is NEITHER a group NOR elementary: no PICTURE and no subordinate entries.
     /// <para>⛔ The test cannot be <see cref="DataItem.IsElementary"/>, which is DEFINED as
@@ -108,7 +67,7 @@ public sealed partial class DataBinder
     /// size). By the time this guard runs, every reference — a TYPEDEF template member's included, since each
     /// declaration is completed as a declaration (kb/Work PB1302) — is expanded, or refused and given a recovery
     /// profile.</para></summary>
-    private static bool IsPictureLessLeaf(DataItem item) =>
+    internal static bool IsPictureLessLeaf(DataItem item) =>
         item.Pic is null && HasNoSubordinates(item) && item.Level is not (66 or 88)
         && item.TypeRefName is null && item.SameAsName is null;
 
@@ -118,5 +77,5 @@ public sealed partial class DataBinder
     /// it — a property of the written hierarchy, never of <see cref="DataItem.IsElementary"/>, which is DEFINED
     /// as <c>Pic is not null</c> and would make both guards circular (the SR1 direction is
     /// <c>CheckElementaryOnlyClauses</c>, DataBinder.ClausePlacement.cs, which JUSTIFIED and BLANK WHEN ZERO share).</summary>
-    private static bool HasNoSubordinates(DataItem item) => item.Children.Count == 0;
+    internal static bool HasNoSubordinates(DataItem item) => item.Children.Count == 0;
 }

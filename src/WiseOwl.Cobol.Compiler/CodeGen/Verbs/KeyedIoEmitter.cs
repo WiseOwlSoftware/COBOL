@@ -77,7 +77,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 continue;
             }
             var altCollation = i < file.AlternateKeyCollations.Count ? file.AlternateKeyCollations[i] : null;
-            // §12.4.5.6.4 GR6 — the key suppression value, already sized to the key (DataBinder.KeySuppressionOf);
+            // §12.4.5.6.4 GR6 — the key suppression value, already sized to the key (FileControlBinder.KeySuppressionOf);
             // the connector compares key IMAGES, so a national key's value rides the ONE national serializer.
             string sup = suppress is not { } s ? "null"
                 : s.National ? RuntimeApi.NatBytes(CsLiteral(s.Value)) : CsLiteral(s.Value);
@@ -129,7 +129,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// <c>__COLLATE</c> when the key's alphabet IS the program collating sequence, else an inline carrier — or "null"
     /// for native order (a no-clause key emits "null" so its registration is unchanged from the pre-clause engine).</summary>
     private string CollationLit(AlphabetDef? def) =>
-        def is null ? "null" : ReferenceEquals(def, ctx.Data.Collating) ? "__COLLATE" : CollationEmit.New(def);
+        def is null ? "null" : ReferenceEquals(def, ctx.Data.State.Configuration.Collating) ? "__COLLATE" : CollationEmit.New(def);
 
     // ── READ (ISO §14.9.30) ────────────────────────────────────────────────────────────────────────────────────
 

@@ -57,10 +57,10 @@ class. The driver's own phase names (Bind / Emit / Roslyn) are a fiction: there 
 ### 1.2 No symbol table — a public-mutable-dictionary blackboard
 `DataBinder` exposes ~30 public get-only-but-mutable collections (`Roots`, `ByName`, `Conditions`,
 `IndexFields`, `CapacityRegisters`, `TypeDecls`, `Files`, `FilesByName`, `Switch*`, `Alphabets`, `UserClasses`,
-`Reports`, `WholeGroupReferenced`, `OoPendingPropertyOps`, `CompilerTempClones`, …). These ARE the module's API.
+`Reports`, `WholeGroupReferenced`, `OoPendingPropertyOps`, `CompilerTemps.Clones`, …). These ARE the module's API.
 Downstream phases both read AND write them: `ReferenceResolver` writes `WholeGroupReferenced` during procedure
 binding (`ReferenceResolver.cs:280,303`); `StatementBinder.MoveFigurative` writes `DataItem.StoreAsImage`;
-`CSharpEmitter` writes `StoreAsImage` via `MarkStoreAsImage` AFTER binding and re-syncs `CompilerTempClones`.
+`CSharpEmitter` writes `StoreAsImage` via `MarkStoreAsImage` AFTER binding and re-syncs `CompilerTemps.Clones`.
 There is no ownership boundary and no immutability — every collection is an open write channel.
 
 Name lookup is quadrupled: `LookupData`, `LookupDataInScopeOf`, `TryGetVisibleIndexField`, `IndexFieldFor` —
@@ -400,7 +400,7 @@ Float / Double / StringImage / TierBWindow / TierCByte / DynTable / ObjectRef / 
 WHERE it is computed: **`StorageFormPass`, a single pass running after `ProcedureBindPass`** so it sees all facts
 including whole-group procedure-division use. It writes `StorageForm` as an init-only fact through the builder;
 after the pipeline it is immutable. `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`) and the
-`CompilerTempClones` re-sync are DELETED. The FILE-record whole-group loop at `DataBinder.cs:238-257` folds into
+`CompilerTemps.Clones` re-sync are DELETED. The FILE-record whole-group loop at `DataBinder.cs:238-257` folds into
 `StorageFormPass` (it is the same rule). This removes the last emitter→binder write-back.
 
 ### 3.5 God-class decomposition — collaborators over `BinderContext`
@@ -601,7 +601,7 @@ verbs' general rules:
 - **§14.9.13.4 GR3 (EVALUATE)** — "At the beginning of the execution of the EVALUATE statement, each selection
   subject is evaluated and assigned a value, a range of values, or a truth value."
 
-The materializer creates that intermediate result item through `DataBinder.CreateCompilerTemp` (the ONE
+The materializer creates that intermediate result item through `CompilerTemps.Create` (the ONE
 synthesized-temp constructor) with the **operand's own description**, so the store into it is an identity move
 and the equivalence is exact: a data item clones its description (§8.4.3.3.4 GR6's "unique data item" when
 reference-modified, carried by a run-time-length item per §8.5.1.10.4), and a function-identifier takes §15.4's
@@ -666,7 +666,7 @@ extent rather than its current one, and that is observable: with a 3-of-5 occurs
 `PIC X(5) JUSTIFIED` receiver, §13.18.38.4 GR8 a)'s current extent right-aligns to `"  125"` while a
 maximum-extent intermediate gives `"125  "`. `SendingValueTemp.FreezeOdoExtent` therefore creates a SECOND temp
 holding data-name-1's value, stored as a pre-op ahead of the group store, with the clone's `OccursSpec.Depending`
-pointed at it (inside `CreateCompilerTemp`, because `DataItem.OccursSpec` is init-only). That is GR1's other
+pointed at it (inside `CompilerTemps.Create`, because `DataItem.OccursSpec` is init-only). That is GR1's other
 sentence — "The length of the data item referenced by identifier-1 is evaluated only once, immediately before the
 data is moved to the first of the receiving operands" — and without it `MOVE ODO-G TO N, Z` re-read the length
 AFTER storing into `N` and sent one character to the second receiver. A DYNAMIC-LENGTH elementary sender is
@@ -687,7 +687,7 @@ receiver registered one and the sender identifies at run time `MoveBinder.BindMo
 well. An OBJECT-PROPERTY receiver is the same arm in another form: its identifier-3's pre-ops move into its accessor
 bracket (`OoPendingPropertyOp.Prelude`), which `ReceiverBracketEmitter.Receive` opens just before the store, together
 with identifier-3's evaluation into the identified-object temporary and the GET of a part store, so
-`DataBinder.OoReceiverOpensAtRunTime` asks whether that bracket evaluates anything and the binder freezes on it too
+`MoveBinder.ReceiverOpensAtRunTime` asks whether that bracket evaluates anything and the binder freezes on it too
 (`MOVE X (1:L) TO P OF R (I)` raised R's EC-BOUND-SUBSCRIPT first; golden `2002/pb370_move_property_receiver_order`).
 The bracket's steps and that question read the same `OoPendingPropertyOp` members (`IdentifiedReceiver`,
 `GetsBefore`). The freeze is placed on the pending list at the point the sender finished binding
@@ -1083,7 +1083,7 @@ the bit-alignment proof and the string hoist deleted, and `PositionCarrierDriftT
 | refactor | `EmitStatement` switch (`CSharpEmitter.cs:347`), `BoundStores.StoreKindOf`, `NumericRenderer`, `ConditionRenderer`, `OperandText` | `IBoundStatementVisitor<T>` implementations | Delete the loud `_ =>` defaults; exhaustiveness by type system |
 | add | `BoundMove` (`BoundTree.cs:317`) et al. | `MoveKind` + `StorageForm` fields on the node | MOVE classification computed once in binder; `EmitMove`/`ConvertSource` become pure renderers |
 | create | — | `Binding/Pipeline/StorageFormPass.cs` | Single owner of the storage-form decision, after procedure binding |
-| delete | `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`), `CompilerTempClones` re-sync, FILE whole-group loop (`DataBinder.cs:238-257`) | folded into `StorageFormPass` | Remove the emitter→binder write-back; one StoreAsImage rule |
+| delete | `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`), `CompilerTemps.Clones` re-sync, FILE whole-group loop (`DataBinder.cs:238-257`) | folded into `StorageFormPass` | Remove the emitter→binder write-back; one StoreAsImage rule |
 | rename | `StatementBinder.Accept.cs`, `CSharpEmitter.Accept.cs` (the ACCEPT *verb*) | `Binding/Procedure/Verbs/AcceptDisplayBinder.cs` + `CodeGen/Verbs/AcceptDisplayEmitter.cs` (the AcceptDisplay* names) | End the Visitor-term collision once a real visitor exists |
 | rename | `BoundStores` | `BoundStoreAnalysis` | It is an analysis, not storage |
 | create | — | `Common/CobolLiteral.cs` (Decode), `Binding/RecordLayout.cs`, `Binding/PhraseBlocks.cs`, `DataItem.Root` | One canonical helper per job (dedup) |

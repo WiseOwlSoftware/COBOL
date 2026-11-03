@@ -75,7 +75,7 @@ public sealed class ImplicitRecordRedefinitionTests
                        STOP RUN.
             """;
         var (d, ed) = Compile(src);
-        Assert.Equal(RedefinitionKind.SameRecordArea, d.ByName["R2"][0].RedefinesKind);
+        Assert.Equal(RedefinitionKind.SameRecordArea, d.State.Forest.ByName["R2"][0].RedefinesKind);
         var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL1532", StringComparison.Ordinal));
         Assert.Contains("§12.4.6.4.4 GR2", sr4);
         Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§13.18.44", StringComparison.Ordinal));
@@ -100,12 +100,12 @@ public sealed class ImplicitRecordRedefinitionTests
     {
         var (d, ed) = Compile(Fd("01 R2 PIC X(10).\n       " + record, ""));
         Assert.Empty(ed.Diagnostics);
-        var r3 = d.ByName["R3"][0];
+        var r3 = d.State.Forest.ByName["R3"][0];
         Assert.True(FileModel.IsOutOfLineRecord(r3));
         Assert.Equal(RedefinitionKind.None, r3.RedefinesKind);
         Assert.Null(r3.RedefinesTarget);
-        var file = Assert.Single(d.Files, f => f.Records.Contains(r3));
-        Assert.Same(d.ByName["R2"][0], file.AreaRecord);
+        var file = Assert.Single(d.State.Files.Declared, f => f.Records.Contains(r3));
+        Assert.Same(d.State.Forest.ByName["R2"][0], file.AreaRecord);
         Assert.Same(r3, Assert.Single(file.OutOfLineRecords));
     }
 
@@ -137,11 +137,11 @@ public sealed class ImplicitRecordRedefinitionTests
         """;
         var (d, ed) = Compile(src);
         Assert.Empty(ed.Diagnostics);
-        var f = Assert.Single(d.Files, x => x.Records.Contains(d.ByName["R1"][0]));
-        Assert.Same(d.ByName["GD"][0], Assert.Single(f.OutOfLineRecords));
-        Assert.Equal(RedefinitionKind.SameRecordArea, d.ByName["G2"][0].RedefinesKind);
-        Assert.Same(d.ByName["R1"][0], d.ByName["G2"][0].RedefinesTarget);
-        Assert.Equal(RedefinitionKind.None, d.ByName["GD"][0].RedefinesKind);
+        var f = Assert.Single(d.State.Files.Declared, x => x.Records.Contains(d.State.Forest.ByName["R1"][0]));
+        Assert.Same(d.State.Forest.ByName["GD"][0], Assert.Single(f.OutOfLineRecords));
+        Assert.Equal(RedefinitionKind.SameRecordArea, d.State.Forest.ByName["G2"][0].RedefinesKind);
+        Assert.Same(d.State.Forest.ByName["R1"][0], d.State.Forest.ByName["G2"][0].RedefinesTarget);
+        Assert.Equal(RedefinitionKind.None, d.State.Forest.ByName["GD"][0].RedefinesKind);
     }
 
     /// <summary>The record kinds, and the clause kind beside them: the one fact every clause screen now reads.</summary>
@@ -151,13 +151,13 @@ public sealed class ImplicitRecordRedefinitionTests
         var (d, ed) = Compile(Fd("01 R1 PIC X(4).\n       01 R2 PIC 9(4).",
             "       01 W1 PIC X(4).\n       01 W2 REDEFINES W1 PIC 9(4)."));
         Assert.Empty(ed.Diagnostics);
-        Assert.Equal(RedefinitionKind.None, d.ByName["R1"][0].RedefinesKind);
-        Assert.Equal(RedefinitionKind.ImplicitFileRecord, d.ByName["R2"][0].RedefinesKind);
-        Assert.Same(d.ByName["R1"][0], d.ByName["R2"][0].RedefinesTarget);
-        Assert.Equal(RedefinitionKind.Clause, d.ByName["W2"][0].RedefinesKind);
+        Assert.Equal(RedefinitionKind.None, d.State.Forest.ByName["R1"][0].RedefinesKind);
+        Assert.Equal(RedefinitionKind.ImplicitFileRecord, d.State.Forest.ByName["R2"][0].RedefinesKind);
+        Assert.Same(d.State.Forest.ByName["R1"][0], d.State.Forest.ByName["R2"][0].RedefinesTarget);
+        Assert.Equal(RedefinitionKind.Clause, d.State.Forest.ByName["W2"][0].RedefinesKind);
         // One storage fact for both constructs: both pairs are ONE class.
-        Assert.Same(d.ByName["R1"][0].Class, d.ByName["R2"][0].Class);
-        Assert.Same(d.ByName["W1"][0].Class, d.ByName["W2"][0].Class);
+        Assert.Same(d.State.Forest.ByName["R1"][0].Class, d.State.Forest.ByName["R2"][0].Class);
+        Assert.Same(d.State.Forest.ByName["W1"][0].Class, d.State.Forest.ByName["W2"][0].Class);
     }
 
     private static string Fd(string records, string ws) => $"""

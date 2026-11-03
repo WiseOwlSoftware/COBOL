@@ -152,7 +152,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
             else if (prototype is null && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } declaredWord
-                     && ctx.Data.ProgramSpecifiers.ContainsKey(declaredWord))
+                     && ctx.Data.State.Configuration.ProgramSpecifiers.ContainsKey(declaredWord))
                 // The word is a PROGRAM specifier no provider answered (REPO-1 at the specifier, DESIGN-external-repository
                 // §8.2 step 4): it registered no prototype, so this is SR16's undeclared prototype — never a data name.
             {
@@ -854,7 +854,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // The CALL's receivers -- each BY REFERENCE argument and the RETURNING item -- are identified at its start
         // (§14.9.4.4 GR3 a)) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
         // object-property receiver's accessors there (kb/Work PB2078).
-        ctx.Data.OoClaimInterleavedReceiver(BoundCallProgram.Receivers(args, returning));
+        ctx.Data.Procedure.ClaimInterleavedReceiver(BoundCallProgram.Receivers(args, returning));
         return new BoundCallProgram(literalName, dynamicName, args, returning, onExc, notOnExc)
         {
             UsedOverflowSpelling = usedOverflow,
@@ -1167,7 +1167,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // ⛔ The RETURNING move is BOUND here (kb/Work PB880) — into the program's procedure-division RETURNING
         // item, the same item ProgramEmitter hands the activation result from. It used to be built by
         // CallEmitter.EmitGoback, after every bind-time MOVE screen and storage fact had already run.
-        BoundMove? returningMove = source is not null && ctx.Data.LinkageReturning is { } retItem
+        BoundMove? returningMove = source is not null && ctx.Data.Linkage.Returning is { } retItem
                                    && ctx.Refs.Places.ResolveItem(retItem) is { } retPlace
             ? host.Move.BindMoveOf(new BoundFieldOperand(source), [retPlace], ImplicitMovePhrase.GobackReturning)
             : null;
@@ -1343,7 +1343,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     private BoundStatement OperandUnresolved(Core.DataReferenceContext dref, string role, RefResolution? answer = null)
     {
         string text = dref.GetText();
-        if (ctx.Data.ScreenNames.Contains(text))
+        if (ctx.Data.State.Forest.ScreenNames.Contains(text))
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
                 $"CALL {role} '{text}' names a SCREEN SECTION entry; ISO §14.9.4.3 "
@@ -1394,7 +1394,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 + (formatTwo ? "(ISO §14.9.4.3 SR18)" : "(ISO §14.9.4.3 SR11)"));
 
         // SR3 sentence 2: BY REFERENCE (specified or implied) shall not carry factory/instance object data.
-        if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.OoIsObjectData(item))
+        if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.Oo.IsObjectData(item))
             ctx.Edition.Error(DiagnosticCatalog.CallByReferenceObjectData,
                 $"CALL USING BY REFERENCE '{name}': identifier-2 shall not be defined in the working-storage "
                 + "or file section of a factory or an instance object (ISO §14.9.4.3 SR3)");

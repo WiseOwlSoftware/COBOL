@@ -15,31 +15,43 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// object's <c>W</c>, a method's <c>TYPEDEF</c> spelled like its object's drew "duplicate type-name", and the members of a
 /// TYPE copy composed after the move leaked to every sibling method (the backend then failed CS0103). Every registration
 /// now asks <c>NameScopeOf</c> (the owner of the item's root, recorded when a method's entry opens the record) — so a
-/// copy made at any time lands in the right element — and the move is gone. This pins the funnels: the binder's own
-/// data-name and condition-name maps are written only by them (and by the contained-program inheritance of a container's
-/// GLOBAL names, which no method has), and the type-name table only through the declaring element's own table.
+/// copy made at any time lands in the right element — and the move is gone. This pins the funnels: the forest's
+/// data-name and condition-name maps (<c>ForestSlice</c>, whose views are read-only) are written only by them (and by the
+/// contained-program inheritance of a container's GLOBAL names, which no method has), and the type-name table only through
+/// the declaring element's own table.
 /// </summary>
 public sealed class MethodNameRegistrationDriftTests
 {
     private static readonly string BindingDir = TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding");
 
-    /// <summary>The writes into the binder's own data-name and condition-name maps, by file.</summary>
-    private static readonly Regex DirectMapWrite =
-        new(@"(?<![\w.])(ByName|Conditions)(\[[^\]]+\]\s*=|\.(Add|TryAdd)\()", RegexOptions.Compiled);
+    /// <summary>The slice calls that write the forest's data-name and condition-name maps, and the one member of the data
+    /// binder that may make each.</summary>
+    private static readonly (Regex Call, string Member)[] MapWriters =
+    [
+        (new(@"Forest\.DeclareName\(", RegexOptions.Compiled), "RegisterName"),
+        (new(@"Forest\.DeclareCondition\(", RegexOptions.Compiled), "RegisterCondition"),
+        (new(@"Forest\.Inherit\(", RegexOptions.Compiled), "InheritGlobalSubtree"),
+    ];
 
     [Fact]
-    public void TheBindersOwnNameMaps_AreWrittenOnlyByTheContainedProgramInheritance()
+    public void TheForestsNameMaps_AreWrittenOnlyByTheRegistrationFunnelsAndTheContainedProgramInheritance()
     {
         List<string> offenders = [];
-        foreach (var file in Directory.EnumerateFiles(BindingDir, "DataBinder*.cs"))
+        var found = new int[MapWriters.Length];
+        foreach (var file in Directory.EnumerateFiles(BindingDir, "*.cs", SearchOption.AllDirectories))
         {
             string[] lines = File.ReadAllLines(file);
             for (int i = 0; i < lines.Length; i++)
-                if (DirectMapWrite.IsMatch(lines[i]) && !lines[i].TrimStart().StartsWith("//", StringComparison.Ordinal)
-                    && !(Path.GetFileName(file) == "DataBinder.Linkage.cs" && EnclosingMember(lines, i) == "InheritGlobalSubtree"))
-                    offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
+                for (int w = 0; w < MapWriters.Length; w++)
+                {
+                    if (!MapWriters[w].Call.IsMatch(lines[i]) || lines[i].TrimStart().StartsWith("//", StringComparison.Ordinal)) continue;
+                    found[w]++;
+                    if (!(Path.GetFileName(file) == "DataBinder.cs" && EnclosingMember(lines, i) == MapWriters[w].Member))
+                        offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
+                }
         }
-        Assert.True(offenders.Count == 0, "a data-name or condition-name is written into the binder's own map instead of "
+        Assert.True(found.All(n => n > 0), "the scan found no call of a map writer — the pin measured nothing");
+        Assert.True(offenders.Count == 0, "a data-name or condition-name is written into the forest's map instead of "
             + "through RegisterName / RegisterCondition, which ask NameScopeOf (kb/Work PB3192):\n" + string.Join("\n", offenders));
     }
 
@@ -53,11 +65,12 @@ public sealed class MethodNameRegistrationDriftTests
             Assert.True(at > 0, $"{funnel} is gone — the pin measured nothing");
             int end = text.IndexOf("\n    }", at, StringComparison.Ordinal);
             string body = text[at..end];
-            Assert.True(body.Contains("NameScopeOf(", StringComparison.Ordinal) || body.Contains("TypeDeclsOf(ScopeOf(", StringComparison.Ordinal),
-                $"{funnel} no longer asks which source element owns the item (NameScopeOf / TypeDeclsOf(ScopeOf(…))).");
+            Assert.True(body.Contains("NameScopeOf(", StringComparison.Ordinal)
+                    || body.Contains("TryDeclareType(item, item.CobolName, ScopeOf(", StringComparison.Ordinal),
+                $"{funnel} no longer asks which source element owns the item (NameScopeOf / TryDeclareType(…, ScopeOf(…))).");
         }
-        Assert.False(Regex.IsMatch(text, @"(?<![\w.])TypeDecls\.TryAdd\("),
-            "a type-name is added to this binder's own table directly instead of through TypeDeclsOf(ScopeOf(…)).");
+        Assert.False(Regex.IsMatch(text, @"(?<![\w])TypeDecls\.TryAdd\("),
+            "a type-name is added to a table directly instead of through ForestSlice.TryDeclareType(…, ScopeOf(…)).");
     }
 
     [Fact]

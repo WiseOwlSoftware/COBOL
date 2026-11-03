@@ -142,7 +142,7 @@ public sealed class RecordSizeModelTests
             var data = new DataBinder();
             data.Bind(program);
             Assert.False(data.Edition.HasErrors, string.Join("\n", data.Edition.Diagnostics));
-            return Assert.Single(data.Files);
+            return Assert.Single(data.State.Files.Declared);
         }
         finally { FileHarness.TryDelete(path); }
     }
