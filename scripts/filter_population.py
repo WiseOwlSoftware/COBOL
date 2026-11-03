@@ -48,8 +48,8 @@ Usage (the wave-local gate applies its filter to ONE assembly and runs the other
 
 ⛔ `--allow-build` FOR A CALLER THAT HAS NOT BUILT YET (kb/Work PB751). Discovery runs `--no-build` by default,
 because the gate callers build the solution themselves and re-building per term would multiply the gate's cost.
-A caller whose OWN `dotnet test` does the building — `scripts/gen-vcr.ps1` and `scripts/gen-diagnostics-doc.ps1`
-both do — has nothing built at the moment the guard must run, and would get exit 2 on a clean tree (MEASURED, not
+A caller whose OWN `dotnet test` does the building — `scripts/gen-diagnostics-doc.ps1`
+does — has nothing built at the moment the guard must run, and would get exit 2 on a clean tree (MEASURED, not
 assumed: on a fresh worktree the default probe answers "could not discover tests … build the solution first").
 `--allow-build` drops `--no-build` from the discovery, so the first probe builds exactly what the caller's own run
 was about to build and the guard costs that caller nothing. It is a MODE, not a fallback: the guard never retries

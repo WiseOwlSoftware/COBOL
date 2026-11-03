@@ -1150,7 +1150,7 @@ internal static class RuntimeApi
     /// emitter that stores CHARACTERS into a boolean item asks THIS (a storage-area store, a GR4 group move or a READ, asks
     /// <c>ReceivingStore.StorageCharacters</c>, which converts through <c>BoolFromCharacters</c>). The determination, word
     /// for word in docs/DATA_MODEL_DESIGN.md D19 and docs/CONFORMANCE.md D-B5, pinned by
-    /// <c>BooleanStoreDeterminationDriftTests</c>:
+    /// the DOC AUDITS gate audit (<c>scripts/docchecks/design.py</c>):
     /// <para>Every STORE into a boolean item converts its characters. That includes a GR4 group move (the decoded
     /// characters of a national or display receiver; a USAGE BIT receiver's bits are all valid) and a READ or RETURN into
     /// an elementary record area that no other description shares. A boolean item can still hold a character other than 0

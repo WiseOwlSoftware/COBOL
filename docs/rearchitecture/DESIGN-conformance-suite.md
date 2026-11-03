@@ -273,7 +273,7 @@ conformance-suite/
 - **A profile is evidence, not assertion**: each claimed A.4 module and A.3 element carries the evidence for the
   claim. WiseOwl's claims are the rows `docs/CONFORMANCE.md` §5 and §2 dispose Claimed or Partial (§5's preamble: the
   conformance summary claims what is Claimed or Partial there), held to those tables by
-  `ConformanceSuiteProfileDriftTests`; GnuCOBOL's were measured on cobc 3.2.0, and the S3 pilot verifies them.
+  the DOC AUDITS gate audit (`scripts/docchecks/register.py`, `profile_disagreements`); GnuCOBOL's were measured on cobc 3.2.0, and the S3 pilot verifies them.
   Every profile states its value of every A.1 item `implementor-defined.json` enumerates (the generator refuses one
   that does not), and its extra reserved words per edition (GnuCOBOL's: the words `cobc --list-reserved
   -std=<dialect>` lists that `reserved-words.json` does not reserve there).

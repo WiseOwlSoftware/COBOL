@@ -3988,7 +3988,7 @@ refuse — are the code-side counterpart; keep the two in sync. This file is ref
 > **201**, **220**) documented voluntarily where A.1 does not require it. ⚙ **The numbers and the item list are `python scripts/spec/audit_annex_a1.py`'s
 > output, not a hand count — run it rather than trusting this sentence.** An enumeration of the discharged items
 > used to live in this paragraph and it rotted twice: stale by three when item 50 landed, and by three again by
-> 2026-09-02. The script prints the list (`--json`'s `filed`), the C# gate `AnnexA1RegisterDriftTests` runs it
+> 2026-09-02. The script prints the list (`--json`'s `filed`), the gate audit ANNEX A.1 REGISTER (`audit_annex_a1.py --check`) runs it
 > every build, and a list here could only ever be a second answer to a question one artifact already owns.
 > The rows below are the register itself, and they are what the script reads. Notable among them are the
 > **storage-representation items 205–209, 211 and 215** that V59 pinned (BINARY · the BINARY-CHAR family ·
