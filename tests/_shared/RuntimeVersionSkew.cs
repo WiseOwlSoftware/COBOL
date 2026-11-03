@@ -27,6 +27,27 @@ internal static class RuntimeVersionSkew
     /// <summary><see cref="Current"/> with its major replaced by another of the same digit count.</summary>
     public static string OtherMajor { get; } = OtherMajorOf(Current);
 
+    /// <summary>Makes the compiled module at <paramref name="dll"/> one another runtime major compiled: every occurrence of the
+    /// recorded <see cref="Current"/> text, in <paramref name="encoding"/> (UTF-8 for the repository attribute's blob, UTF-16 for the
+    /// user-string heap), becomes <see cref="OtherMajor"/>, in the same number of bytes so every offset of the assembly stays.
+    /// Returns the number replaced; a caller asserts it is not zero, because zero means the module records its version
+    /// nowhere in that encoding and the fixture damaged nothing.</summary>
+    public static int Patch(string dll, System.Text.Encoding encoding)
+    {
+        byte[] recorded = encoding.GetBytes(Current), skewed = encoding.GetBytes(OtherMajor);
+        if (recorded.Length != skewed.Length)
+            throw new InvalidOperationException($"the skewed version '{OtherMajor}' is not as long as '{Current}' in {encoding.WebName}");
+        byte[] image = File.ReadAllBytes(dll);
+        int replaced = 0;
+        for (int at = image.AsSpan().IndexOf(recorded); at >= 0; at = image.AsSpan().IndexOf(recorded))
+        {
+            skewed.CopyTo(image, at);
+            replaced++;
+        }
+        if (replaced > 0) File.WriteAllBytes(dll, image);
+        return replaced;
+    }
+
     /// <summary><paramref name="versionText"/> with its major replaced by the next major, or by the previous one when
     /// the next would gain a digit; every other component is kept, so the text keeps its length.</summary>
     public static string OtherMajorOf(string versionText)
