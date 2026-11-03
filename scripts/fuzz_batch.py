@@ -118,13 +118,14 @@ def submit(a: argparse.Namespace, client: Any = None) -> int:
     # a key that cannot be read leaves no record; a create the API REFUSED (the SDK's APIStatusError with a 4xx
     # status_code: a 401, a bad model, a malformed request) created no batch, so its record is removed and a retry can
     # start (review R2-2). Every other failure may have created one, and its record stays: a dropped connection, a
-    # timeout, and a 5xx answer (review R3-1: a 504 or 529 arrives after the SDK has already retried the create, with
-    # no idempotency key, so a batch may exist although the last answer was an error).
+    # timeout, and a 5xx answer (review R3-1). The create is ONE attempt (`max_retries=0`, review R4-1): the SDK retries
+    # 408, 409, 429 and every 5xx with no idempotency key, so after its retries the error caught here is only the LAST
+    # answer, and a 429 after a 504 would "prove" no batch exists when the first attempt may have made one.
     client = client or client_for(a.api_key_file)
     out.mkdir(parents=True, exist_ok=True)
     (out / "batch.json").write_text(json.dumps(record, indent=1), encoding="utf-8", newline="\n")
     try:
-        batch = client.messages.batches.create(requests=requests)
+        batch = client.with_options(max_retries=0).messages.batches.create(requests=requests)
     except Exception as e:
         status = getattr(e, "status_code", None)
         if isinstance(status, int) and 400 <= status < 500:
@@ -232,11 +233,14 @@ def self_test() -> int:
             def results(self, _id: str) -> list[Any]:
                 return [ok, bad]
 
+        retries_asked: list[int] = []
         fake = Obj(messages=Obj(batches=FakeBatches()))
+        fake.with_options = lambda max_retries, c=fake: (retries_asked.append(max_retries), c)[1]
         args = types_ns(out=str(Path(tmp) / "run"), count=2, model=DEFAULT_MODEL, clauses=",".join(df.DEFAULT_CLAUSES),
                         seed=20261020, in_order=False, api_key_file="unused", no_wait=False)
         submit(args, client=fake)
         rec = json.loads((Path(tmp) / "run" / "batch.json").read_text(encoding="utf-8"))
+        check("submit creates the batch in ONE attempt, no SDK retry (review R4-1)", retries_asked == [0])
         check("submit records the batch id and every program's plan entry", rec["batch_id"] == "msgbatch_test"
               and sorted(rec["plan"]) == ["fz00000", "fz00001"] and not df.batch_plan_problems(rec))
         slept: list[float] = []
@@ -256,6 +260,7 @@ def self_test() -> int:
                                                     ("a 5xx answer after the SDK's retries (review R3-1)", Overloaded("gateway timeout"), True))):
             run = Path(tmp) / f"run-fail-{i}"
             failing = Obj(messages=Obj(batches=Obj(create=lambda requests, f=failure: (_ for _ in ()).throw(f))))
+            failing.with_options = lambda max_retries, c=failing: c
             try:
                 submit(types_ns(**{**vars(args), "out": str(run)}), client=failing)
                 check(f"submit: {name} is an error", False)
