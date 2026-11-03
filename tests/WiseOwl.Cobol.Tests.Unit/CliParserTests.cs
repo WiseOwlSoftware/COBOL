@@ -286,6 +286,7 @@ public sealed class CliParserTests
     [Theory]
     [InlineData(CompilerDriver.Outcome.Success, 0)]
     [InlineData(CompilerDriver.Outcome.SourceNotFound, 66)]
+    [InlineData(CompilerDriver.Outcome.OutputNotWritable, 73)]
     [InlineData(CompilerDriver.Outcome.FrontendError, 65)]
     [InlineData(CompilerDriver.Outcome.BindError, 65)]
     [InlineData(CompilerDriver.Outcome.BackendError, 70)]
@@ -298,6 +299,6 @@ public sealed class CliParserTests
     public void NoCompileOutcome_IsLeftWithoutAnExitCode()
     {
         foreach (var outcome in Enum.GetValues<CompilerDriver.Outcome>())
-            Assert.InRange(Program.ExitCode(outcome), 0, 70);
+            Assert.InRange(Program.ExitCode(outcome), 0, 73);
     }
 }

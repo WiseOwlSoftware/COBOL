@@ -404,7 +404,8 @@ internal static class Program
     /// command-line page lists it and <c>UserManualDriftTests</c> reads it from here.</summary>
     internal const int LibraryRunExitCode = 64;
 
-    /// <summary>The process exit code of a compile outcome, POSIX sysexits: 0 success, 66 no input, 65 a data/format
+    /// <summary>The process exit code of a compile outcome, POSIX sysexits: 0 success, 66 no input, 73 an output that cannot be
+    /// created (a path naming no file in a directory, or a file the host refuses to write; kb/Work PB4502), 65 a data/format
     /// error IN THE SOURCE (a parse error or a binding/conformance diagnostic — the program is wrong), 70 an internal
     /// software error (the backend refused the C# this compiler generated — the compiler is wrong). Every outcome
     /// is named and an unnamed one throws, never a silent 70: the binding phase's refusal of the source once fell to
@@ -413,6 +414,7 @@ internal static class Program
     {
         CompilerDriver.Outcome.Success => 0,
         CompilerDriver.Outcome.SourceNotFound => 66,
+        CompilerDriver.Outcome.OutputNotWritable => 73,
         CompilerDriver.Outcome.FrontendError or CompilerDriver.Outcome.BindError => 65,
         CompilerDriver.Outcome.BackendError => 70,
         _ => throw new ArgumentOutOfRangeException(nameof(status), status, "an outcome with no exit code"),

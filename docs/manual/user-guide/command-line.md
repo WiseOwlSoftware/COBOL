@@ -76,6 +76,7 @@ Warnings print whether or not the compile succeeds, so a migration warning is vi
 | 65 | the source is wrong: a parse error or a conformance or binding diagnostic |
 | 66 | the source file was not found |
 | 70 | an internal error: the C# the compiler generated was refused by Roslyn |
+| 73 | the output cannot be written: the path names no file in a directory (a device such as `NUL`, which `/dev/null` becomes in a Windows POSIX shell, or a volume root), or the file system refuses a file the compile writes |
 
 With `--run` the status is the program's own: the value of the `STATUS n` of a `STOP RUN` (or of a main program's
 `GOBACK` in COBOL 2023), whether `WITH ERROR` or `WITH NORMAL` precedes it; 1 for `WITH ERROR` with no status and for
