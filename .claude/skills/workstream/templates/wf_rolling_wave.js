@@ -325,6 +325,9 @@ function runGroup(g) {
 }
 
 function findingsFile(g) { return `${S}\\review-w${W}-${g.letter.toLowerCase()}.jsonl` }
+// The reviewer's own scratch directory (kb/Work PB4466, MANDATORY-PRACTICES P16): up to CONC reviewers run in this one workflow
+// session, and a probe.cob or a copied script in the session scratchpad is compiled by whichever reviewer reads it next.
+function reviewScratch(g) { return `${S}\\review-w${W}-${g.letter.toLowerCase()}\\` }
 
 function sameHead(a, b) { return !!a && !!b && (a.startsWith(b) || b.startsWith(a)) }
 
@@ -355,6 +358,7 @@ function reviewBranch(g, r, round) {
     AUTH + `You are the wave-${W} BRANCH REVIEWER for group ${g.letter} (${g.notes}), review round ${round} — READ-ONLY (kb/Work PB3027). ` +
     `Follow "The branch form" of E:\\COBOL\\.claude\\skills\\review\\SKILL.md exactly, with: branch ${r.branch}; worktree ${r.worktree}; head ${r.head}; ` +
     `the implementer's report ${r.report}; the findings file ${file}; your reviewer label ${label}; round ${round}; the blocking severities ${blocking}. ` +
+    `YOUR SCRATCH DIRECTORY is ${reviewScratch(g)} (MANDATORY-PRACTICES P16, kb/Work PB4466): create it, and write every probe program, copied script and log you keep outside the worktree there and nowhere else; never in the harness's session scratchpad, which every agent of this session shares, and never in the bare wave scratch. ` +
     `The implementer's dispatch spec is ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt: read it, since the branch is reviewed against everything the implementer was told (its notes, its owner requirements, its gate). ` +
     reviewerRequirements(g) +
     (round > 1

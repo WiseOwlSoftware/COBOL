@@ -245,14 +245,8 @@ public sealed class RunUnitTerminationTests
         {
             CompileTo(source, dir, "PB2846SKEW");
             string dll = Path.Combine(dir, "PB2846SKEW.dll");
-            byte[] image = File.ReadAllBytes(dll);
-            byte[] recorded = System.Text.Encoding.Unicode.GetBytes(RuntimeVersionSkew.Current);
-            byte[] skewed = System.Text.Encoding.Unicode.GetBytes(RuntimeVersionSkew.OtherMajor);
-            Assert.Equal(recorded.Length, skewed.Length);   // a user-string heap entry cannot change its length
-            int at = image.AsSpan().IndexOf(recorded);
-            Assert.True(at >= 0, "the module's recorded runtime version was not found in its user-string heap");
-            skewed.CopyTo(image, at);
-            File.WriteAllBytes(dll, image);
+            Assert.True(RuntimeVersionSkew.Patch(dll, System.Text.Encoding.Unicode) > 0,
+                "the module's recorded runtime version was not found in its user-string heap");   // an entry of it cannot change its length
 
             var (exit, stdout, stderr) = CutRunner.RunExit(dll, dir);
             Assert.Equal(1, exit);

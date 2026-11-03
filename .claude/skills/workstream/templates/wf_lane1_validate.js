@@ -42,7 +42,7 @@ for (let i = 0; i < FILES.length; i += N) {
 You validate golden DRAFTS for the WiseOwl COBOL compiler (repo E:\\COBOL; read CLAUDE.md first). The drafts and
 the writer/refuter report for file "${slug}" are under ${SCRATCH}/out/${slug}/ (destination paths mirror the repo:
 conformance-suite/cases/<clause folder>/<id>.cob|.out and conformance-suite/wiseowl/cases/...; REPORT.json if a
-fixer rewrote the report, else read the writer report in ${SCRATCH}/reports/${slug}.json, whose `refusals` give each
+fixer rewrote the report, else read the writer report in ${SCRATCH}/reports/${slug}.json, whose \`refusals\` give each
 refused program's refuse-at editions and expect text).
 RULES. Do NOT write anything inside E:\\COBOL; do NOT run dotnet build/test; do NOT edit any draft .out or refusal —
 the expected values are SPEC-DERIVED and refuter-upheld; if the compiler disagrees, the compiler is the suspect.
@@ -51,7 +51,7 @@ FOR EACH POSITIVE DRAFT: copy the .cob to a fresh scratch dir under ${SCRATCH}/r
   cobol.exe <id>.cob --std <each edition of its header's accept> --run
 capturing stdout+stderr. Compare stdout to the draft .out: trailing whitespace per line and the final newline are
 ignored, CRLF == LF (the suite runner's rule, CutRunner.Normalize). Anything else is output-mismatch.
-FOR EACH NEGATIVE DRAFT (no accept; its entry under the report's `refusals`): for EACH refuse-at edition run
+FOR EACH NEGATIVE DRAFT (no accept; its entry under the report's \`refusals\`): for EACH refuse-at edition run
   cobol.exe <id>.cob --std <year>
 and require a non-zero exit AND the expect text in the diagnostics; also run it at one edition NOT listed (if
 any exists in {85,2002,2014,2023}) and record whether it compiles clean there (report only; it is evidence about the

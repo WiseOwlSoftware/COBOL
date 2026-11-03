@@ -73,7 +73,7 @@ the tests pin.
   front end or the binder to refuse it with that text. A clause pass (design §6 step 2) turns such a test into a
   flagged test with a control.
 - **A WiseOwl compile option** a WiseOwl test needs is its file `wiseowl/options/<id>.json`, `{"<option>": "<value>"}` (`sign-encoding`:
-  `ibm` · `ascii`; `numeric-display`: `decimal` · `digits`; `flag-extensions`: `on` · `off`); the generator refuses one for a test of `cases/`.
+  `ibm` · `ascii`; `numeric-display`: `decimal` · `digits`; `flag-extensions`: `on` · `off`; `repository-update`: `on` · `off`); the generator refuses one for a test of `cases/`. A build step (`wiseowl/options/<id>.<step file>.json`) may also name `std`, an edition (`85` · `2002` · `2014` · `2023`): the edition that unit compiles at, where the test's source and every other unit compile at the edition the test runs at (a program of an older edition called through a newer one's prototype); a whole test never names it.
 - **Migrated tests.** The programs of the former `tests/conformance/` corpus (design §6 step 1, kb/Work PB3177)
   carry `portable: unverified`, are accepted at the edition their old directory named, and wait for their clause
   pass; one no inventory row cited is in `cases/_unassigned/`.
