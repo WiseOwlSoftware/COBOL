@@ -15,9 +15,21 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// error by construction. <see cref="SkeletonClasses"/> / <see cref="SkeletonInterfaceData"/> are the unexpanded
 /// PARAMETERIZED definitions' forests (OO deep-dive D12 determination 6): bound for their own rules, never emitted, so
 /// they are deliberately OUTSIDE <see cref="AllBinders"/> (no producing pass runs over them) and are read only by the
-/// edition pass, which gates their data and walks their bound method bodies (kb/Work PB2937).</summary>
+/// edition pass, which gates their data and walks their bound method bodies (kb/Work PB2937).
+/// <para>⛔ <see cref="Texts"/>, NOT <see cref="Tree"/>, IS WHAT A SCREEN OF THE SOURCE TEXT WALKS (kb/Work PB4483). The written tree
+/// does not hold the text of an expansion of a skeleton read from the repository (it is lexed from the recorded text and parsed
+/// apart, <c>OoExpansion</c>), so a parse-tree screen that walked only <see cref="Tree"/> never asked it: the edition gates of the
+/// parse-tree arm (COBOL0903 for NEXT SENTENCE), the expression-formation, declined-facility and closed-format screens. An expansion in
+/// an assembly of its own got them from its own compilation and one in the group's assembly got none. <see cref="Tree"/> stays for
+/// the one walk that is about the written SOURCE and not its text: the <c>&gt;&gt;FLAG</c> directives bracket lines the user wrote,
+/// and the recorded state of a skeleton does not carry them (<c>CompileState</c>), so its expansion's own compilation flags nothing
+/// either (<c>FlagConformancePass</c>). <c>GroupTextScreenDriftTests</c> holds every other pass to <see cref="Texts"/>.</para></summary>
+/// <param name="Tree">The written compilation unit.</param>
+/// <param name="Texts">Every text this compilation screens: <paramref name="Tree"/> first, then each expansion of a skeleton read from
+/// the repository whose recorded state binds as the group's (<c>BinderDriver.CollectUnits</c>).</param>
 internal sealed record GroupBindContext(
     CobolParserCore.CompilationUnitContext Tree,
+    IReadOnlyList<Antlr4.Runtime.ParserRuleContext> Texts,
     IReadOnlyList<BoundUnit> Units,
     IReadOnlyList<OoClassUnit> Classes,
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> InterfaceData,

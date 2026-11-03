@@ -108,7 +108,7 @@ internal sealed class BinderDriver
         var leapSecond = LeapSecondState.Build(directives.LeapSecondEvents);
         // The compile-time inputs a skeleton is published under and an expansion of one is made under (CompileState, DESIGN-external-repository §6.1).
         var compileInputs = new CompileInputs(edition, words, turn, propagate, refModZl, leapSecond, directives.CompilationVariables);
-        var (units, classes, table) = CollectUnits(tree, edition, compileInputs, external);
+        var (units, classes, table, texts) = CollectUnits(tree, edition, compileInputs, external);
         external.UseClassTable(table);
         var session = new BindSession
         {
@@ -203,7 +203,7 @@ internal sealed class BinderDriver
         // edition gate; each pass's doc lives with its body; the ORDER lives in BindPipeline.GroupTail,
         // DAG-validated against the resolve prefix above). Once the tail completes, the edition sink carries
         // EVERY edition diagnostic — the driver's CheckOnly verdict needs nothing beyond this Bind.
-        var ctx = new GroupBindContext(tree, units, classes, oo.InterfaceData, oo.SkeletonClasses, oo.SkeletonInterfaceData, session);
+        var ctx = new GroupBindContext(tree, texts, units, classes, oo.InterfaceData, oo.SkeletonClasses, oo.SkeletonInterfaceData, session);
         foreach (var pass in BindPipeline.GroupTail())
         {
             RequireAll(ctx, pass);      // watermark gate: the prerequisite RAN on every binder (P6 Step 6)
@@ -223,7 +223,7 @@ internal sealed class BinderDriver
         // so neither existing pass's charter covers it. It walks the RAW parse tree once, never once per binding
         // site; the rule itself is the shared frontend ArithmeticFormationRules, which the compile-time
         // expression evaluator invokes on its own trees. kb/Work PB158.
-        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(tree, edition);
+        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(ctx, edition);
 
         // The literal-syntax pass (ISO §8.3.3.2.3 SR1/SR6, §8.3.3.4.3 SR1, §8.3.3.5.3 SR1/SR5) — a sibling on the
         // same footing: the length and hexadecimal-grouping rules are properties of the literal TOKEN, whatever
@@ -445,7 +445,7 @@ internal sealed class BinderDriver
     /// resolve classes defined later in the file. A contained <c>nestedProgram</c> parse context is re-shaped
     /// into a synthetic <c>programUnit</c> context (identical child shape) so the per-unit binders consume one
     /// context type.</summary>
-    private static (List<BoundUnit> Programs, List<OoClassUnit> Classes, OoClassTable Table) CollectUnits(
+    private static (List<BoundUnit> Programs, List<OoClassUnit> Classes, OoClassTable Table, IReadOnlyList<ParserRuleContext> Texts) CollectUnits(
         Core.CompilationUnitContext tree, EditionContext edition, CompileInputs inputs, IOoImporter importer)
     {
         var variables = inputs.Variables;
@@ -467,7 +467,13 @@ internal sealed class BinderDriver
         var expanded = OoExpansion.Expand(tree, classDefs, ifaceDefs, edition, inputs.Words, importer, inputs);
         var table = OoClassTable.Build(expanded, edition, variables, importer);
         var classes = table.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
-        return (all, classes, table);
+        // The texts this compilation screens (GroupBindContext.Texts, kb/Work PB4483): the written tree, then each expansion of a skeleton
+        // read from the repository whose recorded state binds as this group's at the entry. Under another state the group's screens of the
+        // text would not say what the skeleton's own compilation said (an edition gate, a permissive downgrade); such an expansion is
+        // never compiled here (its own assembly, an imported one, or COBOL2240: ExpansionPlacementPass), and its own compilation screens it.
+        List<ParserRuleContext> texts = [tree, .. expanded.RepositoryTexts()
+            .Where(e => e.Origin.Skeleton.State.BindsAs(inputs.At(e.Origin.Entry.Start.Line))).Select(e => e.Text)];
+        return (all, classes, table, texts);
 
         void Collect(Core.ProgramUnitContext ctx, BoundUnit? parent)
         {

@@ -162,12 +162,16 @@ internal static class ExpansionPlacementPass
                 if (!namesGroup) placement = WillWrite(symbol, origin, externalized, identity, target);
                 else
                 {
-                    if (origin.Skeleton.From is not null && !SameState(origin.Skeleton.State, inputs.At(origin.Entry.Start.Line)))
+                    if (origin.Skeleton.From is not null && !origin.Skeleton.State.BindsAs(inputs.At(origin.Entry.Start.Line)))
                         ReportForeignState(symbol, origin, externalized);
                     placement = new ExpansionPlacement(identity, ExpansionWhere.InGroup);
                 }
             }
             placements[symbol] = placement;
+            // An imported expansion's text was compiled, and its warnings reported, by the compilation that made it; this one compiles
+            // nothing of it and binds it only to type its callers, as it reads any class it imports (ISO §9.3.12 "treated in all respects
+            // the same as if it were a class that is not a parameterized class"; DiagnosticRegion; kb/Work PB4483).
+            if (placement.Where is ExpansionWhere.Imported) edition.WithdrawWarningsOf(origin.Region);
             if (placement.Where is ExpansionWhere.OwnAssembly)
                 order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement,
                     edition.LocationOf(origin.Entry.Start.Line, origin.Entry.Start.Column), origin.Region));
@@ -248,9 +252,6 @@ internal static class ExpansionPlacementPass
     private static string LocalNameOf(object symbol) => symbol is OoClassSymbol c ? c.ClrName : ((OoInterfaceSymbol)symbol).ClrName;
 
     private static string? LocalFactoryNameOf(object symbol) => symbol is OoClassSymbol c ? c.FactoryClrName : null;
-
-    /// <summary>Do two states bind a source the same way? Every member but <c>FlagExtensions</c>, which only adds warnings.</summary>
-    private static bool SameState(CompileState a, CompileState b) => a with { FlagExtensions = false } == b with { FlagExtensions = false };
 
     /// <summary>The identity a specifier states when nothing answers it: its AS literal, else its word (ISO §12.3.8.4 GR2).</summary>
     private static string WrittenIdentity(OoClassTable table, Core.RepositoryEntryContext specifier)
