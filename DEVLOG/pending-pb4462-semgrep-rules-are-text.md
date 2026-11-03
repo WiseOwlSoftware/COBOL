@@ -48,3 +48,12 @@ verdicts); the build is 0 warnings, 0 errors.
 the regexes were compared with semgrep's own AST results on every parseable region before the AST rules were removed (no
 difference in 230 sites) and with a Python pass afterwards (no difference in 248). Performance: `verify.py` adds one parse-all
 semgrep run (about 15 s). Duplication: the raw-literal debt is PB4463's, not a second list.
+
+**Branch review, round 1.** The reviewer found `scripts/arch/r2_inputs.py` (`run_semgrep`), the R2 review fleet's input step, reading
+only `results` from the same scan: a file semgrep rejects wholly was reported to every finder as having no invariant hit, and a
+timeout or rule error was dropped. It now reads `errors[]` through `verify.py`'s helpers, names the wholly unreadable files in each
+shard input (`semgrep_unread`, from a forced parse, so a file with no hit is named too) and stops on any other error; its
+self-test covers the three cases. The determination that a `PartialParsing` span is counted, not fatal (the owner asked for fatal)
+is now recorded in the PB4462 note for the owner to confirm or overturn. The branch was merged again with main, which had moved
+the OO method symbol's origin to a type (PB4459): its uses in `OoDataBinder.cs`, `PtrBindBasedAndAddressablesPass.cs` and
+`FlagConformancePass.cs` were ported to the extracted binders.

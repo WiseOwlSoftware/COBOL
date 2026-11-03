@@ -119,34 +119,49 @@ def parser_dependence(config_text: str) -> list[str]:
     return refused
 
 
+def is_partial_parse(e: dict) -> bool:
+    kind = e.get("type")
+    return isinstance(kind, list) and bool(kind) and kind[0] == "PartialParsing"
+
+
+def error_path(e: dict) -> str:
+    """The file an `errors[]` entry names, forward-slashed ('' when it names none, as a timeout does)."""
+    return str(e.get("path") or "").replace("\\", "/")
+
+
+def describe_error(e: dict) -> str:
+    """One line for a non-partial entry: `file  type: first line of the message`."""
+    what = (e.get("message") or "").splitlines()[0] if e.get("message") else ""
+    return f"{error_path(e) or '(no file)'}  {e.get('type')}: {what}"
+
+
 def classify_errors(errors: list[dict]) -> tuple[list[str], list[str]]:
     """Check 2: (the `PartialParsing` spans as `file:first-last`, the FATAL entries as one line each). Fatal is everything
     but a partial parse: a whole-file "Syntax error" (the file is removed from every rule), a timeout, a rule error --
-    `file  type: first line of the message`."""
+    `file  type: first line of the message`. Every reader of a semgrep scan's `errors[]` reads it through here or through
+    `is_partial_parse` / `error_path` / `describe_error` (`scripts/arch/r2_inputs.py`'s `run_semgrep` does: PB4462 review R1-1)."""
     spans, fatal = [], []
     for e in errors:
-        kind = e.get("type")
-        if isinstance(kind, list) and kind and kind[0] == "PartialParsing":
-            for span in kind[1]:  # ["PartialParsing", [{"path", "start": {"line"}, "end": {"line"}}, ...]]
+        if is_partial_parse(e):
+            for span in e["type"][1]:  # ["PartialParsing", [{"path", "start": {"line"}, "end": {"line"}}, ...]]
                 path = str(span["path"]).replace("\\", "/")
                 spans.append(f"{path}:{span['start']['line']}-{span['end']['line']}")
         else:
-            path = str(e.get("path") or "").replace("\\", "/")
-            what = (e.get("message") or "").splitlines()[0] if e.get("message") else ""
-            fatal.append(f"{path or '(no file)'}  {kind}: {what}")
+            fatal.append(describe_error(e))
     return sorted(set(spans)), fatal
 
 
-def unreadable_files() -> tuple[set[str], list[str]]:
-    """(the product files semgrep's grammar cannot read at all, the spans it reads only in part). A throwaway AST pattern
-    forces the parse of every file, which no text rule does until it has a hit."""
+def unreadable_files(cwd: pathlib.Path = REPO, targets: list[str] = GREENFIELD) -> tuple[set[str], list[str]]:
+    """(the files under `targets` that semgrep's grammar cannot read at all, the spans it reads only in part), paths as
+    semgrep prints them for these targets run from `cwd`. A throwaway AST pattern forces the parse of every file, which no
+    text rule does until it has a hit."""
     proc = subprocess.run(["semgrep", "scan", "--pattern", "class $C { ... }", "--lang", "csharp", "--metrics=off", "--json", "-q",
-                           *GREENFIELD], capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=str(REPO),
+                           *targets], capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=str(cwd),
                           timeout=900)
     if not proc.stdout.strip():
         sys.exit(f"semgrep produced no output.\n{proc.stderr[-2000:]}")
     errors = json.loads(proc.stdout)["errors"]
-    whole = {str(e["path"]).replace("\\", "/") for e in errors if not isinstance(e.get("type"), list) and e.get("path")}
+    whole = {error_path(e) for e in errors if not is_partial_parse(e) and error_path(e)}
     return whole, classify_errors(errors)[0]
 
 
