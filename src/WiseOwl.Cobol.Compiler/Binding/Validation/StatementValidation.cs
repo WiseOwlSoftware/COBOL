@@ -204,7 +204,7 @@ internal sealed class StatementValidation(DataBinder data)
     private bool ResolveFileWord(string name, string verb, [NotNullWhen(true)] out FileModel? file,
                                  bool admitsReportFile, string? statementRule)
     {
-        if (data.VisibleFiles.TryGetValue(name, out file))
+        if (data.State.VisibleFiles.TryGetValue(name, out file))
             return admitsReportFile || ScreenReportFileReference(file, verb, statementRule);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
@@ -691,9 +691,9 @@ internal sealed class StatementValidation(DataBinder data)
     /// second mapping mechanism).</summary>
     private FileModel? FileWhoseRecordIs(DataItem item)
     {
-        foreach (var f in data.Files)
+        foreach (var f in data.State.Files.Declared)
             if (f.Records.Contains(item)) return f;
-        foreach (var f in data.VisibleFiles.Values)
+        foreach (var f in data.State.VisibleFiles.Values)
             if (f.Records.Contains(item)) return f;
         return null;
     }
@@ -924,7 +924,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckInspectCharactersReplacement(BoundOperand rep)
     {
         if (rep is not BoundStringLiteral { Value.Length: not 1 } bad) return true;
-        data.Edition.Error("COBOL0846", $"INSPECT REPLACING CHARACTERS BY a {bad.Value.Length}-"
+        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY a {bad.Value.Length}-"
             + "character literal — literal-3 shall be one character in length (ISO §14.9.22.3 SR7)");
         return false;
     }
@@ -947,7 +947,7 @@ internal sealed class StatementValidation(DataBinder data)
         var (rule, phrase, names) = converting
             ? ("SR9", "CONVERTING", ("literal-4", "literal-5"))
             : ("SR6", "REPLACING", ("literal-1", "literal-3"));
-        data.Edition.Error("COBOL0846", $"INSPECT {phrase}: {names.Item1} {InspectLiteralImage(pattern, patternSize)} "
+        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT {phrase}: {names.Item1} {InspectLiteralImage(pattern, patternSize)} "
             + $"and {names.Item2} {InspectLiteralImage(replacement, replacementSize)} differ in size "
             + $"(ISO §14.9.22.3 {rule} — the same size unless {names.Item2} is a figurative constant)");
         return false;
@@ -1149,7 +1149,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
     {
-        if (data.Procedure.Options.Over(data.Options).Arithmetic != ArithmeticMode.Native) return true;   // §14.7.7 r2 applies to native only
+        if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §14.7.7 r2 applies to native only
         int maxInt = 0, maxFrac = 0;
         void Shape(int digits, int scale)
         {
@@ -1203,7 +1203,7 @@ internal sealed class StatementValidation(DataBinder data)
         // it — so the 18-digit figure does not govern the composite (it caps '85 PICTURE/literal capacity only).
         int composite = maxInt + maxFrac;
         if (composite <= 31) return true;
-        data.Edition.Error("COBOL0805",
+        data.Edition.Error(DiagnosticCatalog.ArithmeticCompositeTooWide,
             $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
             + "ISO/IEC 1989 caps the composite of operands at 31 digits (§14.7.7 rule 2 a))");
         return false;
@@ -1218,7 +1218,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckInitializeCategoryUnique(InitializeCategorySet namedSoFar, InitializeCategory cat)
     {
         if (!namedSoFar.Contains(cat)) return true;
-        data.Edition.Error("COBOL0834",
+        data.Edition.Error(DiagnosticCatalog.InitializeCategoryRepeated,
             $"INITIALIZE REPLACING repeats the category-name {InitializeCategories.Spelling(cat)} "
             + "(ISO §14.9.20.3 SR6 — each category at most once in the phrase; §5.2.6.4 — each alternative at "
             + "most once within one category-name)");
@@ -1288,7 +1288,7 @@ internal sealed class StatementValidation(DataBinder data)
         Place named = place;
         while (named.DenotedItem is null && named is PlaceDecorator d) named = d.Inner;
         if ((named.DenotedItem ?? place.Item).Renames is null) return true;
-        data.Edition.Error("COBOL0835",
+        data.Edition.Error(DiagnosticCatalog.InitializeRenamesItem,
             $"INITIALIZE '{refText}' — the data description entry for identifier-1 shall not contain a RENAMES "
             + "clause (ISO §14.9.20.3 SR5)");
         return false;
@@ -1405,7 +1405,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// enforced on one arm only (kb/Work PB334). ⚠ On the SEQUENTIAL-organization arm it is now
     /// DEFENCE IN DEPTH, not the only guard: §12.4.5.5.2 SR2 ("The DYNAMIC and RANDOM phrases shall not be
     /// specified for a sequential file") is screened at the FILE CONTROL ENTRY as of kb/Work PB692
-    /// (<c>DataBinder.BindFileControl</c>, COBOL1858), so <c>IsSequential &amp;&amp; AccessMode is Random</c>
+    /// (<c>FileControlBinder.BindFileControl</c>, COBOL1858), so <c>IsSequential &amp;&amp; AccessMode is Random</c>
     /// no longer reaches a statement at all. It stays because it is the STATEMENT's own rule and costs a
     /// field test — never because the entry rule might be missing.
     /// <para>The message names EVERY phrase the statement actually wrote — the at-end bracket carries choice
@@ -1485,7 +1485,7 @@ internal sealed class StatementValidation(DataBinder data)
                     + "ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO §12.4.5.5.3 GR3, GR4)"
                 : null;
         if (refusal is null) return true;
-        data.Edition.Error("COBOL0864", $"READ KEY on '{file.CobolName}': {refusal}");
+        data.Edition.Error(DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY on '{file.CobolName}': {refusal}");
         return false;
     }
 
@@ -1523,7 +1523,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckReadKeyOrganization(FileModel file)
     {
         if (file.Organization == FileOrganization.Indexed) return true;
-        data.Edition.Error("COBOL0864", $"READ KEY on '{file.CobolName}': the KEY phrase may be "
+        data.Edition.Error(DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY on '{file.CobolName}': the KEY phrase may be "
             + "specified only when ORGANIZATION IS INDEXED (ISO §14.9.30.3 SR10)");
         return false;
     }
@@ -1591,7 +1591,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.SubjectToApplyCommit) return true;   // SR8's leading conjunct — cf. §12.4.5.9.3 SR1
         if (!(effectiveSharing is SharingMode.AllOther && file.LockMode is null)) return true;
-        data.Edition.Error("COBOL1512", $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
+        data.Edition.Error(DiagnosticCatalog.OpenSharingAllRequiresLockMode, $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
             + "requires the file to have a LOCK MODE clause (ISO §14.9.27.3 SR8)");
         return false;
     }
@@ -1700,7 +1700,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckWriteEopLinage(FileModel file)
     {
         if (file.Linage is not null) return true;
-        data.Edition.Error("COBOL0860", $"WRITE END-OF-PAGE on file '{file.CobolName}', whose file "
+        data.Edition.Error(DiagnosticCatalog.WriteEndOfPageWithoutLinage, $"WRITE END-OF-PAGE on file '{file.CobolName}', whose file "
             + "description entry has no LINAGE clause (ISO §14.9.51.3 SR19)");
         return false;
     }
@@ -1712,7 +1712,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckWriteEopAdvancingPage(bool advancingPageWithAtEop)
     {
         if (!advancingPageWithAtEop) return true;
-        data.Edition.Error("COBOL0861", "WRITE ADVANCING PAGE with an END-OF-PAGE phrase: the two "
+        data.Edition.Error(DiagnosticCatalog.WriteAdvancingPageWithEndOfPage, "WRITE ADVANCING PAGE with an END-OF-PAGE phrase: the two "
             + "shall not both be specified in a single WRITE statement (ISO §14.9.51.3 SR18)");
         return false;
     }
@@ -1834,11 +1834,11 @@ internal sealed class StatementValidation(DataBinder data)
                 IntrinsicArgumentRules.CandidateClasses(o) is var set
                 && (set.Length == 0 || Array.IndexOf(set, CobolClass.Boolean) >= 0);
             if (!(BoolCompatible(left) && BoolCompatible(right)))
-                data.Edition.Error("COBOL0844", "a boolean operand may be compared only with another "
+                data.Edition.Error(DiagnosticCatalog.BooleanRelationForm, "a boolean operand may be compared only with another "
                     + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.3 "
                     + "SR2/SR3 exclude class boolean from the general relation)");
             else if (op is not ("==" or "!="))
-                data.Edition.Error("COBOL0844", "boolean operands compare for equality only — an ordering "
+                data.Edition.Error(DiagnosticCatalog.BooleanRelationForm, "boolean operands compare for equality only — an ordering "
                     + "relation is not defined for class boolean (ISO §8.8.4.2.2 Format 2)");
         }
         // §8.8.4.2.3 SR1 (data-model D17): if either operand is a strongly-typed group, both shall be of the same

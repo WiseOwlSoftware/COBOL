@@ -6,10 +6,10 @@
  "subject": "Figurative constant values",
  "rule-digest": "a2c7659f11e5",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SymbolicOf",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SymbolicOf",
  "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb110_symbolic_and_class_in; unit:CodedCharacterSetTests.CharAt_FollowsEachPhrasesCorrespondence",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB110 (2026-08-19): ALL symbolic-character-1 with an undeclared name is COBOL1670 citing this rule; a declared one substitutes (the golden's ALL-ZED line). The BARE form is a word reference — an undeclared word is the ordinary undefined-reference diagnostic.",
+ "notes": "kb/Work PB110 (2026-08-19): ALL symbolic-character-1 with an undeclared name is COBOL1670 citing this rule; a declared one substitutes (the golden's ALL-ZED line). The BARE form is a word reference — an undeclared word is the ordinary undefined-reference diagnostic. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SymbolicOf (kb/Work PB2355 extracted the SPECIAL-NAMES binding out of DataBinder.Switches.cs into the SpecialNamesBinder class (its partial files) and the configuration-section services DataBinder keeps into DataBinder.Configuration.cs; each member is the same rule, moved with its body unchanged)",
  "state": "OK"
 }

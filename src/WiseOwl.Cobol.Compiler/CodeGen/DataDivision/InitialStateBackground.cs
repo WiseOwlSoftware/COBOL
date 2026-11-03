@@ -82,9 +82,9 @@ internal sealed class InitialStateBackground(EmitContext ctx)
     {
         null => null,
         { Fill: OptionsFill.BinaryZeroes } => '\0',
-        { Fill: OptionsFill.HighValues } => FigurativeConstants.FillChar('H', ctx.Data.Collating),
-        { Fill: OptionsFill.LowValues } => FigurativeConstants.FillChar('L', ctx.Data.Collating),
-        { Fill: OptionsFill.Spaces } => FigurativeConstants.FillChar('S', ctx.Data.Collating),
+        { Fill: OptionsFill.HighValues } => FigurativeConstants.FillChar('H', ctx.Data.State.Configuration.Collating),
+        { Fill: OptionsFill.LowValues } => FigurativeConstants.FillChar('L', ctx.Data.State.Configuration.Collating),
+        { Fill: OptionsFill.Spaces } => FigurativeConstants.FillChar('S', ctx.Data.State.Configuration.Collating),
         { Fill: OptionsFill.Literal, LiteralFillChar: var c } => c,
         // ⛔ EXHAUSTIVE BY CONSTRUCTION over §11.9.10.4 GR5 a–e. A new OptionsFill member is a new GR5 arm and
         // needs a derived fill character, so it fails LOUD here rather than defaulting to a space — a silent
@@ -101,9 +101,9 @@ internal sealed class InitialStateBackground(EmitContext ctx)
         // The section predicate is OptionsInitialize.Governs — shared with the bind-time storage decision.
         var root = item;
         while (root.Parent is { } p) root = p;
-        _wsRoots ??= [.. ctx.Data.WorkingStorageRoots];
+        _wsRoots ??= [.. ctx.Data.State.Forest.WorkingStorageRoots];
         // The unit's own LOCAL-STORAGE roots — or, inside an OO method's initializers, the METHOD's (kb/Work PB1215).
-        IReadOnlyList<DataItem> lsSource = ctx.ActivationLocalRoots ?? ctx.Data.LocalStorageRoots;
+        IReadOnlyList<DataItem> lsSource = ctx.ActivationLocalRoots ?? ctx.Data.State.Forest.LocalStorageRoots;
         if (!ReferenceEquals(_lsSource, lsSource)) { _lsRoots = [.. lsSource]; _lsSource = lsSource; }
         return init.Governs(root, _wsRoots.Contains(root), _lsRoots!.Contains(root)) ? fill : null;
     }

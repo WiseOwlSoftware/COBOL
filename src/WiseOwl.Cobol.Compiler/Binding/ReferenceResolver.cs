@@ -129,7 +129,7 @@ public sealed class ReferenceResolver(DataBinder data)
 
     /// <summary>⛔ THE ONE OWN-ITEM TEST (kb/Work PB3153): does the REFERRING element itself describe an item that
     /// <paramref name="dref"/> names, either a data item (<see cref="Probe"/>) or a constant-name (a bare word only,
-    /// <see cref="DataBinder.ConstantOf"/>)? A contained program or a method sees the SPECIAL-NAMES and REPOSITORY
+    /// <see cref="ConstantEntryBinder.ConstantOf"/>)? A contained program or a method sees the SPECIAL-NAMES and REPOSITORY
     /// names its container declares, and "a source element's reference to such a name, even when it is a different
     /// type of user-defined word, is to the item which that source element describes" (§8.4.6.1). So every position
     /// whose format admits both an inherited configuration-section name and an operand asks THIS first, and takes
@@ -139,7 +139,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// review finding: an own <c>01 LVL CONSTANT AS 1</c> in STANDARD-COMPARE's argument-4 position was claimed as
     /// the inherited ordering-name). Diagnostic-free, like <see cref="Probe"/>.</summary>
     public bool DescribesOwnItem(Core.DataReferenceContext dref) =>
-        data.ConstantOf(dref) is not null || Probe(dref) is not null;
+        data.Constants.ConstantOf(dref) is not null || Probe(dref) is not null;
 
     /// <summary>What a <see cref="Probe"/> may tell its caller: the resolved <see cref="DataItem"/>, the
     /// operand CATEGORY of the reference (§8.4.3.3.4 GR6 for a reference-modified one — <see cref="RefModPlace"/>'s
@@ -378,14 +378,14 @@ public sealed class ReferenceResolver(DataBinder data)
         // The RECEIVING half of SR1 is screened at the ONE receiving chokepoint (ExpressionBinder.ResolveReceiving);
         // this arm is what makes the SENDING half legal source rather than a typo.
         // The predicate is <see cref="IsExceptionObjectRegister"/> — the ONE answer every caller asks for.
-        if (IsExceptionObjectRegister(dref)) return Ends(Resolved(new ExceptionObjectPlace(data.ExceptionObjectRegister)));
+        if (IsExceptionObjectRegister(dref)) return Ends(Resolved(new ExceptionObjectPlace(data.State.Implicit.ExceptionObjectRegister)));
 
         // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
         // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
         // a DebugRegisterPlace. Registered ONLY when a procedure-subject debugging declarative is active under WITH
         // DEBUGGING MODE (DebugRegisters empty otherwise → this never fires for a non-debug program). Only the plain
         // unqualified/unsubscripted form is covered — a reference-modified/qualified DEBUG-* falls through to loud.
-        if (data.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
+        if (data.State.Implicit.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
             return Ends(Resolved(new DebugRegisterPlace(dbg.Item, dbg.Member)));
 
         // A REPORT SECTION SUM COUNTER (ISO §13.18.54.4 GR5 — the data-name after the level number names the
@@ -694,7 +694,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <summary>⛔ THE ONE MATCH OF A WRITTEN REFERENCE AGAINST THE NAMED OCCURS DYNAMIC CAPACITY REGISTERS
     /// (kb/Work PB457) — a PURE check over the registers the ONE name lookup
     /// <see cref="Model.SymbolTable.CapacityCandidates"/> reaches in the active scope (the unit's
-    /// <see cref="DataBinder.CapacityRegisters"/>, or a method's own, kb/Work PB3165) with NO side effects (unlike
+    /// <see cref="ForestSlice.CapacityRegisters"/>, or a method's own, kb/Work PB3165) with NO side effects (unlike
     /// the full <see cref="Resolve"/> pipeline, which routes an unresolved qualified name through the
     /// property-reference hook and enqueues a pending op). The SET Format 14 reroute peek uses this so it never
     /// mints a spurious property temp/op for a non-capacity target (data-model D9; OCCURS DYNAMIC review #7).
@@ -719,7 +719,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// ambiguity (<see cref="CapacityRefFault.Ambiguous"/>), judged by the ONE verdict
     /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>.</para>
     /// <para>⛔ ACROSS SOURCE ELEMENTS IT IS §8.4.6.2.1 (kb/Work PB1674). A contained program also sees every
-    /// container's GLOBAL record's registers, nearest container first after its own (<see cref="DataBinder.CapacityRegisters"/>),
+    /// container's GLOBAL record's registers, nearest container first after its own (<see cref="ForestSlice.CapacityRegisters"/>),
     /// and rule 1 applies "the normal rules for qualification" over that whole set before rule 3 picks the nearest
     /// declaring element: the first register the written qualifiers reach is the candidate (the nearest one when
     /// none does, so the qualifier fault is stated about it), and an ordinary data-name of the spelling in a NEARER
@@ -735,8 +735,8 @@ public sealed class ReferenceResolver(DataBinder data)
         // The nearest declaring element's reached registers (the list is in nearest-element order, §8.4.6.2.1 3)), or
         // the nearest register at all when the qualifiers reach none, so the qualifier fault is stated about it.
         DataItem table = reached.Count > 0 ? reached[0] : tables[0];
-        int depth = data.DeclaringDepth(table);
-        reached.RemoveAll(t => data.DeclaringDepth(t) != depth);
+        int depth = data.State.Forest.DeclaringDepth(table);
+        reached.RemoveAll(t => data.State.Forest.DeclaringDepth(t) != depth);
         if (table.OccursSpec?.CapacityRegister is not { } reg
             || data.Symbols.NearerDataOrConditionNameHides(name, written.Qualifiers, depth)) return null;
         var place = CapacityRegisterPlaceOf(table);

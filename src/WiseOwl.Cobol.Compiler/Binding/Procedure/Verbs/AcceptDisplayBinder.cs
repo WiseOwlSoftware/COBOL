@@ -159,7 +159,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             Level = 1, CobolName = "__ACCEPT-" + kind, ClrName = "__accept" + kind,
             Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: 0, Signed: false),
         };
-        var temp = ctx.Data.CreateCompilerTemp(model, "__ACCEPT-", "__accept", $"{kind}L{line}");
+        var temp = ctx.Data.Temps.Create(model, "__ACCEPT-", "__accept", $"{kind}L{line}");
         return ctx.Refs.Places.ResolveItem(temp);
     }
 
@@ -205,7 +205,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     /// statement — <c>ACCEPT screen-name-1</c> / <c>DISPLAY screen-name-1</c> — is token-identical to its device
     /// format, so it parsed and bound as one: the screen record's characters were written to standard output and
     /// device input was read into a screen record, with no diagnostic anywhere. Only the operand's DECLARATION
-    /// tells them apart, which is why <see cref="DataBinder.ScreenNames"/> is consulted here.</para>
+    /// tells them apart, which is why <see cref="ForestSlice.ScreenNames"/> is consulted here.</para>
     /// <para>The [NOT] ON EXCEPTION phrases are printed by the screen format alone and independently of the
     /// positioning phrase (§14.9.1.2 Format 3, §14.9.11.2 Format 2), so a screen-name statement holding one is the
     /// screen format with or without AT / LINE / COLUMN. The parser gives an unpositioned statement such a phrase only
@@ -222,11 +222,11 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
                 : "the AT / LINE / COLUMN positioning phrase appears only in the screen format";
         // The operand scan costs nothing in the overwhelmingly common case: no SCREEN SECTION, no names, and
         // DISPLAY is the binder's hottest statement — so the empty-set test comes before the per-operand work.
-        if (ctx.Data.ScreenNames.Count == 0) return null;
+        if (ctx.Data.State.Forest.ScreenNames.Count == 0) return null;
         foreach (var dref in operands)
         {
             string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-            if (ctx.Data.ScreenNames.Contains(name))
+            if (ctx.Data.State.Forest.ScreenNames.Contains(name))
                 return ConditionalPhrases.HasFamily(phrases, ConditionalPhraseFamily.Exception)
                     ? $"'{DataBinder.WrittenText(dref)}' is declared in the SCREEN SECTION, and the ON EXCEPTION / NOT "
                       + "ON EXCEPTION phrase appears only in the screen format"
@@ -333,14 +333,14 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     {
         if (!ctx.Mnemonics.TryUse(at, name, out var row))
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
                 + $"(ISO §{sr2} SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
                 + "§12.3.7.2 'device-name-1 IS mnemonic-name-3')");
             return null;
         }
         if (row.Kind != SystemNameKind.Device)
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': '{name}' is the mnemonic-name of the "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': '{name}' is the mnemonic-name of the "
                 + $"{ImplementorNames.KindWord(row.Kind)} '{row.Name}', not of a device-name — only a device-name's "
                 + "mnemonic-name-3 may be specified in the ACCEPT and DISPLAY statements (ISO §12.3.7.3 SR7; "
                 + $"§{sr2} SR2)");
@@ -348,7 +348,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         }
         if (!row.Device.HasFlag(need))
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO §{sr2} "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO §{sr2} "
                 + "SR2; the available device-names and their capabilities are this implementation's §12.3.7.3 SR7/SR8 "
                 + $"specification: {ImplementorNames.DescribeDevices()})");
             return null;

@@ -19,8 +19,8 @@ using WiseOwl.Cobol.Runtime;
 internal static class OptionsBinder
 {
     /// <summary>A program unit's OPTIONS paragraph, written in its identification division, or null. The OO
-    /// definitions carry theirs on the SKELETON (§10.6.1; kb/Work PB135), which <c>DataBinder.UseSkeletonOptions</c>
-    /// and <c>DataBinder.OoBindMethodData</c> hand to <see cref="BindParagraph"/> directly.</summary>
+    /// definitions carry theirs on the SKELETON (§10.6.1; kb/Work PB135), which <see cref="ConfigurationSlice.OptionsParagraph"/>
+    /// and <c>OoDataBinder.BindMethodData</c> hand to <see cref="BindParagraph"/> directly.</summary>
     public static Core.OptionsParagraphContext? ParagraphOf(Core.ProgramUnitContext program) =>
         program.identificationDivision()?.identificationBody()?.identificationParagraph()
             .Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null);
@@ -35,11 +35,11 @@ internal static class OptionsBinder
     /// <param name="baseline">The model the element's clauses override — the CONTAINING element's model (ISO
     /// §11.9.4 GR1: the container's clauses apply "unless overridden by a clause in an OPTIONS paragraph in a
     /// contained source element"), null for an outermost element (the all-defaults model).</param>
-    /// <param name="constants">The element's constant-name lookup (<c>DataBinder.FindConstant</c>): the INITIALIZE
+    /// <param name="constants">The element's constant-name lookup (<c>ConstantEntryBinder.FindConstant</c>): the INITIALIZE
     /// clause's literal-1 may be written as a constant-name (§13.10.3 SR2; kb/Work PB780), so the caller binds the
     /// paragraph only after the element's constant entries are declared.</param>
     public static OptionsModel BindParagraph(Core.OptionsParagraphContext? options, EditionContext? edition, OptionsModel? baseline,
-        Func<string, DataBinder.ConstantDef?> constants)
+        Func<string, ConstantDef?> constants)
     {
         var start = baseline ?? OptionsModel.Default;
         if (options is null) return start;
@@ -59,7 +59,7 @@ internal static class OptionsBinder
     }
 
     private static OptionsModel Apply(OptionsModel m, Core.OptionsClauseContext c, EditionContext? edition,
-        Func<string, DataBinder.ConstantDef?> constants)
+        Func<string, ConstantDef?> constants)
     {
         if (c.arithmeticClause()?.arithmeticMethod() is { } am)
             return m with { Arithmetic = ArithmeticOf(am, edition) };
@@ -165,7 +165,7 @@ internal static class OptionsBinder
         if (m.STANDARD_BINARY() is not null)
         {
             using var at = edition?.At(m);   // the clause's own position (kb/Work PB2034), as DeclineFloatDecimal's
-            edition?.Error("COBOL0806", "ARITHMETIC IS STANDARD-BINARY is a processor-dependent language "
+            edition?.Error(DiagnosticCatalog.ArithmeticStandardBinaryUnsupported, "ARITHMETIC IS STANDARD-BINARY is a processor-dependent language "
                 + "element (ISO Annex A.3 item 2) for which support is not claimed (§4.2.6); it is also obsolete "
                 + "(§8.8.1.4.1 NOTE 1 / Annex F.2 item 3). Use NATIVE or STANDARD-DECIMAL");
             return ArithmeticMode.StandardBinary;
@@ -197,7 +197,7 @@ internal static class OptionsBinder
     }
 
     private static OptionsInitialize InitializeOf(Core.OptionsInitializeClauseContext init, EditionContext? edition,
-        Func<string, DataBinder.ConstantDef?> constants)
+        Func<string, ConstantDef?> constants)
     {
         var target = init.optionsInitializeTarget();
         OptionsSections sections = target.ALL() is not null ? OptionsSections.All : SectionsOf(target, edition);

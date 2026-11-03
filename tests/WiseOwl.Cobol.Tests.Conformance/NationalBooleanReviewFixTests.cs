@@ -99,7 +99,7 @@ public sealed class NationalBooleanReviewFixTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("NBRF05", ws, "CONTINUE."), 2002);
         Assert.False(ok, "a cross-category 88 VALUE must be rejected (ISO §13.18.63 SR4/SR5/SR24→SR10)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOL0898");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL5982");
     }
 
     [Theory]

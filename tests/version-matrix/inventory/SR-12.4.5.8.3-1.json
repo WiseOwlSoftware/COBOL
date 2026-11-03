@@ -6,10 +6,10 @@
  "subject": "FILE STATUS clause",
  "rule-digest": "190b9f9288ef",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenFileStatusItem",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem",
  "test-ref": "conformance:cases/12.4.5.8-FILE-STATUS/pb1080-file-status-item-shape",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1080 landed (w61c). cite.py --check 12.4.5.8.3 'Data-name-1 shall not be subject to any OCCURS clauses' -> OK SR1. DataBinder.ScreenFileStatusItem (beside ResolveLinage's operand screen, run from ResolveFiles) refuses an item subject to OCCURS through RecordLayout.IsSubjectToOccurs, COBOL2455; formerly compiled and died at OPEN with NotImplementedCobolFeatureException (probe p1b). The negative also rejects at --std 85.",
+ "notes": "kb/Work PB1080 landed (w61c). cite.py --check 12.4.5.8.3 'Data-name-1 shall not be subject to any OCCURS clauses' -> OK SR1. DataBinder.ScreenFileStatusItem (beside ResolveLinage's operand screen, run from ResolveFiles) refuses an item subject to OCCURS through RecordLayout.IsSubjectToOccurs, COBOL2455; formerly compiled and died at OPEN with NotImplementedCobolFeatureException (probe p1b). The negative also rejects at --std 85. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenFileStatusItem (kb/Work PB2296 M7 moved the member from DataBinder to FileControlBinder (the file binder); the same rule is asked by the same code)",
  "state": "OK"
 }

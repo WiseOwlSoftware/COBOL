@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// ⛔ THE ONE SCREEN OF A PROCEDURE DIVISION HEADER'S FORMAL PARAMETERS AND RETURNING ITEM (kb/Work PB1145) — the rules
 /// of ISO §14.2.2 SR1 / SR5 / SR6 and the §14.2.1 using-phrase format, asked once for every source element that has
-/// such a header: <c>DataBinder.CallBindLinkage</c> (program and function) and <c>DataBinder.OoBindMethodData</c>
+/// such a header: <c>LinkageBinder.CallBindLinkage</c> (program and function) and <c>OoDataBinder.BindMethodData</c>
 /// (method) each used to carry a private, DIFFERENT subset — the program arm checked REDEFINES / BASED on USING items
 /// only, the method arm neither, and neither recorded which names it had already seen, so
 /// <c>USING A A</c> reached the backend as a duplicate member (CS0102) and a REDEFINES / BASED formal reached it as a
@@ -89,7 +89,7 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
     {
         var cls = IntrinsicArgumentRules.ClassOfItem(item);
         if (cls is null or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
-        edition.Error("COBOL1553",
+        edition.Error(DiagnosticCatalog.ByValueFormalClass,
             $"{where}: BY VALUE formal parameter '{written}' is of class {IntrinsicArgumentRules.ClassNameOf(item)}; it shall "
             + "be of class numeric, message-tag, object, or pointer (ISO §14.2.2 SR2)");
     }

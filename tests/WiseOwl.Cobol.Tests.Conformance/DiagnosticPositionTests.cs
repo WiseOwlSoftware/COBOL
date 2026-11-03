@@ -116,7 +116,7 @@ public sealed class DiagnosticPositionTests : IDisposable
     [InlineData("           COMPUTE N = 1\n               + G.", 13, 18, "COBOL0844")]     // §8.8.1.1: group item
     [InlineData("           COMPUTE N = 1\n               + IDX.", 13, 18, "COBOL0844")]   // §13.18.60.3 SR10: index data item
     [InlineData("           COMPUTE N = 1\n               + UPPER-CASE(\"B\").", 13, 18, "COBOL1543")]   // §8.4.3.2.3: undeclared keyword-omitted function
-    [InlineData("           COMPUTE N = 1\n               + LINAGE-COUNTER.", 13, 18, "COBOL0864")]      // §8.4.3.14: no LINAGE clause
+    [InlineData("           COMPUTE N = 1\n               + LINAGE-COUNTER.", 13, 18, "COBOL5997")]      // §8.4.3.14: no LINAGE clause
     [InlineData("           COMPUTE N = 1\n               + 1.0E+9000.", 13, 18, "COBOL1661")]          // §8.3.3.3.3 r3: exponent range
     [InlineData("           ADD 1 TO N\n               W.", 13, 16, "COBOL1675")]            // §14.9.2.3: resultant category
     [InlineData("           ADD 1 TO N\n               NE.", 13, 16, "COBOL1675")]           // §14.9.2.3: numeric-edited barred in place

@@ -20,7 +20,7 @@ using WiseOwl.Cobol.Runtime;
 /// <see cref="CaptureEnclosingSubscripts"/>), and the object-property references among them whose GETs those
 /// positions read.</summary>
 internal sealed record EnclosingOccurrence(IReadOnlyList<Position> Subscripts, IReadOnlyList<Bound.BoundStatement> PreOps,
-    IReadOnlyList<DataBinder.OoPendingPropertyOp> PropertyOps);
+    IReadOnlyList<OoPendingPropertyOp> PropertyOps);
 
 /// <summary>Which statement's <b>table</b> operand a subscript list is read for (<see cref="ReadSubscripts"/>) —
 /// the operand names a table, not one occurrence of it, so its own level takes no subscript and what is written
@@ -66,7 +66,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// (fix-queue PB17): given the position's PARSED arithmetic expression (null when the written position is not
     /// one — the hook refuses it by name, COBOL2363), its written text for that message and its line, it binds the
     /// expression through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes the §15.4 temporary via
-    /// <c>DataBinder.CreateCompilerTemp</c>, registers the store as a statement-scoped pending PRE-op on
+    /// <c>CompilerTemps.Create</c>, registers the store as a statement-scoped pending PRE-op on
     /// <see cref="ProcedureBindState.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
     /// position (<see cref="PositionRead"/>).
     /// <para>⛔ IT IS A HOOK, NOT A COLLABORATOR REFERENCE, because the binder dependency is ONE-WAY:
@@ -167,7 +167,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         /// within it, fully subscripted (a reference the arity screen refused never reaches here), keeps the leading
         /// positions that belong to the tables ENCLOSING <c>table</c>.</summary>
         public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, ReadOnlySpan<Bound.BoundStatement> preOps,
-            ReadOnlySpan<DataBinder.OoPendingPropertyOp> propertyOps)
+            ReadOnlySpan<OoPendingPropertyOp> propertyOps)
         {
             if (Enclosing is not null) return;
             for (DataItem? n = item; n is not null; n = n.Parent)
@@ -766,7 +766,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             // (DataBinder.IsRepositoryIntrinsic — >>COBOL-WORDS and the edition window included; kb/Work PB1083).
             // An IDENTIFIER keeps its WRITTEN word (the lexer retypes only keyword-token words), so the directive is
             // applied to it once, here.
-            if (data.UserFunctionNames.Contains(w)
+            if (data.State.Configuration.UserFunctionNames.Contains(w)
                 || data.IsRepositoryIntrinsic(FunctionWord.OfWrittenWord(w, data.CobolWords)))
                 return Activation(tokens[i]);
         }
@@ -874,7 +874,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // §13.10.4 GR1/GR3 — a subscript is a literal position, §8.4.2.3.2) — its VALUE is the position, read by THE ONE
         // integer-literal reader (kb/Work PB1579).
         if (qualifiers.Count == 0
-            && data.FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: { } integer })
+            && data.Constants.FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: { } integer })
             return HostPosition(integer);
         // A report VARYING counter in scope (§13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
         // data item") is the compose-local integer the placement declares; it is no data item and has no scale.
@@ -980,12 +980,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // dialect-gated): --permissive keeps the CobolTable.Occ(string) digit decode, which is the leniency
         // already implemented by that overload, and the emitted text is unchanged either way.
         if (data.Edition.Permissive)
-            data.Edition.Warning("COBOL0844", $"{what} is not a numeric operand — {where}, and ISO §8.8.1.1 "
+            data.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand — {where}, and ISO §8.8.1.1 "
                 + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
                 + "figurative constant ZERO; accepted under --permissive, decoding its digit characters as an "
                 + "unsigned integer");
         else
-            data.Edition.Error("COBOL0844", $"{what} is not a numeric operand: {where}, and ISO §8.8.1.1 "
+            data.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: {where}, and ISO §8.8.1.1 "
                 + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
                 + "figurative constant ZERO. --permissive accepts it as a digit-decoding extension");
     }

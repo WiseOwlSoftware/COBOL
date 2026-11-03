@@ -509,7 +509,7 @@ public sealed class DerivedVerdictDriftTests
         Assert.DoesNotContain("FMT-13.16.2", ids);
         Assert.DoesNotContain("FMT-13.4.5.2", ids);
         // The CODE-SET no-SELECT-WHEN branches are the behaviour WITHOUT the module, implemented today in
-        // DataBinder.BindCodeSetClause. Excluding on the word CODE-SET would have dropped three of the module's
+        // FileControlBinder.BindCodeSetClause. Excluding on the word CODE-SET would have dropped three of the module's
         // OWN rules instead, because excludes apply to every arm — which is why the pattern is narrow.
         foreach (string id in (string[])["SR-13.18.13.3-3", "GR-13.18.13.4-3"])
             Assert.DoesNotContain(id, ids);

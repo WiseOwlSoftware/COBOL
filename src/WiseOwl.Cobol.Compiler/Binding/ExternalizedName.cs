@@ -148,7 +148,7 @@ internal static class ExternalizedName
             return folded;
         }
         // One literal token, decoded by the ONE decoder a constant entry's literal-1 also takes.
-        var token = DataBinder.LiteralTokenValue(nn, where);
+        var token = ConstantEntryBinder.LiteralTokenValue(nn, where);
         if (token.Category == PicCategory.Boolean)
         {
             reject($"{tag} shall be an alphanumeric or national literal — a boolean literal is not an "

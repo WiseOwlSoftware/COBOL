@@ -140,7 +140,7 @@ public sealed class RedefinesClassificationTests
         finally { FileHarness.TryDelete(path); }
     }
 
-    private static DataItem Item(DataBinder d, string name) => d.ByName[name][0];
+    private static DataItem Item(DataBinder d, string name) => d.State.Forest.ByName[name][0];
 
     /// <summary>Bind a WORKING-STORAGE fragment through the WHOLE pipeline — <c>BinderDriver.Bind</c>, whose
     /// <c>BindPipeline.GroupTail</c> runs <c>StorageFormPass</c>, the only writer of

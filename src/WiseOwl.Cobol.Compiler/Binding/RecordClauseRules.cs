@@ -75,10 +75,10 @@ internal sealed record RecordClauseRule(
 
 /// <summary>
 /// ⛔ THE ONE SCREEN FOR THE RECORD CLAUSE'S SIZE SYNTAX RULES (ISO/IEC 1989:2023 §13.18.43.3), run from
-/// <c>DataBinder.ResolveFiles</c> over EVERY declared file once the data forest is indexed — the sibling of
+/// <c>FileControlBinder.ResolveFiles</c> over EVERY declared file once the data forest is indexed — the sibling of
 /// <see cref="FileControlKeyRules"/>, at the same site, in the same shape (kb/Work PB721).
 ///
-/// <para>WHY IT EXISTS. <c>DataBinder.BindRecordClause</c> parsed the clause's integers and stored them, and
+/// <para>WHY IT EXISTS. <c>FileControlBinder.BindRecordClause</c> parsed the clause's integers and stored them, and
 /// NOTHING checked them. Six of the subclause's nine syntax rules had no enforcement site anywhere in the
 /// compiler: <c>FD F RECORD IS VARYING IN SIZE FROM 20 TO 5 DEPENDING ON L.</c> — an SR5 violation written in
 /// two adjacent literals — compiled clean at every edition, and the program learned about it only as an I-O
@@ -115,7 +115,7 @@ internal sealed record RecordClauseRule(
 /// <list type="bullet">
 /// <item><b>SR1</b> ("If no record description entries are specified … the RECORD clause shall be specified") is
 /// about the clause's PRESENCE, is decidable while the entry is read, and is screened inline in
-/// <c>DataBinder.MaterializeImpliedRecord</c> (COBOL1836) — the same "needs nothing resolved, reports as the
+/// <c>FileControlBinder.MaterializeImpliedRecord</c> (COBOL1836) — the same "needs nothing resolved, reports as the
 /// entry is read" criterion that keeps §12.4.5.5.2 SR2 out of <see cref="FileControlKeyRules"/>.</item>
 /// <item><b>SR2</b> ("The words BYTES and CHARACTERS are synonymous and may be used interchangeably") is a
 /// LEXICAL permission, not a check: it is discharged by the grammar admitting both words in
@@ -252,7 +252,7 @@ internal static class RecordClauseRules
     internal static IReadOnlyList<RecordClauseRule> Catalog => Rules;
 
     /// <summary>Screen one entry's RECORD clause against every rule of its general format. Called once per
-    /// declared file from <c>DataBinder.ResolveFiles</c>, so a file is reported once however many statements
+    /// declared file from <c>FileControlBinder.ResolveFiles</c>, so a file is reported once however many statements
     /// name it — and it covers the SORT-MERGE file description entry as well as the file description entry,
     /// because §13.4.6's format carries the same RECORD clause and <c>BindRecordClause</c> is one method with two
     /// callers. Measured, not assumed: <c>SD S RECORD IS VARYING IN SIZE FROM 20 TO 5.</c> reports both codes,
@@ -271,7 +271,7 @@ internal static class RecordClauseRules
             var subject = default(RecordClauseSubject);
             if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Message(file, clause, subject));
         }
-        // data-name-1 of the DEPENDING phrase, RESOLVED by DataBinder.ResolveFiles before this screen runs (null when
+        // data-name-1 of the DEPENDING phrase, RESOLVED by FileControlBinder.ResolveFiles before this screen runs (null when
         // the phrase is absent or its resolution failed and was reported there), reported at the phrase.
         if (file.VaryingDependingItem is { } depending)
         {

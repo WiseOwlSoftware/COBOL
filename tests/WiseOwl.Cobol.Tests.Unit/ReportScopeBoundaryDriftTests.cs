@@ -64,22 +64,23 @@ public sealed class ReportScopeBoundaryDriftTests
     [Fact]
     public void TheSumCounterMap_IsReadOutsideTheDataBinderOnlyThroughItsGatedView()
     {
-        // DataBinder.SumCounters carries the P6 Step-6 watermark (Require(FilesResolved)); ReportScope.SumCounters is the
-        // ungated map behind it, internal so no other assembly reaches it, and read in the two DataBinder files that own
-        // the gate and the name-scope test (DeclaredNearerThan) only - any other reader asks data.SumCounters.
+        // DataBindState.SumCounters carries the P6 Step-6 watermark (Require(FilesResolved)); ReportScope.SumCounters is the
+        // ungated map behind it, internal so no other assembly reaches it, and read in the two files that own the gate
+        // (DataBindState) and the name-scope test (DataBinder.NonDataNames.cs, DeclaredNearerThan) only - any other
+        // reader asks data.State.SumCounters.
         var offenders = new List<string>();
         int found = 0;
         foreach (var (file, text) in CompilerSources())
             foreach (Match m in Regex.Matches(text, @"\bReports\.SumCounters\b"))
             {
                 found++;
-                if (!file.EndsWith("/Binding/DataBinder.cs", StringComparison.Ordinal)
-                    && !file.EndsWith("/Binding/DataBinder.Constants.cs", StringComparison.Ordinal))
+                if (!file.EndsWith("/Binding/DataBindState.cs", StringComparison.Ordinal)
+                    && !file.EndsWith("/Binding/DataBinder.NonDataNames.cs", StringComparison.Ordinal))
                     offenders.Add($"{file}: {m.Value}");
             }
         Assert.True(found >= 2, $"the scan found only {found} reads of Reports.SumCounters - the pattern no longer matches the code");
         Assert.True(offenders.Count == 0,
-            "The ungated sum-counter map is read outside DataBinder - read DataBinder.SumCounters, which carries the "
+            "The ungated sum-counter map is read outside DataBindState - read DataBindState.SumCounters, which carries the "
             + "watermark gate:\n  " + string.Join("\n  ", offenders));
     }
 

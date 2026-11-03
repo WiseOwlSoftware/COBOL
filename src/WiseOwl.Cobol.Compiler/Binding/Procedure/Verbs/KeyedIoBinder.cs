@@ -29,7 +29,7 @@ using Core = CobolParserCore;
 /// ENTRY's own syntax rules on the first keyed verb that named the file, behind a <c>_keyedCheckedFiles</c> memo
 /// that existed only to make that once-per-file — so an entry whose keys break those rules compiled clean when
 /// no keyed verb named it (kb/Work PB699). Those rules moved WHOLE to <see cref="FileControlKeyRules"/>, which
-/// <c>DataBinder.ResolveFiles</c> runs over every declared file. Nothing about a key clause belongs here; a rule
+/// <c>FileControlBinder.ResolveFiles</c> runs over every declared file. Nothing about a key clause belongs here; a rule
 /// belongs here only if the standard states it about a STATEMENT.</para></summary>
 internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, FileLockBinder fileLock)
 {
@@ -493,7 +493,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         var (word, quals) = DataBinder.KeyReference(dref);
         var names = file.RecordKeyNameCandidates(word, quals);
-        foreach (var other in ctx.Data.VisibleFiles.Values)
+        foreach (var other in ctx.Data.State.VisibleFiles.Values)
             if (!ReferenceEquals(other, file)) names = names.Plus(other.RecordKeyNameCandidates(word, quals));
         if (names.Count == 0)
             return (RecordKeyNameUse.None, 0);

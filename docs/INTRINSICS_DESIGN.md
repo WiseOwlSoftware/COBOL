@@ -32,7 +32,7 @@ DESIGN FOR THE WiseOwl COBOL (greenfield COBOL→idiomatic-C#/Roslyn) target. Th
 
 SPINE 1 — INTRINSIC CATALOG (the graded deliverable). Reject porting the legacy `decimal`-typed signatures. Instead build ONE declarative table `IntrinsicCatalog`: name → {ISO §15.2 function-type, result category, arity model (fixed N / optional trailing / variadic), per-arg category, binding = compile-time-fold | runtime-method}. §15.2 gives exactly six types — alphanumeric / boolean / national / numeric / INTEGER / index — and THAT classification IS the return-type column, mapped to the native substrate: integer-function→`long` (`Int128` past 18 digits, e.g. FACTORIAL); floating-point math (SQRT, SIN/COS/TAN/ASIN/ACOS/ATAN, LOG/LOG10/EXP/EXP10, PI, STANDARD-DEVIATION, VARIANCE, ANNUITY, PRESENT-VALUE, RANDOM)→`double`; exact numeric (SUM, MEAN, MEDIAN, MIDRANGE, RANGE, MAX/MIN-numeric, MOD, REM, INTEGER, INTEGER-PART, FRACTION-PART, ABS, SIGN, NUMVAL, NUMVAL-C, NUMVAL-F)→`NumX` (unscaled `long`+scale) so it flows straight into `CobolNum.Store` with the receiver's ROUNDED; alphanumeric/national (UPPER-CASE, LOWER-CASE, REVERSE, TRIM, CONCAT [§15.18, 2023 — CONCATENATE is NOT an ISO function at any edition and is intentionally absent, PHASE-11 Step 7], SUBSTITUTE, CHAR, CHAR-NATIONAL, NATIONAL-OF, DISPLAY-OF, the date-string functions)→`string`; boolean→`bool` (BOOLEAN-OF-INTEGER on the D-B1 '0'/'1' substrate, PHASE-11 Step 2). Runtime home = `WiseOwl.Cobol.Runtime.CobolIntrinsics` (numeric/string/financial/conversion families) + `WiseOwl.Cobol.Runtime.CobolDate` (date/time). Mine the legacy `IntrinsicFunctions.cs` for BEHAVIOR only (NaN/out-of-domain→EC-ARGUMENT-FUNCTION default result; ORD-MAX/ORD-MIN tie = first; date algorithms; NUMVAL parsing), not for types. The catalog is consulted in the BINDER at the function-call operand cell (`IntrinsicBinder`, the `BindPrimary` hook) and at the DISPLAY/MOVE-source/condition-operand binding paths — it is the single source of result-category truth, replacing the legacy ad-hoc `AlphanumericFunctions` HashSet + special-cases. MAX/MIN are category-polymorphic (resolve by arg category at the call site); `table(ALL)` expansion and variadic `params` port from legacy; FUNCTION LENGTH folds at compile time from PIC metadata.
 
-SPINE 2 — SPECIAL-REGISTER REGISTRY (the other graded deliverable). Model every special register as a SYNTHESIZED `DataItem` (with a NumProfile-or-string type, a storage class, read-only/compile-time-fold flags, and a D8 edition-availability window from `docs/VERSION_CHANGE_REFERENCE.md`) registered in `DataBinder.ByName`, so a register read/store reuses the EXACT SAME `CobolNum`/`CobolString` paths as any data item — zero special-case in the verb emitters. RETURN-CODE/TALLY/SORT-RETURN→static `long`; WHEN-COMPILED→compile-time constant string (timestamp captured at compile, injectable for determinism); LENGTH OF/BYTE-LENGTH→folded `long` byte-size from PIC+USAGE; ADDRESS OF→`ManagedPointer`; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER and XML-*/JSON-* register NAMES are reserved by the registry but attach to their (scope-flagged) subsystems.
+SPINE 2 — SPECIAL-REGISTER REGISTRY (the other graded deliverable). Model every special register as a SYNTHESIZED `DataItem` (with a NumProfile-or-string type, a storage class, read-only/compile-time-fold flags, and a D8 edition-availability window from `docs/VERSION_CHANGE_REFERENCE.md`) registered in `ForestSlice.ByName`, so a register read/store reuses the EXACT SAME `CobolNum`/`CobolString` paths as any data item — zero special-case in the verb emitters. RETURN-CODE/TALLY/SORT-RETURN→static `long`; WHEN-COMPILED→compile-time constant string (timestamp captured at compile, injectable for determinism); LENGTH OF/BYTE-LENGTH→folded `long` byte-size from PIC+USAGE; ADDRESS OF→`ManagedPointer`; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER and XML-*/JSON-* register NAMES are reserved by the registry but attach to their (scope-flagged) subsystems.
 
 SMALLER SURFACES (one approach each, dependency named): figurative constants modeled as a context-materialized sentinel resolved at each use site against the receiver category+width per §8.3.3.6 (ZERO→`0L` or `'0'`-fill; SPACE→space-fill; QUOTE→`'"'`; ALL lit + symbolic-char→repeat-to-width); HIGH/LOW-VALUE on a UTF-16 string = U+00FF/U+0000 (alphanumeric) and U+FFFF/U+0000 (national), which preserves ordinal ordering through `CobolString.Compare` for the corpus (full ALPHABET/CODE-SET fidelity sits on the G6 char↔byte boundary — G6-core is implemented; the custom-ALPHABET/CODE-SET collating tail is still open). INITIALIZE = compile-time tree-walk to per-elementary typed stores (default/VALUE/REPLACING; FILLER skipped). SET = dispatch by target kind (index→long, pointer→ManagedPointer/NULL, switch→bool, cond-name TO TRUE→store the 88's first VALUE) — the 88-level binding (`Condition88`/`BoundSetConditions`) and OCCURS INDEXED BY index fields are bound in DataBinder; only level-66 and the pointer/switch arms remain open. ACCEPT/DISPLAY system sources = a `CobolSystem` runtime with an INJECTABLE clock (DATE/DAY/TIME/DAY-OF-WEEK/YYYYMMDD/YYYYDDD) + console UPON SYSOUT/SYSERR/mnemonic. ALPHABET/CLASS/CURRENCY/DECIMAL-POINT IS COMMA = a SPECIAL-NAMES config object threaded into emit (mostly compile-time). SCREEN SECTION, REPORT WRITER, JSON/XML GENERATE/PARSE are scope-flagged big subsystems — designed only to the seam (reserve their register names, one-paragraph deferral each).
 
@@ -60,7 +60,7 @@ The row now carries `IntrinsicResultRule` — seven spec-derived shapes covering
 
 **Rejected alternatives.** Per-call-site if/else chains (the legacy ad-hoc approach) — violates the refactor-first/canonical-dispatch doctrine and drifts out of sync; PB15 is the measured proof, since that is what the two name lists were. A class-per-function hierarchy — over-engineered for a static catalog. Keying the drift test on the clauses' PROSE rather than on the table — the wordings differ ("depends on the argument type" §15.38.1, "depends on the type of argument-1" §15.39.1, "depends upon the argument types" §15.18.1) and a prose key found ten of twenty, a dead guard inside the guard against a dead lookup.
 
-### D3. Model every special register as a synthesized DataItem registered in DataBinder.ByName (with type, storage class, read-only/fold flags).
+### D3. Model every special register as a synthesized DataItem registered in ForestSlice.ByName (with type, storage class, read-only/fold flags).
 
 **Rationale.** A register read/store then reuses the EXACT CobolNum/CobolString paths every data item uses — zero special-case in the verb emitters. RETURN-CODE/TALLY are static long fields; WHEN-COMPILED/LENGTH OF fold to constants; ADDRESS OF→ManagedPointer.
 
@@ -364,7 +364,7 @@ must NOT be rejected) and the `pb58-*` negatives (one per rule instance).
 
 `IntrinsicBinder.BindLengthFamily` serves BOTH functions (`argument-1 [PHYSICAL]` — §15.50.2 / §15.14.2 — the
 keyword consumed by name; a bare word that names a level-1 TYPEDEF is a type-name argument, §15.50.3 r1 /
-§15.14.3 r1, resolved from `DataBinder.TypeDecls` because a typedef lives off the data-name namespace) and hands the
+§15.14.3 r1, resolved from `ForestSlice.TypeDecls` because a typedef lives off the data-name namespace) and hands the
 operand to `BindLengthFold` / `BindByteLengthFold`, whose arms are the returned-value rules in order, never a list of
 shapes that happened to be met: a LITERAL folds to its own length (a zero-length literal is ZERO — §8.5.4 — no
 `Math.Max(1, …)`; national is 2 bytes/position under BYTE-LENGTH; the literal-class rules DIFFER — §15.50.3 r1
@@ -411,7 +411,7 @@ as a `BoundOdoExtent` (data-name-1's value clamped to [integer-1, integer-2] wit
 GR7 — the SAME `CobolTable.OdoExtent` the group's sending image slices with, so the two extents cannot disagree),
 each dynamic-length leaf's current byte length, and each dynamic-capacity table's `Capacity × element bytes` read
 through a `CapacityRegisterPlace` (the register is now minted for EVERY dynamic table and NAMED only under
-`CAPACITY IN` — `DataBinder.DynamicResolve`). Every subordinate's place is DERIVED from the group's own access path
+`CAPACITY IN` — `DynamicResolvePass`). Every subordinate's place is DERIVED from the group's own access path
 (a `MemberSegment` per level), so a subscripted or nested group sums correctly. The one shape it will not sum is
 NAMED, never miscounted: a runtime-length item INSIDE a table element (a per-occurrence loop; §15.50.4 r7c's "based
 on their current capacity" defines only the fixed-element case; the group's current image states it when the
@@ -622,7 +622,7 @@ activation and a nested call naming the ALL could not be held (`LENGTH (MAX (MAX
 answered 8). `IntrinsicBinder.TryBindAllArgument` now records the operand it builds, and when a later argument registered pre-ops
 `ArgumentOrder.StoreAt` holds it with `SendingValueTemp.MaterializeTableAll`: a PRE-op `BoundHoldTableAll` copies the elements the
 enumeration yields, in §15.3's order and by the ordinary identity MOVE, into a compiler-temporary TABLE of the element's own description
-(`DataBinder.CreateCompilerTempTable`), and the call's operand becomes a `TableAllPlace` over that table. Everything downstream is therefore
+(`CompilerTemps.CreateTable`), and the call's operand becomes a `TableAllPlace` over that table. Everything downstream is therefore
 what it was for the source table: the lane an element is read in (`AllArgs<CobolDec>`, `<double>`, `<string>`, the Int128 alignment), the
 description `FunctionDeviceText.Field` gives a selecting function's result, and the `ArgumentOrder.Hold` recursion into a nested selecting
 call. The held table is ONE flat level in enumeration order whatever the number of ALL levels: a fixed table when every range is fixed
@@ -827,9 +827,9 @@ user-defined word may be used as only one type of user-defined word*" is asked a
 (a name a containing element passes down is inherited, not declared, and a contained element may re-declare it,
 §8.4.6.1). A program's `DataBinder` is one element and owns one census (`_ownWords`); a class binder also hosts its
 METHODS, each a source element of its own (§10.5), so each method carries its own census (`OoMethodDataScope.Words`)
-and `DataBinder.WordCensus` selects it while `DataBinder.EnterMethodDeclarations` is open — around the method's data
-entries and METHOD-ID (`OoBindMethodData`) and its procedure-names (`StatementBinder.BindClassBody`). ⛔ A new
-declaration site inside a method runs under `EnterMethodDeclarations`, or its word lands in the class's census
+and `DataBinder.WordCensus` selects it while `OoDataBinder.EnterMethodDeclarations` is open — around the method's data
+entries and METHOD-ID (`OoDataBinder.BindMethodData`) and its procedure-names (`StatementBinder.BindClassBody`). ⛔ A new
+declaration site inside a method runs under `OoDataBinder.EnterMethodDeclarations`, or its word lands in the class's census
 (kb/Work PB2921). Every element's census is the one `OoClassTable.CensusOf` keeps for it (a method's is its symbol's;
 a program's, a class's, a factory's and an interface's are kept by parse node and passed to their binder as
 `DataBinder.OwnWords`), and it also records each object-class-name, interface-name and parameter-name the element
@@ -845,7 +845,7 @@ resolves through `TryUse(site, name)`, which records the use through the ONE rec
 `DataBinder.RecordConfigurationNameUse` (into `OoClassTable.RecordReferenceUse`), and a predicate, a declaration's
 duplicate check or a second read of an already-resolved name asks `Declares` / `TryPeek`, which record nothing; the
 mnemonic-names keep their parse-tree registry (`Procedure.MnemonicRegistry`), whose `TryUse` records the same way.
-`InheritConfiguration` hands every table down (`InheritFrom`; the symbolic characters were not handed down at all
+`ConfigurationStep` hands every table down (`InheritFrom`; the symbolic characters were not handed down at all
 before PB3153, so a contained program's use of one was COBOL1639). Where a format admits both an inherited name and
 another reading of the same word, the referring element's own item of the same spelling is asked first — §8.4.6.1: "a
 source element's reference to such a name, even when it is a different type of user-defined word, is to the item which

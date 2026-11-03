@@ -275,7 +275,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // shall appear in the PD-header RAISING phrase — the statically detectable half binds as an error; the
         // runtime condition is EC-RAISING-NOT-SPECIFIED.
         if (info.Level2Parent is "EC-USER" && !ctx.EcState.PdRaising.Contains(info.Name))
-            ctx.Edition.Error("COBOL0717", $"{site.Context} {info.Name}: an EC-USER exception-name shall be "
+            ctx.Edition.Error(DiagnosticCatalog.EcUserNotSpecifiedInRaising, $"{site.Context} {info.Name}: an EC-USER exception-name shall be "
                 + "specified in the RAISING phrase of the procedure division header "
                 + $"({site.Cite(site.Level3Rule)} — otherwise EC-RAISING-NOT-SPECIFIED, Table 13)");
         // kb/Work R07: the location operands travel like BoundRaise's — WITH LOCATION per THIS name at THIS
@@ -448,7 +448,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // can raise come from DeclaredRaisableNames — the statement-shape rows, the operand rows and the ambient rows —
         // and this is the ONE place they are filtered by the TurnState at the statement's line (§7.3.25.4 GR6). Nothing
         // else computes a statement's names, so a name added to a table is checkable by construction.
-        var scope = new EcRaiseScope(ElementKindOf(ctx.SourceElement), ctx.Data.Classification is not null);
+        var scope = new EcRaiseScope(ElementKindOf(ctx.SourceElement), ctx.Data.State.Configuration.Classification is not null);
         var enabled = DeclaredRaisableNames(bound, scope)
             .Where(d => ctx.EcState.Turn.Enabled(d.Ec, d.File?.CobolName, line))
             .Distinct()   // a sequence's steps can re-contribute a family (two hoisted activations ⇒ ProgramNames twice)
