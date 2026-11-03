@@ -9,7 +9,7 @@ argument-count check. A nested program's `CALL OUTR` and `CANCEL OUTR` of its co
 has. With Format 2 selected and PB4503's up-front argument judgement also on, a skipped argument shifted every later
 operand against the callee's formals.
 
-**The rule.** ISO/IEC 1989:2002 introduced program-prototype-names; its §8.4.5.7 carries the sentence the 2023 standard
+**The rule.** ISO/IEC 1989:2002 introduced program-prototype-names; its clause 8.4.5.7 carries the sentence the 2023 standard
 prints as §8.4.6.8 (OK §8.4.6.8). With them came §14.9.4.2 Format 2's bracket-omitted spelling
 `CALL program-prototype-name-1` and §14.9.5.2's third CANCEL operand alternative. Below 2002 the word is identifier-1, which
 "shall be defined as an alphanumeric, national, or program-pointer data item" (OK §14.9.4.3 1)) for CALL and as "an

@@ -29,7 +29,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>⛔ WHETHER THIS EDITION HAS PROGRAM-PROTOTYPE-NAMES AT ALL (kb/Work PB4509) — the ONE edition read that routes a
     /// bare word written where CALL's identifier-1 or CANCEL's identifier-1 stands. ISO/IEC 1989:2002 introduced them
-    /// (its §8.4.5.7, the 2023 §8.4.6.8: "the program-name of a containing program definition or a program-prototype-name
+    /// (its clause 8.4.5.7, the 2023 §8.4.6.8: "the program-name of a containing program definition or a program-prototype-name
     /// declared in the REPOSITORY paragraph"), and with them §14.9.4.2 Format 2's bracket-omitted spelling and §14.9.5.2's
     /// third operand alternative. COBOL-85 has neither: its CALL and CANCEL name a program by literal-1 or by an identifier
     /// that §14.9.4.3 SR1 / §14.9.5.3 SR1 require to be a data item, so below 2002 a word that names no data item is the
