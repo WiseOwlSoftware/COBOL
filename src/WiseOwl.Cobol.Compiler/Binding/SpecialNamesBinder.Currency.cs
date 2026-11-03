@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -112,7 +113,7 @@ public sealed partial class SpecialNamesBinder
         return null;
 
         // The clause's one report: the pre-catalog COBOL0892 band of CURRENCY SIGN operand rules.
-        void Report(string message) => Edition.Error("COBOL0892", message);
+        void Report(string message) => Edition.Error(DiagnosticCatalog.CurrencySignClauseForm, message);
     }
 
     /// <summary>Bind <c>CURRENCY [SIGN] [IS] literal-7 [WITH PICTURE SYMBOL literal-8]</c> (ISO §12.3.7.3
@@ -139,7 +140,7 @@ public sealed partial class SpecialNamesBinder
             // PICMODE exploit: the word between PICTURE and literal-8 arrives as a PIC_STRING token — it must be
             // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note).
             if (cur.PIC_STRING()?.GetText() is { } sym && !CobolNames.Same(sym, "SYMBOL"))
-                Edition.Error("COBOL0892", $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
+                Edition.Error(DiagnosticCatalog.CurrencySignClauseForm, $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
             // The currency string and its class (SR28's input), or null when literal-7 was refused.
             CurrencyDefinition? stringDefinition = operand7 is { } literal7 && CurrencyStringAdmitted(literal7)
                 ? new CurrencyDefinition(literal7.Text, literal7.Class) : null;
@@ -147,7 +148,7 @@ public sealed partial class SpecialNamesBinder
             if (literal8 is null) return;
             if (literal8.Length != 1)
             {
-                Edition.Error("COBOL0892", "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
+                Edition.Error(DiagnosticCatalog.CurrencySignClauseForm, "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
                     + "character (ISO §12.3.7.3 r26)");
                 return;
             }
@@ -160,11 +161,11 @@ public sealed partial class SpecialNamesBinder
         // SR19: a hexadecimal literal-7 (X"…" / NX"…") requires the PICTURE SYMBOL phrase. Detected on the operand's
         // WRITTEN form (the decoded characters cannot tell the forms apart), by CurrencyOperandOf.
         if (bare.Hexadecimal)
-            Edition.Error("COBOL0890", "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
+            Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
                 + "SYMBOL phrase (ISO §12.3.7.3 r19)");
         if (bare.Text.Length != 1)
         {
-            Edition.Error("COBOL0890", $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
+            Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
                 + "shall consist of a single character (ISO §12.3.7.3 r22)");
             return;
         }
@@ -178,7 +179,7 @@ public sealed partial class SpecialNamesBinder
     {
         if (literal7.Text.Trim().Length == 0)
         {
-            Edition.Error("COBOL0890", "CURRENCY SIGN: the currency string shall contain at least one "
+            Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: the currency string shall contain at least one "
                 + "non-space character (ISO §12.3.7.3 r23a)");
             return false;
         }
@@ -187,7 +188,7 @@ public sealed partial class SpecialNamesBinder
         // currency strings" — their content is the runtime coded character set's, used exactly as written.
         if (!literal7.Hexadecimal && literal7.Text.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
         {
-            Edition.Error("COBOL0890", $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "
+            Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "
                 + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO §12.3.7.3 r23b)");
             return false;
         }
@@ -220,7 +221,7 @@ public sealed partial class SpecialNamesBinder
         // clause's placeholder states no string, so it neither conflicts nor survives a clause that does.
         if (isBound && !bound.ClauseRefused && bound != defined)
         {
-            Edition.Error("COBOL0891", $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
+            Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
                 + $"{(bound.LiteralClass is LiteralClass.National ? "national " : "")}\"{bound.Text}\" "
                 + $"(ISO §12.3.7.3 r21; SR28)");
             return;
@@ -241,7 +242,7 @@ public sealed partial class SpecialNamesBinder
             || char.ToUpperInvariant(c) is 'A' or 'B' or 'C' or 'D' or 'E' or 'N' or 'P' or 'R' or 'S' or 'V' or 'X' or 'Z'
             || c is ' ' or '+' or '-' or ',' or '.' or '*' or '/' or ';' or '(' or ')' or '"' or '=';
         if (forbidden)
-            Edition.Error("COBOL0891", $"{what} '{c}': not a valid currency symbol — digits, the picture "
+            Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"{what} '{c}': not a valid currency symbol — digits, the picture "
                 + "letters A B C D E N P R S V X Z, space, and + - , . * / ; ( ) \" = are excluded (ISO §12.3.7.3 SR22/SR27)");
     }
 }

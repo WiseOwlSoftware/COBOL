@@ -224,7 +224,7 @@ internal sealed partial class EcBinder
     private FileModel? ResolveWhenFile(string name)
     {
         if (ctx.Data.State.VisibleFiles.TryGetValue(name, out var file)) return file;
-        ctx.Edition.Error("COBOL0897", $"WHEN names unknown file '{name}' (ISO §14.9.28.2 Format 3)");
+        ctx.Edition.Error(DiagnosticCatalog.PerformWhenFileUnknown, $"WHEN names unknown file '{name}' (ISO §14.9.28.2 Format 3)");
         return null;
     }
 

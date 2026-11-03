@@ -484,13 +484,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // Y=[WiseOwl.Cobol] (the CLR carrier's type name) into an alphanumeric item, and `MOVE NULL TO P` reached
         // Roslyn and surfaced CS0029 about generated C#. One rule, one core, asked of both positions.
         if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
-            ctx.Edition.Error("COBOL0809", classRefusal
+            ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed, classRefusal
                 + (source is BoundFieldOperand sIdx
                     ? $" — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}"
                     : ImplicitMovePhrase.Via(implicitOf)));
         foreach (var t in targets)
             if (MoveTable16.ReceiverClassRefusal(t) is { } recvRefusal)
-                ctx.Edition.Error("COBOL0809",
+                ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed,
                     $"{recvRefusal} — {ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName)}");
 
         // (The §14.9.25.3 SR5 EDITION gates — MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
@@ -604,7 +604,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                     + ImplicitMovePhrase.Via(implicitOf));
                 break;
             case MoveRule.SourceShape:
-                ctx.Edition.Error("COBOL0819", $"{where}: {refusal.Reason}");
+                ctx.Edition.Error(DiagnosticCatalog.MoveShapeInvalid, $"{where}: {refusal.Reason}");
                 break;
             default:
                 Table16Framing(source, receiverPos, receiverIsView, where, refusal.Reason);
@@ -626,11 +626,11 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (ctx.Edition.Permissive
             && MoveValidity.Table16Refusal(Table16Operand.Lenient(senderPos, senderIsFunction, senderIsView).Heading,
                 Table16Operand.Lenient(receiverPos, false, receiverIsView).Heading) is null)
-            ctx.Edition.Warning("COBOL0819", $"{where}: {refusal}; accepted under --permissive "
+            ctx.Edition.Warning(DiagnosticCatalog.MoveShapeInvalid, $"{where}: {refusal}; accepted under --permissive "
                 + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §15.2 item 4)"
                                     : "reading the reference-modified view as plain alphanumeric (ISO §8.4.3.3.4 GR6 keeps it alphabetic)"));
         else
-            ctx.Edition.Error("COBOL0819", $"{where}: MOVE is invalid — {refusal}"
+            ctx.Edition.Error(DiagnosticCatalog.MoveShapeInvalid, $"{where}: MOVE is invalid — {refusal}"
                 + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }
                     ? " (a NUMERIC-typed function is the Noninteger sender, §15.2 item 4 / §8.4.3.2.3 SR11; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
                     : ""));

@@ -51,11 +51,11 @@ public sealed class OpenSharingLockModeTests
 
         """;
 
-    private static int Count1512(IEnumerable<string> diagnostics) =>
-        diagnostics.Count(d => d.Contains("COBOL1512", StringComparison.Ordinal));
+    private static int CountSharingDiagnostics(IEnumerable<string> diagnostics) =>
+        diagnostics.Count(d => d.Contains("COBOL5994", StringComparison.Ordinal));
 
     /// <summary>⛔ THE DRIFT GUARD FOR THE EXTRACTION. One violation of one rule draws exactly ONE diagnostic.
-    /// Before kb/Work PB319 this program drew TWO COBOL1512s in two different spellings — one off the SELECT
+    /// Before kb/Work PB319 this program drew TWO COBOL5994s in two different spellings — one off the SELECT
     /// clause alone (<c>FileControlBinder.BindFileControl</c>) and one from the OPEN binder — because SR8 was written
     /// down twice. A substring-matching <c>.err</c> golden cannot see that; the count can.</summary>
     [Theory]
@@ -67,7 +67,7 @@ public sealed class OpenSharingLockModeTests
         var (ok, errors, _) = EditionHarness.CompileFull(Violation("PB319ONE", applyCommit: false), edition);
         Assert.False(ok, "SR8's disjunct 1 holds: the sharing phrase is omitted from the OPEN and the file "
             + "control entry says ALL, so the LOCK MODE clause is required");
-        Assert.Equal(1, Count1512(errors));
+        Assert.Equal(1, CountSharingDiagnostics(errors));
         EditionHarness.AssertHasDiagnostic(errors, "OPEN of file 'F1'");
     }
 
@@ -81,7 +81,7 @@ public sealed class OpenSharingLockModeTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Violation("PB319APC", applyCommit: true), 2023);
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL17", StringComparison.Ordinal));   // the clause is accepted, not declined
-        EditionHarness.AssertNoDiagnostic(errors, "COBOL1512");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL5994");
         Assert.True(ok, "§14.9.27.3 SR8 exempts a file subject to an APPLY COMMIT clause: "
             + string.Join("\n", errors));
     }
@@ -95,6 +95,6 @@ public sealed class OpenSharingLockModeTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Violation("PB319NAP", applyCommit: false), 2023);
         Assert.False(ok, "no APPLY COMMIT clause, so SR8's leading conjunct holds and the rule applies");
-        Assert.Equal(1, Count1512(errors));
+        Assert.Equal(1, CountSharingDiagnostics(errors));
     }
 }

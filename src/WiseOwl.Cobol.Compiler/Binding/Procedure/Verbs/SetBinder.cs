@@ -1605,7 +1605,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         if (!p.Item.IsDynamicLength)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL1568",
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetSizeTargetNotDynamicLength,
                 $"SET SIZE OF '{p.Item.CobolName}': data-name-3 shall be a dynamic-length elementary item "
                 + "(ISO §14.9.39.3 Format 16 SR33)");
         }

@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Collation;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -125,7 +126,7 @@ public sealed partial class SpecialNamesBinder
     internal LocaleSymbol? ResolveLocaleName(Antlr4.Runtime.RuleContext at, string name, string site, string rule)
     {
         if (Cfg.Locales.TryUse(at, name, out var sym)) return sym;
-        Edition.Error("COBOL1664", $"{site}: '{name}' is not a locale-name declared by a SPECIAL-NAMES LOCALE clause ({rule})"
+        Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"{site}: '{name}' is not a locale-name declared by a SPECIAL-NAMES LOCALE clause ({rule})"
             + (Cfg.Locales.Count == 0 ? "; no LOCALE clause is in scope" : $"; declared: {string.Join(", ", Cfg.Locales.Names)}"));
         return null;
     }
