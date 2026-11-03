@@ -1,4 +1,4 @@
-## PB4503: at COBOL-85 each Format 1 vendor CALL spelling is reported once, as a 2002 introduction; --permissive accepts it
+## Entry 3044 — 2026-11-03 13:06 PST — PB4503: at COBOL-85 each Format 1 vendor CALL spelling is reported once, as a 2002 introduction; --permissive accepts it
 
 At `--std 85`, OMITTED and BY VALUE in a CALL that names no prototype each drew two errors, COBOL0899 from
 `CallBinder.Format1Narrowing` and COBOL0900 from the edition-conformance pass. Under `--permissive` the COBOL0899
@@ -20,3 +20,4 @@ VCR row 7.47 gains item 15 (GnuCOBOL `-std=cobol85` accepts a literal argument a
 docs/CONFORMANCE.md's CALL paragraph states the 85 rule and the decision. Witnesses: three new
 `FormatOneVendorCallPermissiveTests` cases (six COBOL0900 and no COBOL0899 at 85; six warnings and no error under
 `--permissive`; a literal argument run at 85).
+
