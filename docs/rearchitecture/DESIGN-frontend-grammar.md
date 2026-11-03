@@ -426,9 +426,16 @@ token of the word's type is re-read in its own sentence with the word retyped `I
 `procedureName` is a reference (`FREE ptr.`, a statement of the same verb, is not). With a reference the sentence is the
 header, the word is named ONCE with COBOL0901 at the first use in source order (the bound-tree funnel's rule for a gated word,
 `CobolErrorStrategy._procedureWordsNamed` for a verb reserved everywhere), and the header draws nothing of its own; with none
-it is the verb's incomplete statement and keeps the statement's own report (COBOL0001 at the period for a verb the prediction
-carries to it, `cannot parse construct near` the verb for a gated one the paragraph and statement alternatives both refuse),
-inside a paragraph and where a header could stand alike. For a gated word the decision is the grammar's own predicate
+it is the verb's incomplete statement and keeps the statement's own report: COBOL0001 at the PERIOD, the token where the operand
+the verb's general format prints is due, for every such verb (kb/Work PB4494), inside a paragraph and where a header could
+stand alike. A gated verb is the one the prediction does not carry to its period: the paragraph-header reading stays alive
+beside the statement's, the statement dies at the period, and the header, refused by the predicate, is the sole survivor, so
+ANTLR's failure stands at the verb in the paragraph's own rule, whose recovery would discard every sentence after it. The
+error strategy decides that sentence itself, ahead of the prediction, in `CobolErrorStrategy.Sync` (`SkipsBareVerbSentences`):
+it reports at the period (`FaultOfABareVerb` does the same for a failure that still reaches `ReportNoViableAlternative`) and
+consumes the verb and its period, a run of them one after another, so the sentences after it keep their own reports. The one
+decision, `CobolParserCoreBase.IsIncompleteVerbSentence` (a bare verb that no procedure reference names), is asked by all of
+them. For a gated word the decision is the grammar's own predicate
 (`procedureHeaderHere`: a bare statement verb is not a header without the evidence; a word no statement begins with, `END-DISPLAY`, is
 unchanged) and the error strategy's (`ReservedWordUse` returns no violation); for a verb reserved everywhere it is
 `ReservedProcedureName`'s choice of readings. A word no statement begins with, written as a paragraph header after the

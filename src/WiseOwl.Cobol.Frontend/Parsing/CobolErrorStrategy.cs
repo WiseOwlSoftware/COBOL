@@ -703,7 +703,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // A verb that is its sentence's only word (`FREE.`) is a use of the word as a name only where a procedure reference
         // elsewhere shows one; with none it is the verb's statement lacking its operand, whose own report stands
         // (kb/Work PB4283, the rule ReservedProcedureName applies to a verb reserved at every edition).
-        if (parser.IsBareVerbSentence(at.Token) && !parser.NamedAsAProcedureElsewhere(at.Token))
+        if (parser.IsIncompleteVerbSentence(at.Token))
             return null;
         // A word where a closed format's clause list stands is a clause the format does not print, which that format's own
         // refusal names (hint 0g, COBOL1941 and its twins, kb/Work PB2533): it is not used as a name, whatever the value
@@ -766,7 +766,47 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                                || code == Diagnostics.DiagnosticDescriptors.COBOL0306.Code);
 
     protected override void ReportNoViableAlternative(Parser recognizer, NoViableAltException e)
-        => Report(recognizer, e.OffendingToken ?? recognizer.CurrentToken, e, ErrorKind.NoViableAlternative);
+        => Report(recognizer, FaultOfABareVerb(recognizer, e) ?? e.OffendingToken ?? recognizer.CurrentToken, e,
+            ErrorKind.NoViableAlternative);
+
+    /// <summary>⛔ A SENTENCE THAT IS A GATED VERB ALONE IS REPORTED AND SKIPPED WHOLE WHERE A SENTENCE MAY BEGIN (kb/Work
+    /// PB4494). At the loop that takes the paragraph's sentences the prediction between another sentence and the end of
+    /// the paragraph keeps the paragraph-header reading of a gated verb alive beside the statement's, the statement
+    /// dies at the period and the header, refused by <see cref="CobolParserCoreBase.procedureHeaderHere"/>, is the sole
+    /// survivor: the prediction fails at the verb, in the paragraph's own rule, whose recovery resumes at what follows the
+    /// paragraph and discards every sentence after the verb with its faults (<c>FREE.</c> then <c>MOVE.</c> reported
+    /// only the first). A sentence is the unit of COBOL's syntax that a fault inside it cannot cut (ISO §14.4.3: a
+    /// paragraph is a paragraph-name and its sentences), so the fault is reported where a statement of that verb lacks its
+    /// operand (<see cref="FaultOfABareVerb"/>) and the verb and its period are consumed, as the statement's own recovery
+    /// consumes the verb of <c>MOVE.</c>, each of a run of them, and the loop predicts the next sentence. A decision at which the sentence
+    /// may not begin (the state's own next set does not hold the verb) is left to the base.</summary>
+    private void SkipsBareVerbSentences(Parser recognizer)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        while (recognizer is CobolParserCoreBase parser && stream.LT(1) is { } word && parser.HeaderReadingRefused(word)
+               && recognizer.Atn.NextTokens(recognizer.Atn.states[recognizer.State]).Contains(word.Type)
+               && parser.PeriodOfAnIncompleteVerbSentence(word) is { } period)
+        {
+            Report(recognizer, period, null, ErrorKind.NoViableAlternative);
+            recognizer.Consume();   // the verb
+            recognizer.Consume();   // and its period
+        }
+    }
+
+    /// <summary>⛔ A VERB ALONE IN ITS SENTENCE IS FAULTED AT ITS PERIOD, WHICHEVER VERB (kb/Work PB4494). <c>DISPLAY.</c> is
+    /// the statement lacking the operand its general format prints (§14.9.11.2 Format 1: identifier-1 or literal-1, one or
+    /// more; §14.9.15.2: FREE data-name-1 …), so the prediction runs through the verb and dies at the period, and that is
+    /// where the fault is reported. <c>FREE.</c> at an edition that reserves the verb has a second reading, a paragraph header
+    /// (<see cref="CobolParserCoreBase.procedureHeaderHere"/>), whose semantic predicate refuses it where no procedure
+    /// reference elsewhere names the word (<see cref="CobolParserCoreBase.IsIncompleteVerbSentence"/>): the statement
+    /// alternative dies at the period and the sole survivor, the header, is refused at the start token, so ANTLR's
+    /// exception stands at the verb (<see cref="IsPredictionFailedAt"/>). The two are one fault of one shape, the
+    /// missing operand, and are reported at one token: the period, where the exception of a verb whose only reading is
+    /// the statement already stands.</summary>
+    private static IToken? FaultOfABareVerb(Parser recognizer, NoViableAltException e)
+        => recognizer is CobolParserCoreBase parser && e.OffendingToken is { } word && IsPredictionFailedAt(e, word)
+            ? parser.PeriodOfAnIncompleteVerbSentence(word)
+            : null;
 
     /// <summary>⛔ A RESIDUE REFUSED WHERE ITS PREDICTION FAILED IS CONSUMED AS ONE RUN (kb/Work PB3391). When the 0g arm
     /// names the decision's first token as a closed format's residue (<see cref="ClosedFormatResidue"/> with
@@ -1401,6 +1441,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // An embedded block that stands where no statement may begin is nothing, consumed here, each of a run of them,
         // and the decision then syncs on what follows them, as the precompiler writes it (PB4341).
         while (!InErrorRecoveryMode(recognizer) && SkipsEmbeddedBlock(recognizer)) { }
+        if (!InErrorRecoveryMode(recognizer)) SkipsBareVerbSentences(recognizer);
         if (_leftByRecovery.Count > 0)
         {
             EndsLeftStatementsAtAContainingStatementsPhrase(recognizer);

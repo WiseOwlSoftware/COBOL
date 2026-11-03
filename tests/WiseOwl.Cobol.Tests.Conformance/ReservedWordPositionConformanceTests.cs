@@ -824,6 +824,14 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData(85, "READ.")]
     [InlineData(2023, "STOP RUN.\n       READ.")]       // where a paragraph header could stand, after STOP RUN
     [InlineData(85, "STOP RUN.\n       ADD.")]
+    // The verbs an edition reserves keep a paragraph-header reading beside the statement's, and report as the others do (kb/Work PB4494).
+    [InlineData(2023, "FREE.")]
+    [InlineData(2023, "VALIDATE.")]
+    [InlineData(2023, "ALLOCATE.")]
+    [InlineData(2023, "RAISE.")]
+    [InlineData(2023, "INVOKE.")]
+    [InlineData(2002, "FREE.")]
+    [InlineData(2014, "STOP RUN.\n       FREE.")]
     public void ABareVerbSentence_IsAnIncompleteStatement_NeverNamedCobol0901(int edition, string statement)
     {
         var (ok, diags) = EditionHarness.Compile($"""
@@ -842,6 +850,42 @@ public sealed class ReservedWordPositionConformanceTests
         Assert.True(diags.Count == 1 && diags[0].Contains("COBOL0001", StringComparison.Ordinal)
                                      && diags[0].Contains("'.'", StringComparison.Ordinal),
             $"expected exactly one diagnostic, the COBOL0001 at the period, got:\n{all}");
+    }
+
+    /// <summary>⛔ A VERB ALONE IN ITS SENTENCE IS FAULTED AT ITS PERIOD, WHICHEVER VERB, AND EVERY SUCH SENTENCE IS (kb/Work
+    /// PB4494). The statement lacks the operand its general format prints (ISO §14.9.11.2 Format 1 DISPLAY: identifier-1 or
+    /// literal-1; §14.9.15.2 FREE: data-name-1 ...), so the missing operand is due at the period. A verb the edition
+    /// reserves (FREE) has a second reading, the paragraph header, which the prediction keeps alive to the period, and its
+    /// failure used to stand at the VERB and to discard every sentence after it, with their faults. Each row is a run of three
+    /// bare-verb sentences: three diagnostics, each at the period of its own sentence.</summary>
+    [Theory]
+    [InlineData("FREE", "VALIDATE", "RAISE")]            // all three gated
+    [InlineData("DISPLAY", "FREE", "MOVE")]              // reserved everywhere, gated, reserved everywhere
+    [InlineData("INVOKE", "ALLOCATE", "READ")]
+    [InlineData("DISPLAY", "MOVE", "READ")]              // none gated: the reference the others are measured against
+    public void ARunOfBareVerbSentences_IsFaultedEachAtItsPeriod(string first, string second, string third)
+    {
+        string[] verbs = [first, second, third];
+        string source = $"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4494R.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       {first}.
+                       {second}.
+                       {third}.
+                       STOP RUN.
+
+               """;
+        var (ok, diags) = EditionHarness.Compile(source, 2023);
+        Assert.False(ok);
+        string[] lines = source.Split('\n');
+        var expected = verbs.Select(v => lines.Select((text, i) => (text, line: i + 1))
+            .First(l => l.text.TrimEnd('\r').EndsWith(v + ".", StringComparison.Ordinal)))
+            .Select(l => $"({l.line},{l.text.TrimEnd('\r').Length}):").ToArray();
+        Assert.True(diags.Count == 3 && diags.Zip(expected).All(p => p.First.Contains(p.Second, StringComparison.Ordinal)
+                                                                  && p.First.Contains("COBOL0001", StringComparison.Ordinal)),
+            $"expected three COBOL0001, at {string.Join(" ", expected)}, got:\n{string.Join("\n", diags)}");
     }
 
     // ── A reserved word where no user-defined word stands is its keyword, misplaced (kb/Work PB4132) ──────────────

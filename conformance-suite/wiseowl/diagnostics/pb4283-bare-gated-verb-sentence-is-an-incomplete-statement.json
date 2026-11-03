@@ -1,1 +1,1 @@
-{"refuse-at": ["2002", "2014", "2023"], "expect": "cannot parse construct near 'FREE'"}
+{"refuse-at": ["2002", "2014", "2023"], "expect": "cannot parse construct near '.'"}
