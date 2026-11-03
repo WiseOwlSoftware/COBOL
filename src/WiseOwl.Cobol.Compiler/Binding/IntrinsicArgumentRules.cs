@@ -1425,7 +1425,8 @@ internal static class IntrinsicArgumentRules
         ArgPredicateKind.ExactWidth when knownWidth is { } w && w != p.N =>
             $"is {w} character position(s) in length; ISO {p.Clause} requires exactly {p.N}",
         // "an integer data item or integer literal" — an ARITHMETIC EXPRESSION is neither, whatever it evaluates to
-        // (a parenthesised bare reference is still written as an expression and §15.37.3 r3 does not admit one). A
+        // (a parenthesised function-identifier is written as one, and is refused; a parenthesised bare data reference is
+        // bound as the item it encloses by the argument binder, so this predicate never sees it: reported as a lead). A
         // nested FUNCTION-IDENTIFIER is a data item (§8.4.3.2.4 GR1: "a temporary data item"; an integer function's
         // is an integer one, §15.2 item 5) and so is admitted here; whether its function is INTEGER is the class
         // kind's integer test, not this predicate's (kb/Work PB4507 — it used to bar the function outright).
@@ -1456,7 +1457,9 @@ internal static class IntrinsicArgumentRules
     {
         BoundFieldOperand or BoundAddressOperand or BoundOperandError => true,
         BoundNumericLiteral { FunctionValue: true } => true,
-        BoundComputedOperand { Expr: BoundIntrinsicCall } => true,
+        // The BINDER'S statement (IntrinsicBinder.IsSoleFunctionIdentifier), never the tree's shape (kb/Work PB3678): the
+        // expression binder drops grouping parentheses and lowers FUNCTION LENGTH of a variable-length group to a BoundBinary.
+        BoundComputedOperand { FunctionValue: true } => true,
         BoundComputedOperand { Expr: var register } => AlgebraicRanges.CounterRegisterByteLength(register) is not null,
         _ => false,
     };

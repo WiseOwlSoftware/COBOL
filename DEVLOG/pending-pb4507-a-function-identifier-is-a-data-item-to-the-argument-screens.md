@@ -29,3 +29,14 @@ The other `is not BoundFieldOperand` sites in the compiler (`StatementValidation
 `pb4507-iofd-figurative-argument-2`, `pb4507-findstr-numeric-function`, `pb2079-baseconvert-expression-base`. The two negatives above
 were deleted. Rows AR-15.48.3-3, AR-15.37.3-3 and AR-15.12.3-1 gained witnesses and corrected prose (verdicts unchanged, GAP 1 to 1).
 `docs/INTRINSICS_DESIGN.md` describes the two predicate kinds and the shared question.
+
+**Review round 1 (R1-1, blocking).** `IsDataItem` had decided "this is a function-identifier" from the bound tree
+(`BoundComputedOperand { Expr: BoundIntrinsicCall }`), which PB3678's doctrine on `IsNumericFunctionValue` forbids: the expression
+binder drops grouping parentheses, and lowers `FUNCTION LENGTH` of a variable-length group to a `BoundBinary` sum. So
+`BASECONVERT("1A" FUNCTION LENGTH(VG) 10)` and `FIND-STRING(X "ABC" FUNCTION LENGTH(VG))` were refused (COBOL1627, "arithmetic
+expression") and `FIND-STRING(X "ABC" (FUNCTION ABS(I2)))` was newly admitted. The argument binder now asks the written shape:
+`IntrinsicBinder.IsSoleFunctionIdentifier` (a sole unparenthesized primary the binder lowered to a call or to that sum) sets
+`BoundComputedOperand.FunctionValue`, and `IsDataItem` reads the flag. Goldens: the two accepted cases gained a `LENGTH(VG)` line
+(26 and 7, from 15.12.4 and 15.37.4 r2) and `pb4507-findstr-parenthesized-function` is refused (COBOL1627). Still open, reported as a
+lead and not decided here: a parenthesized bare data reference `(I2)` is bound as the item it encloses by the argument binder
+(`BindArgOperandCore`), so a data-item-or-literal position admits it, which 8.8.1.1 does not.

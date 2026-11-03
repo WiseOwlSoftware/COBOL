@@ -3034,8 +3034,23 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(ax) is not { } primary || primary.LPAREN() is not null)
                 return host.Cond.CompoundOperand(ax);
         }
-        return OperandOf(host.Expr.BindFunctionArgumentExpr(a.arithmeticExpression()), functionValue: false);
+        var written = a.arithmeticExpression();
+        var bound = host.Expr.BindFunctionArgumentExpr(written);
+        return OperandOf(bound, functionValue: IsSoleFunctionIdentifier(written, bound));
     }
+
+    /// <summary>⛔ THE BINDER'S STATEMENT THAT AN ARGUMENT IS A FUNCTION-IDENTIFIER, ASKED OF THE WRITTEN SHAPE AND NEVER OF THE
+    /// BOUND TREE'S (kb/Work PB4507 review R1-1, PB3678's doctrine for <see cref="BoundComputedOperand.IsNumericFunctionValue"/>).
+    /// An argument that CONSISTS OF a sole unparenthesized primary which the binder lowered to a call (<c>FUNCTION name (...)</c>) or
+    /// to the sum of a variable-length group's length (the keyword-omitted spelling of a function reaches here as a data reference,
+    /// §8.4.3.2.3 SR2) is a function-identifier, hence "a temporary data item" (§8.4.3.2.4 GR1). A parenthesized one is an
+    /// arithmetic expression (§8.8.1.1) although the expression binder drops the parentheses and gives the same tree; and
+    /// <c>FUNCTION LENGTH (VG)</c> of a variable-length group is a <see cref="BoundBinary"/>, which no tree-shape reading calls a
+    /// function. A user function's result temp and a folded LENGTH are already a field operand and a function-valued literal.</summary>
+    private static bool IsSoleFunctionIdentifier(Core.ArithmeticExpressionContext? written, BoundExpr bound) =>
+        WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(written) is { } primary && primary.LPAREN() is null
+            && (primary.functionCall() is not null || primary.dataReference() is not null)
+            && bound is BoundIntrinsicCall or BoundBinary;
 
     /// <summary>A non-numeric-literal argument as a categorized operand (§8.3.3.4/.5/.6.4 — the same decode +
     /// introduction-gate helpers every literal channel uses). HEXLIT decodes as the alphanumeric literal it is
