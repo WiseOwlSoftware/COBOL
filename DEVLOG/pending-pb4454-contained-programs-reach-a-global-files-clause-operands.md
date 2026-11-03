@@ -51,3 +51,10 @@ container per contained unit at bind time. Duplication: the root-bridge enumerat
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,032/21,032 · Unit 39,468/39,468 · Characterization 37/37 cases ran (skipped 0)`,
 run `TestResults/build-local/000001-20261103T052821Z`; the nine new golden cases (three tests at 2002, 2014, 2023) are `Passed` in its
 `Conformance.trx`. `scripts/semgrep/verify.py`: PASS, no rule count increased.
+
+**Review round 1 (R1-1, blocking).** `DataBinder.GlobalFileOperandRoots` kept only a root with a data-name, so a GLOBAL file's
+RELATIVE KEY or FILE STATUS item under an unnamed level-01 entry (FILLER, ISO §13.18.20.3 SR2) was neither bridged nor placed:
+the compiler stopped with the `no Place was built` exception for RELATIVE KEY, and FILE STATUS regressed against the deleted
+`AnchorPlace` path. The name filter belonged to the inherited-NAME list (`ContainerGlobalRootsOf`), not to this one, which is read
+by I-O statements and offers no name; it is gone. Golden `pb4454_global_file_operand_under_unnamed_root` (2002-2023): RELATIVE KEY
+and FILE STATUS under one FILLER 01, a sequential FILE STATUS under another, a contained program with its own FILLER 01.

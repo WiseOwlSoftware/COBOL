@@ -8471,7 +8471,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         .Concat(LinkageFormals.Select(f => f.Item).Concat(LinkageReturning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
         .Distinct(ReferenceEqualityComparer.Instance).Cast<DataItem>();
 
-    /// <summary>The named roots OUTSIDE any global record whose storage a program contained in this one reaches through a
+    /// <summary>The roots (a level-01 entry with no data-name too: ISO §13.18.20.3 SR2 assumes FILLER, and its named
+    /// subordinates are legal clause operands) OUTSIDE any global record whose storage a program contained in this one reaches through a
     /// GLOBAL file of this one: the items the file's own clauses name (<see cref="FileModel.ClauseOperandItems"/> - RELATIVE
     /// KEY, ASSIGN USING, RECORD VARYING DEPENDING ON, FILE STATUS and LINAGE operands), which the contained program's
     /// I-O statements on the file read although ISO §13.18.27.4 GR2 lets it name only the global names (kb/Work PB4454).
@@ -8483,7 +8484,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         foreach (var file in Files)
             if (file.IsGlobal)
                 foreach (var item in file.ClauseOperandItems)
-                    if (item.Root is { CobolName: not null } root && !IsGlobalRecord(root) && !roots.Contains(root))
+                    if (item.Root is { } root && !IsGlobalRecord(root) && !roots.Contains(root))
                         roots.Add(root);
         return roots;
     }
