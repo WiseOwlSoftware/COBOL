@@ -558,9 +558,9 @@ FILTER_GUARD = "filter_population.py"
 _FILTER_FLAG = "--" + "filter"
 #: The retried artifact actions (.github/actions/): the shards upload their trx, the checking job downloads them.
 UPLOAD_ACTION, DOWNLOAD_ACTION = "./.github/actions/upload-results", "./.github/actions/download-results"
-#: The filtered runs the scan must see on this tree, or it is broken (the gate no longer filters, kb/Work PB1721: the two
-#: regenerators and the verdict recorder are the filtered invocations left).
-FILTER_SITES = ("scripts/gen-vcr.ps1", "scripts/gen-diagnostics-doc.ps1", "scripts/spec/record_verdicts.py")
+#: The filtered runs the scan must see on this tree, or it is broken (the gate no longer filters, kb/Work PB1721: the
+#: diagnostics regenerator and the verdict recorder are the filtered invocations left).
+FILTER_SITES = ("scripts/gen-diagnostics-doc.ps1", "scripts/spec/record_verdicts.py")
 
 
 def _filtered(code: str) -> bool:
@@ -865,7 +865,7 @@ def self_test() -> int:
     # also SEE its population: a scan that stopped seeing the callers, writers or readers it names would report a clean
     # tree over nothing.
     sites, offenders = audit_callers(REPO)
-    want_sites = ("scripts/battery.sh", "scripts/gate.py", "scripts/gen-vcr.ps1", "scripts/gen-diagnostics-doc.ps1",
+    want_sites = ("scripts/battery.sh", "scripts/gate.py", "scripts/gen-diagnostics-doc.ps1",
                   "scripts/spec/record_verdicts.py", "scripts/abi_pin.py", ".github/workflows/build-and-test.yml")
     arm("arm (6), the real tree: every `dotnet test` caller under scripts/ and .github/workflows/ runs scrubbed, and the "
         "audit sees the callers DESIGN-test-build-ci.md §3.14.3 names",

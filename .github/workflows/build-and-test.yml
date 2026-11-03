@@ -464,6 +464,20 @@ jobs:
       - name: Conflict markers — no tracked file carries an unresolved merge conflict (conflict_markers.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/conflict_markers.py --check
+      # No compiler test reads a Markdown file (kb/Work PB4453): what a document says about the compiler or about another
+      # document is checked by these three audits, in every merge group, and the Markdown is inert to the test legs.
+      - name: Doc audits — the Markdown agrees with the facts it states (doc_audits.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/doc_audits.py --check
+      - name: Arch subsystems — the R2 subsystem table partitions the tree and its design block is current (r2_subsystems.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/arch/r2_subsystems.py --check
+      - name: Annex A.1 register — every §7 determination is filed under the item it names (audit_annex_a1.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/audit_annex_a1.py --check
+      - name: Derivation register — every live derivation stands (audit_derivations.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/audit_derivations.py --check
       # THE lanes' classification against the tree (kb/Work PB2878, PB4395): every entry names a tracked path, and every
       # script the build or a compiler test is seen to read is CODE_READS, so a tooling-lane change never skips a compiler
       # test that reads it. An audit, for the reason the conflict-marker check is one; its Linux test runs' twin is the watch.

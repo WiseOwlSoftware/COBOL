@@ -2,7 +2,8 @@
 """generate.py — the ONE reader of the conformance-suite test headers (DESIGN-conformance-suite.md §3, §4, §9).
 
     python conformance-suite/harness/generate.py            # refuse, or write the manifests and print completeness
-    python conformance-suite/harness/generate.py --out DIR  # the same, written to DIR instead of suites/
+    python conformance-suite/harness/generate.py --out DIR  # the manifests only, written to DIR instead of suites/
+    python conformance-suite/harness/generate.py --out DIR --report   # ... and the completeness report beside them
     python conformance-suite/harness/generate.py --check    # the refusals only, writing nothing (a gate audit)
     python conformance-suite/harness/generate.py --self-test
 
@@ -27,8 +28,10 @@ WHAT IT WRITES (build output, never committed; `.gitignore` names `conformance-s
   suites/wiseowl/manifest.json    everything WiseOwl COBOL runs: every test of both trees at every edition it names,
                                   portable or not, and `wiseowl/diagnostics/`'s refusals (§4).
   suites/completeness.json        the completeness report (below), which it also prints.
-`--out DIR` writes the same tree to DIR instead: WiseOwl's in-process runner (S1c) generates into a directory of its
-own, so a test run never rewrites the repository's `suites/` under a concurrent `run.py`. Whichever directory it
+`--out DIR` writes the manifests to DIR instead, and the report only with `--report`: WiseOwl's in-process runner (S1c)
+generates into a directory of its own, so a test run never rewrites the repository's `suites/` under a concurrent
+`run.py`, and the report is the one output that reads docs/CONFORMANCE.md's registers, which no compiler test may
+(kb/Work PB4453). Whichever directory it
 writes, a previous run's manifest directories and report there are replaced, and nothing else is ever removed: a
 directory that holds anything else (or a path that is not a directory) is refused, exit 2, with nothing deleted.
 
@@ -51,7 +54,7 @@ import re
 import shutil
 import sys
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
@@ -1176,13 +1179,19 @@ def repository_inputs() -> tuple[Inputs, list[Problem]]:
     diagnostics, bad_diagnostics = load_sidecars(DIAGNOSTICS_DIR)
     options, bad_options = load_sidecars(OPTIONS_DIR)
     problems += bad_diagnostics + bad_options
-    register = schema.register_items()
+    register: set[str] | None = None  # §7's row keys, read on first use: only the completeness report asks (kb/Work PB4453)
+
+    def determined(row: dict[str, Any]) -> bool:
+        nonlocal register
+        if register is None:
+            register = schema.register_items()
+        return schema.anchor_for(row) is not None and row.get("rule-id") in register
+
     spec = SPEC_PATH.read_text(encoding="utf-8")
     inputs = Inputs(
         schema=schema, rows=rows, constructs=constructs, requirable=annex_names(spec),
         implementor_defined=a1, diagnostics=diagnostics,
-        determined=lambda row: schema.anchor_for(row) is not None and row.get("rule-id") in register,
-        derived=schema.derivation_stands, reserved=reserved_words(), keywords=standard_keywords(spec),
+        determined=determined, derived=schema.derivation_stands, reserved=reserved_words(), keywords=standard_keywords(spec),
         options=options)
     return inputs, problems
 
@@ -1196,8 +1205,10 @@ def removed_corpus_files(repo: Path) -> list[str]:
 
 
 def generate(root: Path, inputs: Inputs, problems: list[Problem], out: Path | None,
-             echo: bool = True) -> tuple[int, Reader]:
-    """Read and refuse; when nothing is refused and `out` is given, write the manifests and the report there."""
+             echo: bool = True, report: bool = True) -> tuple[int, Reader]:
+    """Read and refuse; when nothing is refused and `out` is given, write the manifests there, and with `report` the
+    completeness report beside them (it reads docs/CONFORMANCE.md's registers; the manifests do not, so a compiler test
+    that generates them reads no Markdown: kb/Work PB4453)."""
     reader = Reader(root, inputs)
     reader.read_tree()
     check_cases(reader)
@@ -1227,9 +1238,10 @@ def generate(root: Path, inputs: Inputs, problems: list[Problem], out: Path | No
             (out / name).mkdir(parents=True, exist_ok=True)
             (out / name / "manifest.json").write_text(json.dumps(content, indent=2) + "\n", encoding="utf-8",
                                                        newline="\n")
-        report = completeness(reader.cases, inputs)
-        (out / COMPLETENESS_NAME).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8", newline="\n")
-        print_report(report)
+        if report:
+            counts = completeness(reader.cases, inputs)
+            (out / COMPLETENESS_NAME).write_text(json.dumps(counts, indent=2) + "\n", encoding="utf-8", newline="\n")
+            print_report(counts)
     suites = sum(1 for c in reader.cases if c.in_suite)
     print(f"{VERDICT}GREEN — {len(reader.cases)} test(s), {suites} in the suites, none refused"
           f"{'' if out is not None else ' (--check: nothing written)'} ===")
@@ -1240,14 +1252,16 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--check", action="store_true", help="the refusals only, writing nothing (the gate audit)")
     ap.add_argument("--self-test", action="store_true", help="prove every refusal and the manifests on planted trees")
-    ap.add_argument("--out", type=Path, metavar="DIR", help="write the manifests and the report to DIR (default: suites/)")
+    ap.add_argument("--out", type=Path, metavar="DIR", help="write the manifests to DIR (default: suites/, with the report)")
+    ap.add_argument("--report", action="store_true", help="with --out, also write and print the completeness report")
     args = ap.parse_args(argv)
     if args.self_test:
         return self_test()
     if args.check and args.out is not None:
         ap.error("--check writes nothing, so it takes no --out")
     inputs, problems = repository_inputs()
-    rc, _ = generate(SUITE, inputs, problems, None if args.check else (args.out or OUT))
+    rc, _ = generate(SUITE, inputs, problems, None if args.check else (args.out or OUT),
+                     report=args.report or args.out is None)
     return rc
 
 
@@ -1480,6 +1494,15 @@ def self_test() -> int:
         rc_empty_dir, _ = generate(root, inputs, [], root / "suites", echo=False)
         check("arm: an empty output directory is written to", rc_empty_dir == 0
               and (root / "suites" / "85" / "manifest.json").is_file())
+        shutil.rmtree(root / "suites")
+        (root / "suites").mkdir()
+        asked: list[str] = []
+        spied = replace(inputs, determined=lambda row: asked.append(row["rule-id"]) or False)
+        rc_bare, _ = generate(root, spied, [], root / "suites", echo=False, report=False)
+        check("arm: the manifests alone (--out without --report, what a compiler test runs) ask no §7 register and write no "
+              "completeness report (kb/Work PB4453)", rc_bare == 0 and not asked
+              and (root / "suites" / "85" / "manifest.json").is_file()
+              and not (root / "suites" / "completeness.json").exists(), asked[:3])
 
     bad = {
         "no-header.cob": ("cases/1.1.1-Rule/no-header.cob", "      * nothing\n", "does not open with"),

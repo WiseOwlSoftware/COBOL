@@ -191,7 +191,7 @@ the gate's verdict line prints the tests it ran.
 What the compiler declines is documented as §4.2.6 and §4.2.7 require, in [docs/CONFORMANCE.md](docs/CONFORMANCE.md):
 its §2 dispositions every processor-dependent element of Annex A.3, its §5 every optional module of Annex A.4, and its
 §4 the facilities declined whole. Every element those two tables do not claim in full is named below by its Annex
-item, and a unit test (`ReadmeDeclinedSummaryDriftTests`) fails when this list and the tables disagree:
+item, and a documentation audit (`scripts/doc_audits.py`, `scripts/docchecks/register.py`) fails when this list and the tables disagree:
 
 - The Message Control System (A.3 item 4) compiles with the warning §4.2.6 requires for a processor-dependent element
   (COBOL1578), and the program runs with the facility inert; the MESSAGE-TAG usage (COBOL1943) is refused.
