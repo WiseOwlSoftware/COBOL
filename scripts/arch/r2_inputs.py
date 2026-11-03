@@ -526,7 +526,7 @@ def self_test():
     ib = shard_input({"id": "b", "subsystem": "s", "name": "S", "lines": 10, "files": [["src/B/Y.cs", 10]]}, m, mech, census, {})
     arm("a shard input holds only its own files' facts",
         ia["semgrep"] and not ib["semgrep"] and ib["open_notes"] == {"src/B/Y.cs": ["PB1"]} and not ia["open_notes"])
-    pin_dir = Path(tempfile.gettempdir()) / "pin"
+    pin_dir = Path("pin-fixture").resolve()   # never created: only the relative-path arithmetic of rel() is exercised
     errs = [{"type": ["PartialParsing", [{"path": "src/A/X.cs", "start": {"line": 1}, "end": {"line": 2}}]]},
             {"type": "Syntax error", "path": str(pin_dir / "src" / "B" / "Y.cs"), "message": "Syntax error at line 1:"},
             {"type": "Timeout", "message": "rule x timed out"}]
