@@ -96,7 +96,7 @@ public sealed class ClassSpellingDriftTests
             (["Binding", "ProcedureHeaderScreen.cs"], "public void ByValueClass"),
             (["Binding", "Procedure", "Verbs", "CallBinder.cs"], "private void ValueClassScreen"),
             (["Binding", "Procedure", "Verbs", "OoBinder.cs"], "InvokeByValueOperandClass"),
-            (["Binding", "Procedure", "Verbs", "UdfBinder.cs"], "COBOL1554"),
+            (["Binding", "Procedure", "Verbs", "UdfBinder.cs"], "ByValueArgumentClass"),
             (["Binding", "Procedure", "ExpressionBinder.cs"], "OperandClassExcluded"),
         ];
         foreach (var (path, member) in screens)

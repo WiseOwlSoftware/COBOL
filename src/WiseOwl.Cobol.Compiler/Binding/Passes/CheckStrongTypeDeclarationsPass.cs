@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Passes;
 
@@ -57,7 +58,7 @@ internal sealed class CheckStrongTypeDeclarationsPass : IBindPass
                         string by = item.RedefinesKind is RedefinitionKind.SameRecordArea
                             ? "a record-area SAME clause (ISO §12.4.6.4.4 GR2)"
                             : "the FD/SD's multiple level 1 entries (ISO §13.18.33.4 GR3)";
-                        binder.Edition.Error("COBOL1532", $"'{strong.CobolName ?? strong.ClrName}' is a strongly-typed item "
+                        binder.Edition.Error(DiagnosticCatalog.StrongTypeRedefined, $"'{strong.CobolName ?? strong.ClrName}' is a strongly-typed item "
                             + $"and shares its storage area with '{other.CobolName ?? other.ClrName}' — an implicit redefinition by {by}: "
                             + "a strongly-typed item shall not be implicitly or explicitly redefined in whole or in "
                             + "part (ISO §13.18.57.3 SR4)");
@@ -72,7 +73,7 @@ internal sealed class CheckStrongTypeDeclarationsPass : IBindPass
                 && !ReferenceEquals(StrongTypeModel.StrongRoot(item), StrongTypeModel.StrongRoot(tgt)))
             {
                 using var _ = binder.Edition.At(item);
-                binder.Edition.Error("COBOL1532", $"'{item.CobolName ?? item.ClrName}' REDEFINES strongly-typed item "
+                binder.Edition.Error(DiagnosticCatalog.StrongTypeRedefined, $"'{item.CobolName ?? item.ClrName}' REDEFINES strongly-typed item "
                     + $"'{tgt.CobolName ?? tgt.ClrName}': a strongly-typed item shall not be redefined in whole or in "
                     + "part (ISO §13.18.57.3 SR4)");
             }
@@ -85,7 +86,7 @@ internal sealed class CheckStrongTypeDeclarationsPass : IBindPass
                         || ri.SpanLeaves.Any(StrongTypeModel.IsStronglyTyped)))
                 {
                     using var _ = binder.Edition.At(ren66);
-                    binder.Edition.Error("COBOL1532", $"RENAMES '{ren66.CobolName ?? ren66.ClrName}' renames a "
+                    binder.Edition.Error(DiagnosticCatalog.StrongTypeRenamed, $"RENAMES '{ren66.CobolName ?? ren66.ClrName}' renames a "
                         + "strongly-typed item in whole or in part — prohibited (ISO §13.18.57.3 SR3)");
                 }
     }

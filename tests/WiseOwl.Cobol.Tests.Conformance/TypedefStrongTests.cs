@@ -107,7 +107,7 @@ public sealed class TypedefStrongTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a REDEFINES over a strongly-typed item must be rejected (ISO §13.18.57.3 SR4)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOL1532");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL5991");
     }
 
     /// <summary>§13.18.57.3 SR3 — a strongly-typed item shall not be renamed in whole or in part; a level-66 RENAMES
@@ -131,7 +131,7 @@ public sealed class TypedefStrongTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a RENAMES over a strongly-typed item must be rejected (ISO §13.18.57.3 SR3)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOL1532");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL5992");
     }
 
     /// <summary>ISO §8.5.3.1 alternative 2 — two subordinate items in equivalent type declarations are of the same

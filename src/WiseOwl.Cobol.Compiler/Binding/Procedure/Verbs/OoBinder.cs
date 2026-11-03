@@ -105,7 +105,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (needSet)
             {
                 if (op.Set is null)
-                    ctx.Edition.Error("COBOL0843",
+                    ctx.Edition.Error(DiagnosticCatalog.ObjectPropertyReferenceRule,
                         $"the object-property reference {where} is a RECEIVING operand but the class has no "
                         + "SET property method (ISO §8.4.3.9.3 SR4 — WITH NO SET, or no accessor defined)");
                 else
@@ -143,7 +143,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     {
         if (op.Get is null)
         {
-            ctx.Edition.Error("COBOL0843",
+            ctx.Edition.Error(DiagnosticCatalog.ObjectPropertyReferenceRule,
                 $"the object-property reference '{op.PropName}' OF '{op.ReceiverName}' is a SENDING operand but the "
                 + "class has no GET property method (ISO §8.4.3.9.3 SR3 — WITH NO GET, or no accessor defined)");
             return null;
@@ -682,7 +682,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // Trap #7 — SUPER in a root class is a clean compile diagnostic, never an internal error (applies identically
         // to the FACTORY flavor).
         if (report)
-            ctx.Edition.Error("COBOL0827", $"{position} SUPER in class '{cur.Name}', which INHERITS from no class "
+            ctx.Edition.Error(DiagnosticCatalog.SuperWithoutInheritedClass, $"{position} SUPER in class '{cur.Name}', which INHERITS from no class "
             + "(ISO §8.4.3.8 — SUPER references the inherited class's methods)");
         return null;
     }
@@ -1115,7 +1115,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                                                 string verb, ObjectRefDescriptor invokedWith)
     {
         var formal = oof.Item;
-        void Err(string msg) => ctx.Edition.Error("COBOL0828", $"{verb} \"{methodName}\": {msg}");
+        void Err(string msg) => ctx.Edition.Error(DiagnosticCatalog.InvokeArgumentNotConforming, $"{verb} \"{methodName}\": {msg}");
 
         if (arg.Omitted)
         {
@@ -1816,7 +1816,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     internal bool ScreenObjectRefAssignment(PicInfo sender, PicInfo receiver, string statement)
     {
         if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, sender, receiver) is not { } werr) return true;
-        ctx.Edition.Error("COBOL0867", $"{statement}: {werr}");
+        ctx.Edition.Error(DiagnosticCatalog.ObjectReferenceAssignmentNotConforming, $"{statement}: {werr}");
         return false;
     }
 
@@ -1908,7 +1908,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // FACTORY presence shall equal host.OoInFactory.
             foreach (var tp in targets)
                 foreach (string why in SelfSenderRefusals(tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal, cur))
-                    ctx.Edition.Error("COBOL0867", $"SET '{tp.Item.CobolName}' TO SELF: {why}");
+                    ctx.Edition.Error(DiagnosticCatalog.ObjectReferenceAssignmentNotConforming, $"SET '{tp.Item.CobolName}' TO SELF: {why}");
         }
         else if (!senderNull)
         {

@@ -95,7 +95,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
     private void ScreenLockPhraseAgainstAutomatic(FileModel file, string verb, string phrase)
     {
         if (file.LockMode is { Kind: LockKind.Automatic })
-            ctx.Edition.Error("COBOL1512", $"{verb} on file '{file.CobolName}': the {phrase} phrase may not "
+            ctx.Edition.Error(DiagnosticCatalog.LockPhraseUnderAutomaticLocking, $"{verb} on file '{file.CobolName}': the {phrase} phrase may not "
                 + "be specified when the file's LOCK MODE is AUTOMATIC — the lock is implicit "
                 + "(ISO §14.9.30.3 SR4 / §14.9.51.3 SR22 / §14.9.35.3 SR4)");
         string? applyCommitRule = verb switch

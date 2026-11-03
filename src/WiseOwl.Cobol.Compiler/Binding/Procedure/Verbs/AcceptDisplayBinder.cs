@@ -333,14 +333,14 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     {
         if (!ctx.Mnemonics.TryUse(at, name, out var row))
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
                 + $"(ISO §{sr2} SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
                 + "§12.3.7.2 'device-name-1 IS mnemonic-name-3')");
             return null;
         }
         if (row.Kind != SystemNameKind.Device)
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': '{name}' is the mnemonic-name of the "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': '{name}' is the mnemonic-name of the "
                 + $"{ImplementorNames.KindWord(row.Kind)} '{row.Name}', not of a device-name — only a device-name's "
                 + "mnemonic-name-3 may be specified in the ACCEPT and DISPLAY statements (ISO §12.3.7.3 SR7; "
                 + $"§{sr2} SR2)");
@@ -348,7 +348,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         }
         if (!row.Device.HasFlag(need))
         {
-            ctx.Edition.Error("COBOL0817", $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO §{sr2} "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO §{sr2} "
                 + "SR2; the available device-names and their capabilities are this implementation's §12.3.7.3 SR7/SR8 "
                 + $"specification: {ImplementorNames.DescribeDevices()})");
             return null;
