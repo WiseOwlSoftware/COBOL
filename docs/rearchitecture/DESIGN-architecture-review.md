@@ -1120,7 +1120,8 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   through the same `ConfigurationStep` (`ClassHalf`) before the half binds its own division (`OoDriver.OoReparent` hands a binder
   only its own element's divisions; kb/Work PB3154, which made the class's names inherited by the halves rather than
   declared in their §8.3.2.2 censuses); it hands each binder its definition's skeleton OPTIONS paragraph
-  (`ConfigurationSource.Own.SkeletonOptions`: the class, the OBJECT and FACTORY halves, an INTERFACE), and every binder binds
+  (`ConfigurationSource.Own.SkeletonOptions`: the class definition and an INTERFACE; the OBJECT and FACTORY halves take
+  `ConfigurationSource.ClassHalf` and its `HalfOptions`), and every binder binds
   that paragraph in `BindDeclarations`, over the `ConfigurationSlice.InheritedOptions` baseline only `ConfigurationStep` writes,
   after the element's constant entries are declared (kb/Work PB780: the INITIALIZE clause's literal-1 may be a
   constant-name, §13.10.3 SR2). A method declares no configuration section (§12.3.3 SR2: "The configuration
