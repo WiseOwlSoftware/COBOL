@@ -129,7 +129,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// <c>__COLLATE</c> when the key's alphabet IS the program collating sequence, else an inline carrier — or "null"
     /// for native order (a no-clause key emits "null" so its registration is unchanged from the pre-clause engine).</summary>
     private string CollationLit(AlphabetDef? def) =>
-        def is null ? "null" : ReferenceEquals(def, ctx.Data.Collating) ? "__COLLATE" : CollationEmit.New(def);
+        def is null ? "null" : ReferenceEquals(def, ctx.Data.SpecialNames.Collating) ? "__COLLATE" : CollationEmit.New(def);
 
     // ── READ (ISO §14.9.30) ────────────────────────────────────────────────────────────────────────────────────
 

@@ -441,7 +441,7 @@
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.Validation",
       "uses": 15,
-      "walkUses": 16,
+      "walkUses": 17,
       "removedBy": [
         "PB2320",
         "PB2404",
@@ -569,6 +569,13 @@
             "PB2404",
             "PB2421"
           ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
+          "removedBy": [
+            "PB2404"
+          ]
         }
       ]
     },
@@ -576,7 +583,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 44,
+      "walkUses": 45,
       "removedBy": [
         "PB2347",
         "PB2419",
@@ -914,6 +921,14 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.ReportScope",
+          "removedBy": [
+            "PB2347",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.FileControlBinder",
           "removedBy": [
             "PB2347",
             "PB2420"
@@ -1339,6 +1354,7 @@
       "walkUses": 21,
       "removedBy": [
         "PB2361",
+        "PB2375",
         "PB2399",
         "PB2402",
         "PB2420"
@@ -1391,7 +1407,8 @@
           "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
           "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
           "removedBy": [
-            "PB2361"
+            "PB2361",
+            "PB2375"
           ]
         },
         {
@@ -1445,7 +1462,8 @@
           "from": "WiseOwl.Cobol.Binding.Model.OoClassUnit",
           "to": "WiseOwl.Cobol.Binding.ReferenceResolver",
           "removedBy": [
-            "PB2361"
+            "PB2361",
+            "PB2375"
           ]
         },
         {
@@ -1686,11 +1704,12 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 105,
-      "walkUses": 107,
+      "walkUses": 119,
       "removedBy": [
         "PB2290",
         "PB2320",
         "PB2361",
+        "PB2375",
         "PB2399",
         "PB2402",
         "PB2405",
@@ -1725,7 +1744,8 @@
             "PB2402",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -1754,7 +1774,8 @@
             "PB2402",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -1947,7 +1968,8 @@
             "PB2418",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -1994,7 +2016,8 @@
             "PB2402",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -2387,7 +2410,8 @@
             "PB2361",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -2486,7 +2510,8 @@
             "PB2418",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -2577,6 +2602,127 @@
           "from": "WiseOwl.Cobol.CodeGen.SequentialIoEmitter",
           "to": "WiseOwl.Cobol.Binding.ReportScope",
           "removedBy": [
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.DispatchEmitter",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.GroupValueSlicer",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.InitialStateBackground",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.KeyedIoEmitter",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2418",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.SortEmitter",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.TransactionEmitter",
+          "to": "WiseOwl.Cobol.Binding.FileControlBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
             "PB2420"
           ]
         }
@@ -3130,9 +3276,10 @@
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 38,
-      "walkUses": 35,
+      "walkUses": 39,
       "removedBy": [
         "PB2361",
+        "PB2375",
         "PB2399",
         "PB2402",
         "PB2405",
@@ -3285,7 +3432,8 @@
             "PB2361",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3295,7 +3443,8 @@
             "PB2361",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3305,7 +3454,8 @@
             "PB2361",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3333,7 +3483,8 @@
             "PB2402",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3344,7 +3495,8 @@
             "PB2402",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3355,7 +3507,8 @@
             "PB2402",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3419,7 +3572,8 @@
             "PB2361",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3429,7 +3583,8 @@
             "PB2361",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3439,7 +3594,8 @@
             "PB2361",
             "PB2399",
             "PB2405",
-            "PB2420"
+            "PB2420",
+            "PB2375"
           ]
         },
         {
@@ -3447,6 +3603,48 @@
           "to": "WiseOwl.Cobol.Binding.OptionsModel",
           "removedBy": [
             "PB2402"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2405",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.CodeGen.Emit.NumericRenderer",
+          "to": "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+          "removedBy": [
+            "PB2361",
+            "PB2402",
+            "PB2399",
+            "PB2420"
           ]
         }
       ]

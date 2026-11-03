@@ -122,8 +122,8 @@ internal sealed class ProgramEmitter
             // CobolFatalException (EC-OO-UNIVERSAL, GR7c). A class-less EC-free program keeps the
             // zero-scaffolding invariant byte-exact (SSOT §18.16 — the test greps the namespace).
             w.Line("using global::WiseOwl.Cobol.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §14.6.13) + the D10 universal-INVOKE raises (§14.9.23.4 GR7c)");
-        if (UnitsOf(comp).Any(u => u.Data.Classification is not null)
-            || classes.Any(c => c.Data.Classification is not null || c.FactoryData.Classification is not null))
+        if (UnitsOf(comp).Any(u => u.Data.SpecialNames.Classification is not null)
+            || classes.Any(c => c.Data.SpecialNames.Classification is not null || c.FactoryData.SpecialNames.Classification is not null))
             // A CHARACTER CLASSIFICATION clause anywhere in the compilation group — a program, or a CLASS-ID whose methods
             // carry it as an activation local: the Globalization types (kb/Work PB64 T5 / PB111). Zero-scaffolding otherwise.
             w.Line("using global::WiseOwl.Cobol.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");

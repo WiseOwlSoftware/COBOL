@@ -68,7 +68,7 @@ public static class PictureAnalyzer
     /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and the
     /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
     /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3). <paramref name="currencies"/> is the
-    /// unit's CURRENCY SIGN SET (ISO §12.3.7 — symbol → currency string; <c>DataBinder.CurrencySigns</c>, the
+    /// unit's CURRENCY SIGN SET (ISO §12.3.7 — symbol → currency string; <c>SpecialNamesBinder.CurrencySigns</c>, the
     /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§13.18.40.3 r24/r28):
     /// a non-default symbol (e.g. NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c> — its
     /// mask positions are fixed/floating currency insertion, making the item NUMERIC-EDITED (§13.18.40.4) — and

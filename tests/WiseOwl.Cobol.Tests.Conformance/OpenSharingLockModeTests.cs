@@ -56,7 +56,7 @@ public sealed class OpenSharingLockModeTests
 
     /// <summary>⛔ THE DRIFT GUARD FOR THE EXTRACTION. One violation of one rule draws exactly ONE diagnostic.
     /// Before kb/Work PB319 this program drew TWO COBOL1512s in two different spellings — one off the SELECT
-    /// clause alone (<c>DataBinder.BindFileControl</c>) and one from the OPEN binder — because SR8 was written
+    /// clause alone (<c>FileControlBinder.BindFileControl</c>) and one from the OPEN binder — because SR8 was written
     /// down twice. A substring-matching <c>.err</c> golden cannot see that; the count can.</summary>
     [Theory]
     [InlineData(2002)]

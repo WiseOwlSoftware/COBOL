@@ -575,7 +575,7 @@ public sealed class FileModel
     /// <summary>Whether an I-O-CONTROL APPLY COMMIT clause (ISO §12.4.6.3) names this file — the STATIC,
     /// source-level property the standard calls "subject to an APPLY COMMIT clause", as distinct from
     /// §12.4.6.3.4 GR5's runtime notion of a clause being <i>active</i>. Set by
-    /// <c>DataBinder.BindIoControl</c>, which runs after the file control entries are bound (the clause is in a
+    /// <c>FileControlBinder.BindIoControl</c>, which runs after the file control entries are bound (the clause is in a
     /// different paragraph, so this fact is NOT knowable while a SELECT is being bound).
     /// <para>⛔ It is also THE FACT THAT THE FILE IS UNDER COMMIT CONTROL AT RUN TIME, for every organization §9.1.18.2
     /// admits (kb/Work PB3340): §14.6.13.1.3 item 8's emission (<c>SequentialIoEmitter.Item8Applies</c>), its
@@ -830,7 +830,7 @@ public sealed class FileModel
 
     /// <summary>Every I-O-CONTROL SAME clause that names this file, in source order — the ONE model of the clause's
     /// membership (§12.4.6.2 Formats 1-3: SAME AREA, SAME RECORD AREA, SAME SORT AREA, SAME SORT-MERGE AREA), recorded
-    /// by <c>DataBinder.BindIoControl</c> for every format. It used to keep the RECORD AREA format alone, as a peer
+    /// by <c>FileControlBinder.BindIoControl</c> for every format. It used to keep the RECORD AREA format alone, as a peer
     /// list, so the other three formats were parsed and discarded and the SORT/MERGE rules that read them had nothing
     /// to look at (§14.9.40.3 SR10, §14.9.24.3 SR11; kb/Work PB1139).</summary>
     public List<SameClause> SameClauses { get; } = [];
@@ -1114,7 +1114,7 @@ public sealed class CollatingKeyOperand
     public required IReadOnlyList<string> Qualifiers { get; init; }
 
     /// <summary>The record key the operand names — data-name-1's, or a SOURCE-form key by its record-key-name —
-    /// set post-build by <c>DataBinder.ResolveFileCollating</c>; null when it names no key of the file
+    /// set post-build by <c>FileControlBinder.ResolveFileCollating</c>; null when it names no key of the file
     /// (§12.4.5.7.3 SR4/SR5, reported there) or was refused at capture.</summary>
     public RecordKey? Key { get; set; }
 }

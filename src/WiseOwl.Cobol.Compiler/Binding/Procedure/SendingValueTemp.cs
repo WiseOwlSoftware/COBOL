@@ -426,7 +426,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // facts and DynMaxSize carries only the second (§8.5.1.10.1), so a fixed-length clone keeps the real
         // default rather than being stamped with a bound no rule gives it (kb/Work PB463).
         temp.IsDynamicLength = model.DynLimit > 0;
-        if (model.FunctionValue) temp.FunctionValueSeparator = ctx.Data.DecimalSeparator;   // PB2507: the unit's spelling of the literal form
+        if (model.FunctionValue) temp.FunctionValueSeparator = ctx.Data.SpecialNames.DecimalSeparator;   // PB2507: the unit's spelling of the literal form
         temp.FunctionDeviceDigits = model.DeviceDigits;   // PB4124: DATE-OF-INTEGER's fixed digits, kept by a held argument
         temp.HoldsApproximation = model.Approximation;   // PB1606: every read of it is the returned value's read
         if (temp.IsDynamicLength) temp.DynMaxSize = model.DynLimit;

@@ -83,7 +83,7 @@ public sealed partial class DataBinder
                     var localeName = rlp.cobolWord();   // locale-name-1; LOCALE is the formatWord (kb/Work PB764)
                     var localeRef = LocaleRef.Current;
                     if (localeName is not null
-                        && ResolveLocaleName(localeName, localeName.GetText(), $"{where} PICTURE LOCALE {localeName.GetText()}",
+                        && SpecialNames.ResolveLocaleName(localeName, localeName.GetText(), $"{where} PICTURE LOCALE {localeName.GetText()}",
                             "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph")
                             is { } sym)
                         localeRef = new LocaleRef(sym);
@@ -165,9 +165,9 @@ public sealed partial class DataBinder
         string itemWhere = $"RD '{reportName}' printable item '{entryName ?? "FILLER"}'";
         Usage itemUsage = PictureAnalyzer.ParseUsage(d.UsageText ?? d.InheritedUsage, Edition, itemWhere);
         var pic = d.PicText is not null
-            ? PictureAnalyzer.Analyze(d.PicText, itemUsage, Edition, itemWhere, d.OwnSign, currencies: CurrencySigns,
+            ? PictureAnalyzer.Analyze(d.PicText, itemUsage, Edition, itemWhere, d.OwnSign, currencies: SpecialNames.CurrencySigns,
                 blankWhenZero: d.BlankWhenZero, editing: d.Editing, localeFormat2: d.Locale,
-                decimalPointIsComma: DecimalPointIsComma)
+                decimalPointIsComma: SpecialNames.DecimalPointIsComma)
             // ⛔ ISO §13.15.3 SR14 — THE REPORT GROUP ENTRY'S OWN VALUE-IMPLIED PICTURE, word for word the §13.16.3 SR9
             // rule this compiler synthesizes for a data description entry: "The PICTURE clause may be omitted for an
             // elementary item when an alphanumeric, boolean or national literal that is not a zero-length literal is

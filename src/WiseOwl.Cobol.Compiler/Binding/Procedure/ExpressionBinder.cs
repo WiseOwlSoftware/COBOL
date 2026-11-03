@@ -253,13 +253,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// literals to represent the decimal separator", so `DISPLAY 1,5` under DECIMAL-POINT IS COMMA shows `1,5`
     /// (DOC-A.1-56; kb/Work PB1643 — it showed `1.5`, because one text field was both the value and the image).</summary>
     public BoundNumericLiteral NumericLiteralOperand(string asWritten) =>
-        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.DecimalSeparator };
+        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.SpecialNames.DecimalSeparator };
 
     /// <summary>The arithmetic-expression-tier twin of <see cref="NumericLiteralOperand"/>: the same literal, the same
     /// separator, as a <see cref="BoundNumLiteral"/> (it reaches a character image through
     /// <c>IntrinsicBinder.OperandOf</c>, e.g. a numeric literal argument of a function).</summary>
     private BoundNumLiteral NumericLiteralExpr(string asWritten) =>
-        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.DecimalSeparator };
+        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.SpecialNames.DecimalSeparator };
 
     /// <summary>⛔ THE ONE PRODUCER OF <see cref="BoundPredefinedNull"/> — the operand slot of a §8.4.3.10.3 SR1
     /// context, which the predefined NULL may occupy: "it may be used only as a sending operand in an INITIALIZE or
@@ -355,7 +355,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // GR10's "one or more of the character" IS the fill semantics BoundAllLiteral carries in every context).
         if (fig.cobolWord() is { } symWord)
         {
-            if (ctx.Data.SymbolicOf(symWord, symWord.GetText()) is { } sym)
+            if (ctx.Data.SpecialNames.SymbolicOf(symWord, symWord.GetText()) is { } sym)
                 return SymbolicOperand(sym) is BoundAllLiteral al7
                     ? al7 with { BeginsWithAll = true }   // the EXPLICIT ALL form — the word is written
                     : SymbolicOperand(sym);
@@ -490,8 +490,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // word, is to the item which that source element describes" (§8.4.6.1, kb/Work PB3153). Asked BEFORE the
         // resolution, which records the word as used as a symbolic-character (§8.3.2.2). In one element the two
         // cannot coexist (COBOL2692 at the second declaration), so the own-item test changes no own-element answer.
-        : ctx.Data.NamesSymbolic(dref) && !ctx.Refs.DescribesOwnItem(dref)
-          && ctx.Data.SymbolicOf(dref) is { } s ? new(DataBinder.WrittenText(dref), null, s)
+        : ctx.Data.SpecialNames.NamesSymbolic(dref) && !ctx.Refs.DescribesOwnItem(dref)
+          && ctx.Data.SpecialNames.SymbolicOf(dref) is { } s ? new(DataBinder.WrittenText(dref), null, s)
         : null;
 
     /// <summary>The literal-alias a BARE WORD spells where the grammar writes <c>literal | cobolWord</c> — a position no
@@ -500,7 +500,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// The same two tables in the same order: a constant-name, then a symbolic-character.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>
         word.GetText() is var w && ctx.Data.FindConstant(w) is { } k ? new(w, k, null)
-        : ctx.Data.NamesSymbolic(w) && ctx.Data.SymbolicOf(word, w) is { } s ? new(w, null, s)
+        : ctx.Data.SpecialNames.NamesSymbolic(w) && ctx.Data.SpecialNames.SymbolicOf(word, w) is { } s ? new(w, null, s)
         : null;
 
     /// <summary>The bound operand <paramref name="alias"/> stands for: the SAME shape the equivalent written literal
@@ -1309,7 +1309,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// (ISO §8.3.3.3.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
     public string CheckLiteral(string text)
     {
-        text = ctx.Data.NormalizeNumericLiteral(text);
+        text = ctx.Data.SpecialNames.NormalizeNumericLiteral(text);
         // A floating-point literal's digits are not the fixed-point 31/18 cap's subject (§8.3.3.3.3 SR2/SR3 —
         // checked by the normalizer); what it owes is r3's "The maximum permitted value and minimum permitted value
         // of the exponent is implementor-defined" (kb/Work PB99 — beyond the range the generated C# double literal

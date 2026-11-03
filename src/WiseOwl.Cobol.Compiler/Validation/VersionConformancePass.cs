@@ -1418,7 +1418,7 @@ internal sealed class VersionConformancePass
         // the file is discarded on a SELECT error, whereas the binder fired it on the clause's PRESENCE in the
         // file-control loop — so recognition is byte-exact and drop-proof. The scope match holds because every program
         // unit (top-level AND nested — CallCollectUnits recurses nestedProgram), every class, and every factory gets
-        // its OWN DataBinder whose BindDeclarations runs SwitchBindSpecialNames + BindFileControl + CallBindLinkage; the
+        // its OWN DataBinder whose BindDeclarations runs SpecialNamesBinder.BindSpecialNames + BindFileControl + CallBindLinkage; the
         // parse-arm's single whole-tree walk equals the UNION of those per-scope binder walks. The one scope asymmetry
         // is PROCEDURE DIVISION RETURNING/RAISING: the procedureDivision rule is SHARED by program and method PDs, but
         // CallBindLinkage gates PROGRAM units only (methods bind via OoBindMethodData) — so those two gates carry the

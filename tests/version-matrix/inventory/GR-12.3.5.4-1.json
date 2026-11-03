@@ -6,10 +6,10 @@
  "subject": "SOURCE-COMPUTER paragraph",
  "rule-digest": "de1a3322ccf8",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Configuration.cs#InheritConfiguration; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#InheritFrom",
  "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb1088_dbg_contained",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1088: every SOURCE-COMPUTER clause reaches contained units through InheritConfiguration; WITH DEBUGGING MODE is now OR-ed into the inherited value in BindDeclarations instead of assigned over it (the one unconditional reassignment among the inherited fields), so a contained program's USE FOR DEBUGGING section compiles under its container's switch.",
+ "notes": "kb/Work PB1088: every SOURCE-COMPUTER clause reaches contained units through InheritConfiguration; WITH DEBUGGING MODE is now OR-ed into the inherited value in BindDeclarations instead of assigned over it (the one unconditional reassignment among the inherited fields), so a contained program's USE FOR DEBUGGING section compiles under its container's switch. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#InheritConfiguration (kb/Work PB2355 extracted the SPECIAL-NAMES binding out of DataBinder.Switches.cs into the SpecialNamesBinder class (its partial files) and the configuration-section services DataBinder keeps into DataBinder.Configuration.cs; each member is the same rule, moved with its body unchanged)",
  "state": "OK"
 }

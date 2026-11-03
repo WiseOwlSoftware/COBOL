@@ -762,6 +762,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var foreign = Ctx.Data.VisibleFiles.Values
             .Where(f => f.SubjectToApplyCommit && !Ctx.Data.Files.Contains(f))
             .Distinct().ToList();
-        return new BoundCommitRollback(isCommit, [.. Ctx.Data.ApplyCommit?.Files ?? []], foreign);
+        return new BoundCommitRollback(isCommit, [.. Ctx.Data.FileControl.ApplyCommit?.Files ?? []], foreign);
     }
 }

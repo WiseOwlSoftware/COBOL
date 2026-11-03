@@ -81,8 +81,8 @@ internal sealed class SynthesizeImpliedPicturesPass : IBindPass
         item.PictureText = implied.Text;
         item.PicIsValueImplied = true;   // an IMPLICIT clause: no SR4/SR5/SR10 size bound (see the property)
         item.Pic = PictureAnalyzer.Analyze(implied.Text, item.OwnUsage ?? Usage.Display, binder.Edition, where,
-            item.OwnSign, currencies: binder.CurrencySigns, blankWhenZero: item.BlankWhenZero,
-            explicitUsage: item.OwnUsage is not null, decimalPointIsComma: binder.DecimalPointIsComma);
+            item.OwnSign, currencies: binder.SpecialNames.CurrencySigns, blankWhenZero: item.BlankWhenZero,
+            explicitUsage: item.OwnUsage is not null, decimalPointIsComma: binder.SpecialNames.DecimalPointIsComma);
         // The entry is no longer picture-less, so the deferred §13.18.60.3 SR5/SR12 adjudication a
         // PICTURE-less USAGE NATIONAL / BIT entry carries is ANSWERED — by the picture SR9 supplies. The
         // screen above is the one that judges it (`01 A USAGE NATIONAL VALUE "AB".` is SR12's alphanumeric

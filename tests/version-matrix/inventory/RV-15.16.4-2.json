@@ -6,10 +6,10 @@
  "subject": "CHAR-NATIONAL function",
  "rule-digest": "97ca3b779217",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#CharAt; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingTable",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#CharAt; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingTable; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase",
  "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1_char_national_also_positions",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "ALPHABET ... IS N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\" shares position 1 (12.3.7.4 GR7 k6); literal-1 C is the highest-coded member, so P1=00068 excludes both a lowest-code and a last-written implementation. SAME=YES is a presence check, not a discriminator, and the header says so. The alphanumeric twin 15.15.4 r2 is pinned separately by conformance:cases/12.3.7-SPECIAL-NAMES/pb59_char_representative over a DIFFERENT runtime body (AlphanumericCollation), which is why the national branch needed its own golden.",
+ "notes": "ALPHABET ... IS N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\" shares position 1 (12.3.7.4 GR7 k6); literal-1 C is the highest-coded member, so P1=00068 excludes both a lowest-code and a last-written implementation. SAME=YES is a presence check, not a discriminator, and the header says so. The alphanumeric twin 15.15.4 r2 is pinned separately by conformance:cases/12.3.7-SPECIAL-NAMES/pb59_char_representative over a DIFFERENT runtime body (AlphanumericCollation), which is why the national branch needed its own golden. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetLiteralPhrase (kb/Work PB2355 extracted the SPECIAL-NAMES binding out of DataBinder.Switches.cs into the SpecialNamesBinder class (its partial files) and the configuration-section services DataBinder keeps into DataBinder.Configuration.cs; each member is the same rule, moved with its body unchanged)",
  "state": "OK"
 }

@@ -833,7 +833,7 @@ public static class DiagnosticCatalog
     // kb/Work PB666: the APPLY COMMIT antecedent family had no code anywhere — its rows were CONFORMS "witnessed by the
     // refusal of the antecedent" (the since-retired COBOL1709 refusing APPLY COMMIT, kb/Work PB371), which was
     // PermissiveInert, so under --permissive every forbidden shape compiled with zero errors.
-    // DataBinder.ScreenApplyCommitSubject is the ONE report.
+    // FileControlBinder.ScreenApplyCommitSubject is the ONE report.
     public static readonly DiagnosticDescriptor ApplyCommitSubjectRule = new(
         "COBOL2974", "apply-commit-subject-rule", EditionSeverity.Error,
         "A clause or statement that a syntax rule forbids for a file subject to an I-O-CONTROL APPLY COMMIT clause is "
@@ -7076,7 +7076,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2634 — a file-name is specified in a second SELECT clause of the same factory, function, object
     /// or program (ISO §12.4.5.2 SR2; kb/Work PB1077). The second entry used to replace the first in the binder's name
     /// map, so the program ran against whichever ASSIGN target came last. Reported by
-    /// <c>DataBinder.BindFileControl</c> at the second SELECT.</summary>
+    /// <c>FileControlBinder.BindFileControl</c> at the second SELECT.</summary>
     public static readonly DiagnosticDescriptor FileNameSelectedTwice = new(
         "COBOL2634", "file-name-selected-twice", EditionSeverity.Error,
         "A file-name is specified in more than one SELECT clause. ISO §12.4.5.2 SR2: \"A given file-name may be "

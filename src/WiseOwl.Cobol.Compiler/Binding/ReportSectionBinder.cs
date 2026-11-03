@@ -322,13 +322,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         string where = $"RD '{model.Name}': the CODE clause";
         if (cc.literal() is { } lit)
         {
-            if (_d.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
+            if (_d.SpecialNames.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
             {
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {lit.GetText()}, which is not an "
                     + "alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO §13.18.12.3 SR1)");
                 return null;
             }
-            return new ReportCodeModel { Literal = _d.LiteralCharsOf(lit, sr11: false), Written = lit.GetText() };
+            return new ReportCodeModel { Literal = _d.SpecialNames.LiteralCharsOf(lit, sr11: false), Written = lit.GetText() };
         }
         var dref = cc.dataReference();
         if (_d.ConstantOf(dref) is { } k)
@@ -1821,8 +1821,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 return PictureAnalyzer.Analyze(
                     _d.UnitHasConstants ? _d.ExpandPicConstants(pic.GetText(), "", diagnose: false) : pic.GetText(),
                     Usage.Display, Edition,
-                    $"RD '{model.Name}' repeating entry", null, currencies: _d.CurrencySigns,
-                    decimalPointIsComma: _d.DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;
+                    $"RD '{model.Name}' repeating entry", null, currencies: _d.SpecialNames.CurrencySigns,
+                    decimalPointIsComma: _d.SpecialNames.DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;
         return null;
     }
 
@@ -2782,8 +2782,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
         string sumWhere = $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'";
         var pic = picText is not null
-            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: _d.CurrencySigns,
-                decimalPointIsComma: _d.DecimalPointIsComma)
+            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: _d.SpecialNames.CurrencySigns,
+                decimalPointIsComma: _d.SpecialNames.DecimalPointIsComma)
             : null;
         ScreenReportEntryPicture(ge, pic, picText, sumWhere, summed: true);   // §13.18.40.3 SR14, §13.18.54.3 SR2
         // ⛔ THE COUNTER'S SCALE IS THE ENTRY PICTURE'S RECEIVER SCALE, NOT `pic.Scale` (kb/Work PB1685). §13.18.54.4 GR1
@@ -2940,8 +2940,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (picText is null) return null;
         var usage = PictureAnalyzer.ParseUsage(usageText, Edition, where);
-        var pic = PictureAnalyzer.Analyze(picText, usage, Edition, where, ownSign, currencies: _d.CurrencySigns,
-            editing: editing, localeFormat2: locale, decimalPointIsComma: _d.DecimalPointIsComma);
+        var pic = PictureAnalyzer.Analyze(picText, usage, Edition, where, ownSign, currencies: _d.SpecialNames.CurrencySigns,
+            editing: editing, localeFormat2: locale, decimalPointIsComma: _d.SpecialNames.DecimalPointIsComma);
         ScreenReportEntryPicture(ge, pic, picText, where, summed: false);
         return pic?.Category;
     }

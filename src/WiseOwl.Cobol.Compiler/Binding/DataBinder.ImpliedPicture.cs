@@ -105,7 +105,7 @@ public sealed partial class DataBinder
     {
         ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ValueImpliedPicture2002, where);
         return PictureAnalyzer.Analyze(implied.Text, itemUsage, Edition, where, ownSign,
-            currencies: CurrencySigns, explicitUsage: explicitUsage, decimalPointIsComma: DecimalPointIsComma);
+            currencies: SpecialNames.CurrencySigns, explicitUsage: explicitUsage, decimalPointIsComma: SpecialNames.DecimalPointIsComma);
     }
 
     /// <summary>⛔ THE SR9 CLASSIFIER — which of §13.16.3 SR9's three arms a VALUE operand selects, and the length

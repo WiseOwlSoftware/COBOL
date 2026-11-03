@@ -82,9 +82,9 @@ internal sealed class InitialStateBackground(EmitContext ctx)
     {
         null => null,
         { Fill: OptionsFill.BinaryZeroes } => '\0',
-        { Fill: OptionsFill.HighValues } => FigurativeConstants.FillChar('H', ctx.Data.Collating),
-        { Fill: OptionsFill.LowValues } => FigurativeConstants.FillChar('L', ctx.Data.Collating),
-        { Fill: OptionsFill.Spaces } => FigurativeConstants.FillChar('S', ctx.Data.Collating),
+        { Fill: OptionsFill.HighValues } => FigurativeConstants.FillChar('H', ctx.Data.SpecialNames.Collating),
+        { Fill: OptionsFill.LowValues } => FigurativeConstants.FillChar('L', ctx.Data.SpecialNames.Collating),
+        { Fill: OptionsFill.Spaces } => FigurativeConstants.FillChar('S', ctx.Data.SpecialNames.Collating),
         { Fill: OptionsFill.Literal, LiteralFillChar: var c } => c,
         // ⛔ EXHAUSTIVE BY CONSTRUCTION over §11.9.10.4 GR5 a–e. A new OptionsFill member is a new GR5 arm and
         // needs a derived fill character, so it fails LOUD here rather than defaulting to a space — a silent

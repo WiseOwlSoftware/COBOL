@@ -387,12 +387,12 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 | # | Action | From | To | Why |
 |---|---|---|---|---|
 | 9 | S | `Binding/DataBinder.cs` (1723) | `Binding/DataDivision/DataBinder.cs` (thin) + `EntryTreeBuilder.cs` + `Passes/*Pass.cs` | Orchestrator vs builder vs passes |
-| 10 | S/M | `Binding/DataBinder.Switches.cs` | `Binding/DataDivision/SpecialNamesBinder.cs` | ENV-division concern, not DATA |
+| 10 | S/M | `Binding/DataBinder.Switches.cs` | `Binding/SpecialNamesBinder*.cs` (landed, PB2355; flat in `Binding/`, one partial per clause family) | ENV-division concern, not DATA |
 | 11 | S/M | `DataBinder.Reports.cs` | `Binding/ReportSectionBinder.cs` + `Binding/ReportScope.cs` + `Binding/ReportModel.cs` (kb/Work PB2357; the binders sit flat in `Binding/`, as `InheritStep.cs` and `DataBindState.cs` do) | Self-contained |
 | 12 | S/M | `DataBinder.Linkage.cs` | `Binding/DataDivision/LinkageBinder.cs` | |
 | 13 | S/M | `DataBinder.Ptr.cs` | `Binding/DataDivision/PointerBinder.cs` | |
 | 14 | S/M | `DataBinder.Oo.cs` | `Oo/OoMethodDataBinder.cs` | One OO home |
-| 15 | C | (FILE-CONTROL/FD/I-O-CONTROL logic in DataBinder.cs) | `Binding/DataDivision/FileControlBinder.cs` | Extract file concern |
+| 15 | C | (FILE-CONTROL/FD/I-O-CONTROL logic in DataBinder.cs) | `Binding/FileControlBinder*.cs` (FILE-CONTROL and I-O-CONTROL landed, PB2356; flat in `Binding/`; `ResolveFiles` and the FD/SD binding still in DataBinder) | Extract file concern |
 | 16 | C | (ResolveRedefines/Classify/Tier logic) | `Binding/DataDivision/Passes/ResolveRedefinesPass.cs` + `ClassifyRedefinesPass.cs` | Named passes |
 | 17 | C | (ExpandTypes/CloneItem) | `Binding/DataDivision/TypedefExpander.cs` | |
 | 18 | C | (implicit BindResolve order) | `Pipeline/PassManifest.cs` + `IPass.cs` | Explicit DAG-asserted ordering |

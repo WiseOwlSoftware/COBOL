@@ -220,7 +220,7 @@ public sealed partial class DataBinder
     /// user-defined word, is to the item which that source element describes", so a contained program's or an OO
     /// half's data item spelled like its container's symbolic-character is the referenced item (kb/Work PB3154 review
     /// R1-1: <c>MOVE S1 TO Y</c> moved the container's figurative instead of the local <c>01 S1</c>, with no
-    /// diagnostic). A shadowed symbolic is HIDDEN (<see cref="_shadowedSymbolics"/>), never removed: a contained unit
+    /// diagnostic). A shadowed symbolic is HIDDEN (<see cref="SpecialNamesBinder.HideShadowedSymbolics"/>), never removed: a contained unit
     /// inherits the whole table from this one (<see cref="InheritConfiguration"/> copies one level), and this unit's
     /// local data-name hides nothing from it.</para>
     /// <para>Every tier a name can be declared at is asked by <see cref="DeclaredNearerThan"/>; a METHOD's own names
@@ -233,8 +233,7 @@ public sealed partial class DataBinder
                 _constants.Bound.Remove(name);
                 _inheritedConstants.Remove(name);
             }
-        foreach (var (name, depth) in SymbolicCharacters.InheritedDepths)
-            if (DeclaredNearerThan(name, depth)) _shadowedSymbolics.Add(name);
+        SpecialNames.HideShadowedSymbolics();
     }
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) ACROSS NAME CLASSES for a word that stands for a literal: whether this unit's set
@@ -489,7 +488,7 @@ public sealed partial class DataBinder
 
     /// <summary>Does <paramref name="word"/> name a constant entry, here, that yielded no value? Its own entry was
     /// reported (a cycle, a bad operand), so a reader recovers without a second "not a constant-name" error.</summary>
-    private bool IsFailedConstant(string word) => IsDeclaredConstant(word) && FindConstant(word) is null;
+    internal bool IsFailedConstant(string word) => IsDeclaredConstant(word) && FindConstant(word) is null;
 
     /// <summary>Report the circular dependence <paramref name="reentered"/> closes, once, at that entry: the chain of
     /// entries being evaluated from it back to itself. §13.10.3 SR4 when a length phrase is on the cycle (the length of
@@ -661,7 +660,7 @@ public sealed partial class DataBinder
         string spec = "FROM " + word;
         if (value.Category == CtCategory.Numeric)
         {
-            string text = DecimalPointIsComma ? value.Text.Replace('.', ',') : value.Text;
+            string text = SpecialNames.DecimalPointIsComma ? value.Text.Replace('.', ',') : value.Text;
             string? integer = NumericLiteral.IsIntegerLiteralForm(value.Text) ? CtNumeric.ToIntegerText(value.Number) : null;
             return new ConstantDef(name, PicCategory.Numeric, text, integer, isGlobal, text, spec, WrittenLiteral: null);
         }
@@ -750,7 +749,7 @@ public sealed partial class DataBinder
             diag: new ConstantEvaluatorDiagnostics(this),
             vocab: new CtOperandVocabulary(
                 "numeric constant-names substituting them", "ISO §13.10.3 SR6, SR7 / §7.3.6.2 SR1b"),
-            decimalPointIsComma: DecimalPointIsComma);
+            decimalPointIsComma: SpecialNames.DecimalPointIsComma);
         if (evaluator.EvaluateArithmeticOperand(expr, where) is not { } n) return null;
         // The constant carries the literal AS WRITTEN (§13.10.4 GR1 — kb/Work PB1230), never a normalized form; its
         // value, where an integer position needs one, is the evaluator's — derived once, from the ONE literal parser.
@@ -775,7 +774,7 @@ public sealed partial class DataBinder
         // ExpandPicConstants "(1)" recovery precedent; kb/Work PB1231).
         if (ClosesConstantCycle(word)) return FailedConstantOperand;
         if (FindConstant(word) is { Category: PicCategory.Numeric } d
-            && NumericLiteral.Normalize(d.Text, DecimalPointIsComma, out _) is var canonical
+            && NumericLiteral.Normalize(d.Text, SpecialNames.DecimalPointIsComma, out _) is var canonical
             && !NumericLiteral.IsFloatingPointForm(canonical)
             && CtNumeric.TryParseLiteral(canonical, out var v))
             return CtValue.Numeric(v, d.Text);
@@ -1091,7 +1090,7 @@ public sealed partial class DataBinder
     /// — the <c>integerOperand</c> grammar rule's cobolWord arm, and the bare <c>dataReference</c> a clause that prints
     /// "data-name-1 or integer-1" (LINAGE) parsed the word as. <paramref name="operand"/> is the node the diagnostic
     /// anchors and the owning clause is read from; <paramref name="word"/> is the constant-name as written.</summary>
-    private string? ConstantIntegerText(Antlr4.Runtime.ParserRuleContext operand, string word, string where)
+    internal string? ConstantIntegerText(Antlr4.Runtime.ParserRuleContext operand, string word, string where)
     {
         if (_integerOperandTexts.TryGetValue(operand, out var known)) return known;
         return _integerOperandTexts[operand] = ConstantIntegerOperand(operand, word, where);

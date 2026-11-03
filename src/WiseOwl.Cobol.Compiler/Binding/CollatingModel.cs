@@ -196,7 +196,7 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
 
     /// <summary>The CODED CHARACTER SET this alphabet defines (ISO §12.3.7.4 GR7 Table 6; kb/Work PB110), or null
     /// for a LOCALE alphabet — Table 6's one blank coded-character-set row (the reference sites raise COBOL1669
-    /// through <c>DataBinder.CodedCharacterSetOf</c>, the ONE resolver).</summary>
+    /// through <c>SpecialNamesBinder.CodedCharacterSetOf</c>, the ONE resolver).</summary>
     public CodedCharacterSet? CodedSet => Locale is not null ? null : new CodedCharacterSet(Phrase, National: false, Table, CodeName);
 }
 
@@ -514,7 +514,7 @@ public static class CollatingSelection
     /// EVALUATE range, which is not a reading anything in the standard supports and is not the reading the
     /// alphabet arm of this compiler already takes.</para>
     /// <para>THREE CALLERS, ONE RULE: the EVALUATE range's EC gate, the level-88 VALUE range's EC gate, and
-    /// <c>DataBinder.TryResolveRangeAlphabet</c>'s §14.9.13.3 SR3 / §13.18.63.3 SR31 screen. Before this they
+    /// <c>SpecialNamesBinder.TryResolveRangeAlphabet</c>'s §14.9.13.3 SR3 / §13.18.63.3 SR31 screen. Before this they
     /// were three separately-written tests and two of them disagreed — the EVALUATE gate demanded a
     /// string-LITERAL pair while the level-88 gate asked the class, so <c>88 X VALUE "M" THRU "A"</c> raised
     /// EC-RANGE-INVALID and <c>EVALUATE X WHEN WS-M THRU WS-A</c> over the identical values raised nothing
