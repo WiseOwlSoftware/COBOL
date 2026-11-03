@@ -75,6 +75,7 @@ Warnings print whether or not the compile succeeds, so a migration warning is vi
 | 64 | `--run` was given for a library, which has no main program to run |
 | 65 | the source is wrong: a parse error or a conformance or binding diagnostic |
 | 66 | the source file was not found |
+| 73 | the output path names no file in a directory (a device such as `NUL`, which `/dev/null` becomes in a Windows POSIX shell, or a volume root) |
 | 70 | an internal error: the C# the compiler generated was refused by Roslyn |
 
 With `--run` the status is the program's own: the value of the `STATUS n` of a `STOP RUN` (or of a main program's

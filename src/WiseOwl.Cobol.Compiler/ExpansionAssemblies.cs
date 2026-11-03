@@ -38,7 +38,7 @@ internal static class ExpansionAssemblies
     /// reported the text <paramref name="edition"/> withdraws what the group raised then (<c>EditionContext.WithdrawWarningsOf</c>), so this
     /// compilation answers for the text alone. A <c>CheckOnly</c> compilation never gets here and keeps the group's report of the text. They
     /// are reported for each expansion made, and name it (<c>[in the expansion 'NAME']</c>).</summary>
-    public static Written Write(ExpansionPlacements expansions, CompilerDriver.Options options, string outputDll, EditionContext edition)
+    public static Written Write(ExpansionPlacements expansions, CompilerDriver.Options options, EditionContext edition)
     {
         var files = new List<string>();
         var warnings = new List<string>();
@@ -56,7 +56,7 @@ internal static class ExpansionAssemblies
                     temp, target, NistTestName: null, DialectLevel: state.Edition, CopyPaths: null, Permissive: state.Permissive,
                     CheckOnly: false, SignEncoding: state.SignEncoding, SourceFormat: Frontend.Preprocessor.InitialReferenceFormat.Free,
                     FlagExtensions: state.FlagExtensions, NumericDisplay: RepositoryVocabulary.FromPersisted(state.NumericDisplay),
-                    RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths ?? [Path.GetDirectoryName(Path.GetFullPath(outputDll))!],
+                    RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryDirectories,
                     ReferencePaths: references, RepositoryCheck: false) { PublishAs = placement.Identity });
                 warnings.AddRange(result.Warnings.Select(w => AtTheEntry(w, temp, name, requestedAt)));
                 edition.WithdrawWarningsOf(region);   // this compilation has now reported the text's warnings: the group's bind of it does not report them again
