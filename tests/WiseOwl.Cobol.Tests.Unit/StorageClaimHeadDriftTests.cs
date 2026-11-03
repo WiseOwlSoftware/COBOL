@@ -32,6 +32,6 @@ public sealed class StorageClaimHeadDriftTests
         string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Passes", "PtrBindBasedAndAddressablesPass.cs"));
         int at = text.IndexOf("private static DataItem? ResolveStorageClaimHead(", StringComparison.Ordinal);
         Assert.True(at > 0, "ResolveStorageClaimHead is gone");
-        Assert.Contains("binder.CallGlobalRoots.Contains(c.Root)", text[at..Math.Min(text.Length, at + 1500)]);
+        Assert.Contains("binder.Linkage.GlobalRoots.Contains(c.Root)", text[at..Math.Min(text.Length, at + 1500)]);
     }
 }

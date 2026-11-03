@@ -341,7 +341,7 @@ public sealed class RepositoryCodecTests
                    GOBACK.
                END PROGRAM RCHAIN.
                """, 2023, permissive: true);
-        var bound = comp.Units.Single(u => u.Name == "RCHAIN").Data.LinkageFormals[0].Item;
+        var bound = comp.Units.Single(u => u.Name == "RCHAIN").Data.Linkage.Formals[0].Item;
         Assert.Same(bound.Children[1], bound.Children[2].RedefinesTarget);
         var decoded = RepositoryCodec.Decode(RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RCHAIN")), comp.SignatureClasses);
         var rec = decoded.Formals[0].Item;
@@ -382,7 +382,7 @@ public sealed class RepositoryCodecTests
             ReferencedPrototypes = new([row with { Formals = new([row.Formals[0]]) }]),
         };
         var decoded = RepositoryCodec.Decode(perturbed, comp.SignatureClasses);
-        var original = unit.Data.LinkageFormals[3].Item;
+        var original = unit.Data.Linkage.Formals[3].Item;
         Assert.False(PrototypeSignatures.Same(original.RestrictedPrototype!.Signature, decoded.Prototypes[0].Signature));
         Assert.NotEqual(original.PointerRestrictionIdentity, decoded.Formals[3].Item.PointerRestrictionIdentity);
         Assert.StartsWith(PrototypeSignatures.CanonicalPrefix, decoded.Formals[3].Item.PointerRestrictionIdentity);
@@ -404,7 +404,7 @@ public sealed class RepositoryCodecTests
                 : f)]),
         };
         var decoded = RepositoryCodec.Decode(renamed, comp.SignatureClasses);
-        Assert.True(PrototypeSignatures.Same(new CalleeSignature(unit.Data.LinkageFormals, unit.Data.LinkageReturning), decoded.Signature));
+        Assert.True(PrototypeSignatures.Same(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning), decoded.Signature));
 
         var f3 = record.Formals[2];
         var retyped = record with
@@ -412,8 +412,8 @@ public sealed class RepositoryCodecTests
             Formals = new([.. record.Formals.Select(f => f == f3 ? f with { Description = f.Description with { TypeName = "T2" } } : f)]),
         };
         var decodedRetyped = RepositoryCodec.Decode(retyped, comp.SignatureClasses);
-        Assert.False(StrongTypeModel.SameType(unit.Data.LinkageFormals[2].Item, decodedRetyped.Formals[2].Item));
-        Assert.False(PrototypeSignatures.Same(new CalleeSignature(unit.Data.LinkageFormals, unit.Data.LinkageReturning), decodedRetyped.Signature));
+        Assert.False(StrongTypeModel.SameType(unit.Data.Linkage.Formals[2].Item, decodedRetyped.Formals[2].Item));
+        Assert.False(PrototypeSignatures.Same(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning), decodedRetyped.Signature));
     }
 
     /// <summary>§15.3: a record the decoder cannot bind is a typed refusal naming the record, never an index fault or a
@@ -519,10 +519,10 @@ public sealed class RepositoryCodecTests
         var record = RepositoryCodec.Of(unit);
         Assert.Equal(record, RepositoryCodec.Of(unit));
         var decoded = RepositoryCodec.Decode(record, classes);
-        var formals = unit.Data.LinkageFormals;
-        RoundTrip(unit.Name, formals.Select(f => (f.Item, f.Position, f.ByValue, f.Optional)).ToList(), unit.Data.LinkageReturning,
+        var formals = unit.Data.Linkage.Formals;
+        RoundTrip(unit.Name, formals.Select(f => (f.Item, f.Position, f.ByValue, f.Optional)).ToList(), unit.Data.Linkage.Returning,
             decoded.Formals, decoded.Returning);
-        Assert.True(PrototypeSignatures.Same(new CalleeSignature(formals, unit.Data.LinkageReturning), decoded.Signature),
+        Assert.True(PrototypeSignatures.Same(new CalleeSignature(formals, unit.Data.Linkage.Returning), decoded.Signature),
             $"{unit.Name}: the decoded signature is not the same as the unit's (PrototypeSignatures.Same)");
     }
 

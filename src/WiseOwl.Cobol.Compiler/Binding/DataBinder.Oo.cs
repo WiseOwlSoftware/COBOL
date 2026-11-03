@@ -464,7 +464,7 @@ public sealed partial class DataBinder
         foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
         {
             root.ActivationLocal = new MethodDataLocal(root);
-            _callSuppressedRootFields.Add(root.ClrName);
+            Linkage.SuppressRootField(root.ClrName);
         }
 
         // The PD header formals (§14.2.2 SR1 — level-01/77 LINKAGE entries; correspondence is positional).
@@ -513,7 +513,7 @@ public sealed partial class DataBinder
                 // carrier (ISO §14.2.3 GR8; kb/Work PB2087, the method arm of CallBindLinkage's rule): every place built
                 // over it starts at the carrier's local root (PlaceBuilder.AddRoot; kb/Work PB4320, PB4380), and no
                 // local of its own is declared — the method's linkage roots were all suppressed above.
-                bool resident = FormalIsCarrierResident(item, m.Binding!.LinkageRoots, addressed);
+                bool resident = LinkageBinder.FormalIsCarrierResident(item, m.Binding!.LinkageRoots, addressed);
                 var formal = new OoFormal(item, pos, OoParamName(m, item, pos), optional, byValue, resident);
                 if (resident) item.ResidentCarrier = new FormalCarrier.Local(formal.Carrier);
                 m.Binding!.Formals.Add(formal);
@@ -535,7 +535,7 @@ public sealed partial class DataBinder
             m.Owner is { } owner ? $"class '{owner.Name}'{(m.IsFactory ? " (FACTORY)" : "")}: " : "");
         // §13.7.3 SR4: which of the method's linkage records its procedure division may reference — the ONE decision
         // the program/function arm takes at the same point (SR5 bars a FUNCTION's formals, so a method has none).
-        SealLinkageRules(m.Binding!.LinkageRoots, m.Binding!.Formals.Select(f => f.Item).ToList(),
+        Linkage.SealLinkageRules(m.Binding!.LinkageRoots, m.Binding!.Formals.Select(f => f.Item).ToList(),
             m.Binding!.Returning, function: false);
         // The method's PD-header RAISING phrase (§14.2.1): the ONE partition every header arm calls
         // (RaisingPhrase — kb/Work PB815/PB814; D-EO8), so the method arm and the program arm cannot disagree.
@@ -994,7 +994,7 @@ public sealed partial class DataBinder
 
     /// <summary>Route a method-scoped Tier-B REDEFINES class's ONE string backing to its method LOCAL (M2-OO-1h
     /// step 3): a method LOCAL-STORAGE / LINKAGE canonical → a method LOCAL (suppressed from the class-level field
-    /// loop via <see cref="CallSuppressedRootFields"/>, emitted in <c>OoEmitMethod</c>). A method owns no
+    /// loop via <see cref="LinkageBinder.SuppressedRootFields"/>, emitted in <c>OoEmitMethod</c>). A method owns no
     /// WORKING-STORAGE (§13.5.3 SR1 — COBOL1519), so there is no static arm. Runs after
     /// <c>ClassifyRedefinesClasses</c>. A subordinate (02) canonical rides its root's composed initializer and
     /// needs no routing (its backing is a member of the method-local root struct already).</summary>
@@ -1002,6 +1002,6 @@ public sealed partial class DataBinder
     {
         foreach (var root in OoMethodScopedRoots)
             if (root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root))
-                _callSuppressedRootFields.Add(cls.BackingClrName);   // emitted as a method local
+                Linkage.SuppressRootField(cls.BackingClrName);   // emitted as a method local
     }
 }

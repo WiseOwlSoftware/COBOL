@@ -75,7 +75,7 @@ public sealed class ModelAccessStructureTests
 
         // Every data item of every unit keeps a NAME — the carrier-resident formal included.
         var notNames = comp.Units
-            .SelectMany(u => u.Data.Roots.Concat(u.Data.LinkageRoots))
+            .SelectMany(u => u.Data.Roots.Concat(u.Data.Linkage.Roots))
             .SelectMany(DataItem.SelfAndDescendantsOf)
             .Where(d => !Identifier.IsMatch(d.ClrName))
             .Select(d => $"{d.CobolName}: '{d.ClrName}'")
@@ -84,7 +84,7 @@ public sealed class ModelAccessStructureTests
         Assert.True(notNames.Count == 0, "A DataItem.ClrName holds access text, not a name: " + string.Join(", ", notNames));
 
         // The carrier-resident formal: its storage is reached through its carrier, a structural step.
-        var formal = Unit("PB4320A").Data.LinkageFormals.Single();
+        var formal = Unit("PB4320A").Data.Linkage.Formals.Single();
         Assert.True(formal.CarrierResident);
         Assert.Equal(new FormalCarrier.Member(formal.CarrierField), formal.Item.ResidentCarrier);
         var place = Assert.IsType<MemberPlace>(Unit("PB4320A").Refs.Places.ResolveItem(formal.Item));

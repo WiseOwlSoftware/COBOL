@@ -30,6 +30,37 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The next unique id for a data item this binder creates (a report's page counter, a sum counter's register).</summary>
     internal int NextUid() => _uidCounter++;
 
+    /// <summary>Seed the unique-id counter so every unit of a multi-program compilation gets a disjoint
+    /// <c>_T_n</c> / <c>_P_n</c> band — a nested program class would otherwise SHADOW its container's struct and
+    /// profile names, silently re-typing inherited GLOBAL references (the emitter seeds one band per unit).</summary>
+    internal void CallSeedUids(int start) => _uidCounter = start;
+
+    /// <summary>The LINKAGE / EXTERNAL / GLOBAL binder of this source element (<see cref="LinkageBinder"/>; kb/Work
+    /// PB2359): the linkage facts — roots, USING formals, RETURNING item, EXTERNAL backings, GLOBAL roots — and the
+    /// writers of them. Created on first use, because it binds over this binder's forest.</summary>
+    internal LinkageBinder Linkage => _linkage ??= new LinkageBinder(this);
+    private LinkageBinder? _linkage;
+
+    /// <summary>True when this binder binds a CONTAINED program unit (ISO §13.18.2.3 SR2/SR3 — the ANY LENGTH
+    /// placement rules differ per unit kind). Set by <c>BinderDriver.BindUnitData</c> from the unit's Parent.</summary>
+    public bool UnitIsContained { get; init; }
+
+    /// <summary>True when this binder binds a FUNCTION-ID unit (ISO §13.18.2.3 SR2/SR4). Set by
+    /// <c>BinderDriver.BindUnitData</c> from <c>BoundUnit.IsFunction</c>.</summary>
+    public bool UnitIsFunction { get; init; }
+
+    /// <summary>The names of the definitions CONTAINING this source element — its own and, for a contained program,
+    /// every program containing it; all of the unit's own kind (<see cref="UnitIsFunction"/>) — the no-specifier leg
+    /// of the two prototype-name scope rules: ISO §8.4.6.6 admits "the user-function-name of the containing function
+    /// definition" as a function-prototype-name and §8.4.6.8 "the program-name of a containing program definition"
+    /// as a program-prototype-name, so a <c>USAGE {FUNCTION|PROGRAM}-POINTER TO</c> naming one is conforming without
+    /// a REPOSITORY entry. This is the DATA-phase copy of the ONE set the registries read
+    /// (<c>BinderDriver.ContainingDefinitions</c>, which seeds it from <c>BindUnitData</c>), so the TO-phrase screen
+    /// and the signature the restriction resolves to cannot disagree (kb/Work PB3121). Empty for a class, factory or
+    /// interface forest: a class is neither definition kind. kb/Work PB452/PB817.</summary>
+    public IReadOnlySet<string> ContainingDefinitionNames { get; init; } = EmptyNames;
+    private static readonly IReadOnlySet<string> EmptyNames = new HashSet<string>(CobolNames.Comparer);
+
     /// <summary>The targeted-edition context (digit caps, bind-time rejection diagnostics). Defaults to the
     /// latest edition for direct test construction; <c>CompilerDriver</c> always supplies the CLI's
     /// <c>--std</c>.</summary>
@@ -196,6 +227,83 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     public IEnumerable<DataItem> DeclaredCapacityRegisterTables =>
         CapacityRegisters.Values.SelectMany(static t => t).Where(t => DeclaringDepth(t) == 0)
             .Concat(_ooBoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t));
+
+    /// <summary>⛔ THE NESTING DISTANCE OF EVERY INHERITED GLOBAL DECLARATION (kb/Work PB1047 / PB1243) — the tier
+    /// ISO §8.4.6.2.1 3) selects on. Absent = 0: the item is this source element's own. n = the item is a global
+    /// name of the n-th containing program. Keyed by identity, because the SAME container item is inherited into
+    /// every contained program at a different distance.</summary>
+    private readonly Dictionary<DataItem, int> _inheritedGlobalDepth = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>How many containment levels out <paramref name="item"/> is declared: 0 for an item this source
+    /// element declares (or any item of a unit that inherits nothing), n for a GLOBAL item of its n-th container.</summary>
+    internal int DeclaringDepth(DataItem item) =>
+        _inheritedGlobalDepth.Count != 0 && _inheritedGlobalDepth.TryGetValue(item, out int depth) ? depth : 0;
+
+    /// <summary>True when this unit inherits any container's global data — the only case in which a candidate set
+    /// can span tiers, so the nearest-tier filter is free for every other unit.</summary>
+    internal bool InheritsGlobalData => _inheritedGlobalDepth.Count != 0;
+
+    /// <summary>⛔ THE ONE QUESTION "IS THIS WORD A DATA-NAME THIS SOURCE ELEMENT ITSELF DEFINES?" — the test behind
+    /// every rule that reads "shall not be defined elsewhere in the source element" (§13.18.38.3 SR30 for a CAPACITY
+    /// register, §13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in
+    /// ordinary storage" screens (§8.4.2.1). A container's GLOBAL data-name is inherited into <see cref="ByName"/>
+    /// before the resolve passes run (<see cref="InheritContainerGlobalData"/>), but it is defined in ANOTHER source
+    /// element: this element's own declaration of the spelling hides it (§8.4.6.2.1 3), so it can neither duplicate
+    /// nor be duplicated by it. Asking <c>ByName.ContainsKey</c> instead refuses a legal program (kb/Work PB3766,
+    /// review finding R2-1).</summary>
+    internal bool DeclaresOwnDataName(string name) =>
+        ByName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
+
+    /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2),
+    /// beside <see cref="ReportSectionBinder.InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
+    /// names are declared, so a name it declares hides the container's (§8.4.6.2.1 3), and BEFORE
+    /// <see cref="BindResolve"/>, so every clause of this unit's own data division that names a data item (FILE
+    /// STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) finds the container's GLOBAL item.
+    /// Inheriting after the whole <c>Bind</c> told a programmer that a name the container declares GLOBAL "is not
+    /// defined" (the data-item twin of kb/Work PB3766's report case).</summary>
+    private void InheritContainerGlobalData()
+    {
+        foreach (var (root, depth) in State.Inherited.DataRoots)
+            InheritGlobalSubtree(root, depth);
+    }
+
+    /// <summary>Make one container GLOBAL root's whole subtree visible here, <paramref name="depth"/> containment
+    /// levels out (ISO §13.18.27.4 GR2 — "may reference that name without describing it again"): every data-name
+    /// (§8.4.6.2.2: "All data-names and screen-names subordinate to a global name are global names"), every
+    /// condition-name associated with one ("All condition-names associated with a global name are global names"),
+    /// every level-66 RENAMES of the record, and — by §8.4.6.2.3, "the scope of an index-name is identical to that
+    /// of the data-name that names the table" — every index-name (kb/Work PB919), and every named OCCURS DYNAMIC
+    /// CAPACITY register, which §13.18.38.3 SR30 treats "as though implicitly defined at the same level as the entry
+    /// containing the OCCURS clause" — subordinate to the global record, so a global name (kb/Work PB1674). ⛔ THESE
+    /// ARE EVERY NAME CLASS A DATA DESCRIPTION ENTRY DECLARES, and <c>GlobalNameClassDriftTests</c> keeps the list
+    /// total: a name index this binder gains is inherited here or excluded there with its reason. Each item carries its depth, so
+    /// a nearer declaration of the same spelling wins by §8.4.6.2.1 3) at REFERENCE time
+    /// (<see cref="Model.SymbolTable.NearestDeclaring{T}"/>), not by being left out here. Called nearest container
+    /// first, after this unit's own names are declared (the end of <see cref="BindDeclarations"/>), so each
+    /// ByName list stays in nearest-first order. The cells stay the container's: this unit reaches them through the GLOBAL bridge
+    /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and never emits them.</summary>
+    internal void InheritGlobalSubtree(DataItem item, int depth)
+    {
+        _inheritedGlobalDepth[item] = depth;
+        if (item.CobolName is { } name)
+        {
+            if (!ByName.TryGetValue(name, out var list)) ByName[name] = list = [];
+            list.Add(item);
+        }
+        foreach (var cond in item.Own88s)
+        {
+            if (!Conditions.TryGetValue(cond.Name, out var conds)) Conditions[cond.Name] = conds = [];
+            conds.Add(cond);
+        }
+        foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
+        // Placed by depth (AddCapacityRegister): this element's own registers, minted later by DynamicResolve, sort
+        // in before it, a nearer container's before a farther one's — the order
+        // ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
+        // failed that compile and has no CapacityRegister view to inherit.
+        if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) AddCapacityRegister(_capacityRegisters, cap, item);
+        foreach (var child in item.Children) InheritGlobalSubtree(child, depth);
+        foreach (var ren in item.Renames66) InheritGlobalSubtree(ren, depth);
+    }
 
     /// <summary>The report description entries this unit declares and the GLOBAL ones it inherits, with the sum counters
     /// and the name lookups over them (<see cref="ReportScope"/>; kb/Work PB2357): written by <see cref="ReportSection"/>
@@ -632,7 +740,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
         // LINKAGE SECTION roots + the PROCEDURE DIVISION header's USING/RETURNING formals (ISO §13.7 / §14.2.2;
         // INTERPROGRAM_DESIGN D1/D3 — bound into the same forest so every verb works unchanged).
-        CallBindLinkage(program, _rootNames);
+        Linkage.CallBindLinkage(program, _rootNames);
 
         // The constant entries nothing has needed yet — a length phrase waiting for an operand described after it
         // binds here, with its operand bound (kb/Work PB1231).
@@ -650,6 +758,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// trap-#6 guard at the NAME level). Seeded with the program class's own members (<c>Call</c>, <c>CloseFiles</c>,
     /// …), so a record spelled like one is allocated a free name (kb/Work PB2093).</summary>
     private readonly CsNameScope _rootNames = CsNameScope.ProgramClass();
+
+    /// <summary>Reserve the C# member names a container's GLOBAL roots occupy in this unit's class
+    /// (<see cref="InheritedMemberNamesOf"/>), BEFORE this unit's data division binds, so a local root spelled like
+    /// a container's global root takes a distinct field name (<c>G_2</c>) — and every member derived from it a
+    /// distinct name — instead of colliding with a bridge (kb/Work PB1047 — every global root is bridged now,
+    /// including one a local declaration hides by §8.4.6.2.1 3) a), because its subordinate names remain
+    /// visible).</summary>
+    internal void ReserveInheritedMemberNames(IEnumerable<string> names) => _rootNames.Reserve(names);
 
     /// <summary>The resolution half of <see cref="Bind"/> — the post-build passes over the COMPLETE forest, driven by
     /// the DECLARED <see cref="BindPipeline"/> (rearchitecture PHASE 05 Step 3 / PHASE 06 Step 3; DESIGN-data-model
@@ -719,7 +835,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// first item links to that parent and the walk attaches it at its source position (<see cref="TakePreboundEntry"/>).
     /// <paramref name="openGroup"/> marks the run as the remaining subordinate entries of a group bound ahead alone,
     /// attached under it (<see cref="CompletePreboundGroup"/>).</summary>
-    private List<DataItem> BindEntries(IEnumerable<Core.DataDescriptionEntryContext> entries, CsNameScope rootNames,
+    internal List<DataItem> BindEntries(IEnumerable<Core.DataDescriptionEntryContext> entries, CsNameScope rootNames,
         EntrySection section = EntrySection.WorkingStorage, bool outOfOrder = false, DataItem? aheadOfWalkParent = null,
         DataItem? openGroup = null)
     {
@@ -6646,7 +6762,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// forest, and the LINKAGE formals and the RETURNING item with their subordinates - a formal a method declares can sit
     /// outside <see cref="Roots"/>. Each item once.</summary>
     internal IEnumerable<DataItem> PlaceableItems() => AllItems()
-        .Concat(LinkageFormals.Select(f => f.Item).Concat(LinkageReturning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
+        .Concat(Linkage.Formals.Select(f => f.Item).Concat(Linkage.Returning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
         .Distinct(ReferenceEqualityComparer.Instance).Cast<DataItem>();
 
     /// <summary>The items of <see cref="PlaceableItems"/> a CONTAINED program may name: the ones of a global record
@@ -6711,7 +6827,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The shared spine of the two forests: <see cref="Roots"/> + <see cref="TypeDecls"/> templates, pre-order
     /// DFS in declaration order, pruning the OO/UDF compiler temps recorded in <see cref="CompilerTempClones"/>.
     /// ⛔ <see cref="LinkageRoots"/> is NOT concatenated: <c>BindEntries</c> puts every LINKAGE 01/77 on
-    /// <see cref="Roots"/> as well (DataBinder.Linkage.cs: "LINKAGE 01/77 items bind into the ordinary storage
+    /// <see cref="Roots"/> as well (LinkageBinder.cs: "LINKAGE 01/77 items bind into the ordinary storage
     /// forest"), so walking both yielded every linkage item TWICE to every per-item pass (measured on a two-root
     /// LINKAGE SECTION: four items; found by kb/Work PB516's drift test).</summary>
     internal IEnumerable<DataItem> DeclaredForest()

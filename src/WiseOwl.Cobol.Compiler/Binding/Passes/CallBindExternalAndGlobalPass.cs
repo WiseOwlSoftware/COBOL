@@ -31,5 +31,5 @@ internal sealed class CallBindExternalAndGlobalPass(Core.ProgramUnitContext prog
     public PassViews Views => PassViews.Appends(FactSetKind.ImageForcedItems);
 
     /// <inheritdoc/>
-    public void Run(DataBinder binder) => binder.CallBindExternalAndGlobal(program);
+    public void Run(DataBinder binder) => binder.Linkage.CallBindExternalAndGlobal(program);
 }

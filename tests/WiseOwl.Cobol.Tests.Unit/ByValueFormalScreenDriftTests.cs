@@ -22,7 +22,7 @@ public sealed class ByValueFormalScreenDriftTests
     private static string Compiler(params string[] parts) => File.ReadAllText(TestRepo.Src(["WiseOwl.Cobol.Compiler", .. parts]));
 
     [Theory]
-    [InlineData("Binding", "DataBinder.Linkage.cs")]
+    [InlineData("Binding", "LinkageBinder.cs")]
     [InlineData("Binding", "DataBinder.Oo.cs")]
     public void EveryHeaderArm_AsksTheOneByValueClassScreen_AndSpellsNoClassSetOfItsOwn(string folder, string file)
     {

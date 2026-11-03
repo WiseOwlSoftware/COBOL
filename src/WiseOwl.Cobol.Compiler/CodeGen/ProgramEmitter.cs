@@ -294,10 +294,10 @@ internal sealed class ProgramEmitter
         BeginUnit(w, data, unit.Places);
         var places = Current.Places;
         _callState.SelfPath = unit.RegistryKey;
-        _callState.ReturningPlace = data.LinkageReturning is { } ret ? places.Of(ret) : null;
+        _callState.ReturningPlace = data.Linkage.Returning is { } ret ? places.Of(ret) : null;
         // §8.8.4.8.4 GR1c forwarding (kb/Work PB165) — of this unit's own formals AND of every container formal it sees
         // as a GLOBAL name, whose forward passes on the same carrier, presence and argument area (kb/Work PB2096).
-        _callState.Formals = [.. data.LinkageFormals, .. unit.InheritedFormals];
+        _callState.Formals = [.. data.Linkage.Formals, .. unit.InheritedFormals];
         _ecState.UnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
         _ecState.UnitHasF3Perform = unit.Bound.Ec?.HasF3Perform ?? false;   // → __EcPerform + the F3-frame interceptor (§14.9.28)
         _ecState.UnitHasF4 = unit.Bound.Declaratives?.Any(d => d.Eo is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
@@ -328,7 +328,7 @@ internal sealed class ProgramEmitter
         // group / redefined / addressed one) is laid over its argument's cell, and its crossing names the carrier it
         // is FILLED from when the argument has no cell (kb/Work PB2087) — a variable-length group formal's is its
         // §8.5.1.12 component carrier (kb/Work PB2094).
-        var formals = data.LinkageFormals
+        var formals = data.Linkage.Formals
             .Select(f =>
             {
                 Place? place = f.CarrierResident ? null : places.Of(f.Item);
@@ -645,15 +645,15 @@ internal sealed class ProgramEmitter
             // RETURNING item keeps the last-used state every other program RETURNING item keeps).
             if (!unit.Initial && !unit.Recursive)
                 foreach (var (member, _, fresh, _) in _oo.ActivationPointerSeeds(unit.Data, unit.Data.LocalStorageRoots
-                             .Concat(unit.Data.LinkageRoots.Where(r => !ReferenceEquals(r, unit.Data.LinkageReturning)
-                                 && !unit.Data.LinkageFormals.Any(f => ReferenceEquals(f.Item, r))))))
+                             .Concat(unit.Data.Linkage.Roots.Where(r => !ReferenceEquals(r, unit.Data.Linkage.Returning)
+                                 && !unit.Data.Linkage.Formals.Any(f => ReferenceEquals(f.Item, r))))))
                     w.Line($"{member} = {fresh};   // per-activation data-pointer storage (ISO §14.6.2.3.2 action 5; §8.6.4; §8.6.5)");
             if (!unit.Initial && !unit.Recursive && unit.Data.LocalStorageRoots.Count > 0)
             {
                 var fields = new DataEmitter(Current.Ctx);
                 foreach (var root in unit.Data.LocalStorageRoots)
                 {
-                    if (unit.Data.CallSuppressedRootFields.Contains(root.ClrName)) continue;
+                    if (unit.Data.Linkage.SuppressedRootFields.Contains(root.ClrName)) continue;
                     if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view — no field
                     if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the ONE string backing
                         w.Line($"{bkl.Name} = {bkl.Init};   // LOCAL-STORAGE {root.CobolName} (Tier-B backing) — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
@@ -662,7 +662,7 @@ internal sealed class ProgramEmitter
                     else
                         w.Line($"{root.ClrName} = {fields.RootDecl(root).Init};   // LOCAL-STORAGE {root.CobolName ?? "FILLER"} — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
                     foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
-                        if (!unit.Data.CallSuppressedRootFields.Contains(idx.Cell))
+                        if (!unit.Data.Linkage.SuppressedRootFields.Contains(idx.Cell))
                             w.Line($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name} (LOCAL-STORAGE table cell)");
                 }
             }
@@ -872,10 +872,10 @@ internal sealed class ProgramEmitter
                 // EC-PROGRAM-ARG-MISMATCH checking where §14.8.2.1 says the argument count shall equal the
                 // formal count (kb/Work PB1040's sweep). The RETURNING item's fixed character length rides the
                 // same registration (§14.8.3.3 via GR3d), when it has one.
-                int fc = u.Data.LinkageFormals.Count;
+                int fc = u.Data.Linkage.Formals.Count;
                 int rq = fc;
-                while (rq > 0 && u.Data.LinkageFormals[rq - 1].Optional) rq--;
-                string? retItem = u.Data.LinkageReturning is { } ri && u.Places.Of(ri) is { } retPlace
+                while (rq > 0 && u.Data.Linkage.Formals[rq - 1].Optional) rq--;
+                string? retItem = u.Data.Linkage.Returning is { } ri && u.Places.Of(ri) is { } retPlace
                     ? Current.Call.RegisteredReturning(retPlace, describe: u.Data.State.UnitChecking.ArgMismatchChecking) : null;
                 // Each FORMAL's registered description (kb/Work PB165), for §14.8.2's argument comparison at a dynamic
                 // CALL — the whole description only by a unit that checks EC-PROGRAM-ARG-MISMATCH itself (GR3d's activated
@@ -885,7 +885,7 @@ internal sealed class ProgramEmitter
                 // pointers or ANY LENGTH items and that does not check keeps its Register line as it was. The record builder
                 // reads only the formal's own description (its PicInfo carries its currency sign and decimal point), so the
                 // current unit's emitters render it for every unit.
-                var formalItems = u.Data.LinkageFormals.Select(f => u.Places.Of(f.Item) is { } fp
+                var formalItems = u.Data.Linkage.Formals.Select(f => u.Places.Of(f.Item) is { } fp
                     ? Current.Call.RegisteredFormal(fp, describe: u.Data.State.UnitChecking.ArgMismatchChecking)
                     : RuntimeApi.UnstatedBoundaryItem).ToList();
                 string formalsText = formalItems.Any(s => s != RuntimeApi.UnstatedBoundaryItem)

@@ -65,7 +65,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // A formal whose area the cell cannot carry keeps the image round trip at the boundary (CellCanCarry).
         // A METHOD's formals take the same rule (the method arm, kb/Work PB2087): the pointer is the formal's per-activation
         // data-address member (OoFormal.AreaPointerClrName), set at each activation to the argument's area.
-        var areaFormals = binder._linkageFormals.Where(f => !f.CarrierResident).Select(f => (f.Item, Pointer: f.CarrierField))
+        var areaFormals = binder.Linkage.Formals.Where(f => !f.CarrierResident).Select(f => (f.Item, Pointer: f.CarrierField))
             .Concat(binder.OoBoundMethods.SelectMany(m => m.Binding?.Formals ?? []).Where(f => !f.CarrierResident)
                 .Select(f => (f.Item, Pointer: f.AreaPointerClrName)));
         foreach (var (item, pointer) in areaFormals)
@@ -85,9 +85,9 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // harmless — it changes where the value lives, never what it is.)
         // ⛔ A UNIT WITH NO GLOBAL NAME HAS NO CONTAINED PROGRAM TO ASK ABOUT (kb/Work PB4302): both claim loops below keep a
         // contained head only when it resolves among this unit's GLOBAL roots (ResolveStorageClaimHead's contained arm, then
-        // `CallGlobalRoots.Contains(root)`), so a unit that declares none can claim nothing from any program it contains — and
+        // `Linkage.GlobalRoots.Contains(root)`), so a unit that declares none can claim nothing from any program it contains — and
         // the question is not asked of them, instead of resolving every contained operand to throw it away.
-        Core.NestedProgramContext[] containedPrograms = binder.CallGlobalRoots.Count == 0 ? [] : program.nestedProgram();
+        Core.NestedProgramContext[] containedPrograms = binder.Linkage.GlobalRoots.Count == 0 ? [] : program.nestedProgram();
         var targets = PtrScanAddressOfTargets(binder, program).Select(t => (t.Name, t.Qualifiers, t.Method, Contained: false))
             .Concat(containedPrograms.SelectMany(binder.ClaimScans.AddressTargets)
                 .Select(t => (t.Name, t.Qualifiers, Method: (OoMethodSymbol?)null, Contained: true)));
@@ -103,7 +103,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
                 continue;   // unresolved or ambiguous (the SET bind reports 0869 with the source text), or a container's GLOBAL item (declined, the container claims it; no 0869 follows)
             DataItem root = hit;
             while (root.Parent is { } p) root = p;
-            if (contained && !binder.CallGlobalRoots.Contains(root)) continue;   // not a global name — not this unit's to force
+            if (contained && !binder.Linkage.GlobalRoots.Contains(root)) continue;   // not a global name — not this unit's to force
             if (binder.AlreadyInACell(root)) continue;
             if (binder.ForceStringCanonical(root, "ADDRESS OF target record") is not { } cls) continue;   // rejected → loud
             binder.ClaimAddressableCell(cls);
@@ -145,7 +145,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             // Either needs the operand in a cell; every other BY CONTENT operand or RETURNING receiver crosses as a value.
             if (slotsOnly && !WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(hit)) continue;
             DataItem root = hit.Root;
-            if (contained && !binder.CallGlobalRoots.Contains(root)) continue;
+            if (contained && !binder.Linkage.GlobalRoots.Contains(root)) continue;
             if (binder.AlreadyInACell(root) || root.Section is EntrySection.Linkage || !DataBinder.CellCanCarry(root)) continue;
             // Object data never crosses an INVOKE BY REFERENCE (§14.9.23.3 SR10: "Identifier-3 shall not reference a data
             // item defined in the file or working-storage section of a factory or instance object"), so a bare one is
@@ -158,7 +158,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // group with an object-reference or pointer leaf is delivered as its AREA (§14.6.5 — "the content of the data item
         // referenced by that RETURNING phrase"; CobolArgAdapt.StoreReturnArea), its characters and its references into the
         // receiver's area, so the item itself lives in a cell.
-        if (!binder.OoIsClassUnit && binder.LinkageReturning is { } ret)
+        if (!binder.OoIsClassUnit && binder.Linkage.Returning is { } ret)
             binder.ClaimSlotCarriedCell(ret, "RETURNING item");
     }
 
@@ -190,7 +190,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         if (quals.Count == 0)
         {
             if (!binder.Symbols.TryResolveUnqualified(name, scope, out var candidates)) return null;
-            if (contained) candidates = candidates.FindAll(c => binder.CallGlobalRoots.Contains(c.Root));
+            if (contained) candidates = candidates.FindAll(c => binder.Linkage.GlobalRoots.Contains(c.Root));
             hit = candidates.Count == 1 || (firstOfSeveral && candidates.Count > 0) ? candidates[0] : null;
         }
         else

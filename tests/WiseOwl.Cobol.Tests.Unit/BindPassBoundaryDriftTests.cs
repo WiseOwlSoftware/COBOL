@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// class once, each in a file named for it (the drift that left a pass class unregistered, or a lambda row beside the
 /// classes, is a red test);</item>
 /// <item>a pass that owns its body leaves no method of its entry's name on <c>DataBinder</c> (a forwarder would be a second
-/// way to run the pass); the four rows whose rule code belongs to a concern binder still to come
+/// way to run the pass); the rows whose rule code belongs to a concern binder still to come
 /// (<see cref="ConcernOwned"/>) are the named exceptions, and the list is closed: a row leaves it when its concern binder
 /// lands, and a stale entry fails here;</item>
 /// <item>a pass's own source never appends to a fact set its <see cref="IPassInfo.Views"/> does not declare, and while a
@@ -33,10 +33,10 @@ public sealed class BindPassBoundaryDriftTests
 {
     /// <summary>The rows whose rule code lives with a concern binder that has not landed yet: the pass only schedules it
     /// (<c>DataBinder.ResolveFiles</c> is the <c>FileControlBinder</c> concern, PB2356;
-    /// <c>CallBindExternalAndGlobal</c> the <c>LinkageBinder</c>, PB2359; <c>OoRouteMethodRedefinesBackings</c> the
-    /// <c>OoDataBinder</c>, PB2360). <c>ResolveReports</c> left the list when <c>ReportSectionBinder</c> landed (PB2357).</summary>
+    /// <c>OoRouteMethodRedefinesBackings</c> the <c>OoDataBinder</c>, PB2360). <c>ResolveReports</c> left the list when
+    /// <c>ReportSectionBinder</c> landed (PB2357), <c>CallBindExternalAndGlobal</c> when <c>LinkageBinder</c> did (PB2359).</summary>
     private static readonly string[] ConcernOwned =
-        ["ResolveFiles", "CallBindExternalAndGlobal", "OoRouteMethodRedefinesBackings"];
+        ["ResolveFiles", "OoRouteMethodRedefinesBackings"];
 
     private static IReadOnlyList<IBindPass> Rows => BindPipeline.Build(program: null!);
 

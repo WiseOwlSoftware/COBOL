@@ -389,7 +389,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 | 9 | S | `Binding/DataBinder.cs` (1723) | `Binding/DataDivision/DataBinder.cs` (thin) + `EntryTreeBuilder.cs` + `Passes/*Pass.cs` | Orchestrator vs builder vs passes |
 | 10 | S/M | `Binding/DataBinder.Switches.cs` | `Binding/SpecialNamesBinder*.cs` (landed, PB2355; flat in `Binding/`, one partial per clause family) | ENV-division concern, not DATA |
 | 11 | S/M | `DataBinder.Reports.cs` | `Binding/ReportSectionBinder.cs` + `Binding/ReportScope.cs` + `Binding/ReportModel.cs` (kb/Work PB2357; the binders sit flat in `Binding/`, as `InheritStep.cs` and `DataBindState.cs` do) | Self-contained |
-| 12 | S/M | `DataBinder.Linkage.cs` | `Binding/DataDivision/LinkageBinder.cs` | |
+| 12 | S/M | (`DataBinder.Linkage.cs`, done: kb/Work PB2359) | `Binding/LinkageBinder.cs` (the folder move waits for the namespace-layout wave) | |
 | 13 | S/M | `DataBinder.Ptr.cs` | `Binding/DataDivision/PointerBinder.cs` | |
 | 14 | S/M | `DataBinder.Oo.cs` | `Oo/OoMethodDataBinder.cs` | One OO home |
 | 15 | C | (FILE-CONTROL/FD/I-O-CONTROL logic in DataBinder.cs) | `Binding/FileControlBinder*.cs` (FILE-CONTROL and I-O-CONTROL landed, PB2356; flat in `Binding/`; `ResolveFiles` and the FD/SD binding still in DataBinder) | Extract file concern |

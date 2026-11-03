@@ -994,7 +994,7 @@ internal sealed class VersionConformancePass
         // COBOL-2002 introductions on a data-description entry, ALL parse-arm (recognition). None needs a resolved
         // fact — each is a single dataDescriptionClause alternative, so the parse node IS the identity — and a
         // bound-arm home would DROP the 0900 on a declaration-error path (the DEVLOG-724 flaw): DataItem.IsBased is
-        // reset to false for a LINKAGE item (DataBinder.Linkage.cs); DataItem.TypeRefName is nulled by ExpandTypes
+        // reset to false for a LINKAGE item (LinkageBinder.cs); DataItem.TypeRefName is nulled by ExpandTypes
         // the moment the clone is materialized; the PROPERTY identity is consumed entirely by the OO property binder;
         // and — the 14g.2-review correction (DEVLOG 734) — although DataItem.IsTypedef is init-only, the typedef
         // ITEM is discarded from ConformanceForest whenever RegisterTypeDecl rejects it (an unnamed/FILLER typedef, a
@@ -1665,7 +1665,7 @@ internal sealed class VersionConformancePass
         /// §14.2 header vs §14.9.4 statement). Fires on RECOGNITION, once per BY VALUE parameter phrase, in
         /// programs, functions, AND methods alike (a method-header occurrence below 2002 is already inside the
         /// gated class construct — the extra where-string only sharpens the report). The §14.2.2 SR2 class
-        /// restriction and the §14.2.3 GR10 value-copy semantics stay bind-time (DataBinder.CallBindLinkage).</summary>
+        /// restriction and the §14.2.3 GR10 value-copy semantics stay bind-time (LinkageBinder.CallBindLinkage).</summary>
         public override object? VisitUsingByValue(CobolParserCore.UsingByValueContext ctx)
         {
             _p.Check(Constructs.PdHeaderByValue2002, "the PROCEDURE DIVISION USING BY VALUE phrase");

@@ -74,7 +74,7 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
     private static void RouteStaticRoot(DataBinder binder, DataItem root, string section)
     {
         if (root.Class is { Tier: RedefinesTier.StringCanonical } cls
-            && binder.CallExternalBackings.Any(b => b.BackingClrName == cls.BackingClrName))
+            && binder.Linkage.ExternalBackings.Any(b => b.BackingClrName == cls.BackingClrName))
             return;   // an EXTERNAL-backed class (canonical AND views) — run-unit cell storage (§14.6.2.3.3), not a class static
         if (root.IsBased)
         {

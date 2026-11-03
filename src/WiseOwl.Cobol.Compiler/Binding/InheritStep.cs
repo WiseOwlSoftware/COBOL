@@ -47,15 +47,15 @@ internal static class InheritStep
             inherited.AddContainerTypeDecls(anc.Data.TypeDecls);
             // …and its files' names (§13.18.27.4 GR1): the data division's own resolutions ask whether a name that is no
             // data item IS a visible file-name (kb/Work PB3557).
-            inherited.AddContainerFiles(anc.Data.Files, anc.Data.CallGlobalRoots, depth);
+            inherited.AddContainerFiles(anc.Data.Files, anc.Data.Linkage.GlobalRoots, depth);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the bridges are
         // emitted for every global root (Merge), so a LOCAL root spelled like one (the §8.4.6.2.1 3) a) shadowing case)
         // must take another C# name — its stem too, or a member DERIVED from the stem (a REDEFINES backing) would re-spell
-        // the bridge (DataBinder.InheritedMemberNamesOf).
+        // the bridge (LinkageBinder.InheritedMemberNamesOf).
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var g in anc.Data.CallGlobalRoots)
-                data.ReserveInheritedMemberNames(anc.Data.InheritedMemberNamesOf(g));
+            foreach (var g in anc.Data.Linkage.GlobalRoots)
+                data.ReserveInheritedMemberNames(anc.Data.Linkage.InheritedMemberNamesOf(g));
     }
 
     /// <summary>Write the merge half of <paramref name="unit"/>'s inheritance, after its data phases: its binder is
@@ -66,7 +66,7 @@ internal static class InheritStep
         var data = unit.Data;
         // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent binds before
         // its children), so the GLOBAL bridge below can carry a guarded root's presence member.
-        EcBinder.MarkFormals(data.LinkageFormals, kind, turn);
+        EcBinder.MarkFormals(data.Linkage.Formals, kind, turn);
 
         var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (anc, g, depth) in ContainerGlobalRootsOf(unit))
@@ -80,7 +80,7 @@ internal static class InheritStep
             // can name ONE member — the records of a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its
             // anchor share one field — and a member declared twice is CS0102. The member names are unique along the
             // container chain (ReserveInheritedMemberNames), so equal names are the same member.
-            foreach (var bridge in anc.Data.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
+            foreach (var bridge in anc.Data.Linkage.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
                 if (bridgedMembers.Add(bridge.MemberClrName)) unit.Bridges.Add(bridge);
         }
 
@@ -105,7 +105,7 @@ internal static class InheritStep
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             depth++;
-            foreach (var g in anc.Data.CallGlobalRoots)
+            foreach (var g in anc.Data.Linkage.GlobalRoots)
                 if (g.CobolName is not null)
                     roots.Add((anc, g, depth));
         }

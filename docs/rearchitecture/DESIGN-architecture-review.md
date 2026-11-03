@@ -1077,7 +1077,7 @@ know which of them has run. And four facts ACCUMULATE across phases, which no si
   UsageCollected (`Passes/UsageCollectionPass.cs:73-110`); `StorageFormPass` reads the union (`StorageFormPass.cs:65`).
 - `ImageForcedItems` is appended at resolve time (Tier-B REDEFINES leaves at RedefinesClassified, by
   `ClassifyRedefinesClassesPass`; CALL-cell REDEFINES leaves, FILE record leaves, report print faces and the pointer pass's
-  claimed cells at FilesResolved: `DataBinder.cs:742,7567,7581`, `DataBinder.Linkage.cs:868`, `ReportSectionBinder.cs`) and during
+  claimed cells at FilesResolved: `DataBinder.cs:742,7567,7581`, `DataBinder.Ptr.cs` (`ForceStringCanonical`), `ReportSectionBinder.cs`) and during
   procedure binding (`MoveBinder`'s figurative-fill and ref-mod-store receivers, `Procedure/Verbs/MoveBinder.cs:458,551`),
   and it is read MID-BIND in statement order (`IsImageBackedEarly`, `ReferenceResolver.cs:651,1057`: "a fact recorded
   by an earlier statement's bind is visible to a later statement's; one recorded later is not", `DataBinder.cs:278-284`),
@@ -1141,7 +1141,7 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   data phases have frozen (`BinderDriver.cs:685-751`): it adds the containers' GLOBAL files to `FilesByName` by
   `TryAdd` (a local declaration shadows) and their other files to `ContainerLocalFiles`; inherits their GLOBAL reports
   (`InheritGlobalReport`) and GLOBAL subtrees with their depth (`InheritGlobalSubtree`: `ByName`, `Conditions`,
-  `IndexNames`, `DataBinder.Linkage.cs:285`) and bridges; marks the formals' omitted-argument guards (`MarkFormals`);
+  `IndexNames`, `_capacityRegisters`) and bridges; marks the formals' omitted-argument guards (`MarkFormals`);
   and drops the inherited constants a nearer name hides (`DropShadowedConstants`), nearest container first. Its seed
   half runs before `data.Bind` (`InheritGlobalConstants`, `InheritGlobalTypeDecls`, `ReserveInheritedMemberNames`,
   `BinderDriver.cs:640-654`), because the child's first phase reads it.
@@ -1314,6 +1314,17 @@ The code generator, the symbol table and `StatementBinder` read `ReportScope`, a
 the parse-context key of its refused PRESENT WHEN set into a verdict on the report model, and PB2399 moves `DataBinder.QualifierWalk`, the one SR4 qualifier walk it calls, down to the model layer), while PB2361 makes `DataBindResult` the
 carrier and leaves the type where it is; the `StatementBinder` pair keeps PB2347 beside PB2420. `ReportSectionBinder` replaces `DataBinder` as the owner of the two `Validation` pairs
 (`VersionConformancePass`, `IntegerOperandRules`).
+*`LinkageBinder` (step 9, PB2359).* `Binding/LinkageBinder.cs`, reached as `DataBinder.Linkage`, owns the LINKAGE /
+EXTERNAL / GLOBAL facts (the linkage roots, the USING formals, the RETURNING item, the EXTERNAL backings, the GLOBAL roots,
+the root fields the emitter must not declare, and the §13.7.3 SR4/SR5 referenceability sets) and every writer of them; it
+hands them out as read-only views and the emitter and the repository read them there. It binds over the forest its
+`DataBinder` owns, so it takes that binder as `SymbolTable` does (the name tables, `BindEntries` and the unit-kind facts
+stay the binder's). The old partial also held two concerns that were never the linkage binder's, and each went where its
+neighbours are: the inherited-depth tier of the name tables (`DeclaringDepth`, `InheritsGlobalData`, `DeclaresOwnDataName`,
+`InheritGlobalSubtree`) is in `DataBinder.cs` beside `ByName`, `Conditions` and the capacity registers it orders, and
+the cell-backing forcer (`ForceStringCanonical`, `CellCanCarry`, `AssignCellComponents`) is in `DataBinder.Ptr.cs`
+beside the BASED / ADDRESS OF claims that are its other callers. `LinkageBinderBoundaryDriftTests` pins that the views
+are read-only and that the data binder declares no member of a linkage fact type.
 *Seam:* `IBindPass` over its declared views (value slices and fact sets), `ProcedureBindState`'s three shapes, and
 `DataBindResult`; step 1 (PB2296) carries every field named above. *Steps:* PB2296,
 PB2352–PB2361.

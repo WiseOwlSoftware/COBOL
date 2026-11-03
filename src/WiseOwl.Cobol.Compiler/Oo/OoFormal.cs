@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// the argument's CARRIER (<c>ManagedPointer&lt;T&gt;</c>) plus its AREA (<see cref="AreaParam"/>, the cell the argument
 /// lives in, or null), exactly the pair a program's <c>CobolArg</c> carries. A <paramref name="CarrierResident"/>
 /// formal (an elementary one no other LINKAGE entry REDEFINES and whose ADDRESS OF is not taken — the program arm's
-/// <c>DataBinder.FormalIsCarrierResident</c>) reads and writes through the carrier on every access: its access path
+/// <c>LinkageBinder.FormalIsCarrierResident</c>) reads and writes through the carrier on every access: its access path
 /// starts at the method local <see cref="Carrier"/> (<see cref="DataItem.ResidentCarrier"/>) and steps through a
 /// <c>CarrierValueSegment</c>, while its <see cref="DataItem.ClrName"/> stays its name (kb/Work PB4320, PB4380). Every other
 /// formal is an AREA formal when a cell

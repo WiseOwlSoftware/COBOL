@@ -66,7 +66,7 @@ public sealed partial class DataBinder
     internal CellLifetime LifetimeOfCell(string cellField, DataItem canonical) =>
         StaticAddressableCells.Contains(cellField) ? CellLifetime.Static
         : OoMethodScopedRoots.Contains(canonical) || LocalStorageRoots.Contains(canonical)
-          || LinkageRoots.Contains(canonical) ? CellLifetime.Activation
+          || Linkage.Roots.Contains(canonical) ? CellLifetime.Activation
         : CellLifetime.Instance;
 
     /// <summary>The cell fields of <see cref="PtrAddressableBackings"/> whose life ends with <paramref name="lifetime"/>'s
@@ -92,7 +92,7 @@ public sealed partial class DataBinder
         root.IsBased
         || root.Class is { BasedPointerField: not null }
         || root.Class is { } existing && PtrAddressableCellOf.ContainsKey(existing)
-        || root.Class is { Tier: RedefinesTier.StringCanonical } ext && CallExternalBackings.Any(b => b.BackingClrName == ext.BackingClrName);
+        || root.Class is { Tier: RedefinesTier.StringCanonical } ext && Linkage.ExternalBackings.Any(b => b.BackingClrName == ext.BackingClrName);
 
     /// <summary>Record a forced class's per-instance cell. ⛔ THE CLASS NAMES ITS OWN CELL (kb/Work PB231): the field used
     /// to carry an ad-hoc <c>_cell_{NAME}</c> spelling that only this list knew, so a place builder could not reach the
@@ -103,5 +103,148 @@ public sealed partial class DataBinder
         string cell = cls.BackingCellClrName;
         _ptrAddressableCellOf[cls] = cell;
         _ptrAddressableBackings.Add((cls.BackingClrName, cell, cls.Canonical, cls.Width));
+    }
+
+    /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
+    /// feedback_one_mechanism_per_job): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
+    /// member, so a heap-cell-backed <c>ref</c>-property with the class's <see cref="RedefinesClass.BackingClrName"/>
+    /// can supply the storage (EXTERNAL records → the run-unit <c>ExternalStore</c> cell; ADDRESS-OF-taken items →
+    /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). Every byte-form numeric
+    /// leaf rides the cell since the Step D arm-1 dissolution (the gate reads THE ONE image predicate);
+    /// a national or pointer-class leaf fails it — the class goes Rejected and every reference fails loud
+    /// (the caller skips its bridge registration). Returns the forced class, or null on rejection.
+    /// <para>The admitted/refused population is <see cref="ByteWindowResidueOf"/>'s — THE ONE byte-window
+    /// carriage gate, shared with the REDEFINES classifier (kb/Work PB231).</para></summary>
+    internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
+    {
+        // ⛔ ONLY THE DECLARING ELEMENT DECIDES WHERE ITS STORAGE LIVES (§13.18.27.4 GR2: a contained program references a
+        // container's GLOBAL item "without describing it again"). An inherited item's class is the container's, already
+        // classified and emitted there; re-basing it from here would re-classify the container's storage and declare its
+        // cell a second time in this unit's type (merge group 41183181188). Every caller asks with storage it owns.
+        if (DeclaringDepth(item) != 0)
+            throw new InvalidOperationException($"{what} '{item.CobolName}': a container's GLOBAL item reached the "
+                + "cell-backing forcer of a contained unit; only its declaring element may re-base its storage");
+        var cls = item.Class;
+        if (cls is null)
+        {
+            cls = new RedefinesClass { Canonical = item };
+            cls.Members.Add(item);
+            item.Class = cls;
+        }
+
+        var leaves = cls.Members.SelectMany(LeavesOf).ToList();
+        // ⛔ THE SAME gate as the main classifier — literally, now: ByteWindowResidueOf, ONE predicate for
+        // both surfaces (kb/Work PB231). This site was a hand-written ALLOW-list facing ComputeTier's
+        // hand-written DENY-list, and every widening had to be applied twice. It was not: the Step D arm-1
+        // dissolution widened both (the eighth two-arm instance — ComputeTier admitted COMP/PACKED while this
+        // gate refused every non-DISPLAY leaf), but PB203's USAGE BIT widening reached only ComputeTier, so a
+        // BASED / EXTERNAL / ADDRESS-OF record with a bit leaf still rejected while its REDEFINES twin ran.
+        // §13.18.5.3 SR1/SR2 restrict a BASED subject to "shall not be of class object" and "shall not be a
+        // dynamic-length elementary item or a variable-length group"; §14.9.3.3 SR1 asks only for the BASED
+        // clause; §13.18.22 conditions EXTERNAL on nothing subordinate at all. A bit leaf is admitted by all
+        // three, so the reject was rejects-legal-source — the same argument that retired the negative fixture
+        // pb151-based-comp-leaf at the PB164 landing. Its residue clause now names the ACTUAL leaf.
+        if (CellResidueOf(leaves) is { } residue)
+        {
+            cls.Classify(RedefinesTier.Rejected, cls.Width,
+                $"{what} '{item.CobolName}' has {residue} — the shared byte cell cannot carry it");
+            return null;
+        }
+
+        // The sanctioned RE-classification (see RedefinesClass.Classify): the cell re-base overrides any prior
+        // stored-member verdict with the cell-backed Tier-B form (§13.18.22.4 GR5).
+        // The cell's area is the members' maximum STORAGE extent, in BYTES — §14.9.3.4 GR3's "the amount of
+        // storage to be allocated is the number of BYTES required to hold an item as described by data-name-1",
+        // and §13.18.44.4 GR1's larger-of-the-two for a multi-member class. Character positions are NOT that
+        // number for a NATIONAL leaf (two bytes per position, §13.18.60.4 GR8 / D-N1) — kb/Work PB231.
+        cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)),
+            rejectReason: null);
+        // ⛔ THE CELL CLAIM, made HERE because this method IS the one cell-backing forcer and its three callers
+        // ARE the three cell surfaces: from now on the class has a StorageCell behind its backing
+        // (RedefinesClass.BackingCellClrName), which is what a pointer-class member's MANAGED SLOT addresses
+        // (kb/Work PB231 — the pointer third; §14.9.3.4 GR9). A REDEFINES class never reaches this line and
+        // never gets one, which is exactly why ComputeTier still refuses a pointer leaf.
+        cls.IsCellBacked = true;
+        foreach (var member in cls.Members)
+        {
+            AssignClassOffsets(member, 0, cls);
+            member.IsCanonical = false;   // NO local stored field — the backing is the cell bridge
+        }
+        // ⛔ THE CELL'S VARIABLE-LENGTH HALF (kb/Work PB1026, PB1042): each COMPONENT — a dynamic-length item or a
+        // dynamic-capacity table (Place.CellComponents) — rides a managed slot of the cell numbered in storage order,
+        // one per occurrence of every enclosing fixed table, and a table's element is a scope of its own
+        // (AssignCellComponents). A dynamic-length item occupies zero bytes of the backing — its ByteWidth — and a
+        // table reserves its one-element ByteWidth, so the class walk above has already laid out the FIXED RUN every
+        // variable-length group view of the class composes over. §8.5.1.9.1 3) — "it may be defined in any place,
+        // other than the file section, in which a fixed-capacity table may be defined" — is why an EXTERNAL or
+        // ADDRESS-OF-taken record carries the table rather than refusing it.
+        int dynOrdinal = 0;
+        foreach (var member in cls.Members) dynOrdinal = AssignCellComponents(member, dynOrdinal);
+        // ⛔ EVERY byte-form numeric leaf windowed over the string backing decodes/encodes its IMAGE — the
+        // same rule ClassifyRedefinesClasses applies to a Tier-B class, applied here for the synth class.
+        // The predicate MUST be the one CellCapable admits above (THE ONE image predicate): the Step D
+        // widening opened the GATE to COMP/PACKED/COMP-5/float/INDEX leaves while this consequence still
+        // read the pre-wave DISPLAY-only union, so an admitted non-DISPLAY leaf got a NATIVE storage form
+        // over a STRING window — the accessors then spliced a raw long/float into the cell and read window
+        // TEXT back into CobolNum.Store, i.e. UNCOMPILABLE generated C# (CS1503/CS0019) on legal source,
+        // strictly worse than the bind diagnostic it replaced. The two-arm shape, nine lines apart.
+        foreach (var leaf in leaves)
+            if (leaf.Pic is { Category: PicCategory.Numeric, HasImageByteForm: true })
+                State.ImageForcedItems.Add(leaf);   // the collected image fact
+        return cls;
+    }
+
+    /// <summary>The first leaf of <paramref name="leaves"/> the shared byte cell cannot carry, as its residue clause, or
+    /// null — <see cref="ByteWindowResidueOf"/> over a whole storage area, the ONE gate <see cref="ForceStringCanonical"/>
+    /// applies.</summary>
+    private static string? CellResidueOf(IEnumerable<DataItem> leaves) =>
+        leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null);
+
+    /// <summary>⛔ CAN <paramref name="root"/>'s STORAGE AREA MOVE ONTO A CELL WITHOUT A DIAGNOSTIC (kb/Work PB2087)? The
+    /// question an OPTIONAL claim asks before calling <see cref="ForceStringCanonical"/>, which classifies a refused
+    /// class Rejected (every reference then fails loud) — right for a surface that cannot exist without the cell
+    /// (EXTERNAL, BASED, ADDRESS OF), wrong for one that only gains aliasing from it (a boundary-aliased area). True
+    /// when every leaf of the area rides the cell.
+    /// <para>⛔ A VARIABLE-LENGTH GROUP RIDES THE CELL TOO (kb/Work PB2094). Its dynamic-length items and dynamic-capacity
+    /// tables are the cell's components (<see cref="AssignCellComponents"/>), and an area formal laid over its argument
+    /// numbers its components from the area's component ordinal as it displaces its characters by the area's offset
+    /// (<c>CellPointer.DynBase</c>, <c>PlaceBuilder.CellOrdinalBase</c>), so §14.2.3 GR8 — "the activated runtime
+    /// element operates as if the formal parameter occupies the same storage area as the argument" — holds for it as
+    /// for any group. §13.18.5.3 SR2 bars a variable-length group only as the subject of a WRITTEN BASED clause.</para></summary>
+    internal static bool CellCanCarry(DataItem root)
+    {
+        var members = root.Class?.Members ?? [root];
+        return CellResidueOf(members.SelectMany(LeavesOf)) is null;
+    }
+
+    /// <summary>Number <paramref name="node"/>'s variable-length COMPONENTS in its scope from ordinal
+    /// <paramref name="next"/> and return the next free ordinal (kb/Work PB1042) — the ONE writer of
+    /// <see cref="DataItem.ClassDynOrdinal"/>, walking exactly the order <see cref="CellComponents.Of"/> enumerates: a
+    /// component takes one ordinal; a group's children follow in storage order, a fixed table's occurrence k taking
+    /// the k-th run of its per-occurrence components (so a subscript displaces an ordinal by
+    /// <see cref="CellComponents.PerOccurrence"/>); a non-component's ordinal is that of its first component. A
+    /// dynamic-capacity table's ELEMENT is a scope of its own — each occurrence is an element cell
+    /// (<c>StorageCell.DynTableAt</c>) — so the element's members are re-laid out from offset zero and numbered from
+    /// zero, which is what makes a table, or a dynamic-length item, inside a table element the same mechanism one
+    /// level down (§8.5.1.9.1 3): "may be nested in any combination to the same number of levels as a fixed-capacity
+    /// table").</summary>
+    private static int AssignCellComponents(DataItem node, int next)
+    {
+        node.ClassDynOrdinal = next;
+        if (node.IsDynamicTable)
+        {
+            (int at, int bit) = (node.ClassOffset, node.ClassBitOffset);
+            AssignClassOffsets(node, 0, node.Class!);   // the element's own layout, relative to its element cell
+            (node.ClassOffset, node.ClassBitOffset) = (at, bit);   // the table keeps its reservation in its parent scope
+            int inner = 0;
+            foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
+                inner = AssignCellComponents(c, inner);
+            return next + 1;
+        }
+        if (DynSlotWindow.CarriedBySlot(node)) return next + 1;
+        int k = next;
+        foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
+            k += (AssignCellComponents(c, k) - k) * (c.Occurs ?? 1);
+        return k;
     }
 }
