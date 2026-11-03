@@ -771,11 +771,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.FormattedDateFormatNotLiteral, $"FUNCTION {sig.Name} argument-1 shall be a literal date/time format "
                 + "(ISO §15 — the FORMATTED-*/INTEGER-OF-FORMATTED-DATE/SECONDS-FROM-FORMATTED-TIME/"
                 + "TEST-FORMATTED-DATETIME format is a literal)");
-        // §15.48.3 r3 — INTEGER-OF-FORMATTED-DATE's argument-2 "shall be a DATA ITEM of the same type as
-        // argument-1": the class half is the schema's MatchArgument1; the data-item half is here (kb/Work PB58).
-        if (sig.Name == "INTEGER-OF-FORMATTED-DATE" && args.Count > 1 && args[1] is not BoundFieldOperand)
-            ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, "FUNCTION INTEGER-OF-FORMATTED-DATE argument-2 "
-                + "shall be a DATA ITEM of the same type as argument-1 (ISO §15.48.3 r3) — a literal or an expression is not admitted");
 
         // §15.38.3/§15.39.3/§15.40.3/§15.41.3/§15.48.3/§15.79.3/§15.92.3 rule 2 — the format's CONTENT
         // (fix-queue PB11). The literal screen above established only that argument-1 IS a literal; this asks
@@ -2005,9 +2000,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "does not admit");
             // The position's OTHER predicates (kb/Work PB58) — width, operand shape, the strong-type exclusion —
             // each its own rule with its own clause; the class kind below is the last of them, not the only one.
+            // A "shall be a data item" violation is about the operand's SHAPE (a literal or an expression written where
+            // an item is required), which no --permissive coercion relaxes: it stays the error it always was
+            // (§15.48.3 r3, kb/Work PB58 / PB4507).
             foreach (var p in rule.Predicates)
                 if (IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
-                    Report($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}");
+                    Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: p.Kind is not ArgPredicateKind.DataItemOnly);
             if (IntrinsicArgumentRules.Violation(rule, args[i]) is not { } why) continue;
             ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})", args[i]);
         }
@@ -3036,8 +3034,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(ax) is not { } primary || primary.LPAREN() is not null)
                 return host.Cond.CompoundOperand(ax);
         }
-        return OperandOf(host.Expr.BindFunctionArgumentExpr(a.arithmeticExpression()), functionValue: false);
+        var written = a.arithmeticExpression();
+        var bound = host.Expr.BindFunctionArgumentExpr(written);
+        return OperandOf(bound, functionValue: IsSoleFunctionIdentifier(written, bound));
     }
+
+    /// <summary>⛔ THE BINDER'S STATEMENT THAT AN ARGUMENT IS A FUNCTION-IDENTIFIER, ASKED OF THE WRITTEN SHAPE AND NEVER OF THE
+    /// BOUND TREE'S (kb/Work PB4507 review R1-1, PB3678's doctrine for <see cref="BoundComputedOperand.IsNumericFunctionValue"/>).
+    /// An argument that CONSISTS OF a sole unparenthesized primary which the binder lowered to a call (<c>FUNCTION name (...)</c>) or
+    /// to the sum of a variable-length group's length (the keyword-omitted spelling of a function reaches here as a data reference,
+    /// §8.4.3.2.3 SR2) is a function-identifier, hence "a temporary data item" (§8.4.3.2.4 GR1). A parenthesized one is an
+    /// arithmetic expression (§8.8.1.1) although the expression binder drops the parentheses and gives the same tree; and
+    /// <c>FUNCTION LENGTH (VG)</c> of a variable-length group is a <see cref="BoundBinary"/>, which no tree-shape reading calls a
+    /// function. A user function's result temp and a folded LENGTH are already a field operand and a function-valued literal.</summary>
+    private static bool IsSoleFunctionIdentifier(Core.ArithmeticExpressionContext? written, BoundExpr bound) =>
+        // GROUPING-PAREN-ONLY: a primaryExpression's own parenthesis is the arithmetic grouping one (the function's argument
+        // list is FNARG_LPAREN inside functionCall, a subscript REF_LPAREN inside dataReference), and only it parenthesizes.
+        WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(written) is { } primary && primary.LPAREN() is null
+            && (primary.functionCall() is not null || primary.dataReference() is not null)
+            && bound is BoundIntrinsicCall or BoundBinary;
 
     /// <summary>A non-numeric-literal argument as a categorized operand (§8.3.3.4/.5/.6.4 — the same decode +
     /// introduction-gate helpers every literal channel uses). HEXLIT decodes as the alphanumeric literal it is
