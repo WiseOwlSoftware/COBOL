@@ -2091,7 +2091,7 @@ def self_test() -> int:
     fixed_reply = ("```cobol\nIDENTIFICATION DIVISION.\nPROGRAM-ID. FUZZ.\nPROCEDURE DIVISION.\nDISPLAY WS-X\nSTOP RUN.\n```", 1.0, "stop", 0)
 
     def stubbed_one(sides: dict[str, Any], script: list[Any] | None = None, model_options: dict[str, float | int] | None = None,
-                    ) -> tuple[dict[str, Any], list[str], list[str], list[Any]]:
+                    spent_out: Any = lambda: False) -> tuple[dict[str, Any], list[str], list[str], list[Any]]:
         """Fuzz._one over a stubbed model (one fixed program, line 4 "DISPLAY WS-X") and stubbed compilers: sides[name](k) is
         that compiler's Observation of its k-th compile. `script` is what the model answers, call by call: a reply tuple, an
         exception to raise, or a function of the run's PauseGate returning one of those (it may create the PAUSE file, as the
@@ -2128,7 +2128,7 @@ def self_test() -> int:
             fake = types.SimpleNamespace(s=types.SimpleNamespace(model="m", temperature=0.3, repairs=3, keep=True, writer="ollama"), out=one_dir,
                                          programs=one_dir / "programs", we=types.SimpleNamespace(name="we", work=one_dir / "w"),
                                          they=types.SimpleNamespace(name="they", work=one_dir / "t"), pause=gate,
-                                         model_options=model_options or {}, spent_out=lambda: False,
+                                         model_options=model_options or {}, spent_out=spent_out,
                                          system_prompts={family: f"sys {family}" for family in EXAMPLES})
             row = Fuzz._one(fake, 0, "fz00000", "14.9.25", "MOVE statement", "body", 0, {"id": "fz00000"})  # type: ignore[arg-type]
             row["_pauses"] = read_pauses(one_dir)
@@ -2143,6 +2143,13 @@ def self_test() -> int:
     check("run: a WiseOwl crash on a program GnuCOBOL refused is WE_CRASH after ONE round (review R1-1: it was sent back and lost), and no refusal round is recorded",
           rec_crash["verdict"] == "WE_CRASH" and calls == ["model", "they", "we"] and rec_crash["repairs"] == 0
           and rec_crash["repair_rounds"] == [], (rec_crash.get("verdict"), calls))
+    # --max-usd (kb/Work PB4504 review R1-4, R2-2): a run past its ceiling asks no further correction; the program in flight
+    # keeps the verdict of the last compile and the row says why it stopped.
+    we_refuses = lambda k: Observation(False, 1, f"fz00000.cob(4,1): error COBOL1639: 'WS-Y{k}' is not defined", ["COBOL1639"])  # noqa: E731
+    rec_ceiling, calls, _asked, _options = stubbed_one({"they": gnu_refuses, "we": we_refuses}, spent_out=lambda: True)
+    check("run: a run past --max-usd asks no correction, keeps the first program's verdict and records stopped_at_ceiling",
+          rec_ceiling.get("stopped_at_ceiling") is True and rec_ceiling["verdict"] == "BOTH_REJECT" and rec_ceiling["repairs"] == 0
+          and calls == ["model", "they", "we"], (rec_ceiling.get("verdict"), rec_ceiling.get("stopped_at_ceiling"), calls))
     same = lambda k: Observation(False, 1, "fz00000.cob(4,1): error COBOL1639: 'WS-X' is not defined", ["COBOL1639"])  # noqa: E731
     rec_same, calls, asked, _options = stubbed_one({"they": gnu_refuses, "we": same})
     check("run: a correction that draws the same first diagnostics from both compilers ends the rounds there, BOTH_REJECT and stopped_early, after one correction rather than three (kb/Work PB3523 item 4)",

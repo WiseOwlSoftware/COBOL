@@ -40,6 +40,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from standard_streams import ensure_utf8  # noqa: E402  (scripts/: UTF-8 standard streams)
 
 import differential_fuzz as df  # noqa: E402
+import fuzz_claude  # noqa: E402  (THE reader of an API key file, read_api_key)
 
 #: The default writer: the model of the 2026-11-03 calibration, chosen by the owner for the batch run.
 DEFAULT_MODEL = "claude-sonnet-5-5"
@@ -49,14 +50,6 @@ MAX_TOKENS = 16000
 VARIATIONS = df.Settings.__dataclass_fields__["variations"].default
 #: Seconds between status polls while a batch runs.
 POLL_SECONDS = 60
-
-
-def read_key(path: str) -> str:
-    """The API key in the file `path` (its first non-empty line, a byte-order mark dropped); an error when there is none."""
-    lines = [ln.strip() for ln in Path(path).read_text(encoding="utf-8-sig").splitlines() if ln.strip()]
-    if not lines:
-        raise SystemExit(f"fuzz_batch: no API key in {path}")
-    return lines[0]
 
 
 def program_ids(count: int) -> list[str]:
@@ -103,7 +96,11 @@ def write_replies(results: Iterable[Any], replies: Path) -> dict[str, Any]:
 
 def client_for(key_file: str) -> Any:
     import anthropic  # noqa: PLC0415  (only the network commands need the SDK)
-    return anthropic.Anthropic(api_key=read_key(key_file))
+    try:
+        key = fuzz_claude.read_api_key(key_file)
+    except RuntimeError as e:
+        raise SystemExit(f"fuzz_batch: {e}") from None
+    return anthropic.Anthropic(api_key=key)
 
 
 def submit(a: argparse.Namespace, client: Any = None) -> int:
@@ -241,15 +238,6 @@ def self_test() -> int:
             check("a refused reply is no program", False)
         except RuntimeError:
             check("a refused reply is no program", True)
-        keyfile = Path(tmp) / "k.txt"
-        keyfile.write_bytes("﻿\n  sk-x  \n".encode("utf-8"))
-        check("the key file's first non-empty line is read, a byte-order mark dropped", read_key(str(keyfile)) == "sk-x")
-        keyfile.write_text("  \n", encoding="utf-8", newline="\n")
-        try:
-            read_key(str(keyfile))
-            check("a key file with no key is refused", False)
-        except SystemExit:
-            check("a key file with no key is refused", True)
     print(f"=== FUZZ BATCH SELF-TEST: {'GREEN' if not failures else 'RED — ' + ', '.join(failures)} ===")
     return 1 if failures else 0
 

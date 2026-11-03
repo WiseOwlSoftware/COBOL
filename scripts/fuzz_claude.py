@@ -13,7 +13,8 @@ token cap (`stop_reason` "max_tokens"), which the fuzz treats as a reply cut sho
 returns no separate reasoning text.
 
 HOW IT CALLS CLAUDE. Through the Claude Code CLI in print mode, `claude -p`, which a cloud session (claude.ai/code) and
-an attended host both have signed in: no API key is handled here, and the call bills the account that runs it. The CLI
+an attended host both have signed in, and the call bills the account that runs it, unless `use_api_key_file` named an
+API key: then the key goes into the CLI's environment (`ANTHROPIC_API_KEY`, nowhere else) and the call bills it. The CLI
 is made a plain text generator: `--safe-mode` (no CLAUDE.md, skills, plugins, hooks, MCP servers or other
 customizations), `--tools ""` (no tools), `--no-session-persistence`, `--setting-sources ""`, `--strict-mcp-config`,
 `--system-prompt` (the fuzz's own, replacing Claude Code's), `--output-format json` (one record: `result`,
@@ -60,14 +61,21 @@ _spent_usd = 0.0
 _api_key: str | None = None
 
 
+def read_api_key(path: str | os.PathLike[str]) -> str:
+    """THE reader of an API key file (this writer's and fuzz_batch.py's): its first non-empty line, stripped, a byte-order
+    mark dropped (a file saved by Notepad carries one). A missing or empty file is a RuntimeError naming the path, never
+    the key."""
+    lines = [ln.strip() for ln in Path(path).read_text(encoding="utf-8-sig").splitlines() if ln.strip()] if Path(path).exists() else []
+    if not lines:
+        raise RuntimeError(f"no API key in {path}")
+    return lines[0]
+
+
 def use_api_key_file(path: str | os.PathLike[str]) -> None:
-    """Bill every later call to the API key held in the file `path` (its first line). The key goes only into the CLI's
+    """Bill every later call to the API key held in the file `path` (`read_api_key`). The key goes only into the CLI's
     environment; a missing or empty file is an error before any call is made."""
     global _api_key
-    key = Path(path).read_text(encoding="utf-8").strip().splitlines()[0].strip() if Path(path).exists() else ""
-    if not key:
-        raise RuntimeError(f"no API key in {path}")
-    _api_key = key
+    _api_key = read_api_key(path)
 
 
 def spent() -> float:
@@ -216,7 +224,16 @@ def self_test() -> int:
                 except RuntimeError:
                     check(f"a {bad} reply raises RuntimeError", True)
             keyfile = Path(tmp) / "key.txt"
-            keyfile.write_text("sk-test-key\n", encoding="utf-8", newline="\n")
+            keyfile.write_text(chr(0xFEFF) + chr(10) + "  sk-test-key  " + chr(10), encoding="utf-8", newline="\n")
+            check("the key file's first non-empty line is read, stripped, a byte-order mark dropped", read_api_key(keyfile) == "sk-test-key")
+            empty = Path(tmp) / "empty.txt"
+            empty.write_text(chr(10), encoding="utf-8", newline="\n")
+            for name, bad in (("an empty key file", empty), ("a missing key file", Path(tmp) / "none.txt")):
+                try:
+                    read_api_key(bad)
+                    check(f"{name} is a RuntimeError", False)
+                except RuntimeError as e:
+                    check(f"{name} is a RuntimeError naming the path", str(bad) in str(e))
             use_api_key_file(keyfile)
             mode.write_text("key", encoding="utf-8", newline="\n")
             check("an API key file reaches the CLI's environment only", claude_chat("sonnet", msgs[:2], 0.3)[0] == "KEY=sk-test-key")
