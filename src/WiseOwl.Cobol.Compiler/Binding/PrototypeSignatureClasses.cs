@@ -18,11 +18,11 @@ namespace WiseOwl.Cobol.Binding;
 /// (<see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>; kb/Work PB4107).
 /// <para><b>The class.</b> The prototypes are partitioned into classes by the ONE same-signature test
 /// (<see cref="PrototypeSignatures.Same"/>), as the coarsest stable partition (<see cref="Classify"/>: refined until a
-/// round splits nothing, so the classes do not depend on the order prototypes are presented in). A prototype that took
-/// ISO §12.3.8.4 GR10 c) / GR11 c) — the details come from the external repository, so there is no compile-time signature
-/// to compare — is a class of its own, marked as such: <see cref="PrototypeSignatures.ExternalIdentity"/> of its own
-/// name, which the conformance relations let conform to any restricted pointer of its kind, as
-/// <see cref="PrototypeSignatures.Same"/> lets an unresolved signature conform (kb/Work PB3162).</para>
+/// round splits nothing, so the classes do not depend on the order prototypes are presented in). Every prototype has its
+/// signature: one that took ISO §12.3.8.4 GR10 c) / GR11 c) has the external repository entry's, decoded from the assembly
+/// that publishes it (<c>MetadataRepositoryProvider</c>; DESIGN-external-repository §8.2), and a specifier no provider
+/// answers is refused (REPO-1), so no prototype is a class "of unknown signature" (kb/Work PB2103 deleted that state, which
+/// PB3162 had spread).</para>
 /// <para><b>The identity (DESIGN-external-repository §6.4; kb/Work PB2103).</b> A class's identity is CANONICAL and
 /// group-independent: <see cref="PrototypeSignatures.CanonicalIdentity"/> of its minimized signature graph,
 /// <c>SIG &lt;hex&gt;</c>. A group describes a method's <c>RETURNING PROGRAM-POINTER TO P1</c> and a separately compiled group
@@ -94,8 +94,7 @@ internal sealed class PrototypeSignatureClasses
     /// whose founder it has the same signature as, under the identities the partition stamped, or founds one of its own — no
     /// stamped pointer is restricted to it, so the partition stays stable. A decoded prototype not yet admitted is a defect of
     /// the caller.</summary>
-    public string Identity(RestrictedPrototype prototype) =>
-        SpaceOf(prototype).BlockOf(prototype) is { } block ? Canonical(block) : PrototypeSignatures.ExternalIdentity(prototype.ExternalizedName);
+    public string Identity(RestrictedPrototype prototype) => Canonical(SpaceOf(prototype).BlockOf(prototype));
 
     /// <summary>A block's canonical identity, computed once its partition is stable (and again after an
     /// <see cref="Admit"/> re-ran it).</summary>
@@ -117,8 +116,9 @@ internal sealed class PrototypeSignatureClasses
             if (pointer.RestrictedPrototype is not { } prototype || !_stamped.Add(pointer)) continue;
             _pointers.Add(pointer);
             bool isNew = SpaceOf(prototype).Present(prototype);
-            if (prototype.Origin is null || !isNew || prototype.Signature is not { } signature) continue;
+            if (prototype.Origin is null || !isNew) continue;
             // A decoded signature reaches further prototypes through its own restricted-pointer formals.
+            var signature = prototype.Signature;
             foreach (var root in signature.Formals.Select(f => f.Item).Concat(signature.Returning is { } r ? [r] : []))
             {
                 if (root.RestrictedPrototype is not null) pending.Enqueue(root);
@@ -178,14 +178,12 @@ internal sealed class PrototypeSignatureClasses
         private readonly List<Member> _group = [];
         private readonly List<Member> _decoded = [];
 
-        /// <summary>Make a prototype with a compile-time signature a member (GR10 c) / GR11 c), no signature, is a class of
-        /// its own and joins no block). False when it was already one.</summary>
+        /// <summary>Make a prototype a member. False when it was already one.</summary>
         public bool Present(RestrictedPrototype prototype)
         {
-            if (prototype.Signature is not { } signature) return false;
             var key = new PrototypeKey(prototype.Origin, prototype.ExternalizedName);
             if (_members.ContainsKey(key)) return false;
-            var member = new Member(signature);
+            var member = new Member(prototype.Signature);
             _members[key] = member;
             (prototype.Origin is null ? _group : _decoded).Add(member);
             return true;
@@ -230,18 +228,17 @@ internal sealed class PrototypeSignatureClasses
         public string Provisional(RestrictedPrototype prototype) =>
             Known(prototype) is { } block
                 ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{(function ? "F" : "P")}#{_blocks.IndexOf(block)}")
-                : PrototypeSignatures.ExternalIdentity(prototype.ExternalizedName);
+                : throw new InvalidOperationException($"PrototypeSignatureClasses: the prototype '{prototype.ExternalizedName}' of a stamped pointer is no member of its namespace.");
 
         /// <summary>The block of a prototype this namespace has classified, or null.</summary>
         public Block? Known(RestrictedPrototype prototype) =>
-            prototype.Signature is not null && _members.TryGetValue(new PrototypeKey(prototype.Origin, prototype.ExternalizedName), out var m)
-                ? m.Block : null;
+            _members.TryGetValue(new PrototypeKey(prototype.Origin, prototype.ExternalizedName), out var m) ? m.Block : null;
 
         /// <summary>The block of a prototype, classifying a GROUP prototype no pointer named on the way: it joins the block
-        /// whose founder it has the same signature as, or founds one. Null for a prototype with no compile-time signature.</summary>
-        public Block? BlockOf(RestrictedPrototype prototype)
+        /// whose founder it has the same signature as, or founds one.</summary>
+        public Block BlockOf(RestrictedPrototype prototype)
         {
-            if (prototype.Signature is not { } signature) return null;
+            var signature = prototype.Signature;
             if (Known(prototype) is { } known) return known;
             if (prototype.Origin is not null)
                 throw new InvalidOperationException($"PrototypeSignatureClasses: the decoded prototype '{prototype.ExternalizedName}' of {prototype.Origin.Description} was asked for before Admit classified it.");
@@ -290,13 +287,13 @@ internal sealed class PrototypeOrigin(string description)
 
 /// <summary>The prototype a restricted program- or function-pointer's <c>TO prototype-name-1</c> phrase resolves to
 /// through its unit's prototype tables (<c>BinderDriver.ProgramPrototypesOf</c> / <c>UserFunctionsOf</c>, ISO §8.4.6.8 /
-/// §8.4.6.6 and §12.3.8.4 GR10 / GR11): its namespace, its externalized name, and its signature — null when GR10 c) /
-/// GR11 c) take the details from the external repository, so there is nothing to compare at compile time. Attached to
+/// §8.4.6.6 and §12.3.8.4 GR10 / GR11): its namespace, its externalized name, and its signature — the external repository
+/// entry's when GR10 c) / GR11 c) take the details from there (DESIGN-external-repository §8.2). Attached to
 /// the pointer as <see cref="DataItem.RestrictedPrototype"/> (kb/Work PB2495) so that the signature classes can be
 /// computed over every prototype a pointer names (<see cref="PrototypeSignatureClasses.Classify"/>).
 /// <paramref name="Origin"/> is null for a prototype the compilation group declares, and the record it was decoded from
 /// otherwise (<see cref="PrototypeSignatureClasses.Admit"/>).</summary>
-internal sealed record RestrictedPrototype(bool Function, string ExternalizedName, CalleeSignature? Signature, PrototypeOrigin? Origin = null)
+internal sealed record RestrictedPrototype(bool Function, string ExternalizedName, CalleeSignature Signature, PrototypeOrigin? Origin = null)
 {
     public static RestrictedPrototype Of(ProgramPrototype program) =>
         new(Function: false, program.ExternalizedName, program.Signature);

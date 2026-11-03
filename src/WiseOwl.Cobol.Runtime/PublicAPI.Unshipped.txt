@@ -354,8 +354,6 @@ WiseOwl.Cobol.Runtime.Repository.CobolPropertyAttribute.Set.set -> void
 WiseOwl.Cobol.Runtime.Repository.CobolPrototypeAttribute
 WiseOwl.Cobol.Runtime.Repository.CobolPrototypeAttribute.CobolPrototypeAttribute(int index, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName) -> void
 WiseOwl.Cobol.Runtime.Repository.CobolPrototypeAttribute.ExternalizedName.get -> string!
-WiseOwl.Cobol.Runtime.Repository.CobolPrototypeAttribute.HasSignature.get -> bool
-WiseOwl.Cobol.Runtime.Repository.CobolPrototypeAttribute.HasSignature.set -> void
 WiseOwl.Cobol.Runtime.Repository.CobolPrototypeAttribute.Index.get -> int
 WiseOwl.Cobol.Runtime.Repository.CobolPrototypeAttribute.Kind.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
 WiseOwl.Cobol.Runtime.Repository.CobolPrototypeDescriptionAttribute
@@ -574,7 +572,6 @@ WiseOwl.Cobol.Runtime.StorageCell.Received(long at, int width) -> void
 WiseOwl.Cobol.Runtime.StorageCell.VarGroupAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable, WiseOwl.Cobol.Runtime.OdoTail tail, int count, WiseOwl.Cobol.Runtime.CellGroupShape?[]? elems = null, bool byReference = false) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
 const WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeBoolean = "figurative-boolean" -> string!
 const WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeSpace = "figurative-space" -> string!
-const WiseOwl.Cobol.Runtime.ActivationDescription.ExternalRestrictionPrefix = "EXTERNAL TO " -> string!
 const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 const WiseOwl.Cobol.Runtime.Repository.CobolPrototypeDescriptionAttribute.ReturningItem = -1 -> int
 const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 2 -> int
@@ -593,7 +590,6 @@ override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.OpenCore(WiseOwl.Cobol.R
 static WiseOwl.Cobol.Runtime.AcceptSource.DeviceNumeric(in WiseOwl.Cobol.Runtime.NumProfile receiver, int size, bool commaMode) -> System.Int128
 static WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeSenderOf(string? category) -> WiseOwl.Cobol.Runtime.FigurativeSender?
 static WiseOwl.Cobol.Runtime.ActivationCategory.OfFigurative(WiseOwl.Cobol.Runtime.FigurativeSender sender) -> string!
-static WiseOwl.Cobol.Runtime.ActivationDescription.IsExternalRestriction(string! restriction) -> bool
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassFormalViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassReturningViolation(WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> string?
 static WiseOwl.Cobol.Runtime.ActivationRelations.MatchViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
@@ -781,8 +777,8 @@ static WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.SchemaAttributeName(Syst
 static WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.TryDecodeUnit(string! row, out WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow unit) -> bool
 static WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.operator !=(WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome left, WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome right) -> bool
 static WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.operator ==(WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome left, WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome right) -> bool
-static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.Find(string! directory, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
-static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FunctionByWord(string! directory, string! word) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.Find(string! directory, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName, string? excluding = null) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FunctionByWord(string! directory, string! word, string? excluding = null) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
 static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.SkippedForSize(string! directory) -> System.Collections.Generic.IReadOnlyList<string!>!
 static WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.operator !=(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow left, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow right) -> bool
 static WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.operator ==(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow left, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow right) -> bool
@@ -821,3 +817,8 @@ WiseOwl.Cobol.Runtime.Collation.CollationOptions.CollationOptions(WiseOwl.Cobol.
 WiseOwl.Cobol.Runtime.Collation.CollationTable.TryGetDecimalDigit(int codePoint, out int value) -> bool
 WiseOwl.Cobol.Runtime.Collation.Collator.With(WiseOwl.Cobol.Runtime.Collation.CollationStrength? strength = null, WiseOwl.Cobol.Runtime.Collation.AlternateHandling? alternate = null, WiseOwl.Cobol.Runtime.Collation.CollationTable? table = null, WiseOwl.Cobol.Runtime.Collation.MaxVariable? maxVariable = null, WiseOwl.Cobol.Runtime.Collation.CaseFirst? caseFirst = null, bool? backwardsSecondary = null, bool? caseLevel = null, bool? numericOrdering = null) -> WiseOwl.Cobol.Runtime.Collation.Collator!
 static WiseOwl.Cobol.Runtime.RuntimeAbi.CallAbi.get -> int
+WiseOwl.Cobol.Runtime.Repository.RepositoryFind.Failure.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.TooLarge = 8 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.Unreadable = 7 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FindInFile(string! path, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FunctionByWordInFile(string! path, string! word) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!

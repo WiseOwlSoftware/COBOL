@@ -37,6 +37,11 @@ public enum RepositoryReadFailure
     NoSignatures = 5,
     /// <summary>The record follows another schema version than the one the reader implements (REPO-7, §6.6).</summary>
     OtherSchemaVersion = 6,
+    /// <summary>The file could not be read: it is missing or the file system refused it (REPO-3, or REPO-10 for a named
+    /// <c>--reference</c> file that does not exist).</summary>
+    Unreadable = 7,
+    /// <summary>The file is larger than <see cref="RepositoryLocator.MaxFileBytes"/> and was skipped (§15.2; REPO-1 lists it).</summary>
+    TooLarge = 8,
 }
 
 /// <summary>The result of <see cref="RepositoryIndex.Open(Stream)"/>: the index, or the typed reason there is none.</summary>

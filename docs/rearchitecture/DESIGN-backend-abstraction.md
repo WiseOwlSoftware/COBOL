@@ -281,7 +281,7 @@ Roslyn backend writes, and therefore part of the shared ABI rather than a per-ba
 
 **The one name not allocated is the module namespace** (`CsNames.ModuleNamespaceOf`, `Cobol.<S>`): an assembly
 simple name is the user's, so `class.dll` keeps the namespace `Cobol.class` in metadata, and the Roslyn backend
-writes its C# spelling, `namespace Cobol.@class;` (`ProgramEmitter.CSharpNamespace`). Synthesized names whose prefix
+writes its C# spelling, `namespace Cobol.@class;` (`CsNames.CSharpNamespace`). Synthesized names whose prefix
 no COBOL word can spell (`__`-prefixed temporaries, `_T_n` struct types, `_P_n` profiles) are formed by
 `NameAllocator` and `NamingConvention` from a prefix and a unique stem, and are CLR names on the same terms.
 

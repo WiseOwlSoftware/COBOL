@@ -62,7 +62,7 @@ internal static class BackendContract
             "Model.CsNameScope._claimed", "Model.CsNameScope._reserved", "Model.CsNameScope.EveryScopeReserved",
             "Model.CsNameScope.HostEntryReserved", "Model.CsNameScope.ProgramClassReserved",
             "Model.CsNameScope.RecordStructReserved",
-            "Model.CsNames.Allocate()", "Model.CsNames.DeriveImportedTypeNames()", "Model.CsNames.SimpleName()",
+            "Model.CsNames.Allocate()", "Model.CsNames.DeriveImportedTypeNames()", "Model.CsNames.SimpleName()", "Model.CsNames.CSharpNamespace()",
             "Model.CsNames.CSharpReservedKeywords", "Model.CsNames.HostEntryMembers", "Model.CsNames.ImportedNamespaces",
             "Model.CsNames.ImportedTypeNames", "Model.CsNames.ProgramClassMembers", "Model.CsNames.RecordStructMembers",
             "Model.DataItem.Sanitize()", "Model.DataItem.IdentifierCharacters()", "Model.DataItem.WordIdentifier()",
@@ -126,7 +126,7 @@ internal static class BackendContract
             "Model.StrongTypeModel.EssentialCharacteristicsKey()", "Model.StrongTypeModel.InvariantRecordText()",
             "Model.StrongTypeModel.TypeIdentityKey()", "Model.StrongTypeModel+TypeRestriction.Key",
             "Model.StrongTypeModel.ElementaryLayoutKey()", "Model.DynamicLengthStructure.DefinitionKey",
-            "Model.DynamicLengthStructure.KeyOf()",
+            "Model.DynamicLengthStructure.KeyOf()", "Model.ObjectRefDescriptor.Identity",
         ]),
     ],
     [

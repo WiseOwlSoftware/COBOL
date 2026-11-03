@@ -66,13 +66,6 @@ internal sealed class ProgramEmitter
         => Current = new UnitEmitters(w, data, places, _names, _atoms, _dispatchState, _ecState, _callState, _oo,
             _whenCompiledStamp);
 
-    /// <summary>The C# spelling of a module namespace (kb/Work PB4265): its CLR name with every segment that is a C#
-    /// reserved keyword written <c>@</c>-escaped (<c>Cobol.class</c> is declared <c>namespace Cobol.@class;</c>). The
-    /// namespace is the one emitted name not allocated in a scope that refuses a keyword
-    /// (<see cref="CsNames.ModuleNamespaceOf"/>), so its C# spelling is formed here, by the Roslyn backend.</summary>
-    internal static string CSharpNamespace(ModuleNamespace ns) =>
-        string.Join('.', ns.ClrName.Split('.').Select(static s => CsNames.CSharpReservedKeywords.Contains(s) ? "@" + s : s));
-
     /// <summary>The EMIT half (rearch PHASE-03 Step 14a / PHASE-06 Step 2): render the run unit's C# from an
     /// already-bound immutable <see cref="BoundCompilation"/> — reached ONLY after the driver confirmed the edition
     /// sink is clean, so codegen never runs on an errored tree (exit criterion 9). Reads the compilation
@@ -109,7 +102,7 @@ internal sealed class ProgramEmitter
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
             RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, HostEntryEmitter.EntryUnits(units)), comp.Edition,
             hasSignatures: repositoryUpdate));
-        w.Line($"namespace {CSharpNamespace(ns)};");
+        w.Line($"namespace {CsNames.CSharpNamespace(ns)};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name
         // generated from a COBOL word may spell (kb/Work PB3270); ImportedTypeNameDriftTests is red on a directive not listed.
@@ -151,8 +144,10 @@ internal sealed class ProgramEmitter
             if (unit.Parent is null && !unit.IsPrototype)   // a prototype has no body (§10.6.2 SR4f) — no class
                 EmitProgramClass(unit, w);
         // The .NET host surface (DESIGN-external-repository §4.3; kb/Work PB2099): one public class per outermost unit, named
-        // in the module namespace's type scope beside every type the module already declares there.
-        new HostEntryEmitter(Current.Ctx.SignEncoding, comp.OoClasses, _atoms, repositoryUpdate,
+        // in the module namespace's type scope beside every type the module already declares there. The over-punch convention
+        // is the compilation's one (kb/Work PB803): a group of prototypes alone — the library that publishes them to the
+        // external repository (DESIGN-external-repository §7.2) — emits no program class, so no unit emitter is current here.
+        new HostEntryEmitter(comp.SignEncoding, comp.OoClasses, _atoms, repositoryUpdate,
             data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(units,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))

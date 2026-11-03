@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Frontend;
 /// file is red unless its line says why it is not a compilation input (<c>// not a compilation input: …</c>).</para>
 /// <para>One instance per compilation; not thread-safe (a compilation is single-threaded).</para>
 /// </summary>
-public sealed class CompilationInputs
+public sealed class CompilationInputs : IRepositoryInputs
 {
     private readonly List<string> _filesRead = [];
     private readonly List<InputProbe> _probes = [];
@@ -40,6 +40,18 @@ public sealed class CompilationInputs
     /// <summary>True once the compilation read the wall clock — the WHEN-COMPILED stamp (§15.99.3 r2) is baked
     /// into the program, so its output is a function of WHEN it was compiled, not only of its inputs.</summary>
     public bool ReadsCompilationTime { get; private set; }
+
+    /// <summary>True once the compilation consulted the external repository (ISO §8.13; DESIGN-external-repository §8.0):
+    /// it listed a repository directory or read an assembly's repository record, so its answers depend on which compiled
+    /// assemblies exist there — a directory's whole listing, which no probe of this record states. A dependency record
+    /// cannot replay that, so such a compilation is never served from a store of earlier outputs. A group that answers
+    /// every specifier itself consults nothing (§16). <c>--repository-check</c>'s comparison with the previous build of the
+    /// output (§9.2 (a)) sets it only when it REPORTS a difference or a skew: a finding about a file the compilation then
+    /// replaces is one no replay over another previous build would repeat.</summary>
+    public bool ReadsRepository { get; private set; }
+
+    /// <summary>Record that the compilation consulted the external repository (<see cref="ReadsRepository"/>).</summary>
+    public void RecordRepositoryRead() => ReadsRepository = true;
 
     /// <summary>Read the text of a source or library text file, recording its full path. The bytes become characters in
     /// <see cref="SourceTextDecoder"/> and nowhere else (docs/CONFORMANCE.md §7, Annex A.1 items 25 and 26; kb/Work

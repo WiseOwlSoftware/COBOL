@@ -230,7 +230,7 @@ public sealed class RepositoryDetailsOrderTests
             : ClassNamingAFunction + "\n" + FunctionForTheClass;
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2002);
         Assert.Equal(binds, ok);
-        if (!binds) EditionHarness.AssertHasDiagnostic(errors, "COBOL1505");
+        if (!binds) EditionHarness.AssertHasDiagnostic(errors, "COBOL5962");   // REPO-1, §12.3.8.3 SR10 (kb/Work PB2103)
     }
 
     /// <summary>GR10 a)/b): a program definition BELOW the caller, a program prototype definition ahead of both.</summary>
@@ -276,17 +276,19 @@ public sealed class RepositoryDetailsOrderTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1684");
     }
 
-    [Fact]   // GR10 a) is "specified PREVIOUSLY": with NO prototype, the definition that follows is the arm-c) program.
-    public void AProgramDefinitionThatFollowsTheCaller_IsNotGr10A_SoItsFormalsAreNotCheckedAtCompileTime()
+    [Fact]   // GR10 a) is "specified PREVIOUSLY": with NO prototype, the definition that follows answers no specifier.
+    public void AProgramDefinitionThatFollowsTheCaller_IsNotGr10A_AndNoProviderAnswersTheSpecifier()
     {
         // The prototype block is the first unit: drop it, keep the caller and the following definition. Arm c) — "the
-        // details are taken from the external repository" — is this implementation's run-unit program registry, which
-        // carries no compile-time signature; DESIGN-external-repository slice 7 replaces it with the metadata
-        // repository (and SR14's REPO-1 for a name no provider answers), and this test is that slice's to change.
+        // details are taken from the external repository" — finds no assembly that publishes P989CALLEE (the
+        // compilation's output directory holds none), so ISO §12.3.8.3 SR14 is violated: REPO-1 at the specifier, and the
+        // CALL through the unregistered prototype is COBOL1760 (DESIGN-external-repository §8.2 step 4; kb/Work PB2103).
         const string Header = "IDENTIFICATION DIVISION.";
         string withoutPrototype = string.Concat(CallerBetweenPrototypeAndDefinition
             .Split(Header, StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(unit => Header + unit));
         var (ok, errors, _) = EditionHarness.CompileFull(withoutPrototype, 2002);
-        Assert.True(ok, string.Join("\n", errors));
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL5962");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1760");
     }
 }

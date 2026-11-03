@@ -2,6 +2,8 @@
 *> id: pb3677_format1_sdidi_expression
 *> rules: [GR-14.2.3-9, GR-14.2.3-10]
 *> accept: [2014, 2023]
+*> files: [pb3677_en_callee.cbl]
+*> build: ["pb3677_en_callee.cbl > PB3677EN", "{self}"]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -17,6 +19,9 @@
       *>   BY CONTENT (2 / 3) = 0.666666666666666... in the SDIDI -> truncated at 12 digits 0.666666666666 -> R = 0666666666666
       *>                        (not 0.666667 and not the rounded 0.666666666667; the 6-digit floor gave 0666666000000)
       *>   BY VALUE   (1 / 8) = 0.125 exactly                      -> R = 0125000000000
+      *> PB3677EN and PB3677EV (its BY VALUE twin) are compiled apart, into PB3677EN.dll beside this program (the
+      *> build step), so the program-specifiers' details come from the external repository (12.3.8.4 GR10 c); kb/Work PB2103:
+      *> PB3677EN used to be a program contained in PB3677EM, which no specifier can name - 12.3.8.3 SR14).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3677EM.
        OPTIONS.
@@ -24,23 +29,11 @@
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           PROGRAM PB3677EN.
+           PROGRAM PB3677EN
+           PROGRAM PB3677EV.
        PROCEDURE DIVISION.
        MAIN.
            CALL PB3677EN USING BY CONTENT (2 / 3)
-           CALL PB3677EN USING BY VALUE (1 / 8)
+           CALL PB3677EV USING BY VALUE (1 / 8)
            STOP RUN.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. PB3677EN.
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01 R PIC 9(13).
-       LINKAGE SECTION.
-       01 LN PIC 9V9(12).
-       PROCEDURE DIVISION USING LN.
-           COMPUTE R = LN * 1000000000000
-           DISPLAY "N [" R "]"
-           GOBACK.
-       END PROGRAM PB3677EN.
        END PROGRAM PB3677EM.

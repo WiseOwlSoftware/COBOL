@@ -1,0 +1,59 @@
+      *> kb/Work PB2104: the library of pb2104_import_interface_and_property, compiled apart (its build
+      *> step). An interface, a class that implements it and a class with a property, in an assembly of their own.
+       IDENTIFICATION DIVISION.
+       INTERFACE-ID. P2104ISPK AS "P2104-Speaker".
+       PROCEDURE DIVISION.
+       METHOD-ID. SPEAK.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 OUT-TEXT PIC X(5).
+       PROCEDURE DIVISION RETURNING OUT-TEXT.
+       END METHOD SPEAK.
+       END INTERFACE P2104ISPK.
+
+       IDENTIFICATION DIVISION.
+       CLASS-ID. P2104DOG AS "P2104-Dog" INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE
+           INTERFACE P2104ISPK.
+       OBJECT. IMPLEMENTS P2104ISPK.
+       PROCEDURE DIVISION.
+       METHOD-ID. SPEAK.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 OUT-TEXT PIC X(5).
+       PROCEDURE DIVISION RETURNING OUT-TEXT.
+           MOVE "WOOF" TO OUT-TEXT.
+       END METHOD SPEAK.
+       END OBJECT.
+       END CLASS P2104DOG.
+
+       IDENTIFICATION DIVISION.
+       CLASS-ID. P2104ACCT AS "P2104-Acct" INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
+       OBJECT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 W-BAL PIC 9(5).
+       PROCEDURE DIVISION.
+       METHOD-ID. GET PROPERTY BAL.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LK-R PIC 9(5).
+       PROCEDURE DIVISION RETURNING LK-R.
+           MOVE W-BAL TO LK-R.
+       END METHOD.
+       METHOD-ID. SET PROPERTY BAL.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LK-V PIC 9(5).
+       PROCEDURE DIVISION USING LK-V.
+           MOVE LK-V TO W-BAL.
+       END METHOD.
+       END OBJECT.
+       END CLASS P2104ACCT.

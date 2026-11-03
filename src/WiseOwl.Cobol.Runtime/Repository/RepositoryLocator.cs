@@ -51,11 +51,13 @@ public sealed class RepositoryEntry
 [EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class RepositoryFind
 {
-    internal RepositoryFind(RepositoryEntry? entry, string? collision, string? reason)
+    internal RepositoryFind(RepositoryEntry? entry, string? collision, string? reason,
+        RepositoryReadFailure failure = RepositoryReadFailure.None)
     {
         Entry = entry;
         Collision = collision;
         Reason = reason;
+        Failure = failure;
     }
 
     /// <summary>The unit's entry, or null when no assembly of the directory publishes it.</summary>
@@ -72,7 +74,13 @@ public sealed class RepositoryFind
     /// when <see cref="Entry"/> is set.</summary>
     public string? Reason { get; }
 
-    internal static RepositoryFind Miss(string? reason) => new(null, null, reason);
+    /// <summary>What was wrong with the file <see cref="Reason"/> names, as a typed outcome (the compiler's REPO diagnostics
+    /// classify a miss by it, DESIGN-external-repository §14): <see cref="RepositoryReadFailure.None"/> when the file was a
+    /// readable entry that does not publish the unit, or when there is no reason.</summary>
+    public RepositoryReadFailure Failure { get; }
+
+    internal static RepositoryFind Miss(string? reason, RepositoryReadFailure failure = RepositoryReadFailure.None) =>
+        new(null, null, reason, failure);
 }
 
 /// <summary>
@@ -101,9 +109,12 @@ public static class RepositoryLocator
     public const long MaxFileBytes = 256L * 1024 * 1024;
 
     /// <summary>What reading one file of a directory established, by the file's path, length and last write time (a different
-    /// length or time is another build of the file): the file is read once per process, not once per lookup (§7.4, §16).</summary>
-    private sealed record FileFacts(string Path, long Length, DateTime LastWriteUtc, string? Problem, Guid Mvid,
-        int SchemaVersion, string RuntimeVersion, int CallAbi, string? Registrar, IReadOnlyList<RepositoryUnitRow> Units)
+    /// length or time is another build of the file): the file is read once per process, not once per lookup (§7.4, §16).
+    /// <paramref name="Problem"/> is the reason the file is no entry, in words, and <paramref name="Failure"/> the same as a
+    /// typed outcome.</summary>
+    private sealed record FileFacts(string Path, long Length, DateTime LastWriteUtc, string? Problem,
+        RepositoryReadFailure Failure, Guid Mvid, int SchemaVersion, string RuntimeVersion, int CallAbi, string? Registrar,
+        IReadOnlyList<RepositoryUnitRow> Units)
     {
         /// <summary>Does the file publish units this runtime reads (a managed assembly of the current schema)?</summary>
         public bool IsEntry => Problem is null && SchemaVersion == CobolRepositoryAttribute.CurrentSchemaVersion;
@@ -116,36 +127,55 @@ public static class RepositoryLocator
     /// <param name="directory">The repository directory.</param>
     /// <param name="kind">What the unit is.</param>
     /// <param name="externalizedName">The unit's externalized name.</param>
-    public static RepositoryFind Find(string directory, RepositoryUnitKind kind, string externalizedName)
+    /// <param name="excluding">A file the lookup never answers from: the assembly the compiler is producing, whose previous
+    /// build is the information a compilation UPDATES and never resolves against (DESIGN-external-repository §9.3). Null at
+    /// run time.</param>
+    public static RepositoryFind Find(string directory, RepositoryUnitKind kind, string externalizedName, string? excluding = null)
     {
         string name = ExternalizedNames.Form(externalizedName);
         if (name.Length == 0) return RepositoryFind.Miss(null);
-        string? reason = null;
-        if (FactsOf(NamedFile(directory, name)) is { } named)
+        var (reason, failure) = (default(string), RepositoryReadFailure.None);
+        if (NamedFile(directory, name) is { } namedPath && !SameFile(namedPath, excluding) && FactsOf(namedPath) is { } named)
         {
-            if (named.Problem is { } problem) reason = problem;
-            else if (!named.IsEntry)
-                reason = $"'{named.Path}': schema v{named.SchemaVersion}, this runtime reads v{CobolRepositoryAttribute.CurrentSchemaVersion}; recompile it";
-            else if (RowOf(named, kind, name) is { } row)
-                return new RepositoryFind(EntryOf(named, row), null, null);
-            else
-                reason = $"'{named.Path}' does not carry the {KindWord(kind)} {name}";
+            if (Carrying(named, f => RowOf(f, kind, name)) is { } found) return found;
+            (reason, failure) = WhyNot(named, $"the {KindWord(kind)} {name}");
         }
         // The named file did not answer: the directory index, the one read of every file of the directory.
-        return Answer(directory, f => RowOf(f, kind, name), reason);
+        return Answer(directory, f => RowOf(f, kind, name), reason, failure, excluding);
     }
 
-    /// <summary>Locate the user-defined function whose user-defined WORD is <paramref name="word"/> (§8.3, the D-R3 word
-    /// step: a function is reached by the word its FUNCTION-ID declares as well as by its externalized name) in the directory
-    /// index. The word rows of the <c>Units</c> index answer it; there is no named file to try, because a file is named for an
-    /// externalized name.</summary>
+    /// <summary>Locate the user-defined function — a definition or a function prototype — whose user-defined WORD is
+    /// <paramref name="word"/> (§8.3, the D-R3 word step: a function is reached by the word its FUNCTION-ID declares as well
+    /// as by its externalized name) in the directory index. The word rows of the <c>Units</c> index answer it; there is no
+    /// named file to try, because a file is named for an externalized name.</summary>
     /// <param name="directory">The repository directory.</param>
     /// <param name="word">The function's word as declared (compared by the Annex C fold).</param>
-    public static RepositoryFind FunctionByWord(string directory, string word)
+    /// <param name="excluding">A file the lookup never answers from (<see cref="Find"/>'s).</param>
+    public static RepositoryFind FunctionByWord(string directory, string word, string? excluding = null)
     {
         string wanted = ExternalizedNames.Form(word);
         if (wanted.Length == 0) return RepositoryFind.Miss(null);
-        return Answer(directory, f => WordRowOf(f, wanted), null);
+        return Answer(directory, f => WordRowOf(f, wanted), null, RepositoryReadFailure.None, excluding);
+    }
+
+    /// <summary><see cref="Find"/> over ONE named assembly file instead of a directory (the compiler's <c>--reference</c>,
+    /// DESIGN-external-repository §8.6): the file's index answers, or the miss carries why the file is no answer.</summary>
+    /// <param name="path">The assembly file.</param>
+    /// <param name="kind">What the unit is.</param>
+    /// <param name="externalizedName">The unit's externalized name.</param>
+    public static RepositoryFind FindInFile(string path, RepositoryUnitKind kind, string externalizedName)
+    {
+        string name = ExternalizedNames.Form(externalizedName);
+        return name.Length == 0 ? RepositoryFind.Miss(null) : InFile(path, f => RowOf(f, kind, name), $"the {KindWord(kind)} {name}");
+    }
+
+    /// <summary><see cref="FunctionByWord"/> over ONE named assembly file (the compiler's <c>--reference</c>).</summary>
+    /// <param name="path">The assembly file.</param>
+    /// <param name="word">The function's word as declared (compared by the Annex C fold).</param>
+    public static RepositoryFind FunctionByWordInFile(string path, string word)
+    {
+        string wanted = ExternalizedNames.Form(word);
+        return wanted.Length == 0 ? RepositoryFind.Miss(null) : InFile(path, f => WordRowOf(f, wanted), $"a function named {wanted}");
     }
 
     /// <summary>The <c>*.dll</c> files of <paramref name="directory"/> the directory index skips for exceeding
@@ -154,18 +184,46 @@ public static class RepositoryLocator
     public static IReadOnlyList<string> SkippedForSize(string directory) =>
         Listing(directory).Where(path => FactsOf(path) is { Length: > MaxFileBytes }).ToList();
 
-    private static RepositoryFind Answer(string directory, Func<FileFacts, RepositoryUnitRow?> carries, string? reason)
+    private static RepositoryFind InFile(string path, Func<FileFacts, RepositoryUnitRow?> carries, string what)
+    {
+        if (FactsOf(path) is not { } facts) return RepositoryFind.Miss($"'{path}' does not exist", RepositoryReadFailure.Unreadable);
+        if (Carrying(facts, carries) is { } found) return found;
+        var (reason, failure) = WhyNot(facts, what);
+        return RepositoryFind.Miss(reason, failure);
+    }
+
+    /// <summary>Whether <paramref name="path"/> names the file <paramref name="excluding"/> names (full paths; a file system
+    /// that folds case folds them).</summary>
+    private static bool SameFile(string path, string? excluding) =>
+        excluding is not null && string.Equals(System.IO.Path.GetFullPath(path), System.IO.Path.GetFullPath(excluding),
+            OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);   // not a COBOL word: a file path
+
+    /// <summary>The answer <paramref name="file"/> gives when it is an entry that carries the unit, else null.</summary>
+    private static RepositoryFind? Carrying(FileFacts file, Func<FileFacts, RepositoryUnitRow?> carries) =>
+        file.IsEntry && carries(file) is { } row ? new RepositoryFind(EntryOf(file, row), null, null) : null;
+
+    /// <summary>Why a file read for a unit was no answer, in words and typed: its own problem, another schema, or a readable
+    /// entry that does not carry <paramref name="what"/> (no failure).</summary>
+    private static (string Reason, RepositoryReadFailure Failure) WhyNot(FileFacts file, string what) =>
+        file.Problem is { } problem ? (problem, file.Failure)
+        : !file.IsEntry
+            ? ($"'{file.Path}': schema v{file.SchemaVersion}, this runtime reads v{CobolRepositoryAttribute.CurrentSchemaVersion}; recompile it",
+               RepositoryReadFailure.OtherSchemaVersion)
+        : ($"'{file.Path}' does not carry {what}", RepositoryReadFailure.None);
+
+    private static RepositoryFind Answer(string directory, Func<FileFacts, RepositoryUnitRow?> carries, string? reason,
+        RepositoryReadFailure failure, string? excluding)
     {
         RepositoryEntry? first = null;
         string? collision = null;
         foreach (string path in Listing(directory))
         {
-            if (FactsOf(path) is not { IsEntry: true } facts || carries(facts) is not { } row) continue;
+            if (SameFile(path, excluding) || FactsOf(path) is not { IsEntry: true } facts || carries(facts) is not { } row) continue;
             var entry = EntryOf(facts, row);
             if (first is null) first = entry;
             else if (first.Mvid != entry.Mvid) { collision = entry.Path; break; }   // the same build twice is one entry
         }
-        return first is null ? RepositoryFind.Miss(reason) : new RepositoryFind(first, collision, null);
+        return first is null ? RepositoryFind.Miss(reason, failure) : new RepositoryFind(first, collision, null);
     }
 
     private static RepositoryUnitRow? RowOf(FileFacts file, RepositoryUnitKind kind, string name)
@@ -175,10 +233,13 @@ public static class RepositoryLocator
         return null;
     }
 
+    /// <summary>The first function row — a definition or a function prototype, each of which a later-compiled unit may name by
+    /// the word it declares (§8.4.6.7) — whose word is <paramref name="word"/>.</summary>
     private static RepositoryUnitRow? WordRowOf(FileFacts file, string word)
     {
         foreach (RepositoryUnitRow unit in file.Units)
-            if (unit.Kind == RepositoryUnitKind.Function && ExternalizedNames.Same(unit.Word, word)) return unit;
+            if (unit.Kind is RepositoryUnitKind.Function or RepositoryUnitKind.FunctionPrototype && ExternalizedNames.Same(unit.Word, word))
+                return unit;
         return null;
     }
 
@@ -189,6 +250,8 @@ public static class RepositoryLocator
     {
         RepositoryUnitKind.Function => "function",
         RepositoryUnitKind.Program => "program",
+        RepositoryUnitKind.FunctionPrototype => "function prototype",
+        RepositoryUnitKind.ProgramPrototype => "program prototype",
         _ => kind.ToString(),
     };
 
@@ -236,20 +299,21 @@ public static class RepositoryLocator
         catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException) { return null; }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
         {
-            return new FileFacts(path, 0, default, $"'{path}': {e.Message}", default, 0, "", 0, null, []);
+            return new FileFacts(path, 0, default, $"'{path}': {e.Message}", RepositoryReadFailure.Unreadable, default, 0, "", 0, null, []);
         }
     }
 
     private static FileFacts Read(string path, long length, DateTime written)
     {
-        FileFacts Unreadable(string problem) => new(path, length, written, problem, default, 0, "", 0, null, []);
+        FileFacts Unreadable(string problem, RepositoryReadFailure failure) =>
+            new(path, length, written, problem, failure, default, 0, "", 0, null, []);
         if (length > MaxFileBytes)
-            return Unreadable($"'{path}' is larger than {MaxFileBytes} bytes and was skipped");
+            return Unreadable($"'{path}' is larger than {MaxFileBytes} bytes and was skipped", RepositoryReadFailure.TooLarge);
         RepositoryIndexOutcome outcome;
         try { outcome = RepositoryIndex.Open(path); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            return Unreadable($"'{path}': {e.Message}");
+            return Unreadable($"'{path}': {e.Message}", RepositoryReadFailure.Unreadable);
         }
         if (outcome.Index is not { } index)
             return Unreadable(outcome.Failure switch
@@ -258,9 +322,9 @@ public static class RepositoryLocator
                 RepositoryReadFailure.NoRepositoryRecord => $"'{path}' is not a WiseOwl COBOL module: it carries no CobolRepository record",
                 RepositoryReadFailure.TooManyUnits => $"'{path}': the repository index is too large: {outcome.Detail}",
                 _ => $"'{path}': the repository record is malformed: {outcome.Detail}",
-            });
+            }, outcome.Failure);
         using (index)
-            return new FileFacts(path, length, written, null, index.Mvid, index.SchemaVersion, index.RuntimeVersion, index.CallAbi,
-                index.Registrar, index.Units);
+            return new FileFacts(path, length, written, null, RepositoryReadFailure.None, index.Mvid, index.SchemaVersion,
+                index.RuntimeVersion, index.CallAbi, index.Registrar, index.Units);
     }
 }

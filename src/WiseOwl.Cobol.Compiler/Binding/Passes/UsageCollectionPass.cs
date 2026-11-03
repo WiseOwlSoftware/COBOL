@@ -62,13 +62,16 @@ internal static class UsageCollectionPass
 
         static void AddFormalChannels(DataBinder data, IEnumerable<OoMethodSymbol> methods)
         {
-            // A PROPERTY-clause accessor (§13.18.42) has no LINKAGE formal of its own — its "formal" IS the object's
-            // property subject, a direct field body (OoEmitter.EmitMethod's PropertySubject arm), never a boundary.
-            foreach (var m in methods.Where(m => m.PropertySubject is null))
-                foreach (var f in m.Binding!.Formals)
-                    if (!f.Item.IsGroup) data.State.CharacterChannelItems.Add(f.Item);
+            foreach (var item in MethodFormalChannels(methods)) data.State.CharacterChannelItems.Add(item);
         }
     }
+
+    /// <summary>The elementary formals of <paramref name="methods"/>: each is a character channel's far end (see
+    /// <see cref="Run"/>). A PROPERTY-clause accessor (§13.18.42) has no LINKAGE formal of its own — its "formal" IS the object's
+    /// property subject, a direct field body (OoEmitter.EmitMethod's PropertySubject arm), never a boundary. The ONE statement of
+    /// the rule: the class forests above and an imported method's items (<c>StorageFormPass.ClassifyImportedMethod</c>) read it.</summary>
+    internal static IEnumerable<DataItem> MethodFormalChannels(IEnumerable<OoMethodSymbol> methods) =>
+        methods.Where(m => m.PropertySubject is null).SelectMany(m => m.Binding!.Formals).Select(f => f.Item).Where(i => !i.IsGroup);
 
     /// <summary>Fill <paramref name="data"/>'s <see cref="DataBindState.WholeGroupReferenced"/> from the whole-group
     /// operands of the bound <paramref name="programs"/> + the boundary-copied program/OO formals

@@ -102,7 +102,7 @@ public static class OoNameResolution
             + "declared in the REPOSITORY paragraph of this source element or a containing one "
             + $"({ruleCitation}; ISO §8.4.6.4)";
         edition.Error(code,
-            cls is { IsStandard: true }
+            cls is { Origin: OoSymbolOrigin.Standard }
                 // The standard class is reached exactly like a written one — through a REPOSITORY class-specifier
                 // (§12.3.8.3 SR6 b): name the missing entry, which is the whole fix.
                 ? $"{where} '{name}': '{name}' is the standard class BASE (ISO §16.1), but {notDeclared} — "
@@ -150,11 +150,15 @@ public static class OoNameResolution
             return new Result(null, null, IsFormal: true);
         // A specifier with `AS literal-n` names the definition whose EXTERNALIZED name is the literal (§12.3.8.4 GR2,
         // kb/Work PB974); without it the declared word names the definition of that name.
+        // The group's definition wins a tie with the repository (DESIGN-external-repository §8.4): the identity the specifier
+        // states (`lit ?? word`) is asked of the external repository only when no definition of the group claims it.
         if (want is Want.Class or Want.Either && scope.ClassTarget(name, out var clsExt)
-            && (clsExt is null ? table.Find(name) : table.FindByExternalizedName(clsExt)) is { } cls)
+            && (clsExt is null ? table.Find(name) ?? table.ImportClass(name) : table.FindByExternalizedName(clsExt) ?? table.ImportClass(clsExt))
+                is { } cls)
             return new Result(cls, null);
         if (want is Want.Interface or Want.Either && scope.InterfaceTarget(name, out var ifcExt)
-            && (ifcExt is null ? table.FindInterface(name) : table.FindInterfaceByExternalizedName(ifcExt)) is { } ifc)
+            && (ifcExt is null ? table.FindInterface(name) ?? table.ImportInterface(name)
+                : table.FindInterfaceByExternalizedName(ifcExt) ?? table.ImportInterface(ifcExt)) is { } ifc)
             return new Result(null, ifc);
         return default;
     }
@@ -166,11 +170,11 @@ public static class OoNameResolution
 /// containing class or interface definition itself — §12.3.8.3 SR5/SR8 say the self-naming specifier "is
 /// ignored", so the definition's own name is in scope whether or not it is declared.
 /// </summary>
-public sealed class OoRepositoryScope
+public sealed class IdentityScope
 {
     /// <summary>The scope of a reference outside every source element that can declare one. It admits nothing:
     /// §8.4.6.4 offers no third source for a visible name.</summary>
-    public static readonly OoRepositoryScope Empty = new([], [], []);
+    public static readonly IdentityScope Empty = new([], [], []);
 
     // Declared name → the EXTERNALIZED name the specifier's `AS literal-n` gives, or null when it wrote none (the
     // containing definition's own name, too): null resolves by the declared word (kb/Work PB974).
@@ -179,7 +183,7 @@ public sealed class OoRepositoryScope
     // The parameter-names of a containing PARAMETERIZED class or interface definition (its USING clause).
     private readonly HashSet<string> _formals;
 
-    private OoRepositoryScope(Dictionary<string, string?> classes, Dictionary<string, string?> interfaces,
+    private IdentityScope(Dictionary<string, string?> classes, Dictionary<string, string?> interfaces,
         HashSet<string> formals)
     {
         _classes = classes;
@@ -209,7 +213,7 @@ public sealed class OoRepositoryScope
     /// <paramref name="variables"/> is the group's &gt;&gt;DEFINE timeline, for a FROM constant-name written as a
     /// specifier's AS operand. The AS literals are read in the spelling of <paramref name="dialectLevel"/>, the
     /// edition's (kb/Work PB2840).</summary>
-    public static OoRepositoryScope Build(RuleContext? site, DirectiveTimeline<CompilationVariableEvent> variables,
+    public static IdentityScope Build(RuleContext? site, DirectiveTimeline<CompilationVariableEvent> variables,
         int dialectLevel)
     {
         var classes = new Dictionary<string, string?>(CobolNames.Comparer);
@@ -238,7 +242,7 @@ public sealed class OoRepositoryScope
                 if (c.GetChild(i) is Core.EnvironmentDivisionContext env)
                     Collect(env, classes, interfaces, variables, dialectLevel);
         }
-        return classes.Count == 0 && interfaces.Count == 0 ? Empty : new OoRepositoryScope(classes, interfaces, formals);
+        return classes.Count == 0 && interfaces.Count == 0 ? Empty : new IdentityScope(classes, interfaces, formals);
     }
 
     private static void Collect(Core.EnvironmentDivisionContext env, Dictionary<string, string?> classes,

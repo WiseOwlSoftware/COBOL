@@ -65,8 +65,10 @@ internal sealed record RepositoryRecord(
 /// null for an interface.</param>
 /// <param name="Properties">The object and factory properties, each from its accessors (ISO §13.18.42; §11.7.2).</param>
 /// <param name="Methods">The methods: the object methods, then the factory methods, each in roster order.</param>
+/// <param name="ClrName">The simple name of the CLR type that carries the unit (its metadata name, never an attribute argument, like
+/// <see cref="MethodRecord.ClrName"/>): the type an importer names in its generated code, in the module's namespace (§4.5).</param>
 internal sealed record ClassRecord(bool Final, string? BaseIdentity, RecordList<string> Implements, RecordList<string> FactoryImplements,
-    string? FactoryType, RecordList<PropertyRecord> Properties, RecordList<MethodRecord> Methods);
+    string? FactoryType, RecordList<PropertyRecord> Properties, RecordList<MethodRecord> Methods, string ClrName);
 
 /// <summary>One object property (ISO §8.13 "the object properties of the source unit"; §13.18.42): its name, the externalized
 /// name its accessors carry (ISO §12.3.8.4 GR2), the half it belongs to and which accessors it has.</summary>
@@ -112,10 +114,9 @@ internal sealed record StructureRecord(int Index, string Name, RepositoryPrefix 
 
 /// <summary>A prototype a restricted program- or function-pointer of the record names, with its FULL signature, so the
 /// importer types the pointer by signature (ISO §13.18.60.4 GR25 / GR26; §6.4). Its own restricted-pointer formals index other
-/// rows, so a recursive prototype records as a finite graph. <paramref name="HasSignature"/> is false for a prototype whose
-/// details ISO §12.3.8.4 GR10 c) / GR11 c) leave to the external repository (no compile-time signature; the state slice 7
-/// deletes, §6.4).</summary>
-internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName, bool HasSignature,
+/// rows, so a recursive prototype records as a finite graph. Every prototype has its signature: one whose details ISO
+/// §12.3.8.4 GR10 c) / GR11 c) take from the external repository has the entry's (DESIGN-external-repository §8.2, §6.4).</summary>
+internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName,
     RecordList<FormalRecord> Formals, DescriptionRecord? Returning);
 
 /// <summary>

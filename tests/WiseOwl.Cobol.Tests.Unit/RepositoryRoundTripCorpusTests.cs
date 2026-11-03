@@ -30,11 +30,14 @@ public sealed class RepositoryRoundTripCorpusTests
 {
     /// <summary>§17.2's corpus: every case of the WiseOwl manifest at every edition it is accepted at, as (edition, id, path,
     /// reference format). The one enumeration both corpus Facts read (this class's and
-    /// <c>HostEntryShapeDriftTests.EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord</c>).</summary>
+    /// <c>HostEntryShapeDriftTests.EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord</c>). A multi-unit case
+    /// whose build compiles a unit before its own source (DESIGN-external-repository §17.1) is not in it: its program resolves
+    /// REPOSITORY specifiers against those separately compiled assemblies (ISO §12.3.8.4 GR10 c)), which an in-process bind of
+    /// its source alone does not have, and its own run is the suite's (<c>ConformanceSuiteRunner</c>).</summary>
     internal static IReadOnlyList<(int Edition, string Id, string Path, InitialReferenceFormat Format)> Corpus()
     {
         var cases = SuiteManifest.Manifest.Editions
-            .SelectMany(e => e.Value.Values.Where(t => t.Expect == "accept")
+            .SelectMany(e => e.Value.Values.Where(t => t.Expect == "accept" && !(t.Build?.TakeWhile(s => s.File is not null).Any() ?? false))
                 .Select(t => (Edition: int.Parse(e.Key, System.Globalization.CultureInfo.InvariantCulture), Test: t)))
             .Select(c => (c.Edition, c.Test.Id, Path.Combine(SuiteManifest.Root, c.Test.Source),
                 InitialReferenceFormatOption.TryParse(c.Test.SourceFormat, out var format) ? format
@@ -80,7 +83,9 @@ public sealed class RepositoryRoundTripCorpusTests
         {
             // One unit per (kind, externalized name), and one CLR type per factory type name (a class's factory is a type the
             // library declares by the name its record states).
-            string[] entryKeys = [$"{entry.Record.Kind}:{entry.Record.ExternalizedName}", .. entry.Record.Class?.FactoryType is { } f ? [$"factory:{f}"] : Array.Empty<string>()];
+            string[] entryKeys = [$"{entry.Record.Kind}:{entry.Record.ExternalizedName}",
+                .. entry.Record.Class?.FactoryType is { } f ? [$"clr:{f}"] : Array.Empty<string>(),
+                .. entry.Record.Class is { } cr ? [$"clr:{cr.ClrName}"] : Array.Empty<string>()];
             int at = keys.FindIndex(k => k.Count < LibrarySize && !entryKeys.Any(k.Contains));
             if (at < 0) { libraries.Add([]); keys.Add([]); at = libraries.Count - 1; }
             libraries[at].Add(entry);

@@ -44,7 +44,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
         // the one answer, which EmitMain read too.
         bool library = ProgramEmitter.MainUnit(program.Units) is null;
         var result = Compile(csharp, options.OutputPath, options.AssemblyName,
-            library ? OutputKind.DynamicallyLinkedLibrary : OutputKind.ConsoleApplication);
+            library ? OutputKind.DynamicallyLinkedLibrary : OutputKind.ConsoleApplication, options.RepositoryReferences ?? []);
         if (result.Success)
         {
             written.Add(Path.GetFullPath(options.OutputPath));
@@ -107,7 +107,10 @@ internal sealed class RoslynBackend : ICodeGenBackend
     /// </summary>
     /// <param name="assemblyName">The emitted assembly's simple name (the COBOL PROGRAM-ID).</param>
     /// <param name="outputKind">The assembly's kind (DESIGN-external-repository §7.2).</param>
-    public static Result Compile(string csharpSource, string outputDllPath, string assemblyName, OutputKind outputKind)
+    /// <param name="repositoryReferences">The assemblies of the external repository the generated code names a type of
+    /// (<see cref="BackendOptions.RepositoryReferences"/>): referenced beside the framework and the runtime.</param>
+    public static Result Compile(string csharpSource, string outputDllPath, string assemblyName, OutputKind outputKind,
+        IReadOnlyList<string> repositoryReferences)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(
             csharpSource, new CSharpParseOptions(LanguageVersion.Latest));
@@ -115,7 +118,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
         var compilation = CSharpCompilation.Create(
             assemblyName,
             [syntaxTree],
-            ReferenceAssemblies(),
+            [.. ReferenceAssemblies(), .. repositoryReferences.Select(static p => (MetadataReference)MetadataReference.CreateFromFile(p))],
             new CSharpCompilationOptions(
                 outputKind,
                 optimizationLevel: OptimizationLevel.Release,
@@ -128,18 +131,21 @@ internal sealed class RoslynBackend : ICodeGenBackend
                 // is WHEN-COMPILED's own baked constant). Identical source + references → byte-identical
                 // assembly (reproducible builds, the modern toolchain norm — csc has defaulted to
                 // /deterministic since VS2017; only the Roslyn API's back-compat default is false).
-                deterministic: true));
+                deterministic: true)
+                // A source namespace or type meeting an imported one of the same full name is a WARNING in C# (CS0435,
+                // CS0436, CS0437) and means the compile silently chose one of two declarations — which in this design is a
+                // repository defect that must stop it (DESIGN-external-repository §10.2). The driver surfaces only errors from
+                // the backend, because generated C# for legal COBOL draws warnings no emitter change can remove (CS1718), so these
+                // three are escalated, not surfaced with the rest.
+                .WithSpecificDiagnosticOptions(ImportedTypeCollisions));
 
-        EmitResult emit = compilation.Emit(outputDllPath);
-        if (!emit.Success)
-        {
-            // A failed Emit leaves a partial/0-byte output file behind; running it dies with the misleading
-            // "hostpolicy.dll required" error (the swept phantom-RUNERR class — ST133A/ST134A/SQ203A were
-            // misread as environmental flakes). The output file exists only when the compile SUCCEEDED.
-            try { if (File.Exists(outputDllPath)) File.Delete(outputDllPath); } catch (IOException) { }   // not a compilation input: cleanup of this compile's own output
-        }
-
-        return new Result(emit.Success, emit.Diagnostics);
+        // §7.5's file protocol: the assembly is emitted to a temporary beside the output and renamed over it, so a
+        // compilation or a running program reading the output directory (a repository directory, §7.4) never sees a
+        // partial assembly, and a failed Emit — which leaves a partial/0-byte file, the swept phantom-RUNERR class
+        // (ST133A/ST134A/SQ203A) — deletes only its temporary and leaves the previous build in place.
+        EmitResult? emit = null;
+        OutputFileProtocol.Replace(outputDllPath, temporary => (emit = compilation.Emit(temporary)).Success);
+        return new Result(emit!.Success, emit.Diagnostics);
     }
 
     /// <summary>
@@ -150,6 +156,14 @@ internal sealed class RoslynBackend : ICodeGenBackend
     /// <see cref="MetadataReference.CreateFromFile(string)"/> calls; the in-process test battery compiles thousands
     /// of times per run (rearchitecture P0 step 2).
     /// </summary>
+    private static readonly IReadOnlyDictionary<string, ReportDiagnostic> ImportedTypeCollisions =
+        new Dictionary<string, ReportDiagnostic>
+        {
+            ["CS0435"] = ReportDiagnostic.Error,   // a source namespace meeting an imported type
+            ["CS0436"] = ReportDiagnostic.Error,   // a source type meeting an imported type
+            ["CS0437"] = ReportDiagnostic.Error,   // a source type meeting an imported namespace
+        };
+
     private static readonly Lazy<ImmutableArray<MetadataReference>> _referenceAssemblies =
         new(BuildReferenceAssemblies, LazyThreadSafetyMode.ExecutionAndPublication);
 

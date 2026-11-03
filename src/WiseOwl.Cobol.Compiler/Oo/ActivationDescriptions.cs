@@ -99,7 +99,9 @@ public static class ActivationDescriptions
         if (p.Category is PicCategory.ObjectReference)
         {
             var d = p.ObjectRef ?? ObjectRefDescriptor.Universal;
-            var facts = classes?.SetOperand(d);
+            // The class facts by IDENTITY (the externalized names, DESIGN-external-repository §6.4): a description is
+            // compared with one of another, separately compiled group, whose words are its own.
+            var facts = classes?.DescribedOperand(d);
             return new ActivationDescription
             {
                 Shape = ActivationShape.ObjectReference,
@@ -107,7 +109,9 @@ public static class ActivationDescriptions
                 ObjectKind = d.RuntimeKind,
                 // The containing class of an ACTIVE-CLASS description is not part of its identity (§9.3.8.2.3 rule 2
                 // d)); the SET table reads it from the class facts (ObjectClasses' first entry).
-                ObjectName = d.IsActiveClass || d.Name is null ? null : CobolNames.Fold(d.Name),
+                // A reader with no class table (classes: null — the signature identity of a prototype, which hashes this
+                // text) spells the identity the description was resolved to, as the table does.
+                ObjectName = d.IsActiveClass || (facts?.Name ?? d.Identity ?? d.Name) is not { } named ? null : CobolNames.Fold(named),
                 Factory = d.Factory,
                 Only = d.Only,
                 ObjectNameIsParameter = d.Formal,

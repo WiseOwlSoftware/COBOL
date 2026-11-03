@@ -80,7 +80,7 @@ internal static class RepositoryReader
         var properties = new List<Fields>();
         var declarations = new List<(int Declaration, Fields Entry)>();
         var structures = new List<StructureRecord>();
-        var prototypes = new List<(int Index, RepositoryUnitKind Kind, string ExternalizedName, bool HasSignature)>();
+        var prototypes = new List<(int Index, RepositoryUnitKind Kind, string ExternalizedName)>();
         var prototypeFormals = new List<(int Prototype, Fields Formal)>();
         var prototypeEntries = new List<(int Prototype, int Formal, Fields Entry)>();
         foreach (var (name, value) in SchemaAttributes(md, type.GetCustomAttributes()))
@@ -95,8 +95,7 @@ internal static class RepositoryReader
                         value.Flag(nameof(CobolStructureAttribute.Delimited)), value.Text(nameof(CobolStructureAttribute.PhysicalStructureName))));
                     break;
                 case nameof(CobolPrototypeAttribute):
-                    prototypes.Add((value.Fixed<int>(0), value.FixedKind<RepositoryUnitKind>(1), value.Fixed<string>(2),
-                        value.Flag(nameof(CobolPrototypeAttribute.HasSignature))));
+                    prototypes.Add((value.Fixed<int>(0), value.FixedKind<RepositoryUnitKind>(1), value.Fixed<string>(2)));
                     break;
                 case nameof(CobolPrototypeFormalAttribute): prototypeFormals.Add((value.Fixed<int>(0), value)); break;
                 case nameof(CobolPrototypeDescriptionAttribute): prototypeEntries.Add((value.Fixed<int>(0), value.Fixed<int>(1), value)); break;
@@ -128,7 +127,7 @@ internal static class RepositoryReader
             TypeDeclarations: List(Rows(declarations.GroupBy(d => d.Declaration, d => d.Entry), "type declaration").Select(Tree)),
             DynamicLengthStructures: List(Rows(structures.GroupBy(s => s.Index), "structure").Select(g => g.Single())),
             ReferencedPrototypes: List(Rows(prototypes.GroupBy(p => p.Index), "prototype").Select(g => g.Single()).Select(p => new PrototypeRecord(
-                p.Index, p.Kind, p.ExternalizedName, p.HasSignature,
+                p.Index, p.Kind, p.ExternalizedName,
                 Formals(prototypeFormals.Where(f => f.Prototype == p.Index).Select(f => (f.Formal,
                     prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == f.Formal.Position).Select(e => e.Entry).ToList()))),
                 prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == CobolPrototypeDescriptionAttribute.ReturningItem)
@@ -165,7 +164,7 @@ internal static class RepositoryReader
         }
         return new ClassRecord(unit.Flag(nameof(CobolUnitAttribute.Final)), unit.Text(nameof(CobolUnitAttribute.BaseIdentity)),
             List(unit.Texts(nameof(CobolUnitAttribute.Implements)) ?? []), List(unit.Texts(nameof(CobolUnitAttribute.FactoryImplements)) ?? []),
-            factoryType, List(propertyRecords), List(methods));
+            factoryType, List(propertyRecords), List(methods), md.GetString(type.Name));
 
         static PropertyRecord Property(Fields p, bool isFactory) => new(p.Fixed<string>(0), p.Fixed<string>(1), isFactory,
             p.Flag(nameof(CobolPropertyAttribute.Get)), p.Flag(nameof(CobolPropertyAttribute.Set)));
