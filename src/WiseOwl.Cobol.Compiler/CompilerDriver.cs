@@ -231,7 +231,7 @@ public static class CompilerDriver
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         // Placement (a): an expansion whose code names nothing of this group is compiled apart, into an assembly of its own that the
         // group then names a type of (DESIGN-external-repository §10.5) — so it is written BEFORE the group's module, which references it.
-        var expansion = ExpansionAssemblies.Write(bound.Expansions, options, outputDll);
+        var expansion = ExpansionAssemblies.Write(bound.Expansions, options, outputDll, edition);
         string[] warnings = [.. feWarnings, .. edition.Warnings, .. expansion.Warnings];
         if (expansion.Errors.Count > 0)
             return new Result(Outcome.BackendError, outputDll, expansion.GeneratedCsPath, expansion.Errors, warnings)

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -52,4 +53,8 @@ internal sealed record SkeletonSource(string Name, string Identity, bool IsInter
 /// <param name="ActualWords">The actual parameters, in USING order, as written.</param>
 /// <param name="Text">The expansion's own source text: the skeleton's tokens with the header renamed, the USING clause dropped and each
 /// formal replaced by its actual (<see cref="OoExpansion"/>), which an expansion made in an assembly of its own is compiled from.</param>
-internal sealed record ExpansionOrigin(SkeletonSource Skeleton, Core.RepositoryEntryContext Entry, IReadOnlyList<string> ActualWords, string Text);
+/// <param name="Region">The region every token of the expansion's text names (<see cref="ExpansionToken"/>): what a diagnostic raised
+/// while the group binds the text is attributed to, so the group can withdraw the ones the expansion's own compilation reports
+/// (<c>EditionContext.WithdrawWarningsOf</c>, kb/Work PB4469).</param>
+internal sealed record ExpansionOrigin(SkeletonSource Skeleton, Core.RepositoryEntryContext Entry, IReadOnlyList<string> ActualWords, string Text,
+    DiagnosticRegion Region);

@@ -18,6 +18,7 @@ THEN, in order:
 5. SORT AND FILE I/O TESTS (MANDATORY-PRACTICES I11): a fix that reaches a SORT, MERGE or file I/O path carries tests of
    every abnormal and exception path it reaches, as the I11 row of `templates/MANDATORY-PRACTICES.md` lists them (the
    rule's one home). Name them in the report's `## Owner test requirement` section, or say why the fix reaches none.
+6. YOUR SCRATCH DIRECTORY is the one your prompt names (MANDATORY-PRACTICES P16, kb/Work PB4466, PB4473; none named: `<coord>\scratch\finish-<branch slug>\`): create it, and write every helper script, probe, batch and log you keep outside your worktree there and nowhere else, never in the harness's session scratchpad.
 
 Graceful STOP: before EACH step check the two stop files your prompt names; if either exists, checkpoint, write STATUS.md NEXT, and return SPLIT. Turn cap 160.
 

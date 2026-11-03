@@ -1877,9 +1877,25 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   letters included, to a line of its own (kb/Work PB4456; `ExpansionFreeFormTests` sweeps every kind at every column).
 - *Placement (a) reports where the expansion was asked for* (kb/Work PB4457): every diagnostic of the sub-compilation, error and warning
   alike, is returned by `ExpansionAssemblies.Write` relabelled by `AtTheEntry` to the EXPANDS entry (`ExpansionToWrite.RequestedAt`, the
-  file, line and column the user's source names, as an expansion made in the group is positioned) with `[in the expansion 'NAME']`
-  after the message, never to the throw-away file the text was compiled from. The warnings ride `CompilerDriver.Result.Warnings` on
-  every outcome, and the CLI names the generated C# of a backend failure only when that file exists.
+  file, line and column the user's source names) with `[in the expansion 'NAME']` after the message, never to the throw-away file the
+  text was compiled from. The warnings ride `CompilerDriver.Result.Warnings` on every outcome, and the CLI names the generated C# of a
+  backend failure only when that file exists.
+- *Placement (a)'s warnings are reported once, and where an expansion made in the group reports them* (kb/Work PB4469). The group binds
+  the text of every expansion to type its callers, so a placement-(a) expansion's text is bound twice, once by the group under the
+  group's state and once by the sub-compilation under the state its skeleton was published with. The sub-compilation owns the text's
+  warnings: every token of an expansion's text is an `ExpansionToken` naming the expansion's `DiagnosticRegion`; the diagnostic cursor
+  (`DiagnosticCursor.Region`, set by `DiagnosticCursorAt.At`, kept by every pass that replays a captured cursor) carries it to
+  `EditionContext.Warning`, which remembers which regions raised each warning line; `ExpansionAssemblies.Write` calls
+  `EditionContext.WithdrawWarningsOf` for each `OwnAssembly` expansion once its sub-compilation has reported (a `CheckOnly` compilation
+  runs none and keeps the group's report), which drops the lines no text outside the region (the user's own text, a placement-(b) or
+  imported expansion) also raised. Errors are never withdrawn (an error of the group's bind stops the compilation
+  before any sub-compilation runs). The position is one rule for both placements: the text of an expansion of a skeleton read from the
+  repository (`SkeletonSource.From`) has the positions of a file this group never read, so `OoExpansion.SubstitutedTokens` gives each of its
+  tokens the EXPANDS entry's line AND column, the position `AtTheEntry` relabels the sub-compilation's diagnostics to. An expansion of a
+  skeleton written in this group keeps the skeleton's own positions in the group's bind (the user's own text, found once for all
+  expansions, `EditionContext.AddOnce`), and an own-assembly expansion of it is reported by its sub-compilation at the entry.
+  *Representation:* `CompilerDriver.Result.Errors` and `Warnings` stay strings; the duplicate was two owners of one text, not the
+  string form, so ownership is decided where the diagnostic is raised and the strings need no structure to be de-duplicated.
 - *Residual, stated:* an expansion of a skeleton published under another `CompileState` than this group's whose code also names a class of
   this group can live neither in an assembly of its own nor, bound under this group's state, in the group's module: it is COBOL2240. And
   an expansion of such a skeleton is BOUND in the group under the group's state (its surface — method names and descriptions — is a

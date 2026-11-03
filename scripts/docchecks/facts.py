@@ -15,7 +15,6 @@ from .common import Check, need
 
 COBOL_WORDS = "tests/version-matrix/cobol-words.json"
 RAISE_SITES = "tests/doc-facts/declined-raise-sites.json"
-ROW_NUMBER = re.compile(r"^\|\s*([0-9]+(?:\.[0-9]+)?[a-z]?)\s*\|")
 BEHAVIOR_ANCHOR = re.compile(r"<!--\s*behavior:([^\s>]+)\s*-->")
 EC_IMP_NAME = re.compile(r"EC-[A-Z0-9]+(?:-[A-Z0-9]+)*-IMP\b")
 
@@ -166,7 +165,7 @@ def raise_site_findings(conformance: str, sites: list[dict]) -> list[str]:
 def behavior_anchors(vcr_lines: list[str]) -> list[tuple[str, str, str]]:
     out = []
     for ln in vcr_lines:
-        rm = ROW_NUMBER.match(ln)
+        rm = common.ROW_NUMBER.match(ln)
         if rm:
             out += [(rm.group(1), m.group(1), ln) for m in BEHAVIOR_ANCHOR.finditer(ln)]
     return out

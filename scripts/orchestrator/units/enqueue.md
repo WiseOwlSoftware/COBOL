@@ -33,7 +33,7 @@ leads, the records and the ledger.
    tool, model opus) whose prompt gives the branch, its worktree, its tip, its report, the findings file (the
    hold's own, which `status` prints on its HOLD line; for an UNREVIEWED branch, which has no hold, the lane's own name for
    it, `<coord>/scratch/review-<branch>.jsonl` with every run of characters outside A-Z a-z 0-9 . _ - in the branch name
-   replaced by one `-`; a torn one is mended first, by the remedy the hold names), the reviewer label `enqueue-review-<branch>-r1`, the round, both stop files, and says: follow "The branch
+   replaced by one `-`; a torn one is mended first, by the remedy the hold names), the reviewer's own scratch directory (the findings file's name without `.jsonl`, `<coord>/scratch/review-<branch>/`: it creates it and keeps every probe and log it writes outside the worktree there, never in the session scratchpad, MANDATORY-PRACTICES P16), the reviewer label `enqueue-review-<branch>-r1`, the round, both stop files, and says: follow "The branch
    form" of `.claude/skills/review/SKILL.md`; a conflict finisher that ended with the head unchanged: read its report
    (`review_lane.py status` names its log), and either re-arm the branch (step 3, a stop resolved with no commit) or
    send a finisher (step 4). Then `python scripts/orchestrator/review_lane.py collect <branch> ...` (until you collect, the

@@ -54,6 +54,27 @@ public class Violations
     public string Selector(string sel) =>
         $"int d = (int)({NumericRenderer.Align(sel, 0)});";        // wiseowl-cobol-integer-value-cast-narrowed
 
+    // LINE CONTROLS (kb/Work PB4474). A trailing `FIRES <rule-id>` says the rule must hit that line, a trailing `QUIET` that no
+    // rule may. The text rules that skip a line comment must see a violation AFTER a `//` that sits inside a string or a char
+    // literal, and must not see one inside a comment (verify.py check 1 reads the markers; its self-test runs the same
+    // cases through the rules' regexes).
+    public void LineControls(string sel)
+    {
+        string url = "http://example.org"; decimal afterUrl = 1;                   // FIRES wiseowl-cobol-no-decimal
+        string verbatim = @"C:\dir\"; decimal afterVerbatim = 2;                   // FIRES wiseowl-cobol-no-decimal
+        string quoted = @"say ""//"" now"; decimal afterQuoted = 3;                // FIRES wiseowl-cobol-no-decimal
+        char slash = '/'; char quote = '"'; decimal afterChars = 4;                // FIRES wiseowl-cobol-no-decimal
+        string link = "http://example.org"; byte[] afterLink = new byte[1];        // FIRES wiseowl-cobol-no-persistent-byte-storage
+        string site = "http://example.org"; Emit(Severity.Error, "COBOL1997", "x");   // FIRES wiseowl-cobol-raw-diagnostic-code-literal
+        int none = 0; // decimal inComment = 5;                                     QUIET
+        string text = "a"; // decimal afterString = 6;                               QUIET
+        // decimal wholeLine = 7;                                                   QUIET
+        /// <c>decimal doc = 8;</c>                                                 QUIET
+        int odd = 0; // it's "unbalanced decimal afterQuote = 9;                      QUIET
+        // Emit(Severity.Error, "COBOL1996", "in a comment");                        QUIET
+        _ = (url, verbatim, quoted, slash, quote, link, site, none, text, odd);
+    }
+
     public sealed class FakeLiteral { public FakeLiteral integerLiteral() => this; public string GetText() => "1"; }
     public sealed class FakeToken { public string Text => "1"; }
     private static class NumericRenderer { public static string Align(string s, int scale) => s; }

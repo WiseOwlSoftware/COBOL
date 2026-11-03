@@ -31,16 +31,19 @@ internal static class ExpansionAssemblies
     /// <summary>Compile every expansion <paramref name="expansions"/> places in an assembly of its own, dependency order, and return the files
     /// written; the first failure stops the run and is returned as the group's backend error, with the generated C# of the compilation that
     /// failed. Every diagnostic of such a compilation, error or warning, is reported where the expansion was asked for — the EXPANDS entry's
-    /// file, line and column, exactly as an expansion made in the group is positioned (<see cref="AtTheEntry"/>) — and never at the
-    /// throw-away file its text was compiled from, which is gone by the time the user reads it (kb/Work PB4457). The warnings are those of
-    /// the skeleton's text under the state it was published with; they are reported for each expansion made, as an expansion made in the
-    /// group reports its own.</summary>
-    public static Written Write(ExpansionPlacements expansions, CompilerDriver.Options options, string outputDll)
+    /// file, line and column (<see cref="AtTheEntry"/>), the position the group's own bind gives the text of an expansion of a skeleton it read
+    /// from the repository (<c>OoExpansion.SubstitutedTokens</c>) — and never at the throw-away file its text was compiled from, which is gone
+    /// by the time the user reads it (kb/Work PB4457). The warnings are those of the skeleton's text under the state it was published with, and
+    /// they are the ONLY report of them (kb/Work PB4469): the group bound the same text to type its callers, and once this compilation has
+    /// reported the text <paramref name="edition"/> withdraws what the group raised then (<c>EditionContext.WithdrawWarningsOf</c>), so this
+    /// compilation answers for the text alone. A <c>CheckOnly</c> compilation never gets here and keeps the group's report of the text. They
+    /// are reported for each expansion made, and name it (<c>[in the expansion 'NAME']</c>).</summary>
+    public static Written Write(ExpansionPlacements expansions, CompilerDriver.Options options, string outputDll, EditionContext edition)
     {
         var files = new List<string>();
         var warnings = new List<string>();
         var references = new List<string>(options.ReferencePaths ?? []);
-        foreach (var (text, state, placement, requestedAt) in expansions.ToWrite)
+        foreach (var (text, state, placement, requestedAt, region) in expansions.ToWrite)
         {
             string source = state.CobolWordsMap + state.DirectiveFolds + state.CompilationVariables + FreeForm(text) + "\n";
             string temp = Path.Combine(Path.GetTempPath(), $"expansion-{Guid.NewGuid():N}.cob");
@@ -56,6 +59,7 @@ internal static class ExpansionAssemblies
                     RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths ?? [Path.GetDirectoryName(Path.GetFullPath(outputDll))!],
                     ReferencePaths: references, RepositoryCheck: false) { PublishAs = placement.Identity });
                 warnings.AddRange(result.Warnings.Select(w => AtTheEntry(w, temp, name, requestedAt)));
+                edition.WithdrawWarningsOf(region);   // this compilation has now reported the text's warnings: the group's bind of it does not report them again
                 if (!result.Success)
                     return new(files, [$"the expansion assembly '{target}' (ISO §9.3.12; DESIGN-external-repository §10.5):",
                         .. result.Errors.Select(e => AtTheEntry(e, temp, name, requestedAt))], warnings, result.GeneratedCsPath);
