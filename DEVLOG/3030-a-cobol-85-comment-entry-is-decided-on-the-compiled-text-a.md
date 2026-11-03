@@ -1,4 +1,4 @@
-## A COBOL-85 comment-entry is decided on the compiled text: a three-valued division, a carried candidate, and a resolver after conditional compilation, COPY, REPLACE and COBOL-WORDS
+## Entry 3030 — 2026-11-03 05:01 PST — A COBOL-85 comment-entry is decided on the compiled text: a three-valued division, a carried candidate, and a resolver after conditional compilation, COPY, REPLACE and COBOL-WORDS
 
 The operator lane is out of quota for a day, so the Mythos lane took over its work (this branch continues group A's reviewed
 head `cd0217755`). PB4281 was filed as "one clause, no structural change"; the re-probe showed it was a stage-order defect
@@ -111,3 +111,4 @@ and in the resolver (decided case), over the one `CommentEntryHeader`. Review ro
 cost is a second run of the text stages for a program that has a program-text candidate, and none for any other.
 
 Gate: see the report of the final head.
+
