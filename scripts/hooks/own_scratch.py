@@ -58,7 +58,6 @@ def refusal(data: dict) -> str | None:
 
 
 def main() -> int:
-    ensure_utf8()
     try:
         data = json.load(sys.stdin)
         if not isinstance(data, dict):
@@ -76,4 +75,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
