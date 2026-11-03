@@ -31,8 +31,8 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// "before the application of replacing and conditional compilation actions", and <c>&gt;&gt;COBOL-WORDS</c> respells
 /// words after that, so a reader of the text AS WRITTEN (<paramref name="words"/> null: the converters and the COPY driver)
 /// knows the division only until something it cannot see could have changed what its words mean: a conditional group whose
-/// branches disagree on the division, a <c>&gt;&gt;COBOL-WORDS</c> directive (any word the cursor reads may now be spelled
-/// another way), or a REPLACE statement or <c>COPY … REPLACING</c> that names a word the cursor reads (§7.2.4.4 2): it
+/// branches disagree on the division, a <c>&gt;&gt;COBOL-WORDS</c> directive that names a word the cursor reads (it may now be spelled
+/// another way; <see cref="NoteCobolWordsDirective"/>), or a REPLACE statement or <c>COPY … REPLACING</c> that names a word the cursor reads (§7.2.4.4 2): it
 /// "specifies the text to be replaced"). What it does not know it says so, and the converter CARRIES the comment-entry candidate it cannot
 /// place (<see cref="CommentEntryCarrier"/>) for <see cref="CommentEntryResolver"/> to decide on the text every
 /// stage has finished with, read by a cursor that is given the group's word map (<paramref name="words"/>) and so reads
@@ -120,7 +120,7 @@ internal sealed class DivisionCursor(bool? startsInIdentificationDivision, Cobol
 
     /// <summary>A conditional-compilation directive line moves the groups (§7.3.16.2 <c>&gt;&gt;IF … [ &gt;&gt;ELSE ]
     /// &gt;&gt;END-IF</c>; §7.3.13.2 <c>&gt;&gt;EVALUATE … &gt;&gt;WHEN … [ &gt;&gt;WHEN OTHER ] &gt;&gt;END-EVALUATE</c>); a
-    /// <c>&gt;&gt;COBOL-WORDS</c> line (§7.3.10) may respell any word this cursor reads, which it cannot learn as written,
+    /// <c>&gt;&gt;COBOL-WORDS</c> line (§7.3.10) that names a word this cursor reads may respell it, which it cannot learn as written,
     /// so from there on it knows no division; any other directive line is not text. A phrase with no group open is a
     /// structure error the conditional-compilation stage reports, and moves nothing here.</summary>
     private void ReadDirective(in TextWord word)
@@ -145,21 +145,56 @@ internal sealed class DivisionCursor(bool? startsInIdentificationDivision, Cobol
                 InIdentificationDivision = group.After(InIdentificationDivision);
                 _groups!.RemoveAt(_groups.Count - 1);
                 break;
-            case "COBOL-WORDS" when words is null:
-                NoteCobolWordsDirective();
+            case "COBOL-WORDS":
+                NoteCobolWordsDirective(directive.Operand);
                 break;
         }
     }
 
-    /// <summary>A <c>&gt;&gt;COBOL-WORDS</c> directive (§7.3.10) is in the text: it may respell any word this cursor reads,
-    /// so the cursor, which reads the words as written, knows no division from here on. The converters meet the directive
-    /// line in the text they read; the merged driver, whose blocks end at a directive line, tells the cursor itself.</summary>
-    public void NoteCobolWordsDirective()
+    /// <summary>A <c>&gt;&gt;COBOL-WORDS</c> directive (§7.3.10) with operand <paramref name="operand"/> is in the text. It
+    /// respells words (§7.3.10.4 GR2-GR4), and the cursor reads the words as written, so a directive that names a word this
+    /// cursor reads — as the word to equate, undefine or substitute, or as the one to write; or by a compilation-variable-name
+    /// whose value only the conditional-compilation stage knows (§7.3.11.4 GR1) — leaves it knowing no division from here on,
+    /// as a REPLACE statement that names one does. A directive that names none changes nothing this cursor reads, so the
+    /// division stays known: <c>&gt;&gt;COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"</c> does not make a procedure division's
+    /// REMARKS paragraph a candidate (kb/Work PB4281, review finding R1-1). The converters meet the directive line in the
+    /// text they read; the merged driver, whose blocks end at a directive line, tells the cursor itself.</summary>
+    public void NoteCobolWordsDirective(string operand)
     {
-        if (words is not null) return;   // a reader of the finished text reads the words through the map
+        if (words is not null || !NamesAWordRead(operand)) return;   // a reader of the finished text reads the words through the map
         _respelled = true;
         InIdentificationDivision = null;
     }
+
+    /// <summary>Whether the operand of a <c>&gt;&gt;COBOL-WORDS</c> directive (§7.3.10.2: an option keyword, then one literal,
+    /// or two joined by WITH or BY) holds a literal that is a word the rule reads (<see cref="ReadsAsDivisionWord"/>), or a
+    /// word that is not an option keyword — a compilation-variable-name standing in a literal slot, whose value cannot be
+    /// told here. A word glued to a quotation symbol is a literal's prefix (<c>X"41"</c>), not a name.</summary>
+    private static bool NamesAWordRead(string operand)
+    {
+        for (int i = 0; i < operand.Length; i++)
+        {
+            if (CobolSourceText.IsQuotationSymbol(operand[i]))
+            {
+                if (ReadsAsDivisionWord(CobolSourceText.LiteralContent(operand, i, out int closing))) return true;
+                i = closing;   // the loop steps past the closing delimiter
+            }
+            else if (CobolCharacterRepertoire.IsWordCharacter(operand[i]))
+            {
+                int start = i;
+                while (i < operand.Length && CobolCharacterRepertoire.IsWordCharacter(operand[i])) i++;
+                bool prefix = i < operand.Length && CobolSourceText.IsQuotationSymbol(operand[i]);
+                if (!prefix && !IsOptionWord(operand.AsSpan(start, i - start))) return true;
+                i--;   // the loop steps to the next character
+            }
+        }
+        return false;
+    }
+
+    /// <summary>A word the general format of the directive itself writes (§7.3.10.2).</summary>
+    private static bool IsOptionWord(ReadOnlySpan<char> word)
+        => CobolKeywords.Same(word, "EQUATE") || CobolKeywords.Same(word, "WITH") || CobolKeywords.Same(word, "UNDEFINE")
+           || CobolKeywords.Same(word, "SUBSTITUTE") || CobolKeywords.Same(word, "BY") || CobolKeywords.Same(word, "RESERVE");
 
     /// <summary>One text-word — THE rule.</summary>
     private void Feed(in TextWord word)

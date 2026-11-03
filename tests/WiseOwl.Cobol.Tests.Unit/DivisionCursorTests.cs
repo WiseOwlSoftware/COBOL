@@ -194,7 +194,7 @@ public sealed class DivisionCursorTests
         Assert.True(CommentEntryCarrier.Is(lines[3]));
         Assert.True(CommentEntryCarrier.Is(lines[4]));
         string[] finished = CommentEntryResolver.Resolve(MappedText.Identity(string.Join('\n', lines), "t.cob"),
-            CobolWordsMap.Empty, null).Text.Split('\n');
+            CobolWordsMap.Empty, null).Text.Text.Split('\n');
         Assert.Equal("INSTALLATION. .", finished[3]);
         Assert.Equal("SECURITY. .", finished[4]);
     }
@@ -236,14 +236,36 @@ public sealed class DivisionCursorTests
         Assert.Null(cursor.InIdentificationDivision);   // a spelling it does read cannot make it sure: it cannot tell the others
     }
 
+    [Theory] // kb/Work PB4281 (review finding R1-1): only a directive that names a word the cursor reads (§7.3.10.2: an option keyword
+             // and its literals) leaves the division unknown, as a REPLACE statement that names one does; the rest changes nothing it reads
+    [InlineData("EQUATE \"DISPLAY\" WITH \"SHOW\"", false)]
+    [InlineData("RESERVE \"ZQX\"", false)]
+    [InlineData("UNDEFINE \"STOP\"", false)]
+    [InlineData("SUBSTITUTE \"COUNT\" BY \"TALLY-IT\"", false)]
+    [InlineData("EQUATE \"DISPLAY\", WITH \"SHOW\"", false)]               // a separator comma is a space (§8.3.5 2)
+    [InlineData("EQUATE X\"41\" WITH \"SHOW\"", false)]                      // a literal's prefix is no name
+    [InlineData("EQUATE \"DIVISION\" WITH \"DIV\"", true)]                   // the word to respell
+    [InlineData("EQUATE \"DIV\" WITH \"division\"", true)]                   // the word written, in any letter case
+    [InlineData("EQUATE \"IDENT\" WITH \"IDENTIFICATION\"", true)]
+    [InlineData("EQUATE \"ID\" WITH \"IDENT\"", true)]
+    [InlineData("UNDEFINE \"PROGRAM-ID\"", true)]                            // the paragraph that begins an identification division
+    [InlineData("EQUATE LITERAL-VAR WITH \"SHOW\"", true)]                   // a compilation-variable-name: its value is not known here (§7.3.11.4 1))
+    public void CobolWordsDirective_MakesTheDivisionUnknown_OnlyWhenItNamesAWordTheCursorReads(string operand, bool unknown)
+    {
+        var cursor = new DivisionCursor(startsInIdentificationDivision: false);
+        cursor.Read(">>COBOL-WORDS " + operand);
+        Assert.Equal(unknown, cursor.InIdentificationDivision is null);
+        if (!unknown) Assert.False(cursor.InIdentificationDivision);
+    }
+
     [Fact] // the merged driver's blocks end at a directive line, so the driver tells its cursor of the directive itself
     public void NoteCobolWordsDirective_MakesTheDivisionUnknown_ButNotForAReaderOfTheFinishedText()
     {
         var driver = new DivisionCursor(startsInIdentificationDivision: true);
-        driver.NoteCobolWordsDirective();
+        driver.NoteCobolWordsDirective("EQUATE \"DIVISION\" WITH \"DIV\"");
         Assert.Null(driver.InIdentificationDivision);
         var finished = new DivisionCursor(startsInIdentificationDivision: true, CobolWordsMap.Empty);
-        finished.NoteCobolWordsDirective();
+        finished.NoteCobolWordsDirective("EQUATE \"DIVISION\" WITH \"DIV\"");
         Assert.True(finished.InIdentificationDivision);
     }
 
@@ -284,7 +306,7 @@ public sealed class DivisionCursorTests
         Assert.True(CommentEntryCarrier.Is(lines[7]));   // DISPLAY "X". — a line of the candidate until it is decided
         string compiled = string.Join('\n', lines.Select((l, i) => i is 3 or 4 or 5 ? "" : l));   // conditional compilation omits the branch
         var resolved = CommentEntryResolver.Resolve(MappedText.Identity(compiled, "t.cob"), CobolWordsMap.Empty, null);
-        string[] finished = resolved.Text.Split('\n');
+        string[] finished = resolved.Text.Text.Split('\n');
         Assert.Contains(finished, l => l.Trim() == "REMARKS.");
         Assert.Contains(finished, l => l.Trim() == "DISPLAY \"X\".");
     }

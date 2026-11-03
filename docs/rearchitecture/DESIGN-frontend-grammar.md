@@ -1173,16 +1173,19 @@ reference formats, and the only place source comments are recognized. Its model:
   `>>COBOL-WORDS` stage, so the converter reads the words as written and the division is a THREE-VALUED fact
   (`DivisionCursor.InIdentificationDivision`: yes, no or NOT KNOWN; docs/CONFORMANCE.md D-CE2, kb/Work PB4281). It is not
   known after a `>>IF` / `>>EVALUATE` group whose branches do not all end in the same division (the one no condition selects
-  included, absent an `>>ELSE` / `>>WHEN OTHER`), after a `>>COBOL-WORDS` directive (any word the cursor reads may be
-  respelled) and after a REPLACE / `COPY … REPLACING` that names a word the cursor reads. A paragraph word at the head of an
+  included, absent an `>>ELSE` / `>>WHEN OTHER`), after a `>>COBOL-WORDS` directive that names a word the cursor reads (it may be
+  respelled; a directive naming none changes nothing the cursor reads) and after a REPLACE / `COPY … REPLACING` that names a word the cursor reads. A paragraph word at the head of an
   Area-A line (or of a free-form line) in a CERTAIN identification division is discarded now (`AUTHOR. .`), in a certain
   other division is program text, and where the division is not known it is CARRIED: each physical line of the candidate
   (header and entry) becomes an inert comment-like slot of the logical text (`CommentEntryCarrier`,
   `LogicalLineBuilder.AddCarrier`; the same device as `DebugLineCarrier`) holding the physical line, and
   `CommentEntryResolver` — placed in `Frontend.Preprocess` after the merged driver and the COBOL-WORDS stage, before the
   lexer; `CommentEntryResolutionOrderDriftTests` keeps the place — decides it on the finished text with a cursor that reads
-  the words through the group's `CobolWordsMap`, writing the identification case as `AUTHOR. .` and converting the
-  program-text case through the same walker (`ReferenceFormatProcessor.ConvertCommentEntryCandidate`). The COPY driver's
+  the words through the group's `CobolWordsMap`, writing the identification case as `AUTHOR. .` and NAMING the
+  program-text case: a candidate that is program text was hidden from the stages that must read it (its COPY and REPLACE
+  statements, the replacing over its words, its directives), so `Frontend.RunTextStages` runs the normalizer and
+  `Preprocess` again with that candidate's physical line pinned as program text (`CommentEntryPins`, read by the two
+  converters where the division is not known) until a run names no new one. The COPY driver's
   cursor reads the text the conditional-compilation stage has already cut and hands a COPY's library text the division it
   finds, or NOT KNOWN. The cursor belongs to a TEXT, not to a block the
   merged driver flushes between directive lines; a spliced library

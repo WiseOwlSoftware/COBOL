@@ -37,10 +37,45 @@ public sealed class CommentEntryResolutionOrderDriftTests
             + $"CobolWordsDirectiveProcessor.Process ({words}) -> CommentEntryResolver.Resolve ({resolve}) -> the end of Preprocess "
             + $"({endOfPreprocess}), which hands the text the parse reads. A comment-entry candidate is decided on the finished text "
             + "and the group's word map (docs/CONFORMANCE.md D-CE2, kb/Work PB4281).");
-        Assert.Contains("text = resolved.Text;", src);   // the text the parse reads is the resolver's
+        Assert.Contains("text = resolved.Text.Text;", src);   // the text the parse reads is the resolver's
         Assert.Equal(src.IndexOf("CommentEntryResolver.Resolve(", StringComparison.Ordinal),
             src.LastIndexOf("CommentEntryResolver.Resolve(", StringComparison.Ordinal));   // once
         Assert.Matches(@"CommentEntryResolver\.Resolve\([^;]*\bcobolWordsMap\b", src);   // through the map the COBOL-WORDS stage built
+    }
+
+    [Fact] // a candidate that proves to be program text was hidden from the stages that must read it: they run again, to a fixed point
+    public void TheTextStages_RunAgainWithEveryCandidateThatProvedToBeProgramText_UntilNoneIsNew()
+    {
+        string src = Frontend();
+        int normalize = src.IndexOf("Normalize(raw, sourcePath, referenceFormatGates, formatOps, pins)", StringComparison.Ordinal);
+        int preprocess = src.IndexOf("Preprocess(normalized, referenceFormats,", StringComparison.Ordinal);
+        int grow = src.IndexOf("pins.With(programText)", StringComparison.Ordinal);
+        int stop = src.IndexOf("ReferenceEquals(grown, pins)", StringComparison.Ordinal);
+        Assert.True(normalize >= 0 && preprocess > normalize && grow > preprocess && stop > grow,
+            "Frontend.RunTextStages must run Normalize -> Preprocess -> pins.With(programText) -> stop when the pins did not grow "
+            + "(docs/CONFORMANCE.md D-CE2, kb/Work PB4281): a program-text candidate the resolver names is read as program text by "
+            + "the run that follows, so conditional compilation, COPY and REPLACE see its lines.");
+        Assert.Contains("RunTextStages(raw, sourcePath, implicitOps, formatOps)", src);   // the GR14 pass loop runs the iteration, never the bare stages
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(src, @"\bNormalize\(raw,"));   // the iteration is Normalize's one caller
+        Assert.Contains("commentEntryPins: pins", src);   // library text reads the pins too
+        Assert.Contains("pins: pins", src);               // … and so does the main source
+    }
+
+    [Fact] // a pin is read by the converters only (never decided anywhere else) and made by Frontend only
+    public void PinsAreMadeByFrontend_AndReadByTheConvertersOnly()
+    {
+        var made = new List<string>();
+        var read = new List<string>();
+        foreach (string file in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend"), "*.cs", SearchOption.AllDirectories))
+        {
+            if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)) continue;
+            string name = Path.GetFileName(file), code = Strip(File.ReadAllText(file));
+            if (code.Contains(".With(programText)", StringComparison.Ordinal)) made.Add(name);
+            if (code.Contains("pins?.Contains(", StringComparison.Ordinal)) read.Add(name);
+        }
+        Assert.Equal(["Frontend.cs"], made);
+        Assert.Equal(["ReferenceFormatProcessor.LogicalConversion.cs"], read);
     }
 
     [Fact] // the carrier is made in the two converters only and read in the resolver only; the resolver is the only reader given a word map

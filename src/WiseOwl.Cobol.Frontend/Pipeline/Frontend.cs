@@ -114,13 +114,8 @@ public sealed class Frontend
             // Every stage from the normalizer on reports into THIS pass's bag; only the converged pass's diagnostics
             // are the compilation's (a DEFINE's SR2 redefinition, a FLAG warning or a line's reference-format gate
             // depends on the state in effect).
-            var passDiagnostics = new DiagnosticBag();
-            // ONE reference-format diagnostics per pass: the main source and every copybook report through it, so a
-            // once-per-compilation gate (the obsolete column-7 hyphen) fires once however many files use it (kb/Work PB1640).
-            var referenceFormatGates = new ReferenceFormatDiagnostics(DialectLevel, Permissive, passDiagnostics);
-            var (normalized, referenceFormats) = Normalize(raw, sourcePath, referenceFormatGates, formatOps);
-            var (processed, directives, encounters, formats) =
-                Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps);
+            var (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats) =
+                RunTextStages(raw, sourcePath, implicitOps, formatOps);
             var passLineMap = new SourceLineMap(processed.Lines);
             LineMap = passLineMap;
             var passAreas = new FixedFormAreas(passLineMap, formats);
@@ -176,6 +171,34 @@ public sealed class Frontend
                     + "settle at least one more directive");
             implicitOps = keyed;
             formatOps = placed;
+        }
+    }
+
+    /// <summary>The text stages — the normalizer, then <see cref="Preprocess"/> — run to a FIXED POINT of the comment-entry
+    /// decision (docs/CONFORMANCE.md D-CE2; kb/Work PB4281, review finding R1-1). A COBOL-85 comment-entry candidate the logical
+    /// conversion cannot place is carried through conditional compilation, COPY and REPLACE as an inert slot and decided after
+    /// them; one that proves to be PROGRAM TEXT was hidden from stages that must read it, so the stages run again with the
+    /// candidate read as the program text it is (<see cref="CommentEntryPins"/>). A run that names no new candidate ends the
+    /// iteration, which is every run of a program without a candidate, and each other run adds a candidate to the pins, so
+    /// it ends. Each run reports into a bag and a reference-format diagnostics of its own, as each §14.9.28.4 GR14 pass does:
+    /// only the last run's are the pass's.</summary>
+    private (DiagnosticBag Diagnostics, ReferenceFormatDiagnostics Gates, MappedText Text, DirectiveResults Directives,
+        ConditionalCompilationResult Encounters, IReadOnlyDictionary<string, ReferenceFormatMap> Formats) RunTextStages(
+        string raw, string sourcePath, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps)
+    {
+        var pins = CommentEntryPins.None;
+        while (true)
+        {
+            var passDiagnostics = new DiagnosticBag();
+            // ONE reference-format diagnostics per run: the main source and every copybook report through it, so a
+            // once-per-compilation gate (the obsolete column-7 hyphen) fires once however many files use it (kb/Work PB1640).
+            var referenceFormatGates = new ReferenceFormatDiagnostics(DialectLevel, Permissive, passDiagnostics);
+            var (normalized, referenceFormats) = Normalize(raw, sourcePath, referenceFormatGates, formatOps, pins);
+            var (processed, directives, encounters, formats, programText) =
+                Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps, pins);
+            var grown = pins.With(programText);
+            if (ReferenceEquals(grown, pins)) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats);
+            pins = grown;
         }
     }
 
@@ -238,7 +261,7 @@ public sealed class Frontend
     /// <returns>The logical free-form text and the reference format each physical line was read in — which the COPY
     /// statements of the text need (§7.3.24.3 3), kb/Work PB1067).</returns>
     private (MappedText Text, ReferenceFormatMap Formats) Normalize(string raw, string sourcePath,
-        ReferenceFormatDiagnostics referenceFormatGates, ImplicitFormatOps implicitOps)
+        ReferenceFormatDiagnostics referenceFormatGates, ImplicitFormatOps implicitOps, CommentEntryPins pins)
     {
         // The normalizer's line-entry stage (PhysicalLines, kb/Work PB1800) reads the raw text: terminators, tabs and —
         // under --nist only (PB1803) — the line-count-preserving archive-marker strip all happen there.
@@ -247,7 +270,8 @@ public sealed class Frontend
         // PB82): a fixed-form continuation JOINS physical lines, and the map records which line each output came from.
         var text = ReferenceFormatProcessor.NormalizeToFreeFormMapped(raw, referenceFormatGates, sourcePath,
             InitialFormat.InitialFixed(), out var formats, ccvsIndicators: NistTestName is not null,   // kb/Work PB1494
-            implicitOps: implicitOps.For(sourcePath));   // §14.9.28.4 GR14's implicit PUSH/POP ALL written in the source (kb/Work PB1066)
+            implicitOps: implicitOps.For(sourcePath),   // §14.9.28.4 GR14's implicit PUSH/POP ALL written in the source (kb/Work PB1066)
+            pins: pins);   // the comment-entry candidates a previous run proved to be program text (kb/Work PB4281)
         return (text, formats);
     }
 
@@ -256,9 +280,10 @@ public sealed class Frontend
     /// (<see cref="Parse"/>). Returns the resultant text, the directive results (WITHOUT the implicit ops, which the
     /// caller replays once the program has converged), and the driver's directive encounters.</summary>
     private (MappedText Text, DirectiveResults Directives, ConditionalCompilationResult Encounters,
-        IReadOnlyDictionary<string, ReferenceFormatMap> Formats) Preprocess(
+        IReadOnlyDictionary<string, ReferenceFormatMap> Formats, IReadOnlyList<(string File, int Line)> ProgramTextCandidates) Preprocess(
         MappedText normalized, ReferenceFormatMap referenceFormats, string sourcePath, DiagnosticBag diagnostics,
-        ReferenceFormatDiagnostics referenceFormatGates, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps)
+        ReferenceFormatDiagnostics referenceFormatGates, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps,
+        CommentEntryPins pins)
     {
         // The MERGED text-manipulation driver (ISO §7.2.1) — conditional compilation INTERLEAVED with COPY, so a
         // >>DEFINE/>>IF/>>EVALUATE INSIDE a copybook is processed (the CC-before-COPY split could not see them), while
@@ -268,7 +293,8 @@ public sealed class Frontend
         var copy = new CopyProcessor(_copySearchPaths, diagnostics,
             dialectLevel: DialectLevel, permissive: Permissive, inputs: Inputs, ccvsIndicators: NistTestName is not null,
             implicitFormatOps: formatOps,   // library text's share of GR14's implicit PUSH/POP ALL (kb/Work PB1066)
-            referenceFormatGates: referenceFormatGates);   // library text reports through the compilation's reference-format gates (PB1640)
+            referenceFormatGates: referenceFormatGates,   // library text reports through the compilation's reference-format gates (PB1640)
+            commentEntryPins: pins);   // library text reads the candidates a previous run proved to be program text as such (PB4281)
         copy.RegisterReferenceFormat(sourcePath, referenceFormats);
         var manipulated = ConditionalCompilationProcessor.Manipulate(normalized, copy, LeftDirectives,
             diagnostics, sourcePath, DialectLevel, Permissive, Inputs, implicitOps);
@@ -357,8 +383,8 @@ public sealed class Frontend
         // compilation, COPY, REPLACE and the COBOL-WORDS stage, and before anything lexes the text:
         // CommentEntryResolutionOrderDriftTests keeps the order. Line-count preserving like the stages above.
         var resolved = CommentEntryResolver.Resolve(new MappedText(text, mapped.Lines), cobolWordsMap, referenceFormatGates);
-        text = resolved.Text;
-        var lineOrigins = resolved.Lines;
+        text = resolved.Text.Text;
+        var lineOrigins = resolved.Text.Lines;
 
         // >>LEAP-SECOND (ISO §7.3.17): the ON/OFF toggles the binder folds at each compilation unit's first line — the
         // §15.3 date/time consumers' fact (kb/Work PB65 — it used to be consumed and discarded; kb/Work PB1378 — it is
@@ -372,7 +398,7 @@ public sealed class Frontend
         return (new MappedText(text, lineOrigins),   // the constructor re-asserts the line-count invariant
             new DirectiveResults(turnEvents, refModZeroLengthEvents, flagEvents, propagateEvents, cobolWordsMap, leapSecondEvents,
                 compilationVariables, directiveSites),
-            manipulated, copy.ReferenceFormats);
+            manipulated, copy.ReferenceFormats, resolved.ProgramText);
     }
 
     /// <summary>The ISO §7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the

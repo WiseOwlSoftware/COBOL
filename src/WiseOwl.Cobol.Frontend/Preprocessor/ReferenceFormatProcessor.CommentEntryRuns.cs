@@ -16,7 +16,8 @@ public static partial class ReferenceFormatProcessor
     /// see the paragraph in fixed form as they do in free form (kb/Work PB1494, PB1758) — and only the entry is
     /// discarded. The entry's end is implied by the next Area-A word (COBOL-85), so the paragraph's terminating period is
     /// written explicitly: <c>AUTHOR. .</c> is the paragraph <c>AUTHOR DOT DOT</c> with no content. No reference-format
-    /// diagnostic is asked of text that is commentary.</item>
+    /// diagnostic is asked of text that is commentary, but the free-form line-length gate the converter left unasked of the
+    /// candidate (<see cref="ReportLineLength"/>).</item>
     /// <item>otherwise: a paragraph of the program, converted as the ordinary lines they are, through the same walker and
     /// the compilation's reference-format diagnostics.</item>
     /// </list>
@@ -29,7 +30,7 @@ public static partial class ReferenceFormatProcessor
         if (!inIdentificationDivision)
         {
             bool? noComments = false;   // the converter reads no comment-entry where the division is none
-            return ConvertSegment([.. candidate.Select(c => c.Line)], isFixed, gates, file, candidate[0].CcvsIndicators, ref noComments);
+            return ConvertSegment([.. candidate.Select(c => c.Line)], isFixed, gates, file, candidate[0].CcvsIndicators, pins: null, ref noComments);
         }
         var builder = new LogicalLineBuilder(file, gates, isFixed);
         foreach (var carried in candidate)
@@ -38,7 +39,11 @@ public static partial class ReferenceFormatProcessor
             // The program text and where it begins in the line: a fixed-form line's program-text area, a free-form line whole.
             var (area, index) = isFixed ? FixedProgramText(line.Text) : (line.Text, 0);
             var site = new TextSite(line.Number, index, line.Columns);
-            if (carried.IsHeader) builder.Emit(CommentEntryHeader(area), site);
+            if (carried.IsHeader)
+            {
+                if (!isFixed) ReportLineLength(gates, file, line);   // the gate the converter left to whoever decides the candidate
+                builder.Emit(CommentEntryHeader(area), site);
+            }
             else builder.Discard(site);
         }
         return builder.Result;

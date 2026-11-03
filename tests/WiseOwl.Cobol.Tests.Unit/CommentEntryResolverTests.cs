@@ -18,17 +18,20 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class CommentEntryResolverTests
 {
-    /// <summary>The finished text of a FREE-form <paramref name="source"/>: converted, conditional compilation applied,
-    /// comment-entry candidates decided through <paramref name="words"/>.</summary>
-    private static string[] Finished(string source, CobolWordsMap? words = null, DiagnosticBag? bag = null)
+    /// <summary>The decision on a FREE-form <paramref name="source"/>: converted, conditional compilation applied, comment-entry
+    /// candidates decided through <paramref name="words"/>.</summary>
+    private static CommentEntryResolver.Resolution Resolved(string source, CobolWordsMap? words = null, DiagnosticBag? bag = null)
     {
         var gates = new ReferenceFormatDiagnostics(2023, true, bag ?? new DiagnosticBag());
         var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob",
             initialFixed: false, out _);
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 2023, permissive: true);
-        var resolved = CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), words ?? CobolWordsMap.Empty, gates);
-        return resolved.Text.Split('\n');
+        return CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), words ?? CobolWordsMap.Empty, gates);
     }
+
+    /// <summary>The finished text of a FREE-form <paramref name="source"/> (see <see cref="Resolved"/>).</summary>
+    private static string[] Finished(string source, CobolWordsMap? words = null, DiagnosticBag? bag = null)
+        => Resolved(source, words, bag).Text.Text.Split('\n');
 
     private static readonly IReadOnlySet<string> LeftDirectives = WiseOwl.Cobol.Frontend.Frontend.LeftDirectives;
 
@@ -101,8 +104,8 @@ public sealed class CommentEntryResolverTests
         var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: true, out _);
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 85, permissive: true);
         var resolved = CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, gates);
-        Assert.Equal(converted.Lines.Length, resolved.Lines.Length);
-        return (converted.Text.Split('\n'), resolved.Text.Split('\n'), converted.Lines.Length);
+        Assert.Equal(converted.Lines.Length, resolved.Text.Lines.Length);
+        return (converted.Text.Split('\n'), resolved.Text.Text.Split('\n'), converted.Lines.Length);
     }
 
     private const string FixedGroup = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. P.\n       >>IF X IS DEFINED\n       ID DIVISION.\n"
@@ -135,7 +138,9 @@ public sealed class CommentEntryResolverTests
     public void NoCarrier_PassesThroughUntouched()
     {
         var text = MappedText.Identity("PROGRAM-ID. P.\nPROCEDURE DIVISION.\n", "t.cob");
-        Assert.Same(text, CommentEntryResolver.Resolve(text, CobolWordsMap.Empty, null));
+        var resolved = CommentEntryResolver.Resolve(text, CobolWordsMap.Empty, null);
+        Assert.Same(text, resolved.Text);
+        Assert.Empty(resolved.ProgramText);
     }
 
     [Fact] // the carrier keeps a line's tab-expanded text and its column map, so a diagnostic names the column the user edits
@@ -163,6 +168,77 @@ public sealed class CommentEntryResolverTests
         string line = CommentEntryCarrier.Prefix + damage;
         var text = MappedText.Identity(line, "t.cob");
         Assert.Throws<InvalidOperationException>(() => CommentEntryResolver.Resolve(text, CobolWordsMap.Empty, null));
+    }
+
+    private const string ProgramTextCandidateSource =
+        "IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\n>>IF X IS DEFINED\nID DIVISION.\n>>ELSE\nPROCEDURE DIVISION.\n>>END-IF\n"
+        + "REMARKS. DISPLAY \"A\".\n";
+
+    [Fact] // review finding R1-1: a candidate that is program text is NAMED, so the text stages run again and read it
+    public void CandidateThatIsProgramText_IsNamedByItsPhysicalLine()
+    {
+        Assert.Equal([("t.cob", 8)], Resolved(ProgramTextCandidateSource).ProgramText);
+        // ... and a candidate that is a comment-entry is not
+        Assert.Empty(Resolved(">>DEFINE X AS 1\n" + ProgramTextCandidateSource.Replace("REMARKS. DISPLAY \"A\".", "REMARKS. Pat O'Brien.", StringComparison.Ordinal)).ProgramText);
+    }
+
+    [Fact] // … and the run that follows reads the pinned candidate as the program text it is: no carrier, the stages see its words
+    public void APinnedCandidate_IsConvertedAsProgramText_ByTheConverter()
+    {
+        var pins = CommentEntryPins.None.With([("t.cob", 8)]);
+        Assert.NotSame(CommentEntryPins.None, pins);
+        Assert.Same(pins, pins.With([("t.cob", 8)]));   // nothing new: the fixed point
+        string[] lines = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "t.cob",
+            initialFixed: false, out _, pins: pins).Text.Split('\n');
+        Assert.Equal("REMARKS. DISPLAY \"A\".", lines[7]);
+        Assert.DoesNotContain(lines, CommentEntryCarrier.Is);
+        // a pin names a file as well as a line, and applies only where the division is not known
+        string[] other = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "other.cob",
+            initialFixed: false, out _, pins: pins).Text.Split('\n');
+        Assert.True(CommentEntryCarrier.Is(other[7]));
+        string[] known = ReferenceFormatProcessor.NormalizeToFreeFormMapped("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\nREMARKS. Pat O'Brien.\n", null, "t.cob",
+            initialFixed: false, out _, pins: CommentEntryPins.None.With([("t.cob", 3)])).Text.Split('\n');
+        Assert.Equal("REMARKS. .", known[2]);   // a division it knows is not asked of a pin
+    }
+
+    [Fact] // a library text two COPY statements bring in, decided differently by the two, is named for neither (one pin per line)
+    public void ALineTwoInclusionsDecideDifferently_IsNotPinned()
+    {
+        string once = CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, new PhysicalLine(1, "REMARKS. X.", null));
+        string text = "PROGRAM-ID. P.\n" + once + "\nPROCEDURE DIVISION.\n" + once + "\n";
+        var origins = new LineOrigin[]
+        {
+            new(new SourceOrigin("t.cob", 1)), new(new SourceOrigin("b.cpy", 1)),
+            new(new SourceOrigin("t.cob", 3)), new(new SourceOrigin("b.cpy", 1)), new(new SourceOrigin("t.cob", 5)),
+        };
+        var resolved = CommentEntryResolver.Resolve(new MappedText(text, origins), CobolWordsMap.Empty, null);
+        Assert.Empty(resolved.ProgramText);
+    }
+
+    [Fact] // review finding R1-2: the free-form 255-position gate is asked once of a candidate, whichever it proves to be
+    public void FreeFormLineTooLong_IsReportedOnce_WhateverTheCandidateProvesToBe()
+    {
+        string padded = "REMARKS. DISPLAY \"B\"." + new string(' ', 260) + "*> long\n";
+        string source = ProgramTextCandidateSource.Replace("REMARKS. DISPLAY \"A\".\n", padded, StringComparison.Ordinal);
+        // (a) the converter carries the candidate and reports nothing; the resolver, deciding program text, converts it once
+        var bag = new DiagnosticBag();
+        var gates = new ReferenceFormatDiagnostics(2023, true, bag);
+        var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _);
+        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL2653");
+        string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 2023, permissive: true);
+        CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, gates);
+        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
+        // (b) the run that reads the candidate as program text reports it once, in the converter
+        bag = new DiagnosticBag();
+        gates = new ReferenceFormatDiagnostics(2023, true, bag);
+        ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _,
+            pins: CommentEntryPins.None.With([("t.cob", 8)]));
+        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
+        // (c) a candidate that is a comment-entry (the selected branch enters the division) is reported once, by the resolver
+        bag = new DiagnosticBag();
+        var entry = Resolved(">>DEFINE X AS 1\n" + source, bag: bag);
+        Assert.Empty(entry.ProgramText);
+        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
     }
 
     [Fact] // a free-form candidate that is program text is read through the compilation's reference-format diagnostics

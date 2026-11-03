@@ -500,9 +500,9 @@ public static partial class ConditionalCompilationProcessor
                                     changesState = true;
                                 }
                             }
-                            // §7.3.10.4 GR2-GR4: the directive may respell any word the division cursor reads, and the line
+                            // §7.3.10.4 GR2-GR4: the directive may respell a word the division cursor reads, and the line
                             // never reaches the blocks the COPY driver reads, so the cursor is told here (kb/Work PB4281).
-                            if (keyword == "COBOL-WORDS") division.NoteCobolWordsDirective();
+                            if (keyword == "COBOL-WORDS") division.NoteCobolWordsDirective(rest);
                             emit = line;
                         }
                         // A recognized ISO §7.3 directive with no downstream stage: CONSUME it (the program

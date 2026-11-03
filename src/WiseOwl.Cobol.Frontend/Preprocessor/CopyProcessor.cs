@@ -20,7 +20,8 @@ public sealed class CopyProcessor(
     CompilationInputs? inputs = null,
     bool ccvsIndicators = false,   // the --nist column-7 conventions for library text too (kb/Work PB1494)
     ImplicitFormatOps? implicitFormatOps = null,   // §14.9.28.4 GR14's implicit PUSH/POP ALL written in library text (kb/Work PB1066)
-    ReferenceFormatDiagnostics? referenceFormatGates = null)   // the compilation's ONE reference-format diagnostics, shared with the main source (kb/Work PB1640)
+    ReferenceFormatDiagnostics? referenceFormatGates = null,   // the compilation's ONE reference-format diagnostics, shared with the main source (kb/Work PB1640)
+    CommentEntryPins? commentEntryPins = null)   // the comment-entry candidates a previous run of the text stages proved to be program text (kb/Work PB4281)
 {
     /// <summary>The compilation's ambient-input gateway (kb/Work PB985): every copybook probe and read below goes
     /// through it, so the record names each library text the group incorporated AND each candidate that was not
@@ -793,7 +794,8 @@ public sealed class CopyProcessor(
         var mapped = ReferenceFormatProcessor.NormalizeToFreeFormMapped(text, referenceFormatGates,
             copybookPath, copyFixed, out var formats, ccvsIndicators,
             implicitOps: implicitFormatOps?.For(copybookPath),   // GR14's implicit ops written IN this library text
-            startsInIdentificationDivision: inIdentificationDivision);
+            startsInIdentificationDivision: inIdentificationDivision,
+            pins: commentEntryPins);   // a candidate of this library text a previous run proved to be program text (kb/Work PB4281)
         _referenceFormats[copybookPath] = formats;
         return mapped;
     }

@@ -2167,8 +2167,13 @@ of an unsupported facility.
   as program text, exactly as before. The cursor says NOT KNOWN, and the converter CARRIES the candidate instead of
   deciding it, where something that runs after the conversion could have changed what its words mean: (1) a `>>IF …
   >>END-IF` or `>>EVALUATE … >>END-EVALUATE` group whose branches do not all end in the same division (the branch no
-  condition selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); (2) a `>>COBOL-WORDS` directive, which may
-  respell any word the cursor reads, from there on, in the text or in a library text it reads (the merged driver, whose blocks end at a directive line and never hold it, tells its cursor of the line itself); (3) a REPLACE statement or
+  condition selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); (2) a `>>COBOL-WORDS` directive that NAMES a
+  word the cursor reads (`DIVISION`, `IDENTIFICATION`, `ID`, an identification paragraph: as the word to respell or the
+  word to write, or a compilation-variable-name in a literal slot, whose value only conditional compilation knows,
+  §7.3.11.4 1)), which may respell it, from there on, in the text or in a library text it reads (the merged driver, whose
+  blocks end at a directive line and never hold it, tells its cursor of the line itself); a directive that names none,
+  `>>COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"`, changes nothing the cursor reads and leaves the division known, as an
+  unrelated REPLACE does; (3) a REPLACE statement or
   a `COPY … REPLACING` that names a word the cursor reads (`DIVISION`, `IDENTIFICATION`, `ID`, an identification
   paragraph), to match it or to write it. A carried candidate is the paragraph's header line and the lines of its entry,
   each an inert slot of the logical text that every later stage reads as a comment (`CommentEntryCarrier`: the floating
@@ -2186,11 +2191,19 @@ of an unsupported facility.
   after a group whose compiled branch is the PROCEDURE DIVISION, or after `PROCEDURE DIV.` under `>>COBOL-WORDS EQUATE
   "DIVISION" WITH "DIV"`, is a paragraph of the program. A `>>WHEN` whose selection object merely begins with the letters
   OTHER (`>>WHEN OTHERV`) is not the `>>WHEN OTHER` default branch (§7.3.13.3 SR5/SR6: the phrase is a word, asked of
-  `CompilerDirectiveLine.StartsWithWord` by this cursor and by the conditional-compilation stage alike). **The one cost of
-  carrying:** a carried candidate that proves to be a paragraph of the program is converted AFTER conditional
-  compilation, COPY and REPLACE, so a COPY statement or a compiler directive written inside such a paragraph is not
-  processed by them (the paragraph is named AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY or REMARKS in area
-  A, and the text before it is one of the three cases above). The merged driver's COPY cursor reads the text the
+  `CompilerDirectiveLine.StartsWithWord` by this cursor and by the conditional-compilation stage alike). **The cost of
+  carrying, and how it is paid:** a carried candidate that proves to be a paragraph of the program (named AUTHOR,
+  INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY or REMARKS in area A, after one of the three cases above) was
+  hidden from exactly the stages that must read it: its COPY statements, the REPLACE statement in force over its words,
+  its compiler directives. Converting it after them left a silent wrong answer (a REPLACE that did not apply) or a refusal
+  (an unexpanded COPY), so the resolver does not convert it late: it NAMES the candidate by its physical line
+  (`CommentEntryResolver.Resolution.ProgramText`), and `Frontend.RunTextStages` runs the text stages AGAIN with that line
+  pinned as program text (`CommentEntryPins`, read by the two converters where the division is not known), to a fixed
+  point: a run that names no new candidate ends the iteration, which is every run of a program without a candidate (one
+  `Contains` per run), and every other run adds a pin, so it ends. The pinned run converts the candidate as the
+  ordinary lines they are, so every stage sees them; the free-form 255-position gate is asked of a candidate once, by
+  the converter on that run or by the resolver for a comment-entry. The one candidate left converted late is a library
+  text two COPY statements bring in that the two decide differently, which a per-line pin cannot serve. The merged driver's COPY cursor reads the text the
   conditional-compilation stage has already cut, so a COPY's library text starts in the division the cut text says, or
   NOT KNOWN. Pinned by
   `conformance:cases/6.5-Logical-conversion/pb4241_omitted_branch_division_header`,
@@ -2201,7 +2214,10 @@ of an unsupported facility.
   `conformance:cases/6.5-Logical-conversion/pb4241_copy_operand_names_division`,
   `conformance:cases/6.5-Logical-conversion/pb4281_disagreeing_branches_paragraph_after_group`,
   `conformance:cases/6.5-Logical-conversion/pb4281_comment_entry_after_disagreeing_group_is_removed`,
+  `conformance:cases/6.5-Logical-conversion/pb4281_program_text_paragraph_after_group_is_read_by_copy_and_replace`,
   `conformance:cases/7.3.10-COBOL-WORDS/pb4281_respelled_division_is_not_a_comment_entry`,
+  `conformance:cases/7.3.10-COBOL-WORDS/pb4281_respelled_division_paragraph_is_read_by_copy_and_replace`,
+  `conformance:cases/7.3.10-COBOL-WORDS/pb4281_unrelated_cobol_words_directive_keeps_remarks_paragraph_in_the_stages`,
   `unit:DivisionCursorTests`, `unit:CommentEntryResolverTests` and `unit:CommentEntryResolutionOrderDriftTests`.
 
 - **D-OOCIRC — the reach of "directly or indirectly references" in §9.3.8.2.3's closing sentence** (kb/Work PB1498;

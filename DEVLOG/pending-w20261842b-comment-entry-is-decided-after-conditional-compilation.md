@@ -32,9 +32,40 @@ ordinary lines they are, through the same walker and the same reference-format d
 (`ReferenceFormatProcessor.ConvertCommentEntryCandidate`). `CommentEntryResolutionOrderDriftTests` pins the order, the single
 maker and the single reader of a carrier, and that a carrier is a comment to the scanners.
 
-D-CE2 (docs/CONFORMANCE.md) and the front-end design doc now describe this, including the one cost of carrying: a carried
-candidate that proves to be a program paragraph is converted after conditional compilation, COPY and REPLACE, so a COPY or
-a directive written inside such a paragraph is not processed by them.
+D-CE2 (docs/CONFORMANCE.md) and the front-end design doc describe this.
+
+### The review's blocking finding, and the fixed point
+
+The branch review (round 1) found that the first landing paid for carrying with a regression: a carried candidate that proved to
+be a program paragraph (REMARKS in the procedure division) was converted AFTER conditional compilation, COPY and REPLACE, so
+a REPLACE in force did not apply to its words and a COPY inside it was not expanded. A fixed-form program with
+`>>COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"` before its identification division printed `7 1` where main printed `7 7`, and its
+`REMARKS.` paragraph holding `COPY RGBOOK.` was refused (COBOL0307). Two causes, two changes:
+
+- The directive tainted the rest of the text whatever it named. A `>>COBOL-WORDS` directive now leaves the division NOT KNOWN
+  only when its operand names a word the cursor reads (a literal that is DIVISION, IDENTIFICATION, ID or an identification
+  paragraph, or a compilation-variable-name standing in a literal slot, whose value only conditional compilation knows,
+  §7.3.11.4 1)); `EQUATE "DISPLAY" WITH "SHOW"` leaves it known, as an unrelated REPLACE already did.
+- The residual itself, for the cases that really are ambiguous. A late conversion cannot give the stages the text they needed,
+  so it is gone: `CommentEntryResolver.Resolve` NAMES a candidate that is program text (`Resolution.ProgramText`, its physical
+  line) and `Frontend.RunTextStages` runs the normalizer and `Preprocess` again with that line pinned as program text
+  (`CommentEntryPins`, read by the two converters where the division is not known; the COPY processor hands the pins to the
+  library text it normalizes), until a run names no new candidate. A program with no candidate pays one `Contains` and runs
+  once; every other run adds a pin, so it ends. One case stays converted late: a library text two COPY statements bring in
+  that the two decide differently, which a per-line pin cannot serve (a unit test pins that it is named for neither).
+
+Finding R1-2 (a lead) shared the file: a free-form candidate header longer than 255 positions was reported COBOL2653 twice when it
+proved to be program text. The converter now leaves a candidate header's length unreported (`ReportLineLength`) and whoever
+decides it reports it once: the converter on the pinned run, the resolver for a comment-entry.
+
+New goldens, each failing on the reviewed head with COBOL0307 at the COPY statement and passing now with `7 7`:
+`cases/6.5-Logical-conversion/pb4281_program_text_paragraph_after_group_is_read_by_copy_and_replace` (2002, 2014, 2023; a
+disagreeing `>>EVALUATE`), `cases/7.3.10-COBOL-WORDS/pb4281_unrelated_cobol_words_directive_keeps_remarks_paragraph_in_the_stages`
+and `pb4281_respelled_division_paragraph_is_read_by_copy_and_replace` (2023; the directive names no division word / names
+DIVISION). Their refusal below 2023 is the directive's own introduction gate, pinned by `pb4281_respelled_division_below_2023`. Unit:
+`DivisionCursorTests` (twelve directive operands), `CommentEntryResolverTests` (naming, pinned conversion, the two-inclusion
+case, the 255-position gate once in each outcome), `CommentEntryResolutionOrderDriftTests` (the iteration's order, the single
+maker and reader of a pin).
 
 ### What the new golden found
 
@@ -67,10 +98,7 @@ division rule. Code: the header rendering `AUTHOR. .` is `CommentEntryHeader` in
 resolver (decided case). Performance: a text with no carrier costs one `Contains`; the per-line `ReadInto` the converter did
 before is unchanged. Tests: a blank line inside a fixed-form candidate is a carrier too (a discarded slot before; the same
 result). Duplication: the two lines that write a decided header and discard its entry exist in the converter (certain case)
-and in the resolver (decided case), over the one `CommentEntryHeader`. Left unfixed on purpose: the cost of carrying, in
-D-CE2.
+and in the resolver (decided case), over the one `CommentEntryHeader`. Review round 1 added the fixed point, whose
+cost is a second run of the text stages for a program that has a program-text candidate, and none for any other.
 
-Gate on the code head `7a34960f7` (run `000002-20261103T105031Z`): `=== BUILD-LOCAL GATE: GREEN — Conformance 21,290/21,290 · Unit
-39,525/39,525 · Characterization 37/37 cases ran (skipped 0) ===`; the pb4281 goldens and refusals Passed in its
-`Conformance.trx`. The commits after it change this entry, `docs/CONFORMANCE.md` D-CE2 (the REPLACE measurement of GnuCOBOL) and
-nothing else; the report names the gate of the final head. `python scripts/semgrep/verify.py`: PASS, no rule count up.
+Gate: see the report of the final head.
