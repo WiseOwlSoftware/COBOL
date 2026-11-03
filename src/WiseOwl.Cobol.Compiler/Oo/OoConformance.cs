@@ -80,8 +80,11 @@ public static class OoConformance
                     continue;   // a missing accessor is §8.4.3.9.3 SR3/SR4's, decided where the polarity is known
                 if (SignatureDifference(returning, setFormal.Item, "RETURNING item of the get property method",
                         "USING parameter of the set property method") is not { } why) continue;
-                // The diagnostic stands at the accessor THIS class wrote, the later of the pair when it wrote both.
-                using var at = edition.At((set.Owner == cls ? set : get).Ctx ?? accessor.Ctx);
+                // The diagnostic stands at the METHOD-ID THIS class wrote, the later of the pair when it wrote both; a PROPERTY clause's
+                // generated accessor has no METHOD-ID (PB4459), so a class that wrote neither as source is positioned at its own name.
+                using var at = edition.At(set.Owner == cls && set.Origin is OoSymbolOrigin.Source ? set.Ctx
+                    : get.Owner == cls && get.Origin is OoSymbolOrigin.Source ? get.Ctx
+                    : cls.Ctx.classIdParagraph().className(0));
                 edition.Error(DiagnosticCatalog.PropertyAccessorDescriptionMismatch,
                     $"class '{cls.Name}', property '{prop}' (get property method of '{get.Owner.Name}', set property "
                     + $"method of '{set.Owner.Name}'): {why} (ISO §8.4.3.9.3 SR7)");
