@@ -2202,14 +2202,26 @@ of an unsupported facility.
   INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY or REMARKS in area A, after one of the three cases above) was
   hidden from exactly the stages that must read it: its COPY statements, the REPLACE statement in force over its words,
   its compiler directives. Converting it after them left a silent wrong answer (a REPLACE that did not apply) or a refusal
-  (an unexpanded COPY), so the resolver does not convert it late: it NAMES the candidate by its physical line
-  (`CommentEntryResolver.Resolution.ProgramText`), and `Frontend.RunTextStages` runs the text stages AGAIN with that line
-  pinned as program text (`CommentEntryPins`, read by the two converters where the division is not known), to a fixed
-  point: a run that names no new candidate ends the iteration, which is every run of a program without a candidate (one
-  `Contains` per run), and every other run adds a pin, so it ends. The pinned run converts the candidate as the
-  ordinary lines they are, so every stage sees them; the free-form 255-position gate (§6.1 3) a)) is asked of EVERY physical line once, by
-  the converter, a carried candidate's and an omitted branch's included; the resolver never asks it again. The one candidate left converted late is a library
-  text two COPY statements bring in that the two decide differently, which a per-line pin cannot serve. The merged driver's COPY cursor reads the text the
+  (an unexpanded COPY), so the resolver does not convert it late: it NAMES the EARLIEST such candidate of the finished
+  text by its physical line in its inclusion (`CommentEntryResolver.Resolution.ProgramText`, a `CommentEntryPin`), and
+  `Frontend.RunTextStages` runs the text stages AGAIN with that line pinned as program text (`CommentEntryPins`, read by
+  the two converters where the division is not known), to a fixed point. **One pin per run, the earliest (kb/Work
+  PB4487):** reading a pinned candidate as program text changes the text AFTER it (its COPY statements bring library text
+  in, its REPLACE statements and directives act on what follows) and never the text before it, so the earliest
+  program-text candidate, and every comment-entry before it, was decided on text no later pin can change; a LATER
+  candidate was decided with that one still hidden, and a COPY in its paragraph may bring in the IDENTIFICATION DIVISION
+  the later one stands in (`REMARKS. … COPY` of a nested program's `IDENTIFICATION DIVISION. PROGRAM-ID. …`, then
+  `AUTHOR. Pat O'Brien.`: a comment-entry). So each run settles one candidate and the ones after it are decided again by
+  the run that reads it; a run that names none ends the iteration, which is every run of a program without a candidate
+  (one search per run), and a pinned candidate is never carried again (`CommentEntryPins.With` refuses a second naming),
+  so it ends. §6.5 orders the walk this way: "The rules of logical conversion are applied to each line of a compilation
+  group in the order that lines of source text and library text are obtained by the compiler" (cite-checked). **A pin
+  names an INCLUSION, not only a line:** a library text two COPY statements bring in is two texts of the group, and one
+  may stand in an IDENTIFICATION DIVISION and the other in a PROCEDURE DIVISION, so the COPY driver numbers each
+  inclusion as it normalizes it (the source text is 0, then 1, 2, … in text order; `CommentEntryPin.Inclusion`, carried
+  in the carrier), and the numbers up to the earliest undecided candidate are the same in every run. The pinned run
+  converts the candidate as the ordinary lines they are, so every stage sees them; the free-form 255-position gate (§6.1 3) a)) is asked of EVERY physical line once, by
+  the converter, a carried candidate's and an omitted branch's included; the resolver never asks it again. The merged driver's COPY cursor reads the text the
   conditional-compilation stage has already cut, so a COPY's library text starts in the division the cut text says, or
   NOT KNOWN. Pinned by
   `conformance:cases/6.5-Logical-conversion/pb4241_omitted_branch_division_header`,
@@ -2224,6 +2236,8 @@ of an unsupported facility.
   `conformance:cases/7.3.10-COBOL-WORDS/pb4281_respelled_division_is_not_a_comment_entry`,
   `conformance:cases/7.3.10-COBOL-WORDS/pb4281_respelled_division_paragraph_is_read_by_copy_and_replace`,
   `conformance:cases/7.3.10-COBOL-WORDS/pb4281_unrelated_cobol_words_directive_keeps_remarks_paragraph_in_the_stages`,
+  `conformance:cases/6.5-Logical-conversion/pb4487_paragraph_a_program_text_candidate_copies_in_is_a_comment_entry`,
+  `conformance:cases/6.5-Logical-conversion/pb4487_library_text_copied_twice_is_decided_per_inclusion`,
   `unit:DivisionCursorTests`, `unit:CommentEntryResolverTests` and `unit:CommentEntryResolutionOrderDriftTests`.
 
 - **D-OOCIRC — the reach of "directly or indirectly references" in §9.3.8.2.3's closing sentence** (kb/Work PB1498;

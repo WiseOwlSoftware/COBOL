@@ -175,11 +175,13 @@ public sealed class Frontend
     }
 
     /// <summary>The text stages — the normalizer, then <see cref="Preprocess"/> — run to a FIXED POINT of the comment-entry
-    /// decision (docs/CONFORMANCE.md D-CE2; kb/Work PB4281, review finding R1-1). A COBOL-85 comment-entry candidate the logical
-    /// conversion cannot place is carried through conditional compilation, COPY and REPLACE as an inert slot and decided after
-    /// them; one that proves to be PROGRAM TEXT was hidden from stages that must read it, so the stages run again with the
-    /// candidate read as the program text it is (<see cref="CommentEntryPins"/>). A run that names no new candidate ends the
-    /// iteration, which is every run of a program without a candidate, and each other run adds a candidate to the pins, so
+    /// decision (docs/CONFORMANCE.md D-CE2; kb/Work PB4281, PB4487). A COBOL-85 comment-entry candidate the logical conversion
+    /// cannot place is carried through conditional compilation, COPY and REPLACE as an inert slot and decided after them; one
+    /// that proves to be PROGRAM TEXT was hidden from stages that must read it, so the stages run again with the candidate
+    /// read as the program text it is (<see cref="CommentEntryPins"/>). A run pins ONE candidate, the earliest of the text that
+    /// is program text: reading it changes only the text after it, so it and every candidate before it are settled, and the
+    /// candidates after it are decided again by the run that reads it. A run that names none ends the iteration, which is every
+    /// run of a program without a candidate; each other run settles one more candidate of a text that only grows past it, so
     /// it ends. Each run reports into a bag and a reference-format diagnostics of its own, as each §14.9.28.4 GR14 pass does:
     /// only the last run's are the pass's.</summary>
     private (DiagnosticBag Diagnostics, ReferenceFormatDiagnostics Gates, MappedText Text, DirectiveResults Directives,
@@ -196,9 +198,8 @@ public sealed class Frontend
             var (normalized, referenceFormats) = Normalize(raw, sourcePath, referenceFormatGates, formatOps, pins);
             var (processed, directives, encounters, formats, programText) =
                 Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps, pins);
-            var grown = pins.With(programText);
-            if (ReferenceEquals(grown, pins)) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats);
-            pins = grown;
+            if (programText is not { } pin) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats);
+            pins = pins.With(pin);
         }
     }
 
@@ -271,7 +272,8 @@ public sealed class Frontend
         var text = ReferenceFormatProcessor.NormalizeToFreeFormMapped(raw, referenceFormatGates, sourcePath,
             InitialFormat.InitialFixed(), out var formats, ccvsIndicators: NistTestName is not null,   // kb/Work PB1494
             implicitOps: implicitOps.For(sourcePath),   // §14.9.28.4 GR14's implicit PUSH/POP ALL written in the source (kb/Work PB1066)
-            pins: pins);   // the comment-entry candidates a previous run proved to be program text (kb/Work PB4281)
+            pins: pins,   // the comment-entry candidates a previous run proved to be program text (kb/Work PB4281)
+            inclusion: CommentEntryPins.SourceText);   // … in the source text, the run's first text (kb/Work PB4487)
         return (text, formats);
     }
 
@@ -280,7 +282,7 @@ public sealed class Frontend
     /// (<see cref="Parse"/>). Returns the resultant text, the directive results (WITHOUT the implicit ops, which the
     /// caller replays once the program has converged), and the driver's directive encounters.</summary>
     private (MappedText Text, DirectiveResults Directives, ConditionalCompilationResult Encounters,
-        IReadOnlyDictionary<string, ReferenceFormatMap> Formats, IReadOnlyList<(string File, int Line)> ProgramTextCandidates) Preprocess(
+        IReadOnlyDictionary<string, ReferenceFormatMap> Formats, CommentEntryPin? ProgramText) Preprocess(
         MappedText normalized, ReferenceFormatMap referenceFormats, string sourcePath, DiagnosticBag diagnostics,
         ReferenceFormatDiagnostics referenceFormatGates, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps,
         CommentEntryPins pins)

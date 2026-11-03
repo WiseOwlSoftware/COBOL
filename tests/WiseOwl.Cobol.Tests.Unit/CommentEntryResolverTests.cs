@@ -140,7 +140,7 @@ public sealed class CommentEntryResolverTests
         var text = MappedText.Identity("PROGRAM-ID. P.\nPROCEDURE DIVISION.\n", "t.cob");
         var resolved = CommentEntryResolver.Resolve(text, CobolWordsMap.Empty, null);
         Assert.Same(text, resolved.Text);
-        Assert.Empty(resolved.ProgramText);
+        Assert.Null(resolved.ProgramText);
     }
 
     [Fact] // the carrier keeps a line's tab-expanded text and its column map, so a diagnostic names the column the user edits
@@ -148,10 +148,11 @@ public sealed class CommentEntryResolverTests
     {
         var physical = PhysicalLines.Read("\tAUTHOR. X\n", ccvsIndicators: false).Lines[0];
         Assert.NotNull(physical.Columns);
-        var back = CommentEntryCarrier.Decode(CommentEntryCarrier.Encode(isHeader: true, isFixed: true, ccvsIndicators: true, physical));
+        var back = CommentEntryCarrier.Decode(CommentEntryCarrier.Encode(isHeader: true, isFixed: true, ccvsIndicators: true, inclusion: 12, physical));
         Assert.True(back.IsHeader);
         Assert.True(back.IsFixed);
         Assert.True(back.CcvsIndicators);
+        Assert.Equal(12, back.Inclusion);
         Assert.Equal(physical.Text, back.Line.Text);
         Assert.Equal(physical.Number, back.Line.Number);
         for (int i = 0; i <= physical.Text.Length + 2; i++)
@@ -160,9 +161,11 @@ public sealed class CommentEntryResolverTests
 
     [Theory] // a stage that damaged a carrier broke the contract: the compilation stops, it does not guess
     [InlineData("*>")]
-    [InlineData("HF0x;;text")]
-    [InlineData("XF0;;text")]
-    [InlineData("HF07")]
+    [InlineData("HF00:x;;text")]
+    [InlineData("XF00:1;;text")]
+    [InlineData("HF07;;text")]   // no inclusion
+    [InlineData("HF0:7;;text")]  // an empty inclusion
+    [InlineData("HF00:7")]
     public void DamagedCarrier_Throws(string damage)
     {
         string line = CommentEntryCarrier.Prefix + damage;
@@ -177,17 +180,32 @@ public sealed class CommentEntryResolverTests
     [Fact] // review finding R1-1: a candidate that is program text is NAMED, so the text stages run again and read it
     public void CandidateThatIsProgramText_IsNamedByItsPhysicalLine()
     {
-        Assert.Equal([("t.cob", 8)], Resolved(ProgramTextCandidateSource).ProgramText);
+        Assert.Equal(new CommentEntryPin("t.cob", CommentEntryPins.SourceText, 8), Resolved(ProgramTextCandidateSource).ProgramText);
         // ... and a candidate that is a comment-entry is not
-        Assert.Empty(Resolved(">>DEFINE X AS 1\n" + ProgramTextCandidateSource.Replace("REMARKS. DISPLAY \"A\".", "REMARKS. Pat O'Brien.", StringComparison.Ordinal)).ProgramText);
+        Assert.Null(Resolved(">>DEFINE X AS 1\n" + ProgramTextCandidateSource.Replace("REMARKS. DISPLAY \"A\".", "REMARKS. Pat O'Brien.", StringComparison.Ordinal)).ProgramText);
+    }
+
+    [Fact] // kb/Work PB4487: only the EARLIEST program-text candidate is named; the later ones were decided with it hidden
+    public void OfTwoProgramTextCandidates_OnlyTheEarliestIsNamed()
+    {
+        var resolved = Resolved(ProgramTextCandidateSource + "INSTALLATION. DISPLAY \"B\".\n");
+        Assert.Equal(new CommentEntryPin("t.cob", CommentEntryPins.SourceText, 8), resolved.ProgramText);
+        Assert.Contains("INSTALLATION. DISPLAY \"B\".", resolved.Text.Text.Split('\n'));   // the later one is still written so the cursor reads on
+        // ... and a comment-entry before it does not stop the earliest PROGRAM-TEXT candidate being named
+        string entryFirst = "IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\n>>IF X IS DEFINED\nPROCEDURE DIVISION.\n>>END-IF\nAUTHOR. Pat O'Brien.\n"
+            + ">>IF Y IS DEFINED\nID DIVISION.\n>>ELSE\nPROCEDURE DIVISION.\n>>END-IF\nREMARKS. DISPLAY \"A\".\n";
+        var both = Resolved(entryFirst);
+        Assert.Contains("AUTHOR. .", both.Text.Text.Split('\n'));   // the earlier candidate is a comment-entry …
+        Assert.Equal(new CommentEntryPin("t.cob", CommentEntryPins.SourceText, 12), both.ProgramText);   // … and the later one is named
     }
 
     [Fact] // … and the run that follows reads the pinned candidate as the program text it is: no carrier, the stages see its words
     public void APinnedCandidate_IsConvertedAsProgramText_ByTheConverter()
     {
-        var pins = CommentEntryPins.None.With([("t.cob", 8)]);
+        var pin = new CommentEntryPin("t.cob", CommentEntryPins.SourceText, 8);
+        var pins = CommentEntryPins.None.With(pin);
         Assert.NotSame(CommentEntryPins.None, pins);
-        Assert.Same(pins, pins.With([("t.cob", 8)]));   // nothing new: the fixed point
+        Assert.Throws<InvalidOperationException>(() => pins.With(pin));   // a pinned candidate is never named again: no silent loop
         string[] lines = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "t.cob",
             initialFixed: false, out _, pins: pins).Text.Split('\n');
         Assert.Equal("REMARKS. DISPLAY \"A\".", lines[7]);
@@ -197,22 +215,36 @@ public sealed class CommentEntryResolverTests
             initialFixed: false, out _, pins: pins).Text.Split('\n');
         Assert.True(CommentEntryCarrier.Is(other[7]));
         string[] known = ReferenceFormatProcessor.NormalizeToFreeFormMapped("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\nREMARKS. Pat O'Brien.\n", null, "t.cob",
-            initialFixed: false, out _, pins: CommentEntryPins.None.With([("t.cob", 3)])).Text.Split('\n');
+            initialFixed: false, out _, pins: CommentEntryPins.None.With(pin with { Line = 3 })).Text.Split('\n');
         Assert.Equal("REMARKS. .", known[2]);   // a division it knows is not asked of a pin
     }
 
-    [Fact] // a library text two COPY statements bring in, decided differently by the two, is named for neither (one pin per line)
-    public void ALineTwoInclusionsDecideDifferently_IsNotPinned()
+    [Fact] // kb/Work PB4487: a pin names the INCLUSION it was proved in; another inclusion of the same lines is carried and decided anew
+    public void APin_AppliesToItsInclusionOnly()
     {
-        string once = CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, new PhysicalLine(1, "REMARKS. X.", null));
-        string text = "PROGRAM-ID. P.\n" + once + "\nPROCEDURE DIVISION.\n" + once + "\n";
+        var pins = CommentEntryPins.None.With(new CommentEntryPin("b.cpy", 2, 8));
+        string[] pinned = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "b.cpy",
+            initialFixed: false, out _, pins: pins, inclusion: 2).Text.Split('\n');
+        Assert.Equal("REMARKS. DISPLAY \"A\".", pinned[7]);
+        string[] another = ReferenceFormatProcessor.NormalizeToFreeFormMapped(ProgramTextCandidateSource, null, "b.cpy",
+            initialFixed: false, out _, pins: pins, inclusion: 1).Text.Split('\n');
+        Assert.True(CommentEntryCarrier.Is(another[7]));
+        Assert.Equal(1, CommentEntryCarrier.Decode(another[7]).Inclusion);   // the carrier names the inclusion it was read in
+    }
+
+    [Fact] // kb/Work PB4487: a library text two COPY statements bring in, decided differently by the two, is pinned in the inclusion that is program text
+    public void ALineTwoInclusionsDecideDifferently_IsPinnedInTheInclusionThatIsProgramText()
+    {
+        string Carrier(int inclusion) => CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, inclusion, new PhysicalLine(1, "REMARKS. X.", null));
+        string text = "PROGRAM-ID. P.\n" + Carrier(1) + "\nPROCEDURE DIVISION.\n" + Carrier(2) + "\n";
         var origins = new LineOrigin[]
         {
             new(new SourceOrigin("t.cob", 1)), new(new SourceOrigin("b.cpy", 1)),
             new(new SourceOrigin("t.cob", 3)), new(new SourceOrigin("b.cpy", 1)), new(new SourceOrigin("t.cob", 5)),
         };
         var resolved = CommentEntryResolver.Resolve(new MappedText(text, origins), CobolWordsMap.Empty, null);
-        Assert.Empty(resolved.ProgramText);
+        Assert.Equal(new CommentEntryPin("b.cpy", 2, 1), resolved.ProgramText);
+        Assert.Equal("REMARKS. .", resolved.Text.Text.Split('\n')[1]);   // the first inclusion is a comment-entry
     }
 
     [Fact] // review finding R2-1: a candidate inside an OMITTED branch is never decided, yet its line is gated like any other
@@ -243,12 +275,12 @@ public sealed class CommentEntryResolverTests
         bag = new DiagnosticBag();
         gates = new ReferenceFormatDiagnostics(2023, true, bag);
         ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _,
-            pins: CommentEntryPins.None.With([("t.cob", 8)]));
+            pins: CommentEntryPins.None.With(new CommentEntryPin("t.cob", CommentEntryPins.SourceText, 8)));
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
         // (c) a candidate that is a comment-entry (the selected branch enters the division) is reported once, by the converter
         bag = new DiagnosticBag();
         var entry = Resolved(">>DEFINE X AS 1\n" + source, bag: bag);
-        Assert.Empty(entry.ProgramText);
+        Assert.Null(entry.ProgramText);
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
     }
 

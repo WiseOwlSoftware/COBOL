@@ -44,17 +44,18 @@ public sealed class CommentEntryResolutionOrderDriftTests
     }
 
     [Fact] // a candidate that proves to be program text was hidden from the stages that must read it: they run again, to a fixed point
-    public void TheTextStages_RunAgainWithEveryCandidateThatProvedToBeProgramText_UntilNoneIsNew()
+    public void TheTextStages_RunAgainWithTheEarliestCandidateThatProvedToBeProgramText_UntilNoneIs()
     {
         string src = Frontend();
         int normalize = src.IndexOf("Normalize(raw, sourcePath, referenceFormatGates, formatOps, pins)", StringComparison.Ordinal);
         int preprocess = src.IndexOf("Preprocess(normalized, referenceFormats,", StringComparison.Ordinal);
-        int grow = src.IndexOf("pins.With(programText)", StringComparison.Ordinal);
-        int stop = src.IndexOf("ReferenceEquals(grown, pins)", StringComparison.Ordinal);
-        Assert.True(normalize >= 0 && preprocess > normalize && grow > preprocess && stop > grow,
-            "Frontend.RunTextStages must run Normalize -> Preprocess -> pins.With(programText) -> stop when the pins did not grow "
-            + "(docs/CONFORMANCE.md D-CE2, kb/Work PB4281): a program-text candidate the resolver names is read as program text by "
-            + "the run that follows, so conditional compilation, COPY and REPLACE see its lines.");
+        int stop = src.IndexOf("if (programText is not { } pin) return", StringComparison.Ordinal);
+        int grow = src.IndexOf("pins = pins.With(pin);", StringComparison.Ordinal);
+        Assert.True(normalize >= 0 && preprocess > normalize && stop > preprocess && grow > stop,
+            "Frontend.RunTextStages must run Normalize -> Preprocess -> stop when the resolver named no candidate -> pins.With(pin) "
+            + "(docs/CONFORMANCE.md D-CE2, kb/Work PB4281, PB4487): the EARLIEST program-text candidate the resolver names is read as "
+            + "program text by the run that follows, so conditional compilation, COPY and REPLACE see its lines, and the candidates "
+            + "after it are decided again on the text that run makes.");
         Assert.Contains("RunTextStages(raw, sourcePath, implicitOps, formatOps)", src);   // the GR14 pass loop runs the iteration, never the bare stages
         Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(src, @"\bNormalize\(raw,"));   // the iteration is Normalize's one caller
         Assert.Contains("commentEntryPins: pins", src);   // library text reads the pins too
@@ -71,7 +72,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
             if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                 || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)) continue;
             string name = Path.GetFileName(file), code = Strip(File.ReadAllText(file));
-            if (code.Contains(".With(programText)", StringComparison.Ordinal)) made.Add(name);
+            if (code.Contains("pins.With(", StringComparison.Ordinal)) made.Add(name);
             if (code.Contains("pins?.Contains(", StringComparison.Ordinal)) read.Add(name);
         }
         Assert.Equal(["Frontend.cs"], made);
@@ -103,7 +104,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
     public void ACarrier_IsInertToTheTextStages()
     {
         var physical = new PhysicalLine(7, "       COPY BOOK. >>IF X IS DEFINED ==", null);
-        string carrier = CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators: false, physical);
+        string carrier = CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators: false, inclusion: 3, physical);
         Assert.Empty(TextWordScanner.Scan(carrier));
         Assert.False(ReferenceFormatProcessor.HoldsNoProgramText(carrier));   // it is a line of text, to be decided, not a blank one
         Assert.False(carrier.TrimStart().StartsWith(">>", StringComparison.Ordinal));
