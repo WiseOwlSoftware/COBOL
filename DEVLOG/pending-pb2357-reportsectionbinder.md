@@ -56,3 +56,5 @@ names PB2420 instead of PB2361. Leads fixed in the files this change touches: cr
 drift test matches any receiver of the unambiguous mutators and any scope- or reports-named receiver of `Declare`/`Inherit`
 (R1-4), the report section is cited as 13.8 (R1-5; `cite.py --check 13.8 "Report section"` OK), and `ReportScope.SumCounters`
 is `internal` with a drift fact that only the two `DataBinder` files read it (R1-6).
+
+**Gate after the merge.** Run 000001-20261103T002112Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,411/39,411 · Characterization 37/37 cases ran (skipped 0) ===`; `ReportScopeBoundaryDriftTests` now 4 facts; `semgrep/verify.py` PASS.
