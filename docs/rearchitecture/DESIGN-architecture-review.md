@@ -1052,11 +1052,10 @@ methods (at the census, `BindPipeline.Build` registered its `BindPass` rows as l
 `Binding/Passes/<Name>Pass.cs`, from `SynthesizeImpliedPicturesPass` to `MarkFileRecordImageLeavesPass`, listed in order by
 `BindPipeline.Build`; a pass class holds its name, its phase contract, its `PassViews` and the rule code only it asks (its
 exclusive call closure on the binder moved with it; the rule code another asker shares stays on the binder until that asker's
-concern binder lands). One row keeps its rule code on `DataBinder` and only schedules it
-(`ResolveFiles`, the post-build half of the FILE concern that `FileControlBinder` did not take; `BindPassBoundaryDriftTests`
-names it, fails when it leaves `DataBinder` without the entry going, and fails when no open kb/Work note names it (PB2296 M7); the rows
-`ResolveReports`, `CallBindExternalAndGlobal` and `OoRouteMethodRedefinesBackings` left that list when `ReportSectionBinder`,
-`LinkageBinder` and `OoDataBinder` landed, and now call them). The rows run under the
+concern binder lands). No row keeps its rule code on `DataBinder`: four rows schedule a concern binder's entry
+(`ResolveFilesPass` calls `FileControlBinder.ResolveFiles`, the post-build half of the FILE concern, moved by PB2296 M7;
+`ResolveReports`, `CallBindExternalAndGlobal` and `OoRouteMethodRedefinesBackings` call `ReportSectionBinder`,
+`LinkageBinder` and `OoDataBinder`), and `BindPassBoundaryDriftTests` fails on any method of a row's name left on the binder. The rows run under the
 `PassPhase` watermark (`Passes/IBindPass.cs:23`: None, TypesExpanded, UsageResolved, SignResolved,
 RedefinesClassified, StrongTypeChecked, OccursResolved, FilesResolved, ProcedureBound, UsageCollected, StorageComputed,
 EditionConformanceChecked); §12.3's configuration facts ("The configuration section specifies aspects of the data
