@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "rule": "DESIGN-architecture-review.md §8.1: a cross-layer dependency is allowed iff its (from, to) layer pair is listed; intra-layer edges are free; every product namespace is placed; a tolerated row lists every type pair it holds, each with the kb/Work notes that remove it (removedBy, the row's is their union); uses (the census record named by census) and walkUses (the drift test's metadata walk) only ever fall; plan is R1's account of the removal",
-  "census": "b8e4a3b5833864190849c4dd9c9eb29f80037da9",
+  "census": "762a06a338127b6e9258baf7d2cb78bbcde74c13",
   "layers": [
     {
       "id": "runtime",
@@ -186,10 +186,6 @@
     [
       "frontend.pipeline",
       "editions"
-    ],
-    [
-      "frontend.pipeline",
-      "runtime"
     ],
     [
       "compiler.model",
@@ -1659,17 +1655,6 @@
       ]
     },
     {
-      "from": "WiseOwl.Cobol.Binding.Model",
-      "to": "WiseOwl.Cobol.Frontend.Generated",
-      "uses": 4,
-      "walkUses": 0,
-      "removedBy": [
-        "PB2398"
-      ],
-      "plan": "PB2398 (extract: BoundCompilation.Tree and BoundUnit.Ctx, BoundCompilation.cs:34, BoundUnit.cs:34, carry parse contexts across ICodeGenBackend; each reader's fact becomes a bound-node fact, DESIGN-backend-abstraction §1.1 lists no parse context)",
-      "pairs": []
-    },
-    {
       "from": "WiseOwl.Cobol.Binding.Passes",
       "to": "WiseOwl.Cobol.Validation",
       "uses": 1,
@@ -2964,17 +2949,6 @@
     },
     {
       "from": "WiseOwl.Cobol.CodeGen",
-      "to": "WiseOwl.Cobol.Binding.Repository",
-      "uses": 26,
-      "walkUses": 0,
-      "removedBy": [
-        "PB4319"
-      ],
-      "plan": "PB4319 (a row the external repository slices landed after R1; kb/Work PB2417 measured it): the repository record family (Binding/Repository/RepositoryRecord.cs: RepositoryRecord, its sub-records and RecordList<T>) moves to compiler.model; the encode leaves the backend (each published unit's record is written by RepositoryCodec.Of at the end of BinderDriver.Bind and carried on the bound compilation) and RepositoryCodec.KindOf becomes a BoundUnit fact, so HostEntryEmitter, OoEmitter and RepositoryAttributeRenderer read model data; RepositoryCodec, RepositoryVocabulary and RepositoryReader, which read the binder, stay in compiler.binding",
-      "pairs": []
-    },
-    {
-      "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Compiler.Oo",
       "uses": 28,
       "walkUses": 28,
@@ -3223,28 +3197,6 @@
           ]
         }
       ]
-    },
-    {
-      "from": "WiseOwl.Cobol.CodeGen",
-      "to": "WiseOwl.Cobol.Frontend.Generated",
-      "uses": 2,
-      "walkUses": 0,
-      "removedBy": [
-        "PB2398"
-      ],
-      "plan": "PB2398 (the two code-generation parse-context reads become bound-node facts)",
-      "pairs": []
-    },
-    {
-      "from": "WiseOwl.Cobol.CodeGen",
-      "to": "WiseOwl.Cobol.Frontend.Preprocessor",
-      "uses": 1,
-      "walkUses": 0,
-      "removedBy": [
-        "PB2408"
-      ],
-      "plan": "PB2408 (extract: the DirectiveResults read, CSharpEmitter.cs:32, moves to bind time)",
-      "pairs": []
     },
     {
       "from": "WiseOwl.Cobol.CodeGen.Emit",

@@ -638,7 +638,7 @@ the assemblies contain that the file does not place fails the test. The file's c
     ["frontend.diagnostics", "frontend.common"], ["frontend.diagnostics", "editions"],
     ["frontend.parse", "frontend.diagnostics"], ["frontend.parse", "frontend.common"], ["frontend.parse", "editions"], ["frontend.parse", "runtime"],
     ["frontend.preprocessor", "frontend.parse"], ["frontend.preprocessor", "frontend.diagnostics"], ["frontend.preprocessor", "frontend.common"], ["frontend.preprocessor", "editions"], ["frontend.preprocessor", "runtime"],
-    ["frontend.pipeline", "frontend.preprocessor"], ["frontend.pipeline", "frontend.parse"], ["frontend.pipeline", "frontend.diagnostics"], ["frontend.pipeline", "frontend.common"], ["frontend.pipeline", "editions"], ["frontend.pipeline", "runtime"],
+    ["frontend.pipeline", "frontend.preprocessor"], ["frontend.pipeline", "frontend.parse"], ["frontend.pipeline", "frontend.diagnostics"], ["frontend.pipeline", "frontend.common"], ["frontend.pipeline", "editions"],
     ["compiler.model", "frontend.common"], ["compiler.model", "editions"], ["compiler.model", "runtime"],
     ["compiler.bound", "compiler.model"], ["compiler.bound", "frontend.common"], ["compiler.bound", "editions"], ["compiler.bound", "runtime"],
     ["compiler.binding", "compiler.bound"], ["compiler.binding", "compiler.model"], ["compiler.binding", "frontend.preprocessor"], ["compiler.binding", "frontend.parse"], ["compiler.binding", "frontend.common"], ["compiler.binding", "editions"], ["compiler.binding", "runtime"],
@@ -753,7 +753,8 @@ pairs today are tolerated rows with an extract, and the walk fails the day a new
 composition root may name every layer below it, because composing them is its one job (D7 threads the typed edition
 carrier from the CLI to the driver; the driver hands `BoundCompilation` to the validation schedule of §8.3 once
 `BinderDriver` moves to it); the file names them in `compositionRoots` so the reason is data, not prose. Every other
-allowed pair is measured. Draft 1's three unmeasured non-root pairs (`compiler.binding → frontend.diagnostics`,
+allowed pair is measured, and one that falls to zero is deleted (`frontend.pipeline → runtime`, at the census of kb/Work
+PB2398's landing, `762a06a33`). Draft 1's three unmeasured non-root pairs (`compiler.binding → frontend.diagnostics`,
 `compiler.binding → frontend.pipeline`, `compiler.validation → frontend.diagnostics`) had no such reason and are
 dropped: a binder that needs one adds it to this file in a reviewed change. `compiler.codegen → frontend.diagnostics`
 was added that way (kb/Work PB4272): the seam's `BackendDiagnostic` carries the compiler's one severity
