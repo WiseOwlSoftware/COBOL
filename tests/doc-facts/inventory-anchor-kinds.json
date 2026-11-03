@@ -1,4 +1,4 @@
 {
- "comment": "THE FILE KINDS A COMPILER TEST RESOLVES A TRACEABILITY-INVENTORY ANCHOR INTO (kb/Work PB4453). A row's code-location (and a path#Symbol its notes spell) names a file and a symbol in it. SpecTraceabilityInventoryDriftTests resolves the symbol in a file of these extensions (C# declarations, grammar rules, a data file); an anchor into ANY OTHER file (today every one is a docs/CONFORMANCE.md#DOC-A.1-n or #DRV-n anchor) is resolved by scripts/docchecks/inventory.py, because no compiler test opens a Markdown file. The two lists are this one file.",
- "compilerResolved": [".cs", ".g4", ".json"]
+ "comment": "THE FILE KINDS A TRACEABILITY-INVENTORY ANCHOR INTO A DOCUMENT IS RESOLVED BY THE AUDIT, NOT BY A COMPILER TEST (kb/Work PB4453). A row's code-location (and a path#Symbol its notes spell) names a file and a symbol in it. SpecTraceabilityInventoryDriftTests resolves the symbol in every file kind but these; an anchor into one of these (today every one is a docs/CONFORMANCE.md#DOC-A.1-n or #DRV-n anchor) is resolved by scripts/docchecks/inventory.py, because no compiler test opens a Markdown file. The two lists are this one file.",
+ "documentKinds": [".md"]
 }

@@ -848,15 +848,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// <summary>The pattern for <paramref name="name"/> as a whole identifier: no identifier character on either side.</summary>
     private static string WholeWord(string name) => $@"(?<![A-Za-z0-9_]){Regex.Escape(name)}(?![A-Za-z0-9_])";
 
-    /// <summary>The file kinds this test resolves an anchor into (<c>tests/doc-facts/inventory-anchor-kinds.json</c>: C#
-    /// declarations, grammar rules, a data file). An anchor into any other file is a document's
-    /// (<c>docs/CONFORMANCE.md#DOC-A.1-n</c>, today) and is resolved by <c>scripts/docchecks/inventory.py</c>, because no compiler
-    /// test opens a Markdown file (kb/Work PB4453).</summary>
-    private static readonly Lazy<string[]> CompilerResolved = new(() =>
-        [.. DocFacts.Load("inventory-anchor-kinds.json").GetProperty("compilerResolved").EnumerateArray().Select(e => e.GetString()!)]);
+    /// <summary>The file kinds that are DOCUMENTS (<c>tests/doc-facts/inventory-anchor-kinds.json</c>): an anchor into one
+    /// (<c>docs/CONFORMANCE.md#DOC-A.1-n</c>, today) is resolved by <c>scripts/docchecks/inventory.py</c>, because no compiler
+    /// test opens a Markdown file (kb/Work PB4453). An anchor into any other file is resolved here.</summary>
+    private static readonly Lazy<string[]> DocumentKinds = new(() =>
+        [.. DocFacts.Load("inventory-anchor-kinds.json").GetProperty("documentKinds").EnumerateArray().Select(e => e.GetString()!)]);
 
     private static bool ResolvedHere(string file) =>
-        CompilerResolved.Value.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase);
+        !DocumentKinds.Value.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase);
 
     private static List<string> UnresolvedCodeLocations(IEnumerable<Row> rows, Schema s, string root)
     {

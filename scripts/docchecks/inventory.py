@@ -3,7 +3,7 @@
 A row's `code-location` may be `docs/CONFORMANCE.md#DOC-A.1-19` (the §7 determination its evidence is) and its `notes` may
 spell `path#Symbol` for a document too (346 such anchors today, every one into docs/CONFORMANCE.md). The Unit test
 SpecTraceabilityInventoryDriftTests resolved every anchor by reading the file, which made CONFORMANCE.md a compiler-test
-input; the C# test now resolves an anchor into a source file only, and this module resolves the ones into a Markdown file by
+input; the C# test now resolves an anchor into any file but a document, and this module resolves the ones into a document by
 the rule it used: the file exists, and the symbol is a whole identifier in its text (no identifier character on either side).
 """
 from __future__ import annotations
@@ -28,16 +28,16 @@ def whole_word(symbol: str, text: str) -> bool:
 
 
 def anchor_findings(rows: list[dict], texts: dict[str, str], code_location_sep: str, prose_of,
-                    compiler_resolved: tuple[str, ...] = (".cs", ".g4", ".json")) -> list[str]:
+                    document_kinds: tuple[str, ...] = (".md",)) -> list[str]:
     """Every anchor into a file the compiler test does not resolve (a code-location `X.md#Symbol`, or one spelled in a row's
     prose) that names a missing file or a symbol that is no longer a whole identifier in it. `texts` is each such file's text
-    by path; `compiler_resolved` are the extensions the Unit test resolves itself (`tests/doc-facts/inventory-anchor-kinds.json`)."""
+    by path; `document_kinds` are the extensions this audit resolves and the Unit test does not (`tests/doc-facts/inventory-anchor-kinds.json`)."""
     out: list[str] = []
     checked = 0
 
     def judge(rule_id: str, where: str, path: str, symbol: str) -> None:
         nonlocal checked
-        if path.lower().endswith(compiler_resolved):
+        if not path.lower().endswith(document_kinds):
             return
         checked += 1
         if path not in texts:
@@ -60,7 +60,7 @@ def anchor_findings(rows: list[dict], texts: dict[str, str], code_location_sep: 
 def _inventory(root: Path) -> list[str]:
     rows = inventory_store.load_inventory(root / "tests" / "version-matrix" / "inventory")
     sch = schema.load_schema()
-    resolved = tuple(json.loads(common.text(root, KINDS_PATH))["compilerResolved"])
+    resolved = tuple(json.loads(common.text(root, KINDS_PATH))["documentKinds"])
     paths = {p for r in rows for p in _paths(r, sch.code_location_sep, resolved)}
     texts = {p: common.text(root, p) for p in paths if (root / p).is_file()}
     return anchor_findings(rows, texts, sch.code_location_sep, schema.prose_of, resolved)
@@ -69,7 +69,7 @@ def _inventory(root: Path) -> list[str]:
 def _paths(row: dict, sep: str, resolved: tuple[str, ...]) -> set[str]:
     found = {loc.partition("#")[0] for loc in common.split_locations(row.get("code-location") or "", sep) if "#" in loc}
     found |= {m.group(1) for m in NOTES_LOCATION.finditer(schema.prose_of(row.get("notes") or ""))}
-    return {p for p in found if not p.lower().endswith(resolved)}
+    return {p for p in found if p.lower().endswith(resolved)}
 
 
 CHECKS = (Check("INVENTORY ANCHORS into documents resolve", _inventory),)
