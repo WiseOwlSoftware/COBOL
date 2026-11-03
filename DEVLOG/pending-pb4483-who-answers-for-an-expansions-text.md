@@ -39,3 +39,13 @@ the suffix has one spelling, the same-state test has one home (`CompileState.Bin
 text; two comments that described the old shape were corrected in a trailing commit. Gate at `86200486c`:
 `=== BUILD-LOCAL GATE: GREEN — Conformance 21,333/21,333 · Unit 39,633/39,633 · Characterization 37/37 cases ran (skipped 0) ===`
 (run `000001-20261103T215106Z`); the head's own gate re-ran the whole population after the comment commit.
+
+The branch review found one more case of the same rule (R1-1). The parse-tree arm walked every member of `Texts` with ONE walker, whose
+once-per-word set for COBOL0901 (ISO §8.9) and COBOL1567 was shared across texts. A reserved word flagged first in a repository text that
+the group later withdraws (placement (a), or an import) was never flagged in a placement-(b) text that declares it too, and a word the
+written tree declared hid it in every repository text. The reviewer's probe (skeletons HOLD and KEEP declaring `01 EDITING PIC X.`, HOLD
+expanded over another assembly's BOX and KEEP over the client's own LBOX, `--std 2023 --permissive`) printed only the HOLD-BOX report; it
+now prints `CLIENT.cob(28,5): warning COBOL0901 ... [in the expansion 'KEEP-LBOX']` too, and that one alone when HOLD-BOX is imported.
+`VersionConformancePass.Run` walks each text with a walker of its own, so every per-walk state is per text by construction; the other
+three screens over `Texts` keep no state across texts. Witness: `AReservedWordOfAWithdrawnExpansionText_DoesNotHideTheSameWordInAnotherText`,
+with and without the word in the written tree, red on the shared walker and green on the fix.

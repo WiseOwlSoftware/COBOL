@@ -1906,6 +1906,9 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
     edition pass's parse-tree arm (COBOL0903 for NEXT SENTENCE), the expression-formation, declined-facility and closed-format screens walk
     every member, so placement (b) reports what placement (a)'s own compilation reports; under another state the group's screens would not
     say what the skeleton's own compilation said, and such an expansion is never compiled here (its own assembly, an import, or COBOL2240).
+    A screen's state belongs to ONE text: the parse-tree arm walks each member with a walker of its own, so its once-per-word reports
+    (COBOL0901, COBOL1567) are once per text, as each text's own compilation makes them; a set shared across `Texts` let a report the group
+    later withdraws (an expansion compiled apart or imported) hide the same word in the written tree or in a placement-(b) text.
     The `>>FLAG` walk stays on the written tree (the directives bracket lines the user wrote, and `CompileState` does not carry them), and
     the pre-bind screens (level numbers, integer operands, procedure formats, end markers, areas, directive placement) run before any
     expansion exists; they are error-only, and the published skeleton passed them under the same state. `GroupTextScreenDriftTests` keeps

@@ -101,9 +101,12 @@ internal sealed class VersionConformancePass
         //    (absorbs the former EditionValidator). Recognition-based so a below-edition construct that ALSO
         //    has a semantic error still names its edition — the bound node it would have produced may be
         //    dropped (BoundUnsupported/BoundNop), but its parse node is always present (DEVLOG 724). ──
-        //    Every text the group compiles, the text of an expansion of a skeleton read from the repository included (kb/Work PB4483). ──
-        var parseArm = new ParseArm(pass, reservedWords, group.Session.CobolWords);
-        foreach (var text in group.Texts) parseArm.VisitPositioned(text);
+        //    Every text the group compiles, the text of an expansion of a skeleton read from the repository included (kb/Work PB4483).
+        //    ONE WALKER PER TEXT: the arm's once-per-word sets (COBOL0901, COBOL1567) belong to the text that answers for the report.
+        //    A repository text's reports are withdrawn when its expansion is compiled apart or imported, so a set shared across texts
+        //    let that withdrawn report suppress the same word in the written tree's or a group-placed expansion's text, and the report
+        //    the group answers for was lost; per text, each text reports as its own compilation would. ──
+        foreach (var text in group.Texts) new ParseArm(pass, reservedWords, group.Session.CobolWords).VisitPositioned(text);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
@@ -645,9 +648,9 @@ internal sealed class VersionConformancePass
         // this answers "which keyword does this written word denote" - the question every TEXT-recognized
         // §8.9/§8.10 word below asks, and the one a raw string comparison gets wrong (kb/Work PB250).
         private readonly CobolWordsMap _cobolWords = cobolWords;
-        // One COBOL0901 per distinct word per compilation (P2.4) — not one per occurrence.
+        // One COBOL0901 per distinct word per text (P2.4) — not one per occurrence; Run walks each text with its own arm (kb/Work PB4483).
         private HashSet<string>? _flaggedWords;
-        // One COBOL1567 per distinct over-long word per compilation (the §8.3.2.1 length ceiling).
+        // One COBOL1567 per distinct over-long word per text (the §8.3.2.1 length ceiling).
         private HashSet<string>? _overlongWords;
         // Whether the CURRENT source unit declares SOURCE-COMPUTER … WITH DEBUGGING MODE (the X3.23-1985
         // compile-time debug switch): decides the USE FOR DEBUGGING posture (VCR Table 7 row 7.17) — without it

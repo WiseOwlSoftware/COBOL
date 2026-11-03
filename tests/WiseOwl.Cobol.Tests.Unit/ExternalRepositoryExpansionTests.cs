@@ -105,13 +105,13 @@ public sealed class ExternalRepositoryExpansionTests
         END PROGRAM {id}.
         """;
 
-    private static CompilerDriver.Result Compile(string dir, string name, string source, int level = 2014)
+    private static CompilerDriver.Result Compile(string dir, string name, string source, int level = 2014, bool permissive = false)
     {
         Directory.CreateDirectory(dir);
         string src = Path.Combine(dir, name + ".cob");
         File.WriteAllText(src, source);
         return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: level,
-            SourceFormat: InitialReferenceFormat.Free));
+            SourceFormat: InitialReferenceFormat.Free, Permissive: permissive));
     }
 
     /// <summary>Run the compiled program <paramref name="dll"/> in <paramref name="dir"/> (the repository directory is the run unit's
@@ -842,6 +842,70 @@ public sealed class ExternalRepositoryExpansionTests
                 Assert.Equal(2, two.Length);
                 Assert.All(two, w => Assert.StartsWith($"{file}({line},5): warning COBOL3146:", w, StringComparison.Ordinal));
                 Assert.All(two, w => Assert.EndsWith($"[in the expansion '{name}']", w, StringComparison.Ordinal));
+            }
+        });
+    }
+
+    /// <summary>A client with its own class LBOX that expands two repository skeletons whose texts declare the same reserved word: HOLD
+    /// over LIBX's BOX (placement (a): an assembly of its own, then an import) and KEEP over LBOX (placement (b): the group's assembly),
+    /// and, when <paramref name="declares"/>, declares the word in its own WORKING-STORAGE too.</summary>
+    private static string TwoExpansionsClient(bool declares) => Box.Replace("BOX", "LBOX") + $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. CLIENTW.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BOX
+            CLASS LBOX
+            CLASS HOLD
+            CLASS KEEP
+            CLASS HOLD-BOX EXPANDS HOLD USING BOX
+            CLASS KEEP-LBOX EXPANDS KEEP USING LBOX.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 HB USAGE OBJECT REFERENCE HOLD-BOX.
+        01 KL USAGE OBJECT REFERENCE KEEP-LBOX.
+        {(declares ? "01 EDITING PIC X." : "")}
+        PROCEDURE DIVISION.
+            INVOKE HOLD-BOX "NEW" RETURNING HB
+            INVOKE KEEP-LBOX "NEW" RETURNING KL
+            STOP RUN.
+        END PROGRAM CLIENTW.
+        """;
+
+    [Theory]   // kb/Work PB4483 review R1-1, ISO §8.9: the once-per-word COBOL0901 belongs to each text; a report the group withdraws hides none.
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AReservedWordOfAWithdrawnExpansionText_DoesNotHideTheSameWordInAnotherText(bool declares)
+    {
+        WithDirectory("expansion-word-per-text", dir =>
+        {
+            string hold = Hold().Replace("01 ITEM USAGE OBJECT REFERENCE ELEM.", "01 ITEM USAGE OBJECT REFERENCE ELEM. 01 EDITING PIC X.");
+            var library = Compile(dir, "LIBX", Box + hold + "\n" + hold.Replace("HOLD", "KEEP"), level: 2023, permissive: true);
+            Assert.True(library.Success, Codes(library));
+            string source = TwoExpansionsClient(declares);
+            var lines = source.Split('\n').ToList();
+            string file = Path.Combine(dir, "CLIENTW.cob");
+            string At(string text) => $"{file}({lines.FindIndex(l => l.Contains(text, StringComparison.Ordinal)) + 1},";
+            var apart = Compile(dir, "CLIENTW", source, level: 2023, permissive: true);   // writes HOLD-BOX.dll: its own compilation reports
+            Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
+            var written = File.GetLastWriteTimeUtc(Path.Combine(dir, "HOLD-BOX.dll"));
+            var imported = Compile(dir, "CLIENTW", source, level: 2023, permissive: true);   // the same key: HOLD-BOX.dll is imported
+            Assert.Equal(written, File.GetLastWriteTimeUtc(Path.Combine(dir, "HOLD-BOX.dll")));
+            foreach (var (r, holdReports) in new[] { (apart, 1), (imported, 0) })
+            {
+                Assert.True(r.Success, Codes(r));
+                var reports = WithCode(r, "COBOL0901");
+                Assert.All(reports, w => Assert.Contains("'EDITING'", w, StringComparison.Ordinal));
+                string keep = Assert.Single(reports, w => w.EndsWith("[in the expansion 'KEEP-LBOX']", StringComparison.Ordinal));
+                Assert.StartsWith($"{At("EXPANDS KEEP")}5): warning COBOL0901:", keep, StringComparison.Ordinal);
+                var holdBox = reports.Where(w => w.EndsWith("[in the expansion 'HOLD-BOX']", StringComparison.Ordinal)).ToArray();
+                Assert.Equal(holdReports, holdBox.Length);
+                Assert.All(holdBox, w => Assert.StartsWith($"{At("EXPANDS HOLD")}5): warning COBOL0901:", w, StringComparison.Ordinal));
+                var own = reports.Where(w => !w.Contains("[in the expansion", StringComparison.Ordinal)).ToArray();
+                Assert.Equal(declares ? 1 : 0, own.Length);
+                Assert.All(own, w => Assert.StartsWith(At("01 EDITING PIC X."), w, StringComparison.Ordinal));
+                Assert.Equal(1 + holdReports + own.Length, reports.Length);
             }
         });
     }
