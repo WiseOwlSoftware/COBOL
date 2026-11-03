@@ -99,3 +99,17 @@ compilation group"), and a library's parameterized class left nothing in the rep
 - **Gate 1** (6ef43bb, before the model-layer move): RED on five drift tests (layering ratchet, name-fold marker, edition-read inventory,
   host-entry shape for the new unit kinds, the ambient-read recorder), all fixed; the Conformance population was otherwise green
   (21,012 of 21,013).
+- **Gate 2** (7617a45): RED on two `BackendContractDriftTests` — the placements record was keyed by `object` (the backend-input walk cannot see
+  through it) and its text members were unclassified; the placements are now keyed by the CLR name the module gives the class or
+  interface (unique across both) and carry plain data (no `Compiler.Oo` pair into the model layer), and `BackendContract` classifies
+  every new member. **Gate 3** (36a1d33, run `000003-20261103T030227Z`): GREEN — Conformance 21,020/21,020, Unit 39,457/39,457,
+  Characterization 37/37, including the new goldens at three editions and their refusal, `ExternalRepositoryExpansionTests` (11) and
+  `CompileStateDriftTests` (5).
+- **Self-review.** Architecture: the key is computed once, by one pass, from bound surfaces; `OoExpansion` stays the one expander for a
+  written and a published skeleton; the second emission is a compilation of its own through the one pipeline, not a second code path in
+  the backend. Full code: the pass implements the cited rule (§9.3.12 one class per externalized name, definition and actuals) and the
+  design's import/own/in-group order; the foreign-state residual is stated and refused loudly, never silently bound. Performance: nothing
+  runs for a group without a parameterized definition (`ExpansionPlacementPass` returns `None` first; `SkeletonText` is built only for a
+  parameterized definition); an own-assembly expansion costs one small compilation, once per key. Duplication: `RecordList` has one home;
+  `CompileInputs.At` is the only producer of a state. Looked for and found: the expansion entry's lost `AS` literal, the unspelled
+  actual identity, the cross-assembly `_P_n` profile, the end marker of a skeleton known by another word.
