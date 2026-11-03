@@ -3048,6 +3048,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <c>FUNCTION LENGTH (VG)</c> of a variable-length group is a <see cref="BoundBinary"/>, which no tree-shape reading calls a
     /// function. A user function's result temp and a folded LENGTH are already a field operand and a function-valued literal.</summary>
     private static bool IsSoleFunctionIdentifier(Core.ArithmeticExpressionContext? written, BoundExpr bound) =>
+        // GROUPING-PAREN-ONLY: a primaryExpression's own parenthesis is the arithmetic grouping one (the function's argument
+        // list is FNARG_LPAREN inside functionCall, a subscript REF_LPAREN inside dataReference), and only it parenthesizes.
         WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(written) is { } primary && primary.LPAREN() is null
             && (primary.functionCall() is not null || primary.dataReference() is not null)
             && bound is BoundIntrinsicCall or BoundBinary;
