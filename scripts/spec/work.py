@@ -1675,7 +1675,8 @@ def edges_remover_problems(items: list[dict], edges: dict | None = None) -> list
 
 CONCERN_OWNED_FILE = "tests/WiseOwl.Cobol.Tests.Unit/BindPassBoundaryDriftTests.cs"
 _CONCERN_OWNED_START = re.compile(r"\bConcernOwned\s*=\s*\[")
-_CS_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
+# A C# comment, or a string literal kept whole so a `//` or `/*` inside it is not taken for a comment.
+_CS_COMMENT_OR_STRING = re.compile(r'(@?"(?:[^"\\]|\\.|"")*")|//[^\n]*|/\*.*?\*/', re.S)
 _CS_STRING = re.compile(r'^"([^"\\]+)"$')
 
 
@@ -1692,11 +1693,13 @@ def concern_owned_problems(items: list[dict], source: str | None = None) -> list
         if not path.exists():
             return [f"{CONCERN_OWNED_FILE} is missing, so the ConcernOwned owners cannot be checked: {fix}"]
         source = path.read_text(encoding="utf-8")
+    # comments go BEFORE the list is found, so a `ConcernOwned = [];` in a comment or doc comment is never the list
+    source = _CS_COMMENT_OR_STRING.sub(lambda c: c.group(1) or "", source)
     m = _CONCERN_OWNED_START.search(source)
     end = source.find("];", m.end()) if m else -1
     if m is None or end < 0:
         return [f"{CONCERN_OWNED_FILE}: no `ConcernOwned = [...];` list found, so its owners cannot be checked: {fix}"]
-    body = _CS_COMMENT.sub("", source[m.end():end])
+    body = source[m.end():end]
     elements = [e.strip() for e in body.split(",") if e.strip()]
     bad = [f"{CONCERN_OWNED_FILE}: ConcernOwned element {e} is not a plain string literal, so its owner cannot be "
            f"checked: spell the row as a string literal ({fix})" for e in elements if not _CS_STRING.match(e)]
