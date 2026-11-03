@@ -1110,7 +1110,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             }
             else
             {
-                ctx.Edition.Error("COBOL1664", $"{site}: the position after the operand(s) admits only a locale-name declared by a "
+                ctx.Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"{site}: the position after the operand(s) admits only a locale-name declared by a "
                     + $"SPECIAL-NAMES LOCALE clause ({rule}; the general format is §{LocaleFunctionClause(sig.Name)}.2)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
             }
@@ -1154,7 +1154,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         else
         {
-            ctx.Edition.Error("COBOL1664", $"FUNCTION {sig.Name}'s LOCALE phrase: the word after LOCALE shall be a locale-name declared by a "
+            ctx.Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"FUNCTION {sig.Name}'s LOCALE phrase: the word after LOCALE shall be a locale-name declared by a "
                 + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{argCtxs[2].GetText().Trim()}'");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
@@ -1917,7 +1917,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 || cur.Any(c => char.IsAsciiDigit(c) || c is '*' or '+' or '-' or ',' or '.')
                 || WiseOwl.Cobol.Runtime.CobolNames.Contains(cur, "CR")
                 || WiseOwl.Cobol.Runtime.CobolNames.Contains(cur, "DB"))
-                ctx.Edition.Error("COBOL1627", $"FUNCTION {sig.Name} argument-2 shall contain at least one "
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name} argument-2 shall contain at least one "
                     + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
                     + "the letter pair CR/DB in any case (ISO §15.68.3 rule 2)");
         }

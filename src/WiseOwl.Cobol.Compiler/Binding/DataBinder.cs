@@ -1675,7 +1675,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             : pic.Signed;
         if (signedLiteral && !signBearing)
         {
-            Edition.Error("COBOL1625", $"{where}: a signed numeric literal in the VALUE clause "
+            Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: a signed numeric literal in the VALUE clause "
                 + $"requires a signed numeric or sign-bearing numeric-edited subject ('{raw.Trim()}'; ISO §13.18.63.3 SR3)");
             return;
         }
@@ -1699,7 +1699,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             int run = lastNonZero - firstNonZero + 1;
             int normExp = highLitExp + 1 - (fm.SigDigits - fm.SigScale);
             if (run > fm.SigDigits || normExp > fm.MaxExp || normExp < -fm.MaxExp)
-                Edition.Error("COBOL1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not "
+                Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not "
                     + $"representable in the floating-point numeric-edited PICTURE {mask} without truncation — the "
                     + $"significand holds {fm.SigDigits} digit(s) (the literal has {run} significant digits) and the "
                     + $"exponent ranges over -{fm.MaxExp}..+{fm.MaxExp} (the normalized exponent is {normExp:+0;-0}) (ISO §13.18.63.3 SR6)");
@@ -1721,7 +1721,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // PICTURE's high exponent first refused `PIC 9(4) COMP-5 VALUE 65535`, a value MOVE, arithmetic and SET store.
         var band = !edited && pic.Truncation == WiseOwl.Cobol.Runtime.NumericTruncation.BinaryCapacity ? AlgebraicRanges.Of(pic) : null;
         if (lowLitExp < lowStoredExp || (band is null && highLitExp > highStoredExp))
-            Edition.Error("COBOL1625", edited
+            Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, edited
                 ? $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not representable in the numeric-edited "
                     + $"PICTURE {mask} without truncation of leading or trailing nonzero digits (ISO §13.18.63.3 SR6)"
                 : $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
@@ -1734,7 +1734,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // a band the PICTURE's digit span cannot see (BINARY-CHAR's three digits admit 255; `PIC 9(4) COMP-5` holds
             // 65535). The band is read from AlgebraicRanges.Of, the one statement the runtime store bound and the
             // HIGHEST/LOWEST-ALGEBRAIC fold agree on (kb/Work PB3997).
-            Edition.Error("COBOL1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
+            Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                 + $"permissible value in the range the USAGE clause indicates — {(usageBand.FarthestNegative ?? "0")} through "
                 + $"{usageBand.Farthest} (ISO §13.18.63.3 SR2)");
     }

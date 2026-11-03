@@ -63,6 +63,8 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
 sys.path.insert(0, str(REPO / "scripts" / "orchestrator"))
+sys.path.insert(0, str(REPO / "scripts" / "semgrep"))
+import verify as semgrep_verify  # noqa: E402  (the one reader of a semgrep scan errors[]: PB4462)
 import coord  # noqa: E402  (THE coordination directory and the stop files, one definition: kb/Work PB3114)
 import r2_collect  # noqa: E402  (the launch plan a batch is sized by)
 import r2_cost  # noqa: E402
@@ -117,18 +119,37 @@ def cached_data(out: Path, step: str, key: dict):
 
 
 # ── the mechanical steps ─────────────────────────────────────────────────────────────────────────────────────────
+def semgrep_stopped(errors, unread, pin: Path):
+    """The `errors[]` entries that are neither a partial parse (the text rules match across it) nor a file semgrep cannot
+    read at all (`unread`, named in the shard input): a timeout or a rule error is a rule that did not run."""
+    return [semgrep_verify.describe_error(e) for e in errors
+            if not semgrep_verify.is_partial_parse(e)
+            and (rel(semgrep_verify.error_path(e), pin) or semgrep_verify.error_path(e)) not in unread]
+
+
 def run_semgrep(pin: Path):
+    """The invariant hits by file AND the files semgrep could not read at all. Every rule is text, so a hit inside a span
+    semgrep reads only in part is reported, but a hit in a file its grammar rejects wholly is DROPPED, and a timeout or a
+    rule error is a rule that did not run: reading `results` alone told every R2 finder such a file had no invariant hit
+    (PB4462 review R1-1). The unreadable files come from a forced parse (`verify.unreadable_files`), so a file with no hit
+    is named too; any other error stops the step."""
     cfg = pin / "scripts" / "semgrep" / "invariants.yml"
     r = subprocess.run(["semgrep", "scan", "--config", str(cfg), "--metrics=off", "--json", "-q", str(pin / "src")],
                        capture_output=True, text=True, encoding="utf-8")
     if r.returncode not in (0, 1) or not r.stdout.strip():
         raise SystemExit("semgrep failed (exit %d): %s" % (r.returncode, r.stderr[-2000:]))
+    doc = json.loads(r.stdout)
+    unread = set(semgrep_verify.unreadable_files(pin, ["src"])[0])
+    stopped = semgrep_stopped(doc.get("errors", []), unread, pin)
+    if stopped:
+        raise SystemExit("semgrep errors that are neither a partial parse nor an unreadable file (a rule did not run):\n  "
+                         + "\n  ".join(stopped))
     by_file = defaultdict(list)
-    for x in json.loads(r.stdout).get("results", []):
+    for x in doc.get("results", []):
         p = rel(x["path"], pin) or x["path"].replace("\\", "/")
         by_file[p].append({"rule": x["check_id"].rsplit(".", 1)[-1], "line": x["start"]["line"],
                            "message": x.get("extra", {}).get("message", "")[:300]})
-    return dict(by_file)
+    return {"hits": dict(by_file), "unread": sorted(unread)}
 
 
 def parse_warnings(text: str, root: Path):
@@ -175,7 +196,7 @@ MODERN_RULES = {
     "required members": [],
 }
 # a step's version: bump it when the step's code or its rule set changes, and every cached result of it is recomputed
-STEP_VERSION = {"semgrep": 2, "drift": 2, "notes": 2, "analyzers": 3}
+STEP_VERSION = {"semgrep": 3, "drift": 2, "notes": 2, "analyzers": 3}
 
 
 def modern_globalconfig() -> str:
@@ -329,6 +350,7 @@ def shard_input(sh, m, mech, census, record, ns_of=None):
         "census_record": m["census"], "lines": sh["lines"],
         "files": sh["files"],
         "semgrep": {p: mech["semgrep"][p] for p in files if p in mech["semgrep"]},
+        "semgrep_unread": [p for p in files if p in set(mech["semgrep_unread"])],   # no invariant rule can hit these: never "no hit"
         "analyzers": {p: mech["analyzers"][p] for p in files if p in mech["analyzers"]},
         "modern_rules": MODERN_RULES,   # the §5.5 feature -> analyzer rule ids map the modern-C# dimension counts by
         "drift_rules": {p: mech["drift"][p] for p in files if p in mech["drift"]},
@@ -386,7 +408,8 @@ def build(pin: Path, out: Path, max_lines: int, projects=None):
     head = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True,
                           check=True).stdout.strip()
     pin_key = lambda step: {"pin": commit, "version": STEP_VERSION[step]}  # noqa: E731
-    mech = {"semgrep": cached(out, "semgrep", pin_key("semgrep"), lambda: run_semgrep(pin)),
+    sg = cached(out, "semgrep", pin_key("semgrep"), lambda: run_semgrep(pin))
+    mech = {"semgrep": sg["hits"], "semgrep_unread": sg["unread"],
             "drift": cached(out, "drift", pin_key("drift"), lambda: run_drift(pin, files)),
             # the open notes are this checkout's register, not the pin's: keyed by the checkout's HEAD
             "notes": cached(out, "notes", dict(pin_key("notes"), register=head), lambda: open_notes(files)),
@@ -494,7 +517,7 @@ def self_test():
     arm("a clone family spanning two shards is ONE family, marked cross-shard",
         len(dup["families"]) == 1 and dup["families"][0]["cross_shard"] and
         [c["shard"] for c in dup["families"][0]["copies"]] == ["a", "b"])
-    mech = {"semgrep": {"src/A/X.cs": [{"rule": "r"}]}, "analyzers": {}, "drift": {}, "notes": {"src/B/Y.cs": ["PB1"]}}
+    mech = {"semgrep": {"src/A/X.cs": [{"rule": "r"}]}, "semgrep_unread": ["src/B/Y.cs"], "analyzers": {}, "drift": {}, "notes": {"src/B/Y.cs": ["PB1"]}}
     ns_of = declared_namespaces({"files": ["src/A/X.cs", "src/B/Y.cs"], "types": {"N.A.T": [0], "N.A.T+In": [0], "N.B.U": [1]}})
     rec = {"namespaceEdges": [["N.A", "N.B", 3], ["N.C", "N.D", 1]]}
     ia = shard_input({"id": "a", "subsystem": "s", "name": "S", "lines": 10, "files": [["src/A/X.cs", 10]]}, m, mech, census, rec, ns_of)
@@ -503,6 +526,16 @@ def self_test():
     ib = shard_input({"id": "b", "subsystem": "s", "name": "S", "lines": 10, "files": [["src/B/Y.cs", 10]]}, m, mech, census, {})
     arm("a shard input holds only its own files' facts",
         ia["semgrep"] and not ib["semgrep"] and ib["open_notes"] == {"src/B/Y.cs": ["PB1"]} and not ia["open_notes"])
+    pin_dir = Path("pin-fixture").resolve()   # never created: only the relative-path arithmetic of rel() is exercised
+    errs = [{"type": ["PartialParsing", [{"path": "src/A/X.cs", "start": {"line": 1}, "end": {"line": 2}}]]},
+            {"type": "Syntax error", "path": str(pin_dir / "src" / "B" / "Y.cs"), "message": "Syntax error at line 1:"},
+            {"type": "Timeout", "message": "rule x timed out"}]
+    arm("semgrep errors: a partial parse and a named unreadable file pass, a timeout stops the step",
+        semgrep_stopped(errs, {"src/B/Y.cs"}, pin_dir) == ["(no file)  Timeout: rule x timed out"])
+    arm("semgrep errors: a whole-file error for a file the forced parse did not name stops the step",
+        len(semgrep_stopped(errs[:2], set(), pin_dir)) == 1)
+    arm("a file semgrep could not read is named in its shard input, not left as no hit",
+        ib["semgrep_unread"] == ["src/B/Y.cs"] and ia["semgrep_unread"] == [])
     arm("census rows go to the shard holding their site or folder",
         list(ia["census"]) == ["god-class"] and list(ib["census"]) == ["folder-namespace"] and
         ia["clone_families"] == ["R0-1"] == ib["clone_families"])
