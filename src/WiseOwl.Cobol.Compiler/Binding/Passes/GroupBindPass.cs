@@ -1,8 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -51,5 +48,8 @@ internal sealed record GroupBindContext(
 internal sealed record GroupBindPass(string Name, PassPhase Requires, PassPhase Produces, Action<GroupBindContext> Body)
     : IPassInfo
 {
+    /// <inheritdoc/>
+    public PassViews Views { get; init; }
+
     public void Run(GroupBindContext ctx) => Body(ctx);
 }

@@ -50,7 +50,7 @@ internal enum ConstructOperand
 ///     appear in more than one USE AFTER EXCEPTION statement within the same procedure division"), SR9 (report
 ///     group) and SR14 (the exception-name/file-name pair); the construct is the USE STATEMENT (kb/Work
 ///     PB364).</description></item>
-///   <item><description><c>DataBinder.ResolveFileCollating</c> — ISO §12.4.5.7.3 SR8 ("Neither data-name-1 nor
+///   <item><description><c>FileControlBinder.ResolveFileCollating</c> — ISO §12.4.5.7.3 SR8 ("Neither data-name-1 nor
 ///     record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause"); the construct is the
 ///     Format-2 COLLATING SEQUENCE CLAUSE, whose §12.4.5.7.2 figure writes
 ///     <c>OF { data-name-1 | record-key-name-1 } … IS alphabet-name-3</c> (kb/Work PB703).</description></item>

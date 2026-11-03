@@ -39,7 +39,7 @@ public sealed class Condition88
     /// value the range contains, because the range was weighed natively. The EVALUATE twin could not even be
     /// written. §14.7.8's opening sentence — "This specification applies to THROUGH phrases specified in the VALUE
     /// clause and the EVALUATE statement" — is why both now resolve through the one
-    /// <c>DataBinder.TryResolveRangeAlphabet</c>.</para></summary>
+    /// <c>SpecialNamesBinder.TryResolveRangeAlphabet</c>.</para></summary>
     public string? Alphabet { get; set; }
 
     /// <summary>literal-4 of the clause's <c>[ WHEN SET TO FALSE IS literal-4 ]</c> phrase (ISO §13.18.63.2

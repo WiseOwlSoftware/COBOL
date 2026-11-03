@@ -102,7 +102,7 @@ public sealed class PointerRestrictionRelationsTests
     {
         (ActivationDescription Pointer, ActivationDescription Group) Describe(string source)
         {
-            var roots = RepositoryCodecTests.Bind(source, 2002).Units.Single(u => u.Name == "H4107X").Data.WorkingStorageRoots;
+            var roots = RepositoryCodecTests.Bind(source, 2002).Units.Single(u => u.Name == "H4107X").Data.State.Forest.WorkingStorageRoots;
             return (ActivationDescriptions.Of(roots.Single(r => r.CobolName == "PB"), classes: null)!,
                 ActivationDescriptions.Of(roots.Single(r => r.CobolName == "GB"), classes: null)!);
         }

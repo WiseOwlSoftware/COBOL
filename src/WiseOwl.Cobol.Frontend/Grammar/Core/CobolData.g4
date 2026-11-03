@@ -288,7 +288,7 @@ dataDescriptionBody
 // SUPERSET PARSE at every edition — the COBOL-2002 introduction gate is the VersionConformancePass parse arm
 // (VisitConstantEntryBody → constant-entry-2002 → COBOL0900 below 2002). LL-disjoint from the clause list
 // (no dataDescriptionClause begins with CONSTANT except constantRecordClause, whose SECOND token RECORD
-// separates it) and from renamesClause (RENAMES). The binder (DataBinder.Constants.cs) folds the entry into
+// separates it) and from renamesClause (RENAMES). The binder (ConstantEntryBinder.cs) folds the entry into
 // the compile-time constant table — a constant occupies NO storage (§13.10.4 GR1/GR3: references substitute
 // the literal).
 // ⛔ IS, AS and OF are OPTIONAL words (kb/Work PB1225): the printed §13.10.2 format (PDF p.355, rendered) underlines
@@ -305,7 +305,7 @@ constantEntryBody
 // description entry's report groups, and §13.10.2 gives it the same format wherever it stands. It is the
 // dataDescriptionEntry arm's constantEntryBody under its own entry rule because the report section's entry
 // list is a choice between two entry KINDS, not a data description entry (§13.16) with a report group body.
-// ONE body rule (constantEntryBody), ONE binder (DataBinder.BindConstantEntry), ONE version gate
+// ONE body rule (constantEntryBody), ONE binder (ConstantEntryBinder.BindConstantEntry), ONE version gate
 // (VersionConformancePass.VisitConstantEntryBody): the report section adds a host, never a second constant form.
 constantEntry
     : levelNumber dataName? constantEntryBody DOT
@@ -315,7 +315,7 @@ constantEntry
 // qualified-dataReference reading of the same tokens (`LENGTH OF X` — LENGTH is a cobolWord; `BYTE-LENGTH OF X` —
 // BYTE-LENGTH is a §8.9 context-sensitive word, "constant entry", with no token of its own). A single numeric literal
 // rides arithmeticExpression and is re-classified as a LITERAL by the binder (§13.10.3 SR1). Both length phrases
-// carry their operand as a dataReference, and DataBinder.BindConstantLength binds both (§13.10.4 GR5 / GR6;
+// carry their operand as a dataReference, and ConstantEntryBinder.BindConstantLength binds both (§13.10.4 GR5 / GR6;
 // kb/Work PB1227 — the BYTE-LENGTH form used to ride arithmeticExpression as the qualified reference
 // `BYTE-LENGTH OF x`, recognized by its spelling and staged loud). OF is an optional word in both phrases (§13.10.2 does
 // not underline it, kb/Work PB1225): `LENGTH W` and `BYTE-LENGTH W` are no arithmetic expression, so the omission is
@@ -754,7 +754,7 @@ binarySign
 // §13.10.3 SR2 — an integer CONSTANT-NAME ("if constant-name-1 is an integer, it may also be used to specify …
 // repetition"; the OCCURS format's integer positions are literal positions, so a constant substitutes there per
 // §13.10.4 GR1/GR3). The constant is resolved at BIND time from the compile-time constant table
-// (DataBinder.Constants.cs) — a cobolWord bound in a program with no such constant rejects loud (COBOL1547).
+// (ConstantEntryBinder.cs) — a cobolWord bound in a program with no such constant rejects loud (COBOL1547).
 occursClause
     // Format 4 prints `[ CAPACITY IN data-name-3 ] [ FROM integer-4 ] [ TO integer-5 ] [ INITIALIZED ]`, each once and in
     // that order; `occursDynamicPhrase*` parses any sequence and the binder refuses a repeated or reordered phrase

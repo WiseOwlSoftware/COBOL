@@ -248,7 +248,8 @@ internal sealed class VersionConformancePass
             {
                 if (s is BoundMerge m && InProcedure(paraPc))
                 {
-                    _sink.Report(new EditionDiagnostic("COBOL1572", mergeSeverity, "merge-in-sort-merge-proc",
+                    _sink.Report(new EditionDiagnostic(DiagnosticCatalog.MergeInSortMergeProc.Code, mergeSeverity,
+                        DiagnosticCatalog.MergeInSortMergeProc.Id,
                         $"MERGE '{m.File.CobolName}' is prohibited in the output procedure of another MERGE or the input "
                         + "or output procedure of a file SORT (ISO §14.9.24; COBOL-2023, Annex E.2 item 20)",
                         $"MERGE '{m.File.CobolName}'", "ISO §14.9.24; Annex E.2 item 20"));
@@ -449,7 +450,7 @@ internal sealed class VersionConformancePass
             GateDataItem(item, $"data item '{item.CobolName ?? "FILLER"}'");
         // Report printable items are SYNTHETIC DataItems in the RD model (off the forest) — their national/boolean
         // PICTURE gates fired in Analyze with the report where-string (ReportSectionBinder.cs); reproduce that here.
-        foreach (var report in data.Reports.Declared)
+        foreach (var report in data.State.Reports.Declared)
         {
             foreach (var grp in report.Groups)
                 foreach (var line in grp.Lines)
@@ -1144,7 +1145,7 @@ internal sealed class VersionConformancePass
         // COBOL-2002 introductions on a data-description entry, ALL parse-arm (recognition). None needs a resolved
         // fact — each is a single dataDescriptionClause alternative, so the parse node IS the identity — and a
         // bound-arm home would DROP the 0900 on a declaration-error path (the DEVLOG-724 flaw): DataItem.IsBased is
-        // reset to false for a LINKAGE item (DataBinder.Linkage.cs); DataItem.TypeRefName is nulled by ExpandTypes
+        // reset to false for a LINKAGE item (LinkageBinder.cs); DataItem.TypeRefName is nulled by ExpandTypes
         // the moment the clone is materialized; the PROPERTY identity is consumed entirely by the OO property binder;
         // and — the 14g.2-review correction (DEVLOG 734) — although DataItem.IsTypedef is init-only, the typedef
         // ITEM is discarded from ConformanceForest whenever RegisterTypeDecl rejects it (an unnamed/FILLER typedef, a
@@ -1295,7 +1296,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The PROPERTY clause (ISO §13.18.42, OO) — a COBOL-2002 introduction. The OO property SEMANTICS
-        /// are bound independently in <c>DataBinder.Oo.OoBindPropertyClauses</c> (which reads the propertyClause node
+        /// are bound independently in <c>OoDataBinder.BindPropertyClauses</c> (which reads the propertyClause node
         /// directly), so the storage-clause loop no longer touches it; this arm only gates the edition.</summary>
         public override object? VisitPropertyClause(CobolParserCore.PropertyClauseContext ctx)
         {
@@ -1308,7 +1309,7 @@ internal sealed class VersionConformancePass
         /// into the compile-time constant table and produces NO DataItem (a bound-arm gate would have no node
         /// to key on), and a §13.10 SR violation abandons the fold — so recognition is the drop-proof home
         /// (the TYPEDEF lesson). Fires once per written entry; the §13.10 SRs stay bind-time
-        /// (DataBinder.Constants.cs, COBOL1547).</summary>
+        /// (ConstantEntryBinder.cs, COBOL1547).</summary>
         public override object? VisitConstantEntryBody(CobolParserCore.ConstantEntryBodyContext ctx)
         {
             // The body has two hosts: a data description entry (through its body rule) and a report-section
@@ -1589,10 +1590,10 @@ internal sealed class VersionConformancePass
         // the file is discarded on a SELECT error, whereas the binder fired it on the clause's PRESENCE in the
         // file-control loop — so recognition is byte-exact and drop-proof. The scope match holds because every program
         // unit (top-level AND nested — CallCollectUnits recurses nestedProgram), every class, and every factory gets
-        // its OWN DataBinder whose BindDeclarations runs SwitchBindSpecialNames + BindFileControl + CallBindLinkage; the
+        // its OWN DataBinder whose BindDeclarations runs SpecialNamesBinder.BindSpecialNames + BindFileControl + CallBindLinkage; the
         // parse-arm's single whole-tree walk equals the UNION of those per-scope binder walks. The one scope asymmetry
         // is PROCEDURE DIVISION RETURNING/RAISING: the procedureDivision rule is SHARED by program and method PDs, but
-        // CallBindLinkage gates PROGRAM units only (methods bind via OoBindMethodData) — so those two gates carry the
+        // CallBindLinkage gates PROGRAM units only (methods bind via OoDataBinder.BindMethodData) — so those two gates carry the
         // InMethodDefinition guard (the 14g.3 shared-rule lesson).
 
         /// <summary>The SELECT … SHARING clause (ISO §12.4.5.15) — a COBOL-2002 introduction. Its OPEN-statement twin
@@ -1814,7 +1815,7 @@ internal sealed class VersionConformancePass
 
         /// <summary>PROCEDURE DIVISION … RETURNING (ISO §14.2) — a COBOL-2002 introduction. Gated only OUTSIDE a method
         /// (the shared procedureDivision rule serves both, but CallBindLinkage — the former gate site — runs for program
-        /// units only; a method's RETURNING binds through OoBindMethodData, ungated). §14.2.3 GR6/SR1 stay bind-time.</summary>
+        /// units only; a method's RETURNING binds through OoDataBinder.BindMethodData, ungated). §14.2.3 GR6/SR1 stay bind-time.</summary>
         public override object? VisitReturningClause(CobolParserCore.ReturningClauseContext ctx)
         {
             if (!InMethodDefinition(ctx))
@@ -1836,7 +1837,7 @@ internal sealed class VersionConformancePass
         /// §14.2 header vs §14.9.4 statement). Fires on RECOGNITION, once per BY VALUE parameter phrase, in
         /// programs, functions, AND methods alike (a method-header occurrence below 2002 is already inside the
         /// gated class construct — the extra where-string only sharpens the report). The §14.2.2 SR2 class
-        /// restriction and the §14.2.3 GR10 value-copy semantics stay bind-time (DataBinder.CallBindLinkage).</summary>
+        /// restriction and the §14.2.3 GR10 value-copy semantics stay bind-time (LinkageBinder.CallBindLinkage).</summary>
         public override object? VisitUsingByValue(CobolParserCore.UsingByValueContext ctx)
         {
             _p.Check(Constructs.PdHeaderByValue2002, "the PROCEDURE DIVISION USING BY VALUE phrase");

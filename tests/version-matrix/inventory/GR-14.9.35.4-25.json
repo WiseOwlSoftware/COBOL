@@ -6,10 +6,10 @@
  "subject": "REWRITE statement",
  "rule-digest": "d2228be59894",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#KeySuppressionOf",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#KeySuppressionOf",
  "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1072_suppress_when_forms",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1072 landed (w61c). GR25 c): golden REWRITE of record 04 sets R-NA (SUPPRESS WHEN SPACE, no DUPLICATES) to the WORD 'SPACE', which record 01 also holds; the word is not the suppression value (spaces), so the REWRITE is refused '22' (RW4 22). Before the fix the raw word 'SPACE' was the suppression value and both keys were skipped as suppressed. Rows below 2023 are unaffected (SUPPRESS WHEN is a 2023 introduction; the key-equality path is shared).",
+ "notes": "kb/Work PB1072 landed (w61c). GR25 c): golden REWRITE of record 04 sets R-NA (SUPPRESS WHEN SPACE, no DUPLICATES) to the WORD 'SPACE', which record 01 also holds; the word is not the suppression value (spaces), so the REWRITE is refused '22' (RW4 22). Before the fix the raw word 'SPACE' was the suppression value and both keys were skipped as suppressed. Rows below 2023 are unaffected (SUPPRESS WHEN is a 2023 introduction; the key-equality path is shared). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#KeySuppressionOf (kb/Work PB2296 M7 moved the member from DataBinder to FileControlBinder (the file binder); the same rule is asked by the same code)",
  "state": "OK"
 }

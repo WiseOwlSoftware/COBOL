@@ -173,7 +173,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>The C# <c>long</c> index cell when <paramref name="dref"/> is an INDEXED BY index-name reference
     /// — bare or QUALIFIED (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — <c>SET IX OF T TO 1</c>) — else
-    /// <see langword="null"/>. Index-names are a separate name class (<see cref="DataBinder.IndexNames"/>), not the
+    /// <see langword="null"/>. Index-names are a separate name class (<see cref="ForestSlice.IndexNames"/>), not the
     /// data-item tree; the ONE resolution <see cref="NameResolution.ResolveIndexName"/> counts the candidates, so
     /// a duplicated spelling written without the qualifiers that settle it is §8.4.2.2.3 SR1's error — reported
     /// there, and still answered with an (inert) cell so the caller keeps the index-name shape instead of
@@ -253,13 +253,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// literals to represent the decimal separator", so `DISPLAY 1,5` under DECIMAL-POINT IS COMMA shows `1,5`
     /// (DOC-A.1-56; kb/Work PB1643 — it showed `1.5`, because one text field was both the value and the image).</summary>
     public BoundNumericLiteral NumericLiteralOperand(string asWritten) =>
-        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.DecimalSeparator };
+        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.State.Configuration.DecimalSeparator };
 
     /// <summary>The arithmetic-expression-tier twin of <see cref="NumericLiteralOperand"/>: the same literal, the same
     /// separator, as a <see cref="BoundNumLiteral"/> (it reaches a character image through
     /// <c>IntrinsicBinder.OperandOf</c>, e.g. a numeric literal argument of a function).</summary>
     private BoundNumLiteral NumericLiteralExpr(string asWritten) =>
-        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.DecimalSeparator };
+        new(CheckLiteral(asWritten)) { DecimalSeparator = ctx.Data.State.Configuration.DecimalSeparator };
 
     /// <summary>⛔ THE ONE PRODUCER OF <see cref="BoundPredefinedNull"/> — the operand slot of a §8.4.3.10.3 SR1
     /// context, which the predefined NULL may occupy: "it may be used only as a sending operand in an INITIALIZE or
@@ -355,7 +355,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // GR10's "one or more of the character" IS the fill semantics BoundAllLiteral carries in every context).
         if (fig.cobolWord() is { } symWord)
         {
-            if (ctx.Data.SymbolicOf(symWord, symWord.GetText()) is { } sym)
+            if (ctx.Data.SpecialNames.SymbolicOf(symWord, symWord.GetText()) is { } sym)
                 return SymbolicOperand(sym) is BoundAllLiteral al7
                     ? al7 with { BeginsWithAll = true }   // the EXPLICIT ALL form — the word is written
                     : SymbolicOperand(sym);
@@ -464,7 +464,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// whenever 'literal' appears in a format" (§8.3.3.6.3 SR1). Exactly one of <paramref name="Constant"/> and
     /// <paramref name="Symbolic"/> is set.</summary>
     /// <param name="Word">The word as written, for diagnostics.</param>
-    internal sealed record LiteralAlias(string Word, DataBinder.ConstantDef? Constant, (string Value, bool National)? Symbolic)
+    internal sealed record LiteralAlias(string Word, ConstantDef? Constant, (string Value, bool National)? Symbolic)
     {
         /// <summary>A numeric constant-name: the one alias a numeric-literal position admits (a symbolic-character is
         /// never numeric — §8.3.3.6.3 SR1 a) admits only ZERO where a literal is restricted to numeric).</summary>
@@ -484,14 +484,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// VALUE argument and INVOKE had neither half, or only the constant half, and refused conforming source.
     /// <c>LiteralAliasResolutionDriftTests</c> fails when a procedure binder reads either table itself.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>
-        ctx.Data.ConstantOf(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
+        ctx.Data.Constants.ConstantOf(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
         // A symbolic-character a CONTAINING element declares yields to the referring element's own item of the same
         // spelling: "a source element's reference to such a name, even when it is a different type of user-defined
         // word, is to the item which that source element describes" (§8.4.6.1, kb/Work PB3153). Asked BEFORE the
         // resolution, which records the word as used as a symbolic-character (§8.3.2.2). In one element the two
         // cannot coexist (COBOL2692 at the second declaration), so the own-item test changes no own-element answer.
-        : ctx.Data.NamesSymbolic(dref) && !ctx.Refs.DescribesOwnItem(dref)
-          && ctx.Data.SymbolicOf(dref) is { } s ? new(DataBinder.WrittenText(dref), null, s)
+        : ctx.Data.SpecialNames.NamesSymbolic(dref) && !ctx.Refs.DescribesOwnItem(dref)
+          && ctx.Data.SpecialNames.SymbolicOf(dref) is { } s ? new(DataBinder.WrittenText(dref), null, s)
         : null;
 
     /// <summary>The literal-alias a BARE WORD spells where the grammar writes <c>literal | cobolWord</c> — a position no
@@ -499,8 +499,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// data item for the word to yield to and the §8.4.6.1 own-item test of the data-reference overload does not arise.
     /// The same two tables in the same order: a constant-name, then a symbolic-character.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>
-        word.GetText() is var w && ctx.Data.FindConstant(w) is { } k ? new(w, k, null)
-        : ctx.Data.NamesSymbolic(w) && ctx.Data.SymbolicOf(word, w) is { } s ? new(w, null, s)
+        word.GetText() is var w && ctx.Data.Constants.FindConstant(w) is { } k ? new(w, k, null)
+        : ctx.Data.SpecialNames.NamesSymbolic(w) && ctx.Data.SpecialNames.SymbolicOf(word, w) is { } s ? new(w, null, s)
         : null;
 
     /// <summary>The bound operand <paramref name="alias"/> stands for: the SAME shape the equivalent written literal
@@ -643,11 +643,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             string what = NonNumericOperandKind(p);
             bool decodable = IntrinsicArgumentRules.IsDigitDecodable(new BoundFieldOperand(p));
             if (ctx.Edition.Permissive && decodable)
-                ctx.Edition.Warning("COBOL0844", $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
+                ctx.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
                     + "under --permissive, decoding its digit characters as an unsigned integer");
             else
             {
-                ctx.Edition.Error("COBOL0844", $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an "
+                ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an "
                     + "identifier referencing a NUMERIC data item, a numeric literal, or the figurative constant "
                     + "ZERO in an arithmetic expression." + PermissiveDecodingHint(decodable));
                 return BoundExprError.Refused(ctx.Edition, $"{what} in an arithmetic expression (ISO §8.8.1.1)");
@@ -733,7 +733,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// national/boolean-literal rejection above (COBOL0844).</summary>
     private BoundExprError NonNumericAliasExpr(LiteralAlias alias)
     {
-        ctx.Edition.Error("COBOL0844", alias.Constant is { } k
+        ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, alias.Constant is { } k
             ? $"constant-name '{alias.Word}' substitutes a literal of category {k.Category} and is not a numeric operand "
                 + "(ISO §8.8.1.1 / §13.10.3 SR2)"
             : $"symbolic-character '{alias.Word}' is a figurative constant other than ZERO and is not a numeric operand "
@@ -760,7 +760,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         }
         if (dref.cobolWord() is { } q)   // qualified: LINAGE-COUNTER OF/IN file-name
         {
-            if (ctx.Data.VisibleFiles.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
+            if (ctx.Data.State.VisibleFiles.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
             ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
                 + "file whose file description entry contains a LINAGE clause (ISO §8.4.3.14 / §13.18.34.4 GR7a)");
             return null;
@@ -769,9 +769,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // containers' GLOBAL FDs too (§13.18.27.4 GR1), so a contained program whose only LINAGE file is the
         // container's GLOBAL one resolves the unqualified register instead of drawing COBOL0864; two
         // visible LINAGE files — own plus inherited — still require qualification (§8.4.3.14 SR3).
-        var linageFiles = ctx.Data.VisibleFiles.Values.Where(f => f.Linage is not null).Distinct().ToList();
+        var linageFiles = ctx.Data.State.VisibleFiles.Values.Where(f => f.Linage is not null).Distinct().ToList();
         if (linageFiles.Count == 1) return linageFiles[0];
-        ctx.Edition.Error("COBOL0864", linageFiles.Count == 0
+        ctx.Edition.Error(DiagnosticCatalog.LinageCounterWithoutLinage, linageFiles.Count == 0
             ? "LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause (ISO §8.4.3.14 — "
               + "the register is generated by the presence of a LINAGE clause)"
             : "unqualified LINAGE-COUNTER with more than one LINAGE file: qualify by file-name (ISO §8.4.3.14 "
@@ -1015,14 +1015,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // (which reroutes BEFORE this chokepoint). Any other receiving use — MOVE/arithmetic resultant/ordinary SET
         // receiver — is illegal; reject it here rather than reach CapacityRegisterPlace.Write (an internal throw).
         if (place is CapacityRegisterPlace cap)
-            return new("COBOL1523", $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
-                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38.3 SR30–32)");
+            return new(DiagnosticCatalog.CapacityRegisterReceiving.Code, $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
+                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38.3 SR32)");
         // ISO §13.7.3 SR5 (kb/Work PB1250): "A formal parameter of a function shall not be used as a receiving operand."
         // A rule over the operand ROLE, so it is asked HERE and every statement's receiver — and §8.4.3.2.4 GR5's
         // BY-CONTENT choice for an argument — inherits it. The parameter in any reference form (whole or
         // reference-modified) is barred; an item subordinate to a group parameter is not "a formal parameter" (SR4 b)
         // of the same clause says "subordinate to" when it means it), and the RETURNING item is no formal parameter.
-        if (ctx.Data.IsFunctionFormal(place.Item))
+        if (ctx.Data.Linkage.IsFunctionFormal(place.Item))
             return new(DiagnosticCatalog.FunctionFormalReceiving.Code,
                 $"'{DataBinder.WrittenText(dref)}' is a formal parameter of this function and shall not be used as a "
                 + "receiving operand (ISO §13.7.3 SR5); store into the RETURNING item or a WORKING-STORAGE copy");
@@ -1089,7 +1089,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// receiver list is built, and nowhere else.</summary>
     private Receiver ReceiverOf(Place resolved, Core.RoundedPhraseContext? rounded)
     {
-        ctx.Data.OoClaimInterleavedReceiver(resolved);
+        ctx.Data.Procedure.ClaimInterleavedReceiver(resolved);
         return new Receiver(resolved, RoundingOf(rounded));
     }
 
@@ -1242,7 +1242,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             // A concatenation expression is of class alphanumeric, boolean, or national (ISO §8.8.3.2 SR1) —
             // never numeric, so it is not an arithmetic operand (§8.8.1.1): the same 0844 posture as a bare
             // national/boolean literal in a numeric context.
-            ctx.Edition.Error("COBOL0844", "a concatenation expression is not a numeric operand "
+            ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, "a concatenation expression is not a numeric operand "
                 + "(ISO §8.8.3.2 SR1 — class alphanumeric/boolean/national; §8.8.1.1 — arithmetic operands "
                 + "shall be numeric)" + where);
             return BoundExprError.Refused(ctx.Edition, $"concatenation expression '{text}' in a numeric context");
@@ -1266,7 +1266,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 return ZeroOperand(writtenAll: fig.ALL() is not null, ConcatFolder.Spelling(fig), where);
             // The bare BoundExprError here carried no diagnostic and rendered as a RUNTIME NotImplemented —
             // the wrong stage for a syntax-rule violation (kb/Work PB155).
-            ctx.Edition.Error("COBOL0844", $"figurative constant '{ConcatFolder.Spelling(fig)}' is not a numeric "
+            ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"figurative constant '{ConcatFolder.Spelling(fig)}' is not a numeric "
                 + "operand (ISO §8.8.1.1 — the only figurative constant an arithmetic expression admits is ZERO "
                 + "(ZEROS, ZEROES); §8.3.3.6.3 SR1a — where the literal is restricted to a numeric literal, ZERO "
                 + "is permitted WITHOUT the ALL phrase)" + where);
@@ -1274,7 +1274,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         }
         if ((nn.NATLIT() ?? nn.BOOLLIT()) is not null)
         {
-            ctx.Edition.Error("COBOL0844", $"a {(nn.NATLIT() is not null ? "national" : "boolean")} "
+            ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"a {(nn.NATLIT() is not null ? "national" : "boolean")} "
                 + "literal is not a numeric operand (ISO §8.8.1.1 — arithmetic operands shall be numeric)" + where);
             return BoundExprError.Refused(ctx.Edition, $"literal '{text}' in a numeric context");
         }
@@ -1284,7 +1284,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             // emitter rendered it into the generated arithmetic — a raw Roslyn error at the wrong stage
             // (the PB94 VALUE-clause fix's arithmetic sibling). Both formats of the alphanumeric literal —
             // quoted and hexadecimal — are of class and category alphanumeric (ISO §8.3.3.2.1).
-            ctx.Edition.Error("COBOL0844", "an alphanumeric literal is not a numeric operand "
+            ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, "an alphanumeric literal is not a numeric operand "
                 + "(ISO §8.8.1.1 — arithmetic operands shall be numeric; §8.3.3.2.1 — both formats of the "
                 + "alphanumeric literal are of class and category alphanumeric)" + where);
             return BoundExprError.Refused(ctx.Edition, $"literal {text} in a numeric context");
@@ -1299,7 +1299,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // ⛔ NO SILENT FALL-THROUGH. Every `nonNumericLiteral` alternative the grammar lists is covered above, so
         // reaching here means the RULE grew an alternative this screen has not read — which is exactly the
         // condition that must fail loud rather than be admitted as a number (DESIGN §1.4).
-        ctx.Edition.Error("COBOL0844", $"the literal '{text}' is not a numeric operand "
+        ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"the literal '{text}' is not a numeric operand "
             + "(ISO §8.8.1.1 — arithmetic operands shall be numeric)" + where);
         return BoundExprError.Refused(ctx.Edition, $"literal '{text}' in a numeric context");
     }
@@ -1309,7 +1309,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// (ISO §8.3.3.3.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
     public string CheckLiteral(string text)
     {
-        text = ctx.Data.NormalizeNumericLiteral(text);
+        text = ctx.Data.SpecialNames.NormalizeNumericLiteral(text);
         // A floating-point literal's digits are not the fixed-point 31/18 cap's subject (§8.3.3.3.3 SR2/SR3 —
         // checked by the normalizer); what it owes is r3's "The maximum permitted value and minimum permitted value
         // of the exponent is implementor-defined" (kb/Work PB99 — beyond the range the generated C# double literal
@@ -1458,11 +1458,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         bool decodable = IntrinsicArgumentRules.IsDigitDecodable(operand);
         if (ctx.Edition.Permissive && decodable)
         {
-            ctx.Edition.Warning("COBOL0844", $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
+            ctx.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
                 + "under --permissive, decoding its digit characters as an unsigned integer");
             return bound;
         }
-        ctx.Edition.Error("COBOL0844", $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an "
+        ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an "
             + "identifier referencing a NUMERIC data item, a numeric literal, or the figurative constant "
             + "ZERO in an arithmetic expression." + PermissiveDecodingHint(decodable));
         return BoundExprError.Refused(ctx.Edition, $"{what} in an arithmetic expression (ISO §8.8.1.1)");
@@ -1511,7 +1511,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     {
         using var _ = ctx.Edition.At(written);   // kb/Work PB4406 — the refusal stands at the operand
         string what = $"'{DataBinder.WrittenText(written)}'";
-        ctx.Edition.Error("COBOL0844", $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an identifier "
+        ctx.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an identifier "
             + "referencing a NUMERIC data item, a numeric literal, or the figurative constant ZERO in an arithmetic "
             + "expression, and it is an object reference, the predefined NULL or an address.");
         return BoundExprError.Refused(ctx.Edition, $"{what} in an arithmetic expression (ISO §8.8.1.1)");

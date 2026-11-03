@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <para><b>Per source unit.</b> ISO §12.3.5.4 GR1: "All clauses of the SOURCE-COMPUTER paragraph apply to the source
 /// unit in which they are explicitly or implicitly specified and to any source unit contained within that source
 /// unit" (<c>cite.py --check 12.3.5.4</c>), so a debugging line is source when its own unit — or a unit that contains
-/// it (kb/Work PB1088, the binder's <c>InheritConfiguration</c> twin of this rule) — declares the mode. A unit is the
+/// it (kb/Work PB1088, the binder's <c>ConfigurationStep</c> twin of this rule) — declares the mode. A unit is the
 /// run of tokens from its <c>PROGRAM-ID</c>/<c>FUNCTION-ID</c>/<c>CLASS-ID</c>/<c>INTERFACE-ID</c>/<c>METHOD-ID</c>
 /// paragraph header to its <c>END PROGRAM/FUNCTION/CLASS/INTERFACE/METHOD</c> header, nesting as the source nests.
 /// The clause itself is read from the tokens of the unit's SOURCE-COMPUTER paragraph, never from a debugging line

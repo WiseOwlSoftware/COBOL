@@ -92,7 +92,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(name, out var fn))
         {
-            ctx.Edition.Error("COBOL1505",
+            ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
                 $"FUNCTION {name.ToUpperInvariant()} is declared in the REPOSITORY paragraph but the compilation "
                 + "group contains neither a FUNCTION-ID definition specified BEFORE this source element nor a "
                 + "FUNCTION-ID … IS PROTOTYPE for it (ISO §12.3.8.4 GR11 a) / b): a definition that follows this "
@@ -126,7 +126,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(proto, out var fn))
         {
-            ctx.Edition.Error("COBOL1505",
+            ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
                 $"FUNCTION {name.ToUpperInvariant()}: function-pointer '{name}' is restricted to function-prototype "
                 + $"'{proto.ToUpperInvariant()}', but the compilation group contains neither a FUNCTION-ID "
                 + "definition specified before this source element nor a FUNCTION-ID … IS PROTOTYPE for it (ISO "
@@ -182,7 +182,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // missing trailing slot as the omitted carrier (§8.4.3.2.4 GR7), exactly as they do for CALL.
         if (operands.Count > fn.Formals.Count || fn.Formals.Skip(operands.Count).Any(f => !f.Optional))
         {
-            ctx.Edition.Error("COBOL1506",
+            ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
                 $"FUNCTION {name.ToUpperInvariant()} takes {fn.Formals.Count} argument(s); {operands.Count} "
                 + "given — arguments correspond positionally to the function's PROCEDURE DIVISION USING "
                 + "formals, and only trailing OPTIONAL formals may be omitted (ISO §14.8.2.1)");
@@ -228,7 +228,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             if (formal.ByValue && ParameterConformance.ValueArgumentClass(operand)
                     is { } cls and not (CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer))
             {
-                ctx.Edition.Error("COBOL1554",
+                ctx.Edition.Error(DiagnosticCatalog.ByValueArgumentClass,
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1} is of class "
                     + $"{IntrinsicArgumentRules.ClassNameOf(operand, cls)}; an argument passed to a BY VALUE formal parameter "
                     + "shall be of class numeric, object, or pointer (ISO §8.4.3.2.3 SR10)");
@@ -243,7 +243,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                     ? err.Feature
                     : "this argument form (ISO §8.4.3.2.3 SR8 admits an identifier, a literal, a boolean "
                       + "expression, or an arithmetic expression)";
-                ctx.Edition.Error("COBOL1506",
+                ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: {what} is not yet supported for "
                     + "user-defined function activation");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1}");
@@ -273,11 +273,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // The caller-side result temporary (§8.4.3.2.4 GR1 :6963 — "the description, class, and category of
         // the temporary data item is that specified by the description in the linkage section of the item
         // specified in the RETURNING phrase"), declared like any other item via the Roots pipeline. A GROUP
-        // model deep-clones its subtree (CreateCompilerTemp's group leg) so the FieldEmitter declares the
+        // model deep-clones its subtree (CompilerTemps.Create's group leg) so the FieldEmitter declares the
         // struct with its AsImage/FromImage codec — the CALL boundary's group crossing form.
-        var temp = ctx.Data.CreateCompilerTemp(fn.Returning, "__FNRES-", "__fnres", name);
+        var temp = ctx.Data.Temps.Create(fn.Returning, "__FNRES-", "__fnres", name);
         // A result whose values ride managed slots is delivered into the temporary's AREA (kb/Work PB1940).
-        ctx.Data.ClaimSlotCarriedCell(temp, "FUNCTION result temporary");
+        ctx.Data.ClaimTemporarySlotCarriedCell(temp, "FUNCTION result temporary");
         if (ctx.Refs.Places.ResolveItem(temp) is not { } tempPlace)
             return BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {name} result temporary");
 
@@ -368,7 +368,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         WiseOwl.Cobol.Frontend.Expressions.SoleOperand.DataRef(a.arithmeticExpression()) is { } dref
         && ctx.Refs.Probe(dref) is not null
         && !ctx.Refs.ObjectProperties.IsObjectPropertyReference(dref)
-        && !ctx.Data.OoIsObjectData(place.Item)
+        && !ctx.Data.Oo.IsObjectData(place.Item)
         && host.Expr.PermitsReceiving(dref, place);
 
     /// <summary>⛔ THE ONE DRAIN OF THE PENDING PRE-OP SUFFIX, and the only place the list is mutated on the way
@@ -482,7 +482,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // means "return from this function", and the prototype's procedure division is one.
         if (ctx.Enclosing.SourceElement is not (SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype))
         {
-            return BoundRejected.Report(ctx.Edition, "COBOL0827",
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitStatementPlacement,
                 "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §14.9.14 "
                 + "function form of the EXIT statement; this is not a function procedure division)");
         }

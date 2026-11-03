@@ -131,7 +131,7 @@ the margin-R note (COBOL5788) names a cut beside the error it may explain.
 SUBSTITUTE, CONVERT, MODULE-NAME, LENGTH and NUMVAL-C/TEST-NUMVAL-C are covered by one call;
 `CobolParserCoreBase.Word` — the single text comparison behind every parser predicate (LOCALE, ORDER,
 CLASSIFICATION, ATTRIBUTE, the LC_ categories); `SetBinder` (SET LOCALE categories and USER-DEFAULT/
-SYSTEM-DEFAULT); `DataBinder.Switches` (the SPECIAL-NAMES LOCALE clause, the ALPHABET LOCALE phrase and the
+SYSTEM-DEFAULT); `SpecialNamesBinder` (the SPECIAL-NAMES LOCALE clause, the ALPHABET LOCALE phrase and the
 UCS-4/UTF-8/UTF-16 coded-set names); `CallBinder` and `VersionConformancePass` (`CALL … AS NESTED`, both arms).
 A new site that writes its own `string.Equals(text, "KEYWORD")` re-opens the defect.
 

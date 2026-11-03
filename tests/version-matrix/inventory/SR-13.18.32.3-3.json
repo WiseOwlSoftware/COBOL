@@ -6,10 +6,10 @@
  "subject": "JUSTIFIED clause",
  "rule-digest": "e3d2e346dd5a",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckClauseSubjects",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckClauseSubjectsPass.cs#CheckClauseSubjectsPass",
  "test-ref": "unit:DataClausePlacementDriftTests.ClauseOnAnInadmissibleSubject_IsRefused; unit:DataClausePlacementDriftTests.ClauseOnAnAdmissibleSubject_BindsClean; conformance:cases/13.16-Data-description/pb518_clause_placement_legal",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "Closed by the kb/Work PB507 landing (its JUSTIFIED sibling witness c1). JUSTIFIED is admitted for categories alphabetic, alphanumeric, boolean and national, never an edited category (PicInfo.EditMask) -> else COBOL2405. MEASURED at 2023: `PIC 9(5) JUSTIFIED`, `PIC ZZ9 JUST`, `PIC XXBXX JUSTIFIED`, `USAGE INDEX JUSTIFIED`, `PIC 9(5) JUSTIFIED RIGHT BLANK WHEN ZERO` -> COBOL2405 (were: accepted). PIC X / A / N / 1 JUSTIFIED bind clean and right-justify.",
+ "notes": "Closed by the kb/Work PB507 landing (its JUSTIFIED sibling witness c1). JUSTIFIED is admitted for categories alphabetic, alphanumeric, boolean and national, never an edited category (PicInfo.EditMask) -> else COBOL2405. MEASURED at 2023: `PIC 9(5) JUSTIFIED`, `PIC ZZ9 JUST`, `PIC XXBXX JUSTIFIED`, `USAGE INDEX JUSTIFIED`, `PIC 9(5) JUSTIFIED RIGHT BLANK WHEN ZERO` -> COBOL2405 (were: accepted). PIC X / A / N / 1 JUSTIFIED bind clean and right-justify. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckClauseSubjects (the pass body moved from the DataBinder partial to its own IBindPass class under Binding/Passes (kb/Work PB2352, PB2353, PB2354))",
  "state": "OK"
 }

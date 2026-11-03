@@ -208,7 +208,7 @@ internal sealed class BinderDriver
         {
             RequireAll(ctx, pass);      // watermark gate: the prerequisite RAN on every binder (P6 Step 6)
             pass.Run(ctx);
-            foreach (var d in ctx.AllBinders()) d.MarkProduced(pass.Produces);
+            foreach (var d in ctx.AllBinders()) d.State.MarkProduced(pass.Produces);
         }
 
         // The migration-flagging pass (ISO §7.3.14 FLAG-02 / §7.3.15 FLAG-14) — a SIBLING to the terminal
@@ -275,7 +275,7 @@ internal sealed class BinderDriver
         // is the FD name). Each FileModel lives in exactly ONE unit's Files list (a container's GLOBAL file is
         // reached through the contained unit's VisibleFiles only), so no model is renamed twice.
         foreach (var unit in units)
-            foreach (var file in unit.Data.Files)
+            foreach (var file in unit.Data.State.Files.Declared)
                 file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
                     ? NamingConvention.ExternalFileBand + ext
                     : unit.RegistryKey + "::" + file.CobolName;
@@ -300,10 +300,10 @@ internal sealed class BinderDriver
         // import (CS0103). So does a file-less unit whose statements carry EC-I-O checking: its __IoCheckEc reads
         // CobolFile too, and a COMMIT or ROLLBACK raises EC-I-O-PERMANENT-ERROR for a refused file of ANOTHER element's
         // APPLY COMMIT clause in an element that describes no file (kb/Work PB3338, review finding w1154a R1-3).
-        bool anyFiles = units.Any(u => u.Data.Files.Count > 0)
+        bool anyFiles = units.Any(u => u.Data.State.Files.Declared.Count > 0)
             || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
             || units.Any(u => u.Bound.Ec is { HasIoChecked: true })
-            || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0)
+            || classes.Any(c => c.Data.State.Files.Declared.Count > 0 || c.FactoryData.State.Files.Declared.Count > 0)
             // a METHOD's own declaratives emit the same __IoCheck (kb/Work PB1010)
             || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
 
@@ -322,7 +322,7 @@ internal sealed class BinderDriver
     /// §13.4.5.4 GR2(c), is a separate longstanding requirement — not this 2023-gated check.)</summary>
     private static void CheckExternalFileConsistency(IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
-        var byExternalName = units.SelectMany(u => u.Data.Files)
+        var byExternalName = units.SelectMany(u => u.Data.State.Files.Declared)
             .Where(f => f is { IsExternal: true, ExternalName: not null })
             .GroupBy(f => f.ExternalName!, CobolNames.Comparer);
         // The 2023 requirement REMOVES a prior-edition freedom (corresponding external-file SELECTs could name
@@ -336,7 +336,7 @@ internal sealed class BinderDriver
         // (the §14.8.4.2 sentence names all three items together); the E.2-item-9 conformance-checking mechanism is
         // the 2023 addition, so it inherits the same Removed-freedom severity as the 1573/1575 consistency siblings.
         EditionDiagnostic Externality(string ext, string clause, string name) =>
-            new("COBOL1624", severity, "external-file-item-not-external",
+            new(DiagnosticCatalog.ExternalFileItemNotExternal.Code, severity, DiagnosticCatalog.ExternalFileItemNotExternal.Id,
                 $"external file '{ext}': the {clause} data item '{name}' shall be an external data item "
                 + "(ISO §14.8.4.2; Annex E.2 item 9)",
                 $"external file '{ext}'", "ISO §14.8.4.2 / Annex E.2 item 9");
@@ -378,7 +378,8 @@ internal sealed class BinderDriver
                 {
                     var odd = conns[DeviatingDescriber(ids)];
                     using (edition.At(odd.ClauseOrEntryAt(odd.FileStatusAt)))
-                        edition.Report(new EditionDiagnostic("COBOL1573", severity, "external-file-status-consistency",
+                        edition.Report(new EditionDiagnostic(DiagnosticCatalog.ExternalFileStatusConsistency.Code, severity,
+                            DiagnosticCatalog.ExternalFileStatusConsistency.Id,
                             $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
                             + "specify FILE STATUS naming the same corresponding external data item "
                             + "(ISO §12.4.5.3 GR1(i); Annex E.2 item 12)",
@@ -396,7 +397,8 @@ internal sealed class BinderDriver
                 {
                     var odd = conns[DeviatingDescriber(ids)];
                     using (edition.At(odd.ClauseOrEntryAt(odd.RelativeKeyAt)))
-                        edition.Report(new EditionDiagnostic("COBOL1575", severity, "external-relative-key-consistency",
+                        edition.Report(new EditionDiagnostic(DiagnosticCatalog.ExternalRelativeKeyConsistency.Code, severity,
+                            DiagnosticCatalog.ExternalRelativeKeyConsistency.Id,
                             $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                             + "shall specify RELATIVE KEY naming the same corresponding external data item "
                             + "(ISO §12.4.5.3 GR1(h); Annex E.2 item 24)",
@@ -582,12 +584,12 @@ internal sealed class BinderDriver
 
         // program-id-recursive-2002: the pass owns the edition gate (Exec Step E).
         if (initial && recursive)
-            edition.Error("COBOL0886",
+            edition.Error(DiagnosticCatalog.ProgramInitialRecursiveExclusive,
                 $"program '{name}': INITIAL and RECURSIVE are mutually exclusive — §11.10.2 Format 1 prints them as "
                 + "the alternatives of ONE brace (ISO §11.10.2); the containment conflicts of the two attributes are "
                 + "§11.10.3 SR5–6, checked above against the container chain");
         if (common && parent is null)
-            edition.Error("COBOL0887",
+            edition.Error(DiagnosticCatalog.CommonProgramNotContained,
                 $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO §11.10.3 SR4)");
 
         // §8.6.6 (:8821) "Functions and methods are always recursive" / §9.4 (:12529) "a user defined
@@ -701,15 +703,17 @@ internal sealed class BinderDriver
         };
         data.CallSeedUids(session.TakeUidBand());
 
-        // Configuration-section + OPTIONS inheritance (ISO §12.3.4 GR1 / §11.9.4 GR1; §12.3.3 SR1 — a contained
-        // program cannot have its own configuration section): the WHOLE configuration-derived state of the
-        // container — SPECIAL-NAMES (DECIMAL-POINT, CURRENCY, classes, alphabets, switches), the PROGRAM
-        // COLLATING SEQUENCE, DEBUGGING MODE, the REPOSITORY specifiers — and the OPTIONS baseline, copied in
-        // BEFORE this unit binds so its first literal and PICTURE already see them (kb/Work PB60 /
+        // The configuration slice (ISO §12.3.4 GR1 / §11.9.4 GR1; §12.3.3 SR1 — a contained program cannot have its own
+        // configuration section; kb/Work PB2296): ConfigurationStep, the slice's one producer, takes the WHOLE
+        // configuration-derived state of the container — SPECIAL-NAMES (DECIMAL-POINT, CURRENCY, classes, alphabets,
+        // switches, mnemonic-names), the PROGRAM COLLATING SEQUENCE, DEBUGGING MODE, the REPOSITORY specifiers — and the
+        // OPTIONS baseline, BEFORE this unit binds so its first literal and PICTURE already see them (kb/Work PB60 /
         // AR-15.67.3-5: only the REPOSITORY sets were inherited, after Bind, and a contained program under
         // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0). One level suffices: the container inherited
         // from ITS container before it bound (units bind container-first).
-        if (unit.Parent is not null) data.InheritConfiguration(unit.Parent.Data);
+        ConfigurationStep.Produce(unit.Parent is { } container
+            ? new ConfigurationSource.Contained(container.Data.State.Configuration)
+            : new ConfigurationSource.Own(), data.State.Configuration);
         // The inheritance merge's seed half (InheritStep.Seed; ISO §13.18.27.4 GR1–GR2; kb/Work PB2296): every container's
         // GLOBAL constant-names, type declarations, file-names, reports and data roots, and the C# member names their
         // GLOBAL roots occupy, nearest container first, BEFORE this unit binds, because its own data division reads them.
@@ -736,7 +740,7 @@ internal sealed class BinderDriver
     /// was Debug-only until CI's Release leg exposed the divergence, DEVLOG 774).</summary>
     private static void RequireAll(GroupBindContext ctx, GroupBindPass pass)
     {
-        foreach (var d in ctx.AllBinders()) d.Require(pass.Requires, pass.Name);
+        foreach (var d in ctx.AllBinders()) d.State.Require(pass.Requires, pass.Name);
     }
 
     /// <summary>The <c>ProcedureBinding</c> GROUP pass body (P6 Step 3 — <c>BindPipeline.GroupTail</c>, Requires
@@ -832,8 +836,8 @@ internal sealed class BinderDriver
         unit.Bound = binder.Bind(unit.Ctx);
         // The boundary-copied GROUP formals + RETURNING item are registered whole-group-referenced (so StorageFormPass
         // flips their numeric-DISPLAY leaves to image storage, and the formal's FromImage/AsImage round trip
-        // type-checks — ISO §14.2.3 GR8 / §14.9.25.4 MOVE GR4) by the post-bind UsageCollectionPass, from data.LinkageFormals
-        // + data.LinkageReturning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
+        // type-checks — ISO §14.2.3 GR8 / §14.9.25.4 MOVE GR4) by the post-bind UsageCollectionPass, from data.Linkage.Formals
+        // + data.Linkage.Returning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
         // ReferenceResolver no longer performs) — deleted, PHASE-05 Step 5.
     }
 
@@ -868,11 +872,11 @@ internal sealed class BinderDriver
     {
         var map = new Dictionary<string, CalleeSignature>(WiseOwl.Cobol.Runtime.ExternalizedNames.Comparer);
         foreach (var c in unit.Children)
-            map.TryAdd(c.Name, new CalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
+            map.TryAdd(c.Name, new CalleeSignature(c.Data.Linkage.Formals, c.Data.Linkage.Returning));
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
             foreach (var c in anc.Children)
                 if (c.Common && WiseOwl.Cobol.Runtime.ProgramNameScope.CommonProgramReferable(c, c.Recursive, unit, u => u.Parent))
-                    map.TryAdd(c.Name, new CalleeSignature(c.Data.LinkageFormals, c.Data.LinkageReturning));
+                    map.TryAdd(c.Name, new CalleeSignature(c.Data.Linkage.Formals, c.Data.Linkage.Returning));
         return map;
     }
 
@@ -1004,10 +1008,10 @@ internal sealed class BinderDriver
             // §8.3.2.2 list item 2 — the EXTERNAL data items, records and files of EVERY source element: a
             // contained program's and a class's (object and factory halves) included, since the clause names the
             // item, not the unit that holds it (kb/Work PB1404). ONE producer per source element
-            // (DataBinder.ExternalizedSubjects), the same one its own §13.18.22.3 SR2 screen reads.
+            // (LinkageBinder.ExternalizedSubjects), the same one its own §13.18.22.3 SR2 screen reads.
             foreach (var data in units.Where(u => !u.IsPrototype).Select(u => u.Data)
                          .Concat(classes.SelectMany(cu => new[] { cu.Data, cu.FactoryData })))
-                foreach (var s in data.ExternalizedSubjects())
+                foreach (var s in data.Linkage.ExternalizedSubjects())
                     yield return (s.Kind == ExternalizedSubjectKind.File ? "EXTERNAL file" : "EXTERNAL data item",
                                   $"EXTERNAL {s.Spelling}", s.Word, s.Name, s.At, true);
         }
@@ -1052,7 +1056,7 @@ internal sealed class BinderDriver
                 continue;
             string kind = proto.IsFunction ? "function" : "program";
             using var _ = edition.At(NameCtx(proto));
-            edition.Error("COBOL1513",
+            edition.Error(DiagnosticCatalog.PrototypeDefinitionSignatureMismatch,
                 $"{kind} prototype '{proto.Name}' and the {kind} definition '{definition.Name}' share the "
                 + $"externalized name \"{proto.ExternalizedName}\" but not a signature — the USING formals (count, "
                 + "BY REFERENCE / BY VALUE, OPTIONAL, description — a group's subordinate entries included) or the "
@@ -1060,7 +1064,7 @@ internal sealed class BinderDriver
                 + $"§10.6.2 {(proto.IsFunction ? "SR3" : "SR2")}; §13.7.3 SR2)");
         }
 
-        static CalleeSignature Signature(BoundUnit u) => new(u.Data.LinkageFormals, u.Data.LinkageReturning);
+        static CalleeSignature Signature(BoundUnit u) => new(u.Data.Linkage.Formals, u.Data.Linkage.Returning);
     }
 
     /// <summary>The program prototypes ONE source element may name (ISO §8.4.6.8, Scope of program-prototype-names:
@@ -1068,7 +1072,7 @@ internal sealed class BinderDriver
     /// containing program definition or a program-prototype-name declared in the REPOSITORY paragraph").
     /// Both spellings register here, so §14.9.4.3 SR16 and §14.9.5.3 SR3 are ONE lookup:
     /// <list type="number">
-    /// <item>every §12.3.8.2 program-specifier visible to the element (<c>DataBinder.ProgramSpecifiers</c>, which
+    /// <item>every §12.3.8.2 program-specifier visible to the element (<c>ConfigurationSlice.ProgramSpecifiers</c>, which
     /// already inherits its container's — §12.3.8.4 GR10's "scope of the containing environment division"; for a
     /// CLASS's OBJECT or FACTORY forest, the class-level REPOSITORY, which §12.3.4 GR1 applies to every method —
     /// kb/Work PB1100), resolved through GR10 by <paramref name="repository"/> AS OF
@@ -1087,7 +1091,7 @@ internal sealed class BinderDriver
     {
         var map = new Dictionary<string, ProgramPrototype>(CobolNames.Comparer);
         var containing = ContainingDefinitions(unit).Where(u => !u.IsFunction).ToList();
-        foreach (var (name, spec) in data.ProgramSpecifiers)
+        foreach (var (name, spec) in data.State.Configuration.ProgramSpecifiers)
         {
             // §12.3.8.3 SR15: a specifier naming the element's own or a containing program definition "is ignored" — never
             // resolved (it would take c) and draw REPO-1: a definition does not precede itself); the self entry below is
@@ -1121,7 +1125,7 @@ internal sealed class BinderDriver
         // must still activate "PX", the only name the run-unit registry holds it under (kb/Work PB303).
         static ProgramPrototype SelfPrototype(BoundUnit u) =>
             new(u.Name, u.ExternalizedName,
-                new ProgramAnswer(new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning), new GroupUnitOrigin(u)));
+                new ProgramAnswer(new CalleeSignature(u.Data.Linkage.Formals, u.Data.Linkage.Returning), new GroupUnitOrigin(u)));
     }
 
     /// <summary>⛔ THE ONE "CONTAINING DEFINITION" SET of the two prototype-name scope rules (kb/Work PB3121): ISO
@@ -1169,7 +1173,7 @@ internal sealed class BinderDriver
         // §8.4.6.6's no-specifier leg — the containing function definition, i.e. the element's own when it is one.
         var selves = ContainingDefinitions(unit).Where(u => u.IsFunction).ToList();
         Dictionary<string, UserFunctionSignature>? own = null;
-        foreach (var (name, specifier) in data.FunctionSpecifiers)
+        foreach (var (name, specifier) in data.State.Configuration.FunctionSpecifiers)
         {
             // §12.3.8.3 SR11: "If the specified function-prototype-name-1 is the name of the function definition in
             // which this REPOSITORY paragraph is specified, references to function-prototype-name-1 are to that
@@ -1201,7 +1205,7 @@ internal sealed class BinderDriver
         foreach (var u in selves)
         {
             own ??= new Dictionary<string, UserFunctionSignature>(group, CobolNames.Comparer);
-            own[u.Name] = new UserFunctionSignature(u.Name, u.ExternalizedName, u.Data.LinkageReturning, u.Data.LinkageFormals,
+            own[u.Name] = new UserFunctionSignature(u.Name, u.ExternalizedName, u.Data.Linkage.Returning, u.Data.Linkage.Formals,
                 DefinitionCompiledHere: true);   // §8.4.6.6: the element's own definition
         }
         return own ?? group;
@@ -1235,8 +1239,8 @@ internal sealed class BinderDriver
         {
             if (!u.IsFunction) continue;
             using var functionAt = edition.At(NameCtx(u));   // the FUNCTION-ID word: a group-level pass has no walker cursor (kb/Work PB2034)
-            if (u.Data.LinkageReturning is null)
-                edition.Error("COBOL1507",
+            if (u.Data.Linkage.Returning is null)
+                edition.Error(DiagnosticCatalog.FunctionIdReturningRequired,
                     $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function {(u.IsPrototype ? "prototype" : "definition")} "
                     + "(ISO §14.2, procedure division header) — the function cannot deliver a result without it");
             // The duplicate report moved (kb/Work PB660). It used to key on the WORD and cite §8.4.6.6,
@@ -1252,7 +1256,7 @@ internal sealed class BinderDriver
             if (bucket.TryGetValue(u.Name, out var firstSameWord))
             {
                 if (u.IsPrototype || !WiseOwl.Cobol.Runtime.ExternalizedNames.Same(u.ExternalizedName, firstSameWord.ExternalizedName))
-                    edition.Error("COBOL1508",
+                    edition.Error(DiagnosticCatalog.FunctionIdDuplicated,
                         $"duplicate FUNCTION-ID '{u.Name}' in the compilation group — two function "
                         + $"{(u.IsPrototype ? "prototypes" : "definitions")} share one user-function-name, which "
                         + "a REPOSITORY paragraph entry can no longer name unambiguously (ISO §8.4.6.7: \"A "
@@ -1277,7 +1281,7 @@ internal sealed class BinderDriver
         // OBJECT (instance) files: one connector per object (§9.1.4). A non-EXTERNAL file keeps a class-qualified
         // BASE key (the seed MintInstanceKey suffixes with a per-object #N) and a minted-key FIELD; an EXTERNAL
         // instance file keys by its run-unit external name like any describer (§13.18.22.4 GR4a — inc 5).
-        foreach (var f in cls.Data.Files)
+        foreach (var f in cls.Data.State.Files.Declared)
             if (f is { IsExternal: true, ExternalName: { } ext })
                 f.CobolName = NamingConvention.ExternalFileBand + ext;
             else if (f.IsSortMerge)
@@ -1292,7 +1296,7 @@ internal sealed class BinderDriver
                 f.CobolName = cls.Symbol.RunUnitPath + NamingConvention.InstanceFileBand + f.CobolName;
             }
         // FACTORY files: the class singleton (§9.3.14.2) — a static class-qualified key (no per-object field).
-        foreach (var f in cls.FactoryData.Files)
+        foreach (var f in cls.FactoryData.State.Files.Declared)
             f.CobolName = f is { IsExternal: true, ExternalName: { } ext }
                 ? NamingConvention.ExternalFileBand + ext
                 : cls.Symbol.RunUnitPath + NamingConvention.FactoryFileBand + f.CobolName;

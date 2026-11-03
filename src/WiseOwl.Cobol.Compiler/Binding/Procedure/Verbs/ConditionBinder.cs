@@ -72,7 +72,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                  : suf.B_SHIFT_L() is not null ? BoolShiftKind.Left
                  : BoolShiftKind.Right;
         if (operand is BoundBoolAll { IsAllLiteral: true })   // NOT figurative ZERO — a disjoint §8.8.2 operand (kb/Work PB157)
-            ctx.Edition.Error("COBOL1511", "the first operand of a boolean shift operation shall not be the "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "the first operand of a boolean shift operation shall not be the "
                 + "figurative constant ALL literal (ISO §8.8.2 rule 5)");
         var count = host.Expr.BindExpr(suf.arithmeticExpression());
         if (count is not BoundExprError && ArithmeticFormationRules.ShiftCountNotSoleOperand(suf) is null
@@ -91,7 +91,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (left is BoundBoolAll { IsAllLiteral: true } && right is BoundBoolAll { IsAllLiteral: true })
             // Rule 4 restricts the Format-6 ALL literal, not figurative ZERO — `ZERO B-AND ALL B"1"` has ONE
             // ALL-literal operand and is legal (kb/Work PB157).
-            ctx.Edition.Error("COBOL1511", "both operands of a boolean operator shall not be ALL literals "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "both operands of a boolean operator shall not be ALL literals "
                 + "(ISO §8.8.2 rule 4)");
         return new BoundBoolBinary(left, op, right);
     }
@@ -125,7 +125,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 return new BoundBoolAll(literal1.Value, IsAllLiteral: true);   // the ONE Format-6 construction site (kb/Work PB157)
             // kb/Work PB1029 — this refusal carried no diagnostic (`COMPUTE B = B B-AND SPACE` compiled clean and
             // aborted the run unit); it is the §8.8.2 operand list's figurative half, reported as its siblings are.
-            ctx.Edition.Error("COBOL1511", $"'{ConcatFolder.Spelling(fig)}' is not a valid boolean operand — the only figurative "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"'{ConcatFolder.Spelling(fig)}' is not a valid boolean operand — the only figurative "
                 + "constants a boolean expression admits are ZERO (ZEROS, ZEROES) and ALL literal where the literal is a "
                 + "boolean literal (ISO §8.8.2)");
             return BoundBoolError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}' in a boolean expression "
@@ -134,7 +134,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A sole data reference or sole function reference — through the enclosing parentheses, as the routing
         // predicate IsBooleanValueOperand reads it (§8.8.2; kb/Work PB1464).
         if (BindSoleBooleanOperand(vo.arithmeticExpression()) is { } sole) return sole;
-        ctx.Edition.Error("COBOL1511", $"'{DataBinder.WrittenText(vo)}' is not a valid boolean operand — a boolean "
+        ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"'{DataBinder.WrittenText(vo)}' is not a valid boolean operand — a boolean "
             + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
             + "(ISO §8.8.2)");
         return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{DataBinder.WrittenText(vo)}'");
@@ -174,7 +174,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
                 if (cat is PicCategory.Boolean) return new BoundBoolRef(p);
             }
-            ctx.Edition.Error("COBOL1511", $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is "
                 + (alias is null ? "not a boolean data item" : $"{alias.Described}, not a boolean literal")
                 + " (ISO §8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, alias is null ? $"non-boolean operand '{DataBinder.WrittenText(dref)}'"
@@ -194,7 +194,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (bound is BoundNumRef { Place: var resultTemp } && resultTemp.Item.OperandPic?.Category is PicCategory.Boolean)
                 return new BoundBoolRef(resultTemp);
             if (bound is BoundExprError err) return BoundBoolError.Carry(err.Feature, err.IsUnbuilt);   // already loud
-            ctx.Edition.Error("COBOL1511", $"operand '{DataBinder.WrittenText(fc)}' in a boolean expression is not a "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{DataBinder.WrittenText(fc)}' in a boolean expression is not a "
                 + "boolean function — its result is not class boolean (ISO §8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{DataBinder.WrittenText(fc)}'");
         }
@@ -320,7 +320,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundCondition BindSimpleBooleanCondition(BoundBoolExpr expr)
     {
         if (!BoolExprAllLengthOne(expr))
-            ctx.Edition.Error("COBOL1511", "a simple boolean condition shall reference only boolean items "
+            ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "a simple boolean condition shall reference only boolean items "
                 + "and literals of length 1 (ISO §8.8.4.3.3 SR1)");
         return new BoundBooleanCondition(expr);
     }
@@ -365,10 +365,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (left is BoundBoolOperand || right is BoundBoolOperand)
             {
                 if (op is not ("==" or "!="))
-                    ctx.Edition.Error("COBOL1511", "a boolean relation admits only [NOT] EQUAL / '=' / '<>' "
+                    ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "a boolean relation admits only [NOT] EQUAL / '=' / '<>' "
                         + "(ISO §8.8.4.2.2 Format 2 — no ordering is defined for boolean values)");
                 else if (!BoolValued(left) || !BoolValued(right))
-                    ctx.Edition.Error("COBOL1511", "both operands of a boolean relation shall be "
+                    ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "both operands of a boolean relation shall be "
                         + "boolean-valued (ISO §8.8.4.2.2)");
             }
             return WrittenRelational(left, op, right);
@@ -920,7 +920,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
         // class condition could test membership of (kb/Work PB64 T5; the same rule family as §12.3.7.3 SR16g/SR17d
         // — DataBinder.IsLocaleAlphabet is the one predicate, over BOTH classes of alphabet).
-        if (ctx.Data.IsLocaleAlphabet(word))
+        if (ctx.Data.SpecialNames.IsLocaleAlphabet(word))
         {
             ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{word}': "
                 + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §8.8.4.4.3 SR2) — "
@@ -928,7 +928,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return Refused($"class condition '{word}'");
         }
         // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
-        if (ctx.Data.UserClasses.TryUse(at, word, out var userClass))
+        if (ctx.Data.State.Configuration.UserClasses.TryUse(at, word, out var userClass))
         {
             var opnd = operand();
             CheckClassConditionOperand(opnd, ClassConditionModel.ClassName);   // SR3 + SR4 name class-name-1
@@ -937,8 +937,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
         // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the
         // loud staged BoundConditionError.
-        if ((ctx.Data.Alphabets.TryUse(at, word, out var aDef) && aDef.CodedSet is { } aSet
-                ? aSet : ctx.Data.NationalAlphabets.TryUse(at, word, out var nDef) ? nDef.CodedSet : null) is { } set)
+        if ((ctx.Data.State.Configuration.Alphabets.TryUse(at, word, out var aDef) && aDef.CodedSet is { } aSet
+                ? aSet : ctx.Data.State.Configuration.NationalAlphabets.TryUse(at, word, out var nDef) ? nDef.CodedSet : null) is { } set)
         {
             // ISO/IEC 1989:2002 Annex F.2 item 16: "The content of a data item can be tested against the coded
             // character set named as alphabet-name" — a COBOL-2002 introduction (class-condition-alphabet-name-2002;
@@ -1020,7 +1020,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     if (CobolNames.Same(f.Item.CobolName, fname)) { formal = f.Probe; break; }
             }
             else
-                foreach (var f in ctx.Data.LinkageFormals)
+                foreach (var f in ctx.Data.Linkage.Formals)
                     if (CobolNames.Same(f.Item.CobolName, fname)) { formal = f.Probe; break; }
             if (formal is null)
             {
@@ -1145,13 +1145,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (dref is { } ad && ad.dataReferenceSuffix().Length == 0 && host.Expr.LiteralAliasOf(ad) is { } alias)
             what = $"{alias.Described}, which is none of the conditions";
         else if (BareClassWord(vo) is { } classWord)
-            what = ctx.Data.IsAlphabetName(classWord)
+            what = ctx.Data.SpecialNames.IsAlphabetName(classWord)
                 ? $"alphabet-name '{classWord}', which forms a class condition only after the identifier it tests — "
                   + "\"identifier-1 IS [NOT] alphabet-name-1\" (ISO §8.8.4.4.2)"
                 : $"class-name '{classWord}', which forms a class condition only after the identifier it tests — "
                   + "\"identifier-1 IS [NOT] class-name-1\" (ISO §8.8.4.4.2)";
         else if (dref is { } d && d.dataReferenceSuffix().Length == 0 && d.cobolWord()?.GetText() is { } word
-                 && ctx.Mnemonics.TryPeek(d, word, out var mnemonicRow) && mnemonicRow.Kind == SystemNameKind.Switch)
+                 && ctx.Mnemonics.TryPeek(word, out var mnemonicRow) && mnemonicRow.Kind == SystemNameKind.Switch)
             what = $"the mnemonic-name '{word}' of a switch; a switch-status condition is written with a condition-name "
                 + "the SPECIAL-NAMES paragraph associates with the switch's ON or OFF status (ISO §8.8.4.6.1; the §8.8.4.6.2 format is condition-name-1)";
         else if (dref is { } dd && ctx.Refs.Probe(dd) is { } probe)
@@ -1308,7 +1308,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// classifier may ask it before anything is bound.</summary>
     public string? BareClassWord(Core.ValueOperandContext? vo) =>
         vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && dref.dataReferenceSuffix().Length == 0
-            && dref.cobolWord() is { } word && ctx.Data.IsClassConditionWord(word.GetText()) && !ctx.Refs.DescribesOwnItem(dref)
+            && dref.cobolWord() is { } word && ctx.Data.SpecialNames.IsClassConditionWord(word.GetText()) && !ctx.Refs.DescribesOwnItem(dref)
             ? word.GetText() : null;
 
     /// <summary>§14.9.13.3 SR5 over a selection object the grammar parsed as a whole <c>condition</c>: the
@@ -1705,7 +1705,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
         // §13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (NameResolution.ScreenLinkageReference), once per reference.
-        if (ctx.Data.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
+        if (ctx.Data.Linkage.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
             ctx.Refs.Names.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
         return matches[0];
     }
@@ -1772,7 +1772,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// set before rule 3 ranks it; kb/Work PB4432 review R2-2).</summary>
     private bool CapacityRegisterHides(Core.DataReferenceContext dref, List<Condition88> tier) =>
         tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref) is { Reached.Count: > 0 } cap
-        && ctx.Data.DeclaringDepth(cap.Table) < ctx.Data.DeclaringDepth(tier[0].Parent);
+        && ctx.Data.State.Forest.DeclaringDepth(cap.Table) < ctx.Data.State.Forest.DeclaringDepth(tier[0].Parent);
 
     private static string WrittenWord(Core.DataReferenceContext dref) => dref.cobolWord()?.GetText() ?? dref.GetText();
 

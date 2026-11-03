@@ -411,7 +411,7 @@ public sealed record BoundIntrinsicCall(
 
     /// <summary>STANDARD-COMPARE (§15.85.2's optional <c>ordering-name-1</c>): the DECODED literal-9 of the
     /// SPECIAL-NAMES ORDER TABLE clause the name resolves to (§12.3.7.4 GR17 — literal-9 identifies the cultural
-    /// ordering table), captured at bind time from <c>DataBinder.OrderTables</c>. <see langword="null"/> when no
+    /// ordering table), captured at bind time from <c>SpecialNamesBinder.OrderTables</c>. <see langword="null"/> when no
     /// ordering-name was written, which §15.85.3 r5 defines as "the default ordering table 'ISO
     /// 14651_2020_TABLE1' … shall be used", and for every other function.
     /// <para>⚠ The NAME is not carried: §12.3.7.3 SR9 confines an ordering-name to this one function, so it
@@ -1045,17 +1045,6 @@ public sealed record BoundRejected : BoundStatement
                 $"BoundRejected needs an error-severity descriptor; {rule.Code} is {rule.Severity} (kb/Work PB909).");
         edition.Error(rule, message);
         return new BoundRejected(rule.Code);
-    }
-
-    /// <summary>The same refusal for a code the site still writes as a bare <c>COBOLnnnn</c> literal (kb/Work
-    /// PB1029 — the report-then-<see cref="BoundNop"/> sites migrated here keep their codes verbatim). A code the
-    /// catalogue DOES carry is held to its descriptor's severity, exactly as the descriptor overload is.</summary>
-    public static BoundRejected Report(EditionContext edition, string code, string message)
-    {
-        if (Editions.Diagnostics.DiagnosticCatalog.All.FirstOrDefault(d => d.Code == code) is { } rule)
-            return Report(edition, rule, message);
-        edition.Error(code, message);
-        return new BoundRejected(code);
     }
 }
 
@@ -2173,7 +2162,7 @@ public sealed record ReceiverBracket(DataItem Temp, IReadOnlyList<BoundStatement
 /// ACTIVATIONS: <c>EcBinder</c> stamps and queries them through this node exactly as through a
 /// <see cref="BoundSequence"/> step, and the emitters that loop over a statement's receivers
 /// (<c>ReceiverBracketEmitter.Receive</c>) place them. Created by <c>OoBinder.OoWrapPropertyOps</c> for the
-/// properties a binder CLAIMED as receivers of such a statement (<c>DataBinder.OoClaimInterleavedReceiver</c>); the
+/// properties a binder CLAIMED as receivers of such a statement (<c>ProcedureBindState.ClaimInterleavedReceiver</c>); the
 /// emitter fails loudly when a claimed bracket is never placed, so a receiver loop that forgets <c>Receive</c> cannot
 /// silently drop a GET or a SET.</para></summary>
 public sealed record BoundReceiverBrackets(BoundStatement Inner, IReadOnlyList<ReceiverBracket> Brackets) : BoundStatement

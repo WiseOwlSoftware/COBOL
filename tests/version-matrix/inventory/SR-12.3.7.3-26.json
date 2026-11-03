@@ -6,10 +6,10 @@
  "subject": "SPECIAL-NAMES paragraph",
  "rule-digest": "0b3c97978fbc",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#SwitchBindCurrency",
  "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb60_currency_sign_set; conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-figurative-literal-8; conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-hexadecimal-literal-8",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Literal-8 shall be a single character (COBOL0892 otherwise — the pre-existing check, kept); the golden's 'U' and 'G' symbols bind and edit their strings.",
+ "notes": "LANDED 2026-08-17 (with PB60 / AR-15.68.3-3). Literal-8 shall be a single character (COBOL0892 otherwise — the pre-existing check, kept); the golden's 'U' and 'G' symbols bind and edit their strings. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency (kb/Work PB2355 extracted the SPECIAL-NAMES binding out of DataBinder.Switches.cs into the SpecialNamesBinder class (its partial files) and the configuration-section services DataBinder keeps into DataBinder.Configuration.cs; each member is the same rule, moved with its body unchanged)",
  "state": "OK"
 }
