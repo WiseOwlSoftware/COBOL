@@ -350,6 +350,16 @@ public sealed class Frontend
         // (kb/Work PB1373) — for the COBOL-WORDS directive itself and for a PUSH / POP naming it.
         DirectiveSiteProcessor.JudgeFirstUnitPlacement(directiveSites, firstUnitLine, diagnostics, sourcePath, lineMap);
 
+        // ⛔ THE COMMENT-ENTRY DECISION (docs/CONFORMANCE.md D-CE2; kb/Work PB4281): a COBOL-85 comment-entry paragraph the
+        // logical conversion could not place — the division depends on a conditional group whose branches disagree or on a
+        // >>COBOL-WORDS respelling — was carried through every stage above as an inert slot, and is decided HERE, on the text
+        // those stages have finished with, reading its division words through the group's word map. After conditional
+        // compilation, COPY, REPLACE and the COBOL-WORDS stage, and before anything lexes the text:
+        // CommentEntryResolutionOrderDriftTests keeps the order. Line-count preserving like the stages above.
+        var resolved = CommentEntryResolver.Resolve(new MappedText(text, mapped.Lines), cobolWordsMap, referenceFormatGates);
+        text = resolved.Text;
+        var lineOrigins = resolved.Lines;
+
         // >>LEAP-SECOND (ISO §7.3.17): the ON/OFF toggles the binder folds at each compilation unit's first line — the
         // §15.3 date/time consumers' fact (kb/Work PB65 — it used to be consumed and discarded; kb/Work PB1378 — it is
         // per UNIT, §7.3.4 GR5: a directive between two sibling units governs the units that follow). Line-count
@@ -359,7 +369,7 @@ public sealed class Frontend
             throw new InvalidOperationException(
                 "LeapSecondDirectiveProcessor changed the line count (hazard H3)");
 
-        return (new MappedText(text, mapped.Lines),   // the constructor re-asserts the line-count invariant
+        return (new MappedText(text, lineOrigins),   // the constructor re-asserts the line-count invariant
             new DirectiveResults(turnEvents, refModZeroLengthEvents, flagEvents, propagateEvents, cobolWordsMap, leapSecondEvents,
                 compilationVariables, directiveSites),
             manipulated, copy.ReferenceFormats);

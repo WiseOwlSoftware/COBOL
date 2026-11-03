@@ -433,7 +433,7 @@ public sealed class CopyProcessor(
     /// copybook, and return its NormalizeCopybook+ApplyReplacements text (NOT recursively expanded — the caller
     /// recurses: <see cref="ExpandCopiesOneLevel"/> hands the text to the merged CC+COPY driver).</summary>
     internal OneCopyResult ResolveOneCopy(MappedText mapped, int copyIdx, HashSet<string> alreadyIncluded, bool inLibraryText,
-        bool standsInIdentificationDivision, out int afterCopy)
+        bool? standsInIdentificationDivision, out int afterCopy)
     {
         string text = mapped.Text;
         var at = mapped.LocateAt(copyIdx);   // the COPY statement's SOURCE position (kb/Work PB82, PB1801)
@@ -756,7 +756,7 @@ public sealed class CopyProcessor(
             w.AppendSlice(mapped, pos, copyIdx - pos);
             var copyLine = mapped.PointAt(copyIdx);   // the COPY statement's own position: where an unexpanded one stays
 
-            bool standsInIdentification = division.InIdentificationDivisionAt(text, copyIdx);
+            bool? standsInIdentification = division.InIdentificationDivisionAt(text, copyIdx);
             var one = ResolveOneCopy(mapped, copyIdx, alreadyIncluded, inLibraryText: depth > 0, standsInIdentification, out int afterCopy);
             if (one.Outcome == CopyOutcome.Found)
             {
@@ -785,7 +785,7 @@ public sealed class CopyProcessor(
     /// when that is unknown, and then detected as the compilation group's is). The text's own &gt;&gt;SOURCE FORMAT
     /// directives switch it (1), 5)); the resulting map is registered so a COPY inside this library text starts its
     /// library text in the format in effect THERE. Per line: the copybook's path and physical line.</summary>
-    private MappedText NormalizeCopybookMapped(string text, string copybookPath, bool? copyFixed, bool inIdentificationDivision)
+    private MappedText NormalizeCopybookMapped(string text, string copybookPath, bool? copyFixed, bool? inIdentificationDivision)
     {
         // Library text is read by the same §6.5 walker WITH the compilation's reference-format diagnostics (§6.5: the rules
         // of logical conversion apply to lines "of source text and library text"), sited at the copybook's own file and
