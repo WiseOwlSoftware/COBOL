@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
@@ -26,6 +25,10 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <c>callerPath: null</c> (the outermost boundary, kb/Work R48) and <c>siteArgMismatchChecking: true</c>; a
 /// <c>finally</c> of <see cref="HostLanding"/> decodes; the RETURNING decode. No catch clause, no instance, no mapping of
 /// an EC condition: every activation step stays <c>ProgramTable.CallProgram</c>'s.</para>
+/// <para><b>The signature attributes are the unit's record, transcribed.</b> With <c>--repository-update on</c> the binder wrote
+/// each published unit's record (<see cref="BoundUnit.Record"/>; DESIGN-external-repository §6.2, §9.1; kb/Work PB4319), and
+/// <see cref="RepositoryAttributeRenderer"/> transcribes it onto the class, the <c>Call</c> parameters and its return value; a unit
+/// without one carries its identity alone.</para>
 /// <para>⛔ <b>THE DETACHED STORAGE IS IMAGE-STORED FOR A FIXED-POINT FORMAL.</b> ISO §14.2.3 9) allocates "a data item with
 /// the same description and the same number of bytes as the formal parameter"; the entry holds a fixed-point one as its
 /// record image (the CALL lane's TEXT crossing of an image-stored numeric item, with the item's <c>NumProfile</c>), so the
@@ -33,33 +36,22 @@ namespace WiseOwl.Cobol.CodeGen;
 /// leave — and decodes it only when the class test NUMERIC is true of it (ISO §8.8.4.4.4 3) n);
 /// <see cref="HostLanding.TryDecode"/>). A native cell could not hold such content to be refused.</para>
 /// </summary>
-/// <param name="repositoryUpdate">Whether each entry carries its unit's signature attributes (<c>--repository-update on</c>,
-/// DESIGN-external-repository §6.2, §9.1): the record <see cref="RepositoryCodec.Of"/> writes, transcribed by
-/// <see cref="RepositoryAttributeRenderer"/> onto the class, the <c>Call</c> parameters and its return value.</param>
 /// <param name="atoms">The module's one §8.5.1.12 atom table (<c>ProgramEmitter._atoms</c>, emitted after the entries): the
 /// shape a variable-length record's area states, so the activated program's formal is laid over it.</param>
 /// <param name="dataEmitterFor">A unit's data-division emitter, which states the DESCRIPTION'S fresh cell of a formal
 /// (<see cref="DataEmitter.FreshArea"/>) for a record the host builds an area of.</param>
-internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? classes, GroupAtomTable atoms, bool repositoryUpdate,
+internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? classes, GroupAtomTable atoms,
     Func<DataBinder, DataEmitter> dataEmitterFor)
 {
-    /// <summary>The units that publish a host entry: every outermost unit, except a prototype whose definition the same
-    /// group compiles (that definition's entry is the one class for the name — DESIGN-external-repository §7.2). The pairing
-    /// is by the Annex C fold (<see cref="ExternalizedNames.Same"/>, the one mapping rule, ISO §8.3.2.2 2)): a prototype
-    /// <c>psub</c> beside a definition <c>PSUB</c> is one externalized name (kb/Work PB3872). Nothing else is withheld: every
-    /// outermost unit publishes its entry, and so its repository record (§7.2); a group item
-    /// <see cref="PublishedRecordEmitter.Renders"/> refuses is an internal compiler error in <c>EmitEntry</c>, never a
-    /// missing entry (the binder admits no such shape since kb/Work PB3273: COBOL0853, COBOL0854).</summary>
-    internal static IEnumerable<BoundUnit> EntryUnits(IReadOnlyList<BoundUnit> units) =>
-        units.Where(u => u.Parent is null && !(u.IsPrototype && units.Any(d => d is { Parent: null, IsPrototype: false }
-            && d.IsFunction == u.IsFunction && ExternalizedNames.Same(d.ExternalizedName, u.ExternalizedName))));
-
-    /// <summary>Emit the host-entry class of every <see cref="EntryUnits"/> unit, each named by the one allocator in the
-    /// module namespace's type scope (<paramref name="moduleTypes"/> — the names the module already declares there).</summary>
-    internal void Emit(IReadOnlyList<BoundUnit> units, IEnumerable<string> moduleTypes, CodeWriter w)
+    /// <summary>Emit the host-entry class of every unit the compilation publishes (<paramref name="entryUnits"/>,
+    /// <see cref="BoundCompilation.EntryUnits"/>: DESIGN-external-repository §7.2), each named by the one allocator in the module
+    /// namespace's type scope (<paramref name="moduleTypes"/> — the names the module already declares there). A group item
+    /// <see cref="PublishedRecordEmitter.Renders"/> refuses is an internal compiler error in <c>EmitEntry</c>, never a missing
+    /// entry (the binder admits no such shape since kb/Work PB3273: COBOL0853, COBOL0854).</summary>
+    internal void Emit(IReadOnlyList<BoundUnit> entryUnits, IEnumerable<string> moduleTypes, CodeWriter w)
     {
         var scope = CsNameScope.ModuleTypes(moduleTypes);
-        foreach (var unit in EntryUnits(units))
+        foreach (var unit in entryUnits)
         {
             w.Line();
             EmitEntry(unit, CsNames.Allocate(DataItem.Sanitize(unit.Name), scope), w);
@@ -151,8 +143,8 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         // --repository-update on, its signature too — the unit facts on [CobolUnit], the record's tables on the class,
         // each formal's tree on its own Call parameter (formals and records are both in LINKAGE order) and the RETURNING
         // item's on the return value.
-        var record = repositoryUpdate ? RepositoryCodec.Of(unit) : null;
-        w.Line(RepositoryAttributeRenderer.UnitRecord(RepositoryCodec.KindOf(unit), unit.Name, unit.ExternalizedName, record));
+        var record = unit.Record;
+        w.Line(RepositoryAttributeRenderer.UnitRecord(unit.RepositoryKind, unit.Name, unit.ExternalizedName, record));
         if (record is not null)
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record))
                 w.Line(attribute);

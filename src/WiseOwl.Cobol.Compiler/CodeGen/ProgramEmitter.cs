@@ -76,13 +76,11 @@ internal sealed class ProgramEmitter
     /// <param name="assemblySimpleName">The emitted assembly's simple name: every emitted type lives in its
     /// one-segment namespace <c>Cobol.&lt;S&gt;</c> (<see cref="CsNames.ModuleNamespaceOf"/>; DESIGN-external-repository
     /// §4.5).</param>
-    /// <param name="repositoryUpdate">Whether the module carries its units' signature attributes (<c>--repository-update</c>,
-    /// DESIGN-external-repository §9.1; ISO §8.13).</param>
-    internal string Emit(BoundCompilation comp, string assemblySimpleName, bool repositoryUpdate)
+    internal string Emit(BoundCompilation comp, string assemblySimpleName)
     {
         _ecState.Active = comp.EcActive;
         _ecState.OoClasses = comp.OoClasses;
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters, repositoryUpdate, comp.Expansions);
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.InterfaceRecords, comp.OoAdapters, comp.Expansions);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -101,8 +99,8 @@ internal sealed class ProgramEmitter
         // (CS0234 / CS0118 on legal source otherwise). The assembly attribute precedes the namespace (C# requires it).
         var ns = CsNames.ModuleNamespaceOf(assemblySimpleName);
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
-            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, comp.Expansions, HostEntryEmitter.EntryUnits(units)), comp.Edition,
-            hasSignatures: repositoryUpdate));
+            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, comp.Expansions, comp.EntryUnits), comp.Edition,
+            hasSignatures: comp.PublishesSignatures));
         w.Line($"namespace {CsNames.CSharpNamespace(ns)};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name
@@ -137,11 +135,11 @@ internal sealed class ProgramEmitter
         // legal (§10.6) — its module emits the types, a registrar with nothing to register (the record names it), and an
         // empty Main.
         foreach (var iface in comp.OoClasses.Interfaces)
-            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, iface.ClrName)) _oo.EmitInterfaceUnit(iface, w);
+            if (comp.Expansions.EmittedHere(iface.ClrName)) _oo.EmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
-            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, cls.Symbol.ClrName)) _oo.EmitClassUnit(cls, w);
+            if (comp.Expansions.EmittedHere(cls.Symbol.ClrName)) _oo.EmitClassUnit(cls, w);
         foreach (var skeleton in comp.Expansions.Skeletons)
-            _oo.EmitSkeletonUnit(skeleton, w);
+            _oo.EmitSkeletonUnit(skeleton, comp.PublishesSignatures, w);
         if (units.Count == 0)
         {
             EmitModuleRegistrar(units, w, ns);
@@ -159,8 +157,8 @@ internal sealed class ProgramEmitter
         // in the module namespace's type scope beside every type the module already declares there. The over-punch convention
         // is the compilation's one (kb/Work PB803): a group of prototypes alone — the library that publishes them to the
         // external repository (DESIGN-external-repository §7.2) — emits no program class, so no unit emitter is current here.
-        new HostEntryEmitter(comp.SignEncoding, comp.OoClasses, _atoms, repositoryUpdate,
-            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(units,
+        new HostEntryEmitter(comp.SignEncoding, comp.OoClasses, _atoms,
+            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(comp.EntryUnits,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
                 .Concat(comp.OoClasses.Interfaces.Select(i => i.ClrName))
@@ -823,7 +821,7 @@ internal sealed class ProgramEmitter
             using (w.Block("private static void Register()"))
             foreach (var u in units)
             {
-                if (u.IsPrototype) continue;   // a prototype has no body to register as a runtime module; the information §10.6.3 GR1 requires of its compilation is its host entry (HostEntryEmitter.EntryUnits)
+                if (u.IsPrototype) continue;   // a prototype has no body to register as a runtime module; the information §10.6.3 GR1 requires of its compilation is its host entry (BoundCompilation.EntryUnits)
                 string parentPath = u.Parent is { } p ? CsLiteral(p.RegistryKey) : "null";
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {ClassRef(u)}(({ClassRef(pp)})__o!)"

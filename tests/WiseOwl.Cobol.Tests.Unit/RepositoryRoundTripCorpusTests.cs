@@ -61,7 +61,7 @@ public sealed class RepositoryRoundTripCorpusTests
                 var comp = RepositoryCodecTests.BindFile(c.Path, c.Edition, c.Format);
                 Interlocked.Add(ref units, RepositoryCodecTests.RoundTripAll(comp).Count);
                 Interlocked.Add(ref pairs, PrototypeDefinitionPairs(comp, $"{c.Edition}/{c.Id}", failures));
-                foreach (var unit in HostEntryEmitter.EntryUnits(comp.Units))
+                foreach (var unit in comp.EntryUnits)
                     published.Add(($"{c.Edition}/{c.Id}", RepositoryCodec.Of(unit)));
                 foreach (var (record, _) in RepositoryCodecTests.OoRecordsOf(comp))
                     published.Add(($"{c.Edition}/{c.Id}", record));

@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
@@ -22,14 +21,15 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// root: class-unit emission RE-CREATES the whole per-unit set mid-run (<see cref="ProgramEmitter.BeginUnit"/>),
 /// so captured copies would go stale (the coupling-census hazard). The class table and interface-data forests
 /// arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state).
-/// <para><paramref name="repositoryUpdate"/> is <c>--repository-update</c> (DESIGN-external-repository §7.1, §9.1): every
-/// class and interface carries its <c>[CobolUnit]</c>, and with the option on its whole record — the class's or interface's
-/// facts, each method's on the CLR method that implements it, each property's on the type of its accessors (§6.2).</para></summary>
+/// <para>Every class and interface carries its <c>[CobolUnit]</c>, and under <c>--repository-update on</c> its whole record
+/// (DESIGN-external-repository §7.1, §9.1) — the class's or interface's facts, each method's on the CLR method that implements
+/// it, each property's on the type of its accessors (§6.2). The record is the one the binder wrote (<see cref="OoClassUnit.Record"/>,
+/// <paramref name="ifaceRecords"/>; kb/Work PB4319): this emitter transcribes it and never encodes one.</para></summary>
 internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUnitState callState,
     ProgramEmitter program,
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData,
+    IReadOnlyDictionary<OoInterfaceSymbol, RepositoryRecord> ifaceRecords,
     IReadOnlyList<AdapterPair> adapters,
-    bool repositoryUpdate,
     ExpansionPlacements expansions)
 {
     /// <summary>A <see cref="Place"/> over a METHOD BOUNDARY ROOT — the ONE thing that lets the OO boundary join
@@ -436,9 +436,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 + $"{NamingConvention.FactoryInstanceField};   // FactoryObject (ISO §16.2.2.2 GR1)");
         // The class's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts and tables on this type, each method's on its CLR method, each property's on the
-        // type of its accessors. The record's methods are the object roster, then the factory roster (RepositoryCodec.Of).
-        var placement = expansions.Of(cls.Symbol.ClrName);
-        var record = repositoryUpdate ? RepositoryCodec.Of(cls, placement?.Identity) : null;
+        // type of its accessors. The record's methods are the object roster, then the factory roster (the binder's encoder).
+        var record = cls.Record;
         var methodRecords = record?.Class!.Methods;
         List<string> instAttributes = [RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(cls.Symbol.ClrName, RepositoryUnitKind.Class), cls.Name, cls.Symbol.ExternalizedName, record)];
         if (record is not null)
@@ -1541,12 +1540,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private static string OoArgPair(string carrier, string area, string omitted) => $"{carrier}, {area}, {omitted}";
 
     /// <summary>Emit a PARAMETERIZED definition's skeleton (ISO §9.3.12, §9.3.13; DESIGN-external-repository §7.2): a
-    /// <c>public static class</c> that carries the definition's <c>[CobolUnit]</c> and, with <c>--repository-update on</c>, its
-    /// <c>[CobolSkeleton]</c>. The definition itself emits nothing else — its expansions are the classes.</summary>
-    public void EmitSkeletonUnit(PublishedSkeleton skeleton, CodeWriter w)
+    /// <c>public static class</c> that carries the definition's <c>[CobolUnit]</c> and, with <c>--repository-update on</c>
+    /// (<paramref name="publishesSignatures"/>, <see cref="BoundCompilation.PublishesSignatures"/>), its <c>[CobolSkeleton]</c>.
+    /// The definition itself emits nothing else — its expansions are the classes.</summary>
+    public void EmitSkeletonUnit(PublishedSkeleton skeleton, bool publishesSignatures, CodeWriter w)
     {
-        w.Line(RepositoryAttributeRenderer.SkeletonUnitRecord(skeleton, repositoryUpdate));
-        if (repositoryUpdate) w.Line(RepositoryAttributeRenderer.SkeletonRecord(skeleton.Skeleton));
+        w.Line(RepositoryAttributeRenderer.SkeletonUnitRecord(skeleton, publishesSignatures));
+        if (publishesSignatures) w.Line(RepositoryAttributeRenderer.SkeletonRecord(skeleton.Skeleton));
         using (w.Block($"public static class {skeleton.ClrName}")) { }
     }
 
@@ -1565,7 +1565,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : "";
         // The interface's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts, tables and properties here and each prototype's on its CLR method.
-        var record = repositoryUpdate ? RepositoryCodec.Of(iface, data, expansions.Of(iface.ClrName)?.Identity) : null;
+        var record = ifaceRecords.GetValueOrDefault(iface);
         w.Line(RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(iface.ClrName, RepositoryUnitKind.Interface), iface.Name, iface.ExternalizedName, record));
         if (record is not null)
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record)

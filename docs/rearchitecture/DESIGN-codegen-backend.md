@@ -190,7 +190,7 @@ public enum BackendId { Roslyn, Cil }
 public sealed record BackendOptions(
     string OutputPath, string AssemblyName /* the output file's base name */, EditionInfo Edition,
     bool EmitPdb = true, CompilationInputs? Inputs = null,
-    bool RepositoryUpdate = true /* --repository-update: the module carries its units' signatures (ISO §8.13) */);
+    IReadOnlyList<string>? RepositoryReferences = null /* the external repository's assemblies the code names a type of */);
 
 /// One backend diagnostic; no Roslyn type crosses the seam (kb/Work PB4272, DESIGN-backend-abstraction §2.1).
 public sealed record BackendDiagnostic(string Code, DiagnosticSeverity Severity, string Message, SourceLocation? Location);
@@ -209,8 +209,12 @@ public sealed record BackendArtifact(
   no shared lowered IR). Not built in this rearchitecture; the seam and the neutral tree make it *possible* and let the
   differential harness cross-check the two backends. What a module PUBLISHES is backend-independent: the
   external repository's record of every unit (DESIGN-external-repository §6, kb/Work PB2100) is a value,
-  `RepositoryRecord`, built from the bound tree by `RepositoryCodec.Of` (programs, functions, prototypes, classes and
-  interfaces); `RepositoryAttributeRenderer` turns it into `AttributeApplication` values (where every encoding rule
+  `RepositoryRecord` (`Binding/Model`), built by the BINDER, not the backend: at the end of `BinderDriver.Bind`, under
+  `--repository-update on` (`EditionContext.RepositoryUpdate`), `RepositoryPublication.Publish` runs `RepositoryCodec.Of`
+  over the finished bound data for every unit the module publishes (programs, functions, prototypes, classes and
+  interfaces), and the bound compilation carries the results (`BoundUnit.Record`, `OoClassUnit.Record`,
+  `BoundCompilation.InterfaceRecords`), beside `BoundCompilation.PublishesSignatures` and `EntryUnits`, the units that
+  publish (kb/Work PB4319). No backend names the codec; `RepositoryAttributeRenderer` turns a record into `AttributeApplication` values (where every encoding rule
   lives) and `RoslynBackend` writes those as attribute TEXT (`RepositoryAttributeRenderer.CSharp`, called through
   `HostEntryEmitter` and `OoEmitter`), while a `CilBackend` would encode the same values with `MetadataBuilder` and the
   ECMA-335 custom-attribute encoders; `RepositoryReader` reads either back to an equal record

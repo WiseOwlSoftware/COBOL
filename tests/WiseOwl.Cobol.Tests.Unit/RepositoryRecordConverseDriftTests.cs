@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Repository;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;

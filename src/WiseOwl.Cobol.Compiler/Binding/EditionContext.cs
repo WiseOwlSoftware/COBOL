@@ -111,6 +111,17 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <see cref="NumericDisplayForm.Decimal"/>, the documented default.</summary>
     public NumericDisplayForm NumericDisplay { get; set; } = NumericDisplayForm.Decimal;
 
+    /// <summary>Whether the compilation updates the external repository — the CLI's <c>--repository-update on|off</c>
+    /// (ISO §8.13: "The implementor shall provide a mechanism that allows the user to specify whether to update the external
+    /// repository when a compilation unit is compiled"; DESIGN-external-repository §9.1): ON writes the signature attributes of
+    /// every published unit (<c>HasSignatures</c>), OFF only the index, the unit identities, the registrar and the host
+    /// entries. Not a dialect axis and not semantic (it decides what the build writes, never what a
+    /// source means). It rides this per-compilation object to the binder, which writes each published unit's record at the
+    /// end of the bind (<c>RepositoryPublication</c>; kb/Work PB4319) and states it on the bound compilation
+    /// (<c>BoundCompilation.PublishesSignatures</c>), the one fact every backend reads. Defaults to on, the documented
+    /// default.</summary>
+    public bool RepositoryUpdate { get; set; } = true;
+
     /// <summary>The compilation's §4.2.10 warning mechanism is ON — the CLI's <c>--flag-extensions</c> (kb/Work
     /// PB1525): "An implementation shall provide a warning mechanism that optionally may be invoked by the user at
     /// compile time to indicate use of a nonstandard extension in a compilation group". Orthogonal to

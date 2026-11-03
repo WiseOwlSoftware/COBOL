@@ -41,24 +41,6 @@ namespace WiseOwl.Cobol.Binding.Repository;
 /// </summary>
 internal static class RepositoryCodec
 {
-    /// <summary>An OCCURS DEPENDING ON object outside the record (a formal's table whose object is another formal or a
-    /// data item of the publishing element): the record cannot name it, and only its existence is part of the description.</summary>
-    public const string OutsideTheRecord = "<outside>";
-
-    /// <summary>The entry convention every published unit states: COBOL, the one value ENTRY-CONVENTION admits
-    /// (<c>OptionsBinder.ScreenEntryConvention</c>).</summary>
-    public const string CobolEntryConvention = "COBOL";
-
-    /// <summary>What a program, function or prototype unit is, as the repository records it (§5.1). The one answer: the
-    /// <c>Units</c> index and every <c>[CobolUnit]</c> read it too.</summary>
-    public static RepositoryUnitKind KindOf(BoundUnit unit) => (unit.IsFunction, unit.IsPrototype) switch
-    {
-        (false, false) => RepositoryUnitKind.Program,
-        (true, false) => RepositoryUnitKind.Function,
-        (false, true) => RepositoryUnitKind.ProgramPrototype,
-        (true, true) => RepositoryUnitKind.FunctionPrototype,
-    };
-
     /// <summary>The record of <paramref name="unit"/> (an outermost program, function or prototype unit), in the persisted
     /// vocabulary (§6.1).</summary>
     public static RepositoryRecord Of(BoundUnit unit)
@@ -67,7 +49,7 @@ internal static class RepositoryCodec
         var encoder = new Encoder(data.OoClasses);
         var formals = List(data.Linkage.Formals.Select(f => encoder.Formal(f.Item, f.Position, f.ByValue, f.Optional)));
         var returning = data.Linkage.Returning is { } r ? encoder.Describe(r, r) : null;
-        return new RepositoryRecord(KindOf(unit), unit.Name, unit.ExternalizedName, CobolEntryConvention,
+        return new RepositoryRecord(unit.RepositoryKind, unit.Name, unit.ExternalizedName, RepositoryRecord.CobolEntryConvention,
             data.State.Configuration.DecimalPointIsComma, Currencies(data), encoder.Raising(unit.Bound?.Raising ?? []), formals, returning,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes);
     }
@@ -85,7 +67,7 @@ internal static class RepositoryCodec
         var facts = new ClassRecord(symbol.IsFinal, symbol.Base?.ExternalizedName, List(symbol.Implements.Select(i => i.ExternalizedName)),
             List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryClrName, PropertiesOf(methods), methods, symbol.ClrName);
         return new RepositoryRecord(expansion is null ? RepositoryUnitKind.Class : RepositoryUnitKind.Expansion, symbol.Name, symbol.ExternalizedName,
-            CobolEntryConvention, cls.Data.State.Configuration.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            RepositoryRecord.CobolEntryConvention, cls.Data.State.Configuration.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
 
@@ -98,7 +80,7 @@ internal static class RepositoryCodec
         var facts = new ClassRecord(Final: false, BaseIdentity: null, List(iface.Inherits.Select(i => i.ExternalizedName)),
             RecordList<string>.Empty, FactoryType: null, PropertiesOf(methods), methods, iface.ClrName);
         return new RepositoryRecord(expansion is null ? RepositoryUnitKind.Interface : RepositoryUnitKind.Expansion, iface.Name, iface.ExternalizedName,
-            CobolEntryConvention, data.State.Configuration.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            RepositoryRecord.CobolEntryConvention, data.State.Configuration.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
 
@@ -106,7 +88,7 @@ internal static class RepositoryCodec
     /// states only its identity and its <paramref name="skeleton"/> — its expansions are the classes, and it has no methods, formals or
     /// tables of its own.</summary>
     public static RepositoryRecord Of(string name, string externalizedName, bool isInterface, SkeletonRecord skeleton) => new(
-        isInterface ? RepositoryUnitKind.ParameterizedInterface : RepositoryUnitKind.ParameterizedClass, name, externalizedName, CobolEntryConvention,
+        isInterface ? RepositoryUnitKind.ParameterizedInterface : RepositoryUnitKind.ParameterizedClass, name, externalizedName, RepositoryRecord.CobolEntryConvention,
         false, RecordList<CurrencyRecord>.Empty, RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null, RecordList<DescriptionRecord>.Empty,
         RecordList<StructureRecord>.Empty, RecordList<PrototypeRecord>.Empty, Skeleton: skeleton);
 
@@ -224,7 +206,7 @@ internal static class RepositoryCodec
         {
             var binding = m.Binding ?? throw new InvalidOperationException($"RepositoryCodec: the method '{m.SourceName}' has no bound signature");
             return new MethodRecord(m.Name, m.Accessor == '\0' ? m.ExternalizedName : m.PropertyName!, m.IsFactory,
-                PersistedAccessor(m.Accessor), m.PropertyName, Override: m.OverrideOf is not null, m.IsFinal, CobolEntryConvention,
+                PersistedAccessor(m.Accessor), m.PropertyName, Override: m.OverrideOf is not null, m.IsFinal, RepositoryRecord.CobolEntryConvention,
                 Raising(m.Raising), List(binding.Formals.Select(f => Formal(f.Item, f.Position, f.ByValue, f.Optional))),
                 binding.Returning is { } r ? Describe(r, r) : null, m.ClrName);
         }
@@ -262,7 +244,7 @@ internal static class RepositoryCodec
         private static OccursRecord Table(OccursSpec spec, DataItem root)
         {
             int? entry = spec.Depending is { } dep ? PreorderIndex(root, dep) : null;
-            string? depending = spec.DependingName is null ? null : entry is not null ? spec.DependingName : OutsideTheRecord;
+            string? depending = spec.DependingName is null ? null : entry is not null ? spec.DependingName : OccursRecord.OutsideTheRecord;
             return new(spec.Min, spec.Max, depending, entry, spec.IsDynamic, spec.CapacityName, spec.InitialCap, spec.ExpectedMax,
                 spec.Initialized);
         }
@@ -461,7 +443,7 @@ internal static class RepositoryCodec
             if (r.Table is { } table)
             {
                 // The renderer writes the position exactly when the object is a word of the record.
-                bool inRecord = table.Depending is { } word && word != OutsideTheRecord;
+                bool inRecord = table.Depending is { } word && word != OccursRecord.OutsideTheRecord;
                 if (inRecord != table.DependingEntry is not null)
                     throw Malformed($"'{r.Name}' DEPENDING ON '{table.Depending}' with entry {(object?)table.DependingEntry ?? "none"}");
                 if (table.DependingEntry is { } entry) _dependingLinks.Add((item, entry));

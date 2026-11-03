@@ -439,9 +439,9 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
             string at = $"{c.Edition}/{c.Id}";
             try
             {
-                var comp = RepositoryCodecTests.BindFile(c.Path, c.Edition, c.Format);
-                string generated = new WiseOwl.Cobol.CodeGen.CSharpEmitter().EmitBound(comp, "corpus", repositoryUpdate: false);
-                var entries = WiseOwl.Cobol.CodeGen.HostEntryEmitter.EntryUnits(comp.Units).ToList();
+                var comp = RepositoryCodecTests.BindFile(c.Path, c.Edition, c.Format, repositoryUpdate: false);
+                string generated = new WiseOwl.Cobol.CodeGen.CSharpEmitter().EmitBound(comp, "corpus");
+                var entries = comp.EntryUnits.ToList();
                 var expected = WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, comp.ClassUnits, comp.Expansions, entries)
                     .Select(r => $"{r.Kind}|{SymbolDisplay.FormatLiteral(r.Word, quote: true)}|{SymbolDisplay.FormatLiteral(r.ExternalizedName, quote: true)}").ToList();
                 var lines = generated.Split('\n');

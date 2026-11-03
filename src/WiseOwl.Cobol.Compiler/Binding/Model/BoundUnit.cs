@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Runtime.Repository;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
@@ -58,6 +59,21 @@ internal sealed class BoundUnit
     public PlaceTable Places = null!;
     public BoundProgram Bound = null!;
     public List<CallBridge> Bridges = [];
+    /// <summary>The unit's external-repository record (ISO §8.13; DESIGN-external-repository §6.1), written by the binder at
+    /// the end of the bind for every unit the compilation publishes (<see cref="BoundCompilation.EntryUnits"/>) when the
+    /// compilation updates the repository (<see cref="BoundCompilation.PublishesSignatures"/>); null otherwise. A backend
+    /// transcribes it and never encodes one (kb/Work PB4319).</summary>
+    public RepositoryRecord? Record;
+
+    /// <summary>What this program, function or prototype unit is, as the repository records it (DESIGN-external-repository
+    /// §5.1). The one answer: the unit's record, the module's <c>Units</c> index and every <c>[CobolUnit]</c> read it.</summary>
+    public RepositoryUnitKind RepositoryKind => (IsFunction, IsPrototype) switch
+    {
+        (false, false) => RepositoryUnitKind.Program,
+        (true, false) => RepositoryUnitKind.Function,
+        (false, true) => RepositoryUnitKind.ProgramPrototype,
+        (true, true) => RepositoryUnitKind.FunctionPrototype,
+    };
 
     /// <summary>The run-unit-unique registry key, the program table's containment path id (§8.4.6.3, the scope of
     /// program-names), formed by the run-time table's own two formers: an outermost unit's is rooted at its EXTERNALIZED

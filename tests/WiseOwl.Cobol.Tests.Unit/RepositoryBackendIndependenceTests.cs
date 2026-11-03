@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Runtime.Repository;
@@ -30,9 +31,9 @@ public sealed class RepositoryBackendIndependenceTests
         var codec = RepositoryCodecTests.Bind(RepositoryCodecTests.Source, 2023);
         var oo = RepositoryCodecTests.Bind(RepositoryCodecTests.OoSource, 2023);
         List<RepositoryRecord> records = [.. RepositoryReaderTests.Fixtures.Values,
-            .. HostEntryEmitter.EntryUnits(codec.Units).Select(RepositoryCodec.Of),
+            .. codec.EntryUnits.Select(RepositoryCodec.Of),
             .. RepositoryCodecTests.OoRecordsOf(oo).Select(r => r.Record),
-            .. HostEntryEmitter.EntryUnits(oo.Units).Select(RepositoryCodec.Of)];
+            .. oo.EntryUnits.Select(RepositoryCodec.Of)];
         Assert.Contains(records, r => r.Class is { Methods.Count: > 0 });
         Assert.Contains(records, r => r.ReferencedPrototypes.Count > 0 && r.TypeDeclarations.Count > 0);
 

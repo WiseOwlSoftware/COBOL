@@ -58,6 +58,18 @@ internal static class BackendContract
             "Model.ExpansionIdentity.ActualIdentities", "Model.ExpansionIdentity.DefinitionIdentity",
             "Model.PublishedSkeleton.ExternalizedName", "Model.PublishedSkeleton.Name",
             "Model.ResolutionRecord.Identity", "Model.ResolutionRecord.Word", "Model.SkeletonRecord.Formals",
+            // each published unit's repository record, written at bind time (kb/Work PB4319): the words the publishing element
+            // wrote, the externalized names (identities, ISO §8.13) and the entry convention's name, in the persisted vocabulary
+            "Model.RepositoryRecord.Name", "Model.RepositoryRecord.ExternalizedName", "Model.RepositoryRecord.EntryConvention",
+            "Model.RepositoryRecord.CobolEntryConvention", "Model.RaisingRecord.Identity", "Model.FormalRecord.Name",
+            "Model.ClassRecord.BaseIdentity", "Model.ClassRecord.Implements", "Model.ClassRecord.FactoryImplements",
+            "Model.MethodRecord.Name", "Model.MethodRecord.ExternalizedName", "Model.MethodRecord.PropertyName",
+            "Model.MethodRecord.EntryConvention", "Model.PropertyRecord.Name", "Model.PropertyRecord.ExternalizedName",
+            "Model.PrototypeRecord.ExternalizedName", "Model.StructureRecord.Name", "Model.StructureRecord.PhysicalStructureName",
+            "Model.DescriptionRecord.Name", "Model.DescriptionRecord.RedefinesTarget", "Model.DescriptionRecord.TypeName",
+            "Model.OccursRecord.Depending", "Model.OccursRecord.OutsideTheRecord", "Model.OccursRecord.Capacity",
+            "Model.PicRecord.RestrictedTypeName", "Model.PicRecord.RestrictedPrototypeName", "Model.PicRecord.ObjectRefName",
+            "Model.PicRecord.ObjectRefIdentity", "Model.LocaleEditRecord.LocaleName",
         ]),
         new(NeutralKind.ClrName,
         [
@@ -65,6 +77,8 @@ internal static class BackendContract
             "Model.ExpansionPlacement.ClrNamespace", "Model.ExpansionPlacement.FactoryTypeName", "Model.ExpansionPlacement.LocalFactoryName",
             "Model.ExpansionPlacement.LocalName", "Model.ExpansionPlacement.TypeName", "Model.ExpansionPlacements.ByName",
             "Model.BoundUnit.ClassName", "Model.DataItem.StructName", "Model.DataItem.ProfileName",
+            // the factory type a published class record names, as metadata names it (kb/Work PB4319)
+            "Model.ClassRecord.FactoryType",
             "Model.BitLayout.FillerClrNameStem", "Model.ModuleNamespace.RegistrarClass",
             "Model.CsNameScope._claimed", "Model.CsNameScope._reserved", "Model.CsNameScope.EveryScopeReserved",
             "Model.CsNameScope.HostEntryReserved", "Model.CsNameScope.ProgramClassReserved",
@@ -94,6 +108,10 @@ internal static class BackendContract
             // write as an attribute string alike (kb/Work PB2104)
             "Model.CompileState.CobolWordsMap", "Model.CompileState.CompilationVariables", "Model.CompileState.DirectiveFolds",
             "Model.SkeletonRecord.Source", "Model.ExpansionToWrite.Text",
+            // a published record's PICTURE, editing and currency strings, as the publishing element wrote them (kb/Work PB4319)
+            "Model.CurrencyRecord.Text", "Model.EditRuleRecord.Neg", "Model.EditRuleRecord.Pos", "Model.LocaleEditRecord.Picture",
+            "Model.PicRecord.CurrencyString", "Model.PicRecord.EditMask", "Model.PictureClauseRecord.CharacterString",
+            "Model.PictureClauseRecord.CurrencyString", "Model.PictureClauseRecord.Editing",
             "Model.TableValueSpec.FromText", "Model.TableValueSpec.FromWritten", "Model.TableValueSpec.Literals",
             "Model.TableValueSpec.ToText", "Model.TableValueSpec.ToWritten",
         ]),
@@ -106,7 +124,7 @@ internal static class BackendContract
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
             "Model.BoundUnit.RegistryKey", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
             "Model.LocalePhrase.Tag", "Model.LocaleRef.Tag", "Model.LocaleSymbol.External", "Model.LocaleSymbol.Tag",
-            "Model.ObjectRefDescriptor.Spelled",
+            "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",
             // the assemblies an expansion is imported from or written to: file paths the backend references (kb/Work PB2104)
             "Model.ExpansionPlacement.HoldingFile", "Model.ExpansionPlacements.ReferencedAssemblies",
         ]),
@@ -170,7 +188,7 @@ internal static class BackendContract
         new("L9", ["PB3252"],
         [
             "Model.PicInfo.ClrType", "Model.PicInfo.DefaultInitializer", "Model.PicInfo.ProfileInitializer()",
-            "Model.PicInfo.SignKind", "Model.PicInfo.SignKindFor()", "Model.ObjectRefDescriptor.ClrTypeName",
+            "Model.PicInfo.SignKind", "Model.PicInfo.SignKindFor()", "Model.PicRecord.SignKind", "Model.ObjectRefDescriptor.ClrTypeName",
             "Model.OmittedFormalGuard.Presence", "Model.OmittedFormalGuard.PresenceMember()",
             "Model.OmittedProbe+Carrier.CarrierField",
             "Model.OmittedProbe+MethodFlag.FlagParam", "Model.DataItem.ElementType", "Model.DataItem.FieldType",

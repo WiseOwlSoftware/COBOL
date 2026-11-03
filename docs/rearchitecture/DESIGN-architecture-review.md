@@ -913,10 +913,11 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   option type `NumericDisplayForm`, `Binding/NumericDisplayForm.cs`). It tolerates 28 rows holding 359 type pairs (and
   one census-only row, `Binding.Bound → Frontend.Parsing`, which names PB2347); 330 name their removers from R1's notes, and the 29 pairs of the new row `WiseOwl.Cobol.CodeGen →
   WiseOwl.Cobol.Binding.Repository` (`HostEntryEmitter`, `OoEmitter` and `RepositoryAttributeRenderer` read the
-  repository records and call its codec) are removed by kb/Work PB4319: the record family (`RepositoryRecord.cs`)
-  moves to compiler.model, and the encode leaves the backend (the binder writes each unit's record at bind time,
-  and `RepositoryCodec.KindOf` becomes a `BoundUnit` fact); the codec stays in compiler.binding, because its encoder
-  and decoder read the binder (`DataBinder`, `OoClassTable`, `PrototypeSignatures`).
+  repository records and called its codec) were removed by kb/Work PB4319: the record family is in compiler.model
+  (`Binding/Model/RepositoryRecord.cs`), and the encode left the backend (the binder writes each published unit's record
+  at the end of the bind, `RepositoryPublication.Publish`, and `BoundUnit.RepositoryKind` replaced `RepositoryCodec.KindOf`);
+  the codec stays in compiler.binding, because its encoder and decoder read the binder (`DataBinder`, `OoClassTable`,
+  `PrototypeSignatures`).
 
 One rule, one file, two observers at two cadences — the per-gate metadata walk and the per-wave census — which is the
 oracle's own shape (§4.1: a hash manifest per gate, the battery per batch).

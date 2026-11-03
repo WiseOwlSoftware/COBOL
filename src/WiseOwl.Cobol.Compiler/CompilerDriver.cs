@@ -232,6 +232,9 @@ public static class CompilerDriver
             // kb/Work PB1525: the §4.2.10 warning mechanism rides the same per-compilation object, and is read by
             // EditionContext.Extension alone.
             FlagExtensions = options.FlagExtensions,
+            // kb/Work PB4319: --repository-update rides the same per-compilation object to the binder, which writes each
+            // published unit's record at the end of the bind. A check-only compile writes no module, so it publishes nothing.
+            RepositoryUpdate = options.RepositoryUpdate && !options.CheckOnly,
         };
         var emitter = new CSharpEmitter();
         // The external repository (ISO §8.13; DESIGN-external-repository §9.3): the --repository directories, else the
@@ -278,7 +281,6 @@ public static class CompilerDriver
                     { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files };
             var artifact = backend.Emit(bound, new BackendOptions(
                 outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
-                RepositoryUpdate: options.RepositoryUpdate,
                 RepositoryReferences: [.. bound.OoClasses.ImportedAssemblies, .. bound.Expansions.ReferencedAssemblies]));
             if (!artifact.Success)
                 return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,

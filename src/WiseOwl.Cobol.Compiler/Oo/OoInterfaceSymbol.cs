@@ -44,7 +44,7 @@ public sealed class OoInterfaceSymbol
     internal ExpansionOrigin? Expansion { get; init; }
 
     /// <summary>The repository record an IMPORTED interface was decoded from (null for an interface of this group).</summary>
-    internal Binding.Repository.RepositoryRecord? Record { get; init; }
+    internal Binding.Model.RepositoryRecord? Record { get; init; }
     /// <summary>The CLR type name of the interface — the module's ABI, the same for every backend (kb/Work
     /// PB4265).</summary>
     public string ClrName { get; }

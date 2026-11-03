@@ -106,7 +106,7 @@ public sealed class RepositoryCodecTests
         var comp = Bind(Source, 2023);
         var record = RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RTONE"));
         Assert.Equal(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Program, record.Kind);
-        Assert.Equal(RepositoryCodec.CobolEntryConvention, record.EntryConvention);
+        Assert.Equal(RepositoryRecord.CobolEntryConvention, record.EntryConvention);
         Assert.Contains(record.Currencies, c => c.Symbol == 'U' && c.Text == "EUR");
         Assert.Equal(9, record.Formals.Count);
         Assert.Equal(WiseOwl.Cobol.Runtime.Repository.PassingMode.Value, record.Formals[8].Mode);
@@ -262,7 +262,7 @@ public sealed class RepositoryCodecTests
         // The object roster, then the factory roster; an accessor carries its property's externalized name (ISO §12.3.8.4 GR2).
         Assert.Equal([("SCALE", false), ("FILL-IN", false), ("TAG", false), ("TAG", false), ("MAKE", true), ("F-COUNT", true), ("F-COUNT", true)],
             c.Methods.Select(m => (m.ExternalizedName, m.IsFactory)));
-        Assert.All(c.Methods, m => Assert.Equal(RepositoryCodec.CobolEntryConvention, m.EntryConvention));
+        Assert.All(c.Methods, m => Assert.Equal(RepositoryRecord.CobolEntryConvention, m.EntryConvention));
         var fill = c.Methods.Single(m => m.Name == "FILL-IN");
         Assert.True(fill.Formals[1].Optional);
         Assert.Equal(["OT", "MT"], cls.TypeDeclarations.Select(t => t.Name!));
@@ -368,6 +368,32 @@ public sealed class RepositoryCodecTests
         Assert.Equal(RepositoryCodec.Of(unit), RepositoryCodec.Of(unit));
     }
 
+    /// <summary>⛔ THE BACKEND READS THE RECORD THE BINDER WROTE (kb/Work PB4319; DESIGN-codegen-backend §2.2). Under
+    /// <c>--repository-update on</c> every unit the module publishes carries, on the bound compilation, exactly the record the
+    /// encoder writes for it — each entry unit, each class and each interface — and no other unit carries one; with the option
+    /// off the compilation says so and no unit carries a record, so a backend emits the identities alone.</summary>
+    [Fact]
+    public void TheBoundCompilation_CarriesEachPublishedUnitsRecord_OnlyWhenItUpdatesTheRepository()
+    {
+        var on = Bind(Source, 2023);
+        Assert.True(on.PublishesSignatures);
+        Assert.Equal(["PRTA", "RTONE", "RTTWO"], on.EntryUnits.Select(u => u.Name));
+        Assert.All(on.EntryUnits, u => Assert.Equal(RepositoryCodec.Of(u), u.Record));
+        Assert.All(on.Units.Except(on.EntryUnits), u => Assert.Null(u.Record));
+
+        var oo = Bind(OoSource, 2023);
+        Assert.NotEmpty(oo.ClassUnits);
+        Assert.All(oo.ClassUnits, c => Assert.Equal(RepositoryCodec.Of(c), c.Record));
+        Assert.Equal(oo.OoClasses.Interfaces.ToHashSet(), oo.InterfaceRecords.Keys.ToHashSet());
+        Assert.All(oo.OoClasses.Interfaces, i => Assert.Equal(RepositoryCodec.Of(i, oo.InterfaceData[i]), oo.InterfaceRecords[i]));
+
+        var off = Bind(OoSource, 2023, repositoryUpdate: false);
+        Assert.False(off.PublishesSignatures);
+        Assert.All(off.Units, u => Assert.Null(u.Record));
+        Assert.All(off.ClassUnits, c => Assert.Null(c.Record));
+        Assert.Empty(off.InterfaceRecords);
+    }
+
     /// <summary>§6.4 part 3 and §17.2's perturbation: a record whose referenced prototype lost a formal no longer has its
     /// original's signature, so what its decoded pointer may contain, the identity of that signature, differs.</summary>
     [Fact]
@@ -454,7 +480,7 @@ public sealed class RepositoryCodecTests
         {
             (table.Table! with { DependingEntry = 0 }, "which entry 0 ('G1') is not"),
             (table.Table! with { DependingEntry = null }, "with entry none"),
-            (table.Table! with { Depending = RepositoryCodec.OutsideTheRecord }, "DEPENDING ON '<outside>' with entry 1"),
+            (table.Table! with { Depending = OccursRecord.OutsideTheRecord }, "DEPENDING ON '<outside>' with entry 1"),
             (table.Table! with { DependingEntry = 9 }, "index 9"),
         })
         {
@@ -603,22 +629,23 @@ public sealed class RepositoryCodecTests
         }
     }
 
-    internal static BoundCompilation Bind(string source, int edition, bool permissive = false)
+    internal static BoundCompilation Bind(string source, int edition, bool permissive = false, bool repositoryUpdate = true)
     {
         string path = Path.Combine(Path.GetTempPath(), $"repocodec_{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, source);
-        try { return BindFile(path, edition, InitialReferenceFormat.Auto, permissive); }
+        try { return BindFile(path, edition, InitialReferenceFormat.Auto, permissive, repositoryUpdate); }
         finally { FileHarness.TryDelete(path); }
     }
 
-    internal static BoundCompilation BindFile(string path, int edition, InitialReferenceFormat format, bool permissive = false)
+    internal static BoundCompilation BindFile(string path, int edition, InitialReferenceFormat format, bool permissive = false,
+        bool repositoryUpdate = true)
     {
         var diags = new DiagnosticBag();
         var frontend = new CnFrontend { InitialFormat = format, DialectLevel = edition };
         frontend.AddCopySearchPath(Path.GetDirectoryName(path)!);   // the suite's library: the case's own directory
         var tree = frontend.Parse(path, diags);
         Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
-        var context = new EditionContext(edition, permissive);
+        var context = new EditionContext(edition, permissive) { RepositoryUpdate = repositoryUpdate };
         var comp = new CSharpEmitter().Bind(tree!, context, frontend.Directives);
         Assert.False(context.HasErrors, string.Join("\n", context.Diagnostics));
         return comp;

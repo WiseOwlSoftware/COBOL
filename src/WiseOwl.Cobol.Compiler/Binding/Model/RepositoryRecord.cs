@@ -1,10 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 
-namespace WiseOwl.Cobol.Binding.Repository;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// ⛔ THE REPOSITORY RECORD OF ONE PUBLISHED UNIT (ISO §8.13; docs/rearchitecture/DESIGN-external-repository.md §6.1; kb/Work
@@ -12,11 +11,15 @@ namespace WiseOwl.Cobol.Binding.Repository;
 /// PERSISTED vocabulary
 /// (<c>WiseOwl.Cobol.Runtime.Repository</c>'s enums, §6.2 rule 1), so the attribute renderer and the reader are pure
 /// transcriptions of it and the ONE translation between the compiler's own types and what is persisted is
-/// <see cref="RepositoryCodec.Of"/> and its inverse <see cref="RepositoryCodec.Decode"/>.
+/// the binder's <c>RepositoryCodec.Of</c> and its inverse <c>RepositoryCodec.Decode</c>.
+/// <para>It is MODEL data (kb/Work PB4319): the binder writes each published unit's record at the end of the bind
+/// (<c>RepositoryPublication.Publish</c>) and the bound compilation carries it (<see cref="BoundUnit.Record"/>,
+/// <see cref="OoClassUnit.Record"/>, <see cref="BoundCompilation.InterfaceRecords"/>), so a backend transcribes a value and
+/// never runs the encoder (DESIGN-codegen-backend §2.2).</para>
 /// <para>§8.13: "This information about a source unit, excluding the externalized name of the source unit, is called its
 /// signature. Whether the information is taken from a prototype or a definition, the information stored in the external
 /// repository about the signature of a program or a function is the same." So a prototype and its definition publish the
-/// same shape from one <see cref="RepositoryCodec.Of"/>, and what decides "the same signature" reads the decoded
+/// same shape from one <c>RepositoryCodec.Of</c>, and what decides "the same signature" reads the decoded
 /// DESCRIPTIONS, never a data-name (§6.3; ISO §13.7.3 SR2).</para>
 /// <para>The record is a value: two records describing one unit are equal (<see cref="RecordList{T}"/> compares its
 /// elements), which is what §17.4's backend-independence fixture and §17.7's determinism test read.</para>
@@ -57,7 +60,12 @@ internal sealed record RepositoryRecord(
     RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals, DescriptionRecord? Returning,
     RecordList<DescriptionRecord> TypeDeclarations, RecordList<StructureRecord> DynamicLengthStructures,
     RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null, SkeletonRecord? Skeleton = null,
-    ExpansionIdentity? Expansion = null);
+    ExpansionIdentity? Expansion = null)
+{
+    /// <summary>The entry convention every published unit and method states: COBOL, the one value ENTRY-CONVENTION admits
+    /// (<c>OptionsBinder.ScreenEntryConvention</c>).</summary>
+    public const string CobolEntryConvention = "COBOL";
+}
 
 /// <summary>What a class or an interface publishes beside its unit facts (§6.1; ISO §8.13): its place in the inheritance
 /// graph as externalized identities (§6.4), its object properties and its methods. For an interface, <paramref name="Implements"/>
@@ -167,13 +175,19 @@ internal sealed record DescriptionRecord(
 
 /// <summary>The structured OCCURS clause (ISO §13.18.38; <c>OccursSpec</c>): the bounds, the DEPENDING ON object, and a
 /// DYNAMIC table's capacity phrases. The object is <see cref="Depending"/>, its data-name (or
-/// <see cref="RepositoryCodec.OutsideTheRecord"/>), and <see cref="DependingEntry"/>, the preorder index of its entry in the
+/// <see cref="OutsideTheRecord"/>), and <see cref="DependingEntry"/>, the preorder index of its entry in the
 /// description's tree (the root 0), present exactly when the object is in the record: the word alone is not an identity,
 /// because a DEPENDING ON object whose name is not unique is written qualified (ISO §8.4.2.2.3 SR1) and the record keeps no
 /// qualifiers (§6.2 "Anchoring"; kb/Work PB2100). The KEY and INDEXED BY phrases are not recorded: no comparator or host type
 /// reads them (§6.3).</summary>
 internal sealed record OccursRecord(int Min, int Max, string? Depending, int? DependingEntry, bool Dynamic, string? Capacity,
-    int? InitialCapacity, int? ExpectedMax, bool Initialized);
+    int? InitialCapacity, int? ExpectedMax, bool Initialized)
+{
+    /// <summary>The <see cref="Depending"/> word of an OCCURS DEPENDING ON object outside the record (a formal's table whose
+    /// object is another formal or a data item of the publishing element): the record cannot name it, and only its existence
+    /// is part of the description.</summary>
+    public const string OutsideTheRecord = "<outside>";
+}
 
 /// <summary>
 /// <c>PicInfo</c> BY VALUE — every member (§6.1). The two restriction NAMES are kept as written by the publishing element

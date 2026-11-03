@@ -27,4 +27,8 @@ internal sealed class OoClassUnit
     /// <summary>The Places of the FACTORY data items, built once binding is done (<c>PlaceTablePass</c>, kb/Work PB2375).</summary>
     public PlaceTable FactoryPlaces = null!;
     public BoundProgram FactoryBound = null!;
+    /// <summary>The class's external-repository record (ISO §8.13; DESIGN-external-repository §6.1): its facts, both method
+    /// rosters and their tables, written by the binder at the end of the bind for a class this module emits when the
+    /// compilation updates the repository (<see cref="BoundCompilation.PublishesSignatures"/>); null otherwise (kb/Work PB4319).</summary>
+    public RepositoryRecord? Record;
 }

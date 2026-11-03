@@ -309,8 +309,16 @@ internal sealed class BinderDriver
 
         // The group is bound: what it publishes for its parameterized definitions, and where each expansion lives (§10.5).
         var expansions = ExpansionPlacementPass.Run(table, classes, oo.InterfaceData, external, edition, compileInputs, publishAs);
+        // What the module publishes (ISO §8.13; DESIGN-external-repository §7.2, §9.1; kb/Work PB4319): the entry units always, and
+        // under --repository-update on each published unit's record, encoded LAST, over the finished bound data, so the backend
+        // carries a value across the seam and never runs the encoder.
+        var entryUnits = RepositoryPublication.EntryUnitsOf(units);
+        var interfaceRecords = edition.RepositoryUpdate
+            ? RepositoryPublication.Publish(entryUnits, classes, table, oo.InterfaceData, expansions)
+            : new Dictionary<OoInterfaceSymbol, RepositoryRecord>();
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
-            anyFiles, edition.DialectLevel, edition.SignEncoding, expansions);
+            anyFiles, edition.DialectLevel, edition.SignEncoding, expansions,
+            entryUnits, edition.RepositoryUpdate, interfaceRecords);
     }
 
     /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
