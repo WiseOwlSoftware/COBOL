@@ -20,7 +20,7 @@ internal static class OptionsBinder
 {
     /// <summary>A program unit's OPTIONS paragraph, written in its identification division, or null. The OO
     /// definitions carry theirs on the SKELETON (§10.6.1; kb/Work PB135), which <c>DataBinder.UseSkeletonOptions</c>
-    /// and <c>DataBinder.OoBindMethodData</c> hand to <see cref="BindParagraph"/> directly.</summary>
+    /// and <c>OoDataBinder.BindMethodData</c> hand to <see cref="BindParagraph"/> directly.</summary>
     public static Core.OptionsParagraphContext? ParagraphOf(Core.ProgramUnitContext program) =>
         program.identificationDivision()?.identificationBody()?.identificationParagraph()
             .Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null);

@@ -319,14 +319,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 continue;
             }
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
-            // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
+            // bound by OoDataBinder.BindMethodData before any body binds; here we link its name scope so the
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
             var scope = new OoMethodScope { Data = m.DataScope, MethodName = m.Name, Formals = m.Binding!.Formals };
             scopeToMethod[scope] = m;         // §9.10 — handler pc-ranges map back to this method via its scope
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
             // …and its procedure-names are words of the METHOD's source element, declared in its own §8.3.2.2 census
             // (kb/Work PB2921) — released at the end of this iteration.
-            using var declaring = Ctx.Data.EnterMethodDeclarations(m.DataScope);
+            using var declaring = Ctx.Data.Oo.EnterMethodDeclarations(m.DataScope);
             m.Binding!.DeclStartPc = table.Paragraphs.Count;
             m.Binding!.EntryPc = table.Paragraphs.Count;
             if (m.Ctx.procedureDivision() is { } pd)

@@ -20,7 +20,7 @@ using WiseOwl.Cobol.Runtime;
 /// <see cref="CaptureEnclosingSubscripts"/>), and the object-property references among them whose GETs those
 /// positions read.</summary>
 internal sealed record EnclosingOccurrence(IReadOnlyList<Position> Subscripts, IReadOnlyList<Bound.BoundStatement> PreOps,
-    IReadOnlyList<DataBinder.OoPendingPropertyOp> PropertyOps);
+    IReadOnlyList<OoPendingPropertyOp> PropertyOps);
 
 /// <summary>Which statement's <b>table</b> operand a subscript list is read for (<see cref="ReadSubscripts"/>) —
 /// the operand names a table, not one occurrence of it, so its own level takes no subscript and what is written
@@ -66,7 +66,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// (fix-queue PB17): given the position's PARSED arithmetic expression (null when the written position is not
     /// one — the hook refuses it by name, COBOL2363), its written text for that message and its line, it binds the
     /// expression through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes the §15.4 temporary via
-    /// <c>DataBinder.CreateCompilerTemp</c>, registers the store as a statement-scoped pending PRE-op on
+    /// <c>CompilerTemps.Create</c>, registers the store as a statement-scoped pending PRE-op on
     /// <see cref="ProcedureBindState.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
     /// position (<see cref="PositionRead"/>).
     /// <para>⛔ IT IS A HOOK, NOT A COLLABORATOR REFERENCE, because the binder dependency is ONE-WAY:
@@ -167,7 +167,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         /// within it, fully subscripted (a reference the arity screen refused never reaches here), keeps the leading
         /// positions that belong to the tables ENCLOSING <c>table</c>.</summary>
         public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, ReadOnlySpan<Bound.BoundStatement> preOps,
-            ReadOnlySpan<DataBinder.OoPendingPropertyOp> propertyOps)
+            ReadOnlySpan<OoPendingPropertyOp> propertyOps)
         {
             if (Enclosing is not null) return;
             for (DataItem? n = item; n is not null; n = n.Parent)

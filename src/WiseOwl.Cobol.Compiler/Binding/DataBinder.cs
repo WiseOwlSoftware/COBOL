@@ -27,9 +27,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private int _fillerCounter;
     internal int _uidCounter;
 
-    /// <summary>The next unique id for a data item this binder creates (a report's page counter, a sum counter's register).</summary>
-    internal int NextUid() => _uidCounter++;
-
     /// <summary>Seed the unique-id counter so every unit of a multi-program compilation gets a disjoint
     /// <c>_T_n</c> / <c>_P_n</c> band — a nested program class would otherwise SHADOW its container's struct and
     /// profile names, silently re-typing inherited GLOBAL references (the emitter seeds one band per unit).</summary>
@@ -226,7 +223,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// class still emits the profile, as it does for the method's other numeric items.</summary>
     public IEnumerable<DataItem> DeclaredCapacityRegisterTables =>
         CapacityRegisters.Values.SelectMany(static t => t).Where(t => DeclaringDepth(t) == 0)
-            .Concat(_ooBoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t));
+            .Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t));
 
     /// <summary>⛔ THE NESTING DISTANCE OF EVERY INHERITED GLOBAL DECLARATION (kb/Work PB1047 / PB1243) — the tier
     /// ISO §8.4.6.2.1 3) selects on. Absent = 0: the item is this source element's own. n = the item is a global
@@ -354,7 +351,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// the WHOLE forest walks (the completion of every declaration, the clause-resolution and declared forests). A
     /// lookup BY NAME never reads it: it reads the declaring element's own table (<see cref="TryFindTypeDecl"/>).</summary>
     internal IEnumerable<DataItem> AllTypeDecls() =>
-        TypeDecls.Values.Concat(_ooBoundMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
+        TypeDecls.Values.Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
 
     /// <summary>The own type-declaration table of the source element <paramref name="scope"/> names: the method's, else
     /// this binder's element's.</summary>
@@ -508,6 +505,121 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// direct construction, which then behaves as an empty group (every typed reference is unknown-class).</summary>
     public OoClassTable? OoClasses { get; set; }
 
+    /// <summary>The unit's OO role, set ONCE by <c>Oo/OoDriver</c> when it makes the binder of a class's OBJECT or FACTORY half or
+    /// of an interface (init-only, so a mid-bind mutation cannot compile); null for a program or a function unit.
+    /// Read through <see cref="Oo"/>.</summary>
+    internal OoUnitRole? OoRole { get; init; }
+
+    /// <summary>THE OO half of this binder (kb/Work PB2360; <see cref="OoDataBinder"/>): the class unit's method data, PROPERTY
+    /// accessors, object-reference descriptions and per-method name scopes, with the OO state of this binder's forest.</summary>
+    internal OoDataBinder Oo => field ??= new OoDataBinder(this, OoRole);
+
+    /// <summary>The compiler-synthesized temporaries of this binder's forest (<see cref="CompilerTemps"/>; kb/Work PB2360).</summary>
+    internal CompilerTemps Temps => field ??= new CompilerTemps(this);
+
+    /// <summary>The uid the next item takes (<see cref="TakeUid"/> advances it): the compiler temporaries spell it into their names.</summary>
+    internal int NextUid => _uidCounter;
+
+    /// <summary>Copy <paramref name="model"/>'s whole data description onto the compiler temporary <paramref name="temp"/>: the
+    /// ONE copy (<see cref="CopyEntryDescription"/>) in its <see cref="DescriptionCopyScope.CompilerTemp"/> scope, the only
+    /// scope <see cref="CompilerTemps"/> copies in (ISO §8.4.3.2.4 GR1: the temporary has "the description, class, and category"
+    /// of the RETURNING item; kb/Work PB888).</summary>
+    internal static void CopyDescriptionToTemp(DataItem model, DataItem temp) =>
+        CopyEntryDescription(model, temp, DescriptionCopyScope.CompilerTemp);
+
+    /// <summary>Take the next uid of this binder's band (StructName / ProfileName ride on it): the ONE advancing counter for every item this binder creates, a report's page counter and a sum counter's register included.</summary>
+    internal int TakeUid() => _uidCounter++;
+
+    /// <summary>Append a synthesized level-1 item to the forest, so the FieldEmitter declares it like any other root.</summary>
+    internal void AddRoot(DataItem root) => _roots.Add(root);
+
+    /// <summary>The class-level C# member names of this binder's roots (<see cref="BindEntries"/> allocates a root's name in it).</summary>
+    internal CsNameScope RootNames => _rootNames;
+
+    /// <summary>The STATIC-field channel: every emitted root field name whose storage is ONE per-class copy —
+    /// consumed by <c>RecordStructEmitter</c> to add the <c>static</c> modifier. ONE producer: a RECURSIVE-and-not-INITIAL
+    /// unit's (incl. every FUNCTION's, §8.6.6) WORKING-STORAGE roots + Tier-B backings
+    /// (<see cref="RouteStaticUnitStoragePass.Run"/> — §13.5.4 GR1 static data, ONE last-used copy across all activations,
+    /// §14.6.2.3.3). A method has no WORKING-STORAGE to put here (§13.5.3 SR1, kb/Work PB1308).
+    /// (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlySet<string> StaticRootFields => _staticRootFields;
+    internal readonly HashSet<string> _staticRootFields = new(StringComparer.Ordinal);
+
+    /// <summary>The BASED bridge address fields of a RECURSIVE unit's static WORKING-STORAGE (kb/Work PB154 —
+    /// §14.6.2.3.2 action 5): the `__addr_X` field emits STATIC and `__ResetStatics` sets it back to NULL,
+    /// where the old routing REJECTED legal `01 X BASED.` in a RECURSIVE program outright.</summary>
+    public IReadOnlySet<string> StaticBasedBridgeAddrs => _staticBasedBridgeAddrs;
+    internal readonly HashSet<string> _staticBasedBridgeAddrs = new(StringComparer.Ordinal);
+
+    /// <summary>The ADDRESS-OF cell fields of a RECURSIVE unit's static WORKING-STORAGE (kb/Work PB234): the
+    /// record's <c>StorageCell</c> — its ONE storage, which <c>ManagedPointer.At</c> aliases — emits STATIC
+    /// (§13.5.4 GR1: one copy shared by every activation) and <c>__ResetStatics</c> re-seeds it IN PLACE
+    /// (§14.6.2.3.2 action 2), where the old routing REJECTED `ADDRESS OF` a static item outright
+    /// (COBOL0899 — legal source refused).</summary>
+    public IReadOnlySet<string> StaticAddressableCells => _staticAddressableCells;
+    internal readonly HashSet<string> _staticAddressableCells = new(StringComparer.Ordinal);
+
+    /// <summary>The STATIC index-cell channel — INDEXED BY cells emitted as class-level STATIC <c>long</c>
+    /// fields because their table's storage is static: a RECURSIVE unit's WS table cells
+    /// (<see cref="RouteStaticUnitStoragePass.Run"/> — the cell rides its table's §13.5.4 GR1 static storage; these DO also
+    /// appear in <see cref="IndexNames"/>, so the emitter's instance-cell loop consults this set for the modifier).
+    /// A method table's cell is instead a per-activation method local, emitted in <c>OoEmitMethod</c>, and never
+    /// appears here. (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlySet<string> StaticIndexCells => _staticIndexCells;
+    internal readonly HashSet<string> _staticIndexCells = new(StringComparer.Ordinal);
+
+    /// <summary>⛔ THE ONE QUESTION "IS THIS CLASS MEMBER STATIC?" — true when <paramref name="csMember"/> is on any of
+    /// the four static channels (<see cref="StaticRootFields"/>, <see cref="StaticBasedBridgeAddrs"/>,
+    /// <see cref="StaticAddressableCells"/>, <see cref="StaticIndexCells"/>), i.e. it is ONE copy per class
+    /// (§13.5.4 GR1) and C# reaches it through the CLASS name, never through an instance (CS0176). A contained
+    /// program's reference to a container's member asks it, through <c>BoundUnit.AnchorOf</c>, so a container with
+    /// static working-storage composes with its containees' GLOBAL bridges (kb/Work PB1133). A new static channel
+    /// joins THIS predicate and nothing else.</summary>
+    internal bool IsStaticMember(string csMember) =>
+        _staticRootFields.Contains(csMember) || _staticBasedBridgeAddrs.Contains(csMember)
+        || _staticAddressableCells.Contains(csMember) || _staticIndexCells.Contains(csMember);
+
+    /// <summary>Every INDEX-NAME declaration under a root (its subtree's <c>INDEXED BY</c> declarations, each with
+    /// its own cell — kb/Work PB919). The ONE subtree walk every cell router, bridge and emitter reads.</summary>
+    internal static IEnumerable<IndexDeclaration> IndexDeclarationsUnder(DataItem root)
+    {
+        foreach (var d in root.Indexes) yield return d;
+        foreach (var c in root.Children) foreach (var d in IndexDeclarationsUnder(c)) yield return d;
+    }
+
+    /// <summary>THE scope-aware name resolver of this binder's forest (P6 Step 7 — <see cref="Model.SymbolTable"/>
+    /// collapses the former LookupData/LookupDataInScopeOf/TryGetVisibleIndexField/IndexFieldFor quadruple). One
+    /// table per binder: COBOL name scopes are per-unit. A 7a wrapper over the live maps; builder-owned storage
+    /// is P7.</summary>
+    public Model.SymbolTable Symbols => _symbols ??= new Model.SymbolTable(this);
+    private Model.SymbolTable? _symbols;
+
+    /// <summary>The ACTIVE lookup scope — the method a reference is made in (<see cref="OoDataBinder.CurrentMethodScope"/>: its
+    /// statements or its data division), else program scope.</summary>
+    internal Model.Scope ActiveScope => new(Oo.CurrentMethodScope);
+
+    /// <summary>The lookup scope that OWNS <paramref name="anchorRoot"/> (M2-OO-1h): the owning METHOD's scope
+    /// when the root — a record or a type declaration — is the method's (§11.7.4 GR5), else program scope. The
+    /// post-build passes (OdoResolve, ResolveRedefines, the TYPE and SAME AS expansion) resolve through this —
+    /// <see cref="ProcedureBindState.ActiveMethodScope"/> is null there, which is exactly why <c>LookupDataInScopeOf</c> existed — and so
+    /// does every NAME REGISTRATION of an item (<see cref="NameScopeOf"/>), at its bind or at a post-build copy.</summary>
+    internal Model.Scope ScopeOf(DataItem anchorRoot) =>
+        Oo.RootOwner.TryGetValue(anchorRoot, out var m) ? new Model.Scope(m.DataScope) : Model.Scope.Program;
+
+    /// <summary>⛔ THE ONE ANSWER TO "WHOSE NAME INDEX DOES <paramref name="item"/>'S NAME JOIN?" (kb/Work PB3192): the
+    /// owning METHOD's scope when its record is the method's (<see cref="ScopeOf"/> of its root), else null — this
+    /// binder's own maps. Asked by every registration — a data-name (<see cref="RegisterName"/>), its index-names
+    /// (<see cref="RegisterIndexes"/>), a condition-name, a type-name — at the entry's bind and at a post-build TYPE /
+    /// SAME AS copy alike. The names used to join the class's maps at bind and move to the method's after the whole
+    /// method had bound (the deleted <c>OoScopeSubtree</c>), so while the method bound its own data-names resolved
+    /// against the object's, and a copy made later (a TYPE clone composed by <c>ExpandTypes</c>) never moved at all: a
+    /// sibling method resolved the clone's members silently, and the backend then failed CS0103.</summary>
+    private OoMethodDataScope? NameScopeOf(DataItem item) => ScopeOf(item.Root).Method;
+
+    // The former LookupData / LookupDataInScopeOf / TryGetVisibleIndexField / IndexFieldFor quadruple is DELETED
+    // (P6 Step 7b) — every consumer resolves through Symbols.TryResolve/IndexCandidates with an
+    // EXPLICIT Scope (ActiveScope at statement-bind sites; ScopeOf(anchorRoot) at post-build-pass sites).
+
     /// <summary>The unit's REPOSITORY PROPERTY specifier names (§12.3.8) — the §8.4.3.9.3 SR1 gate for
     /// object-property references (case-insensitive per §8.3.2).</summary>
     /// <para>Keyed by property-name-1 → the name the property is known by in the declared classes: literal-4 when
@@ -560,7 +672,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The declaration half of <see cref="Bind"/>: OPTIONS/SPECIAL-NAMES/FILE-CONTROL, the FILE /
     /// WORKING-STORAGE / LINKAGE sections, and the PD header formals — everything that ADDS items to the
     /// forest. Split from <see cref="BindResolve"/> so a CLASS unit can bind its METHODS' data sections
-    /// (OO deep-dive D3/D6 — <c>DataBinder.Oo.cs</c>) into the same forest BEFORE the post-build passes run
+    /// (OO deep-dive D3/D6 — <c>OoDataBinder.cs</c>) into the same forest BEFORE the post-build passes run
     /// over it (a method item participates in USAGE/SIGN inheritance and object-reference resolution exactly
     /// like program data).</summary>
     internal void BindDeclarations(Core.ProgramUnitContext program)
@@ -731,7 +843,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             _workingStorageRoots.AddRange(BindEntries(ws.dataDescriptionEntry(), _rootNames));
 
         // LOCAL-STORAGE SECTION (ISO §13.6 — automatic data, legal in a program or function definition per
-        // §13.6.3 SR1; the method leg binds in OoBindMethodData): the SAME BindEntries path as WS, so VALUE
+        // §13.6.3 SR1; the method leg binds in Oo.BindMethodData): the SAME BindEntries path as WS, so VALUE
         // clauses, CONSTANT entries (§13.10 — WS/LS-legal), REDEFINES classes, and INDEXED BY cells all bind
         // identically; only the ACTIVATION-STATE model differs (§13.6.4 GR1 automatic → §14.6.2.3.2 initial
         // state on every activation — realized at emit, see LocalStorageRoots).
@@ -1064,7 +1176,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 renamesBegun = false;   // a new record (or 77): the previous record's RENAMES entries are over
                 // A METHOD's record or type declaration is the method's from here on (kb/Work PB3192): every name
                 // declared under it joins the method's own scope (NameScopeOf), never the class's.
-                if (_bindingMethod is { } owner) OoRootOwner[item] = owner;
+                if (Oo.BindingMethod is { } owner) Oo.RootOwner[item] = owner;
                 // A TYPEDEF entry is a type DECLARATION (ISO §13.18.58; D17): a named level-01 template that
                 // allocates NO storage — registered in TypeDecls, kept OFF Roots (and, below, off ByName).
                 if (item.IsTypedef)
@@ -2878,9 +2990,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal UserWordCensus OwnWords { get; init; } = new();
 
     /// <summary>The census a declaration lands in: the METHOD whose words are being declared
-    /// (<see cref="EnterMethodDeclarations"/> — its data entries, its METHOD-ID and its procedure-names), which is a
+    /// (<see cref="OoDataBinder.EnterMethodDeclarations"/> — its data entries, its METHOD-ID and its procedure-names), which is a
     /// source element of its own, else this binder's own (kb/Work PB2921).</summary>
-    internal UserWordCensus WordCensus => _bindingMethodScope?.Words ?? OwnWords;
+    internal UserWordCensus WordCensus => Oo.BindingMethodScope?.Words ?? OwnWords;
 
     /// <summary>⛔ §8.3.2.2: "<i>Within a source element, a given user-defined word may be used as only one type of
     /// user-defined word</i>", except as <see cref="UserWordKinds.MayBeOneWord"/> says. Asked at the ONE declaration funnel
@@ -2957,7 +3069,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// contained program, its container's (inherited by <c>InheritConfiguration</c>; §12.3.4 GR1 — "the entries
     /// explicitly or implicitly specified in the configuration section of a source unit that contains other source
     /// units apply to each directly or indirectly contained source unit"). A class or interface is declared by the OO
-    /// driver (<c>OoDriver.BindClassData</c> / <c>BindInterface</c>), a method's METHOD-ID by <see cref="OoBindMethodData"/>
+    /// driver (<c>OoDriver.BindClassData</c> / <c>BindInterface</c>), a method's METHOD-ID by <see cref="OoDataBinder.BindMethodData"/>
     /// into the method's own census; their units reach this binder as synthetic contexts with no identification
     /// division.</summary>
     private void DeclareUnitName(Core.ProgramUnitContext program)
@@ -3377,7 +3489,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// all five carriers: <see cref="ExpandType"/> (ISO §13.18.58.4 GR3 / §13.18.57.4 GR1),
     /// <see cref="ExpandSameAs"/> (§13.18.49.4 GR1), <see cref="CloneItem"/> (§13.18.58.4 GR1 /
     /// §13.18.49.4 GR2a — a reproduced SUBORDINATE), and the compiler temporary's root and subtree
-    /// (<see cref="CreateCompilerTemp"/> / <see cref="CloneTempNode"/> — §8.4.3.2.4 GR1's "the description,
+    /// (<see cref="CompilerTemps.Create"/> / <see cref="CompilerTemps.CloneNode"/> — §8.4.3.2.4 GR1's "the description,
     /// class, and category of the temporary data item is that specified by the description in the linkage
     /// section of the item specified in the RETURNING phrase", and its §8.4.3.4.4 / §14.9.25.4 twins; until
     /// kb/Work PB888 those two spelled a FIVE-clause hand list of their own, so a function result typed as a
@@ -3492,7 +3604,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     }
 
     /// <summary>Deep-clone one template node under <paramref name="newParent"/> (generalizes the flat OO compiler-temp
-    /// clone, <c>CreateCompilerTemp</c>): a FRESH <see cref="DataItem.Uid"/> (StructName/ProfileName ride on it, so a
+    /// clone, <c>CompilerTemps.Create</c>): a FRESH <see cref="DataItem.Uid"/> (StructName/ProfileName ride on it, so a
     /// shared Uid would collide the clone's emitted type/profile with the template's), the immutable
     /// <see cref="DataItem.Pic"/> shared, the description fields copied, the <see cref="DataItem.ClrName"/> re-uniquified
     /// in the NEW scope, and — unlike the template — REGISTERED (clones ARE referenceable) unless the copy lands
@@ -3574,7 +3686,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Copy an <see cref="OccursSpec"/>'s DECLARED fields for a TYPEDEF clone (D17), leaving the post-build
     /// RESOLVED fields (<c>Depending</c>/<c>CapacityRegister</c>) null so OdoResolve/DynamicResolve re-bind them in
     /// the clone's OWN scope — a shared spec would let sibling clones of the same type collide on those.</summary>
-    private static OccursSpec CloneOccursSpec(OccursSpec s)
+    internal static OccursSpec CloneOccursSpec(OccursSpec s)
     {
         var c = new OccursSpec
         {
@@ -4512,7 +4624,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         bool valueClauseWritten = false;                 // §13.16.3 SR10 asks whether the clause was WRITTEN
         bool gluedMultiLiteral = false;                 // a Format-1 VALUE with >1 operand (no FROM) — the glued-list reject
         // USAGE OBJECT REFERENCE, as WRITTEN — the four independent axes §13.18.60.2 prints, kept raw here and
-        // adjudicated into an ObjectRefDescriptor below (OoBindObjectRefDescriptor), where the class table and
+        // adjudicated into an ObjectRefDescriptor below (Oo.BindObjectRefDescriptor), where the class table and
         // the entry's section are both in hand. kb/Work PB389.
         Core.ObjectReferenceUsageContext? objectRefUsage = null;
         Core.OccursClauseContext? occursClause = null;   // its bounds bind after the item (BindTableBounds)
@@ -4680,7 +4792,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // VersionConformancePass ParseArm.VisitConstantRecordClause (recognition-based).
                     isConstantRecord = true;
                 // PROPERTY clause (§13.18.42, COBOL-2002 OO): superset-parsed at every edition; its OO SEMANTICS bind
-                // independently in DataBinder.Oo.OoBindPropertyClauses (which reads the propertyClause node directly),
+                // independently in OoDataBinder.BindPropertyClauses (which reads the propertyClause node directly),
                 // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
                 // so the storage-clause loop needs no branch for it.
                 else if (clause.Context.selectWhenClause() is { } sw)
@@ -4733,7 +4845,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // phrase is read here. kb/Work PB174, PB3517.
                     usageCtx = usage;
                     // USAGE OBJECT REFERENCE — the WHOLE §13.18.60.2 phrase (kind × FACTORY × ONLY × name),
-                    // carried raw to OoBindObjectRefDescriptor below. FACTORY OF used to be loud-staged here
+                    // carried raw to Oo.BindObjectRefDescriptor below. FACTORY OF used to be loud-staged here
                     // (COBOL0899) and the item left UNTYPED, which produced a SECOND misleading diagnostic at
                     // every later statement mentioning it; it is implemented now (kb/Work PB389).
                     objectRefUsage = usage.usageKeyword()?.objectReferenceUsage();
@@ -4811,10 +4923,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // pass never looked anywhere else. The clause stays recorded (the compile has failed), so the elementary
         // rule still names a group subject too.
         if (property is not null
-            && !(OoIsClassUnit && _bindingMethodScope is null && section is EntrySection.WorkingStorage))
+            && !(Oo.IsClassUnit && Oo.BindingMethodScope is null && section is EntrySection.WorkingStorage))
             Edition.Error(DiagnosticCatalog.PropertyClauseRule, $"{entryWhere}: the PROPERTY clause is written in "
-                + (!OoIsClassUnit ? "a source element that is not a class definition"
-                    : _bindingMethodScope is not null ? "a method definition"
+                + (!Oo.IsClassUnit ? "a source element that is not a class definition"
+                    : Oo.BindingMethodScope is not null ? "a method definition"
                     : $"the {SectionWords(section)} of a class definition")
                 + "; the PROPERTY clause may be specified only in the working-storage section of a factory "
                 + "definition or an instance definition (ISO §13.18.42.3 SR1)");
@@ -4879,7 +4991,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // alternative, and §13.18.60.3 SR16's placement of ACTIVE-CLASS. Every consumer downstream ASKS this
         // descriptor.
         var objectRefDesc = entryUsage is Usage.ObjectReference
-            ? OoBindObjectRefDescriptor(objectRefUsage, entryWhere, section)
+            ? Oo.BindObjectRefDescriptor(objectRefUsage, entryWhere, section)
             : ObjectRefDescriptor.Universal;
 
         // A VALUE clause is prohibited on EVERY usage whose subject admits none —
@@ -5307,7 +5419,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage
         // under an already-failed compile (the IsBased discipline). The SR2/SR3/SR4 PLACEMENT rules (linkage-only,
         // elementary, unit kind, formal/RETURNING reference) need unit-level facts and live in the post-bind
-        // sweeps: AnyLengthValidateUnit (program/function/object paths) and OoBindMethodData (methods).
+        // sweeps: AnyLengthValidateUnit (program/function/object paths) and Oo.BindMethodData (methods).
         if (isAnyLength)
         {
             // §13.18.2.3 SR1: a PICTURE clause shall be specified, and its character-string shall be ONE
@@ -6787,7 +6899,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// templates (<see cref="TypeDecls"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
     /// never re-analyzed and so never gated: a <c>TYPE IS type-name</c> clone subtree (its items carry a non-null
     /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <c>TypeDecls</c>) and the
-    /// OO/UDF compiler temps (recorded in <see cref="CompilerTempClones"/>; both share the source item's <c>PicInfo</c> by
+    /// OO/UDF compiler temps (recorded in <see cref="CompilerTemps.Clones"/>; both share the source item's <c>PicInfo</c> by
     /// reference — so they must NOT be dedup'd by <c>PicInfo</c> identity: a clone and its source share ONE <c>PicInfo</c>
     /// instance. (<c>PicInfo.PointerItem</c> stopped being a singleton at kb/Work PB153 — it is a factory now, since a
     /// restricted data-pointer carries its <c>TO type-name</c> — so the dedup hazard no longer needs that example to be
@@ -6825,15 +6937,15 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     public IEnumerable<DataItem> CompositionForest() => DeclaredForest();
 
     /// <summary>The shared spine of the two forests: <see cref="Roots"/> + <see cref="TypeDecls"/> templates, pre-order
-    /// DFS in declaration order, pruning the OO/UDF compiler temps recorded in <see cref="CompilerTempClones"/>.
+    /// DFS in declaration order, pruning the OO/UDF compiler temps recorded in <see cref="CompilerTemps.Clones"/>.
     /// ⛔ <see cref="LinkageRoots"/> is NOT concatenated: <c>BindEntries</c> puts every LINKAGE 01/77 on
     /// <see cref="Roots"/> as well (LinkageBinder.cs: "LINKAGE 01/77 items bind into the ordinary storage
     /// forest"), so walking both yielded every linkage item TWICE to every per-item pass (measured on a two-root
     /// LINKAGE SECTION: four items; found by kb/Work PB516's drift test).</summary>
     internal IEnumerable<DataItem> DeclaredForest()
     {
-        var temps = CompilerTempClones.Count == 0 ? null
-            : new HashSet<DataItem>(CompilerTempClones.Select(t => t.Temp));
+        var temps = Temps.Clones.Count == 0 ? null
+            : new HashSet<DataItem>(Temps.Clones.Select(t => t.Temp));
         IEnumerable<DataItem> Walk(DataItem d)
         {
             // Prune a synthesized compiler temp's WHOLE subtree: a group temp (a UDF group-RETURNING result)

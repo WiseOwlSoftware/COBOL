@@ -6,10 +6,10 @@
  "subject": "Input-output section",
  "rule-digest": "d6d423e9b878",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindMethodData",
  "test-ref": "conformance-test:OoEnvironmentPlacementTests.EnvironmentPlacement_FollowsTheOneTable",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1076: the INPUT-OUTPUT SECTION is refused (COBOL2644) in a method, the class's own environment division and an interface; admitted in a factory or instance.",
+ "notes": "kb/Work PB1076: the INPUT-OUTPUT SECTION is refused (COBOL2644) in a method, the class's own environment division and an interface; admitted in a factory or instance. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData (kb/Work PB2360 dissolved DataBinder.Oo.cs: the rule is asked by the same code, moved unchanged into the OO binder, the compiler temps or the method name scope)",
  "state": "OK"
 }

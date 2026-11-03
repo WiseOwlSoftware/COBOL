@@ -66,7 +66,7 @@ public sealed class CapacityRegisterReferenceDriftTests
     private static readonly (string File, string Method, string Path)[] ShadowingPredicates =
     [
         ("DataBinder.Constants.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Constants.cs")),
-        ("DataBinder.Oo.cs", "Declares", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Oo.cs")),
+        ("OoMethodDataScope.cs", "Declares", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoMethodDataScope.cs")),
     ];
 
     /// <summary>⛔ A shadowing predicate's file reads a register map ONLY inside the predicate, so a reference lookup

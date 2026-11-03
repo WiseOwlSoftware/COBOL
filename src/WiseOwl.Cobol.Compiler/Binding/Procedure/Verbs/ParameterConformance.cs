@@ -302,7 +302,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
             return false;
         if (ctx.Refs.IsExceptionObjectRegister(dref) || ctx.Refs.ObjectProperties.IsObjectPropertyReference(dref)) return false;
         if (ctx.Refs.Probe(dref) is not { } probe) return true;
-        return probe.NonSectionKind is null && !ctx.Data.OoIsObjectData(probe.Item);
+        return probe.NonSectionKind is null && !ctx.Data.Oo.IsObjectData(probe.Item);
     }
 
     /// <summary>The storage-section rule over a RESOLVED BY REFERENCE argument or RETURNING item — CALL §14.9.4.3

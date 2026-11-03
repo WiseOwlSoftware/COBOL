@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE BY VALUE FORMAL'S CLASS RULE IS WRITTEN ONCE (kb/Work PB1051). ISO §14.2.2 SR2 — "Each data-name-1 specified in
 /// a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer" (cite.py --check
 /// 14.2.2 → OK 14.2.2 2)) — is <c>ProcedureHeaderScreen.ByValueClass</c>; the program/function header arm
-/// (<c>CallBindLinkage</c>) and the METHOD header arm (<c>OoBindMethodData</c>) both ASK it, and neither spells the
+/// (<c>CallBindLinkage</c>) and the METHOD header arm (<c>OoDataBinder.BindMethodData</c>) both ASK it, and neither spells the
 /// class set or the <c>COBOL1553</c> code itself. Before this the program arm held the rule inline and the method arm
 /// refused every BY VALUE formal outright — a second copy of the rule waiting to disagree. Likewise the method formal's
 /// passing mode is compared by the ONE §9.3.8.2.3 rule set (<c>OoConformance.MethodConformanceMismatches</c>, rule 1).
@@ -23,7 +23,7 @@ public sealed class ByValueFormalScreenDriftTests
 
     [Theory]
     [InlineData("Binding", "LinkageBinder.cs")]
-    [InlineData("Binding", "DataBinder.Oo.cs")]
+    [InlineData("Binding", "OoDataBinder.cs")]
     public void EveryHeaderArm_AsksTheOneByValueClassScreen_AndSpellsNoClassSetOfItsOwn(string folder, string file)
     {
         string text = Compiler(folder, file);

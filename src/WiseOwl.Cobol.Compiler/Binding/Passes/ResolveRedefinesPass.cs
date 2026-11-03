@@ -67,7 +67,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 IReadOnlyList<DataItem> scope;
                 if (item.Parent is { } par)
                     scope = par.Children;
-                else if (binder.OoRootOwner.TryGetValue(item.Root, out var mm))
+                else if (binder.Oo.RootOwner.TryGetValue(item.Root, out var mm))
                     // A top-level method redefiner scopes to its OWN section only (§13.18.44.3 SR — the target is a
                     // preceding item in the SAME data description; cross-section LOCAL↔LINKAGE aliasing is illegal,
                     // and their storage classes differ — review B). item.Root
@@ -93,7 +93,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 item.SetRedefinition(DataItem.RedefinedEntry(preceding), RedefinitionKind.Clause);
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
-                if (written && item.RedefinesTarget is null && item.Parent is null && binder.OoRootOwner.ContainsKey(item.Root))
+                if (written && item.RedefinesTarget is null && item.Parent is null && binder.Oo.RootOwner.ContainsKey(item.Root))
                     // 1577, renumbered from a bare "COBOL1518" that collided with the locale-module
                     // non-support meaning (review V11 — the code comes from the catalog descriptor, never a literal).
                     binder.Edition.Error(DiagnosticCatalog.MethodRedefinesScope,

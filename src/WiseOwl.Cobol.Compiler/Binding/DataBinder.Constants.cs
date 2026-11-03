@@ -145,7 +145,7 @@ public sealed partial class DataBinder
     /// <summary>The METHOD whose constants a reference made now reads first: the method whose data division is being
     /// bound, else the method whose statements are (<see cref="ProcedureBindState.ActiveMethodScope"/>); null at program, object,
     /// factory and interface level.</summary>
-    private ConstantScope? MethodConstants => CurrentMethodScope?.Constants;
+    private ConstantScope? MethodConstants => Oo.CurrentMethodScope?.Constants;
 
     /// <summary>⛔ THE ONE ANSWER TO "WHICH ELEMENT'S CONSTANT DOES <paramref name="name"/> NAME HERE?" (kb/Work PB3164;
     /// §11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
@@ -155,14 +155,14 @@ public sealed partial class DataBinder
     /// names); else the containing definition's. Elsewhere, the binder's own table.
     /// <para>The method's other words are its data division's data-names, condition-names and index-names
     /// (<see cref="ConstantScope.OtherWords"/>, declared before its entries bind) and, while its statements bind, every
-    /// name <see cref="ActiveMethodDeclares"/> reaches — among them a method table's named CAPACITY register, which no
+    /// name <see cref="OoDataBinder.ActiveMethodDeclares"/> reaches — among them a method table's named CAPACITY register, which no
     /// data description entry names (§13.18.38.3 SR30; ISO §8.4.6.2.1 3) a); kb/Work PB3154 review R1-1, R2-1).</para></summary>
     private ConstantScope? ConstantScopeOf(string name)
     {
         if (MethodConstants is { } method)
         {
             if (method.Declared.ContainsKey(name)) return method;
-            if (ActiveMethodDeclares(name)) return null;
+            if (Oo.ActiveMethodDeclares(name)) return null;
         }
         return _constants;
     }
@@ -224,7 +224,7 @@ public sealed partial class DataBinder
     /// inherits the whole table from this one (<see cref="InheritConfiguration"/> copies one level), and this unit's
     /// local data-name hides nothing from it.</para>
     /// <para>Every tier a name can be declared at is asked by <see cref="DeclaredNearerThan"/>; a METHOD's own names
-    /// are the one tier nearer still, asked at reference time (<see cref="ActiveMethodDeclares"/>).</para></summary>
+    /// are the one tier nearer still, asked at reference time (<see cref="OoDataBinder.ActiveMethodDeclares"/>).</para></summary>
     internal void DropShadowedConstants()
     {
         foreach (var (name, depth) in _inheritedConstants.ToList())
@@ -247,7 +247,7 @@ public sealed partial class DataBinder
     /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§13.18.38.3 SR30) kept off
     /// <see cref="ByName"/> in <see cref="_capacityRegisters"/>, placed by its table (a METHOD's own register is never
     /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
-    /// <see cref="ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
+    /// <see cref="OoDataBinder.ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
     /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="Reports.SumCounters"/>, placed by its report
     /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
     /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
@@ -330,10 +330,10 @@ public sealed partial class DataBinder
     /// of it binds, and every data description entry's place in its section (<see cref="DeclareDataEntryRuns"/>), so a
     /// reference can name an entry that follows it. A method's entries join the method's own table, beside every other
     /// word its data division defines (<see cref="ConstantScope.OtherWords"/>; §11.7.4 GR5, kb/Work PB3164).</summary>
-    private void DeclareDataEntries(Core.DataDivisionContext? scope)
+    internal void DeclareDataEntries(Core.DataDivisionContext? scope)
     {
         if (scope is null) return;
-        var method = _bindingMethodScope?.Constants;
+        var method = Oo.BindingMethodScope?.Constants;
         bool inTypeDeclaration = false;   // the walk is inside a level-1 TYPEDEF entry's subordinate entries
         foreach (var node in ParseTreeWalk.Descendants(scope))
         {
@@ -371,7 +371,7 @@ public sealed partial class DataBinder
         Core.DataNameContext? nameCtx, Core.ConstantEntryBodyContext body)
     {
         if (_constantByBody.TryGetValue(body, out var known)) return known;
-        var scope = _bindingMethodScope?.Constants ?? _constants;
+        var scope = Oo.BindingMethodScope?.Constants ?? _constants;
         var d = new DeclaredConstant(entry, level, nameCtx, body, scope);
         _constantByBody[body] = d;
         if (nameCtx?.GetText() is { } name && !CobolNames.Same(name, "FILLER"))
@@ -386,7 +386,7 @@ public sealed partial class DataBinder
     /// <summary>Bind every constant entry nothing has bound yet — the last step of the data division's bind, so the
     /// procedure division and every contained program see a complete table. A length phrase still waiting for its
     /// operand is decided now: its operand is bound by this point, or it is not defined.</summary>
-    private void BindRemainingConstants()
+    internal void BindRemainingConstants()
     {
         foreach (var d in _constantByBody.Values.ToList())
             if (d.State is not ConstantBindState.Finished) BindDeclaredConstant(d, demanded: true);

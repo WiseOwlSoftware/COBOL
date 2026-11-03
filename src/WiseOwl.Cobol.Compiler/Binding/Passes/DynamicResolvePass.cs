@@ -192,7 +192,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // the one refused. This used to be a hand-written file-name scan beside the data-name test.
             // (A method's word lands in the method's own census — the funnel reads it off the declaration scope.)
             if (methodScope is null) binder.DeclareUserWord(capName, UserWordKind.DataName);
-            else using (binder.EnterMethodDeclarations(methodScope)) binder.DeclareUserWord(capName, UserWordKind.DataName);
+            else using (binder.Oo.EnterMethodDeclarations(methodScope)) binder.DeclareUserWord(capName, UserWordKind.DataName);
             binder.AddCapacityRegister(registers, capName, item);
         }
     }

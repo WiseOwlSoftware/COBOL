@@ -1710,11 +1710,11 @@ type): cloned + re-registered. (5) recursion/placement guards. **This also fixes
 **Mechanism.** `DataItem` gains `TypeName`/`StrongType`. A Pass-0 **`CollectTypeDecls`** (in `BindDeclarations`, before
 `BindEntries`) builds each TYPEDEF template (fresh `Uid`s, `Parent`/`Children`, but NO `Roots.Add`/`RegisterName`) and
 returns the consumed entries so the main pass SKIPS them. A recursive **`CloneSubtree`/`CloneItem`** (generalizes the
-flat `CreateCompilerTemp`, `DataBinder.Oo.cs:362`): a fresh `Uid` per node (CRITICAL — `StructName`/`ProfileName` ride
+flat `CompilerTemps.Create`, `CompilerTemps.cs`): a fresh `Uid` per node (CRITICAL — `StructName`/`ProfileName` ride
 on it), shares the immutable `Pic`, copies the description fields, re-uniquifies `ClrName` in the NEW scope, and DOES
 `RegisterName` (clones ARE referenceable, unlike the template). **`ExpandType`** runs inside `BindEntries` right after
 an item is placed (so the clone is in the forest BEFORE `BindResolve` — every post-build pass sees it automatically,
-the same invariant `CreateCompilerTemp` relies on). STRONG equivalence: `StrongTypeModel.StrongRoot` (walk
+the same invariant `CompilerTemps.Create` relies on). STRONG equivalence: `StrongTypeModel.StrongRoot` (walk
 to the outermost `StrongType` ancestor) + `SameType(a,b)` — ISO §8.5.3.1's own two alternatives over
 `EquivalentTypeDeclarations` — checked in `BindMove` (`CheckStrongMove`) / `CheckedRelational` (the ONE relation
 chokepoint) / the class-condition arm (`CheckClassConditionOperand`) / `OoConformance` (the activation boundary).
@@ -1876,7 +1876,7 @@ never per declaration (§13.18.58.4 GR2).
 
 **RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached
 resolved items); `INDEXED BY` in a TYPEDEF used ≥2× — RESOLVED (kb/Work PB919: per-declaration index cells); method/OO-scope
-typedefs are program/global-scope-first (the `OoRootOwner` parallel forest → staged loud follow-up). §13.18.57.4
+typedefs are program/global-scope-first (the `OoDataBinder.RootOwner` parallel forest → staged loud follow-up). §13.18.57.4
 GR2 d) (a group-typed subject "is aligned as though it were a level 1 item") is carried by
 `DataItem.AlignedAsLevelOne` into the one bit-placement predicate `BitLayout.SharesByteWith` — bit alignment is the
 only level-1 placement WiseOwl COBOL has, since it inserts no word-boundary slack at any level (§8.5.1.6.4; kb/Work
@@ -1912,7 +1912,7 @@ shape it could read term by term.
 **The decision.** Materialize what §15.4 already describes. Bind the function through the ONE function pipeline
 (`IntrinsicBinder.BindIntrinsicCore` — shared by the FUNCTION-keyword form, the keyword-omitted re-parse and every
 nested recursion, so a USER-defined function in a subscript falls out of the same change); synthesize the temp via
-`DataBinder.CreateCompilerTemp`, already "THE ONE synthesized-compiler-temp constructor"; register a statement-scoped
+`CompilerTemps.Create`, already "THE ONE synthesized-compiler-temp constructor"; register a statement-scoped
 pending PRE-op drained at the `BindStatement` chokepoint — the mark-on-entry / drain-own-suffix protocol that
 ALREADY serves two clients (`Udf.Mark`, `data.Procedure.PropertyOps`). The subscript segment then renders
 as an ordinary data-name through the existing `ResolveSubscriptName`.

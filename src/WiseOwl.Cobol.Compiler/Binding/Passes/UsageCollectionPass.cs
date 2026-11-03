@@ -49,7 +49,7 @@ internal static class UsageCollectionPass
             Collect(cls.FactoryData, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
             // ⛔ An ELEMENTARY method formal is a character channel's far end — the method twin of Collect's
             // Linkage.Formals arm (kb/Work PB1064; PB992 built the program arm). Every method formal is BY REFERENCE
-            // (the METHOD-side BY VALUE phrase is refused, DataBinder.Oo), so §14.2.3 GR8's "as if the formal parameter
+            // (the METHOD-side BY VALUE phrase is refused, OoDataBinder.BindMethodData), so §14.2.3 GR8's "as if the formal parameter
             // occupies the same storage area as the argument" holds for each: the characters an argument carries into
             // it, or a group MOVE leaves in it for the argument, may be ones no numeric VALUE represents.
             AddFormalChannels(cls.Data, cls.Symbol.Methods);

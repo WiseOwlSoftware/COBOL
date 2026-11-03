@@ -45,7 +45,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
         bool ok = true;
 
         // SR1, second sentence.
-        if (ctx.Data.OoIsObjectData(item))
+        if (ctx.Data.Oo.IsObjectData(item))
         {
             Report(DiagnosticCatalog.AddressOfObjectData, text,
                 "is defined in the working-storage or file section of an object or a factory object, so it shall not "

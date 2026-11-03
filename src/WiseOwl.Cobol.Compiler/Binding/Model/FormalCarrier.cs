@@ -29,7 +29,7 @@ public abstract record FormalCarrier
     }
 
     /// <summary>The METHOD arm: the method's carrier local, <paramref name="Carrier"/> (<c>OoFormal.Carrier</c>, a
-    /// <see cref="StatementLocalRole.MethodFormalCarrier"/> local set by <c>DataBinder.OoBindMethodData</c>).</summary>
+    /// <see cref="StatementLocalRole.MethodFormalCarrier"/> local set by <c>OoDataBinder.BindMethodData</c>).</summary>
     public sealed record Local(MethodLocal Carrier) : FormalCarrier
     {
         /// <inheritdoc/>

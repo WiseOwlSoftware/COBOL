@@ -789,7 +789,7 @@ public sealed class DataItem
     /// <see cref="CarrierValueSegment"/> (<c>PlaceBuilder.AddRoot</c>), so the access is structure,
     /// <see cref="ClrName"/> stays a name (kb/Work PB4320) and no C# local's name sits on the model (kb/Work PB4380;
     /// DESIGN-backend-abstraction §1.3 L7, L8). Set by <c>LinkageBinder.CallBindLinkage</c> and
-    /// <c>DataBinder.OoBindMethodData</c>.</summary>
+    /// <c>OoDataBinder.BindMethodData</c>.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
     public FormalCarrier? ResidentCarrier { get; set; }
@@ -803,7 +803,7 @@ public sealed class DataItem
     /// §1.3 L8). A root whose storage is elsewhere never roots a path here: a carrier-resident formal's is its carrier's
     /// (<see cref="ResidentCarrier"/>, asked first), a Tier-B REDEFINES member's is its class's backing
     /// (<see cref="RedefinesClass.BackingLocal"/>) or cell, and a Tier-A view's is its canonical's. Set by
-    /// <c>DataBinder.OoBindMethodData</c>.</summary>
+    /// <c>OoDataBinder.BindMethodData</c>.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a fact of the method that declares the root (where its storage lives), not of the data description")]
     public MethodLocal? ActivationLocal { get; set; }
@@ -854,7 +854,7 @@ public sealed class DataItem
     /// <summary>The PROPERTY clause as written on this entry (ISO §13.18.42), or null (kb/Work PB1273). Set by
     /// <c>DataBinder.BindEntry</c>, which also asks §13.18.42.3 SR1's placement; the clause's other syntax rules are
     /// asked of THIS item — never of a name lookup — by the clause-placement table (SR3's elementary half, §13.16.3
-    /// SR21) and <c>DataBinder.OoBindPropertyClauses</c> (SR2, SR3's qualification half, SR4, SR5, SR6), which then
+    /// SR21) and <c>OoDataBinder.BindPropertyClauses</c> (SR2, SR3's qualification half, SR4, SR5, SR6), which then
     /// synthesizes the accessors (§13.18.42.4 GR1/GR2).</summary>
     [DescriptionCopy(DescriptionCopyKind.EntryOnly,
         "PROPERTY (ISO §13.18.42) is in neither GR-1 exclusion list (§13.18.57.4 GR1, §13.18.49.4 GR1), so a TYPE / SAME AS subject or a reproduced TYPEDEF member written in an object's working storage defines the property its own entry would; §13.18.42.3 then judges the copy at its own site. Not onto a compiler temporary: a temporary is never object data and defines no accessor method")]
@@ -863,7 +863,7 @@ public sealed class DataItem
     /// <summary>True for an ANY LENGTH elementary level-1 LINKAGE entry (ISO §13.18.2 — the item's length varies
     /// at runtime and is the length of the corresponding argument of the activating element, GR1; PICTURE is
     /// exactly one 'X', 'N', or '1', SR1). Set by <c>DataBinder.BindEntry</c> after the SR1/§13.16.3-SR17 shape
-    /// checks; CLEARED by the placement sweeps (<c>CallBindLinkage</c> / <c>OoBindMethodData</c>) on an SR2/SR3/SR4
+    /// checks; CLEARED by the placement sweeps (<c>CallBindLinkage</c> / <c>OoDataBinder.BindMethodData</c>) on an SR2/SR3/SR4
     /// violation so the item binds as ordinary storage under an already-failed compile (the IsBased pattern).
     /// Emit-side: every width-sensitive render of the item uses the CARRIER's runtime length, never Pic.Length.</summary>
     [DescriptionCopy(DescriptionCopyKind.EntryOnly,
@@ -1037,7 +1037,7 @@ public sealed class DataItem
     public EntrySection? RootSection { get; set; }
 
     /// <summary>True for a SYNTHESIZED compiler temp (a user-function result temp or an object-property temp —
-    /// <c>DataBinder.CreateCompilerTemp</c>, THE ONE constructor, sets it). A temp wears the same bound shapes
+    /// <c>CompilerTemps.Create</c>, THE ONE constructor, sets it). A temp wears the same bound shapes
     /// as declared data, so a rule whose text admits "a data item" and excludes functions (§15.43.3 r1's shape —
     /// §8.5.2.12 items 6/7 make FUNCTIONS category numeric too, which is why the exclusion must be written)
     /// needs this positive is-a-declared-item discrimination (kb/Work R26).</summary>

@@ -65,7 +65,7 @@ public sealed partial class DataBinder
     /// field is named by none of them.</summary>
     internal CellLifetime LifetimeOfCell(string cellField, DataItem canonical) =>
         StaticAddressableCells.Contains(cellField) ? CellLifetime.Static
-        : OoMethodScopedRoots.Contains(canonical) || LocalStorageRoots.Contains(canonical)
+        : Oo.MethodScopedRoots.Contains(canonical) || LocalStorageRoots.Contains(canonical)
           || Linkage.Roots.Contains(canonical) ? CellLifetime.Activation
         : CellLifetime.Instance;
 

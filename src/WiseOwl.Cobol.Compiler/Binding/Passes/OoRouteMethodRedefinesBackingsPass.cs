@@ -24,5 +24,5 @@ internal sealed class OoRouteMethodRedefinesBackingsPass : IBindPass
     public PassViews Views => PassViews.None;
 
     /// <inheritdoc/>
-    public void Run(DataBinder binder) => binder.OoRouteMethodRedefinesBackings();
+    public void Run(DataBinder binder) => binder.Oo.RouteMethodRedefinesBackings();
 }

@@ -845,7 +845,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // The CALL's receivers -- each BY REFERENCE argument and the RETURNING item -- are identified at its start
         // (§14.9.4.4 GR3 a)) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
         // object-property receiver's accessors there (kb/Work PB2078).
-        ctx.Data.OoClaimInterleavedReceiver(BoundCallProgram.Receivers(args, returning));
+        ctx.Data.Procedure.ClaimInterleavedReceiver(BoundCallProgram.Receivers(args, returning));
         return new BoundCallProgram(literalName, dynamicName, args, returning, onExc, notOnExc)
         {
             UsedOverflowSpelling = usedOverflow,
@@ -1385,7 +1385,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 + (formatTwo ? "(ISO §14.9.4.3 SR18)" : "(ISO §14.9.4.3 SR11)"));
 
         // SR3 sentence 2: BY REFERENCE (specified or implied) shall not carry factory/instance object data.
-        if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.OoIsObjectData(item))
+        if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.Oo.IsObjectData(item))
             ctx.Edition.Error(DiagnosticCatalog.CallByReferenceObjectData,
                 $"CALL USING BY REFERENCE '{name}': identifier-2 shall not be defined in the working-storage "
                 + "or file section of a factory or an instance object (ISO §14.9.4.3 SR3)");

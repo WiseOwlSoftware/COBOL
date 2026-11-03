@@ -450,7 +450,7 @@ internal sealed class LinkageBinder(DataBinder data)
 
     /// <summary>The ANY LENGTH placement sweep of this unit's forest (ISO §13.18.2.3 SR2/SR3/SR4) — runs at the
     /// end of <see cref="CallBindLinkage"/>, when the unit's sections AND its PD-header formals are bound but no
-    /// method data has (methods sweep in <c>OoBindMethodData</c>). SR2: an elementary level-1 LINKAGE entry of a
+    /// method data has (methods sweep in <c>OoDataBinder.BindMethodData</c>). SR2: an elementary level-1 LINKAGE entry of a
     /// FUNCTION or a CONTAINED program — never an outermost program (the §13.18.2.3 NOTE: a prototype-less CALL
     /// cannot associate arguments with an ANY LENGTH formal) and never the object/factory paragraph of a class.
     /// SR3 (contained program): referenced in the PD header as a formal WITH THE BY REFERENCE PHRASE (stated
@@ -471,9 +471,9 @@ internal sealed class LinkageBinder(DataBinder data)
             else if (root.IsGroup)
                 data.Edition.Error("COBOL1542", $"{where}: the subject of an ANY LENGTH clause shall be "
                     + "ELEMENTARY — this entry has subordinate items (ISO §13.18.2.3 SR2)");
-            else if (data.OoIsClassUnit)
+            else if (data.Oo.IsClassUnit)
                 // This binder's own LINKAGE is the OBJECT/FACTORY paragraph's, never a method's (method
-                // linkage binds via OoBindMethodData into OoMethodBinding._roots, swept there).
+                // linkage binds via OoDataBinder.BindMethodData into OoMethodBinding.LinkageRoots, swept there).
                 data.Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in the "
                     + "linkage section of a function, a contained program, or a method that is not a property "
                     + "method — not in a factory or instance definition (ISO §13.18.2.3 SR2)");
@@ -506,7 +506,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// <summary>The LINKAGE records the procedure division may NOT reference (ISO §13.7.3 SR4), keyed by identity — the
     /// roots left over once every a)–e) leg has been asked. Empty for a unit whose linkage is all referenceable, so
     /// the per-reference question is one count test. Sealed by <see cref="SealLinkageRules"/> for a program or
-    /// function (<see cref="CallBindLinkage"/>) and for each method (<c>OoBindMethodData</c>).</summary>
+    /// function (<see cref="CallBindLinkage"/>) and for each method (<c>OoDataBinder.BindMethodData</c>).</summary>
     private readonly HashSet<DataItem> _unreferenceableLinkageRoots = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>A FUNCTION's formal parameters (ISO §13.7.3 SR5), keyed by identity.</summary>
@@ -515,7 +515,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// <summary>⛔ THE ONE PLACE §13.7.3 SR4 AND SR5 ARE DECIDED (kb/Work PB1249 / PB1250), from the facts every header
     /// arm knows once its USING and RETURNING phrases are bound: the unit's linkage roots, its formal operands and its
     /// RETURNING item. Called by the program/function arm (<see cref="CallBindLinkage"/>) and the method arm
-    /// (<c>OoBindMethodData</c>), so the two cannot disagree.
+    /// (<c>OoDataBinder.BindMethodData</c>), so the two cannot disagree.
     /// <para>SR4 is per RECORD, because a), b) and d) are all "is, or is under, X": a root is referenceable when it is a
     /// header operand (a)), BASED ("a based data item may be referenced as described in 13.18.5"), or defined with a
     /// REDEFINES whose object is referenceable (c)); everything beneath it (b), d)), its RENAMES entries (c)) and its

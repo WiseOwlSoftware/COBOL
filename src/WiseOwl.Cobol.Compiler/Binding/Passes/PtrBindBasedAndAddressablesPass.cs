@@ -66,7 +66,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // A METHOD's formals take the same rule (the method arm, kb/Work PB2087): the pointer is the formal's per-activation
         // data-address member (OoFormal.AreaPointerClrName), set at each activation to the argument's area.
         var areaFormals = binder.Linkage.Formals.Where(f => !f.CarrierResident).Select(f => (f.Item, Pointer: f.CarrierField))
-            .Concat(binder.OoBoundMethods.SelectMany(m => m.Binding?.Formals ?? []).Where(f => !f.CarrierResident)
+            .Concat(binder.Oo.BoundMethods.SelectMany(m => m.Binding?.Formals ?? []).Where(f => !f.CarrierResident)
                 .Select(f => (f.Item, Pointer: f.AreaPointerClrName)));
         foreach (var (item, pointer) in areaFormals)
         {
@@ -127,8 +127,8 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // §8.4.6.6: a REPOSITORY function-prototype-name or the containing FUNCTION definition's own name — a program's
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
         bool IsUserFunction(string fn) => binder.UserFunctionNames.Contains(fn) || binder.UnitIsFunction && binder.ContainingDefinitionNames.Contains(fn);
-        var own = binder.OoIsClassUnit
-            ? binder.OoBoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
+        var own = binder.Oo.IsClassUnit
+            ? binder.Oo.BoundMethods.Where(m => m.Ctx?.procedureDivision() is not null)
                 .SelectMany(m => binder.ClaimScans.ByReferenceOperands(m.Ctx!.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
             : program.procedureDivision() is { } opd
                 ? binder.ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
@@ -150,7 +150,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             // Object data never crosses an INVOKE BY REFERENCE (§14.9.23.3 SR10: "Identifier-3 shall not reference a data
             // item defined in the file or working-storage section of a factory or instance object"), so a bare one is
             // passed BY CONTENT (GR6 a) 2.) and needs no cell.
-            if (invoke && binder.OoIsObjectData(root)) continue;
+            if (invoke && binder.Oo.IsObjectData(root)) continue;
             if (binder.ForceStringCanonical(root, "BY REFERENCE operand") is { } cls) binder.ClaimAddressableCell(cls);
         }
 
@@ -158,7 +158,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // group with an object-reference or pointer leaf is delivered as its AREA (§14.6.5 — "the content of the data item
         // referenced by that RETURNING phrase"; CobolArgAdapt.StoreReturnArea), its characters and its references into the
         // receiver's area, so the item itself lives in a cell.
-        if (!binder.OoIsClassUnit && binder.Linkage.Returning is { } ret)
+        if (!binder.Oo.IsClassUnit && binder.Linkage.Returning is { } ret)
             binder.ClaimSlotCarriedCell(ret, "RETURNING item");
     }
 
@@ -217,9 +217,9 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // A CLASS unit's statements live in its METHODS' procedure divisions — the synthetic unit OoDriver
         // binds carries the data divisions only — so each method body is scanned and its targets carry the
         // method whose scope resolves them (kb/Work PB956).
-        if (binder.OoIsClassUnit)
+        if (binder.Oo.IsClassUnit)
         {
-            foreach (var m in binder.OoBoundMethods)
+            foreach (var m in binder.Oo.BoundMethods)
                 if (m.Ctx?.procedureDivision() is { } mpd)
                     foreach (var (n, q) in binder.ClaimScans.AddressTargets(mpd))
                         yield return (n, q, m);

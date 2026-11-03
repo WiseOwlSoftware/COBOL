@@ -48,12 +48,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private static Place MethodRootPlace(DataItem root) =>
         new MemberPlace(new AccessPath([new LocalRootSegment(ActivationLocalOf(root))]), root);
 
-    /// <summary>The local that holds a METHOD root's own storage, the identity <c>DataBinder.OoBindMethodData</c> gave it
+    /// <summary>The local that holds a METHOD root's own storage, the identity <c>OoDataBinder.BindMethodData</c> gave it
     /// (ISO §8.6.4; kb/Work PB4416). Its declaration and every read spell it through <see cref="LocalNames.Of"/>, so they
     /// cannot name two locals.</summary>
     private static MethodLocal ActivationLocalOf(DataItem root) =>
         root.ActivationLocal ?? throw new InvalidOperationException(
-            $"OO method: the data root '{root.CobolName}' carries no activation local (DataBinder.OoBindMethodData sets one on every method root)");
+            $"OO method: the data root '{root.CobolName}' carries no activation local (OoDataBinder.BindMethodData sets one on every method root)");
 
     /// <summary>The declaration of a METHOD Tier-B REDEFINES canonical's string backing local, or null when
     /// <paramref name="root"/> is no such canonical (<see cref="DataEmitter.MethodRedefinesBackingDecl"/>): its initializer,
@@ -1257,7 +1257,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     // `01 G. 05 P USAGE POINTER. 05 A PIC X(4).` as a formal failed BACKEND compilation with
                     // CS1061 — `RecordStructEmitter` emits the codec for exactly `ElementImageCapable` items and
                     // a POINTER leaf is in neither of its category lists. Nothing invoked the method: the bind
-                    // side (`DataBinder.Oo`) applies no image screen and the relations' description of such a
+                    // side (`OoDataBinder`) applies no image screen and the relations' description of such a
                     // group (`ActivationDescriptions.Of` answers none) is asked only when an INVOKE or an
                     // override/implements PAIR exists, so a merely-DECLARED method must not emit uncompilable C#.
                     w.Line($"{type} {local} = {init};   // LINKAGE formal {root.CobolName} (group — image crossing)");

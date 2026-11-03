@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// ⛔ THE ONE SCREEN OF A PROCEDURE DIVISION HEADER'S FORMAL PARAMETERS AND RETURNING ITEM (kb/Work PB1145) — the rules
 /// of ISO §14.2.2 SR1 / SR5 / SR6 and the §14.2.1 using-phrase format, asked once for every source element that has
-/// such a header: <c>LinkageBinder.CallBindLinkage</c> (program and function) and <c>DataBinder.OoBindMethodData</c>
+/// such a header: <c>LinkageBinder.CallBindLinkage</c> (program and function) and <c>OoDataBinder.BindMethodData</c>
 /// (method) each used to carry a private, DIFFERENT subset — the program arm checked REDEFINES / BASED on USING items
 /// only, the method arm neither, and neither recorded which names it had already seen, so
 /// <c>USING A A</c> reached the backend as a duplicate member (CS0102) and a REDEFINES / BASED formal reached it as a

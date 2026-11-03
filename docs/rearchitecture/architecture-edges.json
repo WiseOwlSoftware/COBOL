@@ -389,7 +389,7 @@
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.CodeGen",
       "uses": 4,
-      "walkUses": 3,
+      "walkUses": 2,
       "removedBy": [
         "PB2395"
       ],
@@ -398,13 +398,6 @@
         {
           "from": "WiseOwl.Cobol.Binding.DataBinder",
           "to": "WiseOwl.Cobol.CodeGen.FigurativeConstants",
-          "removedBy": [
-            "PB2395"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.DataBinder",
-          "to": "WiseOwl.Cobol.CodeGen.PlaceIdentification",
           "removedBy": [
             "PB2395"
           ]
@@ -583,7 +576,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 39,
-      "walkUses": 45,
+      "walkUses": 47,
       "removedBy": [
         "PB2347",
         "PB2419",
@@ -932,6 +925,20 @@
           "removedBy": [
             "PB2347",
             "PB2420"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.CompilerTemps",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.OoDataBinder",
+          "removedBy": [
+            "PB2347"
           ]
         }
       ]

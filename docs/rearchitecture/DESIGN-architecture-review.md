@@ -1052,10 +1052,10 @@ methods (at the census, `BindPipeline.Build` registered its `BindPass` rows as l
 `Binding/Passes/<Name>Pass.cs`, from `SynthesizeImpliedPicturesPass` to `MarkFileRecordImageLeavesPass`, listed in order by
 `BindPipeline.Build`; a pass class holds its name, its phase contract, its `PassViews` and the rule code only it asks (its
 exclusive call closure on the binder moved with it; the rule code another asker shares stays on the binder until that asker's
-concern binder lands). Four rows keep their rule code with a concern binder that has not landed yet and only schedule it
-(`ResolveFiles` for `FileControlBinder`, `ResolveReports` for `ReportSectionBinder`, `CallBindExternalAndGlobal` for
-`LinkageBinder`, `OoRouteMethodRedefinesBackings` for `OoDataBinder`; `BindPassBoundaryDriftTests` names them and fails when
-one lands). The rows run under the
+concern binder lands). One row keeps its rule code with a concern binder that has not landed yet and only schedules it
+(`ResolveFiles` for `FileControlBinder`; `BindPassBoundaryDriftTests` names it and fails when it lands; the rows
+`ResolveReports`, `CallBindExternalAndGlobal` and `OoRouteMethodRedefinesBackings` left that list when `ReportSectionBinder`,
+`LinkageBinder` and `OoDataBinder` landed, and now call them). The rows run under the
 `PassPhase` watermark (`Passes/IBindPass.cs:23`: None, TypesExpanded, UsageResolved, SignResolved,
 RedefinesClassified, StrongTypeChecked, OccursResolved, FilesResolved, ProcedureBound, UsageCollected, StorageComputed,
 EditionConformanceChecked); §12.3's configuration facts ("The configuration section specifies aspects of the data
@@ -1093,12 +1093,12 @@ no word for:
   sentences and restored after (`Bound/StatementBinder.cs:350-374`; §11.9.4 GR1, kb/Work PB135), and read per
   statement (`ExpressionBinder.cs:703`, the default rounding; `IntrinsicBinder.cs:2598`, the arithmetic mode). Frozen
   as a value slice, a method's bare ROUNDED would take the class's mode: different emitted C#, and a wrong answer;
-- an **ordered drain queue**: `PendingPreOps` and `OoPendingPropertyOps` (`DataBinder.Oo.cs:583,609`) are
+- an **ordered drain queue**: `PendingPreOps` and `PropertyOps` (`Binding/OoPendingPropertyOp.cs`, the queue's entry type) are
   statement-scoped, mark-on-entry and drain-own-suffix: a statement marks the count when it starts binding and takes
   only the entries registered after its mark, removing them (`ReferenceResolver.ObjectProperty.cs:266`, `RemoveRange`),
   so a reference in an IF condition belongs to the IF, not to an arm that binds later; neither append-only nor frozen;
 - a **scope cursor**: `OperandEvaluations` is saved, zeroed and restored around each statement
-  (`StatementBinder.cs:432-498`), and `ActiveMethodScope` is set per procedure-table entry (`DataBinder.Oo.cs:44`,
+  (`StatementBinder.cs:432-498`), and `ActiveMethodScope` is set per procedure-table entry (`Binding/OoMethodDataScope.cs`, the scope it holds;
   `BinderContext.cs:150`).
 And around a unit's data phases `BinderDriver` writes three more kinds of state, none of them an `IBindPass` (R1
 Draft 6 re-modelled them from the code after the fifth refuter, G2):
@@ -1326,7 +1326,25 @@ the cell-backing forcer (`ForceStringCanonical`, `CellCanCarry`, `AssignCellComp
 beside the BASED / ADDRESS OF claims that are its other callers. `LinkageBinderBoundaryDriftTests` pins that the views
 are read-only and that the data binder declares no member of a linkage fact type.
 *Seam:* `IBindPass` over its declared views (value slices and fact sets), `ProcedureBindState`'s three shapes, and
-`DataBindResult`; step 1 (PB2296) carries every field named above. *Steps:* PB2296,
+`DataBindResult`; step 1 (PB2296) carries every field named above.
+*Step 10 (PB2360), `OoDataBinder`, as built.* `DataBinder.Oo.cs` is gone. `Binding/OoDataBinder.cs` holds a class unit's
+OO half, one per binder (`DataBinder.Oo`, made from the init-only `DataBinder.OoRole` the driver sets): the method roster
+(`BoundMethods`), the method-scoped roots, the root-to-method owner map (`RootOwner`), the method declaration context
+(`BindingMethodScope`, `BindingMethod`, `EnterMethodDeclarations`), `BindMethodData` (a method's LINKAGE and
+LOCAL-STORAGE, its header formals), `BindPropertyClauses`, `BindObjectRefDescriptor` and the class-member-name
+reservation. It asks the binder for the entry binding every element kind shares (`BindEntries`, `DeclareDataEntries`,
+`BindRemainingConstants`, `CompleteDescriptionAhead`, `SealLinkageRules`, now `internal`). What the partial held that is
+not OO went to its own home: `Binding/OoMethodDataScope.cs` (the per-method name scope), `Binding/CompilerTemps.cs`
+(`DataBinder.Temps`: THE ONE constructor of a compiler temporary, the object-reference families that go through it, and
+the clone pairs `StorageFormPass` re-syncs), `Binding/OoPendingPropertyOp.cs` (the entry type of
+`ProcedureBindState.PropertyOps`), `ProcedureBindState.ClaimInterleavedReceiver` and `MoveBinder.ReceiverOpensAtRunTime`
+(the receiver claims, whose one asker is MOVE). The scope-aware resolver's four accessors (`Symbols`, `ActiveScope`,
+`ScopeOf`, `NameScopeOf`), the four static-storage channels (`StaticRootFields` and its three siblings, with
+`IsStaticMember`) and `IndexDeclarationsUnder` moved, text unchanged, into `DataBinder.cs`: the static channels are
+written by `RouteStaticUnitStorage`, a FilesResolved pass (PB2354), which takes them with it.
+`OoDataBinderBoundaryDriftTests` pins the boundary (no `DataBinder.Oo*` partial or member beyond the door; one maker of
+the OO binder; one constructor of a compiler temporary). The tolerated edge row `Bound -> Binding` grew two pairs
+(`StatementBinder -> OoDataBinder`, `-> CompilerTemps`), removed by PB2347 with the rest of its pairs. *Steps:* PB2296,
 PB2352–PB2361.
 
 **(2) `WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog`** — R0-0002: `public static readonly DiagnosticDescriptor`

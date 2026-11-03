@@ -135,7 +135,7 @@ public sealed class ModelAccessStructureTests
     {
         var comp = RepositoryCodecTests.Bind(MethodSource, 2023);
         var cls = comp.ClassUnits.Single(c => c.Name == "PB4380K");
-        var formal = cls.Data.OoBoundMethods.Single().Binding!.Formals.Single();
+        var formal = cls.Data.Oo.BoundMethods.Single().Binding!.Formals.Single();
         Assert.True(formal.CarrierResident);
         var carrier = new StatementLocal(StatementLocalRole.MethodFormalCarrier, formal.Item.Uid);
         Assert.Equal(new FormalCarrier.Local(carrier), formal.Item.ResidentCarrier);
@@ -190,7 +190,7 @@ public sealed class ModelAccessStructureTests
     {
         var comp = RepositoryCodecTests.Bind(MethodDataSource, 2023);
         var cls = comp.ClassUnits.Single(c => c.Name == "PB4416K");
-        var method = cls.Data.OoBoundMethods.Single().Binding!;
+        var method = cls.Data.Oo.BoundMethods.Single().Binding!;
         var roots = method.LocalRoots.Concat(method.LinkageRoots).ToList();
         Assert.Equal(["LS-G", "LS-R", "LS-V", "L-F", "L-U", "L-R"], roots.Select(r => r.CobolName));
         Assert.All(roots, r => Assert.Equal(new MethodDataLocal(r), r.ActivationLocal));

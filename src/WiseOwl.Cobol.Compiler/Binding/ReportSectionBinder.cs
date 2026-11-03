@@ -84,7 +84,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 At = Edition.Cursor,   // positioned at the RD by the `using var _ = Edition.At(rd)` above
                 WrittenEntries = rd.reportGroupEntry(),
                 CsIndex = _scope.Declared.Count,
-                Uid = _d.NextUid(),
+                Uid = _d.TakeUid(),
                 // §8.4.3.15.4 GR1 — the counter exists per REPORT, so its register is built here, once, with the
                 // RD (kb/Work PB429). The SUM counter's Register is built the same way a few hundred lines below.
                 PageCounterRegister = new DataItem
@@ -94,7 +94,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     CobolName = "PAGE-COUNTER",
                     ClrName = $"__pagectr_{_scope.Declared.Count}",
                     Pic = PicInfo.ReportCounterItem(),
-                    Uid = _d.NextUid(),
+                    Uid = _d.TakeUid(),
                 },
             };
             BindReportDescriptionClauses(rd, model);
@@ -1537,7 +1537,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Name = spec.cobolWord().GetText(),
                 FromCtx = spec.FROM() is not null ? spec.arithmeticExpression(0) : null,
                 ByCtx = byCtx,
-                Uid = _d.NextUid(),
+                Uid = _d.TakeUid(),
                 Entry = ge,
                 Enclosing = enclosing,
                 Recurrent = byCtx is not null && names.Any(n => HasWord(byCtx, n)),
@@ -2239,7 +2239,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         + $"'{entryName ?? "FILLER"}': the SOURCE clause specifies an arithmetic-expression or the "
                         + $"ROUNDED phrase, so the entry shall define a numeric or numeric-edited data item (ISO "
                         + $"§13.18.53.3 SR3); its PICTURE '{picText}' describes a {pic.Category} item.");
-                int uid = _d.NextUid();
+                int uid = _d.TakeUid();
                 var item = new DataItem
                 {
                     Level = level,
@@ -2806,7 +2806,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Occurs = st.Repetitions[k].Spec.Max,
                 Parent = parent,
             };
-            level.Uid = _d.NextUid();
+            level.Uid = _d.TakeUid();
             parent = level;
         }
         var family = new ReportSumFamily
@@ -2832,7 +2832,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic), sumScale),
                 Occurs = columnCount > 1 ? columnCount : null,
                 Parent = parent,
-                Uid = _d.NextUid(),
+                Uid = _d.TakeUid(),
             },
             // Preserve a floating-point-edited / national-edited PICTURE gate for the post-bind GateData report-Sums
             // walk (this PicInfo is otherwise discarded — only Scale is used — so the 0900 would drop; DEVLOG 740).

@@ -36,7 +36,7 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
     /// tier-overwrite seam) so Tier-B backings, EXTERNAL re-basing, and BASED/ADDRESS-OF forcing are settled:
     /// <list type="bullet">
     /// <item>a Tier-B StringCanonical WS root → its ONE string backing goes static (the OO
-    ///   <see cref="DataBinder.OoRouteMethodRedefinesBackings"/> twin), plus the root's own name (harmless when the
+    ///   <see cref="OoDataBinder.RouteMethodRedefinesBackings"/> twin), plus the root's own name (harmless when the
     ///   physical is the backing — membership is tested per emitted field name);</item>
     /// <item>an EXTERNAL WS record stays OFF the channel — it is run-unit storage on the ExternalStore
     ///   (§8.6.7; §14.6.2.3.3 external data is ALWAYS last-used), reached through a ref-bridge, never a

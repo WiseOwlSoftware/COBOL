@@ -2173,7 +2173,7 @@ public sealed record ReceiverBracket(DataItem Temp, IReadOnlyList<BoundStatement
 /// ACTIVATIONS: <c>EcBinder</c> stamps and queries them through this node exactly as through a
 /// <see cref="BoundSequence"/> step, and the emitters that loop over a statement's receivers
 /// (<c>ReceiverBracketEmitter.Receive</c>) place them. Created by <c>OoBinder.OoWrapPropertyOps</c> for the
-/// properties a binder CLAIMED as receivers of such a statement (<c>DataBinder.OoClaimInterleavedReceiver</c>); the
+/// properties a binder CLAIMED as receivers of such a statement (<c>ProcedureBindState.ClaimInterleavedReceiver</c>); the
 /// emitter fails loudly when a claimed bracket is never placed, so a receiver loop that forgets <c>Receive</c> cannot
 /// silently drop a GET or a SET.</para></summary>
 public sealed record BoundReceiverBrackets(BoundStatement Inner, IReadOnlyList<ReceiverBracket> Brackets) : BoundStatement
