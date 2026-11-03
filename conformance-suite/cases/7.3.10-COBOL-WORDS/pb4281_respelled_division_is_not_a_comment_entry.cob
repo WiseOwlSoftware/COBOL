@@ -2,6 +2,7 @@
       *> id: pb4281_respelled_division_is_not_a_comment_entry
       *> rules: [GR-7.3.10.4-2]
       *> accept: [2023]
+      *> files: [PB4281CB.cpy]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -15,10 +16,13 @@
       *> D-CE2). The logical conversion reads the words as written, before
       *> the COBOL-WORDS directive respells any of them, so it cannot tell
       *> DIV from a user word; the paragraphs are decided on the finished
-      *> text, through the directive's word map.
+      *> text, through the directive's word map. The SECURITY paragraph
+      *> comes from library text, converted with the same doubt and
+      *> decided in place once the COPY statement is expanded (7.2.3.4 7).
       *> Leg that can fail: the division left unseen, so REMARKS read as a
       *> comment-entry paragraph (its statements dropped, or refused with
-      *> a syntax error on the second period).
+      *> a syntax error on the second period); or a carried paragraph of
+      *> the library text lost.
 000100 >>COBOL-WORDS EQUATE "DIVISION" WITH "DIV"
 000200 IDENTIFICATION DIV.
 000300 PROGRAM-ID. PB4281EQ.
@@ -28,5 +32,4 @@
 000700     PERFORM SECURITY.
 000800     STOP RUN.
 000900 REMARKS. DISPLAY "IN-REMARKS".
-001000 SECURITY.
-001100     DISPLAY "IN-SECURITY".
+001000 COPY PB4281CB.

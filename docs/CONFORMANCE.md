@@ -2168,7 +2168,7 @@ of an unsupported facility.
   deciding it, where something that runs after the conversion could have changed what its words mean: (1) a `>>IF …
   >>END-IF` or `>>EVALUATE … >>END-EVALUATE` group whose branches do not all end in the same division (the branch no
   condition selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); (2) a `>>COBOL-WORDS` directive, which may
-  respell any word the cursor reads, from there on, in the text or in a library text it reads; (3) a REPLACE statement or
+  respell any word the cursor reads, from there on, in the text or in a library text it reads (the merged driver, whose blocks end at a directive line and never hold it, tells its cursor of the line itself); (3) a REPLACE statement or
   a `COPY … REPLACING` that names a word the cursor reads (`DIVISION`, `IDENTIFICATION`, `ID`, an identification
   paragraph), to match it or to write it. A carried candidate is the paragraph's header line and the lines of its entry,
   each an inert slot of the logical text that every later stage reads as a comment (`CommentEntryCarrier`: the floating

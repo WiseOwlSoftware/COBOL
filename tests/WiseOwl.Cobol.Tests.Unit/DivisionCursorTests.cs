@@ -236,6 +236,17 @@ public sealed class DivisionCursorTests
         Assert.Null(cursor.InIdentificationDivision);   // a spelling it does read cannot make it sure: it cannot tell the others
     }
 
+    [Fact] // the merged driver's blocks end at a directive line, so the driver tells its cursor of the directive itself
+    public void NoteCobolWordsDirective_MakesTheDivisionUnknown_ButNotForAReaderOfTheFinishedText()
+    {
+        var driver = new DivisionCursor(startsInIdentificationDivision: true);
+        driver.NoteCobolWordsDirective();
+        Assert.Null(driver.InIdentificationDivision);
+        var finished = new DivisionCursor(startsInIdentificationDivision: true, CobolWordsMap.Empty);
+        finished.NoteCobolWordsDirective();
+        Assert.True(finished.InIdentificationDivision);
+    }
+
     [Fact] // … and a library text that held the directive casts the same doubt on the text it was spliced into
     public void Adopt_TakesTheLibraryTextsDoubtAboutRespelledWords()
     {

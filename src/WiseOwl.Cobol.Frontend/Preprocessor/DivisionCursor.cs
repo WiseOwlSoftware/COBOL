@@ -146,10 +146,19 @@ internal sealed class DivisionCursor(bool? startsInIdentificationDivision, Cobol
                 _groups!.RemoveAt(_groups.Count - 1);
                 break;
             case "COBOL-WORDS" when words is null:
-                _respelled = true;
-                InIdentificationDivision = null;
+                NoteCobolWordsDirective();
                 break;
         }
+    }
+
+    /// <summary>A <c>&gt;&gt;COBOL-WORDS</c> directive (§7.3.10) is in the text: it may respell any word this cursor reads,
+    /// so the cursor, which reads the words as written, knows no division from here on. The converters meet the directive
+    /// line in the text they read; the merged driver, whose blocks end at a directive line, tells the cursor itself.</summary>
+    public void NoteCobolWordsDirective()
+    {
+        if (words is not null) return;   // a reader of the finished text reads the words through the map
+        _respelled = true;
+        InIdentificationDivision = null;
     }
 
     /// <summary>One text-word — THE rule.</summary>
