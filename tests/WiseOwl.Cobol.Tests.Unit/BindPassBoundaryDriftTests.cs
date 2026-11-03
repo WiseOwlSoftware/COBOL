@@ -31,7 +31,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// pass, or the binder code it calls, does.</item>
 /// </list>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class BindPassBoundaryDriftTests
 {
     /// <summary>The rows whose rule code still lives on <c>DataBinder</c>: the pass only schedules it.
