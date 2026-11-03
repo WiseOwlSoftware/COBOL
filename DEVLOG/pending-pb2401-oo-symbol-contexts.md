@@ -25,4 +25,10 @@ Behavior-neutral (no ISO rule changes; no golden). Neutrality: `=== ARCH-ORACLE:
 unchanged: every row the change touched is allowed, and PB2402's move is what removes the tolerated rows. Witness:
 `OoMethodSymbolOriginTests` now pins the map (a Source symbol's definition is in it, a non-Source one is refused and answers a
 fault naming its origin, a Source symbol the map never saw is a fault). Docs: DESIGN-backend-abstraction §1.3 L6, OO_DESIGN and
-CONDITIONS_EXCEPTIONS_DESIGN describe the map and `BoundMethod.Declaratives`. Gate: GATE_LINE.
+CONDITIONS_EXCEPTIONS_DESIGN describe the map and `BoundMethod.Declaratives`. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,333/21,333 · Unit 39,633/39,633 · Characterization 37/37 cases ran (skipped 0) … run 000002-20261103T214022Z ===` on c32077fbc.
+
+**PB2402's closure is not yet closed** (found while planning it, recorded in kb/Work PB2402): `OoMethodDataScope` names
+`ConstantEntryBinder.ConstantScope` (whose `DeclaredConstant` holds four parse contexts) and `UserWordCensus`, both binder
+working state in `WiseOwl.Cobol.Binding`; moved as listed, it would add new pairs to the tolerated `Binding.Model → Binding`
+row, which the ratchet refuses. The method's §8.3.2.2 census and its constant-declaration state leave `OoMethodDataScope` for a
+binder-side home first.

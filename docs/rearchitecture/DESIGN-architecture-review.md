@@ -713,9 +713,12 @@ nor tolerates, is a blocker found before dispatch, not by the ratchet after. Dra
 (refute 3, E1): the OO symbols alone grow `Binding.Model → Compiler.Oo` 5 → 6 and `Binding.Model → Binding` 20 → 22,
 because they name `NamingConvention`, `StandardMethod`, `OoMethodBinding`, `OptionsModel` and `OoMethodDataScope`. The
 waves are therefore: PB2401 cuts what the symbols name that the model may not (the three `Ctx`, `OoMethodBinding`'s
-`BoundDeclarative` list, `OptionsModel`'s two parse-context factories); PB2402 moves the symbols with their closure
+`BoundDeclarative` list, `OptionsModel`'s two parse-context factories, and the class and interface `Expansion`, which the
+walk found too: LANDED, kb/Work PB2401, into the bind session's `SourceMap`); PB2402 moves the symbols with their closure
 (`NamingConvention`, `StandardMethod`, `OoMethodBinding`, `OoFormal`, `OoMethodDataScope` and `OptionsModel.cs`'s
-types); PB2403 moves `AdapterPair` and turns the remaining OO answers into `BoundCompilation` data; PB2399 ends the
+types), once `OoMethodDataScope`'s binder working state (its §8.3.2.2 census `Words` and its constant-declaration
+`Constants`, which hold parse contexts) has a binder-side home, since moved with them it would add `Binding.Model → Binding`
+pairs (kb/Work PB2402's what-if); PB2403 moves `AdapterPair` and turns the remaining OO answers into `BoundCompilation` data; PB2399 ends the
 model's other binder reads; PB2416 cuts the report models' parse contexts, so PB2405 can move the four rule families
 the emitters read into `compiler.bound` (they name bound nodes, so `compiler.model` cannot hold them); and PB2400
 moves `BoundUnit`, `OoClassUnit` and `BoundCompilation` last. **The measure is the walk, not a text scan.** Draft 4's
