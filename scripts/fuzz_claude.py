@@ -38,6 +38,8 @@ import threading
 import time
 from pathlib import Path
 
+from standard_streams import ensure_utf8  # noqa: E402  (scripts/: UTF-8 standard streams)
+
 #: The executable; WISEOWL_COBOL_FUZZ_CLAUDE overrides it (the self-test points it at a stub).
 EXE_ENV = "WISEOWL_COBOL_FUZZ_CLAUDE"
 #: The most one call may spend, in US dollars (`--max-budget-usd`): a program and its correction are a few cents.
@@ -189,6 +191,7 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:] == ["--self-test"]:
         sys.exit(self_test())
     print(__doc__)
