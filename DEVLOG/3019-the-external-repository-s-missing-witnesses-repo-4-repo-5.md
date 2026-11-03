@@ -1,4 +1,4 @@
-## The external repository's missing witnesses: REPO-4, REPO-5, design 17.1's slice-7 cases, and one byte patch of the runtime version (kb/Work PB4455, PB4458, PB4460)
+## Entry 3019 — 2026-11-02 22:22 PST — The external repository's missing witnesses: REPO-4, REPO-5, design 17.1's slice-7 cases, and one byte patch of the runtime version (kb/Work PB4455, PB4458, PB4460)
 
 Wave 20261840 group B. Every note was re-probed on a fresh Debug build (0 warnings, 0 errors) before any edit. All three are
 test-only: no program that compiled before compiles differently.
@@ -30,3 +30,4 @@ UTF-16 variant in `RunUnitTerminationTests`); it is now `RuntimeVersionSkew.Patc
 
 Rows: none claimed, none closed (`closes_rows: []` with a reason on each). The new cases are witnesses PB1086 may cite for GR-12.3.8.4-10 and
 -11, whose inventory text still says the external-repository arm is not implemented. Codes: none used.
+
