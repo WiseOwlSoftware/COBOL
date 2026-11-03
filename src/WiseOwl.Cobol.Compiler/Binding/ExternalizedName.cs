@@ -51,7 +51,7 @@ internal static class ExternalizedName
         phrase.literal()?.GetText() ?? phrase.cobolWord().GetText();
 
     /// <summary>The value an AS phrase gives, WITHOUT diagnosing — for a reader that must know the externalized name
-    /// but is not the phrase's screen (OoRepositoryScope, kb/Work PB974). Null for any operand <see cref="Screen"/>
+    /// but is not the phrase's screen (IdentityScope, kb/Work PB974). Null for any operand <see cref="Screen"/>
     /// would reject, so both agree on which names exist. <paramref name="dialectLevel"/> is the edition's year, whose
     /// spelling the name is formed in (kb/Work PB2840), as the screen forms it.</summary>
     public static string? Peek(Core.ExternalizedNamePhraseContext phrase, Func<string, ConstantReading> constants,

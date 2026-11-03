@@ -10,10 +10,18 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// USING/RETURNING presence recorded at pass-1, and — filled by <c>OoDataBinder.BindMethodData</c> at class
 /// bind time (BEFORE any statement binds, so every INVOKE site in the group sees the full signature) — the
 /// resolved formal list, RETURNING item, and data roots (port slice 2, deep-dive D3/D6).</summary>
+/// <param name="Ctx">The METHOD-ID definition this method was written as, or NULL for a method no source of this group wrote: the standard
+/// class BASE's, one generated for a property accessor, and one IMPORTED from the external repository (DESIGN-external-repository §10.1).
+/// A reader that binds the method's data or body asks <see cref="Definition"/>.</param>
 public sealed record OoMethodSymbol(
     string Name, bool HasUsing, bool HasReturning,
-    CobolParserCore.MethodDefinitionContext Ctx)
+    CobolParserCore.MethodDefinitionContext? Ctx)
 {
+    /// <summary>The METHOD-ID definition of a method this group's source wrote (<see cref="Ctx"/>): what binding its data and body reads.
+    /// A method without one has no body to bind, so asking is a compiler fault.</summary>
+    public CobolParserCore.MethodDefinitionContext Definition =>
+        Ctx ?? throw new InvalidOperationException($"method '{Name}' has no source definition (it is a standard, generated or imported method)");
+
     /// <summary>The name this method is externalized under (ISO §11.7.4 GR1 b): "the name is
     /// method-name-1. However, literal-1, if specified, is the name of method that is externalized to the
     /// operating environment"). It defaults to <see cref="Name"/>, and it is the ROSTER KEY: §14.9.23.2
@@ -90,6 +98,16 @@ public sealed record OoMethodSymbol(
     /// synthesized PROPERTY accessor's) and no COBOL body: the runtime class <c>WiseOwl.Cobol.Runtime.BASE</c> is its
     /// implementation, so an invocation site binds it through its own form rather than the user-method tail.</summary>
     public StandardMethod Standard { get; init; }
+
+    /// <summary>True for a method (or interface prototype) read from an assembly of the external repository
+    /// (DESIGN-external-repository §10.1, §10.6): it has no <see cref="Ctx"/> and its <see cref="ClrName"/> is a fact of the
+    /// assembly already built, as a standard method's is the runtime's.</summary>
+    public bool Imported { get; init; }
+
+    /// <summary>True when <see cref="ClrName"/> is a fact no compilation of this group may change — a standard method's (the
+    /// runtime's member) or an imported one's (the built assembly's) — so <c>OoClassTable.NameMethodSlots</c> names a slot after it
+    /// and never renames it.</summary>
+    public bool HasFixedClrName => Standard is not StandardMethod.None || Imported;
 
     /// <summary>The method's own OPTIONS paragraph folded over the class channel's model (§10.6.1 method
     /// skeleton / §11.9.4 GR1; kb/Work PB135) — null when the method writes none. BindMethodRoster swaps it

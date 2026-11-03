@@ -24,8 +24,22 @@ public static class NamingConvention
     /// <summary>The factory singleton class of the class whose C# name is <paramref name="classClrName"/> (brief D11 —
     /// <c>__FACTORY_FOO</c>, a REAL sibling class; the runtime's standard class BASE is <c>__FACTORY_BASE</c>). A
     /// prefix family, so no class-name can spell it: the suffix form <c>FOO__FACTORY</c> it replaced was also the
-    /// spelling of the legal class-name <c>FOO--FACTORY</c> (kb/Work PB2921).</summary>
-    public static string FactoryClassName(string classClrName) => FactoryClassPrefix + classClrName;
+    /// spelling of the legal class-name <c>FOO--FACTORY</c> (kb/Work PB2921).
+    /// <para>A class IMPORTED from another assembly is named by its full CLR name under <c>global::</c>
+    /// (<c>global::Cobol.LIB.LEDGER</c>; DESIGN-external-repository §10.1, §10.2), and its factory is the sibling in the
+    /// SAME namespace, so the prefix goes on the last segment: <c>global::Cobol.LIB.__FACTORY_LEDGER</c>.</para></summary>
+    public static string FactoryClassName(string classClrName)
+    {
+        int last = classClrName.LastIndexOf('.');
+        return last < 0 ? FactoryClassPrefix + classClrName
+            : classClrName[..(last + 1)] + FactoryClassPrefix + classClrName[(last + 1)..];
+    }
+
+    /// <summary>The name generated code gives a class of ANOTHER module (DESIGN-external-repository §10.1, §10.2): the type
+    /// <paramref name="clrName"/> in <paramref name="module"/>, rooted at <c>global::</c> so no namespace or type of the importing
+    /// module can capture it (<c>global::Cobol.LIB.LEDGER</c>).</summary>
+    public static string ImportedTypeName(ModuleNamespace module, string clrName) =>
+        $"global::{CsNames.CSharpNamespace(module)}.{clrName}";
 
     /// <summary>The <see cref="FactoryClassName"/> family's tag.</summary>
     public const string FactoryClassPrefix = "__FACTORY_";

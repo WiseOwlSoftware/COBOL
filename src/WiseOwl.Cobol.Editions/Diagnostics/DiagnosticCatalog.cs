@@ -481,21 +481,24 @@ public static class DiagnosticCatalog
 
     // ── The external repository (ISO §8.13; DESIGN-external-repository §14, the REPO-n placeholders; kb/Work PB2103).
     // A compilation that READS an entry reports these: the resolver's (§8.2, §8.3, MetadataRepositoryProvider) and the
-    // --repository-check comparison's (§9.2, RepositoryCheck). REPO-6 is the OO slice's (kb/Work PB2104); REPO-13 is COBOL2969.
+    // --repository-check comparison's (§9.2, RepositoryCheck). REPO-6 (COBOL5976, below) is the OO slice's (kb/Work PB2104); REPO-13 is COBOL2969.
 
     /// <summary>COBOL5962 — REPO-1: a REPOSITORY PROGRAM or FUNCTION specifier that neither the compilation group nor the
     /// external repository answers (ISO §12.3.8.3 SR14 / SR10; DESIGN-external-repository §8.2 step 4, §8.3).</summary>
     public static readonly DiagnosticDescriptor RepositorySpecifierUnanswered = new(
         "COBOL5962", "repository-specifier-unanswered", EditionSeverity.Error,
-        "A REPOSITORY specifier names a program or function that neither this compilation group nor the external repository "
-        + "holds. ISO §12.3.8.3 syntax rule 14 requires literal-3, or program-prototype-name-1, to be \"the name of a program "
+        "A REPOSITORY specifier names a program, function or class that neither this compilation group nor the external "
+        + "repository holds. For a class, ISO §12.3.8.3 syntax rule 6 requires, without an EXPANDS phrase, \"If literal-1 is "
+        + "specified, there shall be information in the external repository for the class literal-1\" and \"If literal-1 is not "
+        + "specified, there shall be information in the external repository for the class object-class-name-1\" (a class the "
+        + "group defines, and the standard class BASE, are in it). For a program, ISO §12.3.8.3 syntax rule 14 requires literal-3, or program-prototype-name-1, to be \"the name of a program "
         + "prototype specified in this compilation group\", \"the name of a program definition specified previously in this "
         + "compilation group\" or \"the name of a program for which information exists in the external repository\"; syntax "
         + "rule 10 states the same three alternatives for a function, and a function is also reached by the user-function-name "
         + "its definition declares (§8.4.6.7, determination D-R3). A definition that FOLLOWS the paragraph is none of them. "
         + "WiseOwl COBOL's external repository is the compiled assemblies of the --repository directories (by default the "
         + "output directory) and the --reference files, searched in that order; the message names every place searched.",
-        "ISO §12.3.8.3 SR14 / SR10");
+        "ISO §12.3.8.3 SR14 / SR10 / SR6");
 
     /// <summary>COBOL5963 — REPO-2: a later entry of the external repository publishes the unit the resolver chose, from
     /// another build, with a different signature (DESIGN-external-repository §8.6).</summary>
@@ -571,7 +574,12 @@ public static class DiagnosticCatalog
         + "flag differences in prototypes and definitions in the compilation group from the information in the external "
         + "repository\" — WiseOwl COBOL's is --repository-check on (the default) and off. Callers compiled against that entry "
         + "are checked at run time by ISO §14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments "
-        + "positionally otherwise; recompile them.",
+        + "positionally otherwise; recompile them. The same code reports a STALE EXPANSION of a parameterized class or "
+        + "interface (ISO §9.3.12, §9.3.13): the search space holds an expansion of the same name, definition and actuals "
+        + "under another expansion key, because the skeleton's source or compile state, or the published surface of a class it "
+        + "names, changed since it was made; it is not imported, the expansion is made again, and the message names the first "
+        + "component of the key that changed and every assembly that references the stale one (compiled against the earlier "
+        + "class, to be recompiled).",
         "ISO §8.13");
 
     /// <summary>COBOL5970 — REPO-10: a <c>--repository</c> directory or <c>--reference</c> file that does not exist or cannot
@@ -601,8 +609,24 @@ public static class DiagnosticCatalog
         "The previous build of this compilation's output was written for another repository schema, runtime major version or "
         + "call ABI, so --repository-check does not compare this group's signatures against it (ISO §8.13's \"flag "
         + "differences\" mechanism has nothing it can read). Every caller compiled against that build must be recompiled with "
-        + "this compiler in any case.",
+        + "this compiler in any case. The same code reports an expansion's own assembly (DESIGN-external-repository §10.5) "
+        + "that is replaced because it was written for another schema, runtime major version or call ABI.",
         "ISO §8.13");
+
+    /// <summary>COBOL5976 — REPO-6: two assemblies the compilation needs hold types in one module namespace, or an imported
+    /// module's namespace is this compilation's own (DESIGN-external-repository §4.5, §8.6, §10.2).</summary>
+    public static readonly DiagnosticDescriptor RepositoryAssemblyNamespaceCollision = new(
+        "COBOL5976", "repository-assembly-namespace-collision", EditionSeverity.Error,
+        "A class of the external repository is published in an assembly whose module namespace is another needed assembly's, or "
+        + "this compilation's own. Every type a WiseOwl COBOL assembly emits lives in the namespace Cobol.<assembly simple name>, and "
+        + "one assembly simple name names one assembly per load context, so two assemblies of one simple name are one namespace and "
+        + "the compiled code could reach either (a source namespace or type meeting an imported one of the same name compiles to "
+        + "whichever the C# compiler picks). ISO §12.3.8.4 GR6: \"The compiler shall use the information specified for "
+        + "object-class-name-1 together with the external repository to determine the details of the class that is to be used\"; "
+        + "\"It is implementor-defined how the information in the class specifier and the external repository are used to "
+        + "determine which class is used\"; this implementation uses it by identity, from one assembly per namespace. Rename one "
+        + "assembly (the --output file name) and recompile its callers.",
+        "ISO §12.3.8.4 GR6");
 
     // kb/Work PB609: the CALL side of the restricted program-pointer (§13.18.60.4 GR25). The pointer's own
     // restriction is declared and screened at its TYPEDEF (COBOL0881); this is the rule that CONSUMES it.
@@ -6372,7 +6396,9 @@ public static class DiagnosticCatalog
         "A REPOSITORY EXPANDS phrase does not name a parameterized class or interface declared in the same "
         + "REPOSITORY paragraph, supplies a different number of actual parameters than the definition's USING "
         + "clause, supplies an actual parameter of the wrong kind or one that is not declared in the same "
-        + "paragraph, or reuses an expansion's name for a different expansion.",
+        + "paragraph, reuses an expansion's name for a different expansion, or names an expansion that shares a run unit with another "
+        + "of the same externalized name but different actual parameters (an assembly the group references, or the file the expansion "
+        + "would be written to).",
         "ISO §12.3.8.3 SR4/SR7 / §12.3.8.4 GR5/GR8 / §9.3.12 / §9.3.13");
     // ── COBOL2241–2243 — what a SPECIAL-NAMES entry may consist of (kb/Work PB716 + PB790 + PB862). ──
 

@@ -12,8 +12,9 @@ namespace WiseOwl.Cobol.Runtime.Repository;
 public sealed class RepositoryEntry
 {
     internal RepositoryEntry(string path, Guid mvid, int schemaVersion, string runtimeVersion, int callAbi, string? registrar,
-        RepositoryUnitRow unit)
+        RepositoryUnitRow unit, string assemblyName)
     {
+        AssemblyName = assemblyName;
         Path = path;
         Mvid = mvid;
         SchemaVersion = schemaVersion;
@@ -43,6 +44,9 @@ public sealed class RepositoryEntry
 
     /// <summary>The unit's row in the assembly's <c>Units</c> index.</summary>
     public RepositoryUnitRow Unit { get; }
+
+    /// <summary>The assembly's simple name (what another assembly's <c>AssemblyRef</c> names it by).</summary>
+    public string AssemblyName { get; }
 }
 
 /// <summary>The answer of a <see cref="RepositoryLocator"/> lookup: the entry, or none with the reason a file beside the
@@ -114,7 +118,7 @@ public static class RepositoryLocator
     /// typed outcome.</summary>
     private sealed record FileFacts(string Path, long Length, DateTime LastWriteUtc, string? Problem,
         RepositoryReadFailure Failure, Guid Mvid, int SchemaVersion, string RuntimeVersion, int CallAbi, string? Registrar,
-        IReadOnlyList<RepositoryUnitRow> Units)
+        IReadOnlyList<RepositoryUnitRow> Units, string AssemblyName, IReadOnlyList<string> AssemblyReferences)
     {
         /// <summary>Does the file publish units this runtime reads (a managed assembly of the current schema)?</summary>
         public bool IsEntry => Problem is null && SchemaVersion == CobolRepositoryAttribute.CurrentSchemaVersion;
@@ -244,7 +248,52 @@ public static class RepositoryLocator
     }
 
     private static RepositoryEntry EntryOf(FileFacts file, RepositoryUnitRow row) =>
-        new(file.Path, file.Mvid, file.SchemaVersion, file.RuntimeVersion, file.CallAbi, file.Registrar, row);
+        new(file.Path, file.Mvid, file.SchemaVersion, file.RuntimeVersion, file.CallAbi, file.Registrar, row, file.AssemblyName);
+
+    /// <summary>EVERY entry of <paramref name="directory"/> that carries the unit (<see cref="Find"/> answers the first and names a
+    /// collision): the same unit published by several assemblies is the case of an expansion (DESIGN-external-repository §10.5),
+    /// whose stale copy and current copy may sit side by side and are told apart by their key. In ordinal path order, the same
+    /// build twice listed once.</summary>
+    /// <param name="directory">The repository directory.</param>
+    /// <param name="kind">What the unit is.</param>
+    /// <param name="externalizedName">The unit's externalized name.</param>
+    /// <param name="excluding">A file the lookup never answers from (<see cref="Find"/>'s).</param>
+    public static IReadOnlyList<RepositoryEntry> FindAll(string directory, RepositoryUnitKind kind, string externalizedName, string? excluding = null)
+    {
+        string name = ExternalizedNames.Form(externalizedName);
+        var all = new List<RepositoryEntry>();
+        if (name.Length == 0) return all;
+        foreach (string path in Listing(directory))
+            if (!SameFile(path, excluding) && FactsOf(path) is { IsEntry: true } facts && RowOf(facts, kind, name) is { } row
+                && !all.Exists(e => e.Mvid == facts.Mvid))
+                all.Add(EntryOf(facts, row));
+        return all;
+    }
+
+    /// <summary><see cref="FindAll"/> over ONE named assembly file (the compiler's <c>--reference</c>): the file's entry, or none.</summary>
+    /// <param name="path">The assembly file.</param>
+    /// <param name="kind">What the unit is.</param>
+    /// <param name="externalizedName">The unit's externalized name.</param>
+    public static IReadOnlyList<RepositoryEntry> FindAllInFile(string path, RepositoryUnitKind kind, string externalizedName)
+    {
+        string name = ExternalizedNames.Form(externalizedName);
+        return name.Length > 0 && FactsOf(path) is { IsEntry: true } facts && RowOf(facts, kind, name) is { } row ? [EntryOf(facts, row)] : [];
+    }
+
+    /// <summary>The assemblies of <paramref name="directory"/> that REFERENCE the assembly named <paramref name="assemblyName"/>,
+    /// read from each file's <c>AssemblyRef</c> table and nothing loaded (§10.5's stale-expansion scan: the groups compiled against
+    /// a superseded expansion), as full paths in ordinal order.</summary>
+    /// <param name="directory">The repository directory.</param>
+    /// <param name="assemblyName">The referenced assembly's simple name.</param>
+    /// <param name="excluding">A file never reported (<see cref="Find"/>'s).</param>
+    public static IReadOnlyList<string> ReferencersOf(string directory, string assemblyName, string? excluding = null) =>
+        [.. Listing(directory).Where(path => !SameFile(path, excluding) && ReferencesIn(path, assemblyName))];
+
+    /// <summary><see cref="ReferencersOf"/> over ONE named assembly file (the compiler's <c>--reference</c>).</summary>
+    /// <param name="path">The assembly file.</param>
+    /// <param name="assemblyName">The referenced assembly's simple name.</param>
+    public static bool ReferencesIn(string path, string assemblyName) =>
+        FactsOf(path) is { IsEntry: true } facts && facts.AssemblyReferences.Any(r => string.Equals(r, assemblyName, StringComparison.OrdinalIgnoreCase));   // not a COBOL word: an assembly simple name, which the CLR compares ignoring case
 
     private static string KindWord(RepositoryUnitKind kind) => kind switch
     {
@@ -299,14 +348,14 @@ public static class RepositoryLocator
         catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException) { return null; }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
         {
-            return new FileFacts(path, 0, default, $"'{path}': {e.Message}", RepositoryReadFailure.Unreadable, default, 0, "", 0, null, []);
+            return new FileFacts(path, 0, default, $"'{path}': {e.Message}", RepositoryReadFailure.Unreadable, default, 0, "", 0, null, [], "", []);
         }
     }
 
     private static FileFacts Read(string path, long length, DateTime written)
     {
         FileFacts Unreadable(string problem, RepositoryReadFailure failure) =>
-            new(path, length, written, problem, failure, default, 0, "", 0, null, []);
+            new(path, length, written, problem, failure, default, 0, "", 0, null, [], "", []);
         if (length > MaxFileBytes)
             return Unreadable($"'{path}' is larger than {MaxFileBytes} bytes and was skipped", RepositoryReadFailure.TooLarge);
         RepositoryIndexOutcome outcome;
@@ -325,6 +374,6 @@ public static class RepositoryLocator
             }, outcome.Failure);
         using (index)
             return new FileFacts(path, length, written, null, RepositoryReadFailure.None, index.Mvid, index.SchemaVersion,
-                index.RuntimeVersion, index.CallAbi, index.Registrar, index.Units);
+                index.RuntimeVersion, index.CallAbi, index.Registrar, index.Units, index.AssemblyName, index.AssemblyReferences);
     }
 }

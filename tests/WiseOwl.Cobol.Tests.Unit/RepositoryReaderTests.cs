@@ -308,7 +308,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(r)) source.AppendLine(attribute);
             if (r.Class is { } c)
             {
-                AppendType(source, c, r.Kind is RepositoryUnitKind.Interface ? $"public interface U{n}" : $"public class U{n}", factory: false);
+                AppendType(source, c, r.Kind is RepositoryUnitKind.Interface ? $"public interface {c.ClrName}" : $"public class {c.ClrName}", factory: false);
                 if (c.FactoryType is { } factoryType) AppendType(source, c, $"public class {factoryType}", factory: true);
                 continue;
             }

@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Binding.Model;
@@ -40,7 +41,8 @@ internal sealed class BinderDriver
     /// <param name="repository">The external repository the group's specifiers resolve against when the group cannot
     /// answer them (ISO §12.3.8.4 GR10 c) / GR11 c); DESIGN-external-repository §8.6, §9.3); none when null.</param>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
-        Frontend.Preprocessor.DirectiveResults? directives = null, RepositorySearchSpace? repository = null)
+        Frontend.Preprocessor.DirectiveResults? directives = null, RepositorySearchSpace? repository = null,
+        ExpansionIdentity? publishAs = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
         // The frontend's directive outputs travel as ONE record (kb/Work PB65); absent ⇒ every directive's default.
@@ -96,17 +98,28 @@ internal sealed class BinderDriver
         // element below (program units in BindUnitData, methods in the roster loop).
         var propagate = PropagateState.Build(directives.PropagateEvents);
 
-        var (units, classes, table) = CollectUnits(tree, edition, directives.CompilationVariables,
-            cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty);
+        // The external repository's provider exists BEFORE the class table: the table asks it for a class a REPOSITORY specifier
+        // names that no definition of the group claims (ISO §12.3.8.3 SR6 b; DESIGN-external-repository §8.4 step 3), while it
+        // resolves INHERITS and IMPLEMENTS in pass 1. Zero cost when unused: nothing is listed or opened until a question.
+        var searchSpace = repository ?? RepositorySearchSpace.None;
+        var signatureClasses = new PrototypeSignatureClasses();
+        var external = new MetadataRepositoryProvider(searchSpace, signatureClasses, edition);
+        var words = cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty;
+        var leapSecond = LeapSecondState.Build(directives.LeapSecondEvents);
+        // The compile-time inputs a skeleton is published under and an expansion of one is made under (CompileState, DESIGN-external-repository §6.1).
+        var compileInputs = new CompileInputs(edition, words, turn, propagate, refModZl, leapSecond, directives.CompilationVariables);
+        var (units, classes, table) = CollectUnits(tree, edition, compileInputs, external);
+        external.UseClassTable(table);
         var session = new BindSession
         {
+            SignatureClasses = signatureClasses, External = external,
             Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl, Propagate = propagate,
             DirectiveSites = directives.DirectiveSites,
-            CobolWords = cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty,
+            CobolWords = words,
             Retypes = tree.TokenRetypes,
-            LeapSecond = LeapSecondState.Build(directives.LeapSecondEvents),
+            LeapSecond = leapSecond,
             CompilationVariables = directives.CompilationVariables,
-            SearchSpace = repository ?? RepositorySearchSpace.None,
+            SearchSpace = searchSpace,
         };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
@@ -142,6 +155,16 @@ internal sealed class BinderDriver
         // rule, not this phase's: a definition that FOLLOWS the element is not "specified previously" and a
         // prototype ahead of it stands in (GroupRepositoryProvider, kb/Work PB989).
         foreach (var unit in units) BindUnitData(unit, session);
+        // §12.3.8.3 SR16, once every roster is complete (the classes' data bound above, ResolveOverrides run) and every REPOSITORY
+        // paragraph seen: a PROPERTY specifier needs a property of the classes and interfaces of its own paragraph (kb/Work PB2104).
+        table.CheckPropertySpecifiers((entry, word, externalized) =>
+        {
+            using var at = edition.At(entry);
+            edition.Error(DiagnosticCatalog.RepositorySpecifierUnanswered,
+                $"REPOSITORY PROPERTY {word}{(externalized is null ? "" : $" AS \"{externalized}\"")} names no property: no class or interface "
+                + $"declared in the same REPOSITORY paragraph has an accessor of the property \"{externalized ?? word}\", in the compilation group "
+                + "or in the external repository — ISO §12.3.8.3 SR16");
+        });
         // The group's REPOSITORY resolution tables (§12.3.8.4 GR10 / GR11), built once every DATA division is
         // bound and BEFORE the first body: a CLASS definition's REPOSITORY reaches its methods (§12.3.4 GR1 — "apply
         // to each directly or indirectly contained source unit"), and until kb/Work PB1100 the class bodies bound
@@ -284,8 +307,10 @@ internal sealed class BinderDriver
             // a METHOD's own declaratives emit the same __IoCheck (kb/Work PB1010)
             || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
 
+        // The group is bound: what it publishes for its parameterized definitions, and where each expansion lives (§10.5).
+        var expansions = ExpansionPlacementPass.Run(table, classes, oo.InterfaceData, external, edition, compileInputs, publishAs);
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
-            anyFiles, edition.DialectLevel, session.SignatureClasses, edition.SignEncoding);
+            anyFiles, edition.DialectLevel, session.SignatureClasses, edition.SignEncoding, expansions);
     }
 
     /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
@@ -419,9 +444,9 @@ internal sealed class BinderDriver
     /// into a synthetic <c>programUnit</c> context (identical child shape) so the per-unit binders consume one
     /// context type.</summary>
     private static (List<BoundUnit> Programs, List<OoClassUnit> Classes, OoClassTable Table) CollectUnits(
-        Core.CompilationUnitContext tree, EditionContext edition, DirectiveTimeline<CompilationVariableEvent> variables,
-        WiseOwl.Cobol.Editions.CobolWordsMap words)
+        Core.CompilationUnitContext tree, EditionContext edition, CompileInputs inputs, IOoImporter importer)
     {
+        var variables = inputs.Variables;
         var all = new List<BoundUnit>();
         var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
         var classDefs = new List<Core.ClassDefinitionContext>();
@@ -437,9 +462,8 @@ internal sealed class BinderDriver
         }
         // §9.3.12 / §9.3.13 (kb/Work PB759): a parameterized definition is a SKELETON, never a class; each
         // REPOSITORY EXPANDS phrase creates one, and from here on an expansion is an ordinary definition.
-        var expanded = OoExpansion.Expand(tree, classDefs, ifaceDefs, edition, words);
-        var table = OoClassTable.Build(expanded.Classes, edition, expanded.Interfaces, expanded.ParameterizedNames,
-            expanded.ParameterizedClasses, expanded.ParameterizedInterfaces, expanded.ExpandedNames, variables);
+        var expanded = OoExpansion.Expand(tree, classDefs, ifaceDefs, edition, inputs.Words, importer, inputs);
+        var table = OoClassTable.Build(expanded, edition, variables, importer);
         var classes = table.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
         return (all, classes, table);
 
@@ -740,8 +764,7 @@ internal sealed class BinderDriver
         // kb/Work PB237 / PB894 / PB989 — the compilation group's program and function units, the search space
         // §12.3.8.4 GR10 / GR11 a) and b) name. Built once; each source element searches it AS OF ITS OWN POSITION.
         // c) is the external repository's (kb/Work PB2103): it reads nothing until a specifier the group cannot answer.
-        return new RepositoryResolver(new GroupRepositoryProvider(units),
-            new MetadataRepositoryProvider(session.SearchSpace, session.SignatureClasses, session.OoClasses, session.Edition));
+        return new RepositoryResolver(new GroupRepositoryProvider(units), session.External);
     }
 
     /// <summary>⛔ Give every restricted program- or function-pointer in the group the signature class its prototype's

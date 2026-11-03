@@ -29,7 +29,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     ProgramEmitter program,
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData,
     IReadOnlyList<AdapterPair> adapters,
-    bool repositoryUpdate)
+    bool repositoryUpdate,
+    ExpansionPlacements expansions)
 {
     /// <summary>A <see cref="Place"/> over a METHOD BOUNDARY ROOT — the ONE thing that lets the OO boundary join
     /// the group-image channel every other operand path already uses (kb/Work PB177 arm A).
@@ -436,9 +437,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // The class's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts and tables on this type, each method's on its CLR method, each property's on the
         // type of its accessors. The record's methods are the object roster, then the factory roster (RepositoryCodec.Of).
-        var record = repositoryUpdate ? RepositoryCodec.Of(cls) : null;
+        var placement = expansions.Of(cls.Symbol.ClrName);
+        var record = repositoryUpdate ? RepositoryCodec.Of(cls, placement?.Identity) : null;
         var methodRecords = record?.Class!.Methods;
-        List<string> instAttributes = [RepositoryAttributeRenderer.UnitRecord(RepositoryUnitKind.Class, cls.Name, cls.Symbol.ExternalizedName, record)];
+        List<string> instAttributes = [RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(cls.Symbol.ClrName, RepositoryUnitKind.Class), cls.Name, cls.Symbol.ExternalizedName, record)];
         if (record is not null)
             instAttributes.AddRange(RepositoryAttributeRenderer.TableRecords(record)
                 .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)));
@@ -1539,6 +1541,16 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// signature <see cref="OoSignatureOf"/> builds and the argument lists cannot drift apart.</summary>
     private static string OoArgPair(string carrier, string area, string omitted) => $"{carrier}, {area}, {omitted}";
 
+    /// <summary>Emit a PARAMETERIZED definition's skeleton (ISO §9.3.12, §9.3.13; DESIGN-external-repository §7.2): a
+    /// <c>public static class</c> that carries the definition's <c>[CobolUnit]</c> and, with <c>--repository-update on</c>, its
+    /// <c>[CobolSkeleton]</c>. The definition itself emits nothing else — its expansions are the classes.</summary>
+    public void EmitSkeletonUnit(PublishedSkeleton skeleton, CodeWriter w)
+    {
+        w.Line(RepositoryAttributeRenderer.SkeletonUnitRecord(skeleton, repositoryUpdate));
+        if (repositoryUpdate) w.Line(RepositoryAttributeRenderer.SkeletonRecord(skeleton.Skeleton));
+        using (w.Block($"public static class {skeleton.ClrName}")) { }
+    }
+
     /// <summary>Emit one INTERFACE-ID as a C# interface (§11.6; D-I1): members are the prototypes' signatures
     /// (the SAME builder class methods use); the prototypes' numeric profiles and group struct types emit as
     /// interface STATICS (C# 8+) so cross-unit CONTENT conversions can qualify them.</summary>
@@ -1554,8 +1566,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : "";
         // The interface's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts, tables and properties here and each prototype's on its CLR method.
-        var record = repositoryUpdate ? RepositoryCodec.Of(iface, data) : null;
-        w.Line(RepositoryAttributeRenderer.UnitRecord(RepositoryUnitKind.Interface, iface.Name, iface.ExternalizedName, record));
+        var record = repositoryUpdate ? RepositoryCodec.Of(iface, data, expansions.Of(iface.ClrName)?.Identity) : null;
+        w.Line(RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(iface.ClrName, RepositoryUnitKind.Interface), iface.Name, iface.ExternalizedName, record));
         if (record is not null)
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record)
                          .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)))
@@ -1710,6 +1722,16 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         U.Call.EmitActivationReturned(inv);   // a NEW OVERRIDE is a user method (kb/Work PB1582): it returns like any other
     }
 
+    /// <summary>Whether the class or factory type <paramref name="clrName"/> lives in another assembly: a class or interface IMPORTED
+    /// from the external repository, or an EXPANSION placed in one (imported, or written to an assembly of its own; DESIGN-external-repository
+    /// §10.5), which this module names through a <c>using</c> alias of its local name. The owner's internal profile fields are that
+    /// assembly's own, named by ITS binder's uids, so they are never spelled through the owner (kb/Work PB2104).</summary>
+    private bool OwnerIsInAnotherAssembly(string? clrName) =>
+        clrName is not null && ecState.OoClasses is { } table
+        && (table.ImportedClasses.Any(c => c.ClrName == clrName || c.FactoryClrName == clrName)
+            || table.ImportedInterfaces.Any(i => i.ClrName == clrName)
+            || expansions.LivesElsewhere(clrName));
+
     /// <summary>The instance-call marshaling (D6; §14.9.23.4 GR6/GR7a/GR8): every formal crosses as its argument's
     /// CARRIER, its AREA and its omitted flag (<see cref="OoArgPair"/>). ⛔ A BY REFERENCE identifier argument's carrier
     /// is a VIEW over the argument itself (ISO §14.2.3 GR8 — "the activated runtime element operates as if the formal
@@ -1731,8 +1753,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         {
             var a = args[i];
             bool stringCarried = OoStringCarried(a.Formal);
-            string qualProfile = a.Formal.Pic is { Category: PicCategory.Numeric }
-                ? $"{(inv.Form is InvokeForm.Factory ? FactoryClassOf(inv.OwnerClrName) : inv.OwnerClrName)}.{a.Formal.ProfileName}" : "";
+            // The owner's internal profile field when the owner is a class of this module; for a class IMPORTED from another assembly
+            // (whose profile fields are its own internals, named by ITS binder's uids) the same profile, spelled out (kb/Work PB2104).
+            string qualProfile = a.Formal.Pic is not { Category: PicCategory.Numeric } ? ""
+                : OwnerIsInAnotherAssembly(inv.OwnerClrName) ? a.Formal.Pic.ProfileInitializer(Ctx.SignEncoding)
+                : $"{(inv.Form is InvokeForm.Factory ? FactoryClassOf(inv.OwnerClrName) : inv.OwnerClrName)}.{a.Formal.ProfileName}";
 
             string crossing = OoFormalCrossingType(a.Formal);
             // ⛔ THE OMITTED ARGUMENT (kb/Work PB757) — spelled, or trailing-omitted: its carrier is a placeholder cell of

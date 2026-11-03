@@ -73,11 +73,17 @@ internal sealed class BindSession
     /// function-pointer, assigned by <c>PrototypeSignatureClasses.Classify</c> once
     /// <c>DataBinder.ResolveRestrictedPrototypes</c> has resolved every forest's pointers through its prototype tables
     /// (<c>BinderDriver.ResolvePointerRestrictions</c>, kb/Work PB2495).</summary>
-    public PrototypeSignatureClasses SignatureClasses { get; } = new();
+    public PrototypeSignatureClasses SignatureClasses { get; init; } = new();
 
     /// <summary>The external repository this compilation reads (DESIGN-external-repository §8.6, §9.3): what
     /// <see cref="RepositoryResolver"/>'s metadata provider searches and what <c>RepositoryCheck</c> compares against.</summary>
     public RepositorySearchSpace SearchSpace { get; init; } = RepositorySearchSpace.None;
+
+    /// <summary>The provider that reads <see cref="SearchSpace"/> (DESIGN-external-repository §8.0): the resolver's second
+    /// provider and the class table's importer (<see cref="Compiler.Oo.IOoImporter"/>). Built by <c>BinderDriver.Bind</c>
+    /// BEFORE the class table, which asks it for a class a specifier names that the group does not define (§8.4 step 3), over
+    /// the same <see cref="SignatureClasses"/> every record it decodes joins.</summary>
+    internal required MetadataRepositoryProvider External { get; init; }
 
     /// <summary>The group's walk of the parse tree for storage-claim operands (<c>ADDRESS OF</c> heads, BY REFERENCE operands),
     /// done once and sliced per source element, because every unit's binder asks it about its own procedure division AND about each

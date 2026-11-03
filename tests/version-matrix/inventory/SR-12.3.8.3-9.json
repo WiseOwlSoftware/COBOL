@@ -5,11 +5,11 @@
  "ordinal": 9,
  "subject": "REPOSITORY paragraph",
  "rule-digest": "2d40132cd085",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Configuration.cs#BindSpecifierExternalizedName",
- "test-ref": "",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#UnansweredInterfaceSpecifier; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImportInterface",
+ "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_interface_and_property; conformance-test:ExternalRepositoryClassImportTests.AnInterfaceSpecifierNothingAnswers_IsRepo1; unit:ExternalRepositoryExpansionTests.AParameterizedInterface_IsPublished_ExpandedFromTheRepository_AndImplementedByAGroupClass",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1086: Rule (cite.py --check 12.3.8.3 'there shall be information in the external repository for the interface interface-name-2' -> OK §12.3.8.3 9) b)). The interface twin of SR6 with the same mechanism: nothing checks the specifier; reference sites check the group table. Probe out/probe/repo/sr10.cob: 'INTERFACE NOSUCHIF' naming no interface anywhere -> compiles clean and runs (RAN). Expected: rejected at the specifier. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindSpecifierExternalizedName (kb/Work PB2355 extracted the SPECIAL-NAMES binding out of DataBinder.Switches.cs into the SpecialNamesBinder class (its partial files) and the configuration-section services DataBinder keeps into DataBinder.Configuration.cs; each member is the same rule, moved with its body unchanged)",
- "state": "GAP"
+ "notes": "an interface-specifier no definition, parameterized definition or repository entry answers is REPO-1 at the specifier.",
+ "state": "OK"
 }

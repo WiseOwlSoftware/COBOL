@@ -83,7 +83,9 @@ public sealed class RepositoryRoundTripCorpusTests
         {
             // One unit per (kind, externalized name), and one CLR type per factory type name (a class's factory is a type the
             // library declares by the name its record states).
-            string[] entryKeys = [$"{entry.Record.Kind}:{entry.Record.ExternalizedName}", .. entry.Record.Class?.FactoryType is { } f ? [$"factory:{f}"] : Array.Empty<string>()];
+            string[] entryKeys = [$"{entry.Record.Kind}:{entry.Record.ExternalizedName}",
+                .. entry.Record.Class?.FactoryType is { } f ? [$"clr:{f}"] : Array.Empty<string>(),
+                .. entry.Record.Class is { } cr ? [$"clr:{cr.ClrName}"] : Array.Empty<string>()];
             int at = keys.FindIndex(k => k.Count < LibrarySize && !entryKeys.Any(k.Contains));
             if (at < 0) { libraries.Add([]); keys.Add([]); at = libraries.Count - 1; }
             libraries[at].Add(entry);

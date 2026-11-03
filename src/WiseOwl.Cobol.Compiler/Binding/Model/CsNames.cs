@@ -153,9 +153,18 @@ public static class CsNames
     /// assemblies one host references therefore never collide on a program or class name or on <c>__CobolModule</c>.
     /// A namespace is not allocated in a scope, so a segment may be a C# keyword (an assembly named <c>class</c> gives
     /// <c>Cobol.class</c>); the C# spelling of its declaration (<c>Cobol.@class</c>) is the Roslyn backend's
-    /// (<c>ProgramEmitter.CSharpNamespace</c>).</summary>
+    /// (<see cref="CsNames.CSharpNamespace"/>).</summary>
     public static ModuleNamespace ModuleNamespaceOf(string assemblySimpleName) =>
         new($"Cobol.{DataItem.Sanitize(assemblySimpleName)}");
+
+    /// <summary>The C# spelling of a module namespace (kb/Work PB4265): its CLR name with every segment that is a C# reserved
+    /// keyword written <c>@</c>-escaped (<c>Cobol.class</c> is declared <c>namespace Cobol.@class;</c>). The namespace is the one
+    /// emitted name not allocated in a scope that refuses a keyword (<see cref="ModuleNamespaceOf"/>), so its spelling is formed
+    /// here, once, for the declaration (<c>ProgramEmitter.Emit</c>) and for a reference to a type of another module
+    /// (<c>NamingConvention.ImportedTypeName</c>) — a sanitizer of a CLR name, classified as <c>Sanitize</c> is, and a function of
+    /// the namespace, not a member of <see cref="ModuleNamespace"/>, which holds the CLR name alone.</summary>
+    public static string CSharpNamespace(ModuleNamespace ns) =>
+        string.Join('.', ns.ClrName.Split('.').Select(static s => CSharpReservedKeywords.Contains(s) ? "@" + s : s));
 
     /// <summary>Allocate <paramref name="baseName"/> (a <see cref="DataItem.Sanitize"/>d word, or a synthesized base
     /// such as <c>_impliedRecordF</c>) in <paramref name="scope"/>: itself when it is free, else the smallest free
