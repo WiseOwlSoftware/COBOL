@@ -78,5 +78,6 @@ public sealed class GroupRepositoryOrderDriftTests
         Assert.Matches(new Regex(@"ProgramAnswer\? Program\([^)]*\)\s*=>\s*Find\(_programs", RegexOptions.Singleline), text);
         Assert.Contains("Find(_functions, Externalized(externalizedName), position)", text, StringComparison.Ordinal);
         Assert.Contains("Candidates(_functions, u => CobolNames.Same(u.Name, userFunctionName), position)", text, StringComparison.Ordinal);
+        Assert.Contains(".Where(u => otherThan is null || !ExternalizedNames.Same(u.ExternalizedName, otherThan))", text, StringComparison.Ordinal);
     }
 }

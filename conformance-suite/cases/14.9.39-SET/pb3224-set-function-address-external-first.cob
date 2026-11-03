@@ -8,11 +8,19 @@
 *> and the last sentence applies to EACH receiver:
 *>   "The function-prototypes associated with identifier-12 and identifier-13 shall have the same signature."
 *>   cite.py: OK  §14.9.39.3 20)  (Syntax rules)
-*> FPE is restricted to EXTF, a function-prototype the REPOSITORY names but this compilation group does not
-*> define (no compile-time signature, §12.3.8.4 GR11 c), and is written FIRST; FPD is restricted to NSDBL (one USING
-*> formal). §8.4.3.12.4 GR3 makes ADDRESS OF FUNCTION NSZERO a function-pointer restricted to NSZERO (none), whose
+*> FPE is restricted to EXTF, a function prototype definition this compilation group carries but implements nowhere
+*> (§12.3.8.4 GR11 b)), of NSDBL's signature, and is written FIRST; FPD is restricted to NSDBL (one USING formal).
+*> (kb/Work PB2103: EXTF used to be a specifier with no information anywhere, which is REPO-1 now.) §8.4.3.12.4 GR3 makes ADDRESS OF FUNCTION NSZERO a function-pointer restricted to NSZERO (none), whose
 *> signature differs from NSDBL's. The same statement with FPD written first was always refused, so the verdict
 *> must not depend on the order: COBOL1959 (prototype-pointer-signature).
+IDENTIFICATION DIVISION.
+FUNCTION-ID. EXTF IS PROTOTYPE.
+DATA DIVISION.
+LINKAGE SECTION.
+01 L-ARG PIC S9(4).
+01 L-RES PIC S9(9).
+PROCEDURE DIVISION USING L-ARG RETURNING L-RES.
+END FUNCTION EXTF.
 IDENTIFICATION DIVISION.
 FUNCTION-ID. NSDBL.
 DATA DIVISION.

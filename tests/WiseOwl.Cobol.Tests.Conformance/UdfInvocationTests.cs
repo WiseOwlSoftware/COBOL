@@ -71,10 +71,11 @@ public sealed class UdfInvocationTests
         Assert.Contains(errors, e => e.Contains("§12.3.8.4 GR12", StringComparison.Ordinal));
     }
 
-    /// <summary>A REPOSITORY-declared function with NO in-group FUNCTION-ID definition is the
-    /// separate-compilation prototype surface (M2-UDF-3) — staged loud as COBOL1505.</summary>
+    /// <summary>A REPOSITORY-declared function with NO in-group FUNCTION-ID definition and no prototype satisfies
+    /// none of ISO §12.3.8.3 SR10's alternatives: REPO-1 (COBOL5962) at the specifier, no assembly of the external
+    /// repository publishing it (kb/Work PB2103); the reference then names no function (COBOL1505).</summary>
     [Fact]
-    public void DeclaredButUndefined_PrototypeGap_1505()
+    public void DeclaredButUndefined_IsRepo1()
     {
         string src = """
             IDENTIFICATION DIVISION.
@@ -94,7 +95,7 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOL1505");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL5962");
     }
 
     /// <summary>§14.8.2 positional correspondence: an argument-count mismatch is COBOL1506. (The
@@ -700,7 +701,7 @@ public sealed class UdfInvocationTests
 
     /// <summary>UDF-3: a prototype-declared function with NO in-group definition BINDS — the prototype supplies
     /// the §8.4.3.2.4 GR1 signature and the definition is a separately-compiled target resolved at run time
-    /// (§12.3.8 GR11c / §8.4.3.2.4 GR6b). The former COBOL1505 "not implemented" gap is closed for the
+    /// (§12.3.8.4 GR11 b) / §8.4.3.2.4 GR6b). The former COBOL1505 "not implemented" gap is closed for the
     /// prototyped case (the cross-assembly run is proven in InterProgramFileDifferentialTests).</summary>
     [Fact]
     public void PrototypeOnly_NoInGroupDefinition_Binds()
@@ -831,6 +832,21 @@ public sealed class UdfInvocationTests
     /// <summary>A minimal program that references <paramref name="expr"/> as its COMPUTE/MOVE body under the
     /// given <paramref name="repository"/> and optional extra <paramref name="ws"/> — for the keyword-omission
     /// facts (byte-exact behaviour rides the udf_keyword_omitted golden).</summary>
+    /// <summary>A function prototype of the user-defined function UDFDBL, ahead of every unit (ISO §10.6.2 SR1): what a
+    /// REPOSITORY <c>FUNCTION UDFDBL</c> entry names when the group has no definition of it (§12.3.8.4 GR11 b); a specifier
+    /// nothing answers is REPO-1, kb/Work PB2103).</summary>
+    private const string UdfdblPrototype = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. UDFDBL IS PROTOTYPE.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 L-X PIC 9(4).
+        01 L-R PIC 9(4).
+        PROCEDURE DIVISION USING L-X RETURNING L-R.
+        END FUNCTION UDFDBL.
+
+        """;
+
     private static string KoGroup(string pid, string repository, string body, string ws = "") => $$"""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. {{pid}}.
@@ -893,7 +909,7 @@ public sealed class UdfInvocationTests
     [Fact]
     public void KeywordOmitted_UndeclaredIntrinsicName_StaysADataItem()
     {
-        string src = KoGroup("UDFT24B", "    FUNCTION UDFDBL.", "    MOVE MOD(2) TO WS-R.",
+        string src = UdfdblPrototype + KoGroup("UDFT24B", "    FUNCTION UDFDBL.", "    MOVE MOD(2) TO WS-R.",
             ws: "01 GRP.\n           05 MOD PIC 9(4) OCCURS 3 VALUE 7.");
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.True(ok, "a data item named like an un-declared intrinsic must stay a subscript: " + string.Join("\n", errors));
@@ -909,7 +925,7 @@ public sealed class UdfInvocationTests
     [Fact]
     public void KeywordOmitted_RequiresRepositoryDeclaration_CompileTimeReject()
     {
-        string src = KoGroup("UDFKON", "    FUNCTION UDFDBL.",
+        string src = UdfdblPrototype + KoGroup("UDFKON", "    FUNCTION UDFDBL.",
             "    COMPUTE WS-R = MAX(WS-A, WS-B).\n    DISPLAY \"R=\" WS-R.");
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "MAX without FUNCTION and without an ALL/named-intrinsic specifier is not the "

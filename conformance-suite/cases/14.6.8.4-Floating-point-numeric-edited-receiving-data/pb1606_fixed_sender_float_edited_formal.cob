@@ -29,6 +29,17 @@
       *>   F3 FLOAT-LONG 0.3 IS the binary64 0.299999999999999988897769753748..., a floating-point DATA ITEM read by its
       *>      exact value (the PB1606 rule): truncated to 17 digits -> +2.9999999999999998E-01.
       *> Each leg can fail on its own.
+      *> kb/Work PB2103 - ISO 12.3.8.3 SR14: PB1606P's definition FOLLOWS the REPOSITORY paragraph, so it is not "a
+      *> program definition specified previously in this compilation group"; the program prototype definition ahead of
+      *> every other unit (10.6.2 SR1) is the specifier's details (12.3.8.4 GR10 b)).
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PB1606P IS PROTOTYPE.
+DATA DIVISION.
+LINKAGE SECTION.
+01 L    PIC +9.9(16)E+99.
+PROCEDURE DIVISION USING L.
+END PROGRAM PB1606P.
+
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB1606M.
 ENVIRONMENT DIVISION.

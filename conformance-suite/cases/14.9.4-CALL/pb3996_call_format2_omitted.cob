@@ -12,6 +12,17 @@
       *> called program". 14.9.4.3 SR24: the callee's formal is OPTIONAL.
       *> EXPECTED, DERIVED FROM THE RULES: calls 1 and 2 omit B (bare, then BY
       *> REFERENCE), call 3 supplies it.
+      *> kb/Work PB2103 - 12.3.8.3 SR14: PB3996CE's definition follows the REPOSITORY paragraph, so it is not "specified
+      *> previously"; the program prototype definition ahead of every unit (10.6.2 SR1) supplies GR10 b)'s details.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB3996CE IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 A PIC X(4).
+       01 B PIC X(4).
+       PROCEDURE DIVISION USING A OPTIONAL B.
+       END PROGRAM PB3996CE.
+
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3996OK.
        ENVIRONMENT DIVISION.

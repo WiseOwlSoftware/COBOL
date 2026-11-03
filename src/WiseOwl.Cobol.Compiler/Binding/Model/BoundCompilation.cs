@@ -35,6 +35,8 @@ using Core = CobolParserCore;
 /// <param name="SignatureClasses">The group's restricted-pointer signature classes (<c>BindSession.SignatureClasses</c>,
 /// ISO §13.18.60.4 GR25 / GR26): the one partition a decoded repository record's prototypes are admitted into
 /// (<see cref="PrototypeSignatureClasses.Admit"/>; DESIGN-external-repository §6.4 part 2; kb/Work PB2100).</param>
+/// <param name="SignEncoding">The compilation's over-punch convention (<c>EditionContext.SignEncoding</c>, kb/Work PB803):
+/// one per compilation, so a group with no program class (prototypes alone) states it too.</param>
 internal sealed record BoundCompilation(
     Core.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,
@@ -46,4 +48,5 @@ internal sealed record BoundCompilation(
     bool EcActive,
     bool AnyFiles,
     int Edition,
-    PrototypeSignatureClasses SignatureClasses);
+    PrototypeSignatureClasses SignatureClasses,
+    WiseOwl.Cobol.Runtime.SignEncoding SignEncoding);

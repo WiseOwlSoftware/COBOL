@@ -36,7 +36,7 @@ public static class RuntimeAbi
     /// <para>A property, never a <c>const</c>: a constant's value is part of the shipped public surface the runtime major
     /// guards, so every call-ABI bump moved the runtime's public-API hash too and the two counters could not move apart
     /// (kb/Work PB2103). No module reads this member; a module records the number it was compiled with.</para></summary>
-    public static int CallAbi { get; } = 4;
+    public static int CallAbi { get; } = 5;
 
     /// <summary>Why a module compiled against <paramref name="runtimeVersion"/> and <paramref name="callAbi"/> cannot
     /// run on this runtime, or null when it can: the runtime MAJOR must equal this runtime's (a different major is a

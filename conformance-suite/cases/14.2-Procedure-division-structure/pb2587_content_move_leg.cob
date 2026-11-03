@@ -41,12 +41,50 @@
       *>     allocated record without conversion" - the storage image,
       *>     its trailing operational sign overpunched (DOC-A.1 sign
       *>     representation, --sign-encoding ibm)         => [01K]
-      *> C: lines are the CALL lane - each program is defined after
-      *> P2587M, so 12.3.8.4 GR10 c) takes its details from the
-      *> external repository and the record is filled at the
-      *> activation boundary; U: the same boundary for a program with
+      *> C: lines are the CALL lane - each program's details are the
+      *> prototype definitions below (12.3.8.4 GR10 b)), and the record
+      *> is filled under GR9's program-specifier regime; U: the
+      *> activation boundary for a program with
       *> no program-specifier; F: the function, whose definition
       *> precedes the activation; I: the INVOKE lane.
+      *> kb/Work PB2103 - 12.3.8.3 SR14: P2587J, P2587X, P2587E, P2587A, P2587B are defined AFTER the REPOSITORY
+      *> paragraph that names them, so no definition was "specified previously"; the program prototype
+      *> definitions ahead of every unit (10.6.2 SR1) supply 12.3.8.4 GR10 b)'s details.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2587J IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC X(6) JUSTIFIED RIGHT.
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P2587J.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2587X IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC X(4).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P2587X.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2587E IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC ZZ,ZZ9.
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P2587E.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2587A IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC XX/XX.
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P2587A.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P2587B IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 L PIC 1(4).
+       PROCEDURE DIVISION USING L.
+       END PROGRAM P2587B.
        IDENTIFICATION DIVISION.
        CLASS-ID. P2587K INHERITS FROM BASE.
        ENVIRONMENT DIVISION.
