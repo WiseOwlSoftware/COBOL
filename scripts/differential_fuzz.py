@@ -2263,7 +2263,9 @@ def self_test() -> int:
                        ("option", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--model-option", "sonnet:repeat_penalty=1.1"]),
                        ("usd", ["--model", "m", "--count", "1", "--max-usd", "1"]),
                        ("ok", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--max-usd", "2", "--force-open-notes",
-                               "--cobol", "no-such-cobol.exe"])):
+                               "--cobol", "no-such-cobol.exe"]),
+                       ("files", ["--writer", "files", "--replies", str(REPO), "--count", "1", "--force-open-notes",
+                                  "--cobol", "no-such-cobol.exe"])):
         err = io.StringIO()
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
             try:
@@ -2277,7 +2279,8 @@ def self_test() -> int:
           writer_errors["bake-off"].startswith("2|") and "--writer claude takes one --model" in writer_errors["bake-off"]
           and writer_errors["option"].startswith("2|") and "--writer claude takes one --model" in writer_errors["option"]
           and writer_errors["usd"].startswith("2|") and "--max-usd bounds the Claude writer" in writer_errors["usd"]
-          and writer_errors["ok"].startswith("2|") and "compiler not found" in writer_errors["ok"], writer_errors)
+          and writer_errors["ok"].startswith("2|") and "compiler not found" in writer_errors["ok"]
+          and writer_errors["files"].startswith("2|") and "compiler not found" in writer_errors["files"], writer_errors)
     # writer_reply routes to the run's writer and Fuzz.spent_out reads the Claude writer's meter
     probe = Fuzz.__new__(Fuzz)
     probe.model_options = {}
@@ -2371,7 +2374,7 @@ def main(argv: list[str]) -> int:
     if a.report:
         print(write_report(Path(a.report)))
         return 0
-    if not (a.model or a.bake_off):
+    if not (a.model or a.bake_off or a.writer == "files"):
         ap.error("--model or --bake-off is required")
     if a.count is None and a.hours is None:
         ap.error("--count or --hours is required")
