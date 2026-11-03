@@ -7,7 +7,7 @@
 | implementer (worktree) | `git commit -m "WIP checkpoint: …"` on the worktree branch **after every mechanism and every gate**, plus `<worktree>/STATUS.md` with `DONE` (per mechanism) · `NEXT` (the exact next step) · `BLOCKED` · `GATE` (last verdict lines + filter) · batch-file path · codes used | one mechanism |
 | workflow stage (adjudicate / refute / write / validate) | one JSON line per rule (or draft) appended to `<out>/<stage>-<slug>.jsonl` the moment it is decided; read-and-skip on start; the stage's whole result also written to `<out>/out-<slug>.json` | one rule |
 | lander | a commit in ITS worktree after each numbered step + `STATUS.md` | one step |
-| orchestrator | reports are FILES under the scratchpad (`reports/<cluster>-report.md`), briefs are FILES referenced by path; the conversation carries only pointers | — |
+| orchestrator | reports are FILES under the wave scratch (`reports/<cluster>-report.md`), briefs are FILES referenced by path; the conversation carries only pointers | — |
 
 ⭐ **GRACEFUL STOP — the quota-suspend signal (owner 2026-09-22: "attempt to not lose work due to a quota kill").**
 Workflow agents cannot be messaged, so every dispatch prompt carries this line: *"Before starting each new step,

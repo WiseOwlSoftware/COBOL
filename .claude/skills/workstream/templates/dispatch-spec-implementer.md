@@ -9,7 +9,8 @@ precedence for implementation options; obey it, and where the standard leaves a 
 
 Codes allocated: {codes}, in order; list the ones you use and RETURN the ones you do not.
 Report: {reports}\{slug}-{lead}-report.md   (the ONE reports directory the enqueue unit reads, whatever this wave's scratch: kb/Work PB2980; wave-prefixed, so a later agent never overwrites an earlier report)
-Scratch:  {S}\{slug}\
+Scratch:  {S}\{slug}\   (YOURS ALONE, MANDATORY-PRACTICES P16, kb/Work PB4466: create it, and write every helper script, probe, batch, log and commit-message file you keep outside
+your worktree ONLY there, never in the session scratchpad your environment notes name, which every agent of the session shares and where two agents' `callers.py` collided, and never in the bare wave scratch)
 Report your ACTUAL branch (`git branch --show-current`).
 {pred}
 THE GROUP IS ONE ROOT: {root}. Your contract is each note's `kb/Work/<id>.md` on your tree — {files} — read whole, with the notes they

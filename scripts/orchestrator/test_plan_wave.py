@@ -940,6 +940,28 @@ check("check_practices accepts the rendered report path",
       bool(re.search(check_practices.RENDERED_REPORT, report_line)), True)
 check("check_practices refuses a report under the wave's scratch",
       bool(re.search(check_practices.RENDERED_REPORT, f"Report: {TMP}\\reports\\w77a-PB1-report.md")), False)
+# 7c1. AN AGENT WRITES IN ITS OWN DIRECTORY (kb/Work PB4466, MANDATORY-PRACTICES P16). Expected from the rule: the rendered
+#      `Scratch:` line is the wave's scratch plus the group's slug, so two groups of one wave never share one; check_practices
+#      refuses a line that is the bare wave scratch or lacks the P16 statement, and refuses an instruction surface that sends
+#      an agent to the harness's session scratchpad (the real tree has none; each arm is seen refused on a plant).
+scratch_lines = [next((l for l in s.splitlines() if l.startswith("Scratch:")), "") for s in specs]
+check("every rendered Scratch line is <wave scratch>\\<slug>\\, one directory per group",
+      ([l.split()[1] for l in scratch_lines], len({l.split()[1] for l in scratch_lines}) == len(scratch_lines)),
+      ([f"{TMP}\\{g['slug']}\\" for g in gjson], True))
+check("check_practices accepts a rendered Scratch line",
+      [bool(re.search(check_practices.RENDERED_SCRATCH, l)) for l in scratch_lines], [True] * len(scratch_lines))
+check("... and refuses the bare wave scratch, a line without the P16 statement, and a missing line",
+      [bool(re.search(check_practices.RENDERED_SCRATCH, t)) for t in
+       (f"Scratch:  {TMP}\\   (YOURS ALONE, MANDATORY-PRACTICES P16, x)", f"Scratch:  {TMP}\\w77a\\", "Report: x")], [False] * 3)
+check("the template states the line the renderer fills",
+      bool(re.search(check_practices.TEMPLATE_SCRATCH, mds.TEMPLATE.read_text(encoding="utf-8"))), True)
+check("... a bare scratchpad line is refused on a surface; the session scratchpad, a test file and a code outside the surfaces pass",
+      ([len(check_practices.bare_scratchpad_lines(".claude/agents/x.md", t)) for t in
+        ("write it under the scratchpad", "Write to the Scratchpad", "never the session scratchpad")],
+       len(check_practices.bare_scratchpad_lines("scripts/hooks/x.py", "(into the scratchpad)")),
+       check_practices.bare_scratchpad_lines("scripts/hooks/test_x.py", "the scratchpad"),
+       check_practices.bare_scratchpad_lines("scripts/spec/x.py", "the scratchpad")),
+      ([1, 1, 0], 1, [], []))
 try:
     mds.render({k: v for k, v in CFG77.items() if k != "stop_file"}, gjson[0], FILES(gjson[0]))
     check("no stop_file, no spec", "rendered", "KeyError")
@@ -1039,6 +1061,9 @@ check("... each retired phrase is refused on a surface; a PB4328 line and a nega
        check_practices.retired_gating_lines("CLAUDE.md", "There is no impact map, no tier"),
        check_practices.retired_gating_lines("scripts/gate.py", "LEG 1 ONLY")),
       ([1, 1, 1, 1, 1], [], [], []))
+check("the real instruction surfaces send no agent to the session scratchpad (kb/Work PB4466)",
+      [m for rel in live_tools.tracked(coord.REPO, (".md", ".py", ".js", ".yml", ".json", ".txt"))
+       for m in check_practices.bare_scratchpad_lines(rel, (coord.REPO / rel).read_text(encoding="utf-8"))], [])
 # 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
 #     rule: a file under src/WiseOwl.Cobol.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
 #     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a
