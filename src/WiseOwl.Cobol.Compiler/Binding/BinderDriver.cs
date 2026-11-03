@@ -170,17 +170,18 @@ internal sealed class BinderDriver
         // first, against no table, so every user-function reference in a method drew COBOL1505.
         session.Repository = BuildRepositoryResolver(units, classes, session);
         // The unexpanded parameterized definitions' forests are resolved with the rest (kb/Work PB2937): their method
-        // bodies bind below, and a restricted pointer in them is typed by its prototype's signature exactly as anywhere.
+        // bodies bind below, and a restricted pointer in them is resolved to the prototype it names exactly as anywhere.
         ResolvePointerRestrictions(units, [.. classes, .. oo.SkeletonClasses],
             [.. oo.InterfaceData, .. oo.SkeletonInterfaceData], session);
-        // ⛔ EVERY SIGNATURE COMPARISON RUNS AFTER THE POINTER TYPES EXIST (kb/Work PB2495): a formal or returning item
-        // that is a restricted program- or function-pointer is typed by its prototype's signature class (ISO §13.18.60.4
-        // GR25 / GR26), which ResolvePointerRestrictions has just attached. A check that runs before it reads an
-        // unstamped pointer, whose identity is its prototype's NAME, and refuses an override, an implementation or a
-        // prototype / definition pair restricted to two differently named prototypes of one signature. Running after
-        // the DATA phase is NOT enough: CheckPrototypeSignaturePairs refused such pairs from inside the resolver's builder,
-        // after every BindUnitData. So each check is a top-level statement of Bind, after this call, and
-        // PrototypePointerTypeDriftTests pins that execution order.
+        // ⛔ EVERY SIGNATURE COMPARISON RUNS AFTER THE POINTER RESTRICTIONS ARE RESOLVED (kb/Work PB2495): a formal or
+        // returning item that is a restricted program- or function-pointer is described by the EXTERNALIZED name of the
+        // prototype its TO phrase names (ISO §13.18.60.4 GR25 / GR26; kb/Work PB4107, PB4491), which
+        // ResolvePointerRestrictions has just attached. A check that runs before it reads the word as WRITTEN, and refuses
+        // an override, an implementation or a prototype / definition pair whose two units name ONE prototype by two words
+        // (a REPOSITORY specifier's AS phrase, §12.3.8.2). Running after the DATA phase is NOT enough:
+        // CheckPrototypeSignaturePairs refused such pairs from inside the resolver's builder, after every BindUnitData. So
+        // each check is a top-level statement of Bind, after this call, and PrototypePointerTypeDriftTests pins that
+        // execution order.
         CheckPrototypeSignaturePairs(units, session.Edition);   // §10.6.2 SR2 / SR3
         // ISO §8.13's "flag differences in prototypes and definitions in the compilation group from the information in
         // the external repository" (--repository-check, REPO-9 / REPO-12; DESIGN-external-repository §9.2) — after the
@@ -1090,7 +1091,12 @@ internal sealed class BinderDriver
     /// ignored": a self- or container-named specifier is never resolved, and the definition, registered LAST, is the
     /// name's entry. A class forest
     /// (<paramref name="unit"/> null) has neither: a class is not a program definition and contains none.</item>
-    /// </list></summary>
+    /// </list>
+    /// The table is the same at every edition. COBOL-85 has no program-prototype-names (ISO/IEC 1989:2002 introduced
+    /// them), and the verbs that read a bare word against this table decide that: below 2002 CALL and CANCEL route the
+    /// word as identifier-1 and never ask it (<c>CallBinder.ProgramPrototypeNamesExist</c>, kb/Work PB4509). The other
+    /// readers are reached only through syntax that is itself refused below 2002 (the AS phrase, a USAGE … TO phrase, a
+    /// program-address-identifier).</summary>
     internal static Dictionary<string, ProgramPrototype> ProgramPrototypesOf(
         DataBinder data, BoundUnit? unit, RepositoryResolver repository, int position)
     {

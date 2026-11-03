@@ -3164,7 +3164,7 @@
   {
    "id": "call-as-phrase-2002",
    "status": "active",
-   "description": "CALL Format 2 (program-prototype) - the AS phrase, ISO §14.9.4.2 Format 2 (AS NESTED / AS program-prototype-name-1), introduced 2002 with program prototypes and the NESTED reserved word (§8.9: NESTED reserved from 2002). The FMT-14.9.4.2 row's residue 'the AS-phrase edition gate' re-measured by kb/Work PB239: an 85 compile ACCEPTED `CALL \"X\" AS NESTED` with no diagnostic. Recognition gate on callAsPhrase; the bare program-prototype-name spelling of Format 2 needs no gate of its own because its REPOSITORY paragraph is already 2002-gated.",
+   "description": "CALL Format 2 (program-prototype) - the AS phrase, ISO §14.9.4.2 Format 2 (AS NESTED / AS program-prototype-name-1), introduced 2002 with program prototypes and the NESTED reserved word (§8.9: NESTED reserved from 2002). The FMT-14.9.4.2 row's residue 'the AS-phrase edition gate' re-measured by kb/Work PB239: an 85 compile ACCEPTED `CALL \"X\" AS NESTED` with no diagnostic. Recognition gate on callAsPhrase. The bare program-prototype-name spelling of Format 2 is the program-prototype-name-2002 row: it needs no REPOSITORY paragraph when the name is the element's own or a containing program definition's (§8.4.6.8), so the REPOSITORY entry's gate cannot stand for it (kb/Work PB4509).",
    "display": "the CALL ... AS phrase (program-prototype format)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.4.2 Format 2 (the AS phrase); §8.9 (NESTED reserved from 2002); 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
@@ -3173,6 +3173,19 @@
    "expectDiagnostic": "COBOL0900",
    "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CASX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(6) VALUE \"ABCDEF\".\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"CASX2\" AS NESTED USING X.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. CASX2.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X(6).\nPROCEDURE DIVISION USING L.\nP.\n    EXIT PROGRAM.\nEND PROGRAM CASX2.\nEND PROGRAM CASX1.\n"
+  },
+  {
+   "id": "program-prototype-name-2002",
+   "status": "active",
+   "description": "A program-prototype-name as the operand of CALL and CANCEL — §14.9.4.2 Format 2's bracket-omitted spelling `CALL program-prototype-name-1` and §14.9.5.2's third operand alternative — which §8.4.6.8 scopes to 'the program-name of a containing program definition or a program-prototype-name declared in the REPOSITORY paragraph'. ISO/IEC 1989:2002 introduced it (its §8.4.5.7 carries the same sentence); COBOL-85 has no program-prototype-names, and its CALL and CANCEL identifier-1 shall be a data item (§14.9.4.3 SR1, §14.9.5.3 SR1). The spelling is written exactly like identifier-1, so there is nothing for a recognition gate to see: below 2002 the word is ROUTED as identifier-1 (CallBinder.ProgramPrototypeNamesExist, a behavioral read, DESIGN-version-conformance-pipeline §1.1 item 3) and one that names no data item is the §8.4.2.1 undefined reference, COBOL1639. The containing spelling needs no REPOSITORY entry, so this row's own witness is it: until kb/Work PB4509 an 85 compile ACCEPTED a nested program's `CALL OUTER` as a prototype CALL.",
+   "display": "a program-prototype-name as the CALL / CANCEL operand",
+   "diagnosticCode": "COBOL1639",
+   "citation": "ISO §8.4.6.8; §14.9.4.2 Format 2; §14.9.5.2; §14.9.4.3 SR1; ISO/IEC 1989:2002 §8.4.5.7 (the introduction)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL1639",
+   "vcr": "2002 introduction (ISO/IEC 1989:2002 §8.4.5.7; Annex E covers 2014-2023 only)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PPNC1.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"PPNC2\".\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. PPNC2.\nPROCEDURE DIVISION.\nP.\n    CALL PPNC1.\n    EXIT PROGRAM.\nEND PROGRAM PPNC2.\nEND PROGRAM PPNC1.\n"
   },
   {
    "id": "goback-bare-2002",

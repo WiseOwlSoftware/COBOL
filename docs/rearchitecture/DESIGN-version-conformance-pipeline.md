@@ -2,7 +2,7 @@
 
 > **STATUS: DESIGN — ✅ IMPLEMENTED (PHASE-03; completed by Exec Step E).** The two-arm
 > `VersionConformancePass` is the SOLE edition gate; the binder is edition-agnostic save the documented
-> exception ledger (§1.1 — the UDF Check, the catalog-driven per-name windows, the two behavioral reads, the
+> exception ledger (§1.1 — the UDF Check, the catalog-driven per-name windows, the three behavioral reads, the
 > owner-disposition SYNC-on-group site). Exec Step E folded the last ~19 inline binder gates into the pass;
 > all 9 PHASE-03 exit criteria hold.
 > How WiseOwl COBOL enforces edition (85 / 2002 / 2014 / 2023) conformance. The gating pass runs **post-bind** as a
@@ -90,9 +90,13 @@ is this closed, documented set:
    gate), and the §8.3.3.3.2 / §13.18.40 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 —
    `EditionInfo.MaxDigits` is the table; §8.3.3.3.2 caps fixed-point literals at 1–31 digits and §13.18.40.3 SR14
    caps a numeric/fixed-point-numeric-edited item's PICTURE digit positions at 1–31).
-3. **The two sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
+3. **The three sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
    the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §8.4.3.2 SR2 routing is inert below
-   2002) and the ≥2002 MOVE CORRESPONDING pair-selection window (`CorrespondingBinder` — the Table-16 NE row).
+   2002), its program twin, the <2002 program-prototype-name routing (`CallBinder.ProgramPrototypeNamesExist`,
+   row program-prototype-name-2002: below 2002 a bare word after CALL or CANCEL is identifier-1, never §14.9.4.2
+   Format 2's bracket-omitted spelling, and the same read is what judges a CALL's argument spellings up front,
+   kb/Work PB4503, PB4509), and the ≥2002 MOVE CORRESPONDING pair-selection window (`CorrespondingBinder` — the
+   Table-16 NE row).
 4. **The bind-time `Check` for SYNCHRONIZED on a group item** (`DataBinder.GateSynchronizedGroup`, row
    sync-on-group-2023; asked of every group entry that WROTE the clause, a TYPEDEF's included — kb/Work PB494): a group/elementary distinction the parse tree does not carry — whether the entry HAS
    subordinates is known only once the hierarchy is resolved — so this introduction fires at bind, through the
