@@ -280,11 +280,11 @@ internal static class CompiledProgramCache
         if (result.Inputs.ReadsRepository)
             return "the compilation consulted the external repository — its output is a function of which assemblies a "
                 + "directory listing found, which no recorded input replays (kb/Work PB2103)";
-        string outDir = OutputDirectory(options);
+        string outDir = options.OutputDirectory()!;
         foreach (string file in result.OutputFiles)
             if (!string.Equals(Path.GetDirectoryName(Path.GetFullPath(file)), outDir, StringComparison.OrdinalIgnoreCase))
                 return $"output {file} is outside the output directory";
-        if (result.Success && !options.CheckOnly && ForeignReference(OutputDll(options)) is { } foreign)
+        if (result.Success && !options.CheckOnly && ForeignReference(options.OutputDll()) is { } foreign)
             return $"the program references {foreign}, an assembly outside the keyed compiler closure";
         return null;
     }
@@ -313,11 +313,6 @@ internal static class CompiledProgramCache
         () => new HashSet<string>(CompilerClosure().Select(a => a.GetName().Name!), StringComparer.OrdinalIgnoreCase),
         LazyThreadSafetyMode.ExecutionAndPublication);
 
-    private static string OutputDll(CompilerDriver.Options options) =>
-        options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");   // CompilerDriver.Compile's default
-
-    private static string OutputDirectory(CompilerDriver.Options options) =>
-        Path.GetDirectoryName(Path.GetFullPath(OutputDll(options)))!;
 
     // ───────────────────────────── the store ─────────────────────────────
 
@@ -359,12 +354,12 @@ internal static class CompiledProgramCache
             foreach (var env in entry.Environment)
                 if (System.Environment.GetEnvironmentVariable(env.Name) != env.Value) return null;
 
-            string outDir = OutputDirectory(options);
+            string outDir = options.OutputDirectory()!;
             // --repository-check compares the group with the PREVIOUS BUILD at the output path (DESIGN-external-repository
             // §9.2 (a)), and a compilation that read one is never stored (CompilationInputs.ReadsRepository). A stored entry
             // therefore replays only where a cold compile would find nothing to report: no previous build, or one that IS this
             // entry's output byte for byte.
-            string previous = OutputDll(options);
+            string previous = options.OutputDll();
             if (options.RepositoryCheck && File.Exists(previous)
                 && entry.Files.Find(f => string.Equals(f.Name, Path.GetFileName(previous), StringComparison.OrdinalIgnoreCase)) is var dll
                 && (dll is null || Sha256Hex(File.ReadAllBytes(previous)) != dll.Blob))
@@ -384,7 +379,7 @@ internal static class CompiledProgramCache
 
             var status = Enum.Parse<CompilerDriver.Outcome>(entry.Status);
             bool produced = status == CompilerDriver.Outcome.Success && !options.CheckOnly;
-            return new CompilerDriver.Result(status, produced ? OutputDll(options) : "",
+            return new CompilerDriver.Result(status, produced ? options.OutputDll() : "",
                 entry.GeneratedSource is { } cs ? Path.Combine(outDir, cs) : null, entry.Errors, entry.Warnings)
             {
                 OutputFiles = written,

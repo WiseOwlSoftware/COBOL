@@ -88,10 +88,31 @@ public static class CompilerDriver
         /// the compilation of an expansion's own assembly (<see cref="ExpansionAssemblies"/>, DESIGN-external-repository §10.5), whose source
         /// is the expansion's text and so cannot state the specifier that asked for it. Null for every compilation a user asks for.</summary>
         internal Binding.Model.ExpansionIdentity? PublishAs { get; init; }
+
+        // The three below are METHODS, not properties: they are derived from the options, never options themselves, and every
+        // public property of this record is an input the compiled-program cache keys on and CompileStateDriftTests classifies.
+
+        /// <summary>The assembly this compilation writes: <see cref="OutputPath"/>, else the source path with a <c>.dll</c>
+        /// extension.</summary>
+        public string OutputDll() => OutputPath ?? Path.ChangeExtension(SourcePath, ".dll");
+
+        /// <summary>The directory <see cref="OutputDll"/> is written in, where the runtime is deployed beside it and the default
+        /// external repository is (DESIGN-external-repository §9.3). Null when the path names no file in a directory: a device
+        /// such as <c>NUL</c> (which a POSIX shell's <c>/dev/null</c> becomes on Windows), a volume root, or an empty path.
+        /// <see cref="Compile"/> refuses such an output before anything else reads this (kb/Work PB4502).</summary>
+        public string? OutputDirectory() =>
+            OutputDll() is { } dll && !string.IsNullOrWhiteSpace(dll) ? Path.GetDirectoryName(Path.GetFullPath(dll)) : null;
+
+        /// <summary>The external repository's directories in search order: <see cref="RepositoryPaths"/>, else the output
+        /// directory (DESIGN-external-repository §9.3). The ONE place that default is written: the compilation and each
+        /// expansion's own compilation read it here.</summary>
+        internal IReadOnlyList<string> RepositoryDirectories() =>
+            RepositoryPaths ?? [OutputDirectory() ?? throw new InvalidOperationException(
+                $"the output '{OutputDll()}' names no directory; Compile refuses it before the repository is searched")];
     }
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
-    public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
+    public enum Outcome { Success, SourceNotFound, OutputNotWritable, FrontendError, BindError, BackendError }
 
     /// <summary>The result of a compilation.</summary>
     /// <param name="Status">The phase reached / the failure category.</param>
@@ -140,6 +161,14 @@ public static class CompilerDriver
         var inputs = new Frontend.CompilationInputs();
         if (!inputs.FileExists(options.SourcePath))
             return new Result(Outcome.SourceNotFound, "", null, [$"source file not found: {options.SourcePath}"], [])
+                { Inputs = inputs };
+        // kb/Work PB4502: the output must be a file in a directory, since the runtime is deployed beside it and the default
+        // external repository is that directory. A device (`-o NUL`, or `/dev/null` from a POSIX shell on Windows) or a
+        // volume root names none, and is refused here as a fault of the command line rather than failing deep in the bind.
+        if (options.OutputDirectory() is null)
+            return new Result(Outcome.OutputNotWritable, "", null,
+                [$"output path '{options.OutputDll()}' names no file in a directory (a device such as NUL, or a volume root): "
+                 + "write the assembly to a file path (`cobol check-batch` checks sources without writing one)"], [])
                 { Inputs = inputs };
 
         // Phase 1 — front-end: preprocess + parse.
@@ -207,9 +236,9 @@ public static class CompilerDriver
         var emitter = new CSharpEmitter();
         // The external repository (ISO §8.13; DESIGN-external-repository §9.3): the --repository directories, else the
         // output directory, then the --reference assemblies; the output itself is never resolved against.
-        string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
+        string outputDll = options.OutputDll();
         var repository = new Binding.RepositorySearchSpace(
-            options.RepositoryPaths ?? [Path.GetDirectoryName(Path.GetFullPath(outputDll))!],
+            options.RepositoryDirectories(),
             DirectoriesNamed: options.RepositoryPaths is not null,
             options.ReferencePaths ?? [], outputDll, options.RepositoryCheck, inputs);
         var bound = new Binding.BinderDriver().Bind(tree, edition, frontend.Directives, repository, options.PublishAs);   // Phase 2a — BIND (terminal = conformance pass)
@@ -231,21 +260,40 @@ public static class CompilerDriver
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         // Placement (a): an expansion whose code names nothing of this group is compiled apart, into an assembly of its own that the
         // group then names a type of (DESIGN-external-repository §10.5) — so it is written BEFORE the group's module, which references it.
-        var expansion = ExpansionAssemblies.Write(bound.Expansions, options, outputDll, edition);
-        string[] warnings = [.. feWarnings, .. edition.Warnings, .. expansion.Warnings];
-        if (expansion.Errors.Count > 0)
-            return new Result(Outcome.BackendError, outputDll, expansion.GeneratedCsPath, expansion.Errors, warnings)
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files };
-        var artifact = backend.Emit(bound, new BackendOptions(
-            outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
-            RepositoryUpdate: options.RepositoryUpdate,
-            RepositoryReferences: [.. bound.OoClasses.ImportedAssemblies, .. bound.Expansions.ReferencedAssemblies]));
-        if (!artifact.Success)
-            return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
-                artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles] };
+        // kb/Work PB4502 review R1-1, R2-1, R2-2: the write phase is where the file system answers. An output the host refuses
+        // (`-o /dev/null` on Linux, whose `.g.cs` sibling cannot be created; a directory the user may not write) is a fault of
+        // the command line, OutputNotWritable with the host's own words, never an unhandled exception. Only the two exception
+        // types the file system raises are taken; anything else is the compiler's own failure and still propagates. An
+        // expansion's own assembly is written by a nested Compile, which answers the same way: its Outcome travels back in
+        // Written.Failure, so a refused write there is OutputNotWritable too and never a BackendError. What the phase gathered
+        // before the host refused (the expansions' warnings, which the group's report has withdrawn, and the files already
+        // written) stays in the result.
+        ExpansionAssemblies.Written? expansion = null;
+        try
+        {
+            expansion = ExpansionAssemblies.Write(bound.Expansions, options, edition);
+            string[] warnings = [.. feWarnings, .. edition.Warnings, .. expansion.Warnings];
+            if (expansion.Errors.Count > 0)
+                return new Result(expansion.Failure, outputDll, expansion.GeneratedCsPath, expansion.Errors, warnings)
+                    { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files };
+            var artifact = backend.Emit(bound, new BackendOptions(
+                outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
+                RepositoryUpdate: options.RepositoryUpdate,
+                RepositoryReferences: [.. bound.OoClasses.ImportedAssemblies, .. bound.Expansions.ReferencedAssemblies]));
+            if (!artifact.Success)
+                return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
+                    artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)
+                    { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles] };
 
-        return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [], warnings)
-            { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles], Library = artifact.Library };
+            return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [], warnings)
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles], Library = artifact.Library };
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return new Result(Outcome.OutputNotWritable, outputDll, null,
+                [$"cannot write the output of '{outputDll}': {e.Message}"],
+                [.. feWarnings, .. edition.Warnings, .. expansion?.Warnings ?? []])
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion?.Files ?? [] };
+        }
     }
 }
