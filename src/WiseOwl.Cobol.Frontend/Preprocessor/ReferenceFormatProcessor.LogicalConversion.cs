@@ -239,9 +239,11 @@ public static partial class ReferenceFormatProcessor
     /// <summary>Convert one text, or one SOURCE FORMAT segment of it, in its reference format: the fixed-form or the
     /// free-form classifier, each feeding the one <see cref="LogicalLineBuilder"/>. <paramref name="inIdentificationDivision"/>
     /// is the division the segment starts in (null: not known), and on return the one it ends in: the next segment starts
-    /// there, whatever its format.</summary>
+    /// there, whatever its format. <paramref name="gatesLineLength"/> is false only for the lines of a carried comment-entry
+    /// candidate (<see cref="ConvertCommentEntryCandidate"/>), which the conversion that carried them has gated already.</summary>
     private static (List<string> Lines, List<LineOrigin> Origins) ConvertSegment(ReadOnlySpan<PhysicalLine> lines, bool isFixed,
-        ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, ref bool? inIdentificationDivision)
+        ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, bool gatesLineLength,
+        ref bool? inIdentificationDivision)
     {
         if (isFixed)
         {
@@ -250,7 +252,7 @@ public static partial class ReferenceFormatProcessor
             inIdentificationDivision = fixedForm.InIdentificationDivision;
             return converted;
         }
-        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins);
+        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, gatesLineLength);
         var result = freeForm.Convert(lines);
         inIdentificationDivision = freeForm.InIdentificationDivision;
         return result;
@@ -280,7 +282,7 @@ public static partial class ReferenceFormatProcessor
     /// reading: the paragraph word first on its line, the entry the rest of that line, the next line program text.</para>
     /// </summary>
     private sealed class FreeFormConverter(ReferenceFormatDiagnostics? gates, string file, bool? startsInIdentificationDivision,
-        CommentEntryPins? pins)
+        CommentEntryPins? pins, bool gatesLineLength)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: false);
 
@@ -301,9 +303,11 @@ public static partial class ReferenceFormatProcessor
                 var site = new TextSite(line.Number, Index: 0, line.Columns);
                 // A comment line (§6.5 2)) is neither a header nor words of a division, as in fixed form.
                 var entry = LogicalLineBuilder.TryFirstText(line.Text, out int first) ? BeginsCommentEntry(line.Text, first, line.Number) : CommentEntryText.None;
-                // The 255-position gate is asked of every line once: a CANDIDATE's by whoever decides it (CommentEntryResolver, or
-                // this converter on the run that read the candidate as the program text it is; kb/Work PB4281, review finding R1-2).
-                if (entry != CommentEntryText.CandidateHeader) ReportLineLength(gates, file, line);
+                // The 255-position gate is asked of EVERY physical line, here and once: this conversion runs before conditional
+                // compilation, so a line of an omitted branch is gated as any other (§6.1 3) a)), a carried candidate's too, and
+                // CommentEntryResolver, which converts the candidate later, never asks it again (kb/Work PB4281, review findings
+                // R1-2 and R2-1).
+                if (gatesLineLength) ReportLineLength(gates, file, line);
                 if (entry != CommentEntryText.None)
                 {
                     // The division is not known (DivisionCursor) for a candidate: the line is CARRIED for CommentEntryResolver

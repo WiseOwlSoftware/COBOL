@@ -215,16 +215,27 @@ public sealed class CommentEntryResolverTests
         Assert.Empty(resolved.ProgramText);
     }
 
-    [Fact] // review finding R1-2: the free-form 255-position gate is asked once of a candidate, whichever it proves to be
+    [Fact] // review finding R2-1: a candidate inside an OMITTED branch is never decided, yet its line is gated like any other
+    public void FreeFormLineTooLong_InACandidateOfAnOmittedBranch_IsReported()
+    {
+        string source = "IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\n>>IF B IS DEFINED\nENVIRONMENT DIVISION.\n>>END-IF\n"
+            + ">>IF C IS DEFINED\nAUTHOR. " + new string('X', 300) + "\n>>END-IF\nPROCEDURE DIVISION.\n";
+        var bag = new DiagnosticBag();
+        var resolved = Resolved(source, bag: bag);
+        Assert.DoesNotContain(resolved.Text.Text.Split('\n'), CommentEntryCarrier.Is);   // the omitted branch, carrier and all, is gone
+        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
+    }
+
+    [Fact] // review findings R1-2 and R2-1: the free-form 255-position gate is asked once of EVERY physical line, a candidate's too
     public void FreeFormLineTooLong_IsReportedOnce_WhateverTheCandidateProvesToBe()
     {
         string padded = "REMARKS. DISPLAY \"B\"." + new string(' ', 260) + "*> long\n";
         string source = ProgramTextCandidateSource.Replace("REMARKS. DISPLAY \"A\".\n", padded, StringComparison.Ordinal);
-        // (a) the converter carries the candidate and reports nothing; the resolver, deciding program text, converts it once
+        // (a) the converter carries the candidate and reports it; the resolver, deciding program text, converts it and adds nothing
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(2023, true, bag);
         var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _);
-        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL2653");
+        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 2023, permissive: true);
         CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, gates);
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
@@ -234,7 +245,7 @@ public sealed class CommentEntryResolverTests
         ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _,
             pins: CommentEntryPins.None.With([("t.cob", 8)]));
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
-        // (c) a candidate that is a comment-entry (the selected branch enters the division) is reported once, by the resolver
+        // (c) a candidate that is a comment-entry (the selected branch enters the division) is reported once, by the converter
         bag = new DiagnosticBag();
         var entry = Resolved(">>DEFINE X AS 1\n" + source, bag: bag);
         Assert.Empty(entry.ProgramText);

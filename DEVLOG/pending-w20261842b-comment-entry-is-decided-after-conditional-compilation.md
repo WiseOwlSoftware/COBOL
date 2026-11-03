@@ -55,8 +55,17 @@ a REPLACE in force did not apply to its words and a COPY inside it was not expan
   that the two decide differently, which a per-line pin cannot serve (a unit test pins that it is named for neither).
 
 Finding R1-2 (a lead) shared the file: a free-form candidate header longer than 255 positions was reported COBOL2653 twice when it
-proved to be program text. The converter now leaves a candidate header's length unreported (`ReportLineLength`) and whoever
-decides it reports it once: the converter on the pinned run, the resolver for a comment-entry.
+proved to be program text. The first fix left a candidate header's length unreported and had whoever decides the candidate
+report it; round 2 (finding R2-1, blocking) showed that regression: a candidate inside an omitted `>>IF` branch is never decided,
+so a 308-position line there was accepted while every other over-long line of an omitted branch is COBOL2653 (§6.1 3) a)). The root
+is that the gate belongs to the physical line, not to the comment-entry decision: the free-form converter asks it
+(`ReportLineLength`) of every physical line once, before conditional compilation, a carried candidate's included, and the conversion of
+a carried candidate (`gatesLineLength: false`) never asks it again.
+
+Round 2 golden: `cases/6.5-Logical-conversion/pb4281_long_free_form_line_in_omitted_branch_candidate` (free form, a 308-position `AUTHOR.` line in an
+omitted `>>IF` group after a disagreeing group; refused COBOL2653 at 85, 2002, 2014 and 2023, `wiseowl/diagnostics/` file of the same id), and the unit
+test `FreeFormLineTooLong_InACandidateOfAnOmittedBranch_IsReported`. The lead R2-2 (a later candidate pinned on a text where an earlier one was
+still hidden from COPY) is left for the clerk: it sits in `Frontend.RunTextStages`, which this round does not change.
 
 New goldens, each failing on the reviewed head with COBOL0307 at the COPY statement and passing now with `7 7`:
 `cases/6.5-Logical-conversion/pb4281_program_text_paragraph_after_group_is_read_by_copy_and_replace` (2002, 2014, 2023; a

@@ -2201,8 +2201,8 @@ of an unsupported facility.
   pinned as program text (`CommentEntryPins`, read by the two converters where the division is not known), to a fixed
   point: a run that names no new candidate ends the iteration, which is every run of a program without a candidate (one
   `Contains` per run), and every other run adds a pin, so it ends. The pinned run converts the candidate as the
-  ordinary lines they are, so every stage sees them; the free-form 255-position gate is asked of a candidate once, by
-  the converter on that run or by the resolver for a comment-entry. The one candidate left converted late is a library
+  ordinary lines they are, so every stage sees them; the free-form 255-position gate (§6.1 3) a)) is asked of EVERY physical line once, by
+  the converter, a carried candidate's and an omitted branch's included; the resolver never asks it again. The one candidate left converted late is a library
   text two COPY statements bring in that the two decide differently, which a per-line pin cannot serve. The merged driver's COPY cursor reads the text the
   conditional-compilation stage has already cut, so a COPY's library text starts in the division the cut text says, or
   NOT KNOWN. Pinned by

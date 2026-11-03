@@ -136,7 +136,7 @@ public static partial class ReferenceFormatProcessor
         {
             formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines);
             bool? inIdentificationDivision = startsInIdentificationDivision;
-            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, ref inIdentificationDivision);
+            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, gatesLineLength: true, ref inIdentificationDivision);
             return Mapped(wl, wo, sourcePath);
         }
 
@@ -161,7 +161,7 @@ public static partial class ReferenceFormatProcessor
             int segEnd = s < segments.Count ? segments[s].Index + (keepsLine ? 1 : 0) : lines.Length;   // exclusive
             if (segEnd > segStart)
             {
-                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, ref inIdentification);
+                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, gatesLineLength: true, ref inIdentification);
                 outLines.AddRange(sl);
                 outOrigins.AddRange(so);
             }
