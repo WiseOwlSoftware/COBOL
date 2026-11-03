@@ -2336,6 +2336,11 @@ check("a row whose name is a prefix of another's is not named by the longer one"
           for m in work.edges_remover_problems([edges_note("PB1", "open", "`P.Low → P.Mid.Sub` 1")] + NOTES[1:], EDGES)),
       True)
 check("the live edges file's removers are open notes that name their rows", work.edges_remover_problems(REAL), [])
+CO_SRC = 'private static readonly string[] ConcernOwned = ["ResolveFiles"];'
+check("a ConcernOwned row an open note names passes", work.concern_owned_problems([{"status": "open", "_body": "moves ResolveFiles"}], CO_SRC), [])
+check("a ConcernOwned row only a landed note names is refused", len(work.concern_owned_problems([{"status": "landed", "_body": "moves ResolveFiles"}], CO_SRC)), 1)
+check("a test file with no ConcernOwned list is refused, never passed", len(work.concern_owned_problems([], "class X {}")), 1)
+check("the live ConcernOwned rows have open owners", work.concern_owned_problems(REAL), [])
 # PB2417 review R2-1, the PB4319 shape: a census-only row (one seen only by the census, or one whose remover's landing
 # took its last walked pair) whose every remover landed can leave the file only through a census recorded in the
 # landing, so the refusal names that path and never "delete it from removedBy", which would leave a row no note removes.

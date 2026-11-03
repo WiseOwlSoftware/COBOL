@@ -24,7 +24,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// way to run the pass); the row whose rule code belongs to a concern binder still to come
 /// (<see cref="ConcernOwned"/>) is the named exception, and the list is closed: a row leaves it when its rule code leaves
 /// <c>DataBinder</c> (a stale entry fails here), and while it stays an OPEN <c>kb/Work</c> note must name it, so the exception
-/// always has an owner and an end condition;</item>
+/// always has an owner and an end condition (<c>work.py check</c> holds that half, since no compiler test reads
+/// <c>kb/Work</c>: scripts/inert_lane.py, kb/Work PB4453);</item>
 /// <item>a pass's own source never appends to a fact set its <see cref="IPassInfo.Views"/> does not declare, and while a
 /// pass runs <see cref="AppendGate"/> refuses an append it did not declare, so the declaration cannot drift from what the
 /// pass, or the binder code it calls, does.</item>
@@ -85,21 +86,6 @@ public sealed class BindPassBoundaryDriftTests
                     ? $"{row.Name} is listed as concern-owned but DataBinder no longer has it: its concern binder landed, so delete it from ConcernOwned and let the pass own the call"
                     : $"DataBinder still has a method {row.Name}, the entry of the pass that owns the rule: a second way to run it (move the body into {row.GetType().Name}, or list the row in ConcernOwned with the concern binder that will take it)");
         }
-    }
-
-    [Fact]
-    public void EveryConcernOwnedRow_IsNamedByAnOpenWorkNote_SoTheExceptionHasAnOwnerAndAnEnd()
-    {
-        // The list is closed, not a parking place: a row stays only while an OPEN note owns the move of its rule code off
-        // DataBinder (CLAUDE.md rule 8: work left in prose is work no view can see).
-        var open = Directory.EnumerateFiles(TestRepo.At("kb", "Work"), "*.md")
-            .Select(File.ReadAllText)
-            .Where(text => Regex.IsMatch(text, @"^status:\s*open\s*$", RegexOptions.Multiline))
-            .ToList();
-        foreach (string row in ConcernOwned)
-            Assert.True(open.Exists(text => text.Contains(row, StringComparison.Ordinal)),
-                $"{row} is concern-owned (rule code left on DataBinder) but no open kb/Work note names it: the move off DataBinder " +
-                "has no owner. Name it in the open extract note that owns it (PB2296 Remaining) or finish the move and delete the entry.");
     }
 
     [Fact]

@@ -715,6 +715,7 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
         bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
         bad += r3_program_problems(items)
         bad += edges_remover_problems(items)
+        bad += concern_owned_problems(items)
     return items, bad
 
 
@@ -1670,6 +1671,31 @@ def edges_remover_problems(items: list[dict], edges: dict | None = None) -> list
                 bad.append(f"{name}: its plan names {n}, which kb/Work does not hold")
     return bad
 
+
+
+CONCERN_OWNED_FILE = "tests/WiseOwl.Cobol.Tests.Unit/BindPassBoundaryDriftTests.cs"
+_CONCERN_OWNED = re.compile(r"\bConcernOwned\s*=\s*\[([^\]]*)\]")
+
+
+def concern_owned_problems(items: list[dict], source: str | None = None) -> list[str]:
+    """The register's side of BindPassBoundaryDriftTests.ConcernOwned (kb/Work PB2352-PB2354): each pipeline row whose rule
+    code still lives on DataBinder is named by an OPEN note, so the exception has an owner and an end. The drift test holds
+    the list against the code; this holds it against the register, here because no compiler test reads `kb/Work/`
+    (scripts/inert_lane.py, kb/Work PB4453). `source` is the test file's text (read from the tree when None)."""
+    if source is None:
+        path = REPO / CONCERN_OWNED_FILE
+        if not path.exists():
+            return []
+        source = path.read_text(encoding="utf-8")
+    m = _CONCERN_OWNED.search(source)
+    if m is None:
+        return [f"{CONCERN_OWNED_FILE}: no `ConcernOwned = [...]` list found, so its owners cannot be checked "
+                f"(update work.concern_owned_problems with the test)"]
+    rows = re.findall(r'"([^"]+)"', m.group(1))
+    open_bodies = [it.get("_body", "") for it in items if it.get("status") == "open"]
+    return [f"{CONCERN_OWNED_FILE}: ConcernOwned row {row} (rule code left on DataBinder) is named by no open kb/Work note: "
+            f"the move off DataBinder has no owner; name it in the open extract note that owns it or finish the move"
+            for row in rows if not any(row in body for body in open_bodies)]
 
 def print_cluster(view: dict, as_json: bool) -> int:
     if as_json:
