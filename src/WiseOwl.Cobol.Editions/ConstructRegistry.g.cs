@@ -253,6 +253,7 @@ public static partial class ConstructRegistry
         new("report-group-sign-2002", "a SIGN clause on a report group description entry that is a group", 2002, null, null, "COBOL0900", "ISO/IEC 1989:2002 Annex F.2 item 123; ISO §13.18.52.3 SR1 (2023 text)"),
         new("call-returning-2002", "CALL RETURNING", 2002, null, null, "COBOL0884", "ISO §14.9.4 (the RETURNING phrase on CALL is 2002+)"),
         new("call-as-phrase-2002", "the CALL ... AS phrase (program-prototype format)", 2002, null, null, "COBOL0900", "ISO §14.9.4.2 Format 2 (the AS phrase); §8.9 (NESTED reserved from 2002); 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)"),
+        new("program-prototype-name-2002", "a program-prototype-name as the CALL / CANCEL operand", 2002, null, null, "COBOL1639", "ISO §8.4.6.8; §14.9.4.2 Format 2; §14.9.5.2; §14.9.4.3 SR1; ISO/IEC 1989:2002 clause 8.4.5.7 (the introduction)"),
         new("goback-bare-2002", "the GOBACK statement", 2002, null, null, "COBOL0880", "ISO §14.9.18 (§14.9.16 in 2002); COBOL-85 uses STOP RUN / EXIT PROGRAM"),
         new("inspect-backward-2023", "INSPECT BACKWARD", 2023, null, null, "COBOL0845", "ISO §14.9.22.2"),
         new("initialize-filler-2002", "INITIALIZE WITH FILLER", 2002, null, null, "COBOL0830", "ISO §14.9.20 (the FILLER phrase is 2002+)"),
