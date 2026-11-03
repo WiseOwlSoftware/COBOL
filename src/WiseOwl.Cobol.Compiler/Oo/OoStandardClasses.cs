@@ -107,7 +107,7 @@ public static class OoStandardClasses
         // The symbol carries the §16.2 signature as a real OoMethodBinding, so every consumer that reads a method's
         // signature — override conformance (§11.7.3 SR9), the storage-crossing harmonization, the universal
         // dispatch descriptors — sees BASE's methods exactly as it sees a method written in COBOL.
-        var m = new OoMethodSymbol(name, HasUsing: false, HasReturning: true, Ctx: null!)
+        var m = new OoMethodSymbol(name, HasUsing: false, HasReturning: true, Ctx: null)
         {
             ClrName = which is StandardMethod.New ? NewClrName : FactoryObjectClrName,
             Owner = owner, IsFactory = factory, Standard = which,

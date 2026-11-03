@@ -41,7 +41,8 @@ internal sealed record PublishedSkeleton(string Name, string ExternalizedName, b
 /// <param name="Text">The expansion's source text (the skeleton's tokens with the header renamed and each formal replaced by its actual).</param>
 /// <param name="State">The compile state of the skeleton it is made from.</param>
 /// <param name="Placement">Where it goes.</param>
-internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement);
+/// <param name="RequestedAtLine">The line of the EXPANDS entry that asked for it, which a diagnostic of its compilation is reported at.</param>
+internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement, int RequestedAtLine);
 
 /// <summary>What the group publishes for its parameterized definitions and where each of its expansions lives (§10.5): produced by
 /// <c>ExpansionPlacementPass</c> once the group is bound, carried on the <see cref="BoundCompilation"/>, read by the emitter and the
@@ -67,6 +68,11 @@ internal sealed record ExpansionPlacements(IReadOnlyDictionary<string, Expansion
 
     /// <summary>The placement of the class or interface this module names <paramref name="clrName"/>, or null when it is no expansion.</summary>
     public ExpansionPlacement? Of(string clrName) => ByName.GetValueOrDefault(clrName);
+
+    /// <summary>Whether the class, factory type or interface this module names <paramref name="clrName"/> is an expansion that lives in
+    /// another assembly (imported, or written to one of its own), which this module names through a <c>using</c> alias.</summary>
+    public bool LivesElsewhere(string clrName) =>
+        All.Any(p => p.Where is not ExpansionWhere.InGroup && (p.LocalName == clrName || p.LocalFactoryName == clrName));
 
     /// <summary>The kind the class or interface named <paramref name="clrName"/> is published as: an expansion's, else <paramref name="plain"/>.</summary>
     public RepositoryUnitKind KindOf(string clrName, RepositoryUnitKind plain) => ByName.ContainsKey(clrName) ? RepositoryUnitKind.Expansion : plain;

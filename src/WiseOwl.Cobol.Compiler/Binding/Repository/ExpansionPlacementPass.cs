@@ -129,8 +129,19 @@ internal static class ExpansionPlacementPass
             string mine = ExpansionKey.SurfaceText(RecordOf(symbol));
 
             // Import before expand; a stale copy is named and replaced; a same-name expansion of another definition or other actuals is
-            // another class under the same name, which §9.3.12 forbids to share a run unit.
+            // another class under the same name, which §9.3.12 forbids to share a run unit. It is an ERROR where the two classes will
+            // necessarily share one: the other lives in an assembly this group references, or is the file placement (a) would overwrite.
             ExpansionPlacement? placement = null;
+            string target = Path.Combine(external.OutputDirectory, ExternalizedNames.Form(externalized) + ".dll");
+            var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: file paths
+            if (origin.Skeleton.From is { } definedIn) referenced.Add(definedIn.Path);
+            foreach (var entry in resolutionEntries.Concat(actualEntries))
+            {
+                var (c, i) = table.ResolveSpecifier(entry);
+                if ((c?.Imported ?? i?.Imported) is { } importedFrom) referenced.Add(importedFrom.Path);
+                object? named = c is not null ? c : i;
+                if (named is not null && placements.GetValueOrDefault(named) is { HoldingFile: { } held }) referenced.Add(held);
+            }
             foreach (var other in external.ExpansionsNamed(externalized))
             {
                 var theirs = other.Identity;
@@ -140,32 +151,33 @@ internal static class ExpansionPlacementPass
                     placement ??= new ExpansionPlacement(identity, ExpansionWhere.Imported, other.From.Path, other.From.ClrNamespace,
                         other.Record.Class!.ClrName, other.Record.Class.FactoryType, LocalNameOf(symbol), LocalFactoryNameOf(symbol));
                 else if (sameTriple)
-                {                    if (reportedStale.Add(other.From.Mvid)) ReportStale(origin, externalized, other, identity, theirs.Key == key);
+                {
+                    if (reportedStale.Add(other.From.Mvid)) ReportStale(origin, externalized, other, identity, theirs.Key == key);
                 }
-                else ReportSameName(origin, externalized, other);
+                else ReportSameName(symbol, origin, externalized, other, shallNot: referenced.Contains(other.From.Path)
+                    || (!namesGroup && string.Equals(Path.GetFullPath(other.From.Path), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase)));   // not a COBOL word: file paths
             }
             if (placement is null)
             {
-                if (!namesGroup) placement = WillWrite(symbol, origin, externalized, identity);
+                if (!namesGroup) placement = WillWrite(symbol, origin, externalized, identity, target);
                 else
                 {
                     if (origin.Skeleton.From is not null && !SameState(origin.Skeleton.State, inputs.At(origin.Entry.Start.Line)))
-                        ReportForeignState(origin, externalized);
+                        ReportForeignState(symbol, origin, externalized);
                     placement = new ExpansionPlacement(identity, ExpansionWhere.InGroup);
                 }
             }
             placements[symbol] = placement;
-            if (placement.Where is ExpansionWhere.OwnAssembly) order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement));
+            if (placement.Where is ExpansionWhere.OwnAssembly) order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement, origin.Entry.Start.Line));
             inProgress.Remove(symbol);
             return placement;
         }
 
         // Placement (a): the file <externalized name>.dll beside the output. Whatever is there is replaced only when it is an expansion of
         // this name (stale, REPO-9) or an assembly of another schema or version (REPO-12); anything else is not ours to overwrite.
-        ExpansionPlacement WillWrite(object symbol, ExpansionOrigin origin, string externalized, ExpansionIdentity identity)
+        ExpansionPlacement WillWrite(object symbol, ExpansionOrigin origin, string externalized, ExpansionIdentity identity, string path)
         {
             string simple = ExternalizedNames.Form(externalized);
-            string path = Path.Combine(external.OutputDirectory, simple + ".dll");
             var (state, why) = external.StateOfExpansionFile(path, externalized);
             switch (state)
             {
@@ -176,7 +188,7 @@ internal static class ExpansionPlacementPass
                 case MetadataRepositoryProvider.TargetFile.Foreign:
                     using (edition.At(origin.Entry))
                         edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
-                            $"REPOSITORY {(symbol is OoInterfaceSymbol ? "INTERFACE" : "CLASS")} '{externalized}' EXPANDS {origin.Skeleton.Name}: the expansion's own "
+                            $"{RepositoryWord(symbol)} '{externalized}' EXPANDS {origin.Skeleton.Name}: the expansion's own "
                             + $"assembly would be '{path}', which {why}; two classes with the same externalized name that are not expansions of one definition "
                             + "with the same actuals shall not share a run unit (ISO §9.3.12, §9.3.13)");
                     break;
@@ -200,26 +212,36 @@ internal static class ExpansionPlacementPass
                 + " (ISO §9.3.12, §8.13; DESIGN-external-repository §10.5)");
         }
 
-        void ReportSameName(ExpansionOrigin origin, string externalized, MetadataRepositoryProvider.PublishedExpansion other)
+        // REPO-2 (a warning) for a same-name, different-triple expansion that is merely elsewhere in the search space; COBOL2240 where it
+        // is an assembly this group references or the file placement (a) would overwrite with a different class (§9.3.12's "shall not").
+        void ReportSameName(object symbol, ExpansionOrigin origin, string externalized, MetadataRepositoryProvider.PublishedExpansion other,
+            bool shallNot)
         {
             using var at = edition.At(origin.Entry);
-            edition.Warning(DiagnosticCatalog.RepositoryEntryShadowedDiffers,
-                $"the expansion \"{externalized}\" in '{other.From.Path}' expands {other.Identity.DefinitionIdentity} USING "
+            string what = $"the expansion \"{externalized}\" in '{other.From.Path}' expands {other.Identity.DefinitionIdentity} USING "
                 + $"{string.Join(" ", other.Identity.ActualIdentities)}, which is not what this compilation's expansion of that name is: two classes "
                 + "with different actual parameters are not the same class instance and shall not have the same externalized object-class-name "
-                + "within a run unit (ISO §9.3.12, §9.3.13; DESIGN-external-repository §10.5)");
+                + "within a run unit (ISO §9.3.12, §9.3.13; DESIGN-external-repository §10.5)";
+            if (!shallNot) edition.Warning(DiagnosticCatalog.RepositoryEntryShadowedDiffers, what);
+            else
+                edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
+                    $"{RepositoryWord(symbol)} '{externalized}' EXPANDS {origin.Skeleton.Name}: {what}; the two necessarily share a run unit, because that "
+                    + "assembly is one this compilation references or the file this expansion would be written to");
         }
 
-        void ReportForeignState(ExpansionOrigin origin, string externalized)
+        void ReportForeignState(object symbol, ExpansionOrigin origin, string externalized)
         {
             using var at = edition.At(origin.Entry);
             edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
-                $"REPOSITORY CLASS '{externalized}' EXPANDS {origin.Skeleton.Name}: the skeleton was compiled under another compile state than this "
+                $"{RepositoryWord(symbol)} '{externalized}' EXPANDS {origin.Skeleton.Name}: the skeleton was compiled under another compile state than this "
                 + "compilation's, so its expansion must be compiled apart under that state, in an assembly of its own; but its code names a class "
                 + "or interface of this compilation group, which an assembly of its own cannot reference (ISO §9.3.12, §12.3.8.4 GR5; "
                 + "DESIGN-external-repository §10.5)");
         }
     }
+
+    /// <summary>The REPOSITORY entry's leading words for the class or interface <paramref name="symbol"/> an expansion makes.</summary>
+    private static string RepositoryWord(object symbol) => symbol is OoInterfaceSymbol ? "REPOSITORY INTERFACE" : "REPOSITORY CLASS";
 
     private static string LocalNameOf(object symbol) => symbol is OoClassSymbol c ? c.ClrName : ((OoInterfaceSymbol)symbol).ClrName;
 

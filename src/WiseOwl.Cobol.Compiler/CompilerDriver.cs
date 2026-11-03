@@ -231,9 +231,9 @@ public static class CompilerDriver
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         // Placement (a): an expansion whose code names nothing of this group is compiled apart, into an assembly of its own that the
         // group then names a type of (DESIGN-external-repository §10.5) — so it is written BEFORE the group's module, which references it.
-        var (expansionFiles, expansionErrors) = ExpansionAssemblies.Write(bound.Expansions, options, outputDll);
+        var (expansionFiles, expansionErrors, expansionCs) = ExpansionAssemblies.Write(bound.Expansions, options, outputDll);
         if (expansionErrors.Count > 0)
-            return new Result(Outcome.BackendError, outputDll, null, expansionErrors, [.. feWarnings, .. edition.Warnings])
+            return new Result(Outcome.BackendError, outputDll, expansionCs, expansionErrors, [.. feWarnings, .. edition.Warnings])
                 { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansionFiles };
         var artifact = backend.Emit(bound, new BackendOptions(
             outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,

@@ -709,7 +709,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     {
         var r = dm.Record;
         char accessor = r.Accessor switch { RepositoryAccessor.Get => 'G', RepositoryAccessor.Set => 'S', _ => '\0' };
-        var m = new OoMethodSymbol(r.Name, HasUsing: dm.Formals.Count > 0, HasReturning: dm.Returning is not null, Ctx: null!)
+        var m = new OoMethodSymbol(r.Name, HasUsing: dm.Formals.Count > 0, HasReturning: dm.Returning is not null, Ctx: null)
         {
             ClrName = r.ClrName, Owner = owner!, Imported = true, IsFactory = r.IsFactory, HasOverride = r.Override, IsFinal = r.Final,
             Accessor = accessor, PropertyName = r.PropertyName,

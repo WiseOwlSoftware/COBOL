@@ -10,10 +10,18 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// USING/RETURNING presence recorded at pass-1, and — filled by <c>DataBinder.OoBindMethodData</c> at class
 /// bind time (BEFORE any statement binds, so every INVOKE site in the group sees the full signature) — the
 /// resolved formal list, RETURNING item, and data roots (port slice 2, deep-dive D3/D6).</summary>
+/// <param name="Ctx">The METHOD-ID definition this method was written as, or NULL for a method no source of this group wrote: the standard
+/// class BASE's, one generated for a property accessor, and one IMPORTED from the external repository (DESIGN-external-repository §10.1).
+/// A reader that binds the method's data or body asks <see cref="Definition"/>.</param>
 public sealed record OoMethodSymbol(
     string Name, bool HasUsing, bool HasReturning,
-    CobolParserCore.MethodDefinitionContext Ctx)
+    CobolParserCore.MethodDefinitionContext? Ctx)
 {
+    /// <summary>The METHOD-ID definition of a method this group's source wrote (<see cref="Ctx"/>): what binding its data and body reads.
+    /// A method without one has no body to bind, so asking is a compiler fault.</summary>
+    public CobolParserCore.MethodDefinitionContext Definition =>
+        Ctx ?? throw new InvalidOperationException($"method '{Name}' has no source definition (it is a standard, generated or imported method)");
+
     /// <summary>The name this method is externalized under (ISO §11.7.4 GR1 b): "the name is
     /// method-name-1. However, literal-1, if specified, is the name of method that is externalized to the
     /// operating environment"). It defaults to <see cref="Name"/>, and it is the ROSTER KEY: §14.9.23.2

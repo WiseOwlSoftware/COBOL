@@ -410,6 +410,232 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    /// <summary>CRATE: another class of the library, so an expansion of HOLD with it as the actual is another class than HOLD-BOX.</summary>
+    private static readonly string Crate = Box.Replace("BOX", "CRATE");
+
+    private static string ClientOfCrate(string id) => Client(id).Replace("CLASS BOX", "CLASS CRATE").Replace("REFERENCE BOX", "REFERENCE CRATE")
+        .Replace("INVOKE BOX", "INVOKE CRATE").Replace("USING BOX", "USING CRATE").Replace("\"BOX ", "\"CRATE ");
+
+    private static CompilerDriver.Result CompileSearching(string dir, string name, string source, string repository, int level = 2014)
+    {
+        Directory.CreateDirectory(dir);
+        string src = Path.Combine(dir, name + ".cob");
+        File.WriteAllText(src, source);
+        return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: level,
+            SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [repository]));
+    }
+
+    [Fact]   // §9.3.12 "shall not": a different class under the name of the file placement (a) would overwrite is refused, and the file stays.
+    public void ASameNameExpansionOfOtherActuals_AtTheFilePlacementAWouldOverwrite_IsRefused_AndTheFileIsLeftAlone()
+    {
+        WithDirectory("expansion-same-name-target", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Crate + Hold()).Success);
+            Assert.True(Compile(dir, "CLIENTBOX", Client("CLIENTBOX")).Success);
+            string file = Path.Combine(dir, "HOLD-BOX.dll");
+            byte[] before = File.ReadAllBytes(file);
+            var r = Compile(dir, "CLIENTCRATE", ClientOfCrate("CLIENTCRATE"));
+            Assert.False(r.Success);
+            string refusal = Assert.Single(r.Errors.Concat(r.Warnings), m => m.Contains("COBOL2240"));
+            Assert.Contains("shall not have the same externalized object-class-name", refusal);
+            Assert.Contains("REPOSITORY CLASS 'HOLD-BOX'", refusal);
+            Assert.Equal(before, File.ReadAllBytes(file));
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENTBOX.dll"), dir);   // the first group's class is the one the file still holds
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("BOX 042", stdout);
+        });
+    }
+
+    [Fact]   // §9.3.12 "shall not", §10.5: the same refusal where the other class lives in an assembly the group references (the skeleton's own).
+    public void ASameNameExpansionInAnAssemblyTheGroupReferences_IsRefused()
+    {
+        WithDirectory("expansion-same-name-referenced", dir =>
+        {
+            // The library itself expands HOLD with its own class BOX (placement (b): HOLD-BOX lives in LIBX.dll); a client of that library,
+            // which references LIBX.dll for the skeleton and for CRATE, asks for a HOLD-BOX of CRATE: the two share its run unit.
+            Assert.True(Compile(dir, "LIBX", Box + Crate + Hold() + "\n" + Client("LIBMAIN")).Success);
+            Assert.Contains(Records(Path.Combine(dir, "LIBX.dll")), x => x.Kind is RepositoryUnitKind.Expansion && x.ExternalizedName == "HOLD-BOX");
+            var r = Compile(dir, "CLIENTCRATE", ClientOfCrate("CLIENTCRATE"));
+            Assert.False(r.Success);
+            string refusal = Assert.Single(r.Errors, m => m.Contains("COBOL2240"));
+            Assert.Contains("LIBX.dll", refusal);
+            Assert.False(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));
+        });
+    }
+
+    [Fact]   // §10.5, REPO-2: a same-name, different-triple expansion that is merely elsewhere in the search space is a warning; this one is made as usual.
+    public void ASameNameExpansionElsewhereInTheSearchSpace_IsRepo2_AndTheExpansionIsMade()
+    {
+        WithDirectory("expansion-same-name-elsewhere", dir =>
+        {
+            string a = Path.Combine(dir, "a"), b = Path.Combine(dir, "b");
+            Assert.True(Compile(a, "LIBX", Box + Crate + Hold()).Success);
+            Assert.True(Compile(a, "CLIENTBOX", Client("CLIENTBOX")).Success);
+            var r = CompileSearching(b, "CLIENTCRATE", ClientOfCrate("CLIENTCRATE"), a);
+            Assert.True(r.Success, Codes(r));
+            string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL5963"));
+            Assert.Contains("HOLD-BOX", warning);
+            Assert.Equal(["CRATE"], Records(Path.Combine(b, "HOLD-BOX.dll")).Single().Expansion!.ActualIdentities.ToList());
+            Assert.Equal(["BOX"], Records(Path.Combine(a, "HOLD-BOX.dll")).Single().Expansion!.ActualIdentities.ToList());   // the other class is untouched
+        });
+    }
+
+    [Fact]   // REPO-12: an existing <name>.dll that an older runtime major wrote is replaced, with the warning; never silently.
+    public void AnExpansionFileAnOtherRuntimeMajorWrote_IsReplacedUnderRepo12()
+    {
+        WithDirectory("expansion-skewed-target", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold()).Success);
+            Assert.True(Compile(dir, "CLIENT1", Client("CLIENT1")).Success);
+            string file = Path.Combine(dir, "HOLD-BOX.dll");
+            byte[] bytes = File.ReadAllBytes(file);
+            var current = System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.Current);
+            var other = System.Text.Encoding.UTF8.GetBytes(RuntimeVersionSkew.OtherMajor);
+            Assert.Equal(current.Length, other.Length);
+            int replaced = 0;
+            for (int at = bytes.AsSpan().IndexOf(current); at >= 0; at = bytes.AsSpan().IndexOf(current))
+            {
+                other.CopyTo(bytes, at);
+                replaced++;
+            }
+            Assert.True(replaced > 0, "the expansion records its runtime version nowhere in UTF-8");
+            File.WriteAllBytes(file, bytes);
+            var r = Compile(dir, "CLIENT2", Client("CLIENT2", 7));
+            Assert.True(r.Success, Codes(r));
+            string skew = Assert.Single(r.Warnings, w => w.Contains("COBOL5972"));
+            Assert.Contains("is replaced", skew);
+            Assert.NotEqual(bytes, File.ReadAllBytes(file));
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT2.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("BOX 007", stdout);
+        });
+    }
+
+    [Fact]   // §12.3.8.4 GR5, §10.5 "Residual": a skeleton compiled under another state whose expansion names a class of the group is refused, naming the entry's kind.
+    public void AnImportedSkeletonUnderAnotherCompileState_WhoseExpansionNamesAGroupClass_IsRefused()
+    {
+        WithDirectory("expansion-foreign-state", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold(), level: 2014).Success);
+            string own = Box.Replace("BOX", "LBOX");
+            var client = Client("CLIENT3").Replace("CLASS BOX", "CLASS LBOX").Replace("REFERENCE BOX", "REFERENCE LBOX")
+                .Replace("INVOKE BOX", "INVOKE LBOX").Replace("USING BOX", "USING LBOX");
+            var r = Compile(dir, "CLIENT3", own + client, level: 2023);
+            Assert.False(r.Success);
+            string refusal = Assert.Single(r.Errors, m => m.Contains("COBOL2240"));
+            Assert.Contains("REPOSITORY CLASS 'HOLD-BOX'", refusal);
+            Assert.Contains("another compile state", refusal);
+        });
+    }
+
+    [Fact]   // The same refusal for an INTERFACE expansion names an INTERFACE entry, not a class.
+    public void TheForeignStateRefusal_OfAnInterfaceExpansion_NamesAnInterfaceEntry()
+    {
+        const string iput = """
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. IPUT USING T.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS T.
+            PROCEDURE DIVISION.
+            METHOD-ID. PUT.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 X USAGE OBJECT REFERENCE T.
+            PROCEDURE DIVISION USING X.
+            END METHOD PUT.
+            END INTERFACE IPUT.
+
+            """;
+        const string client = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFMAIN.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS LBOX
+                INTERFACE IPUT
+                INTERFACE IPUT-LBOX EXPANDS IPUT USING LBOX.
+            PROCEDURE DIVISION.
+                STOP RUN.
+            END PROGRAM IFMAIN.
+            """;
+        WithDirectory("interface-foreign-state", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + iput, level: 2014).Success);
+            var r = Compile(dir, "CLIENT3", Box.Replace("BOX", "LBOX") + client, level: 2023);
+            Assert.False(r.Success);
+            Assert.Contains("REPOSITORY INTERFACE 'IPUT-LBOX'", Assert.Single(r.Errors, m => m.Contains("COBOL2240")));
+        });
+    }
+
+    [Fact]   // §10.5, §7.2: a numeric literal argument to a method of an expansion in another assembly crosses through the method's own profile.
+    public void ANumericLiteralArgument_ToAMethodOfAnExpansionInAnotherAssembly_Compiles()
+    {
+        string hold = Hold().Replace("METHOD-ID. SHOW-IT.", """
+            METHOD-ID. SETN.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 N PIC 9(3).
+            PROCEDURE DIVISION USING N.
+                DISPLAY "N " N.
+            END METHOD SETN.
+            METHOD-ID. SHOW-IT.
+            """);
+        WithDirectory("expansion-literal-argument", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + hold).Success);
+            var r = Compile(dir, "CLIENT1", Client("CLIENT1").Replace("INVOKE HB \"SHOW-IT\"", "INVOKE HB \"SETN\" USING 42\n    INVOKE HB \"SHOW-IT\""));
+            Assert.True(r.Success, Codes(r));
+            Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX.dll")));   // placement (a)
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT1.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("N 042\nBOX 042", stdout);
+            // The second group imports the same expansion (placement Imported): the same crossing.
+            var again = Compile(dir, "CLIENT2", Client("CLIENT2").Replace("INVOKE HB \"SHOW-IT\"", "INVOKE HB \"SETN\" USING 7\n    INVOKE HB \"SHOW-IT\""));
+            Assert.True(again.Success, Codes(again));
+            var (exit2, stdout2, stderr2) = Run(Path.Combine(dir, "CLIENT2.dll"), dir);
+            Assert.True(exit2 == 0, stderr2);
+            Assert.Equal("N 007\nBOX 042", stdout2);
+        });
+    }
+
+    [Fact]   // §9.3.12, §10.5 (4a): the expansion's text reaches its own compilation with every literal intact, whatever its length and spaces.
+    public void AnExpansionWhoseSkeletonHoldsLongLiteralsWithSpaces_IsWrittenIntact()
+    {
+        // 140 characters with a space after every second one, so any 200-position fill point of the expansion text lands inside a literal.
+        string literal = string.Concat(Enumerable.Range(0, 35).Select(i => $"A{i % 10} B{i % 10} ")).TrimEnd();
+        string show = $"DISPLAY \"{literal}\"\n        DISPLAY \"{literal}\"\n        DISPLAY \"{literal}\"\n        INVOKE ITEM \"SHOW\".";
+        WithDirectory("expansion-long-literals", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + Hold(show)).Success);
+            var r = Compile(dir, "CLIENT1", Client("CLIENT1"));
+            Assert.True(r.Success, Codes(r));
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT1.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal($"{literal}\n{literal}\n{literal}\nBOX 042", stdout);
+        });
+    }
+
+    [Fact]   // §6.2.3.1, §6.5 8): the free-form lines of an expansion's text read back as the text does, for a literal of any length.
+    public void TheFreeFormLines_OfALiteralLongerThanALine_ReadBackAsTheLiteral()
+    {
+        string literal = string.Concat(Enumerable.Range(0, 220).Select(i => i % 7 == 0 ? "it''s " : $"w{i} ")).TrimEnd();   // doubled apostrophes straddle fill points
+        string text = $"IDENTIFICATION DIVISION. PROGRAM-ID. LONGLIT. PROCEDURE DIVISION. DISPLAY '{literal}' STOP RUN. END PROGRAM LONGLIT.";
+        string lines = ExpansionAssemblies.FreeForm(text);
+        Assert.All(lines.Split('\n'), line => Assert.True(line.Length <= 200, $"{line.Length} positions"));
+        Assert.True(lines.Split('\n').Length > 3);
+        WithDirectory("freeform-long-literal", dir =>
+        {
+            var r = Compile(dir, "LONGLIT", lines + "\n", level: 2023);
+            Assert.True(r.Success, Codes(r));
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "LONGLIT.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal(literal.Replace("''", "'"), stdout);
+        });
+    }
+
     [Fact]   // A repository with no skeleton of the name: REPO-1 at the specifier, as for any class the repository does not answer.
     public void ASkeletonNothingAnswers_IsRepo1()
     {

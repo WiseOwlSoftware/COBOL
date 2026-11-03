@@ -1863,7 +1863,13 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   on the class (`[CobolUnit(Kind = Expansion, …)]`).
 - *Stale expansions* (`ExpansionPlacementPass.ReportStale`): REPO-9 names the stale entry, the first component of its key that changed and
   every assembly of the search space whose `AssemblyRef` table names it (`RepositoryLocator.ReferencersOf`, nothing loaded). A same-name
-  expansion of another definition or other actuals is REPO-2.
+  expansion of another definition or other actuals (`ReportSameName`) is COBOL2240 where it is an assembly this group references (the
+  definition's, an actual's or a resolution's) or the `<name>.dll` placement (a) would overwrite with a different class, and REPO-2
+  anywhere else in the search space (the expansion is then made as usual). The COBOL2240 refusal stops the compilation before any
+  file is written, so the existing `<name>.dll` stays as it was.
+- *Placement (a)'s text is written as free-form lines* (`ExpansionAssemblies.FreeForm`): a line breaks at a space BETWEEN words, never at
+  one inside a literal, and a literal too long for the rest of a line is continued with the floating literal continuation indicator
+  (§6.2.3.1, §6.5 8)).
 - *Residual, stated:* an expansion of a skeleton published under another `CompileState` than this group's whose code also names a class of
   this group can live neither in an assembly of its own nor, bound under this group's state, in the group's module: it is COBOL2240. And
   an expansion of such a skeleton is BOUND in the group under the group's state (its surface — method names and descriptions — is a

@@ -19,7 +19,7 @@ using Core = CobolParserCore;
 /// (<see cref="ToRecord"/>), because a group class a specifier names is known by its externalized name once the table exists.
 /// </summary>
 /// <param name="Name">The definition's declared name.</param>
-/// <param name="Identity">Its externalized name (ISO §11.3.3 SR1: the AS literal, else the name).</param>
+/// <param name="Identity">Its externalized name (ISO §11.3.4 GR1: "literal-1, if specified, is the name of the class that is externalized to the operating environment"; else the name).</param>
 /// <param name="IsInterface">An INTERFACE-ID definition.</param>
 /// <param name="Ctx">The definition (a class or an interface context).</param>
 /// <param name="Text">The definition's source text (<see cref="SkeletonText"/>).</param>

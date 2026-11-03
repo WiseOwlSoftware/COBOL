@@ -113,3 +113,21 @@ compilation group"), and a library's parameterized class left nothing in the rep
   parameterized definition); an own-assembly expansion costs one small compilation, once per key. Duplication: `RecordList` has one home;
   `CompileInputs.At` is the only producer of a state. Looked for and found: the expansion entry's lost `AS` literal, the unspelled
   actual identity, the cross-assembly `_P_n` profile, the end marker of a skeleton known by another word.
+- **Branch review, round 1 (three blocking findings, all fixed).** (1) `ExpansionAssemblies.FreeForm` split the expansion text at every
+  space, so a space inside a literal that straddled the 200-position fill point broke the literal (COBOL5563, COBOL2633, COBOL0001) and a
+  literal longer than a line stayed on one line: it now splits by words outside literals and continues a long literal with the floating
+  literal continuation indicator (§6.2.3.1, §6.5 8)); tests read a 140-character spaced literal back through a real expansion and a
+  500-character literal with doubled apostrophes through the lines themselves. (2) A same-name expansion of other actuals at the file
+  placement (a) would overwrite was only warned about (REPO-2) and then overwritten, which broke the first group's already-compiled class
+  with `MissingMethodException`; `ReportSameName` is now COBOL2240 where the other class lives in an assembly the group references (the
+  skeleton's, an imported actual's or resolution's, or an imported expansion's) or is the target file, and REPO-2 elsewhere (design 10.5
+  corrected: its "Landed" bullet had said the file was replaced). (3) `OwnerIsImported` knew only imported classes, so a numeric literal
+  argument to a method of an expansion in another assembly still named that assembly's internal `_P_n` (CS0117); it now asks the
+  placements (`ExpansionPlacements.LivesElsewhere`), and a new golden `pb2104_expansion_method_with_literal_argument` runs it at three
+  editions. Fixed in the same files (I9): the §11.3.3 SR1 citation of the skeleton's identity is §11.3.4 GR1; an own-assembly expansion's
+  diagnostic names the EXPANDS entry's line instead of a deleted temp file and the failed compilation's generated C# is returned;
+  `ReportForeignState` names an INTERFACE entry as such; `OoMethodSymbol.Ctx` is nullable (null for BASE's, a property accessor's and an
+  imported method's) with `Definition` as the one reader that binds source. Tests added for the REPO-12 overwrite, REPO-2, the foreign-state
+  refusal for a class and an interface, and both COBOL2240 arms. Not fixed (stay leads): `FragmentParse.ParseUnit` repeats
+  `Frontend.LexAndParse`'s steps with no drift test tying them (R1-8); an own-assembly expansion's sub-compilation error position has no
+  test because every error reachable there is reported first by the expanding group's own bind.

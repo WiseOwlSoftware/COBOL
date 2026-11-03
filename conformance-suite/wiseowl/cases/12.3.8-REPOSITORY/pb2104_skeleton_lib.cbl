@@ -52,5 +52,12 @@
        PROCEDURE DIVISION.
            INVOKE ITEM "SHOW".
        END METHOD SHOW-IT.
+       METHOD-ID. SETN.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 N PIC 9(3).
+       PROCEDURE DIVISION USING N.
+           DISPLAY "N " N.
+       END METHOD SETN.
        END OBJECT.
        END CLASS P2104HOLD.

@@ -6396,7 +6396,9 @@ public static class DiagnosticCatalog
         "A REPOSITORY EXPANDS phrase does not name a parameterized class or interface declared in the same "
         + "REPOSITORY paragraph, supplies a different number of actual parameters than the definition's USING "
         + "clause, supplies an actual parameter of the wrong kind or one that is not declared in the same "
-        + "paragraph, or reuses an expansion's name for a different expansion.",
+        + "paragraph, reuses an expansion's name for a different expansion, or names an expansion that shares a run unit with another "
+        + "of the same externalized name but different actual parameters (an assembly the group references, or the file the expansion "
+        + "would be written to).",
         "ISO §12.3.8.3 SR4/SR7 / §12.3.8.4 GR5/GR8 / §9.3.12 / §9.3.13");
     // ── COBOL2241–2243 — what a SPECIAL-NAMES entry may consist of (kb/Work PB716 + PB790 + PB862). ──
 

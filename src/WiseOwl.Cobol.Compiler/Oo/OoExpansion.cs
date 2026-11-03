@@ -278,8 +278,8 @@ internal static class OoExpansion
                     + "share one (ISO §8.4.6.4 / §8.3.2.2)");
         }
 
-        // The externalized name a definition or a specifier states: the AS literal, else the declared word (ISO §12.3.8.4 GR2,
-        // §11.3.3 SR1). Read by the pure peek the identity scope uses, so a rejected literal resolves by the word it falls back to.
+        // The externalized name a definition or a specifier states: the AS literal, else the declared word (ISO §12.3.8.4 GR2 for a
+        // specifier, §11.3.4 GR1 for a CLASS-ID; the literal is screened by §11.3.3 SR1). Read by the pure peek the identity scope uses, so a rejected literal resolves by the word it falls back to.
         string SkeletonIdentity(Core.ExternalizedNamePhraseContext? asPhrase, string word) =>
             asPhrase is null ? word
             : ExternalizedName.Peek(asPhrase, k => PreBindConstants.Read(asPhrase, k, inputs.Variables), edition.DialectLevel) ?? word;

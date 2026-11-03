@@ -1718,6 +1718,16 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         U.Call.EmitActivationReturned(inv);   // a NEW OVERRIDE is a user method (kb/Work PB1582): it returns like any other
     }
 
+    /// <summary>Whether the class or factory type <paramref name="clrName"/> lives in another assembly: a class or interface IMPORTED
+    /// from the external repository, or an EXPANSION placed in one (imported, or written to an assembly of its own; DESIGN-external-repository
+    /// §10.5), which this module names through a <c>using</c> alias of its local name. The owner's internal profile fields are that
+    /// assembly's own, named by ITS binder's uids, so they are never spelled through the owner (kb/Work PB2104).</summary>
+    private bool OwnerIsInAnotherAssembly(string? clrName) =>
+        clrName is not null && ecState.OoClasses is { } table
+        && (table.ImportedClasses.Any(c => c.ClrName == clrName || c.FactoryClrName == clrName)
+            || table.ImportedInterfaces.Any(i => i.ClrName == clrName)
+            || expansions.LivesElsewhere(clrName));
+
     /// <summary>The instance-call marshaling (D6; §14.9.23.4 GR6/GR7a/GR8): every formal crosses as its argument's
     /// CARRIER, its AREA and its omitted flag (<see cref="OoArgPair"/>). ⛔ A BY REFERENCE identifier argument's carrier
     /// is a VIEW over the argument itself (ISO §14.2.3 GR8 — "the activated runtime element operates as if the formal
@@ -1728,12 +1738,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// detached cell: BY CONTENT crossings CONVERT into the formal's description per §14.8.2.3.3 (COMPUTE/MOVE/SET),
     /// composing the formal's value/image through the OWNER class's internal profiles (<c>{OWNER}._P_n</c>). The
     /// RETURNING delivery follows the call — identifier-4's store is the FINAL effect (GR8).</summary>
-    /// <summary>Whether the class or factory type <paramref name="clrName"/> belongs to a class imported from another assembly.</summary>
-    private bool OwnerIsImported(string? clrName) =>
-        clrName is not null && ecState.OoClasses is { } table
-        && (table.ImportedClasses.Any(c => c.ClrName == clrName || c.FactoryClrName == clrName)
-            || table.ImportedInterfaces.Any(i => i.ClrName == clrName));
-
     private void EmitInstanceInvoke(BoundInvoke inv)
     {
         var w = Ctx.Writer;
@@ -1748,7 +1752,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // The owner's internal profile field when the owner is a class of this module; for a class IMPORTED from another assembly
             // (whose profile fields are its own internals, named by ITS binder's uids) the same profile, spelled out (kb/Work PB2104).
             string qualProfile = a.Formal.Pic is not { Category: PicCategory.Numeric } ? ""
-                : OwnerIsImported(inv.OwnerClrName) ? a.Formal.Pic.ProfileInitializer(Ctx.SignEncoding)
+                : OwnerIsInAnotherAssembly(inv.OwnerClrName) ? a.Formal.Pic.ProfileInitializer(Ctx.SignEncoding)
                 : $"{(inv.Form is InvokeForm.Factory ? FactoryClassOf(inv.OwnerClrName) : inv.OwnerClrName)}.{a.Formal.ProfileName}";
 
             string crossing = OoFormalCrossingType(a.Formal);
