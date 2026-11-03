@@ -42,8 +42,9 @@ internal sealed record RepositorySearchSpace(
 }
 
 /// <summary>The kinds of unit one question of the external repository asks for (DESIGN-external-repository §5.1): a program (a
-/// definition, else a prototype), a function (likewise), a class or an interface.</summary>
-internal enum RepositoryFamily { Program, Function, Class, Interface }
+/// definition, else a prototype), a function (likewise), a class or an interface — an expansion is one of the last two, told by its
+/// record — or the skeleton of a parameterized class or interface (§10.5).</summary>
+internal enum RepositoryFamily { Program, Function, Class, Interface, ParameterizedClass, ParameterizedInterface }
 
 /// <summary>An entry of the external repository: the assembly at <paramref name="Path"/> (module version id
 /// <paramref name="Mvid"/>) that publishes the unit <paramref name="Kind"/> <paramref name="ExternalizedName"/>
@@ -206,14 +207,17 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     private static RepositoryUnitKind[] KindsOf(RepositoryFamily family) => family switch
     {
         RepositoryFamily.Function => [RepositoryUnitKind.Function, RepositoryUnitKind.FunctionPrototype],
-        RepositoryFamily.Class => [RepositoryUnitKind.Class],
-        RepositoryFamily.Interface => [RepositoryUnitKind.Interface],
+        RepositoryFamily.Class => [RepositoryUnitKind.Class, RepositoryUnitKind.Expansion],
+        RepositoryFamily.Interface => [RepositoryUnitKind.Interface, RepositoryUnitKind.Expansion],
+        RepositoryFamily.ParameterizedClass => [RepositoryUnitKind.ParameterizedClass],
+        RepositoryFamily.ParameterizedInterface => [RepositoryUnitKind.ParameterizedInterface],
         _ => [RepositoryUnitKind.Program, RepositoryUnitKind.ProgramPrototype],
     };
 
     private static string KindWord(RepositoryFamily family) => family switch
     {
-        RepositoryFamily.Function => "function", RepositoryFamily.Class => "class", RepositoryFamily.Interface => "interface", _ => "program",
+        RepositoryFamily.Function => "function", RepositoryFamily.Class => "class", RepositoryFamily.Interface => "interface",
+        RepositoryFamily.ParameterizedClass => "parameterized class", RepositoryFamily.ParameterizedInterface => "parameterized interface", _ => "program",
     };
 
     private void Consult()
@@ -254,6 +258,10 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         if (entries.Count > 0)
         {
             hit = Answer(entries[0], report: true);
+            // An expansion is a class or an interface by what its record holds: a factory type makes it a class (§6.1 ClassRecord).
+            if (hit?.Record is { Kind: RepositoryUnitKind.Expansion, Class: { } expanded }
+                && (expanded.FactoryType is null) != (family == RepositoryFamily.Interface))
+                return _byName[key] = null;
             if (hit is null) _refused.Add(key);
             else
                 foreach (var later in entries.Skip(1))
@@ -331,8 +339,9 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             else
             {
                 var origin = new RepositoryEntryOrigin(entry.Path, entry.Mvid, unit.Kind, record.ExternalizedName);
-                if (unit.Kind is RepositoryUnitKind.Class or RepositoryUnitKind.Interface)
-                    hit = new Hit(record, null, origin, entry.Registrar);   // decoded when imported (Class), once it can be named
+                if (unit.Kind is RepositoryUnitKind.Class or RepositoryUnitKind.Interface or RepositoryUnitKind.Expansion
+                    or RepositoryUnitKind.ParameterizedClass or RepositoryUnitKind.ParameterizedInterface)
+                    hit = new Hit(record, null, origin, entry.Registrar);   // decoded when imported (Class), once it can be named; a skeleton is source
                 else if (Decode(entry.Path, record, report) is { } decoded)
                     hit = new Hit(record, decoded, origin, entry.Registrar);
             }
@@ -417,7 +426,8 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
 
     /// <inheritdoc/>
     bool IOoImporter.Refused(string identity, bool isInterface) =>
-        RefusedByName(isInterface ? RepositoryFamily.Interface : RepositoryFamily.Class, identity);
+        RefusedByName(isInterface ? RepositoryFamily.Interface : RepositoryFamily.Class, identity)
+        || RefusedByName(isInterface ? RepositoryFamily.ParameterizedInterface : RepositoryFamily.ParameterizedClass, identity);
 
     /// <inheritdoc/>
     string IOoImporter.Searched(string identity, bool isInterface) =>
@@ -487,8 +497,16 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName),
             ExternalizedName = hit.Record.ExternalizedName,
             IsFinal = facts.Final,
+            Record = hit.Record,
         };
         return new ImportedClass(symbol, () => Complete(symbol, hit, Table));
+    }
+
+    /// <inheritdoc/>
+    public ImportedSkeleton? Skeleton(string identity, bool isInterface)
+    {
+        if (ByName(isInterface ? RepositoryFamily.ParameterizedInterface : RepositoryFamily.ParameterizedClass, identity) is not { } hit) return null;
+        return new ImportedSkeleton(hit.Record.Skeleton!, new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, ""));
     }
 
     /// <summary>⛔ THE INTERFACE IMPORT (ISO §12.3.8.3 SR9, §12.3.8.4 GR9; DESIGN-external-repository §10.6): the twin of
@@ -504,6 +522,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             Origin = OoSymbolOrigin.Imported,
             Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName),
             ExternalizedName = hit.Record.ExternalizedName,
+            Record = hit.Record,
         };
         return new ImportedInterface(symbol, () => Complete(symbol, hit, Table));
     }

@@ -81,7 +81,7 @@ internal sealed class ProgramEmitter
     {
         _ecState.Active = comp.EcActive;
         _ecState.OoClasses = comp.OoClasses;
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters, repositoryUpdate);
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters, repositoryUpdate, comp.Expansions);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -100,7 +100,7 @@ internal sealed class ProgramEmitter
         // (CS0234 / CS0118 on legal source otherwise). The assembly attribute precedes the namespace (C# requires it).
         var ns = CsNames.ModuleNamespaceOf(assemblySimpleName);
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
-            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, HostEntryEmitter.EntryUnits(units)), comp.Edition,
+            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, comp.Expansions, HostEntryEmitter.EntryUnits(units)), comp.Edition,
             hasSignatures: repositoryUpdate));
         w.Line($"namespace {CsNames.CSharpNamespace(ns)};");
         w.Line();
@@ -127,9 +127,11 @@ internal sealed class ProgramEmitter
         // legal (§10.6) — its module emits the types, a registrar with nothing to register (the record names it), and an
         // empty Main.
         foreach (var iface in comp.OoClasses.Interfaces)
-            _oo.EmitInterfaceUnit(iface, w);
+            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, iface)) _oo.EmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
-            _oo.EmitClassUnit(cls, w);
+            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, cls.Symbol)) _oo.EmitClassUnit(cls, w);
+        foreach (var skeleton in comp.Expansions.Skeletons)
+            _oo.EmitSkeletonUnit(skeleton, w);
         if (units.Count == 0)
         {
             EmitModuleRegistrar(units, w, ns);
@@ -152,6 +154,7 @@ internal sealed class ProgramEmitter
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
                 .Concat(comp.OoClasses.Interfaces.Select(i => i.ClrName))
+                .Concat(comp.Expansions.Skeletons.Select(s => s.ClrName))
                 .Append(ModuleNamespace.RegistrarClass).Append("Program").Append(GroupAtomTable.ClassName), w);
         EmitEntryWrapper(units, w, anyFiles, ns);
         _atoms.Emit(w);   // every §8.5.1.12 atom array a unit named, once (kb/Work PB2690)

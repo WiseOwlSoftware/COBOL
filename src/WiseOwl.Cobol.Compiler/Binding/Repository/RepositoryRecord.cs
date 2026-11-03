@@ -47,12 +47,18 @@ namespace WiseOwl.Cobol.Binding.Repository;
 /// returning item, and entry convention"); null for a program, a function and a prototype. A class's or an interface's
 /// record has no formals, returning item or RAISING phrase of its own (its methods have them), and its tables are the ones
 /// its methods' descriptions index.</param>
+/// <param name="Skeleton">The skeleton of a parameterized class or interface (kind <see cref="RepositoryUnitKind.ParameterizedClass"/>
+/// or <see cref="RepositoryUnitKind.ParameterizedInterface"/>, §5.2); null for every other unit. Such a unit has no class facts
+/// and no formals: its expansions are the classes.</param>
+/// <param name="Expansion">What an expansion of a parameterized definition adds to its <paramref name="Class"/> (kind
+/// <see cref="RepositoryUnitKind.Expansion"/>, §10.5); null for every other unit.</param>
 internal sealed record RepositoryRecord(
     RepositoryUnitKind Kind, string Name, string ExternalizedName,
     string EntryConvention, bool DecimalPointIsComma, RecordList<CurrencyRecord> Currencies,
     RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals, DescriptionRecord? Returning,
     RecordList<DescriptionRecord> TypeDeclarations, RecordList<StructureRecord> DynamicLengthStructures,
-    RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null);
+    RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null, SkeletonRecord? Skeleton = null,
+    ExpansionIdentity? Expansion = null);
 
 /// <summary>What a class or an interface publishes beside its unit facts (§6.1; ISO §8.13): its place in the inheritance
 /// graph as externalized identities (§6.4), its object properties and its methods. For an interface, <paramref name="Implements"/>

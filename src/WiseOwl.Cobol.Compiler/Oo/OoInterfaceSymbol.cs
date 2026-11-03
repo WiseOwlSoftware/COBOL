@@ -21,6 +21,13 @@ public sealed class OoInterfaceSymbol(string name, string clrName, CobolParserCo
     /// the operating-environment identity this implementation records for the definition (kb/Work
     /// PB303).</summary>
     public string ExternalizedName { get; init; } = name;
+
+    /// <summary>What made this interface an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR8); null for an interface written
+    /// as an interface and for an imported one.</summary>
+    internal ExpansionOrigin? Expansion { get; init; }
+
+    /// <summary>The repository record an IMPORTED interface was decoded from (null for an interface of this group).</summary>
+    internal Binding.Repository.RepositoryRecord? Record { get; init; }
     /// <summary>The CLR type name of the interface — the module's ABI, the same for every backend (kb/Work
     /// PB4265).</summary>
     public string ClrName { get; } = clrName;

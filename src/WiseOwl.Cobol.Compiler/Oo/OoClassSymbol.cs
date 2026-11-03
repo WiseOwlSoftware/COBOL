@@ -45,6 +45,15 @@ public sealed class OoClassSymbol(string name, string clrName, CobolParserCore.C
     /// emitted type name is a WIRE CONTRACT with <c>PicInfo.ClrType</c>, which maps a declared
     /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
     public string ExternalizedName { get; init; } = name;
+
+    /// <summary>What made this class an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR5): the skeleton, the REPOSITORY entry
+    /// and the actuals; null for a class written as a class and for an imported one. The repository publishes it as the class's
+    /// expansion identity (DESIGN-external-repository §10.5).</summary>
+    internal ExpansionOrigin? Expansion { get; init; }
+
+    /// <summary>The repository record an IMPORTED class was decoded from (null for a class of this group and for the standard class):
+    /// what an expansion that names the class is keyed on (<c>ExpansionKey</c>, DESIGN-external-repository §10.5).</summary>
+    internal Binding.Repository.RepositoryRecord? Record { get; init; }
     /// <summary>The CLR type name of the class's OBJECT half — the module's ABI, the same for every backend
     /// (kb/Work PB4265): <see cref="DataItem.WordIdentifier"/> of the class-name, an upper-case fold, so never a C#
     /// keyword.</summary>

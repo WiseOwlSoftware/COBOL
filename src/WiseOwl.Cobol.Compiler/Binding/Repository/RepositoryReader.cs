@@ -77,6 +77,7 @@ internal static class RepositoryReader
     private static RepositoryRecord? Unit(MetadataReader md, TypeDefinition type)
     {
         Fields? unit = null;
+        Fields? skeleton = null;
         var properties = new List<Fields>();
         var declarations = new List<(int Declaration, Fields Entry)>();
         var structures = new List<StructureRecord>();
@@ -87,6 +88,7 @@ internal static class RepositoryReader
             switch (name)
             {
                 case nameof(CobolUnitAttribute): unit = value; break;
+                case nameof(CobolSkeletonAttribute): skeleton = value; break;
                 case nameof(CobolPropertyAttribute): properties.Add(value); break;
                 case nameof(CobolTypeDeclarationAttribute): declarations.Add((value.Fixed<int>(0), value)); break;
                 case nameof(CobolStructureAttribute):
@@ -104,7 +106,12 @@ internal static class RepositoryReader
 
         var kind = unit.FixedKind<RepositoryUnitKind>(0);
         string unitName = unit.Fixed<string>(1);
-        bool oo = kind is RepositoryUnitKind.Class or RepositoryUnitKind.Interface;
+        bool oo = kind is RepositoryUnitKind.Class or RepositoryUnitKind.Interface or RepositoryUnitKind.Expansion;
+        bool parameterized = kind is RepositoryUnitKind.ParameterizedClass or RepositoryUnitKind.ParameterizedInterface;
+        if (parameterized != (skeleton is not null))
+            throw new MalformedEntry($"the {kind} '{unitName}' {(skeleton is null ? "carries no [CobolSkeleton]" : "is no parameterized definition and carries a [CobolSkeleton]")}");
+        if ((kind is RepositoryUnitKind.Expansion) != unit.Has(nameof(CobolUnitAttribute.ExpansionKey)))
+            throw new MalformedEntry($"the {kind} '{unitName}' {(kind is RepositoryUnitKind.Expansion ? "states no ExpansionKey" : "is no expansion and states an ExpansionKey")}");
         // A program's, function's or prototype's formals are on its host entry's Call (the one method that carries any); a
         // class's or an interface's are its methods' (Methods).
         var signature = new Signature();
@@ -132,7 +139,9 @@ internal static class RepositoryReader
                     prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == f.Formal.Position).Select(e => e.Entry).ToList()))),
                 prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == CobolPrototypeDescriptionAttribute.ReturningItem)
                     .Select(e => e.Entry).ToList() is { Count: > 0 } r ? Tree(r) : null))),
-            Class: oo ? Class(md, type, kind, unit, properties) : null);
+            Class: oo ? Class(md, type, kind, unit, properties) : null,
+            Skeleton: skeleton is null ? null : Skeleton(skeleton, unitName),
+            Expansion: kind is RepositoryUnitKind.Expansion ? Expansion(unit, unitName) : null);
         var orphan = prototypeFormals.Select(f => f.Prototype).Concat(prototypeEntries.Select(e => e.Prototype))
             .FirstOrDefault(i => i < 0 || i >= record.ReferencedPrototypes.Count, -1);
         if (orphan != -1 || prototypeEntries.Any(e => e.Formal != CobolPrototypeDescriptionAttribute.ReturningItem
@@ -140,6 +149,31 @@ internal static class RepositoryReader
             throw new MalformedEntry($"the unit '{unitName}' holds a prototype formal or description that names no prototype row or formal");
         return record;
     }
+
+    /// <summary>The skeleton a parameterized definition's type carries (§6.1 <see cref="SkeletonRecord"/>): its formals, source,
+    /// specifier resolutions and compile state. The parallel arrays are of one length, as every flattened structure is (§6.2 rule 3).</summary>
+    private static SkeletonRecord Skeleton(Fields s, string unitName)
+    {
+        var formals = s.Texts(nameof(CobolSkeletonAttribute.Formals)) ?? [];
+        var isInterface = s.Flags(nameof(CobolSkeletonAttribute.FormalIsInterface)) ?? [];
+        if (formals.Count != isInterface.Count)
+            throw new MalformedEntry($"the skeleton '{unitName}' lists {formals.Count} formal(s) and {isInterface.Count} formal kind(s)");
+        return new SkeletonRecord(List(formals), List(isInterface), s.Fixed<string>(0),
+            List(Parallel(s.Texts(nameof(CobolSkeletonAttribute.ResolutionWord)), s.Flags(nameof(CobolSkeletonAttribute.ResolutionIsInterface)),
+                s.Texts(nameof(CobolSkeletonAttribute.ResolutionIdentity)), "resolution", (word, iface, identity) => new ResolutionRecord(word, iface, identity))),
+            new CompileState(s.Number(nameof(CobolSkeletonAttribute.Edition)), s.Flag(nameof(CobolSkeletonAttribute.Permissive)),
+                s.Kind<SignEncoding>(nameof(CobolSkeletonAttribute.SignEncoding)), s.Flag(nameof(CobolSkeletonAttribute.FlagExtensions)),
+                s.Kind<RepositoryNumericDisplay>(nameof(CobolSkeletonAttribute.NumericDisplay)),
+                s.Text(nameof(CobolSkeletonAttribute.CobolWordsMap)) ?? "", s.Text(nameof(CobolSkeletonAttribute.DirectiveFolds)) ?? "",
+                s.Text(nameof(CobolSkeletonAttribute.CompilationVariables)) ?? ""));
+    }
+
+    /// <summary>The identity an expansion's unit states (§10.5): the definition, the actuals, the key and the placement.</summary>
+    private static ExpansionIdentity Expansion(Fields unit, string unitName) => new(
+        unit.Text(nameof(CobolUnitAttribute.ExpandsDefinition)) ?? throw new MalformedEntry($"the expansion '{unitName}' names no definition"),
+        List(unit.Texts(nameof(CobolUnitAttribute.ExpandsActuals)) ?? throw new MalformedEntry($"the expansion '{unitName}' lists no actuals")),
+        unit.Text(nameof(CobolUnitAttribute.ExpansionKey))!, List(unit.Texts(nameof(CobolUnitAttribute.ExpansionParts)) ?? []),
+        unit.Flag(nameof(CobolUnitAttribute.ExpansionOwnAssembly)));
 
     /// <summary>A class's or an interface's own facts (§6.1 <see cref="ClassRecord"/>): the unit's, then the methods and the
     /// properties of its type and, for a class, of the factory type the unit names. Every class has a factory (its own CLR
@@ -149,7 +183,7 @@ internal static class RepositoryReader
         var methods = Methods(md, type, factory: false);
         var propertyRecords = properties.Select(p => Property(p, isFactory: false)).ToList();
         string? factoryType = unit.Text(nameof(CobolUnitAttribute.FactoryType));
-        if ((kind is RepositoryUnitKind.Class) != (factoryType is not null))
+        if (kind is not RepositoryUnitKind.Expansion && (kind is RepositoryUnitKind.Class) != (factoryType is not null))
             throw new MalformedEntry($"the {kind} '{unit.Fixed<string>(1)}' {(factoryType is null ? "names no factory type" : "names a factory type")}");
         if (factoryType is not null)
         {

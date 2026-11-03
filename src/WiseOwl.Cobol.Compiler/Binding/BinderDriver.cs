@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Binding.Model;
@@ -102,17 +103,20 @@ internal sealed class BinderDriver
         var searchSpace = repository ?? RepositorySearchSpace.None;
         var signatureClasses = new PrototypeSignatureClasses();
         var external = new MetadataRepositoryProvider(searchSpace, signatureClasses, edition);
-        var (units, classes, table) = CollectUnits(tree, edition, directives.CompilationVariables,
-            cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty, external);
+        var words = cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty;
+        var leapSecond = LeapSecondState.Build(directives.LeapSecondEvents);
+        // The compile-time inputs a skeleton is published under and an expansion of one is made under (CompileState, DESIGN-external-repository §6.1).
+        var compileInputs = new CompileInputs(edition, words, turn, propagate, refModZl, leapSecond, directives.CompilationVariables);
+        var (units, classes, table) = CollectUnits(tree, edition, compileInputs, external);
         external.UseClassTable(table);
         var session = new BindSession
         {
             SignatureClasses = signatureClasses, External = external,
             Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl, Propagate = propagate,
             DirectiveSites = directives.DirectiveSites,
-            CobolWords = cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty,
+            CobolWords = words,
             Retypes = tree.TokenRetypes,
-            LeapSecond = LeapSecondState.Build(directives.LeapSecondEvents),
+            LeapSecond = leapSecond,
             CompilationVariables = directives.CompilationVariables,
             SearchSpace = searchSpace,
         };
@@ -302,8 +306,10 @@ internal sealed class BinderDriver
             // a METHOD's own declaratives emit the same __IoCheck (kb/Work PB1010)
             || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
 
+        // The group is bound: what it publishes for its parameterized definitions, and where each expansion lives (§10.5).
+        var expansions = ExpansionPlacementPass.Run(table, classes, oo.InterfaceData);
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
-            anyFiles, edition.DialectLevel, session.SignatureClasses, edition.SignEncoding);
+            anyFiles, edition.DialectLevel, session.SignatureClasses, edition.SignEncoding, expansions);
     }
 
     /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
@@ -437,9 +443,9 @@ internal sealed class BinderDriver
     /// into a synthetic <c>programUnit</c> context (identical child shape) so the per-unit binders consume one
     /// context type.</summary>
     private static (List<BoundUnit> Programs, List<OoClassUnit> Classes, OoClassTable Table) CollectUnits(
-        Core.CompilationUnitContext tree, EditionContext edition, DirectiveTimeline<CompilationVariableEvent> variables,
-        WiseOwl.Cobol.Editions.CobolWordsMap words, IOoImporter importer)
+        Core.CompilationUnitContext tree, EditionContext edition, CompileInputs inputs, IOoImporter importer)
     {
+        var variables = inputs.Variables;
         var all = new List<BoundUnit>();
         var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
         var classDefs = new List<Core.ClassDefinitionContext>();
@@ -455,9 +461,8 @@ internal sealed class BinderDriver
         }
         // §9.3.12 / §9.3.13 (kb/Work PB759): a parameterized definition is a SKELETON, never a class; each
         // REPOSITORY EXPANDS phrase creates one, and from here on an expansion is an ordinary definition.
-        var expanded = OoExpansion.Expand(tree, classDefs, ifaceDefs, edition, words);
-        var table = OoClassTable.Build(expanded.Classes, edition, expanded.Interfaces, expanded.ParameterizedNames,
-            expanded.ParameterizedClasses, expanded.ParameterizedInterfaces, expanded.ExpandedNames, variables, importer);
+        var expanded = OoExpansion.Expand(tree, classDefs, ifaceDefs, edition, inputs.Words, importer, inputs);
+        var table = OoClassTable.Build(expanded, edition, variables, importer);
         var classes = table.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
         return (all, classes, table);
 

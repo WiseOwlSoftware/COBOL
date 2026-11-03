@@ -80,4 +80,27 @@ public sealed class CobolUnitAttribute(RepositoryUnitKind kind, string name, str
     /// <summary>The name of the CLR type that is the class's factory, in this type's namespace; its methods carry the
     /// factory methods' <see cref="CobolMethodAttribute"/>s and its own <see cref="CobolPropertyAttribute"/>s.</summary>
     public string? FactoryType { get; set; }
+
+    // An EXPANSION of a parameterized class or interface (kind Expansion; ISO §9.3.12, §9.3.13; DESIGN-external-repository §10.5):
+    // which definition it expands, with which actuals, the key that says what it MEANS and where it lives. Every identity is an
+    // externalized name (§6.4).
+
+    /// <summary>The externalized name of the parameterized definition this unit expands (ISO §12.3.8.4 GR5 / GR8).</summary>
+    public string? ExpandsDefinition { get; set; }
+
+    /// <summary>The externalized names of the actual parameters, in USING order.</summary>
+    public string[]? ExpandsActuals { get; set; }
+
+    /// <summary>The expansion's key: a SHA-256, in lower-case hexadecimal, over everything that decides what the expansion means
+    /// (the skeleton, its compile state, the records of everything it names). Two expansions with one key are the same class.</summary>
+    public string? ExpansionKey { get; set; }
+
+    /// <summary>The labeled digest of each component the <see cref="ExpansionKey"/> is made of (<c>label=digest</c>, in a fixed order):
+    /// the definition, the skeleton's source, its compile state, each resolution and each actual. A compilation that finds the expansion
+    /// stale compares them with its own to name the first component that changed.</summary>
+    public string[]? ExpansionParts { get; set; }
+
+    /// <summary>The expansion is the only unit of its own assembly (its code names no class or interface of the expanding
+    /// group); otherwise it lives in the expanding group's assembly.</summary>
+    public bool ExpansionOwnAssembly { get; set; }
 }

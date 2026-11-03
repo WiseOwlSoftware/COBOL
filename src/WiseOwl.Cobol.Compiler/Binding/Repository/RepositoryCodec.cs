@@ -75,31 +75,40 @@ internal static class RepositoryCodec
     /// <summary>The record of a class (ISO §8.13; §6.1 <see cref="ClassRecord"/>): its unit facts from the class's ENVIRONMENT
     /// DIVISION (which applies to its methods, ISO §11.3), its superclass and the interfaces its object and its factory
     /// implement as externalized identities (§6.4), its object properties, and every object and factory method the class
-    /// itself declares.</summary>
-    public static RepositoryRecord Of(OoClassUnit cls)
+    /// itself declares. An expansion of a parameterized class (<paramref name="expansion"/>: the placement pass's identity for it,
+    /// with its key) is the same record under kind <see cref="RepositoryUnitKind.Expansion"/> (§5.2).</summary>
+    public static RepositoryRecord Of(OoClassUnit cls, ExpansionIdentity? expansion = null)
     {
         var symbol = cls.Symbol;
         var encoder = new Encoder(cls.Data.OoClasses);
         RecordList<MethodRecord> methods = List(symbol.Methods.Concat(symbol.FactoryMethods).Select(encoder.Method));
         var facts = new ClassRecord(symbol.IsFinal, symbol.Base?.ExternalizedName, List(symbol.Implements.Select(i => i.ExternalizedName)),
             List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryClrName, PropertiesOf(methods), methods, symbol.ClrName);
-        return new RepositoryRecord(RepositoryUnitKind.Class, symbol.Name, symbol.ExternalizedName, CobolEntryConvention,
-            cls.Data.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
-            encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
+        return new RepositoryRecord(expansion is null ? RepositoryUnitKind.Class : RepositoryUnitKind.Expansion, symbol.Name, symbol.ExternalizedName,
+            CobolEntryConvention, cls.Data.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
 
     /// <summary>The record of an interface (ISO §8.13; §6.1): the interfaces it INHERITS (ISO §11.6.2) as identities, and its
     /// own method prototypes; <paramref name="data"/> is the interface's bound forest (its unit facts).</summary>
-    public static RepositoryRecord Of(OoInterfaceSymbol iface, DataBinder data)
+    public static RepositoryRecord Of(OoInterfaceSymbol iface, DataBinder data, ExpansionIdentity? expansion = null)
     {
         var encoder = new Encoder(data.OoClasses);
         RecordList<MethodRecord> methods = List(iface.Prototypes.Select(encoder.Method));
         var facts = new ClassRecord(Final: false, BaseIdentity: null, List(iface.Inherits.Select(i => i.ExternalizedName)),
             RecordList<string>.Empty, FactoryType: null, PropertiesOf(methods), methods, iface.ClrName);
-        return new RepositoryRecord(RepositoryUnitKind.Interface, iface.Name, iface.ExternalizedName, CobolEntryConvention,
-            data.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
-            encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
+        return new RepositoryRecord(expansion is null ? RepositoryUnitKind.Interface : RepositoryUnitKind.Expansion, iface.Name, iface.ExternalizedName,
+            CobolEntryConvention, data.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
+
+    /// <summary>The record of a parameterized class or interface (§5.2 "ParameterizedClass / ParameterizedInterface"): a unit that
+    /// states only its identity and its <paramref name="skeleton"/> — its expansions are the classes, and it has no methods, formals or
+    /// tables of its own.</summary>
+    public static RepositoryRecord Of(string name, string externalizedName, bool isInterface, SkeletonRecord skeleton) => new(
+        isInterface ? RepositoryUnitKind.ParameterizedInterface : RepositoryUnitKind.ParameterizedClass, name, externalizedName, CobolEntryConvention,
+        false, RecordList<CurrencyRecord>.Empty, RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null, RecordList<DescriptionRecord>.Empty,
+        RecordList<StructureRecord>.Empty, RecordList<PrototypeRecord>.Empty, Skeleton: skeleton);
 
     /// <summary>The currency symbols the source unit defines and their currency strings (ISO §8.13), ordered by symbol.</summary>
     private static RecordList<CurrencyRecord> Currencies(DataBinder data) => List(data.CurrencySigns.OrderBy(c => c.Key)

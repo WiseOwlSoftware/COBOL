@@ -365,3 +365,66 @@ public sealed class CobolPropertyAttribute(string name, string externalizedName)
     /// <summary>The property has a set property method.</summary>
     public bool Set { get; set; }
 }
+
+/// <summary>
+/// A PARAMETERIZED class or interface, published as a skeleton (ISO §9.3.12, §9.3.13, §11.3.3 SR8; DESIGN-external-repository
+/// §6.2, §10.5): the definition's own source and everything the expanding compilation needs to give an expansion the meaning it
+/// has in the defining one. It sits on the <c>public static class</c> that carries the definition's <see cref="CobolUnitAttribute"/>
+/// (kind <see cref="RepositoryUnitKind.ParameterizedClass"/> or <see cref="RepositoryUnitKind.ParameterizedInterface"/>); the
+/// definition itself emits nothing else (OoExpansion).
+/// <para>The <see cref="Source"/> is the definition's on-channel token text after text manipulation, from <c>CLASS-ID</c> or
+/// <c>INTERFACE-ID</c> to the end marker, with the spacing the tokens had; the importer lexes it again under the recorded
+/// <see cref="Edition"/>, <see cref="Permissive"/> and <see cref="CobolWordsMap"/> and replaces each formal by its actual (ISO
+/// §12.3.8.4 GR5 / GR8). The remaining named arguments are the <c>CompileState</c> (every compile-time input that changes what
+/// the source means) and the specifier resolutions: both are part of the expansion's <see cref="CobolUnitAttribute.ExpansionKey"/>.
+/// A structured value is flattened into parallel arrays of one length (§6.2 rule 3).</para>
+/// </summary>
+/// <param name="source">The definition's source text.</param>
+[EditorBrowsable(EditorBrowsableState.Never)]
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+public sealed class CobolSkeletonAttribute(string source) : Attribute
+{
+    /// <summary>The definition's source text after text manipulation.</summary>
+    public string Source { get; } = source;
+
+    /// <summary>The formal parameter-names, in USING order (ISO §11.3.3 SR9); parallel to <see cref="FormalIsInterface"/>.</summary>
+    public string[]? Formals { get; set; }
+
+    /// <summary>For each formal, whether its REPOSITORY specifier declares an interface (true) or a class (false).</summary>
+    public bool[]? FormalIsInterface { get; set; }
+
+    /// <summary>The word of each class-specifier or interface-specifier of the definition's own REPOSITORY paragraph that is not
+    /// a formal; parallel to <see cref="ResolutionIsInterface"/> and <see cref="ResolutionIdentity"/>.</summary>
+    public string[]? ResolutionWord { get; set; }
+
+    /// <summary>Whether each resolution is an interface-specifier.</summary>
+    public bool[]? ResolutionIsInterface { get; set; }
+
+    /// <summary>The externalized name each resolution stands for (ISO §12.3.8.4 GR2: the literal, else the word).</summary>
+    public string[]? ResolutionIdentity { get; set; }
+
+    /// <summary>The ISO edition the definition was compiled under (<c>CompilerDriver.Options.DialectLevel</c>).</summary>
+    public int Edition { get; set; }
+
+    /// <summary><c>--permissive</c>.</summary>
+    public bool Permissive { get; set; }
+
+    /// <summary>The over-punch convention (<c>--sign-encoding</c>).</summary>
+    public SignEncoding SignEncoding { get; set; }
+
+    /// <summary><c>--flag-extensions</c>.</summary>
+    public bool FlagExtensions { get; set; }
+
+    /// <summary>The form DISPLAY gives a numeric operand (<c>--numeric-display</c>).</summary>
+    public RepositoryNumericDisplay NumericDisplay { get; set; }
+
+    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> operations, as the directive lines that state them (ISO §7.3.10).</summary>
+    public string? CobolWordsMap { get; set; }
+
+    /// <summary>The directive folds in effect at the definition (<c>&gt;&gt;TURN</c>, <c>&gt;&gt;PROPAGATE</c>,
+    /// <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c>, <c>&gt;&gt;LEAP-SECOND</c>), as the directive lines that state them.</summary>
+    public string? DirectiveFolds { get; set; }
+
+    /// <summary>The compilation variables defined at the definition (<c>&gt;&gt;DEFINE</c>), as the directive lines that state them.</summary>
+    public string? CompilationVariables { get; set; }
+}

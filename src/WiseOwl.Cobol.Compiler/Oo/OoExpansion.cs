@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -70,41 +71,55 @@ internal static class OoExpansion
         IReadOnlySet<string> ParameterizedNames,
         IReadOnlyList<Core.ClassDefinitionContext> ParameterizedClasses,
         IReadOnlyList<Core.InterfaceDefinitionContext> ParameterizedInterfaces,
-        IReadOnlySet<string> ExpandedNames);
+        IReadOnlySet<string> ExpandedNames,
+        IReadOnlyList<SkeletonSource> Skeletons,
+        IReadOnlyDictionary<ParserRuleContext, ExpansionOrigin> Origins);
 
     /// <summary>One parameterized definition: its context, its formals in USING order, and the kind each formal's
-    /// REPOSITORY specifier declares it as (null when undeclared — already COBOL2239).</summary>
+    /// REPOSITORY specifier declares it as (null when undeclared — already COBOL2239). <paramref name="Source"/> is what the
+    /// group publishes for it, or — for a skeleton another group published — what that group published.</summary>
     private sealed record Skeleton(ParserRuleContext Ctx, string Name, bool IsInterface,
-        IReadOnlyList<Core.OoParameterNameContext> Formals, IReadOnlyList<bool?> FormalIsInterface);
+        IReadOnlyList<Core.OoParameterNameContext> Formals, IReadOnlyList<bool?> FormalIsInterface, SkeletonSource? Source = null);
 
-    /// <summary>One distinct expansion (§9.3.12 identity): the expansion name, its skeleton and the actuals.</summary>
-    private sealed record Expansion(string Name, Skeleton Of, IReadOnlyList<string> Actuals);
+    /// <summary>One distinct expansion (§9.3.12 identity): the expansion name, its skeleton and the actuals, and the REPOSITORY
+    /// entry that asked for it.</summary>
+    private sealed record Expansion(string Name, Skeleton Of, IReadOnlyList<string> Actuals, Core.RepositoryEntryContext Entry);
 
+    private static readonly IReadOnlyDictionary<ParserRuleContext, ExpansionOrigin> NoOrigins =
+        new Dictionary<ParserRuleContext, ExpansionOrigin>(ReferenceEqualityComparer.Instance);
+
+    /// <param name="importer">Where a skeleton another group published comes from (ISO §12.3.8.3 SR4 / SR7: the parameterized
+    /// definition "shall be defined in the same REPOSITORY paragraph", and §12.3.8.3 SR6 b requires information in the external
+    /// repository for a class a group does not define), or null when there is no repository.</param>
+    /// <param name="inputs">The compile-time inputs of the group, from which the state a skeleton is published under is read.</param>
     public static Result Expand(Core.CompilationUnitContext tree,
         IReadOnlyList<Core.ClassDefinitionContext> classes, IReadOnlyList<Core.InterfaceDefinitionContext> interfaces,
-        EditionContext edition, CobolWordsMap words)
+        EditionContext edition, CobolWordsMap words, IOoImporter? importer, CompileInputs inputs)
     {
+        var published = new List<SkeletonSource>();
+        var origins = new Dictionary<ParserRuleContext, ExpansionOrigin>(ReferenceEqualityComparer.Instance);
         var skeletons = new Dictionary<string, Skeleton>(CobolNames.Comparer);
+        var importedSkeletons = new Dictionary<string, Skeleton>(CobolNames.Comparer);
         var plainClasses = new List<Core.ClassDefinitionContext>();
         var plainInterfaces = new List<Core.InterfaceDefinitionContext>();
         foreach (var c in classes)
         {
             var id = c.classIdParagraph();
             if (id.ooParameterName().Length == 0) { plainClasses.Add(c); continue; }
-            AddSkeleton(c, id.className(0).GetText(), false, id.ooParameterName(), c.environmentDivision(),
+            AddSkeleton(c, id.className(0).GetText(), false, id.ooParameterName(), c.environmentDivision(), id.externalizedNamePhrase(),
                 "CLASS-ID", "ISO §11.3.3 SR8", "ISO §11.3.3 SR9");
         }
         foreach (var i in interfaces)
         {
             if (i.ooParameterName().Length == 0) { plainInterfaces.Add(i); continue; }
             var names = i.interfaceName();
-            AddSkeleton(i, names[0].GetText(), true, i.ooParameterName(), i.environmentDivision(),
+            AddSkeleton(i, names[0].GetText(), true, i.ooParameterName(), i.environmentDivision(), i.externalizedNamePhrase(),
                 "INTERFACE-ID", "ISO §11.6.3 SR4", "ISO §11.6.3 SR7");
         }
         var entries = new List<Core.RepositoryEntryContext>();
         CollectExpandsEntries(tree, entries);
         if (skeletons.Count == 0 && entries.Count == 0)
-            return new Result(classes, interfaces, new HashSet<string>(), [], [], new HashSet<string>());   // the overwhelmingly common path
+            return new Result(classes, interfaces, new HashSet<string>(), [], [], new HashSet<string>(), [], NoOrigins);   // the overwhelmingly common path
         // §12.3.8.3 SR3 — an EXPANDS phrase inside a parameterized definition is reported once, on the definition
         // (AddSkeleton), and is otherwise inert: it creates nothing.
         entries.RemoveAll(e => EnclosingSkeleton(e) is not null);
@@ -169,6 +184,7 @@ internal static class OoExpansion
                 {
                     outInterfaces.Add(ictx);
                     expandedNames.Add(x.Of.Name);
+                    origins[ictx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals);
                 }
                 else ReparseFailed(x);
             }
@@ -176,15 +192,16 @@ internal static class OoExpansion
             {
                 outClasses.Add(cctx);
                 expandedNames.Add(x.Of.Name);
+                origins[cctx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals);
             }
             else ReparseFailed(x);
         }
-        return new Result(outClasses, outInterfaces, new HashSet<string>(skeletons.Keys, CobolNames.Comparer),
+        return new Result(outClasses, outInterfaces, new HashSet<string>(skeletons.Keys.Concat(importedSkeletons.Keys), CobolNames.Comparer),
             [.. classes.Where(c => c.classIdParagraph().ooParameterName().Length > 0)],
-            [.. interfaces.Where(i => i.ooParameterName().Length > 0)], expandedNames);
+            [.. interfaces.Where(i => i.ooParameterName().Length > 0)], expandedNames, published, origins);
 
         void AddSkeleton(ParserRuleContext ctx, string name, bool isInterface, Core.OoParameterNameContext[] formals,
-            Core.EnvironmentDivisionContext? env, string header, string sr8, string sr9)
+            Core.EnvironmentDivisionContext? env, Core.ExternalizedNamePhraseContext? asPhrase, string header, string sr8, string sr9)
         {
             using var _ = edition.At(ctx);
             // The definition's OWN REPOSITORY paragraph (§11.3.3 SR8 / §11.6.3 SR4 say "of this class
@@ -240,12 +257,24 @@ internal static class OoExpansion
             }
             // The skeleton's own END CLASS / END INTERFACE name (§10.7.3 SR4 / SR6) is asked with every other end
             // marker by Validation.EndMarkerPass, over the written tree, before any expansion renames it.
-            if (!skeletons.TryAdd(name, new Skeleton(ctx, name, isInterface, formals, kinds)))
+            // What this group publishes for the definition (DESIGN-external-repository §10.5): its text, the state it is compiled
+            // under and the specifiers of its own REPOSITORY paragraph that are not its formals.
+            var source = new SkeletonSource(name, SkeletonIdentity(asPhrase, name), isInterface, ctx, SkeletonText.Of(ctx), inputs.At(ctx.Start.Line),
+                [.. formals.Select(f => f.GetText())], [.. kinds.Select(k => k ?? false)],
+                [.. repo.Where(r => !formalSet.Contains(DeclaredName(r)!))], null);
+            if (skeletons.TryAdd(name, new Skeleton(ctx, name, isInterface, formals, kinds, source))) published.Add(source);
+            else
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"duplicate {(isInterface ? "interface" : "class")} definition '{name}' — class and interface "
                     + "definitions within a compilation group shall have unique names, and a class and an interface cannot "
                     + "share one (ISO §8.4.6.4 / §8.3.2.2)");
         }
+
+        // The externalized name a definition or a specifier states: the AS literal, else the declared word (ISO §12.3.8.4 GR2,
+        // §11.3.3 SR1). Read by the pure peek the identity scope uses, so a rejected literal resolves by the word it falls back to.
+        string SkeletonIdentity(Core.ExternalizedNamePhraseContext? asPhrase, string word) =>
+            asPhrase is null ? word
+            : ExternalizedName.Peek(asPhrase, k => PreBindConstants.Read(asPhrase, k, inputs.Variables), edition.DialectLevel) ?? word;
 
         Expansion? Validate(Core.RepositoryEntryContext e)
         {
@@ -273,7 +302,9 @@ internal static class OoExpansion
                 }
 
             string gr = isInterface ? "ISO §12.3.8.4 GR8" : "ISO §12.3.8.4 GR5";
-            if (!skeletons.TryGetValue(target, out var sk) || sk.IsInterface != isInterface)
+            skeletons.TryGetValue(target, out var sk);
+            var usable = sk is not null && sk.IsInterface == isInterface ? sk : ImportedSkeleton(target, isInterface, paragraph);
+            if (usable is null)
             {
                 bool isPlain = (isInterface ? ifaceNames : classNames).Contains(target);
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
@@ -286,6 +317,7 @@ internal static class OoExpansion
                     + $" ({gr})");
                 return null;
             }
+            sk = usable;
             if (actuals.Count != sk.Formals.Count)
             {
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
@@ -297,12 +329,16 @@ internal static class OoExpansion
             for (int i = 0; i < actuals.Count; i++)
             {
                 string a = actuals[i];
-                bool? actualIsInterface = skeletons.ContainsKey(a) ? null
-                    : classNames.Contains(a) ? false : ifaceNames.Contains(a) ? true : null;
+                // A class or interface of this group, else the one its specifier names for the external repository to answer
+                // (ISO §12.3.8.3 SR6 b / SR9): whether the repository does is the specifier's own REPO-1, not this phrase's.
+                bool? actualIsInterface = skeletons.ContainsKey(a) || importedSkeletons.ContainsKey(a) ? null
+                    : classNames.Contains(a) ? false : ifaceNames.Contains(a) ? true
+                    : importer is not null && paragraph.FirstOrDefault(r => r.expandsPhrase() is null && CobolNames.Same(DeclaredName(r), a)) is { } spec
+                        ? spec.INTERFACE() is not null : null;
                 if (actualIsInterface is null)
                 {
                     edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
-                        $"{where}: the actual parameter '{a}' is " + (skeletons.ContainsKey(a)
+                        $"{where}: the actual parameter '{a}' is " + (skeletons.ContainsKey(a) || importedSkeletons.ContainsKey(a)
                             ? "itself a parameterized definition, which is a skeleton and not a class or interface "
                               + "(ISO §9.3.12/§9.3.13); expand it in the REPOSITORY and pass the expansion"
                             : "not a class or interface of this compilation group")
@@ -319,7 +355,46 @@ internal static class OoExpansion
                     ok = false;
                 }
             }
-            return ok ? new Expansion(name, sk, actuals) : null;
+            return ok ? new Expansion(name, sk, actuals, e) : null;
+        }
+
+        // A parameterized definition another group published (ISO §12.3.8.3 SR4 / SR6 b): the class-specifier or interface-specifier
+        // of the EXPANDS target names it by identity, and a definition of this group wins a tie as everywhere (§8.4). Re-lexed from the
+        // text it recorded, under the edition and words map it recorded, so the expansion is made from the definition that was
+        // published and not from this group's reading of the same words.
+        Skeleton? ImportedSkeleton(string target, bool isInterface, IReadOnlyList<Core.RepositoryEntryContext> paragraph)
+        {
+            if (importedSkeletons.TryGetValue(target, out var known)) return known.IsInterface == isInterface ? known : null;
+            if (importer is null || (isInterface ? ifaceNames : classNames).Contains(target)) return null;
+            var specifier = paragraph.FirstOrDefault(r => r.expandsPhrase() is null && CobolNames.Same(DeclaredName(r), target)
+                && (r.INTERFACE() is not null) == isInterface);
+            if (specifier is null) return null;
+            string identity = SkeletonIdentity(specifier.externalizedNamePhrase(), target);
+            if (importer.Skeleton(identity, isInterface) is not { } found) return null;
+            using var _ = edition.At(specifier);
+            var state = found.Record.State;
+            var wordsMap = CobolWordsMap.FromDirectiveText(state.CobolWordsMap);
+            var unit = wordsMap is null ? null : FragmentParse.ParseUnit(found.Record.Source, EditionInfo.Of(state.Edition, state.Permissive), wordsMap);
+            ParserRuleContext? definition = isInterface
+                ? unit?.compilationGroup().SelectMany(g => g.interfaceDefinition()).FirstOrDefault(d => d.ooParameterName().Length > 0)
+                : unit?.compilationGroup().SelectMany(g => g.classDefinition()).FirstOrDefault(d => d.classIdParagraph().ooParameterName().Length > 0);
+            if (definition is null)
+            {
+                edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
+                    $"REPOSITORY {(isInterface ? "INTERFACE" : "CLASS")} '{target}': the parameterized {(isInterface ? "interface" : "class")} '{identity}' that "
+                    + $"'{found.From.Path}' publishes does not parse from the source it recorded, so it cannot be expanded: recompile that "
+                    + "assembly (ISO §12.3.8.4 GR5/GR8)");
+                return null;
+            }
+            var formals = definition is Core.ClassDefinitionContext cd ? cd.classIdParagraph().ooParameterName() : ((Core.InterfaceDefinitionContext)definition).ooParameterName();
+            var env = definition is Core.ClassDefinitionContext c2 ? c2.environmentDivision() : ((Core.InterfaceDefinitionContext)definition).environmentDivision();
+            var formalSet = new HashSet<string>(formals.Select(f => f.GetText()), CobolNames.Comparer);
+            bool[] kinds = [.. found.Record.FormalIsInterface];
+            var source = new SkeletonSource(target, identity, isInterface, definition, found.Record.Source, state, [.. formals.Select(f => f.GetText())],
+                kinds, [.. IdentityScope.SpecifierEntries(env).Where(r => !formalSet.Contains(DeclaredName(r)!))], found.From);
+            var imported = new Skeleton(definition, target, isInterface, formals, [.. kinds.Select(k => (bool?)k)], source);
+            importedSkeletons[target] = imported;
+            return imported;
         }
 
         void ReparseFailed(Expansion x)
@@ -341,6 +416,14 @@ internal static class OoExpansion
     }
 
     private static string Kind(Skeleton s) => s.IsInterface ? "interface" : "class";
+
+    /// <summary>The terminal tokens of <paramref name="rule"/>, in order.</summary>
+    private static IEnumerable<IToken> Terminals(IParseTree rule)
+    {
+        if (rule is ITerminalNode t) { yield return t.Symbol; yield break; }
+        for (int i = 0; i < rule.ChildCount; i++)
+            foreach (var token in Terminals(rule.GetChild(i))) yield return token;
+    }
 
     /// <summary>The name a CLASS / INTERFACE specifier DECLARES (object-class-name-1 / interface-name-2); null for
     /// every other specifier.</summary>
@@ -425,6 +508,8 @@ internal static class OoExpansion
         for (int i = 0; i < skel.Formals.Count; i++) map[skel.Formals[i].GetText()] = x.Actuals[i];
 
         var drop = new HashSet<IToken>();
+        bool published = skel.Source?.From is not null;   // lexed again from another group's text: its lines are that text's
+        int entryLine = x.Entry.Start.Line;
         IToken headerName, endName;
         if (skel.Ctx is Core.ClassDefinitionContext c)
         {
@@ -482,7 +567,11 @@ internal static class OoExpansion
                     // An actual is an ordinary user-defined word wherever its formal stood (§11.3.4 GR6).
                     copy.Type = CobolLexer.IDENTIFIER;
                 }
+                if (published) copy.Line = entryLine;
                 result.Add(copy);
+                // (e) the specifier's own `AS literal-1` externalizes the EXPANSION (§12.3.8.4 GR2), right after the name it follows.
+                if (ReferenceEquals(tok, headerName) && x.Entry.externalizedNamePhrase() is { } entryAs)
+                    foreach (var asToken in Terminals(entryAs)) result.Add(new CommonToken(asToken));
                 return;
             }
             for (int i = 0; i < n.ChildCount; i++) Walk(n.GetChild(i));

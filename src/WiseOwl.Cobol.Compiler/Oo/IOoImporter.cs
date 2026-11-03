@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// <c>MetadataRepositoryProvider</c>, which reads the compiled assemblies of the search space; it is an interface because the table
 /// (<c>Compiler.Oo</c>) is built before the provider's binder-side collaborators exist and must not depend on them.
 /// </summary>
-public interface IOoImporter
+internal interface IOoImporter
 {
     /// <summary>The class published under <paramref name="identity"/>, or null when nothing in the search space answers (the
     /// provider has reported a finding of its own when it refused one). The class is returned as a registered-before-complete
@@ -21,6 +21,12 @@ public interface IOoImporter
 
     /// <summary>The interface twin of <see cref="Class"/>.</summary>
     ImportedInterface? Interface(string identity, OoClassTable table);
+
+    /// <summary>The parameterized class (or, with <paramref name="isInterface"/>, interface) published under <paramref name="identity"/>
+    /// — its record and the assembly it came from — or null when nothing answers (the provider has reported a finding of its own when
+    /// it refused one). An expansion of it is made in this compilation from the source the record holds (ISO §12.3.8.4 GR5 / GR8;
+    /// DESIGN-external-repository §10.5).</summary>
+    ImportedSkeleton? Skeleton(string identity, bool isInterface);
 
     /// <summary>True when asking for the class <paramref name="identity"/> (or, with <paramref name="isInterface"/>, the interface)
     /// drew a finding of its own (an unreadable or malformed entry, REPO-6, REPO-7, REPO-8 …), so a REPO-1 beside it would say the
@@ -39,3 +45,6 @@ public sealed record ImportedClass(OoClassSymbol Symbol, Action Complete);
 
 /// <summary>The interface twin of <see cref="ImportedClass"/>: its INHERITS list and its method prototypes complete the symbol.</summary>
 public sealed record ImportedInterface(OoInterfaceSymbol Symbol, Action Complete);
+
+/// <summary>A skeleton another group published: its <paramref name="Record"/> and where it came from.</summary>
+internal sealed record ImportedSkeleton(WiseOwl.Cobol.Binding.Repository.SkeletonRecord Record, ImportedFrom From);

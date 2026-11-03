@@ -35,6 +35,10 @@ public sealed class OoClassTable
     public IReadOnlyList<OoInterfaceSymbol> Interfaces => _interfaces;
     private readonly List<OoInterfaceSymbol> _interfaces = [];
 
+    /// <summary>The skeletons this group publishes, one per parameterized definition it writes (§9.3.12 / §9.3.13; DESIGN-external-repository
+    /// §10.5), expanded or not, in source order.</summary>
+    internal IReadOnlyList<SkeletonSource> Skeletons { get; private init; } = [];
+
     /// <summary>The PARAMETERIZED class and interface definitions (§9.3.12 / §9.3.13), in source order: kept OUT of
     /// <see cref="Classes"/> / <see cref="Interfaces"/> and out of every name lookup — each is a skeleton, its
     /// expansions are the classes (<see cref="OoExpansion"/>) — but each is still a class or interface definition, so
@@ -267,6 +271,28 @@ public sealed class OoClassTable
         if (!_scopes.TryGetValue(key, out var scope))
             _scopes[key] = scope = IdentityScope.Build(key, _variables, _dialectLevel);
         return scope;
+    }
+
+    /// <summary>The class or interface a class-specifier or interface-specifier <paramref name="entry"/> stands for in its own scope —
+    /// what its identity (<c>literal-1 ?? word</c>, ISO §12.3.8.4 GR2) names in the group, the standard class or the external
+    /// repository — without recording a use of the word (the NON-diagnosing, census-free half of <see cref="OoNameResolution.Lookup"/>).
+    /// Neither when nothing answers or the word is a formal parameter-name of the definition it lies in.</summary>
+    internal (OoClassSymbol? Class, OoInterfaceSymbol? Interface) ResolveSpecifier(Core.RepositoryEntryContext entry)
+    {
+        var scope = RepositoryScopeFor(entry);
+        if (entry.className() is { } cn)
+        {
+            string word = cn.GetText();
+            if (scope.IsFormal(word) || !scope.ClassTarget(word, out var ext)) return default;
+            return (ext is null ? Find(word) ?? ImportClass(word) : FindByExternalizedName(ext) ?? ImportClass(ext), null);
+        }
+        if (entry.interfaceName() is { } inm)
+        {
+            string word = inm.GetText();
+            if (scope.IsFormal(word) || !scope.InterfaceTarget(word, out var ext)) return default;
+            return (null, ext is null ? FindInterface(word) ?? ImportInterface(word) : FindInterfaceByExternalizedName(ext) ?? ImportInterface(ext));
+        }
+        return default;
     }
 
     /// <summary>The compilation group's &gt;&gt;DEFINE timeline — what a FROM constant-name written as an AS phrase's
@@ -548,19 +574,19 @@ public sealed class OoClassTable
     /// "Parametric polymorphism (9.3.5.3)". The CLAUDE.md rule-1 inherited-citation failure, caught at the
     /// point the rows it covers were being witnessed.</para>
     /// </summary>
-    public static OoClassTable Build(IReadOnlyList<Core.ClassDefinitionContext> classes, EditionContext edition,
-        IReadOnlyList<Core.InterfaceDefinitionContext>? interfaces,
-        IReadOnlySet<string>? parameterizedNames,
-        IReadOnlyList<Core.ClassDefinitionContext>? parameterizedClasses,
-        IReadOnlyList<Core.InterfaceDefinitionContext>? parameterizedInterfaces,
-        IReadOnlySet<string>? expandedNames,
-        DirectiveTimeline<CompilationVariableEvent> variables,
-        IOoImporter? importer = null)
+    internal static OoClassTable Build(OoExpansion.Result expanded, EditionContext edition,
+        DirectiveTimeline<CompilationVariableEvent> variables, IOoImporter? importer = null)
     {
+        var classes = expanded.Classes;
+        var interfaces = expanded.Interfaces;
+        var parameterizedClasses = expanded.ParameterizedClasses;
+        var parameterizedInterfaces = expanded.ParameterizedInterfaces;
+        var expandedNames = expanded.ExpandedNames;
         var table = new OoClassTable
         {
-            _parameterized = parameterizedNames ?? EmptyNames, _variables = variables,
+            _parameterized = expanded.ParameterizedNames, _variables = variables,
             _dialectLevel = edition.Edition.Year, _edition = edition, _importer = importer,
+            Skeletons = expanded.Skeletons,
         };
         var usedCsNames = new HashSet<string>(StringComparer.Ordinal);
 
@@ -624,6 +650,7 @@ public sealed class OoClassTable
             string iname = ictx.interfaceName(0).GetText();
             return new OoInterfaceSymbol(iname, DataItem.WordIdentifier(iname), ictx)
             {
+                Expansion = expanded.Origins.GetValueOrDefault(ictx),
                 ExternalizedName = Externalized(ictx.externalizedNamePhrase(), iname,
                     "INTERFACE-ID", "ISO §11.6.3 SR1"),
             };
@@ -804,6 +831,7 @@ public sealed class OoClassTable
             var bases = id.className().Skip(1).Select(c => c.GetText()).ToList();
             return new OoClassSymbol(name, csName, ctx)
             {
+                Expansion = expanded.Origins.GetValueOrDefault(ctx),
                 // §11.3.3 SR1 alone omits the zero-length exclusion (verified on the printed page).
                 ExternalizedName = Externalized(id.externalizedNamePhrase(), name,
                     "CLASS-ID", "ISO §11.3.3 SR1", rejectZeroLength: false),
