@@ -33,3 +33,9 @@ places of one text in placement (a), (b) and a check-only compile, and a skeleto
 `DiagnosticRegionTests` is rewritten for the rule. DESIGN-external-repository §10.5 "Who answers for the text of an expansion" replaces the
 PB4469 paragraph. No inventory row is owned (closes_rows: []). The frontend's two token screens still walk the written tree alone (the
 §10.5 text says so); a word-character removal warning under `--permissive` is the one report placement (b) does not repeat.
+
+Self-review (architecture, full code, performance, duplication): the rule lives on the region and in `EditionContext.Render` / `KeyOf`,
+the suffix has one spelling, the same-state test has one home (`CompileState.BindsAs`), and the once-key allocates only for a repository
+text; two comments that described the old shape were corrected in a trailing commit. Gate at `86200486c`:
+`=== BUILD-LOCAL GATE: GREEN — Conformance 21,333/21,333 · Unit 39,633/39,633 · Characterization 37/37 cases ran (skipped 0) ===`
+(run `000001-20261103T215106Z`); the head's own gate re-ran the whole population after the comment commit.
