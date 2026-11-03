@@ -80,8 +80,8 @@ public sealed class ArgumentSubstituteDriftTests
             $"{offenders.Count} intrinsic site(s) spell a substituted text result instead of reading its class "
             + $"from WiseOwl.Cobol.Runtime.Exceptions.ArgumentSubstitute:{Environment.NewLine}"
             + string.Join(Environment.NewLine, offenders.Select(o => "    " + o))
-            + $"{Environment.NewLine}ISO §15.3 rule 14 hands the result to the implementor and docs/CONFORMANCE.md "
-            + "row DOC-A.1-90 states it once. Raise AND substitute in ONE expression — "
+            + $"{Environment.NewLine}ISO §15.3 rule 14 hands the result to the implementor and row DOC-A.1-90 of "
+            + "docs/CONFORMANCE.md states it once. Raise AND substitute in ONE expression — "
             + "ExceptionState.ArgumentErrorZeroLength(detail) or ExceptionState.ArgumentErrorSpaces(detail, n) — "
             + "or, where a bool screening predicate already raised, ArgumentSubstitute.ZeroLength / "
             + "ArgumentSubstitute.Spaces(n). See kb/Work/PB383 and kb/Work/PB470.");

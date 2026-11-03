@@ -1,0 +1,28 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. FIL.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT NOTES ASSIGN TO "notes.txt"
+               ORGANIZATION IS LINE SEQUENTIAL
+               FILE STATUS IS NOTES-STATUS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD NOTES.
+       01 NOTE-REC PIC X(20).
+       WORKING-STORAGE SECTION.
+       01 NOTES-STATUS PIC XX.
+       PROCEDURE DIVISION.
+           OPEN OUTPUT NOTES
+           MOVE "price 5 €" TO NOTE-REC
+           WRITE NOTE-REC
+           CLOSE NOTES
+           OPEN INPUT NOTES
+           READ NOTES
+           DISPLAY NOTE-REC
+           CLOSE NOTES
+           OPEN INPUT NOTES
+           READ NOTES
+           READ NOTES
+           DISPLAY NOTES-STATUS
+           STOP RUN.

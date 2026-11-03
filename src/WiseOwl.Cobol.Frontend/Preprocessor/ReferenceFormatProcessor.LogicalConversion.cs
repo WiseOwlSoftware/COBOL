@@ -8,6 +8,12 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 public static partial class ReferenceFormatProcessor
 {
+    /// <summary>What a line is to an obsolete IDENTIFICATION comment-entry paragraph (AUTHOR / INSTALLATION /
+    /// DATE-WRITTEN / DATE-COMPILED / SECURITY / REMARKS): not part of one, the header line that opens it, or the Area-B
+    /// body of its comment-entry — and, when the division could not be told, the same two as a CANDIDATE, which the
+    /// conversion CARRIES (<see cref="CommentEntryCarrier"/>) for <see cref="CommentEntryResolver"/> to decide.</summary>
+    private enum CommentEntryText { None, Header, Body, CandidateHeader, CandidateBody }
+
     /// <summary>
     /// The fixed-form CLASSIFIER of the ISO §6.5 logical conversion of one fixed-form text — a whole file, one SOURCE
     /// FORMAT segment, or a copybook (kb/Work PB1491). It reads the indicator area and the program-text area of each
@@ -24,13 +30,18 @@ public static partial class ReferenceFormatProcessor
     /// </list>
     /// </summary>
     private sealed class FixedFormConverter(ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators,
-        bool startsInIdentificationDivision)
+        bool? startsInIdentificationDivision, CommentEntryPins? pins)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: true);
 
         /// <summary>True while inside an obsolete IDENTIFICATION comment-entry paragraph (AUTHOR/INSTALLATION/etc.):
         /// its free-text body is commentary until the next Area-A header. See <see cref="CommentEntryParagraphs"/>.</summary>
         private bool _inCommentEntry;
+
+        /// <summary>Whether the comment-entry paragraph in progress is a CANDIDATE: the division was not known when its
+        /// header was read (<see cref="DivisionCursor"/>), so its lines are carried, not read
+        /// (<see cref="CommentEntryCarrier"/>).</summary>
+        private bool _carryingCommentEntry;
 
         /// <summary>Which division the text read so far is in — the one rule the COPY driver shares
         /// (<see cref="DivisionCursor"/>, kb/Work PB2739). A comment-entry paragraph exists only in an IDENTIFICATION
@@ -39,9 +50,9 @@ public static partial class ReferenceFormatProcessor
         /// division its COPY statement stands in.</summary>
         private readonly DivisionCursor _division = new(startsInIdentificationDivision);
 
-        /// <summary>Whether the text read so far ends in an IDENTIFICATION DIVISION — the state the next SOURCE FORMAT
-        /// segment of the same text starts in.</summary>
-        public bool InIdentificationDivision => _division.InIdentificationDivision;
+        /// <summary>Whether the text read so far ends in an IDENTIFICATION DIVISION (null: not known) — the state the next
+        /// SOURCE FORMAT segment of the same text starts in.</summary>
+        public bool? InIdentificationDivision => _division.InIdentificationDivision;
 
         /// <summary>Convert the lines of one text — a whole file, one SOURCE FORMAT segment of it, or a copybook —
         /// returning the resultant lines and, per resultant line, the physical lines and columns it came from (kb/Work
@@ -80,8 +91,16 @@ public static partial class ReferenceFormatProcessor
             // The program-text area is resultant text from its first character, which is position 8 (kb/Work PB1801).
             var site = new TextSite(lineNo, fixedLine.ProgramTextIndex, line.Columns);
             var kind = KindOf(indicator.Value);
-            switch (CommentEntryOf(kind, fixedLine, area))
+            switch (CommentEntryOf(kind, fixedLine, area, lineNo))
             {
+                // The division is not known here (DivisionCursor), so the line is CARRIED for CommentEntryResolver to decide
+                // on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
+                case CommentEntryText.CandidateHeader:
+                    _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: true, ccvsIndicators, line), site);
+                    return;
+                case CommentEntryText.CandidateBody:
+                    _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators, line), site);
+                    return;
                 case CommentEntryText.Header:
                     // The paragraph HEADER stays program text — the parser and the one removal gate
                     // (VersionConformancePass, COBOL0902 from 2002) must see the paragraph in fixed form as they do in
@@ -177,17 +196,12 @@ public static partial class ReferenceFormatProcessor
                 _builder.Add(area, site, fixedContinuation: false);
         }
 
-        /// <summary>What a line is to an obsolete IDENTIFICATION comment-entry paragraph (AUTHOR / INSTALLATION /
-        /// DATE-WRITTEN / DATE-COMPILED / SECURITY / REMARKS): not part of one, the header line that opens it, or
-        /// the Area-B body of its comment-entry.</summary>
-        private enum CommentEntryText { None, Header, Body }
-
         /// <summary>Classify a line against the comment-entry paragraph in progress. A comment, debugging or
         /// excluded-alternate line is processed by its own arm; a continuation line inside the paragraph continues
         /// its commentary.</summary>
-        private CommentEntryText CommentEntryOf(LineKind kind, FixedFormLine line, string area)
+        private CommentEntryText CommentEntryOf(LineKind kind, FixedFormLine line, string area, int lineNumber)
         {
-            if (kind == LineKind.Continuation) return _inCommentEntry ? CommentEntryText.Body : CommentEntryText.None;
+            if (kind == LineKind.Continuation) return _inCommentEntry ? BodyOfParagraph() : CommentEntryText.None;
             if (kind is not (LineKind.Source or LineKind.NotAnIndicator)) return CommentEntryText.None;
             // The latest logical line awaits a floating-indicator continuation (§6.5 8)): this line is its continuation
             // line, whatever it spells, and neither opens nor ends a comment-entry.
@@ -200,35 +214,56 @@ public static partial class ReferenceFormatProcessor
             // the latest logical line, so that line is not complete and the cursor must not read it yet (kb/Work PB4241).
             if (LogicalLineBuilder.TryFirstText(area, out _)) _builder.ReadInto(_division);
             string? firstAreaAWord = FirstAreaAWord(line, area);
-            if (_division.InIdentificationDivision && firstAreaAWord is not null && CommentEntryParagraphs.Contains(firstAreaAWord))
+            // A comment-entry paragraph exists only in an IDENTIFICATION DIVISION: certain there, a paragraph of the program
+            // elsewhere, and a candidate when the division is not known — unless an earlier run of the text stages proved
+            // this candidate to be program text (CommentEntryPins), which then reads as the paragraph it is.
+            if (_division.InIdentificationDivision is not false && firstAreaAWord is not null
+                && CommentEntryParagraphs.Contains(firstAreaAWord) && !IsPinned(lineNumber))
             {
                 _inCommentEntry = true;                     // start (or continue, back-to-back) a comment-entry
-                return CommentEntryText.Header;
+                _carryingCommentEntry = _division.InIdentificationDivision is null;
+                return _carryingCommentEntry ? CommentEntryText.CandidateHeader : CommentEntryText.Header;
             }
-            if (_inCommentEntry && firstAreaAWord is null) return CommentEntryText.Body;   // Area-B text (or blank): the entry goes on
+            if (_inCommentEntry && firstAreaAWord is null) return BodyOfParagraph();   // Area-B text (or blank): the entry goes on
             _inCommentEntry = false;                        // the next Area-A word ends it
             return CommentEntryText.None;
         }
+
+        /// <summary>Whether the candidate opening at physical line <paramref name="lineNumber"/> is known to be program text
+        /// (<see cref="CommentEntryPins"/>); asked only where the division is not known.</summary>
+        private bool IsPinned(int lineNumber) => _division.InIdentificationDivision is null && pins?.Contains(file, lineNumber) == true;
+
+        private CommentEntryText BodyOfParagraph() => _carryingCommentEntry ? CommentEntryText.CandidateBody : CommentEntryText.Body;
     }
 
     /// <summary>Convert one text, or one SOURCE FORMAT segment of it, in its reference format: the fixed-form or the
     /// free-form classifier, each feeding the one <see cref="LogicalLineBuilder"/>. <paramref name="inIdentificationDivision"/>
-    /// is the division the segment starts in, and on return the one it ends in: the next segment starts there, whatever its
-    /// format.</summary>
+    /// is the division the segment starts in (null: not known), and on return the one it ends in: the next segment starts
+    /// there, whatever its format. <paramref name="gatesLineLength"/> is false only for the lines of a carried comment-entry
+    /// candidate (<see cref="ConvertCommentEntryCandidate"/>), which the conversion that carried them has gated already.</summary>
     private static (List<string> Lines, List<LineOrigin> Origins) ConvertSegment(ReadOnlySpan<PhysicalLine> lines, bool isFixed,
-        ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, ref bool inIdentificationDivision)
+        ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, bool gatesLineLength,
+        ref bool? inIdentificationDivision)
     {
         if (isFixed)
         {
-            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision);
+            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision, pins);
             var converted = fixedForm.Convert(lines);
             inIdentificationDivision = fixedForm.InIdentificationDivision;
             return converted;
         }
-        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision);
+        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, gatesLineLength);
         var result = freeForm.Convert(lines);
         inIdentificationDivision = freeForm.InIdentificationDivision;
         return result;
+    }
+
+    /// <summary>The free-form line-length gate (a free-form line holds at most <see cref="FreeFormMaxPositions"/> character
+    /// positions) for one physical line, reported through the compilation's reference-format diagnostics.</summary>
+    internal static void ReportLineLength(ReferenceFormatDiagnostics? gates, string file, in PhysicalLine line)
+    {
+        int positions = CharacterPositions.Count(line.Text);
+        if (positions > FreeFormMaxPositions) gates?.OnFreeFormLineTooLong(file, line.Number, positions);
     }
 
     /// <summary>The free-form CLASSIFIER of the ISO §6.5 logical conversion — a whole text, one SOURCE FORMAT segment of
@@ -246,7 +281,8 @@ public static partial class ReferenceFormatProcessor
     /// where a free-form entry ends is the implementor's to say, and CLAUDE.md rule 1 takes GnuCOBOL 3.2's <c>-free</c>
     /// reading: the paragraph word first on its line, the entry the rest of that line, the next line program text.</para>
     /// </summary>
-    private sealed class FreeFormConverter(ReferenceFormatDiagnostics? gates, string file, bool startsInIdentificationDivision)
+    private sealed class FreeFormConverter(ReferenceFormatDiagnostics? gates, string file, bool? startsInIdentificationDivision,
+        CommentEntryPins? pins, bool gatesLineLength)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: false);
 
@@ -254,9 +290,9 @@ public static partial class ReferenceFormatProcessor
         /// fixed-form converter, because a comment-entry paragraph exists only in an IDENTIFICATION DIVISION.</summary>
         private readonly DivisionCursor _division = new(startsInIdentificationDivision);
 
-        /// <summary>Whether the text read so far ends in an IDENTIFICATION DIVISION — the state the next SOURCE FORMAT
-        /// segment of the same text starts in.</summary>
-        public bool InIdentificationDivision => _division.InIdentificationDivision;
+        /// <summary>Whether the text read so far ends in an IDENTIFICATION DIVISION (null: not known) — the state the next
+        /// SOURCE FORMAT segment of the same text starts in.</summary>
+        public bool? InIdentificationDivision => _division.InIdentificationDivision;
 
         /// <summary>Convert the lines of one text, returning the resultant lines and, per resultant line, the physical
         /// lines and columns it came from (kb/Work PB82, PB1801).</summary>
@@ -264,13 +300,20 @@ public static partial class ReferenceFormatProcessor
         {
             foreach (var line in physicalLines)
             {
-                int positions = CharacterPositions.Count(line.Text);
-                if (positions > FreeFormMaxPositions) gates?.OnFreeFormLineTooLong(file, line.Number, positions);
                 var site = new TextSite(line.Number, Index: 0, line.Columns);
                 // A comment line (§6.5 2)) is neither a header nor words of a division, as in fixed form.
-                if (LogicalLineBuilder.TryFirstText(line.Text, out int first) && BeginsCommentEntry(line.Text, first))
+                var entry = LogicalLineBuilder.TryFirstText(line.Text, out int first) ? BeginsCommentEntry(line.Text, first, line.Number) : CommentEntryText.None;
+                // The 255-position gate is asked of EVERY physical line, here and once: this conversion runs before conditional
+                // compilation, so a line of an omitted branch is gated as any other (§6.1 3) a)), a carried candidate's too, and
+                // CommentEntryResolver, which converts the candidate later, never asks it again (kb/Work PB4281, review findings
+                // R1-2 and R2-1).
+                if (gatesLineLength) ReportLineLength(gates, file, line);
+                if (entry != CommentEntryText.None)
                 {
-                    _builder.Emit(CommentEntryHeader(line.Text), site);
+                    // The division is not known (DivisionCursor) for a candidate: the line is CARRIED for CommentEntryResolver
+                    // to decide on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
+                    if (entry == CommentEntryText.Header) _builder.Emit(CommentEntryHeader(line.Text), site);
+                    else _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, line), site);
                     continue;
                 }
                 // The floating debugging indicator >>D heads a debugging line in free form too (2002 clause 6.1.2).
@@ -282,14 +325,21 @@ public static partial class ReferenceFormatProcessor
         }
 
         /// <summary>Whether the line whose first character-string begins at <paramref name="first"/> opens a comment-entry
-        /// paragraph: the text stands in an IDENTIFICATION DIVISION, the line's first word is one of
-        /// <see cref="CommentEntryParagraphs"/>, and the line is not the continuation line a floating literal continuation
-        /// indicator asks for (§6.5 8)), whose text is the literal's whatever it spells.</summary>
-        private bool BeginsCommentEntry(string text, int first)
+        /// paragraph: its first word is one of <see cref="CommentEntryParagraphs"/>, the line is not the continuation line a
+        /// floating literal continuation indicator asks for (§6.5 8), whose text is the literal's whatever it spells), and the
+        /// text stands in an IDENTIFICATION DIVISION (<see cref="CommentEntryText.Header"/>) or in none the division could tell
+        /// (<see cref="CommentEntryText.CandidateHeader"/>).</summary>
+        private CommentEntryText BeginsCommentEntry(string text, int first, int lineNumber)
         {
-            if (_builder.AwaitsFloatingContinuation) return false;
+            if (_builder.AwaitsFloatingContinuation) return CommentEntryText.None;
             _builder.ReadInto(_division);   // the division is that of the logical lines before this one
-            return _division.InIdentificationDivision && CommentEntryParagraphs.Contains(text[first..WordEnd(text, first)]);
+            if (!CommentEntryParagraphs.Contains(text[first..WordEnd(text, first)])) return CommentEntryText.None;
+            return _division.InIdentificationDivision switch
+            {
+                true => CommentEntryText.Header,
+                null when pins?.Contains(file, lineNumber) != true => CommentEntryText.CandidateHeader,   // unless a run proved it program text (CommentEntryPins)
+                _ => CommentEntryText.None,
+            };
         }
     }
 

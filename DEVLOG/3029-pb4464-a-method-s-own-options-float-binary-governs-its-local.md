@@ -1,4 +1,4 @@
-## PB4464: a method's own OPTIONS FLOAT-BINARY governs its LOCAL-STORAGE items
+## Entry 3029 — 2026-11-03 04:43 PST — PB4464: a method's own OPTIONS FLOAT-BINARY governs its LOCAL-STORAGE items
 
 Wave 20261841, group A. kb/Work PB4464 suspected, unprobed, that a method's own `OPTIONS. FLOAT-BINARY DEFAULT IS HIGH-ORDER-RIGHT.`
 did not reach the endianness of its `FLOAT-BINARY-32` items.
@@ -36,3 +36,4 @@ method definition accessor to `m.Ctx`; main's structure was kept around the `Ent
 is folded into main's 3024 and is not carried. The review's lead R1-1 is fixed: `EntryOptionsReaderDriftTests` scanned only
 `DataBinder.cs`, and now scans every `DataBinder*.cs` partial plus `LinkageBinder.cs` and `ConstantEntryBinder.cs`. The merged build
 prints the golden's six expected lines (`cobol --source-format free --run`).
+

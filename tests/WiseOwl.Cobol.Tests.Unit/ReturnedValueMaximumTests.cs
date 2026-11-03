@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Globalization;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -20,11 +19,9 @@ public sealed class ReturnedValueMaximumTests
     [Fact]
     public void TheMaximum_IsTheNumberRowDocA193Publishes()
     {
-        string register = File.ReadAllText(TestRepo.Docs("CONFORMANCE.md"));
-        string row = register.Split('\n').SingleOrDefault(l => l.StartsWith("| DOC-A.1-93 |", StringComparison.Ordinal))
-            ?? throw new Xunit.Sdk.XunitException("docs/CONFORMANCE.md §7 carries no `| DOC-A.1-93 |` row: Annex A.1 "
-                                                  + "item 93 (returned value length) is a REQUIRED and DOCUMENTED element.");
-        Assert.Contains(CobolIntrinsics.ReturnedValueMaximum.ToString("N0", CultureInfo.InvariantCulture), row, StringComparison.Ordinal);
+        // The register row is held to the facts file by scripts/docchecks/facts.py (maximum_findings); the facts file is
+        // held to the compiler by DocumentedFactsDriftTests, so no compiler test opens the Markdown (kb/Work PB4453).
+        Assert.Equal((long)CobolIntrinsics.ReturnedValueMaximum, DocFacts.Number("returnedValueMaximum"));
         Assert.Equal(CobolDynString.MaxLength, CobolIntrinsics.ReturnedValueMaximum);
     }
 

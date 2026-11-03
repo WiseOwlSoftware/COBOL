@@ -25,14 +25,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class ArchReviewFleetDriftTests
 {
-    [Fact]
-    public void TheSubsystemTable_PartitionsTheCommittedTree_AndTheDesignBlockIsCurrent()
-    {
-        var r = Python("r2_subsystems.py", "--check");
-        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== R2 SUBSYSTEMS: PASS", StringComparison.Ordinal),
-            $"`r2_subsystems.py --check` failed — a file in no subsystem or in two, or a stale design block "
-            + $"(run `--write-design`):\n{r.Stdout}{r.Stderr}");
-    }
+    // (The subsystem table's partition of the committed tree and its rendered block in DESIGN-architecture-review.md are the
+    // gate audit ARCH SUBSYSTEMS, `r2_subsystems.py --check`: it reads the design doc, and no compiler test opens a Markdown
+    // file — kb/Work PB4453.)
 
     [Theory]
     [InlineData("r2_subsystems.py", "=== R2 SUBSYSTEMS SELF-TEST: PASS ===")]

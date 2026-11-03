@@ -139,13 +139,13 @@ public sealed class NonstandardExtensionRegisterDriftTests
     [Fact]
     public void TheDocumentation_ListsExactlyTheRegisterRows()
     {
-        string conformance = File.ReadAllText(TestRepo.Docs("CONFORMANCE.md"));
-        var section = Regex.Match(conformance, @"### 3\.2 Nonstandard extensions.*?(?=\r?\n## )", RegexOptions.Singleline);
-        Assert.True(section.Success, "docs/CONFORMANCE.md lost its §3.2 Nonstandard extensions section (ISO §4.2.10 documentation)");
-        var documented = Regex.Matches(section.Value, @"^\| `([a-z0-9-]+)` \|", RegexOptions.Multiline)
-            .Select(m => m.Groups[1].Value).ToList();
+        // §3.2 is held to the facts file's nonstandardExtensionIds by scripts/docchecks/facts.py
+        // (extension_register_findings); the file is held to the register here, so no compiler test opens the Markdown
+        // (kb/Work PB4453).
+        var documented = DocFacts.Load("compiler-facts.json").GetProperty("nonstandardExtensionIds").EnumerateArray()
+            .Select(e => e.GetString()!).ToList();
         Assert.Equal(documented.Count, documented.Distinct(StringComparer.Ordinal).Count());
         Assert.True(documented.ToHashSet(StringComparer.Ordinal).SetEquals(Rows.Select(r => r.Id)),
-            $"CONFORMANCE.md §3.2 lists [{string.Join(",", documented.Order())}] != register [{string.Join(",", Rows.Select(r => r.Id).Order())}]");
+            $"the facts file lists [{string.Join(",", documented.Order())}] != register [{string.Join(",", Rows.Select(r => r.Id).Order())}]");
     }
 }

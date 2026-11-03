@@ -22,7 +22,6 @@ using Core = CobolParserCore;
 /// (<see cref="FileDescriptionFormats"/>) is only automatic for the NEXT clause if a new <c>fileDescriptionClause</c>
 /// alternative cannot land without a row; these facts read the generated parser, not a list, so it cannot.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class FileDescriptionFormatDriftTests
 {
     /// <summary>The alternatives of <c>fileDescriptionClause</c> as the GENERATED parser exposes them: its
@@ -86,11 +85,8 @@ public sealed class FileDescriptionFormatDriftTests
     [Fact]
     public void TheLinageClaim_AgreesWithTheFileDescriptionFormatTable()
     {
-        string row = File.ReadAllLines(TestRepo.Docs("CONFORMANCE.md"))
-            .Single(l => l.StartsWith("| A.4.11 |", StringComparison.Ordinal));
-        Assert.Contains("The LINAGE clause (item 10, §13.18.34) is CLAIMED", row, StringComparison.Ordinal);
-        Assert.Contains("a LINAGE clause on a Format 2 (relative or indexed) or Format 3 (report) entry is refused COBOL2604",
-            row, StringComparison.Ordinal);
+        // A.4.11's two sentences are held by scripts/docchecks/facts.py (linage_claim_findings); the table's side is here,
+        // so no compiler test opens the Markdown (kb/Work PB4453).
         Assert.Equal(FileDescriptionFormat.Sequential,
             FileDescriptionFormats.ByContext[typeof(Core.LinageClauseContext)].Formats);
     }

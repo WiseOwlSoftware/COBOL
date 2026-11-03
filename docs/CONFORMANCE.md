@@ -2149,51 +2149,76 @@ of an unsupported facility.
   `conformance:cases/6.5-Logical-conversion/pb3245_free_segment_hands_on_its_division` and
   `unit:ReferenceFormatLogicalConversionTests.FreeFormCommentEntry_IsTheRestOfItsHeaderLine_AndIsDiscarded`.
 
-- **D-CE2 — which division a comment-entry stands in when the logical conversion cannot know** (kb/Work PB4241).
+- **D-CE2 — which division a comment-entry stands in when the logical conversion cannot know** (kb/Work PB4241, PB4281).
   §6.5: "Source text and library text in fixed-form reference format are logically converted to free-form reference
   format before the application of replacing and conditional compilation actions" (cite-checked). The converter
   decides whether a line opens a COBOL-85 comment-entry paragraph (D-CE1) from the division the text stands in
-  (`DivisionCursor`), and at that point it has not seen the text conditional compilation will omit. No edition of the
+  (`DivisionCursor`), and at that point it has not seen the text conditional compilation will omit, what a REPLACE or a
+  `COPY … REPLACING` will write, or the synonyms a `>>COBOL-WORDS` directive will give `DIVISION`. No edition of the
   standard has both a comment-entry (removed by COBOL-2002) and a `>>IF` (introduced by COBOL-2002 together with the
-  comment-entry's removal), so the standard is silent on the mixed text. **Determination (CLAUDE.md rule 1: the standard is
-  silent, so the implementor chooses; the ideal is to read only the compiled branches, as a compiler whose preprocessor
-  selects the lines before its scanner reads the comment paragraphs does, and this change did not measure
-  GnuCOBOL's comment-entry on it).** The converter cannot see the compiled branches, so it reads a `>>IF … >>END-IF` or
-  `>>EVALUATE … >>END-EVALUATE` group as evidence of the division after it only when every branch ends in the same
-  division (the branch no condition selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); when the branches
-  disagree, the division after the group depends on a condition only the conditional-compilation stage evaluates, and the
-  converter takes the text for NO IDENTIFICATION DIVISION. The choice follows the standard where it speaks: every edition
-  that has the group (2002 on) has no comment-entry, so a paragraph named REMARKS, AUTHOR or INSTALLATION after such a
-  group is an ordinary paragraph of a legal program, and the reading that rejects no standard program is the one that
-  finds no comment-entry there. Both directions are pinned: a division word in a branch no condition selects moves
-  nothing (`>>IF NEVER IS DEFINED / IDENTIFICATION DIVISION. / >>END-IF` in a PROCEDURE DIVISION), and a division word in
-  the SELECTED branch is not undone (`>>DEFINE X AS 1 / >>IF X IS DEFINED / PROCEDURE DIVISION. … >>END-IF` in an
-  IDENTIFICATION DIVISION). The residue is a non-standard text that mixes the two: a COBOL-85 comment-entry
-  paragraph directly after a group whose branches disagree on the division (and no PROGRAM-ID paragraph between) is read
-  as program text (`>>DEFINE X AS 1` / `IDENTIFICATION DIVISION.` / `>>IF X IS DEFINED` / `PROGRAM-ID. CE1.` / `>>ELSE` /
-  `PROCEDURE DIVISION.` / `>>END-IF` / `AUTHOR. Pat O'Brien.`, `--permissive`, draws COBOL5563 and COBOL2633 on the
-  apostrophe, where the same text with agreeing branches is accepted); reading it exactly needs the comment-entry decision
-  made after conditional compilation, a stage-order redesign registered as kb/Work PB4281. The same root has a second
-  instance, probed in PB4281: the converter reads the division words AS WRITTEN, and `>>COBOL-WORDS` is applied after it,
-  so a program that respells the word the cursor reads (`>>COBOL-WORDS EQUATE "DIVISION" WITH "DIV"`, then `PROCEDURE
-  DIV.`) leaves the cursor in the division it was in, and a PROCEDURE DIVISION paragraph named REMARKS written in area A
-  with text after it is read as a comment-entry (`REMARKS. DISPLAY "HI".` draws COBOL0001 on the second period). A synonym
-  of IDENTIFICATION (`IDENT DIVISION.`) does no harm, because the first PROGRAM-ID paragraph enters the division all the
-  same. A `>>WHEN` whose selection object merely begins with the letters OTHER
-  (`>>WHEN OTHERV`) is not the `>>WHEN OTHER` default branch (§7.3.13.3 SR5/SR6: the phrase is a word, asked of
-  `CompilerDirectiveLine.StartsWithWord` by this cursor and by the conditional-compilation stage alike). The COPY driver
-  reads the text the conditional-compilation stage has already cut, so a COPY's library text starts in the true division. The
-  same change fixed two readings of the text that were not about conditional compilation: the cursor reads the LOGICAL
-  lines (a header continued onto a second line, `PROCEDURE DIVI` / `-SION.`, is one word, §6.5 6) b)), and skips a COPY
-  or REPLACE statement from its COPY / REPLACE word to its separator period outside pseudo-text, so a `REPLACING
-  ==PROCEDURE DIVISION== BY …` operand leaves no division. Pinned by
+  comment-entry's removal), so the standard is silent on the mixed text. **Determination (CLAUDE.md rule 1: the standard
+  is silent, so GnuCOBOL decides):** the paragraph is decided on the COMPILED text. GnuCOBOL 3.2 preprocesses (COPY,
+  REPLACE, `>>IF`) and only then scans the identification division's paragraphs; measured, it accepts the
+  `AUTHOR. Pat O'Brien.` that follows a `>>IF` group whose compiled branch is the PROGRAM-ID paragraph, and the `REMARKS.` paragraph that follows `PD.` after `REPLACE ==PD== BY ==PROCEDURE DIVISION==.`. §7.2.4.4 1) agrees
+  about where replacing looks: the REPLACE statement's "source text" is "the conditionally-processed compilation group"
+  (cite-checked). **Mechanism: a three-valued division and a stage after the others.** `DivisionCursor` reports the
+  division the text stands in as yes, no or NOT KNOWN. The converter is exact where it can be: a certain IDENTIFICATION
+  DIVISION discards the comment-entry (the header written `AUTHOR. .`), a certain other division reads the paragraph
+  as program text, exactly as before. The cursor says NOT KNOWN, and the converter CARRIES the candidate instead of
+  deciding it, where something that runs after the conversion could have changed what its words mean: (1) a `>>IF …
+  >>END-IF` or `>>EVALUATE … >>END-EVALUATE` group whose branches do not all end in the same division (the branch no
+  condition selects counted when there is no `>>ELSE` or `>>WHEN OTHER`); (2) a `>>COBOL-WORDS` directive that NAMES a
+  word the cursor reads (`DIVISION`, `IDENTIFICATION`, `ID`, an identification paragraph: as the word to respell or the
+  word to write, or a compilation-variable-name in a literal slot, whose value only conditional compilation knows,
+  §7.3.11.4 1)), which may respell it, from there on, in the text or in a library text it reads (the merged driver, whose
+  blocks end at a directive line and never hold it, tells its cursor of the line itself); a directive that names none,
+  `>>COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"`, changes nothing the cursor reads and leaves the division known, as an
+  unrelated REPLACE does; (3) a REPLACE statement or
+  a `COPY … REPLACING` that names a word the cursor reads (`DIVISION`, `IDENTIFICATION`, `ID`, an identification
+  paragraph), to match it or to write it. A carried candidate is the paragraph's header line and the lines of its entry,
+  each an inert slot of the logical text that every later stage reads as a comment (`CommentEntryCarrier`: the floating
+  comment indicator and a Unicode noncharacter, holding the physical line), so no character of an entry reaches a scanner
+  that would refuse it. `CommentEntryResolver` decides it in `Frontend.Preprocess`, AFTER conditional compilation, COPY,
+  REPLACE and the `>>COBOL-WORDS` stage and before the text is lexed, on a cursor that reads the finished text through the
+  group's word map (§7.3.10.4 GR2: a synonym "may be used in any syntax requiring the use of" the word it stands for;
+  GR4: a substituted word is a user word): in an IDENTIFICATION DIVISION the header is written `AUTHOR. .` and the entry
+  discarded (D-CE1), elsewhere the lines are converted as the ordinary lines they are, through the same walker and the
+  same reference-format diagnostics. `CommentEntryResolutionOrderDriftTests` keeps the order. Both directions are pinned:
+  a division word in a branch no condition selects moves nothing (`>>IF NEVER IS DEFINED / IDENTIFICATION DIVISION. /
+  >>END-IF` in a PROCEDURE DIVISION), a division word in the SELECTED branch is not undone, and `AUTHOR. Pat O'Brien.`
+  after a group whose compiled branch is the PROGRAM-ID paragraph is a comment-entry (refused with COBOL0902 from 2002
+  as the removed paragraph it is, not with COBOL5563 and COBOL2633 on the apostrophe), while `REMARKS. DISPLAY "HI".`
+  after a group whose compiled branch is the PROCEDURE DIVISION, or after `PROCEDURE DIV.` under `>>COBOL-WORDS EQUATE
+  "DIVISION" WITH "DIV"`, is a paragraph of the program. A `>>WHEN` whose selection object merely begins with the letters
+  OTHER (`>>WHEN OTHERV`) is not the `>>WHEN OTHER` default branch (§7.3.13.3 SR5/SR6: the phrase is a word, asked of
+  `CompilerDirectiveLine.StartsWithWord` by this cursor and by the conditional-compilation stage alike). **The cost of
+  carrying, and how it is paid:** a carried candidate that proves to be a paragraph of the program (named AUTHOR,
+  INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY or REMARKS in area A, after one of the three cases above) was
+  hidden from exactly the stages that must read it: its COPY statements, the REPLACE statement in force over its words,
+  its compiler directives. Converting it after them left a silent wrong answer (a REPLACE that did not apply) or a refusal
+  (an unexpanded COPY), so the resolver does not convert it late: it NAMES the candidate by its physical line
+  (`CommentEntryResolver.Resolution.ProgramText`), and `Frontend.RunTextStages` runs the text stages AGAIN with that line
+  pinned as program text (`CommentEntryPins`, read by the two converters where the division is not known), to a fixed
+  point: a run that names no new candidate ends the iteration, which is every run of a program without a candidate (one
+  `Contains` per run), and every other run adds a pin, so it ends. The pinned run converts the candidate as the
+  ordinary lines they are, so every stage sees them; the free-form 255-position gate (§6.1 3) a)) is asked of EVERY physical line once, by
+  the converter, a carried candidate's and an omitted branch's included; the resolver never asks it again. The one candidate left converted late is a library
+  text two COPY statements bring in that the two decide differently, which a per-line pin cannot serve. The merged driver's COPY cursor reads the text the
+  conditional-compilation stage has already cut, so a COPY's library text starts in the division the cut text says, or
+  NOT KNOWN. Pinned by
   `conformance:cases/6.5-Logical-conversion/pb4241_omitted_branch_division_header`,
   `conformance:cases/6.5-Logical-conversion/pb4241_selected_branch_division_header`,
   `conformance:cases/6.5-Logical-conversion/pb4241_when_other_word_is_not_the_default`,
   `conformance:cases/6.5-Logical-conversion/pb4241_continued_division_header`,
   `conformance:cases/6.5-Logical-conversion/pb4241_continued_division_header_across_blank_line`,
-  `conformance:cases/6.5-Logical-conversion/pb4241_copy_operand_names_division` and
-  `unit:DivisionCursorTests`.
+  `conformance:cases/6.5-Logical-conversion/pb4241_copy_operand_names_division`,
+  `conformance:cases/6.5-Logical-conversion/pb4281_disagreeing_branches_paragraph_after_group`,
+  `conformance:cases/6.5-Logical-conversion/pb4281_comment_entry_after_disagreeing_group_is_removed`,
+  `conformance:cases/6.5-Logical-conversion/pb4281_program_text_paragraph_after_group_is_read_by_copy_and_replace`,
+  `conformance:cases/7.3.10-COBOL-WORDS/pb4281_respelled_division_is_not_a_comment_entry`,
+  `conformance:cases/7.3.10-COBOL-WORDS/pb4281_respelled_division_paragraph_is_read_by_copy_and_replace`,
+  `conformance:cases/7.3.10-COBOL-WORDS/pb4281_unrelated_cobol_words_directive_keeps_remarks_paragraph_in_the_stages`,
+  `unit:DivisionCursorTests`, `unit:CommentEntryResolverTests` and `unit:CommentEntryResolutionOrderDriftTests`.
 
 - **D-OOCIRC — the reach of "directly or indirectly references" in §9.3.8.2.3's closing sentence** (kb/Work PB1498;
   owner decision R63). §9.3.8.2.3: "If the description of the returning item of a method in interface-1 directly or
@@ -3963,7 +3988,7 @@ refuse — are the code-side counterpart; keep the two in sync. This file is ref
 > **201**, **220**) documented voluntarily where A.1 does not require it. ⚙ **The numbers and the item list are `python scripts/spec/audit_annex_a1.py`'s
 > output, not a hand count — run it rather than trusting this sentence.** An enumeration of the discharged items
 > used to live in this paragraph and it rotted twice: stale by three when item 50 landed, and by three again by
-> 2026-09-02. The script prints the list (`--json`'s `filed`), the C# gate `AnnexA1RegisterDriftTests` runs it
+> 2026-09-02. The script prints the list (`--json`'s `filed`), the gate audit ANNEX A.1 REGISTER (`audit_annex_a1.py --check`) runs it
 > every build, and a list here could only ever be a second answer to a question one artifact already owns.
 > The rows below are the register itself, and they are what the script reads. Notable among them are the
 > **storage-representation items 205–209, 211 and 215** that V59 pinned (BINARY · the BINARY-CHAR family ·
