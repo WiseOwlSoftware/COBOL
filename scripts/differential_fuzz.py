@@ -2309,6 +2309,8 @@ def self_test() -> int:
                                "--cobol", "no-such-cobol.exe"]),
                        ("files-no-record", ["--writer", "files", "--replies", str(REPO), "--force-open-notes",
                                             "--cobol", "no-such-cobol.exe"]),
+                       ("files-count", ["--writer", "files", "--replies", str(files_run / "replies"), "--count", "5",
+                                        "--seed", "7", "--force-open-notes", "--cobol", "no-such-cobol.exe"]),
                        ("files", ["--writer", "files", "--replies", str(files_run / "replies"), "--force-open-notes",
                                   "--cobol", "no-such-cobol.exe"])):
         err = io.StringIO()
@@ -2326,7 +2328,41 @@ def self_test() -> int:
           and writer_errors["usd"].startswith("2|") and "--max-usd bounds the Claude writer" in writer_errors["usd"]
           and writer_errors["ok"].startswith("2|") and "compiler not found" in writer_errors["ok"]
           and writer_errors["files-no-record"].startswith("2|") and "needs the batch's record" in writer_errors["files-no-record"]
+          and writer_errors["files-count"].startswith("2|")
+          and "takes the plan from the batch's record: no --count, --seed" in writer_errors["files-count"]
           and writer_errors["files"].startswith("2|") and "compiler not found" in writer_errors["files"], writer_errors)
+    # review R2-1: the judge runs the plan the guard checked. A batch submitted with other variations than this tree's
+    # default is judged with the batch's, so the Settings the run gets build the same plan batch_plan_problems verified.
+    other = Settings.__dataclass_fields__["variations"].default + 1
+    (files_run / "batch.json").write_text(json.dumps({
+        "model": "claude-sonnet-5-5", "count": 4, "clauses": list(DEFAULT_CLAUSES), "seed": 20261020, "in_order": False,
+        "variations": other, "plan": plan_entries(tuple(DEFAULT_CLAUSES), 20261020, False, other, 4)}),
+        encoding="utf-8", newline="\n")
+    ran: list[Any] = []
+
+    class Capture:
+        def __init__(self, s: Any) -> None:
+            ran.append(s)
+
+        def run(self) -> None:
+            raise SystemExit(0)
+
+    saved_fuzz = globals()["Fuzz"]
+    globals()["Fuzz"] = Capture
+    try:
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            try:
+                main(["--writer", "files", "--replies", str(files_run / "replies"), "--force-open-notes", "--cobol", sys.executable,
+                      "--out", str(files_run / "judged")])
+            except SystemExit:
+                pass
+    finally:
+        globals()["Fuzz"] = saved_fuzz
+    built = (plan_entries(ran[0].prefixes, ran[0].seed, ran[0].in_order, ran[0].variations, ran[0].count) if ran else {})
+    check("writer: a files run's Settings carry the batch's variations, count, clauses, seed and order, so the judge builds "
+          "the plan the guard checked (review R2-1)",
+          bool(ran) and ran[0].variations == other and ran[0].count == 4 and built == plan_entries(tuple(DEFAULT_CLAUSES), 20261020, False, other, 4),
+          [(r.variations, r.count) for r in ran])
     # writer_reply routes to the run's writer and Fuzz.spent_out reads the Claude writer's meter
     probe = Fuzz.__new__(Fuzz)
     probe.model_options = {}
@@ -2392,7 +2428,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--replies", help="with --writer files: the batch's replies directory (fuzz_batch.py collect writes it)")
     ap.add_argument("--max-usd", type=float, help="with --writer claude: start no new program, and ask no further correction, once the "
                     "writer has spent this many US dollars (the generations in flight finish: at most --jobs calls past it)")
-    ap.add_argument("--api-key-file", help="with --writer claude: bill the Claude writer to the API key in this file (its first line), "
+    ap.add_argument("--api-key-file", help="with --writer claude: bill the Claude writer to the API key in this file (its first non-empty line), "
                     "passed only in the CLI's environment")
     ap.add_argument("--bake-off", help="comma-separated model tags; each writes --count programs, scored by GnuCOBOL acceptance")
     ap.add_argument("--count", type=int, help="programs to write (per model in a bake-off)")
@@ -2431,9 +2467,14 @@ def main(argv: list[str]) -> int:
             ap.error("--writer files needs --replies, the directory fuzz_batch.py collect wrote")
         if a.bake_off or a.model_option or a.max_usd is not None or a.api_key_file or a.hours is not None:
             ap.error("--writer files judges replies already written: no --bake-off, --model-option, --max-usd, --api-key-file or --hours")
-        # THE PLAN IS THE BATCH'S (review R1-1): reply i is program i only under the plan the batch was submitted with, so a
-        # files run takes --count, --clauses, --seed and --in-order from batch.json (beside the replies) and refuses to start
-        # if this tree builds any program's clause, title or first request differently.
+        # THE PLAN IS THE BATCH'S (review R1-1, R2-1): reply i is program i only under the plan the batch was submitted with,
+        # so a files run takes --count, --clauses, --seed, --in-order and the variations from batch.json (beside the replies),
+        # refuses them on its command line (review R2-3: an explicit value would be silently overridden), and refuses to
+        # start if this tree builds any program's clause, title or first request differently from the SAME values the run's
+        # Settings get.
+        given = [f"--{k.replace('_', '-')}" for k in ("count", "clauses", "seed", "in_order") if getattr(a, k) != ap.get_default(k)]
+        if given:
+            ap.error(f"--writer files takes the plan from the batch's record: no {', '.join(given)}")
         batch_file = Path(a.replies).parent / "batch.json"
         if not batch_file.exists():
             ap.error(f"--writer files needs the batch's record {batch_file} (fuzz_batch.py submit writes it)")
@@ -2443,8 +2484,11 @@ def main(argv: list[str]) -> int:
             ap.error(f"{len(problems)} of {batch['count']} programs differ from the plan the batch was submitted with, so their "
                      f"replies would be judged as the wrong program; first: {problems[0]}")
         a.count, a.clauses, a.seed, a.in_order = int(batch["count"]), ",".join(batch["clauses"]), int(batch["seed"]), bool(batch["in_order"])
+        variations = int(batch["variations"])
         a.repairs = 0                           # a written reply has no correction round
         a.model = batch["model"]
+    else:
+        variations = Settings.__dataclass_fields__["variations"].default
     if a.max_usd is not None and a.writer != "claude":
         ap.error("--max-usd bounds the Claude writer's spend; the Ollama writer spends nothing")
     if a.api_key_file and a.writer != "claude":
@@ -2470,7 +2514,7 @@ def main(argv: list[str]) -> int:
     s = Settings(model=a.model or "", out=out, jobs=a.jobs, count=a.count, hours=a.hours,
                  prefixes=tuple(p.strip() for p in a.clauses.split(",") if p.strip()), temperature=a.temperature,
                  cobol_exe=str(Path(a.cobol).resolve()), keep=a.keep, repairs=max(0, a.repairs), seed=a.seed, in_order=a.in_order,
-                 model_options=model_options, writer=a.writer, max_usd=a.max_usd, replies=a.replies)
+                 model_options=model_options, writer=a.writer, max_usd=a.max_usd, replies=a.replies, variations=variations)
     if a.bake_off:
         bake_off(models, s)
     else:

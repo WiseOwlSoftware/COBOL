@@ -3,7 +3,7 @@
 
     python scripts/fuzz_batch.py submit  --out DIR --count 6000 --api-key-file KEYFILE [--model claude-sonnet-5-5] [--clauses ...] [--seed N]
     python scripts/fuzz_batch.py collect --out DIR --api-key-file KEYFILE [--no-wait]
-    python scripts/differential_fuzz.py --writer files --replies DIR/replies --count 6000 --out DIR/judged --cobol JUDGE
+    python scripts/differential_fuzz.py --writer files --replies DIR/replies --out DIR/judged --cobol JUDGE
     python scripts/fuzz_batch.py --self-test
 
 WHY THREE STAGES (the owner, 2026-11-03: "I'm not sure why this is a serial task. We could generate, e.g. 6000 fuzz test
@@ -15,14 +15,15 @@ over the written programs with every core of this machine.
 
 ONE PLAN, TWO READERS. `submit` builds request i from `differential_fuzz.prompt_plan`, `seed_at` and `first_messages`, the
 same functions the judge's row i reads, so a batch's `fz00042` and the judge's `fz00042` name the same clause and the same
-prompt. The plan's settings (`--count`, `--clauses`, `--seed`, `--in-order`, the variations) are recorded in
-`DIR/batch.json`, and `collect` prints the judge command that repeats them.
+prompt. The plan's settings (`--count`, `--clauses`, `--seed`, `--in-order`, the variations) and the plan itself are
+recorded in `DIR/batch.json`; the judge takes every one of them from there (it refuses them on its command line) and
+refuses to start if this tree builds any program differently.
 
 THE FILES. `DIR/batch.json` (the batch id, the model and the plan), `DIR/replies/<id>.json` (`text`, `stop_reason`, `usage`,
 one per request that succeeded; an errored, canceled or expired request writes none, and the judge records its row as a
 RUNNER_ERROR naming why) and `DIR/collect.json` (the counts and the token totals).
 
-BILLING. The API key is read from `--api-key-file` (its first line) and handed to the SDK client only; it is never printed
+BILLING. The API key is read from `--api-key-file` (`fuzz_claude.read_api_key`: its first non-empty line) and handed to the SDK client only; it is never printed
 or written. The system prompt of each clause family is marked for prompt caching, so the requests of one family share it.
 """
 from __future__ import annotations
@@ -113,10 +114,21 @@ def submit(a: argparse.Namespace, client: Any = None) -> int:
               "in_order": a.in_order, "variations": VARIATIONS, "max_tokens": MAX_TOKENS,
               "plan": df.plan_entries(prefixes, a.seed, a.in_order, VARIATIONS, a.count)}
     # The directory and the record exist BEFORE the billed batch does, and the id is written and printed the moment it
-    # exists, so a failure after the create cannot lose the paid batch's id (review R1-3).
+    # exists, so a failure after the create cannot lose the paid batch's id (review R1-3). The client is built first, so
+    # a key that cannot be read leaves no record; a create the API ANSWERED with an error (the SDK's APIStatusError, which
+    # carries the response's status_code: a 401, a bad model) created no batch, so its record is removed and a retry can
+    # start (review R2-2). Any other failure (a dropped connection, a timeout) may have created one: the record stays.
+    client = client or client_for(a.api_key_file)
     out.mkdir(parents=True, exist_ok=True)
     (out / "batch.json").write_text(json.dumps(record, indent=1), encoding="utf-8", newline="\n")
-    batch = (client or client_for(a.api_key_file)).messages.batches.create(requests=requests)
+    try:
+        batch = client.messages.batches.create(requests=requests)
+    except Exception as e:
+        if getattr(e, "status_code", None) is not None:
+            (out / "batch.json").unlink()
+            raise SystemExit(f"fuzz_batch: the API refused the batch ({e.status_code}): {e}; no batch was created") from None
+        raise SystemExit(f"fuzz_batch: the create failed with no answer from the API ({type(e).__name__}: {e}); a batch may "
+                         f"exist, so {out / 'batch.json'} stays: find it in the console before submitting again") from None
     print(f"submitted batch {batch.id}: {a.count} requests, model {a.model}, status {batch.processing_status}", flush=True)
     record.update(batch_id=batch.id, submitted_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
     (out / "batch.json").write_text(json.dumps(record, indent=1), encoding="utf-8", newline="\n")
@@ -228,6 +240,21 @@ def self_test() -> int:
         check("collect polls until the batch ends, then writes the replies and the summary",
               collect(args, sleep=slept.append, client=fake) == 0 and slept == [POLL_SECONDS]
               and (Path(tmp) / "run" / "replies" / "fz00000.json").exists() and (Path(tmp) / "run" / "collect.json").exists())
+        # review R2-2: a create the API answered with an error made no batch, so its record goes and a retry can start; a
+        # create with no answer may have made one, so its record stays.
+        class Refused(Exception):
+            status_code = 401
+
+        for name, failure, stays in (("an answered refusal (401)", Refused("invalid x-api-key"), False),
+                                     ("no answer (a dropped connection)", ConnectionError("reset"), True)):
+            run = Path(tmp) / f"run-{int(stays)}"
+            failing = Obj(messages=Obj(batches=Obj(create=lambda requests, f=failure: (_ for _ in ()).throw(f))))
+            try:
+                submit(types_ns(**{**vars(args), "out": str(run)}), client=failing)
+                check(f"submit: {name} is an error", False)
+            except SystemExit as e:
+                check(f"submit: {name} is an error, and the record {'stays' if stays else 'is removed'}",
+                      (run / "batch.json").exists() == stays and ("no batch was created" in str(e)) != stays)
         moved = dict(rec, seed=rec["seed"] + 1)
         check("a plan this tree builds differently is named (the judge refuses to start on it)", bool(df.batch_plan_problems(moved)))
         check("the judge command carries no plan of its own", "--seed" not in judge_command(Path(tmp)) and "--clauses" not in judge_command(Path(tmp)))
