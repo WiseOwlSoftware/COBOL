@@ -1,4 +1,4 @@
-## PB4456 and PB4457: the free-form writer of an expansion assembly never leaves a continued literal line empty, and its diagnostics are reported at the EXPANDS entry
+## Entry 3022 — 2026-11-02 23:49 PST — PB4456 and PB4457: the free-form writer of an expansion assembly never leaves a continued literal line empty, and its diagnostics are reported at the EXPANDS entry
 
 Both notes came out of the PB2104 branch review and share one file, `ExpansionAssemblies.cs`, the placement-(a) arm that compiles an expansion's text apart.
 
@@ -9,3 +9,4 @@ Witnesses: `ExpansionFreeFormTests` (every kind: alphanumeric and national in bo
 **PB4457 (misleading diagnostics).** The sub-compilation's errors named the deleted temp file and its line; its warnings were dropped; the CLI printed `generated C# at ` with no path when the sub-compilation failed before writing C#. `ExpansionToWrite` now carries the EXPANDS entry's `SourceLocation` (the position `edition.At(entry)` gives an expansion made in the group), `Write` returns a `Written` record with the warnings, `AtTheEntry` relabels every error and warning to the entry and names the expansion, `CompilerDriver` carries the warnings on every outcome, and `Program.BackendFailureHeadline` names the C# only when the file exists. Tests: the shapes of `AtTheEntry`, a real library at 2023 whose skeleton uses NEXT SENTENCE (COBOL0903 reported at the client's `(8,5)` entry), and the headline. One observation: a warning the group's bind also raises for the expansion text (COBOL3146 in the probe) now appears twice, once from the group's bind and once from the sub-compilation under the recorded state.
 
 DESIGN-external-repository section 10.5 states both. No inventory row changes (ISO 6.4.2 has no catalog rule; PB4457 is a reporting path). No diagnostic code allocated.
+
