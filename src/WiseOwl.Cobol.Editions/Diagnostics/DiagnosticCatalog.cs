@@ -8484,9 +8484,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor PredefinedObjectReferencePlacement = new(
         "COBOL6002", "predefined-object-reference-placement", EditionSeverity.Error,
         "SELF or SUPER stands where it has no object to reference: outside a method definition, or SUPER in a class that "
-        + "inherits from no class. §8.4.3.8.1: \"SELF and SUPER are predefined object references that reference the object "
-        + "on which the current method is executing.\" §8.4.3.8.3 SR1: \"This identifier format may be specified only in a "
-        + "method definition.\"",
+        + "inherits from no class. \"SELF and SUPER are predefined object references that reference the object "
+        + "on which the current method is executing.\" (§8.4.3.8.1); \"This identifier format may be specified only in a "
+        + "method definition.\" (§8.4.3.8.3 SR1)",
         "ISO §8.4.3.8.1; §8.4.3.8.3 SR1");
 
     /// <summary>COBOL0828 — invoke argument not conforming (kb/Work PB4463).</summary>
@@ -9062,9 +9062,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor RaiseOperandRule = new(
         "COBOL0848", "raise-operand-rule", EditionSeverity.Error,
         "The operand of a RAISE statement is not an object reference, or is the predefined NULL or SUPER, or SELF outside "
-        + "a method. §14.9.29.3 SR2: \"Identifier-1 shall be an object reference; the predefined object references NULL "
-        + "and SUPER shall not be specified.\" §8.4.3.8.3 SR1: \"This identifier format may be specified only in a method "
-        + "definition.\"",
+        + "a method. \"Identifier-1 shall be an object reference; the predefined object references NULL "
+        + "and SUPER shall not be specified.\" (§14.9.29.3 SR2); \"This identifier format may be specified only in a method "
+        + "definition.\" (§8.4.3.8.3 SR1)",
         "ISO §14.9.29.3 SR2; §8.4.3.8.3 SR1");
 
     /// <summary>COBOL0865 — DELETE RECORD on a sequential file (kb/Work PB4463).</summary>
