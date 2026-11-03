@@ -34,7 +34,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// in <paramref name="Units"/> order: every outermost unit except a prototype whose definition the same group compiles, paired by
 /// the Annex C fold (<c>RepositoryPublication.EntryUnitsOf</c>; kb/Work PB3872).</param>
 /// <param name="PublishesSignatures">Whether the compilation updates the external repository (<c>--repository-update on</c>,
-/// DESIGN-external-repository §9.1): the module states <c>HasSignatures</c>, every skeleton carries its <c>[CobolSkeleton]</c>, and
+/// DESIGN-external-repository §9.1) and bound without an error (a refused group is never emitted): the module states <c>HasSignatures</c>, every skeleton carries its <c>[CobolSkeleton]</c>, and
 /// every published unit carries its record (<see cref="BoundUnit.Record"/>, <see cref="OoClassUnit.Record"/>,
 /// <paramref name="InterfaceRecords"/>), written at bind time (kb/Work PB4319).</param>
 /// <param name="InterfaceRecords">The record of each interface this module emits (ISO §8.13), under

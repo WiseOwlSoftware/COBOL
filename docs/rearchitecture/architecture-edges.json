@@ -384,7 +384,7 @@
     {
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.CodeGen",
-      "uses": 4,
+      "uses": 5,
       "walkUses": 3,
       "removedBy": [
         "PB2395"
@@ -436,7 +436,7 @@
     {
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.Validation",
-      "uses": 15,
+      "uses": 20,
       "walkUses": 19,
       "removedBy": [
         "PB2320",
@@ -594,8 +594,8 @@
     {
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 39,
-      "walkUses": 48,
+      "uses": 50,
+      "walkUses": 49,
       "removedBy": [
         "PB2347",
         "PB2361",
@@ -1728,7 +1728,7 @@
     {
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 105,
+      "uses": 140,
       "walkUses": 147,
       "removedBy": [
         "PB2320",
@@ -3201,7 +3201,7 @@
     {
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 38,
+      "uses": 48,
       "walkUses": 44,
       "removedBy": [
         "PB2361",

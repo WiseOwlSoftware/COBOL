@@ -312,14 +312,16 @@ internal sealed class BinderDriver
         var expansions = ExpansionPlacementPass.Run(table, classes, oo.InterfaceData, external, edition, compileInputs, publishAs);
         // What the module publishes (ISO §8.13; DESIGN-external-repository §7.2, §9.1; kb/Work PB4319): the entry units always, and
         // under --repository-update on each published unit's record, encoded LAST, over the finished bound data, so the backend
-        // carries a value across the seam and never runs the encoder.
+        // carries a value across the seam and never runs the encoder. A group the binder refused is never emitted (the driver
+        // stops at its diagnostics), so it publishes nothing and the encoder never reads a tree the binder did not accept.
         var entryUnits = RepositoryPublication.EntryUnitsOf(units);
-        var interfaceRecords = edition.RepositoryUpdate
+        bool publishes = edition.RepositoryUpdate && !edition.HasErrors;
+        var interfaceRecords = publishes
             ? RepositoryPublication.Publish(entryUnits, classes, table, oo.InterfaceData, expansions)
             : new Dictionary<OoInterfaceSymbol, RepositoryRecord>();
         return new BoundCompilation(units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
             anyFiles, edition.DialectLevel, edition.SignEncoding, expansions,
-            entryUnits, edition.RepositoryUpdate, interfaceRecords);
+            entryUnits, publishes, interfaceRecords);
     }
 
     /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).

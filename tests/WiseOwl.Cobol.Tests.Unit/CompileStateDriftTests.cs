@@ -69,6 +69,7 @@ public sealed class CompileStateDriftTests
         ["SearchSpace"] = "where the build reads the repository, not what the source means",
         ["External"] = "the group's repository provider: bound, not an input",
         ["ClaimScans"] = "a scan cache of the binder",
+        ["Sources"] = "the parse context each unit was bound from (kb/Work PB2398): made by the parse, not an input",
     };
 
     private const System.Reflection.BindingFlags All = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;

@@ -19,7 +19,8 @@ and `RepositoryCodec.KindOf` at emit time). The fix moves the encode, not only t
 - The option rides `EditionContext.RepositoryUpdate`, as `--sign-encoding` and `--numeric-display` do;
   `BackendOptions.RepositoryUpdate` and the `repositoryUpdate` parameters of `EmitBound`, `ProgramEmitter.Emit`, `OoEmitter`
   and `HostEntryEmitter` are deleted (no forwarder). A check-only compile writes no module, so the driver binds it with the
-  option off and it encodes nothing.
+  option off and it encodes nothing; a group the binder refused is never emitted, so it publishes nothing and the encoder
+  never reads a refused tree.
 - The record members are now on the backend input, so `BackendContract.cs` classifies them (`PicRecord.SignKind` joins
   `PicInfo.SignKind` on PB3252's L9 row).
 
@@ -41,3 +42,14 @@ context. `BoundCompilation.Tree` is deleted; `BoundUnit.Ctx` is the binder-side 
 `CSharpEmitter → BinderDriver`, `→ EditionContext` (PB2293's `CodeGen → Binding` row) and `→ DirectiveResults` (all of
 PB2408's row). Oracle: IDENTICAL, 16435 cases. The census-only `Binding.Bound → Frontend.Parsing` pair left PB2398's
 Removes line (its source record, the R1 targets file), as PB2417's finisher asked.
+
+**The landing census (DESIGN-architecture-review §8.1 "The landing of a remover").** `census.py` on `762a06a33`, then the
+ratchet, deleted four census-only rows at zero (`CodeGen → Binding.Repository`, `Binding.Model → Frontend.Generated`,
+`CodeGen → Frontend.Generated`, `CodeGen → Frontend.Preprocessor`) and the dead allowance `frontend.pipeline → runtime`. The
+census also showed five tolerated rows ABOVE the edges file's `uses` (`Binding → CodeGen` 4 → 5, `Binding → Validation`
+15 → 20, `Binding.Bound → Binding` 39 → 50, `CodeGen → Binding` 105 → 140, `CodeGen.Emit → Binding` 38 → 48), which
+`ArchCensusDriftTests` refused at the first gate. A census of the base `0fa5f7201` measures the same five (`CodeGen → Binding`
+at 142, which this branch lowered to 140), so the growth predates the branch: landings between census `b8e4a3b58` and main
+added uses to already-tolerated pairs, which the per-gate walk (pairs, not uses) cannot see and no census measured. The
+five rows' `uses` are set to the measured counts, their removers unchanged, and the gap is a lead in the wave report.
+
