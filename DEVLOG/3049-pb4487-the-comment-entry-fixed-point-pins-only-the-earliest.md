@@ -1,4 +1,4 @@
-## PB4487: the comment-entry fixed point pins only the earliest program-text candidate per run, and a pin names the inclusion it was proved in
+## Entry 3049 — 2026-11-03 14:15 PST — PB4487: the comment-entry fixed point pins only the earliest program-text candidate per run, and a pin names the inclusion it was proved in
 
 **Mechanism.** PB4281 settled a COBOL-85 comment-entry candidate that the §6.5 conversion cannot place by deciding it on the finished
 text. A candidate that proves to be program text is pinned, and the text stages run again (`Frontend.RunTextStages`). Each run pinned
@@ -38,3 +38,4 @@ changes no verdict.
 the inclusion number has one source (`CopyProcessor._inclusions`). Code: the resolver names a header-opened candidate only, because the
 converters pin headers. Performance: one more text-stage run per program-text candidate, and none for a program without one.
 Duplication: the per-key aggregation in the resolver is gone.
+
