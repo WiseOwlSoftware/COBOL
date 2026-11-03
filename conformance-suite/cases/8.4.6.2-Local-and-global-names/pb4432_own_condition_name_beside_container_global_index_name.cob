@@ -20,6 +20,7 @@
        01 T1 IS GLOBAL.
           05 E PIC 9 OCCURS 3 INDEXED BY RELF.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            SET RELF TO 2.
            MOVE 7 TO E (RELF).
            CALL "PB4432Q".
@@ -32,6 +33,7 @@
        01 X PIC 9 VALUE 0.
           88 RELF VALUE 1.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            SET RELF TO TRUE.
            IF RELF DISPLAY "COND" END-IF.
            DISPLAY X.

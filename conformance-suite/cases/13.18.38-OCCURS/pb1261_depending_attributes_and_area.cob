@@ -41,6 +41,7 @@
        01 E EXTERNAL.
            05 TE PIC X OCCURS 1 TO 5 DEPENDING ON NE.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE "ABCDE" TO G
            MOVE 2 TO NE
            MOVE "XYZ" TO E

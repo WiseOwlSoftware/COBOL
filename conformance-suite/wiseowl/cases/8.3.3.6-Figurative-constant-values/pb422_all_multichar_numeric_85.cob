@@ -23,6 +23,7 @@
        WORKING-STORAGE SECTION.
        01 N PIC 9(3) VALUE ZERO.
        PROCEDURE DIVISION.
+           PB4305-LEAD.
            MOVE ALL "57" TO N
            DISPLAY "N=[" N "]"
            IF N = ALL "57"

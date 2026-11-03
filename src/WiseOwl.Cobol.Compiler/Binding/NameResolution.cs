@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -344,6 +345,12 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     {
         if (data.Symbols.IndexCandidates(name, qualifiers, data.ActiveScope) is not { } cands)
             return new IndexRef(IndexRefOutcome.NotAnIndexName, null);
+        // ISO/IEC 1989:2002 Annex F.2 item 108: "Index-names may be qualified in the same manner as data and
+        // condition-names" — a COBOL-2002 relaxation (qualified-index-name-2002; kb/Work PB4305). Once per written
+        // reference, never from a probe (R30).
+        if (qualifiers.Count > 0 && !refs.Probing && _qualifiedIndexGated.Add(writtenAt))
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.QualifiedIndexName2002,
+                $"the qualified index-name '{DataBinder.WrittenQualified(name, qualifiers)}'");
         if (cands.Single is { } one)
         {
             ScreenLinkageIndex(one, name, qualifiers, writtenAt);
@@ -372,6 +379,9 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         ScreenLinkageIndex(first, name, qualifiers, writtenAt);
         return new IndexRef(IndexRefOutcome.Resolved, first);
     }
+
+    /// <summary>The written qualified index-name references already asked the qualified-index-name-2002 gate.</summary>
+    private readonly HashSet<object> _qualifiedIndexGated = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>The written index-name references already reported as §13.7.3 SR4 e) violations.</summary>
     private readonly HashSet<object> _linkageIndexReported = new(ReferenceEqualityComparer.Instance);

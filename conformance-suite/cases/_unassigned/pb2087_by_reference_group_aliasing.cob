@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb2087_by_reference_group_aliasing
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -18,6 +18,9 @@
       *> written back at return, so the second formal printed the old
       *> value and the last copy back silently undid the first.
       *> BY CONTENT (GR9) is the contrast: each argument is its own record.
+      *> A GLOBAL formal (GLOBAL in the linkage section) is a COBOL-2002
+      *> relaxation (2002 Annex F.2 item 61, kb/Work PB4305), so the test
+      *> runs from 2002.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P2087M85.
        DATA DIVISION.

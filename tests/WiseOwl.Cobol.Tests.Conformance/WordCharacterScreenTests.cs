@@ -36,6 +36,7 @@ public sealed class WordCharacterScreenTests
         WORKING-STORAGE SECTION.
         01 {name} PIC X VALUE "M".
         PROCEDURE DIVISION.
+        MAIN-P.
             DISPLAY {uses}{(parses ? "" : " " + NoSender)}.
             STOP RUN.
         """;
@@ -54,6 +55,7 @@ public sealed class WordCharacterScreenTests
             PROGRAM-ID. PB3845C.
             AUTHOR. JOS{"É"} {Euro} MY_NAME{Katakana}.
             PROCEDURE DIVISION.
+            MAIN-P.
                 STOP RUN.
             """;
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);

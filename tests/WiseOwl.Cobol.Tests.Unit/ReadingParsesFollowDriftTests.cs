@@ -18,7 +18,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// alone. The error report and recovery (<c>ReadStatementAt</c>) tells a reserved verb written as an operand
 /// from one that begins the next statement by the token after the statement's prefix reading — <c>MOVE GOBACK TO
 /// W-X</c> stops at TO and <c>IF GOBACK = 1</c> at '=' — so neither may ever follow a statement, while the period's
-/// neighbours a statement really ends at (the next verb, a scope terminator, ELSE) must.</para>
+/// neighbours a statement really ends at (the next verb, a scope terminator, ELSE) must. A prefix that stops at one of those
+/// tokens is not an operand's evidence in itself: <c>MOVE W-X TO</c> then <c>ADD 1 FROM W-Y.</c> stops at FROM, which no
+/// reading of the sentence needs, so the ADD is a statement with a stray word of its own
+/// (<c>SentenceReadsWithOneOperandFor</c>, kb/Work PB4285 item 3), where <c>MOVE FREE W-X TO W-Y.</c> stops at the MOVE's own TO.</para>
 /// </summary>
 public sealed class ReadingParsesFollowDriftTests
 {

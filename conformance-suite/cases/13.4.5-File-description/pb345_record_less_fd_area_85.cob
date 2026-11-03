@@ -56,6 +56,7 @@
        01  NUMBUF PIC 9(5).
        01  RBUF   PIC X(5).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            OPEN OUTPUT FOUT
            MOVE "ABCDEFGHIJKLMNOPQRST" TO OREC
            WRITE OREC

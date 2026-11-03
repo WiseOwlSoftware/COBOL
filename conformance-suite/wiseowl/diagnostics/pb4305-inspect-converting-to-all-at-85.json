@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: an INSPECT CONVERTING whose TO operand is a figurative constant beginning with ALL requires COBOL-2002"}

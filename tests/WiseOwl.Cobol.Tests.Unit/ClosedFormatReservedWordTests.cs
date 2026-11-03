@@ -26,7 +26,7 @@ public sealed class ClosedFormatReservedWordTests
     private const string Head = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB2533U.\n";
     private const string Select = "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
         + "           SELECT SF ASSIGN TO \"pb2533u.dat\".\n";
-    private const string Proc = "       PROCEDURE DIVISION.\n           STOP RUN.\n";
+    private const string Proc = "       PROCEDURE DIVISION.\n       MAIN-P.\n           STOP RUN.\n";
     private const string CommaMode = "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n"
         + "           DECIMAL-POINT IS COMMA.\n";
 

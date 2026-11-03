@@ -33,7 +33,8 @@
       *>   T2-BARE     bare inline PERFORM    -> C# do/while : leaves before T2-MID, T2-TAIL never reached.
       *>               (The GO TO is the whole THEN phrase of an IF: written beside T2-MID in one sequence it would
       *>               violate 14.9.17.3 SR2, "it shall appear as the last statement in that sequence" - kb/Work PB397.)
-      *>   T3-VARYING  PERFORM VARYING/AFTER  -> nested while: leaves EVERY level from the inner one.
+      *>   T3-VARYING  nested PERFORM VARYINGs -> nested while: leaves EVERY level from the inner one (the
+      *>               COBOL-85 form: an inline PERFORM's AFTER phrase is 2002 Annex F.2 item 91, kb/Work PB4305).
       *>   T4-UNTIL    PERFORM UNTIL + an EVALUATE inside it -> the WHEN arm's GO TO leaves both.
       *>   T5-AFTER    PERFORM WITH TEST AFTER-> C# do/while : leaves on the first body execution.
       *>   BACK-P      a BACKWARD, non-adjacent target reached from inside T5's loop.
@@ -78,11 +79,12 @@
        T3-VARYING.
            DISPLAY "T3 " N.
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > 3
-                     AFTER J FROM 1 BY 1 UNTIL J > 3
-               IF I = 2 AND J = 2
-                   GO TO T4-UNTIL
-               END-IF
-               DISPLAY "T3-IT " I " " J
+               PERFORM VARYING J FROM 1 BY 1 UNTIL J > 3
+                   IF I = 2 AND J = 2
+                       GO TO T4-UNTIL
+                   END-IF
+                   DISPLAY "T3-IT " I " " J
+               END-PERFORM
            END-PERFORM.
            DISPLAY "T3-TAIL-MUST-NOT".
        T4-UNTIL.

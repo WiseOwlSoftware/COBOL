@@ -74,6 +74,7 @@
              10 S3 PIC X(3) VALUE "ccc".
        66 TALIAS RENAMES T1 THRU T2.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE ALL "*" TO DST
            MOVE CORRESPONDING SALIAS TO DST
            DISPLAY "L1 [" DST "]"

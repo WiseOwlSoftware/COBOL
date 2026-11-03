@@ -44,6 +44,7 @@
        FD F2 GLOBAL.
        01 R2 PIC X(5).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            OPEN OUTPUT F1 F2
            MOVE "OUTER" TO R1
            CALL "PB1193C"
@@ -59,6 +60,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1193C.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "C " R1
            MOVE "INNER" TO R1
            MOVE "WROTE" TO R2

@@ -355,6 +355,15 @@ public abstract class CobolParserCoreBase : Parser
         => Canonical(keyword) is { } w
            && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || CobolLexer.IsKeywordWhereFree(w));
 
+    /// <summary>⛔ WHETHER THIS EDITION HAS A USER-DEFINED WORD TO PRINT WHERE A FORMAT SPECIFIES A LITERAL (kb/Work PB4435).
+    /// The word there is a constant-name: ISO §13.10.3 SR2, "Except in a compiler directive, constant-name-1 may be used
+    /// anywhere that a format specifies a literal of the class and category of constant-name-1". The parse writes such a
+    /// position as a literal-or-word rule (<c>integerOperand</c>, <c>valueTableSubscript</c>) at every edition, but the
+    /// constant entry that declares a constant-name is COBOL-2002's (constant-entry-2002), so a COBOL-85 format has no
+    /// user-defined word there and a syntax diagnostic may not name one as expected. Diagnosis only
+    /// (<c>CobolErrorStrategy</c>); never called while parsing.</summary>
+    internal bool PrintsConstantName => ConstructRegistry.IsAvailable(Edition, Constructs.ConstantEntry2002);
+
     /// <summary>⛔ THE RESERVATION GATE ON THE USER-DEFINED-WORD SLOT (kb/Work PB693) — true when this compile
     /// ADMITS <paramref name="keyword"/> to <c>cobolWord</c>. The generated <c>cobolWord</c> alternatives carry
     /// <c>{userWordHere("W")}?</c> and their <c>reservedGatedWord</c> twins the exact inverse, for every name-slot
@@ -457,28 +466,39 @@ public abstract class CobolParserCoreBase : Parser
     /// only reading the prediction had left, so the header was taken and the parse died at the next token with
     /// "a period may be missing" — and the period it advised turned the terminator into a paragraph-name.
     /// <para>Only a reservation-gated word §8.9 reserves here (<see cref="ReservedGatedWord"/>): a free gated word is the
-    /// user-defined word the reservation gate retypes, and every other word's header reading is untouched. Read-only,
-    /// so safe in prediction.</para></summary>
+    /// user-defined word the reservation gate retypes, and every other word's header reading is untouched. A statement VERB
+    /// alone before the period (<c>FREE.</c>, <see cref="IsBareVerbSentence"/>) is a header only where the program names the
+    /// word as a procedure elsewhere (<see cref="NamedAsAProcedureElsewhere"/>, kb/Work PB4283): with none the sentence is
+    /// the verb's statement lacking its operand. Read-only, so safe in prediction.</para></summary>
     protected bool procedureHeaderHere(int follower)
-        => TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null || TokenStream.LA(2) == follower;
+        => TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null
+           || (TokenStream.LA(2) == follower
+               // ⛔ A BARE VERB IS A HEADER ONLY WHERE THE PROGRAM NAMES IT AS ONE (kb/Work PB4283): `FREE.` is the paragraph
+               // header of a reserved name only when a procedure reference elsewhere uses the word; with none it is the verb's
+               // statement lacking its operand, whose own report the sentence gets (the always-reserved verbs' rule,
+               // ReservedProcedureName). A word no statement begins with (END-DISPLAY) has no statement reading to yield to.
+               && (follower != CobolLexer.DOT || !IsBareVerbSentence(word) || NamedAsAProcedureElsewhere(word)));
 
     /// <summary>What the tokens from a verb say about the statement that verb would begin
     /// (<see cref="ReadStatementAt"/>).</summary>
     internal enum StatementReading
     {
-        /// <summary>No statement was written there: the token begins none, the grammar refuses the reading at the token
-        /// after the verb or mid-sentence, or only a PREFIX of it parses and the token after the prefix is one no
-        /// statement is followed by.</summary>
+        /// <summary>No statement was written there: the token begins none, or the reading stops at the very token after
+        /// the verb (<c>ADD TO W-X</c>, <c>GOBACK TO W-X</c>), which shows nothing was written beyond the word.</summary>
         None,
 
         /// <summary>A complete statement, followed by the period, a statement, a scope terminator or a phrase of the
         /// enclosing statement.</summary>
         Complete,
 
-        /// <summary>The verb and at least one more token, and the statement ends before it is whole, at the sentence's end or
-        /// at a token a statement may be followed by (the next statement's verb, a scope terminator): a statement written
-        /// with an operand missing (<c>ADD 1 TO.</c>, <c>DISPLAY W-Y UPON.</c>, <c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>).</summary>
-        CutShort,
+        /// <summary>The verb and at least one more token, and the statement stops before it is whole, wherever that is
+        /// (kb/Work PB4285 item 3): at the sentence's end or at a token a statement may be followed by (the next
+        /// statement's verb, a scope terminator), a statement written with an operand missing (<c>ADD 1 TO.</c>,
+        /// <c>DISPLAY W-Y UPON.</c>, <c>ADD 1 TO</c> then <c>DISPLAY W-Y.</c>); or at a token no statement is followed by,
+        /// whether the grammar refuses it there or the tokens before it already parse as a statement (<c>ADD 1 FROM W-Y.</c>:
+        /// <c>ADD 1</c> parses, and FROM follows no statement), a statement with a stray word of its own. How far it went
+        /// is the one measure the caller weighs, not where it stopped.</summary>
+        Faulted,
     }
 
     /// <summary>⛔ WHAT STATEMENT DOES THE WORD <paramref name="from"/> BEGIN, AS WRITTEN (kb/Work PB3248, PB4207;
@@ -486,30 +506,65 @@ public abstract class CobolParserCoreBase : Parser
     /// correctly begins the NEXT statement after an incomplete one (<c>MOVE W-X TO</c> then <c>RECEIVE FROM W-X GIVING W-Y
     /// W-N</c>): the syntax error falls AT the verb either way, and only the statement reading tells them apart. A COMPLETE
     /// reading (<see cref="ReadingParses(int, IToken?)"/>) is the next statement, read as written, and the error is the
-    /// missing receiver. A reading <see cref="StatementReading.CutShort"/> by the end of the sentence, or by a token a
-    /// statement may be followed by (the NEXT statement's verb or a scope terminator, review R2-1), is a statement with an
-    /// operand missing of its own (<c>ADD 1 TO.</c>, <c>ADD 1 TO DISPLAY W-Y.</c>): the caller weighs it against the word
-    /// read as a name, which a statement that merely lacks its tail does not exclude (<c>DISPLAY RECEIVE W-X.</c> is a
-    /// DISPLAY of two operands). A reading refused at the token after the verb (<c>ADD TO W-X</c> in <c>MOVE ADD TO
-    /// W-X.</c>), or at any token no statement is followed by, shows nothing was written beyond the word, and it stood for
-    /// the operand the report names. A statement that merely
-    /// parses as a PREFIX is not enough (review R2-1 of PB3248): GOBACK alone, or VALIDATE, RAISE and FREE with one
-    /// operand, parse in <c>MOVE GOBACK TO W-X</c> and <c>ADD VALIDATE W-N TO W-N</c>, and only the token after them (TO,
-    /// which no statement is ever followed by) shows the word was an operand. <paramref name="from"/> is the OFFENDING
+    /// missing receiver. A reading <see cref="StatementReading.Faulted"/> (the verb and one token or more, then the sentence's
+    /// end, a token a statement may be followed by, or a token no statement is followed by) is a statement with a fault
+    /// of its own (<c>ADD 1 TO.</c>, <c>ADD 1 TO DISPLAY W-Y.</c>, <c>ADD 1 FROM W-Y.</c>): the caller weighs it against the
+    /// word read as a name, which a statement that merely lacks its tail does not exclude (<c>DISPLAY RECEIVE W-X.</c> is a
+    /// DISPLAY of two operands) and which a statement that merely parses as a PREFIX does not either (review R2-1 of
+    /// PB3248): GOBACK alone, or VALIDATE, RAISE and FREE with one operand, parse in <c>MOVE GOBACK TO W-X</c> and
+    /// <c>ADD VALIDATE W-N TO W-N</c>, and it is the extent that shows the word was an operand there: the name reading takes
+    /// the whole sentence, the statement reading two tokens (kb/Work PB4285 item 3). A reading that stops at the very token
+    /// after the verb (<c>ADD TO W-X</c> in <c>MOVE ADD TO W-X.</c>) shows nothing was written beyond the word, and it stood
+    /// for the operand the report names. <paramref name="from"/> is the OFFENDING
     /// token, never the parser's lookahead: a failed prediction reports a token the parser has not reached
     /// (<c>MOVE CONTINUE TO W-X</c> fails at CONTINUE while the parser stands at MOVE). A token no statement begins with
     /// answers <see cref="StatementReading.None"/> without a parse. <paramref name="tokensTaken"/> is how far a
-    /// <see cref="StatementReading.CutShort"/> reading went (the verb and the tokens after it that it took, up to the one
-    /// it was refused at), the extent the caller weighs against the extent of the other reading of the word (review R3-1);
+    /// <see cref="StatementReading.Faulted"/> reading went (the verb and the tokens after it that it took, up to the one
+    /// it stopped at), the extent the caller weighs against the extent of the other reading of the word (review R3-1);
     /// 0 for every other answer. Read-only.</summary>
     internal StatementReading ReadStatementAt(IToken from, out int tokensTaken)
     {
         tokensTaken = 0;
         if (!StatementOpeners(Atn).Contains(from.Type)) return StatementReading.None;
-        if (ReadingParses(CobolParserCore.RULE_statement, from, out int endedAfter)) return StatementReading.Complete;
-        if (endedAfter < 2) return StatementReading.None;
-        tokensTaken = endedAfter;
-        return StatementReading.CutShort;
+        if (ReadingParses(CobolParserCore.RULE_statement, from, out int stoppedAfter, out bool stray)) return StatementReading.Complete;
+        if (stoppedAfter < 2) return StatementReading.None;
+        // A stop at a token no statement is followed by is evidence for the operand reading ONLY where that token is the
+        // sentence's own continuation (below); otherwise it is the statement's stray word.
+        if (stray && SentenceReadsWithOneOperandFor(from, stoppedAfter)) return StatementReading.None;
+        tokensTaken = stoppedAfter;
+        return StatementReading.Faulted;
+    }
+
+    /// <summary>⛔ DOES THE SENTENCE NEED THE TOKEN A STATEMENT READING STOPPED AT (kb/Work PB4285 item 3)? A statement
+    /// reading whose tokens parse as a prefix of a statement and stop at a token no statement is followed by shows the
+    /// statement's own fault only when that token belongs to nothing else the sentence writes. <c>MOVE FREE W-X TO W-Y.</c>:
+    /// <c>FREE W-X</c> is a statement, and TO is the MOVE's own phrase, so the sentence reads whole with the statement's
+    /// <paramref name="taken"/> tokens as ONE operand (<c>MOVE X TO W-Y.</c>): FREE is the operand that stood there
+    /// (review R2-1 of PB3248, and <c>ADD VALIDATE W-N TO W-N.</c>, <c>IF VALIDATE W-N = 1 …</c>). <c>MOVE W-X TO ADD 1 FROM
+    /// W-Y.</c>: no reading of the sentence has a place for the FROM — <c>MOVE W-X TO X FROM W-Y.</c> is refused — so the
+    /// stray word is the ADD statement's, and the ADD begins the next statement. A sentence the parse cannot place
+    /// (<paramref name="from"/> is outside any sentence) keeps the operand reading, the one this question was added to
+    /// narrow. Read-only.</summary>
+    private bool SentenceReadsWithOneOperandFor(IToken from, int taken)
+    {
+        IToken? first = null;
+        for (var ctx = Context; ctx is not null; ctx = ctx.Parent as ParserRuleContext)
+            if (ctx.RuleIndex == CobolParserCore.RULE_sentence) { first = ctx.Start; break; }
+        if (first is null || first.TokenIndex > from.TokenIndex) return true;
+        var span = new List<IToken>();
+        for (int i = first.TokenIndex; TokenStream.Get(i) is { } t && t.Type != TokenConstants.EOF; i++)
+        {
+            if (t.Channel != Lexer.DefaultTokenChannel) continue;
+            span.Add(new CommonToken(t));
+            if (t.Type == CobolLexer.DOT && i > from.TokenIndex) break;
+        }
+        // The copies keep the originals' stream indexes until the interpreter's stream renumbers them.
+        int at = span.FindIndex(t => t.TokenIndex == from.TokenIndex);
+        if (at < 0 || at + taken > span.Count) return true;
+        // the statement reading's tokens collapse to the one operand they may stand for
+        ((CommonToken)span[at]).Type = CobolLexer.IDENTIFIER;
+        span.RemoveRange(at + 1, taken - 1);
+        return Reading(span, CobolParserCore.RULE_sentence, out _) is { Next: TokenConstants.EOF };
     }
 
     /// <summary>⛔ THE TOKEN TYPES A <c>statement</c> CAN BEGIN WITH — THE VERBS — read off the generated ATN (kb/Work
@@ -540,32 +595,44 @@ public abstract class CobolParserCoreBase : Parser
     /// parse's stream, prediction and actions are untouched. The interpreter evaluates every semantic predicate as
     /// true, which only ever widens the reading — the authoritative parse that follows still applies them.
     /// Read-only.</summary>
-    private bool ReadingParses(int rule, IToken? from = null) => ReadingParses(rule, from, out _);
+    private bool ReadingParses(int rule, IToken? from = null) => ReadingParses(rule, from, out _, out _);
 
-    /// <summary><see cref="ReadingParses(int, IToken?)"/>, and where the speculative parse is refused ONLY BY WHAT FOLLOWS THE
-    /// RULE (the reading took every token written up to the end of the sentence, or up to a token the rule may be followed
-    /// by, the next statement's verb or a scope terminator, and wanted more), how many tokens from <paramref name="from"/> it
-    /// took (<paramref name="endedAfter"/>); -1 where it parsed, parsed only a prefix, or was refused at any other token.</summary>
-    private bool ReadingParses(int rule, IToken? from, out int endedAfter)
+    /// <summary><see cref="ReadingParses(int, IToken?)"/>, and where the reading does NOT parse completely, how many tokens
+    /// from <paramref name="from"/> it took before it stopped (<paramref name="stoppedAfter"/>): the refused token's
+    /// position when the grammar refuses the tokens there (at the end of the sentence or at any token), or the length of the
+    /// prefix that parsed when the token after it is one the rule is never followed by (<c>ADD 1</c> in <c>ADD 1 FROM
+    /// W-Y</c>, kb/Work PB4285 item 3); -1 where it parsed, or the refusal names no token. The caller judges what the extent
+    /// means (<see cref="ReadStatementAt"/>). <paramref name="stray"/> is true where it stopped at a token that follows
+    /// the rule nowhere in the grammar (not the end of the sentence, not a token of the rule's <see cref="FollowSet"/>).</summary>
+    private bool ReadingParses(int rule, IToken? from, out int stoppedAfter, out bool stray)
     {
-        endedAfter = -1;
+        stoppedAfter = -1;
+        stray = false;
         var tokens = new List<IToken>();
         for (int i = (from ?? TokenStream.LT(1)).TokenIndex; TokenStream.Get(i) is { } t && t.Type != TokenConstants.EOF && t.Type != CobolLexer.DOT; i++)
             if (t.Channel == Lexer.DefaultTokenChannel) tokens.Add(new CommonToken(t));
         if (Reading(tokens, rule, out var refusedAt) is { } reading)
-            return reading.Next == TokenConstants.EOF || FollowSet(Atn, rule).Contains(reading.Next);
+        {
+            if (reading.Next == TokenConstants.EOF || FollowSet(Atn, rule).Contains(reading.Next)) return true;
+            stoppedAfter = reading.Taken;
+            stray = true;
+            return false;
+        }
         // The token stream numbers the copies as it fetches them, so the refused token's index is its position.
-        if (refusedAt is { } at && (at.Type == TokenConstants.EOF || FollowSet(Atn, rule).Contains(at.Type)))
-            endedAfter = at.TokenIndex;
+        if (refusedAt is { } at)
+        {
+            stoppedAfter = at.TokenIndex;
+            stray = at.Type != TokenConstants.EOF && !FollowSet(Atn, rule).Contains(at.Type);
+        }
         return false;
     }
 
     /// <summary>A speculative parse of <paramref name="tokens"/> (copies, never the outer parse's own) as
-    /// <paramref name="rule"/> by a <see cref="ParserInterpreter"/> over this grammar's ATN: the tree and the type of the
-    /// token after it, or null where the tokens do not begin the rule (<paramref name="refusedAt"/> then the token the
+    /// <paramref name="rule"/> by a <see cref="ParserInterpreter"/> over this grammar's ATN: the tree, the type of the
+    /// token after it and how many tokens it took, or null where the tokens do not begin the rule (<paramref name="refusedAt"/> then the token the
     /// parse was refused at, when it names one). Every semantic predicate is evaluated as true, which only widens the
     /// reading. Read-only.</summary>
-    private (ParserRuleContext Tree, int Next)? Reading(IList<IToken> tokens, int rule, out IToken? refusedAt)
+    private (ParserRuleContext Tree, int Next, int Taken)? Reading(IList<IToken> tokens, int rule, out IToken? refusedAt)
     {
         refusedAt = null;
         var stream = new CommonTokenStream(new ListTokenSource(tokens));
@@ -577,7 +644,7 @@ public abstract class CobolParserCoreBase : Parser
         try
         {
             var tree = probe.Parse(rule);
-            return (tree, stream.LA(1));
+            return (tree, stream.LA(1), stream.Index);
         }
         catch (Antlr4.Runtime.Misc.ParseCanceledException refused)
         {
@@ -600,8 +667,9 @@ public abstract class CobolParserCoreBase : Parser
     /// statement and header reading it is one of. So the question is asked after the fact, and only of an error: the
     /// candidates are the offending token and the first token of every open rule and of the rule each matched last (the
     /// misread statement begins at the word), each re-read with the word retyped to <c>IDENTIFIER</c>, from the sentence's first token through its
-    /// separator period, as a <c>sentence</c> and — when the word begins the sentence and the sentence is not an
-    /// incomplete statement of that verb (<see cref="IsIncompleteStatement"/>) — as a <c>sectionDefinition</c> and a <c>paragraphDefinition</c>, whose
+    /// separator period, as a <c>sentence</c> and — when the word begins the sentence and the sentence is not a bare verb
+    /// (<see cref="IsBareVerbSentence"/>) that no other sentence names as a procedure (<see cref="NamedAsAProcedureElsewhere"/>,
+    /// kb/Work PB4283) — as a <c>sectionDefinition</c> and a <c>paragraphDefinition</c>, whose
     /// header it then names. A reading that parses the whole span with the word under <c>procedureName</c> is the one the
     /// source means; a genuine fault elsewhere fails every re-read, and its own report stands. <c>Through</c> is the stream
     /// index of the span's last token (its separator period): the one fault covers the sentence the re-read judged.
@@ -622,7 +690,11 @@ public abstract class CobolParserCoreBase : Parser
                 && !candidates.Contains(last))
                 candidates.Add(last);
             if (ctx.RuleIndex == CobolParserCore.RULE_sentence) { first = ctx.Start; break; }
-            inProcedureDivision |= ctx.RuleIndex == CobolParserCore.RULE_procedureDivision;
+            // ⛔ IN THE PROCEDURE DIVISION, OR JUST PAST ITS END (kb/Work PB4284). A word no statement begins with and no
+            // header takes (`ZERO.`, `FILLER.` after `STOP RUN.`) ends the division's paragraph list, so the parser has
+            // returned from procedureDivision when the error is read; the division it completed last is the fact that
+            // survives, and the word stands where its next paragraph header would.
+            inProcedureDivision |= ctx.RuleIndex == CobolParserCore.RULE_procedureDivision || EndsWithAProcedureDivision(ctx);
         }
         // A prediction that failed BETWEEN sentences (`ALTER READ TO P1.`: neither a sentence nor a procedure header
         // survived READ) stands at the first token of the sentence the source writes, which no sentence context holds yet.
@@ -649,31 +721,96 @@ public abstract class CobolParserCoreBase : Parser
         {
             int at = span.IndexOf(word);
             if (at < 0) continue;   // not a default-channel token of the span
-            var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
-            var asName = (CommonToken)copies[at];
-            asName.Type = CobolLexer.IDENTIFIER;
-            int[] readings = word == first && !IsIncompleteStatement(span, word, offending)
+            int[] readings = word == first && !(IsBareVerbSentence(word) && !NamedAsAProcedureElsewhere(word))
                 ? [CobolParserCore.RULE_sentence, CobolParserCore.RULE_sectionDefinition, CobolParserCore.RULE_paragraphDefinition]   // a header names it too
                 : [CobolParserCore.RULE_sentence];
             foreach (int rule in readings)
-                if (Reading(copies, rule, out _) is { Next: TokenConstants.EOF } reading && NamesAProcedure(reading.Tree, asName))
+                if (ReadsWithTheWordAsAProcedureName(span, at, rule))
                     return (word, ReservedWordSet.UserWordViolationMessage(ReservedWordHere(word)!, Edition.Year),
                         span[^1].TokenIndex);
         }
         return null;
     }
 
-    /// <summary>Whether the sentence <paramref name="span"/> is a statement verb and its separator period alone, which the
-    /// parse took as that statement and refused at the period (branch review R1-1): <c>STOP.</c>, <c>DISPLAY.</c>,
-    /// <c>MOVE.</c>, <c>PERFORM.</c>, <c>READ.</c>. That text is ALSO a paragraph header (§14.4.3: "A paragraph consists of a
-    /// paragraph-name followed by a separator period"), and no token of it says which the source meant: §8.3.2.1 1) is broken only by a
-    /// USE as a user-defined word, and nothing written here shows that use, while the operand the statement lacks is a
-    /// fault the source certainly holds. So the header reading is not asked, and the incomplete statement keeps its own
-    /// report, as every other incomplete statement does. A section header (<c>DISPLAY SECTION.</c>) has no such twin: the
-    /// misreading died at SECTION, a word, not at the period. Where the parse refused the word ITSELF (no statement
-    /// begins with it) the header is its only reading, and it is asked.</summary>
-    private static bool IsIncompleteStatement(List<IToken> span, IToken word, IToken offending)
-        => span.Count == 2 && span[0] == word && span[1].Type == CobolLexer.DOT && offending != word;
+    /// <summary>Whether <paramref name="span"/>, the tokens of one sentence, reads completely as <paramref name="rule"/> with its
+    /// token <paramref name="at"/> taken as a user-defined word (the token is retyped <c>IDENTIFIER</c> in a copy) and that
+    /// word then stands in a <c>procedureName</c> (<see cref="NamesAProcedure"/>): the one question "is this reserved word
+    /// used as a procedure name here" that <see cref="ReservedProcedureName"/> and <see cref="NamedAsAProcedureElsewhere"/>
+    /// both ask. Read-only.</summary>
+    private bool ReadsWithTheWordAsAProcedureName(IReadOnlyList<IToken> span, int at, int rule)
+    {
+        var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
+        var asName = (CommonToken)copies[at];
+        asName.Type = CobolLexer.IDENTIFIER;
+        return Reading(copies, rule, out _) is { Next: TokenConstants.EOF } reading && NamesAProcedure(reading.Tree, asName);
+    }
+
+    /// <summary>⛔ IS THE RESERVED WORD NAMED AS A PROCEDURE BY ANOTHER SENTENCE OF THE PROGRAM (kb/Work PB4283)? The one piece
+    /// of evidence that decides a bare <c>VERB.</c> sentence (<see cref="IsBareVerbSentence"/>): ISO §8.3.2.1 1) ("Reserved
+    /// words shall not be used as user-defined words or system-names") is broken by a USE of the word as a name, and a
+    /// procedure reference (<c>PERFORM VERB.</c>, <c>GO TO VERB.</c>) elsewhere is what shows the sentence is that name's
+    /// paragraph header. With none, nothing written shows a use, and the sentence is the verb's statement lacking its operand.
+    /// Every other token of the word's type is asked, by the grammar, never by a list of procedure-name positions: the sentence
+    /// it stands in, read with the word as a user-defined word, names a procedure with it
+    /// (<see cref="ReadsWithTheWordAsAProcedureName"/>), so <c>FREE ptr.</c>, a statement of the same verb, is no reference.
+    /// The token stream is complete when the parser runs (the rewriters fill it), so the whole program is read; the answer is
+    /// kept per token, and a new pass forgets it (<see cref="Reset"/>). Read-only.</summary>
+    internal bool NamedAsAProcedureElsewhere(IToken word)
+    {
+        if ((_namedElsewhere ??= []).TryGetValue(word.TokenIndex, out bool known)) return known;
+        bool named = false;
+        for (int i = 0; i < TokenStream.Size && !named; i++)
+        {
+            if (i == word.TokenIndex || TokenStream.Get(i) is not { } other || other.Type != word.Type) continue;
+            int start = i;
+            while (start > 0 && TokenStream.Get(start - 1).Type != CobolLexer.DOT) start--;
+            var sentence = new List<IToken>();
+            for (int j = start; j < TokenStream.Size && TokenStream.Get(j) is { Type: not TokenConstants.EOF } t; j++)
+            {
+                if (t.Channel != Lexer.DefaultTokenChannel) continue;
+                sentence.Add(t);
+                if (t.Type == CobolLexer.DOT && j >= i) break;
+            }
+            int at = sentence.IndexOf(other);
+            named = at >= 0 && ReadsWithTheWordAsAProcedureName(sentence, at, CobolParserCore.RULE_sentence);
+        }
+        _namedElsewhere[word.TokenIndex] = named;
+        return named;
+    }
+
+    private Dictionary<int, bool>? _namedElsewhere;
+
+    /// <summary>Whether <paramref name="word"/> is a statement verb that is its sentence's only word: the separator period
+    /// stands before it and after it (<c>STOP.</c>, <c>DISPLAY.</c>, <c>MOVE.</c>, <c>PERFORM.</c>, <c>READ.</c>, <c>FREE.</c>),
+    /// which the parse took as that statement and refused at the period (branch review R1-1) or at the word (a reservation-gated
+    /// verb, kb/Work PB4283). That text is ALSO a paragraph header (§14.4.3: "A paragraph consists of a paragraph-name followed
+    /// by a separator period"), and no token of it says which the source meant. The evidence is elsewhere in the program
+    /// (<see cref="NamedAsAProcedureElsewhere"/>): a reference makes it the header of a reserved paragraph-name (COBOL0901), and
+    /// none leaves the operand the statement lacks, a fault the source certainly holds, with its own report, as every other
+    /// incomplete statement has. A section header (<c>DISPLAY SECTION.</c>) has no such twin: the misreading died at SECTION, a
+    /// word, not at the period. A word no statement begins with has no statement reading: the header is its only reading.</summary>
+    internal bool IsBareVerbSentence(IToken word)
+        => StatementOpeners(Atn).Contains(word.Type)
+           && DefaultNeighbour(word, -1) is { Type: CobolLexer.DOT }
+           && DefaultNeighbour(word, +1) is { Type: CobolLexer.DOT };
+
+    /// <summary>The default-channel token next to <paramref name="token"/> in the direction <paramref name="step"/> (-1 or +1), or
+    /// null at the stream's end.</summary>
+    private IToken? DefaultNeighbour(IToken token, int step)
+    {
+        for (int i = token.TokenIndex + step; i >= 0 && i < TokenStream.Size; i += step)
+            if (TokenStream.Get(i) is { Type: not TokenConstants.EOF } t && t.Channel == Lexer.DefaultTokenChannel) return t;
+        return null;
+    }
+
+    /// <summary>Whether the last construct <paramref name="ctx"/> matched (its last rule child, and that child's, down the
+    /// chain) is a procedure division: the parse completed the division just before the fault (kb/Work PB4284).</summary>
+    private static bool EndsWithAProcedureDivision(ParserRuleContext ctx)
+    {
+        for (var c = ctx; c is { ChildCount: > 0 } && c.GetChild(c.ChildCount - 1) is ParserRuleContext last; c = last)
+            if (last.RuleIndex == CobolParserCore.RULE_procedureDivision) return true;
+        return false;
+    }
 
     /// <summary>The canonical upper-case word of <paramref name="token"/> when it is a KEYWORD token §8.9 reserves at this
     /// edition (gated or not), else null.</summary>
@@ -712,6 +849,7 @@ public abstract class CobolParserCoreBase : Parser
         _freeGatedDeclarations = null;
         _declaredNames = null;
         _entryClauseProbe = null;
+        _namedElsewhere = null;
     }
 
     /// <summary>⛔ WHICH READING WINS WHEN A WORD COULD BE EITHER (kb/Work PB805 + PB655) — true when the lookahead

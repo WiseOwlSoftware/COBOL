@@ -16,6 +16,7 @@ ABCDEF PROGRAM-ID. PB1362-FIXED-DEFAULT.                                PB136202
 SEQ005 01 W-TEXT PIC X(12) VALUE "FIXED-FORM".                          NOTCODE!
 XYZ006* a comment line: col 7 is the comment indicator                  PB136206
        PROCEDURE DIVISION.                                              PB136207
+       PB4305-LEAD.
 A1B2C3     DISPLAY "SEQ-AREA-OK " W-TEXT                                PB136208
            DISPLAY "MARGIN-R-OK"                                        DISPLAY "NO"
            STOP RUN.                                                    PB136210

@@ -54,6 +54,7 @@
        01 A08 PIC .99.
        01 A09 PIC +$$$.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 1.5 TO A01
            MOVE 1.5 TO A02
            MOVE 12 TO A03

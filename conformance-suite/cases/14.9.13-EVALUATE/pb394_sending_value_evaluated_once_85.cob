@@ -109,6 +109,7 @@
        01 J2             PIC X(5) JUSTIFIED RIGHT.
        01 J3             PIC X(5) JUSTIFIED RIGHT.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 1 TO A(1)
            MOVE 2 TO A(2)
            MOVE 5 TO A(3)

@@ -26,6 +26,7 @@
        01 TT.
           05 T PIC X(2) OCCURS 2.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 1 TO N, M.
            DISPLAY "N=" N " M=" M.
            MOVE 2 TO N; M.

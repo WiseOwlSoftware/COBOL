@@ -21,6 +21,7 @@
        01 B PIC S9(5) COMP-5 VALUE 3.
        01 C COMP-2 VALUE 1.5.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            ADD B TO A.
            DISPLAY A ' ' B ' ' C.
            STOP RUN.

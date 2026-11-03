@@ -66,6 +66,7 @@
        01 D2 PIC X VALUE "*".
        01 D3 PIC X(3) VALUE "***".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            UNSTRING S1 DELIMITED BY "," OR "::"
                INTO N1 DELIMITER IN D1
                     J1 DELIMITER IN D2

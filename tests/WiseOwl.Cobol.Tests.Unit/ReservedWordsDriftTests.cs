@@ -74,7 +74,8 @@ public sealed class ReservedWordsDriftTests
         Assert.Equal(16, high.Count(e => !e.R2014 && e.R2023));
         // The 1985 RE-reservations among the 16 — the communication trio incl. the END- scope terminator
         // (mechanically derived, DEVLOG 585; the recall-based classification knew only two of them), still reserved
-        // at 2002 by the GnuCOBOL 2002 list like the rest of that facility's vocabulary (obsolete there; kb/Work PB656).
+        // at 2002 by the ISO 2002 §8.9 list like the rest of that facility's vocabulary (obsolete there; kb/Work PB656,
+        // PB4297).
         Assert.Equal(3, high.Count(e => e.R85 && e.R2002 && !e.R2014 && e.R2023));
         Assert.True(high.Count(e => e.R85 && !e.R2023) >= 20, "the removed-post-85 group should be substantial");
         Assert.True(high.Count(e => !e.R85 && !e.R2002 && e.R2014 && e.R2023) >= 5,

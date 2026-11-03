@@ -57,6 +57,7 @@
            02 LINE PLUS 1.
               03 TOT1 COLUMN 1 PIC 99 SUM WX UPON D2.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            OPEN OUTPUT PRT PRT2.
            INITIATE R1 R2.
            GENERATE D1.

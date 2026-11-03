@@ -26,10 +26,11 @@ public sealed partial class DataBinder
     /// clause (SR6 — ST131A's <c>READ FILE3</c> then <c>RELEASE S3</c> with no FROM relies on it). The file-area
     /// (Format 1) and sort-merge-area (Format 3) formats are storage-economy permissions (GR1/GR4 — shared/reusable
     /// ALLOCATION plus open-mode constraints on the program, nothing a typed-native runtime must alias) — bound as
-    /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note), and so is the
+    /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note) once
+    /// <see cref="ScreenMultipleFileClause"/> has asked for its file list (kb/Work PB4307), and so is the
     /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
     /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) —
-    /// both skip through the non-SAME <c>continue</c> below by design. The APPLY COMMIT clause (§12.4.6.3) is the one
+    /// both skip SAME's screens through a <c>continue</c> below by design. The APPLY COMMIT clause (§12.4.6.3) is the one
     /// other arm that is not a no-op here: <see cref="BindApplyCommitClause"/> (kb/Work PB3338).
     /// EVERY SAME format also records its MEMBERSHIP on its files
     /// (<see cref="FileModel.SameClauses"/>, kb/Work PB1139), which the SORT and MERGE statements read for
@@ -47,6 +48,11 @@ public sealed partial class DataBinder
             if (clause.applyCommitClause() is { } apply)
             {
                 BindApplyCommitClause(apply);
+                continue;
+            }
+            if (clause.multipleFileClause() is { } multiple)
+            {
+                ScreenMultipleFileClause(multiple);
                 continue;
             }
             if (clause.sameClause() is not { } same) continue;
@@ -80,6 +86,20 @@ public sealed partial class DataBinder
             }
         foreach (var site in sites)
             if (site.Clause.Kind == SameClauseKind.RecordArea) LinkSameRecordArea(site.Clause);
+    }
+
+    /// <summary>The X3.23-1985 MULTIPLE FILE clause's one syntax rule this binder can state (kb/Work PB4307): its file
+    /// list, <c>{file-name [POSITION integer]} …</c>, is not optional, so <c>MULTIPLE FILE TAPE.</c> is refused like
+    /// <c>MULTIPLE FILE TAPE CONTAINS.</c>, which the parser already refuses. The grammar keeps the list optional on
+    /// purpose: a required list would send the bare clause to the I-O-CONTROL error production, whose COBOL1970 ("not
+    /// a clause") is false, and would lose the clause's COBOL0902 from 2002 on. Asked at every edition: the clause is
+    /// otherwise parsed and ignored (a reel-sharing description has nothing to do on disk storage).</summary>
+    private void ScreenMultipleFileClause(Core.MultipleFileClauseContext multiple)
+    {
+        if (multiple.multipleFileTapeEntry().Length > 0) return;
+        Edition.Error(DiagnosticCatalog.MultipleFileNamesNoFile,
+            "the MULTIPLE FILE clause names no file: its format is MULTIPLE FILE [TAPE] [CONTAINS] "
+            + "{file-name [POSITION integer]} ..., so at least one file-name is required (X3.23-1985; VCR Table 7 row 7.6)");
     }
 
     /// <summary>The source element's APPLY COMMIT clause (ISO §12.4.6.3; kb/Work PB3338), or null when its I-O-CONTROL

@@ -31,5 +31,6 @@
        66 X2 RENAMES G.
        66 X3 RENAMES A THRU G.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "[" X1 "][" X2 "][" X3 "]".
            STOP RUN.
