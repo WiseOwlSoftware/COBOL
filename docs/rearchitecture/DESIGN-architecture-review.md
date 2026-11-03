@@ -1046,9 +1046,16 @@ gone (the owner dropped R69 §2's hold on binding and code-generation restructur
 name the type; this document keeps no count of it.
 
 **(1) `WiseOwl.Cobol.Binding.DataBinder`** — R0-0001.
-*Responsibilities, from the partials and the pass list.* The data-description pipeline whose pass BODIES are its
-methods: `BindPipeline.Build` (`Binding/Passes/BindPipeline.cs:49-142`) registers its `BindPass` rows as lambdas over
-the binder (`d => d.ExpandTypes()`), from `SynthesizeImpliedPictures` to `MarkFileRecordImageLeaves`, under the
+*Responsibilities, from the partials and the pass list.* The data-description pipeline whose pass BODIES were its
+methods (at the census, `BindPipeline.Build` registered its `BindPass` rows as lambdas over the binder,
+`d => d.ExpandTypes()`). Steps 2-4 (PB2352, PB2353, PB2354) made each row one `IBindPass` class,
+`Binding/Passes/<Name>Pass.cs`, from `SynthesizeImpliedPicturesPass` to `MarkFileRecordImageLeavesPass`, listed in order by
+`BindPipeline.Build`; a pass class holds its name, its phase contract, its `PassViews` and the rule code only it asks (its
+exclusive call closure on the binder moved with it; the rule code another asker shares stays on the binder until that asker's
+concern binder lands). Four rows keep their rule code with a concern binder that has not landed yet and only schedule it
+(`ResolveFiles` for `FileControlBinder`, `ResolveReports` for `ReportSectionBinder`, `CallBindExternalAndGlobal` for
+`LinkageBinder`, `OoRouteMethodRedefinesBackings` for `OoDataBinder`; `BindPassBoundaryDriftTests` names them and fails when
+one lands). The rows run under the
 `PassPhase` watermark (`Passes/IBindPass.cs:23`: None, TypesExpanded, UsageResolved, SignResolved,
 RedefinesClassified, StrongTypeChecked, OccursResolved, FilesResolved, ProcedureBound, UsageCollected, StorageComputed,
 EditionConformanceChecked); §12.3's configuration facts ("The configuration section specifies aspects of the data
@@ -1067,8 +1074,9 @@ know which of them has run. And four facts ACCUMULATE across phases, which no si
 - `WholeGroupReferenced` has two producers: `MarkFileRecordImageLeaves` adds the FILE record areas at FilesResolved
   (`DataBinder.cs:718`), and `UsageCollectionPass.Collect` adds the boundary formals and the whole-group operands at
   UsageCollected (`Passes/UsageCollectionPass.cs:73-110`); `StorageFormPass` reads the union (`StorageFormPass.cs:65`).
-- `ImageForcedItems` is appended at resolve time (Tier-B and CALL-cell REDEFINES leaves, FILE record leaves, report
-  print faces: `DataBinder.cs:742,7567,7581`, `DataBinder.Linkage.cs:868`, `ReportSectionBinder.cs`) and during
+- `ImageForcedItems` is appended at resolve time (Tier-B REDEFINES leaves at RedefinesClassified, by
+  `ClassifyRedefinesClassesPass`; CALL-cell REDEFINES leaves, FILE record leaves, report print faces and the pointer pass's
+  claimed cells at FilesResolved: `DataBinder.cs:742,7567,7581`, `DataBinder.Linkage.cs:868`, `ReportSectionBinder.cs`) and during
   procedure binding (`MoveBinder`'s figurative-fill and ref-mod-store receivers, `Procedure/Verbs/MoveBinder.cs:458,551`),
   and it is read MID-BIND in statement order (`IsImageBackedEarly`, `ReferenceResolver.cs:651,1057`: "a fact recorded
   by an earlier statement's bind is visible to a later statement's; one recorded later is not", `DataBinder.cs:278-284`),
@@ -1144,8 +1152,16 @@ of that phase, frozen when the phase ends, read only after it. A **fact set** is
 statement-order visibility is today's exactly because the binder appends and reads in the order it binds;
 `IReads<TFacts>` answers the complete set and is legal only after the last phase that appends. The four accumulators
 are the four fact sets, each with its declared appending phases (`WholeGroupReferenced`: FilesResolved and
-UsageCollected; `ImageForcedItems`: FilesResolved and ProcedureBound, read early by the resolver;
-`CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule).
+UsageCollected; `ImageForcedItems`: RedefinesClassified, FilesResolved and ProcedureBound, read early by the resolver;
+`CharacterChannelItems`: UsageCollected; `ActivationSites`: ProcedureBound, read whole by the validation schedule). The
+declaration is code (PB2352): `FactSetKind` names the four, `FactSetContract` holds each one's appending phases (the last of
+them is the phase after which a whole read is legal), every pass states its `PassViews` (`IPassInfo.Views`: what it appends
+to, reads early, reads whole), and `BindPipeline.ValidateDag` refuses an append in a phase the set does not admit and a
+whole read that is not after the last appender. The declaration is checked against what a per-unit resolve pass does,
+not only against the phase order: `DataBinder.BindResolve` opens `AppendGate` around each pass, and a `FactSet.Add` while
+a pass that did not declare it runs throws (the binder code a pass calls is covered, which is why the rows whose code lives
+with a concern binder declare their sets too). The group-tail rows declare theirs in `BindPipeline.GroupTail`, checked by
+`ValidateDag` alone.
 The procedure-bind state is NOT in `DataBindState`: it is `ProcedureBindState` (`Binding/ProcedureBindState.cs`), which
 no data pass reads and which is never in `DataBindResult`, in its three shapes: a **scoped override** (`Scoped<T>`:
 `Push(value)` returns the scope whose disposal restores the previous value, and `Over(root)` reads the innermost pushed
@@ -1162,7 +1178,7 @@ operand-evaluation count needs as the statement drains its steps; it holds `Oper
 statement, and `ActiveMethodScope`). It is held per unit binder (`DataBinder.Procedure`), not on `BindSession`: the
 statement walk, the reference resolver and the binder's own name lookup reach it through the unit's binder (a class's
 methods bind through their half's binder), and the method-scope cursor is also entered, for the one method whose
-names they resolve, by the storage-claim resolution (`DataBinder.ResolveStorageClaimHead`, a data pass) and by the
+names they resolve, by the storage-claim resolution (`PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`, a data pass) and by the
 migration-flag pass (`FlagConformancePass`, after binding). Code generation has its own scoped override,
 `EmitContext.Options`: `OoEmitter.EmitMethod` pushes the method's OPTIONS model around the method's LOCAL-STORAGE
 initializers (kb/Work PB1215), which used to assign `DataBinder.Options` and restore it. The three shapes hold no
@@ -1246,8 +1262,8 @@ walk's duty, as today, and the oracle proves it. Most of a data pass's output is
 (`UsageInheritancePass` writes `item.Pic`, `DataBinder.cs:6752,6775,6816`), which no slice declaration covers: those
 writes stay ordered by the explicit pass list, exactly as today, and the oracle proves the order; the type system takes
 over where binding ends, because `DataBindResult` hands out the forest with `DataItem` immutable (R0-0028's row). One
-class per pass implements `IBindPass` (the lambda rows become an explicit ordered list of those classes; no
-reflection); one binder per non-pass concern: `SpecialNamesBinder` (`Switches`, `IoControl`), `FileControlBinder`,
+class per pass implements `IBindPass` (done, PB2352-PB2354: `BindPipeline.Build` is the explicit ordered list of those
+classes; no reflection; a pass still takes the binder in `Run` until step 11 gives it only its views); one binder per non-pass concern: `SpecialNamesBinder` (`Switches`, `IoControl`), `FileControlBinder`,
 `ReportSectionBinder` (`Reports`), `ConstantEntryBinder`, `LinkageBinder`, `OoDataBinder`. During procedure binding the
 binders read the frozen value slices, append and early-read the fact sets, and use `ProcedureBindState`'s three
 shapes, all through `BindSession`; after the group

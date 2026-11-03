@@ -204,7 +204,7 @@ public sealed class DataItem
     /// / ISO §13.16.3 SR8), whose representation the usage alone fixes.
     /// <para>⛔ The flag exists because §13.18.60.4 GR1 gives that representation to the ELEMENTARY ITEMS, "not to
     /// the group itself": entry bind cannot yet tell a picture-less elementary item from a group header (the
-    /// subordinates are not parsed), so it synthesizes optimistically and <c>DataBinder.UsageInheritancePass</c>
+    /// subordinates are not parsed), so it synthesizes optimistically and <c>UsageInheritancePass</c>
     /// moves the profile DOWN to each picture-less leaf and sheds it from the header once the forest is complete.
     /// Before kb/Work PB495 that pass tested for the synthesized shapes by reference identity and by
     /// category/usage patterns — two hand-written lists that disagreed, so a group-level BINARY-SHORT or FLOAT-LONG
@@ -215,7 +215,7 @@ public sealed class DataItem
     public bool PicIsUsageSynthesized { get; set; }
 
     /// <summary>True when <see cref="Pic"/> is the PICTURE clause ISO §13.16.3 SR9 IMPLIES from the entry's VALUE
-    /// literal (<c>DataBinder.SynthesizeImpliedPictures</c>) rather than one the source wrote. The provenance
+    /// literal (<c>SynthesizeImpliedPicturesPass</c>) rather than one the source wrote. The provenance
     /// matters to exactly one family of rules: the §13.18.63.3 SR4/SR5/SR10 size sentences bound a VALUE literal
     /// by "the size indicated by an EXPLICIT PICTURE clause", so an implicit picture sets no such bound. It
     /// travels with the PICTURE through a TYPE copy — §13.18.57.4 GR3: "that implicit PICTURE clause becomes part
@@ -252,12 +252,12 @@ public sealed class DataItem
     public IReadOnlyList<TableValueSpec>? TableValues { get; set; }
 
     /// <summary>The RESOLVED Format 2 (table) VALUE — the §13.18.63.4 GR12–GR15 subscript-tuple → literal map plus
-    /// the OCCURS chain it is keyed by (§13.18.63.3 SR20's order). Set by the <c>DataBinder.ResolveTableValues</c>
+    /// the OCCURS chain it is keyed by (§13.18.63.3 SR20's order). Set by the <c>ResolveTableValuesPass</c>
     /// pass, which needs the COMPLETE forest: an entry's dimensions include every OCCURS clause SUPERORDINATE to
     /// it (SR18/SR20), and <see cref="Parent"/> is still null while the entry itself binds. Null when the entry
     /// carries no table VALUE or its clause was rejected.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
-        "resolved post-build by DataBinder.ResolveTableValues, which needs the COMPLETE forest (ISO §13.18.63.3 SR18/SR20 dimensions), in the copy's OWN scope")]
+        "resolved post-build by ResolveTableValuesPass, which needs the COMPLETE forest (ISO §13.18.63.3 SR18/SR20 dimensions), in the copy's OWN scope")]
     public TableValuePlan? TableValuePlan { get; set; }
 
     /// <summary>True for this item OR ANY ITEM IN ITS SUBTREE carrying a resolved <see cref="TableValuePlan"/> —
@@ -304,7 +304,7 @@ public sealed class DataItem
     /// be a strongly-typed group item") is false of a TYPEDEF STRONG template's group — a template is not a typed
     /// item (§8.5.3.1) — and becomes true only when a TYPE reference composes it. A flag could only suppress the
     /// screen for every copy; the source lets the screen suppress exactly the copies whose source was already in
-    /// violation (<c>DataBinder.CheckGroupValueDeclarations</c>).</para></summary>
+    /// violation (<c>CheckGroupValueDeclarationsPass</c>).</para></summary>
     [DescriptionCopy(DescriptionCopyKind.CopyWritten,
         "the copy itself WRITES it — the ISO §13.18.63.3 SR13/SR14 screens' subject is the entry that WROTE the VALUE, never a composed copy")]
     public DataItem? ValueCopiedFrom { get; set; }
@@ -449,7 +449,7 @@ public sealed class DataItem
     public bool IsConstantRecord { get; init; }
 
     /// <summary>The type-name of a <c>TYPE IS type-name</c> reference (ISO §13.18.57), or null. The referencing entry
-    /// is CLONED from that type declaration's subtree by the post-build <c>DataBinder.ExpandTypes</c> pass (D17), which
+    /// is CLONED from that type declaration's subtree by the post-build <c>ExpandTypesPass</c> pass (D17), which
     /// clears this once expanded.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a reference is expanded in its OWN declaration before anything copies it (DataBinder.ExpandTemplate / ExpandSameAs complete the source first, kb/Work PB1302), so no copy carries a pending one")]
@@ -1086,7 +1086,7 @@ public sealed class DataItem
     /// <summary>True for a group item (has children, no PICTURE).
     /// <para>⛔ THIS IS THE COMPLETED FORM. Entry bind synthesizes a picture-less usage's profile onto an entry before its
     /// subordinates are parsed (<see cref="PicIsUsageSynthesized"/>), so `01 G USAGE BINARY-LONG. 05 A.` holds a PICTURE
-    /// profile on its header until <c>DataBinder.UsageInheritancePass</c> sheds it (§13.18.60.4 GR1, "and not to the
+    /// profile on its header until <c>UsageInheritancePass</c> sheds it (§13.18.60.4 GR1, "and not to the
     /// group itself") — and a pass that runs BEFORE it and asks "is this a group?" gets false. The description copies
     /// (TYPE, SAME AS) run first and ask <see cref="HasSubordinates"/>, which is true of the entry whatever header it
     /// still carries (kb/Work PB3682).</para></summary>

@@ -39,7 +39,7 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
     /// field IS that item's implicit data-address pointer, set at activation to the argument's own storage area
     /// (<c>CobolArgAdapt.Area</c>) — ISO §14.2.3 GR8, "the activated runtime element operates as if the formal
     /// parameter occupies the same storage area as the argument". Derived from the class the binder claimed
-    /// (<c>DataBinder.PtrBindBasedAndAddressables</c>), so the emitter and the binder cannot disagree about which
+    /// (<c>PtrBindBasedAndAddressablesPass</c>), so the emitter and the binder cannot disagree about which
     /// formals are areas.</summary>
     public bool IsArea => !CarrierResident && Item.Class?.BasedPointerField == CarrierField;
 
@@ -190,7 +190,7 @@ public sealed partial class DataBinder
 
     /// <summary>The PROCEDURE DIVISION USING formals, positional (ISO §14.2.3 GR2). (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlyList<LinkageFormal> LinkageFormals => _linkageFormals;
-    private readonly List<LinkageFormal> _linkageFormals = [];
+    internal readonly List<LinkageFormal> _linkageFormals = [];
 
     /// <summary>The PROCEDURE DIVISION RETURNING item (a LINKAGE 01/77; ISO §14.2.3 GR6 — its storage is
     /// allocated in the activated element), or null. COBOL-2002+ (the grammar gates the clause).</summary>
@@ -962,7 +962,7 @@ public sealed partial class DataBinder
     /// (<c>CellPointer.DynBase</c>, <c>PlaceBuilder.CellOrdinalBase</c>), so §14.2.3 GR8 — "the activated runtime
     /// element operates as if the formal parameter occupies the same storage area as the argument" — holds for it as
     /// for any group. §13.18.5.3 SR2 bars a variable-length group only as the subject of a WRITTEN BASED clause.</para></summary>
-    private static bool CellCanCarry(DataItem root)
+    internal static bool CellCanCarry(DataItem root)
     {
         var members = root.Class?.Members ?? [root];
         return CellResidueOf(members.SelectMany(LeavesOf)) is null;

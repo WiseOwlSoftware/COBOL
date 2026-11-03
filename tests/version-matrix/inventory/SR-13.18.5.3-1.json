@@ -6,10 +6,10 @@
  "subject": "BASED clause",
  "rule-digest": "c732f44ff623",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#CheckUsageDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#ScreenBasedClassObjectItem",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckUsageDeclarationsPass.cs#CheckUsageDeclarationsPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckUsageDeclarationsPass.cs#ScreenBasedClassObjectItem",
  "test-ref": "conformance:cases/13.18.5-BASED/pb1212-based-type-of-class-object; conformance:cases/13.18.5-BASED/pb1212_composed_entry_class_rules_legal",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "(kb/Work PB1212) The class-object screen is asked of the entries that DIRECTLY carry a TYPE clause too (the composed-entry loop), by the same code as the written-entry loop.",
+ "notes": "(kb/Work PB1212) The class-object screen is asked of the entries that DIRECTLY carry a TYPE clause too (the composed-entry loop), by the same code as the written-entry loop. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#CheckUsageDeclarations (the pass body moved from the DataBinder partial to its own IBindPass class under Binding/Passes (kb/Work PB2352, PB2353, PB2354)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#ScreenBasedClassObjectItem (the pass body moved from the DataBinder partial to its own IBindPass class under Binding/Passes (kb/Work PB2352, PB2353, PB2354))",
  "state": "OK"
 }

@@ -43,7 +43,7 @@ public sealed record OoFormal(DataItem Item, int Position, string ParamName, boo
     public string AreaParam => $"__area{Position}";
 
     /// <summary>True for an AREA formal: its class was claimed onto a cell whose implicit data-address pointer IS
-    /// <see cref="AreaPointerClrName"/> (<c>DataBinder.PtrBindBasedAndAddressables</c>), so the binder and the emitter
+    /// <see cref="AreaPointerClrName"/> (<c>PtrBindBasedAndAddressablesPass</c>), so the binder and the emitter
     /// cannot disagree about which formals are areas.</summary>
     public bool IsArea => !CarrierResident && Item.Class?.BasedPointerField == AreaPointerClrName;
 

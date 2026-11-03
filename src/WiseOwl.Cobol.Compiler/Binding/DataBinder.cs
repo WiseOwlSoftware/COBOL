@@ -8,8 +8,6 @@ using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
-using CobolEdit = WiseOwl.Cobol.Runtime.CobolEdit;
-using CobolDynString = WiseOwl.Cobol.Runtime.CobolDynString;
 
 using WiseOwl.Cobol.Compiler.Oo;
 
@@ -27,7 +25,7 @@ using WiseOwl.Cobol.Runtime;
 public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceFacts
 {
     private int _fillerCounter;
-    private int _uidCounter;
+    internal int _uidCounter;
 
     /// <summary>The next unique id for a data item this binder creates (a report's page counter, a sum counter's register).</summary>
     internal int NextUid() => _uidCounter++;
@@ -103,7 +101,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// that divergence is a CS0103 in generated code; reading it here retires the mirroring (kb/Work PB168;
     /// the one-rule-one-place discipline).
     /// <para>The static channel is populated for one kind of storage — a <see cref="UnitStaticWs"/> unit's
-    /// WORKING-STORAGE (<see cref="RouteStaticUnitStorage"/>) — so a non-empty channel IS the condition, with no
+    /// WORKING-STORAGE (<see cref="RouteStaticUnitStoragePass.Run"/>) — so a non-empty channel IS the condition, with no
     /// unit-kind conjunct. (A class's METHOD had a second producer until kb/Work PB1308: a method owns no
     /// WORKING-STORAGE at any edition, §13.5.3 SR1.)</para></summary>
     public bool EmitsStaticReset =>
@@ -113,12 +111,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The unit's WORKING-STORAGE SECTION roots, in source order — the subset of <see cref="Roots"/>
     /// whose storage class is decided by §13.5.4 (static/initial data), captured at bind so the static-WS
-    /// routing (<see cref="RouteStaticUnitStorage"/>) and the emitter's <c>__ResetStatics</c> never guess from
+    /// routing (<see cref="RouteStaticUnitStoragePass.Run"/>) and the emitter's <c>__ResetStatics</c> never guess from
     /// the mixed forest (FILE records and compiler temps share <see cref="Roots"/>). The ONE walk
     /// <c>__ResetStatics</c> emits from; each arm there is gated on the static-channel membership, so an
     /// automatic-storage root in this list contributes nothing.</summary>
     public IReadOnlyList<DataItem> WorkingStorageRoots => _workingStorageRoots;
-    private readonly List<DataItem> _workingStorageRoots = [];
+    internal readonly List<DataItem> _workingStorageRoots = [];
 
     /// <summary>The unit's LOCAL-STORAGE SECTION roots, in source order (ISO §13.6 — automatic data,
     /// §13.6.4 GR1). Emitted as ordinary INSTANCE fields: for an INITIAL or RECURSIVE unit the fresh instance
@@ -167,7 +165,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// dynamic-table <see cref="DataItem"/> (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9). The register is
     /// IMPLICITLY defined at the OCCURS entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults
     /// this map to build a <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated
-    /// by the post-build <see cref="DynamicResolve"/> pass. (READ-ONLY view — P6 Step 5; the getter carries the
+    /// by the post-build <see cref="DynamicResolvePass.Run"/> pass. (READ-ONLY view — P6 Step 5; the getter carries the
     /// P6 Step-6 watermark gate — a read before <see cref="Passes.PassPhase.OccursResolved"/> throws loud, the
     /// "read a null CapacityRegister" silent-miscompile class made structural.)
     /// <para>⛔ A LIST PER NAME, NEAREST DECLARING SOURCE ELEMENT FIRST (kb/Work PB1674). The register of a dynamic
@@ -184,7 +182,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         get { Require(PassPhase.OccursResolved, "CapacityRegisters"); return _capacityRegisters; }
     }
-    private readonly Dictionary<string, List<DataItem>> _capacityRegisters = new(CobolNames.Comparer);
+    internal readonly Dictionary<string, List<DataItem>> _capacityRegisters = new(CobolNames.Comparer);
 
     /// <summary>The dynamic tables whose named CAPACITY register THIS source element declares — the registers its
     /// own class emits a profile for. An inherited register's profile is its container's (the contained class is
@@ -218,7 +216,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// template is built by <see cref="BindEntries"/> but kept OFF <see cref="Roots"/>
     /// and <see cref="ByName"/> (it allocates no storage; its subordinate names are not globally referenceable,
     /// GR1/GR2). A <c>TYPE IS type-name</c> reference clones this subtree into the referencing entry in the post-build
-    /// <see cref="ExpandTypes"/> pass — which runs before <see cref="BindResolve"/>, so every resolution pass sees the
+    /// <see cref="ExpandTypesPass.Run"/> pass — which runs before <see cref="BindResolve"/>, so every resolution pass sees the
     /// clone (the invariant the OO compiler-temp clone already relies on).</summary>
     public Dictionary<string, DataItem> TypeDecls { get; } = new(CobolNames.Comparer);
 
@@ -243,7 +241,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// of its methods' (<see cref="OoMethodDataScope.TypeDecls"/>, kb/Work PB3192), in that order — what a pass over
     /// the WHOLE forest walks (the completion of every declaration, the clause-resolution and declared forests). A
     /// lookup BY NAME never reads it: it reads the declaring element's own table (<see cref="TryFindTypeDecl"/>).</summary>
-    private IEnumerable<DataItem> AllTypeDecls() =>
+    internal IEnumerable<DataItem> AllTypeDecls() =>
         TypeDecls.Values.Concat(_ooBoundMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
 
     /// <summary>The own type-declaration table of the source element <paramref name="scope"/> names: the method's, else
@@ -293,7 +291,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (READ-ONLY view — P6 Step 5. The bind-phase file-connector qualification mutates the FileModel ELEMENTS,
     /// which a read-only list does not prevent — element immutability is a later data-model-track item.)</summary>
     public IReadOnlyList<FileModel> Files => _files;
-    private readonly List<FileModel> _files = [];
+    internal readonly List<FileModel> _files = [];
 
     /// <summary>The files keyed by COBOL file-name (case-insensitive), for the binder to resolve OPEN/READ/CLOSE
     /// targets and to map a WRITE/REWRITE record-name back to its owning file.</summary>
@@ -672,7 +670,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         foreach (var pass in BindPipeline.Build(program))
         {
             Require(pass.Requires, pass.Name);   // watermark gate: the declared prerequisite actually RAN (P6 Step 6)
-            pass.Run(this);
+            using (State.Gate.Running(pass)) pass.Run(this);   // the pass appends only to the fact sets its Views declare (PB2352)
             MarkProduced(pass.Produces);
         }
     }
@@ -705,142 +703,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             throw new InvalidOperationException(
                 $"BindPipeline watermark violation: '{fact}' requires phase {required}, but this binder has only "
                 + $"reached {Watermark} — a consumer ran before the producing pass (P6 Step 6 gate).");
-    }
-
-    /// <summary>The LAST resolve pass (<see cref="BindPipeline"/>): every FILE record area is filled WITHOUT conversion
-    /// by READ/RETURN (ISO §9.1.2 — the record area is one character image), so its numeric-DISPLAY leaves store their
-    /// images exactly like a whole-referenced group's — even when the PROCEDURE DIVISION never names the record as a
-    /// whole (ST103A reads then tests only a child). <c>StorageFormPass</c> consumes <see cref="WholeGroupReferenced"/>
-    /// after binding.</summary>
-    internal void MarkFileRecordImageLeaves()
-    {
-        foreach (var f in Files)
-            foreach (var rec in f.Records)
-                if (rec.IsGroup)
-                {
-                    State.WholeGroupReferenced.Add(rec);
-                    // Flag the leaves NOW (not at the group-tail whole-group pass): the bind-time
-                    // NumericImagePlace wrap decision consults the early image facts (a ref-mod/RENAMES base
-                    // under a record area must route through its character image at resolve time; ST102A's
-                    // all-DISPLAY S-RECORD must not read as a Tier-C island at bind time).
-                    MarkImageLeaves(rec);
-                }
-
-        void MarkImageLeaves(DataItem item)
-        {
-            foreach (var child in item.Children)
-            {
-                if (child.IsGroup) MarkImageLeaves(child);
-                // ⛔ THE CARRIAGE QUESTION IS NOT THE IMAGE-FORM QUESTION, and this arm asks the CARRIAGE one
-                // (kb/Work PB646). Promotion REPLACES the leaf's native carrier with a string of its
-                // ImageWidth CHARACTER positions; for usage DISPLAY that string IS the leaf's storage, so every
-                // width the model holds stays one number. A national-form numeric's carrier positions and its
-                // STORAGE are two numbers (D-N1 — two bytes per position), and promoting one was MEASURED to
-                // corrupt a plain group-to-group MOVE between two such leaves. Its group-image contribution is
-                // the D-N7 COMPOSITION instead (GroupImageCodec.CarrierImageOf + the national byte transform),
-                // which needs no promotion; the price is that a group move depositing characters incompatible
-                // with the leaf's description leaves it holding §14.6.13.2's value rather than those
-                // characters, which is the same posture every other non-DISPLAY numeric usage already takes.
-                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    State.ImageForcedItems.Add(child);      // the collected image fact (same rule as the whole-group union, §14.9.25.4 MOVE GR4)
-            }
-        }
-    }
-
-    /// <summary>Route a RECURSIVE unit's WORKING-STORAGE onto the ONE static-field channel (the mechanism the
-    /// method-WS D3 pattern established — <see cref="StaticRootFields"/> / <see cref="StaticIndexCells"/>,
-    /// consumed by <c>RecordStructEmitter</c>): a no-op unless <see cref="UnitStaticWs"/>. ISO basis on the
-    /// flag's doc — §13.5.4 GR1 (a non-initial program's / a function's WS is STATIC data) + §14.6.2.3.3 (static
-    /// data is in LAST-USED state: one copy shared across all activations), while the per-activation instance
-    /// keeps carrying the §13.6.4 GR1 automatic data and the formals. Runs AFTER the pointer pass (the last
-    /// tier-overwrite seam) so Tier-B backings, EXTERNAL re-basing, and BASED/ADDRESS-OF forcing are settled:
-    /// <list type="bullet">
-    /// <item>a Tier-B StringCanonical WS root → its ONE string backing goes static (the OO
-    ///   <see cref="OoRouteMethodRedefinesBackings"/> twin), plus the root's own name (harmless when the
-    ///   physical is the backing — membership is tested per emitted field name);</item>
-    /// <item>an EXTERNAL WS record stays OFF the channel — it is run-unit storage on the ExternalStore
-    ///   (§8.6.7; §14.6.2.3.3 external data is ALWAYS last-used), reached through a ref-bridge, never a
-    ///   per-class static;</item>
-    /// <item>a WS table's INDEXED BY cell goes static with its table (the M2-OO-1h step-4 mirror — a
-    ///   last-used table with per-activation indexes would silently lose SET positions);</item>
-    /// <item>a BASED WS root / an ADDRESS-OF-taken WS record stages LOUD (0899) — their cell/bridge storage
-    ///   is per-instance (<see cref="PtrAddressableBackings"/>/<see cref="PtrBasedBridges"/> emit instance
-    ///   members), and §14.6.2.3.2 #5 makes a based item's address part of the unit's static state; a silent
-    ///   instance-resident cell would re-initialize per activation (§1.4 — never silent-wrong).</item>
-    /// </list></summary>
-    internal void RouteStaticUnitStorage()
-    {
-        if (!UnitStaticWs) return;
-        foreach (var root in _workingStorageRoots)
-            RouteStaticRoot(root, "WORKING-STORAGE");
-        // THE FILE SECTION ROUTES WITH IT (kb/Work PB168 — the review fleet's §8.6.4 finding): "Data items
-        // and file connectors defined in the working-storage or file section of a source element that is not
-        // an initial program are static items … For static items that are not object data, there is one copy
-        // in a run unit." The connector half is the static registration guard (same flag); the RECORD
-        // AREA half is this — without it, the shared connector reads into a per-activation area and the
-        // resumed outer activation sees stale record content (a silent wrong answer where the standard has
-        // ONE area). EXTERNAL files stay off the channel (run-unit ExternalStore, §8.6.7); a REPORT FD has
-        // no record description to route (§13.18.46). ⚠ __ResetStatics deliberately does NOT re-seed these:
-        // §14.6.2.3.2 action 2 names only the working-storage and local-storage sections.
-        foreach (var file in Files)
-            if (!file.IsExternal)
-                foreach (var record in file.Records)
-                    RouteStaticRoot(record, "FILE SECTION");
-    }
-
-    /// <summary>Route ONE root of a <see cref="UnitStaticWs"/> unit onto the static channel — shared by the
-    /// WORKING-STORAGE walk and the kb/Work PB168 FILE SECTION walk (<paramref name="section"/> names the
-    /// section in the staged-loud message).</summary>
-    private void RouteStaticRoot(DataItem root, string section)
-    {
-        if (root.Class is { Tier: RedefinesTier.StringCanonical } cls
-            && CallExternalBackings.Any(b => b.BackingClrName == cls.BackingClrName))
-            return;   // an EXTERNAL-backed class (canonical AND views) — run-unit cell storage (§14.6.2.3.3), not a class static
-        if (root.IsBased)
-        {
-            // kb/Work PB154 — §14.6.2.3.2 action 5: a BASED root in a RECURSIVE unit's static WS routes
-            // its `__addr_X` bridge as a STATIC field, reset to NULL by __ResetStatics (the old code
-            // REJECTED this legal source). The DATA lives in the allocated cell, so no static root field
-            // joins the value-reset set. A based root whose class the substrate screen rejected
-            // (COBOL1695) was already diagnosed — skip quietly.
-            if (root.Class?.BasedPointerField is { } bp && !PtrAddressableCellOf.ContainsKey(root.Class))
-                _staticBasedBridgeAddrs.Add(bp);
-            // An INDEXED BY cell under a BASED table is an ordinary emitted field (allocated in
-            // RegisterIndexes regardless of BASED-ness) and §13.5.4 GR1 makes it static like the rest of
-            // the unit's WS — the bridge routes the ADDRESS, the index cells still route themselves.
-            foreach (var idx in IndexDeclarationsUnder(root))
-                _staticIndexCells.Add(idx.Cell);
-            return;
-        }
-        if (root.Class is { } ac && PtrAddressableCellOf.TryGetValue(ac, out var addrCell))
-        {
-            // kb/Work PB234 — an ADDRESS-OF-taken record of a RECURSIVE unit's static WS. §13.5.4 GR1 makes the
-            // data STATIC — one copy shared by every activation — and its storage IS the forced StorageCell (the
-            // backing is a ref-bridge over it), so the CELL is what goes static; §14.6.2.3.2 action 2 then
-            // re-seeds it in place from __ResetStatics. Nothing in §8.4.3.11, §11.10.4 or §14.9.5.4 forbids the
-            // source this used to refuse (COBOL0899): a static item's address is simply the one copy's.
-            // Every root of the class (the canonical and each REDEFINES view) names the ONE cell.
-            _staticAddressableCells.Add(addrCell);
-            foreach (var idx in IndexDeclarationsUnder(root))
-                _staticIndexCells.Add(idx.Cell);
-            return;
-        }
-        if (root.Class is { } c && c.BasedPointerField is not null)
-        {
-            // A non-BASED root of a BASED item's class — a level-01 REDEFINES of it (§13.18.44 does not forbid
-            // one, and §13.18.5.3 names only class object and dynamic length). Its storage is the based item's
-            // ALLOCATED cell reached through the ONE bridge the BASED root above already routed static, so it
-            // has no storage of its own to route; only its index cells do (kb/Work PB234 — this arm used to
-            // refuse the source with the same COBOL0899 as the ADDRESS OF arm).
-            foreach (var idx in IndexDeclarationsUnder(root))
-                _staticIndexCells.Add(idx.Cell);
-            return;
-        }
-        if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
-            _staticRootFields.Add(c2.BackingClrName);   // Tier-B: the ONE string backing IS the storage
-        _staticRootFields.Add(root.ClrName);
-        foreach (var idx in IndexDeclarationsUnder(root))
-            _staticIndexCells.Add(idx.Cell);
     }
 
     /// <summary>Bind a run of data-description entries (a WORKING-STORAGE section or one FD's records) into the
@@ -1764,7 +1626,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Clause operands whose written shape <see cref="ScreenClauseOperandShape"/> already refused, keyed
     /// by their source text — read by <see cref="ResolveClauseOperand"/> so one fault draws one verdict.</summary>
-    private readonly HashSet<string> _refusedClauseOperands = new(StringComparer.Ordinal);
+    internal readonly HashSet<string> _refusedClauseOperands = new(StringComparer.Ordinal);
 
     /// <summary>A reference AS THE PROGRAMMER WROTE IT. <c>GetText()</c> concatenates tokens with no separators
     /// (<c>LINAGE-COUNTEROFLPF</c>), which is unreadable in a diagnostic about the spelling itself.
@@ -3006,7 +2868,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// its SR4/SR5/SR10 size sentences measure the literal against. Built ONLY by
     /// <see cref="ValueSubject.ForElementary"/>, <see cref="ValueSubject.ForGroup"/> or
     /// <see cref="ValueSubject.ForConditionName"/>, each of which states its size rule with its citation.</param>
-    private string ValidateValueCategory(PicInfo pic, string raw, string where, ValueSubject subject)
+    internal string ValidateValueCategory(PicInfo pic, string raw, string where, ValueSubject subject)
     {
         // ⛔ THE LITERAL'S CLASS COMES FROM THE ONE CLASSIFIER (CobolLiteral.ClassOf — kb/Work PB71): the former
         // raw-text tests (`raw[1] is '"'`) refused the Format-2 hexadecimal spellings NX"…" / BX"…" (§8.3.3.5.2 /
@@ -3196,77 +3058,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 break;
         }
         return raw;
-    }
-
-    /// <summary>⛔ THE §13.18.63.3 SR7 SCREEN — the ONE VALUE-literal rule that reads the subject's CLASS
-    /// instead of its category, asked ONCE per literal, after §13.18.60.4 GR1 usage inheritance has settled
-    /// (kb/Work PB646). <i>"If the item is of category numeric-edited and the literal is of class alphanumeric or
-    /// national, the class of the literal shall conform to that of the data item, if the class is otherwise
-    /// undefined, then the class of the data item shall be that of the literal."</i>
-    /// <para>§8.5.2.1 Table 2 is what makes it a USAGE test and what makes it bite in BOTH directions: category
-    /// numeric-edited is class ALPHANUMERIC when its usage is display and class NATIONAL when its usage is
-    /// national. The national-usage half was unreachable while §13.18.60.3 SR12's national-form numeric-edited
-    /// item was staged loud (COBOL0899).</para>
-    /// <para>A NUMERIC literal is SR2/SR6's business, not this rule's, and a figurative constant takes the
-    /// receiver's class (§8.3.3.6), so neither reaches the test. ⚠ §13.18.63.3 SR7's third clause — "if the class is
-    /// otherwise undefined, then the class of the data item shall be that of the literal" — has NO SITE in this
-    /// model and cannot acquire one: §13.18.60.3 SR13 implies a usage for every item given none (NATIONAL for an
-    /// 'N'-bearing picture character-string, else DISPLAY), so a numeric-edited item's usage — and with it its
-    /// Table 2 class — is always defined.</para></summary>
-    private void ScreenNumericEditedLiteralClass(PicInfo pic, string raw, string where)
-    {
-        if (pic.Category is not PicCategory.NumericEdited) return;
-        LiteralClass? lit = CobolLiteral.ClassOf(raw);
-        LiteralClass? allLit = CobolLiteral.AllLiteralRaw(raw) is { } allRaw ? CobolLiteral.ClassOf(allRaw) : null;
-        bool isNatLit = lit is LiteralClass.National || allLit is LiteralClass.National;
-        bool isAlnumLit = lit is LiteralClass.Alphanumeric || allLit is LiteralClass.Alphanumeric;
-        if (!isNatLit && !isAlnumLit) return;   // a numeric literal, a boolean literal or a figurative — not SR7's
-        if (isNatLit == (pic.Usage is Usage.National)) return;
-        Edition.Error("COBOL0898", $"{where}: the VALUE literal {raw} is of class "
-            + $"{(isNatLit ? "national" : "alphanumeric")}, but the numeric-edited item is of usage "
-            + $"{(pic.Usage is Usage.National ? "NATIONAL and therefore of class national" : "DISPLAY and therefore of class alphanumeric")}"
-            + " — the class of the literal shall conform to that of the data item (ISO §13.18.63.3 SR7; "
-            + "§8.5.2.1 Table 2)");
-    }
-
-    /// <summary>The §13.18.63.3 SR7 pass — every VALUE literal of every format, over the RESOLVED usage
-    /// (kb/Work PB646). Format 1's item literal and format 2's per-occurrence literals hang off the item; formats
-    /// 3 and 5's hang off the condition-names, whose "item" SR7 speaks of is the conditional variable (the same
-    /// reading <c>ValidateValueCategory</c>'s condition-name call site already uses).
-    /// <para>⛔ It is a PASS and not an entry-bind check because the rule reads §8.5.2.1 Table 2's CLASS, which
-    /// for a numeric-edited item is its usage — and §13.18.60.4 GR1 lets a group's USAGE clause supply that
-    /// usage after the entry has bound. Asking at entry bind gave the GR1 spelling the opposite verdict from its
-    /// written-clause twin in BOTH directions, which is exactly what the inheritance pass's invariant forbids
-    /// ("same syntax-rule verdicts, same diagnostics").</para></summary>
-    internal void CheckValueLiteralClasses()
-    {
-        foreach (var root in Roots) Walk(root);
-        foreach (var list in Conditions.Values)
-            foreach (var cond in list)
-            {
-                if (cond.Parent.OperandPic is not { } cp) continue;
-                using var _ = Edition.At(cond.Parent);
-                foreach (var (lo, hi) in cond.Values)
-                {
-                    ScreenNumericEditedLiteralClass(cp, lo, $"condition-name '{cond.Name}'");
-                    if (hi is not null) ScreenNumericEditedLiteralClass(cp, hi, $"condition-name '{cond.Name}'");
-                }
-            }
-
-        void Walk(DataItem item)
-        {
-            if (item.Pic is { } pic && !pic.IsRecovery)
-            {
-                using var _ = Edition.At(item);
-                string where = $"data item '{item.CobolName ?? "FILLER"}'";
-                if (item.RawValue is { } raw) ScreenNumericEditedLiteralClass(pic, raw, where);
-                // Each literal the clause WRITES, once — not once per table element it initializes (kb/Work PB1722).
-                if (item.TableValuePlan is { } plan)
-                    foreach (var lit in plan.Phrases.SelectMany(p => p.Literals).Distinct(StringComparer.Ordinal))
-                        ScreenNumericEditedLiteralClass(pic, lit, where);
-            }
-            foreach (var c in item.Children) Walk(c);
-        }
     }
 
     /// <summary>ISO §13.18.63.3 SR2/SR3: a numeric VALUE literal on a fixed-point numeric subject shall be a
@@ -3680,77 +3471,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             && IntrinsicCatalog.TryGet(canonical, out sig) && sig.IsDefinedAt(Edition.DialectLevel);
     }
 
-    // ── TYPEDEF / the TYPE clause (ISO §13.18.58 / §13.18.57; data-model D17) ──────────────────────────────────
-
-    /// <summary>Post-build TYPE-expansion pass: every <c>TYPE IS type-name</c> reference (a real item in the forest)
-    /// gets the referenced type declaration's subtree cloned in. Runs at the top of <see cref="BindResolve"/> — AFTER
-    /// all <see cref="BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="TypeDecls"/>),
-    /// AFTER <see cref="SynthesizeImpliedPictures"/> (so a template's §13.16.3 SR9 VALUE-implied PICTURE is part of
-    /// the description it hands over — §13.18.57.4 GR3; kb/Work PB1300) and BEFORE the resolution passes (so the
-    /// clone is a normal part of the forest they walk).</summary>
-    internal void ExpandTypes()
-    {
-        // ⛔ THE TYPE DECLARATIONS FIRST, EACH COMPLETED AS A DECLARATION (kb/Work PB1302). Every TYPE and SAME AS
-        // reference among a template's members is expanded IN the template, once, before any storage item copies
-        // it, so the rules whose subject is the declaration are asked of the declaration — §13.18.58.3 SR2's
-        // recursion ("The description of the subject of the entry, including its subordinate items, shall not
-        // contain a TYPE clause that directly or indirectly references this type definition") and §13.18.57.3
-        // SR6's placement of a member typed by a STRONG declaration — whether or not anything references it.
-        // They used to be side effects of per-REFERENCE expansion, so a recursive type declaration that no
-        // storage item expanded compiled clean, and the answer for one that was depended on declaration order.
-        // §8.4.2.2.1 rule 4's antecedent, recorded BEFORE anything is expanded or resolved (kb/Work PB1476): "a type
-        // declaration entry for which the type-name is not referenced in any TYPE clause in the source unit". EVERY
-        // written TYPE clause counts — a storage item's, a linkage item's, and a member's of another type
-        // declaration, which nothing may ever copy — so the exemption's lapse is a property of the source, never
-        // of which clones happen to reach the name index. The WRITTEN clause is read (DataItem.WrittenTypeName), never
-        // the pending mark: a constant's length phrase may have expanded an entry already (kb/Work PB2465).
-        foreach (var written in DeclaredForest())
-            if (written.WrittenTypeName is { } referenced && TryFindTypeDecl(referenced, ScopeOf(written.Root), out var decl))
-                decl.ReferencedByTypeClause = true;
-        foreach (var template in AllTypeDecls().ToList())
-            ExpandTemplate(template);
-        foreach (var item in AllItems().Where(i => i.TypeRefName is not null).ToList())
-            ExpandType(item);
-        // SAME AS (ISO §13.18.49; P10 Step 16) — expanded AFTER every TYPE reference, so a data-name-1 that
-        // was itself declared with a TYPE clause copies its fully-EXPANDED description (GR1 — "as though the
-        // data description identified by data-name-1 had been coded in place"). Chains (a target with its own
-        // pending SAME AS) recurse inside ExpandSameAs; cycles are the §13.18.49.3 SR3 rejection.
-        foreach (var item in AllItems().Where(i => i.SameAsName is not null).ToList())
-            ExpandSameAs(item, []);
-        // §13.18.55.4 GR1 over the composed storage forest — a TYPE subject or SAME AS subject that writes the clause
-        // reaches the leaves it copied (DataBinder.SynchronizedClause.cs; the templates took it in ExpandTemplate).
-        foreach (var root in Roots) InheritSynchronized(root);
-        ResolveRestrictedTypes();
-        IndexLapsedTypeMembers();
-    }
-
-    /// <summary>Attach the TYPE DECLARATION a restricted data-pointer's <c>USAGE POINTER TO type-name-1</c> names
-    /// (ISO §13.18.60.4 GR23) to its <see cref="PicInfo.RestrictedTypeDecl"/>. Runs at the TAIL of
-    /// <see cref="ExpandTypes"/>, so every template's own nested TYPE / SAME AS references are already expanded
-    /// and the declaration it attaches is the complete one.
-    /// <para>The restriction's carried identity used to be the NAME alone, which decides correctly WITHIN a
-    /// source element (§8.3.2.2 lets a user-defined word be only one type of user-defined word there) and wrongly ACROSS them: two elements may each
-    /// declare a non-equivalent type under one name, and §8.5.3.1 makes equivalence — not the spelling — the
-    /// test §14.9.39.3 SR19, §14.9.3.3 SR4/SR5 and §14.8.2.3.2 spend (kb/Work PB427). No diagnostic is
-    /// raised for an unresolved name: §13.18.60.3 SR18 already requires such an entry to be a TYPEDEF, and a
-    /// restriction whose declaration is not in hand falls back to the name comparison rather than rejecting.</para>
-    /// <para>⛔ It walks <see cref="ClauseResolutionForest"/>, the TYPEDEF templates too (kb/Work PB3120): a template is
-    /// itself a form of the type declaration the model compares and keys (<c>StrongTypeModel.EquivalentTypeDeclarations</c>,
-    /// <c>TypeIdentityKey</c>), so a pointer member restricted to a type must resolve in the template exactly as in the
-    /// TYPE subject cloned from it, or the two forms of one declaration key apart.</para></summary>
-    private void ResolveRestrictedTypes()
-    {
-        foreach (var item in ClauseResolutionForest())
-            if (item.Pic is { Category: PicCategory.Pointer, RestrictedTypeName: { } tn, RestrictedTypeDecl: null }
-                && TryFindTypeDecl(tn, ScopeOf(item.Root), out var decl))
-                item.Pic = item.Pic with { RestrictedTypeDecl = decl };
-    }
-
     /// <summary>⛔ Attach to every restricted PROGRAM- or FUNCTION-pointer this forest declares the prototype its
     /// <c>TO prototype-name-1</c> names (<see cref="DataItem.RestrictedPrototype"/>; kb/Work PB2495): ISO §13.18.60.4
     /// GR25 / GR26 type the pointer by that prototype's SIGNATURE, not its name. The prototype tables exist only once the
     /// group's REPOSITORY has resolved (<c>BinderDriver.ProgramPrototypesOf</c> / <c>UserFunctionsOf</c>, after every
-    /// unit's DATA has bound), so this is the prototype twin of <see cref="ResolveRestrictedTypes"/> run at the point
+    /// unit's DATA has bound), so this is the prototype twin of <see cref="ExpandTypesPass.ResolveRestrictedTypes"/> run at the point
     /// those tables are built — <c>BinderDriver.ResolvePointerRestrictions</c>, over every forest that declares pointers
     /// (a method's LINKAGE roots are on its class's). A name the table does not hold resolves to nothing, and the pointer
     /// keeps its own name as its identity (<see cref="PrototypeSignatures.SignatureRestriction"/>). The first of two
@@ -3799,7 +3524,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// specified" — is asked HERE, after the chained TYPE clause has composed the subject (kb/Work PB1301): by
     /// §13.18.57.4 GR1 <c>01 T TYPEDEF STRONG TYPE E.</c> over an elementary E is an elementary subject exactly as
     /// <c>01 T TYPEDEF STRONG PIC X(3).</c> is, and the check that ran at registration saw no PICTURE yet.</para></summary>
-    private bool ExpandTemplate(DataItem template)
+    internal bool ExpandTemplate(DataItem template)
     {
         if (!TypeDeclsOf(ScopeOf(template)).TryGetValue(template.CobolName!, out var own) || !ReferenceEquals(own, template))
             return true;
@@ -3828,7 +3553,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Whether <paramref name="item"/> belongs to a TYPE DECLARATION's own subtree (a template member,
     /// or a member a template's expansion copied in) — storage-less, and off the name index (§13.18.58.4 GR1/GR2).</summary>
-    private static bool InTypeDeclaration(DataItem item)
+    internal static bool InTypeDeclaration(DataItem item)
     {
         var root = item;
         while (root.Parent is { } p) root = p;
@@ -3848,7 +3573,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (a group). The subject's OWN OCCURS (an array-of-type, §13.16 SR14) and VALUE (GR3) are already on the item and
     /// preserved. The template is COMPLETED first (<see cref="ExpandTemplate"/>), and one still in progress is the
     /// recursive type declaration §13.18.58.3 SR2 forbids (COBOL1530).</summary>
-    private void ExpandType(DataItem item)
+    internal void ExpandType(DataItem item)
     {
         using var _ = Edition.At(item);
         string typeName = item.TypeRefName!;
@@ -4317,7 +4042,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// REDEFINES, and SELECT WHEN (not modeled). Subordinate levels renumber relative to the subject (GR2b/c —
     /// the <see cref="CloneItem"/> levelDelta). <paramref name="expanding"/> is the SAME-AS expansion chain: the
     /// subjects whose expansion is in progress on the way to this one (see <see cref="ExpandSameAsEntry"/>).</summary>
-    private void ExpandSameAs(DataItem item, HashSet<DataItem> expanding)
+    internal void ExpandSameAs(DataItem item, HashSet<DataItem> expanding)
     {
         if (item.SameAsName is null) return;   // already expanded through a chain hop (idempotent — the TypeRefName pattern)
         expanding.Add(item);
@@ -4482,7 +4207,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // The source as the pipeline has it by now — its §13.16.3 SR9 implied PICTUREs given, its TYPE clauses expanded.
         // Both hold already inside the pipeline (no-ops there); a subject expanded AHEAD of it for a constant's length
         // phrase (CompleteDescriptionAhead, kb/Work PB2465) may copy a source the pipeline has not reached.
-        SynthesizeImpliedPicturesUnder(target);
+        SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder(this, target);
         foreach (var pending in DataItem.SelfAndDescendantsOf(target).Where(t => t.TypeRefName is not null).ToList()) ExpandType(pending);
         bool wroteBased = item.IsBased;   // §13.16.3 SR12 admits no BASED beside SAME AS; an error-recovery guard
         CopyClauseDescription(target, item, DescriptionCopyScope.Entry);
@@ -4578,7 +4303,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Whether an item belongs to a FILE SECTION record (its root is some FD/SD's record) — the
     /// placement test of §13.18.49.3 SR6, §13.18.57.3 SR8 and §13.18.60.3 SR15.</summary>
-    private bool IsFileSectionItem(DataItem item)
+    internal bool IsFileSectionItem(DataItem item)
     {
         var root = item;
         while (root.Parent is { } p) root = p;
@@ -4599,74 +4324,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// data item (ISO §13.18.49.3 SR6 / §13.18.57.3 SR8).</summary>
     private static bool HasObjectReferenceLeaf(DataItem item) =>
         item.Pic?.Category is PicCategory.ObjectReference || item.Children.Any(HasObjectReferenceLeaf);
-
-    /// <summary>The STRONG type-declaration use restrictions that need the RESOLVED REDEFINES/RENAMES graph
-    /// (ISO §13.18.57.3): <b>SR4</b> — a strongly-typed item shall not be redefined in whole or in part; <b>SR3</b> —
-    /// nor renamed in whole or in part. Both → COBOL1532. (SR6, the level-1/strong-parent placement rule, is
-    /// checked at clone time in <see cref="ExpandType"/>.) An INTERNAL redefine — a REDEFINES that is part of the same
-    /// strong subtree, cloned in from the type template — is NOT flagged HERE (its subject and target share a strong
-    /// root), because it is §13.18.44.3 SR14's and <c>Sr12Sr14Violation</c> reports it once, as COBOL1697
-    /// (kb/Work PB1282); only an EXTERNAL redefinition of a strong item is §13.18.57.3 SR4's.
-    /// <para><b>Why SR4 does not reach the internal case — kb/Work PB183's companion derivation, ANSWERED.</b>
-    /// SR4 reads "If type-name-1 is described with the STRONG phrase, the subject of the entry shall not be implicitly
-    /// or explicitly redefined in whole or in part", and the question was whether that overturns the internal carve-out.
-    /// It does not, because SR4's SUBJECT is the entry CARRYING the TYPE clause, and §13.18.57.3 SR2 — "A data
-    /// description entry in which a TYPE clause is specified shall not be followed immediately by a subordinate data
-    /// description entry or a level 88 entry" — makes a subordinate REDEFINES under a TYPE entry syntactically
-    /// unwritable. The only REDEFINES that can reach a strong subtree from outside is <c>01 X REDEFINES S.</c>, which
-    /// the loop below already rejects. A REDEFINES written INSIDE the typedef TEMPLATE has no TYPE-clause subject at
-    /// all, so SR4 never reaches it — SR14 does, and a negative
-    /// (<c>pb1282-redefines-in-strong-typedef</c>) guards that.</para></summary>
-    internal void CheckStrongTypeDeclarations()
-    {
-        // ⛔ SR4's IMPLICIT arm (kb/Work PB836): "the subject of the entry shall not be implicitly or explicitly
-        // redefined in whole or in part". An FD/SD's level-1 records ARE implicit redefinitions of one area
-        // (§13.18.33.4 GR3), and so are the records of a record-area SAME clause (§12.4.6.4.4 GR2), so a
-        // strongly-typed item anywhere in such a record is implicitly redefined by every OTHER record sharing the
-        // area. The sharing is SYMMETRIC — it does not matter which record the binder anchors the area on — so
-        // both sides of each implicit pair are tested, and each strong item is reported once.
-        var implicitlyRedefined = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        foreach (var item in AllItems())
-            if (item.RedefinesImplicitly && item.RedefinesTarget is { } area)
-                foreach (var (record, other) in new[] { (area, item), (item, area) })
-                    if (FirstStrongItemIn(record) is { } strong && implicitlyRedefined.Add(strong))
-                    {
-                        using var _ = Edition.At(strong);
-                        string by = item.RedefinesKind is RedefinitionKind.SameRecordArea
-                            ? "a record-area SAME clause (ISO §12.4.6.4.4 GR2)"
-                            : "the FD/SD's multiple level 1 entries (ISO §13.18.33.4 GR3)";
-                        Edition.Error("COBOL1532", $"'{strong.CobolName ?? strong.ClrName}' is a strongly-typed item "
-                            + $"and shares its storage area with '{other.CobolName ?? other.ClrName}' — an implicit redefinition by {by}: "
-                            + "a strongly-typed item shall not be implicitly or explicitly redefined in whole or in "
-                            + "part (ISO §13.18.57.3 SR4)");
-                    }
-
-        // A REDEFINES written in a TYPEDEF template is asked too (kb/Work PB2071): `05 G TYPE T2. 05 H REDEFINES G.`
-        // in an unused template redefines the strongly-typed G from outside its strong subtree exactly as it would in
-        // a record.
-        foreach (var item in ClauseResolutionForest())
-            if (item.RedefinesKind is RedefinitionKind.Clause && item.RedefinesTarget is { } tgt
-                && StrongTypeModel.IsStronglyTyped(tgt)
-                && !ReferenceEquals(StrongTypeModel.StrongRoot(item), StrongTypeModel.StrongRoot(tgt)))
-            {
-                using var _ = Edition.At(item);
-                Edition.Error("COBOL1532", $"'{item.CobolName ?? item.ClrName}' REDEFINES strongly-typed item "
-                    + $"'{tgt.CobolName ?? tgt.ClrName}': a strongly-typed item shall not be redefined in whole or in "
-                    + "part (ISO §13.18.57.3 SR4)");
-            }
-
-        foreach (var owner in RenamesOwners())
-            foreach (var ren66 in owner.Renames66)
-                if (ren66.Renames is { } ri
-                    && ((ri.From is { } f && StrongTypeModel.IsStronglyTyped(f))
-                        || (ri.Thru is { } t && StrongTypeModel.IsStronglyTyped(t))
-                        || ri.SpanLeaves.Any(StrongTypeModel.IsStronglyTyped)))
-                {
-                    using var _ = Edition.At(ren66);
-                    Edition.Error("COBOL1532", $"RENAMES '{ren66.CobolName ?? ren66.ClrName}' renames a "
-                        + "strongly-typed item in whole or in part — prohibited (ISO §13.18.57.3 SR3)");
-                }
-    }
 
     /// <summary>Bind a level-66 RENAMES entry (ISO §13.18.45): a re-grouping alias <c>RENAMES from [THRU thru]</c>
     /// over a contiguous sibling run of the owning record. It adds no storage (SR2/SR3) — it is attached to the
@@ -4719,7 +4376,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// type is applied to (ISO §13.18.58.4 GR1 — "RENAMES clauses are part of the type declaration of that type", its
     /// name referenceable "only as [a] subordinate item of groups defined using the type-name"): a fresh alias of the
     /// target's own, whose operands are the SAME names and qualifiers and are resolved per clone, in the clone's own
-    /// scope, by the one post-build RENAMES pass (<see cref="ResolveRedefines"/>) — so two groups of one type get two
+    /// scope, by the one post-build RENAMES pass (<see cref="ResolveRedefinesPass.Run"/>) — so two groups of one type get two
     /// independent aliases over their own members, as the level-88 clones do (<see cref="CloneConditionOnto"/>).
     /// The target is ANY item a TYPE clause applies to, so its aliases ride <c>target.Renames66</c> whether it is a
     /// record or a group inside one (kb/Work PB1304).</summary>
@@ -6446,7 +6103,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // a group-level SIGN (§13.18.52.4 GR1) / USAGE (§13.18.60.4 GR1) clause reaches the leaf only in a later
         // pass, so a screen run from this FD walk refused the legal `05 G SIGN IS LEADING SEPARATE. 10 N PIC
         // S9(4).`. The CLASS the clause selected is all that travels; the screen is the declared pass
-        // DataBinder.CheckCodeSetRecordItems, at PassPhase.SignResolved.
+        // CheckCodeSetRecordItemsPass, at PassPhase.SignResolved.
         if (alnumName is not null || natName is not null)
             file.CodeSetRecordClass = natName is not null;
     }
@@ -6857,7 +6514,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// §13.18.63.3 SR18–SR23 and the §13.18.63.4 GR12–GR16 resolution — is NOT here and cannot be: those rules are
     /// written against the entry's ANCESTORS ("or superordinate to that entry"), and <see cref="DataItem.Parent"/>
     /// is assigned by <c>BindEntries</c> only AFTER this returns. They are the post-forest
-    /// <c>ResolveTableValues</c> pass (DataBinder.TableValue.cs; kb/Work PB505).</para></summary>
+    /// <c>ResolveTableValues</c> pass (Passes/ResolveTableValuesPass.cs; kb/Work PB505).</para></summary>
     private void ScreenTableValueLiterals(DataItem item, string where)
     {
         if (item.TableValues is not { Count: > 0 } specs) return;
@@ -6941,60 +6598,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// INSIDE the PACKED-DECIMAL alternative, so it is not a clause of its own): it hands down with the clause
     /// it belongs to, and is adjudicated at each leaf by <see cref="ApplyEffectiveNoSign"/> — kb/Work PB570,
     /// where it was read from the entry's own <c>usageClause</c> and therefore never reached a leaf at all.</para></summary>
-    private readonly record struct InheritedUsage(
+    internal readonly record struct InheritedUsage(
         Usage? Effective, PicInfo? Pictureless, PicPending Pending, DataItem? From, bool NoSign)
     {
         /// <summary>The name of <see cref="From"/>, or null for FILLER (and when nothing is inherited).</summary>
         public string? FromName => From?.CobolName;
-    }
-
-    /// <summary>
-    /// ⛔ THE USAGE-INHERITANCE PASS (P5.11e, DESIGN-data-model §2.7) — ISO §13.18.60.4 GR1, run ONCE over the
-    /// completed forest: <i>"If the USAGE clause is specified or implied at a group level, it applies only to
-    /// each elementary item in the group. Unless the GROUP-USAGE clause is also specified or implied, the USAGE
-    /// clause applies only to each elementary item in the group and not to the group itself."</i>
-    ///
-    /// <para><b>THE INVARIANT THIS PASS EXISTS TO HOLD.</b> GR1 does not say a group's usage <i>influences</i>
-    /// its leaves; it says the clause <i>applies to</i> each of them. So an elementary item that acquired its
-    /// usage from a group shall be THE SAME ITEM the written-clause spelling produces — same representation,
-    /// same width, same syntax-rule verdicts, same diagnostics. <c>01 G USAGE u. 05 A ⟨pic⟩.</c> ≡
-    /// <c>01 G. 05 A ⟨pic⟩ USAGE u.</c> That equivalence is a drift test (<c>UsageInheritanceTests</c>), it
-    /// enumerates the <see cref="Usage"/> enum, and it is what makes the NEXT usage automatic.</para>
-    ///
-    /// <para><b>Why it is ONE walk over ONE derivation (kb/Work PB495).</b> The pass used to be two — a
-    /// <c>ResolveIndexItems</c> that shed a hand-listed set of synthesized profiles from group headers, and an
-    /// <c>InheritUsageClauses</c> that applied a DIFFERENT hand-listed set (<c>Binary or Packed or Comp5</c>) to
-    /// leaves. Neither list was derived from anything, the two disagreed, and every usage in neither fell
-    /// through in SILENCE: a picture-less leaf under a group-level BINARY-SHORT or FLOAT-LONG became a
-    /// ZERO-LENGTH item (a MOVE into it then NRE'd the emitter), a group-level FLOAT-SHORT left its synthesized
-    /// float profile ON the group so the record struct emitted a scalar <c>float</c> and every member reference
-    /// became a raw Roslyn CS1061, and a PICTURE-bearing leaf under a group-level BINARY-LONG or INDEX kept its
-    /// usage-display width with no diagnostic at all. There is now ONE derivation of an elementary item's
-    /// effective usage — its own clause, else the nearest enclosing one — and three consumers of it: the group
-    /// header's shed, the leaf's representation, and the screens (§13.18.60.3 SR2/SR3/SR5/SR12/SR20 and
-    /// §13.16.3 SR8), each of which is the SAME code the written-clause path runs.</para>
-    ///
-    /// <para>Runs BEFORE <see cref="InheritSignClauses"/> — a non-DISPLAY item takes the BinaryMinus sign form
-    /// regardless of any inherited SIGN clause (§13.18.52 applies only to usage-display items).</para>
-    ///
-    /// <para><b>⛔ EVERY WRITTEN TREE, THE TYPE DECLARATIONS TOO (kb/Work PB3682).</b> A TYPEDEF template is off
-    /// <see cref="Roots"/> but its clauses are source (§4.3), and §13.18.57.4 GR1 makes a TYPE subject's description
-    /// "as though the data description identified by type-name-1 had been coded in place", so the rules this walk asks
-    /// of a group's USAGE and GROUP-USAGE hold of the declaration whether or not anything references it. Walked over
-    /// the roots alone, an unused template's <c>GROUP-USAGE NATIONAL</c> over a <c>GROUP-USAGE BIT</c> subgroup
-    /// (§13.18.29.3 SR3), a group USAGE its subordinate contradicts (§13.18.60.3 SR2) or a leaf the group's usage
-    /// cannot describe (§13.18.60.3 SR3) compiled clean while the byte-identical storage group was refused, and a
-    /// used one was refused only through the copies its subjects held, once per reference and naming the subject.
-    /// The templates are walked after the roots, and a COPY of a description (an entry a TYPE or SAME AS clause
-    /// produced) takes the walk's application but not its screens where the fact is the declaration's own
-    /// (<see cref="AnsweredByTypeDeclaration"/>): one defect, reported once, where it is written. A template's
-    /// leaves also take the usage their group hands down, as a TYPE subject's do, so a template and a subject of one
-    /// declaration are one description to the §8.5.3.1 comparison (<c>StrongTypeModel</c>).</para>
-    /// </summary>
-    internal void UsageInheritancePass()
-    {
-        foreach (var root in Roots) UsageInheritanceWalk(root, default);
-        foreach (var declaration in AllTypeDecls().ToList()) UsageInheritanceWalk(declaration, default);
     }
 
     /// <summary>⛔ THE ONE "usage this entry carries in its OWN right" derivation: its written USAGE clause, or
@@ -7003,7 +6611,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// so the two spellings are one fact and this is where it is computed.
     /// <para>Read PUSH-style by <see cref="UsageInheritanceWalk"/>, which hands it down the forest, and PULL-style
     /// by <c>DataBinder.ImpliedPicture</c>'s §8.3.3.6.4 GR1 context question, which runs before that walk.</para></summary>
-    private static Usage? DeclaredUsageOf(DataItem item) => item.OwnUsage ?? item.GroupUsage switch
+    internal static Usage? DeclaredUsageOf(DataItem item) => item.OwnUsage ?? item.GroupUsage switch
     {
         GroupUsage.Bit => Usage.Bit,
         GroupUsage.National => Usage.National,
@@ -7012,7 +6620,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>One entry of the §13.18.60.4 GR1 walk: screen its own clause against the one it inherited
     /// (§13.18.60.3 SR2), decide what it hands DOWN, and dispatch to the group or the elementary arm.</summary>
-    private void UsageInheritanceWalk(DataItem item, InheritedUsage inherited)
+    internal void UsageInheritanceWalk(DataItem item, InheritedUsage inherited)
     {
         // A subtree a constant's length phrase completed ahead of the pipeline was walked then, with the usage its
         // ancestors hand down (CompleteDescriptionAhead, kb/Work PB2465): walking it again would screen it twice.
@@ -7067,7 +6675,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <paramref name="item"/> against <paramref name="source"/>, the entry that handed it a clause (kb/Work PB3682)?
     /// §13.18.57.4 GR1 and §13.18.49.4 GR1 make a copy's description "as though … coded in place", so a defect INSIDE
     /// a copy is a fact of the description it reproduces, which is screened where it is written: a TYPEDEF template by
-    /// this very walk (<see cref="UsageInheritancePass"/>), a SAME AS source as a storage entry. Repeating it at the
+    /// this very walk (<see cref="UsageInheritancePass.Run"/>), a SAME AS source as a storage entry. Repeating it at the
     /// copy would report one defect once per reference and name the subject for the declaration. True when the entry's
     /// description IS a copy (it is one — <see cref="DataItem.ClonedFrom"/> — or it is the subject whose TYPE clause
     /// composed it, which can write no USAGE or GROUP-USAGE of its own, §13.16.3 SR14) and the clause reached it from
@@ -7337,7 +6945,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// USAGE × PICTURE screen (SR3/SR5/SR12/SR20, shared verbatim with the written-clause path) followed by the
     /// representation rewrite the screened usage calls for.
     /// <para>⛔ ONE site for every route by which an elementary item acquires a usage its own entry did not
-    /// write: §13.18.60.4 GR1 group inheritance (<see cref="UsageInheritancePass"/>) and the §13.18.49.3 GR3
+    /// write: §13.18.60.4 GR1 group inheritance (<see cref="UsageInheritancePass.Run"/>) and the §13.18.49.3 GR3
     /// SAME-AS ancestor transform. Both used to carry their own copy of a three-member
     /// <c>Binary or Packed or Comp5</c> hand-list over a <c>{ Numeric, !IsFloat, Display }</c> leaf shape, and
     /// each silently dropped every usage outside it (kb/Work PB495).</para>
@@ -7360,7 +6968,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Apply an elementary item's EFFECTIVE SIGN clause to its analyzed PICTURE — the SIGN twin of
     /// <see cref="ApplyEffectiveUsage"/>, and the one <see cref="PicInfo.SignKindFor"/> recomputation.
     /// <para>⛔ ONE site for every route by which a signed numeric item acquires a SIGN clause its own entry did
-    /// not write: §13.18.52.4 GR1 group inheritance (<see cref="InheritSignClauses"/>) and the §13.18.49.4 GR5
+    /// not write: §13.18.52.4 GR1 group inheritance (<see cref="InheritSignClausesPass.Run"/>) and the §13.18.49.4 GR5
     /// SAME-AS ancestor transform (<c>ExpandSameAs</c>). Each carried its own copy of the guard, and the copies
     /// DID drift: when kb/Work PB646 widened the guard to the usage PAIR §13.18.52.3 SR2 names ("The usage of an
     /// elementary item for which the SIGN clause is specified shall be display or national") the SAME-AS copy
@@ -7384,28 +6992,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             ? pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, sign) }
             : pic;
 
-    /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY/NATIONAL items (ISO
-    /// §13.18.52 GR1–3): a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST
-    /// enclosing clause takes precedence, and an item's OWN clause (already consumed by
-    /// <see cref="PictureAnalyzer.Analyze"/> at entry bind) wins outright. Runs BEFORE the REDEFINES
-    /// classification pass because a SEPARATE sign occupies its own character position (§13.18.52 GR6a) — it
-    /// widens the item's image, which feeds the class-max width.
-    /// <para>⛔ THE TYPE DECLARATIONS TOO (kb/Work PB3682), as <see cref="UsageInheritancePass"/>: a template and a subject
-    /// of one declaration are one description to the §8.5.3.1 comparison, so the template's leaves take the group's SIGN as
-    /// its subject's do. A pointer restricted to a STRONG type compares the declaration's TEMPLATE form with the subject's:
-    /// `01 TG TYPEDEF STRONG SIGN IS LEADING SEPARATE. 05 A PIC S9(3).` left the template's leaf at the default sign, so
-    /// `SET P TO ADDRESS OF W` (W typed by TG) was refused as another type. The walk only applies, and a copy of a template
-    /// already walked re-applies the same clause to the same profile.</para></summary>
-    internal void InheritSignClauses()
-    {
-        foreach (var root in Roots) InheritSignWalk(root, null);
-        foreach (var declaration in AllTypeDecls().ToList()) InheritSignWalk(declaration, null);
-    }
-
     /// <summary>One entry of the §13.18.52 GR1 walk: the nearest enclosing clause, unless the entry wrote its own.
     /// A subtree completed ahead of the pipeline (<see cref="CompleteDescriptionAhead"/>, kb/Work PB2465) took its
     /// clause then and is passed over.</summary>
-    private void InheritSignWalk(DataItem item, SignSpec? inherited)
+    internal void InheritSignWalk(DataItem item, SignSpec? inherited)
     {
         if (_completedAhead.Contains(item)) return;
         SignSpec? effective = item.OwnSign ?? inherited;
@@ -7432,7 +7022,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <i>"the reference to data-name-2 in the REDEFINES clause shall not be subscripted"</i> — with §8.4.3.3.3's
     /// NOTE forbidding a reference-modifier and §8.4.3.1 making a special register no data-name at all (the ONE
     /// data-name-n screen, <see cref="ScreenDataNameShape"/>, COBOL2024).
-    /// <para>The operand used to reach <see cref="ResolveRedefines"/> as the reference's GLUED text, so
+    /// <para>The operand used to reach <see cref="ResolveRedefinesPass.Run"/> as the reference's GLUED text, so
     /// <c>REDEFINES A OF G</c> looked up the one word <c>AOFG</c>: COBOL1654 citing the wrong rules when no such
     /// item existed, and a SILENT bind to an unrelated item <c>AOFG</c> when one did. The BASE data-name is what
     /// resolves now, whatever else was written, so a refused shape reports its own rule and nothing cascades; a
@@ -7453,626 +7043,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return dref.cobolWord()?.Name();
     }
 
-    /// <summary>Resolve each item's REDEFINES target name to its <see cref="DataItem"/>, and each level-66 RENAMES
-    /// FROM/THRU operand to its item. A REDEFINES target is an unqualified prior entry in the same scope (SR1/SR6); a
-    /// RENAMES range names items within the owning record (SR3). Target resolution does not chase chains — the
-    /// classification pass walks <see cref="DataItem.RedefinesTarget"/> transitively to the anchor (SR11).
-    /// <para>⛔ A REDEFINES clause written in a TYPEDEF template is resolved and screened TOO (kb/Work PB2071): the
-    /// §13.18.44.3 syntax rules hold of the source as written (§4.3), and a type declaration nothing instantiates is
-    /// still source. Walking <see cref="Roots"/> alone, an unused template's `REDEFINES NOSUCH`, its oversized
-    /// redefinition (SR8) or its redefinition of a table (SR5) compiled clean, and a used one was reported only through
-    /// the copies its TYPE subjects hold. The walk is the <see cref="CompositionForest"/> (the template members are on it;
-    /// kb/Work PB2518) and only WRITTEN entries are screened, so a type is diagnosed once, at its declaration; a template
-    /// gets no storage class (<see cref="ClassifyRedefinesClasses"/> asks it only the clause rules).</para></summary>
-    internal void ResolveRedefines()
-    {
-        // ⛔ THE COMPOSED FOREST, BUT ONLY WRITTEN ENTRIES ARE ASKED (kb/Work PB2518). A TYPEDEF template is off Roots, so
-        // the roots-only walk never reached a redefiner INSIDE a type declaration: `01 T TYPEDEF. 05 A PIC X.
-        // 05 B REDEFINES A PIC X(2).` compiled clean unless some entry said TYPE T — and then the screens ran on the
-        // CLONE. Every clone is resolved (its target feeds the layout), but the rules are about what the programmer
-        // WROTE, so only an entry that is no clone (ClonedFrom null) is screened: a type is diagnosed once, at its
-        // declaration, used or not. A template's own level-01 entry stays out (it has no siblings to redefine).
-        foreach (var item in CompositionForest())
-            if (item.RedefinesTargetName is { } tname && !(item.Parent is null && item.IsTypedef))
-            {
-                bool written = item.ClonedFrom is null;
-                using var _ = Edition.At(item);
-                // A subordinate (02+) redefiner scopes to its own siblings (correct in every scope). A top-level
-                // 01/77 method redefiner must scope to the OWNING METHOD's own roots (§13.18.44.3 SR — the target
-                // is a prior sibling in the same data description; a method may NOT redefine object/program data,
-                // §11.7.4), NEVER the cross-scope global `Roots` pool (M2-OO-1h step 3).
-                IReadOnlyList<DataItem> scope;
-                if (item.Parent is { } par)
-                    scope = par.Children;
-                else if (OoRootOwner.TryGetValue(item.Root, out var mm))
-                    // A top-level method redefiner scopes to its OWN section only (§13.18.44.3 SR — the target is a
-                    // preceding item in the SAME data description; cross-section LOCAL↔LINKAGE aliasing is illegal,
-                    // and their storage classes differ — review B). item.Root
-                    // == item here (Parent is null).
-                    scope = mm.Binding!.LocalRoots.Contains(item) ? mm.Binding!.LocalRoots
-                          : mm.Binding!.LinkageRoots;
-                else
-                    scope = Roots;
-                // §13.18.44.3 SR4/SR7 + NOTE 1: data-name-2 is a PRECEDING entry at the same level, and when the name is
-                // not unique "no ambiguity of reference exists because of the required placement" — the NEAREST preceding
-                // same-named sibling. The former whole-scope FirstOrDefault admitted a LATER sibling (illegal source, kb/Work
-                // PB93) and picked the FIRST of duplicates.
-                // ⛔ THE ORIGINAL DEFINITION, NOT THE NEAREST SAME-NAMED ENTRY (kb/Work PB1280; §13.18.44.3 SR7, SR10): a
-                // redefinition defines no storage of its own, so "the entry that originally defined the area" of
-                // `05 A. 05 A REDEFINES A. 05 C REDEFINES A.` is the FIRST A, and that is what NOTE 1's "required placement"
-                // makes unambiguous — the nearest same-named entry that is not itself a redefinition. Only when every
-                // candidate is a redefinition is the nearest one named (SR7's own violation, reported below). A top-level
-                // entry's candidates are the roots of ITS OWN section: SR10's "entries defining the area of data-name-2"
-                // do not cross a section boundary.
-                var preceding = scope.TakeWhile(s => !ReferenceEquals(s, item))
-                    .Where(s => CobolNames.Same(s.CobolName, tname)
-                        && (item.Parent is not null || s.Section == item.Section)).ToList();
-                item.SetRedefinition(DataItem.RedefinedEntry(preceding), RedefinitionKind.Clause);
-                // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
-                // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
-                if (written && item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(item.Root))
-                    // 1577, renumbered from a bare "COBOL1518" that collided with the locale-module
-                    // non-support meaning (review V11 — the code comes from the catalog descriptor, never a literal).
-                    Edition.Error(DiagnosticCatalog.MethodRedefinesScope,
-                        $"REDEFINES target '{tname}' of method data item "
-                        + $"'{item.CobolName ?? "FILLER"}' is not a preceding item in the same method scope "
-                        + "(ISO §13.18.44.3 — a method item may not redefine object or program data)");
-                else if (written && item.RedefinesTarget is null)
-                    // kb/Work PB93: the PROGRAM-scope miss used to be silent — the item kept RedefinesTargetName (so
-                    // BitLayout / ImageWidth / ByteWidth skipped it as an overlay) against a null RedefinesTarget (so
-                    // the emitter gave it its own field): a storage shape no edition defines. ONE diagnostic; the
-                    // item then binds as an ORDINARY entry (the name cleared below) so no consumer sees the half-state.
-                    Edition.Error(DiagnosticCatalog.RedefinesTargetUnresolved,
-                        $"'{item.CobolName ?? "FILLER"}' REDEFINES '{tname}': data-name-2 does not name a preceding "
-                        + "entry in the same scope (ISO §13.18.44.3 SR4/SR7/SR10; §8.4.2.1)");
-                if (item.RedefinesTarget is null)
-                    item.RedefinesTargetName = null;   // no half-state: an unresolved redefiner is an ordinary entry
-                // §13.18.44.3 SR7 (kb/Work PB93 sweep): data-name-2 shall be the entry that ORIGINALLY defined the area
-                // — a redefiner naming a redefiner is a chain ISO forbids and the field's vendors accept: error strict,
-                // warning under --permissive with the chain semantics (ClassifyRedefinesClasses chases the anchor).
-                if (written && item.RedefinesTarget is { RedefinesTargetName: not null } viaRedefiner)
-                    Edition.Removed(DiagnosticCatalog.RedefinesOfRedefinition.Code,
-                        $"'{item.CobolName ?? "FILLER"}' REDEFINES '{viaRedefiner.CobolName ?? "FILLER"}', which is itself "
-                        + "a redefinition — data-name-2 shall be the entry that originally defined the storage area "
-                        + "(ISO §13.18.44.3 SR7)");
-                // §13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY
-                // LENGTH clause — a runtime-length item has no fixed storage area a redefiner could overlay.
-                if (written && item.RedefinesTarget is { IsAnyLength: true })
-                    Edition.Error("COBOL1542", $"'{item.CobolName ?? "FILLER"}' REDEFINES "
-                        + $"'{tname}': the redefined item is described with the ANY LENGTH clause "
-                        + "(ISO §13.18.44.3 SR16 — data-name-2 shall not be ANY LENGTH)");
-                // §13.18.44.3 SR1-SR3, SR8, SR10, SR13, SR15 — the entry-level rules over the resolved pair
-                // (DataBinder.RedefinesEntry.cs; kb/Work PB1280). SR8, which used to be written out here, is one of them,
-                // and SR10 (no entry defining new storage between the pair, kb/Work PB2518) is asked over the same scope.
-                if (written && item.RedefinesTarget is { } entryTarget) ScreenRedefinesEntry(item, entryTarget, scope);
-            }
-
-        // Each alias is resolved in the scope of its OWNER: the record whose level-66 entries it is, or — for an alias a
-        // TYPEDEF brought (CloneRenamesOnto, §13.18.58.4 GR1) — the item the type was applied to, which may be a group
-        // inside a record. Storage offsets are always measured from the record's own root (Offset below).
-        foreach (var root in RenamesOwners())
-            foreach (var ren in root.Renames66)
-            {
-                var info = ren.Renames!;
-                // SR4 confines both operands to THIS record, so the candidate set is the record's; it is COUNTED
-                // (kb/Work PB978) — two same-named items there are §8.4.2.2.3 SR1's ambiguity, not the first found.
-                // An operand the capture REFUSED (§13.18.45.3 SR7 / §8.4.2.2.2) was reported there — one fault, one verdict.
-                if (_refusedClauseOperands.Contains(info.FromName)
-                    || (info.ThruName is { } rt && _refusedClauseOperands.Contains(rt))) continue;
-                using var __q = Edition.At(ren);
-                string face = $"'{ren.CobolName ?? "FILLER"}' RENAMES";
-                info.From = UniqueOrReportAmbiguous(SubtreeCandidates(root, info.FromName, info.FromQualifiers), face,
-                    WrittenQualified(info.FromName, info.FromQualifiers), out bool fromAmbiguous);
-                bool thruAmbiguous = false;
-                info.Thru = info.ThruName is { } t
-                    ? UniqueOrReportAmbiguous(SubtreeCandidates(root, t, info.ThruQualifiers), face,
-                        WrittenQualified(t, info.ThruQualifiers), out thruAmbiguous)
-                    : null;
-                if (fromAmbiguous || thruAmbiguous) continue;
-                if (info.From is null || (info.ThruName is not null && info.Thru is null))
-                {
-                    // kb/Work PB93: an operand naming nothing in the record was skipped silently — the alias then had
-                    // no picture and no span, and every reference to it failed downstream with an unrelated message.
-                    using var __r = Edition.At(ren);
-                    string missing = info.From is null ? info.FromName : info.ThruName!;
-                    Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
-                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn ? " THRU " + tn : "")}: "
-                        + $"'{missing}' does not name an item of the record (ISO §13.18.45.3 SR4; §8.4.2.1)");
-                    continue;
-                }
-                // §13.18.45.3 SR5 / SR3 / SR6 — WHAT THE OPERANDS MAY BE (kb/Work PB1283, DataBinder.RenamesEntry.cs): the
-                // candidate set includes the record itself, so an operand is asked its level, its OCCURS and its record.
-                bool operandsOk = ScreenRenamesOperand(root, ren, info.From, "data-name-2");
-                if (info.Thru is { } thruOperand) operandsOk &= ScreenRenamesOperand(root, ren, thruOperand, "data-name-3");
-                if (!operandsOk) continue;
-                // §13.18.45.3 SR8 — WHAT THE RANGE MAY HOLD (kb/Work PB1284), asked before either form binds: a
-                // refused range never reaches the no-THRU forwarding or the tiler, which would otherwise model the
-                // alias as a fixed window over storage that has no fixed extent.
-                if (RenamesRangeFault(root, info.From, info.Thru) is { } rangeFault)
-                {
-                    using var __s = Edition.At(ren);
-                    Edition.Error(DiagnosticCatalog.RenamesRangeContent,
-                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn8 ? " THRU " + tn8 : "")}: "
-                        + $"{rangeFault}; none of the items within the range, including data-name-2 and data-name-3, "
-                        + "shall be of class object, message-tag, or pointer, a variable-length data item, or an "
-                        + "occurs-depending table (ISO §13.18.45.3 SR8)");
-                    continue;
-                }
-                // The no-THRU alias inherits the renamed item's description (§13.18.45 GR1) — the resolver
-                // forwards to the FROM item's place; no span, no synthetic alphanumeric picture.
-                if (info.Thru is null) { ren.Pic = info.From.Pic; continue; }
-
-                // The alias is the record's STORAGE WINDOW from data-name-2's first character to data-name-3's last
-                // (§13.18.45.4 GR1/GR2 — a re-grouping of the record's characters; the alias reads/writes as one
-                // elementary ALPHANUMERIC item of the window's width). kb/Work PB96: the former leaf-run walk listed
-                // every leaf between FROM and THRU — a REDEFINES view included, as if it occupied its own characters —
-                // so `RENAMES A THRU C` over A / B REDEFINES A / C was 6 characters, not 4. Offsets now come from the
-                // ONE recursive storage function (a redefiner sits at its target's offset, §13.18.44), the parts are
-                // the record's NON-redefining leaves that intersect the window, and a boundary inside a leaf (a FROM /
-                // THRU that partially redefines it) is a partial part.
-                int Width(DataItem d) => d.ByteWidth * (d.Occurs ?? 1);   // STORAGE bytes: a national position is two (D-N1; kb/Work PB1665)
-                int Offset(DataItem d)
-                {
-                    if (d.RedefinesTarget is { } tgt) return Offset(tgt);          // an overlay starts where its target does
-                    if (d.Parent is not { } par) return 0;                           // the record itself
-                    int off = Offset(par);
-                    foreach (var sib in par.Children)
-                    {
-                        if (ReferenceEquals(sib, d)) break;
-                        if (sib.RedefinesTargetName is null) off += Width(sib);       // a redefining sibling adds no storage
-                    }
-                    return off;
-                }
-                int startOff = Offset(info.From);
-                int endOff = Offset(info.Thru) + Width(info.Thru) - 1;
-                // §13.18.45.3 SR11 — data-name-3 neither begins before data-name-2 nor ends at or before its end.
-                (long Start, long End) ExtentOf(DataItem n)
-                {
-                    if (root.HasBitDescendant && BitLayout.StartBitOf(root, n) is var bitStart and >= 0)
-                        return (bitStart, bitStart + BitLayout.RunBits(n) - 1);
-                    int at = Offset(n);
-                    return (at, at + Width(n) - 1);
-                }
-                if (!ScreenRenamesWindowOrder(ren, info, ExtentOf)) continue;
-                // §13.18.45.3 SR10 — "The area described by data-name-2 THROUGH data-name-3 shall define an integral
-                // number of bytes" (kb/Work PB1284). Only a USAGE BIT item can make it fractional: §8.5.1.6.3 packs
-                // same-level bit items into shared bytes, so `A PIC 1(3) USAGE BIT` THRU `B PIC 1(2) USAGE BIT` is a
-                // 5-bit area the character offsets above cannot even see. Measured on THE ONE bit layout
-                // (BitLayout), and only for a record that holds a bit leaf — without one every extent is whole
-                // characters by construction.
-                if (root.HasBitDescendant
-                    && BitLayout.StartBitOf(root, info.From) is var fromBit and >= 0
-                    && BitLayout.StartBitOf(root, info.Thru) is var thruBit and >= 0
-                    && (thruBit + BitLayout.RunBits(info.Thru) - fromBit) is var areaBits
-                    && areaBits % BitLayout.BitsPerCharacter != 0)
-                {
-                    using var __b = Edition.At(ren);
-                    Edition.Error(DiagnosticCatalog.RenamesAreaNotWholeBytes,
-                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName} THRU {info.ThruName}: the area is "
-                        + $"{areaBits} bits, which is not a whole number of bytes; the area described by data-name-2 "
-                        + "THROUGH data-name-3 shall define an integral number of bytes (ISO §13.18.45.3 SR10)");
-                    continue;
-                }
-                // Every leaf of the record with its storage extent — REDEFINES views INCLUDED: a view reads the
-                // storage it overlays exactly as the redefined entry does (NC252A's `RDF8-5 THRU RDF8-6` lies inside a
-                // double redefinition of an OCCURS 36 table, and only those two views tile that window). Views are
-                // never counted twice because the tiling below advances by what it covered.
-                // ⛔ A LEAF UNDER AN OCCURS GROUP LIVES ONCE PER OCCURRENCE OF THAT GROUP (kb/Work PB986). §13.18.45.3 SR3
-                // bars an OCCURS only on the three NAMED operands, so a table may lie INSIDE the window, and its
-                // elementary items repeat at the GROUP's stride: S4 of `05 ST OCCURS 2. 10 S4 PIC X.` is two cells, one
-                // per ST. The walk therefore carries the enclosing table groups, and each leaf contributes one RUN per
-                // combination of their occurrences that the window reaches (a run = the leaf's own contiguous
-                // occurrences within one outer occurrence); only the occurrences the window intersects are visited, so a
-                // large table elsewhere in the record costs nothing. Counting the leaf `Occurs ?? 1` and ignoring the
-                // group — the former walk — left the second occurrence uncovered and refused the legal alias as one that
-                // "does not tile". A table whose extent is not fixed (dynamic-capacity) lies outside every legal window
-                // (SR8, RenamesRangeFault) and is not entered.
-                var leaves = new List<(DataItem Leaf, int Off, int W, int Occ, int[] Outer)>();
-                void AddRuns(DataItem leaf, List<DataItem> tables, int level, int delta, List<int> outer)
-                {
-                    if (level == tables.Count)
-                    {
-                        int off = Offset(leaf) + delta, total = Width(leaf);
-                        if (off + total - 1 >= startOff && off <= endOff)
-                            leaves.Add((leaf, off, leaf.ByteWidth, leaf.Occurs ?? 1, [.. outer]));
-                        return;
-                    }
-                    var table = tables[level];
-                    int stride = table.ByteWidth, groupOff = Offset(table) + delta;
-                    int first = startOff <= groupOff ? 1 : (startOff - groupOff) / stride + 1;
-                    int last = endOff < groupOff ? 0 : Math.Min(table.Occurs!.Value, (endOff - groupOff) / stride + 1);
-                    for (int k = first; k <= last; k++)
-                    {
-                        outer.Add(k);
-                        AddRuns(leaf, tables, level + 1, delta + (k - 1) * stride, outer);
-                        outer.RemoveAt(outer.Count - 1);
-                    }
-                }
-                void Walk(DataItem n, List<DataItem> tables)
-                {
-                    if (n.IsElementary) { if (Width(n) > 0) AddRuns(n, tables, 0, 0, []); return; }
-                    if (n.IsDynamicTable) return;
-                    bool isTable = n.Occurs is not null;
-                    if (isTable) tables.Add(n);
-                    foreach (var c in n.Children) Walk(c, tables);
-                    if (isTable) tables.RemoveAt(tables.Count - 1);
-                }
-                Walk(root, []);
-                // GREEDY TILING of [startOff, endOff]: at each position take the LONGEST whole leaf (or whole table
-                // cell) that starts exactly there and fits inside the window; else the most specific (narrowest) leaf
-                // cell containing the position, as a partial slice up to the window's end or the cell's end.
-                int pos = startOff;
-                bool stuck = false;
-                while (pos <= endOff)
-                {
-                    // ⛔ EVERY CANDIDATE IS ADDRESSABLE, because a part is a range of STORAGE BYTES (RenamesSpanPart;
-                    // kb/Work PB2466, PB1902): a slice whose boundary falls on the odd byte of a national character, and
-                    // an interior byte only half a national character covers (an alphanumeric REDEFINES view shorter than
-                    // the national item it redefines), are bytes of the record's storage like any other, and the alias
-                    // is "an alphanumeric group item" over that storage (§13.18.45.4 GR2). Parts used to be kept in their
-                    // leaf's positions, so such a slice was chosen and then refused — COBOL1655 on legal source.
-                    RenamesSpanPart? best = null;
-                    foreach (var (leaf, off, w, occ, outer) in leaves)
-                    {
-                        int total = w * occ;
-                        if (pos < off || pos > off + total - 1) continue;          // the leaf does not contain pos
-                        // the whole leaf (every occurrence) starting exactly here and fitting the window
-                        if (off == pos && off + total - 1 <= endOff)
-                            Consider(new RenamesSpanPart(leaf, null, 1, total, outer));
-                        int k = (pos - off) / w + 1;                                // the occurrence containing pos
-                        int cellLo = off + (k - 1) * w, cellHi = cellLo + w - 1;
-                        if (cellLo == pos && cellHi <= endOff)                      // a whole cell (or the whole 1-occurrence leaf)
-                            Consider(new RenamesSpanPart(leaf, occ == 1 ? null : k, 1, w, outer));
-                        else                                                        // a partial slice of the containing cell
-                            Consider(new RenamesSpanPart(leaf, k, pos - cellLo + 1, Math.Min(endOff, cellHi) - pos + 1, outer));
-                    }
-                    void Consider(RenamesSpanPart c)
-                    {
-                        // prefer: whole (non-partial) over partial; then the longest cover; then the narrowest leaf
-                        if (best is not { } b
-                            || (b.IsPartial && !c.IsPartial)
-                            || (b.IsPartial == c.IsPartial && c.LengthBytes > b.LengthBytes)
-                            || (b.IsPartial == c.IsPartial && c.LengthBytes == b.LengthBytes && c.Leaf.ByteWidth < b.Leaf.ByteWidth))
-                            best = c;
-                    }
-                    if (best is not { LengthBytes: > 0 } chosen) { stuck = true; break; }
-                    info.Span.Add(chosen);
-                    pos += chosen.LengthBytes;
-                }
-                if (stuck || info.Span.Count == 0)
-                {
-                    using var __u = Edition.At(ren);
-                    Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
-                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName} THRU {info.ThruName}: the record's leaves do "
-                        + "not tile the alias's storage window (kb/Work PB96)");
-                    info.Span.Clear();
-                    continue;
-                }
-                ren.Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display,
-                    Length: endOff - startOff + 1, Digits: 0, Scale: 0, Signed: false);
-            }
-    }
-
-    /// <summary>The first §13.18.45.3 SR8 violation among the items WITHIN a RENAMES range, as the clause of the
-    /// diagnostic naming the item and its shape, or null (kb/Work PB1284). SR8: "None of the items within the range,
-    /// including data-name-2 and data-name-3, if specified, shall be of class object, message-tag, or pointer, a
-    /// strongly-typed group item, an item subordinate to a strongly-typed group item, a variable-length data item, or
-    /// an occurs-depending table."
-    /// <para>THE RANGE is §13.18.45.4 GR2's: every entry from data-name-2 through the last entry of data-name-3's
-    /// subtree, in declaration order — groups and elementary items alike, a REDEFINES view among them — or, without
-    /// THROUGH, data-name-2 and its subordinates (GR1). It is enumerated over the DECLARATION tree, not over storage
-    /// offsets, because the offending shapes are exactly the ones storage offsets cannot see: a dynamic-length item
-    /// has zero fixed width, and a dynamic-capacity or occurs-depending table's extent is not its declared one.</para>
-    /// <para>The strongly-typed arms are enforced with the rest of the strong-type rules they share a sentence
-    /// with, <c>CheckStrongTypeDeclarations</c> (§13.18.57.3 SR3, COBOL1532); this screen owns the other three.
-    /// The class arm reads §13.18.60.3 SR14's phrase reader, whose five phrases are exactly the usages of classes
-    /// object (OBJECT REFERENCE), message-tag (MESSAGE-TAG) and pointer (POINTER, PROGRAM-POINTER,
-    /// FUNCTION-POINTER).</para></summary>
-    private static string? RenamesRangeFault(DataItem record, DataItem from, DataItem? thru)
-    {
-        var ordered = DataItem.SelfAndDescendantsOf(record).ToList();
-        int first = ordered.IndexOf(from);
-        var last = thru ?? from;
-        int lastAt = ordered.IndexOf(last);
-        if (first < 0 || lastAt < 0) return null;   // not in this record — reported by the operand resolution
-        int end = lastAt;
-        while (end + 1 < ordered.Count && OdoModel.IsWithin(ordered[end + 1], last)) end++;   // last's subtree
-        for (int i = first; i <= end; i++)
-        {
-            var d = ordered[i];
-            string name = $"'{d.CobolName ?? "FILLER"}'";
-            if (VariableLengthCompatibility.IsVariableLengthDataItem(d))
-                return $"{name} is a variable-length data item — "
-                    + (d.IsDynamicTable ? "a dynamic-capacity table" : "a dynamic-length elementary item")
-                    + " (ISO §8.5.1.11.1)";
-            if (d.OccursSpec is { DependingName: not null })
-                return $"{name} is an occurs-depending table";
-            if (!d.IsGroup
-                && (ItemCategory.Sr14PhraseOf(d.Pic?.Usage) ?? ItemCategory.Sr14PhraseOf(d.OwnUsage)) is { } phrase)
-                return $"{name} is described with USAGE {phrase} — of class " + phrase switch
-                {
-                    "OBJECT REFERENCE" => "object",
-                    "MESSAGE-TAG" => "message-tag",
-                    "POINTER" or "PROGRAM-POINTER" or "FUNCTION-POINTER" => "pointer",
-                    _ => throw new System.Diagnostics.UnreachableException(
-                        $"§13.18.60.3 SR14 phrase '{phrase}' has no §8.5.2 class in the RENAMES SR8 screen"),
-                };
-        }
-        return null;
-    }
-
-    /// <summary>⛔ THE CLAUSE SCREENS SCREEN THE CLAUSE (kb/Work PB836) — §13.18.44.3 SR5 (sentence 1), SR12, SR14 and
-    /// SR17, asked once per WRITTEN REDEFINES clause over its subject <paramref name="item"/> and its DIRECT
-    /// data-name-2 <paramref name="target"/>, never the chained anchor. An FD/SD's later level-1 records (§13.18.33.4
-    /// GR3) and a SAME RECORD AREA file's record (§12.4.6.4.4 GR2) share the area IMPLICITLY: no clause, no operand,
-    /// and none of these rules. Asked of a storage item by <see cref="ClassifyRedefinesClasses"/> before it builds the
-    /// item's class, and of a TYPEDEF template member, which has no class (kb/Work PB2071).</summary>
-    private void ScreenRedefinesClause(DataItem item, DataItem target)
-    {
-        // §13.18.44.3 SR12/SR14 (kb/Work PB179; the skeptic round moved this screen HERE, per WRITTEN
-        // ENTRY and BEFORE dissolution — ClassifyRedefinesClasses' dissolve loop removes nested classes, so a per-class
-        // screen let an inner entry's violation escape the diagnostic and fall to the outer class's
-        // staged-loud arm: same verdict, wrong posture): SR12 bars the SUBJECT being of class
-        // object/message-tag/pointer or a strongly-typed group; SR14 bars data-name-2 (the DIRECT
-        // target as written) likewise, plus "subordinate to a strongly-typed group item". These are the
-        // rules' LETTER — the drafting contrast with SR9's "nor any entry subordinate to it" shows they
-        // name the entry-level items only; a NESTED pointer leaf is §13.18.60.3 SR14's territory — now
-        // screened at its own declaration by CheckUsageDeclarations (kb/Work PB183, COBOL1724), with
-        // ComputeTier's backstop arm kept as the recovery-path guard behind it.
-        if (Sr12Sr14Violation(item, target) is { } srv)
-            Edition.Error(DiagnosticCatalog.RedefinesPointerObject, srv);
-        // §13.18.44.3 SR17, the SAME per-written-entry posture and for the same reason (kb/Work PB177 arm C):
-        // "Neither data-name-2 nor the subject of the entry shall be a variable-length group or a
-        // dynamic-length elementary item." A SYMMETRIC rule, so BOTH sides are tested — the two-arm
-        // discipline applied to the screen itself. It must run HERE, before the dissolve loop, or a nested
-        // entry's violation escapes into the outer class's staged-loud arm (the PB179 skeptic round's
-        // finding, which is why SR12/SR14 sit here).
-        // ⛔ AND IT CLOSES A SILENT MIS-MODEL, not just an under-rejection: StorageFormPass.Classify returns
-        // DynamicString for an IsDynamicLength item BEFORE reaching its Tier-B view arm, so such a view got
-        // its OWN disjoint native string — two storages for one shared area (§13.18.44.4 GR1 says one), with
-        // no diagnostic. Rejecting the entry makes that path unreachable.
-        foreach (var (side, sideItem) in new[]
-                 { ("the subject of the REDEFINES entry", item), ("data-name-2 of a REDEFINES entry", target) })
-            if (VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup(sideItem) is { } shape)
-                Edition.Error(DiagnosticCatalog.RedefinesVariableLength,
-                    $"'{sideItem.CobolName ?? sideItem.ClrName}' is {side} but is {shape}: neither "
-                    + "data-name-2 nor the subject of the entry shall be a variable-length group or a "
-                    + "dynamic-length elementary item (ISO §13.18.44.3 SR17)");
-        // §13.18.44.3 SR5 SENTENCE 1 — the OBJECT side, per written entry like its two neighbours above.
-        // "The data description entry for data-name-2 shall not contain an OCCURS clause." ANY format: the
-        // fixed OCCURS of Format 1, Format 2's occurs-depending table, and Format 4's dynamic-capacity table
-        // are all THE OCCURS CLAUSE (§13.18.38), so the predicate is `IsTable` — the union. ⛔ NEITHER half
-        // alone works, and each is a live trap this repo has already sprung once: `Occurs is not null` is
-        // the FIXED physical capacity and is NULL for a Format-4 table (the CONTROL SR3 arm's defect), while
-        // `OccursSpec is not null` is NULL for a plain keyless fixed table, which OdoBindOccursSpec
-        // deliberately leaves allocation-free (measured: with that spelling `05 T PIC X(3) OCCURS 4. 05 R
-        // REDEFINES T PIC X(12).` still compiled clean — the very shape this screen exists for).
-        // ⛔ SENTENCE 2 IS THE LIMIT OF THIS ARM: "However, data-name-2 may be subordinate to an item whose
-        // data description entry contains an OCCURS clause." So the test is on data-name-2's OWN entry —
-        // an ancestor walk here would reject legal source.
-        // ⛔ AND THE DEPENDING SHAPE IS DELIBERATELY EXCLUDED, so one entry never draws two diagnostics from
-        // one rule: SENTENCE 4 ("Neither the original definition nor the redefinition shall include an
-        // occurs-depending table") is COBOL0855's, whose population is WIDER (an ODO table anywhere in
-        // either definition, not merely on data-name-2's own entry) and which already rejects every entry
-        // this arm would also match. One rule, four sentences, two disjoint screens.
-        if (target.IsTable && target.OccursSpec?.DependingName is null)
-            Edition.Error(DiagnosticCatalog.RedefinesTargetOccurs,
-                $"'{item.CobolName ?? item.ClrName}' REDEFINES '{target.CobolName ?? target.ClrName}', "
-                + "whose data description entry contains an OCCURS clause: the data description entry for "
-                + "data-name-2 shall not contain an OCCURS clause (ISO §13.18.44.3 SR5) — data-name-2 may be "
-                + "SUBORDINATE to an item that has one, but shall not carry one itself");
-    }
-
-    /// <summary>Group every redefining entry with the non-redefining anchor it ultimately overlays (SR7/SR11) into a
-    /// <see cref="RedefinesClass"/>, mark the anchor canonical and every other member a view, then assign the class a
-    /// tier (D &gt; C &gt; B &gt; A) and its class-max width, and propagate view-suppression to each view's
-    /// subordinates (SR9 — no VALUE on a subordinate of a redefiner). (DESIGN §4.2.)</summary>
-    internal void ClassifyRedefinesClasses()
-    {
-        var byAnchor = new Dictionary<DataItem, RedefinesClass>();
-        foreach (var item in AllItems())
-        {
-            if (item.RedefinesTarget is null) continue;
-            using var _ = Edition.At(item);
-            if (item.RedefinesKind is RedefinitionKind.Clause) ScreenRedefinesClause(item, item.RedefinesTarget);
-            DataItem anchor = item;
-            // Chase data-name-2 to the non-redefining anchor. A CHAIN (X REDEFINES Y, Y REDEFINES Z) is
-            // SR7-ILLEGAL (the skeptic round corrected this comment's SR11 miscitation — SR11 is the
-            // nested-under-a-redefinition PERMISSION) and diagnosed at resolve; it reaches here only under
-            // --permissive, where the anchor walk still yields one shared area.
-            while (anchor.RedefinesTarget is { } t) anchor = t;
-            if (!byAnchor.TryGetValue(anchor, out var cls))
-            {
-                cls = new RedefinesClass { Canonical = anchor };
-                cls.Members.Add(anchor);
-                anchor.Class = cls;
-                byAnchor[anchor] = cls;
-            }
-            cls.Members.Add(item);
-            item.Class = cls;
-            item.IsCanonical = false;
-        }
-        // A TYPEDEF template member's REDEFINES clause answers the same clause rules (kb/Work PB2071) and builds NO
-        // class: a type declaration has no storage associated with it (ISO §13.18.58.4 GR2).
-        foreach (var item in TemplateItems())
-            if (item.RedefinesKind is RedefinitionKind.Clause && item.RedefinesTarget is { } target)
-            {
-                using var _ = Edition.At(item);
-                ScreenRedefinesClause(item, target);
-            }
-
-        // ONE shared area per overlay nest (ISO §13.18.44 — a REDEFINES nested under another class's member
-        // shares THAT storage): a class whose ANCHOR lies inside another class's subtree — its ancestor chain
-        // crosses a redefining member or another class's anchor (NC252A's `RDEF8 REDEFINES RDF8` under the view
-        // `REDEF11 REDEFINES REDEF10`) — DISSOLVES into the outer class. The outer subtree walk below assigns
-        // every nested item its window over the one backing (an inner redefiner starts at its target's
-        // already-assigned offset), so a dissolved class needs no members of its own; keeping it would let its
-        // later walk re-claim the subtree and emit a backing inside a suppressed view struct (CS0103).
-        foreach (var (anchor, cls) in byAnchor.ToList())
-            for (var a = anchor.Parent; a is not null; a = a.Parent)
-                if (a.RedefinesTargetName is not null || (byAnchor.ContainsKey(a) && !ReferenceEquals(byAnchor[a], cls)))
-                {
-                    byAnchor.Remove(anchor);
-                    break;
-                }
-
-        foreach (var cls in byAnchor.Values)
-        {
-            var tier = ComputeTier(cls, out string? reject);
-            // A class joined by the file section's IMPLICIT redefinition (kb/Work PB836) is screened by the
-            // implicit-area arm below, never by the REDEFINES-clause verdicts that follow — those name a clause
-            // and a data-name-2 the source does not contain.
-            bool implicitArea = cls.Members.Any(m => m.RedefinesImplicitly);
-            // ⛔ CITATION REPAIRED **TWO-SIDEDLY**, AND THE SCREEN NARROWED TO THE SUBJECT SIDE (kb/Work PB177
-            // arm C, then its follow-up). Three moves, and the middle one was itself wrong on one side:
-            //  1. The arm used to cite "§13.18.44 SR5" for BOTH sides.
-            //  2. The repair read SR5's FOURTH sentence ("Neither the original definition nor the redefinition
-            //     shall include an occurs-depending table" — COBOL0855's rule) and concluded the whole rule
-            //     was about something else, so it wrote "which NO syntax rule literally names". ⛔ THAT IS TRUE
-            //     ONLY OF THE SUBJECT SIDE. SR5's FIRST sentence is "The data description entry for data-name-2
-            //     shall not contain an OCCURS clause", and OCCURS DYNAMIC is Format 4 OF the OCCURS clause
-            //     (§13.18.38) — so the OBJECT side is named outright, and is now COBOL1701 per written entry.
-            //     Reading one sentence of a four-sentence rule and generalising is the same inheritance failure
-            //     CLAUDE.md rule 1 names, one level down: the clause NUMBER was right and the SENTENCE was not.
-            //  3. The dynamic-capacity SUBORDINATE case is §13.18.44.3 SR17's (a group with such a table
-            //     subordinate IS a "variable-length group", §8.5.1.12.1) and is screened per WRITTEN ENTRY above
-            //     as COBOL1698.
-            // WHAT REMAINS HERE IS THE SUBJECT THAT IS ITSELF A DYNAMIC-CAPACITY TABLE, and for THAT side the
-            // "no syntax rule names it" reading holds: §13.18.38.3 carries no REDEFINES restriction, and SR17
-            // does not reach an ELEMENTARY dynamic table (§8.5.1.12.1's "variable-length group" is defined over
-            // items SUBORDINATE to the group). So cite what actually decides it — §13.18.44.4 GR1 ("Storage
-            // association for the subject of the entry starts at the first bit of the data item referenced by
-            // data-name-2 and continues over an area sufficient to contain the number of bits required by the
-            // data item referenced by the subject of the entry") against §8.5.1.9.1's dynamic-capacity model,
-            // whose "physical and logical capacities may vary during execution": there is no fixed area to
-            // associate. A WiseOwl COBOL storage-model rejection, honestly labelled, not a borrowed rule number.
-            // (The message names the OFFENDING MEMBER, not the class canonical — it used to say "the
-            // dynamic-capacity table in '<canonical>'" even when the canonical was the ordinary fixed item and
-            // the dynamic table was the REDEFINING entry.)
-            if (!implicitArea
-                && cls.Members.FirstOrDefault(m => !ReferenceEquals(m, cls.Canonical) && m.IsDynamicTable) is { } dynSubject)
-            {
-                using var dynamicSubjectAt = Edition.At(dynSubject);   // the REDEFINES entry as written; this pass runs post-build (kb/Work PB2034)
-                Edition.Error("COBOL1525", $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.ClrName}' is "
-                    + "itself a dynamic-capacity table: its capacity \"may vary during execution\" (ISO "
-                    + "§8.5.1.9.1), so it has no fixed area for the storage association §13.18.44.4 GR1 requires; "
-                    + "it shall not be the subject of a REDEFINES");
-                tier = RedefinesTier.Rejected;
-                reject ??= "REDEFINES subject is a dynamic-capacity table (§13.18.44.4 GR1 / §8.5.1.9.1, D9)";
-            }
-            // The §13.18.44.3 SR5 sentence-1 TIER verdict, same posture as SR12/SR14's and SR17's below (the
-            // DIAGNOSTIC fired per written entry, before dissolution — no second diagnostic here). The tier
-            // matters on its own: without it the class model is built as though the OCCURS-bearing object were
-            // a legal single area, and the offsets/width walk below lays a view over one occurrence's worth of
-            // storage. The predicate is the RULE's (`OccursSpec is not null`, every format) even though the
-            // depending shape's DIAGNOSTIC belongs to COBOL0855 — a tier is not a message.
-            foreach (var m in cls.Members)
-                if (m.RedefinesKind is RedefinitionKind.Clause && m.RedefinesTarget is { IsTable: true } occTarget)
-                {
-                    tier = RedefinesTier.Rejected;
-                    reject = $"REDEFINES over '{occTarget.CobolName ?? occTarget.ClrName}', whose data "
-                        + "description entry contains an OCCURS clause (ISO §13.18.44.3 SR5)";
-                }
-            // The SR12/SR14 TIER verdict for a retained class (the DIAGNOSTIC fired per written entry in the
-            // grouping loop above, before dissolution — no second diagnostic here): the class rejects with
-            // the spec-required reason, OVERRIDING ComputeTier's staged-loud one (its backstop arm also
-            // matches an entry-level pointer).
-            foreach (var m in cls.Members)
-                if (!ReferenceEquals(m, cls.Canonical) && m.RedefinesKind is RedefinitionKind.Clause
-                    && m.RedefinesTarget is { } srTarget && Sr12Sr14Violation(m, srTarget) is { } srReason)
-                {
-                    tier = RedefinesTier.Rejected;
-                    reject = srReason;
-                }
-            // The §13.18.44.3 SR17 TIER verdict, same posture as SR12/SR14's above (the DIAGNOSTIC fired per
-            // written entry, before dissolution — no second diagnostic here).
-            // ⛔ THE TIER IS BELT-AND-BRACES, AND THE COMMENT HERE USED TO OVERCLAIM IT. It said "Rejecting the
-            // CLASS makes that path structurally unreachable rather than merely unreached because a diagnostic
-            // happened to stop the compile." MEASURED FALSE (RedefinesClassificationTests, once its assertion
-            // was made non-inert): StorageFormPass.Classify orders its arms (1) IsDynamicTable, (1b)
-            // IsDynamicLength → DynamicString, and only THEN (2) the REDEFINES-view arm — so arm 1b returns
-            // before the tier is ever read, and a Rejected class's dynamic-length view still classifies as
-            // DynamicString. A class DISSOLVED by the nested-anchor loop below bypasses the tier loop entirely,
-            // which is the same hole from the other side. WHAT ACTUALLY PREVENTS THE DISJOINT STORAGE REACHING
-            // A USER'S PROGRAM IS THE COBOL1698 DIAGNOSTIC, which is fatal. The tier verdict is a second,
-            // independent verdict at the modelling layer and is worth keeping as one — every consumer that asks
-            // the CLASS gets the right answer — but "structurally unreachable" was a claim about a path this
-            // code does not close.
-            if (!implicitArea)
-                foreach (var m in cls.Members)
-                    if (VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup(m) is { } vlShape)
-                    {
-                        tier = RedefinesTier.Rejected;
-                        reject = $"REDEFINES entry side '{m.CobolName ?? m.ClrName}' is {vlShape} "
-                            + "(ISO §13.18.44.3 SR17)";
-                    }
-            // ⛔ THE IMPLICIT-AREA ARM (kb/Work PB836, narrowed by PB981). No syntax rule forbids a file's records
-            // from being a dynamic-length item, a variable-length group or a pointer — §13.18.33.4 GR3 simply makes
-            // them share one area — and since PB981 none of those reaches a class at all: they are OUT-OF-LINE
-            // records (FileModel.IsOutOfLineRecord, determination D-FRA), which LinkImplicitRecordArea never links,
-            // and they share the area at the transfer boundary (FileModel.OutOfLineRecords). What can still reach
-            // here Rejected is a ComputeTier residue of a CHARACTER-window record (ByteWindowResidueOf), staged
-            // LOUD rather than let through. The reason names the rule the program DID use, never §13.18.44.
-            if (implicitArea)
-            {
-                if (tier is RedefinesTier.Rejected)
-                {
-                    var rule = cls.Members.Any(m => m.RedefinesKind is RedefinitionKind.SameRecordArea)
-                        ? "a record-area SAME clause makes its files' records an implicit redefinition of one area "
-                          + "(ISO §12.4.6.4.4 GR2)"
-                        : "multiple level 1 entries of one FD or SD are implicit redefinitions of the same area "
-                          + "(ISO §13.18.33.4 GR3)";
-                    using var __ = Edition.At(cls.Members.FirstOrDefault(m => m.RedefinesImplicitly) ?? cls.Canonical);
-                    Edition.Error(DiagnosticCatalog.ImplicitRecordAreaShape,
-                        $"the record area of '{cls.Canonical.CobolName ?? cls.Canonical.ClrName}' is shared — {rule} — "
-                        + $"and {reject}: a shared record area of that shape is recognized but not yet implemented");
-                }
-            }
-            // The width is a member table's FULL STORAGE extent (every occurrence) — §13.18.44.4 GR1: when the
-            // subject "requires more bits than the data item referenced by data-name-2, the storage area
-            // allocated … is the number of bits required by the data item referenced by the subject", i.e. the
-            // maximum over the members. In BYTES, never character positions (kb/Work PB231): the two differ for
-            // a NATIONAL member, whose §13.18.60.4 GR8 size is two bytes per position under D-N1, and a
-            // character-position maximum would under-size the shared backing by half of it.
-            // ONE verdict application (P5.11d).
-            cls.Classify(tier, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)), reject);
-            // Each top-level member overlays the area from its start (a REDEFINES begins at the target's first
-            // position, SR10); a subordinate accumulates its window offset within the member. Subordinates of any
-            // member are themselves views (suppressed field, SR9).
-            foreach (var member in cls.Members)
-                AssignClassOffsets(member, 0, cls);
-            // A Tier-B (string-canonical) numeric-DISPLAY view reads/writes its window through the character pipeline
-            // (CobolNum.ParseDisplay / FormatDisplay) — the same image path used for whole-group numeric leaves.
-            if (cls.Tier == RedefinesTier.StringCanonical)
-                foreach (var leaf in cls.Members.SelectMany(LeavesOf))
-                {
-                    if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                        State.ImageForcedItems.Add(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
-                    // A national-form numeric leaf reaches the arm below (kb/Work PB646): its window over the
-                    // one backing is Place.NationalWindow's transcoded CHARACTERS, not its bytes, but the
-                    // image-forced verdict is the same one and this is the arm that already carried it.
-                    else if (leaf.Pic is { HasImageByteForm: true, Usage: not Usage.Display })   // the ONE image predicate (kb/Work PB164 — COMP-5/BINARY-* windows included)
-                        // A fixed-point BINARY/PACKED leaf of a Tier-B class is image-stored too: its window over
-                        // the one string backing IS its BYTES — radix-2 two's complement or BCD, of exactly
-                        // PicInfo.StorageWidth (ISO §13.18.60.4 GR4/GR11 implementor representation;
-                        // DESIGN §14.4, V59). Every accessor threads the leaf's OWN `_P_` profile
-                        // through CobolNum.FormatImage/ParseImage, so no profile rewrite is needed or wanted:
-                        // the sign lives in the bytes (two's complement / the sign nibble), and SignKind — a
-                        // DISPLAY concern — stays the declared BinaryMinus, which is what DISPLAY of the leaf
-                        // must still render. The former rewrite to a trailing-overpunch ZONED image existed only
-                        // because the window used to be Digits characters wide.
-                        State.ImageForcedItems.Add(leaf);
-                }
-        }
-    }
-
     /// <summary>Assign each item in a redefines class its window offset within the class image and its class link; a
     /// top-level member starts at <paramref name="off"/> (0), a subordinate accumulates by preceding-sibling FULL
     /// extents (per-occurrence image width × OCCURS count — every occurrence is part of the layout). A subordinate
     /// that itself REDEFINES a prior sibling takes the TARGET's offset (redefinition begins at the redefined item's
     /// first position, ISO §13.18.44 GR1) and contributes NO width of its own. Every subordinate of a class member
     /// is itself a view (its stored field is suppressed — SR9).</summary>
-    private static void AssignClassOffsets(DataItem item, int off, RedefinesClass cls) =>
+    internal static void AssignClassOffsets(DataItem item, int off, RedefinesClass cls) =>
         AssignClassBitOffsets(item, off * BitLayout.BitsPerCharacter, cls);
 
     /// <summary>The walk proper, carrying the offset in BITS — the unit §13.18.44.4 GR1 states the storage
@@ -8108,35 +7085,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
     }
 
-    /// <summary>Assign a redefines class its tier (DESIGN §4.2; the Step D arm-1 dissolution made the
-    /// cascade D &gt; B &gt; A — Tier C dissolved into B: every numeric leaf kind's byte form is pinned, so a
-    /// mixed-USAGE pun is an ordinary byte-window class. D rejects the nested pointer/object backstop and the
-    /// NATIONAL residue.</summary>
-    // (ContainsDynamicTable was deleted with kb/Work PB177 arm C: its SUBORDINATE half is §13.18.44.3 SR17's,
-    // now screened per written entry through DataItem.HasVariableLengthSubordinate — §8.5.1.12.1's own
-    // definition of "variable-length group" — and its SELF half is the narrowed `m.IsDynamicTable` test at the
-    // COBOL1525 arm. Two spellings of one walk collapsed into the predicate the standard actually defines.)
-
-    /// <summary>The §13.18.44.3 SR12/SR14 class test (kb/Work PB179): object/pointer classes occupy no
-    /// character positions and can neither overlay nor be overlaid. Message-tag has no bound model (declined
-    /// non-support, COBOL1943), so it is never of a class here.
-    /// <para>⛔ CLASS INDEX IS NOT HERE and must never be added: §13.18.60.3 SR4 is the rule whose list includes
-    /// INDEX, and it has its own predicate. §13.18.60.3 SR14's declaration-placement screen
-    /// (<c>DataBinder.UsageDeclaration.cs</c>) does NOT ask this CLASS question: SR14 is written over the five USAGE
-    /// PHRASES, so it reads the phrase (<c>Sr14PhraseOf</c>), which sees a usage the compiler refuses by name
-    /// where a class cannot (kb/Work PB819). <c>UsageDeclarationPlacementDriftTests</c> pins the two readers'
-    /// agreement on every profile that has a class.
-    /// </para>
-    /// <para>⛔ AND IT IS NOW THE STORAGE PREDICATE TOO. <see cref="SlotWindow.CarriedBySlot"/> — "does this
-    /// member ride the storage area's MANAGED SLOTS rather than its bytes?" (kb/Work PB231, the pointer third)
-    /// — is the same population for the same reason: a class object/pointer item holds a managed reference and
-    /// no bytes. It is the DEFINITION and this is the delegation, so the third spelling cannot drift from the
-    /// first two either.</para></summary>
-    private static bool PointerObjectClass(DataItem d) => SlotWindow.CarriedBySlot(d);
-
     /// <summary>⛔ THE ONE BYTE-WINDOW CARRIAGE GATE — the single answer to "may this LEAF ride a shared
     /// byte-window storage area?", returning null when it may and the residue clause naming why not when it
-    /// may not. Both surfaces that ask the question ask it here: <see cref="ComputeTier"/> (a REDEFINES class
+    /// may not. Both surfaces that ask the question ask it here: <see cref="ClassifyRedefinesClassesPass.ComputeTier"/> (a REDEFINES class
     /// over one string canonical, §13.18.44.4 GR1 — "Storage association for the subject of the entry starts
     /// at the first bit of the data item referenced by data-name-2 and continues over an area sufficient to
     /// contain the number of bits required") and <c>ForceStringCanonical</c> (the EXTERNAL run-unit cell, the
@@ -8156,7 +7107,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <para>The ALLOW-list direction is deliberate and must stay: a category added to the model with no
     /// pinned byte image has to be DENIED by default, never silently laid out as a zero-width alias.
     /// <c>ByteWindowResidueDriftTests</c> pins that both callers route through here.</para>
-    /// <para>⛔ THE THIRD CALLER IS <see cref="GateFileRecordByteSurface"/> — the FD/SD record gate, folded in at
+    /// <para>⛔ THE THIRD CALLER IS <see cref="GateFileRecordByteSurfacePass.Run"/> — the FD/SD record gate, folded in at
     /// kb/Work PB327 as PB231's paragraph here instructed. It used to screen the NATIONAL half only, with its own
     /// message and its own hand-written population; national now RIDES (the record codec lays a national position
     /// out as its two UTF-16BE bytes), and the pointer-class tightening the fold carries is a strict improvement
@@ -8228,207 +7179,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         };
     }
 
-    /// <summary>The outermost strongly-typed item in <paramref name="record"/>'s subtree (the record itself when it
-    /// is a TYPE subject naming a STRONG type), or null — the "in whole or in part" population of §13.18.57.3 SR4
-    /// for a record that is implicitly redefined as a whole (kb/Work PB836).</summary>
-    private static DataItem? FirstStrongItemIn(DataItem record)
-    {
-        if (record.StrongType) return record;
-        foreach (var c in record.Children)
-            if (FirstStrongItemIn(c) is { } s) return s;
-        return null;
-    }
-
-    /// <summary>ONE §13.18.44.3 SR12/SR14 verdict per WRITTEN entry — <paramref name="subject"/> is the item
-    /// carrying the REDEFINES clause, <paramref name="target"/> its DIRECT data-name-2 (never the chained
-    /// anchor). Returns the violation text (the diagnostic message AND the class RejectReason), or null.
-    /// Each arm's message names the arm that actually fired (the skeptic round: a subordinate-to-strong
-    /// violation was described as "is a strongly-typed group" — false of the item named).
-    /// <para>⛔ The SR14 "subordinate to a strongly-typed group item" arm has NO same-root exemption (kb/Work
-    /// PB1282). It once fired only when the subject sat OUTSIDE the target's strong subtree, which no entry can
-    /// do — a subject and its data-name-2 are siblings, so they share one parent and therefore one strong root —
-    /// so the disjunct was vacuous. The way to meet it is a REDEFINES written inside a STRONG typedef template:
-    /// §13.18.58.4 GR3 makes every subordinate description of the type "assumed by data defined using the
-    /// type-name" (and §13.18.57.4 GR1 codes it "as though" in the TYPE subject), and §8.5.3.1 makes that subject
-    /// strongly typed ("described with a TYPE clause that references a type declaration specifying the STRONG
-    /// phrase"), so in each TYPE subject data-name-2 is "an item subordinate to a strongly-typed group item".
-    /// In the template itself it is not: the template root carries TYPEDEF, not a TYPE clause, so an unused STRONG
-    /// template holding such a REDEFINES conforms (kb/Work PB2071). PB183's companion derivation answered
-    /// §13.18.57.3 SR4 — the subject of the TYPE entry — which is a different rule from this one;
-    /// <c>CheckStrongTypeDeclarations</c> still leaves the internal case to this screen so it is reported once.</para></summary>
-    private static string? Sr12Sr14Violation(DataItem subject, DataItem target)
-    {
-        if (PointerObjectClass(subject))
-            return $"'{subject.CobolName ?? subject.ClrName}' is the subject of a REDEFINES entry but is of "
-                + "class object/pointer (ISO §13.18.44.3 SR12)";
-        if (StrongTypeModel.IsStrongGroup(subject))
-            return $"'{subject.CobolName ?? subject.ClrName}' is the subject of a REDEFINES entry but is a "
-                + "strongly-typed group item (ISO §13.18.44.3 SR12)";
-        if (PointerObjectClass(target))
-            return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is of class "
-                + "object/pointer (ISO §13.18.44.3 SR14)";
-        if (StrongTypeModel.IsStrongGroup(target))
-            return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is a strongly-typed "
-                + "group item (ISO §13.18.44.3 SR14)";
-        if (StrongTypeModel.StrongRoot(target) is { } tRoot)
-            return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is subordinate to "
-                + "the strongly-typed group item "
-                + $"'{tRoot.CobolName ?? tRoot.ClrName}' (ISO §13.18.44.3 SR14)";
-        return null;
-    }
-
-    private static RedefinesTier ComputeTier(RedefinesClass cls, out string? reject)
-    {
-        reject = null;
-        var leaves = cls.Members.SelectMany(LeavesOf).ToList();
-
-        // ⛔ THE TIER-C ARM IS GONE (the Step D arm-1 dissolution — DESIGN-data-model §2.3; kb/Work PB164's
-        // LAST codegen half): every NUMERIC leaf kind carries a pinned byte form (NumericByteForm — waves
-        // 1–2 + R40), the Tier-B geometry has been byte-form since V59 (§13.18.44.4 GR1 associates storage
-        // at the bit over "the number of bits required"; GR2 grants every entry's name reference to that
-        // storage), and the StoreAsImage loop's HasImageByteForm mark goes LIVE for float/COMP-5/BINARY-*/
-        // INDEX leaves — each lane it feeds carries its own byte-level pin (the windowed-float read/store
-        // arms, the unsigned ParseImage twins, the float seeds, the StorageFormPass canonical promotion).
-        // A mixed class is simply Tier B: one string backing IS the shared storage area, every member an
-        // (offset, StorageWidth) byte window.
-        // Tier D backstop — a pointer/object-class LEAF nested inside a member (kb/Work PB179): NOT
-        // §13.18.44.3 SR12/SR14's letter (those bar the ENTRY-level items — screened per written entry in
-        // ClassifyRedefinesClasses). The skeptic round derived that §13.18.60.3 SR14 makes the nested
-        // declaration itself NONCONFORMING (a pointer/object USAGE is legal only at level 1 or under a
-        // STRONG type — and the strong case trips the entry-level screen via its enclosing group).
-        // ⛔ THAT SCREEN NOW EXISTS — CheckUsageDeclarations (DataBinder.UsageDeclaration.cs, COBOL1724,
-        // kb/Work PB183), which runs EARLIER in the pipeline and rejects the declaration itself, so on
-        // conforming source this arm is unreachable-by-construction exactly as predicted. It is KEPT, not
-        // deleted: it remains the loud guard for the recovery paths and for any future mode that admits a
-        // nonconforming declaration, and without it such a leaf would reach the byte-window machinery as a
-        // silent zero-width Tier-B alias. Never that.
-        //
-        // ⛔ Tier D IS NOW ONE CALL — ByteWindowResidueOf, the SHARED gate this screen and the cell forcer
-        // (ForceStringCanonical) both route through. It used to be two hand-written lists, one per surface,
-        // and they drifted: PB203 admitted USAGE BIT leaves HERE and nowhere else, so the byte-identical
-        // BASED / EXTERNAL / ADDRESS-OF spelling of a conforming record still drew a bind-time reject
-        // (kb/Work PB231). The residue clauses — the pointer/object backstop and the RESIDUE-11 national
-        // layout — now live once, so the landing that discharges either one opens BOTH surfaces in a single
-        // edit. ByteWindowResidueDriftTests pins the routing.
-        // The class's area is named by the construct that shares it — a REDEFINES clause, or the file section's
-        // implicit redefinition (kb/Work PB836), which has no REDEFINES to name.
-        string where = cls.Members.Any(m => m.RedefinesImplicitly)
-            ? $"in the shared record area of '{cls.Canonical.CobolName}'"
-            : $"under REDEFINES of '{cls.Canonical.CobolName}'";
-        if (leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null) is { } residue)
-        {
-            reject = $"{residue} {where} — not yet implemented";
-            return RedefinesTier.Rejected;
-        }
-
-        // ⛔ THE SECOND, DIFFERENT QUESTION — THE CARRIER (kb/Work PB231, the pointer third). ByteWindowResidueOf
-        // answers "may this leaf ride a shared byte-window area?", and since PB231 a pointer-class leaf may: its
-        // bytes are reserved and its VALUE rides the area's MANAGED SLOTS (Place.SlotWindow). Those slots live on
-        // a StorageCell, which the three CELL surfaces have (RedefinesClass.IsCellBacked, set by the ONE forcer
-        // ForceStringCanonical) and a REDEFINES class's plain stored string backing does NOT. That is a property
-        // of the CARRIER, not of the leaf, so it is asked here rather than smuggled back into the shared gate —
-        // which would re-create the very two-arm divergence PB231's collapse removed.
-        // ⚠ UNREACHABLE THROUGH A REDEFINES CLAUSE on conforming source, by three rules that were re-derived
-        // rather than inherited: §13.18.44.3 SR12 — "The REDEFINES clause shall not be specified for a data item
-        // of class object, message-tag, or pointer or a strongly-typed group item"; SR14 — "Data-name-2 shall not
-        // be of class object, message-tag, or pointer, a strongly-typed group item, or an item subordinate to a
-        // strongly-typed group item"; and §13.18.60.3 SR14, which admits a pointer USAGE "only for an elementary
-        // data item at level 1 or an elementary data item subordinate to a type declaration that includes the
-        // STRONG phrase". The FILE SECTION's implicit area, which used to reach it (kb/Work PB836 — a level-1
-        // `USAGE POINTER` record beside another record of the same FD, legal by that third rule and joined by
-        // §13.18.33.4 GR3 with no REDEFINES clause for SR12/SR14 to bar), no longer does: since kb/Work PB981 a
-        // pointer-class record is an OUT-OF-LINE record (FileModel.IsOutOfLineRecord, determination D-FRA) that
-        // LinkImplicitRecordArea never links. The arm stays the loud guard for any path that would alias a
-        // managed slot over a stored string backing — never a silent alias of reserved bytes.
-        if (!cls.IsCellBacked && leaves.FirstOrDefault(SlotWindow.CarriedBySlot) is { } managed)
-        {
-            reject = $"'{managed.CobolName ?? "FILLER"}' is of a pointer class, whose value rides the storage "
-                + "area's managed slots (ISO §14.9.3.4 GR9), and a shared area's stored backing has none "
-                + $"— {where}";
-            return RedefinesTier.Rejected;
-        }
-        // ⛔ THE SAME CARRIER QUESTION FOR A DYNAMIC-LENGTH LEAF (kb/Work PB1026): its content rides the cell's
-        // dynamic slots (Place.DynSlotWindow), which a stored backing does not have. Unreachable through a REDEFINES
-        // clause on conforming source — §13.18.44.3 SR17: "Neither data-name-2 nor the subject of the entry shall be
-        // a variable-length group or a dynamic-length elementary item" — and a file's implicit area never links an
-        // out-of-line record (D-FRA). Kept as the loud guard: never a zero-width alias of a dynamic item.
-        if (!cls.IsCellBacked && leaves.FirstOrDefault(DynSlotWindow.CarriedBySlot) is { } dynLeaf)
-        {
-            reject = $"'{dynLeaf.CobolName ?? "FILLER"}' is a dynamic-length item, whose content rides a storage "
-                + "cell's dynamic slots (ISO §8.5.1.10.3), and a shared area's stored backing has none "
-                + $"— {where}";
-            return RedefinesTier.Rejected;
-        }
-
-        // Tier A — every member is an elementary item sharing the canonical's CLR storage type AND its image width:
-        // one stored field, the rest pass-throughs (a numeric view reinterprets the shared value via its own scale).
-        // ⛔ AND THE SAME STORAGE UNIT (kb/Work PB203). CLR type + image width is not enough to prove ONE FIELD
-        // SERVES BOTH: a `USAGE BIT` leaf's stored carrier is its PICTURE 1(n) boolean positions while its
-        // ImageWidth is the ceil(n/8) BYTES it occupies (§13.18.60.4 GR5 — "bits shall be used"; D19/PB43), so
-        // `01 A PIC X(1). 01 B REDEFINES A PIC 1(8) USAGE BIT.` matched on both counts (string, width 1) and B
-        // aliased A's one-CHARACTER field — measured: `DISPLAY B` printed `A` where the eight boolean positions
-        // of 0x41 are `01000001`. Two members share one field only when they agree on the UNIT (both bit or
-        // neither) and, being bit, on the boolean-position COUNT — `PIC 1(5)` and `PIC 1(8)` share a byte
-        // ceiling and NOT a carrier. A mismatched pair drops to Tier B, whose windows carry the unit explicitly.
-        // ⛔ AND THE SAME UNIT FOR NATIONAL TOO (kb/Work PB231 — the PB203 defect re-run one category over, and
-        // the reason this arm is written as an agreement per UNIT rather than a bit special case). A national
-        // leaf's stored carrier is its PICTURE N(n) character positions while it OCCUPIES 2n bytes
-        // (§13.18.60.4 GR8 / D-N1), so `01 A PIC X(4). 01 B REDEFINES A PIC N(4).` matched on CLR type (string)
-        // and on ImageWidth (4) and B would have aliased A's four-CHARACTER field — reading alphanumeric
-        // characters as national ones, the exact shape `01 A PIC X(1). 01 B REDEFINES A PIC 1(8) USAGE BIT.`
-        // took. Two members share one field only when they agree on the UNIT (all three of bit, national and
-        // byte are units here) and, sharing a non-byte unit, on the POSITION COUNT. Everything else drops to
-        // Tier B, whose windows carry the unit explicitly. The extent test is ByteWidth for the same reason the
-        // class width is.
-        DataItem canon = cls.Canonical;
-        static bool IsNatLeaf(DataItem d) => NationalWindow.PositionsOf(d) is not null;
-        bool allAlias = canon.IsElementary && cls.Members.All(m =>
-            m.IsElementary && m.ElementType == canon.ElementType && m.ByteWidth == canon.ByteWidth
-            && BitLayout.IsBitLeaf(m) == BitLayout.IsBitLeaf(canon)
-            && (!BitLayout.IsBitLeaf(m) || m.Pic!.Length == canon.Pic!.Length)
-            && IsNatLeaf(m) == IsNatLeaf(canon)
-            && (!IsNatLeaf(m) || NationalWindow.PositionsOf(m) == NationalWindow.PositionsOf(canon)));
-        if (allAlias) return RedefinesTier.Alias;
-
-        // Tier B — DISPLAY-homogeneous: one string canonical of class-max width, each view an (offset,width) accessor.
-        return RedefinesTier.StringCanonical;
-    }
-
-    /// <summary>The byte-surface gate for FILE records — the THIRD caller of <see cref="ByteWindowResidueOf"/>
-    /// (kb/Work PB327, folding in the instruction PB231 left on that predicate). An FD/SD record area is written
-    /// to and read from a physical file as a run of BYTES (ISO §14.9.30.4 GR14/GR15 state the short/long-record
-    /// rules over "the number of bytes in the record"), and the generated <c>AsImage()</c>/<c>FromImage()</c> pair
-    /// IS that byte layout — so the question "can this leaf be laid out in a byte window?" is literally the one
-    /// the REDEFINES classifier and the EXTERNAL/BASED cell forcer ask, and asking it in a second hand-written
-    /// form is how the national half came to be screened here while bit and pointer were not.
-    /// <para>⚠ AS OF PB231's POINTER THIRD (landed the same day, D-SLOT) THE PREDICATE REFUSES NOTHING, so this
-    /// gate is currently VACUOUS — and it stays, for the reason the predicate's ALLOW-list direction exists: a
-    /// category added to the model with no pinned representation must be refused BY NAME on every byte surface,
-    /// this one included, rather than laid out as a zero-width alias. A pointer/object leaf in a FILE record is a
-    /// separate question this gate deliberately does not answer: the RECORD image is a byte string with no
-    /// managed-slot half, so such a record is not <c>IsImageCapable</c> and every WRITE/READ of it is the record
-    /// codec's own Tier-C loud (<c>TierCIsland.Reason</c>) — unchanged by this fold.</para>
-    /// <para>NATIONAL now RIDES: a national character position occupies two bytes, high-order first
-    /// (§13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two), which the codec composes through
-    /// <c>CobolBits.NatBytes</c> and decodes through <c>CobolBits.NatReadWindow</c>. What the fold refuses is what
-    /// the predicate refuses everywhere else: a pointer/object-class leaf, and a leaf with no bound
-    /// representation.</para></summary>
-    internal void GateFileRecordByteSurface()
-    {
-        foreach (var f in Files)
-            foreach (var rec in f.Records)
-                foreach (var leaf in LeavesOf(rec))
-                    if (ByteWindowResidueOf(leaf) is { } residue)
-                        Edition.Error(DiagnosticCatalog.NationalData, $"a file record cannot be laid out — record "
-                            + $"'{rec.CobolName}' has {residue} — recognized but not yet implemented");
-    }
-
     /// <summary>Every item that owns level-66 entries: a record's own, and the groups a TYPE clause applied a
     /// TYPEDEF with RENAMES clauses to (<see cref="CloneRenamesOnto"/>, kb/Work PB1304). The ONE enumeration the
     /// RENAMES passes walk, so an alias on a group inside a record is resolved and screened like a record's. A TYPEDEF
     /// template's own aliases (<c>01 U TYPEDEF. … 66 R RENAMES x.</c>) are owned by the template, which is off
     /// <see cref="Roots"/>: <see cref="ClauseResolutionForest"/> reaches it (kb/Work PB2548).</summary>
-    private List<DataItem> RenamesOwners() => ClauseResolutionForest().Where(i => i.Renames66.Count > 0).ToList();
+    internal List<DataItem> RenamesOwners() => ClauseResolutionForest().Where(i => i.Renames66.Count > 0).ToList();
 
     /// <summary>⛔ THE FOREST A POST-BUILD CLAUSE RESOLVER WALKS (kb/Work PB2548, PB2071): the WORKING-STORAGE forest
     /// (<see cref="AllItems"/>) AND the TYPEDEF templates — each template's level-1 entry and the members under it
@@ -8440,10 +7196,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// that names an item asks THIS forest (a drift test pins the list), and the rules that hold only of a PLACED
     /// description — the DEPENDING ON name that a use site may supply (§13.18.57.4 GR1, "coded in place"), the
     /// CAPACITY register a table defines — ask <see cref="InTypeDeclaration"/> and leave a template alone.</summary>
-    private IEnumerable<DataItem> ClauseResolutionForest() => AllItems().Concat(AllTypeDecls()).Concat(TemplateItems());
+    internal IEnumerable<DataItem> ClauseResolutionForest() => AllItems().Concat(AllTypeDecls()).Concat(TemplateItems());
 
     /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>
-    private IEnumerable<DataItem> AllItems() => Roots.SelectMany(DataItem.SelfAndDescendantsOf);
+    internal IEnumerable<DataItem> AllItems() => Roots.SelectMany(DataItem.SelfAndDescendantsOf);
 
     /// <summary>Every data item a consumer may ask a <see cref="Place"/> of by item (<c>PlaceTablePass</c>, kb/Work PB2375): the
     /// forest, and the LINKAGE formals and the RETURNING item with their subordinates - a formal a method declares can sit
@@ -8465,7 +7221,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// it hold of the declaration as written (§4.3): the REDEFINES passes ask them here (kb/Work PB2071). A template's
     /// level-1 entry is not included: it is the type declaration itself, and an inherited GLOBAL template is its
     /// container's.</summary>
-    private IEnumerable<DataItem> TemplateItems() => AllTypeDecls().SelectMany(t => t.Children).SelectMany(DataItem.SelfAndDescendantsOf);
+    internal IEnumerable<DataItem> TemplateItems() => AllTypeDecls().SelectMany(t => t.Children).SelectMany(DataItem.SelfAndDescendantsOf);
 
     /// <summary>
     /// Every SOURCE-DECLARED data item this unit binds, for the post-bind <c>VersionConformancePass</c> data-attribute
@@ -8490,8 +7246,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Is <paramref name="item"/> an entry the programmer WROTE — no TYPE clone (its <c>TypeAnchor</c> is
     /// null)? The one filter <see cref="ConformanceForest"/> applies, asked of a single subtree by
-    /// <see cref="SynthesizeImpliedPicturesUnder"/>.</summary>
-    private static bool IsWrittenEntry(DataItem item) => StrongTypeModel.TypeAnchor(item) is null;
+    /// <see cref="SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder"/>.</summary>
+    internal static bool IsWrittenEntry(DataItem item) => StrongTypeModel.TypeAnchor(item) is null;
 
     /// <summary>
     /// Every data item this unit binds AS COMPOSED — the same forest as <see cref="ConformanceForest"/> plus the
@@ -8517,7 +7273,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <see cref="Roots"/> as well (DataBinder.Linkage.cs: "LINKAGE 01/77 items bind into the ordinary storage
     /// forest"), so walking both yielded every linkage item TWICE to every per-item pass (measured on a two-root
     /// LINKAGE SECTION: four items; found by kb/Work PB516's drift test).</summary>
-    private IEnumerable<DataItem> DeclaredForest()
+    internal IEnumerable<DataItem> DeclaredForest()
     {
         var temps = CompilerTempClones.Count == 0 ? null
             : new HashSet<DataItem>(CompilerTempClones.Select(t => t.Temp));
@@ -8535,7 +7291,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     }
 
     /// <summary>The elementary leaves of an item (itself if elementary), in source order.</summary>
-    private static IEnumerable<DataItem> LeavesOf(DataItem d)
+    internal static IEnumerable<DataItem> LeavesOf(DataItem d)
     {
         if (d.IsElementary) { yield return d; yield break; }
         foreach (var c in d.Children)
@@ -8636,7 +7392,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     }
 
     /// <summary>The members of every type declaration a TYPE clause references, by name — §8.4.2.2.1 rule 4's
-    /// "other definitions" (<see cref="WithLapsedTypeMembers"/>). Built ONCE, when <see cref="ExpandTypes"/> has
+    /// "other definitions" (<see cref="WithLapsedTypeMembers"/>). Built ONCE, when <see cref="ExpandTypesPass.Run"/> has
     /// completed every declaration; until then (a SAME AS operand resolved while the declarations are being
     /// completed) it is walked live, since the copies inside a declaration are still arriving. A METHOD's declarations
     /// (<paramref name="method"/>, kb/Work PB3192) are few and always walked live.</summary>
@@ -8650,22 +7406,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             .SelectMany(DataItem.DescendantsOf).Where(m => CobolNames.Same(m.CobolName, name));
     }
 
-    /// <summary>The once-built index behind <see cref="LapsedTypeMembers"/>; null until <see cref="ExpandTypes"/> ends.</summary>
-    private Dictionary<string, List<DataItem>>? _lapsedTypeMembers;
-
-    /// <summary>Build <see cref="_lapsedTypeMembers"/> — the tail of <see cref="ExpandTypes"/>.</summary>
-    private void IndexLapsedTypeMembers()
-    {
-        var index = new Dictionary<string, List<DataItem>>(CobolNames.Comparer);
-        foreach (var decl in TypeDecls.Values.Where(d => d.ReferencedByTypeClause))
-            foreach (var member in DataItem.DescendantsOf(decl))
-                if (member.CobolName is { } n)
-                {
-                    if (!index.TryGetValue(n, out var list)) index[n] = list = [];
-                    list.Add(member);
-                }
-        _lapsedTypeMembers = index;
-    }
+    /// <summary>The once-built index behind <see cref="LapsedTypeMembers"/>; null until <see cref="ExpandTypesPass.Run"/> ends.</summary>
+    internal Dictionary<string, List<DataItem>>? _lapsedTypeMembers;
 
     /// <summary>The CONDITION-NAME arm of <see cref="WithLapsedTypeMembers"/> — §8.4.2.2.1 rule 4 is about "the
     /// name" of any user-defined word, and a type declaration's level-88 entries are "part of the type declaration

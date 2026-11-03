@@ -223,7 +223,7 @@ public static class StrongTypeModel
     }
 
     /// <summary>True when <paramref name="decl"/>, the TYPEDEF template a restricted data-pointer member resolved to
-    /// (<c>DataBinder.ResolveRestrictedTypes</c>), is the declaration <paramref name="open"/> is the key of: the
+    /// (<c>ExpandTypesPass.ResolveRestrictedTypes</c>), is the declaration <paramref name="open"/> is the key of: the
     /// template itself, or a TYPE SUBJECT of it. A subject's subtree is a clone of its template, so the two are one
     /// type declaration (§8.5.3.1: the type of an item described with a TYPE clause is the declaration that clause
     /// references) held by the model in two forms, and a key built from either form must be the same string. The
@@ -433,7 +433,7 @@ public static class StrongTypeModel
     /// and differ — which is why the declaration travels with it.</para></summary>
     /// <param name="Name">The type-name the restriction names, or null when unrestricted.</param>
     /// <param name="Declaration">The type declaration the name resolves to, when the model has it: a TYPE
-    /// subject's anchor, or the TYPEDEF template <c>DataBinder.ResolveRestrictedTypes</c> attached. Null when
+    /// subject's anchor, or the TYPEDEF template <c>ExpandTypesPass.ResolveRestrictedTypes</c> attached. Null when
     /// only the name is known.</param>
     /// <param name="Member">Null for an item DESCRIBED WITH a TYPE clause (§8.5.3.1's first alternative: the type
     /// is the declaration). The item itself for one DESCRIBED AS A SUBORDINATE item of a type declaration (the

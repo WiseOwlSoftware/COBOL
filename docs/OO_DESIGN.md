@@ -202,7 +202,7 @@ ISO §14.2.3 GR8: "If the argument is passed by reference, the activated runtime
 occupies the same storage area as the argument." The carrier of a BY REFERENCE identifier argument is a view over the
 argument (the typed INVOKE's arm chain states the read, `InvokeArgumentStore` the write; the universal switch views the
 caller's LIVE `CobolInvokeArg` box), and the area is the cell the argument lives in (every BY REFERENCE operand is claimed onto
-a cell — `DataBinder.PtrBindBasedAndAddressables`). In the body a RESIDENT formal (`DataBinder.FormalIsCarrierResident`, the
+a cell — `PtrBindBasedAndAddressablesPass`). In the body a RESIDENT formal (`DataBinder.FormalIsCarrierResident`, the
 program arm's test) reads and writes through its carrier on every access — its access path is the carrier and its value step (`DataItem.ResidentCarrier`, `CarrierValueSegment`; rendered `__lnk{Uid}.Value`) — and an AREA
 formal (group / REDEFINED / addressed) is described as a BASED item whose per-activation pointer `CobolArgAdapt.Area` sets to
 the argument's area; only an argument with no area gives it a fresh cell, filled from the carrier and, BY REFERENCE, stored

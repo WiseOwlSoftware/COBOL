@@ -257,7 +257,7 @@ build; there was a predicate that stopped short.
   2-byte national overlay (D-N1/D-N2) and the dynamic-table reject (§13.18.44 SR5). `RedefinesTier.ByteCanonical`
   and `StorageForm.TierCWindow` are deleted outright rather than left quarantined, since a name nothing can
   return is a name the next reader has to re-derive. There is **no** `RedefinesClassifier` type; classification
-  lives in `DataBinder.ClassifyRedefinesClasses` + `ComputeTier`, applied through the ONE
+  lives in `ClassifyRedefinesClassesPass` + `ComputeTier`, applied through the ONE
   `RedefinesClass.Classify` mutator, with the reason threaded to references by `ExpressionBinder.RefFailure`.
   The de-facto loud backstop is `PlaceBuilder.PlaceForItem` returning null → the caller fails loud.
   - **What P11 Step C consolidated** is the SEPARATE *classless* mixed-usage-GROUP image island — a plain group
@@ -297,7 +297,7 @@ build; there was a predicate that stopped short.
      the dissolve loop (a per-class screen lets a nested entry's violation escape into the outer class's
      staged-loud arm). "Variable-length group" is §8.5.1.12.1's defined term — a group with a dynamic-length
      elementary item or a dynamic-CAPACITY table subordinate — so the predicate is
-     `RefModBinder.HasVariableLengthSubordinate`, the standard's own definition, not a second walk.
+     `DataItem.HasVariableLengthSubordinate`, the standard's own definition, not a second walk.
      COBOL1698, two negative fixtures (one per side), and the class TIER is set Rejected as well as the
      diagnostic raised. The underlying defect was not merely an under-rejection: `StorageFormPass.Classify`
      returns `DynamicString` for an `IsDynamicLength` item BEFORE reaching its Tier-B view arm, so such a view
@@ -472,7 +472,7 @@ length in it, carried as `TypeRestriction.Member`, and `SameRestriction` then al
 record" (kb/Work PB1408). Within one
 source element §8.3.2.2 lets a user-defined word be only one type of user-defined word, so the name alone decides; ACROSS source elements two
 declarations may share a name and differ, which is why the declaration travels with it —
-`DataBinder.ResolveRestrictedTypes` (the tail of the ONE `ExpandTypes` pass) attaches it to
+`ExpandTypesPass.ResolveRestrictedTypes` (the tail of the ONE `ExpandTypes` pass) attaches it to
 `PicInfo.RestrictedTypeDecl`, and `SameRestriction` compares names always and declarations whenever both sides
 resolved to one. Nothing about the restriction network is deferred any more (kb/Work PB427); §14.8.2.3.2's CALL
 screen is consequently no longer scoped to the AS-NESTED loop, because the reason for that scoping was the

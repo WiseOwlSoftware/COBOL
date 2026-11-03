@@ -301,7 +301,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 // §14.9.40.3 SR14 a)'s own walk — "The data item identified by a key data-name shall be the same
                 // as, or subordinate to, the data item referenced by data-name-2" — over data-name-2's subtree,
                 // narrowed by the WRITTEN qualifiers and counted (kb/Work PB1018): the same §8.4.2.2 subtree
-                // resolution the OCCURS KEY phrase takes (DataBinder.OccursKeyResolve, §13.18.38.3 SR3). The base
+                // resolution the OCCURS KEY phrase takes (OccursKeyResolvePass, §13.18.38.3 SR3). The base
                 // word alone used to be looked up here and the FIRST same-named item taken, so `SORT E ASCENDING
                 // K OF B` keyed on A's K. Ambiguity is §8.4.2.2.3 SR1's verdict, reported by the ONE verdict.
                 var (baseName, quals) = DataBinder.KeyReference(dref);

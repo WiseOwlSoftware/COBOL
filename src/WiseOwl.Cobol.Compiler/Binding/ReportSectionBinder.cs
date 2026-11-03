@@ -1800,7 +1800,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + $"'{spec.DependingName}' — data-name-1 shall describe an integer (ISO §13.18.38.3 SR17)");
         // SR18 is a FORMATS 2 AND 3 rule (kb/Work PB1261): a report group entry is subordinate to its report
         // description entry, which §13.18.27.3 SR1 e) lets carry the GLOBAL clause — the data-division twin is
-        // DataBinder.Odo.cs#DependingAttributeFault, over the same global-name answer (IsGlobalRecord).
+        // Passes/OdoResolvePass.cs#DependingAttributeFault, over the same global-name answer (IsGlobalRecord).
         if (model.IsGlobal && !_d.IsGlobalRecord(spec.DependingItem.Root))
         {
             using var _ = Editions.DiagnosticCursorExtensions.At(Edition, spec.DependingAt);

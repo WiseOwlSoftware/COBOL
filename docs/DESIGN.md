@@ -343,7 +343,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   **Format 2 (table) VALUE** (§13.18.63.2 — literals keyed to occurrence ranges by a mandatory `FROM (subscript)`
   phrase). Its resolution (GR12's odometer over the whole subscript tuple, GR13 cyclic reuse under TO, GR14 no-TO =
   fill to the maximum, GR15 later-FROM-wins, GR16's dynamic initial capacity) is done in the BINDER —
-  `DataBinder.ResolveTableValues`, a post-forest pass that also enforces §13.18.63.3 SR18–SR23 — and stored as a
+  `ResolveTableValuesPass`, a post-forest pass that also enforces §13.18.63.3 SR18–SR23 — and stored as a
   `TableValuePlan` on the entry: its well-formed PHRASES, never an element map (kb/Work PB1722).
   **⛔ A table's initial state is emitted from its OCCURRENCE RUNS, never element by element** (kb/Work PB1722):
   `TableValueRuns.Of` answers which occurrences of a level initialize alike (one uniform run without a table VALUE
@@ -406,7 +406,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   the members' widths — a member whose LEVEL NUMBER differs from its predecessor's is not "of the same level" and
   starts at the next byte.
 - **The group-level VALUE SYNTAX rules are screened at bind time, in one place**
-  (`DataBinder.CheckGroupValueDeclarations` → COBOL1702 / COBOL1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
+  (`CheckGroupValueDeclarationsPass` → COBOL1702 / COBOL1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
   SR16 extends SR13/SR14 to the format 2 table VALUE). SR1 bars a strongly-typed group item or a variable-length
   group from BEING the subject; SR14 forbids a JUSTIFIED or SYNCHRONIZED subordinate **and** requires every data
   item subordinate to an *alphanumeric* group item carrying a VALUE to be explicitly or implicitly usage DISPLAY;
