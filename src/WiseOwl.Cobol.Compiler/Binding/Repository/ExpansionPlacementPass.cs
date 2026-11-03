@@ -168,7 +168,7 @@ internal static class ExpansionPlacementPass
                 }
             }
             placements[symbol] = placement;
-            if (placement.Where is ExpansionWhere.OwnAssembly) order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement, origin.Entry.Start.Line));
+            if (placement.Where is ExpansionWhere.OwnAssembly) order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement, edition.LocationOf(origin.Entry.Start.Line, origin.Entry.Start.Column)));
             inProgress.Remove(symbol);
             return placement;
         }

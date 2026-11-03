@@ -375,7 +375,7 @@ internal static class Program
         if (!result.Success)
         {
             if (result.Status == CompilerDriver.Outcome.BackendError)
-                Console.Error.WriteLine($"error: backend compilation failed (generated C# at {result.GeneratedCsPath}):");
+                Console.Error.WriteLine(BackendFailureHeadline(result.GeneratedCsPath));
             foreach (string e in result.Errors)
                 Console.Error.WriteLine($"  {e}");
 
@@ -391,6 +391,14 @@ internal static class Program
         }
         return options.Run ? Run(result.OutputDll) : 0;
     }
+
+    /// <summary>The line that introduces a backend failure's diagnostics. It names the generated C# only when there is a file to open: a
+    /// compilation that failed before it wrote any C# (an expansion assembly's, for one) has no path, and a path the user cannot open is
+    /// worse than none (kb/Work PB4457).</summary>
+    internal static string BackendFailureHeadline(string? generatedCsPath) =>
+        generatedCsPath is { Length: > 0 } && File.Exists(generatedCsPath)
+            ? $"error: backend compilation failed (generated C# at {generatedCsPath}):"
+            : "error: backend compilation failed:";
 
     /// <summary>The exit status of <c>--run</c> given for a library: POSIX sysexits EX_USAGE, a usage error. The manual's
     /// command-line page lists it and <c>UserManualDriftTests</c> reads it from here.</summary>

@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol;
 
@@ -22,17 +23,23 @@ namespace WiseOwl.Cobol;
 /// </summary>
 internal static class ExpansionAssemblies
 {
+    /// <summary>What <see cref="Write"/> produced: the files written, and either the errors of the compilation that failed (with the
+    /// generated C# of that compilation, null when it reached none) or none, with the warnings of every compilation that ran.</summary>
+    public sealed record Written(IReadOnlyList<string> Files, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings, string? GeneratedCsPath);
+
     /// <summary>Compile every expansion <paramref name="expansions"/> places in an assembly of its own, dependency order, and return the files
     /// written; the first failure stops the run and is returned as the group's backend error, with the generated C# of the compilation that
-    /// failed. A diagnostic of such a compilation names where the expansion was asked for (the EXPANDS entry's line, as an expansion made
-    /// in the group is positioned) and never the throw-away file its text was compiled from. Its warnings are those of the skeleton's
-    /// text, which the group that wrote the skeleton already reported, so they are not repeated for every group that expands it.</summary>
-    public static (IReadOnlyList<string> Files, IReadOnlyList<string> Errors, string? GeneratedCsPath) Write(ExpansionPlacements expansions,
-        CompilerDriver.Options options, string outputDll)
+    /// failed. Every diagnostic of such a compilation, error or warning, is reported where the expansion was asked for — the EXPANDS entry's
+    /// file, line and column, exactly as an expansion made in the group is positioned (<see cref="AtTheEntry"/>) — and never at the
+    /// throw-away file its text was compiled from, which is gone by the time the user reads it (kb/Work PB4457). The warnings are those of
+    /// the skeleton's text under the state it was published with; they are reported for each expansion made, as an expansion made in the
+    /// group reports its own.</summary>
+    public static Written Write(ExpansionPlacements expansions, CompilerDriver.Options options, string outputDll)
     {
         var files = new List<string>();
+        var warnings = new List<string>();
         var references = new List<string>(options.ReferencePaths ?? []);
-        foreach (var (text, state, placement, requestedAtLine) in expansions.ToWrite)
+        foreach (var (text, state, placement, requestedAt) in expansions.ToWrite)
         {
             string source = state.CobolWordsMap + state.DirectiveFolds + state.CompilationVariables + FreeForm(text) + "\n";
             string temp = Path.Combine(Path.GetTempPath(), $"expansion-{Guid.NewGuid():N}.cob");
@@ -40,18 +47,17 @@ internal static class ExpansionAssemblies
             try
             {
                 string target = placement.HoldingFile!;
+                string name = Path.GetFileNameWithoutExtension(target);
                 var result = CompilerDriver.Compile(new CompilerDriver.Options(
                     temp, target, NistTestName: null, DialectLevel: state.Edition, CopyPaths: null, Permissive: state.Permissive,
                     CheckOnly: false, SignEncoding: state.SignEncoding, SourceFormat: Frontend.Preprocessor.InitialReferenceFormat.Free,
                     FlagExtensions: state.FlagExtensions, NumericDisplay: RepositoryVocabulary.FromPersisted(state.NumericDisplay),
                     RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths ?? [Path.GetDirectoryName(Path.GetFullPath(outputDll))!],
                     ReferencePaths: references, RepositoryCheck: false) { PublishAs = placement.Identity });
+                warnings.AddRange(result.Warnings.Select(w => AtTheEntry(w, temp, name, requestedAt)));
                 if (!result.Success)
-                {
-                    string where = $"the expansion '{Path.GetFileNameWithoutExtension(target)}' asked for at {Path.GetFileName(options.SourcePath)} line {requestedAtLine}, expansion text at ";
-                    return (files, [$"the expansion assembly '{target}' (ISO §9.3.12; DESIGN-external-repository §10.5):",
-                        .. result.Errors.Select(e => e.Replace(temp, where, StringComparison.Ordinal))], result.GeneratedCsPath);
-                }
+                    return new(files, [$"the expansion assembly '{target}' (ISO §9.3.12; DESIGN-external-repository §10.5):",
+                        .. result.Errors.Select(e => AtTheEntry(e, temp, name, requestedAt))], warnings, result.GeneratedCsPath);
                 files.AddRange(result.OutputFiles);
                 references.Add(target);
             }
@@ -60,7 +66,23 @@ internal static class ExpansionAssemblies
                 File.Delete(temp);
             }
         }
-        return (files, [], null);
+        return new(files, [], warnings, null);
+    }
+
+    /// <summary>A diagnostic line of the compilation of the text of expansion <paramref name="expansion"/>, reported where the expansion
+    /// was asked for: <paramref name="requestedAt"/> replaces the position in <paramref name="temp"/> (a line of text the user never wrote,
+    /// in a file that no longer exists), a diagnostic that names no position takes it, and the expansion is named after the message so the
+    /// text it concerns can be found. Any other line (a header, a Roslyn diagnostic of the generated C#) is returned as it was, except
+    /// that a remaining mention of <paramref name="temp"/> becomes the expansion's name.</summary>
+    internal static string AtTheEntry(string diagnostic, string temp, string expansion, SourceLocation requestedAt)
+    {
+        string named = $"[in the expansion '{expansion}']";
+        if (diagnostic.StartsWith(temp + "(", StringComparison.Ordinal) && diagnostic.IndexOf("): ", temp.Length, StringComparison.Ordinal) is var end and >= 0)
+            diagnostic = $"{requestedAt}: {diagnostic[(end + 3)..]} {named}";
+        else if (diagnostic.StartsWith("error ", StringComparison.Ordinal) || diagnostic.StartsWith("warning ", StringComparison.Ordinal)
+            || diagnostic.StartsWith("info ", StringComparison.Ordinal))
+            diagnostic = $"{requestedAt}: {diagnostic} {named}";
+        return diagnostic.Replace(temp, $"the text of the expansion '{expansion}'", StringComparison.Ordinal);
     }
 
     /// <summary>The most positions of a line this writes (ISO §6.1 3) a) allows 255): room is left for a floating literal continuation
@@ -71,21 +93,38 @@ internal static class ExpansionAssemblies
     /// where the text had a space BETWEEN words — a space inside an alphanumeric, boolean or national literal is the literal's content, so
     /// the text is split into words by the literals' delimiters, not by every space — and a literal too long for the rest of a line is
     /// continued by the floating literal continuation indicator (ISO §6.2.3.1: the quotation symbol and hyphen that end the line;
-    /// §6.5 8): the continuation line begins with the matching quotation symbol and the literal goes on after it).</summary>
+    /// §6.5 8): the continuation line begins with the matching quotation symbol and the literal goes on after it).
+    /// <para>ISO §6.4.2: "At least one alphanumeric character, national character, or hexadecimal digit of the literal content shall be
+    /// specified on the continued line and on each continuation line", and "A pair of quotation symbols indicating a single quotation symbol
+    /// within a literal shall be specified on the same line". So a continuation indicator never follows the opening delimiter directly: a
+    /// continuation line opens with the quotation symbol and then a whole content unit (one character, or a doubled quotation symbol, at
+    /// most two positions, which always fits), and a literal whose FIRST content unit does not fit the line it opens on is moved, prefix
+    /// letters and all, to a line of its own, where it does (kb/Work PB4456).</para></summary>
     internal static string FreeForm(string text)
     {
         var lines = new System.Text.StringBuilder();
         int column = 0;
         foreach (string word in WordsOf(text))
         {
-            // A word that fits a line on its own never straddles two; a longer one (a long literal) starts where it is and is continued.
+            // A word that fits a line on its own never straddles two; a longer one (a long literal) starts where it is, which is at
+            // most halfway along a line, and is continued.
             if (column > 0 && column + 1 + Math.Min(word.Length, LineLimit / 2) > LineLimit) { lines.Append('\n'); column = 0; }
             else if (column > 0) { lines.Append(' '); column++; }
             char quote = '\0';
+            int literalStart = 0;   // where the open literal's prefix letters (else its opening delimiter) begin in lines
+            int unitsOnLine = 0;    // content units of the open literal on the line being written
             for (int i = 0; i < word.Length; i++)
             {
                 char ch = word[i];
-                if (quote == '\0') { if (ch is '"' or '\'') quote = ch; }
+                if (quote == '\0')
+                {
+                    if (ch is '"' or '\'')
+                    {
+                        quote = ch;
+                        literalStart = lines.Length - PrefixLengthBefore(word, i);
+                        unitsOnLine = 0;
+                    }
+                }
                 else if (ch == quote && !(i + 1 < word.Length && word[i + 1] == quote)) quote = '\0';   // the closing symbol
                 else
                 {
@@ -93,11 +132,24 @@ internal static class ExpansionAssemblies
                     int unit = ch == quote ? 2 : 1;
                     if (column + unit > LineLimit - 2)
                     {
-                        lines.Append(quote).Append('-').Append('\n').Append(quote);
-                        column = 1;
+                        if (unitsOnLine == 0)
+                        {
+                            // The opening line would hold no content before the indicator: the literal starts a line of its own instead.
+                            int written = lines.Length - literalStart;
+                            if (literalStart > 0 && lines[literalStart - 1] == ' ') lines[literalStart - 1] = '\n';
+                            else if (literalStart > 0 && lines[literalStart - 1] != '\n') lines.Insert(literalStart, '\n');
+                            column = written;
+                        }
+                        else
+                        {
+                            lines.Append(quote).Append('-').Append('\n').Append(quote);
+                            column = 1;
+                            unitsOnLine = 0;
+                        }
                     }
                     lines.Append(word, i, unit);
                     column += unit;
+                    unitsOnLine++;
                     i += unit - 1;
                     continue;
                 }
@@ -106,6 +158,17 @@ internal static class ExpansionAssemblies
             }
         }
         return lines.ToString();
+    }
+
+    /// <summary>How many characters just before the opening delimiter at <paramref name="at"/> of <paramref name="word"/> are the
+    /// literal's prefix letters — <c>N</c>, <c>B</c>, <c>X</c>, <c>NX</c> or <c>BX</c> (ISO §8.3.3.2, §8.3.3.4, §8.3.3.5) — and not the
+    /// end of a longer word.</summary>
+    private static int PrefixLengthBefore(string word, int at)
+    {
+        int length = 0;
+        if (at >= 1 && "NBXnbx".Contains(word[at - 1])) length = 1;
+        if (length == 1 && at >= 2 && word[at - 1] is 'X' or 'x' && word[at - 2] is 'N' or 'n' or 'B' or 'b') length = 2;
+        return length < at && (char.IsLetterOrDigit(word[at - length - 1]) || word[at - length - 1] is '-' or '_') ? 0 : length;
     }
 
     /// <summary>The words of <paramref name="text"/>: the runs of characters between the spaces that lie outside a literal.</summary>
