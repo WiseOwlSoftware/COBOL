@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The drift guard behind <c>DataBinder.UsageWord</c>'s DERIVED default arm (kb/Work PB184's landing): the
+/// The drift guard behind <c>UsageFamilies.UsageWord</c>'s DERIVED default arm (kb/Work PB184's landing): the
 /// §13.18.63.3 SR14 diagnostic names the usage the programmer wrote, so every <see cref="Usage"/> member has to
 /// render as words a COBOL program can contain. Before this, the default arm was
 /// <c>usage.ToString().ToUpperInvariant()</c> and rendered 'PROGRAMPOINTER', 'FLOATBINARY32', 'BINARYCHAR' and
@@ -39,7 +39,7 @@ public class UsageWordDriftTests
                     offenders.Add($"{usage} → \"{word}\" (token '{token}' is not a COBOL word)");
         }
         Assert.True(offenders.Count == 0,
-            "DataBinder.UsageWord must render §13.18.60 keywords: " + string.Join("; ", offenders));
+            "UsageFamilies.UsageWord must render §13.18.60 keywords: " + string.Join("; ", offenders));
     }
 
     /// <summary>The derivation itself, on the shapes that motivated it — a hyphen before each interior capital

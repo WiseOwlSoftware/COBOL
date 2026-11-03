@@ -16,7 +16,7 @@ public enum EntrySection
 }
 
 /// <summary>The deferred declaration verdict <see cref="DataItem.Pending"/> carries between entry bind and the
-/// <c>DataBinder.ResolveIndexItems</c> adjudication (P5.11c — the explicit discriminant replacing the former
+/// <c>DataBinder.UsageInheritanceWalk</c> adjudication (P5.11c — the explicit discriminant replacing the former
 /// reference-identity sentinel PicInfos <c>NationalUsagePending</c>/<c>BitUsagePending</c>/<c>RecoveryItem</c>).</summary>
 public enum PicPending
 {
@@ -116,7 +116,7 @@ public sealed class DataItem
 
     /// <summary>GROUP-USAGE (ISO §13.18.29; data-model design D20; kb/Work PB79) — <see cref="Model.GroupUsage.None"/>
     /// for an ordinary (alphanumeric) group (GR3); Bit / National for a declared bit / national group AND for every
-    /// group subordinate to one (SR2/SR3 "explicitly or implicitly" — propagated by <c>DataBinder.ResolveIndexItems</c>,
+    /// group subordinate to one (SR2/SR3 "explicitly or implicitly" — propagated by <c>DataBinder.UsageInheritanceWalk</c>,
     /// the usage-inheritance walk). Never set on an elementary item.</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
         "GROUP-USAGE (ISO §13.18.29) — in neither GR-1 exclusion list. ⛔ kb/Work PB522: the clause BOTH hand lists lost, so a TYPE / SAME AS copy of a bit or national group bound as an ordinary alphanumeric group")]
@@ -160,7 +160,7 @@ public sealed class DataItem
     /// <summary>The DEFERRED adjudication mark of a PICTURE-less <c>USAGE NATIONAL</c>/<c>BIT</c> entry
     /// (ISO §13.18.60.4): whether it is a legal GROUP header (the usage sheds to subordinates, GR1) or an illegal
     /// picture-less elementary item (COBOL0881) is unknowable until the forest is complete —
-    /// <c>DataBinder.MakeItem</c> writes it, <c>DataBinder.ResolveIndexItems</c> adjudicates and CLEARS it
+    /// <c>DataBinder.BindEntry</c> writes it, <c>DataBinder.UsageInheritanceWalk</c> adjudicates and CLEARS it
     /// (P5.11c; <see cref="Pic"/> stays null meanwhile, never a sentinel shape).</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
         "the deferred ISO §13.18.60.4 GR1 adjudication of the copied USAGE clause — it travels with the clause it defers")]
@@ -310,7 +310,7 @@ public sealed class DataItem
     public DataItem? ValueCopiedFrom { get; set; }
 
     /// <summary>True when this entry carries a TYPEDEF clause — it is a TYPE DECLARATION (a named template; ISO
-    /// §13.18.58, data-model D17), allocating NO storage. Registered in <c>DataBinder.TypeDecls</c>, kept OFF
+    /// §13.18.58, data-model D17), allocating NO storage. Registered in <c>ForestSlice.TypeDecls</c>, kept OFF
     /// <c>Roots</c>/<c>ByName</c>; its subordinate names are not globally referenceable (GR1).</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "ISO §13.18.57.4 GR1 excludes the TYPEDEF clause by name, and §13.18.58.3 SR1 confines it to level 1 so no subordinate carries it")]
@@ -694,7 +694,7 @@ public sealed class DataItem
     }
 
     /// <summary>The level-88 condition-names whose conditional variable is THIS item (ISO §13.16.3 SR24). Normally these
-    /// also live in <c>DataBinder.Conditions</c> (the global by-name index), but a TYPEDEF template keeps them ONLY
+    /// also live in <c>ForestSlice.Conditions</c> (the global by-name index), but a TYPEDEF template keeps them ONLY
     /// here — its condition-names are not globally referenceable (§13.18.58.4 GR1) until a <c>TYPE</c> reference
     /// clones the item, at which point the clone's copies ARE registered globally (data-model D17 inc 3).</summary>
     [DescriptionCopy(DescriptionCopyKind.None,

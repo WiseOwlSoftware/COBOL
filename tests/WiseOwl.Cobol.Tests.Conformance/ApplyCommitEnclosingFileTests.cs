@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// only when this element selects it; every other word is identifier-1, so the container's file used to resolve as a
 /// data-name, find none and draw COBOL1639 "no declaration in this source element gives the name" — false for a GLOBAL
 /// file, visible here by §13.18.27.4 GR1 — while the COBOL4709 descriptor claimed an SR1 report no code path made.
-/// <c>DataBinder.ScreenEnclosingFileOperand</c> reports it under its own rule; <c>DataBinder.NonDataDeclarationOf</c>
+/// <c>FileControlBinder.ScreenEnclosingFileOperand</c> reports it under its own rule; <c>DataBinder.NonDataDeclarationOf</c>
 /// answers "a file-name" to every other site that wants a data item (the wording, not the code, changes there).
 /// </summary>
 public sealed class ApplyCommitEnclosingFileTests

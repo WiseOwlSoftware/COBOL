@@ -768,7 +768,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
-    /// walk). <c>ON file-name</c> resolves against <c>DataBinder.VisibleFiles</c>, which includes containers' GLOBAL FDs
+    /// walk). <c>ON file-name</c> resolves against <c>DataBindState.VisibleFiles</c>, which includes containers' GLOBAL FDs
     /// (§13.18.27.4 GR1; IC234A's contained USE names the outer's GLOBAL file).
     /// Format 2 (BEFORE REPORTING, SR9) names a report group — the section becomes the group's
     /// before-reporting hook, invoked by the report engine just before the group is produced (GR8; wired in

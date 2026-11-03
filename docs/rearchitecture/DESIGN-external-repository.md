@@ -1122,17 +1122,17 @@ the group.
   define already fails its carrier (`CallAbi.Slot`); the identity spelling is what lets an IMPORTED class, named by
   another word, conform. **Correction (layering):** `Target` cannot be the symbol — `ObjectRefDescriptor` is in
   `Binding.Model`, which may not reference `Compiler.Oo` (architecture-edges.json) — so it is the resolved IDENTITY
-  (the class's or interface's externalized name, set where `DataBinder.OoDescribeNamedReference` resolves the word),
+  (the class's or interface's externalized name, set where `OoDataBinder.DescribeNamedReference` resolves the word),
   which also lets the readers that build a description with no class table (`PrototypeSignatures.CanonicalIdentity`'s
   `ActivationDescriptions.Of(item, classes: null)`) spell the identity. **Landed, slice 8 step 1 part 2 (kb/Work PB2104,
   wave 20261835):** `ObjectRefDescriptor` gains `Identity` (the resolved class's or interface's externalized name, set in
-  `DataBinder.OoDescribeNamedReference` and by the decoder from the record) and `ClrName` (null for a class of the group;
+  `OoDataBinder.DescribeNamedReference` and by the decoder from the record) and `ClrName` (null for a class of the group;
   the full name under `global::` for an imported one, so `ClrTypeName` — and the factory beside it,
   `NamingConvention.FactoryClassName` putting its prefix on the last segment — names the imported type). Both are functions of
   `Name` over the one class table, so they are excluded from the description's equality; `ActivationDescriptions.Of(item, null)`
   spells `Identity`, so a prototype's `SIG` identity (`PrototypeSignatures.CanonicalIdentity`) is the same text in every group.
   **Correction (§8.7, names in descriptions):** a description's `Name` is already the RESOLVED definition's name in the group's
-  one class table, not the word written (`DataBinder.OoDescribeNamedReference`, kb/Work PB974), so the importer needs no
+  one class table, not the word written (`OoDataBinder.DescribeNamedReference`, kb/Work PB974), so the importer needs no
   per-element word to decode a record into: an imported class's `Name` is its table key `class "<identity>"`
   (`OoClassTable.ImportedKey`; a quote and a space are in no COBOL word, so it is neither a group class's word nor another
   identity's), and `RepositoryCodec.Names` is the ONE derivation of what the importing group calls each identity a record names
@@ -1565,7 +1565,7 @@ words for two identities. `OoClassTable` therefore stores IMPORTED symbols by ID
 identity: `ImportClass`, `ImportedClasses`), and each source element's `IdentityScope` (the renamed `OoRepositoryScope`,
 built by the ancestor walk of its REPOSITORY paragraphs) maps a written word to the identity its specifier states
 (`literal ?? word`, §12.3.8.4 GR2). **Landed (kb/Work PB2104), and corrected:** the names a description carries are the class
-table's keys, not per-element words (a description names the RESOLVED definition, `DataBinder.OoDescribeNamedReference`), so
+table's keys, not per-element words (a description names the RESOLVED definition, `OoDataBinder.DescribeNamedReference`), so
 an imported symbol's `Name` is the key `class "<identity>"` (`OoClassTable.ImportedKey`) and decoding a record for any
 element needs no per-element word: `RepositoryCodec.Names` maps every identity a record names to the table's name for it
 (importing the class on the way). The reverse map this section first gave the scope, and the program-prototype and

@@ -101,7 +101,7 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in a source element (§3.164) that calls any function or invokes any method | `[B]` DONE — `TurnState.DirectiveLinesNaming` (post-walk) + the SOURCE-ELEMENT model (`_elements`) with calls from `VisitFunctionCall`/`VisitInvokeStatement`/`VisitInlineMethodInvocation` and the binder-recorded `DataBindState.ActivationSites` | 4 | GR4 normative (no Annex-E re-item); CALL of a program is NOT a trigger |
 | c I-O-STATUS-07 | a CLOSE with WITH NO REWIND or the UNIT phrase | `[B]` `BoundClose` — **needs a NoRewind model bit** (`BoundCloseKind` has ReelUnit but not NoRewind) | 3 | E.2 item 16. `CobolIO.g4 closeOption` already parses both |
 | d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) the OPERANDS are category alphanumeric-edited (a reference-modified operand is alphanumeric, §8.4.3.3.4 GR6 a), or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` parse-tree visitor + per-unit `NameResolution.FindItem` (same-DDE = `ReferenceEquals`) | 3 | GR4 normative (no Annex-E re-item) |
-| e RANGE-EXCEPTION-FOR-INDEX | an index-assignment/arithmetic SET whose receiver is an **index-name** (NOT a class-index DATA item — §14.9.39.4 Format-1 GR2b copies it unchanged, no range check), when EC-RANGE-INDEX checking is enabled | `[B]` parse-tree visitor: `DataBinder.IndexFields` + `TurnState` | 3 | GR4 normative |
+| e RANGE-EXCEPTION-FOR-INDEX | an index-assignment/arithmetic SET whose receiver is an **index-name** (NOT a class-index DATA item — §14.9.39.4 Format-1 GR2b copies it unchanged, no range check), when EC-RANGE-INDEX checking is enabled | `[B]` parse-tree visitor: `ForestSlice.IndexNames` + `TurnState` | 3 | GR4 normative |
 | f TERMINATE-WITH-VARYING | a TERMINATE of a report whose RD contains a VARYING clause | `[B]` `ReportWriterBinder` BindTerminate + ReportModel `Varyings` | 1 | GR4 normative |
 
 ## 2. Structural decisions (the singular-pattern end-state)
@@ -244,7 +244,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     `ProgramUnitContext→BoundUnit` map (§2 D2's "resolve by name in the models" made scope-exact, not a global merge).
   * **e RANGE-EXCEPTION-FOR-INDEX** — reuses d's `_currentData`: `VisitSetToStatement` (a Format-1-shaped SET: an arithmetic sender and no ADDRESS phrase) +
     `VisitSetIndexStatement` (Format 2) flag once when a receiver's base name is in the current unit's
-    `DataBinder.IndexFields` (an INDEXED BY **index-name**) AND `_turn.Enabled("EC-RANGE-INDEX", null, line)`.
+    `ForestSlice.IndexNames` (an INDEXED BY **index-name**) AND `_turn.Enabled("EC-RANGE-INDEX", null, line)`.
     **⛔ Only an index-NAME receiver range-checks:** §14.9.39.4 Format-1 **GR2b** copies a class-index DATA item
     (USAGE INDEX) receiver UNCHANGED (no EC-RANGE-INDEX), and Format-2 GR4a checks only index-name-3 — so a USAGE
     INDEX data-item receiver is **NOT** flagged (matching only `IndexFields` names realizes this exactly, and the

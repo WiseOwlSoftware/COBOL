@@ -100,7 +100,7 @@ internal static class InheritStep
     /// <see cref="Merge"/> for a program unit and by <c>OoDriver</c> for an OBJECT or FACTORY half, whose class definition
     /// hands it symbolic-characters (§8.4.6.1) and no constants.
     /// <para>Every tier a name can be declared at is asked by <c>DataBinder.DeclaredNearerThan</c>; a METHOD's own names
-    /// are the one tier nearer still, asked at reference time (<c>DataBinder.ActiveMethodDeclares</c>).</para></summary>
+    /// are the one tier nearer still, asked at reference time (<c>OoDataBinder.ActiveMethodDeclares</c>).</para></summary>
     internal static void DropShadowed(DataBinder data) =>
         data.State.Inherited.DropShadowed(data.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
 

@@ -1189,11 +1189,11 @@ internal static class IntrinsicArgumentRules
         {
             ['o'] = "§15.3 argument type 12 (Ordering-name) — \"An ordering-name defined in the SPECIAL-NAMES "
                 + "paragraph shall be specified\": a NAME, resolved by IntrinsicBinder.BindStandardCompare "
-                + "against DataBinder.OrderTables (§15.85.3 r5; §12.3.7.3 SR9 makes STANDARD-COMPARE its only "
+                + "against ConfigurationSlice.OrderTables (§15.85.3 r5; §12.3.7.3 SR9 makes STANDARD-COMPARE its only "
                 + "legal reference site). It never reaches the operand list, so no class screen applies to it",
             ['l'] = "§15.3 argument type 8 (Locale-name) — \"A locale-name defined in the SPECIAL-NAMES paragraph shall "
-                + "be specified\": a NAME, resolved by IntrinsicBinder.BindLocaleFunction against DataBinder.Locales "
-                + "(through DataBinder.ResolveLocaleName — the ONE undeclared-locale-name diagnostic, COBOL1664) "
+                + "be specified\": a NAME, resolved by IntrinsicBinder.BindLocaleFunction against ConfigurationSlice.Locales "
+                + "(through SpecialNamesBinder.ResolveLocaleName — the ONE undeclared-locale-name diagnostic, COBOL1664) "
                 + "for LOCALE-COMPARE (§15.51.3 r4), LOCALE-DATE (§15.52.3 r3), LOCALE-TIME (§15.53.3 r4) and "
                 + "LOCALE-TIME-FROM-SECONDS (§15.54.3 r2) — and by IntrinsicBinder.BindCaseFunctionWithLocale (the T5 case-function phrase) and IntrinsicBinder.BindNumvalCFamily (the T6 NUMVAL-C/TEST-NUMVAL-C LOCALE keyword). It never reaches the "
                 + "operand list, so no class screen applies to it",

@@ -686,7 +686,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <see cref="ResolveRecordName"/>, asked of the reference's own item and (for the message only) of its
     /// top-level record. The second sweep is an inherited GLOBAL FD's record (ISO §13.18.27.4 GR1 — the record-names
     /// of a GLOBAL FD are GLOBAL names): the owning file is a CONTAINER's <see cref="FileModel"/>, present in
-    /// this unit only through <c>DataBinder.VisibleFiles</c> (<see cref="InheritedGlobals.Files"/>), so a contained program's
+    /// this unit only through <c>DataBindState.VisibleFiles</c> (<see cref="InheritedGlobals.Files"/>), so a contained program's
     /// WRITE/REWRITE of the owner's record resolves to the owner's ONE connector (IC233A's family; never a
     /// second mapping mechanism).</summary>
     private FileModel? FileWhoseRecordIs(DataItem item)

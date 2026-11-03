@@ -755,7 +755,7 @@ COBOL2197 beside it.
 
 **The REPORT SECTION entry grammar and the PAGE clause are the printed ones** (kb/Work PB1226, PB1059):
 `reportDescriptionEntry` is `RD … { constantEntry | reportGroupEntry } …` (§13.8.2; the constant entry rides the
-data description entry's own `constantEntryBody` and `DataBinder.BindConstantEntry`, reached in source order by
+data description entry's own `constantEntryBody` and `ConstantEntryBinder.BindConstantEntry`, reached in source order by
 `BindReportSectionEntries` and bound earlier on demand when a reference needs it (kb/Work PB1231). A constant is a
 level-01 entry and so ends the report group before it: `ReportEntryRuns` is the one place the RD's entries are cut into
 runs at their constant entries, and both `BindReportSectionEntries` and every flat screen (`ScreenReportLevelNumbers`,
@@ -787,7 +787,7 @@ new page via `PresentBody(reprint: true)` — no page-fit test, NEXT GROUP or SU
 heading reprints only the headings above it, and that of a control footing at level j the headings at level j and
 above, not those below it: the proviso's "lower control level" is the HEADING's level, the reading GR7 d) 4. and
 IBM's Report Writer agree on, kb/Work PB1927). The GR7 d) upper limits are modelled as limits
-(`DataBinder.GroupLimits`, the §13.18.35.3 SR6 c) screen): a control heading below an OR PAGE heading, a detail and a
+(`ReportSectionBinder.GroupLimits`, the §13.18.35.3 SR6 c) screen): a control heading below an OR PAGE heading, a detail and a
 control footing sit after the last line of that heading, which `HeadingReach` walks from the last line of the nearest
 OR PAGE heading above it instead of from FIRST DETAIL (kb/Work PB2513). **The COLUMN LEFT/CENTER/RIGHT alignment
 phrase (§13.18.14 F1, kb/Work PB1220)** is `reportColumnAlignment : LEFT | CENTER | RIGHT`, written optional in

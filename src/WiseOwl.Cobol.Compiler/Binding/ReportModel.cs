@@ -945,8 +945,8 @@ public sealed class ReportSumFamily : ReportEntryFamily
     /// <summary>The IMPLICITLY-DEFINED data item the counter is (ISO §13.18.54.4 GR1 — "a conceptual data item
     /// that behaves as a data item of the category numeric"), carrying the GR1 profile
     /// (<see cref="PicInfo.SumCounterItem"/>) and, for a repeating entry, the synthetic OCCURS chain of
-    /// <see cref="Extents"/>. It is engine state, not storage — kept off <c>DataBinder.ByName</c>/<c>Roots</c> and
-    /// reachable only through <c>DataBinder.SumCounters</c>, the resolver hook that builds a
+    /// <see cref="Extents"/>. It is engine state, not storage — kept off <c>ForestSlice.ByName</c> and the forest roots, and
+    /// reachable only through <c>DataBindState.SumCounters</c>, the resolver hook that builds a
     /// <see cref="Model.ReportSumCounterPlace"/> (the CAPACITY-register pattern). Every occurrence shares it: they
     /// are occurrences of ONE description.</summary>
     public required DataItem Register { get; init; }

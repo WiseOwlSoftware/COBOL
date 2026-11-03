@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// PICTURE SYMBOL form (ISO §12.3.7.3 SR23: "literal-7 is the currency string and literal-8 is the associated currency
 /// symbol") the two operands carry rules of their own, so a literal-7 refused under SR18 (a figurative constant),
 /// SR23 a) (no non-space character), SR23 b) (a digit or one of + - , . *) or §8.4.3.10.3 SR1 (NULL) leaves a valid
-/// literal-8 standing. <c>DataBinder.SwitchBindCurrency</c> used to return before registering it, so every PICTURE
+/// literal-8 standing. <c>SpecialNamesBinder.SwitchBindCurrency</c> used to return before registering it, so every PICTURE
 /// using the symbol drew COBOL0808 / COBOL0819 behind the clause's own error. Each shape now compiles to exactly the
 /// clause's diagnostic.
 /// </summary>

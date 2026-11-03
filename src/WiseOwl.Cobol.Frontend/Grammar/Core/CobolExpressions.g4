@@ -349,7 +349,7 @@ primaryCondition
 // data item of class pointer", which is exactly what §8.8.4.2.3 SR5 asks of identifier-3 and identifier-4. With
 // only valueOperand here `IF P = ADDRESS OF X` was a bare COBOL0001 on conforming source. It is the ONE
 // `addressIdentifier` rule PB239 gave the CALL argument (CobolParserCore.g4), so the §8.4.3.11 storage forcing
-// (DataBinder.PtrScanAddressOfTargets walks that rule's nodes) and the 2002 introduction gate
+// (PtrBindBasedAndAddressablesPass.PtrScanAddressOfTargets walks that rule's nodes) and the 2002 introduction gate
 // (VersionConformancePass.VisitAddressIdentifier) reach this surface with no change of their own. ADDRESS is a
 // reserved word that heads no valueOperand, so the new arm is unambiguous and every relation that parsed before
 // parses identically — the shared comparison DFA (the DEVLOG-621 lesson) is not re-predicted on any old input.

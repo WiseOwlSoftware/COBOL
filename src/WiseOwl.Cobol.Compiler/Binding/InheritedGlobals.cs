@@ -128,7 +128,7 @@ public sealed class InheritedGlobals
 
     /// <summary>Record one containing program's GLOBAL constants, <paramref name="depth"/> containment levels out, the
     /// nearer container's kept. <paramref name="visible"/> is what the container's binder offers
-    /// (<c>DataBinder.GlobalConstantsToInherit</c>). <see cref="InheritStep"/> only.</summary>
+    /// (<c>ConstantEntryBinder.GlobalConstantsToInherit</c>). <see cref="InheritStep"/> only.</summary>
     internal void AddContainerConstants(IEnumerable<KeyValuePair<string, ConstantDef>> visible, int depth)
     {
         foreach (var (name, def) in visible)

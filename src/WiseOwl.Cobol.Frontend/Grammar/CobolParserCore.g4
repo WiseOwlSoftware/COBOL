@@ -562,7 +562,7 @@ sourceComputerParagraph
 
 // X3.23-1985 `WITH DEBUGGING MODE` (the '85 debug facility's compile-time switch; WITH is not underlined). Obsolete at
 // 2002 and removed at 2014 (owner decision kb/Work R61) — VCR row 7.9, `debugging-mode-removed-2014`. Its presence also
-// decides the USE FOR DEBUGGING posture (DataBinder.DebuggingModeDeclared, VCR row 7.17) and keeps the unit's fixed-form
+// decides the USE FOR DEBUGGING posture (ConfigurationSlice.DebuggingModeDeclared, VCR row 7.17) and keeps the unit's fixed-form
 // debugging lines as source (DebuggingLineRewriter, which reads the clause from the TOKENS: a change to this rule's
 // shape — the optional WITH, the clause's place after the computer-name — is a change to DeclaresMode there).
 debuggingModeClause

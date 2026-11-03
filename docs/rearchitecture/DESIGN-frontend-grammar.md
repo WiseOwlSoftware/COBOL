@@ -1349,7 +1349,7 @@ code:
   (`DirectiveResults.CompilationVariables`, claimed by the `DefineDirective2002` registry entry; GR14's implicit ops
   join through `WithStackOps`). The ONE fold is `CompilationVariableTimeline.DefinitionAt(name, line)` — the per-name
   `TryLastInEffectBefore`. Readers: `CobolWordsDirectiveProcessor` (a word in a literal slot is a variable defined
-  before the directive, screened by SR2 as the literal its DEFINE wrote) and `DataBinder.BindConstantFrom`
+  before the directive, screened by SR2 as the literal its DEFINE wrote) and `ConstantEntryBinder.BindConstantFrom`
   (§13.10.3 SR8 / §13.10.4 GR1–GR2).
 * **`DirectiveStateRegistry`** accounts for every pushable row: carried (naming the stage types and the
   `DirectiveResults` members) or, with its rule, why this compiler holds no state (LISTING — no listing is produced,
@@ -1967,7 +1967,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   `Admitted.WordsStandForLiterals`), the word is a constant-name (§13.10.3 SR2), and `CobolParserCoreBase.PrintsConstantName`
   says whether the edition has one (constant-entry-2002): `OCCURS 0 TO TIMES` expects "an integer literal" at 85 and "a
   user-defined word or an integer literal" from 2002. The binder's refusal of a word there (COBOL1547,
-  `DataBinder.ConstantIntegerOperand`, the PICTURE repetition count) says the same by edition. An
+  `ConstantEntryBinder.ConstantIntegerOperand`, the PICTURE repetition count) says the same by edition. An
   older edition's dropped word and a `keywordWhereFree` word (generated into `CobolLexer.IsKeywordWhereFree` by
   `gen-cobol-words.ps1`) are named whatever the table says. A §8.10 word's `Introduced` edition is generated
   (`gen-reserved-words.ps1` step 7c) from the 2002 list (`tests/version-matrix/context-sensitive-words-2002.json`) and
@@ -2022,7 +2022,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   `ClosedFormatPass.VisitMisplacedSpecialNamesForPhrase` refuses it by name (COBOL2315) at every edition, one
   visitor for the three clauses. It replaced two opposite answers to one spelling: the ALPHABET postfix was an
   accepted "historical superset", the CLASS postfix a bare `COBOL0001: unexpected 'FOR'`. The binders read it only
-  to recover the intended class (`DataBinder.ForPhraseIsNational`).
+  to recover the intended class (`SpecialNamesBinder.ForPhraseIsNational`).
 - **Its punctuation half — a paragraph's separator periods (kb/Work PB2727).** §12.4.6.2 (I-O-CONTROL), §12.3.7.2
   (SPECIAL-NAMES) and §12.3.8.2 (REPOSITORY) print ONE separator period after the paragraph's entries — §12.4.6.2 a
   second only around the APPLY COMMIT clause, a sentence of its own — and §5.2.1 binds "the words, phrases, clauses,

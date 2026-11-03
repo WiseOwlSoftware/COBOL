@@ -118,7 +118,7 @@ public static class StrongTypeModel
     /// <summary>ISO §8.5.3.1 — "Two type declarations are considered equivalent when …". Takes either form the
     /// model has of a declaration: a TYPE-clause SUBJECT (whose subtree <c>DataBinder.ExpandType</c> cloned
     /// from the template through the ONE <c>CopyEntryDescription</c>, so it IS the declaration, kb/Work PB522)
-    /// or the TYPEDEF TEMPLATE itself (<c>DataBinder.TypeDecls</c>' entry — also fully expanded, because
+    /// or the TYPEDEF TEMPLATE itself (<c>ForestSlice.TypeDecls</c>' entry — also fully expanded, because
     /// <c>ExpandTypes</c> walks the templates too). <see cref="DeclaredTypeName"/> /
     /// <see cref="DeclaredStrong"/> / <see cref="DeclaredExternal"/> read the three level-1 identity facts from
     /// whichever form it is, so a restricted data-pointer's resolved declaration and a TYPE subject's anchor

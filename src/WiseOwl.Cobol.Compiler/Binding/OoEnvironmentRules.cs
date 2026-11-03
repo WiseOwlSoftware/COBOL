@@ -58,7 +58,7 @@ internal static class OoEnvironmentRules
 
         // §12.4.6.3.3 SR6 (and §9.1.18.6: "APPLY COMMIT clauses … are not permitted in factory and object classes") —
         // a factory or instance definition may carry an I-O-CONTROL paragraph, which no program binder reads, so the
-        // clause is refused here; a program's own is DataBinder.BindApplyCommitClause's (kb/Work PB3338).
+        // clause is refused here; a program's own is FileControlBinder.BindApplyCommitClause's (kb/Work PB3338).
         if (kind is OoDefinition.Factory or OoDefinition.Instance)
             foreach (var clause in environment.inputOutputSection()?.ioControlParagraph()?.ioControlClause() ?? [])
                 if (clause.applyCommitClause() is { } apply)

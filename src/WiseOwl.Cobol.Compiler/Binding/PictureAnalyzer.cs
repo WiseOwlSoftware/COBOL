@@ -615,7 +615,7 @@ public static class PictureAnalyzer
         // — that is §13.16.3 SR8, screened in DataBinder against UsageFamilies.IsPictureless.
         if (usage is Usage.Binary or Usage.Comp5 or Usage.Packed && category is not PicCategory.Numeric)
         {
-            // ⛔ DataBinder.UsageWord is THE spelling table (it has the drift test) — this site used to carry its
+            // ⛔ UsageFamilies.UsageWord is THE spelling table (it has the drift test) — this site used to carry its
             // own three-member copy whose default arm rendered the C# enum name.
             edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE {UsageFamilies.UsageWord(usage)} requires a PICTURE that describes a numeric "
                 + $"item — PICTURE {picture} is "
@@ -1175,7 +1175,7 @@ public static class PictureAnalyzer
             // USAGE NATIONAL / BIT — LIVE (Phase 4a track (a)): only the introduction gate remains (0900
             // below 2002; the registry rows are silent at 2002+), the POINTER/BINARY-CHAR pattern. Picture
             // conformance (SR5/SR12/SR13/SR20) is Analyze's job; a picture-LESS elementary entry is caught at
-            // the group-fixup pass (DataBinder.ResolveIndexItems — a group header legally sheds the usage to
+            // the group-fixup pass (DataBinder.UsageInheritanceWalk — a group header legally sheds the usage to
             // its subordinates per §13.18.60.4 GR1).
             case "NATIONAL":
                 return Usage.National;

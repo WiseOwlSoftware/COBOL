@@ -615,7 +615,7 @@ internal sealed class ReportWriterEmitter(
                 // ⛔ CITATION REPAIRED (kb/Work PB177 arm C): this said "ISO §13.18.16.3 SR3", but SR3 is
                 // "Data-name-1 shall not be subject to any OCCURS clauses" — a real clause answering a
                 // different question. The §13.18.16.3 SHAPE rules (SR3/SR5/SR7) and the §13.18.60.3 SR10 INDEX
-                // rule are REJECTED AT BIND TIME by DataBinder.ControlOperandShapeViolation, so an INDEX operand
+                // rule are REJECTED AT BIND TIME by ReportSectionBinder.ControlOperandShapeViolation, so an INDEX operand
                 // never reaches this loop. What survives here is ONE implementation limit, labelled as one: an
                 // unresolved operand — the shapes ReferenceResolver returns null for, which today are the
                 // dynamic-capacity table entry and a leaf beneath one (both ALSO rejected at bind, by the IsTable

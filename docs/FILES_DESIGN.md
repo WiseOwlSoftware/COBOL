@@ -2804,7 +2804,7 @@ false having reported (COBOL1757), in `ResolveFile`'s shape. It enforces two thi
    the file is not. WRITE §14.9.51.3 SR21 and REWRITE §14.9.35.3 SR3 are written for exactly that reference
    (*"the file description entry for the file associated with record-name-1 shall contain a GLOBAL clause"*);
    each caller passes its own sentence as `containedRule`, and the owning FD is found in
-   `DataBinder.ContainerLocalFiles` — the containers' non-global files, recorded beside the GLOBAL-FD merge
+   `InheritedGlobals.ContainerLocalFiles` — the containers' non-global files, recorded beside the GLOBAL-FD merge
    (kb/Work PB1193). RELEASE passes §13.18.27.3 SR3, the general rule the other two specialise.
 
 RELEASE's second half — *"in a **sort-merge** file description entry"* — is RELEASE's alone and stays in

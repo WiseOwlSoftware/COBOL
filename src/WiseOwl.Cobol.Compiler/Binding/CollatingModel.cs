@@ -605,9 +605,9 @@ public sealed record SortCollation(AlphabetDef? Alphanumeric, NationalAlphabetDe
 
 /// <summary>
 /// One per-runtime-module carrier for a collating sequence a THROUGH range's <c>IN alphabet-name-1</c> phrase names
-/// (ISO §14.7.8 rule 2). The <see cref="Field"/> is allocated by <c>DataBinder.RegisterRangeCollation</c> and
+/// (ISO §14.7.8 rule 2). The <see cref="Field"/> is allocated by <c>SpecialNamesBinder.RegisterRangeCollation</c> and
 /// declared by <c>ObjectComputerEmit</c>; the bound tree carries the COBOL alphabet-NAME and the renderer maps it
-/// through <c>DataBinder.RangeCollations</c>, so no C# identifier ever travels in a bound node.
+/// through <c>SpecialNamesBinder.RangeCollations</c>, so no C# identifier ever travels in a bound node.
 /// </summary>
 /// <param name="Field">The <c>CobolCollation</c> field to pass, or NULL when the alphabet is the native order —
 /// an identity sequence has no carrier and the native two-argument comparison IS it (§14.7.8 rule 2's "the

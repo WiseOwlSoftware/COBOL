@@ -414,7 +414,7 @@ public sealed record PicInfo(
     /// <c>StrongTypeModel.AddressOfRestriction</c>. kb/Work PB153.</para></summary>
     public string? RestrictedTypeName { get; init; }
 
-    /// <summary>The TYPE DECLARATION <see cref="RestrictedTypeName"/> resolves to — the <c>DataBinder.TypeDecls</c>
+    /// <summary>The TYPE DECLARATION <see cref="RestrictedTypeName"/> resolves to — the <c>ForestSlice.TypeDecls</c>
     /// entry, attached post-build by <c>ExpandTypesPass.ResolveRestrictedTypes</c> (inside the ONE <c>ExpandTypes</c>
     /// pass, so the template's own nested TYPE references are already expanded). Null when the item carries no
     /// restriction, and when the name resolves to no type declaration in this source element.

@@ -89,7 +89,7 @@ internal static class BitLayout
     /// LENGTH(SUB) 11, not 5). The filler belongs to the enclosing group, "of the same level number as the next item
     /// within that group" (§8.5.1.6.3). The first child is never a redefiner (a REDEFINES entry follows its target).</para>
     /// <para>Its negation is the "requires a byte boundary" that §13.18.44.3 SR15 compares for a REDEFINES subject
-    /// (<c>DataBinder.RedefinesEntry</c>), so it is public.</para></summary>
+    /// (<c>ResolveRedefinesPass.ScreenRedefinesEntry</c>), so it is public.</para></summary>
     public static bool KeepsPosition(DataItem c) =>
         !c.IsDynamicTable                                       // §8.5.1.9.1 — a dynamic-capacity table is out of line
         && !c.IsAligned                                         // §13.18.1.4 GR1 — an ALIGNED subject never shares
