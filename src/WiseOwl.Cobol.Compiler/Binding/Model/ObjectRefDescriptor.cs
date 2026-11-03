@@ -93,7 +93,7 @@ public enum ObjectRefKind
 /// DESIGN-external-repository §6.4) — null for a universal description, a FORMAL one, and one whose name resolved to
 /// nothing. A word is per source element and a class's emitted name per group, so what two separately compiled groups
 /// agree on is this identity: the readers that hold no class table
-/// (<c>PrototypeSignatures.CanonicalIdentity</c> over <c>ActivationDescriptions.Of(item, null)</c>) spell it. It is a
+/// (<c>PrototypeSignatures.Identity</c> over <c>ActivationDescriptions.Of(item, null)</c>) spell it. It is a
 /// function of <paramref name="Name"/> over the group's one class table, so it is NOT part of the description's equality
 /// (<see cref="Equals(ObjectRefDescriptor)"/>): two descriptions of one class are one description whoever built them. The
 /// descriptor names the class by identity and never holds its symbol, because <c>Binding.Model</c> may not reference

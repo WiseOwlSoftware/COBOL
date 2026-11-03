@@ -153,8 +153,9 @@ public static class StrongTypeModel
     /// and an intermediate group level is none of those.</para>
     /// <para>A group's elementary items may be restricted program- or function-pointers, whose USAGE clauses are the same
     /// when their TO phrases name one prototype (<see cref="SameAnalyzedProfile"/>; docs/CONFORMANCE.md D-RP1, kb/Work
-    /// PB4107) — never asked of the prototype's signature class, so the answer is the same in every compilation and
-    /// while <see cref="PrototypeSignatureClasses.Classify"/> is still refining.</para></summary>
+    /// PB4107) — never asked what the pointer may contain, so the answer is the same in every compilation and before
+    /// <see cref="PrototypeSignatures.StampContentRestrictions"/> has run, as the elementary pointer formal's is (kb/Work
+    /// PB4491).</para></summary>
     public static bool SameElementaryLayout(DataItem a, DataItem b) =>
         SameLayout(a, b, new Comparison());
 
