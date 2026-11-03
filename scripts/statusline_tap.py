@@ -73,11 +73,15 @@ def tap(raw: bytes, directory: Path, now: datetime | None = None) -> bool:
         now = now or datetime.now(timezone.utc)
         sid = str(record.get("session_id") or "")
         path = directory / FILE_NAME
+        # Only a file that does not exist yet means "no history". Any other failure to read it (on Windows, a read that
+        # overlaps another session's rename is refused) skips this refresh: starting from an empty history would stamp an
+        # idle session's old figures as measured now and drop every other session (review R2-1). The next refresh tries again.
         try:
-            old = json.loads(path.read_text(encoding="utf-8"))
-            sessions = old.get("sessions") if isinstance(old.get("sessions"), dict) else {}
-        except (OSError, ValueError, AttributeError):
-            sessions = {}
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            text = None
+        old = json.loads(text) if text is not None else {}
+        sessions = old.get("sessions") if isinstance(old, dict) and isinstance(old.get("sessions"), dict) else {}
         prev = sessions.get(sid)
         measured = prev["measured_at"] if isinstance(prev, dict) and prev.get("rate_limits") == limits else now.isoformat(timespec="seconds")
         sessions[sid] = {"rate_limits": limits, "measured_at": measured, "seen_at": now.isoformat(timespec="seconds")}
@@ -151,7 +155,23 @@ def self_test() -> int:
         blocked = Path(tmp) / "file-not-dir"
         blocked.write_text("x", encoding="utf-8", newline="\n")
         check("an unwritable directory is skipped, not raised", not tap(rec("a", 1), blocked))
-        check("no temporary file is left behind", not any(p.name.startswith(".rate-limits.") for p in d.iterdir()))
+        before = (d / FILE_NAME).read_bytes()
+        saved_read = Path.read_text
+        Path.read_text = lambda self, *a, **k: (_ for _ in ()).throw(PermissionError("locked by another session's rename"))
+        try:
+            check("a file that exists but cannot be read is skipped, never reset (review R2-1)",
+                  not tap(rec("idle", 50), d, t0 + timedelta(days=9, hours=1)))
+        finally:
+            Path.read_text = saved_read
+        check("... and the history it could not read is left as it was", (d / FILE_NAME).read_bytes() == before)
+        saved_replace = os.replace
+        os.replace = lambda *_a: (_ for _ in ()).throw(PermissionError("in use"))
+        try:
+            check("a failed rename is skipped", not tap(rec("c", 2), d, t0 + timedelta(days=9, hours=2)))
+        finally:
+            os.replace = saved_replace
+        check("... and its temporary file is removed (review R2-2)",
+              not any(p.name.startswith(".rate-limits.") for p in d.iterdir()))
         saved = os.environ.get("CLAUDE_CONFIG_DIR")
         try:
             os.environ["CLAUDE_CONFIG_DIR"] = str(d)
