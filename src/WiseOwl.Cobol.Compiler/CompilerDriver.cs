@@ -225,7 +225,7 @@ public static class CompilerDriver
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         var artifact = backend.Emit(bound, new BackendOptions(
             outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
-            RepositoryUpdate: options.RepositoryUpdate));
+            RepositoryUpdate: options.RepositoryUpdate, RepositoryReferences: bound.OoClasses.ImportedAssemblies));
         if (!artifact.Success)
             return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                 artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(),

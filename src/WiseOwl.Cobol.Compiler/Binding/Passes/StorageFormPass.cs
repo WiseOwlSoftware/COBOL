@@ -128,17 +128,41 @@ internal static class StorageFormPass
             foreach (var child in item.Children) AddBackgroundFilled(child, promoted);
         }
 
-        static void AddImagePromotableLeaves(DataItem item, HashSet<DataItem> promoted)
+    }
+
+    private static void AddImagePromotableLeaves(DataItem item, HashSet<DataItem> promoted)
+    {
+        foreach (var child in item.Children)
         {
-            foreach (var child in item.Children)
-            {
-                // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS
-                // position); same recursion as the legacy MarkStoreAsImage.
-                if (child.IsGroup) AddImagePromotableLeaves(child, promoted);
-                else if (IsImagePromotable(child))
-                    promoted.Add(child);
-            }
+            // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS
+            // position); same recursion as the legacy MarkStoreAsImage.
+            if (child.IsGroup) AddImagePromotableLeaves(child, promoted);
+            else if (IsImagePromotable(child))
+                promoted.Add(child);
         }
+    }
+
+    /// <summary>⛔ THE STORAGE FORM OF AN IMPORTED METHOD'S ITEMS (DESIGN-external-repository §10.1): the method's formals and
+    /// returning item, decoded from a record, classified exactly as the compilation that PUBLISHED them classified them — because the
+    /// storage form IS the method's crossing type in the CLR signature (<c>ManagedPointer&lt;string&gt;</c> against
+    /// <c>ManagedPointer&lt;long&gt;</c>), and the importing group's argument is built for the signature the assembly has. The decision is
+    /// a function of the description alone: an elementary formal is a character channel's far end
+    /// (<see cref="UsageCollectionPass.MethodFormalChannels"/> — every method formal is BY REFERENCE, ISO §14.2.3 GR8) and a group formal
+    /// is a whole-group operand (§14.9.25.4 GR4), so each is promoted by the ONE eligibility test (<see cref="IsImagePromotable"/>); the
+    /// RETURNING item is neither and keeps its base form. The override/implements fixed point does not apply: it compares symbols of
+    /// one group, and an imported signature is a fact of the assembly.</summary>
+    internal static void ClassifyImportedMethod(OoMethodSymbol method)
+    {
+        var binding = method.Binding!;
+        var promoted = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        foreach (var item in UsageCollectionPass.MethodFormalChannels([method]))
+            if (IsImagePromotable(item)) promoted.Add(item);
+        foreach (var formal in binding.Formals)
+            if (formal.Item.IsGroup) AddImagePromotableLeaves(formal.Item, promoted);
+        if (binding.Returning is { IsGroup: true } returning) AddImagePromotableLeaves(returning, promoted);
+        var visited = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        foreach (var root in binding.Formals.Select(f => f.Item).Concat(binding.Returning is { } r ? [r] : []))
+            Walk(root, visited, promoted);
     }
 
     /// <summary>⛔ THE ONE eligibility test for image promotion, shared by the whole-group promotion and the

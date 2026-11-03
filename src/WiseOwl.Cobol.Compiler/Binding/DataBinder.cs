@@ -649,7 +649,16 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             else if (re.CLASS() is not null && re.className() is { } cn)
             {
                 specifierWords.Add((re, cn.GetText(), UserWordKind.ObjectClassName));
-                BindSpecifierExternalizedName(re, "CLASS", cn.GetText(), "literal-1");
+                string? classExternalized = BindSpecifierExternalizedName(re, "CLASS", cn.GetText(), "literal-1");
+                if (re.externalizedNamePhrase() is null) classExternalized = null;   // the declared word is the identity (§12.3.8.4 GR2)
+                // §12.3.8.3 SR6: without EXPANDS, "there shall be information in the external repository for the class" — REPO-1
+                // at the specifier when the group defines no such class and the repository publishes none (kb/Work PB2104).
+                if (re.expandsPhrase() is null && OoClasses?.UnansweredClassSpecifier(re, cn.GetText(), classExternalized) is { } searched)
+                    using (Edition.At(re))
+                        Edition.Error(DiagnosticCatalog.RepositorySpecifierUnanswered,
+                            $"REPOSITORY CLASS {cn.GetText()}{(classExternalized is null ? "" : $" AS \"{classExternalized}\"")} names no class: no class "
+                            + $"definition of this compilation group is externalized \"{classExternalized ?? cn.GetText()}\", and no information exists for it "
+                            + $"in the external repository ({searched}) — ISO §12.3.8.3 SR6");
             }
             else if (re.INTERFACE() is not null && re.interfaceName() is { } inm)
             {

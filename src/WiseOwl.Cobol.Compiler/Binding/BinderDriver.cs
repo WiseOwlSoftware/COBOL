@@ -96,17 +96,25 @@ internal sealed class BinderDriver
         // element below (program units in BindUnitData, methods in the roster loop).
         var propagate = PropagateState.Build(directives.PropagateEvents);
 
+        // The external repository's provider exists BEFORE the class table: the table asks it for a class a REPOSITORY specifier
+        // names that no definition of the group claims (ISO §12.3.8.3 SR6 b; DESIGN-external-repository §8.4 step 3), while it
+        // resolves INHERITS and IMPLEMENTS in pass 1. Zero cost when unused: nothing is listed or opened until a question.
+        var searchSpace = repository ?? RepositorySearchSpace.None;
+        var signatureClasses = new PrototypeSignatureClasses();
+        var external = new MetadataRepositoryProvider(searchSpace, signatureClasses, edition);
         var (units, classes, table) = CollectUnits(tree, edition, directives.CompilationVariables,
-            cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty);
+            cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty, external);
+        external.UseClassTable(table);
         var session = new BindSession
         {
+            SignatureClasses = signatureClasses, External = external,
             Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl, Propagate = propagate,
             DirectiveSites = directives.DirectiveSites,
             CobolWords = cobolWordsMap ?? WiseOwl.Cobol.Editions.CobolWordsMap.Empty,
             Retypes = tree.TokenRetypes,
             LeapSecond = LeapSecondState.Build(directives.LeapSecondEvents),
             CompilationVariables = directives.CompilationVariables,
-            SearchSpace = repository ?? RepositorySearchSpace.None,
+            SearchSpace = searchSpace,
         };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
@@ -456,7 +464,7 @@ internal sealed class BinderDriver
     /// context type.</summary>
     private static (List<BoundUnit> Programs, List<OoClassUnit> Classes, OoClassTable Table) CollectUnits(
         Core.CompilationUnitContext tree, EditionContext edition, DirectiveTimeline<CompilationVariableEvent> variables,
-        WiseOwl.Cobol.Editions.CobolWordsMap words)
+        WiseOwl.Cobol.Editions.CobolWordsMap words, IClassImporter importer)
     {
         var all = new List<BoundUnit>();
         var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
@@ -475,7 +483,7 @@ internal sealed class BinderDriver
         // REPOSITORY EXPANDS phrase creates one, and from here on an expansion is an ordinary definition.
         var expanded = OoExpansion.Expand(tree, classDefs, ifaceDefs, edition, words);
         var table = OoClassTable.Build(expanded.Classes, edition, expanded.Interfaces, expanded.ParameterizedNames,
-            expanded.ParameterizedClasses, expanded.ParameterizedInterfaces, expanded.ExpandedNames, variables);
+            expanded.ParameterizedClasses, expanded.ParameterizedInterfaces, expanded.ExpandedNames, variables, importer);
         var classes = table.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
         return (all, classes, table);
 
@@ -899,8 +907,7 @@ internal sealed class BinderDriver
         // kb/Work PB237 / PB894 / PB989 — the compilation group's program and function units, the search space
         // §12.3.8.4 GR10 / GR11 a) and b) name. Built once; each source element searches it AS OF ITS OWN POSITION.
         // c) is the external repository's (kb/Work PB2103): it reads nothing until a specifier the group cannot answer.
-        return new RepositoryResolver(new GroupRepositoryProvider(units),
-            new MetadataRepositoryProvider(session.SearchSpace, session.SignatureClasses, session.OoClasses, session.Edition));
+        return new RepositoryResolver(new GroupRepositoryProvider(units), session.External);
     }
 
     /// <summary>⛔ Give every restricted program- or function-pointer in the group the signature class its prototype's

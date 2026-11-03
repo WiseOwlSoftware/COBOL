@@ -92,7 +92,8 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
     /// when the external repository refused it with a finding of its own.</summary>
     public void ReportUnanswered(object specifier, bool function, string word, string externalizedName, EditionContext edition)
     {
-        if (!_reported.Add(specifier) || External.Refused(function, externalizedName)) return;
+        var family = function ? RepositoryFamily.Function : RepositoryFamily.Program;
+        if (!_reported.Add(specifier) || External.Refused(family, externalizedName)) return;
         string kind = function ? "function" : "program";
         string written = ExternalizedNames.Same(word, externalizedName) ? word : $"{word} AS \"{externalizedName}\"";
         string alternatives = function
@@ -102,7 +103,7 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
               + $"externalized \"{externalizedName}\"";
         edition.Error(DiagnosticCatalog.RepositorySpecifierUnanswered,
             $"REPOSITORY {kind.ToUpperInvariant()} {written} names no {kind}: {alternatives}, and no information exists for it in the "
-            + $"external repository ({External.Searched(function, externalizedName)}) — ISO §12.3.8.3 {(function ? "SR10" : "SR14")}");
+            + $"external repository ({External.Searched(family, externalizedName)}) — ISO §12.3.8.3 {(function ? "SR10" : "SR14")}");
     }
 
     /// <summary>GR10 for a program-prototype whose externalized name is <paramref name="externalizedName"/>, as a source

@@ -41,6 +41,10 @@ internal sealed record RepositorySearchSpace(
     }
 }
 
+/// <summary>The kinds of unit one question of the external repository asks for (DESIGN-external-repository §5.1): a program (a
+/// definition, else a prototype), a function (likewise), a class or an interface.</summary>
+internal enum RepositoryFamily { Program, Function, Class, Interface }
+
 /// <summary>An entry of the external repository: the assembly at <paramref name="Path"/> (module version id
 /// <paramref name="Mvid"/>) that publishes the unit <paramref name="Kind"/> <paramref name="ExternalizedName"/>
 /// (DESIGN-external-repository §8.0). Its program or function is compiled elsewhere, so a CALL through it describes its
@@ -76,33 +80,29 @@ internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryU
 /// </list>
 /// The repository has no source order, so <c>position</c> is ignored (§8.0).
 /// </summary>
-internal sealed class MetadataRepositoryProvider : IRepositoryProvider
+internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IClassImporter
 {
     private readonly RepositorySearchSpace _space;
     private readonly PrototypeSignatureClasses _classes;
-    private readonly OoClassTable? _ooClasses;
+    private OoClassTable? _table;
     private readonly EditionContext _edition;
     private readonly string? _output;
     private readonly List<Location> _locations = [];
     private bool _consulted;
     private readonly Dictionary<(string Path, Guid Mvid), Loaded?> _loaded = [];
-    private readonly Dictionary<(bool Function, string Name), Hit?> _byName = [];
+    private readonly Dictionary<(RepositoryFamily Family, string Name), Hit?> _byName = [];
     private readonly Dictionary<string, IReadOnlyList<Hit>> _byWord = new(StringComparer.Ordinal);
-    private readonly Dictionary<(bool Function, string Name), IReadOnlyList<string>> _reasons = [];
-    private readonly HashSet<(bool Function, string Name)> _refused = [];
+    private readonly Dictionary<(RepositoryFamily Family, string Name), IReadOnlyList<string>> _reasons = [];
+    private readonly HashSet<(RepositoryFamily Family, string Name)> _refused = [];
     private readonly Dictionary<(string Path, RepositoryUnitKind Kind, string Name), Hit?> _answers = [];
 
     /// <param name="space">The search space.</param>
     /// <param name="classes">The group's signature classes, which every decoded record's prototypes join (§6.4).</param>
-    /// <param name="ooClasses">The group's classes and interfaces, which answer a record's object-reference identities
-    /// (REPO-11); null in a bind with no class table.</param>
     /// <param name="edition">Where the findings are reported.</param>
-    public MetadataRepositoryProvider(RepositorySearchSpace space, PrototypeSignatureClasses classes, OoClassTable? ooClasses,
-        EditionContext edition)
+    public MetadataRepositoryProvider(RepositorySearchSpace space, PrototypeSignatureClasses classes, EditionContext edition)
     {
         _space = space;
         _classes = classes;
-        _ooClasses = ooClasses;
         _edition = edition;
         _output = space.OutputPath is { } output ? Path.GetFullPath(output) : null;
         // REPO-10 is a fault of the command line, stated before any source position: an existence probe per named place (no
@@ -143,16 +143,23 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
     /// <summary>An entry's records, by unit kind and folded externalized name.</summary>
     private sealed record Loaded(IReadOnlyDictionary<(RepositoryUnitKind Kind, string Name), RepositoryRecord> Records);
 
-    /// <summary>A unit an entry publishes, decoded.</summary>
-    private sealed record Hit(RepositoryRecord Record, DecodedRecord Decoded, RepositoryEntryOrigin Origin);
+    /// <summary>A unit an entry publishes: its record, where it was found (<paramref name="Origin"/>, <paramref name="Registrar"/>
+    /// the entry's registrar type, which names the module's namespace) and — for a program or a function, whose record is
+    /// decoded as soon as it is found — the <paramref name="Decoded"/> signature. A class's or an interface's record is decoded when
+    /// it is IMPORTED (<see cref="Class"/>), because decoding names other classes, which must be able to name this one.</summary>
+    private sealed record Hit(RepositoryRecord Record, DecodedRecord? Decoded, RepositoryEntryOrigin Origin, string? Registrar)
+    {
+        /// <summary>The decoded signature of a program or a function.</summary>
+        public CalleeSignature Signature => Decoded!.Signature;
+    }
 
     /// <inheritdoc/>
     public ProgramAnswer? Program(string externalizedName, int position) =>
-        ByName(function: false, externalizedName) is { } hit ? new ProgramAnswer(hit.Decoded.Signature, hit.Origin) : null;
+        ByName(RepositoryFamily.Program, externalizedName) is { } hit ? new ProgramAnswer(hit.Signature, hit.Origin) : null;
 
     /// <inheritdoc/>
     public FunctionAnswer? Function(string externalizedName, int position) =>
-        ByName(function: true, externalizedName) is { } hit ? FunctionAnswerOf(hit) : null;
+        ByName(RepositoryFamily.Function, externalizedName) is { } hit ? FunctionAnswerOf(hit) : null;
 
     /// <inheritdoc/>
     public IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position) =>
@@ -160,15 +167,15 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
 
     /// <summary>True when the question for <paramref name="externalizedName"/> drew a finding of its own (REPO-3, -4, -5, -7, -8,
     /// -10, -11), so the resolver reports no REPO-1 beside it.</summary>
-    public bool Refused(bool function, string externalizedName) => _refused.Contains(Key(function, externalizedName));
+    public bool Refused(RepositoryFamily family, string externalizedName) => _refused.Contains(Key(family, externalizedName));
 
     /// <summary>What REPO-1 says was searched for <paramref name="externalizedName"/>: every location in order, why a file named
     /// after the unit was no answer, and the files the directory index skipped for their size (§15.2).</summary>
-    public string Searched(bool function, string externalizedName)
+    public string Searched(RepositoryFamily family, string externalizedName)
     {
         if (_locations.Count == 0) return "no external repository is named (no --repository directory or --reference file, and no output directory)";
         var parts = new List<string> { "searched: " + string.Join(", ", _locations.Select(l => l.Describe)) };
-        if (_reasons.TryGetValue(Key(function, externalizedName), out var reasons)) parts.AddRange(reasons);
+        if (_reasons.TryGetValue(Key(family, externalizedName), out var reasons)) parts.AddRange(reasons);
         foreach (var location in _locations.Where(l => l.IsDirectory))
             if (RepositoryLocator.SkippedForSize(location.Path) is { Count: > 0 } skipped)
                 parts.Add($"skipped for exceeding {RepositoryLocator.MaxFileBytes} bytes: {string.Join(", ", skipped)}");
@@ -181,15 +188,26 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
     public IEnumerable<(string Path, RepositoryRecord Record)> OpenedRecords() =>
         _loaded.Where(e => e.Value is not null).SelectMany(e => e.Value!.Records.Values.Select(r => (e.Key.Path, r)));
 
-    private static (bool, string) Key(bool function, string name) => (function, CobolNames.Fold(name));
+    private static (RepositoryFamily, string) Key(RepositoryFamily family, string name) => (family, CobolNames.Fold(name));
 
     private static FunctionAnswer FunctionAnswerOf(Hit hit) =>
-        new(new UserFunctionSignature(hit.Record.Name, hit.Record.ExternalizedName, hit.Decoded.Returning, hit.Decoded.Formals,
+        new(new UserFunctionSignature(hit.Record.Name, hit.Record.ExternalizedName, hit.Decoded!.Returning, hit.Decoded.Formals,
             DefinitionCompiledHere: false), hit.Origin);
 
-    private static RepositoryUnitKind[] KindsOf(bool function) => function
-        ? [RepositoryUnitKind.Function, RepositoryUnitKind.FunctionPrototype]
-        : [RepositoryUnitKind.Program, RepositoryUnitKind.ProgramPrototype];
+    /// <summary>The unit kinds a question of <paramref name="family"/> is answered by, in the order a location is searched: a
+    /// definition before the prototype of its name.</summary>
+    private static RepositoryUnitKind[] KindsOf(RepositoryFamily family) => family switch
+    {
+        RepositoryFamily.Function => [RepositoryUnitKind.Function, RepositoryUnitKind.FunctionPrototype],
+        RepositoryFamily.Class => [RepositoryUnitKind.Class],
+        RepositoryFamily.Interface => [RepositoryUnitKind.Interface],
+        _ => [RepositoryUnitKind.Program, RepositoryUnitKind.ProgramPrototype],
+    };
+
+    private static string KindWord(RepositoryFamily family) => family switch
+    {
+        RepositoryFamily.Function => "function", RepositoryFamily.Class => "class", RepositoryFamily.Interface => "interface", _ => "program",
+    };
 
     private void Consult()
     {
@@ -200,16 +218,16 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
 
     /// <summary>GR10 c) / GR11 c): the first entry of the search space publishing the name (§8.6), decoded; REPO-2 for a later
     /// different entry whose signature differs.</summary>
-    private Hit? ByName(bool function, string externalizedName)
+    private Hit? ByName(RepositoryFamily family, string externalizedName)
     {
-        var key = Key(function, externalizedName);
+        var key = Key(family, externalizedName);
         if (_byName.TryGetValue(key, out var cached)) return cached;
         Consult();
         var entries = new List<RepositoryEntry>();
         var reasons = new List<string>();
         RepositoryFind? typedMiss = null;
         foreach (var location in _locations)
-            foreach (var kind in KindsOf(function))
+            foreach (var kind in KindsOf(family))
             {
                 var find = location.Find(kind, externalizedName, _output);
                 if (find.Entry is { } entry)
@@ -232,10 +250,9 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
             if (hit is null) _refused.Add(key);
             else
                 foreach (var later in entries.Skip(1))
-                    if (Answer(later, report: false) is { } shadowed
-                        && PrototypeSignatures.FirstDifference(hit.Decoded.Signature, shadowed.Decoded.Signature) is { } difference)
+                    if (Answer(later, report: false) is { } shadowed && FirstDifference(hit, shadowed) is { } difference)
                         _edition.Warning(DiagnosticCatalog.RepositoryEntryShadowedDiffers,
-                            $"{hit.Origin.Describe(function ? "function" : "program")} is used; {shadowed.Origin.Describe(function ? "function" : "program")} "
+                            $"{hit.Origin.Describe(KindWord(family))} is used; {shadowed.Origin.Describe(KindWord(family))} "
                             + $"comes later in the search order and differs in {difference} (ISO §8.13; DESIGN-external-repository §8.6)");
         }
         else if (typedMiss is not null)
@@ -290,19 +307,13 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
                     _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
                         $"the repository entry '{entry.Path}' lists {unit.Kind} \"{unit.ExternalizedName}\" in its index and carries no record of it (ISO §8.13)");
             }
-            else if (Words(entry, record, report) is { } words)
+            else
             {
-                try
-                {
-                    hit = new Hit(record, RepositoryCodec.Decode(record, _classes, words),
-                        new RepositoryEntryOrigin(entry.Path, entry.Mvid, unit.Kind, record.ExternalizedName));
-                }
-                catch (RepositoryRecordException e)
-                {
-                    if (report)
-                        _edition.Error(DiagnosticCatalog.RepositoryDescriptionUnbuildable,
-                            $"the repository entry '{entry.Path}': {e.Message} (ISO §8.13; DESIGN-external-repository §6.3)");
-                }
+                var origin = new RepositoryEntryOrigin(entry.Path, entry.Mvid, unit.Kind, record.ExternalizedName);
+                if (unit.Kind is RepositoryUnitKind.Class or RepositoryUnitKind.Interface)
+                    hit = new Hit(record, null, origin, entry.Registrar);   // decoded when imported (Class), once it can be named
+                else if (Decode(entry.Path, record, report) is { } decoded)
+                    hit = new Hit(record, decoded, origin, entry.Registrar);
             }
         }
         // A refused answer is remembered only when it was reported, so a quiet look (a later entry's REPO-2 compare) never
@@ -383,32 +394,182 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider
         }
     }
 
-    /// <summary>⛔ The words the importing group gives the class and interface identities <paramref name="record"/> names in its
-    /// object-reference descriptions (§6.4, §8.7): each identity's class or interface of this group, by externalized name —
-    /// the record keeps the PUBLISHING element's words, which mean nothing here. Null (REPO-11 reported when
-    /// <paramref name="report"/>) when an identity is no class or interface of the group.</summary>
-    private IReadOnlyDictionary<(bool Interface, string Identity), string>? Words(RepositoryEntry entry, RepositoryRecord record, bool report)
+    /// <inheritdoc/>
+    bool IClassImporter.ClassRefused(string identity) => Refused(RepositoryFamily.Class, identity);
+
+    /// <inheritdoc/>
+    string IClassImporter.ClassSearched(string identity) => Searched(RepositoryFamily.Class, identity);
+
+    private static string? FirstDifference(Hit chosen, Hit shadowed) =>
+        chosen.Decoded is not null && shadowed.Decoded is not null
+            ? PrototypeSignatures.FirstDifference(chosen.Signature, shadowed.Signature)
+            : chosen.Record != shadowed.Record ? "its record" : null;
+
+    /// <summary>Tell the provider the class table the identities of the records it decodes resolve in (§8.7): the group's, the
+    /// one the class importer is asked through. Idempotent, and set before any record that names an object reference is decoded.</summary>
+    public void UseClassTable(OoClassTable table) => _table ??= table;
+
+    private OoClassTable Table => _table ?? throw new InvalidOperationException(
+        "the repository provider decoded a record before it was given the group's class table (MetadataRepositoryProvider.UseClassTable)");
+
+    /// <summary>The record bound into its throw-away forest (§6.3), every class and interface identity it names decoded to the
+    /// importing group's name for it (<see cref="RepositoryCodec.Names"/>, which imports a class the repository publishes), or null
+    /// with REPO-11 (an identity nothing answers) or REPO-5 (a description the codec cannot rebuild) reported when
+    /// <paramref name="report"/>.</summary>
+    private DecodedRecord? Decode(string path, RepositoryRecord record, bool report)
     {
-        var words = new Dictionary<(bool Interface, string Identity), string>();
-        foreach (var pic in RepositoryCodec.ObjectReferences(record))
+        var unanswered = new List<(bool Interface, string Identity)>();
+        var names = RepositoryCodec.Names(record, Table, unanswered);
+        if (unanswered.Count > 0)
         {
-            bool isInterface = pic.ObjectRefKind is ObjectReferenceKind.Interface;
-            string identity = pic.ObjectRefIdentity!;
-            if (words.ContainsKey((isInterface, identity))) continue;
-            string? word = isInterface
-                ? _ooClasses?.FindInterfaceByExternalizedName(identity)?.Name
-                : _ooClasses?.FindByExternalizedName(identity)?.Name;
-            if (word is null)
-            {
-                if (report)
-                    _edition.Error(DiagnosticCatalog.RepositoryIdentityUnanswered,
-                        $"the repository entry '{entry.Path}' describes {record.ExternalizedName}'s object reference to the "
-                        + $"{(isInterface ? "interface" : "class")} \"{identity}\", which no {(isInterface ? "interface" : "class")} of this "
-                        + "compilation group is (ISO §12.3.8.4 GR6)");
-                return null;
-            }
-            words[(isInterface, identity)] = word;
+            if (report)
+                foreach (var (isInterface, identity) in unanswered)
+                    Unanswered($"the repository entry '{path}' describes {record.ExternalizedName}'s object reference to", isInterface, identity);
+            return null;
         }
-        return words;
+        try { return RepositoryCodec.Decode(record, _classes, names); }
+        catch (RepositoryRecordException e)
+        {
+            if (report)
+                _edition.Error(DiagnosticCatalog.RepositoryDescriptionUnbuildable,
+                    $"the repository entry '{path}': {e.Message} (ISO §8.13; DESIGN-external-repository §6.3)");
+            return null;
+        }
+    }
+
+    /// <summary>REPO-11: <paramref name="what"/> names a class or interface identity that no class or interface of the
+    /// compilation group is and no entry of the external repository publishes (ISO §12.3.8.4 GR6).</summary>
+    private void Unanswered(string what, bool isInterface, string identity) =>
+        _edition.Error(DiagnosticCatalog.RepositoryIdentityUnanswered,
+            $"{what} the {(isInterface ? "interface" : "class")} \"{identity}\", which no {(isInterface ? "interface" : "class")} of this "
+            + "compilation group defines and no entry of the external repository publishes (ISO §12.3.8.4 GR6; DESIGN-external-repository §14)");
+
+    /// <summary>⛔ THE CLASS IMPORT (ISO §12.3.8.3 SR6 b), §12.3.8.4 GR6; DESIGN-external-repository §8.4 step 3, §10.1): the class
+    /// the first entry of the search space publishes under <paramref name="identity"/> (§8.6), as a symbol of
+    /// <see cref="OoSymbolOrigin.Imported"/> — <see cref="OoClassSymbol.ClrName"/> the TypeDef's full name under <c>global::</c> in the
+    /// module's namespace (§4.5), the superclass resolved by identity through the table (transitively; the standard class BASE
+    /// is the table's; one nothing answers is REPO-11), one <see cref="OoMethodSymbol"/> per recorded method over the decoded
+    /// <see cref="DataItem"/>s, <see cref="OoMethodSymbol.OverrideOf"/> re-linked. Downstream — INVOKE binding,
+    /// <c>ActivationDescriptions.Of</c>, the universal <c>__CobolInvoke</c>, typed object references, override checks — reads the
+    /// symbol as a source one. Null when nothing answers, or the entry cannot (REPO-3/-4/-5/-7/-8, REPO-6: its module's namespace
+    /// is another imported module's or this compilation's own).</summary>
+    public ImportedClass? Class(string identity, OoClassTable table)
+    {
+        UseClassTable(table);
+        if (ByName(RepositoryFamily.Class, identity) is not { } hit) return null;
+        var key = Key(RepositoryFamily.Class, identity);
+        string registrar = hit.Registrar ?? "";
+        string suffix = "." + ModuleNamespace.RegistrarClass;
+        if (!registrar.EndsWith(suffix, StringComparison.Ordinal))
+        {
+            _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
+                $"the repository entry '{hit.Origin.Path}' publishes the class \"{hit.Record.ExternalizedName}\" and names no registrar type, "
+                + "so the namespace its types live in is unknown (ISO §8.13; DESIGN-external-repository §4.5)");
+            _refused.Add(key);
+            return null;
+        }
+        var module = new ModuleNamespace(registrar[..^suffix.Length]);
+        if (NamespaceCollision(hit, module) is { } collision)
+        {
+            _edition.Error(DiagnosticCatalog.RepositoryAssemblyNamespaceCollision,
+                $"the repository entry '{hit.Origin.Path}' publishes the class \"{hit.Record.ExternalizedName}\" in the namespace "
+                + $"{module.ClrName}, which {collision}; one assembly simple name names one assembly per load context (ISO §8.13; "
+                + "DESIGN-external-repository §8.6)");
+            _refused.Add(key);
+            return null;
+        }
+        var facts = hit.Record.Class!;
+        var symbol = new OoClassSymbol(OoClassTable.ImportedKey(identity), NamingConvention.ImportedTypeName(module, facts.ClrName), ctx: null)
+        {
+            Origin = OoSymbolOrigin.Imported,
+            Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName),
+            ExternalizedName = hit.Record.ExternalizedName,
+            IsFinal = facts.Final,
+        };
+        return new ImportedClass(symbol, () => Complete(symbol, hit, Table));
+    }
+
+    /// <summary>What the other module or this compilation's own output already holds that <paramref name="module"/> collides with
+    /// (REPO-6), or null.</summary>
+    private string? NamespaceCollision(Hit hit, ModuleNamespace module)
+    {
+        foreach (var other in Table.ImportedClasses)
+            if (other.Imported is { } from && from.ClrNamespace == module.ClrName && from.Mvid != hit.Origin.Mvid)
+                return $"the entry '{from.Path}' (another build) already holds";
+        if (_output is not null && CsNames.ModuleNamespaceOf(Path.GetFileNameWithoutExtension(_output)).ClrName == module.ClrName)
+            return "this compilation's own output assembly holds";
+        return null;
+    }
+
+    /// <summary>The second half of the import: the superclass and the implemented interfaces by identity, the methods over the
+    /// decoded forest, the overrides.</summary>
+    private void Complete(OoClassSymbol symbol, Hit hit, OoClassTable table)
+    {
+        var facts = hit.Record.Class!;
+        string what = $"the repository entry '{hit.Origin.Path}', class \"{hit.Record.ExternalizedName}\", names";
+        if (facts.BaseIdentity is { } baseIdentity)
+        {
+            if (table.ImportClass(baseIdentity) is { } baseSymbol) symbol.Base = baseSymbol;
+            else Unanswered($"{what} its superclass", isInterface: false, baseIdentity);
+        }
+        Implemented(symbol.Implements, facts.Implements);
+        Implemented(symbol.FactoryImplements, facts.FactoryImplements);
+        if (Decode(hit.Origin.Path, hit.Record, report: true) is not { } decoded) return;
+        foreach (var dm in decoded.Methods)
+        {
+            var m = MethodOf(symbol, dm, what);
+            if (!(dm.Record.IsFactory ? symbol.TryAddFactoryMethod(m) : symbol.TryAddMethod(m)))
+                _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
+                    $"{hit.Origin.Path}: the class \"{hit.Record.ExternalizedName}\" records two {(dm.Record.IsFactory ? "factory " : "")}methods "
+                    + $"externalized \"{m.ExternalizedName}\" (ISO §8.13)");
+            else if (dm.Record.Override)
+                m.OverrideOf = dm.Record.IsFactory ? symbol.Base?.FindFactoryMethod(m.ExternalizedName) : symbol.Base?.FindMethod(m.ExternalizedName);
+        }
+
+        void Implemented(List<OoInterfaceSymbol> into, RecordList<string> identities)
+        {
+            foreach (var identity in identities)
+                if (table.FindInterfaceByExternalizedName(identity) is { } iface) into.Add(iface);
+                else Unanswered($"{what} an implemented interface", isInterface: true, identity);
+        }
+    }
+
+    /// <summary>One recorded method as a symbol of the importing group (§10.1): its signature is the decoded forest's, exactly the
+    /// shape <c>OoStandardClasses</c> gives the standard class's methods, so every consumer that reads a method's signature —
+    /// override conformance, the activation descriptions, the universal dispatch — reads it as it reads a method written in COBOL.
+    /// An accessor is rostered under the pinned name its record carries (§11.7.4 GR1 a)); its externalized name is its property's.</summary>
+    private OoMethodSymbol MethodOf(OoClassSymbol owner, DecodedMethod dm, string what)
+    {
+        var r = dm.Record;
+        char accessor = r.Accessor switch { RepositoryAccessor.Get => 'G', RepositoryAccessor.Set => 'S', _ => '\0' };
+        var m = new OoMethodSymbol(r.Name, HasUsing: dm.Formals.Count > 0, HasReturning: dm.Returning is not null, Ctx: null!)
+        {
+            ClrName = r.ClrName, Owner = owner, IsFactory = r.IsFactory, HasOverride = r.Override, IsFinal = r.Final,
+            Accessor = accessor, PropertyName = r.PropertyName,
+            ExternalizedName = accessor == '\0' ? r.ExternalizedName : r.Name,
+        };
+        var binding = new OoMethodBinding { Returning = dm.Returning };
+        foreach (var f in dm.Formals)
+            binding.Formals.Add(new OoFormal(f.Item, f.Position, binding.FormalName(f.Item, f.Position), f.Optional, f.ByValue, f.CarrierResident));
+        m.Binding = binding;
+        Passes.StorageFormPass.ClassifyImportedMethod(m);
+        foreach (var raised in r.Raising)
+        {
+            switch (raised.Kind)
+            {
+                case RepositoryRaisingKind.ExceptionName:
+                    m.Raising.Add(new RaisingTarget(RaisingTargetKind.ExceptionName, raised.Identity, Factory: false));
+                    break;
+                case RepositoryRaisingKind.ObjectClass:
+                    if (Table.ImportClass(raised.Identity) is { } cls) m.Raising.Add(new RaisingTarget(RaisingTargetKind.ObjectClass, cls.Name, raised.Factory));
+                    else Unanswered($"{what} RAISING", isInterface: false, raised.Identity);
+                    break;
+                default:
+                    if (Table.FindInterfaceByExternalizedName(raised.Identity) is { } iface) m.Raising.Add(new RaisingTarget(RaisingTargetKind.Interface, iface.Name, Factory: false));
+                    else Unanswered($"{what} RAISING", isInterface: true, raised.Identity);
+                    break;
+            }
+        }
+        return m;
     }
 }

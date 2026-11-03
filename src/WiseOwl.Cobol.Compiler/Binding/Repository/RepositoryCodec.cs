@@ -82,7 +82,7 @@ internal static class RepositoryCodec
         var encoder = new Encoder(cls.Data.OoClasses);
         RecordList<MethodRecord> methods = List(symbol.Methods.Concat(symbol.FactoryMethods).Select(encoder.Method));
         var facts = new ClassRecord(symbol.IsFinal, symbol.Base?.ExternalizedName, List(symbol.Implements.Select(i => i.ExternalizedName)),
-            List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryClrName, PropertiesOf(methods), methods);
+            List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryClrName, PropertiesOf(methods), methods, symbol.ClrName);
         return new RepositoryRecord(RepositoryUnitKind.Class, symbol.Name, symbol.ExternalizedName, CobolEntryConvention,
             cls.Data.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
@@ -95,7 +95,7 @@ internal static class RepositoryCodec
         var encoder = new Encoder(data.OoClasses);
         RecordList<MethodRecord> methods = List(iface.Prototypes.Select(encoder.Method));
         var facts = new ClassRecord(Final: false, BaseIdentity: null, List(iface.Inherits.Select(i => i.ExternalizedName)),
-            RecordList<string>.Empty, FactoryType: null, PropertiesOf(methods), methods);
+            RecordList<string>.Empty, FactoryType: null, PropertiesOf(methods), methods, iface.ClrName);
         return new RepositoryRecord(RepositoryUnitKind.Interface, iface.Name, iface.ExternalizedName, CobolEntryConvention,
             data.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
@@ -121,7 +121,7 @@ internal static class RepositoryCodec
     /// each class or interface identity the record names (<c>MetadataRepositoryProvider</c>, §8.7), so the decoded object
     /// references are compared in ITS word space; an identity absent from <paramref name="words"/> keeps the written word.</summary>
     public static DecodedRecord Decode(RepositoryRecord record, PrototypeSignatureClasses classes,
-        IReadOnlyDictionary<(bool Interface, string Identity), string>? words = null)
+        IReadOnlyDictionary<(bool Interface, string Identity), IdentityName>? words = null)
     {
         var decoder = new Decoder(record, words);
         var decoded = decoder.Run();
@@ -136,6 +136,8 @@ internal static class RepositoryCodec
     {
         var roots = record.Formals.Select(f => f.Description)
             .Concat(record.Returning is { } r ? [r] : [])
+            .Concat((record.Class?.Methods ?? RecordList<MethodRecord>.Empty).SelectMany(m => m.Formals.Select(f => f.Description)
+                .Concat(m.Returning is { } mr ? [mr] : [])))
             .Concat(record.TypeDeclarations)
             .Concat(record.ReferencedPrototypes.SelectMany(p => p.Formals.Select(f => f.Description)
                 .Concat(p.Returning is { } pr ? [pr] : [])));
@@ -146,6 +148,31 @@ internal static class RepositoryCodec
             if (entry.Pic is { ObjectRefIdentity: not null } pic) yield return pic;
             foreach (var child in entry.Children) pending.Push(child);
         }
+    }
+
+    /// <summary>⛔ THE NAMES THE IMPORTING GROUP GIVES THE CLASS AND INTERFACE IDENTITIES <paramref name="record"/> NAMES in its
+    /// object-reference descriptions (§6.4, §8.7) — the ONE derivation the resolver's provider (REPO-11) and
+    /// <c>--repository-check</c>'s comparison both read: each identity's class of the group, else the standard class BASE, else the class
+    /// the external repository publishes under it (<see cref="OoClassTable.ImportClass"/>, which imports it), by identity, because the
+    /// record keeps the PUBLISHING element's words and a word is per source element. <paramref name="unanswered"/> lists the
+    /// identities no class or interface answers (an identity's name is then the written one, the difference a comparison reports).</summary>
+    public static IReadOnlyDictionary<(bool Interface, string Identity), IdentityName> Names(
+        RepositoryRecord record, OoClassTable table, List<(bool Interface, string Identity)> unanswered)
+    {
+        var names = new Dictionary<(bool Interface, string Identity), IdentityName>();
+        foreach (var pic in ObjectReferences(record))
+        {
+            bool isInterface = pic.ObjectRefKind is ObjectReferenceKind.Interface;
+            string identity = pic.ObjectRefIdentity!;
+            if (names.ContainsKey((isInterface, identity)) || unanswered.Contains((isInterface, identity))) continue;
+            IdentityName? name = isInterface
+                ? table.FindInterfaceByExternalizedName(identity) is { } iface ? new IdentityName(iface.Name, null) : null
+                : table.ImportClass(identity) is { } cls
+                    ? new IdentityName(cls.Name, cls.Origin is OoSymbolOrigin.Imported ? cls.ClrName : null) : null;
+            if (name is { } found) names[(isInterface, identity)] = found;
+            else unanswered.Add((isInterface, identity));
+        }
+        return names;
     }
 
     private static RecordList<T> List<T>(IEnumerable<T> items) => new([.. items]);
@@ -269,12 +296,14 @@ internal static class RepositoryCodec
                 ObjectRefFormal: objectRef?.Formal ?? false);
         }
 
-        /// <summary>The externalized name the object reference's class or interface word resolved to in the publishing element
-        /// (§6.4); null for a universal reference, a formal parameter of a parameterized definition, and a word the group's
-        /// class table does not hold.</summary>
+        /// <summary>The externalized name the object reference's class or interface resolved to in the publishing element
+        /// (§6.4) — the description's own <see cref="ObjectRefDescriptor.Identity"/>, which the binder set where the word
+        /// resolved; an ACTIVE-CLASS description names its containing class by word, resolved here. Null for a universal
+        /// reference, a formal parameter of a parameterized definition, and a word the group's class table does not hold.</summary>
         private string? ObjectIdentity(ObjectRefDescriptor? d) => d switch
         {
             null or { Name: null } or { Formal: true } or { Kind: ObjectRefKind.Universal } => null,
+            { Identity: { } identity } => identity,
             { Kind: ObjectRefKind.Interface } => classes?.FindInterface(d.Value.Name)?.ExternalizedName,
             _ => classes?.Find(d.Value.Name)?.ExternalizedName,
         };
@@ -321,7 +350,7 @@ internal static class RepositoryCodec
     /// references are attached (the type declarations a restricted data-pointer names; the prototypes a restricted program-
     /// or function-pointer names, one <see cref="RestrictedPrototype"/> per row with a <see cref="PrototypeOrigin"/> of its
     /// own).</summary>
-    private sealed class Decoder(RepositoryRecord record, IReadOnlyDictionary<(bool Interface, string Identity), string>? words)
+    private sealed class Decoder(RepositoryRecord record, IReadOnlyDictionary<(bool Interface, string Identity), IdentityName>? words)
     {
         private int _serial;
         private readonly List<(DataItem Pointer, int Declaration)> _typeReferences = [];
@@ -439,11 +468,10 @@ internal static class RepositoryCodec
             return item;
         }
 
-        /// <summary>The word an object reference is decoded with: the importer's for its identity, else the written one.</summary>
-        private string? ObjectWord(PicRecord p) =>
+        /// <summary>The importer's name for an object reference's identity, when it has one.</summary>
+        private IdentityName? ImporterName(PicRecord p) =>
             p.ObjectRefIdentity is { } identity && words is not null
-            && words.TryGetValue((p.ObjectRefKind is ObjectReferenceKind.Interface, identity), out var word)
-                ? word : p.ObjectRefName;
+            && words.TryGetValue((p.ObjectRefKind is ObjectReferenceKind.Interface, identity), out var name) ? name : null;
 
         private PicInfo Pic(PicRecord p)
         {
@@ -464,7 +492,8 @@ internal static class RepositoryCodec
                         l.Size, l.Picture)
                     : null,
                 ObjectRef = FromPersisted(p.ObjectRefKind) is { } kind
-                    ? new ObjectRefDescriptor(kind, ObjectWord(p), p.ObjectRefFactory, p.ObjectRefOnly, p.ObjectRefFormal)
+                    ? new ObjectRefDescriptor(kind, ImporterName(p)?.Name ?? p.ObjectRefName, p.ObjectRefFactory, p.ObjectRefOnly,
+                        p.ObjectRefFormal, p.ObjectRefIdentity, ImporterName(p)?.ClrName)
                     : null,
             };
             return p.DigitPositions is { } digitPositions ? pic with { DigitPositions = digitPositions } : pic;
@@ -476,6 +505,10 @@ internal static class RepositoryCodec
 /// of the record, or a link the rules forbid (§15.3). The reader of slice 7 reports it as its malformed-record outcome (REPO-4);
 /// a record the compiler wrote never draws it.</summary>
 internal sealed class RepositoryRecordException(string message) : Exception(message);
+
+/// <summary>What the importing group calls a class or interface identity in its object-reference descriptions: the class table's
+/// key (<see cref="OoClassSymbol.Name"/>) and, for an imported class, its full CLR name (<see cref="ObjectRefDescriptor.ClrName"/>).</summary>
+internal readonly record struct IdentityName(string Name, string? ClrName);
 
 /// <summary>A record bound into its throw-away forest (§6.3): the formals and the returning item as a CALL's callee
 /// signature, the type declarations and the referenced prototypes as the record's tables decoded, and a class's or an

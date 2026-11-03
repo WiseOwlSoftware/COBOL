@@ -190,7 +190,7 @@ internal static class OoExpansion
             // The definition's OWN REPOSITORY paragraph (§11.3.3 SR8 / §11.6.3 SR4 say "of this class
             // definition" / "of this interface definition" — never a factory's or object's, which §12.3.3 SR3
             // forbids to carry one anyway).
-            var repo = OoRepositoryScope.SpecifierEntries(env).ToList();
+            var repo = IdentityScope.SpecifierEntries(env).ToList();
             var kinds = new List<bool?>();
             var seen = new HashSet<string>(CobolNames.Comparer);
             foreach (var f in formals)
@@ -216,7 +216,7 @@ internal static class OoExpansion
             // as itself (OoDriver.BindParameterized, kb/Work PB2051) declares the formal's class-specifier as an
             // object-class-name, and one word is only one type of user-defined word in a scope (§8.3.2.2).
             new DataBinder(edition) { CobolWords = words }
-                .DeclareParameterNames(OoRepositoryScope.RepositoryEntries(env), formals);
+                .DeclareParameterNames(IdentityScope.RepositoryEntries(env), formals);
             // §11.3.4 GR6 / §11.6.4 GR4: a parameter-name may be specified "only where an object-class-name or an
             // interface-name is permitted". Every occurrence is substituted (that is GR5), so a formal written in
             // a DECLARATION slot would silently rename a data item, paragraph, method or file in every expansion;

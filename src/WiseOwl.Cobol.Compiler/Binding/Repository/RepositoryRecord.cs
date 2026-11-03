@@ -65,8 +65,10 @@ internal sealed record RepositoryRecord(
 /// null for an interface.</param>
 /// <param name="Properties">The object and factory properties, each from its accessors (ISO §13.18.42; §11.7.2).</param>
 /// <param name="Methods">The methods: the object methods, then the factory methods, each in roster order.</param>
+/// <param name="ClrName">The simple name of the CLR type that carries the unit (its metadata name, never an attribute argument, like
+/// <see cref="MethodRecord.ClrName"/>): the type an importer names in its generated code, in the module's namespace (§4.5).</param>
 internal sealed record ClassRecord(bool Final, string? BaseIdentity, RecordList<string> Implements, RecordList<string> FactoryImplements,
-    string? FactoryType, RecordList<PropertyRecord> Properties, RecordList<MethodRecord> Methods);
+    string? FactoryType, RecordList<PropertyRecord> Properties, RecordList<MethodRecord> Methods, string ClrName);
 
 /// <summary>One object property (ISO §8.13 "the object properties of the source unit"; §13.18.42): its name, the externalized
 /// name its accessors carry (ISO §12.3.8.4 GR2), the half it belongs to and which accessors it has.</summary>

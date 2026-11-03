@@ -67,7 +67,70 @@ public sealed class OoClassTable
     public OoClassSymbol? FindByExternalizedName(string externalized) =>
         _classes.FirstOrDefault(c => CobolNames.Same(c.ExternalizedName, externalized))
         ?? (CobolNames.Same(externalized, StandardBase.ExternalizedName)
-            ? StandardBase : null);
+            ? StandardBase : _imported.GetValueOrDefault(externalized));
+
+    /// <summary>The classes this compilation IMPORTED from the external repository (DESIGN-external-repository §10.1), in
+    /// the order they were first asked for. They are in no other list: nothing emits one, binds its data or walks its
+    /// source, and a lookup reaches one by identity (<see cref="ImportClass"/>) or by its table key
+    /// (<see cref="Find"/>, <see cref="ImportedKey"/>).</summary>
+    public IReadOnlyList<OoClassSymbol> ImportedClasses => _importedList;
+    private readonly List<OoClassSymbol> _importedList = [];
+
+    /// <summary>The assemblies of the external repository this compilation imported a class from, once each, in the order they
+    /// were first needed: what the backend references to name an imported type (<c>BackendOptions.RepositoryReferences</c>,
+    /// DESIGN-external-repository §10.2).</summary>
+    public IReadOnlyList<string> ImportedAssemblies => [.. _importedList.Select(c => c.Imported!.Path).Distinct(StringComparer.OrdinalIgnoreCase)];
+    private readonly Dictionary<string, OoClassSymbol> _imported = new(CobolNames.Comparer);
+    private readonly HashSet<string> _importAsked = new(CobolNames.Comparer);
+    private IClassImporter? _importer;
+
+    /// <summary>The key an imported class has in this table and in every object-reference description naming it
+    /// (<see cref="OoClassSymbol.Name"/>): <c>class "&lt;identity&gt;"</c>, the spelling DESIGN-external-repository §8.7 gives an
+    /// identity no source element has a word for. A word is per source element (§8.4.6.4), so two elements may give one
+    /// identity two words or two identities one word; the key is group-wide and — a quote and a space are in no COBOL word —
+    /// can be neither a group class's word nor another identity's.</summary>
+    public static string ImportedKey(string identity) => $"class \"{identity}\"";
+
+    /// <summary>⛔ ISO §12.3.8.3 SR6 FOR ONE CLASS-SPECIFIER WITHOUT EXPANDS (DESIGN-external-repository §8.4): "there shall be
+    /// information in the external repository for the class" the specifier names — a class the group defines, the standard class
+    /// BASE (always there, §16.1), a parameterized definition (an EXPANDS operand), the formal of the definition the specifier lies
+    /// in, or a class the external repository publishes under the identity <c>literal-1 ?? word</c> (<see cref="ImportClass"/>). Null
+    /// when one answers, or the importer refused the question with a finding of its own (REPO-3 … REPO-8, REPO-6); otherwise the
+    /// text REPO-1 says was searched. Asked once per specifier (<paramref name="specifier"/>, the entry), however many source elements
+    /// inherit it (§12.3.4 GR1).</summary>
+    public string? UnansweredClassSpecifier(Antlr4.Runtime.ParserRuleContext specifier, string word, string? externalized)
+    {
+        if (!_specifiersAsked.Add(specifier)) return null;
+        string identity = externalized ?? word;
+        if ((externalized is null ? Find(word) : FindByExternalizedName(externalized)) is not null
+            || IsParameterized(word) || RepositoryScopeFor(specifier).IsFormal(word) || ImportClass(identity) is not null
+            || _importer?.ClassRefused(identity) == true)
+            return null;
+        return _importer?.ClassSearched(identity) ?? "no external repository is named";
+    }
+
+    private readonly HashSet<Antlr4.Runtime.ParserRuleContext> _specifiersAsked = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>⛔ THE IMPORT (DESIGN-external-repository §8.4 step 3, §10.1): the class whose EXTERNALIZED name is
+    /// <paramref name="identity"/> — the group's own definition, else the standard class BASE, else one already imported —
+    /// and otherwise the one the external repository publishes, registered here by that identity so the whole group shares
+    /// one symbol per identity. Null when nothing answers; the importer has reported a finding of its own when it refused
+    /// one. Each identity is asked of the importer once (a refusal is remembered), and a table with no importer answers
+    /// only the first three.</summary>
+    public OoClassSymbol? ImportClass(string identity)
+    {
+        if (FindByExternalizedName(identity) is { } known) return known;
+        if (_importer is null || !_importAsked.Add(identity)) return null;
+        if (_importer.Class(identity, this) is not { } found) return null;
+        // Registered BEFORE it is completed: a method of the class that takes the class itself, or a class that takes it,
+        // names this identity, which must answer with the symbol under construction rather than ask again.
+        var symbol = found.Symbol;
+        _imported[symbol.ExternalizedName] = symbol;
+        _importedList.Add(symbol);
+        _byName[symbol.Name] = symbol;
+        found.Complete();
+        return symbol;
+    }
 
     /// <summary>This compilation group's symbol for the standard class BASE (ISO §16; <see cref="OoStandardClasses"/>).
     /// Never in <see cref="Classes"/>: it has no source, binds nothing and emits nothing.</summary>
@@ -92,15 +155,15 @@ public sealed class OoClassTable
     /// ancestor walk runs once per program / class / interface / method definition rather than once per
     /// reference. ⛔ This table is the GROUP's set and is deliberately NOT the answer to "may this source
     /// element reference that name": go through <see cref="OoNameResolution"/>, which composes the two.</summary>
-    public OoRepositoryScope RepositoryScopeFor(Antlr4.Runtime.RuleContext? site)
+    public IdentityScope RepositoryScopeFor(Antlr4.Runtime.RuleContext? site)
     {
         var key = SourceElementOf(site);
-        if (key is null) return OoRepositoryScope.Empty;
+        if (key is null) return IdentityScope.Empty;
         // Built from the SOURCE ELEMENT, not from `site`: the two walks are identical (nothing between a
         // reference and its source element carries a REPOSITORY paragraph or names a class), and starting at
         // the memo key makes that identity a property of the code rather than an argument about it.
         if (!_scopes.TryGetValue(key, out var scope))
-            _scopes[key] = scope = OoRepositoryScope.Build(key, _variables, _dialectLevel);
+            _scopes[key] = scope = IdentityScope.Build(key, _variables, _dialectLevel);
         return scope;
     }
 
@@ -110,7 +173,7 @@ public sealed class OoClassTable
 
     // Keyed by parse-tree node IDENTITY: a ParserRuleContext does not override Equals, so the default
     // comparer already IS reference equality.
-    private readonly Dictionary<Antlr4.Runtime.RuleContext, OoRepositoryScope> _scopes = [];
+    private readonly Dictionary<Antlr4.Runtime.RuleContext, IdentityScope> _scopes = [];
 
     /// <summary>The compilation's diagnostics, for the one rule this table reports at a reference
     /// (<see cref="RecordReferenceUse"/>). Null only for a table no <see cref="Build"/> made.</summary>
@@ -389,12 +452,13 @@ public sealed class OoClassTable
         IReadOnlyList<Core.ClassDefinitionContext>? parameterizedClasses,
         IReadOnlyList<Core.InterfaceDefinitionContext>? parameterizedInterfaces,
         IReadOnlySet<string>? expandedNames,
-        DirectiveTimeline<CompilationVariableEvent> variables)
+        DirectiveTimeline<CompilationVariableEvent> variables,
+        IClassImporter? importer = null)
     {
         var table = new OoClassTable
         {
             _parameterized = parameterizedNames ?? EmptyNames, _variables = variables,
-            _dialectLevel = edition.Edition.Year, _edition = edition,
+            _dialectLevel = edition.Edition.Year, _edition = edition, _importer = importer,
         };
         var usedCsNames = new HashSet<string>(StringComparer.Ordinal);
 

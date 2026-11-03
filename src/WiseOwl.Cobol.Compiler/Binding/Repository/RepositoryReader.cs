@@ -164,7 +164,7 @@ internal static class RepositoryReader
         }
         return new ClassRecord(unit.Flag(nameof(CobolUnitAttribute.Final)), unit.Text(nameof(CobolUnitAttribute.BaseIdentity)),
             List(unit.Texts(nameof(CobolUnitAttribute.Implements)) ?? []), List(unit.Texts(nameof(CobolUnitAttribute.FactoryImplements)) ?? []),
-            factoryType, List(propertyRecords), List(methods));
+            factoryType, List(propertyRecords), List(methods), md.GetString(type.Name));
 
         static PropertyRecord Property(Fields p, bool isFactory) => new(p.Fixed<string>(0), p.Fixed<string>(1), isFactory,
             p.Flag(nameof(CobolPropertyAttribute.Get)), p.Flag(nameof(CobolPropertyAttribute.Set)));

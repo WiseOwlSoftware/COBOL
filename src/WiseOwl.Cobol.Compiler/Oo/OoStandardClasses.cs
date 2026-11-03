@@ -87,7 +87,7 @@ public static class OoStandardClasses
     /// and a symbol shared across compilations would carry one group's facts into the next.</summary>
     public static OoClassSymbol BuildBase()
     {
-        var cls = new OoClassSymbol(BaseName, DataItem.WordIdentifier(BaseName), ctx: null);
+        var cls = new OoClassSymbol(BaseName, DataItem.WordIdentifier(BaseName), ctx: null) { Origin = OoSymbolOrigin.Standard };
 
         // §16.2 BaseFactoryInterface: `Method-id. New. … 01 outObject usage object reference active-class.
         // Procedure division returning outObject.` No formal parameters.

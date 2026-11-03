@@ -66,13 +66,6 @@ internal sealed class ProgramEmitter
         => Current = new UnitEmitters(w, data, places, _names, _atoms, _dispatchState, _ecState, _callState, _oo,
             _whenCompiledStamp);
 
-    /// <summary>The C# spelling of a module namespace (kb/Work PB4265): its CLR name with every segment that is a C#
-    /// reserved keyword written <c>@</c>-escaped (<c>Cobol.class</c> is declared <c>namespace Cobol.@class;</c>). The
-    /// namespace is the one emitted name not allocated in a scope that refuses a keyword
-    /// (<see cref="CsNames.ModuleNamespaceOf"/>), so its C# spelling is formed here, by the Roslyn backend.</summary>
-    internal static string CSharpNamespace(ModuleNamespace ns) =>
-        string.Join('.', ns.ClrName.Split('.').Select(static s => CsNames.CSharpReservedKeywords.Contains(s) ? "@" + s : s));
-
     /// <summary>The EMIT half (rearch PHASE-03 Step 14a / PHASE-06 Step 2): render the run unit's C# from an
     /// already-bound immutable <see cref="BoundCompilation"/> — reached ONLY after the driver confirmed the edition
     /// sink is clean, so codegen never runs on an errored tree (exit criterion 9). Reads the compilation
@@ -109,7 +102,7 @@ internal sealed class ProgramEmitter
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
             RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, HostEntryEmitter.EntryUnits(units)), comp.Edition,
             hasSignatures: repositoryUpdate));
-        w.Line($"namespace {CSharpNamespace(ns)};");
+        w.Line($"namespace {CsNames.CSharpNamespace(ns)};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name
         // generated from a COBOL word may spell (kb/Work PB3270); ImportedTypeNameDriftTests is red on a directive not listed.

@@ -215,7 +215,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    private const string ClassLibrary = """
+    private const string ClassOnly = """
         IDENTIFICATION DIVISION.
         CLASS-ID. R2103K INHERITS FROM BASE.
         ENVIRONMENT DIVISION.
@@ -223,6 +223,9 @@ public sealed class ExternalRepositoryResolutionTests
         REPOSITORY.
             CLASS BASE.
         END CLASS R2103K.
+        """;
+
+    private const string ProgramOfTheClass = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. R2103O.
         ENVIRONMENT DIVISION.
@@ -237,12 +240,16 @@ public sealed class ExternalRepositoryResolutionTests
         END PROGRAM R2103O.
         """;
 
-    [Fact]   // REPO-11 (§6.4): the entry's formal is an object reference to a class this group does not have.
-    public void AnEntryNamingAClassTheGroupLacks_IsRepo11()
+    [Fact]   // REPO-11 (§6.4): the entry's formal is an object reference to a class neither this group nor any entry has.
+    public void AnEntryNamingAClassNoEntryPublishes_IsRepo11()
     {
         WithDirectory("repo-11", dir =>
         {
-            var library = Compile(dir, "R2103O", ClassLibrary);
+            // The class is published by an assembly of its own (kb/Work PB2104: a class the entry's own assembly or another one
+            // publishes is IMPORTED, so it is answered); the program's assembly is the only place searched.
+            string classes = Path.Combine(dir, "classes"), programs = Path.Combine(dir, "programs");
+            Assert.True(Compile(classes, "R2103K", ClassOnly).Success);
+            var library = Compile(programs, "R2103O", ProgramOfTheClass, repositories: [classes]);
             Assert.True(library.Success, Codes(library));
             var r = Compile(dir, "R2103U", """
                 IDENTIFICATION DIVISION.
@@ -254,7 +261,7 @@ public sealed class ExternalRepositoryResolutionTests
                 PROCEDURE DIVISION.
                     GOBACK.
                 END PROGRAM R2103U.
-                """);
+                """, repositories: [programs]);
             Assert.False(r.Success);
             Assert.Contains(r.Errors, e => e.Contains("COBOL5971", StringComparison.Ordinal) && e.Contains("R2103K", StringComparison.Ordinal));
         });

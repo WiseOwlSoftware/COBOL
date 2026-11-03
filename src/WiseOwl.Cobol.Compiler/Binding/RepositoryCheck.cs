@@ -53,7 +53,7 @@ internal static class RepositoryCheck
                 if (IsFunction(record.Kind) != unit.IsFunction || !ExternalizedNames.Same(record.ExternalizedName, unit.ExternalizedName))
                     continue;
                 DecodedRecord decoded;
-                try { decoded = RepositoryCodec.Decode(record, classes, Words(record, session)); }
+                try { decoded = RepositoryCodec.Decode(record, classes, RepositoryCodec.Names(record, session.OoClasses, [])); }
                 catch (RepositoryRecordException) { continue; }   // the resolver's REPO-5 names an entry it uses; this one is only compared
                 if (PrototypeSignatures.FirstDifference(new CalleeSignature(unit.Data.LinkageFormals, unit.Data.LinkageReturning),
                         decoded.Signature) is not { } difference)
@@ -97,20 +97,4 @@ internal static class RepositoryCheck
         }
     }
 
-    /// <summary>The group's words for the class and interface identities <paramref name="record"/> names (§8.7), so a decoded
-    /// object reference compares in the group's word space; an identity the group does not have keeps its written word, and
-    /// then differs from the group's description, which is the difference to report.</summary>
-    private static Dictionary<(bool Interface, string Identity), string> Words(RepositoryRecord record, BindSession session)
-    {
-        var words = new Dictionary<(bool Interface, string Identity), string>();
-        foreach (var pic in RepositoryCodec.ObjectReferences(record))
-        {
-            bool isInterface = pic.ObjectRefKind is ObjectReferenceKind.Interface;
-            string? word = isInterface
-                ? session.OoClasses.FindInterfaceByExternalizedName(pic.ObjectRefIdentity!)?.Name
-                : session.OoClasses.FindByExternalizedName(pic.ObjectRefIdentity!)?.Name;
-            if (word is not null) words[(isInterface, pic.ObjectRefIdentity!)] = word;
-        }
-        return words;
-    }
 }
