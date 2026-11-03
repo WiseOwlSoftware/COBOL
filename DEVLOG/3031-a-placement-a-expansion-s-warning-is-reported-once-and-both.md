@@ -1,4 +1,4 @@
-## A placement-(a) expansion's warning is reported once, and both placements position it at the EXPANDS entry (PB4469)
+## Entry 3031 — 2026-11-03 06:33 PST — A placement-(a) expansion's warning is reported once, and both placements position it at the EXPANDS entry (PB4469)
 
 **Re-probe.** A library whose skeleton holds `IF 1 = 1 DISPLAY "A".` (COBOL3146, a relation of two literals, ISO §8.8.4.2.1) and a client
 that expands it over a class of another assembly (placement (a)): the client's build printed the warning at `CLIENT1.cob(8,438)` and again at
@@ -32,3 +32,4 @@ stays, errors stay, and no `new CommonToken(` in `OoExpansion.cs`). No inventory
 **Sibling sweep.** The only caller of `CompilerDriver.Compile` for expansion text is `ExpansionAssemblies.Write`; every writer of
 `EditionContext.Warnings` is `Warning` (grep pasted in the report). An IMPORTED expansion's text is reported by the group alone (nothing else compiles
 it in that run): left as it was, and registered as a lead.
+
