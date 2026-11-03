@@ -148,6 +148,7 @@ sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import config as suite_config  # noqa: E402
 import run as suite_run  # noqa: E402
 from spec_headings import GENERAL_FORMAT_NOUN  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
+import fuzz_claude  # noqa: E402  (the Claude program writer, kb/Work PB4504)
 from fuzz_ollama import (ABORTED, DEGENERATE, DEGENERATE_FORMS, DEGENERATE_LINES, DEGENERATE_REASONS, MODEL_ERRORS,  # noqa: E402
                          NUM_CTX, NUM_PREDICT, OllamaError, PauseGate, lossless, ollama_chat, parse_model_options,
                          read_pauses, unload)  # — the model's side: the streaming chat, the degenerate-reply watch, the PAUSE file
@@ -1039,6 +1040,21 @@ class Settings:
     #: Ollama options per model tag (`--model-option MODEL:KEY=VALUE`, fuzz_ollama.MODEL_OPTION_TYPES): a sampler setting
     #: that damps a model's repetition belongs to that model, so a bake-off gives each its own (kb/Work PB3537)
     model_options: dict[str, dict[str, float | int]] = dataclasses.field(default_factory=dict)
+    #: Who writes the programs (kb/Work PB4504): "ollama", a local model through fuzz_ollama.ollama_chat, or "claude", a Claude
+    #: model through fuzz_claude.claude_chat (the Claude Code CLI; a cloud session's own account pays). `model` names the
+    #: writer's model: an Ollama tag, or a Claude alias or id.
+    writer: str = "ollama"
+    #: The most the Claude writer may spend in this run, in US dollars: no new program starts once fuzz_claude.spent()
+    #: reaches it (None: no ceiling; the Ollama writer spends nothing).
+    max_usd: float | None = None
+
+
+def writer_reply(s: Any, model_options: dict[str, Any], messages: list[dict[str, str]]) -> tuple[str, float, str, int]:
+    """One reply from the run's writer (kb/Work PB4504): the two writers return the same shape, so nothing after the
+    generation knows which one wrote the program."""
+    if s.writer == "claude":
+        return fuzz_claude.claude_chat(s.model, messages, s.temperature)
+    return ollama_chat(s.model, messages, s.temperature, options=model_options)
 
 
 class Fuzz:
@@ -1067,6 +1083,10 @@ class Fuzz:
         self.model_options = s.model_options.get(s.model, {})
         self.pause = PauseGate(self.out)      # the wrapper's PAUSE file (kb/Work PB3561)
 
+    def spent_out(self) -> bool:
+        """True once the Claude writer has spent the run's ceiling (`--max-usd`): no new program starts."""
+        return self.s.max_usd is not None and fuzz_claude.spent() >= self.s.max_usd
+
     def seed_for(self, i: int) -> tuple[str, str, str, int]:
         n = len(self.seeds)
         number, title, body = self.seeds[(i // self.s.variations) % n]
@@ -1078,7 +1098,7 @@ class Fuzz:
         with it, and an overnight run cannot afford that shape."""
         number, title, body, variation = self.seed_for(i)
         name = f"fz{i:05d}"
-        rec: dict[str, Any] = {"id": name, "clause": number, "title": title, "model": self.s.model,
+        rec: dict[str, Any] = {"id": name, "clause": number, "title": title, "model": self.s.model, "writer": self.s.writer,
                                "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
         try:
             return self._one(i, name, number, title, body, variation, rec)
@@ -1119,9 +1139,17 @@ class Fuzz:
             # PAUSE loses no program (kb/Work PB3561). A failure that is neither, or the second runner failure, is the row's
             # RUNNER_ERROR.
             this_generation.clear()
+            if attempt and self.spent_out():
+                # The run reached --max-usd while this program was in flight: no further correction is asked, so the
+                # ceiling bounds the run to the generations already started (review R1-4). The verdict is the last program's.
+                rec["stopped_at_ceiling"] = True
+                if program is None:
+                    rec.update(verdict="NO_PROGRAM", reason="the run's --max-usd was reached before the writer produced a program")
+                    return rec
+                break
             try:
                 reply, secs, done, thinking = lossless(
-                    self.pause, lambda: ollama_chat(self.s.model, messages, self.s.temperature, options=self.model_options),
+                    self.pause, lambda: writer_reply(self.s, self.model_options, messages),
                     requeued)
             except MODEL_ERRORS as e:
                 again = (f" (the generation was asked again {'once' if len(this_generation) == 1 else f'{len(this_generation)} times'}, "
@@ -1136,7 +1164,7 @@ class Fuzz:
             # A reply cut short (the token cap, or an enumeration the watch ended) never yields a program: what precedes the cut
             # may hold a PROCEDURE DIVISION, but it is the front of a program the model did not finish.
             if program is None or done == "length" or done in DEGENERATE_REASONS:
-                why = cut_off_reason(done, thinking, len(reply))
+                why = cut_off_reason(done, thinking, len(reply), self.s.writer)
                 if attempt == self.s.repairs:
                     rec.update(verdict="NO_PROGRAM", reason=why, truncated=done == "length")
                     return rec
@@ -1191,6 +1219,8 @@ class Fuzz:
 
     def record(self, rec: dict[str, Any]) -> None:
         with self.lock:
+            if self.s.writer == "claude":
+                rec["spent_usd"] = round(fuzz_claude.spent(), 4)    # the run's spend when this row closed (review R1-1)
             with self.results_path.open("a", encoding="utf-8", newline="\n") as f:
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
             self.done += 1
@@ -1214,8 +1244,8 @@ class Fuzz:
             with ThreadPoolExecutor(max_workers=self.s.jobs) as pool:
                 pending = set()
                 i = 0
-                while i < total and (self.deadline is None or time.monotonic() < self.deadline):
-                    while len(pending) < self.s.jobs and i < total:
+                while i < total and (self.deadline is None or time.monotonic() < self.deadline) and not self.spent_out():
+                    while len(pending) < self.s.jobs and i < total and not self.spent_out():
                         pending.add(pool.submit(self.one, i))
                         i += 1
                     done_now = next(as_completed(pending))
@@ -1224,11 +1254,12 @@ class Fuzz:
                 for fut in as_completed(pending):
                     self.record(fut.result())
         finally:
-            unload(self.s.model)
+            if self.s.writer == "ollama":
+                unload(self.s.model)
             write_report(self.out)
 
 
-def cut_off_reason(done: str, thinking_chars: int, content_chars: int) -> str:
+def cut_off_reason(done: str, thinking_chars: int, content_chars: int, writer: str = "ollama") -> str:
     """Why a reply yielded no program: cut off at the output cap, with the thinking that spent the cap named when the content
     is empty (a model that ignores `think: false`), or simply no program in it. An enumeration loop is named as its own
     shape (kb/Work PB3537), whoever ended it: the harness's watch or Ollama's repeat limit."""
@@ -1243,6 +1274,8 @@ def cut_off_reason(done: str, thinking_chars: int, content_chars: int) -> str:
     if thinking_chars and not content_chars:
         return (f"the model spent all {NUM_PREDICT} output tokens thinking ({thinking_chars} characters; think=false was not "
                 "honoured) and wrote no content")
+    if writer == "claude":
+        return "the reply was cut off at the Claude model's output-token limit (stop_reason max_tokens)"   # review R1-6
     return f"the reply was cut off at {NUM_PREDICT} tokens"
 
 
@@ -1637,7 +1670,8 @@ def self_test() -> int:
           "spent all" in cut_off_reason("length", 28259, 0) and "think=false" in cut_off_reason("length", 28259, 0)
           and cut_off_reason("length", 0, 500) == f"the reply was cut off at {NUM_PREDICT} tokens"
           and cut_off_reason("length", 900, 500) == f"the reply was cut off at {NUM_PREDICT} tokens"
-          and cut_off_reason("stop", 0, 0) == "no COBOL program in the reply")
+          and cut_off_reason("stop", 0, 0) == "no COBOL program in the reply"
+          and "Claude model's output-token limit" in cut_off_reason("length", 0, 500, "claude"))
     many = [(f"14.9.{k}", f"S{k}", "b") for k in range(1, 41)]
     check("seeds: the walk is shuffled deterministically by the seed (same seed, same order; a different seed, a different one) and in_order keeps the spec's",
           order_seeds(many, 1, False) == order_seeds(many, 1, False) and order_seeds(many, 1, False) != many
@@ -2039,10 +2073,10 @@ def self_test() -> int:
         try:
             globals()["ollama_chat"], globals()["observe_fresh"] = chat, fresh
             gate = PauseGate(one_dir, sleep=lambda _s: gate.path.unlink(missing_ok=True), say=lambda _m: None)
-            fake = types.SimpleNamespace(s=types.SimpleNamespace(model="m", temperature=0.3, repairs=3, keep=True), out=one_dir,
+            fake = types.SimpleNamespace(s=types.SimpleNamespace(model="m", temperature=0.3, repairs=3, keep=True, writer="ollama"), out=one_dir,
                                          programs=one_dir / "programs", we=types.SimpleNamespace(name="we", work=one_dir / "w"),
                                          they=types.SimpleNamespace(name="they", work=one_dir / "t"), pause=gate,
-                                         model_options=model_options or {},
+                                         model_options=model_options or {}, spent_out=lambda: False,
                                          system_prompts={family: f"sys {family}" for family in EXAMPLES})
             row = Fuzz._one(fake, 0, "fz00000", "14.9.25", "MOVE statement", "body", 0, {"id": "fz00000"})  # type: ignore[arg-type]
             row["_pauses"] = read_pauses(one_dir)
@@ -2141,7 +2175,7 @@ def self_test() -> int:
           and refusal_key({"code": "", "message": "x.cob(3,1): error: boom", "gnucobol": "g"})[0] == "x.cob(3,1): error: boom")
     def boom(*_a: object) -> dict[str, Any]:
         raise FileNotFoundError("fz00002.cob")
-    fake = types.SimpleNamespace(seed_for=lambda i: ("14.9.25", "MOVE statement", "body", 0), s=types.SimpleNamespace(model="m"), _one=boom)
+    fake = types.SimpleNamespace(seed_for=lambda i: ("14.9.25", "MOVE statement", "body", 0), s=types.SimpleNamespace(model="m", writer="ollama"), _one=boom)
     rec = Fuzz.one(fake, 2)  # type: ignore[arg-type]
     check("run: a harness failure inside one program is a RUNNER_ERROR row with its traceback, never the end of the run",
           rec["verdict"] == "RUNNER_ERROR" and rec["reason"].startswith("harness: FileNotFoundError") and "boom" in rec["traceback"]
@@ -2199,6 +2233,45 @@ def self_test() -> int:
           option_errors["key"].startswith("2|") and "--model-option 'm:top_k=3'" in option_errors["key"]
           and option_errors["unused"].startswith("2|") and "names c, which this run does not use (it runs a, b)" in option_errors["unused"]
           and option_errors["ok"].startswith("2|") and "compiler not found" in option_errors["ok"], option_errors)
+    # --writer claude (kb/Work PB4504): one Claude model, no Ollama-only option, and --max-usd only for the writer that spends
+    writer_errors: dict[str, str] = {}
+    for case, argv in (("bake-off", ["--writer", "claude", "--bake-off", "a,b", "--count", "1"]),
+                       ("option", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--model-option", "sonnet:repeat_penalty=1.1"]),
+                       ("usd", ["--model", "m", "--count", "1", "--max-usd", "1"]),
+                       ("ok", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--max-usd", "2", "--force-open-notes",
+                               "--cobol", "no-such-cobol.exe"])):
+        err = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            try:
+                main(argv)
+                code = 0
+            except SystemExit as e:
+                code = e.code
+        writer_errors[case] = f"{code}|{err.getvalue()}"
+    check("writer: --writer claude refuses --bake-off and --model-option, --max-usd is refused for the Ollama writer, and a valid "
+          "Claude run reaches the compiler check",
+          writer_errors["bake-off"].startswith("2|") and "--writer claude takes one --model" in writer_errors["bake-off"]
+          and writer_errors["option"].startswith("2|") and "--writer claude takes one --model" in writer_errors["option"]
+          and writer_errors["usd"].startswith("2|") and "--max-usd bounds the Claude writer" in writer_errors["usd"]
+          and writer_errors["ok"].startswith("2|") and "compiler not found" in writer_errors["ok"], writer_errors)
+    # writer_reply routes to the run's writer and Fuzz.spent_out reads the Claude writer's meter
+    probe = Fuzz.__new__(Fuzz)
+    probe.model_options = {}
+    seen: list[str] = []
+    saved_ollama, saved_claude, saved_spent = globals()["ollama_chat"], fuzz_claude.claude_chat, fuzz_claude.spent
+    try:
+        globals()["ollama_chat"] = lambda *a, **k: (seen.append("ollama"), ("o", 0.0, "stop", 0))[1]
+        fuzz_claude.claude_chat = lambda *a, **k: (seen.append("claude"), ("c", 0.0, "stop", 0))[1]
+        fuzz_claude.spent = lambda: 3.0
+        for writer, ceiling in (("ollama", None), ("claude", 2.0), ("claude", 5.0)):
+            probe.s = Settings(model="m", out=Path("."), jobs=1, count=1, hours=None, prefixes=("8",), temperature=0.3,
+                               cobol_exe="x", keep=False, writer=writer, max_usd=ceiling)
+            writer_reply(probe.s, {}, [{"role": "user", "content": "u"}])
+            seen.append(f"spent_out={probe.spent_out()}")
+    finally:
+        globals()["ollama_chat"], fuzz_claude.claude_chat, fuzz_claude.spent = saved_ollama, saved_claude, saved_spent
+    check("writer: writer_reply asks the run's writer, and a Claude run stops starting programs at its --max-usd",
+          seen == ["ollama", "spent_out=False", "claude", "spent_out=True", "claude", "spent_out=False"], seen)
     print("self-test " + ("PASSED" if rc == 0 else "FAILED"))
     return rc
 
@@ -2238,7 +2311,14 @@ def cadence_gate(work_dir: Path, force: bool) -> bool:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--model", help="the Ollama model tag that writes the programs")
+    ap.add_argument("--model", help="the model that writes the programs: an Ollama tag, or with --writer claude a Claude alias or id")
+    ap.add_argument("--writer", choices=("ollama", "claude"), default="ollama",
+                    help="who writes the programs: a local Ollama model (default), or a Claude model through the Claude Code CLI "
+                         "(kb/Work PB4504: a cloud session's own account pays)")
+    ap.add_argument("--max-usd", type=float, help="with --writer claude: start no new program, and ask no further correction, once the "
+                    "writer has spent this many US dollars (the generations in flight finish: at most --jobs calls past it)")
+    ap.add_argument("--api-key-file", help="with --writer claude: bill the Claude writer to the API key in this file (its first line), "
+                    "passed only in the CLI's environment")
     ap.add_argument("--bake-off", help="comma-separated model tags; each writes --count programs, scored by GnuCOBOL acceptance")
     ap.add_argument("--count", type=int, help="programs to write (per model in a bake-off)")
     ap.add_argument("--hours", type=float, help="stop starting new programs after this many hours")
@@ -2269,6 +2349,17 @@ def main(argv: list[str]) -> int:
         ap.error("--model or --bake-off is required")
     if a.count is None and a.hours is None:
         ap.error("--count or --hours is required")
+    if a.writer == "claude" and (a.bake_off or a.model_option):
+        ap.error("--writer claude takes one --model and no --bake-off or --model-option (those are Ollama's)")
+    if a.max_usd is not None and a.writer != "claude":
+        ap.error("--max-usd bounds the Claude writer's spend; the Ollama writer spends nothing")
+    if a.api_key_file and a.writer != "claude":
+        ap.error("--api-key-file bills the Claude writer; the Ollama writer needs no key")
+    if a.api_key_file:
+        try:
+            fuzz_claude.use_api_key_file(a.api_key_file)
+        except (OSError, RuntimeError) as e:
+            ap.error(str(e))
     models = [m.strip() for m in a.bake_off.split(",") if m.strip()] if a.bake_off else [a.model]
     try:
         model_options = parse_model_options(a.model_option)
@@ -2285,7 +2376,7 @@ def main(argv: list[str]) -> int:
     s = Settings(model=a.model or "", out=out, jobs=a.jobs, count=a.count, hours=a.hours,
                  prefixes=tuple(p.strip() for p in a.clauses.split(",") if p.strip()), temperature=a.temperature,
                  cobol_exe=str(Path(a.cobol).resolve()), keep=a.keep, repairs=max(0, a.repairs), seed=a.seed, in_order=a.in_order,
-                 model_options=model_options)
+                 model_options=model_options, writer=a.writer, max_usd=a.max_usd)
     if a.bake_off:
         bake_off(models, s)
     else:
