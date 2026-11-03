@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE INHERITED-CITATION GUARD FOR THE CONTROL CLAUSE (kb/Work PB177 arm C).
 /// <para>CLAUDE.md rule 1 names the failure mode precisely: "it is not inventing a citation, it is INHERITING
 /// one" — a § propagates into code comments and shipping message text and the clause NUMBER is never
-/// re-derived. TWO live diagnostics carried exactly that defect. <c>DataBinder.Reports</c> cited
+/// re-derived. TWO live diagnostics carried exactly that defect. <c>ReportSectionBinder</c> cited
 /// "ISO §13.18.16.3 SR3" for an UNRESOLVABLE CONTROL operand and <c>ReportWriterEmitter</c> cited the SAME SR3
 /// for a float/INDEX one — but SR3 is "Data-name-1 shall not be subject to any OCCURS clauses", a real clause
 /// answering a different question. <c>cite.py --check</c> on the clause NUMBER alone passes either way, which
@@ -50,7 +50,7 @@ public sealed class ControlClauseCitationDriftTests
         Assert.Contains("occurs-depending table subordinate to it", rules[5]);
         Assert.Contains("variable-length group", rules[7]);
 
-        string binder = File.ReadAllText(TestRepo.At("src", "WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Reports.cs"));
+        string binder = File.ReadAllText(TestRepo.At("src", "WiseOwl.Cobol.Compiler", "Binding", "ReportSectionBinder.cs"));
         string emitter = File.ReadAllText(TestRepo.At("src", "WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "ReportWriterEmitter.cs"));
 
         // Each enforced rule's message paraphrases its own sentence AND names its own number.

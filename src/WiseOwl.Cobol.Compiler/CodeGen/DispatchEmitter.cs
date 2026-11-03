@@ -88,7 +88,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // Report engines construct AFTER the registration block (hazard: the report FD must be
                 // registered before the engine's first write — REPORT_WRITER_DESIGN §4; ordering
                 // holds on every path: a skipped registration block means an EARLIER activation registered).
-                if (ctx.Data.Reports.Count > 0)
+                if (ctx.Data.Reports.Declared.Count > 0)
                     using (w.Block("if (!__reportsConstructed)"))
                     {
                         w.Line("__reportsConstructed = true;");

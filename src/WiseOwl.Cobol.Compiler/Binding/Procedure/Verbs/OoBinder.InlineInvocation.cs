@@ -173,7 +173,7 @@ internal sealed class InvocationSite
 /// selection, arity, §14.8 argument conformance and the emitted <c>BoundInvoke</c> are the INVOKE binder's,
 /// reached through <c>OoBindByReceiver</c> / <c>OoBindResolvedInvoke</c>.</para>
 ///
-/// <para><b>The hoist is the EXISTING one</b> — <c>DataBinder.PendingPreOps</c>, drained by
+/// <para><b>The hoist is the EXISTING one</b> — <c>ProcedureBindState.PendingPreOps</c>, drained by
 /// <c>UdfBinder.UdfWrapCalls</c> at the <c>StatementBinder.BindStatement</c> chokepoint and attached
 /// per-evaluation by <c>UdfAttachPerEvaluation</c> inside a conditionally-evaluated condition window. That
 /// list is documented as the ONE statement-scoped pre-op list precisely so a third client registers rather
@@ -270,7 +270,7 @@ internal sealed partial class OoBinder
                 // Every failure path already reported (the receiver, roster, arity and conformance
                 // diagnostics are the INVOKE binder's own, re-worded by InvocationSite.Verb).
                 return BoundExprError.Refused(ctx.Edition, $"inline method invocation of \"{methodName}\"");
-            ctx.Data.PendingPreOps.Add(activation);
+            ctx.Data.Procedure.PendingPreOps.Add(activation);
             chained = result;
         }
         if (chained is not { } place) return BoundExprError.Refused(ctx.Edition, "inline method invocation");

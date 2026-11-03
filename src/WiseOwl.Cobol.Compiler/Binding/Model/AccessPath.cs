@@ -135,7 +135,7 @@ public sealed record FixedTableSegment(Position OneBasedIndex, OdoReferenceCheck
 /// The SUPERORDINATE reference was already checked where a group's current extent is computed
 /// (<c>CobolTable.OdoExtent</c>); a reference to the SUBJECT or to an item SUBORDINATE to it passes through this
 /// table level's subscript, so the check rides the segment: <c>CobolTable.At(path, index, count, min, max)</c>.
-/// Attached only when the compilation group can enable EC-BOUND-ODO at all (<c>DataBinder.OdoReferenceChecking</c>,
+/// Attached only when the compilation group can enable EC-BOUND-ODO at all (<c>UnitChecking.OdoReferenceChecking</c>,
 /// the zero-scaffolding invariant): with no such >>TURN the raise could never fire and the reference renders as
 /// before. <paramref name="Depending"/> is data-name-1's place, resolved in the referencing unit's context.</summary>
 public sealed record OdoReferenceCheck(Place Depending, int MinOccurs, int MaxOccurs);

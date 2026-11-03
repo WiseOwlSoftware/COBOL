@@ -93,7 +93,7 @@ internal sealed partial class OoBinder
                     DiagnosticCatalog.ObjectViewInterfacePhrase, "ISO §8.4.3.5.2; §8.4.3.5.4 GR6");
             if (ctx.Refs.Places.ResolveItem(ctx.Data.OoCreateObjectViewTemp(view)) is not { } temp)
                 return BoundExprError.Unbuilt(ctx.Edition, "the object-view's temporary");
-            ctx.Data.PendingPreOps.Add(new BoundObjectView(temp, source, view, $"{written} {phraseText}"));
+            ctx.Data.Procedure.PendingPreOps.Add(new BoundObjectView(temp, source, view, $"{written} {phraseText}"));
             source = temp;
             written += " " + phraseText;
         }

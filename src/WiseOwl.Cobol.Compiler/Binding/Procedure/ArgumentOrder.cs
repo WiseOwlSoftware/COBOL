@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// "a function-identifier" — so the intrinsic call and the user-defined activation share it here.
 ///
 /// <para><b>The defect it removes.</b> A user-defined function activation is a statement-scoped PRE-op
-/// (<c>DataBinder.PendingPreOps</c>, hoisted ahead of the statement that consumes its result), and an argument
+/// (<c>ProcedureBindState.PendingPreOps</c>, hoisted ahead of the statement that consumes its result), and an argument
 /// that merely READS state — an identifier, an arithmetic expression, an intrinsic result — is rendered at the
 /// consumer, after every hoisted activation. So the later argument's activation ran BEFORE the earlier argument
 /// was evaluated: <c>FUNCTION SUM(A, FUNCTION BUMP(A))</c> summed A's value AFTER BUMP had changed it, although
@@ -65,11 +65,11 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
 {
     private readonly Stack<Window> _open = new();
 
-    private List<BoundStatement> Pending => ctx.Data.PendingPreOps;
+    private DrainQueue<BoundStatement> Pending => ctx.Data.Procedure.PendingPreOps;
 
     /// <summary>The pending counts now — the position a pre-op registered next would take, and the count of the
     /// statement's un-drained object-property references.</summary>
-    internal (int PreOps, int Properties) Mark => (Pending.Count, ctx.Data.OoPendingPropertyOps.Count);
+    internal (int PreOps, int Properties) Mark => (Pending.Mark(), ctx.Data.Procedure.PropertyOps.Mark());
 
     /// <summary>Open the window of one function's argument list. Windows nest like the function references do (an
     /// argument may itself be a function-identifier); dispose the window when the argument list is done.</summary>
@@ -88,7 +88,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
     {
         if (_open.Count == 0) return;
         Pending.AddRange(drainPropertyGets(before.Properties));
-        _open.Peek().Entries.Add(new Entry(operand, before.PreOps, Pending.Count));
+        _open.Peek().Entries.Add(new Entry(operand, before.PreOps, Pending.Mark()));
     }
 
     internal readonly record struct Entry(BoundOperand Operand, int Before, int After);
@@ -229,7 +229,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
     /// one, and the store itself) placed at <paramref name="index"/> — <c>SendingValueTemp</c>'s one placement.</summary>
     private BoundFieldOperand? StoreAt(BoundOperand operand, int index, out int added)
     {
-        int start = Pending.Count;
+        int start = Pending.Mark();
         added = 0;
         // A boolean-expression argument has its own store (COMPUTE Format 2's) and its own length (§8.8.2 rule 10); a
         // run-time length is the one shape no intermediate item can describe, and stays where it was.
@@ -243,7 +243,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
             _ => temps.Materialize(operand, "fnarg", index),
         };
         if (held is not { } place) return null;
-        added = Pending.Count - start;
+        added = Pending.Mark() - start;
         return new BoundFieldOperand(place);
     }
 }

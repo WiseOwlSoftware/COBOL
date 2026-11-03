@@ -439,8 +439,8 @@ internal sealed class VersionConformancePass
         foreach (var item in data.ConformanceForest())
             GateDataItem(item, $"data item '{item.CobolName ?? "FILLER"}'");
         // Report printable items are SYNTHETIC DataItems in the RD model (off the forest) — their national/boolean
-        // PICTURE gates fired in Analyze with the report where-string (DataBinder.Reports.cs); reproduce that here.
-        foreach (var report in data.Reports)
+        // PICTURE gates fired in Analyze with the report where-string (ReportSectionBinder.cs); reproduce that here.
+        foreach (var report in data.Reports.Declared)
         {
             foreach (var grp in report.Groups)
                 foreach (var line in grp.Lines)
@@ -448,7 +448,7 @@ internal sealed class VersionConformancePass
                         GateDataItem(field.PrintItem,
                             $"RD '{report.Name}' printable item '{field.PrintItem.CobolName ?? "FILLER"}'");
             // SUM counters (§13.18.54) analyze their PICTURE for the counter scale (GR1) in a DISTINCT Analyze call off
-            // both the forest AND the printable-item walk (DataBinder.Reports.cs:BindSumClause), so an external-float /
+            // both the forest AND the printable-item walk (ReportSectionBinder.cs:BindSumClause), so an external-float /
             // national-edited SUM-counter picture carries its 0900 here on ReportSumModel.SkeletonGate (DEVLOG 740 —
             // the 14g.5 review found the former inline gate was dropped). Fires once per SUM ENTRY (ReportSumFamily —
             // the PICTURE is the entry's, whatever its occurrences, kb/Work PB1271) — so a NON-printable SUM gets its
@@ -477,7 +477,7 @@ internal sealed class VersionConformancePass
 
     /// <summary>The 2002-introduction gate a PICTURE's SHAPE carries (or null when version-invariant) — the ONE
     /// function for every Analyze site: the forest / report printable items (<see cref="GateDataItem"/>) and the
-    /// report SUM-counter scale Analyze (<c>ReportSumModel.SkeletonGate</c>, DataBinder.Reports.cs — a distinct call
+    /// report SUM-counter scale Analyze (<c>ReportSumModel.SkeletonGate</c>, ReportSectionBinder.cs — a distinct call
     /// whose PicInfo is otherwise discarded, DEVLOG 740). The floating-point numeric-edited form (symbol E — LIVE,
     /// data-model design D21 / kb/Work PB66) keys on <see cref="PicInfo.IsFloatEdited"/>; NATIONAL-EDITED (§8.5.2.11
     /// / §13.18.40.4 GR10 — LIVE since kb/Work PB492) on the category-national picture's EDIT MASK, which is what

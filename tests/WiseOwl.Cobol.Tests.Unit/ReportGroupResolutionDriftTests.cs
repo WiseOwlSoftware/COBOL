@@ -83,7 +83,7 @@ public sealed class ReportGroupResolutionDriftTests
                      Path.Combine("Binding", "Procedure", "Verbs", "ReportWriterBinder.cs"),
                      // The DATA-division site: the SUM clause's UPON data-name-2 (ISO §13.18.54.3 SR7),
                      // resolved in ResolveReports once every report group is described (kb/Work PB482).
-                     Path.Combine("Binding", "DataBinder.Reports.cs"),
+                     Path.Combine("Binding", "ReportSectionBinder.cs"),
                  })
         {
             string text = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), rel));

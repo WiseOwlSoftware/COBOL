@@ -239,7 +239,7 @@ internal static class LevelNumberRules
 ///
 /// <para><b>Why a pass and not a check in <c>DataBinder</c>.</b> Several grammar rules spell a <c>levelNumber</c>
 /// and they reach different binders: <c>dataDescriptionEntry</c> → <c>DataBinder.BindEntries</c>,
-/// <c>reportGroupEntry</c> → <c>DataBinder.BindReportGroups</c>, <c>screenDescriptionEntry</c> →
+/// <c>reportGroupEntry</c> → <c>ReportSectionBinder.BindReportGroups</c>, <c>screenDescriptionEntry</c> →
 /// <c>ScreenFacility</c>. A fifth rule, the non-ISO <c>linkageProcedureParameter</c>, once reached NO binder at all
 /// and its entries silently vanished (it is deleted, kb/Work PB1252). Writing the test at each site would be one
 /// copy of one rule per site with the next site guaranteed to be forgotten (the two-arm-dispatch shape this

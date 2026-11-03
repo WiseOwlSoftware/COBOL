@@ -55,10 +55,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// per-receiver identification) and the pointer formats (whose receivers cannot change an identifier-3).</para></summary>
     public BoundStatement OoWrapPropertyOps(BoundStatement core, int mark)
     {
-        var ops = ctx.Data.OoPendingPropertyOps;
-        if (ops.Count <= mark) return core;
-        var taken = ops.GetRange(mark, ops.Count - mark);
-        ops.RemoveRange(mark, ops.Count - mark);
+        var ops = ctx.Data.Procedure.PropertyOps;
+        if (!ops.AnyAfter(mark)) return core;
+        var taken = ops.DrainFrom(mark);
 
         List<BoundStatement> pre = [], post = [];
         List<ReceiverBracket> brackets = [];
@@ -127,7 +126,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // UdfBinder.DrainPending gives a function reference (kb/Work PB892; §14.9.33.4 GR2 a) 2.). Its checking
         // profile is EcBinder.EcWrap's sequence stamp, which reaches these steps (and the brackets' through
         // BoundReceiverBrackets).
-        ctx.Data.OperandEvaluations += pre.Count + post.Count + brackets.Sum(b => b.Open.Count + b.Close.Count);
+        var evaluations = ctx.Data.Procedure.OperandEvaluations;
+        evaluations.Advance(evaluations.Current + pre.Count + post.Count + brackets.Sum(b => b.Open.Count + b.Close.Count));
         BoundStatement inner = brackets.Count == 0 ? core : new BoundReceiverBrackets(core, brackets);
         return pre.Count + post.Count == 0
             ? inner
@@ -165,10 +165,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// store-polarity classification is needed and GR2's SET never arises here.</summary>
     internal List<BoundStatement> OoDrainPropertyGets(int mark)
     {
-        var ops = ctx.Data.OoPendingPropertyOps;
-        if (ops.Count <= mark) return [];
-        var taken = ops.GetRange(mark, ops.Count - mark);
-        ops.RemoveRange(mark, ops.Count - mark);
+        var ops = ctx.Data.Procedure.PropertyOps;
+        if (!ops.AnyAfter(mark)) return [];
+        var taken = ops.DrainFrom(mark);
         var gets = new List<BoundStatement>(taken.Count);
         foreach (var op in taken)
         {

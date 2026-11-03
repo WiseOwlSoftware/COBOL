@@ -1364,12 +1364,12 @@ public static class DiagnosticCatalog
     // stands where it did so it is not re-added. It refused the LINE clause's NEXT PAGE phrase (§13.18.35.2 Format
     // 1 — `integer-1 ON NEXT PAGE` and the bare `ON NEXT PAGE` operand) at every edition, and orphaned the
     // group's COLUMN entries into a second, cascading error. The phrase is now LIVE: a flag on the group's first
-    // report line (DataBinder.Reports RepeatedLine) that the engine reads as §13.18.35.4 GR4a (body group — the
+    // report line (ReportSectionBinder RepeatedLine) that the engine reads as §13.18.35.4 GR4a (body group — the
     // page fit is declared unsuccessful) and GR5a (report footing — it begins on a new page). Its syntax rules
     // SR3/SR5/SR7/SR8 report through the LINE clause family code, COBOL2199 (ScreenReportLineClauses).
     // ⛔ `ReportNextGroupClause` (`report-next-group-clause`) LIVED HERE AND IS GONE (kb/Work PB957), and this
     // comment stands where it did so it is not re-added. It refused the NEXT GROUP clause (§13.18.37) by name at
-    // every edition; the clause is now LIVE — bound by DataBinder.Reports BindNextGroupClauses and applied by the
+    // every edition; the clause is now LIVE — bound by ReportSectionBinder BindNextGroupClauses and applied by the
     // report engine's ApplyNextGroup after a group's last line (§13.18.37.4 GR2–GR6). Its syntax rules report
     // through ReportNextGroupClauseRule (COBOL2284). The id is retired, never reallocated.
     // ⛔ `ReportOccursInGroup` (`report-occurs-in-group`) AND `ReportMultipleLine` (`report-multiple-line`) LIVED
@@ -4742,7 +4742,7 @@ public static class DiagnosticCatalog
 
     // ── COBOL2012 / COBOL2013 — THE MULTI-OPERAND REPETITION RULE, ONE PER CLAUSE (kb/Work PB506) ──
     // ISO §13.18.63.3 SR35 (VALUE format 4) and §13.18.53.3 SR6 (SOURCE) are the SAME rule written twice, and
-    // the compiler screens them through ONE reader (DataBinder.Reports.ScreenRepeatingOperandCount). They keep
+    // the compiler screens them through ONE reader (ReportSectionBinder.ScreenRepeatingOperandCount). They keep
     // SEPARATE codes because a reader who sees one has to be sent to the clause actually written — the shared
     // mechanism is an implementation fact, the citation is the user's.
     /// <summary>COBOL2012 — a report-section (format 4) VALUE clause with more than one operand on an entry

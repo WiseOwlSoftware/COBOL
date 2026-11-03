@@ -109,7 +109,7 @@ CSharpEmitter.Oo.cs:697         native.StoreAsImage = true;
 CSharpEmitter.Call.cs:319       … && data.IndexFields.TryAdd(idxName, field))   // emitter writing a binder dict
 ```
 The flag is a genuine cross-layer channel: it is set in the binder too (`DataBinder.cs:255`,
-`StatementBinder.MoveFigurative.cs:123,262`, `DataBinder.Linkage.cs:275`, `DataBinder.Reports.cs:352`) and read
+`StatementBinder.MoveFigurative.cs:123,262`, `DataBinder.Linkage.cs:275`, `ReportSectionBinder.cs:352`) and read
 in the emitter's numeric pipeline (`Emit/NumericRenderer.cs:105`, `CSharpEmitter.Sort.cs:225`) — 7+ write sites
 across three layers with no single owner. The emitter's own comment concedes the desync hazard
 (`CSharpEmitter.Call.cs:111-118`: "StoreAsImage is still mutable while procedure bodies bind … both sides of the

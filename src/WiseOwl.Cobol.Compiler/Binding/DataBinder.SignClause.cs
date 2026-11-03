@@ -104,10 +104,10 @@ public sealed partial class DataBinder
     /// and the SIGN clause may be specified at the group level." (post-ballot text v200112.txt; item 115's bullet:
     /// "SIGN clause does not require SEPARATE phrase in report section"). So at --std 85 an entry that writes a SIGN
     /// clause without SEPARATE, and a report group entry that is a GROUP and writes one, are each refused through its
-    /// construct row. Asked ONCE per WRITTEN entry over the flat entry array (the <see cref="ScreenReportEntryClausePresence"/>
+    /// construct row. Asked ONCE per WRITTEN entry over the flat entry array (the <see cref="ReportSectionBinder.ScreenReportEntryClausePresence"/>
     /// shape), never per §13.18.38 replay; the 2023 subject rules (SR1/SR2 for an elementary entry) are
     /// <see cref="SignClauseElementaryDefect"/>'s, asked by the walk where the printable item's picture is known.</summary>
-    private void ScreenReportSignClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
+    internal void ScreenReportSignClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
         if (Edition.DialectLevel >= 2002) return;
         for (int i = 0; i < entries.Length; i++)
@@ -119,7 +119,7 @@ public sealed partial class DataBinder
             using var _ = Edition.At(ge);
             if (sign.SEPARATE() is null)
                 ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ReportSignWithoutSeparate2002, where);
-            if (IsReportGroupEntry(entries, i))
+            if (ReportSectionBinder.IsReportGroupEntry(entries, i))
                 ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ReportGroupSign2002, where);
         }
     }
