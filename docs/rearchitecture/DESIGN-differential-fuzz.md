@@ -1,15 +1,16 @@
 # DESIGN — the differential fuzz: the night, the morning's triage, and the filing of GnuCOBOL's side
 
-Status: current design of `scripts/differential_fuzz.py`, `scripts/fuzz_night.ps1`, `scripts/fuzz_triage.py` and
-`.claude/workflows/fuzz-triage.js` (kb/Work PB3463 the harness, PB3561 the pause, PB3838 the upstream register, PB3972 the
-triage tool). Implemented FROM this document (CLAUDE.md rule 2); a change to the triage updates it in the same change set.
+Status: current design of `scripts/differential_fuzz.py`, `scripts/fuzz_ollama.py`, `scripts/fuzz_claude.py`,
+`scripts/fuzz_night.ps1`, `scripts/fuzz_triage.py` and `.claude/workflows/fuzz-triage.js` (kb/Work PB3463 the harness, PB3561
+the pause, PB3838 the upstream register, PB3972 the triage tool, PB4504 the Claude writer). Implemented FROM this document (CLAUDE.md rule 2); a change to the triage updates it in the same change set.
 The nightly experiment records (what each night found) are `docs/rearchitecture/evidence/fleet-optimization/*differential-fuzz*.md`
 and are frozen; this document describes the machinery only.
 
 ## 1. Purpose and the rules that bind it
 
-A local model writes COBOL programs from the standard's own clauses; WiseOwl and GnuCOBOL 3.2 each compile and run every
-program; only the disagreements survive to a report. The model produces LEADS (`differential_fuzz.py`'s docstring: "the ISO
+A model writes COBOL programs from the standard's own clauses; WiseOwl and GnuCOBOL 3.2 each compile and run every
+program; only the disagreements survive to a report. The writer is chosen per run (`--writer`, section 2.1): a local Ollama
+model, or a Claude model through the Claude Code CLI. The model produces LEADS (`differential_fuzz.py`'s docstring: "the ISO
 spec decides"); nothing it writes enters `kb/Work/`, a golden or the conformance suite without a check against the standard
 (CLAUDE.md rule 1). GnuCOBOL is a net, never authority.
 
@@ -35,8 +36,8 @@ directory** (default `conformance-suite/results/fuzz-<stamp>/`, git-ignored, loc
 
 | File | Content |
 |---|---|
-| `run.json` | model, judge (`cobol_exe`), edition, seed, clause prefixes, start time |
-| `results.jsonl` | one row per program: `id`, `clause`, `title`, `verdict`, `signature`, `we` and `they` (compiled, codes, `first_error`, `run_rc`, `output`, `hung`, `crashed`, `runner_error`) |
+| `run.json` | writer (`ollama` or `claude`), model, judge (`cobol_exe`), edition, seed, clause prefixes, `max_usd`, start time |
+| `results.jsonl` | one row per program: `id`, `clause`, `title`, `writer`, `model`, `verdict`, `signature`, `we` and `they` (compiled, codes, `first_error`, `run_rc`, `output`, `hung`, `crashed`, `runner_error`); with the Claude writer also `spent_usd` (the run's spend when the row closed) and `stopped_at_ceiling` (a correction not asked because `--max-usd` was reached) |
 | `report.md` | survivors grouped by signature (`### \`SIGNATURE\` × N`), the class table, runner errors |
 | `programs/fz*.cob` | the programs (free format, edition 2014 by default) |
 
@@ -65,6 +66,10 @@ position and the content a MOVE moves at run time need the program run and stay 
 (`undefined`); a row recorded before PB3862 is read again from its source under the run directory, so `--report` shows an old night
 under today's classes. Only an OUTPUT difference becomes `UNDEFINED_RESULT`: an exit-status difference with the same output stays
 a lead (`WE_FAIL_RUN`, `EXIT_DIFFERS`), because no undefined value can end the run.
+
+### 2.1 The writer
+
+`fuzz_ollama.ollama_chat` (the default, `--writer ollama`) and `fuzz_claude.claude_chat` (`--writer claude --model <alias>`) return one reply shape, `(reply, seconds, done, thinking)`, so `differential_fuzz.writer_reply` is the only line that knows which wrote a program; extraction, the repair rounds and the verdict are the same for both. The Claude writer runs `claude -p` as a plain text generator: `--safe-mode`, no tools, no session persistence, no settings sources or MCP servers, the fuzz's own system prompt, JSON output, a per-call `--max-budget-usd`, in an empty temporary directory (without the last two a call carried the repository's agent instructions: 3,781 input tokens against 693, measured 2026-11-03). Every call's `total_cost_usd` adds to a process-wide meter; `--max-usd` stops new programs and further corrections once it is reached (the generations in flight finish, so a run can pass it by at most `--jobs` calls), and a call that times out is charged its ceiling. `--api-key-file` bills the calls to an API key read from a file, placed in the CLI's environment only. The CLI has no sampling option, so `--temperature` does not reach a Claude model. The cadence rule (section 1) binds both writers.
 
 ## 3. The morning: `fuzz_triage.py prepare`
 
