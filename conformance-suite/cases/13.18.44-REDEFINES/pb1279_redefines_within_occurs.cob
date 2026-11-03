@@ -54,6 +54,7 @@
              10 VA PIC X(2) VALUE "ab".
              10 VB REDEFINES VA PIC 99.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "L1=" A(1, 1) "|" A(2, 3).
            MOVE "ab12" TO A(2, 3).
            DISPLAY "L2=" B1(2, 3) " " B2(2, 3) " " A(2, 3) " " A(1, 3).

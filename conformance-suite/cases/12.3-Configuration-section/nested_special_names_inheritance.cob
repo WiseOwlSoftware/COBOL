@@ -27,6 +27,7 @@
        WORKING-STORAGE SECTION.
        01 WS-DUMMY PIC X.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            CALL "CFG85INNER".
            STOP RUN.
        IDENTIFICATION DIVISION.
@@ -37,6 +38,7 @@
        01 ED   PIC ##.##9,99.
        01 X    PIC X(4) VALUE "1A9F".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 12,5 TO E.
            DISPLAY "DP=" E.
            MOVE 1234,5 TO ED.

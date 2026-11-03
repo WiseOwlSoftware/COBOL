@@ -73,6 +73,7 @@
        01 T  PIC 99.
        01 P  PIC 99.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 5 TO T
            PERFORM PRESET
            UNSTRING S8 DELIMITED BY "," INTO X1 X2 X3 TALLYING IN T

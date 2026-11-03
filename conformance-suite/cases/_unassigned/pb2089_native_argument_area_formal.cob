@@ -51,6 +51,7 @@
           05 TE PIC 99 OCCURS 3.
        01 G-N PIC 9(4) GLOBAL VALUE 5.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            CALL "P2089S1" USING N N
            DISPLAY "S1 N " N
            ADD 1 TO N
@@ -75,6 +76,7 @@
        01 LK-7 PIC 9(4).
        01 LK-7X REDEFINES LK-7 PIC X(4).
        PROCEDURE DIVISION USING LK-7.
+       PB4305-LEAD.
            CALL "P2089S8"
            DISPLAY "S7 LK-7 " LK-7
            EXIT PROGRAM.
@@ -83,6 +85,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P2089S8 IS COMMON.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 9 TO G-N
            EXIT PROGRAM.
        END PROGRAM P2089S8.
@@ -96,6 +99,7 @@
        01 LK-1X REDEFINES LK-1 PIC X(4).
        01 LK-2 PIC 9(4).
        PROCEDURE DIVISION USING LK-1 LK-2.
+       PB4305-LEAD.
            MOVE 7 TO LK-2
            DISPLAY "S1 LK-1 " LK-1
            DISPLAY "S1 LK-1X " LK-1X
@@ -112,6 +116,7 @@
        01 LK-1X REDEFINES LK-1 PIC X(2).
        01 LK-2 PIC 9(4) COMP.
        PROCEDURE DIVISION USING LK-1 LK-2.
+       PB4305-LEAD.
            MOVE 7 TO LK-2
            DISPLAY "S2 LK-1 " LK-1
            EXIT PROGRAM.
@@ -125,6 +130,7 @@
        01 LK-1X REDEFINES LK-1 PIC X(5).
        01 LK-2 PIC S9(3)V9 SIGN LEADING SEPARATE.
        PROCEDURE DIVISION USING LK-1 LK-2.
+       PB4305-LEAD.
            MOVE -12.5 TO LK-2
            DISPLAY "S3 LK-1 " LK-1
            EXIT PROGRAM.
@@ -136,6 +142,7 @@
        LINKAGE SECTION.
        01 LF PIC 9.
        PROCEDURE DIVISION USING LF.
+       PB4305-LEAD.
            MOVE 1 TO LF
            CALL "P2089S5" USING LF LF
            DISPLAY "S4 LF " LF
@@ -150,6 +157,7 @@
        01 LC-1X REDEFINES LC-1 PIC X.
        01 LC-2 PIC 9.
        PROCEDURE DIVISION USING LC-1 LC-2.
+       PB4305-LEAD.
            MOVE 4 TO LC-2
            DISPLAY "S5 LC-1 " LC-1
            EXIT PROGRAM.
@@ -163,6 +171,7 @@
        01 LT-1X REDEFINES LT-1 PIC XX.
        01 LT-2 PIC 99.
        PROCEDURE DIVISION USING LT-1 LT-2.
+       PB4305-LEAD.
            MOVE 42 TO LT-2
            DISPLAY "S6 LT-1 " LT-1
            EXIT PROGRAM.

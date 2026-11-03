@@ -1,10 +1,12 @@
       *>--- conformance-case
       *> id: pb332_use_optional_words
       *> rules: [FMT-14.9.49.2]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Omitting PROCEDURE is a COBOL-2002 relaxation (2002 Annex F.2 item 141: "The word PROCEDURE,
+      *> previously required, is optional."; kb/Work PB4305), so the test runs from 2002.
       *> !! ALL FOUR OPTIONAL WORDS OF USE FORMAT 1, OMITTED (kb/Work PB332).
       *> ISO 14.9.49.2 Format 1 prints
       *>     USE [ GLOBAL ] AFTER STANDARD { EXCEPTION | ERROR } PROCEDURE ON { ... }

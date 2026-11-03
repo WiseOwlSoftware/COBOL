@@ -53,6 +53,7 @@
 001700* second interspersed comment
 001800-    "D3".
 001900 PROCEDURE DIVISION.
+       PB4305-LEAD.
 002000     DISPLAY "[" W-A "]".
 002100     DISPLAY "[" W-B "]".
 002200     DISPLAY "[" W-C "]".

@@ -15,5 +15,6 @@
        PROGRAM-ID. PB4412A2.
        PROCEDURE DIVISION.
       D                                                                 DISPLAY "TRACE"
+       PB4305-LEAD.
            DISPLAY "OK".
            STOP RUN.

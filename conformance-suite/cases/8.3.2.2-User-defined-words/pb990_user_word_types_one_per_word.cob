@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb990_user_word_types_one_per_word
       *> rules: [SR-8.3.2.2-2, SR-8.3.2.2-3]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -14,7 +14,9 @@
       *>            lets them be one word, and it is the ordinary shape of every indexed file.
       *>   H, H2  - two DECLARATIVES sections. H has a sentence after its USE sentence (the paragraph-name-OMITTED
       *>            paragraph of 14.4.3) and H2 has none: neither declares a PARAGRAPH named like its section, so the
-      *>            section-name is the word's one type (the census used to find H declared as both).
+      *>            section-name is the word's one type (the census used to find H declared as both). The omitted
+      *>            paragraph-name is the 2002 relaxation (Annex F.2 item 90; PB4305, review R1-2): COBOL-85 refuses a
+      *>            sentence after the USE sentence, so the golden is accepted from 2002 on.
       *>   MAIN   - a section whose paragraph is named differently.
       *> Compile + run printing OK proves none of them draws COBOL2692.
        IDENTIFICATION DIVISION.

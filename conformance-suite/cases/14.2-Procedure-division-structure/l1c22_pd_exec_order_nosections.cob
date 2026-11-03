@@ -30,6 +30,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C22E.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "1 HEADER"
            DISPLAY "2 HEADER".
        Q-PARA.

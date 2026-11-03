@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "the OCCURS bound 'K' is not an integer literal — an integer-n position admits an integer literal (ISO §5.5 1)), and COBOL-85 has no constant-name to stand for one"}

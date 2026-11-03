@@ -26,6 +26,7 @@
        01 S.
            05 E PIC 9 OCCURS 3 DESCENDING KEY E INDEXED BY EX.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE "1A..2B..3C.." TO R
            SEARCH ALL T AT END DISPLAY "NONE"
                WHEN G (IX) = "2" DISPLAY "FOUND " K2 (IX)

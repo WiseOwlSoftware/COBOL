@@ -74,6 +74,7 @@
        01  WS-SRC            PIC X(20) VALUE "0123456789ABCDEFGHIJ".
        PROCEDURE DIVISION.
       *> Relative file: WRITE, WRITE FROM, REWRITE, REWRITE FROM.
+       PB4305-LEAD.
            OPEN OUTPUT RL
            MOVE ALL "Z" TO RL-LONG
            MOVE "ABCDE" TO RL-SHORT

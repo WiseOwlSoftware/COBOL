@@ -40,7 +40,7 @@ public sealed class StatementSequencePlacementTests
     /// paragraphs, and as the only sentence of a section without paragraphs.</summary>
     [Theory]
     [InlineData("SQE01", "MAIN-PARA.\n    PERFORM EX-PARA.\n    STOP RUN.\nEX-PARA.\n    EXIT.\n")]
-    [InlineData("SQE02", "MAIN-SECT SECTION.\n    PERFORM EX-SECT.\n    STOP RUN.\nEX-SECT SECTION.\n    EXIT.\n")]
+    [InlineData("SQE02", "MAIN-SECT SECTION.\nMAIN-PARA.\n    PERFORM EX-SECT.\n    STOP RUN.\nEX-SECT SECTION.\nEX-PARA.\n    EXIT.\n")]
     // Formats 2-4 are not Format 1: each shares its sentence or paragraph and is not governed by SR1.
     [InlineData("SQE03", "MAIN-PARA.\n    DISPLAY \"A\" EXIT PARAGRAPH.\n    DISPLAY \"B\".\n    STOP RUN.\n")]
     [InlineData("SQE04", "MAIN-PARA.\n    PERFORM 2 TIMES DISPLAY \"A\" EXIT PERFORM END-PERFORM.\n    STOP RUN.\n")]

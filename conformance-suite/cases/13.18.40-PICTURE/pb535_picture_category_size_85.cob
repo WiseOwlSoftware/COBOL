@@ -68,6 +68,7 @@
           05 S10 PIC ZZ,ZZ9.99.
           05 T10 PIC XX.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE "ABCDEFGHIJK" TO G-S01
            MOVE "ABCDEFGHIJK" TO G-S02
            MOVE "ABCDEFGHIJK" TO G-S03

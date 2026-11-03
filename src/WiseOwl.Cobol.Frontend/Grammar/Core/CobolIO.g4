@@ -367,6 +367,9 @@ sameClause
 
 // MULTIPLE FILE TAPE clause (obsolete; removed from later standards). Describes several files sharing
 // one physical reel — irrelevant to disk storage, so parsed and ignored.
+// The file list is optional HERE ON PURPOSE (kb/Work PB4307): a required list would send `MULTIPLE FILE TAPE.` to
+// the I-O-CONTROL error production (COBOL1970 "not a clause", false) and lose the clause's COBOL0902 from 2002 on;
+// DataBinder.ScreenMultipleFileClause refuses the empty list by name (COBOL5944).
 multipleFileClause
     : multipleKeyword FILE TAPE? (CONTAINS? multipleFileTapeEntry (COMMA? multipleFileTapeEntry)*)?
     ;

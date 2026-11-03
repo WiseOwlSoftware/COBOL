@@ -50,6 +50,7 @@
        01 X8 PIC X(8).
        01 XJ PIC X(6) JUSTIFIED RIGHT.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE S4 TO X5
            DISPLAY "A [" X5 "]"
            MOVE S4 TO X5(1:5)
