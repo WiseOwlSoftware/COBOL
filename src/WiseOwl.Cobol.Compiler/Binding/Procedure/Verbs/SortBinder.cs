@@ -553,7 +553,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ An SD with NO record description entry is ILLEGAL SOURCE, not a compiler gap (kb/Work PB345).
     /// §13.4.6.3 SR2 — "One or more record description entries shall be associated with the sort-merge file
-    /// description entry." — and <c>DataBinder.BindFileSection</c> has already rejected it, COBOL1837. Until
+    /// description entry." — and <c>FileControlBinder.BindFileSection</c> has already rejected it, COBOL1837. Until
     /// PB345 the three sort-family verbs fell into their <c>BoundUnsupported</c> arms instead, so the ONLY
     /// diagnostic a record-less SD ever drew was <c>SORT 'S1' without an SD record — not implemented</c>
     /// (COBOL1756, a WARNING): the compiler apologising for the source's error and then aborting the run unit

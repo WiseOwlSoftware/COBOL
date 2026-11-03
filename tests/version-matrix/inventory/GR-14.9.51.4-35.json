@@ -6,10 +6,10 @@
  "subject": "WRITE statement",
  "rule-digest": "b7f0baeaa068",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#KeySuppressionOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#OrderOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue; src/WiseOwl.Cobol.Runtime/IO/Store/KeyOrders.cs#WeightedKeyOrder",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#OrderOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue; src/WiseOwl.Cobol.Runtime/IO/Store/KeyOrders.cs#WeightedKeyOrder; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#KeySuppressionOf",
  "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1072_suppress_when_forms",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB1072 landed (w61c). GR35: the comparison for suppressing records follows the relation-condition rules — a shorter literal is space-extended (SUPPRESS WHEN \"X\" on X(3), \"AB   \" on X(2)), a figurative takes the key's size, and an unequal longer literal (\"ABC\" on X(2)) never suppresses (golden LX walk 01 03 04). Uniqueness and ordering comparisons are unchanged. retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#KeyEq (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): uniqueness, order and suppression compare under each key's order (IndexedConnector.OrderOf, AlternateValue))",
+ "notes": "kb/Work PB1072 landed (w61c). GR35: the comparison for suppressing records follows the relation-condition rules — a shorter literal is space-extended (SUPPRESS WHEN \"X\" on X(3), \"AB   \" on X(2)), a figurative takes the key's size, and an unequal longer literal (\"ABC\" on X(2)) never suppresses (golden LX walk 01 03 04). Uniqueness and ordering comparisons are unchanged. retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#KeyEq (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): uniqueness, order and suppression compare under each key's order (IndexedConnector.OrderOf, AlternateValue)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#KeySuppressionOf (kb/Work PB2296 M7 moved the member from DataBinder to FileControlBinder (the file binder); the same rule is asked by the same code)",
  "state": "OK"
 }

@@ -6,10 +6,10 @@
  "subject": "COLLATING SEQUENCE clause",
  "rule-digest": "7af61d2451db",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#CollatingAlphabetFault",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#CollatingAlphabetFault; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFileCollating",
  "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074-file-collating-alphabet-class",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.3 'Alphabet-name-2 shall reference an alphabet that defines a national collating sequence' -> OK SR2. alphabet-name-2 was stored and never read; now screened on the clause as written: undeclared (probe p3 'IS REV NOSUCH'), an alphanumeric alphabet (negative: 'IS NOSUCH REV'), or a coded-character-set-only national alphabet (UTF-8/UTF-16, Table 6) -> COBOL1583 citing SR2. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CollatingAlphabetFault (kb/Work PB2356 extracted the FILE-CONTROL entry binding and the I-O-CONTROL paragraph out of DataBinder.cs and DataBinder.IoControl.cs into the FileControlBinder class (and the COLLATING SEQUENCE alphabet test into SpecialNamesBinder); each member is the same rule, moved with its body unchanged)",
+ "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.3 'Alphabet-name-2 shall reference an alphabet that defines a national collating sequence' -> OK SR2. alphabet-name-2 was stored and never read; now screened on the clause as written: undeclared (probe p3 'IS REV NOSUCH'), an alphanumeric alphabet (negative: 'IS NOSUCH REV'), or a coded-character-set-only national alphabet (UTF-8/UTF-16, Table 6) -> COBOL1583 citing SR2. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CollatingAlphabetFault (kb/Work PB2356 extracted the FILE-CONTROL entry binding and the I-O-CONTROL paragraph out of DataBinder.cs and DataBinder.IoControl.cs into the FileControlBinder class (and the COLLATING SEQUENCE alphabet test into SpecialNamesBinder); each member is the same rule, moved with its body unchanged) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating (kb/Work PB2296 M7 moved the member from DataBinder to FileControlBinder (the file binder); the same rule is asked by the same code)",
  "state": "OK"
 }

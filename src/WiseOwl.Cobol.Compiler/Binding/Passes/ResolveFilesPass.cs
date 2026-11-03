@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// The ResolveFiles pass: row 23 of the per-unit resolve pipeline (OccursResolved to FilesResolved), the FILE-CONTROL and
 /// I-O-CONTROL resolution (FILE STATUS items, ASSIGN, collating sequences, keys, LINAGE, APPLY COMMIT).
 /// <para>The rule code lives with the concern it belongs to, not with the pass: the file-control rules are
-/// <see cref="DataBinder.ResolveFiles"/> and its helpers (the <c>FileControlBinder</c> concern of
+/// <see cref="FileControlBinder.ResolveFiles"/> and its helpers (the <c>FileControlBinder</c> concern of
 /// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2356), so this row only schedules it.</para>
 /// </summary>
 internal sealed class ResolveFilesPass : IBindPass
@@ -24,5 +24,5 @@ internal sealed class ResolveFilesPass : IBindPass
     public PassViews Views => PassViews.None;
 
     /// <inheritdoc/>
-    public void Run(DataBinder binder) => binder.ResolveFiles();
+    public void Run(DataBinder binder) => binder.FileControl.ResolveFiles();
 }

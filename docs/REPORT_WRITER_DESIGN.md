@@ -461,7 +461,7 @@ off-by-one through every later counter check.
   reports **COBOL5092**. Five arms ask it before they say "not defined" (or "nothing described"):
   `NameResolution.ReportUnidentified` (every procedure division identifier), `DataBinder.ResolveClauseOperand`
   (FILE STATUS, RELATIVE KEY, LINAGE, APPLY COMMIT), the data-division OCCURS … DEPENDING ON lookup,
-  `DataBinder.ResolveAssignUsing` (ASSIGN … USING, kb/Work PB3768) and the record-key resolver `InRecords` inside
+  `FileControlBinder.ResolveAssignUsing` (ASSIGN … USING, kb/Work PB3768) and the record-key resolver `InRecords` inside
   `ResolveFiles` (RECORD KEY / ALTERNATE RECORD KEY, which would otherwise draw SR2's COBOL0863 "references nothing
   described"); `ReportItemReferenceTests.EveryUndefinedNameArm_AsksTheOneRefusal` names each arm by member. A report
   section clause whose operand names an entry breaks §13.15.3 SR7 ("The data-name shall not be referenced in any other

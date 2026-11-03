@@ -229,7 +229,7 @@ internal sealed record FileControlKeyRule(
 
 /// <summary>
 /// ⛔ THE ONE SCREEN FOR THE FILE CONTROL ENTRY'S KEY SYNTAX RULES (ISO/IEC 1989:2023 §12.4.5), run from
-/// <c>DataBinder.ResolveFiles</c> over EVERY declared file once the data forest is indexed.
+/// <c>FileControlBinder.ResolveFiles</c> over EVERY declared file once the data forest is indexed.
 /// <para>WHY IT EXISTS. These rules were enforced by <c>KeyedIoBinder.KeyedValidateFile</c>, which ran on the
 /// FIRST KEYED VERB that named the file. An entry whose RECORD KEY and ALTERNATE RECORD KEY both sat under an
 /// OCCURS clause therefore compiled with zero diagnostics when the procedure division only OPENed and CLOSEd the
@@ -458,7 +458,7 @@ internal static class FileControlKeyRules
         // SR7 — the SUPPRESS WHEN literal-1 (kb/Work PB1072). ONE numbered rule, THREE obligations, three rows with
         // one rule-id: the operand's KIND, its CATEGORY against data-name-1's, and an ALL literal's length. Nothing
         // screened any of them, so SUPPRESS WHEN 5 / B"1" / ALL "AB" and a national literal on an alphanumeric key
-        // compiled clean. The operand is read ONCE (DataBinder.ReadSuppressWhen, the literal-position chokepoint),
+        // compiled clean. The operand is read ONCE (FileControlBinder.ReadSuppressWhen, the literal-position chokepoint),
         // so a constant-name, a symbolic-character and a concatenation expression arrive here as the literal they
         // stand for. A keyword figurative has no category of its own (§8.3.3.6.4 GR1 — it takes the context's), so
         // the category row asks only a literal.
@@ -777,7 +777,7 @@ internal static class FileControlKeyRules
     internal static IReadOnlyList<FileControlKeyRule> Catalog => Rules;
 
     /// <summary>Screen one file control entry against every rule of its organization. Called once per file from
-    /// <c>DataBinder.ResolveFiles</c>, so a file is reported once however many statements name it — the
+    /// <c>FileControlBinder.ResolveFiles</c>, so a file is reported once however many statements name it — the
     /// one-report-per-file property the old per-verb memo (<c>_keyedCheckedFiles</c>) existed to provide, now a
     /// consequence of WHERE the screen runs rather than a set the screen has to carry.</summary>
     /// <param name="refusedOperands">Key operand names already REFUSED and reported, for which no rule here may

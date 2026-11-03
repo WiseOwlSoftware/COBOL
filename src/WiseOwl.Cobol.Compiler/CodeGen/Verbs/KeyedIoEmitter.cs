@@ -77,7 +77,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 continue;
             }
             var altCollation = i < file.AlternateKeyCollations.Count ? file.AlternateKeyCollations[i] : null;
-            // §12.4.5.6.4 GR6 — the key suppression value, already sized to the key (DataBinder.KeySuppressionOf);
+            // §12.4.5.6.4 GR6 — the key suppression value, already sized to the key (FileControlBinder.KeySuppressionOf);
             // the connector compares key IMAGES, so a national key's value rides the ONE national serializer.
             string sup = suppress is not { } s ? "null"
                 : s.National ? RuntimeApi.NatBytes(CsLiteral(s.Value)) : CsLiteral(s.Value);

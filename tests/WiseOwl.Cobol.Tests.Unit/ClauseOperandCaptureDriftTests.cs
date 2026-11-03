@@ -28,12 +28,16 @@ public sealed class ClauseOperandCaptureDriftTests
     private static string DataBinderSource() => File.ReadAllText(
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
 
+    /// <summary>The post-build half of the file binder, where <c>ResolveFiles</c> lives since kb/Work PB2296 M7.</summary>
+    private static string FileResolveSource() => File.ReadAllText(
+        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "FileControlBinder.Resolve.cs"));
+
     /// <summary>The region of a file between a member's signature and the next member at the same indentation —
     /// good enough to scope an assertion to ONE method, and asserted non-trivial by its callers.</summary>
     private static string MethodBody(string source, string signature)
     {
         int start = source.IndexOf(signature, StringComparison.Ordinal);
-        Assert.True(start >= 0, $"'{signature}' is not in DataBinder.cs — the member was renamed; re-derive this guard.");
+        Assert.True(start >= 0, $"'{signature}' is not in the file read — the member was renamed or moved; re-derive this guard.");
         int end = source.IndexOf("\n    /// <summary>", start + signature.Length, StringComparison.Ordinal);
         return source[start..(end < 0 ? source.Length : end)];
     }
@@ -48,7 +52,7 @@ public sealed class ClauseOperandCaptureDriftTests
         string src = DataBinderSource();
         Assert.Matches(FirstWordReduction, src);
         Assert.Contains("ByName.TryGetValue", src, StringComparison.Ordinal);
-        Assert.NotEqual(0, MethodBody(src, "internal void ResolveFiles()").Length);
+        Assert.NotEqual(0, MethodBody(FileResolveSource(), "internal void ResolveFiles()").Length);
     }
 
     /// <summary>Inside the FILE CLAUSE binder, a <c>dataReference</c> is reduced to its first word in EXACTLY ONE
@@ -121,7 +125,7 @@ public sealed class ClauseOperandCaptureDriftTests
     [Fact]
     public void ResolveFiles_HasNoFirstMatchNameLookup()
     {
-        string body = MethodBody(DataBinderSource(), "internal void ResolveFiles()");
+        string body = MethodBody(FileResolveSource(), "internal void ResolveFiles()");
         Assert.DoesNotContain("ByName.TryGetValue", body, StringComparison.Ordinal);
         Assert.DoesNotContain("ByName[", body, StringComparison.Ordinal);
     }

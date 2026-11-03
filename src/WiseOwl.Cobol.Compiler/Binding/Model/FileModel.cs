@@ -49,7 +49,7 @@ public sealed class AlternateKeyClause
     public RecordKeySource? Source { get; init; }
 
     /// <summary>The SUPPRESS WHEN phrase's literal-1 as the literal position read it (ISO §12.4.5.6.2) — set by
-    /// <c>DataBinder.ResolveFiles</c>, because a constant-name operand (§13.10.3 SR2) is declared in the DATA
+    /// <c>FileControlBinder.ResolveFiles</c>, because a constant-name operand (§13.10.3 SR2) is declared in the DATA
     /// DIVISION, after the file control entry. Null when the clause has no SUPPRESS WHEN phrase, or when its
     /// operand is no literal at all (already reported by the literal-position screen).</summary>
     public SuppressWhenOperand? SuppressWhen { get; set; }
@@ -57,7 +57,7 @@ public sealed class AlternateKeyClause
     /// <summary>Where data-name-1 is written — the cursor §12.4.5.6.3's post-build screens report at.</summary>
     public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; init; }
 
-    /// <summary>What data-name-1 resolved to (set by <c>DataBinder.ResolveFiles</c>); null when the name
+    /// <summary>What data-name-1 resolved to (set by <c>FileControlBinder.ResolveFiles</c>); null when the name
     /// references nothing describable — itself a §12.4.5.6.3 SR2 violation — and always null for the SOURCE form,
     /// whose operands resolve on <see cref="Source"/>.</summary>
     public DataItem? Item { get; set; }
@@ -296,7 +296,7 @@ public sealed class FileModel
     /// other shares it (synthesized REDEFINES).</summary>
     public List<DataItem> Records { get; } = [];
 
-    /// <summary>The record <c>DataBinder.MaterializeImpliedRecord</c> synthesized for an FD with NO record description
+    /// <summary>The record <c>FileControlBinder.MaterializeImpliedRecord</c> synthesized for an FD with NO record description
     /// entries (ISO §14.9.30.4 GR6, kb/Work PB345), or null when the entry wrote its own. It is in
     /// <see cref="Records"/> because it is real storage; it is NOT a record description entry, and a syntax rule whose
     /// antecedent is "if there are record description entries associated with the file" (§13.18.13.3 SR3) asks
@@ -311,7 +311,7 @@ public sealed class FileModel
     /// <summary>True for a file description entry of a sequential, relative or indexed file (the "FORMATS 1 AND 2"
     /// heading SR3 is written under) that specifies NO record description entries — the antecedent of ISO §13.4.5.3 SR3, "When no record description
     /// entries are specified:". Asked of <see cref="WrittenRecords"/>, so it holds whether or not
-    /// <c>DataBinder.MaterializeImpliedRecord</c> could synthesize the implied record (an entry with no RECORD
+    /// <c>FileControlBinder.MaterializeImpliedRecord</c> could synthesize the implied record (an entry with no RECORD
     /// maximum, COBOL1836, or an indexed one, COBOL1837, has none, and still has no record description
     /// entries). A REPORT file (Format 3, SR8) and a sort-merge file description entry (§13.4.6) are not SR3's
     /// subject, and a SELECT no entry describes has nothing to ask (COBOL2635).</summary>
@@ -477,7 +477,7 @@ public sealed class FileModel
     public DataItem? RelativeKeyItem { get; set; }
 
     /// <summary>True once an FD or SD was matched to this SELECT. A SELECT that never gets one is ISO §12.4.5.2 SR3's
-    /// error, reported by <c>DataBinder.ScreenSelectsHaveDescriptions</c> (kb/Work PB1077).</summary>
+    /// error, reported by <c>FileControlBinder.ScreenSelectsHaveDescriptions</c> (kb/Work PB1077).</summary>
     public bool HasFd { get; set; }
 
     /// <summary>True for an <c>FD … IS EXTERNAL</c> file (ISO §13.18.22.4 GR4a/GR4b): the file connector is an
@@ -544,7 +544,7 @@ public sealed class FileModel
     public string EntryFace => IsSortMerge ? "sort-merge file description entry" : "file description entry";
 
     /// <summary>The source position of the RECORD clause, where §13.18.43.3's syntax rules report — they are
-    /// screened post-build (<see cref="RecordClauseRules"/>, run from <c>DataBinder.ResolveFiles</c>), because a
+    /// screened post-build (<see cref="RecordClauseRules"/>, run from <c>FileControlBinder.ResolveFiles</c>), because a
     /// record description's byte count is a §13.18.43.4 GR8 quantity over a forest that is not complete while
     /// the file description entry is being read. Unset when the entry writes no RECORD clause, in which case
     /// there is nothing for these rules to speak about.</summary>
@@ -587,7 +587,7 @@ public sealed class FileModel
     /// <summary>The LINAGE clause's logical-page model (ISO §13.18.34), or null when the FD has no LINAGE clause.
     /// Its presence generates the file's LINAGE-COUNTER register (§8.4.3.14 / §13.18.34 GR7a) and enables the
     /// WRITE END-OF-PAGE phrases (§14.9.51 SR19). Data-name operands resolve post-build in
-    /// <c>DataBinder.ResolveFiles</c> (the <see cref="VaryingDependingItem"/> pattern).</summary>
+    /// <c>FileControlBinder.ResolveFiles</c> (the <see cref="VaryingDependingItem"/> pattern).</summary>
     public LinageInfo? Linage { get; set; }
 
     /// <summary>The variable-length minimum record size in BYTES — integer-2 when the clause states it, else

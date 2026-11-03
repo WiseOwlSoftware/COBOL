@@ -277,24 +277,6 @@ public sealed partial class DataBinder
         _ => section.ToString(),
     };
 
-    /// <summary>§13.16.3 SR7's SECOND half — "…or for record descriptions associated with a file description entry
-    /// that contains the EXTERNAL or GLOBAL clause" — the one row whose subject is the FD rather than the entry.
-    /// Called once per FD after its clause loop, when <see cref="FileModel.IsExternal"/> / <c>IsGlobal</c> are
-    /// known and before an implied record is materialized (that record is the compiler's, not written).</summary>
-    private void ScreenFileRecordEntryNames(FileModel file)
-    {
-        if (!file.IsExternal && !file.IsGlobal) return;
-        var rule = ClausePlacementRules.Rules.First(r => r.Kind is ClausePlacementKind.DataNameRequired);
-        string clause = file.IsExternal ? (file.IsGlobal ? "EXTERNAL and GLOBAL" : "EXTERNAL") : "GLOBAL";
-        foreach (var record in file.Records)
-        {
-            if (record.CobolName is not null) continue;
-            using var _ = Edition.At(record);
-            Edition.Error(rule.Code, $"a record description entry of file '{file.CobolName}' has no data-name, and "
-                + $"the file description entry contains the {clause} clause. \"{rule.Sentence}\" (ISO {rule.Rule})");
-        }
-    }
-
     internal static string? BlankWhenZeroViolation(PicInfo pic)
     {
         if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))

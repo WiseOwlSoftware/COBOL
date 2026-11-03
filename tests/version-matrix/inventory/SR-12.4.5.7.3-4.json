@@ -6,10 +6,10 @@
  "subject": "COLLATING SEQUENCE clause",
  "rule-digest": "d7b4338635bf",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFileCollating",
  "test-ref": "conformance-test:FileCollatingSequenceSpecTests.KeyLevel_NameThatIsNotAKey_Diagnosed",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "Data-name-1 shall be a name specified as the data-name in an ALTERNATE RECORD KEY or RECORD KEY clause of the file control entry. ResolveFileCollating builds the declared key-name set from FileModel.RecordKeyName plus AlternateKeyNames and rejects any Format-2 name outside it with COBOL1582. SR5 (the record-key-name spelling) is NOT claimed by this row: the test names a data-name.",
+ "notes": "Data-name-1 shall be a name specified as the data-name in an ALTERNATE RECORD KEY or RECORD KEY clause of the file control entry. ResolveFileCollating builds the declared key-name set from FileModel.RecordKeyName plus AlternateKeyNames and rejects any Format-2 name outside it with COBOL1582. SR5 (the record-key-name spelling) is NOT claimed by this row: the test names a data-name. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveFileCollating (kb/Work PB2296 M7 moved the member from DataBinder to FileControlBinder (the file binder); the same rule is asked by the same code)",
  "state": "OK"
 }

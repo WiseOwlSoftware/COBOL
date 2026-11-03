@@ -157,10 +157,10 @@ public sealed class DataBindStateBoundaryDriftTests
         {
             ("ForestSlice (the type forest and its name tables)",
                 new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|TryDeclareType|AddScreenNames|Inherit|AddCapacityRegister)\("),
-                ["/Binding/DataBinder*.cs", "/Binding/CompilerTemps.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
+                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CompilerTemps.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
             ("FileSlice (the files the unit declares)",
                 new(@"\.Files\.Declare\("),
-                ["/Binding/DataBinder.cs", "/Binding/FileControlBinder.cs"]),
+                ["/Binding/FileControlBinder.cs", "/Binding/FileControlBinder.FileSection.cs"]),
             ("StorageTierSlice (the static channels, cell backings and bridges)",
                 new(@"\.StorageTier\.(AddStatic\w+|AddBasedBridge|ClaimAddressableCell)\("),
                 ["/Binding/DataBinder.Ptr.cs", "/Binding/Passes/PtrBindBasedAndAddressablesPass.cs", "/Binding/Passes/RouteStaticUnitStoragePass.cs"]),

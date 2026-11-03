@@ -20,26 +20,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <item>the rows of <c>BindPipeline.Build</c> and the <see cref="IBindPass"/> classes of the assembly are the same set, each
 /// class once, each in a file named for it (the drift that left a pass class unregistered, or a lambda row beside the
 /// classes, is a red test);</item>
-/// <item>a pass that owns its body leaves no method of its entry's name on <c>DataBinder</c> (a forwarder would be a second
-/// way to run the pass); the row whose rule code belongs to a concern binder still to come
-/// (<see cref="ConcernOwned"/>) is the named exception, and the list is closed: a row leaves it when its rule code leaves
-/// <c>DataBinder</c> (a stale entry fails here), and while it stays an OPEN <c>kb/Work</c> note must name it, so the exception
-/// always has an owner and an end condition;</item>
+/// <item>no row's name is a method of <c>DataBinder</c>: a pass owns its body, or its concern binder does (<c>ResolveFilesPass</c>
+/// schedules <c>FileControlBinder.ResolveFiles</c>, the last row whose rule code stayed on the binder until kb/Work PB2296 M7),
+/// and a method of the row's name left on the binder would be a second way to run the rule;</item>
 /// <item>a pass's own source never appends to a fact set its <see cref="IPassInfo.Views"/> does not declare, and while a
 /// pass runs <see cref="AppendGate"/> refuses an append it did not declare, so the declaration cannot drift from what the
 /// pass, or the binder code it calls, does.</item>
 /// </list>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class BindPassBoundaryDriftTests
 {
-    /// <summary>The rows whose rule code still lives on <c>DataBinder</c>: the pass only schedules it.
-    /// <c>DataBinder.ResolveFiles</c> (with <c>BindFileSection</c>) is the post-build half of the FILE concern: PB2356 moved the
-    /// SELECT / I-O-CONTROL half into <c>FileControlBinder</c> and left this half for the next FILE step, which kb/Work
-    /// PB2296 (Remaining, M7) owns and which ends this entry. <c>ResolveReports</c> left the list when <c>ReportSectionBinder</c> landed (PB2357), <c>CallBindExternalAndGlobal</c>
-    /// when <c>LinkageBinder</c> did (PB2359), <c>OoRouteMethodRedefinesBackings</c> when <c>OoDataBinder</c> did (PB2360).</summary>
-    private static readonly string[] ConcernOwned = ["ResolveFiles"];
-
     private static IReadOnlyList<IBindPass> Rows => BindPipeline.Build(program: null!);
 
     private static string PassSource(IBindPass row) =>
@@ -73,33 +63,13 @@ public sealed class BindPassBoundaryDriftTests
     }
 
     [Fact]
-    public void ADataBinderMethodOfAPassesName_ExistsOnlyForTheConcernOwnedRows()
+    public void NoRowsName_IsAMethodOfDataBinder()
     {
         const BindingFlags all = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
         foreach (var row in Rows)
-        {
-            bool onBinder = typeof(DataBinder).GetMethod(row.Name, all) is not null;
-            bool owned = ConcernOwned.Contains(row.Name);
-            Assert.True(onBinder == owned,
-                owned
-                    ? $"{row.Name} is listed as concern-owned but DataBinder no longer has it: its concern binder landed, so delete it from ConcernOwned and let the pass own the call"
-                    : $"DataBinder still has a method {row.Name}, the entry of the pass that owns the rule: a second way to run it (move the body into {row.GetType().Name}, or list the row in ConcernOwned with the concern binder that will take it)");
-        }
-    }
-
-    [Fact]
-    public void EveryConcernOwnedRow_IsNamedByAnOpenWorkNote_SoTheExceptionHasAnOwnerAndAnEnd()
-    {
-        // The list is closed, not a parking place: a row stays only while an OPEN note owns the move of its rule code off
-        // DataBinder (CLAUDE.md rule 8: work left in prose is work no view can see).
-        var open = Directory.EnumerateFiles(TestRepo.At("kb", "Work"), "*.md")
-            .Select(File.ReadAllText)
-            .Where(text => Regex.IsMatch(text, @"^status:\s*open\s*$", RegexOptions.Multiline))
-            .ToList();
-        foreach (string row in ConcernOwned)
-            Assert.True(open.Exists(text => text.Contains(row, StringComparison.Ordinal)),
-                $"{row} is concern-owned (rule code left on DataBinder) but no open kb/Work note names it: the move off DataBinder " +
-                "has no owner. Name it in the open extract note that owns it (PB2296 Remaining) or finish the move and delete the entry.");
+            Assert.True(typeof(DataBinder).GetMethod(row.Name, all) is null,
+                $"DataBinder still has a method {row.Name}, the entry of the pass that owns the rule: a second way to run it " +
+                $"(move the body into {row.GetType().Name}, or into the concern binder the pass schedules, and delete the method)");
     }
 
     [Fact]

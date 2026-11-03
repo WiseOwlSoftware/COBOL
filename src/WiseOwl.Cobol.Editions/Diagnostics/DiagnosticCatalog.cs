@@ -4049,7 +4049,7 @@ public static class DiagnosticCatalog
         "ISO §13.4.5.3 SR7 / §13.4.6.3 SR2");
 
     /// <summary>COBOL3983 — the READ half of the record-less entry's verb rules (kb/Work PB694). The implied record
-    /// <c>DataBinder.MaterializeImpliedRecord</c> builds has no record-name, so a READ without INTO would fill an
+    /// <c>FileControlBinder.MaterializeImpliedRecord</c> builds has no record-name, so a READ without INTO would fill an
     /// area the program can never name; the standard gives that READ no meaning, because §14.9.30.4 GR6 defines the
     /// implied record only for the INTO form. SR3 b), the WRITE/REWRITE half, needs no code of its own: the
     /// record-name-1 alternative cannot name a record-less file (§14.9.51.3 SR5, §14.9.35.3 SR1), and the
@@ -4109,7 +4109,7 @@ public static class DiagnosticCatalog
     /// the SAME OCCURS ban in the same words, which is why they share one code: a rule set with one member written
     /// down is where the missing members hide (kb/Work PB354).
     /// <para>⛔ THE KEY-CLAUSE ARM IS ONE TABLE, <c>FileControlKeyRules</c>, run from
-    /// <c>DataBinder.ResolveFiles</c> over EVERY declared file. It used to run from <c>KeyedIoBinder</c> on the
+    /// <c>FileControlBinder.ResolveFiles</c> over EVERY declared file. It used to run from <c>KeyedIoBinder</c> on the
     /// first keyed VERB naming the file, so these entry rules were silent for a file the program only OPENed and
     /// CLOSEd (kb/Work PB699). Two citations were repaired in the same move: the required-clause rule is
     /// §12.4.5.2 SR10, not §12.4.5.13 (which has no syntax rules at all — they live in §12.4.5.13.3), and the
@@ -4897,7 +4897,7 @@ public static class DiagnosticCatalog
     // ⛔ TWO CODES, BECAUSE THE TWO KINDS OF VIOLATION HAVE DIFFERENT SUBJECTS AND DIFFERENT REMEDIES. SR5 and
     // SR9 are about the CLAUSE's own pair of integers and are repaired by editing the clause; SR3 and SR4 are
     // about a RECORD DESCRIPTION ENTRY disagreeing with the clause and may be repaired at either end. Both arms
-    // are rows of ONE table, `Binding.RecordClauseRules`, run from `DataBinder.ResolveFiles` (kb/Work PB721).
+    // are rows of ONE table, `Binding.RecordClauseRules`, run from `FileControlBinder.ResolveFiles` (kb/Work PB721).
 
     /// <summary>COBOL2009 — the RECORD clause's own integer pair is inconsistent: ISO §13.18.43.3 SR5
     /// ("Integer-3 shall be greater than integer-2") for Format 2, SR9 ("Integer-5 shall be greater than
@@ -7026,7 +7026,7 @@ public static class DiagnosticCatalog
     /// (kb/Work PB1080). None was screened: an OCCURS item compiled and died at OPEN, a PIC 99 item crashed the C#
     /// backend, a BASED item died EC-DATA-PTR-NULL at OPEN, and a one-, three-character, national, FD-record,
     /// dynamic-length or variable-length item ran with a truncated, padded or wrong-category status. The site names
-    /// the rule it caught; <c>DataBinder.ScreenFileStatusItem</c> is the one screen.</summary>
+    /// the rule it caught; <c>FileControlBinder.ScreenFileStatusItem</c> is the one screen.</summary>
     public static readonly DiagnosticDescriptor FileStatusItemRule = new(
         "COBOL2455", "file-status-item-rule", EditionSeverity.Error,
         "The FILE STATUS clause's data-name-1 breaks one of the clause's syntax rules (ISO §12.4.5.8.3): SR1 — it "
@@ -7211,7 +7211,7 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL2635 — a SELECT clause names a file-name that has no file description entry and no sort-merge
     /// file description entry in the file section (ISO §12.4.5.2 SR3; kb/Work PB1077). Such a file compiled clean and
-    /// its first OPEN aborted the run unit as a "compiler defect". Reported by <c>DataBinder.BindFileSection</c> at
+    /// its first OPEN aborted the run unit as a "compiler defect". Reported by <c>FileControlBinder.BindFileSection</c> at
     /// the file control entry.</summary>
     public static readonly DiagnosticDescriptor SelectWithoutFileDescription = new(
         "COBOL2635", "select-without-file-description", EditionSeverity.Error,
@@ -7224,7 +7224,7 @@ public static class DiagnosticCatalog
     /// <summary>COBOL2636 — a file description entry or a sort-merge file description entry names a file-name that
     /// no file control entry specifies (ISO §13.4.5.3 SR1 for an FD, §13.4.6.3 SR1 for an SD; kb/Work PB1237,
     /// PB1290 — the other arm of kb/Work PB1077's pairing). The binder used to synthesize a file with an empty
-    /// assignment, so the program compiled and even ran I-O against it. Reported by <c>DataBinder.BindFileSection</c>
+    /// assignment, so the program compiled and even ran I-O against it. Reported by <c>FileControlBinder.BindFileSection</c>
     /// at the entry.</summary>
     public static readonly DiagnosticDescriptor FileDescriptionWithoutSelect = new(
         "COBOL2636", "file-description-without-select", EditionSeverity.Error,

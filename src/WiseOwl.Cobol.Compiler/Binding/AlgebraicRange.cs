@@ -245,7 +245,7 @@ internal static class AlgebraicRanges
         var body = file.Linage?.Body;
         if (body?.Literal is { } lit) return lit.ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (body?.Item?.Pic is { Digits: > 0 } p) return new string('9', p.Digits);
-        // An unresolved page-size operand was already reported by its own resolution (DataBinder.ResolveLinage);
+        // An unresolved page-size operand was already reported by its own resolution (FileControlBinder.ResolveLinage);
         // the register still has a value, so the report counters' capacity stands in for the missing size.
         return ReportCounter.Value.Range.Farthest;
     }

@@ -364,7 +364,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // KeyedIoEmitter.EmitRegistration returned outright — so a legal record-description-less FD
             // (ISO §13.4.5.3 SR3) produced NO file connector on either arm and its first I-O verb aborted the run
             // unit. Since PB345 every such FD carries §14.9.30.4 GR6's implied record description, synthesized at
-            // bind time (DataBinder.MaterializeImpliedRecord), so exactly TWO shapes reach here with no record:
+            // bind time (FileControlBinder.MaterializeImpliedRecord), so exactly TWO shapes reach here with no record:
             //   • a REPORT FILE, which legally has none (ISO §9.1.22 / §13.18.46 / §13.4.5.3 SR8) and MUST still
             //     register, or its OPEN falls through to the keyed registries and the report engine's writes go
             //     into a void (the silent-OPEN-no-op hazard, REPORT_WRITER_DESIGN §7); its record width

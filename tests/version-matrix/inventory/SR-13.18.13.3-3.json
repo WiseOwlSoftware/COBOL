@@ -6,10 +6,10 @@
  "subject": "CODE-SET clause",
  "rule-digest": "dcaf6ae1636e",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckCodeSetRecordItemsPass.cs#CheckCodeSetRecordItemsPass",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckCodeSetRecordItemsPass.cs#CheckCodeSetRecordItemsPass; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindCodeSetClause",
  "test-ref": "conformance:cases/13.18.13-CODE-SET/pb110-code-set-nonidentity; conformance:cases/12.3.7-SPECIAL-NAMES/pb110_code_set_identity; conformance:cases/13.18.13-CODE-SET/pb1219_code_set_record_less_fd",
  "derivation": "",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB110 (2026-08-19): with record description entries and no SELECT WHEN clauses (none exist in this grammar), one class only (both names → COBOL1672); a) every elementary item usage display and signed items SIGN SEPARATE (1672 — probed: a PIC S9 record under CODE-SET draws the SIGN SEPARATE arm); b) the national twin. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.CodeSetRecords.cs#CheckCodeSetRecordItems (the pass body moved from the DataBinder partial to its own IBindPass class under Binding/Passes (kb/Work PB2352, PB2353, PB2354))",
+ "notes": "kb/Work PB110 (2026-08-19): with record description entries and no SELECT WHEN clauses (none exist in this grammar), one class only (both names → COBOL1672); a) every elementary item usage display and signed items SIGN SEPARATE (1672 — probed: a PIC S9 record under CODE-SET draws the SIGN SEPARATE arm); b) the national twin. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.CodeSetRecords.cs#CheckCodeSetRecordItems (the pass body moved from the DataBinder partial to its own IBindPass class under Binding/Passes (kb/Work PB2352, PB2353, PB2354)) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause (kb/Work PB2296 M7 moved the member from DataBinder to FileControlBinder (the file binder); the same rule is asked by the same code)",
  "state": "OK"
 }

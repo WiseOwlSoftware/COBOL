@@ -389,7 +389,7 @@
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.CodeGen",
       "uses": 4,
-      "walkUses": 2,
+      "walkUses": 3,
       "removedBy": [
         "PB2395"
       ],
@@ -405,6 +405,13 @@
         {
           "from": "WiseOwl.Cobol.Binding.DataBinder",
           "to": "WiseOwl.Cobol.CodeGen.ValueInitializer",
+          "removedBy": [
+            "PB2395"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.FileControlBinder",
+          "to": "WiseOwl.Cobol.CodeGen.FigurativeConstants",
           "removedBy": [
             "PB2395"
           ]
@@ -434,7 +441,7 @@
       "from": "WiseOwl.Cobol.Binding",
       "to": "WiseOwl.Cobol.Validation",
       "uses": 15,
-      "walkUses": 18,
+      "walkUses": 19,
       "removedBy": [
         "PB2320",
         "PB2404",
@@ -573,6 +580,14 @@
         {
           "from": "WiseOwl.Cobol.Binding.ConstantEntryBinder",
           "to": "WiseOwl.Cobol.Validation.IntegerSlot",
+          "removedBy": [
+            "PB2404",
+            "PB2421"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.FileControlBinder",
+          "to": "WiseOwl.Cobol.Validation.IntegerOperandRules",
           "removedBy": [
             "PB2404",
             "PB2421"

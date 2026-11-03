@@ -13,14 +13,16 @@ using WiseOwl.Cobol.Runtime;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The binder of one source element's INPUT-OUTPUT SECTION (ISO §12.4): the FILE-CONTROL paragraph's SELECT entries
-/// (§12.4.5), whose clauses it captures into <see cref="FileModel"/>s before the FD records bind, and the I-O-CONTROL
-/// paragraph (§12.4.6; <c>FileControlBinder.IoControl.cs</c>), bound against those files (DESIGN-architecture-review
-/// §8.3 (1), the census's R0-0001 target "FileControlBinder"). The data binder constructs one per unit
-/// (<see cref="DataBinder.FileControl"/>) and drives it from the top of its declaration half; the files it declares live
-/// on the data binder (<see cref="FileSlice.Declared"/>, <see cref="FileSlice.FilesByName"/>), where the FD, the report
-/// section and the file resolution reach them, and it asks the data binder for what is not a file concern: the §8.3.2.2
-/// declaration funnel, the clause-operand screens, the constant readings and the data-item resolution.
+/// The binder of one source element's FILES (DESIGN-architecture-review §8.3 (1), the census's R0-0001 target
+/// "FileControlBinder"): the INPUT-OUTPUT SECTION's FILE-CONTROL paragraph, whose SELECT entries (§12.4.5) it captures into
+/// <see cref="FileModel"/>s before the FD records bind, and its I-O-CONTROL paragraph (§12.4.6;
+/// <c>FileControlBinder.IoControl.cs</c>), bound against those files; the FILE SECTION's FD and SD entries (§13.4.5, §13.4.6;
+/// <c>FileControlBinder.FileSection.cs</c>); and the post-build resolution of every file's clause operands to data items
+/// (<c>FileControlBinder.Resolve.cs</c>, kb/Work PB2296 M7). The data binder constructs one per unit
+/// (<see cref="DataBinder.FileControl"/>) and drives it from its declaration half; the files it declares are the
+/// <see cref="FileSlice"/> of <see cref="DataBindState"/> (<see cref="FileSlice.Declared"/>, <see cref="FileSlice.FilesByName"/>),
+/// where the report section and the file resolution reach them, and it asks the data binder for what is not a file concern: the
+/// §8.3.2.2 declaration funnel, the clause-operand screens, the constant readings and the entry walk.
 /// </summary>
 public sealed partial class FileControlBinder
 {
@@ -42,7 +44,7 @@ public sealed partial class FileControlBinder
     internal Dictionary<string, FileModel> SelectedFiles { get; } = new(CobolNames.Comparer);
 
     /// <summary>The SUPPRESS WHEN operands as written, keyed by their clause (captured in <see cref="BindFileControl"/>, read by
-    /// <see cref="DataBinder.ReadSuppressWhen"/> once the data division's constant-names are declared).</summary>
+    /// <see cref="FileControlBinder.ReadSuppressWhen"/> once the data division's constant-names are declared).</summary>
     internal Dictionary<AlternateKeyClause, Core.ValueClauseOperandContext> SuppressWhenOperands { get; } = [];
 
     /// <summary>Bind the FILE-CONTROL paragraph's SELECT clauses into <see cref="FileModel"/>s (assign target,

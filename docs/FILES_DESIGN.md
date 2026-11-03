@@ -76,7 +76,7 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
 
 **The decision — one predicate, two halves of one area.**
 - `FileModel.IsOutOfLineRecord` is THE predicate (a dynamic-length elementary record, a variable-length group, a
-  pointer-class elementary record). `DataBinder.LinkImplicitRecordArea` — the ONE linker for the FD and SD arms —
+  pointer-class elementary record). `FileControlBinder.LinkImplicitRecordArea` — the ONE linker for the FD and SD arms —
   and the SAME RECORD AREA arm link only character-window records, anchored on `FileModel.CharacterAnchor`; each
   file of a record-area SAME clause learns its `SameRecordAreaPeers`.
 - **The SAME clause is ONE membership model, and its syntax rules are one screen** (`FileControlBinder.IoControl.cs`;
@@ -964,7 +964,7 @@ is not present, the execution of the DELETE FILE statement is successful and the
 '05'"* — rather than re-resolving data-name-1, which would be an implementor extension to GR3's closed list of
 associating statements on the one verb where guessing wrong destroys data.
 
-**§12.4.5.2 SR7 is enforced at bind time**, once the data forest is indexed (`DataBinder.ResolveAssignUsing`):
+**§12.4.5.2 SR7 is enforced at bind time**, once the data forest is indexed (`FileControlBinder.ResolveAssignUsing`):
 data-name-1 shall reference an alphanumeric data item (`COBOL1810`) and shall not be subordinate to the file
 description entry for file-name-1 (`COBOL1811`). The second half is the dangerous one — an operand inside the
 file's own record area is overwritten by every READ of that file.
@@ -1140,11 +1140,11 @@ legal on both the sequential and the relative organizations. §14.9.30.4 GR6 the
 record area IS: a READ INTO *"proceeds as though there were one record description entry describing an
 alphanumeric group item of the maximum size established by the RECORD clause"*.
 
-**The decision:** `DataBinder.MaterializeImpliedRecord` builds that entry — an unnamed level-01 GROUP over one
+**The decision:** `FileControlBinder.MaterializeImpliedRecord` builds that entry — an unnamed level-01 GROUP over one
 FILLER `PIC X(n)` — as the last act of binding each FD, and everything downstream sees an ordinary record.
 `FileModel.AreaRecord` is consequently non-null for every FD that can be opened with data, and is null only for a
 REPORT file (§13.4.5.3 SR8 forbids it record descriptions). A SELECT with no FD or SD at all never reaches code
-generation: §12.4.5.2 SR3 rejects it (COBOL2635, `DataBinder.ScreenSelectsHaveDescriptions`), and an FD or SD
+generation: §12.4.5.2 SR3 rejects it (COBOL2635, `FileControlBinder.ScreenSelectsHaveDescriptions`), and an FD or SD
 that no SELECT names is rejected by §13.4.5.3 SR1 / §13.4.6.3 SR1 (COBOL2636) (kb/Work PB1077, PB1237, PB1290).
 
 - **A GROUP, not an elementary `PIC X(n)`,** because the distinction is observable: §14.9.25.4 makes a MOVE whose
@@ -1178,7 +1178,7 @@ guarded on the same null. Five null arms for one absent fact is four too many (`
 *Synthesize at emit time instead* — the record has to exist for the binder's own record-area resolution
 (`PlaceBuilder.ResolveItem`), not just for the registration call.
 
-### D19. A syntax rule of a FILE CONTROL ENTRY clause is enforced ON THE ENTRY — in `FileControlBinder.BindFileControl` when the clauses alone decide it, in `DataBinder.ResolveFiles` when it needs a resolved data item — never on a verb. It is the converse of D13, and the two together decide where every I-O syntax rule goes.
+### D19. A syntax rule of a FILE CONTROL ENTRY clause is enforced ON THE ENTRY — in `FileControlBinder.BindFileControl` when the clauses alone decide it, in `FileControlBinder.ResolveFiles` when it needs a resolved data item — never on a verb. It is the converse of D13, and the two together decide where every I-O syntax rule goes.
 
 **The rule.** §12.4.5.5.2 SR2: *"The DYNAMIC and RANDOM phrases shall not be specified for a sequential file."*
 The general format says the same thing structurally — Format 3, the sequential file control entry, admits only
@@ -1234,7 +1234,7 @@ what the rule needs rather than by taste:
 - **Decidable from the CLAUSES ALONE** → `FileControlBinder.BindFileControl`, inline after the clause loop, reporting at
   once. §12.4.5.5.2 SR2 above, and the §12.4.5.9.3 SR2 screen beside it, are of this kind: organization against
   access mode, a clause against another clause.
-- **Needs a RESOLVED DATA ITEM** → `DataBinder.ResolveFiles`, the post-build pass, through the one table below.
+- **Needs a RESOLVED DATA ITEM** → `FileControlBinder.ResolveFiles`, the post-build pass, through the one table below.
   A key clause names a data-name whose OCCURS ancestry, PICTURE and owning record description are not known until
   the data forest is indexed, so a screen in `BindFileControl` could only guess at them.
 
@@ -1268,7 +1268,7 @@ declared and every index-aligned list downstream out of step with the written cl
 one row per rule, carrying its inventory rule-id, its clause, a verbatim span of the printed rule, the SET of
 file KINDS it is screened over (`FileKinds` — one flag per §12.4.5.10.3 organization plus `SortMerge`), the entry
 CLAUSE it is stated about (`FileKeyRole`, whose `Entry` member is the rule stated about the entry itself), three
-predicates (precondition · violation · message) and an optional diagnostic code. `DataBinder.ResolveFiles` calls `Screen(file, Edition)` once per declared
+predicates (precondition · violation · message) and an optional diagnostic code. `FileControlBinder.ResolveFiles` calls `Screen(file, Edition)` once per declared
 file, after the keys resolve. One-report-per-file is then a consequence of *where* the screen runs, not a set it
 has to carry, and the diagnostic is positioned at the offending CLAUSE (`FileModel.RecordKeyAt` /
 `AlternateKeyClause.At` / `RelativeKeyAt`) or, for an absent clause, at the entry (`FileModel.EntryAt`).
@@ -1908,7 +1908,7 @@ already made obsolete: three copies, and the fourth INTO verb inherits none of t
 `CheckStrongMove`* — that screen is about a MOVE's sender/receiver pair and knows nothing of a file's record
 list; giving it a `FileModel` would make the MOVE rule depend on the I-O model to serve one caller. *Re-derive
 "alphanumeric group item" at the INTO screen* — a third copy of §13.18.29.4 GR3, when two had already drifted.
-### D25. The FILE DESCRIPTION entry's own syntax rules are enforced ON THE ENTRY too, and the RECORD clause's are a SECOND TABLE beside the file-control one — `RecordClauseRules`, run from the same `DataBinder.ResolveFiles` pass. D19's criterion generalizes; the FD is simply the other entry.
+### D25. The FILE DESCRIPTION entry's own syntax rules are enforced ON THE ENTRY too, and the RECORD clause's are a SECOND TABLE beside the file-control one — `RecordClauseRules`, run from the same `FileControlBinder.ResolveFiles` pass. D19's criterion generalizes; the FD is simply the other entry.
 
 **The rules.** ISO §13.18.43.3 states nine syntax rules for the RECORD clause, cut on the three general formats of
 §13.18.43.2. Four of them bound the clause's integers against each other or against the file's record description
@@ -1918,14 +1918,14 @@ lesser number of bytes than that specified by integer-2 nor records that contain
 that specified by integer-3"*; **SR5** (Format 2) *"Integer-3 shall be greater than integer-2"*; **SR9**
 (Format 3) *"Integer-5 shall be greater than integer-4"*.
 
-**What was wrong.** `DataBinder.BindRecordClause` parsed the integers and stored them, and nothing checked any of
+**What was wrong.** `FileControlBinder.BindRecordClause` parsed the integers and stored them, and nothing checked any of
 it. `FD F RECORD IS VARYING IN SIZE FROM 20 TO 5 DEPENDING ON L.` — an SR5 violation written in two adjacent
 literals — compiled clean at 85, 2002, 2014 and 2023, and the program learned about it only as an I-O status
 `'44'` on the first WRITE, which is §13.18.43.4 GR14 a)'s runtime CONSEQUENCE and not the clause's diagnosis. An
 inverted range makes EVERY write unsuccessful, so the runtime report is also unusably late (kb/Work PB721).
 
 **Where it lives, and why not at the clause.** `src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs`, called from
-`DataBinder.ResolveFiles` immediately after `FileControlKeyRules.Screen`. D19's two-site criterion decides it:
+`FileControlBinder.ResolveFiles` immediately after `FileControlKeyRules.Screen`. D19's two-site criterion decides it:
 SR3 and SR4 need a RESOLVED quantity — §13.18.43.4 GR8's byte count of a record description, whose summation
 reads occurrence counts, redefinition targets, group usage and the §8.5.1.6.3 bit layout — and none of that is
 settled while the file description entry is being read. SR5 and SR9 are decidable from the clause alone, but they
@@ -2010,7 +2010,7 @@ token is exactly how that right gets lost silently. Three programs say which is 
 `conformance:cases/13.18.43-RECORD/pb721_zero_length_record_85` (the CHARACTERS spelling, accepted at 85) and
 `conformance:cases/_unassigned/pb721_bytes_user_word_85` (the word as a data-name, a table and a paragraph-name at 85).
 
-**SR1 stays where it is** (`DataBinder.MaterializeImpliedRecord`, COBOL1836): it is about the clause's
+**SR1 stays where it is** (`FileControlBinder.MaterializeImpliedRecord`, COBOL1836): it is about the clause's
 PRESENCE, decidable while the entry is read — D19's first list, not its second.
 
 **SR6 is the one rule of this subclause still without a site, and that is a decision.** *"Data-name-1 shall
@@ -2106,7 +2106,7 @@ CONTROL (§13.18.16) operands capture with the unscreened `KeyReference` and app
 source those clauses allow. The KEY clauses keep their own SELECTION among the candidates (§12.4.5.12.3 SR2 puts
 the key inside a record description of the file), but take the candidates from the one matcher.
 
-**The LINAGE clause's own syntax rules** live in `DataBinder.ResolveLinage`, the FD-clause twin of
+**The LINAGE clause's own syntax rules** live in `FileControlBinder.ResolveLinage`, the FD-clause twin of
 `ResolveFileCollating` and D19's `ResolveFiles` arm: §13.18.34.3 **SR1** (*"Data-name-1, data-name-2,
 data-name-3, and data-name-4 shall not be subject to any OCCURS clauses"*) → **COBOL2025**. It had no site at
 all — a LINAGE operand naming a table element compiled clean and killed the process at OPEN OUTPUT. **SR2**
@@ -2920,8 +2920,8 @@ sequence than the one written). Witnesses: `2002/pb1074_file_collating_key_class
 `SUPPRESS WHEN literal-1` (§12.4.5.6.2) is read like every other literal position — the VALUE clause's literal-n
 and the PICTURE EDITING literals — through `DataBinder.RawValueOperandText`: the grammar takes `valueClauseOperand`,
 so a constant-name (§13.10.3 SR2) and a symbolic-character (§8.3.3.6.2 Format 7) are accepted and a concatenation
-expression folds (kb/Work PB1072). `DataBinder.ReadSuppressWhen` records the operand's SHAPE (`SuppressWhenOperand`),
-which §12.4.5.6.3 SR7's three `FileControlKeyRules` rows screen; `DataBinder.KeySuppressionOf` builds the §12.4.5.6.4
+expression folds (kb/Work PB1072). `FileControlBinder.ReadSuppressWhen` records the operand's SHAPE (`SuppressWhenOperand`),
+which §12.4.5.6.3 SR7's three `FileControlKeyRules` rows screen; `FileControlBinder.KeySuppressionOf` builds the §12.4.5.6.4
 GR6 value in the KEY'S OWN POSITIONS — a figurative in the key's category repeated to its size (§8.3.3.6.4 GR2), ALL
 literal-1 repeated, a short literal space-extended and a long one cut back only over spaces (§8.8.4.2.7 2)) — and
 the emitter encodes a national value through the one national serializer. The connector then compares two key

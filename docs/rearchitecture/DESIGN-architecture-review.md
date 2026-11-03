@@ -1289,15 +1289,19 @@ Every reader of those facts (picture analysis, the literal binders, the procedur
 extract, PB2296 M5), so the binder carries no `InheritFrom` and the data binder no `InheritConfiguration`. The REPOSITORY specifier
 screens and the configuration-literal readings are `DataBinder.Configuration.cs`. The emitters' reads of the slice are tolerated edge pairs
 onto `ConfigurationSlice` in `architecture-edges.json`, removed by PB2361 (the facts become a value slice in `DataBindResult`).
-*`FileControlBinder` as built (PB2356).* The same shape, `DataBinder.FileControl`, over two files: `FileControlBinder.cs` (the SELECT
+*`FileControlBinder` as built (PB2356, completed by PB2296 M7).* The same shape, `DataBinder.FileControl`, over four files: `FileControlBinder.cs` (the SELECT
 entries, `BindFileControl`; the RECORD KEY and ALTERNATE RECORD KEY source phrase; the key-level and file-level COLLATING SEQUENCE
-clauses and their post-build resolution, `ResolveFileCollating`; the ORGANIZATION, ACCESS MODE, SHARING and LOCK MODE mappers) and
+clauses and their post-build resolution, `ResolveFileCollating`; the ORGANIZATION, ACCESS MODE, SHARING and LOCK MODE mappers),
 `FileControlBinder.IoControl.cs` (the I-O-CONTROL paragraph: the SAME clauses' membership model and syntax rules, APPLY COMMIT and the
-record-area link). It owns `SelectedFiles` (the SELECT-declared files, §12.4.5.2 SR2/SR3), `SuppressWhenOperands` and `ApplyCommit`; the
-files themselves stay on the data binder (`Files`, `FilesByName`), where the FD, the report section and the file resolution reach
-them. The COLLATING SEQUENCE alphabet class test, shared by the file clause, PROGRAM COLLATING SEQUENCE and SORT/MERGE, is an alphabet
-question and lives with the alphabets, `SpecialNamesBinder.CollatingAlphabetFault`. What stays for the next FILE step is the post-build
-half: `ResolveFiles` and its FILE STATUS, LINAGE, ASSIGN USING and key resolutions, and the FD/SD binding. `ConfigurationBindersBoundaryDriftTests`
+record-area link), `FileControlBinder.FileSection.cs` (the FD and SD entries, §13.4.5 and §13.4.6: `BindFileSection`, the RECORD,
+BLOCK CONTAINS, LINAGE and CODE-SET clauses, the implied record of a record-less FD, the implicit record-area link and the
+SELECT-has-a-description screen, §12.4.5.2 SR3) and `FileControlBinder.Resolve.cs` (the post-build half, `ResolveFiles`: FILE STATUS, LINAGE, ASSIGN USING and the
+key resolutions with the clause syntax rules each applies over the resolved item). It owns `SelectedFiles` (the SELECT-declared files,
+§12.4.5.2 SR2/SR3), `SuppressWhenOperands` and `ApplyCommit`; the files themselves are the `FileSlice` of `DataBindState`
+(`State.Files`), where the FD, the report section and the file resolution reach them. What stays on the data binder is what is not a file
+concern: the clause-operand resolvers every section shares (`ResolveClauseOperand`, `ClauseDataName`, `KeyReference`), the entry
+walk (`BindEntries`) and the VALUE-literal readers. The COLLATING SEQUENCE alphabet class test, shared by the file clause, PROGRAM COLLATING SEQUENCE and SORT/MERGE, is an alphabet
+question and lives with the alphabets, `SpecialNamesBinder.CollatingAlphabetFault`. `ConfigurationBindersBoundaryDriftTests`
 pins both binders: the data binder declares no member a binder declares (no forwarder), and each binder is made in one place. During
 procedure binding the
 binders read the frozen value slices, append and early-read the fact sets, and use `ProcedureBindState`'s three

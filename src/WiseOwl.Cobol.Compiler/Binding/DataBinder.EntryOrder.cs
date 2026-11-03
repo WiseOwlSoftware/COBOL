@@ -73,7 +73,7 @@ public sealed partial class DataBinder
     private readonly Dictionary<Core.DataDescriptionEntryContext, DataItem?> _preboundEntryItems = [];
 
     /// <summary>Record where every data description entry under <paramref name="scope"/> stands, BEFORE any of it binds:
-    /// the section runs exactly as <see cref="BindFileSection"/>, the WORKING-STORAGE / LOCAL-STORAGE walks and
+    /// the section runs exactly as <see cref="FileControlBinder.BindFileSection"/>, the WORKING-STORAGE / LOCAL-STORAGE walks and
     /// <see cref="CallBindLinkage"/> hand them to <see cref="BindEntries"/>. (An FD or SD with no file-name binds no
     /// records, so it contributes none.)</summary>
     internal void DeclareDataEntryRuns(Core.DataDivisionContext scope)
