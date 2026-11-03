@@ -37,7 +37,7 @@ internal static class ExpansionAssemblies
             File.WriteAllText(temp, source);
             try
             {
-                string target = placement.From!.Path;
+                string target = placement.AssemblyPath!;
                 var result = CompilerDriver.Compile(new CompilerDriver.Options(
                     temp, target, NistTestName: null, DialectLevel: state.Edition, CopyPaths: null, Permissive: state.Permissive,
                     CheckOnly: false, SignEncoding: state.SignEncoding, SourceFormat: Frontend.Preprocessor.InitialReferenceFormat.Free,

@@ -453,9 +453,9 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
                     int next = i + 1;
                     while (next < lines.Length && lines[next].TrimStart().StartsWith('[')) next++;
                     var declaration = next < lines.Length ? TypeDeclaration.Match(lines[next]) : null;
-                    bool hostKind = m.Groups[1].Value is "Program" or "Function" or "ProgramPrototype" or "FunctionPrototype";
+                    bool hostKind = m.Groups[1].Value is "Program" or "Function" or "ProgramPrototype" or "FunctionPrototype" or "ParameterizedClass" or "ParameterizedInterface";   // a skeleton is a static class too (§7.2)
                     if (declaration is not { Success: true } || hostKind != (declaration.Groups[1].Value == "static class"))
-                        failures.Add($"{at}: [CobolUnit({m.Groups[1].Value}, {m.Groups[2].Value})] is not on {(hostKind ? "a host-entry class" : "its class or interface")}");
+                        failures.Add($"{at}: [CobolUnit({m.Groups[1].Value}, {m.Groups[2].Value})] is not on {(hostKind ? "a host-entry or skeleton class" : "its class or interface")}");
                 }
                 if (!emitted.SequenceEqual(expected))
                     failures.Add($"{at}: the module's [CobolUnit]s are [{string.Join(", ", emitted)}], its units [{string.Join(", ", expected)}]");

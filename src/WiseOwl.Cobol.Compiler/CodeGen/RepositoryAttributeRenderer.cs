@@ -55,7 +55,7 @@ internal static class RepositoryAttributeRenderer
                 .Select(i => new RepositoryUnitRow(expansions.KindOf(i, RepositoryUnitKind.Interface), i.ExternalizedName, i.Name))
             .Concat(classes.Where(c => EmittedHere(expansions, c.Symbol))
                 .Select(c => new RepositoryUnitRow(expansions.KindOf(c.Symbol, RepositoryUnitKind.Class), c.Symbol.ExternalizedName, c.Name)))
-            .Concat(expansions.Skeletons.Select(s => new RepositoryUnitRow(s.Record.Kind, s.Record.ExternalizedName, s.Record.Name)))
+            .Concat(expansions.Skeletons.Select(s => new RepositoryUnitRow(s.Kind, s.ExternalizedName, s.Name)))
             .Concat(entryUnits.Select(u => new RepositoryUnitRow(RepositoryCodec.KindOf(u), u.ExternalizedName, u.Name)))];
 
     /// <summary>Whether this module emits the class or interface <paramref name="symbol"/>: every one but an expansion placed in another
@@ -139,6 +139,15 @@ internal static class RepositoryAttributeRenderer
     /// the parameterized definition's <c>[CobolUnit]</c>, with the formals, the specifier resolutions and the
     /// <see cref="CompileState"/> it was compiled under (a module built with <c>--repository-update on</c>).</summary>
     internal static string SkeletonRecord(SkeletonRecord s) => $"[{CSharp(SkeletonAttribute(s))}]";
+
+    /// <summary>A skeleton's <c>[CobolUnit]</c> (§6.2): its kind, word and externalized name, and — with signatures — the entry
+    /// convention every unit states (the reader requires it of every unit).</summary>
+    internal static string SkeletonUnitRecord(PublishedSkeleton skeleton, bool signatures)
+    {
+        var named = new Arguments();
+        if (signatures) named.Text(nameof(CobolUnitAttribute.EntryConvention), RepositoryCodec.CobolEntryConvention);
+        return $"[{CSharp(Application<CobolUnitAttribute>(named, Defined(skeleton.Kind), skeleton.Name, skeleton.ExternalizedName))}]";
+    }
 
     /// <summary>A skeleton's <c>[CobolSkeleton]</c> as values (<see cref="SkeletonRecord"/>'s first layer).</summary>
     internal static AttributeApplication SkeletonAttribute(SkeletonRecord s)

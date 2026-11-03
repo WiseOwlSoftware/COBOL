@@ -87,7 +87,7 @@ public static class CompilerDriver
         /// <summary>The identity this compilation's one class or interface PUBLISHES as an expansion of a parameterized definition: set by
         /// the compilation of an expansion's own assembly (<see cref="ExpansionAssemblies"/>, DESIGN-external-repository §10.5), whose source
         /// is the expansion's text and so cannot state the specifier that asked for it. Null for every compilation a user asks for.</summary>
-        internal Binding.Repository.ExpansionIdentity? PublishAs { get; init; }
+        internal Binding.Model.ExpansionIdentity? PublishAs { get; init; }
     }
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>

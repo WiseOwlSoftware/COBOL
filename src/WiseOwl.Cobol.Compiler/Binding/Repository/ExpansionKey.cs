@@ -4,6 +4,7 @@ using System.Collections;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding.Repository;
 

@@ -3,17 +3,17 @@
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 
-namespace WiseOwl.Cobol.Binding.Repository;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// ⛔ EVERY COMPILE-TIME INPUT THAT CHANGES WHAT A SKELETON'S SOURCE MEANS (ISO §9.3.12: an expansion "is treated in all
 /// respects the same as if it were a class that is not a parameterized class"; DESIGN-external-repository §6.1, §10.5; kb/Work
 /// PB2104). A parameterized definition published to the external repository is expanded by a compilation that was not the one
 /// it was written for, so the expansion is made under THIS state, not the expanding compilation's: the importer re-lexes the
-/// recorded source at <see cref="Edition"/> and <see cref="Permissive"/> with the recorded <see cref="CobolWordsMap"/>, binds
-/// it under the recorded options, and compiles a separate expansion assembly with the directive lines the three text members
-/// state. The text members are DIRECTIVE LINES (free-form source), so the one directive processor that read them the first time
-/// reads them again; a state with none is the empty string.
+/// recorded source at <see cref="Edition"/> and <see cref="Permissive"/> with the recorded <see cref="CobolWordsMap"/>, and the
+/// expansion's own assembly is compiled with the directive lines the three text members state. The text members are DIRECTIVE
+/// LINES (free-form source), so the one directive processor that read them the first time reads them again; a state with none is
+/// the empty string. These records live in the model layer because the emitter writes them and may read only the model.
 /// <para><b>Exhaustive by a drift test</b> (<c>CompileStateDriftTests</c>): every member of <c>CompilerDriver.Options</c> and
 /// every member of <c>BindSession</c> is a field here, or is named in that test's list of what changes no meaning, with its
 /// reason. A new option that the test does not know is red before it can be silently dropped from a skeleton.</para>
@@ -46,6 +46,6 @@ internal sealed record SkeletonRecord(RecordList<string> Formals, RecordList<boo
 /// <summary>What an expansion publishes beside its class record (§5.2 "Expansion"; §10.5): the definition it expands and the
 /// actuals, all by externalized name, the <see cref="Key"/> that says what it MEANS, and whether it is the only unit of an
 /// assembly of its own (placement (a)) or lives in the expanding group's assembly (placement (b)). <see cref="Parts"/> are the labeled
-/// digests of the components the key is made of (<see cref="ExpansionKey.Of"/>), so a compilation that finds this expansion stale can say
+/// digests of the components the key is made of (<c>ExpansionKey.Of</c>), so a compilation that finds this expansion stale can say
 /// which component changed.</summary>
 internal sealed record ExpansionIdentity(string DefinitionIdentity, RecordList<string> ActualIdentities, string Key, RecordList<string> Parts, bool OwnAssembly);

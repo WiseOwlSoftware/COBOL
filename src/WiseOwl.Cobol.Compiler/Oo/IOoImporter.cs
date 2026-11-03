@@ -47,4 +47,4 @@ public sealed record ImportedClass(OoClassSymbol Symbol, Action Complete);
 public sealed record ImportedInterface(OoInterfaceSymbol Symbol, Action Complete);
 
 /// <summary>A skeleton another group published: its <paramref name="Record"/> and where it came from.</summary>
-internal sealed record ImportedSkeleton(WiseOwl.Cobol.Binding.Repository.SkeletonRecord Record, ImportedFrom From);
+internal sealed record ImportedSkeleton(WiseOwl.Cobol.Binding.Model.SkeletonRecord Record, ImportedFrom From);

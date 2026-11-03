@@ -1542,9 +1542,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <c>[CobolSkeleton]</c>. The definition itself emits nothing else — its expansions are the classes.</summary>
     public void EmitSkeletonUnit(PublishedSkeleton skeleton, CodeWriter w)
     {
-        var record = skeleton.Record;
-        w.Line(RepositoryAttributeRenderer.UnitRecord(record.Kind, record.Name, record.ExternalizedName, repositoryUpdate ? record : null));
-        if (repositoryUpdate) w.Line(RepositoryAttributeRenderer.SkeletonRecord(record.Skeleton!));
+        w.Line(RepositoryAttributeRenderer.SkeletonUnitRecord(skeleton, repositoryUpdate));
+        if (repositoryUpdate) w.Line(RepositoryAttributeRenderer.SkeletonRecord(skeleton.Skeleton));
         using (w.Block($"public static class {skeleton.ClrName}")) { }
     }
 

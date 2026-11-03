@@ -38,7 +38,7 @@ using Core = CobolParserCore;
 /// <param name="SignEncoding">The compilation's over-punch convention (<c>EditionContext.SignEncoding</c>, kb/Work PB803):
 /// one per compilation, so a group with no program class (prototypes alone) states it too.</param>
 /// <param name="Expansions">What the group publishes for its parameterized definitions and where each expansion lives
-/// (<see cref="Repository.ExpansionPlacementPass"/>, DESIGN-external-repository §10.5).</param>
+/// (<c>ExpansionPlacementPass</c>, DESIGN-external-repository §10.5).</param>
 internal sealed record BoundCompilation(
     Core.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,
@@ -52,4 +52,4 @@ internal sealed record BoundCompilation(
     int Edition,
     PrototypeSignatureClasses SignatureClasses,
     WiseOwl.Cobol.Runtime.SignEncoding SignEncoding,
-    Repository.ExpansionPlacements Expansions);
+    ExpansionPlacements Expansions);

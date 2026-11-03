@@ -123,12 +123,12 @@ internal sealed class ProgramEmitter
             w.Line("using global::WiseOwl.Cobol.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");
         // An expansion that lives in another assembly (imported, or written to one of its own; DESIGN-external-repository §10.5) is named
         // here by its simple name, as one of this module's classes is, so the code bound against it needs no second spelling.
-        foreach (var (symbol, placement) in comp.Expansions.Expansions.Where(e => e.Value.Where is not Binding.Repository.ExpansionWhere.InGroup))
+        foreach (var placement in comp.Expansions.Expansions.Values.Where(e => e.Where is not ExpansionWhere.InGroup))
         {
-            string at = $"global::{CsNames.CSharpNamespace(new ModuleNamespace(placement.From!.ClrNamespace))}";
-            w.Line($"using {(symbol is OoClassSymbol c ? c.ClrName : ((OoInterfaceSymbol)symbol).ClrName)} = {at}.{placement.TypeName};");
-            if (symbol is OoClassSymbol factoryOwner)
-                w.Line($"using {factoryOwner.FactoryClrName} = {at}.{placement.FactoryTypeName};");
+            string at = $"global::{CsNames.CSharpNamespace(new ModuleNamespace(placement.ClrNamespace!))}";
+            w.Line($"using {placement.LocalName} = {at}.{placement.TypeName};");
+            if (placement.LocalFactoryName is not null)
+                w.Line($"using {placement.LocalFactoryName} = {at}.{placement.FactoryTypeName};");
         }
         w.Line();
 

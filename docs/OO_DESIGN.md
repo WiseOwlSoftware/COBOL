@@ -912,6 +912,21 @@ a REPOSITORY paragraph is refused by `OoNameResolution.Resolve` through the REFE
 the §12.3.8.4 GR1/GR7 reason (`OoClassTable.IsParameterized`). The whole surface rides the CLASS-ID /
 INTERFACE-ID and REPOSITORY-specifier 2002 introduction gates (COBOL0900 below 2002).
 
+**Across assemblies (D3; kb/Work PB2104; DESIGN-external-repository §10.5; DOC-A.1-138).** A skeleton is published, not
+generated from: `OoEmitter.EmitSkeletonUnit` writes a `public static class` carrying the definition's `[CobolUnit]` and
+`[CobolSkeleton]` (its text from `SkeletonText`, its formals, the identity of each specifier of its own REPOSITORY
+paragraph, and the `CompileState` it was compiled under). A group that expands a skeleton it does not define re-lexes
+that text (`FragmentParse.ParseUnit`) under the recorded edition and words map, and `OoExpansion` expands it exactly as
+a written skeleton — the same `SubstitutedTokens`, with the actual's own specifier (`AS literal`) carried onto the
+formal's, so an expansion names the class its actual names wherever it is made. An expansion's meaning is an
+`ExpansionKey` over the skeleton and the published surface of everything it names, computed by `ExpansionPlacementPass`
+once the group is bound (a class's surface exists only then). Import-before-expand is import-before-EMIT: an existing
+expansion of that name and key (any assembly of the search space, the skeleton's own group included, through the CLR's
+reference cycle) is named by `using` aliases of the symbol's simple names and the group emits no copy; otherwise an
+expansion that names no class of the group is compiled apart into its own `<name>.dll` (`ExpansionAssemblies` through
+`CompilerDriver.Compile`), and one that does is emitted in the group's assembly. An expansion is bound like any other
+class, so from binding onward nothing tells it from a written one; only where its text is emitted differs.
+
 **Rejected alternatives.** A C# generic `class C<T> where T : CobolObject` — rejected: an unconstrained T cannot
 bind `INVOKE ITEM "SHOW"` statically, conformance per expansion (§9.3.8.2.4 "as if the actual parameter classes
 or interfaces were substituted") would have to be re-derived at every use, and the binder's name-keyed model

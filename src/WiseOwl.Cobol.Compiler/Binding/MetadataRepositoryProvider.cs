@@ -555,7 +555,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     internal (TargetFile State, string? Why) StateOfExpansionFile(string path, string externalizedName)
     {
         _space.Inputs.RecordRepositoryRead();
-        if (!File.Exists(path)) return (TargetFile.Absent, null);
+        if (!_space.Inputs.FileExists(path)) return (TargetFile.Absent, null);
         var find = RepositoryLocator.FindInFile(path, RepositoryUnitKind.Expansion, externalizedName);
         if (find.Entry is { } entry)
             return RuntimeAbi.Skew(entry.RuntimeVersion, entry.CallAbi) is { } skew ? (TargetFile.Skewed, skew) : (TargetFile.Expansion, null);
@@ -568,7 +568,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     internal IReadOnlyList<string> ReferencersOf(string assemblyName)
     {
         Consult();
-        return [.. _locations.SelectMany(l => l.ReferencersOf(assemblyName, _output)).Distinct(StringComparer.OrdinalIgnoreCase)];   // file paths, not COBOL words
+        return [.. _locations.SelectMany(l => l.ReferencersOf(assemblyName, _output)).Distinct(StringComparer.OrdinalIgnoreCase)];   // not a COBOL word: a file path
     }
 
     /// <summary>The namespace the types of the module whose registrar type is <paramref name="registrar"/> live in (§4.5), or null.</summary>

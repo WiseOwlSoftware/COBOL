@@ -293,7 +293,7 @@ public static class RepositoryLocator
     /// <param name="path">The assembly file.</param>
     /// <param name="assemblyName">The referenced assembly's simple name.</param>
     public static bool ReferencesIn(string path, string assemblyName) =>
-        FactsOf(path) is { IsEntry: true } facts && facts.AssemblyReferences.Any(r => string.Equals(r, assemblyName, StringComparison.OrdinalIgnoreCase));   // an assembly simple name: the CLR compares it ordinally-ignoring-case, not a COBOL word
+        FactsOf(path) is { IsEntry: true } facts && facts.AssemblyReferences.Any(r => string.Equals(r, assemblyName, StringComparison.OrdinalIgnoreCase));   // not a COBOL word: an assembly simple name, which the CLR compares ignoring case
 
     private static string KindWord(RepositoryUnitKind kind) => kind switch
     {
