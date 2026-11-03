@@ -1,4 +1,4 @@
-## kb/Work PB4456-PB4460: the PB2104 branch review's leads, filed
+## Entry 3017 — 2026-11-02 20:42 PST — kb/Work PB4456-PB4460: the PB2104 branch review's leads, filed
 
 The PB2104 branch review (w20261838a, rounds 1 and 2) left six leads. Each was checked against the branch head before
 filing:
@@ -12,3 +12,4 @@ filing:
 
 The FragmentParse.ParseUnit duplication went onto the open PB2735. PB4461 is unused: the citation the reviewer
 flagged was already §11.3.4 GR1 at the branch head.
+
