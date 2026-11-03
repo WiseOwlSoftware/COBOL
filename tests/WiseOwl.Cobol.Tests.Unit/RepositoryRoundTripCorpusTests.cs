@@ -126,8 +126,8 @@ public sealed class RepositoryRoundTripCorpusTests
             foreach (var definition in comp.Units.Where(d => d is { Parent: null, IsPrototype: false } && d.IsFunction == prototype.IsFunction
                          && ExternalizedNames.Same(d.ExternalizedName, prototype.ExternalizedName)))
             {
-                bool bound = PrototypeSignatures.Same(new CalleeSignature(prototype.Data.LinkageFormals, prototype.Data.LinkageReturning),
-                    new CalleeSignature(definition.Data.LinkageFormals, definition.Data.LinkageReturning));
+                bool bound = PrototypeSignatures.Same(new CalleeSignature(prototype.Data.Linkage.Formals, prototype.Data.Linkage.Returning),
+                    new CalleeSignature(definition.Data.Linkage.Formals, definition.Data.Linkage.Returning));
                 bool decoded = PrototypeSignatures.Same(RepositoryCodec.Decode(RepositoryCodec.Of(prototype), comp.SignatureClasses).Signature,
                     RepositoryCodec.Decode(RepositoryCodec.Of(definition), comp.SignatureClasses).Signature);
                 if (!bound || !decoded)

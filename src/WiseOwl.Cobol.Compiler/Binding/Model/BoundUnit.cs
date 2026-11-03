@@ -72,7 +72,7 @@ internal sealed class BoundUnit
     /// chain of containing instances for an instance member, through this unit's CLASS for a static one
     /// (<see cref="DataBinder.IsStaticMember"/>: ISO §13.5.4 GR1's static data is one copy on the class, which no
     /// instance names). Every place a contained program reaches into a container's data asks here: the GLOBAL bridges
-    /// (<see cref="DataBinder.GlobalBridgesOf"/>) and the inherited FILE STATUS places (<c>ProgramEmitter</c>). The
+    /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and the inherited FILE STATUS places (<c>ProgramEmitter</c>). The
     /// answer is structure, which each backend spells (kb/Work PB4320).</summary>
     public ContainerAnchor AnchorOf(string csMember, int depth) =>
         Data.IsStaticMember(csMember) ? new ContainerAnchor.Static(ClassName) : new ContainerAnchor.Instance(depth);
@@ -86,7 +86,7 @@ internal sealed class BoundUnit
 
 /// <summary>One inherited-GLOBAL bridge a nested class emits: a property aliasing the containing instance's
 /// member (ISO §13.18.27 GR2 — the name is visible in every contained program; the STORAGE stays the
-/// container's). Built ONLY by <c>DataBinder.GlobalBridgesOf</c>, the one list of the members a reference to a
+/// container's). Built ONLY by <c>LinkageBinder.GlobalBridgesOf</c>, the one list of the members a reference to a
 /// global root can render (kb/Work PB1009). <paramref name="Formal"/> is set when the bridged member belongs to a
 /// FORMAL PARAMETER of the container — its carrier (<see cref="CallBridgeKind.Carrier"/>, whose cell type the emitter
 /// derives from it), its argument area (<see cref="CallBridgeKind.ArgumentArea"/>) or an area formal's data-address

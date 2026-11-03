@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// data item defined by data-name-1 shall not occupy a byte position within the range of the first byte position
 /// defined by the data description entry containing the OCCURS clause and the last byte position defined by the record
 /// description entry containing that OCCURS clause."
-/// <para><b>The defect.</b> <c>DataBinder.OdoResolve</c> recorded the resolved data-name-1 first and reported the rules
+/// <para><b>The defect.</b> <c>OdoResolvePass</c> recorded the resolved data-name-1 first and reported the rules
 /// after, so a GROUP data-name-1 reached every consumer. The §13.18.38.4 GR8 group-operand slice
 /// (<c>PlaceBuilder.WrapIfOdoGroup</c>) resolves data-name-1's own place, and resolving a GROUP holding an
 /// occurs-depending table wraps it again: <c>DEPENDING ON</c> the record that holds the table (fuzz program fz01530),
@@ -55,9 +55,9 @@ public sealed class OdoDependingAdmissionDriftTests
                 writers.Add((Path.GetFileName(file), m.Value.Trim()));
         }
 
-        Assert.Equal(["DataBinder.Odo.cs", "RepositoryCodec.cs", "SendingValueTemp.cs"], writers.Select(w => w.File).Order().ToArray());
+        Assert.Equal(["OdoResolvePass.cs", "RepositoryCodec.cs", "SendingValueTemp.cs"], writers.Select(w => w.File).Order().ToArray());
         // The binder and the repository decoder (DESIGN-external-repository §6.3; kb/Work PB2100) both ask the ONE admission.
-        Assert.Contains("admission.Admitted", writers.Single(w => w.File == "DataBinder.Odo.cs").Line);
+        Assert.Contains("admission.Admitted", writers.Single(w => w.File == "OdoResolvePass.cs").Line);
         Assert.Contains("DependingAdmission.Of(", writers.Single(w => w.File == "RepositoryCodec.cs").Line);
         string rule = File.ReadAllText(CompilerSrc("Binding", "DataBinder.Odo.cs"));
         Assert.Contains("public bool Admitted => !NotInteger && !Subscripted && !InTableRange;", rule);

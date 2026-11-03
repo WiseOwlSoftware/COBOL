@@ -68,7 +68,7 @@ public static class PictureAnalyzer
     /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and the
     /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
     /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3). <paramref name="currencies"/> is the
-    /// unit's CURRENCY SIGN SET (ISO §12.3.7 — symbol → currency string; <c>DataBinder.CurrencySigns</c>, the
+    /// unit's CURRENCY SIGN SET (ISO §12.3.7 — symbol → currency string; <c>SpecialNamesBinder.CurrencySigns</c>, the
     /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§13.18.40.3 r24/r28):
     /// a non-default symbol (e.g. NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c> — its
     /// mask positions are fixed/floating currency insertion, making the item NUMERIC-EDITED (§13.18.40.4) — and
@@ -503,7 +503,7 @@ public static class PictureAnalyzer
     /// <list type="number">
     ///   <item>the item's OWN USAGE clause — <see cref="Analyze"/>, at entry bind; and</item>
     ///   <item>§13.18.60.4 GR1 GROUP INHERITANCE — "If the USAGE clause is specified or implied at a group level,
-    ///     it applies only to each elementary item in the group" — <c>DataBinder.UsageInheritancePass</c>, once
+    ///     it applies only to each elementary item in the group" — <c>UsageInheritancePass</c>, once
     ///     the forest is complete.</item>
     /// </list>
     /// <para>The four rules are written against the item, not against the clause's PLACEMENT: SR3 governs "an
@@ -895,7 +895,7 @@ public static class PictureAnalyzer
     /// whose value is 1 — SR6 of §13.18.40.3: the parenthesized integer "indicates the number of consecutive
     /// occurrences of the symbol", so <c>X</c>, <c>X(1)</c>, <c>X(01)</c> and <c>N(001)</c> all denote one. The
     /// factor is read by <see cref="TryRepetitionFactor"/>, the ONE reader of a factor, so a constant-name factor
-    /// (rewritten to its integer by <c>DataBinder.ExpandPicConstants</c> before any caller asks) is covered too.
+    /// (rewritten to its integer by <c>ConstantEntryBinder.ExpandPicConstants</c> before any caller asks) is covered too.
     /// The two clauses used to carry two different spellings of this test — a closed list of six strings for ANY
     /// LENGTH, a count-1 regex for DYNAMIC LENGTH — so <c>PIC X(01) ANY LENGTH</c> was refused while its DYNAMIC
     /// LENGTH twin compiled.</summary>

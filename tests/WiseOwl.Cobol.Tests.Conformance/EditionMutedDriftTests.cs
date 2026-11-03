@@ -39,7 +39,7 @@ public sealed class EditionMutedDriftTests
         int inWalk = 0;
         foreach (string method in new[] { "UsageInheritanceWalk", "UsageInheritanceGroup" })
         {
-            var start = Regex.Match(text, $@"^    private void {method}\(", RegexOptions.Multiline);
+            var start = Regex.Match(text, $@"^    (?:private|internal) void {method}\(", RegexOptions.Multiline);
             Assert.True(start.Success, $"{method} not found — the pin measured nothing");
             var end = Regex.Match(text[start.Index..], @"^    \}\s*$", RegexOptions.Multiline);
             inWalk += Regex.Matches(text.Substring(start.Index, end.Index + end.Length), @"\.Muted\(").Count;

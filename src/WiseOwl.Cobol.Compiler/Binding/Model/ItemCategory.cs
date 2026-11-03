@@ -382,7 +382,7 @@ public static class ItemCategory
 
     /// <summary>Which of ISO §13.18.60.3 SR14's phrases a usage names, or null — asked of a
     /// <see cref="DataItem.OwnUsage"/> (the written clause) and of a resolved <see cref="PicInfo.Usage"/> alike
-    /// (<c>DataBinder.Sr14PhraseOf(DataItem)</c> reads both, kb/Work PB819). MESSAGE-TAG (kb/Work PB487) is the member
+    /// (<c>CheckUsageDeclarationsPass.Sr14PhraseOf(DataItem)</c> reads both, kb/Work PB819). MESSAGE-TAG (kb/Work PB487) is the member
     /// the compiler refuses BY NAME (declined non-support, COBOL1943): its profile is a recovery shape with no
     /// class, so only the usage — never the category — identifies it.
     /// <para>SR14: "A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, or

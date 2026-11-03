@@ -79,7 +79,7 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   pointer-class elementary record). `DataBinder.LinkImplicitRecordArea` — the ONE linker for the FD and SD arms —
   and the SAME RECORD AREA arm link only character-window records, anchored on `FileModel.CharacterAnchor`; each
   file of a record-area SAME clause learns its `SameRecordAreaPeers`.
-- **The SAME clause is ONE membership model, and its syntax rules are one screen** (`DataBinder.IoControl.cs`;
+- **The SAME clause is ONE membership model, and its syntax rules are one screen** (`FileControlBinder.IoControl.cs`;
   kb/Work PB1087, PB1242). `FileModel.SameClauses` records every clause as a `SameClause` — a `SameClauseKind` of
   `Area` / `RecordArea` / `SortMergeArea` (SORT and SORT-MERGE are ONE format, §12.4.6.4.3 SR1; `Written` keeps the
   spelling for messages), its resolved members and its words. `ScreenSameOperands` asks a clause its own questions
@@ -744,13 +744,13 @@ standard's only source of a LOCK MODE requirement anywhere.
 `BindOpen` once per file-name, is SR8's only site. Its two disjuncts collapse onto the EFFECTIVE sharing mode —
 the group's phrase when one is written, the file control entry's clause when none is (§14.9.27.4 GR23) — which
 is exactly *[ALL on the OPEN]* OR *[phrase omitted AND the SELECT says ALL]*; the leading conjunct reads
-`FileModel.SubjectToApplyCommit`, set by `DataBinder.BindIoControl` from the I-O-CONTROL APPLY COMMIT clause
+`FileModel.SubjectToApplyCommit`, set by `FileControlBinder.BindIoControl` from the I-O-CONTROL APPLY COMMIT clause
 (§12.4.6.3). The exemption is load-bearing rather than decorative: §12.4.5.9.3 SR1 forbids writing a LOCK MODE
 clause *"for a file that is the subject of an APPLY COMMIT clause"*, so without it SR8 would demand the one
 clause another rule forbids and such a program could not be written at all. It is reachable in both lanes: the
 clause is accepted for a RELATIVE or INDEXED file (kb/Work PB3338).
 
-**Why the file control entry cannot host it.** A second copy lived in `DataBinder.BindFileControl` and had to
+**Why the file control entry cannot host it.** A second copy lived in `FileControlBinder.BindFileControl` and had to
 drop the antecedent, because a SELECT sees no OPEN statement and the I-O-CONTROL paragraph is not bound until
 after the file control entries are. It cost both harms at once: legal source rejected (a file whose OPEN
 supplies its own non-ALL sharing phrase; a file declared `SHARING WITH ALL OTHER` and never opened) and, for a
@@ -772,7 +772,7 @@ SR11 (a SAME clause mixing subject and non-subject files), §14.9.27.3 SR7 (OPEN
 "witnessed by the refusal of the antecedent", but that refusal (the since-retired COBOL1709; kb/Work PB3338 and
 PB3340 made the clause accepted for every organization) was `PermissiveInert`, so under `--permissive` every forbidden
 shape compiled clean. They now report through ONE helper,
-`DataBinder.ScreenApplyCommitSubject` (COBOL2974), each caller quoting its own rule: the LOCK MODE arm as the
+`FileControlBinder.ScreenApplyCommitSubject` (COBOL2974), each caller quoting its own rule: the LOCK MODE arm as the
 APPLY COMMIT clause records the fact (the file control entries are bound first), SR11 after the whole I-O-CONTROL
 paragraph (an APPLY COMMIT clause may follow the SAME clause), SR7 in `BindOpen` beside SR8, the lock phrases in
 `FileLockBinder.ScreenLockPhraseAgainstAutomatic` (the one screen every lock phrase passes) and UNLOCK in
@@ -1178,14 +1178,14 @@ guarded on the same null. Five null arms for one absent fact is four too many (`
 *Synthesize at emit time instead* — the record has to exist for the binder's own record-area resolution
 (`PlaceBuilder.ResolveItem`), not just for the registration call.
 
-### D19. A syntax rule of a FILE CONTROL ENTRY clause is enforced ON THE ENTRY — in `DataBinder.BindFileControl` when the clauses alone decide it, in `DataBinder.ResolveFiles` when it needs a resolved data item — never on a verb. It is the converse of D13, and the two together decide where every I-O syntax rule goes.
+### D19. A syntax rule of a FILE CONTROL ENTRY clause is enforced ON THE ENTRY — in `FileControlBinder.BindFileControl` when the clauses alone decide it, in `DataBinder.ResolveFiles` when it needs a resolved data item — never on a verb. It is the converse of D13, and the two together decide where every I-O syntax rule goes.
 
 **The rule.** §12.4.5.5.2 SR2: *"The DYNAMIC and RANDOM phrases shall not be specified for a sequential file."*
 The general format says the same thing structurally — Format 3, the sequential file control entry, admits only
 `[ ACCESS MODE IS SEQUENTIAL ]` — but a format is not a check, and nothing screened it: `SELECT F ASSIGN TO "f"
 ORGANIZATION IS SEQUENTIAL ACCESS MODE IS RANDOM.` compiled and ran clean (kb/Work PB692).
 
-**Where it lives.** `DataBinder.BindFileControl`, immediately after the clause loop, beside the §12.4.5.9.3 SR2
+**Where it lives.** `FileControlBinder.BindFileControl`, immediately after the clause loop, beside the §12.4.5.9.3 SR2
 screen already there: `file.IsSequential && file.AccessMode is Random or Dynamic` — the predicate NAMES the
 two phrases SR2 names rather than negating SEQUENTIAL → **COBOL1858**,
 positioned at the ACCESS MODE clause itself. Both banned phrases go through one screen and one descriptor,
@@ -1231,7 +1231,7 @@ INDEXED/DYNAMIC.
 become decidable at the same moment, so "on the entry" is two places, and which one a rule goes to is settled by
 what the rule needs rather than by taste:
 
-- **Decidable from the CLAUSES ALONE** → `DataBinder.BindFileControl`, inline after the clause loop, reporting at
+- **Decidable from the CLAUSES ALONE** → `FileControlBinder.BindFileControl`, inline after the clause loop, reporting at
   once. §12.4.5.5.2 SR2 above, and the §12.4.5.9.3 SR2 screen beside it, are of this kind: organization against
   access mode, a clause against another clause.
 - **Needs a RESOLVED DATA ITEM** → `DataBinder.ResolveFiles`, the post-build pass, through the one table below.
@@ -1362,7 +1362,7 @@ whether a variable-length member precedes it) with the prime key's and with ever
 operand carries its clause ordinal (`FileKeyOperand.Ordinal`), so two clauses naming one item each violate it. Its
 SOURCE-phrase exemption — *"This restriction does not apply in the case where either key is specified using the
 SOURCE phrase"* — is `CoincidingKey`'s first test, and a SOURCE-form key is no other key to coincide with. §12.4.5.2 SR8's third operand, the file-level COLLATING SEQUENCE clause, is refused where it
-is RESOLVED (`DataBinder.ResolveFileCollating`, COBOL1582), because the same test is also the guard that stops
+is RESOLVED (`FileControlBinder.ResolveFileCollating`, COBOL1582), because the same test is also the guard that stops
 the rest of that method and splitting a guard from its report would leave the resolution running on an entry it
 has already refused; its citation was §12.4.5.7.1, the clause's descriptive General paragraph, and is now SR8.
 The traceability row `SR-12.4.5.2-8` names both sites.
@@ -1393,7 +1393,7 @@ one-window key takes, so the SOURCE form is not a special case of anything: regi
 GR17 a)/b): the first n characters of the concatenation) and D10's store header (format version 5 records each
 key as its segment count and windows; §12.4.5.12.4 GR3 makes every window's location a fixed attribute) all read
 the same list.
-- **Capture and resolution.** `DataBinder.CaptureRecordKeySource` captures the phrase for BOTH clauses (one
+- **Capture and resolution.** `FileControlBinder.CaptureRecordKeySource` captures the phrase for BOTH clauses (one
   shared grammar rule, `CobolIO.g4#recordKeySourcePhrase`) through the one data-name-n capture, and declares
   record-key-name-1 (§8.3.2.2.24) through the one declaration funnel; `ResolveFiles` resolves each data-name-2 by
   the same SR2 selection data-name-1 uses.
@@ -2699,7 +2699,7 @@ failure branches were fired once before it was trusted.
   `SORT table-name` alone is conforming when the table's OCCURS clause has a KEY phrase (§14.9.40.3 SR15) and
   sorts on that phrase's keys in their written significance order and direction (§14.9.40.4 GR21), read from
   the ONE `OccursSpec.Keys` model SEARCH ALL also reads (resolved once, qualifiers and all, by
-  `DataBinder.OccursKeyResolve` — kb/Work PB1018). A written table key and the table subject data-name-2 resolve
+  `OccursKeyResolvePass` — kb/Work PB1018). A written table key and the table subject data-name-2 resolve
   through the §8.4.2.2 resolver too (`SubtreeCandidates` over data-name-2 / `ResolveTableOperand`): never the
   first same-named item. The grammar's key list is zero-or-more; SR15 and
   Format 1's at-least-one are screened in `SortBinder` on the resolved operand (kb/Work PB846). MERGE has no
@@ -2882,7 +2882,7 @@ requirement to the repetition: **one clause may list the same key twice, and one
 one*.** §12.4.5.7.4 GR6 is indifferent to the repeat — *"Alphabet-name-3 applies to record keys identified by
 data-name-1 or record-key-name-1"* names the clause's own alphabet either way.
 
-`DataBinder.ResolveFileCollating` therefore screens SR8 with the shared `ConstructOperandRegister<string>`
+`FileControlBinder.ResolveFileCollating` therefore screens SR8 with the shared `ConstructOperandRegister<string>`
 (`Binding/ConstructOperandRegister.cs`), whose construct here is the Format-2 CLAUSE, per file control entry —
 never a `HashSet` hoisted out of the loop over `FileModel.KeyLevelCollating`, which is what the register exists to
 make impossible: that shape screened per NAME across every clause at once and rejected
@@ -2903,7 +2903,7 @@ GR6 still gives each key its own clause's alphabet) and the negative
 
 **The sequence follows the KEY'S CLASS, and the alphabet operands are screened as written** (kb/Work PB1074).
 §12.4.5.7.4 GR2/GR3 give alphabet-name-1 to the keys of class alphanumeric and alphabet-name-2 to the keys of class
-national; GR4/GR5 give each class its own native sequence otherwise. `DataBinder.ResolveKeyCollating` therefore
+national; GR4/GR5 give each class its own native sequence otherwise. `FileControlBinder.ResolveKeyCollating` therefore
 takes the resolved key ITEM and resolves `key-level ?? (national ? alphabet-name-2 : alphabet-name-1)`; it was
 key-class-blind (`key-level ?? alphabet-name-1` for every key), so an alphanumeric alphabet re-ordered and
 re-judged the uniqueness of a national key, and alphabet-name-2 was stored and never read. SR1, SR2 and SR7 are

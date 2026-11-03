@@ -15,7 +15,7 @@ internal enum OoDataSection { File, WorkingStorage, LocalStorage, Linkage, Repor
 /// ⛔ THE ONE HOME OF THE OO DATA-DIVISION PLACEMENT RULES (kb/Work PB1251; the DATA-division twin of
 /// <see cref="OoEnvironmentRules"/>). Which sections of a data division each kind of class-body definition may
 /// carry is one table, keyed by (definition kind × section), judged once per parsed definition — before this, only
-/// the METHOD arm existed (an ad-hoc block in <c>DataBinder.OoBindMethodData</c>) and a LINKAGE or LOCAL-STORAGE
+/// the METHOD arm existed (an ad-hoc block in <c>OoDataBinder.BindMethodData</c>) and a LINKAGE or LOCAL-STORAGE
 /// SECTION written in a FACTORY or OBJECT paragraph bound silently as persistent data:
 /// <list type="bullet">
 /// <item><b>§13.4.3 SR1 / §13.5.3 SR1 / §13.8.3 SR1 / §13.9.3 SR1</b> — within a class definition the file,

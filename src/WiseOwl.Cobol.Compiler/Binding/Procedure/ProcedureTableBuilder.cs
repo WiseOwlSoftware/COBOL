@@ -504,7 +504,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // its ON procedure-name / ALL PROCEDURES triggers fire (the DEBUG-ITEM register family is modeled).
             // The section body is collected below (an ordinary pc range invoked by the emitted __RunDebug, not a
             // BoundDeclarative — scope stays null); FinalizeDebug records the subjects once every procedure is in.
-            if (!ctx.Data.DebuggingModeDeclared) return;
+            if (!ctx.Data.State.Configuration.DebuggingModeDeclared) return;
             ctx.Data.ActivateDebugRegisters();   // make DEBUG-* references resolvable while this section binds
             _pendingDebug.Add((info, use));      // info.EndPc is filled after the body is collected below
             // fall through to collect the section body into the pc space (scope stays null — no BoundDeclarative)

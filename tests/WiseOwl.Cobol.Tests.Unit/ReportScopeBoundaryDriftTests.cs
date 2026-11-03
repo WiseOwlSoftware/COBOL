@@ -74,7 +74,7 @@ public sealed class ReportScopeBoundaryDriftTests
             {
                 found++;
                 if (!file.EndsWith("/Binding/DataBinder.cs", StringComparison.Ordinal)
-                    && !file.EndsWith("/Binding/DataBinder.Constants.cs", StringComparison.Ordinal))
+                    && !file.EndsWith("/Binding/DataBinder.NonDataNames.cs", StringComparison.Ordinal))
                     offenders.Add($"{file}: {m.Value}");
             }
         Assert.True(found >= 2, $"the scan found only {found} reads of Reports.SumCounters - the pattern no longer matches the code");

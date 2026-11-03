@@ -16,7 +16,7 @@ using Core = CobolParserCore;
 /// <para><b>What it binds to.</b> §8.4.3.5.4 GR1: "This reference of identifier-1 is treated at compile-time as though
 /// it had the description specified by the AS phrase." The view is therefore a reference to identifier-1's object
 /// UNDER ANOTHER DESCRIPTION, and the binder gives it exactly that: a compiler temporary described by the AS phrase
-/// (<c>DataBinder.OoCreateObjectViewTemp</c>), filled by a statement pre-op (<see cref="BoundObjectView"/>) that copies
+/// (<c>CompilerTemps.ForObjectView</c>), filled by a statement pre-op (<see cref="BoundObjectView"/>) that copies
 /// identifier-1's reference and makes GR2–GR6's run-time conformance check. The view is then the temporary, read by
 /// the same <see cref="BoundNumRef"/> an inline invocation's result is, so every object-reference position that admits
 /// a computed identifier (the INVOKE receiver, the inline receiver, SET Format 5's sender, RAISE) takes a view with no
@@ -87,11 +87,11 @@ internal sealed partial class OoBinder
             string phraseText = DataBinder.WrittenText(phrase);
             ObjectRefDescriptor view = phrase.UNIVERSAL() is not null
                 ? ObjectRefDescriptor.Universal   // GR7
-                : ctx.Data.OoDescribeNamedReference(phrase, phrase.className().GetText(),
+                : ctx.Data.Oo.DescribeNamedReference(phrase, phrase.className().GetText(),
                     factory: phrase.FACTORY() is not null, only: phrase.ONLY() is not null,
                     $"the object-view '{written} {phraseText}'", "ISO §8.4.3.5.2",
                     DiagnosticCatalog.ObjectViewInterfacePhrase, "ISO §8.4.3.5.2; §8.4.3.5.4 GR6");
-            if (ctx.Refs.Places.ResolveItem(ctx.Data.OoCreateObjectViewTemp(view)) is not { } temp)
+            if (ctx.Refs.Places.ResolveItem(ctx.Data.Temps.ForObjectView(view)) is not { } temp)
                 return BoundExprError.Unbuilt(ctx.Edition, "the object-view's temporary");
             ctx.Data.Procedure.PendingPreOps.Add(new BoundObjectView(temp, source, view, $"{written} {phraseText}"));
             source = temp;
