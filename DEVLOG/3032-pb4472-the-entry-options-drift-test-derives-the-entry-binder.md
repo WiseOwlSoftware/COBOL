@@ -1,4 +1,4 @@
-## PB4472: the entry-options drift test derives the entry binder from the tree and proves it reads every partial
+## Entry 3032 — 2026-11-03 06:34 PST — PB4472: the entry-options drift test derives the entry binder from the tree and proves it reads every partial
 
 **Mechanism.** `EntryOptionsReaderDriftTests` (PB4464) claims the entry binder never reads the unit's OPTIONS slice
 (`State.Configuration.Options`), because ISO §11.9.4 GR1 makes a METHOD's own OPTIONS paragraph govern its entries. Review lead R1-1
@@ -19,3 +19,4 @@ single legal one is the unit binder writing its own slice (`configuration.Option
 fact red, naming `DataBinder.SignClause.cs`; reverted.
 
 **Register.** PB4472 landed, `closes_rows: []` (process-only drift test).
+
