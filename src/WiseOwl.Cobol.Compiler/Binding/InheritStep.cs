@@ -53,9 +53,8 @@ internal static class InheritStep
         // emitted for every global root (Merge), so a LOCAL root spelled like one (the §8.4.6.2.1 3) a) shadowing case)
         // must take another C# name — its stem too, or a member DERIVED from the stem (a REDEFINES backing) would re-spell
         // the bridge (LinkageBinder.InheritedMemberNamesOf).
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var g in anc.Data.Linkage.GlobalRoots)
-                data.ReserveInheritedMemberNames(anc.Data.Linkage.InheritedMemberNamesOf(g));
+        foreach (var (anc, g, _) in ContainerBridgedRootsOf(unit))
+            data.ReserveInheritedMemberNames(anc.Data.Linkage.InheritedMemberNamesOf(g));
     }
 
     /// <summary>Write the merge half of <paramref name="unit"/>'s inheritance, after its data phases: its binder is
@@ -69,7 +68,7 @@ internal static class InheritStep
         EcBinder.MarkFormals(data.Linkage.Formals, kind, turn);
 
         var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (anc, g, depth) in ContainerGlobalRootsOf(unit))
+        foreach (var (anc, g, depth) in ContainerBridgedRootsOf(unit))
         {
             // The root's NAMES are inherited already, at the end of the unit's declaration half
             // (DataBinder.InheritContainerGlobalData, offered by Seed); what is left here is the C# half. Every container
@@ -124,6 +123,24 @@ internal static class InheritStep
             foreach (var g in anc.Data.Linkage.GlobalRoots)
                 if (g.CobolName is not null)
                     roots.Add((anc, g, depth));
+        }
+        return roots;
+    }
+
+    /// <summary>⛔ THE ONE LIST OF THE CONTAINER ROOTS A UNIT'S CLASS BRIDGES (the C# half, <see cref="Merge"/>) AND WHOSE
+    /// MEMBER NAMES IT RESERVES (<see cref="Seed"/>): the inherited GLOBAL roots (<see cref="ContainerGlobalRootsOf"/>) and,
+    /// after them, the roots a container's GLOBAL files' own clauses name (<see cref="DataBinder.GlobalFileOperandRoots"/>,
+    /// kb/Work PB4454). The second kind is reached by the unit's I-O statements on the file, never by a name it writes
+    /// (ISO §13.18.27.4 GR2), so it is bridged and placed and is not offered as a name.</summary>
+    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerBridgedRootsOf(BoundUnit unit)
+    {
+        var roots = ContainerGlobalRootsOf(unit);
+        int depth = 0;
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        {
+            depth++;
+            // GlobalFileOperandRoots excludes every global record, so no root is listed twice.
+            roots.AddRange(anc.Data.GlobalFileOperandRoots().Select(root => (anc, root, depth)));
         }
         return roots;
     }

@@ -27,5 +27,6 @@
           05 T PIC X(2) VALUE "ST".
        66 X4 RENAMES T.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY X1 "|" X2 "|" X3 "|" X4
            STOP RUN.

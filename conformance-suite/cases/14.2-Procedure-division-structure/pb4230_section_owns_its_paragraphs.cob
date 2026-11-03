@@ -51,6 +51,7 @@
            DISPLAY "A-S " W-N.
            STOP RUN.
        A-S SECTION.
+       PB4305-LEAD.
            ADD 1 TO W-N.
        A-1.
            ADD 10 TO W-N.

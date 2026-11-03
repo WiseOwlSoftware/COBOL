@@ -65,6 +65,7 @@
        01 CS       PIC $$/$$9.
        01 MS       PIC --/--9.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 12 TO SL ZE BE CO ST
            DISPLAY "SL12=[" SL "] ZE12=[" ZE "] BE12=[" BE "]"
            DISPLAY "CO12=[" CO "] ST12=[" ST "]"

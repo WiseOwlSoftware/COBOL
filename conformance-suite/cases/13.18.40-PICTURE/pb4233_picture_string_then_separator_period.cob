@@ -28,6 +28,7 @@
        01 WS-C PIC 9.99.
        01 WS-D PIC X(2).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE 1.25 TO WS-A.
            MOVE 'ABC' TO WS-B.
            MOVE 3.5 TO WS-C.

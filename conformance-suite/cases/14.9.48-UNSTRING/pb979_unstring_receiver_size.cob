@@ -53,6 +53,7 @@
           05 G1 PIC X(2).
           05 G2 PIC X(3).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            UNSTRING S INTO R(2:3) R(6:2)
                ON OVERFLOW DISPLAY "RM1  [" R "] OVF"
                NOT ON OVERFLOW DISPLAY "RM1  [" R "] NO-OVF"

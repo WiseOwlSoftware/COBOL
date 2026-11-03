@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb3505_display_numeric_digits_form
 *> rules: [GR-14.9.11.4-1, DOC-A.1-56]
-*> accept: [85, 2002, 2014, 2023]
+*> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

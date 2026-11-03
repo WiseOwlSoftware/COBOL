@@ -25,7 +25,9 @@
       *>   C - GR3 f): DIGIT is "0" THROUGH "9"; XA's content is not all digits                  => FALSE
       *>   D - GR3 f) over XD "0012", every character listed in DIGIT                            => TRUE
       *>   E - the EVALUATE spelling of D                                                        => TRUE
-      *>   F - GR3 a): ALPHA is the coded character set STANDARD-1; XA's characters are in it     => TRUE
+      *> The alphabet-name-1 alternative (GR3 a)) is not tested here: a class condition that tests an
+      *> alphabet-name is a COBOL-2002 relaxation (2002 Annex F.2 item 16, kb/Work PB4305), witnessed by
+      *> pb4305_class_condition_alphabet_name_2002 and refused at 85 by pb4305-class-condition-alphabet-name-at-85.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB571TBL.
        ENVIRONMENT DIVISION.
@@ -48,5 +50,4 @@
                WHEN TRUE DISPLAY "E=T"
                WHEN OTHER DISPLAY "E=F"
            END-EVALUATE
-           IF XA IS ALPHA DISPLAY "F=T" ELSE DISPLAY "F=F" END-IF
            STOP RUN.

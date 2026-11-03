@@ -70,6 +70,7 @@ public sealed class DeclinedFacilityTests
                    WORKING-STORAGE SECTION.
                    01 VALIDATE PIC X(4) VALUE "AB".
                    PROCEDURE DIVISION.
+                   MAIN-P.
                        DISPLAY VALIDATE.
                        STOP RUN.
 

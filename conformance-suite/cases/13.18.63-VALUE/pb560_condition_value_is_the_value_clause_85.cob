@@ -44,6 +44,7 @@
        01 WS-C PIC X(5).
           88 C-AB VALUE ALL "AB".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            SET A-SEVEN TO TRUE
            DISPLAY "A=[" A-PK "]"
            IF A-SEVEN DISPLAY "A-TRUE" ELSE DISPLAY "A-FALSE" END-IF

@@ -9,6 +9,10 @@
 # Inputs:
 #   specs/ISO_COBOL.md                 (in-repo)  — ISO/IEC 1989:2023 §8.9 = THE authoritative 2023 list.
 #   docs/VERSION_CHANGE_REFERENCE.md   (in-repo)  — row 32 = the 16 words newly reserved in 2023 (Annex E.2 item 25).
+#   tests/version-matrix/reserved-words-2002.json (in-repo) — the ISO/IEC 1989:2002 §8.9 list, transcribed from the
+#     2002 post-ballot text (kb/Work PB4297) = THE authoritative 2002 list.
+#   tests/version-matrix/words-2009-cd.json (in-repo) — the 2009 committee draft's §8.9 and §8.10 lists, read for
+#     the one 2014 question step 5 states (kb/Work PB4297).
 #   GnuCOBOL config/{cobol85,cobol2002,cobol2014}.words (fetched to .cache/, NOT committed) — the per-standard
 #     reserved-word lists curated by the GnuCOBOL project (FSF; the FILES are GPL — only the derived FACTS,
 #     word/edition reservation flags with provenance, enter this repo).
@@ -17,7 +21,9 @@
 #   src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs
 #   tests/version-matrix/reserved-words.json
 #
-# Derivation: flags = set membership per source (85/2002/2014 = GnuCOBOL; 2023 = the ISO spec itself).
+# Derivation: flags = set membership per source (85 = GnuCOBOL; 2002 = the 2002 standard's own §8.9 list; 2014 =
+# GnuCOBOL, less the 1985 and draft words neither the 2009 draft nor 2023 reserves; 2023 = the ISO spec itself).
+# CLAUDE.md rule 1: an ISO text outranks GnuCOBOL, whose lists also reserve implementor words (kb/Work PB4297).
 # Confidence:
 #   high   — sources agree with the expected edge structure (incl. the re-reserved pair, which falls out of
 #            membership mechanically: in 85, out 2002/2014, in 2023 = Annex E.2 item 25).
@@ -92,6 +98,25 @@ $gc2014 = Parse-GcWords $gcFiles['cobol2014']
 # extras). Evidence: ST127A + the sort differential programs declare ORDER as a data name at --std 85.
 foreach ($w in @('ORDER')) { [void]$gc85.Remove($w) }
 
+# ---- 1b. The 2002 standard's §8.9 list and the 2009 draft's §8.9 / §8.10 lists (kb/Work PB4297) ----
+# Transcribed word lists (words only; each file's _comment names its source and printed pages). GnuCOBOL's
+# cobol2002.words and cobol2014.words also reserve words no ISO text of the edition lists (the 1985 vocabularies
+# 2002 removed - POSITION, PROCEED, WORDS, the DEBUG-n registers - and the draft's ROUNDED-phrase words), and the
+# compiler refused them as data-names with COBOL0901 citing §8.9; an ISO text outranks GnuCOBOL (CLAUDE.md rule 1).
+function Read-WordList([string]$path, [string]$key) {
+    $set = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($w in (Get-Content -LiteralPath $path -Raw | ConvertFrom-Json).$key) { [void]$set.Add($w) }
+    return ,$set
+}
+$p2Path = Join-Path $repo 'tests/version-matrix/reserved-words-2002.json'
+$cdPath = Join-Path $repo 'tests/version-matrix/words-2009-cd.json'
+$iso2002   = Read-WordList $p2Path 'words'
+$cdReserved = Read-WordList $cdPath 'reserved'
+$cdContext  = Read-WordList $cdPath 'contextSensitive'
+# ALIGNED is reserved at 2002 although the 2002 §8.9 list omits it: the same text's Annex F.1 item 6 lists it among
+# the reserved words 2002 added and its 13.16.1 defines the ALIGNED clause, so the omission is the list's defect.
+foreach ($w in @('ALIGNED')) { [void]$iso2002.Add($w) }
+
 # ---- 2. Extract the 2023 §8.9 list from the ISO spec ----
 $lines = Get-Content -LiteralPath $specPath
 $start = -1; $end = -1
@@ -163,14 +188,21 @@ if ($gc85.Count -lt 320 -or $gc85.Count -gt 380)       { throw "gc85 $($gc85.Cou
 # reserved) and dedupe WORD=ALIAS spellings, so the real counts sit well below the raw line counts.
 if ($gc2002.Count -lt 380 -or $gc2002.Count -gt 470)   { throw "gc2002 $($gc2002.Count) outside 380..470" }
 if ($gc2014.Count -lt 370 -or $gc2014.Count -gt 470)   { throw "gc2014 $($gc2014.Count) outside 370..470" }
+if ($iso2002.Count -lt 395 -or $iso2002.Count -gt 410)       { throw "2002 §8.9 list $($iso2002.Count) outside 395..410 - $p2Path changed shape" }
+if ($cdReserved.Count -lt 380 -or $cdReserved.Count -gt 400) { throw "2009 draft §8.9 list $($cdReserved.Count) outside 380..400 - $cdPath changed shape" }
+if ($cdContext.Count -lt 70 -or $cdContext.Count -gt 85)     { throw "2009 draft §8.10 list $($cdContext.Count) outside 70..85 - $cdPath changed shape" }
+# GnuCOBOL's 2002 list adds implementor words to the standard's and drops only words 1985 and 2023 both reserve (the
+# curation gap step 5 used to interpolate, kb/Work PB655): a 2002 §8.9 word outside both means a list changed shape.
+$p2NotGc = @($iso2002 | Where-Object { -not $gc2002.Contains($_) -and -not ($gc85.Contains($_) -and $iso2023.Contains($_)) })
+if ($p2NotGc.Count -ne 0) { throw "cross-check failed: $($p2NotGc.Count) 2002 §8.9 word(s) absent from GnuCOBOL's 2002 list and not reserved at 85 and 2023" }
 if ($added2023.Count -ne 16) { throw "VCR row 32 parse yielded $($added2023.Count) != 16 words" }
 foreach ($w in $added2023) { if (-not $iso2023.Contains($w)) { throw "Annex-E addition '$w' missing from the 2023 extraction" } }
 # ISO Annex E.2 item 25 is authoritative for ONE edition edge: E.1 lists "the substantive changes between the
 # previous COBOL standard and this" one, so its 16 added words were user-defined at 2014 - and it says NOTHING
 # about 2002 (kb/Work PB656). The 2014 source must therefore agree with it (asserted here, never overridden);
-# the 2002 flag stays the GnuCOBOL 2002 list's, which keeps three of the 16 reserved: the communication words
-# SEND, RECEIVE and END-RECEIVE, whose facility GnuCOBOL's cobol2002.conf records as OBSOLETE at 2002 (removed
-# 2014) - the same facility whose CD/DISABLE/ENABLE/PURGE/... rows read r2002 true from the same list. An
+# the 2002 flag is the 2002 §8.9 list's (kb/Work PB4297), which keeps three of the 16 reserved: the communication
+# words SEND, RECEIVE and END-RECEIVE, a facility the 2002 standard keeps as OBSOLETE (removed 2014) - the same
+# facility whose CD/DISABLE/ENABLE/PURGE/... rows read r2002 true from the same list. An
 # earlier revision cleared their r2002 too, on a reading of item 25 that the E.1 scope does not support, and so
 # left one facility's vocabulary half reserved at 2002. Those three are also the 1985 RE-reservations,
 # discovered mechanically - the earlier recall-based classification knew only two (DEVLOG 585).
@@ -183,13 +215,26 @@ if ($vcrVsGc.Count -ne 0) { throw "cross-check failed: $($vcrVsGc.Count) Annex-E
 $all = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
 foreach ($s in @($gc85, $gc2002, $gc2014, $iso2023)) { foreach ($w in $s) { [void]$all.Add($w) } }
 $mediumBuckets = @{ isoOnly = 0; nonMonotone = 0 }
+$reservedNowhere = 0
 $rows = foreach ($w in $all) {
-    $f85 = $gc85.Contains($w); $f02 = $gc2002.Contains($w); $f14 = $gc2014.Contains($w); $f23 = $iso2023.Contains($w)
+    $f85 = $gc85.Contains($w); $f02 = $iso2002.Contains($w); $f14 = $gc2014.Contains($w); $f23 = $iso2023.Contains($w)
+    # The 2014 edge (kb/Work PB4297). No 2014 text of record is held, so GnuCOBOL's 2014 list decides, with ONE
+    # correction from the 2009 committee draft: a word the draft KNOWS - a 1985 reserved word (its §8.9 is a full
+    # list, so it kept or dropped each) or a word of its §8.9 or §8.10 lists - that neither the draft's §8.9 nor the
+    # 2023 §8.9 reserves was not reserved by the 2014 standard between them (the 1985 words COBOL, POSITION,
+    # PROCEED, ...; the communication word COMMUNICATION; the draft's context-sensitive NEGATIVE-INFINITY and
+    # POSITIVE-INFINITY). A word the 2014 final added after the draft (PHYSICAL, the FLOAT-BINARY-n renames) is one
+    # the draft cannot speak to, so it keeps GnuCOBOL's flag; and the draft's own §8.9 is NOT imported wholesale,
+    # since its five names the final renamed (FLOAT-BINARY-7/16/34, INFINITY, REPRESENTS-NOT-A-NUMBER) never were.
+    $cdSpeaks = $gc85.Contains($w) -or $cdReserved.Contains($w) -or $cdContext.Contains($w)
+    $f14Draft = $f14 -and $cdSpeaks -and -not $cdReserved.Contains($w) -and -not $f23
+    if ($f14Draft) { $f14 = $false }
+    if (-not ($f85 -or $f02 -or $f14 -or $f23)) { $reservedNowhere++; continue }   # a GnuCOBOL-only word: no row
     $conf = 'high'; $prov = $null
     if ($added2023.Contains($w)) {
         # ISO Annex E.2 item 25 decides the 2014 edge only (E.1: the changes against the PREVIOUS standard), and
         # step 4 asserted the 2014 source agrees; every other flag is its own source's (kb/Work PB656).
-        $prov = if ($f85 -and $f02) { '1985/2002-reserved (GnuCOBOL 85/2002 lists: the communication facility, obsolete at 2002), unreserved 2014, re-reserved 2023 (ISO Annex E.2 item 25 = VCR row 32, which speaks of 2014 only)' }
+        $prov = if ($f85 -and $f02) { '1985/2002-reserved (GnuCOBOL 85 list; ISO 2002 §8.9: the communication facility, obsolete at 2002), unreserved 2014, re-reserved 2023 (ISO Annex E.2 item 25 = VCR row 32, which speaks of 2014 only)' }
                 elseif ($f85)       { '1985-reserved, unreserved 2002/2014, re-reserved 2023 (ISO Annex E.2 item 25 = VCR row 32)' }
                 else                { 'added 2023 (ISO Annex E.2 item 25 = VCR row 32)' }
     }
@@ -198,13 +243,13 @@ $rows = foreach ($w in $all) {
         # additions are documented in E.2", and E.2 25) lists every word 2023 reserved that was user-defined
         # before (the $added2023 branch above, which already caught the three 1985 RE-reservations). A word
         # absent from that list was therefore NOT user-defined at 2014 — reservation did not flicker, so the
-        # 2014-source absence (and, when the 2002 list is silent too, the 2002 one) is a curation gap:
-        # interpolate both. kb/Work PB655: this is the REPORTS row, which sat 'medium' + "(inert)" while the
-        # lexer token made it anything but inert — reserved-at-85/2023 but refused as a raw parse error at
-        # 2002/2014 by a token no cobolWord admitted.
-        $prov = if ($f02) { 'continuous since 1985; the 2014 flag INTERPOLATED (85+2002+2023 reserved, Annex E silent ⇒ the 2014 source list has a gap)' }
-                else      { 'continuous since 1985; the 2002 AND 2014 flags INTERPOLATED (85+2023 reserved and ISO E.2 25) does not list it as a 2023 addition — E.3.1 documents every incompatible addition there ⇒ the GnuCOBOL 2002/2014 lists have a gap)' }
-        $f02 = $true; $f14 = $true
+        # 2014-source absence is a curation gap: interpolate it. kb/Work PB655: this is the REPORTS row, which sat
+        # 'medium' + "(inert)" while the lexer token made it anything but inert — reserved-at-85/2023 but refused
+        # as a raw parse error at 2002/2014 by a token no cobolWord admitted. The 2002 §8.9 list holds every such
+        # word (kb/Work PB4297), so only the 2014 flag is interpolated; one it lacked would break the premise.
+        if (-not $f02) { throw "'$w' is reserved at 85 and 2023 with no Annex-E addition, but the 2002 §8.9 list omits it - decide its edges" }
+        $prov = 'continuous since 1985; the 2014 flag INTERPOLATED (85+2002+2023 reserved, Annex E silent ⇒ the 2014 source list has a gap)'
+        $f14 = $true
     }
     elseif ($f23 -and -not $f14) {
         # In the ISO 2023 list, unknown to the 2014 source, NOT an Annex-E addition: source disagreement.
@@ -216,18 +261,22 @@ $rows = foreach ($w in $all) {
         $conf = 'medium'; $mediumBuckets.nonMonotone++
         $prov = 'non-monotone reservation across sources — needs review (inert)'
     }
-    elseif ($f85 -and $f23) { $prov = 'continuous since 1985 (GnuCOBOL 85/2002/2014 lists; ISO 2023 §8.9)' }
+    elseif ($f85 -and $f23) { $prov = 'continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §8.9)' }
     # A word 1985 reserved and 2023 does not: the label names the LAST edition the sources reserve it at, read from
     # the same flags it describes (kb/Work PB656: one label said 'removed post-85' for every such word, so 35 rows
     # still reserved at 2002 - SEGMENT-LIMIT, COBOL, the communication and debug vocabularies - contradicted their
     # own flags). The word's reservation is its own fact: a construct removed at an edition may keep its leading
     # word reserved there (GnuCOBOL 3.2 at -std=cobol2002 refuses the SEGMENT-LIMIT clause AND the word).
     elseif ($f85 -and -not $f23) {
-        $prov = if ($f02 -and $f14) { '1985-reserved through 2014 (GnuCOBOL 85/2002/2014 lists); dropped by 2023 §8.9' }
-                elseif ($f02)       { '1985-reserved, kept by the GnuCOBOL 2002 list, removed by 2014 (absent from the 2014 list and ISO 2023 §8.9)' }
-                else                { '1985-reserved, removed post-85 (GnuCOBOL per-standard lists; absent from ISO 2023 §8.9)' }
+        $prov = if ($f02 -and $f14) { '1985-reserved through 2014 (GnuCOBOL 85 and 2014 lists; ISO 2002 §8.9); dropped by 2023 §8.9' }
+                elseif ($f02 -and $f14Draft) { '1985-reserved, kept by ISO 2002 §8.9, removed by 2014 (absent from the 2009 draft §8.9 and ISO 2023 §8.9)' }
+                elseif ($f02)       { '1985-reserved, kept by ISO 2002 §8.9, removed by 2014 (absent from the GnuCOBOL 2014 list and ISO 2023 §8.9)' }
+                else                { '1985-reserved, removed by 2002 (absent from ISO 2002 §8.9 and ISO 2023 §8.9)' }
     }
-    elseif ($f02) { $prov = 'added 2002 (GnuCOBOL 2002 list' + $(if ($f23) { '; ISO 2023 §8.9)' } else { '; dropped by 2023 §8.9)' }) }
+    elseif ($f02) {
+        $src = if ($gc2002.Contains($w) -and $w -ne 'ALIGNED') { 'ISO 2002 §8.9' } else { 'ISO 2002 Annex F.1 item 6; §8.9 omits it' }
+        $prov = "added 2002 ($src" + $(if ($f23) { '; ISO 2023 §8.9)' } elseif ($f14) { '; dropped by 2023 §8.9)' } elseif ($f14Draft) { '; absent from the 2009 draft §8.9 and 2023 §8.9)' } else { '; dropped by 2014)' })
+    }
     elseif ($f14) { $prov = 'added 2014 (GnuCOBOL 2014 list' + $(if ($f23) { '; ISO 2023 §8.9)' } else { '; dropped by 2023 §8.9)' }) }
     else { $prov = 'ISO 2023 §8.9' }
     [pscustomobject]@{ word = $w; r85 = $f85; r2002 = $f02; r2014 = $f14; r2023 = $f23; confidence = $conf; provenance = $prov }
@@ -235,7 +284,7 @@ $rows = foreach ($w in $all) {
 
 # ---- 6. Emit the canonical JSON ----
 $json = [ordered]@{
-    _comment = 'GENERATED by scripts/gen-reserved-words.ps1 — do not hand-edit. Sources: ISO/IEC 1989:2023 §8.9 (specs/ISO_COBOL.md, authoritative for 2023), VCR row 32 (Annex E.2 item 25), GnuCOBOL per-standard word lists (85/2002/2014 flags; facts only). The drift test asserts this file equals the C# table. CONTENT-FILTER RULE: never print this file into a conversation.'
+    _comment = 'GENERATED by scripts/gen-reserved-words.ps1 — do not hand-edit. Sources: ISO/IEC 1989:2023 §8.9 (specs/ISO_COBOL.md, authoritative for 2023), VCR row 32 (Annex E.2 item 25), the ISO 2002 §8.9 list (reserved-words-2002.json, authoritative for 2002), the 2009 committee draft §8.9/§8.10 lists (words-2009-cd.json, one 2014 correction), GnuCOBOL per-standard word lists (85/2014 flags; facts only). The drift test asserts this file equals the C# table. CONTENT-FILTER RULE: never print this file into a conversation.'
     words = $rows
 }
 Set-LfContent -LiteralPath $jsonOut -Value ($json | ConvertTo-Json -Depth 4)
@@ -245,7 +294,8 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine('// <auto-generated>')
 [void]$sb.AppendLine('// Generated by scripts/gen-reserved-words.ps1 — DO NOT EDIT; re-run the script.')
 [void]$sb.AppendLine('// Sources: ISO/IEC 1989:2023 §8.9 (authoritative, 2023 flags), VCR row 32 (Annex E.2 item 25),')
-[void]$sb.AppendLine('// GnuCOBOL per-standard word lists (85/2002/2014 flags; derived facts with provenance).')
+[void]$sb.AppendLine('// ISO 2002 §8.9 (reserved-words-2002.json, 2002 flags), the 2009 draft (words-2009-cd.json, one 2014 correction),')
+[void]$sb.AppendLine('// GnuCOBOL per-standard word lists (85/2014 flags; derived facts with provenance).')
 [void]$sb.AppendLine('// ReservedWordsDriftTests asserts this table equals tests/version-matrix/reserved-words.json.')
 [void]$sb.AppendLine('// </auto-generated>')
 [void]$sb.AppendLine('namespace WiseOwl.Cobol.Editions;')   # must MATCH the committed table (kb/Work PB250: it said WiseOwl.Cobol.Validation, so a re-run broke the build)
@@ -351,6 +401,7 @@ $stats = [ordered]@{
     reserved85Not2023 = @($rows | Where-Object { $_.r85 -and -not $_.r2023 }).Count
     high = @($rows | Where-Object { $_.confidence -eq 'high' }).Count
     mediumIsoOnly = $mediumBuckets.isoOnly; mediumNonMonotone = $mediumBuckets.nonMonotone
+    iso2002 = $iso2002.Count; reservedNowhere = $reservedNowhere
     contextSensitive = $ctxRows.Count
 }
 Write-Output ("reserved-word tables generated: " + (($stats.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ' '))

@@ -25,6 +25,7 @@
        01 T.
           05 E PIC X(2) OCCURS 3 INDEXED BY NATIONAL.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY BIT
            MOVE "B2" TO E (2)
            SET NATIONAL TO 2
@@ -47,6 +48,7 @@
        WORKING-STORAGE SECTION.
        01 Y PIC X VALUE "B".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            IF Y BIT
                DISPLAY "CLASS TRUE"
            ELSE

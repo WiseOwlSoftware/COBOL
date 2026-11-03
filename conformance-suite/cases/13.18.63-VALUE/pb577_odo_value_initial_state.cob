@@ -55,6 +55,7 @@
              10 A9 PIC X(2) VALUE "XY".
              10 B9 PIC 9 VALUE 7.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "G6O N4=" N4.
            MOVE 5 TO N1.
            MOVE 5 TO N2.

@@ -353,10 +353,10 @@ public sealed class Ansi85AcceptanceTests
     [InlineData("RERUN", 2002)]
     [InlineData("ENTER", 2002)]
     [InlineData("DEBUGGING", 2014)]
-    [InlineData("EVERY", 2023)]
-    [InlineData("CLOCK-UNITS", 2023)]
-    [InlineData("REFERENCES", 2023)]
-    [InlineData("PROCEDURES", 2023)]
+    [InlineData("EVERY", 2002)]          // not on the 2002 §8.9 list (kb/Work PB4297)
+    [InlineData("CLOCK-UNITS", 2002)]
+    [InlineData("REFERENCES", 2002)]
+    [InlineData("PROCEDURES", 2002)]
     public void Word_FreesAsUserWord_AtItsTableEdition(string word, int freeEdition)
     {
         string src = $"""

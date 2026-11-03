@@ -1039,16 +1039,25 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             return null;
         }
         if (IsFailedConstant(word)) return null;   // its own entry was reported
-        owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: {what} '{word}' is not a "
-            + "defined constant-name — an integer-n position admits an integer literal or an integer "
-            + "constant-name (ISO §5.5 1) / §13.10.3 SR2)");
+        owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, ConstantNamesExist
+            ? $"{where}: {what} '{word}' is not a defined constant-name — an integer-n position admits an integer "
+              + "literal or an integer constant-name (ISO §5.5 1) / §13.10.3 SR2)"
+            : $"{where}: {what} '{word}' is not an integer literal — an integer-n position admits an integer literal "
+              + "(ISO §5.5 1)), and COBOL-85 has no constant-name to stand for one");
         return null;
     }
+
+    /// <summary>⛔ WHETHER THE COMPILE EDITION HAS A CONSTANT-NAME TO STAND WHERE A FORMAT SPECIFIES A LITERAL (kb/Work
+    /// PB4435): ISO §13.10.3 SR2 puts one "anywhere that a format specifies a literal", and the constant entry that
+    /// declares it is COBOL-2002's (constant-entry-2002), so a COBOL-85 refusal of a word in a literal position never
+    /// offers one. The parse-side twin is <c>CobolParserCoreBase.PrintsConstantName</c>.</summary>
+    private bool ConstantNamesExist =>
+        WiseOwl.Cobol.Editions.ConstructRegistry.IsAvailable(owner.Edition.Edition, WiseOwl.Cobol.Editions.Constructs.ConstantEntry2002);
 
     /// <summary>Expand integer constant-name repetition counts inside a PICTURE character-string (ISO
     /// §13.10.3 SR2 second sentence — "if constant-name-1 is an integer, it may also be used to specify
     /// repetition in a picture character-string, as specified in 13.18.40"): each parenthesized WORD (a
-    /// repetition position is otherwise an unsigned integer, §13.18.40.2) is replaced by its constant's
+    /// repetition position is otherwise an unsigned nonzero integer, §13.18.40.3 SR6) is replaced by its constant's
     /// value. Called only when the unit defines constants, so a constant-free program's PICTURE pipeline is
     /// byte-identical to before.</summary>
     /// <param name="pictureText">The PICTURE character-string as written.</param>
@@ -1071,9 +1080,13 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                     return "(1)";   // recovery shape — the compile has already failed
                 }
                 if (diagnose && !IsFailedConstant(word))
-                    owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: '{word}' in the PICTURE "
-                        + "repetition position is not a defined constant-name (ISO §13.18.40.2 — a repetition "
-                        + "count is an unsigned integer or an integer constant-name, §13.10.3 SR2)");
+                    owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, ConstantNamesExist
+                        ? $"{where}: '{word}' in the PICTURE repetition position is not a defined constant-name (ISO "
+                          + "§13.18.40.3 SR6 — a repetition count is an unsigned nonzero integer, or an integer "
+                          + "constant-name, §13.10.3 SR2)"
+                        : $"{where}: '{word}' in the PICTURE repetition position is not an unsigned integer (ISO "
+                          + "§13.18.40.3 SR6 — a repetition count is an unsigned nonzero integer), and COBOL-85 has no "
+                          + "constant-name to stand for one");
                 return "(1)";
             });
     }

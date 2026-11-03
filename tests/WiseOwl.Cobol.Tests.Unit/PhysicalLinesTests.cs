@@ -221,6 +221,19 @@ public sealed class PhysicalLinesTests
         Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2691");
     }
 
+    [Fact] // DOC-A.1-156 on a DIRECTIVE line (kb/Work PB4310, owner 2026-10-31): a lone CR that ends the line is an ordinary
+           // character of it, as on a source line, so the directive's operand is "FIXED<CR>" — refused (COBOL1911), the format
+           // NOT switched. The directive parse used to trim it (TrimEnd('\r')), a second determination for these lines alone.
+    public void ALoneTrailingCr_OnADirectiveLine_IsACharacterOfItsOperand()
+    {
+        var (text, bag) = Normalize(">>SOURCE FORMAT FIXED\r\r\nDISPLAY \"A\"\n", InitialReferenceFormat.Free);
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL1911");
+        Assert.Contains("DISPLAY \"A\"", text);
+        // CR LF is still the terminator and not a character of the line: the legal directive switches the format.
+        var (_, legal) = Normalize(">>SOURCE FORMAT FIXED\r\n       DISPLAY \"A\".\n", InitialReferenceFormat.Free);
+        Assert.DoesNotContain(legal.Diagnostics, d => d.Code == "COBOL1911");
+    }
+
     [Fact] // the lines of a SOURCE FORMAT segment keep the FILE's numbers (the stage numbers the lines once).
     public void SegmentsKeepFileLineNumbers()
     {

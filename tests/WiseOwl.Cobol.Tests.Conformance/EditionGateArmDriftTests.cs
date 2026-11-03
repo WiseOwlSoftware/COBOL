@@ -66,6 +66,10 @@ public sealed class EditionGateArmDriftTests
             + "The two SENDER spellings that DO carry keywords (the ISO §8.4.3.13 ADDRESS OF PROGRAM rule and "
             + "the Micro Focus / IBM TO ENTRY extension) bind to the same node and take the SAME id from this "
             + "one arm rather than a second, parse-arm gate — the Format-8 precedent exactly (kb/Work PB549)",
+        ["CallUsingGroupAnyLevel2002"] =
+            "ISO/IEC 1989:2002 Annex F.2 item 10 (kb/Work PB4305): a CALL USING operand is the 85 restriction's subject "
+            + "only when the item it RESOLVES to is a group whose level-number is not 01 or 77 — `CALL \"P\" USING H` "
+            + "prints the same tokens for an elementary item, a level-01 record and a level-05 group",
         ["PointerArithmetic2002"] =
             "SET x UP/DOWN BY n is ONE printed shape for TWO constructs — the version-invariant index form "
             + "(§14.9.39 Format 2, index-arithmetic) and the 2002 pointer form (Format 10). Only the operand's resolved USAGE "

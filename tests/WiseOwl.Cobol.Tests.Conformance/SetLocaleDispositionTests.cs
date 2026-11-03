@@ -93,6 +93,7 @@ public sealed class SetLocaleDispositionTests
                    01 T.
                       05 E PIC X OCCURS 9 INDEXED BY I5 I7.
                    PROCEDURE DIVISION.
+                   MAIN-P.
                        SET I5 TO 5.
                        SET I7 TO 7.
                        SET LOCALE TO I5.

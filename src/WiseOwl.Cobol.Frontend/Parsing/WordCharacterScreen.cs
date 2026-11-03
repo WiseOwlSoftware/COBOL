@@ -264,24 +264,33 @@ public static class WordCharacterScreen
         {
             if (!reported.Add(word)) continue;
             using var _ = sink.At(line, column);
-            if (word.Contains('_'))
-                ConstructRegistry.Check(edition, sink, Constructs.UserWordUnderscore2002,
-                    $"the underscore in the COBOL word '{word}'");
-            string? character = CobolWordRule.CharacterViolation(word, edition.Year);
-            // The 2002 gate names an EXTENDED LETTER, decided per CHARACTER: a character in no edition's Annex B is none
-            // (CharacterViolation answers it as COBOL2773 at every target, kb/Work PB4130), but the same word may also hold
-            // a real one, which COBOL-85 lacks and the gate must still name (kb/Work PB4156). From 2002 the gate is a no-op.
-            if (CobolCharacterRepertoire.HasExtendedLetter(word))
-                ConstructRegistry.Check(edition, sink, Constructs.UserWordExtendedLetter2002,
-                    $"the extended letter in the COBOL word '{word}'");
-            if (character is null) continue;
-            if (CobolWordRule.RemovedAt2023(word, edition.Year))
-                ConstructRegistry.Check(edition, sink, Constructs.UserWordCharacterRemoved2023, character);
-            else
-                sink.Report(new EditionDiagnostic(DiagnosticCatalog.WordCharacterNotPermitted.Code,
-                    EditionSeverity.Error, DiagnosticCatalog.WordCharacterNotPermitted.Id, character, "",
-                    "ISO §8.3.2.1; Annex B.3"));
+            CheckWord(word, edition, sink);
         }
+    }
+
+    /// <summary>⛔ THE §8.3.2.1 CHARACTER RULE OF ONE COBOL WORD, every edition's arm, reported at the sink's position: the
+    /// token walk asks it of every word the lexer reads, and the COPY statement of each text-name and library-name it
+    /// reads itself (a system-name, §8.3.2.3.1, so a COBOL word; the lexer never sees the statement, kb/Work PB4279).
+    /// One rule, every caller, so a reader of words outside the token stream cannot grow a second copy of it.</summary>
+    internal static void CheckWord(string word, EditionInfo edition, IDiagnosticSink sink)
+    {
+        if (word.Contains('_'))
+            ConstructRegistry.Check(edition, sink, Constructs.UserWordUnderscore2002,
+                $"the underscore in the COBOL word '{word}'");
+        string? character = CobolWordRule.CharacterViolation(word, edition.Year);
+        // The 2002 gate names an EXTENDED LETTER, decided per CHARACTER: a character in no edition's Annex B is none
+        // (CharacterViolation answers it as COBOL2773 at every target, kb/Work PB4130), but the same word may also hold
+        // a real one, which COBOL-85 lacks and the gate must still name (kb/Work PB4156). From 2002 the gate is a no-op.
+        if (CobolCharacterRepertoire.HasExtendedLetter(word))
+            ConstructRegistry.Check(edition, sink, Constructs.UserWordExtendedLetter2002,
+                $"the extended letter in the COBOL word '{word}'");
+        if (character is null) return;
+        if (CobolWordRule.RemovedAt2023(word, edition.Year))
+            ConstructRegistry.Check(edition, sink, Constructs.UserWordCharacterRemoved2023, character);
+        else
+            sink.Report(new EditionDiagnostic(DiagnosticCatalog.WordCharacterNotPermitted.Code,
+                EditionSeverity.Error, DiagnosticCatalog.WordCharacterNotPermitted.Id, character, "",
+                "ISO §8.3.2.1; Annex B.3"));
     }
 
     /// <summary>One walk of <paramref name="tree"/>, which does not descend into a comment-entry: the stream indexes of every

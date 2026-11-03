@@ -178,8 +178,8 @@ internal static class PlaceIdentification
             DynOrdinal = v.DynOrdinal is { } ordinal ? Hoist(ordinal, hoist) : null,
         };
         if (v.Cell is not { Segments: [RootFieldSegment root] }) return frozen;
-        // The hoist reads the cell's storage (its container anchor included), never through the guard; the local is
-        // the backend's own (a CSharpLocal, never a name on a member root: kb/Work PB4380) and carries no anchor.
+        // The hoist reads the cell's storage, never through the guard; the local is the backend's own (a CSharpLocal,
+        // never a name on a member root: kb/Work PB4380).
         var local = new CSharpLocal(hoist(PlaceRenderer.RootStorage(root)));
         var anchored = new AccessPath([new LocalRootSegment(local, root.Guard is { } g ? g with { PassesCarrier = true } : null)]);
         return frozen with
@@ -187,7 +187,7 @@ internal static class PlaceIdentification
             Backing = anchored.Add(CellBackingSegment.Instance),
             Cell = anchored,
             Coding = frozen.Coding is CellWindowCoding c && c.Cell is { Segments: [RootFieldSegment cr] }
-                     && cr.MemberClrName == root.MemberClrName && cr.Anchor == root.Anchor
+                     && cr.MemberClrName == root.MemberClrName
                 ? c with { Cell = anchored } : frozen.Coding,
         };
     }

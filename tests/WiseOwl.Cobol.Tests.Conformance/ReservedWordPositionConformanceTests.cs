@@ -513,6 +513,11 @@ public sealed class ReservedWordPositionConformanceTests
     [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "END-IF.", "ADD", "COBOL0306")]
     [InlineData("IF W-N = 1 MOVE W-X TO", "ADD 1 TO", "ELSE DISPLAY W-Y.", "ADD", "COBOL5506: unexpected 'ELSE'")]
     [InlineData("PERFORM UNTIL W-N = 1 MOVE W-X TO", "ADD 1 TO", "END-PERFORM.", "ADD", "COBOL0001: unexpected 'END-PERFORM'")]
+    // A stray word of the statement's own: ADD 1 parses as a prefix and FROM follows no statement, and no reading of the sentence
+    // has a place for it (the MOVE's receiver list takes no FROM), so the ADD is a statement with a fault of its own, not the
+    // receiver (kb/Work PB4285 item 3). The same sentence with the stray word the MOVE itself prints (TO) is the operand rows above.
+    [InlineData("MOVE W-X TO", "ADD 1 FROM W-Y.", "DISPLAY W-Y.", "ADD", "COBOL2269: unexpected 'FROM'")]
+    [InlineData("MOVE W-X TO", "ADD 1 TO W-N FROM W-Y.", "DISPLAY W-Y.", "ADD", "COBOL2269: unexpected 'FROM'")]
     public void AReservedVerbBeginningAnIncompleteNextStatement_IsNotCalledAMisusedName(
         string incomplete, string statement, string after, string word, string secondFault)
     {
@@ -538,6 +543,49 @@ public sealed class ReservedWordPositionConformanceTests
                                      && diags[1].Contains(secondFault, StringComparison.Ordinal)
                                      && diags.All(d => !d.Contains("COBOL0901", StringComparison.Ordinal)),
             $"expected the refusal at '{word}' on line 11 and the statement's own ({secondFault}), no COBOL0901, got:\n{string.Join("\n", diags)}");
+    }
+
+    /// <summary>⛔ A BARE VERB SENTENCE IS A PARAGRAPH HEADER ONLY WHERE THE PROGRAM NAMES THE WORD AS A PROCEDURE (kb/Work PB4283),
+    /// the same decision for a verb reserved at every edition (DISPLAY, READ, STOP) and one the edition gates (FREE, VALIDATE,
+    /// RAISE, INVOKE). ISO §8.3.2.1 1) ("Reserved words shall not be used as user-defined words or system-names") is broken by a USE
+    /// of the word as a name, and <c>FREE.</c> alone shows none: it is the verb's statement lacking its operand, whose own report
+    /// stands (a COBOL0001 that names the statement, never COBOL0901 "reserved word used as a user-defined word"). A procedure
+    /// reference elsewhere (<c>PERFORM FREE.</c>) is the use: the sentence is that name's paragraph header, and the word is
+    /// named ONCE (COBOL0901), at the first use in source order, however many sentences write it.</summary>
+    [Theory]
+    [InlineData("FREE", false)]
+    [InlineData("VALIDATE", false)]
+    [InlineData("ALLOCATE", false)]
+    [InlineData("RAISE", false)]
+    [InlineData("INVOKE", false)]
+    [InlineData("DISPLAY", false)]
+    [InlineData("READ", false)]
+    [InlineData("FREE", true)]
+    [InlineData("VALIDATE", true)]
+    [InlineData("RAISE", true)]
+    [InlineData("DISPLAY", true)]
+    [InlineData("READ", true)]
+    public void ABareVerbSentence_IsTheHeaderOnlyWhereAProcedureReferenceNamesIt(string verb, bool referenced)
+    {
+        var (ok, diags) = EditionHarness.Compile($"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB4283B.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       {(referenced ? $"PERFORM {verb}." : "DISPLAY \"A\".")}
+                       STOP RUN.
+                   {verb}.
+                       EXIT.
+
+               """, 2023);
+        Assert.False(ok);
+        int violations = diags.Count(d => d.Contains("COBOL0901", StringComparison.Ordinal));
+        if (referenced)
+            Assert.True(violations == 1 && diags.Count == 1 && diags[0].Contains($"'{verb}'", StringComparison.Ordinal),
+                $"a procedure reference names '{verb}': exactly the one COBOL0901, got:\n{string.Join("\n", diags)}");
+        else
+            Assert.True(violations == 0 && diags.Count >= 1 && diags[0].Contains("COBOL0001", StringComparison.Ordinal),
+                $"no procedure reference names '{verb}': the bare verb is the statement's own refusal, got:\n{string.Join("\n", diags)}");
     }
 
     /// <summary>⛔ OF TWO READINGS OF THE WORD THE ONE THAT GOES FURTHER IS THE ONE THE REPORT NAMES (kb/Work PB4207, review
@@ -706,6 +754,12 @@ public sealed class ReservedWordPositionConformanceTests
     [Theory]
     [InlineData("DISPLAY SECTION.", "DISPLAY")]
     [InlineData("READ SECTION.", "READ")]
+    // A word no statement begins with, written as a header after the division's last sentence, ends the paragraph list
+    // before the error is read; the division the parse completed last says where it stands (kb/Work PB4284).
+    [InlineData("ZERO.", "ZERO")]
+    [InlineData("FILLER.", "FILLER")]
+    [InlineData("TALLYING.", "TALLYING")]
+    [InlineData("SPACE.", "SPACE")]
     public void AWordReservedAtEveryEdition_DefinedAsAProcedure_IsNamedByCobol0901(string header, string word)
     {
         var (ok, diags) = EditionHarness.Compile($"""

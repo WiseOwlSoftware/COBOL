@@ -518,7 +518,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         dispatch.BeforeReportingSelectors.Clear();   // no GR4 report selector crosses into a class unit (kb/Work PB369)
         dispatch.DebugActive = false;            // a class owns no USE FOR DEBUGGING facility — clear any bleed (VCR 7.17)
         dispatch.UnitHasResume = bound.Ec?.HasResume ?? false;   // a METHOD declarative's RESUME needs the PERFORM landing (kb/Work PB1010)
-        callState.InheritedStatusPlace.Clear();
 
         foreach (string attribute in typeAttributes)
             w.Line(attribute);

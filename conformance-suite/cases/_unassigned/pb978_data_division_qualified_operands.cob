@@ -36,6 +36,7 @@
              10 B PIC X VALUE "4".
        66 AL RENAMES A OF G2 THRU B OF G2.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE "ABCDEFGHI" TO T
            DISPLAY "T=" T
            DISPLAY "AL=" AL

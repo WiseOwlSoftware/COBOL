@@ -12,11 +12,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE MODEL STATES AN ACCESS AS STRUCTURE, NEVER AS C# MEMBER-ACCESS TEXT BUILT FROM NAMES (kb/Work PB4320;
 /// DESIGN-backend-abstraction.md §1.2 and §1.3 L7). Four binder sites used to compose C# text from CLR names: a
 /// carrier-resident formal's <see cref="DataItem.ClrName"/> was overwritten with <c>__lnk{Uid}.Value</c>,
-/// <see cref="AccessPath.Reroot"/> joined <c>__outer.</c> (or a container's class name) onto a root field, each GLOBAL
+/// a path re-anchoring joined <c>__outer.</c> (or a container's class name) onto a root field, each GLOBAL
 /// bridge held the joined text <c>anchor + member</c>, and a table-sort key held its member names joined with dots. A
 /// backend that is not C# could only parse that text back. Now the carrier is <see cref="DataItem.ResidentCarrier"/>
 /// with a <see cref="CarrierValueSegment"/> on the path, the containing program is a <see cref="ContainerAnchor"/> on
-/// the root segment and on the bridge, and the sort key carries its member chain of items. These facts pin it: a
+/// the bridge, and the sort key carries its member chain of items. These facts pin it: a
 /// program group exercising every former leak binds to a model whose names are all bare identifiers and whose accesses
 /// are the structural forms; and the two carriers of the former joined text expose no string but a name.
 /// </summary>

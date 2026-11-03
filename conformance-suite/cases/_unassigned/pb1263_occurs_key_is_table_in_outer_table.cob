@@ -17,6 +17,7 @@
            05 OUTER OCCURS 2.
                10 T PIC 9 OCCURS 3 ASCENDING KEY IS T INDEXED BY IX.
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            MOVE "123456" TO R
            SEARCH ALL T (2) AT END DISPLAY "NONE"
                WHEN T (2 IX) = 5 DISPLAY "FOUND 5"

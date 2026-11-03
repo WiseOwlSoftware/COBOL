@@ -1720,6 +1720,16 @@ of an unsupported facility.
   `conformance:cases/13.18.52-SIGN/pb3683_report_sign_2002`, `conformance:cases/13.18.52-SIGN/pb3683-report-sign-without-separate-85`
   and `conformance:cases/13.18.52-SIGN/pb3683-report-group-sign-85`.
 
+- **D-F2-85 — the ISO/IEC 1989:2002 Annex F.2 relaxations decide the COBOL-85 edge (kb/Work PB4305; VCR row 7.47).** No
+  ANSI X3.23-1985 text is held, and the 2002 standard's Annex F.2 lists the substantive changes from it that affect no
+  existing program; an item that relaxes a COBOL-85 restriction states that restriction. Owner decision 2026-10-31:
+  those statements are the rule for the 85 edge, so each of the fourteen syntactic relaxations F.2 items 10, 16, 46, 50,
+  61, 75, 90, 91, 108, 112, 133, 139, 141 and 145 name is refused at `--std 85` with COBOL0900 through its construct row
+  and compiles from 2002 under the 2023 rules. GnuCOBOL -std=cobol85 accepts twelve of them, but CLAUDE.md rule 1 places
+  the ISO text above GnuCOBOL; D-SIGN2 (items 123 and 124) is the same rule applied earlier. The NIST CCVS-85 corpus,
+  compiled at `--std 85`, writes none of the fourteen. Witnessed by the fourteen `pb4305_*_2002` positives and
+  `pb4305-*-at-85` negatives VCR row 7.47 lists.
+
 - **NUMVAL-F — a space may not SPLIT the exponent's `n` (§15.69.3 r1/r5 · §15.95.4 r1 b) 1; kb/Work PB256).**
   §15.69.3 r5 says "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in argument-1 are
   ignored **except** between the first numeric digit and the last digit that precedes a letter 'E'" — i.e. its
@@ -1864,26 +1874,35 @@ of an unsupported facility.
   `negative/pb2623-method-reserved-at-2002-2014` and `MethodUserWordTests`.
 
 - **D-RW3 — the COBOL-85, 2002 and 2014 reservation flags, and how they meet the removed-construct rows (kb/Work
-  PB656).** §8.9 decides the 2023 flags only; the repository holds no 1985, 2002 or 2014 text, so CLAUDE.md rule 1's
-  precedence gives the earlier editions' flags to GnuCOBOL: its per-standard word lists (`scripts/gen-reserved-words.ps1`,
-  facts only) and, for a facility's edition edges, its 3.2 dialect files `cobol2002.conf` / `cobol2014.conf`. ISO
-  Annex E.2 item 25 ("The following reserved words have been added", `cite.py --check E.2 "The following reserved words
-  have been added"` → OK) speaks about one edge only, because E.1 lists "the substantive changes between the previous
-  COBOL standard and this" one (`cite.py --check E.1 "substantive changes between the previous COBOL standard and
-  this"` → OK): its 16 words were user-defined at 2014, which the generator ASSERTS of the 2014 list, and it says
-  nothing about 2002. So SEND, RECEIVE and END-RECEIVE are reserved at 2002, like the rest of the communication
-  facility's vocabulary (CD, DISABLE, ENABLE, PURGE, …), which GnuCOBOL records as obsolete there and removed at 2014;
-  an earlier generator cleared their 2002 flag on the wider reading and left one facility half reserved.
-  A word's reservation and its construct's availability are TWO facts: nothing in the standard ties a reserved word to
-  a construct that spells it, and GnuCOBOL 3.2 at `-std=cobol2002` refuses both the SEGMENT-LIMIT clause ("does not
-  conform to COBOL 2002") and `01 SEGMENT-LIMIT` — so SEGMENT-LIMIT stays reserved at 2002 though the clause left
-  there (VCR row 7.8), and COBOL stays reserved through 2014 (refused as a data-name by `cobc -std=cobol2014` too),
-  a compiler-directive word only at 2023 (§8.3.2.1 2), §8.12). The same source dates the PADDING CHARACTER clause:
-  obsolete 2002 (COBOL0903), removed 2014 (VCR row 7.20). ⚠ DETERMINATION (owner may overturn; a 2002 or 2014
-  text overturns any flag in one generator run): pinned by the version-matrix rows `receive-as-user-word`,
-  `end-receive-as-user-word`, `segment-limit-removed-2002`, `padding-character-removed-2014`, the negatives
-  `user-word-receive` / `user-word-end-receive` (85 2002 2023) and
-  `conformance:cases/_unassigned/pb656_padding_character_obsolete_2002`.
+  PB656, PB4297).** §8.9 decides the 2023 flags. For 2002 the repository records the 2002 standard's own §8.9 list,
+  transcribed from its post-ballot text (`tests/version-matrix/reserved-words-2002.json`, words only), and an ISO text
+  outranks GnuCOBOL (CLAUDE.md rule 1), so that list IS the 2002 flag, with one correction from the same text: ALIGNED,
+  which its Annex F.1 item 6 lists among the reserved words 2002 added and its 13.16.1 defines, though its §8.9 omits it.
+  No 1985 or 2014 text is held, so those flags are GnuCOBOL's per-standard word lists (`scripts/gen-reserved-words.ps1`,
+  facts only), less ONE set at 2014 read from the 2009 committee draft (`tests/version-matrix/words-2009-cd.json`, its
+  §8.9 and §8.10 lists): a word the draft knows (a 1985 reserved word, or a word of either list) that neither its §8.9
+  nor 2023's §8.9 reserves was not reserved by the 2014 standard between them. GnuCOBOL's lists also reserve
+  implementor words (§4.2.10 3) allows "additional reserved words as nonstandard extensions" only as documented
+  extensions), and the compiler refused nineteen of them at 2002 and twelve at 2014 as data-names with COBOL0901 citing
+  §8.9 (POSITION, PROCEED, WORDS, COBOL, the DEBUG-n registers, SEGMENT-LIMIT, COMMUNICATION at 2014, the draft's
+  context-sensitive NEGATIVE-INFINITY and POSITIVE-INFINITY). A word the 2014 final added after the draft (PHYSICAL,
+  the FLOAT-BINARY-n renames) keeps GnuCOBOL's flag; the draft's five names the final renamed are never imported.
+  ISO Annex E.2 item 25 ("The following reserved words have been added", `cite.py --check E.2 "The following reserved
+  words have been added"` → OK) speaks about one edge only, because E.1 lists "the substantive changes between the
+  previous COBOL standard and this" one (`cite.py --check E.1 "substantive changes between the previous COBOL standard
+  and this"` → OK): its 16 words were user-defined at 2014, which the generator ASSERTS of the 2014 list. SEND, RECEIVE
+  and END-RECEIVE are on the 2002 §8.9 list, like the rest of the communication facility's vocabulary (CD, DISABLE,
+  ENABLE, PURGE, …), obsolete there and removed at 2014. A word's reservation and its construct's availability are TWO
+  facts: SEGMENT-LIMIT and COBOL leave the 2002 list with their constructs (VCR row 7.8), so each is a data-name from
+  2002 on, and COBOL a compiler-directive word as well at 2023 (§8.3.2.1 2), §8.12). GnuCOBOL's 3.2 dialect files date
+  the PADDING CHARACTER clause: obsolete 2002 (COBOL0903), removed 2014 (VCR row 7.20). ⚠ DETERMINATION (owner may
+  overturn; a 1985 or 2014 text overturns any flag in one generator run): pinned by the version-matrix rows
+  `receive-as-user-word`, `end-receive-as-user-word`, `segment-limit-removed-2002`, `padding-character-removed-2014`,
+  the negatives `user-word-receive` / `user-word-end-receive` (85 2002 2023), `pb4297-position-reserved-at-85` and
+  `pb4297-communication-reserved-85-2002`, and
+  `conformance:cases/8.3.2-COBOL-words/pb4297_1985_words_user_defined_from_2002` (2002 2014 2023),
+  `…/pb4297_communication_user_defined_from_2014` (2014 2023), `…/pb4297_infinity_words_user_defined` (every edition)
+  and `conformance:cases/_unassigned/pb656_padding_character_obsolete_2002`.
 
 - **D-DECLREF — the declaratives reference boundary: an SR4 violation is an error, an SR3 violation is a warning
   (kb/Work PB362).** §14.9.49.3 SR3 ("Within a declarative procedure, there shall be no reference to any

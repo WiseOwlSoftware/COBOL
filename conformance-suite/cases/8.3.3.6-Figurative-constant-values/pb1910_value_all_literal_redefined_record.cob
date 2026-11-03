@@ -33,6 +33,7 @@
           05 A3 PIC X(4).
           05 A4 PIC X(3).
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY "PLAIN=[" PLAIN "]"
            DISPLAY "BASE=[" BASE "]"
            DISPLAY "ALIAS-A2=[" A2 "]"

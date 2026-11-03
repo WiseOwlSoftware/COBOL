@@ -22,6 +22,7 @@
          02 X.
            03 Z PIC X VALUE "Z".
        PROCEDURE DIVISION.
+       PB4305-LEAD.
            DISPLAY Z IN X.
            DISPLAY Y OF X.
            DISPLAY Z IN X IN G2.

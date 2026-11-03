@@ -436,7 +436,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // §14.9.4.3 SR22 over the RESOLVED item — the same screen the keyword-less BY VALUE
                     // argument runs. It no longer has to unwrap a BoundComputedOperand to recover the
                     // identifier-ness GR8 says was never lost.
-                    ValueClassScreen(new BoundFieldOperand(vp), vdref.GetText());
+                    ValueClassScreen(new BoundFieldOperand(vp), DataBinder.WrittenText(vdref));
                     args.Add(new BoundCallArg(CobolPassMode.Value, vp, null));
                 }
                 else if (vArith is { } vsole && IsSoleIdentifierExpression(vsole))
@@ -465,7 +465,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // arithmetic expressions and a "digit-decoding extension" — the right verdict quoting the
                     // wrong rule.
                     var byValueOperand = new BoundComputedOperand(host.Expr.BindByValueExpr(vax));
-                    ValueClassScreen(byValueOperand, vax.GetText());
+                    ValueClassScreen(byValueOperand, DataBinder.WrittenText(vax));
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
                 }
                 else
@@ -556,7 +556,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // PARAMETER is specified with a BY VALUE phrase" — the formal-derived Value mode (GR9 b))
                 // must meet the same class screen the explicit BY VALUE arm runs.
                 if (bareMode is CobolPassMode.Value)
-                    ValueClassScreen(new BoundFieldOperand(bp), bare.GetText());
+                    ValueClassScreen(new BoundFieldOperand(bp), DataBinder.WrittenText(bare));
                 args.Add(new BoundCallArg(bareMode, bp, null));
             }
             // §14.9.4.2 Format 2's keyword-less non-identifier arguments (kb/Work PB130): literal-2,
@@ -620,14 +620,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     if (AddBareTemporaryArg(ExpressionOperand(bArith), DataBinder.WrittenText(bArith)) is { } refusal) return refusal;
                     continue;
                 }
-                AddBareExpressionArg(ExpressionOperand(bArith), bArith.GetText());
+                AddBareExpressionArg(ExpressionOperand(bArith), DataBinder.WrittenText(bArith));
             }
             // `(3)` or `(N)` an operator-free boolean node held inside its grouping parentheses: arithmetic-expression-1,
             // never the literal or identifier it encloses (§14.9.4.4 GR8, §8.8.1.1; kb/Work PB3760 review R1-1). Bound as
             // the expression it is, it takes GR9 a)2's BY CONTENT, so a callee's store never reaches N.
             else if (bareArg.Grouped is { } bGrouped)
             {
-                AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), a.GetText());
+                AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), DataBinder.WrittenText(a));
             }
             else
                 return new BoundUnsupported($"CALL USING argument '{DataBinder.WrittenText(a)}'");
@@ -1342,9 +1342,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// whose chokepoint (<see cref="ExpressionBinder.ResolveReceiving"/>) reports every null it returns.</param>
     private BoundStatement OperandUnresolved(Core.DataReferenceContext dref, string role, RefResolution? answer = null)
     {
-        string text = dref.GetText();
-        if (ctx.Data.State.Forest.ScreenNames.Contains(text))
+        if (dref.cobolWord() is { } screenWord && ctx.Data.State.Forest.ScreenNames.Contains(screenWord.GetText()))
         {
+            string text = DataBinder.WrittenText(dref);
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
                 $"CALL {role} '{text}' names a SCREEN SECTION entry; ISO §14.9.4.3 "
                 + (role.StartsWith("RETURNING") ? "SR7" : "SR3")

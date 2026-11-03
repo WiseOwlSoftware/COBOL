@@ -29,8 +29,10 @@ internal static class PlaceTablePass
     }
 
     /// <summary>The units that contain <paramref name="unit"/>, nearest first. A contained program names its containers'
-    /// GLOBAL data (ISO §13.18.27.4 GR1) - a file's record area, a FILE STATUS or key item - and the place of such an item is
-    /// built over THIS program's facts, so the containers' GLOBAL items (§8.4.6.2.2), and only those, join its table.</summary>
+    /// GLOBAL data (ISO §13.18.27.4 GR1) - a file's record area - and its I-O statements on a GLOBAL file read the file's own
+    /// clause operands - the FILE STATUS, RELATIVE KEY, ASSIGN USING, DEPENDING ON and LINAGE items (§8.4.5, kb/Work PB4454).
+    /// The place of such an item is built over THIS program's facts, so the containers' GLOBAL items (§8.4.6.2.2) and those
+    /// operands (<see cref="DataBinder.GlobalPlaceableItems"/>), and only those, join its table.</summary>
     private static IEnumerable<BoundUnit> ContainersOf(BoundUnit unit)
     {
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent) yield return anc;
