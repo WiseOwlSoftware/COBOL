@@ -82,8 +82,8 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
 
     /// <inheritdoc/>
     public IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan) =>
-        Candidates(_functions, u => CobolNames.Same(u.Name, userFunctionName)
-                                    && (otherThan is null || !ExternalizedNames.Same(u.ExternalizedName, otherThan)), position)
+        Candidates(_functions, u => CobolNames.Same(u.Name, userFunctionName), position)
+            .Where(u => otherThan is null || !ExternalizedNames.Same(u.ExternalizedName, otherThan))   // D-R3 step 3: a DIFFERENT function
             .Select(AnswerOf);
 
     /// <summary>The user-defined functions a source element at <paramref name="position"/> can see by WORD, without a
