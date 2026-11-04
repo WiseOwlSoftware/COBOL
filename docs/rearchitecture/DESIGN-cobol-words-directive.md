@@ -148,7 +148,7 @@ UCS-4/UTF-8/UTF-16 coded-set names, the `DECIMAL-POINT IS COMMA` word and the CU
 `CallBinder` and `VersionConformancePass` (`CALL … AS NESTED`, both arms, and the funnel's EXCEPTION-OBJECT exemption);
 `ReferenceResolver.IsExceptionObjectRegister` (the predefined register, through `OoBinder.OoIsExceptionObject(word, map)`, the one
 spelling test of that name). A new site that writes its own `string.Equals(text, "KEYWORD")` re-opens the defect, and
-`CobolWordsReachDriftTests.NoCompilerSourceComparesAnUnlexedDirectiveWord_ByItsSpelling` refuses the raw-word form
+`CobolWordsSpellingSweepDriftTests.NoCompilerSourceComparesAnUnlexedDirectiveWord_ByItsSpelling` refuses the raw-word form
 (`CobolNames.Same` / `CobolKeywords.Same` with the word as a literal) for every §8.9/§8.10 word the lexer has no token for,
 derived from the two tables and the lexer grammar, so the next such word needs no edit to the test.
 
