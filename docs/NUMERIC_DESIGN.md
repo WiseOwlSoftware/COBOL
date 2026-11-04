@@ -253,8 +253,8 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   at 2023 (error strict / warning permissive).
 > - **Edition gates:** the OPTIONS paragraph is 2002+ (COBOL0804, `options-paragraph-2002` — with ARITHMETIC
 >   NATIVE|STANDARD); the 2014-only clauses each carry their own 0900 row (`options-default-rounded-2014`,
->   `options-intermediate-rounding-2014`, `options-entry-convention-2014` [conservative — the in-repo 85/2002
->   evidence establishes only ARITHMETIC at 2002], `options-float-binary/decimal-2014`, `options-initialize-2014`,
+>   `options-intermediate-rounding-2014`, `options-entry-convention-2014` [the COBOL alternative only — the clause
+>   with an entry-convention-name is 2002, kb/Work PB4611], `options-float-binary/decimal-2014`, `options-initialize-2014`,
 >   and the STANDARD-BINARY/STANDARD-DECIMAL keyword rows); ROUNDED MODE IS is 2014+ (COBOL0803); the
 >   composite-of-operands check is 31 at EVERY edition (§14.7.7 rule 2 — an 85-specific tightening to 18 is
 >   refuted by CCVS-85 itself: NC101A composes 21 digits in a MULTIPLY).

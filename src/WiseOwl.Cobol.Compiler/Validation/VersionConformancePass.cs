@@ -2253,9 +2253,9 @@ internal sealed class VersionConformancePass
         }
 
         // ── The 2014-only OPTIONS clauses (ISO §11.9.6–§11.9.11; P10 Step 12): with the paragraph gate at
-        // 2002, each 2014 clause fires its own introduction row on RECOGNITION. ENTRY-CONVENTION is gated 2014
-        // conservatively (the in-repo 85/2002 evidence chain establishes only the ARITHMETIC clause at 2002 —
-        // the constructs.json row records the ambiguity). ──────────────────────────────────────────────────
+        // 2002, each 2014 clause fires its own introduction row on RECOGNITION. ENTRY-CONVENTION is NOT one of
+        // them: the clause is in ISO/IEC 1989:2002 (11.8.5, ENTRY-CONVENTION IS entry-convention-name-1) and only
+        // its COBOL alternative is 2014 (the FCD format and GR2; kb/Work PB4611). ────────────────────────────
 
         /// <summary>DEFAULT ROUNDED (ISO §11.9.6) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
         public override object? VisitDefaultRoundedClause(CobolParserCore.DefaultRoundedClauseContext ctx)
@@ -2265,9 +2265,17 @@ internal sealed class VersionConformancePass
         public override object? VisitIntermediateRoundingClause(CobolParserCore.IntermediateRoundingClauseContext ctx)
         { _p.Check(Constructs.OptionsIntermediateRounding2014, "the INTERMEDIATE ROUNDING clause"); return base.VisitChildren(ctx); }
 
-        /// <summary>ENTRY-CONVENTION (ISO §11.9.7) — gated 2014 conservatively (see the block note).</summary>
+        /// <summary>ENTRY-CONVENTION (ISO §11.9.7.2) — the clause with an entry-convention-name is a 2002 clause
+        /// (the paragraph's own gate asks that edge); the COBOL alternative of the format is the 2014 addition
+        /// (§11.9.7.4 GR2: "When COBOL is specified, the naming convention and mapping of method-names and
+        /// program-names are as specified in 8.3.2.2"), so the row is asked of that alternative alone (kb/Work
+        /// PB4611: the whole clause drew a false COBOL0900 beside the COBOL2385 a named convention earns).</summary>
         public override object? VisitEntryConventionClause(CobolParserCore.EntryConventionClauseContext ctx)
-        { _p.Check(Constructs.OptionsEntryConvention2014, "the ENTRY-CONVENTION clause"); return base.VisitChildren(ctx); }
+        {
+            if (ctx.entryConventionName().formatWord() is not null)
+                _p.Check(Constructs.OptionsEntryConvention2014, "ENTRY-CONVENTION IS COBOL");
+            return base.VisitChildren(ctx);
+        }
 
         /// <summary>FLOAT-BINARY (ISO §11.9.8) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
         public override object? VisitFloatBinaryClause(CobolParserCore.FloatBinaryClauseContext ctx)

@@ -30,7 +30,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | arithmetic-standard-binary-2014 | ARITHMETIC IS STANDARD-BINARY (binary128; obsolete 2023) | §11.9.5/§8.8.1.4 | 2014 | | 0900 | pending |
 | options-default-rounded-2014 | OPTIONS DEFAULT ROUNDED clause | §11.9.6 | 2014 | | 0900 | active |
 | options-intermediate-rounding-2014 | OPTIONS INTERMEDIATE ROUNDING clause | §11.9.11 | 2014 | | 0900 | active |
-| options-entry-convention-2014 | OPTIONS ENTRY-CONVENTION clause | §11.9.7 | 2014 | | 0900 | active |
+| options-entry-convention-2014 | OPTIONS ENTRY-CONVENTION IS COBOL (the COBOL alternative; the clause itself is 2002) | §11.9.7.2, §11.9.7.4 GR2 | 2014 | | 0900 | active |
 | options-float-binary-2014 | OPTIONS FLOAT-BINARY clause | §11.9.8 | 2014 | | 0900 | active |
 | options-float-decimal-2014 | OPTIONS FLOAT-DECIMAL clause | §11.9.9 | 2014 | | 0900 | active |
 | options-initialize-2023 | OPTIONS INITIALIZE clause | §11.9.10 | 2023 | | 0900 | active |
@@ -59,7 +59,6 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | same-as-clause-2002 | SAME AS clause (copies another entry's description) | §13.18.49 | 2002 | | 0900 | active |
 | external-type-declaration-2023 | Strongly-typed EXTERNAL type (STRONG+EXTERNAL TYPEDEF) | §13.18.22.3 | 2023 | | 0900 | active |
 | value-numeric-literal-numeric-edited-2023 | Non-zero numeric VALUE for numeric-edited item | §13.18.63 SR6 | 2023 | | 0900 | active |
-| value-numeric-edited-oversize-removed-2023 | Over-size alnum VALUE for numeric-edited (now rejected) | §13.18.63 SR4/SR5 | 85 | 2023 | 1570 | active |
 | picture-editing-2023 | PICTURE EDITING phrase (user-defined editing) | §13.18.40.2 | 2023 | | 0900 | active |
 | sync-on-group-2023 | SYNCHRONIZED on a group item | §13.18.55 | 2023 | | 0900 | active |
 | local-storage-section-2002 | LOCAL-STORAGE SECTION (per-activation data) | §13.6 | 2002 | | 0900 | active |
@@ -73,7 +72,6 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | usage-object-reference-2002 | USAGE OBJECT REFERENCE (OO reference field) | §13.18.60 | 2002 | | 0900 | active |
 | usage-program-pointer-2002 | USAGE PROGRAM-POINTER | §13.18.60 GR24 | 2002 | | 0900 | active |
 | usage-function-pointer-2014 | USAGE FUNCTION-POINTER | §13.18.60 | 2014 | | 0900 | pending |
-| usage-pointer-to-type-2014 | USAGE POINTER TO type-name | §13.18.60.2 | 2014 | | 0900 | pending |
 | usage-binary-char-family-2002 | BINARY-CHAR/-SHORT/-LONG/-DOUBLE integers | §13.18.60.4 GR12 | 2002 | | 0900 | active |
 | usage-float-short-2002 | USAGE FLOAT-SHORT (native float) | §13.18.60.4 GR13 | 2002 | | 0900 | active |
 | usage-float-long-2002 | USAGE FLOAT-LONG (native double) | §13.18.60.4 GR13 | 2002 | | 0900 | active |

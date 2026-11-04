@@ -454,8 +454,9 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
      unaffected and still binds a condition-name.
   3. The ALPHANUMERIC size arm had **no implementation anywhere** while its national and boolean twins had theirs,
      so BOTH of SR4's size sentences silently truncated (`PIC X(2) VALUE "ABCD"` → `AB`; a 6-character literal on
-     a 4-character group → `ABCD`). It is now **COBOL1740**, error at every edition — Annex E.2 item 27's 2023
-     size change is scoped to NUMERIC-EDITED items (COBOL1570), not to this. A FIGURATIVE operand is exempt by
+     a 4-character group → `ABCD`). It is now **COBOL1740**, error at every edition; the same sentence on a
+     NUMERIC-EDITED item is its sibling arm **COBOL1570**, also at every edition (kb/Work PB4610: the sentence is
+     in the 2002 text too, so Annex E.2 item 27 is no size change). A FIGURATIVE operand is exempt by
      rule, not omission: §8.3.3.6.4 GR2 repeats it to the subject's size and truncates from the right.
   The one asymmetry is deliberate: the SR4-sentence-1 vendor leniency that stores a numeric literal's digits on an
   alphanumeric subject under `--permissive` is withheld from a group subject, because GR5's area deposit is

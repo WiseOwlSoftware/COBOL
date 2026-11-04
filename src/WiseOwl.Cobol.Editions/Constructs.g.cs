@@ -62,7 +62,6 @@ public static class Constructs
     public const string FlagNativeArithmeticDirectiveWindow = "flag-native-arithmetic-directive-window";
     public const string ExternalTypeDeclaration2023 = "external-type-declaration-2023";
     public const string ValueNumericLiteralNumericEdited2023 = "value-numeric-literal-numeric-edited-2023";
-    public const string ValueNumericEditedOversizeRemoved2023 = "value-numeric-edited-oversize-removed-2023";
     public const string ExceptionFileArgument2023 = "exception-file-argument-2023";
     public const string ExceptionFileNArgument2023 = "exception-file-n-argument-2023";
     public const string MergeInSortMergeProcRemoved2023 = "merge-in-sort-merge-proc-removed-2023";
@@ -92,7 +91,6 @@ public static class Constructs
     public const string TypeClause2002 = "type-clause-2002";
     public const string TypedefDef2002 = "typedef-def-2002";
     public const string SameAsClause2002 = "same-as-clause-2002";
-    public const string UsagePointerToType2014 = "usage-pointer-to-type-2014";
     public const string UsageFloatShort2002 = "usage-float-short-2002";
     public const string UsageFloatBinary322014 = "usage-float-binary32-2014";
     public const string UsageFloatBinary642014 = "usage-float-binary64-2014";

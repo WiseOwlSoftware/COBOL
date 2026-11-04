@@ -823,18 +823,6 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VNL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 NE PIC $ZZ9.99 VALUE 12.5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY NE.\n    STOP RUN.\n"
   },
   {
-   "id": "value-numeric-edited-oversize-removed-2023",
-   "description": "An alphanumeric edited-image literal in the VALUE clause of a numeric-edited item that EXCEEDS the PICTURE's edited size (ISO §13.18.63 SR4/SR5) — before COBOL-2023 it was stored truncated (the 'unclear value'), at 2023 it is checked and rejected (Annex E.2 item 27). Modeled as removedIn=2023 (compiles at 85/2002/2014 truncated, rejects at 2023 with COBOL1570; --permissive downgrades to a warning). The national/alphanumeric class mismatch is the separate COBOL0898 check.",
-   "display": "over-size alphanumeric VALUE literal for a numeric-edited item",
-   "diagnosticCode": "COBOL1570",
-   "citation": "ISO §13.18.63.3 SR4/SR5; Annex E.2 item 27",
-   "introducedIn": 85,
-   "removedIn": 2023,
-   "expectDiagnostic": "COBOL1570",
-   "vcr": "VCR row 34 (numeric-edited VALUE literal size check — 2023)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NEOS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 NE PIC ZZ9 VALUE \"ABCDEF\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY NE.\n    STOP RUN.\n"
-  },
-  {
    "id": "exception-file-argument-2023",
    "description": "FUNCTION EXCEPTION-FILE(file-connector-name) with an optional file-connector-name argument (ISO §15.28.2/.3/.4 r2) — a COBOL-2023 addition (Annex E.3.3 item 25): it returns the NAMED FD connector's I-O status + SELECT-spelled name, or two spaces if that connector was never opened/attempted/accessed. The no-argument base form is 2002. The argument form is gated below 2023.",
    "display": "FUNCTION EXCEPTION-FILE(file-connector-name)",
@@ -1063,14 +1051,14 @@
   },
   {
    "id": "options-entry-convention-2014",
-   "description": "The ENTRY-CONVENTION clause of the OPTIONS paragraph (§11.9.7) — gated 2014 CONSERVATIVELY: the in-repo 85/2002 evidence chain (Annex E.2 item 21 + the M2 catalog) establishes only the ARITHMETIC clause at 2002; per the VCR scope note the other clauses gate at 2014 until the 2002 text's clause inventory is tabulated (P10 Step 12 ambiguity record)",
-   "display": "OPTIONS ENTRY-CONVENTION",
+   "description": "The COBOL alternative of the ENTRY-CONVENTION clause of the OPTIONS paragraph (ISO §11.9.7.2 format ENTRY-CONVENTION IS { COBOL | entry-convention-name-1 }; §11.9.7.4 GR2: when COBOL is specified, the naming convention and mapping of method-names and program-names are as specified in 8.3.2.2) — a COBOL-2014 addition: the 2014 FCD format adds the COBOL alternative (t2014.txt:13144-13146, GR2 at 13166), while ISO/IEC 1989:2002 has the clause with only ENTRY-CONVENTION IS entry-convention-name-1 (11.8.5, t2002.txt:10984). The clause itself, with an entry-convention-name, is a 2002 clause: it draws no edition diagnostic at 2002 (WiseOwl defines no entry-convention-name, so COBOL2385 refuses it by name, §11.9.7.4 GR3) (kb/Work PB4611)",
+   "display": "OPTIONS ENTRY-CONVENTION IS COBOL",
    "diagnosticCode": "COBOL0900",
    "expectDiagnostic": "COBOL0900",
-   "citation": "ISO §11.9.7",
+   "citation": "ISO §11.9.7.2; §11.9.7.4 GR2",
    "introducedIn": 2014,
    "removedIn": null,
-   "vcr": "2014 (conservative — 2002-clause-inventory evidence pending; VCR scope-limit note)",
+   "vcr": "VCR row 7.50 (the COBOL alternative of ENTRY-CONVENTION - 2014 introduction)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OECP10AS.\nOPTIONS.\n    ENTRY-CONVENTION IS COBOL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
   },
   {
@@ -1181,18 +1169,6 @@
    "expectDiagnostic": "COBOL0900",
    "vcr": "2002 introduction (derive from the 2002 standard; the TYPEDEF/SAME AS data-description family)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PROTO PIC 9(3).\n01 W SAME AS PROTO.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 7 TO W.\n    DISPLAY W.\n    STOP RUN.\n"
-  },
-  {
-   "id": "usage-pointer-to-type-2014",
-   "status": "pending",
-   "description": "USAGE POINTER TO type-name — a RESTRICTED data-pointer (ISO §13.18.60.2 general format, verified against the printed page; §13.18.60.4 GR23; narrated in Annex D.9.2.2 'Restricted data-pointers'). THE GRAMMAR AND THE SEMANTICS ARE LIVE since kb/Work PB153: dataPointerUsage parses the TO tail, PicInfo.RestrictedTypeName carries the restriction, and the consumption screens are enforced (§14.9.3.3 SR4/SR5 on ALLOCATE, §14.9.39.3 SR19/SR20 on SET ADDRESS OF in BOTH arms, §14.8.2.3.2 on a nested CALL). ⛔ THE SOURCE BELOW WAS REWRITTEN: the previous witness was DOUBLY NONCONFORMING and had never been compiled, so nothing had ever contradicted it — '01 T TYPEDEF STRONG PIC 9(3).' violates §8.5.3.1 (\"Elementary type definitions shall not be specified with the STRONG phrase\") and '01 P USAGE POINTER TO T.' violates §13.18.60.3 SR18 (\"If type-name-1 is specified, the TYPEDEF clause shall be specified for the subject of the entry\"). Activating that row would have pinned illegal COBOL as the construct's definition. The replacement is the ONLY legal declaration shape SR14+SR18 admit, and it was measured to compile and run. STILL PENDING FOR ONE REASON ONLY — THE EDITION IS UNVERIFIED: introducedIn was self-labelled 'provisional' and the row has never been exercised. Annex E (the 2014→2023 substantive-changes list) contains no pointer entry, which RULES OUT 2023; the feature's dependencies (STRONG TYPEDEF §8.5.3, USAGE POINTER, BASED, ALLOCATE) are all COBOL-2002 in this registry, so the true answer is 2002 or 2014 and cannot be settled from the 2023 document alone. Activating with a guessed number would enshrine it. NO CONFORMANCE HOLE IS HELD OPEN by the wait: a restricted-pointer program already draws COBOL0900 below 2002 through the usage-pointer-2002 and TYPEDEF gates (measured).",
-   "display": "USAGE POINTER TO type-name (restricted data-pointer)",
-   "diagnosticCode": "COBOL0900",
-   "citation": "ISO §13.18.60.2 general format / §13.18.60.4 GR23 / §13.18.60.3 SR14+SR18 (the legal declaration shape) / Annex D.9.2.2; the EDITION is unverified — Annex E rules out 2023, leaving 2002 or 2014",
-   "introducedIn": 2014,
-   "removedIn": null,
-   "vcr": "EDITION UNVERIFIED (§13.18.60.2 restricted data-pointer). Annex E carries no pointer entry, so not 2023; re-derive 2002 vs 2014 from those standards before activating this row — the gate it installs would enshrine whatever number is here",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PTT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 TPT TYPEDEF STRONG.\n   05 F PIC 9(4).\n01 PTR-T TYPEDEF USAGE POINTER TO TPT.\n01 V TYPE TPT BASED.\n01 P TYPE PTR-T.\nPROCEDURE DIVISION.\nMAIN.\n    ALLOCATE V RETURNING P.\n    SET ADDRESS OF V TO P.\n    FREE P.\n    STOP RUN.\n"
   },
   {
    "id": "usage-float-short-2002",
