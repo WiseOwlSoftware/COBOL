@@ -1,3 +1,4 @@
-## Notes PB4584 and PB4585 filed from the PB2182/PB2361 landing reports
+## Entry 3081 — 2026-11-04 10:22 PST — Notes PB4584 and PB4585 filed from the PB2182/PB2361 landing reports
 
 Two leads from the reports of the PB2182/PB2361 landing (PR #1101, branch worktree-wf_3436403d-198-1) became `kb/Work` notes. PB4584 records that the storage tier (`StorageTierSlice`, `DataBindResult.CellLifetimes` / `CellFieldsOf`, `LinkageFacts.SuppressedRootFields`) carries C# member names where the backend should read a symbol's CLR name (same root as PB3251). PB4585 records the stale `DataBinder.LeapSecond` comment in `IntrinsicRenderer.cs`; checking its sibling leads found the `GroupImageCodec` and `PhysicalModel` mentions still accurate. No code changed.
+
