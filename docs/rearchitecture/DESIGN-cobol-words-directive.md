@@ -258,11 +258,20 @@ is the user-word token type.
 - **SR5 (a word in ≤1 directive's literals)** — Frontend: a group-wide multiset of every literal's content;
   a repeat ⇒ COBOL1623 (SR5). (Both the modified word and its substitute count, per D.12.1.)
 - **SR3 (lit1/3/4 = reserved OR context OR intrinsic; not special-character)** — Compiler: ONE population predicate,
-  `VersionConformancePass.IsReservedContextOrIntrinsic`, shared by SR3 and SR4 and read at the directive's own edition
+  `CobolWordsCategoryPass.IsReservedContextOrIntrinsic`, shared by SR3 and SR4 and read at the directive's own edition
   (`CobolWordsMap.DirectiveEdition`, 2023): reserved via `ReservedWords.Find(w).R2023` (the generated §8.9 table's 2023
   flag — a word §8.9 dropped before 2023, AUTHOR or MEMORY, is not in it), **context via `ContextSensitiveWords.Contains`
-  (the generated §8.10 table)**, intrinsic via `IntrinsicCatalog.TryGet` inside its window (`IsDefinedAt`). None ⇒
-  COBOL1623 (SR3). ⛔ The lexer vocabulary (`CobolKeywordTokens.TryTokenType`) is NOT a population of the standard and no
+  (the generated §8.10 table)**, intrinsic via `IntrinsicCatalog.TryGet` inside its window (`IsDefinedAt`), **and the words
+  this implementation reserves for nonstandard extensions via `NonstandardExtensionRegister.ReservesWord` (§4.2.10 3): JSON,
+  XML, COMP-1 … COMP-5 and COMPUTATIONAL-1 … -5, END-JSON, END-XML and ENTRY, the register's rows, so the next
+  `extensionReserved` word reaches SR3 and SR4 with no edit here)**. A word the compiler reserves is a reserved word
+  (§8.3.2.1 1)); §7.3.10.1 and D.12.1 give the directive so a program may change which words are reserved, and D.12.3 names
+  this very collision ("a change of compiler that includes new reserved words that conflict with existing code"), so
+  `UNDEFINE`, `EQUATE` and `SUBSTITUTE` may name them and `RESERVE` and the new word of `EQUATE` / `SUBSTITUTE` may not (owner
+  decision 2026-10-31, kb/Work PB4239; docs/CONFORMANCE.md D-RW1). None ⇒ COBOL1623 (SR3). A synonym of such a word used as a
+  user-defined word draws the parser's COBOL0313, whose sentence names the directive that wrote the synonym
+  (`CobolWordsMap.SynonymBy`): EQUATE keeps the original reserved beside it (GR2), SUBSTITUTE frees the original and the new
+  word replaces it (GR4). ⛔ The lexer vocabulary (`CobolKeywordTokens.TryTokenType`) is NOT a population of the standard and no
   longer answers either rule (kb/Work PB1373: SR3 accepted `UNDEFINE "AUTHOR"` because the lexer tokenizes it, and SR4
   refused `RESERVE "AUTHOR"` for the same reason).
   ⛔ This used to read "context via `DefaultVocabulary` (a keyword token exists)", which answers a DIFFERENT
@@ -276,11 +285,17 @@ is the user-word token type.
   carries `ContextSensitiveWordEntry.Introduced`, the edition the word is first a keyword, which only the syntax
   diagnostics that name the words expected ask: kb/Work PB4174, CONFORMANCE.md D-EXPECT.)
 - **SR4 (lit2/5/6 NOT reserved/context/intrinsic; a valid user-defined word §8.3.2.2)** — Compiler: reject if
-  the word is in the same 2023 population (`IsReservedContextOrIntrinsic`); the §8.3.2.1 / §8.3.2.2 well-formedness is a
+  the word is in the same population (`CobolWordsCategoryPass.IsReservedContextOrIntrinsic`, the §4.2.10 additions included;
+  the sentence for such a word names that reservation and D-RW1, not "a reserved / context-sensitive / intrinsic-function
+  word"); the §8.3.2.1 / §8.3.2.2 well-formedness is a
   Frontend check at parse time (`CobolWordsDirectiveProcessor.UserWord`): the word shape (word characters — letters,
   digits, hyphen, underscore, the extended letters — neither hyphen nor underscore first or last), at least one letter, and
   `CobolWordRule.DirectiveWordViolations` at the directive's edition (the 63-character ceiling and Annex B's placement of
   each extended character) — asked here because a fresh word no statement uses never reaches the tree funnel.
+- **Where SR3 and SR4 run (kb/Work PB4586).** `CobolWordsCategoryPass.Run`, called by `CompilerDriver.Compile` on the
+  directive stage's map BEFORE the frontend gate, on the compilation's edition sink: the verdict needs no parse tree, so a
+  program that also fails to parse reports COBOL1623 (at the directive's line and column) beside its parse errors. It used
+  to run inside `VersionConformancePass`, the terminal bind pass, which a failed parse never reaches.
 
 **Omitted conditional-compilation branches (§7.2.1, kb/Work PB2003).** The directive in the false path of a `>>IF` is part
 of the text that shall be "syntactically correct", but the conditional-compilation driver consumes that line and the stage

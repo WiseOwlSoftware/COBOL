@@ -2,10 +2,15 @@
       *> id: pb443_search_identifier_1
       *> rules: [SR-14.9.37.3-1, SR-14.9.37.3-2, SR-14.9.37.3-3,
       *>    SR-14.9.37.3-9, SR-14.9.37.3-11]
-      *> accept: [85]
+      *> accept: [2014]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> kb/Work PB4577: accept is 2014, not 85. `SEARCH INNER (OX)` writes an enclosing table's subscript on SEARCH
+      *> identifier-1, which the 2002 text and the 2009 committee draft refuse ("Identifier-1 shall not be subscripted or
+      *> reference modified") and COBOL-2014 first permits (14.9.37.3 SR2, SR3): construct
+      *> search-identifier-1-enclosing-subscript-2014. The 85-and-2002 legal spelling of the same search is the bare one
+      *> (conformance:cases/14.9.37-SEARCH/pb4577_search_bare_nested_table_85).
       *> kb/Work PB443 - the LEGAL half of SEARCH's identifier-1 rules (ISO 14.9.37.3 SR1-SR3, ALL FORMATS),
       *> every case one the rule that refuses its siblings ADMITS. The expected output is derived from the
       *> rules, never from a run:

@@ -704,6 +704,92 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains(errors, e => e.Contains("COBOL1623") && e.Contains("SR4"));
     }
 
+    /// <summary>Every word the §4.2.10 register reserves (JSON, XML, COMP-3, ENTRY and the rest): the fourth list SR3 and SR4
+    /// speak of. It is the REGISTER's rows, never a literal list, so a word added to a row is asked with no edit here
+    /// (kb/Work PB4239: a fixed list of the three printed ones is what let fifteen words fall through).</summary>
+    public static TheoryData<string> ExtensionReservedWords() =>
+        new(NonstandardExtensionRegister.Entries.SelectMany(e => e.ReservedWords).Distinct(StringComparer.Ordinal));
+
+    [Theory] // §7.3.10.3 SR3 admits a §4.2.10 reserved word as the existing word (owner decision 2026-10-31, kb/Work PB4239).
+    [MemberData(nameof(ExtensionReservedWords))]
+    public void Sr3_AnExtensionReservedWord_IsAnExistingWord(string word)
+    {
+        Assert.DoesNotContain(CompileErrors(NoOpProgram($">>COBOL-WORDS UNDEFINE \"{word}\"")), e => e.Contains("COBOL1623"));
+        Assert.DoesNotContain(CompileErrors(NoOpProgram($">>COBOL-WORDS EQUATE \"{word}\" WITH \"ZQXSYN\"")), e => e.Contains("COBOL1623"));
+        Assert.DoesNotContain(CompileErrors(NoOpProgram($">>COBOL-WORDS SUBSTITUTE \"{word}\" BY \"ZQXSUB\"")), e => e.Contains("COBOL1623"));
+    }
+
+    [Theory] // SR4 refuses a §4.2.10 reserved word as the new word, and the sentence names the reservation that refuses it.
+    [MemberData(nameof(ExtensionReservedWords))]
+    public void Sr4_AnExtensionReservedWord_IsNotAFreshWord(string word)
+    {
+        foreach (var option in new[] { $"RESERVE \"{word}\"", $"EQUATE \"MOVE\" WITH \"{word}\"", $"SUBSTITUTE \"DISPLAY\" BY \"{word}\"" })
+        {
+            var refusal = Assert.Single(CompileErrors(NoOpProgram(">>COBOL-WORDS " + option)), e => e.Contains("COBOL1623"));
+            Assert.Contains("SR4", refusal);
+            Assert.Contains($"the new word '{word}' is a word this implementation reserves for a nonstandard extension (ISO §4.2.10", refusal);
+        }
+    }
+
+    [Fact] // kb/Work PB4239 S1: a word of a standard list as the new word keeps the generic sentence (no §4.2.10 claim).
+    public void Sr4_AStandardWord_KeepsTheGenericSentence()
+    {
+        var refusal = Assert.Single(CompileErrors(NoOpProgram(">>COBOL-WORDS RESERVE \"DISPLAY\"")), e => e.Contains("COBOL1623"));
+        Assert.Contains("is a reserved / context-sensitive / intrinsic-function word", refusal);
+        Assert.DoesNotContain("§4.2.10", refusal);
+    }
+
+    [Theory] // kb/Work PB4586: the SR3 / SR4 verdict needs no parse tree, so a statement error beside it does not hide it.
+    [InlineData("UNDEFINE \"AUTHOR\"", "SR3")]
+    [InlineData("EQUATE \"MEMORY\" WITH \"RAM\"", "SR3")]
+    [InlineData("RESERVE \"MOVE\"", "SR4")]
+    [InlineData("EQUATE \"DISPLAY\" WITH \"JSON\"", "SR4")]
+    public void TheCategoryVerdict_IsReportedBesideAParseError(string option, string rule)
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS " + option + "\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4586.\n"
+            + "       PROCEDURE DIVISION.\n       MAIN.\n           MOVE TO.\n           STOP RUN.\n");
+        Assert.Contains(errors, e => e.Contains("COBOL5506") || e.Contains("COBOL0001"));   // the statement is still no statement
+        var verdict = Assert.Single(errors, e => e.Contains("COBOL1623"));
+        Assert.Contains(rule, verdict);
+        Assert.Contains("cw.cob(1,8)", verdict);   // at the directive's own line and column
+    }
+
+    [Fact] // kb/Work PB4239 S4: a synonym of an extension word used as a data-name is refused with a sentence naming the cause.
+    public void ASynonymOfAnExtensionWord_UsedAsADataName_NamesTheReservation()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS EQUATE \"JSON\" WITH \"JS\"\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4239S.\n"
+            + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 JS PIC X VALUE \"C\".\n"
+            + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY JS.\n           STOP RUN.\n");
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));   // the directive holds (SR3: JSON is reserved; SR4: JS is no word)
+        var refusal = errors.First(e => e.Contains("COBOL0313") && e.Contains("unexpected 'JS'"));
+        Assert.Contains("JSON is a word this implementation reserves for a nonstandard extension (ISO §4.2.10; docs/CONFORMANCE.md D-RW1)", refusal);
+        Assert.Contains("'JS' is its synonym here (ISO §7.3.10.4 GR2), so neither is a user-defined word", refusal);
+        Assert.DoesNotContain("unexpected 'JSON'", string.Concat(errors));   // never the original, which the source did not write
+    }
+
+    [Fact] // kb/Work PB4239 S4 (review R1-1): SUBSTITUTE frees the original (GR4), so the sentence names GR4 and never calls JSON no user-defined word.
+    public void ASubstituteSynonymOfAnExtensionWord_UsedAsADataName_NamesGr4AndFreesTheOriginal()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS SUBSTITUTE \"JSON\" BY \"JSN\"\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4239R.\n"
+            + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 JSN PIC X VALUE \"C\".\n       01 JSON PIC X VALUE \"D\".\n"
+            + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY JSON.\n           STOP RUN.\n");
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));   // the directive holds
+        var refusal = errors.First(e => e.Contains("COBOL0313") && e.Contains("unexpected 'JSN'"));
+        Assert.Contains("SUBSTITUTE \"JSON\" BY \"JSN\" replaces it with 'JSN' (ISO §7.3.10.4 GR4)", refusal);
+        Assert.DoesNotContain("GR2", refusal);
+        Assert.DoesNotContain("neither is a user-defined word", refusal);
+        Assert.DoesNotContain(errors, e => e.Contains("unexpected 'JSON'"));   // JSON is the data-name GR4 makes it
+    }
+
+    [Fact] // kb/Work PB4586 control: a directive that holds is not reported because the program beside it fails to parse.
+    public void ALegalDirective_BesideAParseError_DrawsNoCategoryVerdict()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS UNDEFINE \"JSON\"\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4586C.\n"
+            + "       PROCEDURE DIVISION.\n       MAIN.\n           MOVE TO.\n           STOP RUN.\n");
+        Assert.NotEmpty(errors);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));
+    }
+
     // ── Increment C — the lexer retype's de-reserved token-type set (CobolWordsRewriter.Plan) ──────────────────
 
     [Fact] // UNDEFINE of a keyword contributes its token type to the types the lexer retypes to IDENTIFIER.

@@ -1614,10 +1614,28 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // never an edition gate. Every ISO reservation-word introduction gate now fires at BIND (superset parse +
         // bind-time ConstructRegistry.Check → the VersionConformancePass), so the former ReservedWordEditionHints
         // reverse-signature recogniser is gone (residue migration complete, DESIGN-version-conformance-pipeline.md).
+        // ⛔ The word is reserved for that extension (ISO §4.2.10 3), docs/CONFORMANCE.md D-RW1), so it surfaces here as a
+        // vendor statement AND as a user-defined word the program tried to declare or name (`01 JSON`, `MOVE A TO JSON`, a
+        // >>COBOL-WORDS synonym `JS` of it): the sentence says which reservation refuses it, and the synonym as written
+        // (kb/Work PB4239).
         if (token.Type is CobolLexer.JSON or CobolLexer.XML)
+        {
+            string reserved = token.Type == CobolLexer.JSON ? "JSON" : "XML";
+            string written = WrittenSource.Of(token);
+            bool isSynonym = !CobolKeywords.Same(written, reserved);
+            // ⛔ The directive that wrote the synonym decides what becomes of the original (kb/Work PB4239): EQUATE keeps JSON
+            // reserved beside the new word (GR2), SUBSTITUTE frees it and the new word replaces it (GR4), so the sentence
+            // names the rule of the directive the map holds, never one rule for both.
+            var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
+                ? words.SynonymBy(written) : null;
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0313,
-                $"{(token.Type == CobolLexer.JSON ? "JSON" : "XML")} GENERATE/PARSE is not an ISO/IEC 1989 construct — "
-                + "vendor-dialect extension, deferred (owner decision 2, DEVLOG 581).", 0));
+                $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO §4.2.10; docs/CONFORMANCE.md D-RW1)"
+                + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
+                    ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word; "
+                    : isSynonym ? $" and '{Truncate(written, 40)}' is its synonym here (ISO §7.3.10.4 GR2), so neither is a user-defined word; "
+                                : ", so it is no user-defined word; ")
+                + $"{reserved} GENERATE/PARSE is not an ISO/IEC 1989 construct — vendor-dialect extension, deferred (owner decision 2, DEVLOG 581).", 0));
+        }
 
         // ⛔ 0a. THE REQUIRED IMPERATIVE-STATEMENT ARM — ONE ARM FOR EVERY GENERAL FORMAT (kb/Work PB396).
         // Nine phrase rules carry an imperative-statement operand that the printed general format leaves

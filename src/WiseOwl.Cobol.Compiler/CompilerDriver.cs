@@ -198,10 +198,6 @@ public static class CompilerDriver
         // Frontend WARNINGS (the preprocessor 0902-permissive/0903 gates) ride Result.Warnings on every
         // outcome, merged ahead of the edition channel's — same contract as edition warnings.
         var feWarnings = diagnostics.Diagnostics.Where(d => !d.IsError).Select(d => d.ToString()!).ToList();
-        if (tree is null || diagnostics.HasErrors)
-            return new Result(Outcome.FrontendError, "", null,
-                diagnostics.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()!).ToList(), feWarnings)
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
 
         // Phase 2 — BIND under the targeted EDITION, then emit typed-native C#. The Binder phase
         // (BinderDriver.Bind, P6) runs the DECLARED manifest whose NAMED TERMINAL pass is the
@@ -236,6 +232,15 @@ public static class CompilerDriver
             // published unit's record at the end of the bind. A check-only compile writes no module, so it publishes nothing.
             RepositoryUpdate = options.RepositoryUpdate && !options.CheckOnly,
         };
+        // ⛔ The >>COBOL-WORDS directive's SR3/SR4 verdict (COBOL1623, ISO §7.3.10.3) is judged HERE, on the directive stage's map
+        // and before the frontend gate: it needs no parse tree, so a program that also fails to parse reports it beside the parse
+        // errors instead of losing it behind them (kb/Work PB4586). A directive that fails SR3/SR4 on a program that parses
+        // reaches the bind with the same diagnostics on the edition's sink, as before.
+        Validation.CobolWordsCategoryPass.Run(frontend.Directives.CobolWordsMap, edition);
+        if (tree is null || diagnostics.HasErrors)
+            return new Result(Outcome.FrontendError, "", null,
+                [.. diagnostics.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()!), .. edition.Diagnostics], feWarnings)
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
         var emitter = new CSharpEmitter();
         // The external repository (ISO §8.13; DESIGN-external-repository §9.3): the --repository directories, else the
         // output directory, then the --reference assemblies; the output itself is never resolved against.
