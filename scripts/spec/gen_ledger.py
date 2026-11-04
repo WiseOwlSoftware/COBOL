@@ -828,9 +828,11 @@ def inputs_text(inputs: dict) -> str:
     rules, fg, rate, burn = inputs.get("rules"), inputs.get("fix_groups"), inputs.get("rate"), inputs.get("burn")
     items = []
     if fg is not None:
+        groups = fg.get("clusters", [])
+        unsited = sum(1 for c in groups if not c.get("file"))   # fold_unsited's one-note groups (kb/Work PB4566)
         items.append(f'the fix lane\'s groups: <span class="mono">fix_clusters.py</span> forms '
-                     f'<span class="num">{n(len(fg.get("clusters", [])))}</span> groups and '
-                     f'<span class="num">{n(len(fg.get("unsited", [])))}</span> unsited notes over '
+                     f'<span class="num">{n(len(groups))}</span> groups, <span class="num">{n(unsited)}</span> of them '
+                     f'an unsited note planned on its own, over '
                      f'<span class="mono">.agent-fleet.json</span>\'s population (a blocked defect it skips counts as a group of its own)')
     else:
         items.append(f'the fix lane\'s groups: {UNMEASURED} (the <span class="mono">tools/claude-skills</span> submodule '
@@ -1323,11 +1325,15 @@ def self_test() -> int:
              "cost": {"per_group_tokens": {"sonnet": 400000}, "per_note_tokens": {"sonnet": 240000},
                       "landing_tokens": 96000, "landing_model": "opus"},
              "calibration": {"tokens_per_point": {"sonnet": 4000000, "opus": 1600000}}}
-    full = {"rules": rules, "implementer_model": "sonnet", "fix_groups": {"clusters": [{"notes": [{"id": "PB9001"}]}], "unsited": []},
+    full = {"rules": rules, "implementer_model": "sonnet", "fix_groups": {"clusters": [{"file": "src/X/A.cs", "notes": [{"id": "PB9001"}]},
+                                                                                {"file": "", "notes": [{"id": "PB9008"}]}]},
             "rate": {"per_h": 2.0, "changes": 4, "window_h": 2.0, "landings": 1, "median_min": 30.0,
                      "source": "pull requests through the merge queue", "median_measures": "DONE → on main, per change"},
             "burn": {"per_h": 3.0, "from_pct": 0.0, "to_pct": 3.0, "hours": 1.0, "account": "t"}}
     page = render_remaining(rem, ledger_plan.bucket_estimates(rem, full), cp, full)
+    check("the fix lane's groups count each folded unsited note (a group with no primary file, kb/Work PB4566)",
+          '<span class="num">2</span> groups, <span class="num">1</span> of them an unsited note' in inputs_text(full),
+          True)
     check("the landing rate input names its source, changes per hour and minutes per landing",
           all(t in inputs_text(full) for t in ("landing_measure.py", "pull requests through the merge queue",
                                                '<span class="num">2.00</span> changes per hour',
