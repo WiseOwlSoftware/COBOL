@@ -1,4 +1,4 @@
-## Five filed notes named sites that do not exist, and why `work.py check` passed them (PB4654)
+## Entry 3110 — 2026-11-04 15:00 PST — Five filed notes named sites that do not exist, and why `work.py check` passed them (PB4654)
 
 The enqueue unit's clerk filed PB4616 to PB4653 from the reports of 33 landed branches. Looking up every path and member
 in those notes' Sites paragraphs found five wrong, each corrected here:
@@ -16,3 +16,4 @@ in a campaign, and these have `cluster: []`; and a path it cannot find reads as 
 found them was a throwaway script in the unit's scratch directory, so nothing in the tree runs it yet.
 
 The other 33 notes passed that script, whose member test is a substring search. The notes' repros were not re-run.
+
