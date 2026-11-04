@@ -41,4 +41,43 @@ public sealed class SearchIdentifier1GateTests
         }
         finally { ScratchDirectory.Remove(dir); }
     }
+
+    // kb/Work PB4609 (review R1-1, R1-2): the COBOL2075 advice names the edge the gate above enforces. A subscript the SEARCH
+    // supplies itself (SR2) is written on identifier-1 from COBOL-2023 only, so below it the advice offers the WHEN phrases alone.
+    private const string TableSource =
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4609A.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n"
+        + "       01  T.\n           05  E PIC X OCCURS 3 TIMES INDEXED BY IX.\n"
+        + "       PROCEDURE DIVISION.\n       MAIN-PARA.\n           SEARCH E (IX)\n               AT END CONTINUE\n"
+        + "               WHEN E (IX) = \"A\" CONTINUE\n           END-SEARCH.\n           STOP RUN.\n";
+
+    private const string DynamicSource =
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4609B.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n"
+        + "       01  G.\n           05  GR OCCURS 2 TIMES.\n"
+        + "               10  EP PIC X OCCURS DYNAMIC CAPACITY IN ECAP INDEXED BY EX.\n       01  J PIC 9 VALUE 1.\n"
+        + "       PROCEDURE DIVISION.\n       MAIN-PARA.\n           SEARCH EP\n               AT END CONTINUE\n"
+        + "               WHEN J = 5 CONTINUE\n           END-SEARCH.\n           STOP RUN.\n";
+
+    [Theory]
+    [InlineData(TableSource, 85, false)]
+    [InlineData(TableSource, 2002, false)]
+    [InlineData(TableSource, 2014, false)]
+    [InlineData(TableSource, 2023, true)]
+    [InlineData(DynamicSource, 2014, false)]
+    [InlineData(DynamicSource, 2023, true)]
+    public void TheCobol2075Advice_OffersIdentifier1SubscriptsOnlyFrom2023(string source, int dialect, bool offersSubscripts)
+    {
+        string dir = ScratchDirectory.Create("WiseOwlCobol_PB4609A_");
+        try
+        {
+            string src = Path.Combine(dir, "pb4609a.cob");
+            File.WriteAllText(src, source);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "pb4609a.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+            string advice = Assert.Single(r.Errors, e => e.Contains("COBOL2075"));
+            Assert.Equal(offersSubscripts, advice.Contains("may be written here") || advice.Contains("Write the enclosing subscripts on identifier-1"));
+            Assert.Equal(!offersSubscripts, advice.Contains("COBOL-2023 first lets identifier-1 write"));
+            Assert.DoesNotContain("COBOL-2014 first lets", advice);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
 }

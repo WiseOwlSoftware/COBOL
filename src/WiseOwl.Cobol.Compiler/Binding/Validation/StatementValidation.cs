@@ -6,6 +6,7 @@ using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -854,10 +855,10 @@ internal sealed class StatementValidation(DataBinder data)
                 + " — \"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\" "
                 + "(ISO §14.9.37.3 SR2). The search supplies that occurrence itself by varying the table's first "
                 + "index (§14.9.37.4 GR1); "
-                + (data.Edition.Edition.Year >= 2014
+                + (IdentifierOneMayWriteEnclosingSubscripts
                     ? "an enclosing table's occurrence may be written here or left to the WHEN phrases, which is where GR1 puts it."
                     : "an enclosing table's occurrence is left to the WHEN phrases, which is where GR1 puts it "
-                      + "(COBOL-2014 first lets identifier-1 write it)."));
+                      + "(COBOL-2023 first lets identifier-1 write it)."));
             // ⛔ A DYNAMIC-CAPACITY TABLE'S SCAN BOUND IS ITS ENCLOSING OCCURRENCE'S CAPACITY (kb/Work PB3365): with the
             // subscripts of identifier-1 unreadable there is no bound to bind, so this one cannot "continue" past its
             // report the way the fixed and occurs-depending tables do.
@@ -881,8 +882,16 @@ internal sealed class StatementValidation(DataBinder data)
             + "allocated at a particular time is referred to as the current capacity of the table\"), and neither "
             + "identifier-1 nor any WHEN phrase subscripts it: \"The subscript that is used to determine the "
             + "occurrence of each superordinate table to search is specified by the user in the WHEN phrases\" "
-            + $"(ISO §14.9.37.4 GR1). Write the enclosing subscripts on identifier-1, or reference an element of "
-            + $"'{table.CobolName}' in a WHEN phrase.");
+            + "(ISO §14.9.37.4 GR1). "
+            + (IdentifierOneMayWriteEnclosingSubscripts ? "Write the enclosing subscripts on identifier-1, or reference" : "Reference")
+            + $" an element of '{table.CobolName}' in a WHEN phrase"
+            + (IdentifierOneMayWriteEnclosingSubscripts ? "." : " (COBOL-2023 first lets identifier-1 write the enclosing subscripts)."));
+
+    /// <summary>Whether the edition under compile lets identifier-1 of SEARCH carry its enclosing tables' subscripts
+    /// (ISO §14.9.37.3 SR2, a COBOL-2023 permission; kb/Work PB4609). The ONE reading is the construct row the parse arm of
+    /// VersionConformancePass gates on, so the advice in the SR2 and PB3365 messages can never name an edge the gate does not.</summary>
+    private bool IdentifierOneMayWriteEnclosingSubscripts =>
+        ConstructRegistry.IsAvailable(data.Edition.Edition, Constructs.SearchIdentifier1EnclosingSubscript2023);
 
     /// <summary>The identifier-1 sink (ISO §14.9.37.3 SR1–SR3) — one code for one operand position, the same way
     /// COBOL1964–1966 group SR7–SR13 by the operand each is about.</summary>
