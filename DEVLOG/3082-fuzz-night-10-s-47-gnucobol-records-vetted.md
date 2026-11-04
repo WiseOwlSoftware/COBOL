@@ -1,4 +1,4 @@
-## Fuzz night 10's 47 GnuCOBOL records, vetted
+## Entry 3082 — 2026-11-04 10:29 PST — Fuzz night 10's 47 GnuCOBOL records, vetted
 
 **Why the yield jumped.** Night 10 filed 47 `upstream` notes (PB4519 to PB4565) against 7, 5 and 2 on nights 7 to 9: 15.7 records per 1,000 programs against 0.29. About 85 to 90 percent of it is the input: the generator changed from qwen3.6:35b to claude-sonnet-5-5 (same plan of 235 sections), usable programs rose from 46 to 47 percent to 68 percent, and 31 of the 49 record signatures had never occurred before (Report Writer, SEARCH, SORT, MERGE, SET and RESUME programs that the qwen programs never got through both compilers). The rest is the pipeline: the briefs, `fuzz_triage.py` and the filing rule were unchanged, and nothing in them checks Annex A, the tracker or 3.3-dev before a record counts. The vetting was two steps, a read-only adjudicator over the whole night (step 1, six notes vetted) and batched vetters with an independent refuter per record over 41 notes (step 2), every citation run through `cite.py --check`.
 
@@ -11,3 +11,4 @@
 **The pipeline notes, PB4579 to PB4583** (`area: tooling/fuzz`, process only): the briefs never require the Annex A.1/A.3/A.4 check (PB4579); `fuzz_triage.py file` counts a record before any 3.3-dev re-run or tracker search (PB4580); the cache searches read `discussion_thread` and the cache stores `posts` (PB4581); no derived record of settled non-defects reaches the next night's adjudicators (PB4582, which must not become a second register); and the API-session runner does not enforce the 160-turn cap (PB4583: slices ran 193, 224 and 200).
 
 **The `withdrawn` status.** `work.py` gained `upstream_status: withdrawn` (the previous commit of this change): the ending a vetted record reaches without the other project having anything to do, a merge, or a refuter overturning the verdict. It is terminal, carries no `upstream_ref`, and `work.py check` refuses it on a non-retired note. Four notes use it: PB4551, PB4540, PB4532, PB4565.
+
