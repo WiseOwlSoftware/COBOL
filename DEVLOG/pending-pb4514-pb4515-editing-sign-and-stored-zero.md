@@ -25,4 +25,12 @@ BLANK WHEN ZERO, floating `+` and `-`, with nonzero controls). Both accept from 
 exist, so there is no refused-below program. Unit theories in `CobolEditStoredSignTests` pin the same values at the
 `Format` and `DeEdit` seam, including a comma insertion inside an all-`*` picture.
 
+**Review round 1.** The reviewer (R1-1, blocking) showed the position-based read missed one landing spot: a PICTURE
+EDITING character-1 (IS form) embedded in the floating string, where rule 6 a) lands the sign (`PIC --T--9 EDITING T IS ":"`
+holding -555 is `  -555`). The deleted whole-image scan used to catch that for a floating `-` string, so it was a
+regression, and the floating `+` string had the same hole. `DeEdit`'s non-floating character-1 arm now reads a `-` that
+is not the rule's own literal as the landed sign when the mask has a floating `+`/`-` string. New golden
+`pb4514_deedit_embedded_char1_sign` (accept 2023, five legs) with its refused-below program, and a round-trip unit
+theory. R1-2 (a non-verbatim quote) and R1-3 (a Table 9 comment) were fixed in the files already open.
+
 **Register.** Both notes landed with no inventory rows claimed or closed.

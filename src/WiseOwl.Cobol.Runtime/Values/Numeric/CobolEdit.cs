@@ -417,7 +417,8 @@ public static partial class CobolEdit
 
         // Zero + every position suppressible (no fixed 9 anywhere) → the whole field blanks (spaces, or asterisk
         // fill keeping the actual decimal point — §13.18.40.4 zero-suppression rules).
-        // ⛔ "the value of the data to be stored is zero" (§13.18.40.5 rule 7 b) is the value the item ENDS UP
+        // ⛔ "If the value is zero and the zero-suppression symbol is the symbol 'Z', all character positions of the
+        // item will contain the character space" (§13.18.40.5 rule 7 b) — the value is the one the item ENDS UP
         // HOLDING — the STORED digit string, the very test the BLANK WHEN ZERO guard above reads (kb/Work PB566),
         // never the pre-truncation `scaled`: 1000 into PIC ***.** stores 00.00 (the high-order digits truncate,
         // §14.6.8.2 5) and is all asterisks, decimal point kept (kb/Work PB4515).
@@ -527,6 +528,11 @@ public static partial class CobolEdit
                 if (!e.Floating)
                 {
                     if (e.Neg != e.Pos && Matches(image, phys, e.Neg)) negative = true;
+                    // ⛔ A character-1 EMBEDDED in a floating '+'/'-' string is a landing position of that string
+                    // (rule 6: "simple insertion editing symbols embedded in this string ... are part of the string"),
+                    // so the sign lands there as '-' when the literal was overwritten: the same read as at a string
+                    // member below (kb/Work PB4514; FindFloatingPlacement writes it).
+                    else if (c == '-' && facts.Plus + facts.Minus > 1 && !Matches(image, phys, e.Pos)) negative = true;
                     phys += w;
                     continue;
                 }
