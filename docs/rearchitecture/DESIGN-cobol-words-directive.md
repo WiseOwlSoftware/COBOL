@@ -31,7 +31,19 @@ Semantics (§7.3.10.4 GRs):
 - **SUBSTITUTE lit4 BY lit5** (GR4): lit5 **takes over lit4's role** in the syntax; lit4 becomes a user word
   and is no longer reserved.
 - **RESERVE lit6** (GR5): lit6 **shall not be used as a user-defined word** (a new reserved word).
-- GR6: `>>COBOL-WORDS` does **not** affect compiler-directing statements or directives.
+- GR6: `>>COBOL-WORDS` does **not** affect compiler-directing statements or directives. The directing statements are
+  exactly COPY and REPLACE (§7.2.2.2; `CobolWordsMap.CompilerDirectingStatementWords`, the one owner of the pair), and the
+  stage order of §7.2.1 agrees: COPY is found in Step 1, COPY REPLACING applies in Step 2, REPLACE in Step 3, and the
+  directive's actions come last, in Step 4, on the results of Step 3. So the COPY and REPLACE finders in `CopyProcessor`,
+  and `DivisionCursor`, read their words **as written** and never consult the word map (no EQUATE, SUBSTITUTE, UNDEFINE or
+  RESERVE reaches the word that begins a COPY or REPLACE statement or any word inside one: OF/IN, SUPPRESS, REPLACING, BY,
+  LEADING, TRAILING, ALSO, LAST, OFF, the text-name and library-name), in source text and in library text alike. Step 4 does
+  apply to what COPY brings in and to what REPLACE writes. The directive itself is legal over these words (SR3 admits any
+  reserved word as literal-1). A synonym of COPY or REPLACE therefore **begins no statement**: `CPY BOOK.` after
+  `EQUATE "COPY" WITH "CPY"` is not a COPY statement, and the syntax error it draws is the user's (kb/Work PB4488).
+  `CobolErrorListener.NoteDirectingStatementSynonym` names the directive and GR6 beside it (COBOL6085, a warning at the
+  directive, once per directive; `CobolWordsMap.DirectingStatementSynonymOf` finds the directive), and
+  `CobolErrorStrategy`'s "a period may be missing" guess is not made when the word before the faulting token is such a synonym.
 
 Here lit1/lit3/lit4 are existing **reserved / context-sensitive / intrinsic-function** words (SR3, not a
 special-character word); lit2/lit5/lit6 are fresh **user-defined words** (SR4, per §8.3.2.2). Every literal is
@@ -191,6 +203,17 @@ is the user-word token type.
   `undefFn+=lit4`.
 - **RESERVE lit6.** lit6 added to the ReservedWordSet reserve overlay (high-confidence, reserved at the target
   edition) ⇒ `VisitCobolWord`→`RejectsAt`→COBOL0901 at every user-word occurrence.
+- **A synonym of a reserved word is reserved** (GR2, GR4 with §8.3.2.1 rule 1; kb/Work PB4488). The retype above makes a
+  synonym its original's keyword token only where the original HAS a token; the §8.9 words with none (COPY, REPLACE,
+  LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA, MINUS) left their synonym a plain
+  `IDENTIFIER`, which `01 CPY PIC X.` then declared. `CobolWordsMap.ReservedSynonyms` maps every EQUATE literal-2 and
+  SUBSTITUTE literal-5 whose original §8.9 reserves at `DirectiveEdition` to that original, and `ReservedWordSet.Compose`
+  reserves them exactly as RESERVE's literal-6 (verdict `Removed`: the program's own directive made the word reserved), so
+  the funnel's COBOL0901 names the synonym and its original (`ReservedWordSet.UserWordViolation`). A synonym of a
+  context-sensitive word (§8.10) or of an intrinsic function name stays what it was and is not in the set; a synonym of a
+  word the lexer retypes is already its keyword token, so the set never decides it. The drift test
+  `CobolWordsReachDriftTests.EveryReservedWordsSynonym_RejectsAsAUserWord_OnBothSidesOfTheLexerPartition` takes every
+  §8.9 word of the COBOL-2023 list, so the next reserved word needs no edit.
 
 ## §5 Syntax-rule validation (split by where the facts live)
 

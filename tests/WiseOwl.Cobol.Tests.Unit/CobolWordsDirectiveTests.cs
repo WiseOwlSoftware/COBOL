@@ -423,6 +423,89 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains(errors, e => e.Contains("COBOL0901") && e.Contains("FOO"));
     }
 
+    private static string SynonymProgram(string directive, string dataName, string paragraph = "MAIN") =>
+        $"       >>COBOL-WORDS {directive}\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4488.\n"
+        + $"       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 {dataName} PIC X VALUE \"C\".\n"
+        + $"       PROCEDURE DIVISION.\n       {paragraph}.\n           STOP RUN.\n";
+
+    /// <summary>kb/Work PB4488 (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 1): a synonym of a RESERVED word is that reserved word and
+    /// no user-defined word, whether or not the lexer has a token to retype it to. The ten §8.9 words the lexer carries
+    /// no token for (COPY, REPLACE, LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA, MINUS)
+    /// by EQUATE, and COPY and LOCALE by SUBSTITUTE.</summary>
+    [Theory]
+    [InlineData("EQUATE \"COPY\" WITH \"SYN\"", "COPY")]
+    [InlineData("EQUATE \"REPLACE\" WITH \"SYN\"", "REPLACE")]
+    [InlineData("EQUATE \"LOCALE\" WITH \"SYN\"", "LOCALE")]
+    [InlineData("EQUATE \"NESTED\" WITH \"SYN\"", "NESTED")]
+    [InlineData("EQUATE \"ANYCASE\" WITH \"SYN\"", "ANYCASE")]
+    [InlineData("EQUATE \"SYSTEM-DEFAULT\" WITH \"SYN\"", "SYSTEM-DEFAULT")]
+    [InlineData("EQUATE \"USER-DEFAULT\" WITH \"SYN\"", "USER-DEFAULT")]
+    [InlineData("EQUATE \"EXCEPTION-OBJECT\" WITH \"SYN\"", "EXCEPTION-OBJECT")]
+    [InlineData("EQUATE \"COMMA\" WITH \"SYN\"", "COMMA")]
+    [InlineData("EQUATE \"MINUS\" WITH \"SYN\"", "MINUS")]
+    [InlineData("SUBSTITUTE \"COPY\" BY \"SYN\"", "COPY")]
+    [InlineData("SUBSTITUTE \"LOCALE\" BY \"SYN\"", "LOCALE")]
+    public void ASynonymOfAReservedWord_IsNoUserDefinedWord(string directive, string original)
+    {
+        var errors = CompileErrors(SynonymProgram(directive, "SYN"));
+        var refusal = Assert.Single(errors, e => e.Contains("COBOL0901"));
+        Assert.Contains($"'SYN' is a synonym for the reserved word {original}", refusal);
+        // …and the same word as a paragraph-name, the other user-defined-word slot the funnel reads.
+        Assert.Contains(CompileErrors(SynonymProgram(directive, "R", "SYN")), e => e.Contains("COBOL0901"));
+    }
+
+    /// <summary>The lexer's side of the same rule, which the overlay leaves alone (kb/Work PB4488): the synonym of a word the
+    /// lexer has a token for IS that token, so MOVE's synonym stands where MOVE stands and is refused where a name is required.</summary>
+    [Fact]
+    public void ASynonymOfAWordTheLexerHasATokenFor_IsRefusedAsAName()
+    {
+        Assert.NotEmpty(CompileErrors(SynonymProgram("EQUATE \"MOVE\" WITH \"SYN\"", "SYN")));
+        Assert.NotEmpty(CompileErrors(SynonymProgram("EQUATE \"MOVE\" WITH \"SYN\"", "R", "SYN")));
+    }
+
+    /// <summary>The controls of kb/Work PB4488: SUBSTITUTE de-reserves its literal-4, so the word it replaced is a user word
+    /// (GR4) and only the synonym is refused, and a synonym of a word §8.9 does not reserve (a §8.10 context-sensitive word,
+    /// an intrinsic function name) keeps the status of its original.</summary>
+    [Theory]
+    [InlineData("SUBSTITUTE \"LOCALE\" BY \"LOC\"", "LOCALE")]
+    [InlineData("EQUATE \"STACK\" WITH \"SYN\"", "SYN")]
+    [InlineData("EQUATE \"TRIM\" WITH \"SYN\"", "SYN")]
+    public void AWordTheDirectiveLeavesUnreserved_IsStillAUserDefinedWord(string directive, string dataName)
+    {
+        Assert.Empty(CompileErrors(SynonymProgram(directive, dataName)));
+    }
+
+    /// <summary>kb/Work PB4488 (ISO §7.3.10.4 GR6; §7.2.2.2; §7.2.1 Steps 1 to 4): a COBOL-WORDS directive does not affect a
+    /// compiler directing statement, so a synonym of COPY or REPLACE begins no statement of the stage that finds them. The
+    /// syntax error stands, now without the guess that a period is missing from a sentence that has one, and COBOL6085
+    /// beside it names the directive and the rule, once, at the directive.</summary>
+    [Theory]
+    [InlineData("EQUATE \"COPY\" WITH \"CPY\"", "CPY BOOK.", "COPY")]
+    [InlineData("SUBSTITUTE \"COPY\" BY \"CPY\"", "CPY BOOK.", "COPY")]
+    [InlineData("EQUATE \"REPLACE\" WITH \"RPL\"", "RPL OFF.", "REPLACE")]
+    public void ASynonymOfADirectingStatement_BeginsNoStatement_AndIsNamedBesideTheSyntaxError(string directive, string line, string original)
+    {
+        var r = Compile($"       >>COBOL-WORDS {directive}\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4488B.\n"
+            + $"       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"A\".\n           {line}\n           STOP RUN.\n");
+        var error = Assert.Single(r.Errors, e => e.Contains("COBOL0001") || e.Contains("COBOL0307"));
+        Assert.DoesNotContain("period may be missing", error);
+        var note = Assert.Single(r.Warnings, w => w.Contains("COBOL6085"));
+        Assert.Contains($">>COBOL-WORDS {directive}: a COBOL-WORDS directive does not affect a compiler directing statement "
+            + $"(ISO §7.3.10.4 GR6), so '{line.Split(' ')[0]}' begins no {original} statement", note);
+        Assert.Contains("(1,", note);   // at the directive's own line
+    }
+
+    /// <summary>The control: a syntax error away from any synonym of COPY or REPLACE draws no COBOL6085, and a synonym of an
+    /// ordinary verb is not a directing-statement synonym.</summary>
+    [Fact]
+    public void ASyntaxErrorAwayFromADirectingStatementSynonym_DrawsNoNote()
+    {
+        var r = Compile("       >>COBOL-WORDS EQUATE \"DISPLAY\" WITH \"SHOW\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4488C.\n       PROCEDURE DIVISION.\n       MAIN.\n           SHOW.\n           STOP RUN.\n");
+        Assert.NotEmpty(r.Errors);
+        Assert.DoesNotContain(r.Warnings, w => w.Contains("COBOL6085"));
+    }
+
     [Fact] // SR3 end-to-end — the existing word must be reserved/context/intrinsic.
     public void Sr3_ExistingNotAWord_Rejected1623()
     {

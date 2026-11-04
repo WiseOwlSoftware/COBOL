@@ -9135,6 +9135,20 @@ public static class DiagnosticCatalog
         + "data item whose usage is display or national or whose category is numeric.\"",
         "ISO §8.8.4.4.3 SR8");
 
+    // kb/Work PB4488: `>>COBOL-WORDS EQUATE "COPY" WITH "CPY"` then `CPY BOOK.` is no COPY statement, and the syntax error it
+    // drew said "A period may be missing" of a sentence that has its period. The error stands (the source is not legal);
+    // this NOTE beside it names the user's own directive and the rule. Emitted by the front end's CobolErrorListener, the
+    // twin of COBOL5926 for a synonym of a word that begins a compiler directing statement.
+    /// <summary>COBOL6085 — a syntax error stands at, or right after, a synonym of COPY or REPLACE (kb/Work PB4488).</summary>
+    public static readonly DiagnosticDescriptor DirectingStatementSynonymBeforeSyntaxError = new(
+        "COBOL6085", "directing-statement-synonym-before-syntax-error", EditionSeverity.Warning,
+        "A syntax error stands at, or right after, a word that a >>COBOL-WORDS directive of the compilation group made a "
+        + "synonym for COPY or REPLACE. ISO §7.3.10.4 GR6: \"A COBOL-WORDS directive does not affect any Compiler directing "
+        + "statements or Compiler directives.\" The compiler directing statements are the COPY statement and the REPLACE "
+        + "statement (§7.2.2.2), and §7.2.1 applies the directive's actions last, in Step 4, after COPY (Step 1) and REPLACE "
+        + "(Step 3), so the synonym begins no statement. Write COPY or REPLACE as the reserved word, or remove the directive.",
+        "ISO §7.3.10.4 GR6; §7.2.2.2; §7.2.1");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
