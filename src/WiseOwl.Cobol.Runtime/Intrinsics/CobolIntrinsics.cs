@@ -382,29 +382,28 @@ public static partial class CobolIntrinsics
         // ambient gate). NaN only — an over-range ±∞ is a legal overflow that saturates like a finite over-range
         // value (the receiver store size-truncates).
         if (double.IsNaN(d)) return Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)");
-        if (double.IsInfinity(d)) return !checkedLanding ? Int128.Zero : throw CobolFloat.BeyondCarrier();
-        // ⛔ THE SAME LANDING AS A MOVE'S, BY CONSTRUCTION (kb/Work PB623). This is the ARITHMETIC channel's
-        // quantizer — `COMPUTE r = FUNCTION TAN(x)` reaches the receiver through here where `MOVE FUNCTION TAN(x)
-        // TO r` reaches it through CobolFloat.ToScaledUnchecked — and while each held its own `d * 10^scale` in
-        // binary64 the ONE returned value §15.4.1 promises landed as two different numbers (16331239353195368.96
-        // against 16331239353195369.92, the exact value being 16331239353195370). CobolFloat.TryExactScaled is
-        // now the single definition of "this double at this scale"; only the past-the-carrier FORM is this
-        // landing's own (kb/Work PB77), and since kb/Work PB647 the MODE is the statement's, exactly as the MOVE
-        // landing's is — the last thing that still made one returned value land two ways.
+        // ⛔ THE VALUE IS THE APPROXIMATION'S, AND ITS LANDING IS THE ONE EVERY OTHER CHANNEL TAKES (kb/Work PB4516). The
+        // binary64 this family returns is an engine-produced APPROXIMATION, not a float item's content, so it lands by its
+        // shortest round-trip decimal (CobolFloat.ToScaledApproximation*: CobolDec.FromApproximation, then the decimal
+        // lane's one rounding and past-the-carrier disposition) - the value the operand lift beside an operator
+        // (NumericRenderer.LiftApproximation) and a MOVE or numeric-edited landing of the same returned value read.
+        // Landing the binary EXPANSION here stored 0.000000 for `COMPUTE R = FUNCTION EXP10(-6)` (9.99999999999999955E-7
+        // truncated at six places) where `COMPUTE R = 0 + FUNCTION EXP10(-6)` stored 0.000001, one returned value
+        // (§15.4 - "a returned value in a temporary elementary data item") landing two ways.
+        //
+        // The form of the landing is still the STATEMENT's (kb/Work PB77): checked raises past the carrier (never a saturated
+        // sentinel, kb/Work PB2967), unchecked keeps the low-order digits. An infinity has no decimal and keeps the binary64
+        // disposition (unchecked zero, checked the EC-SIZE-TRUNCATION raise).
         //
         // ⛔ ROUNDING MODE IS PROHIBITED is answered by the landing's own rounding decision (§14.7.4.3 rule 7: "If the
         // PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant
         // identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and
         // the content of the resultant identifier is unchanged", cite.py-verified): a final transfer lands AT the
         // resultant identifier's scale, so the store's rescale is the identity and only this rounding sees the
-        // discarded fraction, and CobolNum.RoundDiv raises CobolSizeError.ProhibitedInexact there, checked landing or
-        // not (kb/Work PB3990: the unchecked form used to land the value truncated).
-        if (CobolFloat.TryExactScaled(d, scale, mode, out Int128 landed)) return landed;
-        // ⛔ PAST THE CARRIER THE CHECKED FORM RAISES, IT NEVER SATURATES (kb/Work PB2967). The sentinel it used to
-        // return ("so the capacity check raises") is invisible to a receiver whose capacity IS the carrier — a
-        // 16-byte COMP-5 — which stored 2^127 - 1 and took NOT ON SIZE ERROR.
-        if (checkedLanding) throw CobolFloat.BeyondCarrier();
-        return CobolFloat.LowOrderDigits(d, scale, mode);   // the same rounding as above
+        // discarded fraction (kb/Work PB3990: the unchecked form used to land the value truncated).
+        return checkedLanding
+            ? CobolFloat.ToScaledApproximation(d, scale, mode)
+            : CobolFloat.ToScaledApproximationUnchecked(d, scale, mode);
     }
 
 }

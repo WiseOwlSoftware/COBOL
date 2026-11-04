@@ -1062,16 +1062,27 @@ internal static class RuntimeApi
     /// store; never a saturated sentinel, kb/Work PB2967) or the UNCHECKED <c>CobolFloat.ToScaledUnchecked</c> (the
     /// low-order digits — a MOVE, §14.6.8.2 r4; the no-phrase store; INVOKE BY CONTENT). The caller names the LANDING
     /// (kb/Work PB77) — there is no default, so a new site has to say which store it is. An INTERMEDIATE consumer
-    /// (no store, no capacity check) takes <see cref="FloatToScaledIntermediate"/>.</summary>
-    public static string FloatToScaled(string value, string scale, CobolRounding mode, bool checkedLanding) =>
-        $"{nameof(CobolFloat)}.{(checkedLanding ? nameof(CobolFloat.ToScaled) : nameof(CobolFloat.ToScaledUnchecked))}({value}, {scale}, {RoundingText(mode)})";
+    /// (no store, no capacity check) takes <see cref="FloatToScaledIntermediate"/>.
+    /// <para>⛔ <paramref name="approximation"/> IS THE VALUE'S KIND, AND THERE IS NO DEFAULT FOR THE SAME REASON (kb/Work
+    /// PB4516): <c>NumX.Approximate</c> - an engine-produced approximation (a function's returned value, a non-integer
+    /// power), which lands by its shortest round-trip decimal (<c>CobolFloat.ToScaledApproximation*</c>) - against a
+    /// floating-point DATA ITEM's content, which lands by its exact binary value. The kind decides the landing's NAME here,
+    /// in the one place that spells it.</para></summary>
+    public static string FloatToScaled(string value, bool approximation, string scale, CobolRounding mode, bool checkedLanding) =>
+        $"{nameof(CobolFloat)}.{(approximation, checkedLanding) switch
+        {
+            (false, true) => nameof(CobolFloat.ToScaled),
+            (false, false) => nameof(CobolFloat.ToScaledUnchecked),
+            (true, true) => nameof(CobolFloat.ToScaledApproximation),
+            (true, false) => nameof(CobolFloat.ToScaledApproximationUnchecked),
+        }}({value}, {scale}, {RoundingText(mode)})";
 
     /// <summary>A floating-point operand landed for an INTERMEDIATE consumer — an alignment, an argument, a subscript
     /// (<c>NumericRenderer.Align</c> / <c>AlignRoundedUp</c>): <c>CobolFloat.ToScaledIntermediate</c>, the landing that
     /// raises EC-SIZE-OVERFLOW past the carrier, as the SDIDI's <c>DecToUnscaledIntermediate</c> does — never a
     /// sentinel a later comparison or selection would mistake for a value (kb/Work PB77, PB2967, PB3019).</summary>
-    public static string FloatToScaledIntermediate(string value, string scale, CobolRounding mode) =>
-        $"{nameof(CobolFloat)}.{nameof(CobolFloat.ToScaledIntermediate)}({value}, {scale}, {RoundingText(mode)})";
+    public static string FloatToScaledIntermediate(string value, bool approximation, string scale, CobolRounding mode) =>
+        $"{nameof(CobolFloat)}.{(approximation ? nameof(CobolFloat.ToScaledApproximationIntermediate) : nameof(CobolFloat.ToScaledIntermediate))}({value}, {scale}, {RoundingText(mode)})";
 
     /// <summary>An arithmetic value transferred into a FLOATING-POINT resultant identifier under the receiver's
     /// §14.7.4.3 mode — <c>FloatResultant</c>'s entry for the value's carrier (binary64, SDIDI, scaled signed or

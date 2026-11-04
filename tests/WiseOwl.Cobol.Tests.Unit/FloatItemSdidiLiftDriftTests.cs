@@ -54,16 +54,19 @@ public sealed class FloatItemSdidiLiftDriftTests
     [Fact]
     public void TheApproximationLift_HasOnlyTheEngineProducedValuesAsCallers()
     {
-        // The renderer's three: a prose-family function's returned value (IntrinsicRenderer), an engine approximation
-        // beside non-float operands (LiftApproximation) and the same value reaching DecOperandExact (NumericRenderer).
-        var offenders = Callers("WiseOwl.Cobol.Compiler", "DecFromApproximation(", "RuntimeApi.cs", "NumericRenderer.cs", "IntrinsicRenderer.cs");
+        // The renderer's four: a prose-family function's returned value (IntrinsicRenderer), an engine approximation
+        // beside non-float operands (LiftApproximation) and the same value reaching DecOperandExact (NumericRenderer),
+        // and the same value crossing a CALL whose formal the activating element cannot see (CallEmitter, kb/Work PB4516).
+        var offenders = Callers("WiseOwl.Cobol.Compiler", "DecFromApproximation(", "RuntimeApi.cs", "NumericRenderer.cs", "IntrinsicRenderer.cs", "CallEmitter.cs");
         Assert.True(offenders.Count == 0, "A shortest-round-trip lift is for an implementor-defined approximation only (kb/Work PB1606): "
             + string.Join("; ", offenders));
         // In the runtime: the non-integer power of the r2e development, and the sending operand of a CALL's BY CONTENT function
         // value (MoveSending.ExactValue: its Approximate flag is stated by the activating element, never inferred), and the
         // temporary of a function's binary64 RESULT that DISPLAY orders and shows (FunctionValueField.OfFloat, kb/Work PB3514:
-        // a floating-point ITEM argument arrives with its exact lift, OfFloatItem, and never reaches this one).
-        var runtime = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromApproximation(", "CobolIntrinsics.RealArgs.cs", "CallAbi.cs", "FunctionValueField.cs");
+        // a floating-point ITEM argument arrives with its exact lift, OfFloatItem, and never reaches this one), and the three
+        // LANDINGS of such an approximation into a fixed-point receiver (CobolFloat.ToScaledApproximation*, kb/Work PB4516:
+        // the float ITEM's landings beside them take the exact value).
+        var runtime = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromApproximation(", "CobolIntrinsics.RealArgs.cs", "CallAbi.cs", "FunctionValueField.cs", "CobolFloat.cs");
         Assert.True(runtime.Count == 0, "CobolDec.FromApproximation lifts a function's or a power's binary64 approximation, never a data item: "
             + string.Join("; ", runtime));
     }

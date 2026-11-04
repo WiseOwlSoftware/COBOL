@@ -1563,7 +1563,18 @@ of an unsupported facility.
   of 34 digits or fewer is held at the fewest places that carry it). **An implementor-defined APPROXIMATION is not a data item** — a §15.4.1 function's returned
   value (SIN, SQRT, a non-integer power) has no content beyond its 17th digit that means
   anything — and enters through `CobolDec.FromApproximation`, the shortest round-trip decimal, so `FUNCTION SIN (1)`
-  is 0.8414709848078965 and not the 34 digits of the double's binary expansion. The floating-point numeric-edited
+  is 0.8414709848078965 and not the 34 digits of the double's binary expansion. **That decimal is the value at EVERY
+  landing into a fixed-point receiver** (§15.4: a function's evaluation produces ONE returned value): a bare `COMPUTE`
+  (`CobolIntrinsics.FromDouble`), a `MOVE`, an alignment and a numeric-edited receiver round it once, in the receiver's
+  mode, through `CobolFloat.ToScaledApproximation`, `ToScaledApproximationUnchecked` and `ToScaledApproximationIntermediate`
+  (the decimal lane's `ToUnscaledChecked`, `ToUnscaled` and `ToUnscaledIntermediate`), so `COMPUTE R = FUNCTION EXP10 (-6)`
+  into `PIC S9(9)V9(6)` stores 0.000001 exactly as `COMPUTE R = 0 + FUNCTION EXP10 (-6)` does, and `ROUNDED MODE IS PROHIBITED`
+  accepts it (the double beneath one millionth, 9.99999999999999954748E-7, is not representable at six places). A
+  floating-point DATA ITEM lands by its exact binary value (`ToScaled`, `ToScaledUnchecked`, `ToScaledIntermediate`). An
+  infinity has no decimal and keeps its binary64 disposition. Witnesses:
+  `conformance:cases/15.35.4-Returned-value-rule/pb4516_function_value_lands_one_way`,
+  `conformance:cases/15.35.4-Returned-value-rule/pb4516_function_value_prohibited`,
+  `CarrierLandingFormTests.ApproximationLanding_IsTheShortestDecimal_NotTheBinaryExpansion`. The floating-point numeric-edited
   receiver reads a binary64 sender the same exact way (`CobolDec.FromBinary64ToOdd`, a 38-digit round-to-odd
   significand, because the mask's rounding is the receiver's): `COMPUTE FE ROUNDED MODE IS PROHIBITED = F` with F =
   0.1 is the size error (the value is not representable in the mask), as it already was for a fixed-point

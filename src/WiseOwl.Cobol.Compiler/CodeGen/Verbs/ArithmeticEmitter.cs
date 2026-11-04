@@ -320,7 +320,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // (§14.6.13.1.1 NOTE 3, kb/Work PB4093: the other name stores the low-order digits, DOC-A.1-70). A scaled quotient
         // is already there.
         if (truncated.Real)
-            return Snapshot(new NumX(RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation,
+            return Snapshot(new NumX(RuntimeApi.FloatToScaled(truncated.Expr, truncated.Approximate, $"{qs}", CobolRounding.Truncation,
                 (TakenBy(ise) & SizeChecks.Truncation) != 0), qs));
         return truncated.Scale == qs ? truncated
             : throw new InvalidOperationException(

@@ -1078,6 +1078,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // sent 2000000; with a program-specifier the COMPUTE into PIC 9V9(12) landed 0.333333000000 of 0.3333333333333333.
                 if (rcv.Receiverless && num.SdidiOf(rendered) is { } dec)
                     return RuntimeApi.ArgSdidiValue(RuntimeApi.PassModeText(a.Mode), dec, ctx.SignEncoding);
+                // ⛔ …AND SO DOES AN ENGINE'S APPROXIMATION, BY ITS SHORTEST ROUND-TRIP DECIMAL (kb/Work PB4516). A function's returned
+                // binary64 (`FUNCTION EXP10 (-6)`, no formal known) is one value in every channel (§15.4), and a binary cell carries the
+                // double's EXPANSION to the boundary, where GR10's COMPUTE into a fixed-point formal truncated 9.99999999999999954748E-7
+                // to 0.000000 at six places. The decimal round-trips to the same double for a floating-point formal, and lands exactly
+                // as `COMPUTE R = FUNCTION EXP10 (-6)` does for a fixed-point one.
+                if (rcv.Receiverless && rendered is { Real: true, Approximate: true })
+                    return RuntimeApi.ArgSdidiValue(RuntimeApi.PassModeText(a.Mode), RuntimeApi.DecFromApproximation(rendered.Expr), ctx.SignEncoding);
                 NumX x = num.Landed(rendered, rcv);
                 // ⛔ THE FLOAT LANE CROSSES AS A FLOAT (kb/Work PB238). `Landed` documents its own contract:
                 // "A float under NATIVE arithmetic stays binary64 — the consumer's own float arm applies", and
