@@ -31,4 +31,17 @@ the quotient, the reciprocal over `9` and `9V9`, the 0 / 1 / -1 bases at exponen
 lane determination of DOC-A.1-123, which the same expression over `A * A * A / (A * A)` shows without any power), a lead for a
 successor.
 
-Gate: see the landing's record.
+**Gate reds on the way.** The first gate stopped before any test host: the worktree's `tools/claude-skills` submodule was not checked
+out (fleet practices audit). The second ran everything and found two Unit reds the change caused: `RuntimeAbiPinDriftTests` (a
+public member left the shipped surface, so `abi_pin.py bump --runtime-major` took the runtime to 24) and
+`NestedQuotientPrecisionDriftTests.AnSdidiOperandsPrecision_IsItsWrittenScale_NeverZero`, which expected the power `10 ** -15` as a
+`CobolDecWithPrecision` quotient and now meets the exact carrier's `CobolExact.DivTruncated` over the same 15 places (probe:
+`10 ** -15 / 2 > 0` TRUE, `2 ** -3 / 2 > 0.0625` FALSE).
+
+**Self-review.** Architecture: one `Power` arm for the exponent shape; the base shape still picks `CobolExact.Pow` (integer, exact) or
+`PowNativeDec` (scaled, SDIDI), two carriers for one value (a successor can send the scaled Int128 base through `ExactPow` too and
+delete the Dec arm). Full code: the exact base keeps `n == 1 -> b`, `b.Digits > 0` guards the literal arm. Performance: 6 million
+`X ** 2` / `X ** N` over `PIC 9(9)` took 0.58 s against 0.42 s (about 25 ns per power). Duplication: no second rule, `CheckPowRule6`
+unchanged.
+
+Gate: GREEN at 9001ef043, run 000003-20261104T194354Z — Conformance 21,489/21,489 · Unit 39,778/39,778 · Characterization 37/37.
