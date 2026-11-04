@@ -6,9 +6,9 @@
 
 This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to batc-h--30.
 
-> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version db07d4f70de0. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
+> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version 2dc251b805af. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
 
-**10** nights of testing · **54,107** test programs written and run · **15,992** on which the two compilers disagreed · **32** bugs found in WiseOwl · **25** of those bugs fixed · **133** bugs recorded in GnuCOBOL
+**10** nights of testing · **54,107** test programs written and run · **15,992** on which the two compilers disagreed · **32** bugs found in WiseOwl · **31** of those bugs fixed · **133** bugs recorded in GnuCOBOL
 
 ## How a night of testing works
 
@@ -98,12 +98,12 @@ Groups of disagreements / programs in them. "Both allowed by the standard" means
 | Night 7 | [PB3996](kb/Work/PB3996.md) | compiler bug | landed | a Format 1 CALL accepts OMITTED with no diagnostic: `CALL "P" USING W OMITTED`, `USING BY REFERENCE OMITTED` and `USING BY CONTENT W OMITTED` compi… |
 | Night 7 | [PB3997](kb/Work/PB3997.md) | compiler bug | landed | a VALUE literal outside a fixed-width binary usage's range is accepted with no diagnostic: BINARY-CHAR VALUE 255 / -129, BINARY-CHAR UNSIGNED VALUE… |
 | Night 9 | [PB4096](kb/Work/PB4096.md) | compiler bug | landed | TEST-NUMVAL-F returns LENGTH + 1 when the exponent's sign is followed by a character in error: TEST-NUMVAL-F("12.34E+AB") returns 10 where §15.95.4… |
-| Night 10 | [PB4511](kb/Work/PB4511.md) | compiler bug | **open** | TEST-NUMVAL and TEST-NUMVAL-C report the position OF a C or D that starts an incomplete CR/DB instead of the next position (or LENGTH+1 at the end) |
-| Night 10 | [PB4512](kb/Work/PB4512.md) | compiler bug | **open** | INITIALIZE ... TO VALUE edits an EDITED item's VALUE literal a second time (PIC XXBXX VALUE 'AB CD' becomes 'AB  C'), where §14.9.20.4 6) a) 3. ask… |
-| Night 10 | [PB4513](kb/Work/PB4513.md) | compiler bug | **open** | Report Writer with OVERLAPPING controls (CONTROLS ARE WS-REGION WS-KEY, one inside the other) corrupts the user's control item at a control break:… |
-| Night 10 | [PB4514](kb/Work/PB4514.md) | compiler bug | **open** | De-editing a FLOATING '+' edited item drops its minus: PIC ++++9.99 holding '-1234.50' MOVEd to S9(5)V99 gives +1234.50 |
-| Night 10 | [PB4515](kb/Work/PB4515.md) | compiler bug | **open** | An all-'*' or all-'Z' picture whose STORED value is zero after high-order truncation is edited as nonzero (MOVE 1000 TO PIC ***.** gives '***.00',… |
-| Night 10 | [PB4516](kb/Work/PB4516.md) | compiler bug | **open** | One approximate intrinsic result lands two ways: COMPUTE R = FUNCTION EXP10(-6) and MOVE store 0.000000 (FromDouble) while COMPUTE R = 0 + FUNCTION… |
+| Night 10 | [PB4511](kb/Work/PB4511.md) | compiler bug | landed | TEST-NUMVAL and TEST-NUMVAL-C report the position OF a C or D that starts an incomplete CR/DB instead of the next position (or LENGTH+1 at the end) |
+| Night 10 | [PB4512](kb/Work/PB4512.md) | compiler bug | landed | INITIALIZE ... TO VALUE edits an EDITED item's VALUE literal a second time (PIC XXBXX VALUE 'AB CD' becomes 'AB  C'), where §14.9.20.4 6) a) 3. ask… |
+| Night 10 | [PB4513](kb/Work/PB4513.md) | compiler bug | landed | Report Writer with OVERLAPPING controls (CONTROLS ARE WS-REGION WS-KEY, one inside the other) corrupts the user's control item at a control break:… |
+| Night 10 | [PB4514](kb/Work/PB4514.md) | compiler bug | landed | De-editing a FLOATING '+' edited item drops its minus: PIC ++++9.99 holding '-1234.50' MOVEd to S9(5)V99 gives +1234.50 |
+| Night 10 | [PB4515](kb/Work/PB4515.md) | compiler bug | landed | An all-'*' or all-'Z' picture whose STORED value is zero after high-order truncation is edited as nonzero (MOVE 1000 TO PIC ***.** gives '***.00',… |
+| Night 10 | [PB4516](kb/Work/PB4516.md) | compiler bug | landed | One approximate intrinsic result lands two ways: COMPUTE R = FUNCTION EXP10(-6) and MOVE store 0.000000 (FromDouble) while COMPUTE R = 0 + FUNCTION… |
 | Night 10 | [PB4517](kb/Work/PB4517.md) | compiler bug | **open** | PRESENT WHEN with a function-identifier in its condition (PRESENT WHEN FUNCTION MOD (WS-N, 2) = 1) is refused COBOL0899 'not yet implemented', alth… |
 | Run of 2026-10-22 | [PB3537](kb/Work/PB3537.md) | test-harness bug | landed | the fuzz harness spends the whole 6,000-token cap on a reply that degenerates into an enumeration loop (hundreds of data items differing only by a… |
 | Run of 2026-10-22 | [PB3538](kb/Work/PB3538.md) | compiler bug | landed | a COMPUTE with four or more chained divisions (A / B / B / B / B), or a product of quotients ((A / B) * (A / B) * (A / B)), ends the run unit with… |
