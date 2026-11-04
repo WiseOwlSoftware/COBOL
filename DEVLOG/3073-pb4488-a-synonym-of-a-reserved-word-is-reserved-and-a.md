@@ -1,4 +1,4 @@
-## PB4488: a synonym of a reserved word is reserved, and a synonym of COPY or REPLACE begins no statement
+## Entry 3073 — 2026-11-03 23:04 PST — PB4488: a synonym of a reserved word is reserved, and a synonym of COPY or REPLACE begins no statement
 
 Wave 20261858, group B. The wave 20261857 determination had already shown that the note's own question (should the COPY and
 REPLACE finders read the word map?) had a plain answer: no. ISO 7.3.10.4 GR6 puts the compiler directing statements outside
@@ -46,3 +46,4 @@ and six negatives (`pb4488-*`). Inventory rows GR-7.3.10.4-2, -4 and -6 were alr
 data-name; the determination's control p29 is therefore refused only at the use, and the first draft of a unit test that
 expected a declaration refusal was wrong, not the compiler. The anonymous COBOL0001 for `>>SRC FORMAT` after an EQUATE of
 SOURCE stays kb/Work PB1575's.
+
