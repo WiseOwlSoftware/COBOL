@@ -35,7 +35,7 @@ from inflight import (Claim, InFlight, IndexPolicy, branch_replays, changed_file
 import inflight as inb  # noqa: E402
 import clusters as clusters_mod  # noqa: E402
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, closed_by_branch,  # noqa: E402
-                      declare_fix_lane, lift_tiers, load_fix_clusters, load_notes, notes_cap, predicted_turns,
+                      declare_fix_lane, fold_unsited, lift_tiers, load_fix_clusters, load_notes, notes_cap, predicted_turns,
                       ready_notes_view, turn_budget)
 from groups import (Group, as_group_json, attempts, body_of, campaign_requirements, group_cost,  # noqa: E402
                     group_requirements, landing_cost, requirements_text, DRAIN_CLAUSE, FINDINGS_ANSWER, FINISH_FIRST,
@@ -2678,6 +2678,20 @@ check("(4) the scan fails on a planted copy of the old whole-text SITE_PATH and 
 #     groups A (234 files) and B (222) held the owner-approved fuzz fixes PB3664 and PB3665 on files neither touched.
 def unsited(*ids):
     return {"file": "", "harm": 1, "files": [], "notes": [{"id": i, "area": "", "harm": 1, "title": ""} for i in ids]}
+
+
+# AN UNSITED READY DEFECT IS A GROUP OF ITS OWN (kb/Work PB4566): fix_clusters lists a note whose sites resolve to no
+# indexed source file under `unsited`, and the planner read `clusters` alone, so PB3600 (sited on constructs.json) and
+# PB3957 (reserved-words.json) were planned by no wave for two steered waves while the ledger counted them as groups.
+fu = fold_unsited({"clusters": [cl("src/X/Misc2.cs", "PB11")], "unsited": ["PB9"]}, notes)
+check("fold_unsited: the clusters stay first and each unsited note becomes a one-note group carrying its own harm, area "
+      "and title; the result has no `unsited` list a reader could drop",
+      ([c["file"] for c in fu["clusters"]], fu["clusters"][1]["notes"], fu["clusters"][1]["harm"], sorted(fu)),
+      (["src/X/Misc2.cs", ""], [{"id": "PB9", "area": notes["PB9"].area, "harm": notes["PB9"].harm,
+                                  "title": notes["PB9"].title[:140]}], notes["PB9"].harm, ["clusters"]))
+fu_plan = pw.plan(notes, fu["clusters"], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
+check("... and the folded note is PLANNED as a group of its own beside the cluster",
+      sorted(g.notes for g in fu_plan["groups"]), [["PB11"], ["PB9"]])
 
 
 C = Claim.of
