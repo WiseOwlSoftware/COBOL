@@ -16,7 +16,9 @@
 *>                               approximation, so its value is its shortest round-trip decimal and X19 below holds
 *>                               0.9999978928826739000, kb/Work PB4516 - the binary expansion's 0.99999789288267393... is not
 *>                               a digit the returned value has)
-*>    FRACTION-PART(5.9999999996 FLOAT-LONG) = 0.99999999959999996690... (the binary64 of 5.9999999996, minus 5)
+*>    FRACTION-PART(5.9999999996 FLOAT-LONG) = 0.9999999996   (the binary64 of 5.9999999996, minus 5, is
+*>                               0.99999999959999996690...; as a function's returned value it is an approximation and
+*>                               lands by its shortest round-trip decimal, X19 holds 0.9999999996000000000, kb/Work PB4516)
 *> 15.75.4 1) "The returned value is greater than or equal to zero and less than one." bounds the RETURNED value;
 *> the stored one follows 14.9.8.4 2) (14.6.8, 14.7.4, 14.7.5): each leg is that value rounded per 14.7.4.3 at the
 *> receiver's scale, so every nearest mode and AWAY-FROM-ZERO / TOWARD-GREATER give 1.0000 and 1.00 (R4, R2) and
