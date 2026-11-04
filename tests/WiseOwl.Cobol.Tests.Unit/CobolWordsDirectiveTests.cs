@@ -767,6 +767,20 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain("unexpected 'JSON'", string.Concat(errors));   // never the original, which the source did not write
     }
 
+    [Fact] // kb/Work PB4239 S4 (review R1-1): SUBSTITUTE frees the original (GR4), so the sentence names GR4 and never calls JSON no user-defined word.
+    public void ASubstituteSynonymOfAnExtensionWord_UsedAsADataName_NamesGr4AndFreesTheOriginal()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS SUBSTITUTE \"JSON\" BY \"JSN\"\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4239R.\n"
+            + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 JSN PIC X VALUE \"C\".\n       01 JSON PIC X VALUE \"D\".\n"
+            + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY JSON.\n           STOP RUN.\n");
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));   // the directive holds
+        var refusal = errors.First(e => e.Contains("COBOL0313") && e.Contains("unexpected 'JSN'"));
+        Assert.Contains("SUBSTITUTE \"JSON\" BY \"JSN\" replaces it with 'JSN' (ISO §7.3.10.4 GR4)", refusal);
+        Assert.DoesNotContain("GR2", refusal);
+        Assert.DoesNotContain("neither is a user-defined word", refusal);
+        Assert.DoesNotContain(errors, e => e.Contains("unexpected 'JSON'"));   // JSON is the data-name GR4 makes it
+    }
+
     [Fact] // kb/Work PB4586 control: a directive that holds is not reported because the program beside it fails to parse.
     public void ALegalDirective_BesideAParseError_DrawsNoCategoryVerdict()
     {

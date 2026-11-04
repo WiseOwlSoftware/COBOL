@@ -38,4 +38,12 @@ PB4577. Self-review found the second sentence of the COBOL0313 report on a reser
 clause of the data description entry") is the closed-format residue hint's wording for any reserved word, which is a separate
 mechanism and is left for the registrar.
 
+Review round 1. The reviewer found the COBOL0313 sentence for a JSON or XML synonym always cited EQUATE's GR2 ("neither is a
+user-defined word"), but the retyped token also arises from SUBSTITUTE, where GR4 frees the original: `SUBSTITUTE "JSON" BY "JSN"`
+then `01 JSN` was told JSON is no user-defined word while `01 JSON` compiled clean. `CobolWordsMap.SynonymBy` now returns the directive
+that wrote a synonym and the hint (which reads the parser's map) names GR4 and the SUBSTITUTE for that arm; goldens
+`pb4239_cobol_words_substitute_json_is_a_data_name` and `pb4239-cobol-words-substitute-synonym-of-extension-word-is-reserved`, and a
+unit test. The lead is fixed too: the SEARCH COBOL0900 gate quoted identifier-1 with `GetText()` (`HOFG(GIHI)`) and now quotes it as
+written (`SearchIdentifier1GateTests`).
+
 Gate (run 000002-20261104T194613Z, head f8408029e): === BUILD-LOCAL GATE: GREEN — Conformance 21,503/21,503 · Unit 39,811/39,811 · Characterization 37/37 cases ran (skipped 0) ===. The first gate (000001) was RED on one case, EditionGateArmDriftTests.GatedConstruct_NamesItsEdition_EvenWhenItsOperandsDoNotResolve for the new SEARCH construct, which moved the gate from the binder to the parse arm.

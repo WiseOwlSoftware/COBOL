@@ -1623,10 +1623,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             string reserved = token.Type == CobolLexer.JSON ? "JSON" : "XML";
             string written = WrittenSource.Of(token);
             bool isSynonym = !CobolKeywords.Same(written, reserved);
+            // ⛔ The directive that wrote the synonym decides what becomes of the original (kb/Work PB4239): EQUATE keeps JSON
+            // reserved beside the new word (GR2), SUBSTITUTE frees it and the new word replaces it (GR4), so the sentence
+            // names the rule of the directive the map holds, never one rule for both.
+            var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
+                ? words.SynonymBy(written) : null;
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0313,
                 $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO §4.2.10; docs/CONFORMANCE.md D-RW1)"
-                + (isSynonym ? $" and '{Truncate(written, 40)}' is its synonym here (ISO §7.3.10.4 GR2), so neither is a user-defined word; "
-                             : ", so it is no user-defined word; ")
+                + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
+                    ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word; "
+                    : isSynonym ? $" and '{Truncate(written, 40)}' is its synonym here (ISO §7.3.10.4 GR2), so neither is a user-defined word; "
+                                : ", so it is no user-defined word; ")
                 + $"{reserved} GENERATE/PARSE is not an ISO/IEC 1989 construct — vendor-dialect extension, deferred (owner decision 2, DEVLOG 581).", 0));
         }
 

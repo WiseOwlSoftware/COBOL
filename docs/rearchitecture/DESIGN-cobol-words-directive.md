@@ -268,7 +268,10 @@ is the user-word token type.
   (§8.3.2.1 1)); §7.3.10.1 and D.12.1 give the directive so a program may change which words are reserved, and D.12.3 names
   this very collision ("a change of compiler that includes new reserved words that conflict with existing code"), so
   `UNDEFINE`, `EQUATE` and `SUBSTITUTE` may name them and `RESERVE` and the new word of `EQUATE` / `SUBSTITUTE` may not (owner
-  decision 2026-10-31, kb/Work PB4239; docs/CONFORMANCE.md D-RW1). None ⇒ COBOL1623 (SR3). ⛔ The lexer vocabulary (`CobolKeywordTokens.TryTokenType`) is NOT a population of the standard and no
+  decision 2026-10-31, kb/Work PB4239; docs/CONFORMANCE.md D-RW1). None ⇒ COBOL1623 (SR3). A synonym of such a word used as a
+  user-defined word draws the parser's COBOL0313, whose sentence names the directive that wrote the synonym
+  (`CobolWordsMap.SynonymBy`): EQUATE keeps the original reserved beside it (GR2), SUBSTITUTE frees the original and the new
+  word replaces it (GR4). ⛔ The lexer vocabulary (`CobolKeywordTokens.TryTokenType`) is NOT a population of the standard and no
   longer answers either rule (kb/Work PB1373: SR3 accepted `UNDEFINE "AUTHOR"` because the lexer tokenizes it, and SR4
   refused `RESERVE "AUTHOR"` for the same reason).
   ⛔ This used to read "context via `DefaultVocabulary` (a keyword token exists)", which answers a DIFFERENT

@@ -89,6 +89,7 @@ public sealed class CobolWordsMap
     public static readonly int DirectiveEdition = ConstructRegistry.Find(Constructs.CobolWordsDirective2023)!.IntroducedIn;
 
     private readonly Dictionary<string, string> _synonyms;
+    private readonly Dictionary<string, CobolWordsOp> _synonymOps;
     private readonly Dictionary<string, CobolWordsOp> _removedBy;
     private readonly HashSet<string> _deReserved;
     private readonly HashSet<string> _reserved;
@@ -106,6 +107,7 @@ public sealed class CobolWordsMap
     {
         Ops = ops;
         _synonyms = new(CobolNames.Comparer);       // keyed by the FRESH user word (literal-2 / literal-5): Annex C folds it
+        _synonymOps = new(CobolNames.Comparer);     // the EQUATE or SUBSTITUTE that wrote each synonym
         _removedBy = new(CobolKeywords.Comparer);   // keyed by the EXISTING keyword (literal-3 / literal-4): basic letters alone
         _reserved = new(CobolNames.Comparer);       // RESERVE's literal-6 is a fresh user word
         _reservedSynonyms = new(CobolNames.Comparer);
@@ -140,6 +142,7 @@ public sealed class CobolWordsMap
     /// (GR6).</summary>
     private void NoteSynonym(string synonym, string original, CobolWordsOp op)
     {
+        _synonymOps[synonym] = op;
         if (ReservedWords.Find(original) is { R2023: true }) _reservedSynonyms[synonym] = original;
         if (CompilerDirectingStatementWords.Any(w => CobolKeywords.Same(original, w))) _directingSynonyms[synonym] = op;
     }
@@ -191,6 +194,12 @@ public sealed class CobolWordsMap
     /// <paramref name="written"/> is the word as the SOURCE writes it, never a retyped token's text, which is already
     /// the original's.</summary>
     public string? SynonymOf(string written) => _synonyms.GetValueOrDefault(written);
+
+    /// <summary>The directive that made <paramref name="written"/> a synonym (the EQUATE that wrote it as literal-2 or the
+    /// SUBSTITUTE that wrote it as literal-5), or null when it is not one: <see cref="SynonymOf"/>, asked for the directive,
+    /// because the two differ in what becomes of the original word (EQUATE keeps it, GR2; SUBSTITUTE frees it, GR4) and a
+    /// diagnostic that names the cause names the right rule (kb/Work PB4239).</summary>
+    public CobolWordsOp? SynonymBy(string written) => _synonymOps.GetValueOrDefault(written);
 
     /// <summary>Words that LOSE their reserved/context/intrinsic status for this group (UNDEFINE literal-3 +
     /// SUBSTITUTE literal-4): the keyword→identifier rewriter, the <see cref="ReservedWordSet"/> suppress set,

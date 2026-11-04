@@ -981,7 +981,7 @@ internal sealed class VersionConformancePass
         {
             if (!identifier1.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.qualification()?.subscriptPart().Length > 0)) return;
             using var _ = Sink.At(identifier1);
-            _p.Check(Constructs.SearchIdentifier1EnclosingSubscript2014, $"{verb} {identifier1.GetText()}: identifier-1 is subscripted");
+            _p.Check(Constructs.SearchIdentifier1EnclosingSubscript2014, $"{verb} {WrittenSource.Of(identifier1)}: identifier-1 is subscripted");
         }
 
         private static bool HasAncestor<T>(Antlr4.Runtime.RuleContext ctx) where T : Antlr4.Runtime.RuleContext
