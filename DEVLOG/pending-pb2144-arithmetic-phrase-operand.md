@@ -34,3 +34,11 @@ Formats 2–5 with literal and identifier INTO and BY operands. Its values come 
 renamed method from FMT-14.9.26.2 and FMT-14.9.44.2 and restated their prose. It added the new witnesses to
 FMT-14.9.2.2, FMT-14.9.12.2 and FMT-14.9.44.2, and restated the stale code quotations in GR-14.9.12.4-2 and
 SR-8.4.3.4.3-1. GR-14.9.12.4-2's Format-4 residue is closed by the new golden. The GAP count stays at 1.
+
+**Self-review and gate.** The CITATIONS audit turned the first gate RED (run 000001) on one line of the
+ArithmeticOperandRole doc comment that named §8.4.3.1.2 Format 1 and Format 4 together; each now sits on its own line.
+The four lenses found nothing else: the dropped-receiver path in `Receivers(ArithmeticPhraseOperandContext)` runs only
+after `Format1Receivers` has passed, a GIVING-form statement with a violation is refused at bind, error-recovery
+shapes (`ADD A TO GIVING C`, `DIVIDE A BY`) stay parse errors with no binder crash, and semgrep's counts are
+unchanged. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,424/21,424 · Unit 39,640/39,640 · Characterization
+37/37 cases ran (skipped 0) (run 000002-20261104T000458Z)`, with all 44 pb2144 cases Passed in its Conformance.trx.
