@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Expressions;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Generated;
@@ -726,7 +727,7 @@ public abstract class CobolParserCoreBase : Parser
                 : [CobolParserCore.RULE_sentence];
             foreach (int rule in readings)
                 if (ReadsWithTheWordAsAProcedureName(span, at, rule))
-                    return (word, ReservedWordSet.UserWordViolationMessage(ReservedWordHere(word)!, Edition.Year),
+                    return (word, UserWordViolationOf(word),
                         span[^1].TokenIndex);
         }
         return null;
@@ -869,12 +870,20 @@ public abstract class CobolParserCoreBase : Parser
         return false;
     }
 
+    /// <summary>The word the group's directives make of what the source wrote at the KEYWORD token <paramref name="token"/>
+    /// (<see cref="Canonical"/> of the written word; kb/Work PB4573). A synonym of a word the lexer has a token for is retyped
+    /// to that token and its <c>Text</c> overwritten with the original word (<c>CobolWordsRewriter.Plan.Apply</c>), so the
+    /// text is already canonical and resolving it AGAIN reads a SUBSTITUTEd original as withdrawn: the synonym of a withdrawn
+    /// word then denotes nothing. The source's own word is resolved once. Without a directive the text is the word.</summary>
+    private string? DenotedBy(IToken token)
+        => Canonical(CobolWords.IsEmpty ? token.Text : WrittenSource.Of(token));
+
     /// <summary>The canonical upper-case word of <paramref name="token"/> when it is a KEYWORD token §8.9 reserves at this
     /// edition (gated or not), else null.</summary>
     private string? ReservedWordHere(IToken token)
         => token.Type is not (CobolLexer.IDENTIFIER or CobolLexer.DOT or TokenConstants.EOF)
            && token.Text is [var letter, ..] && char.IsLetter(letter)
-           && Canonical(token.Text) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
+           && DenotedBy(token) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
             ? w
             : null;
 
@@ -1102,7 +1111,15 @@ public abstract class CobolParserCoreBase : Parser
     /// verb written correctly, is the strategy's decision (<c>CobolErrorStrategy.ReservedWordUse</c>), which asks
     /// <see cref="ReadStatementAt"/>.</para></summary>
     internal string? ReservedUserWordViolation(IToken? offendingSymbol)
-        => ReservedWord(offendingSymbol, includeVerbs: true) is { } w ? ReservedWordSet.UserWordViolationMessage(w, Edition.Year) : null;
+        => ReservedWord(offendingSymbol, includeVerbs: true) is not null ? UserWordViolationOf(offendingSymbol!) : null;
+
+    /// <summary>⛔ THE §8.9 SENTENCE FOR <paramref name="token"/>, a reserved word of the group (kb/Work PB4573). A synonym
+    /// (<c>&gt;&gt;COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"</c>, then <c>MOVE TO SHOW</c>) is the keyword TOKEN of its original,
+    /// whose text the retype has already overwritten (<c>CobolWordsRewriter.Plan.Apply</c>), so the word the user wrote is read
+    /// from the source (<see cref="WrittenSource.Of(IToken)"/>) and named beside the original, exactly as the funnel's report
+    /// names it: one rule, one message (<see cref="ReservedWordSet.UserWordViolationMessage"/>).</summary>
+    private string UserWordViolationOf(IToken token)
+        => ReservedWordSet.UserWordViolationMessage(CobolKeywords.Spelling(WrittenSource.Of(token)), CobolWords, Edition.Year);
 
     /// <summary>The canonical upper-case word of <paramref name="token"/> when it is a reservation-gated word that §8.9
     /// RESERVES at this edition (the funnel's high-confidence <see cref="ReservedWordSet.RejectsAt"/>), else null — the
@@ -1121,7 +1138,7 @@ public abstract class CobolParserCoreBase : Parser
         // Canonical() has ALREADY applied this group's directive (an UNDEFINE'd word returns null, an EQUATEd
         // synonym its canonical spelling), so composing the overlay twice would double-count it. The table is keyed
         // upper-case and the token keeps the source's spelling, so the word is written in its keyword spelling here.
-        return Canonical(token.Text) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
+        return DenotedBy(token) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
             ? w
             : null;
     }

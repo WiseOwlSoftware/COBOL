@@ -195,18 +195,16 @@ public sealed class ReservedWordSet
     /// word, where no name-slot alternative can match and a raw COBOL0001 would never name §8.9. It lives here,
     /// in the assembly both stages already reference, so the wording, the code and the clause have one
     /// definition (<c>feedback_one_rule_one_place</c>).</summary>
-    public static string UserWordViolationMessage(string upperWord, int edition)
-        => $"'{upperWord}' is a reserved word in COBOL-{edition} and cannot be used as a "
-           + "user-defined word (ISO §8.9)";
-
-    /// <summary>The sentence for <paramref name="written"/>, a word of the user's source that
-    /// <see cref="RejectsAt"/> refuses as a user-defined word: <see cref="UserWordViolationMessage"/> for a word the
-    /// edition reserves (and for RESERVE's, which §8.9 does not list), and for a synonym of a reserved word, the reserved
-    /// word it stands for, since the user wrote a word §8.9 does not list and "reserved in COBOL-2023" would be false of
-    /// it (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 rule 1; kb/Work PB4488).</summary>
-    public string UserWordViolation(string upperWord, string written, int edition)
-        => _synonyms?.GetValueOrDefault(upperWord) is { } original
-            ? $"'{written}' is a synonym for the reserved word {original} (>>COBOL-WORDS, ISO §7.3.10.4 GR2, GR4) and cannot be "
-              + "used as a user-defined word (ISO §8.3.2.1 1)"
-            : UserWordViolationMessage(written, edition);
+    /// <param name="written">The word as the source writes it (<c>CobolKeywords.Spelling</c>).</param>
+    /// <param name="words">The compilation group's directives. A word that is a synonym (EQUATE literal-2, SUBSTITUTE
+    /// literal-5) for a reserved word is named beside that word, since the user wrote a word §8.9 does not list and "reserved
+    /// in COBOL-2023" would be false of it (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 rule 1; kb/Work PB4488). The decision is the
+    /// map's, <see cref="CobolWordsMap.SynonymOf"/>, so a synonym the lexer retyped to its original's token (whose text
+    /// is the original's) and one it left an identifier are one case (kb/Work PB4573).</param>
+    public static string UserWordViolationMessage(string written, CobolWordsMap words, int edition)
+        => words.SynonymOf(written) is not { } original
+            ? $"'{written}' is a reserved word in COBOL-{edition} and cannot be used as a "
+              + "user-defined word (ISO §8.9)"
+            : $"'{written}' is a synonym for the reserved word {original} (>>COBOL-WORDS, ISO §7.3.10.4 GR2, GR4) and cannot be "
+              + "used as a user-defined word (ISO §8.3.2.1 1)";
 }

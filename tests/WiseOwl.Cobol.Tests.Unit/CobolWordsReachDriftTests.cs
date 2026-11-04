@@ -175,10 +175,11 @@ public sealed class CobolWordsReachDriftTests
             foreach (string word in reserved)
             {
                 string synonym = "SYN-" + word;
-                var set = ReservedWordSet.Compose(new CobolWordsMap([new CobolWordsOp(action, word, synonym, default)]));
+                var map = new CobolWordsMap([new CobolWordsOp(action, word, synonym, default)]);
+                var set = ReservedWordSet.Compose(map);
                 if (!set.RejectsAt(synonym, 2023)
                     || set.UserWordVerdictAt(synonym, 2023) != ConstructAvailability.Removed
-                    || !set.UserWordViolation(synonym, synonym, 2023).Contains($"synonym for the reserved word {word}"))
+                    || !ReservedWordSet.UserWordViolationMessage(synonym, map, 2023).Contains($"synonym for the reserved word {word}"))
                     failures.Add($"{action} {word}");
             }
         Assert.True(failures.Count == 0, $"{failures.Count} synonym(s) of a reserved word are accepted as user-defined words "

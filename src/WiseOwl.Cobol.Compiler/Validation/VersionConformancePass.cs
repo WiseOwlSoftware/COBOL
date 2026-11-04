@@ -2928,7 +2928,7 @@ internal sealed class VersionConformancePass
             // resolves it to a DebugRegisterPlace, so ACCEPT it here (no §8.9 violation, no not-implemented note).
             if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
                 return base.VisitChildren(ctx);
-            FlagReservedUserWord(word, CobolKeywords.Spelling(ctx.Start.Text));
+            FlagReservedUserWord(word, CobolKeywords.Spelling(WrittenSource.Of(ctx.Start)));
             return base.VisitChildren(ctx);
         }
 
@@ -2943,8 +2943,9 @@ internal sealed class VersionConformancePass
         /// not-yet-introduced construct getting the migration mode's leniency (CA14's policy; these two were
         /// found by the introduction-axis theory the fix added).</para></summary>
         /// <para><paramref name="word"/> is the Annex C fold the reservation is looked up by and the once-per-word key;
-        /// <paramref name="written"/> is the word's spelling (<c>CobolKeywords.Spelling</c>: the letters the source writes, the
-        /// basic ones upper-cased), which the message names (kb/Work PB4312: a word
+        /// <paramref name="written"/> is the word's spelling (<c>CobolKeywords.Spelling</c> of the SOURCE's extent,
+        /// <c>WrittenSource.Of</c>: the letters the source writes, the basic ones upper-cased; a synonym the lexer retyped to its
+        /// original's keyword token carries the original's text, kb/Work PB4573), which the message names (kb/Work PB4312: a word
         /// a <c>&gt;&gt;COBOL-WORDS RESERVE</c> made reserved, written <c>CAFÉ</c>, was named by its fold, <c>'CAFé'</c>).</para>
         private void FlagReservedUserWord(string word, string written)
         {
@@ -2952,7 +2953,7 @@ internal sealed class VersionConformancePass
             _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
                 EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
                 "edition-reserved-word",
-                _reservedWords.UserWordViolation(word, written, _p._edition.Year), "", "ISO §8.9"));
+                ReservedWordSet.UserWordViolationMessage(written, _cobolWords, _p._edition.Year), "", "ISO §8.9"));
         }
 
         /// <summary>kb/Work PB137/PB300/PB693/PB4206: the generated <c>reservedGatedWord</c> rule keeps a reservation-gated
@@ -2972,7 +2973,7 @@ internal sealed class VersionConformancePass
         /// it, and FILLER is not a user-defined word at all.</para></summary>
         public override object? VisitReservedGatedWord(CobolParserCore.ReservedGatedWordContext ctx)
         {
-            FlagReservedUserWord(CobolNames.UpperFold(ctx.GetText()), CobolKeywords.Spelling(ctx.GetText()));
+            FlagReservedUserWord(CobolNames.UpperFold(ctx.GetText()), CobolKeywords.Spelling(WrittenSource.Of(ctx.Start)));
             return base.VisitChildren(ctx);
         }
     }

@@ -134,12 +134,14 @@ public sealed partial class SpecialNamesBinder
         string? written = dp.IDENTIFIER()?.GetText();
         if (written is not null && words.Is(written, "COMMA"))
             Cfg.DecimalPointIsComma = true;
-        else if (words.RemovedBy("COMMA") is not null)
+        else if (words.RemovedBy("COMMA") is { } withdrawn)
             // A directive of this group withdrew COMMA (UNDEFINE literal-3, SUBSTITUTE literal-4): "the only form is
-            // DECIMAL-POINT IS COMMA" would be false about the cause, and the clause is simply not available in the
-            // group whatever word follows IS (§7.3.10.4 GR3, GR4).
-            Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {written}: a >>COBOL-WORDS directive of this "
-                + "compilation group withdrew the reserved word COMMA, so the clause that requires it is not available (ISO §7.3.10.4 GR3, GR4)");
+            // DECIMAL-POINT IS COMMA" would be false about the cause. Under UNDEFINE the clause is not available in the
+            // group whatever word follows IS (GR3); under SUBSTITUTE literal-5 "shall be used in any syntax where" COMMA "is
+            // documented as required" (GR4), so the clause is available and written with literal-5. The sentence is the ONE
+            // CobolWordsOp builds for a withdrawn word (kb/Work PB4573).
+            Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {written}: {withdrawn.Withdrew("COMMA")}; "
+                + withdrawn.WithdrawnSyntax("the DECIMAL-POINT IS COMMA clause", "COMMA"));
         else
             Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {written}: the only form is "
                 + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
