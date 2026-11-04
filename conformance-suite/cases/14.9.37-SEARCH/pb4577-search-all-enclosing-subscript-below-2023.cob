@@ -1,12 +1,12 @@
       *>--- conformance-case
-      *> id: pb4577-search-all-enclosing-subscript-below-2014
+      *> id: pb4577-search-all-enclosing-subscript-below-2023
       *> rules: [SR-14.9.37.3-2]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB4577 - the SEARCH ALL twin of pb4577-search-enclosing-subscript-below-2014: both formats print the same
+      *> kb/Work PB4609 (PB4577) - the SEARCH ALL twin of pb4577-search-enclosing-subscript-below-2023: both formats print the same
       *> identifier-1 operand (14.9.37.3 SR1-SR3 are ALL-FORMATS rules) and resolve it in the one place, so SEARCH ALL H (GI)
-      *> is a COBOL-2014 permission as SEARCH H (GI) is. Refused at COBOL-85 and COBOL-2002 with COBOL0900.
+      *> is a COBOL-2023 permission as SEARCH H (GI) is. Refused at COBOL-85, COBOL-2002 and COBOL-2014 with COBOL0900.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4577N2.
        DATA DIVISION.

@@ -6,8 +6,8 @@
       *> portable: unverified
       *>---
       *> kb/Work PB4577 - the spelling of a nested table's SEARCH that is legal at EVERY edition: identifier-1 BARE. The
-      *> 2002 text and the 2009 committee draft say "Identifier-1 shall not be subscripted or reference modified", which
-      *> this satisfies; COBOL-2014 and later also admit the enclosing tables' subscripts (pb4577_search_enclosing_subscript_2014).
+      *> 2002 text, the 2009 committee draft and the 2014 FCD 1.0 say "Identifier-1 shall not be subscripted or reference modified", which
+      *> this satisfies; COBOL-2023 also admits the enclosing tables' subscripts (pb4577_search_enclosing_subscript_2023).
       *> ISO/IEC 1989:2023 14.9.37.4 GR1 (cite.py --check 14.9.37.4 "The subscript that is used to determine the occurrence
       *> of each superordinate table to search is specified by the user in the WHEN phrases" -> OK) puts the enclosing
       *> occurrence in the WHEN phrases, so GI (2) selects the second row 7 8 9 through H (GI, HI), exactly as the subscripted

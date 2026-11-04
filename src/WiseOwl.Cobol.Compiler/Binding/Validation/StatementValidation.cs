@@ -836,10 +836,10 @@ internal sealed class StatementValidation(DataBinder data)
         // `02 GRP-ENTRY OCCURS 10 … 03 GRP2-ENTRY OCCURS 10`, the outer occurrence coming from IDX-1 in the WHEN
         // exactly as GR1 describes — and a lower bound failed six NIST programs (NC231A NC232A NC233A NC234A
         // NC237A NC238A) outright. Both spellings are legal: bare, and with the superordinate subscripts written
-        // (which SR2 permits, banning only the searched level's). The second is a COBOL-2014 permission (the 2002 text and
-        // the 2009 committee draft ban every subscript on identifier-1), gated on RECOGNITION by the parse arm of
-        // VersionConformancePass (construct search-identifier-1-enclosing-subscript-2014, kb/Work PB4577), so this count
-        // is the 2014 and 2023 rule at every edition.
+        // (which SR2 permits, banning only the searched level's). The second is a COBOL-2023 permission (the 2002 text,
+        // the 2009 committee draft and the 2014 FCD 1.0 ban every subscript on identifier-1), gated on RECOGNITION by the parse arm of
+        // VersionConformancePass (construct search-identifier-1-enclosing-subscript-2023, kb/Work PB4609), so this count
+        // is the 2023 rule at every edition.
         // ⛔ THE ARITY WALK IS WRITTEN ONCE, IN DataItem (kb/Work PB877 — it found FIVE copies, and
         // SubscriptAdmissionDriftTests.TheSr3ArityWalk_IsWrittenExactlyOnce fails if a sixth appears).
         // SubscriptArity counts identifier-1 ITSELF plus every table ancestor, and the !IsTable arm above
