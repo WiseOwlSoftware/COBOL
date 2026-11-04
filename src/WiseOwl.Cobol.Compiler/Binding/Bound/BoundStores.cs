@@ -135,6 +135,7 @@ public static class BoundStores
                 switch (a)
                 {
                     case InitializeStore st when matches(st.Target.Item): return true;
+                    case InitializeStoreValue sv when matches(sv.Target.Item): return true;
                     case InitializeSetNull sn when matches(sn.Target.Item): return true;
                     // §14.9.20.4 GR4/GR6b's implicit SET stores into its TARGET (identifier-2 is the sender).
                     case InitializeSetFrom sf when matches(sf.Target.Item): return true;

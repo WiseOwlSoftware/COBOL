@@ -12,6 +12,11 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name).</summary>
 internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
 {
+    private DataEmitter? _data;
+
+    /// <summary>The VALUE recipe's home, built on first use (the shape <c>SetEmitter</c> and <c>ReportWriterEmitter</c> take).</summary>
+    private DataEmitter Data => _data ??= new DataEmitter(ctx);
+
     /// <summary>INITIALIZE (ISO §14.9.20) — render the bind-time expansion: each <see cref="InitializeStore"/> IS
     /// the spec's implicit elementary MOVE (GR4), emitted through the ONE MOVE store path (<c>EmitMove</c> →
     /// <c>ConvertSource</c> — so REPLACING/VALUE/default senders get identical conversion, editing, padding and
@@ -42,6 +47,13 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                 // <c>StaleDeferralDriftTests</c> keeps it that way.
                 // ⛔ The move was BOUND (kb/Work PB880) — built here it missed every storage fact the bind collects.
                 move.Emit(s.Move);
+                break;
+            case InitializeStoreValue s:
+                // §14.9.20.4 GR6 a) 3. for a receiver a MOVE would edit / justify / blank (kb/Work PB4512): the
+                // result the rule asks for is the initial value, so it is the ONE §13.18.63 VALUE recipe's image —
+                // the same call the item's declaration, a report field and SET condition-name TO TRUE make.
+                w.Line(PlaceRenderer.Write(s.Target, Data.ValueImageOf(s.Target.Item, s.Raw))
+                    + "   // INITIALIZE TO VALUE — the VALUE clause's initial value (ISO §14.9.20.4 GR6 a) 3.)");
                 break;
             case InitializeSetNull s:
                 // §14.9.20 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,

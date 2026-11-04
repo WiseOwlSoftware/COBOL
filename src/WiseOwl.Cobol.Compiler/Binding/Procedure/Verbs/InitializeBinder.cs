@@ -660,6 +660,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                         + "and §14.9.39 admits no function-identifier as a SET sending operand)"),
                 }
                 : new InitializeSetNull(cur.ToPlace());                                        // GR4 SET … TO the predefined NULL
+        // GR6a3 for a receiver whose MOVE would edit, justify or blank the VALUE literal a second time: the rule's
+        // result is the initial value itself, which the VALUE recipe renders (kb/Work PB4512; InitializeStoreValue).
+        if (q is InitializeQualification.ViaValue && effectiveValue is { } valueText && ValueIsNotAMoveResult(item, cat))
+            return new InitializeStoreValue(receiver ?? cur.ToPlace(), valueText);
         if (SenderFor(q, cat, effectiveValue, spec) is not { } source) return null;
         // §14.9.20.4 GR7: "When a dynamic-length elementary item is initialized, its length is set to zero."
         // ⚖ DETERMINATION D-DL1 (docs/CONFORMANCE.md §3; kb/Work PB418) — GR7 IS THE GR6c ARM'S RULE, NOT A
@@ -684,6 +688,19 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (item.IsDynamicLength && q is InitializeQualification.ViaDefault) source = new BoundStringLiteral("");
         return Store(receiver ?? cur.ToPlace(), source);
     }
+
+    /// <summary>Whether a MOVE of the item's VALUE literal would NOT leave the item's initial value — the receivers
+    /// whose MOVE (§14.9.25.4) applies a transform the VALUE clause does not: editing (alphanumeric-edited,
+    /// national-edited and numeric-edited, whose BLANK WHEN ZERO is part of the same MOVE editing) and a JUSTIFIED
+    /// alignment. §13.18.63.4 GR7: "initialization is not affected by a JUSTIFIED clause and no editing takes
+    /// place"; GR8: BLANK WHEN ZERO "has no effect on initialization" for an alphanumeric or national literal;
+    /// §13.18.63.3 SR11 for the editing characters. Every other receiver's MOVE of the literal is its initial value,
+    /// and takes the sender <see cref="InitializeValueOperand"/> builds. A dynamic-length item is JUSTIFIED-free and
+    /// never edited (§8.6.4), so it stays on the MOVE arm whose D-DL1 length rule it needs.</summary>
+    private static bool ValueIsNotAMoveResult(DataItem item, InitializeCategory cat) =>
+        cat is InitializeCategory.AlphanumericEdited or InitializeCategory.NationalEdited
+            or InitializeCategory.NumericEdited
+        || item.Justified;
 
     /// <summary>⛔ THE Format-2 (table) VALUE ARM OF GR5c/GR6, WHICH IS THE ONLY PER-OCCURRENCE ONE (ISO §14.9.20.4
     /// GR5c1c + GR6a3). The receiver's qualification and its sending-operand both depend on the occurrence, so one
