@@ -30,7 +30,9 @@ internal readonly record struct MemberKey(string Type, string Member)
 /// about a second per gate. It reads every type definition with <c>System.Reflection.Metadata</c> and every type's
 /// documents from the portable PDB beside its assembly, and answers two things: the authored population (the
 /// census's rule, applied to those documents) and the distinct (outermost authored type, outermost product type)
-/// pairs — the census's unit of "uses" (<c>RawEdge.Pairs</c>), counted over the walk's own population.
+/// pairs — the census's unit of "uses" (<c>RawEdge.Pairs</c>), counted over the walk's own population. Given owner
+/// types, the same visit also answers which outermost types read each owner's members (<see cref="MemberReaders"/>,
+/// kb/Work PB2361).
 /// </summary>
 /// <remarks>
 /// <para>

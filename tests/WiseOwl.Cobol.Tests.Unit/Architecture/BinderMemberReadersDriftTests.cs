@@ -26,7 +26,8 @@ namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 /// <item>a reader the file does not list, or a member it does not list, is refused: a new reader of a binder's member is
 /// a decision written into the file in the change that adds it, where review sees it;</item>
 /// <item>a reader or member the walk no longer measures is refused too, so the file is the code's current picture and
-/// never accumulates stale entries.</item>
+/// never accumulates stale entries (on the unoptimized image the file measures; an optimized one is checked only for
+/// growth, as the edges file is).</item>
 /// </list>
 /// <para>On a mismatch the test writes the measured picture beside the run's output (the path is in the message), so the
 /// file is updated by copying the entries the change really meant, never by regenerating it blind.</para>
@@ -53,15 +54,15 @@ public sealed class BinderMemberReadersDriftTests
             _ => TestRepo.Src("WiseOwl.Cobol.Compiler"), file.Owners.ToHashSet(StringComparer.Ordinal));
         SortedDictionary<string, string[]> measured = Measured(walk);
 
-        // Vacuity: every owner declares members the walk found, and the one door every carved binder walks through (the
-        // data binder's edition facts) has readers outside it.
+        // Vacuity: the walk found members of every owner, so an owner renamed or moved, or a walk that stopped reading
+        // the compiler, is red rather than an empty agreement.
         foreach (string owner in file.Owners)
         {
-            Assert.True(measured.Keys.Any(k => k.StartsWith(owner + "::", StringComparison.Ordinal) || k.StartsWith(owner + "+", StringComparison.Ordinal)),
+            Assert.True(measured.Keys.Any(k => k.StartsWith(owner + "::", StringComparison.Ordinal)),
                 $"the walk found no member of {owner}: the owner was renamed or moved, or the walk no longer reads the compiler");
         }
 
-        List<string> findings = Check(file.Members, measured);
+        List<string> findings = Check(file.Members, measured, walk.Optimized);
         if (findings.Count > 0)
         {
             string written = Path.Combine(AppContext.BaseDirectory, "binder-member-readers.measured.json");
@@ -134,6 +135,15 @@ public sealed class BinderMemberReadersDriftTests
             Assert.Contains(findings, f => f.StartsWith("P.Owner::Name lists P.Gone, which no longer reads it", StringComparison.Ordinal));
             var read = measured.Where(m => m.Value.Length > 0).ToDictionary(StringComparer.Ordinal);
             Assert.Empty(Check(read, read));
+
+            // An optimized image refuses only growth: a reader it lacks is not stale, a reader it adds still is.
+            var debug = new SortedDictionary<string, string[]>(read, StringComparer.Ordinal) { ["P.Owner::Name"] = ["P.Reader", "P.Gone"] };
+            var optimized = new SortedDictionary<string, string[]>(read, StringComparer.Ordinal) { ["P.Owner::Nested"] = [] };
+            Assert.Empty(Check(debug, optimized, optimizedImage: true));
+            Assert.Contains(Check(debug, optimized), f => f.StartsWith("P.Owner::Nested is read by no type", StringComparison.Ordinal));
+            optimized["P.Owner::Name"] = ["P.Reader", "P.New"];
+            Assert.Contains(Check(debug, optimized, optimizedImage: true),
+                f => f.StartsWith("P.Owner::Name is read by P.New, which the file does not list", StringComparison.Ordinal));
         }
         finally
         {
@@ -147,13 +157,17 @@ public sealed class BinderMemberReadersDriftTests
             StringComparer.Ordinal);
 
     /// <summary>Every disagreement between the file's members and the measured ones, and every member no type outside
-    /// its owner reads.</summary>
-    private static List<string> Check(IReadOnlyDictionary<string, string[]> listed, IReadOnlyDictionary<string, string[]> measured)
+    /// its owner reads. The file is the UNOPTIMIZED (Debug) image's measure; an optimized image can lack a reference
+    /// Debug carries (a local's slot, <see cref="TypeReferenceWalk"/>'s "Two images"), so on one
+    /// (<paramref name="optimizedImage"/>) only growth is refused: a reader or member the file does not list, and a member
+    /// read by nobody that the file does not list with readers.</summary>
+    private static List<string> Check(IReadOnlyDictionary<string, string[]> listed, IReadOnlyDictionary<string, string[]> measured,
+        bool optimizedImage = false)
     {
         var findings = new List<string>();
         foreach (var (member, readers) in measured)
         {
-            if (readers.Length == 0)
+            if (readers.Length == 0 && !(optimizedImage && listed.TryGetValue(member, out string[]? debugReaders) && debugReaders.Length > 0))
             {
                 findings.Add($"{member} is read by no type outside its owner: make it private (kb/Work PB2361)");
                 continue;
@@ -172,7 +186,7 @@ public sealed class BinderMemberReadersDriftTests
                     + "decision; list it, or read what the binder publishes instead (DataBindResult, a slice)");
             }
 
-            foreach (string gone in expected.Except(readers, StringComparer.Ordinal))
+            foreach (string gone in optimizedImage ? [] : expected.Except(readers, StringComparer.Ordinal))
             {
                 findings.Add($"{member} lists {gone}, which no longer reads it: delete the entry");
             }
