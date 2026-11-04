@@ -163,12 +163,26 @@ public readonly struct CobolWide
     /// both can form the quotient. An exact quotient keeps the preferred exponent (the dividend's, ISO/IEC 60559 5.4.1,
     /// kb/Work PB3954), as <see cref="CobolDec.Div"/> does. False when that scaled dividend would leave the 256-bit range (a divisor
     /// past 41 digits).</summary>
-    internal bool TryQuotientDec(int scale, CobolWide divisor, CobolRounding mode, out CobolDec quotientDec)
+    internal bool TryQuotientDec(int scale, CobolWide divisor, CobolRounding mode, out CobolDec quotientDec) =>
+        TryQuotientDec(scale, divisor, 0, mode, jam: false, out quotientDec);
+
+    /// <summary>⛔ THE EXACT QUOTIENT OF TWO SCALED WIDE VALUES, ROUNDED ONCE TO THE SDIDI (kb/Work PB4599): this value at
+    /// <paramref name="scale"/> over <paramref name="divisor"/> at <paramref name="divisorScale"/> — the single division of a native
+    /// final-transfer quotient over exact operands (<c>CobolExact.DivToOdd</c>) and, at divisor scale 0 without <paramref name="jam"/>,
+    /// of the overload above. With <paramref name="jam"/> the 34-digit result is ROUND-TO-ODD (<see cref="CobolDec.DivToOdd"/>'s
+    /// rule), whatever <paramref name="mode"/>: an inexact quotient keeps an odd last digit, so the receiver's one rounding sees the
+    /// exact quotient's side of every boundary. It divides the EXACT operands: the 34-digit image of a 45-digit dividend over its
+    /// factor stored 999999999999998 where 999999999999999 is owed. An exact quotient keeps the preferred exponent, the dividend's
+    /// less the divisor's (ISO/IEC 60559 5.4.1, kb/Work PB3954). A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/>
+    /// (ISO §14.7.5 case 2). False when the scaled dividend would leave the 256-bit range (a divisor past 41 digits).</summary>
+    internal bool TryQuotientDec(int scale, CobolWide divisor, int divisorScale, CobolRounding mode, bool jam, out CobolDec quotientDec)
     {
         quotientDec = default;
+        if (divisor.IsZero) throw CobolSizeError.ZeroDivide();
+        int preferred = divisorScale - scale;
         if (IsZero)
         {
-            quotientDec = CobolDec.Zero(-scale);
+            quotientDec = CobolDec.Zero(preferred);
             return true;
         }
         CobolWide magnitude = Abs(this), d = Abs(divisor);
@@ -176,10 +190,11 @@ public readonly struct CobolWide
         int up = Math.Max(0, 36 + d.MagnitudeDigits().Length - magnitude.MagnitudeDigits().Length);
         if (!TryUp(magnitude, up, out CobolWide scaled)) return false;
         CobolWide quotient = DivRem(scaled, d, out CobolWide remainder);
-        int exp = -scale - up;
+        int exp = preferred - up;
         UInt128 lo = quotient._lo;
-        if (remainder.IsZero && up > 0) lo = CobolDec.ToPreferredExponent(lo, ref exp, -scale);   // below 2^128: up > 0 means 36 or 37 digits
-        quotientDec = CobolDec.Round34Wide(quotient._hi, lo, _negative != divisor._negative, exp, mode, extraSticky: !remainder.IsZero);
+        if (remainder.IsZero && up > 0) lo = CobolDec.ToPreferredExponent(lo, ref exp, preferred);   // below 2^128: up > 0 means 36 or 37 digits
+        quotientDec = CobolDec.Round34Wide(quotient._hi, lo, _negative != divisor._negative, exp, mode,
+            extraSticky: !remainder.IsZero, jam: jam);
         return true;
     }
 

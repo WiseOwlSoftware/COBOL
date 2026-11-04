@@ -99,8 +99,10 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > significand (a significand the SDIDI has rounded has at most 34 digits, so the places end at most 33 past the leading
 > digit), never by a scale chosen without it, and it does not grow with depth (`pb3538_runtime_precision_quotients`,
 > `pb3538_float_literal_precision`, `pb3538_written_precision`, `CobolDecWithPrecisionTests`). Only a
-> final-transfer quotient over a wide operand and a floating-point edited resultant take the SDIDI's own
-> `CobolDec.DivToOdd` (the exact quotient, round-to-odd, rounded once at the receiver). Depth therefore changes neither a nested quotient's
+> final-transfer quotient over a wide operand and a floating-point edited resultant take the exact quotient of the
+> operands' EXACT values, reduced to the SDIDI's 34 digits once by round-to-odd (`CobolExact.DivToOdd`, kb/Work PB4599:
+> the dividend's own 34-digit image divided by its factor stored 999999999999998 for `A * A * A / (A * A)` of
+> A = 999999999999999) and rounded once at the receiver. Depth therefore changes neither a nested quotient's
 > precision nor its lane (`NestedQuotientPrecisionDriftTests` compiles each quotient-crossing shape at depth 2 and
 > 16 and requires the same kernel scales), and the only size errors left are a zero divisor and a VALUE outside the
 > range where it lands. The truncating quotient with exact operations above it follows GnuCOBOL (`cob_decimal_div`
@@ -1323,7 +1325,7 @@ NATIVE statement with a Dec operand (a float literal, an integer power; CONFORMA
 an exact operand of up to 38 digits (`CobolDec.AddSigned`'s wide scratch, kb/Work PB1510) and reduce it once at the
 result, and whose relations compare such a value exactly (DOC-A.1-179 (3)) — so a native 36-digit product is not
 pre-rounded (that rounded it twice, and turned `pb156_float_literal_exact_native`'s LANE leg EQ), while a 16-byte
-container's 39th digit or an unknown bound is. The ROUND-TO-ODD consumers (`DecMulToOdd` / `DecDivToOdd`, via `DecOperandExact`) keep the
+container's 39th digit or an unknown bound is. The ROUND-TO-ODD consumers (`DecMulToOdd` / `DecDivTruncatedToOdd`, via `DecOperandExact`) keep the
 exact lift on purpose: they reduce the exact value once, and a pre-rounded operand would be rounded twice.
 Before, `From` put a 39-digit significand into the intermediate unrounded, past the 34-digit invariant `CobolDec.Add` and
 the other operations assume, and `COMPUTE R = S + 1` with S = −2^127 took ON SIZE ERROR for a result R holds (and the

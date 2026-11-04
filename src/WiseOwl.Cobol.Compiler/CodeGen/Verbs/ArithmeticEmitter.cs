@@ -94,7 +94,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // float — D16), as EmitDivide's operands do.
             var opRcv = targets.Count == 1 ? RcvFor(targets[0], ise)
                 : SetRcv(targets, ise);
-            NumX ax = num.Render(a, opRcv), bx = num.Render(b, opRcv);
+            NumX ax = num.Render(a, opRcv, keepWide: true), bx = num.Render(b, opRcv, keepWide: true);   // every digit into the product (kb/Work PB4599)
             if (MaterializesInitialEvaluation(targets)) { ax = Snapshot(ax); bx = Snapshot(bx); }
             foreach (var r in targets)
                 GuardedStore(ise, r.Place, r.Rounding, () =>
@@ -111,8 +111,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // rounding the spec's intermediate to each resultant. Sub-expression quotients inside the operands
             // render at the widest receiver scale (the intermediate must not lose receiver-visible digits).
             var opRcv = SetRcv(targets, ise);
-            NumX divisorX = num.Render(divisor, opRcv);
-            NumX? dividendX = dividend is not null ? num.Render(dividend, opRcv) : null;
+            // ⛔ BOTH OPERANDS KEEP EVERY DIGIT (kb/Work PB4599): a FUNCTION operand whose value is an exact wide intermediate
+            // (`FUNCTION ABS (A * A * A)`) reaches FinalQuotient as itself, so the quotient divides the EXACT values. Settled here
+            // it was lowered to its 34-digit image and `DIVIDE FUNCTION ABS (A * A * A) BY FUNCTION ABS (A * A) GIVING R` stored
+            // ...998 where `COMPUTE R = FUNCTION ABS (A * A * A) / FUNCTION ABS (A * A)` stores ...999.
+            NumX divisorX = num.Render(divisor, opRcv, keepWide: true);
+            NumX? dividendX = dividend is not null ? num.Render(dividend, opRcv, keepWide: true) : null;
             if (MaterializesInitialEvaluation(targets))
             {
                 divisorX = Snapshot(divisorX);
@@ -171,7 +175,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // pre-P7.3 they rendered under the previous statement's leftover Target* state (H1).
             var rcv = ReceiverContext.Of(d.Quotient.Place.Item.Pic, CobolRounding.Truncation, TakenBy(ise));
             var (dividend, divisor, subsidiary, quotientFor) = num.StandardDecimal || shape.Form != SubsidiaryForm.FixedPoint
-                ? CarriedSubsidiaryQuotient(d, Snapshot(num.Render(d.Dividend, rcv)), Snapshot(num.Render(d.Divisor, rcv)), ise, shape)
+                ? CarriedSubsidiaryQuotient(d, Snapshot(num.Render(d.Dividend, rcv, keepWide: true)), Snapshot(num.Render(d.Divisor, rcv, keepWide: true)), ise, shape)
                 : NativeSubsidiaryQuotient(d, rcv, ise, shape);
             // The back-multiply rides Combine — the native product's digit-bound arms, the Dec lane under a standard
             // mode - instead of a raw C# splice whose Int128 product wrapped silently (PB129). A product past the Int128
@@ -250,8 +254,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     {
         var w = ctx.Writer;
         int qs = shape.Scale;
-        NumX dividendX = num.Render(d.Dividend, rcv), divisorX = num.Render(d.Divisor, rcv);
-        if (dividendX.Real || dividendX.Dec || divisorX.Real || divisorX.Dec)
+        // ⛔ A SENDER THAT IS AN EXACT WIDE VALUE (a FUNCTION whose value passed the Int128 carrier, kb/Work PB4599) keeps every
+        // digit and goes to the carried arm with the SDIDI and binary64 senders: the quotient is the final transfer's, the
+        // exact quotient (NumericRenderer.ExactFinalQuotient), and the remainder is formed from the exact back-multiply. The
+        // image of `FUNCTION ABS (A * A * A)` divided by `FUNCTION ABS (A * A)` gave quotient ...998 and remainder 997999900000000000.
+        NumX dividendX = num.Render(d.Dividend, rcv, keepWide: true), divisorX = num.Render(d.Divisor, rcv, keepWide: true);
+        if (dividendX.Real || dividendX.Dec || dividendX.Wide || dividendX.Exact || divisorX.Real || divisorX.Dec || divisorX.Wide || divisorX.Exact)
             return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, shape);
         NumX dividend = Snapshot(NumericRenderer.DeU(dividendX)),
              divisor = Snapshot(NumericRenderer.DeU(divisorX));
@@ -299,6 +307,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             SubsidiaryForm.BinaryFloat => BinaryFloatSubsidiary(truncated, shape.Pic!),
             _ => FixedPointSubsidiary(truncated, ise, shape),
         };
+        // ⛔ THE BACK-MULTIPLY OF AN EXACT WIDE SENDER IS EXACT (kb/Work PB4599, GR7): the subsidiary quotient beside a sender on the
+        // exact wide form joins it as an exact value, so `subsidiary × divisor` (a 45-digit product of a 15-digit quotient and a
+        // 30-digit divisor) and the dividend's subtraction keep every digit. Left an SDIDI, the product beside the scaled divisor took
+        // the SDIDI lane's 34 digits (DOC-A.1-82) and `DIVIDE FUNCTION ABS (A * A * A + 7) BY FUNCTION ABS (A * A) GIVING Q
+        // REMAINDER R` stored the remainder 6 where it is 7.
+        if (subsidiary.Dec && (dividend.Wide || dividend.Exact || divisor.Wide || divisor.Exact))
+            subsidiary = new NumX(RuntimeApi.ExactFromDec(subsidiary.Expr), 0, Exact: true);
         return (dividend, divisor, subsidiary,
             mode => mode == CobolRounding.Truncation || truncated.Dec || truncated.Real ? truncated : QuotientAt(mode));
     }
@@ -417,7 +432,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 if (c.Rhs is BoundBinary { Op: '*' or '/' } root)
                 {
                     string rootOp = root.Op.ToString();
-                    NumX ax = Snapshot(num.Render(root.Left, rcv)), bx = Snapshot(num.Render(root.Right, rcv));
+                    // ⛔ THE ROOT'S OPERANDS KEEP EVERY DIGIT (kb/Work PB4599): an exact wide operand (a nested product past the
+                    // Int128 carrier) is snapshotted AS ITSELF (keepWide) and the root operation's own arm takes it exact, so
+                    // each receiver's quotient divides the EXACT dividend. Settled here it was lowered to its 34-digit image and
+                    // `COMPUTE R R2 = A * A * A / (A * A)` stored ...998 in both receivers where the single-receiver form stores ...999.
+                    NumX ax = Snapshot(num.Render(root.Left, rcv, keepWide: true)), bx = Snapshot(num.Render(root.Right, rcv, keepWide: true));
                     foreach (var r in c.Targets)
                         GuardedStore(ise, r.Place, r.Rounding, () =>
                             StoreArith(r.Place, num.Combine(ax, rootOp, bx, RcvFor(r, ise), outermost: true), r.Rounding));

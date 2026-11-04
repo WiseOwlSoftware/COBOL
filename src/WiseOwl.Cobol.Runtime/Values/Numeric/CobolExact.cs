@@ -144,6 +144,22 @@ public readonly struct CobolExact
         return new(CobolDec.DivTruncatedToOdd(a.ToDec(mode), b.ToDec(mode), w), precision);
     }
 
+    /// <summary>⛔ THE FINAL-TRANSFER NATIVE QUOTIENT OF EXACT OPERANDS (kb/Work PB4599; DOC-A.1-123): the EXACT quotient of the two
+    /// values reduced to the SDIDI's 34 digits ONCE, by ROUND-TO-ODD (<see cref="CobolDec.DivToOdd"/>'s rule), so the receiver's one
+    /// rounding equals rounding the exact quotient. It is formed on the wide form while the dividend's alignment fits it
+    /// (<see cref="CobolWide.TryQuotientDec(int, CobolWide, int, CobolRounding, bool, out CobolDec)"/>), else over the operands'
+    /// round-to-odd <see cref="Image"/>s, the determination DOC-A.1-123 states for an intermediate past 77 digits. Before it the
+    /// dividend entered the SDIDI as its 34-digit image and <c>A * A * A / (A * A)</c> of a 15-digit A stored 999999999999998.
+    /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
+    public static CobolDec DivToOdd(CobolExact a, CobolExact b)
+    {
+        if (b.Sign == 0) throw CobolSizeError.ZeroDivide();
+        if (a.TryAt(a.Scale, out CobolWide num) && b.TryAt(b.Scale, out CobolWide den)
+            && num.TryQuotientDec(a.Scale, den, b.Scale, CobolRounding.Truncation, jam: true, out CobolDec quotient))
+            return quotient;
+        return CobolDec.DivToOdd(a.Image, b.Image);
+    }
+
     /// <summary>The negation, on the value's own carrier; the same precision.</summary>
     public static CobolExact Negate(CobolExact a) =>
         a._sdidi ? new(CobolDec.Negate(a._dec), a._precision) : new(CobolWide.Negate(a._wide), a._scale, a._precision);
