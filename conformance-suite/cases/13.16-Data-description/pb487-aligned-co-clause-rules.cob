@@ -12,7 +12,8 @@
       *> neither a bit group item nor an elementary bit data item).
       *> SR12: "The SAME AS clause shall not be specified in the same data description entry with any clauses
       *> except CONSTANT RECORD, entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS."  ALIGNED is not among
-      *> them either, so entry C violates SR12 (COBOL1555) and SR1 again.
+      *> them either, so entry C violates SR12 (COBOL1555).  The recovery DROPS the refused ALIGNED and keeps
+      *> SAME AS (kb/Work PB4602), so SR1 is not asked of C and draws no second diagnostic.
       *> Both rules were `||` chains over whichever decode flags the author remembered - SR12's could not see
       *> ALIGNED, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SELECT WHEN or the validation clauses, and SR18's was
       *> short of four more.  They now read ONE clause-presence SET taken from the parse tree, with
