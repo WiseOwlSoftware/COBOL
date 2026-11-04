@@ -1,4 +1,4 @@
-## PB4575: a wide value beside an SDIDI operand keeps every digit (the run-time-scaled exact carrier)
+## Entry 3079 — 2026-11-04 09:52 PST — PB4575: a wide value beside an SDIDI operand keeps every digit (the run-time-scaled exact carrier)
 
 **The defect.** Under native arithmetic, an expression in which an exact wide intermediate (a nested product of 39 to 77
 digits, `NumX.Wide`) met an operand the SDIDI carries (a floating-point literal, a power, a NUMVAL or function value) took
@@ -51,3 +51,4 @@ DISPLAY and MOVE to an alphanumeric item show every digit, and a new drift test 
 golden gains twelve legs (POW1, POWX, POWS, POWEQ, INTW, IFLR, IPART, FPART, ABS, SIGN, DINT, MOVEA) and `CobolExactIntrinsicsTests`
 two facts. A power past 77 digits keeps DOC-A.1-123's SDIDI determination, now stated for powers in CONFORMANCE.
 Review-round gate at 5b1a77de4: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,478/21,478 · Unit 39,752/39,752 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261104T173739Z).
+
