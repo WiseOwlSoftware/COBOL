@@ -6,10 +6,10 @@
  "subject": "Data description entry",
  "rule-digest": "c5d360178824",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs#SameAsCoPermitted",
- "test-ref": "conformance:cases/13.16-Data-description/pb487-aligned-co-clause-rules; unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs#SameAsCoPermitted; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenReferenceComposition",
+ "test-ref": "conformance:cases/13.16-Data-description/pb487-aligned-co-clause-rules; unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences; conformance-test:ReferenceCompositionRecoveryTests.SameAsWithForbiddenCoClause_DrawsOnlyCobol1555",
  "derivation": "",
  "editions": "2002,2014,2023",
- "notes": "The rule is over the WHOLE clause list and was an || chain of local decode flags that could not see ALIGNED, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SELECT WHEN or the validation clauses - so 01 A SAME AS Z ALIGNED. compiled clean. It now reads the WRITTEN clause SET (DataDescriptionCst.WrittenClauses) against SameAsCoPermitted, a constant transcribed from the rule's sentence, and names the offending clause in the message. DataClauseKindDriftTests fails in both directions when a dataDescriptionClause alternative has no DataClauseKind, so the set cannot go incomplete again. kb/Work PB487.",
+ "notes": "The rule is over the WHOLE clause list and was an || chain of local decode flags that could not see ALIGNED, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SELECT WHEN or the validation clauses - so 01 A SAME AS Z ALIGNED. compiled clean. It now reads the WRITTEN clause SET (DataDescriptionCst.WrittenClauses) against SameAsCoPermitted, a constant transcribed from the rule's sentence, and names the offending clause in the message. DataClauseKindDriftTests fails in both directions when a dataDescriptionClause alternative has no DataClauseKind, so the set cannot go incomplete again. kb/Work PB487. kb/Work PB4602 - SR12's guard moved with SR14's into DataBinder.ScreenReferenceComposition (DataBinder.ClausePlacement.cs); the recovery drops the refused co-clause and keeps the SAME AS reference, so `01 X SAME AS Z ALIGNED.` draws COBOL1555 alone.",
  "state": "OK"
 }
