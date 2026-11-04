@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "rule": "DESIGN-architecture-review.md §8.1: a cross-layer dependency is allowed iff its (from, to) layer pair is listed; intra-layer edges are free; every product namespace is placed; a tolerated row lists every type pair it holds, each with the kb/Work notes that remove it (removedBy, the row's is their union); uses (the census record named by census) and walkUses (the drift test's metadata walk) only ever fall; plan is R1's account of the removal",
-  "census": "cbb187c1d7967630728aa42621fb3fee14280997",
+  "census": "2a581b75c6067f1eafd8a846dd04d883d59e8687",
   "layers": [
     {
       "id": "runtime",
@@ -594,7 +594,7 @@
     {
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 48,
+      "uses": 47,
       "walkUses": 46,
       "removedBy": [
         "PB2347",
@@ -1594,7 +1594,7 @@
     {
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 137,
+      "uses": 66,
       "walkUses": 72,
       "removedBy": [
         "PB2320",
@@ -2250,7 +2250,7 @@
     {
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 41,
+      "uses": 26,
       "walkUses": 22,
       "removedBy": [
         "PB2361",

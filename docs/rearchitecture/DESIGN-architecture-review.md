@@ -1204,7 +1204,8 @@ three shapes. The **configuration slice** is a value slice with ONE producer per
 the environment phase, before every data phase that reads it (today's literal and PICTURE reads), and its source is a
 closed union with three arms, one per kind of unit the standard gives a configuration: **Own** — an outermost program,
 function, class definition or interface binds its own CONFIGURATION SECTION; **Contained** — a contained program binds
-none (§12.3.3 SR1) and takes the container's frozen `DataBindResult` (§12.3.4 GR1); **ClassHalf** — an OBJECT or
+none (§12.3.3 SR1) and takes the container's slice, read through the container's binder (`BindSession.Binders`; the
+container's `DataBindResult` is made only after the group tail, PB2361) (§12.3.4 GR1); **ClassHalf** — an OBJECT or
 FACTORY half takes its class definition's configuration (§12.3.4 GR1: the class contains the half) overlaid clause by
 clause by the half's own SPECIAL-NAMES, the one configuration paragraph §12.3.3 SR3 leaves it. The class definition
 binds no data, so it has no `DataBindResult`: its arm's source is a `ClassConfiguration` value, bound once per class by
@@ -1237,8 +1238,9 @@ writes them today) and before ProcedureBound; and `MethodChecking` (`OoUniversal
 symbol as today. `OoUniversalCheckingHere` is a binder-state kind of this shape, not a sixth one: a `TurnState` fold the
 binder writes once and code generation reads (`OoEmitter.cs:539`). The
 **inheritance merge** is `InheritStep` (`Binding/InheritStep.cs`), run for every program unit (an outermost one has no
-container and inherits nothing), which receives the containers nearest first (a parent binds before its children; as
-their `DataBindResult`s once step 11 makes one), and writes one slice of its own, never a data phase's:
+container and inherits nothing), which receives the containers nearest first (a parent binds before its children) and reads each through its binder
+(`ElementBinders`, `BindSession.Binders`: a container's `DataBindResult` does not exist yet while its children bind, because
+the result is made after the group tail, PB2361), and writes one slice of its own, never a data phase's:
 `InheritedGlobals` (`DataBindState.Inherited`: the inherited GLOBAL files with their depth, their GLOBAL record areas,
 the container-local files, the inherited type declarations, and the offers of the containers' GLOBAL reports and data
 roots; a lookup reads the child's own declarations first and this slice after — `DataBindState.VisibleFiles`,
@@ -1272,8 +1274,9 @@ EVERY unit (an outermost program and each class half included) is the driver's u
 because an outermost unit missing its flags changes the emitted checks. For the inheritance merge, `ValidateDag` checks
 that `GlobalsSeeded` precedes every data phase and `GlobalsInherited` follows them and precedes ProcedureBound, that only
 `InheritStep` produces `InheritedGlobals`, and that every reader declares it and runs after the phase that writes it; the
-type holds the containers: the step and `ConfigurationStep` receive them as `DataBindResult`, which is immutable, so
-neither can write one. Neither checks the merge's order (nearest
+step and `ConfigurationStep` read the containers' slices through the containers' binders, and the drift tests pin their
+writers (`DataBindStateBoundaryDriftTests`): *the estimate that they could receive the containers as `DataBindResult` was
+wrong*, because a container's result is made after the group tail and its children bind before it (PB2361). Neither checks the merge's order (nearest
 container first, a local name shadowing), which stays the step's loop, as today, and the oracle proves it.
 `ValidateDag` checks nothing about the three procedure-bind shapes, because they live inside ONE phase
 (ProcedureBound), where order is the statement walk's, not the pass list's; what holds them is the type: no
@@ -1321,7 +1324,21 @@ binders read the value slices (frozen, but for the two late doors of `ForestSlic
 shapes, all through `BindSession`; after the group
 tail (StorageComputed), when every slice is frozen and every fact set complete, the output is `DataBindResult`, the
 immutable record that replaces `DataBinder` on `BoundUnit.Data`, `BoundCompilation.InterfaceData` and
-`EmitContext.Data` (§8.1's largest refusal). `DataBinder` keeps only the orchestration that builds the state, runs the
+`EmitContext.Data` (§8.1's largest refusal). *As built (PB2361):* `DataBindResult` (`Binding/Model/DataBindResult.cs`) is
+made once per element by `DataBinder.Result`, called by `ElementBinders.Freeze` after the group tail and the validation
+passes (it refuses a binder whose watermark is not the tail's terminal phase, `EditionConformanceChecked`); it carries the
+frozen `ForestSlice`, `FileSlice` and `StorageTierSlice` (moved to compiler.model, `Binding/Model/`, with them), the
+`ReportScope` and `UnitChecking`, `ConfigurationFacts` (the six configuration facts the emitters read, made by
+`ConfigurationSlice.Facts`), `LinkageFacts` (the linkage roots, formals, RETURNING item, suppressed root fields and EXTERNAL
+backings), the range-collation carriers, APPLY COMMIT, the three edition facts, and the answers the emitters used to ask
+the binder (`EmitsStaticReset`, `DeclaredCapacityRegisterTables`, the cell lifetimes `LifetimeOfCell` / `CellFieldsOf`).
+The binders and resolvers are binder-side state, `ElementBinders` on `BindSession.Binders` (each program unit, each class
+half, each interface): `BoundUnit.Refs` and `OoClassUnit.Refs` / `FactoryRefs` are gone, every binding phase that needs an
+element's binder asks the table, and `BinderDriver.Session` hands a binder-side reader (a test of a binder rule) the
+session after the bind. The parts of the result name value types that PB2399 (the alphabet family, `LinkageFormal`) and
+PB2420 (`ReportScope`, `RangeCollationCarrier`, `NumericDisplayForm`, `CellLifetime`, `CallExternalBacking`) move to
+compiler.model; until then those pairs are tolerated rows of `architecture-edges.json`. `DataItem` is not yet immutable
+after binding: that is PB2323's seam (R0-0028), which `DataBindResult` is now the place to enforce. `DataBinder` keeps only the orchestration that builds the state, runs the
 pipeline and returns the result (`DESIGN-module-topology.md` §2.5's "thin orchestrator + named passes", with the
 slices and fact sets as the seam it lacked).
 **The data binder's own value slices (PB2296 M6, as built).** *The estimate above was wrong about what is left:* the usage facts,
@@ -1357,9 +1374,8 @@ public or internal collection of its own and when a slice's mutator is called fr
   (`DataBindStateBoundaryDriftTests.TheDataBindersSlices_AreWrittenOnlyByTheirWriters`: `AddTemporaryRoot` from `CompilerTemps` only,
   `ClaimTemporaryCell` from `DataBinder.Ptr.cs` only, `ClaimTemporarySlotCarriedCell` from `UdfBinder` only, and the data-phase
   `ClaimSlotCarriedCell` from `PtrBindBasedAndAddressablesPass` only), and `ForestSlice.Roots` / `StorageTierSlice.AddressableBackings`
-  are complete only when the procedure binders are done. **For PB2361 (step 11):** `DataBindResult` is built after the group tail, not
-  before procedure binding, or these two doors move onto a procedure-side collection that the result merges; the result may not
-  freeze the forest roots and the cell backings at the end of the data phases.
+  are complete only when the procedure binders are done. **As built (PB2361, step 11):** `DataBindResult` is made after the group
+  tail (`ElementBinders.Freeze`), so the two doors are shut when the forest roots and the cell backings are frozen into it.
 - `ClauseFacts` (`State.Clauses`): the entries that WROTE a SIGN or a VALUE clause (§13.18.52.3 SR1/SR2, §13.16.3 SR10), the
   clause operands the capture already refused, the written level-88s in source order (§13.16.3 SR24) and `LapsedTypeMembers`
   (§8.4.2.2.1 rule 4, written once by `ExpandTypesPass`).

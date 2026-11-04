@@ -41,10 +41,10 @@ internal sealed class DataBindResult
     /// <summary>The LINKAGE / EXTERNAL facts the backend reads (<see cref="LinkageFacts"/>).</summary>
     public required LinkageFacts Linkage { get; init; }
 
-    /// <summary>The range-collation carriers of the ALPHABET clauses a relation reads (ISO §12.3.7; keyed by alphabet-name).</summary>
+    /// <summary>The range-collation carriers of the ALPHABET clauses a relation reads (ISO §12.3.7.4; keyed by alphabet-name).</summary>
     public required IReadOnlyDictionary<string, RangeCollationCarrier> RangeCollations { get; init; }
 
-    /// <summary>The element's APPLY COMMIT clause (ISO §12.4.6.4), or null when it writes none.</summary>
+    /// <summary>The element's APPLY COMMIT clause (ISO §12.4.6.3), or null when it writes none.</summary>
     public required ApplyCommitModel? ApplyCommit { get; init; }
 
     /// <summary>The edition the element was bound under (85, 2002, 2014 or 2023).</summary>
@@ -70,7 +70,7 @@ internal sealed class DataBindResult
     public required bool EmitsStaticReset { get; init; }
 
     /// <summary>The dynamic tables whose named CAPACITY register THIS element declares (its own and its methods'): the
-    /// registers its own class emits a profile for (ISO §13.18.38 GR15; kb/Work PB3165).</summary>
+    /// registers its own class emits a profile for (ISO §13.18.38.4 GR15; kb/Work PB3165).</summary>
     public required IReadOnlyList<DataItem> DeclaredCapacityRegisterTables { get; init; }
 
     /// <summary>The §8.6.4 storage duration of each cell of <see cref="StorageTierSlice.AddressableBackings"/>, keyed by its
@@ -92,10 +92,10 @@ internal sealed class DataBindResult
 /// <c>ConfigurationSlice</c> when the result is made: the slice itself stays with the binder, because it also holds the
 /// declaration tables and the name-use recorder of the binding phases.</summary>
 /// <param name="Options">The element's OPTIONS model (ISO §11.9.4).</param>
-/// <param name="Classification">The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §12.3.6), or null.</param>
-/// <param name="Collating">The PROGRAM COLLATING SEQUENCE for alphanumeric comparisons (ISO §12.3.6), or null.</param>
+/// <param name="Classification">The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §12.3.6.4 GR5), or null.</param>
+/// <param name="Collating">The PROGRAM COLLATING SEQUENCE for alphanumeric comparisons (ISO §12.3.6.4 GR9), or null.</param>
 /// <param name="NationalCollating">The PROGRAM COLLATING SEQUENCE for national comparisons, or null.</param>
-/// <param name="DecimalPointIsComma">SPECIAL-NAMES DECIMAL-POINT IS COMMA (ISO §12.3.7).</param>
+/// <param name="DecimalPointIsComma">SPECIAL-NAMES DECIMAL-POINT IS COMMA (ISO §12.3.7.4 GR14).</param>
 /// <param name="ProgramSpecifierNames">The externalized names of the REPOSITORY program-specifiers (ISO §12.3.8.4 GR10), in
 /// the order they were written.</param>
 internal sealed record ConfigurationFacts(
