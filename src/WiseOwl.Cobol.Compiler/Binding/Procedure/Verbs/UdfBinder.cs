@@ -424,8 +424,10 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// GET onto the pre-op list at the argument's position (kb/Work PB1932), so it precedes the activation that
     /// consumes its temp and follows every argument to its left (§8.4.3.2.4 GR2).
     /// Every property reference a window drains is a SENDING operand (a condition or an arithmetic expression
-    /// has no receiving operand), so each one is a §8.4.3.9.4 GR1 GET (<c>OoBinder.OoDrainPropertyGets</c>).</summary>
-    private List<BoundStatement>? DrainPerEvaluation(PendingMark mark) =>
+    /// has no receiving operand), so each one is a §8.4.3.9.4 GR1 GET (<c>OoBinder.OoDrainPropertyGets</c>).
+    /// <para>Called directly — not through a wrapper node — by a window whose carrier is no condition and no expression:
+    /// a report-section SOURCE identifier and CODE identifier (<c>ReportWriterBinder.PerEvaluation</c>, kb/Work PB4517).</para></summary>
+    internal List<BoundStatement>? DrainPerEvaluation(PendingMark mark) =>
         DrainPending(mark.PreOps, host.Oo.OoDrainPropertyGets(mark.PropertyOps));
 
     /// <summary>Drain THIS statement's pending function activations (registered while the statement bound)

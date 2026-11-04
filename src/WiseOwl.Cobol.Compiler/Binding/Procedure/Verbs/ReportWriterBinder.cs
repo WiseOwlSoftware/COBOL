@@ -26,10 +26,23 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// <summary>Bind every report-section PRESENT WHEN condition (ISO §13.18.41 Format 1) and VARYING FROM/BY
     /// expression (§13.18.64) captured on this unit's report models — once per unit bind, through the ONE
     /// <c>ConditionBinder</c> / expression binder. Each DISTINCT condition context binds exactly once (an
-    /// entry's condition appears in every subordinate chain — the memo keeps diagnostics single-shot).</summary>
+    /// entry's condition appears in every subordinate chain — the memo keeps diagnostics single-shot).
+    /// <para>⛔ EVERY CLAUSE OPERAND IS A PER-EVALUATION WINDOW (kb/Work PB4517). These clauses bind BEFORE the first
+    /// statement and outside every statement, yet a function-identifier, a function-bearing subscript or an inline
+    /// invocation in them registers an operand-evaluation step (a user-function activation, a §15.4 subscript temporary
+    /// store) on the statement-scoped pending list. Undrained, the FIRST procedure statement hoisted those steps, so the
+    /// function ran once, at that statement, and every presentation read its stale result: <c>SOURCE WS-T (FUNCTION MOD
+    /// (WS-N, 2) + 1)</c> and <c>SOURCE FUNCTION user-fn (WS-N)</c> printed one value for every line, and a FUNCTION in
+    /// PRESENT WHEN was refused outright (COBOL0899) to keep it from doing the same. The clauses are evaluated when a
+    /// GENERATE or TERMINATE presents the group — condition-1 "before the processing of any LINE clauses for the report
+    /// group" (§13.18.41.4 GR2), the SOURCE COMPUTE "whenever the associated item is printed" (§13.18.53.4 GR2) — and a
+    /// function's value "is determined when the function is referenced at runtime" (§8.4.3.2.4 GR1), so each operand
+    /// drains its OWN steps (<see cref="PerEvaluation(Func{BoundCondition})"/> and its two twins) and the report emitter
+    /// runs them at each evaluation.</para></summary>
     public void BindReportGroupClauses()
     {
         var memo = new Dictionary<Core.ConditionContext, BoundCondition>(ReferenceEqualityComparer.Instance);
+        var entry = host.Udf.Mark;
         BoundCondition Bind(Core.ConditionContext c)
         {
             // A condition §13.15.3 SR16 refused at data bind was reported there, under its rule; binding it would word
@@ -37,15 +50,27 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             if (!memo.TryGetValue(c, out var b))
                 memo[c] = b = ctx.Data.State.Reports.PresentWhenRefused(c)
                     ? host.Cond.Refused("a PRESENT WHEN condition refused by ISO §13.15.3 SR16")
-                    : host.Cond.BindCondition(c);
+                    : PerEvaluation(() => host.Cond.BindCondition(c));
             return b;
         }
         try
         {
             var reports = ctx.Data.State.Reports.Declared;
             foreach (var r in reports)
+            {
+                // The operand-evaluation steps a report's clauses drain are counted per report, outside every statement,
+                // so the GENERATE and TERMINATE statements that present its groups know they carry such steps
+                // (OperandStepsOf below; the BoundActivationSite they then take is StatementBinder's).
+                using var evaluations = ctx.Data.Procedure.OperandEvaluations.Enter(0);
                 BindReportClauses(r, Bind);
+                r.EvaluatesOperandSteps = ctx.Data.Procedure.OperandEvaluations.Current > 0;
+            }
             BindRolledValues(reports);   // after EVERY report's operands are bound: SR4 g) lets a total roll up another report's entry
+            // ⛔ NOTHING MAY BE LEFT FOR THE FIRST STATEMENT TO HOIST: a clause operand bound outside a window would leave
+            // its steps on the statement-scoped lists, and that was the PB4517 wrong answer. Loud at compile time.
+            if (host.Udf.Mark != entry)
+                throw new InvalidOperationException("report clause binding left operand-evaluation steps or property operations "
+                    + "outside a per-evaluation window (kb/Work PB4517)");
         }
         finally
         {
@@ -69,7 +94,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (r.Code is { Reference: { } codeRef, Item: not null } code)
         {
             using var at = ctx.Edition.At(codeRef);
-            if (host.Expr.FieldOperand(codeRef) is BoundFieldOperand { Place: { } codePlace }) code.Value = codePlace;
+            var (operand, steps) = WithSteps(() => host.Expr.FieldOperand(codeRef));
+            if (operand is BoundFieldOperand { Place: { } codePlace }) (code.Value, code.Steps) = (codePlace, steps);
         }
         foreach (var g in r.Groups)
             foreach (var ln in g.Lines)
@@ -93,8 +119,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                         // written entry by ScreenReportVaryingClauses; it binds in the same scope so the refusal is
                         // not followed by a second, misleading "not defined".)
                         ctx.Refs.VaryingScope = ScopeOf(v.Enclosing.Concat(v.Group));
-                        if (v.FromCtx is { } fc) v.From = host.Expr.BindExpr(fc);
-                        if (v.ByCtx is { } bc) v.By = host.Expr.BindExpr(bc);
+                        if (v.FromCtx is { } fc) v.From = PerEvaluation(() => host.Expr.BindExpr(fc));
+                        if (v.ByCtx is { } bc) v.By = PerEvaluation(() => host.Expr.BindExpr(bc));
                     }
                     // The field's operands see every counter in scope at the field (SR2).
                     ctx.Refs.VaryingScope = ScopeOf(f.Varyings.Select(u => u.Counter));
@@ -130,7 +156,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                     if (!a.Rejected && !a.Rolled)   // a rolled total's value is its entry's (RolledValues), not an expression of its own
                     {
                         using var at = ctx.Edition.At(a.Ctx);
-                        a.Value = host.Expr.BindExpr(a.Ctx);
+                        a.Value = PerEvaluation(() => host.Expr.BindExpr(a.Ctx));
                     }
             // The SUM clause's own ROUNDED phrase (§13.18.54.2's trailing rounded-phrase) — §13.18.54.4 GR4
             // computes the counter's delivery to the printable item "according to the general rules for the
@@ -161,7 +187,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 case FieldReferenceSource { Rejected: false, Value: null } rs:
                 {
                     using var at = ctx.Edition.At(rs.Ref);
-                    var operand = host.Expr.FieldOperand(rs.Ref);
+                    var (operand, steps) = WithSteps(() => host.Expr.FieldOperand(rs.Ref));
+                    rs.Steps = steps;
                     // identifier-1 is a data item, so an index-name is no sender (§13.18.53.3 SR2 — a MOVE shall be
                     // valid, and §13.18.38.3 r7 admits an index-name in no MOVE).
                     if (host.Expr.ScreenIndexNameOperand(operand, rs.Written, $"RD '{r.Name}': SOURCE")
@@ -172,11 +199,39 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 case FieldComputeSource { Rejected: false, Value: null } cs:
                 {
                     using var at = ctx.Edition.At(cs.Ctx);
-                    cs.Value = host.Expr.BindExpr(cs.Ctx);
+                    (cs.Value, cs.Steps) = WithSteps(() => host.Expr.BindExpr(cs.Ctx));
                     cs.Rounding = host.Expr.RoundingOf(cs.Rounded);
                     break;
                 }
             }
+    }
+
+    /// <summary>Bind one report-clause CONDITION as its own per-evaluation window (see <see cref="BindReportGroupClauses"/>):
+    /// the steps it registers ride the condition as a <see cref="BoundUdfEvaluated"/>, so they run each time the group's
+    /// presence probe evaluates it, and a condition that registered none is returned unchanged.</summary>
+    private BoundCondition PerEvaluation(Func<BoundCondition> bind)
+    {
+        var mark = host.Udf.Mark;
+        return host.Udf.UdfAttachPerEvaluation(bind(), mark);
+    }
+
+    /// <summary>The EXPRESSION twin of <see cref="PerEvaluation(Func{BoundCondition})"/> — a SUM addend and a VARYING
+    /// FROM / BY: the steps ride the expression as a <see cref="BoundUdfEvaluatedExpr"/>, which the report emitter
+    /// runs at the addition or the counter setting that reads the value.</summary>
+    private BoundExpr PerEvaluation(Func<BoundExpr> bind)
+    {
+        var mark = host.Udf.Mark;
+        return host.Udf.UdfAttachPerEvaluation(bind(), mark);
+    }
+
+    /// <summary>The window of a SOURCE operand (either form) and a CODE identifier, whose steps are kept BESIDE the
+    /// bound value: one printable item renders its SOURCE several times (the plain, the checked and the raising
+    /// transfer), but the steps run once per placement, and a CODE place has no expression to carry them.</summary>
+    private (T Value, IReadOnlyList<BoundStatement>? Steps) WithSteps<T>(Func<T> bind)
+    {
+        var mark = host.Udf.Mark;
+        var value = bind();
+        return (value, host.Udf.DrainPerEvaluation(mark));
     }
 
     /// <summary>⛔ THE SOURCE CLAUSE'S identifier-1 RULES THAT NEED ITS BOUND ITEM (kb/Work PB1293), reported under
@@ -243,7 +298,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             ctx.Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"RD '{report.Name}': the entry '{o.Family.Name}' is the data-name-1 of "
                 + "a SUM clause, but the operand of its SOURCE or VALUE clause is not a number a sum counter can add "
                 + "(ISO §13.18.54.4 GR6 — the value added is that of the operand; GR3 — added by the ADD statement's rules)");
-        return value;
+        // The SOURCE operand's own steps (kb/Work PB4517) run again at the rolled addition: GR6 adds "the value of the
+        // operand" when the entry's group is processed, which is an evaluation of its own.
+        return value is not null && o.Source?.Steps is { } steps ? new BoundUdfEvaluatedExpr(steps, value) : value;
     }
 
     /// <summary>A bound SOURCE operand as the number an ADD adds, or null when it is no number — a numeric item, a numeric
@@ -319,7 +376,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
                     + "clause in the report description entry (ISO §14.9.16.3 SR2)");
             if (RejectContainedReportFile(summary, $"GENERATE {name}", "ISO §14.9.16.3 SR4") is { } notGlobal) return notGlobal;
-            return new BoundGenerate(summary, null);   // summary reporting (GR2)
+            return Presenting(new BoundGenerate(summary, null));   // summary reporting (GR2)
         }
         // SR1's data-name form, through the ONE funnel: it owns the qualified spelling ("It may be qualified by
         // a report-name") AND the §8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
@@ -334,7 +391,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             // GLOBAL clause") holds by construction — a container's non-GLOBAL report is not visible here at all,
             // so its groups resolve to nothing (§13.18.27.4 GR2). The FILE half is asked here.
             if (RejectContainedReportFile(report!, where, "ISO §14.9.16.3 SR3") is { } notGlobal) return notGlobal;
-            return new BoundGenerate(report!, group);
+            return Presenting(new BoundGenerate(report!, group));
         }
         // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
         // caller") — so this is the report, never a deferral (kb/Work PB909).
@@ -355,9 +412,23 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + "description entry in the report section (ISO §14.9.46.3 SR1)");
             if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §14.9.46.3 SR2") is { } notGlobal) return notGlobal;
-            members.Add(new BoundTerminate([r]));
+            members.Add(Presenting(new BoundTerminate([r])));
         }
         return BoundImplicitSeries.Of(members);
+    }
+
+    /// <summary>A GENERATE or TERMINATE — the two statements that present report groups — is the statement a report
+    /// clause's operand-evaluation steps run inside (kb/Work PB4517; see <see cref="BindReportGroupClauses"/>), so it
+    /// counts as having evaluated such steps when ANY report it can reach carries them (a GENERATE of one report runs
+    /// the SUM UPON additions and the rolled totals of another, §13.18.54.4 GR6/GR7). The count is what makes
+    /// <c>StatementBinder.BindStatement</c> give the statement its <see cref="BoundActivationSite"/>: ISO §14.9.33.4 GR2
+    /// a) 1./2. makes the statement an activation or a §15.4 subscript store was evaluated in the one a RESUME AT NEXT
+    /// STATEMENT lands after.</summary>
+    private T Presenting<T>(T statement) where T : BoundStatement
+    {
+        if (ctx.Data.State.Reports.Visible.Any(r => r.EvaluatesOperandSteps))
+            ctx.Data.Procedure.OperandEvaluations.Advance(ctx.Data.Procedure.OperandEvaluations.Current + 1);
+        return statement;
     }
 
     /// <summary><c>SUPPRESS PRINTING</c> (ISO §14.9.45): inhibit the current instance's printing of the report

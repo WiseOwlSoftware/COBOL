@@ -41,6 +41,12 @@ public sealed class ReportModel
     /// post-build; a report named by NO file description entry is a bind error.</summary>
     public FileModel? File { get; set; }
 
+    /// <summary>Some clause of this report carries operand-evaluation steps — a function activation or a §15.4 subscript
+    /// temporary store its emitter runs at each evaluation (kb/Work PB4517). Set when the clauses bind, before the
+    /// first statement; a GENERATE or TERMINATE that can reach such a report is an activation site
+    /// (<c>ReportWriterBinder.Presenting</c>).</summary>
+    public bool EvaluatesOperandSteps { get; set; }
+
     /// <summary>True when the RD has a PAGE clause (§13.18.39.4 GR2a — absent ⇒ one page of indefinite length;
     /// the page-fit/advance machinery is then inert).</summary>
     public bool Paged { get; set; }
@@ -219,6 +225,10 @@ public sealed class ReportCodeModel
     /// <summary>identifier-1 as the place the engine reads at each evaluation (§13.18.12.4 GR3), resolved in the
     /// procedure phase; null for literal-1 or a refused operand.</summary>
     public Place? Value { get; set; }
+
+    /// <summary>The operand-evaluation steps <see cref="Value"/> needs before each read — the store of a subscript a
+    /// function computes (kb/Work PB4517) — or null.</summary>
+    public IReadOnlyList<BoundStatement>? Steps { get; set; }
 }
 
 /// <summary>One CONTROL clause operand (ISO §13.18.16): FINAL or a (possibly qualified) data-name resolved
@@ -628,7 +638,14 @@ public sealed class ReportFieldModel
 }
 
 /// <summary>A printable item's value source, by clause kind.</summary>
-public abstract record ReportFieldSource;
+public abstract record ReportFieldSource
+{
+    /// <summary>The operand-evaluation steps the SOURCE operand's value needs before each evaluation — a function
+    /// activation, a §15.4 subscript temporary store (kb/Work PB4517) — or null. Bound with the operand, outside every
+    /// statement, and run by the compose before the placement that reads the value and by a rolled addition before it
+    /// adds it (§13.18.53.4 GR1/GR2, §13.18.54.4 GR6).</summary>
+    public IReadOnlyList<BoundStatement>? Steps { get; set; }
+}
 
 /// <summary>ONE format-4 VALUE clause operand (raw operand text — figurative word or literal; ISO §13.18.63.2
 /// format 4). A multi-operand clause contributes one of these PER OPERAND to

@@ -153,7 +153,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a
     // short-circuited &&/|| operand position skips them exactly when COBOL's rule 1 skips the operand.
     public string Visit(BoundUdfEvaluated n) =>
-        $"new Func<bool>(() => {{\n{string.Concat(n.Activations.Select(PreOpText))}return {Render(n.Inner)}; }})()";
+        $"new Func<bool>(() => {{\n{StepsText(n.Activations)}return {Render(n.Inner)}; }})()";
+
+    /// <summary>A per-evaluation window's operand-evaluation steps as C# statement text, in order (see
+    /// <see cref="PreOpText"/>) — the IIFE above, and every report-section clause operand the report emitter evaluates
+    /// in a compose, a sum addition, a VARYING setting or a CODE read (kb/Work PB4517): one capture, never a second.</summary>
+    internal string StepsText(IEnumerable<BoundStatement> steps) => string.Concat(steps.Select(PreOpText));
 
     /// <summary>One pending PRE-op rendered for EXPRESSION position (inside the IIFE above), through the ONE
     /// statement emitter, captured as text — a user-function activation exactly as a hoisted one is emitted, with

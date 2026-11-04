@@ -1986,17 +1986,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 else if (clause.reportGroupIndicateClause() is not null)
                     groupIndicate = true;
                 else if (clause.reportPresentWhenClause() is { } pw)
-                {
+                    // condition-1 is any condition (§13.18.41.2 Format 1), a function-identifier included: its
+                    // activation runs at each evaluation (ReportWriterBinder.BindReportGroupClauses, kb/Work PB4517).
                     ownCond = pw.condition();
-                    // A FUNCTION inside condition-1 would need the UDF activation-hoist protocol, which is a
-                    // statement-context mechanism — staged loud, never a silent mis-hoist.
-                    if (HasToken(ownCond, CobolLexer.FUNCTION))
-                    {
-                        Edition.Error(DiagnosticCatalog.ReportConditionFunction, $"RD '{model.Name}': a FUNCTION reference inside a "
-                            + "PRESENT WHEN condition (ISO §13.18.41) is not yet implemented");
-                        ownCond = null;
-                    }
-                }
                 else if (clause.reportVaryingClause() is not null)
                 {
                     // The counters are made by the walk (VaryingCountersOf), once per entry per enclosing occurrence,
@@ -2503,15 +2495,6 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (anyRelative && anyAbsolute) return 0;
         if (anyAbsolute) return absoluteHigh - absoluteLow + 1;
         return anyRelative ? relativeSpan : 0;
-    }
-
-    /// <summary>True when <paramref name="tree"/> contains a terminal of <paramref name="tokenType"/>.</summary>
-    private static bool HasToken(Antlr4.Runtime.Tree.IParseTree tree, int tokenType)
-    {
-        if (tree is Antlr4.Runtime.Tree.ITerminalNode t) return t.Symbol.Type == tokenType;
-        for (int i = 0; i < tree.ChildCount; i++)
-            if (HasToken(tree.GetChild(i), tokenType)) return true;
-        return false;
     }
 
     /// <summary>True when <paramref name="tree"/> contains a word terminal spelled <paramref name="word"/>
