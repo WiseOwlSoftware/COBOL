@@ -782,7 +782,7 @@ public sealed class ReferenceResolver(DataBinder data)
     internal bool IsExceptionObjectRegister(Core.DataReferenceContext dref) =>
         data.Edition.Edition.Has(2002)
         && dref.dataReferenceSuffix().Length == 0
-        && Procedure.OoBinder.OoIsExceptionObject(dref.GetText());
+        && Procedure.OoBinder.OoIsExceptionObject(dref.GetText(), data.CobolWords);
 
     /// <summary>The place a matched <see cref="CapacityRef"/> resolves to, REPORTING its fault when it has one —
     /// the single reporting site for every ill-formed reference to a named CAPACITY register (kb/Work PB457). Every

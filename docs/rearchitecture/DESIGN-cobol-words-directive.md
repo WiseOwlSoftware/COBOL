@@ -144,8 +144,13 @@ SUBSTITUTE, CONVERT, MODULE-NAME, LENGTH and NUMVAL-C/TEST-NUMVAL-C are covered 
 `CobolParserCoreBase.Word` — the single text comparison behind every parser predicate (LOCALE, ORDER,
 CLASSIFICATION, ATTRIBUTE, the LC_ categories); `SetBinder` (SET LOCALE categories and USER-DEFAULT/
 SYSTEM-DEFAULT); `SpecialNamesBinder` (the SPECIAL-NAMES LOCALE clause, the ALPHABET LOCALE phrase and the
-UCS-4/UTF-8/UTF-16 coded-set names); `CallBinder` and `VersionConformancePass` (`CALL … AS NESTED`, both arms).
-A new site that writes its own `string.Equals(text, "KEYWORD")` re-opens the defect.
+UCS-4/UTF-8/UTF-16 coded-set names, the `DECIMAL-POINT IS COMMA` word and the CURRENCY clause's `PICTURE SYMBOL` word, kb/Work PB4572);
+`CallBinder` and `VersionConformancePass` (`CALL … AS NESTED`, both arms, and the funnel's EXCEPTION-OBJECT exemption);
+`ReferenceResolver.IsExceptionObjectRegister` (the predefined register, through `OoBinder.OoIsExceptionObject(word, map)`, the one
+spelling test of that name). A new site that writes its own `string.Equals(text, "KEYWORD")` re-opens the defect, and
+`CobolWordsSpellingSweepDriftTests.NoCompilerSourceComparesAnUnlexedDirectiveWord_ByItsSpelling` refuses the raw-word form
+(`CobolNames.Same` / `CobolKeywords.Same` with the word as a literal) for every §8.9/§8.10 word the lexer has no token for,
+derived from the two tables and the lexer grammar, so the next such word needs no edit to the test.
 
 `CobolWordsReachDriftTests` measures all of this: every lexed §8.9/§8.10 word resolves to a token type, the lex
 probe agrees with the vocabulary wherever both answer, the multi-spelling words are reached ONLY by the probe,

@@ -2054,9 +2054,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// resolver: the §8.9 reserved-word funnel in <c>VersionConformancePass</c>, which sees an IDENTIFIER token.
     /// Comparing the spelling in one place is the point — a hand-written <c>== "EXCEPTION-OBJECT"</c> is exactly
     /// how the compiler came to hold three different opinions about what this name is (kb/Work PB922,
-    /// feedback_one_rule_one_place).</para></summary>
-    public static bool OoIsExceptionObject(string? word) =>
-        CobolNames.Same(word, "EXCEPTION-OBJECT");
+    /// feedback_one_rule_one_place).</para>
+    /// <para>⛔ THE WORD IS ASKED THROUGH THE GROUP'S <c>&gt;&gt;COBOL-WORDS</c> MAP (kb/Work PB4572). EXCEPTION-OBJECT is
+    /// no lexer token (it is an ordinary <c>cobolWord</c>), so the retype never reaches a synonym of it, and §7.3.10.4 GR2
+    /// makes that synonym "usable in any syntax requiring the use of the reserved word": after
+    /// <c>EQUATE "EXCEPTION-OBJECT" WITH "EXO"</c>, <c>EXO</c> IS the predefined register and a spelling test that
+    /// ignores the map read it as an undefined name (COBOL1639) and a reserved word used as a user-defined word
+    /// (COBOL0901) at once. A word the directive de-reserved (UNDEFINE, SUBSTITUTE) is no longer the register (GR3, GR4).</para></summary>
+    public static bool OoIsExceptionObject(string? word, Editions.CobolWordsMap words) =>
+        words.Is(word, "EXCEPTION-OBJECT");
 
     /// <summary>True when an arithmetic expression is EXACTLY one bare data reference (the Format-5
     /// re-route's sender shape) — its single dataReference descendant spans the whole expression text.</summary>

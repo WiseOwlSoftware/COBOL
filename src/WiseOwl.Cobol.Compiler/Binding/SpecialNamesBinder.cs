@@ -122,13 +122,26 @@ public sealed partial class SpecialNamesBinder
     }
 
     /// <summary>Bind <c>DECIMAL-POINT IS COMMA</c> (ISO §12.3.7 — the only word the format admits after IS is
-    /// COMMA; the grammar carries it as a generic IDENTIFIER).</summary>
+    /// COMMA; the grammar carries it as a generic IDENTIFIER).
+    /// <para>⛔ COMMA IS NO LEXER TOKEN, so the word is asked through the group's <c>&gt;&gt;COBOL-WORDS</c> map
+    /// (<see cref="CobolWordsMap.Is"/>; kb/Work PB4572): after <c>EQUATE "COMMA" WITH "CMA"</c> the synonym "may be used in
+    /// any syntax requiring the use of the reserved word" (§7.3.10.4 GR2), so <c>DECIMAL-POINT IS CMA</c> is the clause
+    /// and a spelling test of COMMA refused it with COBOL0894. A COMMA the directive de-reserved (GR3, GR4) is no longer
+    /// the word this clause requires.</para></summary>
     private void SwitchBindDecimalPoint(Core.DecimalPointClauseContext dp)
     {
-        if (dp.IDENTIFIER()?.GetText() is { } word && CobolNames.Same(word, "COMMA"))
+        var words = _host.CobolWords;
+        string? written = dp.IDENTIFIER()?.GetText();
+        if (written is not null && words.Is(written, "COMMA"))
             Cfg.DecimalPointIsComma = true;
+        else if (words.RemovedBy("COMMA") is not null)
+            // A directive of this group withdrew COMMA (UNDEFINE literal-3, SUBSTITUTE literal-4): "the only form is
+            // DECIMAL-POINT IS COMMA" would be false about the cause, and the clause is simply not available in the
+            // group whatever word follows IS (§7.3.10.4 GR3, GR4).
+            Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {written}: a >>COBOL-WORDS directive of this "
+                + "compilation group withdrew the reserved word COMMA, so the clause that requires it is not available (ISO §7.3.10.4 GR3, GR4)");
         else
-            Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {dp.IDENTIFIER()?.GetText()}: the only form is "
+            Edition.Error(DiagnosticCatalog.DecimalPointFormInvalid, $"DECIMAL-POINT IS {written}: the only form is "
                 + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
     }
 

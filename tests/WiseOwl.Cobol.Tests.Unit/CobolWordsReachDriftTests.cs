@@ -235,6 +235,37 @@ public sealed class CobolWordsReachDriftTests
         Assert.True(CobolWordsMap.Empty.Is("ANYCASE", "ANYCASE"));
     }
 
+    /// <summary>The map's answer for the three words PB4572 found spelled: a synonym is the word (GR2), a de-reserved word is
+    /// not (GR3, GR4), and the binder's own question, <see cref="WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject"/>,
+    /// follows the map — it is the one spelling test of the predefined register.</summary>
+    [Fact]
+    public void TheRegisterAndTheClauseWords_AreTheirSynonymsAndNotTheirWithdrawnSpelling()
+    {
+        var map = new CobolWordsMap(
+        [
+            new CobolWordsOp(CobolWordsAction.Equate, "EXCEPTION-OBJECT", "EXO", default),
+            new CobolWordsOp(CobolWordsAction.Equate, "COMMA", "CMA", default),
+            new CobolWordsOp(CobolWordsAction.Equate, "SYMBOL", "SYM", default),
+        ]);
+        Assert.True(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("exo", map));
+        Assert.True(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECT", map));
+        Assert.False(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECTS", map));
+        Assert.True(map.Is("Cma", "COMMA"));
+        Assert.True(map.Is("SYM", "SYMBOL"));
+
+        var withdrawn = new CobolWordsMap(
+        [
+            new CobolWordsOp(CobolWordsAction.Substitute, "EXCEPTION-OBJECT", "EXO", default),
+            new CobolWordsOp(CobolWordsAction.Undefine, "COMMA", null, default),
+        ]);
+        Assert.False(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("EXCEPTION-OBJECT", withdrawn));
+        Assert.True(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("EXO", withdrawn));
+        Assert.False(withdrawn.Is("COMMA", "COMMA"));
+        Assert.NotNull(withdrawn.RemovedBy("COMMA"));
+
+        Assert.True(WiseOwl.Cobol.Binding.Procedure.OoBinder.OoIsExceptionObject("Exception-Object", CobolWordsMap.Empty));
+    }
+
     /// <summary>⛔ THE DIRECTIVE IS APPLIED TO A WORD EXACTLY ONCE. The token retype already resolved every word it
     /// could reach AND re-spelled it canonically, so a second resolution of that text reads a SUBSTITUTE'd
     /// literal-4 — canonical and de-reserved at once — as "not a keyword". Measured: it lost
@@ -264,7 +295,7 @@ public sealed class CobolWordsReachDriftTests
     /// <summary>Every COBOL word spelled as a literal anywhere in a lexer rule of <c>CobolLexer.g4</c> (comments
     /// stripped) — the ground truth for "the lexer makes this word a keyword token", independent of whether ANTLR
     /// publishes a literal NAME for it.</summary>
-    private static HashSet<string> LexerRuleLiterals()
+    internal static HashSet<string> LexerRuleLiterals()
     {
         string path = TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolLexer.g4");
         Assert.True(File.Exists(path), $"lexer grammar missing: {path}");

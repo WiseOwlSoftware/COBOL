@@ -2918,7 +2918,7 @@ internal sealed class VersionConformancePass
             // every statement position is bound by rule and the funnel has nothing to add (kb/Work PB922).
             // A DECLARATION still keeps the funnel: the walk stops at the enclosing statement, and a data
             // description entry has none — which is what must reject `01 EXCEPTION-OBJECT PIC X.`
-            if (Binding.Procedure.OoBinder.OoIsExceptionObject(word))
+            if (Binding.Procedure.OoBinder.OoIsExceptionObject(ctx.Start.Text, _cobolWords))
                 for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
                     if (a is CobolParserCore.StatementContext)
                         return base.VisitChildren(ctx);
