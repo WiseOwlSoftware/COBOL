@@ -1,4 +1,4 @@
-## PB3600 - the CONSTANT RECORD clause is a 2014 introduction, not 2002
+## Entry 3068 — 2026-11-03 19:39 PST — PB3600 - the CONSTANT RECORD clause is a 2014 introduction, not 2002
 
 **Re-probe.** The note's repro (the row's own `KCR` source) compiled clean at `--std 2002` on the base tree
 (`c1c9b6d3a`) and drew COBOL0900 only at 85, so the defect stood. The archived 2002 texts (FCD 1989:2001 and the
@@ -34,3 +34,4 @@ PB3600 is landed with `closes_rows: []` and its reason; its sibling edges are PB
 implements the cited introduction rule; the placement SRs (COBOL1548/1549) stay bind-time and have no subject below
 2014, as the 27 refuse-at changes record. Performance: none (a registry constant). Duplication: the two generated files
 are regenerated, never edited.
+
