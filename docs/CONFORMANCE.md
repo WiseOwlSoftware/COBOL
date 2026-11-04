@@ -1864,6 +1864,20 @@ of an unsupported facility.
   `tests/version-matrix/cobol-words.json` `extensionReserved`; `CobolWordsDriftTests` fails when this list, that array and the lexer disagree,
   and `NonstandardExtensionRegisterDriftTests` fails when it and the `ReservedWords` of the §3.2 register's rows disagree
   (each word is reserved on the account of one extension row).
+  **The `>>COBOL-WORDS` directive treats these words as reserved words (owner decision 2026-10-31, kb/Work PB4239).**
+  §8.3.2.1 1) makes a §4.2.10 addition a reserved word of this implementation, §7.3.10.1 and D.12.1 give the directive so a
+  program may change which words are reserved (D.12.1: "to conform to previously existing implementor extensions"), and D.12.3
+  names this collision ("a change of compiler that includes new reserved words that conflict with existing code")
+  (`cite.py --check D.12.3 "This can be useful when a change of compiler that includes new reserved words that conflict with
+  existing code"` → OK). So `UNDEFINE`, `EQUATE` and `SUBSTITUTE` may name any of them as literal-1/3/4 (§7.3.10.3 SR3), and
+  §7.3.10.4 GR3/GR4 then free or respell the word (`>>COBOL-WORDS UNDEFINE "JSON"` makes JSON a data-name; `UNDEFINE
+  "COMP-3"` frees COMP-3 and leaves COMPUTATIONAL-3 the packed usage), while `RESERVE` and the new word of `EQUATE` and
+  `SUBSTITUTE` may not be one (literal-2/5/6, §7.3.10.3 SR4, COBOL1623 naming this reservation). GnuCOBOL 3.2's default
+  dialect agrees for UNDEFINE and for EQUATE's new word; it accepts `RESERVE "JSON"` where SR4 refuses (the standard controls,
+  not that latitude); its `-std=cobol2014` does not reserve the words and so refuses `UNDEFINE` of them. Pinned by
+  `conformance:cases/7.3.10-COBOL-WORDS/pb4239_*`, the `pb4239-*` negatives and
+  `CobolWordsDirectiveTests.Sr3_AnExtensionReservedWord_IsAnExistingWord` / `Sr4_AnExtensionReservedWord_IsNotAFreshWord`, which
+  iterate the register.
   ⚠ DETERMINATION (owner may overturn): reserving them keeps the vendor forms recognizable by name; the rejected
   reading — admitting them as user words at every edition — would make each vendor construct ambiguous with a
   data reference in every operand list.
@@ -2563,7 +2577,15 @@ of an unsupported facility.
   nested dynamic-capacity table that neither names is refused (COBOL2075).** The enclosing subscripts are evaluated
   once, when the statement begins; the standard leaves a table referenced at two different enclosing occurrences in its
   WHEN phrases undefined. A fixed or occurs-depending table needs no such choice: its bound is the same for every
-  occurrence of its enclosing tables. Witnesses: `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_table`,
+  occurrence of its enclosing tables. **The enclosing tables' subscripts on identifier-1 are a COBOL-2014 permission
+  (kb/Work PB4577; owner decision revised 2026-11-04, "Treat 2014 as allowing it").** §14.9.37.3 SR2 and SR3 permit them
+  (`cite.py --check 14.9.37.3 "Identifier-1 may be contained within one or more other tables, for which the subscripting is
+  still required"` → OK); the 2002 text and the 2009 committee draft say "Identifier-1 shall not be subscripted or reference
+  modified" (outside the tracked tree, so not `cite.py`-checkable), and 2023 Annex E lists no SEARCH relaxation, so the
+  relaxation is read as the 2014 standard's. At `--std 85` and `--std 2002` a subscripted identifier-1 is COBOL0900
+  (`search-identifier-1-enclosing-subscript-2014`, VCR row 7.49), refused on recognition by the parse arm of
+  `VersionConformancePass` for both SEARCH formats; the bare spelling is legal at every edition, and a subscript beyond the
+  enclosing count is COBOL2075 at every edition (below 2014 it also draws the COBOL0900). Witnesses: `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_table`,
   `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_property`,
   `conformance:cases/14.9.37-SEARCH/pb3365-search-nested-dynamic-no-occurrence`.
 

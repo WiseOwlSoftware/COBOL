@@ -2,10 +2,15 @@
       *> id: pb877_subscripted_subscript
       *> rules: [SR-8.4.2.3.3-2, SR-8.4.2.3.3-3, GR-8.4.2.3.4-1,
       *>    FMT-8.4.2.3.2]
-      *> accept: [85]
+      *> accept: [2014]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> kb/Work PB4577: accept is 2014, not 85. `SEARCH ALL T-E (T-N (1))` writes an enclosing table's subscript on SEARCH
+      *> identifier-1, which the 2002 text and the 2009 committee draft refuse ("Identifier-1 shall not be subscripted or
+      *> reference modified") and COBOL-2014 first permits (14.9.37.3 SR2, SR3): construct
+      *> search-identifier-1-enclosing-subscript-2014. The 85-and-2002 legal spelling of the same search is the bare one
+      *> (conformance:cases/14.9.37-SEARCH/pb4577_search_bare_nested_table_85).
       *> kb/Work PB877 - a SUBSCRIPT that is itself a SUBSCRIPTED IDENTIFIER, on every side of a statement.
       *>
       *> THE RULE. ISO/IEC 1989:2023 8.4.2.3.2 prints the `subscript` general format as exactly three

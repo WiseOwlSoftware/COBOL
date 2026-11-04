@@ -836,7 +836,10 @@ internal sealed class StatementValidation(DataBinder data)
         // `02 GRP-ENTRY OCCURS 10 … 03 GRP2-ENTRY OCCURS 10`, the outer occurrence coming from IDX-1 in the WHEN
         // exactly as GR1 describes — and a lower bound failed six NIST programs (NC231A NC232A NC233A NC234A
         // NC237A NC238A) outright. Both spellings are legal: bare, and with the superordinate subscripts written
-        // (which SR2 permits, banning only the searched level's).
+        // (which SR2 permits, banning only the searched level's). The second is a COBOL-2014 permission (the 2002 text and
+        // the 2009 committee draft ban every subscript on identifier-1), gated on RECOGNITION by the parse arm of
+        // VersionConformancePass (construct search-identifier-1-enclosing-subscript-2014, kb/Work PB4577), so this count
+        // is the 2014 and 2023 rule at every edition.
         // ⛔ THE ARITY WALK IS WRITTEN ONCE, IN DataItem (kb/Work PB877 — it found FIVE copies, and
         // SubscriptAdmissionDriftTests.TheSr3ArityWalk_IsWrittenExactlyOnce fails if a sixth appears).
         // SubscriptArity counts identifier-1 ITSELF plus every table ancestor, and the !IsTable arm above
@@ -850,8 +853,11 @@ internal sealed class StatementValidation(DataBinder data)
                     : superordinate == 1 ? "1 enclosing table" : $"{superordinate} enclosing tables")
                 + " — \"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\" "
                 + "(ISO §14.9.37.3 SR2). The search supplies that occurrence itself by varying the table's first "
-                + "index (§14.9.37.4 GR1); an enclosing table's occurrence may be written here or left to the "
-                + "WHEN phrases, which is where GR1 puts it.");
+                + "index (§14.9.37.4 GR1); "
+                + (data.Edition.Edition.Year >= 2014
+                    ? "an enclosing table's occurrence may be written here or left to the WHEN phrases, which is where GR1 puts it."
+                    : "an enclosing table's occurrence is left to the WHEN phrases, which is where GR1 puts it "
+                      + "(COBOL-2014 first lets identifier-1 write it)."));
             // ⛔ A DYNAMIC-CAPACITY TABLE'S SCAN BOUND IS ITS ENCLOSING OCCURRENCE'S CAPACITY (kb/Work PB3365): with the
             // subscripts of identifier-1 unreadable there is no bound to bind, so this one cannot "continue" past its
             // report the way the fixed and occurs-depending tables do.

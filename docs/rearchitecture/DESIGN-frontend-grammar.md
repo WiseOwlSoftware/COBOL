@@ -2543,7 +2543,7 @@ lowercase with Annex C. Three pieces, each in one place:
   would make `CLASSİFİCATİON` the keyword before the map could tell). The map's keyword tables (the words a directive
   UNDEFINEs or SUBSTITUTEs) are keyed by `CobolKeywords.Comparer`; its synonym table is keyed by the fresh user-defined word
   and so by the fold. The `>>COBOL-WORDS` existing word (literal-1/3/4) is written in its keyword spelling, so
-  SR3 refuses `UNDEFINE "DİSPLAY"` (`VersionConformancePass.ValidateCobolWords`); an intrinsic function name is a word the
+  SR3 refuses `UNDEFINE "DİSPLAY"` (`CobolWordsCategoryPass.Run`); an intrinsic function name is a word the
   standard defines (§8.11), so `IntrinsicCatalog` is keyed by `CobolKeywords.Comparer` too and `FUNCTION İNTEGER` names no
   function (COBOL1501). `CobolNameFoldDriftTests` holds it: no `OrdinalIgnoreCase` (which raises U+0131 and U+017F
   to I and S) in any `.cs` or `.g4` under `src`, no `Resolve(CobolNames.UpperFold(…))` anywhere, and no `CobolNames`

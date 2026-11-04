@@ -93,9 +93,8 @@ internal sealed class VersionConformancePass
         // The per-compilation-group EFFECTIVE reserved-word set (ISO §7.3.10 D9 seam): the generated §8.9 table
         // composed with the >>COBOL-WORDS overlay (RESERVE adds, UNDEFINE/SUBSTITUTE remove). Empty map ⇒ Default.
         var reservedWords = ReservedWordSet.Compose(group.Session.CobolWords);
-        // >>COBOL-WORDS SR3/SR4 category validation (§7.3.10.3) — needs all three registries (§8.9 reserved, §8.10
-        // context-sensitive, §8.11 intrinsic via IntrinsicCatalog); the frontend validated SR1/SR2/SR5 already.
-        ValidateCobolWords(group.Session.CobolWords, sink);
+        // >>COBOL-WORDS SR3/SR4 (§7.3.10.3) are judged by CobolWordsCategoryPass beside the parse (CompilerDriver.Compile),
+        // not here: the verdict needs no tree and must not be lost behind a parse error (kb/Work PB4586).
         // ── PARSE-tree arm (Step 14h): ONE walk of the raw compilation unit, firing every SYNTACTIC
         //    introduction/removal/phrase gate + the §8.9 reserved-word funnel on the construct's RECOGNITION
         //    (absorbs the former EditionValidator). Recognition-based so a below-edition construct that ALSO
@@ -139,46 +138,6 @@ internal sealed class VersionConformancePass
             pass.WalkProgram(skeleton.FactoryBound);
         }
     }
-
-    /// <summary>&gt;&gt;COBOL-WORDS SR3/SR4 category validation (ISO §7.3.10.3): the EXISTING word (literal-1/3/4)
-    /// must be a reserved word, context-sensitive word, or intrinsic-function name (SR3); the NEW word
-    /// (literal-2/5/6) must be none of those (SR4 — the §8.3.2.2 well-formedness is the frontend half). Both rules
-    /// ask the ONE population, <see cref="IsReservedContextOrIntrinsic"/>.</summary>
-    private static void ValidateCobolWords(CobolWordsMap map, IDiagnosticSink sink)
-    {
-        if (map.IsEmpty) return;
-        foreach (var op in map.Ops)
-        {
-            using var _ = sink.At(op.At);   // the directive's own line and column (kb/Work PB1925)
-            // The existing word is a KEYWORD, written in basic letters: one written with an extended letter (DİSPLAY,
-            // U+0130) is no reserved word, and the fold never makes it one (§8.1.3.2 3) a), 4) b); kb/Work PB4240, PB4420).
-            if (op.Existing is { } e && !IsReservedContextOrIntrinsic(e))
-                ReportCobolWordsInvalid(sink, $"the existing word '{e}' is not a reserved word, "
-                    + "context-sensitive word, or intrinsic-function name (ISO §7.3.10.3 SR3)");
-            if (op.New is { } n && IsReservedContextOrIntrinsic(n))
-                ReportCobolWordsInvalid(sink, $"the new word '{n}' is a reserved / context-sensitive / "
-                    + "intrinsic-function word and cannot be a user-defined word (ISO §7.3.10.3 SR4)");
-        }
-    }
-
-    /// <summary>⛔ THE POPULATION SR3 AND SR4 SPEAK OF, in one place (kb/Work PB1373): "a reserved word, a
-    /// context-sensitive word, or an intrinsic function name" — §8.9, §8.10 and §8.11 as the COBOL-2023 text lists them,
-    /// because the directive is a COBOL-2023 introduction (<see cref="CobolWordsMap.DirectiveEdition"/>) and no other
-    /// edition ever asks. It used to be two guesses that disagreed with the standard in opposite directions: the SR3
-    /// test accepted anything the LEXER tokenizes or ANY edition's §8.9 row carries (so <c>UNDEFINE "AUTHOR"</c>, a
-    /// word reserved in 1985 and gone from §8.9, compiled), and the SR4 test rejected anything the lexer tokenizes (so
-    /// <c>RESERVE "AUTHOR"</c>, a fresh word, was refused). The lexer's vocabulary is what this compiler TOKENIZES, which
-    /// is not a population of the standard; the §8.9 flag is the 2023 list itself (<c>ReservedWordsDriftTests</c>), the
-    /// §8.10 table is the 2023 list (every row, whatever edition introduced it:
-    /// <c>ContextSensitiveWordEntry.Introduced</c> serves the diagnostics' edition-aware naming, not this test), and an intrinsic function is a name of the
-    /// edition inside its window (<see cref="IntrinsicSig.IsDefinedAt"/>).</summary>
-    private static bool IsReservedContextOrIntrinsic(string w) =>
-        ReservedWords.Find(w) is { R2023: true } || ContextSensitiveWords.Contains(w)
-        || (IntrinsicCatalog.TryGet(w, out var function) && function.IsDefinedAt(CobolWordsMap.DirectiveEdition));
-
-    private static void ReportCobolWordsInvalid(IDiagnosticSink sink, string message) =>
-        sink.Report(new EditionDiagnostic(DiagnosticCatalog.CobolWordsDirectiveInvalid.Code, EditionSeverity.Error,
-            "cobol-words-directive-invalid", message, "", "ISO §7.3.10.3"));
 
     private void WalkProgram(BoundProgram? prog)
     {
@@ -997,6 +956,32 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.UnstringSenderReferenceModified2002, "a reference-modified UNSTRING sending operand");
             }
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>SEARCH and SEARCH ALL identifier-1 written with a subscript (kb/Work PB4577). ISO §14.9.37.3 SR2 and SR3
+        /// permit the enclosing tables' subscripts; the 2002 text and the 2009 committee draft say "Identifier-1 shall not be
+        /// subscripted or reference modified", so a subscript on identifier-1 is a COBOL-2014 permission
+        /// (<see cref="Constructs.SearchIdentifier1EnclosingSubscript2014"/>). Recognition-based: whether a subscript is an
+        /// enclosing table's or the searched level's (which COBOL2075 refuses at every edition) is the table's resolved arity,
+        /// but below 2014 neither is legal, and the gate must survive a table the bind cannot resolve (kb/Work PB353). Both
+        /// formats print the same operand, so both visitors ask the one body.</summary>
+        public override object? VisitSearchStatement(CobolParserCore.SearchStatementContext ctx)
+        {
+            GateSearchIdentifier1("SEARCH", ctx.dataReference());
+            return base.VisitChildren(ctx);
+        }
+
+        public override object? VisitSearchAllStatement(CobolParserCore.SearchAllStatementContext ctx)
+        {
+            GateSearchIdentifier1("SEARCH ALL", ctx.dataReference());
+            return base.VisitChildren(ctx);
+        }
+
+        private void GateSearchIdentifier1(string verb, CobolParserCore.DataReferenceContext identifier1)
+        {
+            if (!identifier1.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.qualification()?.subscriptPart().Length > 0)) return;
+            using var _ = Sink.At(identifier1);
+            _p.Check(Constructs.SearchIdentifier1EnclosingSubscript2014, $"{verb} {identifier1.GetText()}: identifier-1 is subscripted");
         }
 
         private static bool HasAncestor<T>(Antlr4.Runtime.RuleContext ctx) where T : Antlr4.Runtime.RuleContext
