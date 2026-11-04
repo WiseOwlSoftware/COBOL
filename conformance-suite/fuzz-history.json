@@ -538,6 +538,77 @@
    "defects": [
     "PB4096"
    ]
+  },
+  {
+   "night": 10,
+   "run_id": "fuzz-batch-3000-20261103",
+   "started": "2026-11-03T22:32:50+00:00",
+   "model": "claude-sonnet-5-5",
+   "seed": 20261103,
+   "hours": null,
+   "edition": "2014",
+   "sections": 235,
+   "programs": 3000,
+   "judged": 3000,
+   "usable": 2536,
+   "usable_first": 2536,
+   "they_reject": 502,
+   "survivors": 1508,
+   "survivor_signatures": 277,
+   "classes": {
+    "AGREE": 1028,
+    "WE_REJECT": 509,
+    "THEY_REJECT": 502,
+    "OUTPUT_DIFFERS": 457,
+    "BOTH_REJECT": 451,
+    "THEY_FAIL_RUN": 38,
+    "BOTH_HANG": 13,
+    "WE_HANG": 2
+   },
+   "judge": "3c8b2845c",
+   "verdicts": {
+    "GNUCOBOL-SIDE": {
+     "signatures": 161,
+     "programs": 862
+    },
+    "LATITUDE": {
+     "signatures": 29,
+     "programs": 99
+    },
+    "MODEL-ERROR": {
+     "signatures": 17,
+     "programs": 18
+    },
+    "WISEOWL-DEFECT": {
+     "signatures": 6,
+     "programs": 39
+    },
+    "WISEOWL-CORRECT": {
+     "signatures": 63,
+     "programs": 508
+    },
+    "UNDECIDED": {
+     "signatures": 2,
+     "programs": 9
+    },
+    "KNOWN": {
+     "signatures": 1,
+     "programs": 2
+    },
+    "UNINITIALIZED": {
+     "signatures": 1,
+     "programs": 1
+    }
+   },
+   "defects": [
+    "PB4511",
+    "PB4512",
+    "PB4513",
+    "PB4514",
+    "PB4515",
+    "PB4516",
+    "PB4517"
+   ]
   }
  ]
 }

@@ -251,6 +251,7 @@ public static class Constructs
     public const string ReportGroupSign2002 = "report-group-sign-2002";
     public const string CallReturning2002 = "call-returning-2002";
     public const string CallAsPhrase2002 = "call-as-phrase-2002";
+    public const string ProgramPrototypeName2002 = "program-prototype-name-2002";
     public const string GobackBare2002 = "goback-bare-2002";
     public const string InspectBackward2023 = "inspect-backward-2023";
     public const string InitializeFiller2002 = "initialize-filler-2002";
