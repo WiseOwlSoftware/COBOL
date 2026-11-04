@@ -1,4 +1,4 @@
-## PB4606 — a refused or surplus EVALUATE object binds its succeeding bare operand too
+## Entry 3098 — 2026-11-04 13:09 PST — PB4606 — a refused or surplus EVALUATE object binds its succeeding bare operand too
 
 PB4446 made a Table 15 refusal (COBOL1634) and an SR2 count breach (COBOL2106) stop hiding the faults in a selection
 object's own operands, by binding them standalone (`ConditionBinder.BindPartialOperandsStandalone`). That walk still
@@ -25,3 +25,4 @@ refused-pair rows and two surplus rows in `EvaluateObjectOperandFaultTests` pin 
 paragraph names the bare-operand arm.
 
 Rows re-verdicted: none (the note claimed none).
+
