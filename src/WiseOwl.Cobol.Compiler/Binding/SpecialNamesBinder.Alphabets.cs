@@ -39,11 +39,11 @@ public sealed partial class SpecialNamesBinder
     /// renderer looks the NAME up, so an accepted name with no entry falls back to the category-derived sequence
     /// and silently reinstates the very default the phrase overrides — measured, while these two cases returned
     /// early instead of recording themselves.</para>
-    public void RegisterRangeCollation(string name, AlphabetDef def)
+    private void RegisterRangeCollation(string name, AlphabetDef def)
         => Register(name, ReferenceEquals(def, Cfg.Collating) ? "__COLLATE" : null, def.Table, def.Locale, National: false);
 
     /// <inheritdoc cref="RegisterRangeCollation(string,AlphabetDef)"/>
-    public void RegisterRangeCollation(string name, NationalAlphabetDef def)
+    private void RegisterRangeCollation(string name, NationalAlphabetDef def)
         => Register(name, ReferenceEquals(def, Cfg.NationalCollating) ? "__COLLATE_NAT" : null,
             def.Table, def.Locale, National: true);
 

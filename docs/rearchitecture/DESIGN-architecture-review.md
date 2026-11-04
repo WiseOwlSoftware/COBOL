@@ -1342,6 +1342,20 @@ compiler.model; until then those pairs are tolerated rows of `architecture-edges
 after binding: that is PB2323's seam (R0-0028), which `DataBindResult` is now the place to enforce. `DataBinder` keeps only the orchestration that builds the state, runs the
 pipeline and returns the result (`DESIGN-module-topology.md` §2.5's "thin orchestrator + named passes", with the
 slices and fact sets as the seam it lacked).
+**The members the extract widened (PB2361, as built).** Steps 1–10 widened members of `DataBinder` from `private` to
+`internal` so the binders and passes carved from it could reach them. The C# type system says no more than "the assembly",
+so the boundary is a drift test: `BinderMemberReadersDriftTests` walks the built compiler (`TypeReferenceWalk.MemberReaders`,
+the metadata walk §8.1's edges test uses, recording which outermost types name each member of an owner type) and holds it to
+`tests/WiseOwl.Cobol.Tests.Unit/Architecture/binder-member-readers.json`, which lists every non-private member of
+`DataBinder` and of the six binders carved from it (`ConstantEntryBinder`, `FileControlBinder`, `LinkageBinder`,
+`OoDataBinder`, `ReportSectionBinder`, `SpecialNamesBinder`) with its readers. A member no other type reads is refused (make
+it private), and so is a reader the file does not list, so a new reader of a binder's member is a decision written in the
+change that adds it; a stale entry is refused too. A nested type is one member, and a test is not a reader. The landing made
+the fifteen members no other type read private (among them the constant binder's `ConstantScope`, `DeclaredConstant` and `ConstantBindState`, the
+file binder's `SelectedFiles`, `SuppressWhenOperands`, `ResolveApplyCommit` and `ResolveFileCollating`, and
+`DataBinder.InheritGlobalSubtree`, `SymbolicRaw` and `ImpliedReportPicture`) and moved one to its final owner: the
+§13.18.38.3 SR20 byte-range test `DependingInsideTableRange` is `DependingAdmission`'s, the one admission of an OCCURS
+DEPENDING ON object and its only reader.
 **The data binder's own value slices (PB2296 M6, as built).** *The estimate above was wrong about what is left:* the usage facts,
 the sign facts, the REDEFINES classes and the OCCURS facts are fields of the `DataItem` forest (`item.Pic`, `item.OwnSign`,
 `item.Class`, `item.OccursSpec`), which the ordered pass list writes and which no binder field holds (the paragraph above); the
@@ -1385,7 +1399,9 @@ And `DataBindState` now holds `Reports` (the `ReportScope` of step 7), `SumCount
 pass-completion watermark (`Watermark`, `MarkProduced`, `Require`, the P6 Step-6 gate), which the gated reads of the slices
 consult. What stays private to `DataBinder` is the entry walk's WORKING MEMORY (the not-yet-bound and bound-ahead entry maps of
 `DataBinder.EntryOrder.cs`, the description-completion memos, the VALUE-operand and report-description caches, the
-once-reported sets): no other phase can read a private field, so none of it is a fact; step 11 (PB2361) deletes it with the walk.
+once-reported sets): no other phase can read a private field, so none of it is a fact, and it stays the walk's (step 11,
+PB2361, froze the slices into `DataBindResult` and left the walk's working memory private; `BinderMemberReadersDriftTests`
+holds every member another binder reads to its listed readers).
 **The report section (step 7, PB2357).** The `Reports` partial (5,341 lines, of which the first thousand were the report
 model types) is three files and two classes. `ReportModel.cs` holds the model types, unchanged. `ReportSectionBinder`
 (`Binding/ReportSectionBinder.cs`, `DataBinder.ReportSection`) is the binder: it binds the RD entries

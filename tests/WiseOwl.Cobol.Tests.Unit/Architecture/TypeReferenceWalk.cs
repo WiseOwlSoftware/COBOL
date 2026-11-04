@@ -17,6 +17,13 @@ internal sealed record WalkedType(string Name, string Outermost, string Namespac
 /// <paramref name="To"/>.</summary>
 internal readonly record struct TypePair(string From, string To);
 
+/// <summary>A non-private member of a walked owner type, keyed <c>Owner::Member</c> (a property or an event by its own
+/// name rather than its accessors', a nested type by its simple name).</summary>
+internal readonly record struct MemberKey(string Type, string Member)
+{
+    public override string ToString() => $"{Type}::{Member}";
+}
+
 /// <summary>
 /// THE ARCHITECTURE WALK (kb/Work PB2417; docs/rearchitecture/DESIGN-architecture-review.md §8.1 "The drift test"): a
 /// metadata walk over the BUILT product assemblies, never a source scan and never an MSBuild workspace, so it costs
@@ -68,10 +75,24 @@ internal sealed class TypeReferenceWalk
 
     private readonly Dictionary<string, WalkedType> types = new(StringComparer.Ordinal);
     private readonly HashSet<TypePair> pairs = [];
+    private readonly Dictionary<MemberKey, HashSet<string>> memberReaders = [];
+    private readonly IReadOnlySet<string> memberOwners;
 
-    private TypeReferenceWalk()
+    private TypeReferenceWalk(IReadOnlySet<string> memberOwners)
     {
+        this.memberOwners = memberOwners;
     }
+
+    /// <summary>
+    /// The MEMBER READERS of the owner types <see cref="Read"/> was given: every non-private member each owner declares
+    /// (a type nested in it is one member, read wherever it or any of its members is named), with the outermost types
+    /// OTHER than the owner whose code names it — an IL operand token, a type in a signature, or an attribute
+    /// constructor. A member no other type names maps to an empty set, so a member wider than its readers need is
+    /// visible (kb/Work PB2361). What the C# compiler synthesized (<c>[CompilerGenerated]</c>) is not authored and is
+    /// left out, and so is a member that overrides or implements one, whose reader is a virtual call through its
+    /// declaration (<c>AssemblyReader.DeclareMembers</c> lists the rest).
+    /// </summary>
+    public IReadOnlyDictionary<MemberKey, HashSet<string>> MemberReaders => memberReaders;
 
     /// <summary>Every type definition the walk read that the compiler did not synthesize, by full metadata name.</summary>
     public IReadOnlyDictionary<string, WalkedType> Types => types;
@@ -89,10 +110,12 @@ internal sealed class TypeReferenceWalk
 
     /// <summary>Walks <paramref name="assemblies"/> (each with its portable PDB beside it). A document's generated-ness
     /// is judged by its path relative to the project directory <paramref name="projectDirectoryOf"/> names for its
-    /// assembly (the census's project-relative rule).</summary>
-    public static TypeReferenceWalk Read(IReadOnlyList<string> assemblies, Func<string, string> projectDirectoryOf)
+    /// assembly (the census's project-relative rule). <paramref name="memberOwners"/> names the outermost types whose
+    /// <see cref="MemberReaders"/> the walk records (none by default: the type pairs are the edges file's measure).</summary>
+    public static TypeReferenceWalk Read(IReadOnlyList<string> assemblies, Func<string, string> projectDirectoryOf,
+        IReadOnlySet<string>? memberOwners = null)
     {
-        var walk = new TypeReferenceWalk();
+        var walk = new TypeReferenceWalk(memberOwners ?? new HashSet<string>(StringComparer.Ordinal));
         var readers = new List<AssemblyReader>();
         try
         {
@@ -118,7 +141,12 @@ internal sealed class TypeReferenceWalk
 
             foreach (AssemblyReader r in readers)
             {
-                r.CollectPairs(product, enums, walk.types, walk.pairs);
+                r.DeclareMembers(walk.memberOwners, walk.memberReaders);
+            }
+
+            foreach (AssemblyReader r in readers)
+            {
+                r.CollectPairs(product, enums, walk.types, walk.pairs, walk.memberOwners, walk.memberReaders);
             }
         }
         finally
@@ -206,6 +234,7 @@ internal sealed class TypeReferenceWalk
         private readonly string projectDirectory;
         private readonly Dictionary<TypeDefinitionHandle, string?> outermost = [];
         private readonly Dictionary<TypeDefinitionHandle, bool> contributes = [];
+        private IReadOnlySet<string> owners = new HashSet<string>(StringComparer.Ordinal);
 
         public AssemblyReader(string path, string projectDirectory)
         {
@@ -297,9 +326,11 @@ internal sealed class TypeReferenceWalk
         }
 
         /// <summary>Pass 2: the pairs from every type whose nearest non-synthesized type (itself, or the type a closure
-        /// is nested in) is authored, each end folded to its outermost type.</summary>
+        /// is nested in) is authored, each end folded to its outermost type; and, for the members
+        /// <see cref="DeclareMembers"/> declared, the outermost types other than their owner that name them.</summary>
         public void CollectPairs(IReadOnlySet<string> product, IReadOnlyDictionary<string, PrimitiveTypeCode> enums,
-            IReadOnlyDictionary<string, WalkedType> types, HashSet<TypePair> pairs)
+            IReadOnlyDictionary<string, WalkedType> types, HashSet<TypePair> pairs,
+            IReadOnlySet<string> memberOwners, Dictionary<MemberKey, HashSet<string>> memberReaders)
         {
             var attributeTypes = new AttributeTypeProvider(types, enums);
             foreach (TypeDefinitionHandle h in md.TypeDefinitions)
@@ -310,7 +341,8 @@ internal sealed class TypeReferenceWalk
                 }
 
                 var targets = new HashSet<string>(StringComparer.Ordinal);
-                new TypeVisit(md, product, attributeTypes, this, targets).Type(h);
+                var members = new HashSet<MemberKey>();
+                new TypeVisit(md, product, attributeTypes, this, targets, memberOwners.Count == 0 ? null : members).Type(h);
                 foreach (string to in targets)
                 {
                     if (to != from)
@@ -318,8 +350,175 @@ internal sealed class TypeReferenceWalk
                         pairs.Add(new TypePair(from, to));
                     }
                 }
+
+                foreach (MemberKey member in members)
+                {
+                    if (member.Type != from && memberReaders.TryGetValue(member, out HashSet<string>? readers))
+                    {
+                        readers.Add(from);
+                    }
+                }
             }
         }
+
+        /// <summary>Pass 1b: each owner type's members, each with an empty reader set: every non-private method, field,
+        /// property and event it declares, and every type nested in it that is not private (a nested type is ONE member:
+        /// whoever names it or any of its members reads it, since its members are reachable to whoever reaches it). Left
+        /// out: what the C# compiler synthesized, a virtual or abstract member (an override's reader is a call through the
+        /// member it overrides), a constructor (an implicit one carries no mark that tells it from an authored one; who
+        /// constructs a nested type is its entry's readers), and a <c>const</c> (the C# compiler inlines its value, so no
+        /// reader names it).</summary>
+        public void DeclareMembers(IReadOnlySet<string> owners, Dictionary<MemberKey, HashSet<string>> memberReaders)
+        {
+            this.owners = owners;
+            if (owners.Count == 0)
+            {
+                return;
+            }
+
+            foreach (TypeDefinitionHandle h in md.TypeDefinitions)
+            {
+                TypeDefinition t = md.GetTypeDefinition(h);
+                if (!t.GetDeclaringType().IsNil || !owners.Contains(FullName(h)))
+                {
+                    continue;
+                }
+
+                string type = FullName(h);
+                foreach (TypeDefinitionHandle n in t.GetNestedTypes())
+                {
+                    TypeDefinition nested = md.GetTypeDefinition(n);
+                    if ((nested.Attributes & TypeAttributes.VisibilityMask) is not (TypeAttributes.NestedPrivate or TypeAttributes.NestedFamANDAssem)
+                        && !CompilerGenerated(nested))
+                    {
+                        memberReaders.TryAdd(new MemberKey(type, md.GetString(nested.Name)), []);
+                    }
+                }
+
+                foreach (MethodDefinitionHandle m in t.GetMethods())
+                {
+                    MethodDefinition method = md.GetMethodDefinition(m);
+                    MemberKey key = MemberOf(m);
+                    if (key.Member == md.GetString(method.Name) && !Hidden(method.Attributes)
+                        && !CompilerGenerated(method.GetCustomAttributes()) && key.Member is not (".ctor" or ".cctor"))
+                    {
+                        memberReaders.TryAdd(key, []);
+                    }
+                }
+
+                foreach (FieldDefinitionHandle f in t.GetFields())
+                {
+                    FieldDefinition field = md.GetFieldDefinition(f);
+                    FieldAttributes access = field.Attributes & FieldAttributes.FieldAccessMask;
+                    if (access is not (FieldAttributes.Private or FieldAttributes.FamANDAssem)
+                        && (field.Attributes & (FieldAttributes.Literal | FieldAttributes.RTSpecialName)) == 0
+                        && !CompilerGenerated(field.GetCustomAttributes()))
+                    {
+                        memberReaders.TryAdd(new MemberKey(type, md.GetString(field.Name)), []);
+                    }
+                }
+
+                foreach (PropertyDefinitionHandle p in t.GetProperties())
+                {
+                    PropertyDefinition property = md.GetPropertyDefinition(p);
+                    PropertyAccessors accessors = property.GetAccessors();
+                    if (!CompilerGenerated(property.GetCustomAttributes())
+                        && new[] { accessors.Getter, accessors.Setter }.Any(a => !a.IsNil && !Hidden(md.GetMethodDefinition(a).Attributes)))
+                    {
+                        memberReaders.TryAdd(new MemberKey(type, md.GetString(property.Name)), []);
+                    }
+                }
+
+                foreach (EventDefinitionHandle e in t.GetEvents())
+                {
+                    EventDefinition ev = md.GetEventDefinition(e);
+                    if (!Hidden(md.GetMethodDefinition(ev.GetAccessors().Adder).Attributes))
+                    {
+                        memberReaders.TryAdd(new MemberKey(type, md.GetString(ev.Name)), []);
+                    }
+                }
+            }
+        }
+
+        /// <summary>The owner member a token names (<see cref="DeclareMembers"/>): a method, field, property or event the
+        /// owner declares, or the type nested in the owner that declares, or is, what the token names.</summary>
+        public void OwnedMembers(EntityHandle h, HashSet<MemberKey> members)
+        {
+            if (owners.Count == 0)
+            {
+                return;
+            }
+
+            TypeDefinitionHandle declaring = h.Kind switch
+            {
+                HandleKind.MethodDefinition => md.GetMethodDefinition((MethodDefinitionHandle)h).GetDeclaringType(),
+                HandleKind.FieldDefinition => md.GetFieldDefinition((FieldDefinitionHandle)h).GetDeclaringType(),
+                HandleKind.TypeDefinition => (TypeDefinitionHandle)h,
+                _ => default,
+            };
+            if (declaring.IsNil || OutermostOf(declaring) is not { } top || !owners.Contains(top))
+            {
+                return;
+            }
+
+            if (md.GetTypeDefinition(declaring).GetDeclaringType().IsNil)
+            {
+                if (h.Kind == HandleKind.MethodDefinition)
+                {
+                    members.Add(MemberOf((MethodDefinitionHandle)h));
+                }
+                else if (h.Kind == HandleKind.FieldDefinition)
+                {
+                    members.Add(new MemberKey(top, md.GetString(md.GetFieldDefinition((FieldDefinitionHandle)h).Name)));
+                }
+
+                return;
+            }
+
+            TypeDefinitionHandle child = declaring;
+            while (!md.GetTypeDefinition(md.GetTypeDefinition(child).GetDeclaringType()).GetDeclaringType().IsNil)
+            {
+                child = md.GetTypeDefinition(child).GetDeclaringType();
+            }
+
+            members.Add(new MemberKey(top, md.GetString(md.GetTypeDefinition(child).Name)));
+        }
+
+        /// <summary>The key of a method: its property's or event's name for an accessor, its own name otherwise.</summary>
+        public MemberKey MemberOf(MethodDefinitionHandle h)
+        {
+            MethodDefinition m = md.GetMethodDefinition(h);
+            TypeDefinitionHandle declaring = m.GetDeclaringType();
+            if ((m.Attributes & MethodAttributes.SpecialName) != 0)
+            {
+                TypeDefinition t = md.GetTypeDefinition(declaring);
+                foreach (PropertyDefinitionHandle p in t.GetProperties())
+                {
+                    PropertyDefinition property = md.GetPropertyDefinition(p);
+                    if (property.GetAccessors().Getter == h || property.GetAccessors().Setter == h)
+                    {
+                        return new MemberKey(FullName(declaring), md.GetString(property.Name));
+                    }
+                }
+
+                foreach (EventDefinitionHandle e in t.GetEvents())
+                {
+                    EventAccessors accessors = md.GetEventDefinition(e).GetAccessors();
+                    if (accessors.Adder == h || accessors.Remover == h || accessors.Raiser == h)
+                    {
+                        return new MemberKey(FullName(declaring), md.GetString(md.GetEventDefinition(e).Name));
+                    }
+                }
+            }
+
+            return new MemberKey(FullName(declaring), md.GetString(m.Name));
+        }
+
+        /// <summary>A method no other type can name as itself: private or private protected, or virtual (an override's
+        /// or an interface implementation's reader calls the member it overrides or implements).</summary>
+        private static bool Hidden(MethodAttributes attributes) =>
+            (attributes & MethodAttributes.MemberAccessMask) is MethodAttributes.Private or MethodAttributes.FamANDAssem
+            || (attributes & (MethodAttributes.Virtual | MethodAttributes.Abstract)) != 0;
 
         /// <summary>The full name of the outermost type of a definition, or null for <c>&lt;Module&gt;</c> and a type
         /// the compiler synthesized at the top level (<c>&lt;PrivateImplementationDetails&gt;</c>, an anonymous type, an
@@ -396,9 +595,11 @@ internal sealed class TypeReferenceWalk
             return false;
         }
 
-        private bool CompilerGenerated(TypeDefinition type)
+        private bool CompilerGenerated(TypeDefinition type) => CompilerGenerated(type.GetCustomAttributes());
+
+        private bool CompilerGenerated(CustomAttributeHandleCollection attributes)
         {
-            foreach (CustomAttributeHandle a in type.GetCustomAttributes())
+            foreach (CustomAttributeHandle a in attributes)
             {
                 if (AttributeTypeName(md, md.GetCustomAttribute(a).Constructor) == "System.Runtime.CompilerServices.CompilerGeneratedAttribute")
                 {
@@ -553,7 +754,7 @@ internal sealed class TypeReferenceWalk
 
     /// <summary>The walk of one type definition: every type its metadata names, folded to product outermost types.</summary>
     private sealed class TypeVisit(MetadataReader md, IReadOnlySet<string> product,
-        AttributeTypeProvider attributeTypes, AssemblyReader assembly, HashSet<string> targets)
+        AttributeTypeProvider attributeTypes, AssemblyReader assembly, HashSet<string> targets, HashSet<MemberKey>? members)
         : ISignatureTypeProvider<bool, object?>
     {
         private static readonly OpCode[] OneByte = new OpCode[0x100];
@@ -747,6 +948,7 @@ internal sealed class TypeReferenceWalk
             {
                 case HandleKind.TypeDefinition:
                     Add(assembly.OutermostOf((TypeDefinitionHandle)h));
+                    Owned(h);
                     break;
                 case HandleKind.TypeReference:
                     Add(AssemblyReader.ProductOutermost(md, (TypeReferenceHandle)h, product));
@@ -768,9 +970,11 @@ internal sealed class TypeReferenceWalk
                     break;
                 case HandleKind.MethodDefinition:
                     Entity(md.GetMethodDefinition((MethodDefinitionHandle)h).GetDeclaringType());
+                    Owned(h);
                     break;
                 case HandleKind.FieldDefinition:
                     Entity(md.GetFieldDefinition((FieldDefinitionHandle)h).GetDeclaringType());
+                    Owned(h);
                     break;
                 case HandleKind.MethodSpecification:
                     MethodSpecification spec = md.GetMethodSpecification((MethodSpecificationHandle)h);
@@ -791,6 +995,14 @@ internal sealed class TypeReferenceWalk
                     break;
                 default:
                     throw new InvalidOperationException($"{assembly.AssemblyName}: the walk has no rule for a {h.Kind} token");
+            }
+        }
+
+        private void Owned(EntityHandle h)
+        {
+            if (members is not null)
+            {
+                assembly.OwnedMembers(h, members);
             }
         }
 
@@ -817,6 +1029,7 @@ internal sealed class TypeReferenceWalk
         public bool GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
         {
             Add(assembly.OutermostOf(handle));
+            Owned(handle);
             return false;
         }
 

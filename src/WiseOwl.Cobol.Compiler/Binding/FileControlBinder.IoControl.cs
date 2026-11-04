@@ -171,7 +171,7 @@ public sealed partial class FileControlBinder
     /// object reference), SR8 (both or neither of two 01/77 items one of which depends on the other), SR9 (the
     /// implicit items' sections) and SR10 (no BASED item). Called at the end of <see cref="ResolveFiles"/>, whose FILE
     /// STATUS, LINAGE and RECORD DEPENDING resolutions SR9 reads.</summary>
-    internal void ResolveApplyCommit()
+    private void ResolveApplyCommit()
     {
         if (ApplyCommit is not { } clause) return;
         var listed = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);

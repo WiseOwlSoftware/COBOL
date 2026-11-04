@@ -129,7 +129,7 @@ droppable in without touching the frontend/binder/bound tree, every fact a backe
 
 L1/L2 are already scheduled by `DESIGN-codegen-backend.md §2.3` + PHASE-07 Step 11. **L3/L4 are NOT** — they live in
 `BoundTree.cs` records the bound-tree design treats as neutral but which still carry C# path/identifier strings. §5
-adds them to PHASE-06 explicitly. L5 (the P6→P7 seam extraction) is **DONE** — `ICodeGenBackend` is in place and a `BoundCompilation` crosses the backend boundary. L6 is OPEN: that `BoundCompilation` still carries the binder and the parse tree, and the architecture review's edges file (DESIGN-architecture-review §8.1) ratchets it to zero. L7 and L8,
+adds them to PHASE-06 explicitly. L5 (the P6→P7 seam extraction) is **DONE** — `ICodeGenBackend` is in place and a `BoundCompilation` crosses the backend boundary. L6 is **DONE** for what it names (kb/Work PB2293 is its record, closed with PB2375, PB2361, PB2398 and PB2401): no `BoundCompilation`, bound unit or `EmitContext` carries a binder, a resolver or a parse context. Two residues stay tolerated rows of the architecture review's edges file (DESIGN-architecture-review §8.1), each with its remover: one emitter call into the binder driver (`OoEmitter` → `BinderDriver.ExternalItemIdentity`, kb/Work PB2418) and the binder the bound layer still declares (`StatementBinder`, kb/Work PB2347). L7 and L8,
 the residue of the name-allocator correction (kb/Work PB4265), are **DONE**: the access text the binder built from
 names is structure on the model now (kb/Work PB4320), and a method local is a `MethodLocal` identity on the node, an
 access path rooted at one included, a method's own data among them (kb/Work PB4321, PB4380, PB4416). L4 and L9 are OPEN. Every member the OPEN rows name is a tolerated leak row of the §6 contract test, which refuses any text
@@ -453,9 +453,9 @@ string field fails the build, exactly the "missing-arm-is-a-compile-error" cultu
   `Path`, `Field`) cannot be neutral. This is stricter than the name pattern alone: `PicInfo.ProfileInitializer` (C#
   initializer text) and `BoundRelational.Op` (a C# operator) match neither pattern and are leak rows (L9).
 - **The parse-context half is the edges file's.** `architecture-edges.json` allows no edge from `compiler.model` or
-  `compiler.bound` to `frontend.parse` or `compiler.binding`, so its walk (ArchitectureEdgesDriftTests) pins each such
-  field at a tolerated row (L6: `BoundCompilation.Tree`, `BoundUnit.Ctx`, kb/Work PB2398; the binder fields, removed by
-  PB2361); the contract test asserts the file keeps refusing those edges, and refuses the one parse-tree reference that
+  `compiler.bound` to `frontend.parse` or `compiler.binding`, so its walk (ArchitectureEdgesDriftTests) pinned each such
+  field at a tolerated row until its removal (L6: `BoundCompilation.Tree` and `BoundUnit.Ctx`, removed by kb/Work PB2398;
+  the binder fields, removed by PB2361); the contract test asserts the file keeps refusing those edges, and refuses the one parse-tree reference that
   walk cannot see, a member holding or returning an ANTLR runtime type, unless an L6 leak row names it (today only
   `StatementBinder`'s, kb/Work PB2347).
 - **Assertion 3 is held open by a pin.** Until the seam-proof lands, the test asserts `RoslynBackend` is the only

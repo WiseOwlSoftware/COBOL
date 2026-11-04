@@ -79,7 +79,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// entries used to join the class binder's one table, so a sibling method substituted them for its object's own data
     /// item, a method's data item lost to its object's constant, and two methods' unequal entries of one name drew
     /// §13.10.3 SR9.</summary>
-    internal sealed class ConstantScope
+    private sealed class ConstantScope
     {
         /// <summary>The bound constants by name (§13.10.4 GR1 substitution source): this element's OWN entries only. The
         /// GLOBAL constants of the containing programs are <see cref="InheritedGlobals.Constants"/>, read after these
@@ -245,13 +245,13 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// <summary>Where a constant entry stands in its bind: not yet reached, being evaluated (a re-entry is a
     /// circular dependence), waiting for the later data item its length phrase names, or finished (bound or
     /// rejected).</summary>
-    internal enum ConstantBindState { Declared, Evaluating, Postponed, Finished }
+    private enum ConstantBindState { Declared, Evaluating, Postponed, Finished }
 
     /// <summary>One constant entry of this unit or of one of its methods, collected before anything binds
     /// (<see cref="DeclareDataEntries"/>). <paramref name="entry"/> is the host entry (the diagnostic anchor); the
     /// level-number, the optional name and the body are the three parts both hosts spell (§13.10.2; kb/Work PB1226).
     /// <paramref name="scope"/> is the source element that declares it, whose table its value joins (kb/Work PB3164).</summary>
-    internal sealed class DeclaredConstant(
+    private sealed class DeclaredConstant(
         Antlr4.Runtime.ParserRuleContext entry, Core.LevelNumberContext level, Core.DataNameContext? nameCtx,
         Core.ConstantEntryBodyContext body, ConstantScope scope)
     {

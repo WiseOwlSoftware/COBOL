@@ -176,7 +176,7 @@ public sealed partial class DataBinder
     /// container's GLOBAL level-88 RELF exactly as its own `01 RELF` does. A tie is not "nearer": at one depth the
     /// condition-name keeps the reference, as it always has. Free for a unit that inherits nothing (every level-88 is
     /// then depth 0).</summary>
-    internal NonDataDeclaration? NonConditionDeclarationNearerThan(
+    private NonDataDeclaration? NonConditionDeclarationNearerThan(
         string name, IReadOnlyList<string> qualifiers, Model.Scope scope, int depth)
     {
         if (depth == 0 || !State.Forest.InheritsGlobalData) return null;

@@ -598,11 +598,10 @@
       "walkUses": 46,
       "removedBy": [
         "PB2347",
-        "PB2361",
         "PB2419",
         "PB2420"
       ],
-      "plan": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1); and PB2361 (extract: DataBindResult carries the data binder's value slices — ForestSlice, FileSlice, DataBindState — so StatementBinder reads them from the result, not through the binder; PB2296 M6 made them slices)",
+      "plan": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1); StatementBinder's read of DataBindState is binder-to-binder state, so it ends with PB2347's move out of Bound/ (PB2361 landed: the result is frozen after the group tail, after StatementBinder runs, so StatementBinder cannot read it)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.Bound.BoundAllLiteral",
@@ -951,7 +950,7 @@
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.DataBindState",
           "removedBy": [
-            "PB2361"
+            "PB2347"
           ]
         }
       ]
@@ -1334,7 +1333,6 @@
       "uses": 20,
       "walkUses": 21,
       "removedBy": [
-        "PB2361",
         "PB2399",
         "PB2420"
       ],
@@ -1344,7 +1342,6 @@
           "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
           "to": "WiseOwl.Cobol.Binding.TurnState",
           "removedBy": [
-            "PB2361",
             "PB2399"
           ]
         },
@@ -1352,7 +1349,6 @@
           "from": "WiseOwl.Cobol.Binding.Model.BoundUnit",
           "to": "WiseOwl.Cobol.Binding.LinkageFormal",
           "removedBy": [
-            "PB2361",
             "PB2399"
           ]
         },
@@ -1360,7 +1356,6 @@
           "from": "WiseOwl.Cobol.Binding.Model.CallBridge",
           "to": "WiseOwl.Cobol.Binding.LinkageFormal",
           "removedBy": [
-            "PB2361",
             "PB2399"
           ]
         },
@@ -1445,7 +1440,6 @@
           "from": "WiseOwl.Cobol.Binding.Model.OccursKey",
           "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
-            "PB2361",
             "PB2399"
           ]
         },
@@ -1474,14 +1468,13 @@
           "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
           "to": "WiseOwl.Cobol.Binding.DataBindState",
           "removedBy": [
-            "PB2361"
+            "PB2399"
           ]
         },
         {
           "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
           "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
-            "PB2361",
             "PB2399"
           ]
         },
@@ -1598,19 +1591,17 @@
       "walkUses": 72,
       "removedBy": [
         "PB2320",
-        "PB2361",
         "PB2399",
         "PB2405",
         "PB2418",
         "PB2420"
       ],
-      "plan": "PB2361 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 (landed: the OPTIONS types moved to compiler.model) and PB2399 (the alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1). PB2375 (landed) removed UnitEmitters.Refs and the emit-time ResolveItem calls: the emitters read the PlaceTable the binder builds (BoundUnit.Places, OoClassUnit.Places)",
+      "plan": "PB2361 (landed: DataBindResult replaced the binder on EmitContext.Data, BoundUnit.Data and the class units, so no pair here names DataBinder or ReferenceResolver), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 (landed: the OPTIONS types moved to compiler.model) and PB2399 (the alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1). PB2375 (landed) removed UnitEmitters.Refs and the emit-time ResolveItem calls: the emitters read the PlaceTable the binder builds (BoundUnit.Places, OoClassUnit.Places)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
           "to": "WiseOwl.Cobol.Binding.CobolClass",
           "removedBy": [
-            "PB2361",
             "PB2418",
             "PB2399",
             "PB2405",
@@ -1621,7 +1612,6 @@
           "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2361",
             "PB2418",
             "PB2399",
             "PB2405",
@@ -1718,7 +1708,6 @@
           "from": "WiseOwl.Cobol.CodeGen.GroupValueSlicer",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2361",
             "PB2418",
             "PB2399",
             "PB2405",
@@ -1737,7 +1726,6 @@
           "from": "WiseOwl.Cobol.CodeGen.InspectEmitter",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2361",
             "PB2418",
             "PB2399",
             "PB2405",
@@ -1756,7 +1744,6 @@
           "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2361",
             "PB2418",
             "PB2399",
             "PB2405",
@@ -1775,7 +1762,6 @@
           "from": "WiseOwl.Cobol.CodeGen.ObjectComputerEmit",
           "to": "WiseOwl.Cobol.Binding.IntrinsicResultType",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2055,7 +2041,6 @@
           "from": "WiseOwl.Cobol.CodeGen.RuntimeApi",
           "to": "WiseOwl.Cobol.Binding.IntrinsicDomain",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2126,7 +2111,6 @@
           "from": "WiseOwl.Cobol.CodeGen.StringEmitter",
           "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
           "removedBy": [
-            "PB2361",
             "PB2418",
             "PB2399",
             "PB2405",
@@ -2137,7 +2121,6 @@
           "from": "WiseOwl.Cobol.CodeGen.ValueInitializer",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2361",
             "PB2418",
             "PB2399",
             "PB2405",
@@ -2253,12 +2236,11 @@
       "uses": 26,
       "walkUses": 22,
       "removedBy": [
-        "PB2361",
         "PB2399",
         "PB2405",
         "PB2420"
       ],
-      "plan": "PB2361, PB2399 and PB2405 (the same extracts and moves; PB2402 landed the OPTIONS types' move); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1). PB2375 (landed) removed this layer's pairs onto the resolver",
+      "plan": "PB2399 and PB2405 (the same moves; PB2361 landed DataBindResult on EmitContext.Data, PB2402 the OPTIONS types' move); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1). PB2375 (landed) removed this layer's pairs onto the resolver",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
@@ -2319,7 +2301,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
           "to": "WiseOwl.Cobol.Binding.CollatingClass",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2329,7 +2310,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
           "to": "WiseOwl.Cobol.Binding.CollatingSelection",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2339,7 +2319,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.EmitContext",
           "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
           "removedBy": [
-            "PB2361",
             "PB2405"
           ]
         },
@@ -2347,7 +2326,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
           "to": "WiseOwl.Cobol.Binding.FunctionDeviceForm",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2357,7 +2335,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
           "to": "WiseOwl.Cobol.Binding.IntrinsicCatalog",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2367,7 +2344,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.FunctionDeviceText",
           "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2377,7 +2353,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2387,7 +2362,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
           "to": "WiseOwl.Cobol.Binding.IntrinsicResultType",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2397,7 +2371,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.IntrinsicRenderer",
           "to": "WiseOwl.Cobol.Binding.IntrinsicSig",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2430,7 +2403,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
           "to": "WiseOwl.Cobol.Binding.AlgebraicRanges",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2440,7 +2412,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
           "to": "WiseOwl.Cobol.Binding.IntrinsicArgumentRules",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"
@@ -2450,7 +2421,6 @@
           "from": "WiseOwl.Cobol.CodeGen.Emit.OperandText",
           "to": "WiseOwl.Cobol.Binding.NumericDisplayForm",
           "removedBy": [
-            "PB2361",
             "PB2399",
             "PB2405",
             "PB2420"

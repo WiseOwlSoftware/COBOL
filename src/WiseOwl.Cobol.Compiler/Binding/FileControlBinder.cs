@@ -41,11 +41,11 @@ public sealed partial class FileControlBinder
     /// program") and SR3 (each needs an FD or SD in the same file section). It is not <see cref="FileSlice.FilesByName"/>,
     /// which also holds the models an FD or SD synthesizes, and it leaves out a class-level FILE-CONTROL, which
     /// §12.4.3 SR1 forbids outright (kb/Work PB1076) and which belongs to no factory or object (kb/Work PB1077).</summary>
-    internal Dictionary<string, FileModel> SelectedFiles { get; } = new(CobolNames.Comparer);
+    private Dictionary<string, FileModel> SelectedFiles { get; } = new(CobolNames.Comparer);
 
     /// <summary>The SUPPRESS WHEN operands as written, keyed by their clause (captured in <see cref="BindFileControl"/>, read by
     /// <see cref="FileControlBinder.ReadSuppressWhen"/> once the data division's constant-names are declared).</summary>
-    internal Dictionary<AlternateKeyClause, Core.ValueClauseOperandContext> SuppressWhenOperands { get; } = [];
+    private Dictionary<AlternateKeyClause, Core.ValueClauseOperandContext> SuppressWhenOperands { get; } = [];
 
     /// <summary>Bind the FILE-CONTROL paragraph's SELECT clauses into <see cref="FileModel"/>s (assign target,
     /// organization, access mode, OPTIONAL, FILE STATUS). The FD records attach in <see cref="BindFileSection"/>.
@@ -352,7 +352,7 @@ public sealed partial class FileControlBinder
     /// checked lazily, inside the per-key resolution, so an alphabet-name-1 that every key's Format-2 clause
     /// shadowed was never looked at (`COLLATING SEQUENCE IS NOSUCH` compiled clean) and alphabet-name-2 was never
     /// read at all.</para></summary>
-    internal void ResolveFileCollating(FileModel file)
+    private void ResolveFileCollating(FileModel file)
     {
         using var fileLevelAt = Edition.At(file.ClauseOrEntryAt(file.FileLevelCollatingAt));   // the file-level clause (kb/Work PB2034)
         if (file.FileLevelCollatingCount > 1)

@@ -207,7 +207,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// first, after this unit's own names are declared (the end of <see cref="BindDeclarations"/>), so each
     /// ByName list stays in nearest-first order. The cells stay the container's: this unit reaches them through the GLOBAL bridge
     /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and never emits them.</summary>
-    internal void InheritGlobalSubtree(DataItem item, int depth)
+    private void InheritGlobalSubtree(DataItem item, int depth)
     {
         State.Forest.Inherit(item, depth);
         foreach (var child in item.Children) InheritGlobalSubtree(child, depth);
@@ -4806,7 +4806,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The raw ALL-literal text of the symbolic character named <paramref name="word"/>, or null: the
     /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §8.3.3.2.3 r3). A
     /// resolution, recorded as a use at <paramref name="site"/> (§8.3.2.2; kb/Work PB3153).</summary>
-    internal string? SymbolicRaw(Antlr4.Runtime.RuleContext site, string word) =>
+    private string? SymbolicRaw(Antlr4.Runtime.RuleContext site, string word) =>
         SpecialNames.SymbolicOf(site, word) is not { } sym ? null
         : "ALL" + (sym.National ? "N" : "") + "\"" + sym.Value.Replace("\"", "\"\"") + "\"";
 

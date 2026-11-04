@@ -66,6 +66,12 @@ public sealed class GlobalNameClassDriftTests
                 yield return (p.PropertyType, $"{p.PropertyType.Name}.");
     }
 
+    /// <summary>The constant binder's private registry of an element's constant entries (no product type outside the
+    /// binder names it, so it is private; kb/Work PB2361).</summary>
+    private static readonly Type ConstantScope =
+        typeof(ConstantEntryBinder).GetNestedType("ConstantScope", BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("ConstantEntryBinder declares no nested ConstantScope: the registry was renamed or moved");
+
     private static IEnumerable<string> NameIndexFields(Type owner)
     {
         foreach (var f in owner.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
@@ -73,7 +79,7 @@ public sealed class GlobalNameClassDriftTests
             // A registry type that is itself a name index: the index-names, and an element's constant entries (a
             // constant-name is a user-defined word its element declares, so it hides a same-spelled word of a
             // containing element; kb/Work PB3164, PB3153 review round 3).
-            if (f.FieldType == typeof(IndexNameRegistry) || f.FieldType == typeof(ConstantEntryBinder.ConstantScope))
+            if (f.FieldType == typeof(IndexNameRegistry) || f.FieldType == ConstantScope)
             {
                 yield return MemberName(f);
                 continue;
@@ -114,7 +120,7 @@ public sealed class GlobalNameClassDriftTests
     public void InheritGlobalSubtree_ReachesEveryInheritedNameIndex()
     {
         string binder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
-        var walk = Regex.Match(binder, @"internal void InheritGlobalSubtree\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
+        var walk = Regex.Match(binder, @"private void InheritGlobalSubtree\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
         Assert.True(walk.Success, "InheritGlobalSubtree not found in DataBinder.cs");
         Assert.True(walk.Groups["body"].Value.Contains("State.Forest.Inherit(item, depth)", StringComparison.Ordinal),
@@ -300,7 +306,7 @@ public sealed class GlobalNameClassDriftTests
         // added to it ranks in both. The CAPACITY register has its own one lookup (CapacityRegisterReferenceDriftTests), so
         // the condition lookup asks CapacityRegisterFor of it.
         AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NonConditionDeclarationHides(");
-        AssertBodyAsks(nonData, @"internal NonDataDeclaration\? NonConditionDeclarationNearerThan\(", "NonConditionDeclarationsOf(");
+        AssertBodyAsks(nonData, @"private NonDataDeclaration\? NonConditionDeclarationNearerThan\(", "NonConditionDeclarationsOf(");
         Assert.Contains("NonConditionDeclarationsOf(", ranked);
         string conditionBinder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "ConditionBinder.cs"));
         AssertBodyAsks(conditionBinder, @"public Condition88\? ConditionOf\(", "CapacityRegisterHides(");

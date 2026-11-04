@@ -54,7 +54,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// "of the same class as the object that was used to invoke the method in which this data description entry
     /// is specified", and §13.18.60.3 SR16 guarantees such a containing class exists wherever the phrase is
     /// legal. kb/Work PB389.</summary>
-    public string? OwnerClassName => _role?.OwnerClassName;
+    private string? OwnerClassName => _role?.OwnerClassName;
 
     /// <summary>Every METHOD whose data this binder bound, in bind order — the roster whose procedure divisions
     /// the data-pointer pre-scan walks (a class unit's synthetic program carries no procedure division of its

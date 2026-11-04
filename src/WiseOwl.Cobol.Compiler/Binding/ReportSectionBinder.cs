@@ -2633,7 +2633,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// no operator, no parentheses, no function — else null, meaning arithmetic-expression-1. Writing the test
     /// once is the point: SOURCE's SR4/SR5 and SUM's SR4/SR5/SR6 all key on which form was written, and two
     /// copies of this walk would be the two-arm dispatch this repo keeps rediscovering.</summary>
-    internal static Core.DataReferenceContext? BareReferenceOf(Core.ReportValueOperandContext op)
+    private static Core.DataReferenceContext? BareReferenceOf(Core.ReportValueOperandContext op)
     {
         var add = op.arithmeticExpression()?.additiveExpression();
         if (add is null || add.addOp().Length > 0) return null;
@@ -2651,7 +2651,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// every operand of a multi-operand SOURCE clause that contains an arithmetic-expression. The parenthesized
     /// form is <c>primaryExpression : LPAREN arithmeticExpression RPAREN</c> reached with no operator above it,
     /// so it is the same walk as <see cref="BareReferenceOf"/> ending one alternative over.</summary>
-    internal static bool IsParenthesized(Core.ReportValueOperandContext op)
+    private static bool IsParenthesized(Core.ReportValueOperandContext op)
     {
         var add = op.arithmeticExpression()?.additiveExpression();
         if (add is null || add.addOp().Length > 0) return false;
