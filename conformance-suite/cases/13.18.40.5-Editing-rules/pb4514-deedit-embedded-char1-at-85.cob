@@ -6,7 +6,7 @@
 *>---
 *> ISO 1989:2023 13.18.40.2 Format 1 - the PICTURE EDITING phrase is a COBOL-2023 introduction
 *> (Annex E.3.3 item 19), so below 2023 the version-conformance pass rejects it (COBOL0900). The
-*> companion POSITIVE golden is 2023/pb4514_deedit_embedded_char1_sign.
+*> companion POSITIVE golden is pb4514_deedit_embedded_char1_sign, in this directory.
 identification division.
 program-id. PB4514NEG.
 data division.

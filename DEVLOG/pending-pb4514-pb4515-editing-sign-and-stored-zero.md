@@ -33,4 +33,13 @@ is not the rule's own literal as the landed sign when the mask has a floating `+
 `pb4514_deedit_embedded_char1_sign` (accept 2023, five legs) with its refused-below program, and a round-trip unit
 theory. R1-2 (a non-verbatim quote) and R1-3 (a Table 9 comment) were fixed in the files already open.
 
+**Review round 2.** R2-1 (blocking): the round-1 arm refused a `-` that matches the rule's own literal, so an IS-form
+character-1 whose literal IS `-` (`PIC --T--9 EDITING T IS "-"`, -555 is `  -555`) still lost its landed sign (the
+`++T++9` form lost it on main too). The two are the same character and are told apart by position, as rule 6 a)
+orders the string: positions before the first nonzero digit hold only spaces or the landed sign, so `DeEdit` keeps a
+`digitSeen` flag read at the digit positions and takes a `-` at an embedded character-1 as the sign unless a digit has
+already been read AND the `-` matches the literal. Golden cases F to I added to `pb4514_deedit_embedded_char1_sign`
+(literal `-`, with and without a preceding digit, both string forms) and the unit theory gained a literal argument.
+R2-2 (the refused-below program named a nonexistent `2023/` path) was corrected in the file.
+
 **Register.** Both notes landed with no inventory rows claimed or closed.

@@ -79,9 +79,19 @@ public sealed class CobolEditStoredSignTests
     [InlineData("++T++9", 555)]
     [InlineData("--T--9", -1555)]
     [InlineData("++T++9", 0)]
-    public void DeEdit_SignLandedOnEmbeddedInsertionCharacter1_RoundTrips(string mask, long value)
+    [InlineData("--T--9", -555, "-")]
+    [InlineData("--T--9", 555, "-")]
+    [InlineData("++T++9", -555, "-")]
+    [InlineData("++T++9", 555, "-")]
+    [InlineData("--T--9", -1555, "-")]
+    [InlineData("--T--9", 1555, "-")]
+    [InlineData("++T++9", -1555, "-")]
+    [InlineData("++T++9", 1555, "-")]
+    public void DeEdit_SignLandedOnEmbeddedInsertionCharacter1_RoundTrips(string mask, long value, string literal = ":")
     {
-        CobolEdit.EditRule[] rules = [new CobolEdit.EditRule('T', ":", ":", SimpleInsertion: true, Floating: false)];
+        // A literal that is itself '-' (PB4514 round 2, R2-1) is the landed sign while no digit of the string
+        // precedes it, and the literal once one does (rule 6 a: spaces and the sign before the first nonzero digit).
+        CobolEdit.EditRule[] rules = [new CobolEdit.EditRule('T', literal, literal, SimpleInsertion: true, Floating: false)];
         string image = CobolEdit.Format(value, 0, mask, edits: rules);
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }

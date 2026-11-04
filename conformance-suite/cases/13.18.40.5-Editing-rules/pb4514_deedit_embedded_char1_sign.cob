@@ -20,12 +20,23 @@
 *>   D  555 -> PIC ++T++9: "  +555"; -> "+00555".
 *>   E  -1555 -> PIC --T--9: digits 1555, the T position holds the ':' (a nonzero digit precedes it), the
 *>      sign lands at the leftmost position: "-1:555"; -> "-01555".
+*>   When the character-1 literal IS "-" (PIC --T--9 EDITING T IS "-") the landed sign and the literal are
+*>   the same character, told apart by position: rule 6 a) places the sign immediately preceding
+*>   "the first nonzero numeric character in the item" and spaces before it, so the string positions
+*>   before the first nonzero digit hold only spaces or the sign; a '-' at T with no digit of the string
+*>   before it is the landed sign, and one after a digit is the literal.
+*>   F  -555 -> "  -555" -> "-00555" (the sign landed at T, no digit before it)
+*>   G  1555 -> " 1-555" -> "+01555" (the digit 1 precedes T, so the '-' is the literal)
+*>   H  -555 -> PIC ++T++9: "  -555" -> "-00555"
+*>   I  -1555 -> "-1-555" -> "-01555" (the literal after the digit 1, the sign at the leftmost position)
 identification division.
 program-id. PB4514EMB.
 data division.
 working-storage section.
 01 em-t   pic --T--9 editing T is ":".
 01 ep-t   pic ++T++9 editing T is ":".
+01 em-d   pic --T--9 editing T is "-".
+01 ep-d   pic ++T++9 editing T is "-".
 01 n      pic s9(5) sign leading separate.
 procedure division.
     move -555 to em-t
@@ -43,4 +54,16 @@ procedure division.
     move -1555 to em-t
     move em-t to n
     display "E[" em-t "] " n
+    move -555 to em-d
+    move em-d to n
+    display "F[" em-d "] " n
+    move 1555 to em-d
+    move em-d to n
+    display "G[" em-d "] " n
+    move -555 to ep-d
+    move ep-d to n
+    display "H[" ep-d "] " n
+    move -1555 to em-d
+    move em-d to n
+    display "I[" em-d "] " n
     stop run.

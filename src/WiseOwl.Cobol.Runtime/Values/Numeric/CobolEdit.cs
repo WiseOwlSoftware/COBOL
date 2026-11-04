@@ -515,6 +515,10 @@ public static partial class CobolEdit
         // the landing (the others are digit positions, rule 6). This replaces the search-and-collapse pass that
         // served the currency string alone and could not have served the editing literal at all (kb/Work PB491).
         int phys = 0;
+        // Whether a DIGIT has been read at a digit position so far: rule 6 a) puts only spaces (and the landed sign)
+        // before "the first nonzero numeric character in the item", so a '-' at an embedded character-1 whose literal
+        // is itself '-' is the landed sign while no digit precedes it and the literal once one does (kb/Work PB4514).
+        bool digitSeen = false;
         for (int i = 0; i < pattern.Length && phys < image.Length; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
@@ -531,8 +535,9 @@ public static partial class CobolEdit
                     // ⛔ A character-1 EMBEDDED in a floating '+'/'-' string is a landing position of that string
                     // (rule 6: "simple insertion editing symbols embedded in this string ... are part of the string"),
                     // so the sign lands there as '-' when the literal was overwritten: the same read as at a string
-                    // member below (kb/Work PB4514; FindFloatingPlacement writes it).
-                    else if (c == '-' && facts.Plus + facts.Minus > 1 && !Matches(image, phys, e.Pos)) negative = true;
+                    // member below (kb/Work PB4514; FindFloatingPlacement writes it). A literal that is itself '-'
+                    // is told from the landed sign by position (digitSeen above).
+                    else if (c == '-' && facts.Plus + facts.Minus > 1 && (!digitSeen || !Matches(image, phys, e.Pos))) negative = true;
                     phys += w;
                     continue;
                 }
@@ -556,6 +561,7 @@ public static partial class CobolEdit
             if (facts.IsDigitPosition(pattern[i]))
             {
                 value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0);
+                if (c is >= '0' and <= '9') digitSeen = true;
                 // ⛔ A FLOATING '+' or '-' member holds the sign where it LANDS (§13.18.40.5 rule 6 a): a position of
                 // the string holds a digit, a suppression space or the landed sign, so a '-' at one IS the item's
                 // negative sign — for the floating '+' string as much as for the floating '-' one (kb/Work PB4514;
