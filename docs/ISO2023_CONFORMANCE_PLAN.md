@@ -648,10 +648,10 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   (P10 Step 16 — §13.18.49 on the ONE `CloneItem`/`ExpandSameAs` machinery; the `AS` token landed with the CONSTANT
   wave; golden `typedef_same_as`, matrix row `same-as-clause-2002` ACTIVE, SR bands 1555/1556/1557). **EXTERNAL type
   declarations DONE** (P10 Step 16 — §13.18.22 GR2/GR3/SR5 = 1558; the 1534 stage lifted; golden `typedef_external`).
-  **DEFERRED:** the RESTRICTED data-pointer `USAGE POINTER TO type-name` (ISO §13.18.60.2 general format / Annex
-  D.9.2.2 — the P12 re-scout correction: plain `TYPE TO` is the TYPE clause's OPTIONAL word, §13.18.57.2 Format 1
-  `TYPE [TO] type-name`, already covered by the live TYPE clause; the genuine "pointer-target" deferral is the
-  restricted `USAGE POINTER [TO type-name]` form). Catalogued as the PENDING matrix row `usage-pointer-to-type-2014`.
+  The RESTRICTED data-pointer `USAGE POINTER TO type-name` (ISO §13.18.60.2 general format / Annex D.9.2.2) is LIVE
+  (kb/Work PB153) and a COBOL-2002 construct (plain `TYPE TO` is the TYPE clause's OPTIONAL word, §13.18.57.2 Format 1
+  `TYPE [TO] type-name`); it has no matrix row, since the TYPEDEF, TYPE and BASED rows already gate it below 2002
+  (kb/Work PB4612 deleted the unwired row `usage-pointer-to-type-2014`).
   Diagnostic band 15xx = 1529–1533, 1535, 1555–1558.
 - ⛔ **M3-3 — JSON & XML** `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` + special registers (XML-CODE/JSON-CODE/…).
   **NON-ISO — OUT OF THE ISO-CONFORMANCE SCOPE.** `specs/ISO_COBOL.md` (the ISO/IEC 1989:2023 text) has ZERO `JSON`/

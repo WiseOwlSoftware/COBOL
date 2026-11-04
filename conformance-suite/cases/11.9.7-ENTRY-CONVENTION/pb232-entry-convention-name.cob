@@ -8,8 +8,10 @@
       *> convention is implementor-defined." WiseOwl COBOL defines no entry-convention-name (docs/CONFORMANCE.md
       *> §7, Annex A.1 item 64); the one convention provided is COBOL. A named convention is refused by name
       *> (COBOL2385) instead of being silently activated with the COBOL convention (kb/Work PB232) - which
-      *> is what happened before: the clause was parsed and read by nothing but the edition gate. Below 2014
-      *> the clause does not exist (the edition gate, COBOL0900), so only 2014 and 2023 are named here.
+      *> is what happened before: the clause was parsed and read by nothing but the edition gate. The clause with
+      *> an entry-convention-name is in ISO/IEC 1989:2002 too (11.8.5: ENTRY-CONVENTION IS entry-convention-name-1,
+      *> GR2: its meaning is implementor-defined); only the COBOL alternative is a 2014 addition, so 2002 draws
+      *> COBOL2385 alone, with no edition diagnostic beside it (kb/Work PB4611).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W56ECNEG.
        OPTIONS.
