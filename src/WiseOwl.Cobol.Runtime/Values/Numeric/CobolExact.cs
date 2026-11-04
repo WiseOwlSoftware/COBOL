@@ -146,19 +146,26 @@ public readonly struct CobolExact
 
     /// <summary>⛔ THE FINAL-TRANSFER NATIVE QUOTIENT OF EXACT OPERANDS (kb/Work PB4599; DOC-A.1-123): the EXACT quotient of the two
     /// values reduced to the SDIDI's 34 digits ONCE, by ROUND-TO-ODD (<see cref="CobolDec.DivToOdd"/>'s rule), so the receiver's one
-    /// rounding equals rounding the exact quotient. It is formed on the wide form while the dividend's alignment fits it
-    /// (<see cref="CobolWide.TryQuotientDec(int, CobolWide, int, CobolRounding, bool, out CobolDec)"/>), else over the operands'
-    /// round-to-odd <see cref="Image"/>s, the determination DOC-A.1-123 states for an intermediate past 77 digits. Before it the
+    /// rounding equals rounding the exact quotient. Every operand is a wide value or an SDIDI significand, so both are divided as
+    /// the integers they are at their own scales, whatever the divisor's digits
+    /// (<see cref="CobolWide.QuotientDec(int, CobolWide, int, CobolRounding, bool)"/>): the operands' images, DOC-A.1-123's
+    /// determination past 77 digits, are made by the operations that formed them, never by this one. Before it the
     /// dividend entered the SDIDI as its 34-digit image and <c>A * A * A / (A * A)</c> of a 15-digit A stored 999999999999998.
+    /// <para><paramref name="intermediate"/> is the program's INTERMEDIATE ROUNDING mode where the statement reaches this quotient through
+    /// the SDIDI lane (a floating-point literal beside the exact operand, CONFORMANCE.md DOC-A.1-82): PROHIBITED screens the quotient
+    /// as every SDIDI intermediate is, and a quotient not exact in 34 digits raises EC-SIZE-TRUNCATION (ISO §11.9.11.2 r3d); any other
+    /// mode leaves the round-to-odd value, which no later rounding sees as other than the exact quotient. The plain native lane passes
+    /// <see cref="CobolRounding.Truncation"/>: it has no SDIDI intermediate to screen.</para>
     /// A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
-    public static CobolDec DivToOdd(CobolExact a, CobolExact b)
+    public static CobolDec DivToOdd(CobolExact a, CobolExact b, CobolRounding intermediate)
     {
         if (b.Sign == 0) throw CobolSizeError.ZeroDivide();
-        if (a.TryAt(a.Scale, out CobolWide num) && b.TryAt(b.Scale, out CobolWide den)
-            && num.TryQuotientDec(a.Scale, den, b.Scale, CobolRounding.Truncation, jam: true, out CobolDec quotient))
-            return quotient;
-        return CobolDec.DivToOdd(a.Image, b.Image);
+        bool screened = intermediate == CobolRounding.Prohibited;
+        return a.Significand.QuotientDec(a.Scale, b.Significand, b.Scale, intermediate, jam: !screened);
     }
+
+    /// <summary>The value's integer at its own <see cref="Scale"/>: the wide form, or the SDIDI's significand.</summary>
+    private CobolWide Significand => _sdidi ? CobolWide.From(_dec.Sig) : _wide;
 
     /// <summary>The negation, on the value's own carrier; the same precision.</summary>
     public static CobolExact Negate(CobolExact a) =>
@@ -218,7 +225,7 @@ public readonly struct CobolExact
     {
         aligned = default;
         int own = Scale;
-        return scale >= own && CobolWide.TryUp(_sdidi ? CobolWide.From(_dec.Sig) : _wide, scale - own, out aligned);
+        return scale >= own && CobolWide.TryUp(Significand, scale - own, out aligned);
     }
 
     /// <summary>⛔ EVERY VALUE OF <paramref name="xs"/> ON THE WIDE FORM AT THEIR COMMON SCALE (the largest of their scales, at which

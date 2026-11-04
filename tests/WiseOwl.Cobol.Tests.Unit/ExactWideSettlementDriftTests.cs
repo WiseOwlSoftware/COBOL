@@ -16,7 +16,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (<c>NumericRenderer.Settle</c>: into the receiver's own scale and mode at the final transfer, else into the SDIDI), and a
 /// consumer may take it exact only by passing <c>keepWide: true</c> — which it then owes a settlement of its own. This class
 /// pins both halves: the entries all settle, and the opt-in sites are the ones that do (a several-receiver COMPUTE's one
-/// initial evaluation, the DIVIDE ... REMAINDER back-multiply that the subtraction around it settles, kb/Work PB3538, a
+/// initial evaluation, the DIVIDE ... REMAINDER back-multiply that the subtraction around it settles, kb/Work PB3538, the operands
+/// of a final-transfer product or quotient (MULTIPLY / DIVIDE ... GIVING, the in-place statements, a several-receiver COMPUTE's root
+/// operation and DIVIDE ... REMAINDER, kb/Work PB4599), each handed to the one former that settles it at the receiver, a
 /// relation, an intrinsic function's argument and the temporary DISPLAY shows, kb/Work PB3953, and a MOVE's store of a function
 /// whose value is wide). Another site is a design decision (add its settlement here), never a silent edit. The run-time-scaled
 /// exact value (<c>NumX.Exact</c>, kb/Work PB4575: a wide value beside an SDIDI-carried operand) travels the same opt-in
@@ -64,7 +66,7 @@ public sealed class ExactWideSettlementDriftTests
         string src = Renderer();
         foreach (string entry in new[] { "public NumX Render(BoundExpr e", "public NumX AsNum(BoundOperand op" })
             Assert.Contains("keepWide ? x : Settle(x, rcv, outermost)", BodyOf(src, entry));
-        Assert.Contains("return Settle(acc, rcv, outermost: false);", BodyOf(src, "public NumX Fold("));
+        Assert.Contains("return keepWide ? acc : Settle(acc, rcv, outermost: false);", BodyOf(src, "public NumX Fold("));
         Assert.Contains("return keepWide ? x : Settle(x, rcv, outermost);", BodyOf(src, "public NumX Combine("));
     }
 
@@ -91,6 +93,16 @@ public sealed class ExactWideSettlementDriftTests
     {
         string arithmetic = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "ArithmeticEmitter.cs"));
         Assert.Contains("keepWide: true", arithmetic);
+        // Each kept operand (kb/Work PB4599) reaches the one final-transfer former of its statement, which settles it at the receiver:
+        // MULTIPLY ... BY / ADD / SUBTRACT (the in-place Combine), MULTIPLY ... GIVING and a several-receiver COMPUTE's root
+        // operation (Combine, outermost), DIVIDE ... GIVING (FinalQuotient) and DIVIDE ... REMAINDER (the carried arm, whose
+        // quotient is the same FinalQuotient and whose back-multiply is the Combine below).
+        Assert.Contains("num.Fold(operands, ReceiverContext.None with { Checks = TakenBy(ise) }, keepWide: true)", arithmetic);
+        Assert.Contains("num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, inSizeError), outermost: true)", arithmetic);
+        Assert.Contains("num.Combine(ax, \"*\", bx, RcvFor(r, ise), outermost: true)", arithmetic);
+        Assert.Contains("num.Combine(ax, rootOp, bx, RcvFor(r, ise), outermost: true)", arithmetic);
+        Assert.Contains("FinalQuotient(q, divisorX, RcvFor(r, ise))", arithmetic);
+        Assert.Contains("return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, shape);", arithmetic);
         Assert.Contains("num.Settle(v, RcvFor(r, ise), outermost: true)", arithmetic);
         // The REMAINDER back-multiply is kept exact only as the operand of the Combine that settles the remainder.
         Assert.Contains("num.Combine(dividend, \"-\",", arithmetic);

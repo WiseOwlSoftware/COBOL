@@ -138,7 +138,7 @@ public static partial class CobolIntrinsics
     /// the EXACT mean. With every argument aligned to the common scale s as an integer Xᵢ and shifted by the first, dᵢ = Xᵢ − X₁ (the
     /// variance of a list does not move with it, and the shift makes the differences small exactly where the expression cancels),
     /// Σ(xᵢ − mean)² / n is algebraically <c>(n·Σdᵢ² − (Σdᵢ)²) / (n²·10^(2s))</c>: one numerator and one denominator on the wide form,
-    /// divided once (<see cref="CobolWide.TryQuotientDec"/>). The 34-digit mean of <see cref="VarianceDec"/> is no approximation of it
+    /// divided once (<see cref="CobolWide.QuotientDec(int, CobolWide, int, CobolRounding, bool)"/>). The 34-digit mean of <see cref="VarianceDec"/> is no approximation of it
     /// under native arithmetic: a mean off by δ adds exactly δ² (the cross term Σ(xᵢ − m) is 0), so VARIANCE (P, P − 1) of a 39-digit
     /// P answered 10^10 for 0.25, and VARIANCE of 10^30, 10^30 + 1, 10^30 + 1 answered 0.2222223333 for 2/9. Deviations whose squares
     /// leave the 77 digits are the SDIDI body's (their spread then dwarfs the 34-digit mean's error).</summary>
@@ -160,10 +160,11 @@ public static partial class CobolIntrinsics
                 || !CobolWide.TryMul(d, d, out CobolWide square)
                 || !CobolWide.TryAdd(squares, square, out squares)) return false;
         }
-        return CobolWide.TryMul(n, squares, out CobolWide scaled)
-            && CobolWide.TryMul(sum, sum, out CobolWide sumSquared)
-            && CobolWide.TryAdd(scaled, CobolWide.Negate(sumSquared), out CobolWide numerator)
-            && numerator.TryQuotientDec(2 * s, CobolWide.Mul(n, n), mode, out variance);
+        if (!CobolWide.TryMul(n, squares, out CobolWide scaled)
+            || !CobolWide.TryMul(sum, sum, out CobolWide sumSquared)
+            || !CobolWide.TryAdd(scaled, CobolWide.Negate(sumSquared), out CobolWide numerator)) return false;
+        variance = numerator.QuotientDec(2 * s, CobolWide.Mul(n, n), 0, mode, jam: false);
+        return true;
     }
 
     /// <summary>STANDARD-DEVIATION (§15.86.4 1): <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, the two bodies composed,
@@ -214,7 +215,8 @@ public static partial class CobolIntrinsics
                 || !CobolWide.TryMul(amount, qPower, out CobolWide term)
                 || !CobolWide.TryAdd(carried, term, out numerator)) return false;
         }
-        return CobolWide.TryPow(p, amounts.Length, out CobolWide denominator)
-            && numerator.TryQuotientDec(t, denominator, mode, out value);
+        if (!CobolWide.TryPow(p, amounts.Length, out CobolWide denominator)) return false;
+        value = numerator.QuotientDec(t, denominator, 0, mode, jam: false);
+        return true;
     }
 }

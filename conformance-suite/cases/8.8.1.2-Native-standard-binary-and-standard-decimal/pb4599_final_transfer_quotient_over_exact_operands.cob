@@ -49,6 +49,19 @@
       *>         dividend less the subsidiary quotient times the
       *>         divisor, formed from the exact values; the 34-digit
       *>         images gave 998 and a remainder of 6 or -1).
+      *>   BIGD  A*A*A*A / (A*A*A) = A, a 60-digit dividend over a
+      *>         45-digit divisor: a divisor past 41 digits leaves the
+      *>         wide form once the dividend is aligned 36 digits past
+      *>         it, so its quotient digits are drawn from the remainder
+      *>         (the review round-1 finding R1-1). Also into two
+      *>         receivers (BIGD2) and DIVIDE ... GIVING ... REMAINDER
+      *>         (BIGDR): A*A*A*A + 7 = A * (A*A*A) + 7, so A and 7.
+      *>   MULI  MULTIPLY FUNCTION ABS (B * B * B) BY C, with B =
+      *>         5**17 / 10**17 and C = 2**51: B*B*B*C = 5**51 * 2**51
+      *>         / 10**51 = 1 exactly (Python integers), 1.000 in
+      *>         V9(3). The in-place format keeps the FUNCTION operand's
+      *>         exact value as the GIVING format does; its 34-digit
+      *>         image gave 0.999 (review round-1 finding R1-2).
       *>   NEST  A*A*A / (A*A) in a relation (a nested quotient) is
       *>         the exact A: IF ... = A is true.
       *>   ZERO  A*A*A / (A - A) is the size error.
@@ -65,6 +78,9 @@
        01 E2   PIC -(18)9.
        01 E31  PIC -(31)9.
        01 ES   PIC -(18)9.9(3).
+       01 B    PIC V9(17) VALUE 0.00000762939453125.
+       01 C    PIC 9(16)V9(3) VALUE 2251799813685248.
+       01 EDC  PIC -(16)9.9(3).
        PROCEDURE DIVISION.
        MAIN-PARA.
            COMPUTE R = A * A * A / (A * A)
@@ -112,6 +128,21 @@
            MOVE R TO E1
            MOVE R2 TO E2
            DISPLAY "DIVR  " E1 " " E2
+           COMPUTE R = A * A * A * A / (A * A * A)
+           MOVE R TO E1
+           DISPLAY "BIGD  " E1
+           COMPUTE R R2 = A * A * A * A / (A * A * A)
+           MOVE R TO E1
+           MOVE R2 TO E2
+           DISPLAY "BIGD2 " E1 " " E2
+           DIVIDE FUNCTION ABS (A * A * A * A + 7)
+               BY FUNCTION ABS (A * A * A) GIVING R REMAINDER R2
+           MOVE R TO E1
+           MOVE R2 TO E2
+           DISPLAY "BIGDR " E1 " " E2
+           MULTIPLY FUNCTION ABS (B * B * B) BY C
+           MOVE C TO EDC
+           DISPLAY "MULI  " EDC
            IF A * A * A / (A * A) = A
               DISPLAY "NEST  EQ"
            ELSE

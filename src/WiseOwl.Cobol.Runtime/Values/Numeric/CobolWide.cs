@@ -150,52 +150,86 @@ public readonly struct CobolWide
 
     /// <summary>⛔ THE EXACT QUOTIENT OF THIS VALUE (at <paramref name="scale"/>) BY A COUNT, ROUNDED ONCE TO THE SDIDI
     /// (kb/Work PB4075): the single division of FUNCTION MEAN's <c>Σ / n</c> (ISO §15.60.4 r1, kb/Work PB3860) over an exact
-    /// wide sum, where <see cref="ToDec"/> then <see cref="CobolDec.Div"/> would round twice — <see cref="TryQuotientDec"/>, which
-    /// a count of at most ten digits never leaves.</summary>
+    /// wide sum, where <see cref="ToDec"/> then <see cref="CobolDec.Div"/> would round twice —
+    /// <see cref="QuotientDec(int, CobolWide, int, CobolRounding, bool)"/>.</summary>
     internal CobolDec QuotientDec(int scale, int count, CobolRounding mode) =>
-        TryQuotientDec(scale, From(count), mode, out CobolDec quotient) ? quotient : throw Overflow();
+        QuotientDec(scale, From(count), 0, mode, jam: false);
 
-    /// <summary>⛔ THE ONE EXACT QUOTIENT ROUNDED ONCE TO THE SDIDI (kb/Work PB4075, PB4111): this value (at <paramref name="scale"/>)
-    /// divided by <paramref name="divisor"/> (an integer, nonzero), to 34 digits in <paramref name="mode"/> — MEAN's, VARIANCE's and
-    /// PRESENT-VALUE's single division. The dividend is scaled by powers of ten until the integer quotient has at least 36 digits,
-    /// the true remainder is the sticky bit, and <see cref="CobolDec.Round34Wide"/> lands the 34-digit significand with
-    /// <paramref name="mode"/> — the rounding <see cref="CobolDec.Div"/> applies to an SDIDI dividend, so the two agree wherever
-    /// both can form the quotient. An exact quotient keeps the preferred exponent (the dividend's, ISO/IEC 60559 5.4.1,
-    /// kb/Work PB3954), as <see cref="CobolDec.Div"/> does. False when that scaled dividend would leave the 256-bit range (a divisor
-    /// past 41 digits).</summary>
-    internal bool TryQuotientDec(int scale, CobolWide divisor, CobolRounding mode, out CobolDec quotientDec) =>
-        TryQuotientDec(scale, divisor, 0, mode, jam: false, out quotientDec);
-
-    /// <summary>⛔ THE EXACT QUOTIENT OF TWO SCALED WIDE VALUES, ROUNDED ONCE TO THE SDIDI (kb/Work PB4599): this value at
-    /// <paramref name="scale"/> over <paramref name="divisor"/> at <paramref name="divisorScale"/> — the single division of a native
-    /// final-transfer quotient over exact operands (<c>CobolExact.DivToOdd</c>) and, at divisor scale 0 without <paramref name="jam"/>,
-    /// of the overload above. With <paramref name="jam"/> the 34-digit result is ROUND-TO-ODD (<see cref="CobolDec.DivToOdd"/>'s
-    /// rule), whatever <paramref name="mode"/>: an inexact quotient keeps an odd last digit, so the receiver's one rounding sees the
-    /// exact quotient's side of every boundary. It divides the EXACT operands: the 34-digit image of a 45-digit dividend over its
-    /// factor stored 999999999999998 where 999999999999999 is owed. An exact quotient keeps the preferred exponent, the dividend's
-    /// less the divisor's (ISO/IEC 60559 5.4.1, kb/Work PB3954). A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/>
-    /// (ISO §14.7.5 case 2). False when the scaled dividend would leave the 256-bit range (a divisor past 41 digits).</summary>
-    internal bool TryQuotientDec(int scale, CobolWide divisor, int divisorScale, CobolRounding mode, bool jam, out CobolDec quotientDec)
+    /// <summary>⛔ THE ONE EXACT QUOTIENT OF TWO SCALED WIDE VALUES, ROUNDED ONCE TO THE SDIDI (kb/Work PB4075, PB4111, PB4599): this
+    /// value at <paramref name="scale"/> over a nonzero <paramref name="divisor"/> at <paramref name="divisorScale"/>, to 34 digits in
+    /// <paramref name="mode"/> — MEAN's, VARIANCE's and PRESENT-VALUE's single division and, with <paramref name="jam"/>, a native
+    /// final-transfer quotient over exact operands (<c>CobolExact.DivToOdd</c>). With <paramref name="jam"/> the 34-digit result is
+    /// ROUND-TO-ODD (<see cref="CobolDec.DivToOdd"/>'s rule), whatever <paramref name="mode"/>: an inexact quotient keeps an odd last
+    /// digit, so the receiver's one rounding sees the exact quotient's side of every boundary. It divides the EXACT operands: the
+    /// 34-digit image of a 45-digit dividend over its factor stored 999999999999998 where 999999999999999 is owed.
+    /// <para>The dividend is scaled by powers of ten until the integer quotient has 36 or 37 digits, the true remainder is the sticky
+    /// bit, and <see cref="CobolDec.Round34Wide"/> lands the 34-digit significand — the rounding <see cref="CobolDec.Div"/> applies to
+    /// an SDIDI dividend, so the two agree wherever both can form the quotient. When that scaled dividend would leave the 256-bit range
+    /// (a divisor past 41 digits) the quotient digits past the integer part are drawn one at a time from the remainder
+    /// (<see cref="NextQuotientDigit"/>), which never leaves it: no divisor within the form is refused. An exact quotient keeps the
+    /// preferred exponent, the dividend's less the divisor's (ISO/IEC 60559 5.4.1, kb/Work PB3954). A zero divisor raises
+    /// <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</para></summary>
+    internal CobolDec QuotientDec(int scale, CobolWide divisor, int divisorScale, CobolRounding mode, bool jam)
     {
-        quotientDec = default;
         if (divisor.IsZero) throw CobolSizeError.ZeroDivide();
         int preferred = divisorScale - scale;
-        if (IsZero)
-        {
-            quotientDec = CobolDec.Zero(preferred);
-            return true;
-        }
+        if (IsZero) return CobolDec.Zero(preferred);
         CobolWide magnitude = Abs(this), d = Abs(divisor);
         // The integer quotient of dm digits by dn digits has at least dm − dn: scaling by 36 + dn − dm leaves it 36 or 37 digits.
         int up = Math.Max(0, 36 + d.MagnitudeDigits().Length - magnitude.MagnitudeDigits().Length);
-        if (!TryUp(magnitude, up, out CobolWide scaled)) return false;
-        CobolWide quotient = DivRem(scaled, d, out CobolWide remainder);
-        int exp = preferred - up;
-        UInt128 lo = quotient._lo;
-        if (remainder.IsZero && up > 0) lo = CobolDec.ToPreferredExponent(lo, ref exp, preferred);   // below 2^128: up > 0 means 36 or 37 digits
-        quotientDec = CobolDec.Round34Wide(quotient._hi, lo, _negative != divisor._negative, exp, mode,
-            extraSticky: !remainder.IsZero, jam: jam);
-        return true;
+        UInt128 hi, lo;
+        int steps;
+        bool inexact;
+        if (TryUp(magnitude, up, out CobolWide scaled))
+        {
+            CobolWide quotient = DivRem(scaled, d, out CobolWide remainder);
+            (hi, lo, steps, inexact) = (quotient._hi, quotient._lo, up, !remainder.IsZero);
+        }
+        else
+        {
+            // A divisor of 42+ digits over a dividend of at most 77: the integer quotient has at most 37 digits, so it is below 2^128.
+            CobolWide quotient = DivRem(magnitude, d, out CobolWide remainder);
+            (hi, lo, steps) = (UInt128.Zero, quotient._lo, 0);
+            UInt128 rHi = remainder._hi, rLo = remainder._lo;
+            while (lo < (UInt128)Pow10.AsWide(35) && (rHi != 0 || rLo != 0))     // fewer than 36 digits and a remainder left
+            {
+                lo = lo * 10u + (UInt128)NextQuotientDigit(ref rHi, ref rLo, d._hi, d._lo);
+                steps++;
+            }
+            inexact = rHi != 0 || rLo != 0;
+        }
+        int exp = preferred - steps;
+        if (!inexact && steps > 0) lo = CobolDec.ToPreferredExponent(lo, ref exp, preferred);   // below 2^128: 36 or 37 digits, or fewer when exact
+        return CobolDec.Round34Wide(hi, lo, _negative != divisor._negative, exp, mode, extraSticky: inexact, jam: jam);
+    }
+
+    /// <summary>The next decimal digit of a quotient whose remainder is <paramref name="rHi"/>:<paramref name="rLo"/> (below the
+    /// divisor <paramref name="dHi"/>:<paramref name="dLo"/>): <c>⌊10 × remainder / divisor⌋</c>, leaving <c>10 × remainder mod
+    /// divisor</c> in the remainder. The product is formed as ten additions of the remainder, each followed by at most one subtraction
+    /// of the divisor (the running value stays below it, so the sum is below twice it): a sum that carried out of bit 255 is
+    /// larger than the divisor by that fact and the wrapped subtraction lands it back in range — as <see cref="DivideMagnitude"/>'s
+    /// carried remainder. It is the digit step of the quotient whose scaled dividend would leave the 256-bit form.</summary>
+    private static int NextQuotientDigit(ref UInt128 rHi, ref UInt128 rLo, UInt128 dHi, UInt128 dLo)
+    {
+        UInt128 accHi = 0, accLo = 0;
+        int digit = 0;
+        for (int i = 0; i < 10; i++)
+        {
+            UInt128 lo = accLo + rLo;
+            UInt128 carry = lo < accLo ? 1u : 0u;
+            UInt128 hi = accHi + rHi;
+            bool over = hi < accHi;
+            UInt128 carried = hi + carry;
+            over |= carried < hi;
+            (accHi, accLo) = (carried, lo);
+            if (!over && (accHi < dHi || (accHi == dHi && accLo < dLo))) continue;
+            UInt128 borrow = accLo < dLo ? 1u : 0u;
+            accLo -= dLo;
+            accHi = accHi - dHi - borrow;
+            digit++;
+        }
+        (rHi, rLo) = (accHi, accLo);
+        return digit;
     }
 
     /// <summary>This value, at <paramref name="scale"/>, rounded ONCE to the SDIDI's 34 digits in <paramref name="mode"/> — a

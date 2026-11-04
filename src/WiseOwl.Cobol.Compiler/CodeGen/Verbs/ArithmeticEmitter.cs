@@ -33,7 +33,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // identifies at run time it is materialized too, so the operands are evaluated before the receiver is
             // read or identified (MaterializesInitialEvaluation, kb/Work PB3261). The fold itself is
             // receiver-INDEPENDENT (GR4 -- the initial evaluation precedes any receiver's involvement): None.
-            NumX value = num.Fold(operands, ReceiverContext.None with { Checks = TakenBy(ise) });
+            // ⛔ KEPT EXACT (kb/Work PB4599): a FUNCTION operand of an exact wide value (`MULTIPLY FUNCTION ABS (A * A * A) BY R`) reaches the
+            // receiver's Combine as itself, which settles it once at the final transfer, as MULTIPLY ... GIVING and COMPUTE do.
+            NumX value = num.Fold(operands, ReceiverContext.None with { Checks = TakenBy(ise) }, keepWide: true);
             if (MaterializesInitialEvaluation(targets)) value = Snapshot(value);
             // Each receiver's FieldNum read is ALSO a sending reference (A = A + value; §14.6.13.2 NOTE 2), so a
             // non-finite float receiver is caught by its CobolFloat.Sending wrap. Precise follow-on (parallel to the

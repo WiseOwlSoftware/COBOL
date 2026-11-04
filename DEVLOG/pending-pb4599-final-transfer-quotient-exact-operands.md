@@ -10,8 +10,8 @@ transfer therefore divides the operands' exact values and the 34-digit image is 
 The 34-digit image of a 45-digit dividend divided by its factor is not that quotient.
 
 **Fix shape.** `NumericRenderer.ExactFinalQuotient` takes both operands as `ExactOperand` and `CobolExact.DivToOdd` forms the
-quotient on the 256-bit wide form (`CobolWide.TryQuotientDec`, now taking a divisor scale and a `jam` flag so the 34-digit result is
-round-to-odd, as `CobolDec.DivToOdd` is), or, past 77 digits, over the operands' round-to-odd images. Two arms reach it: the last
+quotient on the 256-bit wide form (`CobolWide.QuotientDec`, taking a divisor scale and a `jam` flag so the 34-digit result is
+round-to-odd, as `CobolDec.DivToOdd` is). Two arms reach it: the last
 line of `Divide` (a final transfer over a wide operand, a floating-point edited resultant) and the exact arm of `CombineCore` (a final
 transfer over a run-time-scaled exact value, whose operands were lowered before). `RuntimeApi.DecDivToOdd` lost its last caller and was
 deleted, with its exemption in `SdidiOperandLiftDriftTests`.
@@ -32,5 +32,32 @@ DOC-A.1-123 and the numeric design now say the final-transfer quotient is exact.
 
 **Self-review.** Architecture: one function forms the final-transfer quotient for every arm, no C# text in a bound node. Code: the
 rule cited is 14.9.12.4 7) for the remainder and 14.7.5 2) for the zero divisor (both `cite.py --check` OK). Performance: the exact
-quotient is one 256-bit division, as `CobolDec.Div` already did. Duplication: `TryQuotientDec` has one body for the integer-divisor
+quotient is one 256-bit division, as `CobolDec.Div` already did. Duplication: `QuotientDec` has one body for the integer-divisor
 callers (MEAN, VARIANCE, PRESENT-VALUE) and the general one.
+
+**Branch review, round 1 (two blocking findings, three leads).**
+
+R1-1: a divisor past 41 digits left the 256-bit form once the dividend was aligned 36 digits past it, and the first version fell back to
+the 34-digit images, so `COMPUTE R = A * A * A * A / (A * A * A)` of A = 123456789012347 (a 57-digit dividend over a 43-digit divisor)
+stored ...346 and, with REMAINDER, a remainder of 461552779000000000 for 0. The root cause was the `Try` contract itself: the quotient
+digits past the integer part can be drawn from the remainder one at a time (`CobolWide.NextQuotientDigit`: ten additions of the
+remainder, one subtraction of the divisor each, a carried sum wrapping back into range as `DivideMagnitude`'s carried remainder does),
+which never leaves the form, so `TryQuotientDec` became `QuotientDec` with no failure return and its callers (VARIANCE, PRESENT-VALUE)
+lost their dead image fallback arm of this quotient. The fallback of `CobolExact.DivToOdd` was dead code as well (`TryAt` at the value's
+own scale cannot fail), which is why no test reached it (R1-4); both are gone. DOC-A.1-123 no longer says 'operands past 77 digits'
+for this quotient: an operand is a wide value or an SDIDI significand.
+
+R1-2: `MULTIPLY FUNCTION ABS (B * B * B) BY C` (the in-place format) settled its operand in `NumericRenderer.Fold` to the 34-digit image
+and stored 0.999 where `GIVING` and `COMPUTE` store 1.000 (B = 5**17/10**17, C = 2**51, so B*B*B*C is 1). `Fold` takes `keepWide`,
+`EmitInPlace` passes it, and the receiver's `Combine` settles once at the final transfer; ADD and SUBTRACT, the same door, follow.
+
+R1-5 (lead, in a file already changed): the exact arm of `CombineCore` used to be `DecBinary`, which carried the program's INTERMEDIATE
+ROUNDING mode, so `OPTIONS. INTERMEDIATE ROUNDING IS PROHIBITED.` with `COMPUTE R = A * A * A / 7.0E30` was a size error; round-to-odd
+had silently dropped that screen. `CobolExact.DivToOdd` takes the mode and, under PROHIBITED, screens the quotient like every SDIDI
+intermediate (ISO 11.9.11.2 rule 3 d)); the plain quotient has no SDIDI intermediate and passes TRUNCATION. R1-3 (the opt-in sites are
+registered in `ExactWideSettlementDriftTests`, each pinned to the former that settles it) and R1-4 are closed.
+
+Goldens added: legs BIGD, BIGD2, BIGDR and MULI in `pb4599_final_transfer_quotient_over_exact_operands`, and
+`pb4599_final_transfer_quotient_intermediate_prohibited` (accept 2014+, refused below by `..._85`). Unit:
+`FinalTransferQuotient_DividesByAnyDivisorOfTheWideForm` (divisors of 43 and 77 digits, expected values from Python integers and
+fractions) and `FinalTransferQuotient_UnderProhibited_RaisesOnAnInexactQuotient`.

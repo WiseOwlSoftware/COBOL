@@ -155,8 +155,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         lowered to the SDIDI by ROUND-TO-ODD (<see cref="LowerWide"/>), exactly the intermediate a nested product
     ///         was before the wide form existed, so whatever consumes it next rounds it in any mode as the exact value.</item>
     /// </list>
-    /// A consumer that CAN use the exact form (a several-receiver COMPUTE's one initial evaluation, a relation, an intrinsic
-    /// function's argument, the temporary DISPLAY shows, a MOVE's store) passes <c>keepWide</c> and settles it itself.</summary>
+    /// A consumer that CAN use the exact form (a several-receiver COMPUTE's one initial evaluation and its root operation's operands,
+    /// the operands of MULTIPLY / DIVIDE ... GIVING and of the in-place statements, a DIVIDE ... REMAINDER's senders and back-multiply,
+    /// a relation, an intrinsic function's argument, the temporary DISPLAY shows, a MOVE's store) passes <c>keepWide</c> and settles
+    /// it itself — at the receiver's final transfer, or by the former that owns it; <c>ExactWideSettlementDriftTests</c> pins each
+    /// one to its settlement (kb/Work PB4599).</summary>
     public NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>
         !x.Wide && !x.Exact ? x
         : outermost && rcv.RoundsAtItsScale ? TransferWide(x, rcv.Scale, rcv.Rounding, LandingTaken(rcv))
@@ -659,7 +662,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// `1.414213562373` after an unrelated `ADD 1 TO R`, because the intrinsic's landing derives from the receiver
     /// (<c>ReceiverContext.FloatLanding</c>; then a working scale of <c>max(Receiver.Scale, 9)</c>). A public entry that mutates ambient state must restore it or the
     /// next caller reads someone else's context.</para></summary>
-    public NumX Fold(IReadOnlyList<BoundExpr> xs, in ReceiverContext rcv)
+    public NumX Fold(IReadOnlyList<BoundExpr> xs, in ReceiverContext rcv, bool keepWide = false)
     {
         var saved = _rcv; bool savedOut = _outermost;
         _rcv = rcv;
@@ -669,7 +672,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             if (xs.Count == 0) return new NumX("0L", 0);
             NumX acc = xs[0].Accept(this);
             for (int i = 1; i < xs.Count; i++) acc = CombineCore(acc, "+", xs[i].Accept(this));
-            return Settle(acc, rcv, outermost: false);
+            return keepWide ? acc : Settle(acc, rcv, outermost: false);
         }
         finally { _rcv = saved; _outermost = savedOut; }
     }
@@ -751,7 +754,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // rounds here and not there. That is observable — `A * B + 0.0E+0` differs from `A * B + 0.0` for
         // 18-digit A and B — so it is NOT covered by "a literal's notation never changes the arithmetic"; the
         // literal's VALUE is exact either way, and the LANE is the determination. It also means INTERMEDIATE
-        // ROUNDING (§11.9.11) reaches a native statement carrying a float literal, PROHIBITED included.
+        // ROUNDING (§11.9.11) reaches a native statement carrying a float literal, PROHIBITED included — also when its dividend is an
+        // exact wide value: the exact arm below screens that quotient (ExactFinalQuotient takes the mode, kb/Work PB4599).
         // MOD/REM keep exact integers exact through their own integer fast path.
         // ⛔ EXCEPT A NESTED QUOTIENT, WHICH HAS ONE RULE ON EVERY NATIVE LANE (kb/Work PB3538 review finding R2-1;
         // CONFORMANCE.md DOC-A.1-123): the quotient truncated at the working scale (Divide). An SDIDI-carried operand is
@@ -777,7 +781,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         if (!a.Real && !b.Real && !_rcv.Real && (a.Exact || b.Exact || (a.Wide || b.Wide) && (a.Dec || b.Dec)))
         {
             if (op is "+" or "-" or "*") return ExactBinary(op, a, b);
-            if (op == "/") return NestedQuotient ? ExactQuotient(a, b) : ExactFinalQuotient(a, b);
+            if (op == "/") return NestedQuotient ? ExactQuotient(a, b) : ExactFinalQuotient(a, b, IntermediateMode);
         }
         if (a.Exact) a = LowerWide(a);
         if (b.Exact) b = LowerWide(b);
@@ -1178,7 +1182,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             return new NumX(RuntimeApi.DecDivTruncatedToOdd(DecQuotientOperand(a), DecQuotientOperand(b), w), 0, Dec: true,
                 Precision: precision);
         }
-        return ExactFinalQuotient(a, b);
+        return ExactFinalQuotient(a, b, "CobolRounding.Truncation");
     }
 
     /// <summary>⛔ A FINAL-TRANSFER NATIVE QUOTIENT OF EXACT OPERANDS (kb/Work PB4599; DOC-A.1-123): the exact quotient of the two
@@ -1187,9 +1191,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// exact quotient. Lowering the dividend first made `COMPUTE R = A * A * A / (A * A)` of A = 999999999999999 store
     /// 999999999999998, where GnuCOBOL's <c>cob_decimal_div</c> shifts the EXACT dividend and its truncating <c>mpz_tdiv_q</c>
     /// answers 999999999999999 (CLAUDE.md rule 1 for §8.8.1.3's latitude). The quotient of two operands the compiler cannot hold
-    /// exactly (past 77 digits) is the quotient of their images, DOC-A.1-123's determination.</summary>
-    private NumX ExactFinalQuotient(NumX a, NumX b) =>
-        new(RuntimeApi.ExactDivToOdd(ExactOperand(a), ExactOperand(b)), 0, Dec: true);
+    /// exactly (past 77 digits) is the quotient of their images, DOC-A.1-123's determination.
+    /// <para><paramref name="intermediate"/> is the INTERMEDIATE ROUNDING mode of the statements that carry an SDIDI operand beside the
+    /// exact one (<see cref="CombineCore"/>): PROHIBITED screens their quotient as every SDIDI intermediate is (ISO §11.9.11.2 r3d, the
+    /// lane determination of DOC-A.1-82 — before PB4599 that arm was <see cref="DecBinary"/>, which screened it), and the plain quotient
+    /// of <see cref="Divide"/> passes TRUNCATION: it has no SDIDI intermediate.</para></summary>
+    private NumX ExactFinalQuotient(NumX a, NumX b, string intermediate) =>
+        new(RuntimeApi.ExactDivToOdd(ExactOperand(a), ExactOperand(b), intermediate), 0, Dec: true);
 
     /// <summary>Is the quotient being rendered NESTED — neither the final transfer to a resultant that rounds at its own
     /// scale nor a floating-point edited resultant's — so that it is the truncated quotient at the working scale on

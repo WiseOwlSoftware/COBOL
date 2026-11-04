@@ -993,9 +993,9 @@ internal static class RuntimeApi
         $"{nameof(CobolExact)}.{nameof(CobolExact.DivTruncated)}({left}, {right}, {receiverScale}, {modeExpr})";
 
     /// <summary>The FINAL-TRANSFER native quotient of two exact values, the SDIDI of the exact quotient's round-to-odd 34 digits
-    /// (<c>CobolExact.DivToOdd</c>, kb/Work PB4599).</summary>
-    public static string ExactDivToOdd(string left, string right) =>
-        $"{nameof(CobolExact)}.{nameof(CobolExact.DivToOdd)}({left}, {right})";
+    /// (<c>CobolExact.DivToOdd</c>, kb/Work PB4599), screened by <paramref name="modeExpr"/> when it is PROHIBITED.</summary>
+    public static string ExactDivToOdd(string left, string right, string modeExpr) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.DivToOdd)}({left}, {right}, {modeExpr})";
 
     /// <summary>The negation of an exact value (<c>CobolExact.Negate</c>).</summary>
     public static string ExactNegate(string exact) => $"{nameof(CobolExact)}.{nameof(CobolExact.Negate)}({exact})";
