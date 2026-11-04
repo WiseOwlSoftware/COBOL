@@ -1283,16 +1283,16 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 K CONSTANT AS 42.\n01 W PIC 99.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE K TO W.\n    DISPLAY W.\n    STOP RUN.\n"
   },
   {
-   "id": "constant-record-2002",
+   "id": "constant-record-2014",
    "status": "active",
-   "description": "The CONSTANT RECORD clause (§13.18.15) — a level-01 STRUCTURED CONSTANT whose content is the record's normal initial content (§13.18.15.4 GR1: as though INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT) and which no statement may store into (SR2 → COBOL1548). ACTIVE as of P10 Step 15; the structural SRs (§13.18.15 SR1 WS/LS-only; §13.16.3 SR3/SR6/SR13) are COBOL1549; the introduction gate is the VersionConformancePass parse arm (VisitConstantRecordClause). Its own registry row (not folded into constant-entry-2002) per the registry's one-construct-one-gate granularity: the entry and the clause are separate §s with separate SR families.",
+   "description": "The CONSTANT RECORD clause (§13.18.15) — a COBOL-2014 introduction (absent from the 2002 texts; present in the 2009 CD and, per §E.2 item 10, in the 2014 standard) — a level-01 STRUCTURED CONSTANT whose content is the record's normal initial content (§13.18.15.4 GR1: as though INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT) and which no statement may store into (SR2 → COBOL1548). ACTIVE as of P10 Step 15; the structural SRs (§13.18.15 SR1 WS/LS-only; §13.16.3 SR3/SR6/SR13) are COBOL1549; the introduction gate is the VersionConformancePass parse arm (VisitConstantRecordClause). Its own registry row (not folded into constant-entry-2002) per the registry's one-construct-one-gate granularity: the entry and the clause are separate §s with separate SR families.",
    "display": "the CONSTANT RECORD clause",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §13.18.15",
-   "introducedIn": 2002,
+   "introducedIn": 2014,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
-   "vcr": "ISO-validation D5 (§13.18.15 CONSTANT RECORD); provisional edge per decision 1",
+   "vcr": "ISO §13.18.15 CONSTANT RECORD; ISO §E.2 item 10 (the 2014 standard already carried the clause: external items could not previously be strongly typed); ABSENT from ISO/IEC FCD 1989:2001 and the 2001-12-04 post-ballot text (0 hits for CONSTANT RECORD), PRESENT in the 2009 CD 1.2 clause 13.18.15 (kb/Work PB3600, PB296)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KCR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 CFG CONSTANT RECORD.\n   05 CFG-TAG PIC X(4) VALUE \"COBL\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY CFG-TAG.\n    STOP RUN.\n"
   },
   {

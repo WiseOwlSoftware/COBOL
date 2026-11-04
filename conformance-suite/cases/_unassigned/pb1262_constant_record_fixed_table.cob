@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1262_constant_record_fixed_table
 *> rules: []
-*> accept: [2002]
+*> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

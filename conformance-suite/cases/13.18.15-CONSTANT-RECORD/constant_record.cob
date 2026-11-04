@@ -1,11 +1,11 @@
       *>--- conformance-case
       *> id: constant_record
       *> rules: [FMT-13.18.15.2]
-      *> accept: [2002]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.15 CONSTANT RECORD clause (2002) — a STRUCTURED
+      *> ISO §13.18.15 CONSTANT RECORD clause (2014) — a STRUCTURED
       *> constant: the record's content is its normal initial content
       *> (§13.18.15.4 GR1 — as though the record had been the subject
       *> of INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT), and

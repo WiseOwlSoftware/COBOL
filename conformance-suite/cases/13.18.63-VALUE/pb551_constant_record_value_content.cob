@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb551_constant_record_value_content
 *> rules: [SR-13.18.63.3-25]
-*> accept: [2002]
+*> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

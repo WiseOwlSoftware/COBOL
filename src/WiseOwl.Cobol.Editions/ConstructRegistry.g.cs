@@ -102,7 +102,7 @@ public static partial class ConstructRegistry
         new("usage-float-decimal16-2014", "USAGE FLOAT-DECIMAL-16", 2014, null, null, "COBOL1564", "ISO §13.18.60.4 GR17 (decimal64); Annex A.3 item 19 (processor-dependent); non-support COBOL1564"),
         new("usage-float-decimal34-2014", "USAGE FLOAT-DECIMAL-34", 2014, null, null, "COBOL1564", "ISO §13.18.60.4 GR18 (decimal128); Annex A.3 item 19 (processor-dependent); non-support COBOL1564"),
         new("constant-entry-2002", "constant entry (01 … CONSTANT AS)", 2002, null, null, "COBOL0900", "ISO §13.10"),
-        new("constant-record-2002", "the CONSTANT RECORD clause", 2002, null, null, "COBOL0900", "ISO §13.18.15"),
+        new("constant-record-2014", "the CONSTANT RECORD clause", 2014, null, null, "COBOL0900", "ISO §13.18.15"),
         new("usage-program-pointer-2002", "USAGE PROGRAM-POINTER", 2002, null, null, "COBOL0900", "ISO §13.18.60.4 GR24/GR25"),
         new("usage-function-pointer-2014", "USAGE FUNCTION-POINTER", 2014, null, null, "COBOL0900", "ISO §13.18.60.4 GR26 / §8.5.2.7"),
         new("usage-message-tag-2023", "USAGE MESSAGE-TAG", 2023, null, null, "COBOL0900", "ISO §13.18.60.4 GR9 / §8.9 (reserved from 2023)"),

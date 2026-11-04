@@ -100,7 +100,7 @@ public static class Constructs
     public const string UsageFloatDecimal162014 = "usage-float-decimal16-2014";
     public const string UsageFloatDecimal342014 = "usage-float-decimal34-2014";
     public const string ConstantEntry2002 = "constant-entry-2002";
-    public const string ConstantRecord2002 = "constant-record-2002";
+    public const string ConstantRecord2014 = "constant-record-2014";
     public const string UsageProgramPointer2002 = "usage-program-pointer-2002";
     public const string UsageFunctionPointer2014 = "usage-function-pointer-2014";
     public const string UsageMessageTag2023 = "usage-message-tag-2023";

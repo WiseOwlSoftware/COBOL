@@ -36,6 +36,10 @@ public sealed class ValueClauseScreenTests
 
     private static readonly int[] Post85 = [2002, 2014, 2023];
 
+    /// <summary>The editions that have the CONSTANT RECORD clause, a COBOL-2014 introduction (VCR row 7.48, kb/Work
+    /// PB3600): at 2002 it is COBOL0900, so a rule about its content does not apply there.</summary>
+    private static readonly int[] WithConstantRecord = [2014, 2023];
+
     private static void Rejects(string source, string code, params int[] editions)
     {
         foreach (int ed in editions.Length == 0 ? EditionHarness.Editions : editions)
@@ -108,16 +112,16 @@ public sealed class ValueClauseScreenTests
     [Fact]
     public void ConditionName_UnderAConstantRecord_IsRejected()
     {
-        Rejects(Prog("VCS551A", "01 CR CONSTANT RECORD.\n   05 X PIC 9 VALUE 1.\n   88 F VALUE 1."), "COBOL2406", Post85);
+        Rejects(Prog("VCS551A", "01 CR CONSTANT RECORD.\n   05 X PIC 9 VALUE 1.\n   88 F VALUE 1."), "COBOL2406", WithConstantRecord);
         Rejects(Prog("VCS551B", "01 CR CONSTANT RECORD.\n   05 H.\n      10 X PIC 9 VALUE 1.\n         88 F VALUE 1."),
-            "COBOL2406", Post85);
+            "COBOL2406", WithConstantRecord);
     }
 
     /// <summary>SR25 names formats 3, 4 and 5 only: the format-1 VALUEs that give a CONSTANT RECORD its content are
     /// what §13.18.15 is for.</summary>
     [Fact]
     public void ConstantRecord_Format1Content_Compiles() =>
-        Accepts(Prog("VCS551C", "01 CR CONSTANT RECORD.\n   05 X PIC 9 VALUE 7.\n   05 Y PIC X(2) VALUE \"AB\"."), Post85);
+        Accepts(Prog("VCS551C", "01 CR CONSTANT RECORD.\n   05 X PIC 9 VALUE 7.\n   05 Y PIC X(2) VALUE \"AB\"."), WithConstantRecord);
 
     // ── §13.18.63.3 SR2 / SR3 — ALL FORMATS: format 3 (PB586) ───────────────────────────────────────────────
 

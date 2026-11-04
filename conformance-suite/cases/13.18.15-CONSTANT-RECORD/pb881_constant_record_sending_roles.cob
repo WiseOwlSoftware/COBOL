@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb881_constant_record_sending_roles
 *> rules: [SR-13.18.15.3-2, SR-14.9.22.3-8]
-*> accept: [2002]
+*> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
