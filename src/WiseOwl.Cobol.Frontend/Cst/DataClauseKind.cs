@@ -198,6 +198,15 @@ public static class DataClauseKinds
         | DataClauseKind.Global | DataClauseKind.Occurs | DataClauseKind.Property
         | DataClauseKind.Typedef | DataClauseKind.Validation | DataClauseKind.Value;
 
+    /// <summary>⛔ The clauses that give an ENTRY its ROLE rather than its DESCRIPTION: TYPEDEF makes it a type
+    /// declaration (§13.18.58), BASED a storage template (§13.18.5), PROPERTY an object property (§13.18.42). They are
+    /// the clauses a REFERENCE to the entry depends on (<c>TYPE x</c> needs the TYPEDEF, <c>ALLOCATE x</c> and
+    /// <c>SET ADDRESS OF x</c> the BASED), so the recovery from a §13.16.3 SR12 / SR14 refusal keeps them even where the
+    /// rule names them as refused: dropping one would cascade a new false diagnostic onto every reference to the entry
+    /// (kb/Work PB4602). The recovery drops the DESCRIPTION clauses, which are what the referenced description replaces.</summary>
+    public const DataClauseKind EntryRoleClauses =
+        DataClauseKind.Typedef | DataClauseKind.Based | DataClauseKind.Property;
+
     /// <summary>§13.16.3 SR13 ¶1: "The ANY LENGTH, BASED, BLANK WHEN ZERO, DYNAMIC LENGTH, select-when,
     /// SYNCHRONIZED, and TYPEDEF clauses and validation-clauses shall not be specified in the same data
     /// description entry with the CONSTANT RECORD clause…"</summary>

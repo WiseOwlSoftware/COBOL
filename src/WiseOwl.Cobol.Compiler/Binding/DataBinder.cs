@@ -3556,10 +3556,16 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         DataClauseKind written = e.WrittenClauses;
         if ((written & (DataClauseKind.Redefines | DataClauseKind.Typedef)) != 0)
             ScreenLeadingClausePosition(e, cobolName);   // §13.18.44.3 SR1 / §13.16.3 SR4
+        string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
+        // ⛔ THE REFERENCE-COMPOSITION SCREEN (§13.16.3 SR12 / SR14; ScreenReferenceComposition in DataBinder.ClausePlacement.cs)
+        // runs BEFORE the decode loop, because its recovery is to DROP the refused clauses and keep the reference (kb/Work PB4602).
+        DataClauseKind compositionRefused = ScreenReferenceComposition(written, entryWhere);
 
         // The dataDescriptionClauses presence guard folds into e.Clauses (empty when the body has no clause list).
             foreach (var clause in e.Clauses)
             {
+                if (compositionRefused != DataClauseKind.None && (clause.Kind & compositionRefused) != 0)
+                    continue;   // a clause SR12 / SR14 refused is dropped, never decoded (the placementRefused discipline)
                 if (clause.PictureText is { } picText)
                 {
                     pictureText = picText;
@@ -3633,8 +3639,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 else if (clause.Context.externalClause() is { } extc)
                 {
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
-                    // §13.18.22.2's `[ AS literal-1 ]` (kb/Work PB511). CAPTURED here, SCREENED below where
-                    // entryWhere exists — the message has to be able to name the subject.
+                    // §13.18.22.2's `[ AS literal-1 ]` (kb/Work PB511). CAPTURED here, SCREENED below with
+                    // the entry's other placement screens, once the whole clause list has been decoded.
                     externalAs = extc.externalizedNamePhrase();
                 }
                 else if (clause.Context.globalClause() is not null)
@@ -3774,7 +3780,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         rawValue = ExtractValue(value, valueWhere);
                         // Format 1 takes EXACTLY ONE literal (§13.18.63.2); a bare multi-literal list (no FROM) is
                         // Format 2 or (report section) Format 4, never a Format-1 data item — ExtractValue GLUES it
-                        // today (GetText over the collapsed valueItem). Flag it for a loud reject once entryWhere exists.
+                        // today (GetText over the collapsed valueItem). Flag it here, reject it loudly below once the clause list is decoded.
                         var vi0 = value.valueItem().FirstOrDefault();
                         if (vi0?.valueClauseRange() is null && (vi0?.valueClauseOperand().Length ?? 0) > 1)
                             gluedMultiLiteral = true;
@@ -3793,7 +3799,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 }
             }
 
-        string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
         CheckMessageTagExclusivity(firstUsage, extraUsages, entryWhere);
 
         // ⛔ THE CLAUSE-PLACEMENT SCREEN'S ENTRY-LOCAL ROWS (DataBinder.ClausePlacement.cs; kb/Work PB518/PB519):
@@ -4125,25 +4130,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // (CallBindExternalAndGlobal). The former COBOL1534 stage is LIFTED (P10 Step 16).
         // (Its old §13.18.57.4 GR5 citation was wrong — GR5 is a Format-2 REPORT-GROUP rule.)
 
-        // SAME AS same-entry composition (ISO §13.16.3 SR12): the SAME AS clause shall not share a data
-        // description entry with any clause except CONSTANT RECORD, entry-name, EXTERNAL, GLOBAL, level-number,
-        // and OCCURS. A violation reports and clears the reference so the item binds as ordinary storage under
-        // an already-failed compile (the IsBased discipline).
-        // ⛔ Over the WRITTEN clause set, not an `||` chain of decode flags (kb/Work PB487). The chain here could
-        // not see ALIGNED, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SELECT WHEN or the validation clauses, so
-        // `01 A SAME AS Z ALIGNED.` compiled clean; the set makes the rule complete BY CONSTRUCTION and names
-        // the offending clause instead of restating the permitted list.
-        if (sameAsName is not null
-            && (written & ~(DataClauseKind.SameAs | DataClauseKinds.SameAsCoPermitted)) is var sameAsBad
-            && sameAsBad != DataClauseKind.None)
-        {
-            Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"{entryWhere}: the SAME AS clause shall not be "
-                + "specified in the same data description entry with any clauses except CONSTANT RECORD, "
-                + $"entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS (ISO §13.16.3 SR12); this entry also "
-                + $"specifies {DataClauseKinds.Name(sameAsBad)}");
-            sameAsName = null;
-        }
-
         // CONSTANT RECORD same-entry shape checks (P10 Step 15; the IsBased discipline — a violation reports and
         // clears the flag so the item binds as ordinary storage under an already-failed compile). §13.16.3 SR6:
         // level-01 entries only; SR3: REDEFINES excluded; SR13: ANY LENGTH / BASED / BLANK WHEN ZERO /
@@ -4188,30 +4174,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 Edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation, $"{entryWhere}: a format 2 PICTURE "
                     + "clause shall not be specified in a data item described with the CONSTANT RECORD clause "
                     + "(ISO §13.18.40.3 SR32)");
-        }
-        // TYPE same-entry composition (ISO §13.16.3 SR14) — SR12's twin, over the same WRITTEN clause set, with
-        // the same recovery: report and clear the reference so the item binds as ordinary storage under an
-        // already-failed compile (the IsBased discipline).
-        // ⛔ THIS IS THE WARRANT FOR CopyEntryDescription's RECEIVER-WINS COPY (kb/Work PB513). That method's
-        // `to.Pic ??= from.Pic` is documented as safe because "§13.16.3 SR12 and SR14 list the few clauses
-        // admissible in the same entry and no clause copied here is among them" — true of SAME AS, whose SR12
-        // guard is above, and FALSE of TYPE until now. With SR14 unenforced the subject's own illegal PICTURE /
-        // USAGE / REDEFINES silently DISCARDED the type's declared description: `01 T IS TYPEDEF PIC X(3).
-        // 01 A TYPE T PIC 9(5).` gave A a 5-digit numeric description, defeating §8.5.3's whole purpose. One
-        // permitted-set constant per rule, so neither arm can drift from the other's warrant.
-        // ⛔ PLACED AFTER the CONSTANT RECORD block, not beside SR12's guard: SR13 ¶2 asks whether the entry
-        // specifies a TYPE clause, and it must see the one the PROGRAMMER wrote rather than the one this
-        // recovery cleared — otherwise one violation reports as two.
-        if (typeRefName is not null
-            && (written & ~(DataClauseKind.Type | DataClauseKinds.TypeCoPermitted)) is var typeBad
-            && typeBad != DataClauseKind.None)
-        {
-            Edition.Error(DiagnosticCatalog.TypeEntryRule, $"{entryWhere}: the TYPE clause shall not be "
-                + "specified in the same data description entry with any clauses except BASED, CLASS, CONSTANT "
-                + "RECORD, DEFAULT, DESTINATION, entry-name, EXTERNAL, GLOBAL, INVALID, level-number, OCCURS, "
-                + "PRESENT WHEN, PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING (ISO §13.16.3 SR14); "
-                + $"this entry also specifies {DataClauseKinds.Name(typeBad)}");
-            typeRefName = null;
         }
         // The EXTERNAL clause's `AS literal-1` (ISO §13.18.22.2; kb/Work PB511) — the SEVENTH restatement of the
         // one externalized-name syntax rule, screened through the ONE shared screen (§13.18.22.3 SR3 reads
