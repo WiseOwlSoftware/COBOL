@@ -40,7 +40,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <param name="dataEmitterFor">A unit's data-division emitter, which states the DESCRIPTION'S fresh cell of a formal
 /// (<see cref="DataEmitter.FreshArea"/>) for a record the host builds an area of.</param>
 internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable atoms,
-    Func<DataBinder, DataEmitter> dataEmitterFor)
+    Func<DataBindResult, DataEmitter> dataEmitterFor)
 {
     /// <summary>Emit the host-entry class of every unit the compilation publishes (<paramref name="entryUnits"/>,
     /// <see cref="BoundCompilation.EntryUnits"/>: DESIGN-external-repository §7.2), each named by the one allocator in the module

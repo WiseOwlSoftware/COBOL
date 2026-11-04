@@ -120,20 +120,47 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// function is always recursive, §8.6.6, and is asked through <see cref="UnitIsFunction"/>).</summary>
     public bool UnitIsRecursive { get; init; }
 
-    /// <summary>⛔ THE ONE condition for both EMITTING <c>__ResetStatics</c> (RecordStructEmitter) and
-    /// REGISTERING it as the unit's initial-state hook (ProgramEmitter → ProgramTable): static WS storage
-    /// exists, or the unit-scoped file-registration flag does — the flag must return to false on the
-    /// §14.6.2.3.2 initial-state cases so a run-unit re-run and a post-CANCEL activation re-register their
-    /// connectors. The two emitter sites previously mirrored this predicate BY HAND with a comment warning
-    /// that divergence is a CS0103 in generated code; reading it here retires the mirroring (kb/Work PB168;
-    /// the one-rule-one-place discipline).
-    /// <para>The static channel is populated for one kind of storage — a <see cref="UnitStaticWs"/> unit's
-    /// WORKING-STORAGE (<see cref="RouteStaticUnitStoragePass.Run"/>) — so a non-empty channel IS the condition, with no
-    /// unit-kind conjunct. (A class's METHOD had a second producer until kb/Work PB1308: a method owns no
-    /// WORKING-STORAGE at any edition, §13.5.3 SR1.)</para></summary>
-    public bool EmitsStaticReset =>
-        State.StorageTier.HasStaticMembers
-        || (UnitStaticWs && State.Files.Declared.Count > 0);
+    /// <summary>⛔ THE ONE PRODUCER OF WHAT THIS ELEMENT'S DATA BINDING HANDS A BACKEND (<see cref="DataBindResult"/>;
+    /// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), step 11; kb/Work PB2361): called by <c>BinderDriver.Bind</c>
+    /// once the group tail has run, when every slice is frozen — the two late doors of the procedure binders
+    /// (<see cref="ForestSlice.AddTemporaryRoot"/>, <see cref="StorageTierSlice.ClaimTemporaryCell"/>) included — and every
+    /// fact set complete. A fact a backend needs is copied or answered here, never read back from the binder.
+    /// <para>The static-reset condition, the ONE condition for both EMITTING <c>__ResetStatics</c> and REGISTERING it as the
+    /// unit's initial-state hook (kb/Work PB168): static storage exists, or the unit-scoped file-registration flag does — the
+    /// flag must return to false on the §14.6.2.3.2 initial-state cases so a run-unit re-run and a post-CANCEL activation
+    /// re-register their connectors. The static channel is populated for one kind of storage — a <see cref="UnitStaticWs"/>
+    /// unit's WORKING-STORAGE (<see cref="RouteStaticUnitStoragePass.Run"/>) — so a non-empty channel IS the condition, with no
+    /// unit-kind conjunct (a METHOD owns no WORKING-STORAGE at any edition, §13.5.3 SR1; kb/Work PB1308).</para>
+    /// <para>The declared CAPACITY registers: the element's own (an inherited register's profile is its container's, whose
+    /// class the contained class is nested in) and its methods' (the method's own scope holds the NAME,
+    /// <see cref="OoMethodDataScope.CapacityRegisters"/>, kb/Work PB3165; the class still emits the profile, as it does for the
+    /// method's other numeric items).</para></summary>
+    internal DataBindResult Result() =>
+        new()
+        {
+            Configuration = State.Configuration.Facts(),
+            Forest = State.Forest,
+            Files = State.Files,
+            StorageTier = State.StorageTier,
+            Reports = State.Reports,
+            UnitChecking = State.UnitChecking,
+            Linkage = new LinkageFacts(Linkage.Roots, Linkage.Formals, Linkage.Returning, Linkage.SuppressedRootFields,
+                Linkage.ExternalBackings),
+            RangeCollations = SpecialNames.RangeCollations,
+            ApplyCommit = FileControl.ApplyCommit,
+            DialectLevel = Edition.DialectLevel,
+            SignEncoding = Edition.SignEncoding,
+            NumericDisplay = Edition.NumericDisplay,
+            LeapSecond = LeapSecond,
+            UnitStaticWs = UnitStaticWs,
+            EmitsStaticReset = State.StorageTier.HasStaticMembers || (UnitStaticWs && State.Files.Declared.Count > 0),
+            DeclaredCapacityRegisterTables =
+            [
+                .. State.Forest.CapacityRegisters.Values.SelectMany(static t => t).Where(t => State.Forest.DeclaringDepth(t) == 0),
+                .. Oo.BoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t),
+            ],
+            CellLifetimes = CellLifetimes(),
+        };
 
     /// <summary>Declare the index-names of <paramref name="item"/>'s INDEXED BY phrase in the scope that owns its record —
     /// the method overlay for a METHOD's item (<see cref="NameScopeOf"/>; §11.7.4 GR5 privacy, a post-build TYPE copy
@@ -151,15 +178,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             State.Forest.DeclareIndex(decl, NameScopeOf(item));
         }
     }
-
-    /// <summary>The dynamic tables whose named CAPACITY register THIS source element declares — the registers its
-    /// own class emits a profile for. An inherited register's profile is its container's (the contained class is
-    /// nested in the container's and reads it there). A METHOD's registers are declared by this element too — the
-    /// method's own scope holds the NAME (<see cref="OoMethodDataScope.CapacityRegisters"/>, kb/Work PB3165), the
-    /// class still emits the profile, as it does for the method's other numeric items.</summary>
-    public IEnumerable<DataItem> DeclaredCapacityRegisterTables =>
-        State.Forest.CapacityRegisters.Values.SelectMany(static t => t).Where(t => State.Forest.DeclaringDepth(t) == 0)
-            .Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t));
 
     /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL DATA NAMES BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2),
     /// beside <see cref="ReportSectionBinder.InheritContainerReports"/>: the end of <see cref="BindDeclarations"/> — after this unit's own
@@ -301,13 +319,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The class-level C# member names of this binder's roots (<see cref="BindEntries"/> allocates a root's name in it).</summary>
     internal CsNameScope RootNames => _rootNames;
 
-    /// <summary>Every INDEX-NAME declaration under a root (its subtree's <c>INDEXED BY</c> declarations, each with
-    /// its own cell — kb/Work PB919). The ONE subtree walk every cell router, bridge and emitter reads.</summary>
-    internal static IEnumerable<IndexDeclaration> IndexDeclarationsUnder(DataItem root)
-    {
-        foreach (var d in root.Indexes) yield return d;
-        foreach (var c in root.Children) foreach (var d in IndexDeclarationsUnder(c)) yield return d;
-    }
 
     /// <summary>THE scope-aware name resolver of this binder's forest (P6 Step 7 — <see cref="Model.SymbolTable"/>
     /// collapses the former LookupData/LookupDataInScopeOf/TryGetVisibleIndexField/IndexFieldFor quadruple). One

@@ -44,17 +44,17 @@ internal static class UsageCollectionPass
     {
         foreach (var cls in ctx.Classes)
         {
-            Collect(cls.Data, [cls.Bound], OoFormalGroups(cls.Symbol.Methods));
-            Collect(cls.FactoryData, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
+            Collect(ctx.Session.Binders.ObjectOf(cls).Data, [cls.Bound], OoFormalGroups(cls.Symbol.Methods));
+            Collect(ctx.Session.Binders.FactoryOf(cls).Data, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
             // ⛔ An ELEMENTARY method formal is a character channel's far end — the method twin of Collect's
             // Linkage.Formals arm (kb/Work PB1064; PB992 built the program arm). Every method formal is BY REFERENCE
             // (the METHOD-side BY VALUE phrase is refused, OoDataBinder.BindMethodData), so §14.2.3 GR8's "as if the formal parameter
             // occupies the same storage area as the argument" holds for each: the characters an argument carries into
             // it, or a group MOVE leaves in it for the argument, may be ones no numeric VALUE represents.
-            AddFormalChannels(cls.Data, cls.Symbol.Methods);
-            AddFormalChannels(cls.FactoryData, cls.Symbol.FactoryMethods);
+            AddFormalChannels(ctx.Session.Binders.ObjectOf(cls).Data, cls.Symbol.Methods);
+            AddFormalChannels(ctx.Session.Binders.FactoryOf(cls).Data, cls.Symbol.FactoryMethods);
         }
-        foreach (var unit in ctx.Units) Collect(unit.Data, [unit.Bound]);
+        foreach (var unit in ctx.Units) Collect(ctx.Session.Binders.Of(unit).Data, [unit.Bound]);
 
         static IEnumerable<DataItem> OoFormalGroups(IEnumerable<OoMethodSymbol> methods) =>
             methods.SelectMany(m => m.Binding!.Formals.Select(f => f.Item).Concat(m.Binding!.Returning is { } r ? [r] : Array.Empty<DataItem>()));

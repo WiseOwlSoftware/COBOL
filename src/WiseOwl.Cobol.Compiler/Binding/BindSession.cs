@@ -88,6 +88,10 @@ internal sealed class BindSession
     /// program it contains (kb/Work PB4302). Every unit's <see cref="DataBinder.ClaimScans"/> is this one.</summary>
     public StorageClaimScan ClaimScans { get; } = new();
 
+    /// <summary>The data binder and reference resolver of each source element of the group (<see cref="ElementBinders"/>;
+    /// kb/Work PB2361): the binder-side half the bound model does not carry.</summary>
+    public ElementBinders Binders { get; } = new();
+
     private int _uidBand;
 
     /// <summary>Take the next disjoint 100k uid band (one per DataBinder, so nested-class struct/profile names

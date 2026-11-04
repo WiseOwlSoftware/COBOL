@@ -48,8 +48,10 @@ internal sealed class BoundUnit
     /// resolution (§12.3.8.4 GR10 b)); neither emits a body nor registers in the run unit — the definition
     /// (in-group, else separately compiled) is the activation target. <see cref="IsFunction"/> says which kind.</summary>
     public bool IsPrototype;
-    public DataBinder Data = null!;
-    public ReferenceResolver Refs = null!;
+    /// <summary>What the unit's data binding hands a backend (<see cref="DataBindResult"/>), frozen once the group tail has
+    /// run (<c>ElementBinders.Freeze</c>; kb/Work PB2361). The binding phases read the unit's binders through
+    /// <c>BindSession.Binders</c>, never through the bound unit.</summary>
+    public DataBindResult Data = null!;
     /// <summary>The Places of this unit's data items, built once binding is done (<c>PlaceTablePass</c>) - what the code
     /// generator reads in place of asking the resolver (kb/Work PB2375).</summary>
     public PlaceTable Places = null!;
@@ -97,16 +99,6 @@ internal sealed class BoundUnit
     public string RegistryKey => Parent is null
         ? WiseOwl.Cobol.Runtime.ProgramTable.OutermostPath(ExternalizedName)
         : WiseOwl.Cobol.Runtime.ProgramTable.ContainedPath(Parent.RegistryKey, Name);
-
-    /// <summary>⛔ THE ONE ANCHOR OF A CONTAINER MEMBER (kb/Work PB1133): how a program <paramref name="depth"/>
-    /// containment levels INSIDE this unit reaches this unit's class member <paramref name="csMember"/> — through the
-    /// chain of containing instances for an instance member, through this unit's CLASS for a static one
-    /// (<see cref="StorageTierSlice.IsStaticMember"/>: ISO §13.5.4 GR1's static data is one copy on the class, which no
-    /// instance names). Every place a contained program reaches into a container's data asks here: the GLOBAL bridges
-    /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and the inherited FILE STATUS places (<c>ProgramEmitter</c>). The
-    /// answer is structure, which each backend spells (kb/Work PB4320).</summary>
-    public ContainerAnchor AnchorOf(string csMember, int depth) =>
-        Data.State.StorageTier.IsStaticMember(csMember) ? new ContainerAnchor.Static(ClassName) : new ContainerAnchor.Instance(depth);
 
     /// <summary>The FORMAL PARAMETERS of containing programs that this unit sees as GLOBAL names (ISO §13.18.27.4 GR2),
     /// read off the bridges that reach them (kb/Work PB2096). Their member names are Uid-keyed and bridged under the same

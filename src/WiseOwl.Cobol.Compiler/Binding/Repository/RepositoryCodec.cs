@@ -10,10 +10,10 @@ namespace WiseOwl.Cobol.Binding.Repository;
 
 /// <summary>
 /// ⛔ THE ONE TRANSLATION BETWEEN A BOUND UNIT AND ITS REPOSITORY RECORD (ISO §8.13; docs/rearchitecture/
-/// DESIGN-external-repository.md §6.1, §6.3, §6.4; kb/Work PB2100). <see cref="Of(BoundUnit)"/> writes a program's, a
+/// DESIGN-external-repository.md §6.1, §6.3, §6.4; kb/Work PB2100). <see cref="Of(BoundUnit, DataBinder)"/> writes a program's, a
 /// function's or a prototype's record from the bound unit — its formals and returning item as description TREES, every type
 /// declaration, dynamic-length structure and referenced prototype those descriptions name as rows of the record's own tables
-/// (§6.2 rule 4) — and <see cref="Of(OoClassUnit)"/> / <see cref="Of(OoInterfaceSymbol, DataBinder)"/> a class's or an
+/// (§6.2 rule 4) — and <see cref="Of(OoClassUnit, DataBinder, ExpansionIdentity?)"/> / <see cref="Of(OoInterfaceSymbol, DataBinder)"/> a class's or an
 /// interface's, whose methods are described the same way and share the record's tables (ISO §8.13 "the methods contained in
 /// the source unit, if any, and details about the method's externalized name, parameters, returning item, and entry
 /// convention"). <see cref="Decode"/> binds a record back into a throw-away forest of <see cref="DataItem"/>s, so every
@@ -43,9 +43,8 @@ internal static class RepositoryCodec
 {
     /// <summary>The record of <paramref name="unit"/> (an outermost program, function or prototype unit), in the persisted
     /// vocabulary (§6.1).</summary>
-    public static RepositoryRecord Of(BoundUnit unit)
+    public static RepositoryRecord Of(BoundUnit unit, DataBinder data)
     {
-        var data = unit.Data;
         var encoder = new Encoder(data.OoClasses);
         var formals = List(data.Linkage.Formals.Select(f => encoder.Formal(f.Item, f.Position, f.ByValue, f.Optional)));
         var returning = data.Linkage.Returning is { } r ? encoder.Describe(r, r) : null;
@@ -59,15 +58,15 @@ internal static class RepositoryCodec
     /// implement as externalized identities (§6.4), its object properties, and every object and factory method the class
     /// itself declares. An expansion of a parameterized class (<paramref name="expansion"/>: the placement pass's identity for it,
     /// with its key) is the same record under kind <see cref="RepositoryUnitKind.Expansion"/> (§5.2).</summary>
-    public static RepositoryRecord Of(OoClassUnit cls, ExpansionIdentity? expansion = null)
+    public static RepositoryRecord Of(OoClassUnit cls, DataBinder data, ExpansionIdentity? expansion = null)
     {
         var symbol = cls.Symbol;
-        var encoder = new Encoder(cls.Data.OoClasses);
+        var encoder = new Encoder(data.OoClasses);
         RecordList<MethodRecord> methods = List(symbol.Methods.Concat(symbol.FactoryMethods).Select(encoder.Method));
         var facts = new ClassRecord(symbol.IsFinal, symbol.Base?.ExternalizedName, List(symbol.Implements.Select(i => i.ExternalizedName)),
             List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryClrName, PropertiesOf(methods), methods, symbol.ClrName);
         return new RepositoryRecord(expansion is null ? RepositoryUnitKind.Class : RepositoryUnitKind.Expansion, symbol.Name, symbol.ExternalizedName,
-            RepositoryRecord.CobolEntryConvention, cls.Data.State.Configuration.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            RepositoryRecord.CobolEntryConvention, data.State.Configuration.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
 

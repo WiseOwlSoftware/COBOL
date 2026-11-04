@@ -356,7 +356,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// FD record-area image width. A non-sequential file is skipped here (its verbs emit loud guards).</summary>
     public void EmitFileRegistration(CodeWriter w)
     {
-        foreach (var file in ctx.Data.State.Files.Declared)
+        foreach (var file in ctx.Data.Files.Declared)
         {
             if (file.IsSortMerge) continue;   // an SD is the runtime's sort work (ISO §13.4.6; D-SWK) — never a host file
             // ⛔ THE RECORD-LESS ARM IS DECIDED ONCE, ABOVE THE ORGANIZATION SPLIT (kb/Work PB345). It used to be
@@ -375,13 +375,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             {
                 if (file.IsReportFile)
                 {
-                    int width = Math.Max(1, ctx.Data.State.Reports.Declared
+                    int width = Math.Max(1, ctx.Data.Reports.Declared
                         .Where(r => ReferenceEquals(r.File, file))
                         .Select(r => r.LineWidth).DefaultIfEmpty(1).Max());
                     // The width is the widest RD's LINE WIDTH, not a record length: the connector is registered as a
                     // file with NO record description, so no rule comparing its bytes with a record length (the
                     // layout notice) applies to it (kb/Work PB677).
-                    w.Line($"{RuntimeApi.FileRegisterReport(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{width}", file.Optional ? "true" : "false", ctx.Data.Edition.DialectLevel, CsLiteral(file.SelectName))};");
+                    w.Line($"{RuntimeApi.FileRegisterReport(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{width}", file.Optional ? "true" : "false", ctx.Data.DialectLevel, CsLiteral(file.SelectName))};");
                     // ⛔ The SAME connector properties every other registration declares (kb/Work PB643): a report
                     // file has input-output areas (§12.4.5.14.3 GR1), §13.4.5.2 Format 3 prints CODE-SET for it
                     // (§13.18.13.4 GR1 converts "during output operations"), and its SELECT is a Format 3 entry
@@ -403,7 +403,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // truncation bound) separately from the area width it pads to.
             string vary = file.RecordSizeVaries ? $", {file.VaryMin}, {file.VaryMax}" : "";
             int recordMax = file.RecordMax > file.RecordWidth ? file.RecordMax : 0;
-            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", ctx.Data.Edition.DialectLevel, vary, CsLiteral(file.SelectName), recordMax)};");
+            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", ctx.Data.DialectLevel, vary, CsLiteral(file.SelectName), recordMax)};");
             EmitAreaRegistrations(w, file);
             EmitSharingRegistration(w, file);
         }
@@ -709,10 +709,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // The checking state is the statement's enabled set (EcBinder.NodeKindRaises declares the name on BoundClose).
             string? active = null;
             if (ec.Enabled("EC-REPORT-NOT-TERMINATED")
-                && ctx.Data.State.Reports.Visible.Where(r => ReferenceEquals(r.File, file)).ToList() is { Count: > 0 } reports)
+                && ctx.Data.Reports.Visible.Where(r => ReferenceEquals(r.File, file)).ToList() is { Count: > 0 } reports)
             {
                 active = $"__rptAct{ctx.Names.NextEc()}";
-                w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"{RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.State.Reports.Depth(r))}.IsActive"))};   // read BEFORE the close (§14.9.6.4 GR5)");
+                w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"{RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.Reports.Depth(r))}.IsActive"))};   // read BEFORE the close (§14.9.6.4 GR5)");
             }
             w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
             EmitStoreFileStatus(file);

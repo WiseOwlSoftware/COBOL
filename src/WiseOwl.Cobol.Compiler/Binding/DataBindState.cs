@@ -154,7 +154,7 @@ public sealed class DataBindState
     public DataBindState(Action<Antlr4.Runtime.RuleContext?, string, UserWordKind> recordConfigurationNameUse)
     {
         Configuration = new(recordConfigurationNameUse);
-        Forest = new(Require);
+        Forest = new(fact => Require(PassPhase.OccursResolved, fact));
         WholeGroupReferenced = new(FactSetKind.WholeGroupReferenced, Gate);
         ImageForcedItems = new(FactSetKind.ImageForcedItems, Gate);
         CharacterChannelItems = new(FactSetKind.CharacterChannelItems, Gate);

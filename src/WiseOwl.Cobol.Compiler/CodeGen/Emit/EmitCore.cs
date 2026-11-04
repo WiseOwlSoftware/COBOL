@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 /// receiver a numeric render is computed for now travels BY PARAMETER (<see cref="ReceiverContext"/>), killing
 /// the H1 staleness class by construction.
 /// </summary>
-internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAllocator names, GroupAtomTable atoms,
+internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAllocator names, GroupAtomTable atoms,
     Lazy<string> whenCompiledStamp)
 {
     /// <summary>The C# output writer.</summary>
@@ -32,7 +32,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     public string WhenCompiledStamp => whenCompiledStamp.Value;
 
     /// <summary>The bound DATA DIVISION model.</summary>
-    public DataBinder Data { get; } = data;
+    public DataBindResult Data { get; } = data;
 
     /// <summary>The METHOD OPTIONS override of the code now emitted (ISO §11.9.4 GR1): a method's own OPTIONS model,
     /// which <c>OoEmitter.EmitMethod</c> pushes over the unit's (<see cref="ConfigurationSlice.Options"/>) around the
@@ -42,7 +42,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     public Scoped<OptionsModel> Options { get; } = new();
 
     /// <summary>The OPTIONS model the code now emitted is governed by: the pushed method model, else the unit's.</summary>
-    public OptionsModel CurrentOptions => Options.Over(Data.State.Configuration.Options);
+    public OptionsModel CurrentOptions => Options.Over(Data.Configuration.Options);
 
     /// <summary>⛔ THE LOCAL-STORAGE ROOTS OF THE ACTIVATION BEING INITIALIZED, when it is not the unit's own — an OO
     /// METHOD's (kb/Work PB1215). <see cref="Data"/> is the CLASS half's data model, whose <c>LocalStorageRoots</c>
@@ -91,26 +91,26 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// (<c>ConditionRenderer.RenderClass</c>) states it, which is what makes the convention a property of the
     /// COMPILED PROGRAM rather than of the process: two programs of one run unit compiled under different options
     /// each read storage by their own convention, exactly as two vendors' programs do.</summary>
-    public SignEncoding SignEncoding => Data.Edition.SignEncoding;
+    public SignEncoding SignEncoding => Data.SignEncoding;
 
     /// <summary>⛔ THE FORM THE COMPILATION'S DISPLAY STATEMENTS GIVE A NUMERIC OPERAND (kb/Work PB3505, owner decision
     /// PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56) — the CLI's <c>--numeric-display</c>, read from the ONE
     /// per-compilation context the driver set it on. Read by <c>AcceptDisplayEmitter</c> alone: it reaches DISPLAY's
     /// device conversion and no other character rendering of a numeric item (MOVE's is §14.9.25.4 GR6's).</summary>
-    public NumericDisplayForm NumericDisplay => Data.Edition.NumericDisplay;
+    public NumericDisplayForm NumericDisplay => Data.NumericDisplay;
 
     /// <summary>The trailing collation argument for collated comparison renders — <c>", __COLLATE"</c> (the program's
     /// ONE <c>CobolCollation</c> carrier — a literal-phrase table or a LOCALE sequence, kb/Work PB101) when a
     /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else empty
     /// (the native two-argument <c>CobolString.Compare</c> overload).</summary>
-    public string CollateArg => Data.State.Configuration.Collating is null ? "" : ", __COLLATE";
+    public string CollateArg => Data.Configuration.Collating is null ? "" : ", __COLLATE";
 
     /// <summary>The NATIONAL twin of <see cref="CollateArg"/> — <c>", __COLLATE_NAT"</c> when a NON-native
     /// NATIONAL program collating sequence is active (ISO §12.3.6 GR11 / §8.8.4.2.9 — an <c>ALPHABET … FOR
     /// NATIONAL</c> literal phrase; the identity sequences NATIVE/UCS-4 stay null, D-N3), else empty. National
     /// comparisons NEVER take the alphanumeric <c>__COLLATE</c> table (its 256-entry domain would alias national
     /// characters through <c>&amp; 0xFF</c>).</summary>
-    public string NatCollateArg => Data.State.Configuration.NationalCollating is null ? "" : ", __COLLATE_NAT";
+    public string NatCollateArg => Data.Configuration.NationalCollating is null ? "" : ", __COLLATE_NAT";
 
     /// <summary>The trailing collation argument a relation between operands of categories
     /// <paramref name="leftCategory"/> and <paramref name="rightCategory"/> takes — <see cref="CollateArg"/>,

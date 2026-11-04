@@ -141,6 +141,7 @@ public sealed class RedefinesClassificationTests
     }
 
     private static DataItem Item(DataBinder d, string name) => d.State.Forest.ByName[name][0];
+    private static DataItem Item(DataBindResult d, string name) => d.Forest.ByName[name][0];
 
     /// <summary>Bind a WORKING-STORAGE fragment through the WHOLE pipeline — <c>BinderDriver.Bind</c>, whose
     /// <c>BindPipeline.GroupTail</c> runs <c>StorageFormPass</c>, the only writer of
@@ -148,7 +149,7 @@ public sealed class RedefinesClassificationTests
     /// tail computes; the resolve-only helper leaves those fields null and makes such an assertion inert.
     /// Bind diagnostics do NOT stop the tail — the driver fails the compile afterwards — which is what lets a
     /// REJECTED class still be measured at the storage layer.</summary>
-    private static (DataBinder Data, EditionContext Edition) BindFull(string ws, int dialect = 85, string options = "")
+    private static (DataBindResult Data, EditionContext Edition) BindFull(string ws, int dialect = 85, string options = "")
     {
         string src = $"""
             IDENTIFICATION DIVISION.

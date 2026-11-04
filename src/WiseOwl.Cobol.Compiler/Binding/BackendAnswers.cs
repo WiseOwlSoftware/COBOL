@@ -22,10 +22,9 @@ namespace WiseOwl.Cobol.Binding;
 internal static class BackendAnswers
 {
     /// <summary>Write every answer into the bound group: <paramref name="units"/>, the class units <paramref name="classes"/>,
-    /// the files of every data binder in <paramref name="binders"/>, resolved through the group's <paramref name="table"/>;
+    /// the files each of their source elements declares, resolved through the group's <paramref name="table"/>;
     /// <paramref name="entryUnits"/> are the units that publish a host entry (<see cref="BoundCompilation.EntryUnits"/>).</summary>
-    public static void Write(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes, IEnumerable<DataBinder> binders,
-        OoClassTable table, IReadOnlyList<BoundUnit> entryUnits)
+    public static void Write(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes, OoClassTable table, IReadOnlyList<BoundUnit> entryUnits)
     {
         var entries = new HashSet<BoundUnit>(entryUnits, ReferenceEqualityComparer.Instance);
         foreach (var unit in units)
@@ -34,7 +33,7 @@ internal static class BackendAnswers
             bool entry = entries.Contains(unit);
             // The unit's registration states its descriptions only when it checks EC-PROGRAM-ARG-MISMATCH itself (§14.9.4.4
             // GR3 d)'s activated half; kb/Work PB165); a host entry's arguments always state them (DESIGN-external-repository §4.3).
-            if (entry || !unit.IsPrototype && unit.Data.State.UnitChecking.ArgMismatchChecking)
+            if (entry || !unit.IsPrototype && unit.Data.UnitChecking.ArgMismatchChecking)
             {
                 unit.FormalDescriptions = [.. unit.Data.Linkage.Formals.Select(f => ActivationDescriptions.Of(f.Item, table))];
                 unit.ReturningDescription = unit.Data.Linkage.Returning is { } returning ? ActivationDescriptions.Of(returning, table) : null;
@@ -52,8 +51,8 @@ internal static class BackendAnswers
                 binding.FormalDescriptions = [.. binding.Formals.Select(f => ActivationDescriptions.OfFormal(f, table))];
                 binding.ReturningDescription = binding.Returning is { } returning ? ActivationDescriptions.Of(returning, table) : null;
             }
-        foreach (var data in binders)
-            foreach (var file in data.State.Files.Declared)
+        foreach (var files in units.Select(static u => u.Data.Files).Concat(classes.SelectMany(static c => new[] { c.Data.Files, c.FactoryData.Files })))
+            foreach (var file in files.Declared)
                 if (file.IsExternal) file.SelectFingerprint = FileEntryIdentity.Of(file);
     }
 

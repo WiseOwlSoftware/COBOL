@@ -55,10 +55,10 @@ internal static class StorageFormEquivalence
         var edition = new EditionContext(dialect, permissive: false);
         var bound = new BinderDriver().Bind(tree, edition, frontend.Directives);   // runs MarkStoreAsImage + OO harmonize + StorageFormPass.Compute
 
-        var binders = bound.Units.Select(u => u.Data)
+        var results = bound.Units.Select(u => u.Data)
             .Concat(bound.ClassUnits.SelectMany(c => new[] { c.Data, c.FactoryData }));
         var divergences = new List<string>();
-        foreach (var b in binders)
+        foreach (var b in results)
         {
             divergences.AddRange(StorageFormPass.Verify(b));
         }

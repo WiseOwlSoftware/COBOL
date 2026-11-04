@@ -113,7 +113,7 @@ internal sealed class VersionConformancePass
         foreach (var unit in group.Units)
         {
             pass.WalkProgram(unit.Bound);
-            pass.GateData(unit.Data);
+            pass.GateData(group.Session.Binders.Of(unit).Data);
         }
         foreach (var cls in group.Classes)
         {
@@ -121,15 +121,15 @@ internal sealed class VersionConformancePass
             // (each METHOD-ID is a pc slice of the ONE dispatch space, so walking Paragraphs covers every method).
             pass.WalkProgram(cls.Bound);
             pass.WalkProgram(cls.FactoryBound);
-            pass.GateData(cls.Data);
-            pass.GateData(cls.FactoryData);
+            pass.GateData(group.Session.Binders.ObjectOf(cls).Data);
+            pass.GateData(group.Session.Binders.FactoryOf(cls).Data);
         }
         // ⛔ EVERY DATA FOREST THE GROUP BINDS IS GATED, not only the ones it emits code for (kb/Work PB2937). An
         // unexpanded parameterized class is a definition all the same (OO deep-dive D12 determination 6) — bound as
         // itself and never emitted, so its OBJECT and FACTORY data were never asked their USAGE / PICTURE gates and
         // `USAGE FLOAT-BINARY-64` in one compiled at --std 2002. An interface's method prototypes declare data too —
         // their formals and returning items — and no interface forest, written or parameterized, was ever gated.
-        foreach (var data in group.SkeletonClasses.SelectMany(c => new[] { c.Data, c.FactoryData })
+        foreach (var data in group.SkeletonClasses.SelectMany(c => new[] { group.Session.Binders.ObjectOf(c).Data, group.Session.Binders.FactoryOf(c).Data })
                      .Concat(group.InterfaceData.Values).Concat(group.SkeletonInterfaceData.Values))
             pass.GateData(data);
         // … and every bound statement: an unexpanded skeleton's method bodies bind as themselves (kb/Work PB2937).

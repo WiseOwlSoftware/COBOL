@@ -17,8 +17,8 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     public void Emit()
     {
         var w = ctx.Writer;
-        foreach (var root in ctx.Data.State.Forest.Roots) EmitStructTypeDecls(root, w);
-        foreach (var root in ctx.Data.State.Forest.Roots) EmitProfiles(root, w);
+        foreach (var root in ctx.Data.Forest.Roots) EmitStructTypeDecls(root, w);
+        foreach (var root in ctx.Data.Forest.Roots) EmitProfiles(root, w);
         // An OCCURS DYNAMIC CAPACITY register is an implicit VIEW over the table's Capacity — it has NO storage
         // field, but DISPLAY / MOVE-to-alphanumeric of the register formats through its own NumProfile (ISO
         // §13.18.38 GR15 / §8.5.1.9.1; data-model D9), so emit those profiles (not fields) too.
@@ -34,18 +34,18 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // DataItem.ResidentCarrier). An inherited GLOBAL table's index cell
         // is never among the unit's OWN declarations — the container emits it and a ref-bridge reaches it
         // (§13.18.27 GR2; kb/Work PB919).
-        foreach (var idx in ctx.Data.State.Forest.IndexNames.Own)
+        foreach (var idx in ctx.Data.Forest.IndexNames.Own)
             if (!ctx.Data.Linkage.SuppressedRootFields.Contains(idx.Cell))
                 // A RECURSIVE unit's WS table cell rides its table's static storage (RouteStaticUnitStorage —
                 // a last-used table with per-activation indexes would silently lose SET positions).
-                w.Line($"private {(ctx.Data.State.StorageTier.StaticIndexCells.Contains(idx.Cell) ? "static " : "")}long {idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
+                w.Line($"private {(ctx.Data.StorageTier.StaticIndexCells.Contains(idx.Cell) ? "static " : "")}long {idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
         // (A METHOD's table cells are never here: a method owns no WORKING-STORAGE, §13.5.3 SR1, and its LOCAL/LINKAGE
         // table cells are per-activation method locals, emitted in OoEmitMethod.)
         foreach (var f in phys.RootPhysicals())
             if (!ctx.Data.Linkage.SuppressedRootFields.Contains(f.Name))
                 // A static-channel root is a STATIC field: a RECURSIVE unit's WS (§13.5.4 GR1 — see
                 // RouteStaticUnitStorage).
-                w.Line($"private {(ctx.Data.State.StorageTier.StaticRootFields.Contains(f.Name) ? "static " : "")}{f.Type} {f.Name} = {f.Init};   // {f.Comment}");
+                w.Line($"private {(ctx.Data.StorageTier.StaticRootFields.Contains(f.Name) ? "static " : "")}{f.Type} {f.Name} = {f.Init};   // {f.Comment}");
         if (ctx.Data.EmitsStaticReset) EmitStaticReset(w);
     }
 
@@ -64,12 +64,12 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     /// after CANCEL (case 3 / §14.9.5 GR3), and via an INITIAL container's implicit cancel cascade (case 2).
     /// EXTERNAL records never enter the static channel (they are run-unit ExternalStore cells, untouched per
     /// §14.9.5 GR8). Emission and hook registration read THE ONE shared condition
-    /// (<c>DataBinder.EmitsStaticReset</c> — the caller's gate and ProgramEmitter's), so the pair cannot
+    /// (<c>DataBindResult.EmitsStaticReset</c> — the caller's gate and ProgramEmitter's), so the pair cannot
     /// diverge into a CS0103 in generated code.</summary>
     private void EmitStaticReset(CodeWriter w)
     {
         var stmts = new List<string>();
-        foreach (var root in ctx.Data.State.Forest.WorkingStorageRoots)
+        foreach (var root in ctx.Data.Forest.WorkingStorageRoots)
         {
             // §14.6.2.3.2 action 5: "The address of each based item is set to null" — the static bridge
             // field (kb/Work PB154; the DATA lives in the allocated cell, so there is no value to re-seed).
@@ -78,32 +78,32 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // like every other reset line — never by iterating the membership set (a HashSet's enumeration
             // order is not generated-source-worthy).
             if (root.IsBased && root.Class?.BasedPointerField is { } bp
-                && ctx.Data.State.StorageTier.StaticBasedBridgeAddrs.Contains(bp))
+                && ctx.Data.StorageTier.StaticBasedBridgeAddrs.Contains(bp))
                 stmts.Add($"{bp} = ManagedPointer.Null;   // {root.CobolName ?? "FILLER"} BASED address → NULL (§14.6.2.3.2 #5)");
             else if (root.Class is { Tier: RedefinesTier.StringCanonical } cls)
             {
                 // The class's ONE string backing is the storage; members are windows. Reset once, at the canonical.
-                if (ReferenceEquals(cls.Canonical, root) && ctx.Data.State.StorageTier.StaticRootFields.Contains(cls.BackingClrName))
+                if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StorageTier.StaticRootFields.Contains(cls.BackingClrName))
                     stmts.Add($"{cls.BackingClrName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
                 // An ADDRESS-OF-taken record's static StorageCell (kb/Work PB234): re-seeded IN PLACE with the SAME
                 // image its declaration carries (ProgramEmitter's cell initializer — one composer, ImageInitOf), so
                 // a pointer taken before the CANCEL still names the unit's one copy (§13.5.4 GR1).
                 else if (ReferenceEquals(cls.Canonical, root)
-                         && ctx.Data.State.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell)
-                         && ctx.Data.State.StorageTier.StaticAddressableCells.Contains(cell))
+                         && ctx.Data.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell)
+                         && ctx.Data.StorageTier.StaticAddressableCells.Contains(cell))
                     stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")}){codec.CellDynSeeds(root)};   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §14.6.2.3.2 #2)");
             }
             else if (!(root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical)   // a Tier-A view has no field
-                && ctx.Data.State.StorageTier.StaticRootFields.Contains(root.ClrName))
+                && ctx.Data.StorageTier.StaticRootFields.Contains(root.ClrName))
                 stmts.Add($"{root.ClrName} = {vals.FieldInit(root)};   // {root.CobolName ?? "FILLER"}");
-            foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
-                if (ctx.Data.State.StorageTier.StaticIndexCells.Contains(idx.Cell))
+            foreach (var idx in IndexDeclaration.Under(root))
+                if (ctx.Data.StorageTier.StaticIndexCells.Contains(idx.Cell))
                     stmts.Add($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
         }
         // The unit-scoped file-registration guard returns to false on the initial-state cases so the next
         // activation re-registers — §14.6.2.3.2 action 3's "not ... in any open mode" realized as fresh
         // connectors; FileRegistry.Register closes anything it displaces (kb/Work PB168).
-        if (ctx.Data.UnitStaticWs && ctx.Data.State.Files.Declared.Count > 0)
+        if (ctx.Data.UnitStaticWs && ctx.Data.Files.Declared.Count > 0)
             stmts.Add("__filesRegistered = false;   // internal file connectors → no open mode via re-registration (§14.6.2.3.2 #3; kb/Work PB168)");
         w.Line();
         using (w.Block("internal static void __ResetStatics()   // static WS → initial state (ISO §14.6.2.3.2; §14.9.5.4 GR3)"))

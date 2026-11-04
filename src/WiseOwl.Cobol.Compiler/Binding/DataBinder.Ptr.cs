@@ -41,16 +41,16 @@ public sealed partial class DataBinder
     /// A cell added to <see cref="StorageTierSlice.AddressableBackings"/> tomorrow is classified here and so ended by the matching
     /// event without an edit elsewhere; <c>CellLifetimeDriftTests</c> reads the generated program and fails if a cell
     /// field is named by none of them.</summary>
-    internal CellLifetime LifetimeOfCell(string cellField, DataItem canonical) =>
+    private CellLifetime LifetimeOfCell(string cellField, DataItem canonical) =>
         State.StorageTier.StaticAddressableCells.Contains(cellField) ? CellLifetime.Static
         : Oo.MethodScopedRoots.Contains(canonical) || State.Forest.LocalStorageRoots.Contains(canonical)
           || Linkage.Roots.Contains(canonical) ? CellLifetime.Activation
         : CellLifetime.Instance;
 
-    /// <summary>The cell fields of <see cref="StorageTierSlice.AddressableBackings"/> whose life ends with <paramref name="lifetime"/>'s
-    /// event, in declaration order.</summary>
-    internal IEnumerable<string> CellFieldsOf(CellLifetime lifetime) =>
-        State.StorageTier.AddressableBackings.Where(b => LifetimeOfCell(b.CellField, b.Canonical) == lifetime).Select(b => b.CellField);
+    /// <summary>Each cell of <see cref="StorageTierSlice.AddressableBackings"/> with its storage duration (<see cref="LifetimeOfCell"/>),
+    /// the classification <see cref="DataBindResult.CellLifetimes"/> carries to the backend (kb/Work PB2361).</summary>
+    private Dictionary<string, CellLifetime> CellLifetimes() =>
+        State.StorageTier.AddressableBackings.ToDictionary(b => b.CellField, b => LifetimeOfCell(b.CellField, b.Canonical), StringComparer.Ordinal);
 
     /// <summary>Claim <paramref name="root"/> onto a cell when it is a group whose values ride managed slots (a
     /// strongly-typed group with an object-reference or pointer leaf), which a program activation carries only as a cell

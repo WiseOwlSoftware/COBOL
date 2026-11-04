@@ -18,7 +18,8 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <param name="Interfaces">The interfaces the group defines (the pass-1 class table's, OO deep-dive D1), in definition order;
 /// each is emitted where its expansion lives. The table itself stays with the binder (kb/Work PB2403): every answer the backend
 /// reads of it is written into this record or the nodes it carries.</param>
-/// <param name="InterfaceData">Per-interface DATA forests (prototype LINKAGE formals) for interface emission.</param>
+/// <param name="InterfaceData">What each interface's data binding hands a backend (its prototype LINKAGE formals;
+/// <see cref="DataBindResult"/>, kb/Work PB2361) for interface emission.</param>
 /// <param name="OoAdapters">The §9.3.8.2.3 5a/5c2 covariant-return adapter pairs (returned by
 /// <c>OoConformance.ValidateImplements</c>; the interface emitter renders one explicit implementation per pair).</param>
 /// <param name="Imported">The classes and interfaces the group imported from the external repository (DESIGN-external-repository
@@ -46,7 +47,7 @@ internal sealed record BoundCompilation(
     IReadOnlyList<BoundUnit> Units,
     IReadOnlyList<OoClassUnit> ClassUnits,
     IReadOnlyList<OoInterfaceSymbol> Interfaces,
-    IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> InterfaceData,
+    IReadOnlyDictionary<OoInterfaceSymbol, DataBindResult> InterfaceData,
     IReadOnlyList<AdapterPair> OoAdapters,
     ImportedTypes Imported,
     TurnState Turn,

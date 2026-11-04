@@ -43,7 +43,8 @@ internal sealed record GroupBindContext(
     /// <see cref="InterfaceData"/> — they carry prototype formals only and joined the pass inputs at P5.7 so the
     /// storage-level harmonize can classify both sides of an implements pair.)</summary>
     public IEnumerable<DataBinder> AllBinders() =>
-        Classes.SelectMany(c => new[] { c.Data, c.FactoryData }).Concat(Units.Select(u => u.Data));
+        Classes.SelectMany(c => new[] { Session.Binders.ObjectOf(c).Data, Session.Binders.FactoryOf(c).Data })
+            .Concat(Units.Select(u => Session.Binders.Of(u).Data));
 
     /// <summary>The group forests PLUS the interface prototype forests (the storage-form pass's full domain).</summary>
     public IEnumerable<DataBinder> AllBindersAndInterfaces() => AllBinders().Concat(InterfaceData.Values);

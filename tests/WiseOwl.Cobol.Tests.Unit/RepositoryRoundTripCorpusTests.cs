@@ -62,7 +62,7 @@ public sealed class RepositoryRoundTripCorpusTests
                 Interlocked.Add(ref units, RepositoryCodecTests.RoundTripAll(comp).Count);
                 Interlocked.Add(ref pairs, PrototypeDefinitionPairs(comp, $"{c.Edition}/{c.Id}", failures));
                 foreach (var unit in comp.EntryUnits)
-                    published.Add(($"{c.Edition}/{c.Id}", RepositoryCodec.Of(unit)));
+                    published.Add(($"{c.Edition}/{c.Id}", RepositoryCodecTests.RecordOf(comp, unit)));
                 foreach (var (record, _) in RepositoryCodecTests.OoRecordsOf(comp))
                     published.Add(($"{c.Edition}/{c.Id}", record));
             }
@@ -128,8 +128,8 @@ public sealed class RepositoryRoundTripCorpusTests
             {
                 bool bound = PrototypeSignatures.Same(new CalleeSignature(prototype.Data.Linkage.Formals, prototype.Data.Linkage.Returning),
                     new CalleeSignature(definition.Data.Linkage.Formals, definition.Data.Linkage.Returning));
-                bool decoded = PrototypeSignatures.Same(RepositoryCodec.Decode(RepositoryCodec.Of(prototype)).Signature,
-                    RepositoryCodec.Decode(RepositoryCodec.Of(definition)).Signature);
+                bool decoded = PrototypeSignatures.Same(RepositoryCodec.Decode(RepositoryCodecTests.RecordOf(comp, prototype)).Signature,
+                    RepositoryCodec.Decode(RepositoryCodecTests.RecordOf(comp, definition)).Signature);
                 if (!bound || !decoded)
                     failures.Add($"{at}: the prototype {prototype.Name} and the definition {definition.Name} are Same {bound} bound and {decoded} decoded");
                 pairs++;

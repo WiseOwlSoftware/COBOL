@@ -23,8 +23,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class NationalStorageFormTests
 {
     /// <summary>Bind a WORKING-STORAGE fragment through the FULL pipeline (frontend → BinderDriver.Bind runs
-    /// the StorageFormPass group tail) and return the unit's populated <see cref="DataBinder"/>.</summary>
-    private static DataBinder BindWs(string ws)
+    /// the StorageFormPass group tail) and return the unit's populated <see cref="DataBindResult"/>.</summary>
+    private static DataBindResult BindWs(string ws)
     {
         string src = $"""
             IDENTIFICATION DIVISION.
@@ -58,7 +58,7 @@ public sealed class NationalStorageFormTests
     public void National_PicN5_ImageWidthEqualsLength_OneCharPerPosition()
     {
         var d = BindWs("01 N-ITEM PIC N(5).");
-        var item = d.State.Forest.ByName["N-ITEM"][0];
+        var item = d.Forest.ByName["N-ITEM"][0];
         Assert.Equal(PicCategory.National, item.Pic!.Category);
         Assert.Equal(5, item.Pic.Length);
         Assert.Equal(5, item.ImageWidth);                       // NOT 10 — never byte-doubled (D-N1)
@@ -73,7 +73,7 @@ public sealed class NationalStorageFormTests
     public void National_UsageNational_SameCharImageForm()
     {
         var d = BindWs("01 N-ITEM USAGE NATIONAL PIC N(3).");
-        var item = d.State.Forest.ByName["N-ITEM"][0];
+        var item = d.Forest.ByName["N-ITEM"][0];
         Assert.Equal(3, item.ImageWidth);
         var ci = Assert.IsType<StorageForm.CharImage>(item.Storage);
         Assert.Equal(3, ci.Width);
@@ -91,7 +91,7 @@ public sealed class NationalStorageFormTests
     [Fact]
     public void Boolean_UsageBit_OccupiesCeilingOfEighth_DisplayFormStaysOnePerPosition()
     {
-        var bit = BindWs("01 B-ITEM PIC 1(4) USAGE BIT.").State.Forest.ByName["B-ITEM"][0];
+        var bit = BindWs("01 B-ITEM PIC 1(4) USAGE BIT.").Forest.ByName["B-ITEM"][0];
         Assert.Equal(PicCategory.Boolean, bit.Pic!.Category);
         Assert.Equal(Usage.Bit, bit.Pic.Usage);
         Assert.Equal(4, bit.Pic.Length);            // four BOOLEAN positions — what §15.50.4 r1 returns
@@ -101,7 +101,7 @@ public sealed class NationalStorageFormTests
         // The DISPLAY form is the other half of D-B1 and is REQUIRED to stay one character per position:
         // §13.18.60.3 SR13(b) implies USAGE DISPLAY, and §13.18.60.4 GR7 makes DISPLAY "an alphanumeric coded
         // character set". It is not merely licensed — it is the rule for this declaration.
-        var disp = BindWs("01 D-ITEM PIC 1(4).").State.Forest.ByName["D-ITEM"][0];
+        var disp = BindWs("01 D-ITEM PIC 1(4).").Forest.ByName["D-ITEM"][0];
         Assert.Equal(PicCategory.Boolean, disp.Pic!.Category);
         Assert.Equal(Usage.Display, disp.Pic.Usage);
         Assert.Equal(4, disp.ImageWidth);
@@ -118,10 +118,10 @@ public sealed class NationalStorageFormTests
     public void BitRunsSeparatedByACharacterItem_EachTakeTheirOwnByte()
     {
         var d = BindWs("01 G.\n  05 C1 PIC 1(3) USAGE BIT.\n  05 C2 PIC X(1).\n  05 C3 PIC 1(3) USAGE BIT.");
-        Assert.Equal(3, d.State.Forest.ByName["G"][0].ImageWidth);
+        Assert.Equal(3, d.Forest.ByName["G"][0].ImageWidth);
 
         // …and two ADJACENT same-level bit items DO share a byte (the next-bit-position rule), so 5 + 3 = 1 byte.
         var shared = BindWs("01 H.\n  05 B1 PIC 1(5) USAGE BIT.\n  05 B2 PIC 1(3) USAGE BIT.");
-        Assert.Equal(1, shared.State.Forest.ByName["H"][0].ImageWidth);
+        Assert.Equal(1, shared.Forest.ByName["H"][0].ImageWidth);
     }
 }

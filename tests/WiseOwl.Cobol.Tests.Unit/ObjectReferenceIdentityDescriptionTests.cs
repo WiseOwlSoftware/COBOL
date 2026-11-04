@@ -70,11 +70,12 @@ public sealed class ObjectReferenceIdentityDescriptionTests
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(2023);
-            var comp = new BinderDriver().Bind(tree!, edition, frontend.Directives);
+            var driver = new BinderDriver();
+            var comp = driver.Bind(tree!, edition, frontend.Directives);
             Assert.True(edition.Diagnostics.Count == 0, string.Join("\n", edition.Diagnostics));
             var unit = comp.Units.Single(u => u.Name == "P2104D");
             var formals = unit.Data.Linkage.Formals;
-            return (formals[0].Item, formals[1].Item, unit.Data.OoClasses!, unit);
+            return (formals[0].Item, formals[1].Item, driver.Session.OoClasses, unit);
         }
         finally { FileHarness.TryDelete(path); }
     }

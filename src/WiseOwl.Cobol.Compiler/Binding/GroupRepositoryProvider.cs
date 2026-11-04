@@ -37,6 +37,7 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
 {
     private readonly List<BoundUnit> _functions = [];
     private readonly List<BoundUnit> _programs = [];
+    private readonly ElementBinders _binders;   // each unit's signature is its binder's linkage facts (kb/Work PB2361)
 
     private static readonly IReadOnlyDictionary<string, UserFunctionSignature> NoFunctions =
         new Dictionary<string, UserFunctionSignature>(CobolNames.Comparer);
@@ -44,8 +45,9 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     /// <summary>The group's FUNCTION-ID units (definitions and prototypes — §9.4 puts them in the function namespace)
     /// and its OUTERMOST PROGRAM-ID units (a contained program is part of its container's definition and is reachable
     /// only through §14.9.4.3 SR15's AS NESTED, which has its own table), in source order.</summary>
-    public GroupRepositoryProvider(IReadOnlyList<BoundUnit> units)
+    public GroupRepositoryProvider(IReadOnlyList<BoundUnit> units, ElementBinders binders)
     {
+        _binders = binders;
         foreach (var u in units)
             if (u.IsFunction) _functions.Add(u);
             else if (u.Parent is null) _programs.Add(u);
@@ -73,7 +75,7 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     /// <inheritdoc/>
     public ProgramAnswer? Program(string externalizedName, int position) =>
         Find(_programs, Externalized(externalizedName), position) is { } u
-            ? new ProgramAnswer(new CalleeSignature(u.Data.Linkage.Formals, u.Data.Linkage.Returning), new GroupUnitOrigin(u))
+            ? new ProgramAnswer(_binders.SignatureOf(u), new GroupUnitOrigin(u))
             : null;
 
     /// <inheritdoc/>
@@ -104,10 +106,11 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
 
     /// <summary>A function unit's answer: its signature under its own word (the resolver re-words it with the
     /// referencing entry's word) and its origin.</summary>
-    private static FunctionAnswer AnswerOf(BoundUnit u)
+    private FunctionAnswer AnswerOf(BoundUnit u)
     {
         var origin = new GroupUnitOrigin(u);
-        return new(new UserFunctionSignature(u.Name, u.ExternalizedName, u.Data.Linkage.Returning, u.Data.Linkage.Formals,
+        var signature = _binders.SignatureOf(u);
+        return new(new UserFunctionSignature(u.Name, u.ExternalizedName, signature.Returning, signature.Formals,
             origin.IsDefinitionCompiledHere), origin);
     }
 }

@@ -102,12 +102,16 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     // superset) so no legal symbol is spuriously rejected; the picture was already validated during binding.
     private readonly EditionContext _discard = new(2023);
 
+    /// <summary>The group's element binders (<see cref="BindSession.Binders"/>): each unit's data and resolver.</summary>
+    private readonly ElementBinders _binders;
+
     private FlagConformancePass(FlagState flag, IDiagnosticSink sink,
         RefModZeroLengthState refModZl, TurnState turn,
         IReadOnlyDictionary<CobolParserCore.IdentificationDivisionContext, BoundUnit> unitByIdentification,
         IReadOnlyDictionary<CobolParserCore.MethodDefinitionContext, MethodNameScope> methodScopes,
-        IReadOnlySet<object> activationSites) : base(sink)
+        IReadOnlySet<object> activationSites, ElementBinders binders) : base(sink)
     {
+        _binders = binders;
         _methodScopes = methodScopes;
         _flag = flag;
         _sink = sink;
@@ -137,7 +141,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         // binder, its resolver and its scope, the same overlay the statement binder activates (ActiveMethodScope).
         var methodScopes = new Dictionary<CobolParserCore.MethodDefinitionContext, MethodNameScope>();
         foreach (var cls in group.Classes)
-            foreach (var (data, refs) in new[] { (cls.Data, cls.Refs), (cls.FactoryData, cls.FactoryRefs) })
+            foreach (var (data, refs) in new[] { group.Session.Binders.ObjectOf(cls), group.Session.Binders.FactoryOf(cls) })
                 foreach (var m in data.Oo.BoundMethods)
                     if (m.Origin is OoSymbolOrigin.Source) methodScopes[group.Session.Sources.Of(m)] = new MethodNameScope(data, refs, m.DataScope);
 
@@ -147,7 +151,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         foreach (var binder in group.AllBindersAndInterfaces()) activationSites.UnionWith(binder.State.ActivationSites);
 
         var pass = new FlagConformancePass(flag, sink,
-            group.Session.RefModZeroLength, group.Session.Turn, unitByIdentification, methodScopes, activationSites);
+            group.Session.RefModZeroLength, group.Session.Turn, unitByIdentification, methodScopes, activationSites, group.Session.Binders);
         pass.VisitPositioned(group.Tree);
         pass.FlagEcProgramDirectives();   // b EC-PROGRAM-EXCEPTIONS — cross-ref >>TURN lines with the source elements that call/invoke
     }
@@ -231,8 +235,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         if (identification is not null && _unitByIdentification.TryGetValue(identification, out var unit))
         {
             _currentUnit = unit;
-            _currentData = unit.Data;
-            _currentRefs = unit.Refs;
+            (_currentData, _currentRefs) = _binders.Of(unit);
             // The unit's Format-1 open-mode USE declaratives (BoundDeclarative.ModeIndex = the FileOpenMode ordinal;
             // null for a file-name-targeted or Format-3/4 declarative — which GR4 d does not consider).
             var modes = unit.Bound?.Declaratives;
@@ -531,7 +534,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     {
         bool own = true;
         for (var unit = _currentUnit; unit is not null; unit = unit.Parent, own = false)
-            foreach (var file in unit.Data.State.Files.Declared)
+            foreach (var file in _binders.Of(unit).Data.State.Files.Declared)
                 if (own || file.IsGlobal) yield return file;
     }
 

@@ -31,9 +31,9 @@ public sealed class RepositoryBackendIndependenceTests
         var codec = RepositoryCodecTests.Bind(RepositoryCodecTests.Source, 2023);
         var oo = RepositoryCodecTests.Bind(RepositoryCodecTests.OoSource, 2023);
         List<RepositoryRecord> records = [.. RepositoryReaderTests.Fixtures.Values,
-            .. codec.EntryUnits.Select(RepositoryCodec.Of),
+            .. codec.EntryUnits.Select(u => RepositoryCodecTests.RecordOf(codec, u)),
             .. RepositoryCodecTests.OoRecordsOf(oo).Select(r => r.Record),
-            .. oo.EntryUnits.Select(RepositoryCodec.Of)];
+            .. oo.EntryUnits.Select(u => RepositoryCodecTests.RecordOf(oo, u))];
         Assert.Contains(records, r => r.Class is { Methods.Count: > 0 });
         Assert.Contains(records, r => r.ReferencedPrototypes.Count > 0 && r.TypeDeclarations.Count > 0);
 

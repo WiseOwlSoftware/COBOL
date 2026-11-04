@@ -32,13 +32,13 @@ internal static class RepositoryPublication
     /// placement identity (§5.2). Returns the interfaces' records, which the bound compilation carries beside its interface
     /// forests. Run only under <c>--repository-update on</c>; with it off no unit carries a record.</summary>
     public static IReadOnlyDictionary<OoInterfaceSymbol, RepositoryRecord> Publish(IReadOnlyList<BoundUnit> entryUnits,
-        IReadOnlyList<OoClassUnit> classes, OoClassTable table, IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> interfaceData,
-        ExpansionPlacements expansions)
+        IReadOnlyList<OoClassUnit> classes, OoClassTable table, ExpansionPlacements expansions,
+        ElementBinders binders)
     {
-        foreach (var unit in entryUnits) unit.Record = RepositoryCodec.Of(unit);
+        foreach (var unit in entryUnits) unit.Record = RepositoryCodec.Of(unit, binders.Of(unit).Data);
         foreach (var cls in classes.Where(c => expansions.EmittedHere(c.Symbol.ClrName)))
-            cls.Record = RepositoryCodec.Of(cls, expansions.Of(cls.Symbol.ClrName)?.Identity);
+            cls.Record = RepositoryCodec.Of(cls, binders.ObjectOf(cls).Data, expansions.Of(cls.Symbol.ClrName)?.Identity);
         return table.Interfaces.Where(i => expansions.EmittedHere(i.ClrName))
-            .ToDictionary(i => i, i => RepositoryCodec.Of(i, interfaceData[i], expansions.Of(i.ClrName)?.Identity));
+            .ToDictionary(i => i, i => RepositoryCodec.Of(i, binders.Interfaces[i], expansions.Of(i.ClrName)?.Identity));
     }
 }

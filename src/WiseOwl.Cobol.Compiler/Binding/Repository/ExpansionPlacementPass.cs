@@ -33,7 +33,7 @@ using Core = CobolParserCore;
 internal static class ExpansionPlacementPass
 {
     public static ExpansionPlacements Run(OoClassTable table, SourceMap sources, IReadOnlyList<OoClassUnit> classes,
-        IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> interfaceData, MetadataRepositoryProvider external, EditionContext edition,
+        ElementBinders binders, MetadataRepositoryProvider external, EditionContext edition,
         CompileInputs inputs, ExpansionIdentity? publishAs)
     {
         // The compilation of an expansion's own assembly: its text is the expansion's, so the one class or interface it defines IS the
@@ -57,11 +57,12 @@ internal static class ExpansionPlacementPass
             if (records.TryGetValue(symbol, out var known)) return known;
             return records[symbol] = symbol switch
             {
-                OoClassSymbol c => RepositoryCodec.Of(classes.First(u => ReferenceEquals(u.Symbol, c))),
-                OoInterfaceSymbol i => RepositoryCodec.Of(i, interfaceData[i]),
+                OoClassSymbol c => ClassRecordOf(classes.First(u => ReferenceEquals(u.Symbol, c))),
+                OoInterfaceSymbol i => RepositoryCodec.Of(i, binders.Interfaces[i]),
                 _ => throw new InvalidOperationException($"{symbol.GetType().Name} is no class or interface"),
             };
         }
+        RepositoryRecord ClassRecordOf(OoClassUnit cls) => RepositoryCodec.Of(cls, binders.ObjectOf(cls).Data);
 
         // What a class or interface a specifier or an actual names contributes to a key: its identity and its record.
         ExpansionKey.Named NamedBy(Core.RepositoryEntryContext specifier)

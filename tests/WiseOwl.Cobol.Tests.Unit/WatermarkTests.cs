@@ -47,8 +47,26 @@ public sealed class WatermarkTests
         Assert.Throws<InvalidOperationException>(() => _ = db.State.Forest.CapacityRegisters.Count);
     }
 
+    /// <summary>⛔ No <see cref="DataBindResult"/> is made over a binder the group tail has not finished (kb/Work PB2361): the
+    /// freeze asks the watermark for the tail's TERMINAL phase, so a unit whose passes have not all run is refused, never
+    /// handed to a backend.</summary>
+    [Fact]
+    public void Freeze_BeforeTheGroupTailFinished_Throws()
+    {
+        var unit = new BoundUnit { Name = "WMFREEZE", ExternalizedName = "WMFREEZE", ClassName = "WMFREEZE", SourcePosition = 0 };
+        var binders = new ElementBinders();
+        var data = new DataBinder();
+        binders.Add(unit, data);
+        data.State.MarkProduced(PassPhase.OccursResolved);
+        var ex = Assert.Throws<InvalidOperationException>(() => binders.Freeze([unit], []));
+        Assert.Contains(nameof(DataBindResult), ex.Message);
+        Assert.Contains(nameof(PassPhase.EditionConformanceChecked), ex.Message);
+        Assert.Null(unit.Data);
+    }
+
     /// <summary>End-to-end: a real group bind advances every unit binder's watermark to the manifest's TERMINAL
-    /// phase — the gate can never fire on a well-formed compile (the pipeline itself is the proof).</summary>
+    /// phase — the gate can never fire on a well-formed compile (the pipeline itself is the proof): every unit carries the
+    /// result the freeze makes only at that phase (<see cref="ElementBinders.Freeze"/>).</summary>
     [Fact]
     public void FullBind_AdvancesWatermarkToTerminalPhase()
     {
@@ -71,7 +89,7 @@ public sealed class WatermarkTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2023 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var comp = new BinderDriver().Bind(tree!, new EditionContext(2023));
-            Assert.All(comp.Units, u => Assert.Equal(PassPhase.EditionConformanceChecked, u.Data.State.Watermark));
+            Assert.All(comp.Units, u => Assert.NotNull(u.Data));
         }
         finally { FileHarness.TryDelete(path); }
     }

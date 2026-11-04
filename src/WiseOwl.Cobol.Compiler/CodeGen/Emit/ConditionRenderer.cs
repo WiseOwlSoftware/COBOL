@@ -569,7 +569,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// ⛔ No width here by construction: sizing is <c>CobolString.CompareFig</c>'s (kb/Work PB297).</summary>
     private string FigSeed(BoundOperand op, PicCategory? anchorCat) => op switch
     {
-        BoundFigurative f => FigurativeConstants.FillText(f.Kind, ctx.Data.State.Configuration.Collating, anchorCat, ctx.Data.State.Configuration.NationalCollating),
+        BoundFigurative f => FigurativeConstants.FillText(f.Kind, ctx.Data.Configuration.Collating, anchorCat, ctx.Data.Configuration.NationalCollating),
         BoundAllLiteral a => EmitText.CsLiteral(a.Literal),
         // Unreachable by construction — both call sites select an operand that already satisfied IsFig. Loud
         // rather than a silent fall-through to the operand's own text, which would look like a working
@@ -700,7 +700,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // coded-character-set rule (b2/c2/d2 — the closed Latin set) stands, exactly as before.
         // WHICH of the two classifications (§12.3.6.4 GR5 a)–e) alphanumeric, f)–j) national) is asked of the
         // ONE selector GR7 a)'s consumer, UPPER-CASE / LOWER-CASE, also calls (kb/Work PB760) — never a local test.
-        string classify = ctx.Data.State.Configuration.Classification is not null ? ObjectComputerEmit.ClassificationArg(c.Operand) : "";
+        string classify = ctx.Data.Configuration.Classification is not null ? ObjectComputerEmit.ClassificationArg(c.Operand) : "";
         string test = c.ClassKind switch
         {
             'N' => numericTest,
@@ -945,7 +945,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// The ONE reader, shared by the EVALUATE range and the level-88 VALUE range, because §14.7.8's first sentence
     /// governs both clauses at once.</summary>
     private string RangeCollateArg(string? alphabet, PicCategory? left, PicCategory? right) => alphabet is { } a
-        ? ctx.Data.SpecialNames.RangeCollations.TryGetValue(a, out var c) && c.Field is { } f ? ", " + f : ""
+        ? ctx.Data.RangeCollations.TryGetValue(a, out var c) && c.Field is { } f ? ", " + f : ""
         : ctx.CollateArgFor(left, right);
 
     /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.
@@ -1057,7 +1057,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
             return new(RuntimeApi.LocaleEditCompose(lpic, uv, sc, parent.BlankWhenZero), IsFigSeed: false);
         if (parent.OperandPic is { Category: PicCategory.NumericEdited } npic
-            && ValueInitializer.EditedImageOfNumericValue(ctx.Data.Edition.DialectLevel,
+            && ValueInitializer.EditedImageOfNumericValue(ctx.Data.DialectLevel,
                     parent, npic, raw) is { } edited)
             return new(EmitText.CsLiteral(edited), IsFigSeed: false);
         // ⛔ THE ONE §8.3.3.6.2 OPERAND CLASSIFIER (kb/Work PB461). §14.9.39.4 GR6 stores this same operand
@@ -1074,7 +1074,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // ODO group's CURRENT extent — which is the one quantity GR2 names (kb/Work PB1477).
         var op = FigurativeConstants.Classify(raw);
         return op.AllLiteral is { } lit ? new(EmitText.CsLiteral(CobolLiteral.Decode(lit)), IsFigSeed: true)
-            : op.Kind is { } k ? new(FigurativeConstants.FillText(k, ctx.Data.State.Configuration.Collating, cat, ctx.Data.State.Configuration.NationalCollating), IsFigSeed: true)
+            : op.Kind is { } k ? new(FigurativeConstants.FillText(k, ctx.Data.Configuration.Collating, cat, ctx.Data.Configuration.NationalCollating), IsFigSeed: true)
             : new(EmitText.CsLiteral(CobolLiteral.Decode(raw)), IsFigSeed: false);
     }
 

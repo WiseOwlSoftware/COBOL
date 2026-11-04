@@ -82,6 +82,13 @@ internal static class BackendContract
             // the standard class BASE and its two §16.2 method-names, in compiler.model since kb/Work PB2403
             "Model.OoStandardClasses.BaseName", "Model.OoStandardClasses.NewMethodName",
             "Model.OoStandardClasses.FactoryObjectMethodName",
+            // the name tables of the frozen data binding a backend reads (DataBindResult, kb/Work PB2361): data-, condition-,
+            // capacity-register-, screen-, type- and file-names, and the alphabet-names of the range-collation carriers
+            "Model.ForestSlice.ByName", "Model.ForestSlice._byName", "Model.ForestSlice.Conditions", "Model.ForestSlice._conditions",
+            "Model.ForestSlice.CapacityRegisters", "Model.ForestSlice._capacityRegisters", "Model.ForestSlice.CapacityRegistersSoFar",
+            "Model.ForestSlice.ScreenNames", "Model.ForestSlice._screenNames", "Model.ForestSlice.TypeDecls",
+            "Model.ForestSlice._typeDecls", "Model.ForestSlice.TypeDeclsOf()", "Model.FileSlice.FilesByName",
+            "Model.FileSlice._filesByName", "Model.DataBindResult.RangeCollations",
         ]),
         new(NeutralKind.ClrName,
         [
@@ -163,6 +170,9 @@ internal static class BackendContract
             // class came from (kb/Work PB2402 moved them to compiler.model)
             "Model.OoClassSymbol.RunUnitKey", "Model.OoClassSymbol.HalfKey()", "Model.NamingConvention.ExternalFileBand",
             "Model.NamingConvention.InstanceFileBand", "Model.NamingConvention.FactoryFileBand", "Model.ImportedFrom.AssemblyFile",
+            // the externalized names of a source element's REPOSITORY program-specifiers, which a CALL hands the program table
+            // (ISO §12.3.8.4 GR10; DataBindResult, kb/Work PB2361)
+            "Model.ConfigurationFacts.ProgramSpecifierNames",
         ]),
         new(NeutralKind.DiagnosticText,
         [
@@ -214,6 +224,17 @@ internal static class BackendContract
             "Model.RedefinesClass.BasedPointerField", "Bound.BoundOdoExtent.BasedAddress",
             "Bound.BoundAlterEntry.AlterField", "Bound.BoundGoToAlterable.AlterField",
             "Bound.BoundSetObjectRef.SourceFactoryCs",
+            // the storage tier's channels, cell backings and bridges and the linkage roots the emitter does not declare, each
+            // naming a storage member by text: on the backend input since the frozen data binding replaced the binder on it
+            // (DataBindResult, kb/Work PB2361), which measured them where the binder had hidden them
+            "Model.StorageTierSlice.StaticRootFields", "Model.StorageTierSlice._staticRootFields",
+            "Model.StorageTierSlice.StaticBasedBridgeAddrs", "Model.StorageTierSlice._staticBasedBridgeAddrs",
+            "Model.StorageTierSlice.StaticAddressableCells", "Model.StorageTierSlice._staticAddressableCells",
+            "Model.StorageTierSlice.StaticIndexCells", "Model.StorageTierSlice._staticIndexCells",
+            "Model.StorageTierSlice.AddressableBackings", "Model.StorageTierSlice._addressableBackings",
+            "Model.StorageTierSlice.BasedBridges", "Model.StorageTierSlice._basedBridges",
+            "Model.StorageTierSlice.AddressableCellOf", "Model.StorageTierSlice._addressableCellOf",
+            "Model.LinkageFacts.SuppressedRootFields", "Model.DataBindResult.CellLifetimes", "Model.DataBindResult.CellFieldsOf()",
             // the factory singleton field every class emits, named by text (in compiler.model since kb/Work PB2402)
             "Model.NamingConvention.FactoryInstanceField",
         ]),

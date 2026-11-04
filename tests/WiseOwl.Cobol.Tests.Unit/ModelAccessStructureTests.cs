@@ -75,7 +75,7 @@ public sealed class ModelAccessStructureTests
 
         // Every data item of every unit keeps a NAME — the carrier-resident formal included.
         var notNames = comp.Units
-            .SelectMany(u => u.Data.State.Forest.Roots.Concat(u.Data.Linkage.Roots))
+            .SelectMany(u => u.Data.Forest.Roots.Concat(u.Data.Linkage.Roots))
             .SelectMany(DataItem.SelfAndDescendantsOf)
             .Where(d => !Identifier.IsMatch(d.ClrName))
             .Select(d => $"{d.CobolName}: '{d.ClrName}'")
@@ -87,7 +87,7 @@ public sealed class ModelAccessStructureTests
         var formal = Unit("PB4320A").Data.Linkage.Formals.Single();
         Assert.True(formal.CarrierResident);
         Assert.Equal(new FormalCarrier.Member(formal.CarrierField), formal.Item.ResidentCarrier);
-        var place = Assert.IsType<MemberPlace>(Unit("PB4320A").Refs.Places.ResolveItem(formal.Item));
+        var place = Assert.IsType<MemberPlace>(Unit("PB4320A").Places.Of(formal.Item));
         Assert.Equal([typeof(RootFieldSegment), typeof(CarrierValueSegment)], place.Path.Segments.Select(s => s.GetType()));
         Assert.Equal(formal.CarrierField, ((RootFieldSegment)place.Path.Segments[0]).MemberClrName);
 
@@ -135,11 +135,11 @@ public sealed class ModelAccessStructureTests
     {
         var comp = RepositoryCodecTests.Bind(MethodSource, 2023);
         var cls = comp.ClassUnits.Single(c => c.Name == "PB4380K");
-        var formal = cls.Data.Oo.BoundMethods.Single().Binding!.Formals.Single();
+        var formal = cls.Symbol.Methods.Single().Binding!.Formals.Single();
         Assert.True(formal.CarrierResident);
         var carrier = new StatementLocal(StatementLocalRole.MethodFormalCarrier, formal.Item.Uid);
         Assert.Equal(new FormalCarrier.Local(carrier), formal.Item.ResidentCarrier);
-        var place = Assert.IsType<MemberPlace>(cls.Refs.Places.ResolveItem(formal.Item));
+        var place = Assert.IsType<MemberPlace>(cls.Places.Of(formal.Item));
         Assert.Equal([typeof(LocalRootSegment), typeof(CarrierValueSegment)], place.Path.Segments.Select(s => s.GetType()));
         var root = (LocalRootSegment)place.Path.Segments[0];
         Assert.Equal(carrier, root.Local);
@@ -190,7 +190,7 @@ public sealed class ModelAccessStructureTests
     {
         var comp = RepositoryCodecTests.Bind(MethodDataSource, 2023);
         var cls = comp.ClassUnits.Single(c => c.Name == "PB4416K");
-        var method = cls.Data.Oo.BoundMethods.Single().Binding!;
+        var method = cls.Symbol.Methods.Single().Binding!;
         var roots = method.LocalRoots.Concat(method.LinkageRoots).ToList();
         Assert.Equal(["LS-G", "LS-R", "LS-V", "L-F", "L-U", "L-R"], roots.Select(r => r.CobolName));
         Assert.All(roots, r => Assert.Equal(new MethodDataLocal(r), r.ActivationLocal));
@@ -199,12 +199,12 @@ public sealed class ModelAccessStructureTests
         foreach (var name in new[] { "LS-G", "L-U", "L-R" })
         {
             var root = roots.Single(r => r.CobolName == name);
-            var place = Assert.IsType<MemberPlace>(cls.Refs.Places.ResolveItem(root));
+            var place = Assert.IsType<MemberPlace>(cls.Places.Of(root));
             var seg = Assert.IsType<LocalRootSegment>(Assert.Single(place.Path.Segments));
             Assert.Equal(root.ActivationLocal, seg.Local);
             Assert.Equal(OmittedFormalGuard.Of(root), seg.Guard);
         }
-        var member = Assert.IsType<MemberPlace>(cls.Refs.Places.ResolveItem(roots[0].Children.Single()));
+        var member = Assert.IsType<MemberPlace>(cls.Places.Of(roots[0].Children.Single()));
         Assert.Equal([typeof(LocalRootSegment), typeof(MemberSegment)], member.Path.Segments.Select(s => s.GetType()));
         Assert.Equal(roots[0].ActivationLocal, ((LocalRootSegment)member.Path.Segments[0]).Local);
 
@@ -215,7 +215,7 @@ public sealed class ModelAccessStructureTests
             var redef = item.Class!;
             Assert.Equal(RedefinesTier.StringCanonical, redef.Tier);
             Assert.False(redef.IsCellBacked);
-            var view = Assert.IsType<RedefViewPlace>(cls.Refs.Places.ResolveItem(item));
+            var view = Assert.IsType<RedefViewPlace>(cls.Places.Of(item));
             var seg = Assert.IsType<LocalRootSegment>(Assert.Single(view.Backing.Segments));
             Assert.Equal(new MethodRedefinesBackingLocal(redef), seg.Local);
             Assert.Equal(redef.BackingLocal, seg.Local);
@@ -226,14 +226,14 @@ public sealed class ModelAccessStructureTests
         var area = roots.Single(r => r.CobolName == "L-F");
         Assert.True(area.Class!.IsCellBacked);
         Assert.Null(area.Class.BackingLocal);
-        var areaView = Assert.IsType<RedefViewPlace>(cls.Refs.Places.ResolveItem(area));
+        var areaView = Assert.IsType<RedefViewPlace>(cls.Places.Of(area));
         Assert.Equal(area.Class.BackingClrName,
             Assert.IsType<RootFieldSegment>(Assert.Single(areaView.Backing.Segments)).MemberClrName);
 
         // Object data is a member of the class, so it keeps its member root and carries no local.
-        var objectRoot = cls.Data.State.Forest.Roots.Single(r => r.CobolName == "OBJ-N");
+        var objectRoot = cls.Data.Forest.Roots.Single(r => r.CobolName == "OBJ-N");
         Assert.Null(objectRoot.ActivationLocal);
-        var objectPlace = Assert.IsType<MemberPlace>(cls.Refs.Places.ResolveItem(objectRoot));
+        var objectPlace = Assert.IsType<MemberPlace>(cls.Places.Of(objectRoot));
         Assert.Equal(objectRoot.ClrName, Assert.IsType<RootFieldSegment>(Assert.Single(objectPlace.Path.Segments)).MemberClrName);
     }
 

@@ -119,7 +119,7 @@ public sealed class GlobalNameClassDriftTests
         Assert.True(walk.Success, "InheritGlobalSubtree not found in DataBinder.cs");
         Assert.True(walk.Groups["body"].Value.Contains("State.Forest.Inherit(item, depth)", StringComparison.Ordinal),
             "InheritGlobalSubtree no longer hands each item of the subtree to ForestSlice.Inherit.");
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ForestSlice.cs"));
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "ForestSlice.cs"));
         var m = Regex.Match(text, @"internal void Inherit\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
         Assert.True(m.Success, "Inherit not found in ForestSlice.cs");

@@ -26,7 +26,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// <paramref name="ifaceRecords"/>; kb/Work PB4319): this emitter transcribes it and never encodes one.</para></summary>
 internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUnitState callState,
     ProgramEmitter program,
-    IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData,
+    IReadOnlyDictionary<OoInterfaceSymbol, DataBindResult> ifaceData,
     IReadOnlyDictionary<OoInterfaceSymbol, RepositoryRecord> ifaceRecords,
     IReadOnlyList<AdapterPair> adapters,
     ImportedTypes imported,
@@ -128,7 +128,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// (<c>ProgramEmitter.EmitProgramClass</c>) and the OO type-half (M2-OO-1i inc 5) — a class EXTERNAL FD needs the same
     /// backing property, and <c>LinkageBinder.CallBindExternalAndGlobal</c> already populates <c>Linkage.ExternalBackings</c> on the
     /// class binder (it runs in <c>BindResolve</c>).</summary>
-    public void EmitExternalBackings(DataBinder data, CodeWriter w)
+    public void EmitExternalBackings(DataBindResult data, CodeWriter w)
     {
         foreach (var ext in data.Linkage.ExternalBackings)
         {
@@ -166,14 +166,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// WORKING-STORAGE root emit STATIC members (§13.5.4 GR1 / §8.6.4 static items — one copy on the class); a method
     /// LOCAL-STORAGE / LINKAGE root's member is per ACTIVATION, so it is not <c>readonly</c> — <see cref="EmitMethod"/>
     /// re-seeds it on entry (<see cref="ActivationPointerSeeds"/>) and restores the activator's on exit.</para></summary>
-    public void EmitPointerBackings(DataBinder data, CodeWriter w)
+    public void EmitPointerBackings(DataBindResult data, CodeWriter w)
     {
-        foreach (var (backing, cellField, canonical, cellWidth) in data.State.StorageTier.AddressableBackings)
+        foreach (var (backing, cellField, canonical, cellWidth) in data.StorageTier.AddressableBackings)
         {
-            // The storage duration (§8.6.4) is classified ONCE, by DataBinder.LifetimeOfCell — the same answer decides who
+            // The storage duration (§8.6.4) is classified ONCE, when the result is made (DataBindResult.LifetimeOfCell) — the same answer decides who
             // ENDS the cell's life (kb/Work PB1216). A method's LOCAL-STORAGE / LINKAGE cell and a program's LOCAL-STORAGE
             // cell are re-seeded at each activation (ActivationPointerSeeds — kb/Work PB956 / PB1132), so neither is readonly.
-            var lifetime = data.LifetimeOfCell(cellField, canonical);
+            var lifetime = data.LifetimeOfCell(cellField);
             bool isStatic = lifetime == CellLifetime.Static;
             bool perActivation = lifetime == CellLifetime.Activation;
             string mod = isStatic ? "private static readonly" : perActivation ? "private" : "private readonly";
@@ -181,12 +181,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"{mod} StorageCell {cellField} = {AddressableCellInit(canonical, cellWidth)};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
             w.Line($"{rmod} ref string {backing} => ref {cellField}.Ref;");
         }
-        foreach (var (backing, cellProp, addrField, width) in data.State.StorageTier.BasedBridges)
+        foreach (var (backing, cellProp, addrField, width) in data.StorageTier.BasedBridges)
         {
             // A RECURSIVE unit's static-WS based root — and a method WORKING-STORAGE based root — emits its bridge
             // STATIC (§13.5.4 GR1 / §8.6.4 static items — one copy on the class); the RECURSIVE one is reset to NULL by
             // __ResetStatics (§14.6.2.3.2 action 5; kb/Work PB154).
-            string mod = data.State.StorageTier.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
+            string mod = data.StorageTier.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
             w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5.4 GR2 — initially NULL)");
             // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the addressed area's
             // MANAGED SLOTS are two halves of ONE StorageCell, and the GR3/GR4 loud deref happens once, on
@@ -213,14 +213,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// time the runtime element containing them is activated"). These are exactly the storage channels the root-field
     /// re-initialization loops skip (a cell-backed root has no root field), so every loop that re-initializes automatic
     /// data for an activation also emits these.</summary>
-    internal IEnumerable<(string Member, string Type, string Fresh, string? End)> ActivationPointerSeeds(DataBinder data, IEnumerable<DataItem> roots)
+    internal IEnumerable<(string Member, string Type, string Fresh, string? End)> ActivationPointerSeeds(DataBindResult data, IEnumerable<DataItem> roots)
     {
         foreach (var root in roots)
         {
             if (root.Class is not { IsCellBacked: true } cls || !ReferenceEquals(cls.Canonical, root)) continue;
             if (cls.BasedPointerField is { } addr)
                 yield return (addr, "ManagedPointer", "ManagedPointer.Null", null);
-            else if (data.State.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell))
+            else if (data.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell))
                 // End = the statement that ends THIS activation's life of the cell at its exit (§8.6.4: LOCAL-STORAGE "persists
                 // while that instance of the runtime element is in active state"; kb/Work PB1216). A BASED pointer owns no
                 // storage, so it has none.
@@ -232,8 +232,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// (ISO §14.8.4): the compilation group has an enabling EC-EXTERNAL <c>&gt;&gt;TURN</c> somewhere AND the
     /// unit describes any external record or external file connector. False keeps the generated source
     /// byte-identical to a pre-VCR-15 build (zero-scaffolding).</summary>
-    public static bool WantsExternalDescribes(DataBinder data) =>
-        data.State.UnitChecking.ExternalDescribe && (data.Linkage.ExternalBackings.Count > 0 || data.State.Files.Declared.Any(f => f.IsExternal));
+    public static bool WantsExternalDescribes(DataBindResult data) =>
+        data.UnitChecking.ExternalDescribe && (data.Linkage.ExternalBackings.Count > 0 || data.Files.Declared.Any(f => f.IsExternal));
 
     // ⛔ THE VALUE-IDENTITY KEY OF A RECORD NAME'S VALUE CLAUSE (kb/Work PB1236). §13.18.22.4 GR6 compares the
     // specification, and a literal's CHARACTERS are its content: "ABCD" and "abcd" are two different VALUE clauses.
@@ -268,7 +268,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// to <c>ExternalStore.DescribeAtMethodActivation</c> with the METHOD's own mask (kb/Work PB1138).</param>
     /// <param name="selfMask">The C# expression of the activated element's §14.8.4.1 mask.</param>
     /// <param name="w">The writer.</param>
-    public void EmitExternalDescribes(DataBinder data, string unitPath, string signature, string selfMask, CodeWriter w)
+    public void EmitExternalDescribes(DataBindResult data, string unitPath, string signature, string selfMask, CodeWriter w)
     {
         using (w.Block(signature))
         {
@@ -284,7 +284,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     + $"StrongTypeKey: {strongKey}, ConstantRecord: {(ext.Record.IsConstantRecord ? "true" : "false")}), "
                     + $"{selfMask});   // §14.8.4.3 / §13.18.22.4 GR6");
             }
-            foreach (var f in data.State.Files.Declared.Where(f => f.IsExternal))
+            foreach (var f in data.Files.Declared.Where(f => f.IsExternal))
             {
                 string ItemRef(string? clauseName, DataItem? item) => clauseName is null ? "null"
                     : CsLiteral(BinderDriver.ExternalItemIdentity(item) ?? "!");   // "!" = present but NOT an external item (§14.8.4.2 violation face)
@@ -300,9 +300,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         }
     }
 
-    private void EmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)
+    private void EmitFileMembers(string csName, DataBindResult data, BoundProgram bound, CodeWriter w)
     {
-        var hostFiles = data.State.Files.Declared.Where(f => !f.IsSortMerge).ToList();   // an SD is the runtime's sort work, never a host connector
+        var hostFiles = data.Files.Declared.Where(f => !f.IsSortMerge).ToList();   // an SD is the runtime's sort work, never a host connector
         if (hostFiles.Count == 0) return;
         w.Line();
         // A per-object minted-key field for each instance file (§9.1.4 — one connector per object): initialized once
@@ -414,7 +414,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (lifeCycle)
             extras.Add($"protected override {cls.Symbol.ClrName} __Create() => new {cls.Symbol.ClrName}();   // New (ISO §16.2.1.2 GR1)");
         // The class's METHOD working-storage is static data (OO deep-dive D3), so a new run unit cannot make it fresh
-        // by construction: each half that has any emits __ResetStatics (the ONE predicate, DataBinder.EmitsStaticReset,
+        // by construction: each half that has any emits __ResetStatics (the ONE predicate, DataBindResult.EmitsStaticReset,
         // shared with RecordStructEmitter), and the factory ADOPTS both into the run unit that creates it — reset at
         // its start (§14.6.2.3.2 case 1) and released at its termination (§14.6.11 3/4/6; kb/Work PB1069). The base
         // call keeps a superclass's own adoption on the chain.
@@ -438,7 +438,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// extras differ). <paramref name="typeAttributes"/> are the type's repository attributes and
     /// <paramref name="methodRecords"/>, when the module carries signatures, the roster's method records in roster order.</summary>
     private void EmitTypeHalf(string cobolName, string csName, string describerPath, string baseCsName,
-        DataBinder data, PlaceTable places, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
+        DataBindResult data, PlaceTable places, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
         CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType,
         IReadOnlyList<string> typeAttributes, IReadOnlyList<MethodRecord>? methodRecords)
     {
@@ -840,7 +840,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // positions as an elementary item does — PlaceRenderer.Read handed the group's struct to a string
             // parameter (CS1503; kb/Work PB1136).
             : RuntimeApi.ObjNormalizeMethodName(RuntimeApi.ExternalizedNameInEdition(
-                OperandText.FieldImage(u.MethodSource!), Ctx.Data.Edition.DialectLevel));   // the edition's spelling, as the literal's (PB2991)
+                OperandText.FieldImage(u.MethodSource!), Ctx.Data.DialectLevel));   // the edition's spelling, as the literal's (PB2991)
         w.Line($"{RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(u.Receiver))}.__CobolInvoke({selector}, __ua{id}, __ur{id});");
         if (u.Returning is { } ret)
             w.Line(OoUnivCallerWrite(ret, $"__ur{id}!.Value", argumentView: false) + "   // RETURNING delivery (§14.9.23.4 GR8)");
@@ -1102,7 +1102,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line("var __nfM = ExceptionState.NonfatalDispatcher;   // the invoker's selector (ISO §14.6.13.1.4 #3)");
             w.Line("try");
             w.Line("{");
-            if (Ctx.Data.State.Configuration.Classification is { } cls)
+            if (Ctx.Data.Configuration.Classification is { } cls)
                 // The class's CHARACTER CLASSIFICATION, resolved at THIS method's activation (ISO §12.3.6.4 GR8; §14.6.6 r2 —
                 // a method is a runtime element) into a local the method's dispatch local function captures (kb/Work PB111).
                 w.Line(ObjectComputerEmit.ClassificationLocal(cls));
@@ -1249,7 +1249,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§8.6.4; M2-OO-1h step 4) —
             // the method's own cell (§11.7.4 GR5), reset to 1 each activation, never the shared class index field.
             foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
-                foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+                foreach (var idx in IndexDeclaration.Under(root))
                     w.Line($"long {idx.Cell} = 1;   // INDEX-NAME {idx.Name} (LOCAL/LINKAGE table cell, §8.6.4)");
             // ⛔ THE METHOD IS ITS OWN SELECTION SCOPE (kb/Work PB1010; design SSOT §9.10). §14.9.49.4 GR3 selects
             // over "the USE statements in the source element" and GR4 a) makes that the element containing the
