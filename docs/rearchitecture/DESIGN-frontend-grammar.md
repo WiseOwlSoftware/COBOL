@@ -564,20 +564,23 @@ only the token never sees its keyword: `01 MESSAGE PIC 9.` then `RECEIVE … CON
 refused at RECEIVED. The words this happens to carry the DETERMINATION in their `cobol-words.json` row,
 `keywordWhereFree` (the format and edition, cited), and `gen-cobol-words.ps1` step 5c emits one rule per row into
 `CobolWords.g4`, `<word>Keyword : TOKEN | {wordAhead("WORD")}? IDENTIFIER` (the one word-text predicate, so a
-`>>COBOL-WORDS` synonym steers it too); the hand grammar spells such a word ONLY through its rule. The four:
+`>>COBOL-WORDS` synonym steers it too); the hand grammar spells such a word ONLY through its rule. The three:
 METHOD (the END METHOD marker, §10.6.1 / §10.7.2, and EXIT METHOD, removed at 2023 by Annex E.2 item 1 and read under
 `--permissive`; the printed 2023 §8.9 list names METHOD-ID, not METHOD, PDF printed page 206); MESSAGE (the 2023
 RECEIVE statement's CONTINUE phrase, §14.9.31.2; 2023 §8.9 lists MESSAGE-TAG only); MULTIPLE (the LOCK MODE clause's
 LOCK ON phrase, §12.4.5.9.2, a 2002 introduction, where §8.9 reserves the word at 85 only and §8.10 lists it as that
-phrase's context-sensitive word); and ORDER (the SORT statement's `[WITH DUPLICATES IN ORDER]`, §14.9.40.2, accepted
-at every edition, while `reserved-words.json` leaves ORDER free at 85). `CobolWordsDriftTests` holds all of it: the
+phrase's context-sensitive word). ORDER (the SORT statement's `[WITH DUPLICATES IN ORDER]`, §14.9.40.2, and the ORDER TABLE
+clause) carries NO determination: it is reserved at EVERY edition (kb/Work PB3957), so the gate never retypes it and the
+hand grammar spells the bare `ORDER` token; the one way to free it, `>>COBOL-WORDS UNDEFINE`, withdraws the syntax that
+requires it (§7.3.10.4 GR3), and `gen-cobol-words.ps1` step 5c refuses a `keywordWhereFree` row on a word reserved at
+every edition. `CobolWordsDriftTests` holds all of it: the
 generated rules are exactly the rows, of the one shape, on gated words; no hand-written rule spells a row's bare token;
 and the determinations are RE-DERIVED from the standard where the standard is in the repository: every gated word
 2023 §8.9 leaves free that a 2023 general format underlines (`<u>WORD</u>` in `specs/ISO_COBOL.md`), and every gated
 §8.10 word, must carry one, so the next such word fails a test instead of a user's program. A word dropped by 2023
 §8.9 that no 2023 format spells (CLOCK-UNITS, EVERY, POSITION, PROCEDURES, PROCEED, REFERENCES: their constructs are
-1985-only) needs no rule; the earlier editions' texts are not in the repository, so a determination for them (ORDER
-at 85) stands on its row's citation.
+1985-only) needs no rule; the earlier editions' texts are not in the repository, so a determination for them would
+stand on its row's citation.
 
 ⛔ **NO LEXER TOKEN MAY COST THE USER A WORD ISO LEAVES FREE (kb/Work PB655).** A word the lexer tokenizes never
 reaches `IDENTIFIER` by itself, so without a `nameSlot` row it is refused as a user-defined word at every edition.

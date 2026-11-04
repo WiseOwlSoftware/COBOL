@@ -280,7 +280,14 @@ foreach ($r in $keywordRows) {
         throw "token $($r.token): keywordWhereFree on a word the derived gate does not hold — the gate never retypes it, so the keyword token alone already reads its format; drop the determination"
     }
     $word = To-Word $r.token
-    $rule = (($r.token.TrimEnd('_').ToLowerInvariant() -split '_') | ForEach-Object -Begin { $first = $true } -Process {
+    # A word §8.9 reserves at EVERY edition is never free: its one way to be freed, >>COBOL-WORDS UNDEFINE, withdraws
+    # "any syntax requiring the use of the COBOL word" (ISO §7.3.10.4 GR3), so no format position reads it as a keyword
+    # while a program declares it, and a keyword rule for it would accept what GR3 makes unavailable (kb/Work PB3957: ORDER).
+    $e = $rwMap[$word]
+    if ($e -and $e.r85 -and $e.r2002 -and $e.r2014 -and $e.r2023) {
+        throw "token $($r.token): keywordWhereFree on a word §8.9 reserves at every edition - no edition leaves it free, and >>COBOL-WORDS UNDEFINE withdraws the syntax that requires it (ISO §7.3.10.4 GR3); drop the determination"
+    }
+    $rule =(($r.token.TrimEnd('_').ToLowerInvariant() -split '_') | ForEach-Object -Begin { $first = $true } -Process {
         if ($first) { $first = $false; $_ } else { $_.Substring(0, 1).ToUpperInvariant() + $_.Substring(1) } }) -join ''
     [void]$sb.AppendLine('')
     [void]$sb.AppendLine("// The keyword $word where a format spells it and §8.9 may leave it free: $($r.keywordWhereFree).")

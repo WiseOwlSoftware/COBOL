@@ -375,7 +375,7 @@ dataDescriptionClause
     | justifiedClause
     | blankWhenZeroClause
     | alignedClause   // ISO §13.18.1 (COBOL-2002); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitAlignedClause
-    | constantRecordClause   // COBOL-2002 §13.18.15; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitConstantRecordClause
+    | constantRecordClause   // COBOL-2014 §13.18.15; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitConstantRecordClause
     | propertyClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitPropertyClause (rearch 14g.2). (The VALUE-list PROPERTY guards below are KEPT — they are value-operand disambiguation, not an edition gate.)
     | externalClause
     | globalClause
@@ -454,7 +454,7 @@ basedClause
     : BASED   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitBasedClause (rearch 14g.2)
     ;
 
-// CONSTANT RECORD clause (COBOL-2002 §13.18.15) — identifies a STRUCTURED CONSTANT: the record's content is
+// CONSTANT RECORD clause (COBOL-2014 §13.18.15) — identifies a STRUCTURED CONSTANT: the record's content is
 // its normal initial content (§13.18.15.4 GR1 — as though INITIALIZE … WITH FILLER ALL TO VALUE THEN TO
 // DEFAULT), and neither the record nor any subordinate may be a receiving operand (SR2 → COBOL1548 at
 // bind). Structural SRs (§13.18.15 SR1 WS/LS-only; §13.16.3 SR3/SR6/SR13) bind-check in DataBinder.

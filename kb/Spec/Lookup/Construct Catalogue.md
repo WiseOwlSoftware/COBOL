@@ -64,7 +64,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | sync-on-group-2023 | SYNCHRONIZED on a group item | §13.18.55 | 2023 | | 0900 | active |
 | local-storage-section-2002 | LOCAL-STORAGE SECTION (per-activation data) | §13.6 | 2002 | | 0900 | active |
 | constant-entry-2002 | Constant entry (01 name CONSTANT AS …) | §13.10 | 2002 | | 0900 | active |
-| constant-record-2002 | CONSTANT RECORD clause (level-01 constant) | §13.18.15 | 2002 | | 0900 | active |
+| constant-record-2014 | CONSTANT RECORD clause (level-01 constant) | §13.18.15 | 2014 | | 0900 | active |
 | national-data-2002 | National data (PIC N / USAGE NATIONAL, UTF-16) | §8.5.2 | 2002 | | 0900 | active |
 | national-edited-2002 | National-edited data (PIC N with B 0 /) | §8.5.2.11 | 2002 | | 0900 | pending |
 | boolean-data-2002 | Boolean data (PIC 1 / USAGE BIT) | §8.5.2 | 2002 | | 0900 | active |

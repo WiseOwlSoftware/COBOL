@@ -165,11 +165,12 @@ public sealed class SameAsTests
     }
 
     /// <summary>§13.18.49.3 SR10 — data-name-1's description shall not contain a CONSTANT RECORD clause
-    /// (COBOL1556).</summary>
+    /// (COBOL1556). Compiled at 2014, the edition that introduces the CONSTANT RECORD clause (VCR row 7.48, kb/Work
+    /// PB3600): at 2002 the clause is COBOL0900 and SR10 has no subject.</summary>
     [Fact]
     public void SameAsOfConstantRecord_Rejected1556()
     {
-        var (ok, diag) = C("""
+        var (ok, diag) = EditionHarness.Compile("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. SA56D.
             DATA DIVISION.
@@ -180,7 +181,7 @@ public sealed class SameAsTests
             PROCEDURE DIVISION.
             MAIN-PARA.
                 STOP RUN.
-            """);
+            """, 2014);
         Assert.False(ok, "SAME AS of a CONSTANT RECORD must be rejected (ISO §13.18.49.3 SR10)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1556");
     }

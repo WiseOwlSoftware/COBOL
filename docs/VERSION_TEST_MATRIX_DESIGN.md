@@ -347,8 +347,9 @@ interval encoding — `user-word-commit-2023` (intro 85 / removedIn 2023 / 0901)
 > standard's own §8.9 (`reserved-words-2002.json`), and the 2014 list loses the 1985 and draft words neither the 2009
 > draft's §8.9 nor 2023's reserves (`words-2009-cd.json`; kb/Work PB4297) ⊕ the in-repo spec §8.9 ⊕ VCR row 32: the re-reservation set is THREE words incl. the END- scope terminator; the EC words are reserved since 2002
 > (not 2023-only); Annex E.2 item 25 decides only the 2014 edge (E.1 compares with the previous standard), where the GnuCOBOL 2014
-> list already agrees; at 2002 the trio stays reserved like the rest of the communication vocabulary (kb/Work PB656). ORDER carries
-> a CCVS-proof not-85 override (conforming ST127A uses it as a data name). The interval rows include
+> list already agrees; at 2002 the trio stays reserved like the rest of the communication vocabulary (kb/Work PB656). ORDER is
+> reserved at 85 (kb/Work PB3957: the 2002 Annex F.1 item 6 does not name it among the words 2002 added; the earlier CCVS-proof
+> override misread ST127A's WITH DUPLICATES IN ORDER keyword). The interval rows include
 > `end-receive-as-user-word`. The INV-1-strong behavioral leg is `WISEOWL_COBOL_NIST_STD=2023 WISEOWL_COBOL_NIST_PERMISSIVE=1`
 > over the golden run — byte-exact at the default edition (the roadmap's fatal-challenge criterion). The four binder
 > Error→`Removed()` migrations (0810/0811/0882/0873-SD) run the construct after a permissive warn (zero behavioral

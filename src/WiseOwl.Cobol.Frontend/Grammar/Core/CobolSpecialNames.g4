@@ -95,13 +95,13 @@ localeClause
 // (§12.3.7.3 SR9). The binder (SpecialNamesBinder.OrderTableBind) enforces SR10/SR11 and registers the name.
 // ⚠ NOT edition-gated, unlike localeClause: TABLE is reserved at EVERY edition, so the pair ORDER + TABLE has no
 // competing COBOL-85 reading (nothing else in a SPECIAL-NAMES paragraph can be followed by, or begin with, TABLE)
-// — and at 85, where §8.9 leaves ORDER user-definable, the word still reaches `implementorSwitchEntry` through
-// `cobolWord`'s gated alternative, so a switch entry named ORDER keeps its '85 reading. This alternative stays
-// AHEAD of implementorSwitchEntry in specialNamesEntry so `ORDER TABLE …` is never absorbed as a switch-name.
+// — and ORDER is reserved at every edition (kb/Work PB3957), so no edition has a user-defined ORDER for a switch entry
+// to name. This alternative stays AHEAD of implementorSwitchEntry in specialNamesEntry so `ORDER TABLE …` is
+// never absorbed as a switch-name.
 // Recognizing the clause at every --std is what lets the version pass answer below 2002 with the explanatory
 // `order-table-2002` introduction gate rather than a parse error.
 orderTableClause
-    : orderKeyword TABLE cobolWord IS? specialNamesLiteral
+    : ORDER TABLE cobolWord IS? specialNamesLiteral
     ;
 
 // ⛔ A SPECIAL-NAMES LITERAL POSITION WHOSE ONLY WORD IS A CONSTANT-NAME (kb/Work PB1942): literal-5 / literal-6 of the

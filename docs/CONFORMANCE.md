@@ -1878,7 +1878,7 @@ of an unsupported facility.
   at 2002 and 2014, a user-defined word at 85 (no OO) and at 2023. The standard still SPELLS METHOD in the END METHOD
   marker (§10.7.2; `cite.py --check 10.7.2 "METHOD, and INTERFACE are underlined"` → OK) and in EXIT METHOD (`cite.py --check E.2 "EXIT METHOD statement"` → OK; the 2002 and 2014 statement,
   removed at 2023); those keyword positions read the word whether or not the program also declares a data item of that
-  name (`methodKeyword`, generated into `CobolWords.g4` from the row's `keywordWhereFree` determination in `cobol-words.json`, the rule MESSAGE, MULTIPLE and ORDER share; kb/Work PB3794). ⚠ DETERMINATION (owner may overturn): the standard's own text decides — a
+  name (`methodKeyword`, generated into `CobolWords.g4` from the row's `keywordWhereFree` determination in `cobol-words.json`, the rule MESSAGE and MULTIPLE share; kb/Work PB3794). ⚠ DETERMINATION (owner may overturn): the standard's own text decides — a
   word its list does not reserve is not reserved (§4.2.8, §8.3.2.1 rule 1) — so the alternative, treating the
   omission as a typo and keeping METHOD reserved at 2023, would be an added reserved word that §4.2.10 3) obliges this
   document to list, and would refuse a program the standard permits. Pinned by `conformance:cases/_unassigned/pb2623_method_is_a_user_word_at_2023`,
@@ -1903,7 +1903,15 @@ of an unsupported facility.
   previous COBOL standard and this" one (`cite.py --check E.1 "substantive changes between the previous COBOL standard
   and this"` → OK): its 16 words were user-defined at 2014, which the generator ASSERTS of the 2014 list. SEND, RECEIVE
   and END-RECEIVE are on the 2002 §8.9 list, like the rest of the communication facility's vocabulary (CD, DISABLE,
-  ENABLE, PURGE, …), obsolete there and removed at 2014. A word's reservation and its construct's availability are TWO
+  ENABLE, PURGE, …), obsolete there and removed at 2014. ORDER is reserved at 85 as well (kb/Work PB3957): GnuCOBOL's 85 list holds it, the 2002 standard's Annex F.1 item 6 (printed page 835 of its
+  post-ballot text, "The following reserved words have been added") does not name it among the words 2002 added although
+  the same text's 8.9 list holds it, and `scripts/gen-reserved-words.ps1` asserts that for EVERY 8.9 word
+  (`reserved-words-2002.json` `addedByAnnexF1`: a 2002 word the item does not name must be in the 85 source). An earlier revision cleared ORDER at 85
+  on a "CCVS proof" that misread ST127A, which spells SORT's `WITH DUPLICATES IN ORDER` keyword and declares no data item ORDER.
+  ORDER therefore has no free edition, so its `cobol-words.json` row carries no `keywordWhereFree` determination (the one way to free
+  a word, `>>COBOL-WORDS UNDEFINE`, withdraws "any syntax requiring the use of" it, §7.3.10.4 GR3, `cite.py --check 7.3.10.4
+  "any syntax requiring the use of the COBOL word that is the content of literal-3 shall not be available"` → OK) and the generator refuses
+  such a determination on a word reserved at every edition. A word's reservation and its construct's availability are TWO
   facts: SEGMENT-LIMIT and COBOL leave the 2002 list with their constructs (VCR row 7.8), so each is a data-name from
   2002 on, and COBOL a compiler-directive word as well at 2023 (§8.3.2.1 2), §8.12). GnuCOBOL's 3.2 dialect files date
   the PADDING CHARACTER clause: obsolete 2002 (COBOL0903), removed 2014 (VCR row 7.20). ⚠ DETERMINATION (owner may
@@ -1912,7 +1920,7 @@ of an unsupported facility.
   the negatives `user-word-receive` / `user-word-end-receive` (85 2002 2023), `pb4297-position-reserved-at-85` and
   `pb4297-communication-reserved-85-2002`, and
   `conformance:cases/8.3.2-COBOL-words/pb4297_1985_words_user_defined_from_2002` (2002 2014 2023),
-  `…/pb4297_communication_user_defined_from_2014` (2014 2023), `…/pb4297_infinity_words_user_defined` (every edition)
+  `…/pb4297_communication_user_defined_from_2014` (2014 2023), `…/pb4297_infinity_words_user_defined` (every edition), `pb3957-order-reserved-at-every-edition` (85 2002 2014 2023)
   and `conformance:cases/_unassigned/pb656_padding_character_obsolete_2002`.
 
 - **D-DECLREF — the declaratives reference boundary: an SR4 violation is an error, an SR3 violation is a warning

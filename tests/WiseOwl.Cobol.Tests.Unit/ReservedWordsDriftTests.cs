@@ -84,6 +84,30 @@ public sealed class ReservedWordsDriftTests
         Assert.All(entries, e => Assert.True(e.Confidence is "high" or "medium", $"bad confidence: {e.Word}"));
     }
 
+    /// <summary>⛔ THE 85 FLAG IS HELD TO THE 2002 TEXT (kb/Work PB3957). No 1985 text is in the repository, but the 2002
+    /// standard's Annex F.1 item 6 ("The following reserved words have been added") names every reserved word 2002 added
+    /// to the previous standard's, so a word of the 2002 §8.9 list that the item does not name was already reserved at
+    /// 1985. ORDER sat outside that on a "CCVS proof" that misread ST127A (the SORT keyword, not a data-name), and
+    /// COBOL-85 accepted <c>01 ORDER PIC 9.</c>. One direction only: the item also names LAST, which the 85 source holds.
+    /// The generator asserts the same of its input; this test holds the committed table to the text.</summary>
+    [Fact]
+    public void Every2002Word_TheAnnexF1ItemDoesNotNameAsAdded_IsReservedAt85()
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("reserved-words-2002.json")));
+        var words = doc.RootElement.GetProperty("words").EnumerateArray().Select(e => e.GetString()!).ToList();
+        var added = doc.RootElement.GetProperty("addedByAnnexF1").EnumerateArray()
+            .Select(e => e.GetString()!).ToHashSet(StringComparer.Ordinal);
+        Assert.InRange(added.Count, 80, 90);                 // the item's 84 alphanumeric words: the scan is not blind
+        Assert.Contains("GROUP-USAGE", added);               // the printed text misspells it GROUUP-USAGE
+        var table = ReservedWords.Entries.ToDictionary(e => e.Word, StringComparer.Ordinal);
+        var notAt85 = words.Where(w => !added.Contains(w) && !(table.TryGetValue(w, out var t) && t.R85))
+            .Order(StringComparer.Ordinal).ToList();
+        Assert.True(notAt85.Count == 0,
+            $"{notAt85.Count} 2002 §8.9 word(s) the Annex F.1 item does not name as added are not reserved at 85 (first: {notAt85.FirstOrDefault()}) — "
+            + "they were reserved at 1985; fix scripts/gen-reserved-words.ps1 and regenerate");
+        Assert.True(table["ORDER"].R85, "ORDER is reserved at COBOL-85: SORT's WITH DUPLICATES IN ORDER prints it and F.1 does not add it");
+    }
+
     /// <summary>A row's provenance may not contradict its own flags (kb/Work PB656): the generator once labelled every
     /// word reserved at 85 and not at 2023 "removed post-85", whatever its 2002/2014 flags said, so 35 rows — COBOL and
     /// SEGMENT-LIMIT among them — read as unreserved at editions their flags reserve them at, and a reader of the

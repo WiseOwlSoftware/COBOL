@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1233_constant_record_initialize_content
 *> rules: [GR-13.18.15.4-1]
-*> accept: [2002]
+*> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

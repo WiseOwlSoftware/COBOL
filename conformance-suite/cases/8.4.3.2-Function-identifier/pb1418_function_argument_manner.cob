@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1418_function_argument_manner
 *> rules: [SR-8.4.3.2.3-8, SR-8.4.3.2.3-13, GR-8.4.3.2.4-5]
-*> accept: [2002]
+*> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

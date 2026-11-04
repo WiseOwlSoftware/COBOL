@@ -19,8 +19,8 @@
       *>   LENGTH/BWZ/SYNC,
       *> never stored into). COBOL1549 = constant-record-rule, "WS/LS
       *>   sections only (SR1)".
-      *> Not rejected at 85 by THIS rule: CONSTANT RECORD is itself a
-      *>   2002 construct there.
+      *> Not rejected below 2014 by THIS rule: CONSTANT RECORD is itself a
+      *>   2014 construct there (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C04A.
        DATA DIVISION.

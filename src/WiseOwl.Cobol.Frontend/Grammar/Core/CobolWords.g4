@@ -236,9 +236,3 @@ multipleKeyword
     : MULTIPLE
     | {wordAhead("MULTIPLE")}? IDENTIFIER
     ;
-
-// The keyword ORDER where a format spells it and §8.9 may leave it free: ISO 14.9.40.2 prints [WITH DUPLICATES IN ORDER] in the SORT statement, accepted at every edition (FMT-14.9.40.2), and reserved-words.json leaves ORDER free at 85 (kb/Work PB3794).
-orderKeyword
-    : ORDER
-    | {wordAhead("ORDER")}? IDENTIFIER
-    ;
