@@ -1,4 +1,4 @@
-## PB2509: a record sequential print stream keeps its records whole and framed
+## Entry 3061 — 2026-11-03 16:41 PST — PB2509: a record sequential print stream keeps its records whole and framed
 
 **The defect.** A record sequential file written with ADVANCING (no LINAGE clause, not a report file) presented each record as its characters less trailing spaces and wrote a RECORD VARYING record bare. GnuCOBOL 3.2 keeps that file a binary sequential file and writes the whole fixed-length record, and a varying record behind its length header. ISO §14.9.51.4 GR21 states the strip for a LINE SEQUENTIAL file alone, §13.18.43.4 GR6 gives every record of a fixed-length file integer-1 bytes, and §9.1.7.2 leaves a record sequential record's on-medium form to the implementor, so CLAUDE.md rule 1's precedence took GnuCOBOL's, as it took the line end in PB1664. The owner released the note from the PB3420 hold on 2026-11-03.
 
@@ -15,3 +15,4 @@
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,393/21,393 · Unit 39,635/39,635 · Characterization 37/37 cases ran (skipped 0) …` (run 000002-20261104T000734Z, after a first RED named above), `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built inert-watch; HEAD 0b1288ee2) ===`, semgrep verify PASS.
 
 **Self-review.** Architecture: one predicate for the shape, no second copy of the LINAGE/report test. Full code: the print and plain arms now agree (a fixed record on the plain arm was already written whole). Performance: no allocation beyond the record fit the arm already made. Duplication: `EmitFrameHead` is the one head writer for both arms.
+
