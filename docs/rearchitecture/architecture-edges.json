@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "rule": "DESIGN-architecture-review.md §8.1: a cross-layer dependency is allowed iff its (from, to) layer pair is listed; intra-layer edges are free; every product namespace is placed; a tolerated row lists every type pair it holds, each with the kb/Work notes that remove it (removedBy, the row's is their union); uses (the census record named by census) and walkUses (the drift test's metadata walk) only ever fall; plan is R1's account of the removal",
-  "census": "762a06a338127b6e9258baf7d2cb78bbcde74c13",
+  "census": "cbb187c1d7967630728aa42621fb3fee14280997",
   "layers": [
     {
       "id": "runtime",
@@ -594,7 +594,7 @@
     {
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 50,
+      "uses": 48,
       "walkUses": 47,
       "removedBy": [
         "PB2347",
@@ -1270,7 +1270,7 @@
     {
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Compiler.Oo",
-      "uses": 6,
+      "uses": 1,
       "walkUses": 1,
       "removedBy": [
         "PB2347"
@@ -1289,7 +1289,7 @@
     {
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Frontend.Generated",
-      "uses": 21,
+      "uses": 20,
       "walkUses": 1,
       "removedBy": [
         "PB2347"
@@ -1338,7 +1338,7 @@
     {
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 24,
+      "uses": 20,
       "walkUses": 21,
       "removedBy": [
         "PB2361",
@@ -1531,17 +1531,6 @@
       ]
     },
     {
-      "from": "WiseOwl.Cobol.Binding.Model",
-      "to": "WiseOwl.Cobol.Compiler.Oo",
-      "uses": 5,
-      "walkUses": 0,
-      "removedBy": [
-        "PB2403"
-      ],
-      "plan": "PB2402 (landed: the OO symbols moved with the closure they name to compiler.model; 5 -> 2) and PB2403 (step 1 landed on its branch: AdapterPair to compiler.model, 2 -> 1; step 2: the OoClassTable answers become BoundCompilation data, 1 -> 0)",
-      "pairs": []
-    },
-    {
       "from": "WiseOwl.Cobol.Binding.Passes",
       "to": "WiseOwl.Cobol.Validation",
       "uses": 1,
@@ -1615,7 +1604,7 @@
     {
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 140,
+      "uses": 137,
       "walkUses": 143,
       "removedBy": [
         "PB2320",
@@ -2779,17 +2768,6 @@
     },
     {
       "from": "WiseOwl.Cobol.CodeGen",
-      "to": "WiseOwl.Cobol.Compiler.Oo",
-      "uses": 28,
-      "walkUses": 0,
-      "removedBy": [
-        "PB2403"
-      ],
-      "plan": "PB2402 (landed: the OO symbols moved to compiler.model) and PB2403 (step 1 on its branch: AdapterPair, OoStandardClasses and the two crossing-form predicates, ActivationCrossing, to compiler.model, 13 -> 8; step 2: the OoClassTable and ActivationDescriptions answers reach the backend as BoundCompilation data); PB2403's sites include ProgramEmitter's OoClassTable read (Draft 6, G1)",
-      "pairs": []
-    },
-    {
-      "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Frontend",
       "uses": 3,
       "walkUses": 3,
@@ -2824,7 +2802,7 @@
     {
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
-      "uses": 48,
+      "uses": 41,
       "walkUses": 37,
       "removedBy": [
         "PB2361",
