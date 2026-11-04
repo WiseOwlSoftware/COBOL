@@ -12,3 +12,9 @@ RANGE       2000
 MEAN         499.5
 MID          499.5
 MED          499.5
+SUMP      100000
+MEANP     100000
+MODP      100000
+REMP      100000
+MODPN     200000
+REMPN    -100000

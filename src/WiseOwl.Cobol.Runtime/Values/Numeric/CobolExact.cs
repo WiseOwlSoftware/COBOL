@@ -64,12 +64,17 @@ public readonly struct CobolExact
     internal CobolDec Image => _sdidi ? _dec : _wide.ToDec(_scale);
 
     /// <summary>The unscaled value at <paramref name="scale"/> (at least <see cref="Scale"/>) on the wide form, only zeros appended;
-    /// false when it is past the 256-bit range or holds a digit finer than <paramref name="scale"/>.</summary>
+    /// false when it is past the 256-bit range or holds a digit finer than <paramref name="scale"/>.
+    /// <para>⛔ AN SDIDI VALUE ALIGNS FROM ITS OWN EXPONENT, the <see cref="Scale"/> the common scale is the largest of: its significand
+    /// times <c>10^(scale + Exp)</c>. A NEGATIVE common scale is legitimate (every argument an SDIDI with a positive exponent:
+    /// <c>SUM (1.0E40, 1.0E5, -1.0E40)</c> aligns at scale −4 as the integers 10^36, 10 and −10^36). <see cref="CobolWide.TryFrom"/>
+    /// is NOT this alignment: it writes a positive exponent out at scale 0, so a guard against its scale refused every such list and
+    /// sent the body to the 34-digit images (the review finding R1-1 of kb/Work PB4568).</para></summary>
     internal bool TryAt(int scale, out CobolWide aligned)
     {
         aligned = default;
-        if (!_sdidi) return scale >= _scale && CobolWide.TryUp(_wide, scale - _scale, out aligned);
-        return CobolWide.TryFrom(_dec, out CobolWide wide, out int own) && scale >= own && CobolWide.TryUp(wide, scale - own, out aligned);
+        int own = Scale;
+        return scale >= own && CobolWide.TryUp(_sdidi ? CobolWide.From(_dec.Sig) : _wide, scale - own, out aligned);
     }
 
     /// <summary>⛔ EVERY VALUE OF <paramref name="xs"/> ON THE WIDE FORM AT THEIR COMMON SCALE (the largest of their scales, at which

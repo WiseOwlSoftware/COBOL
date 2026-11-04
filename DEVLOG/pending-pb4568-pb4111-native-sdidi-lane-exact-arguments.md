@@ -39,3 +39,14 @@ DOC-A.1-92b, INTRINSICS_DESIGN's PB1565 and PB3953 sections. No inventory row ch
 
 **Left open.** The SDIDI is the returned-value carrier of such a call, so a value of more than 34 digits (`SUM (P, 1, 2.0E0)`, MAX's 39-digit
 content used as an operand) is rounded once there, where GnuCOBOL keeps every digit: PB4570's carrier question.
+
+**Review round 1, finding R1-1 (fixed).** `CobolExact.TryAt` aligned an SDIDI value through `CobolWide.TryFrom`, which writes a positive
+exponent out at scale 0, while `CobolExact.Scale` is the negated exponent. A list whose arguments were all SDIDI values with positive
+exponents therefore had a negative common scale, `TryAt` refused it, and every `…Exact` body fell to the 34-digit images:
+`SUM (1.0E40, 1.0E5, -1.0E40)` stored 0 for 100000, `MEAN (1.0E40, 2.0E5, -1.0E40)` 0, and `MOD (1.0E40, 3.0E5)` 1000000, larger than its
+divisor, for 100000. `TryAt` now aligns from `Scale` for both carriers (the significand times 10^(scale + exponent)); every body already
+takes a negative scale (`ToDecRounded`, `TryQuotientDec`). Sweep: the other `CobolWide.TryFrom` callers (`CobolExact.Compare`,
+`FunctionValueField.TryExact`) use the scale it returns consistently, so they were right. Pinned by six POS legs in
+`pb4568_wide_argument_beside_sdidi` (SUM, MEAN, MOD, REM, and MOD / REM of the negative dividend: 100000, 100000, 100000, 100000, 200000,
+-100000) and `CobolExactIntrinsicsTests.PositiveExponentArguments_AlignAtTheirNegativeCommonScale`, which adds MEDIAN and a VARIANCE leg
+({10^43 + 10^10, 10^43} is 2.5·10^19; the images' 34-digit mean answered 5·10^19).

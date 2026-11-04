@@ -43,6 +43,15 @@
       *>         images gave 200000).
       *>   MEAN, MIDRANGE, MEDIAN of (P, -Q) = 999 / 2 = 499.5 (the
       *>         image gave 50000).
+      *>   POS   every argument an SDIDI with a POSITIVE exponent
+      *>         (review finding R1-1): they align exactly at their
+      *>         negative common scale. SUM (1.0E40, 1.0E5, -1.0E40) =
+      *>         100000 (the images gave 0: 10**40 + 10**5 rounds to
+      *>         10**40); MEAN (1.0E40, 3.0E5, -1.0E40) = 100000;
+      *>         10**40 % 300000 = 100000, so MOD and REM (1.0E40,
+      *>         3.0E5) are 100000 (MOD answered 1000000, larger than
+      *>         its divisor); MOD (-1.0E40, 3.0E5) = 200000 (floored)
+      *>         and REM -100000 (truncated).
       *> Every value is exact in its receiver, so the returned-value
       *> carrier cannot change the expected output.
        IDENTIFICATION DIVISION.
@@ -96,4 +105,16 @@
            COMPUTE H = FUNCTION MEDIAN (BIG * BIG * K3,
                                         -9.98999999999999998002E38)
            DISPLAY "MED   " H
+           COMPUTE R = FUNCTION SUM (1.0E40, 1.0E5, -1.0E40)
+           DISPLAY "SUMP  " R
+           COMPUTE R = FUNCTION MEAN (1.0E40, 3.0E5, -1.0E40)
+           DISPLAY "MEANP " R
+           COMPUTE R = FUNCTION MOD (1.0E40, 3.0E5)
+           DISPLAY "MODP  " R
+           COMPUTE R = FUNCTION REM (1.0E40, 3.0E5)
+           DISPLAY "REMP  " R
+           COMPUTE R = FUNCTION MOD (-1.0E40, 3.0E5)
+           DISPLAY "MODPN " R
+           COMPUTE R = FUNCTION REM (-1.0E40, 3.0E5)
+           DISPLAY "REMPN " R
            STOP RUN.

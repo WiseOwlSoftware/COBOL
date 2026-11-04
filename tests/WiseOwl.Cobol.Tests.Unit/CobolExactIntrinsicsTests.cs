@@ -115,6 +115,30 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal((int)(BigInteger.Remainder(P, 7) + 7) % 7, (int)CobolIntrinsics.ModExact(Away, Wide(P), Fixed(7)).Sig);
     }
 
+    /// <summary>⛔ EVERY ARGUMENT AN SDIDI WITH A POSITIVE EXPONENT aligns at the NEGATIVE common scale, exactly (review finding R1-1 of
+    /// kb/Work PB4568): <see cref="CobolExact.TryAt"/> refused it and every body fell to the 34-digit images, where 10^40 + 10^5
+    /// rounds to 10^40. Expected values are the <see cref="BigInteger"/> evaluation of each equivalent arithmetic expression.</summary>
+    [Fact]
+    public void PositiveExponentArguments_AlignAtTheirNegativeCommonScale()
+    {
+        BigInteger e40 = BigInteger.Pow(10, 40);
+        CobolExact plus40 = Sdidi("10", 39), minus40 = Sdidi("-10", 39);              // 1.0E40 and -1.0E40, as the literals carry them
+        Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.SumExact(Away, plus40, Sdidi("10", 4), minus40)));
+        Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.MeanExact(Away, plus40, Sdidi("30", 4), minus40)));
+        Assert.Equal(0, CobolDec.Compare(D("150000"), CobolIntrinsics.MedianExact(Away, plus40, Sdidi("10", 4), Sdidi("20", 4), minus40)));
+        // §15.64.4 1) floored, §15.77.4 1) truncated: 10^40 mod 300000.
+        int mod = (int)BigInteger.Remainder(e40, 300000);
+        Assert.Equal(100000, mod);
+        Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.ModExact(Away, plus40, Sdidi("30", 4))));
+        Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.RemExact(Away, plus40, Sdidi("30", 4))));
+        Assert.Equal(0, CobolDec.Compare(D("200000"), CobolIntrinsics.ModExact(Away, minus40, Sdidi("30", 4))));
+        Assert.Equal(0, CobolDec.Compare(D("-100000"), CobolIntrinsics.RemExact(Away, minus40, Sdidi("30", 4))));
+        // §15.98.4 1): {10^43 + 10^10, 10^43} deviate by ±5·10^9 from the exact mean, so the variance is 2.5·10^19; the 34-digit
+        // mean of the images rounds 10^43 + 5·10^9 to 10^43 + 10^10 and answered 5·10^19.
+        Assert.Equal(0, CobolDec.Compare(new CobolDec(25, 18),
+            CobolIntrinsics.VarianceExact(Away, Sdidi("1000000000000000000000000000000001", 10), Sdidi("1", 43))));
+    }
+
     [Fact]
     public void VarianceAndPresentValue_AreTheExactExpression_DividedOnce()
     {
