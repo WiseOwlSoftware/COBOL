@@ -104,7 +104,6 @@ internal static class BackendContract
             "Model.NamingConvention.ClassNamedMethodPrefix", "Model.NamingConvention.CobolWordDerivedPrefixes",
             "Model.NamingConvention.DebugRegisterName()", "Model.NamingConvention.DebugRegisterPrefix",
             "Model.NamingConvention.FactoryClassName()", "Model.NamingConvention.FactoryClassPrefix",
-            "Model.NamingConvention.FactoryNewMethod",
             "Model.NamingConvention.FormalParameterName()", "Model.NamingConvention.FormalParameterPrefix",
             "Model.NamingConvention.GetAccessorName()", "Model.NamingConvention.ImportedTypeName()",
             "Model.NamingConvention.InstanceFileKeyName()", "Model.NamingConvention.InstanceFileKeyPrefix",
