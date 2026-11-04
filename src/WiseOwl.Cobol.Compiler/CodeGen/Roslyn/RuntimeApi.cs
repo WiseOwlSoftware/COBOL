@@ -109,6 +109,10 @@ internal static class RuntimeApi
     public static string WideFunctionText(string value, int scale, bool deSign, bool commaMode) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatWideFunctionText)}({value}, {scale}{FunctionTextFlags(deSign, commaMode, ", ")})";
 
+    /// <summary><c>CobolNum.FormatExactFunctionText</c>: every digit of the run-time-scaled <c>CobolExact</c> <paramref name="value"/>.</summary>
+    public static string ExactFunctionText(string value, bool deSign, bool commaMode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatExactFunctionText)}({value}{FunctionTextFlags(deSign, commaMode, ", ")})";
+
     /// <summary>The DIGITS-ONLY characters a numeric value's text sends to a group - <c>CobolNum.GroupDigits</c> (ISO §14.9.25.4 GR4;
     /// kb/Work PB3613, docs/CONFORMANCE.md D-B4). The same method the compiler calls on a numeric literal's text.</summary>
     public static string NumGroupDigits(string text) =>
@@ -995,6 +999,11 @@ internal static class RuntimeApi
 
     /// <summary>The negation of an exact value (<c>CobolExact.Negate</c>).</summary>
     public static string ExactNegate(string exact) => $"{nameof(CobolExact)}.{nameof(CobolExact.Negate)}({exact})";
+
+    /// <summary>An exact value raised to an <c>Int128</c> integer exponent (<c>CobolExact.Pow</c>) at the INTERMEDIATE ROUNDING mode
+    /// the SDIDI step past the wide form takes.</summary>
+    public static string ExactPow(string exact, string int128Exponent, string modeExpr) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.Pow)}({exact}, {int128Exponent}, {modeExpr})";
 
     /// <summary>The FINAL TRANSFER of an exact value (<c>CobolExact.ToUnscaled</c>), as <see cref="WideToUnscaled"/>.</summary>
     public static string ExactToUnscaled(string exact, int toScale, CobolRounding mode, bool checkedTransfer) =>

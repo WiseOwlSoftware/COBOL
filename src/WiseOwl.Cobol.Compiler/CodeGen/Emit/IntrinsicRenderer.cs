@@ -1363,6 +1363,30 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     }
 
     /// <summary>
+    /// ⛔ THE UNARY EXACT FAMILY ON THE RUN-TIME-SCALED EXACT VALUE (kb/Work PB4575 review finding R1-2): ABS, SIGN, INTEGER,
+    /// INTEGER-PART and FRACTION-PART of an argument expression in which a wide value met an SDIDI operand (<c>NumX.Exact</c>) return
+    /// their value on the same carrier (<c>CobolIntrinsics.AbsExact</c> and its siblings), which <c>NumericRenderer</c> settles at its
+    /// public entry like a nested product; SIGN's −1/0/+1 is an integer. Their value is the argument's own digits, and the expression
+    /// around the call keeps its other operands exact (<c>NumericRenderer.CombineCore</c>), so a body over the argument's 34-digit
+    /// image made <c>FUNCTION INTEGER (P + 0.0E0) - P</c> of a 39-digit P the image's residue (99001 for 0). Every other function
+    /// with such an argument returns null here: a type-6 position took its integer already (<see cref="RawWideArg"/>), and the
+    /// selection, MOD/REM and statistics bodies take it exact on the SDIDI lane (<see cref="RenderDec"/>'s native arms over
+    /// <see cref="ExactValueArg"/>). <c>ExactWideSettlementDriftTests.EveryWideBody_TakesTheExactValueToo</c> holds that closed.
+    /// </summary>
+    private NumX? RenderExactUnary(string runtimeMethod, NumX x) => runtimeMethod switch
+    {
+        "AbsScaled" => Exact("AbsExact", x.Expr, x.Precision),
+        "SignOf" => new NumX(RuntimeApi.Intrinsic("SignExact", x.Expr), 0),
+        "Floor" => Exact("FloorExact", x.Expr, 0),
+        "Truncate" => Exact("TruncateExact", x.Expr, 0),
+        "FractionPart" => Exact("FractionPartExact", $"{num.IntermediateMode}, {x.Expr}", null),
+        _ => null,
+    };
+
+    private static NumX Exact(string body, string args, int? precision) =>
+        new(RuntimeApi.Intrinsic(body, args), 0, Exact: true, Precision: precision);
+
+    /// <summary>
     /// ⛔ THE EXACT FAMILY ON THE EXACT WIDE INTERMEDIATE (kb/Work PB3953; docs/CONFORMANCE.md DOC-A.1-123): under native arithmetic,
     /// a call with an argument expression past the <see cref="Int128"/> carrier (<c>NumX.Wide</c>, kept by <see cref="RawWideArg"/>)
     /// is evaluated on <c>CobolWide</c> (<c>CobolIntrinsics.Wide.cs</c>) and returns a <c>NumX.Wide</c> where its value can be
@@ -1399,6 +1423,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // answered here without rendering its arguments a further time.
         if (num.StandardDecimal || !ic.Args.Any(a => a is BoundComputedOperand)) return null;
         var xs = Enumerable.Range(0, ic.Args.Count).Select(i => RawWideArg(ic, i)).ToList();
+        if (xs.Count == 1 && xs[0].Exact) return RenderExactUnary(ic.Sig.RuntimeMethod, xs[0]);
         if (!xs.Any(x => x.Wide) || xs.Any(x => x.Dec || x.Real || x.Exact)) return null;
 
         int s = xs.Max(x => x.Scale);

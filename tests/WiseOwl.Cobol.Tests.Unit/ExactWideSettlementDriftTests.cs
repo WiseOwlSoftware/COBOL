@@ -173,6 +173,36 @@ public sealed class ExactWideSettlementDriftTests
         Assert.True(stale.Count == 0, "ImageTakers names arms that no longer take the image: " + string.Join(", ", stale));
     }
 
+    /// <summary>⛔ EVERY WIDE BODY TAKES THE RUN-TIME-SCALED EXACT VALUE TOO (kb/Work PB4575 review finding R1-2). A function whose
+    /// argument expression is wide evaluates on the wide form (<c>RenderWide</c>); the same expression beside an SDIDI operand is a
+    /// <c>NumX.Exact</c>, and the function must keep its digits as well, or <c>FUNCTION INTEGER (P + 0.0E0) - P</c> answers the image's
+    /// residue where <c>FUNCTION INTEGER (P) - P</c> answers 0. So every label of <c>RenderWide</c>'s switch either has an arm in
+    /// <c>RenderExactUnary</c> (its value on the exact carrier) or a native arm of <c>RenderDec</c> that takes its arguments through
+    /// the exact intake (<c>ExactValueArg</c>, <c>ExactValueArgList</c>): a new wide body is then a red here until it decides.</summary>
+    [Fact]
+    public void EveryWideBody_TakesTheExactValueToo()
+    {
+        string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        string wide = BodyOf(src, "private NumX? RenderWide(");
+        var wideLabels = Regex.Matches(wide, @"""(?<n>\w+)""\s*=>").Select(m => m.Groups["n"].Value).Distinct().ToList();
+        Assert.True(wideLabels.Count >= 15, "only " + wideLabels.Count + " RenderWide arms found — the scan is blind");
+        Assert.Contains("if (xs.Count == 1 && xs[0].Exact) return RenderExactUnary(ic.Sig.RuntimeMethod, xs[0]);", wide);
+
+        int unaryAt = src.IndexOf("private NumX? RenderExactUnary(", StringComparison.Ordinal);
+        Assert.True(unaryAt >= 0, "IntrinsicRenderer no longer declares RenderExactUnary");
+        string unary = src[unaryAt..src.IndexOf("};", unaryAt, StringComparison.Ordinal)];
+        var unaryLabels = Regex.Matches(unary, @"""(?<n>\w+)""\s*=>").Select(m => m.Groups["n"].Value).ToHashSet(StringComparer.Ordinal);
+        string dec = BodyOf(src, "private NumX? RenderDec(");
+        var missing = wideLabels.Where(n => !unaryLabels.Contains(n)
+            && !Regex.IsMatch(dec, $@"""{n}""\s+when\s+!num\.StandardDecimal\s*=>[^\n]*\bExactValueArg(?:List)?\(")).ToList();
+        Assert.True(missing.Count == 0,
+            "these RenderWide bodies have no twin for a run-time-scaled exact argument (NumX.Exact), so an argument expression in which "
+            + "a wide value met an SDIDI operand reaches them as its 34-digit round-to-odd image: give each a RenderExactUnary arm or "
+            + "a native RenderDec arm over ExactValueArg: " + string.Join(", ", missing));
+        var stale = unaryLabels.Where(n => !wideLabels.Contains(n)).ToList();
+        Assert.True(stale.Count == 0, "RenderExactUnary has arms with no wide body: " + string.Join(", ", stale));
+    }
+
     /// <summary>The wide form and the run-time-scaled exact value are not carriers: no consumer may dispatch on them, so
     /// <c>NumX.Carrier</c> refuses both.</summary>
     [Fact]
@@ -209,5 +239,11 @@ public sealed class ExactWideSettlementDriftTests
         Assert.Contains("xs.Any(x => x.Dec || x.Real || x.Exact)", BodyOf(intrinsic, "private NumX? RenderWide("));
         string device = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "FunctionDeviceText.cs"));
         Assert.Contains(": value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr)", device);
+        // A function's value on the exact carrier (RenderExactUnary, review finding R1-2) settles in DISPLAY's text and temporary and
+        // in the string-image channel, as a wide one does.
+        Assert.Contains("if (x.Exact) return RuntimeApi.FunctionFieldText(RuntimeApi.FunctionFieldOfExact(x.Expr), Comma);", device);
+        Assert.Contains(": x.Exact ? RuntimeApi.FunctionFieldOfExact(x.Expr)", device);
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "OperandText.cs"));
+        Assert.Contains(": x.Exact ? RuntimeApi.ExactFunctionText(x.Expr, deSign, comma)", text);
     }
 }

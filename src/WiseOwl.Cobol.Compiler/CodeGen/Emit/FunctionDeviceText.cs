@@ -92,6 +92,8 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         if (x.Real) return RuntimeApi.FloatDisplay(x.Expr);
         if (x.Dec) return RuntimeApi.FunctionDeviceTextDec(x.Expr, Comma);
         if (x.Wide) return RuntimeApi.FunctionDeviceTextWide(x.Expr, x.Scale, Comma);
+        // A run-time-scaled exact value (kb/Work PB4575: INTEGER (P + 2.0E0)) settles into the temporary that keeps every digit.
+        if (x.Exact) return RuntimeApi.FunctionFieldText(RuntimeApi.FunctionFieldOfExact(x.Expr), Comma);
         if (x.U) return RuntimeApi.FunctionDeviceTextDec(num.DecOperand(x), Comma);
         return RuntimeApi.FunctionDeviceTextScaled(x.Expr, x.Scale, Comma);
     }
@@ -122,6 +124,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         x.Real ? RuntimeApi.FunctionFieldOfFloat(x.Expr)
         : x.Dec ? RuntimeApi.FunctionFieldOfValue(x.Expr)
         : x.Wide ? RuntimeApi.FunctionFieldOfWide(x.Expr, x.Scale)
+        : x.Exact ? RuntimeApi.FunctionFieldOfExact(x.Expr)
         : RuntimeApi.FunctionFieldOfValue(num.DecOperand(x));
 
     /// <summary>The argument list of a selecting function: the comma list, or one array expression when a table(ALL) is among

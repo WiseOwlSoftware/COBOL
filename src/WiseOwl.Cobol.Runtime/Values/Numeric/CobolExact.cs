@@ -148,6 +148,30 @@ public readonly struct CobolExact
     public static CobolExact Negate(CobolExact a) =>
         a._sdidi ? new(CobolDec.Negate(a._dec), a._precision) : new(CobolWide.Negate(a._wide), a._scale, a._precision);
 
+    /// <summary>⛔ THE NATIVE POWER TO AN INTEGER EXPONENT (kb/Work PB4575 review finding R1-1; PB2617): exact on the wide form at
+    /// the base's scale times <paramref name="e"/> for a positive exponent while the power stays on it (GnuCOBOL's
+    /// <c>cob_decimal_pow</c>, an exact <c>mpz_pow_ui</c> with scale × n, by CLAUDE.md rule 1), else the SDIDI power of the base as
+    /// <see cref="Add"/> lifts it (<see cref="CobolIntrinsics.PowNativeDec"/>: the §8.8.1.2 rule-6 screen, the §8.8.1.5.4 r3
+    /// reciprocal of a negative exponent, the round-to-odd chain past the form). Before it the base entered the SDIDI as its 34-digit
+    /// image, so <c>P ** 1 - P</c> of a 39-digit P was the image's residue once the subtraction kept P exact. The precision is the
+    /// base's times a non-negative exponent (the multiple, numeric design D2), and the reciprocal's own fraction digits.</summary>
+    public static CobolExact Pow(CobolExact b, Int128 e, CobolRounding mode)
+    {
+        int precision = (int)Int128.Clamp(b._precision * Int128.Clamp(e, 0, int.MaxValue), int.MinValue, int.MaxValue);
+        if (e >= 1 && e <= int.MaxValue && !b._sdidi)
+        {
+            long scale = (long)b._scale * (long)e;
+            if (scale is >= int.MinValue and <= int.MaxValue && CobolWide.TryPow(b._wide, (long)e, out CobolWide power))
+                return new(power, (int)scale, precision);
+        }
+        CobolDec dec = CobolIntrinsics.PowNativeDec(b.ToDec(mode), e);
+        return new(dec, e >= 0 ? precision : CobolDec.FractionDigits(dec));
+    }
+
+    /// <summary>This value with the fraction digits <paramref name="precision"/> (an integer function's value is held at 0).</summary>
+    internal CobolExact WithPrecision(int precision) =>
+        _sdidi ? new(_dec, precision) : new(_wide, _scale, precision);
+
     /// <summary>⛔ THE FINAL TRANSFER (kb/Work PB1900, PB4575): this value moved to the receiver's <paramref name="toScale"/> and
     /// rounded ONCE with the receiver's <paramref name="mode"/>, through <see cref="CobolWide.ToUnscaled"/> for both carriers (an SDIDI
     /// value as its significand at its own exponent), so a checked transfer past the carrier is EC-SIZE-TRUNCATION and PROHIBITED

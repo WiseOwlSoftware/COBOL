@@ -40,3 +40,13 @@ the SDIDI returned-value carrier, rounded once to 34 digits, and the now-exact d
 PB4570's carrier question.
 
 **Self-review and gate.** The four lenses found one coverage gap, fixed: the type-6 intake of an exact value had no witness on its SDIDI and negative-scale arms (`IntegerIntake_KeepsEveryDigit_OnEitherCarrier`). Gate at d9094f2: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,473/21,473 · Unit 39,746/39,746 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261104T170330Z); no existing golden moved. The branch head's own gate record is what the landing reads. LINUX GATE: not part of the per-change gate (PB4327).
+
+**Review round 1.** The branch review found two regressions, both one mechanism: an exact value entering a consumer as its
+34-digit image, harmless at the base only because the expression around it lowered its other operand to the same image.
+R1-1: `NumericRenderer.Power` lowered an exact base, so `(P) ** 1 - P` stored 99001 and `IF (P) ** ONE = P` was false; an exact
+base to an integer exponent now keeps every digit (`CobolWide.Pow`, or `CobolExact.Pow`: exact on the wide form, the SDIDI's
+`PowNativeDec` past 77 digits). R1-2: ABS, SIGN, INTEGER, INTEGER-PART and FRACTION-PART over a run-time-scaled exact argument
+read its image (`INTEGER (P + 0.0E0) - P` was 99001); `IntrinsicRenderer.RenderExactUnary` returns their value on the exact carrier,
+DISPLAY and MOVE to an alphanumeric item show every digit, and a new drift test holds each `RenderWide` body to an exact twin. The
+golden gains twelve legs (POW1, POWX, POWS, POWEQ, INTW, IFLR, IPART, FPART, ABS, SIGN, DINT, MOVEA) and `CobolExactIntrinsicsTests`
+two facts. A power past 77 digits keeps DOC-A.1-123's SDIDI determination, now stated for powers in CONFORMANCE.

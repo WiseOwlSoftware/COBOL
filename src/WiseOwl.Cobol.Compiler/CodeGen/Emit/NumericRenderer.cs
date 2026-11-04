@@ -1410,9 +1410,15 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25).</summary>
     private NumX Power(NumX b, NumX e, Int128? literalExponent)
     {
-        // An exact wide base/exponent has no power form: it enters on the SDIDI (kb/Work PB1900)
-        b = LowerWide(b);
+        // An exact exponent (NumX.Wide, NumX.Exact) has no power form: it enters on the SDIDI (kb/Work PB1900).
         e = LowerWide(e);
+        // ⛔ AN EXACT BASE RAISED TO AN INTEGER EXPONENT KEEPS EVERY DIGIT (kb/Work PB4575 review finding R1-1): the power of an
+        // exact wide intermediate, or of a run-time-scaled exact value, is formed on its own exact form by the PB2617 arm below. It
+        // used to enter on the SDIDI as its 34-digit round-to-odd image, which was harmless only while the operation around the
+        // power lowered its other operand to the same image: once a wide value beside an SDIDI operand kept every digit (CombineCore's
+        // exact arm, the exact relation), `(P) ** 1 - P` of a 39-digit P stored the image's residue (99001 for 0) and
+        // `IF P ** 1 = P` was false. Any other base or exponent (a binary64, a non-integer exponent, a standard mode) is lowered.
+        if (StandardDecimal || !(b.Wide || b.Exact) || !IsIntegerCarrier(DeU(e))) b = LowerWide(b);
         // STANDARD / STANDARD-DECIMAL: exponentiation follows §8.8.1.5.4 — an integer exponent evaluates by
         // repeated SDIDI multiplication (r2a–r2d exactly; r2e's implementor-defined form for larger integers,
         // every step per §8.8.1.5.3), r3's reciprocal for a negative exponent, and the EC-SIZE-EXPONENTIATION
@@ -1462,7 +1468,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // to its SDIDI body under native too (IntrinsicRenderer.RenderNum); an Int128 landing that cannot hold the
         // value raises EC-SIZE-OVERFLOW (CobolDec.ToUnscaledIntermediate — A.1 item 179, "checked") instead of
         // returning modular digits.
-        bool integerOperands = !b.Real && !e.Real && !b.Dec && !e.Dec && b.Scale == 0 && e.Scale == 0;
+        bool integerOperands = IsIntegerCarrier(b) && IsIntegerCarrier(e);
         if (integerOperands)
             return new NumX(RuntimeApi.Intrinsic("PowNativeIntDec", $"{b.Expr}, {e.Expr}"), 0, Dec: true);
         // ⛔ A FIXED-POINT OR SDIDI BASE RAISED TO AN INTEGER EXPONENT IS EXACT TOO (kb/Work PB2617). The integer-base arm
@@ -1480,13 +1486,19 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         //     with no digit bound) lands on the SDIDI, which owns its scale at run time: CobolIntrinsics.PowNativeDec
         //     is the same exact power (the wide lane at run time, then the round-to-odd chain), the §8.8.1.5.4 r3
         //     reciprocal for a negative exponent, and the §8.8.1.2 rule-6 screen.
-        if (!b.Real && !e.Real && !e.Dec && e.Scale == 0 && (b.Dec || b.Scale != 0))
+        //   · An exact base (NumX.Wide, NumX.Exact, kept above) whose power the literal arm cannot bound is the same power on the
+        //     run-time-scaled exact carrier (CobolExact.Pow: exact on the wide form, PowNativeDec past it), never its image's.
+        if (!b.Real && IsIntegerCarrier(e) && (b.Dec || b.Wide || b.Exact || b.Scale != 0))
         {
-            if (literalExponent is { } n && n >= 1 && b.Digits > 0 && !b.Dec && (long)b.Digits * (long)n <= RuntimeApi.WideMaxDigits)
+            if (literalExponent is { } n && n >= 1 && b.Digits > 0 && !b.Dec && !b.Exact
+                && (long)b.Digits * (long)n <= RuntimeApi.WideMaxDigits)
                 return n == 1
                     ? b
                     : new NumX(RuntimeApi.WidePow(WideOperand(b), (int)n), b.Scale * (int)n, Digits: b.Digits * (int)n, Wide: true,
                         Precision: b.Precision is null ? null : b.FractionPrecision * (int)n);
+            // The power's precision (the base's times a non-negative exponent, a reciprocal's own places) is carried by the value.
+            if (b.Wide || b.Exact)
+                return new NumX(RuntimeApi.ExactPow(ExactOperand(b), e.Expr, IntermediateMode), 0, Exact: true);
             return new NumX(RuntimeApi.Intrinsic("PowNativeDec", $"{DecOperand(b)}, {e.Expr}"), 0, Dec: true);
         }
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
@@ -1523,6 +1535,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         return new NumX(RuntimeApi.Intrinsic("FromDouble",
             $"{pow}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
     }
+
+    /// <summary>An operand that is an INTEGER BY ITS CARRIER: the scaled <see cref="Int128"/> lane at scale 0 (no SDIDI, binary64 or
+    /// exact intermediate, whose scale is not this one). <see cref="Power"/>'s exact arms key on it.</summary>
+    private static bool IsIntegerCarrier(NumX x) => !x.Real && !x.Dec && !x.Wide && !x.Exact && x.Scale == 0;
 
     private static NumX Negate(NumX x) =>
         x.Real ? new NumX($"(-({Real(x)}))", 0, Real: true, Approximate: x.Approximate)

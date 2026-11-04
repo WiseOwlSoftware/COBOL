@@ -61,6 +61,22 @@
       *>   DISP  DISPLAY FUNCTION MAX (P + 2.0E0, 1) shows the selected
       *>         argument's every digit, P + 2 =
       *>         998999999999999998002000000000000001001.
+      *> An exact base raised to an integer exponent, and the exact
+      *> unary functions, keep every digit too (review findings R1-1,
+      *> R1-2): the images cancelled only while the operation around
+      *> them lowered its other operand to the same image.
+      *>   POW1  (P) ** 1 - P = 0, POWX (P) ** ONE - P = 0 (ONE = 1, a
+      *>         data-item exponent), POWS (P + 2.0E0) ** ONE - P = 2.
+      *>   POWEQ (P) ** ONE = P is true.
+      *>   INTW  INTEGER (P + 0.0E0) - P = 0; IFLR INTEGER (-P - 2.5E0)
+      *>         + P = -3 (the floor of -P - 2.5 is -P - 3).
+      *>   IPART INTEGER-PART (P + 2.5E0) - P = 2.
+      *>   FPART FRACTION-PART (P + 2.5E0) = 0.5.
+      *>   ABS   ABS (-P - 2.0E0) - P = 2.
+      *>   SIGN  SIGN (P - (P + 1.0E-30)) = -1.
+      *>   DINT  DISPLAY FUNCTION INTEGER (P + 2.0E0) shows P + 2 =
+      *>         998999999999999998002000000000000001001, and MOVE of
+      *>         it to PIC X(39) sends the same digits (MOVEA).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4575WIDESDIDI.
        DATA DIVISION.
@@ -68,6 +84,8 @@
        01 BIG PIC 9(18) VALUE 999999999999999999.
        01 K3  PIC 999 VALUE 999.
        01 N   PIC 9 VALUE 2.
+       01 ONE PIC 9 VALUE 1.
+       01 A   PIC X(39).
        01 S   PIC S9(9).
        01 R   PIC -(9)9.
        01 R2  PIC -(9)9.
@@ -127,4 +145,35 @@
               DISPLAY "REL4  NE"
            END-IF
            DISPLAY "DISP  " FUNCTION MAX (BIG * BIG * K3 + 2.0E0, 1)
+           COMPUTE R = (BIG * BIG * K3) ** 1 - BIG * BIG * K3
+           DISPLAY "POW1  " R
+           COMPUTE R = (BIG * BIG * K3) ** ONE - BIG * BIG * K3
+           DISPLAY "POWX  " R
+           COMPUTE R = (BIG * BIG * K3 + 2.0E0) ** ONE - BIG * BIG * K3
+           DISPLAY "POWS  " R
+           IF (BIG * BIG * K3) ** ONE = BIG * BIG * K3
+              DISPLAY "POWEQ EQ"
+           ELSE
+              DISPLAY "POWEQ NE"
+           END-IF
+           COMPUTE R = FUNCTION INTEGER (BIG * BIG * K3 + 0.0E0)
+                     - BIG * BIG * K3
+           DISPLAY "INTW  " R
+           COMPUTE R = FUNCTION INTEGER (- (BIG * BIG * K3) - 2.5E0)
+                     + BIG * BIG * K3
+           DISPLAY "IFLR  " R
+           COMPUTE R = FUNCTION INTEGER-PART (BIG * BIG * K3 + 2.5E0)
+                     - BIG * BIG * K3
+           DISPLAY "IPART " R
+           COMPUTE H = FUNCTION FRACTION-PART (BIG * BIG * K3 + 2.5E0)
+           DISPLAY "FPART " H
+           COMPUTE R = FUNCTION ABS (- (BIG * BIG * K3) - 2.0E0)
+                     - BIG * BIG * K3
+           DISPLAY "ABS   " R
+           COMPUTE R = FUNCTION SIGN (BIG * BIG * K3
+                     - (BIG * BIG * K3 + 1.0E-30))
+           DISPLAY "SIGN  " R
+           DISPLAY "DINT  " FUNCTION INTEGER (BIG * BIG * K3 + 2.0E0)
+           MOVE FUNCTION INTEGER (BIG * BIG * K3 + 2.0E0) TO A
+           DISPLAY "MOVEA " A
            STOP RUN.

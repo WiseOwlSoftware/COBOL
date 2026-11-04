@@ -255,6 +255,54 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(product), Wide(P * 100000)));
     }
 
+    /// <summary>⛔ AN EXACT BASE TO AN INTEGER EXPONENT IS EXACT ON THE WIDE FORM (kb/Work PB4575 review finding R1-1; GnuCOBOL's
+    /// mpz_pow_ui with scale × n): P ** 1 is P, (P + 2) ** 1 − P is 2, 2.5 ** 3 is 15.625 carrying 3 places, and ** 0 is 1. Past the
+    /// form (P ** 2 has 78 digits) it is the SDIDI power of P lifted once to 34 digits, NEAREST-AWAY-FROM-ZERO
+    /// (9989999999999999980020000000000000 × 10^5), squared and held by round-to-odd: 9980009999999999960079960000000001 × 10^44
+    /// (Python integers). A zero base to a non-positive exponent is §8.8.1.2 rule 6a's EC-SIZE-EXPONENTIATION.</summary>
+    [Fact]
+    public void Pow_OfAnExactBase_IsExact_OnTheWideForm()
+    {
+        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 1, Away), Wide(P)));
+        Assert.Equal(2, Whole(CobolExact.Sub(CobolExact.Pow(CobolExact.Add(Wide(P), Sdidi("20", -1), Away), 1, Away), Wide(P), Away)));
+        CobolExact cube = CobolExact.Pow(Fixed(25, 1), 3, Away);
+        Assert.Equal(0, CobolExact.Compare(cube, Sdidi("15625", -3)));
+        Assert.Equal(3, cube.ImageWithPrecision.Precision);
+        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 0, Away), Fixed(1)));
+        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 2, Away), Sdidi("9980009999999999960079960000000001", 44)));
+        Assert.Throws<CobolSizeError>(() => CobolExact.Pow(Wide(0), 0, Away));
+        Assert.Throws<CobolSizeError>(() => CobolExact.Pow(Wide(0), -1, Away));
+    }
+
+    /// <summary>⛔ ABS, SIGN, INTEGER, INTEGER-PART and FRACTION-PART of an exact value keep every digit (kb/Work PB4575 review
+    /// finding R1-2): of −(P + 2) ABS is P + 2; of P − (P + 10^−30) SIGN is −1; of −P − 2.5 INTEGER is −P − 3, INTEGER-PART −P − 2 and
+    /// FRACTION-PART −0.5; of P + 2.5 FRACTION-PART is 0.5. An SDIDI-carried value is its own integer at a positive exponent, and a
+    /// value at a negative scale whose digits pass the wide form (P × 10^40, 79 digits) is its own integer, held at precision 0,
+    /// with a FRACTION-PART of 0.</summary>
+    [Fact]
+    public void UnaryExactBodies_KeepEveryDigit()
+    {
+        CobolExact negSum = CobolExact.Negate(CobolExact.Add(Wide(P), Sdidi("2"), Away));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.AbsExact(negSum), Wide(P + 2)));
+        Assert.Equal(-1, CobolIntrinsics.SignExact(CobolExact.Sub(Wide(P), CobolExact.Add(Wide(P), Sdidi("1", -30), Away), Away)));
+        CobolExact negHalf = CobolExact.Add(CobolExact.Negate(Wide(P)), Sdidi("-25", -1), Away);
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FloorExact(negHalf), Wide(-P - 3)));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.TruncateExact(negHalf), Wide(-P - 2)));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FractionPartExact(Away, negHalf), Sdidi("-5", -1)));
+        Assert.Equal(0, CobolIntrinsics.FloorExact(negHalf).ImageWithPrecision.Precision);
+        Assert.Equal(0, CobolExact.Compare(
+            CobolIntrinsics.FractionPartExact(Away, CobolExact.Add(Wide(P), Sdidi("25", -1), Away)), Sdidi("5", -1)));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FloorExact(Sdidi("15", 39)), Sdidi("15", 39)));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FloorExact(Sdidi("-15", -1)), Fixed(-2)));
+        CobolExact past = CobolExact.Mul(Wide(P), Sdidi("1", 40), Away);
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.TruncateExact(past), past));
+        Assert.Equal(0, CobolIntrinsics.TruncateExact(past).ImageWithPrecision.Precision);
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(past), past));
+        Assert.Equal(0, CobolIntrinsics.FractionPartExact(Away, past).Sign);
+        Assert.Equal(CobolNum.FormatWideFunctionText(W((P + 2) * 10 + 5), 1),
+            CobolNum.FormatExactFunctionText(CobolExact.Add(Wide(P), Sdidi("25", -1), Away)));
+    }
+
     /// <summary>⛔ The final transfer rounds the exact value ONCE, in the receiver's mode, on either carrier; checked, a value past
     /// the carrier is EC-SIZE-TRUNCATION.</summary>
     [Fact]
