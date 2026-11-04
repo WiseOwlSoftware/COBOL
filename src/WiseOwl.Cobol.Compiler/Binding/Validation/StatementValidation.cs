@@ -6,6 +6,7 @@ using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -850,12 +851,27 @@ internal sealed class StatementValidation(DataBinder data)
                     : superordinate == 1 ? "1 enclosing table" : $"{superordinate} enclosing tables")
                 + " — \"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\" "
                 + "(ISO §14.9.37.3 SR2). The search supplies that occurrence itself by varying the table's first "
-                + "index (§14.9.37.4 GR1); an enclosing table's occurrence may be written here or left to the "
-                + "WHEN phrases, which is where GR1 puts it.");
+                + "index (§14.9.37.4 GR1); "
+                + (data.Edition.Edition.Year >= 2014
+                    ? "an enclosing table's occurrence may be written here or left to the WHEN phrases, which is where GR1 puts it."
+                    : "an enclosing table's occurrence is left to the WHEN phrases, which is where GR1 puts it "
+                      + "(COBOL-2014 first lets identifier-1 write it)."));
             // ⛔ A DYNAMIC-CAPACITY TABLE'S SCAN BOUND IS ITS ENCLOSING OCCURRENCE'S CAPACITY (kb/Work PB3365): with the
             // subscripts of identifier-1 unreadable there is no bound to bind, so this one cannot "continue" past its
             // report the way the fixed and occurs-depending tables do.
             if (table.IsDynamicTable) return null;
+        }
+        // ⛔ THE ENCLOSING TABLES' SUBSCRIPTS ARE A COBOL-2014 PERMISSION (kb/Work PB4577). The count above is the 2014 and
+        // 2023 rule (SR2 bans the searched level's subscript alone, SR3 keeps the enclosing ones). The 2002 text and the 2009
+        // committee draft say "Identifier-1 shall not be subscripted or reference modified" — any subscript — and 1985 is taken
+        // as no more permissive; the bare spelling is legal at every edition (the CCVS-85 suite writes it). The count above has
+        // already refused the too-many case at every edition, so a subscript left is an enclosing table's: a relaxation, gated as
+        // every relaxation is, by its construct row.
+        else if (operand.SubscriptCount > 0)
+        {
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.SearchIdentifier1EnclosingSubscript2014,
+                $"{verb} {written}: identifier-1 carries {operand.SubscriptCount} enclosing-table subscript"
+                + $"{(operand.SubscriptCount == 1 ? "" : "s")}");
         }
         return operand;
     }

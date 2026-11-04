@@ -2577,7 +2577,15 @@ of an unsupported facility.
   nested dynamic-capacity table that neither names is refused (COBOL2075).** The enclosing subscripts are evaluated
   once, when the statement begins; the standard leaves a table referenced at two different enclosing occurrences in its
   WHEN phrases undefined. A fixed or occurs-depending table needs no such choice: its bound is the same for every
-  occurrence of its enclosing tables. Witnesses: `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_table`,
+  occurrence of its enclosing tables. **The enclosing tables' subscripts on identifier-1 are a COBOL-2014 permission
+  (kb/Work PB4577; owner decision revised 2026-11-04, "Treat 2014 as allowing it").** §14.9.37.3 SR2 and SR3 permit them
+  (`cite.py --check 14.9.37.3 "Identifier-1 may be contained within one or more other tables, for which the subscripting is
+  still required"` → OK); the 2002 text and the 2009 committee draft say "Identifier-1 shall not be subscripted or reference
+  modified" (outside the tracked tree, so not `cite.py`-checkable), and 2023 Annex E lists no SEARCH relaxation, so the
+  relaxation is read as the 2014 standard's. At `--std 85` and `--std 2002` a subscripted identifier-1 is COBOL0900
+  (`search-identifier-1-enclosing-subscript-2014`, VCR row 7.49), refused in `StatementValidation.ResolveSearchTable` for
+  both SEARCH formats; the bare spelling is legal at every edition, and a subscript beyond the enclosing count is COBOL2075
+  at every edition. Witnesses: `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_table`,
   `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_property`,
   `conformance:cases/14.9.37-SEARCH/pb3365-search-nested-dynamic-no-occurrence`.
 

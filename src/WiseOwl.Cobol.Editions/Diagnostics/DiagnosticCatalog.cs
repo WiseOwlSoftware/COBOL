@@ -4634,7 +4634,11 @@ public static class DiagnosticCatalog
         + "search is specified by the user in the WHEN phrases.\" A nested table's identifier-1 may therefore "
         + "be written bare OR with one subscript per enclosing table (outermost first, and never one for the "
         + "searched level); this diagnostic asks for no MINIMUM count, and a screen that did would reject "
-        + "legal source — the CCVS suite writes the bare form throughout (kb/Work PB443).",
+        + "legal source — the CCVS suite writes the bare form throughout (kb/Work PB443). The enclosing "
+        + "tables' subscripts are a COBOL-2014 permission: the 2002 text and the 2009 committee draft say "
+        + "\"Identifier-1 shall not be subscripted or reference modified\", so at COBOL-85 and COBOL-2002 a "
+        + "subscript on identifier-1 that this diagnostic does not refuse is refused by the "
+        + "search-identifier-1-enclosing-subscript-2014 construct (COBOL0900; kb/Work PB4577).",
         "ISO §14.9.37.3 SR1, SR2, SR3");
 
     /// <summary>COBOL2409 — ISO §14.9.37.3 SR4, both SEARCH formats: END-SEARCH and a NEXT SENTENCE WHEN arm

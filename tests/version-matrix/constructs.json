@@ -3947,6 +3947,18 @@
   "expectDiagnostic": "COBOL0900",
   "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 145)",
   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVLK.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X VALUE \"A\".\nPROCEDURE DIVISION USING L.\nMAIN.\n    DISPLAY L.\n    GOBACK.\n"
+ },
+ {
+  "id": "search-identifier-1-enclosing-subscript-2014",
+  "description": "An enclosing table's subscript written on SEARCH or SEARCH ALL identifier-1 (SEARCH H (GI), where H is nested in G and GI subscripts G) - a COBOL-2014 relaxation. ISO/IEC 1989:2023 14.9.37.3 SR2 bans the subscript only \"at the level for which the SEARCH is applicable\" and SR3 says \"Identifier-1 may be contained within one or more other tables, for which the subscripting is still required\"; the 2002 text (WG4/J4 post-ballot draft) and the 2009 committee draft (CD 1.2) say \"Identifier-1 shall not be subscripted or reference modified\", so every subscript on identifier-1 is refused below 2014. THE EDGE IS READ FROM THE DRAFTS (kb/Work PB4577; owner decision, revised 2026-11-04, 'Treat 2014 as allowing it'): the 2023 Annex E lists the substantive changes since 2014 and has no SEARCH entry, so the relaxation came into the standard between the 2009 CD and the 2014 text; the published 2002 and 2014 texts and the 1985 text are not held, and 1985 is taken as no more permissive than 2002 (the 2002 Annex F list names no SEARCH relaxation). The bare spelling (SEARCH H, the enclosing occurrence supplied in the WHEN phrases, 14.9.37.4 GR1) is legal at every edition. Gated in ONE place, StatementValidation.ResolveSearchTable, which both SEARCH formats call (VCR row 7.49).",
+  "display": "an enclosing table's subscript on SEARCH identifier-1",
+  "diagnosticCode": "COBOL0900",
+  "citation": "ISO §14.9.37.3 SR2, SR3; the 2002 text and the 2009 CD 1.2 SEARCH rule 1 (\"Identifier-1 shall not be subscripted or reference modified\")",
+  "introducedIn": 2014,
+  "removedIn": null,
+  "expectDiagnostic": "COBOL0900",
+  "vcr": "VCR Table 7 row 7.49 - SEARCH identifier-1 may carry the enclosing tables' subscripts from 2014 (kb/Work PB4577)",
+  "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSIE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T-VALS PIC X(6) VALUE \"123789\".\n01 T REDEFINES T-VALS.\n   05 G OCCURS 2 TIMES INDEXED BY GI.\n      10 H PIC 9 OCCURS 3 TIMES INDEXED BY HI.\nPROCEDURE DIVISION.\nMAIN-PARA.\n    SET GI TO 2\n    SET HI TO 1\n    SEARCH H (GI)\n        AT END DISPLAY \"NOT FOUND\"\n        WHEN H (GI, HI) > 7\n            DISPLAY \"FOUND \" H (GI, HI)\n    END-SEARCH\n    STOP RUN.\n"
  }
  ]
 }

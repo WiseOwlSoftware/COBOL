@@ -315,5 +315,6 @@ public static partial class ConstructRegistry
         new("unstring-sender-reference-modified-2002", "a reference-modified UNSTRING sending operand", 2002, null, null, "COBOL0900", "ISO §14.9.48.3; ISO/IEC 1989:2002 Annex F.2 item 139"),
         new("use-without-procedure-2002", "a USE AFTER STANDARD EXCEPTION/ERROR statement without the word PROCEDURE", 2002, null, null, "COBOL0900", "ISO §14.9.49.2; ISO/IEC 1989:2002 Annex F.2 item 141"),
         new("value-clause-linkage-file-external-2002", "a data-item or table VALUE clause in the linkage or file section or on an EXTERNAL item", 2002, null, null, "COBOL0900", "ISO §13.18.63.3; ISO/IEC 1989:2002 Annex F.2 item 145"),
+        new("search-identifier-1-enclosing-subscript-2014", "an enclosing table's subscript on SEARCH identifier-1", 2014, null, null, "COBOL0900", "ISO §14.9.37.3 SR2, SR3; the 2002 text and the 2009 CD 1.2 SEARCH rule 1 (\"Identifier-1 shall not be subscripted or reference modified\")"),
     ];
 }
