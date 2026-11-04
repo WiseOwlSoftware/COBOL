@@ -1,4 +1,4 @@
-## PB4609: a subscript on SEARCH identifier-1 is a COBOL-2023 permission, and `--std 2014` refuses it
+## Entry 3107 — 2026-11-04 14:27 PST — PB4609: a subscript on SEARCH identifier-1 is a COBOL-2023 permission, and `--std 2014` refuses it
 
 PB4577 had placed the edge for `SEARCH H (GI)` (GI subscripting the table G that encloses H) at COBOL-2014, because the 2023 Annex E
 lists no SEARCH change. The 2014 cycle's final committee draft (FCD 1.0, WG4, 2010-07-01, 14.9.34.2 ALL FORMATS rule 1) still says
@@ -30,3 +30,4 @@ at every edition and now also names 2023 below it. Duplication: no second copy o
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,640/21,640 · Unit 39,855/39,855 · Characterization 37/37 cases ran (skipped 0) ===` (the re-gate after review round 1, run 000003-20261104T221559Z; the first gate was run 000001-20261104T215915Z)
 `semgrep/verify.py` PASS with no count raised.
+
