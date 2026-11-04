@@ -10,7 +10,7 @@
 > - **new features** are enabled only at `>=` their introducing edition;
 > - **obsolete / archaic** elements are flagged (and, where the spec schedules removal, gated off in newer dialects).
 >
-> **Scope limit (read before gating).** The 2023 spec documents the **2014→2023 delta completely** (Annex E for
+> **Scope limit (read before gating).** The 2023 spec documents the **2014→2023 delta** (Annex E for
 > substantive changes, Annex F for archaic/obsolete lists, plus inline per-section NOTES). The **85→2002** and
 > **2002→2014** deltas are only **partially** documented in the 2023 spec — they surface here mainly through the
 > **FLAG-02** directive (§7.3.14, which points at the 2002↔2014 incompatibilities) and a few inline references; their
@@ -18,6 +18,10 @@
 > `Edition delta` is **2002→2014** (the FLAG-02 GR4 rows) are therefore marked:
 > **"delta under-documented in the 2023 spec; confirm against the older standard before gating."**
 > The 85→2002 and 2002→2014 rows live in **Table 7**, one row per delta as it is researched; each states how its edition edge was DERIVED, because the repo holds neither older text. **Gap-closure plan (the four-compilers-in-one mission needs the full deltas):** for *new-feature introduction* gating at the 85/2002 and 2002/2014 boundaries, use the post-85 feature catalog in `docs/ISO2023_CONFORMANCE_PLAN.md` (M2/M3/M4) plus the version test matrix's `introducedIn` tags (`docs/VERSION_TEST_MATRIX_DESIGN.md`); for *behavior changes* across those boundaries, extending THIS ledger with 85→2002 and 2002→2014 row sets sourced from the ISO/IEC 1989:2002 and 1989:2014 standards is planned follow-on work — add the rows here (one canonical ledger, never a fork) as each delta is researched.
+> ⚠ **Annex E is not complete** (kb/Work PB4608): the 2014 cycle's FCD 1.0 (WG4, 2010-07-01,
+> `E:/COBOL-coord/specs-drafts/t2014.txt`) still forbids any subscript on SEARCH identifier-1 (line 32933), which
+> 2023's 14.9.37.3 rules 2) and 3) relax, and Annex E does not list the change. A 2014 edge rests on the 2014 FCD's
+> text, never on Annex E's silence.
 
 ---
 
