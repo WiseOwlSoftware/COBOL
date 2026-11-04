@@ -193,6 +193,7 @@
     "WiseOwl.Cobol.Binding.DataBinder::CobolWords": [
       "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
+      "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Compiler.Oo.OoDriver",
