@@ -1350,6 +1350,14 @@ result does not feed it — decision 20.
   SR20 (function-pointer signature), SR22 (restricted program-pointer, §13.18.60.4 GR25) and SR12 (an object
   reference's class) per elementary receiver, because `INITIALIZE g REPLACING PROGRAM-POINTER DATA BY x` reaches
   every program-pointer of `g`, each restricted on its own; the phrase-level check (SR4) only sees the category.
+  **A VALUE-phrase receiver a MOVE would transform stores the VALUE recipe's image** (kb/Work PB4512): GR6 a) 3.'s
+  sending-operand "produces the same result as the initial value of the data item", and for an alphanumeric-edited,
+  national-edited or numeric-edited receiver, or a JUSTIFIED one, the MOVE of the raw literal edits, right-aligns or
+  blanks what the VALUE clause did not (§13.18.63.4 GR7/GR8, §13.18.63.3 SR11): `PIC XXBXX VALUE "AB CD"` became
+  `AB  C`. Those receivers (`InitializeBinder.ValueIsNotAMoveResult`) bind an `InitializeStoreValue`, which
+  `InitializeEmitter` renders through `DataEmitter.ValueImageOf` — the ONE §13.18.63 recipe the declaration, a
+  report field and `SET condition-name TO TRUE` already share. Every other receiver keeps the MOVE of
+  `InitializeValueOperand`.
   **`category-name` IS A SET, not a word** (kb/Work PB415): §14.9.20.2's figure encloses THIRTEEN category names in
   a brace carrying CHOICE INDICATORS, so §5.2.6.4 makes a category-name one or more of them, each at most once —
   `REPLACING NUMERIC ALPHANUMERIC DATA BY …` is conforming COBOL-85 source. `InitializeCategorySet` (a bitmask over

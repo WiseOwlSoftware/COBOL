@@ -340,6 +340,7 @@ internal static class UsageCollectionPass
             switch (a)
             {
                 case InitializeStore x: P(x.Target); Op(x.Source); break;
+                case InitializeStoreValue x: P(x.Target); break;
                 case InitializeSetNull x: P(x.Target); break;
                 // §14.9.20.4 GR4/GR6b's implicit SET — BOTH operands are data references (the receiver and
                 // identifier-2), so both are recorded; only the receiver was, before the arm existed.

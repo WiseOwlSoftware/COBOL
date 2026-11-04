@@ -51,6 +51,21 @@ public sealed record InitializeStore(BoundMove Move) : InitializeAction
     public BoundOperand Source => Move.Source;
 }
 
+/// <summary>⛔ THE VALUE-PHRASE STORE OF A RECEIVER A MOVE WOULD TRANSFORM (kb/Work PB4512): ISO §14.9.20.4 GR6 a) 3.
+/// asks for a sending-operand that, "when moved to the receiving-operand with a MOVE statement, produces the same
+/// result as the initial value of the data item as produced by the application of the VALUE clause" — and for a
+/// receiver whose MOVE edits, justifies or blanks, the raw VALUE literal is not that operand, because the VALUE
+/// clause does none of those things to it (§13.18.63.4 GR7 "initialization is not affected by a JUSTIFIED clause
+/// and no editing takes place", GR8 BLANK WHEN ZERO "has no effect on initialization" for an alphanumeric or
+/// national literal; §13.18.63.3 SR11 for the editing characters of an alphanumeric-edited or national-edited
+/// item). Moving <c>"AB CD"</c> to <c>PIC XXBXX</c> edits it a second time to <c>AB  C</c>. For such a receiver
+/// the rule's result IS the initial value, so the store renders that value through the ONE §13.18.63 VALUE recipe
+/// (<c>DataEmitter.ValueImageOf</c>) — the recipe the item's own declaration, a report field's format-4 VALUE and
+/// <c>SET condition-name TO TRUE</c> (§14.9.39.4 GR6) already share — rather than through a MOVE that re-derives
+/// it and cannot always reach it (no literal moved to <c>PIC X/XX</c> yields <c>QQQQ</c>).
+/// <para><see cref="Raw"/> is the VALUE literal of the occurrence being initialized (<c>DataItem.ValueAt</c>).</para></summary>
+public sealed record InitializeStoreValue(Place Target, string Raw) : InitializeAction;
+
 /// <summary>The per-occurrence expansion of ONE OCCURS dimension (ISO §14.9.20.4 GR5b2 — "if the elementary data
 /// item is a table element, each occurrence of the elementary data item is a possible receiving-operand"): the body
 /// repeats for <paramref name="Var"/> = 1‥<paramref name="Count"/>; nested dimensions nest loops, outermost first
