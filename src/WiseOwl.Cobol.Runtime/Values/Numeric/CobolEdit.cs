@@ -417,8 +417,12 @@ public static partial class CobolEdit
 
         // Zero + every position suppressible (no fixed 9 anywhere) → the whole field blanks (spaces, or asterisk
         // fill keeping the actual decimal point — §13.18.40.4 zero-suppression rules).
+        // ⛔ "the value of the data to be stored is zero" (§13.18.40.5 rule 7 b) is the value the item ENDS UP
+        // HOLDING — the STORED digit string, the very test the BLANK WHEN ZERO guard above reads (kb/Work PB566),
+        // never the pre-truncation `scaled`: 1000 into PIC ***.** stores 00.00 (the high-order digits truncate,
+        // §14.6.8.2 5) and is all asterisks, decimal point kept (kb/Work PB4515).
         bool fullFieldBlanked = false;
-        if (allIntegerSuppressed && scaled == 0 && !pattern.Contains('9'))
+        if (allIntegerSuppressed && digits.AsSpan().IndexOfAnyExcept('0') < 0 && !pattern.Contains('9'))
         {
             fullFieldBlanked = true;
             for (int i = 0; i < output.Length; i++)
@@ -496,7 +500,6 @@ public static partial class CobolEdit
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
         var facts = MaskFacts.Of(pattern, edits, currency);
         char currencyChar = facts.CurrencyChar;
-        int minus = facts.Minus;
         bool fixedCs = facts.FixedCurrency;
         int csWidth = currencyString is { Length: > 1 } ? currencyString.Length : 1;
 
@@ -544,14 +547,22 @@ public static partial class CobolEdit
             phys++;
             // The currency symbol and every FLOATING character-1 were answered above, so the digit positions
             // left are 9/Z/* and a floating '+'/'-' — MaskFacts' own predicate, not a copy of it.
-            if (facts.IsDigitPosition(pattern[i])) { value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0); continue; }
+            if (facts.IsDigitPosition(pattern[i]))
+            {
+                value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0);
+                // ⛔ A FLOATING '+' or '-' member holds the sign where it LANDS (§13.18.40.5 rule 6 a): a position of
+                // the string holds a digit, a suppression space or the landed sign, so a '-' at one IS the item's
+                // negative sign — for the floating '+' string as much as for the floating '-' one (kb/Work PB4514;
+                // Format writes '-' for a negative value at the landing of either). Read AT the position, never as a
+                // scan of the whole image: a '-' inside a currency string or an editing literal is that symbol's
+                // text, and the arms above consumed those before this line.
+                if (c == '-' && p is '+' or '-') negative = true;
+                continue;
+            }
             if (c == '-') negative = true;                      // a fixed sign position holding minus
             else if (p == 'C' && c == 'C') negative = true;     // CR rendered (negative value)
             else if (p == 'D' && c == 'D') negative = true;     // DB rendered
         }
-        // A floating minus landed inside its zone. ⛔ Gated on the mask actually HAVING a floating '-' — an
-        // ungated scan reads a '-' that belongs to a currency string or an EDITING literal as the item's sign.
-        if (minus > 1 && image.Contains('-')) negative = true;
         Int128 result = negative ? -value : value;
         if (ExceptionState.DataIncompatibleChecking)
         {

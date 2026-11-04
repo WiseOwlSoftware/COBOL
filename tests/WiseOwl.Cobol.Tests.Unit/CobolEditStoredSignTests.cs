@@ -40,6 +40,35 @@ public sealed class CobolEditStoredSignTests
     public void Format_SignIsTheStoredValues(string picture, long value, int scale, string expected) =>
         Assert.Equal(expected, CobolEdit.Format(value, scale, picture));
 
+    // ISO §13.18.40.5 7) b) and 6) b): "the value of the data to be stored" is zero when the digits the picture HOLDS
+    // are all zero, so a value whose high-order digits truncate to zero is all asterisks (the point kept) or all
+    // spaces (kb/Work PB4515). A stored nonzero value keeps rule 7 a)'s suppression to the left of the point.
+    [Theory]
+    [InlineData("***.**", 1000, 0, "***.**")]
+    [InlineData("ZZZ.ZZ", 1000, 0, "      ")]
+    [InlineData("++++.++", 1000, 0, "       ")]
+    [InlineData("----.--", 1000, 0, "       ")]
+    [InlineData("*,***.**", 10000, 0, "*****.**")]
+    [InlineData("***.**", 10005, 1, "***.50")]
+    [InlineData("ZZZ.ZZ", 10005, 1, "   .50")]
+    [InlineData("***.**", 0, 0, "***.**")]
+    public void Format_AllSuppressedPicture_TestsTheStoredDigits(string picture, long value, int scale, string expected) =>
+        Assert.Equal(expected, CobolEdit.Format(value, scale, picture));
+
+    // ISO §14.9.25.4 6) d) 1: de-editing "establishes the operand's numeric value, which may be signed" — the sign a
+    // floating string landed (Table 9: '+' or '-' for a negative '+' string, '-' for a negative '-' string), read
+    // at the position, for either symbol (kb/Work PB4514).
+    [Theory]
+    [InlineData("++++9.99", "-1234.50", -123450)]
+    [InlineData("++++9.99", "+1234.50", 123450)]
+    [InlineData("++++9.99", "   -5.25", -525)]
+    [InlineData("++++9.99", "   +0.00", 0)]
+    [InlineData("----9.99", "-1234.50", -123450)]
+    [InlineData("----9.99", " 1234.50", 123450)]
+    [InlineData("----9.99", "   -5.25", -525)]
+    public void DeEdit_FloatingSignString_ReadsTheLandedSign(string mask, string image, long expected) =>
+        Assert.Equal((Int128)expected, CobolEdit.DeEdit(image, mask));
+
     [Fact]
     public void Format_FixedExtendedSign_FollowsTheStoredValue()
     {
