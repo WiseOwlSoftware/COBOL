@@ -1,4 +1,4 @@
-## Five sibling GnuCOBOL records from the batch-1 reviews, vetted
+## Entry 3091 — 2026-11-04 11:55 PST — Five sibling GnuCOBOL records from the batch-1 reviews, vetted
 
 The reviews of fuzz night 10's batch-1 drafts each turned up a defect outside the draft's own ticket. Each was vetted against the ISO text, reproduced on cobc 3.2.0 and 3.3-dev r5751, searched against the 1,827-ticket cache, and corrected by an independent refuter before filing. All five are `upstream_status: unreported`; WiseOwl is correct on each.
 
@@ -13,3 +13,4 @@ PB4597: a random or dynamic relative DELETE or REWRITE with relative key 0 retur
 PB4598: for a relative file with variable-length records, REWRITE never writes the record-size word, so a record grown from 2 to 6 bytes reads back with LN=02 where §13.18.43.4 13) a) and 15) require 06. Both versions are wrong and no ticket covers it. Writing the size word alone would let REWRITE create a record in an empty slot, so the fix needs PB4539's empty-slot test first; the refuter built both together and checked five probes.
 
 PB4530 (READ PREVIOUS skips records) gains a further witness from the PB4595 vetting: after READ NEXT three times and READ PREVIOUS, a sequential REWRITE returns 00 but overwrites slot 1's size word, leaving R002 unchanged (§14.9.35.4 5)).
+
