@@ -1,4 +1,4 @@
-## The fix lane plans an unsited ready defect as a group of its own (PB4566)
+## Entry 3064 — 2026-11-03 17:46 PST — The fix lane plans an unsited ready defect as a group of its own (PB4566)
 
 The owner asked to fix the open compiler defects. Two of them, PB3600 and PB3957, were open, unblocked and in
 `work.py next`, and two operator-steered waves planned neither. A dry run of `plan_wave.py` did not mention them at all.
@@ -17,3 +17,4 @@ A sibling bug in the public base is filed as PB4567: `fix_clusters.sites` cannot
 `reserved-words.json` would stay unsited even with a data root in the population. It does no harm today (no source file
 under `src/` has a hyphen in its name, and an unsited note is now planned anyway); its fix needs a base release and a pin
 move.
+
