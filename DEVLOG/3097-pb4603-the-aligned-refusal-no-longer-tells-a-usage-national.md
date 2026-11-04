@@ -1,4 +1,4 @@
-## PB4603: the ALIGNED refusal no longer tells a USAGE NATIONAL boolean item that its usage is DISPLAY
+## Entry 3097 — 2026-11-04 12:54 PST — PB4603: the ALIGNED refusal no longer tells a USAGE NATIONAL boolean item that its usage is DISPLAY
 
 `CheckAlignedClausesPass.DescribeAlignedSubject` wrote "an elementary boolean item whose usage is DISPLAY" for every
 boolean-category subject of COBOL1942 (ISO §13.18.1.3 SR1). A boolean item may also be described with USAGE NATIONAL
@@ -20,3 +20,4 @@ boolean item" src` found no other diagnostic that guesses a usage.
 **Self-review.** Architecture: no new classification, the pass defers to `ItemCategory.Face`. Full code: the message
 cites SR1 and GR5, both run through `cite.py --check`. Performance: the message is built only on a refusal.
 Duplication: one fewer hand-written face.
+
