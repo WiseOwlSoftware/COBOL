@@ -1614,7 +1614,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             //    is held and the 2002 Annex F.1 list of 1985-to-2002 changes names no VALUE-literal size change, so
             //    the rule is read as 1985's too, as the unconditional alphanumeric arm already does. The size is the
             //    SUBJECT'S (kb/Work PB598), so a CONDITION-NAME subject, which carries none, stays dark. A national
-            //    literal on a USAGE NATIONAL numeric-edited item is SR7's class half (CheckValueLiteralClasses).
+            //    literal on a USAGE NATIONAL numeric-edited item is SR7's class half AND SR5's size half, both asked
+    //    once the usage is resolved (CheckValueLiteralClassesPass.ScreenNumericEditedLiteralClass).
             case PicCategory.NumericEdited when lit is LiteralClass.Alphanumeric
                     && subject.SizePositions is { } editedLimit && CobolLiteral.Decode(raw).Length > editedLimit:
                 Edition.Error(DiagnosticCatalog.ValueNumericEditedOversize, $"{where}: the VALUE literal "

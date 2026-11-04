@@ -43,8 +43,16 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
     /// otherwise undefined, then the class of the data item shall be that of the literal" — has NO SITE in this
     /// model and cannot acquire one: §13.18.60.3 SR13 implies a usage for every item given none (NATIONAL for an
     /// 'N'-bearing picture character-string, else DISPLAY), so a numeric-edited item's usage — and with it its
-    /// Table 2 class — is always defined.</para></summary>
-    private static void ScreenNumericEditedLiteralClass(DataBinder binder, PicInfo pic, string raw, string where)
+    /// Table 2 class — is always defined.</para>
+    /// <para>The class screen's SIZE half lives beside it for the same reason (kb/Work PB4610): once the literal's
+    /// class conforms to the usage, §13.18.63.3 SR5 sentence 2, "National literals in the VALUE clause of an
+    /// elementary item shall not exceed the size indicated by an explicit PICTURE clause", measures a national
+    /// literal on a USAGE NATIONAL numeric-edited item against the edited picture's positions, the editing
+    /// characters counted. Its alphanumeric twin is the SR4 arm of <c>ValidateValueCategory</c>, which needs no
+    /// usage. <paramref name="subject"/> is the SAME <see cref="ValueSubject"/> the entry-bind screen builds, so a
+    /// CONDITION-NAME subject, which indicates no size, stays dark for this arm exactly as for that one.</para></summary>
+    private static void ScreenNumericEditedLiteralClass(DataBinder binder, PicInfo pic, string raw, string where,
+        ValueSubject subject)
     {
         if (pic.Category is not PicCategory.NumericEdited) return;
         LiteralClass? lit = CobolLiteral.ClassOf(raw);
@@ -52,7 +60,14 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
         bool isNatLit = lit is LiteralClass.National || allLit is LiteralClass.National;
         bool isAlnumLit = lit is LiteralClass.Alphanumeric || allLit is LiteralClass.Alphanumeric;
         if (!isNatLit && !isAlnumLit) return;   // a numeric literal, a boolean literal or a figurative — not SR7's
-        if (isNatLit == (pic.Usage is Usage.National)) return;
+        if (isNatLit == (pic.Usage is Usage.National))
+        {
+            if (lit is LiteralClass.National && subject.SizePositions is { } natLimit
+                && CobolLiteral.Decode(raw).Length > natLimit)
+                binder.Edition.Error(DiagnosticCatalog.ValueNationalLiteralRule, $"{where}: the VALUE national literal "
+                    + $"exceeds the numeric-edited item's {natLimit} national positions (ISO §13.18.63.3 SR5)");
+            return;
+        }
         binder.Edition.Error(DiagnosticCatalog.ValueLiteralClassNumericEdited, $"{where}: the VALUE literal {raw} is of class "
             + $"{(isNatLit ? "national" : "alphanumeric")}, but the numeric-edited item is of usage "
             + $"{(pic.Usage is Usage.National ? "NATIONAL and therefore of class national" : "DISPLAY and therefore of class alphanumeric")}"
@@ -79,8 +94,9 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
                 using var _ = binder.Edition.At(cond.Parent);
                 foreach (var (lo, hi) in cond.Values)
                 {
-                    ScreenNumericEditedLiteralClass(binder, cp, lo, $"condition-name '{cond.Name}'");
-                    if (hi is not null) ScreenNumericEditedLiteralClass(binder, cp, hi, $"condition-name '{cond.Name}'");
+                    ScreenNumericEditedLiteralClass(binder, cp, lo, $"condition-name '{cond.Name}'", ValueSubject.ForConditionName());
+                    if (hi is not null)
+                        ScreenNumericEditedLiteralClass(binder, cp, hi, $"condition-name '{cond.Name}'", ValueSubject.ForConditionName());
                 }
             }
 
@@ -90,11 +106,12 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
             {
                 using var _ = binder.Edition.At(item);
                 string where = $"data item '{item.CobolName ?? "FILLER"}'";
-                if (item.RawValue is { } raw) ScreenNumericEditedLiteralClass(binder, pic, raw, where);
+                var subject = ValueSubject.ForElementary(pic, item.IsDynamicLength, item.IsAnyLength, item.PicIsValueImplied);
+                if (item.RawValue is { } raw) ScreenNumericEditedLiteralClass(binder, pic, raw, where, subject);
                 // Each literal the clause WRITES, once — not once per table element it initializes (kb/Work PB1722).
                 if (item.TableValuePlan is { } plan)
                     foreach (var lit in plan.Phrases.SelectMany(p => p.Literals).Distinct(StringComparer.Ordinal))
-                        ScreenNumericEditedLiteralClass(binder, pic, lit, where);
+                        ScreenNumericEditedLiteralClass(binder, pic, lit, where, subject);
             }
             foreach (var c in item.Children) Walk(c);
         }

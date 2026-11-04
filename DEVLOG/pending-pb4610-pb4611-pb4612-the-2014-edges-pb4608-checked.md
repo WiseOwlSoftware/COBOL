@@ -18,6 +18,16 @@ exact-size literals on `ZZ9` and `$ZZ9.99`, the latter proving the editing chara
 `pb4610-value-oversize-numeric-edited` (refused at all four editions). SR-13.18.63.3-4 re-recorded; its note had put the
 numeric-edited size change at 2023.
 
+**PB4610, review round 1 (the national twin).** The branch reviewer found the same sentence's national half still
+unmeasured: SR5 sentence 2 names "an elementary item" just as SR4 does, and a numeric-edited item of USAGE NATIONAL is of
+class national (8.5.2.1 Table 2), so `01 A PIC ZZ9 USAGE NATIONAL VALUE N"ABCDEF".` compiled clean at 2002, 2014 and 2023
+and displayed `[ABC]`. The arm sits in `CheckValueLiteralClassesPass.ScreenNumericEditedLiteralClass` rather than in
+`ValidateValueCategory`, because it reads the usage, which a group's USAGE clause can still supply after the entry binds
+(13.18.60.4 GR1; probed: an inherited NATIONAL is refused, a level-88 literal stays dark). COBOL0898, the national
+literal rule's own code. Goldens `pb4610_value_size_national_edited` and `pb4610-value-oversize-national-edited`;
+SR-13.18.63.3-5 re-recorded. The lead on `EntryConventionGateTests` (a theory duplicating the matrix row and two goldens)
+sits in a file this change does not touch and is left for the clerk.
+
 **PB4611, ENTRY-CONVENTION IS name at 2002.** Re-probe: `ENTRY-CONVENTION IS STDCALL` at `--std 2002` drew COBOL2385 and a
 false COBOL0900 "requires COBOL-2014". The clause is in 1989:2002 (11.8.5, `t2002.txt:10979-10997`); only the COBOL
 alternative is the 2014 FCD's (`t2014.txt:13144-13146`, GR2 at 13166). `VisitEntryConventionClause` now asks the row of the
