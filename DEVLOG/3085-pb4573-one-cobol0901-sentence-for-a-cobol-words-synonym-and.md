@@ -1,4 +1,4 @@
-## PB4573: one COBOL0901 sentence for a COBOL-WORDS synonym, and the withdrawn-word sentence beside it
+## Entry 3085 — 2026-11-04 10:51 PST — PB4573: one COBOL0901 sentence for a COBOL-WORDS synonym, and the withdrawn-word sentence beside it
 
 Wave 20261860, group A (PB4573). The parser's COBOL0901 named the ORIGINAL of a retyped synonym: `MOVE "A" TO SHOW` after
 `>>COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"` said "'DISPLAY' is a reserved word", a word the source never wrote.
@@ -44,3 +44,4 @@ two files; what remains is shape tests). Witnesses: `ASignConditionSpellingMessa
 
 **Registered, not fixed (outside the mechanism).** A SUBSTITUTE synonym of a lexer-token word that a gate or a keyword predicate admits
 (`SUBSTITUTE "RECEIVE" BY "RCV"` then `01 RCV PIC X.`) is accepted as a user-defined word.
+
