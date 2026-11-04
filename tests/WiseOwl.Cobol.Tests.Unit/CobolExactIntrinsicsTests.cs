@@ -14,7 +14,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// oracle the runtime does not use — <see cref="BigInteger"/> for integers, Python <c>fractions.Fraction</c> divided once by
 /// <c>decimal</c> at 34 digits, ROUND_HALF_UP (NEAREST-AWAY-FROM-ZERO, §11.9.11.2 3) a)) for quotients — and each body is also
 /// driven past the 256-bit wide form, where it must answer exactly as the SDIDI body over the images does (DOC-A.1-123's
-/// determination past 77 digits).
+/// determination past 77 digits). The last section drives <see cref="CobolExact"/> as the run-time-scaled ARITHMETIC carrier of an
+/// expression in which a wide value meets an SDIDI-carried operand (kb/Work PB4575), against the same oracle.
 /// </summary>
 public sealed class CobolExactIntrinsicsTests
 {
@@ -188,5 +189,70 @@ public sealed class CobolExactIntrinsicsTests
             CobolIntrinsics.PresentValueExact(Away, rate, Fixed(2), Fixed(3)));
         // The ordering never needs the fallback.
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Fixed(1), tiny, Fixed(3)));
+    }
+
+    // ── THE RUN-TIME-SCALED EXACT CARRIER (kb/Work PB4575): an expression in which a wide value meets an SDIDI-carried operand. ──
+
+    /// <summary>The value at scale 0 truncated, unchecked: the integer part a fixed-point receiver of scale 0 would store.</summary>
+    private static Int128 Whole(CobolExact x) => x.ToUnscaled(0, CobolRounding.Truncation, checkedTransfer: false);
+
+    /// <summary>⛔ (P + 2.0E0) − P is 2: the sum is exact on the wide form at the literal's scale, so the difference cancels P's
+    /// every digit (the SDIDI images of P cancelled and left 0), and the relation over the sum is the algebraic order.</summary>
+    [Fact]
+    public void SumBesideAnSdidiValue_IsExact()
+    {
+        CobolExact sum = CobolExact.Add(Wide(P), Sdidi("20", -1), Away);
+        Assert.Equal(2, Whole(CobolExact.Sub(sum, Wide(P), Away)));
+        Assert.Equal(-1, CobolExact.Compare(Wide(P - 1), sum));
+        Assert.Equal(-3, Whole(CobolExact.Add(CobolExact.Negate(CobolExact.Add(Wide(P), Sdidi("3"), Away)), Wide(P), Away)));
+        Assert.Equal(2500, CobolExact.Sub(CobolExact.Add(Wide(P), Sdidi("25", -2), Away), Wide(P), Away)
+            .ToUnscaled(4, CobolRounding.Truncation, checkedTransfer: false));
+    }
+
+    /// <summary>A product keeps its operands' own scales, so P × 1.0E40 is the 40-digit P × 10 at scale −39, and the nested quotient
+    /// by 1.0E40 is P again, exactly.</summary>
+    [Fact]
+    public void ProductAtANegativeScale_AndItsNestedQuotient_AreExact()
+    {
+        CobolExact product = CobolExact.Mul(Wide(P), Sdidi("10", 39), Away);
+        Assert.Equal(0, CobolExact.Compare(CobolExact.DivTruncated(product, Sdidi("10", 39), 0, Away), Wide(P)));
+        Assert.Equal(0, Whole(CobolExact.Sub(CobolExact.Mul(Wide(P), Sdidi("20", -1), Away), Wide(P * 2), Away)));
+    }
+
+    /// <summary>⛔ The nested quotient is truncated at the working scale of the PRECISION the values carry (DOC-A.1-123): 2.50 has
+    /// 2 places, so (P + 2.50 − P) / 3 is truncated at 2 + 14 = 16, and a wide value held with guard digits (a nested quotient's 14
+    /// at precision 0) never adds them.</summary>
+    [Fact]
+    public void NestedQuotient_TakesTheCarriedPrecision()
+    {
+        CobolExact twoFifty = CobolExact.Sub(CobolExact.Add(Wide(P), CobolExact.FromDec(D("2.50")), Away), Wide(P), Away);
+        CobolExact third = CobolExact.DivTruncated(twoFifty, Fixed(3), 0, Away);
+        Assert.Equal(8333333333333333, third.ToUnscaled(16, CobolRounding.Truncation, checkedTransfer: false));
+        Assert.Equal(16, third.ImageWithPrecision.Value.Exp * -1);
+        Assert.Equal(2, third.ImageWithPrecision.Precision);
+        CobolExact guarded = CobolExact.Add(CobolExact.FromWide(W(P), 14, precision: 0), CobolExact.FromDec(D("2.5")), Away);
+        Assert.Equal(1, guarded.ImageWithPrecision.Precision);
+        Assert.Throws<CobolSizeError>(() => CobolExact.DivTruncated(Wide(P), Sdidi("0"), 0, Away));
+    }
+
+    /// <summary>Past the 256-bit form a sum is the SDIDI sum of the operands lifted as an SDIDI operation lifts them: P + 1.0E-50
+    /// needs 89 digits, so it is P rounded once to 34 digits (DOC-A.1-123's determination past 77 digits).</summary>
+    [Fact]
+    public void SumPastTheWideForm_IsTheSdidiSum()
+    {
+        CobolExact sum = CobolExact.Add(Wide(P), Sdidi("1", -50), Away);
+        Assert.Equal(0, CobolExact.Compare(sum, Sdidi("9989999999999999980020000000000000", 5)));
+    }
+
+    /// <summary>⛔ The final transfer rounds the exact value ONCE, in the receiver's mode, on either carrier; checked, a value past
+    /// the carrier is EC-SIZE-TRUNCATION.</summary>
+    [Fact]
+    public void FinalTransfer_RoundsOnce_AndRaisesPastTheCarrier()
+    {
+        CobolExact half = CobolExact.Sub(CobolExact.Add(Wide(P), Sdidi("5", -1), Away), Wide(P), Away);
+        Assert.Equal(0, half.ToUnscaled(0, CobolRounding.Truncation, checkedTransfer: true));
+        Assert.Equal(1, half.ToUnscaled(0, Away, checkedTransfer: true));
+        Assert.Equal(1000, Sdidi("1", 3).ToUnscaled(0, Away, checkedTransfer: true));
+        Assert.Throws<CobolSizeError>(() => CobolExact.Add(Wide(P), Sdidi("2"), Away).ToUnscaled(0, Away, checkedTransfer: true));
     }
 }

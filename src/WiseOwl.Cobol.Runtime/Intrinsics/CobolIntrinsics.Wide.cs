@@ -48,6 +48,14 @@ public static partial class CobolIntrinsics
         return integer;
     }
 
+    /// <summary>§15.3 type 6 on an exact value whose scale only the run time knows (<see cref="CobolExact"/>, kb/Work PB4575): the
+    /// wide arm of <see cref="IntegerArgWide"/> for a value on the wide form, <see cref="IntegerArgUnboundedDec"/> for one the SDIDI
+    /// carries, so the integer keeps every digit the value has and the one integrality test applies to both.</summary>
+    public static CobolExact IntegerArgExact(CobolExact v) =>
+        v.TryWide(out CobolWide wide, out int scale)
+            ? CobolExact.FromWide(IntegerArgWide(wide, scale), 0)
+            : CobolExact.FromDec(IntegerArgUnboundedDec(v.Image));
+
     /// <summary>ABS (§15.7.4): the magnitude, at the argument's own scale. Unlike the <see cref="Int128"/> body there is no
     /// unrepresentable magnitude: the wide form is sign and magnitude.</summary>
     public static CobolWide AbsWide(CobolWide v) => CobolWide.Abs(v);

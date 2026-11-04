@@ -873,10 +873,22 @@ static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximationUnchecked(double v,
 WiseOwl.Cobol.Runtime.CobolExact
 WiseOwl.Cobol.Runtime.CobolExact.CobolExact() -> void
 static WiseOwl.Cobol.Runtime.CobolExact.Compare(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> int
-static WiseOwl.Cobol.Runtime.CobolExact.From(System.Int128 unscaled, int scale) -> WiseOwl.Cobol.Runtime.CobolExact
-static WiseOwl.Cobol.Runtime.CobolExact.FromDec(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.Add(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.DivTruncated(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int receiverScale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.From(System.Int128 unscaled, int scale, int? precision = null) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.FromDec(WiseOwl.Cobol.Runtime.CobolDec value, int? precision = null) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.FromDec(WiseOwl.Cobol.Runtime.CobolDecWithPrecision value) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.FromUnsigned(System.UInt128 unscaled, int scale) -> WiseOwl.Cobol.Runtime.CobolExact
-static WiseOwl.Cobol.Runtime.CobolExact.FromWide(WiseOwl.Cobol.Runtime.CobolWide value, int scale) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.FromWide(WiseOwl.Cobol.Runtime.CobolWide value, int scale, int? precision = null) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.Mul(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.Negate(WiseOwl.Cobol.Runtime.CobolExact a) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.Sub(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolExact
+WiseOwl.Cobol.Runtime.CobolExact.Image.get -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.CobolExact.ImageWithPrecision.get -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
+WiseOwl.Cobol.Runtime.CobolExact.ToDouble() -> double
+WiseOwl.Cobol.Runtime.CobolExact.ToUnscaled(int toScale, WiseOwl.Cobol.Runtime.CobolRounding mode, bool checkedTransfer) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerArgExact(WiseOwl.Cobol.Runtime.CobolExact v) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfExact(WiseOwl.Cobol.Runtime.CobolExact value) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MaxExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MeanExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.MedianExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec

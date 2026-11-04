@@ -967,19 +967,22 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// converted or truncated — EXCEPT at a §15.3 type-6 position, where it is INTEGRAL by the one intake of every carrier: an
     /// SDIDI operand becomes its integer on the SDIDI, a wide one its integer on the wide form
     /// (<c>CobolIntrinsics.IntegerArgWide</c>, so MOD (BIG * BIG * K3, 1000) sees every digit of its dividend and the
-    /// integrality test reads the exact fraction), a float or a fractional fixed-point operand lands at scale 0 through the
-    /// type-6 intake.</para>
-    /// <para>⛔ A WIDE VALUE IT RETURNS IS OWED A SETTLEMENT (<c>ExactWideSettlementDriftTests</c>): its two readers are
-    /// <see cref="RawArg"/>, which lowers it, and <see cref="RenderWide"/>, whose result is a <c>NumX.Wide</c> that
-    /// <c>NumericRenderer</c> settles at its public entry like any nested product.</para>
+    /// integrality test reads the exact fraction), a run-time-scaled exact one (<c>NumX.Exact</c>, kb/Work PB4575) its integer on
+    /// its own carrier (<c>CobolIntrinsics.IntegerArgExact</c>), a float or a fractional fixed-point operand lands at scale 0
+    /// through the type-6 intake.</para>
+    /// <para>⛔ AN EXACT VALUE IT RETURNS IS OWED A SETTLEMENT (<c>ExactWideSettlementDriftTests</c>): its readers are
+    /// <see cref="RawArg"/>, which lowers it, <see cref="RenderWide"/>, whose result is a <c>NumX.Wide</c> that
+    /// <c>NumericRenderer</c> settles at its public entry like any nested product (and which declines a <c>NumX.Exact</c>), and
+    /// <see cref="ExactValueArg"/>, which takes it as the <c>CobolExact</c> it is.</para>
     /// </remarks>
     private NumX RawWideArg(BoundIntrinsicCall ic, int i)
     {
         NumX x = num.AsNum(ic.Args[i], num.Receiver, keepWide: true);
-        if (!(x.Real || x.Dec || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
+        if (!(x.Real || x.Dec || x.Exact || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
         if (x.Wide)
             return new NumX(RuntimeApi.IntegerArgWide(x.Expr, x.Scale), 0, Wide: true,
                 Digits: x.Scale > 0 ? Math.Max(1, x.Digits - x.Scale) : x.Digits - x.Scale);
+        if (x.Exact) return new NumX(RuntimeApi.IntegerArgExact(x.Expr), 0, Exact: true, Precision: 0);
         return x.Dec
             ? x with { Expr = RuntimeApi.IntegerArgUnboundedDec(x.Expr), WithPrecision = null }
             : new NumX(IntegerIntake(x, wide: true), 0);
@@ -1371,7 +1374,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// implementor's, and §15.4.1 the returned value's characteristics; for that latitude CLAUDE.md rule 1 makes GnuCOBOL the
     /// answer, and its argument temporary is arbitrary-precision. The argument used to reach the function as its 34-digit
     /// round-to-odd image: <c>ABS (BIG * BIG * K3)</c> showed <c>…100000</c> for <c>…000999</c>, MOD of it by 1000 was 0 for 999.</para>
-    /// <para>WHEN. Some argument is wide and none is an SDIDI or a binary64 (a call with one returns its value on the SDIDI, and
+    /// <para>WHEN. Some argument is wide and none is an SDIDI, a binary64 or a run-time-scaled exact value (<c>NumX.Exact</c>, an
+    /// expression in which a wide value met an SDIDI operand, kb/Work PB4575, whose scale no aligned body can know; a call with one
+    /// returns its value on the SDIDI, and
     /// takes the wide argument there EXACTLY: <see cref="RenderDec"/>'s native arms over <see cref="ExactValueArgList"/>, kb/Work
     /// PB4568, so ORD-MAX (P - 1, P, 2.0E0) is 2 and MOD (P, 2 ** 10) 999), and the arguments' digit bounds prove the WORK fits the wide
     /// form's 77 digits: each argument aligned to the common scale (its digits plus the scale gap), plus what the function adds to
@@ -1394,7 +1399,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // answered here without rendering its arguments a further time.
         if (num.StandardDecimal || !ic.Args.Any(a => a is BoundComputedOperand)) return null;
         var xs = Enumerable.Range(0, ic.Args.Count).Select(i => RawWideArg(ic, i)).ToList();
-        if (!xs.Any(x => x.Wide) || xs.Any(x => x.Dec || x.Real)) return null;
+        if (!xs.Any(x => x.Wide) || xs.Any(x => x.Dec || x.Real || x.Exact)) return null;
 
         int s = xs.Max(x => x.Scale);
         int widest = xs.Max(x => NumericRenderer.DigitBound(x) + (s - x.Scale));

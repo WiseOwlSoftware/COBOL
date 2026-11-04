@@ -203,7 +203,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 /// renderer's public entries settle it — into the receiver's scale and mode at a final transfer, into the SDIDI
 /// otherwise (or the consumer opts in with <c>keepWide</c> and settles it itself) — so it is deliberately NOT a
 /// <see cref="NumXCarrier"/>, and <see cref="Carrier"/> throws on it. Mutually exclusive with <see cref="Dec"/>,
-/// <see cref="Real"/> and <see cref="U"/>.</param>
+/// <see cref="Real"/>, <see cref="U"/> and <see cref="Exact"/>.</param>
 /// <param name="Precision">The fraction digits the value's operands carry when they differ from <see cref="Scale"/> (a
 /// nested quotient's guard digits are not among them), or <c>null</c> when they are the scale; read through
 /// <see cref="FractionPrecision"/>. ⛔ For a <see cref="Dec"/> value (whose <see cref="Scale"/> is a placeholder 0)
@@ -215,8 +215,18 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 /// consumer that rewrites <see cref="Expr"/> drops it. <c>null</c> on a runtime-precision value means the precision is
 /// the fraction digits the value is held at (<c>CobolDecWithPrecision.Own</c>: a NUMVAL value's written places, a power's
 /// or a function's result's).</param>
+/// <param name="Exact">True when <see cref="Expr"/> is a <c>CobolExact</c>-typed EXACT value of the NATIVE lane whose scale only
+/// the run time knows (kb/Work PB4575): the sum, difference or product of an exact wide intermediate and an SDIDI-carried operand
+/// (a floating-point literal, a power, a function's SDIDI value), and every sum, difference, product and negation over one. It is
+/// exact on the 256-bit form at its run-time scale and the SDIDI past it (<c>CobolExact.Add</c>). Like <see cref="Wide"/> it
+/// NEVER LEAVES <c>NumericRenderer</c> unsettled: the public entries settle it (<c>NumericRenderer.Settle</c>), a keepWide
+/// consumer settles it itself, and <see cref="Carrier"/> throws on it. <see cref="Scale"/> is a placeholder 0 and
+/// <see cref="Digits"/> 0; <see cref="Precision"/> is the compile-time precision when every operand's is known, and <c>null</c>
+/// when only the run time knows it (the value carries it: <c>CobolExact.ImageWithPrecision</c>). Mutually exclusive with
+/// <see cref="Dec"/>, <see cref="Real"/>, <see cref="U"/> and <see cref="Wide"/>.</param>
 internal readonly record struct NumX(string Expr, int Scale, bool Dec = false, bool Real = false, bool U = false,
-    bool Approximate = false, int Digits = 0, bool Wide = false, int? Precision = null, string? WithPrecision = null)
+    bool Approximate = false, int Digits = 0, bool Wide = false, int? Precision = null, string? WithPrecision = null,
+    bool Exact = false)
 {
     /// <summary>⛔ AN SDIDI VALUE WHOSE PRECISION ONLY THE RUN TIME KNOWS (kb/Work PB3538 review finding R3-1): a
     /// <see cref="Dec"/> with no compile-time <see cref="Precision"/>, such as a NUMVAL value, a power formed on the SDIDI or
@@ -233,16 +243,16 @@ internal readonly record struct NumX(string Expr, int Scale, bool Dec = false, b
     /// value no quotient produced) means it IS the scale; the exact sum, product, negation and power of a value that
     /// has one carry theirs (the larger, the sum, the same, the multiple), as their scales do. ⛔ A
     /// <see cref="RuntimePrecision"/> value has no compile-time precision, and asking for one is a compiler defect.</summary>
-    public int FractionPrecision => Precision ?? (Dec
-        ? throw new InvalidOperationException("an SDIDI value's precision is known only at run time (NumX.RuntimePrecision)")
+    public int FractionPrecision => Precision ?? (Dec || Exact
+        ? throw new InvalidOperationException("an SDIDI or run-time-scaled exact value's precision is known only at run time (NumX.RuntimePrecision)")
         : Scale);
 
     /// <summary>WHICH carrier <see cref="Expr"/> is typed as — the one question every total-over-carriers dispatch
     /// (<c>IntrinsicRenderer.IntegerIntake</c>, the landings, the stores) asks, answered once from the mutually
     /// exclusive flags. <see cref="NumXCarrier"/> is the enumeration a drift test walks to prove such a dispatch
     /// accepts every carrier the renderer can produce.</summary>
-    public NumXCarrier Carrier => Wide ? throw new InvalidOperationException(
-            "an exact wide intermediate (NumX.Wide) is settled inside NumericRenderer and is not a carrier a consumer dispatches on (kb/Work PB1900)")
+    public NumXCarrier Carrier => Wide || Exact ? throw new InvalidOperationException(
+            "an exact intermediate (NumX.Wide, NumX.Exact) is settled inside NumericRenderer and is not a carrier a consumer dispatches on (kb/Work PB1900, PB4575)")
         : U ? NumXCarrier.UnsignedWide : Dec ? NumXCarrier.Sdidi : Real ? NumXCarrier.Binary64 : NumXCarrier.Scaled;
 }
 
