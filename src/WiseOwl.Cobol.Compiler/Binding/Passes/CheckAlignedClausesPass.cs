@@ -81,15 +81,24 @@ internal sealed class CheckAlignedClausesPass : IBindPass
     }
 
     /// <summary>What the offending subject actually IS, so the diagnostic names the mismatch rather than
-    /// restating the rule. Kept next to the check because it exists only for that message.</summary>
+    /// restating the rule. The words are <see cref="ItemCategory.Face(DataItem)"/>'s — the one reading of a
+    /// group's kind (<see cref="ItemCategory.GroupKindsOf"/>: national, strongly-typed, variable-length,
+    /// alphanumeric) and of an elementary item's Table 2 category — so this pass keeps no classification of its
+    /// own (kb/Work PB1654). Three hints ride on top because they exist only for this rule: what a plain group
+    /// would have to carry to be a bit group item (§13.16.4 GR1), what makes an elementary boolean item a BIT
+    /// data item (§13.18.60.4 GR5), and — because this pass judges the TEMPLATE once, where no item is yet
+    /// strongly typed (§8.5.3.1) — that a group inside a STRONG type declaration will be one in every item
+    /// described with the type, which no GROUP-USAGE BIT clause can turn into a bit group (§13.18.29.3 SR1), so
+    /// the "write GROUP-USAGE BIT" hint would send the programmer to a second refusal.</summary>
     private static string DescribeAlignedSubject(DataItem item) =>
-        !item.IsElementary
-            ? item.GroupUsage is GroupUsage.National
-                ? "a national group item (GROUP-USAGE NATIONAL)"
-                : "an alphanumeric group item — a bit group item is one described with, or inheriting "
-                  + "(§13.16.4 GR1), a GROUP-USAGE BIT clause"
-        : item.Pic is { Category: PicCategory.Boolean }
+        item.Pic is { Category: PicCategory.Boolean }
             ? "an elementary boolean item whose usage is DISPLAY — an elementary BIT data item is one described "
               + "with USAGE BIT (§13.18.60.4 GR5)"
-        : $"an elementary item of category {item.Pic?.Category.ToString()?.ToLowerInvariant() ?? "unknown"}";
+        : ItemCategory.GroupKindsOf(item) is not GroupKinds.Alphanumeric
+            ? ItemCategory.Face(item)
+        : item.DeclaresStrongType || DataBinder.UnderStrongTypeDeclaration(item)
+            ? "a group item of a type declaration with the STRONG phrase — every item described with the type is "
+              + "a strongly-typed group item (ISO §8.5.3.1), which cannot be a bit group item (§13.18.29.3 SR1)"
+        : ItemCategory.Face(item) + " — a bit group item is one described with, or inheriting "
+              + "(§13.16.4 GR1), a GROUP-USAGE BIT clause";
 }
