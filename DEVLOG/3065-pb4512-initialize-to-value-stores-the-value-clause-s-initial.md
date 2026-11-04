@@ -1,4 +1,4 @@
-## PB4512: INITIALIZE ... TO VALUE stores the VALUE clause's initial value into an edited or JUSTIFIED receiver, not a second edit of it
+## Entry 3065 — 2026-11-03 17:51 PST — PB4512: INITIALIZE ... TO VALUE stores the VALUE clause's initial value into an edited or JUSTIFIED receiver, not a second edit of it
 
 The 3,000-program fuzz batch found `INITIALIZE G ALL TO VALUE` turning `PIC XXBXX VALUE "AB CD"` into `AB  C`, `PIC ZZ9.99 VALUE " 12.50"` into `250.00` and `PIC X/XX VALUE "Q/RS"` into `Q//R`. ISO §14.9.20.4 GR6 a) 3. asks for a sending-operand whose MOVE "produces the same result as the initial value of the data item as produced by the application of the VALUE clause", and `InitializeBinder.SenderFor` sent the raw VALUE literal through the ordinary MOVE, which edits it again.
 
@@ -9,3 +9,4 @@ Fix: a receiver of an alphanumeric-edited, national-edited or numeric-edited cat
 Goldens: `pb4512_initialize_to_value_edited_receivers` (accepted from 2002: alphanumeric-edited, numeric-edited with an alphanumeric literal, `/` insertion, JUSTIFIED, BLANK WHEN ZERO, national-edited, an edited table, a data-name-subscripted single occurrence), `pb4512_initialize_to_value_numeric_literal_in_edited` (2023: the numeric literal that IS edited, §13.18.63.3 SR11, plus BLANK WHEN ZERO with a numeric zero) and the 85 refusal `pb4512-initialize-to-value-below-2002`. Expected values come from the VALUE clause's rules, and each program prints the declaration value beside the INITIALIZE value. `GR-14.9.20.4-6` stood CONFORMS and gained the witnesses; no row closed.
 
 Self-review: the four lenses found one gap, which the first gate caught: `BackendContractDriftTests` wanted `InitializeStoreValue.Raw` classified as a literal value (it is the VALUE literal text, the kind `DataItem.RawValue` already has), so the contract table carries the row. A VALUE-less or non-edited receiver keeps the MOVE path unchanged, so no hot path gained work. Gate: the first run was RED on that one test; the second, `=== BUILD-LOCAL GATE: GREEN — Conformance 21,441/21,441 · Unit 39,640/39,640 · Characterization 37/37 cases ran`.
+
