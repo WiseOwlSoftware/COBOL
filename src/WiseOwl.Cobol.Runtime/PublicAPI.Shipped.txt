@@ -2742,7 +2742,6 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinString(WiseOwl.Cobol.Runtime.
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinString(params string![]! xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.Pi() -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeDec(WiseOwl.Cobol.Runtime.CobolDec b, System.Int128 e) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeIntDec(System.Int128 b, System.Int128 e) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeReal(double b, double e) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, double e) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValue(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolDec rate, params WiseOwl.Cobol.Runtime.CobolDec[]! amounts) -> double

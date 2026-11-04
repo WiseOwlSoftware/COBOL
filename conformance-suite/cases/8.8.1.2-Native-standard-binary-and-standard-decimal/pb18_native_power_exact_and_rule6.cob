@@ -6,10 +6,11 @@
 *> portable: unverified
 *>---
       *> NATIVE ** IS EXACT WHEN THE RESULT FITS, AND SS8.8.1.2 RULE 6 BINDS IT.
-      *> 8.8.1.3 makes native arithmetic implementor-defined, so the TECHNIQUE is ours to choose; owner decision
-      *> 2026-08-03 chose "exact Int128 while it fits, the documented double approximation past it", following
-      *> the field (IBM and Micro Focus fall back to floating point past the fixed capacity; GnuCOBOL is
-      *> arbitrary-precision and has no boundary). What is NOT implementor-defined is rule 6, whose own title is
+      *> 8.8.1.3 makes native arithmetic implementor-defined, so the TECHNIQUE is ours to choose; CLAUDE.md rule 1
+      *> sends the choice to GnuCOBOL, whose run-time power is an exact mpz_pow_ui, and the owner decided on
+      *> 2026-11-04 (kb/Work PB4569) that an integer power is exact while its value fits the wide form, superseding
+      *> the decision of 2026-08-03 ("exact Int128 while it fits, a double approximation past it"). What is NOT
+      *> implementor-defined is rule 6, whose own title is
       *> "Native, standard-binary, and standard-decimal arithmetic" - it binds native ** exactly as it binds the
       *> SDIDI one, and two of its three parts are mandatory 'shall' requirements.
       *>
@@ -24,8 +25,9 @@
       *>
       *> ⚠ AND THE FIX HAD TO NOT BREAK THE CASES THAT WERE ALREADY RIGHT. A negative exponent is rule 6's
       *> RECIPROCAL and is not an integer, so an exact-integer arm that ignores the landing scale turns
-      *> 2 ** -2 into 0 - a regression the first cut introduced and probing caught. A fractional BASE keeps the
-      *> approximation arm entirely, because a scale-s base to the n has scale s*n and no compile-time scale.
+      *> 2 ** -2 into 0 - a regression the first cut introduced and probing caught. A fractional BASE with a
+      *> data-item or negative exponent lands on the SDIDI, which owns its scale at run time (a scale-s base to the n
+      *> has scale s*n and no compile-time scale).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB18POWER.
        DATA DIVISION.

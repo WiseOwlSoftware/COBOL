@@ -273,8 +273,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   is what every class-boolean checkpoint asks (relation validation, the boolean-expression operand — a new
   `BoundBoolCall` — the LENGTH fold, `IsStringOperand`, the condition renderer's fifth site) and §8.8.1.1's
   arithmetic screen fires at bind for a string-class function operand; RV-15.13.4-1 → CONFORMS, GAP 4047.
-  **✅ PB69 CLOSED (DEVLOG 1301, 2026-08-18)** — one native `**` arm on the SDIDI (`PowNativeIntDec`; the saturating
-  Int128 twin deleted); a native operation / intrinsic argument with a Dec evaluates on the SDIDI (MOD/REM exact
+  **✅ PB69 CLOSED (DEVLOG 1301, 2026-08-18)** — one native `**` value for every integer power (the saturating
+  Int128 twin deleted; PB4569 made it exact and replaced `PowNativeIntDec` by `CobolExact.Pow` / `PowNativeDec`); a native operation / intrinsic argument with a Dec evaluates on the SDIDI (MOD/REM exact
   integers stay exact); Dec→Int128 landings that cannot hold the value raise EC-SIZE-OVERFLOW (A.1 179 "checked",
   three places). **PB83 found and fixed in the same commit** — `CobolDec.Div`'s numerator pre-scale was capped at
   10^38 with an uncapped exponent (`100000 / D30` under STANDARD-DECIMAL was 0; wrong by 10^(scaleUp − 38)).
@@ -1243,11 +1243,12 @@ the single origin of every numeric argument. Measure the WHOLE population after 
 **⛔ THE FIVE THINGS THE NEXT SESSION SHOULD KNOW, in priority order.**
 
 0. **⚖ ALL THREE OWNER DECISIONS WERE TAKEN 2026-08-03 — none is open.**
-   · **PB18 — native `**`: EXACT `Int128` while the result fits, the documented double approximation past it**
-     (never a size error merely for outgrowing the carrier). ✅ **LANDED**, with PB28 and PB32's blocked half.
-     Recorded in full as `NUMERIC_DESIGN.md` **D19**. ⭐ The SURVEY decided it: IBM and Micro Focus fall
-     back to floating point past the fixed capacity, GnuCOBOL has no boundary (GMP), so no shipping COBOL raises
-     a size error there — which ruled out `CobolDec.Pow`'s own precedent.
+   · **PB18 — native `**`: EXACT for an integer exponent while the value fits the 77-digit wide form, the SDIDI's
+     34-digit round-to-odd value past it** (never a size error merely for outgrowing a carrier; the owner's answer of
+     2026-11-04, kb/Work PB4569, replaced the 2026-08-03 double approximation past `Int128` for an integer base).
+     ✅ **LANDED**, with PB28 and PB32's blocked half. Recorded in full as `NUMERIC_DESIGN.md` **D19**. ⭐ The SURVEY
+     of 2026-08-03: IBM and Micro Focus fall back to floating point past the fixed capacity, GnuCOBOL has no
+     boundary (GMP), so no shipping COBOL raises a size error there — which ruled out `CobolDec.Pow`'s own precedent.
    · **PB37 — NUMVAL-C's LOCALE phrase is an §A.4.9 OPTIONAL element** (editorial omission; and §A.4.1's
      catch-all — "Any associated syntax rules … are also optional, even if not explicitly listed" — reaches the
      same place without the inference, added 2026-08-31). ✅ **CLOSED 2026-08-31, SUPERSEDED by PB64 T6.**

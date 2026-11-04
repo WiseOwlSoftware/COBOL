@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>A signed 16-byte binary item legally holds −2^127 (DOC-A.1-208), and <c>-Int128.MinValue</c> wraps to
 /// itself, so any "absolute value" written as a negated ternary returns a NEGATIVE number for it. PB2639 and PB2641
 /// made the <c>CobolNum</c>, edit and float-conversion sites total over <see cref="CobolDec.UAbs"/>; this class pins
-/// the intrinsic sites that landing left: FUNCTION ABS (whose result 2^127 is past the carrier: the size error), the
+/// the intrinsic sites that landing left (the native power of the Int128.MinValue base is NativeIntegerPowerExactTests): FUNCTION ABS (whose result 2^127 is past the carrier: the size error), the
 /// saturation test of the NUMVAL-F shift, and the quotient of a divisor of <see cref="Int128.MinValue"/> on the SDIDI
 /// arm of <see cref="CobolNum.Divide"/> — plus the unsigned-wide twins of the unary arms (an unsigned 16-byte operand
 /// above <see cref="Int128.MaxValue"/> reached them as a Roslyn CS1503).</para>
@@ -105,30 +105,6 @@ public sealed class CobolIntrinsicsMinValueTests
     [Fact]
     public void NumvalFSingle_AtTheLargestAdmittedSignificand_IsTheFiniteBinary32() =>
         Assert.Equal(-1e34f, (float)CobolIntrinsics.NumvalFSingle("-" + ThirtyFourNines, digitCap: 34));
-
-    // ── Native integer exponentiation (PowNativeIntDec): the base's magnitude is unsigned ───────────────────────
-
-    [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(3)]
-    public void PowNativeIntDec_OfInt128MinValue_IsTheDocumentedApproximation_NotAnOverflowException(int exponent)
-    {
-        // |Int128.MinValue| = 2^127 > Int128.MaxValue, so every power leaves the carrier: the owner-decided double
-        // approximation (2026-08-03), whose sign follows the base's and the exponent's parity. The pre-fix body
-        // threw OverflowException from Int128.Abs(b) before reaching it.
-        CobolDec p = CobolIntrinsics.PowNativeIntDec(Int128.MinValue, exponent);
-        double expected = Math.Pow(-Math.Pow(2, 127), exponent);
-        Assert.Equal(expected, p.ToDouble());
-    }
-
-    [Fact]
-    public void PowNativeIntDec_StaysExactForTheLargestMagnitudeThatFits()
-    {
-        // (-2)^126 = 2^126 and 2^126 both fit; the exact loop keeps every digit and the sign by parity.
-        Assert.Equal(CobolDec.From((Int128)1 << 126, 0), CobolIntrinsics.PowNativeIntDec(-2, 126));
-        Assert.Equal(CobolDec.From(-((Int128)1 << 125), 0), CobolIntrinsics.PowNativeIntDec(-2, 125));
-    }
 
     // ── CobolNum.Divide with a divisor of Int128.MinValue on the SDIDI arm (exp < 0, the divisor cannot be scaled) ──
     // a is at scale 4, the result at scale 0, so the alignment would multiply the divisor by 10^4 and leave the carrier.

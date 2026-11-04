@@ -12,8 +12,8 @@
       *> MOD an integer function. The old receiver-bearing arm forced the FloatWorkingScale (≥9) landing
       *> onto the exact power, overflowed Int128 inside PowNativeInt, saturated, and MOD consumed the
       *> sentinel: 320612800 into S9(9)/S9(18)/S9(28) and the right answer into S9(31) — the receiver's
-      *> PICTURE selected the value. Now: literal exponent → exact Int128 at scale 0; runtime-item or
-      *> negative exponent → the SDIDI carrier (PowNativeIntDec) owning its scale at run time.
+      *> PICTURE selected the value. Now: literal exponent → the exact wide form at scale 0; runtime-item or
+      *> negative exponent → the exact carrier owning its scale at run time (CobolExact.Pow, kb/Work PB4569).
       *> REM (§15.77.4) rides the same argument, the reciprocal (§8.8.1.2) keeps its fraction on both
       *> arms, and 10 ** 30 stays exact (the PB18 case).
        IDENTIFICATION DIVISION.
