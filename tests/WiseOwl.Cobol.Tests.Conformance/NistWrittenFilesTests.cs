@@ -26,6 +26,16 @@ public sealed class NistWrittenFilesTests
         return dir;
     }
 
+    /// <summary>⛔ THE ACCEPTANCE BASIS TAKES THE SPACES BEFORE A CARRIAGE RETURN (kb/Work PB2509): a record sequential
+    /// print stream of whole records overprints as <c>marker␠␠␠\rtext</c>, and the padding strikes nothing. The shell
+    /// arm's twin is the <c>overprint</c> witness of <c>scripts/guard-verify.sh</c>.</summary>
+    [Fact]
+    public void TheAcceptanceBasis_DropsACarriageReturnWithTheSpacesBeforeIt()
+    {
+        Assert.Equal("MARKERtext\nnext", NistRunner.Normalize("MARKER   \rtext   \r\nnext\r\n"));
+        Assert.Equal("a b", NistRunner.Normalize("a b\r"));
+    }
+
     [Fact]
     public void Grade_IdenticalFiles_HaveNoProblem()
     {

@@ -702,6 +702,12 @@ public static partial class CobolIntrinsics
             else if (!leadSign && i + 1 < n
                      && ((c is 'C' or 'c' && text[i + 1] is 'R' or 'r')
                          || (c is 'D' or 'd' && text[i + 1] is 'B' or 'b'))) { neg = true; i += 2; }
+            // A C or D that opens the CR / DB pair but is not completed (only when no leading sign was taken: with
+            // one, CR/DB is not admitted at all and the C or D itself is the character in error): the C or D is a
+            // valid prefix, so the first character in error is the one that fails to complete it (§15.93.4 1) b) -
+            // "12CX" → 4, "1 D B" → 4), and when the text ends right after it the argument is valid but incomplete
+            // (§15.93.4 1) c), NOTE: LENGTH+1 - "4.5 D" → 6).
+            else if (!leadSign && c is 'C' or 'c' or 'D' or 'd') return new(i + 1 < n ? i + 2 : n + 1, false, false, 0, 0);
             else return new(i + 1, false, false, 0, 0);               // r1b — first char in error ("0 1" → 3)
         }
         while (i < n && text[i] == ' ') i++;                          // trailing space-string
