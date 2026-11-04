@@ -512,6 +512,52 @@ public sealed class ClosedFormatReservedWordTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL1970"));
     }
 
+    /// <summary>⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE (kb/Work PB4604). ISO §13.16.3 SR4
+    /// puts the entry-name directly after the level-number, so the first word of <c>01 MOVE PIC X.</c> is read as the
+    /// name and as the first clause, and a word that is no clause is §8.3.2.1 1)'s violation. It used to draw COBOL1941
+    /// "'MOVE' is not a clause of the data description entry". Every level-number of the one entry rule, a verb, a
+    /// word no statement begins with, a figurative constant and a word reserved for an extension; the ONLY diagnostic,
+    /// at every edition.</summary>
+    [Theory]
+    [InlineData("01 MOVE PIC X.", "COBOL0901: 'MOVE' is a reserved word in COBOL-")]
+    [InlineData("01 MOVE.", "COBOL0901: 'MOVE' is a reserved word in COBOL-")]
+    [InlineData("77 MOVE PIC X.", "COBOL0901: 'MOVE' is a reserved word in COBOL-")]
+    [InlineData("01 TO PIC X.", "COBOL0901: 'TO' is a reserved word in COBOL-")]
+    [InlineData("01 END-IF PIC X.", "COBOL0901: 'END-IF' is a reserved word in COBOL-")]
+    [InlineData("01 EXIT PIC X.", "COBOL0901: 'EXIT' is a reserved word in COBOL-")]
+    [InlineData("01 ZERO PIC X VALUE \"A\".", "COBOL0901: 'ZERO' is a reserved word in COBOL-")]
+    [InlineData("01 W-G.\n          05 IF PIC X.", "COBOL0901: 'IF' is a reserved word in COBOL-")]
+    [InlineData("01 W-A PIC X.\n          66 MOVE RENAMES W-A.", "COBOL0901: 'MOVE' is a reserved word in COBOL-")]
+    [InlineData("01 W-A PIC X.\n          88 TO VALUE \"A\".", "COBOL0901: 'TO' is a reserved word in COBOL-")]
+    [InlineData("01 ENTRY PIC X.", "COBOL0313: unexpected 'ENTRY'. ENTRY is a word this implementation reserves for a nonstandard extension")]
+    [InlineData("01 JSON PIC X.", "COBOL0313: unexpected 'JSON'. JSON is a word this implementation reserves for a nonstandard extension")]
+    public void ReservedWordAtTheEntryNameSlot_NamesTheReservation(string entry, string diagnostic)
+    {
+        foreach (int edition in new[] { 85, 2002, 2014, 2023 })
+        {
+            var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + entry + "\n" + Proc, edition);
+            Assert.True(errors.Count == 1, $"[{edition}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+            Assert.Contains("error " + diagnostic, errors[0]);
+            Assert.DoesNotContain("COBOL1941", errors[0]);
+            Assert.DoesNotContain("is not a clause", errors[0]);
+        }
+    }
+
+    /// <summary>The word AFTER a name or after a clause is a clause position only, so the closed-format refusal stands
+    /// there (kb/Work PB4604): the name slot is closed by what is written before the word.</summary>
+    [Theory]
+    [InlineData("01 W-A PIC X MOVE.", "'MOVE' is not a clause of the data description entry for 'W-A'")]
+    [InlineData("01 W-A MOVE.", "'MOVE' is not a clause of the data description entry")]
+    [InlineData("01 PIC X MOVE.", "'MOVE' is not a clause of the data description entry")]
+    [InlineData("01 W-A PIC X TO.", "'TO' is not a clause of the data description entry for 'W-A'")]
+    public void ReservedWordAfterANameOrAClause_IsStillNotAClause(string entry, string sentence)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + entry + "\n" + Proc);
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("error COBOL1941: ", errors[0]);
+        Assert.Contains(sentence, errors[0]);
+    }
+
     private static IReadOnlyList<string> Compile(string source, int edition = 2023)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_PB2533_");

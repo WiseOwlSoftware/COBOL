@@ -67,6 +67,25 @@ public sealed class EvaluateObjectOperandFaultTests
     public void ARefusedPair_StillBindsARangeAPartialExpressionAndACondition(string statement, string expected) =>
         Assert.Equal(expected.Split(' '), Codes(statement));
 
+    /// <summary>A BARE operand after a connective (kb/Work PB4606, ISO §8.8.4.12: <c>&gt; 1 AND UNDEFX</c> is
+    /// <c>&gt; 1 AND &gt; UNDEFX</c> over the selection subject) is the program's own reference like the operand of a
+    /// stated relation, so a refused pair indicates its fault too. A level-88 condition-name is a condition of its
+    /// own and has no value operand to fault: it keeps the one Table 15 verdict.</summary>
+    [Theory]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 OR NOT UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND (UNDEFX) DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND RELF (1) DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2096")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND T DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2270")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND A (0:1) DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2670")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND A + 1 DISPLAY \"B\" END-EVALUATE.", "COBOL0844 COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND FUNCTION ABS (A) DISPLAY \"B\" END-EVALUATE.", "COBOL1627 COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND ADDRESS OF UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN NUMERIC AND UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND C88 DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
+    public void ARefusedPair_StillBindsABareOperandAfterAConnective(string statement, string expected) =>
+        Assert.Equal(expected.Split(' '), Codes(statement));
+
     /// <summary>The surplus objects of an SR2 breach have no subject, so no Table 15 verdict, and each is bound.</summary>
     [Theory]
     [InlineData("           EVALUATE TRUE WHEN TRUE ALSO UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1639 COBOL2106")]
@@ -74,6 +93,8 @@ public sealed class EvaluateObjectOperandFaultTests
     [InlineData("           EVALUATE N WHEN 1 ALSO > RELF (1) DISPLAY \"B\" END-EVALUATE.", "COBOL2096 COBOL2106")]
     [InlineData("           EVALUATE TRUE WHEN RELF (1) ALSO RELF (1) DISPLAY \"B\" END-EVALUATE.",
         "COBOL1634 COBOL2096 COBOL2096 COBOL2106")]
+    [InlineData("           EVALUATE N WHEN 1 ALSO > 1 AND UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1639 COBOL2106")]
+    [InlineData("           EVALUATE N WHEN 1 ALSO > 1 AND RELF (1) DISPLAY \"B\" END-EVALUATE.", "COBOL2096 COBOL2106")]
     public void ASurplusObject_IsBoundByItsOwnRow(string statement, string expected) =>
         Assert.Equal(expected.Split(' '), Codes(statement));
 

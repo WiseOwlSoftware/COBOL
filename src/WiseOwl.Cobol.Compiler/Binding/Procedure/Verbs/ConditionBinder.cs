@@ -603,9 +603,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// the same spine <see cref="BindCondition(IParseTree, AbbrevCarry)"/> does, so a tier the grammar adds is
     /// reached through its parent: a relational operator's object, an abbreviated relation's object in a
     /// succeeding position, and every complete condition a connective joins (bound as written, in a fresh
-    /// abbreviation scope). A class or sign shape without its identifier has no operand, and a bare operand (a
-    /// class-name, a condition-name, an abbreviated object) belongs to the inserted subject's relation, so it binds
-    /// nothing here.</summary>
+    /// abbreviation scope). A class or sign shape without its identifier has no operand, and a bare operand binds
+    /// as <see cref="BindBareOperandStandalone"/> says: a plain value is the object of the inserted subject's
+    /// relation and is bound as that object, while a class-name has no operand to bind.</summary>
     /// <param name="pe">A <c>partialExpression</c>, or a <c>condition</c> whose leftmost leaf is a bare class-name
     /// (<see cref="LeadingBareClassWord"/>).</param>
     public void BindPartialOperandsStandalone(ParserRuleContext pe)
@@ -621,8 +621,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             case Core.UnaryLogicalExpressionContext u:
                 BindPartialOperandsStandalone(u.primaryCondition());
                 return;
-            case Core.PrimaryConditionContext p when p.comparisonExpression() is { ChildCount: 1 } || p.booleanLiteral() is not null:
-                return;   // a bare object or a truth word: the inserted subject's relation, or no condition at all
+            case Core.PrimaryConditionContext p when p.booleanLiteral() is not null:
+                return;   // a truth word is no condition at all, and has no operand
+            case Core.PrimaryConditionContext p when p.comparisonExpression() is { ChildCount: 1 } bare:
+                BindBareOperandStandalone(bare.comparisonOperand(0));
+                return;
             case Core.PrimaryConditionContext p:
                 _ = BindCondition(p, new AbbrevCarry());
                 return;
@@ -633,6 +636,21 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                         BindPartialOperandsStandalone(child);
                 return;
         }
+    }
+
+    /// <summary>A BARE operand of <see cref="BindPartialOperandsStandalone"/>'s walk — <c>UNDEFX</c> in <c>WHEN &gt; 1
+    /// AND UNDEFX</c> (kb/Work PB4606), bound the way <see cref="BindSoleOperandCondition"/> binds it minus the one
+    /// thing that needs the pair. It is classified first, by the ONE bare-operand analysis, because a level-88
+    /// condition-name, a switch-status condition-name and a boolean operand are conditions or operands of their own
+    /// that the analysis has already bound, and a class-name has no operand (it tests the selection subject the
+    /// refused pair has none to give); only a plain VALUE is then bound as the comparison operand the inserted
+    /// subject's relation would have read (§8.8.4.12.4 GR1), which is where its reference faults (§8.4.2.1,
+    /// §8.4.2.3.3 SR2 and SR5, §8.8.1.1) are reported. The relation itself is not built: it needs the subject.</summary>
+    private void BindBareOperandStandalone(Core.ComparisonOperandContext operand)
+    {
+        if (operand.addressIdentifier() is not null) { _ = ComparisonOperand(operand); return; }
+        var vo = operand.valueOperand();
+        if (AnalyzeBareOperand(vo).Form is BareOperandForm.Value) _ = ComparisonOperandOf(vo);
     }
 
     private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch

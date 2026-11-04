@@ -1892,6 +1892,18 @@ joined the table the same way, which is the table doing its job: a tenth format 
   already left the decision's rule) took the configuration section's, the only one past the rule's end while the
   paragraph's second period was required. The SOURCE-COMPUTER and OBJECT-COMPUTER rules therefore superset-parse
   that period (`DOT?`, the punctuation half below), the name's alternative leaves the rule too, and it wins.
+  **The entry-name slot (kb/Work PB4604).** One position is both a clause position and a NAME position: the first word
+  after a data description entry's level-number (`dataDescriptionEntry : levelNumber (dataName)? dataDescriptionBody`,
+  ISO §13.16.3 SR4: the entry-name clause immediately follows the level-number, and without it the entry is a filler).
+  `OffendingPosition.EntryNameIsDue` asks it of the parse (`ClosedFormats.EntryNameDueAfter`: the entry holds no
+  data-name, and the word before the offending token is its level-number). A reserved word there that §8.9 reserves at
+  the edition (`CobolParserCoreBase.ReservedUserWordViolation(token, atAName: true)`, which takes EVERY keyword, where
+  elsewhere it takes a verb or a gated word) or that the §4.2.10 register reserves for an extension
+  (`ExtensionReservedWord`) is §8.3.2.1 1)'s violation, a name written: `ClosedFormatResidue` returns null for it
+  (so neither hint 0g nor the `ReservedWordUse` exclusion fires), the report is COBOL0901, and an extension word draws
+  its COBOL0313 sentence (`ExtensionReservationSentence`, shared with the JSON/XML hint). The word after a name or a
+  clause is a clause position alone and keeps COBOL1941. Pinned by `ClosedFormatReservedWordTests`
+  (`ReservedWordAtTheEntryNameSlot_NamesTheReservation`) and the `pb4604-*` conformance cases.
 - **The production's token set — the run holds every literal but the reserved words; a reserved word never opens
   it, and the data division's form holds no literal that begins with an unsigned integer (kb/Work PB3373,
   PB3390).** `unrecognizedClause : (residueOpening | residueInteger) (residueItem | residueInteger)*` and
