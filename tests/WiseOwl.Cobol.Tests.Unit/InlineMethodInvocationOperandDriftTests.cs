@@ -146,9 +146,9 @@ public sealed class InlineMethodInvocationOperandDriftTests
     /// <summary>The purely receiving rules must admit NEITHER — for them §8.4.3.4.3 SR1 holds STRUCTURALLY, by
     /// the construct's absence, exactly as §8.4.3.2.3 SR1 holds for a function-identifier. A guard that only
     /// checked the sending side would be satisfied by a careless edit that added it everywhere.
-    /// <para>⚠ This does NOT cover the two MIXED-ROLE arithmetic rules (<c>receiversOrSendingOperand</c>, ADD /
-    /// SUBTRACT / DIVIDE's, and <c>multiplyByOperand</c>), which admit both forms
-    /// because Format 2 needs them as senders; there SR1 is the binder's Format-1 check, pinned by
+    /// <para>⚠ This does NOT cover the MIXED-ROLE arithmetic rule (<c>arithmeticPhraseOperand</c>, the TO / FROM /
+    /// BY / INTO operand of ADD, SUBTRACT, MULTIPLY and DIVIDE), which admits both forms
+    /// because the GIVING forms need them as senders; there SR1 is the binder's Format-1 check, pinned by
     /// <c>ArithmeticOperandRoleDriftTests</c> (kb/Work PB1142 — crediting this fact with them is how an inline
     /// invocation receiver went silently dropped).</para></summary>
     [Fact]
@@ -157,7 +157,7 @@ public sealed class InlineMethodInvocationOperandDriftTests
         var rules = LoadRules();
         foreach (string rule in new[]
                  {
-                     "receivingArithmeticOperand", "receivingOperand", "moveReceivingPhrase",
+                     "receivingArithmeticOperand", "moveReceivingPhrase",
                      "dataReferenceList", "invokeReturning", "returningClause",
                  })
         {

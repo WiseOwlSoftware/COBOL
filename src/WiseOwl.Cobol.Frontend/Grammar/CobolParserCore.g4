@@ -1187,21 +1187,14 @@ conditionalPhraseHead
 // SHARED ARITHMETIC RULES
 // ==========================================
 
-// MULTIPLY's BY operand (§14.9.26.2): a receiver `identifier-2` in Format 1, or the literal-2 of the GIVING
-// format's one sending operand. Only its dataReference arm is a receiver (ArithmeticOperandRole.IsReceiver).
-receivingOperand
-    : receivingIdentifier
-    | literal
-    ;
-
 receivingArithmeticOperand
     : receivingIdentifier roundedPhrase?
     ;
 
 // ⛔ THE SENDING OPERAND `{identifier-n | literal-n}` IS ONE RULE (kb/Work PB2114). Every general format that writes
 // an operand as `identifier-n | literal-n` in a SENDING role parses it here: the operands of ADD, SUBTRACT, MULTIPLY
-// and DIVIDE ahead of their TO / FROM / BY / INTO phrases and DIVIDE's BY operand (§14.9.2.2, §14.9.44.2,
-// §14.9.26.2, §14.9.12.2); MOVE's identifier-1 / literal-1 (§14.9.25.2); the FROM phrases of WRITE, REWRITE and
+// and DIVIDE ahead of their TO / FROM / BY / INTO phrases (§14.9.2.2, §14.9.44.2, §14.9.26.2, §14.9.12.2; the
+// phrases' own operands are arithmeticPhraseOperand, kb/Work PB2144); MOVE's identifier-1 / literal-1 (§14.9.25.2); the FROM phrases of WRITE, REWRITE and
 // RELEASE, each the implicit MOVE that §14.9.51.4 GR5a, §14.9.35.4 and §14.9.32.4 make it; INITIALIZE's REPLACING
 // item (§14.9.20.3 SR4: "a MOVE statement with identifier-2 or literal-1 as the sending item"); and every INSPECT
 // operand after identifier-1 (§14.9.22.2). A function-identifier is an identifier (§8.4.3.1.2 Format 1), and so is
@@ -1216,20 +1209,19 @@ sendingOperand
     | dataReference
     ;
 
-// ⛔ THE TO / FROM / INTO OPERAND OF ADD, SUBTRACT AND DIVIDE IS ONE RULE (kb/Work PB2114). §14.9.2.2, §14.9.44.2 and
-// §14.9.12.2 each print the position twice: Format 1 as receivers, `{identifier-2 [rounded-phrase]} …`, and the GIVING
-// format as ONE sending `{identifier-2 | literal-2}` (kb/Work PB134). The rule parses the union and ArithmeticBinder
-// narrows it per format (Format1Receivers / Format2SendingOperand, through the one ArithmeticOperandRole
-// classification). The sending operand's identifier arm IS the receiver arm's dataReference, so only the other arms
-// of `sendingOperand` are written here.
-// MULTIPLY's BY operand prints the same two shapes (§14.9.26.2) but stays `multiplyByOperand+`: that rule admits a
-// REPEATED sending operand and a ROUNDED literal, which ArithmeticBinder names (COBOL1689) where this rule's three
-// users take a parse error, so folding it in would change what parses.
-receiversOrSendingOperand
-    : receivingArithmeticOperand+
-    | literal
-    | functionCall             // §8.4.3.1.2 Format 1; kb/Work PB134
-    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4); kb/Work PB428
+// ⛔ THE TO / FROM / BY / INTO OPERAND OF ADD, SUBTRACT, MULTIPLY AND DIVIDE IS ONE RULE (kb/Work PB2114, PB2144).
+// §14.9.2.2, §14.9.44.2, §14.9.26.2 and §14.9.12.2 print the position twice: Format 1 as receivers,
+// `{identifier-2 [rounded-phrase]} …`, and every GIVING format (DIVIDE's BY formats among them) as ONE sending
+// `{identifier-2 | literal-2}` with no ROUNDED (kb/Work PB134). Every phrase writes `arithmeticPhraseOperand+` and
+// every operand admits every shape with an optional ROUNDED, so a shape a format does not print always reaches
+// ArithmeticBinder, which narrows the union per format with ONE diagnostic (COBOL1689: Format1Receivers /
+// Format2SendingOperand, through the one ArithmeticOperandRole classification). Written narrower at any one
+// position, the same error is a parse error there and a named refusal at its siblings (kb/Work PB2144: ADD's
+// `TO 2 3 GIVING C` drew COBOL2269 where MULTIPLY's `BY 2 3 GIVING C` drew COBOL1689). Only the receivingIdentifier
+// arm is a receiver; a function-identifier and an inline method invocation are identifiers barred only from a
+// receiving operand (§8.4.3.2.3 SR1, §8.4.3.4.3 SR1), so they are sending arms here.
+arithmeticPhraseOperand
+    : (receivingIdentifier | literal | functionCall | inlineMethodInvocation) roundedPhrase?
     ;
 
 // The GIVING phrase of ADD, SUBTRACT, MULTIPLY and DIVIDE: `GIVING {identifier-3 [rounded-phrase]} …` in all four
@@ -1268,7 +1260,7 @@ addStatement
     ;
 
 addToPhrase
-    : TO receiversOrSendingOperand
+    : TO arithmeticPhraseOperand+
     ;
 
 // ==========================================
@@ -1284,7 +1276,7 @@ subtractStatement
     ;
 
 subtractFromPhrase
-    : FROM receiversOrSendingOperand
+    : FROM arithmeticPhraseOperand+
     ;
 
 // ==========================================
@@ -1292,13 +1284,7 @@ subtractFromPhrase
 // ==========================================
 
 multiplyStatement
-    : MULTIPLY sendingOperand BY multiplyByOperand+ arithmeticGivingPhrase? conditionalPhrases END_MULTIPLY?
-    ;
-
-multiplyByOperand
-    : receivingOperand roundedPhrase?
-    | functionCall      // §14.9.26.2 Format 2's sending `BY {identifier-2 | literal-2}` (§8.4.3.1.2; kb/Work PB134)
-    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
+    : MULTIPLY sendingOperand BY arithmeticPhraseOperand+ arithmeticGivingPhrase? conditionalPhrases END_MULTIPLY?
     ;
 
 // ==========================================
@@ -1311,11 +1297,11 @@ divideStatement
     ;
 
 divideIntoPhrase
-    : INTO receiversOrSendingOperand
+    : INTO arithmeticPhraseOperand+
     ;
 
 divideByPhrase
-    : BY sendingOperand
+    : BY arithmeticPhraseOperand+
     ;
 
 divideRemainderPhrase

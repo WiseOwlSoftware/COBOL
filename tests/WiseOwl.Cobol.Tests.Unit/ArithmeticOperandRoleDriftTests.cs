@@ -19,7 +19,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>The defect this exists for.</b> ISO §14.9.2.2 / §14.9.44.2 / §14.9.26.2 / §14.9.12.2 print the
 /// TO / FROM / BY / INTO operand as a RECEIVER in Format 1 and as ONE sending operand in Format 2, and the grammar
-/// parses the union in mixed rules (four then; two since kb/Work PB2114 made ADD, SUBTRACT and DIVIDE share one).
+/// parses the union in mixed rules (four then; two once kb/Work PB2114 made ADD, SUBTRACT and DIVIDE share one; ONE,
+/// <c>arithmeticPhraseOperand</c>, since kb/Work PB2144 folded MULTIPLY's BY operand and DIVIDE's BY operand in).
 /// Each verb binder used to screen Format 1 with its own hand-written list of
 /// NON-receivers — <c>literal() || functionCall()</c> — and when kb/Work PB428 gave all four rules an
 /// <c>inlineMethodInvocation</c> alternative, none of the four lists grew: <c>ADD A TO O :: "M"</c> compiled clean
@@ -77,7 +78,7 @@ public sealed class ArithmeticOperandRoleDriftTests
     /// the grammar fails here until it joins <c>ArithmeticOperandRole.MixedRules</c> — the point at which its
     /// author is told the rule needs its verb binder's <c>Format1Receivers</c> call (this fact cannot see the call
     /// itself; <c>TheClassifier_PartitionsEveryOperandArm</c> and the Conformance matrix cover behaviour). Proved
-    /// to guard: dropping <c>MultiplyByOperandContext</c> from <c>MixedRules</c> fails this fact by name.</summary>
+    /// to guard: dropping <c>ArithmeticPhraseOperandContext</c> from <c>MixedRules</c> fails this fact by name.</summary>
     [Fact]
     public void MixedRules_AreExactlyTheGrammarRulesOfferingBothRoles()
     {
@@ -88,7 +89,7 @@ public sealed class ArithmeticOperandRoleDriftTests
             .Order(StringComparer.Ordinal)
             .ToList();
         var classified = ArithmeticOperandRole.MixedRules.Select(RuleName).Order(StringComparer.Ordinal).ToList();
-        Assert.True(fromGrammar.Count >= 2,
+        Assert.True(fromGrammar.Count >= 1,
             $"only {fromGrammar.Count} mixed-role rules found — the grammar scan lost sites, so the comparison below "
             + "proves nothing (feedback_verdict_evidence_invariant)");
         Assert.True(fromGrammar.SequenceEqual(classified),
@@ -126,14 +127,17 @@ public sealed class ArithmeticOperandRoleDriftTests
     [InlineData("ADD A TO B.", null)]
     [InlineData("ADD A TO B C ROUNDED.", null)]
     [InlineData("ADD A TO 3.", typeof(CobolParserCore.LiteralContext))]
+    [InlineData("ADD A TO B 3.", typeof(CobolParserCore.LiteralContext))]
+    [InlineData("ADD A TO B 3 ROUNDED.", typeof(CobolParserCore.LiteralContext))]
     [InlineData("ADD A TO FUNCTION SQRT(4).", typeof(CobolParserCore.FunctionCallContext))]
     [InlineData("ADD A TO O :: \"M\".", typeof(CobolParserCore.InlineMethodInvocationContext))]
     [InlineData("SUBTRACT A FROM B.", null)]
     [InlineData("SUBTRACT A FROM 3.", typeof(CobolParserCore.LiteralContext))]
     [InlineData("SUBTRACT A FROM FUNCTION SQRT(4).", typeof(CobolParserCore.FunctionCallContext))]
     [InlineData("SUBTRACT A FROM O :: \"M\".", typeof(CobolParserCore.InlineMethodInvocationContext))]
+    [InlineData("SUBTRACT A FROM B FUNCTION SQRT(4) ROUNDED.", typeof(CobolParserCore.FunctionCallContext))]
     [InlineData("MULTIPLY A BY B.", null)]
-    [InlineData("MULTIPLY A BY 3.", typeof(CobolParserCore.ReceivingOperandContext))]
+    [InlineData("MULTIPLY A BY 3.", typeof(CobolParserCore.LiteralContext))]
     [InlineData("MULTIPLY A BY FUNCTION SQRT(4).", typeof(CobolParserCore.FunctionCallContext))]
     [InlineData("MULTIPLY A BY O :: \"M\".", typeof(CobolParserCore.InlineMethodInvocationContext))]
     [InlineData("MULTIPLY A BY B O :: \"M\".", typeof(CobolParserCore.InlineMethodInvocationContext))]
@@ -141,6 +145,8 @@ public sealed class ArithmeticOperandRoleDriftTests
     [InlineData("DIVIDE A INTO 3.", typeof(CobolParserCore.LiteralContext))]
     [InlineData("DIVIDE A INTO FUNCTION SQRT(4).", typeof(CobolParserCore.FunctionCallContext))]
     [InlineData("DIVIDE A INTO O :: \"M\".", typeof(CobolParserCore.InlineMethodInvocationContext))]
+    [InlineData("DIVIDE A INTO B C ROUNDED.", null)]
+    [InlineData("DIVIDE A INTO B 3.", typeof(CobolParserCore.LiteralContext))]
     public void TheClassifier_PartitionsEveryOperandArm(string statement, Type? expectedNonReceiver)
     {
         var mixedNodes = MixedNodes(statement);

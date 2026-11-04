@@ -149,7 +149,7 @@ public sealed class SendingOperandDriftTests
     public void ReceivingOperandRules_AdmitNoComputedIdentifier()
     {
         var rules = GrammarRules();
-        foreach (string rule in new[] { "receivingArithmeticOperand", "receivingOperand" })
+        foreach (string rule in new[] { "receivingArithmeticOperand", "receivingIdentifier" })
         {
             Assert.True(rules.TryGetValue(rule, out string? body), $"the receiving rule '{rule}' is gone");
             Assert.DoesNotMatch(@"\bfunctionCall\b", body!);
