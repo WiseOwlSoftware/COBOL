@@ -40,7 +40,7 @@ public sealed class OoMethodBinding
     /// order, each null for a formal with no universal crossing form: what the universal dispatch switch's case compares an
     /// argument with (§14.9.23.4 GR7 b), c)). Built by the binder's one description builder (<c>ActivationDescriptions</c>), the
     /// builder the invoking side's descriptions come from too, at the end of the bind (<c>BackendAnswers</c>; kb/Work PB2403)
-    /// for a method of a class the group emits that has a case in that switch (not an override, no BY VALUE formal); null for
+    /// for a method of one of the group's class units that has a case in that switch (not an override, no BY VALUE formal); null for
     /// any other method.</summary>
     public IReadOnlyList<WiseOwl.Cobol.Runtime.ActivationDescription?>? FormalDescriptions { get; set; }
 
@@ -49,7 +49,7 @@ public sealed class OoMethodBinding
     public WiseOwl.Cobol.Runtime.ActivationDescription? ReturningDescription { get; set; }
 
     /// <summary>The classes and interfaces of the method's PROCEDURE DIVISION header RAISING phrase, resolved (ISO §14.6.13.1.5
-    /// items 1 and 3; <see cref="RaisingObject"/>), written at the end of the bind for a method of a class the group emits;
+    /// items 1 and 3; <see cref="RaisingObject"/>), written at the end of the bind for a method of one of the group's class units;
     /// empty otherwise.</summary>
     public IReadOnlyList<RaisingObject> RaisingObjects { get; set; } = [];
 

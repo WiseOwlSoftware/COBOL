@@ -27,3 +27,9 @@ DESIGN-backend-abstraction §1.3 L6 and DESIGN-architecture-review §8 record th
 
 PB2403 is landed with `closes_rows: []` (a behavior-neutral extract). PB2293, PB2361 and PB4273 remain open: the backend
 input still carries `DataBinder` (PB2361's `DataBindResult`), and the assembly split (PB4273) waits for that.
+
+Self-review (architecture, full code, performance, duplication): one writer of the answers and one reader per answer; every
+answer the emitter needs and lacks throws an internal error; each method's descriptions are now built once at bind rather
+than three times per formal at emit; `ImportedAssemblies` moved, not copied. A semgrep verify run under the gate's CPU load
+reported `DiagnosticCatalog.cs` unreadable; rerun alone it passed (no rule count grew). Gate on a09065bca:
+`=== BUILD-LOCAL GATE: GREEN — Conformance 21,463/21,463 · Unit 39,670/39,670 · Characterization 37/37 cases ran (skipped 0) ... (run 000002-20261104T021646Z) ===`.

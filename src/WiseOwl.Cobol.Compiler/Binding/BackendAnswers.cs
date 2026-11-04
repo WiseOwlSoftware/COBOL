@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
