@@ -29,4 +29,4 @@ at every edition and now also names 2023 below it. Duplication: no second copy o
 `grep -rn "enclosing-subscript-2014"` is empty outside the frozen DEVLOG and the landed PB4577 note's history). Performance: no hot-path change.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,640/21,640 · Unit 39,855/39,855 · Characterization 37/37 cases ran (skipped 0) ===` (the re-gate after review round 1, run 000003-20261104T221559Z; the first gate was run 000001-20261104T215915Z)
-(run 000003-20261104T221559Z). `semgrep/verify.py` PASS with no count raised.
+`semgrep/verify.py` PASS with no count raised.
