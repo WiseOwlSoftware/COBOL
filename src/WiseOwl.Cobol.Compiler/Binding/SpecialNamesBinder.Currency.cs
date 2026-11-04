@@ -140,8 +140,14 @@ public sealed partial class SpecialNamesBinder
             // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note). SYMBOL is a
             // §8.10 context-sensitive word the lexer does not tokenize, so it is asked through the group's
             // >>COBOL-WORDS map: a synonym of it is the word (§7.3.10.4 GR2; kb/Work PB4572).
+            // A SYMBOL a directive of the group withdrew (UNDEFINE, SUBSTITUTE) is no longer the word the phrase requires
+            // (GR3, GR4): the refusal names that cause, not an "expected SYMBOL" the same sentence's reader cannot satisfy
+            // (kb/Work PB4573).
             if (cur.PIC_STRING()?.GetText() is { } sym && !_host.CobolWords.Is(sym, "SYMBOL"))
-                Edition.Error(DiagnosticCatalog.CurrencySignClauseForm, $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
+                Edition.Error(DiagnosticCatalog.CurrencySignClauseForm, _host.CobolWords.RemovedBy("SYMBOL") is { } withdrawn
+                    ? $"CURRENCY SIGN: PICTURE {sym}: {withdrawn.Withdrew("SYMBOL")}; "
+                      + withdrawn.WithdrawnSyntax("the WITH PICTURE SYMBOL phrase", "SYMBOL")
+                    : $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
             // The currency string and its class (SR28's input), or null when literal-7 was refused.
             CurrencyDefinition? stringDefinition = operand7 is { } literal7 && CurrencyStringAdmitted(literal7)
                 ? new CurrencyDefinition(literal7.Text, literal7.Class) : null;

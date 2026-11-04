@@ -583,9 +583,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         var origin = edition.OriginOf(op.At.Line);
         string where = $"{origin.File} line {origin.Line}";
         return op.Action == CobolWordsAction.Undefine
-            ? $">>COBOL-WORDS UNDEFINE \"{op.Existing}\" ({where}) withdrew the word as an intrinsic function name "
+            ? $"{op.AsWritten} ({where}) withdrew the word as an intrinsic function name "
               + "(ISO §7.3.10.4 GR3)"
-            : $">>COBOL-WORDS SUBSTITUTE \"{op.Existing}\" BY \"{op.New}\" ({where}) withdrew the word as an intrinsic "
+            : $"{op.AsWritten} ({where}) withdrew the word as an intrinsic "
               + $"function name; FUNCTION {op.New} now denotes it (ISO §7.3.10.4 GR4)";
     }
 

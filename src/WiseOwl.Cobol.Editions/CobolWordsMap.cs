@@ -33,7 +33,39 @@ public enum CobolWordsAction
 /// own SR1/SR2/SR5 diagnostics read the same place off the directive line directly. It is the operation's ONLY position
 /// (the former 0-based <c>Line</c> was read nowhere and is deleted); a producer outside the directive stage passes
 /// <c>default</c> (no cursor) knowingly.</param>
-public sealed record CobolWordsOp(CobolWordsAction Action, string? Existing, string? New, DiagnosticCursor At);
+public sealed record CobolWordsOp(CobolWordsAction Action, string? Existing, string? New, DiagnosticCursor At)
+{
+    /// <summary>The directive as ISO §7.3.10.2 writes it, its words upper-case and quoted
+    /// (<c>&gt;&gt;COBOL-WORDS SUBSTITUTE "COMMA" BY "CMA"</c>): the ONE spelling of an operation for the map's own text
+    /// (<see cref="CobolWordsMap.DirectiveText"/>) and for every diagnostic that names the user's directive.</summary>
+    public string AsWritten => Action switch
+    {
+        CobolWordsAction.Equate => $">>COBOL-WORDS EQUATE \"{Existing}\" WITH \"{New}\"",
+        CobolWordsAction.Undefine => $">>COBOL-WORDS UNDEFINE \"{Existing}\"",
+        CobolWordsAction.Substitute => $">>COBOL-WORDS SUBSTITUTE \"{Existing}\" BY \"{New}\"",
+        CobolWordsAction.Reserve => $">>COBOL-WORDS RESERVE \"{New}\"",
+        _ => throw new InvalidOperationException($"CobolWordsAction {Action} has no directive spelling"),
+    };
+
+    /// <summary>⛔ THE ONE SENTENCE for a word an UNDEFINE or a SUBSTITUTE withdrew (<see cref="CobolWordsMap.RemovedBy"/>):
+    /// the directive as written, the word it withdrew as the source writes it (<paramref name="word"/>) and the rule.
+    /// UNDEFINE: the word "shall no longer be reserved or restricted in any way" (§7.3.10.4 GR3). SUBSTITUTE: literal-5
+    /// "shall be used in any syntax where" literal-4 "is documented as required or optional", and literal-4 "shall no
+    /// longer be a reserved word, a context-sensitive word, nor an intrinsic function name" (GR4). Every diagnostic that
+    /// names a withdrawn word (the syntax-error note, the clause binders) builds it here, so the cause reads alike
+    /// (kb/Work PB4573).</summary>
+    public string Withdrew(string word) => Action == CobolWordsAction.Undefine
+        ? $"{AsWritten} withdrew {word} (ISO §7.3.10.4 GR3)"
+        : $"{AsWritten} withdrew {word}, and {New} now stands for it (ISO §7.3.10.4 GR4)";
+
+    /// <summary>What the withdrawal leaves of <paramref name="syntax"/>, a phrase of the standard's general formats that
+    /// requires <paramref name="word"/>: under UNDEFINE it "shall not be available for use in this compilation group"
+    /// (§7.3.10.4 GR3); under SUBSTITUTE literal-5 "shall be used in any syntax where" the word "is documented as required"
+    /// (GR4), so the phrase is written with literal-5 and is available.</summary>
+    public string WithdrawnSyntax(string syntax, string word) => Action == CobolWordsAction.Undefine
+        ? $"{syntax} requires the word {word}, so it is not available in this compilation group"
+        : $"{syntax} requires the word {word}, so it is written with {New} in this compilation group";
+}
 
 /// <summary>
 /// The per-compilation-group <c>&gt;&gt;COBOL-WORDS</c> override layer (ISO §7.3.10; Annex D.12; Annex E.3.3
@@ -144,14 +176,7 @@ public sealed class CobolWordsMap
     /// order, each ending in a line feed; empty for <see cref="Empty"/>. A skeleton publishes it (<c>CompileState.CobolWordsMap</c>,
     /// DESIGN-external-repository §6.1) and a compilation that expands the skeleton elsewhere reads it with the one directive
     /// processor, so the words mean the same there.</summary>
-    public string DirectiveText => string.Concat(Ops.Select(op => op.Action switch
-    {
-        CobolWordsAction.Equate => $">>COBOL-WORDS EQUATE \"{op.Existing}\" WITH \"{op.New}\"\n",
-        CobolWordsAction.Undefine => $">>COBOL-WORDS UNDEFINE \"{op.Existing}\"\n",
-        CobolWordsAction.Substitute => $">>COBOL-WORDS SUBSTITUTE \"{op.Existing}\" BY \"{op.New}\"\n",
-        CobolWordsAction.Reserve => $">>COBOL-WORDS RESERVE \"{op.New}\"\n",
-        _ => throw new InvalidOperationException($"CobolWordsAction {op.Action} has no directive spelling"),
-    }));
+    public string DirectiveText => string.Concat(Ops.Select(op => op.AsWritten + "\n"));
 
     /// <summary>True when no <c>&gt;&gt;COBOL-WORDS</c> directive was present — every consumer short-circuits.</summary>
     public bool IsEmpty => Ops.Count == 0;
@@ -159,6 +184,13 @@ public sealed class CobolWordsMap
     /// <summary>A fresh user word (EQUATE literal-2 / SUBSTITUTE literal-5) → the existing word it stands in for
     /// (literal-1 / literal-4). The identifier→keyword rewriter and the intrinsic-synonym binder read this.</summary>
     public IReadOnlyDictionary<string, string> Synonyms => _synonyms;
+
+    /// <summary>The existing word <paramref name="written"/> is a synonym for (EQUATE literal-2 → literal-1, SUBSTITUTE
+    /// literal-5 → literal-4), or null when it is not a synonym: the ONE question "did the user write the word itself or its
+    /// synonym" that a diagnostic asks to name the word as written (ISO §7.3.10.4 GR2, GR4; kb/Work PB4573).
+    /// <paramref name="written"/> is the word as the SOURCE writes it, never a retyped token's text, which is already
+    /// the original's.</summary>
+    public string? SynonymOf(string written) => _synonyms.GetValueOrDefault(written);
 
     /// <summary>Words that LOSE their reserved/context/intrinsic status for this group (UNDEFINE literal-3 +
     /// SUBSTITUTE literal-4): the keyword→identifier rewriter, the <see cref="ReservedWordSet"/> suppress set,
