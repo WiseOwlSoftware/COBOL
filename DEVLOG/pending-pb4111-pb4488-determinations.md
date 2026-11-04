@@ -10,3 +10,5 @@ argument enters as its image), PB4569 (native `2 ** 130` keeps 16 digits), PB457
 `OK  §7.3.10.4 6)  (General rules)` "A COBOL-WORDS directive does not affect any Compiler directing statements or Compiler directives." What is wrong is that a synonym of a reserved word
 with no lexer token (COPY, REPLACE, LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA, MINUS) is accepted as a user-defined word, and that the refusal of
 `CPY BOOK.` carries a period-missing hint. The note became a MAJOR `under_rejects` and `misleads_diagnosis` defect with `rejects_legal_source: false`.
+
+Also filed: PB4571, from re-queuing PR #1101 by hand while the operator lane was idle. Merge-group run 41779240040 lost Windows shard 6/7 to a Conformance step that hung until the 20-minute job limit, and the hang left no test results to name a case, because the step has no timeout of its own and no blame-hang collector.
