@@ -77,7 +77,7 @@ public sealed partial class DataBinder
     /// <summary>The class <paramref name="root"/> is forced onto a cell as when it is a slot-carried group no cell holds yet and
     /// one can carry; null otherwise (the common test of both claims above).</summary>
     private RedefinesClass? SlotCarriedCellClass(DataItem root, string what) =>
-        WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(root) && !AlreadyInACell(root) && CellCanCarry(root)
+        ActivationCrossing.LeafCarried(root) && !AlreadyInACell(root) && CellCanCarry(root)
             ? ForceStringCanonical(root, what) : null;
 
     /// <summary>True when <paramref name="root"/>'s storage is ALREADY a cell (or the pointer-routed window over one), so

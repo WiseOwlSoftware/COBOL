@@ -179,7 +179,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                 if (item.CurrentExtentImageCapable) codec.EmitVarImageMethods(item, w);
             }
             // A strong group with no character image crosses an activation boundary as its LEAF VECTOR (kb/Work
-            // PB1116; OoClassTable.LeafCarried) — so it, and every group struct nested in it, gets the pair.
+            // PB1116; ActivationCrossing.LeafCarried) — so it, and every group struct nested in it, gets the pair.
             if (WithinLeafCarried(item)) EmitLeafMethods(item, w);
         }
     }
@@ -188,7 +188,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     private static bool WithinLeafCarried(DataItem item)
     {
         for (DataItem? a = item; a is not null; a = a.Parent)
-            if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(a)) return true;
+            if (ActivationCrossing.LeafCarried(a)) return true;
         return false;
     }
 

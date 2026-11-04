@@ -1534,19 +1534,12 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Compiler.Oo",
       "uses": 5,
-      "walkUses": 2,
+      "walkUses": 1,
       "removedBy": [
         "PB2403"
       ],
-      "plan": "PB2402 (landed: the OO symbols moved with the closure they name to compiler.model; 5 -> 2) and PB2403 (AdapterPair to compiler.model; the OoClassTable answers become BoundCompilation data; 2 -> 0)",
+      "plan": "PB2402 (landed: the OO symbols moved with the closure they name to compiler.model; 5 -> 2) and PB2403 (step 1 landed on its branch: AdapterPair to compiler.model, 2 -> 1; step 2: the OoClassTable answers become BoundCompilation data, 1 -> 0)",
       "pairs": [
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
-          "to": "WiseOwl.Cobol.Compiler.Oo.AdapterPair",
-          "removedBy": [
-            "PB2403"
-          ]
-        },
         {
           "from": "WiseOwl.Cobol.Binding.Model.BoundCompilation",
           "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
@@ -2796,22 +2789,15 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Compiler.Oo",
       "uses": 28,
-      "walkUses": 13,
+      "walkUses": 8,
       "removedBy": [
         "PB2403"
       ],
-      "plan": "PB2402 (landed: the OO symbols moved to compiler.model) and PB2403 (AdapterPair to compiler.model; the OoClassTable, ActivationDescriptions and OoStandardClasses answers reach the backend as BoundCompilation data); PB2403's sites include ProgramEmitter's OoClassTable read (Draft 6, G1)",
+      "plan": "PB2402 (landed: the OO symbols moved to compiler.model) and PB2403 (step 1 on its branch: AdapterPair, OoStandardClasses and the two crossing-form predicates, ActivationCrossing, to compiler.model, 13 -> 8; step 2: the OoClassTable and ActivationDescriptions answers reach the backend as BoundCompilation data); PB2403's sites include ProgramEmitter's OoClassTable read (Draft 6, G1)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
           "to": "WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions",
-          "removedBy": [
-            "PB2403"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
-          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
           "removedBy": [
             "PB2403"
           ]
@@ -2845,13 +2831,6 @@
           ]
         },
         {
-          "from": "WiseOwl.Cobol.CodeGen.MoveEmitter",
-          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
-          "removedBy": [
-            "PB2403"
-          ]
-        },
-        {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions",
           "removedBy": [
@@ -2860,34 +2839,13 @@
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
-          "to": "WiseOwl.Cobol.Compiler.Oo.AdapterPair",
-          "removedBy": [
-            "PB2403"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
           "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
-          "removedBy": [
-            "PB2403"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
-          "to": "WiseOwl.Cobol.Compiler.Oo.OoStandardClasses",
           "removedBy": [
             "PB2403"
           ]
         },
         {
           "from": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
-          "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
-          "removedBy": [
-            "PB2403"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.RecordStructEmitter",
           "to": "WiseOwl.Cobol.Compiler.Oo.OoClassTable",
           "removedBy": [
             "PB2403"

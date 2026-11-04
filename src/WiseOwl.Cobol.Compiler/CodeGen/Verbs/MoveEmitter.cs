@@ -420,8 +420,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         // current-extent carrier, and two groups of one type are GR9 a)'s "groups of equal length" whose every position,
         // dynamic-length item and table corresponds — the vector moves each one (a dynamic-capacity table as its
         // occurrences, §14.6.9.2), so the binder's element moves, which skip a pair of identical descriptions, add none.
-        if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(target.Item)
-            && source is BoundFieldOperand { Place: var sendPlace } && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(sendPlace.Item))
+        if (ActivationCrossing.LeafCarried(target.Item)
+            && source is BoundFieldOperand { Place: var sendPlace } && ActivationCrossing.LeafCarried(sendPlace.Item))
         {
             ctx.Writer.Line(Ordered(senderFirst, source, target, PlaceRenderer.GroupLeaves(sendPlace),
                 v => PlaceRenderer.WriteGroupLeaves(target, v)));

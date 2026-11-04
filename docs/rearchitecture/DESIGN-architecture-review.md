@@ -723,7 +723,7 @@ table's per method symbol (`OoClassTable.CensusOf(OoMethodSymbol)`), its constan
 model scope's `IndexesDeclare` and the binder's half, since moved with the scope they would have added
 `Binding.Model → Binding` pairs (kb/Work PB2402's what-if). Five members the backend contract (DESIGN-backend-abstraction
 §6) would read as C# by name were renamed for what they carry: `FactoryOrInstanceClrNames`, `ImplementedClrNames`,
-`RunUnitKey`, `HalfKey` and `ImportedFrom.AssemblyFile`; PB2403 moves `AdapterPair` and turns the remaining OO answers into `BoundCompilation` data; PB2399 ends the
+`RunUnitKey`, `HalfKey` and `ImportedFrom.AssemblyFile`; PB2403 moves `AdapterPair`, `OoStandardClasses` (its closure is model types only) and the two crossing-form predicates (`ActivationCrossing.StringCarried` / `LeafCarried`, out of `OoClassTable`) to `Binding/Model` (step 1: `CodeGen → Compiler.Oo` 13 → 8, `Binding.Model → Compiler.Oo` 2 → 1), and turns the remaining OO answers — the class lists, the imported types, the RAISING class names and the activation descriptions — into `BoundCompilation` data (step 2); PB2399 ends the
 model's other binder reads; PB2416 cuts the report models' parse contexts, so PB2405 can move the four rule families
 the emitters read into `compiler.bound` (they name bound nodes, so `compiler.model` cannot hold them); and PB2400
 moves `BoundUnit`, `OoClassUnit` and `BoundCompilation` last. **The measure is the walk, not a text scan.** Draft 4's

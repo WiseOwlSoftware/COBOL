@@ -810,7 +810,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// §14.8.2.2) is laid over: GR9's MOVE between two groups of one type, with the references set. Empty for every
     /// other BY CONTENT argument, which crosses as its value.</summary>
     private string ContentRecordArgument(BoundCallArg a, Place p) =>
-        a.Mode is CobolPassMode.Content && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(p.Item)
+        a.Mode is CobolPassMode.Content && ActivationCrossing.LeafCarried(p.Item)
         && ArgumentArea(p) is var area && area != "null"
             ? $", Area: {RuntimeApi.ArgAdaptContentRecord(area, p.Item.ByteWidth, CellComponents.PerOccurrence(p.Item))}"
             : "";
@@ -830,7 +830,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // A receiver whose values ride managed slots states its AREA, the storage §14.6.5's delivery places the result
         // in (§14.2.3 GR6 NOTE 1 — "the storage for the returning item is allocated in the activating source unit";
         // kb/Work PB1940): its references cannot cross as characters.
-        + $"{(rp.DenotedItem is { } g && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(g) ? AreaArgument(rp) : "")})";
+        + $"{(rp.DenotedItem is { } g && ActivationCrossing.LeafCarried(g) ? AreaArgument(rp) : "")})";
 
     /// <summary>⛔ THE FIXED CHARACTER LENGTH a place's text-carried storage has across the activation boundary
     /// (<see cref="CobolArg.Length"/>; kb/Work PB1040), <see cref="CobolArg.Unstated"/> when it has none. ONE

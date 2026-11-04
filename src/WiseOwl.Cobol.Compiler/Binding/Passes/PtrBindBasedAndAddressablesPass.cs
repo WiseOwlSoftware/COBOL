@@ -143,7 +143,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             // with an object-reference or pointer leaf has no character image, so its BY CONTENT record (§14.2.3 GR9) is
             // a detached copy of its area and a CALL's RETURNING delivery (§14.6.5) is a store into its receiver's area.
             // Either needs the operand in a cell; every other BY CONTENT operand or RETURNING receiver crosses as a value.
-            if (slotsOnly && !WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(hit)) continue;
+            if (slotsOnly && !ActivationCrossing.LeafCarried(hit)) continue;
             DataItem root = hit.Root;
             if (contained && !binder.Linkage.GlobalRoots.Contains(root)) continue;
             if (binder.AlreadyInACell(root) || root.Section is EntrySection.Linkage || !DataBinder.CellCanCarry(root)) continue;

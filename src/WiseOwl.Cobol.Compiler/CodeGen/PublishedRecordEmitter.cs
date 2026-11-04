@@ -41,7 +41,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// <para>⛔ <b>THERE IS NO GR13 RESTRICTION LEFT</b> (kb/Work PB3273; ISO §14.2.3 13) obliges the implementor to STATE
     /// restrictions, not to have one): a group holding BOTH a variable-length component and a pointer or object-reference
     /// member once published no entry, because the COBOL boundary had no crossing form for it (kb/Work PB3139 gave it one:
-    /// <c>OoClassTable.LeafCarried</c>, <c>StorageCell.CopyArea</c>) and this emitter composed no such area. The record now
+    /// <c>ActivationCrossing.LeafCarried</c>, <c>StorageCell.CopyArea</c>) and this emitter composed no such area. The record now
     /// builds the area itself — the description's own fresh cell (<c>DataEmitter.FreshArea</c>, so the tables it holds are
     /// the description's), the variable-length carrier distributed into it (<c>StorageCell.StoreVarGroupAt</c>), each
     /// reference in its managed slot (<c>__PutSlots</c>, a dynamic-capacity table's element cells included) — and reads it

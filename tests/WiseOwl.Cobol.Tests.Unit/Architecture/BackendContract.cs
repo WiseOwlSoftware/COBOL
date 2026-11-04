@@ -79,6 +79,9 @@ internal static class BackendContract
             "Model.OoMethodSymbol.ExternalizedName", "Model.OoMethodSymbol._externalizedName", "Model.OoMethodSymbol.PropertyName",
             "Model.OoMethodSymbol.SourceName", "Model.OoMethodDataScope.ByName", "Model.OoMethodDataScope.Conditions",
             "Model.OoMethodDataScope.CapacityRegisters", "Model.OoMethodDataScope.TypeDecls",
+            // the standard class BASE and its two §16.2 method-names, in compiler.model since kb/Work PB2403
+            "Model.OoStandardClasses.BaseName", "Model.OoStandardClasses.NewMethodName",
+            "Model.OoStandardClasses.FactoryObjectMethodName",
         ]),
         new(NeutralKind.ClrName,
         [

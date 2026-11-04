@@ -79,7 +79,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // boundary's ONE read (kb/Work PB1166), so the method ABI and the program ABI cannot speak two alphabets.
         : root.IsAsIfElementary ? CallEmitter.CallStringRead(MethodRootPlace(root))
         // A strong group with no character image hands back its leaf vector (kb/Work PB1116).
-        : OoClassTable.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodRootPlace(root))
+        : ActivationCrossing.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodRootPlace(root))
         : root.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(root), what)
         : LocalNames.Of(ActivationLocalOf(root));
 
@@ -96,7 +96,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // A variable-length group crosses as its §8.5.1.12 component carrier (kb/Work PB2094: its area is a cell now).
         : OoVarGroupCarried(root) ? PlaceRenderer.VarGroupBoundaryImage(MethodCellPlace(root), "OO method boundary value of")
         // A strong group with no character image crosses as its leaf vector (kb/Work PB1116) — the cell's managed slots.
-        : OoClassTable.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodCellPlace(root))
+        : ActivationCrossing.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodCellPlace(root))
         : PlaceRenderer.Read(MethodCellPlace(root));
 
     /// <summary>The inverse of <see cref="MethodCellFormalLoad"/>: store the argument into the root's cell — a formal's
@@ -106,7 +106,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         OoCrossingType(root) == "string" ? CallEmitter.BoundaryCopyWrite(MethodCellPlace(root), value)
         : OoVarGroupCarried(root) ? PlaceRenderer.WriteVarGroupImage(MethodCellPlace(root), value, "OO method formal copy-in of",
             formalStorage: true)
-        : OoClassTable.LeafCarried(root) ? PlaceRenderer.WriteGroupLeaves(MethodCellPlace(root), value)
+        : ActivationCrossing.LeafCarried(root) ? PlaceRenderer.WriteGroupLeaves(MethodCellPlace(root), value)
         : PlaceRenderer.Write(MethodCellPlace(root), value);
 
     private Place MethodCellPlace(DataItem root) =>
@@ -811,7 +811,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <summary>D-U6a: true when the item's canonical UNIVERSAL box form is the display IMAGE string while
     /// its local crossing form is native — the FormatDisplay/StoreDisplay bridge applies both directions.</summary>
     private static bool OoUnivImageBridged(DataItem item) =>
-        !OoStringCarried(item)
+        !ActivationCrossing.StringCarried(item)
         && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display };   // CARRIAGE, not image form (kb/Work PB646)
 
     /// <summary>D-U6a's OTHER bridge (kb/Work PB187): true when the item's canonical box is its NATIVE value — a
@@ -822,7 +822,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// form; without this arm the callee cast a boxed float to <c>string</c> (InvalidCastException on legal
     /// source) and a windowed caller boxed its image where the callee expected the value.</summary>
     private static bool OoUnivNativeBoxOverImage(DataItem item) =>
-        OoStringCarried(item) && !item.IsGroup && !OoUnivDisplayBoxed(item)
+        ActivationCrossing.StringCarried(item) && !item.IsGroup && !OoUnivDisplayBoxed(item)
         && item.Pic is { HasImageByteForm: true } && item.Pic.Usage is not Usage.National;
 
     /// <summary>True when the descriptor's canonical box is the zoned display IMAGE (N:Display:*) — the item's
@@ -840,9 +840,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         OoVarGroupCarried(item) ? $"({RuntimeApi.VarGroupType}){box}!"
         // A strong group's leaf vector (kb/Work PB1116): the relations admit only an argument of the same type, which
         // the caller boxes as the same vector (OoUnivCallerRead).
-        : OoClassTable.LeafCarried(item) ? $"(object?[]){box}!"
+        : ActivationCrossing.LeafCarried(item) ? $"(object?[]){box}!"
         : OoUnivNativeBoxOverImage(item) ? NumericRenderer.ImageOfCarrier($"({item.Pic!.ClrType}){box}!", item)
-        : OoStringCarried(item) ? $"(string){box}!"
+        : ActivationCrossing.StringCarried(item) ? $"(string){box}!"
         : OoUnivImageBridged(item) ? RuntimeApi.NumStoreDisplay($"(string){box}!", item.ProfileName, $"({item.ElementType})0")
         : OoIsActiveClassFormal(item) ? $"(CobolObject?){box}"   // the universal crossing (OoFormalCrossingType)
         : item.Pic is { Category: PicCategory.ObjectReference } p ? $"({p.ClrType}){box}"
@@ -1025,7 +1025,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         p is RefModPlace ? PlaceRenderer.Read(p)
         // Every universal argument is BY REFERENCE (§14.9.23.3 SR6), so the box reads the argument's STORAGE (kb/Work PB2690).
         : CallEmitter.CallPlaceIsVarGroup(p) ? PlaceRenderer.VarGroupBoundaryImage(p, "INVOKE argument", byReference: true)
-        : OoClassTable.LeafCarried(p.Item) ? PlaceRenderer.GroupLeaves(p)
+        : ActivationCrossing.LeafCarried(p.Item) ? PlaceRenderer.GroupLeaves(p)
         : p.Item.IsGroup ? CallEmitter.CallStringRead(p)
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Read(new NumericImagePlace(p))
         : OoUnivNativeBoxOverImage(p.Item) ? $"(object?){NumericRenderer.CarrierOfImage(PlaceRenderer.Read(p), p.Item)}"   // kb/Work PB187
@@ -1044,10 +1044,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         p is RefModPlace ? PlaceRenderer.Write(p, $"(string){box}!")
         : CallEmitter.CallPlaceIsVarGroup(p)
             ? PlaceRenderer.WriteVarGroupImage(p, $"({RuntimeApi.VarGroupType}){box}!", "INVOKE copy-out into")
-        : OoClassTable.LeafCarried(p.Item) ? PlaceRenderer.WriteGroupLeaves(p, $"(object?[]){box}!")
+        : ActivationCrossing.LeafCarried(p.Item) ? PlaceRenderer.WriteGroupLeaves(p, $"(object?[]){box}!")
         : p.Item.IsGroup ? argumentView ? CallEmitter.BoundaryCopyWrite(p, $"(string){box}!") : CallEmitter.CallStringWrite(p, $"(string){box}!")
         : OoUnivNativeBoxOverImage(p.Item) ? PlaceRenderer.Write(p, NumericRenderer.ImageOfCarrier($"({p.Item.Pic!.ClrType}){box}!", p.Item))   // kb/Work PB187
-        : OoStringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
+        : ActivationCrossing.StringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Write(new NumericImagePlace(p), $"(string){box}!")
         : p.Item.Pic is { Category: PicCategory.ObjectReference } pic
             ? PlaceRenderer.Write(p, RuntimeApi.ObjNarrowUniversal(pic.ClrType.TrimEnd('?'), box,
@@ -1270,7 +1270,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         // write (kb/Work PB1166 — the twin of MethodBoundaryValue's arm).
                         : root.IsAsIfElementary ? CallEmitter.CallStringWrite(MethodRootPlace(root), $"{formal.ParamName}.Value")
                         // A strong group with no character image is rebuilt from its leaf vector (kb/Work PB1116).
-                        : OoClassTable.LeafCarried(root) ? PlaceRenderer.WriteGroupLeaves(MethodRootPlace(root), $"{formal.ParamName}.Value")
+                        : ActivationCrossing.LeafCarried(root) ? PlaceRenderer.WriteGroupLeaves(MethodRootPlace(root), $"{formal.ParamName}.Value")
                         : PlaceRenderer.WriteFullGroupImage(MethodRootPlace(root), $"{formal.ParamName}.Value",
                             "OO method LINKAGE formal copy-in")) + " }");
                 }
@@ -1597,11 +1597,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         w.Line();
     }
 
-    /// <summary>Thin forward to THE one crossing-form predicate, <see cref="OoClassTable.StringCarried"/>
-    /// (relocated to Binding in P6 Step 5 — the bind-phase override harmonize in <c>StorageFormPass</c> and these
-    /// emit-side signature/marshaling renders must consult the SAME definition).</summary>
-    private static bool OoStringCarried(DataItem item) => OoClassTable.StringCarried(item);
-
     /// <summary>True when an OO boundary item crosses as the §8.5.1.12 VARIABLE-LENGTH carrier — the THIRD
     /// crossing form (kb/Work PB204), the exact twin of <c>CallEmitter.CallPlaceIsVarGroup</c> at the CALL
     /// boundary. §14.9.23.3 contains no prohibition on such an operand and §14.8.2.2 / §14.8.3.2 ADMIT it
@@ -1610,12 +1605,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     /// <summary>⛔ THE ONE C# CROSSING TYPE of an OO boundary item — the dispatch every signature, property
     /// accessor, box lane and marshaling arm reads, so the three forms cannot drift (kb/Work PB204 replaced
-    /// SIX copies of the two-way ternary <c>OoStringCarried(x) ? "string" : x.ElementType</c>; adding a form
+    /// SIX copies of the two-way ternary <c>ActivationCrossing.StringCarried(x) ? "string" : x.ElementType</c>; adding a form
     /// to a ternary spelled six times is how the two-arm defect gets made).</summary>
     private static string OoCrossingType(DataItem item) =>
         OoVarGroupCarried(item) ? RuntimeApi.VarGroupType
-        : OoClassTable.LeafCarried(item) ? "object?[]"   // the strong group's leaf vector (kb/Work PB1116)
-        : OoStringCarried(item) ? "string"
+        : ActivationCrossing.LeafCarried(item) ? "object?[]"   // the strong group's leaf vector (kb/Work PB1116)
+        : ActivationCrossing.StringCarried(item) ? "string"
         : item.ElementType;
 
     /// <summary>True for a method formal described <c>USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS</c>.</summary>
@@ -1751,7 +1746,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         for (int i = 0; i < args.Count; i++)
         {
             var a = args[i];
-            bool stringCarried = OoStringCarried(a.Formal);
+            bool stringCarried = ActivationCrossing.StringCarried(a.Formal);
             // The owner's internal profile field when the owner is a class of this module; for a class IMPORTED from another assembly
             // (whose profile fields are its own internals, named by ITS binder's uids) the same profile, spelled out (kb/Work PB2104).
             string qualProfile = a.Formal.Pic is not { Category: PicCategory.Numeric } ? ""
@@ -1857,7 +1852,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // ⛔ A STRONG GROUP WITH NO CHARACTER IMAGE (kb/Work PB1116): the argument is of the formal's type (bind
             // proved it), so it crosses as its leaf vector — a fresh vector, so BY CONTENT is a copy and BY REFERENCE
             // is copied back below. FIRST among the group arms: StringCarried is true of every group.
-            else if (OoClassTable.LeafCarried(a.Formal))
+            else if (ActivationCrossing.LeafCarried(a.Formal))
                 Decl("object?[]", PlaceRenderer.GroupLeaves(a.Source!));
             else if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
             {
@@ -2020,7 +2015,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // GR8 — capture the result AT RETURN and store into identifier-4 LAST (the final effect of the INVOKE;
             // every BY REFERENCE argument already holds the method's stores — its carrier was a view over it).
             string tmp = $"__ivr{id}";
-            bool retString = OoStringCarried(rs);
+            bool retString = ActivationCrossing.StringCarried(rs);
             w.Line($"var {tmp} = {call};   // INVOKE (§14.9.23.4; null receiver → EC-OO-NULL, GR5)");
             // ⛔ A RETURNING pair with ONE variable-length side (§14.8.3.2 "If either the sending or the receiving
             // operand is a variable length group, the sending operand and the receiving operand shall be
@@ -2046,7 +2041,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             else if (ItemCategory.IsGroupItem(rs) && VarPlaceShapes(recv, rs) is (var recvVarShape, var rsFixedShape))
                 w.Line(PlaceRenderer.WriteVarGroupImage(inv.Returning,
                     RuntimeApi.VarGroupFromImage(tmp, Atoms(rsFixedShape), Atoms(recvVarShape)), "INVOKE RETURNING delivery into"));
-            else if (OoClassTable.LeafCarried(rs))
+            else if (ActivationCrossing.LeafCarried(rs))
                 w.Line(PlaceRenderer.WriteGroupLeaves(inv.Returning, tmp));   // §14.8.3.2 same type — the leaf vector (kb/Work PB1116)
             else if (rs.IsGroup || recv.Item.IsGroup)
                 w.Line(CallEmitter.CallStringWrite(inv.Returning, tmp));
@@ -2058,7 +2053,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // COBOL description: an ACTIVE-CLASS result, such as the standard class BASE's FactoryObject,
                 // whose runtime member returns CobolObject (ISO §16.2). The narrowing is therefore total.
                 w.Line(PlaceRenderer.Write(recv, $"({orp.ClrType}){tmp}"));
-            else if (retString == OoStringCarried(recv.Item))
+            else if (retString == ActivationCrossing.StringCarried(recv.Item))
                 // ANY LENGTH at the delivery boundary (ISO §14.8.3.3 rules 4/5; §13.18.2 GR1): a varying-length
                 // SENDER delivers width-fitted into a fixed receiver (rule 5 — its length "considered to match");
                 // a varying-length RECEIVER stores at its own current length (its n is fixed by ITS activation).
@@ -2089,7 +2084,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// takes the receiving references the method made (<paramref name="received"/>, kb/Work PB2690; §8.5.1.9.3).</para></summary>
     private string InvokeArgumentStore(BoundInvokeArg a, Place src, string value, string received, out bool overStorage)
     {
-        bool stringCarried = OoStringCarried(a.Formal);
+        bool stringCarried = ActivationCrossing.StringCarried(a.Formal);
         overStorage = false;
         if (OoVarGroupCarried(a.Formal))
         {
@@ -2121,7 +2116,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 RuntimeApi.VarGroupOverlayImage(PlaceRenderer.VarGroupBoundaryImage(src, "INVOKE copy-out into", byReference: true), Atoms(wvArg), value, Atoms(wvFormal), received),
                 "INVOKE copy-out into");
         }
-        else if (OoClassTable.LeafCarried(a.Formal))
+        else if (ActivationCrossing.LeafCarried(a.Formal))
             return PlaceRenderer.WriteGroupLeaves(src, value);   // the leaf vector's copy-back (kb/Work PB1116)
         else if (a.Formal.IsGroup || src.Item.IsGroup)
         {
@@ -2142,7 +2137,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         else if (src is RefModPlace)
             return PlaceRenderer.Write(src, value);   // RefModPlace.Write splices the window (§8.4.3.3.4 GR6)
         else if (stringCarried)
-            return OoStringCarried(src.Item) ? PlaceRenderer.Write(src, value) : PlaceRenderer.Write(new NumericImagePlace(src), value);
+            return ActivationCrossing.StringCarried(src.Item) ? PlaceRenderer.Write(src, value) : PlaceRenderer.Write(new NumericImagePlace(src), value);
         else
             return src.Item.StoreAsImage
                 ? PlaceRenderer.Write(src, NumericRenderer.ImageOfCarrier(value, src.Item))
@@ -2196,7 +2191,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private string OoStringReadOf(Place sp, BoundInvokeArg a, string qualProfile)
     {
         string read = sp is RefModPlace ? PlaceRenderer.Read(sp)
-            : OoStringCarried(sp.Item) ? PlaceRenderer.Read(sp)
+            : ActivationCrossing.StringCarried(sp.Item) ? PlaceRenderer.Read(sp)
             : PlaceRenderer.Read(new NumericImagePlace(sp));
         // An ANY LENGTH formal takes the argument's characters AT the argument's length (ISO §13.18.2 GR1 —
         // n = the length of the corresponding argument), so the CONTENT copy must NOT width-normalize to the

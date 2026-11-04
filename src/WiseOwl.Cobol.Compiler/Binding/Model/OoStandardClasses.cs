@@ -1,9 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
 
-namespace WiseOwl.Cobol.Compiler.Oo;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// ⛔ THE STANDARD CLASSES OF ISO/IEC 1989:2023 CLAUSE 16 — the one place the compiler knows what they are.
@@ -25,9 +23,9 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// external repository for the class" (§12.3.8.3 SR6 b), and the implementation's own standard class is always
 /// there. How a specifier and that information choose the class "is implementor-defined" (§12.3.8.4 GR6): a class
 /// DEFINED in the compilation group under the same name is the one the group's own specifiers mean, and the
-/// standard class answers only a name no definition of the group claims (<see cref="OoClassTable.Find"/>).</para>
+/// standard class answers only a name no definition of the group claims (<c>OoClassTable.Find</c>).</para>
 ///
-/// <para><b>What it is NOT.</b> It is never in <see cref="OoClassTable.Classes"/> — it has no source, binds no
+/// <para><b>What it is NOT.</b> It is never in <c>OoClassTable.Classes</c> — it has no source, binds no
 /// data and emits nothing — so every pass over the group's definitions is unaffected. It is reached only through
 /// a base link (<see cref="OoClassSymbol.Base"/>), which is how its methods join a subclass's factory and instance
 /// interfaces (§9.3.9: "The subclass has all the methods defined for the inherited class definition"). A class
@@ -66,7 +64,7 @@ public static class OoStandardClasses
     public const string FactoryObjectClrName = "__FactoryObject";
 
     /// <summary>Build one compilation group's symbol for the standard class BASE, with its §16.2 method rosters.
-    /// One per <see cref="OoClassTable"/> (never a shared static): a group's pass-1 marks overrides against it,
+    /// One per <c>OoClassTable</c> (never a shared static): a group's pass-1 marks overrides against it,
     /// and a symbol shared across compilations would carry one group's facts into the next.</summary>
     public static OoClassSymbol BuildBase()
     {

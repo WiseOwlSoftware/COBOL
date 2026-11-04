@@ -8,13 +8,6 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
 
-/// <summary>One covariant-return adapter pair (§9.3.8.2.3 rules 5a/5c2 — conforming COBOL that C# interface
-/// implementation cannot express directly, because interface implementations demand the EXACT return type):
-/// the emitter renders an EXPLICIT interface implementation <c>PROTO_RET I_CS.M(…) =&gt; this.M(…);</c> per
-/// pair; <paramref name="Factory"/> marks the FACTORY side.</summary>
-public readonly record struct AdapterPair(
-    OoInterfaceSymbol Iface, OoMethodSymbol Proto, OoMethodSymbol Impl, bool Factory);
-
 /// <summary>
 /// The OO conformance SERVICE (P9 — R3: validation moved OFF the pass-1 symbol table, which stays a pure
 /// lookup structure): the §9.3.8.2 override-signature check, the §9.3.11 IMPLEMENTS pass (returning the
