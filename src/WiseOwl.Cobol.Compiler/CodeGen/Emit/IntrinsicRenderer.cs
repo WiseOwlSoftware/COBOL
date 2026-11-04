@@ -144,9 +144,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             if (RenderDec(ic) is { } dec)
                 return dec;
         }
-        // NATIVE arithmetic with an SDIDI-carried ARGUMENT (kb/Work PB69): the function computes on the SDIDI
-        // body when it has one (MOD/REM keep exact integers exact — CobolIntrinsics.ModDec's integer fast path),
-        // rather than landing the argument into Int128 at a working scale that a 33-digit power already overflows.
+        // NATIVE arithmetic with an SDIDI-carried ARGUMENT (kb/Work PB69): the function returns its value on the SDIDI
+        // when it has an SDIDI body, rather than landing the argument into Int128 at a working scale that a 33-digit power
+        // already overflows; RenderDec's native arms take every argument there as its EXACT value and round the value once
+        // (CobolIntrinsics.ExactValue.cs, kb/Work PB4568: MOD (BIG * BIG * K3, 2 ** 10) is 999 with every dividend digit).
         // ⚠ The native Dec producers are THREE, not one — an integer power (past or within the Int128 window), a
         // floating-point numeric-EDITED sender, and a floating-point LITERAL operand, which owner decision D-B
         // made much the most common of them. This comment named only the first, and so did CombineCore's
@@ -949,10 +950,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// ill-conditioned bodies take the exact wide value (<see cref="WideLeadArg"/>, <see cref="ExactIntake.Wide"/>): SIN of a
     /// 39-digit product reduces that product, not an image some 999 radians away. The consumers that still read the image, each
     /// for the reason its value cannot depend on the lost digits: EXP, EXP10 and SQRT (condition numbers of at most 709, 709 and ½,
-    /// against an image error of 10^−34 relative), the bounded integer positions, and COMBINED-DATETIME's argument-2.
-    /// ⚠ VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE (<c>RenderDec</c>'s SDIDI bodies) are NOT in that list: they read the
-    /// image through <see cref="DecArgList"/> (VARIANCE of the product and the product less one does not answer 0.25, and
-    /// PRESENT-VALUE (0, P, 1 - P) answers 0, not 1), and no clause fixes the precision of the MEAN they deviate from.</para>
+    /// against an image error of 10^−34 relative), the bounded integer positions, COMBINED-DATETIME's argument-2, and every
+    /// STANDARD-DECIMAL body (§8.8.1.5.2 r1 rounds the operand there). Under native arithmetic the SDIDI lane itself takes the exact
+    /// value (<see cref="ExactValueArg"/>, kb/Work PB4111, PB4568): VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE, and the exact
+    /// family beside an SDIDI or binary64 argument, form their value from <c>CobolExact</c> arguments and round it once.</para>
     /// </remarks>
     private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));
 
@@ -1370,12 +1371,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// implementor's, and §15.4.1 the returned value's characteristics; for that latitude CLAUDE.md rule 1 makes GnuCOBOL the
     /// answer, and its argument temporary is arbitrary-precision. The argument used to reach the function as its 34-digit
     /// round-to-odd image: <c>ABS (BIG * BIG * K3)</c> showed <c>…100000</c> for <c>…000999</c>, MOD of it by 1000 was 0 for 999.</para>
-    /// <para>WHEN. Some argument is wide and none is an SDIDI or a binary64 (those keep their own lanes, as beside a nested
-    /// product in an expression: <c>NumericRenderer.CombineCore</c>), and the arguments' digit bounds prove the WORK fits the wide
+    /// <para>WHEN. Some argument is wide and none is an SDIDI or a binary64 (a call with one returns its value on the SDIDI, and
+    /// takes the wide argument there EXACTLY: <see cref="RenderDec"/>'s native arms over <see cref="ExactValueArgList"/>, kb/Work
+    /// PB4568, so ORD-MAX (P - 1, P, 2.0E0) is 2 and MOD (P, 2 ** 10) 999), and the arguments' digit bounds prove the WORK fits the wide
     /// form's 77 digits: each argument aligned to the common scale (its digits plus the scale gap), plus what the function adds to
     /// it (a digit per tenfold argument count for SUM, nine more for a table(ALL) argument, one for RANGE's difference and
     /// INTEGER's floor, two for MEDIAN's and MIDRANGE's exact halving one place further). A call past that bound returns null and
-    /// keeps the SDIDI arm, the determination for an intermediate past 77 digits (DOC-A.1-123).</para>
+    /// keeps the SDIDI arm, which under native arithmetic still forms the value from the exact arguments wherever the run-time
+    /// values fit the wide form, and from the SDIDI images past it, the determination for an intermediate past 77 digits
+    /// (DOC-A.1-123).</para>
     /// <para>WHAT. Every exact-family arm of <see cref="RenderNum"/>'s switch that takes a numeric argument has a body here
     /// (<c>ExactWideSettlementDriftTests</c> holds that closed): ABS, SIGN, INTEGER, INTEGER-PART and FRACTION-PART at the argument's
     /// own scale; MOD and REM over their type-6 integers; MAX, MIN, ORD-MAX, ORD-MIN, SUM, RANGE, MEDIAN and MIDRANGE over the
