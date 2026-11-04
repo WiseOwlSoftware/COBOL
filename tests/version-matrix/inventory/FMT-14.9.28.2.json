@@ -4,7 +4,7 @@
  "kind": "FMT",
  "ordinal": 0,
  "subject": "PERFORM statement",
- "rule-digest": "09a38c20f42a",
+ "rule-digest": "5f6fe95a9549",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckInlineHeadCardinality; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform",
  "test-ref": "conformance:cases/14.9.28-PERFORM/pb431-inline-head-two-control-phrases; conformance:cases/14.9.28-PERFORM/pb431-format3-control-phrase; conformance:cases/14.9.28-PERFORM/pb432-varying-operand-expression; conformance:cases/14.9.28-PERFORM/pb432-varying-from-nonnumeric-literal; conformance:cases/14.9.28-PERFORM/pb432_varying_brace_group",
