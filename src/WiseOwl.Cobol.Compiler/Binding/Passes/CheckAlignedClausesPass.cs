@@ -86,14 +86,16 @@ internal sealed class CheckAlignedClausesPass : IBindPass
     /// alphanumeric) and of an elementary item's Table 2 category — so this pass keeps no classification of its
     /// own (kb/Work PB1654). Three hints ride on top because they exist only for this rule: what a plain group
     /// would have to carry to be a bit group item (§13.16.4 GR1), what makes an elementary boolean item a BIT
-    /// data item (§13.18.60.4 GR5), and — because this pass judges the TEMPLATE once, where no item is yet
+    /// data item (§13.18.60.4 GR5) — said after the item's category face and never of a usage, because a boolean
+    /// item may be described with USAGE DISPLAY or USAGE NATIONAL (§13.18.60.3 SR12) as well as BIT (kb/Work
+    /// PB4603) — and — because this pass judges the TEMPLATE once, where no item is yet
     /// strongly typed (§8.5.3.1) — that a group inside a STRONG type declaration will be one in every item
     /// described with the type, which no GROUP-USAGE BIT clause can turn into a bit group (§13.18.29.3 SR1), so
     /// the "write GROUP-USAGE BIT" hint would send the programmer to a second refusal.</summary>
     private static string DescribeAlignedSubject(DataItem item) =>
         item.Pic is { Category: PicCategory.Boolean }
-            ? "an elementary boolean item whose usage is DISPLAY — an elementary BIT data item is one described "
-              + "with USAGE BIT (§13.18.60.4 GR5)"
+            ? ItemCategory.Face(item) + " — an elementary BIT data item is one described with USAGE BIT "
+              + "(§13.18.60.4 GR5)"
         : ItemCategory.GroupKindsOf(item) is not GroupKinds.Alphanumeric
             ? ItemCategory.Face(item)
         : item.DeclaresStrongType || DataBinder.UnderStrongTypeDeclaration(item)
