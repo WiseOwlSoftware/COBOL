@@ -1,4 +1,4 @@
-## PB4239, PB4586, PB4577: the COBOL-WORDS category rules know the extension words and survive a parse error, and SEARCH identifier-1 takes enclosing subscripts only from COBOL-2014
+## Entry 3093 — 2026-11-04 12:17 PST — PB4239, PB4586, PB4577: the COBOL-WORDS category rules know the extension words and survive a parse error, and SEARCH identifier-1 takes enclosing subscripts only from COBOL-2014
 
 Wave 20261863 group A took three notes that touch the version-conformance code. They are three mechanisms, fixed one per
 checkpoint.
@@ -47,3 +47,4 @@ unit test. The lead is fixed too: the SEARCH COBOL0900 gate quoted identifier-1 
 written (`SearchIdentifier1GateTests`).
 
 Gate (run 000002-20261104T194613Z, head f8408029e): === BUILD-LOCAL GATE: GREEN — Conformance 21,503/21,503 · Unit 39,811/39,811 · Characterization 37/37 cases ran (skipped 0) ===. The first gate (000001) was RED on one case, EditionGateArmDriftTests.GatedConstruct_NamesItsEdition_EvenWhenItsOperandsDoNotResolve for the new SEARCH construct, which moved the gate from the binder to the parse arm.
+
