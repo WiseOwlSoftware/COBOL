@@ -307,7 +307,7 @@ public static partial class ReservedWords
         new("OPTIONAL", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §8.9)"),
         new("OPTIONS", false, true, true, true, "high", "added 2002 (ISO 2002 §8.9; ISO 2023 §8.9)"),
         new("OR", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §8.9)"),
-        new("ORDER", false, true, true, true, "high", "added 2002 (ISO 2002 §8.9; ISO 2023 §8.9)"),
+        new("ORDER", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §8.9)"),
         new("ORGANIZATION", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §8.9)"),
         new("OTHER", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §8.9)"),
         new("OUTPUT", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §8.9)"),

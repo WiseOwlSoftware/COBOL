@@ -790,10 +790,11 @@ sortKeyPhrase
 // whole phrase was answered with `'ORDER' is a reserved word … and cannot be used as a user-defined word` at
 // 2002/2014/2023 — the only phrase that can demand GR3 was unusable. The token also ends an under-rejection the
 // name slot allowed: `WITH DUPLICATES IN <any word>` no longer parses, which is what §5.2.3 requires.
-// ⛔ AND IT IS READ THROUGH `orderKeyword` (kb/Work PB3794): the phrase is in the COBOL-85 SORT, where ORDER is free
-// (reserved-words.json), and the token-level reservation gate retypes every ORDER of a program that declares it.
+// ORDER is reserved at EVERY edition (reserved-words.json r85 true; the 2002 Annex F.1 item 6 does not name it among
+// the words 2002 added, kb/Work PB3957), so the token-level reservation gate never retypes it and the bare token is
+// the keyword: there is no generated keyword rule (cobol-words.json ORDER carries no keywordWhereFree).
 sortDuplicatesPhrase
-    : WITH? DUPLICATES IN? orderKeyword?
+    : WITH? DUPLICATES IN? ORDER?
     ;
 
 sortCollatingPhrase

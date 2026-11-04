@@ -94,8 +94,9 @@ semantics).
   GPL files stay out — only derived FACTS with provenance are committed).
   Outputs: `WiseOwl.Cobol.Editions/ReservedWords.Table.cs` + `tests/version-matrix/reserved-words.json`, drift-tested
   both directions. Conservative policy: only `confidence: high` rows reject. ISO Annex E overrides source
-  disagreements; continuity interpolation covers single-source gaps; CCVS-conforming usage PROVES a word
-  un-reserved (the ORDER override). Consumers go through **`ReservedWordSet`** (the per-unit D9 seam — the
+  disagreements; continuity interpolation covers single-source gaps; a CCVS-85 program that uses a word as a user-defined word would PROVE it unreserved at 85
+  (none does: kb/Work PB3957 retired the ORDER override, which misread ST127A's WITH DUPLICATES IN ORDER keyword), and the
+  2002 Annex F.1 item 6 list of the words 2002 ADDED holds the 85 flag to the text (`reserved-words-2002.json`). Consumers go through **`ReservedWordSet`** (the per-unit D9 seam — the
   2023 COBOL-WORDS directive mutates the effective set per compilation group, roadmap Phase 7).
   **The funnel** (`VisitCobolWord`) checks IDENTIFIER occurrences (the whole newly-reserved payload) + the six
   EC-band tokens; the screen/report allowlist band is EXCLUDED pending position-aware checking — the

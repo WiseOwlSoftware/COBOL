@@ -10,7 +10,8 @@
 #   specs/ISO_COBOL.md                 (in-repo)  — ISO/IEC 1989:2023 §8.9 = THE authoritative 2023 list.
 #   docs/VERSION_CHANGE_REFERENCE.md   (in-repo)  — row 32 = the 16 words newly reserved in 2023 (Annex E.2 item 25).
 #   tests/version-matrix/reserved-words-2002.json (in-repo) — the ISO/IEC 1989:2002 §8.9 list, transcribed from the
-#     2002 post-ballot text (kb/Work PB4297) = THE authoritative 2002 list.
+#     2002 post-ballot text (kb/Work PB4297) = THE authoritative 2002 list, with its Annex F.1 item 6 list of the
+#     words 2002 ADDED, which holds the 85 flag to the text (kb/Work PB3957).
 #   tests/version-matrix/words-2009-cd.json (in-repo) — the 2009 committee draft's §8.9 and §8.10 lists, read for
 #     the one 2014 question step 5 states (kb/Work PB4297).
 #   GnuCOBOL config/{cobol85,cobol2002,cobol2014}.words (fetched to .cache/, NOT committed) — the per-standard
@@ -93,11 +94,6 @@ $gc85   = Parse-GcWords $gcFiles['cobol85']
 $gc2002 = Parse-GcWords $gcFiles['cobol2002']
 $gc2014 = Parse-GcWords $gcFiles['cobol2014']
 
-# CCVS-PROVEN over-inclusions (DEVLOG 585): a conforming NIST CCVS-85 program using a word as a user-defined
-# word PROVES it was not X3.23-1985-reserved — the corpus outranks the GnuCOBOL curation (dialect-pragmatic
-# extras). Evidence: ST127A + the sort differential programs declare ORDER as a data name at --std 85.
-foreach ($w in @('ORDER')) { [void]$gc85.Remove($w) }
-
 # ---- 1b. The 2002 standard's §8.9 list and the 2009 draft's §8.9 / §8.10 lists (kb/Work PB4297) ----
 # Transcribed word lists (words only; each file's _comment names its source and printed pages). GnuCOBOL's
 # cobol2002.words and cobol2014.words also reserve words no ISO text of the edition lists (the 1985 vocabularies
@@ -111,6 +107,7 @@ function Read-WordList([string]$path, [string]$key) {
 $p2Path = Join-Path $repo 'tests/version-matrix/reserved-words-2002.json'
 $cdPath = Join-Path $repo 'tests/version-matrix/words-2009-cd.json'
 $iso2002   = Read-WordList $p2Path 'words'
+$added2002 = Read-WordList $p2Path 'addedByAnnexF1'   # the same text's Annex F.1 item 6: the reserved words 2002 ADDED
 $cdReserved = Read-WordList $cdPath 'reserved'
 $cdContext  = Read-WordList $cdPath 'contextSensitive'
 # ALIGNED is reserved at 2002 although the 2002 §8.9 list omits it: the same text's Annex F.1 item 6 lists it among
@@ -195,6 +192,17 @@ if ($cdContext.Count -lt 70 -or $cdContext.Count -gt 85)     { throw "2009 draft
 # curation gap step 5 used to interpolate, kb/Work PB655): a 2002 §8.9 word outside both means a list changed shape.
 $p2NotGc = @($iso2002 | Where-Object { -not $gc2002.Contains($_) -and -not ($gc85.Contains($_) -and $iso2023.Contains($_)) })
 if ($p2NotGc.Count -ne 0) { throw "cross-check failed: $($p2NotGc.Count) 2002 §8.9 word(s) absent from GnuCOBOL's 2002 list and not reserved at 85 and 2023" }
+# The 1985 flag is held to the 2002 text (kb/Work PB3957). GnuCOBOL's 85 list is the only 1985 source in the
+# repository, so it is the base; but the 2002 standard's Annex F.1 item 6 names every reserved word it ADDED to the
+# previous standard's, so an 8.9 word that item does not name was already reserved at 1985 - and a GnuCOBOL 85 list
+# that lacks it is wrong. This is the check that would have caught ORDER, which an earlier revision removed from the
+# 85 list on a misreading of a corpus program (ST127A spells SORT's WITH DUPLICATES IN ORDER keyword; no CCVS program
+# declares ORDER), leaving COBOL-85 accepting `01 ORDER PIC 9.` that its own SORT format reserves. One direction
+# only: F.1 also names a word the 85 list holds (LAST), so "added by 2002"
+# does not prove "unreserved at 85".
+$notReservedAt85 = @($iso2002 | Where-Object { -not $added2002.Contains($_) -and -not $gc85.Contains($_) })
+if ($notReservedAt85.Count -ne 0) { throw "$($notReservedAt85.Count) 2002 §8.9 word(s) that Annex F.1 item 6 does not name as added are absent from the 85 flag source - they were reserved at 1985: $($notReservedAt85 -join ', ')" }
+if ($added2002.Count -lt 80 -or $added2002.Count -gt 90) { throw "2002 Annex F.1 added list $($added2002.Count) outside 80..90 - $p2Path changed shape" }
 if ($added2023.Count -ne 16) { throw "VCR row 32 parse yielded $($added2023.Count) != 16 words" }
 foreach ($w in $added2023) { if (-not $iso2023.Contains($w)) { throw "Annex-E addition '$w' missing from the 2023 extraction" } }
 # ISO Annex E.2 item 25 is authoritative for ONE edition edge: E.1 lists "the substantive changes between the
