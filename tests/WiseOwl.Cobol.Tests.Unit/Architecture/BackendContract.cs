@@ -81,7 +81,7 @@ internal static class BackendContract
             "Bound.BoundInvokeUniversal.MethodLiteral", "Bound.BoundNumLiteral.Text", "Bound.BoundNumericLiteral.Image",
             "Bound.BoundNumericLiteral.Text", "Bound.BoundProgramAddress.NameLiteral", "Bound.BoundSetEntry.NameLiteral",
             "Bound.BoundSetFunctionAddress.NameLiteral", "Bound.BoundStopLiteral.Text", "Bound.BoundStringLiteral.Value",
-            "Bound.BoundUserClassCondition.Members",
+            "Bound.BoundUserClassCondition.Members", "Bound.InitializeStoreValue.Raw",
             "Model.Condition88.FalseValue", "Model.Condition88.Values", "Model.CurrencyDefinition.Text",
             "Model.DataItem.PictureText", "Model.DataItem.RawValue", "Model.DataItem.ValueAt()",
             "Model.KeySuppression.Value", "Model.LocaleEditSpec.Picture",
