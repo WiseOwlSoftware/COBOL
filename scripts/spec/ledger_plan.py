@@ -225,9 +225,7 @@ def group_sizes(ids: list[str], lanes: dict[str, list[str]], fix_groups: dict | 
             if k:
                 sizes.append(len(k))
                 covered |= k
-        unsited = set(fix_groups.get("unsited", [])) & fix
-        sizes += [1] * len(unsited)
-        sizes += chunks(len(fix - covered - unsited), cap)
+        sizes += chunks(len(fix - covered), cap)   # an unsited note is already a cluster of its own (fold_unsited)
     for notes in by_lane.values():
         sizes += chunks(len(notes), cap)
     return sizes, unplanned
@@ -441,7 +439,7 @@ def self_test() -> int:
              "cost": {"per_group_tokens": {"sonnet": 400000}, "per_note_tokens": {"sonnet": 240000},
                       "landing_tokens": 96000, "landing_model": "opus"},
              "calibration": {"tokens_per_point": {"sonnet": 4000000, "opus": 1600000}}}
-    fg = {"clusters": [{"notes": [{"id": "PB9001"}]}], "unsited": ["PB9008"]}
+    fg = {"clusters": [{"notes": [{"id": "PB9001"}]}, {"file": "", "notes": [{"id": "PB9008"}]}]}   # PB9008 folded
     full = {"rules": rules, "implementer_model": "sonnet", "fix_groups": fg, "rate": {"per_h": 2.0}, "burn": {"per_h": 3.0}}
     est = bucket_estimates(rem, full)["compiler"]
     # fix lane: PB9001 (a cluster of 1), PB9008 (unsited), PB9002 (not clustered: blocked -> a chunk of 1) = 3 groups

@@ -205,7 +205,7 @@ from inflight import (LANDED_CLASSES, Claim, InFlight, IndexPolicy, branch_carri
                       branch_replays, classify_inflight, collision, collision_hits, declared_sets, git_branch_classifier,
                       hold, inflight_file_sets, inflight_units, local_branches, survey_states, unlanded_branch_notes)
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, cluster_claim,  # noqa: E402
-                      declare_fix_lane, harm_weights, lift_tiers, load_fix_clusters, load_notes, notes_cap,
+                      declare_fix_lane, fold_unsited, harm_weights, lift_tiers, load_fix_clusters, load_notes, notes_cap,
                       predicted_turns, run_fix_clusters, turn_budget)
 from groups import (FINISH_FIRST, Group, as_group_json, branch_resume, choose_model, finisher_pred,  # noqa: E402
                     group_cost, group_of_cluster, group_requirements, half_clause, join_preds, landing_cost, letters,
@@ -1081,7 +1081,7 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
 
     def fix_clusters(status: str, given: str | None) -> list[dict[str, Any]]:
         if given:
-            return json.loads(pathlib.Path(given).read_text(encoding="utf-8"))["clusters"]
+            return fold_unsited(json.loads(pathlib.Path(given).read_text(encoding="utf-8")), notes)["clusters"]
         return run_fix_clusters(status, made / f"clusters-{status}.json", rules)["clusters"]
 
     deps, waiting, campaign, tiers = None, {}, "", {}

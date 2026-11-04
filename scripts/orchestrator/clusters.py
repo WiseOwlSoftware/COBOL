@@ -184,17 +184,35 @@ def ready_notes_view(status: str, view: pathlib.Path, work_dir: pathlib.Path | N
     return view
 
 
+def fold_unsited(raw: Mapping[str, Any], notes: Mapping[str, Note]) -> dict[str, Any]:
+    """fix_clusters.py's output with every UNSITED note made a group of its own (kb/Work PB4566), the rule the campaign
+    lane already follows (campaign_clusters: "a note declaring no site file is a group of its own"). fix_clusters
+    resolves a site only against .agent-fleet.json's `src` and `ext` and lists the rest under `unsited`; the planner
+    read `clusters` alone, so a ready defect sited in a data file (PB3600 on tests/version-matrix/constructs.json, PB3957
+    on reserved-words.json) was planned by no wave while the ledger counted it as a group. The group's collision set is
+    its note's DECLARED set (declare_fix_lane), so its partition is the same as any cluster's. Returns `clusters` only:
+    no reader sees an `unsited` list it could drop."""
+    singles = []
+    for nid in raw.get("unsited", []):
+        n = notes.get(nid)
+        harm = n.harm if n else 0
+        singles.append({"file": "", "harm": harm, "files": [],
+                        "notes": [{"id": nid, "area": n.area if n else "", "harm": harm,
+                                   "title": n.title[:140] if n else ""}]})
+    return {"clusters": [*raw.get("clusters", []), *singles]}
+
+
 def run_fix_clusters(status: str, out: pathlib.Path, rules: dict[str, Any]) -> dict[str, Any]:
     """The fix lane's groups: fix_clusters.py --json over .agent-fleet.json's population (`kind`, `skip_flag`) of the
-    notes that wait on nothing (ready_notes_view), at the planner's group size (notes_cap), written to `out` and returned whole
-    (`clusters`, `unsited`). The ONE call, shared by this planner and the ledger's estimate
-    (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""
+    notes that wait on nothing (ready_notes_view), at the planner's group size (notes_cap), written to `out`, and returned
+    with every unsited note a group of its own (fold_unsited). The ONE call, shared by this planner and the ledger's
+    estimate (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""
     if not FIX_CLUSTERS.exists():
         raise SystemExit(f"⛔ {FIX_CLUSTERS} is missing: run `git submodule update --init tools/claude-skills`")
     view = ready_notes_view(status, out.with_name(f"{out.stem}-notes"))
     subprocess.run([sys.executable, str(FIX_CLUSTERS), "--notes", str(view), "--max", str(notes_cap(rules)),
                     "--open-status", status, "--json", str(out)], cwd=REPO, check=True, capture_output=True)
-    return json.loads(out.read_text(encoding="utf-8"))
+    return fold_unsited(json.loads(out.read_text(encoding="utf-8")), load_notes(view, harm_weights()))
 
 
 def declare_fix_lane(clusters: list[dict[str, Any]], declared: Callable[[str], Claim], work_dir: pathlib.Path) -> None:
