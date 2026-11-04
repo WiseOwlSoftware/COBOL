@@ -1,7 +1,8 @@
-## DeEdit reads a minus-literal character-1 LEFT of a floating sign string as the item's negative sign (PB4621)
+## Entry 3113 — 2026-11-04 15:52 PST — DeEdit reads a minus-literal character-1 LEFT of a floating sign string as the item's negative sign (PB4621)
 
 PB4514's review round 2 made `CobolEdit.DeEdit` read a '-' at a non-floating PICTURE EDITING character-1 as the landed sign while no digit had been read. The guard was `facts.Plus + facts.Minus > 1`, true for any mask holding a floating '+'/'-' string, so a character-1 whose literal is '-' placed LEFT of the string (or past a digit position after it) was read as a negative sign. Re-probe on a Debug build before the fix: `PIC T--9 EDITING T IS "-"` holding 55 is `- 55` and de-edited to -55; `PIC T++9` holding 55 is `-+55`, also -55. After: +00055 for both.
 
 Root cause: the arm asked whether the mask has a floating string, not whether the character-1 stands inside it. ISO 13.18.40.5 rule 6 makes only the simple insertion symbols embedded in the string, or immediately right of it, part of the string; rule 3 gives every other character-1 its literal. Fix: `CobolEdit.FloatingZone` is the one extent of a floating string (first floating symbol through the following floating or simple insertion symbols). `DeEdit` reads the arm only for a position inside it, and `FindFloatingPlacement` (which lands the sign) was rewritten over the same function, so the write and the read-back share one definition of the zone. The suppressed-run scan is unchanged in behaviour.
 
 Goldens: `13.18.40.5-Editing-rules/pb4621_deedit_char1_outside_floating_string` (accept 2023; A-F computed from rules 3 and 6) and the refused-below `pb4621-deedit-char1-outside-floating-at-85` (COBOL0900 at 85/2002/2014). Unit theory `DeEdit_Character1OutsideTheFloatingString_ShowsItsLiteralAndIsNotTheSign` round-trips left-of, past-a-9 and immediately-right-of positions. PB4621 closes no inventory row.
+
