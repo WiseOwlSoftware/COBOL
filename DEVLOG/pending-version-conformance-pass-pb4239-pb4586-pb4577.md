@@ -37,3 +37,5 @@ Rows: SR-7.3.10.3-3 and -4 closed by PB4239 (re-witnessed; verdicts stay CONFORM
 PB4577. Self-review found the second sentence of the COBOL0313 report on a reserved word in a data-name position ("'JS' is not a
 clause of the data description entry") is the closed-format residue hint's wording for any reserved word, which is a separate
 mechanism and is left for the registrar.
+
+Gate (run 000002-20261104T194613Z, head f8408029e): === BUILD-LOCAL GATE: GREEN — Conformance 21,503/21,503 · Unit 39,811/39,811 · Characterization 37/37 cases ran (skipped 0) ===. The first gate (000001) was RED on one case, EditionGateArmDriftTests.GatedConstruct_NamesItsEdition_EvenWhenItsOperandsDoNotResolve for the new SEARCH construct, which moved the gate from the binder to the parse arm.
