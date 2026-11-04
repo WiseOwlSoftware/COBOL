@@ -89,16 +89,11 @@ internal sealed class CheckAlignedClausesPass : IBindPass
     /// data item (§13.18.60.4 GR5), and — because this pass judges the TEMPLATE once, where no item is yet
     /// strongly typed (§8.5.3.1) — that a group inside a STRONG type declaration will be one in every item
     /// described with the type, which no GROUP-USAGE BIT clause can turn into a bit group (§13.18.29.3 SR1), so
-    /// the "write GROUP-USAGE BIT" hint would send the programmer to a second refusal. A TYPE entry is the fourth
-    /// shape: it is judged unexpanded (no PICTURE, no subordinates), so it has no kind of its own to name and
-    /// SR14 of §13.16.3 is what bars the clause.</summary>
+    /// the "write GROUP-USAGE BIT" hint would send the programmer to a second refusal.</summary>
     private static string DescribeAlignedSubject(DataItem item) =>
         item.Pic is { Category: PicCategory.Boolean }
             ? "an elementary boolean item whose usage is DISPLAY — an elementary BIT data item is one described "
               + "with USAGE BIT (§13.18.60.4 GR5)"
-        : ItemCategory.GroupKindsOf(item) is GroupKinds.None && item.TypeName is { } typeName
-            ? $"an item described with the TYPE clause (type '{typeName}'), whose kind is its type declaration's "
-              + "and which may not carry an ALIGNED clause at all (§13.16.3 SR14)"
         : ItemCategory.GroupKindsOf(item) is not GroupKinds.Alphanumeric
             ? ItemCategory.Face(item)
         : item.DeclaresStrongType || DataBinder.UnderStrongTypeDeclaration(item)

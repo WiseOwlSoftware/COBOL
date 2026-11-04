@@ -816,6 +816,7 @@
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::UnderStrongTypeDeclaration": [
+      "WiseOwl.Cobol.Binding.Passes.CheckAlignedClausesPass",
       "WiseOwl.Cobol.Binding.Passes.CheckConditionNameAssociationsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckUsageDeclarationsPass"
     ],
