@@ -1,4 +1,4 @@
-## The 3,000-program Sonnet fuzz batch, filed: 47 GnuCOBOL records, 33 witnesses, and fuzz night 10
+## Entry 3059 — 2026-11-03 16:15 PST — The 3,000-program Sonnet fuzz batch, filed: 47 GnuCOBOL records, 33 witnesses, and fuzz night 10
 
 The GnuCOBOL side of the first large Claude-written fuzz batch (kb/Work PB4506; its WiseOwl defects are PB4511-PB4517).
 Fourteen Opus adjudicator slices recorded 49 GnuCOBOL-side mechanisms as records; nine independent refuter slices
@@ -15,3 +15,4 @@ The night is recorded as fuzz night 10 (`fuzz-batch-3000-20261103`, judge built 
 The run id first came out as `judged`: `fuzz_batch.py collect` prints a judge command whose output directory is
 `DIR/judged` for every batch, and the triage takes the run id from that directory's name. This run's directory was
 renamed to the batch's own name before anything was recorded; the command is fixed separately.
+
