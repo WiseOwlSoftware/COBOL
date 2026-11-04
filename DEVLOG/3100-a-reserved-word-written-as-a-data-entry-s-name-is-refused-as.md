@@ -1,4 +1,4 @@
-## A reserved word written as a data entry's name is refused as a name, not as a clause (PB4604)
+## Entry 3100 — 2026-11-04 13:34 PST — A reserved word written as a data entry's name is refused as a name, not as a clause (PB4604)
 
 `01 MOVE PIC X.` drew COBOL1941, "'MOVE' is not a clause of the data description entry", and `01 JSON.` drew COBOL0313 followed by the same clause sentence. Both point away from the cause. ISO 13.16.3 SR4 puts the entry-name clause directly after the level-number and makes it optional, so the first word after the level-number is read as the name and as the first clause. A reserved word is neither, and 8.3.2.1 1) says reserved words shall not be user-defined words.
 
@@ -9,3 +9,4 @@ The fix marks the slot structurally. `ClosedFormats.EntryNameDueAfter` returns t
 Goldens: three refusals in `conformance-suite/cases/8.3.2.1-General/pb4604-entry-name-*` (a verb, a non-verb, an extension word), each refused at all four editions with its diagnostic file, and an accepted guard, `13.16-Data-description/pb4604-clause-keyword-at-the-entry-name-slot`, whose unnamed `USAGE`, `PIC` and `VALUE` entries must keep compiling. `ClosedFormatReservedWordTests` gains the name-slot theory (ten entries, four editions each, exactly one diagnostic) and the controls. The design gains "The entry-name slot" in `DESIGN-frontend-grammar.md`. No inventory row changed.
 
 One lead stays open: `01 W-A MOVE.` omits "for 'W-A'" from COBOL1941, because a prediction that fails ahead of the parser reports with the entry's context before its data-name is attached.
+
