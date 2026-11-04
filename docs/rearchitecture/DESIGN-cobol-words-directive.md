@@ -132,6 +132,17 @@ resolution read the canonical literal-4 as removed). A name the directive REMOVE
 names the UNDEFINE or SUBSTITUTE (`CobolWordsMap.RemovedBy` — the directive itself, not only the fact; `CobolWordsOp.At`
 supplies the line, through the line map) and, for SUBSTITUTE, the literal-5 that now denotes the function (kb/Work PB4309);
 COBOL1501 ("not an intrinsic function of ISO/IEC 1989") stays for a name that is no intrinsic function at all.
+
+⛔ **THE PARSER'S RESERVATION READS (`reservedHere`, `userWordHere`, `IsKeywordReadingHere`) AND THE FUNNEL'S (`VersionConformancePass.FlagReservedUserWord`)
+ASK A KEYWORD TOKEN ABOUT ITS OWN WORD, not about the group's overlay (kb/Work PB4589).** The word of a non-`IDENTIFIER`
+token is its original's spelling (above), and the original of a SUBSTITUTE synonym is exactly the word GR4 frees, so the
+overlay (`Canonical`, `ReservedWordSet.Compose`) answered "no keyword, no reservation" for the synonym that stands in its
+place: `SUBSTITUTE "RECEIVE" BY "RCV"` then `01 RCV PIC X.` was accepted, the reservation gate retyped RCV a user word, and
+`CMT.` after `SUBSTITUTE "COMMIT" BY "CMT"` was no COMMIT statement (`DISPLAY "A" CMT.` named the item COMMIT as its
+operand). A keyword token is asked of the generated table (`ReservedWords.Find`, `ReservedWordSet.Default`), where its
+original is reserved exactly where §8.9 reserves it (GR4, §8.3.2.1 rule 1); only an `IDENTIFIER`, the written word of
+RESERVE and of a synonym the lexer has no token for, is asked of the overlay. `Canonical` stays for the words a predicate
+tests by TEXT (`Word`, `PrintsKeyword`).
 The parse-layer twin is COBOL5926 (kb/Work PB4360): a withdrawn VERB written as a verb (`UNDEFINE "DISPLAY"` then
 `DISPLAY "X"`) is a user-defined word, the statement is no statement, and the syntax error stands; where the withdrawn
 word is the offending token or the one before it, `CobolErrorListener.NoteWithdrawnWord` reports a warning at the

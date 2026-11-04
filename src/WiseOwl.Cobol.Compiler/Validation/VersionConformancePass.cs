@@ -2913,7 +2913,7 @@ internal sealed class VersionConformancePass
             // resolves it to a DebugRegisterPlace, so ACCEPT it here (no §8.9 violation, no not-implemented note).
             if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
                 return base.VisitChildren(ctx);
-            FlagReservedUserWord(word, CobolKeywords.Spelling(WrittenSource.Of(ctx.Start)));
+            FlagReservedUserWord(word, ctx.Start);
             return base.VisitChildren(ctx);
         }
 
@@ -2928,17 +2928,27 @@ internal sealed class VersionConformancePass
         /// not-yet-introduced construct getting the migration mode's leniency (CA14's policy; these two were
         /// found by the introduction-axis theory the fix added).</para></summary>
         /// <para><paramref name="word"/> is the Annex C fold the reservation is looked up by and the once-per-word key;
-        /// <paramref name="written"/> is the word's spelling (<c>CobolKeywords.Spelling</c> of the SOURCE's extent,
-        /// <c>WrittenSource.Of</c>: the letters the source writes, the basic ones upper-cased; a synonym the lexer retyped to its
-        /// original's keyword token carries the original's text, kb/Work PB4573), which the message names (kb/Work PB4312: a word
-        /// a <c>&gt;&gt;COBOL-WORDS RESERVE</c> made reserved, written <c>CAFÉ</c>, was named by its fold, <c>'CAFé'</c>).</para>
-        private void FlagReservedUserWord(string word, string written)
+        /// <paramref name="token"/> is the word's first token, whose SOURCE extent (<c>WrittenSource.Of</c>) is the spelling the
+        /// message names (<c>CobolKeywords.Spelling</c>: the letters the source writes, the basic ones upper-cased; kb/Work
+        /// PB4312: a word a <c>&gt;&gt;COBOL-WORDS RESERVE</c> made reserved, written <c>CAFÉ</c>, was named by its fold,
+        /// <c>'CAFé'</c>).</para>
+        /// <para>⛔ A KEYWORD TOKEN IS ASKED OF THE GENERATED TABLE, NOT THE GROUP'S OVERLAY (kb/Work PB4589). The lexer's retype
+        /// has already applied the directive to it: a de-reserved word is an <c>IDENTIFIER</c>, and a synonym (EQUATE literal-2,
+        /// SUBSTITUTE literal-5) is its original's keyword token carrying the original's text (kb/Work PB4573), the original
+        /// the synonym STANDS FOR and so is reserved with (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 rule 1). The overlay's suppression
+        /// of a SUBSTITUTE'd original (literal-4, a user-defined word now, GR4) is the right answer for the word the source
+        /// writes as an <c>IDENTIFIER</c> and the wrong one for the synonym that replaced it: asking it of the original's text
+        /// read <c>01 RCV</c> after <c>SUBSTITUTE "RECEIVE" BY "RCV"</c> as a user word. The parser's gate reads the same
+        /// table (<c>CobolParserCoreBase.userWordHere</c>), so the gate and this funnel agree.</para>
+        private void FlagReservedUserWord(string word, Antlr4.Runtime.IToken token)
         {
-            if (!_reservedWords.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
+            var reserved = token.Type == CobolLexer.IDENTIFIER ? _reservedWords : ReservedWordSet.Default;
+            if (!reserved.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
             _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
+                EditionSeverityPolicy.For(reserved.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
                 "edition-reserved-word",
-                ReservedWordSet.UserWordViolationMessage(written, _cobolWords, _p._edition.Year), "", "ISO §8.9"));
+                ReservedWordSet.UserWordViolationMessage(CobolKeywords.Spelling(WrittenSource.Of(token)), _cobolWords,
+                    _p._edition.Year), "", "ISO §8.9"));
         }
 
         /// <summary>kb/Work PB137/PB300/PB693/PB4206: the generated <c>reservedGatedWord</c> rule keeps a reservation-gated
@@ -2958,7 +2968,7 @@ internal sealed class VersionConformancePass
         /// it, and FILLER is not a user-defined word at all.</para></summary>
         public override object? VisitReservedGatedWord(CobolParserCore.ReservedGatedWordContext ctx)
         {
-            FlagReservedUserWord(CobolNames.UpperFold(ctx.GetText()), CobolKeywords.Spelling(WrittenSource.Of(ctx.Start)));
+            FlagReservedUserWord(CobolNames.UpperFold(ctx.GetText()), ctx.Start);
             return base.VisitChildren(ctx);
         }
     }
