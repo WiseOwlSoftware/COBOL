@@ -594,6 +594,47 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// data-name") and for the SR1 diagnostic path of a sign test on a non-numeric subject.</para></summary>
     public readonly record struct PartialSubjectOperand(Core.ValueOperandContext? Node, BoundOperand Value, BoundOperand Content);
 
+    /// <summary>⛔ A partial-expression's OWN OPERANDS, bound with no selection subject — the half of the object that
+    /// stays the program's own when Table 15 (§14.9.13.3 SR10) has refused its PAIR, and that a surplus object of an
+    /// SR2 breach never had a pair for (kb/Work PB4446). SR8's rewrite needs the subject, and a refused pair has
+    /// none to splice, so the relation checkpoint (SR7 a) and the shapes that read the subject's content stay
+    /// out; what this reports is each operand's reference and expression faults (§8.4.2.1, §8.4.2.3.3 SR2,
+    /// §8.8.1.1 …), which violate the general formats and syntax rules whatever the pair is (ISO §4.2.2). It walks
+    /// the same spine <see cref="BindCondition(IParseTree, AbbrevCarry)"/> does, so a tier the grammar adds is
+    /// reached through its parent: a relational operator's object, an abbreviated relation's object in a
+    /// succeeding position, and every complete condition a connective joins (bound as written, in a fresh
+    /// abbreviation scope). A class or sign shape without its identifier has no operand, and a bare operand (a
+    /// class-name, a condition-name, an abbreviated object) belongs to the inserted subject's relation, so it binds
+    /// nothing here.</summary>
+    /// <param name="pe">A <c>partialExpression</c>, or a <c>condition</c> whose leftmost leaf is a bare class-name
+    /// (<see cref="LeadingBareClassWord"/>).</param>
+    public void BindPartialOperandsStandalone(ParserRuleContext pe)
+    {
+        switch (pe)
+        {
+            case Core.PartialComparisonContext pc:
+                if (pc.abbreviatedRelation() is { } leading) _ = ComparisonOperand(leading.comparisonOperand());
+                return;
+            case Core.AbbreviatedRelationContext ar:
+                _ = ComparisonOperand(ar.comparisonOperand());
+                return;
+            case Core.UnaryLogicalExpressionContext u:
+                BindPartialOperandsStandalone(u.primaryCondition());
+                return;
+            case Core.PrimaryConditionContext p when p.comparisonExpression() is { ChildCount: 1 } || p.booleanLiteral() is not null:
+                return;   // a bare object or a truth word: the inserted subject's relation, or no condition at all
+            case Core.PrimaryConditionContext p:
+                _ = BindCondition(p, new AbbrevCarry());
+                return;
+            default:
+                // The spine's tiers (leading and succeeding) and the condition root: each child is one element.
+                for (int i = 0; i < pe.ChildCount; i++)
+                    if (pe.GetChild(i) is ParserRuleContext child and not Core.XorOperatorContext)
+                        BindPartialOperandsStandalone(child);
+                return;
+        }
+    }
+
     private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch
     {
         Core.ConditionContext c => BindCondition(c.GetChild(0), carry),

@@ -70,9 +70,15 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 // above, an over- or under-long phrase has already failed the compile; binding the pairs the
                 // programmer DID write keeps the rest of the statement's diagnostics flowing instead of
                 // truncating the bind at the first bad phrase.
+                // ⛔ …AND THE SURPLUS OBJECTS ARE STILL THE PROGRAM'S OWN OPERANDS (kb/Work PB4446). SR2 says the
+                // COUNT is wrong; it says nothing about an object that has no subject to pair with, whose reference
+                // faults (§8.4.2.1, §8.4.2.3.3 SR2 …) are independent syntax-rule violations that §4.2.2 owes an
+                // indication, so each is bound standalone by its own Table 15 row and contributes no term.
                 int paired = System.Math.Min(objects.Length, subjects.Length);
                 for (int i = 0; i < paired; i++)
                     terms.Add(BindSelectionObject(slots[i], objects[i]));
+                for (int i = paired; i < objects.Length; i++)
+                    BindSurplusObject(objects[i]);
                 phraseMatches.Add(terms.Count == 1 ? terms[0] : new BoundLogical("&&", terms));
             }
             BoundCondition match = phraseMatches.Count == 1 ? phraseMatches[0] : new BoundLogical("||", phraseMatches);
@@ -132,6 +138,48 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             + "admits the bracketed NOT only before identifier-2, literal-2, arithmetic-expression-2, "
             + $"boolean-expression-2 and a range-expression, never before {word}");
         return false;
+    }
+
+    /// <summary>⛔ AN OBJECT WITH NO SUBJECT TO PAIR WITH (kb/Work PB4446): the written objects past the subject count of
+    /// a phrase that breaks §14.9.13.3 SR2. <see cref="ScreenObjectCount"/> has reported the count, so the object has
+    /// no pair, no Table 15 verdict and no term; its operands are bound standalone
+    /// (<see cref="BindObjectOperandsStandalone"/>) so their own faults are reported.</summary>
+    private void BindSurplusObject(Core.EvaluateWhenItemContext item)
+    {
+        if (!ScreenObjectNegation(item)) return;
+        var mark = host.Udf.Mark;
+        BindObjectOperandsStandalone(item, AnalyzeObjectBare(item), mark);
+    }
+
+    /// <summary>⛔ THE OPERANDS OF A SELECTION OBJECT THAT HAS NO PAIR TO BE BOUND AS (kb/Work PB4446) — the object of a
+    /// pair Table 15 (§14.9.13.3 SR10) refused, and a surplus object of an SR2 breach. The refusal, or the missing
+    /// subject, ends the PAIR's checks: the SR7 a) relation checkpoint, a TRUE/FALSE word bound as a condition (the
+    /// COBOL2318 cascade <see cref="ScreenPairing"/> exists to prevent), and a partial-expression's splice of a subject
+    /// there is none of. It does not end the operand's own reference and expression faults — an undefined or ambiguous
+    /// name (§8.4.2.1), a subscript on a scalar (§8.4.2.3.3 SR2), an unsubscripted table element (SR5), a bad
+    /// reference modification, an alphanumeric operand in an arithmetic expression (§8.8.1.1) or a bad function
+    /// argument — which are violations of the general formats and syntax rules whatever the object is paired with, and
+    /// §4.2.2 requires the warning mechanism "to indicate" each. The compile has failed, so the result is discarded
+    /// and the activations the operands registered are drained with it, never left in the statement's scope.
+    /// <para>The dispatch is on the object's own ROW, one arm per kind <see cref="ObjectKind"/> names, and
+    /// each arm binds exactly what the pair's own arm in <see cref="BindWhenItem"/> would have bound of that object.</para></summary>
+    /// <param name="bare">The object's one bare-operand resolution (<see cref="AnalyzeObjectBare"/>): an operand it
+    /// already bound (a condition-name, a switch-status, a boolean expression) is not bound a second time.</param>
+    /// <param name="mark">The user-function window opened before that resolution.</param>
+    private void BindObjectOperandsStandalone(Core.EvaluateWhenItemContext item, in BareOperandAnalysis bare, UdfBinder.PendingMark mark)
+    {
+        if (item.valueRange() is { } range) _ = BindRangeObject(range);
+        else if (item.addressIdentifier() is { } address) _ = host.Ptr.AddressIdentifierOperand(address, "an EVALUATE selection object");
+        else if (item.partialExpression() is { } partial) host.Cond.BindPartialOperandsStandalone(partial);
+        else if (item.condition() is { } cond)
+        {
+            if (host.Cond.LeadingBareClassWord(cond) is not null) host.Cond.BindPartialOperandsStandalone(cond);
+            else _ = host.Cond.BindCondition(cond);
+        }
+        // ANY, TRUE and FALSE have no operand; an operator-bearing boolean expression was bound by the resolution.
+        else if (BooleanOperatorBearing(item) is null && BareOperand(item) is { } value && bare.Form is BareOperandForm.Value)
+            _ = BindValueOperand(value);
+        _ = host.Udf.DrainPerEvaluation(mark);
     }
 
     /// <summary>The Table-15 coordinates of ONE selection pair, after §14.9.13.3 SR6's per-WHEN
@@ -233,10 +281,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// names a boolean operand's kind from the other side of the pair, and <see cref="ClassifyPair"/> implements
     /// that rule instead of declining to answer it (kb/Work PB400), for a boolean item, literal or an
     /// operator-bearing boolean expression alike (kb/Work PB1412).</para>
-    /// <para>Returns false when the pairing is invalid and has been reported: the caller binds nothing more of it,
-    /// because every further diagnostic the pair would draw is the same mistake read a second time
+    /// <para>Returns false when the pairing is invalid and has been reported: the caller binds none of the PAIR's
+    /// checks, because every further diagnostic the pair would draw is the same mistake read a second time
     /// (<c>EVALUATE BW WHEN TRUE</c> over a wide boolean item drew COBOL1634 and then COBOL2318 "'TRUE' is used
-    /// as a condition" about the very object the table had just refused).</para></summary>
+    /// as a condition" about the very object the table had just refused). The object's OPERANDS are not the pair's:
+    /// the caller still binds them standalone (<see cref="BindObjectOperandsStandalone"/>, kb/Work PB4446).</para></summary>
     private bool ScreenPairing(in EvaluatePairing pair, Core.EvaluateWhenItemContext item)
     {
         if (pair.Subject is not { } s || pair.Object is not { } o) return true;
@@ -467,9 +516,16 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // PB1412): its activations belong to this object's own evaluation, never to the statement's beginning.
         var classifyMark = host.Udf.Mark;
         var pair = ClassifyPair(slot, item);
-        // ⛔ AN INVALID PAIR BINDS NOTHING MORE: one Table 15 diagnostic, not that and every secondary one the same pair
-        // would draw. The pair's value is moot — the compile has failed — so it is the constant false.
-        if (!ScreenPairing(pair, item)) return Constant(false);
+        // ⛔ AN INVALID PAIR ENDS THE PAIR'S CHECKS: one Table 15 diagnostic, not that and every secondary one the same
+        // pair would draw (the SR7 a) relation checkpoint, a TRUE/FALSE word bound as a condition). The pair's value is
+        // moot — the compile has failed — so it is the constant false.
+        // ⛔ IT DOES NOT END THE OBJECT'S OWN (kb/Work PB4446): the object's operands still draw their own reference and
+        // expression faults (§4.2.2), bound standalone by their own row.
+        if (!ScreenPairing(pair, item))
+        {
+            BindObjectOperandsStandalone(item, pair.ObjectBare, classifyMark);
+            return Constant(false);
+        }
         if (item.ANY() is not null) return Constant(true);   // GR4 a) 1. — the word ANY is true
 
         bool subjTrue = subject.booleanLiteral()?.TRUE_() is not null;
@@ -614,35 +670,16 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (item.valueRange() is { } range)
         {
             var objMark = host.Udf.Mark;
-            var lo = BindValueOperand(range.valueOperand(0));
-            var (hi, alphabetWord) = BindRangeHigh(range);
-            // ⛔ SR4 + SR9 BEFORE THE CLASS IS ASKED (kb/Work PB399). CollatingSelection.ForComparison's own
-            // remark says the message-tag / object / pointer categories "never reach here" — and they DID, by
-            // this route, because nothing screened the range's operands: a pointer pair answered ALPHANUMERIC,
-            // turned EC-RANGE-INVALID checking on, and had the emitter order raw addresses. The screen makes
-            // that remark true again, one phase earlier.
             // ⛔ A REJECTED RANGE CONTRIBUTES AN ERROR NODE, NOT A COMPARISON. Both lowerings below — the
             // BoundRangeMembership one and the inclusive CheckedRelational pair — ask questions these operands
             // have already failed to be admissible for, and the relation checkpoint would draw the §8.8.4.2.2
             // Format 3 diagnostic TWICE more about the same two operands after SR4 has said the range may not
             // exist at all.
-            if (!ScreenRangeOperands(range, lo, hi))
+            if (BindRangeObject(range) is not { } bound)
                 return host.Cond.Refused(
                     $"EVALUATE range-expression '{DataBinder.WrittenText(range)}'");
+            var (lo, hi, rangeClass, alphabet) = bound;
             bool check = ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line);
-            // ⛔ THE RANGE'S CLASS, ASKED ONCE, OF BOTH ENDS (§14.9.13.3 SR4 gives the pair one class to have) —
-            // and it is what BOTH of §14.7.8's halves below are keyed on: rule 1 (numeric) is algebraic, names no
-            // sequence and sets no exception; rule 2 (alphanumeric or national) has the sequence, the
-            // IN alphabet-name-1 phrase AND the EC. Two separately-written tests of one antecedent is how the two
-            // halves of rule 2 came to disagree about the same range (kb/Work PB401).
-            var rangeClass = CollatingSelection.ThroughRangeClass(lo, hi);
-            // §14.9.13.2's range-expression ends `[ IN alphabet-name-1 ]`, and §14.7.8 rule 2 makes that alphabet
-            // THE collating sequence the range is evaluated in — overriding the no-phrase arm's "defined by the
-            // implementor" default, which for this compiler is the PROGRAM COLLATING SEQUENCE. The SR3 screens and
-            // the carrier registration are the ONE resolver §14.7.8's opening sentence asks for ("This specification
-            // applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement"), so the VALUE
-            // clause's identical phrase reaches the same code (kb/Work PB398).
-            string? alphabet = RangeAlphabet(range, alphabetWord, rangeClass);
             // §14.7.8 rule 2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID, and
             // then "execution proceeds as if the range of values were empty". The EC is a property of the RANGE's
             // CLASS, exactly as the collating sequence one sentence above it is — never of the written FORM of its
@@ -695,6 +732,37 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 host.Cond.CheckedRelational(left, "==", BindValueOperand(v)), objMark);
         }
         return host.Cond.Refused($"EVALUATE WHEN object '{DataBinder.WrittenText(item)}'");
+    }
+
+    /// <summary>A range-expression's two bound operands with the facts the rules below ask of the PAIR: its class and its
+    /// <c>IN alphabet-name-1</c> collating sequence (null when absent or refused).</summary>
+    private readonly record struct BoundRangeObject(BoundOperand Lo, BoundOperand Hi, CollatingClass Class, string? Alphabet);
+
+    /// <summary>⛔ THE ONE BINDING OF A RANGE-EXPRESSION'S OPERANDS AND PHRASE — for the pair that compares against it
+    /// and for the object a refused or surplus pairing binds standalone (kb/Work PB4446), so the range's own syntax
+    /// rules cannot be asked on one path and not the other. Null when SR4 / SR9 refused the range (reported once).
+    /// <para>⛔ SR4 + SR9 BEFORE THE CLASS IS ASKED (kb/Work PB399). CollatingSelection.ForComparison's own remark says
+    /// the message-tag / object / pointer categories "never reach here" — and they DID, by this route, because nothing
+    /// screened the range's operands: a pointer pair answered ALPHANUMERIC, turned EC-RANGE-INVALID checking on, and had
+    /// the emitter order raw addresses. The screen makes that remark true again, one phase earlier.</para>
+    /// <para>⛔ THE RANGE'S CLASS, ASKED ONCE, OF BOTH ENDS (§14.9.13.3 SR4 gives the pair one class to have) — and it
+    /// is what BOTH of §14.7.8's halves are keyed on: rule 1 (numeric) is algebraic, names no sequence and sets no
+    /// exception; rule 2 (alphanumeric or national) has the sequence, the IN alphabet-name-1 phrase AND the EC. Two
+    /// separately-written tests of one antecedent is how the two halves of rule 2 came to disagree about the same
+    /// range (kb/Work PB401).</para>
+    /// <para>§14.9.13.2's range-expression ends `[ IN alphabet-name-1 ]`, and §14.7.8 rule 2 makes that alphabet THE
+    /// collating sequence the range is evaluated in — overriding the no-phrase arm's "defined by the implementor"
+    /// default, which for this compiler is the PROGRAM COLLATING SEQUENCE. The SR3 screens and the carrier registration
+    /// are the ONE resolver §14.7.8's opening sentence asks for ("This specification applies to THROUGH phrases
+    /// specified in the VALUE clause and the EVALUATE statement"), so the VALUE clause's identical phrase reaches the
+    /// same code (kb/Work PB398).</para></summary>
+    private BoundRangeObject? BindRangeObject(Core.ValueRangeContext range)
+    {
+        var lo = BindValueOperand(range.valueOperand(0));
+        var (hi, alphabetWord) = BindRangeHigh(range);
+        if (!ScreenRangeOperands(range, lo, hi)) return null;
+        var rangeClass = CollatingSelection.ThroughRangeClass(lo, hi);
+        return new BoundRangeObject(lo, hi, rangeClass, RangeAlphabet(range, alphabetWord, rangeClass));
     }
 
     /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §14.9.13.2's range-expression), screened by
