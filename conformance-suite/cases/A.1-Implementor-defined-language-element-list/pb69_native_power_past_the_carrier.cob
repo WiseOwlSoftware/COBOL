@@ -17,17 +17,20 @@
       *> A = 999999999999999 (15 digits), B = 1000000007.
       *> T2/T4/T11: A**2 (30 digits) fits, exact: MOD = 13657001 for the literal AND the data-item exponent
       *>   (they gave 13657001 / 13657001 before too), MOD(A**2 * 3, B) = 40971003 (the product on the SDIDI is
-      *>   exact at 31 digits, ModDec's integer fast path is exact).
+      *>   exact at 31 digits, and MOD takes it exactly).
       *> T5/T6: A**4 > A**3 is TRUE and A**3 = A**4 is FALSE - two Decs of different magnitude (before PB69 both
       *>   saturated to the same sentinel: FALSE / TRUE).
       *> T7: COMPUTE R31 = A**2 exact; T8: A**3 (45 digits) into a 31-digit receiver is a SIZE ERROR (the checked
       *>   store); T9: A**3 - A**3 = 0 on the SDIDI; T10: A**3 / A**2 = 999999999999998 (the approximation's
       *>   ratio - before PB69 the sentinel gave 170141183; before the PB83 division fix the SDIDI gave 999).
       *> T1/T3: MOD(A**3, B) - the SAME value for both spellings (before PB69: 639816141 from the sentinel and
-      *>   966729007 from the Dec arm's modular landing). The value is the SDIDI equivalent arithmetic expression
-      *>   over the 15-significant-digit approximation of A**3, whose residue mod B is below the approximation's
-      *>   granularity - 0 - an approximation of the expression, consistent, never a sentinel. (The exact
-      *>   980012199 needs 45-digit arithmetic no native mode of this compiler has; the value is documented under
+      *>   966729007 from the Dec arm's modular landing). The argument's value is the power's documented
+      *>   approximation, the shortest round-trip decimal of its binary64, 9.99999999999997E44 = 999999999999997
+      *>   * 10**30 exactly, and under native arithmetic MOD takes that SDIDI argument as its EXACT value
+      *>   (kb/Work PB4568, CONFORMANCE.md DOC-A.1-123): 15.64.4 1) over it is 999999999999997 * 10**30 mod
+      *>   1000000007 = 1012193 (Python integers) - consistent, never a sentinel. Before PB4568 the 34-digit SDIDI
+      *>   evaluation lost every digit of the residue and answered 0. (The exact 980012199 is MOD of the exact
+      *>   A**3, which the ** determination does not form past the Int128 carrier; the value is documented under
       *>   A.1 item 179 and the ** determination in CONFORMANCE.md.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB69NATIVEPOW.

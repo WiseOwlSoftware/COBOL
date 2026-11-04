@@ -29,6 +29,11 @@ namespace WiseOwl.Cobol.Runtime;
 /// through the ONE §15.77.3 r2 site (<see cref="RemZeroDivisor"/>), the PB32 one-raise-site-per-rule discipline —
 /// the two rules are worded identically, so each body must name its OWN (kb/Work PB304;
 /// <c>IntrinsicCarrierAgreementDriftTests.EveryModRemBody_RaisesItsOwnFunctionsZeroDivisorRule</c>).</para>
+/// <para>⛔ UNDER NATIVE ARITHMETIC THE MOD, REM, SELECTION, STATISTICAL AND VARIANCE-FAMILY BODIES HERE ARE NOT REACHED (kb/Work
+/// PB4111, PB4568; ANNUITY's and the unary bodies are): there the
+/// standard leaves the method of evaluation to the implementor (§8.8.1.3), and the native SDIDI lane takes its arguments as their
+/// EXACT values and rounds the function's value once (<c>CobolIntrinsics.ExactValue.cs</c>, the <c>…Exact</c> bodies). The
+/// per-argument 34-digit lift and per-operation rounding below are §8.8.1.5.2's and §15.4.1 1)'s, the STANDARD-DECIMAL value.</para>
 /// </remarks>
 public static partial class CobolIntrinsics
 {
@@ -183,7 +188,8 @@ public static partial class CobolIntrinsics
             : CobolDec.Div(CobolDec.Add(sorted[n / 2 - 1], sorted[n / 2], mode), CobolDec.From(2, 0), mode);
     }
 
-    /// <summary>§15.98 VARIANCE — Σ(xᵢ − mean)² / n (§15.98.4 r1's equivalent arithmetic expression over MEAN).
+    /// <summary>§15.98 VARIANCE under STANDARD-DECIMAL — Σ(xᵢ − mean)² / n (§15.98.4 r1's equivalent arithmetic expression over
+    /// MEAN), each step on the SDIDI as §15.4.1 1) requires; the native value is <see cref="VarianceExact"/>'s (kb/Work PB4111).
     /// ⚠ The clause number was §15.97 here until kb/Work PB257: §15.97 is UPPER-CASE — the derivation was right
     /// and the number was inherited without ever being re-derived, CLAUDE.md rule 1's own failure mode.</summary>
     public static CobolDec VarianceDec(CobolRounding mode, params CobolDec[] xs)
@@ -228,7 +234,8 @@ public static partial class CobolIntrinsics
         return r;
     }
 
-    /// <summary>§15.86 STANDARD-DEVIATION — §15.86.4 r1's equivalent arithmetic expression, which is literally
+    /// <summary>§15.86 STANDARD-DEVIATION under STANDARD-DECIMAL (the native value is <see cref="StdDevExact"/>'s, kb/Work
+    /// PB4111) — §15.86.4 r1's equivalent arithmetic expression, which is literally
     /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, so the two FUNCTION bodies are composed and
     /// §15.84.4 r2's own "absolute value … rounded to 34 digits" is inherited from the ONE SQRT body rather than
     /// re-decided. ⚠ The clause number was §15.85 here until kb/Work PB257: §15.85 is STANDARD-COMPARE.</summary>
@@ -264,7 +271,8 @@ public static partial class CobolIntrinsics
         return CobolDec.Div(rate, CobolDec.Sub(one, pow, mode), mode);
     }
 
-    /// <summary>§15.74 PRESENT-VALUE — Σ argument-2ₖ / (1 + argument-1)^k, k = 1…n (§15.74.4 r1).
+    /// <summary>§15.74 PRESENT-VALUE under STANDARD-DECIMAL — Σ argument-2ₖ / (1 + argument-1)^k, k = 1…n (§15.74.4 r1), each term
+    /// on the SDIDI; the native value is <see cref="PresentValueExact"/>'s (kb/Work PB4111).
     /// Domain per §15.74.3 r2 (rate &gt; −1), through the same raise site as the double carrier.</summary>
     public static CobolDec PresentValueDec(CobolRounding mode, CobolDec rate, params CobolDec[] amounts)
     {
