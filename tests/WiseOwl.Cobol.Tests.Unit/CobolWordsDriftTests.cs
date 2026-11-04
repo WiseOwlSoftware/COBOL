@@ -179,6 +179,14 @@ public sealed class CobolWordsDriftTests
         var gated = DerivedGateSet();
         var ungated = rows.Where(t => !gated.Contains(t)).Order(StringComparer.Ordinal).ToList();
         Assert.True(ungated.Count == 0, $"keywordWhereFree on word(s) the gate never retypes: [{string.Join(",", ungated)}]");
+        // A word §8.9 reserves at EVERY edition is never free: the one way to free it, >>COBOL-WORDS UNDEFINE, withdraws
+        // "any syntax requiring the use of" it (§7.3.10.4 GR3), so its keyword rule would accept what GR3 makes
+        // unavailable (kb/Work PB3957: ORDER, whose r85=false the row's determination once rested on).
+        var reserved = LoadReservedIntervals();
+        var neverFree = rows.Where(t => reserved.TryGetValue(ToWord(t), out var f) && f.All(x => x))
+            .Order(StringComparer.Ordinal).ToList();
+        Assert.True(neverFree.Count == 0,
+            $"keywordWhereFree on word(s) §8.9 reserves at every edition: [{string.Join(",", neverFree)}] — no edition leaves them free");
     }
 
     /// <summary>The (rule, token) pairs of <paramref name="grammar"/> that spell one of <paramref name="tokens"/> as
@@ -249,7 +257,7 @@ public sealed class CobolWordsDriftTests
     /// is permitted in the general format, the word is treated as a keyword; otherwise it is treated as a user-defined
     /// word"), is a word a program may declare AND write in its format, so its row must carry
     /// <c>keywordWhereFree</c>. METHOD, MESSAGE and MULTIPLE are found this way; the earlier editions' texts are not in
-    /// the repository, so a determination for them (ORDER in the COBOL-85 SORT) stands on its row's citation.</summary>
+    /// the repository, so a determination for them would stand on its row's citation.</summary>
     [Fact]
     public void Every_Gated_Word_A_2023_Format_Spells_Where_Section89_Frees_It_Carries_The_Determination()
     {

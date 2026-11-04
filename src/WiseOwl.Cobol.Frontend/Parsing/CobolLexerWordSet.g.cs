@@ -367,6 +367,5 @@ public partial class CobolLexer
         "MESSAGE",
         "METHOD",
         "MULTIPLE",
-        "ORDER",
     };
 }

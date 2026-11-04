@@ -347,7 +347,7 @@ public abstract class CobolParserCoreBase : Parser
     /// and the ROUNDED MODE words at COBOL-85); ISO §8.9 has not reserved them there, §8.10 has not listed them, and
     /// §8.3.2.1 makes them user-defined words. A word is refused only when a table proves a LATER edition introduced it
     /// (<see cref="ReservedWords.AdmitsAsKeyword"/>: the §8.9 flags, or the §8.10 row's introduction edition); a word a
-    /// format spells where §8.9 leaves it free (<see cref="CobolLexer.IsKeywordWhereFree"/>: ORDER in COBOL-85's SORT)
+    /// format spells where §8.9 leaves it free (<see cref="CobolLexer.IsKeywordWhereFree"/>: METHOD in COBOL-2023's END METHOD marker)
     /// is printed whatever the table says.
     /// Through the &gt;&gt;COBOL-WORDS resolution as <see cref="reservedHere"/> is: a de-reserved word is no keyword.
     /// Diagnosis only (<c>CobolErrorStrategy</c>); never called while parsing.</summary>
