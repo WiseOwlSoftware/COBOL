@@ -313,5 +313,5 @@ public static class Constructs
     public const string UnstringSenderReferenceModified2002 = "unstring-sender-reference-modified-2002";
     public const string UseWithoutProcedure2002 = "use-without-procedure-2002";
     public const string ValueClauseLinkageFileExternal2002 = "value-clause-linkage-file-external-2002";
-    public const string SearchIdentifier1EnclosingSubscript2014 = "search-identifier-1-enclosing-subscript-2014";
+    public const string SearchIdentifier1EnclosingSubscript2023 = "search-identifier-1-enclosing-subscript-2023";
 }
