@@ -640,6 +640,19 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain("ZEROS is a different", error);
     }
 
+    /// <summary>⛔ kb/Work PB4590 (filed from PB4573's lead R3-1; ISO §7.3.10.4 GR2): the mnemonic-name-suffix sentence of DISPLAY ... UPON and
+    /// ACCEPT ... FROM quotes the word the source WROTE: <c>UPON BEEP(1)</c> after <c>EQUATE "BELL" WITH "BEEP"</c> names BEEP,
+    /// never the BELL the retype spelled into the token.</summary>
+    [Fact]
+    public void AMnemonicSuffixMessageNamesTheSynonymTheSourceWrote_NotItsOriginal()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS EQUATE \"BELL\" WITH \"BEEP\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4573U.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\" UPON BEEP(1).\n"
+            + "           STOP RUN.\n");
+        Assert.Contains(errors, e => e.Contains("COBOL2269") && e.Contains("'BEEP' stands in the mnemonic-name-1 position"));
+        Assert.DoesNotContain(errors, e => e.Contains("'BELL' stands in the mnemonic-name-1 position"));
+    }
+
     [Fact] // SR3 end-to-end — the existing word must be reserved/context/intrinsic.
     public void Sr3_ExistingNotAWord_Rejected1623()
     {
