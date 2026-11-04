@@ -57,7 +57,9 @@ case "${WITNESS_CASE:-}" in
     absent)    : ;;                                            # produced nothing at all
     empty)     : > "./$lt.txt" ;;                              # produced a 0-byte report
     correct)   cp "$WITNESS_VALID/$t.txt" "./$lt.txt" ;;
-    wrong)     sed 's/PASS/FAIL/' "$WITNESS_VALID/$t.txt" > "./$lt.txt" ;;
+    # kb/Work PB2509: a print stream of WHOLE records overprints as `text   \rtext`; the spaces before the CR strike nothing.
+    overprint) printf 'FEATURE 1   \r                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' > "./$lt.txt" ;;
+    wrong)    sed 's/PASS/FAIL/' "$WITNESS_VALID/$t.txt" > "./$lt.txt" ;;
     stdout)    cat "$WITNESS_VALID/$t.txt" ;;                  # DISPLAY-only: the report arrives on stdout
     # kb/Work PB3383: a chain over one data file. WT001A produces it; WT003A, which no program declares as a
     # predecessor, writes the same file (as IX114A's writable OPEN fenced tf024.txt); WT002A, which declares WT001A, is
@@ -140,6 +142,8 @@ SHIM
          "WT001A: MATCH" "$(run_case correct 0 '' '')"
     want "control: a correct report on STDOUT is a MATCH" \
          "WT001A: MATCH" "$(run_case stdout 0 '' '')"
+    want "an overprint's carriage return takes the spaces before it: a whole record's padding is not listing text" \
+         "WT001A: MATCH" "$(run_case overprint 0 '' '')"
     # ⭐ THE DISCRIMINATOR: a genuinely wrong answer must still be a REGRESSION.
     want "discriminator: a genuinely wrong report is a REGRESSION" \
          "WT001A: DIFF — REGRESSION!" "$(run_case wrong 0 '' '')"

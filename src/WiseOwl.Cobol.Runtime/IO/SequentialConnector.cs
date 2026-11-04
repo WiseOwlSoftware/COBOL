@@ -949,13 +949,19 @@ public sealed partial class SequentialConnector : FileConnector
     /// amount including PAGE, a report file's — gets it by construction; a presentation that follows
     /// <see cref="WriteTravel"/>'s own return finds the device already <see cref="DeviceLine.Returned"/> and writes
     /// no second one. A record with no characters (a print line of spaces, the report writer's page-feed carrier)
-    /// overprints nothing and writes no return.</para></summary>
-    private void Present(string text, LinagePage? page, bool national)
+    /// overprints nothing and writes no return.</para>
+    /// <para>⛔ A FRAMED RECORD IS PRESENTED WITH ITS FRAME (kb/Work PB2509): <paramref name="framed"/> is a RECORD
+    /// VARYING record sequential print stream (<see cref="IsRecordPrintStream"/>), whose record keeps the
+    /// <see cref="RecordFraming"/> head DOC-A.1-151 (a) gives every variable-length record sequential file. The head is
+    /// part of the record, so it follows the overprint return and counts as characters on the line (a record of no
+    /// characters still has its head).</para></summary>
+    private void Present(string text, LinagePage? page, bool national, bool framed = false, RecordExtents? extents = null)
     {
         if (page is not null && HasLogicalPage) EmitTopMarginIfPending();
-        if (text.Length > 0)
+        if (text.Length > 0 || framed)
         {
             if (_device == DeviceLine.Open) _writer!.Write('\r');   // GR25 e)/c): the same vertical position, from column 1
+            if (framed) EmitFrameHead(text.Length, extents);
             EmitRecord(text, national);
             _device = DeviceLine.Open;   // presented, not yet travelled past
         }
@@ -1027,8 +1033,17 @@ public sealed partial class SequentialConnector : FileConnector
     /// </list>
     /// Every line this connector ends — a record's delimiter, an ADVANCING or LINAGE line, a margin or page-fill
     /// line, the CLOSE of an open line — writes exactly this, so they are the same bytes on one file.</summary>
-    private string SelectLineEnd() =>
-        _lineSequential || !_recordDescribed || HasLinageClause ? LineSequentialDelimiter : RecordPrintLineEnd;
+    private string SelectLineEnd() => IsRecordPrintStream ? RecordPrintLineEnd : LineSequentialDelimiter;
+
+    /// <summary>⛔ IS THIS CONNECTOR'S MEDIUM A RECORD SEQUENTIAL PRINT STREAM — the ONE predicate of the shape both
+    /// <see cref="SelectLineEnd"/> and <see cref="WriteAdvancingRecord"/> ask (kb/Work PB1664, PB2509): a RECORD
+    /// SEQUENTIAL file with a record description and no LINAGE clause, written with an ADVANCING phrase. Such a file
+    /// is a binary sequential file, so its records keep their §13.18.43.4 GR6 / GR13 size and their
+    /// <see cref="RecordFraming"/> frame while the print controls travel between them. A LINE SEQUENTIAL file, a
+    /// file with a LINAGE clause and a REPORT file (no record description) are the other arms: GnuCOBOL 3.2
+    /// reclassifies the last two LINE SEQUENTIAL (<c>parser.y</c>), so §14.9.51.4 GR21's trailing-space strip applies
+    /// to all three, as on a plain line sequential file.</summary>
+    private bool IsRecordPrintStream => !_lineSequential && _recordDescribed && !HasLinageClause;
 
     /// <summary>This connector's ONE line end for the current open (<see cref="SelectLineEnd"/>).</summary>
     private string _lineEnd;
@@ -1439,7 +1454,7 @@ public sealed partial class SequentialConnector : FileConnector
         // WRITE after a BEFORE write onto no blank line, and travelled twice around a line sequential file's
         // AFTER write. A line sequential file takes the same path (it used to have a third, hand-placed arm).
         if (SupportsVerticalPositioning(page))
-            return WriteAdvancingRecord(image, length, 1, before: false, page, national);
+            return WriteAdvancingRecord(image, length, 1, before: false, page, national, extents);
         // ⛔ GR14's size rule is stated BEFORE GR23, and the record's content ('91') is no general rule at all, so
         // '44' is tested first (DOC-A.1-104; kb/Work PB2751, the sequential sibling of the keyed reorder): a record
         // both too short and holding a character outside the set is a size violation.
@@ -1520,22 +1535,25 @@ public sealed partial class SequentialConnector : FileConnector
 
     /// <summary>Print-control <c>WRITE record [BEFORE] [AFTER] ADVANCING {n LINES | PAGE}</c> (ISO §14.9.51.4
     /// GR25): for
-    /// AFTER, advance then write the trimmed image; for BEFORE, write then advance. <paramref name="lines"/> = -1
+    /// AFTER, advance then write the record's form on the medium (<see cref="WriteAdvancingRecord"/>: whole and framed
+    /// on a record sequential stream, less trailing spaces on a text one); for BEFORE, write then advance. <paramref name="lines"/> = -1
     /// means ADVANCING PAGE — a form feed on a file with no LINAGE clause (GR25 h), a reposition to the next
     /// logical page on one that has (GR25 g). The leading/trailing newline structure matches the legacy print
     /// stream; the LOGICAL-page geometry lives in <see cref="Position"/> and <see cref="Present"/>.
     /// <paramref name="length"/> is the record length exactly as <see cref="Write"/> takes it (the DEPENDING
     /// item's content, −1 = the record's own size — <see cref="WrittenLength"/>).</summary>
-    public string WriteAdvancing(string image, int lines, bool before, LinagePage? page, int length = -1, bool nationalRecord = false)
+    public string WriteAdvancing(string image, int lines, bool before, LinagePage? page, int length = -1, bool nationalRecord = false,
+        RecordExtents? extents = null)
     {
-        try { return WriteAdvancingRecord(image, length, lines, before, page, nationalRecord); }
+        try { return WriteAdvancingRecord(image, length, lines, before, page, nationalRecord, extents); }
         catch (IOException refused) { return Status = FileStatusCode.ForWriteFailure(refused); }   // '34' / '30' — see Write
     }
 
     /// <summary>The body of <see cref="WriteAdvancing"/>, inside its medium-boundary catch — and the one
     /// <see cref="WriteRecord"/> reroutes a print or LINAGE file's plain WRITE to, so the reroute stays inside the
     /// catch that WRITE already opened.</summary>
-    private string WriteAdvancingRecord(string image, int length, int lines, bool before, LinagePage? page, bool national)
+    private string WriteAdvancingRecord(string image, int length, int lines, bool before, LinagePage? page, bool national,
+        RecordExtents? extents)
     {
         _endOfPage = null;   // an end-of-page condition is the CURRENT write's or none (§14.9.51.4 GR27)
         if (PermanentErrorReplay() is { } stuck) return Status = stuck;   // §9.1.13.1 — a permanent error in effect (kb/Work PB1541)
@@ -1563,7 +1581,18 @@ public sealed partial class SequentialConnector : FileConnector
         if (JournalAppend(out var appendStep) is { } held) return Status = held;   // as WriteRecord (2.2.2.3, 2.2.2.10: the print stream is covered)
         using var releaseStep = appendStep;   // as WriteRecord
         _printControl = true;
-        string text = TrimRecordEnd(IsVarying ? FitRecord(image, len, national) : image, national);
+        // ⛔ THE RECORD'S FORM ON THE MEDIUM, by the stream's shape (kb/Work PB2509; docs/CONFORMANCE.md DOC-A.1-146 (c′)).
+        // A RECORD SEQUENTIAL print stream (IsRecordPrintStream) is a binary sequential file whose records keep their
+        // size: a fixed-length record is written at its full §13.18.43.4 GR6 size, trailing spaces included, and a
+        // variable-length one at its GR13 length behind its DOC-A.1-151 (a) frame head; §14.9.51.4 GR21's strip is
+        // stated for a LINE SEQUENTIAL file alone, and §9.1.7.2 leaves a record sequential record's medium form to the
+        // implementor, so CLAUDE.md rule 1's precedence takes GnuCOBOL's. A line sequential, LINAGE or report stream is
+        // text (GnuCOBOL reclassifies the last two line sequential): the record less its trailing spaces, unframed.
+        bool recordStream = IsRecordPrintStream;
+        bool framed = recordStream && IsVarying;
+        string record = recordStream || IsVarying ? FitRecord(image, len, national) : image;
+        string text = recordStream ? record : TrimRecordEnd(record, national);
+        RecordExtents? frameExtents = framed ? Framed(record, image, extents).Extents : null;   // as WriteRecord's frame
         // §14.9.51.4 GR25 e)/f) — the ONE advance, placed before or after the presentation by the statement's
         // own word. On a LINAGE file both halves travel the LOGICAL page (GR25 g), GR26 a)); on any other print
         // file they are the plain stream. The pair is written once, and the page-awareness lives inside
@@ -1573,9 +1602,9 @@ public sealed partial class SequentialConnector : FileConnector
         // record (the positioning is what failed), and a BEFORE write keeps the line it had already presented on
         // the page whose values were still valid (GR25 e) puts the presentation first) but does not RELEASE it:
         // §14.9.51.4 GR12's release is of a SUCCESSFUL write, and this one is not.
-        if (before) { Present(text, page, national); if (!Position(lines, page)) return LinageViolationStatus(); }
+        if (before) { Present(text, page, national, framed, frameExtents); if (!Position(lines, page)) return LinageViolationStatus(); }
         else if (!Position(lines, page)) return LinageViolationStatus();
-        else Present(text, page, national);
+        else Present(text, page, national, framed, frameExtents);
         // §14.9.51.4 GR12 — "The successful execution of a WRITE statement releases a logical record to the
         // operating environment" — is an ALL FILES rule, so a print-control WRITE releases an ordinal-identified
         // record exactly as the plain one does, and GR11's WITH LOCK needs that identity. Released HERE and not

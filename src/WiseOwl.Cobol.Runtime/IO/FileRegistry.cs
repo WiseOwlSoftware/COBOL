@@ -2628,7 +2628,8 @@ public sealed class FileRegistry
     /// phrase in Format 1 alone, which SR3 restricts to the sequential organization, so the binder screens a
     /// keyed WRITE that carries one and those arms cannot see a non-<c>None</c> kind.</summary>
     /// <para><paramref name="extents"/> — the record's EXTENT TABLE (determination D-FRA (v); kb/Work PB1053) —
-    /// rides every arm that frames a record; a print-control WRITE sends a line, which carries none.</para>
+    /// rides every arm that frames a record, the print-control WRITE of a RECORD VARYING record sequential file included
+    /// (its record keeps its frame, kb/Work PB2509); a line sequential, LINAGE or report line carries none.</para>
     /// <para><paramref name="nationalRecord"/> — the category of record-name-1 (§14.9.51.4 GR21 / GR22) — reaches the
     /// sequential arm alone: it is the only organization with a rule keyed on it (a line sequential file's trailing
     /// spaces and its character set; kb/Work PB1191).</para>
@@ -2641,7 +2642,7 @@ public sealed class FileRegistry
             // BEFORE AFTER form arrives as Before, because GR25 f) puts its advance after the presentation
             // exactly as GR25 e) does (kb/Work PB712 deleted the third, two-amount arm). The record length rides
             // this arm too: §14.9.51.4 GR14's bound is an ALL FILES rule, not a plain-WRITE one (kb/Work PB1190).
-            : f.WriteAdvancing(image, advance.Lines, advance.Kind == WriteAdvanceKind.Before, page, length, nationalRecord),
+            : f.WriteAdvancing(image, advance.Lines, advance.Kind == WriteAdvanceKind.Before, page, length, nationalRecord, extents),
         RelativeConnector r => r.Write(image, length, extents),
         IndexedConnector ix => ix.Write(image, length, extents),
         _ => FileStatusCode.PermanentError,

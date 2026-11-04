@@ -79,6 +79,99 @@ public sealed class PrintStreamLineEndConformanceTests
                 WRITE R1 AFTER ADVANCING 1 LINE
             """), "ple2.dat", "\fAAAA\rBBBB\nCCCC\n");
 
+    private const string TwoShortAfterWrites = """
+            MOVE "AA" TO R1
+            WRITE R1 AFTER ADVANCING 1 LINE
+            MOVE "BB" TO R1
+            WRITE R1 AFTER ADVANCING 1 LINE
+        """;
+
+    /// <summary>⛔ A RECORD SEQUENTIAL PRINT STREAM WRITES EACH FIXED-LENGTH RECORD AT ITS WHOLE SIZE (kb/Work PB2509;
+    /// DOC-A.1-146 (c′)). §14.9.51.4 GR21's trailing-space strip is stated for a LINE SEQUENTIAL file alone, §13.18.43.4
+    /// GR6 gives every record of a fixed-length file integer-1 bytes, and §9.1.7.2 leaves the on-medium form to the
+    /// implementor, so GnuCOBOL's whole record is the answer: <c>AA</c> in a 4-byte record is <c>AA</c> and two spaces.
+    /// The controls (AFTER 1, ADVANCING 0's bare CR, PAGE's form feed) stand between whole records.</summary>
+    [Fact]
+    public void RecordSequentialPrintStream_WritesTheWholeFixedRecord()
+        => AssertMedium(Fd("SEQUENTIAL", "", "PLE8", "ple8.dat", TwoShortAfterWrites), "ple8.dat", "\nAA  \nBB  \n");
+
+    [Fact]
+    public void RecordSequentialPrintStream_KeepsItsLineControlsBetweenWholeRecords()
+        => AssertMedium(Fd("SEQUENTIAL", "", "PLE9", "ple9.dat", """
+                MOVE "AA" TO R1
+                WRITE R1 AFTER ADVANCING PAGE
+                MOVE "BB" TO R1
+                WRITE R1 AFTER ADVANCING 0 LINES
+                MOVE "CC" TO R1
+                WRITE R1 BEFORE ADVANCING 1 LINE
+            """), "ple9.dat", "\fAA  \rBB  \rCC  \n");
+
+    /// <summary>The other two shapes keep GR21's strip: GnuCOBOL reclassifies a LINAGE file LINE SEQUENTIAL, and a
+    /// LINE SEQUENTIAL file's rule is GR21's own — the record less its trailing spaces.</summary>
+    [Theory]
+    [InlineData("SEQUENTIAL", "LINAGE IS 5 LINES", "PLE10", "ple10.dat")]
+    [InlineData("LINE SEQUENTIAL", "", "PLE11", "ple11.dat")]
+    [InlineData("LINE SEQUENTIAL", "LINAGE IS 5 LINES", "PLE12", "ple12.dat")]
+    public void LinageAndLineSequentialFiles_StillStripTrailingSpaces(string org, string fd, string id, string file)
+        => AssertMedium(Fd(org, fd, id, file, TwoShortAfterWrites), file, Host("{nl}AA{nl}BB{nl}"));
+
+    private static string VaryingSource(string id, string file, string proc) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {id}.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F1 ASSIGN TO "{file}" ORGANIZATION IS SEQUENTIAL FILE STATUS IS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F1 RECORD IS VARYING IN SIZE FROM 2 TO 4 CHARACTERS DEPENDING ON LEN.
+        01 R1 PIC X(4).
+        WORKING-STORAGE SECTION.
+        01 FS PIC XX.
+        01 LEN PIC 9(4) COMP.
+        PROCEDURE DIVISION.
+            OPEN OUTPUT F1
+        {proc}
+            CLOSE F1
+            STOP RUN.
+        """;
+
+    /// <summary>⛔ A RECORD VARYING RECORD SEQUENTIAL PRINT STREAM FRAMES EACH RECORD (kb/Work PB2509; DOC-A.1-151 (a)):
+    /// the 4-byte little-endian length prefix, then the record at its §13.18.43.4 GR13 length, trailing spaces
+    /// included (a record of <c>"A "</c> at length 2 is two bytes). The print controls stand between frames.</summary>
+    [Fact]
+    public void RecordSequentialVaryingPrintStream_FramesEachRecord()
+        => AssertMedium(VaryingSource("PLE13", "ple13.dat", """
+                MOVE "ABC " TO R1
+                MOVE 3 TO LEN
+                WRITE R1 AFTER ADVANCING 1 LINE
+                MOVE "A   " TO R1
+                MOVE 2 TO LEN
+                WRITE R1 AFTER ADVANCING 1 LINE
+                MOVE "WXYZ" TO R1
+                MOVE 4 TO LEN
+                WRITE R1
+            """), "ple13.dat", "\n\u0003\0\0\0ABC\n\u0002\0\0\0A \n\u0004\0\0\0WXYZ\n");
+
+    /// <summary>§14.9.51.4 GR14/GR15 on the framed stream: a length outside the bounds is the size violation '44'
+    /// and the record reaches the medium neither framed nor bare — the stream holds only the frames of the writes that
+    /// succeeded, and the refused WRITE leaves no line feed behind either.</summary>
+    [Fact]
+    public void RecordSequentialVaryingPrintStream_RefusedLengthWritesNoFrame()
+        => AssertMedium(VaryingSource("PLE14", "ple14.dat", """
+                MOVE "AB  " TO R1
+                MOVE 9 TO LEN
+                WRITE R1 AFTER ADVANCING 1 LINE
+                IF FS NOT = "44" DISPLAY "STATUS " FS END-IF
+                MOVE "AB  " TO R1
+                MOVE 1 TO LEN
+                WRITE R1 AFTER ADVANCING 1 LINE
+                IF FS NOT = "44" DISPLAY "STATUS " FS END-IF
+                MOVE "AB  " TO R1
+                MOVE 2 TO LEN
+                WRITE R1 AFTER ADVANCING 1 LINE
+            """), "ple14.dat", "\n\u0002\0\0\0AB\n");
+
     /// <summary>Arm 1: the other two shapes of a record sequential file that is a print stream by its FD, and the
     /// line sequential file itself — the host newline.</summary>
     [Theory]
