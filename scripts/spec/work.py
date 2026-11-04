@@ -480,9 +480,14 @@ def closes_rows_shape(it: dict) -> list[str]:
 # planner or `next --cluster` ever offers it). `work.py upstream` lists the records, and `unharmed` leaves them out.
 UPSTREAM_CLASSES = ("crash", "wrong-output", "rejects-legal-source", "accepts-forbidden-source",
                     "not-implemented-at-run-time", "feature-missing")
-UPSTREAM_STATUSES = ("unreported", "reported", "fixed-upstream", "declined", "duplicate")
-#: The upstream states that end the matter: the note's own `status` is then terminal (and only then).
-UPSTREAM_DONE = ("fixed-upstream", "declined", "duplicate")
+UPSTREAM_STATUSES = ("unreported", "reported", "fixed-upstream", "declined", "duplicate", "withdrawn")
+#: The upstream states that end the matter: the note's own `status` is then terminal (and only then). `withdrawn` is the
+#: one ending reached without the other project: vetting found the record is no defect there (an optional element it does
+#: not claim, implementor latitude) or merged it into another record, which the body names; it was never reported, so it
+#: carries no `upstream_ref`, and the fuzz ledger does not count it as a bug found (fuzz_history.from_fuzzing).
+UPSTREAM_DONE = ("fixed-upstream", "declined", "duplicate", "withdrawn")
+#: The upstream states that never reached the other project, so a record in one carries no `upstream_ref`.
+UPSTREAM_UNFILED = ("unreported", "withdrawn")
 UPSTREAM_EDITIONS = ("1985", "2002", "2014", "2023")
 #: The edition whose behaviour only the newest standard requires: a request for a feature, never a bug against a release
 #: that claims an older `-std` (PB3838, item 4 of the bar).
@@ -631,9 +636,9 @@ def upstream_problems(it: dict) -> list[str]:
         need(f"has `spec_refs` {refs!r}: it names the ISO clause(s) the expected result rests on, as clause numbers "
              f"(each validated with `python scripts/spec/cite.py --check`)")
     ref = it.get("upstream_ref")
-    if it.get("upstream_status") == "unreported" and ref:
-        need(f"is `unreported` but carries upstream_ref {ref!r}")
-    elif it.get("upstream_status") in UPSTREAM_STATUSES[1:] and not ref:
+    if it.get("upstream_status") in UPSTREAM_UNFILED and ref:
+        need(f"is `{it.get('upstream_status')}` but carries upstream_ref {ref!r}")
+    elif it.get("upstream_status") in UPSTREAM_STATUSES and it.get("upstream_status") not in UPSTREAM_UNFILED and not ref:
         need(f"is `{it.get('upstream_status')}` but has no `upstream_ref` (the ticket or patch link)")
     if it.get("upstream_status") in UPSTREAM_STATUSES:
         done = it.get("upstream_status") in UPSTREAM_DONE
@@ -1863,6 +1868,10 @@ def upstream_findings() -> list[str]:
         ("unreported with a ticket", {"upstream_ref": "https://example.test/t/1"}, "is `unreported` but carries"),
         ("declined upstream but open here", {"upstream_status": "declined", "upstream_ref": "t/2"}, "terminal exactly when"),
         ("declined upstream and retired here", {"upstream_status": "declined", "upstream_ref": "t/2", "status": "retired"}, ""),
+        ("withdrawn but open here", {"upstream_status": "withdrawn"}, "terminal exactly when"),
+        ("withdrawn and retired here", {"upstream_status": "withdrawn", "status": "retired"}, ""),
+        ("withdrawn with a ticket", {"upstream_status": "withdrawn", "upstream_ref": "t/3", "status": "retired"},
+         "is `withdrawn` but carries"),
         ("no observed result", {"section_2": None}, "no `## Observed result` section"),
         ("an empty fix-site section", {"section_5": ""}, "empty `## Fix site` section"),
         ("a pasted testsuite-sized program", {"section_0": long_block}, "fenced block of"),
