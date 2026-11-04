@@ -598,6 +598,34 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(r.Warnings, w => w.Contains("COBOL6085"));
     }
 
+    /// <summary>⛔ kb/Work PB4573, review r1 R1-2 (ISO §7.3.10.4 GR2, GR4): the withdrawn-word note tests the word the SOURCE wrote.
+    /// A synonym of a lexer-token word is that word's token with the original's <c>Text</c>, so a listener that read the text
+    /// named SHOW a withdrawn DISPLAY (<c>SUBSTITUTE "DISPLAY" BY "SHOW"</c>, then the statement <c>SHOW.</c>): COBOL5926 said
+    /// DISPLAY was "a user-defined word in this compilation group" when the source wrote SHOW. The error stands (the lone word
+    /// is no statement); the note is the false part.</summary>
+    [Fact]
+    public void ASynonymOfAWithdrawnWord_IsNoWithdrawnWord_ForTheSyntaxErrorNote()
+    {
+        var r = Compile("       >>COBOL-WORDS SUBSTITUTE \"DISPLAY\" BY \"SHOW\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4573N.\n       PROCEDURE DIVISION.\n       MAIN.\n           SHOW.\n           STOP RUN.\n");
+        Assert.NotEmpty(r.Errors);
+        Assert.DoesNotContain(r.Warnings, w => w.Contains("COBOL5926"));
+    }
+
+    /// <summary>⛔ kb/Work PB4573, review r1 R1-1 (ISO §7.3.10.4 GR2): the parser's syntax-error sentence names the word the source
+    /// WROTE, not the original the retype spelled into the token: <c>MAIN SECT.</c> after <c>EQUATE "SECTION" WITH "SECT"</c>
+    /// is a legal section header, and the SECT after <c>MOVE 1 TO W-X</c> is an unexpected SECT: no sentence of the compilation
+    /// says SECTION was written there.</summary>
+    [Fact]
+    public void ASyntaxErrorNamesTheSynonymTheSourceWrote_NotItsOriginal()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS EQUATE \"SECTION\" WITH \"SECT\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4573E.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC 9.\n"
+            + "       PROCEDURE DIVISION.\n       MAIN SECT.\n           MOVE 1 TO W-X SECT.\n           STOP RUN.\n");
+        Assert.Contains(errors, e => e.Contains("COBOL0307") && e.Contains("unexpected 'SECT'"));
+        Assert.DoesNotContain(errors, e => e.Contains("unexpected 'SECTION'"));
+    }
+
     [Fact] // SR3 end-to-end — the existing word must be reserved/context/intrinsic.
     public void Sr3_ExistingNotAWord_Rejected1623()
     {

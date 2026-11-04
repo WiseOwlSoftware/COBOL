@@ -221,8 +221,10 @@ is the user-word token type.
   word AS WRITTEN and, when `CobolWordsMap.SynonymOf(written)` finds it a synonym, the reserved word it stands for. The
   lexer's retype overwrites a synonym token's `Text` with its original's (`CobolWordsRewriter.Plan.Apply`), so the funnel
   (`VersionConformancePass`) and the parser (`CobolParserCoreBase.UserWordViolationOf`) read the written word from the
-  source extent (`WrittenSource.Of(IToken)`), never from `Text`; and the parser resolves that written word once
-  (`DenotedBy`), since resolving the already-canonical text again reads a SUBSTITUTEd original as withdrawn. A word a
+  source extent (`WrittenSource.Of(IToken)`), never from `Text`; and the parser reads what a keyword token denotes from
+  `CobolWordsRewriter.CanonicalWordOf` (the one place), since resolving the already-canonical text again reads a SUBSTITUTEd
+  original as withdrawn; the parser's own syntax-error sentences (`CobolErrorStrategy.BuildMessage`) quote the written word
+  too. A word a
   directive WITHDREW is named through `CobolWordsOp.Withdrew` / `WithdrawnSyntax` (the syntax-error note, the DECIMAL-POINT
   and CURRENCY PICTURE SYMBOL clause binders): under UNDEFINE the syntax that requires it is not available (GR3), under
   SUBSTITUTE it is written with literal-5 (GR4). The drift test

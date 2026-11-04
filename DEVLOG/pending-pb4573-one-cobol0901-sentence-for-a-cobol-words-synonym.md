@@ -11,7 +11,7 @@ overwrites its `Text` with the original's, so every stage that quotes `Text` nam
 **Fix.** One builder, `ReservedWordSet.UserWordViolationMessage(written, map, edition)`; the synonym decision is the map's
 (`CobolWordsMap.SynonymOf`) and both stages read the word from the source extent (`WrittenSource.Of(IToken)`, new). The instance
 `UserWordViolation` is gone. Found on the way and fixed: the parser resolved the already-canonical token text a second time
-(`DenotedBy` resolves the written word once), so `MOVE "A" TO SHOW` after `SUBSTITUTE "DISPLAY" BY "SHOW"` drew COBOL5506 and a
+(`ReservedWordHere` / `ReservedWord` now read the token through `CobolWordsRewriter.CanonicalWordOf`, the one place), so `MOVE "A" TO SHOW` after `SUBSTITUTE "DISPLAY" BY "SHOW"` drew COBOL5506 and a
 COBOL5926 note that called DISPLAY withdrawn when the source wrote SHOW; `NoteWithdrawnWord` now tests the written word.
 
 **The three review leads of w20261859b (PB4572).** (1) `SpecialNamesBinder.SwitchBindDecimalPoint` said the clause "is not available"
@@ -28,6 +28,12 @@ withdrawn-word sentence is `CobolWordsOp.Withdrew` / `WithdrawnSyntax`; `CobolWo
 assert the three stages produce the builder's sentence and the clause refusals name the directive and what is left of the clause;
 `EditionReadDriftTests` records `UserWordViolationOf`. Rows closed: none (GR-7.3.10.4-2, -3, -4 were CONFORMS).
 
+**Review round 1 (finisher).** The parser's syntax-error sentences quoted the retyped `Text` (`MAIN SECT.` after `EQUATE "SECTION" WITH
+"SECT"` said "unexpected 'SECTION'", COBOL0307): `CobolErrorStrategy.BuildMessage`, `WrittenResidueItem` and the figurative-constant
+keyword hint now quote `WrittenSource.Of(token)`; the unit witness is `SyntaxErrorNamesTheSynonymTheSourceWrote`. The listener's
+`NoteWithdrawnWord` written-word test has its witness (`SubstitutedSynonymOfAWithdrawnWordDrawsNoWithdrawnNote`). `DenotedBy` is deleted:
+`ReservedWordHere` / `ReservedWord` read the token through `CobolWordsRewriter.CanonicalWordOf`, the one place that knows the lexer
+already resolved a non-IDENTIFIER token.
+
 **Registered, not fixed (outside the mechanism).** A SUBSTITUTE synonym of a lexer-token word that a gate or a keyword predicate admits
-(`SUBSTITUTE "RECEIVE" BY "RCV"` then `01 RCV PIC X.`) is accepted as a user-defined word; and syntax-error messages quote the retyped
-`Text` (`MAIN SECT.` ... `MOVE 1 TO W-X SECT.` after `EQUATE "SECTION" WITH "SECT"` says "unexpected 'SECTION'").
+(`SUBSTITUTE "RECEIVE" BY "RCV"` then `01 RCV PIC X.`) is accepted as a user-defined word.

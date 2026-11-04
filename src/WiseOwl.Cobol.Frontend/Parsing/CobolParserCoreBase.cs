@@ -870,20 +870,15 @@ public abstract class CobolParserCoreBase : Parser
         return false;
     }
 
-    /// <summary>The word the group's directives make of what the source wrote at the KEYWORD token <paramref name="token"/>
-    /// (<see cref="Canonical"/> of the written word; kb/Work PB4573). A synonym of a word the lexer has a token for is retyped
-    /// to that token and its <c>Text</c> overwritten with the original word (<c>CobolWordsRewriter.Plan.Apply</c>), so the
-    /// text is already canonical and resolving it AGAIN reads a SUBSTITUTEd original as withdrawn: the synonym of a withdrawn
-    /// word then denotes nothing. The source's own word is resolved once. Without a directive the text is the word.</summary>
-    private string? DenotedBy(IToken token)
-        => Canonical(CobolWords.IsEmpty ? token.Text : WrittenSource.Of(token));
-
     /// <summary>The canonical upper-case word of <paramref name="token"/> when it is a KEYWORD token §8.9 reserves at this
-    /// edition (gated or not), else null.</summary>
+    /// edition (gated or not), else null. What the token denotes under the group's directives is
+    /// <see cref="CobolWordsRewriter.CanonicalWordOf"/>, THE ONE PLACE that knows the lexer already resolved a non-IDENTIFIER
+    /// token: a synonym of a word the lexer has a token for carries its original's text, and resolving that text AGAIN reads a
+    /// SUBSTITUTEd original as withdrawn (kb/Work PB4573).</summary>
     private string? ReservedWordHere(IToken token)
         => token.Type is not (CobolLexer.IDENTIFIER or CobolLexer.DOT or TokenConstants.EOF)
            && token.Text is [var letter, ..] && char.IsLetter(letter)
-           && DenotedBy(token) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
+           && CobolWordsRewriter.CanonicalWordOf(token, CobolWords) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
             ? w
             : null;
 
@@ -1135,10 +1130,10 @@ public abstract class CobolParserCoreBase : Parser
         if (token is null || token.Type == CobolLexer.IDENTIFIER) return null;
         if (!CobolLexer.IsReservationGated(token.Type) && !(includeVerbs && StatementOpeners(Atn).Contains(token.Type))) return null;
         // ReservedWordSet.Default is the generated §8.9 table with no >>COBOL-WORDS overlay — the right set here:
-        // Canonical() has ALREADY applied this group's directive (an UNDEFINE'd word returns null, an EQUATEd
-        // synonym its canonical spelling), so composing the overlay twice would double-count it. The table is keyed
-        // upper-case and the token keeps the source's spelling, so the word is written in its keyword spelling here.
-        return DenotedBy(token) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
+        // CanonicalWordOf reads a word the group's directive ALREADY resolved (a de-reserved word is an IDENTIFIER, so it
+        // never reaches here; a synonym carries its original's text), so composing the overlay twice would double-count
+        // it. The table is keyed upper-case and the token keeps the source's spelling, so the word is spelled as a keyword.
+        return CobolWordsRewriter.CanonicalWordOf(token, CobolWords) is { } w && ReservedWordSet.Default.RejectsAt(w, Edition.Year)
             ? w
             : null;
     }
