@@ -138,7 +138,7 @@ internal static class ExpansionPlacementPass
             var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: file paths
             // The assemblies the classes it names live in: the expansion's code is compiled against them, so an existing one serves this
             // compilation only if it is compiled against these very assemblies (ISO §9.3.12: the expansion is the class it would have been here).
-            var homes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not COBOL words: assembly simple names
+            var homes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: assembly simple names
             if (origin.Skeleton.From is { } definedIn) referenced.Add(definedIn.AssemblyFile);
             foreach (var entry in resolutionEntries.Concat(actualEntries))
             {
