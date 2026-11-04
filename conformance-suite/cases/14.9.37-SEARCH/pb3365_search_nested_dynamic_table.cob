@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb3365_search_nested_dynamic_table
 *> rules: [SR-14.9.37.3-2, SR-14.9.37.3-3, GR-14.9.37.4-1]
-*> accept: [2014]
+*> accept: [2023]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -15,7 +15,9 @@
       *> The occurrence is named either on identifier-1 (14.9.37.3 SR2 bans only the SEARCHED level's subscript, so
       *> the enclosing one may be written) or - the spelling 14.9.37.4 GR1 puts first - "specified by the user in the
       *> WHEN phrases"; SR3 keeps identifier-1 "contained within one or more other tables, for which the subscripting
-      *> is still required". Both spellings give the same answer, asserted below.
+      *> is still required". Both spellings give the same answer, asserted below. kb/Work PB4609: accept is 2023, since the
+      *> subscripted spelling (SEARCH EP(I), SR2 and SR3) is a COBOL-2023 permission (construct
+      *> search-identifier-1-enclosing-subscript-2023); the bare spelling is legal at every edition (pb3365_search_nested_dynamic_property).
       *> Expected (derived from the capacities, never from a run):
       *>   S1  SEARCH EP(1) VARYING J, WHEN = "C": found at index 3; J, a data item, is incremented once per step
       *>       the index takes (14.9.37.4 GR3 b), starting at 0, so 2 steps -> J = 2.

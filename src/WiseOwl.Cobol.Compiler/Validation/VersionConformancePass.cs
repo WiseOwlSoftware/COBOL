@@ -958,12 +958,12 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>SEARCH and SEARCH ALL identifier-1 written with a subscript (kb/Work PB4577). ISO §14.9.37.3 SR2 and SR3
-        /// permit the enclosing tables' subscripts; the 2002 text and the 2009 committee draft say "Identifier-1 shall not be
-        /// subscripted or reference modified", so a subscript on identifier-1 is a COBOL-2014 permission
-        /// (<see cref="Constructs.SearchIdentifier1EnclosingSubscript2014"/>). Recognition-based: whether a subscript is an
+        /// <summary>SEARCH and SEARCH ALL identifier-1 written with a subscript (kb/Work PB4577, PB4609). ISO §14.9.37.3 SR2 and SR3
+        /// permit the enclosing tables' subscripts; the 2002 text, the 2009 committee draft and the 2014 FCD 1.0 say
+        /// "Identifier-1 shall not be subscripted or reference modified", so a subscript on identifier-1 is a COBOL-2023 permission
+        /// (<see cref="Constructs.SearchIdentifier1EnclosingSubscript2023"/>). Recognition-based: whether a subscript is an
         /// enclosing table's or the searched level's (which COBOL2075 refuses at every edition) is the table's resolved arity,
-        /// but below 2014 neither is legal, and the gate must survive a table the bind cannot resolve (kb/Work PB353). Both
+        /// but below 2023 neither is legal, and the gate must survive a table the bind cannot resolve (kb/Work PB353). Both
         /// formats print the same operand, so both visitors ask the one body.</summary>
         public override object? VisitSearchStatement(CobolParserCore.SearchStatementContext ctx)
         {
@@ -981,7 +981,7 @@ internal sealed class VersionConformancePass
         {
             if (!identifier1.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.qualification()?.subscriptPart().Length > 0)) return;
             using var _ = Sink.At(identifier1);
-            _p.Check(Constructs.SearchIdentifier1EnclosingSubscript2014, $"{verb} {WrittenSource.Of(identifier1)}: identifier-1 is subscripted");
+            _p.Check(Constructs.SearchIdentifier1EnclosingSubscript2023, $"{verb} {WrittenSource.Of(identifier1)}: identifier-1 is subscripted");
         }
 
         private static bool HasAncestor<T>(Antlr4.Runtime.RuleContext ctx) where T : Antlr4.Runtime.RuleContext
