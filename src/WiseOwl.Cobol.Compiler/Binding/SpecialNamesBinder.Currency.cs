@@ -10,7 +10,6 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
-using WiseOwl.Cobol.Runtime;
 
 /// <summary>The CURRENCY SIGN clause and the unit's currency-sign set (ISO §12.3.7.2; §12.3.7.3 SR18-SR28; §12.3.7.4 GR13).
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
@@ -138,8 +137,10 @@ public sealed partial class SpecialNamesBinder
         {
             // currency-picture-symbol-2002 (§12.3.7): the pass owns the edition gate (Exec Step E).
             // PICMODE exploit: the word between PICTURE and literal-8 arrives as a PIC_STRING token — it must be
-            // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note).
-            if (cur.PIC_STRING()?.GetText() is { } sym && !CobolNames.Same(sym, "SYMBOL"))
+            // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note). SYMBOL is a
+            // §8.10 context-sensitive word the lexer does not tokenize, so it is asked through the group's
+            // >>COBOL-WORDS map: a synonym of it is the word (§7.3.10.4 GR2; kb/Work PB4572).
+            if (cur.PIC_STRING()?.GetText() is { } sym && !_host.CobolWords.Is(sym, "SYMBOL"))
                 Edition.Error(DiagnosticCatalog.CurrencySignClauseForm, $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
             // The currency string and its class (SR28's input), or null when literal-7 was refused.
             CurrencyDefinition? stringDefinition = operand7 is { } literal7 && CurrencyStringAdmitted(literal7)
