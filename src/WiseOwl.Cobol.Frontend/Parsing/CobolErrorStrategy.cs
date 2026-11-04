@@ -696,9 +696,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// single-token deletion and substitution, which decide before their report is made (<see cref="IsReservedOperand"/>).</para></summary>
     private static string? ReservedWordUse(Parser recognizer, OffendingPosition at)
     {
-        if (recognizer is not CobolParserCoreBase parser || parser.ReservedUserWordViolation(at.Token) is not { } violation)
+        // A reserved word where the entry's name is due is a name written, whatever verb or gated word it is not (kb/Work PB4604).
+        if (recognizer is not CobolParserCoreBase parser
+            || parser.ReservedUserWordViolation(at.Token, atAName: at.EntryNameIsDue) is not { } violation)
             return null;
-        if (UnownedScopeTerminator(recognizer, at.Token.Type, at.OpenRules()) is not null && at.AStatementMayEndBefore())
+        // No terminator ends a statement where an entry's name is due: END-IF there is a reserved word written as a name.
+        if (!at.EntryNameIsDue && UnownedScopeTerminator(recognizer, at.Token.Type, at.OpenRules()) is not null && at.AStatementMayEndBefore())
             return null;
         // A verb that is its sentence's only word (`FREE.`) is a use of the word as a name only where a procedure reference
         // elsewhere shows one; with none it is the verb's statement lacking its operand, whose own report stands
@@ -709,7 +712,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // refusal names (hint 0g, COBOL1941 and its twins, kb/Work PB2533): it is not used as a name, whatever the value
         // clause before it could still take (PROPERTY WITH NO GET SET.).
         if (ClosedFormatResidue(recognizer, at, at.PredictionFailedAt) is not null) return null;
-        return at.TakesAUserWord() && !NextStatementBegins(parser, at) ? violation : null;
+        // No statement begins in the data division, so a verb where the entry's name is due is never the next statement's.
+        return at.TakesAUserWord() && (at.EntryNameIsDue || !NextStatementBegins(parser, at)) ? violation : null;
     }
 
     /// <summary>⛔ DOES THE REFUSED VERB BEGIN THE NEXT STATEMENT, NOT STAND FOR AN OPERAND (kb/Work PB4207)? Where the
@@ -1589,6 +1593,25 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     // ── COBOL-specific heuristics ──
 
+    /// <summary>The sentence for a word this implementation reserves for a nonstandard extension (ISO §4.2.10 3),
+    /// docs/CONFORMANCE.md D-RW1) that the source wrote as a user-defined word: which reservation refuses it, and the
+    /// synonym as written (kb/Work PB4239, PB4604). It ends without a full stop, for the caller's tail.
+    /// <para>⛔ The directive that wrote a synonym decides what becomes of the original (kb/Work PB4239): EQUATE keeps the
+    /// word reserved beside the new one (GR2), SUBSTITUTE frees it and the new word replaces it (GR4), so the sentence names
+    /// the rule of the directive the map holds, never one rule for both.</para></summary>
+    private static string ExtensionReservationSentence(Parser recognizer, IToken token, string reserved)
+    {
+        string written = WrittenSource.Of(token);
+        bool isSynonym = !CobolKeywords.Same(written, reserved);
+        var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
+            ? words.SynonymBy(written) : null;
+        return $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO §4.2.10; docs/CONFORMANCE.md D-RW1)"
+            + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
+                ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word"
+                : isSynonym ? $" and '{Truncate(written, 40)}' is its synonym here (ISO §7.3.10.4 GR2), so neither is a user-defined word"
+                            : ", so it is no user-defined word");
+    }
+
     private static List<DiagnosticHint> GuessCobolIntent(
         Parser recognizer, OffendingPosition at)
     {
@@ -1621,21 +1644,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (token.Type is CobolLexer.JSON or CobolLexer.XML)
         {
             string reserved = token.Type == CobolLexer.JSON ? "JSON" : "XML";
-            string written = WrittenSource.Of(token);
-            bool isSynonym = !CobolKeywords.Same(written, reserved);
-            // ⛔ The directive that wrote the synonym decides what becomes of the original (kb/Work PB4239): EQUATE keeps JSON
-            // reserved beside the new word (GR2), SUBSTITUTE frees it and the new word replaces it (GR4), so the sentence
-            // names the rule of the directive the map holds, never one rule for both.
-            var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
-                ? words.SynonymBy(written) : null;
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0313,
-                $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO §4.2.10; docs/CONFORMANCE.md D-RW1)"
-                + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
-                    ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word; "
-                    : isSynonym ? $" and '{Truncate(written, 40)}' is its synonym here (ISO §7.3.10.4 GR2), so neither is a user-defined word; "
-                                : ", so it is no user-defined word; ")
-                + $"{reserved} GENERATE/PARSE is not an ISO/IEC 1989 construct — vendor-dialect extension, deferred (owner decision 2, DEVLOG 581).", 0));
+                ExtensionReservationSentence(recognizer, token, reserved)
+                + $"; {reserved} GENERATE/PARSE is not an ISO/IEC 1989 construct — vendor-dialect extension, deferred (owner decision 2, DEVLOG 581).", 0));
         }
+        // ⛔ 0 again: ANY OTHER WORD THIS IMPLEMENTATION RESERVES FOR AN EXTENSION, WRITTEN WHERE THE ENTRY'S NAME IS DUE
+        // (`01 ENTRY PIC X.`, kb/Work PB4604): the same reservation and sentence, without the vendor statement's tail.
+        else if (at.EntryNameIsDue && recognizer is CobolParserCoreBase extensionParser
+                 && extensionParser.ExtensionReservedWord(token) is { } extensionWord)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0313,
+                ExtensionReservationSentence(recognizer, token, extensionWord) + ".", 0));
 
         // ⛔ 0a. THE REQUIRED IMPERATIVE-STATEMENT ARM — ONE ARM FOR EVERY GENERAL FORMAT (kb/Work PB396).
         // Nine phrase rules carry an imperative-statement operand that the printed general format leaves
@@ -2005,6 +2023,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var token = at.Token;
         bool refusedWord = predictionFailedAt && token.Type == CobolLexer.IDENTIFIER;
         if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
+        // ⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE, NOT A CLAUSE IT DOES NOT PRINT
+        // (kb/Work PB4604): `01 MOVE PIC X.` writes MOVE where §13.16.3 SR4 puts the entry-name, so the fault is §8.3.2.1
+        // 1)'s (the reserved-word report, or the extension word's own hint) and "not a clause of the data description
+        // entry" would send the reader to the wrong rule.
+        if (!refusedWord && at.EntryNameIsDue && recognizer is CobolParserCoreBase parser && parser.ReservedAsAName(token)) return null;
         var stream = (ITokenStream)recognizer.InputStream;
         // The residue is named only where the parse gave up near the parser: a closed construct carried forward, or a
         // prediction that failed past the bound, is not the place a clause list stands (MaxResimulatedTokens).
@@ -3466,6 +3489,14 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
         /// <summary>Does the parser stand AT the token?</summary>
         private bool ParserIsThere => !CarriedForward && ParserTokenIndex == Token.TokenIndex;
+
+        /// <summary>⛔ IS THE ENTRY'S OWN NAME DUE AT THE TOKEN (kb/Work PB4604)? The token is the first word after the
+        /// level-number of a data description entry that has written no data-name, so it is read two ways at once, as the
+        /// entry-name and as the first clause (<see cref="ClosedFormats.EntryNameDueAfter"/>). False where the report was
+        /// carried forward or a name or a clause stands between.</summary>
+        public bool EntryNameIsDue
+            => !CarriedForward && ClosedFormats.EntryNameDueAfter(_recognizer.Context) is { } levelNumber
+               && PreviousDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex)?.TokenIndex == levelNumber.TokenIndex;
 
         /// <summary>The tokens the parse could take at the token, or null.</summary>
         public IntervalSet? Expected() => ParserIsThere ? _recognizer.GetExpectedTokens() : Walk?.Expected();

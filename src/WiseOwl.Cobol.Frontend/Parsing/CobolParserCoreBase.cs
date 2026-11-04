@@ -1104,9 +1104,29 @@ public abstract class CobolParserCoreBase : Parser
     /// one (kb/Work PB792, <see cref="ReservedWordSet.AdmitsAsUserWord"/>); for a word an edition merely ADDED the gate
     /// still stands down and this is unreachable. WHETHER the word stands for a user-defined word, rather than being a
     /// verb written correctly, is the strategy's decision (<c>CobolErrorStrategy.ReservedWordUse</c>), which asks
-    /// <see cref="ReadStatementAt"/>.</para></summary>
-    internal string? ReservedUserWordViolation(IToken? offendingSymbol)
-        => ReservedWord(offendingSymbol, includeVerbs: true) is not null ? UserWordViolationOf(offendingSymbol!) : null;
+    /// <see cref="ReadStatementAt"/>.</para>
+    /// <para>Where the position can only be a NAME (<paramref name="atAName"/>: the entry-name slot of a data description
+    /// entry, <c>OffendingPosition.EntryNameIsDue</c>, kb/Work PB4604) every keyword counts, TO and ZERO as
+    /// well as a verb: the narrowness above guards a position that may be a phrase, and there is none.</para></summary>
+    internal string? ReservedUserWordViolation(IToken? offendingSymbol, bool atAName = false)
+        => ReservedWord(offendingSymbol, atAName ? WordScope.AnyReservedWord : WordScope.GatedOrVerb) is not null
+            ? UserWordViolationOf(offendingSymbol!)
+            : null;
+
+    /// <summary>⛔ DOES THE KEYWORD <paramref name="token"/> BREAK §8.3.2.1 1) WRITTEN WHERE A NAME IS DUE (kb/Work PB4604)? It is
+    /// a word §8.9 reserves at this edition (<see cref="ReservedUserWordViolation"/> with <c>atAName</c>), or one this
+    /// implementation reserves for a nonstandard extension (§4.2.10, <see cref="NonstandardExtensionRegister.ReservesWord"/>),
+    /// the register the parser's own hint for the vendor statement words reads (COBOL0313).</summary>
+    internal bool ReservedAsAName(IToken token)
+        => ReservedUserWordViolation(token, atAName: true) is not null || ExtensionReservedWord(token) is not null;
+
+    /// <summary>The canonical word of the keyword <paramref name="token"/> when this implementation reserves it for a
+    /// nonstandard extension (§4.2.10 3), else null.</summary>
+    internal string? ExtensionReservedWord(IToken token)
+        => CobolErrorStrategy.IsReservedWord(token) && CobolWordsRewriter.CanonicalWordOf(token, CobolWords) is { } w
+           && NonstandardExtensionRegister.ReservesWord(w)
+            ? w
+            : null;
 
     /// <summary>⛔ THE §8.9 SENTENCE FOR <paramref name="token"/>, a reserved word of the group (kb/Work PB4573). A synonym
     /// (<c>&gt;&gt;COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"</c>, then <c>MOVE TO SHOW</c>) is the keyword TOKEN of its original,
@@ -1120,15 +1140,26 @@ public abstract class CobolParserCoreBase : Parser
     /// RESERVES at this edition (the funnel's high-confidence <see cref="ReservedWordSet.RejectsAt"/>), else null — the
     /// one question <see cref="entryNameHere"/> and <see cref="procedureHeaderHere"/> ask. Migration-blind on
     /// purpose: it asks what the targeted edition reserves, not what <c>--permissive</c> admits.</summary>
-    private string? ReservedGatedWord(IToken? token) => ReservedWord(token, includeVerbs: false);
+    private string? ReservedGatedWord(IToken? token) => ReservedWord(token, WordScope.Gated);
+
+    /// <summary>Which words <see cref="ReservedWord"/> considers: the reservation-gated words, those and the verbs
+    /// (<see cref="StatementOpeners"/>), or every keyword the lexer tokenizes — the words of a position that can only
+    /// be a name (<see cref="ReservedUserWordViolation"/>'s <c>atAName</c>).</summary>
+    private enum WordScope { Gated, GatedOrVerb, AnyReservedWord }
 
     /// <summary>The one decision under <see cref="ReservedUserWordViolation"/> and <see cref="ReservedGatedWord"/>:
-    /// <paramref name="token"/> is a reservation-gated word, or (<paramref name="includeVerbs"/>) a verb that is not a
-    /// user-defined word's token, and §8.9 reserves its word at this edition.</summary>
-    private string? ReservedWord(IToken? token, bool includeVerbs)
+    /// <paramref name="token"/> is a word of <paramref name="scope"/> that is not a user-defined word's token, and §8.9
+    /// reserves its word at this edition.</summary>
+    private string? ReservedWord(IToken? token, WordScope scope)
     {
         if (token is null || token.Type == CobolLexer.IDENTIFIER) return null;
-        if (!CobolLexer.IsReservationGated(token.Type) && !(includeVerbs && StatementOpeners(Atn).Contains(token.Type))) return null;
+        bool inScope = scope switch
+        {
+            WordScope.Gated => CobolLexer.IsReservationGated(token.Type),
+            WordScope.GatedOrVerb => CobolLexer.IsReservationGated(token.Type) || StatementOpeners(Atn).Contains(token.Type),
+            _ => CobolErrorStrategy.IsReservedWord(token),
+        };
+        if (!inScope) return null;
         // ReservedWordSet.Default is the generated §8.9 table with no >>COBOL-WORDS overlay — the right set here:
         // CanonicalWordOf reads a word the group's directive ALREADY resolved (a de-reserved word is an IDENTIFIER, so it
         // never reaches here; a synonym carries its original's text), so composing the overlay twice would double-count

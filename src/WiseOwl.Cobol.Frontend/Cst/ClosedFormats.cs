@@ -168,4 +168,19 @@ public static class ClosedFormats
             }
         return null;
     }
+
+    /// <summary>⛔ THE LAST TOKEN OF THE LEVEL-NUMBER AFTER WHICH THE ENTRY'S OWN NAME IS STILL DUE (kb/Work PB4604), or
+    /// null where no entry waits for one. ISO §13.16.3 SR4: "the entry-name clause shall immediately follow the
+    /// level-number" and, when it is not specified, the entry is a filler; so a data description entry whose context
+    /// holds no data-name has two readings of the first word after its level-number, the entry-name and the first clause,
+    /// and only a word that is neither is "not a clause". The other formats write a mandatory name before their clause
+    /// list (FD, SD, SELECT) or hold none (the report group entry's clause list is no closed format), so the slot is
+    /// open only here. The caller compares the returned token with the one before the offending word: a name or a clause
+    /// written already closes the slot.</summary>
+    public static IToken? EntryNameDueAfter(RuleContext? ctx)
+    {
+        for (RuleContext? p = ctx; p is not null; p = p.Parent)
+            if (p is Core.DataDescriptionEntryContext d) return d.dataName() is null ? d.levelNumber()?.Stop : null;
+        return null;
+    }
 }

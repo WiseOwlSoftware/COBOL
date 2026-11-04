@@ -106,7 +106,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedGatedWord",
+            "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "UserWordViolationOf", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
             "gatedDeclaration", "is2002", "is2014",
@@ -179,6 +179,10 @@ public sealed class EditionReadDriftTests
         // at it (kb/Work PB3248); the single-token deletion, asking it before its report, deletes it (review R3-1 of the
         // PB4133 branch); and the single-token substitution reads it as the name (kb/Work PB4218).
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ReservedWordUse | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
+        // ... and a reserved word written where a data entry's NAME is due (`01 MOVE PIC X.`, ISO §13.16.3 SR4) is that same §8.9
+        // violation, never the closed format's "not a clause" residue: whether the word is reserved at the edition decides only
+        // which of the two reports the position draws (kb/Work PB4604). It refuses nothing the parse had not refused.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ClosedFormatResidue | ReservedAsAName"] = (1, Verdict.WordStatus),
         // ... and a syntax error a word §8.9 reserves here explains by standing in a procedure-name slot, where the parse
         // read it as its keyword (kb/Work PB4229): whether the word is reserved at the edition decides only whether it is
         // a candidate for that report (COBOL0901). It refuses nothing the error had not refused and gates no construct.
