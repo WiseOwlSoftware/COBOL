@@ -1,4 +1,4 @@
-## PB4572: a COBOL-WORDS synonym of COMMA, SYMBOL or EXCEPTION-OBJECT is the word, because the binder asks the directive's map and not the spelling
+## Entry 3078 — 2026-11-04 08:59 PST — PB4572: a COBOL-WORDS synonym of COMMA, SYMBOL or EXCEPTION-OBJECT is the word, because the binder asks the directive's map and not the spelling
 
 **What was wrong.** A reserved or context-sensitive word the lexer carries no token for reaches the binder as a bare identifier, and the directive's retype cannot reach a synonym of it (DESIGN-cobol-words-directive §2.1). Three binder sites decided by the written spelling. `DECIMAL-POINT IS CMA` after `EQUATE "COMMA" WITH "CMA"` was refused with COBOL0894 (`SpecialNamesBinder.SwitchBindDecimalPoint`). `IF EXO = NULL` after `EQUATE "EXCEPTION-OBJECT" WITH "EXO"` drew COBOL1639 (the resolver's `IsExceptionObjectRegister` compared the spelling) and COBOL0901 (the funnel's exemption in `VersionConformancePass` called the same spelling test). The sweep found a third, the `PICTURE SYMBOL` word of the CURRENCY clause (`EQUATE "SYMBOL" WITH "SYM"`, COBOL0892). §7.3.10.4 GR2 makes the synonym usable "in any syntax requiring the use of the reserved word". The same spelling tests also ran the other way: `UNDEFINE "COMMA"` left `DECIMAL-POINT IS COMMA` accepted, and `SUBSTITUTE "EXCEPTION-OBJECT" BY "EXO"` left EXCEPTION-OBJECT the register (GR3, GR4).
 
@@ -11,3 +11,4 @@
 **Goldens** (`conformance-suite/cases/7.3.10-COBOL-WORDS/pb4572*`): three accepted at 2023 (a comma decimal point through CMA prints `1,50`; EXO is null and the same object as EXCEPTION-OBJECT per §8.4.3.6.4 GR1-GR2; `PICTURE SYM "U"` edits 5.25 to `USD5.25`) and two refusals (`UNDEFINE "COMMA"` then `DECIMAL-POINT IS COMMA`, COBOL0894; `SUBSTITUTE "EXCEPTION-OBJECT" BY "EXO"` then EXCEPTION-OBJECT, COBOL1639).
 
 **Register.** PB4572 landed; it claimed no inventory row and closes none (GR-7.3.10.4-2, -3, -4 were CONFORMS; this adds witnesses).
+
