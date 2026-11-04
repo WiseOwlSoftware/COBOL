@@ -3639,8 +3639,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 else if (clause.Context.externalClause() is { } extc)
                 {
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
-                    // §13.18.22.2's `[ AS literal-1 ]` (kb/Work PB511). CAPTURED here, SCREENED below where
-                    // entryWhere exists — the message has to be able to name the subject.
+                    // §13.18.22.2's `[ AS literal-1 ]` (kb/Work PB511). CAPTURED here, SCREENED below with
+                    // the entry's other placement screens, once the whole clause list has been decoded.
                     externalAs = extc.externalizedNamePhrase();
                 }
                 else if (clause.Context.globalClause() is not null)
@@ -3780,7 +3780,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         rawValue = ExtractValue(value, valueWhere);
                         // Format 1 takes EXACTLY ONE literal (§13.18.63.2); a bare multi-literal list (no FROM) is
                         // Format 2 or (report section) Format 4, never a Format-1 data item — ExtractValue GLUES it
-                        // today (GetText over the collapsed valueItem). Flag it for a loud reject once entryWhere exists.
+                        // today (GetText over the collapsed valueItem). Flag it here, reject it loudly below once the clause list is decoded.
                         var vi0 = value.valueItem().FirstOrDefault();
                         if (vi0?.valueClauseRange() is null && (vi0?.valueClauseOperand().Length ?? 0) > 1)
                             gluedMultiLiteral = true;

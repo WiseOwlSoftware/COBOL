@@ -25,3 +25,11 @@ the set difference the cited SRs state; the mutual case has a defined survivor. 
 entry that was refused. Duplication: none added; two inline blocks removed.
 
 **Rows.** None closed (SR-13.16.3-12 and -14 were already CONFORMS); `closes_rows_reason` records it.
+
+**Review round 1.** The reviewer found that the first recovery dropped EVERY refused co-clause, including TYPEDEF and BASED, which SR12 refuses
+beside SAME AS but which are not part of the description the copy supplies. `01 X TYPEDEF SAME AS Z1. 01 Y TYPE X.` then drew COBOL1555 plus one
+false COBOL5999 per `TYPE X`, and `01 X BASED SAME AS Z1.` with `ALLOCATE X.` / `SET ADDRESS OF X` drew COBOL1555 plus a false COBOL0869 per
+reference: the cascade moved from the entry to every reference. The recovery now drops the DESCRIPTION clauses only. `DataClauseKinds.EntryRoleClauses`
+(TYPEDEF, BASED, PROPERTY: the clauses a reference to the entry depends on) are reported in the one COBOL1555 and kept. Two tests in
+`ReferenceCompositionRecoveryTests` carry a referencing program for each and fail without the mask. The stale comments the move left
+(`PlacementAnsweredElsewhere` rows for TYPE and SAME AS, two "once entryWhere exists" remarks in `BindEntry`) are corrected.

@@ -81,6 +81,31 @@ public sealed class ReferenceCompositionRecoveryTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL2150");
     }
 
+    /// <summary>⛔ The recovery drops the DESCRIPTION clauses and KEEPS the ROLE clauses (review R1-1, kb/Work PB4602):
+    /// SR12 refuses TYPEDEF and BASED beside SAME AS and reports it once, but the entry stays a type declaration / a
+    /// based template, so references to it draw nothing further.</summary>
+    [Fact]
+    public void SameAsWithTypedef_ReferencesToTheTypeDrawNothingFurther()
+    {
+        var (_, errors) = EditionHarness.Compile($"{Prologue}\n01 X TYPEDEF SAME AS Z1.\n01 Y TYPE X.\n01 Y2 TYPE X.\n01 Y3 TYPE X.\n{Epilogue}", 2023);
+        Assert.Single(errors);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1555");
+    }
+
+    [Fact]
+    public void SameAsWithBased_ReferencesToTheTemplateDrawNothingFurther()
+    {
+        const string proc = """
+            PROCEDURE DIVISION.
+                ALLOCATE X.
+                SET ADDRESS OF X TO PTR.
+                STOP RUN.
+            """;
+        var (_, errors) = EditionHarness.Compile($"{Prologue}\n01 PTR USAGE POINTER.\n01 X BASED SAME AS Z1.\n{proc}", 2023);
+        Assert.Single(errors);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1555");
+    }
+
     /// <summary>The permitted co-clauses are untouched by the recovery: TYPE with VALUE and SAME AS with OCCURS at a
     /// level that admits it compile clean.</summary>
     [Fact]
