@@ -1,4 +1,4 @@
-## PB4602: the SAME AS / TYPE composition recovery drops the refused co-clause and keeps the reference
+## Entry 3099 — 2026-11-04 13:29 PST — PB4602: the SAME AS / TYPE composition recovery drops the refused co-clause and keeps the reference
 
 **Found.** Wave 20261863 C reported that `01 X TYPE T ALIGNED.` drew COBOL2150 (ISO 13.16.3 SR14, the one real refusal) plus a false
 COBOL1942 ("not an elementary or group data item") and a COBOL0881.
@@ -33,3 +33,4 @@ reference: the cascade moved from the entry to every reference. The recovery now
 (TYPEDEF, BASED, PROPERTY: the clauses a reference to the entry depends on) are reported in the one COBOL1555 and kept. Two tests in
 `ReferenceCompositionRecoveryTests` carry a referencing program for each and fail without the mask. The stale comments the move left
 (`PlacementAnsweredElsewhere` rows for TYPE and SAME AS, two "once entryWhere exists" remarks in `BindEntry`) are corrected.
+
