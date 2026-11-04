@@ -1,3 +1,4 @@
-## PB4613: every regression program the fuzz work produces becomes a per-edition golden
+## Entry 3105 — 2026-11-04 14:22 PST — PB4613: every regression program the fuzz work produces becomes a per-edition golden
 
 The owner restated the suite goal on 2026-11-04: WiseOwl.Cobol ships a comprehensive test suite for each COBOL edition, from COBOL-85 to 2027 when it is released, with the COBOL-85 suite subsuming and replacing NIST-85. Fuzz night 10's vetting and the seven reports posted as bugs #1289-#1295 produced dozens of small rule-exercising programs that live only in scratch and WSL folders. PB4613 records the gap and its fix: a campaign that turns each into a golden with ISO-derived per-edition expectations, a pipeline step that proposes goldens from each night's agreeing programs, and a measured comparison with NIST-85's coverage.
+
