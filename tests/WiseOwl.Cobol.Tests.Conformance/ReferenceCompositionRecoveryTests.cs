@@ -92,6 +92,28 @@ public sealed class ReferenceCompositionRecoveryTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1555");
     }
 
+    /// <summary>⛔ A kept TYPEDEF entry whose SAME AS names a GROUP expands it (kb/Work PB4638, ISO §13.18.49.4 GR1):
+    /// <c>ExpandTemplate</c> expanded the declaration's TYPE clause and its members, never its own SAME AS, so the
+    /// subordinates of the group never reached the type and every qualified reference to one drew COBOL1639 beside the
+    /// one real refusal. The strong form and a target that is itself a SAME AS subject are the same arm; a SAME AS held by
+    /// a MEMBER of a declaration is the arm that already worked.</summary>
+    [Theory]
+    [InlineData("01 X TYPEDEF SAME AS Z.")]
+    [InlineData("01 X TYPEDEF STRONG SAME AS Z.")]
+    [InlineData("01 Z2 SAME AS Z.\n01 X TYPEDEF SAME AS Z2.")]
+    public void SameAsGroupWithTypedef_SubordinatesOfTheTypeResolve(string declaration)
+    {
+        const string proc = """
+            PROCEDURE DIVISION.
+                MOVE "A" TO ZA OF Y.
+                DISPLAY ZA OF Y.
+                STOP RUN.
+            """;
+        var (_, errors) = EditionHarness.Compile($"{Prologue}\n{declaration}\n01 Y TYPE X.\n{proc}", 2023);
+        Assert.Single(errors);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1555");
+    }
+
     [Fact]
     public void SameAsWithBased_ReferencesToTheTemplateDrawNothingFurther()
     {

@@ -2093,8 +2093,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return true;
         if (_templateComplete.TryGetValue(template, out bool complete)) return complete;
         _templateComplete[template] = false;
-        if (template.TypeRefName is not null) ExpandType(template);
-        foreach (var member in DataItem.DescendantsOf(template).ToList())
+        // The declaration's own references, then its members' — the order ExpandTypesPass.Run gives every storage item
+        // (TYPE, then SAME AS), by one walk over the declaration and its subtree. A SAME AS on the declaration itself
+        // is a refused co-clause (§13.16.3 SR12 lists no TYPEDEF) whose recovery keeps the role clause and the
+        // reference (kb/Work PB4602), so it is expanded here as a legal one would be (§13.18.49.4 GR1): the
+        // references to the type then draw nothing further (kb/Work PB4638).
+        foreach (var member in DataItem.SelfAndDescendantsOf(template).ToList())
         {
             if (member.TypeRefName is not null) ExpandType(member);
             if (member.SameAsName is not null) ExpandSameAs(member, []);
