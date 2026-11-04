@@ -1,0 +1,5 @@
+## The 2014 FCD is held, and it puts the SEARCH identifier-1 relaxation in 2023
+
+The owner asked why we hold no 2014 text. The 2014 cycle's FCD 1.0 (WG4, 2010-07-01, the final committee draft that became ISO/IEC 1989:2014) was in the GnuCOBOL forum thread that supplied the two later drafts; it was downloaded with the owner's approval to `E:/COBOL-coord/specs-drafts/`, with its text in `t2014.txt`. It still says "Identifier-1 shall not be subscripted or reference modified" for SEARCH, so the enclosing-subscript relaxation of 2023's §14.9.37.3 rules 2) and 3) is a 2023 change that Annex E omits. The earlier decision that 2014 allows it had inferred 2014 from Annex E's silence.
+
+Asked again with that evidence, the owner decided the relaxation is 2023-only. PB4547 is again a feature request for the 2023 rule. PB4577, already landed with a 2014 edge, is marked superseded, and PB4609 moves its gate to 2023. PB4608 is the analysis that re-checks every 2014 edge resting on Annex E's silence or on the 2009 CD against the FCD, and the version change reference no longer says Annex E documents the 2014 to 2023 delta completely.
