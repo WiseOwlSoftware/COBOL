@@ -1,4 +1,4 @@
-## PB4446: a selection object's own faults are indicated beside the Table 15 refusal and the SR2 count
+## Entry 3090 — 2026-11-04 11:42 PST — PB4446: a selection object's own faults are indicated beside the Table 15 refusal and the SR2 count
 
 **Mechanism.** `EvaluateBinder.BindWhenItem` returned the constant false the moment `ScreenPairing` refused a pair
 (ISO §14.9.13.3 SR10, Table 15, COBOL1634), before the selection object was bound, and `Bind`'s pairing loop clamped to
@@ -40,3 +40,4 @@ Duplication: no second copy of the range rules.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,519/21,519 · Unit 39,772/39,772 · Characterization 37/37 cases ran
 (skipped 0)` at `18e7da35e` (run 000001-20261104T191743Z); `semgrep/verify.py` PASS with no rule count raised.
+
