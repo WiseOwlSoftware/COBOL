@@ -210,7 +210,7 @@ public sealed class ActivationConformanceDriftTests
     /// description, so such an override compiled where rule 3 refuses it (the group has no PICTURE clause). So
     /// <c>OoConformance.SignatureDifference</c> is the one entry — it describes both items through the one builder and asks
     /// <c>ActivationRelations.SignatureDifference</c> — the override, IMPLEMENTS, property, MOVE-element and prototype
-    /// signature askers (§13.7.3 SR2, and the signature classes' partition refinement) call it, and the comparator is
+    /// signature askers (§13.7.3 SR2) call it, and the comparator is
     /// deleted, with the <c>PrototypeBisimulation</c> it threaded.</summary>
     [Fact]
     public void PairMode_AsksTheDescriptionRelation_ThroughOneEntry()
@@ -226,7 +226,7 @@ public sealed class ActivationConformanceDriftTests
             + "property accessors) no longer all ask SignatureDifference (kb/Work PB3101).");
         Assert.Contains("OoConformance.SignatureDifference(", Verb("MoveBinder.cs"));
 
-        // The prototype signature comparison (§13.7.3 SR2, and the signature classes' refinement) asks it too.
+        // The prototype signature comparison (§13.7.3 SR2) asks it too.
         Assert.Contains("OoConformance.SignatureDifference(",
             CodeOf(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "PrototypeSignatures.cs")));
 

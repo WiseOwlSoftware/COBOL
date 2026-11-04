@@ -27,6 +27,19 @@ using Core = CobolParserCore;
 /// <c>Binding/Bound/BoundCall.cs</c>.</summary>
 internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>⛔ WHETHER THIS EDITION HAS PROGRAM-PROTOTYPE-NAMES AT ALL (kb/Work PB4509) — the ONE edition read that routes a
+    /// bare word written where CALL's identifier-1 or CANCEL's identifier-1 stands. ISO/IEC 1989:2002 introduced them
+    /// (its clause 8.4.5.7, the 2023 §8.4.6.8: "the program-name of a containing program definition or a program-prototype-name
+    /// declared in the REPOSITORY paragraph"), and with them §14.9.4.2 Format 2's bracket-omitted spelling and §14.9.5.2's
+    /// third operand alternative. COBOL-85 has neither: its CALL and CANCEL name a program by literal-1 or by an identifier
+    /// that §14.9.4.3 SR1 / §14.9.5.3 SR1 require to be a data item, so below 2002 a word that names no data item is the
+    /// §8.4.2.1 undefined reference, even when it spells the element's own or a containing program definition's
+    /// program-name, which <c>BinderDriver.ProgramPrototypesOf</c> registers at every edition. A BEHAVIORAL read
+    /// (DESIGN-version-conformance-pipeline §1.1 item 3, the IntrinsicBinder keyword-omission routing's twin): it selects
+    /// the meaning and emits nothing, and the construct's own row (program-prototype-name-2002) is the edition fact.</summary>
+    private bool ProgramPrototypeNamesExist =>
+        ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.ProgramPrototypeName2002);
+
     /// <summary>Bind <c>CALL</c> (ISO §14.9.4 Format 1; design D2 — the uniform opaque ABI call).</summary>
     public BoundStatement BindCall(Core.CallStatementContext call)
     {
@@ -44,12 +57,15 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // Spelling (b) is resolved AFTER the data-reference attempt, below, so no program that binds today
         // changes meaning: a word that names a data item stays identifier-1.
         // ⛔ BELOW THE EDITION THAT INTRODUCED THE PROGRAM-PROTOTYPE CALL THERE IS ONE CALL FORMAT (kb/Work PB4503 review R1-1).
-        // COBOL-85 has no AS phrase and no program prototypes (`call-as-phrase-2002`), so every argument's spelling is judged
-        // HERE, each one, before the target or any operand resolves: a CALL whose bind fails on an undefined name, or on an
-        // earlier refused argument, still reports every spelling COBOL-85 lacks. From 2002 on the format depends on what the
-        // target resolves to (a program-prototype-name is Format 2), so the judgement stays in the argument loop below.
+        // COBOL-85 has no program-prototype-names (ProgramPrototypeNamesExist), so with no AS phrase (itself refused below 2002
+        // by `call-as-phrase-2002`) nothing can select Format 2, and every argument's spelling is judged HERE, each one, before
+        // the target or any operand resolves: a CALL whose bind fails on an undefined name, or on an earlier refused argument,
+        // still reports every spelling COBOL-85 lacks. From 2002 on the format depends on what the target resolves to (a
+        // program-prototype-name is Format 2), so the judgement stays in the argument loop below. The two answers cannot
+        // disagree, because spelling (b) below asks the same ProgramPrototypeNamesExist (kb/Work PB4509: it did not, and a
+        // bare self-name at 85 made a CALL both judged up front AND Format 2).
         var refusedUpFront = new HashSet<Core.CallArgumentContext>();
-        bool judgedUpFront = call.callAsPhrase() is null && !ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.CallAsPhrase2002);
+        bool judgedUpFront = call.callAsPhrase() is null && !ProgramPrototypeNamesExist;
         if (judgedUpFront)
         {
             var carried = CobolPassMode.Reference;
@@ -162,14 +178,17 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // Probe reports nothing — so a word that names a data item stays identifier-1 and no program that
             // binds today changes meaning. When the AS phrase already named a prototype, identifier-1 IS
             // specified and GR3 b)'s FIRST bullet governs: the item's content is the program-name and the
-            // prototype only supplies the characteristics (GR7) — hence the `prototype is null` guard.
-            if (prototype is null && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } bareWord
+            // prototype only supplies the characteristics (GR7) — hence the `prototype is null` guard. Below the edition
+            // that has program-prototype-names neither arm is taken (kb/Work PB4509): the word is identifier-1, and one
+            // that names no data item is refused by the resolver as undefined (§14.9.4.3 SR1, §8.4.2.1).
+            bool spellingB = prototype is null && ProgramPrototypeNamesExist && ctx.Refs.Probe(dref) is null;
+            if (spellingB && BarePrototypeWord(dref) is { } bareWord
                 && host.ProgramPrototypes?.GetValueOrDefault(bareWord) is { } bareProto)
                 // GR3 b) third bullet: "If neither identifier-1 nor literal-1 is specified,
                 // program-prototype-name-1 determines the externalized program-name of the program being
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
-            else if (prototype is null && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } declaredWord
+            else if (spellingB && BarePrototypeWord(dref) is { } declaredWord
                      && ctx.Data.State.Configuration.ProgramSpecifiers.ContainsKey(declaredWord))
                 // The word is a PROGRAM specifier no provider answered (REPO-1 at the specifier, DESIGN-external-repository
                 // §8.2 step 4): it registered no prototype, so this is SR16's undeclared prototype — never a data name.
@@ -1161,8 +1180,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // read as a prototype. §14.9.5.4 GR1 c) then makes the prototype the identification of the program
                 // to be canceled, and §12.3.8.4 GR10 NOTE 1 says which name that is — literal-3 if the specifier
                 // wrote AS, otherwise the prototype name. A prototype cancel is therefore a STATIC-name cancel,
-                // the same bound shape literal-1 produces (GR1 b)); the run-time locate is GR2's.
-                if (ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } cWord)
+                // the same bound shape literal-1 produces (GR1 b)); the run-time locate is GR2's. Below the edition that
+                // has program-prototype-names the alternative does not exist (kb/Work PB4509, the CALL twin's spelling
+                // (b)): the word is identifier-1, and the resolver refuses one that names no data item (§8.4.2.1).
+                if (ProgramPrototypeNamesExist && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } cWord)
                 {
                     if (host.ProgramPrototypes?.GetValueOrDefault(cWord) is { } cProto)
                     {
