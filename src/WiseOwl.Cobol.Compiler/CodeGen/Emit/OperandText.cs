@@ -143,6 +143,8 @@ internal static class OperandText
         return x.Real ? RuntimeApi.FloatDisplay(x.Expr)
              : x.Dec ? RuntimeApi.DecFunctionText(x.Expr, deSign, comma)
              : x.Wide ? RuntimeApi.WideFunctionText(x.Expr, x.Scale, deSign, comma)
+             // A run-time-scaled exact value (kb/Work PB4575: ABS (P + 2.0E0)) settles into the same text of its every digit.
+             : x.Exact ? RuntimeApi.ExactFunctionText(x.Expr, deSign, comma)
              : RuntimeApi.NumFormatFunctionText(x.Expr, x.Scale, deSign, comma);
     }
 

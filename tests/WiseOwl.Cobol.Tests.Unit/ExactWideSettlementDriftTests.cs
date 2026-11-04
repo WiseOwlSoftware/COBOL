@@ -18,7 +18,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// pins both halves: the entries all settle, and the opt-in sites are the ones that do (a several-receiver COMPUTE's one
 /// initial evaluation, the DIVIDE ... REMAINDER back-multiply that the subtraction around it settles, kb/Work PB3538, a
 /// relation, an intrinsic function's argument and the temporary DISPLAY shows, kb/Work PB3953, and a MOVE's store of a function
-/// whose value is wide). Another site is a design decision (add its settlement here), never a silent edit.</para>
+/// whose value is wide). Another site is a design decision (add its settlement here), never a silent edit. The run-time-scaled
+/// exact value (<c>NumX.Exact</c>, kb/Work PB4575: a wide value beside an SDIDI-carried operand) travels the same opt-in
+/// channel and is pinned to settle at every one of these sites too.</para>
 /// <para>⛔ AND THE FUNCTION FAMILY THAT TAKES IT IS CLOSED THE OTHER WAY ROUND (kb/Work PB3953): every arm of the exact
 /// intrinsic switch whose intake is a fraction-bearing numeric argument has a wide body in <c>IntrinsicRenderer.RenderWide</c>, or is
 /// named in <see cref="ImageTakers"/> with the reason its value cannot depend on digits past the SDIDI's 34. A new exact arm is then
@@ -95,7 +97,7 @@ public sealed class ExactWideSettlementDriftTests
         Assert.Contains("num.Combine(subsidiary, \"*\", divisor, rcv, keepWide: true), rcv)", arithmetic);
         string condition = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "ConditionRenderer.cs"));
         Assert.Contains("keepWide: true", condition);
-        Assert.Contains("NumericRenderer.CompareWide(l, rr)", condition);
+        Assert.Contains("num.CompareWide(l, rr)", condition);
         Assert.Contains("NumericRenderer.LowerWide(l)", condition);
         // An intrinsic argument (kb/Work PB3953): the one keeping intake, lowered for every consumer but the wide bodies, whose
         // results are NumX.Wide values the renderer settles at its public entry.
@@ -171,15 +173,77 @@ public sealed class ExactWideSettlementDriftTests
         Assert.True(stale.Count == 0, "ImageTakers names arms that no longer take the image: " + string.Join(", ", stale));
     }
 
-    /// <summary>The wide form is not a carrier: no consumer may dispatch on it, so <c>NumX.Carrier</c> refuses it.</summary>
+    /// <summary>⛔ EVERY WIDE BODY TAKES THE RUN-TIME-SCALED EXACT VALUE TOO (kb/Work PB4575 review finding R1-2). A function whose
+    /// argument expression is wide evaluates on the wide form (<c>RenderWide</c>); the same expression beside an SDIDI operand is a
+    /// <c>NumX.Exact</c>, and the function must keep its digits as well, or <c>FUNCTION INTEGER (P + 0.0E0) - P</c> answers the image's
+    /// residue where <c>FUNCTION INTEGER (P) - P</c> answers 0. So every label of <c>RenderWide</c>'s switch either has an arm in
+    /// <c>RenderExactUnary</c> (its value on the exact carrier) or a native arm of <c>RenderDec</c> that takes its arguments through
+    /// the exact intake (<c>ExactValueArg</c>, <c>ExactValueArgList</c>): a new wide body is then a red here until it decides.</summary>
     [Fact]
-    public void TheWideForm_IsNotACarrier()
+    public void EveryWideBody_TakesTheExactValueToo()
+    {
+        string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        string wide = BodyOf(src, "private NumX? RenderWide(");
+        var wideLabels = Regex.Matches(wide, @"""(?<n>\w+)""\s*=>").Select(m => m.Groups["n"].Value).Distinct().ToList();
+        Assert.True(wideLabels.Count >= 15, "only " + wideLabels.Count + " RenderWide arms found — the scan is blind");
+        Assert.Contains("if (xs.Count == 1 && xs[0].Exact) return RenderExactUnary(ic.Sig.RuntimeMethod, xs[0]);", wide);
+
+        int unaryAt = src.IndexOf("private NumX? RenderExactUnary(", StringComparison.Ordinal);
+        Assert.True(unaryAt >= 0, "IntrinsicRenderer no longer declares RenderExactUnary");
+        string unary = src[unaryAt..src.IndexOf("};", unaryAt, StringComparison.Ordinal)];
+        var unaryLabels = Regex.Matches(unary, @"""(?<n>\w+)""\s*=>").Select(m => m.Groups["n"].Value).ToHashSet(StringComparer.Ordinal);
+        string dec = BodyOf(src, "private NumX? RenderDec(");
+        var missing = wideLabels.Where(n => !unaryLabels.Contains(n)
+            && !Regex.IsMatch(dec, $@"""{n}""\s+when\s+!num\.StandardDecimal\s*=>[^\n]*\bExactValueArg(?:List)?\(")).ToList();
+        Assert.True(missing.Count == 0,
+            "these RenderWide bodies have no twin for a run-time-scaled exact argument (NumX.Exact), so an argument expression in which "
+            + "a wide value met an SDIDI operand reaches them as its 34-digit round-to-odd image: give each a RenderExactUnary arm or "
+            + "a native RenderDec arm over ExactValueArg: " + string.Join(", ", missing));
+        var stale = unaryLabels.Where(n => !wideLabels.Contains(n)).ToList();
+        Assert.True(stale.Count == 0, "RenderExactUnary has arms with no wide body: " + string.Join(", ", stale));
+    }
+
+    /// <summary>The wide form and the run-time-scaled exact value are not carriers: no consumer may dispatch on them, so
+    /// <c>NumX.Carrier</c> refuses both.</summary>
+    [Fact]
+    public void TheExactForms_AreNotCarriers()
     {
         string core = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "EmitCore.cs"));
-        Assert.Matches(@"Carrier\s*=>\s*Wide\s*\?\s*throw", core);
+        Assert.Matches(@"Carrier\s*=>\s*Wide\s*\|\|\s*Exact\s*\?\s*throw", core);
         // The enum is internal to the compiler, so its members are read from source.
         Match members = Regex.Match(core, @"enum\s+NumXCarrier\s*\{(?<m>[^}]*)\}");
         Assert.True(members.Success, "NumXCarrier is no longer declared in EmitCore.cs");
         Assert.DoesNotContain("Wide", members.Groups["m"].Value.Replace("UnsignedWide", ""));
+        Assert.DoesNotContain("Exact", members.Groups["m"].Value);
+    }
+
+    /// <summary>⛔ THE RUN-TIME-SCALED EXACT VALUE (<c>NumX.Exact</c>, kb/Work PB4575) SETTLES WHERE THE WIDE FORM DOES. It is the
+    /// result of an operation in which a wide value met an SDIDI-carried operand, so it reaches exactly the consumers a wide value
+    /// reaches: the settlement and its two halves, the relation, the several-receiver snapshot, an intrinsic argument (which the
+    /// aligned wide bodies decline, because no compile-time scale aligns it) and the temporary DISPLAY shows. A consumer of the
+    /// opt-in list that took a wide value but not this one would read its <c>CobolExact</c> text as an <c>Int128</c>.</summary>
+    [Fact]
+    public void TheRunTimeScaledExactValue_SettlesWhereTheWideFormDoes()
+    {
+        string src = Renderer();
+        // Settle, TransferWide, LowerWide and ExactOperand are expression-bodied: each arm is read from the member's own text.
+        Assert.Contains("NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>\n        !x.Wide && !x.Exact ? x", src);
+        Assert.Contains(": x.Exact ? new NumX(RuntimeApi.ExactToUnscaled(x.Expr, toScale, mode, checkedTransfer), toScale)", src);
+        Assert.Contains(": x.Exact ? new NumX(RuntimeApi.ExactImage(x.Expr), 0, Dec: true, Precision: x.Precision,", src);
+        Assert.Contains("internal string ExactOperand(NumX x) =>\n        x.Exact ? x.Expr", src);
+        Assert.Contains("RuntimeApi.ExactCompare(ExactOperand(l), ExactOperand(r))", BodyOf(src, "public string? CompareWide("));
+        string arithmetic = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "ArithmeticEmitter.cs"));
+        Assert.Contains("v.Exact ? RuntimeApi.ExactType", arithmetic);
+        string intrinsic = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        Assert.Contains("if (x.Exact) return new NumX(RuntimeApi.IntegerArgExact(x.Expr)", BodyOf(intrinsic, "private NumX RawWideArg("));
+        Assert.Contains("xs.Any(x => x.Dec || x.Real || x.Exact)", BodyOf(intrinsic, "private NumX? RenderWide("));
+        string device = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "FunctionDeviceText.cs"));
+        Assert.Contains(": value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr)", device);
+        // A function's value on the exact carrier (RenderExactUnary, review finding R1-2) settles in DISPLAY's text and temporary and
+        // in the string-image channel, as a wide one does.
+        Assert.Contains("if (x.Exact) return RuntimeApi.FunctionFieldText(RuntimeApi.FunctionFieldOfExact(x.Expr), Comma);", device);
+        Assert.Contains(": x.Exact ? RuntimeApi.FunctionFieldOfExact(x.Expr)", device);
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "OperandText.cs"));
+        Assert.Contains(": x.Exact ? RuntimeApi.ExactFunctionText(x.Expr, deSign, comma)", text);
     }
 }

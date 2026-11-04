@@ -138,6 +138,12 @@ public readonly struct FunctionValueField
         return new(value, scale, described, bytes);
     }
 
+    /// <summary>The temporary of an exact native value whose scale only the run time knows (<see cref="CobolExact"/>, kb/Work PB4575:
+    /// an argument expression in which an exact wide intermediate met an SDIDI-carried operand): <see cref="OfWide"/> for a value on the
+    /// wide form, <see cref="OfValue"/> for one the SDIDI carries, so it keeps every digit exactly as the wide argument does.</summary>
+    public static FunctionValueField OfExact(CobolExact value) =>
+        value.TryWide(out CobolWide wide, out int scale) ? OfWide(wide, scale) : OfValue(value.Image);
+
     /// <summary>This temporary's value exactly: its own wide value, or its SDIDI value at its own exponent.</summary>
     private CobolExact Exact() => _shape == Shape.Wide ? CobolExact.FromWide(_wide, _wideScale) : CobolExact.FromDec(_value);
 
