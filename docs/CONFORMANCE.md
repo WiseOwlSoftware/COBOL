@@ -2583,9 +2583,9 @@ of an unsupported facility.
   still required"` → OK); the 2002 text and the 2009 committee draft say "Identifier-1 shall not be subscripted or reference
   modified" (outside the tracked tree, so not `cite.py`-checkable), and 2023 Annex E lists no SEARCH relaxation, so the
   relaxation is read as the 2014 standard's. At `--std 85` and `--std 2002` a subscripted identifier-1 is COBOL0900
-  (`search-identifier-1-enclosing-subscript-2014`, VCR row 7.49), refused in `StatementValidation.ResolveSearchTable` for
-  both SEARCH formats; the bare spelling is legal at every edition, and a subscript beyond the enclosing count is COBOL2075
-  at every edition. Witnesses: `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_table`,
+  (`search-identifier-1-enclosing-subscript-2014`, VCR row 7.49), refused on recognition by the parse arm of
+  `VersionConformancePass` for both SEARCH formats; the bare spelling is legal at every edition, and a subscript beyond the
+  enclosing count is COBOL2075 at every edition (below 2014 it also draws the COBOL0900). Witnesses: `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_table`,
   `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_property`,
   `conformance:cases/14.9.37-SEARCH/pb3365-search-nested-dynamic-no-occurrence`.
 

@@ -958,6 +958,32 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>SEARCH and SEARCH ALL identifier-1 written with a subscript (kb/Work PB4577). ISO §14.9.37.3 SR2 and SR3
+        /// permit the enclosing tables' subscripts; the 2002 text and the 2009 committee draft say "Identifier-1 shall not be
+        /// subscripted or reference modified", so a subscript on identifier-1 is a COBOL-2014 permission
+        /// (<see cref="Constructs.SearchIdentifier1EnclosingSubscript2014"/>). Recognition-based: whether a subscript is an
+        /// enclosing table's or the searched level's (which COBOL2075 refuses at every edition) is the table's resolved arity,
+        /// but below 2014 neither is legal, and the gate must survive a table the bind cannot resolve (kb/Work PB353). Both
+        /// formats print the same operand, so both visitors ask the one body.</summary>
+        public override object? VisitSearchStatement(CobolParserCore.SearchStatementContext ctx)
+        {
+            GateSearchIdentifier1("SEARCH", ctx.dataReference());
+            return base.VisitChildren(ctx);
+        }
+
+        public override object? VisitSearchAllStatement(CobolParserCore.SearchAllStatementContext ctx)
+        {
+            GateSearchIdentifier1("SEARCH ALL", ctx.dataReference());
+            return base.VisitChildren(ctx);
+        }
+
+        private void GateSearchIdentifier1(string verb, CobolParserCore.DataReferenceContext identifier1)
+        {
+            if (!identifier1.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.qualification()?.subscriptPart().Length > 0)) return;
+            using var _ = Sink.At(identifier1);
+            _p.Check(Constructs.SearchIdentifier1EnclosingSubscript2014, $"{verb} {identifier1.GetText()}: identifier-1 is subscripted");
+        }
+
         private static bool HasAncestor<T>(Antlr4.Runtime.RuleContext ctx) where T : Antlr4.Runtime.RuleContext
         {
             for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)

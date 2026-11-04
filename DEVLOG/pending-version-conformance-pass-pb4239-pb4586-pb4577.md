@@ -26,9 +26,11 @@ context is built first), and the frontend-error result carries the edition sink'
 **PB4577, SEARCH identifier-1 below 2014.** `SEARCH H (GI)`, GI subscripting the table that encloses H, compiled clean at 85
 and 2002, whose SEARCH rule says "Identifier-1 shall not be subscripted or reference modified". The edge is 2014 (the owner
 revised it on 2026-11-04). It is gated like the 14 PB4305 relaxations, as a `constructs.json` row
-(`search-identifier-1-enclosing-subscript-2014`, COBOL0900, VCR row 7.49), asked in `StatementValidation.ResolveSearchTable`,
-which both SEARCH formats call, so SEARCH ALL needed no second site. The note's "COBOL2075" was not the right shape; COBOL2075
-stays the too-many-subscripts refusal at every edition. Three suite goldens that wrote the enclosing subscript at `accept: [85]`
+(`search-identifier-1-enclosing-subscript-2014`, COBOL0900, VCR row 7.49). A first version asked it in
+`StatementValidation.ResolveSearchTable` and the gate's own drift test (`EditionGateArmDriftTests`, PB353) went red: with the
+table name undefined the 2002 compile named no edition. It now sits in the parse arm of `VersionConformancePass` (one body for
+both SEARCH visitors), on recognition of a subscript on identifier-1; a subscript at the searched level also names 2014 below
+it, beside the COBOL2075 that refuses it at every edition. The note's "COBOL2075" was not the right shape for the edition edge. Three suite goldens that wrote the enclosing subscript at `accept: [85]`
 moved to `[2014]` with identical output, and the bare spelling (the CCVS-85 form) has its own 85 golden.
 
 Rows: SR-7.3.10.3-3 and -4 closed by PB4239 (re-witnessed; verdicts stay CONFORMS), SR-14.9.37.3-2 and -3 re-witnessed under
