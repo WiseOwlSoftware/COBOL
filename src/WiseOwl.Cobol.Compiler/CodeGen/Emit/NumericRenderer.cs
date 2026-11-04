@@ -733,8 +733,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // ⛔ AND A NATIVE OPERATION WITH AN SDIDI-CARRIED OPERAND EVALUATES ON THE SDIDI TOO (kb/Work PB69). The
         // Dec producers under NATIVE arithmetic are THREE, not one (kb/Work PB273 — this sentence named only the
         // first for two waves, and D-B made the third the common case):
-        //   · an integer power (PowNativeIntDec — exact while it fits the carrier, the owner-decided double
-        //     approximation past it, the reciprocal for a negative exponent);
+        //   · a power with an exact base (CobolExact.Pow, or PowNativeDec on the SDIDI for a scaled base — exact while it fits
+        //     the wide form, the round-to-odd chain past it, the reciprocal for a negative exponent);
         //   · a floating-point numeric-EDITED sender, lifted onto the Dec lane by FieldNum in every mode;
         //   · a FLOATING-POINT LITERAL operand (LiteralNum — since PB99 for an operand, and since owner decision
         //     D-B for every position), which is now much the most common of the three.
@@ -1395,9 +1395,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             ? new NumX(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(v, this), sending: false), 0)
             : AsNum(v, ReceiverContext.None);
 
-    /// <summary>Exponentiation (ISO §8.8.1.2). ⛔ THREE ARMS, DECIDED BY THE OPERANDS' CARRIERS: an INTEGER EXPONENT over an
-    /// integer base (<c>PowNativeIntDec</c>) or over a scaled / SDIDI base (the exact wide lane or <c>PowNativeDec</c>,
-    /// kb/Work PB2617) is EXACT — binary64 is never the method for a power that has an exact decimal value — and the rest
+    /// <summary>Exponentiation (ISO §8.8.1.2). ⛔ TWO ARMS, DECIDED BY THE OPERANDS' CARRIERS: an INTEGER EXPONENT over an
+    /// integer, scaled or SDIDI base (the exact wide lane, <c>CobolExact.Pow</c> or <c>PowNativeDec</c>, kb/Work PB2617,
+    /// PB4569) is EXACT — binary64 is never the method for a power that has an exact decimal value — and the rest
     /// is the arm below. A native-arithmetic exponentiation whose result has no exact
     /// representation is an IMPLEMENTOR-DEFINED approximation, computed in double and quantized through the ONE
     /// <c>CobolIntrinsics.FromDouble</c> at the landing <see cref="ReceiverContext.FloatLanding"/> chooses — the
@@ -1430,65 +1430,28 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // NATIVE: exponentiation is arithmetic — the unsigned-wide Widen funnel applies (kb/Work R10).
         b = DeU(b);
         e = DeU(e);
-        // ⛔ AN INTEGER BASE RAISED TO AN INTEGER EXPONENT IS EXACT, AND THE RECEIVER PLAYS NO ROLE AT ALL
-        // (owner decision 2026-08-03; fix-queue PB18 + PB32 + PB65/RV-15.64.4-1). Three things turn on this arm:
-        //   · `COMPUTE R = 10 ** 30` returned 1000000000000000071935427891953 where Int128 holds 10^30 exactly —
-        //     the native technique contradicting our OWN documented one (numeric design D3).
-        //   · It is the ROOT of PB32's receiver-shape defect: `A ** 2` was binary64 under DISPLAY / an IF subject
-        //     and exact under COMPUTE, routing FUNCTION MOD to a DIFFERENT BODY (930000008 vs 930000007). A
-        //     function's value must not depend on the SHAPE of its receiver (§15.4).
-        //   · PB32's fix left the RECEIVER-BEARING arm forcing pscale = the then-current float working scale (≥ 9) onto a result
-        //     that is an INTEGER by construction, so the ×10⁹ landing pushed a 30-digit exact power past Int128
-        //     inside PowNativeInt, whose double fallback then SATURATED — and FUNCTION MOD consumed the sentinel:
-        //     `COMPUTE R = FUNCTION MOD(A ** 2, B)` printed 320612800 (13657001 owed) into S9(9)/S9(18)/S9(28)
-        //     and the right answer into S9(31), the receiver's PICTURE alone selecting the value. The arms had
-        //     merely SWAPPED (feedback_two_arm_dispatch, fifth sighting). The scale a non-negative integer power
-        //     needs is 0 — for EVERY receiver — so both arms now land identically and the receiver is not read.
-        // A scale-0 base to an integer exponent is scale 0 for ANY exponent, so the result scale is known without
-        // knowing the exponent's value — which is exactly why this arm is restricted to a scale-0 base (a
-        // scale-s base to the n has scale s·n, with no compile-time scale to give it).
-        // ⚠ A NEGATIVE OR RUNTIME-ITEM EXPONENT CANNOT LAND AT A COMPILE-TIME SCALE: §8.8.1.2's reciprocal for a
-        // negative exponent is not an integer (`2 ** -2` at scale 0 ⇒ 0 instead of 0.25 — a measured regression),
-        // and a data-item exponent's sign is a run-time fact, so NO fixed scale serves both regimes — scale 9
-        // corrupts the big positive powers (measured: `A ** X` with X = 2 gave the same 320612800), scale 0
-        // truncates the reciprocals. The carrier that owns its scale AT RUN TIME is the SDIDI, so those shapes
-        // return Dec: PowNativeIntDec computes the same owner-decided values (exact Int128 loop while it fits,
-        // the documented double approximation past it / for the reciprocal) on the carrier every downstream
-        // consumer already handles (the PB32/PB14 carrier-total sweep). Receiver-independent by construction.
-        // ⛔ ONE ARM FOR BOTH EXPONENT SHAPES, AND IT IS THE DEC ONE (kb/Work PB69). The literal-exponent arm used
-        // to return Int128 from PowNativeInt, whose past-the-carrier fallback SATURATED to Int128.MaxValue —
-        // fine above a STORE's capacity check (the receiver reports SIZE ERROR), poison at every VALUE-semantics
-        // consumer: `FUNCTION MOD(A ** 3, B)` answered from the sentinel (639816141 for 980012199), `A ** 4 >
-        // A ** 3` was FALSE and `A ** 3 = A ** 4` TRUE (both saturated), `A ** 3 / A ** 2` was 1.7e8, and the SAME
-        // expression spelled `A ** X` (the Dec arm) gave a THIRD number. The value that leaves the carrier is the
-        // owner-decided double approximation, and the carrier that can hold it AND the exact Int128 fast path is
-        // the SDIDI: PowNativeIntDec is exact while the power fits (CobolDec.From keeps the full significand — no
-        // 34-digit rounding on construction), the approximation past it, receiver-independent by construction.
-        // Consumers: a relation compares Decs exactly (CobolDec.Compare); an intrinsic with a Dec argument routes
-        // to its SDIDI body under native too (IntrinsicRenderer.RenderNum); an Int128 landing that cannot hold the
-        // value raises EC-SIZE-OVERFLOW (CobolDec.ToUnscaledIntermediate — A.1 item 179, "checked") instead of
-        // returning modular digits.
-        bool integerOperands = IsIntegerCarrier(b) && IsIntegerCarrier(e);
-        if (integerOperands)
-            return new NumX(RuntimeApi.Intrinsic("PowNativeIntDec", $"{b.Expr}, {e.Expr}"), 0, Dec: true);
-        // ⛔ A FIXED-POINT OR SDIDI BASE RAISED TO AN INTEGER EXPONENT IS EXACT TOO (kb/Work PB2617). The integer-base arm
-        // above was the only exact one, so `COMPUTE R = A ** 2` over `A PIC 9V9(10)` took the binary64 approximation
-        // below (1.26215515697488189772 where `A * A` stores the exact 1.26215515697488187881), and the same program
-        // answered differently for `A ** 2`, `A ** N` and `A * A` — the receiver-shape defect PB32 removed from the
-        // integer base, one carrier over. §8.8.1.3 leaves native evaluation to the implementor and the precedence
-        // follows GnuCOBOL (CLAUDE.md rule 1), whose cob_decimal_pow raises a decimal to an integer exponent by an
-        // exact mpz_pow_ui with scale × n; binary64 is the approximation of a NON-integer exponent only. The test is
-        // the exponent's CARRIER (scale 0, no Dec/Real: an integer by construction), like the arm above.
-        //   · A literal exponent n ≥ 1 has the compile-time result scale (base scale × n) and digit bound (base digits ×
-        //     n), so while that bound fits the exact wide lane the power IS a NumX.Wide (settled once at the public
-        //     entry, like a nested product): `A ** 2` is `A * A` by construction, rounded once at the receiver.
-        //   · Every other integer exponent (a data item, a negative or zero literal, a bound past the wide lane, a base
-        //     with no digit bound) lands on the SDIDI, which owns its scale at run time: CobolIntrinsics.PowNativeDec
-        //     is the same exact power (the wide lane at run time, then the round-to-odd chain), the §8.8.1.5.4 r3
-        //     reciprocal for a negative exponent, and the §8.8.1.2 rule-6 screen.
-        //   · An exact base (NumX.Wide, NumX.Exact, kept above) whose power the literal arm cannot bound is the same power on the
-        //     run-time-scaled exact carrier (CobolExact.Pow: exact on the wide form, PowNativeDec past it), never its image's.
-        if (!b.Real && IsIntegerCarrier(e) && (b.Dec || b.Wide || b.Exact || b.Scale != 0))
+        // ⛔ AN INTEGER EXPONENT OVER A FIXED-POINT OR EXACT BASE IS EXACT, AND THE RECEIVER PLAYS NO ROLE AT ALL (kb/Work PB18,
+        // PB32, PB65, PB69, PB2617, PB4575, PB4569). §8.8.1.3 leaves native evaluation to the implementor and the precedence follows
+        // GnuCOBOL (CLAUDE.md rule 1), whose cob_decimal_pow raises a decimal to an integer exponent by an exact mpz_pow_ui with
+        // scale × n; binary64 is the approximation of a NON-integer exponent only. The test is the exponent's CARRIER (scale 0, no
+        // Dec/Real: an integer by construction). This arm used to leave the INTEGER base to a binary64 fallback past the Int128
+        // carrier (the owner's decision of 2026-08-03, NUMERIC_DESIGN D19 (a)), so `2 ** 130` kept 16 digits where `B65 * B65` kept
+        // all 40 for the same value, and MOD, REM, INTEGER, SUM, a relation and a cancelling subtraction inherited the wrong operand
+        // silently; the owner superseded it on 2026-11-04 ("Yes, exact"): ONE exact power for every base shape, so a function's value
+        // never depends on the SHAPE of its receiver or operand (§15.4; PB32's `A ** 2` under DISPLAY and under COMPUTE).
+        //   · A literal exponent n ≥ 1 has the compile-time result scale (base scale × n) and digit bound (base digits × n), so while
+        //     that bound fits the exact wide lane the power IS a NumX.Wide (settled once at the public entry, like a nested
+        //     product): `A ** 2` is `A * A` by construction, rounded once at the receiver. An INTEGER base is scale 0 for ANY
+        //     exponent, so its result scale is known without the exponent's value.
+        //   · Every other integer exponent (a data item, a negative or zero literal, a bound past the wide lane though the VALUE may
+        //     fit, as `2 ** 130`) cannot land at a compile-time scale: §8.8.1.2's reciprocal for a negative exponent is not an
+        //     integer (`2 ** -2` at scale 0 would be 0, not 0.25) and a data item's sign is a run-time fact. The carrier that owns
+        //     its scale AT RUN TIME takes it. An integer or exact base is CobolExact.Pow (exact on the wide form while the VALUE
+        //     fits 77 digits; past it CobolIntrinsics.PowNativeDec), a scaled / SDIDI base is PowNativeDec on the SDIDI: the same
+        //     exact power (the wide lane at run time, then the round-to-odd chain), the §8.8.1.5.4 r3 reciprocal for a negative
+        //     exponent and the §8.8.1.2 rule-6 screen, written once.
+        // The power's precision (the base's times a non-negative exponent, a reciprocal's own places) is carried by the value.
+        if (!b.Real && IsIntegerCarrier(e))
         {
             if (literalExponent is { } n && n >= 1 && b.Digits > 0 && !b.Dec && !b.Exact
                 && (long)b.Digits * (long)n <= RuntimeApi.WideMaxDigits)
@@ -1496,8 +1459,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
                     ? b
                     : new NumX(RuntimeApi.WidePow(WideOperand(b), (int)n), b.Scale * (int)n, Digits: b.Digits * (int)n, Wide: true,
                         Precision: b.Precision is null ? null : b.FractionPrecision * (int)n);
-            // The power's precision (the base's times a non-negative exponent, a reciprocal's own places) is carried by the value.
-            if (b.Wide || b.Exact)
+            if (b.Wide || b.Exact || IsIntegerCarrier(b))
                 return new NumX(RuntimeApi.ExactPow(ExactOperand(b), e.Expr, IntermediateMode), 0, Exact: true);
             return new NumX(RuntimeApi.Intrinsic("PowNativeDec", $"{DecOperand(b)}, {e.Expr}"), 0, Dec: true);
         }

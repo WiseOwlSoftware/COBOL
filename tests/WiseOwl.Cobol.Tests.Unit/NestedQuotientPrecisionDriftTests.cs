@@ -201,9 +201,10 @@ public sealed class NestedQuotientPrecisionDriftTests
     /// <summary>⛔ AN SDIDI OPERAND IS NEVER GIVEN THE PRECISION 0 (review finding R3-1), AND ITS PRECISION IS ITS WRITTEN SCALE
     /// (review finding R4-1). A floating-point literal's is known at compile time: `1.0E-15` is written 0.0000000000000010,
     /// 16 places, so its quotient's working scale is 30, and `2.50E0` has the 2 of `2.50`, so 16 (counting the value's
-    /// significant digits gave 1 and 15). A NUMVAL value's and a power's are known only at run time, so their quotients are
-    /// <c>CobolDecWithPrecision.DivTruncatedToOdd</c> over <c>CobolDecWithPrecision.Own</c>, which applies the same rule to
-    /// the places the value is held at. Given 0, each of these quotients was truncated at 14 places, to zero.</summary>
+    /// significant digits gave 1 and 15). A NUMVAL value's and a power's are known only at run time, so a NUMVAL quotient is
+    /// <c>CobolDecWithPrecision.DivTruncatedToOdd</c> over <c>CobolDecWithPrecision.Own</c> and an integer power's (an exact
+    /// value, kb/Work PB4569) <c>CobolExact.DivTruncated</c>, each applying the same rule to the places the value is held at.
+    /// Given 0, each of these quotients was truncated at 14 places, to zero.</summary>
     [Fact]
     public void AnSdidiOperandsPrecision_IsItsWrittenScale_NeverZero()
     {
@@ -219,7 +220,10 @@ public sealed class NestedQuotientPrecisionDriftTests
                 STOP RUN.
             """);
         Assert.Contains("CobolDec.DivTruncatedToOdd(", cs);
-        Assert.Equal(2, CountOf(cs, "CobolDecWithPrecision.DivTruncatedToOdd(CobolDecWithPrecision.Own("));
+        Assert.Equal(1, CountOf(cs, "CobolDecWithPrecision.DivTruncatedToOdd(CobolDecWithPrecision.Own("));
+        // The power's is the exact carrier's (kb/Work PB4569: `10 ** -15` is CobolExact.Pow, whose value carries the 15 places of its
+        // reciprocal), the same rule over the same places.
+        Assert.Equal(1, CountOf(cs, "CobolExact.DivTruncated("));
         // The literals' written 16 and 2 places + 14 guard digits; the run-time quotients are asked for the relation's 0.
         Assert.True(DivisionScales(cs).SetEquals(new[] { 0, 16, 30 }),
             $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where 1.0E-15 owes 30, 2.50E0 16 and the run-time quotients 0");

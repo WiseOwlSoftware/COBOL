@@ -79,7 +79,7 @@ public static partial class CobolIntrinsics
     /// to zero). Both are wrong ANSWERS delivered silently. EC-SIZE-EXPONENTIATION is Fatal in Table 14.
     /// <para>⚠ r6b — "if the evaluation yields both a positive and a negative real number, the value returned is
     /// the positive number" — is NOT a screen: it is a selection rule, and it cannot arise here because
-    /// <c>Math.Pow</c> and the exact loop below each yield a single value. Checked in this pass rather than left
+    /// <c>Math.Pow</c> and the exact wide power each yield a single value. Checked in this pass rather than left
     /// to be discovered as a fourth leg.</para>
     /// </remarks>
     private static void CheckPowRule6(double b, double e)
@@ -113,52 +113,10 @@ public static partial class CobolIntrinsics
         return double.IsFinite(b) && double.IsFinite(e) ? CobolFloat.InBinary64Range(r, nonzero: b != 0, "exponentiation", taken) : r;
     }
 
-    /// <summary>Native <c>**</c> with an integer base and an integer exponent — EVERY shape (kb/Work PB69 — the
-    /// literal-exponent Int128 twin <c>PowNativeInt</c> is gone: its past-the-carrier fallback saturated to
-    /// Int128.MaxValue, a sentinel that FUNCTION MOD and every comparison consumed as a value). The owner-decided
-    /// values (2026-08-03): the exact Int128 loop while the result fits — <c>CobolDec.From</c> keeps the full
-    /// significand, so a 38-digit power is exact on this carrier too — the documented double approximation past
-    /// it, the §8.8.1.2 reciprocal via double for a negative exponent; returned on the SDIDI carrier, which owns
-    /// its scale at run time and which every downstream consumer handles (fix-queue PB65 / RV-15.64.4-1).</summary>
-    /// <remarks>The exponent's SIGN is a run-time fact for a data-item exponent, and the two regimes need
-    /// different scales — 0 for a positive power (any larger scale eats exactness headroom: scale 9 corrupted
-    /// every power past 29 digits), fraction digits for a reciprocal — so no compile-time scale serves both.
-    /// The SDIDI owns its exponent at run time and every downstream consumer is carrier-total over Dec
-    /// (the PB32/PB14 sweep), which also makes the value receiver-independent (§15.4): DISPLAY, an IF operand,
-    /// a COMPUTE receiver and a FUNCTION argument all see this one result.</remarks>
-    public static CobolDec PowNativeIntDec(Int128 b, Int128 e)
-    {
-        CheckPowRule6((double)b, (double)e);
-        if (e >= 0)
-        {
-            // ⛔ A BASE OF 0, 1 OR -1 NEVER LEAVES THE CARRIER, SO ITS POWER IS NOT A LOOP (kb/Work PB2632): §8.8.1.2
-            // r6a admits a zero base with any positive exponent (the screen above took 0 ** 0) and nothing bounds
-            // the exponent of 1 or -1, so `B ** N` with a data-item N of 999999999999999999 ran 10^18 multiplications
-            // for a constant result. The value is 0 (b = 0), 1 (b = 1) or +/-1 by the exponent's parity (b = -1).
-            if (b == 0 || b == 1) return CobolDec.From(b, 0);
-            if (b == -1) return CobolDec.From((e & 1) == 0 ? 1 : -1, 0);
-            // |b| >= 2: every multiplication at least doubles the magnitude, so the loop leaves the carrier - and
-            // stops - after at most 127 steps whatever the exponent.
-            // ⛔ THE MAGNITUDE IS UNSIGNED (kb/Work PB2698): a signed 16-byte base can hold Int128.MinValue, whose
-            // Int128.Abs throws OverflowException (the statement then reported a size error, whatever the exponent).
-            // CobolDec.UAbs is the repository's one total magnitude. |Int128.MinValue| = 2^127 is past the carrier's
-            // positive range, so its powers take the documented double approximation below like any other power that
-            // leaves it - and no SDIDI ever carries Int128.MinValue as a significand (its own Int128.Abs sites would
-            // throw), which is why B ** 1 is not special-cased to return B.
-            UInt128 mag = CobolDec.UAbs(b), acc = 1;
-            bool fits = true;
-            for (Int128 i = 0; i < e; i++)
-            {
-                if (acc > (UInt128)Int128.MaxValue / mag) { fits = false; break; }
-                acc *= mag;
-            }
-            if (fits) return CobolDec.From(b < 0 && (e & 1) != 0 ? -(Int128)acc : (Int128)acc, 0);
-        }
-        return CobolDec.FromApproximation(Math.Pow((double)b, (double)e));
-    }
-
-    /// <summary>⛔ Native <c>**</c> of a SCALED or SDIDI-carried base to an INTEGER exponent (kb/Work PB2617) — the twin of
-    /// <see cref="PowNativeIntDec"/> for a base that is not an integer. §8.8.1.3 leaves the method of native evaluation to
+    /// <summary>⛔ Native <c>**</c> of an SDIDI-carried base to an INTEGER exponent (kb/Work PB2617, PB4569) — the one power an
+    /// integer, scaled or exact base reaches once the value leaves the wide form, and the whole power of a scaled base to a
+    /// run-time exponent (<c>NumericRenderer.Power</c>; an integer base's former binary64 fallback past <see cref="Int128"/>, the
+    /// owner's decision of 2026-08-03, is superseded by the owner's of 2026-11-04). §8.8.1.3 leaves the method of native evaluation to
     /// the implementor and the precedence follows GnuCOBOL (CLAUDE.md rule 1), whose <c>cob_decimal_pow</c> raises a
     /// decimal to an integer power by an exact <c>mpz_pow_ui</c> and adds <c>scale × n</c>; a binary64 <c>Math.Pow</c> is
     /// the approximation of the NON-integer exponent only. So the power is formed on the exact 256-bit lane
