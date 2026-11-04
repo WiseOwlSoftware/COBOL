@@ -30,7 +30,7 @@ public enum OoSymbolOrigin
 
 /// <summary>The assembly an imported class or interface was taken from (DESIGN-external-repository §10.1): its file, its
 /// module version id and the CLR namespace its types live in (<c>Cobol.&lt;assembly&gt;</c>, §4.5), which is how
-/// <c>OoClassTable.ImportedAssemblies</c> finds two assemblies a compilation needs that share a namespace (REPO-6).</summary>
+/// <c>MetadataRepositoryProvider.NamespaceCollision</c> finds two assemblies a compilation needs that share a namespace (REPO-6).</summary>
 public sealed record ImportedFrom(string AssemblyFile, Guid Mvid, string ClrNamespace);
 
 /// <summary>One class of the pass-1 table: identity, base link, and the method roster (name → symbol,

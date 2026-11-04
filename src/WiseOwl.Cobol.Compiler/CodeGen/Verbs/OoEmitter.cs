@@ -8,8 +8,6 @@ using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 
-using WiseOwl.Cobol.Compiler.Oo;
-
 namespace WiseOwl.Cobol.CodeGen;
 
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
@@ -19,8 +17,9 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// emission, INVOKE (typed · instance · D10 universal), SET object-ref, and the per-method LOCAL dispatcher.
 /// RUN-UNIT scope — reads the per-unit collaborators through the LIVE <see cref="ProgramEmitter.Current"/>
 /// root: class-unit emission RE-CREATES the whole per-unit set mid-run (<see cref="ProgramEmitter.BeginUnit"/>),
-/// so captured copies would go stale (the coupling-census hazard). The class table and interface-data forests
-/// arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state).
+/// so captured copies would go stale (the coupling-census hazard). The interface-data forests, the adapters and the
+/// imported types arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state), and no OO
+/// answer is asked of the class table: the binder wrote each into the bound data (kb/Work PB2403).
 /// <para>Every class and interface carries its <c>[CobolUnit]</c>, and under <c>--repository-update on</c> its whole record
 /// (DESIGN-external-repository §7.1, §9.1) — the class's or interface's facts, each method's on the CLR method that implements
 /// it, each property's on the type of its accessors (§6.2). The record is the one the binder wrote (<see cref="OoClassUnit.Record"/>,
@@ -30,6 +29,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData,
     IReadOnlyDictionary<OoInterfaceSymbol, RepositoryRecord> ifaceRecords,
     IReadOnlyList<AdapterPair> adapters,
+    ImportedTypes imported,
     ExpansionPlacements expansions)
 {
     /// <summary>A <see cref="Place"/> over a METHOD BOUNDARY ROOT — the ONE thing that lets the OO boundary join
@@ -259,7 +259,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// "escaped from <c>Call</c>" an exact test for GR3i's "the program was successfully called" (kb/Work
     /// PB233). The main-program entry (<c>Activate</c>) calls it itself. A complete-record REDEFINES
     /// contributes nothing (GR6's explicit exemption — the descriptor is built from the base record only).
-    /// The file connector's §12.4.5.3 GR1 identity is <see cref="SelectFingerprint"/>.</summary>
+    /// The file connector's §12.4.5.3 GR1 identity is the bound <see cref="FileModel.SelectFingerprint"/>.</summary>
     /// <param name="data">The describing element's data.</param>
     /// <param name="unitPath">The describer's run-unit identity (the program's path, or the class half's
     /// <see cref="OoClassSymbol.HalfKey"/>, both rooted at the EXTERNALIZED name; kb/Work PB2920).</param>
@@ -295,71 +295,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
                     + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem)}, "
                     + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem)}, LinageRef: {linage}, "
-                    + $"SelectFingerprint: {CsLiteral(SelectFingerprint(f))}), {selfMask});   // §14.8.4.2 / §14.8.4.4 / §12.4.5.3 GR1");
+                    + $"SelectFingerprint: {CsLiteral(f.SelectFingerprint ?? throw new InvalidOperationException($"OoEmitter: the EXTERNAL file '{f.ExternalName}' has no bound entry identity (BackendAnswers writes one for every EXTERNAL file)"))}), {selfMask});   // §14.8.4.2 / §14.8.4.4 / §12.4.5.3 GR1");
             }
         }
-    }
-
-    /// <summary>⛔ THE ONE §12.4.5.3 GR1 IDENTITY of an external file connector's file control entry — the string two
-    /// describers' <c>ExternalStore.Describe</c> registrations compare for EC-EXTERNAL-FILE-MISMATCH (§14.8.4.4: "the
-    /// rules specified in 12.4.5, File control entry General rule 1 apply"). One segment per GR1 item that the entry
-    /// can make differ: a) OPTIONAL, b) the ASSIGN operands, c) the RECORD DELIMITER phrase, d) RESERVE integer-1,
-    /// e) organization, f) access mode, g) the COLLATING SEQUENCE clauses, j) the prime key's description and relative
-    /// location, k) each alternate key's description, relative location, DUPLICATES and SUPPRESS WHEN phrase (and so
-    /// their number), l) sharing mode, m) lock mode. h) RELATIVE KEY and i) FILE STATUS are the §14.8.4.2 external-item
-    /// references the descriptor carries beside it (<c>RelativeKeyRef</c> / <c>FileStatusRef</c>). The split-key
-    /// <c>SOURCE IS</c> operands of j)/k) ("each data-name-6" / "each data-name-3") enter as the record-key-name
-    /// followed by each operand's own entry in order (kb/Work PB1099). Every segment is built from the bound <see cref="FileModel"/>; kb/Work
-    /// PB1079 measured c), d), g), j)'s and k)'s descriptions and locations, and k)'s SUPPRESS WHEN missing from it,
-    /// so a mismatch in any of them ran the activated program with no condition.</summary>
-    internal static string SelectFingerprint(FileModel f)
-    {
-        // §12.4.5.3 GR1 j)/k) "The same data description entry for data-name-… as well as their relative location
-        // within the associated record": the key's name as written (part of its data description entry), its
-        // elementary/group shape and byte extent, its §14.8 conformance description (category, usage, PICTURE clause
-        // identity, sign) and its byte offset within the record area (RecordLayout.OffsetOf, the same offset the
-        // connector registers the key window at).
-        static string KeyEntry(string name, DataItem? item) => item is null ? CobolNames.UpperFold(name)
-            : $"{CobolNames.UpperFold(name)}@{RecordLayout.OffsetOf(item)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}"
-              + $":{(item.IsGroup ? "G" : "E")}{item.ByteWidth}:"
-              + (ActivationDescriptions.Of(item, classes: null) is { } d ? $"{d.Category}/{d.Clauses}/{d.Positions}" : "-");
-        // j)/k) "each data-name-6" / "each data-name-3": a SOURCE-form key is its record-key-name and every operand's
-        // entry in the order specified, since that order IS the key (§12.4.5.12.4 GR2).
-        static string ClauseKey(string name, RecordKeySource? source, DataItem? item) => source is null
-            ? KeyEntry(name, item)
-            : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item)))}]";
-        // k) "the same SUPPRESS WHEN phrase" — the operand as the literal position read it (form, class, characters,
-        // figurative kind), so `SUPPRESS WHEN "XX"` and `SUPPRESS WHEN SPACE` differ and an absent phrase is empty.
-        static string Suppress(SuppressWhenOperand? s) => s is null ? ""
-            : $"{s.Form}/{s.Class}/{s.FigurativeKind}/{s.Characters.Length}:{s.Characters}";
-        // g) "The same specification of COLLATING SEQUENCE clauses": the file-level clause's alphabet-names, and each
-        // key-level clause's alphabet-name-3 against the KEY POSITION it names (P = the prime key, A<i> = the i-th
-        // alternate), so the rule compares what the clause says about the file's keys; sorted, because the clauses'
-        // order in the entry is not part of their specification.
-        // The operand is matched by the key ITEM the binder resolved it to (kb/Work PB1075 — a qualified operand).
-        string KeyPosition(CollatingKeyOperand k)
-        {
-            if (k.Key is not null && ReferenceEquals(f.PrimeKey, k.Key)) return "P";
-            int i = k.Key is null ? -1 : f.AlternateKeys.FindIndex(a => ReferenceEquals(a.Key, k.Key));
-            return i >= 0 ? $"A{i}" : CobolNames.UpperFold(k.Name);
-        }
-        string fileColl = f.FileLevelCollating is { } fc ? $"{(fc.Alnum is { } an ? CobolNames.UpperFold(an) : null)}/{(fc.Nat is { } nn ? CobolNames.UpperFold(nn) : null)}" : "";
-        string keyColl = string.Join(",", f.KeyLevelCollating
-            .SelectMany(c => c.Keys.Select(k => $"{KeyPosition(k)}={CobolNames.UpperFold(c.Alphabet)}"))
-            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
-        // b) "A consistent specification for data-name-1, device-name-1, and literal-1 in the ASSIGN clause" — all
-        // THREE operands, so the USING data-name is part of the identity, not just the TO target. Consistency rule
-        // (the implementor's, GR1 b's second sentence; docs/CONFORMANCE.md §7 DOC-A.1-72): the same data-name
-        // spelling, qualifiers included.
-        return $"OPT={f.Optional}|ASSIGN={f.AssignTarget.ToUpperInvariant()}"
-            + $"|USING={CobolNames.UpperFold(string.Join(" OF ", new[] { f.AssignUsingName ?? "" }.Concat(f.AssignUsingQualifiers)))}"
-            // c) "Either the STANDARD-1 phrase or a consistent value of feature-name-1" — consistency rule: the same
-            // phrase (the clause is declined accept-inert, kb/Work PB292, so the written phrase is all there is).
-            + $"|DELIM={f.RecordDelimiter}|RESERVE={f.ReserveAreas}"
-            + $"|ORG={f.Organization}|ACC={f.AccessMode}|COLL={fileColl};{keyColl}"
-            + $"|KEY={(f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item) : "")}"
-            + $"|ALT={string.Join(",", f.AlternateKeyNames.Select(a => $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}"))}"
-            + $"|SHARE={f.Sharing}|LOCK={(f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : "")}";
     }
 
     private void EmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)
@@ -622,16 +560,17 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         var cases = roster.Where(m => m.OverrideOf is null).ToList();
         if (cases.Count == 0) return;
         w.Line();
-        // The method side's descriptions, built once per type (ActivationDescriptions — the ONE builder the caller's
-        // side is built by too).
+        // The method side's descriptions, rendered once per type: the binder built them (OoMethodBinding.FormalDescriptions,
+        // by the ONE builder the caller's side is built by too; kb/Work PB2403).
         for (int c = 0; c < cases.Count; c++)
         {
             var b = cases[c].Binding!;
             if (b.Formals.Any(f => f.ByValue)) continue;   // never a match (EmitCobolInvokeCase), so never asked
+            var described = FormalDescriptionsOf(cases[c]);
             for (int i = 0; i < b.Formals.Count; i++)
-                if (ActivationDescriptions.OfFormal(b.Formals[i], ecState.OoClasses) is { } fd)
+                if (described[i] is { } fd)
                     w.Line($"private static readonly {nameof(ActivationDescription)} {CaseDescription(c, i)} = {RuntimeApi.ActivationDescriptionNew(fd)};");
-            if (b.Returning is { } r && ActivationDescriptions.Of(r, ecState.OoClasses) is { } rd)
+            if (b.ReturningDescription is { } rd)
                 w.Line($"private static readonly {nameof(ActivationDescription)} {CaseDescription(c, -1)} = {RuntimeApi.ActivationDescriptionNew(rd)};");
         }
         using (w.Block("public override void __CobolInvoke(string __name, CobolInvokeArg[] __a, CobolInvokeArg? __ret)"))
@@ -650,6 +589,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line("base.__CobolInvoke(__name, __a, __ret);");
         }
     }
+
+    /// <summary>The descriptions the binder wrote for a method that has a case in the universal dispatch switch
+    /// (<see cref="OoMethodBinding.FormalDescriptions"/>); a case with none is a bind defect, never a method without one.</summary>
+    private static IReadOnlyList<ActivationDescription?> FormalDescriptionsOf(OoMethodSymbol m) =>
+        m.Binding!.FormalDescriptions ?? throw new InvalidOperationException(
+            $"OoEmitter: method '{m.Name}' has a universal dispatch case and no bound descriptions (BackendAnswers writes them)");
 
     /// <summary>The name of the <c>static readonly</c> description of case <paramref name="c"/>'s formal
     /// <paramref name="i"/> (−1: its returning item).</summary>
@@ -694,8 +639,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         }
         // A formal or returning item with no universal crossing form (a Tier-C group) can match no argument: the binder
         // refuses every such argument (COBOL0866), so no description of the caller's can be its.
-        if (formalsList.Any(f => ActivationDescriptions.OfFormal(f, ecState.OoClasses) is null)
-            || returning is not null && ActivationDescriptions.Of(returning, ecState.OoClasses) is null)
+        var described = FormalDescriptionsOf(m);
+        var returningDescription = m.Binding!.ReturningDescription;
+        if (described.Any(d => d is null) || returning is not null && returningDescription is null)
         {
             w.Line("break;   // a formal or returning item with no universal crossing form matches no invocation");
             return;
@@ -736,8 +682,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // ⛔ AN ACTIVE-CLASS RETURNING ITEM IS SENT AS A UNIVERSAL OBJECT REFERENCE (§14.8.3.3 rule 2 b) 4.; kb/Work PB2985):
         // the invoking reference is universal, so the item conforms only to a universal receiving item. Its own check, not
         // a __viol term: unchecked, the invocation proceeds and the delivery's class narrowing is the floor.
-        if (returning is not null && ActivationDescriptions.Of(returning, ecState.OoClasses)
-                is { ObjectKind: ObjectReferenceKind.ActiveClass })
+        if (returning is not null && returningDescription is { ObjectKind: ObjectReferenceKind.ActiveClass })
             w.Line(RuntimeApi.ObjCheckActiveClassReturning(m.Checking.OoUniversalChecking ? "true" : "false",
                 $"INVOKE '{cobolName}' '{m.Name}'", "__ret!.Description", CaseDescription(c, -1)) + ";");
         // ⛔ AN ACTIVE-CLASS FORMAL IS HANDED ITS ARGUMENT BY A UNIVERSAL INVOCATION (§14.8.2.3.2 rule 4; kb/Work PB2985): the
@@ -746,8 +691,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // §9.3.6 3 d) 4./5., already required an object of the class the method runs on). A trailing OMITTED position
         // has no argument to ask.
         for (int i = 0; i < formals; i++)
-            if (ActivationDescriptions.OfFormal(formalsList[i], ecState.OoClasses)
-                    is { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass })
+            if (described[i] is { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass })
                 w.Line((i < minArgs ? "" : $"if (__a.Length > {i}) ")
                     + RuntimeApi.ObjCheckActiveClassFormal(m.Checking.OoUniversalChecking ? "true" : "false",
                         $"INVOKE '{cobolName}' '{m.Name}'", $"__a[{i}].Description", CaseDescription(c, i)) + ";");
@@ -1329,7 +1273,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             var savedPropagation = ecState.Propagation;
             var savedRaisingTypes = ecState.PdRaisingObjectCsTypes;
             ecState.Propagation = AutomaticPropagation.Of(m.Checking.AutomaticPropagation, inMethod: true);
-            ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(m.Raising, ecState.OoClasses);   // §14.6.13.1.5 items 1 and 3 (kb/Work PB1121)
+            ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(m.Binding!.RaisingObjects);   // §14.6.13.1.5 items 1 and 3 (kb/Work PB1121)
             if (methodSelects)
             {
                 ecState.UnitHasF3Perform = methodF3;                            // raise sites emit __EcPerform
@@ -1721,10 +1665,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// §10.5), which this module names through a <c>using</c> alias of its local name. The owner's internal profile fields are that
     /// assembly's own, named by ITS binder's uids, so they are never spelled through the owner (kb/Work PB2104).</summary>
     private bool OwnerIsInAnotherAssembly(string? clrName) =>
-        clrName is not null && ecState.OoClasses is { } table
-        && (table.ImportedClasses.Any(c => c.ClrName == clrName || c.FactoryClrName == clrName)
-            || table.ImportedInterfaces.Any(i => i.ClrName == clrName)
-            || expansions.LivesElsewhere(clrName));
+        clrName is not null && (imported.Declares(clrName) || expansions.LivesElsewhere(clrName));
 
     /// <summary>The instance-call marshaling (D6; §14.9.23.4 GR6/GR7a/GR8): every formal crosses as its argument's
     /// CARRIER, its AREA and its omitted flag (<see cref="OoArgPair"/>). ⛔ A BY REFERENCE identifier argument's carrier

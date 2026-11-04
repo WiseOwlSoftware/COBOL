@@ -57,7 +57,9 @@ public sealed class ObjectReferenceIdentityDescriptionTests
                END PROGRAM P2104D.
         """;
 
-    private static (DataItem Class, DataItem Interface, OoClassTable Classes) Bind()
+    /// <summary>The two formals of P2104D and the class table of the bind that bound them (the unit's data binder holds it),
+    /// with the unit, whose host entry carries the descriptions the binder built for the backend (kb/Work PB2403).</summary>
+    private static (DataItem Class, DataItem Interface, OoClassTable Classes, BoundUnit Unit) Bind()
     {
         string path = Path.Combine(Path.GetTempPath(), $"objrefidentity_{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, Source);
@@ -70,8 +72,9 @@ public sealed class ObjectReferenceIdentityDescriptionTests
             var edition = new EditionContext(2023);
             var comp = new BinderDriver().Bind(tree!, edition, frontend.Directives);
             Assert.True(edition.Diagnostics.Count == 0, string.Join("\n", edition.Diagnostics));
-            var formals = comp.Units.Single(u => u.Name == "P2104D").Data.Linkage.Formals;
-            return (formals[0].Item, formals[1].Item, comp.OoClasses);
+            var unit = comp.Units.Single(u => u.Name == "P2104D");
+            var formals = unit.Data.Linkage.Formals;
+            return (formals[0].Item, formals[1].Item, unit.Data.OoClasses!, unit);
         }
         finally { FileHarness.TryDelete(path); }
     }
@@ -79,7 +82,7 @@ public sealed class ObjectReferenceIdentityDescriptionTests
     [Fact]
     public void AClassDescription_NamesTheClassAndItsLineageByIdentity()
     {
-        var (item, _, classes) = Bind();
+        var (item, _, classes, _) = Bind();
         var d = ActivationDescriptions.Of(item, classes)!;
         Assert.Equal(CobolNames.Fold("PB2104-ACCOUNT"), d.ObjectName);
         Assert.Equal([CobolNames.Fold("PB2104-ACCOUNT"), CobolNames.Fold("BASE")], d.ObjectClasses!);
@@ -89,7 +92,7 @@ public sealed class ObjectReferenceIdentityDescriptionTests
     [Fact]
     public void AnInterfaceDescription_NamesTheInterfaceByIdentity()
     {
-        var (_, item, classes) = Bind();
+        var (_, item, classes, _) = Bind();
         var d = ActivationDescriptions.Of(item, classes)!;
         Assert.Equal(CobolNames.Fold("PB2104-SPEAKER"), d.ObjectName);
         Assert.Equal([CobolNames.Fold("PB2104-SPEAKER")], d.ObjectInterfaces!);
@@ -98,7 +101,7 @@ public sealed class ObjectReferenceIdentityDescriptionTests
     [Fact]   // The readers that hold no class table (a prototype's signature identity) spell the same name: the description carries it.
     public void ADescriptionWithNoClassTable_SpellsTheIdentityTheDescriptorCarries()
     {
-        var (klass, iface, _) = Bind();
+        var (klass, iface, _, _) = Bind();
         Assert.Equal("PB2104-ACCOUNT", klass.Pic!.ObjectRef!.Value.Identity);
         Assert.Equal("PB2104-SPEAKER", iface.Pic!.ObjectRef!.Value.Identity);
         Assert.Equal(CobolNames.Fold("PB2104-ACCOUNT"), ActivationDescriptions.Of(klass, classes: null)!.ObjectName);
@@ -108,10 +111,26 @@ public sealed class ObjectReferenceIdentityDescriptionTests
     [Fact]
     public void TheCompileTimeSetOperand_KeepsTheWords()
     {
-        var (item, _, classes) = Bind();
+        var (item, _, classes, _) = Bind();
         var operand = classes.SetOperand(item.Pic!.ObjectRef!.Value);
         Assert.Equal("K1", operand.Name);
         Assert.Equal(["K1", "BASE"], operand.Classes);
         Assert.Equal(["I1"], operand.Interfaces);
+    }
+
+    /// <summary>The descriptions the backend renders are the builder's, written at bind time (kb/Work PB2403): P2104D publishes a
+    /// host entry, so its formals carry the class-table answer, identities and all, and no emitter asks the table.</summary>
+    [Fact]
+    public void TheBoundFormalDescriptions_AreTheBuildersAnswer()
+    {
+        var (klass, iface, classes, unit) = Bind();
+        Assert.Equal(2, unit.FormalDescriptions.Count);
+        foreach (var (item, bound) in new[] { (klass, unit.FormalDescriptions[0]!), (iface, unit.FormalDescriptions[1]!) })
+        {
+            var built = ActivationDescriptions.Of(item, classes)!;
+            Assert.Equal(built.ObjectName, bound.ObjectName);
+            Assert.Equal(built.ObjectClasses, bound.ObjectClasses);
+            Assert.Equal(built.ObjectInterfaces, bound.ObjectInterfaces);
+        }
     }
 }

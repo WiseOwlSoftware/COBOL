@@ -61,7 +61,8 @@ OO mechanism (feedback_one_mechanism_per_job):
   one of EcName/IsLast/ObjectSource); the no-universal sub-item (EXIT SR5d / GOBACK SR4d) + the
   declared-class-in-header one (EXIT SR5a / GOBACK SR4a, walking the base chain) = COBOL4211 at COMPILE time — which statically discharges the activated-side item-1 check for an identifier-1
   (D-EO5). `RAISING LAST EXCEPTION` of an object status is tested at RUN time against the element's header census
-  (`EcState.PdRaisingObjectCsTypes`, rendered by `EcEmitter.ObjectApplicableTest`) and, on a miss, stages the NAMED
+  (`EcState.PdRaisingObjectCsTypes`, built from the header's classes and interfaces the binder resolved, `RaisingObject`
+  (kb/Work PB2403), rendered by `EcEmitter.ObjectApplicableTest`) and, on a miss, stages the NAMED
   EC-OO-EXCEPTION instead of the object (kb/Work PB1121). The stage
   (`ExceptionState.SetPropagatingObject`) has no Enabled/Fatal logic — objects are not TURN-gated.
 - **The pickup** (`CallEmitter.EmitPropagationPickup`) has an object branch (slots exclusive): GR1b2

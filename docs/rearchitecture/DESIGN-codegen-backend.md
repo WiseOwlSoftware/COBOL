@@ -490,7 +490,8 @@ smallest-blast-radius first; each step is behavior-neutral and independently com
   it per unit switch (`BeginUnit`); `DispatchEmitter`; `StatementEmitter` (the `IBoundStatementVisitor<bool>`); the
   `UnitEmitters` PER-UNIT composition root constructs all collaborators in acyclic ctor order and property-wires the
   cyclic edges (verbs↔Statements↔Ec, KeyedIo↔SeqIo). Emission reads ZERO bind-host session state — `OoEmitter` takes
-  `comp.OoClasses`/`comp.InterfaceData` off the immutable compilation and reads the per-unit set through
+  `comp.Interfaces`/`comp.InterfaceData`/`comp.Imported` off the immutable compilation (no class table: the binder writes every
+  OO answer into the bound data, kb/Work PB2403) and reads the per-unit set through
   `ProgramEmitter.Current`. `CSharpEmitter` survives as the thin bind-host facade until P9 — a deviation from this
   doc's "CSharpEmitter is gone" end-state. The §3 guard's whitelist is the three remaining
   expression/condition renderers (`NumericRenderer`, `ConditionRenderer`, `OperandText`), which route at the P9

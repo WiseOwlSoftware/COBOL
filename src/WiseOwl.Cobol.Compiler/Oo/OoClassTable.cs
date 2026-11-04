@@ -80,12 +80,6 @@ public sealed class OoClassTable
     public IReadOnlyList<OoClassSymbol> ImportedClasses => _importedList;
     private readonly List<OoClassSymbol> _importedList = [];
 
-    /// <summary>The assemblies of the external repository this compilation imported a class from, once each, in the order they
-    /// were first needed: what the backend references to name an imported type (<c>BackendOptions.RepositoryReferences</c>,
-    /// DESIGN-external-repository §10.2).</summary>
-    public IReadOnlyList<string> ImportedAssemblies =>
-        [.. _importedList.Select(c => c.Imported!.AssemblyFile).Concat(_importedInterfaceList.Select(i => i.Imported!.AssemblyFile)).Distinct(StringComparer.Ordinal)];
-
     /// <summary>The interfaces this compilation IMPORTED from the external repository (the twin of <see cref="ImportedClasses"/>),
     /// in the order they were first asked for: in no emission list, reached by identity (<see cref="ImportInterface"/>) or by their
     /// table key (<see cref="FindInterface"/>, <see cref="ImportedInterfaceKey"/>).</summary>

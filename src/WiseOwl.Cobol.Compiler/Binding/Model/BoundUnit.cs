@@ -61,6 +61,25 @@ internal sealed class BoundUnit
     /// transcribes it and never encodes one (kb/Work PB4319).</summary>
     public RepositoryRecord? Record;
 
+    /// <summary>The §14.8.2 description of each FORMAL, in <c>Linkage.Formals</c> order, and the §14.8.3 description of the
+    /// RETURNING item (<see cref="ReturningDescription"/>), each null for an item with no crossing form: what §14.9.4.4 GR3 d)
+    /// compares at a CALL located by name at run time. Built by the binder's one description builder
+    /// (<c>ActivationDescriptions</c>) at the end of the bind (<c>BackendAnswers</c>; kb/Work PB2403) for a unit a backend
+    /// describes: one that checks EC-PROGRAM-ARG-MISMATCH itself (its registration states them) or publishes a host entry
+    /// (<see cref="BoundCompilation.EntryUnits"/>, whose arguments state them). Empty for any other unit.</summary>
+    public IReadOnlyList<WiseOwl.Cobol.Runtime.ActivationDescription?> FormalDescriptions = [];
+    /// <summary>The RETURNING item's description (see <see cref="FormalDescriptions"/>); null when the unit has none or is not
+    /// described.</summary>
+    public WiseOwl.Cobol.Runtime.ActivationDescription? ReturningDescription;
+    /// <summary>The pairs of formals (earlier position, later position) whose descriptions are the same in both directions of
+    /// §9.3.8.2.3's pair mode (<c>OoConformance.SignatureDifference</c>): the host entry gives one variable passed to both one
+    /// storage (DESIGN-external-repository §4.3 "One storage for one variable passed twice"), and refuses it for any other pair.
+    /// Written at the end of the bind for an entry unit (<see cref="BoundCompilation.EntryUnits"/>); empty for any other.</summary>
+    public IReadOnlySet<(int Earlier, int Later)> FormalsOfOneDescription = new HashSet<(int, int)>();
+    /// <summary>The classes and interfaces of the unit's PROCEDURE DIVISION header RAISING phrase, resolved (ISO §14.6.13.1.5
+    /// items 1 and 3; <see cref="RaisingObject"/>), written at the end of the bind; empty when the header names none.</summary>
+    public IReadOnlyList<RaisingObject> RaisingObjects = [];
+
     /// <summary>What this program, function or prototype unit is, as the repository records it (DESIGN-external-repository
     /// §5.1). The one answer: the unit's record, the module's <c>Units</c> index and every <c>[CobolUnit]</c> read it.</summary>
     public RepositoryUnitKind RepositoryKind => (IsFunction, IsPrototype) switch

@@ -354,10 +354,6 @@ internal sealed class EcState
     /// <summary>… has F4 (EXCEPTION OBJECT) declaratives (→ <c>__EcObjDispatch</c> exists). Set per unit.</summary>
     public bool UnitHasF4 { get; set; }
 
-    /// <summary>The group's class table — restored once per run unit with <see cref="Active"/>; the emitter resolves
-    /// an element's PROCEDURE DIVISION header RAISING classes and interfaces through it (kb/Work PB1119).</summary>
-    public Compiler.Oo.OoClassTable? OoClasses { get; set; }
-
     /// <summary>The source element being emitted runs with AUTOMATIC PROPAGATION enabled (ISO §7.3.21.4 GR1 — a
     /// <c>&gt;&gt;PROPAGATE ON</c> precedes it; kb/Work PB1119), or null when it does not (GR4's OFF default). Set per
     /// program unit and per METHOD, restored after each; read only by <c>EcEmitter</c>, where the fatal default is
@@ -376,15 +372,14 @@ internal sealed class EcState
     /// <c>EcEmitter.ObjectApplicableTest</c>.</summary>
     public IReadOnlyList<string> PdRaisingObjectCsTypes { get; set; } = [];
 
-    /// <summary>Build <see cref="PdRaisingObjectCsTypes"/> for an element whose header RAISING phrase is
-    /// <paramref name="raising"/>, resolved through <paramref name="table"/>.</summary>
-    public static IReadOnlyList<string> RaisingObjectCsTypes(IEnumerable<Binding.Model.RaisingTarget> raising,
-        Compiler.Oo.OoClassTable? table) =>
-        [.. raising.SelectMany(t => t.Kind switch
+    /// <summary>Build <see cref="PdRaisingObjectCsTypes"/> for an element whose header RAISING phrase's classes and
+    /// interfaces the binder resolved to <paramref name="raising"/> (<see cref="Binding.Model.RaisingObject"/>; kb/Work
+    /// PB2403).</summary>
+    public static IReadOnlyList<string> RaisingObjectCsTypes(IEnumerable<Binding.Model.RaisingObject> raising) =>
+        [.. raising.SelectMany(r => r switch
         {
-            Binding.Model.RaisingTargetKind.ObjectClass when table?.Find(t.Name) is { } c =>
-                (IEnumerable<string>)[t.Factory ? c.FactoryClrName : c.ClrName],
-            Binding.Model.RaisingTargetKind.Interface when table?.FindInterface(t.Name) is { } i => i.ImplementedClrNames,
+            { Class: { } c } => (IEnumerable<string>)[r.Factory ? c.FactoryClrName : c.ClrName],
+            { Interface: { } i } => i.ImplementedClrNames,
             _ => [],
         }).Distinct(StringComparer.Ordinal)];
 

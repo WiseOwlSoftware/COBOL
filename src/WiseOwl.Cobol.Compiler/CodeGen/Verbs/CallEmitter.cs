@@ -5,7 +5,6 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen.Emit;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
@@ -617,19 +616,20 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>⛔ THE REGISTERED DESCRIPTION of a unit's RETURNING item (<c>BoundaryItem</c>, kb/Work PB1040): the same
     /// facts the activating element's <c>CobolArg</c> states for its receiver — <see cref="BoundaryProfile"/> and
-    /// <see cref="BoundaryLength"/> always, and its §14.8.3 description (<see cref="ActivationDescriptions.OfPlace"/>) when
-    /// the unit checks EC-PROGRAM-ARG-MISMATCH itself (<paramref name="describe"/>; kb/Work PB165) — emitted at the unit's
-    /// <c>ProgramRegistry.Register</c>, so §14.9.4.4 GR3 d) can compare the pair at call initiation. Null when it states
-    /// nothing.</summary>
-    internal string? RegisteredReturning(Place p, bool describe) =>
-        RegisteredBoundary(p, ctx.SignEncoding, BoundaryLength(p), describe ? ActivationDescriptions.OfPlace(p, ecState.OoClasses) : null);
+    /// <see cref="BoundaryLength"/> always, and its §14.8.3 <paramref name="description"/> when the unit checks
+    /// EC-PROGRAM-ARG-MISMATCH itself (null otherwise; the binder built it, <see cref="BoundUnit.ReturningDescription"/>, kb/Work
+    /// PB165, PB2403) — emitted at the unit's <c>ProgramRegistry.Register</c>, so §14.9.4.4 GR3 d) can compare the pair at call
+    /// initiation. Null when it states nothing.</summary>
+    internal string? RegisteredReturning(Place p, ActivationDescription? description) =>
+        RegisteredBoundary(p, ctx.SignEncoding, BoundaryLength(p), description);
 
     /// <summary>⛔ THE REGISTERED DESCRIPTION of one FORMAL (<c>BoundaryItem</c>, kb/Work PB165): what the activated unit
     /// states for a formal so that §14.8.2 has something to compare an argument with at a CALL whose activated program is
     /// located by name at run time — its storage length, measured by the function that measures the activating element's
-    /// argument (<see cref="ArgumentLength"/>), and its description, built by the builder that describes that argument
-    /// (<see cref="ActivationDescriptions.OfPlace"/>), so the two sides cannot disagree about what they compare — stated
-    /// only by a unit that checks EC-PROGRAM-ARG-MISMATCH (<paramref name="describe"/>). A NUMERIC formal also states its
+    /// argument (<see cref="ArgumentLength"/>), and its <paramref name="description"/>, which the binder built with the builder
+    /// that describes that argument (<see cref="BoundUnit.FormalDescriptions"/>; kb/Work PB2403), so the two sides cannot
+    /// disagree about what they compare — both stated only by a unit that checks EC-PROGRAM-ARG-MISMATCH
+    /// (<paramref name="describe"/>; the description is null otherwise). A NUMERIC formal also states its
     /// CARRIER (<c>CarrierLanding</c>; kb/Work PB2549) whatever the unit checks, so that §14.2.3 GR9's second regime and
     /// GR10 can land an argument into it at a CALL whose activating element did not know it (<c>BoundaryItem.Land</c>):
     /// the same profile and the same carrier type argument <see cref="LandedForFormal"/> lands with, from the one
@@ -638,9 +638,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// rendered by the MOVE emitter (<c>MoveEmitter.MovedRecord</c>) over the sending half the activating element states.
     /// Never null: an element that states nothing is the unstated <c>new BoundaryItem(null)</c>, so the array stays
     /// positional.</summary>
-    internal string RegisteredFormal(Place p, bool describe) =>
+    internal string RegisteredFormal(Place p, bool describe, ActivationDescription? description) =>
         RegisteredBoundary(p, ctx.SignEncoding, describe ? ArgumentLength(p) : RuntimeApi.UnstatedBoundaryLength,
-            describe ? ActivationDescriptions.OfPlace(p, ecState.OoClasses) : null, p.DenotedItem is { } formal ? FormalLanding(formal) : null)
+            description, p.DenotedItem is { } formal ? FormalLanding(formal) : null)
         ?? RuntimeApi.UnstatedBoundaryItem;
 
     /// <summary>The registered landing of <paramref name="formal"/> (<c>BoundaryItem.Landing</c>), or null when the crossing

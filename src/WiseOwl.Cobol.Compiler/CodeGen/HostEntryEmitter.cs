@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
@@ -40,7 +39,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// shape a variable-length record's area states, so the activated program's formal is laid over it.</param>
 /// <param name="dataEmitterFor">A unit's data-division emitter, which states the DESCRIPTION'S fresh cell of a formal
 /// (<see cref="DataEmitter.FreshArea"/>) for a record the host builds an area of.</param>
-internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? classes, GroupAtomTable atoms,
+internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable atoms,
     Func<DataBinder, DataEmitter> dataEmitterFor)
 {
     /// <summary>Emit the host-entry class of every unit the compilation publishes (<paramref name="entryUnits"/>,
@@ -59,9 +58,11 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
     }
 
     /// <summary>One formal (or the RETURNING item) as the entry handles it; <paramref name="CsType"/> is its host type's
-    /// C# spelling — for a group, its published record struct.</summary>
-    private sealed record Item(DataItem Description, HostType Type, string CsType, string Name, string Cell, string? Profile,
-        bool ByValue, bool Optional, string? Seed = null);
+    /// C# spelling — for a group, its published record struct — and <paramref name="Activation"/> the §14.8.2 description
+    /// the binder built for it (<see cref="BoundUnit.FormalDescriptions"/>, <see cref="BoundUnit.ReturningDescription"/>;
+    /// kb/Work PB2403), null for an item with no crossing form.</summary>
+    private sealed record Item(DataItem Description, ActivationDescription? Activation, HostType Type, string CsType, string Name,
+        string Cell, string? Profile, bool ByValue, bool Optional, string? Seed = null);
 
     private void EmitEntry(BoundUnit unit, string className, CodeWriter w)
     {
@@ -87,7 +88,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         // declared once here as the program class declares them).
         var seeds = new List<(string Field, string Factory)>();
         var seedProfiles = new HashSet<string>(StringComparer.Ordinal);
-        Item Describe(DataItem description, string name, bool byValue, bool optional)
+        Item Describe(DataItem description, ActivationDescription? activation, string name, bool byValue, bool optional)
         {
             int n = serial++;
             HostType type = HostSurface.TypeOf(description);
@@ -107,7 +108,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
                     if (seedProfiles.Add(leaf.ProfileName))
                         profiles.Add((leaf.ProfileName, leaf.Pic!.ProfileInitializer(signEncoding)));
             }
-            return new Item(description, type, csType, name, $"__hc{n}", profile, byValue, optional, seed);
+            return new Item(description, activation, type, csType, name, $"__hc{n}", profile, byValue, optional, seed);
         }
         // A group formal's published record struct, named `<word>_Record` in the class's member scope (§4.3 "Names").
         string Record(DataItem group)
@@ -121,11 +122,14 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
             return name;
         }
 
+        if (unit.FormalDescriptions.Count != unit.Data.Linkage.Formals.Count)
+            throw new InvalidOperationException($"HostEntryEmitter: entry unit '{unit.Name}' has {unit.Data.Linkage.Formals.Count} formals and "
+                + $"{unit.FormalDescriptions.Count} bound descriptions (BackendAnswers describes every entry unit's formals)");
         var formals = unit.Data.Linkage.Formals
-            .Select(f => Describe(f.Item, CsNames.Allocate(DataItem.Sanitize(f.Item.CobolName ?? "FILLER"), members),
-                f.ByValue, f.Optional))
+            .Select((f, i) => Describe(f.Item, unit.FormalDescriptions[i],
+                CsNames.Allocate(DataItem.Sanitize(f.Item.CobolName ?? "FILLER"), members), f.ByValue, f.Optional))
             .ToList();
-        Item? returning = unit.Data.Linkage.Returning is { } r ? Describe(r, "__hr", false, false) : null;
+        Item? returning = unit.Data.Linkage.Returning is { } r ? Describe(r, unit.ReturningDescription, "__hr", false, false) : null;
         // The records render first, so every member profile they name is declared with the formals' own.
         var recordText = new CodeWriter();
         var published = new PublishedRecordEmitter(MemberProfile);
@@ -210,8 +214,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
                 // an OPTIONAL later formal is omitted before the arm is asked (below), and when only the earlier
                 // formal is OPTIONAL it was omitted, so the later one lands the null by its own row (a text refuses
                 // it, a data pointer's is NULL).
-                if (OoConformance.SignatureDifference(e.Description, f.Description, "formal", "other formal") is null
-                    && OoConformance.SignatureDifference(f.Description, e.Description, "formal", "other formal") is null)
+                if (unit.FormalsOfOneDescription.Contains((j, i)))
                     aliases[i] += $"{sameVariable}{(e.Optional && !f.Optional ? $" && {e.Cell} is not null" : "")} ? {e.Cell} : ";
                 else
                     w.Line($"HostLanding.RequireDistinct({sameVariable}, {CsLiteral(e.Name)}, {CsLiteral(f.Name)});");
@@ -376,7 +379,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
                 : $", Area: {RuntimeApi.ArgArea(f.Cell, "0")}";
         }
         string built = $"new CobolArg({RuntimeApi.PassModeText(mode)}, {carrier}, {f.Profile ?? "null"}{area})";
-        string? description = ActivationDescriptions.Of(f.Description, classes) is { } d ? RuntimeApi.ActivationDescriptionNew(d) : null;
+        string? description = f.Activation is { } d ? RuntimeApi.ActivationDescriptionNew(d) : null;
         return CallEmitter.Described(built, StorageLength(f), description);
     }
 

@@ -156,6 +156,9 @@ internal static class BackendContract
             "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",
             // the assemblies an expansion is imported from or written to: file paths the backend references (kb/Work PB2104)
             "Model.ExpansionPlacement.HoldingFile", "Model.ExpansionPlacements.ReferencedAssemblies",
+            // the assemblies the compilation imported a class or interface from, and an external file connector's §12.4.5.3
+            // GR1 identity, which the runtime compares across describers: answers the binder writes (kb/Work PB2403)
+            "Model.ImportedTypes.Assemblies", "Model.FileModel.SelectFingerprint",
             // a class's run-unit keys and file-connector key bands, which the runtime recognizes, and the assembly an imported
             // class came from (kb/Work PB2402 moved them to compiler.model)
             "Model.OoClassSymbol.RunUnitKey", "Model.OoClassSymbol.HalfKey()", "Model.NamingConvention.ExternalFileBand",

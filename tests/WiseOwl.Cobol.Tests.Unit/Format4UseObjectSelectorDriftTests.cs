@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using Xunit;
@@ -93,8 +94,8 @@ public sealed class Format4UseObjectSelectorDriftTests
         END CLASS F4CSUB.
         """;
 
-    /// <summary>Compile the fixture to C#, paired with the class table the same bind produced.</summary>
-    private static (string CSharp, Compiler.Oo.OoClassTable Classes) EmitFixture()
+    /// <summary>Compile the fixture to C#, paired with the bound compilation the same bind produced.</summary>
+    private static (string CSharp, BoundCompilation Classes) EmitFixture()
     {
         string path = Path.Combine(Path.GetTempPath(), $"f4drift_{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, Src);
@@ -105,7 +106,7 @@ public sealed class Format4UseObjectSelectorDriftTests
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
             var comp = new BinderDriver().Bind(tree!, new EditionContext(2002));
-            return (emitter.EmitBound(comp, "DRIFTPROBE"), comp.OoClasses);
+            return (emitter.EmitBound(comp, "DRIFTPROBE"), comp);
         }
         finally { FileHarness.TryDelete(path); }
     }
@@ -127,7 +128,7 @@ public sealed class Format4UseObjectSelectorDriftTests
     public void EveryEmittedHalfOfAClass_IsInTheClassSymbolsCensus()
     {
         var (csharp, classes) = EmitFixture();
-        var cls = classes.Find("F4CBASE");
+        var cls = classes.ClassUnits.Single(c => c.Symbol.Name == "F4CBASE").Symbol;
         Assert.NotNull(cls);
 
         var emitted = Regex.Matches(csharp, @"\bclass\s+((?:__[A-Z]+_)?" + cls!.ClrName + @")\b\s*:")
@@ -145,7 +146,7 @@ public sealed class Format4UseObjectSelectorDriftTests
     public void EveryEmittedHalfOfAnInterface_IsInTheInterfaceSymbolsCensus()
     {
         var (csharp, classes) = EmitFixture();
-        var ifc = classes.FindInterface("F4IDRIFT");
+        var ifc = classes.Interfaces.Single(i => i.Name == "F4IDRIFT");
         Assert.NotNull(ifc);
 
         var emitted = Regex.Matches(csharp, @"\binterface\s+(" + ifc!.ClrName + @"(?:__[A-Z0-9_]+)?)\b")
@@ -163,8 +164,8 @@ public sealed class Format4UseObjectSelectorDriftTests
     public void ObjDispatchSelector_TestsEveryHalfOfTheNamedClass()
     {
         var (csharp, classes) = EmitFixture();
-        var cls = classes.Find("F4CBASE");
-        var ifc = classes.FindInterface("F4IDRIFT");
+        var cls = classes.ClassUnits.Single(c => c.Symbol.Name == "F4CBASE").Symbol;
+        var ifc = classes.Interfaces.Single(i => i.Name == "F4IDRIFT");
         Assert.NotNull(cls);
         Assert.NotNull(ifc);
         string predicate = Selector(csharp);
@@ -183,8 +184,8 @@ public sealed class Format4UseObjectSelectorDriftTests
     public void ObjDispatchSelector_RunsTheClassPassBeforeTheInterfacePass()
     {
         var (csharp, classes) = EmitFixture();
-        var cls = classes.Find("F4CBASE");
-        var ifc = classes.FindInterface("F4IDRIFT");
+        var cls = classes.ClassUnits.Single(c => c.Symbol.Name == "F4CBASE").Symbol;
+        var ifc = classes.Interfaces.Single(i => i.Name == "F4IDRIFT");
         Assert.NotNull(cls);
         Assert.NotNull(ifc);
         string predicate = Selector(csharp);

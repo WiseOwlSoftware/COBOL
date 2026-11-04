@@ -319,7 +319,11 @@ internal sealed class BinderDriver
         var interfaceRecords = publishes
             ? RepositoryPublication.Publish(entryUnits, classes, table, oo.InterfaceData, expansions)
             : new Dictionary<OoInterfaceSymbol, RepositoryRecord>();
-        return new BoundCompilation(units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
+        // The answers the backend reads of the binder's rule families (the activation descriptions, the RAISING resolution, an
+        // external file's entry identity), written over the finished bind, so no backend asks the class table (kb/Work PB2403).
+        BackendAnswers.Write(units, classes, ctx.AllBinders(), table, entryUnits);
+        return new BoundCompilation(units, classes, table.Interfaces, oo.InterfaceData, ooAdapters,
+            new ImportedTypes(table.ImportedClasses, table.ImportedInterfaces), turn, ecActive,
             anyFiles, edition.DialectLevel, edition.SignEncoding, expansions,
             entryUnits, publishes, interfaceRecords);
     }

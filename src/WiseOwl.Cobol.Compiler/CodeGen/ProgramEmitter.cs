@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 
@@ -79,8 +78,8 @@ internal sealed class ProgramEmitter
     internal string Emit(BoundCompilation comp, string assemblySimpleName)
     {
         _ecState.Active = comp.EcActive;
-        _ecState.OoClasses = comp.OoClasses;
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.InterfaceRecords, comp.OoAdapters, comp.Expansions);
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.InterfaceRecords, comp.OoAdapters,
+            comp.Imported, comp.Expansions);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -99,7 +98,7 @@ internal sealed class ProgramEmitter
         // (CS0234 / CS0118 on legal source otherwise). The assembly attribute precedes the namespace (C# requires it).
         var ns = CsNames.ModuleNamespaceOf(assemblySimpleName);
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
-            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, comp.Expansions, comp.EntryUnits), comp.Edition,
+            RepositoryAttributeRenderer.IndexOf(comp.Interfaces, classes, comp.Expansions, comp.EntryUnits), comp.Edition,
             hasSignatures: comp.PublishesSignatures));
         w.Line($"namespace {CsNames.CSharpNamespace(ns)};");
         w.Line();
@@ -134,7 +133,7 @@ internal sealed class ProgramEmitter
         // the program classes and the run-unit entry wrapper. A class-only/interface-only compilation unit is
         // legal (§10.6) — its module emits the types, a registrar with nothing to register (the record names it), and an
         // empty Main.
-        foreach (var iface in comp.OoClasses.Interfaces)
+        foreach (var iface in comp.Interfaces)
             if (comp.Expansions.EmittedHere(iface.ClrName)) _oo.EmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
             if (comp.Expansions.EmittedHere(cls.Symbol.ClrName)) _oo.EmitClassUnit(cls, w);
@@ -157,11 +156,11 @@ internal sealed class ProgramEmitter
         // in the module namespace's type scope beside every type the module already declares there. The over-punch convention
         // is the compilation's one (kb/Work PB803): a group of prototypes alone — the library that publishes them to the
         // external repository (DESIGN-external-repository §7.2) — emits no program class, so no unit emitter is current here.
-        new HostEntryEmitter(comp.SignEncoding, comp.OoClasses, _atoms,
+        new HostEntryEmitter(comp.SignEncoding, _atoms,
             data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(comp.EntryUnits,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
-                .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceClrNames))
-                .Concat(comp.OoClasses.Interfaces.Select(i => i.ClrName))
+                .Concat(classes.SelectMany(c => c.Symbol.FactoryOrInstanceClrNames))
+                .Concat(comp.Interfaces.Select(i => i.ClrName))
                 .Concat(comp.Expansions.Skeletons.Select(s => s.ClrName))
                 .Append(ModuleNamespace.RegistrarClass).Append("Program").Append(GroupAtomTable.ClassName), w);
         EmitEntryWrapper(units, w, anyFiles, ns);
@@ -311,7 +310,7 @@ internal sealed class ProgramEmitter
         _ecState.Propagation = AutomaticPropagation.Of(data.State.UnitChecking.AutomaticPropagation, inMethod: false);
         // §14.6.13.1.5 items 1 and 3 — this element's header RAISING census (kb/Work PB1121), read by every GOBACK /
         // EXIT … RAISING LAST EXCEPTION and by the activator's pickup, PROPAGATE ON or not.
-        _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.Bound.Raising ?? [], _ecState.OoClasses);
+        _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.RaisingObjects);
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
         _dispatchState.OuterGlobalUse = ChainHasGlobalUse(unit.Parent);
@@ -842,8 +841,9 @@ internal sealed class ProgramEmitter
                 int fc = u.Data.Linkage.Formals.Count;
                 int rq = fc;
                 while (rq > 0 && u.Data.Linkage.Formals[rq - 1].Optional) rq--;
+                bool describe = u.Data.State.UnitChecking.ArgMismatchChecking;
                 string? retItem = u.Data.Linkage.Returning is { } ri && u.Places.Of(ri) is { } retPlace
-                    ? Current.Call.RegisteredReturning(retPlace, describe: u.Data.State.UnitChecking.ArgMismatchChecking) : null;
+                    ? Current.Call.RegisteredReturning(retPlace, describe ? u.ReturningDescription : null) : null;
                 // Each FORMAL's registered description (kb/Work PB165), for §14.8.2's argument comparison at a dynamic
                 // CALL — the whole description only by a unit that checks EC-PROGRAM-ARG-MISMATCH itself (GR3d's activated
                 // half) — and each NUMERIC formal's carrier and each non-numeric ELEMENTARY formal's record builder from every
@@ -852,8 +852,8 @@ internal sealed class ProgramEmitter
                 // pointers or ANY LENGTH items and that does not check keeps its Register line as it was. The record builder
                 // reads only the formal's own description (its PicInfo carries its currency sign and decimal point), so the
                 // current unit's emitters render it for every unit.
-                var formalItems = u.Data.Linkage.Formals.Select(f => u.Places.Of(f.Item) is { } fp
-                    ? Current.Call.RegisteredFormal(fp, describe: u.Data.State.UnitChecking.ArgMismatchChecking)
+                var formalItems = u.Data.Linkage.Formals.Select((f, i) => u.Places.Of(f.Item) is { } fp
+                    ? Current.Call.RegisteredFormal(fp, describe, describe ? u.FormalDescriptions[i] : null)
                     : RuntimeApi.UnstatedBoundaryItem).ToList();
                 string formalsText = formalItems.Any(s => s != RuntimeApi.UnstatedBoundaryItem)
                     ? $", formals: new BoundaryItem[] {{ {string.Join(", ", formalItems)} }}" : "";

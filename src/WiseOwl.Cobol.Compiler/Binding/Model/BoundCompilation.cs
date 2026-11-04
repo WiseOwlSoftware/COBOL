@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Compiler.Oo;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
@@ -16,10 +15,14 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// </summary>
 /// <param name="Units">Program units in emission order (containers precede containees).</param>
 /// <param name="ClassUnits">CLASS-ID units (each carrying its OBJECT + FACTORY halves).</param>
-/// <param name="OoClasses">The group's pass-1 class symbol table (OO deep-dive D1).</param>
+/// <param name="Interfaces">The interfaces the group defines (the pass-1 class table's, OO deep-dive D1), in definition order;
+/// each is emitted where its expansion lives. The table itself stays with the binder (kb/Work PB2403): every answer the backend
+/// reads of it is written into this record or the nodes it carries.</param>
 /// <param name="InterfaceData">Per-interface DATA forests (prototype LINKAGE formals) for interface emission.</param>
 /// <param name="OoAdapters">The §9.3.8.2.3 5a/5c2 covariant-return adapter pairs (returned by
-/// <see cref="OoConformance.ValidateImplements"/>; the interface emitter renders one explicit implementation per pair).</param>
+/// <c>OoConformance.ValidateImplements</c>; the interface emitter renders one explicit implementation per pair).</param>
+/// <param name="Imported">The classes and interfaces the group imported from the external repository (DESIGN-external-repository
+/// §10.1): the assemblies the backend references and the types it names in another assembly.</param>
 /// <param name="Turn">The group's compile-time TurnState (ISO §7.3.25; EC deep-dive D10).</param>
 /// <param name="EcActive">ANY EC-model feature in use (gates every machinery emission; SSOT §18.16).</param>
 /// <param name="Edition">The ISO edition (<c>EditionContext.DialectLevel</c>: 85, 2002, 2014 or 2023) the group was bound under;
@@ -42,9 +45,10 @@ namespace WiseOwl.Cobol.Binding.Model;
 internal sealed record BoundCompilation(
     IReadOnlyList<BoundUnit> Units,
     IReadOnlyList<OoClassUnit> ClassUnits,
-    OoClassTable OoClasses,
+    IReadOnlyList<OoInterfaceSymbol> Interfaces,
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> InterfaceData,
     IReadOnlyList<AdapterPair> OoAdapters,
+    ImportedTypes Imported,
     TurnState Turn,
     bool EcActive,
     bool AnyFiles,

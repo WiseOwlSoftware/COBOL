@@ -281,7 +281,7 @@ public static class CompilerDriver
                     { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files };
             var artifact = backend.Emit(bound, new BackendOptions(
                 outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
-                RepositoryReferences: [.. bound.OoClasses.ImportedAssemblies, .. bound.Expansions.ReferencedAssemblies]));
+                RepositoryReferences: [.. bound.Imported.Assemblies, .. bound.Expansions.ReferencedAssemblies]));
             if (!artifact.Success)
                 return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                     artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)

@@ -2507,7 +2507,7 @@ lowercase with Annex C. Three pieces, each in one place:
   Editions word tables (`CobolWordsMap`, the §8.10 and implementor-name tables) are keyed by
   the same comparer (the directive catalog is keyed by keyword, below): `WiseOwl.Cobol.Editions` references the runtime, the foundation layer below it
   (`DESIGN-architecture-review.md` §8.1), for the fold. A default externalized name and the run-time EXTERNAL
-  identities (`BinderDriver.ExternalItemIdentity`, `OoEmitter.SelectFingerprint`'s word segments) are written in the
+  identities (`BinderDriver.ExternalItemIdentity`, `FileEntryIdentity.Of`'s word segments) are written in the
   word's `UpperFold`, so the ordinal comparison at run time agrees with Annex C.
 - **A keyword matches on the basic letters alone; the fold is a user-defined word's (kb/Work PB4240, PB4312; owner
   decision 2026-10-31, GAP-REVIEW question 2).** §8.1.3.2 3) a) treats the basic letters case-insensitively, and 4) opens

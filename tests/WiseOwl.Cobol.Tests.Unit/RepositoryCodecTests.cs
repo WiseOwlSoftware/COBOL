@@ -383,8 +383,8 @@ public sealed class RepositoryCodecTests
         var oo = Bind(OoSource, 2023);
         Assert.NotEmpty(oo.ClassUnits);
         Assert.All(oo.ClassUnits, c => Assert.Equal(RepositoryCodec.Of(c), c.Record));
-        Assert.Equal(oo.OoClasses.Interfaces.ToHashSet(), oo.InterfaceRecords.Keys.ToHashSet());
-        Assert.All(oo.OoClasses.Interfaces, i => Assert.Equal(RepositoryCodec.Of(i, oo.InterfaceData[i]), oo.InterfaceRecords[i]));
+        Assert.Equal(oo.Interfaces.ToHashSet(), oo.InterfaceRecords.Keys.ToHashSet());
+        Assert.All(oo.Interfaces, i => Assert.Equal(RepositoryCodec.Of(i, oo.InterfaceData[i]), oo.InterfaceRecords[i]));
 
         var off = Bind(OoSource, 2023, repositoryUpdate: false);
         Assert.False(off.PublishesSignatures);
@@ -523,7 +523,7 @@ public sealed class RepositoryCodecTests
     /// roster, then the factory roster — after checking that two encodings of it are equal.</summary>
     internal static IEnumerable<(RepositoryRecord Record, IReadOnlyList<OoMethodSymbol> Methods)> OoRecordsOf(BoundCompilation comp)
     {
-        foreach (var iface in comp.OoClasses.Interfaces)
+        foreach (var iface in comp.Interfaces)
         {
             var record = RepositoryCodec.Of(iface, comp.InterfaceData[iface]);
             Assert.Equal(record, RepositoryCodec.Of(iface, comp.InterfaceData[iface]));

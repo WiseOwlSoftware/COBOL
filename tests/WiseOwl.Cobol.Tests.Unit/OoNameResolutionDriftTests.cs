@@ -55,10 +55,11 @@ public sealed class OoNameResolutionDriftTests
             (2, "the property-reference INSTANCE form's re-lookup (RosterOf) of identifier-3's declared class, and of its "
                 + "declared INTERFACE for an interface-typed receiver (kb/Work PB1449) — a descriptor name, scope-checked "
                 + "where the data description entry WROTE it"),
-        [Path.Combine("CodeGen", "EmitterState.cs")] =
-            (2, "AutomaticPropagation.Of (kb/Work PB1119, §14.6.13.1.5 EXIT/GOBACK item 3): the re-lookup of each "
-                + "class / interface an element's PROCEDURE DIVISION header RAISING phrase names, to render its C# "
-                + "type test — scope-checked where the header WROTE it (RaisingPhrase.Partition's funnel lookup)"),
+        [Path.Combine("Binding", "BackendAnswers.cs")] =
+            (2, "BackendAnswers.Resolve (kb/Work PB1119, PB2403; §14.6.13.1.5 EXIT/GOBACK items 1 and 3): the re-lookup of "
+                + "each class / interface an element's PROCEDURE DIVISION header RAISING phrase names, resolved at the end "
+                + "of the bind into the RaisingObject the backend renders its type test from — scope-checked where the "
+                + "header WROTE it (RaisingPhrase.Partition's funnel lookup)"),
     };
 
     /// <summary>The lookup shape that WAS the bug: <c>Find</c> / <c>FindInterface</c> on the group-wide table
