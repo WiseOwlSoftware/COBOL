@@ -244,6 +244,17 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(0, CobolExact.Compare(sum, Sdidi("9989999999999999980020000000000000", 5)));
     }
 
+    /// <summary>The §15.3 type-6 intake of an exact value keeps every digit on either carrier: P × 10 at scale 1 is the integer P on
+    /// the wide form, 1.0E40 the SDIDI integer 10^40, and P × 1.0E5 (P at scale −5) the 44-digit integer written out at scale 0.</summary>
+    [Fact]
+    public void IntegerIntake_KeepsEveryDigit_OnEitherCarrier()
+    {
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(Wide(P * 10, 1)), Wide(P)));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(Sdidi("1", 40)), Sdidi("1", 40)));
+        CobolExact product = CobolExact.Mul(Wide(P), Sdidi("1", 5), Away);
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(product), Wide(P * 100000)));
+    }
+
     /// <summary>⛔ The final transfer rounds the exact value ONCE, in the receiver's mode, on either carrier; checked, a value past
     /// the carrier is EC-SIZE-TRUNCATION.</summary>
     [Fact]

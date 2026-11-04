@@ -217,8 +217,9 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 /// or a function's result's).</param>
 /// <param name="Exact">True when <see cref="Expr"/> is a <c>CobolExact</c>-typed EXACT value of the NATIVE lane whose scale only
 /// the run time knows (kb/Work PB4575): the sum, difference or product of an exact wide intermediate and an SDIDI-carried operand
-/// (a floating-point literal, a power, a function's SDIDI value), and every sum, difference, product and negation over one. It is
-/// exact on the 256-bit form at its run-time scale and the SDIDI past it (<c>CobolExact.Add</c>). Like <see cref="Wide"/> it
+/// (a floating-point literal, a power, a function's SDIDI value), the nested quotient of such a pair, and every sum, difference,
+/// product, nested quotient and negation over one. It is exact on the 256-bit form at its run-time scale and the SDIDI past it
+/// (<c>CobolExact.Add</c>, <c>CobolExact.DivTruncated</c>). Like <see cref="Wide"/> it
 /// NEVER LEAVES <c>NumericRenderer</c> unsettled: the public entries settle it (<c>NumericRenderer.Settle</c>), a keepWide
 /// consumer settles it itself, and <see cref="Carrier"/> throws on it. <see cref="Scale"/> is a placeholder 0 and
 /// <see cref="Digits"/> 0; <see cref="Precision"/> is the compile-time precision when every operand's is known, and <c>null</c>

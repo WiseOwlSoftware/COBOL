@@ -38,3 +38,5 @@ CONFORMANCE DOC-A.1-82 and DOC-A.1-123. No inventory row was claimed or closed (
 **Not closed here.** The note's MAXOP leg, `MAX (P - 1, P, 2.0E0) - (P - 5)`, is now -994 (owed 5): MAX's value is held on
 the SDIDI returned-value carrier, rounded once to 34 digits, and the now-exact difference above it shows that rounding. That is
 PB4570's carrier question.
+
+**Self-review and gate.** The four lenses found one coverage gap, fixed: the type-6 intake of an exact value had no witness on its SDIDI and negative-scale arms (`IntegerIntake_KeepsEveryDigit_OnEitherCarrier`). Gate at d9094f2: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,473/21,473 · Unit 39,746/39,746 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261104T170330Z); no existing golden moved. The branch head's own gate record is what the landing reads. LINUX GATE: not part of the per-change gate (PB4327).
