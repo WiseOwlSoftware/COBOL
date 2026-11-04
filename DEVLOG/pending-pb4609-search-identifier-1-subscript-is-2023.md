@@ -22,3 +22,11 @@ COBOL0900. The sweep over `SEARCH ... (` found four more goldens writing the enc
 `pb443_search_identifier_1`, `pb877_subscripted_subscript`, `pb1263_occurs_key_is_table_in_outer_table`, and
 `pb3365_search_nested_dynamic_table` (`SEARCH EP(I)`, which PB4577 had missed). `SearchIdentifier1GateTests` became a theory over 85,
 2002 and 2014. SR-14.9.37.3-2 and -3 had their test-refs re-pointed with `record_verdicts` (2 rows, GAP 1 to 1; no row closed).
+
+**Self-review.** Architecture: the edge stays in the one parse-arm gate and one construct row; nothing else asks the edition. Full code: the
+gate asks the recognised subscript, which is the rule's wording in all three drafts; a subscript at the searched level still draws COBOL2075
+at every edition and now also names 2023 below it. Duplication: no second copy of the rule, the old row name appears nowhere (sweep
+`grep -rn "enclosing-subscript-2014"` is empty outside the frozen DEVLOG and the landed PB4577 note's history). Performance: no hot-path change.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,628/21,628 · Unit 39,846/39,846 · Characterization 37/37 cases ran (skipped 0) ===`
+(run 000001-20261104T215915Z). `semgrep/verify.py` PASS with no count raised.
