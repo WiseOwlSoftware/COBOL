@@ -40,6 +40,62 @@ public sealed class CobolEditStoredSignTests
     public void Format_SignIsTheStoredValues(string picture, long value, int scale, string expected) =>
         Assert.Equal(expected, CobolEdit.Format(value, scale, picture));
 
+    // ISO §13.18.40.5 7) b) and 6) b): "the value of the data to be stored" is zero when the digits the picture HOLDS
+    // are all zero, so a value whose high-order digits truncate to zero is all asterisks (the point kept) or all
+    // spaces (kb/Work PB4515). A stored nonzero value keeps rule 7 a)'s suppression to the left of the point.
+    [Theory]
+    [InlineData("***.**", 1000, 0, "***.**")]
+    [InlineData("ZZZ.ZZ", 1000, 0, "      ")]
+    [InlineData("++++.++", 1000, 0, "       ")]
+    [InlineData("----.--", 1000, 0, "       ")]
+    [InlineData("*,***.**", 10000, 0, "*****.**")]
+    [InlineData("***.**", 10005, 1, "***.50")]
+    [InlineData("ZZZ.ZZ", 10005, 1, "   .50")]
+    [InlineData("***.**", 0, 0, "***.**")]
+    public void Format_AllSuppressedPicture_TestsTheStoredDigits(string picture, long value, int scale, string expected) =>
+        Assert.Equal(expected, CobolEdit.Format(value, scale, picture));
+
+    // ISO §14.9.25.4 6) d) 1: de-editing "establishes the operand's numeric value, which may be signed" — the sign a
+    // floating string landed (Table 9: '-' for a negative value of either string, '+' only for a positive or zero '+' string), read
+    // at the position, for either symbol (kb/Work PB4514).
+    [Theory]
+    [InlineData("++++9.99", "-1234.50", -123450)]
+    [InlineData("++++9.99", "+1234.50", 123450)]
+    [InlineData("++++9.99", "   -5.25", -525)]
+    [InlineData("++++9.99", "   +0.00", 0)]
+    [InlineData("----9.99", "-1234.50", -123450)]
+    [InlineData("----9.99", " 1234.50", 123450)]
+    [InlineData("----9.99", "   -5.25", -525)]
+    public void DeEdit_FloatingSignString_ReadsTheLandedSign(string mask, string image, long expected) =>
+        Assert.Equal((Int128)expected, CobolEdit.DeEdit(image, mask));
+
+    // §13.18.40.5 rule 6: a PICTURE EDITING character-1 used as a simple insertion symbol EMBEDDED in a floating
+    // string is part of the string, so the landed sign can sit on it (PIC --T--9 holding -555 is "  -555"). The
+    // de-edit reads that sign too (PB4514 review round 1, R1-1); the round trip pins Format against DeEdit.
+    [Theory]
+    [InlineData("--T--9", -555)]
+    [InlineData("--T--9", 555)]
+    [InlineData("++T++9", -555)]
+    [InlineData("++T++9", 555)]
+    [InlineData("--T--9", -1555)]
+    [InlineData("++T++9", 0)]
+    [InlineData("--T--9", -555, "-")]
+    [InlineData("--T--9", 555, "-")]
+    [InlineData("++T++9", -555, "-")]
+    [InlineData("++T++9", 555, "-")]
+    [InlineData("--T--9", -1555, "-")]
+    [InlineData("--T--9", 1555, "-")]
+    [InlineData("++T++9", -1555, "-")]
+    [InlineData("++T++9", 1555, "-")]
+    public void DeEdit_SignLandedOnEmbeddedInsertionCharacter1_RoundTrips(string mask, long value, string literal = ":")
+    {
+        // A literal that is itself '-' (PB4514 round 2, R2-1) is the landed sign while no digit of the string
+        // precedes it, and the literal once one does (rule 6 a: spaces and the sign before the first nonzero digit).
+        CobolEdit.EditRule[] rules = [new CobolEdit.EditRule('T', literal, literal, SimpleInsertion: true, Floating: false)];
+        string image = CobolEdit.Format(value, 0, mask, edits: rules);
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
+    }
+
     [Fact]
     public void Format_FixedExtendedSign_FollowsTheStoredValue()
     {
