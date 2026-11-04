@@ -213,7 +213,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (scope.Method is { } m)
         {
             if (m.TypeDecls.TryGetValue(typeName, out decl!)) return true;
-            if (m.Declares(typeName)) return false;
+            if (MethodDeclares(m, typeName)) return false;
         }
         return State.Forest.TypeDecls.TryGetValue(typeName, out decl!) || State.Inherited.TypeDecls.TryGetValue(typeName, out decl!);
     }
@@ -240,6 +240,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// constant tables and the readers of a constant-name — the substitution lookup, the integer positions, the PICTURE
     /// repetition and the VALUE operand.</summary>
     internal ConstantEntryBinder Constants => field ??= new ConstantEntryBinder(this);
+
+    /// <summary>⛔ THE ONE ANSWER TO "DOES THE METHOD WHOSE NAME SCOPE IS <paramref name="method"/> DECLARE <paramref name="word"/>?"
+    /// (§11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
+    /// data division of the containing object definition, the use of that word in this method refers to the declaration
+    /// in this method"; §8.4.6.1 "even when it is a different type of user-defined word"): a data-name, condition-name,
+    /// index-name, CAPACITY register or type-name in the method's model scope (<see cref="OoMethodDataScope.IndexesDeclare"/>),
+    /// or a constant-name or a word its data division defines before any entry binds, which this binder keeps
+    /// (<see cref="ConstantEntryBinder.MethodDeclares"/>; kb/Work PB3164, PB3192, PB2402). Every method tier of a lookup
+    /// asks it before it falls through to the object's names (<c>GlobalNameClassDriftTests</c>).</summary>
+    internal bool MethodDeclares(OoMethodDataScope method, string word) =>
+        method.IndexesDeclare(word) || Constants.MethodDeclares(method, word);
 
     /// <summary><see cref="IPlaceFacts"/>: the BIND-TIME image-storage query (kb/Work PB2375): true when
     /// <paramref name="item"/> is already known - at THIS point of binding - to store its character image. It reads the
@@ -1858,7 +1869,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The census a declaration lands in: the METHOD whose words are being declared
     /// (<see cref="OoDataBinder.EnterMethodDeclarations"/> — its data entries, its METHOD-ID and its procedure-names), which is a
     /// source element of its own, else this binder's own (kb/Work PB2921).</summary>
-    internal UserWordCensus WordCensus => Oo.BindingMethodScope?.Words ?? OwnWords;
+    internal UserWordCensus WordCensus => Oo.BindingMethodWords ?? OwnWords;
 
     /// <summary>⛔ §8.3.2.2: "<i>Within a source element, a given user-defined word may be used as only one type of
     /// user-defined word</i>", except as <see cref="UserWordKinds.MayBeOneWord"/> says. Asked at the ONE declaration funnel

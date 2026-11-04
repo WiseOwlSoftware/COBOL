@@ -338,7 +338,7 @@ public sealed class OoClassTable
     /// <summary>THE §8.3.2.2 census of the source element <paramref name="site"/> lies in (§10.5), one per element for
     /// the whole compilation, so the binder that declares the element's words and every reference that uses one
     /// (<see cref="RecordReferenceUse"/>) record into the same object whatever order they run in. A method's is its
-    /// symbol's (<see cref="OoMethodDataScope.Words"/>; kb/Work PB2921), found through <see cref="MethodAt"/>. Every
+    /// symbol's (<see cref="CensusOf(OoMethodSymbol)"/>; kb/Work PB2921), found through <see cref="MethodAt"/>. Every
     /// other element's is kept here by its parse node: a program's (outermost or contained, the node its
     /// identification division hangs from: <c>BinderDriver.BindUnitData</c> passes that division), an interface's,
     /// a class definition's, and its factory and instance definitions', each its own: the class definition's
@@ -349,14 +349,28 @@ public sealed class OoClassTable
     {
         var element = SourceElementOf(site);
         if (element is null) return null;
-        if (element is Core.MethodDefinitionContext) return MethodAt(site)?.DataScope.Words;
+        if (element is Core.MethodDefinitionContext) return MethodAt(site) is { } method ? CensusOf(method) : null;
         if (!_elementWords.TryGetValue(element, out var words))
             _elementWords[element] = words = new UserWordCensus();
         return words;
     }
 
+    /// <summary>The §8.3.2.2 census of <paramref name="method"/>, a source element of its own (§10.5), so its words may repeat,
+    /// as another type, a word of its class or of a sibling method (§8.4.6.1; kb/Work PB2921). One per method symbol for the
+    /// whole compilation: the binder declaring the method's words (<c>OoDataBinder.EnterMethodDeclarations</c>) and every
+    /// reference made inside it (<see cref="CensusOf(Antlr4.Runtime.RuleContext)"/>) record into this object. Binder working
+    /// state, so it is kept here and not on the method's model scope (kb/Work PB2402).</summary>
+    internal UserWordCensus CensusOf(OoMethodSymbol method)
+    {
+        if (!_methodWords.TryGetValue(method, out var words)) _methodWords[method] = words = new UserWordCensus();
+        return words;
+    }
+
     // Keyed by parse-tree node IDENTITY, like _scopes.
     private readonly Dictionary<Antlr4.Runtime.RuleContext, UserWordCensus> _elementWords = [];
+
+    // Keyed by symbol IDENTITY (a method symbol is a record), like every other per-method map of the bind.
+    private readonly Dictionary<OoMethodSymbol, UserWordCensus> _methodWords = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>The method definition <paramref name="site"/> lies in, when its innermost source element is one: a
     /// class's instance or factory method, or an interface's method prototype, of this table's definitions or of a

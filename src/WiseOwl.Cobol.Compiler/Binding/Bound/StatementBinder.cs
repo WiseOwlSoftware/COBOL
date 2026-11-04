@@ -330,7 +330,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
             // …and its procedure-names are words of the METHOD's source element, declared in its own §8.3.2.2 census
             // (kb/Work PB2921) — released at the end of this iteration.
-            using var declaring = Ctx.Data.Oo.EnterMethodDeclarations(m.DataScope);
+            using var declaring = Ctx.Data.Oo.EnterMethodDeclarations(m);
             m.Binding!.DeclStartPc = table.Paragraphs.Count;
             m.Binding!.EntryPc = table.Paragraphs.Count;
             IReadOnlyList<BoundDeclarative> declaratives = [];

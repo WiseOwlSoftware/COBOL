@@ -68,7 +68,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
 {
     /// <summary>⛔ THE CONSTANT ENTRIES OF ONE SOURCE ELEMENT (kb/Work PB3164): the binder's own element (a program, a
     /// function, or a class's object, factory or interface definition — <see cref="_constants"/>), or one METHOD
-    /// (<see cref="OoMethodDataScope.Constants"/>). A method definition is a source unit of its own, and so a source
+    /// (<see cref="_methodConstants"/>). A method definition is a source unit of its own, and so a source
     /// element (§3.164, "source unit excluding any contained source units"), which "may use identical user-defined
     /// words to name items independent of the use of these user-defined words by other source elements" (§8.4.6.1).
     /// A method's constant-name is a local name (§8.4.6.2.2; §13.18.27.3 SR4 bars GLOBAL in a method definition), which
@@ -94,7 +94,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         /// condition-names, index-names and type-names, but not the names inside a type declaration, which "may be
         /// referenced only as subordinate items of groups defined using the type-name" (§13.18.58.4 GR1) and so hide
         /// nothing (kb/Work PB3192). §11.7.4 GR5 makes each hide a word of the same spelling in the containing object or
-        /// factory definition, from before the entry that defines it binds (<see cref="OoMethodDataScope.Declares"/>). Empty for the binder's own element, whose data-names cannot repeat
+        /// factory definition, from before the entry that defines it binds (<see cref="MethodDeclares"/>). Empty for the binder's own element, whose data-names cannot repeat
         /// one of its own constant-names (§8.3.2.2) and whose containers' constants it shadows through
         /// <see cref="InheritStep.DropShadowed"/>.</summary>
         internal HashSet<string> OtherWords { get; } = new(CobolNames.Comparer);
@@ -106,10 +106,37 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// <summary>This binder's own source element's constants (<see cref="ConstantScope"/>).</summary>
     private readonly ConstantScope _constants = new();
 
+    /// <summary>Each METHOD's own constants (<see cref="ConstantScope"/>), keyed by the method's name scope: binder working
+    /// state (a declared entry holds its parse contexts), so it is kept here and never on the method's model scope
+    /// (kb/Work PB2402). The methods of a class half are bound by that half's binder, their data and their statements alike
+    /// (<c>OoDataBinder.BindMethodData</c>, <c>StatementBinder.BindClassBody</c>), so one map holds every table a reference
+    /// made in one of them reads.</summary>
+    private readonly Dictionary<OoMethodDataScope, ConstantScope> _methodConstants = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>The constant table of the method whose name scope is <paramref name="method"/>, made the first time it is
+    /// asked for (every method has one, empty until its data division declares an entry).</summary>
+    private ConstantScope MethodConstantsOf(OoMethodDataScope method)
+    {
+        if (!_methodConstants.TryGetValue(method, out var scope)) _methodConstants[method] = scope = new ConstantScope();
+        return scope;
+    }
+
     /// <summary>The METHOD whose constants a reference made now reads first: the method whose data division is being
     /// bound, else the method whose statements are (<see cref="ProcedureBindState.ActiveMethodScope"/>); null at program, object,
     /// factory and interface level.</summary>
-    private ConstantScope? MethodConstants => owner.Oo.CurrentMethodScope?.Constants;
+    private ConstantScope? MethodConstants => owner.Oo.CurrentMethodScope is { } method ? MethodConstantsOf(method) : null;
+
+    /// <summary>The constants of the METHOD whose data division is being bound (<see cref="OoDataBinder.BindingMethodScope"/>),
+    /// the table its entries are declared in; null outside a method's data division.</summary>
+    private ConstantScope? BindingMethodConstants => owner.Oo.BindingMethodScope is { } method ? MethodConstantsOf(method) : null;
+
+    /// <summary>The binder's half of "does the method whose name scope is <paramref name="method"/> declare
+    /// <paramref name="word"/>" (§11.7.4 GR5; kb/Work PB3164, PB3192): one of its constant entries names it
+    /// (<see cref="ConstantScope.Declared"/>), or a data description entry of its data division does, declared before any
+    /// entry binds (<see cref="ConstantScope.OtherWords"/>). The model's half is <see cref="OoMethodDataScope.IndexesDeclare"/>;
+    /// <see cref="DataBinder.MethodDeclares"/> asks both.</summary>
+    internal bool MethodDeclares(OoMethodDataScope method, string word) =>
+        _methodConstants.TryGetValue(method, out var scope) && (scope.Declared.ContainsKey(word) || scope.OtherWords.Contains(word));
 
     /// <summary>⛔ THE ONE ANSWER TO "WHICH ELEMENT'S CONSTANT DOES <paramref name="name"/> NAME HERE?" (kb/Work PB3164;
     /// §11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
@@ -257,7 +284,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     internal void DeclareDataEntries(Core.DataDivisionContext? scope)
     {
         if (scope is null) return;
-        var method = owner.Oo.BindingMethodScope?.Constants;
+        var method = BindingMethodConstants;
         bool inTypeDeclaration = false;   // the walk is inside a level-1 TYPEDEF entry's subordinate entries
         foreach (var node in ParseTreeWalk.Descendants(scope))
         {
@@ -295,7 +322,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         Core.DataNameContext? nameCtx, Core.ConstantEntryBodyContext body)
     {
         if (_constantByBody.TryGetValue(body, out var known)) return known;
-        var scope = owner.Oo.BindingMethodScope?.Constants ?? _constants;
+        var scope = BindingMethodConstants ?? _constants;
         var d = new DeclaredConstant(entry, level, nameCtx, body, scope);
         _constantByBody[body] = d;
         if (nameCtx?.GetText() is { } name && !CobolNames.Same(name, "FILLER"))

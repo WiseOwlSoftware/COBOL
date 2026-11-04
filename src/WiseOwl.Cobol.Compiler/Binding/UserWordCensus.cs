@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Binding;
 /// word may be used as only one type of user-defined word</i>": the type each word was first recorded as, and the
 /// words already reported as two types. A program's binder is one source element and owns one census; a class
 /// binder also hosts its METHODS, each a source element of its own (§10.5, "A source element is a source unit
-/// excluding any contained source units"), so each method carries its own census on
-/// <see cref="OoMethodDataScope.Words"/> (kb/Work PB2921: one shared census refused a METHOD-ID spelled like its
+/// excluding any contained source units"), so each method has its own census, which the class table keeps for its symbol
+/// (<see cref="Compiler.Oo.OoClassTable.CensusOf(Compiler.Oo.OoMethodSymbol)"/>; kb/Work PB2921: one shared census refused a METHOD-ID spelled like its
 /// CLASS-ID, and a condition-name in one method spelled like a data-name in another, both COBOL2692 on legal
 /// source). Each element's census is the one <see cref="Compiler.Oo.OoClassTable.CensusOf"/> keeps for it. Recorded
 /// by <see cref="DataBinder.DeclareUserWord"/> for every declaration, and by

@@ -162,7 +162,7 @@ public sealed class GlobalNameClassDriftTests
             "DeclaredNearerThan no longer places a sum counter by its report's depth (ReportScope.Depth).");
     }
 
-    /// <summary>A METHOD's name index → the text <c>OoMethodDataScope.Declares</c> asks it by.</summary>
+    /// <summary>A METHOD's model name index → the text <c>OoMethodDataScope.IndexesDeclare</c> asks it by.</summary>
     private static readonly Dictionary<string, string> AskedByMethodShadowing = new()
     {
         ["ByName"] = "ByName.ContainsKey(",
@@ -170,8 +170,12 @@ public sealed class GlobalNameClassDriftTests
         ["IndexNames"] = "IndexNames.Declares(",
         ["CapacityRegisters"] = "CapacityRegisters.ContainsKey(",
         ["TypeDecls"] = "TypeDecls.ContainsKey(",              // a method's type-names are its own (kb/Work PB3192)
-        ["Constants"] = "Constants.Declared.ContainsKey(",
     };
+
+    /// <summary>The method's words the BINDER keeps (kb/Work PB2402: binder working state, never on the model scope) → the
+    /// text <c>ConstantEntryBinder.MethodDeclares</c> asks them by: its constant entries (kb/Work PB3164) and the words its
+    /// data division defines before any entry binds (kb/Work PB3192).</summary>
+    private static readonly string[] AskedByMethodConstants = ["Declared.ContainsKey(", "OtherWords.Contains("];
 
     /// <summary>⛔ THE METHOD TIER ASKS EVERY NAME INDEX OF THE METHOD (the kb/Work PB3165 merge-queue bounce). A method
     /// is a source element of its own (§10.5), its names the NEAREST tier a reference in it can reach, so a method's
@@ -179,30 +183,50 @@ public sealed class GlobalNameClassDriftTests
     /// (§8.4.6.1, §8.4.6.2.1 3) a)). When PB3165 moved a method's CAPACITY registers out of the binder's index into
     /// <see cref="OoMethodDataScope.CapacityRegisters"/>, the binder's hand-written method predicate kept asking the
     /// old index, and <c>conformance-suite/cases/_unassigned/pb3154_half_capacity_register_hides_symbolic.cob</c> displayed the
-    /// figurative <c>CCC</c> for the method's own register. The scope's name indexes are found by REFLECTION, so an
-    /// index added to the scope must be asked by <c>OoMethodDataScope.Declares</c> too.</summary>
+    /// figurative <c>CCC</c> for the method's own register. The model scope's name indexes are found by REFLECTION, so an
+    /// index added to the scope must be asked by <c>OoMethodDataScope.IndexesDeclare</c> too; the binder's half
+    /// (<c>ConstantEntryBinder.MethodDeclares</c>) asks the method's constants and early words; and THE question,
+    /// <c>DataBinder.MethodDeclares</c>, asks both halves (kb/Work PB2402 split the one predicate when the census and the
+    /// constants left the model scope).</summary>
     [Fact]
     public void MethodDeclares_AsksEveryMethodNameIndex()
     {
         Assert.Equal(AskedByMethodShadowing.Keys.Order(StringComparer.Ordinal),
             NameIndexFields(typeof(OoMethodDataScope)).Order(StringComparer.Ordinal));
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoMethodDataScope.cs"));
-        var m = Regex.Match(text, @"internal bool Declares\(string word\)\s*\{(?<body>.*?)\n    \}", RegexOptions.Singleline);
-        Assert.True(m.Success, "OoMethodDataScope.Declares not found in OoMethodDataScope.cs");
+        string scope = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoMethodDataScope.cs"));
+        var m = Regex.Match(scope, @"internal bool IndexesDeclare\(string word\)\s*\{(?<body>.*?)\n    \}", RegexOptions.Singleline);
+        Assert.True(m.Success, "OoMethodDataScope.IndexesDeclare not found in OoMethodDataScope.cs");
         foreach (var (index, ask) in AskedByMethodShadowing)
             Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
-                $"OoMethodDataScope.Declares no longer asks the method's name index '{index}' (expected '{ask}').");
+                $"OoMethodDataScope.IndexesDeclare no longer asks the method's name index '{index}' (expected '{ask}').");
+
+        string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ConstantEntryBinder.cs"));
+        var c = Regex.Match(constants, @"internal bool MethodDeclares\(OoMethodDataScope method, string word\) =>(?<body>.*?);",
+            RegexOptions.Singleline);
+        Assert.True(c.Success, "ConstantEntryBinder.MethodDeclares not found in ConstantEntryBinder.cs");
+        foreach (string ask in AskedByMethodConstants)
+            Assert.True(c.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
+                $"ConstantEntryBinder.MethodDeclares no longer asks '{ask}'.");
+
+        string binder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
+        var d = Regex.Match(binder, @"internal bool MethodDeclares\(OoMethodDataScope method, string word\) =>(?<body>.*?);",
+            RegexOptions.Singleline);
+        Assert.True(d.Success, "DataBinder.MethodDeclares not found in DataBinder.cs");
+        foreach (string ask in (string[])["method.IndexesDeclare(word)", "Constants.MethodDeclares(method, word)"])
+            Assert.True(d.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
+                $"DataBinder.MethodDeclares no longer asks '{ask}': a method-local word of that half would not hide the object's.");
     }
 
     /// <summary>⛔ EVERY SYMBOL-TABLE LOOKUP WITH A METHOD TIER ASKS THE METHOD'S WHOLE DECLARATION (kb/Work PB3165 branch
     /// review R2-1). ISO §11.7.4 GR5 is about the WORD: a method's declaration of a spelling in any name class makes
     /// the object's declaration of it, of any class, "inaccessible to this method" (§8.4.6.1 "even when it is a
-    /// different type of user-defined word"). <c>CapacityCandidates</c> asked <see cref="OoMethodDataScope.Declares"/>,
+    /// different type of user-defined word"). <c>CapacityCandidates</c> asked the method's whole declaration,
     /// but <c>IndexCandidates</c>, <c>TryResolve</c> and <c>TryResolveCondition</c> each asked only their own class's
     /// method index and then fell through to the object's: a method CAPACITY register spelled like an object
     /// index-name was refused as an index in COMPUTE, and a method condition-name let <c>MOVE X</c> read the object's
     /// data-name <c>X</c>. Every <see cref="SymbolTable"/> member whose body opens a method tier
-    /// (<c>scope.Method is { } m</c>) must ask <c>m.Declares(name)</c> before it reaches the unit's maps. The
+    /// (<c>scope.Method is { } m</c>) must ask <c>_data.MethodDeclares(m, name)</c> (<c>DataBinder.MethodDeclares</c>) before
+    /// it reaches the unit's maps. The
     /// behavioural half is <c>conformance-suite/cases/_unassigned/pb3165_method_capacity_register_scope.cob</c> (SHOWF) and the
     /// three <c>negative/pb3165-method-*-hides-object-*</c> cases.</summary>
     [Fact]
@@ -215,9 +239,9 @@ public sealed class GlobalNameClassDriftTests
             .ToList();
         Assert.True(tiered.Count >= 4, $"expected the four method-tiered lookups in SymbolTable.cs, found {tiered.Count}");
         foreach (var m in tiered)
-            Assert.True(Regex.IsMatch(m.Groups["rest"].Value, @"\bm\.Declares\(name\)"),
-                $"SymbolTable.{m.Groups["name"].Value} opens a method tier but never asks m.Declares(name): a method-local "
-                + "name of the spelling in another name class would not hide the object's (ISO §11.7.4 GR5).");
+            Assert.True(Regex.IsMatch(m.Groups["rest"].Value, @"\b_data\.MethodDeclares\(m, name\)"),
+                $"SymbolTable.{m.Groups["name"].Value} opens a method tier but never asks _data.MethodDeclares(m, name): a "
+                + "method-local name of the spelling in another name class would not hide the object's (ISO §11.7.4 GR5).");
     }
 
     /// <summary>⛔ A REPORT SECTION ENTRY TAKES PART IN §8.4.6.2.1 3) IN THE ONE NARROWING, NEVER IN A CALLER (kb/Work

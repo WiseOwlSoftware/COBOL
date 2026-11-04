@@ -173,7 +173,8 @@ internal sealed class DynamicResolvePass : IBindPass
             // element of its own (§10.5, the census of kb/Work PB2921), so its register is judged against ITS data-names
             // and registers only — never against the object's, which §11.7.4 GR5 makes inaccessible to the method when a
             // word is declared in both, and never against a sibling method's. The name lands in the same scope.
-            var methodScope = binder.ScopeOf(item.Root).Method;
+            var method = binder.Oo.RootOwner.GetValueOrDefault(item.Root);   // the method whose data the table is, as ScopeOf finds it
+            var methodScope = method?.DataScope;
             var registers = methodScope?.CapacityRegisters ?? binder.State.Forest.CapacityRegistersSoFar;
             if ((methodScope is null ? binder.State.Forest.DeclaresOwnDataName(capName) : methodScope.ByName.ContainsKey(capName))
                 || (registers.TryGetValue(capName, out var sameName)
@@ -192,8 +193,8 @@ internal sealed class DynamicResolvePass : IBindPass
             // declared before OR after it — the procedure-division binder declares those later and its declaration is
             // the one refused. This used to be a hand-written file-name scan beside the data-name test.
             // (A method's word lands in the method's own census — the funnel reads it off the declaration scope.)
-            if (methodScope is null) binder.DeclareUserWord(capName, UserWordKind.DataName);
-            else using (binder.Oo.EnterMethodDeclarations(methodScope)) binder.DeclareUserWord(capName, UserWordKind.DataName);
+            if (method is null) binder.DeclareUserWord(capName, UserWordKind.DataName);
+            else using (binder.Oo.EnterMethodDeclarations(method)) binder.DeclareUserWord(capName, UserWordKind.DataName);
             binder.State.Forest.AddCapacityRegister(methodScope, capName, item);
         }
     }

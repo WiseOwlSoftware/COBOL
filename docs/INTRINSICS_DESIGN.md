@@ -830,8 +830,8 @@ user-defined word may be used as only one type of user-defined word*" is asked a
 (`CheckOneTypePerWord`): ONE `UserWordCensus` per source element keeps `word → the type it was first declared as`
 (a name a containing element passes down is inherited, not declared, and a contained element may re-declare it,
 §8.4.6.1). A program's `DataBinder` is one element and owns one census (`_ownWords`); a class binder also hosts its
-METHODS, each a source element of its own (§10.5), so each method carries its own census (`OoMethodDataScope.Words`)
-and `DataBinder.WordCensus` selects it while `OoDataBinder.EnterMethodDeclarations` is open — around the method's data
+METHODS, each a source element of its own (§10.5), so each method has its own census, which the class table keeps for its
+symbol (`OoClassTable.CensusOf(OoMethodSymbol)`, binder state, kb/Work PB2402), and `DataBinder.WordCensus` selects it while `OoDataBinder.EnterMethodDeclarations` is open — around the method's data
 entries and METHOD-ID (`OoDataBinder.BindMethodData`) and its procedure-names (`StatementBinder.BindClassBody`). ⛔ A new
 declaration site inside a method runs under `OoDataBinder.EnterMethodDeclarations`, or its word lands in the class's census
 (kb/Work PB2921). Every element's census is the one `OoClassTable.CensusOf` keeps for it (a method's is its symbol's;

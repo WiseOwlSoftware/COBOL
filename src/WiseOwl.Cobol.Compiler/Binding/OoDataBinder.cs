@@ -83,9 +83,15 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     internal Dictionary<DataItem, OoMethodSymbol> RootOwner { get; } = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Set while a METHOD's declarations are bound or collected (<see cref="EnterMethodDeclarations"/>):
-    /// INDEXED BY index-names register into the method's own scope, never the unit's (M2-OO-1h step 4), and every
-    /// user-defined word lands in the method's own §8.3.2.2 census (kb/Work PB2921). Null at program/object scope.</summary>
+    /// INDEXED BY index-names register into the method's own scope, never the unit's (M2-OO-1h step 4). Null at
+    /// program/object scope.</summary>
     internal OoMethodDataScope? BindingMethodScope { get; private set; }
+
+    /// <summary>The §8.3.2.2 census of the METHOD whose declarations are bound or collected (<see cref="EnterMethodDeclarations"/>),
+    /// null at program/object scope: every user-defined word it declares lands in the method's own census (kb/Work PB2921),
+    /// the one the class table keeps for the method's symbol (<see cref="OoClassTable.CensusOf(OoMethodSymbol)"/>), which a
+    /// reference made anywhere in the compilation records into too.</summary>
+    internal UserWordCensus? BindingMethodWords { get; private set; }
 
     /// <summary>The METHOD whose data entries are being bound (<see cref="BindMethodData"/>; cleared with the declaration
     /// scope, <see cref="MethodDeclarationScope"/>), null otherwise: every record and type declaration its entries open is
@@ -104,19 +110,23 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// <c>EmitContext.Options</c>.</summary>
     internal OptionsModel EntryOptions => BindingMethod?.MethodOptions ?? Options;
 
-    /// <summary>Declare into <paramref name="scope"/>'s method until the returned token is disposed: its data entries
-    /// and METHOD-ID (<see cref="BindMethodData"/>) and its procedure-names (the class-body collection,
-    /// <c>StatementBinder.BindClassBody</c>). One method source element at a time, so no scope nests.</summary>
-    internal MethodDeclarationScope EnterMethodDeclarations(OoMethodDataScope scope)
+    /// <summary>Declare into <paramref name="method"/> until the returned token is disposed: its data entries and METHOD-ID
+    /// (<see cref="BindMethodData"/>) and its procedure-names (the class-body collection, <c>StatementBinder.BindClassBody</c>)
+    /// join its name scope and its census. One method source element at a time, so no scope nests. A method's symbol is
+    /// made by the class table, so a binder that declares one always has that table.</summary>
+    internal MethodDeclarationScope EnterMethodDeclarations(OoMethodSymbol method)
     {
-        BindingMethodScope = scope;
+        var table = OoClasses ?? throw new InvalidOperationException(
+            $"method '{method.Name}' declares its words with no class table: a method's census is the class table's");
+        (BindingMethodScope, BindingMethodWords) = (method.DataScope, table.CensusOf(method));
         return new MethodDeclarationScope(this);
     }
 
     /// <summary>The restore token of <see cref="EnterMethodDeclarations"/>.</summary>
     internal readonly struct MethodDeclarationScope(OoDataBinder binder) : IDisposable
     {
-        public void Dispose() => (binder.BindingMethodScope, binder.BindingMethod) = (null, null);
+        public void Dispose() =>
+            (binder.BindingMethodScope, binder.BindingMethodWords, binder.BindingMethod) = (null, null, null);
     }
 
     /// <summary>The METHOD a reference made now is made in: the method whose statements are being bound
@@ -130,12 +140,12 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
 
     /// <summary>Whether the method a reference is made in (<see cref="CurrentMethodScope"/>) declares <paramref name="word"/>
     /// as a data-name, a condition-name, an index-name, a CAPACITY register, a type-name or a constant-name of its own
-    /// (<see cref="OoMethodDataScope.Declares"/>) — the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
+    /// (<see cref="DataBinder.MethodDeclares"/>) — the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
     /// symbolic-character of the spelling the class's binder holds (ISO §8.4.6.2.1 3) a) "If the name is declared in
     /// source element B, the item in source element B is the referenced item"; §8.4.6.1 "even when it is a different
     /// type of user-defined word"; kb/Work PB3154 review R1-1). Asked by the two literal-alias lookups,
     /// <see cref="ConstantEntryBinder.FindConstant"/> and <c>SpecialNamesBinder.SymbolicOf</c>; always false outside a method.</summary>
-    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope?.Declares(word) == true;
+    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope is { } method && data.MethodDeclares(method, word);
 
     /// <summary>Reserve the names the C# class this binder's data is emitted into already holds, BEFORE the data
     /// division binds: its own type name <paramref name="classClrName"/> (the instance class beside the object data,
@@ -303,7 +313,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
 
         var dd = definition.dataDivision();
         BindingMethod = m;
-        using (EnterMethodDeclarations(m.DataScope))
+        using (EnterMethodDeclarations(m))
         {
             // The METHOD-ID's word belongs to the METHOD's source element (§8.4.6.5: "The method-name of a method is
             // declared in the METHOD-ID paragraph"), not its class's, so a METHOD-ID spelled like its CLASS-ID is legal
