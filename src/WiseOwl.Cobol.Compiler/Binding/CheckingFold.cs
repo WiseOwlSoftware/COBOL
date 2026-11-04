@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Binding;
@@ -51,13 +50,14 @@ internal static class CheckingFold
     /// context: its enclosing CLASS-ID line is the query point, since the accessor is part of that definition and has no
     /// source position of its own to disagree with. A written method with no procedure division answers at its METHOD-ID
     /// line (it has no header for a TURN to precede).</summary>
-    public static MethodChecking Method(TurnState turn, PropagateState propagate, OoMethodSymbol method, OoClassSymbol cls)
+    public static MethodChecking Method(TurnState turn, PropagateState propagate, OoMethodSymbol method, OoClassSymbol cls, SourceMap sources)
     {
-        var written = method.Origin is OoSymbolOrigin.Source ? method.Ctx : null;   // only a written method has a METHOD-ID to ask
-        int idLine = (written?.Start ?? cls.Ctx.Start).Line;
+        var written = method.Origin is OoSymbolOrigin.Source ? sources.Of(method) : null;   // only a written method has a METHOD-ID to ask
+        int classLine = sources.Of(cls).Start.Line;
+        int idLine = written?.Start.Line ?? classLine;
         int divLine = written is { } mc
             ? (mc.environmentDivision()?.Start ?? mc.dataDivision()?.Start ?? mc.procedureDivision()?.Start ?? mc.Stop).Line
-            : cls.Ctx.Start.Line;
+            : classLine;
         return new MethodChecking(
             OoUniversalChecking: turn.EnabledAtHeader("EC-OO-UNIVERSAL", written?.procedureDivision(), idLine),
             ExternalCheckMask: ExternalMaskAt(turn, divLine),

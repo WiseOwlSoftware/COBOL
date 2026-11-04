@@ -93,7 +93,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     /// edition spelling (<see cref="RuntimeApi.ExternalizedNameInEdition"/>, kb/Work PB2991), as a literal naming the same
     /// program is.</summary>
     private string NameImage(Place name) =>
-        RuntimeApi.ExternalizedNameInEdition(OperandText.FieldImage(name), ctx.Data.Edition.DialectLevel);
+        RuntimeApi.ExternalizedNameInEdition(OperandText.FieldImage(name), ctx.Data.DialectLevel);
 
     /// <summary>The C# value expression of an address-identifier OPERAND (§8.4.3.1.2 identifier Format 9), either
     /// arm — a <c>ManagedPointer</c> for the data arm, a <c>ProgramPointer</c> for the program arm.</summary>

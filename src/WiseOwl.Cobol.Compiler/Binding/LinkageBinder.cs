@@ -268,7 +268,7 @@ internal sealed class LinkageBinder(DataBinder data)
             else
                 yield return new(anchor.ClrName, CallBridgeKind.Field, anchor);
             if (!ReferenceEquals(anchor, g))
-                foreach (var idx in DataBinder.IndexDeclarationsUnder(anchor))
+                foreach (var idx in IndexDeclaration.Under(anchor))
                     yield return new(idx.Cell, CallBridgeKind.Index, null);
             if (anchor.OmittedGuard is { } ag && !ReferenceEquals(anchor, g))
                 yield return new(ag.Presence, CallBridgeKind.Presence, anchor);
@@ -277,7 +277,7 @@ internal sealed class LinkageBinder(DataBinder data)
         // container's presence member under the same Uid-keyed name (kb/Work PB971).
         if (g.OmittedGuard is { } og)
             yield return new(og.Presence, CallBridgeKind.Presence, g);
-        foreach (var idx in DataBinder.IndexDeclarationsUnder(g))
+        foreach (var idx in IndexDeclaration.Under(g))
             yield return new(idx.Cell, CallBridgeKind.Index, null);
     }
 

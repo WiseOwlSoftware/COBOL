@@ -783,7 +783,7 @@ COBOL0849); no generated check follows the operand's staging.
 `RAISING LAST EXCEPTION` (kb/Work PB1121): the object it re-propagates is whatever the last exception status holds,
 its class known only at run time, so the static discharge cannot reach it. The emitted staging passes
 `ExceptionState.ExceptionObject is <census>` to `ExceptionState.SetPropagatingLast`, where `<census>` is the element's
-ONE header-RAISING list of C# types (`EcState.PdRaisingObjectCsTypes`: each class entry's own type, a FACTORY OF entry's
+ONE header-RAISING list of C# types (`EcState.PdRaisingObjectCsTypes`, built from the binder's resolved `RaisingObject`s, kb/Work PB2403: each class entry's own type, a FACTORY OF entry's
 factory type, each interface entry's implementing types; `false` when the header names none). A miss stages the NAMED
 EC-OO-EXCEPTION instead of the object ("as if EXCEPTION EC-OO-EXCEPTION were specified in the RAISING phrase"), which
 the activator raises only when checking for it is enabled there (§14.9.18.4 GR1 b)). The same census serves item 3

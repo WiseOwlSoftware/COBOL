@@ -275,4 +275,11 @@ public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, strin
     /// <c>DataBinder.IsRepositoryIntrinsic</c> — the membership that applies GR14's >>COBOL-WORDS clauses and the edition
     /// — which the SR13 user-word prohibition (<c>DataBinder.DeclareUserWord</c>) asks too.</summary>
     internal bool RepositoryAllIntrinsic { get; set; }
+
+    /// <summary>The configuration facts a backend reads (<see cref="ConfigurationFacts"/>), copied from this slice when the unit's
+    /// <see cref="DataBindResult"/> is made (<c>DataBinder.Result</c>; kb/Work PB2361): the OPTIONS model, the CHARACTER
+    /// CLASSIFICATION, the two PROGRAM COLLATING SEQUENCEs, DECIMAL-POINT IS COMMA and the program-specifiers' externalized
+    /// names, in the order they were written. The declaration tables and the name-use recorder stay with the binder.</summary>
+    internal ConfigurationFacts Facts() => new(Options, Classification, Collating, NationalCollating, DecimalPointIsComma,
+        [.. ProgramSpecifiers.Values.Select(static s => s.ExternalizedName)]);
 }

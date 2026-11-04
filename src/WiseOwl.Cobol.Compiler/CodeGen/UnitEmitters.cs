@@ -47,7 +47,7 @@ internal sealed class UnitEmitters
     public StatementEmitter Statements { get; }
     public DispatchEmitter Dispatch { get; }
 
-    public UnitEmitters(CodeWriter w, DataBinder data, PlaceTable places, NameAllocator names, GroupAtomTable atoms,
+    public UnitEmitters(CodeWriter w, DataBindResult data, PlaceTable places, NameAllocator names, GroupAtomTable atoms,
         DispatchState dispatchState, EcState ecState, CallUnitState callState, OoEmitter oo,
         Lazy<string> whenCompiledStamp)
     {

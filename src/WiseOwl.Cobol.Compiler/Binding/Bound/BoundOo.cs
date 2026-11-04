@@ -3,15 +3,12 @@
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
 
 using WiseOwl.Cobol.Compiler.Oo;
 
 namespace WiseOwl.Cobol.Binding.Bound;
-
-using Core = CobolParserCore;
 
 /// <summary>An INVOKE's resolved call form (OO deep-dive D1/D5 — the binder chooses; both backends render).</summary>
 public enum InvokeForm

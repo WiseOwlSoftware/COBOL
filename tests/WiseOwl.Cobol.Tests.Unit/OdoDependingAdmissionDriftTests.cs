@@ -134,7 +134,7 @@ public sealed class OdoDependingAdmissionDriftTests
     public void EveryRecordedDependingLink_IsAnElementaryIntegerOutsideItsTable(string shape, string ws, string[] codes)
     {
         var (data, diagnostics) = Bind(ws);
-        foreach (var table in data.State.Forest.Roots.SelectMany(Subtree).Where(i => i.OccursSpec is { DependingName: not null }))
+        foreach (var table in data.Forest.Roots.SelectMany(Subtree).Where(i => i.OccursSpec is { DependingName: not null }))
         {
             if (table.OccursSpec!.Depending is not { } dep) continue;
             Assert.True(dep.IsElementary, $"{shape}: '{table.CobolName}' records the group '{dep.CobolName}'");
@@ -146,13 +146,13 @@ public sealed class OdoDependingAdmissionDriftTests
             .Where(c => c.Length > 0).Distinct().Order().ToArray();
         Assert.Equal(codes.Order().ToArray(), reported);
         if (shape == "legal")
-            Assert.All(data.State.Forest.Roots.SelectMany(Subtree).Where(i => i.OccursSpec is { DependingName: not null }),
+            Assert.All(data.Forest.Roots.SelectMany(Subtree).Where(i => i.OccursSpec is { DependingName: not null }),
                 t => Assert.NotNull(t.OccursSpec!.Depending));
     }
 
     private static IEnumerable<DataItem> Subtree(DataItem item) => [item, .. item.Children.SelectMany(Subtree)];
 
-    private static (DataBinder Data, IReadOnlyList<string> Diagnostics) Bind(string ws)
+    private static (DataBindResult Data, IReadOnlyList<string> Diagnostics) Bind(string ws)
     {
         string src = $"""
             IDENTIFICATION DIVISION.

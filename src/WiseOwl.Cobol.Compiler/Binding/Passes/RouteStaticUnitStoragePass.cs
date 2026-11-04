@@ -88,7 +88,7 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
             // An INDEXED BY cell under a BASED table is an ordinary emitted field (allocated in
             // RegisterIndexes regardless of BASED-ness) and §13.5.4 GR1 makes it static like the rest of
             // the unit's WS — the bridge routes the ADDRESS, the index cells still route themselves.
-            foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+            foreach (var idx in IndexDeclaration.Under(root))
                 binder.State.StorageTier.AddStaticIndexCell(idx.Cell);
             return;
         }
@@ -101,7 +101,7 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
             // source this used to refuse (COBOL0899): a static item's address is simply the one copy's.
             // Every root of the class (the canonical and each REDEFINES view) names the ONE cell.
             binder.State.StorageTier.AddStaticAddressableCell(addrCell);
-            foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+            foreach (var idx in IndexDeclaration.Under(root))
                 binder.State.StorageTier.AddStaticIndexCell(idx.Cell);
             return;
         }
@@ -112,14 +112,14 @@ internal sealed class RouteStaticUnitStoragePass : IBindPass
             // ALLOCATED cell reached through the ONE bridge the BASED root above already routed static, so it
             // has no storage of its own to route; only its index cells do (kb/Work PB234 — this arm used to
             // refuse the source with the same COBOL0899 as the ADDRESS OF arm).
-            foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+            foreach (var idx in IndexDeclaration.Under(root))
                 binder.State.StorageTier.AddStaticIndexCell(idx.Cell);
             return;
         }
         if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
             binder.State.StorageTier.AddStaticRootField(c2.BackingClrName);   // Tier-B: the ONE string backing IS the storage
         binder.State.StorageTier.AddStaticRootField(root.ClrName);
-        foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+        foreach (var idx in IndexDeclaration.Under(root))
             binder.State.StorageTier.AddStaticIndexCell(idx.Cell);
     }
 }

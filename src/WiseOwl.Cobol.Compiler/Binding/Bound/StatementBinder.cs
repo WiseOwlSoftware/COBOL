@@ -319,7 +319,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 m.Binding!.EntryPc = table.Paragraphs.Count;
                 m.Binding!.DeclStartPc = m.Binding!.EntryPc;
                 m.Binding!.EndPc = table.Paragraphs.Count - 1;   // empty body by construction
-                methods.Add(new BoundMethod(m.Name, m.ClrName, m.Binding!.EntryPc, m.Binding!.EndPc));
+                methods.Add(new BoundMethod(m.Name, m.ClrName, m.Binding!.EntryPc, m.Binding!.EndPc, []));
                 continue;
             }
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
@@ -330,15 +330,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
             // …and its procedure-names are words of the METHOD's source element, declared in its own §8.3.2.2 census
             // (kb/Work PB2921) — released at the end of this iteration.
-            using var declaring = Ctx.Data.Oo.EnterMethodDeclarations(m.DataScope);
+            using var declaring = Ctx.Data.Oo.EnterMethodDeclarations(m);
             m.Binding!.DeclStartPc = table.Paragraphs.Count;
             m.Binding!.EntryPc = table.Paragraphs.Count;
-            if (m.Ctx.procedureDivision() is { } pd)
+            IReadOnlyList<BoundDeclarative> declaratives = [];
+            if (Ctx.Data.Oo.BodyOf(m) is { } pd)   // the body OoDataBinder.BindMethodData was handed (kb/Work PB2401)
             {
                 // The method's declaratives portion (§14.2.1 Format 1; §14.2.2 SR10): the declarative sections take
                 // the pcs BELOW the method's entry, reached only through its USE selection or an explicit PERFORM
                 // (§14.9.49.3 SR4) — the program layout, one method at a time (kb/Work PB1010).
-                m.Binding!.Declaratives = table.CollectMethodDeclaratives(pd, used);
+                declaratives = table.CollectMethodDeclaratives(pd, used);
                 m.Binding!.EntryPc = table.Paragraphs.Count;
                 // The program's walk, at the method's ENTRY pc set just above: unnamed lead sentences (§14.4.3), then
                 // paragraphs and sections, each a method-local name and a section a method-local pc range (with
@@ -346,7 +347,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 table.CollectNondeclaratives(pd, used);
             }
             m.Binding!.EndPc = table.Paragraphs.Count - 1;
-            methods.Add(new BoundMethod(m.Name, m.ClrName, m.Binding!.EntryPc, m.Binding!.EndPc));
+            methods.Add(new BoundMethod(m.Name, m.ClrName, m.Binding!.EntryPc, m.Binding!.EndPc, declaratives));
         }
         Ctx.CurrentMethodScope = null;
 

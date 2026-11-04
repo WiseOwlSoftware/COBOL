@@ -30,7 +30,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
     /// (<see cref="Neutral"/>; kb/Work PB4272).</remarks>
     public BackendArtifact Emit(Binding.Model.BoundCompilation program, BackendOptions options)
     {
-        string csharp = _emitter.EmitBound(program, options.AssemblyName, options.Inputs, options.RepositoryUpdate);
+        string csharp = _emitter.EmitBound(program, options.AssemblyName, options.Inputs);
         var written = new List<string>();
 
         string outDir = Path.GetDirectoryName(Path.GetFullPath(options.OutputPath)) is { Length: > 0 } d ? d : ".";

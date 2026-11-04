@@ -405,7 +405,7 @@ internal static class OoExpansion
             {
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
                     $"REPOSITORY {(isInterface ? "INTERFACE" : "CLASS")} '{target}': the parameterized {(isInterface ? "interface" : "class")} '{identity}' that "
-                    + $"'{found.From.Path}' publishes does not parse from the source it recorded, so it cannot be expanded: recompile that "
+                    + $"'{found.From.AssemblyFile}' publishes does not parse from the source it recorded, so it cannot be expanded: recompile that "
                     + "assembly (ISO §12.3.8.4 GR5/GR8)");
                 return null;
             }

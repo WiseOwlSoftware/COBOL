@@ -5,7 +5,6 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen.Emit;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
@@ -221,8 +220,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// a site with crossings to land states the EMPTY array (the runtime still lands its BY VALUE arguments, GR10, and its computed BY CONTENT ones, kb/Work PB3969) and one
     /// with none states nothing. A site that states nothing (null) has no argument for the runtime to land: it held the
     /// signature and landed every argument at compile time, or it passes every argument BY REFERENCE.</summary>
-    private string ProgramSpecifiersText(bool landsAtRunTime) => ctx.Data.State.Configuration.ProgramSpecifiers.Count > 0
-        ? $", programSpecifiers: new string[] {{ {string.Join(", ", ctx.Data.State.Configuration.ProgramSpecifiers.Values.Select(s => CsLiteral(s.ExternalizedName)))} }}"
+    private string ProgramSpecifiersText(bool landsAtRunTime) => ctx.Data.Configuration.ProgramSpecifierNames.Count > 0
+        ? $", programSpecifiers: new string[] {{ {string.Join(", ", ctx.Data.Configuration.ProgramSpecifierNames.Select(CsLiteral))} }}"
         : landsAtRunTime ? ", programSpecifiers: global::System.Array.Empty<string>()" : "";
 
     /// <summary>The <c>CobolArg[]</c> expression of one bound call's arguments — the ONE argument-array text of
@@ -265,7 +264,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         string nameExpr = c.LiteralName is { } literal
             ? CsLiteral(literal)
             : RuntimeApi.ExternalizedNameInEdition(OperandText.AsString(c.DynamicName!, num),
-                ctx.Data.Edition.DialectLevel);   // GR3b — the identifier's value at CALL time (GR3a: read once), formed in the edition's spelling (PB2991)
+                ctx.Data.DialectLevel);   // GR3b — the identifier's value at CALL time (GR3a: read once), formed in the edition's spelling (PB2991)
         return $"ProgramRegistry.CallProgram({nameExpr}, {head}"
             + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")}"   // §8.4.3.2.4 GR6b
             + $"{site});";
@@ -617,19 +616,20 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>⛔ THE REGISTERED DESCRIPTION of a unit's RETURNING item (<c>BoundaryItem</c>, kb/Work PB1040): the same
     /// facts the activating element's <c>CobolArg</c> states for its receiver — <see cref="BoundaryProfile"/> and
-    /// <see cref="BoundaryLength"/> always, and its §14.8.3 description (<see cref="ActivationDescriptions.OfPlace"/>) when
-    /// the unit checks EC-PROGRAM-ARG-MISMATCH itself (<paramref name="describe"/>; kb/Work PB165) — emitted at the unit's
-    /// <c>ProgramRegistry.Register</c>, so §14.9.4.4 GR3 d) can compare the pair at call initiation. Null when it states
-    /// nothing.</summary>
-    internal string? RegisteredReturning(Place p, bool describe) =>
-        RegisteredBoundary(p, ctx.SignEncoding, BoundaryLength(p), describe ? ActivationDescriptions.OfPlace(p, ecState.OoClasses) : null);
+    /// <see cref="BoundaryLength"/> always, and its §14.8.3 <paramref name="description"/> when the unit checks
+    /// EC-PROGRAM-ARG-MISMATCH itself (null otherwise; the binder built it, <see cref="BoundUnit.ReturningDescription"/>, kb/Work
+    /// PB165, PB2403) — emitted at the unit's <c>ProgramRegistry.Register</c>, so §14.9.4.4 GR3 d) can compare the pair at call
+    /// initiation. Null when it states nothing.</summary>
+    internal string? RegisteredReturning(Place p, ActivationDescription? description) =>
+        RegisteredBoundary(p, ctx.SignEncoding, BoundaryLength(p), description);
 
     /// <summary>⛔ THE REGISTERED DESCRIPTION of one FORMAL (<c>BoundaryItem</c>, kb/Work PB165): what the activated unit
     /// states for a formal so that §14.8.2 has something to compare an argument with at a CALL whose activated program is
     /// located by name at run time — its storage length, measured by the function that measures the activating element's
-    /// argument (<see cref="ArgumentLength"/>), and its description, built by the builder that describes that argument
-    /// (<see cref="ActivationDescriptions.OfPlace"/>), so the two sides cannot disagree about what they compare — stated
-    /// only by a unit that checks EC-PROGRAM-ARG-MISMATCH (<paramref name="describe"/>). A NUMERIC formal also states its
+    /// argument (<see cref="ArgumentLength"/>), and its <paramref name="description"/>, which the binder built with the builder
+    /// that describes that argument (<see cref="BoundUnit.FormalDescriptions"/>; kb/Work PB2403), so the two sides cannot
+    /// disagree about what they compare — both stated only by a unit that checks EC-PROGRAM-ARG-MISMATCH
+    /// (<paramref name="describe"/>; the description is null otherwise). A NUMERIC formal also states its
     /// CARRIER (<c>CarrierLanding</c>; kb/Work PB2549) whatever the unit checks, so that §14.2.3 GR9's second regime and
     /// GR10 can land an argument into it at a CALL whose activating element did not know it (<c>BoundaryItem.Land</c>):
     /// the same profile and the same carrier type argument <see cref="LandedForFormal"/> lands with, from the one
@@ -638,9 +638,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// rendered by the MOVE emitter (<c>MoveEmitter.MovedRecord</c>) over the sending half the activating element states.
     /// Never null: an element that states nothing is the unstated <c>new BoundaryItem(null)</c>, so the array stays
     /// positional.</summary>
-    internal string RegisteredFormal(Place p, bool describe) =>
+    internal string RegisteredFormal(Place p, bool describe, ActivationDescription? description) =>
         RegisteredBoundary(p, ctx.SignEncoding, describe ? ArgumentLength(p) : RuntimeApi.UnstatedBoundaryLength,
-            describe ? ActivationDescriptions.OfPlace(p, ecState.OoClasses) : null, p.DenotedItem is { } formal ? FormalLanding(formal) : null)
+            description, p.DenotedItem is { } formal ? FormalLanding(formal) : null)
         ?? RuntimeApi.UnstatedBoundaryItem;
 
     /// <summary>The registered landing of <paramref name="formal"/> (<c>BoundaryItem.Landing</c>), or null when the crossing
@@ -810,7 +810,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// §14.8.2.2) is laid over: GR9's MOVE between two groups of one type, with the references set. Empty for every
     /// other BY CONTENT argument, which crosses as its value.</summary>
     private string ContentRecordArgument(BoundCallArg a, Place p) =>
-        a.Mode is CobolPassMode.Content && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(p.Item)
+        a.Mode is CobolPassMode.Content && ActivationCrossing.LeafCarried(p.Item)
         && ArgumentArea(p) is var area && area != "null"
             ? $", Area: {RuntimeApi.ArgAdaptContentRecord(area, p.Item.ByteWidth, CellComponents.PerOccurrence(p.Item))}"
             : "";
@@ -830,7 +830,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // A receiver whose values ride managed slots states its AREA, the storage §14.6.5's delivery places the result
         // in (§14.2.3 GR6 NOTE 1 — "the storage for the returning item is allocated in the activating source unit";
         // kb/Work PB1940): its references cannot cross as characters.
-        + $"{(rp.DenotedItem is { } g && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(g) ? AreaArgument(rp) : "")})";
+        + $"{(rp.DenotedItem is { } g && ActivationCrossing.LeafCarried(g) ? AreaArgument(rp) : "")})";
 
     /// <summary>⛔ THE FIXED CHARACTER LENGTH a place's text-carried storage has across the activation boundary
     /// (<see cref="CobolArg.Length"/>; kb/Work PB1040), <see cref="CobolArg.Unstated"/> when it has none. ONE
@@ -1212,7 +1212,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <para>Before PB1617 the width was stated for an ELEMENTARY formal only, so a GROUP formal received one
     /// occurrence that the callee space-padded (measured: <c>CALL … AS NESTED USING BY CONTENT ALL "*"</c> into
     /// <c>01 G. 05 A PIC X(2). 05 B PIC X(2).</c> displayed <c>*   </c>), and the INVOKE lane had no arm at all.</para></summary>
-    internal static string FigurativeArgumentImage(BoundOperand fill, DataItem? formal, DataBinder data)
+    internal static string FigurativeArgumentImage(BoundOperand fill, DataItem? formal, DataBindResult data)
     {
         int? width = FigurativeFillWidth(formal);
         return fill switch
@@ -1220,8 +1220,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // §8.3.3.6.4 GR2's repetition is the ONE runtime rule EmitText.RepeatToWidth folds (kb/Work PB297).
             BoundAllLiteral all => CsLiteral(width is { } w ? RepeatToWidth(all.Literal, w) : all.Literal),
             BoundFigurative fig =>
-                $"new string({FigurativeConstants.Fill(fig.Kind, data.State.Configuration.Collating,
-                    IntrinsicArgumentRules.CharacterContext(formal is null ? null : IntrinsicArgumentRules.ClassOfItem(formal)), data.State.Configuration.NationalCollating)}, {width ?? 1})",
+                $"new string({FigurativeConstants.Fill(fig.Kind, data.Configuration.Collating,
+                    IntrinsicArgumentRules.CharacterContext(formal is null ? null : IntrinsicArgumentRules.ClassOfItem(formal)), data.Configuration.NationalCollating)}, {width ?? 1})",
             _ => throw new ArgumentException(
                 $"{fill.GetType().Name} is not a figurative constant or ALL literal", nameof(fill)),
         };
@@ -1615,7 +1615,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         foreach (var (literal, dynamic) in c.Targets)
         {
             string nameExpr = literal is { } l ? CsLiteral(l)
-                : RuntimeApi.ExternalizedNameInEdition(OperandText.AsString(dynamic!, num), ctx.Data.Edition.DialectLevel);
+                : RuntimeApi.ExternalizedNameInEdition(OperandText.AsString(dynamic!, num), ctx.Data.DialectLevel);
             string call = $"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(callState.SelfPath)});";
             if (ecProg.Count == 0)
             {

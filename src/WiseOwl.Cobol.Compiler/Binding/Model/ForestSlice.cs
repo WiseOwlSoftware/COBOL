@@ -1,10 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Passes;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The type forest of ONE bound unit and the name tables over it (ISO §8.4.6.2.1 3): the roots of its WORKING-STORAGE,
@@ -19,8 +18,11 @@ namespace WiseOwl.Cobol.Binding;
 /// <para>A lookup that must see a METHOD's own names first asks the method's <see cref="OoMethodDataScope"/> before it asks
 /// this slice (<see cref="Model.SymbolTable"/>); the mutators here take that scope, because a name joins the index of the
 /// source element that owns its record (§11.7.4 GR5; kb/Work PB3192).</para>
+/// <para>A model-layer value: it names no binder type, so <see cref="DataBindResult"/> hands it to a backend as it is (kb/Work
+/// PB2361). The one gated read, <see cref="CapacityRegisters"/>, asks <paramref name="requireRegisters"/>, which the owning
+/// <see cref="DataBindState"/> answers with its <see cref="PassPhase.OccursResolved"/> watermark.</para>
 /// </summary>
-public sealed class ForestSlice(Action<PassPhase, string> require)
+public sealed class ForestSlice(Action<string> requireRegisters)
 {
     private readonly List<DataItem> _roots = [];
     private readonly List<DataItem> _workingStorageRoots = [];
@@ -86,7 +88,7 @@ public sealed class ForestSlice(Action<PassPhase, string> require)
     /// <see cref="DeclaringDepth"/> is 0.</para></summary>
     public IReadOnlyDictionary<string, List<DataItem>> CapacityRegisters
     {
-        get { require(PassPhase.OccursResolved, "CapacityRegisters"); return _capacityRegisters; }
+        get { requireRegisters("CapacityRegisters"); return _capacityRegisters; }
     }
 
     /// <summary>The capacity registers recorded SO FAR, with no watermark gate: for the phases that produce and screen them

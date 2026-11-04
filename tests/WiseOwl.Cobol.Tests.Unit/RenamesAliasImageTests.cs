@@ -113,9 +113,9 @@ public sealed class RenamesAliasImageTests
            05 SAVE-1 PIC X(3) VALUE "ABC".
         """;
 
-    private static DataItem Item(DataBinder d, string name) => d.State.Forest.ByName[name][0];
+    private static DataItem Item(DataBindResult d, string name) => d.Forest.ByName[name][0];
 
-    private static DataBinder BindFull(string statement, string extraData = "", string? data = null)
+    private static DataBindResult BindFull(string statement, string extraData = "", string? data = null)
     {
         string src = $"""
             IDENTIFICATION DIVISION.

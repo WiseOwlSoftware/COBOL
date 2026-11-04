@@ -1,0 +1,9 @@
+R-A
+LINE 01 [01 ODD 02 ODD     02]
+LINE 02 [02 EVN 04         04]
+LINE 03 [03 ODD 06 ODD BIG 06]
+LINE 05 [TOT 012 012 08 10 12]
+R-B
+LINE 01 [B01                 ]
+LINE 02 [A02                 ]
+LINE 03 [B03                 ]

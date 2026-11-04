@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using Xunit;
@@ -22,9 +23,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// class) and the sibling <c>__FACTORY_…</c> singleton (rooted at its base's factory class). The generated
 /// <c>__EcObjDispatch</c> tested only the INSTANCE name, so every factory exception object selected NO
 /// declarative — silently: nothing ran and nothing said so. One COBOL class-name is a SET of emitted C# types,
-/// and <see cref="Compiler.Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/> is the ONE place that says which. The
+/// and <see cref="OoClassSymbol.FactoryOrInstanceClrNames"/> is the ONE place that says which. The
 /// interface alternative has the SAME shape and its own census,
-/// <see cref="Compiler.Oo.OoInterfaceSymbol.ImplementedCsTypes"/>, which measures ONE today — a COBOL
+/// <see cref="OoInterfaceSymbol.ImplementedClrNames"/>, which measures ONE today — a COBOL
 /// INTERFACE-ID emits exactly one C# interface, carried by BOTH emitted halves of an implementing class — and
 /// is measured here rather than assumed, so an interface that ever grows a second emitted half fails at the
 /// census instead of silently narrowing a user's declarative selection.</para>
@@ -93,8 +94,8 @@ public sealed class Format4UseObjectSelectorDriftTests
         END CLASS F4CSUB.
         """;
 
-    /// <summary>Compile the fixture to C#, paired with the class table the same bind produced.</summary>
-    private static (string CSharp, Compiler.Oo.OoClassTable Classes) EmitFixture()
+    /// <summary>Compile the fixture to C#, paired with the bound compilation the same bind produced.</summary>
+    private static (string CSharp, BoundCompilation Classes) EmitFixture()
     {
         string path = Path.Combine(Path.GetTempPath(), $"f4drift_{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, Src);
@@ -104,8 +105,8 @@ public sealed class Format4UseObjectSelectorDriftTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2002 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
-            var comp = emitter.Bind(tree!, new EditionContext(2002));
-            return (emitter.EmitBound(comp, "DRIFTPROBE"), comp.OoClasses);
+            var comp = new BinderDriver().Bind(tree!, new EditionContext(2002));
+            return (emitter.EmitBound(comp, "DRIFTPROBE"), comp);
         }
         finally { FileHarness.TryDelete(path); }
     }
@@ -127,14 +128,14 @@ public sealed class Format4UseObjectSelectorDriftTests
     public void EveryEmittedHalfOfAClass_IsInTheClassSymbolsCensus()
     {
         var (csharp, classes) = EmitFixture();
-        var cls = classes.Find("F4CBASE");
+        var cls = classes.ClassUnits.Single(c => c.Symbol.Name == "F4CBASE").Symbol;
         Assert.NotNull(cls);
 
         var emitted = Regex.Matches(csharp, @"\bclass\s+((?:__[A-Z]+_)?" + cls!.ClrName + @")\b\s*:")
             .Select(m => m.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);
 
-        Assert.Equal(cls.FactoryOrInstanceCsTypes.ToHashSet(StringComparer.Ordinal), emitted);
+        Assert.Equal(cls.FactoryOrInstanceClrNames.ToHashSet(StringComparer.Ordinal), emitted);
     }
 
     /// <summary>The interface twin of the census fact (kb/Work PB365's alternative, PB366's shape). A COBOL
@@ -145,14 +146,14 @@ public sealed class Format4UseObjectSelectorDriftTests
     public void EveryEmittedHalfOfAnInterface_IsInTheInterfaceSymbolsCensus()
     {
         var (csharp, classes) = EmitFixture();
-        var ifc = classes.FindInterface("F4IDRIFT");
+        var ifc = classes.Interfaces.Single(i => i.Name == "F4IDRIFT");
         Assert.NotNull(ifc);
 
         var emitted = Regex.Matches(csharp, @"\binterface\s+(" + ifc!.ClrName + @"(?:__[A-Z0-9_]+)?)\b")
             .Select(m => m.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);
 
-        Assert.Equal(ifc.ImplementedCsTypes.ToHashSet(StringComparer.Ordinal), emitted);
+        Assert.Equal(ifc.ImplementedClrNames.ToHashSet(StringComparer.Ordinal), emitted);
     }
 
     /// <summary>The generated §14.9.49.4 GR14 selector tests each operand's WHOLE census — for a class, the
@@ -163,13 +164,13 @@ public sealed class Format4UseObjectSelectorDriftTests
     public void ObjDispatchSelector_TestsEveryHalfOfTheNamedClass()
     {
         var (csharp, classes) = EmitFixture();
-        var cls = classes.Find("F4CBASE");
-        var ifc = classes.FindInterface("F4IDRIFT");
+        var cls = classes.ClassUnits.Single(c => c.Symbol.Name == "F4CBASE").Symbol;
+        var ifc = classes.Interfaces.Single(i => i.Name == "F4IDRIFT");
         Assert.NotNull(cls);
         Assert.NotNull(ifc);
         string predicate = Selector(csharp);
 
-        foreach (string half in cls!.FactoryOrInstanceCsTypes.Concat(ifc!.ImplementedCsTypes))
+        foreach (string half in cls!.FactoryOrInstanceClrNames.Concat(ifc!.ImplementedClrNames))
             Assert.Matches(@"\bis\b[^;]*\b" + Regex.Escape(half) + @"\b", predicate);
     }
 
@@ -183,8 +184,8 @@ public sealed class Format4UseObjectSelectorDriftTests
     public void ObjDispatchSelector_RunsTheClassPassBeforeTheInterfacePass()
     {
         var (csharp, classes) = EmitFixture();
-        var cls = classes.Find("F4CBASE");
-        var ifc = classes.FindInterface("F4IDRIFT");
+        var cls = classes.ClassUnits.Single(c => c.Symbol.Name == "F4CBASE").Symbol;
+        var ifc = classes.Interfaces.Single(i => i.Name == "F4IDRIFT");
         Assert.NotNull(cls);
         Assert.NotNull(ifc);
         string predicate = Selector(csharp);

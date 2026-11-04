@@ -1,9 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
 
-namespace WiseOwl.Cobol.Compiler.Oo;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The AFTER-DATA-BIND half of a method's description (P9 R7 — phase-explicit): the resolved formal list,
@@ -38,6 +36,23 @@ public sealed class OoMethodBinding
     /// value delivers it, §14.9.23.4 GR8), or null for a void method.</summary>
     public DataItem? Returning { get; set; }
 
+    /// <summary>The §9.3.6 description of each formal, with its OPTIONAL and BY VALUE phrases, in <see cref="Formals"/>
+    /// order, each null for a formal with no universal crossing form: what the universal dispatch switch's case compares an
+    /// argument with (§14.9.23.4 GR7 b), c)). Built by the binder's one description builder (<c>ActivationDescriptions</c>), the
+    /// builder the invoking side's descriptions come from too, at the end of the bind (<c>BackendAnswers</c>; kb/Work PB2403)
+    /// for a method of one of the group's class units that has a case in that switch (not an override, no BY VALUE formal); null for
+    /// any other method.</summary>
+    public IReadOnlyList<WiseOwl.Cobol.Runtime.ActivationDescription?>? FormalDescriptions { get; set; }
+
+    /// <summary>The §9.3.6 description of the <see cref="Returning"/> item, written with <see cref="FormalDescriptions"/>; null
+    /// when the method has none, the item has no crossing form, or the method is not described.</summary>
+    public WiseOwl.Cobol.Runtime.ActivationDescription? ReturningDescription { get; set; }
+
+    /// <summary>The classes and interfaces of the method's PROCEDURE DIVISION header RAISING phrase, resolved (ISO §14.6.13.1.5
+    /// items 1 and 3; <see cref="RaisingObject"/>), written at the end of the bind for a method of one of the group's class units;
+    /// empty otherwise.</summary>
+    public IReadOnlyList<RaisingObject> RaisingObjects { get; set; } = [];
+
     /// <summary>The method's LINKAGE roots (ALL of them — formals, the RETURNING item, and any unattached
     /// entry): each becomes a capturable C# LOCAL of the emitted method.</summary>
     public List<DataItem> LinkageRoots { get; } = [];
@@ -58,12 +73,6 @@ public sealed class OoMethodBinding
     /// <c>__MDispatch</c> carries cases for <c>[DeclStartPc .. EndPc]</c>; the activation runs
     /// <c>[EntryPc .. EndPc]</c> (kb/Work PB1010).</summary>
     public int DeclStartPc { get; set; } = -1;
-
-    /// <summary>The method's own USE declaratives in source order (kb/Work PB1010; ISO §14.2.2 SR10 admits
-    /// Format 1 in a method definition). §14.9.49.4 GR3 selects over "the USE statements in the source element",
-    /// and GR4 a) makes the method the source element for its statements; a method is contained in no source
-    /// element with a procedure division of its own (§14.2.2 SR12/SR13), so no GR4 b) GLOBAL walk exists.</summary>
-    public IReadOnlyList<WiseOwl.Cobol.Binding.Bound.BoundDeclarative> Declaratives { get; set; } = [];
 
     /// <summary>The method's contiguous sub-range of the class's appended Format-3 (exception-checking) PERFORM
     /// handler pc-space (ISO §14.9.28.4 GR17; design SSOT §9.10). The class's handler pcs

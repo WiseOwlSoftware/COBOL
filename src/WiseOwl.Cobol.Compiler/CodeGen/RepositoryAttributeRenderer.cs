@@ -2,8 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Repository;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
@@ -29,8 +27,8 @@ namespace WiseOwl.Cobol.CodeGen;
 /// in the first layer; a backend that writes metadata directly encodes the same applications with its own metadata builder
 /// (<c>RepositoryReaderTests</c>' <c>MetadataBuilder</c> fixture is that backend), and the reader decodes both equal.</para>
 /// <para>It is a pure TRANSCRIPTION of <see cref="RepositoryRecord"/> (§6.1): every value is already in the persisted
-/// vocabulary, so nothing here translates a compiler type. The reader of what this writes is the compiler's
-/// <see cref="RepositoryReader"/> over the runtime's <see cref="RepositoryIndex"/>; <see cref="RepositoryIndex.EncodeUnit"/>
+/// vocabulary, so nothing here translates a compiler type. The reader of what this writes is
+/// the binder's <c>RepositoryReader</c> over the runtime's <see cref="RepositoryIndex"/>; <see cref="RepositoryIndex.EncodeUnit"/>
 /// is the one encoding of an index row, so the writer calls it rather than restating it.</para>
 /// <para><b>Encoding (§6.2 rules 2 and 3).</b> A named argument is written only when it has something to say: a nullable
 /// value exactly when it has one (nullability is presence, whatever the value: <c>Occurs = 0</c> is written when the record
@@ -51,17 +49,12 @@ internal static class RepositoryAttributeRenderer
     /// records cannot name different units.</summary>
     internal static IReadOnlyList<RepositoryUnitRow> IndexOf(IEnumerable<OoInterfaceSymbol> interfaces, IEnumerable<OoClassUnit> classes,
         ExpansionPlacements expansions, IEnumerable<BoundUnit> entryUnits) =>
-        [.. interfaces.Where(i => EmittedHere(expansions, i.ClrName))
+        [.. interfaces.Where(i => expansions.EmittedHere(i.ClrName))
                 .Select(i => new RepositoryUnitRow(expansions.KindOf(i.ClrName, RepositoryUnitKind.Interface), i.ExternalizedName, i.Name))
-            .Concat(classes.Where(c => EmittedHere(expansions, c.Symbol.ClrName))
+            .Concat(classes.Where(c => expansions.EmittedHere(c.Symbol.ClrName))
                 .Select(c => new RepositoryUnitRow(expansions.KindOf(c.Symbol.ClrName, RepositoryUnitKind.Class), c.Symbol.ExternalizedName, c.Name)))
             .Concat(expansions.Skeletons.Select(s => new RepositoryUnitRow(s.Kind, s.ExternalizedName, s.Name)))
-            .Concat(entryUnits.Select(u => new RepositoryUnitRow(RepositoryCodec.KindOf(u), u.ExternalizedName, u.Name)))];
-
-    /// <summary>Whether this module emits the class or interface it names <paramref name="clrName"/>: every one but an expansion placed in another
-    /// assembly (§10.5).</summary>
-    internal static bool EmittedHere(ExpansionPlacements expansions, string clrName) =>
-        expansions.Of(clrName) is not { Where: ExpansionWhere.Imported or ExpansionWhere.OwnAssembly };
+            .Concat(entryUnits.Select(u => new RepositoryUnitRow(u.RepositoryKind, u.ExternalizedName, u.Name)))];
 
     /// <summary>The module's assembly-level record, <c>[assembly: CobolRepository(schema, runtimeVersion, callAbi, …)]</c>
     /// (§6.2, §7.1): the versions it was compiled against (so a run unit can refuse a module whose runtime major or call ABI
@@ -145,7 +138,7 @@ internal static class RepositoryAttributeRenderer
     internal static string SkeletonUnitRecord(PublishedSkeleton skeleton, bool signatures)
     {
         var named = new Arguments();
-        if (signatures) named.Text(nameof(CobolUnitAttribute.EntryConvention), RepositoryCodec.CobolEntryConvention);
+        if (signatures) named.Text(nameof(CobolUnitAttribute.EntryConvention), RepositoryRecord.CobolEntryConvention);
         return $"[{CSharp(Application<CobolUnitAttribute>(named, Defined(skeleton.Kind), skeleton.Name, skeleton.ExternalizedName))}]";
     }
 

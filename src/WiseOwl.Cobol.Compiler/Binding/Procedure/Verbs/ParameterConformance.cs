@@ -64,7 +64,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         // CobolArgAdapt.ContentRecord) — and the activating element claims every such operand onto a cell
         // (PtrBindBasedAndAddressablesPass). The one argument left is storage no claim reaches (a LINKAGE item that
         // is not a formal): a copy of its image would silently drop the references, so it is refused HERE, naming why.
-        if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(formal)
+        if (ActivationCrossing.LeafCarried(formal)
             && SlotCarrierResidue(arg.Mode is CobolPassMode.Reference or CobolPassMode.Content ? arg.Place : null) is { } residue)
         {
             ctx.Edition.Error(site.Conformance,
@@ -199,7 +199,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// (<c>CobolArgAdapt.StoreReturnArea</c>), so the receiver must be storage that is a cell. Null when it is. Not asked
     /// by INVOKE, whose boundary carries the leaf vector.</summary>
     internal static string? ReturningCarrierResidue(DataItem activated, Place receiver) =>
-        WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(activated) && SlotCarrierResidue(receiver) is { } residue
+        ActivationCrossing.LeafCarried(activated) && SlotCarrierResidue(receiver) is { } residue
             ? $"the returning item '{activated.CobolName}' is a strongly-typed group with an object-reference or pointer "
               + $"leaf; {residue}"
             : null;

@@ -1,10 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Compiler.Oo;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The ONE home for every OO C# / file-key naming convention (P9 R8 — kills the four scattered
@@ -56,9 +54,6 @@ public static class NamingConvention
 
     /// <summary>The factory singleton field (§9.3.14.2 — "created before it is first referenced").</summary>
     public const string FactoryInstanceField = "__Instance";
-
-    /// <summary>The predefined New creation method (§16.2.1.2 GR1 — ACTIVE-CLASS covariant creation).</summary>
-    public const string FactoryNewMethod = "__New";
 
     /// <summary>The run-unit EXTERNAL file-connector key band (§13.18.22.4 GR4a — ONE connector per run unit;
     /// the runtime recognizes this prefix: the wire contract noted above).</summary>

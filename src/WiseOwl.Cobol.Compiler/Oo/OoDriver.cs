@@ -19,17 +19,9 @@ using Core = CobolParserCore;
 /// </summary>
 internal sealed class OoDriver(BindSession session)
 {
-    private readonly Dictionary<OoInterfaceSymbol, DataBinder> _ifaceData = [];
-
-    /// <summary>The per-interface DATA forests (prototype LINKAGE formals — bound so ValidateImplements has
-    /// resolved descriptions, and so the interface emission can render the formals' numeric profiles and
-    /// group struct types as INTERFACE statics, which CONTENT conversions through interface-typed receivers
-    /// qualify as <c>{IFACE}._P_n</c>; C# 8+ interfaces carry static members natively).</summary>
-    public IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> InterfaceData => _ifaceData;
-
     /// <summary>Bind one INTERFACE's prototype formals (§10.6.2 SR4 — LINKAGE-only data divisions; the
     /// prototypes reuse the whole OoDataBinder.BindMethodData machinery with no bodies).</summary>
-    public void BindInterfaceData(OoInterfaceSymbol iface) => _ifaceData[iface] = BindInterface(iface);
+    public void BindInterfaceData(OoInterfaceSymbol iface) => session.Binders.AddInterface(iface, BindInterface(iface));
 
     /// <summary>⛔ A PARAMETERIZED definition binds AS ITSELF, for its own rules, and nothing emits the result
     /// (kb/Work PB2051, PB2937; OO deep-dive D12). §9.3.12 makes it a skeleton whose expansions are the classes, but it
@@ -71,21 +63,22 @@ internal sealed class OoDriver(BindSession session)
 
     private DataBinder BindInterface(OoInterfaceSymbol iface)
     {
-        var data = ElementBinder(iface.Ctx, iface.Ctx, ownerClassName: null);
+        var definition = session.Sources.Of(iface);
+        var data = ElementBinder(definition, definition, ownerClassName: null);
         data.CallSeedUids(session.TakeUidBand());
         // §10.6.1 / §11.9.4 GR1: the INTERFACE skeleton carries its own OPTIONS paragraph, and nothing bound it
         // — so its clauses had no effect on the prototypes AND, because OptionsBinder is where the
         // processor-dependence screens live, an interface could select a declined arithmetic mode in silence
         // (kb/Work PB197: the second hollow arm, found by sweeping all six optionsParagraph-bearing productions
         // rather than only the METHOD one the finding named). BindDeclarations binds it (kb/Work PB780).
-        ConfigurationStep.Produce(new ConfigurationSource.Own(iface.Ctx.optionsParagraph()), data.State.Configuration);
+        ConfigurationStep.Produce(new ConfigurationSource.Own(definition.optionsParagraph()), data.State.Configuration);
         OoEnvironmentRules.Screen(OoDefinition.Interface, $"interface '{iface.Name}'",
-            iface.Ctx.environmentDivision(), session.Edition);
-        var synthetic = OoReparent(iface.Ctx.environmentDivision(), dataDivision: null);
+            definition.environmentDivision(), session.Edition);
+        var synthetic = OoReparent(definition.environmentDivision(), dataDivision: null);
         data.BindDeclarations(synthetic);
-        using (session.Edition.At(iface.Ctx)) data.DeclareUserWord(iface.Name, UserWordKind.InterfaceName);
+        using (session.Edition.At(definition)) data.DeclareUserWord(iface.Name, UserWordKind.InterfaceName);
         foreach (var proto in iface.Prototypes)
-            data.Oo.BindMethodData(proto);
+            data.Oo.BindMethodData(proto, session.Sources.Of(proto));
         data.BindResolve(synthetic);
         return data;
     }
@@ -101,7 +94,7 @@ internal sealed class OoDriver(BindSession session)
     {
         var edition = session.Edition;
         // The environment-division placement of each definition of the class, judged once (kb/Work PB1076 + PB813).
-        var classCtx = cls.Symbol.Ctx;
+        var classCtx = session.Sources.Of(cls.Symbol);
         OoEnvironmentRules.Screen(OoDefinition.Class, $"class '{cls.Name}'", classCtx.environmentDivision(), edition);
         OoEnvironmentRules.Screen(OoDefinition.Factory, $"class '{cls.Name}' FACTORY paragraph",
             classCtx.factoryParagraph()?.environmentDivision(), edition);
@@ -147,13 +140,12 @@ internal sealed class OoDriver(BindSession session)
         data.Oo.ReserveClassMemberNames(cls.Symbol.ClrName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
         data.BindDeclarations(synthetic);
         foreach (var m in cls.Symbol.Methods.ToList())   // snapshot — property synthesis appends accessors
-            data.Oo.BindMethodData(m);
+            data.Oo.BindMethodData(m, session.Sources.Of(m));
         data.Oo.BindPropertyClauses(cls.Symbol, factory: false);
         data.BindResolve(synthetic);
         // The class's symbolic-characters an OBJECT data-name of the spelling hides (§8.4.6.1; kb/Work PB3154 R1-1).
         InheritStep.DropShadowed(data);
-        cls.Data = data;
-        cls.Refs = new ReferenceResolver(data);
+        session.Binders.AddObject(cls, data);
 
         // The FACTORY half (§11.4; brief D11/D13): its OWN forest + uid band — factory data names are
         // invisible to instance methods and vice versa (separate source elements, §10.6), realized exactly
@@ -167,12 +159,11 @@ internal sealed class OoDriver(BindSession session)
         fdata.Oo.ReserveClassMemberNames(cls.Symbol.FactoryClrName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
         fdata.BindDeclarations(fsynthetic);
         foreach (var m in cls.Symbol.FactoryMethods.ToList())
-            fdata.Oo.BindMethodData(m);
+            fdata.Oo.BindMethodData(m, session.Sources.Of(m));
         fdata.Oo.BindPropertyClauses(cls.Symbol, factory: true);
         fdata.BindResolve(fsynthetic);
         InheritStep.DropShadowed(fdata);   // …and a FACTORY data-name, likewise
-        cls.FactoryData = fdata;
-        cls.FactoryRefs = new ReferenceResolver(fdata);
+        session.Binders.AddFactory(cls, fdata);
     }
 
     /// <summary>Phase B — the method BODIES bind into the class's one pc space (per-method paragraph AND data
@@ -187,13 +178,14 @@ internal sealed class OoDriver(BindSession session)
         var repository = session.Repository;
         // §12.3.8.4 GR10 a) / GR11 a): "specified PREVIOUSLY" is relative to the class definition whose REPOSITORY
         // paragraph holds the specifier (kb/Work PB989) — an expansion's text starts where its skeleton does.
-        int position = cls.Symbol.Ctx.Start.StartIndex;
-        var binder = new StatementBinder(cls.Data, cls.Refs)
+        int position = session.Sources.Of(cls.Symbol).Start.StartIndex;
+        var (data, refs) = session.Binders.ObjectOf(cls);
+        var binder = new StatementBinder(data, refs)
         {
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§8.4.3.8; slice 3b)
-            UserFunctions = Binding.BinderDriver.UserFunctionsOf(cls.Data, unit: null, repository, position),
-            ProgramPrototypes = Binding.BinderDriver.ProgramPrototypesOf(cls.Data, unit: null, repository, position),
+            UserFunctions = Binding.BinderDriver.UserFunctionsOf(data, unit: null, repository, position, session.Binders),
+            ProgramPrototypes = Binding.BinderDriver.ProgramPrototypesOf(data, unit: null, repository, position, session.Binders),
         };
         binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§7.3.25 GR6)
         // kb/Work PB971 — the method formals' EC-OO-ARG-OMITTED guards (§14.9.23.4 GR10), before any body binds.
@@ -203,13 +195,14 @@ internal sealed class OoDriver(BindSession session)
 
         // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory
         // SELF/SUPER context (§14.9.23.3 SR4f/h; §16.2.1 SELF|SUPER "NEW" — OoInFactory).
-        var fbinder = new StatementBinder(cls.FactoryData, cls.FactoryRefs)
+        var (fdata, frefs) = session.Binders.FactoryOf(cls);
+        var fbinder = new StatementBinder(fdata, frefs)
         {
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,
             OoInFactory = true,
-            UserFunctions = Binding.BinderDriver.UserFunctionsOf(cls.FactoryData, unit: null, repository, position),
-            ProgramPrototypes = Binding.BinderDriver.ProgramPrototypesOf(cls.FactoryData, unit: null, repository, position),
+            UserFunctions = Binding.BinderDriver.UserFunctionsOf(fdata, unit: null, repository, position, session.Binders),
+            ProgramPrototypes = Binding.BinderDriver.ProgramPrototypesOf(fdata, unit: null, repository, position, session.Binders),
         };
         fbinder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);
         cls.FactoryBound = fbinder.BindMethodRoster(cls.Symbol, cls.Symbol.FactoryMethods);

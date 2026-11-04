@@ -1,9 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The files ONE bound unit declares (ISO §12.4.5 SELECT, §13.4.5 FD, §13.4.6 SD; docs/rearchitecture/DESIGN-architecture-review.md

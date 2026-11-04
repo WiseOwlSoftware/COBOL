@@ -1529,11 +1529,6 @@
      "CobolNet.Binding.Bound",
      "CobolNet.Frontend.Generated",
      "18 (the BoundOo.cs half; StatementBinder's half is PB2347)"
-    ],
-    [
-     "CobolNet.Binding.Bound",
-     "CobolNet.Frontend.Parsing",
-     "1 (with PB2347)"
     ]
    ],
    "targets": [

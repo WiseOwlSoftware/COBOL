@@ -38,7 +38,7 @@ internal sealed class ReportWriterEmitter(
     /// never sees them), and the per-line compose methods.</summary>
     public void EmitReportMembers(CodeWriter w)
     {
-        var reports = ctx.Data.State.Reports.Declared;
+        var reports = ctx.Data.Reports.Declared;
         if (reports.Count == 0) return;
         w.Line();
         foreach (var r in reports)
@@ -315,19 +315,27 @@ internal sealed class ReportWriterEmitter(
         {
             var uses = entryUses.ToList();
             int n = uses[0].Ordinal + (uses[0].PerPlacement ? rep : 0);
-            if (uses.Any(u => u.Counter.Recurrent))
+            // A BY carrying operand-evaluation steps (kb/Work PB4517) is stepped too: GR3b adds "the value of
+            // arithmetic-expression-2" at each occurrence, and a function's value "is determined when the function is
+            // referenced at runtime" (§8.4.3.2.4 GR1), so the closed form's ONE evaluation of BY is not the recurrence.
+            if (uses.Any(u => u.Counter.Recurrent || StepsOf(u.Counter.By) is not null))
             {
                 foreach (var u in uses)
+                {
+                    EmitSteps(StepsOf(u.Counter.From), w);
                     w.Line($"Int128 {LocalNames.Of(u.Counter.Local)} = {VaryValue(r, u.Counter, u.Counter.From, "FROM")};"
                         + $"   // VARYING {u.Counter.Name} FROM (§13.18.64.4 GR3a)");
+                }
                 if (n > 0)
                     w.Line($"for (int __vi = 0; __vi < {n}; __vi++) {{ "
-                        + string.Join(" ", uses.Select(u => $"{LocalNames.Of(u.Counter.Local)} += {VaryValue(r, u.Counter, u.Counter.By, "BY")};"))
+                        + string.Join(" ", uses.Select(u => StepsText(StepsOf(u.Counter.By))
+                            + $"{LocalNames.Of(u.Counter.Local)} += {VaryValue(r, u.Counter, u.Counter.By, "BY")};"))
                         + " }   // occurrence " + (n + 1) + ": BY added per step (§13.18.64.4 GR3b, §13.18.64.3 SR3)");
                 continue;
             }
             foreach (var u in uses)
             {
+                EmitSteps(StepsOf(u.Counter.From), w);
                 string from = VaryValue(r, u.Counter, u.Counter.From, "FROM");
                 w.Line(n == 0
                     ? $"Int128 {LocalNames.Of(u.Counter.Local)} = {from};   // VARYING {u.Counter.Name}, occurrence 1 (§13.18.64.4 GR3a)"
@@ -346,7 +354,7 @@ internal sealed class ReportWriterEmitter(
     /// under the presenting statement's EC-SIZE checking (<see cref="UnderPresentingChecking(Func{string})"/>, kb/Work
     /// PB4031).</summary>
     private string VaryValue(ReportModel r, ReportVaryingModel v, BoundExpr? e, string phrase) =>
-        e is null ? "(Int128)1" : UnderPresentingChecking(() => VaryInteger(r, v, e, phrase));
+        InnerOf(e) is not { } value ? "(Int128)1" : UnderPresentingChecking(() => VaryInteger(r, v, value, phrase));
 
     /// <summary>One render of <see cref="VaryValue"/>'s integer.</summary>
     private string VaryInteger(ReportModel r, ReportVaryingModel v, BoundExpr e, string phrase)
@@ -366,6 +374,27 @@ internal sealed class ReportWriterEmitter(
     /// presenting statement's EC-SIZE checking (<see cref="UnderPresentingChecking(Func{string})"/>, kb/Work PB4031).</summary>
     private string PresentExpr(IReadOnlyList<BoundCondition> conds) =>
         UnderPresentingChecking(() => string.Join(" && ", conds.Select(c => $"({cond.Render(c)})")));
+
+    /// <summary>⛔ A REPORT CLAUSE OPERAND'S STEPS RUN AT EACH EVALUATION (kb/Work PB4517). The binder drains each clause
+    /// operand's operand-evaluation steps — a function activation, a §15.4 subscript temporary store — into the operand
+    /// itself (<c>ReportWriterBinder.BindReportGroupClauses</c>): a condition as a <see cref="BoundUdfEvaluated"/>, which
+    /// renders as its own IIFE; an expression as a <see cref="BoundUdfEvaluatedExpr"/> (<see cref="StepsOf"/> /
+    /// <see cref="InnerOf"/>); a SOURCE operand and a CODE place beside the value. Every site that evaluates one emits
+    /// its steps immediately before, through the ONE statement capture (<c>ConditionRenderer.StepsText</c>).</summary>
+    private void EmitSteps(IReadOnlyList<BoundStatement>? steps, CodeWriter w)
+    {
+        if (steps is not null) w.Line(StepsText(steps).TrimEnd('\n'));
+    }
+
+    /// <summary>The steps as statement text for a position inside a line or a lambda body; empty for none.</summary>
+    private string StepsText(IReadOnlyList<BoundStatement>? steps) => steps is null ? "" : cond.StepsText(steps);
+
+    /// <summary>The steps an expression carrier holds (<see cref="EmitSteps"/>), or null.</summary>
+    private static IReadOnlyList<BoundStatement>? StepsOf(BoundExpr? e) => (e as BoundUdfEvaluatedExpr)?.Activations;
+
+    /// <summary>The value an expression carrier holds, without its steps (<see cref="EmitSteps"/>).</summary>
+    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(e))]
+    private static BoundExpr? InnerOf(BoundExpr? e) => e is BoundUdfEvaluatedExpr u ? u.Inner : e;
 
     /// <summary>The C# expression of one printable item's image at REPETITION <paramref name="rep"/> — the
     /// operand §13.18.63.4 GR23 / §13.18.53.4 GR4 assign to that repetition, rendered by the rule its OWN clause
@@ -390,6 +419,10 @@ internal sealed class ReportWriterEmitter(
     /// placement that reads the returned image (see <see cref="KeptOnProhibitedInexact"/>).</param>
     private string FieldImage(ReportModel r, ReportFieldModel f, int rep, CodeWriter w)
     {
+        // The SOURCE operand's own steps (a function activation, a §15.4 subscript store — kb/Work PB4517) run here, once
+        // per placement, before the value is read: §13.18.53.4 GR1/GR2's implicit MOVE / COMPUTE "is executed implicitly
+        // whenever the associated item is printed", and the transfer below is rendered up to three times.
+        EmitSteps(f.SourceAt(f.RepetitionOrdinal + rep).Steps, w);
         var (plain, rounding, compute) = TransferImage(r, f, rep, raiseOnSizeError: false);
         string image = UnderPresentingChecking(plain, () => TransferImage(r, f, rep, raiseOnSizeError: false).Image);
         // The RAISING final transfer exists only for an implicit COMPUTE (a MOVE cannot raise) in a compilation group that
@@ -550,7 +583,7 @@ internal sealed class ReportWriterEmitter(
     /// SUM counters (§13.18.54), and the USE BEFORE REPORTING hooks (§14.9.49 Format 2 GR8).</summary>
     public void EmitReportConstruction(CodeWriter w)
     {
-        var reports = ctx.Data.State.Reports.Declared;
+        var reports = ctx.Data.Reports.Declared;
         if (reports.Count == 0) return;
         foreach (var r in reports)
         {
@@ -566,7 +599,11 @@ internal sealed class ReportWriterEmitter(
                 if (code.Literal is { } literal)
                     w.Line($"__RPT_{r.CsIndex}.SetCode(static () => {CsLiteral(literal)});   // CODE literal-1 (§13.18.12.4 GR1)");
                 else if (code.Value is { } codePlace)
-                    w.Line($"__RPT_{r.CsIndex}.SetCode(() => {CallEmitter.CallStringRead(codePlace)});   // CODE identifier-1 (§13.18.12.4 GR3)");
+                    w.Line($"__RPT_{r.CsIndex}.SetCode(() => "
+                        + (code.Steps is null   // a function-bearing subscript's store runs at each read (kb/Work PB4517)
+                            ? CallEmitter.CallStringRead(codePlace)
+                            : $"{{ {StepsText(code.Steps)}return {CallEmitter.CallStringRead(codePlace)}; }}")
+                        + ");   // CODE identifier-1 (§13.18.12.4 GR3)");
                 else
                     w.Line(LoudStmt($"report {r.Name}: CODE identifier '{code.Written}' does not resolve to a place this "
                         + "backend can read (ISO §13.18.12.4 GR3)"));
@@ -769,7 +806,10 @@ internal sealed class ReportWriterEmitter(
         var rcv = new ReceiverContext(family.Scale, Real: false, sum.Rounding, Checks: SizeChecks.All,
             IntegerDigits: Math.Max(0, (family.Register.Pic?.DigitPositions ?? 0) - family.Scale));
         var list = addends.ToList();
-        var addendExprs = list.OfType<BoundExpr>().ToList();
+        // An addend's operand-evaluation steps (kb/Work PB4517) run inside the closure, before the addition reads it,
+        // in addend order: the addition IS the addends' evaluation (GR3's ADD / COMPUTE).
+        string steps = string.Concat(list.Select(a => StepsText(StepsOf(a))));
+        var addendExprs = list.OfType<BoundExpr>().Select(a => InnerOf(a)).ToList();
         string apply = list.Any(a => a is null)
             ? LoudValue("Int128", rejected)
             : addendExprs.Count == 0
@@ -782,13 +822,15 @@ internal sealed class ReportWriterEmitter(
         // compose-local when the entry PRINTS. The addition runs when the entry's group is processed, so it declares the
         // same locals for the occurrence it adds, by the ONE emission the compose uses (EmitVaryingCounters), and the
         // closure becomes a block (kb/Work PB1294).
+        string declarations = "";
         if (w is not null && source is { VaryingDependent: true })
         {
             int rep = source.Family.Columns > 1 ? source.Coordinates[^1] : 0;
-            string declarations = w.CaptureText(() => EmitVaryingCounters(source.Family.Report, source.Varyings, rep, w));
-            return $"(Int128 __c) => {{ {declarations} return {apply}; }}";
+            declarations = w.CaptureText(() => EmitVaryingCounters(source.Family.Report, source.Varyings, rep, w));
         }
-        return $"(Int128 __c) => {apply}";
+        return declarations.Length == 0 && steps.Length == 0
+            ? $"(Int128 __c) => {apply}"
+            : $"(Int128 __c) => {{ {declarations}{steps} return {apply}; }}";
     }
 
     /// <summary>⛔ THE ADDITIONS A COUNTER RECEIVES FROM SOMETHING THAT IS NOT ITS OWN REPORT'S GENERATE LOOP, registered
@@ -876,12 +918,12 @@ internal sealed class ReportWriterEmitter(
     /// program: no program outside it can name the report's groups (§13.18.27.4 GR2).</summary>
     public static bool ChainSelects(BoundUnit? unit, ReportModel r, bool globalOnly)
     {
-        for (; unit is not null && unit.Data.State.Reports.Visible.Contains(r); unit = unit.Parent, globalOnly = true)
+        for (; unit is not null && unit.Data.Reports.Visible.Contains(r); unit = unit.Parent, globalOnly = true)
         {
             if (unit.Bound.Declaratives is { } ds
                 && ds.Any(d => d.ReportGroup is { } g && r.Groups.Contains(g) && (!globalOnly || d.Global)))
                 return true;
-            if (unit.Data.State.Reports.Depth(r) == 0) break;   // the declaring program — GR4 b)'s walk ends here
+            if (unit.Data.Reports.Depth(r) == 0) break;   // the declaring program — GR4 b)'s walk ends here
         }
         return false;
     }
@@ -895,9 +937,9 @@ internal sealed class ReportWriterEmitter(
     public void EmitBeforeReportingSelectors(BoundUnit unit, CodeWriter w)
     {
         dispatch.BeforeReportingSelectors.Clear();
-        EmitSelectors(unit.Bound.Declaratives ?? [], unit.Data.State.Reports.Visible,
+        EmitSelectors(unit.Bound.Declaratives ?? [], unit.Data.Reports.Visible,
             r => ChainSelects(unit, r, globalOnly: false),
-            r => unit.Data.State.Reports.Depth(r) > 0 && ChainSelects(unit.Parent, r, globalOnly: true)
+            r => unit.Data.Reports.Depth(r) > 0 && ChainSelects(unit.Parent, r, globalOnly: true)
                 ? $"return __outer.{SelectorName(r)}(__gi, true);   // GR4 b) — the next directly containing source element"
                 : "return false;   // no qualifying declarative — the group is produced with none (GR4 b) exhausted)",
             asLocal: false, w);
@@ -912,7 +954,7 @@ internal sealed class ReportWriterEmitter(
     public void EmitMethodBeforeReportingSelectors(IReadOnlyList<BoundDeclarative> decls, CodeWriter w)
     {
         dispatch.BeforeReportingSelectors.Clear();
-        EmitSelectors(decls, ctx.Data.State.Reports.Visible,
+        EmitSelectors(decls, ctx.Data.Reports.Visible,
             r => decls.Any(d => d.ReportGroup is { } g && r.Groups.Contains(g)),
             _ => "return false;   // a method has no containing source element (GR4 b) exhausted)",
             asLocal: true, w);
@@ -956,7 +998,7 @@ internal sealed class ReportWriterEmitter(
 
     /// <summary>The engine of <paramref name="r"/> as THIS unit reaches it — its own field, or the declaring
     /// container's through the <c>__outer</c> chain for an inherited GLOBAL report (§13.18.27.4 GR2).</summary>
-    private string Engine(ReportModel r) => RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.State.Reports.Depth(r));
+    private string Engine(ReportModel r) => RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.Reports.Depth(r));
 
     // ── Verb emission (ISO §14.9.21 / §14.9.16 / §14.9.46) ───────────────────────────────────────────────────
 

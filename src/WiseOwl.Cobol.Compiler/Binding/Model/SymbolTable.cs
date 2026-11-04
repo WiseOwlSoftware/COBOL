@@ -52,7 +52,7 @@ public sealed class SymbolTable
     /// else the unit's global multimap. False when the name is unknown in both. (← <c>LookupData</c> /
     /// <c>LookupDataInScopeOf</c> — the anchor-root-vs-active-method decision is now the caller's explicit
     /// <see cref="Scope"/>.) A method that declares the spelling in ANOTHER name class (a condition-name, an
-    /// index-name, a CAPACITY register, a constant-name — <see cref="OoMethodDataScope.Declares"/>) makes the object's data-name of it
+    /// index-name, a CAPACITY register, a constant-name — <see cref="DataBinder.MethodDeclares"/>) makes the object's data-name of it
     /// inaccessible (§11.7.4 GR5 "the use of that word in this method refers to the declaration in this method"), so
     /// the lookup is false rather than the object's item (kb/Work PB3165 review R2-1's sibling arm).</summary>
     public bool TryResolve(string name, Scope scope, out List<DataItem> items)
@@ -64,7 +64,7 @@ public sealed class SymbolTable
                 items = _data.WithLapsedTypeMembers(name, mlist, m);   // the method's own type declarations (kb/Work PB3192)
                 return true;
             }
-            if (m.Declares(name)) { items = []; return false; }
+            if (_data.MethodDeclares(m, name)) { items = []; return false; }
         }
         if (_data.State.Forest.ByName.TryGetValue(name, out var list) && list.Count > 0)
         {
@@ -202,7 +202,7 @@ public sealed class SymbolTable
                 conds = _data.WithLapsedTypeConditions(name, mlist, m);   // the method's own type declarations (kb/Work PB3192)
                 return true;
             }
-            if (m.Declares(name)) { conds = []; return false; }
+            if (_data.MethodDeclares(m, name)) { conds = []; return false; }
         }
         if (_data.State.Forest.Conditions.TryGetValue(name, out var list) && list.Count > 0)
         {
@@ -237,7 +237,7 @@ public sealed class SymbolTable
                     d => _data.IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
             // A method condition-name, CAPACITY register or constant-name of the spelling hides the object's
             // index-name too (GR5 covers every name class; kb/Work PB3165 review R2-1, PB3153 review round 3).
-            if (m.Declares(name)) return null;
+            if (_data.MethodDeclares(m, name)) return null;
         }
         if (!_data.State.Forest.IndexNames.Declares(name)) return null;
         var indexes = _data.State.Forest.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers),
@@ -256,7 +256,7 @@ public sealed class SymbolTable
     /// <see langword="null"/> when it reaches none. The register is a data-name of its entry's source element
     /// (§13.18.38.3 SR30), so it has the data-name's visibility (§11.7.4 GR5): a method sees its OWN registers first,
     /// and they REPLACE the object's; a method-local name of the spelling in any other class
-    /// (<see cref="OoMethodDataScope.Declares"/>: a data-name, a condition-name, an index-name, a constant-name) hides an object-level register (the
+    /// (<see cref="DataBinder.MethodDeclares"/>: a data-name, a condition-name, an index-name, a constant-name) hides an object-level register (the
     /// object's declaration is "inaccessible to this method"); a sibling method's registers are not in the scope at
     /// all. Else the unit's map, nearest declaring element first (<see cref="ForestSlice.CapacityRegisters"/>).</summary>
     public List<DataItem>? CapacityCandidates(string name, Scope scope)
@@ -264,7 +264,7 @@ public sealed class SymbolTable
         if (scope.Method is { } m)
         {
             if (m.CapacityRegisters.TryGetValue(name, out var own)) return own;
-            if (m.Declares(name)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
+            if (_data.MethodDeclares(m, name)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
         }
         return _data.State.Forest.CapacityRegisters.TryGetValue(name, out var tables) ? tables : null;
     }

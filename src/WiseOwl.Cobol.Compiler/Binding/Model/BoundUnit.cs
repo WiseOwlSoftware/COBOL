@@ -1,11 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Runtime.Repository;
 
 namespace WiseOwl.Cobol.Binding.Model;
-
-using Core = CobolParserCore;
 
 /// <summary>One program unit of the compilation group: its identity, containment, PROGRAM-ID attributes
 /// (ISO §11.10 / §8.6.6), bound model, and the GLOBAL bridges its class must emit (§13.18.27 GR2).
@@ -31,7 +29,6 @@ internal sealed class BoundUnit
     /// §12.3.8.4 GR10 a)'s program-definition search. kb/Work PB303.</summary>
     public required string ExternalizedName;
     public required string ClassName;
-    public required Core.ProgramUnitContext Ctx;
     /// <summary>Where this unit's source text STARTS in the compilation group — the character offset of its first
     /// token, a total order over every source element of the group (§12.3.8.4 GR10 a) / GR11 a): "a program
     /// definition specified PREVIOUSLY in the same compilation group" means a definition whose position is less
@@ -51,13 +48,49 @@ internal sealed class BoundUnit
     /// resolution (§12.3.8.4 GR10 b)); neither emits a body nor registers in the run unit — the definition
     /// (in-group, else separately compiled) is the activation target. <see cref="IsFunction"/> says which kind.</summary>
     public bool IsPrototype;
-    public DataBinder Data = null!;
-    public ReferenceResolver Refs = null!;
+    /// <summary>What the unit's data binding hands a backend (<see cref="DataBindResult"/>), frozen once the group tail has
+    /// run (<c>ElementBinders.Freeze</c>; kb/Work PB2361). The binding phases read the unit's binders through
+    /// <c>BindSession.Binders</c>, never through the bound unit.</summary>
+    public DataBindResult Data = null!;
     /// <summary>The Places of this unit's data items, built once binding is done (<c>PlaceTablePass</c>) - what the code
     /// generator reads in place of asking the resolver (kb/Work PB2375).</summary>
     public PlaceTable Places = null!;
     public BoundProgram Bound = null!;
     public List<CallBridge> Bridges = [];
+    /// <summary>The unit's external-repository record (ISO §8.13; DESIGN-external-repository §6.1), written by the binder at
+    /// the end of the bind for every unit the compilation publishes (<see cref="BoundCompilation.EntryUnits"/>) when the
+    /// compilation updates the repository (<see cref="BoundCompilation.PublishesSignatures"/>); null otherwise. A backend
+    /// transcribes it and never encodes one (kb/Work PB4319).</summary>
+    public RepositoryRecord? Record;
+
+    /// <summary>The §14.8.2 description of each FORMAL, in <c>Linkage.Formals</c> order, and the §14.8.3 description of the
+    /// RETURNING item (<see cref="ReturningDescription"/>), each null for an item with no crossing form: what §14.9.4.4 GR3 d)
+    /// compares at a CALL located by name at run time. Built by the binder's one description builder
+    /// (<c>ActivationDescriptions</c>) at the end of the bind (<c>BackendAnswers</c>; kb/Work PB2403) for a unit a backend
+    /// describes: one that checks EC-PROGRAM-ARG-MISMATCH itself (its registration states them) or publishes a host entry
+    /// (<see cref="BoundCompilation.EntryUnits"/>, whose arguments state them). Empty for any other unit.</summary>
+    public IReadOnlyList<WiseOwl.Cobol.Runtime.ActivationDescription?> FormalDescriptions = [];
+    /// <summary>The RETURNING item's description (see <see cref="FormalDescriptions"/>); null when the unit has none or is not
+    /// described.</summary>
+    public WiseOwl.Cobol.Runtime.ActivationDescription? ReturningDescription;
+    /// <summary>The pairs of formals (earlier position, later position) whose descriptions are the same in both directions of
+    /// §9.3.8.2.3's pair mode (<c>OoConformance.SignatureDifference</c>): the host entry gives one variable passed to both one
+    /// storage (DESIGN-external-repository §4.3 "One storage for one variable passed twice"), and refuses it for any other pair.
+    /// Written at the end of the bind for an entry unit (<see cref="BoundCompilation.EntryUnits"/>); empty for any other.</summary>
+    public IReadOnlySet<(int Earlier, int Later)> FormalsOfOneDescription = new HashSet<(int, int)>();
+    /// <summary>The classes and interfaces of the unit's PROCEDURE DIVISION header RAISING phrase, resolved (ISO §14.6.13.1.5
+    /// items 1 and 3; <see cref="RaisingObject"/>), written at the end of the bind; empty when the header names none.</summary>
+    public IReadOnlyList<RaisingObject> RaisingObjects = [];
+
+    /// <summary>What this program, function or prototype unit is, as the repository records it (DESIGN-external-repository
+    /// §5.1). The one answer: the unit's record, the module's <c>Units</c> index and every <c>[CobolUnit]</c> read it.</summary>
+    public RepositoryUnitKind RepositoryKind => (IsFunction, IsPrototype) switch
+    {
+        (false, false) => RepositoryUnitKind.Program,
+        (true, false) => RepositoryUnitKind.Function,
+        (false, true) => RepositoryUnitKind.ProgramPrototype,
+        (true, true) => RepositoryUnitKind.FunctionPrototype,
+    };
 
     /// <summary>The run-unit-unique registry key, the program table's containment path id (§8.4.6.3, the scope of
     /// program-names), formed by the run-time table's own two formers: an outermost unit's is rooted at its EXTERNALIZED
@@ -66,16 +99,6 @@ internal sealed class BoundUnit
     public string RegistryKey => Parent is null
         ? WiseOwl.Cobol.Runtime.ProgramTable.OutermostPath(ExternalizedName)
         : WiseOwl.Cobol.Runtime.ProgramTable.ContainedPath(Parent.RegistryKey, Name);
-
-    /// <summary>⛔ THE ONE ANCHOR OF A CONTAINER MEMBER (kb/Work PB1133): how a program <paramref name="depth"/>
-    /// containment levels INSIDE this unit reaches this unit's class member <paramref name="csMember"/> — through the
-    /// chain of containing instances for an instance member, through this unit's CLASS for a static one
-    /// (<see cref="StorageTierSlice.IsStaticMember"/>: ISO §13.5.4 GR1's static data is one copy on the class, which no
-    /// instance names). Every place a contained program reaches into a container's data asks here: the GLOBAL bridges
-    /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and the inherited FILE STATUS places (<c>ProgramEmitter</c>). The
-    /// answer is structure, which each backend spells (kb/Work PB4320).</summary>
-    public ContainerAnchor AnchorOf(string csMember, int depth) =>
-        Data.State.StorageTier.IsStaticMember(csMember) ? new ContainerAnchor.Static(ClassName) : new ContainerAnchor.Instance(depth);
 
     /// <summary>The FORMAL PARAMETERS of containing programs that this unit sees as GLOBAL names (ISO §13.18.27.4 GR2),
     /// read off the bridges that reach them (kb/Work PB2096). Their member names are Uid-keyed and bridged under the same

@@ -26,14 +26,14 @@ internal static class InheritStep
 {
     /// <summary>Write the seed half of <paramref name="unit"/>'s inheritance into <paramref name="data"/>, its binder,
     /// before <c>DataBinder.Bind</c>. An outermost unit has no container and is left as it was.</summary>
-    public static void Seed(BoundUnit unit, DataBinder data)
+    public static void Seed(BoundUnit unit, DataBinder data, ElementBinders binders)
     {
         var inherited = data.State.Inherited;
         // The containers' GLOBAL reports (§13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369) and GLOBAL data roots,
         // OFFERED here and made visible by the unit's own data division at the end of its declaration half
         // (ReportSectionBinder.InheritContainerReports / InheritContainerGlobalData), so the unit's own clauses that name one
         // (FILE STATUS, RECORD / RELATIVE KEY, OCCURS … DEPENDING ON, ASSIGN … USING) see it (kb/Work PB3766).
-        inherited.OfferContainerGlobals(ContainerGlobalReportsOf(unit), [.. ContainerGlobalRootsOf(unit).Select(r => (r.Root, r.Depth))]);
+        inherited.OfferContainerGlobals(ContainerGlobalReportsOf(unit, binders), [.. ContainerGlobalRootsOf(unit, binders).Select(r => (r.Root, r.Depth))]);
         int depth = 0;   // the containment distance, 1 for the parent
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
@@ -41,34 +41,34 @@ internal static class InheritStep
             // this unit binds, and a local data-name shadows them after (Merge). EVERY container, nearest first (the
             // nearest global declaration wins): an intermediate program's own NON-global declaration of the name hides
             // nothing from the programs it contains.
-            inherited.AddContainerConstants(anc.Data.Constants.GlobalConstantsToInherit(), ++depth);
+            inherited.AddContainerConstants(binders.Of(anc).Data.Constants.GlobalConstantsToInherit(), ++depth);
             // …its GLOBAL type declarations (§13.18.58.4 GR3; §8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
             // unit's first data phase, so a TYPE clause there already sees the container's type-name.
-            inherited.AddContainerTypeDecls(anc.Data.State.Forest.TypeDecls);
+            inherited.AddContainerTypeDecls(binders.Of(anc).Data.State.Forest.TypeDecls);
             // …and its files' names (§13.18.27.4 GR1): the data division's own resolutions ask whether a name that is no
             // data item IS a visible file-name (kb/Work PB3557).
-            inherited.AddContainerFiles(anc.Data.State.Files.Declared, anc.Data.Linkage.GlobalRoots, depth);
+            inherited.AddContainerFiles(binders.Of(anc).Data.State.Files.Declared, binders.Of(anc).Data.Linkage.GlobalRoots, depth);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the bridges are
         // emitted for every global root (Merge), so a LOCAL root spelled like one (the §8.4.6.2.1 3) a) shadowing case)
         // must take another C# name — its stem too, or a member DERIVED from the stem (a REDEFINES backing) would re-spell
         // the bridge (LinkageBinder.InheritedMemberNamesOf).
-        foreach (var (anc, g, _) in ContainerBridgedRootsOf(unit))
-            data.ReserveInheritedMemberNames(anc.Data.Linkage.InheritedMemberNamesOf(g));
+        foreach (var (anc, g, _) in ContainerBridgedRootsOf(unit, binders))
+            data.ReserveInheritedMemberNames(binders.Of(anc).Data.Linkage.InheritedMemberNamesOf(g));
     }
 
     /// <summary>Write the merge half of <paramref name="unit"/>'s inheritance, after its data phases: its binder is
     /// <c>unit.Data</c>, <paramref name="kind"/> its source-element kind and <paramref name="turn"/> the group's
     /// TurnState.</summary>
-    public static void Merge(BoundUnit unit, SourceElementKind kind, TurnState turn)
+    public static void Merge(BoundUnit unit, SourceElementKind kind, TurnState turn, ElementBinders binders)
     {
-        var data = unit.Data;
+        var data = binders.Of(unit).Data;
         // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent binds before
         // its children), so the GLOBAL bridge below can carry a guarded root's presence member.
         EcBinder.MarkFormals(data.Linkage.Formals, kind, turn);
 
         var bridgedMembers = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (anc, g, depth) in ContainerBridgedRootsOf(unit))
+        foreach (var (anc, g, depth) in ContainerBridgedRootsOf(unit, binders))
         {
             // The root's NAMES are inherited already, at the end of the unit's declaration half
             // (DataBinder.InheritContainerGlobalData, offered by Seed); what is left here is the C# half. Every container
@@ -79,7 +79,8 @@ internal static class InheritStep
             // can name ONE member — the records of a GLOBAL FD share a Tier-B class's backing, a GLOBAL redefiner and its
             // anchor share one field — and a member declared twice is CS0102. The member names are unique along the
             // container chain (ReserveInheritedMemberNames), so equal names are the same member.
-            foreach (var bridge in anc.Data.Linkage.GlobalBridgesOf(g, member => anc.AnchorOf(member, depth)))   // consumed here, within this iteration
+            var container = binders.Of(anc).Data;
+            foreach (var bridge in container.Linkage.GlobalBridgesOf(g, member => container.State.StorageTier.AnchorOf(anc.ClassName, member, depth)))   // consumed here, within this iteration
                 if (bridgedMembers.Add(bridge.MemberClrName)) unit.Bridges.Add(bridge);
         }
 
@@ -113,14 +114,14 @@ internal static class InheritStep
     /// subordinate Y. WHICH candidate a reference names is §8.4.6.2.1 3)'s nearest-declaring-element rule, applied after
     /// qualification (SymbolTable.NearestDeclaring); the depth is what it reads. The names are inherited from it by
     /// <c>DataBinder.InheritContainerGlobalData</c>, the C# bridges are built from it by <see cref="Merge"/>.</summary>
-    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerGlobalRootsOf(BoundUnit unit)
+    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerGlobalRootsOf(BoundUnit unit, ElementBinders binders)
     {
         var roots = new List<(BoundUnit Container, DataItem Root, int Depth)>();
         int depth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             depth++;
-            foreach (var g in anc.Data.Linkage.GlobalRoots)
+            foreach (var g in binders.Of(anc).Data.Linkage.GlobalRoots)
                 if (g.CobolName is not null)
                     roots.Add((anc, g, depth));
         }
@@ -132,15 +133,15 @@ internal static class InheritStep
     /// after them, the roots a container's GLOBAL files' own clauses name (<see cref="DataBinder.GlobalFileOperandRoots"/>,
     /// kb/Work PB4454). The second kind is reached by the unit's I-O statements on the file, never by a name it writes
     /// (ISO §13.18.27.4 GR2), so it is bridged and placed and is not offered as a name.</summary>
-    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerBridgedRootsOf(BoundUnit unit)
+    private static List<(BoundUnit Container, DataItem Root, int Depth)> ContainerBridgedRootsOf(BoundUnit unit, ElementBinders binders)
     {
-        var roots = ContainerGlobalRootsOf(unit);
+        var roots = ContainerGlobalRootsOf(unit, binders);
         int depth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             depth++;
             // GlobalFileOperandRoots excludes every global record, so no root is listed twice.
-            roots.AddRange(anc.Data.GlobalFileOperandRoots().Select(root => (anc, root, depth)));
+            roots.AddRange(binders.Of(anc).Data.GlobalFileOperandRoots().Select(root => (anc, root, depth)));
         }
         return roots;
     }
@@ -149,14 +150,14 @@ internal static class InheritStep
     /// first, each with how many containment levels out it lives (the <c>__outer</c> chain length a reference to its
     /// storage renders through, <see cref="ReportScope.Depth"/>). Like a GLOBAL FD, the report is SHARED, never
     /// re-declared: the child's verbs hold the container's <see cref="ReportModel"/> (ISO §13.18.27.4 GR1–GR2).</summary>
-    private static List<(ReportModel Report, int Depth)> ContainerGlobalReportsOf(BoundUnit unit)
+    private static List<(ReportModel Report, int Depth)> ContainerGlobalReportsOf(BoundUnit unit, ElementBinders binders)
     {
         var reports = new List<(ReportModel Report, int Depth)>();
         int depth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             depth++;
-            foreach (var r in anc.Data.State.Reports.Declared)
+            foreach (var r in binders.Of(anc).Data.State.Reports.Declared)
                 if (r.IsGlobal)
                     reports.Add((r, depth));
         }

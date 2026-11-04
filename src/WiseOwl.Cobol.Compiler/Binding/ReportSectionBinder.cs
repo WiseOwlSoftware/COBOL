@@ -14,7 +14,6 @@ using Core = CobolParserCore;
 using ReportEntryLocation = WiseOwl.Cobol.Binding.DataBinder.ReportEntryLocation;
 using ReportNextGroup = WiseOwl.Cobol.Runtime.IO.ReportNextGroup;
 using ReportNextGroupKind = WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
@@ -1987,17 +1986,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 else if (clause.reportGroupIndicateClause() is not null)
                     groupIndicate = true;
                 else if (clause.reportPresentWhenClause() is { } pw)
-                {
+                    // condition-1 is any condition (§13.18.41.2 Format 1), a function-identifier included: its
+                    // activation runs at each evaluation (ReportWriterBinder.BindReportGroupClauses, kb/Work PB4517).
                     ownCond = pw.condition();
-                    // A FUNCTION inside condition-1 would need the UDF activation-hoist protocol, which is a
-                    // statement-context mechanism — staged loud, never a silent mis-hoist.
-                    if (HasToken(ownCond, CobolLexer.FUNCTION))
-                    {
-                        Edition.Error(DiagnosticCatalog.ReportConditionFunction, $"RD '{model.Name}': a FUNCTION reference inside a "
-                            + "PRESENT WHEN condition (ISO §13.18.41) is not yet implemented");
-                        ownCond = null;
-                    }
-                }
                 else if (clause.reportVaryingClause() is not null)
                 {
                     // The counters are made by the walk (VaryingCountersOf), once per entry per enclosing occurrence,
@@ -2506,15 +2497,6 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return anyRelative ? relativeSpan : 0;
     }
 
-    /// <summary>True when <paramref name="tree"/> contains a terminal of <paramref name="tokenType"/>.</summary>
-    private static bool HasToken(Antlr4.Runtime.Tree.IParseTree tree, int tokenType)
-    {
-        if (tree is Antlr4.Runtime.Tree.ITerminalNode t) return t.Symbol.Type == tokenType;
-        for (int i = 0; i < tree.ChildCount; i++)
-            if (HasToken(tree.GetChild(i), tokenType)) return true;
-        return false;
-    }
-
     /// <summary>True when <paramref name="tree"/> contains a word terminal spelled <paramref name="word"/>
     /// (case-insensitive) — the VARYING-counter / report-section-name reference scans.</summary>
     private static bool HasWord(Antlr4.Runtime.Tree.IParseTree tree, string word)
@@ -2651,7 +2633,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// no operator, no parentheses, no function — else null, meaning arithmetic-expression-1. Writing the test
     /// once is the point: SOURCE's SR4/SR5 and SUM's SR4/SR5/SR6 all key on which form was written, and two
     /// copies of this walk would be the two-arm dispatch this repo keeps rediscovering.</summary>
-    internal static Core.DataReferenceContext? BareReferenceOf(Core.ReportValueOperandContext op)
+    private static Core.DataReferenceContext? BareReferenceOf(Core.ReportValueOperandContext op)
     {
         var add = op.arithmeticExpression()?.additiveExpression();
         if (add is null || add.addOp().Length > 0) return null;
@@ -2669,7 +2651,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// every operand of a multi-operand SOURCE clause that contains an arithmetic-expression. The parenthesized
     /// form is <c>primaryExpression : LPAREN arithmeticExpression RPAREN</c> reached with no operator above it,
     /// so it is the same walk as <see cref="BareReferenceOf"/> ending one alternative over.</summary>
-    internal static bool IsParenthesized(Core.ReportValueOperandContext op)
+    private static bool IsParenthesized(Core.ReportValueOperandContext op)
     {
         var add = op.arithmeticExpression()?.additiveExpression();
         if (add is null || add.addOp().Length > 0) return false;

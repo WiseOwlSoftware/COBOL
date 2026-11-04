@@ -185,7 +185,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 2. **THREAD + FOLD** — `FlagState` (`WiseOwl.Cobol.Compiler/Binding`): `Build(events)` + `IsOnAt(int siteLine,
    FlagOption)` folding "last toggle strictly before the site wins, default OFF" per option, with ALL fan-out
    and `ALL OFF` reset. Threaded `frontend.Directives` (the ONE `DirectiveResults` record, kb/Work PB65) →
-   `CompilerDriver` (`emitter.Bind(tree, edition, frontend.Directives)`) → `CSharpEmitter.Bind` →
+   `CompilerDriver` (`new BinderDriver().Bind(tree, edition, frontend.Directives, …)`) →
    `BinderDriver` (`FlagState.Build(flagEvents)`), carried on `BindSession` alongside `RefModZeroLength`.
 3. **EMIT** — `FlagConformancePass.Run(group, flagState, sink)` invoked right after `VersionConformancePass.Run`
    in `BinderDriver`, per-option detector methods emitting

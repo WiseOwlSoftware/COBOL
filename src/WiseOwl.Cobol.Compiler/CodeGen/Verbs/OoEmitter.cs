@@ -4,12 +4,9 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
-
-using WiseOwl.Cobol.Compiler.Oo;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -20,16 +17,19 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// emission, INVOKE (typed · instance · D10 universal), SET object-ref, and the per-method LOCAL dispatcher.
 /// RUN-UNIT scope — reads the per-unit collaborators through the LIVE <see cref="ProgramEmitter.Current"/>
 /// root: class-unit emission RE-CREATES the whole per-unit set mid-run (<see cref="ProgramEmitter.BeginUnit"/>),
-/// so captured copies would go stale (the coupling-census hazard). The class table and interface-data forests
-/// arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state).
-/// <para><paramref name="repositoryUpdate"/> is <c>--repository-update</c> (DESIGN-external-repository §7.1, §9.1): every
-/// class and interface carries its <c>[CobolUnit]</c>, and with the option on its whole record — the class's or interface's
-/// facts, each method's on the CLR method that implements it, each property's on the type of its accessors (§6.2).</para></summary>
+/// so captured copies would go stale (the coupling-census hazard). The interface-data forests, the adapters and the
+/// imported types arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state), and no OO
+/// answer is asked of the class table: the binder wrote each into the bound data (kb/Work PB2403).
+/// <para>Every class and interface carries its <c>[CobolUnit]</c>, and under <c>--repository-update on</c> its whole record
+/// (DESIGN-external-repository §7.1, §9.1) — the class's or interface's facts, each method's on the CLR method that implements
+/// it, each property's on the type of its accessors (§6.2). The record is the one the binder wrote (<see cref="OoClassUnit.Record"/>,
+/// <paramref name="ifaceRecords"/>; kb/Work PB4319): this emitter transcribes it and never encodes one.</para></summary>
 internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUnitState callState,
     ProgramEmitter program,
-    IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData,
+    IReadOnlyDictionary<OoInterfaceSymbol, DataBindResult> ifaceData,
+    IReadOnlyDictionary<OoInterfaceSymbol, RepositoryRecord> ifaceRecords,
     IReadOnlyList<AdapterPair> adapters,
-    bool repositoryUpdate,
+    ImportedTypes imported,
     ExpansionPlacements expansions)
 {
     /// <summary>A <see cref="Place"/> over a METHOD BOUNDARY ROOT — the ONE thing that lets the OO boundary join
@@ -79,7 +79,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // boundary's ONE read (kb/Work PB1166), so the method ABI and the program ABI cannot speak two alphabets.
         : root.IsAsIfElementary ? CallEmitter.CallStringRead(MethodRootPlace(root))
         // A strong group with no character image hands back its leaf vector (kb/Work PB1116).
-        : OoClassTable.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodRootPlace(root))
+        : ActivationCrossing.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodRootPlace(root))
         : root.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(root), what)
         : LocalNames.Of(ActivationLocalOf(root));
 
@@ -96,7 +96,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // A variable-length group crosses as its §8.5.1.12 component carrier (kb/Work PB2094: its area is a cell now).
         : OoVarGroupCarried(root) ? PlaceRenderer.VarGroupBoundaryImage(MethodCellPlace(root), "OO method boundary value of")
         // A strong group with no character image crosses as its leaf vector (kb/Work PB1116) — the cell's managed slots.
-        : OoClassTable.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodCellPlace(root))
+        : ActivationCrossing.LeafCarried(root) ? PlaceRenderer.GroupLeaves(MethodCellPlace(root))
         : PlaceRenderer.Read(MethodCellPlace(root));
 
     /// <summary>The inverse of <see cref="MethodCellFormalLoad"/>: store the argument into the root's cell — a formal's
@@ -106,7 +106,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         OoCrossingType(root) == "string" ? CallEmitter.BoundaryCopyWrite(MethodCellPlace(root), value)
         : OoVarGroupCarried(root) ? PlaceRenderer.WriteVarGroupImage(MethodCellPlace(root), value, "OO method formal copy-in of",
             formalStorage: true)
-        : OoClassTable.LeafCarried(root) ? PlaceRenderer.WriteGroupLeaves(MethodCellPlace(root), value)
+        : ActivationCrossing.LeafCarried(root) ? PlaceRenderer.WriteGroupLeaves(MethodCellPlace(root), value)
         : PlaceRenderer.Write(MethodCellPlace(root), value);
 
     private Place MethodCellPlace(DataItem root) =>
@@ -128,7 +128,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// (<c>ProgramEmitter.EmitProgramClass</c>) and the OO type-half (M2-OO-1i inc 5) — a class EXTERNAL FD needs the same
     /// backing property, and <c>LinkageBinder.CallBindExternalAndGlobal</c> already populates <c>Linkage.ExternalBackings</c> on the
     /// class binder (it runs in <c>BindResolve</c>).</summary>
-    public void EmitExternalBackings(DataBinder data, CodeWriter w)
+    public void EmitExternalBackings(DataBindResult data, CodeWriter w)
     {
         foreach (var ext in data.Linkage.ExternalBackings)
         {
@@ -166,14 +166,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// WORKING-STORAGE root emit STATIC members (§13.5.4 GR1 / §8.6.4 static items — one copy on the class); a method
     /// LOCAL-STORAGE / LINKAGE root's member is per ACTIVATION, so it is not <c>readonly</c> — <see cref="EmitMethod"/>
     /// re-seeds it on entry (<see cref="ActivationPointerSeeds"/>) and restores the activator's on exit.</para></summary>
-    public void EmitPointerBackings(DataBinder data, CodeWriter w)
+    public void EmitPointerBackings(DataBindResult data, CodeWriter w)
     {
-        foreach (var (backing, cellField, canonical, cellWidth) in data.State.StorageTier.AddressableBackings)
+        foreach (var (backing, cellField, canonical, cellWidth) in data.StorageTier.AddressableBackings)
         {
-            // The storage duration (§8.6.4) is classified ONCE, by DataBinder.LifetimeOfCell — the same answer decides who
+            // The storage duration (§8.6.4) is classified ONCE, when the result is made (DataBindResult.LifetimeOfCell) — the same answer decides who
             // ENDS the cell's life (kb/Work PB1216). A method's LOCAL-STORAGE / LINKAGE cell and a program's LOCAL-STORAGE
             // cell are re-seeded at each activation (ActivationPointerSeeds — kb/Work PB956 / PB1132), so neither is readonly.
-            var lifetime = data.LifetimeOfCell(cellField, canonical);
+            var lifetime = data.LifetimeOfCell(cellField);
             bool isStatic = lifetime == CellLifetime.Static;
             bool perActivation = lifetime == CellLifetime.Activation;
             string mod = isStatic ? "private static readonly" : perActivation ? "private" : "private readonly";
@@ -181,12 +181,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"{mod} StorageCell {cellField} = {AddressableCellInit(canonical, cellWidth)};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
             w.Line($"{rmod} ref string {backing} => ref {cellField}.Ref;");
         }
-        foreach (var (backing, cellProp, addrField, width) in data.State.StorageTier.BasedBridges)
+        foreach (var (backing, cellProp, addrField, width) in data.StorageTier.BasedBridges)
         {
             // A RECURSIVE unit's static-WS based root — and a method WORKING-STORAGE based root — emits its bridge
             // STATIC (§13.5.4 GR1 / §8.6.4 static items — one copy on the class); the RECURSIVE one is reset to NULL by
             // __ResetStatics (§14.6.2.3.2 action 5; kb/Work PB154).
-            string mod = data.State.StorageTier.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
+            string mod = data.StorageTier.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
             w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5.4 GR2 — initially NULL)");
             // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the addressed area's
             // MANAGED SLOTS are two halves of ONE StorageCell, and the GR3/GR4 loud deref happens once, on
@@ -213,14 +213,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// time the runtime element containing them is activated"). These are exactly the storage channels the root-field
     /// re-initialization loops skip (a cell-backed root has no root field), so every loop that re-initializes automatic
     /// data for an activation also emits these.</summary>
-    internal IEnumerable<(string Member, string Type, string Fresh, string? End)> ActivationPointerSeeds(DataBinder data, IEnumerable<DataItem> roots)
+    internal IEnumerable<(string Member, string Type, string Fresh, string? End)> ActivationPointerSeeds(DataBindResult data, IEnumerable<DataItem> roots)
     {
         foreach (var root in roots)
         {
             if (root.Class is not { IsCellBacked: true } cls || !ReferenceEquals(cls.Canonical, root)) continue;
             if (cls.BasedPointerField is { } addr)
                 yield return (addr, "ManagedPointer", "ManagedPointer.Null", null);
-            else if (data.State.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell))
+            else if (data.StorageTier.AddressableCellOf.TryGetValue(cls, out var cell))
                 // End = the statement that ends THIS activation's life of the cell at its exit (§8.6.4: LOCAL-STORAGE "persists
                 // while that instance of the runtime element is in active state"; kb/Work PB1216). A BASED pointer owns no
                 // storage, so it has none.
@@ -232,8 +232,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// (ISO §14.8.4): the compilation group has an enabling EC-EXTERNAL <c>&gt;&gt;TURN</c> somewhere AND the
     /// unit describes any external record or external file connector. False keeps the generated source
     /// byte-identical to a pre-VCR-15 build (zero-scaffolding).</summary>
-    public static bool WantsExternalDescribes(DataBinder data) =>
-        data.State.UnitChecking.ExternalDescribe && (data.Linkage.ExternalBackings.Count > 0 || data.State.Files.Declared.Any(f => f.IsExternal));
+    public static bool WantsExternalDescribes(DataBindResult data) =>
+        data.UnitChecking.ExternalDescribe && (data.Linkage.ExternalBackings.Count > 0 || data.Files.Declared.Any(f => f.IsExternal));
 
     // ⛔ THE VALUE-IDENTITY KEY OF A RECORD NAME'S VALUE CLAUSE (kb/Work PB1236). §13.18.22.4 GR6 compares the
     // specification, and a literal's CHARACTERS are its content: "ABCD" and "abcd" are two different VALUE clauses.
@@ -259,16 +259,16 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// "escaped from <c>Call</c>" an exact test for GR3i's "the program was successfully called" (kb/Work
     /// PB233). The main-program entry (<c>Activate</c>) calls it itself. A complete-record REDEFINES
     /// contributes nothing (GR6's explicit exemption — the descriptor is built from the base record only).
-    /// The file connector's §12.4.5.3 GR1 identity is <see cref="SelectFingerprint"/>.</summary>
+    /// The file connector's §12.4.5.3 GR1 identity is the bound <see cref="FileModel.SelectFingerprint"/>.</summary>
     /// <param name="data">The describing element's data.</param>
     /// <param name="unitPath">The describer's run-unit identity (the program's path, or the class half's
-    /// <see cref="OoClassSymbol.HalfPath"/>, both rooted at the EXTERNALIZED name; kb/Work PB2920).</param>
+    /// <see cref="OoClassSymbol.HalfKey"/>, both rooted at the EXTERNALIZED name; kb/Work PB2920).</param>
     /// <param name="signature">The emitted member's declaration: the program ABI's <c>public void DescribeExternals()</c>,
     /// or a class half's <c>private static void __DescribeExternals(int __self)</c>, which each method's prologue passes
     /// to <c>ExternalStore.DescribeAtMethodActivation</c> with the METHOD's own mask (kb/Work PB1138).</param>
     /// <param name="selfMask">The C# expression of the activated element's §14.8.4.1 mask.</param>
     /// <param name="w">The writer.</param>
-    public void EmitExternalDescribes(DataBinder data, string unitPath, string signature, string selfMask, CodeWriter w)
+    public void EmitExternalDescribes(DataBindResult data, string unitPath, string signature, string selfMask, CodeWriter w)
     {
         using (w.Block(signature))
         {
@@ -284,7 +284,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     + $"StrongTypeKey: {strongKey}, ConstantRecord: {(ext.Record.IsConstantRecord ? "true" : "false")}), "
                     + $"{selfMask});   // §14.8.4.3 / §13.18.22.4 GR6");
             }
-            foreach (var f in data.State.Files.Declared.Where(f => f.IsExternal))
+            foreach (var f in data.Files.Declared.Where(f => f.IsExternal))
             {
                 string ItemRef(string? clauseName, DataItem? item) => clauseName is null ? "null"
                     : CsLiteral(BinderDriver.ExternalItemIdentity(item) ?? "!");   // "!" = present but NOT an external item (§14.8.4.2 violation face)
@@ -295,76 +295,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
                     + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem)}, "
                     + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem)}, LinageRef: {linage}, "
-                    + $"SelectFingerprint: {CsLiteral(SelectFingerprint(f))}), {selfMask});   // §14.8.4.2 / §14.8.4.4 / §12.4.5.3 GR1");
+                    + $"SelectFingerprint: {CsLiteral(f.SelectFingerprint ?? throw new InvalidOperationException($"OoEmitter: the EXTERNAL file '{f.ExternalName}' has no bound entry identity (BackendAnswers writes one for every EXTERNAL file)"))}), {selfMask});   // §14.8.4.2 / §14.8.4.4 / §12.4.5.3 GR1");
             }
         }
     }
 
-    /// <summary>⛔ THE ONE §12.4.5.3 GR1 IDENTITY of an external file connector's file control entry — the string two
-    /// describers' <c>ExternalStore.Describe</c> registrations compare for EC-EXTERNAL-FILE-MISMATCH (§14.8.4.4: "the
-    /// rules specified in 12.4.5, File control entry General rule 1 apply"). One segment per GR1 item that the entry
-    /// can make differ: a) OPTIONAL, b) the ASSIGN operands, c) the RECORD DELIMITER phrase, d) RESERVE integer-1,
-    /// e) organization, f) access mode, g) the COLLATING SEQUENCE clauses, j) the prime key's description and relative
-    /// location, k) each alternate key's description, relative location, DUPLICATES and SUPPRESS WHEN phrase (and so
-    /// their number), l) sharing mode, m) lock mode. h) RELATIVE KEY and i) FILE STATUS are the §14.8.4.2 external-item
-    /// references the descriptor carries beside it (<c>RelativeKeyRef</c> / <c>FileStatusRef</c>). The split-key
-    /// <c>SOURCE IS</c> operands of j)/k) ("each data-name-6" / "each data-name-3") enter as the record-key-name
-    /// followed by each operand's own entry in order (kb/Work PB1099). Every segment is built from the bound <see cref="FileModel"/>; kb/Work
-    /// PB1079 measured c), d), g), j)'s and k)'s descriptions and locations, and k)'s SUPPRESS WHEN missing from it,
-    /// so a mismatch in any of them ran the activated program with no condition.</summary>
-    internal static string SelectFingerprint(FileModel f)
+    private void EmitFileMembers(string csName, DataBindResult data, BoundProgram bound, CodeWriter w)
     {
-        // §12.4.5.3 GR1 j)/k) "The same data description entry for data-name-… as well as their relative location
-        // within the associated record": the key's name as written (part of its data description entry), its
-        // elementary/group shape and byte extent, its §14.8 conformance description (category, usage, PICTURE clause
-        // identity, sign) and its byte offset within the record area (RecordLayout.OffsetOf, the same offset the
-        // connector registers the key window at).
-        static string KeyEntry(string name, DataItem? item) => item is null ? CobolNames.UpperFold(name)
-            : $"{CobolNames.UpperFold(name)}@{RecordLayout.OffsetOf(item)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}"
-              + $":{(item.IsGroup ? "G" : "E")}{item.ByteWidth}:"
-              + (ActivationDescriptions.Of(item, classes: null) is { } d ? $"{d.Category}/{d.Clauses}/{d.Positions}" : "-");
-        // j)/k) "each data-name-6" / "each data-name-3": a SOURCE-form key is its record-key-name and every operand's
-        // entry in the order specified, since that order IS the key (§12.4.5.12.4 GR2).
-        static string ClauseKey(string name, RecordKeySource? source, DataItem? item) => source is null
-            ? KeyEntry(name, item)
-            : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item)))}]";
-        // k) "the same SUPPRESS WHEN phrase" — the operand as the literal position read it (form, class, characters,
-        // figurative kind), so `SUPPRESS WHEN "XX"` and `SUPPRESS WHEN SPACE` differ and an absent phrase is empty.
-        static string Suppress(SuppressWhenOperand? s) => s is null ? ""
-            : $"{s.Form}/{s.Class}/{s.FigurativeKind}/{s.Characters.Length}:{s.Characters}";
-        // g) "The same specification of COLLATING SEQUENCE clauses": the file-level clause's alphabet-names, and each
-        // key-level clause's alphabet-name-3 against the KEY POSITION it names (P = the prime key, A<i> = the i-th
-        // alternate), so the rule compares what the clause says about the file's keys; sorted, because the clauses'
-        // order in the entry is not part of their specification.
-        // The operand is matched by the key ITEM the binder resolved it to (kb/Work PB1075 — a qualified operand).
-        string KeyPosition(CollatingKeyOperand k)
-        {
-            if (k.Key is not null && ReferenceEquals(f.PrimeKey, k.Key)) return "P";
-            int i = k.Key is null ? -1 : f.AlternateKeys.FindIndex(a => ReferenceEquals(a.Key, k.Key));
-            return i >= 0 ? $"A{i}" : CobolNames.UpperFold(k.Name);
-        }
-        string fileColl = f.FileLevelCollating is { } fc ? $"{(fc.Alnum is { } an ? CobolNames.UpperFold(an) : null)}/{(fc.Nat is { } nn ? CobolNames.UpperFold(nn) : null)}" : "";
-        string keyColl = string.Join(",", f.KeyLevelCollating
-            .SelectMany(c => c.Keys.Select(k => $"{KeyPosition(k)}={CobolNames.UpperFold(c.Alphabet)}"))
-            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
-        // b) "A consistent specification for data-name-1, device-name-1, and literal-1 in the ASSIGN clause" — all
-        // THREE operands, so the USING data-name is part of the identity, not just the TO target. Consistency rule
-        // (the implementor's, GR1 b's second sentence; docs/CONFORMANCE.md §7 DOC-A.1-72): the same data-name
-        // spelling, qualifiers included.
-        return $"OPT={f.Optional}|ASSIGN={f.AssignTarget.ToUpperInvariant()}"
-            + $"|USING={CobolNames.UpperFold(string.Join(" OF ", new[] { f.AssignUsingName ?? "" }.Concat(f.AssignUsingQualifiers)))}"
-            // c) "Either the STANDARD-1 phrase or a consistent value of feature-name-1" — consistency rule: the same
-            // phrase (the clause is declined accept-inert, kb/Work PB292, so the written phrase is all there is).
-            + $"|DELIM={f.RecordDelimiter}|RESERVE={f.ReserveAreas}"
-            + $"|ORG={f.Organization}|ACC={f.AccessMode}|COLL={fileColl};{keyColl}"
-            + $"|KEY={(f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item) : "")}"
-            + $"|ALT={string.Join(",", f.AlternateKeyNames.Select(a => $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}"))}"
-            + $"|SHARE={f.Sharing}|LOCK={(f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : "")}";
-    }
-
-    private void EmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)
-    {
-        var hostFiles = data.State.Files.Declared.Where(f => !f.IsSortMerge).ToList();   // an SD is the runtime's sort work, never a host connector
+        var hostFiles = data.Files.Declared.Where(f => !f.IsSortMerge).ToList();   // an SD is the runtime's sort work, never a host connector
         if (hostFiles.Count == 0) return;
         w.Line();
         // A per-object minted-key field for each instance file (§9.1.4 — one connector per object): initialized once
@@ -436,15 +374,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 + $"{NamingConvention.FactoryInstanceField};   // FactoryObject (ISO §16.2.2.2 GR1)");
         // The class's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts and tables on this type, each method's on its CLR method, each property's on the
-        // type of its accessors. The record's methods are the object roster, then the factory roster (RepositoryCodec.Of).
-        var placement = expansions.Of(cls.Symbol.ClrName);
-        var record = repositoryUpdate ? RepositoryCodec.Of(cls, placement?.Identity) : null;
+        // type of its accessors. The record's methods are the object roster, then the factory roster (the binder's encoder).
+        var record = cls.Record;
         var methodRecords = record?.Class!.Methods;
         List<string> instAttributes = [RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(cls.Symbol.ClrName, RepositoryUnitKind.Class), cls.Name, cls.Symbol.ExternalizedName, record)];
         if (record is not null)
             instAttributes.AddRange(RepositoryAttributeRenderer.TableRecords(record)
                 .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)));
-        EmitTypeHalf(cls.Name, cls.Symbol.ClrName, cls.Symbol.HalfPath(factory: false), instBase,
+        EmitTypeHalf(cls.Name, cls.Symbol.ClrName, cls.Symbol.HalfKey(factory: false), instBase,
             cls.Data, cls.Places, cls.Bound, cls.Symbol.Methods, w,
             headerExtras: instExtras.Count > 0 ? instExtras : null,
             sealedType: cls.Symbol.IsFinal,
@@ -477,7 +414,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (lifeCycle)
             extras.Add($"protected override {cls.Symbol.ClrName} __Create() => new {cls.Symbol.ClrName}();   // New (ISO §16.2.1.2 GR1)");
         // The class's METHOD working-storage is static data (OO deep-dive D3), so a new run unit cannot make it fresh
-        // by construction: each half that has any emits __ResetStatics (the ONE predicate, DataBinder.EmitsStaticReset,
+        // by construction: each half that has any emits __ResetStatics (the ONE predicate, DataBindResult.EmitsStaticReset,
         // shared with RecordStructEmitter), and the factory ADOPTS both into the run unit that creates it — reset at
         // its start (§14.6.2.3.2 case 1) and released at its termination (§14.6.11 3/4/6; kb/Work PB1069). The base
         // call keeps a superclass's own adoption on the chain.
@@ -488,7 +425,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (adopt.Count > 0)
             extras.Add("protected override void __AdoptRunUnitStorage(RunUnit runUnit) { base.__AdoptRunUnitStorage(runUnit); "
                 + string.Join(" ", adopt) + " }   // method WORKING-STORAGE → this run unit (ISO §14.6.2.3.2 / §14.6.11)");
-        EmitTypeHalf(cls.Name, cls.Symbol.FactoryClrName, cls.Symbol.HalfPath(factory: true), facBase,
+        EmitTypeHalf(cls.Name, cls.Symbol.FactoryClrName, cls.Symbol.HalfKey(factory: true), facBase,
             cls.FactoryData, cls.FactoryPlaces, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
             sealedType: cls.Symbol.IsFinal,
             typeAttributes: record is null ? [] : [.. RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: true)],
@@ -501,7 +438,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// extras differ). <paramref name="typeAttributes"/> are the type's repository attributes and
     /// <paramref name="methodRecords"/>, when the module carries signatures, the roster's method records in roster order.</summary>
     private void EmitTypeHalf(string cobolName, string csName, string describerPath, string baseCsName,
-        DataBinder data, PlaceTable places, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
+        DataBindResult data, PlaceTable places, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
         CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType,
         IReadOnlyList<string> typeAttributes, IReadOnlyList<MethodRecord>? methodRecords)
     {
@@ -568,7 +505,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
             w.Line();
             for (int i = 0; i < roster.Count; i++)
-                EmitMethod(bound, roster[i], fields, w, methodRecords?[i]);
+                EmitMethod(bound, roster[i], bound.Methods![i], fields, w, methodRecords?[i]);
             EmitCobolInvoke(cobolName, roster, w);   // D10: the universal-dispatch switch (BOTH halves —
                                                        // a universal reference can hold a factory object)
         }
@@ -623,16 +560,17 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         var cases = roster.Where(m => m.OverrideOf is null).ToList();
         if (cases.Count == 0) return;
         w.Line();
-        // The method side's descriptions, built once per type (ActivationDescriptions — the ONE builder the caller's
-        // side is built by too).
+        // The method side's descriptions, rendered once per type: the binder built them (OoMethodBinding.FormalDescriptions,
+        // by the ONE builder the caller's side is built by too; kb/Work PB2403).
         for (int c = 0; c < cases.Count; c++)
         {
             var b = cases[c].Binding!;
             if (b.Formals.Any(f => f.ByValue)) continue;   // never a match (EmitCobolInvokeCase), so never asked
+            var described = FormalDescriptionsOf(cases[c]);
             for (int i = 0; i < b.Formals.Count; i++)
-                if (ActivationDescriptions.OfFormal(b.Formals[i], ecState.OoClasses) is { } fd)
+                if (described[i] is { } fd)
                     w.Line($"private static readonly {nameof(ActivationDescription)} {CaseDescription(c, i)} = {RuntimeApi.ActivationDescriptionNew(fd)};");
-            if (b.Returning is { } r && ActivationDescriptions.Of(r, ecState.OoClasses) is { } rd)
+            if (b.ReturningDescription is { } rd)
                 w.Line($"private static readonly {nameof(ActivationDescription)} {CaseDescription(c, -1)} = {RuntimeApi.ActivationDescriptionNew(rd)};");
         }
         using (w.Block("public override void __CobolInvoke(string __name, CobolInvokeArg[] __a, CobolInvokeArg? __ret)"))
@@ -651,6 +589,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line("base.__CobolInvoke(__name, __a, __ret);");
         }
     }
+
+    /// <summary>The descriptions the binder wrote for a method that has a case in the universal dispatch switch
+    /// (<see cref="OoMethodBinding.FormalDescriptions"/>); a case with none is a bind defect, never a method without one.</summary>
+    private static IReadOnlyList<ActivationDescription?> FormalDescriptionsOf(OoMethodSymbol m) =>
+        m.Binding!.FormalDescriptions ?? throw new InvalidOperationException(
+            $"OoEmitter: method '{m.Name}' has a universal dispatch case and no bound descriptions (BackendAnswers writes them)");
 
     /// <summary>The name of the <c>static readonly</c> description of case <paramref name="c"/>'s formal
     /// <paramref name="i"/> (−1: its returning item).</summary>
@@ -695,8 +639,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         }
         // A formal or returning item with no universal crossing form (a Tier-C group) can match no argument: the binder
         // refuses every such argument (COBOL0866), so no description of the caller's can be its.
-        if (formalsList.Any(f => ActivationDescriptions.OfFormal(f, ecState.OoClasses) is null)
-            || returning is not null && ActivationDescriptions.Of(returning, ecState.OoClasses) is null)
+        var described = FormalDescriptionsOf(m);
+        var returningDescription = m.Binding!.ReturningDescription;
+        if (described.Any(d => d is null) || returning is not null && returningDescription is null)
         {
             w.Line("break;   // a formal or returning item with no universal crossing form matches no invocation");
             return;
@@ -737,8 +682,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // ⛔ AN ACTIVE-CLASS RETURNING ITEM IS SENT AS A UNIVERSAL OBJECT REFERENCE (§14.8.3.3 rule 2 b) 4.; kb/Work PB2985):
         // the invoking reference is universal, so the item conforms only to a universal receiving item. Its own check, not
         // a __viol term: unchecked, the invocation proceeds and the delivery's class narrowing is the floor.
-        if (returning is not null && ActivationDescriptions.Of(returning, ecState.OoClasses)
-                is { ObjectKind: ObjectReferenceKind.ActiveClass })
+        if (returning is not null && returningDescription is { ObjectKind: ObjectReferenceKind.ActiveClass })
             w.Line(RuntimeApi.ObjCheckActiveClassReturning(m.Checking.OoUniversalChecking ? "true" : "false",
                 $"INVOKE '{cobolName}' '{m.Name}'", "__ret!.Description", CaseDescription(c, -1)) + ";");
         // ⛔ AN ACTIVE-CLASS FORMAL IS HANDED ITS ARGUMENT BY A UNIVERSAL INVOCATION (§14.8.2.3.2 rule 4; kb/Work PB2985): the
@@ -747,8 +691,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // §9.3.6 3 d) 4./5., already required an object of the class the method runs on). A trailing OMITTED position
         // has no argument to ask.
         for (int i = 0; i < formals; i++)
-            if (ActivationDescriptions.OfFormal(formalsList[i], ecState.OoClasses)
-                    is { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass })
+            if (described[i] is { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass })
                 w.Line((i < minArgs ? "" : $"if (__a.Length > {i}) ")
                     + RuntimeApi.ObjCheckActiveClassFormal(m.Checking.OoUniversalChecking ? "true" : "false",
                         $"INVOKE '{cobolName}' '{m.Name}'", $"__a[{i}].Description", CaseDescription(c, i)) + ";");
@@ -812,7 +755,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <summary>D-U6a: true when the item's canonical UNIVERSAL box form is the display IMAGE string while
     /// its local crossing form is native — the FormatDisplay/StoreDisplay bridge applies both directions.</summary>
     private static bool OoUnivImageBridged(DataItem item) =>
-        !OoStringCarried(item)
+        !ActivationCrossing.StringCarried(item)
         && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display };   // CARRIAGE, not image form (kb/Work PB646)
 
     /// <summary>D-U6a's OTHER bridge (kb/Work PB187): true when the item's canonical box is its NATIVE value — a
@@ -823,7 +766,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// form; without this arm the callee cast a boxed float to <c>string</c> (InvalidCastException on legal
     /// source) and a windowed caller boxed its image where the callee expected the value.</summary>
     private static bool OoUnivNativeBoxOverImage(DataItem item) =>
-        OoStringCarried(item) && !item.IsGroup && !OoUnivDisplayBoxed(item)
+        ActivationCrossing.StringCarried(item) && !item.IsGroup && !OoUnivDisplayBoxed(item)
         && item.Pic is { HasImageByteForm: true } && item.Pic.Usage is not Usage.National;
 
     /// <summary>True when the descriptor's canonical box is the zoned display IMAGE (N:Display:*) — the item's
@@ -841,9 +784,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         OoVarGroupCarried(item) ? $"({RuntimeApi.VarGroupType}){box}!"
         // A strong group's leaf vector (kb/Work PB1116): the relations admit only an argument of the same type, which
         // the caller boxes as the same vector (OoUnivCallerRead).
-        : OoClassTable.LeafCarried(item) ? $"(object?[]){box}!"
+        : ActivationCrossing.LeafCarried(item) ? $"(object?[]){box}!"
         : OoUnivNativeBoxOverImage(item) ? NumericRenderer.ImageOfCarrier($"({item.Pic!.ClrType}){box}!", item)
-        : OoStringCarried(item) ? $"(string){box}!"
+        : ActivationCrossing.StringCarried(item) ? $"(string){box}!"
         : OoUnivImageBridged(item) ? RuntimeApi.NumStoreDisplay($"(string){box}!", item.ProfileName, $"({item.ElementType})0")
         : OoIsActiveClassFormal(item) ? $"(CobolObject?){box}"   // the universal crossing (OoFormalCrossingType)
         : item.Pic is { Category: PicCategory.ObjectReference } p ? $"({p.ClrType}){box}"
@@ -897,7 +840,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // positions as an elementary item does — PlaceRenderer.Read handed the group's struct to a string
             // parameter (CS1503; kb/Work PB1136).
             : RuntimeApi.ObjNormalizeMethodName(RuntimeApi.ExternalizedNameInEdition(
-                OperandText.FieldImage(u.MethodSource!), Ctx.Data.Edition.DialectLevel));   // the edition's spelling, as the literal's (PB2991)
+                OperandText.FieldImage(u.MethodSource!), Ctx.Data.DialectLevel));   // the edition's spelling, as the literal's (PB2991)
         w.Line($"{RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(u.Receiver))}.__CobolInvoke({selector}, __ua{id}, __ur{id});");
         if (u.Returning is { } ret)
             w.Line(OoUnivCallerWrite(ret, $"__ur{id}!.Value", argumentView: false) + "   // RETURNING delivery (§14.9.23.4 GR8)");
@@ -1026,7 +969,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         p is RefModPlace ? PlaceRenderer.Read(p)
         // Every universal argument is BY REFERENCE (§14.9.23.3 SR6), so the box reads the argument's STORAGE (kb/Work PB2690).
         : CallEmitter.CallPlaceIsVarGroup(p) ? PlaceRenderer.VarGroupBoundaryImage(p, "INVOKE argument", byReference: true)
-        : OoClassTable.LeafCarried(p.Item) ? PlaceRenderer.GroupLeaves(p)
+        : ActivationCrossing.LeafCarried(p.Item) ? PlaceRenderer.GroupLeaves(p)
         : p.Item.IsGroup ? CallEmitter.CallStringRead(p)
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Read(new NumericImagePlace(p))
         : OoUnivNativeBoxOverImage(p.Item) ? $"(object?){NumericRenderer.CarrierOfImage(PlaceRenderer.Read(p), p.Item)}"   // kb/Work PB187
@@ -1045,10 +988,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         p is RefModPlace ? PlaceRenderer.Write(p, $"(string){box}!")
         : CallEmitter.CallPlaceIsVarGroup(p)
             ? PlaceRenderer.WriteVarGroupImage(p, $"({RuntimeApi.VarGroupType}){box}!", "INVOKE copy-out into")
-        : OoClassTable.LeafCarried(p.Item) ? PlaceRenderer.WriteGroupLeaves(p, $"(object?[]){box}!")
+        : ActivationCrossing.LeafCarried(p.Item) ? PlaceRenderer.WriteGroupLeaves(p, $"(object?[]){box}!")
         : p.Item.IsGroup ? argumentView ? CallEmitter.BoundaryCopyWrite(p, $"(string){box}!") : CallEmitter.CallStringWrite(p, $"(string){box}!")
         : OoUnivNativeBoxOverImage(p.Item) ? PlaceRenderer.Write(p, NumericRenderer.ImageOfCarrier($"({p.Item.Pic!.ClrType}){box}!", p.Item))   // kb/Work PB187
-        : OoStringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
+        : ActivationCrossing.StringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Write(new NumericImagePlace(p), $"(string){box}!")
         : p.Item.Pic is { Category: PicCategory.ObjectReference } pic
             ? PlaceRenderer.Write(p, RuntimeApi.ObjNarrowUniversal(pic.ClrType.TrimEnd('?'), box,
@@ -1065,7 +1008,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// the RETURNING local is the C# return value (§14.9.23.4 GR8). D7: <c>virtual</c> by default. The exit-bounded
     /// slice is the trap-#4 guard.
     /// </summary>
-    private void EmitMethod(BoundProgram bound, OoMethodSymbol m, DataEmitter fields, CodeWriter w, MethodRecord? record)
+    private void EmitMethod(BoundProgram bound, OoMethodSymbol m, BoundMethod boundMethod, DataEmitter fields, CodeWriter w, MethodRecord? record)
     {
         var (retType, sig) = OoSignatureOf(m, record);
         EmitMethodRecord(record, w);
@@ -1154,12 +1097,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // condition raised at a RUNTIME site while this method executes selects over THIS method's declaratives
             // (§14.9.49.4 GR4 a)), never its invoker's. Saved here, installed where the method's own selection is in
             // scope (below), restored in the activation's finally. Only an EC-model group raises through it.
-            bool nfInstall = ecState.Active && (m.Binding!.EntryPc <= m.Binding!.EndPc || m.Binding!.Declaratives.Count > 0);
+            bool nfInstall = ecState.Active && (m.Binding!.EntryPc <= m.Binding!.EndPc || boundMethod.Declaratives.Count > 0);
             if (nfInstall)
                 w.Line("var __nfM = ExceptionState.NonfatalDispatcher;   // the invoker's selector (ISO §14.6.13.1.4 #3)");
             w.Line("try");
             w.Line("{");
-            if (Ctx.Data.State.Configuration.Classification is { } cls)
+            if (Ctx.Data.Configuration.Classification is { } cls)
                 // The class's CHARACTER CLASSIFICATION, resolved at THIS method's activation (ISO §12.3.6.4 GR8; §14.6.6 r2 —
                 // a method is a runtime element) into a local the method's dispatch local function captures (kb/Work PB111).
                 w.Line(ObjectComputerEmit.ClassificationLocal(cls));
@@ -1271,7 +1214,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         // write (kb/Work PB1166 — the twin of MethodBoundaryValue's arm).
                         : root.IsAsIfElementary ? CallEmitter.CallStringWrite(MethodRootPlace(root), $"{formal.ParamName}.Value")
                         // A strong group with no character image is rebuilt from its leaf vector (kb/Work PB1116).
-                        : OoClassTable.LeafCarried(root) ? PlaceRenderer.WriteGroupLeaves(MethodRootPlace(root), $"{formal.ParamName}.Value")
+                        : ActivationCrossing.LeafCarried(root) ? PlaceRenderer.WriteGroupLeaves(MethodRootPlace(root), $"{formal.ParamName}.Value")
                         : PlaceRenderer.WriteFullGroupImage(MethodRootPlace(root), $"{formal.ParamName}.Value",
                             "OO method LINKAGE formal copy-in")) + " }");
                 }
@@ -1306,7 +1249,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§8.6.4; M2-OO-1h step 4) —
             // the method's own cell (§11.7.4 GR5), reset to 1 each activation, never the shared class index field.
             foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
-                foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+                foreach (var idx in IndexDeclaration.Under(root))
                     w.Line($"long {idx.Cell} = 1;   // INDEX-NAME {idx.Name} (LOCAL/LINKAGE table cell, §8.6.4)");
             // ⛔ THE METHOD IS ITS OWN SELECTION SCOPE (kb/Work PB1010; design SSOT §9.10). §14.9.49.4 GR3 selects
             // over "the USE statements in the source element" and GR4 a) makes that the element containing the
@@ -1315,7 +1258,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // definition) and/or its Format-3 PERFORM handlers (whose pc-ranges were appended to the class pc space;
             // F3HandlerBasePc is the CLASS handler base, HandlerUseId = DeclCount + (pc − base)). A method with
             // neither keeps no selection machinery and is byte-identical.
-            var mDecls = m.Binding!.Declaratives;
+            var mDecls = boundMethod.Declaratives;
             bool methodF3 = m.Binding!.HandlerCount > 0;
             bool methodSelects = methodF3 || mDecls.Count > 0;
             var savedSel = (ecState.UnitHasF3Perform, ecState.UnitHasF3, ecState.UnitHasF4, dispatch.UseDecls,
@@ -1330,7 +1273,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             var savedPropagation = ecState.Propagation;
             var savedRaisingTypes = ecState.PdRaisingObjectCsTypes;
             ecState.Propagation = AutomaticPropagation.Of(m.Checking.AutomaticPropagation, inMethod: true);
-            ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(m.Raising, ecState.OoClasses);   // §14.6.13.1.5 items 1 and 3 (kb/Work PB1121)
+            ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(m.Binding!.RaisingObjects);   // §14.6.13.1.5 items 1 and 3 (kb/Work PB1121)
             if (methodSelects)
             {
                 ecState.UnitHasF3Perform = methodF3;                            // raise sites emit __EcPerform
@@ -1541,12 +1484,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private static string OoArgPair(string carrier, string area, string omitted) => $"{carrier}, {area}, {omitted}";
 
     /// <summary>Emit a PARAMETERIZED definition's skeleton (ISO §9.3.12, §9.3.13; DESIGN-external-repository §7.2): a
-    /// <c>public static class</c> that carries the definition's <c>[CobolUnit]</c> and, with <c>--repository-update on</c>, its
-    /// <c>[CobolSkeleton]</c>. The definition itself emits nothing else — its expansions are the classes.</summary>
-    public void EmitSkeletonUnit(PublishedSkeleton skeleton, CodeWriter w)
+    /// <c>public static class</c> that carries the definition's <c>[CobolUnit]</c> and, with <c>--repository-update on</c>
+    /// (<paramref name="publishesSignatures"/>, <see cref="BoundCompilation.PublishesSignatures"/>), its <c>[CobolSkeleton]</c>.
+    /// The definition itself emits nothing else — its expansions are the classes.</summary>
+    public void EmitSkeletonUnit(PublishedSkeleton skeleton, bool publishesSignatures, CodeWriter w)
     {
-        w.Line(RepositoryAttributeRenderer.SkeletonUnitRecord(skeleton, repositoryUpdate));
-        if (repositoryUpdate) w.Line(RepositoryAttributeRenderer.SkeletonRecord(skeleton.Skeleton));
+        w.Line(RepositoryAttributeRenderer.SkeletonUnitRecord(skeleton, publishesSignatures));
+        if (publishesSignatures) w.Line(RepositoryAttributeRenderer.SkeletonRecord(skeleton.Skeleton));
         using (w.Block($"public static class {skeleton.ClrName}")) { }
     }
 
@@ -1565,7 +1509,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : "";
         // The interface's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
         // --repository-update on its facts, tables and properties here and each prototype's on its CLR method.
-        var record = repositoryUpdate ? RepositoryCodec.Of(iface, data, expansions.Of(iface.ClrName)?.Identity) : null;
+        var record = ifaceRecords.GetValueOrDefault(iface);
         w.Line(RepositoryAttributeRenderer.UnitRecord(expansions.KindOf(iface.ClrName, RepositoryUnitKind.Interface), iface.Name, iface.ExternalizedName, record));
         if (record is not null)
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record)
@@ -1597,11 +1541,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         w.Line();
     }
 
-    /// <summary>Thin forward to THE one crossing-form predicate, <see cref="OoClassTable.StringCarried"/>
-    /// (relocated to Binding in P6 Step 5 — the bind-phase override harmonize in <c>StorageFormPass</c> and these
-    /// emit-side signature/marshaling renders must consult the SAME definition).</summary>
-    private static bool OoStringCarried(DataItem item) => OoClassTable.StringCarried(item);
-
     /// <summary>True when an OO boundary item crosses as the §8.5.1.12 VARIABLE-LENGTH carrier — the THIRD
     /// crossing form (kb/Work PB204), the exact twin of <c>CallEmitter.CallPlaceIsVarGroup</c> at the CALL
     /// boundary. §14.9.23.3 contains no prohibition on such an operand and §14.8.2.2 / §14.8.3.2 ADMIT it
@@ -1610,12 +1549,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     /// <summary>⛔ THE ONE C# CROSSING TYPE of an OO boundary item — the dispatch every signature, property
     /// accessor, box lane and marshaling arm reads, so the three forms cannot drift (kb/Work PB204 replaced
-    /// SIX copies of the two-way ternary <c>OoStringCarried(x) ? "string" : x.ElementType</c>; adding a form
+    /// SIX copies of the two-way ternary <c>ActivationCrossing.StringCarried(x) ? "string" : x.ElementType</c>; adding a form
     /// to a ternary spelled six times is how the two-arm defect gets made).</summary>
     private static string OoCrossingType(DataItem item) =>
         OoVarGroupCarried(item) ? RuntimeApi.VarGroupType
-        : OoClassTable.LeafCarried(item) ? "object?[]"   // the strong group's leaf vector (kb/Work PB1116)
-        : OoStringCarried(item) ? "string"
+        : ActivationCrossing.LeafCarried(item) ? "object?[]"   // the strong group's leaf vector (kb/Work PB1116)
+        : ActivationCrossing.StringCarried(item) ? "string"
         : item.ElementType;
 
     /// <summary>True for a method formal described <c>USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS</c>.</summary>
@@ -1726,10 +1665,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// §10.5), which this module names through a <c>using</c> alias of its local name. The owner's internal profile fields are that
     /// assembly's own, named by ITS binder's uids, so they are never spelled through the owner (kb/Work PB2104).</summary>
     private bool OwnerIsInAnotherAssembly(string? clrName) =>
-        clrName is not null && ecState.OoClasses is { } table
-        && (table.ImportedClasses.Any(c => c.ClrName == clrName || c.FactoryClrName == clrName)
-            || table.ImportedInterfaces.Any(i => i.ClrName == clrName)
-            || expansions.LivesElsewhere(clrName));
+        clrName is not null && (imported.Declares(clrName) || expansions.LivesElsewhere(clrName));
 
     /// <summary>The instance-call marshaling (D6; §14.9.23.4 GR6/GR7a/GR8): every formal crosses as its argument's
     /// CARRIER, its AREA and its omitted flag (<see cref="OoArgPair"/>). ⛔ A BY REFERENCE identifier argument's carrier
@@ -1751,7 +1687,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         for (int i = 0; i < args.Count; i++)
         {
             var a = args[i];
-            bool stringCarried = OoStringCarried(a.Formal);
+            bool stringCarried = ActivationCrossing.StringCarried(a.Formal);
             // The owner's internal profile field when the owner is a class of this module; for a class IMPORTED from another assembly
             // (whose profile fields are its own internals, named by ITS binder's uids) the same profile, spelled out (kb/Work PB2104).
             string qualProfile = a.Formal.Pic is not { Category: PicCategory.Numeric } ? ""
@@ -1857,7 +1793,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // ⛔ A STRONG GROUP WITH NO CHARACTER IMAGE (kb/Work PB1116): the argument is of the formal's type (bind
             // proved it), so it crosses as its leaf vector — a fresh vector, so BY CONTENT is a copy and BY REFERENCE
             // is copied back below. FIRST among the group arms: StringCarried is true of every group.
-            else if (OoClassTable.LeafCarried(a.Formal))
+            else if (ActivationCrossing.LeafCarried(a.Formal))
                 Decl("object?[]", PlaceRenderer.GroupLeaves(a.Source!));
             else if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
             {
@@ -2020,7 +1956,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // GR8 — capture the result AT RETURN and store into identifier-4 LAST (the final effect of the INVOKE;
             // every BY REFERENCE argument already holds the method's stores — its carrier was a view over it).
             string tmp = $"__ivr{id}";
-            bool retString = OoStringCarried(rs);
+            bool retString = ActivationCrossing.StringCarried(rs);
             w.Line($"var {tmp} = {call};   // INVOKE (§14.9.23.4; null receiver → EC-OO-NULL, GR5)");
             // ⛔ A RETURNING pair with ONE variable-length side (§14.8.3.2 "If either the sending or the receiving
             // operand is a variable length group, the sending operand and the receiving operand shall be
@@ -2046,7 +1982,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             else if (ItemCategory.IsGroupItem(rs) && VarPlaceShapes(recv, rs) is (var recvVarShape, var rsFixedShape))
                 w.Line(PlaceRenderer.WriteVarGroupImage(inv.Returning,
                     RuntimeApi.VarGroupFromImage(tmp, Atoms(rsFixedShape), Atoms(recvVarShape)), "INVOKE RETURNING delivery into"));
-            else if (OoClassTable.LeafCarried(rs))
+            else if (ActivationCrossing.LeafCarried(rs))
                 w.Line(PlaceRenderer.WriteGroupLeaves(inv.Returning, tmp));   // §14.8.3.2 same type — the leaf vector (kb/Work PB1116)
             else if (rs.IsGroup || recv.Item.IsGroup)
                 w.Line(CallEmitter.CallStringWrite(inv.Returning, tmp));
@@ -2058,7 +1994,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // COBOL description: an ACTIVE-CLASS result, such as the standard class BASE's FactoryObject,
                 // whose runtime member returns CobolObject (ISO §16.2). The narrowing is therefore total.
                 w.Line(PlaceRenderer.Write(recv, $"({orp.ClrType}){tmp}"));
-            else if (retString == OoStringCarried(recv.Item))
+            else if (retString == ActivationCrossing.StringCarried(recv.Item))
                 // ANY LENGTH at the delivery boundary (ISO §14.8.3.3 rules 4/5; §13.18.2 GR1): a varying-length
                 // SENDER delivers width-fitted into a fixed receiver (rule 5 — its length "considered to match");
                 // a varying-length RECEIVER stores at its own current length (its n is fixed by ITS activation).
@@ -2089,7 +2025,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// takes the receiving references the method made (<paramref name="received"/>, kb/Work PB2690; §8.5.1.9.3).</para></summary>
     private string InvokeArgumentStore(BoundInvokeArg a, Place src, string value, string received, out bool overStorage)
     {
-        bool stringCarried = OoStringCarried(a.Formal);
+        bool stringCarried = ActivationCrossing.StringCarried(a.Formal);
         overStorage = false;
         if (OoVarGroupCarried(a.Formal))
         {
@@ -2121,7 +2057,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 RuntimeApi.VarGroupOverlayImage(PlaceRenderer.VarGroupBoundaryImage(src, "INVOKE copy-out into", byReference: true), Atoms(wvArg), value, Atoms(wvFormal), received),
                 "INVOKE copy-out into");
         }
-        else if (OoClassTable.LeafCarried(a.Formal))
+        else if (ActivationCrossing.LeafCarried(a.Formal))
             return PlaceRenderer.WriteGroupLeaves(src, value);   // the leaf vector's copy-back (kb/Work PB1116)
         else if (a.Formal.IsGroup || src.Item.IsGroup)
         {
@@ -2142,7 +2078,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         else if (src is RefModPlace)
             return PlaceRenderer.Write(src, value);   // RefModPlace.Write splices the window (§8.4.3.3.4 GR6)
         else if (stringCarried)
-            return OoStringCarried(src.Item) ? PlaceRenderer.Write(src, value) : PlaceRenderer.Write(new NumericImagePlace(src), value);
+            return ActivationCrossing.StringCarried(src.Item) ? PlaceRenderer.Write(src, value) : PlaceRenderer.Write(new NumericImagePlace(src), value);
         else
             return src.Item.StoreAsImage
                 ? PlaceRenderer.Write(src, NumericRenderer.ImageOfCarrier(value, src.Item))
@@ -2196,7 +2132,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private string OoStringReadOf(Place sp, BoundInvokeArg a, string qualProfile)
     {
         string read = sp is RefModPlace ? PlaceRenderer.Read(sp)
-            : OoStringCarried(sp.Item) ? PlaceRenderer.Read(sp)
+            : ActivationCrossing.StringCarried(sp.Item) ? PlaceRenderer.Read(sp)
             : PlaceRenderer.Read(new NumericImagePlace(sp));
         // An ANY LENGTH formal takes the argument's characters AT the argument's length (ISO §13.18.2 GR1 —
         // n = the length of the corresponding argument), so the CONTENT copy must NOT width-normalize to the

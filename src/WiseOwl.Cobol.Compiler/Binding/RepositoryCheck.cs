@@ -53,12 +53,12 @@ internal static class RepositoryCheck
                 DecodedRecord decoded;
                 try { decoded = RepositoryCodec.Decode(record, RepositoryCodec.Names(record, session.OoClasses, [], import: false)); }
                 catch (RepositoryRecordException) { continue; }   // the resolver's REPO-5 names an entry it uses; this one is only compared
-                if (PrototypeSignatures.FirstDifference(new CalleeSignature(unit.Data.Linkage.Formals, unit.Data.Linkage.Returning),
+                if (PrototypeSignatures.FirstDifference(session.Binders.SignatureOf(unit),
                         decoded.Signature) is not { } difference)
                     continue;
                 string kind = unit.IsFunction ? "function" : "program";
                 if (previous) space.Inputs.RecordRepositoryRead();
-                using var _ = session.Edition.At(BinderDriver.NameCtx(unit));
+                using var _ = session.Edition.At(session.Sources.NameOf(unit));
                 session.Edition.Warning(DiagnosticCatalog.RepositorySignatureDiffers,
                     $"the {kind}{(unit.IsPrototype ? " prototype" : "")} {unit.Name} AS \"{unit.ExternalizedName}\" differs from "
                     + $"{(record.Kind is RepositoryUnitKind.ProgramPrototype or RepositoryUnitKind.FunctionPrototype ? "the prototype" : "the definition")} "

@@ -497,6 +497,11 @@ public sealed class FileModel
     /// grammar carries no <c>AS literal</c> on the FD clause yet). Null for a non-EXTERNAL file.</summary>
     public string? ExternalName { get; set; }
 
+    /// <summary>The §12.4.5.3 GR1 identity of an EXTERNAL file connector's file control entry: the string two describers'
+    /// registrations compare for EC-EXTERNAL-FILE-MISMATCH (§14.8.4.4). Built by <c>FileEntryIdentity.Of</c> at the end of the
+    /// bind (<c>BackendAnswers</c>; kb/Work PB2403), over the finished entry; null for a file that is not EXTERNAL.</summary>
+    public string? SelectFingerprint { get; set; }
+
     /// <summary>For a per-object instance or factory file (M2-OO-1i; §9.3.9): the name of the emitted object field holding this
     /// connector's per-object minted key (<c>__fkey_&lt;name&gt;</c>). One connector per object instance
     /// (ISO §9.1.4 — implicit CLOSE at object deletion), so the runtime key is minted per object rather than a
@@ -562,14 +567,14 @@ public sealed class FileModel
     /// It has two readers: the connector's input-output area count (§12.4.5.14.3 GR1 — "the number of input-output
     /// areas allocated is equal to the value of integer-1"; <c>SequentialIoEmitter.EmitReserveRegistration</c>,
     /// kb/Work PB643), and the external file connector's entry identity, which §12.4.5.3 GR1 d) makes include "The
-    /// same value for integer-1 in the RESERVE clause" (<c>OoEmitter.SelectFingerprint</c>, kb/Work PB1079).</summary>
+    /// same value for integer-1 in the RESERVE clause" (<c>FileEntryIdentity.Of</c>, kb/Work PB1079).</summary>
     public int? ReserveAreas { get; set; }
 
     /// <summary>The RECORD DELIMITER clause's phrase as written — <c>STANDARD-1</c> or the uppercased
     /// feature-name-1 (ISO §12.4.5.11) — or null when the entry writes no such clause. The clause is declined
     /// accept-inert (kb/Work PB292; it changes no framing), so its one reader is the external file connector's
     /// entry identity: §12.4.5.3 GR1 c) requires "Either the STANDARD-1 phrase or a consistent value of
-    /// feature-name-1 in the RECORD DELIMITER clause" (<c>OoEmitter.SelectFingerprint</c>, kb/Work PB1079).</summary>
+    /// feature-name-1 in the RECORD DELIMITER clause" (<c>FileEntryIdentity.Of</c>, kb/Work PB1079).</summary>
     public string? RecordDelimiter { get; set; }
 
     /// <summary>Whether an I-O-CONTROL APPLY COMMIT clause (ISO §12.4.6.3) names this file — the STATIC,

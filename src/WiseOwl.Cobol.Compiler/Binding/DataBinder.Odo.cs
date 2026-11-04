@@ -218,36 +218,6 @@ public sealed partial class DataBinder
             ? $" — part of the description '{site.CobolName ?? "FILLER"}' copies in through its TYPE or SAME AS clause"
             : "";
 
-    /// <summary>⛔ §13.18.38.3 SR20 over the record's STORAGE AREA, not its entry (kb/Work PB1261). The range is
-    /// byte positions — from the table's first to its record's last — and a byte position belongs to an AREA, which
-    /// more than one record description can describe: §13.18.33.4 GR3, "Multiple level 1 entries subordinate to a FD
-    /// or SD entry represent implicit redefinitions of the same area", and a level-1 REDEFINES. Such records share
-    /// one <see cref="RedefinesClass"/> and each begins at the area's first byte, so a counter in a sibling record
-    /// sits at its own record offset in the same area. The test compared record ROOTS and so let that counter
-    /// through, though it overlays the table's bytes.
-    /// <para>Within ONE record, leaf order IS byte order for the canonical storage, so the counter must lie strictly
-    /// before the table: its LAST leaf, for data-name-1 "occupies" every byte position of its own extent, and a GROUP
-    /// data-name-1 has no leaf of its own — one that contains the table (DEPENDING ON the record that holds it)
-    /// occupies every byte of the range, and the test that looked for data-name-1 itself among the leaves passed it
-    /// (kb/Work PB3510). Across the records of one area the counter's byte window is compared with the table's:
-    /// its offset in its own record against the table's offset and its record's extent (the table at its maximum,
-    /// §8.5.1.8 — the allocation every record of the area is described against).</para></summary>
-    internal static bool DependingInsideTableRange(DataItem table, DataItem dep)
-    {
-        if (ReferenceEquals(dep.Root, table.Root))
-        {
-            var leaves = LeavesOf(table.Root).ToList();
-            int tableStart = leaves.FindIndex(l => OdoModel.IsWithin(l, table));
-            int depLast = leaves.FindLastIndex(l => OdoModel.IsWithin(l, dep));
-            return tableStart >= 0 && depLast >= tableStart;
-        }
-        if (dep.Root.Class is not { } area || !ReferenceEquals(table.Root.Class, area)) return false;
-        if (RecordLayout.FirstOccurrenceOffsetOf(table) is not { } first || RecordLayout.OffsetOf(dep) is not { } at)
-            return false;
-        int recordEnd = RecordLayout.PhysicalWidth(table.Root);
-        return at < recordEnd && at + RecordLayout.PhysicalOccurrenceWidth(dep) > first;
-    }
-
     /// <summary>Is <paramref name="record"/> — and so every data-name subordinate to it — a global name? ISO
     /// §8.4.6.2.2: "A constant-name, file-name, record-name, report-name, screen-name, or type-name described with a
     /// GLOBAL clause is a global name. All data-names and screen-names subordinate to a global name are global
@@ -268,8 +238,38 @@ internal readonly record struct DependingAdmission(bool NotInteger, bool Subscri
 {
     /// <summary>The three facts of <paramref name="dep"/> as the object of <paramref name="table"/>'s DEPENDING phrase.</summary>
     public static DependingAdmission Of(DataItem table, DataItem dep) =>
-        new(dep.Pic is not { IsIntegerDescription: true }, dep.SubscriptArity > 0, DataBinder.DependingInsideTableRange(table, dep));
+        new(dep.Pic is not { IsIntegerDescription: true }, dep.SubscriptArity > 0, DependingInsideTableRange(table, dep));
 
     /// <summary>The link may be recorded.</summary>
     public bool Admitted => !NotInteger && !Subscripted && !InTableRange;
+
+    /// <summary>⛔ §13.18.38.3 SR20 over the record's STORAGE AREA, not its entry (kb/Work PB1261). The range is
+    /// byte positions — from the table's first to its record's last — and a byte position belongs to an AREA, which
+    /// more than one record description can describe: §13.18.33.4 GR3, "Multiple level 1 entries subordinate to a FD
+    /// or SD entry represent implicit redefinitions of the same area", and a level-1 REDEFINES. Such records share
+    /// one <see cref="RedefinesClass"/> and each begins at the area's first byte, so a counter in a sibling record
+    /// sits at its own record offset in the same area. The test compared record ROOTS and so let that counter
+    /// through, though it overlays the table's bytes.
+    /// <para>Within ONE record, leaf order IS byte order for the canonical storage, so the counter must lie strictly
+    /// before the table: its LAST leaf, for data-name-1 "occupies" every byte position of its own extent, and a GROUP
+    /// data-name-1 has no leaf of its own — one that contains the table (DEPENDING ON the record that holds it)
+    /// occupies every byte of the range, and the test that looked for data-name-1 itself among the leaves passed it
+    /// (kb/Work PB3510). Across the records of one area the counter's byte window is compared with the table's:
+    /// its offset in its own record against the table's offset and its record's extent (the table at its maximum,
+    /// §8.5.1.8 — the allocation every record of the area is described against).</para></summary>
+    private static bool DependingInsideTableRange(DataItem table, DataItem dep)
+    {
+        if (ReferenceEquals(dep.Root, table.Root))
+        {
+            var leaves = DataBinder.LeavesOf(table.Root).ToList();
+            int tableStart = leaves.FindIndex(l => OdoModel.IsWithin(l, table));
+            int depLast = leaves.FindLastIndex(l => OdoModel.IsWithin(l, dep));
+            return tableStart >= 0 && depLast >= tableStart;
+        }
+        if (dep.Root.Class is not { } area || !ReferenceEquals(table.Root.Class, area)) return false;
+        if (RecordLayout.FirstOccurrenceOffsetOf(table) is not { } first || RecordLayout.OffsetOf(dep) is not { } at)
+            return false;
+        int recordEnd = RecordLayout.PhysicalWidth(table.Root);
+        return at < recordEnd && at + RecordLayout.PhysicalOccurrenceWidth(dep) > first;
+    }
 }

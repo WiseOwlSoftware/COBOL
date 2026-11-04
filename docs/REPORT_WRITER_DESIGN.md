@@ -732,9 +732,19 @@ still active (§14.9.6.4 GR5, the `||` over the file's reports in `SequentialIoE
 correspondence rules — a name with no RD (§13.18.46.3 SR1), a name in two REPORT clauses (SR2) and an RD named by no clause
 (§13.14.3 SR1) — are COBOL2714 (`ScreenReportClauseNames`, the file resolution in `ResolveReports`).
 
-**Staged LOUD at bind (`COBOL0899`, Edition.Error — legal-but-unimplemented, never silent):**
-**FUNCTION inside a PRESENT WHEN condition
-(`report-condition-function` — the UDF activation-hoist is statement-context machinery)**; an
+**Every report clause operand is a per-evaluation window (kb/Work PB4517).** The PRESENT WHEN conditions, the SOURCE
+and SUM operands, the VARYING FROM/BY expressions and the CODE identifier bind before the first statement and outside
+every statement (`ReportWriterBinder.BindReportGroupClauses`), so the operand-evaluation steps they register (a function
+activation, a §15.4 subscript temporary store) are drained into each operand: a condition as `BoundUdfEvaluated` (its own
+IIFE in the presence probe), a SUM addend or VARYING expression as `BoundUdfEvaluatedExpr`, a SOURCE operand and the CODE
+place beside the value (`ReportFieldSource.Steps`, `ReportCodeModel.Steps`). The emitter runs them at each evaluation
+(`ReportWriterEmitter.EmitSteps`): before the placement in the compose, inside the sum-addition closure, before each
+VARYING setting (a BY with steps is stepped, never the closed form), inside the CODE read. A GENERATE or TERMINATE that can
+reach a report with steps is the statement they were evaluated in (`ReportWriterBinder.Presenting` →
+`BoundActivationSite`). Before PB4517 the FIRST procedure statement hoisted them, so a function in a SOURCE operand or
+subscript ran once and every line printed its stale value, and a FUNCTION in PRESENT WHEN was refused COBOL0899.
+
+**Staged LOUD at bind (`COBOL0899`, Edition.Error — legal-but-unimplemented, never silent):** an
 arithmetic-expression-1 SUM addend written with a LEADING PARENTHESIS
 (`SUM (A * B)` — the lexer's §8.4.3.2.3 SR2 keyword-omitted-intrinsic trigger on the SUM token made that `(` a
 subscript capture, against §13.18.54.3 SR9's "Otherwise, SUM refers to the report writer SUM

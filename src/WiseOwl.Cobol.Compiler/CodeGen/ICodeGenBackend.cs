@@ -32,18 +32,13 @@ public enum BackendId
 /// no-behavior-change, and today's backend emits no symbols. A later phase wires it).</param>
 /// <param name="Inputs">The compilation's ambient-input record (kb/Work PB985) — a backend that reads anything
 /// outside the bound tree (the WHEN-COMPILED clock) reads it through this, so the record stays complete.</param>
-/// <param name="RepositoryUpdate">Whether the build updates the external repository (CLI <c>--repository-update</c>;
-/// ISO §8.13: "The implementor shall provide a mechanism that allows the user to specify whether to update the external
-/// repository when a compilation unit is compiled"; DESIGN-external-repository §9.1): ON writes the signature attributes
-/// of every published unit (<c>HasSignatures</c>), OFF only the index, the unit identities, the registrar and the host
-/// entries.</param>
 /// <param name="RepositoryReferences">The assemblies of the external repository the generated code names a type of — every one a
 /// class (later an interface, a skeleton or an expansion) was imported from (DESIGN-external-repository §10.2), in the order
 /// they were first needed; the backend references them beside the framework and the runtime. NOT the framework reference set,
 /// which is the Roslyn backend's own. Null: none.</param>
 public sealed record BackendOptions(string OutputPath, string AssemblyName, EditionInfo Edition,
     bool EmitPdb = true, WiseOwl.Cobol.Frontend.CompilationInputs? Inputs = null,
-    bool RepositoryUpdate = true, IReadOnlyList<string>? RepositoryReferences = null);
+    IReadOnlyList<string>? RepositoryReferences = null);
 
 /// <summary>One diagnostic a backend reports (kb/Work PB4272): the seam's own type, so a backend that is not Roslyn
 /// reports an error without referencing Roslyn, and the driver reads every backend's diagnostics the same way. Each backend

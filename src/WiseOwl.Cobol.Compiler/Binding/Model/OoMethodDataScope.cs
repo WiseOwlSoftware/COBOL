@@ -1,9 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>The method-local NAME SCOPE of one METHOD's data (ISO §11.7 GR5 — a method-local name SHADOWS the
 /// same name in object data; and it is INVISIBLE to sibling methods, the legacy trap-#6 cross-wiring guard made
@@ -38,35 +37,20 @@ public sealed class OoMethodDataScope
     /// before the class binder's own table.</summary>
     public Dictionary<string, DataItem> TypeDecls { get; } = new(CobolNames.Comparer);
 
-    /// <summary>The method's own §8.3.2.2 census: a method is a source element of its own (§10.5), so its words may
-    /// repeat, as another type, a word of its class or of a sibling method (§8.4.6.1; kb/Work PB2921).</summary>
-    internal UserWordCensus Words { get; } = new();
-
-    /// <summary>Whether this method declares <paramref name="word"/> in ANY of its own name indexes — a data-name, a
-    /// condition-name, an index-name, a named CAPACITY register (§13.18.38.3 SR30 makes the register a data-name of
-    /// the method that declares its table), a type-name (<see cref="TypeDecls"/>, kb/Work PB3192) or a constant-name
-    /// (kb/Work PB3164: the method's constant entries live in <see cref="Constants"/>) — or names it in a data
-    /// description entry whose bind has not begun yet (<see cref="ConstantEntryBinder.ConstantScope.OtherWords"/>, declared
-    /// before any entry binds): while the method's data division binds, a later entry's word already hides the
-    /// object's declaration of it, so a reference to it waits for the method's own entry (kb/Work PB3192: a method
-    /// constant's <c>LENGTH OF W</c> measured the object's <c>W</c> when the method's <c>W</c> followed it). ⛔ EVERY NAME INDEX OF THIS SCOPE, asked here beside the indexes themselves: when the
-    /// registers moved into the method's own scope (kb/Work PB3165), the hand-written list in the binder kept asking
-    /// the class's register index and a method's register stopped hiding a symbolic-character (kb/Work PB3154 review
-    /// R2-1, the PB3165 merge-queue bounce); and when the constants moved there (PB3164), this list did not ask them,
-    /// so a method's <c>01 X CONSTANT AS 7</c> let <c>IF X</c> test the object's level-88 <c>X</c> (§11.7.4 GR5: "the
-    /// use of that word in this method refers to the declaration in this method"; kb/Work PB3153 review round 3).
-    /// <c>GlobalNameClassDriftTests</c> finds this scope's name indexes by reflection and holds this predicate to
-    /// every one.</summary>
-    internal bool Declares(string word)
+    /// <summary>Whether this method declares <paramref name="word"/> in one of THIS SCOPE'S name indexes: a data-name, a
+    /// condition-name, an index-name, a named CAPACITY register (§13.18.38.3 SR30 makes the register a data-name of the
+    /// method that declares its table) or a type-name (<see cref="TypeDecls"/>, kb/Work PB3192). The method's
+    /// constant-names, and the words its data division defines before any entry binds, are the binder's working state, not
+    /// model facts, so the binder keeps them (<c>ConstantEntryBinder.MethodDeclares</c>; kb/Work PB2402), and THE question
+    /// "does this method declare the word" (§11.7.4 GR5: "the use of that word in this method refers to the declaration in
+    /// this method") is <c>DataBinder.MethodDeclares</c>, which asks both. ⛔ EVERY NAME INDEX OF THIS SCOPE, asked here
+    /// beside the indexes themselves: when the registers moved into the method's own scope (kb/Work PB3165), the
+    /// hand-written list in the binder kept asking the class's register index and a method's register stopped hiding a
+    /// symbolic-character (kb/Work PB3154 review R2-1, the PB3165 merge-queue bounce). <c>GlobalNameClassDriftTests</c>
+    /// finds this scope's name indexes by reflection and holds this predicate to every one.</summary>
+    internal bool IndexesDeclare(string word)
     {
         return ByName.ContainsKey(word) || Conditions.ContainsKey(word) || IndexNames.Declares(word)
-            || CapacityRegisters.ContainsKey(word) || TypeDecls.ContainsKey(word) || Constants.Declared.ContainsKey(word)
-            || Constants.OtherWords.Contains(word);
+            || CapacityRegisters.ContainsKey(word) || TypeDecls.ContainsKey(word);
     }
-
-    /// <summary>The method's own CONSTANT entries, and the other words its data division defines, which hide a constant
-    /// of the containing object or factory definition (§11.7.4 GR5; kb/Work PB3164): read first by
-    /// <see cref="ConstantEntryBinder.FindConstant"/> while the method's data or statements bind, and invisible to every other
-    /// element.</summary>
-    internal ConstantEntryBinder.ConstantScope Constants { get; } = new();
 }

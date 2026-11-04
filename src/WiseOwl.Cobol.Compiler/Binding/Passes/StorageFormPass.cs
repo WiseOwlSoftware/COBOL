@@ -395,7 +395,7 @@ internal static class StorageFormPass
     /// delete phase; the value here is #2/#3/#4 (the derived recursive facts still hold once Storage, not the scattered
     /// flag, is the source) and #5 (the RecordLayout width authority reproduces the legacy tier-aware physical extent —
     /// the Step-9 drift guard).</summary>
-    public static List<string> Verify(DataBinder data)
+    public static List<string> Verify(DataBindResult data)
     {
         var d = new List<string>();
         var visited = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
@@ -419,8 +419,8 @@ internal static class StorageFormPass
             //  duplicate copy is deleted; RecordLayout is the single width/offset authority.)
             foreach (var c in item.Children) Check(c);
         }
-        foreach (var root in data.State.Forest.Roots) Check(root);
-        foreach (var report in data.State.Reports.Declared)
+        foreach (var root in data.Forest.Roots) Check(root);
+        foreach (var report in data.Reports.Declared)
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)

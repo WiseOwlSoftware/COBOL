@@ -333,11 +333,11 @@ public sealed class PrototypePointerTypeDriftTests
     public void ADecodedPointer_MayContainWhatItsPrototypesSignatureAllows_NeverWhatItsNameDoes()
     {
         var importer = RepositoryCodecTests.Bind(Importer, 2023);
-        var held = importer.Units.Single(u => u.Name == "GHOLD").Data.State.Forest.WorkingStorageRoots.Single(r => r.CobolName == "P");
+        var held = importer.Units.Single(u => u.Name == "GHOLD").Data.Forest.WorkingStorageRoots.Single(r => r.CobolName == "P");
         DataItem DecodedPointer(string prototype, string picture)
         {
             var publisher = RepositoryCodecTests.Bind(Publisher(prototype, picture), 2023);
-            var record = RepositoryReaderTests.ReadLibrary([RepositoryCodec.Of(publisher.Units.Single(u => u.Name == "PUB"))]).Single();
+            var record = RepositoryReaderTests.ReadLibrary([RepositoryCodecTests.RecordOf(publisher, publisher.Units.Single(u => u.Name == "PUB"))]).Single();
             return RepositoryCodec.Decode(record).Formals.Single().Item;
         }
 

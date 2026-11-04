@@ -32,7 +32,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
     public void ACompiledModule_ReadsBack_EveryPublishedUnitsRecord_EqualToTheCodecsOf()
     {
         var (dll, comp, generated) = CompileFixture(repositoryUpdate: true);
-        var expected = HostEntryEmitter.EntryUnits(comp.Units).Select(RepositoryCodec.Of).ToList();
+        var expected = comp.EntryUnits.Select(u => RepositoryCodecTests.RecordOf(comp, u)).ToList();
         Assert.Equal(3, expected.Count);   // PRTA (a prototype the group does not define), RTONE, RTTWO
 
         using RepositoryIndex index = RepositoryIndex.Open(dll).Index!;
@@ -76,7 +76,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
     {
         var (dll, comp, _) = CompileFixture(repositoryUpdate: true, source: RepositoryCodecTests.OoSource);
         var expected = RepositoryCodecTests.OoRecordsOf(comp).Select(r => r.Record)
-            .Concat(HostEntryEmitter.EntryUnits(comp.Units).Select(RepositoryCodec.Of)).ToList();
+            .Concat(comp.EntryUnits.Select(u => RepositoryCodecTests.RecordOf(comp, u))).ToList();
         Assert.Equal([RepositoryUnitKind.Interface, RepositoryUnitKind.Class, RepositoryUnitKind.Program], expected.Select(r => r.Kind));
 
         using RepositoryIndex index = RepositoryIndex.Open(dll).Index!;
