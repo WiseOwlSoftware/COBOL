@@ -1,4 +1,4 @@
-## PB2144 — the TO / FROM / BY / INTO operand of the four arithmetic verbs is one grammar rule, so every operand-shape error is COBOL1689
+## Entry 3060 — 2026-11-03 16:26 PST — PB2144 — the TO / FROM / BY / INTO operand of the four arithmetic verbs is one grammar rule, so every operand-shape error is COBOL1689
 
 **Re-probe (my build, base a9f2c2897).** The note said `ADD A TO 2 3 GIVING C` drew a raw COBOL0001. On today's tree it
 draws COBOL2269 ("unexpected '3'. The ADD statement ends before this token"), and the split was wider than the note
@@ -42,3 +42,4 @@ after `Format1Receivers` has passed, a GIVING-form statement with a violation is
 shapes (`ADD A TO GIVING C`, `DIVIDE A BY`) stay parse errors with no binder crash, and semgrep's counts are
 unchanged. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,424/21,424 · Unit 39,640/39,640 · Characterization
 37/37 cases ran (skipped 0) (run 000002-20261104T000458Z)`, with all 44 pb2144 cases Passed in its Conformance.trx.
+
