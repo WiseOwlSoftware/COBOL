@@ -15,8 +15,8 @@ using Core = CobolParserCore;
 /// referenced by identifier-2" (§14.9.26.4 GR1) — and Format 2 writes ONE <c>{identifier-2 | literal-2}</c> in
 /// a SENDING role. The grammar parses the union in ONE rule (kb/Work PB134, PB2114, PB2144): <c>arithmeticPhraseOperand</c>,
 /// the TO / FROM / BY / INTO operand of all four verbs. It carries the receiver alternative beside the sending-only
-/// ones (a literal, §8.4.3.1.2 Format 1's function-identifier, Format 4's inline method invocation — kb/Work PB428),
-/// and the binder narrows it back per format.
+/// ones: a literal, the function-identifier (§8.4.3.1.2 Format 1)
+/// and the inline method invocation (§8.4.3.1.2 Format 4, kb/Work PB428). The binder narrows it back per format.
 /// </para>
 /// <para>
 /// ⛔ WHY THE RECEIVER IS DEFINED POSITIVELY. The per-verb screens used to enumerate the NON-receivers by hand —
