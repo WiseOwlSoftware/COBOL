@@ -1,3 +1,4 @@
-## PB4614: a deep review of the test suites' architecture, before the large golden campaigns
+## Entry 3106 — 2026-11-04 14:24 PST — PB4614: a deep review of the test suites' architecture, before the large golden campaigns
 
 The owner asked on 2026-11-04 for a deep architectural design of the test suites at some point: is a case keyed to an ISO section reference or to each alternative of a general format, how is error reporting tested, and how do the per-edition suites come to subsume NIST-85. The approved design of 2026-10-14 (DESIGN-conformance-suite.md, PB3160) already keys cases to inventory rule rows and tests diagnostics with flagged cases, a marked line and a control program. PB4614 records the review that settles what it leaves open (the coverage unit, diagnostics at every edition, a measured completeness against NIST-85, edition placement without the published 2014 text, and systematic derivation from the ISO text, with fuzz programs as only a supplementary input) as its revision 3. PB4613's golden campaign waits for it.
+
