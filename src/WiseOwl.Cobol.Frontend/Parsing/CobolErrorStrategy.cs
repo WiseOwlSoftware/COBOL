@@ -2843,7 +2843,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                         _ => (null, null, null),
                     };
                     if (word?.Stop is { } stop && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
-                        return MnemonicNameSlot.SuffixMessage(slot!, word.GetText(), format!);
+                        return MnemonicNameSlot.SuffixMessage(slot!, WrittenSource.Of(word), format!);
                 }
 
         for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
