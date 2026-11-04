@@ -50,3 +50,4 @@ read its image (`INTEGER (P + 0.0E0) - P` was 99001); `IntrinsicRenderer.RenderE
 DISPLAY and MOVE to an alphanumeric item show every digit, and a new drift test holds each `RenderWide` body to an exact twin. The
 golden gains twelve legs (POW1, POWX, POWS, POWEQ, INTW, IFLR, IPART, FPART, ABS, SIGN, DINT, MOVEA) and `CobolExactIntrinsicsTests`
 two facts. A power past 77 digits keeps DOC-A.1-123's SDIDI determination, now stated for powers in CONFORMANCE.
+Review-round gate at 5b1a77de4: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,478/21,478 · Unit 39,752/39,752 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261104T173739Z).
