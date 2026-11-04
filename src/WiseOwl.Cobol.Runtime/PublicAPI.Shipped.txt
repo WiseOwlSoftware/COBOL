@@ -1712,7 +1712,7 @@ WiseOwl.Cobol.Runtime.IO.SequentialConnector.Rewrite(string! image, int length =
 WiseOwl.Cobol.Runtime.IO.SequentialConnector.SequentialConnector(string! hostPath, int recordWidth, bool lineSequential, int varyMin = -1, int varyMax = -1, bool recordDescribed = true) -> void
 WiseOwl.Cobol.Runtime.IO.SequentialConnector.StartFirstLast(bool last) -> string!
 WiseOwl.Cobol.Runtime.IO.SequentialConnector.Write(string! image, int length, WiseOwl.Cobol.Runtime.IO.LinagePage? page, WiseOwl.Cobol.Runtime.RecordExtents? extents = null, bool nationalRecord = false) -> string!
-WiseOwl.Cobol.Runtime.IO.SequentialConnector.WriteAdvancing(string! image, int lines, bool before, WiseOwl.Cobol.Runtime.IO.LinagePage? page, int length = -1, bool nationalRecord = false) -> string!
+WiseOwl.Cobol.Runtime.IO.SequentialConnector.WriteAdvancing(string! image, int lines, bool before, WiseOwl.Cobol.Runtime.IO.LinagePage? page, int length = -1, bool nationalRecord = false, WiseOwl.Cobol.Runtime.RecordExtents? extents = null) -> string!
 WiseOwl.Cobol.Runtime.IO.SortFileTable
 WiseOwl.Cobol.Runtime.IO.SortFileTable.SortFileTable() -> void
 WiseOwl.Cobol.Runtime.IO.StandardStreams
