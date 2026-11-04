@@ -1737,7 +1737,12 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   with externalized name `lit ?? N` and key K is imported (§10.1) and its assembly referenced — also when that assembly
   references this group's own previous build. That is an assembly reference cycle, which the CLR and Roslyn accept
   (circ: circular assembly references compile and run); the existing expansion was compiled against the members this
-  group published, and any change to them that matters to it changes K. (4) Otherwise the expansion is made here:
+  group published, and any change to them that matters to it changes K. **Only an expansion compiled against the classes this
+  compilation names is imported:** K hashes a class's record, not where the class lives, so an expansion with the key may have been
+  compiled against another assembly's `BOX` than the one this compilation holds (another library's identical copy, or a `BOX` this
+  group writes itself); its assembly must name (`AssemblyRef`) the assembly of every actual and resolution — this group's output
+  for a class written here (the cycle above), the assembly an imported class came from, the file that holds a named expansion.
+  Otherwise it is neither stale nor another class and nothing is reported (kb/Work PB4650). (4) Otherwise the expansion is made here:
   (a) when its code references no class or interface of THIS group (every actual and every resolution lies outside
   it), as its OWN compilation — the skeleton's recorded source under its recorded state, the referenced assemblies as
   references — into `<externalized name>.dll` beside the group's output, deterministically (§6.5, §7.6); an existing
@@ -1800,7 +1805,10 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   module emits nothing for its own bound copy and names the existing types by a `using` alias of the symbol's simple names
   (`using HOLD_BOX = global::Cobol.<S>.<TYPE>;` and the factory's), so everything already bound against the symbol needs no second
   spelling, and the existing assembly is a `RepositoryReferences` entry. That includes an assembly that references this group's own
-  previous build (the reference cycle). A copy whose surface differs under one key (a later compiler naming members differently) is stale
+  previous build (the reference cycle), and only an assembly compiled against the assemblies this compilation's classes live in
+  (`ExpansionPlacementPass.Place`: `HomeOf` per named class, `MetadataRepositoryProvider.IsCompiledAgainst`): the same key over a
+  `BOX` of another assembly is the same class by ISO §9.3.12 but another CLR type, so it is not imported, and where it holds the file
+  placement (a) would write (`targetHeldElsewhere`) the expansion is made in the group's assembly instead of over that file. A copy whose surface differs under one key (a later compiler naming members differently) is stale
   by "members".
 - *Placement (a) is a compilation of its own* (`ExpansionAssemblies`): the expansion's text (`ExpansionOrigin.Text`), preceded by the
   directive lines of its `CompileState`, goes through `CompilerDriver.Compile` as a source of its own, in free form, against the group's

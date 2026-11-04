@@ -249,6 +249,75 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    [Theory]   // kb/Work PB4650, ISO §9.3.12: a group that WRITES the class an existing expansion was compiled against elsewhere does not import it.
+    [InlineData("CLIENT1", "CLIENT2")]
+    [InlineData("CLIENT2", "CLIENT1")]
+    public void AnExpansionCompiledAgainstALibrarysClass_IsNotImported_ByAGroupThatWritesThatClassItself(string first, string second)
+    {
+        WithDirectory("expansion-other-home-group", dir =>
+        {
+            // CLIENT1 expands HOLD over the library's BOX; CLIENT2 carries its own, identical, BOX and expands HOLD over that one. Same
+            // triple, same key (the key hashes the class's record, not where it lives), two different CLR classes named BOX.
+            Assert.True(Compile(dir, "LIBX", Box + Hold()).Success);
+            string Source(string id, int number) => id == "CLIENT2" ? Box + Client(id, number) : Client(id, number);
+            var made = Compile(dir, first, Source(first, 42));
+            Assert.True(made.Success, Codes(made));
+            string file = Path.Combine(dir, "HOLD-BOX.dll");
+            bool firstWroteTheFile = first == "CLIENT1";
+            Assert.Equal(firstWroteTheFile, File.Exists(file));
+            var written = firstWroteTheFile ? File.GetLastWriteTimeUtc(file) : default;
+            Thread.Sleep(50);
+            var r = Compile(dir, second, Source(second, 7));
+            Assert.True(r.Success, Codes(r));
+            Assert.DoesNotContain(r.Errors.Concat(r.Warnings), m => m.Contains("COBOL5969") || m.Contains("CS0012"));   // no stale copy was named
+            // The group that writes BOX has the expansion in its own assembly; the other imported nothing it could not name.
+            var inGroup = Assert.Single(Records(Path.Combine(dir, "CLIENT2.dll")), x => x.Kind is RepositoryUnitKind.Expansion);
+            Assert.False(inGroup.Expansion!.OwnAssembly);
+            Assert.True(File.Exists(file));
+            if (firstWroteTheFile) Assert.Equal(written, File.GetLastWriteTimeUtc(file));   // the file CLIENT1 depends on is not written over
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT2.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal(first == "CLIENT2" ? "BOX 042" : "BOX 007", stdout);
+            var (exit1, stdout1, stderr1) = Run(Path.Combine(dir, "CLIENT1.dll"), dir);
+            Assert.True(exit1 == 0, stderr1);
+            Assert.Equal(first == "CLIENT1" ? "BOX 042" : "BOX 007", stdout1);
+        });
+    }
+
+    [Fact]   // kb/Work PB4650, ISO §9.3.12: the same, where the other home is a second library's class — the file (a) would write is not written over.
+    public void AnExpansionCompiledAgainstAnotherAssemblysClass_IsNotImported_NorWrittenOver()
+    {
+        WithDirectory("expansion-other-home-library", dir =>
+        {
+            // HOLD in one library; the identical BOX in two others. CLIENT1 expands over the first BOX, CLIENT4 over the second.
+            string holds = Path.Combine(dir, "holds"), boxes1 = Path.Combine(dir, "boxes1"), boxes2 = Path.Combine(dir, "boxes2"), outs = Path.Combine(dir, "out");
+            Assert.True(Compile(holds, "LIBH", Hold()).Success);
+            Assert.True(Compile(boxes1, "LIBB", Box).Success);
+            Assert.True(Compile(boxes2, "LIBB2", Box).Success);
+            CompilerDriver.Result Make(string id, string boxes)
+            {
+                Directory.CreateDirectory(outs);
+                string src = Path.Combine(outs, id + ".cob");
+                File.WriteAllText(src, Client(id));
+                return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(outs, id + ".dll"), DialectLevel: 2014,
+                    SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [holds, boxes, outs]));
+            }
+            var first = Make("CLIENT1", boxes1);
+            Assert.True(first.Success, Codes(first));
+            string file = Path.Combine(outs, "HOLD-BOX.dll");
+            var written = File.GetLastWriteTimeUtc(file);
+            var key = Records(file).Single().Expansion!.Key;
+            Thread.Sleep(50);
+            var second = Make("CLIENT4", boxes2);
+            Assert.True(second.Success, Codes(second));
+            Assert.DoesNotContain(second.Errors.Concat(second.Warnings), m => m.Contains("COBOL5969") || m.Contains("CS0012"));
+            Assert.Equal(written, File.GetLastWriteTimeUtc(file));
+            Assert.Equal(key, Records(file).Single().Expansion!.Key);
+            var inGroup = Assert.Single(Records(Path.Combine(outs, "CLIENT4.dll")), x => x.Kind is RepositoryUnitKind.Expansion);
+            Assert.False(inGroup.Expansion!.OwnAssembly);
+        });
+    }
+
     [Fact]   // §10.5 "Stale expansions": another skeleton source under one name and triple — REPO-9 names the component and the stale callers.
     public void AnExpansionWhoseSkeletonChanged_IsStale_NamedByRepo9_AndReplaced()
     {
