@@ -1,4 +1,4 @@
-## PB1654: COBOL1942 names the ALIGNED subject by the one group classifier and the Table 2 category
+## Entry 3089 — 2026-11-04 11:42 PST — PB1654: COBOL1942 names the ALIGNED subject by the one group classifier and the Table 2 category
 
 The note asked for a sweep of the has-a-PICTURE tests against the rules that name group kinds. The earlier audit
 (wave 20261861 b, 108 sites in 57 files) had already found no under-rejection, so this landing carries the one defect
@@ -25,3 +25,4 @@ Goldens (negative, `refuse-at` 2002, 2014, 2023, pinning the words of the messag
 `pb1654-aligned-variable-length-group`, `pb1654-aligned-numeric-edited`, `pb1654-aligned-object-reference`. The accepted legs are the existing `pb487_aligned_*` cases; the rule's behaviour did not
 change, only the words. No inventory row moved. Sibling enum-name faces in other binders (ExpressionBinder, SetBinder,
 RefModBinder, SignClause, ReportSectionBinder) stay with PB3229. PB1654 is landed.
+
