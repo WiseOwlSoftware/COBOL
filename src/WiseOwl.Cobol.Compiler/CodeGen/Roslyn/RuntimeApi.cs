@@ -945,6 +945,25 @@ internal static class RuntimeApi
     /// <summary>A wide value as binary64 (<c>CobolWide.ToDouble</c>).</summary>
     public static string WideToDouble(string wide, int scale) => $"({wide}).{nameof(CobolWide.ToDouble)}({scale})";
 
+    // ── The EXACT VALUE of a native function argument (CobolExact, kb/Work PB4111, PB4568) — the intake of the native SDIDI
+    //    lane's …Exact bodies, one spelling per carrier.
+
+    /// <summary>The runtime type of an exact argument, for an emitted <c>CobolExact[]</c> (a table(ALL) enumeration).</summary>
+    public const string ExactType = nameof(CobolExact);
+
+    /// <summary>A scaled <c>Int128</c> value's exact value (<c>CobolExact.From</c>).</summary>
+    public static string ExactFrom(string int128Expr, int scale) => $"{nameof(CobolExact)}.{nameof(CobolExact.From)}({int128Expr}, {scale})";
+
+    /// <summary>An unsigned 16-byte value's exact value (<c>CobolExact.FromUnsigned</c>).</summary>
+    public static string ExactFromUnsigned(string uint128Expr, int scale) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.FromUnsigned)}({uint128Expr}, {scale})";
+
+    /// <summary>An exact wide intermediate's exact value (<c>CobolExact.FromWide</c>).</summary>
+    public static string ExactFromWide(string wide, int scale) => $"{nameof(CobolExact)}.{nameof(CobolExact.FromWide)}({wide}, {scale})";
+
+    /// <summary>An SDIDI value's exact value at its own exponent (<c>CobolExact.FromDec</c>).</summary>
+    public static string ExactFromDec(string dec) => $"{nameof(CobolExact)}.{nameof(CobolExact.FromDec)}({dec})";
+
     /// <summary>The exact §15.27.3 r3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
     public static string DecE => $"{nameof(CobolDec)}.{nameof(CobolDec.E)}";
 

@@ -502,14 +502,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // two exact-carrier twins do (kb/Work PB620): §15.17.3 r2's bound is §7.3.17.4 GR4/GR5's, so a screen
         // that could not see the directive would admit 86 400.5 on one carrier and refuse it on another.
         "CombinedDatetimeReal" => RuntimeApi.Intrinsic(method, $"{Dbl(ic, 0)}, {Dbl(ic, 1)}{LeapSecondFlag}"),
-        // A variadic body whose EAE CANCELS across its list takes an all-exact list UNNARROWED (kb/Work PB1565 —
-        // see ExactListBodies): the SDIDI evaluation in the native intermediate rounding mode, narrowed once.
-        // PRESENT-VALUE's rate leads unscreened, exactly as on RenderDec's arm: the SDIDI body decides §15.74.3 r2
-        // on the exact rate itself (PresentValueDec), so a leading table(ALL) stays one CobolDec[] enumeration.
+        // A variadic body whose EAE CANCELS across its list takes an all-exact list as its EXACT values (kb/Work PB1565, PB4111 —
+        // see ExactListBodies): the expression formed exactly and divided once in the native intermediate rounding mode, narrowed
+        // once. PRESENT-VALUE's rate leads unscreened, exactly as on RenderDec's arm: the exact body decides §15.74.3 r2 on the
+        // exact rate itself (PresentValueExact), so a leading table(ALL) stays one CobolExact[] enumeration.
         "PresentValue" when !AnyRealArgument(ic) =>
-            LeadThenTail(ic, method, $"{num.IntermediateMode}, ", "CobolDec", DecOf),
+            LeadThenTail(ic, method, $"{num.IntermediateMode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a)),
         _ when ExactListBodies.Contains(method) && !AnyRealArgument(ic) =>
-            RuntimeApi.Intrinsic(method, $"{num.IntermediateMode}, {DecArgList(ic)}"),
+            RuntimeApi.Intrinsic(method, $"{num.IntermediateMode}, {ExactValueArgList(ic)}"),
         // PRESENT-VALUE (§15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
         // The lead is the DISCOUNT BASE 1 + rate, formed on the rate's exact carrier after the ONE screen
         // (kb/Work PB1000 — see PresentValueBase).
@@ -567,9 +567,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
     /// <summary>
-    /// The VARIADIC binary64-family bodies that take an all-exact argument LIST unnarrowed — a runtime overload
-    /// <c>(CobolRounding mode, …CobolDec…)</c> in <c>CobolIntrinsics.Float.cs</c> that evaluates the function's
-    /// equivalent arithmetic expression on the SDIDI and narrows only the result (kb/Work PB1565): the list arm of
+    /// The VARIADIC binary64-family bodies that take an all-exact argument LIST as its exact values — a runtime overload
+    /// <c>(CobolRounding mode, …CobolExact…)</c> in <c>CobolIntrinsics.Float.cs</c> that forms the function's equivalent
+    /// arithmetic expression exactly, divides once and narrows only the result (kb/Work PB1565, PB4111): the list arm of
     /// <see cref="WholeRangeBodies"/>.
     /// </summary>
     /// <remarks>
@@ -577,7 +577,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// not an approximation of the returned value — its low digits cancel away: <c>Variance</c> (§15.98.4 r1, the
     /// deviations from FUNCTION MEAN: VARIANCE(100000000000000001 100000000000000002) answered 0, not 0.25),
     /// <c>StandardDeviation</c> (§15.86.4 r1, SQRT of that: 0, not 0.5), <c>PresentValue</c> (§15.74.4 r1, a Σ of
-    /// signed amounts: PRESENT-VALUE(0 100000000000000001 −100000000000000000) answered 0, not 1).</para>
+    /// signed amounts: PRESENT-VALUE(0 100000000000000001 −100000000000000000) answered 0, not 1). Nor is a 34-digit
+    /// evaluation of it (kb/Work PB4111): a mean off by δ adds exactly δ² to the variance, so the SDIDI body's mean made
+    /// VARIANCE of the 31-digit items 10^30, 10^30 + 1, 10^30 + 1 0.2222223333 for 2/9, and 34-digit term quotients made
+    /// PRESENT-VALUE (0, P, 1 − P) of a 36-digit P 0 for 1. Under native arithmetic the value is the expression's exact
+    /// value rounded once (CONFORMANCE.md DOC-A.1-123, GnuCOBOL's by CLAUDE.md rule 1), on every lane: here for a fixed-point
+    /// list, through <see cref="RenderDec"/>'s native arms for an SDIDI or wide argument.</para>
     /// <para>A list with a FLOATING argument keeps the binary64 body — its EAE is evaluated in binary64, the
     /// determination CONFORMANCE.md DOC-A.1-92b states for the exact family's floating arm. An SDIDI argument is
     /// already claimed by <c>RenderNum</c>'s native Dec arm before the float family is reached.
@@ -1027,6 +1032,28 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <remarks>INTAKE(LIFTED) — the per-operand form of <see cref="DecArg"/> — same contract.</remarks>
     private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, num.Receiver));
 
+    /// <summary>⛔ AN ARGUMENT AS ITS EXACT VALUE (<c>CobolExact</c>; kb/Work PB4111, PB4568): the position intake keeping the wide form
+    /// (<see cref="RawWideArg"/>, so a §15.3 type-6 position is still its integer), then <see cref="NumericRenderer.ExactOperand"/> —
+    /// never <see cref="DecArg"/>'s 34-digit image of a wide argument. The intake of the native SDIDI lane's <c>…Exact</c> bodies.</summary>
+    /// <remarks>INTAKE(EXACT) — the operand on its own carrier with every digit; a binary64 as its one SDIDI conversion.</remarks>
+    private string ExactValueArg(BoundIntrinsicCall ic, int i) => num.ExactOperand(RawWideArg(ic, i));
+
+    /// <remarks>INTAKE(EXACT) — the variadic form of <see cref="ExactValueArg"/> — same contract, per element (a table(ALL) element
+    /// is a data item, never wide).</remarks>
+    private string ExactValueArgList(BoundIntrinsicCall ic) =>
+        ArgArray(ic, 0, RuntimeApi.ExactType, a => ExactValueOf(ic, a))
+        ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => ExactValueArg(ic, i)));
+
+    /// <summary>One operand as its exact value: a written argument through <see cref="ExactValueArg"/> (its own position's intake),
+    /// an element of a table(ALL) argument directly.</summary>
+    /// <remarks>INTAKE(EXACT) — the per-operand form of <see cref="ExactValueArg"/> — same contract.</remarks>
+    private string ExactValueOf(BoundIntrinsicCall ic, BoundOperand a)
+    {
+        for (int i = 0; i < ic.Args.Count; i++)
+            if (ReferenceEquals(ic.Args[i], a)) return ExactValueArg(ic, i);
+        return num.ExactOperand(num.AsNum(a, num.Receiver));
+    }
+
     /// <summary>One operand as a C# double from its RAW carrier — the per-operand form of <see cref="Dbl"/>.</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier — exactness past 2^53 is surrendered. §15.4.1's native latitude permits that for an equivalent-arithmetic-expression function; a standard mode and a value-fixing definition do not.</remarks>
     private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, num.Receiver));
@@ -1279,6 +1306,31 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "Floor" => Dec(RuntimeApi.Intrinsic("FloorDec", DecArg(ic, 0))),
             "Truncate" => Dec(RuntimeApi.Intrinsic("TruncDec", DecArg(ic, 0))),
             "FractionPart" => Dec(RuntimeApi.Intrinsic("FractionPartDec", $"{mode}, {DecArg(ic, 0)}")),
+            // ⛔ UNDER NATIVE ARITHMETIC THE ARGUMENTS ENTER AS THEIR EXACT VALUES (kb/Work PB4111, PB4568; DOC-A.1-123). The arms below
+            // are reached under native when an argument is SDIDI-carried (a floating-point literal, a power), an argument
+            // expression the exact wide lane could not take (beside an SDIDI or binary64, or past 77 digits), a 39-digit container,
+            // or a list whose alignment may leave the carrier. There §8.8.1.3 leaves the method to the implementor and §15.4.1 the
+            // value ("an implementor-defined approximation of the value of that expression"), and CLAUDE.md rule 1 sends that
+            // latitude to GnuCOBOL, which evaluates from the exact arguments: each body forms the value from CobolExact intakes and
+            // rounds it ONCE (CobolIntrinsics.ExactValue.cs). The SDIDI bodies took each wide argument as its 34-digit image and
+            // rounded every step: ORD-MAX (P - 1, P, 2.0E0) of a 39-digit P answered 1 although IF P - 1 < P is true, MOD (P, 2 ** 10)
+            // answered 0 for 999, and VARIANCE (P, P - 1) 10^10 for 0.25. Under a standard mode the SDIDI evaluation IS the value
+            // (§8.8.1.5.2 r1 rounds each operand, §15.4.1 1) equates the expression), so those keep the Dec bodies.
+            "ModScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("ModExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
+            "RemScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RemExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
+            "OrdMax" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMaxExact", ExactValueArgList(ic)), 0),
+            "OrdMin" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMinExact", ExactValueArgList(ic)), 0),
+            "MaxScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MaxExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "MinScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MinExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "MedianScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MedianExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "StandardDeviation" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("StdDevExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "PresentValue" when !num.StandardDecimal =>
+                Dec(LeadThenTail(ic, "PresentValueExact", $"{mode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a))),
             "ModScaled" => Dec(RuntimeApi.Intrinsic("ModDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             "RemScaled" => Dec(RuntimeApi.Intrinsic("RemDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             "MaxScaled" => Dec(RuntimeApi.Intrinsic("MaxDec", DecArgList(ic))),

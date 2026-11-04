@@ -138,8 +138,11 @@ public readonly struct FunctionValueField
         return new(value, scale, described, bytes);
     }
 
-    /// <summary>This temporary's value exactly, as a wide value at a scale: its own wide value, or its SDIDI value written at its
-    /// own exponent. False only for an SDIDI value whose integer is past the 256-bit range.</summary>
+    /// <summary>This temporary's value exactly: its own wide value, or its SDIDI value at its own exponent.</summary>
+    private CobolExact Exact() => _shape == Shape.Wide ? CobolExact.FromWide(_wide, _wideScale) : CobolExact.FromDec(_value);
+
+    /// <summary>This temporary's value exactly ON THE WIDE FORM, for the even MEDIAN's exact mean of two middles: its own wide value,
+    /// or its SDIDI value written at its own exponent. False only for an SDIDI value whose integer is past the 256-bit range.</summary>
     private bool TryExact(out CobolWide wide, out int scale)
     {
         if (_shape == Shape.Wide)
@@ -156,15 +159,12 @@ public readonly struct FunctionValueField
     /// value's 34-digit image (kb/Work PB3953): the image orders it only against another 34-digit image, and the other temporary may
     /// hold up to 39 exact digits off that grid (an Int128 value <see cref="OfWide"/> hands to <see cref="OfValue"/>), so
     /// <c>MAX (X * Y + C, X * Y + C + 1000)</c> with the first value just under <see cref="Int128.MaxValue"/> and the second just over
-    /// it has the second's image BELOW the first. The one temporary with no exact wide form is an SDIDI value past the 256-bit range
-    /// (<see cref="CobolWide.TryFrom"/>), larger in magnitude than every wide value, so its sign alone orders the pair.</summary>
-    private static int Compare(in FunctionValueField a, in FunctionValueField b)
-    {
-        if (a._shape != Shape.Wide && b._shape != Shape.Wide) return CobolDec.Compare(a._value, b._value);
-        bool exactA = a.TryExact(out CobolWide aw, out int sa), exactB = b.TryExact(out CobolWide bw, out int sb);
-        if (exactA && exactB) return CobolWide.Compare(aw, sa, bw, sb);
-        return exactA ? -Int128.Sign(b._value.Sig) : Int128.Sign(a._value.Sig);   // the inexact one is the non-wide one: its sign decides
-    }
+    /// it has the second's image BELOW the first. The exact order is <see cref="CobolExact.Compare"/>, the one the native SDIDI lane's
+    /// selections take over the same mixed carriers (kb/Work PB4568), so DISPLAY and an operand select the same argument.</summary>
+    private static int Compare(in FunctionValueField a, in FunctionValueField b) =>
+        a._shape != Shape.Wide && b._shape != Shape.Wide
+            ? CobolDec.Compare(a._value, b._value)
+            : CobolExact.Compare(a.Exact(), b.Exact());
 
     /// <summary>The temporary is a function's binary64 result: it shows the shortest round-trip image and orders by the value that
     /// image names (<c>CobolDec.FromApproximation</c>, the lift of an engine-produced approximation). It is the 8 bytes of a binary64
