@@ -463,6 +463,98 @@ public sealed class CobolWordsDirectiveTests
         Assert.NotEmpty(CompileErrors(SynonymProgram("EQUATE \"MOVE\" WITH \"SYN\"", "R", "SYN")));
     }
 
+    private static string WordsProgram(string directive, string dataItem, string statement) =>
+        $"       >>COBOL-WORDS {directive}\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4573.\n"
+        + $"       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 {dataItem} PIC X.\n"
+        + $"       PROCEDURE DIVISION.\n       MAIN.\n           {statement}.\n           STOP RUN.\n";
+
+    /// <summary>⛔ kb/Work PB4573 (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 1): the COBOL0901 for a synonym of a reserved word is ONE
+    /// sentence whichever stage reports it, naming the word the source WROTE and the reserved word it stands for
+    /// (<see cref="ReservedWordSet.UserWordViolationMessage"/>). The funnel's report (a synonym the lexer has no token for:
+    /// LOCALE, in a data-name slot) and the parser's two (a synonym the lexer retyped to its original's token, in an operand
+    /// slot and in a procedure-name slot) once said different things: the parser's named the ORIGINAL, "'DISPLAY' is a
+    /// reserved word", which the source never wrote. The lower-case spelling is the source's own, upper-cased as a keyword is.</summary>
+    [Theory]
+    [InlineData("EQUATE \"DISPLAY\" WITH \"SHOW\"", "W-X", "MOVE \"A\" TO SHOW", "SHOW", "DISPLAY")]
+    [InlineData("EQUATE \"DISPLAY\" WITH \"SHOW\"", "W-X", "MOVE \"A\" TO Show", "SHOW", "DISPLAY")]
+    [InlineData("EQUATE \"READ\" WITH \"FETCH\"", "W-X", "PERFORM fetch", "FETCH", "READ")]
+    [InlineData("SUBSTITUTE \"DISPLAY\" BY \"SHOW\"", "W-X", "MOVE \"A\" TO SHOW", "SHOW", "DISPLAY")]
+    [InlineData("EQUATE \"CONSTANT\" WITH \"CNST\"", "CNST", "STOP RUN", "CNST", "CONSTANT")]
+    [InlineData("EQUATE \"LOCALE\" WITH \"LOC\"", "LOC", "STOP RUN", "LOC", "LOCALE")]
+    public void TheCobol0901OfASynonymNamesTheWordWrittenAndItsOriginal_WhicheverStageReportsIt(
+        string directive, string dataItem, string statement, string written, string original)
+    {
+        var refusal = Assert.Single(CompileErrors(WordsProgram(directive, dataItem, statement)), e => e.Contains("COBOL0901"));
+        Assert.Contains(ReservedWordSet.UserWordViolationMessage(written, CobolWordsMap.FromDirectiveText($">>COBOL-WORDS {directive}")!, 2023), refusal);
+        Assert.Contains($"'{written}' is a synonym for the reserved word {original}", refusal);
+    }
+
+    /// <summary>The control of the sentence above: the reserved word itself, written where a name stands while a directive of
+    /// the group is in force, is "reserved in COBOL-2023", not a synonym of anything.</summary>
+    [Fact]
+    public void TheReservedWordItself_IsNamedAsReserved_WhileADirectiveIsInForce()
+    {
+        var refusal = Assert.Single(
+            CompileErrors(WordsProgram("EQUATE \"DISPLAY\" WITH \"SHOW\"", "W-X", "MOVE \"A\" TO display")), e => e.Contains("COBOL0901"));
+        Assert.Contains(ReservedWordSet.UserWordViolationMessage("DISPLAY", CobolWordsMap.Empty, 2023), refusal);
+        Assert.DoesNotContain("synonym", refusal);
+    }
+
+    private static string SpecialNamesProgram(string directive, string clause) =>
+        $"       >>COBOL-WORDS {directive}\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB4573S.\n"
+        + $"       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           {clause}.\n"
+        + "       PROCEDURE DIVISION.\n           STOP RUN.\n";
+
+    /// <summary>⛔ kb/Work PB4573 (ISO §7.3.10.4 GR3, GR4): a clause binder that finds the word its clause REQUIRES withdrawn by
+    /// a directive names the directive through the one sentence <see cref="CobolWordsOp.Withdrew"/> builds, and says what is
+    /// left of the clause: under UNDEFINE it "shall not be available" (GR3), under SUBSTITUTE it is written with literal-5
+    /// (GR4), which is not "not available" (the DECIMAL-POINT arm said so for both). Whatever word follows IS draws the
+    /// withdrawal, the cause of every refusal while COMMA is withdrawn.</summary>
+    [Theory]
+    [InlineData("UNDEFINE \"COMMA\"", "DECIMAL-POINT IS COMMA", "COBOL0894", ">>COBOL-WORDS UNDEFINE \"COMMA\" withdrew COMMA (ISO §7.3.10.4 GR3)",
+        "so it is not available in this compilation group")]
+    [InlineData("SUBSTITUTE \"COMMA\" BY \"CMA\"", "DECIMAL-POINT IS COMMA", "COBOL0894",
+        ">>COBOL-WORDS SUBSTITUTE \"COMMA\" BY \"CMA\" withdrew COMMA, and CMA now stands for it (ISO §7.3.10.4 GR4)",
+        "so it is written with CMA in this compilation group")]
+    [InlineData("SUBSTITUTE \"COMMA\" BY \"CMA\"", "DECIMAL-POINT IS XYZ", "COBOL0894",
+        ">>COBOL-WORDS SUBSTITUTE \"COMMA\" BY \"CMA\" withdrew COMMA, and CMA now stands for it (ISO §7.3.10.4 GR4)",
+        "so it is written with CMA in this compilation group")]
+    [InlineData("UNDEFINE \"SYMBOL\"", "CURRENCY SIGN IS \"EUR\" WITH PICTURE SYMBOL \"#\"", "COBOL0892",
+        ">>COBOL-WORDS UNDEFINE \"SYMBOL\" withdrew SYMBOL (ISO §7.3.10.4 GR3)", "so it is not available in this compilation group")]
+    [InlineData("SUBSTITUTE \"SYMBOL\" BY \"SYM\"", "CURRENCY SIGN IS \"EUR\" WITH PICTURE SYMBOL \"#\"", "COBOL0892",
+        ">>COBOL-WORDS SUBSTITUTE \"SYMBOL\" BY \"SYM\" withdrew SYMBOL, and SYM now stands for it (ISO §7.3.10.4 GR4)",
+        "so it is written with SYM in this compilation group")]
+    public void AClauseWordADirectiveWithdrew_NamesTheDirectiveAndWhatIsLeftOfTheClause(
+        string directive, string clause, string code, string withdrew, string left)
+    {
+        var refusal = Assert.Single(CompileErrors(SpecialNamesProgram(directive, clause)), e => e.Contains(code));
+        Assert.Contains(withdrew, refusal);
+        Assert.Contains(left, refusal);
+        Assert.DoesNotContain("the only form is", refusal);
+        Assert.DoesNotContain("expected 'WITH PICTURE SYMBOL'", refusal);
+    }
+
+    /// <summary>The controls of the sentence above: with no directive withdrawing the word the old sentences stand, and a
+    /// synonym is the word (GR2, GR4), so neither clause is refused for it.</summary>
+    [Theory]
+    [InlineData("EQUATE \"DISPLAY\" WITH \"SHOW\"", "DECIMAL-POINT IS XYZ", "COBOL0894", "the only form is DECIMAL-POINT IS COMMA")]
+    [InlineData("EQUATE \"DISPLAY\" WITH \"SHOW\"", "CURRENCY SIGN IS \"EUR\" WITH PICTURE XYZ \"#\"", "COBOL0892",
+        "expected 'WITH PICTURE SYMBOL', found 'PICTURE XYZ'")]
+    public void AClauseWordNoDirectiveWithdrew_KeepsItsOwnRefusal(string directive, string clause, string code, string sentence)
+    {
+        var refusal = Assert.Single(CompileErrors(SpecialNamesProgram(directive, clause)), e => e.Contains(code));
+        Assert.Contains(sentence, refusal);
+        Assert.DoesNotContain("withdrew", refusal);
+    }
+
+    [Theory]
+    [InlineData("SUBSTITUTE \"COMMA\" BY \"CMA\"", "DECIMAL-POINT IS CMA")]
+    [InlineData("SUBSTITUTE \"SYMBOL\" BY \"SYM\"", "CURRENCY SIGN IS \"EUR\" WITH PICTURE SYM \"#\"")]
+    public void TheWordASubstituteStandsInFor_IsTheWordTheClauseRequires(string directive, string clause)
+    {
+        Assert.Empty(CompileErrors(SpecialNamesProgram(directive, clause)));
+    }
+
     /// <summary>The controls of kb/Work PB4488: SUBSTITUTE de-reserves its literal-4, so the word it replaced is a user word
     /// (GR4) and only the synonym is refused, and a synonym of a word §8.9 does not reserve (a §8.10 context-sensitive word,
     /// an intrinsic function name) keeps the status of its original.</summary>
@@ -504,6 +596,34 @@ public sealed class CobolWordsDirectiveTests
             + "       PROGRAM-ID. CWPB4488C.\n       PROCEDURE DIVISION.\n       MAIN.\n           SHOW.\n           STOP RUN.\n");
         Assert.NotEmpty(r.Errors);
         Assert.DoesNotContain(r.Warnings, w => w.Contains("COBOL6085"));
+    }
+
+    /// <summary>⛔ kb/Work PB4573, review r1 R1-2 (ISO §7.3.10.4 GR2, GR4): the withdrawn-word note tests the word the SOURCE wrote.
+    /// A synonym of a lexer-token word is that word's token with the original's <c>Text</c>, so a listener that read the text
+    /// named SHOW a withdrawn DISPLAY (<c>SUBSTITUTE "DISPLAY" BY "SHOW"</c>, then the statement <c>SHOW.</c>): COBOL5926 said
+    /// DISPLAY was "a user-defined word in this compilation group" when the source wrote SHOW. The error stands (the lone word
+    /// is no statement); the note is the false part.</summary>
+    [Fact]
+    public void ASynonymOfAWithdrawnWord_IsNoWithdrawnWord_ForTheSyntaxErrorNote()
+    {
+        var r = Compile("       >>COBOL-WORDS SUBSTITUTE \"DISPLAY\" BY \"SHOW\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4573N.\n       PROCEDURE DIVISION.\n       MAIN.\n           SHOW.\n           STOP RUN.\n");
+        Assert.NotEmpty(r.Errors);
+        Assert.DoesNotContain(r.Warnings, w => w.Contains("COBOL5926"));
+    }
+
+    /// <summary>⛔ kb/Work PB4573, review r1 R1-1 (ISO §7.3.10.4 GR2): the parser's syntax-error sentence names the word the source
+    /// WROTE, not the original the retype spelled into the token: <c>MAIN SECT.</c> after <c>EQUATE "SECTION" WITH "SECT"</c>
+    /// is a legal section header, and the SECT after <c>MOVE 1 TO W-X</c> is an unexpected SECT: no sentence of the compilation
+    /// says SECTION was written there.</summary>
+    [Fact]
+    public void ASyntaxErrorNamesTheSynonymTheSourceWrote_NotItsOriginal()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS EQUATE \"SECTION\" WITH \"SECT\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4573E.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC 9.\n"
+            + "       PROCEDURE DIVISION.\n       MAIN SECT.\n           MOVE 1 TO W-X SECT.\n           STOP RUN.\n");
+        Assert.Contains(errors, e => e.Contains("COBOL0307") && e.Contains("unexpected 'SECT'"));
+        Assert.DoesNotContain(errors, e => e.Contains("unexpected 'SECTION'"));
     }
 
     [Fact] // SR3 end-to-end — the existing word must be reserved/context/intrinsic.

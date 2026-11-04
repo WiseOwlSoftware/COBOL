@@ -214,9 +214,20 @@ is the user-word token type.
   `IDENTIFIER`, which `01 CPY PIC X.` then declared. `CobolWordsMap.ReservedSynonyms` maps every EQUATE literal-2 and
   SUBSTITUTE literal-5 whose original §8.9 reserves at `DirectiveEdition` to that original, and `ReservedWordSet.Compose`
   reserves them exactly as RESERVE's literal-6 (verdict `Removed`: the program's own directive made the word reserved), so
-  the funnel's COBOL0901 names the synonym and its original (`ReservedWordSet.UserWordViolation`). A synonym of a
+  the funnel's COBOL0901 names the synonym and its original. A synonym of a
   context-sensitive word (§8.10) or of an intrinsic function name stays what it was and is not in the set; a synonym of a
-  word the lexer retypes is already its keyword token, so the set never decides it. The drift test
+  word the lexer retypes is already its keyword token, so the set never decides it. **The COBOL0901 sentence is one rule
+  for every reporting stage (kb/Work PB4573):** `ReservedWordSet.UserWordViolationMessage(written, map, edition)` names the
+  word AS WRITTEN and, when `CobolWordsMap.SynonymOf(written)` finds it a synonym, the reserved word it stands for. The
+  lexer's retype overwrites a synonym token's `Text` with its original's (`CobolWordsRewriter.Plan.Apply`), so the funnel
+  (`VersionConformancePass`) and the parser (`CobolParserCoreBase.UserWordViolationOf`) read the written word from the
+  source extent (`WrittenSource.Of(IToken)`), never from `Text`; and the parser reads what a keyword token denotes from
+  `CobolWordsRewriter.CanonicalWordOf` (the one place), since resolving the already-canonical text again reads a SUBSTITUTEd
+  original as withdrawn; the parser's own syntax-error sentences (`CobolErrorStrategy.BuildMessage`) quote the written word
+  too. A word a
+  directive WITHDREW is named through `CobolWordsOp.Withdrew` / `WithdrawnSyntax` (the syntax-error note, the DECIMAL-POINT
+  and CURRENCY PICTURE SYMBOL clause binders): under UNDEFINE the syntax that requires it is not available (GR3), under
+  SUBSTITUTE it is written with literal-5 (GR4). The drift test
   `CobolWordsReachDriftTests.EveryReservedWordsSynonym_RejectsAsAUserWord_OnBothSidesOfTheLexerPartition` takes every
   §8.9 word of the COBOL-2023 list, so the next reserved word needs no edit.
 
