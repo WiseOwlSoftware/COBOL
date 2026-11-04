@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL-85 limits fixed-point items and literals to 18 digits"}

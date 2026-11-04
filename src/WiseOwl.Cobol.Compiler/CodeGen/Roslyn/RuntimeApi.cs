@@ -831,11 +831,6 @@ internal static class RuntimeApi
         $"{nameof(CobolDec)}.{nameof(CobolDec.MulAtScale)}({left}, {leftScale}, {right}, {rightScale}, {resultScale}, "
         + $"{RoundingText(mode)}, {(checkedTransfer ? "true" : "false")})";
 
-    /// <summary>A native quotient formed on the SDIDI — <c>CobolDec.DivToOdd</c>: the quotient reduced to 34 digits by
-    /// round-to-odd, so the receiver's one rounding sees any tail (kb/Work PB1143's sibling, as <see cref="DecMulToOdd"/>).</summary>
-    public static string DecDivToOdd(string leftOperand, string rightOperand) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.DivToOdd)}({leftOperand}, {rightOperand})";
-
     /// <summary>A NESTED native quotient formed on the SDIDI — <c>CobolDec.DivTruncatedToOdd</c>: the quotient truncated at
     /// <paramref name="resultScale"/>, held to 34 digits by round-to-odd, the same value the scaled and wide lanes form
     /// (kb/Work PB3538 review finding R2-1).</summary>
@@ -996,6 +991,11 @@ internal static class RuntimeApi
     /// run time derives from <paramref name="receiverScale"/> and the precision the values carry.</summary>
     public static string ExactDivTruncated(string left, string right, int receiverScale, string modeExpr) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.DivTruncated)}({left}, {right}, {receiverScale}, {modeExpr})";
+
+    /// <summary>The FINAL-TRANSFER native quotient of two exact values, the SDIDI of the exact quotient's round-to-odd 34 digits
+    /// (<c>CobolExact.DivToOdd</c>, kb/Work PB4599).</summary>
+    public static string ExactDivToOdd(string left, string right) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.DivToOdd)}({left}, {right})";
 
     /// <summary>The negation of an exact value (<c>CobolExact.Negate</c>).</summary>
     public static string ExactNegate(string exact) => $"{nameof(CobolExact)}.{nameof(CobolExact.Negate)}({exact})";

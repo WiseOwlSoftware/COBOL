@@ -235,6 +235,35 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Throws<CobolSizeError>(() => CobolExact.DivTruncated(Wide(P), Sdidi("0"), 0, Away));
     }
 
+    /// <summary>⛔ THE FINAL-TRANSFER QUOTIENT DIVIDES THE EXACT OPERANDS (kb/Work PB4599; DOC-A.1-123): A³ / A² of A = 10^15 − 1 is
+    /// the integer A at the preferred exponent, where the 34-digit image of the 45-digit A³ over A² was 999999999999998.99…. An
+    /// inexact quotient is the ROUND-TO-ODD 34 digits of the exact one. Expected values: Python <c>fractions.Fraction</c> truncated to
+    /// 34 digits, the last digit made odd when anything was dropped (ISO/IEC 60559's round-to-odd as <c>CobolDec.DivToOdd</c> applies).</summary>
+    [Fact]
+    public void FinalTransferQuotient_DividesTheExactOperands()
+    {
+        BigInteger a = BigInteger.Pow(10, 15) - 1;
+        Assert.Equal(new CobolDec((Int128)a, 0), CobolExact.DivToOdd(Wide(a * a * a), Wide(a * a)));
+        Assert.Equal(new CobolDec((Int128)(a * a), 0), CobolExact.DivToOdd(Wide(a * a * a), Fixed((long)a)));
+        Assert.Equal(new CobolDec(-(Int128)a, 0), CobolExact.DivToOdd(Wide(-a * a * a), Wide(a * a)));
+        // Operands at their own scales: (a³ at scale 3) / (a² at scale 1) = (a³ / 1000) / (a² / 10) = a / 100.
+        Assert.Equal(0, CobolDec.Compare(D("9999999999999.99"), CobolExact.DivToOdd(Wide(a * a * a, 3), Wide(a * a, 1))));
+        // Inexact: P / 7 and P / 3 keep an odd last digit; an exact SDIDI dividend of an exponent far from its neighbours too.
+        Assert.Equal(new CobolDec(Int128.Parse("1427142857142857140002857142857143", CultureInfo.InvariantCulture), 5),
+            CobolExact.DivToOdd(Wide(P), Fixed(7)));
+        Assert.Equal(new CobolDec(Int128.Parse("3329999999999999993340000000000001", CultureInfo.InvariantCulture), 5),
+            CobolExact.DivToOdd(Wide(P), Fixed(3)));
+        Assert.Equal(new CobolDec(Int128.Parse("1427142857142857140002857142857143", CultureInfo.InvariantCulture), 2),
+            CobolExact.DivToOdd(Wide(P, 3), Fixed(7000, 3)));
+        Assert.Equal(new CobolDec(Int128.Parse("9999999999999989999999999999989999", CultureInfo.InvariantCulture), -19),
+            CobolExact.DivToOdd(Wide(a * a * a), Wide(a * a + 1)));
+        // A zero dividend is zero at the preferred exponent; a zero divisor is the size error (§14.7.5 case 2).
+        Assert.Equal(0, CobolDec.Compare(D("0"), CobolExact.DivToOdd(Fixed(0), Wide(P))));
+        Assert.Throws<CobolSizeError>(() => CobolExact.DivToOdd(Wide(P), Sdidi("0")));
+        // Past the 256-bit form the quotient is the one of the operands' round-to-odd images (DOC-A.1-123's determination).
+        Assert.Equal(CobolDec.DivToOdd(Sdidi("1", 6000).Image, Fixed(3).Image), CobolExact.DivToOdd(Sdidi("1", 6000), Fixed(3)));
+    }
+
     /// <summary>Past the 256-bit form a sum is the SDIDI sum of the operands lifted as an SDIDI operation lifts them: P + 1.0E-50
     /// needs 89 digits, so it is P rounded once to 34 digits (DOC-A.1-123's determination past 77 digits).</summary>
     [Fact]

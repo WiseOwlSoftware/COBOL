@@ -771,13 +771,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // exact on the wide form, the SDIDI only past its 77 digits; every +, - and * over it stays there, and it settles like a
         // nested product (Settle: rounded once at the resultant, compared exactly, lowered by round-to-odd otherwise). A NESTED
         // quotient over one is the truncated quotient at the working scale, the one rule of every native lane (Divide), on the
-        // same carrier; a final-transfer quotient takes the SDIDI as it does above a wide value, and a binary64 operation the
-        // value's image. A scaled Int128 operand beside an SDIDI one keeps the SDIDI lane: its digit bound is within the lane's
+        // same carrier; a final-transfer quotient is the exact quotient of the exact values rounded once to 34 digits by round-to-odd
+        // (ExactFinalQuotient, kb/Work PB4599), and a binary64 operation takes the value's image. A scaled Int128 operand beside an SDIDI one keeps the SDIDI lane: its digit bound is within the lane's
         // exact 38-digit operand and the 34-digit result is DOC-A.1-82's published lane determination (kb/Work PB274).
         if (!a.Real && !b.Real && !_rcv.Real && (a.Exact || b.Exact || (a.Wide || b.Wide) && (a.Dec || b.Dec)))
         {
             if (op is "+" or "-" or "*") return ExactBinary(op, a, b);
-            if (op == "/" && NestedQuotient) return ExactQuotient(a, b);
+            if (op == "/") return NestedQuotient ? ExactQuotient(a, b) : ExactFinalQuotient(a, b);
         }
         if (a.Exact) a = LowerWide(a);
         if (b.Exact) b = LowerWide(b);
@@ -1030,8 +1030,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         §13.18.40.3 SR14 caps them at 31 — rounds that value, in every mode, exactly as it would round the exact product),
     ///         carrying the product's <see cref="NumX.FractionPrecision"/> as the exact lanes do.
     ///         A NESTED quotient above it is the truncated quotient at the working scale on every lane (<see cref="Divide"/>); a final
-    ///         transfer's is formed on the SDIDI (<c>CobolDec.DivToOdd</c>): GnuCOBOL's own divide is inexact
-    ///         (<c>shift_decimal</c> then a truncating <c>mpz_tdiv_q</c>), so the precedence does not demand an exact quotient.</item>
+    ///         transfer's is the EXACT quotient of the exact operands reduced to the SDIDI's 34 digits by round-to-odd
+    ///         (<see cref="ExactFinalQuotient"/>, kb/Work PB4599): GnuCOBOL's own divide is inexact below its working digits
+    ///         (<c>shift_decimal</c> then a truncating <c>mpz_tdiv_q</c>), so the precedence does not demand more than 34 of them.</item>
     ///   <item><b>A bound unknown</b> (an intrinsic's value, a windowed view, a counter) — ⛔ IS STILL A BOUND: the
     ///         operand is an <see cref="Int128"/>, so its unscaled value has at most <see cref="PicInfo.CarrierDigitBound"/>
     ///         (39) digits, the bound a 16-byte container already carries, and the product takes the arms above with it
@@ -1118,9 +1119,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         <c>w</c> on the SDIDI, held to its 34 significant digits by ROUND-TO-ODD (<c>CobolDec.DivTruncatedToOdd</c>),
     ///         so a quotient of at most 34 digits is exact and equal to the other lanes' (kb/Work PB3538 review finding
     ///         R2-1: the SDIDI's own quotients made `FUNCTION INTEGER(X) * FUNCTION INTEGER(Y) / 7 * 7` 2.000000).</item>
-    ///   <item><b>Every other quotient</b> — a final transfer over an exact wide operand, a floating-point edited
-    ///         resultant: formed on the SDIDI, whose exponent floats with the VALUE, and reduced to its 34 significant
-    ///         digits by ROUND-TO-ODD (<c>CobolDec.DivToOdd</c>), so the one rounding at the final transfer into a
+    ///   <item><b>Every other quotient</b> — a final transfer over an exact wide operand (or over an exact run-time-scaled
+    ///         one, <see cref="CombineCore"/>), a floating-point edited resultant: the EXACT quotient of the operands' exact
+    ///         values (<see cref="ExactFinalQuotient"/>, kb/Work PB4599 — never of a dividend lowered to its 34-digit image)
+    ///         formed on the SDIDI, whose exponent floats with the VALUE, and reduced to its 34 significant
+    ///         digits by ROUND-TO-ODD (<c>CobolExact.DivToOdd</c>), so the one rounding at the final transfer into a
     ///         receiver of at most 32 digit positions equals rounding the exact quotient. Its size error is the one
     ///         §14.7.5 case 5 licenses: the VALUE outside the documented range at its landing (CONFORMANCE.md
     ///         DOC-A.1-123 / DOC-A.1-179).</item>
@@ -1175,8 +1178,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             return new NumX(RuntimeApi.DecDivTruncatedToOdd(DecQuotientOperand(a), DecQuotientOperand(b), w), 0, Dec: true,
                 Precision: precision);
         }
-        return new NumX(RuntimeApi.DecDivToOdd(DecOperandExact(a), DecOperandExact(b)), 0, Dec: true);
+        return ExactFinalQuotient(a, b);
     }
+
+    /// <summary>⛔ A FINAL-TRANSFER NATIVE QUOTIENT OF EXACT OPERANDS (kb/Work PB4599; DOC-A.1-123): the exact quotient of the two
+    /// operands' EXACT values (<see cref="ExactOperand"/>: a wide product with every digit, never its 34-digit image) reduced to
+    /// the SDIDI's 34 digits ONCE by ROUND-TO-ODD (<c>CobolExact.DivToOdd</c>), so the receiver's one rounding equals rounding the
+    /// exact quotient. Lowering the dividend first made `COMPUTE R = A * A * A / (A * A)` of A = 999999999999999 store
+    /// 999999999999998, where GnuCOBOL's <c>cob_decimal_div</c> shifts the EXACT dividend and its truncating <c>mpz_tdiv_q</c>
+    /// answers 999999999999999 (CLAUDE.md rule 1 for §8.8.1.3's latitude). The quotient of two operands the compiler cannot hold
+    /// exactly (past 77 digits) is the quotient of their images, DOC-A.1-123's determination.</summary>
+    private NumX ExactFinalQuotient(NumX a, NumX b) =>
+        new(RuntimeApi.ExactDivToOdd(ExactOperand(a), ExactOperand(b)), 0, Dec: true);
 
     /// <summary>Is the quotient being rendered NESTED — neither the final transfer to a resultant that rounds at its own
     /// scale nor a floating-point edited resultant's — so that it is the truncated quotient at the working scale on
