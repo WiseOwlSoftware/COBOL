@@ -1864,6 +1864,20 @@ of an unsupported facility.
   `tests/version-matrix/cobol-words.json` `extensionReserved`; `CobolWordsDriftTests` fails when this list, that array and the lexer disagree,
   and `NonstandardExtensionRegisterDriftTests` fails when it and the `ReservedWords` of the §3.2 register's rows disagree
   (each word is reserved on the account of one extension row).
+  **The `>>COBOL-WORDS` directive treats these words as reserved words (owner decision 2026-10-31, kb/Work PB4239).**
+  §8.3.2.1 1) makes a §4.2.10 addition a reserved word of this implementation, §7.3.10.1 and D.12.1 give the directive so a
+  program may change which words are reserved (D.12.1: "to conform to previously existing implementor extensions"), and D.12.3
+  names this collision ("a change of compiler that includes new reserved words that conflict with existing code")
+  (`cite.py --check D.12.3 "This can be useful when a change of compiler that includes new reserved words that conflict with
+  existing code"` → OK). So `UNDEFINE`, `EQUATE` and `SUBSTITUTE` may name any of them as literal-1/3/4 (§7.3.10.3 SR3), and
+  §7.3.10.4 GR3/GR4 then free or respell the word (`>>COBOL-WORDS UNDEFINE "JSON"` makes JSON a data-name; `UNDEFINE
+  "COMP-3"` frees COMP-3 and leaves COMPUTATIONAL-3 the packed usage), while `RESERVE` and the new word of `EQUATE` and
+  `SUBSTITUTE` may not be one (literal-2/5/6, §7.3.10.3 SR4, COBOL1623 naming this reservation). GnuCOBOL 3.2's default
+  dialect agrees for UNDEFINE and for EQUATE's new word; it accepts `RESERVE "JSON"` where SR4 refuses (the standard controls,
+  not that latitude); its `-std=cobol2014` does not reserve the words and so refuses `UNDEFINE` of them. Pinned by
+  `conformance:cases/7.3.10-COBOL-WORDS/pb4239_*`, the `pb4239-*` negatives and
+  `CobolWordsDirectiveTests.Sr3_AnExtensionReservedWord_IsAnExistingWord` / `Sr4_AnExtensionReservedWord_IsNotAFreshWord`, which
+  iterate the register.
   ⚠ DETERMINATION (owner may overturn): reserving them keeps the vendor forms recognizable by name; the rejected
   reading — admitting them as user words at every edition — would make each vendor construct ambiguous with a
   data reference in every operand list.

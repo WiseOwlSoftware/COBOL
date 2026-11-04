@@ -56,6 +56,22 @@ public sealed class NonstandardExtensionRegisterDriftTests
             $"extensionReserved [{string.Join(",", table.Order())}] != the register's ReservedWords [{string.Join(",", carried.Order())}]");
     }
 
+    /// <summary>The fourth consumer (kb/Work PB4239): <c>&gt;&gt;COBOL-WORDS</c>'s SR3 and SR4 ask the register whether a word
+    /// is reserved for an extension, by the keyword fold (basic letters only), so every row's every reserved word answers
+    /// yes in any case, and a word written with an extended letter (U+0130 in COMP-İ) or a user word answers no.</summary>
+    [Fact]
+    public void EveryReservedWordOfAnyRow_IsReservedForTheDirectivesCategoryRules()
+    {
+        foreach (var word in Rows.SelectMany(r => r.ReservedWords))
+        {
+            Assert.True(NonstandardExtensionRegister.ReservesWord(word), word);
+            Assert.True(NonstandardExtensionRegister.ReservesWord(word.ToLowerInvariant()), word);
+        }
+        Assert.False(NonstandardExtensionRegister.ReservesWord("JSÖN"));
+        Assert.False(NonstandardExtensionRegister.ReservesWord("ZQXWORD"));
+        Assert.False(NonstandardExtensionRegister.ReservesWord("MOVE"));   // a standard word: §8.9's, not an extension's
+    }
+
     /// <summary>The usage funnel (<c>PictureAnalyzer.ParseUsage</c>) recognizes a vendor spelling BY ROW, so a row's
     /// every spelling is flagged under <c>--flag-extensions</c> and none is flagged without it — adding a spelling to
     /// a row needs no edit at the funnel.</summary>
