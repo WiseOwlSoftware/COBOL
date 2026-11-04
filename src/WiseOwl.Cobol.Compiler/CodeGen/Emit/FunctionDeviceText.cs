@@ -170,9 +170,10 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             default:
                 // An arithmetic expression (GnuCOBOL evaluates it into a temporary), a register, an index: described by its value, and
                 // an expression past the Int128 carrier holds every digit (kb/Work PB3953: GnuCOBOL's temporary is arbitrary-precision).
+                // So does one in which a wide value met an SDIDI operand (NumX.Exact, kb/Work PB4575), whose scale is the run time's.
                 NumX value = num.AsNum(a, ReceiverContext.None, keepWide: true);
-                return value.Wide
-                    ? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)
+                return value.Wide ? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)
+                    : value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr)
                     : RuntimeApi.FunctionFieldOfValue(num.DecOperand(value));
         }
     }

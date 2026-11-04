@@ -1217,7 +1217,24 @@ clause text and fails if a new member is silently exempted.
    `CobolIntrinsics.*Wide`, and returns a wide value settled like a nested product; kb/Work PB3953, INTRINSICS_DESIGN), the
    temporary DISPLAY shows (`FunctionValueField.OfWide`), a MOVE's store of a function whose value is wide
    (`NumericRenderer.TransferWide`, the final transfer `Settle` itself takes, unchecked as a MOVE is), and that value's text
-   image (`OperandText`, `CobolNum.FormatWideFunctionText`). A bound past 77 digits, a FINAL-TRANSFER quotient above a wide value
+   image (`OperandText`, `CobolNum.FormatWideFunctionText`). ⛔ **Beside an SDIDI-carried operand** (a floating-point literal, a
+   power, a NUMVAL or function value: kb/Work PB4575) the wide value keeps every digit too: the wide form's scale is the
+   compiler's and the SDIDI value's a run-time fact, so `NumericRenderer.CombineCore` forms the sum, difference, product or
+   NESTED quotient as a run-time-scaled exact value (`NumX.Exact`, typed `CobolExact`: exact on the wide form at the scale the
+   run time aligns, the SDIDI past 77 digits, the operands lifted there as `CobolExact.ToDec` lifts them — exact to 38 digits,
+   a wider one rounded once in the intermediate mode). Every +, −, × and nested quotient over one stays on it (a quotient is
+   `CobolExact.DivTruncated`, truncated at the working scale of the precision the value CARRIES, D2, so a nested quotient's
+   guard digits never compound), and it settles exactly where a wide value does — `Settle` (`CobolExact.ToUnscaled` at the
+   final transfer, `CobolExact.Image`'s round-to-odd lowering otherwise, with `ImageWithPrecision` for a nested quotient
+   above), a relation (`CobolExact.Compare`, which also compares a wide value beside an SDIDI or an unsigned 16-byte value:
+   the round-to-odd image of a 39-digit P equals a 34-digit literal P lies below, so the images compared it equal), the
+   several-receiver snapshot, an intrinsic argument (`RawWideArg`, whose §15.3 type-6 intake is
+   `CobolIntrinsics.IntegerArgExact`; `RenderWide` declines it, so the call takes `RenderDec`'s exact intake) and the
+   temporary DISPLAY shows (`FunctionValueField.OfExact`). A final-transfer quotient takes the SDIDI as above a wide value,
+   and a binary64 operation the value's image. A scaled `Int128` operand beside an SDIDI one keeps the SDIDI lane (its digit
+   bound is within the lane's 38-digit exact operand; the 34-digit result is CONFORMANCE.md A.1 item 82's lane
+   determination). So `(P + 2.0E0) - P` of a 39-digit P is 2 and `IF P - 1 < 2.0E0 + P` is true, where the 34-digit images
+   answered 0 and false (`pb4575_wide_beside_sdidi_operand`). A bound past 77 digits, a FINAL-TRANSFER quotient above a wide value
    (GnuCOBOL's own divide is inexact, numeric.c:2259-2261; a NESTED one is `CobolWide.DivTruncated`, or past 77 digits
    `CobolDec.DivTruncatedToOdd`, D2) and an exponentiation take the SDIDI (`CobolDec.MulToOdd` / `DivToOdd`) as before; an unknown bound is the `Int128` carrier's own, 39 digits (kb/Work PB3538: the checked multiply it used to take at
    the summed scale raised the size error when the SCALE left the carrier), so a native product never wraps. The old emitter

@@ -1,0 +1,19 @@
+EXPR           2
+MULTI          2          2
+NEG           -3
+MUL            0
+POW            8
+FRAC           0.2500
+TRUNC          0
+ROUND          1
+QUOT           0.3750
+QNUMV          0.8333
+DIVR           0
+DIV7           1.9999
+EXP40          0
+MOD            1
+SIZE  ERROR
+REL   LT
+REL2  LT
+REL4  EQ
+DISP  998999999999999998002000000000000001001

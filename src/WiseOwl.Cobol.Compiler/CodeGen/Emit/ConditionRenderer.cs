@@ -383,10 +383,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // only the working-scale request carries the comparand.
         // ⛔ KEEP AN EXACT WIDE OPERAND (kb/Work PB1900): `IF A * B = C * D` over operands whose products pass the Int128
         // carrier compares the EXACT products — §8.8.4.2.4 compares algebraic values, and two products that differ below the
-        // SDIDI's 34th digit are not equal. A pair with no exact form to compare on lowers to the SDIDI as before.
+        // SDIDI's 34th digit are not equal; nor are `P - 1` and `2.0E0 + P`, an exact wide value beside an SDIDI-carried operand
+        // (NumX.Exact, kb/Work PB4575). A pair with no exact form to compare on lowers to the SDIDI as before.
         NumX l = num.AsNum(r.Left, ReceiverContext.None with { Scale = StaticScaleOf(r.Right) }, keepWide: true),
              rr = num.AsNum(r.Right, ReceiverContext.None with { Scale = StaticScaleOf(r.Left) }, keepWide: true);
-        if (NumericRenderer.CompareWide(l, rr) is { } wideCompare)
+        if (num.CompareWide(l, rr) is { } wideCompare)
             return $"{wideCompare} {r.Op} 0";
         l = NumericRenderer.LowerWide(l);
         rr = NumericRenderer.LowerWide(rr);

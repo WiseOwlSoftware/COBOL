@@ -945,24 +945,81 @@ internal static class RuntimeApi
     /// <summary>A wide value as binary64 (<c>CobolWide.ToDouble</c>).</summary>
     public static string WideToDouble(string wide, int scale) => $"({wide}).{nameof(CobolWide.ToDouble)}({scale})";
 
-    // ── The EXACT VALUE of a native function argument (CobolExact, kb/Work PB4111, PB4568) — the intake of the native SDIDI
-    //    lane's …Exact bodies, one spelling per carrier.
+    // ── The EXACT VALUE of a native operand (CobolExact, kb/Work PB4111, PB4568, PB4575): the intake of the native SDIDI lane's
+    //    …Exact bodies, one spelling per carrier, and the run-time-scaled exact carrier (NumX.Exact) of an expression in which an
+    //    exact wide intermediate meets an SDIDI-carried operand. A precision is written only where it is not the scale (or, for an
+    //    SDIDI value, the places it is held at): the runtime's default is that rule.
 
-    /// <summary>The runtime type of an exact argument, for an emitted <c>CobolExact[]</c> (a table(ALL) enumeration).</summary>
+    /// <summary>The runtime type of an exact value, for an emitted <c>CobolExact[]</c> (a table(ALL) enumeration) or a snapshot.</summary>
     public const string ExactType = nameof(CobolExact);
 
-    /// <summary>A scaled <c>Int128</c> value's exact value (<c>CobolExact.From</c>).</summary>
-    public static string ExactFrom(string int128Expr, int scale) => $"{nameof(CobolExact)}.{nameof(CobolExact.From)}({int128Expr}, {scale})";
+    private static string PrecisionArg(int? precision, int? unlessItIs = null) =>
+        precision is { } p && p != unlessItIs ? $", {p}" : "";
+
+    /// <summary>A scaled <c>Int128</c> value's exact value (<c>CobolExact.From</c>), with the fraction digits its operands carry.</summary>
+    public static string ExactFrom(string int128Expr, int scale, int precision) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.From)}({int128Expr}, {scale}{PrecisionArg(precision, scale)})";
 
     /// <summary>An unsigned 16-byte value's exact value (<c>CobolExact.FromUnsigned</c>).</summary>
     public static string ExactFromUnsigned(string uint128Expr, int scale) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.FromUnsigned)}({uint128Expr}, {scale})";
 
-    /// <summary>An exact wide intermediate's exact value (<c>CobolExact.FromWide</c>).</summary>
-    public static string ExactFromWide(string wide, int scale) => $"{nameof(CobolExact)}.{nameof(CobolExact.FromWide)}({wide}, {scale})";
+    /// <summary>An exact wide intermediate's exact value (<c>CobolExact.FromWide</c>), with its precision as <see cref="ExactFrom"/>.</summary>
+    public static string ExactFromWide(string wide, int scale, int precision) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.FromWide)}({wide}, {scale}{PrecisionArg(precision, scale)})";
 
-    /// <summary>An SDIDI value's exact value at its own exponent (<c>CobolExact.FromDec</c>).</summary>
-    public static string ExactFromDec(string dec) => $"{nameof(CobolExact)}.{nameof(CobolExact.FromDec)}({dec})";
+    /// <summary>An SDIDI value's exact value at its own exponent (<c>CobolExact.FromDec</c>), with the precision the compiler knows
+    /// (<c>null</c>: the places the value is held at).</summary>
+    public static string ExactFromDec(string dec, int? precision = null) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.FromDec)}({dec}{PrecisionArg(precision)})";
+
+    /// <summary>An SDIDI value whose precision only the run time knows, from its <c>CobolDecWithPrecision</c> spelling.</summary>
+    public static string ExactFromDecWithPrecision(string withPrecision) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.FromDec)}({withPrecision})";
+
+    /// <summary>The native sum, difference or product of two exact values (<c>CobolExact.Add</c> / <c>Sub</c> / <c>Mul</c>) at the
+    /// INTERMEDIATE ROUNDING mode the SDIDI step past the wide form takes.</summary>
+    public static string ExactOperation(char op, string left, string right, string modeExpr) =>
+        $"{nameof(CobolExact)}.{op switch
+        {
+            '+' => nameof(CobolExact.Add),
+            '-' => nameof(CobolExact.Sub),
+            '*' => nameof(CobolExact.Mul),
+            _ => throw new ArgumentOutOfRangeException(nameof(op), op, "an exact operation is +, - or *"),
+        }}({left}, {right}, {modeExpr})";
+
+    /// <summary>The NESTED native quotient of two exact values (<c>CobolExact.DivTruncated</c>): truncated at the working scale the
+    /// run time derives from <paramref name="receiverScale"/> and the precision the values carry.</summary>
+    public static string ExactDivTruncated(string left, string right, int receiverScale, string modeExpr) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.DivTruncated)}({left}, {right}, {receiverScale}, {modeExpr})";
+
+    /// <summary>The negation of an exact value (<c>CobolExact.Negate</c>).</summary>
+    public static string ExactNegate(string exact) => $"{nameof(CobolExact)}.{nameof(CobolExact.Negate)}({exact})";
+
+    /// <summary>The FINAL TRANSFER of an exact value (<c>CobolExact.ToUnscaled</c>), as <see cref="WideToUnscaled"/>.</summary>
+    public static string ExactToUnscaled(string exact, int toScale, CobolRounding mode, bool checkedTransfer) =>
+        $"({exact}).{nameof(CobolExact.ToUnscaled)}({toScale}, {RoundingText(mode)}, {(checkedTransfer ? "true" : "false")})";
+
+    /// <summary>An exact value lowered to the SDIDI by round-to-odd (<c>CobolExact.Image</c>).</summary>
+    public static string ExactImage(string exact) => $"({exact}).{nameof(CobolExact.Image)}";
+
+    /// <summary>The same lowering with the precision the value carries (<c>CobolExact.ImageWithPrecision</c>).</summary>
+    public static string ExactImageWithPrecision(string exact) => $"({exact}).{nameof(CobolExact.ImageWithPrecision)}";
+
+    /// <summary>An exact value as binary64 (<c>CobolExact.ToDouble</c>).</summary>
+    public static string ExactToDouble(string exact) => $"({exact}).{nameof(CobolExact.ToDouble)}()";
+
+    /// <summary>The exact comparison (−1/0/+1) of two exact values (<c>CobolExact.Compare</c>; §8.8.4.2.4).</summary>
+    public static string ExactCompare(string left, string right) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.Compare)}({left}, {right})";
+
+    /// <summary>The §15.3 type-6 intake of an exact value (<c>CobolIntrinsics.IntegerArgExact</c>).</summary>
+    public static string IntegerArgExact(string exact) =>
+        $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.IntegerArgExact)}({exact})";
+
+    /// <summary>A result or argument the value alone describes, carried as an exact value (<c>FunctionValueField.OfExact</c>).</summary>
+    public static string FunctionFieldOfExact(string exact) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfExact)}({exact})";
 
     /// <summary>The exact §15.27.3 r3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
     public static string DecE => $"{nameof(CobolDec)}.{nameof(CobolDec.E)}";
