@@ -794,6 +794,42 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(errors, e => e.Contains("unexpected 'JSON'"));   // JSON is the data-name GR4 makes it
     }
 
+    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR4, §8.3.2.1 rule 1): a SUBSTITUTE synonym of a reservation-gated word §8.9
+    /// reserves at the compile edition (RECEIVE, COBOL-2023) is that word, so it is no user-defined word; the original, which
+    /// GR4 frees, is one. Only a DECLARATION is written, so the refusal is the funnel's (the parser draws none): it asked the
+    /// group's overlay about the synonym's token text, the ORIGINAL's, which SUBSTITUTE had suppressed.</summary>
+    [Fact]
+    public void ASubstituteSynonymOfAReservedGatedWord_DeclaredAsAName_IsRefusedAndTheOriginalIsAName()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS SUBSTITUTE \"RECEIVE\" BY \"RCV\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589D.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 RCV PIC X.\n"
+            + "       01 RECEIVE PIC X.\n       PROCEDURE DIVISION.\n       STOP RUN.\n");
+        var refusal = Assert.Single(errors, e => e.Contains("COBOL0901"));
+        Assert.Contains("'RCV' is a synonym for the reserved word RECEIVE", refusal);
+        Assert.Contains("cw.cob(6,", refusal);   // the declaration of RCV, not the original's (line 7)
+    }
+
+    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR4): the synonym stands wherever the original is "documented as required or
+    /// optional" - a SPECIAL-NAMES clause the parser recognizes by <c>reservedHere</c> as much as an operand list the
+    /// reservation gate reads. <c>CRTX STATUS IS</c> after <c>SUBSTITUTE "CRT" BY "CRTX"</c> is the CRT STATUS clause (declined
+    /// as the optional screen module, COBOL1560, as the unsubstituted clause is), not an unknown clause (COBOL1970), and a
+    /// statement written with the synonym of COMMIT ends the DISPLAY before it instead of becoming its operand (the item
+    /// COMMIT, which the retyped token's text named).</summary>
+    [Fact]
+    public void ASubstituteSynonym_IsTheKeywordOfItsOriginal_InTheClauseAndTheOperandList()
+    {
+        var clause = CompileErrors("       >>COBOL-WORDS SUBSTITUTE \"CRT\" BY \"CRTX\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589C.\n       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n"
+            + "           CRTX STATUS IS ST.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 ST PIC 9(4).\n"
+            + "       PROCEDURE DIVISION.\n       STOP RUN.\n");
+        Assert.Contains(clause, e => e.Contains("COBOL1560"));
+        Assert.DoesNotContain(clause, e => e.Contains("COBOL1970"));
+        var statement = Compile("       >>COBOL-WORDS SUBSTITUTE \"COMMIT\" BY \"CMT\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589S.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 COMMIT PIC X VALUE \"C\".\n"
+            + "       PROCEDURE DIVISION.\n           DISPLAY \"A\" CMT.\n           STOP RUN.\n");
+        Assert.Empty(statement.Errors);
+    }
+
     [Fact] // kb/Work PB4586 control: a directive that holds is not reported because the program beside it fails to parse.
     public void ALegalDirective_BesideAParseError_DrawsNoCategoryVerdict()
     {

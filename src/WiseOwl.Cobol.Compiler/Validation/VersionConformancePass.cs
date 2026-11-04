@@ -2933,11 +2933,20 @@ internal sealed class VersionConformancePass
         /// original's keyword token carries the original's text, kb/Work PB4573) is read only once the word is rejected, so a
         /// word the funnel accepts allocates nothing (kb/Work PB4591); the message names it (kb/Work PB4312: a word
         /// a <c>&gt;&gt;COBOL-WORDS RESERVE</c> made reserved, written <c>CAFÉ</c>, was named by its fold, <c>'CAFé'</c>).</para>
+        /// <para>⛔ A KEYWORD TOKEN IS ASKED OF THE GENERATED TABLE, NOT THE GROUP'S OVERLAY (kb/Work PB4589). The lexer's retype
+        /// has already applied the directive to it: a de-reserved word is an <c>IDENTIFIER</c>, and a synonym (EQUATE literal-2,
+        /// SUBSTITUTE literal-5) is its original's keyword token carrying the original's text (kb/Work PB4573), the original
+        /// the synonym STANDS FOR and so is reserved with (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 rule 1). The overlay's suppression
+        /// of a SUBSTITUTE'd original (literal-4, a user-defined word now, GR4) is the right answer for the word the source
+        /// writes as an <c>IDENTIFIER</c> and the wrong one for the synonym that replaced it: asking it of the original's text
+        /// read <c>01 RCV</c> after <c>SUBSTITUTE "RECEIVE" BY "RCV"</c> as a user word. The parser's gate reads the same
+        /// table (<c>CobolParserCoreBase.userWordHere</c>), so the gate and this funnel agree.</para>
         private void FlagReservedUserWord(string word, Antlr4.Runtime.IToken token)
         {
-            if (!_reservedWords.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
+            var reserved = token.Type == CobolLexer.IDENTIFIER ? _reservedWords : ReservedWordSet.Default;
+            if (!reserved.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
             _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
+                EditionSeverityPolicy.For(reserved.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
                 "edition-reserved-word",
                 ReservedWordSet.UserWordViolationMessage(CobolKeywords.Spelling(WrittenSource.Of(token)), _cobolWords, _p._edition.Year),
                 "", "ISO §8.9"));
