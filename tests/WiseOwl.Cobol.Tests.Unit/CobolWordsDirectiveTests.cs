@@ -330,7 +330,7 @@ public sealed class CobolWordsDirectiveTests
 
     private static IReadOnlyList<string> CompileErrors(string source) => Compile(source).Errors;
 
-    private static CompilerDriver.Result Compile(string source)
+    private static CompilerDriver.Result Compile(string source, bool permissive = false)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_CWords_");
         try
@@ -338,7 +338,8 @@ public sealed class CobolWordsDirectiveTests
             string src = Path.Combine(dir, "cw.cob");
             File.WriteAllText(src, source);
             return CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "cw.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "cw.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto,
+                Permissive: permissive));
         }
         finally { ScratchDirectory.Remove(dir); }
     }
@@ -792,6 +793,80 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain("GR2", refusal);
         Assert.DoesNotContain("neither is a user-defined word", refusal);
         Assert.DoesNotContain(errors, e => e.Contains("unexpected 'JSON'"));   // JSON is the data-name GR4 makes it
+    }
+
+    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR4, §8.3.2.1 rule 1): a SUBSTITUTE synonym of a reservation-gated word §8.9
+    /// reserves at the compile edition (RECEIVE, COBOL-2023) is that word, so it is no user-defined word; the original, which
+    /// GR4 frees, is one. Only a DECLARATION is written, so the refusal is the funnel's (the parser draws none): it asked the
+    /// group's overlay about the synonym's token text, the ORIGINAL's, which SUBSTITUTE had suppressed.</summary>
+    [Fact]
+    public void ASubstituteSynonymOfAReservedGatedWord_DeclaredAsAName_IsRefusedAndTheOriginalIsAName()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS SUBSTITUTE \"RECEIVE\" BY \"RCV\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589D.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 RCV PIC X.\n"
+            + "       01 RECEIVE PIC X.\n       PROCEDURE DIVISION.\n       STOP RUN.\n");
+        var refusal = Assert.Single(errors, e => e.Contains("COBOL0901"));
+        Assert.Contains("'RCV' is a synonym for the reserved word RECEIVE", refusal);
+        Assert.Contains("cw.cob(6,", refusal);   // the declaration of RCV, not the original's (line 7)
+    }
+
+    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR4, §8.3.2.1 rule 1): <c>--permissive</c> restores the pre-removal reading
+    /// of a word §8.9 took away, so the gate admits the synonym as a name, and the migration mode's shape is a WARNING for
+    /// it as for the word itself (COBOL0901), not silence: the admitted token is an IDENTIFIER with the original's text, and
+    /// the funnel must tell the synonym from the freed original (which stays a plain name, with no diagnostic at all).</summary>
+    [Fact]
+    public void ASubstituteSynonymOfAReservedGatedWord_UnderPermissive_IsWarnedAndTheOriginalIsAName()
+    {
+        var r = Compile("       >>COBOL-WORDS SUBSTITUTE \"RECEIVE\" BY \"RCV\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589P.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 RCV PIC X.\n"
+            + "       PROCEDURE DIVISION.\n           MOVE \"A\" TO RCV.\n           STOP RUN.\n", permissive: true);
+        Assert.Empty(r.Errors);
+        var warning = Assert.Single(r.Warnings, w => w.Contains("COBOL0901"));
+        Assert.Contains("'RCV' is a synonym for the reserved word RECEIVE", warning);
+        var original = Compile("       >>COBOL-WORDS SUBSTITUTE \"RECEIVE\" BY \"RCV\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589Q.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 RECEIVE PIC X.\n"
+            + "       PROCEDURE DIVISION.\n           MOVE \"A\" TO RECEIVE.\n           STOP RUN.\n", permissive: true);
+        Assert.Empty(original.Errors);
+        Assert.DoesNotContain(original.Warnings, w => w.Contains("COBOL0901"));
+    }
+
+    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR4): the synonym stands wherever the original is "documented as required or
+    /// optional" - a SPECIAL-NAMES clause the parser recognizes by <c>reservedHere</c> as much as an operand list the
+    /// reservation gate reads. <c>CRTX STATUS IS</c> after <c>SUBSTITUTE "CRT" BY "CRTX"</c> is the CRT STATUS clause (declined
+    /// as the optional screen module, COBOL1560, as the unsubstituted clause is), not an unknown clause (COBOL1970), and a
+    /// statement written with the synonym of COMMIT ends the DISPLAY before it instead of becoming its operand (the item
+    /// COMMIT, which the retyped token's text named).</summary>
+    [Fact]
+    public void ASubstituteSynonym_IsTheKeywordOfItsOriginal_InTheClauseAndTheOperandList()
+    {
+        var clause = CompileErrors("       >>COBOL-WORDS SUBSTITUTE \"CRT\" BY \"CRTX\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589C.\n       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n"
+            + "           CRTX STATUS IS ST.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 ST PIC 9(4).\n"
+            + "       PROCEDURE DIVISION.\n       STOP RUN.\n");
+        Assert.Contains(clause, e => e.Contains("COBOL1560"));
+        Assert.DoesNotContain(clause, e => e.Contains("COBOL1970"));
+        var statement = Compile("       >>COBOL-WORDS SUBSTITUTE \"COMMIT\" BY \"CMT\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589S.\n       PROCEDURE DIVISION.\n           DISPLAY \"A\" CMT.\n           STOP RUN.\n");
+        Assert.Empty(statement.Errors);   // no item COMMIT is declared: were CMT an operand, the item COMMIT would be undefined
+    }
+
+    /// <summary>⛔ kb/Work PB4589 (ISO §7.3.10.4 GR5): a <c>RESERVE</c> of a word the lexer has a keyword token for and no
+    /// gate retypes (REMARKS, PACKED, PARSE: §8.9 lists none of them at COBOL-2023) is reserved for the group, and a
+    /// declaration of it is COBOL0901 like a RESERVE of any other fresh word. The funnel asks such a token of
+    /// <see cref="ReservedWordSet.KeywordToken"/>, which drops the SUBSTITUTE/UNDEFINE suppressions (the token is no longer
+    /// the word they freed) and keeps the RESERVE layer; asking the generated table alone let these through.</summary>
+    [Theory]
+    [InlineData("REMARKS")]
+    [InlineData("PACKED")]
+    [InlineData("PARSE")]
+    [InlineData("GENERIC")]
+    [InlineData("PROCESSING")]
+    public void AReserveOfALexerTokenedWord_IsRefusedAsAUserWord(string word)
+    {
+        var errors = CompileErrors($"       >>COBOL-WORDS RESERVE \"{word}\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4589R.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n"
+            + $"       01 {word} PIC X VALUE \"R\".\n       PROCEDURE DIVISION.\n           DISPLAY {word}.\n           STOP RUN.\n");
+        Assert.Contains(errors, e => e.Contains("COBOL0901") && e.Contains($"'{word}'"));
     }
 
     [Fact] // kb/Work PB4586 control: a directive that holds is not reported because the program beside it fails to parse.

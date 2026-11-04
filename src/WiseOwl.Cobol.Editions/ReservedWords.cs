@@ -107,7 +107,20 @@ public sealed class ReservedWordSet
         _reserved = reserved;
         _suppressed = suppressed;
         _synonyms = synonyms;
+        _keywordToken = suppressed.Count == 0 ? null : new ReservedWordSet(reserved, new HashSet<string>(), synonyms);
     }
+
+    // The view of this set without its de-reservations (see KeywordToken); null when there are none to drop.
+    private readonly ReservedWordSet? _keywordToken;
+
+    /// <summary>⛔ THE SET A KEYWORD TOKEN IS ASKED OF (kb/Work PB4589). The lexer's retype has already applied the
+    /// de-reservations to the token stream: a word UNDEFINE'd or SUBSTITUTE'd away (GR3, GR4) is an <c>IDENTIFIER</c>, so
+    /// the only keyword token whose spelling is in the suppression set is a SYNONYM that stands for it (EQUATE literal-2,
+    /// SUBSTITUTE literal-5), carrying the original's text (kb/Work PB4573) and reserved with its original (GR2, GR4;
+    /// §8.3.2.1 rule 1). Asking such a token of the suppressing set answers for the word the source no longer writes. This
+    /// view keeps everything else the directive and §8.9 say, RESERVE (GR5) included: a RESERVE of a word the lexer has a
+    /// token for stays a keyword token and stays rejected as a user-defined word. <see cref="Default"/> is its own view.</summary>
+    public ReservedWordSet KeywordToken => _keywordToken ?? this;
 
     /// <summary>Compose the effective per-compilation-group set from a <see cref="CobolWordsMap"/> override (ISO
     /// §7.3.10). An empty map yields <see cref="Default"/> (byte-identical). RESERVE words become reserved;

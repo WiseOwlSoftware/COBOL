@@ -2933,15 +2933,38 @@ internal sealed class VersionConformancePass
         /// original's keyword token carries the original's text, kb/Work PB4573) is read only once the word is rejected, so a
         /// word the funnel accepts allocates nothing (kb/Work PB4591); the message names it (kb/Work PB4312: a word
         /// a <c>&gt;&gt;COBOL-WORDS RESERVE</c> made reserved, written <c>CAFÉ</c>, was named by its fold, <c>'CAFé'</c>).</para>
+        /// <para>⛔ A KEYWORD TOKEN IS ASKED OF <see cref="ReservedWordSet.KeywordToken"/>, NOT OF THE SET'S DE-RESERVATIONS
+        /// (kb/Work PB4589). The lexer's retype has already applied the directive to it: a de-reserved word is an
+        /// <c>IDENTIFIER</c>, and a synonym (EQUATE literal-2, SUBSTITUTE literal-5) is its original's keyword token carrying the
+        /// original's text (kb/Work PB4573), the original the synonym STANDS FOR and so is reserved with (ISO §7.3.10.4 GR2,
+        /// GR4; §8.3.2.1 rule 1). The suppression of a SUBSTITUTE'd original (literal-4, a user-defined word now, GR4) is the
+        /// right answer for the word the source writes as an <c>IDENTIFIER</c> and the wrong one for the synonym that replaced
+        /// it: asking it of the original's text read <c>01 RCV</c> after <c>SUBSTITUTE "RECEIVE" BY "RCV"</c> as a user word.
+        /// The view keeps the RESERVE layer (GR5), which names words the lexer may well have a token for (REMARKS, PACKED).
+        /// The parser's gate reads the generated table through the same once-only rule
+        /// (<c>CobolParserCoreBase.userWordHere</c>).</para>
+        /// <para>A synonym the gate ADMITTED (<c>--permissive</c> restoring the pre-removal reading of a word §8.9 took away) is
+        /// an <c>IDENTIFIER</c> whose text is still the original's, and is the same synonym: when the suppression alone is what
+        /// stops the original rejecting, the source's own spelling says whether the token is the freed original or its synonym
+        /// (<see cref="CobolWordsMap.SynonymOf"/>). The common case allocates nothing.</para>
         private void FlagReservedUserWord(string word, Antlr4.Runtime.IToken token)
         {
-            if (!_reservedWords.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
+            var reserved = token.Type == CobolLexer.IDENTIFIER && !IsSynonymOfAFreedWord(word, token)
+                ? _reservedWords : _reservedWords.KeywordToken;
+            if (!reserved.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
             _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
+                EditionSeverityPolicy.For(reserved.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
                 "edition-reserved-word",
                 ReservedWordSet.UserWordViolationMessage(CobolKeywords.Spelling(WrittenSource.Of(token)), _cobolWords, _p._edition.Year),
                 "", "ISO §8.9"));
         }
+
+        /// <summary>True when <paramref name="token"/>, an <c>IDENTIFIER</c> whose Annex C fold is <paramref name="word"/>, is the
+        /// SYNONYM of a word this compilation group's suppression freed (SUBSTITUTE literal-4 to literal-5) rather than the freed
+        /// word itself: only a suppressed word §8.9 reserves can be asked, so the source spelling is read for it alone.</summary>
+        private bool IsSynonymOfAFreedWord(string word, Antlr4.Runtime.IToken token)
+            => !_reservedWords.RejectsAt(word, _p._edition.Year) && _reservedWords.KeywordToken.RejectsAt(word, _p._edition.Year)
+               && _cobolWords.SynonymOf(CobolKeywords.Spelling(WrittenSource.Of(token))) is not null;
 
         /// <summary>kb/Work PB137/PB300/PB693/PB4206: the generated <c>reservedGatedWord</c> rule keeps a reservation-gated
         /// word parseable in a USER-DEFINED-WORD slot (a declaration, or a procedure-name reference) at the editions where

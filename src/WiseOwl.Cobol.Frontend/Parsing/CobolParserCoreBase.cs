@@ -336,11 +336,17 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>True when <paramref name="keyword"/> is a §8.9 reserved word at the compile edition — the
     /// cobolWord exclusion predicate (kb/Work PB137): a word the edition reserves cannot be a user-defined
     /// word, so the alternative that would absorb it into an operand list must not match.
-    /// <para>Through the &gt;&gt;COBOL-WORDS resolution (kb/Work PB250): an UNDEFINE'd word is not reserved
-    /// here at any edition (§7.3.10.4 GR3), and an EQUATEd synonym is reserved exactly where its canonical
-    /// word is (GR2).</para></summary>
+    /// <para>⛔ <paramref name="keyword"/> IS THE WORD OF A KEYWORD TOKEN, so the directive has already been applied to it
+    /// and it is NOT resolved again (kb/Work PB4589; the once-only rule of <see cref="CobolWordsRewriter.CanonicalWordOf"/>).
+    /// The lexer's retype (<see cref="CobolWordsRewriter.Plan"/>) turns a de-reserved word (§7.3.10.4 GR3, GR4) into an
+    /// <c>IDENTIFIER</c>, which no caller asks about as a keyword, and a synonym (EQUATE literal-2, SUBSTITUTE literal-5; GR2,
+    /// GR4) into its original's token spelled as the original, so the word here is the original the synonym stands for and
+    /// is reserved exactly where that original is. Resolving it through the map again read a SUBSTITUTE'd original (literal-4,
+    /// which GR4 makes a user-defined word) as "no keyword", so its synonym was neither a reserved word nor the facility it
+    /// stands for (<c>CMT.</c> after <c>SUBSTITUTE "COMMIT" BY "CMT"</c> was a paragraph, <c>CRTX STATUS IS</c> after
+    /// <c>SUBSTITUTE "CRT" BY "CRTX"</c> no SPECIAL-NAMES clause).</para></summary>
     protected bool reservedHere(string keyword)
-        => Canonical(keyword) is { } w && (ReservedWords.Find(w)?.IsReservedAt(Edition.Year) ?? false);
+        => ReservedWords.Find(CobolKeywords.Spelling(keyword))?.IsReservedAt(Edition.Year) ?? false;
 
     /// <summary>⛔ WHETHER A GENERAL FORMAT OF THIS EDITION CAN PRINT <paramref name="keyword"/> — what a syntax
     /// diagnostic may name as EXPECTED (kb/Work PB4174; <c>AdmittedKinds</c>). The parse is the superset of the four
@@ -390,10 +396,13 @@ public abstract class CobolParserCoreBase : Parser
     /// <see cref="facilityWord"/> and the SPECIAL-NAMES CRT/CURSOR clause guards ask the OTHER question — "is this
     /// token the reserved keyword here" — and must keep recognizing their clauses under <c>--permissive</c>.</para></summary>
     internal bool userWordHere(string keyword)
-        // ReservedWordSet.Default, not a composed overlay: Canonical() has ALREADY applied this compilation
-        // group's >>COBOL-WORDS directive (an UNDEFINE'd word returns null — a user word at every edition),
-        // exactly as reservedHere does, so composing the overlay twice would double-count it.
-        => Canonical(keyword) is not { } w || ReservedWordSet.Default.AdmitsAsUserWord(w, Edition);
+        // ReservedWordSet.Default, not a composed overlay, and the word is NOT resolved through the map: it is the word of a
+        // keyword TOKEN, which the lexer's retype has ALREADY resolved against this compilation group's >>COBOL-WORDS
+        // directive (a de-reserved word is an IDENTIFIER and never gets here; a synonym carries its original's spelling),
+        // exactly as reservedHere reads it, so composing the overlay twice would double-count it. A SUBSTITUTE synonym of a
+        // word §8.9 reserves here is therefore reserved here, not a user-defined word (§7.3.10.4 GR4, §8.3.2.1 rule 1;
+        // kb/Work PB4589).
+        => ReservedWordSet.Default.AdmitsAsUserWord(CobolKeywords.Spelling(keyword), Edition);
 
     /// <summary>The reservation-gated words this parse matched in a user-defined-word slot (the generated
     /// <c>reservedGatedWord</c> rule's action, <see cref="gatedDeclaration"/>) that this compile ADMITS as user-defined
@@ -970,12 +979,14 @@ public abstract class CobolParserCoreBase : Parser
     /// the union grammar's named edition gate ("END-DISPLAY requires COBOL-2002") answers instead.
     /// ⚠ DETERMINATION: GnuCOBOL (the survey model) drops such a word from its per-standard reserved list and so
     /// always takes the user-word reading; this keeps its acceptance of every declared use and differs only in
-    /// the diagnostic for an undeclared one. Through the &gt;&gt;COBOL-WORDS overlay (<see cref="Canonical"/>).</summary>
+    /// the diagnostic for an undeclared one. The word is that of the lookahead's keyword TOKEN, which the lexer's
+    /// &gt;&gt;COBOL-WORDS retype has already resolved, so it is not resolved again: a SUBSTITUTE synonym is its
+    /// original's token and reserved where the original is (§7.3.10.4 GR4; kb/Work PB4589).</summary>
     private bool IsKeywordReadingHere(int tokenType)
     {
         string? literal = Vocabulary.GetLiteralName(tokenType);
         if (literal is null || literal.Length < 3) return false;
-        if (Canonical(literal[1..^1]) is not { } w) return false;
+        string w = CobolKeywords.Spelling(literal[1..^1]);
         var row = ReservedWords.Find(w);
         return row is null || row.IsReservedAt(Edition.Year) || !(_declaredNames?.Contains(w) ?? false);
     }

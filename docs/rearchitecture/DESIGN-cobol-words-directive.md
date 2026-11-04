@@ -138,6 +138,20 @@ word is the offending token or the one before it, `CobolErrorListener.NoteWithdr
 directive (`RemovedBy`, `CobolWordsOp.At` through the line map) naming it as the likely cause, once per directive, as
 the margin-R note (COBOL5788) names a cut beside the error it may explain.
 
+⛔ **THE PARSER'S RESERVATION READS (`reservedHere`, `userWordHere`, `IsKeywordReadingHere`) AND THE FUNNEL'S (`VersionConformancePass.FlagReservedUserWord`)
+ASK A KEYWORD TOKEN ABOUT ITS OWN WORD, not about the group's overlay (kb/Work PB4589).** The word of a non-`IDENTIFIER`
+token is its original's spelling (above), and the original of a SUBSTITUTE synonym is exactly the word GR4 frees, so the
+overlay (`Canonical`, `ReservedWordSet.Compose`) answered "no keyword, no reservation" for the synonym that stands in its
+place: `SUBSTITUTE "RECEIVE" BY "RCV"` then `01 RCV PIC X.` was accepted, the reservation gate retyped RCV a user word, and
+`CMT.` after `SUBSTITUTE "COMMIT" BY "CMT"` was no COMMIT statement (`DISPLAY "A" CMT.` named the item COMMIT as its
+operand). The parser asks a keyword token of the generated table (`ReservedWords.Find`, `ReservedWordSet.Default`), where
+its original is reserved exactly where §8.9 reserves it (GR4, §8.3.2.1 rule 1). The funnel asks it of
+`ReservedWordSet.KeywordToken`, the overlay without its de-reservations: that keeps the RESERVE layer (GR5), which names
+words the lexer may have a token for (REMARKS, PACKED) and the generated table does not know. An `IDENTIFIER` is asked of
+the overlay itself, unless it is a synonym the gate admitted under `--permissive` (its text still the original's, the
+source's own spelling a `CobolWordsMap.SynonymOf`), which is the keyword token's case. `Canonical` stays for the words a
+predicate tests by TEXT (`Word`, `PrintsKeyword`).
+
 **Where the name resolution is called** (each is a §8.9/§8.10 word the lexer does not tokenize):
 `IntrinsicBinder.KeywordWordOf` — the single funnel every §15 phrase word is read through, so TRIM, FIND-STRING,
 SUBSTITUTE, CONVERT, MODULE-NAME, LENGTH and NUMVAL-C/TEST-NUMVAL-C are covered by one call;
