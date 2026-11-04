@@ -14,12 +14,16 @@ section 8.3.2.1 rule 1).
 **Fix.** A keyword token is asked about its own word: `reservedHere`, `userWordHere` and `IsKeywordReadingHere` read `ReservedWords` / `ReservedWordSet.Default`
 for the token's spelling and no longer resolve it a second time (the once-only rule of `CobolWordsRewriter.CanonicalWordOf`). The funnel had the same
 bug one stage later: `VersionConformancePass.FlagReservedUserWord` looked the token's text up in the group's overlay, so a declaration of the synonym was
-never reported (only a use, through the parser's syntax-error arm); it now asks a non-`IDENTIFIER` token of `ReservedWordSet.Default`, and the
-overlay only for an `IDENTIFIER` (RESERVE, and synonyms of words the lexer has no token for). `docs/rearchitecture/DESIGN-cobol-words-directive.md` states the rule.
+never reported (only a use, through the parser's syntax-error arm); it now asks a non-`IDENTIFIER` token of `ReservedWordSet.KeywordToken` (the overlay without its de-reservations), and the
+overlay itself for an `IDENTIFIER`, except a synonym the gate admitted under `--permissive` (`IsSynonymOfAFreedWord`).
+The first version of the funnel asked the generated table alone, which dropped the RESERVE layer: `RESERVE "REMARKS"` (also PACKED, PARSE, GENERIC,
+PROCESSING, END-METHOD) then `01 REMARKS` compiled clean where main drew COBOL0901. Branch review round 1 found it (R1-1); the five-word theory
+`AReserveOfALexerTokenedWord_IsRefusedAsAUserWord` fails against that version. The same review found `--permissive` silent for a synonym (R1-2, fixed, with a unit test),
+a second leg of the CMT test that held on the unfixed tree (R1-3, it now declares no item COMMIT), and the design paragraph split from its COBOL5926 sentence (R1-4). `docs/rearchitecture/DESIGN-cobol-words-directive.md` states the rule.
 
 **Goldens.** `pb4589_cobol_words_substitute_synonym_of_commit_is_the_commit_statement` (accept 2023, output `A`, `C`; it printed `AC` before) and the refusal
-`pb4589-cobol-words-substituted-receive-synonym-is-no-user-word` (refuse-at 2023, COBOL0901 naming RCV and RECEIVE). Unit: two tests in `CobolWordsDirectiveTests`
-(declaration-only synonym refused and the original a name; the CRT clause and the COMMIT statement reached through the synonym).
+`pb4589-cobol-words-substituted-receive-synonym-is-no-user-word` (refuse-at 2023, COBOL0901 naming RCV and RECEIVE). Unit: four tests in `CobolWordsDirectiveTests`
+(declaration-only synonym refused and the original a name; the CRT clause and the COMMIT statement reached through the synonym; the same synonym warned under `--permissive`; RESERVE of five lexer-tokened words refused).
 
 **Rows.** None claimed, none closed (`closes_rows: []` with its reason): GR-7.3.10.4-4 was already CONFORMS, the landing adds witnesses.
 
