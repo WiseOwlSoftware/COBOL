@@ -2952,7 +2952,7 @@ internal sealed class VersionConformancePass
             _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
                 EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
                 "edition-reserved-word",
-                ReservedWordSet.UserWordViolationMessage(written, _p._edition.Year), "", "ISO §8.9"));
+                _reservedWords.UserWordViolation(word, written, _p._edition.Year), "", "ISO §8.9"));
         }
 
         /// <summary>kb/Work PB137/PB300/PB693/PB4206: the generated <c>reservedGatedWord</c> rule keeps a reservation-gated

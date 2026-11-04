@@ -151,6 +151,54 @@ public sealed class CobolWordsReachDriftTests
         }
     }
 
+    /// <summary>⛔ A SYNONYM OF A RESERVED WORD IS RESERVED, whichever mechanism reaches its original (ISO §7.3.10.4 GR2, GR4;
+    /// §8.3.2.1 1; kb/Work PB4488). The token retype reaches a synonym only where the lexer has a token for the original,
+    /// so the other half — the words on the NAME path — would be accepted as user-defined words. The population is the
+    /// §8.9 list of the COBOL-2023 text (<c>reserved-words.json</c>, held equal to the generated table by
+    /// <c>ReservedWordsDriftTests</c>), not the compiler's own predicate: EVERY reserved word, by EQUATE and by
+    /// SUBSTITUTE, must reject its synonym through <see cref="ReservedWordSet.Compose"/> and name the original in the
+    /// message, and the sample must hold words from BOTH sides of the lexer partition, so a change that retypes more or
+    /// fewer words cannot leave this test vacuous. The next §8.9 word is covered by the table, not by an edit here.</summary>
+    [Fact]
+    public void EveryReservedWordsSynonym_RejectsAsAUserWord_OnBothSidesOfTheLexerPartition()
+    {
+        var reserved = new List<string>();
+        using (var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("reserved-words.json"))))
+            foreach (var e in doc.RootElement.GetProperty("words").EnumerateArray())
+                if (e.GetProperty("r2023").GetBoolean()) reserved.Add(e.GetProperty("word").GetString()!);
+        Assert.True(reserved.Count > 400, $"only {reserved.Count} §8.9 words — the table failed to load");
+        Assert.True(reserved.Any(w => CobolKeywordTokens.TryTokenType(w, out _)), "no reserved word has a lexer token");
+        Assert.Contains(reserved, w => !CobolKeywordTokens.TryTokenType(w, out _));   // COPY, LOCALE, …: the name path
+
+        var failures = new List<string>();
+        foreach (var action in new[] { CobolWordsAction.Equate, CobolWordsAction.Substitute })
+            foreach (string word in reserved)
+            {
+                string synonym = "SYN-" + word;
+                var set = ReservedWordSet.Compose(new CobolWordsMap([new CobolWordsOp(action, word, synonym, default)]));
+                if (!set.RejectsAt(synonym, 2023)
+                    || set.UserWordVerdictAt(synonym, 2023) != ConstructAvailability.Removed
+                    || !set.UserWordViolation(synonym, synonym, 2023).Contains($"synonym for the reserved word {word}"))
+                    failures.Add($"{action} {word}");
+            }
+        Assert.True(failures.Count == 0, $"{failures.Count} synonym(s) of a reserved word are accepted as user-defined words "
+            + $"(e.g. {string.Join(", ", failures.Take(5))})");
+    }
+
+    /// <summary>The other side of the same rule (kb/Work PB4488): a synonym of a §8.10 context-sensitive word that §8.9 does
+    /// not reserve, or of an intrinsic function name, stays what its original was, a word that is no reserved word.</summary>
+    [Fact]
+    public void ASynonymOfAWordSection89DoesNotReserve_IsNotReserved()
+    {
+        string context = ContextSensitiveWords.Entries.Select(e => e.Word).First(w => ReservedWords.Find(w) is not { R2023: true });
+        foreach (string word in new[] { context, "TRIM" })
+        {
+            var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Equate, word, "SYN", default)]);
+            Assert.Empty(map.ReservedSynonyms);
+            Assert.False(ReservedWordSet.Compose(map).RejectsAt("SYN", 2023), word);
+        }
+    }
+
     /// <summary>The ONE rule, exercised directly on all four options (§7.3.10.4 GR2–GR5). A regression in
     /// <see cref="CobolWordsMap.Resolve"/> silently disarms every by-name classifier at once.</summary>
     [Fact]

@@ -95,32 +95,45 @@ public sealed class ReservedWordSet
     // (GR3/GR4). Null on the Default set (no directive) so the effective behavior is byte-identical.
     private readonly IReadOnlySet<string>? _reserved;    // RESERVE literal-6 — a NEW reserved word
     private readonly IReadOnlySet<string>? _suppressed;  // UNDEFINE literal-3 + SUBSTITUTE literal-4 — de-reserved
+    // EQUATE literal-2 / SUBSTITUTE literal-5 whose original word §8.9 reserves → that word (GR2/GR4: a synonym for a
+    // reserved word is that reserved word; kb/Work PB4488).
+    private readonly IReadOnlyDictionary<string, string>? _synonyms;
 
     private ReservedWordSet() { }
 
-    private ReservedWordSet(IReadOnlySet<string> reserved, IReadOnlySet<string> suppressed)
+    private ReservedWordSet(IReadOnlySet<string> reserved, IReadOnlySet<string> suppressed,
+        IReadOnlyDictionary<string, string> synonyms)
     {
         _reserved = reserved;
         _suppressed = suppressed;
+        _synonyms = synonyms;
     }
 
     /// <summary>Compose the effective per-compilation-group set from a <see cref="CobolWordsMap"/> override (ISO
     /// §7.3.10). An empty map yields <see cref="Default"/> (byte-identical). RESERVE words become reserved;
-    /// UNDEFINE / SUBSTITUTE words are de-reserved (SR5 forbids a word being both, so no conflict).</summary>
+    /// UNDEFINE / SUBSTITUTE words are de-reserved (SR5 forbids a word being both, so no conflict); a synonym of a
+    /// reserved word is reserved (<see cref="CobolWordsMap.ReservedSynonyms"/>: the lexer retypes only the synonyms of a
+    /// word it has a token for, so this overlay is what keeps the others from being user-defined words).</summary>
     public static ReservedWordSet Compose(CobolWordsMap map) =>
-        map.IsEmpty ? Default : new ReservedWordSet(map.Reserved, map.DeReserved);
+        map.IsEmpty ? Default : new ReservedWordSet(map.Reserved, map.DeReserved, map.ReservedSynonyms);
+
+    /// <summary>The program's own reservation of <paramref name="upperWord"/>: a RESERVE (GR5) or a synonym of a reserved
+    /// word (GR2, GR4). The spelling was a user word until this compilation group's directive took it, which is the
+    /// <see cref="ConstructAvailability.Removed"/> shape.</summary>
+    private bool ReservedByDirective(string upperWord)
+        => _reserved?.Contains(upperWord) == true || _synonyms?.ContainsKey(upperWord) == true;
 
     /// <summary>The entry for <paramref name="upperWord"/>, or null when the word is not in the effective set.</summary>
     public ReservedWordEntry? Find(string upperWord) => ReservedWords.Find(upperWord);
 
     /// <summary>True when <paramref name="upperWord"/> is reserved for the compilation group and may emit
     /// COBOL0901 when used as a user-defined word: a <c>&gt;&gt;COBOL-WORDS</c> UNDEFINE/SUBSTITUTE suppression
-    /// wins (never rejects), then a RESERVE overlay reserves unconditionally, else the generated §8.9 table's
+    /// wins (never rejects), then a RESERVE overlay or a synonym of a reserved word reserves unconditionally, else the generated §8.9 table's
     /// HIGH-CONFIDENCE reserved-at-edition rule (the conservative policy).</summary>
     public bool RejectsAt(string upperWord, int edition)
     {
         if (_suppressed?.Contains(upperWord) == true) return false;   // UNDEFINE/SUBSTITUTE — a user word now
-        if (_reserved?.Contains(upperWord) == true) return true;      // RESERVE — a new reserved word
+        if (ReservedByDirective(upperWord)) return true;              // RESERVE, or a synonym of a reserved word
         return Find(upperWord) is { Confidence: "high" } e && e.IsReservedAt(edition);
     }
 
@@ -139,9 +152,10 @@ public sealed class ReservedWordSet
     public ConstructAvailability UserWordVerdictAt(string upperWord, int edition)
     {
         if (!RejectsAt(upperWord, edition)) return ConstructAvailability.Available;
-        // A >>COBOL-WORDS RESERVE (ISO §7.3.10.4 GR5) is the PROGRAM's own reservation, not the edition's: the
-        // spelling was a user word until this compilation group's directive took it, which is the removed shape.
-        if (_reserved?.Contains(upperWord) == true) return ConstructAvailability.Removed;
+        // A >>COBOL-WORDS RESERVE (ISO §7.3.10.4 GR5) or a synonym of a reserved word (GR2, GR4) is the PROGRAM's own
+        // reservation, not the edition's: the spelling was a user word until this compilation group's directive took it,
+        // which is the removed shape.
+        if (ReservedByDirective(upperWord)) return ConstructAvailability.Removed;
         if (Find(upperWord) is not { } e) return ConstructAvailability.Removed;
         foreach (int older in EditionInfo.Before(edition))
             if (!e.IsReservedAt(older)) return ConstructAvailability.Removed;
@@ -184,4 +198,15 @@ public sealed class ReservedWordSet
     public static string UserWordViolationMessage(string upperWord, int edition)
         => $"'{upperWord}' is a reserved word in COBOL-{edition} and cannot be used as a "
            + "user-defined word (ISO §8.9)";
+
+    /// <summary>The sentence for <paramref name="written"/>, a word of the user's source that
+    /// <see cref="RejectsAt"/> refuses as a user-defined word: <see cref="UserWordViolationMessage"/> for a word the
+    /// edition reserves (and for RESERVE's, which §8.9 does not list), and for a synonym of a reserved word, the reserved
+    /// word it stands for, since the user wrote a word §8.9 does not list and "reserved in COBOL-2023" would be false of
+    /// it (ISO §7.3.10.4 GR2, GR4; §8.3.2.1 rule 1; kb/Work PB4488).</summary>
+    public string UserWordViolation(string upperWord, string written, int edition)
+        => _synonyms?.GetValueOrDefault(upperWord) is { } original
+            ? $"'{written}' is a synonym for the reserved word {original} (>>COBOL-WORDS, ISO §7.3.10.4 GR2, GR4) and cannot be "
+              + "used as a user-defined word (ISO §8.3.2.1 1)"
+            : UserWordViolationMessage(written, edition);
 }

@@ -1874,9 +1874,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // lets the word IGNORING follow a period (a paragraph-name may be spelled so), and no period lets the LOCK after
         // it follow it. A guess about punctuation is false when the written words are a phrase the statement before
         // them does not print; hint 0h names that.
+        // ⛔ And the word before the token is no paragraph-name the user left a period off, when a >>COBOL-WORDS directive
+        // made it a synonym of COPY or REPLACE (kb/Work PB4488): `CPY BOOK.` after EQUATE "COPY" WITH "CPY" is the user's
+        // COPY statement, which ISO §7.3.10.4 GR6 keeps out of the directive, and the sentence before it has its period.
+        // The listener names the directive and the rule beside the error (CobolErrorListener.NoteDirectingStatementSynonym).
         if (expected?.Contains(CobolLexer.DOT) == true
             && !(token.Text is { } spelled && CobolKeywords.StartsWith(spelled, "END-"))
             && !HasStructuralHint(hints)
+            && !(recognizer is CobolParserCoreBase { CobolWords.IsEmpty: false } directed
+                 && PreviousDefault(stream, token.TokenIndex) is { Text: { } before }
+                 && directed.CobolWords.DirectingStatementSynonymOf(before) is not null)
             && at.APeriodLetsTheSentenceFollow())
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 

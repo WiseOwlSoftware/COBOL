@@ -86,6 +86,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
         // ⛔ A CAUSE READS BEFORE ITS EFFECT (kb/Work PB4131): the cut precedes the error it may explain.
         NoteMarginRCut(recognizer, offendingSymbol, location);
         NoteWithdrawnWord(recognizer, offendingSymbol, location);
+        NoteDirectingStatementSynonym(recognizer, offendingSymbol, location);
         diagnostics.ReportError(code, message, location, span);
     }
 
@@ -118,8 +119,37 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
         }
     }
 
-    /// <summary>The directives already named beside a syntax error (<see cref="NoteWithdrawnWord"/>): one note each.</summary>
+    /// <summary>The directives already named beside a syntax error (<see cref="NoteWithdrawnWord"/> and
+    /// <see cref="NoteDirectingStatementSynonym"/>): one note each.</summary>
     private readonly HashSet<CobolWordsOp> _withdrawnNoted = [];
+
+    /// <summary>⛔ A SYNONYM OF COPY OR REPLACE IS NAMED BESIDE THE SYNTAX ERROR IT MAY CAUSE (kb/Work PB4488; ISO §7.3.10.4
+    /// GR6). "A COBOL-WORDS directive does not affect any Compiler directing statements or Compiler directives", and the
+    /// compiler directing statements are the COPY and REPLACE statements (§7.2.2.2;
+    /// <see cref="CobolWordsMap.CompilerDirectingStatementWords"/>), found and applied in Steps 1 to 3 of §7.2.1, before the
+    /// directive's actions in Step 4. After <c>EQUATE "COPY" WITH "CPY"</c> the line <c>CPY BOOK.</c> is no COPY statement:
+    /// CPY is a synonym for a word that begins no statement of the compilation stage, and the syntax error at BOOK said "a
+    /// period may be missing" of a sentence that has its period. The error stands (the source is not legal); the synonym
+    /// stands at the offending token or right before it, the evidence <see cref="NoteWithdrawnWord"/> reads too, and
+    /// <see cref="CobolWordsMap.DirectingStatementSynonymOf"/> names the directive. Reported once per directive, as a warning
+    /// beside the error, at the directive.</summary>
+    private void NoteDirectingStatementSynonym(IRecognizer? recognizer, IToken? offending, SourceLocation errorAt)
+    {
+        if (offending is null || recognizer is not CobolParserCoreBase { CobolWords: { IsEmpty: false } words }) return;
+        foreach (var token in (ReadOnlySpan<IToken?>)[offending, PreviousToken(recognizer, offending)])
+        {
+            if (token?.Text is not { } written || words.DirectingStatementSynonymOf(written) is not { } op) continue;
+            if (!_withdrawnNoted.Add(op)) return;
+            (string verb, string joiner) = op.Action == CobolWordsAction.Equate ? ("EQUATE", "WITH") : ("SUBSTITUTE", "BY");
+            diagnostics.ReportWarning(DiagnosticCatalog.DirectingStatementSynonymBeforeSyntaxError.Code,
+                $">>COBOL-WORDS {verb} \"{op.Existing}\" {joiner} \"{op.New}\": a COBOL-WORDS directive does not affect a compiler "
+                + $"directing statement (ISO §7.3.10.4 GR6), so '{written}' begins no {op.Existing} statement; a {op.Existing} "
+                + $"statement is written with the word {op.Existing}. The syntax error at {errorAt} may be this.",
+                lineMap?.Locate(op.At.Line, op.At.Column, sourcePath) ?? new SourceOrigin(sourcePath, op.At.Line).ToLocation(op.At.Column),
+                TextSpan.Empty);
+            return;
+        }
+    }
 
     /// <summary>Name the margin-R cut that may be why the syntax error at <paramref name="errorAt"/> stands there (kb/Work
     /// PB2555; ISO §6.3.1: the program-text area ends at margin R, which the implementor fixes, so the text past it is not

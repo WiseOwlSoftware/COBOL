@@ -60,6 +60,15 @@ public sealed class CobolWordsMap
     private readonly Dictionary<string, CobolWordsOp> _removedBy;
     private readonly HashSet<string> _deReserved;
     private readonly HashSet<string> _reserved;
+    private readonly Dictionary<string, string> _reservedSynonyms;
+    private readonly Dictionary<string, CobolWordsOp> _directingSynonyms;
+
+    /// <summary>The words that begin a compiler directing statement (ISO §7.2.2.2: "The compiler directing statements are
+    /// the COPY statement and the REPLACE statement."), the ONE owner of the pair. §7.3.10.4 GR6 puts them outside the
+    /// directive: "A COBOL-WORDS directive does not affect any Compiler directing statements or Compiler directives", and
+    /// the stage order of §7.2.1 agrees (COPY is found in Step 1, REPLACE applies in Step 3, the directive's actions come
+    /// last, in Step 4), so a synonym of one of these words begins no statement (kb/Work PB4488).</summary>
+    public static readonly IReadOnlyList<string> CompilerDirectingStatementWords = ["COPY", "REPLACE"];
 
     public CobolWordsMap(IReadOnlyList<CobolWordsOp> ops)
     {
@@ -67,15 +76,19 @@ public sealed class CobolWordsMap
         _synonyms = new(CobolNames.Comparer);       // keyed by the FRESH user word (literal-2 / literal-5): Annex C folds it
         _removedBy = new(CobolKeywords.Comparer);   // keyed by the EXISTING keyword (literal-3 / literal-4): basic letters alone
         _reserved = new(CobolNames.Comparer);       // RESERVE's literal-6 is a fresh user word
+        _reservedSynonyms = new(CobolNames.Comparer);
+        _directingSynonyms = new(CobolNames.Comparer);
         foreach (var op in ops)
         {
             switch (op.Action)
             {
                 case CobolWordsAction.Equate when op is { Existing: { } e, New: { } n }:
                     _synonyms[n] = e;   // the new word acts as the existing word
+                    NoteSynonym(n, e, op);
                     break;
                 case CobolWordsAction.Substitute when op is { Existing: { } e, New: { } n }:
                     _synonyms[n] = e;   // the new word takes over the existing word's role
+                    NoteSynonym(n, e, op);
                     _removedBy.TryAdd(e, op); // and the existing word becomes a user word
                     break;
                 case CobolWordsAction.Undefine when op.Existing is { } e:
@@ -87,6 +100,16 @@ public sealed class CobolWordsMap
             }
         }
         _deReserved = new(_removedBy.Keys, CobolKeywords.Comparer);
+    }
+
+    /// <summary>What a synonym of <paramref name="original"/> is besides a synonym: reserved, when §8.9 reserves the
+    /// original (GR2, GR4: it "shall be treated as a synonym for" the word, so §8.3.2.1 rule 1 keeps it from being a
+    /// user-defined word), and a word that begins no statement, when the original begins a compiler directing statement
+    /// (GR6).</summary>
+    private void NoteSynonym(string synonym, string original, CobolWordsOp op)
+    {
+        if (ReservedWords.Find(original) is { R2023: true }) _reservedSynonyms[synonym] = original;
+        if (CompilerDirectingStatementWords.Any(w => CobolKeywords.Same(original, w))) _directingSynonyms[synonym] = op;
     }
 
     /// <summary>The parsed operations, in source order (SR3/SR4 validation + the token rewriter walk these).</summary>
@@ -152,6 +175,23 @@ public sealed class CobolWordsMap
     /// <summary>Words newly reserved for this group (RESERVE literal-6): the <see cref="ReservedWordSet"/> reserve
     /// overlay reads this so a use as a user-defined word is COBOL0901-rejected.</summary>
     public IReadOnlySet<string> Reserved => _reserved;
+
+    /// <summary>⛔ A SYNONYM OF A RESERVED WORD IS RESERVED (ISO §7.3.10.4 GR2, GR4; kb/Work PB4488): a fresh user word
+    /// (EQUATE literal-2 / SUBSTITUTE literal-5) → the §8.9 reserved word it stands for, for every synonym whose original
+    /// word §8.9 reserves at <see cref="DirectiveEdition"/>. It is "treated as a synonym for" that word, and "Reserved words
+    /// shall not be used as user-defined words or system-names" (§8.3.2.1 rule 1). The lexer's retype
+    /// (<c>CobolWordsRewriter.Plan</c>) makes a synonym its original's keyword TOKEN only where the original HAS a token, so
+    /// a synonym of COPY, REPLACE, LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USER-DEFAULT, EXCEPTION-OBJECT, COMMA or MINUS
+    /// stays an <c>IDENTIFIER</c> and only this set keeps it from being a name. A synonym of a context-sensitive word (§8.10)
+    /// or of an intrinsic function name stays what it was and is not here. The <see cref="ReservedWordSet"/> overlay reads
+    /// it, beside <see cref="Reserved"/>.</summary>
+    public IReadOnlyDictionary<string, string> ReservedSynonyms => _reservedSynonyms;
+
+    /// <summary>The directive that made <paramref name="written"/> a synonym of a word that begins a compiler directing
+    /// statement (<see cref="CompilerDirectingStatementWords"/>), or null. ISO §7.3.10.4 GR6 puts those statements outside
+    /// the directive, so such a synonym begins no COPY or REPLACE statement (kb/Work PB4488); a diagnostic that finds it at
+    /// a syntax error names the directive and the rule.</summary>
+    public CobolWordsOp? DirectingStatementSynonymOf(string written) => _directingSynonyms.GetValueOrDefault(written);
 
     /// <summary>
     /// The canonical COBOL word that a word WRITTEN in the source denotes under this compilation group's
