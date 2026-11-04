@@ -115,4 +115,29 @@ public sealed class TestNumvalScannerTests
         // The value parser mirrors the fold (§15.94.1 — TEST verifies what NUMVAL-C would accept).
         Assert.Equal((Int128)12, CobolIntrinsics.NumvalCDec("usd 12", "USD", anycase: true).ToUnscaled(0, CobolRounding.Truncation));
     }
+
+    /// <summary>kb/Work PB4511 - the trailing sign of format B is <c>+</c>, <c>-</c>, <c>CR</c> or <c>DB</c> (§15.67.3 r1). A C
+    /// or D that opens the pair is a valid prefix, so the first character IN ERROR (§15.93.4 1) b)) is the one that fails
+    /// to complete it, and text that ends right after it is valid-but-incomplete (§15.93.4 1) c): LENGTH + 1). With a
+    /// leading sign no CR/DB is admitted, so the C or D itself is the character in error.</summary>
+    [Theory]
+    [InlineData("4.5 D", 6)]
+    [InlineData("4.5 D   ", 6)]
+    [InlineData("1 D B", 4)]
+    [InlineData("12CX", 4)]
+    [InlineData("12CB", 4)]
+    [InlineData("12DR", 4)]
+    [InlineData("12c", 4)]
+    [InlineData("12d", 4)]
+    [InlineData("12C", 4)]
+    [InlineData("-12C", 4)]
+    [InlineData("-12 D", 5)]
+    [InlineData("12CR", 0)]
+    [InlineData("12 db", 0)]
+    [InlineData("12CR X", 6)]
+    public void TrailingCrDb_IncompletePairNamesTheCharacterThatFailsIt(string text, long expected)
+    {
+        Assert.Equal(expected, CobolIntrinsics.TestNumval(text));
+        Assert.Equal(expected, CobolIntrinsics.TestNumvalC(text, "$"));
+    }
 }
