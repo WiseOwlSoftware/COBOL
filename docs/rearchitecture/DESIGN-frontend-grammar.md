@@ -2631,14 +2631,19 @@ its own generated accessors.
 
 | Rule | Shape | Positions | Bound by |
 |---|---|---|---|
-| `sendingOperand` | `literal \| functionCall \| inlineMethodInvocation \| dataReference`: a SENDING `{identifier-n \| literal-n}` (§8.4.3.1.2 Formats 1 and 4 are identifiers) | the operands of ADD, SUBTRACT, MULTIPLY, DIVIDE ahead of TO / FROM / BY / INTO, DIVIDE's BY operand, MOVE, the WRITE / REWRITE / RELEASE FROM phrases, INITIALIZE REPLACING, every INSPECT operand after identifier-1 | `MoveBinder.SendingOperand` (INITIALIZE first admits NULL on the literal slot, §8.4.3.10.3 SR1; INSPECT applies its own §14.9.22.3 SR3 screens); the arithmetic verbs bind it through the expression spine |
-| `receiversOrSendingOperand` | Format 1's receivers `{identifier [rounded-phrase]} …` or Format 2's one sending operand | ADD TO, SUBTRACT FROM, DIVIDE INTO | `ArithmeticBinder.Format1Receivers` / `Format2SendingOperand`, through `ArithmeticOperandRole` |
+| `sendingOperand` | `literal \| functionCall \| inlineMethodInvocation \| dataReference`: a SENDING `{identifier-n \| literal-n}` (§8.4.3.1.2 Formats 1 and 4 are identifiers) | the operands of ADD, SUBTRACT, MULTIPLY, DIVIDE ahead of TO / FROM / BY / INTO, MOVE, the WRITE / REWRITE / RELEASE FROM phrases, INITIALIZE REPLACING, every INSPECT operand after identifier-1 | `MoveBinder.SendingOperand` (INITIALIZE first admits NULL on the literal slot, §8.4.3.10.3 SR1; INSPECT applies its own §14.9.22.3 SR3 screens); the arithmetic verbs bind it through the expression spine |
+| `arithmeticPhraseOperand` (written `+` at every position) | Format 1's receivers `{identifier [rounded-phrase]} …` or a GIVING form's one sending operand, every shape with an optional ROUNDED | ADD TO, SUBTRACT FROM, MULTIPLY BY, DIVIDE INTO, DIVIDE BY | `ArithmeticBinder.Format1Receivers` / `GivingSendingOperand`, through `ArithmeticOperandRole` |
 | `arithmeticGivingPhrase` | `GIVING {identifier [rounded-phrase]} …` | ADD, SUBTRACT, MULTIPLY, DIVIDE | `ArithmeticBinder` |
 
-MULTIPLY's BY operand prints the same two shapes as `receiversOrSendingOperand` but keeps its own rule,
-`multiplyByOperand+`, which admits a repeated sending operand and a ROUNDED literal; the binder names those
-(COBOL1689) where the shared rule's three users take a parse error, so folding MULTIPLY in would change what
-parses. A position whose printed shape differs is not a copy: an identifier only (INSPECT's identifier-1, GO TO
+The arithmetic phrase operand is written as WIDE as the union of its formats on purpose (kb/Work PB2144): a shape
+one format prints and another does not (a second operand, a ROUNDED, a literal where Format 1 wants a receiver)
+must reach `ArithmeticBinder` at every verb and draw the one COBOL1689 refusal there. While MULTIPLY's BY kept its
+own wider rule and ADD / SUBTRACT / DIVIDE INTO a narrower one, the same error was a named refusal at MULTIPLY and
+a parse error (COBOL2269) at the other three, and DIVIDE's REMAINDER formats bound the INTO phrase whole, so `INTO
+B C` compiled clean; DIVIDE's BY phrase, which prints the same sending operand in Formats 3–5, wrote
+`sendingOperand` and parse-errored on both shapes. The fold only widens what parses; its oracle is the whole gate
+and the four verbs' refusal goldens, the owner having exempted it from the token-stream differential
+(DESIGN-architecture-review §8.4). A position whose printed shape differs is not a copy: an identifier only (INSPECT's identifier-1, GO TO
 DEPENDING, STRING / UNSTRING's sender), an identifier or an integer (PERFORM TIMES, WRITE ADVANCING), and the
 argument forms of CALL and INVOKE. DISPLAY's `{identifier-1 | literal-1} …` IS this shape but still writes the set
 inline: naming the rule parses every legal DISPLAY identically and moves the error-recovery boundary, so `DISPLAY
@@ -2646,7 +2651,7 @@ COLUMN.` (a data item named by a reserved word) counts more syntax errors on its
 diagnostic. It is the drift test's one recorded exemption until that recovery is settled.
 
 `SendingOperandDriftTests` fails when any rule other than `sendingOperand` offers its four shapes as sibling
-alternatives, and `ArithmeticOperandRoleDriftTests` pins the two mixed-role rules. A unification is proven
+alternatives, and `ArithmeticOperandRoleDriftTests` pins the one mixed-role rule. A unification is proven
 behavior-neutral by a token-stream and parse-tree-shape differential over every lexer input the three test
 assemblies produce, with the new wrapper rules flattened (DESIGN-architecture-review §4 item 3).
 

@@ -38,19 +38,19 @@ public sealed class OperandWalkCoverageTests
     /// <summary>The rules whose subtree reaches <c>BindOperandExprCore</c>: the public
     /// <c>BindOperandExpr</c> entry (ConditionBinder's sign condition, via <c>comparisonOperand</c>) and
     /// <c>BindExprCore</c>'s <c>_ =&gt;</c> default arm (the arithmetic operand wrappers: the one
-    /// <c>sendingOperand</c>, and both mixed-role rules, since their Format-2 sending operand binds through the
-    /// wrapper — <c>receiversOrSendingOperand</c> for ADD's TO, SUBTRACT's FROM and DIVIDE's INTO, and MULTIPLY's
-    /// <c>multiplyByOperand</c>; kb/Work PB1142, PB2114).</summary>
+    /// <c>sendingOperand</c>, and the mixed-role <c>arithmeticPhraseOperand</c>, the TO / FROM / BY / INTO operand of
+    /// all four verbs, since its GIVING-form sending operand binds through the wrapper; kb/Work PB1142, PB2114,
+    /// PB2144).</summary>
     private static readonly string[] ServedRules =
     [
         "comparisonOperand", "valueOperand",
-        "sendingOperand", "receiversOrSendingOperand", "multiplyByOperand",
+        "sendingOperand", "arithmeticPhraseOperand",
     ];
 
     /// <summary>The walk's arms, in <c>BindOperandExprCore</c>'s own order. Keep this list in step with that
     /// method — it is the ONE place the two must agree, and the test names the file to edit when they do not.
     /// <para>The receiving identifier's two non-reference forms (<c>nonReceivableIdentifier</c>, and a
-    /// <c>dataAddressIdentifier</c> under a <c>receivingIdentifier</c>) are an arm because the mixed-role rules read
+    /// <c>dataAddressIdentifier</c> under a <c>receivingIdentifier</c>) are an arm because the mixed-role rule reads
     /// them in their Format-2 SENDING role and §8.8.1.1 refuses them there (kb/Work PB1551).</para>
     /// </summary>
     private static readonly string[] WalkArms =

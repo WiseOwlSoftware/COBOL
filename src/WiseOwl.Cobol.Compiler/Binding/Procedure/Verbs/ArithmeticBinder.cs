@@ -28,23 +28,12 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (add.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindAddCorresponding(add);   // Format 3 (§14.9.2.2)
         var addends = operands.Select(host.Expr.BindExpr).ToList();
         var sizeErr = host.BindSizeError(add.conditionalPhrases());
+        var to = add.addToPhrase()?.arithmeticPhraseOperand();
         if (add.arithmeticGivingPhrase() is { } giving)
         {
             // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §14.9.2.2 Format 2: the TO operand is an addend,
-            // NOT a receiver — ONE `{identifier-2 | literal-2}` with no ROUNDED; kb/Work PB134 widened the
-            // grammar to the figure and this narrows the union back per format).
-            if (add.addToPhrase()?.receiversOrSendingOperand() is { } toAddend)
-            {
-                Format2SendingOperand("ADD", "§14.9.2.2", toAddend.receivingArithmeticOperand());
-                if (toAddend.receivingArithmeticOperand() is { Length: > 0 } tors)
-                    addends.AddRange(tors.Select(r => host.Expr.BindExpr(r.receivingIdentifier())));
-                else
-                    // The literal / functionCall arm binds through the WRAPPER so the operand walk's
-                    // function-call arm fires — passing the raw FunctionCallContext re-springs PB45's
-                    // documented trap (the walk descends into the ARGUMENT and drops the function; the
-                    // first probe of this very fix computed 1 + 9 for `ADD 1 TO FUNCTION SQRT(9)`).
-                    addends.Add(host.Expr.BindExpr(toAddend));
-            }
+            // NOT a receiver — ONE `{identifier-2 | literal-2}` with no ROUNDED).
+            if (to is not null) addends.Add(GivingSendingOperand("ADD", "TO", "§14.9.2.2 Format 2", to));
             var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.2.3 SR4");
             // §14.9.2.3 SR1b: the ADD Format-2 composite is "all of the operands ... excluding the data items that
             // follow the word GIVING" — the resultant identifiers are NOT superimposed into the composite (§14.7.7
@@ -53,11 +42,11 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             ctx.Validation.CheckComposite("ADD", addends, []);
             return new BoundAddGiving(addends, givingRecv, sizeErr);
         }
-        if (add.addToPhrase()?.receiversOrSendingOperand() is { } to)
+        if (to is not null)
         {
-            if (!Format1Receivers("ADD", "§14.9.2.2", [to]))
+            if (!Format1Receivers("ADD", "§14.9.2.2", to))
                 return BoundRejected.Reported(ctx.Edition);
-            var recv = host.Expr.Receivers(to.receivingArithmeticOperand(), editedOk: false, "§14.9.2.3 SR2");
+            var recv = host.Expr.Receivers(to, editedOk: false, "§14.9.2.3 SR2");
             ctx.Validation.CheckComposite("ADD", addends, recv);
             return new BoundAddTo(addends, recv, sizeErr);
         }
@@ -72,27 +61,24 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (sub.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindSubtractCorresponding(sub);   // Format 3 (§14.9.44.2)
         var minuends = operands.Select(host.Expr.BindExpr).ToList();
         var sizeErr = host.BindSizeError(sub.conditionalPhrases());
-        if (sub.arithmeticGivingPhrase() is { } giving && sub.subtractFromPhrase()?.receiversOrSendingOperand() is { } from)
+        if (sub.subtractFromPhrase()?.arithmeticPhraseOperand() is not { } from)
+            // §14.9.44.2 (kb/Work PB134): every SUBTRACT format prints FROM.
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
+                "SUBTRACT without a FROM phrase: no SUBTRACT format prints operands alone (ISO §14.9.44.2)");
+        if (sub.arithmeticGivingPhrase() is { } giving)
         {
-            Format2SendingOperand("SUBTRACT", "§14.9.44.2", from.receivingArithmeticOperand());
-            var fromX = host.Expr.BindExpr(from);
+            var fromX = GivingSendingOperand("SUBTRACT", "FROM", "§14.9.44.2 Format 2", from);
             var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.44.3 SR4");
             // §14.9.44.3 SR1b: the SUBTRACT Format-2 composite excludes the data items following GIVING (§14.7.7
             // rule 2) — the resultants are not superimposed. Pass no receivers (see the ADD GIVING note above).
             ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], []);
             return new BoundSubtractGiving(minuends, fromX, recv, sizeErr);
         }
-        if (sub.subtractFromPhrase()?.receiversOrSendingOperand() is { } targets)
-        {
-            if (!Format1Receivers("SUBTRACT", "§14.9.44.2", [targets]))
-                return BoundRejected.Reported(ctx.Edition);
-            var recv = host.Expr.Receivers(targets.receivingArithmeticOperand(), editedOk: false, "§14.9.44.3 SR2");
-            ctx.Validation.CheckComposite("SUBTRACT", minuends, recv);
-            return new BoundSubtractFrom(minuends, recv, sizeErr);
-        }
-        // §14.9.44.2 (kb/Work PB134): the same no-phrase screen as ADD's.
-        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-            "SUBTRACT without a FROM phrase: no SUBTRACT format prints operands alone (ISO §14.9.44.2)");
+        if (!Format1Receivers("SUBTRACT", "§14.9.44.2", from))
+            return BoundRejected.Reported(ctx.Edition);
+        var targets = host.Expr.Receivers(from, editedOk: false, "§14.9.44.3 SR2");
+        ctx.Validation.CheckComposite("SUBTRACT", minuends, targets);
+        return new BoundSubtractFrom(minuends, targets, sizeErr);
     }
 
     public BoundStatement BindMultiply(Core.MultiplyStatementContext mul)
@@ -101,16 +87,11 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "MULTIPLY with no multiplicand: every MULTIPLY format prints identifier-1 or "
                 + "literal-1 after the verb (ISO §14.9.26.2)");
         var a = host.Expr.BindExpr(aCtx);
-        var byOps = mul.multiplyByOperand();
+        var byOps = mul.arithmeticPhraseOperand();
         var sizeErr = host.BindSizeError(mul.conditionalPhrases());
-        if (mul.arithmeticGivingPhrase() is { } giving && byOps.Length > 0)
+        if (mul.arithmeticGivingPhrase() is { } giving)
         {
-            // §14.9.26.2 Format 2: ONE `BY {identifier-2 | literal-2}` sending operand, no ROUNDED.
-            if (byOps.Length > 1 || byOps[0].roundedPhrase() is not null)
-                ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
-                    "MULTIPLY BY operands with GIVING: Format 2 prints ONE `BY {identifier-2 | literal-2}` operand "
-                    + "with no ROUNDED (ISO §14.9.26.2; the extra operands the old binder silently dropped)");
-            var b = host.Expr.BindExpr(byOps[0]);
+            var b = GivingSendingOperand("MULTIPLY", "BY", "§14.9.26.2 Format 2", byOps);
             var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.26.3 SR2");
             ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv);
             return new BoundMultiplyGiving(a, b, recv, sizeErr);
@@ -118,7 +99,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // In-place: each BY operand is itself the receiver (target ← target × a).
         if (!Format1Receivers("MULTIPLY", "§14.9.26.2", byOps))
             return BoundRejected.Reported(ctx.Edition);
-        var byRecv = host.Expr.Receivers(byOps);
+        var byRecv = host.Expr.Receivers(byOps, editedOk: false, "§14.9.26.3 SR1");
         ctx.Validation.CheckComposite("MULTIPLY", [a], byRecv);
         return new BoundMultiplyBy(a, byRecv, sizeErr);
     }
@@ -128,6 +109,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (div.sendingOperand() is not { } aCtx) return DivideShape();
         var a = host.Expr.BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
         var sizeErr = host.BindSizeError(div.conditionalPhrases());
+        var into = div.divideIntoPhrase()?.arithmeticPhraseOperand();
+        var by = div.divideByPhrase()?.arithmeticPhraseOperand();
 
         // DIVIDE … GIVING q REMAINDER r (ISO §14.9.12 Formats 4–5): exactly one GIVING receiver (§14.9.12.2 — identifier-3 carries no ellipsis in either format).
         if (div.divideRemainderPhrase() is { } rem)
@@ -139,6 +122,13 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                     "DIVIDE REMAINDER without GIVING: Formats 4–5 print GIVING identifier-3 before "
                     + "REMAINDER (ISO §14.9.12.2)");
             }
+            // Format 4 prints ONE sending `INTO {identifier-2 | literal-2}` and Format 5 ONE `BY {identifier-1 |
+            // literal-1}`, neither with ROUNDED: the same discipline as every GIVING form (kb/Work PB2144 — this
+            // arm used to bind the phrase whole, so `INTO B C` or `INTO B ROUNDED` compiled clean).
+            BoundExpr dividend, divisor;
+            if (into is not null) (dividend, divisor) = (GivingSendingOperand("DIVIDE", "INTO", "§14.9.12.2 Format 4", into), a);
+            else if (by is not null) (dividend, divisor) = (a, GivingSendingOperand("DIVIDE", "BY", "§14.9.12.2 Format 5", by));
+            else return DivideShape();
             var quotients = host.Expr.Receivers(g.receivingArithmeticOperand(), editedOk: true, "§14.9.12.3 SR2");
             if (quotients.Count != 1)
             {
@@ -154,41 +144,34 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(rem.receivingIdentifier()) is not { } r0
                 || host.Expr.ScreenResultant(r0, rem.receivingIdentifier(), editedOk: true, "§14.9.12.3 SR2") is not { } r)
                 return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.receivingIdentifier().GetText()}'");
-            BoundExpr dividend = div.divideIntoPhrase() is { } i ? host.Expr.BindExpr(i.receiversOrSendingOperand())
-                : div.divideByPhrase() is not null ? a
-                : a;
-            BoundExpr divisor = div.divideIntoPhrase() is not null ? a
-                : div.divideByPhrase() is { } b ? host.Expr.BindExpr(b.sendingOperand())
-                : a;
             ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients);
             ctx.Data.Procedure.ClaimInterleavedReceiver(r);   // the quotient was claimed with the other Receivers (ExpressionBinder.ReceiverOf)
             return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
         }
 
-        if (div.divideIntoPhrase() is { } into)
+        if (into is not null)
         {
             if (div.arithmeticGivingPhrase() is { } giving)
             {
-                Format2SendingOperand("DIVIDE", "§14.9.12.2", into.receiversOrSendingOperand().receivingArithmeticOperand());
-                var dividendX = host.Expr.BindExpr(into.receiversOrSendingOperand());
+                var dividendX = GivingSendingOperand("DIVIDE", "INTO", "§14.9.12.2 Format 2", into);
                 var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.12.3 SR2");
                 ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv);
                 return new BoundDivideGiving(dividendX, a, recv, sizeErr);
             }
-            if (!Format1Receivers("DIVIDE", "§14.9.12.2", [into.receiversOrSendingOperand()]))
+            if (!Format1Receivers("DIVIDE", "§14.9.12.2", into))
                 return BoundRejected.Reported(ctx.Edition);   // a receiver-less BoundDivideInto crashed the emitter (targets.Max on empty)
-            var intoRecv = host.Expr.Receivers(into.receiversOrSendingOperand().receivingArithmeticOperand(), editedOk: false, "§14.9.12.3 SR1");
+            var intoRecv = host.Expr.Receivers(into, editedOk: false, "§14.9.12.3 SR1");
             ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv);
             return new BoundDivideInto(a, intoRecv, sizeErr);   // target ← target ÷ a
         }
-        if (div.divideByPhrase() is { } byPhrase && div.arithmeticGivingPhrase() is { } gv)
+        if (by is not null && div.arithmeticGivingPhrase() is { } gv)
         {
-            var divisorX = host.Expr.BindExpr(byPhrase.sendingOperand());
+            var divisorX = GivingSendingOperand("DIVIDE", "BY", "§14.9.12.2 Format 3", by);
             var recv = host.Expr.Receivers(gv.receivingArithmeticOperand(), editedOk: true, "§14.9.12.3 SR2");
             ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv);
             return new BoundDivideGiving(a, divisorX, recv, sizeErr);
         }
-        if (div.divideByPhrase() is not null)
+        if (by is not null)
         {
             // §14.9.12.2: every BY format (3–5) prints GIVING — `DIVIDE A BY B.` exists in no format.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
@@ -199,21 +182,39 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The ONE refusal for a DIVIDE the grammar parsed but no DIVIDE format prints (kb/Work PB909) —
-    /// both of the union parse's defensive arms, so they cannot drift apart.</summary>
+    /// every one of the union parse's defensive arms, so they cannot drift apart.</summary>
     private BoundRejected DivideShape() => BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "DIVIDE: every DIVIDE format prints "
         + "identifier-1 or literal-1 followed by an INTO or a BY phrase (ISO §14.9.12.2)");
 
-    /// <summary>§14.9.2.2 / §14.9.44.2 / §14.9.26.2 / §14.9.12.2's ONE Format-2 discipline (kb/Work PB134):
-    /// the TO/FROM/BY/INTO operand of a GIVING form is ONE `{identifier | literal}` sending operand with no
-    /// ROUNDED — the repetition and the rounding belong to Format 1's receiver role. The grammar parses the
-    /// union; this narrows it back (the old binders silently dropped the extra operands and the ROUNDED).</summary>
-    private void Format2SendingOperand(string verb, string cite, Core.ReceivingArithmeticOperandContext[] recvShaped)
+    /// <summary>The GIVING half of §14.9.2.2 / §14.9.44.2 / §14.9.26.2 / §14.9.12.2's ONE operand discipline
+    /// (kb/Work PB134, PB2144): in every GIVING format — ADD, SUBTRACT and MULTIPLY Format 2, DIVIDE Formats 2–5 — the
+    /// TO / FROM / BY / INTO phrase prints ONE sending `{identifier | literal}` with no ROUNDED; the repetition and the
+    /// rounding belong to Format 1's receiver role and to the GIVING receivers. The grammar parses every shape at
+    /// every one of these positions (<c>arithmeticPhraseOperand+</c>), so each violation is named here, for all four
+    /// verbs, and never a parse error at one verb and a refusal at another. Returns the bound sending operand (the
+    /// first; a statement with a violation is already refused).</summary>
+    private BoundExpr GivingSendingOperand(string verb, string phrase, string format,
+                                          Core.ArithmeticPhraseOperandContext[] operands)
     {
-        if (recvShaped.Length > 1 || (recvShaped.Length == 1 && recvShaped[0].roundedPhrase() is not null))
+        if (operands.Length > 1)
             ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
-                $"{verb} GIVING: Format 2 prints ONE sending operand with no ROUNDED (ISO {cite}); the "
-                + "extra operands / the ROUNDED the old binder silently dropped are a format violation");
+                $"{verb} with GIVING writes {operands.Length} {phrase} operands "
+                + $"({string.Join(", ", operands.Select(o => $"'{DataBinder.WrittenText(Written(o))}'"))}): the GIVING form "
+                + $"prints ONE sending operand, an identifier or a literal, after {phrase} (ISO {format})");
+        foreach (var operand in operands)
+            if (operand.roundedPhrase() is not null)
+                ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
+                    $"{verb} with GIVING writes ROUNDED after the {phrase} operand '{DataBinder.WrittenText(Written(operand))}': "
+                    + $"that operand is sending, and only the GIVING receivers take a rounded-phrase (ISO {format})");
+        // The WRAPPER is bound, so the operand walk's function-call arm fires: passing a raw FunctionCallContext
+        // re-springs PB45's trap (the walk descends into the ARGUMENT and drops the function; `ADD 1 TO
+        // FUNCTION SQRT(9) GIVING X` computed 1 + 9).
+        return host.Expr.BindExpr(operands[0]);
     }
+
+    /// <summary>The operand an <c>arithmeticPhraseOperand</c> writes, without its ROUNDED phrase.</summary>
+    private static Antlr4.Runtime.ParserRuleContext Written(Core.ArithmeticPhraseOperandContext operand) =>
+        (Antlr4.Runtime.ParserRuleContext)operand.GetChild(0);
 
     /// <summary>The Format-1 half of the same discipline: without GIVING, the TO/FROM/BY/INTO operands are
     /// RECEIVERS — Format 1 prints <c>{identifier-2 [rounded-phrase]}</c> only — so a literal, a
@@ -222,11 +223,11 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     /// hand-enumerated per-verb lists this replaced missed the inline-invocation arm, which dropped the operand
     /// silently (ADD / SUBTRACT / MULTIPLY) or crashed the emitter on an empty receiver list (DIVIDE). Reports
     /// every offending operand, so a MULTIPLY with two bad BY operands names both. False = rejected.</summary>
-    private bool Format1Receivers(string verb, string cite, IEnumerable<Antlr4.Runtime.ParserRuleContext> mixedOperands)
+    private bool Format1Receivers(string verb, string cite, Core.ArithmeticPhraseOperandContext[] operands)
     {
         bool ok = true;
-        foreach (var mixed in mixedOperands)
-            if (ArithmeticOperandRole.FirstNonReceiver(mixed) is { } bad)
+        foreach (var operand in operands)
+            if (ArithmeticOperandRole.FirstNonReceiver(operand) is { } bad)
             {
                 ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
                     $"{verb} without GIVING: Format 1 prints receiving identifiers only (ISO {cite}), and "

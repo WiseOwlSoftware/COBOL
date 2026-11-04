@@ -1093,31 +1093,33 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return new Receiver(resolved, RoundingOf(rounded));
     }
 
-    /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to
-    /// <see cref="Receiver"/>s, each carrying its own ROUNDED mode and screened per the caller's syntax rule
-    /// (<paramref name="editedOk"/> — GIVING-style positions admit numeric-edited, in-place ones do not);
-    /// an unresolvable or rejected reference is dropped after its diagnostic.</summary>
+    /// <summary>Resolve the GIVING resultants (<c>receivingArithmeticOperand</c>s) to <see cref="Receiver"/>s, each
+    /// carrying its own ROUNDED mode and screened per the caller's syntax rule (<paramref name="editedOk"/> — GIVING-style
+    /// positions admit numeric-edited, in-place ones do not); an unresolvable or rejected reference is dropped after its
+    /// diagnostic.</summary>
     public List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops, bool editedOk, string clause) =>
-        ops.Select(o => ResolveReceiving(o.receivingIdentifier()) is { } p
-                && ScreenResultant(p, o.receivingIdentifier(), editedOk, clause) is { } sp
-                ? ReceiverOf(sp, o.roundedPhrase()) : null)
-           .OfType<Receiver>().ToList();
+        ops.Select(o => ResolvedReceiver(o.receivingIdentifier(), o.roundedPhrase(), editedOk, clause)).OfType<Receiver>().ToList();
 
-    /// <summary>Resolve the in-place <c>MULTIPLY … BY</c> receivers (<c>multiplyByOperand</c> = receiving operand +
-    /// optional ROUNDED), each carrying its own mode; a literal BY operand (only valid in a GIVING form) is dropped.</summary>
-    public List<Receiver> Receivers(IEnumerable<Core.MultiplyByOperandContext> ops) =>
-        ops.Select(o => o.receivingOperand()?.receivingIdentifier() is { } d && ResolveReceiving(d) is { } p
-                && ScreenResultant(p, d, editedOk: false, "§14.9.26.3 SR1") is { } sp
-                ? ReceiverOf(sp, o.roundedPhrase()) : null)
-           .OfType<Receiver>().ToList();
+    /// <summary>Resolve the Format-1 TO / FROM / BY / INTO receivers of ADD, SUBTRACT, MULTIPLY and DIVIDE (the one
+    /// <c>arithmeticPhraseOperand</c> rule, kb/Work PB2144). The caller has asked <c>ArithmeticOperandRole</c> first, so
+    /// every operand here is a receiving identifier; one that is not is dropped, never bound as a receiver.</summary>
+    public List<Receiver> Receivers(IEnumerable<Core.ArithmeticPhraseOperandContext> ops, bool editedOk, string clause) =>
+        ops.Select(o => ResolvedReceiver(o.receivingIdentifier(), o.roundedPhrase(), editedOk, clause)).OfType<Receiver>().ToList();
 
     /// <summary>Resolve the <c>COMPUTE</c> Format-1 resultants (<c>computeStore</c> = data reference + optional
     /// ROUNDED) — §14.9.8.3 SR1 admits elementary numeric or numeric-edited.</summary>
     public List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) =>
-        stores.Select(s => ResolveReceiving(s.receivingIdentifier()) is { } p
-                && ScreenResultant(p, s.receivingIdentifier(), editedOk: true, "§14.9.8.3 SR1") is { } sp
-                ? ReceiverOf(sp, s.roundedPhrase()) : null)
+        stores.Select(s => ResolvedReceiver(s.receivingIdentifier(), s.roundedPhrase(), editedOk: true, "§14.9.8.3 SR1"))
               .OfType<Receiver>().ToList();
+
+    /// <summary>The ONE resolution of a written arithmetic receiver, for every receiver list above: the receiving
+    /// identifier resolves through the receiving chokepoint, is screened against <paramref name="clause"/>, and carries
+    /// its own ROUNDED phrase; null (after the diagnostic) when it does not resolve or is refused, or when the operand
+    /// wrote no receiving identifier.</summary>
+    private Receiver? ResolvedReceiver(Core.ReceivingIdentifierContext? written, Core.RoundedPhraseContext? rounded,
+                                       bool editedOk, string clause) =>
+        written is not null && ResolveReceiving(written) is { } p && ScreenResultant(p, written, editedOk, clause) is { } sp
+            ? ReceiverOf(sp, rounded) : null;
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) as an ISO §8.8.1.1
     /// ARITHMETIC expression — numeric operands only. THE entry for COMPUTE, the arithmetic verbs and
@@ -1169,7 +1171,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         Core.PrimaryExpressionContext pe => BindPrimary(pe, context),
         Core.LiteralContext l => NumLiteral(l),
         Core.DataReferenceContext d => RefExpr(d, context),
-        _ => BindOperandExprCore(node, context),   // operand wrappers (sendingOperand, multiplyByOperand, …)
+        _ => BindOperandExprCore(node, context),   // operand wrappers (sendingOperand, arithmeticPhraseOperand, …)
     };
 
     /// <summary>A numeric literal expression from a <c>literal</c> node, mapping a figurative ZERO (incl. <c>ALL ZEROS</c>)
@@ -1543,7 +1545,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 if (c is Core.FunctionCallContext or Core.InlineMethodInvocationContext)
                     return BindIdentifierOperand((Antlr4.Runtime.ParserRuleContext)c, context);
                 // ⛔ A RECEIVING IDENTIFIER THAT IS NO DATA REFERENCE, READ IN ITS SENDING ROLE (kb/Work PB1551). The
-                // mixed arithmetic rules (ADD / SUBTRACT / DIVIDE's TO / FROM / INTO operand, MULTIPLY's BY operand) are
+                // mixed arithmetic operand (arithmeticPhraseOperand, the TO / FROM / BY / INTO operand of all four verbs) is
                 // a `receivingIdentifier` in Format 1 and identifier-2's SENDING operand in Format 2, so a GIVING
                 // statement reads the object-view, SELF, SUPER, NULL or address-identifier the receiving superset
                 // parses. It CONTAINS a data reference (a view's subject, ADDRESS OF's identifier-1), so without this
