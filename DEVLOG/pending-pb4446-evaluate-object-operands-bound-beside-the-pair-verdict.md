@@ -31,3 +31,12 @@ scalar that hides a container's GLOBAL 88, a refused range's undefined name, a s
 cascade guards.
 
 **Rows.** None claimed or closed. No diagnostic code was added.
+
+**Self-review.** Architecture: one binding of a range's operands and screens (`BindRangeObject`) and one standalone path
+for both callers; the partial-expression walk lives in `ConditionBinder` beside the splice it mirrors. Full code: each arm
+binds what the pair's own arm binds of that object, and the SR7 a) checkpoint, the TRUE/FALSE-as-condition bind and the
+subject splice stay out (the guards in the theory). Performance: the standalone path runs only on a failing compile.
+Duplication: no second copy of the range rules.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,519/21,519 · Unit 39,772/39,772 · Characterization 37/37 cases ran
+(skipped 0)` at `18e7da35e` (run 000001-20261104T191743Z); `semgrep/verify.py` PASS with no rule count raised.
