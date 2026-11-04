@@ -1,10 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Compiler.Oo;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>Where a class, interface or method symbol came from (DESIGN-external-repository §10.1) — the ONE question every consumer used
 /// to ask as "has it a source definition?" (<c>IsStandard</c> was <c>ctx is null</c>; kb/Work PB4459 did the same for
@@ -33,7 +31,7 @@ public enum OoSymbolOrigin
 /// <summary>The assembly an imported class or interface was taken from (DESIGN-external-repository §10.1): its file, its
 /// module version id and the CLR namespace its types live in (<c>Cobol.&lt;assembly&gt;</c>, §4.5), which is how
 /// <c>OoClassTable.ImportedAssemblies</c> finds two assemblies a compilation needs that share a namespace (REPO-6).</summary>
-public sealed record ImportedFrom(string Path, Guid Mvid, string ClrNamespace);
+public sealed record ImportedFrom(string AssemblyFile, Guid Mvid, string ClrNamespace);
 
 /// <summary>One class of the pass-1 table: identity, base link, and the method roster (name → symbol,
 /// case-insensitive per §8.3.2.2). <see cref="ClrName"/> is the emitted C# type name — the SAME mapping
@@ -128,11 +126,11 @@ public sealed class OoClassSymbol
     /// (<see cref="ProgramTable.ClassPath"/>) from the EXTERNALIZED name, never from <see cref="ClrName"/>: the C# name
     /// is a wire contract with <c>PicInfo.ClrType</c> and is the DECLARED name, which two separately compiled modules
     /// may both use for different classes (kb/Work PB2920; ISO §8.3.2.2 2)).</summary>
-    public string RunUnitPath => ProgramTable.ClassPath(ExternalizedName);
+    public string RunUnitKey => ProgramTable.ClassPath(ExternalizedName);
 
     /// <summary>The run-unit identity of this class's OBJECT or FACTORY half as an EXTERNAL describer
     /// (<see cref="ProgramTable.ClassHalfPath"/>; ISO §14.8.4).</summary>
-    public string HalfPath(bool factory) => ProgramTable.ClassHalfPath(ExternalizedName, factory);
+    public string HalfKey(bool factory) => ProgramTable.ClassHalfPath(ExternalizedName, factory);
 
     /// <summary>The emitted C# types a COBOL reference to THIS class selects when the rule names the class
     /// WITHOUT distinguishing the two object kinds — ISO/IEC 1989:2023 §14.9.49.4 GR14 a): "the exception
@@ -146,7 +144,7 @@ public sealed class OoClassSymbol
     /// "If the FACTORY phrase is not specified, the object referenced by this data item shall be an instance
     /// object of the specified class or of a subclass of the specified class" (the typed OBJECT REFERENCE
     /// narrow in <c>OoEmitter.EmitSetObjectRef</c> is instance-only for exactly that reason).</summary>
-    public IReadOnlyList<string> FactoryOrInstanceCsTypes => [ClrName, FactoryClrName];
+    public IReadOnlyList<string> FactoryOrInstanceClrNames => [ClrName, FactoryClrName];
 
     private readonly Dictionary<string, OoMethodSymbol> _factoryMethods = new(CobolNames.Comparer);
 

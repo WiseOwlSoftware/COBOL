@@ -1,9 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
 
-namespace WiseOwl.Cobol.Compiler.Oo;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The AFTER-DATA-BIND half of a method's description (P9 R7 — phase-explicit): the resolved formal list,

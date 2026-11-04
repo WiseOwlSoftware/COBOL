@@ -637,7 +637,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     {
         foreach (var from in Table.ImportedClasses.Select(c => c.Imported!).Concat(Table.ImportedInterfaces.Select(i => i.Imported!)))
             if (from.ClrNamespace == module.ClrName && from.Mvid != hit.Origin.Mvid)
-                return $"the entry '{from.Path}' (another build) already holds";
+                return $"the entry '{from.AssemblyFile}' (another build) already holds";
         if (_output is not null && CsNames.ModuleNamespaceOf(Path.GetFileNameWithoutExtension(_output)).ClrName == module.ClrName)
             return "this compilation's own output assembly holds";
         return null;

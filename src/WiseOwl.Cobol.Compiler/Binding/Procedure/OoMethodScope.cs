@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding.Model;
+
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 /// <summary>The paragraph scope of ONE method body (ISO §11.7 — the legacy per-method scope algorithm,
@@ -23,5 +25,5 @@ internal sealed class OoMethodScope
     /// <summary>The method's PROCEDURE DIVISION USING formals — what §8.8.4.8.3 SR1 ("a formal parameter defined
     /// in the source element in which this condition is specified") resolves against inside a method body
     /// (kb/Work PB757). Empty for a method with no USING phrase.</summary>
-    public IReadOnlyList<WiseOwl.Cobol.Compiler.Oo.OoFormal> Formals = [];
+    public IReadOnlyList<OoFormal> Formals = [];
 }

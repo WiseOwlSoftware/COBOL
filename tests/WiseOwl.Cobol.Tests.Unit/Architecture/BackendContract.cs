@@ -70,6 +70,15 @@ internal static class BackendContract
             "Model.OccursRecord.Depending", "Model.OccursRecord.OutsideTheRecord", "Model.OccursRecord.Capacity",
             "Model.PicRecord.RestrictedTypeName", "Model.PicRecord.RestrictedPrototypeName", "Model.PicRecord.ObjectRefName",
             "Model.PicRecord.ObjectRefIdentity", "Model.LocaleEditRecord.LocaleName",
+            // the OO symbols and a method's name scope, in compiler.model since kb/Work PB2402: the words the source wrote,
+            // the externalized names (ISO §8.13) and the rosters and name indexes keyed by them
+            "Model.OoClassSymbol.Name", "Model.OoClassSymbol.ExternalizedName", "Model.OoClassSymbol.BaseName",
+            "Model.OoClassSymbol.FormalBaseName", "Model.OoClassSymbol.Bases", "Model.OoClassSymbol._methods",
+            "Model.OoClassSymbol._factoryMethods", "Model.OoInterfaceSymbol.Name", "Model.OoInterfaceSymbol.ExternalizedName",
+            "Model.OoInterfaceSymbol._protos", "Model.OoInterfaceSymbol._conformingChoice", "Model.OoMethodSymbol.Name",
+            "Model.OoMethodSymbol.ExternalizedName", "Model.OoMethodSymbol._externalizedName", "Model.OoMethodSymbol.PropertyName",
+            "Model.OoMethodSymbol.SourceName", "Model.OoMethodDataScope.ByName", "Model.OoMethodDataScope.Conditions",
+            "Model.OoMethodDataScope.CapacityRegisters", "Model.OoMethodDataScope.TypeDecls",
         ]),
         new(NeutralKind.ClrName,
         [
@@ -87,6 +96,22 @@ internal static class BackendContract
             "Model.CsNames.CSharpReservedKeywords", "Model.CsNames.HostEntryMembers", "Model.CsNames.ImportedNamespaces",
             "Model.CsNames.ImportedTypeNames", "Model.CsNames.ProgramClassMembers", "Model.CsNames.RecordStructMembers",
             "Model.DataItem.Sanitize()", "Model.DataItem.IdentifierCharacters()", "Model.DataItem.WordIdentifier()",
+            // the synthesized CLR names of the OO model (NamingConvention, the one naming of every compiler-made member and
+            // type) and the names the symbols and a method's formals are emitted under, in compiler.model since kb/Work PB2402
+            "Model.NamingConvention.AccessorSuffix()", "Model.NamingConvention.AddressCarrierName()",
+            "Model.NamingConvention.AddressCarrierPrefix", "Model.NamingConvention.CapacityRegisterName()",
+            "Model.NamingConvention.CapacityRegisterPrefix", "Model.NamingConvention.ClassNamedMethodName()",
+            "Model.NamingConvention.ClassNamedMethodPrefix", "Model.NamingConvention.CobolWordDerivedPrefixes",
+            "Model.NamingConvention.DebugRegisterName()", "Model.NamingConvention.DebugRegisterPrefix",
+            "Model.NamingConvention.FactoryClassName()", "Model.NamingConvention.FactoryClassPrefix",
+            "Model.NamingConvention.FactoryNewMethod",
+            "Model.NamingConvention.FormalParameterName()", "Model.NamingConvention.FormalParameterPrefix",
+            "Model.NamingConvention.GetAccessorName()", "Model.NamingConvention.ImportedTypeName()",
+            "Model.NamingConvention.InstanceFileKeyName()", "Model.NamingConvention.InstanceFileKeyPrefix",
+            "Model.NamingConvention.SetAccessorName()", "Model.NamingConvention.SumCounterName()",
+            "Model.NamingConvention.SumCounterPrefix", "Model.OoClassSymbol.FactoryOrInstanceClrNames",
+            "Model.OoInterfaceSymbol.ImplementedClrNames", "Model.OoMethodBinding.FormalName()", "Model.OoFormal.ParamName",
+            "Model.OoFormal.AreaParam", "Model.OoFormal.OmittedFlag", "Model.ImportedFrom.ClrNamespace",
         ]),
         new(NeutralKind.LiteralValue,
         [
@@ -114,6 +139,8 @@ internal static class BackendContract
             "Model.PictureClauseRecord.CurrencyString", "Model.PictureClauseRecord.Editing",
             "Model.TableValueSpec.FromText", "Model.TableValueSpec.FromWritten", "Model.TableValueSpec.Literals",
             "Model.TableValueSpec.ToText", "Model.TableValueSpec.ToWritten",
+            // the OPTIONS paragraph's INITIALIZE ... TO literal (ISO §11.9.10), in compiler.model since kb/Work PB2402
+            "Model.OptionsInitialize.FillLiteral",
         ]),
         new(NeutralKind.RuntimeDatum,
         [
@@ -127,6 +154,10 @@ internal static class BackendContract
             "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",
             // the assemblies an expansion is imported from or written to: file paths the backend references (kb/Work PB2104)
             "Model.ExpansionPlacement.HoldingFile", "Model.ExpansionPlacements.ReferencedAssemblies",
+            // a class's run-unit keys and file-connector key bands, which the runtime recognizes, and the assembly an imported
+            // class came from (kb/Work PB2402 moved them to compiler.model)
+            "Model.OoClassSymbol.RunUnitKey", "Model.OoClassSymbol.HalfKey()", "Model.NamingConvention.ExternalFileBand",
+            "Model.NamingConvention.InstanceFileBand", "Model.NamingConvention.FactoryFileBand", "Model.ImportedFrom.AssemblyFile",
         ]),
         new(NeutralKind.DiagnosticText,
         [
@@ -150,6 +181,8 @@ internal static class BackendContract
             "Model.FileModel.EntryFace", "Model.FileModel.OrganizationFace", "Model.OccursKey.Written",
             "Model.PictureClauseIdentity.Phrases()", "Model.RaisingTarget.Spelled", "Model.RecordKey.Face",
             "Model.RedefinesClass.RejectReason", "Model.SameClause.Written", "Model.SuppressWhenOperand.Written",
+            // how a diagnostic names an arithmetic mode's intermediate data item and its bounds (kb/Work PB194, PB2402)
+            "Model.ArithmeticModes.IntermediateName()", "Model.ArithmeticModes.IntermediateExtremes()",
         ]),
         new(NeutralKind.IdentityKey,
         [
@@ -160,6 +193,8 @@ internal static class BackendContract
             "Model.StrongTypeModel.TypeIdentityKey()", "Model.StrongTypeModel+TypeRestriction.Key",
             "Model.StrongTypeModel.ElementaryLayoutKey()", "Model.DynamicLengthStructure.DefinitionKey",
             "Model.DynamicLengthStructure.KeyOf()", "Model.ObjectRefDescriptor.Identity",
+            // a method's dispatch key: the roster's identity of a method, compared, never emitted as C# (kb/Work PB2402)
+            "Model.OoMethodSymbol.DispatchKey",
         ]),
     ],
     [
@@ -174,6 +209,8 @@ internal static class BackendContract
             "Model.RedefinesClass.BasedPointerField", "Bound.BoundOdoExtent.BasedAddress",
             "Bound.BoundAlterEntry.AlterField", "Bound.BoundGoToAlterable.AlterField",
             "Bound.BoundSetObjectRef.SourceFactoryCs",
+            // the factory singleton field every class emits, named by text (in compiler.model since kb/Work PB2402)
+            "Model.NamingConvention.FactoryInstanceField",
         ]),
         // L6: the binder still declared in the bound layer (its text members and the parse tree it returns), which the
         // edges file tolerates until StatementBinder moves to Binding/Procedure.

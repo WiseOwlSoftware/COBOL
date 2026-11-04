@@ -193,7 +193,7 @@ public sealed class GlobalNameClassDriftTests
     {
         Assert.Equal(AskedByMethodShadowing.Keys.Order(StringComparer.Ordinal),
             NameIndexFields(typeof(OoMethodDataScope)).Order(StringComparer.Ordinal));
-        string scope = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "OoMethodDataScope.cs"));
+        string scope = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "OoMethodDataScope.cs"));
         var m = Regex.Match(scope, @"internal bool IndexesDeclare\(string word\)\s*\{(?<body>.*?)\n    \}", RegexOptions.Singleline);
         Assert.True(m.Success, "OoMethodDataScope.IndexesDeclare not found in OoMethodDataScope.cs");
         foreach (var (index, ask) in AskedByMethodShadowing)

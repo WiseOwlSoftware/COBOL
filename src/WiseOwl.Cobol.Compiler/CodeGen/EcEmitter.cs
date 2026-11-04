@@ -869,13 +869,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// instance object of object-class-name-1 or of a subclass of object-class-name-1" — ONE clause naming BOTH
     /// object kinds, and a COBOL class is emitted as TWO DISJOINT C# hierarchies (the instance class and its
     /// sibling <c>__FACTORY_…</c> singleton, each rooted at its base's corresponding half) — so its census is
-    /// <see cref="Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/>; testing only the instance name selected NO
+    /// <see cref="OoClassSymbol.FactoryOrInstanceClrNames"/>; testing only the instance name selected NO
     /// declarative for any factory exception object, silently (kb/Work PB366). GR14 b)'s "described with an
     /// IMPLEMENTS clause that references interface-name-1" is §11.8.4 GR2 (instance objects) / §11.4.4 GR2
     /// (factory objects) as a CLOSURE — the direct IMPLEMENTS, plus anything an implemented interface inherits,
     /// plus anything an inherited class implements — and the emitter renders each emitted HALF of a class with
     /// exactly that closure as its C# interface list, so the one emitted C# interface
-    /// (<see cref="Oo.OoInterfaceSymbol.ImplementedCsTypes"/>) realizes all three legs for both halves.</para>
+    /// (<see cref="OoInterfaceSymbol.ImplementedClrNames"/>) realizes all three legs for both halves.</para>
     /// <para>"Or of a subclass" rides C#'s <c>is</c> in EACH hierarchy, since both mirror INHERITS. GR15
     /// (EXCEPTION-OBJECT references the object on declarative entry) already holds — the raise site set the
     /// register before dispatching. A null object matches nothing (spec-literal: no class describes it) → -3,
@@ -884,9 +884,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         using (w.Block($"{MemberMod(asLocal)}int __EcObjDispatch(object? __obj)"))
         {
-            EmitObjDispatchPass(decls, eo => (eo as BoundEoClass)?.Symbol.FactoryOrInstanceCsTypes,
+            EmitObjDispatchPass(decls, eo => (eo as BoundEoClass)?.Symbol.FactoryOrInstanceClrNames,
                 "// GR14 a) — object-class-name-1 entries, in the order the USE statements are specified", w);
-            EmitObjDispatchPass(decls, eo => (eo as BoundEoInterface)?.Symbol.ImplementedCsTypes,
+            EmitObjDispatchPass(decls, eo => (eo as BoundEoInterface)?.Symbol.ImplementedClrNames,
                 "// GR14 b) — \"all of the USE statements in the source element are analyzed again\": "
                 + "the interface-name-1 entries", w);
             w.Line("return DispatchResult.NoHandler;   // no qualifying declarative (GR14 b) tail → 14.6.13.1.5)");

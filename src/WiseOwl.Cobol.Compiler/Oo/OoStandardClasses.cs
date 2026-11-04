@@ -5,23 +5,6 @@ using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Compiler.Oo;
 
-/// <summary>Which method of the standard class BASE an <see cref="OoMethodSymbol"/> is (ISO §16.2).</summary>
-public enum StandardMethod
-{
-    /// <summary>A method written in the compilation group.</summary>
-    None,
-
-    /// <summary>BaseFactoryInterface's <c>New</c> — ISO §16.2.1.2 GR1: "The New method allocates storage for an
-    /// object, initializes its instance data in accordance with 14.6.2.4, Initial state of object data, and
-    /// returns a reference to the created object."</summary>
-    New,
-
-    /// <summary>BaseInterface's <c>FactoryObject</c> — ISO §16.2.2.2 GR1: "When invoked on an instance object,
-    /// the FactoryObject method determines the class of the object and returns a reference to the factory object
-    /// associated with that class."</summary>
-    FactoryObject,
-}
-
 /// <summary>
 /// ⛔ THE STANDARD CLASSES OF ISO/IEC 1989:2023 CLAUSE 16 — the one place the compiler knows what they are.
 ///

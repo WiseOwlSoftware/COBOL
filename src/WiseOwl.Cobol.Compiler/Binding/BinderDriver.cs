@@ -1286,7 +1286,7 @@ internal sealed class BinderDriver
     /// the OO analogue of the per-program qualification in <see cref="Bind"/>). Both halves key a file
     /// per OBJECT (§9.3.9: a subclass's factory object has its own copy of the inherited file definitions, as an
     /// instance object does): a class-qualified BASE key — <c>Class::INST::name</c> / <c>Class::FACT::name</c>, where
-    /// <c>Class</c> is the class's run-unit root (<see cref="OoClassSymbol.RunUnitPath"/>: its EXTERNALIZED name,
+    /// <c>Class</c> is the class's run-unit root (<see cref="OoClassSymbol.RunUnitKey"/>: its EXTERNALIZED name,
     /// §8.3.2.2 2), never the declared C# name — kb/Work PB2920) — plus a minted per-object <c>__fkey</c> field
     /// (inc 4; the FACTORY half, PB1086). An EXTERNAL class file keys by its run-unit
     /// external name (§13.18.22.4 GR4a — one connector shared by every describer, inc 5). Name
@@ -1305,11 +1305,11 @@ internal sealed class BinderDriver
                 // OoEmitFileMembers / EmitFileRegistration both skip SDs (host = !IsSortMerge). So it must keep a
                 // STATIC key (no InstanceKeyField), or FileKeyExpr would emit an undeclared this.__fkey_X for a
                 // SORT/MERGE/RELEASE/RETURN in a method (M2-OO-1i review). Class-qualified for cross-class uniqueness.
-                f.CobolName = cls.Symbol.RunUnitPath + "::SORT::" + f.CobolName;
+                f.CobolName = cls.Symbol.RunUnitKey + "::SORT::" + f.CobolName;
             else
             {
                 f.InstanceKeyField = NamingConvention.InstanceFileKeyName(f.CobolName);
-                f.CobolName = cls.Symbol.RunUnitPath + NamingConvention.InstanceFileBand + f.CobolName;
+                f.CobolName = cls.Symbol.RunUnitKey + NamingConvention.InstanceFileBand + f.CobolName;
             }
         // FACTORY files: a factory object is an object too (§9.3.14.2). §9.3.9: "Each factory object has its own copy
         // of inherited data, distinct from the copy belonging to a factory object of an inherited class", and "The
@@ -1323,11 +1323,11 @@ internal sealed class BinderDriver
             if (f is { IsExternal: true, ExternalName: { } ext })
                 f.CobolName = NamingConvention.ExternalFileBand + ext;
             else if (f.IsSortMerge)
-                f.CobolName = cls.Symbol.RunUnitPath + NamingConvention.FactoryFileBand + f.CobolName;
+                f.CobolName = cls.Symbol.RunUnitKey + NamingConvention.FactoryFileBand + f.CobolName;
             else
             {
                 f.InstanceKeyField = NamingConvention.InstanceFileKeyName(f.CobolName);
-                f.CobolName = cls.Symbol.RunUnitPath + NamingConvention.FactoryFileBand + f.CobolName;
+                f.CobolName = cls.Symbol.RunUnitKey + NamingConvention.FactoryFileBand + f.CobolName;
             }
     }
 }

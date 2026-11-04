@@ -280,7 +280,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             return ObjectRefDescriptor.ObjectClass(name, factory, only);
         if (isInterface)
             return ObjectRefDescriptor.Interface(resolved.Interface!.Name).Resolved(resolved.Interface.ExternalizedName,
-                resolved.Interface.Origin is Compiler.Oo.OoSymbolOrigin.Imported ? resolved.Interface.ClrName : null);
+                resolved.Interface.Origin is OoSymbolOrigin.Imported ? resolved.Interface.ClrName : null);
         // ⛔ The descriptor carries the RESOLVED definition's name, not the word written: a REPOSITORY specifier's
         // `AS literal-1` makes the local word (BOXY) name the class whose externalized name is the literal
         // (§12.3.8.4 GR2, kb/Work PB974), and every downstream reader of the descriptor looks the class up by
@@ -288,7 +288,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // class imported from another assembly, its full CLR name (DESIGN-external-repository §6.4, §10.1).
         var cls = resolved.Class!;
         return ObjectRefDescriptor.ObjectClass(cls.Name, factory, only)
-            .Resolved(cls.ExternalizedName, cls.Origin is Compiler.Oo.OoSymbolOrigin.Imported ? cls.ClrName : null);
+            .Resolved(cls.ExternalizedName, cls.Origin is OoSymbolOrigin.Imported ? cls.ClrName : null);
     }
 
     /// <summary>

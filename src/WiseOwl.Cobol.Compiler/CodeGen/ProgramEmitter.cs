@@ -160,7 +160,7 @@ internal sealed class ProgramEmitter
         new HostEntryEmitter(comp.SignEncoding, comp.OoClasses, _atoms,
             data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(comp.EntryUnits,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
-                .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
+                .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceClrNames))
                 .Concat(comp.OoClasses.Interfaces.Select(i => i.ClrName))
                 .Concat(comp.Expansions.Skeletons.Select(s => s.ClrName))
                 .Append(ModuleNamespace.RegistrarClass).Append("Program").Append(GroupAtomTable.ClassName), w);

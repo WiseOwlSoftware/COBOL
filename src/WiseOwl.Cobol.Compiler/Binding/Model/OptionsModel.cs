@@ -2,9 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime;
 
-using WiseOwl.Cobol.Binding.Model;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The fully-parsed content of a source unit's OPTIONS paragraph (ISO/IEC 1989:2023 §11.9), captured once at bind

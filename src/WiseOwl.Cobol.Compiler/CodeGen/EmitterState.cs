@@ -384,7 +384,7 @@ internal sealed class EcState
         {
             Binding.Model.RaisingTargetKind.ObjectClass when table?.Find(t.Name) is { } c =>
                 (IEnumerable<string>)[t.Factory ? c.FactoryClrName : c.ClrName],
-            Binding.Model.RaisingTargetKind.Interface when table?.FindInterface(t.Name) is { } i => i.ImplementedCsTypes,
+            Binding.Model.RaisingTargetKind.Interface when table?.FindInterface(t.Name) is { } i => i.ImplementedClrNames,
             _ => [],
         }).Distinct(StringComparer.Ordinal)];
 
@@ -518,7 +518,7 @@ internal sealed class CallUnitState
     /// <summary>The formals of the METHOD whose body is being emitted (empty outside a method body) — the method
     /// arm of the same recognition (kb/Work PB757): a method formal forwarded as a CALL or INVOKE argument carries
     /// its omitted-presence flag on, per §8.8.4.8.4 GR1c. Set and cleared by <c>OoEmitter.EmitMethod</c>.</summary>
-    public IReadOnlyList<WiseOwl.Cobol.Compiler.Oo.OoFormal> MethodFormals { get; set; } = [];
+    public IReadOnlyList<OoFormal> MethodFormals { get; set; } = [];
 
     /// <summary>⛔ THE AREA A WHOLE FORMAL OF THIS SOURCE ELEMENT OCCUPIES, when <paramref name="p"/> is one (ISO §14.2.3
     /// GR8; kb/Work PB2087, PB2089): the expression a forward of it BY REFERENCE states as its argument's area, so an area

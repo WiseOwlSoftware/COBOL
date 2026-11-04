@@ -1,10 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Compiler.Oo;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>One INTERFACE-ID of the compilation group (§11.6 — pass-1): the PROTOTYPE roster (reusing
 /// <see cref="OoMethodSymbol"/> — headers + LINKAGE formals, no bodies), the INHERITS list (repetition
@@ -47,7 +45,7 @@ public sealed class OoInterfaceSymbol
     /// <summary>The emitted C# types a COBOL reference to THIS interface selects when the rule asks whether an
     /// object IMPLEMENTS it — ISO/IEC 1989:2023 §14.9.49.4 GR14 b): "the exception object that was raised is
     /// described with an IMPLEMENTS clause that references interface-name-1". The twin of
-    /// <see cref="OoClassSymbol.FactoryOrInstanceCsTypes"/>, and the answer is a SET for the same reason: one
+    /// <see cref="OoClassSymbol.FactoryOrInstanceClrNames"/>, and the answer is a SET for the same reason: one
     /// COBOL name is not one C# type by construction, it is one by MEASUREMENT. Today it measures ONE — a
     /// COBOL INTERFACE-ID emits exactly one C# interface (<c>OoEmitter.EmitInterfaceUnit</c>), which BOTH
     /// emitted halves of an implementing class carry (the instance half from the OBJECT paragraph's IMPLEMENTS,
@@ -58,7 +56,7 @@ public sealed class OoInterfaceSymbol
     /// intf-1, b) implements an interface that inherits intf-1, c) the class … inherits a class whose instance
     /// object implements intf-1") ride C#'s <c>is</c> rather than this census: the emitted interface carries its
     /// own INHERITS as C# bases and the emitted class carries its base's implementations.</para></summary>
-    public IReadOnlyList<string> ImplementedCsTypes => [ClrName];
+    public IReadOnlyList<string> ImplementedClrNames => [ClrName];
 
     private readonly Dictionary<string, OoMethodSymbol> _protos = new(CobolNames.Comparer);
     public IReadOnlyList<OoMethodSymbol> Prototypes => _protoList;

@@ -14,7 +14,6 @@ using Core = CobolParserCore;
 using ReportEntryLocation = WiseOwl.Cobol.Binding.DataBinder.ReportEntryLocation;
 using ReportNextGroup = WiseOwl.Cobol.Runtime.IO.ReportNextGroup;
 using ReportNextGroupKind = WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>

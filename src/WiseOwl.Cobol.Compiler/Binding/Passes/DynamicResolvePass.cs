@@ -5,7 +5,6 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Passes;
-using WiseOwl.Cobol.Compiler.Oo;
 
 /// <summary>
 /// The DynamicResolve pass: row 19 of the per-unit resolve pipeline (OccursResolved to OccursResolved).

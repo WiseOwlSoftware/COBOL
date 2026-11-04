@@ -262,7 +262,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// The file connector's §12.4.5.3 GR1 identity is <see cref="SelectFingerprint"/>.</summary>
     /// <param name="data">The describing element's data.</param>
     /// <param name="unitPath">The describer's run-unit identity (the program's path, or the class half's
-    /// <see cref="OoClassSymbol.HalfPath"/>, both rooted at the EXTERNALIZED name; kb/Work PB2920).</param>
+    /// <see cref="OoClassSymbol.HalfKey"/>, both rooted at the EXTERNALIZED name; kb/Work PB2920).</param>
     /// <param name="signature">The emitted member's declaration: the program ABI's <c>public void DescribeExternals()</c>,
     /// or a class half's <c>private static void __DescribeExternals(int __self)</c>, which each method's prologue passes
     /// to <c>ExternalStore.DescribeAtMethodActivation</c> with the METHOD's own mask (kb/Work PB1138).</param>
@@ -443,7 +443,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (record is not null)
             instAttributes.AddRange(RepositoryAttributeRenderer.TableRecords(record)
                 .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)));
-        EmitTypeHalf(cls.Name, cls.Symbol.ClrName, cls.Symbol.HalfPath(factory: false), instBase,
+        EmitTypeHalf(cls.Name, cls.Symbol.ClrName, cls.Symbol.HalfKey(factory: false), instBase,
             cls.Data, cls.Places, cls.Bound, cls.Symbol.Methods, w,
             headerExtras: instExtras.Count > 0 ? instExtras : null,
             sealedType: cls.Symbol.IsFinal,
@@ -487,7 +487,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (adopt.Count > 0)
             extras.Add("protected override void __AdoptRunUnitStorage(RunUnit runUnit) { base.__AdoptRunUnitStorage(runUnit); "
                 + string.Join(" ", adopt) + " }   // method WORKING-STORAGE → this run unit (ISO §14.6.2.3.2 / §14.6.11)");
-        EmitTypeHalf(cls.Name, cls.Symbol.FactoryClrName, cls.Symbol.HalfPath(factory: true), facBase,
+        EmitTypeHalf(cls.Name, cls.Symbol.FactoryClrName, cls.Symbol.HalfKey(factory: true), facBase,
             cls.FactoryData, cls.FactoryPlaces, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
             sealedType: cls.Symbol.IsFinal,
             typeAttributes: record is null ? [] : [.. RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: true)],

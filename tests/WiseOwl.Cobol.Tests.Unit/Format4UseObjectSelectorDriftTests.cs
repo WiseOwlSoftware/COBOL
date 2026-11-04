@@ -22,9 +22,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// class) and the sibling <c>__FACTORY_…</c> singleton (rooted at its base's factory class). The generated
 /// <c>__EcObjDispatch</c> tested only the INSTANCE name, so every factory exception object selected NO
 /// declarative — silently: nothing ran and nothing said so. One COBOL class-name is a SET of emitted C# types,
-/// and <see cref="Compiler.Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/> is the ONE place that says which. The
+/// and <see cref="OoClassSymbol.FactoryOrInstanceClrNames"/> is the ONE place that says which. The
 /// interface alternative has the SAME shape and its own census,
-/// <see cref="Compiler.Oo.OoInterfaceSymbol.ImplementedCsTypes"/>, which measures ONE today — a COBOL
+/// <see cref="OoInterfaceSymbol.ImplementedClrNames"/>, which measures ONE today — a COBOL
 /// INTERFACE-ID emits exactly one C# interface, carried by BOTH emitted halves of an implementing class — and
 /// is measured here rather than assumed, so an interface that ever grows a second emitted half fails at the
 /// census instead of silently narrowing a user's declarative selection.</para>
@@ -134,7 +134,7 @@ public sealed class Format4UseObjectSelectorDriftTests
             .Select(m => m.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);
 
-        Assert.Equal(cls.FactoryOrInstanceCsTypes.ToHashSet(StringComparer.Ordinal), emitted);
+        Assert.Equal(cls.FactoryOrInstanceClrNames.ToHashSet(StringComparer.Ordinal), emitted);
     }
 
     /// <summary>The interface twin of the census fact (kb/Work PB365's alternative, PB366's shape). A COBOL
@@ -152,7 +152,7 @@ public sealed class Format4UseObjectSelectorDriftTests
             .Select(m => m.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);
 
-        Assert.Equal(ifc.ImplementedCsTypes.ToHashSet(StringComparer.Ordinal), emitted);
+        Assert.Equal(ifc.ImplementedClrNames.ToHashSet(StringComparer.Ordinal), emitted);
     }
 
     /// <summary>The generated §14.9.49.4 GR14 selector tests each operand's WHOLE census — for a class, the
@@ -169,7 +169,7 @@ public sealed class Format4UseObjectSelectorDriftTests
         Assert.NotNull(ifc);
         string predicate = Selector(csharp);
 
-        foreach (string half in cls!.FactoryOrInstanceCsTypes.Concat(ifc!.ImplementedCsTypes))
+        foreach (string half in cls!.FactoryOrInstanceClrNames.Concat(ifc!.ImplementedClrNames))
             Assert.Matches(@"\bis\b[^;]*\b" + Regex.Escape(half) + @"\b", predicate);
     }
 

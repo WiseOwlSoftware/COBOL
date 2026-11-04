@@ -714,11 +714,16 @@ nor tolerates, is a blocker found before dispatch, not by the ratchet after. Dra
 because they name `NamingConvention`, `StandardMethod`, `OoMethodBinding`, `OptionsModel` and `OoMethodDataScope`. The
 waves are therefore: PB2401 cuts what the symbols name that the model may not (the three `Ctx`, `OoMethodBinding`'s
 `BoundDeclarative` list, `OptionsModel`'s two parse-context factories, and the class and interface `Expansion`, which the
-walk found too: LANDED, kb/Work PB2401, into the bind session's `SourceMap`); PB2402 moves the symbols with their closure
+walk found too: LANDED, kb/Work PB2401, into the bind session's `SourceMap`); PB2402 moved the symbols with their closure
 (`NamingConvention`, `StandardMethod`, `OoMethodBinding`, `OoFormal`, `OoMethodDataScope` and `OptionsModel.cs`'s
-types), once `OoMethodDataScope`'s binder working state (its §8.3.2.2 census `Words` and its constant-declaration
-`Constants`, which hold parse contexts) has a binder-side home, since moved with them it would add `Binding.Model → Binding`
-pairs (kb/Work PB2402's what-if); PB2403 moves `AdapterPair` and turns the remaining OO answers into `BoundCompilation` data; PB2399 ends the
+types) to `Binding/Model` (LANDED: `Binding.Model → Compiler.Oo` 5 → 2, `Binding.Bound → Compiler.Oo` 6 → 1, no row grew),
+after an Extract gave `OoMethodDataScope`'s binder working state a binder-side home: its §8.3.2.2 census is the class
+table's per method symbol (`OoClassTable.CensusOf(OoMethodSymbol)`), its constant tables the class half's
+`ConstantEntryBinder` keeps per method, and "does the method declare this word" is `DataBinder.MethodDeclares` over the
+model scope's `IndexesDeclare` and the binder's half, since moved with the scope they would have added
+`Binding.Model → Binding` pairs (kb/Work PB2402's what-if). Five members the backend contract (DESIGN-backend-abstraction
+§6) would read as C# by name were renamed for what they carry: `FactoryOrInstanceClrNames`, `ImplementedClrNames`,
+`RunUnitKey`, `HalfKey` and `ImportedFrom.AssemblyFile`; PB2403 moves `AdapterPair` and turns the remaining OO answers into `BoundCompilation` data; PB2399 ends the
 model's other binder reads; PB2416 cuts the report models' parse contexts, so PB2405 can move the four rule families
 the emitters read into `compiler.bound` (they name bound nodes, so `compiler.model` cannot hold them); and PB2400
 moves `BoundUnit`, `OoClassUnit` and `BoundCompilation` last. **The measure is the walk, not a text scan.** Draft 4's
@@ -1103,7 +1108,7 @@ no word for:
   only the entries registered after its mark, removing them (`ReferenceResolver.ObjectProperty.cs:266`, `RemoveRange`),
   so a reference in an IF condition belongs to the IF, not to an arm that binds later; neither append-only nor frozen;
 - a **scope cursor**: `OperandEvaluations` is saved, zeroed and restored around each statement
-  (`StatementBinder.cs:432-498`), and `ActiveMethodScope` is set per procedure-table entry (`Binding/OoMethodDataScope.cs`, the scope it holds;
+  (`StatementBinder.cs:432-498`), and `ActiveMethodScope` is set per procedure-table entry (`Binding/Model/OoMethodDataScope.cs`, the scope it holds;
   `BinderContext.cs:150`).
 And around a unit's data phases `BinderDriver` writes three more kinds of state, none of them an `IBindPass` (R1
 Draft 6 re-modelled them from the code after the fifth refuter, G2):
@@ -1401,7 +1406,7 @@ OO half, one per binder (`DataBinder.Oo`, made from the init-only `DataBinder.Oo
 LOCAL-STORAGE, its header formals), `BindPropertyClauses`, `BindObjectRefDescriptor` and the class-member-name
 reservation. It asks the binder for the entry binding every element kind shares (`BindEntries`, `DeclareDataEntries`,
 `BindRemainingConstants`, `CompleteDescriptionAhead`, `SealLinkageRules`, now `internal`). What the partial held that is
-not OO went to its own home: `Binding/OoMethodDataScope.cs` (the per-method name scope), `Binding/CompilerTemps.cs`
+not OO went to its own home: `Binding/OoMethodDataScope.cs` (the per-method name scope; in `Binding/Model/` since kb/Work PB2402), `Binding/CompilerTemps.cs`
 (`DataBinder.Temps`: THE ONE constructor of a compiler temporary, the object-reference families that go through it, and
 the clone pairs `StorageFormPass` re-syncs), `Binding/OoPendingPropertyOp.cs` (the entry type of
 `ProcedureBindState.PropertyOps`), `ProcedureBindState.ClaimInterleavedReceiver` and `MoveBinder.ReceiverOpensAtRunTime`

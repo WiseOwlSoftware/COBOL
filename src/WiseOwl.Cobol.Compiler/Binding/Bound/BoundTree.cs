@@ -148,10 +148,10 @@ public abstract record BoundEoOperand;
 /// object-class-name-1". ONE clause naming BOTH object kinds, and a COBOL class is emitted as TWO DISJOINT C#
 /// hierarchies (the instance class and its sibling <c>__FACTORY_…</c> singleton, each rooted at its base's
 /// corresponding half) — so one COBOL class-name selects a SET of C# types, and the selector renders
-/// <see cref="Compiler.Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/>, the ONE census, as one C# or-pattern
+/// <see cref="OoClassSymbol.FactoryOrInstanceClrNames"/>, the ONE census, as one C# or-pattern
 /// (kb/Work PB366: testing only the instance half selected no declarative for any factory exception object,
 /// silently).</summary>
-public sealed record BoundEoClass(Compiler.Oo.OoClassSymbol Symbol) : BoundEoOperand;
+public sealed record BoundEoClass(OoClassSymbol Symbol) : BoundEoOperand;
 
 /// <summary>The interface-name-1 alternative — ISO §14.9.49.3 SR17, selected by §14.9.49.4 GR14 b): the
 /// exception object "is described with an IMPLEMENTS clause that references interface-name-1". §11.8.4 GR2
@@ -160,9 +160,9 @@ public sealed record BoundEoClass(Compiler.Oo.OoClassSymbol Symbol) : BoundEoOpe
 /// object inherits a class whose instance object implements intf-1" — and the emitter renders each emitted half
 /// of a class with exactly that closure as its C# interface list (a COBOL INTERFACE-ID emits ONE C# interface,
 /// carrying its own INHERITS as C# bases), so one test against
-/// <see cref="Compiler.Oo.OoInterfaceSymbol.ImplementedCsTypes"/> realizes all three legs for both halves
+/// <see cref="OoInterfaceSymbol.ImplementedClrNames"/> realizes all three legs for both halves
 /// (kb/Work PB365: before it this alternative had no resolution path at all and died on SR16's diagnostic).</summary>
-public sealed record BoundEoInterface(Compiler.Oo.OoInterfaceSymbol Symbol) : BoundEoOperand;
+public sealed record BoundEoInterface(OoInterfaceSymbol Symbol) : BoundEoOperand;
 
 /// <summary>A bound paragraph: its COBOL name and its SENTENCES (each a statement list — the separator-period
 /// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19.4 GR4

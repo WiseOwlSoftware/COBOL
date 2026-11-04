@@ -7,7 +7,6 @@ using WiseOwl.Cobol.Binding.Bound;
 
 using WiseOwl.Cobol.Binding.Model;
 
-using WiseOwl.Cobol.Compiler.Oo;
 
 namespace WiseOwl.Cobol.Binding.Passes;
 

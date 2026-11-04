@@ -9,6 +9,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN object-class-name OR interface-name (kb/Work PB365).
