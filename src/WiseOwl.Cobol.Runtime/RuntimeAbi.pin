@@ -7,7 +7,7 @@
 # Each raises the counters in Directory.Build.props <Version> and RuntimeAbi.cs and has the test write the hashes.
 # A merge of two branches that both changed this file is made by scripts/merge_drivers.py: the counters add, the hashes
 # read UNMEASURED and are measured on the merged tree before the merge commit.
-runtime-major 22
-runtime-hash E028449E4F0C14FF
+runtime-major 23
+runtime-hash 2B94055E626C760F
 call-abi 6
 boundary-hash 110D13CC647FE8B3
