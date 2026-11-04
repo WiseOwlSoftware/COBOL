@@ -2057,7 +2057,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// feedback_one_rule_one_place).</para>
     /// <para>⛔ THE WORD IS ASKED THROUGH THE GROUP'S <c>&gt;&gt;COBOL-WORDS</c> MAP (kb/Work PB4572). EXCEPTION-OBJECT is
     /// no lexer token (it is an ordinary <c>cobolWord</c>), so the retype never reaches a synonym of it, and §7.3.10.4 GR2
-    /// makes that synonym "usable in any syntax requiring the use of the reserved word": after
+    /// says of that synonym (EQUATE literal-2) that it "may be used in any syntax requiring the use of the reserved word,
+    /// context-sensitive word, or intrinsic
+    /// function name that is the content of literal-1": after
     /// <c>EQUATE "EXCEPTION-OBJECT" WITH "EXO"</c>, <c>EXO</c> IS the predefined register and a spelling test that
     /// ignores the map read it as an undefined name (COBOL1639) and a reserved word used as a user-defined word
     /// (COBOL0901) at once. A word the directive de-reserved (UNDEFINE, SUBSTITUTE) is no longer the register (GR3, GR4).</para></summary>

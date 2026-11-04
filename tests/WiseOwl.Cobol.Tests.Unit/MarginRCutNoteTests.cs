@@ -82,6 +82,20 @@ public sealed class MarginRCutNoteTests : IDisposable
         AssertStopRunIsTheErrorAfterTheCut(diagnostics);
     }
 
+    /// <summary>kb/Work PB4573, review r2 R2-1 (ISO §7.3.10.4 GR2): the cut note quotes the word the SOURCE wrote. After
+    /// <c>EQUATE "SECTION" WITH "SECT"</c> the token the margin cut in two is spelled SECTION by the retype, and the note
+    /// beside the syntax error said "the word SECTION ends at position 72" where the source holds SECT there.</summary>
+    [Fact]
+    public void ACutInsideASynonym_NamesTheSynonymTheSourceWrote_NotTheOriginalWord()
+    {
+        string cutSynonym = "           MOVE 1 TO WS-MSG".PadRight(68) + "SECTION.";   // SECT holds positions 69 to 72
+        var diagnostics = Compile(Program(["       >>COBOL-WORDS EQUATE \"SECTION\" WITH \"SECT\"", .. Head, cutSynonym, "           STOP RUN."]));
+
+        string note = Assert.Single(Notes(diagnostics));
+        Assert.Contains("the word 'SECT' ends at position 72", note);
+        Assert.DoesNotContain("'SECTION'", note);
+    }
+
     [Fact] // PB4373: a tab states margin R as the POSITION the format fixes (72), not the column the file holds it at
     public void ALineHoldingATab_StatesMarginRAtPosition72_AndTheColumnTheFileHoldsIt()
     {

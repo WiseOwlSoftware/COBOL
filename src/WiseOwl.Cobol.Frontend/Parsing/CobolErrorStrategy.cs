@@ -1556,12 +1556,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     private static string BuildMessage(IToken token, ErrorKind kind, List<DiagnosticHint> hints)
     {
+        // ⛔ The word the SOURCE wrote: a >>COBOL-WORDS synonym of a word the lexer has a token for carries its original's
+        // Text (CobolWordsRewriter.Plan.Apply, ISO §7.3.10.4 GR2, GR4), and a sentence naming SECTION where the source
+        // wrote SECT names a word the programmer never wrote there (kb/Work PB4573).
+        string written = Truncate(WrittenSource.Of(token), 40);
         string baseMsg = kind switch
         {
-            ErrorKind.NoViableAlternative => $"cannot parse construct near '{Truncate(token.Text, 40)}'",
-            ErrorKind.InputMismatch => $"unexpected '{Truncate(token.Text, 40)}'",
-            ErrorKind.MissingToken => $"missing token before '{Truncate(token.Text, 40)}'",
-            ErrorKind.UnwantedToken => $"unexpected '{Truncate(token.Text, 40)}'",
+            ErrorKind.NoViableAlternative => $"cannot parse construct near '{written}'",
+            ErrorKind.InputMismatch => $"unexpected '{written}'",
+            ErrorKind.MissingToken => $"missing token before '{written}'",
+            ErrorKind.UnwantedToken => $"unexpected '{written}'",
             _ => "syntax error"
         };
 
@@ -1882,8 +1886,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && !(token.Text is { } spelled && CobolKeywords.StartsWith(spelled, "END-"))
             && !HasStructuralHint(hints)
             && !(recognizer is CobolParserCoreBase { CobolWords.IsEmpty: false } directed
-                 && PreviousDefault(stream, token.TokenIndex) is { Text: { } before }
-                 && directed.CobolWords.DirectingStatementSynonymOf(before) is not null)
+                 && PreviousDefault(stream, token.TokenIndex) is { } previousWord
+                 && directed.CobolWords.DirectingStatementSynonymOf(WrittenSource.Of(previousWord)) is not null)
             && at.APeriodLetsTheSentenceFollow())
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
@@ -2038,9 +2042,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF) break;
             if (at.TokenIndex != token.TokenIndex) continue;
             int width = CobolParserCoreBase.NumericLiteralWidth(stream, k);
-            return width > 1 ? stream.GetText(at, stream.LT(k + width - 1)) : token.Text;
+            return width > 1 ? stream.GetText(at, stream.LT(k + width - 1)) : WrittenSource.Of(token);
         }
-        return token.Text;
+        return WrittenSource.Of(token);
     }
 
     /// <summary>The words that OPEN a division, section or paragraph header — the first token of a rule whose next
@@ -2811,7 +2815,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     if (t.Type is CobolLexer.DOT or TokenConstants.EOF) return null;
                     if (t.Type == CobolLexer.TO)
                         return suffixed is not null && NextDefault(stream, t.TokenIndex)?.Type is CobolLexer.ON or CobolLexer.OFF
-                            ? MnemonicNameSlot.SuffixMessage("SET … TO ON/OFF", suffixed.Text, "§14.9.39.2 Format 3")
+                            ? MnemonicNameSlot.SuffixMessage("SET … TO ON/OFF", WrittenSource.Of(suffixed), "§14.9.39.2 Format 3")
                             : null;
                     if (suffixed is null && IsMnemonicSuffixStart(t.Type))
                         suffixed = PreviousDefault(stream, t.TokenIndex);
@@ -3099,7 +3103,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (wanted.Count == 0) return null;
         string Spell(int t) => recognizer.Vocabulary.GetLiteralName(t)?.Trim('\'') ?? recognizer.Vocabulary.GetDisplayName(t);
         string required = string.Join(" or ", wanted.Select(Spell));
-        return $"The general format requires the keyword {required} here, and {token.Text?.ToUpperInvariant()} is a "
+        return $"The general format requires the keyword {required} here, and {WrittenSource.Of(token).ToUpperInvariant()} is a "
             + "different reserved word (ISO §8.9): the spellings of a figurative constant are interchangeable only "
             + "where the figurative constant itself is written (ISO §8.3.3.6.2), and a keyword underlined in a "
             + "general format is required as printed (ISO §5.2.2).";
@@ -3134,7 +3138,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
         if (next is null || next.Type == CobolLexer.ZERO || !zeroFamily.Contains(next.Type)) return null;
         return $"The sign condition's general format requires the keyword ZERO here, and "
-            + $"{next.Text?.ToUpperInvariant()} is a different reserved word (ISO §8.9): its format is "
+            + $"{WrittenSource.Of(next).ToUpperInvariant()} is a different reserved word (ISO §8.9): its format is "
             + "'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §8.8.4.7.2), and the spellings of a figurative "
             + "constant are interchangeable only where the figurative constant itself is written (ISO §8.3.3.6.2). "
             + "To compare against the figurative constant, write a relation condition: '= ZEROS'.";
