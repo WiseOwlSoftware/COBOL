@@ -2027,7 +2027,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // (kb/Work PB4604): `01 MOVE PIC X.` writes MOVE where §13.16.3 SR4 puts the entry-name, so the fault is §8.3.2.1
         // 1)'s (the reserved-word report, or the extension word's own hint) and "not a clause of the data description
         // entry" would send the reader to the wrong rule.
-        if (!refusedWord && at.EntryNameIsDue && recognizer is CobolParserCoreBase { } parser && parser.ReservedAsAName(token)) return null;
+        if (!refusedWord && at.EntryNameIsDue && recognizer is CobolParserCoreBase parser && parser.ReservedAsAName(token)) return null;
         var stream = (ITokenStream)recognizer.InputStream;
         // The residue is named only where the parse gave up near the parser: a closed construct carried forward, or a
         // prediction that failed past the bound, is not the place a clause list stands (MaxResimulatedTokens).
