@@ -640,7 +640,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain("ZEROS is a different", error);
     }
 
-    /// <summary>⛔ kb/Work PB4573, review r1 R1-1 (ISO §7.3.10.4 GR2): the mnemonic-name-suffix sentence of DISPLAY ... UPON and
+    /// <summary>⛔ kb/Work PB4590 (filed from PB4573's lead R3-1; ISO §7.3.10.4 GR2): the mnemonic-name-suffix sentence of DISPLAY ... UPON and
     /// ACCEPT ... FROM quotes the word the source WROTE: <c>UPON BEEP(1)</c> after <c>EQUATE "BELL" WITH "BEEP"</c> names BEEP,
     /// never the BELL the retype spelled into the token.</summary>
     [Fact]
