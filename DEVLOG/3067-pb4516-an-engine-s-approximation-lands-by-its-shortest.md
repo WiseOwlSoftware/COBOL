@@ -1,4 +1,4 @@
-## PB4516 — an engine's approximation lands by its shortest decimal at every float-to-fixed landing (EXP10 (-6) stored 0.000000 alone, 0.000001 beside an operator)
+## Entry 3067 — 2026-11-03 17:57 PST — PB4516 — an engine's approximation lands by its shortest decimal at every float-to-fixed landing (EXP10 (-6) stored 0.000000 alone, 0.000001 beside an operator)
 
 **Found.** The 3,000-program fuzz batch of 2026-11-03: `COMPUTE R = FUNCTION EXP10(-6)` and `MOVE FUNCTION EXP10(-6) TO R` stored 0.000000 in `PIC S9(9)V9(6)` while `COMPUTE R = 0 + FUNCTION EXP10(-6)` stored 0.000001. Re-probed on the branch before the fix: ALONE 0.000000, PLUS0 0.000001, MOVE 0.000000.
 
@@ -13,3 +13,4 @@
 **Rows.** The note claimed none; RV-15.35.4-1 and RV-15.4.1-1 were CONFORMS and gain witnesses. The ACOS signature fz02099 of the same batch is a LATITUDE verdict (GnuCOBOL's own approximation sits below), not this mechanism.
 
 **Self-review.** Architecture: the kind is chosen where the value is produced (`NumX.Approximate`) and read at the one landing spelling (`RuntimeApi.FloatToScaled`), with no default. Full code: the twins add no second rounding kernel. Performance: the lift allocates one string per landed approximation, as `LiftApproximation` already does beside an operator. Duplication: none; the unit pins `FromDouble` equal to its twin in every mode. Left alone and noted: the activated-side `CallAbi.Land(double)` lanes still read a binary cell by its expansion, which is right for a floating-point data item cell and unreachable for an approximation now that the activating element sends it as an SDIDI value.
+
