@@ -56,7 +56,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         if (file.Organization == FileOrganization.Relative)
         {
             int digits = file.RelativeKeyItem?.Pic?.Digits ?? 0;
-            w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary, ctx.Data.Edition.DialectLevel, CsLiteral(file.SelectName))};");
+            w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary, ctx.Data.DialectLevel, CsLiteral(file.SelectName))};");
             SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
             return;
         }
@@ -66,7 +66,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 + "image (ISO §12.4.5.12)"));
             return;
         }
-        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, primeKey, vary, ctx.Data.Edition.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
+        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, primeKey, vary, ctx.Data.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var (alt, dups, suppress) = file.AlternateKeys[i];
@@ -129,7 +129,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// <c>__COLLATE</c> when the key's alphabet IS the program collating sequence, else an inline carrier — or "null"
     /// for native order (a no-clause key emits "null" so its registration is unchanged from the pre-clause engine).</summary>
     private string CollationLit(AlphabetDef? def) =>
-        def is null ? "null" : ReferenceEquals(def, ctx.Data.State.Configuration.Collating) ? "__COLLATE" : CollationEmit.New(def);
+        def is null ? "null" : ReferenceEquals(def, ctx.Data.Configuration.Collating) ? "__COLLATE" : CollationEmit.New(def);
 
     // ── READ (ISO §14.9.30) ────────────────────────────────────────────────────────────────────────────────────
 

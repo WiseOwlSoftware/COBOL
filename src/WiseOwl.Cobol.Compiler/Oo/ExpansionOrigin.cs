@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -44,7 +43,7 @@ internal sealed record SkeletonSource(string Name, string Identity, bool IsInter
 /// <summary>
 /// WHAT MAKES A CLASS OR AN INTERFACE AN EXPANSION (ISO §12.3.8.4 GR5 / GR8): the skeleton it was made from, the REPOSITORY entry
 /// that asked for it (<c>CLASS name [AS literal] EXPANDS definition USING actual …</c>) and the words of its actuals as that entry's
-/// paragraph declares them. The class symbol carries it (<see cref="OoClassSymbol.Expansion"/>) so the repository can publish the
+/// paragraph declares them. The bind session's source map holds it for the expansion's symbol (<c>SourceMap.ExpansionOf</c>, kb/Work PB2401) so the repository can publish the
 /// expansion's identity and the placement pass can name what it means; an actual's IDENTITY is asked of the table once the table
 /// exists, as a resolution's is.
 /// </summary>

@@ -1,13 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Binding;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1079 — an external file connector's entry identity (<c>OoEmitter.SelectFingerprint</c>, the string two
+/// kb/Work PB1079 — an external file connector's entry identity (<c>FileEntryIdentity.Of</c>, the string two
 /// describers compare for EC-EXTERNAL-FILE-MISMATCH) is the WHOLE of ISO §12.4.5.3 GR1: §14.8.4.4 says "the rules
 /// specified in 12.4.5, File control entry General rule 1 apply", and GR1 lists a) through m). The fingerprint used to
 /// omit c) RECORD DELIMITER, d) RESERVE, g) COLLATING SEQUENCE and k)'s SUPPRESS WHEN phrase, so an entry differing
@@ -64,13 +64,13 @@ public sealed class ExternalFileEntryIdentityTests
     {
         var changed = Entry();
         change(changed);
-        Assert.True(OoEmitter.SelectFingerprint(Entry()) != OoEmitter.SelectFingerprint(changed),
-            $"§12.4.5.3 GR1 {item}: an entry differing only in it has the same identity '{OoEmitter.SelectFingerprint(changed)}'");
+        Assert.True(FileEntryIdentity.Of(Entry()) != FileEntryIdentity.Of(changed),
+            $"§12.4.5.3 GR1 {item}: an entry differing only in it has the same identity '{FileEntryIdentity.Of(changed)}'");
     }
 
     [Fact]
     public void Identical_entries_have_one_identity()
-        => Assert.Equal(OoEmitter.SelectFingerprint(Entry()), OoEmitter.SelectFingerprint(Entry()));
+        => Assert.Equal(FileEntryIdentity.Of(Entry()), FileEntryIdentity.Of(Entry()));
 
     [Fact]
     public void Key_level_collating_is_compared_by_key_position_not_clause_order()
@@ -79,7 +79,7 @@ public sealed class ExternalFileEntryIdentityTests
         // as two clauses in either order specify the same thing.
         var a = Entry(); a.KeyLevelCollating.Add(KeyClause("XK", "ALPHA1")); a.KeyLevelCollating.Add(KeyClause("XA", "ALPHA2"));
         var b = Entry(); b.KeyLevelCollating.Add(KeyClause("XA", "alpha2")); b.KeyLevelCollating.Add(KeyClause("XK", "alpha1"));
-        Assert.Equal(OoEmitter.SelectFingerprint(a), OoEmitter.SelectFingerprint(b));
+        Assert.Equal(FileEntryIdentity.Of(a), FileEntryIdentity.Of(b));
     }
 
     /// <summary>A SOURCE phrase as written, its operands unresolved (no record items in this model), so the
@@ -97,6 +97,6 @@ public sealed class ExternalFileEntryIdentityTests
         // specified (§12.4.5.12.4 GR2), so XB XC and XC XB are different keys.
         var a = Entry(); a.RecordKeySource = Source("XK", "XB", "XC");
         var b = Entry(); b.RecordKeySource = Source("XK", "XC", "XB");
-        Assert.NotEqual(OoEmitter.SelectFingerprint(a), OoEmitter.SelectFingerprint(b));
+        Assert.NotEqual(FileEntryIdentity.Of(a), FileEntryIdentity.Of(b));
     }
 }

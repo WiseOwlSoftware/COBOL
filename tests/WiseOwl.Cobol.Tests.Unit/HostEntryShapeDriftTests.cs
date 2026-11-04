@@ -306,7 +306,8 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
     /// <summary>⛔ ONE RENDERER (DESIGN-external-repository §17.3): what a host entry's argument states for §14.9.4.4 3) d) —
     /// its storage length and its description — is rendered by the CALL lane's <c>CallEmitter.Described</c>, the renderer a
     /// CALL statement's argument is stated by, from the builders a CALL argument's facts come from
-    /// (<c>CallEmitter.ArgumentLength</c>, <c>ActivationDescriptions.Of</c>). The entry composes neither fact itself, and the
+    /// (<c>CallEmitter.ArgumentLength</c>, and <c>ActivationDescriptions.Of</c>, which the binder runs for the entry unit's formals:
+    /// <c>BoundUnit.FormalDescriptions</c>, kb/Work PB2403). The entry composes neither fact itself, and the
     /// emitted fixture shows every described argument in that renderer's form.</summary>
     [Fact]
     public void AHostEntryArgument_IsStatedByTheCallLanesRenderer()
@@ -317,7 +318,8 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
             .DescendantTokens().Select(t => t.Text));
         Assert.Contains("CallEmitter.Described(", src);
         Assert.Contains("CallEmitter.ArgumentLength(", src);
-        Assert.Contains("ActivationDescriptions.Of(", src);
+        Assert.Contains("unit.FormalDescriptions[", src);
+        Assert.DoesNotContain("ActivationDescriptions.", src);
         Assert.DoesNotContain("Length:", src);
         Assert.DoesNotContain("Length =", src);
         Assert.DoesNotContain("Description:", src);
@@ -439,10 +441,10 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
             string at = $"{c.Edition}/{c.Id}";
             try
             {
-                var comp = RepositoryCodecTests.BindFile(c.Path, c.Edition, c.Format);
-                string generated = new WiseOwl.Cobol.CodeGen.CSharpEmitter().EmitBound(comp, "corpus", repositoryUpdate: false);
-                var entries = WiseOwl.Cobol.CodeGen.HostEntryEmitter.EntryUnits(comp.Units).ToList();
-                var expected = WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, comp.ClassUnits, comp.Expansions, entries)
+                var comp = RepositoryCodecTests.BindFile(c.Path, c.Edition, c.Format, repositoryUpdate: false);
+                string generated = new WiseOwl.Cobol.CodeGen.CSharpEmitter().EmitBound(comp, "corpus");
+                var entries = comp.EntryUnits.ToList();
+                var expected = WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer.IndexOf(comp.Interfaces, comp.ClassUnits, comp.Expansions, entries)
                     .Select(r => $"{r.Kind}|{SymbolDisplay.FormatLiteral(r.Word, quote: true)}|{SymbolDisplay.FormatLiteral(r.ExternalizedName, quote: true)}").ToList();
                 var lines = generated.Split('\n');
                 var emitted = new List<string>();
@@ -461,7 +463,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
                     failures.Add($"{at}: the module's [CobolUnit]s are [{string.Join(", ", emitted)}], its units [{string.Join(", ", expected)}]");
                 var index = IndexRows.Match(generated);
                 string rows = index.Success ? index.Groups[1].Value : "";
-                string expectedRows = string.Join(", ", WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, comp.ClassUnits, comp.Expansions, entries)
+                string expectedRows = string.Join(", ", WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer.IndexOf(comp.Interfaces, comp.ClassUnits, comp.Expansions, entries)
                     .Select(r => SymbolDisplay.FormatLiteral(WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.EncodeUnit(r.Kind, r.ExternalizedName, r.Word), quote: true)));
                 if (rows != expectedRows) failures.Add($"{at}: the Units index is [{rows}], the units [{expectedRows}]");
                 Interlocked.Add(ref units, emitted.Count);

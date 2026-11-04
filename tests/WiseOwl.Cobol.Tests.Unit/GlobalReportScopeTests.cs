@@ -280,7 +280,7 @@ public sealed class GlobalReportScopeTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = level }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(level);
-            new CSharpEmitter().Bind(tree!, edition);
+            new BinderDriver().Bind(tree!, edition);
             return [.. edition.Diagnostics];
         }
         finally { FileHarness.TryDelete(path); }
@@ -298,7 +298,7 @@ public sealed class GlobalReportScopeTests
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
             var edition = new EditionContext(85);
-            var bound = emitter.Bind(tree!, edition, frontend.Directives);
+            var bound = new BinderDriver().Bind(tree!, edition, frontend.Directives);
             Assert.False(edition.HasErrors, string.Join("\n", edition.Diagnostics));
             return emitter.EmitBound(bound, "DRIFTPROBE");
         }

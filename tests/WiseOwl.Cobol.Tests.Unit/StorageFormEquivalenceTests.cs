@@ -53,12 +53,12 @@ internal static class StorageFormEquivalence
 
         var emitter = new CSharpEmitter();
         var edition = new EditionContext(dialect, permissive: false);
-        var bound = emitter.Bind(tree, edition, frontend.Directives);   // runs MarkStoreAsImage + OO harmonize + StorageFormPass.Compute
+        var bound = new BinderDriver().Bind(tree, edition, frontend.Directives);   // runs MarkStoreAsImage + OO harmonize + StorageFormPass.Compute
 
-        var binders = bound.Units.Select(u => u.Data)
+        var results = bound.Units.Select(u => u.Data)
             .Concat(bound.ClassUnits.SelectMany(c => new[] { c.Data, c.FactoryData }));
         var divergences = new List<string>();
-        foreach (var b in binders)
+        foreach (var b in results)
         {
             divergences.AddRange(StorageFormPass.Verify(b));
         }
@@ -159,7 +159,7 @@ internal static class StorageFormEquivalence
 /// The PHASE-05 Step 2 (D0) prove-then-delete gate: the new <see cref="StorageFormPass"/> computes a canonical
 /// <see cref="Model.StorageForm"/> in parallel with the legacy <c>StoreAsImage</c> flag + the recursive image-fact
 /// properties, and this test asserts they are EQUAL corpus-wide (four identities per item — see
-/// <see cref="StorageFormPass.Verify"/>) BEFORE any deletion. Drives the FULL <c>emitter.Bind</c> path (which runs
+/// <see cref="StorageFormPass.Verify"/>) BEFORE any deletion. Drives the FULL <c>BinderDriver.Bind</c> path (which runs
 /// <c>MarkStoreAsImage</c> + the OO harmonize + <c>StorageFormPass.Compute</c>) — NOT the bare <c>DataBinder.Bind</c>,
 /// which skips the middle-end passes. (Exit criterion #3.)
 /// <para>This class holds the CRAFTED cases only; the corpus-wide sweep is the partitioned

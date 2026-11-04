@@ -4,7 +4,6 @@ using System.Reflection;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using Xunit;
@@ -136,7 +135,7 @@ public sealed class OpenGroupScopeDriftTests
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var edition = new EditionContext(2023);
-            var bound = new CSharpEmitter().Bind(tree!, edition, frontend.Directives);
+            var bound = new BinderDriver().Bind(tree!, edition, frontend.Directives);
             Assert.Empty(edition.Diagnostics);
             var entries = new List<BoundOpenFile>();
             foreach (BoundStatement statement in bound.Units.SelectMany(u => u.Bound.Paragraphs).SelectMany(p => p.Statements))

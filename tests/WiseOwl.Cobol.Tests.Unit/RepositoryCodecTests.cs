@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Runtime.CompilerServices;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -104,9 +104,9 @@ public sealed class RepositoryCodecTests
     public void TheRecord_StatesTheUnitFactsSection813Lists()
     {
         var comp = Bind(Source, 2023);
-        var record = RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RTONE"));
+        var record = RecordOf(comp, comp.Units.Single(u => u.Name == "RTONE"));
         Assert.Equal(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Program, record.Kind);
-        Assert.Equal(RepositoryCodec.CobolEntryConvention, record.EntryConvention);
+        Assert.Equal(RepositoryRecord.CobolEntryConvention, record.EntryConvention);
         Assert.Contains(record.Currencies, c => c.Symbol == 'U' && c.Text == "EUR");
         Assert.Equal(9, record.Formals.Count);
         Assert.Equal(WiseOwl.Cobol.Runtime.Repository.PassingMode.Value, record.Formals[8].Mode);
@@ -124,7 +124,7 @@ public sealed class RepositoryCodecTests
         Assert.Equal(0, record.ReferencedPrototypes[0].Formals[1].Description.Pic!.RestrictedPrototype);
         Assert.Equal(pp, record.ReferencedPrototypes[0].Formals[1].Description.TypeDeclaration);
         Assert.Equal(t1, record.Formals[4].Description.Pic!.RestrictedTypeDeclaration);
-        Assert.True(RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RTTWO")).Formals[1].Optional);
+        Assert.True(RecordOf(comp, comp.Units.Single(u => u.Name == "RTTWO")).Formals[1].Optional);
     }
 
     // A class and an interface whose records cover what ISO §8.13 lists for them: "the object properties of the source unit"
@@ -262,7 +262,7 @@ public sealed class RepositoryCodecTests
         // The object roster, then the factory roster; an accessor carries its property's externalized name (ISO §12.3.8.4 GR2).
         Assert.Equal([("SCALE", false), ("FILL-IN", false), ("TAG", false), ("TAG", false), ("MAKE", true), ("F-COUNT", true), ("F-COUNT", true)],
             c.Methods.Select(m => (m.ExternalizedName, m.IsFactory)));
-        Assert.All(c.Methods, m => Assert.Equal(RepositoryCodec.CobolEntryConvention, m.EntryConvention));
+        Assert.All(c.Methods, m => Assert.Equal(RepositoryRecord.CobolEntryConvention, m.EntryConvention));
         var fill = c.Methods.Single(m => m.Name == "FILL-IN");
         Assert.True(fill.Formals[1].Optional);
         Assert.Equal(["OT", "MT"], cls.TypeDeclarations.Select(t => t.Name!));
@@ -309,7 +309,7 @@ public sealed class RepositoryCodecTests
     {
         var comp = Bind(AmbiguousNamesSource, 2023);
         var unit = comp.Units.Single(u => u.Name == "RTQUAL");
-        var record = RepositoryCodec.Of(unit);
+        var record = RecordOf(comp, unit);
         Assert.Equal(4, record.Formals[0].Description.Children[2].Table!.DependingEntry);   // REC 0, A 1, N 2, B 3, N 4
         var decoded = RepositoryCodec.Decode(record);
         var t = decoded.Formals[0].Item.Children[2];
@@ -343,14 +343,14 @@ public sealed class RepositoryCodecTests
                """, 2023, permissive: true);
         var bound = comp.Units.Single(u => u.Name == "RCHAIN").Data.Linkage.Formals[0].Item;
         Assert.Same(bound.Children[1], bound.Children[2].RedefinesTarget);
-        var decoded = RepositoryCodec.Decode(RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RCHAIN")));
+        var decoded = RepositoryCodec.Decode(RecordOf(comp, comp.Units.Single(u => u.Name == "RCHAIN")));
         var rec = decoded.Formals[0].Item;
         Assert.Same(rec.Children[0], rec.Children[1].RedefinesTarget);
         Assert.Same(rec.Children[1], rec.Children[2].RedefinesTarget);
         Assert.Equal(["RCHAIN"], RoundTripAll(comp));
 
         // The one record the rule leaves undecodable is one no compilation writes: a word naming no preceding sibling.
-        var record = RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RCHAIN"));
+        var record = RecordOf(comp, comp.Units.Single(u => u.Name == "RCHAIN"));
         var d = record.Formals[0].Description;
         var unnamed = record with
         {
@@ -365,7 +365,33 @@ public sealed class RepositoryCodecTests
     {
         var comp = Bind(Source, 2023);
         var unit = comp.Units.Single(u => u.Name == "RTONE");
-        Assert.Equal(RepositoryCodec.Of(unit), RepositoryCodec.Of(unit));
+        Assert.Equal(RecordOf(comp, unit), RecordOf(comp, unit));
+    }
+
+    /// <summary>⛔ THE BACKEND READS THE RECORD THE BINDER WROTE (kb/Work PB4319; DESIGN-codegen-backend §2.2). Under
+    /// <c>--repository-update on</c> every unit the module publishes carries, on the bound compilation, exactly the record the
+    /// encoder writes for it — each entry unit, each class and each interface — and no other unit carries one; with the option
+    /// off the compilation says so and no unit carries a record, so a backend emits the identities alone.</summary>
+    [Fact]
+    public void TheBoundCompilation_CarriesEachPublishedUnitsRecord_OnlyWhenItUpdatesTheRepository()
+    {
+        var on = Bind(Source, 2023);
+        Assert.True(on.PublishesSignatures);
+        Assert.Equal(["PRTA", "RTONE", "RTTWO"], on.EntryUnits.Select(u => u.Name));
+        Assert.All(on.EntryUnits, u => Assert.Equal(RecordOf(on, u), u.Record));
+        Assert.All(on.Units.Except(on.EntryUnits), u => Assert.Null(u.Record));
+
+        var oo = Bind(OoSource, 2023);
+        Assert.NotEmpty(oo.ClassUnits);
+        Assert.All(oo.ClassUnits, c => Assert.Equal(RecordOf(oo, c), c.Record));
+        Assert.Equal(oo.Interfaces.ToHashSet(), oo.InterfaceRecords.Keys.ToHashSet());
+        Assert.All(oo.Interfaces, i => Assert.Equal(RecordOf(oo, i), oo.InterfaceRecords[i]));
+
+        var off = Bind(OoSource, 2023, repositoryUpdate: false);
+        Assert.False(off.PublishesSignatures);
+        Assert.All(off.Units, u => Assert.Null(u.Record));
+        Assert.All(off.ClassUnits, c => Assert.Null(c.Record));
+        Assert.Empty(off.InterfaceRecords);
     }
 
     /// <summary>§6.4 part 3 and §17.2's perturbation: a record whose referenced prototype lost a formal no longer has its
@@ -375,7 +401,7 @@ public sealed class RepositoryCodecTests
     {
         var comp = Bind(Source, 2023);
         var unit = comp.Units.Single(u => u.Name == "RTONE");
-        var record = RepositoryCodec.Of(unit);
+        var record = RecordOf(comp, unit);
         var row = record.ReferencedPrototypes[0];
         var perturbed = record with
         {
@@ -395,7 +421,7 @@ public sealed class RepositoryCodecTests
     {
         var comp = Bind(Source, 2023);
         var unit = comp.Units.Single(u => u.Name == "RTONE");
-        var record = RepositoryCodec.Of(unit);
+        var record = RecordOf(comp, unit);
         var g2 = record.Formals[1];
         var renamed = record with
         {
@@ -424,7 +450,7 @@ public sealed class RepositoryCodecTests
     public void AMalformedRecord_IsRefusedByName()
     {
         var comp = Bind(Source, 2023);
-        var record = RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RTONE"));
+        var record = RecordOf(comp, comp.Units.Single(u => u.Name == "RTONE"));
         var f4 = record.Formals[3];
         var pastTheTable = record with
         {
@@ -454,7 +480,7 @@ public sealed class RepositoryCodecTests
         {
             (table.Table! with { DependingEntry = 0 }, "which entry 0 ('G1') is not"),
             (table.Table! with { DependingEntry = null }, "with entry none"),
-            (table.Table! with { Depending = RepositoryCodec.OutsideTheRecord }, "DEPENDING ON '<outside>' with entry 1"),
+            (table.Table! with { Depending = OccursRecord.OutsideTheRecord }, "DEPENDING ON '<outside>' with entry 1"),
             (table.Table! with { DependingEntry = 9 }, "index 9"),
         })
         {
@@ -478,7 +504,7 @@ public sealed class RepositoryCodecTests
         var names = new List<string>();
         foreach (var unit in comp.Units.Where(u => u.Parent is null))
         {
-            RoundTrip(unit);
+            RoundTrip(comp, unit);
             names.Add(unit.Name);
         }
         foreach (var (record, methods) in OoRecordsOf(comp))
@@ -494,30 +520,30 @@ public sealed class RepositoryCodecTests
     }
 
     /// <summary>Every interface's and every class's record (<see cref="RepositoryCodec.Of(OoInterfaceSymbol, DataBinder)"/>,
-    /// <see cref="RepositoryCodec.Of(OoClassUnit)"/>), each with the methods its record lists in their order — the object
+    /// <see cref="RepositoryCodec.Of(OoClassUnit, DataBinder, ExpansionIdentity?)"/>), each with the methods its record lists in their order — the object
     /// roster, then the factory roster — after checking that two encodings of it are equal.</summary>
     internal static IEnumerable<(RepositoryRecord Record, IReadOnlyList<OoMethodSymbol> Methods)> OoRecordsOf(BoundCompilation comp)
     {
-        foreach (var iface in comp.OoClasses.Interfaces)
+        foreach (var iface in comp.Interfaces)
         {
-            var record = RepositoryCodec.Of(iface, comp.InterfaceData[iface]);
-            Assert.Equal(record, RepositoryCodec.Of(iface, comp.InterfaceData[iface]));
+            var record = RecordOf(comp, iface);
+            Assert.Equal(record, RecordOf(comp, iface));
             yield return (record, iface.Prototypes);
         }
         foreach (var cls in comp.ClassUnits)
         {
-            var record = RepositoryCodec.Of(cls);
-            Assert.Equal(record, RepositoryCodec.Of(cls));
+            var record = RecordOf(comp, cls);
+            Assert.Equal(record, RecordOf(comp, cls));
             yield return (record, [.. cls.Symbol.Methods, .. cls.Symbol.FactoryMethods]);
         }
     }
 
     /// <summary>§6.3's invariant for one unit: <c>Decode(Of(unit))</c> is indistinguishable from the unit's LINKAGE to every
     /// comparator and derived quantity.</summary>
-    internal static void RoundTrip(BoundUnit unit)
+    internal static void RoundTrip(BoundCompilation comp, BoundUnit unit)
     {
-        var record = RepositoryCodec.Of(unit);
-        Assert.Equal(record, RepositoryCodec.Of(unit));
+        var record = RecordOf(comp, unit);
+        Assert.Equal(record, RecordOf(comp, unit));
         var decoded = RepositoryCodec.Decode(record);
         var formals = unit.Data.Linkage.Formals;
         RoundTrip(unit.Name, formals.Select(f => (f.Item, f.Position, f.ByValue, f.Optional)).ToList(), unit.Data.Linkage.Returning,
@@ -603,24 +629,46 @@ public sealed class RepositoryCodecTests
         }
     }
 
-    internal static BoundCompilation Bind(string source, int edition, bool permissive = false)
+    internal static BoundCompilation Bind(string source, int edition, bool permissive = false, bool repositoryUpdate = true)
     {
         string path = Path.Combine(Path.GetTempPath(), $"repocodec_{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, source);
-        try { return BindFile(path, edition, InitialReferenceFormat.Auto, permissive); }
+        try { return BindFile(path, edition, InitialReferenceFormat.Auto, permissive, repositoryUpdate); }
         finally { FileHarness.TryDelete(path); }
     }
 
-    internal static BoundCompilation BindFile(string path, int edition, InitialReferenceFormat format, bool permissive = false)
+    internal static BoundCompilation BindFile(string path, int edition, InitialReferenceFormat format, bool permissive = false,
+        bool repositoryUpdate = true)
     {
         var diags = new DiagnosticBag();
         var frontend = new CnFrontend { InitialFormat = format, DialectLevel = edition };
         frontend.AddCopySearchPath(Path.GetDirectoryName(path)!);   // the suite's library: the case's own directory
         var tree = frontend.Parse(path, diags);
         Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
-        var context = new EditionContext(edition, permissive);
-        var comp = new CSharpEmitter().Bind(tree!, context, frontend.Directives);
+        var context = new EditionContext(edition, permissive) { RepositoryUpdate = repositoryUpdate };
+        var driver = new BinderDriver();
+        var comp = driver.Bind(tree!, context, frontend.Directives);
         Assert.False(context.HasErrors, string.Join("\n", context.Diagnostics));
+        Sessions.Add(comp, driver.Session);
         return comp;
     }
+
+    /// <summary>The binder-side half of each bind this helper made, keyed by its compilation: the encoder reads a source element's
+    /// data binder (<see cref="RepositoryCodec.Of(BoundUnit, DataBinder)"/>), which the bound compilation a backend reads does not
+    /// carry (kb/Work PB2361).</summary>
+    private static readonly ConditionalWeakTable<BoundCompilation, BindSession> Sessions = new();
+
+    private static ElementBinders BindersOf(BoundCompilation comp) =>
+        Sessions.TryGetValue(comp, out var session) ? session.Binders
+            : throw new InvalidOperationException("the compilation was not bound by RepositoryCodecTests.BindFile");
+
+    /// <summary>The record the encoder writes for <paramref name="unit"/> of <paramref name="comp"/>.</summary>
+    internal static RepositoryRecord RecordOf(BoundCompilation comp, BoundUnit unit) => RepositoryCodec.Of(unit, BindersOf(comp).Of(unit).Data);
+
+    /// <summary>The record the encoder writes for the class <paramref name="cls"/> of <paramref name="comp"/>.</summary>
+    internal static RepositoryRecord RecordOf(BoundCompilation comp, OoClassUnit cls) => RepositoryCodec.Of(cls, BindersOf(comp).ObjectOf(cls).Data);
+
+    /// <summary>The record the encoder writes for the interface <paramref name="iface"/> of <paramref name="comp"/>.</summary>
+    internal static RepositoryRecord RecordOf(BoundCompilation comp, OoInterfaceSymbol iface) =>
+        RepositoryCodec.Of(iface, BindersOf(comp).Interfaces[iface]);
 }

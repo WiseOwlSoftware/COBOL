@@ -74,7 +74,7 @@ public sealed class PerformVaryingOperandWindowDriftTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = 2002 }.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
-            return emitter.EmitBound(emitter.Bind(tree!, new EditionContext(2002)), "DRIFTPROBE");
+            return emitter.EmitBound(new BinderDriver().Bind(tree!, new EditionContext(2002)), "DRIFTPROBE");
         }
         finally { FileHarness.TryDelete(path); }
     }

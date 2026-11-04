@@ -128,8 +128,8 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
         bool IsUserFunction(string fn) => binder.State.Configuration.UserFunctionNames.Contains(fn) || binder.UnitIsFunction && binder.ContainingDefinitionNames.Contains(fn);
         var own = binder.Oo.IsClassUnit
-            ? binder.Oo.BoundMethods.Where(m => m.Origin is OoSymbolOrigin.Source && m.Ctx.procedureDivision() is not null)
-                .SelectMany(m => binder.ClaimScans.ByReferenceOperands(m.Ctx.procedureDivision(), IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)m)))
+            ? binder.Oo.BoundMethods.Select(m => (Method: m, Body: binder.Oo.BodyOf(m))).Where(b => b.Body is not null)
+                .SelectMany(b => binder.ClaimScans.ByReferenceOperands(b.Body!, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)b.Method)))
             : program.procedureDivision() is { } opd
                 ? binder.ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
                 : [];
@@ -143,7 +143,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
             // with an object-reference or pointer leaf has no character image, so its BY CONTENT record (§14.2.3 GR9) is
             // a detached copy of its area and a CALL's RETURNING delivery (§14.6.5) is a store into its receiver's area.
             // Either needs the operand in a cell; every other BY CONTENT operand or RETURNING receiver crosses as a value.
-            if (slotsOnly && !WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(hit)) continue;
+            if (slotsOnly && !ActivationCrossing.LeafCarried(hit)) continue;
             DataItem root = hit.Root;
             if (contained && !binder.Linkage.GlobalRoots.Contains(root)) continue;
             if (binder.AlreadyInACell(root) || root.Section is EntrySection.Linkage || !DataBinder.CellCanCarry(root)) continue;
@@ -220,7 +220,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         if (binder.Oo.IsClassUnit)
         {
             foreach (var m in binder.Oo.BoundMethods)
-                if (m.Origin is OoSymbolOrigin.Source && m.Ctx.procedureDivision() is { } mpd)
+                if (binder.Oo.BodyOf(m) is { } mpd)
                     foreach (var (n, q) in binder.ClaimScans.AddressTargets(mpd))
                         yield return (n, q, m);
             yield break;

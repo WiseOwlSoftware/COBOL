@@ -27,8 +27,8 @@ public sealed class MethodConformanceRuleSetDriftTests
     }
 
     [Theory]
-    [InlineData("public static void ValidateOverrideSignatures(")]
-    [InlineData("public static IReadOnlyList<AdapterPair> ValidateImplements(")]
+    [InlineData("internal static void ValidateOverrideSignatures(")]
+    [InlineData("internal static IReadOnlyList<AdapterPair> ValidateImplements(")]
     [InlineData("public static bool InterfaceConformsTo(")]
     public void EveryAsker_CallsTheOneRuleSet_AndSpellsNoRuleOfItsOwn(string signature)
     {

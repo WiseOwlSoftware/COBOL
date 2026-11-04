@@ -1514,7 +1514,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         ArgArray(ic, 0, "string", a => admitNumeric ? StrNum(a) : Str(a))   // a table(ALL) enumerates (kb/Work PB62)
         ?? string.Join(", ", ic.Args.Select(a => admitNumeric ? StrNum(a) : Str(a)));
 
-    private string CommaFlag => ctx.Data.State.Configuration.DecimalPointIsComma ? ", commaMode: true" : "";
+    private string CommaFlag => ctx.Data.Configuration.DecimalPointIsComma ? ", commaMode: true" : "";
 
     /// <summary>The ANYCASE named argument (§15.68.3 r4f / §15.37.4 r4 — the ONE <see cref="BoundIntrinsicCall.Anycase"/>
     /// flag), rendered only when present so the default-free call stays byte-stable.</summary>
@@ -1527,7 +1527,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// argument-1's class), only when the module HAS a classification and an ANYCASE comparison is in play, which keeps
     /// every other emission byte-stable.</summary>
     private string AnycaseClassification(BoundIntrinsicCall ic) =>
-        ctx.Data.State.Configuration.Classification is not null
+        ctx.Data.Configuration.Classification is not null
         && (ic.Anycase || (ic.SubstituteModes?.Any(m => (m & 4) != 0) ?? false))
             ? $", classification: {ObjectComputerEmit.ClassificationExpr(ic.Args[0])}" : "";
 
@@ -1599,7 +1599,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // the invariant map the function always used).
             "UpperCase" or "LowerCase" when ic.Locale.Tag is { } caseTag =>
                 RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {EmitText.CsLiteral(caseTag)}"),
-            "UpperCase" or "LowerCase" when ctx.Data.State.Configuration.Classification is not null =>
+            "UpperCase" or "LowerCase" when ctx.Data.Configuration.Classification is not null =>
                 RuntimeApi.LocaleFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}{ObjectComputerEmit.ClassificationArg(ic.Args[0])}"),
             "UpperCase" or "LowerCase" or "Reverse" =>                         // §15.97/57/78 — length-preserving
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])),

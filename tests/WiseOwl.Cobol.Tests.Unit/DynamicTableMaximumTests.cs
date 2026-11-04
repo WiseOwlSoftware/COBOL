@@ -25,7 +25,7 @@ public sealed class DynamicTableMaximumTests
 {
     private const int ImplementorMaximum = WiseOwl.Cobol.Runtime.CobolDynTable<byte>.MaxOccurrences;
 
-    private static DataBinder Bind(string ws)
+    private static DataBindResult Bind(string ws)
     {
         string src = $"""
             IDENTIFICATION DIVISION.
@@ -64,8 +64,8 @@ public sealed class DynamicTableMaximumTests
                05 PLAIN PIC X OCCURS DYNAMIC CAPACITY IN C1.
                05 EXPECTED PIC X OCCURS DYNAMIC CAPACITY IN C2 FROM 2 TO 5.
             """);
-        var plain = d.State.Forest.ByName["PLAIN"][0];
-        var expected = d.State.Forest.ByName["EXPECTED"][0];
+        var plain = d.Forest.ByName["PLAIN"][0];
+        var expected = d.Forest.ByName["EXPECTED"][0];
         Assert.Equal(0, plain.OccursSpec!.Max);   // the premise: no allocated maximum
         Assert.Equal(ImplementorMaximum, plain.OccursSpec!.MaxCapacity);
         Assert.Equal(ImplementorMaximum, plain.VariableComponentMax);
@@ -83,7 +83,7 @@ public sealed class DynamicTableMaximumTests
                05 DYNLEN PIC X DYNAMIC LENGTH LIMIT IS 10.
                05 T PIC X OCCURS DYNAMIC CAPACITY IN C1.
             """);
-        var window = WindowOf(d.State.Forest.ByName["G"][0]);
+        var window = WindowOf(d.Forest.ByName["G"][0]);
         // storage order: the dynamic-length item, then the table
         Assert.Equal(new[] { 10, ImplementorMaximum }, window.DynMax);
     }
@@ -97,7 +97,7 @@ public sealed class DynamicTableMaximumTests
                   10 K PIC X.
                   10 INNER PIC X OCCURS DYNAMIC CAPACITY IN C2.
             """);
-        var window = WindowOf(d.State.Forest.ByName["G"][0]);
+        var window = WindowOf(d.Forest.ByName["G"][0]);
         Assert.Equal(new[] { ImplementorMaximum }, window.DynMax);
         var shape = Assert.Single(window.DynElem)!;
         Assert.Equal(new[] { ImplementorMaximum }, shape.DynMax);
@@ -112,6 +112,6 @@ public sealed class DynamicTableMaximumTests
                05 FIXED-T PIC X OCCURS 4.
                05 ODO-T PIC X OCCURS 1 TO 6 DEPENDING ON CNT.
             """);
-        Assert.Equal(6, d.State.Forest.ByName["ODO-T"][0].OccursSpec!.MaxCapacity);
+        Assert.Equal(6, d.Forest.ByName["ODO-T"][0].OccursSpec!.MaxCapacity);
     }
 }

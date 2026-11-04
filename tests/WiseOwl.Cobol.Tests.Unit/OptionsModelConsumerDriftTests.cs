@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 

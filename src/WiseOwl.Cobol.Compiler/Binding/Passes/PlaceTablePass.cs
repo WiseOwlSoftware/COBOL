@@ -19,12 +19,18 @@ internal static class PlaceTablePass
     public static void Run(GroupBindContext ctx)
     {
         if (ctx.Session.Edition.HasErrors) return;
+        var binders = ctx.Session.Binders;
         foreach (var unit in ctx.Units)
-            unit.Places = TableOf(unit.Data, unit.Refs, ContainersOf(unit).SelectMany(c => c.Data.GlobalPlaceableItems()));
+        {
+            var (data, refs) = binders.Of(unit);
+            unit.Places = TableOf(data, refs, ContainersOf(unit).SelectMany(c => binders.Of(c).Data.GlobalPlaceableItems()));
+        }
         foreach (var cls in ctx.Classes)
         {
-            cls.Places = TableOf(cls.Data, cls.Refs, []);
-            cls.FactoryPlaces = TableOf(cls.FactoryData, cls.FactoryRefs, []);
+            var (data, refs) = binders.ObjectOf(cls);
+            cls.Places = TableOf(data, refs, []);
+            var (factoryData, factoryRefs) = binders.FactoryOf(cls);
+            cls.FactoryPlaces = TableOf(factoryData, factoryRefs, []);
         }
     }
 

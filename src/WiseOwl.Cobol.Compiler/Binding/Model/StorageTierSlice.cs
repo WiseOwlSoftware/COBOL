@@ -1,9 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Passes;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The STORAGE-TIER facts of ONE bound unit (ISO §13.5.4 GR1 static data, §14.6.2.3.2 initial state, §13.18.5 BASED and
@@ -54,14 +53,24 @@ public sealed class StorageTierSlice
     /// static channels (<see cref="StaticRootFields"/>, <see cref="StaticBasedBridgeAddrs"/>, <see cref="StaticAddressableCells"/>,
     /// <see cref="StaticIndexCells"/>), i.e. it is ONE copy per class (§13.5.4 GR1) and C# reaches it through the CLASS name,
     /// never through an instance (CS0176). A contained program's reference to a container's member asks it, through
-    /// <c>BoundUnit.AnchorOf</c>, so a container with static working-storage composes with its containees' GLOBAL bridges
+    /// <see cref="AnchorOf"/>, so a container with static working-storage composes with its containees' GLOBAL bridges
     /// (kb/Work PB1133). A new static channel joins THIS predicate and nothing else.</summary>
     public bool IsStaticMember(string csMember) =>
         _staticRootFields.Contains(csMember) || _staticBasedBridgeAddrs.Contains(csMember)
         || _staticAddressableCells.Contains(csMember) || _staticIndexCells.Contains(csMember);
 
+    /// <summary>⛔ THE ONE ANCHOR OF A CONTAINER MEMBER (kb/Work PB1133): how a program <paramref name="depth"/>
+    /// containment levels INSIDE the unit this slice belongs to reaches that unit's class member <paramref name="csMember"/> —
+    /// through the chain of containing instances for an instance member, through the unit's CLASS
+    /// (<paramref name="classClrName"/>) for a static one (<see cref="IsStaticMember"/>: ISO §13.5.4 GR1's static data is
+    /// one copy on the class, which no instance names). Every place a contained program reaches into a container's data asks
+    /// here: the GLOBAL bridges (<c>LinkageBinder.GlobalBridgesOf</c>, through <c>InheritStep.Merge</c>). The answer is
+    /// structure, which each backend spells (kb/Work PB4320).</summary>
+    public ContainerAnchor AnchorOf(string classClrName, string csMember, int depth) =>
+        IsStaticMember(csMember) ? new ContainerAnchor.Static(classClrName) : new ContainerAnchor.Instance(depth);
+
     /// <summary>True when any static channel holds a member: the storage half of the condition for emitting
-    /// <c>__ResetStatics</c> (<c>DataBinder.EmitsStaticReset</c> adds the unit-scoped file-registration flag).</summary>
+    /// <c>__ResetStatics</c> (<see cref="DataBindResult.EmitsStaticReset"/> adds the unit-scoped file-registration flag).</summary>
     public bool HasStaticMembers =>
         _staticRootFields.Count > 0 || _staticBasedBridgeAddrs.Count > 0 || _staticAddressableCells.Count > 0 || _staticIndexCells.Count > 0;
 

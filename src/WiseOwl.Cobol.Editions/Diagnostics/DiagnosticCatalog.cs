@@ -1536,10 +1536,11 @@ public static class DiagnosticCatalog
     // data item — one compose-local variable per counter, in scope within its entry and every subordinate entry
     // (SR2) — so a FROM, a BY, a SOURCE and a subscript all resolve it through the ONE expression binder, and a BY
     // that names a counter of its own entry is the running recurrence GR3 b) describes.
-    public static readonly DiagnosticDescriptor ReportConditionFunction = new(
-        NotImplemented, "report-condition-function", EditionSeverity.Error,
-        "A FUNCTION reference inside a report PRESENT WHEN condition is not yet implemented.",
-        "ISO §13.18.41", RecognizedNotImplemented);
+    // ⛔ `ReportConditionFunction` (`report-condition-function`, COBOL0899) LIVED HERE AND IS GONE (kb/Work PB4517), and
+    // this comment stands where it did so it is not re-added. It refused every FUNCTION token inside a PRESENT WHEN
+    // condition — legal source (§13.18.41.2 Format 1's condition-1 is unrestricted) — because a function there needed a
+    // per-evaluation window the report clauses did not have. Every report clause operand is one now
+    // (ReportWriterBinder.BindReportGroupClauses).
     // ⛔ `ReportIndicateRelativeColumn` (`report-indicate-relative-column`, COBOL0899) LIVED HERE AND IS GONE
     // (kb/Work PB1244), and this comment stands where it did so it is not re-added. It refused GROUP INDICATE on an
     // entry with a relative (PLUS) COLUMN operand — legal source (§13.18.28.3 SR1 asks only for "a COLUMN clause") —

@@ -61,8 +61,13 @@ public sealed record BoundDebugSubject(
 /// is the implicit method return, never a run into a sibling method's paragraphs (the legacy trap-#4 guard,
 /// ported from CilEmitter's exit-bounded ranges). <paramref name="EntryPc"/> &gt; <paramref name="EndPc"/> ⇔
 /// an empty method body (emitted as an empty C# method — no dispatch call at all). <paramref name="ClrName"/> is the
-/// method's allocated CLR name (<c>OoMethodSymbol.ClrName</c>), the same for every backend (kb/Work PB4265).</summary>
-public sealed record BoundMethod(string CobolName, string ClrName, int EntryPc, int EndPc);
+/// method's allocated CLR name (<c>OoMethodSymbol.ClrName</c>), the same for every backend (kb/Work PB4265).
+/// <paramref name="Declaratives"/> are the method's own USE declaratives in source order (kb/Work PB1010; ISO §14.2.2 SR10 admits
+/// Format 1 in a method definition): §14.9.49.4 GR3 selects over "the USE statements in the source element", and GR4 a) makes the
+/// method the source element for its statements; a method is contained in no source element with a procedure division of its own
+/// (§14.2.2 SR12, SR13), so no GR4 b) GLOBAL walk exists. They sit on the bound method, beside its statements, never on the method's
+/// signature record (kb/Work PB2401).</summary>
+public sealed record BoundMethod(string CobolName, string ClrName, int EntryPc, int EndPc, IReadOnlyList<BoundDeclarative> Declaratives);
 
 /// <summary>What of the EC exception-condition model (ISO §14.6.13; CONDITIONS_EXCEPTIONS_DESIGN) a
 /// bound program actually USES — the emitter's gating summary: every piece of EC machinery (the int-returning
@@ -143,10 +148,10 @@ public abstract record BoundEoOperand;
 /// object-class-name-1". ONE clause naming BOTH object kinds, and a COBOL class is emitted as TWO DISJOINT C#
 /// hierarchies (the instance class and its sibling <c>__FACTORY_…</c> singleton, each rooted at its base's
 /// corresponding half) — so one COBOL class-name selects a SET of C# types, and the selector renders
-/// <see cref="Compiler.Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/>, the ONE census, as one C# or-pattern
+/// <see cref="OoClassSymbol.FactoryOrInstanceClrNames"/>, the ONE census, as one C# or-pattern
 /// (kb/Work PB366: testing only the instance half selected no declarative for any factory exception object,
 /// silently).</summary>
-public sealed record BoundEoClass(Compiler.Oo.OoClassSymbol Symbol) : BoundEoOperand;
+public sealed record BoundEoClass(OoClassSymbol Symbol) : BoundEoOperand;
 
 /// <summary>The interface-name-1 alternative — ISO §14.9.49.3 SR17, selected by §14.9.49.4 GR14 b): the
 /// exception object "is described with an IMPLEMENTS clause that references interface-name-1". §11.8.4 GR2
@@ -155,9 +160,9 @@ public sealed record BoundEoClass(Compiler.Oo.OoClassSymbol Symbol) : BoundEoOpe
 /// object inherits a class whose instance object implements intf-1" — and the emitter renders each emitted half
 /// of a class with exactly that closure as its C# interface list (a COBOL INTERFACE-ID emits ONE C# interface,
 /// carrying its own INHERITS as C# bases), so one test against
-/// <see cref="Compiler.Oo.OoInterfaceSymbol.ImplementedCsTypes"/> realizes all three legs for both halves
+/// <see cref="OoInterfaceSymbol.ImplementedClrNames"/> realizes all three legs for both halves
 /// (kb/Work PB365: before it this alternative had no resolution path at all and died on SR16's diagnostic).</summary>
-public sealed record BoundEoInterface(Compiler.Oo.OoInterfaceSymbol Symbol) : BoundEoOperand;
+public sealed record BoundEoInterface(OoInterfaceSymbol Symbol) : BoundEoOperand;
 
 /// <summary>A bound paragraph: its COBOL name and its SENTENCES (each a statement list — the separator-period
 /// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19.4 GR4

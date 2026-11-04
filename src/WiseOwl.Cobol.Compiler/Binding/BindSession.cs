@@ -73,6 +73,11 @@ internal sealed class BindSession
     /// <see cref="RepositoryResolver"/>'s metadata provider searches and what <c>RepositoryCheck</c> compares against.</summary>
     public RepositorySearchSpace SearchSpace { get; init; } = RepositorySearchSpace.None;
 
+    /// <summary>The parse context each unit, class, interface and method was built from (kb/Work PB2398, PB2401): neither the bound
+    /// compilation nor a symbol of the class table carries one, so the binders and the bind-time validation passes read a definition
+    /// here.</summary>
+    public required SourceMap Sources { get; init; }
+
     /// <summary>The provider that reads <see cref="SearchSpace"/> (DESIGN-external-repository §8.0): the resolver's second
     /// provider and the class table's importer (<see cref="Compiler.Oo.IOoImporter"/>). Built by <c>BinderDriver.Bind</c>
     /// BEFORE the class table, which asks it for a class a specifier names that the group does not define (§8.4 step 3).</summary>
@@ -82,6 +87,10 @@ internal sealed class BindSession
     /// done once and sliced per source element, because every unit's binder asks it about its own procedure division AND about each
     /// program it contains (kb/Work PB4302). Every unit's <see cref="DataBinder.ClaimScans"/> is this one.</summary>
     public StorageClaimScan ClaimScans { get; } = new();
+
+    /// <summary>The data binder and reference resolver of each source element of the group (<see cref="ElementBinders"/>;
+    /// kb/Work PB2361): the binder-side half the bound model does not carry.</summary>
+    public ElementBinders Binders { get; } = new();
 
     private int _uidBand;
 

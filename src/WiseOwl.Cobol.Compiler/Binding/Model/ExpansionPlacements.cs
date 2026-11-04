@@ -72,6 +72,11 @@ internal sealed record ExpansionPlacements(IReadOnlyDictionary<string, Expansion
     /// <summary>The placement of the class or interface this module names <paramref name="clrName"/>, or null when it is no expansion.</summary>
     public ExpansionPlacement? Of(string clrName) => ByName.GetValueOrDefault(clrName);
 
+    /// <summary>Whether this module emits the class or interface it names <paramref name="clrName"/>: every one but an expansion
+    /// placed in another assembly (§10.5). The one answer: the binder publishes a record for exactly these, and the backend emits
+    /// exactly these and lists them in the module's <c>Units</c> index.</summary>
+    public bool EmittedHere(string clrName) => Of(clrName) is not { Where: ExpansionWhere.Imported or ExpansionWhere.OwnAssembly };
+
     /// <summary>Whether the class, factory type or interface this module names <paramref name="clrName"/> is an expansion that lives in
     /// another assembly (imported, or written to one of its own), which this module names through a <c>using</c> alias.</summary>
     public bool LivesElsewhere(string clrName) =>

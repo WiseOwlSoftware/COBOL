@@ -3,6 +3,7 @@
 using System.Reflection;
 using WiseOwl.Cobol.Binding;
 using Xunit;
+using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 

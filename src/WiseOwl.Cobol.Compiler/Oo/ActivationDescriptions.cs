@@ -35,7 +35,7 @@ public static class ActivationDescriptions
             // §8.5.2.1: "Both the class and the category of a strongly-typed group item are the type-name specified in
             // the TYPE clause" — so match rule 3 c) needs the same type-name, and §14.8.2.2 / §14.8.3.2's "both shall be
             // of the same type" is the §8.5.3.1 identity (StrongTypeModel.TypeIdentityKey).
-            return item.IsImageCapable || item.CurrentExtentImageCapable || OoClassTable.LeafCarried(item)
+            return item.IsImageCapable || item.CurrentExtentImageCapable || ActivationCrossing.LeafCarried(item)
                 ? new ActivationDescription
                 {
                     Shape = ActivationShape.StrongGroup,

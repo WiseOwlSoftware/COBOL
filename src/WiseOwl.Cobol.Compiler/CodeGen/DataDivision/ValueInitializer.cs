@@ -276,14 +276,14 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // verbatim store below (§13.18.63.3 SR7 — the programmer supplies the edited form).
         if (pic.LocaleEdit is not null && !raw.StartsWith('"') && !raw.StartsWith('\'')
             && TryParseNumeric(FigurativeKind(raw) == 'Z' ? "0" : raw, out var luv, out int lsc)
-            && (FigurativeKind(raw) != 'Z' || ctx.Data.Edition.DialectLevel >= 2023))
+            && (FigurativeKind(raw) != 'Z' || ctx.Data.DialectLevel >= 2023))
             return RuntimeApi.LocaleEditCompose(pic, luv, lsc, item.BlankWhenZero);
 
         // A NUMERIC-EDITED item's numeric VALUE (a numeric literal, or the figurative ZERO at >= 2023) is its EDITED
         // image — the ONE compose (EditedImageOfNumericValue) the level-88 membership test shares. Below 2023 a
         // figurative ZERO falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior, VCR 35).
         if (pic.Category is PicCategory.NumericEdited
-            && EditedImageOfNumericValue(ctx.Data.Edition.DialectLevel,
+            && EditedImageOfNumericValue(ctx.Data.DialectLevel,
                     item, pic, raw) is { } editedImage)
             return EmitText.CsLiteral(editedImage);
 
@@ -459,8 +459,8 @@ internal sealed class ValueInitializer(EmitContext ctx)
     public string? FigurativeInitializer(string raw, PicInfo pic)
     {
         if (FigurativeKind(raw) is not { } k) return null;
-        string fillChar = FigurativeConstants.Fill(k, ctx.Data.State.Configuration.Collating,
-            IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfPic(pic)), ctx.Data.State.Configuration.NationalCollating);   // the CLASS (kb/Work PB442)
+        string fillChar = FigurativeConstants.Fill(k, ctx.Data.Configuration.Collating,
+            IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfPic(pic)), ctx.Data.Configuration.NationalCollating);   // the CLASS (kb/Work PB442)
         return pic.Category is PicCategory.Numeric ? pic.DefaultInitializer : $"new string({fillChar}, {pic.Length})";
     }
 
@@ -485,6 +485,6 @@ internal sealed class ValueInitializer(EmitContext ctx)
     {
         var root = item;
         while (root.Parent is { } p) root = p;
-        return ctx.Data.State.Files.Declared.Any(f => f.Records.Contains(root));
+        return ctx.Data.Files.Declared.Any(f => f.Records.Contains(root));
     }
 }

@@ -2,8 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Repository;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
@@ -26,6 +24,10 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <c>callerPath: null</c> (the outermost boundary, kb/Work R48) and <c>siteArgMismatchChecking: true</c>; a
 /// <c>finally</c> of <see cref="HostLanding"/> decodes; the RETURNING decode. No catch clause, no instance, no mapping of
 /// an EC condition: every activation step stays <c>ProgramTable.CallProgram</c>'s.</para>
+/// <para><b>The signature attributes are the unit's record, transcribed.</b> With <c>--repository-update on</c> the binder wrote
+/// each published unit's record (<see cref="BoundUnit.Record"/>; DESIGN-external-repository §6.2, §9.1; kb/Work PB4319), and
+/// <see cref="RepositoryAttributeRenderer"/> transcribes it onto the class, the <c>Call</c> parameters and its return value; a unit
+/// without one carries its identity alone.</para>
 /// <para>⛔ <b>THE DETACHED STORAGE IS IMAGE-STORED FOR A FIXED-POINT FORMAL.</b> ISO §14.2.3 9) allocates "a data item with
 /// the same description and the same number of bytes as the formal parameter"; the entry holds a fixed-point one as its
 /// record image (the CALL lane's TEXT crossing of an image-stored numeric item, with the item's <c>NumProfile</c>), so the
@@ -33,33 +35,22 @@ namespace WiseOwl.Cobol.CodeGen;
 /// leave — and decodes it only when the class test NUMERIC is true of it (ISO §8.8.4.4.4 3) n);
 /// <see cref="HostLanding.TryDecode"/>). A native cell could not hold such content to be refused.</para>
 /// </summary>
-/// <param name="repositoryUpdate">Whether each entry carries its unit's signature attributes (<c>--repository-update on</c>,
-/// DESIGN-external-repository §6.2, §9.1): the record <see cref="RepositoryCodec.Of"/> writes, transcribed by
-/// <see cref="RepositoryAttributeRenderer"/> onto the class, the <c>Call</c> parameters and its return value.</param>
 /// <param name="atoms">The module's one §8.5.1.12 atom table (<c>ProgramEmitter._atoms</c>, emitted after the entries): the
 /// shape a variable-length record's area states, so the activated program's formal is laid over it.</param>
 /// <param name="dataEmitterFor">A unit's data-division emitter, which states the DESCRIPTION'S fresh cell of a formal
 /// (<see cref="DataEmitter.FreshArea"/>) for a record the host builds an area of.</param>
-internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? classes, GroupAtomTable atoms, bool repositoryUpdate,
-    Func<DataBinder, DataEmitter> dataEmitterFor)
+internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable atoms,
+    Func<DataBindResult, DataEmitter> dataEmitterFor)
 {
-    /// <summary>The units that publish a host entry: every outermost unit, except a prototype whose definition the same
-    /// group compiles (that definition's entry is the one class for the name — DESIGN-external-repository §7.2). The pairing
-    /// is by the Annex C fold (<see cref="ExternalizedNames.Same"/>, the one mapping rule, ISO §8.3.2.2 2)): a prototype
-    /// <c>psub</c> beside a definition <c>PSUB</c> is one externalized name (kb/Work PB3872). Nothing else is withheld: every
-    /// outermost unit publishes its entry, and so its repository record (§7.2); a group item
-    /// <see cref="PublishedRecordEmitter.Renders"/> refuses is an internal compiler error in <c>EmitEntry</c>, never a
-    /// missing entry (the binder admits no such shape since kb/Work PB3273: COBOL0853, COBOL0854).</summary>
-    internal static IEnumerable<BoundUnit> EntryUnits(IReadOnlyList<BoundUnit> units) =>
-        units.Where(u => u.Parent is null && !(u.IsPrototype && units.Any(d => d is { Parent: null, IsPrototype: false }
-            && d.IsFunction == u.IsFunction && ExternalizedNames.Same(d.ExternalizedName, u.ExternalizedName))));
-
-    /// <summary>Emit the host-entry class of every <see cref="EntryUnits"/> unit, each named by the one allocator in the
-    /// module namespace's type scope (<paramref name="moduleTypes"/> — the names the module already declares there).</summary>
-    internal void Emit(IReadOnlyList<BoundUnit> units, IEnumerable<string> moduleTypes, CodeWriter w)
+    /// <summary>Emit the host-entry class of every unit the compilation publishes (<paramref name="entryUnits"/>,
+    /// <see cref="BoundCompilation.EntryUnits"/>: DESIGN-external-repository §7.2), each named by the one allocator in the module
+    /// namespace's type scope (<paramref name="moduleTypes"/> — the names the module already declares there). A group item
+    /// <see cref="PublishedRecordEmitter.Renders"/> refuses is an internal compiler error in <c>EmitEntry</c>, never a missing
+    /// entry (the binder admits no such shape since kb/Work PB3273: COBOL0853, COBOL0854).</summary>
+    internal void Emit(IReadOnlyList<BoundUnit> entryUnits, IEnumerable<string> moduleTypes, CodeWriter w)
     {
         var scope = CsNameScope.ModuleTypes(moduleTypes);
-        foreach (var unit in EntryUnits(units))
+        foreach (var unit in entryUnits)
         {
             w.Line();
             EmitEntry(unit, CsNames.Allocate(DataItem.Sanitize(unit.Name), scope), w);
@@ -67,9 +58,11 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
     }
 
     /// <summary>One formal (or the RETURNING item) as the entry handles it; <paramref name="CsType"/> is its host type's
-    /// C# spelling — for a group, its published record struct.</summary>
-    private sealed record Item(DataItem Description, HostType Type, string CsType, string Name, string Cell, string? Profile,
-        bool ByValue, bool Optional, string? Seed = null);
+    /// C# spelling — for a group, its published record struct — and <paramref name="Activation"/> the §14.8.2 description
+    /// the binder built for it (<see cref="BoundUnit.FormalDescriptions"/>, <see cref="BoundUnit.ReturningDescription"/>;
+    /// kb/Work PB2403), null for an item with no crossing form.</summary>
+    private sealed record Item(DataItem Description, ActivationDescription? Activation, HostType Type, string CsType, string Name,
+        string Cell, string? Profile, bool ByValue, bool Optional, string? Seed = null);
 
     private void EmitEntry(BoundUnit unit, string className, CodeWriter w)
     {
@@ -95,7 +88,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         // declared once here as the program class declares them).
         var seeds = new List<(string Field, string Factory)>();
         var seedProfiles = new HashSet<string>(StringComparer.Ordinal);
-        Item Describe(DataItem description, string name, bool byValue, bool optional)
+        Item Describe(DataItem description, ActivationDescription? activation, string name, bool byValue, bool optional)
         {
             int n = serial++;
             HostType type = HostSurface.TypeOf(description);
@@ -115,7 +108,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
                     if (seedProfiles.Add(leaf.ProfileName))
                         profiles.Add((leaf.ProfileName, leaf.Pic!.ProfileInitializer(signEncoding)));
             }
-            return new Item(description, type, csType, name, $"__hc{n}", profile, byValue, optional, seed);
+            return new Item(description, activation, type, csType, name, $"__hc{n}", profile, byValue, optional, seed);
         }
         // A group formal's published record struct, named `<word>_Record` in the class's member scope (§4.3 "Names").
         string Record(DataItem group)
@@ -129,11 +122,14 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
             return name;
         }
 
+        if (unit.FormalDescriptions.Count != unit.Data.Linkage.Formals.Count)
+            throw new InvalidOperationException($"HostEntryEmitter: entry unit '{unit.Name}' has {unit.Data.Linkage.Formals.Count} formals and "
+                + $"{unit.FormalDescriptions.Count} bound descriptions (BackendAnswers describes every entry unit's formals)");
         var formals = unit.Data.Linkage.Formals
-            .Select(f => Describe(f.Item, CsNames.Allocate(DataItem.Sanitize(f.Item.CobolName ?? "FILLER"), members),
-                f.ByValue, f.Optional))
+            .Select((f, i) => Describe(f.Item, unit.FormalDescriptions[i],
+                CsNames.Allocate(DataItem.Sanitize(f.Item.CobolName ?? "FILLER"), members), f.ByValue, f.Optional))
             .ToList();
-        Item? returning = unit.Data.Linkage.Returning is { } r ? Describe(r, "__hr", false, false) : null;
+        Item? returning = unit.Data.Linkage.Returning is { } r ? Describe(r, unit.ReturningDescription, "__hr", false, false) : null;
         // The records render first, so every member profile they name is declared with the formals' own.
         var recordText = new CodeWriter();
         var published = new PublishedRecordEmitter(MemberProfile);
@@ -151,8 +147,8 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         // --repository-update on, its signature too — the unit facts on [CobolUnit], the record's tables on the class,
         // each formal's tree on its own Call parameter (formals and records are both in LINKAGE order) and the RETURNING
         // item's on the return value.
-        var record = repositoryUpdate ? RepositoryCodec.Of(unit) : null;
-        w.Line(RepositoryAttributeRenderer.UnitRecord(RepositoryCodec.KindOf(unit), unit.Name, unit.ExternalizedName, record));
+        var record = unit.Record;
+        w.Line(RepositoryAttributeRenderer.UnitRecord(unit.RepositoryKind, unit.Name, unit.ExternalizedName, record));
         if (record is not null)
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record))
                 w.Line(attribute);
@@ -218,8 +214,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
                 // an OPTIONAL later formal is omitted before the arm is asked (below), and when only the earlier
                 // formal is OPTIONAL it was omitted, so the later one lands the null by its own row (a text refuses
                 // it, a data pointer's is NULL).
-                if (OoConformance.SignatureDifference(e.Description, f.Description, "formal", "other formal") is null
-                    && OoConformance.SignatureDifference(f.Description, e.Description, "formal", "other formal") is null)
+                if (unit.FormalsOfOneDescription.Contains((j, i)))
                     aliases[i] += $"{sameVariable}{(e.Optional && !f.Optional ? $" && {e.Cell} is not null" : "")} ? {e.Cell} : ";
                 else
                     w.Line($"HostLanding.RequireDistinct({sameVariable}, {CsLiteral(e.Name)}, {CsLiteral(f.Name)});");
@@ -384,7 +379,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
                 : $", Area: {RuntimeApi.ArgArea(f.Cell, "0")}";
         }
         string built = $"new CobolArg({RuntimeApi.PassModeText(mode)}, {carrier}, {f.Profile ?? "null"}{area})";
-        string? description = ActivationDescriptions.Of(f.Description, classes) is { } d ? RuntimeApi.ActivationDescriptionNew(d) : null;
+        string? description = f.Activation is { } d ? RuntimeApi.ActivationDescriptionNew(d) : null;
         return CallEmitter.Described(built, StorageLength(f), description);
     }
 

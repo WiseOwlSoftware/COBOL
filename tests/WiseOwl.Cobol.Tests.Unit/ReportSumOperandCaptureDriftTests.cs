@@ -135,7 +135,8 @@ public sealed class ReportSumOperandCaptureDriftTests
 
         string rwBinder = File.ReadAllText(
             TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "ReportWriterBinder.cs"));
-        Assert.Contains("a.Value = host.Expr.BindExpr(a.Ctx)", rwBinder);
+        // …each addend its own per-evaluation window, so a function in it runs at each addition (kb/Work PB4517).
+        Assert.Contains("a.Value = PerEvaluation(() => host.Expr.BindExpr(a.Ctx))", rwBinder);
     }
 
     [Fact]   // The inherited-citation guard: the two new diagnostics must quote the rules they enforce, read

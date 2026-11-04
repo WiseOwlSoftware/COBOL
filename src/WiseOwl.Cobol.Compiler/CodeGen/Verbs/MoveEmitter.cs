@@ -262,8 +262,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     private string SliceStore(RefModPlace slice, BoundOperand source, bool senderFirst) => source switch
     {
         BoundFigurative fig => PlaceRenderer.WriteFill(slice,
-            FigurativeConstants.FillText(fig.Kind, ctx.Data.State.Configuration.Collating,
-                IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfPlace(slice)), ctx.Data.State.Configuration.NationalCollating)),
+            FigurativeConstants.FillText(fig.Kind, ctx.Data.Configuration.Collating,
+                IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfPlace(slice)), ctx.Data.Configuration.NationalCollating)),
         BoundAllLiteral all => PlaceRenderer.WriteFill(slice, CsLiteral(all.Literal)),
         _ => Ordered(senderFirst, source, slice, SendingCharacters(source), v => PlaceRenderer.Write(slice, v)),
     };
@@ -309,7 +309,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         string image = source switch
         {
             BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } f =>
-                $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.State.Configuration.Collating)}, {target.Item.ImageWidth})",
+                $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Configuration.Collating)}, {target.Item.ImageWidth})",
             BoundAllLiteral { IsDigitOnly: false } a =>
                 CsLiteral(EmitText.RepeatToWidth(a.Literal, target.Item.ImageWidth)),
             _ => throw new InvalidOperationException(
@@ -420,8 +420,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         // current-extent carrier, and two groups of one type are GR9 a)'s "groups of equal length" whose every position,
         // dynamic-length item and table corresponds — the vector moves each one (a dynamic-capacity table as its
         // occurrences, §14.6.9.2), so the binder's element moves, which skip a pair of identical descriptions, add none.
-        if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(target.Item)
-            && source is BoundFieldOperand { Place: var sendPlace } && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(sendPlace.Item))
+        if (ActivationCrossing.LeafCarried(target.Item)
+            && source is BoundFieldOperand { Place: var sendPlace } && ActivationCrossing.LeafCarried(sendPlace.Item))
         {
             ctx.Writer.Line(Ordered(senderFirst, source, target, PlaceRenderer.GroupLeaves(sendPlace),
                 v => PlaceRenderer.WriteGroupLeaves(target, v)));
@@ -478,7 +478,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         // ALL "literal" repeats to the RECEIVER width (ISO §8.3.3.6.4 GR2) — space-padding it would fill the group's
         // tail leaves with blanks instead of the repeated pattern (NC243A's 7-dim table seed).
         string image = source is BoundFigurative f
-            ? $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.State.Configuration.Collating)}, {width})"
+            ? $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Configuration.Collating)}, {width})"
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
             : RuntimeApi.StrStore(OperandText.NonElementaryMoveSender(source, num, "MOVE to group"), $"{width}");
@@ -843,7 +843,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
             // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE reads its OWN sequence — the
             // explicit national PCS extremes when declared, else the D-N3 pin — never the ALPHANUMERIC
             // program collating sequence's extreme (§8.3.3.6 GR6/GR7 over the national sequence).
-            return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.State.Configuration.Collating, figContext, ctx.Data.State.Configuration.NationalCollating)}, {wN})";
+            return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Configuration.Collating, figContext, ctx.Data.Configuration.NationalCollating)}, {wN})";
         // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2). An ANY LENGTH
         // receiver's width exists only at runtime — repeat at runtime, then width-fit (§13.18.2 GR1).
         if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric && !pic.IsCharacterEdited)
@@ -869,7 +869,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
             string aeSrc = source switch
             {
                 BoundFigurative ff =>
-                    $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.State.Configuration.Collating, figContext, ctx.Data.State.Configuration.NationalCollating)}, {pic.Length})",
+                    $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Configuration.Collating, figContext, ctx.Data.Configuration.NationalCollating)}, {pic.Length})",
                 BoundAllLiteral al => CsLiteral(EmitText.RepeatToWidth(al.Literal, pic.Length)),
                 _ => SendingCharacters(source),
             };

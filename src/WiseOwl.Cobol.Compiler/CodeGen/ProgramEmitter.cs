@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 
@@ -63,7 +62,7 @@ internal sealed class ProgramEmitter
     /// <summary>Begin one emitted unit: re-create the per-unit context/renderer quadruple and every
     /// collaborator emitter over the fresh writer/data/resolver (the <see cref="UnitEmitters"/> ctor wires
     /// the cycles).</summary>
-    internal void BeginUnit(CodeWriter w, DataBinder data, PlaceTable places)
+    internal void BeginUnit(CodeWriter w, DataBindResult data, PlaceTable places)
         => Current = new UnitEmitters(w, data, places, _names, _atoms, _dispatchState, _ecState, _callState, _oo,
             _whenCompiledStamp);
 
@@ -76,13 +75,11 @@ internal sealed class ProgramEmitter
     /// <param name="assemblySimpleName">The emitted assembly's simple name: every emitted type lives in its
     /// one-segment namespace <c>Cobol.&lt;S&gt;</c> (<see cref="CsNames.ModuleNamespaceOf"/>; DESIGN-external-repository
     /// §4.5).</param>
-    /// <param name="repositoryUpdate">Whether the module carries its units' signature attributes (<c>--repository-update</c>,
-    /// DESIGN-external-repository §9.1; ISO §8.13).</param>
-    internal string Emit(BoundCompilation comp, string assemblySimpleName, bool repositoryUpdate)
+    internal string Emit(BoundCompilation comp, string assemblySimpleName)
     {
         _ecState.Active = comp.EcActive;
-        _ecState.OoClasses = comp.OoClasses;
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters, repositoryUpdate, comp.Expansions);
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.InterfaceRecords, comp.OoAdapters,
+            comp.Imported, comp.Expansions);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -101,8 +98,8 @@ internal sealed class ProgramEmitter
         // (CS0234 / CS0118 on legal source otherwise). The assembly attribute precedes the namespace (C# requires it).
         var ns = CsNames.ModuleNamespaceOf(assemblySimpleName);
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
-            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, comp.Expansions, HostEntryEmitter.EntryUnits(units)), comp.Edition,
-            hasSignatures: repositoryUpdate));
+            RepositoryAttributeRenderer.IndexOf(comp.Interfaces, classes, comp.Expansions, comp.EntryUnits), comp.Edition,
+            hasSignatures: comp.PublishesSignatures));
         w.Line($"namespace {CsNames.CSharpNamespace(ns)};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name
@@ -116,8 +113,8 @@ internal sealed class ProgramEmitter
             // CobolFatalException (EC-OO-UNIVERSAL, GR7c). A class-less EC-free program keeps the
             // zero-scaffolding invariant byte-exact (SSOT §18.16 — the test greps the namespace).
             w.Line("using global::WiseOwl.Cobol.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §14.6.13) + the D10 universal-INVOKE raises (§14.9.23.4 GR7c)");
-        if (UnitsOf(comp).Any(u => u.Data.State.Configuration.Classification is not null)
-            || classes.Any(c => c.Data.State.Configuration.Classification is not null || c.FactoryData.State.Configuration.Classification is not null))
+        if (UnitsOf(comp).Any(u => u.Data.Configuration.Classification is not null)
+            || classes.Any(c => c.Data.Configuration.Classification is not null || c.FactoryData.Configuration.Classification is not null))
             // A CHARACTER CLASSIFICATION clause anywhere in the compilation group — a program, or a CLASS-ID whose methods
             // carry it as an activation local: the Globalization types (kb/Work PB64 T5 / PB111). Zero-scaffolding otherwise.
             w.Line("using global::WiseOwl.Cobol.Runtime.Globalization; // CharacterClassification / LocalePhraseKind — OBJECT-COMPUTER CHARACTER CLASSIFICATION (ISO §12.3.6)");
@@ -136,12 +133,12 @@ internal sealed class ProgramEmitter
         // the program classes and the run-unit entry wrapper. A class-only/interface-only compilation unit is
         // legal (§10.6) — its module emits the types, a registrar with nothing to register (the record names it), and an
         // empty Main.
-        foreach (var iface in comp.OoClasses.Interfaces)
-            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, iface.ClrName)) _oo.EmitInterfaceUnit(iface, w);
+        foreach (var iface in comp.Interfaces)
+            if (comp.Expansions.EmittedHere(iface.ClrName)) _oo.EmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
-            if (RepositoryAttributeRenderer.EmittedHere(comp.Expansions, cls.Symbol.ClrName)) _oo.EmitClassUnit(cls, w);
+            if (comp.Expansions.EmittedHere(cls.Symbol.ClrName)) _oo.EmitClassUnit(cls, w);
         foreach (var skeleton in comp.Expansions.Skeletons)
-            _oo.EmitSkeletonUnit(skeleton, w);
+            _oo.EmitSkeletonUnit(skeleton, comp.PublishesSignatures, w);
         if (units.Count == 0)
         {
             EmitModuleRegistrar(units, w, ns);
@@ -159,11 +156,11 @@ internal sealed class ProgramEmitter
         // in the module namespace's type scope beside every type the module already declares there. The over-punch convention
         // is the compilation's one (kb/Work PB803): a group of prototypes alone — the library that publishes them to the
         // external repository (DESIGN-external-repository §7.2) — emits no program class, so no unit emitter is current here.
-        new HostEntryEmitter(comp.SignEncoding, comp.OoClasses, _atoms, repositoryUpdate,
-            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(units,
+        new HostEntryEmitter(comp.SignEncoding, _atoms,
+            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(comp.EntryUnits,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
-                .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
-                .Concat(comp.OoClasses.Interfaces.Select(i => i.ClrName))
+                .Concat(classes.SelectMany(c => c.Symbol.FactoryOrInstanceClrNames))
+                .Concat(comp.Interfaces.Select(i => i.ClrName))
                 .Concat(comp.Expansions.Skeletons.Select(s => s.ClrName))
                 .Append(ModuleNamespace.RegistrarClass).Append("Program").Append(GroupAtomTable.ClassName), w);
         EmitEntryWrapper(units, w, anyFiles, ns);
@@ -310,10 +307,10 @@ internal sealed class ProgramEmitter
         _ecState.UnitHasF3Perform = unit.Bound.Ec?.HasF3Perform ?? false;   // → __EcPerform + the F3-frame interceptor (§14.9.28)
         _ecState.UnitHasF4 = unit.Bound.Declaratives?.Any(d => d.Eo is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
         // §7.3.21.4 GR1 — this program or function's automatic propagation (kb/Work PB1119), read at its fatal default.
-        _ecState.Propagation = AutomaticPropagation.Of(data.State.UnitChecking.AutomaticPropagation, inMethod: false);
+        _ecState.Propagation = AutomaticPropagation.Of(data.UnitChecking.AutomaticPropagation, inMethod: false);
         // §14.6.13.1.5 items 1 and 3 — this element's header RAISING census (kb/Work PB1121), read by every GOBACK /
         // EXIT … RAISING LAST EXCEPTION and by the activator's pickup, PROPAGATE ON or not.
-        _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.Bound.Raising ?? [], _ecState.OoClasses);
+        _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.RaisingObjects);
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
         _dispatchState.OuterGlobalUse = ChainHasGlobalUse(unit.Parent);
@@ -339,7 +336,7 @@ internal sealed class ProgramEmitter
                 using (w.Block($"public {unit.ClassName}({parent.ClassName} __o)")) w.Line("__outer = __o;");
             }
             w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14.4 GR2)");
-            if (data.State.Files.Declared.Count > 0)
+            if (data.Files.Declared.Count > 0)
                 // The guard's storage duration IS the connector's scope (kb/Work PB168): §14.6.2.3.2
                 // action 3 puts internal connectors in no open mode only when data enters the INITIAL
                 // state — for a non-INITIAL unit's static data that is cases 1–3 — and §14.6.2.3.3 keeps
@@ -352,7 +349,7 @@ internal sealed class ProgramEmitter
             // The report ENGINES are per-INSTANCE objects and get their own per-INSTANCE guard — the PB168
             // review fleet caught them riding the (now sometimes static) registration guard: a RECURSIVE
             // unit's second activation skipped the block and NRE'd on a null __RPT_n. One guard per scope.
-            if (data.State.Reports.Declared.Count > 0)
+            if (data.Reports.Declared.Count > 0)
                 w.Line("private bool __reportsConstructed;   // report engines construct once per INSTANCE (kb/Work PB168 — never behind the run-unit registration guard)");
             // The OBJECT-COMPUTER members — __COLLATE / __COLLATE_NAT / the __CLASSIFY field — from the ONE helper the OO
             // emitter shares (kb/Work PB111: a CLASS-ID with either clause used to be a CS0103 on its emitted methods).
@@ -467,7 +464,7 @@ internal sealed class ProgramEmitter
                     w.Line("__Activate();");
                 }
                 if (describes)
-                    _oo.EmitExternalDescribes(data, unit.RegistryKey, "public void DescribeExternals()", $"{data.State.UnitChecking.ExternalCheckMask}", w);
+                    _oo.EmitExternalDescribes(data, unit.RegistryKey, "public void DescribeExternals()", $"{data.UnitChecking.ExternalCheckMask}", w);
             }
             else
                 w.Line("void ICobolProgram.Activate() => __Activate();");
@@ -483,7 +480,7 @@ internal sealed class ProgramEmitter
                 }
             Current.Transactions.EmitMembers(w);
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
-                foreach (var file in data.State.Files.Declared)
+                foreach (var file in data.Files.Declared)
                     // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists
                     // (GR8 / §13.18.22.4 GR4a). An SD is not a file connector at all — it never registers
                     // (the same skip every registration/IO loop takes), so closing it would Require() a
@@ -613,14 +610,14 @@ internal sealed class ProgramEmitter
             // with none — NULL, the method arm's answer (a formal's storage is the activator's, adopted below, and the
             // RETURNING item keeps the last-used state every other program RETURNING item keeps).
             if (!unit.Initial && !unit.Recursive)
-                foreach (var (member, _, fresh, _) in _oo.ActivationPointerSeeds(unit.Data, unit.Data.State.Forest.LocalStorageRoots
+                foreach (var (member, _, fresh, _) in _oo.ActivationPointerSeeds(unit.Data, unit.Data.Forest.LocalStorageRoots
                              .Concat(unit.Data.Linkage.Roots.Where(r => !ReferenceEquals(r, unit.Data.Linkage.Returning)
                                  && !unit.Data.Linkage.Formals.Any(f => ReferenceEquals(f.Item, r))))))
                     w.Line($"{member} = {fresh};   // per-activation data-pointer storage (ISO §14.6.2.3.2 action 5; §8.6.4; §8.6.5)");
-            if (!unit.Initial && !unit.Recursive && unit.Data.State.Forest.LocalStorageRoots.Count > 0)
+            if (!unit.Initial && !unit.Recursive && unit.Data.Forest.LocalStorageRoots.Count > 0)
             {
                 var fields = new DataEmitter(Current.Ctx);
-                foreach (var root in unit.Data.State.Forest.LocalStorageRoots)
+                foreach (var root in unit.Data.Forest.LocalStorageRoots)
                 {
                     if (unit.Data.Linkage.SuppressedRootFields.Contains(root.ClrName)) continue;
                     if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view — no field
@@ -630,7 +627,7 @@ internal sealed class ProgramEmitter
                         continue;   // a non-canonical Tier-B member — a window over the backing, no field
                     else
                         w.Line($"{root.ClrName} = {fields.RootDecl(root).Init};   // LOCAL-STORAGE {root.CobolName ?? "FILLER"} — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
-                    foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+                    foreach (var idx in IndexDeclaration.Under(root))
                         if (!unit.Data.Linkage.SuppressedRootFields.Contains(idx.Cell))
                             w.Line($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name} (LOCAL-STORAGE table cell)");
                 }
@@ -705,7 +702,7 @@ internal sealed class ProgramEmitter
             // The activation's LOCAL-STORAGE cells end with it (ISO §8.6.4 — "persists while that instance of the runtime
             // element is in active state"), for EVERY kind of unit: a fresh INITIAL / RECURSIVE instance and the cached
             // singleton alike. A pointer returned past this point names storage that is no longer a valid address
-            // (§8.6.5; §13.18.5.4 GR4 — kb/Work PB1216). The same DataBinder.LifetimeOfCell answer the cell's declaration
+            // (§8.6.5; §13.18.5.4 GR4 — kb/Work PB1216). The same DataBindResult.LifetimeOfCell answer the cell's declaration
             // modifier reads, so a cell cannot be declared per-activation and never ended.
             string endCells = string.Concat(unit.Data.CellFieldsOf(CellLifetime.Activation)
                 .Select(c => $" {c}.End(StorageEnd.ActivationEnded);"));
@@ -774,7 +771,7 @@ internal sealed class ProgramEmitter
         // A strongly-typed group with an object-reference or pointer leaf has no character image: its content is its
         // AREA — the characters and the references of its cell — delivered into the receiver's area (kb/Work PB1940;
         // PtrBindBasedAndAddressablesPass claims both onto cells).
-        if (ret.DenotedItem is { } leafGroup && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(leafGroup)
+        if (ret.DenotedItem is { } leafGroup && ActivationCrossing.LeafCarried(leafGroup)
             && CallEmitter.AreaOf(ret, _atoms) is { } area)
             return RuntimeApi.ArgAdaptStoreReturnArea("__ret", area, leafGroup.ByteWidth, CellComponents.PerOccurrence(leafGroup));
         string? atoms = CallEmitter.BoundaryAtoms(ret, _atoms);
@@ -823,14 +820,14 @@ internal sealed class ProgramEmitter
             using (w.Block("private static void Register()"))
             foreach (var u in units)
             {
-                if (u.IsPrototype) continue;   // a prototype has no body to register as a runtime module; the information §10.6.3 GR1 requires of its compilation is its host entry (HostEntryEmitter.EntryUnits)
+                if (u.IsPrototype) continue;   // a prototype has no body to register as a runtime module; the information §10.6.3 GR1 requires of its compilation is its host entry (BoundCompilation.EntryUnits)
                 string parentPath = u.Parent is { } p ? CsLiteral(p.RegistryKey) : "null";
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {ClassRef(u)}(({ClassRef(pp)})__o!)"
                     : $"static __o => new {ClassRef(u)}()";
                 // A RECURSIVE unit with static WS storage OR unit-scoped file connectors registers its
                 // __ResetStatics — the runtime's §14.6.2.3.2 initial-state hook (run-unit start / CANCEL /
-                // INITIAL-container cascade). ⛔ THE ONE condition is DataBinder.EmitsStaticReset, shared
+                // INITIAL-container cascade). ⛔ THE ONE condition is DataBindResult.EmitsStaticReset, shared
                 // with RecordStructEmitter's emission so the pair cannot diverge (kb/Work PB168). The
                 // optional argument is OMITTED for every other unit, keeping their lines byte-identical.
                 string reset = u.Data.EmitsStaticReset ? $", {ClassRef(u)}.__ResetStatics" : "";
@@ -844,8 +841,9 @@ internal sealed class ProgramEmitter
                 int fc = u.Data.Linkage.Formals.Count;
                 int rq = fc;
                 while (rq > 0 && u.Data.Linkage.Formals[rq - 1].Optional) rq--;
+                bool describe = u.Data.UnitChecking.ArgMismatchChecking;
                 string? retItem = u.Data.Linkage.Returning is { } ri && u.Places.Of(ri) is { } retPlace
-                    ? Current.Call.RegisteredReturning(retPlace, describe: u.Data.State.UnitChecking.ArgMismatchChecking) : null;
+                    ? Current.Call.RegisteredReturning(retPlace, describe ? u.ReturningDescription : null) : null;
                 // Each FORMAL's registered description (kb/Work PB165), for §14.8.2's argument comparison at a dynamic
                 // CALL — the whole description only by a unit that checks EC-PROGRAM-ARG-MISMATCH itself (GR3d's activated
                 // half) — and each NUMERIC formal's carrier and each non-numeric ELEMENTARY formal's record builder from every
@@ -854,12 +852,12 @@ internal sealed class ProgramEmitter
                 // pointers or ANY LENGTH items and that does not check keeps its Register line as it was. The record builder
                 // reads only the formal's own description (its PicInfo carries its currency sign and decimal point), so the
                 // current unit's emitters render it for every unit.
-                var formalItems = u.Data.Linkage.Formals.Select(f => u.Places.Of(f.Item) is { } fp
-                    ? Current.Call.RegisteredFormal(fp, describe: u.Data.State.UnitChecking.ArgMismatchChecking)
+                var formalItems = u.Data.Linkage.Formals.Select((f, i) => u.Places.Of(f.Item) is { } fp
+                    ? Current.Call.RegisteredFormal(fp, describe, describe ? u.FormalDescriptions[i] : null)
                     : RuntimeApi.UnstatedBoundaryItem).ToList();
                 string formalsText = formalItems.Any(s => s != RuntimeApi.UnstatedBoundaryItem)
                     ? $", formals: new BoundaryItem[] {{ {string.Join(", ", formalItems)} }}" : "";
-                string argMeta = $", formalCount: {fc}, requiredCount: {rq}, argMismatchChecking: {CallEmitter.CallBool(u.Data.State.UnitChecking.ArgMismatchChecking)}"
+                string argMeta = $", formalCount: {fc}, requiredCount: {rq}, argMismatchChecking: {CallEmitter.CallBool(u.Data.UnitChecking.ArgMismatchChecking)}"
                     + (retItem is null ? "" : $", returning: {retItem}") + formalsText;
                 string resetNamed = reset.Length > 0 && argMeta.Length > 0
                     ? reset.Replace(", ", ", staticReset: ") : reset;

@@ -1,11 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Compiler.Oo;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>Where a class, interface or method symbol came from (DESIGN-external-repository §10.1) — the ONE question every consumer used
 /// to ask as "has it a source definition?" (<c>IsStandard</c> was <c>ctx is null</c>; kb/Work PB4459 did the same for
@@ -23,7 +20,7 @@ public enum OoSymbolOrigin
     Imported,
 
     /// <summary>A METHOD the compiler built from other source of the group — a PROPERTY clause's accessor (ISO §13.18.42): emitted like a
-    /// source method, but with no METHOD-ID of its own (<see cref="OoMethodSymbol.Ctx"/> throws). No class is generated.</summary>
+    /// source method, but with no METHOD-ID of its own (<c>SourceMap.Of</c> throws for it). No class is generated.</summary>
     Generated,
 
     /// <summary>A plain .NET type the CLR type provider answers (DESIGN-external-repository §4.6) — named so the origin set is
@@ -33,28 +30,19 @@ public enum OoSymbolOrigin
 
 /// <summary>The assembly an imported class or interface was taken from (DESIGN-external-repository §10.1): its file, its
 /// module version id and the CLR namespace its types live in (<c>Cobol.&lt;assembly&gt;</c>, §4.5), which is how
-/// <c>OoClassTable.ImportedAssemblies</c> finds two assemblies a compilation needs that share a namespace (REPO-6).</summary>
-public sealed record ImportedFrom(string Path, Guid Mvid, string ClrNamespace);
+/// <c>MetadataRepositoryProvider.NamespaceCollision</c> finds two assemblies a compilation needs that share a namespace (REPO-6).</summary>
+public sealed record ImportedFrom(string AssemblyFile, Guid Mvid, string ClrNamespace);
 
 /// <summary>One class of the pass-1 table: identity, base link, and the method roster (name → symbol,
 /// case-insensitive per §8.3.2.2). <see cref="ClrName"/> is the emitted C# type name — the SAME mapping
 /// <c>PicInfo.ClrType</c> applies to a typed object reference's declared class (Sanitize + uppercase).</summary>
 public sealed class OoClassSymbol
 {
-    private readonly CobolParserCore.ClassDefinitionContext? _definition;
-
-    /// <summary>A class this group's source wrote: <see cref="OoSymbolOrigin.Source"/>, with the CLASS-ID definition it was built from.</summary>
-    public OoClassSymbol(string name, string clrName, CobolParserCore.ClassDefinitionContext definition)
-    {
-        (Name, ExternalizedName, ClrName, _definition, Origin) = (name, name, clrName, definition, OoSymbolOrigin.Source);
-    }
-
-    /// <summary>A class no CLASS-ID of this group wrote: <see cref="OoSymbolOrigin.Standard"/> (BASE) or <see cref="OoSymbolOrigin.Imported"/>.
-    /// A source class has a definition, so asking for <see cref="OoSymbolOrigin.Source"/> here is a compiler fault (kb/Work PB4459).</summary>
+    /// <summary>A class of origin <paramref name="origin"/>: <see cref="OoSymbolOrigin.Source"/> (a CLASS-ID of this group, whose definition
+    /// the bind session's source map holds, kb/Work PB2401), <see cref="OoSymbolOrigin.Standard"/> (BASE) or
+    /// <see cref="OoSymbolOrigin.Imported"/>.</summary>
     public OoClassSymbol(string name, string clrName, OoSymbolOrigin origin)
     {
-        if (origin is OoSymbolOrigin.Source)
-            throw new ArgumentException($"class '{name}': a Source class is built from its CLASS-ID definition", nameof(origin));
         (Name, ExternalizedName, ClrName, Origin) = (name, name, clrName, origin);
     }
 
@@ -68,29 +56,16 @@ public sealed class OoClassSymbol
     /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
     public string ExternalizedName { get; init; }
 
-    /// <summary>What made this class an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR5): the skeleton, the REPOSITORY entry
-    /// and the actuals; null for a class written as a class and for an imported one. The repository publishes it as the class's
-    /// expansion identity (DESIGN-external-repository §10.5).</summary>
-    internal ExpansionOrigin? Expansion { get; init; }
-
     /// <summary>The repository record an IMPORTED class was decoded from (null for a class of this group and for the standard class):
     /// what an expansion that names the class is keyed on (<c>ExpansionKey</c>, DESIGN-external-repository §10.5).</summary>
-    internal Binding.Repository.RepositoryRecord? Record { get; init; }
+    internal Binding.Model.RepositoryRecord? Record { get; init; }
     /// <summary>The CLR type name of the class's OBJECT half — the module's ABI, the same for every backend
     /// (kb/Work PB4265): <see cref="DataItem.WordIdentifier"/> of the class-name, an upper-case fold, so never a C#
     /// keyword.</summary>
     public string ClrName { get; }
-    /// <summary>The CLASS-ID definition this symbol was built from. Every class of the compilation group has one
-    /// (<see cref="OoSymbolOrigin.Source"/>); the STANDARD class and an IMPORTED one do not, and reading this on
-    /// either is a loud internal error rather than a null the caller forgot to test — no consumer of a group class's
-    /// source should ever reach one, because neither is in <see cref="OoClassTable.Classes"/>.</summary>
-    public CobolParserCore.ClassDefinitionContext Ctx => _definition
-        ?? throw new InvalidOperationException(Origin is OoSymbolOrigin.Standard
-            ? $"class '{Name}' is the standard class of ISO §16 and has no source definition"
-            : $"class '{Name}' is {Origin.ToString().ToLowerInvariant()} from the external repository and has no source definition");
-
-    /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>). A symbol with a <see cref="Ctx"/> is
-    /// <see cref="OoSymbolOrigin.Source"/>; the others are built by <see cref="OoStandardClasses"/> and
+    /// <summary>Where this symbol came from (<see cref="OoSymbolOrigin"/>). A <see cref="OoSymbolOrigin.Source"/> class is built by
+    /// <c>OoClassTable.Build</c>, which records its CLASS-ID definition and what made it an expansion in the bind session's
+    /// <c>SourceMap</c> (kb/Work PB2401: no parse context rides a symbol); the others are built by <see cref="OoStandardClasses"/> and
     /// <c>MetadataRepositoryProvider</c>.</summary>
     public OoSymbolOrigin Origin { get; }
 
@@ -151,11 +126,11 @@ public sealed class OoClassSymbol
     /// (<see cref="ProgramTable.ClassPath"/>) from the EXTERNALIZED name, never from <see cref="ClrName"/>: the C# name
     /// is a wire contract with <c>PicInfo.ClrType</c> and is the DECLARED name, which two separately compiled modules
     /// may both use for different classes (kb/Work PB2920; ISO §8.3.2.2 2)).</summary>
-    public string RunUnitPath => ProgramTable.ClassPath(ExternalizedName);
+    public string RunUnitKey => ProgramTable.ClassPath(ExternalizedName);
 
     /// <summary>The run-unit identity of this class's OBJECT or FACTORY half as an EXTERNAL describer
     /// (<see cref="ProgramTable.ClassHalfPath"/>; ISO §14.8.4).</summary>
-    public string HalfPath(bool factory) => ProgramTable.ClassHalfPath(ExternalizedName, factory);
+    public string HalfKey(bool factory) => ProgramTable.ClassHalfPath(ExternalizedName, factory);
 
     /// <summary>The emitted C# types a COBOL reference to THIS class selects when the rule names the class
     /// WITHOUT distinguishing the two object kinds — ISO/IEC 1989:2023 §14.9.49.4 GR14 a): "the exception
@@ -169,7 +144,7 @@ public sealed class OoClassSymbol
     /// "If the FACTORY phrase is not specified, the object referenced by this data item shall be an instance
     /// object of the specified class or of a subclass of the specified class" (the typed OBJECT REFERENCE
     /// narrow in <c>OoEmitter.EmitSetObjectRef</c> is instance-only for exactly that reason).</summary>
-    public IReadOnlyList<string> FactoryOrInstanceCsTypes => [ClrName, FactoryClrName];
+    public IReadOnlyList<string> FactoryOrInstanceClrNames => [ClrName, FactoryClrName];
 
     private readonly Dictionary<string, OoMethodSymbol> _factoryMethods = new(CobolNames.Comparer);
 

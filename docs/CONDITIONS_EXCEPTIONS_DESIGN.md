@@ -33,11 +33,11 @@ OO mechanism (feedback_one_mechanism_per_job):
   is the program that separates them). **Each pass renders its alternative's OWN CENSUS of emitted C# types as
   one `is` or-pattern — one COBOL name is not one C# type.** GR14 a) names BOTH object kinds in one clause ("a
   factory object or instance object of object-class-name-1 or of a subclass") and a COBOL class is emitted as
-  TWO DISJOINT C# hierarchies, so a class entry tests `OoClassSymbol.FactoryOrInstanceCsTypes`
+  TWO DISJOINT C# hierarchies, so a class entry tests `OoClassSymbol.FactoryOrInstanceClrNames`
   (`__obj is FOO or __FACTORY_FOO`); testing only the instance half selected NO declarative for any factory
   exception object, silently (kb/Work PB366). GR14 b)'s "described with an IMPLEMENTS clause that references
   interface-name-1" is §11.8.4 GR2 / §11.4.4 GR2's IMPLEMENTS closure, which rides C#'s `is` over the single
-  emitted interface (`OoInterfaceSymbol.ImplementedCsTypes`) that both halves carry. "Or of a subclass" rides
+  emitted interface (`OoInterfaceSymbol.ImplementedClrNames`) that both halves carry. "Or of a subclass" rides
   `is` in EACH hierarchy, since both mirror INHERITS. Both operands resolve through `OoNameResolution` —
   §14.9.49.3 SR16/SR17 scope them to the source element's REPOSITORY (§8.4.6.4), not to the compilation group.
   `Format4UseObjectSelectorDriftTests` asserts, against the GENERATED C#, that each census equals what the
@@ -61,7 +61,8 @@ OO mechanism (feedback_one_mechanism_per_job):
   one of EcName/IsLast/ObjectSource); the no-universal sub-item (EXIT SR5d / GOBACK SR4d) + the
   declared-class-in-header one (EXIT SR5a / GOBACK SR4a, walking the base chain) = COBOL4211 at COMPILE time — which statically discharges the activated-side item-1 check for an identifier-1
   (D-EO5). `RAISING LAST EXCEPTION` of an object status is tested at RUN time against the element's header census
-  (`EcState.PdRaisingObjectCsTypes`, rendered by `EcEmitter.ObjectApplicableTest`) and, on a miss, stages the NAMED
+  (`EcState.PdRaisingObjectCsTypes`, built from the header's classes and interfaces the binder resolved, `RaisingObject`
+  (kb/Work PB2403), rendered by `EcEmitter.ObjectApplicableTest`) and, on a miss, stages the NAMED
   EC-OO-EXCEPTION instead of the object (kb/Work PB1121). The stage
   (`ExceptionState.SetPropagatingObject`) has no Enabled/Fatal logic — objects are not TURN-gated.
 - **The pickup** (`CallEmitter.EmitPropagationPickup`) has an object branch (slots exclusive): GR1b2
@@ -130,7 +131,7 @@ catch). Runtime: `Runtime/Exceptions/` — `ExceptionCatalog` (Table 13 + `Direc
 GR2/GR3/GR4 expansion), `EcCheckingProfile` (an activating statement's checking state, folded at run time for a
 run-time name — §14.9.18.4 GR1 b)), `ExceptionState` (last-exception register +
 propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.28/30/32/33), `CobolFatalException`,
-`ResumeSignal`. `CompilerDriver` hands `Frontend.Directives` (whose `TurnEvents` build the TurnState) to `CSharpEmitter.Bind`; `EmitBound` renders the bound tree via `ProgramEmitter`.
+`ResumeSignal`. `CompilerDriver` hands `Frontend.Directives` (whose `TurnEvents` build the TurnState) to `BinderDriver.Bind`; `EmitBound` renders the bound tree via `ProgramEmitter`.
 
 **EC engine specifics:**
 - **The declarative dispatch-result protocol.** Declaratives are pc
@@ -826,7 +827,8 @@ GR4 b) GLOBAL walk exists for it. Binding: `StatementBinder.BindMethodRoster` co
 sections through `ProcedureTableBuilder.CollectMethodDeclaratives` — the SAME `DeclCollectSection` a program's take,
 with the SR7/SR8/SR9/SR14 registers re-made per method procedure division and the sections declared in the method
 scope — at the head of the method's pc slice (`OoMethodBinding.DeclStartPc .. EntryPc−1`, §14.2.3 GR1), onto
-`OoMethodBinding.Declaratives`. Emission: `OoEmitter.EmitMethod` points the per-unit selection state
+the class's bound program beside the method's statements (`BoundMethod.Declaratives`; the signature record carries no bound node,
+kb/Work PB2401). Emission: `OoEmitter.EmitMethod` points the per-unit selection state
 (`UnitHasF3`/`UnitHasF4`/`UnitHasF3Perform`, `UseDecls`, `DeclCount`, `F3HandlerBasePc`) at the method for its
 body and calls the ONE `DispatchEmitter.EmitUseMachinery` with `asLocal` — `__useActive`, `__RunUse`, `__IoCheck`,
 `__IoCheckEc`, `__EcDispatch`, `__EcObjDispatch`, `__EcPerform`, `__RunF3` become LOCAL FUNCTIONS that capture the

@@ -32,8 +32,8 @@ using Core = CobolParserCore;
 /// </summary>
 internal static class ExpansionPlacementPass
 {
-    public static ExpansionPlacements Run(OoClassTable table, IReadOnlyList<OoClassUnit> classes,
-        IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> interfaceData, MetadataRepositoryProvider external, EditionContext edition,
+    public static ExpansionPlacements Run(OoClassTable table, SourceMap sources, IReadOnlyList<OoClassUnit> classes,
+        ElementBinders binders, MetadataRepositoryProvider external, EditionContext edition,
         CompileInputs inputs, ExpansionIdentity? publishAs)
     {
         // The compilation of an expansion's own assembly: its text is the expansion's, so the one class or interface it defines IS the
@@ -48,7 +48,7 @@ internal static class ExpansionPlacementPass
                 _ => ExpansionPlacements.None,
             };
         }
-        if (table.Skeletons.Count == 0 && !classes.Any(c => c.Symbol.Expansion is not null) && !table.Interfaces.Any(i => i.Expansion is not null))
+        if (table.Skeletons.Count == 0 && !classes.Any(c => sources.ExpansionOf(c.Symbol) is not null) && !table.Interfaces.Any(i => sources.ExpansionOf(i) is not null))
             return ExpansionPlacements.None;
 
         var records = new Dictionary<object, RepositoryRecord>(ReferenceEqualityComparer.Instance);
@@ -57,11 +57,12 @@ internal static class ExpansionPlacementPass
             if (records.TryGetValue(symbol, out var known)) return known;
             return records[symbol] = symbol switch
             {
-                OoClassSymbol c => RepositoryCodec.Of(classes.First(u => ReferenceEquals(u.Symbol, c))),
-                OoInterfaceSymbol i => RepositoryCodec.Of(i, interfaceData[i]),
+                OoClassSymbol c => ClassRecordOf(classes.First(u => ReferenceEquals(u.Symbol, c))),
+                OoInterfaceSymbol i => RepositoryCodec.Of(i, binders.Interfaces[i]),
                 _ => throw new InvalidOperationException($"{symbol.GetType().Name} is no class or interface"),
             };
         }
+        RepositoryRecord ClassRecordOf(OoClassUnit cls) => RepositoryCodec.Of(cls, binders.ObjectOf(cls).Data);
 
         // What a class or interface a specifier or an actual names contributes to a key: its identity and its record.
         ExpansionKey.Named NamedBy(Core.RepositoryEntryContext specifier)
@@ -102,7 +103,7 @@ internal static class ExpansionPlacementPass
         // One expansion's placement, after the placement of every expansion it names (an actual may itself be an expansion).
         ExpansionPlacement? Place(object symbol)
         {
-            var origin = symbol is OoClassSymbol cs ? cs.Expansion : ((OoInterfaceSymbol)symbol).Expansion;
+            var origin = symbol is OoClassSymbol cs ? sources.ExpansionOf(cs) : sources.ExpansionOf((OoInterfaceSymbol)symbol);
             if (origin is null) return null;
             if (placements.TryGetValue(symbol, out var done)) return done;
             if (!inProgress.Add(symbol)) return null;   // an expansion that names itself: its text is refused elsewhere
@@ -134,11 +135,11 @@ internal static class ExpansionPlacementPass
             ExpansionPlacement? placement = null;
             string target = Path.Combine(external.OutputDirectory, ExternalizedNames.Form(externalized) + ".dll");
             var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: file paths
-            if (origin.Skeleton.From is { } definedIn) referenced.Add(definedIn.Path);
+            if (origin.Skeleton.From is { } definedIn) referenced.Add(definedIn.AssemblyFile);
             foreach (var entry in resolutionEntries.Concat(actualEntries))
             {
                 var (c, i) = table.ResolveSpecifier(entry);
-                if ((c?.Imported ?? i?.Imported) is { } importedFrom) referenced.Add(importedFrom.Path);
+                if ((c?.Imported ?? i?.Imported) is { } importedFrom) referenced.Add(importedFrom.AssemblyFile);
                 object? named = c is not null ? c : i;
                 if (named is not null && placements.GetValueOrDefault(named) is { HoldingFile: { } held }) referenced.Add(held);
             }
@@ -148,14 +149,14 @@ internal static class ExpansionPlacementPass
                 bool sameTriple = ExternalizedNames.Same(theirs.DefinitionIdentity, identity.DefinitionIdentity)
                     && theirs.ActualIdentities.SequenceEqual(identity.ActualIdentities, ExternalizedNames.Comparer);
                 if (sameTriple && theirs.Key == key && ExpansionKey.SurfaceText(other.Record) == mine)
-                    placement ??= new ExpansionPlacement(identity, ExpansionWhere.Imported, other.From.Path, other.From.ClrNamespace,
+                    placement ??= new ExpansionPlacement(identity, ExpansionWhere.Imported, other.From.AssemblyFile, other.From.ClrNamespace,
                         other.Record.Class!.ClrName, other.Record.Class.FactoryType, LocalNameOf(symbol), LocalFactoryNameOf(symbol));
                 else if (sameTriple)
                 {
                     if (reportedStale.Add(other.From.Mvid)) ReportStale(origin, externalized, other, identity, theirs.Key == key);
                 }
-                else ReportSameName(symbol, origin, externalized, other, shallNot: referenced.Contains(other.From.Path)
-                    || (!namesGroup && string.Equals(Path.GetFullPath(other.From.Path), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase)));   // not a COBOL word: file paths
+                else ReportSameName(symbol, origin, externalized, other, shallNot: referenced.Contains(other.From.AssemblyFile)
+                    || (!namesGroup && string.Equals(Path.GetFullPath(other.From.AssemblyFile), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase)));   // not a COBOL word: file paths
             }
             if (placement is null)
             {
@@ -211,7 +212,7 @@ internal static class ExpansionPlacementPass
             var referencers = external.ReferencersOf(stale.AssemblyName);
             using var at = edition.At(origin.Entry);
             edition.Warning(DiagnosticCatalog.RepositorySignatureDiffers,
-                $"the expansion \"{externalized}\" of {stale.Identity.DefinitionIdentity} USING {string.Join(" ", stale.Identity.ActualIdentities)} in '{stale.From.Path}' is stale: "
+                $"the expansion \"{externalized}\" of {stale.Identity.DefinitionIdentity} USING {string.Join(" ", stale.Identity.ActualIdentities)} in '{stale.From.AssemblyFile}' is stale: "
                 + $"its {changed} changed since it was made, so it is not imported and this compilation makes the expansion. "
                 + (referencers.Count == 0 ? "No assembly of the search space references it."
                     : $"These were compiled against the earlier class and are its stale callers, to be recompiled: {string.Join(", ", referencers.Select(r => $"'{r}'"))}.")
@@ -224,7 +225,7 @@ internal static class ExpansionPlacementPass
             bool shallNot)
         {
             using var at = edition.At(origin.Entry);
-            string what = $"the expansion \"{externalized}\" in '{other.From.Path}' expands {other.Identity.DefinitionIdentity} USING "
+            string what = $"the expansion \"{externalized}\" in '{other.From.AssemblyFile}' expands {other.Identity.DefinitionIdentity} USING "
                 + $"{string.Join(" ", other.Identity.ActualIdentities)}, which is not what this compilation's expansion of that name is: two classes "
                 + "with different actual parameters are not the same class instance and shall not have the same externalized object-class-name "
                 + "within a run unit (ISO §9.3.12, §9.3.13; DESIGN-external-repository §10.5)";

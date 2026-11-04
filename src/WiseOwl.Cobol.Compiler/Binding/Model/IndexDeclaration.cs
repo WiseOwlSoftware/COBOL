@@ -17,7 +17,17 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <param name="Name">The index-name as declared (compared case-insensitively, §8.1.3.2 GR3 a)).</param>
 /// <param name="Table">The OCCURS entry whose INDEXED BY phrase declares it — the first qualifier SR6 admits.</param>
 /// <param name="Cell">The C# <c>long</c> member holding the occurrence number (DESIGN §3.5).</param>
-public sealed record IndexDeclaration(string Name, DataItem Table, string Cell);
+public sealed record IndexDeclaration(string Name, DataItem Table, string Cell)
+{
+    /// <summary>Every INDEX-NAME declaration under <paramref name="root"/> (its subtree's <c>INDEXED BY</c> declarations, each
+    /// with its own cell — kb/Work PB919). The ONE subtree walk every cell router, bridge and emitter reads; a model query, so
+    /// a backend asks it without the binder (kb/Work PB2361).</summary>
+    public static IEnumerable<IndexDeclaration> Under(DataItem root)
+    {
+        foreach (var d in root.Indexes) yield return d;
+        foreach (var c in root.Children) foreach (var d in Under(c)) yield return d;
+    }
+}
 
 /// <summary>⛔ THE INDEX-NAME NAMESPACE OF ONE SCOPE (a unit, or a method's §11.7.4 GR5 overlay) — every
 /// declaration VISIBLE there, each tagged with the nesting distance of the source element that declares it

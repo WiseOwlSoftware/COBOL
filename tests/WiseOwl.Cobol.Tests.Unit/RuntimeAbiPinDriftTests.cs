@@ -266,7 +266,7 @@ public sealed class RuntimeAbiPinDriftTests
             var tree = frontend.Parse(path, diags);
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var emitter = new CSharpEmitter();
-            var bound = emitter.Bind(tree!, new EditionContext(2023), frontend.Directives);
+            var bound = new BinderDriver().Bind(tree!, new EditionContext(2023), frontend.Directives);
             return emitter.EmitBound(bound, "ABIFIXTURE");
         }
         finally { FileHarness.TryDelete(path); }

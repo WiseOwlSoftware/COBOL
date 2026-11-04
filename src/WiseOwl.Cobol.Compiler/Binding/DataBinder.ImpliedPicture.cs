@@ -100,7 +100,7 @@ public sealed partial class DataBinder
     /// <para>The gate fires unconditionally here — a report group entry is never a TYPE clone, so the
     /// once-per-source-entry discipline the data-division pass gets from its <c>TypeAnchor</c> test is automatic.
     /// </para></summary>
-    internal PicInfo ImpliedReportPicture(ImpliedPicture implied, Usage itemUsage, bool explicitUsage,
+    private PicInfo ImpliedReportPicture(ImpliedPicture implied, Usage itemUsage, bool explicitUsage,
         SignSpec? ownSign, string where)
     {
         ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ValueImpliedPicture2002, where);

@@ -58,6 +58,37 @@ internal static class BackendContract
             "Model.ExpansionIdentity.ActualIdentities", "Model.ExpansionIdentity.DefinitionIdentity",
             "Model.PublishedSkeleton.ExternalizedName", "Model.PublishedSkeleton.Name",
             "Model.ResolutionRecord.Identity", "Model.ResolutionRecord.Word", "Model.SkeletonRecord.Formals",
+            // each published unit's repository record, written at bind time (kb/Work PB4319): the words the publishing element
+            // wrote, the externalized names (identities, ISO §8.13) and the entry convention's name, in the persisted vocabulary
+            "Model.RepositoryRecord.Name", "Model.RepositoryRecord.ExternalizedName", "Model.RepositoryRecord.EntryConvention",
+            "Model.RepositoryRecord.CobolEntryConvention", "Model.RaisingRecord.Identity", "Model.FormalRecord.Name",
+            "Model.ClassRecord.BaseIdentity", "Model.ClassRecord.Implements", "Model.ClassRecord.FactoryImplements",
+            "Model.MethodRecord.Name", "Model.MethodRecord.ExternalizedName", "Model.MethodRecord.PropertyName",
+            "Model.MethodRecord.EntryConvention", "Model.PropertyRecord.Name", "Model.PropertyRecord.ExternalizedName",
+            "Model.PrototypeRecord.ExternalizedName", "Model.StructureRecord.Name", "Model.StructureRecord.PhysicalStructureName",
+            "Model.DescriptionRecord.Name", "Model.DescriptionRecord.RedefinesTarget", "Model.DescriptionRecord.TypeName",
+            "Model.OccursRecord.Depending", "Model.OccursRecord.OutsideTheRecord", "Model.OccursRecord.Capacity",
+            "Model.PicRecord.RestrictedTypeName", "Model.PicRecord.RestrictedPrototypeName", "Model.PicRecord.ObjectRefName",
+            "Model.PicRecord.ObjectRefIdentity", "Model.LocaleEditRecord.LocaleName",
+            // the OO symbols and a method's name scope, in compiler.model since kb/Work PB2402: the words the source wrote,
+            // the externalized names (ISO §8.13) and the rosters and name indexes keyed by them
+            "Model.OoClassSymbol.Name", "Model.OoClassSymbol.ExternalizedName", "Model.OoClassSymbol.BaseName",
+            "Model.OoClassSymbol.FormalBaseName", "Model.OoClassSymbol.Bases", "Model.OoClassSymbol._methods",
+            "Model.OoClassSymbol._factoryMethods", "Model.OoInterfaceSymbol.Name", "Model.OoInterfaceSymbol.ExternalizedName",
+            "Model.OoInterfaceSymbol._protos", "Model.OoInterfaceSymbol._conformingChoice", "Model.OoMethodSymbol.Name",
+            "Model.OoMethodSymbol.ExternalizedName", "Model.OoMethodSymbol._externalizedName", "Model.OoMethodSymbol.PropertyName",
+            "Model.OoMethodSymbol.SourceName", "Model.OoMethodDataScope.ByName", "Model.OoMethodDataScope.Conditions",
+            "Model.OoMethodDataScope.CapacityRegisters", "Model.OoMethodDataScope.TypeDecls",
+            // the standard class BASE and its two §16.2 method-names, in compiler.model since kb/Work PB2403
+            "Model.OoStandardClasses.BaseName", "Model.OoStandardClasses.NewMethodName",
+            "Model.OoStandardClasses.FactoryObjectMethodName",
+            // the name tables of the frozen data binding a backend reads (DataBindResult, kb/Work PB2361): data-, condition-,
+            // capacity-register-, screen-, type- and file-names, and the alphabet-names of the range-collation carriers
+            "Model.ForestSlice.ByName", "Model.ForestSlice._byName", "Model.ForestSlice.Conditions", "Model.ForestSlice._conditions",
+            "Model.ForestSlice.CapacityRegisters", "Model.ForestSlice._capacityRegisters", "Model.ForestSlice.CapacityRegistersSoFar",
+            "Model.ForestSlice.ScreenNames", "Model.ForestSlice._screenNames", "Model.ForestSlice.TypeDecls",
+            "Model.ForestSlice._typeDecls", "Model.ForestSlice.TypeDeclsOf()", "Model.FileSlice.FilesByName",
+            "Model.FileSlice._filesByName", "Model.DataBindResult.RangeCollations",
         ]),
         new(NeutralKind.ClrName,
         [
@@ -65,6 +96,8 @@ internal static class BackendContract
             "Model.ExpansionPlacement.ClrNamespace", "Model.ExpansionPlacement.FactoryTypeName", "Model.ExpansionPlacement.LocalFactoryName",
             "Model.ExpansionPlacement.LocalName", "Model.ExpansionPlacement.TypeName", "Model.ExpansionPlacements.ByName",
             "Model.BoundUnit.ClassName", "Model.DataItem.StructName", "Model.DataItem.ProfileName",
+            // the factory type a published class record names, as metadata names it (kb/Work PB4319)
+            "Model.ClassRecord.FactoryType",
             "Model.BitLayout.FillerClrNameStem", "Model.ModuleNamespace.RegistrarClass",
             "Model.CsNameScope._claimed", "Model.CsNameScope._reserved", "Model.CsNameScope.EveryScopeReserved",
             "Model.CsNameScope.HostEntryReserved", "Model.CsNameScope.ProgramClassReserved",
@@ -73,6 +106,21 @@ internal static class BackendContract
             "Model.CsNames.CSharpReservedKeywords", "Model.CsNames.HostEntryMembers", "Model.CsNames.ImportedNamespaces",
             "Model.CsNames.ImportedTypeNames", "Model.CsNames.ProgramClassMembers", "Model.CsNames.RecordStructMembers",
             "Model.DataItem.Sanitize()", "Model.DataItem.IdentifierCharacters()", "Model.DataItem.WordIdentifier()",
+            // the synthesized CLR names of the OO model (NamingConvention, the one naming of every compiler-made member and
+            // type) and the names the symbols and a method's formals are emitted under, in compiler.model since kb/Work PB2402
+            "Model.NamingConvention.AccessorSuffix()", "Model.NamingConvention.AddressCarrierName()",
+            "Model.NamingConvention.AddressCarrierPrefix", "Model.NamingConvention.CapacityRegisterName()",
+            "Model.NamingConvention.CapacityRegisterPrefix", "Model.NamingConvention.ClassNamedMethodName()",
+            "Model.NamingConvention.ClassNamedMethodPrefix", "Model.NamingConvention.CobolWordDerivedPrefixes",
+            "Model.NamingConvention.DebugRegisterName()", "Model.NamingConvention.DebugRegisterPrefix",
+            "Model.NamingConvention.FactoryClassName()", "Model.NamingConvention.FactoryClassPrefix",
+            "Model.NamingConvention.FormalParameterName()", "Model.NamingConvention.FormalParameterPrefix",
+            "Model.NamingConvention.GetAccessorName()", "Model.NamingConvention.ImportedTypeName()",
+            "Model.NamingConvention.InstanceFileKeyName()", "Model.NamingConvention.InstanceFileKeyPrefix",
+            "Model.NamingConvention.SetAccessorName()", "Model.NamingConvention.SumCounterName()",
+            "Model.NamingConvention.SumCounterPrefix", "Model.OoClassSymbol.FactoryOrInstanceClrNames",
+            "Model.OoInterfaceSymbol.ImplementedClrNames", "Model.OoMethodBinding.FormalName()", "Model.OoFormal.ParamName",
+            "Model.OoFormal.AreaParam", "Model.OoFormal.OmittedFlag", "Model.ImportedFrom.ClrNamespace",
         ]),
         new(NeutralKind.LiteralValue,
         [
@@ -94,8 +142,14 @@ internal static class BackendContract
             // write as an attribute string alike (kb/Work PB2104)
             "Model.CompileState.CobolWordsMap", "Model.CompileState.CompilationVariables", "Model.CompileState.DirectiveFolds",
             "Model.SkeletonRecord.Source", "Model.ExpansionToWrite.Text",
+            // a published record's PICTURE, editing and currency strings, as the publishing element wrote them (kb/Work PB4319)
+            "Model.CurrencyRecord.Text", "Model.EditRuleRecord.Neg", "Model.EditRuleRecord.Pos", "Model.LocaleEditRecord.Picture",
+            "Model.PicRecord.CurrencyString", "Model.PicRecord.EditMask", "Model.PictureClauseRecord.CharacterString",
+            "Model.PictureClauseRecord.CurrencyString", "Model.PictureClauseRecord.Editing",
             "Model.TableValueSpec.FromText", "Model.TableValueSpec.FromWritten", "Model.TableValueSpec.Literals",
             "Model.TableValueSpec.ToText", "Model.TableValueSpec.ToWritten",
+            // the OPTIONS paragraph's INITIALIZE ... TO literal (ISO §11.9.10), in compiler.model since kb/Work PB2402
+            "Model.OptionsInitialize.FillLiteral",
         ]),
         new(NeutralKind.RuntimeDatum,
         [
@@ -106,9 +160,19 @@ internal static class BackendContract
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
             "Model.BoundUnit.RegistryKey", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
             "Model.LocalePhrase.Tag", "Model.LocaleRef.Tag", "Model.LocaleSymbol.External", "Model.LocaleSymbol.Tag",
-            "Model.ObjectRefDescriptor.Spelled",
+            "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",
             // the assemblies an expansion is imported from or written to: file paths the backend references (kb/Work PB2104)
             "Model.ExpansionPlacement.HoldingFile", "Model.ExpansionPlacements.ReferencedAssemblies",
+            // the assemblies the compilation imported a class or interface from, and an external file connector's §12.4.5.3
+            // GR1 identity, which the runtime compares across describers: answers the binder writes (kb/Work PB2403)
+            "Model.ImportedTypes.Assemblies", "Model.FileModel.SelectFingerprint",
+            // a class's run-unit keys and file-connector key bands, which the runtime recognizes, and the assembly an imported
+            // class came from (kb/Work PB2402 moved them to compiler.model)
+            "Model.OoClassSymbol.RunUnitKey", "Model.OoClassSymbol.HalfKey()", "Model.NamingConvention.ExternalFileBand",
+            "Model.NamingConvention.InstanceFileBand", "Model.NamingConvention.FactoryFileBand", "Model.ImportedFrom.AssemblyFile",
+            // the externalized names of a source element's REPOSITORY program-specifiers, which a CALL hands the program table
+            // (ISO §12.3.8.4 GR10; DataBindResult, kb/Work PB2361)
+            "Model.ConfigurationFacts.ProgramSpecifierNames",
         ]),
         new(NeutralKind.DiagnosticText,
         [
@@ -132,6 +196,8 @@ internal static class BackendContract
             "Model.FileModel.EntryFace", "Model.FileModel.OrganizationFace", "Model.OccursKey.Written",
             "Model.PictureClauseIdentity.Phrases()", "Model.RaisingTarget.Spelled", "Model.RecordKey.Face",
             "Model.RedefinesClass.RejectReason", "Model.SameClause.Written", "Model.SuppressWhenOperand.Written",
+            // how a diagnostic names an arithmetic mode's intermediate data item and its bounds (kb/Work PB194, PB2402)
+            "Model.ArithmeticModes.IntermediateName()", "Model.ArithmeticModes.IntermediateExtremes()",
         ]),
         new(NeutralKind.IdentityKey,
         [
@@ -142,6 +208,8 @@ internal static class BackendContract
             "Model.StrongTypeModel.TypeIdentityKey()", "Model.StrongTypeModel+TypeRestriction.Key",
             "Model.StrongTypeModel.ElementaryLayoutKey()", "Model.DynamicLengthStructure.DefinitionKey",
             "Model.DynamicLengthStructure.KeyOf()", "Model.ObjectRefDescriptor.Identity",
+            // a method's dispatch key: the roster's identity of a method, compared, never emitted as C# (kb/Work PB2402)
+            "Model.OoMethodSymbol.DispatchKey",
         ]),
     ],
     [
@@ -156,6 +224,19 @@ internal static class BackendContract
             "Model.RedefinesClass.BasedPointerField", "Bound.BoundOdoExtent.BasedAddress",
             "Bound.BoundAlterEntry.AlterField", "Bound.BoundGoToAlterable.AlterField",
             "Bound.BoundSetObjectRef.SourceFactoryCs",
+            // the storage tier's channels, cell backings and bridges and the linkage roots the emitter does not declare, each
+            // naming a storage member by text: on the backend input since the frozen data binding replaced the binder on it
+            // (DataBindResult, kb/Work PB2361), which measured them where the binder had hidden them
+            "Model.StorageTierSlice.StaticRootFields", "Model.StorageTierSlice._staticRootFields",
+            "Model.StorageTierSlice.StaticBasedBridgeAddrs", "Model.StorageTierSlice._staticBasedBridgeAddrs",
+            "Model.StorageTierSlice.StaticAddressableCells", "Model.StorageTierSlice._staticAddressableCells",
+            "Model.StorageTierSlice.StaticIndexCells", "Model.StorageTierSlice._staticIndexCells",
+            "Model.StorageTierSlice.AddressableBackings", "Model.StorageTierSlice._addressableBackings",
+            "Model.StorageTierSlice.BasedBridges", "Model.StorageTierSlice._basedBridges",
+            "Model.StorageTierSlice.AddressableCellOf", "Model.StorageTierSlice._addressableCellOf",
+            "Model.LinkageFacts.SuppressedRootFields", "Model.DataBindResult.CellLifetimes", "Model.DataBindResult.CellFieldsOf()",
+            // the factory singleton field every class emits, named by text (in compiler.model since kb/Work PB2402)
+            "Model.NamingConvention.FactoryInstanceField",
         ]),
         // L6: the binder still declared in the bound layer (its text members and the parse tree it returns), which the
         // edges file tolerates until StatementBinder moves to Binding/Procedure.
@@ -170,7 +251,7 @@ internal static class BackendContract
         new("L9", ["PB3252"],
         [
             "Model.PicInfo.ClrType", "Model.PicInfo.DefaultInitializer", "Model.PicInfo.ProfileInitializer()",
-            "Model.PicInfo.SignKind", "Model.PicInfo.SignKindFor()", "Model.ObjectRefDescriptor.ClrTypeName",
+            "Model.PicInfo.SignKind", "Model.PicInfo.SignKindFor()", "Model.PicRecord.SignKind", "Model.ObjectRefDescriptor.ClrTypeName",
             "Model.OmittedFormalGuard.Presence", "Model.OmittedFormalGuard.PresenceMember()",
             "Model.OmittedProbe+Carrier.CarrierField",
             "Model.OmittedProbe+MethodFlag.FlagParam", "Model.DataItem.ElementType", "Model.DataItem.FieldType",

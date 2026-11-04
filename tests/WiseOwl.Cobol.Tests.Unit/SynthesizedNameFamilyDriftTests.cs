@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -56,7 +56,7 @@ public sealed class SynthesizedNameFamilyDriftTests
         }
     }
 
-    private static readonly string NamingFile = Path.Combine("Oo", "NamingConvention.cs");
+    private static readonly string NamingFile = Path.Combine("Binding", "Model", "NamingConvention.cs");
 
     [Fact]
     public void EveryFamily_CarriesANonEmptyTag_AndTheFamiliesArePrefixFree()

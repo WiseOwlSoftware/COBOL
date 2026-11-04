@@ -54,13 +54,22 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// "of the same class as the object that was used to invoke the method in which this data description entry
     /// is specified", and §13.18.60.3 SR16 guarantees such a containing class exists wherever the phrase is
     /// legal. kb/Work PB389.</summary>
-    public string? OwnerClassName => _role?.OwnerClassName;
+    private string? OwnerClassName => _role?.OwnerClassName;
 
     /// <summary>Every METHOD whose data this binder bound, in bind order — the roster whose procedure divisions
     /// the data-pointer pre-scan walks (a class unit's synthetic program carries no procedure division of its
     /// own; kb/Work PB956).</summary>
     internal IReadOnlyList<OoMethodSymbol> BoundMethods => _boundMethods;
     private readonly List<OoMethodSymbol> _boundMethods = [];
+
+    /// <summary>The PROCEDURE DIVISION of the method <paramref name="m"/> this binder bound (<see cref="BindMethodData"/>), or null for a
+    /// method written with none: what the data-pointer pre-scan walks for a class unit (kb/Work PB956) and what the class body binds
+    /// (<c>StatementBinder.BindMethodRoster</c>). Kept here, from the definition the binder was handed, because the method symbol carries
+    /// no parse context (kb/Work PB2401); asking about a method this binder never bound is a compiler fault, never a body-less method.</summary>
+    internal Core.ProcedureDivisionContext? BodyOf(OoMethodSymbol m) => _bodies.TryGetValue(m, out var body)
+        ? body
+        : throw new InvalidOperationException($"method '{m.Name}': its data was not bound by this binder, so its body is not known here");
+    private readonly Dictionary<OoMethodSymbol, Core.ProcedureDivisionContext?> _bodies = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Every method-scoped root of the class (union over all methods) — the SR 10 discriminator:
     /// an item whose 01/77 root is NOT in this set, in a class unit, is object data.</summary>
@@ -74,9 +83,15 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     internal Dictionary<DataItem, OoMethodSymbol> RootOwner { get; } = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Set while a METHOD's declarations are bound or collected (<see cref="EnterMethodDeclarations"/>):
-    /// INDEXED BY index-names register into the method's own scope, never the unit's (M2-OO-1h step 4), and every
-    /// user-defined word lands in the method's own §8.3.2.2 census (kb/Work PB2921). Null at program/object scope.</summary>
+    /// INDEXED BY index-names register into the method's own scope, never the unit's (M2-OO-1h step 4). Null at
+    /// program/object scope.</summary>
     internal OoMethodDataScope? BindingMethodScope { get; private set; }
+
+    /// <summary>The §8.3.2.2 census of the METHOD whose declarations are bound or collected (<see cref="EnterMethodDeclarations"/>),
+    /// null at program/object scope: every user-defined word it declares lands in the method's own census (kb/Work PB2921),
+    /// the one the class table keeps for the method's symbol (<see cref="OoClassTable.CensusOf(OoMethodSymbol)"/>), which a
+    /// reference made anywhere in the compilation records into too.</summary>
+    internal UserWordCensus? BindingMethodWords { get; private set; }
 
     /// <summary>The METHOD whose data entries are being bound (<see cref="BindMethodData"/>; cleared with the declaration
     /// scope, <see cref="MethodDeclarationScope"/>), null otherwise: every record and type declaration its entries open is
@@ -95,19 +110,23 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// <c>EmitContext.Options</c>.</summary>
     internal OptionsModel EntryOptions => BindingMethod?.MethodOptions ?? Options;
 
-    /// <summary>Declare into <paramref name="scope"/>'s method until the returned token is disposed: its data entries
-    /// and METHOD-ID (<see cref="BindMethodData"/>) and its procedure-names (the class-body collection,
-    /// <c>StatementBinder.BindClassBody</c>). One method source element at a time, so no scope nests.</summary>
-    internal MethodDeclarationScope EnterMethodDeclarations(OoMethodDataScope scope)
+    /// <summary>Declare into <paramref name="method"/> until the returned token is disposed: its data entries and METHOD-ID
+    /// (<see cref="BindMethodData"/>) and its procedure-names (the class-body collection, <c>StatementBinder.BindClassBody</c>)
+    /// join its name scope and its census. One method source element at a time, so no scope nests. A method's symbol is
+    /// made by the class table, so a binder that declares one always has that table.</summary>
+    internal MethodDeclarationScope EnterMethodDeclarations(OoMethodSymbol method)
     {
-        BindingMethodScope = scope;
+        var table = OoClasses ?? throw new InvalidOperationException(
+            $"method '{method.Name}' declares its words with no class table: a method's census is the class table's");
+        (BindingMethodScope, BindingMethodWords) = (method.DataScope, table.CensusOf(method));
         return new MethodDeclarationScope(this);
     }
 
     /// <summary>The restore token of <see cref="EnterMethodDeclarations"/>.</summary>
     internal readonly struct MethodDeclarationScope(OoDataBinder binder) : IDisposable
     {
-        public void Dispose() => (binder.BindingMethodScope, binder.BindingMethod) = (null, null);
+        public void Dispose() =>
+            (binder.BindingMethodScope, binder.BindingMethodWords, binder.BindingMethod) = (null, null, null);
     }
 
     /// <summary>The METHOD a reference made now is made in: the method whose statements are being bound
@@ -121,12 +140,12 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
 
     /// <summary>Whether the method a reference is made in (<see cref="CurrentMethodScope"/>) declares <paramref name="word"/>
     /// as a data-name, a condition-name, an index-name, a CAPACITY register, a type-name or a constant-name of its own
-    /// (<see cref="OoMethodDataScope.Declares"/>) — the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
+    /// (<see cref="DataBinder.MethodDeclares"/>) — the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
     /// symbolic-character of the spelling the class's binder holds (ISO §8.4.6.2.1 3) a) "If the name is declared in
     /// source element B, the item in source element B is the referenced item"; §8.4.6.1 "even when it is a different
     /// type of user-defined word"; kb/Work PB3154 review R1-1). Asked by the two literal-alias lookups,
     /// <see cref="ConstantEntryBinder.FindConstant"/> and <c>SpecialNamesBinder.SymbolicOf</c>; always false outside a method.</summary>
-    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope?.Declares(word) == true;
+    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope is { } method && data.MethodDeclares(method, word);
 
     /// <summary>Reserve the names the C# class this binder's data is emitted into already holds, BEFORE the data
     /// division binds: its own type name <paramref name="classClrName"/> (the instance class beside the object data,
@@ -261,7 +280,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             return ObjectRefDescriptor.ObjectClass(name, factory, only);
         if (isInterface)
             return ObjectRefDescriptor.Interface(resolved.Interface!.Name).Resolved(resolved.Interface.ExternalizedName,
-                resolved.Interface.Origin is Compiler.Oo.OoSymbolOrigin.Imported ? resolved.Interface.ClrName : null);
+                resolved.Interface.Origin is OoSymbolOrigin.Imported ? resolved.Interface.ClrName : null);
         // ⛔ The descriptor carries the RESOLVED definition's name, not the word written: a REPOSITORY specifier's
         // `AS literal-1` makes the local word (BOXY) name the class whose externalized name is the literal
         // (§12.3.8.4 GR2, kb/Work PB974), and every downstream reader of the descriptor looks the class up by
@@ -269,7 +288,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // class imported from another assembly, its full CLR name (DESIGN-external-repository §6.4, §10.1).
         var cls = resolved.Class!;
         return ObjectRefDescriptor.ObjectClass(cls.Name, factory, only)
-            .Resolved(cls.ExternalizedName, cls.Origin is Compiler.Oo.OoSymbolOrigin.Imported ? cls.ClrName : null);
+            .Resolved(cls.ExternalizedName, cls.Origin is OoSymbolOrigin.Imported ? cls.ClrName : null);
     }
 
     /// <summary>
@@ -281,25 +300,26 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// <see cref="OoDefinitionRules.Screen"/>; an EXTERNAL clause by the clause-placement screen (§13.18.22.3 SR1
     /// admits it only in file description entries, level 1 working-storage entries and level 1 type declarations).
     /// </summary>
-    internal void BindMethodData(OoMethodSymbol m)
+    internal void BindMethodData(OoMethodSymbol m, Core.MethodDefinitionContext definition)
     {
         string where = $"method '{m.Name}'";
         m.Binding ??= new OoMethodBinding();   // the after-data-bind half attaches HERE (P9 R7 — phase-explicit)
         _boundMethods.Add(m);
+        _bodies[m] = definition.procedureDivision();
         // A method's environment division may not carry the configuration section (§12.3.3 SR2) or the
         // input-output section (§12.4.3 SR1) — a bare header is legal (§10.6.1, §12.2.1). One placement table
         // for every OO definition kind (kb/Work PB1076). A method references the class's files via §11.7.4 GR5.
-        OoEnvironmentRules.Screen(OoDefinition.Method, where, m.Ctx.environmentDivision(), Edition);
+        OoEnvironmentRules.Screen(OoDefinition.Method, where, definition.environmentDivision(), Edition);
 
-        var dd = m.Ctx.dataDivision();
+        var dd = definition.dataDivision();
         BindingMethod = m;
-        using (EnterMethodDeclarations(m.DataScope))
+        using (EnterMethodDeclarations(m))
         {
             // The METHOD-ID's word belongs to the METHOD's source element (§8.4.6.5: "The method-name of a method is
             // declared in the METHOD-ID paragraph"), not its class's, so a METHOD-ID spelled like its CLASS-ID is legal
             // (§8.4.6.1; kb/Work PB2921): a method-name, or for a GET/SET PROPERTY method the property-name it names.
             // The accessors a PROPERTY clause synthesizes carry no METHOD-ID and never come here.
-            using (Edition.At(m.Ctx))
+            using (Edition.At(definition))
                 data.DeclareUserWord(m.PropertyName ?? m.Name,
                     m.PropertyName is null ? UserWordKind.MethodName : UserWordKind.PropertyName);
             // The method's constant entries are declared before its OPTIONS paragraph and its sections bind, so one may be
@@ -310,7 +330,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind. Bound inside the
             // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
             // its constant-names, or one of its object's (§13.10.3 SR2, §8.4.6.2.2; kb/Work PB780).
-            if (m.Ctx.optionsParagraph() is { } mo)
+            if (definition.optionsParagraph() is { } mo)
                 m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, data.Constants.FindConstant);
             if (dd is not null)
             {
@@ -361,7 +381,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // formal records it, and the method ABI pairs every formal with its omitted-presence parameter
         // (OoFormal.OmittedFlag) — the method arm of the one presence fact the program arm's null carrier realizes
         // (kb/Work PB133 wave C).
-        var pd = m.Ctx.procedureDivision();
+        var pd = definition.procedureDivision();
         int pos = 0;
         bool byValue = false;
         // The formals whose ADDRESS OF the body takes are AREA formals (FormalIsCarrierResident — the program arm's test).
@@ -416,7 +436,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             else
                 header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
         }
-        ScreenPropertyMethodHeader(m, pd?.usingClause()?.usingParameter().Length ?? 0,
+        ScreenPropertyMethodHeader(m, definition, pd?.usingClause()?.usingParameter().Length ?? 0,
             m.Owner is { } owner ? $"class '{owner.Name}'{(m.IsFactory ? " (FACTORY)" : "")}: " : "");
         // §13.7.3 SR4: which of the method's linkage records its procedure division may reference — the ONE decision
         // the program/function arm takes at the same point (SR5 bars a FUNCTION's formals, so a method has none).
@@ -476,7 +496,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// procedure division header and no RETURNING phrase. The USING parameter shall not be an object reference
     /// described with the ACTIVE-CLASS phrase." <paramref name="usingCount"/> counts the parameters WRITTEN (a formal
     /// the header screen refused still counts), so the emitter's "the setter's one formal" is an invariant.</summary>
-    private void ScreenPropertyMethodHeader(OoMethodSymbol m, int usingCount, string owner)
+    private void ScreenPropertyMethodHeader(OoMethodSymbol m, Core.MethodDefinitionContext definition, int usingCount, string owner)
     {
         if (m.Accessor == '\0') return;
         var b = m.Binding!;
@@ -499,7 +519,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
               : null;
         if (fault is not null)
         {
-            using var _ = Edition.At(m.Ctx);
+            using var _ = Edition.At(definition);
             Edition.Error(DiagnosticCatalog.PropertyMethodRule,
                 $"{owner}METHOD-ID {(get ? "GET" : "SET")} PROPERTY {m.PropertyName}: {fault}");
         }

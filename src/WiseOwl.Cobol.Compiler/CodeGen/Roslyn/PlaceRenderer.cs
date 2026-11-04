@@ -566,7 +566,7 @@ internal static class PlaceRenderer
         group is OdoGroupPlace o ? WriteFullGroupImage(o.Inner, image, context) : WriteGroupImage(group, image, context);
 
     /// <summary>The LEAF VECTOR of a strongly-typed group that has no character image — the activation-boundary carrier
-    /// <c>OoClassTable.LeafCarried</c> selects (kb/Work PB1116): its record struct's generated <c>AsLeaves()</c>.
+    /// <c>ActivationCrossing.LeafCarried</c> selects (kb/Work PB1116): its record struct's generated <c>AsLeaves()</c>.
     /// <para>⛔ A GROUP THAT LIVES IN A STORAGE CELL HAS NO RECORD STRUCT (kb/Work PB2087): an area formal, or a group the
     /// activating element claimed onto a cell because it passes it BY REFERENCE (ISO §14.2.3 GR8: "the activated runtime
     /// element operates as if the formal parameter occupies the same storage area as the argument"), is a Tier-B class
@@ -591,7 +591,7 @@ internal static class PlaceRenderer
     /// group and elementary item (a condition-name or a RENAMES entry occupies no storage), exactly the
     /// <c>PhysicalModel</c> field walk: no REDEFINES can collapse two of them into one field, because ISO §13.18.44.3 SR14
     /// bars data-name-2 from being "an item subordinate to a strongly-typed group item" and only a strongly-typed group is
-    /// leaf-carried (<c>OoClassTable.LeafCarried</c>).</summary>
+    /// leaf-carried (<c>ActivationCrossing.LeafCarried</c>).</summary>
     private static IEnumerable<DataItem> LeafFieldsOf(DataItem group) => group.Children.Where(c => c.IsGroup || c.IsElementary);
 
     /// <summary>The leaf vector of the cell-backed group at <paramref name="cur"/> (see <see cref="GroupLeaves"/>): a
