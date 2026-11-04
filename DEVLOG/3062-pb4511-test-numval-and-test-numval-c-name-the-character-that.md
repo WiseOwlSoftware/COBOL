@@ -1,0 +1,10 @@
+## Entry 3062 — 2026-11-03 17:06 PST — PB4511 — TEST-NUMVAL and TEST-NUMVAL-C name the character that fails to complete CR/DB, not the C or D
+
+**Found by** the 3,000-program fuzz batch of 2026-11-03 (signature OUTPUT_DIFFERS:15.93, 7 programs). **Re-probe** on this build: `TEST-NUMVAL("4.5 D")` gave 5, `"1 D B"` 3, `"12CX"` 3, `TEST-NUMVAL-C("4.5 D   ")` 5 — each one short of the expected 6, 4, 4, 6.
+
+**Rule.** §15.93.4 1) b) returns "the position of the first character in error"; 1) c) returns LENGTH+1 for text that is valid but incomplete. The trailing sign of a NUMVAL argument is `+`, `-`, `CR` or `DB` in either case (§15.67.3 1)). A `C` or `D` opening the pair is a valid prefix, so the first character in error is the one that fails to complete it, and text that ends right after it is incomplete.
+
+**Fix.** `NvScan` (the one scan TEST-NUMVAL, TEST-NUMVAL-C, NUMVAL and NUMVAL-C all ride) gained an arm in the format-B trailing-sign step: with no leading sign, a `C`/`D`/`c`/`d` not completed to CR/DB reports `i + 2` (the next character) or LENGTH+1 when the text ends there. With a leading sign CR/DB is not admitted, so the C or D itself remains the character in error (`-12C` → 4). Sibling sweep: the NUMVAL-F exponent `E` has the same shape and was fixed by PB4096; NvScan's other prefix arms (grouping separator, PB2631) already separate end-of-text from a stopping character. A multi-character currency string that is only partly present (`USD` against `US1`) reports position 1 today; whether the standard's first-character-in-error reaches into a partial currency match is not decided by the rule text and is left as a lead.
+
+**Tests.** Golden `conformance-suite/cases/15.93.4-Returned-value-rule/pb4511_test_numval_incomplete_cr_db` (literal and data-item arguments, TEST-NUMVAL and TEST-NUMVAL-C, 2002+; the below-2002 refusal is already pinned by `test_validators_below_2002`); unit theory `TestNumvalScannerTests.TrailingCrDb_IncompletePairNamesTheCharacterThatFailsIt`. No inventory row was claimed or closed.
+
