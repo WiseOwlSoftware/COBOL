@@ -1,4 +1,4 @@
-## PB4569: a native integer power is exact while its value fits 77 digits, for every base shape
+## Entry 3092 — 2026-11-04 12:02 PST — PB4569: a native integer power is exact while its value fits 77 digits, for every base shape
 
 `FUNCTION ABS (2 ** 130)` showed 1361129467683754000000000000000000000000, `MOD (X ** N, 1000)` of 2 ** 130 answered 0 for 824, and
 `(X ** N - B65 * B65) * 1000 + 42` stored 146146501570272927154176042 for 42. `NumericRenderer.Power` sent an integer base raised to
@@ -45,3 +45,4 @@ delete the Dec arm). Full code: the exact base keeps `n == 1 -> b`, `b.Digits > 
 unchanged.
 
 Gate: GREEN at 9001ef043, run 000003-20261104T194354Z — Conformance 21,489/21,489 · Unit 39,778/39,778 · Characterization 37/37.
+
