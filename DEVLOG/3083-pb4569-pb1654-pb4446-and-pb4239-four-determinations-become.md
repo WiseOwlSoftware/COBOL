@@ -1,4 +1,4 @@
-## PB4569, PB1654, PB4446 and PB4239 — four determinations become defects
+## Entry 3083 — 2026-11-04 10:46 PST — PB4569, PB1654, PB4446 and PB4239 — four determinations become defects
 
 Four read-only determinations (wave 20261861) turned four open `kb/Work` leads into defects and filed their siblings. No code changed.
 
@@ -9,3 +9,4 @@ Four read-only determinations (wave 20261861) turned four open `kb/Work` leads i
 **PB4446.** A Table 15 refusal (COBOL1634) hides every fault in the selection object's own reference, and the surplus objects of an SR2 breach are never bound. The no-88 control gives the same, so the hidden condition-name plays no part. The deciding citation is `OK  §4.2.2   (Acceptance of standard language elements)` ("An implementation shall provide a warning mechanism ... to indicate violations of the general formats and the explicit syntax rules"), with `OK  §14.9.13.3 10)` for Table 15. The note is now a TRIVIAL defect (`misleads_diagnosis`).
 
 **PB4239.** `>>COBOL-WORDS UNDEFINE "JSON"` (and the other 14 extension-reserved words) draws COBOL1623, and `RESERVE "JSON"` and `EQUATE "MOVE" WITH "COMP-3"` compile clean, so the note is a MAJOR defect that both rejects legal source (SR3) and under-rejects (SR4). The deciding citations are `OK  §7.3.10.3 3)  (Syntax rules)` and `OK  §7.3.10.3 4)  (Syntax rules)`, with `OK  §4.2.10 3)  (Nonstandard extensions)` and `OK  §D.12.3   (UNDEFINE)`, which agree with the owner's decision of 2026-10-31. It claims SR-7.3.10.3-3 and SR-7.3.10.3-4. Filed from it: PB4586 (the directive's COBOL1623 is lost whenever the parse fails). Sibling S4 (COBOL0313 names the original word for a retyped synonym) is a PB4573 witness that the Mythos lane adds there.
+
