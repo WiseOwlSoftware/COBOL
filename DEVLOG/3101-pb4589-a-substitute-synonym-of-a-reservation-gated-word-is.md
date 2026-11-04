@@ -1,4 +1,4 @@
-## PB4589 - a SUBSTITUTE synonym of a reservation-gated word is reserved, not a user word (the parser's reservation reads asked the overlay about the original)
+## Entry 3101 — 2026-11-04 13:39 PST — PB4589 - a SUBSTITUTE synonym of a reservation-gated word is reserved, not a user word (the parser's reservation reads asked the overlay about the original)
 
 **Mechanism.** The lexer's `>>COBOL-WORDS` retype turns a synonym (EQUATE literal-2, SUBSTITUTE literal-5) into its original's keyword token
 and spells it as the original. `CobolParserCoreBase.reservedHere`, `userWordHere` and `IsKeywordReadingHere` then resolved that already-resolved
@@ -33,3 +33,4 @@ the primary diagnostic is right and the second is the same retype-overwrites-tex
 **Self-review.** Architecture: one reading ("a keyword token is already resolved") in four sites, none with a second copy of the overlay lookup; `Canonical` remains only for text-tested words.
 Full code: sibling sweep over every `Canonical(` / `Resolve(` / `RejectsAt(` caller (pasted in the report). Performance: the predicates run inside ANTLR prediction and now do less work.
 Duplication: none added. Gate: see the report.
+
