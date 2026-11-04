@@ -1,4 +1,4 @@
-## PB4111 and PB4488 — two determinations become defects
+## Entry 3072 — 2026-11-03 22:23 PST — PB4111 and PB4488 — two determinations become defects
 
 **PB4111.** The adjudication (wave 20261857) found that under STANDARD-DECIMAL the 34-digit VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE are right, and that under native arithmetic
 §8.8.1.3 and §15.4.1 leave an implementor-defined approximation, so CLAUDE.md rule 1 step 2 (GnuCOBOL, exact) decides. Deciding citation: `OK  §15.4.1` "When native arithmetic is in effect
@@ -12,3 +12,4 @@ with no lexer token (COPY, REPLACE, LOCALE, NESTED, ANYCASE, SYSTEM-DEFAULT, USE
 `CPY BOOK.` carries a period-missing hint. The note became a MAJOR `under_rejects` and `misleads_diagnosis` defect with `rejects_legal_source: false`.
 
 Also filed: PB4571, from re-queuing PR #1101 by hand while the operator lane was idle. Merge-group run 41779240040 lost Windows shard 6/7 to a Conformance step that hung until the 20-minute job limit, and the hang left no test results to name a case, because the step has no timeout of its own and no blame-hang collector.
+
