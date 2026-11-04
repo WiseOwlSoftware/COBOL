@@ -1,4 +1,4 @@
-## PB4568 and PB4111 — the native SDIDI lane takes its arguments as their exact values
+## Entry 3074 — 2026-11-03 23:43 PST — PB4568 and PB4111 — the native SDIDI lane takes its arguments as their exact values
 
 **One root, two notes.** Under native arithmetic every intrinsic call the exact wide lane declines (an SDIDI argument beside a wide one, a binary64
 beside a selection, work past `RenderWide`'s 77-digit bound, a list whose alignment may leave the carrier) reaches `IntrinsicRenderer.RenderDec`,
@@ -50,3 +50,4 @@ takes a negative scale (`ToDecRounded`, `TryQuotientDec`). Sweep: the other `Cob
 `pb4568_wide_argument_beside_sdidi` (SUM, MEAN, MOD, REM, and MOD / REM of the negative dividend: 100000, 100000, 100000, 100000, 200000,
 -100000) and `CobolExactIntrinsicsTests.PositiveExponentArguments_AlignAtTheirNegativeCommonScale`, which adds MEDIAN and a VARIANCE leg
 ({10^43 + 10^10, 10^43} is 2.5·10^19; the images' 34-digit mean answered 5·10^19).
+
