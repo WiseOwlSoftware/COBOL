@@ -48,6 +48,48 @@ public static partial class CobolIntrinsics
         return integer;
     }
 
+    /// <summary>§15.3 type 6 on an exact value whose scale only the run time knows (<see cref="CobolExact"/>, kb/Work PB4575): the
+    /// wide arm of <see cref="IntegerArgWide"/> for a value on the wide form, <see cref="IntegerArgUnboundedDec"/> for one the SDIDI
+    /// carries, so the integer keeps every digit the value has and the one integrality test applies to both.</summary>
+    /// <remarks>A value at a scale of 0 or less is an integer already and is its own integer, even where its digits written out pass
+    /// the wide form (<c>P * 1.0E40</c>), which <see cref="CobolExact.TryWide"/> cannot write and whose image would round it.</remarks>
+    public static CobolExact IntegerArgExact(CobolExact v) =>
+        v.Scale <= 0 ? v.WithPrecision(0)
+        : v.TryWide(out CobolWide wide, out int scale)
+            ? CobolExact.FromWide(IntegerArgWide(wide, scale), 0)
+            : CobolExact.FromDec(IntegerArgUnboundedDec(v.Image), 0);
+
+    // ⛔ THE UNARY EXACT FAMILY ON THE RUN-TIME-SCALED EXACT VALUE (kb/Work PB4575 review finding R1-2): ABS, SIGN, INTEGER,
+    // INTEGER-PART and FRACTION-PART of an argument expression in which a wide value met an SDIDI operand (CobolExact). Their value is
+    // the argument's own digits, so each keeps every one: a value on the wide form through the …Wide body at its run-time scale, an
+    // SDIDI-carried one (past 77 digits) through the …Dec body over its own exact significand (Image IS the value then: TryWide
+    // fails at a positive scale only for an SDIDI value). Before them the argument entered as its 34-digit round-to-odd image, and
+    // INTEGER (P + 0.0E0) - P of a 39-digit P was the image's residue once the subtraction kept P exact.
+
+    /// <summary>ABS (§15.7.4) of an exact value: its magnitude, the same precision.</summary>
+    public static CobolExact AbsExact(CobolExact v) => v.Sign < 0 ? CobolExact.Negate(v) : v;
+
+    /// <summary>SIGN (§15.81.4) of an exact value: −1, 0 or +1.</summary>
+    public static long SignExact(CobolExact v) => v.Sign;
+
+    /// <summary>INTEGER (§15.44.4) of an exact value: the greatest integer not greater than it, held at precision 0.</summary>
+    public static CobolExact FloorExact(CobolExact v) => IntegerOfExact(v, floor: true);
+
+    /// <summary>INTEGER-PART (§15.49.4) of an exact value: its integer part (truncation toward zero), held at precision 0.</summary>
+    public static CobolExact TruncateExact(CobolExact v) => IntegerOfExact(v, floor: false);
+
+    /// <summary>FRACTION-PART (§15.42.4) of an exact value: <c>argument − FUNCTION INTEGER-PART (argument)</c>, at its own scale.</summary>
+    public static CobolExact FractionPartExact(CobolRounding mode, CobolExact v) =>
+        v.Scale <= 0 ? CobolExact.From(0, 0)
+        : v.TryWide(out CobolWide wide, out int scale) ? CobolExact.FromWide(FractionPartWide(wide, scale), scale)
+        : CobolExact.FromDec(FractionPartDec(mode, v.Image));
+
+    private static CobolExact IntegerOfExact(CobolExact v, bool floor) =>
+        v.Scale <= 0 ? v.WithPrecision(0)
+        : v.TryWide(out CobolWide wide, out int scale)
+            ? CobolExact.FromWide(floor ? FloorWide(wide, scale) : TruncateWide(wide, scale), 0)
+            : CobolExact.FromDec(floor ? FloorDec(v.Image) : TruncDec(v.Image), 0);
+
     /// <summary>ABS (§15.7.4): the magnitude, at the argument's own scale. Unlike the <see cref="Int128"/> body there is no
     /// unrepresentable magnitude: the wide form is sign and magnitude.</summary>
     public static CobolWide AbsWide(CobolWide v) => CobolWide.Abs(v);

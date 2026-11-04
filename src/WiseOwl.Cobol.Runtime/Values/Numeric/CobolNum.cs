@@ -956,6 +956,13 @@ public static partial class CobolNum
     public static string FormatWideFunctionText(CobolWide value, int scale, bool deSign = false, bool commaMode = false) =>
         FunctionText(value.Sign < 0, value.MagnitudeDigits(), scale, deSign, commaMode);
 
+    /// <summary>The same text for a returned value carried as a run-time-scaled exact value (<see cref="CobolExact"/>, kb/Work
+    /// PB4575: <c>ABS (P + 2.0E0)</c>): its wide form's every digit, or its SDIDI value's past the form (DOC-A.1-123).</summary>
+    public static string FormatExactFunctionText(CobolExact value, bool deSign = false, bool commaMode = false) =>
+        value.TryWide(out CobolWide wide, out int scale)
+            ? FormatWideFunctionText(wide, scale, deSign, commaMode)
+            : value.Image.ToFunctionText(deSign, commaMode);
+
     /// <summary>The ONE statement of the literal-form text, over a value given as its sign and the digits of its unscaled magnitude.</summary>
     private static string FunctionText(bool negative, string digits, int scale, bool deSign, bool commaMode)
     {

@@ -595,7 +595,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     {
         string t = $"__ie{ctx.Names.NextStoreTmp()}";
         // Total over the carriers (kb/Work PB85): a float sender snapshotted as `Int128 t = double` was CS0266.
-        string cs = v.Wide ? "CobolWide" : v.Dec ? "CobolDec" : v.Real ? "double" : v.U ? "UInt128" : "Int128";
+        string cs = v.Wide ? "CobolWide" : v.Exact ? RuntimeApi.ExactType : v.Dec ? "CobolDec" : v.Real ? "double" : v.U ? "UInt128" : "Int128";
         ctx.Writer.Line($"{cs} {t} = {v.Expr};");
         return v with { Expr = t, WithPrecision = null };   // the snapshot is stored, never re-evaluated through another spelling
     }
