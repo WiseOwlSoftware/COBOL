@@ -1303,8 +1303,9 @@ binder only for what is not SPECIAL-NAMES: the §8.3.2.2 declaration funnel, the
 Every reader of those facts (picture analysis, the literal binders, the procedure binders and the emitters) reads
 `Data.State.Configuration`; a contained unit's slice is seeded from its container's by `ConfigurationStep` (the one producer, step 5 of the
 extract, PB2296 M5), so the binder carries no `InheritFrom` and the data binder no `InheritConfiguration`. The REPOSITORY specifier
-screens and the configuration-literal readings are `DataBinder.Configuration.cs`. The emitters' reads of the slice are tolerated edge pairs
-onto `ConfigurationSlice` in `architecture-edges.json`, removed by PB2361 (the facts become a value slice in `DataBindResult`).
+screens and the configuration-literal readings are `DataBinder.Configuration.cs`. The emitters read no slice: they read
+`ConfigurationFacts`, the value the slice makes for `DataBindResult` (`ConfigurationSlice.Facts`; PB2361 removed the
+emitters' pairs onto `ConfigurationSlice`).
 *`FileControlBinder` as built (PB2356, completed by PB2296 M7).* The same shape, `DataBinder.FileControl`, over four files: `FileControlBinder.cs` (the SELECT
 entries, `BindFileControl`; the RECORD KEY and ALTERNATE RECORD KEY source phrase; the key-level and file-level COLLATING SEQUENCE
 clauses and their post-build resolution, `ResolveFileCollating`; the ORGANIZATION, ACCESS MODE, SHARING and LOCK MODE mappers),

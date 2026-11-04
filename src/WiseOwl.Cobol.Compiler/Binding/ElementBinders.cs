@@ -86,8 +86,10 @@ internal sealed class ElementBinders
     /// group tail has not finished is refused, never frozen: the watermark of each must be the tail's terminal phase
     /// (<see cref="PassPhase.EditionConformanceChecked"/>, the P6 Step-6 gate), so a result is never made over a forest a
     /// pass still writes. The unexpanded parameterized classes bind for their own rules and are never emitted, so they are not
-    /// frozen.</summary>
-    public void Freeze(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes)
+    /// frozen. Returns each interface's result (<see cref="BoundCompilation.InterfaceData"/>): an interface binds only its
+    /// prototypes' formals in the data phases (ISO §10.6.2 SR4) and no group-tail pass runs over it, so its binder is complete
+    /// when its data has bound and carries no watermark to require.</summary>
+    public IReadOnlyDictionary<OoInterfaceSymbol, DataBindResult> Freeze(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes)
     {
         foreach (var unit in units) unit.Data = Frozen(Of(unit).Data);
         foreach (var cls in classes)
@@ -95,6 +97,7 @@ internal sealed class ElementBinders
             cls.Data = Frozen(ObjectOf(cls).Data);
             cls.FactoryData = Frozen(FactoryOf(cls).Data);
         }
+        return _interfaces.ToDictionary(static kv => kv.Key, static kv => kv.Value.Result());
 
         static DataBindResult Frozen(DataBinder data)
         {

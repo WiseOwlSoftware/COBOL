@@ -272,8 +272,7 @@ internal sealed class BinderDriver
         // procedure binders' two late doors (a compiler temporary's root, a function result temporary's cell) are shut and every
         // fact set is complete. Each element's DataBindResult — what a backend reads in place of the binder — is made here, once;
         // everything below reads the bound model, and the binders stay with the session.
-        session.Binders.Freeze(units, classes);
-        var interfaceData = session.Binders.Interfaces.ToDictionary(static kv => kv.Key, static kv => kv.Value.Result());
+        var interfaceData = session.Binders.Freeze(units, classes);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
