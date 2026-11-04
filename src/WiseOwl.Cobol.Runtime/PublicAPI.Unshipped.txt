@@ -867,3 +867,6 @@ WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.AssemblyName.get -> string!
 WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.AssemblyName.get -> string!
 WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpansionParts.get -> string![]?
 WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExpansionParts.set -> void
+static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximation(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximationIntermediate(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximationUnchecked(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128

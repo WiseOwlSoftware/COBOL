@@ -388,6 +388,36 @@ public static class CobolFloat
         return TryExactScaled(v, scale, mode, out Int128 landed) ? landed : LowOrderDigits(v, scale, mode);
     }
 
+    // ── THE APPROXIMATION'S THREE LANDINGS (kb/Work PB4516) ────────────────────────────────────────────────
+    // An engine-produced APPROXIMATION (a §15.4.1 function's returned value, a non-integer native power) is not a
+    // floating-point data item's content, so it lands by the value the implementor's determination gives it - its
+    // SHORTEST ROUND-TRIP decimal (CobolDec.FromApproximation; docs/CONFORMANCE.md "An implementor-defined
+    // APPROXIMATION is not a data item") - and not by the exact binary expansion the three landings above give a
+    // float ITEM. §15.4 gives a function ONE returned value ("a returned value in a temporary elementary data item")
+    // and §15.4.1 leaves its representation to the implementor: EXP10(-6) is 9.99999999999999955E-7 as a binary
+    // expansion and 0.000001 as the approximation, and the operand lift beside an operator
+    // (NumericRenderer.LiftApproximation) has always read the second, so a bare `COMPUTE R = FUNCTION EXP10(-6)`
+    // stored 0.000000 where `COMPUTE R = 0 + FUNCTION EXP10(-6)` stored 0.000001. These three are the twins of the
+    // three above, one for one, and the decimal lane's ToUnscaled / ToUnscaledChecked / ToUnscaledIntermediate do
+    // the rounding and the past-the-carrier disposition, so no second rounding rule or sentinel exists here. A
+    // non-finite value has no decimal: it keeps its binary64 disposition (zero, or the raise), unchanged.
+
+    /// <summary>The CHECKED landing of an APPROXIMATION - <see cref="ToScaled"/>'s value rule replaced by the
+    /// approximation's shortest round-trip decimal, <see cref="CobolDec.ToUnscaledChecked"/>'s past-the-carrier
+    /// raise (EC-SIZE-TRUNCATION).</summary>
+    public static Int128 ToScaledApproximation(double v, int scale, CobolRounding mode) =>
+        double.IsFinite(v) ? CobolDec.FromApproximation(v).ToUnscaledChecked(scale, mode) : ToScaled(v, scale, mode);
+
+    /// <summary>The UNCHECKED landing of an APPROXIMATION (a MOVE, the no-phrase store) - the twin of
+    /// <see cref="ToScaledUnchecked"/>: the low-order digits past the carrier, zero for a non-finite value.</summary>
+    public static Int128 ToScaledApproximationUnchecked(double v, int scale, CobolRounding mode) =>
+        double.IsFinite(v) ? CobolDec.FromApproximation(v).ToUnscaled(scale, mode) : ToScaledUnchecked(v, scale, mode);
+
+    /// <summary>The INTERMEDIATE landing of an APPROXIMATION (an alignment, an argument) - the twin of
+    /// <see cref="ToScaledIntermediate"/>, EC-SIZE-OVERFLOW past the carrier.</summary>
+    public static Int128 ToScaledApproximationIntermediate(double v, int scale, CobolRounding mode) =>
+        double.IsFinite(v) ? CobolDec.FromApproximation(v).ToUnscaledIntermediate(scale, mode) : ToScaledIntermediate(v, scale, mode);
+
     /// <summary>The 38 LOW-ORDER digits, sign kept, of a finite binary64's EXACT value at <paramref name="scale"/>
     /// fraction digits, rounded per <paramref name="mode"/> (kb/Work PB77) — the digits a truncating landing keeps of a
     /// value the Int128 carrier cannot hold (the receiver's own store then keeps ITS low-order digits of these, so the

@@ -112,13 +112,18 @@ public sealed class CarrierLandingFormTests
     }
 
     /// <summary>The working-scale quantizer (<c>FromDouble</c>, the arithmetic-receiver landing) follows the same
-    /// two-form rule: checked RAISES (kb/Work PB2967), unchecked lands the low-order digits at the working scale.</summary>
+    /// two-form rule: checked RAISES (kb/Work PB2967), unchecked lands the low-order digits at the working scale.
+    /// <para>The value it lands is the APPROXIMATION's (kb/Work PB4516): 1.0e40 is the decimal 10^40, whose low-order
+    /// 38 digits at scale 9 (10^49) are all zero - not the binary expansion's 10000000000000000303786028427003666890752.
+    /// 1.2345e39 at scale 0 is the decimal 12345 followed by 35 zeros, 40 digits, and its 38 low-order digits are
+    /// 345 followed by 35 zeros.</para></summary>
     [Fact]
     public void FromDouble_PastTheCarrier_FollowsTheLanding()
     {
         Assert.Equal("EC-SIZE-TRUNCATION", Assert.Throws<CobolSizeError>(
             () => CobolIntrinsics.FromDouble(1.0e40, 9, CobolRounding.NearestAwayFromZero, checkedLanding: true)).EcName);
-        Assert.Equal(Int128.Parse("303786028427003666890752") * 1_000_000_000 % Ten38, CobolIntrinsics.FromDouble(1.0e40, 9, CobolRounding.NearestAwayFromZero) % Ten38);
+        Assert.Equal(Int128.Zero, CobolIntrinsics.FromDouble(1.0e40, 9, CobolRounding.NearestAwayFromZero));
+        Assert.Equal(Int128.Parse("34500000000000000000000000000000000000"), CobolIntrinsics.FromDouble(1.2345e39, 0, CobolRounding.Truncation));
         Assert.Equal(Int128.Zero, CobolIntrinsics.FromDouble(double.PositiveInfinity, 9, CobolRounding.NearestAwayFromZero));
         Assert.Equal("EC-SIZE-TRUNCATION", Assert.Throws<CobolSizeError>(
             () => CobolIntrinsics.FromDouble(double.PositiveInfinity, 9, CobolRounding.NearestAwayFromZero, checkedLanding: true)).EcName);
@@ -305,15 +310,43 @@ public sealed class CarrierLandingFormTests
     public void FloatToScaled_TakesTheLandingForm_WithNoDefault()
     {
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Roslyn", "RuntimeApi.cs"));
-        var m = Regex.Match(src, @"public static string FloatToScaled\(string value, string scale, CobolRounding mode, bool checkedLanding\)");
-        Assert.True(m.Success, "RuntimeApi.FloatToScaled must take `bool checkedLanding` with NO default (kb/Work PB77) — the "
-            + "landing form is the caller's statement to make.");
+        var m = Regex.Match(src, @"public static string FloatToScaled\(string value, bool approximation, string scale, CobolRounding mode, bool checkedLanding\)");
+        Assert.True(m.Success, "RuntimeApi.FloatToScaled must take `bool approximation` (kb/Work PB4516) and `bool checkedLanding` "
+            + "(kb/Work PB77), both with NO default — the value's kind and the landing form are the caller's statements to make.");
         Assert.Contains("nameof(CobolFloat.ToScaledUnchecked)", src);
         Assert.Contains("nameof(CobolFloat.ToScaled)", src);
+        Assert.Contains("nameof(CobolFloat.ToScaledApproximationUnchecked)", src);
+        Assert.Contains("nameof(CobolFloat.ToScaledApproximation)", src);
         // The INTERMEDIATE consumer's raising landing is a SEPARATE entry, so the store form can never be asked
         // for it by a flag: a sentinel into a store is the PB2967 defect.
-        Assert.Contains("public static string FloatToScaledIntermediate(string value, string scale, CobolRounding mode)", src);
+        Assert.Contains("public static string FloatToScaledIntermediate(string value, bool approximation, string scale, CobolRounding mode)", src);
         Assert.Contains("nameof(CobolFloat.ToScaledIntermediate)", src);
+        Assert.Contains("nameof(CobolFloat.ToScaledApproximationIntermediate)", src);
+    }
+
+    /// <summary>⛔ EVERY EMITTED FLOAT-TO-FIXED LANDING READS THE VALUE'S KIND OFF THE VALUE (kb/Work PB4516). An
+    /// APPROXIMATION and a floating-point DATA ITEM's content are two values at one binary64, so the landing a site emits is
+    /// chosen by <c>NumX.Approximate</c> - the flag the producer set - and never by a literal the site wrote: a
+    /// <c>FloatToScaled(…, false, …)</c> would put the float item's exact landing back under a function's returned value,
+    /// the defect where <c>COMPUTE R = FUNCTION EXP10(-6)</c> stored 0.000000 and <c>COMPUTE R = 0 + FUNCTION EXP10(-6)</c>
+    /// stored 0.000001. The sites are enumerated by the compiler (RuntimeApi.FloatToScaled has no default), so this holds
+    /// the text of each call: the second argument is a <c>….Approximate</c> member read.</summary>
+    [Fact]
+    public void EveryFloatToScaledSite_PassesTheValuesApproximateFlag()
+    {
+        string root = TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen");
+        int sites = 0;
+        foreach (string file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
+        {
+            if (Path.GetFileName(file) == "RuntimeApi.cs") continue;   // the definitions
+            foreach (Match m in Regex.Matches(File.ReadAllText(file), @"RuntimeApi\.FloatToScaled(?:Intermediate)?\(\s*([^,]+),\s*([^,]+),"))
+            {
+                sites++;
+                Assert.True(Regex.IsMatch(m.Groups[2].Value.Trim(), @"^\w+\.Approximate$"),
+                    $"{Path.GetFileName(file)}: a float-to-fixed landing whose kind is not read off the value (kb/Work PB4516): {m.Value}");
+            }
+        }
+        Assert.True(sites >= 5, $"expected the five landing sites of NumericRenderer/ArithmeticEmitter, found {sites}");
     }
 
     /// <summary>The quantizer renders that reach the runtime with a working scale carry the ONE
@@ -398,6 +431,24 @@ public sealed class CarrierLandingFormTests
     [InlineData(1.0e9, -2)]
     public void FromDouble_IsTheSameLandingAsTheMove(double v, int scale)
     {
+        // ⛔ THE MOVE OF A FUNCTION'S RETURNED VALUE LANDS THE APPROXIMATION (kb/Work PB4516): the value FromDouble lands is
+        // an engine-produced approximation's shortest round-trip decimal, so its MOVE twin is ToScaledApproximationUnchecked
+        // - a MOVE of a floating-point DATA ITEM, the exact expansion (ToScaledUnchecked), is the other landing, pinned by
+        // BothLandings_AreTheExactValue_AtEveryScale. The sweep over every mode stands.
+        foreach (CobolRounding mode in System.Enum.GetValues<CobolRounding>())
+            Assert.Equal(Landed(() => CobolFloat.ToScaledApproximationUnchecked(v, scale, mode)),
+                         Landed(() => CobolIntrinsics.FromDouble(v, scale, mode)));
+    }
+
+    /// <summary>The ORIGINAL assertion of kb/Work PB647, kept for the one fact it still states: for a value whose shortest
+    /// round-trip decimal IS its exact value (or lands identically at the scale) the approximation's landing and the float
+    /// item's agree - the two differ only where the double's binary expansion sits across a digit boundary from its
+    /// decimal, which <see cref="ApproximationLanding_IsTheShortestDecimal_NotTheBinaryExpansion"/> pins.</summary>
+    [Theory]
+    [InlineData(1.633123935319537e16, 2)]
+    [InlineData(1.0e9, -2)]
+    public void FromDouble_AgreesWithTheFloatItemLanding_WhereTheDecimalIsTheExpansion(double v, int scale)
+    {
         // ⛔ AND THE MODE IS NOW PART OF WHAT "THE SAME LANDING" MEANS (kb/Work PB647). Before it, this assertion
         // could only be written at ONE mode, because the arithmetic quantizer hard-coded NEAREST-AWAY-FROM-ZERO
         // while the MOVE landing took the receiver's — so the two channels agreed on the VALUE and disagreed on
@@ -407,6 +458,78 @@ public sealed class CarrierLandingFormTests
         foreach (CobolRounding mode in System.Enum.GetValues<CobolRounding>())
             Assert.Equal(Landed(() => CobolFloat.ToScaledUnchecked(v, scale, mode)),
                          Landed(() => CobolIntrinsics.FromDouble(v, scale, mode)));
+    }
+
+    /// <summary>⛔ AN APPROXIMATION LANDS BY ITS SHORTEST ROUND-TRIP DECIMAL, IN EVERY FORM AND EVERY MODE (kb/Work PB4516).
+    /// §15.4: a function's evaluation "produces a returned value in a temporary elementary data item" - ONE value - and
+    /// §15.4.1 leaves its native representation to the implementor, whose determination (docs/CONFORMANCE.md "An
+    /// implementor-defined APPROXIMATION is not a data item") is the decimal <c>CobolDec.FromApproximation</c> gives.
+    /// <para>Expected values are derived from the DECIMAL, never observed: 1e-6 is the decimal 0.000001 (the double
+    /// beneath it, 9.99999999999999954748...E-7, truncates to 0 at six places - the defect); 2.5e-6 is the decimal
+    /// 0.0000025, an exact TIE at six places, which the eight modes resolve by their definitions (§14.7.4.3): the double
+    /// above it, 2.50000000000000020450...E-6, would break the tie upward in NEAREST-TOWARD-ZERO and NEAREST-EVEN.</para></summary>
+    [Fact]
+    public void ApproximationLanding_IsTheShortestDecimal_NotTheBinaryExpansion()
+    {
+        // the reduced repro: EXP10(-6) at the receiver's scale of six
+        Assert.Equal((Int128)1, CobolFloat.ToScaledApproximationUnchecked(1e-6, 6, CobolRounding.Truncation));
+        Assert.Equal((Int128)1, CobolFloat.ToScaledApproximation(1e-6, 6, CobolRounding.Truncation));
+        Assert.Equal((Int128)1, CobolFloat.ToScaledApproximationIntermediate(1e-6, 6, CobolRounding.Truncation));
+        Assert.Equal((Int128)1, CobolIntrinsics.FromDouble(1e-6, 6, CobolRounding.Truncation));
+        Assert.Equal((Int128)1, CobolIntrinsics.FromDouble(1e-6, 6, CobolRounding.Truncation, checkedLanding: true));
+        // a float ITEM holding the same double is not an approximation: its landing is the exact expansion
+        Assert.Equal(Int128.Zero, CobolFloat.ToScaledUnchecked(1e-6, 6, CobolRounding.Truncation));
+        // 0.0000025 at scale 6: every mode against the decimal tie
+        foreach (var (mode, want) in new[]
+        {
+            (CobolRounding.Truncation, 2), (CobolRounding.NearestAwayFromZero, 3), (CobolRounding.AwayFromZero, 3),
+            (CobolRounding.NearestEven, 2), (CobolRounding.NearestTowardZero, 2), (CobolRounding.TowardGreater, 3),
+            (CobolRounding.TowardLesser, 2),
+        })
+        {
+            Assert.Equal((Int128)want, CobolFloat.ToScaledApproximationUnchecked(2.5e-6, 6, mode));
+            Assert.Equal((Int128)want, CobolFloat.ToScaledApproximation(2.5e-6, 6, mode));
+            Assert.Equal((Int128)want, CobolFloat.ToScaledApproximationIntermediate(2.5e-6, 6, mode));
+            Assert.Equal((Int128)(-want), CobolFloat.ToScaledApproximationUnchecked(-2.5e-6, 6, MirrorOf(mode)));
+        }
+        // PROHIBITED: the decimal 0.0000025 is not representable at six places, in all three forms
+        foreach (var land in new Func<Int128>[]
+        {
+            () => CobolFloat.ToScaledApproximationUnchecked(2.5e-6, 6, CobolRounding.Prohibited),
+            () => CobolFloat.ToScaledApproximation(2.5e-6, 6, CobolRounding.Prohibited),
+            () => CobolFloat.ToScaledApproximationIntermediate(2.5e-6, 6, CobolRounding.Prohibited),
+            () => CobolIntrinsics.FromDouble(2.5e-6, 6, CobolRounding.Prohibited),
+        })
+            Assert.Equal("PROHIBITED-INEXACT", Landed(land));
+        // ... and 1e-6 IS representable at six places, so PROHIBITED lands it (the exact expansion would be refused)
+        Assert.Equal((Int128)1, CobolFloat.ToScaledApproximationUnchecked(1e-6, 6, CobolRounding.Prohibited));
+    }
+
+    private static CobolRounding MirrorOf(CobolRounding mode) => mode switch
+    {
+        CobolRounding.TowardGreater => CobolRounding.TowardLesser,
+        CobolRounding.TowardLesser => CobolRounding.TowardGreater,
+        _ => mode,
+    };
+
+    /// <summary>An approximation past the carrier keeps the landing's three forms (checked raises EC-SIZE-TRUNCATION,
+    /// intermediate EC-SIZE-OVERFLOW, unchecked the low-order digits of the DECIMAL), and a non-finite value, which has no
+    /// decimal, keeps the binary64 dispositions of the landings it replaced (kb/Work PB4516).</summary>
+    [Fact]
+    public void ApproximationLanding_PastTheCarrier_AndNonFinite_KeepTheThreeForms()
+    {
+        Assert.Equal("EC-SIZE-TRUNCATION", Assert.Throws<CobolSizeError>(() => CobolFloat.ToScaledApproximation(1.0e40, 0, CobolRounding.Truncation)).EcName);
+        Assert.Equal("EC-SIZE-OVERFLOW", Assert.Throws<CobolSizeError>(() => CobolFloat.ToScaledApproximationIntermediate(-2.5e40, 5, CobolRounding.Truncation)).EcName);
+        Assert.Equal(Int128.Zero, CobolFloat.ToScaledApproximationUnchecked(1.0e40, 0, CobolRounding.Truncation));   // 10^40: no digit a store could use
+        Assert.Equal(Int128.Zero, CobolFloat.ToScaledApproximationUnchecked(double.PositiveInfinity, 0, CobolRounding.Truncation));
+        Assert.Equal(Int128.Zero, CobolFloat.ToScaledApproximationUnchecked(double.NaN, 3, CobolRounding.Truncation));
+        Assert.Equal("EC-SIZE-TRUNCATION", Assert.Throws<CobolSizeError>(() => CobolFloat.ToScaledApproximation(double.NegativeInfinity, 0, CobolRounding.Truncation)).EcName);
+        Assert.Equal("EC-SIZE-OVERFLOW", Assert.Throws<CobolSizeError>(() => CobolFloat.ToScaledApproximationIntermediate(double.PositiveInfinity, 0, CobolRounding.Truncation)).EcName);
+        Assert.Equal(Int128.Zero, CobolFloat.ToScaledApproximation(double.NaN, 3, CobolRounding.Truncation));
+        Assert.Equal(Int128.Zero, CobolFloat.ToScaledApproximationIntermediate(double.NaN, 3, CobolRounding.Truncation));
+        // the smallest subnormal is the decimal 5E-324: it lands zero at any receiver scale, and PROHIBITED refuses it
+        Assert.Equal(Int128.Zero, CobolFloat.ToScaledApproximationUnchecked(double.Epsilon, 9, CobolRounding.Truncation));
+        Assert.Equal("PROHIBITED-INEXACT", Landed(() => CobolFloat.ToScaledApproximationUnchecked(double.Epsilon, 9, CobolRounding.Prohibited)));
     }
 
     /// <summary>THE DRIFT TEST for the carrier fast path (kb/Work PB623). <see cref="ExactOracle"/> below is a

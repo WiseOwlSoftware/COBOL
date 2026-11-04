@@ -805,6 +805,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // `FUNCTION ACOS(-1) + 0` already landed 3.1416, the nested arm above, and so did standard-decimal.
         // The quantizer's landing form past the carrier is the STATEMENT's (kb/Work PB77): saturate under ON SIZE
         // ERROR / EC-SIZE checking (the capacity check raises), the low-order digits for the no-phrase store.
+        // ⛔ THE VALUE IT LANDS IS THE APPROXIMATION'S, THE SAME ONE THE OPERAND LIFT AND THE RECEIVER-LESS LANDINGS READ
+        // (kb/Work PB4516): FromDouble takes the binary64's shortest round-trip decimal (CobolDec.FromApproximation),
+        // as the `Approximate: true` NumX of the keep-the-binary64 arm above does when a store or an alignment lands it
+        // (NumericRenderer.StoreArgs / EditedLanding / Align read NumX.Approximate). Landing the binary EXPANSION stored
+        // 0.000000 for `COMPUTE R = FUNCTION EXP10(-6)` and 0.000001 for `COMPUTE R = 0 + FUNCTION EXP10(-6)`.
         return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
     }
 

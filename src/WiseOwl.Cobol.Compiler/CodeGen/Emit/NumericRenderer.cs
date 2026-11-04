@@ -1233,7 +1233,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // CHECKED: an intermediate consumer has no capacity check downstream, so a value past the carrier RAISES here —
         // never the low-order digits a STORE may take (kb/Work PB77) and never a saturated sentinel a comparison or a
         // selection would take for a value (kb/Work PB3019); the Dec arm below raises the same condition.
-        x.Real ? RuntimeApi.FloatToScaledIntermediate(x.Expr, $"{toScale}", mode)
+        x.Real ? RuntimeApi.FloatToScaledIntermediate(x.Expr, x.Approximate, $"{toScale}", mode)
         // A Dec that the Int128 carrier cannot hold at this scale is a SIZE ERROR condition (EC-SIZE-OVERFLOW —
         // §14.7.5 case 5, A.1 item 179 "checked"; kb/Work PB69), never the low-order-digits landing a STORE may
         // use: an intermediate consumer has no capacity check downstream to catch a truncated value.
@@ -1279,7 +1279,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// once — here — and AllocateReal's ceiling is that rule realised inside the statement's own outcome
     /// machinery; the drift test knows about the exemption by name.</para></summary>
     public static string AlignRoundedUp(NumX x) =>
-        x.Real ? RuntimeApi.FloatToScaledIntermediate(x.Expr, "0", CobolRounding.TowardGreater)
+        x.Real ? RuntimeApi.FloatToScaledIntermediate(x.Expr, x.Approximate, "0", CobolRounding.TowardGreater)
         : x.Dec ? RuntimeApi.DecToUnscaledIntermediate(x.Expr, "0", CobolRounding.TowardGreater)
         : x.U ? AlignRoundedUp(DeU(x))
         : x.Scale == 0 ? x.Expr
@@ -1535,10 +1535,15 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// ON SIZE ERROR / EC-SIZE store) or <c>ToScaledUnchecked</c> (a MOVE, the no-phrase store, INVOKE BY CONTENT —
     /// the low-order digits past the carrier, kb/Work PB77) with the receiver's ROUNDED mode (D16) and then stores as
     /// a native at that scale (rescale identity ⇒ no double rounding); a native passes its own scale (an exact-family
-    /// intrinsic chose ITS landing form at the render — <c>IntrinsicRenderer.CheckedFlag</c>).</summary>
+    /// intrinsic chose ITS landing form at the render — <c>IntrinsicRenderer.CheckedFlag</c>).
+    /// <para>⛔ THE FLOAT'S KIND DECIDES ITS VALUE (kb/Work PB4516): <see cref="NumX.Approximate"/> - an engine-produced
+    /// approximation (a function's returned value, a non-integer power) - lands by its shortest round-trip decimal, as
+    /// <see cref="LiftApproximation"/> reads it beside an operator, and a floating-point DATA ITEM by its exact binary
+    /// value. <c>RuntimeApi.FloatToScaled</c> takes the kind as a required argument, so a landing cannot be written
+    /// without choosing.</para></summary>
     public static string StoreArgs(NumX value, int recvScale, CobolRounding mode, string profile, bool checkedLanding) =>
         value.Dec ? $"{value.Expr}, {profile}"
-        : value.Real ? $"{RuntimeApi.FloatToScaled(value.Expr, $"{recvScale}", mode, checkedLanding)}, {recvScale}, {profile}"
+        : value.Real ? $"{RuntimeApi.FloatToScaled(value.Expr, value.Approximate, $"{recvScale}", mode, checkedLanding)}, {recvScale}, {profile}"
         : $"{value.Expr}, {value.Scale}, {profile}";
 
     /// <summary>The unscaled <c>Int128</c> a rendered intermediate lands as at a numeric-EDITED receiver's fraction
@@ -1559,7 +1564,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="NumXCarrier"/>. A MOVE into an edited receiver lands its non-native carriers here too, unchecked.</summary>
     public static string EditedLanding(NumX value, int scale, CobolRounding mode, bool checkedLanding) => value.Carrier switch
     {
-        NumXCarrier.Binary64 => RuntimeApi.FloatToScaled(value.Expr, $"{scale}", mode, checkedLanding),
+        NumXCarrier.Binary64 => RuntimeApi.FloatToScaled(value.Expr, value.Approximate, $"{scale}", mode, checkedLanding),
         NumXCarrier.Sdidi => checkedLanding ? RuntimeApi.DecToUnscaledChecked(value.Expr, $"{scale}", mode)
                                             : RuntimeApi.DecToUnscaled(value.Expr, $"{scale}", mode),
         NumXCarrier.UnsignedWide => RuntimeApi.NumRescaleStoreU(value.Expr, $"{value.Scale}", $"{scale}", mode, checkedLanding),

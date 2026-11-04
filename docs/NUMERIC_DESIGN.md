@@ -138,7 +138,9 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   expression is converted at the store (`ArithmeticEmitter.StoreArith`), an operand beside an operator at
 >   `DecOperand`. An engine-produced APPROXIMATION (a §15.4.1 function's returned value, a non-integer power) is
 >   not a data item: it enters through `CobolDec.FromApproximation`, its SHORTEST round-trip decimal (at most 17
->   digits; what a reader of `FUNCTION SIN (1)` expects). The renderer routes `Combine`/`Power`/comparisons through
+>   digits; what a reader of `FUNCTION SIN (1)` expects), and it LANDS into a fixed-point receiver by the same value
+>   (`CobolFloat.ToScaledApproximation*`, `CobolIntrinsics.FromDouble`; `NumX.Approximate` chooses it at every emitted
+>   landing, PB4516) while a float item lands by its exact binary value. The renderer routes `Combine`/`Power`/comparisons through
 >   `CobolDec` when the mode is in effect (`NumX.Dec`; the mode branch runs BEFORE the D16 float branch);
 >   **exponentiation** is `CobolDec.Pow` (§8.8.1.5.4: integer exponents by square-and-multiply over `Mul` —
 >   exactly r2a–r2d for 1–4, the r2e implementor-defined form beyond, r3's `1/(b**|e|)` for negatives, the

@@ -300,7 +300,8 @@ public readonly record struct MoveSending(string Characters, bool Group = false,
     /// <summary>The value aligned at <paramref name="scale"/> — §14.6.8.2's alignment, which truncates (a MOVE has no
     /// ROUNDED phrase).</summary>
     public Int128 AtScale(int scale) => Real is { } r
-        ? CobolFloat.ToScaledUnchecked(r, scale, CobolRounding.Truncation)
+        ? (Approximate ? CobolFloat.ToScaledApproximationUnchecked(r, scale, CobolRounding.Truncation)
+                       : CobolFloat.ToScaledUnchecked(r, scale, CobolRounding.Truncation))
         : CobolNum.Rescale(Unscaled, Scale, scale, CobolRounding.Truncation);
 
     /// <summary>⛔ The sender's EXACT value, for a floating-point edited receiver (kb/Work PB1606): a floating-point sender's
