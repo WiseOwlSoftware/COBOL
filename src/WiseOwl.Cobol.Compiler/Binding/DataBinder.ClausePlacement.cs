@@ -237,6 +237,48 @@ public sealed partial class DataBinder
         return refused;
     }
 
+    /// <summary>⛔ §13.16.3 SR12 and SR14 — THE REFERENCE-COMPOSITION SCREEN, the twin pair over the WRITTEN clause set
+    /// (kb/Work PB487): a SAME AS or TYPE clause shall share its entry with only the clauses
+    /// <see cref="DataClauseKinds.SameAsCoPermitted"/> / <see cref="DataClauseKinds.TypeCoPermitted"/> name. Returns
+    /// the clauses REFUSED, one diagnostic per violated rule, and the caller DROPS each refused clause's effect
+    /// (the <see cref="ScreenClausePlacement"/> discipline).
+    /// <para>⛔ <b>The recovery drops the co-clauses and KEEPS the reference</b> (kb/Work PB4602). The entry's
+    /// description is the referenced one (§13.18.57.4 GR1, §13.18.49.4 GR1/GR2), and it is the co-clause that is
+    /// wrong, so the written TYPE / SAME AS name stays and the entry expands as a legal one would. The former
+    /// recovery cleared the REFERENCE: the entry reached the later screens as a PICTURE-less leaf, so
+    /// <c>01 X TYPE T ALIGNED.</c> drew COBOL1942 and COBOL0881 beside the one real refusal, COBOL2150. Dropping the
+    /// co-clause is also what makes <c>CopyEntryDescription</c>'s receiver-wins copy (<c>to.Pic ??= from.Pic</c>)
+    /// safe: the subject owns none of the clauses that copy carries (kb/Work PB513) — an illegal PICTURE / USAGE /
+    /// REDEFINES can no longer DISCARD the type's declared description.</para>
+    /// <para>When one entry writes BOTH clauses each rule is violated and each is reported, but the recovery keeps
+    /// SAME AS (SR12 refuses TYPE, and SR14 does not refuse SAME AS) so the entry still has a description to expand.</para></summary>
+    private DataClauseKind ScreenReferenceComposition(DataClauseKind written, string entryWhere)
+    {
+        var refused = DataClauseKind.None;
+        if ((written & DataClauseKind.SameAs) != 0
+            && (written & ~(DataClauseKind.SameAs | DataClauseKinds.SameAsCoPermitted)) is var sameAsBad
+            && sameAsBad != DataClauseKind.None)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"{entryWhere}: the SAME AS clause shall not be "
+                + "specified in the same data description entry with any clauses except CONSTANT RECORD, "
+                + "entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS (ISO §13.16.3 SR12); this entry also "
+                + $"specifies {DataClauseKinds.Name(sameAsBad)}");
+            refused |= sameAsBad;
+        }
+        if ((written & DataClauseKind.Type) != 0
+            && (written & ~(DataClauseKind.Type | DataClauseKinds.TypeCoPermitted)) is var typeBad
+            && typeBad != DataClauseKind.None)
+        {
+            Edition.Error(DiagnosticCatalog.TypeEntryRule, $"{entryWhere}: the TYPE clause shall not be "
+                + "specified in the same data description entry with any clauses except BASED, CLASS, CONSTANT "
+                + "RECORD, DEFAULT, DESTINATION, entry-name, EXTERNAL, GLOBAL, INVALID, level-number, OCCURS, "
+                + "PRESENT WHEN, PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING (ISO §13.16.3 SR14); "
+                + $"this entry also specifies {DataClauseKinds.Name(typeBad)}");
+            refused |= typeBad & ~DataClauseKind.SameAs;
+        }
+        return refused;
+    }
+
     /// <summary>The clauses whose POSITION in the entry the standard fixes — "shall immediately follow the
     /// entry-name clause" — each with the rule that says so and the code it reports under. The REDEFINES row is
     /// §13.18.44.3 SR1 (restated by §13.16.3 SR4); the TYPEDEF row is §13.16.3 SR4 alone, which nothing asked until
