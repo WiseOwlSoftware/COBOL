@@ -136,7 +136,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
         if (offending is null || recognizer is not CobolParserCoreBase { CobolWords: { IsEmpty: false } words }) return;
         foreach (var token in (ReadOnlySpan<IToken?>)[offending, PreviousToken(recognizer, offending)])
         {
-            if (token?.Text is not { } written || words.DirectingStatementSynonymOf(written) is not { } op) continue;
+            if (token is null || WrittenSource.Of(token) is not { } written || words.DirectingStatementSynonymOf(written) is not { } op) continue;
             if (!_withdrawnNoted.Add(op)) return;
             (string verb, string joiner) = op.Action == CobolWordsAction.Equate ? ("EQUATE", "WITH") : ("SUBSTITUTE", "BY");
             diagnostics.ReportWarning(DiagnosticCatalog.DirectingStatementSynonymBeforeSyntaxError.Code,
@@ -175,7 +175,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
             && cuts.MarginRCutAt(offending.Line, offending.Column + (offending.StopIndex - offending.StartIndex)) is { } inWord
             && inWord.EndsAtMarginR && !inWord.Cut.IsSequenceNumber)
         {
-            ReportMarginRCut(inWord, $"the word '{offending.Text}' ends at position {inWord.Cut.LastProgramTextPosition} and the text after it "
+            ReportMarginRCut(inWord, $"the word '{WrittenSource.Of(offending)}' ends at position {inWord.Cut.LastProgramTextPosition} and the text after it "
                 + "was cut, so the word may have been longer", errorAt);
             return;
         }

@@ -30,10 +30,17 @@ assert the three stages produce the builder's sentence and the clause refusals n
 
 **Review round 1 (finisher).** The parser's syntax-error sentences quoted the retyped `Text` (`MAIN SECT.` after `EQUATE "SECTION" WITH
 "SECT"` said "unexpected 'SECTION'", COBOL0307): `CobolErrorStrategy.BuildMessage`, `WrittenResidueItem` and the figurative-constant
-keyword hint now quote `WrittenSource.Of(token)`; the unit witness is `SyntaxErrorNamesTheSynonymTheSourceWrote`. The listener's
-`NoteWithdrawnWord` written-word test has its witness (`SubstitutedSynonymOfAWithdrawnWordDrawsNoWithdrawnNote`). `DenotedBy` is deleted:
+keyword hint now quote `WrittenSource.Of(token)`; the unit witness is `ASyntaxErrorNamesTheSynonymTheSourceWrote_NotItsOriginal`. The listener's
+`NoteWithdrawnWord` written-word test has its witness (`ASynonymOfAWithdrawnWord_IsNoWithdrawnWord_ForTheSyntaxErrorNote`). `DenotedBy` is deleted:
 `ReservedWordHere` / `ReservedWord` read the token through `CobolWordsRewriter.CanonicalWordOf`, the one place that knows the lexer
 already resolved a non-IDENTIFIER token.
+
+**Review round 2 (finisher).** Two sibling sites still quoted the retyped `Text`: the sign-condition spelling message
+(`CobolErrorStrategy.SignConditionSpellingMessage`: `IF W-X IS NIX` after `EQUATE "ZEROS" WITH "NIX"` said ZEROS) and the margin-R cut note
+(`CobolErrorListener.NoteMarginRCut`: "the word SECTION ends at position 72" where the source holds SECT). Both read `WrittenSource.Of(token)`,
+as do the two directing-statement-synonym lookups and the SET mnemonic-suffix message (the same quoting family, swept by grep of `.Text` in the
+two files; what remains is shape tests). Witnesses: `ASignConditionSpellingMessageNamesTheSynonymTheSourceWrote_NotItsOriginal`,
+`ACutInsideASynonym_NamesTheSynonymTheSourceWrote_NotTheOriginalWord`. The round-1 paragraph above named two witnesses by wrong names; corrected.
 
 **Registered, not fixed (outside the mechanism).** A SUBSTITUTE synonym of a lexer-token word that a gate or a keyword predicate admits
 (`SUBSTITUTE "RECEIVE" BY "RCV"` then `01 RCV PIC X.`) is accepted as a user-defined word.

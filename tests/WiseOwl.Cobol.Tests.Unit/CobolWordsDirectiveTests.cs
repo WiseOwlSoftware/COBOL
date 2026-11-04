@@ -626,6 +626,20 @@ public sealed class CobolWordsDirectiveTests
         Assert.DoesNotContain(errors, e => e.Contains("unexpected 'SECTION'"));
     }
 
+    /// <summary>⛔ kb/Work PB4573, review r2 R2-1 (ISO §7.3.10.4 GR2; §8.8.4.7.2): the sign-condition spelling message quotes the
+    /// word the source WROTE. After <c>EQUATE "ZEROS" WITH "NIX"</c> the condition <c>W-X IS NIX</c> is refused as a different
+    /// reserved word than the keyword ZERO, and the sentence named ZEROS where the source wrote NIX.</summary>
+    [Fact]
+    public void ASignConditionSpellingMessageNamesTheSynonymTheSourceWrote_NotItsOriginal()
+    {
+        var errors = CompileErrors("       >>COBOL-WORDS EQUATE \"ZEROS\" WITH \"NIX\"\n       IDENTIFICATION DIVISION.\n"
+            + "       PROGRAM-ID. CWPB4573S.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC 9.\n"
+            + "       PROCEDURE DIVISION.\n       MAIN.\n           IF W-X IS NIX DISPLAY \"Z\" END-IF.\n           STOP RUN.\n");
+        var error = Assert.Single(errors, e => e.Contains("COBOL2418"));
+        Assert.Contains("and NIX is a different reserved word", error);
+        Assert.DoesNotContain("ZEROS is a different", error);
+    }
+
     [Fact] // SR3 end-to-end — the existing word must be reserved/context/intrinsic.
     public void Sr3_ExistingNotAWord_Rejected1623()
     {
