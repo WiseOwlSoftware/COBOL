@@ -9,7 +9,7 @@
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckConstantRecordSubtreesPass.cs#CheckConstantRecordSubtreesPass",
  "test-ref": "conformance:cases/13.18.40-PICTURE/pb64t6-picture-locale-constant-record",
  "derivation": "",
- "editions": "2002,2014,2023",
+ "editions": "2014,2023",
  "notes": "kb/Work PB1262 (wave 1011 B2): the subordinate half of SR32 now runs in CheckConstantRecordSubtreesPass (composed forest), so a format 2 PICTURE brought in by a TYPE clone is asked too. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ConstantRecord.cs#CheckConstantRecordSubtrees (the pass body moved from the DataBinder partial to its own IBindPass class under Binding/Passes (kb/Work PB2352, PB2353, PB2354))",
  "state": "OK"
 }

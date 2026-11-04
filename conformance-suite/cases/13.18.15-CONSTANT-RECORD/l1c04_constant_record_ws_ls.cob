@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c04_constant_record_ws_ls
       *> rules: [SR-13.18.15.3-1]
-      *> accept: [2002]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

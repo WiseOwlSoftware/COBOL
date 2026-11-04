@@ -1,1 +1,1 @@
-{"refuse-at": ["2002", "2014", "2023"], "expect": "includes the CONSTANT RECORD clause"}
+{"refuse-at": ["2014", "2023"], "expect": "includes the CONSTANT RECORD clause"}

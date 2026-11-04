@@ -20,7 +20,7 @@
       *> ARM: the RESOLVED path (class-name-1 naming a factory method of
       *> a class of the group). The universal arm is the separate
       *> fixture l1-invoke-byref-constant-record-universal.
-      *> Editions: INVOKE and CONSTANT RECORD are both COBOL-2002.
+      *> Editions: INVOKE is COBOL-2002 and CONSTANT RECORD is COBOL-2014, so the rule applies from 2014.
       *> Expected: COBOL1548 (docs/DIAGNOSTICS.md,
       *> constant-as-receiver:
       *> "a data item of a CONSTANT RECORD shall not be specified as a

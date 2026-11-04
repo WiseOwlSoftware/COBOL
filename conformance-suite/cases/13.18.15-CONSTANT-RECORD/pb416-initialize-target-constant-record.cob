@@ -9,8 +9,8 @@
 *> prohibition the standard states, and 13.18.15.3 SR2 is one — "Neither the data item described by the
 *> subject of the entry nor any data item subordinate to the subject of the entry shall be specified as a
 *> receiving data item."
-*> The CONSTANT RECORD clause is COBOL-2002 (13.18.15; D5), so 85 is not a reject edition for this program —
-*> below 2002 it is refused for the clause itself (COBOL0900), which is a different rule.
+*> The CONSTANT RECORD clause is COBOL-2014 (13.18.15; VCR row 7.48), so 85 and 2002 are not reject editions for this
+*> program — below 2014 it is refused for the clause itself (COBOL0900), which is a different rule.
 *> Before PB416, INITIALIZE resolved identifier-1 with the plain reference resolver instead of the ONE
 *> receiving chokepoint, so COBOL1548 — the diagnostic the MOVE form of the same store already got — never
 *> fired and the structured constant was DESTROYED at run time, silently. identifier-1 now resolves through

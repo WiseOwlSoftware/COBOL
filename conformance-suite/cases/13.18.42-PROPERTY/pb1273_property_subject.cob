@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1273_property_subject
 *> rules: [SR-13.18.42.3-1, SR-13.18.42.3-3, SR-13.18.42.3-5]
-*> accept: [2002]
+*> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1330,13 +1330,13 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>The CONSTANT RECORD clause (ISO §13.18.15) — a COBOL-2002 introduction (a structured
+        /// <summary>The CONSTANT RECORD clause (ISO §13.18.15) — a COBOL-2014 introduction (a structured
         /// constant). Recognition-based like the BASED/ANY LENGTH gates: <c>DataItem.IsConstantRecord</c> is
         /// cleared by the binder on every §13.16.3 SR3/SR6/SR13 shape violation, so a bound-arm home would drop
         /// the 0900 on exactly the declaration-error paths. The placement SRs stay bind-time (COBOL1549).</summary>
         public override object? VisitConstantRecordClause(CobolParserCore.ConstantRecordClauseContext ctx)
         {
-            if (InGatedDataEntry(ctx)) _p.Check(Constructs.ConstantRecord2002, "the CONSTANT RECORD clause");
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.ConstantRecord2014, "the CONSTANT RECORD clause");
             return base.VisitChildren(ctx);
         }
 

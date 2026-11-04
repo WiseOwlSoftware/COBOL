@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb3129_type_in_constant_record_ok
 *> rules: [SR-13.18.60.3-4]
-*> accept: [2002]
+*> accept: [2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
