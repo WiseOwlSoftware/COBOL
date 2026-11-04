@@ -880,12 +880,7 @@ public sealed class CobolReport(
             // groups' CFs (and any reference to a control item while they print) see the pre-break contents,
             // print CFs minor→break, then restore the new current values and print CHs break→minor.
             ArmGroupIndicate();   // §13.18.28.4 GR1c — a control break re-arms every detail group
-            var current = new string[_controls.Count];
-            for (int i = 0; i < _controls.Count; i++)
-            {
-                current[i] = _controls[i].Get();
-                if (_controls[i].Prior is { } prior) _controls[i].Set(prior);
-            }
+            var current = SaveCurrentRestorePriors();
             ProcessControlFootings(breakLevel);
             for (int i = 0; i < _controls.Count; i++)
             {
@@ -975,6 +970,22 @@ public sealed class CobolReport(
     /// spaces after the fact. Set by <see cref="PresentBody"/> before the group's first line is composed.</summary>
     public bool GroupIndicatePresent { get; private set; }
 
+    /// <summary>⛔ THE ONE SAVE-CURRENT / STORE-PRIOR STEP — a control break's (§13.18.16.4 GR4a: "the current contents of
+    /// control data items are saved and the corresponding prior controls are stored in the control data items before any
+    /// control footing is printed") and TERMINATE's GR3a (§14.9.46.4). It is TWO PASSES: every control's current value is
+    /// saved FIRST, then every prior is stored. Two controls may "refer to the same physical data item or to overlapping
+    /// data items" (§13.18.16.3 SR6), so a prior stored into the shared bytes before the next control's current is read
+    /// would corrupt that control's saved value and, at the restore, the program's own item (kb/Work PB4513). Returns the
+    /// saved current values, major → minor, for the restore.</summary>
+    private string[] SaveCurrentRestorePriors()
+    {
+        var current = new string[_controls.Count];
+        for (int i = 0; i < _controls.Count; i++) current[i] = _controls[i].Get();
+        for (int i = 0; i < _controls.Count; i++)
+            if (_controls[i].Prior is { } prior) _controls[i].Set(prior);
+        return current;
+    }
+
     /// <summary>The most-major control level whose CURRENT value differs from its prior (§13.18.16.4 GR3 —
     /// tested major→minor, the first change wins; FINAL never breaks mid-report, GR2), by the program's own
     /// comparison (<see cref="ControlEntry.ChangedFrom"/>, kb/Work PB1131). Null when no break.</summary>
@@ -1044,12 +1055,7 @@ public sealed class CobolReport(
             string[]? current = null;
             if (_controls.Count > 0 && _controls[0].Prior is not null)
             {
-                current = new string[_controls.Count];
-                for (int i = 0; i < _controls.Count; i++)
-                {
-                    current[i] = _controls[i].Get();
-                    if (_controls[i].Prior is { } prior) _controls[i].Set(prior);   // GR3a
-                }
+                current = SaveCurrentRestorePriors();   // GR3a
                 // GR3b — minor → major, "as though a control break has been sensed in the most major control data item", so the
                 // most major footing is the one §13.18.37.4 GR1 lets apply its NEXT GROUP clause.
                 ProcessControlFootings(0);
