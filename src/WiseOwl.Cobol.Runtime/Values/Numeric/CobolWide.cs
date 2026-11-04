@@ -150,24 +150,56 @@ public readonly struct CobolWide
 
     /// <summary>⛔ THE EXACT QUOTIENT OF THIS VALUE (at <paramref name="scale"/>) BY A COUNT, ROUNDED ONCE TO THE SDIDI
     /// (kb/Work PB4075): the single division of FUNCTION MEAN's <c>Σ / n</c> (ISO §15.60.4 r1, kb/Work PB3860) over an exact
-    /// wide sum, where <see cref="ToDec"/> then <see cref="CobolDec.Div"/> would round twice. The dividend is scaled by
-    /// powers of ten until the integer quotient has at least 36 digits (the work stays below 10^36 × the count's 10^digits), the true
-    /// remainder is the sticky bit, and <see cref="CobolDec.Round34Wide"/> lands the 34-digit significand with
+    /// wide sum, where <see cref="ToDec"/> then <see cref="CobolDec.Div"/> would round twice — <see cref="TryQuotientDec"/>, which
+    /// a count of at most ten digits never leaves.</summary>
+    internal CobolDec QuotientDec(int scale, int count, CobolRounding mode) =>
+        TryQuotientDec(scale, From(count), mode, out CobolDec quotient) ? quotient : throw Overflow();
+
+    /// <summary>⛔ THE ONE EXACT QUOTIENT ROUNDED ONCE TO THE SDIDI (kb/Work PB4075, PB4111): this value (at <paramref name="scale"/>)
+    /// divided by <paramref name="divisor"/> (an integer, nonzero), to 34 digits in <paramref name="mode"/> — MEAN's, VARIANCE's and
+    /// PRESENT-VALUE's single division. The dividend is scaled by powers of ten until the integer quotient has at least 36 digits,
+    /// the true remainder is the sticky bit, and <see cref="CobolDec.Round34Wide"/> lands the 34-digit significand with
     /// <paramref name="mode"/> — the rounding <see cref="CobolDec.Div"/> applies to an SDIDI dividend, so the two agree wherever
     /// both can form the quotient. An exact quotient keeps the preferred exponent (the dividend's, ISO/IEC 60559 5.4.1,
-    /// kb/Work PB3954), as <see cref="CobolDec.Div"/> does.</summary>
-    internal CobolDec QuotientDec(int scale, int count, CobolRounding mode)
+    /// kb/Work PB3954), as <see cref="CobolDec.Div"/> does. False when that scaled dividend would leave the 256-bit range (a divisor
+    /// past 41 digits).</summary>
+    internal bool TryQuotientDec(int scale, CobolWide divisor, CobolRounding mode, out CobolDec quotientDec)
     {
-        if (IsZero) return CobolDec.Zero(-scale);
-        CobolWide divisor = From(count);
-        CobolWide magnitude = Abs(this);
+        quotientDec = default;
+        if (IsZero)
+        {
+            quotientDec = CobolDec.Zero(-scale);
+            return true;
+        }
+        CobolWide magnitude = Abs(this), d = Abs(divisor);
         // The integer quotient of dm digits by dn digits has at least dm − dn: scaling by 36 + dn − dm leaves it 36 or 37 digits.
-        int up = Math.Max(0, 36 + divisor.MagnitudeDigits().Length - magnitude.MagnitudeDigits().Length);
-        CobolWide quotient = DivRem(Up(magnitude, up), divisor, out CobolWide remainder);
+        int up = Math.Max(0, 36 + d.MagnitudeDigits().Length - magnitude.MagnitudeDigits().Length);
+        if (!TryUp(magnitude, up, out CobolWide scaled)) return false;
+        CobolWide quotient = DivRem(scaled, d, out CobolWide remainder);
         int exp = -scale - up;
         UInt128 lo = quotient._lo;
         if (remainder.IsZero && up > 0) lo = CobolDec.ToPreferredExponent(lo, ref exp, -scale);   // below 2^128: up > 0 means 36 or 37 digits
-        return CobolDec.Round34Wide(quotient._hi, lo, _negative, exp, mode, extraSticky: !remainder.IsZero);
+        quotientDec = CobolDec.Round34Wide(quotient._hi, lo, _negative != divisor._negative, exp, mode, extraSticky: !remainder.IsZero);
+        return true;
+    }
+
+    /// <summary>This value, at <paramref name="scale"/>, rounded ONCE to the SDIDI's 34 digits in <paramref name="mode"/> — a
+    /// value COMPUTED from exact arguments (a sum, a difference, a remainder), where <see cref="ToDec"/>'s round-to-odd is the
+    /// lowering of an operand that something else rounds next.</summary>
+    internal CobolDec ToDecRounded(int scale, CobolRounding mode) =>
+        IsZero ? CobolDec.Zero(-scale) : CobolDec.Round34Wide(_hi, _lo, _negative, -scale, mode);
+
+    /// <summary>The greatest common divisor of two magnitudes (Euclid over <see cref="DivRem"/>); 0 only for two zeros.</summary>
+    internal static CobolWide Gcd(CobolWide a, CobolWide b)
+    {
+        a = Abs(a);
+        b = Abs(b);
+        while (!b.IsZero)
+        {
+            DivRem(a, b, out CobolWide remainder);
+            (a, b) = (b, remainder);
+        }
+        return a;
     }
 
     private static CobolSizeError Overflow() => new("a native intermediate exceeds the exact 256-bit range "
@@ -180,7 +212,8 @@ public readonly struct CobolWide
     public static CobolWide Mul(CobolWide a, CobolWide b) =>
         TryMul(a, b, out CobolWide product) ? product : throw Overflow();
 
-    private static bool TryMul(CobolWide a, CobolWide b, out CobolWide product)
+    /// <summary><see cref="Mul"/> where the product may leave the 256-bit range: false then.</summary>
+    internal static bool TryMul(CobolWide a, CobolWide b, out CobolWide product)
     {
         product = default;
         if (a.IsZero || b.IsZero) return true;
@@ -237,27 +270,34 @@ public readonly struct CobolWide
     }
 
     /// <summary>The exact sum of two unscaled values ALREADY at one scale (the compiler aligns with <see cref="Up"/>).</summary>
-    public static CobolWide Add(CobolWide a, CobolWide b)
+    public static CobolWide Add(CobolWide a, CobolWide b) =>
+        TryAdd(a, b, out CobolWide sum) ? sum : throw Overflow();
+
+    /// <summary><see cref="Add"/> where the sum may leave the 256-bit range: false then.</summary>
+    internal static bool TryAdd(CobolWide a, CobolWide b, out CobolWide sum)
     {
+        sum = default;
         if (a._negative == b._negative || a.IsZero || b.IsZero)
         {
-            if (a.IsZero) return b;
-            if (b.IsZero) return a;
+            if (a.IsZero) { sum = b; return true; }
+            if (b.IsZero) { sum = a; return true; }
             UInt128 lo = a._lo + b._lo;
             UInt128 carry = lo < a._lo ? 1u : 0u;
             UInt128 hi = a._hi + b._hi;
             bool over = hi < a._hi;
             UInt128 hiCarried = hi + carry;
-            if (over || hiCarried < hi) throw Overflow();
-            return new CobolWide(a._negative, hiCarried, lo);
+            if (over || hiCarried < hi) return false;
+            sum = new CobolWide(a._negative, hiCarried, lo);
+            return true;
         }
         // Opposite signs: the larger magnitude less the smaller, carrying the larger one's sign.
         int order = CompareMagnitude(a, b);
-        if (order == 0) return default;
+        if (order == 0) return true;
         (CobolWide big, CobolWide small) = order > 0 ? (a, b) : (b, a);
         UInt128 dlo = big._lo - small._lo;
         UInt128 borrow = big._lo < small._lo ? 1u : 0u;
-        return new CobolWide(big._negative, big._hi - small._hi - borrow, dlo);
+        sum = new CobolWide(big._negative, big._hi - small._hi - borrow, dlo);
+        return true;
     }
 
     /// <summary>The exact difference of two unscaled values already at one scale.</summary>

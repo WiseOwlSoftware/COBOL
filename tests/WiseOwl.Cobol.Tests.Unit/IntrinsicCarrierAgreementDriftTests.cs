@@ -66,7 +66,14 @@ public sealed class IntrinsicCarrierAgreementDriftTests
                 ? CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, CobolDec.From(11, 0), CobolDec.From(0, 0))
                 : CobolIntrinsics.RemDec(CobolRounding.NearestAwayFromZero, CobolDec.From(11, 0), CobolDec.From(0, 0)));
 
-            var carriers = new List<CobolFatalException> { exact, dec };
+            // The native SDIDI lane's exact-argument body (kb/Work PB4568) and the exact wide body (kb/Work PB3953).
+            var exactValue = Assert.Throws<CobolFatalException>(() => fn == "MOD"
+                ? CobolIntrinsics.ModExact(CobolRounding.NearestAwayFromZero, CobolExact.From(11, 0), CobolExact.From(0, 0))
+                : CobolIntrinsics.RemExact(CobolRounding.NearestAwayFromZero, CobolExact.From(11, 0), CobolExact.From(0, 0)));
+            var wide = Assert.Throws<CobolFatalException>(() =>
+                fn == "MOD" ? CobolIntrinsics.ModWide(CobolWide.From(11), CobolWide.From(0)) : CobolIntrinsics.RemWide(CobolWide.From(11), CobolWide.From(0)));
+
+            var carriers = new List<CobolFatalException> { exact, dec, exactValue, wide };
             // The BINARY64 carrier, reached whenever a type-10 argument renders as a double — this arm was silent.
             if (fn == "REM") carriers.Add(Assert.Throws<CobolFatalException>(() => CobolIntrinsics.RemReal(11d, 0d)));
 
@@ -93,6 +100,8 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         {
             Assert.Equal(0, (double)CobolIntrinsics.ModScaled(11, 0));
             Assert.Equal(0, CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, CobolDec.From(11, 0), CobolDec.From(0, 0)).ToDouble());
+            Assert.Equal(0, CobolIntrinsics.ModExact(CobolRounding.NearestAwayFromZero, CobolExact.From(11, 0), CobolExact.From(0, 0)).ToDouble());
+            Assert.Equal(0, CobolIntrinsics.RemExact(CobolRounding.NearestAwayFromZero, CobolExact.From(11, 0), CobolExact.From(0, 0)).ToDouble());
             Assert.Equal(0, (double)CobolIntrinsics.RemScaled(11, 0));
             Assert.Equal(0, CobolIntrinsics.RemReal(11d, 0d));
         }

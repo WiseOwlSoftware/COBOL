@@ -501,46 +501,47 @@ public static partial class CobolIntrinsics
         return Sqrt(Variance(xs));
     }
 
-    // ── The VARIADIC exact-intake bodies (kb/Work PB1565) ─────────────────────────────────────────────────────
-    // ⛔ THE ARGUMENT LIST IS NOT NARROWED BEFORE IT CANCELS. The exact-intake rule above holds for a LIST too:
-    // §15.4.1 licenses an approximation of the RETURNED value of the equivalent arithmetic expression, not of each
-    // argument, and these three EAEs subtract arguments from one another — §15.98.4's deviations
+    // ── The VARIADIC exact-intake bodies (kb/Work PB1565, PB4111) ──────────────────────────────────────────────
+    // ⛔ THE ARGUMENT LIST IS NOT NARROWED BEFORE IT CANCELS, AND NOT ROUNDED EITHER. The exact-intake rule above holds for
+    // a LIST too: §15.4.1 licenses an approximation of the RETURNED value of the equivalent arithmetic expression, not of
+    // each argument, and these three EAEs subtract arguments from one another — §15.98.4's deviations
     // argument-1ᵢ − FUNCTION MEAN (argument-list), §15.86.4's SQRT over them, §15.74.4's Σ of signed amounts — so
     // narrowing each exact argument first cancels its low digits away: VARIANCE(100000000000000001
     // 100000000000000002) answered 0 where the value is 0.25, STANDARD-DEVIATION 0 where it is 0.5, and
-    // PRESENT-VALUE(0 100000000000000001 −100000000000000000) 0 where it is 1. The binary64 bodies above stay for a
-    // list with a FLOATING argument, whose EAE is evaluated in binary64 (CONFORMANCE.md DOC-A.1-92b, the exact
-    // family's determination for the same case). An all-exact list is lifted exactly into the SDIDI and the EAE is
-    // evaluated there by the ONE Dec body of each function (VarianceDec / StdDevDec / PresentValueDec — the
-    // standard modes' bodies, in the native intermediate rounding mode), and only the RESULT is narrowed, once,
-    // range-checked (NarrowResult). An SDIDI argument under native already reaches those Dec bodies through
-    // IntrinsicRenderer's native Dec arm; this is the fixed-point list's arm of the same evaluation.
+    // PRESENT-VALUE(0 100000000000000001 −100000000000000000) 0 where it is 1 (kb/Work PB1565). The 34-digit SDIDI
+    // evaluation that replaced the narrowing still lost the value under native arithmetic: its 34-digit mean and term
+    // quotients made VARIANCE of the 31-digit items 10^30, 10^30 + 1, 10^30 + 1 0.2222223333 for 2/9 (kb/Work PB4111). So
+    // an all-exact list enters as its EXACT values (CobolExact) and the EAE is formed exactly and divided ONCE by the ONE
+    // native body of each function (VarianceExact / StdDevExact / PresentValueExact, CobolIntrinsics.ExactValue.cs — the
+    // bodies an SDIDI or wide argument reaches through IntrinsicRenderer's native Dec arm), and only that RESULT is
+    // narrowed, once, range-checked (NarrowResult). The binary64 bodies above stay for a list with a FLOATING argument,
+    // whose EAE is evaluated in binary64 (CONFORMANCE.md DOC-A.1-92b, the exact family's determination for the same case).
 
-    /// <summary>§15.98 VARIANCE of an all-exact argument list: §15.98.4's EAE on the SDIDI, then narrowed.</summary>
-    public static double Variance(CobolRounding mode, params CobolDec[] xs)
+    /// <summary>§15.98 VARIANCE of an all-exact argument list: §15.98.4's EAE on the exact values, then narrowed.</summary>
+    public static double Variance(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "VARIANCE");            // §15.3 — at least one argument (kb/Work PB257)
-        return NarrowResult(VarianceDec(mode, xs), "VARIANCE");
+        return NarrowResult(VarianceExact(mode, xs), "VARIANCE");
     }
 
     /// <summary>§15.86 STANDARD-DEVIATION of an all-exact argument list: §15.86.4 r1's
-    /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c> on the SDIDI (<see cref="StdDevDec"/>), then
+    /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c> on the exact values (<see cref="StdDevExact"/>), then
     /// narrowed.</summary>
-    public static double StandardDeviation(CobolRounding mode, params CobolDec[] xs)
+    public static double StandardDeviation(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
-        return NarrowResult(StdDevDec(mode, xs), "STANDARD-DEVIATION");
+        return NarrowResult(StdDevExact(mode, xs), "STANDARD-DEVIATION");
     }
 
-    /// <summary>§15.74 PRESENT-VALUE of an all-exact argument list: §15.74.4's Σ amountᵢ / (1 + rate)^i on the SDIDI
-    /// (<see cref="PresentValueDec"/>), then narrowed. §15.74.3 r2 is decided where every SDIDI evaluation of this
-    /// function decides it — <see cref="PresentValueDec"/>'s exact compare against −1, through the ONE
+    /// <summary>§15.74 PRESENT-VALUE of an all-exact argument list: §15.74.4's Σ amountᵢ / (1 + rate)^i on the exact values
+    /// (<see cref="PresentValueExact"/>), then narrowed. §15.74.3 r2 is decided where every native evaluation of this function
+    /// on exact arguments decides it — <see cref="PresentValueExact"/>'s exact test of the discount base, through the ONE
     /// <see cref="PresentValueDomain"/> raise site, whose §15.3 default 0 comes back unchanged — so a leading
-    /// table(ALL) rate needs no nullable element inside the enumerated <c>CobolDec[]</c>.</summary>
-    public static double PresentValue(CobolRounding mode, CobolDec rate, params CobolDec[] amounts)
+    /// table(ALL) rate needs no nullable element inside the enumerated <c>CobolExact[]</c>.</summary>
+    public static double PresentValue(CobolRounding mode, CobolExact rate, params CobolExact[] amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
-        return NarrowResult(PresentValueDec(mode, rate, amounts), "PRESENT-VALUE");
+        return NarrowResult(PresentValueExact(mode, rate, amounts), "PRESENT-VALUE");
     }
 
     // ── RANDOM (ISO §15.75) ────────────────────────────────────────────────────────────────────────────────────
