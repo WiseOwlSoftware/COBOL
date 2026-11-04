@@ -1,4 +1,4 @@
-## PB3957 — ORDER is a reserved word at COBOL-85, held to the 2002 standard's own list of the words it added
+## Entry 3069 — 2026-11-03 19:44 PST — PB3957 — ORDER is a reserved word at COBOL-85, held to the 2002 standard's own list of the words it added
 
 **Mechanism.** `reserved-words.json` carried `ORDER r85=false`, so `--std 85` compiled `01 ORDER PIC 9.` while the
 85 SORT format itself prints `WITH DUPLICATES IN ORDER`. The flag was not GnuCOBOL's: GnuCOBOL's 85 list reserves
@@ -37,3 +37,4 @@ change witnesses only (batch `w20261856c-PB3957`), no row closed, GAP 1 -> 1. D-
 guard cites §7.3.10.4 GR3 (`cite.py --check` OK). Duplication: the invariant is stated in the generator and the drift test
 over the same data. Found and left: the LAST question above, which needs the 1985 text. The gate's verdict line is in the
 branch report.
+
