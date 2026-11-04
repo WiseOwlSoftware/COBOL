@@ -25776,7 +25776,9 @@ Format 3 (exception-checking):
 <pre style="line-height:1">
 <u>PERFORM</u> [ WITH <u>LOCATION</u> ]
 
-╭ imperative-statement-1                                                  ╮
+imperative-statement-1
+
+╭                                                                         ╮
 │                                                                         │
 │      ╭           ╭ { file-name-1} … ╮          ╮                        │
 │      │           │                  │          │                        │
