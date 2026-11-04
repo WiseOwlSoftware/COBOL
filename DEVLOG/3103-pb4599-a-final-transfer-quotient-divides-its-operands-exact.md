@@ -1,4 +1,4 @@
-## PB4599: a final-transfer quotient divides its operands' exact values
+## Entry 3103 — 2026-11-04 13:49 PST — PB4599: a final-transfer quotient divides its operands' exact values
 
 **Re-probe.** `COMPUTE R31 = A * A * A / (A * A)` with A = 999999999999999 (PIC S9(18)) stored 999999999999998; so did
 `A ** 3 / A ** 2`, `A ** 3 / (A * A)` and `A ** 3 / A ** Y`, and `A ** 3 / A` stored ...000 where ...001 is owed. The note was
@@ -61,3 +61,4 @@ Goldens added: legs BIGD, BIGD2, BIGDR and MULI in `pb4599_final_transfer_quotie
 `pb4599_final_transfer_quotient_intermediate_prohibited` (accept 2014+, refused below by `..._85`). Unit:
 `FinalTransferQuotient_DividesByAnyDivisorOfTheWideForm` (divisors of 43 and 77 digits, expected values from Python integers and
 fractions) and `FinalTransferQuotient_UnderProhibited_RaisesOnAnInexactQuotient`.
+
