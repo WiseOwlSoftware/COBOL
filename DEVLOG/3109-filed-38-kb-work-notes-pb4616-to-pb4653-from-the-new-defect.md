@@ -1,4 +1,4 @@
-## Filed 38 kb/Work notes (PB4616 to PB4653) from the new-defect leads of 33 landed branches
+## Entry 3109 — 2026-11-04 14:51 PST — Filed 38 kb/Work notes (PB4616 to PB4653) from the new-defect leads of 33 landed branches
 
 The enqueue unit's clerk read the 33 landed branches' reports and filed every open lead as a kb/Work note, one note per mechanism, each re-read against origin/main before filing. No compiler code changed; repros are recorded "as reported, not re-run".
 
@@ -50,3 +50,4 @@ Leads not filed, with the reason:
 - Stale (a later branch fixed the named text): PB4572 R1-1, R1-2, R1-3 and PB4488 R1-1, R1-2, R1-3 (PB4573 and PB4572 landed the withdrawn-word and synonym fixes); PB1654 R1-1 (PB4603 rewrote DescribeAlignedSubject); PB4569 lead 1 and R1-2 (PB4599 landed the exact final-transfer quotient and its goldens); PB4491 R1-2 and R2-1 (the BinderDriver and drift-test comments no longer carry the quoted text).
 - Observations the reports say carry no note: PB4512 (ALL-literal VALUE), PB4509's guard-verdict observation (folded into PB4630), PB4572 (shared CobolWordsOp description), PB4589 lead 1 (COBOL1639 noise), PB3957 lead 2 (declaration not drawing COBOL0901 beside a reference), PB4494 (verb-worded message).
 - History kept as written: the PB3600 R1-1 gate-line lead, the PB4604 R1-2 count lead, PB4604 item 2.
+
