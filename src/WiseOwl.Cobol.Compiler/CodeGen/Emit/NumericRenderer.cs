@@ -182,6 +182,17 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>The wide-lane spelling of an exact operand aligned UP to <paramref name="scale"/> (a sum's common scale).</summary>
     internal static string WideAligned(NumX x, int scale) => RuntimeApi.WideUp(WideOperand(x), scale - x.Scale);
 
+    /// <summary>⛔ AN OPERAND'S EXACT VALUE, WHATEVER CARRIES IT (<c>CobolExact</c>, kb/Work PB4111, PB4568): the intake of the native
+    /// SDIDI lane's <c>…Exact</c> intrinsic bodies. A scaled, unsigned-wide or exact wide value enters with every digit; an SDIDI
+    /// value at its own exponent; a binary64 through its one SDIDI conversion (<see cref="DecOperand"/>: §8.8.1.5.1 for a float
+    /// item, the shortest round-trip decimal for an engine's approximation), which is the value the SDIDI lane already gives it.</summary>
+    /// <remarks>INTAKE(EXACT) — the operand's value unrounded on every exact carrier; a binary64's value is its SDIDI conversion.</remarks>
+    internal string ExactOperand(NumX x) =>
+        x.Wide ? RuntimeApi.ExactFromWide(x.Expr, x.Scale)
+        : x.U ? RuntimeApi.ExactFromUnsigned(x.Expr, x.Scale)
+        : x.Dec || x.Real ? RuntimeApi.ExactFromDec(DecOperand(x))
+        : RuntimeApi.ExactFrom(x.Expr, x.Scale);
+
     /// <summary>The exact comparison (−1/0/+1 as a C# expression) of two operands of which at least one is an exact wide
     /// intermediate, or <c>null</c> when the pair has no exact form to compare on (a float, an SDIDI, an unknown bound: the
     /// caller then lowers both and compares as it always did). A relation (§8.8.4.2.4 — "a comparison is made with respect

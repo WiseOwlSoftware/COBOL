@@ -764,15 +764,32 @@ SQRT of that) and PRESENT-VALUE (§15.74.4 r1 — a Σ of signed amounts) SUBTRA
 narrowing each exact argument first cancels its low digits away: VARIANCE(100000000000000001 100000000000000002)
 answered 0 for 0.25, STANDARD-DEVIATION 0 for 0.5, PRESENT-VALUE(0 100000000000000001 −100000000000000000) 0 for 1.
 The declared set `IntrinsicRenderer.ExactListBodies` names them; for a list with NO floating argument `FloatBody`
-passes every argument lifted exactly (`DecArgList` / `DecOf`, table(ALL) enumerations included) to the runtime's
-`(CobolRounding mode, …CobolDec…)` overload, which evaluates the EAE on the SDIDI with the function's ONE Dec body
-(`VarianceDec` / `StdDevDec` / `PresentValueDec`, in the native intermediate rounding mode) and narrows only the
-result. PRESENT-VALUE's §15.74.3 r2 is then decided where every SDIDI evaluation of it decides it —
-`PresentValueDec`'s exact compare through the one `PresentValueDomain` raise site — which is also what lets a
-leading table(ALL) rate stay one `CobolDec[]` enumeration. A list with a floating argument keeps the binary64
-body (its EAE is evaluated in binary64, CONFORMANCE.md DOC-A.1-92b); an SDIDI argument was already routed to the
-Dec bodies by `RenderNum`'s native Dec arm (PB69). `WholeRangeBodiesDriftTests` requires every variadic Float
+passes every argument as its EXACT value (`ExactValueArgList` / `ExactValueOf` over `RawWideArg`, table(ALL) enumerations
+included; `CobolExact`) to the runtime's `(CobolRounding mode, …CobolExact…)` overload, which forms the EAE exactly with the
+function's ONE native body (`VarianceExact` / `StdDevExact` / `PresentValueExact`, below) and narrows only the result.
+PRESENT-VALUE's §15.74.3 r2 is then decided where every native evaluation of it decides it — `PresentValueExact`'s exact
+test of the discount base through the one `PresentValueDomain` raise site — which is also what lets a leading table(ALL)
+rate stay one `CobolExact[]` enumeration. A list with a floating argument keeps the binary64 body (its EAE is evaluated in
+binary64, CONFORMANCE.md DOC-A.1-92b); an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
+Dec arm (PB69, PB4111), which returns the value on the SDIDI. `WholeRangeBodiesDriftTests` requires every variadic Float
 catalog row to be a member and pins each overload. Pinned by `conformance-suite/cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list`.
+
+**Under native arithmetic the value is the exact expression's, divided once (PB4111).** A 34-digit evaluation was the
+second way to lose the value: `VarianceDec`'s mean is a 34-digit quotient, and a mean off by δ adds exactly δ² to the
+variance (the cross term Σ(xᵢ − m) is 0), so VARIANCE of the 31-digit items 10^30, 10^30 + 1, 10^30 + 1 answered
+0.2222223333 for 2/9, VARIANCE (A * 1000, A * 1000 + 1) with A = 10^30 answered 0.5 for 0.25, and PRESENT-VALUE
+(3, A * 1000 + 1, −4 * A * 1000) 0.3 for 0.25. §8.8.1.3 leaves native evaluation to the implementor and §15.4.1 makes the
+value "an implementor-defined approximation of the value of that expression"; CLAUDE.md rule 1 sends that latitude to
+GnuCOBOL 3.2.0, which evaluates the three from the exact arguments. So `CobolIntrinsics.ExactValue.cs` forms each on the
+256-bit wide form and rounds it ONCE: VARIANCE as `(n·Σdᵢ² − (Σdᵢ)²) / n²` over the arguments aligned to their common
+scale and shifted by the first (dᵢ = Xᵢ − X₁, so the deviations stay small exactly where the expression cancels),
+divided by `CobolWide.TryQuotientDec` (the one quotient rule MEAN's `MeanWide` divides by); STANDARD-DEVIATION as SQRT of
+that (`SqrtDec`, §15.86.4 1)); PRESENT-VALUE as one numerator over `p^n`, with `1 + rate = p / q` reduced. Work past the
+wide form's 77 digits (an argument at an extreme SDIDI exponent, many periods at a rate of many places) is the SDIDI body
+over the arguments' images, DOC-A.1-123's determination past 77 digits. Under a standard arithmetic mode the SDIDI bodies
+(`VarianceDec`, `StdDevDec`, `PresentValueDec`) stay the value (§15.4.1 1), §8.8.1.5.2 r1). Pinned by
+`conformance-suite/cases/15.98.4-Returned-value-rules/pb4111_variance_family_exact_native`, its standard-decimal twin
+`pb4111_variance_family_standard_decimal`, `unit:CobolExactIntrinsicsTests` and `unit:WholeRangeBodiesDriftTests`.
 
 **The RANGE of the returned value: past binary64 is the size error condition (PB1566).** Under native arithmetic the
 family's returned value IS a binary64 (CONFORMANCE.md DOC-A.1-92), so binary64's range is the range of the native
@@ -937,8 +954,8 @@ for that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and its argument t
   type-6 position a wide operand takes its integer on the wide form (`CobolIntrinsics.IntegerArgWide`, the same integrality
   test). `RawArg` is `RawWideArg` lowered, for every consumer with no wide form.
 - **The family evaluates on it.** `IntrinsicRenderer.RenderWide`, consulted under native arithmetic before the SDIDI arm, takes a
-  call with a wide argument and no SDIDI or binary64 one (those keep their lanes) whose arguments' digit bounds prove the work fits
-  77 digits: ABS, SIGN, INTEGER, INTEGER-PART and FRACTION-PART at the argument's scale; MOD and REM over their type-6 integers;
+  call with a wide argument and no SDIDI or binary64 one (a call with one returns its value on the SDIDI, below) whose arguments'
+  digit bounds prove the work fits 77 digits: ABS, SIGN, INTEGER, INTEGER-PART and FRACTION-PART at the argument's scale; MOD and REM over their type-6 integers;
   MAX, MIN, ORD-MAX, ORD-MIN, SUM, RANGE, MEDIAN and MIDRANGE over the arguments aligned to the common scale, as the `…Scaled`
   bodies take them (`CobolIntrinsics.Wide.cs`). A call past the bound keeps the SDIDI arm, DOC-A.1-123's determination past 77
   digits. `ExactWideSettlementDriftTests.EveryExactArmTakingANumericArgument_HasAWideBody` holds the family closed: a new
@@ -956,13 +973,29 @@ for that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and its argument t
   intermediate rounding mode applies, an exact quotient keeps the preferred exponent), where the image divided afterwards rounded
   twice. The value is the SDIDI quotient of every other lane (PB3860), so `RenderWide` returns it as a Dec, not as a `NumX.Wide`.
 - **The binary64 family's ill-conditioned bodies take the wide value** (`ExactIntake.Wide`, above).
+- **Beside an SDIDI or binary64 argument the value is the SDIDI's, formed from the EXACT arguments** (kb/Work PB4568). A call with an
+  argument the SDIDI carries (a floating-point literal, a power) — or, for MAX, MIN, ORD-MAX, ORD-MIN and MEDIAN, a binary64 one
+  (PB65) — and a call past `RenderWide`'s bound reach `RenderDec`, whose native arms take every argument as its exact value
+  (`IntrinsicRenderer.ExactValueArgList` / `ExactValueArg` over `RawWideArg`; `NumericRenderer.ExactOperand`; the runtime's
+  `CobolExact`) and evaluate with the `…Exact` bodies of `CobolIntrinsics.ExactValue.cs`: a selection orders the exact values
+  (`CobolExact.Compare`, the one mixed-carrier order `FunctionValueField` also takes) and returns the selected content; SUM, RANGE,
+  MEAN, MEDIAN, MIDRANGE, MOD and REM form the value on the wide form and round it once to the SDIDI's 34 digits. The arguments
+  used to enter as their round-to-odd images there, so with P = BIG * BIG * K3 `ORD-MAX (P - 1, P, 2.0E0)` was 1 while
+  `IF P - 1 < P` is true (§15.71.4 2) ties the order to the simple-condition rules), `ORD-MIN (P, P - 1, 1.0E50)` was 1, and
+  `MOD (P, 2 ** 10)` was 0 for 999. Values the wide form cannot align (an SDIDI exponent thousands of places from its neighbours) are
+  evaluated on the SDIDI images, DOC-A.1-123's determination past 77 digits; the ordering never needs that. Under a standard mode
+  the Dec bodies stay (§8.8.1.5.2 r1). The SDIDI is the returned-value carrier of such a call, so a value of more than 34 digits
+  (`SUM (P, 1, 2.0E0)`) is rounded there once, where GnuCOBOL keeps every digit (kb/Work PB4570's carrier question).
 - **What still takes the image.** `Exp`, `Exp10`, `Sqrt` (a condition number of at most 709 cannot carry a 10^−34 relative error to
-  binary64's last bit), the bounded integer positions, and the SDIDI-evaluated variance family (VARIANCE, STANDARD-DEVIATION,
-  PRESENT-VALUE read `DecArgList`). Under `ARITHMETIC IS STANDARD-DECIMAL` the SDIDI is the value and nothing here applies.
+  binary64's last bit), the bounded integer positions, and every STANDARD-DECIMAL body. Under `ARITHMETIC IS STANDARD-DECIMAL` the
+  SDIDI is the value and nothing here applies.
 
 Pinned by `conformance:cases/15.4.1-Numeric-and-integer-functions/pb3953_function_argument_int128_window` (the 38-digit window
 and the 39-digit ABS, MOD, MAX and MOVE legs), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4075_wide_argument_consumers`
-(MEAN, SIN, COS, TAN, LOG and ACOS of a wide argument), `unit:CobolWideIntrinsicsTests` (each body against a `BigInteger` oracle) and
+(MEAN, SIN, COS, TAN, LOG and ACOS of a wide argument), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4568_wide_argument_beside_sdidi`
+(ORD-MAX, ORD-MIN, MOD, REM, SUM, RANGE, MEAN, MIDRANGE and MEDIAN of a wide argument beside an SDIDI or binary64 one),
+`unit:CobolExactIntrinsicsTests` (the `…Exact` bodies and `CobolExact.Compare` against a `BigInteger` and `fractions` oracle, and
+past the wide form), `unit:CobolWideIntrinsicsTests` (each body against a `BigInteger` oracle) and
 `unit:WideArgumentBodiesTests` (the wide binary64 bodies and MEAN against a 400-digit `decimal` oracle).
 
 ## Edge cases

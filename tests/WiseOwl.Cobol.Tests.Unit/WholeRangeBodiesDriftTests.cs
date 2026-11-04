@@ -196,8 +196,8 @@ public sealed class WholeRangeBodiesDriftTests
 
     /// <summary>⛔ The VARIADIC arm of the exact intake (kb/Work PB1565): every variadic Float catalog row is an
     /// <see cref="IntrinsicRenderer.ExactListBodies"/> member — so a new variadic float function cannot silently
-    /// take the narrowing body — and every member has the <c>(CobolRounding, …CobolDec…)</c> overload the renderer
-    /// emits, PRESENT-VALUE's rate leading the amounts.</summary>
+    /// take the narrowing body — and every member has the <c>(CobolRounding, …CobolExact…)</c> overload the renderer
+    /// emits (kb/Work PB4111: the exact values, divided once), PRESENT-VALUE's rate leading the amounts.</summary>
     [Fact]
     public void EveryVariadicFloatRow_IsAnExactListBody_WithTheListOverload()
     {
@@ -216,8 +216,8 @@ public sealed class WholeRangeBodiesDriftTests
         foreach (string method in IntrinsicRenderer.ExactListBodies)
         {
             Type[] want = method == "PresentValue"
-                ? [typeof(CobolRounding), typeof(CobolDec), typeof(CobolDec[])]
-                : [typeof(CobolRounding), typeof(CobolDec[])];
+                ? [typeof(CobolRounding), typeof(CobolExact), typeof(CobolExact[])]
+                : [typeof(CobolRounding), typeof(CobolExact[])];
             var overload = typeof(CobolIntrinsics).GetMethod(method, BindingFlags.Public | BindingFlags.Static, want);
             Assert.True(overload is not null && overload.ReturnType == typeof(double),
                 $"{method}: no public static double {method}({string.Join(", ", want.Select(t => t.Name))})");
@@ -226,21 +226,30 @@ public sealed class WholeRangeBodiesDriftTests
 
     private static CobolDec D(string sig, int exp = 0) => new(Int128.Parse(sig), exp);
 
-    /// <summary>The list bodies answer for the EXACT arguments (Python <c>decimal</c> at 80 digits): the narrowing
-    /// body cancelled every one of these to 0.</summary>
+    /// <summary>An SDIDI value's exact value, the intake the list bodies take.</summary>
+    private static CobolExact X(string sig, int exp = 0) => CobolExact.FromDec(D(sig, exp));
+
+    /// <summary>The list bodies answer for the EXACT arguments (Python <c>decimal</c> at 80 digits, <c>fractions.Fraction</c>): the
+    /// narrowing body cancelled the first five to 0, and the 34-digit SDIDI body lost the last two (kb/Work PB4111).</summary>
     [Fact]
     public void ExactListBodies_DoNotCancelTheArgumentsLowDigits()
     {
         var mode = CobolRounding.NearestEven;
-        CobolDec a = D("100000000000000001"), b = D("100000000000000002");
-        Assert.Equal(0.0, CobolIntrinsics.Variance(a.ToDouble(), b.ToDouble()));      // the narrowing body
+        CobolExact a = X("100000000000000001"), b = X("100000000000000002");
+        Assert.Equal(0.0, CobolIntrinsics.Variance(D("100000000000000001").ToDouble(), D("100000000000000002").ToDouble()));   // the narrowing body
         Assert.Equal(0.25, CobolIntrinsics.Variance(mode, a, b));
         Assert.Equal(0.5, CobolIntrinsics.StandardDeviation(mode, a, b));
-        Assert.Equal(1.0, CobolIntrinsics.PresentValue(mode, D("0"), a, D("-100000000000000000")));
-        Assert.Equal(2.0, CobolIntrinsics.PresentValue(mode, D("5", -1), D("300000000000000003"), D("-450000000000000000")));
+        Assert.Equal(1.0, CobolIntrinsics.PresentValue(mode, X("0"), a, X("-100000000000000000")));
+        Assert.Equal(2.0, CobolIntrinsics.PresentValue(mode, X("5", -1), X("300000000000000003"), X("-450000000000000000")));
         UnderChecking(false, () =>                                                     // a rejected rate: the §15.3 default
-            Assert.Equal(0.0, CobolIntrinsics.PresentValue(mode, D("-1"), a)));
-        Assert.Equal(1.5555555555555556, CobolIntrinsics.Variance(mode, D("1"), D("2"), D("4")));   // 14/9
+            Assert.Equal(0.0, CobolIntrinsics.PresentValue(mode, X("-1"), a)));
+        Assert.Equal(1.5555555555555556, CobolIntrinsics.Variance(mode, X("1"), X("2"), X("4")));   // 14/9
+        // 31-digit items 10^30, 10^30 + 1, 10^30 + 1 have variance 2/9 (the 34-digit mean made it 0.2222223333…), and
+        // PRESENT-VALUE (3, 10^33 + 1, −4·10^33) is exactly 0.25 (a 34-digit term quotient made it 0.3).
+        CobolExact e30 = X("1000000000000000000000000000000"), e30p1 = X("1000000000000000000000000000001");
+        Assert.Equal(2.0 / 9, CobolIntrinsics.Variance(mode, e30, e30p1, e30p1));
+        Assert.Equal(0.25, CobolIntrinsics.PresentValue(mode, X("3"), X("1000000000000000000000000000000001"),
+            X("-4000000000000000000000000000000000")));
     }
 
     /// <summary>⛔ A returned value outside binary64 is the size error condition (kb/Work PB1566; ISO §14.7.5 case
@@ -259,9 +268,9 @@ public sealed class WholeRangeBodiesDriftTests
         Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolIntrinsics.Exp10(D("-400"))));
         Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.Exp(1000.0)));
         Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolIntrinsics.Exp10(-400.0)));
-        var twenty = Enumerable.Repeat(D("1"), 20).ToArray();                                   // Σ 10^20i, i ≤ 20
+        var twenty = Enumerable.Repeat(X("1"), 20).ToArray();                                   // Σ 10^20i, i ≤ 20
         Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.PresentValue(
-            CobolRounding.NearestEven, D("-99999999999999999999", -20), twenty)));
+            CobolRounding.NearestEven, X("-99999999999999999999", -20), twenty)));
         Assert.True(CobolIntrinsics.Exp(D("-740")) > 0);                                       // subnormal: in range
         Assert.Equal(8.218407461554972e+307, CobolIntrinsics.Exp(D("709")), 8e+293);
         Assert.True(double.IsPositiveInfinity(CobolIntrinsics.Exp(double.PositiveInfinity)));  // non-finite argument
