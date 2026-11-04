@@ -3036,6 +3036,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         var written = a.arithmeticExpression();
         var bound = host.Expr.BindFunctionArgumentExpr(written);
+        // ⛔ A PARENTHESIZED ARGUMENT IS AN ARITHMETIC EXPRESSION, NEVER THE ITEM OR LITERAL IT ENCLOSES (kb/Work PB4635; §8.8.1.2 1)
+        // "the result is treated" as one operand, §8.4.3.2.3 SR8 "an identifier, a literal ... or an arithmetic expression"; the CALL and
+        // activation doors' PB1935 / PB3760). The expression
+        // binder drops grouping parentheses, so (I2) binds to I2's BoundNumRef and (3) to the literal 3; OperandOf then handed back a
+        // field or literal operand, and a "data item or literal" position (FIND-STRING argument-3, §15.37.3 3); BASECONVERT
+        // arguments 2 and 3, §15.12.3 1)) admitted it as if the bare item had been written. Asked of the written shape, as
+        // IsSoleFunctionIdentifier is; every other bound shape is already the computed operand OperandOf makes of it.
+        if (bound is BoundNumRef or BoundNumLiteral && !ReferenceEquals(WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Unparenthesized(written), written))
+            return new BoundComputedOperand(bound);
         return OperandOf(bound, functionValue: IsSoleFunctionIdentifier(written, bound));
     }
 

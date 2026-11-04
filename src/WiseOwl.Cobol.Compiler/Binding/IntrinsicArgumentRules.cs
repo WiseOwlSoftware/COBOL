@@ -1425,8 +1425,8 @@ internal static class IntrinsicArgumentRules
         ArgPredicateKind.ExactWidth when knownWidth is { } w && w != p.N =>
             $"is {w} character position(s) in length; ISO {p.Clause} requires exactly {p.N}",
         // "an integer data item or integer literal" — an ARITHMETIC EXPRESSION is neither, whatever it evaluates to
-        // (a parenthesised function-identifier is written as one, and is refused; a parenthesised bare data reference is
-        // bound as the item it encloses by the argument binder, so this predicate never sees it: reported as a lead). A
+        // (a parenthesised function-identifier or bare data reference or literal is written as one, and is refused: the
+        // argument binder wraps it as the computed operand it is, IntrinsicBinder.BindArgOperandCore, kb/Work PB4635). A
         // nested FUNCTION-IDENTIFIER is a data item (§8.4.3.2.4 GR1: "a temporary data item"; an integer function's
         // is an integer one, §15.2 item 5) and so is admitted here; whether its function is INTEGER is the class
         // kind's integer test, not this predicate's (kb/Work PB4507 — it used to bar the function outright).
