@@ -1,0 +1,90 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text.RegularExpressions;
+using Xunit;
+
+namespace WiseOwl.Cobol.Tests.Conformance;
+
+/// <summary>
+/// ⛔ A SELECTION OBJECT'S OWN FAULTS ARE INDICATED WHETHER OR NOT ITS PAIR IS PERMITTED (kb/Work PB4446). ISO
+/// §14.9.13.3 SR10 refuses a pair Table 15 leaves blank (COBOL1634); SR2 refuses a phrase whose object count differs from
+/// the subject count (COBOL2106). Each is a fault of the pair or the count. The object's own reference and expression
+/// faults are independent violations of the general formats and syntax rules (§4.2.2): an undefined or ambiguous name
+/// (§8.4.2.1), a subscript on a scalar (§8.4.2.3.3 SR2), an unsubscripted table element (SR5), a reference-modification
+/// position 0, an alphanumeric operand in an arithmetic expression (§8.8.1.1), a bad function argument and a range whose
+/// ends differ in class (§14.9.13.3 SR4). The binder used to return before it bound a refused pair's object, and never
+/// bound the surplus objects of a count breach at all, so each of these was hidden by the verdict about the pair.
+/// <para>Each case pins the EXACT set of diagnostics, so the pair's secondary checks (the SR7 a) relation checkpoint, a
+/// TRUE/FALSE word bound as a condition) stay suppressed: the guards at the end are the refusals that must keep drawing
+/// ONE diagnostic.</para>
+/// </summary>
+public sealed class EvaluateObjectOperandFaultTests
+{
+    private static string Program(string statement) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. EOF4446.\n"
+        + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n"
+        + "       01 RELF PIC 9 VALUE 3.\n"
+        + "          88 C88 VALUE 3.\n"
+        + "       01 A PIC X(3) VALUE \"ABC\".\n"
+        + "       01 N PIC 9 VALUE 1.\n"
+        + "       01 BW PIC 1(2) VALUE B\"10\".\n"
+        + "       01 G.\n          05 T OCCURS 2 PIC 9.\n"
+        + "       01 Q1.\n          05 DUP PIC 9.\n"
+        + "       01 Q2.\n          05 DUP PIC 9.\n"
+        + $"       PROCEDURE DIVISION.\n{statement}\n           STOP RUN.\n";
+
+    /// <summary>The error codes of the compile, one per diagnostic, sorted.</summary>
+    private static string[] Codes(string statement)
+    {
+        var (ok, errors) = EditionHarness.Compile(Program(statement), 2023);
+        Assert.False(ok);
+        return [.. errors.Select(e => Regex.Match(e, @"COBOL\d{4}").Value).Order(StringComparer.Ordinal)];
+    }
+
+    /// <summary>A permitted pair would draw the object's fault alone; the refused pair draws it AND the Table 15
+    /// verdict, one of each.</summary>
+    [Theory]
+    [InlineData("           EVALUATE TRUE WHEN RELF (1) DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2096")]
+    [InlineData("           EVALUATE TRUE WHEN UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN DUP DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN T DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2270")]
+    [InlineData("           EVALUATE TRUE WHEN A (0:1) DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2670")]
+    [InlineData("           EVALUATE TRUE WHEN RELF + A DISPLAY \"B\" END-EVALUATE.", "COBOL0844 COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN FUNCTION ABS (A) DISPLAY \"B\" END-EVALUATE.", "COBOL1627 COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN ADDRESS OF UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    public void ARefusedPair_StillIndicatesTheObjectsOwnReferenceFault(string statement, string expected) =>
+        Assert.Equal(expected.Split(' '), Codes(statement));
+
+    /// <summary>The range, the partial expression and the condition rows of Table 15 hold operands too.</summary>
+    [Theory]
+    [InlineData("           EVALUATE TRUE WHEN RELF (1) THRU 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2096")]
+    [InlineData("           EVALUATE TRUE WHEN 1 THRU \"A\" DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2107")]
+    [InlineData("           EVALUATE TRUE WHEN UNDEFX THRU 3 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN > RELF (1) DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2096")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND < RELF (1) DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2096")]
+    [InlineData("           EVALUATE TRUE WHEN NUMERIC AND UNDEFX = 1 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE N WHEN RELF (1) = 1 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2096")]
+    public void ARefusedPair_StillBindsARangeAPartialExpressionAndACondition(string statement, string expected) =>
+        Assert.Equal(expected.Split(' '), Codes(statement));
+
+    /// <summary>The surplus objects of an SR2 breach have no subject, so no Table 15 verdict, and each is bound.</summary>
+    [Theory]
+    [InlineData("           EVALUATE TRUE WHEN TRUE ALSO UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1639 COBOL2106")]
+    [InlineData("           EVALUATE N WHEN 1 ALSO UNDEFX THRU 3 DISPLAY \"B\" END-EVALUATE.", "COBOL1639 COBOL2106")]
+    [InlineData("           EVALUATE N WHEN 1 ALSO > RELF (1) DISPLAY \"B\" END-EVALUATE.", "COBOL2096 COBOL2106")]
+    [InlineData("           EVALUATE TRUE WHEN RELF (1) ALSO RELF (1) DISPLAY \"B\" END-EVALUATE.",
+        "COBOL1634 COBOL2096 COBOL2096 COBOL2106")]
+    public void ASurplusObject_IsBoundByItsOwnRow(string statement, string expected) =>
+        Assert.Equal(expected.Split(' '), Codes(statement));
+
+    /// <summary>The refusal that ends the PAIR's checks keeps ending them: one diagnostic, never the relation
+    /// checkpoint's or the "TRUE is used as a condition" cascade about an object the table has just refused.</summary>
+    [Theory]
+    [InlineData("           EVALUATE TRUE WHEN 3 DISPLAY \"B\" END-EVALUATE.")]
+    [InlineData("           EVALUATE TRUE WHEN \"X\" THRU \"Z\" DISPLAY \"B\" END-EVALUATE.")]
+    [InlineData("           EVALUATE RELF WHEN TRUE DISPLAY \"B\" END-EVALUATE.")]
+    [InlineData("           EVALUATE BW WHEN TRUE DISPLAY \"B\" END-EVALUATE.")]
+    [InlineData("           EVALUATE TRUE WHEN N DISPLAY \"B\" END-EVALUATE.")]
+    public void ARefusedPairWithNothingElseWrong_StillDrawsOnlyTheTable15Verdict(string statement) =>
+        Assert.Equal(["COBOL1634"], Codes(statement));
+}
