@@ -1,4 +1,4 @@
-## PB4514 and PB4515: de-editing a floating '+' string keeps its minus, and an all-suppressed picture tests the stored digits
+## Entry 3066 — 2026-11-03 17:56 PST — PB4514 and PB4515: de-editing a floating '+' string keeps its minus, and an all-suppressed picture tests the stored digits
 
 Two defects of `CobolEdit.cs` from the 3,000-program fuzz batch (PB4506), both wrong answers through MOVE.
 
@@ -43,3 +43,4 @@ already been read AND the `-` matches the literal. Golden cases F to I added to 
 R2-2 (the refused-below program named a nonexistent `2023/` path) was corrected in the file.
 
 **Register.** Both notes landed with no inventory rows claimed or closed.
+
