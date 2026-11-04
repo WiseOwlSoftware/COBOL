@@ -188,15 +188,17 @@ public sealed class OpenLineOverprintTests
 
     [Fact]
     // GR14/GR15: a WRITE whose length is outside the RECORD IS VARYING bounds is unsuccessful ('44') and "the write
-    // operation does not take place". AAAA's line stays open; the refused BEFORE write wrote no return; the next
-    // BEFORE write (VL = 3, the record BBB) overprints once.
+    // operation does not take place". AAAA's line stays open; the refused BEFORE write wrote no return and no
+    // frame; the next BEFORE write (VL = 3, the record BBB) overprints once. Each record that reached the medium
+    // is framed (kb/Work PB2509, DOC-A.1-151 (a)): a record sequential print stream of VARYING records keeps
+    // its length prefix, so the prefix stands between the overprint return and the record.
     public void RecordSequential_RefusedBeforeWrite_LeavesTheOpenLineUntouched()
         => Assert2(Cn85, "OLEX1", Source("OLEX1", "", "RECORD IS VARYING IN SIZE FROM 2 TO 4 CHARACTERS DEPENDING ON VL",
                 "01 VL PIC 9 VALUE 4.", "", $"""
                 {W("AAAA", "AFTER ADVANCING 1 LINE")}
                 {W("XXXX", "BEFORE ADVANCING 1 LINE", "MOVE 9 TO VL. ")}
                 {W("BBBB", "BEFORE ADVANCING 1 LINE", "MOVE 3 TO VL. ")}
-            """), "\r\nAAAA\rBBB\r\n", "FS=00\nFS=44\nFS=00\nCLOSE=00");
+            """), "\r\n\u0004\0\0\0AAAA\r\u0003\0\0\0BBB\r\n", "FS=00\nFS=44\nFS=00\nCLOSE=00");
 
     [Fact]
     // The same, with a USE declarative on the file: the '44' runs it (§9.1.13.7 / §14.9.51.4 GR15) and the bytes
@@ -207,7 +209,7 @@ public sealed class OpenLineOverprintTests
                 {W("AAAA", "AFTER ADVANCING 1 LINE")}
                 {W("XXXX", "BEFORE ADVANCING 1 LINE", "MOVE 1 TO VL. ")}
                 {W("BBBB", "BEFORE ADVANCING 1 LINE", "MOVE 3 TO VL. ")}
-            """), "\r\nAAAA\rBBB\r\n", "FS=00\nUSE=44\nFS=44\nFS=00\nCLOSE=00");
+            """), "\r\n\u0004\0\0\0AAAA\r\u0003\0\0\0BBB\r\n", "FS=00\nUSE=44\nFS=44\nFS=00\nCLOSE=00");
 
     [Fact]
     // GR23: a line sequential record area holding a character outside the line sequential character set (here the
@@ -251,7 +253,7 @@ public sealed class OpenLineOverprintTests
                 {Wq("AAAA", "AFTER ADVANCING 1 LINE")}
                 {Wq("XXXX", "BEFORE ADVANCING 1 LINE", "MOVE 1 TO VL. ")}
                 {Wq("BBBB", "BEFORE ADVANCING 1 LINE", "MOVE 3 TO VL. ")}
-            """, fileStatus: false), "\r\nAAAA\rBBB\r\n", "USE\nCLOSE");
+            """, fileStatus: false), "\r\n\u0004\0\0\0AAAA\r\u0003\0\0\0BBB\r\n", "USE\nCLOSE");
 
     [Fact]
     // ... and with NEITHER a declarative nor a FILE STATUS item: a fatal exception condition (status '44', §9.1.13.1)
@@ -278,12 +280,26 @@ public sealed class OpenLineOverprintTests
     [Theory]
     // A print line of spaces has no characters, so it is a presented line (CLOSE or the next travel ends it) with
     // nothing after its text: the BBBB presented onto it is at the same vertical position with no return to write
-    // (GR25 c), e), f)); a return there would be a character of the next record (kb/Work PB1540).
+    // (GR25 c), e), f)); a return there would be a character of the next record (kb/Work PB1540). Asserted on a LINE
+    // SEQUENTIAL file: only a text stream's blank record has no characters (kb/Work PB2509).
     [InlineData("OLBL1", "BEFORE ADVANCING 1 LINE", "\r\nBBBB\r\n")]
     [InlineData("OLBL2", "AFTER ADVANCING 0 LINES", "\r\nBBBB\r\n")]
     // BEFORE 0 presents BBBB (no return before it) and then returns the carriage once, after it.
     [InlineData("OLBL3", "BEFORE ADVANCING 0 LINES", "\r\nBBBB\r\r\n")]
     public void BlankLineThenARecord_WritesNoReturnBeforeIt(string id, string second, string bytes)
+        => Assert2(Cn2023, id, Source(id, LineSequentialOrg, "", "", "", $"""
+                {W("    ", "AFTER ADVANCING 1 LINE")}
+                {W("BBBB", second)}
+            """), bytes, "FS=00\nFS=00\nCLOSE=00");
+
+    [Theory]
+    // A record sequential print stream is NOT text (kb/Work PB2509): its blank record is the four spaces of its
+    // record size, so it has characters, BBBB presented onto its open line overprints them with a return of its own,
+    // and the line it leaves open is the one the zero advance or the CLOSE ends.
+    [InlineData("OLRB1", "BEFORE ADVANCING 1 LINE", "\r\n    \rBBBB\r\n")]
+    [InlineData("OLRB2", "AFTER ADVANCING 0 LINES", "\r\n    \rBBBB\r\n")]
+    [InlineData("OLRB3", "BEFORE ADVANCING 0 LINES", "\r\n    \rBBBB\r\r\n")]
+    public void RecordSequential_BlankRecordIsWhole_AndIsOverprinted(string id, string second, string bytes)
         => Assert2(Cn85, id, Source(id, "", "", "", "", $"""
                 {W("    ", "AFTER ADVANCING 1 LINE")}
                 {W("BBBB", second)}
@@ -301,10 +317,19 @@ public sealed class OpenLineOverprintTests
     // A blank line presented onto a line that holds text overprints nothing and stays on that line: no return of
     // its own, and the line is still open for the zero advance that follows (one return, GR25 c)).
     public void BlankLineOntoATextLine_WritesNoReturn_AndTheLineStaysOpen()
-        => Assert2(Cn85, "OLBL5", Source("OLBL5", "", "", "", "", $"""
+        => Assert2(Cn2023, "OLBL5", Source("OLBL5", LineSequentialOrg, "", "", "", $"""
                 {W("AAAA", "AFTER ADVANCING 1 LINE")}
                 {W("    ", "BEFORE ADVANCING 0 LINES")}
             """), "\r\nAAAA\r\r\n", "FS=00\nFS=00\nCLOSE=00");
+
+    [Fact]
+    // The record sequential twin (kb/Work PB2509): the blank record is four spaces presented onto the text line, so
+    // it overprints from column 1 with its own return, and the zero advance that follows returns the carriage once.
+    public void RecordSequential_BlankRecordOntoATextLine_IsWholeAndOverprints()
+        => Assert2(Cn85, "OLRB5", Source("OLRB5", "", "", "", "", $"""
+                {W("AAAA", "AFTER ADVANCING 1 LINE")}
+                {W("    ", "BEFORE ADVANCING 0 LINES")}
+            """), "\r\nAAAA\r    \r\r\n", "FS=00\nFS=00\nCLOSE=00");
 
     // ── The end-of-page conditions on a write that overprints (GR26 a), b); GR27) ───────────────────────────
 

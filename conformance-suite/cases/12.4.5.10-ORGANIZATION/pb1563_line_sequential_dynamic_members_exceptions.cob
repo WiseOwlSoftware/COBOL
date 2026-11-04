@@ -22,7 +22,7 @@
       *> the fixed run - a control character that sits in a dynamic
       *> member BEYOND the fixed run is exactly as outside the line
       *> sequential character set as one inside it.  The file below
-      *> is written through a record sequential print stream (which
+      *> is written byte by byte to a record sequential file (which
       *> has no 14.9.51.4 GR23) so that it can hold such lines.
       *>
       *> Paths walked (each uses a file with a FILE STATUS; LF also
@@ -96,7 +96,7 @@
        DATA DIVISION.
        FILE SECTION.
        FD SEEDF.
-       01 S-REC PIC X(25).
+       01 S-BYTE PIC X.
        FD LF.
        01 LR.
           05 A PIC X DYNAMIC LENGTH LIMIT 9.
@@ -134,6 +134,9 @@
           05 SA PIC X DYNAMIC LENGTH LIMIT 9.
        WORKING-STORAGE SECTION.
        01 SEED-ST PIC XX.
+       01 S-REC PIC X(25).
+       01 S-N PIC 99.
+       01 S-I PIC 99.
        01 LF-ST PIC XX.
        01 LA-ST PIC XX.
        01 LC-ST PIC XX.
@@ -153,20 +156,20 @@
        MAIN-1.
            OPEN OUTPUT SEEDF.
            MOVE "AAKEYCCCC" TO S-REC.
-           WRITE S-REC BEFORE ADVANCING 1 LINE.
+           PERFORM SEED-LINE.
            MOVE "HILOW" TO S-REC.
-           WRITE S-REC BEFORE ADVANCING 1 LINE.
+           PERFORM SEED-LINE.
            MOVE "AAKEYCC" TO S-REC.
            MOVE X"01" TO S-REC(6:1).
-           WRITE S-REC BEFORE ADVANCING 1 LINE.
+           PERFORM SEED-LINE.
            MOVE "AKEYCCC" TO S-REC(2:7).
            MOVE X"01" TO S-REC(1:1).
            MOVE SPACES TO S-REC(9:).
-           WRITE S-REC BEFORE ADVANCING 1 LINE.
+           PERFORM SEED-LINE.
            MOVE "ABCDEFGHIJKLMNOPQRSTUV" TO S-REC.
            MOVE X"01" TO S-REC(23:1).
            MOVE "WX" TO S-REC(24:2).
-           WRITE S-REC BEFORE ADVANCING 1 LINE.
+           PERFORM SEED-LINE.
            CLOSE SEEDF.
            DISPLAY "SEED=" SEED-ST.
       *> ---- H. READ '09'
@@ -261,3 +264,18 @@
            SORT SRTF ON ASCENDING KEY SK USING SIN GIVING BADOUT.
            DISPLAY "K3=" BO-ST.
            STOP RUN.
+      *> The seed line: S-REC less its trailing spaces, then a line
+      *> feed, each as a one-byte record of SEEDF (a fixed-length
+      *> record sequential file, whose bytes are the records').
+       SEED-LINE.
+           MOVE 25 TO S-N.
+           PERFORM UNTIL S-N = 0
+              IF S-REC(S-N:1) NOT = SPACE EXIT PERFORM END-IF
+              SUBTRACT 1 FROM S-N
+           END-PERFORM.
+           PERFORM VARYING S-I FROM 1 BY 1 UNTIL S-I > S-N
+              MOVE S-REC(S-I:1) TO S-BYTE
+              WRITE S-BYTE
+           END-PERFORM.
+           MOVE X"0A" TO S-BYTE.
+           WRITE S-BYTE.

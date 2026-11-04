@@ -93,9 +93,14 @@ internal static class NistRunner
     private static NistRunResult Failed(string detail) =>
         new(false, "", detail, new Dictionary<string, byte[]>());
 
-    /// <summary>The NIST acceptance basis (exactly <c>scripts/guard-verdict.sh</c>'s <c>guard_normalize_into</c>): drop CR,
-    /// strip per-line trailing spaces, and mask the COMPUTED= operand (a value some CCVS programs print that is not part of
-    /// the pass/fail decision). Applied identically to the golden and the produced output.
+    /// <summary>The NIST acceptance basis (exactly <c>scripts/guard-verdict.sh</c>'s <c>guard_normalize_into</c>): drop CR
+    /// together with the spaces before it, strip per-line trailing spaces, and mask the COMPUTED= operand (a value some
+    /// CCVS programs print that is not part of the pass/fail decision). Applied identically to the golden and the produced
+    /// output.
+    /// <para>⛔ THE SPACES BEFORE A CR ARE TRAILING SPACES OF AN OVERPRINT SEGMENT (kb/Work PB2509). A record sequential
+    /// print stream writes each record whole, so an overprinted line reads <c>marker␠␠␠\rtext</c>; the spaces after
+    /// <c>marker</c> strike nothing, exactly the trailing spaces the per-line strip drops from a line that is not
+    /// overprinted, and the basis compares listing TEXT.</para>
     /// <para>⛔ A LONE CR IS DROPPED, NOT TURNED INTO A LINE BREAK. <c>ReplaceLineEndings("\n")</c> — what this used
     /// to call — maps a bare CR to LF, which silently ignored the basis above: a WRITE … ADVANCING 0 is an OVERPRINT
     /// written as a carriage return (docs/CONFORMANCE.md "ADVANCING 0"; kb/Work PB1667), and the NIST print programs
@@ -103,7 +108,8 @@ internal static class NistRunner
     /// compare listing TEXT, and a carriage return is not text.</para></summary>
     public static string Normalize(string s)
     {
-        var lines = s.Replace("\r\n", "\n").Replace("\r", "").ReplaceLineEndings("\n").Split('\n')
+        var lines = System.Text.RegularExpressions.Regex.Replace(s.Replace("\r\n", "\n"), " *\r", "")
+            .ReplaceLineEndings("\n").Split('\n')
             .Select(line => System.Text.RegularExpressions.Regex.Replace(line.TrimEnd(' '), "COMPUTED=  [0-9]*", "COMPUTED=  XXXXXXXXX"));
         return string.Join("\n", lines).TrimEnd('\n');
     }

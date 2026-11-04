@@ -58,8 +58,8 @@
       *>      it replaces, '44' (GR17 b) - the record that the READ
       *>      delivered in full is NOT a partial transfer (GR17 a),
       *>      which a variable-length group's fixed run once made it.
-      *>   E. A 25-character line (a seed written through a record
-      *>      sequential print stream, which has no GR23) read into
+      *>   E. A 25-character line (a seed written byte by byte to a
+      *>      record sequential file, which has no GR23) read into
       *>      the 20-character maximum: '06' and the truncated record
       *>      (GR15), the remainder by the next READ, an empty line
       *>      padded to the minimum (GR15), '10' (AT END) and '46'
@@ -95,7 +95,7 @@
           05 KY PIC X(3).
           05 C PIC X DYNAMIC LENGTH LIMIT 8.
        FD SEEDF.
-       01 S-REC PIC X(25).
+       01 S-BYTE PIC X.
        FD RDF.
        01 RR.
           05 RA PIC X DYNAMIC LENGTH LIMIT 9.
@@ -122,6 +122,9 @@
        WORKING-STORAGE SECTION.
        01 LF-ST PIC XX.
        01 SEED-ST PIC XX.
+       01 S-REC PIC X(25).
+       01 S-N PIC 99.
+       01 S-I PIC 99.
        01 RD-ST PIC XX.
        01 W-LEN PIC 99.
        PROCEDURE DIVISION.
@@ -200,9 +203,9 @@
       *> ---- E. a 25-character line and an empty line, no USE.
            OPEN OUTPUT SEEDF.
            MOVE "ABCDEFGHIJKLMNOPQRSTUVWXY" TO S-REC.
-           WRITE S-REC BEFORE ADVANCING 1 LINE.
+           PERFORM SEED-LINE.
            MOVE SPACES TO S-REC.
-           WRITE S-REC BEFORE ADVANCING 1 LINE.
+           PERFORM SEED-LINE.
            CLOSE SEEDF.
            OPEN INPUT RDF.
            PERFORM 3 TIMES
@@ -254,3 +257,18 @@
            END-PERFORM.
            CLOSE SOUT.
            STOP RUN.
+      *> The seed line: S-REC less its trailing spaces, then a line
+      *> feed, each as a one-byte record of SEEDF (a fixed-length
+      *> record sequential file, whose bytes are the records').
+       SEED-LINE.
+           MOVE 25 TO S-N.
+           PERFORM UNTIL S-N = 0
+              IF S-REC(S-N:1) NOT = SPACE EXIT PERFORM END-IF
+              SUBTRACT 1 FROM S-N
+           END-PERFORM.
+           PERFORM VARYING S-I FROM 1 BY 1 UNTIL S-I > S-N
+              MOVE S-REC(S-I:1) TO S-BYTE
+              WRITE S-BYTE
+           END-PERFORM.
+           MOVE X"0A" TO S-BYTE.
+           WRITE S-BYTE.
