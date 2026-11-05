@@ -3,7 +3,6 @@
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.CodeGen.Emit;
-using WiseOwl.Cobol.Runtime.Communication;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -88,7 +87,9 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
         string receipt = $"__receipt{ctx.Names.NextEc()}";
         w.Line($"var {receipt} = {RuntimeApi.McsReceive(cd, format, image, n.Segment, OperandText.RecordAreaImage(into), n.NoData is not null)};");
         seqIo.EmitImageInto(n.Area, $"{receipt}.Area", storesIntoOwnItem: false);
-        seqIo.EmitImageInto(into, $"{receipt}.Into", storesIntoOwnItem: false);
+        // A reference-modified receiver is a window, whose write splices; the image store is for an item's whole storage.
+        if (into is RefModPlace) w.Line(PlaceRenderer.Write(into, $"{receipt}.Into"));
+        else seqIo.EmitImageInto(into, $"{receipt}.Into", storesIntoOwnItem: false);
         if (n.WithData is null && n.NoData is null) return;
         using (w.Block($"if ({receipt}.DataAvailable)"))
             if (n.WithData is { } yes) Statements.EmitStatementList(yes);

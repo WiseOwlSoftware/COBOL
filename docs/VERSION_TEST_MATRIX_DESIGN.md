@@ -368,8 +368,8 @@ hole (unconditional lexer tokens wrongly commented "COBOL-2002" — they are 202
 85-acceptance set (RERUN, ENTER, USE FOR DEBUGGING, section segment-numbers — generic parse errors today, a G1
 co-equal-diagnostic violation at 85); the preprocessor rows (COPY REPLACING non-pseudo-text ≥2023 = VCR 4,
 fixed-form word continuation ≥2023 = VCR 2, col-7 hyphen obsolete flag = VCR 94 — `DialectLevel` is not
-threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATION module stays an M2-scope
-decision.
+threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATION module is implemented at 85 and 2002
+(`docs/rearchitecture/DESIGN-communication-facility.md`, kb/Work PB4677).
 
 > **W2 — as built.**
 > **(a) MOVE rows** — the binder-side gate is `MoveBinder.cs` (`Binding/Procedure/Verbs/`): a digit-only

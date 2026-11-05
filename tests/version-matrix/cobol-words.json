@@ -395,7 +395,7 @@
    "token": "END_RECEIVE",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "MCS scope terminator. NON-MONOTONIC: reserved 85, USER WORD 2002/2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+   "note": "MCS scope terminator. NON-MONOTONIC: reserved 85 and 2002, USER WORD 2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
   },
   {
    "token": "END_SEND",
@@ -986,7 +986,7 @@
    "token": "RECEIVE",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "MCS RECEIVE (ISO 14.9.31). NON-MONOTONIC reservation: reserved 85, USER WORD 2002/2014, re-reserved 2023 (Annex E.2 item 25). nameSlot keeps `01 RECEIVE PIC X.` legal at 2002/2014. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+   "note": "MCS RECEIVE (ISO 14.9.31) and the communication facility's (ISO/IEC 1989:2002 A.2.5). NON-MONOTONIC reservation: reserved 85 and 2002, USER WORD 2014, re-reserved 2023 (Annex E.2 item 25). nameSlot keeps `01 RECEIVE PIC X.` legal at 2014. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
   },
   {
    "token": "RECURSIVE",
@@ -1124,7 +1124,7 @@
    "token": "SEND",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "MCS SEND (ISO 14.9.38). NON-MONOTONIC: reserved 85, USER WORD 2002/2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+   "note": "MCS SEND (ISO 14.9.38) and the communication facility's (ISO/IEC 1989:2002 A.2.6). NON-MONOTONIC: reserved 85 and 2002, USER WORD 2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
   },
   {
    "token": "SHARING",

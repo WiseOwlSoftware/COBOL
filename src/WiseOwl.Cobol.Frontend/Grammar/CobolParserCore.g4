@@ -991,13 +991,13 @@ statement
     //    records, and a generic parse error there is a wrong ANSWER to the user rather than a non-conformance.
     //    Each arm is KEYWORD-TOKEN-LED (an IDENTIFIER-led arm would poison the ALL(*) DFA, DEVLOG 903).
     //    ⛔ RECEIVE AND SEND ARE THE UNION GRAMMAR, GATED ON INTRODUCTION, NOT ON RESERVATION (kb/Work PB374).
-    //    Both words are NON-MONOTONIC in §8.9: reserved at COBOL-85 (the '85 communication module's verbs), user
-    //    words at 2002/2014, reserved again at 2023. A reservation predicate therefore recognized the 2023-only
+    //    Both words are NON-MONOTONIC in §8.9: reserved at COBOL-85 and 2002 (the communication facility's verbs), user
+    //    words at 2014, reserved again at 2023. A reservation predicate therefore recognized the 2023-only
     //    §14.9.31.2 / §14.9.38.2 formats at --std 85 and warned COBOL1578 naming a 2023 facility, while
     //    2002/2014 answered a raw parse error. The arm fires wherever the token spells the verb (wordAhead, so a
     //    >>COBOL-WORDS UNDEFINE still removes it), and the edition pass names the introduction
     //    (VersionConformancePass VisitMcs*Statement → async-messaging-2023 → COBOL0900). No legal program of
-    //    any edition loses a reading: at 2002/2014 a user-defined word RECEIVE or SEND cannot begin a statement,
+    //    any edition loses a reading: at 2014 a user-defined word RECEIVE or SEND cannot begin a statement,
     //    and the operand-list keyword choice for an undeclared one is keywordContinuesHere's (kb/Work PB805).
     //    ⛔ VALIDATE IS THE UNION GRAMMAR TOO, GATED ON INTRODUCTION (kb/Work PB3148). Its reservation does start at
     //    its 2002 introduction and never lapses, but a reservation predicate turned `VALIDATE WS-A.` at --std 85 into

@@ -89,6 +89,9 @@ public sealed partial class DataBinder
         if (scope.localStorageSection() is { } ls) DeclareRun(ls.dataDescriptionEntry(), EntrySection.LocalStorage);
         if (scope.linkageSection() is { } lk)
             DeclareRun(lk.dataDescriptionEntry(), EntrySection.Linkage);
+        if (scope.communicationSection() is { } cs)
+            foreach (var cd in cs.communicationDescriptionEntry())
+                DeclareRun(cd.dataDescriptionEntry(), EntrySection.Communication);
     }
 
     private void DeclareRun(Core.DataDescriptionEntryContext[] run, EntrySection section)

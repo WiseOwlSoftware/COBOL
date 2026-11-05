@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Runtime.Communication;
 /// rule 2 by construction: "remaining portions of any partially-received messages are eliminated from the queue. Any portions of
 /// messages transferred from the run unit by a SEND statement, and not terminated by an EMI or EGI, are purged from the system."
 /// </summary>
-internal sealed class MessageControlSession
+internal sealed class MessageControlSession(MessageStore? store = null)
 {
     /// <summary>The status key values of Table A.1 this implementation reports.</summary>
     private const string Ok = "00", Disabled = "10", AlreadySet = "15", Unknown = "20", UnknownSource = "21", BadCount = "30",
@@ -23,9 +23,8 @@ internal sealed class MessageControlSession
     private readonly Dictionary<string, PendingSend> _sends = new(StringComparer.Ordinal);
     private readonly List<PendingReceive> _receives = [];
     private readonly Dictionary<string, string> _terminals = new(StringComparer.Ordinal);
-    private MessageStore? _store;
 
-    private MessageStore Store => _store ??= MessageStore.Open();
+    private MessageStore Store => store ??= MessageStore.Open();
 
     internal string AcceptMessageCount(string image)
     {
@@ -162,7 +161,9 @@ internal sealed class MessageControlSession
     internal string Send(string cd, CommunicationFormat format, string image, string? text, SendIndicator indicator)
     {
         var area = new CommunicationArea(image);
-        area.SetStatus(format, Store.Run(state =>
+        // The portions as they stand: a store that refuses the statement's write means it took no action (Table A.1's 9x), so the run unit's half goes back too.
+        var before = _sends.ToDictionary(pair => pair.Key, pair => pair.Value.Copy(), StringComparer.Ordinal);
+        string status = Store.Run(state =>
         {
             if (format is CommunicationFormat.Output && ValidCount(area) is null) return BadCount;
             int textLength = area.TextLength(format) ?? int.MaxValue;
@@ -172,7 +173,13 @@ internal sealed class MessageControlSession
             return format is CommunicationFormat.Output
                 ? SendToDestinations(area, portion, indicator, state)
                 : SendToTerminal(cd, area, format, portion, indicator, state);
-        }));
+        });
+        if (status == MessageStore.StoreRefused)
+        {
+            _sends.Clear();
+            foreach (var (key, pending) in before) _sends[key] = pending;
+        }
+        area.SetStatus(format, status);
         return area.Image;
     }
 
@@ -266,6 +273,7 @@ internal sealed class MessageControlSession
     private (string? Status, string? Into) TryReceive(string cd, CommunicationFormat format, CommunicationArea area, bool segment, string into)
     {
         (string? Status, string? Into) answer = default;
+        PendingReceive? taken = null;
         string status = Store.Run(state =>
         {
             string[] path;
@@ -284,18 +292,20 @@ internal sealed class MessageControlSession
             var pending = _receives.Find(r => r.Format == format && r.Answers(path));
             if (pending is null)
             {
-                var taken = format is CommunicationFormat.Input
+                var next = format is CommunicationFormat.Input
                     ? state.TakeFromQueue(path)
                     : state.TakeFromTerminal(path[0]);
-                if (taken is not { } found) return Ok;   // no data: the caller decides between GR5 a) and b)
-                pending = new PendingReceive(format, found.Path, found.Message);
+                if (next is not { } found) return Ok;   // no data: the caller decides between GR5 a) and b)
+                pending = taken = new PendingReceive(format, found.Path, found.Message);
                 _receives.Add(pending);
             }
             answer = (null, Transfer(pending, area, format, segment, into));
             return Ok;
         });
-        // A store that cannot answer reports the implementor's 9x status (Table A.1) and the statement takes no action.
-        return status == Ok ? answer : (status, null);
+        if (status == Ok) return answer;
+        // A store that cannot answer reports the implementor's 9x status (Table A.1) and the statement takes no action: a message it could not remove stays the store's.
+        if (taken is not null) _receives.Remove(taken);
+        return (status, null);
     }
 
     /// <summary>A.2.5.3 GR3, GR8, GR9: the text fills the area left to right "without space fill", and A.1.2.3 GR12 and GR33 give the end key.</summary>
@@ -313,7 +323,7 @@ internal sealed class MessageControlSession
     internal string InitialArea(string cd, CommunicationFormat format, string image)
     {
         var area = new CommunicationArea(image);
-        var scheduled = MessageStore.Scheduled();
+        var scheduled = Store.Scheduled;
         if (format is CommunicationFormat.Input)
             area.SetQueuePath(scheduled);
         else
@@ -340,6 +350,14 @@ internal sealed class MessageControlSession
     {
         internal readonly List<string> Segments = [];
         internal readonly StringBuilder Segment = new();
+
+        internal PendingSend Copy()
+        {
+            var copy = new PendingSend();
+            copy.Segments.AddRange(Segments);
+            copy.Segment.Append(Segment);
+            return copy;
+        }
     }
 
     /// <summary>The message this run unit has begun to receive from <see cref="Path"/>; the remainder is "treated as a new message" or

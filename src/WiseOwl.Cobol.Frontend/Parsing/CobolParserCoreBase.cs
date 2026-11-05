@@ -1229,8 +1229,8 @@ public abstract class CobolParserCoreBase : Parser
     /// lapses, so "reserved here" is exactly "the statement exists here", and where the word is a user word the arm
     /// stays out of the way: <c>COMMIT.</c> at --std 2014 is a paragraph. That is the reason these two need it: the
     /// statement is the bare verb, so below 2023 no parse can tell it from a paragraph header.
-    /// <para>⛔ NOT FOR A VERB THAT TAKES OPERANDS (kb/Work PB374, PB3148). RECEIVE and SEND are reserved at COBOL-85
-    /// for the '85 communication module, user words at 2002/2014 and reserved again at 2023 for asynchronous
+    /// <para>⛔ NOT FOR A VERB THAT TAKES OPERANDS (kb/Work PB374, PB3148, PB4677). RECEIVE and SEND are reserved at COBOL-85
+    /// and 2002 for the communication facility, user words at 2014 and reserved again at 2023 for asynchronous
     /// messaging, so this predicate recognized the 2023 formats at --std 85; and VALIDATE, whose reservation is
     /// monotonic, turned <c>VALIDATE WS-A.</c> at --std 85 into a bare parse error where the edition gate should
     /// name its 2002 introduction. Their arms are the union grammar (<see cref="wordAhead"/>) and the edition pass

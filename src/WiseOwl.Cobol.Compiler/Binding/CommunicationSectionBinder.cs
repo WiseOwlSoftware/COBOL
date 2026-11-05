@@ -125,7 +125,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
 {
     private EditionContext Edition => host.Edition;
 
-    /// <summary>Bind the section's entries, in source order, after the working-storage section whose constants their clauses may not name anyway.</summary>
+    /// <summary>Bind the section's entries, in source order, and then the rule over all of them, SR2's INITIAL clause.</summary>
     internal void BindSection(Core.ProgramUnitContext program, CsNameScope rootNames)
     {
         if (program.dataDivision()?.communicationSection() is not { } section) return;
@@ -150,11 +150,6 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         var names = ReadClauses(entry, name, format, out int? destinationTable, out var indexNames);
         var records = host.BindEntries(entry.dataDescriptionEntry(), rootNames, EntrySection.Communication);
         host.State.Forest.AddWorkingStorageRoots(records);
-        // 13.16.31 SR2: "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49."
-        foreach (var independent in records.Where(r => r.Level == 77))
-            using (Edition.At(independent))
-                Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"'{independent.CobolName ?? "FILLER"}' is a level 77 entry subordinate to CD '{name}'; ISO/IEC 1989:2002 13.16.31 SR2: such an "
-                    + "entry \"shall have level-numbers with the values 66, 88, or 1 through 49\".");
         var written = records;
         bool anyClause = entry.cdClause().Length > 0 || entry.cdSeriesName().Length > 0;
         // SR4 ("If neither option for specifying the interface area is used, a level 01 data description entry shall follow the CD entry") and its
@@ -202,7 +197,14 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                     + "ISO/IEC 1989:2002 A.1.2.1 prints each clause in brackets, once.");
                 continue;
             }
-            if (field is { } named) names[named] = clause.dataName().GetText();
+            if (field is { } named)
+            {
+                if (clause.dataName().FILLER() is not null)
+                    Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}': the {CommunicationFormats.ClauseWords(field)} clause names FILLER; ISO/IEC 1989:2002 A.1.2.2 "
+                        + "SR6 and SR15 let a data-name be replaced by the reserved word FILLER \"within this series\", the option of the series of data-names, and a clause prints a data-name.");
+                else
+                    names[named] = clause.dataName().GetText();
+            }
             else
             {
                 // integer-1 is an integer of the general format: IntegerOperandPass refuses a zero and a value past the host's limit.

@@ -28,35 +28,40 @@ internal sealed class MessageStore
     private readonly JsonObject? _definitions;
     private readonly bool _broken;
 
-    private MessageStore(string? root, JsonObject? definitions, bool broken)
+    /// <summary>A.1.2.3 GR6, GR28: what the MCS scheduled the run unit for, the levels of a queue structure for an input CD or a terminal for an
+    /// input-output CD; empty when anything else started the run unit.</summary>
+    internal string[] Scheduled { get; }
+
+    private MessageStore(string? root, JsonObject? definitions, bool broken, string[] scheduled)
     {
         _root = root;
         _definitions = definitions;
         _broken = broken;
+        Scheduled = scheduled;
     }
 
-    /// <summary>The store of this run unit's MCS directory. The definition file is read once: it is defined "prior to the execution".</summary>
-    internal static MessageStore Open()
+    /// <summary>The store this run unit's environment names: the directory <c>WISEOWL_COBOL_MCS</c>, else the current one, and the levels of
+    /// <c>WISEOWL_COBOL_MCS_SCHEDULED</c> separated by '/'.</summary>
+    internal static MessageStore Open() => OpenAt(
+        Environment.GetEnvironmentVariable("WISEOWL_COBOL_MCS") is { Length: > 0 } named ? named : Directory.GetCurrentDirectory(),
+        Environment.GetEnvironmentVariable("WISEOWL_COBOL_MCS_SCHEDULED") is { Length: > 0 } scheduled ? scheduled.Split('/') : []);
+
+    /// <summary>The store of one MCS directory. The definition file is read once: it is defined "prior to the execution".</summary>
+    internal static MessageStore OpenAt(string root, string[] scheduled)
     {
-        string root = Environment.GetEnvironmentVariable("WISEOWL_COBOL_MCS") is { Length: > 0 } named ? named : Directory.GetCurrentDirectory();
         string path = Path.Combine(root, DefinitionFile);
-        if (!File.Exists(path)) return new MessageStore(null, null, broken: false);
+        if (!File.Exists(path)) return new MessageStore(null, null, broken: false, scheduled);
         try
         {
             var definitions = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
             MessageStoreState.FromDefinitions(definitions, DateTimeOffset.UnixEpoch);   // a definition that cannot be used is refused here, once
-            return new MessageStore(root, definitions, broken: false);
+            return new MessageStore(root, definitions, broken: false, scheduled);
         }
         catch (Exception e) when (e is JsonException or InvalidOperationException or FormatException or IOException or UnauthorizedAccessException or NullReferenceException)
         {
-            return new MessageStore(root, null, broken: true);
+            return new MessageStore(root, null, broken: true, scheduled);
         }
     }
-
-    /// <summary>A.1.2.3 GR6, GR28: what the MCS scheduled the run unit for, the levels of <c>WISEOWL_COBOL_MCS_SCHEDULED</c> separated by '/'
-    /// (a queue structure for an input CD, a terminal for an input-output CD); empty when anything else started the run unit.</summary>
-    internal static string[] Scheduled() =>
-        Environment.GetEnvironmentVariable("WISEOWL_COBOL_MCS_SCHEDULED") is { Length: > 0 } named ? named.Split('/') : [];
 
     /// <summary>One statement's transaction. Returns the action's status key, or the 9x this store reports instead of acting.</summary>
     internal string Run(Func<MessageStoreState, string> action)

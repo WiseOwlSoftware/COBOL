@@ -3113,6 +3113,26 @@ source is read as COBOL, EXEC a word, when it parses with no syntax error that w
 channel its tokens were lexed on (a semicolon with no space after it is hidden-channel, §8.3.5 rule 2), is another
 language and draws no separator diagnostic (kb/Work PB4384; `wiseowl/cases/4.2.10-Nonstandard-extensions/pb4384-*`).
 
+### 3.3 The communication facility at COBOL-85 and 2002 (kb/Work PB4677)
+
+WiseOwl COBOL implements the facility ISO/IEC 1989:2002 Annex A prints as optional and obsolete and COBOL-85 prints as its communication module (owner decision 12 of PB4614,
+2026-11-04), with a message control system of its own. `docs/rearchitecture/DESIGN-communication-facility.md` is the design and the user's reference for `mcs.json`. At 2002 each construct
+draws the obsolete-element warning COBOL0903; from 2014 it is removed, COBOL0902. These are its determinations:
+
+| Item | Determination |
+|---|---|
+| The message control system (E.5.1) | The runtime is the MCS: the directory `WISEOWL_COBOL_MCS`, else the current directory, holds the user's definitions in `mcs.json` and the MCS's state in `mcs-state.json`, so run units on one machine communicate through it. With no `mcs.json`, every symbolic name is unknown |
+| A program scheduled by the MCS (A.1.2.3 GR6, GR28) | A process acting for the MCS sets `WISEOWL_COBOL_MCS_SCHEDULED`, the queue's levels separated by `/` or the terminal's name. WiseOwl COBOL itself starts no program. Unset, the names are spaces |
+| RECEIVE: when data is not available (2002 B.1 item 116) | The designated structure holds no complete message. Without NO DATA the run unit waits, polling the store |
+| The choice among unnamed levels (E.5.5.3, E.5.5.4) | Alphabetical by symbolic name, each level first in, first out |
+| Status key 9x (2002 B.1 item 28; Table A.1) | `91` the definition file cannot be used; `92` the host refuses the store. The statement takes no action, and a RECEIVE passes control as if data had been made available |
+| Error key A-Z (2002 B.1 item 27; Table A.2) | None is defined. '0' is written for a destination with no error |
+| Communication devices (A.2.6.3 GR1, GR2, GR12, GR14-GR18) | Oriented to variable-length messages: a destination with no `deliverTo` and a terminal append each complete message as a line of the file `<name>.out`. Vertical positioning is not applicable, so the MCS ignores ADVANCING and REPLACING LINE |
+| Special control characters in a message (2002 B.2 item 52) | Carried as data |
+| A portion left at the end of the run unit (2002 B.2 item 53; 14.5.10 rule 2) | It lives in the run unit and is gone with it, as is the remainder of a message begun |
+| A negative ADVANCING identifier (2002 B.2 item 54) | Ignored with the rest of the phrase |
+| The KEY phrase at COBOL-85 | The password of an endpoint defined with `key`; a wrong value is status 40 and takes no action, as CCVS-85 CM102M expects. An endpoint with no `key` admits any value. The 1985 text is not held: CCVS-85 is the witness |
+
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
 The following facilities are **not implemented** (commit and rollback only for the sequential organizations, item 2),
@@ -3153,8 +3173,8 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
   the descriptor (`PermissiveInert`) and is read in the seam, never tested at an emit site.
 
 1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
-   and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
-   of this edition). Processor-dependent; not provided. The statements are accepted-inert with **COBOL1578**.
+   and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface; the communication facility of COBOL-85 and 2002 left the standard at 2014, and §3.3
+   records its implementation at those editions). Processor-dependent; not provided. The statements are accepted-inert with **COBOL1578**.
    Inert is the BEHAVIOUR, not the source: every operand that is an identifier is still resolved (the FROM, GIVING and
    RETURNING operands, the `CONTINUE AFTER` expression, a `RAISING EXCEPTION` exception-name through the one
    exception-name funnel) and the statements of the ON EXCEPTION / NOT ON EXCEPTION phrases are bound as the
