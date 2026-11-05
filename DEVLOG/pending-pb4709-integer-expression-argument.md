@@ -1,0 +1,13 @@
+## PB4709: ABS, MAX and MIN over an always-integer arithmetic expression are Integer functions
+
+**The defect.** Table 21 / 15.7.1 makes ABS an Integer function for an Integer argument, and 15.3 item 6 says an Integer argument is "an arithmetic expression that will always result in an integer value or an integer data item". `IntrinsicResultType.IsIntegerArgument` read that for a bare integer item, a literal, a nested integer function and (since PB4635) a parenthesized sole item or literal, and nothing else. `ABS(I2 + 1)`, `ABS(- I2)` and `MAX(I2 + 1 1)` therefore stayed on the Numeric row: `FACTORIAL(ABS(I2 + 1))` was COBOL1627 and `PERFORM FUNCTION MAX(I2 + 1 1) TIMES` COBOL1646, both legal source.
+
+**Re-probe.** On this branch's build before the change: both programs refused with those codes (a.cob in the wave scratch). After: FACTORIAL(ABS(3 + 1)) = 24, FACTORIAL(ABS(-3)) = 6, and the PERFORM body ran 4 times.
+
+**The fix, at the root.** The result-type rows and the type-6 refusal screen are two readers of one clause, and only the screen had a term-by-term reading of "always" (`IntrinsicArgumentRules.ProvablyIntegral`, sound not complete). `IsIntegerArgument` now asks it for every computed operand, so the parenthesized-sole-operand special case (`EnclosedOperand`) is subsumed rather than extended, and the next expression shape `ProvablyIntegral` learns is automatically Integer-typed. A quotient over an item (`I2 / 2`), a scaled item (`S2 + 1`) and a numeric function keep the Numeric row.
+
+**Sibling arm.** `ProvablyIntegral` answered false for an integer-type function term, so `ABS(FUNCTION INTEGER(S) + 1)` stayed Numeric, and the refusal screen's constant witness failed open on `I2 + 0.5 + FUNCTION INTEGER(S)` (3 + 0.5 + 2 is never an integer). It now answers true for a `BoundIntrinsicCall` of result type Integer (15.2 type 5); the beneath-walk never entered calls, so the two still agree.
+
+**Goldens.** `cases/15.3-Arguments/pb4709_integer_expression_argument` (accept 2002 onward, ABS being a 2002 function: 24, 6, 4 iterations, 120, 6, 2, 6, each computed from the spec), refusals `pb4709-abs-non-integral-expression` (ABS(S2 + 1) is Numeric, COBOL1627) and `pb4709-integer-function-term-non-integral-sum` (COBOL1627). Rows: AR-15.3-6 already CONFORMS; no row closed.
+
+**Self-review.** Architecture: one reading of "always integral", no second copy. Full code: the doc comments of `EnclosedOperand` and `ProvablyIntegral` now name the real readers. Performance: the added call is on the bind path only. Duplication: none added. docs/INTRINSICS_DESIGN.md states the meaning of "integer argument" for the result rows.
