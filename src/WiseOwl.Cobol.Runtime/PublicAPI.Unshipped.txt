@@ -885,6 +885,7 @@ static WiseOwl.Cobol.Runtime.CobolExact.FromWide(WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolExact.Mul(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Negate(WiseOwl.Cobol.Runtime.CobolExact a) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Sub(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolExact
 WiseOwl.Cobol.Runtime.CobolExact.Image.get -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.CobolExact.ImageWithPrecision.get -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 WiseOwl.Cobol.Runtime.CobolExact.ToDouble() -> double
