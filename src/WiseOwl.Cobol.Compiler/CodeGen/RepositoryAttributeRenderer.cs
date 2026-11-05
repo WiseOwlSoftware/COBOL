@@ -122,6 +122,7 @@ internal static class RepositoryAttributeRenderer
                 named.Texts(nameof(CobolUnitAttribute.ExpandsActuals), x.ActualIdentities);
                 named.Text(nameof(CobolUnitAttribute.ExpansionKey), x.Key);
                 named.Texts(nameof(CobolUnitAttribute.ExpansionParts), x.Parts);
+                named.Texts(nameof(CobolUnitAttribute.ExpansionHomes), x.Homes);
                 named.Flag(nameof(CobolUnitAttribute.ExpansionOwnAssembly), x.OwnAssembly);
             }
         }

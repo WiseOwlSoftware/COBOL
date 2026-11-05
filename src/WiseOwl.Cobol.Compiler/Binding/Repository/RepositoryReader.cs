@@ -174,6 +174,7 @@ internal static class RepositoryReader
         unit.Text(nameof(CobolUnitAttribute.ExpandsDefinition)) ?? throw new MalformedEntry($"the expansion '{unitName}' names no definition"),
         List(unit.Texts(nameof(CobolUnitAttribute.ExpandsActuals)) ?? throw new MalformedEntry($"the expansion '{unitName}' lists no actuals")),
         unit.Text(nameof(CobolUnitAttribute.ExpansionKey))!, List(unit.Texts(nameof(CobolUnitAttribute.ExpansionParts)) ?? []),
+        List(unit.Texts(nameof(CobolUnitAttribute.ExpansionHomes)) ?? []),
         unit.Flag(nameof(CobolUnitAttribute.ExpansionOwnAssembly)));
 
     /// <summary>A class's or an interface's own facts (§6.1 <see cref="ClassRecord"/>): the unit's, then the methods and the

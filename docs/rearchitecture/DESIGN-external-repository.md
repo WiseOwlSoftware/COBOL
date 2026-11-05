@@ -964,7 +964,7 @@ re-parse) and `>>FLAG-02` / `>>FLAG-14` (`FlagState`: they add warnings and chan
 | Attribute | Target | Constructor | Named properties |
 |---|---|---|---|
 | `CobolRepositoryAttribute` | assembly | `(int schemaVersion, string runtimeVersion, int callAbi)` | `CompilerVersion`, `Edition`, `Units`, `Registrar`, `HasSignatures` |
-| `CobolUnitAttribute` | host-entry class (programs, functions, prototypes) / OO class / interface | `(RepositoryUnitKind, string name, string externalizedName)` | `EntryConvention`, `DecimalPointIsComma`, the currencies as `CurrencySymbol` / `CurrencyText` / `CurrencyClass` and the RAISING phrase as `RaisingKind` / `RaisingIdentity` / `RaisingFactory` (parallel arrays, rule 3), `Final`, `BaseIdentity`, `Implements`, `FactoryImplements`, `FactoryType` (landed), `ExpandsDefinition`, `ExpandsActuals`, `ExpansionKey`, `ExpansionParts`, `ExpansionOwnAssembly` (slice 8, landed) |
+| `CobolUnitAttribute` | host-entry class (programs, functions, prototypes) / OO class / interface | `(RepositoryUnitKind, string name, string externalizedName)` | `EntryConvention`, `DecimalPointIsComma`, the currencies as `CurrencySymbol` / `CurrencyText` / `CurrencyClass` and the RAISING phrase as `RaisingKind` / `RaisingIdentity` / `RaisingFactory` (parallel arrays, rule 3), `Final`, `BaseIdentity`, `Implements`, `FactoryImplements`, `FactoryType` (landed), `ExpandsDefinition`, `ExpandsActuals`, `ExpansionKey`, `ExpansionParts`, `ExpansionHomes` (PB4650), `ExpansionOwnAssembly` (slice 8, landed) |
 | `CobolSkeletonAttribute` | the `public static class` of a parameterized definition | `(string source)` | `Formals`, `FormalIsInterface`, `ResolutionWord` / `ResolutionIsInterface` / `ResolutionIdentity` (parallel arrays, rule 3), `Edition`, `Permissive`, `SignEncoding`, `FlagExtensions`, `NumericDisplay`, `CobolWordsMap`, `DirectiveFolds`, `CompilationVariables` |
 | `CobolFormalAttribute` | parameter | `(int position, string name)` | `Mode`, `Optional` (with the position and the name, `CobolFormalFieldsAttribute`'s) |
 | `CobolReturningAttribute` | return value | `()` | — |
@@ -1730,14 +1730,22 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   source, its formals with their kinds, its `CompileState`, its resolutions each with the resolved class's or
   interface's recorded record, and the actuals' identities each with its recorded record. Bytes, MVIDs, file names and
   the compiler version are not in it: two expansions with one key are the same class text over the same published
-  surfaces of everything it names, and either serves.
+  surfaces of everything it names. Where those surfaces live is not in it either, so `ExpansionHomes` records, beside the key, the
+  assembly each class it names lived in when it was made (each resolution, then each actual), and either expansion serves a
+  compilation whose classes live in those same assemblies (kb/Work PB4650).
 - **`CLASS N [AS lit] EXPANDS P USING A1…An`** — one sequence in every group: (1) P is the group's skeleton, else the
   repository's (REPO-1 if neither); A1…An are in-scope classes/interfaces (group or imported); arity/kind checks as
   in-group (COBOL2240). (2) The key K is computed. (3) **Import before expand:** an expansion in the search space
   with externalized name `lit ?? N` and key K is imported (§10.1) and its assembly referenced — also when that assembly
   references this group's own previous build. That is an assembly reference cycle, which the CLR and Roslyn accept
   (circ: circular assembly references compile and run); the existing expansion was compiled against the members this
-  group published, and any change to them that matters to it changes K. (4) Otherwise the expansion is made here:
+  group published, and any change to them that matters to it changes K. **Only an expansion compiled against the classes this
+  compilation names is imported:** K hashes a class's record, not where the class lives, so an expansion with the key may have been
+  compiled against another assembly's `BOX` than the one this compilation holds (another library's identical copy, or a `BOX` this
+  group writes itself); its recorded `ExpansionHomes` must equal this compilation's, position by position — this group's output
+  name for a class written here (the cycle above), the assembly an imported class came from, the file that holds a named expansion,
+  empty for a class the standard supplies. (The `AssemblyRef` table cannot say it: an actual or a resolution the expansion's code does not
+  use leaves no reference.) Otherwise it is neither stale nor another class and nothing is reported (kb/Work PB4650). (4) Otherwise the expansion is made here:
   (a) when its code references no class or interface of THIS group (every actual and every resolution lies outside
   it), as its OWN compilation — the skeleton's recorded source under its recorded state, the referenced assemblies as
   references — into `<externalized name>.dll` beside the group's output, deterministically (§6.5, §7.6); an existing
@@ -1800,7 +1808,10 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   module emits nothing for its own bound copy and names the existing types by a `using` alias of the symbol's simple names
   (`using HOLD_BOX = global::Cobol.<S>.<TYPE>;` and the factory's), so everything already bound against the symbol needs no second
   spelling, and the existing assembly is a `RepositoryReferences` entry. That includes an assembly that references this group's own
-  previous build (the reference cycle). A copy whose surface differs under one key (a later compiler naming members differently) is stale
+  previous build (the reference cycle), and only an expansion made over the assemblies this compilation's classes live in
+  (`ExpansionPlacementPass.Place`: `HomeOf` per named class, equal to the recorded `ExpansionIdentity.Homes`): the same key over a
+  `BOX` of another assembly is the same class by ISO §9.3.12 but another CLR type, so it is not imported, and where it holds the file
+  placement (a) would write (`targetHeldElsewhere`) the expansion is made in the group's assembly instead of over that file. A copy whose surface differs under one key (a later compiler naming members differently) is stale
   by "members".
 - *Placement (a) is a compilation of its own* (`ExpansionAssemblies`): the expansion's text (`ExpansionOrigin.Text`), preceded by the
   directive lines of its `CompileState`, goes through `CompilerDriver.Compile` as a source of its own, in free form, against the group's
@@ -1867,7 +1878,9 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   *Representation:* `CompilerDriver.Result.Errors` and `Warnings` stay strings; the duplicate was two owners of one text, not the
   string form, so ownership is decided where the diagnostic is raised and the strings need no structure to be de-duplicated.
 - *Residual, stated:* an expansion of a skeleton published under another `CompileState` than this group's whose code also names a class of
-  this group can live neither in an assembly of its own nor, bound under this group's state, in the group's module: it is COBOL2240. And
+  this group can live neither in an assembly of its own nor, bound under this group's state, in the group's module: it is COBOL2240. So is
+  an expansion of such a skeleton whose own assembly's file (`<externalized name>.dll`) already holds the same expansion made over other
+  assemblies' classes (`targetHeldElsewhere`; the refusal says so). And
   an expansion of such a skeleton is BOUND in the group under the group's state (its surface — method names and descriptions — is a
   function of the text) while its code is compiled under the recorded state in its own assembly.
 

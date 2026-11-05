@@ -48,9 +48,9 @@ internal enum RepositoryFamily { Program, Function, Class, Interface, Parameteri
 
 /// <summary>An entry of the external repository: the assembly at <paramref name="Path"/> (module version id
 /// <paramref name="Mvid"/>) that publishes the unit <paramref name="Kind"/> <paramref name="ExternalizedName"/>
-/// (DESIGN-external-repository §8.0). Its program or function is compiled elsewhere, so a CALL through it describes its
+/// (DESIGN-external-repository §8.0), whose assembly simple name is <paramref name="AssemblyName"/>. Its program or function is compiled elsewhere, so a CALL through it describes its
 /// operands for the run-time check (§4.2).</summary>
-internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryUnitKind Kind, string ExternalizedName) : RepositoryOrigin
+internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryUnitKind Kind, string ExternalizedName, string AssemblyName) : RepositoryOrigin
 {
     public override bool IsDefinitionCompiledHere => false;
 
@@ -342,7 +342,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             }
             else
             {
-                var origin = new RepositoryEntryOrigin(entry.Path, entry.Mvid, unit.Kind, record.ExternalizedName);
+                var origin = new RepositoryEntryOrigin(entry.Path, entry.Mvid, unit.Kind, record.ExternalizedName, entry.AssemblyName);
                 if (unit.Kind is RepositoryUnitKind.Class or RepositoryUnitKind.Interface or RepositoryUnitKind.Expansion
                     or RepositoryUnitKind.ParameterizedClass or RepositoryUnitKind.ParameterizedInterface)
                     hit = new Hit(record, null, origin, entry.Registrar);   // decoded when imported (Class), once it can be named; a skeleton is source
@@ -497,7 +497,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         var facts = hit.Record.Class!;
         var symbol = new OoClassSymbol(OoClassTable.ImportedKey(identity), NamingConvention.ImportedTypeName(module, facts.ClrName), OoSymbolOrigin.Imported)
         {
-            Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName),
+            Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName, hit.Origin.AssemblyName),
             ExternalizedName = hit.Record.ExternalizedName,
             IsFinal = facts.Final,
             Record = hit.Record,
@@ -507,7 +507,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
 
     /// <summary>An expansion some assembly of the search space publishes (DESIGN-external-repository §10.5): its record (the class facts and
     /// the <see cref="ExpansionIdentity"/> with its key) and the assembly that holds it, with the namespace its types live in.</summary>
-    internal sealed record PublishedExpansion(RepositoryRecord Record, ImportedFrom From, string AssemblyName)
+    internal sealed record PublishedExpansion(RepositoryRecord Record, ImportedFrom From)
     {
         /// <summary>The expansion's identity (kind <see cref="RepositoryUnitKind.Expansion"/> records always have one).</summary>
         public ExpansionIdentity Identity => Record.Expansion!;
@@ -525,7 +525,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             foreach (var entry in location.FindAll(RepositoryUnitKind.Expansion, externalizedName, _output))
                 if (!found.Exists(e => e.From.Mvid == entry.Mvid) && Answer(entry, report: false) is { Record.Expansion: not null } hit
                     && ModuleOf(hit.Registrar) is { } module)
-                    found.Add(new PublishedExpansion(hit.Record, new ImportedFrom(entry.Path, entry.Mvid, module.ClrName), entry.AssemblyName));
+                    found.Add(new PublishedExpansion(hit.Record, new ImportedFrom(entry.Path, entry.Mvid, module.ClrName, entry.AssemblyName)));
         return found;
     }
 
@@ -567,6 +567,10 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         return [.. _locations.SelectMany(l => l.ReferencersOf(assemblyName, _output)).Distinct(StringComparer.OrdinalIgnoreCase)];   // not a COBOL word: a file path
     }
 
+    /// <summary>The simple name of the assembly this compilation produces (its output file's name, which is what the backend names the
+    /// assembly, <c>ICodeGenBackend</c>), or null for a compilation with no output path.</summary>
+    internal string? OutputAssemblyName => _output is null ? null : Path.GetFileNameWithoutExtension(_output);
+
     /// <summary>The namespace the types of the module whose registrar type is <paramref name="registrar"/> live in (§4.5), or null.</summary>
     private static ModuleNamespace? ModuleOf(string? registrar)
     {
@@ -578,7 +582,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     public ImportedSkeleton? Skeleton(string identity, bool isInterface)
     {
         if (ByName(isInterface ? RepositoryFamily.ParameterizedInterface : RepositoryFamily.ParameterizedClass, identity) is not { } hit) return null;
-        return new ImportedSkeleton(hit.Record.Skeleton!, new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, ""));
+        return new ImportedSkeleton(hit.Record.Skeleton!, new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, "", hit.Origin.AssemblyName));
     }
 
     /// <summary>⛔ THE INTERFACE IMPORT (ISO §12.3.8.3 SR9, §12.3.8.4 GR9; DESIGN-external-repository §10.6): the twin of
@@ -591,7 +595,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         var symbol = new OoInterfaceSymbol(OoClassTable.ImportedInterfaceKey(identity),
             NamingConvention.ImportedTypeName(module, hit.Record.Class!.ClrName), OoSymbolOrigin.Imported)
         {
-            Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName),
+            Imported = new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, module.ClrName, hit.Origin.AssemblyName),
             ExternalizedName = hit.Record.ExternalizedName,
             Record = hit.Record,
         };
@@ -638,7 +642,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         foreach (var from in Table.ImportedClasses.Select(c => c.Imported!).Concat(Table.ImportedInterfaces.Select(i => i.Imported!)))
             if (from.ClrNamespace == module.ClrName && from.Mvid != hit.Origin.Mvid)
                 return $"the entry '{from.AssemblyFile}' (another build) already holds";
-        if (_output is not null && CsNames.ModuleNamespaceOf(Path.GetFileNameWithoutExtension(_output)).ClrName == module.ClrName)
+        if (OutputAssemblyName is { } output && CsNames.ModuleNamespaceOf(output).ClrName == module.ClrName)
             return "this compilation's own output assembly holds";
         return null;
     }
