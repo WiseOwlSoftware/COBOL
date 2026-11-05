@@ -28,8 +28,11 @@
 *>   MAX  MAX (Q, 1) shows all 78 digits of Q, and ABS (Q) the same.
 *>   MED  MEDIAN (Q, 1) is the mean of the two middles, (Q + 1) / 2 =
 *>        499000499999999998003998000000000002994002999999999998003998000000000000499001 (Q + 1 is even), every digit.
-*>   PABS ABS (PA * PA * PA) with PA = 12345678901234567890 * 10**10 (PIC 9(20)P(10)): a wide value at a NEGATIVE scale that the 256-bit
+*>   PABS ABS (PA * PA * PA) with PA = 1234567890123456789 * 10**10 (29 digits, PIC 9(20)P(10)): a wide value at a NEGATIVE scale that the 256-bit
 *>        form cannot write out; the cube is 1881676372353657772490265749424677022198701224860897069000000000000000000000000000000 (85 digits, Python integer), and MAX (PA * PA * PA, 1) is the same value.
+*>   PCMP the cube is 1.88E+84, larger than 1.0E+80 (an SDIDI past the 256-bit range, as is the cube's wide form at a negative scale):
+*>        MAX (cube, 1.0E+80) is the cube, MIN (cube, 1.0E+80) is 10**80 (1 and 80 zeros), MEDIAN (cube, 1.0E+80, 1) is the middle
+*>        value, 10**80 (review finding R2-1).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB4750EXACTPAST.
 DATA DIVISION.
@@ -54,4 +57,7 @@ PROCEDURE DIVISION.
     DISPLAY "MED " FUNCTION MEDIAN (BIG * BIG * BIG * BIG * K3 * K3, 1)
     DISPLAY "PABS " FUNCTION ABS (PA * PA * PA)
     DISPLAY "PMAX " FUNCTION MAX (PA * PA * PA, 1)
+    DISPLAY "CMAX " FUNCTION MAX (PA * PA * PA, 1.0E+80)
+    DISPLAY "CMIN " FUNCTION MIN (PA * PA * PA, 1.0E+80)
+    DISPLAY "CMED " FUNCTION MEDIAN (PA * PA * PA, 1.0E+80, 1)
     STOP RUN.
