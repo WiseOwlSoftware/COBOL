@@ -1,4 +1,4 @@
-## PB4708: a declared PROGRAM specifier's CALL refusal says why it has no prototype, on all three routes
+## Entry 3156 — 2026-11-05 12:34 PST — PB4708: a declared PROGRAM specifier's CALL refusal says why it has no prototype, on all three routes
 
 kb/Work PB4708 (two review leads of the PB4633 branch). Re-probe on the tree: `PROGRAM R4708P AS ""` (a zero-length literal-3, refused by ISO §12.3.8.3 SR2) registers no `ProgramSpecifiers` row, so `CALL R4708P` and `CANCEL R4708P` said the word was "neither declared by a PROGRAM specifier", and the USAGE PROGRAM-POINTER TO screen added a second "not a program-prototype-name" refusal for the same declared word. Where the external repository's own finding refused a specifier (REPO-3, -4 and the like) the sentence cited an SR14 refusal that `RepositoryResolver.ReportUnanswered` never reports.
 
@@ -9,3 +9,4 @@ Tests: `ExternalRepositoryResolutionTests.ASpecifierWhoseLiteral3IsRefused_IsDec
 Review round 1 (finisher): SET ... ADDRESS OF PROGRAM (SetBinder, COBOL2157), the third reader of the declared-word question, still called a declared word "neither a program-prototype-name declared in the REPOSITORY paragraph". The route sentence moved from CallBinder to `ConfigurationSlice.WhyNoPrototype` and SetBinder asks it for a word a specifier declares. A new test covers the SET arm and a contained program's inherited refused literal-3 (the ConfigurationStep line, R1-2). The function twin of the refused literal (R1-3, DataBinder.cs) is left for the clerk.
 
 Review round 2 (R2-1): SET ... ADDRESS OF PROGRAM asked the reporting resolver first, so a declared specifier word drew COBOL1639 "no declaration gives the name" beside COBOL2157. SetBinder now probes quietly and, for a declared word that names no data item, gives only the route sentence; the test asserts no COBOL1639. The DeclaresProgramSpecifier and ProgramSpecifierRefusal comments now name their real readers and WhyNoPrototype home (R2-2, R2-3).
+
