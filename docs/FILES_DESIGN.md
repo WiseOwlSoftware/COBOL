@@ -413,7 +413,7 @@ edition). The rules are edition-invariant — `Removed` keys on `Permissive`, ne
 emits an identical diagnostic count at 85/2002/2014/2023. The corpus risk was the real one: a static scan finds
 **315** `REWRITE … INVALID KEY` and **28** `DELETE … INVALID KEY` sites in the NIST programs, and NIST runs
 **strict** by default. Compiling all **459** at `--std 85` produces the **same 17 pre-existing failures** (every
-one read individually: `CM*` COMMUNICATION SECTION parse errors and `DB*` `COBOL1571` debug-module rejections)
+one read individually: `CM*` COMMUNICATION SECTION parse errors, as the facility then was (kb/Work PB4677 implements it), and `DB*` `COBOL1571` debug-module rejections)
 and **zero** new ones — every one of those 343 phrase sites is on an organization/access mode where the phrase is
 LEGAL. The harness was proved able to surface `COBOL1720` as a failure before that zero was trusted.
 

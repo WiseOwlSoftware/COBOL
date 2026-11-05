@@ -17,7 +17,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// </summary>
 internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchState, EcState ecState,
     AlterSwitchEmitter alterSwitch, ReportWriterEmitter reportWriter, SequentialIoEmitter seqIo,
-    EcEmitter ec, StatementEmitter statements, TransactionEmitter transactions)
+    EcEmitter ec, StatementEmitter statements, TransactionEmitter transactions, CommunicationEmitter communication)
 {
     /// <summary>Emit the single program-counter dispatcher for a program class: the <c>__Activate</c> entry
     /// (file registration at first activation — the IC114A lesson), the USE machinery when declared, and the
@@ -98,6 +98,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // The APPLY COMMIT clause becomes active with its element (ISO §12.4.6.3.4 GR5; kb/Work PB3338) — after the
             // registration, because commit control sets the connector's registered posture (FileRegistry.RegisterCommitControl).
             transactions.EmitActivation(w);
+            communication.EmitActivation(w);   // ISO/IEC 1989:2002 A.1.2.3 GR6, GR28: before the first procedure division statement
             // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
             // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM (ISO §14.9.49.3 SR4 —
             // no other statement may reference them from outside their section; kb/Work PB362).

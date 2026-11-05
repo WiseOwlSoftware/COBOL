@@ -556,6 +556,9 @@ internal sealed class VersionConformancePass
         // mandatory and directly follows SELECT [OPTIONAL], before any file-control clause keyword — the slot
         // is always the file being DEFINED. FD/statement file-name REFERENCES stay unchecked.
         CobolParserCore.FileNameContext { Parent: CobolParserCore.FileControlClauseGroupContext } => true,
+        // The CD entry's cd-name (ISO/IEC 1989:2002 A.1.2.1: CD cd-name-1): the name is mandatory and directly follows CD, so the slot is always the
+        // description being DEFINED (kb/Work PB4677). A statement's cd-name is a REFERENCE and stays unchecked.
+        CobolParserCore.CdNameContext => true,
         // The PROGRAM-ID / FUNCTION-ID / END-marker program-name (§11.10.2 / §11.5 / §10.6.1): program-names
         // are user-defined words (§8.3.2.2) and every programName site names the source unit itself, directly
         // after a dedicated header token — no keyword can occupy the slot.
@@ -2409,6 +2412,33 @@ internal sealed class VersionConformancePass
         /// statement" (kb/Work PB353).</summary>
         public override object? VisitInvokeStatement(CobolParserCore.InvokeStatementContext ctx)
         { _p.Check(Constructs.Invoke2002, "the INVOKE statement"); return base.VisitChildren(ctx); }
+
+        /// <summary>The communication facility (ISO/IEC 1989:2002 Annex A; kb/Work PB4677): accepted at COBOL-85, obsolete at 2002, deleted by 2014, each of its
+        /// constructs gated on RECOGNITION because every rule is the union grammar, so a statement is named even where no communication section declares its cd-name.</summary>
+        public override object? VisitCommunicationSection(CobolParserCore.CommunicationSectionContext ctx)
+        { _p.Check(Constructs.CommunicationFacilityRemoved2014, "the COMMUNICATION SECTION"); return base.VisitChildren(ctx); }
+
+        public override object? VisitAcceptMessageCountStatement(CobolParserCore.AcceptMessageCountStatementContext ctx)
+        { _p.Check(Constructs.CommunicationFacilityRemoved2014, "the ACCEPT MESSAGE COUNT statement"); return base.VisitChildren(ctx); }
+
+        public override object? VisitEnableStatement(CobolParserCore.EnableStatementContext ctx)
+        { _p.Check(Constructs.CommunicationFacilityRemoved2014, "the ENABLE statement"); return base.VisitChildren(ctx); }
+
+        public override object? VisitDisableStatement(CobolParserCore.DisableStatementContext ctx)
+        { _p.Check(Constructs.CommunicationFacilityRemoved2014, "the DISABLE statement"); return base.VisitChildren(ctx); }
+
+        public override object? VisitPurgeStatement(CobolParserCore.PurgeStatementContext ctx)
+        { _p.Check(Constructs.CommunicationFacilityRemoved2014, "the PURGE statement"); return base.VisitChildren(ctx); }
+
+        public override object? VisitCommunicationReceiveStatement(CobolParserCore.CommunicationReceiveStatementContext ctx)
+        { _p.Check(Constructs.CommunicationFacilityRemoved2014, "the RECEIVE statement (communication facility)"); return base.VisitChildren(ctx); }
+
+        public override object? VisitCommunicationSendStatement(CobolParserCore.CommunicationSendStatementContext ctx)
+        { _p.Check(Constructs.CommunicationFacilityRemoved2014, "the SEND statement (communication facility)"); return base.VisitChildren(ctx); }
+
+        /// <summary>The COBOL-85 password of ENABLE and DISABLE, which ISO/IEC 1989:2002 A.2.2.1 and A.2.3.1 no longer print.</summary>
+        public override object? VisitCommunicationKeyPhrase(CobolParserCore.CommunicationKeyPhraseContext ctx)
+        { _p.Check(Constructs.CommunicationKeyPhraseRemoved2002, "the KEY phrase"); return base.VisitChildren(ctx); }
 
         /// <summary>The asynchronous messaging statements, RECEIVE (ISO §14.9.31) and SEND (§14.9.38) — a COBOL-2023
         /// introduction (Annex E.3.2 item 1), gated on RECOGNITION (kb/Work PB374). Both arms are the union grammar:

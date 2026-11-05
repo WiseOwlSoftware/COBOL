@@ -108,7 +108,8 @@ public sealed class IntegerOperandSlotDriftTests
         foreach (var slot in ExceptionSlots())
         {
             Assert.False(string.IsNullOrWhiteSpace(slot.Basis));
-            if (slot.Kind == IntegerSlotKind.ZeroPermitted) Assert.StartsWith("ISO §", slot.Basis);
+            if (slot.Kind == IntegerSlotKind.ZeroPermitted)
+                Assert.True(slot.Basis.StartsWith("ISO §", StringComparison.Ordinal) || slot.Basis.StartsWith("ISO/IEC 1989:2002 ", StringComparison.Ordinal), slot.Basis);   // the facility 2014 deleted cites its own text (kb/Work PB4677)
         }
     }
 

@@ -21,6 +21,7 @@ dataDivision
       workingStorageSection?
       localStorageSection?
       linkageSection?
+      communicationSection?   // ISO/IEC 1989:2002 13.1, Annex A.1.1 (CobolCommunication.g4; kb/Work PB4677)
       reportSection?
       screenSection?
     ;

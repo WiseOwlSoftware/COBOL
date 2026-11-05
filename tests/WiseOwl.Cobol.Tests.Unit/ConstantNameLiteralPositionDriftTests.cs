@@ -87,6 +87,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
         ["procedureName"] = "a paragraph-name or section-name written in digits, a user-defined word (ISO §8.3.2.2), never a "
             + "literal",
         ["valueOfClause"] = "the VALUE OF clause of the file description entry, " + Removed2002,
+        ["communicationKeyPhrase"] = "the KEY phrase of ENABLE and DISABLE, " + Removed2002 + " and constant entries begin at 2002 (kb/Work PB4677)",
         ["paddingCharacterClause"] = "the SELECT PADDING CHARACTER clause, obsolete at 2002 and absent from ISO 2014 and 2023 "
             + "(COBOL0903 / COBOL0902); its operand is never bound, so a golden that writes a constant-name there would "
             + "witness the parse alone",

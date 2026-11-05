@@ -60,9 +60,13 @@ public sealed class DataClausePlacementDriftTests
             else
                 Assert.Equal(DataClauseKind.None, rule.Excluded);
             Assert.Equal(rule.Kind is ClausePlacementKind.NotAtLevel, rule.Levels is { Count: > 0 });
-            if (rule.Kind is not ClausePlacementKind.Residence)
+            if (rule.Kind is ClausePlacementKind.Residence)
             {
-                Assert.Equal(EntrySections.All, rule.Sections);
+                Assert.NotEqual(EntrySections.None, rule.Sections);   // the row lists the sections its sentence lists
+            }
+            else
+            {
+                Assert.Equal(EntrySections.None, rule.Sections);
                 Assert.Null(rule.ResidenceLevels);   // an admitted-level set means something only to a Residence row
             }
         }

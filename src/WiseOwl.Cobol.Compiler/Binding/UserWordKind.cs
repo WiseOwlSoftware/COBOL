@@ -17,6 +17,8 @@ namespace WiseOwl.Cobol.Binding;
 public enum UserWordKind
 {
     AlphabetName,
+    /// <summary>A cd-name (ISO/IEC 1989:2002 8.3.1.1.1.2): no 2023 type, since the communication facility left the standard at 2014.</summary>
+    CdName,
     ClassName,
     CompilationVariableName,
     ConditionName,

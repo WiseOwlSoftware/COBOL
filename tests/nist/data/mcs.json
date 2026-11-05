@@ -1,0 +1,137 @@
+{
+ "queues": [
+  {
+   "name": "CCVSQ1",
+   "key": "CCVSKEY1",
+   "messages": [
+    {
+     "segments": [
+      "THE FIRST MESSAGE IN THE QUEUE"
+     ],
+     "source": "CCVST1"
+    },
+    {
+     "segments": [
+      "KILL THE LOGGING PROGRAM"
+     ],
+     "source": "CCVST1"
+    }
+   ]
+  },
+  {
+   "name": "CCVSQ2",
+   "key": "CCVSKEY3"
+  },
+  {
+   "name": "CCVSQ3",
+   "key": "CCVSKEY1",
+   "subQueues": [
+    {
+     "name": "SUBP",
+     "subQueues": [
+      {
+       "name": "SUBP",
+       "subQueues": [
+        {
+         "name": "SUBP",
+         "messages": [
+          "PPPP MESSAGE 01",
+          "PPPP MESSAGE 02",
+          "PPPP MESSAGE 03",
+          "PPPP MESSAGE 04",
+          "PPPP MESSAGE 05",
+          "PPPP MESSAGE 06",
+          "PPPP MESSAGE 07",
+          "PPPP MESSAGE 08",
+          "PPPP MESSAGE 09",
+          "PPPP MESSAGE 10"
+         ]
+        },
+        {
+         "name": "SUBS",
+         "messages": [
+          "PPPS MESSAGE 01",
+          "PPPS MESSAGE 02",
+          "PPPS MESSAGE 03",
+          "PPPS MESSAGE 04",
+          "PPPS MESSAGE 05",
+          "PPPS MESSAGE 06",
+          "PPPS MESSAGE 07",
+          "PPPS MESSAGE 08",
+          "PPPS MESSAGE 09",
+          "PPPS MESSAGE 10"
+         ]
+        }
+       ]
+      },
+      {
+       "name": "SUBS",
+       "subQueues": [
+        {
+         "name": "SUBP",
+         "messages": [
+          "PPSP MESSAGE 01",
+          "PPSP MESSAGE 02",
+          "PPSP MESSAGE 03",
+          "PPSP MESSAGE 04",
+          "PPSP MESSAGE 05",
+          "PPSP MESSAGE 06",
+          "PPSP MESSAGE 07",
+          "PPSP MESSAGE 08",
+          "PPSP MESSAGE 09",
+          "PPSP MESSAGE 10"
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "SUBS",
+     "subQueues": [
+      {
+       "name": "SUBP",
+       "subQueues": [
+        {
+         "name": "SUBP",
+         "messages": [
+          "PSPP MESSAGE 01",
+          "PSPP MESSAGE 02",
+          "PSPP MESSAGE 03",
+          "PSPP MESSAGE 04",
+          "PSPP MESSAGE 05",
+          "PSPP MESSAGE 06",
+          "PSPP MESSAGE 07",
+          "PSPP MESSAGE 08",
+          "PSPP MESSAGE 09",
+          "PSPP MESSAGE 10"
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "destinations": [
+  {
+   "name": "CCVSD1",
+   "key": "CCVSKEY2"
+  },
+  {
+   "name": "CCVSD2",
+   "key": "CCVSKEY4"
+  }
+ ],
+ "sources": [
+  {
+   "name": "CCVST1",
+   "key": "CCVSKEY1"
+  },
+  {
+   "name": "CCVST2",
+   "key": "CCVSKEY1"
+  }
+ ]
+}

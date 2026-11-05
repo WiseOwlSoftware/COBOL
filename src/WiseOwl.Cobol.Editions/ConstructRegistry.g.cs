@@ -129,6 +129,8 @@ public static partial class ConstructRegistry
         new("memory-size-removed-2002", "the MEMORY SIZE clause (OBJECT-COMPUTER)", 85, 2002, null, "COBOL0902", "obsolete '85 element deleted by ISO 2002; VCR Table 7"),
         new("segment-limit-removed-2002", "the SEGMENT-LIMIT clause (OBJECT-COMPUTER)", 85, 2002, null, "COBOL0902", "segmentation deleted by ISO 2002; VCR Table 7"),
         new("debugging-mode-removed-2014", "the WITH DEBUGGING MODE clause (SOURCE-COMPUTER)", 85, 2014, 2002, "COBOL0902", "the '85 debug module's switch; obsolete 2002, removed 2014; VCR Table 7 row 7.9"),
+        new("communication-facility-removed-2014", "the communication facility", 85, 2014, 2002, "COBOL0902", "ISO/IEC 1989:2002 Annex A (optional, obsolete, to be deleted from the next revision); absent from the 2014 FCD and from ISO 2023; VCR Table 7"),
+        new("communication-key-phrase-removed-2002", "the KEY phrase of the ENABLE and DISABLE statements", 85, 2002, null, "COBOL0902", "ISO/IEC 1989:2002 A.2.2.1, A.2.3.1 (no KEY phrase); CCVS-85 CM303M (obsolete at 85); VCR Table 7"),
         new("identification-comments-removed-2002", "an identification comment paragraph (AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY)", 85, 2002, null, "COBOL0902", "the five obsolete '85 comment paragraphs deleted by ISO 2002; one row, paragraph named per site; VCR Table 7"),
         new("remarks-removed-2002", "the REMARKS paragraph", 85, 2002, null, "COBOL0902", "'74 carryover accepted at 85 for CCVS (never flagged there); absent from ISO 2002+; VCR Table 7"),
         new("stop-literal-removed-2002", "the STOP literal statement", 85, 2002, null, "COBOL0902", "X3.23-1985 Format 2, deleted by ISO 2002 (§14.9.42 has no literal form)"),

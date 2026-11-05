@@ -141,6 +141,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             Configuration = State.Configuration.Facts(),
             Forest = State.Forest,
             Files = State.Files,
+            Communication = State.Communication,
             StorageTier = State.StorageTier,
             Reports = State.Reports,
             UnitChecking = State.UnitChecking,
@@ -218,6 +219,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// extract): binds the RD entries into <see cref="DataBindState.Reports"/>, resolves them after the data division is built, and
     /// answers the report-item refusal (ISO §13.8.6.2.3) every other section's name lookup asks.</summary>
     internal ReportSectionBinder ReportSection => field ??= new(this, State.Reports);
+
+    /// <summary>The communication section (ISO/IEC 1989:2002 Annex A.1; kb/Work PB4677).</summary>
+    internal CommunicationSectionBinder Communication => field ??= new(this);
 
     /// <summary>⛔ THE ONE TYPE-NAME LOOKUP, in the source element <paramref name="scope"/> names: a METHOD's own
     /// declaration first (kb/Work PB3192) — and none of its object's when the method declares the word as anything
@@ -565,6 +569,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // state on every activation — realized at emit, see LocalStorageRoots).
         if (program.dataDivision()?.localStorageSection() is { } ls)
             State.Forest.AddLocalStorageRoots(BindEntries(ls.dataDescriptionEntry(), _rootNames, EntrySection.LocalStorage));
+
+        // COMMUNICATION SECTION (ISO/IEC 1989:2002 Annex A.1; kb/Work PB4677): after LINKAGE in the printed order, though nothing depends on it.
+        Communication.BindSection(program, _rootNames);
 
         // LINKAGE SECTION roots + the PROCEDURE DIVISION header's USING/RETURNING formals (ISO §13.7 / §14.2.2;
         // INTERPROGRAM_DESIGN D1/D3 — bound into the same forest so every verb works unchanged).
@@ -1793,6 +1800,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Index a named item in the by-name multimap of the source element that owns its record
     /// (<see cref="NameScopeOf"/>: a METHOD's own, else <see cref="ForestSlice.ByName"/>; kb/Work PB3192) — COBOL allows duplicate
     /// names disambiguated only by qualification.</summary>
+    internal void RegisterImpliedName(DataItem item) => RegisterName(item);
+
     private void RegisterName(DataItem item)
     {
         RegisterIndexes(item);   // before the name test: a FILLER table's index-names are referenceable (PB919)
@@ -6084,10 +6093,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             // Data ancestors exhausted: the OUTERMOST remaining qualifier may be the file name — any file-name visible
             // here, a container's GLOBAL one included (VisibleFiles; kb/Work PB3557 review R2-1).
-            if (!State.VisibleFiles.TryGetValue(q, out var file)) return false;
             DataItem root = member;
             while (root.Parent is { } p) root = p;
-            return file.Records.Contains(root);
+            // A record of a communication description entry is qualified by its cd-name (ISO/IEC 1989:2002 8.4.1.1.1's file-cd-report-qualifier).
+            if (State.Communication.ByName.TryGetValue(q, out var cd)) return cd.Describes(root);
+            return State.VisibleFiles.TryGetValue(q, out var file) && file.Records.Contains(root);
         });
 
         static IEnumerable<string?> NamesFrom(DataItem? anc)

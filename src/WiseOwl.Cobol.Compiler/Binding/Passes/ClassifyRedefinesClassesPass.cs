@@ -242,6 +242,9 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                     var rule = cls.Members.Any(m => m.RedefinesKind is RedefinitionKind.SameRecordArea)
                         ? "a record-area SAME clause makes its files' records an implicit redefinition of one area "
                           + "(ISO §12.4.6.4.4 GR2)"
+                        : cls.Members.Any(m => m.RedefinesKind is RedefinitionKind.ImplicitCommunicationRecord)
+                        ? "the record description entries following a CD entry implicitly redefine its record area "
+                          + "(ISO/IEC 1989:2002 A.1.2.2)"
                         : "multiple level 1 entries of one FD or SD are implicit redefinitions of the same area "
                           + "(ISO §13.18.33.4 GR3)";
                     using var __ = binder.Edition.At(cls.Members.FirstOrDefault(m => m.RedefinesImplicitly) ?? cls.Canonical);

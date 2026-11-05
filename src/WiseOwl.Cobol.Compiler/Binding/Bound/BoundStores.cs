@@ -156,6 +156,8 @@ public static class BoundStores
         public StoreKind Visit(BoundStop n) => StoreKind.None;
         public StoreKind Visit(BoundStopLiteral n) => StoreKind.None;
         public StoreKind Visit(BoundDisplay n) => StoreKind.None;
+        // The communication facility's statements read and write the CD's whole area, and RECEIVE keeps the receiving item's unfilled positions (kb/Work PB4677).
+        public StoreKind Visit(BoundCommunicationStatement n) => StoreOrKids(Hit(n.Area) || Hit(n.Into), StoreKind.ReadWrite, n.NoData, n.WithData);
         public StoreKind Visit(BoundGoTo n) => StoreKind.None;
         public StoreKind Visit(BoundGoToDepending n) => StoreKind.None;
         public StoreKind Visit(BoundExitParagraph n) => StoreKind.None;

@@ -128,6 +128,22 @@ public abstract class CobolParserCoreBase : Parser
     /// a predicate steers prediction rather than throwing (kb/Work PB829, the dynamic-length-structure-clause).</summary>
     protected bool wordAhead(string word) => Word(TokenStream.LT(1), word);
 
+    /// <summary>The cd-names the communication sections parsed so far declare (kb/Work PB4677). A data division precedes its
+    /// procedure division, and an action never runs during prediction, so a name is here by the time a statement can name it.</summary>
+    private readonly HashSet<string> _communicationNames = new(StringComparer.Ordinal);
+
+    /// <summary>The action of the <c>cdName</c> rule: record the name it just matched.</summary>
+    protected void declareCommunicationName(IToken? name)
+    {
+        if (name?.Text is { } text) _communicationNames.Add(CobolNames.UpperFold(text));
+    }
+
+    /// <summary>Whether the word after the current token (SEND) is a declared cd-name, the one reading of <c>SEND x FROM y</c>
+    /// no parse alternative can make: it is ISO/IEC 1989:2002 A.2.6.1 Format 1 when x is a cd-name and the 2023 format
+    /// (§14.9.38.2) otherwise. A literal LEFT-EDGE predicate over LT(2), so ANTLR may evaluate it from an enclosing rule.</summary>
+    protected bool communicationNameFollows() =>
+        _communicationNames.Count > 0 && TokenStream.LT(2)?.Text is { } word && _communicationNames.Contains(CobolNames.UpperFold(word));
+
     /// <summary>X3.23-1985 <c>SEGMENT-LIMIT IS segment-number</c> — the word SEGMENT-LIMIT (kb/Work PB830).</summary>
     protected bool segmentLimitAhead() => Word(TokenStream.LT(1), "SEGMENT-LIMIT");
 
@@ -918,6 +934,7 @@ public abstract class CobolParserCoreBase : Parser
         RestoreWordsReadAsNames();   // a new pass reads the source as written
         _freeGatedDeclarations = null;
         _declaredNames = null;
+        _communicationNames.Clear();
         _entryClauseProbe = null;
         _procedureReferences = null;
     }
@@ -1213,8 +1230,8 @@ public abstract class CobolParserCoreBase : Parser
     /// lapses, so "reserved here" is exactly "the statement exists here", and where the word is a user word the arm
     /// stays out of the way: <c>COMMIT.</c> at --std 2014 is a paragraph. That is the reason these two need it: the
     /// statement is the bare verb, so below 2023 no parse can tell it from a paragraph header.
-    /// <para>⛔ NOT FOR A VERB THAT TAKES OPERANDS (kb/Work PB374, PB3148). RECEIVE and SEND are reserved at COBOL-85
-    /// for the '85 communication module, user words at 2002/2014 and reserved again at 2023 for asynchronous
+    /// <para>⛔ NOT FOR A VERB THAT TAKES OPERANDS (kb/Work PB374, PB3148, PB4677). RECEIVE and SEND are reserved at COBOL-85
+    /// and 2002 for the communication facility, user words at 2014 and reserved again at 2023 for asynchronous
     /// messaging, so this predicate recognized the 2023 formats at --std 85; and VALIDATE, whose reservation is
     /// monotonic, turned <c>VALIDATE WS-A.</c> at --std 85 into a bare parse error where the edition gate should
     /// name its 2002 introduction. Their arms are the union grammar (<see cref="wordAhead"/>) and the edition pass

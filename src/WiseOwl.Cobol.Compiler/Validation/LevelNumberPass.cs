@@ -109,7 +109,8 @@ internal static class LevelNumberRules
         CobolParserCore.DataDescriptionEntryContext e => e.Parent switch
         {
             CobolParserCore.FileDescriptionEntryContext
-                or CobolParserCore.SortMergeDescriptionEntryContext => LevelNumberArm.FileRecord,
+                or CobolParserCore.SortMergeDescriptionEntryContext
+                or CobolParserCore.CommunicationDescriptionEntryContext => LevelNumberArm.FileRecord,   // ISO/IEC 1989:2002 13.16.31 SR2: "a CD, FD, or SD entry"
             CobolParserCore.WorkingStorageSectionContext
                 or CobolParserCore.LocalStorageSectionContext
                 or CobolParserCore.LinkageSectionContext => LevelNumberArm.NoncontiguousCapable,

@@ -41,6 +41,7 @@ internal sealed class UnitEmitters
     public SequentialIoEmitter SeqIo { get; }
     public SortEmitter Sort { get; }
     public TransactionEmitter Transactions { get; }
+    public CommunicationEmitter Communication { get; }
     public ReportWriterEmitter ReportWriter { get; }
     public ControlFlowEmitter ControlFlow { get; }
     public CallEmitter Call { get; }
@@ -75,12 +76,13 @@ internal sealed class UnitEmitters
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Places, Arith, Move);
         SeqIo = new SequentialIoEmitter(Ctx, Num, Places, dispatchState, ecState, KeyedIo, Arith, Ec, Move);
         Transactions = new TransactionEmitter(Ctx, Places, SeqIo);   // APPLY COMMIT, COMMIT, ROLLBACK (kb/Work PB3338)
+        Communication = new CommunicationEmitter(Ctx, Num, Places, SeqIo);   // the communication facility (kb/Work PB4677)
         Sort = new SortEmitter(Ctx, Places, dispatchState, SeqIo, Move, Arith, Ec);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)
         ReportWriter = new ReportWriterEmitter(Ctx, Num, Places, Move, Cond, dispatchState, ecState, Ec);
         ControlFlow = new ControlFlowEmitter(Ctx, Num, Cond, dispatchState, Set, Brackets);
         Call = new CallEmitter(Ctx, Num, ecState, callState, Ec, Move, dispatchState, Ptr, Brackets);
         Statements = new StatementEmitter(this, oo, dispatchState);
-        Dispatch = new DispatchEmitter(Ctx, dispatchState, ecState, AlterSwitch, ReportWriter, SeqIo, Ec, Statements, Transactions);
+        Dispatch = new DispatchEmitter(Ctx, dispatchState, ecState, AlterSwitch, ReportWriter, SeqIo, Ec, Statements, Transactions, Communication);
 
         // The cyclic edges (statement lists nest arbitrarily inside verb phrases; EcEmitChecked re-enters
         // EmitStatement; KeyedIo consumes SequentialIo's file-I/O common services although SeqIo's ctor
@@ -94,6 +96,7 @@ internal sealed class UnitEmitters
         KeyedIo.SeqIo = SeqIo;
         SeqIo.Statements = Statements;
         Sort.Statements = Statements;
+        Communication.Statements = Statements;
         TableHold.Statements = Statements;
         ControlFlow.Statements = Statements;
         ControlFlow.Ec = Ec;   // CA36: SEARCH with EC-RANGE checking + no AT END dispatches via EcEmitter.EcDispatchExpr

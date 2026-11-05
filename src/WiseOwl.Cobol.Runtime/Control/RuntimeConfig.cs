@@ -104,6 +104,16 @@ public static class RuntimeConfig
             "an invariant-culture date-time, optionally with a UTC offset (\"2026-06-10T14:30:45.67\", \"…+02:30\"); unset = the system clock",
             typeof(SystemClock), "IO/Clock.cs"),
 
+        // ── the communication facility (Communication/MessageStore.cs — ISO/IEC 1989:2002 Annex A; kb/Work PB4677) ──
+        new(Communication.MessageStore.DirectoryVariable, "communication",
+            "the message control system's directory, which holds the user's definitions (mcs.json) and the MCS's state (docs/CONFORMANCE.md section 3.3)",
+            "a directory path; unset = the current directory",
+            typeof(Communication.MessageStore), "Communication/MessageStore.cs"),
+        new(Communication.MessageStore.ScheduledVariable, "communication",
+            "what the MCS scheduled the run unit for: the names a CD with the INITIAL clause holds before the first procedure division statement",
+            "a queue's levels separated by '/', or a terminal's name; unset = the run unit was not scheduled by the MCS, and the names are spaces",
+            typeof(Communication.MessageStore), "Communication/MessageStore.cs"),
+
         // ── file I-O (IO/FileRegistry.cs — the §14.9.27.4 GR10 / A.1 item 129 key-check opt-out) ──
         new(FileRegistry.KeyCheckVariable, "files",
             "whether an INDEXED file's KEY TABLE is part of the §14.9.27.4 GR10 fixed-file-attribute set the OPEN statement validates (docs/CONFORMANCE.md DOC-A.1-129; GnuCOBOL's COB_KEYCHECK) — off means an OPEN whose declared keys disagree with the store header's succeeds instead of answering '39', and the organization, record type and record sizes are still validated",

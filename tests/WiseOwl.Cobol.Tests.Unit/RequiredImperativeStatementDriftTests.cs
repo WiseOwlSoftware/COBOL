@@ -354,6 +354,8 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
         ["evaluateWhenOther"] = ["EVALUATE X WHEN 3 DISPLAY \"T\" WHEN OTHER END-EVALUATE"],
         ["searchWhenClause"] = ["SEARCH R WHEN R (I) = 7 END-SEARCH"],
         ["searchAllWhenClause"] = ["SEARCH ALL R WHEN R (I) = 7 END-SEARCH"],
+        ["receiveNoDataPhrase"] = ["RECEIVE X MESSAGE INTO X NO DATA END-RECEIVE"],
+        ["receiveWithDataPhrase"] = ["RECEIVE X MESSAGE INTO X WITH DATA END-RECEIVE"],
     };
 
     /// <summary>⛔ THE TABLE ABOVE IS THE GRAMMAR'S, READ FROM THE ATN, NEVER A LIST SOMEONE REMEMBERED. Every parser

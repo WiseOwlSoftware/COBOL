@@ -1,0 +1,151 @@
+{
+  "queues": [
+    {
+      "name": "TOP",
+      "key": "TOPKEY",
+      "messages": [
+        {
+          "segments": [
+            "FIRSTSEG",
+            "SECONDSEG"
+          ],
+          "source": "SRC1",
+          "date": "260102",
+          "time": "03040506"
+        },
+        {
+          "segments": [
+            "LAST"
+          ],
+          "group": true,
+          "source": "SRC2",
+          "date": "260103",
+          "time": "07080910"
+        }
+      ],
+      "subQueues": [
+        {
+          "name": "BBB",
+          "messages": [
+            {
+              "segments": [
+                "IN-BBB"
+              ],
+              "source": "SRC1",
+              "date": "260104",
+              "time": "00000000"
+            }
+          ]
+        },
+        {
+          "name": "AAA",
+          "subQueues": [
+            {
+              "name": "X1",
+              "messages": [
+                {
+                  "segments": [
+                    "IN-AAA-X1"
+                  ],
+                  "source": "SRC1",
+                  "date": "260105",
+                  "time": "00000000"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SEGQ",
+      "messages": [
+        {
+          "segments": [
+            "AAAA",
+            "BBBB",
+            "CC"
+          ],
+          "source": "SRC1",
+          "date": "260106",
+          "time": "00000000"
+        }
+      ]
+    },
+    {
+      "name": "HOLD"
+    },
+    {
+      "name": "RECV",
+      "messages": [
+        "ABCD",
+        "EF",
+        "GHIJ"
+      ]
+    },
+    {
+      "name": "SHUT",
+      "enabled": false
+    }
+  ],
+  "sources": [
+    {
+      "name": "SRC1",
+      "key": "SRCKEY"
+    },
+    {
+      "name": "SRC2",
+      "enabled": false
+    },
+    {
+      "name": "LOOPSRC"
+    }
+  ],
+  "destinations": [
+    {
+      "name": "LOOP",
+      "deliverTo": "HOLD",
+      "source": "LOOPSRC",
+      "key": "DKEY"
+    },
+    {
+      "name": "TOSHUT",
+      "deliverTo": "SHUT",
+      "source": "LOOPSRC"
+    },
+    {
+      "name": "DOWN",
+      "enabled": false,
+      "capacity": 1,
+      "deliverTo": "HOLD",
+      "source": "LOOPSRC"
+    },
+    {
+      "name": "DOWN2",
+      "enabled": false
+    },
+    {
+      "name": "DEV"
+    }
+  ],
+  "terminals": [
+    {
+      "name": "TERM1",
+      "key": "TKEY",
+      "messages": [
+        {
+          "segments": [
+            "FROM-TERM"
+          ],
+          "source": "TERM1",
+          "date": "260107",
+          "time": "11121314"
+        }
+      ]
+    },
+    {
+      "name": "TERM2",
+      "enabled": false
+    }
+  ]
+}

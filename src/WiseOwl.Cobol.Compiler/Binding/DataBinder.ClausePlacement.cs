@@ -27,7 +27,9 @@ internal enum ClausePlacementKind
 }
 
 /// <summary>The sections a <see cref="ClausePlacementKind.Residence"/> rule admits, one bit per
-/// <see cref="EntrySection"/>.</summary>
+/// <see cref="EntrySection"/>. ⛔ THERE IS NO "ALL": a residence sentence lists its sections, the row lists the same ones, and a
+/// section added later is refused by every row until a sentence admits it. An `All` widened the GLOBAL row silently when the communication
+/// section arrived (kb/Work PB4677).</summary>
 [Flags]
 internal enum EntrySections
 {
@@ -36,7 +38,7 @@ internal enum EntrySections
     LocalStorage = 1 << (int)EntrySection.LocalStorage,
     Linkage = 1 << (int)EntrySection.Linkage,
     File = 1 << (int)EntrySection.File,
-    All = WorkingStorage | LocalStorage | Linkage | File,
+    Communication = 1 << (int)EntrySection.Communication,
 }
 
 /// <summary>One placement rule, transcribed from its sentence. <see cref="Clauses"/> is the SUBJECT set (every
@@ -50,7 +52,7 @@ internal enum EntrySections
 /// number of such data description entries shall be 1 or 77").</summary>
 internal sealed record ClausePlacementRule(
     DataClauseKind Clauses, ClausePlacementKind Kind, string Rule, string Sentence, DiagnosticDescriptor Code,
-    DataClauseKind Excluded = DataClauseKind.None, EntrySections Sections = EntrySections.All,
+    DataClauseKind Excluded = DataClauseKind.None, EntrySections Sections = EntrySections.None,
     bool TypeDeclarationInAnySection = false, IReadOnlyList<int>? Levels = null,
     IReadOnlyList<int>? ResidenceLevels = null)
 {
@@ -124,9 +126,10 @@ internal static class ClausePlacementRules
             DiagnosticCatalog.DataClausePlacement, Excluded: DataClauseKind.Redefines | DataClauseKind.Based),
         // §13.16.3 SR6 with §13.18.27.3 SR1 b) — kb/Work PB518.
         new(DataClauseKind.Global, ClausePlacementKind.Residence, "§13.16.3 SR6 / §13.18.27.3 SR1 b)",
-            "The CONSTANT RECORD and GLOBAL clauses may be specified only in data description entries whose "
-            + "level-number is 1.",
-            DiagnosticCatalog.DataClausePlacement, Sections: EntrySections.All),
+            "A data description entry whose level-number is 1 that is specified in the file, working-storage, "
+            + "local-storage, or linkage section.",
+            DiagnosticCatalog.DataClausePlacement,
+            Sections: EntrySections.File | EntrySections.WorkingStorage | EntrySections.LocalStorage | EntrySections.Linkage),
         // §13.18.22.3 SR1 — PB518's sibling: the registration scan's `externalLegal` filter was its only site.
         new(DataClauseKind.External, ClausePlacementKind.Residence, "§13.18.22.3 SR1",
             "The EXTERNAL clause may be specified only in file description entries, in level 1 data description "
@@ -321,6 +324,7 @@ public sealed partial class DataBinder
         EntrySection.LocalStorage => "local-storage section",
         EntrySection.Linkage => "linkage section",
         EntrySection.File => "file section",
+        EntrySection.Communication => "communication section",
         _ => section.ToString(),
     };
 

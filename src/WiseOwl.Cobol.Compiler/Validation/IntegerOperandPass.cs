@@ -154,6 +154,8 @@ internal static class IntegerOperandRules
         // run-time VALUE; no syntax rule otherwise-specifies integer-1, so the §5.5 default holds.
         [typeof(Core.PerformTimesContext)] = Nonzero,
         [typeof(Core.WriteBeforeAfterContext)] = All(IntegerSlot.Zero("ISO §14.9.51.3 SR15")),
+        [typeof(Core.SendAdvancingPhraseContext)] = All(IntegerSlot.Zero("ISO/IEC 1989:2002 A.2.6.2 SR6")),
+        [typeof(Core.CdClauseContext)] = All(IntegerSlot.Default),   // DESTINATION TABLE OCCURS integer-1 (ISO/IEC 1989:2002 A.1.2.1)
     };
 
     /// <summary>§13.18.43.2's three formats: Format 1 <c>RECORD CONTAINS integer-1</c>; Format 2 <c>RECORD IS
@@ -199,6 +201,8 @@ internal static class IntegerOperandRules
     /// is red until it is either fixed or argued here.</summary>
     internal static readonly IReadOnlyDictionary<Type, string> LiteralOnlySlots = new Dictionary<Type, string>
     {
+        [typeof(Core.SendAdvancingPhraseContext)] =
+            "the phrase's identifier-3 alternative is a dataReference, which reads a constant-name (WRITE's writeBeforeAfter is the same shape)",
         [typeof(Core.MemorySizeClauseContext)] = Removed85,
         [typeof(Core.SegmentLimitClauseContext)] = Removed85,
         [typeof(Core.MultipleFileTapeEntryContext)] = Removed85,

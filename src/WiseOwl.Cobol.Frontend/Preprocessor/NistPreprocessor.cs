@@ -23,6 +23,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 ///   XXXXX068     — OBJECT-COMPUTER MEMORY SIZE value (obsolete clause)
 ///   XXXXX069     — Implementor's own ADDITIONAL FILE DESCRIPTION clause — DELETED (kb/Work PB829)
 ///   XXXXX081     — Non-COBOL characters string value
+///   XXXXX030-043 — The MCS's symbolic names and passwords of the CM module (kb/Work PB4677; tests/nist/data/mcs.json defines them)
 ///   XXXXX082     — SOURCE-COMPUTER name
 ///   XXXXX083     — OBJECT-COMPUTER name
 ///   XXXXX084     — Implementor-specific label clause value (LABEL RECORDS)
@@ -142,6 +143,23 @@ public static class NistPreprocessor
         //       the per-program isolation those absent-file status tests depend on.
         source = RewriteRegions(source, new Regex(@"(?m)^ *SELECT\b(?:\*>[^\n]*\n|[^.])*\."),
             region => MapSelectDataFiles(region, testName));
+
+        // ── The CM module's message control system (ISO/IEC 1989:2002 E.5.1: the names are "defined by the user to the message control
+        //    system ... prior to the execution of the run unit"; kb/Work PB4677). tests/nist/data/mcs.json defines them. ──
+        source = Literal(source, "XXXXX030", "\"CCVSQ1\"");      // the queue
+        source = Literal(source, "XXXXX031", "\"CCVSKEY1\"");    // its password
+        source = Literal(source, "XXXXX032", "\"CCVSD1\"");      // the destination
+        source = Literal(source, "XXXXX033", "\"CCVSKEY2\"");    // its password
+        source = Literal(source, "XXXXX034", "\"CCVSQ2\"");      // the second queue, 54 positions with its levels and date
+        source = Literal(source, "XXXXX035", "\"CCVSD2\"");      // the second destination
+        source = Literal(source, "XXXXX036", "\"CCVSKEY3\"");    // the second queue's password
+        source = Literal(source, "XXXXX037", "\"CCVSKEY4\"");    // the second destination's password
+        source = Literal(source, "XXXXX038", "\"CCVSQ3      SUBP        SUBP        SUBP        \"");   // CM105M's queue series PPPP
+        source = Literal(source, "XXXXX039", "\"CCVSQ3      SUBP        SUBP        SUBS        \"");   // PPPS
+        source = Literal(source, "XXXXX040", "\"CCVSQ3      SUBP        SUBS        SUBP        \"");   // PPSP
+        source = Literal(source, "XXXXX041", "\"CCVSQ3      SUBS        SUBP        SUBP        \"");   // PSPP
+        source = Literal(source, "XXXXX042", "\"CCVST1\"");      // CM202M's first terminal
+        source = Literal(source, "XXXXX043", "\"CCVST2\"");      // its second
 
         // ── SPECIAL-NAMES ──
 
