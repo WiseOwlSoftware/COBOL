@@ -2256,11 +2256,12 @@ public static class DiagnosticCatalog
         "ISO §13.18.63.3 SR4");
     public static readonly DiagnosticDescriptor ValueNumericEditedOversize = new(
         "COBOL1570", "value-numeric-edited-oversize", EditionSeverity.Error,
-        "At COBOL-2023 an alphanumeric edited-image literal in the VALUE clause of a numeric-edited item is checked "
-        + "against the PICTURE size (ISO §13.18.63.3 SR4/SR5) — a literal longer than the edited width is rejected "
-        + "(before 2023 it was stored truncated). Under --permissive the check is a warning (a removed-capability "
-        + "posture); the national/alphanumeric class mismatch is the separate COBOL0898 check.",
-        "ISO §13.18.63.3 SR4/SR5 / Annex E.2 item 27 (VCR row 34)");
+        "An alphanumeric edited-image literal in the VALUE clause of a numeric-edited item is checked against the "
+        + "PICTURE size, at every edition (ISO §13.18.63.3 SR4: \"Alphanumeric literals in the VALUE clause of an "
+        + "elementary item shall not exceed the size indicated by an explicit PICTURE clause\"; a numeric-edited "
+        + "item of usage DISPLAY is of class alphanumeric) — a literal longer than the edited width is rejected. "
+        + "The national/alphanumeric class mismatch is the separate COBOL0898 check.",
+        "ISO §13.18.63.3 SR4 (VCR row 34)");
     public static readonly DiagnosticDescriptor DebugSubFacilityStaged = new(
         "COBOL1571", "debug-sub-facility-staged", EditionSeverity.Error,
         "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES trigger leg + the DEBUG-ITEM special "

@@ -8,7 +8,7 @@
       *> definition, a function definition, a function-prototype definition, an interface definition, a program
       *> prototype definition, or a program definition that is not contained within another program." Here it
       *> is written in a CONTAINED program, even with the one convention provided (COBOL), so the placement rule
-      *> alone refuses it: COBOL2385 (kb/Work PB232). Below 2014 the clause does not exist (COBOL0900).
+      *> alone refuses it: COBOL2385 (kb/Work PB232). Below 2014 the COBOL alternative is itself a later edition's (COBOL0900, kb/Work PB4611).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W56ECCN.
        PROCEDURE DIVISION.

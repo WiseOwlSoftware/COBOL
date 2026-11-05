@@ -10,8 +10,8 @@
       *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on 1d949007): this program compiled CLEAN and `DISPLAY GZ`
       *> printed ABCD - the literal SILENTLY TRUNCATED, with no diagnostic.  The rule is a "shall", so the only
       *> conforming response is a compile-time rejection; a truncating store is the answer to a question the
-      *> standard does not ask.  Not dialect-gated: SR4 carries this sentence at every edition, and Annex E.2
-      *> item 27's COBOL-2023 change is scoped to NUMERIC-EDITED items (COBOL1570), not to this one.
+      *> standard does not ask.  Not dialect-gated: SR4 carries this sentence at every edition, and so does its NUMERIC-EDITED sibling arm (COBOL1570, kb/Work PB4610); Annex E.2
+      *> item 27 is no size change.
       *> The conforming boundary - a literal of EXACTLY the group's size, and the `ALL "literal"` form that
       *> 8.3.3.6.4 GR2 repeats and truncates BY RULE - is pinned by 85/pb206_value_size_alphanumeric.
        IDENTIFICATION DIVISION.
